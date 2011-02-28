@@ -1,0 +1,9 @@
+digraph genegraph {
+node0[pos="3.3333333333333335,1.6666666666666667", label="(10.0,5.0)", pin=true]
+node1[pos="0.0,3.3333333333333335", label="(0.0,10.0)", pin=true]
+node2[pos="6.666666666666667,3.3333333333333335", label="(20.0,10.0)", pin=true]
+node0 -> node2[label="11.2"]
+node1 -> node0[label="11.2"]
+node3[pos="3.3333333333333335,5.0", label="(10.0,15.0)", pin=true]
+node1 -> node3[label="11.2"]
+}
