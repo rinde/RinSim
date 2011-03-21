@@ -259,7 +259,7 @@ public class MapFixer {
 	public static void main(String[] args) {
 		Multimap<Point, Point> graph;
 
-		String name = "berlin";
+		String name = "leuven";
 
 		//graph = OSM.parse("/Users/rindevanlon/Downloads/belgium.osm");
 		//graph = OSM.parse("/Users/rindevanlon/Downloads/corse.osm");
@@ -270,13 +270,20 @@ public class MapFixer {
 		//graph = OSM.parse("/Users/rindevanlon/Downloads/berlin.osm");
 		// graph = OSM.parse("/Users/rindevanlon/Downloads/netherlands.osm.highway");
 
-		graph = OSM.parse("/Users/rindevanlon/Downloads/" + name + ".osm");
-		//graph = OSM.parse("../RinSim/files/maps/leuven.osm.xml");
+		//graph = OSM.parse("/Users/rindevanlon/Downloads/" + name + ".osm");
+		graph = OSM.parse("../RinSim/files/maps/leuven.osm.xml");
 		System.out.println("loaded map of " + name);
 		graph = MapFixer.connect2(graph);
 		//graph = MapFixer.hack(graph);
 		System.out.println("fixed map of " + name);
 		DotUtils.saveToDot(graph, "files/maps/dot/" + name);
 		System.out.println("converted map of " + name + " to .dot");
+
+		//		(1098696.6105863547,1.334706587029543E7) from (1099936.0,1.3346904333333334E7)
+
+		Point p1 = new Point(1098696.6105863547, 1.334706587029543E7);
+		Point p2 = new Point(1099936.0, 1.3346904333333334E7);
+		PathFinder.shortestDistance(graph, p2, p1);
+
 	}
 }

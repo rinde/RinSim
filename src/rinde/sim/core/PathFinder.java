@@ -119,6 +119,14 @@ public class PathFinder {
 		return closest;
 	}
 
+	public static double length(List<Point> path) {
+		double dist = 0;
+		for (int i = 1; i < path.size(); i++) {
+			dist += Point.distance(path.get(i - 1), path.get(i));
+		}
+		return dist;
+	}
+
 	interface Heuristic {
 		public abstract double calculateHeuristic(double distance);
 

@@ -39,6 +39,7 @@ public class RandomWalkAgent implements TickListener {
 			// follow current path
 			rs.followPath(this, path, 5);
 		}
+
 	}
 
 	private Point findRandomNode() {
