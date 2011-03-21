@@ -209,6 +209,20 @@ public class View implements PaintListener, SelectionListener, ControlListener, 
 		item.setAccelerator(SWT.MOD1 + 'P');
 		item.addListener(SWT.Selection, playPauseListener);
 
+		new MenuItem(submenu, SWT.SEPARATOR);
+		final MenuItem nextItem = new MenuItem(submenu, SWT.PUSH);
+		nextItem.setText("Next tick");
+		nextItem.setAccelerator(SWT.MOD1 + ']');
+		nextItem.addListener(SWT.Selection, new Listener() {
+			@Override
+			public void handleEvent(Event event) {
+				if (simulator.isPlaying()) {
+					simulator.stop();
+				}
+				simulator.tick();
+			}
+		});
+
 		MenuItem viewItem = new MenuItem(bar, SWT.CASCADE);
 		viewItem.setText("View");
 

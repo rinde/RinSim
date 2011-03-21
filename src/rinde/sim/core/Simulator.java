@@ -91,7 +91,7 @@ public class Simulator<T> {
 		dispatcher.dispatchEvent(new Event(EventTypes.STOPPED, this));
 	}
 
-	protected void tick() {
+	public void tick() {
 		// using a copy to avoid concurrent modifications of this set
 		// this also means that adding or removing a TickListener is 
 		// effectively executed after a 'tick' 
@@ -130,5 +130,9 @@ public class Simulator<T> {
 	 */
 	public boolean isPlaying() {
 		return isPlaying;
+	}
+
+	public Set<TickListener> getTickListeners() {
+		return Collections.unmodifiableSet(tickListeners);
 	}
 }

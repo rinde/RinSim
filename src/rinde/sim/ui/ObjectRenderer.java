@@ -35,7 +35,7 @@ public class ObjectRenderer implements Renderer {
 
 	@Override
 	public void render(GC gc, double xOrigin, double yOrigin, double minX, double minY, double m) {
-		final int radius = 2;
+		final int radius = 4;
 		final int outerRadius = 10;
 		gc.setBackground(new Color(gc.getDevice(), 255, 0, 0));
 

@@ -183,7 +183,7 @@ public class RoadStructure {
 	 */
 	public Point getPosition(Object obj) {
 		assert obj != null : "object cannot be null";
-		assert objLocs.containsKey(obj) : "object must have a location in RoadStructure";
+		assert objLocs.containsKey(obj) : "object must have a location in RoadStructure " + obj;
 		return objLocs.get(obj).getPosition();
 	}
 
