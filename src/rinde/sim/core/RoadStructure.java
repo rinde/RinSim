@@ -194,7 +194,7 @@ public class RoadStructure {
 	}
 
 	public List<Point> getShortestPathTo(Object from, Object to) {
-		assert objLocs.containsKey(to);
+		assert objLocs.containsKey(to) : " to object should be in RoadStructure. " + to;
 		Location l = objLocs.get(to);
 		List<Point> path = getShortestPathTo(from, l.from);
 		if (l.to != null) {
