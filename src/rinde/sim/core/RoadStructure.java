@@ -5,7 +5,7 @@ package rinde.sim.core;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -32,7 +32,7 @@ public class RoadStructure {
 
 	public RoadStructure() {
 		struc = HashMultimap.create();
-		objLocs = Collections.synchronizedMap(new HashMap<Object, Location>());
+		objLocs = Collections.synchronizedMap(new LinkedHashMap<Object, Location>());
 	}
 
 	public void addObjectAt(Object newObj, Point pos) {
@@ -93,7 +93,7 @@ public class RoadStructure {
 
 	public Map<Object, Point> getObjectsAndPositions() {
 		synchronized (objLocs) {
-			Map<Object, Point> map = new HashMap<Object, Point>();
+			Map<Object, Point> map = new LinkedHashMap<Object, Point>();
 			for (Entry<Object, Location> entry : objLocs.entrySet()) {
 				map.put(entry.getKey(), entry.getValue().getPosition());
 			}
