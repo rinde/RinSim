@@ -3,7 +3,8 @@ package rinde.sim.examples.rwalk;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
-import java.util.Random;
+
+import org.apache.commons.math.random.RandomGenerator;
 
 import rinde.sim.core.PathFinder;
 import rinde.sim.core.Point;
@@ -18,9 +19,9 @@ public class RandomWalkAgent implements TickListener {
 	protected final RoadStructure rs;
 	protected String currentPackage;
 	protected Queue<Point> path;
-	protected final Random rnd;
+	protected final RandomGenerator rnd;
 
-	public RandomWalkAgent(RoadStructure rs, Random rnd) {
+	public RandomWalkAgent(RoadStructure rs, RandomGenerator rnd) {
 		this.rs = rs;
 		this.rnd = rnd;
 		currentPackage = "dummy package " + toString();

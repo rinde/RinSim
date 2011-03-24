@@ -5,8 +5,7 @@ package rinde.sim.core;
 
 import static org.junit.Assert.assertEquals;
 
-import java.util.Random;
-
+import org.apache.commons.math.random.MersenneTwister;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -20,7 +19,7 @@ public class SimulatorTest {
 
 	@Before
 	public void setUp() {
-		simulator = new Simulator<Object>(null, new Random(123), 100L);
+		simulator = new Simulator<Object>(null, new MersenneTwister(123), 100L);
 	}
 
 	@Test

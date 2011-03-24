@@ -7,8 +7,9 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Random;
 import java.util.Set;
+
+import org.apache.commons.math.random.RandomGenerator;
 
 import rinde.sim.event.Event;
 import rinde.sim.event.EventDispatcher;
@@ -28,7 +29,7 @@ public class Simulator<T> {
 	protected List<TickListener> afterTickListeners;
 
 	public final T model;
-	public final Random rand;
+	public final RandomGenerator rand;
 	public final Events events;
 	protected final EventDispatcher dispatcher;
 	protected final long timeStep;
@@ -41,7 +42,7 @@ public class Simulator<T> {
 	 * @param timeStep The time that passes each tick. This can be in any unit
 	 *            the programmer prefers.
 	 */
-	public Simulator(T model, Random r, long timeStep) {
+	public Simulator(T model, RandomGenerator r, long timeStep) {
 		this.model = model;
 		this.timeStep = timeStep;
 		tickListeners = Collections.synchronizedSet(new LinkedHashSet<TickListener>());

@@ -6,8 +6,8 @@ package rinde.sim.examples.rwalk;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Random;
 
+import org.apache.commons.math.random.MersenneTwister;
 import org.eclipse.swt.graphics.RGB;
 
 import rinde.sim.core.Point;
@@ -25,7 +25,7 @@ public class RandomWalkExample {
 
 	public static void main(String[] args) throws Exception {
 		// create a new simulator, load map of Leuven
-		Simulator<RoadStructure> simulator = new Simulator<RoadStructure>(new RoadStructure(), new Random(123), 1000);
+		Simulator<RoadStructure> simulator = new Simulator<RoadStructure>(new RoadStructure(), new MersenneTwister(123), 1000);
 		simulator.model.addGraph(DotUtils.parseDot("files/maps/dot/leuven.dot"));
 
 		// create 300 agents, on random locations
