@@ -144,11 +144,13 @@ public class OSM {
 				for (int i = 1; i < nodes.size(); i++) {
 					Point from = nodeMapping.get(nodes.get(i - 1));
 					Point to = nodeMapping.get(nodes.get(i));
-					if (!graph.containsEntry(from, to)) {
-						graph.put(from, to);
-					}
-					if (!oneWay && !graph.containsEntry(to, from)) {
-						graph.put(to, from);
+					if (from != null && to != null) {
+						if (!graph.containsEntry(from, to)) {
+							graph.put(from, to);
+						}
+						if (!oneWay && !graph.containsEntry(to, from)) {
+							graph.put(to, from);
+						}
 					}
 				}
 			}
