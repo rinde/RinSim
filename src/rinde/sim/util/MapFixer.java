@@ -50,7 +50,6 @@ public class MapFixer {
 		Point root = graph.keySet().iterator().next();
 		connected.add(root);
 		neighbors.addAll(graph.get(root));
-
 		fixCluster(newGraph, connected, neighbors, new HashSet<Point>());
 
 		Set<Point> unconnected;
@@ -91,17 +90,22 @@ public class MapFixer {
 		//		System.out.println(">> fixCluster");
 		while (!neighbors.isEmpty()) {
 			Point n = neighbors.iterator().next();
+			assert n != null;
 			//			System.out.println(n);
 			neighbors.remove(n);
 			// if this point is also in a other cluster, we don't have to check its neighbors
 			if (!otherClusters.contains(n)) {
 				for (Point b : newGraph.get(n)) {
-					if (!connected.contains(b) && !neighbors.contains(b)) {
+					if (b != null && !connected.contains(b) && !neighbors.contains(b)) {
+
 						neighbors.add(b);
 					}
 				}
 			}
 			if (!isConnectedWith(newGraph, n, connected)) {
+				assert n != null;
+				assert !connected.isEmpty();
+				assert !newGraph.isEmpty();
 				newGraph.put(n, findClosest(n, connected));// connect it
 			}
 			connected.add(n);
@@ -116,12 +120,14 @@ public class MapFixer {
 		double minDist = Double.POSITIVE_INFINITY;
 		Point closest = null;
 		for (Point p : set) {
+			assert p != null;
 			double dist = Point.distance(p, n);
 			if (dist < minDist) {
 				minDist = dist;
 				closest = p;
 			}
 		}
+		assert closest != null;
 		return closest;
 	}
 
@@ -259,7 +265,7 @@ public class MapFixer {
 	public static void main(String[] args) {
 		Multimap<Point, Point> graph;
 
-		String name = "leuven";
+		String name = "brussels";
 
 		//graph = OSM.parse("/Users/rindevanlon/Downloads/belgium.osm");
 		//graph = OSM.parse("/Users/rindevanlon/Downloads/corse.osm");
@@ -271,7 +277,7 @@ public class MapFixer {
 		// graph = OSM.parse("/Users/rindevanlon/Downloads/netherlands.osm.highway");
 
 		//graph = OSM.parse("/Users/rindevanlon/Downloads/" + name + ".osm");
-		graph = OSM.parse("../RinSim/files/maps/leuven.osm.xml");
+		graph = OSM.parse("../RinSim/files/maps/brussels.osm");
 		System.out.println("loaded map of " + name);
 		graph = MapFixer.connect2(graph);
 		//graph = MapFixer.hack(graph);
@@ -281,9 +287,9 @@ public class MapFixer {
 
 		//		(1098696.6105863547,1.334706587029543E7) from (1099936.0,1.3346904333333334E7)
 
-		Point p1 = new Point(1098696.6105863547, 1.334706587029543E7);
-		Point p2 = new Point(1099936.0, 1.3346904333333334E7);
-		PathFinder.shortestDistance(graph, p2, p1);
+		//		Point p1 = new Point(1098696.6105863547, 1.334706587029543E7);
+		//		Point p2 = new Point(1099936.0, 1.3346904333333334E7);
+		//		PathFinder.shortestDistance(graph, p2, p1);
 
 	}
 }
