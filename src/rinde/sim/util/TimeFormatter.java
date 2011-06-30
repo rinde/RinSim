@@ -1,5 +1,6 @@
 package rinde.sim.util;
 
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.TimeZone;
@@ -22,5 +23,24 @@ public class TimeFormatter {
 			day = "" + Math.round(ms / DAY);
 		}
 		return day + " " + dateFormat.format(new Date(ms));
+	}
+
+	public static String format(double ms) {
+		return format(Math.round(ms));
+	}
+
+	public static long parse(String time) {
+		try {
+			if (time.length() > 8) {
+				String[] parts = time.split(" ");
+				long ms = Integer.parseInt(parts[0]) * DAY;
+				ms += dateFormat.parse(parts[1]).getTime();
+				return ms;
+			}
+			return dateFormat.parse(time).getTime();
+		} catch (ParseException e) {
+			throw new RuntimeException(e);
+		}
+
 	}
 }
