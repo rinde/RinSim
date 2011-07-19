@@ -34,6 +34,9 @@ public class EventDispatcher {
 	}
 
 	public void dispatchEvent(Event e) {
+		if (!types.contains(e.eventType)) {
+			throw new IllegalArgumentException("Cannot dispatch an event of type " + e.eventType + " since it was not registered at this dispatcher.");
+		}
 		for (Listener l : listeners.get(e.eventType)) {
 			l.handleEvent(e);
 		}
@@ -48,27 +51,44 @@ public class EventDispatcher {
 	}
 
 	public void addListener(Listener l, Enum<?>... eventTypes) {
+		if (eventTypes.length == 0) {
+			throw new IllegalArgumentException("A listener has to listen to at least one event type.");
+		}
 		for (Enum<?> t : eventTypes) {
 			addListener(l, t);
 		}
 	}
 
+	public void removeListenerForAllTypes(Listener listener) {
+		// store keys in intermediate set to avoid concurrent modifications
+		Set<Enum<?>> keys = new HashSet<Enum<?>>(listeners.keySet());
+		for (Enum<?> eventType : keys) {
+			if (listeners.containsEntry(eventType, listener)) {
+				removeListener(listener, eventType);
+			}
+		}
+	}
+
 	public void removeListener(Listener l, Enum<?> eventType) {
 		if (containsListener(l, eventType)) {
-			listeners.remove(l, eventType);
+			listeners.remove(eventType, l);
 		} else {
 			throw new IllegalArgumentException("The listener " + l + " for the type " + eventType + " cannot be removed because it does not exist.");
 		}
 	}
 
 	public void removeListener(Listener l, Enum<?>... eventTypes) {
-		for (Enum<?> e : eventTypes) {
-			removeListener(l, e);
+		if (eventTypes.length == 0) {
+			removeListenerForAllTypes(l);
+		} else {
+			for (Enum<?> e : eventTypes) {
+				removeListener(l, e);
+			}
 		}
 	}
 
-	public boolean containsListener(Listener l, Enum<?> eventType) {
-		return listeners.containsEntry(l, eventType);
+	public boolean containsListener(Listener listener, Enum<?> eventType) {
+		return listeners.containsEntry(eventType, listener);
 	}
 
 	/**
