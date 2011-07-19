@@ -35,6 +35,13 @@ public class RoadStructure {
 		objLocs = Collections.synchronizedMap(new LinkedHashMap<Object, Location>());
 	}
 
+	/**
+	 * Removes all objects on this RoadStructure instance.
+	 */
+	public void clear() {
+		objLocs.clear();
+	}
+
 	public void addObjectAt(Object newObj, Point pos) {
 		if (!struc.containsKey(pos)) {
 			throw new IllegalArgumentException("Object must be initiated on a crossroad.");

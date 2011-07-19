@@ -119,6 +119,10 @@ public class Simulator<T> {
 		}
 	}
 
+	public void resetTime() {
+		time = 0L;
+	}
+
 	/**
 	 * Stops the simulation
 	 */

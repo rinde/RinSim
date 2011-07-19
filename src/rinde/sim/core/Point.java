@@ -37,6 +37,11 @@ public class Point {
 		return new Point(p1.x - p2.x, p1.y - p2.y);
 	}
 
+	public static Point parsePoint(String pointString) {
+		String[] parts = pointString.replaceAll("\\(|\\)", "").split(",");
+		return new Point(Double.parseDouble(parts[0]), Double.parseDouble(parts[1]));
+	}
+
 	@Override
 	public int hashCode() {
 		return new Double(x).hashCode() ^ new Double(y).hashCode();
