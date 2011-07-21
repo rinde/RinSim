@@ -1,4 +1,5 @@
 package rinde.graduation.util;
+
 /**
  * @author Rinde van Lon
  *         Created: Apr 28, 2010
@@ -10,6 +11,7 @@ import java.io.FilenameFilter;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -119,6 +121,14 @@ public class Util {
 			sum += d;
 		}
 		return sum / doubles.length;
+	}
+
+	public static double mean(Collection<Long> vals) {
+		long sum = 0;
+		for (Long l : vals) {
+			sum += l;
+		}
+		return sum / (double) vals.size();
 	}
 
 	public static int[] toIntArray(final List<Integer> intList) {
