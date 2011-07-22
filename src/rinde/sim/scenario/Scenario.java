@@ -91,22 +91,24 @@ public class Scenario {
 			List<SerializedScenarioEvent> events = new ArrayList<SerializedScenarioEvent>();
 
 			while ((line = r.readLine()) != null) {
-				String[] parts = line.split("\\|");
+				if (!line.startsWith("#")) {
+					String[] parts = line.split("\\|");
 
-				//				for (Class<?> c : classes) {
-				//					if (c.getName().equals(parts[0])) {
-				//						events.add((SerializedScenarioEvent) c.getConstructor(String[].class).newInstance((Object) parts));
-				//						break;
-				//					}
-				//				}
+					//				for (Class<?> c : classes) {
+					//					if (c.getName().equals(parts[0])) {
+					//						events.add((SerializedScenarioEvent) c.getConstructor(String[].class).newInstance((Object) parts));
+					//						break;
+					//					}
+					//				}
 
-				events.add((SerializedScenarioEvent) Class.forName(parts[0]).getConstructor(String[].class).newInstance((Object) parts));
+					events.add((SerializedScenarioEvent) Class.forName(parts[0]).getConstructor(String[].class).newInstance((Object) parts));
 
-				//				if (parts[0].equals("AddPackageEvent")) {
-				//					events.add(new AddPackageEvent(Long.parseLong(parts[1]), Point.parsePoint(parts[2]), Point.parsePoint(parts[3])));
-				//				} else if (parts[0].equals("AddTruckEvent")) {
-				//					events.add(new AddTruckEvent(Long.parseLong(parts[1]), Point.parsePoint(parts[2])));
-				//				}
+					//				if (parts[0].equals("AddPackageEvent")) {
+					//					events.add(new AddPackageEvent(Long.parseLong(parts[1]), Point.parsePoint(parts[2]), Point.parsePoint(parts[3])));
+					//				} else if (parts[0].equals("AddTruckEvent")) {
+					//					events.add(new AddTruckEvent(Long.parseLong(parts[1]), Point.parsePoint(parts[2])));
+					//				}
+				}
 			}
 			return new Scenario(events);
 		} catch (FileNotFoundException e) {
