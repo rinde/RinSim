@@ -119,6 +119,30 @@ public class PathFinder {
 		return closest;
 	}
 
+	public static Collection<Object> findObjectsWithinRadius(final Point position, final RoadStructure model, final double radius) {
+		return findObjectsWithinRadius(position, model, radius, Object.class);
+	}
+
+	@SuppressWarnings("unchecked")
+	public static <T> Collection<T> findObjectsWithinRadius(final Point position, final RoadStructure model, final double radius, final Class<T> type) {
+		return (Collection<T>) findObjectsWithinRadius(position, model, radius, new Predicate<Object>() {
+			@Override
+			public boolean apply(Object input) {
+				return type.isInstance(input);
+			}
+		});
+	}
+
+	public static Collection<Object> findObjectsWithinRadius(final Point position, final RoadStructure model, final double radius, Predicate<Object> predicate) {
+		Collection<Object> filtered = Collections2.filter(model.getObjects(), predicate);
+		return Collections2.filter(filtered, new Predicate<Object>() {
+			@Override
+			public boolean apply(Object input) {
+				return Point.distance(model.getPosition(input), position) < radius;
+			}
+		});
+	}
+
 	public static double length(List<Point> path) {
 		double dist = 0;
 		for (int i = 1; i < path.size(); i++) {
@@ -145,4 +169,5 @@ public class PathFinder {
 			return distance;
 		}
 	}
+
 }

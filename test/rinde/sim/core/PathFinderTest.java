@@ -6,6 +6,7 @@ package rinde.sim.core;
 import static java.util.Arrays.asList;
 import static org.junit.Assert.assertEquals;
 
+import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -22,6 +23,9 @@ public class PathFinderTest {
 
 	RoadStructure rs;
 	Point a, b, c, d, e, f, g;
+
+	String o1, o2, o3;
+	Long o4, o5, o6;
 
 	@Before
 	public void setUp() {
@@ -52,6 +56,21 @@ public class PathFinderTest {
 		rs.addConnection(f, g);
 
 		rs.addConnection(g, a);
+
+		o1 = "object1";
+		o2 = "object2";
+		o3 = "object3";
+		o4 = new Long(444);
+		o5 = new Long(555);
+		o6 = new Long(666);
+
+		rs.addObjectAt(o1, a);
+		rs.addObjectAt(o2, b);
+		rs.addObjectAt(o3, c);
+		rs.addObjectAt(o4, d);
+		rs.addObjectAt(o5, e);
+		rs.addObjectAt(o6, f);
+
 	}
 
 	@Test
@@ -125,5 +144,11 @@ public class PathFinderTest {
 			length += Point.distance(path.get(i - 1), path.get(i));
 		}
 		return length;
+	}
+
+	@Test
+	public void findObjectsWithinRadius() {
+		Collection<Object> objects = PathFinder.findObjectsWithinRadius(new Point(10, 10), rs, 15);
+		System.out.println(objects);
 	}
 }
