@@ -102,6 +102,16 @@ public class PathFinder {
 		return new LinkedList<Point>();
 	}
 
+	@SuppressWarnings("unchecked")
+	public static <T> T findClosestObject(Point pos, RoadStructure rs, final Class<T> type) {
+		return (T) findClosestObject(pos, rs, new Predicate<Object>() {
+			@Override
+			public boolean apply(Object input) {
+				return type.isInstance(input);
+			}
+		});
+	}
+
 	public static Object findClosestObject(Point pos, RoadStructure rs, Predicate<Object> predicate) {
 		Collection<Object> filtered = Collections2.filter(rs.getObjects(), predicate);
 
