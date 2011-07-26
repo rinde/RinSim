@@ -12,10 +12,10 @@ import java.util.Map.Entry;
 import java.util.Queue;
 import java.util.Set;
 
+import rinde.sim.core.graph.Graph;
+import rinde.sim.core.graph.Graphs;
+
 import com.google.common.base.Predicate;
-import com.google.common.collect.HashMultimap;
-import com.google.common.collect.Multimap;
-import com.google.common.collect.Multimaps;
 import com.google.common.collect.Sets;
 
 /**
@@ -24,32 +24,41 @@ import com.google.common.collect.Sets;
  */
 public class RoadStructure {
 
-	// mapping of object with their respective locations
-	private volatile Map<Object, Location> objLocs;
+	protected volatile Map<Object, Location> objLocs;
+	final Graph struc;
 
-	// contains vertices with outgoing connections
-	private final HashMultimap<Point, Point> struc;
-
-	public RoadStructure() {
-		struc = HashMultimap.create();
+	public RoadStructure(Graph struc) {
+		super();
+		this.struc = struc;
 		objLocs = Collections.synchronizedMap(new LinkedHashMap<Object, Location>());
 	}
 
+	public void addConnection(Point from, Point to) {
+		if (struc.hasConnection(from, to)) {
+			throw new IllegalArgumentException("Connection already exists.");
+		}
+		struc.addConnection(from, to);
+		assert struc.containsNode(from);
+	}
+
 	/**
-	 * Removes all objects on this RoadStructure instance.
+	 * Merges the specified graph into this graph.
+	 * @param other The specified graph.
 	 */
-	public void clear() {
-		objLocs.clear();
+	public void addGraph(Graph other) {
+		struc.merge(other);
 	}
 
 	public void addObjectAt(Object newObj, Point pos) {
-		if (!struc.containsKey(pos)) {
+		if (!struc.containsNode(pos)) {
 			throw new IllegalArgumentException("Object must be initiated on a crossroad.");
 		} else if (objLocs.containsKey(newObj)) {
 			throw new IllegalArgumentException("Object is already added.");
 		}
 		objLocs.put(newObj, new Location(pos, null, 0));
 	}
+
+	//	public abstract double followPath(Object object, Queue<Point> path, double distance);
 
 	public void addObjectAtSamePosition(Object newObj, Object existingObj) {
 		if (objLocs.containsKey(newObj)) {
@@ -60,52 +69,35 @@ public class RoadStructure {
 		objLocs.put(newObj, objLocs.get(existingObj));
 	}
 
-	public List<Point> getObjectPositions() {
-		List<Point> positions = new ArrayList<Point>();
-		for (Location l : objLocs.values()) {
-			positions.add(l.getPosition());
+	protected Location checkLocation(Location l) {
+		if (l.to == null && !struc.containsNode(l.from)) {
+			throw new IllegalStateException("Location points to non-existing vertex: " + l.from + ".");
+		} else if (l.to != null && !struc.hasConnection(l.from, l.to)) {
+			throw new IllegalStateException("Location points to non-existing connection: " + l.from + " >> " + l.to + ".");
 		}
-		return positions;
-	}
-
-	public void removeObject(Object o) {
-		objLocs.remove(o);
+		return l;
 	}
 
 	/**
-	 * @return A synchronized and unmodifiable set of the objects in the road
-	 *         structure.
+	 * Removes all objects on this RoadStructure instance.
 	 */
-	public Set<Object> getObjects() {
-		synchronized (objLocs) {
-			return Collections.unmodifiableSet(objLocs.keySet());
-		}
+	public void clear() {
+		objLocs.clear();
 	}
 
-	@SuppressWarnings("unchecked")
-	public <T> Set<T> getObjectsOfType(final Class<T> type) {
-		return (Set<T>) getObjects(new Predicate<Object>() {
-			@Override
-			public boolean apply(Object input) {
-				return input.getClass().equals(type);
-			}
-		});
+	public boolean containsObject(Object obj) {
+		return objLocs.containsKey(obj);
 	}
 
-	public Set<Object> getObjects(Predicate<Object> p) {
-		synchronized (objLocs) {
-			return Collections.unmodifiableSet(Sets.filter(objLocs.keySet(), p));
+	public boolean containsObjectAt(Object obj, Point p) {
+		if (containsObject(obj)) {
+			return objLocs.get(obj).getPosition().equals(p);
 		}
+		return false;
 	}
 
-	public Map<Object, Point> getObjectsAndPositions() {
-		synchronized (objLocs) {
-			Map<Object, Point> map = new LinkedHashMap<Object, Point>();
-			for (Entry<Object, Location> entry : objLocs.entrySet()) {
-				map.put(entry.getKey(), entry.getValue().getPosition());
-			}
-			return map;
-		}
+	public boolean equalPosition(Object obj1, Object obj2) {
+		return containsObject(obj1) && containsObject(obj2) && getPosition(obj1).equals(getPosition(obj2));
 	}
 
 	/**
@@ -144,7 +136,7 @@ public class RoadStructure {
 		while (travelDistance > 0 && path.size() >= 1) {
 			double dist = Point.distance(tempPos, path.peek());
 
-			if (dist > 0 && struc.containsKey(tempPos) && !struc.containsEntry(tempPos, path.peek()) && !(path.peek() instanceof MidPoint)) {
+			if (dist > 0 && struc.containsNode(tempPos) && !struc.hasConnection(tempPos, path.peek()) && !(path.peek() instanceof MidPoint)) {
 				throw new IllegalStateException("followPath() attempts to use non-existing connection: " + tempPos + " >> " + path.peek() + ".");
 			}
 
@@ -183,31 +175,10 @@ public class RoadStructure {
 	}
 
 	/**
-	 * Method to retrieve the location of an object.
-	 * @param obj The object for which the position is examined.
-	 * @return The position (as a {@link Point} object) for the specified
-	 *         <code>obj</code> object.
+	 * @return An unmodifiable view on the graph.
 	 */
-	public Point getPosition(Object obj) {
-		assert obj != null : "object cannot be null";
-		assert objLocs.containsKey(obj) : "object must have a location in RoadStructure " + obj;
-		return objLocs.get(obj).getPosition();
-	}
-
-	public List<Point> getShortestPathTo(Object obj, Point dest) {
-		assert objLocs.containsKey(obj);
-		Point n = getNode(obj);
-		return PathFinder.shortestDistance(struc, n, dest);
-	}
-
-	public List<Point> getShortestPathTo(Object from, Object to) {
-		assert objLocs.containsKey(to) : " to object should be in RoadStructure. " + to;
-		Location l = objLocs.get(to);
-		List<Point> path = getShortestPathTo(from, l.from);
-		if (l.to != null) {
-			path.add(new MidPoint(l));
-		}
-		return path;
+	public Graph getGraph() {
+		return Graphs.unmodifiableGraph(struc);
 	}
 
 	protected Point getNode(Object obj) {
@@ -221,114 +192,142 @@ public class RoadStructure {
 		}
 	}
 
-	public void addConnection(Point from, Point to) {
-		if (struc.containsEntry(from, to)) {
-			throw new IllegalArgumentException("Connection already exists.");
-		}
-		struc.put(from, to);
-		assert struc.containsKey(from);
+	public List<Point> getNodes() {
+		return struc.getNodes();
 	}
 
 	public int getNumberOfConnections() {
-		return struc.size();
+		return struc.getNumberOfConnections();
 	}
 
 	public int getNumberOfNodes() {
-		return struc.keySet().size();
+		return struc.getNumberOfNodes();
+	}
+
+	public List<Point> getObjectPositions() {
+		List<Point> positions = new ArrayList<Point>();
+		for (Location l : objLocs.values()) {
+			positions.add(l.getPosition());
+		}
+		return positions;
+	}
+
+	/**
+	 * @return A synchronized and unmodifiable set of the objects in the road
+	 *         structure.
+	 */
+	public Set<Object> getObjects() {
+		synchronized (objLocs) {
+			return Collections.unmodifiableSet(objLocs.keySet());
+		}
+	}
+
+	public Set<Object> getObjects(Predicate<Object> p) {
+		synchronized (objLocs) {
+			return Collections.unmodifiableSet(Sets.filter(objLocs.keySet(), p));
+		}
+	}
+
+	public Map<Object, Point> getObjectsAndPositions() {
+		synchronized (objLocs) {
+			Map<Object, Point> map = new LinkedHashMap<Object, Point>();
+			for (Entry<Object, Location> entry : objLocs.entrySet()) {
+				map.put(entry.getKey(), entry.getValue().getPosition());
+			}
+			return map;
+		}
+	}
+
+	@SuppressWarnings("unchecked")
+	public <Y> Set<Y> getObjectsOfType(final Class<Y> type) {
+		return (Set<Y>) getObjects(new Predicate<Object>() {
+			@Override
+			public boolean apply(Object input) {
+				return input.getClass().equals(type);
+			}
+		});
+	}
+
+	/**
+	 * Method to retrieve the location of an object.
+	 * @param obj The object for which the position is examined.
+	 * @return The position (as a {@link Point} object) for the specified
+	 *         <code>obj</code> object.
+	 */
+	public Point getPosition(Object obj) {
+		assert obj != null : "object cannot be null";
+		assert objLocs.containsKey(obj) : "object must have a location in RoadStructure " + obj;
+		return objLocs.get(obj).getPosition();
+	}
+
+	public List<Point> getShortestPathTo(Object from, Object to) {
+		assert objLocs.containsKey(to) : " to object should be in RoadStructure. " + to;
+		Location l = objLocs.get(to);
+		List<Point> path = getShortestPathTo(from, l.from);
+		if (l.to != null) {
+			path.add(new MidPoint(l));
+		}
+		return path;
+	}
+
+	public List<Point> getShortestPathTo(Object obj, Point dest) {
+		assert objLocs.containsKey(obj);
+		Point n = getNode(obj);
+		return PathFinder.shortestDistance(struc, n, dest);
 	}
 
 	public boolean hasConnection(Point from, Point to) {
-		return struc.containsEntry(from, to);
+		return struc.hasConnection(from, to);
 	}
 
-	public List<Point> getNodes() {
-		return Collections.unmodifiableList(new ArrayList<Point>(struc.keySet()));
+	public void removeObject(Object o) {
+		objLocs.remove(o);
+	}
+}
+
+//internal usage only
+class Location {
+	final Point from;
+	final Point to;
+	final double relativePos;
+	final double roadLength;
+
+	public Location(Point from) {
+		this(from, null, -1);
 	}
 
-	/**
-	 * @return An unmodifiable view on the graph.
-	 */
-	public Multimap<Point, Point> getGraph() {
-		return Multimaps.unmodifiableMultimap(struc);
-	}
-
-	protected Location checkLocation(Location l) {
-		if (l.to == null && !struc.containsKey(l.from)) {
-			throw new IllegalStateException("Location points to non-existing vertex: " + l.from + ".");
-		} else if (l.to != null && !struc.containsEntry(l.from, l.to)) {
-			throw new IllegalStateException("Location points to non-existing connection: " + l.from + " >> " + l.to + ".");
-		}
-		return l;
-	}
-
-	private class MidPoint extends Point {
-		final Location loc;
-
-		public MidPoint(Location l) {
-			super(l.getPosition().x, l.getPosition().y);
-			loc = l;
-		}
-	}
-
-	// internal usage only
-	private class Location {
-		final Point from;
-		final Point to;
-		final double relativePos;
-		final double roadLength;
-
-		public Location(Point from) {
-			this(from, null, -1);
-		}
-
-		public Location(Point from, Point to, double relativePos) {
-			this.from = from;
-			this.to = to;
-			if (to != null) {
-				this.relativePos = relativePos;
-				roadLength = Point.distance(from, to);
-			} else {
-				roadLength = -1;
-				this.relativePos = -1;
-			}
-		}
-
-		Point getPosition() {
-			if (to == null) {
-				return from;
-			}
-			Point diff = Point.diff(to, from);
-			double perc = relativePos / roadLength;
-			return new Point(from.x + perc * diff.x, from.y + perc * diff.y);
-		}
-
-		@Override
-		public String toString() {
-			return "from:" + from + ", to:" + to + ", relativepos:" + relativePos;
+	public Location(Point from, Point to, double relativePos) {
+		this.from = from;
+		this.to = to;
+		if (to != null) {
+			this.relativePos = relativePos;
+			roadLength = Point.distance(from, to);
+		} else {
+			roadLength = -1;
+			this.relativePos = -1;
 		}
 	}
 
-	public boolean containsObject(Object obj) {
-		return objLocs.containsKey(obj);
-	}
-
-	public boolean containsObjectAt(Object obj, Point p) {
-		if (containsObject(obj)) {
-			return objLocs.get(obj).getPosition().equals(p);
+	Point getPosition() {
+		if (to == null) {
+			return from;
 		}
-		return false;
+		Point diff = Point.diff(to, from);
+		double perc = relativePos / roadLength;
+		return new Point(from.x + perc * diff.x, from.y + perc * diff.y);
 	}
 
-	// also checks whether both objects have a valid position
-	public boolean equalPosition(Object obj1, Object obj2) {
-		return containsObject(obj1) && containsObject(obj2) && getPosition(obj1).equals(getPosition(obj2));
+	@Override
+	public String toString() {
+		return "from:" + from + ", to:" + to + ", relativepos:" + relativePos;
 	}
+}
 
-	/**
-	 * Merges the specified graph into this graph.
-	 * @param graph The specified graph.
-	 */
-	public void addGraph(Multimap<Point, Point> graph) {
-		struc.putAll(graph);
+class MidPoint extends Point {
+	final Location loc;
+
+	public MidPoint(Location l) {
+		super(l.getPosition().x, l.getPosition().y);
+		loc = l;
 	}
 }

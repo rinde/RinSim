@@ -8,28 +8,47 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.LinkedList;
 import java.util.Queue;
 
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
+import org.junit.runners.Parameterized.Parameters;
+
+import rinde.sim.core.graph.Graph;
+import rinde.sim.core.graph.MultimapGraph;
+import rinde.sim.core.graph.TableGraph;
 
 /**
  * @author Rinde van Lon (rinde.vanlon@cs.kuleuven.be)
  * 
  */
+@RunWith(Parameterized.class)
 public class RoadStructureTest {
 
 	final double EPSILON = 0.02;
 
+	Class<? extends Graph> rsType;
 	RoadStructure rs;
 	Queue<Point> path;
 	Point p1, p2, p3, p4;
 
+	public RoadStructureTest(Class<? extends Graph> c) {
+		rsType = c;
+	}
+
+	@Parameters
+	public static Collection<Object[]> configs() {
+		return Arrays.asList(new Object[][] { { MultimapGraph.class }, { TableGraph.class } });
+	}
+
 	@Before
-	public void setUp() {
-		rs = new RoadStructure();
+	public void setUp() throws InstantiationException, IllegalAccessException {
+		rs = new RoadStructure(rsType.newInstance());
 		p1 = new Point(0, 0);
 		p2 = new Point(10, 0);
 		p3 = new Point(10, 10);

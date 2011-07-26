@@ -33,9 +33,8 @@ import rinde.sim.core.Point;
 import rinde.sim.core.RoadStructure;
 import rinde.sim.core.Simulator;
 import rinde.sim.core.TickListener;
+import rinde.sim.core.graph.Graph;
 import rinde.sim.util.TimeFormatter;
-
-import com.google.common.collect.Multimap;
 
 /**
  * @author Rinde van Lon (rinde.vanlon@cs.kuleuven.be)
@@ -159,12 +158,16 @@ public class View implements PaintListener, SelectionListener, ControlListener, 
 		final Image img = new Image(display, size.x + 10, size.y + 10);
 		final GC gc = new GC(img);
 
-		Multimap<Point, Point> graph = simulator.model.getGraph();
-		for (Entry<Point, Point> e : graph.entries()) {
+		Graph graph = simulator.model.getGraph();
+		for (Entry<Point, Point> e : graph.getConnections()) {
 			int x1 = (int) ((e.getKey().x - minX) * m);
 			int y1 = (int) ((e.getKey().y - minY) * m);
+			gc.setForeground(new Color(gc.getDevice(), 0, 255, 0));
+			gc.drawOval(x1 - 2, y1 - 2, 4, 4);
+
 			int x2 = (int) ((e.getValue().x - minX) * m);
 			int y2 = (int) ((e.getValue().y - minY) * m);
+			gc.setForeground(new Color(gc.getDevice(), 0, 0, 0));
 			gc.drawLine(x1, y1, x2, y2);
 		}
 

@@ -13,6 +13,8 @@ import java.util.HashMap;
 import java.util.Map.Entry;
 
 import rinde.sim.core.Point;
+import rinde.sim.core.graph.Graph;
+import rinde.sim.core.graph.MultimapGraph;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
@@ -99,7 +101,7 @@ public class DotUtils {
 		return false;
 	}
 
-	public static Multimap<Point, Point> parseDot(String file) {
+	public static Graph parseDot(String file) {
 		try {
 			BufferedReader reader = new BufferedReader(new FileReader(file));
 
@@ -120,7 +122,7 @@ public class DotUtils {
 				}
 			}
 
-			return graph;
+			return new MultimapGraph(graph);
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}

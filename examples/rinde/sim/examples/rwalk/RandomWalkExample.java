@@ -13,6 +13,7 @@ import org.eclipse.swt.graphics.RGB;
 import rinde.sim.core.Point;
 import rinde.sim.core.RoadStructure;
 import rinde.sim.core.Simulator;
+import rinde.sim.core.graph.MultimapGraph;
 import rinde.sim.ui.ObjectRenderer;
 import rinde.sim.ui.View;
 import rinde.sim.util.DotUtils;
@@ -25,7 +26,7 @@ public class RandomWalkExample {
 
 	public static void main(String[] args) throws Exception {
 		// create a new simulator, load map of Leuven
-		Simulator<RoadStructure> simulator = new Simulator<RoadStructure>(new RoadStructure(), new MersenneTwister(123), 1000);
+		Simulator<RoadStructure> simulator = new Simulator<RoadStructure>(new RoadStructure(new MultimapGraph()), new MersenneTwister(123), 1000);
 		simulator.model.addGraph(DotUtils.parseDot("files/maps/dot/leuven.dot"));
 
 		// create 300 agents, on random locations
