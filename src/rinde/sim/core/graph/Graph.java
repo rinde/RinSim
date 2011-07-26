@@ -4,10 +4,8 @@
 package rinde.sim.core.graph;
 
 import java.util.Collection;
-import java.util.List;
 import java.util.Map.Entry;
-
-import rinde.sim.core.Point;
+import java.util.Set;
 
 /**
  * @author Rinde van Lon (rinde.vanlon@cs.kuleuven.be)
@@ -27,10 +25,14 @@ public interface Graph {
 
 	public int getNumberOfNodes();
 
-	public List<Point> getNodes();
+	public Set<Point> getNodes();
 
 	public void addConnection(Point from, Point to);
 
+	public void addConnections(Collection<Entry<Point, Point>> connections);
+
 	public void merge(Graph other);
+
+	public boolean isEmpty();
 
 }

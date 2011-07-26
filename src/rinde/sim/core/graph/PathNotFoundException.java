@@ -1,7 +1,7 @@
 /**
  * 
  */
-package rinde.sim.core;
+package rinde.sim.core.graph;
 
 /**
  * @author Rinde van Lon (rinde.vanlon@cs.kuleuven.be)

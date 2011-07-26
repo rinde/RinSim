@@ -17,7 +17,7 @@ import org.xml.sax.XMLReader;
 import org.xml.sax.helpers.DefaultHandler;
 import org.xml.sax.helpers.XMLReaderFactory;
 
-import rinde.sim.core.Point;
+import rinde.sim.core.graph.Point;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;

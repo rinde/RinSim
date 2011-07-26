@@ -3,8 +3,8 @@
  */
 package rinde.sim.ui;
 
-import java.util.List;
 import java.util.Map.Entry;
+import java.util.Set;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ControlEvent;
@@ -29,11 +29,11 @@ import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.ScrollBar;
 import org.eclipse.swt.widgets.Shell;
 
-import rinde.sim.core.Point;
-import rinde.sim.core.RoadStructure;
+import rinde.sim.core.RoadModel;
 import rinde.sim.core.Simulator;
 import rinde.sim.core.TickListener;
 import rinde.sim.core.graph.Graph;
+import rinde.sim.core.graph.Point;
 import rinde.sim.util.TimeFormatter;
 
 /**
@@ -47,7 +47,7 @@ public class View implements PaintListener, SelectionListener, ControlListener, 
 	protected org.eclipse.swt.graphics.Point origin;
 	protected org.eclipse.swt.graphics.Point size;
 	protected final Display display;
-	protected final Simulator<RoadStructure> simulator;
+	protected final Simulator<RoadModel> simulator;
 	protected final Renderer[] renderers;
 	protected final ScrollBar hBar;
 	protected final ScrollBar vBar;
@@ -61,7 +61,7 @@ public class View implements PaintListener, SelectionListener, ControlListener, 
 
 	protected Label timeLabel;
 
-	private View(Composite parent, Simulator<RoadStructure> simulator, long sleepInterval, Renderer... renderers) {
+	private View(Composite parent, Simulator<RoadModel> simulator, long sleepInterval, Renderer... renderers) {
 		this.simulator = simulator;
 		this.simulator.addAfterTickListener(this);
 		this.renderers = renderers;
@@ -123,7 +123,7 @@ public class View implements PaintListener, SelectionListener, ControlListener, 
 	}
 
 	private void calculateSizes() {
-		List<Point> nodes = simulator.model.getNodes();
+		Set<Point> nodes = simulator.model.getNodes();
 
 		minX = Double.POSITIVE_INFINITY;
 		double maxX = Double.NEGATIVE_INFINITY;
@@ -174,7 +174,7 @@ public class View implements PaintListener, SelectionListener, ControlListener, 
 		return img;
 	}
 
-	public static void startGui(final Simulator<RoadStructure> simulator, long sleepInterval, Renderer... renderers) {
+	public static void startGui(final Simulator<RoadModel> simulator, long sleepInterval, Renderer... renderers) {
 		Display.setAppName("RinSim");
 		final Display display = new Display();
 

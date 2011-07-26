@@ -18,7 +18,9 @@ import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 
 import rinde.sim.core.graph.Graph;
+import rinde.sim.core.graph.Graphs;
 import rinde.sim.core.graph.MultimapGraph;
+import rinde.sim.core.graph.Point;
 import rinde.sim.core.graph.TableGraph;
 
 /**
@@ -41,7 +43,7 @@ public class PathFinderTest {
 
 	private final double EPSILON = 0.02;
 
-	RoadStructure rs;
+	RoadModel rs;
 	Point a, b, c, d, e, f, g;
 
 	String o1, o2, o3;
@@ -49,7 +51,7 @@ public class PathFinderTest {
 
 	@Before
 	public void setUp() throws InstantiationException, IllegalAccessException {
-		rs = new RoadStructure(rsType.newInstance());
+		rs = new RoadModel(rsType.newInstance());
 
 		a = new Point(0, 0);
 		b = new Point(10, 0);
@@ -96,38 +98,38 @@ public class PathFinderTest {
 
 	@Test
 	public void shortestDistance() {
-		List<Point> t = PathFinder.shortestDistance(rs.getGraph(), a, d);
+		List<Point> t = Graphs.shortestPathDistance(rs.getGraph(), a, d);
 		compatibilityCheck(t);
 		assertEquals(asList(a, c, d), t);
 
-		List<Point> t2 = PathFinder.shortestDistance(rs.getGraph(), d, a);
+		List<Point> t2 = Graphs.shortestPathDistance(rs.getGraph(), d, a);
 		compatibilityCheck(t2);
 		assertEquals(asList(d, f, g, a), t2);
 
-		List<Point> t3 = PathFinder.shortestDistance(rs.getGraph(), g, e);
+		List<Point> t3 = Graphs.shortestPathDistance(rs.getGraph(), g, e);
 		compatibilityCheck(t3);
 		assertEquals(asList(g, a, c, e), t3);
 
-		List<Point> t4 = PathFinder.shortestDistance(rs.getGraph(), a, e);
+		List<Point> t4 = Graphs.shortestPathDistance(rs.getGraph(), a, e);
 		compatibilityCheck(t4);
 		assertEquals(asList(a, c, e), t4);
 
-		List<Point> t5 = PathFinder.shortestDistance(rs.getGraph(), a, c);
+		List<Point> t5 = Graphs.shortestPathDistance(rs.getGraph(), a, c);
 		compatibilityCheck(t5);
 		assertEquals(asList(a, c), t5);
 
-		List<Point> t6 = PathFinder.shortestDistance(rs.getGraph(), e, g);
+		List<Point> t6 = Graphs.shortestPathDistance(rs.getGraph(), e, g);
 		compatibilityCheck(t6);
 		assertEquals(asList(e, b, c, d, f, g), t6);
 	}
 
 	@Test(expected = RuntimeException.class)
 	public void impossiblePath() throws InstantiationException, IllegalAccessException {
-		RoadStructure roads = new RoadStructure(rsType.newInstance());
+		RoadModel roads = new RoadModel(rsType.newInstance());
 		roads.addConnection(a, b);
 		roads.addConnection(b, c);
 
-		PathFinder.shortestDistance(roads.getGraph(), b, a);
+		Graphs.shortestPathDistance(roads.getGraph(), b, a);
 	}
 
 	public void compatibilityCheck(List<Point> t) {
@@ -156,7 +158,7 @@ public class PathFinderTest {
 		//DotExporter.saveToDot(graph.getGraph(), "files/test/rutgerbug");
 
 		// this shouldn't fail
-		PathFinder.shortestDistance(graph, q, t);
+		Graphs.shortestPathDistance(graph, q, t);
 	}
 
 	private double length(List<Point> path) {
@@ -169,7 +171,7 @@ public class PathFinderTest {
 
 	@Test
 	public void findObjectsWithinRadius() {
-		Collection<Object> objects = PathFinder.findObjectsWithinRadius(new Point(10, 10), rs, 15);
+		Collection<Object> objects = Graphs.findObjectsWithinRadius(new Point(10, 10), rs, 15);
 		System.out.println(objects);
 	}
 }

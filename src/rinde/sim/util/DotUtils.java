@@ -12,9 +12,9 @@ import java.io.InputStreamReader;
 import java.util.HashMap;
 import java.util.Map.Entry;
 
-import rinde.sim.core.Point;
 import rinde.sim.core.graph.Graph;
 import rinde.sim.core.graph.MultimapGraph;
+import rinde.sim.core.graph.Point;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
@@ -25,7 +25,7 @@ import com.google.common.collect.Multimap;
  */
 public class DotUtils {
 
-	public static void saveToDot(Multimap<Point, Point> mp, String fileName) {
+	public static void saveToDot(Graph mp, String fileName) {
 
 		try {
 			FileWriter fileWriter = new FileWriter(fileName + ".dot");
@@ -37,13 +37,13 @@ public class DotUtils {
 
 			int nodeId = 0;
 			HashMap<Point, Integer> idMap = new HashMap<Point, Integer>();
-			for (Point p : mp.keySet()) {
+			for (Point p : mp.getNodes()) {
 				string.append("node" + nodeId + "[pos=\"" + p.x / 3 + "," + p.y / 3 + "\", label=\"" + p + "\", pin=true]\n");
 				idMap.put(p, nodeId);
 				nodeId++;
 			}
 
-			for (Entry<Point, Point> entry : mp.entries()) {
+			for (Entry<Point, Point> entry : mp.getConnections()) {
 
 				String label = "" + Math.round(Point.distance(entry.getKey(), entry.getValue()) * 10d) / 10d;
 				if (!idMap.containsKey(entry.getValue())) {
