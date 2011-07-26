@@ -6,18 +6,38 @@ package rinde.sim.core;
 import static java.util.Arrays.asList;
 import static org.junit.Assert.assertEquals;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
+import org.junit.runners.Parameterized.Parameters;
+
+import rinde.sim.core.graph.Graph;
+import rinde.sim.core.graph.MultimapGraph;
+import rinde.sim.core.graph.TableGraph;
 
 /**
  * @author Rinde van Lon (rinde.vanlon@cs.kuleuven.be)
  * 
  */
+@RunWith(Parameterized.class)
 public class PathFinderTest {
+
+	@Parameters
+	public static Collection<Object[]> configs() {
+		return Arrays.asList(new Object[][] { { MultimapGraph.class }, { TableGraph.class } });
+	}
+
+	public PathFinderTest(Class<? extends Graph> c) {
+		rsType = c;
+	}
+
+	Class<? extends Graph> rsType;
 
 	private final double EPSILON = 0.02;
 
@@ -28,8 +48,9 @@ public class PathFinderTest {
 	Long o4, o5, o6;
 
 	@Before
-	public void setUp() {
-		rs = new RoadStructure();
+	public void setUp() throws InstantiationException, IllegalAccessException {
+		rs = new RoadStructure(rsType.newInstance());
+
 		a = new Point(0, 0);
 		b = new Point(10, 0);
 		c = new Point(15, 15);
@@ -101,8 +122,8 @@ public class PathFinderTest {
 	}
 
 	@Test(expected = RuntimeException.class)
-	public void impossiblePath() {
-		RoadStructure roads = new RoadStructure();
+	public void impossiblePath() throws InstantiationException, IllegalAccessException {
+		RoadStructure roads = new RoadStructure(rsType.newInstance());
 		roads.addConnection(a, b);
 		roads.addConnection(b, c);
 
@@ -119,9 +140,9 @@ public class PathFinderTest {
 	}
 
 	@Test
-	public void checkRutgerBug() {
+	public void checkRutgerBug() throws InstantiationException, IllegalAccessException {
 
-		RoadStructure graph = new RoadStructure();
+		Graph graph = rsType.newInstance();
 
 		Point q = new Point(0, 10);
 		Point r = new Point(10, 15);
@@ -135,7 +156,7 @@ public class PathFinderTest {
 		//DotExporter.saveToDot(graph.getGraph(), "files/test/rutgerbug");
 
 		// this shouldn't fail
-		PathFinder.shortestDistance(graph.getGraph(), q, t);
+		PathFinder.shortestDistance(graph, q, t);
 	}
 
 	private double length(List<Point> path) {
