@@ -3,6 +3,7 @@
  */
 package rinde.sim.examples.rwalk;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -10,10 +11,10 @@ import java.util.Map;
 import org.apache.commons.math.random.MersenneTwister;
 import org.eclipse.swt.graphics.RGB;
 
-import rinde.sim.core.Point;
-import rinde.sim.core.RoadStructure;
+import rinde.sim.core.RoadModel;
 import rinde.sim.core.Simulator;
 import rinde.sim.core.graph.MultimapGraph;
+import rinde.sim.core.graph.Point;
 import rinde.sim.ui.ObjectRenderer;
 import rinde.sim.ui.View;
 import rinde.sim.util.DotUtils;
@@ -26,11 +27,11 @@ public class RandomWalkExample {
 
 	public static void main(String[] args) throws Exception {
 		// create a new simulator, load map of Leuven
-		Simulator<RoadStructure> simulator = new Simulator<RoadStructure>(new RoadStructure(new MultimapGraph()), new MersenneTwister(123), 1000);
+		Simulator<RoadModel> simulator = new Simulator<RoadModel>(new RoadModel(new MultimapGraph()), new MersenneTwister(123), 1000);
 		simulator.model.addGraph(DotUtils.parseDot("files/maps/dot/leuven.dot"));
 
 		// create 300 agents, on random locations
-		List<Point> nodes = simulator.model.getNodes();
+		List<Point> nodes = new ArrayList<Point>(simulator.model.getNodes());
 		for (int i = 0; i < 300; i++) {
 			Point pos = nodes.get(simulator.rand.nextInt(nodes.size()));
 			RandomWalkAgent agent = new RandomWalkAgent(simulator.model, simulator.rand);

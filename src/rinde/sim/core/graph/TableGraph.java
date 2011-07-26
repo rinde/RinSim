@@ -6,10 +6,9 @@ package rinde.sim.core.graph;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.List;
+import java.util.HashSet;
 import java.util.Map.Entry;
-
-import rinde.sim.core.Point;
+import java.util.Set;
 
 import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.Table;
@@ -28,11 +27,11 @@ public class TableGraph implements Graph {
 	}
 
 	/**
-	 * @see rinde.sim.core.RoadStructure#getNodes()
+	 * @see rinde.sim.core.RoadModel#getNodes()
 	 */
 	@Override
-	public List<Point> getNodes() {
-		return Collections.unmodifiableList(new ArrayList<Point>(data.rowKeySet()));
+	public Set<Point> getNodes() {
+		return Collections.unmodifiableSet(new HashSet<Point>(data.rowKeySet()));
 	}
 
 	@Override
@@ -80,7 +79,12 @@ public class TableGraph implements Graph {
 
 	@Override
 	public void merge(Graph other) {
-		for (Entry<Point, Point> connection : other.getConnections()) {
+		addConnections(other.getConnections());
+	}
+
+	@Override
+	public void addConnections(Collection<Entry<Point, Point>> connections) {
+		for (Entry<Point, Point> connection : connections) {
 			addConnection(connection.getKey(), connection.getValue());
 		}
 	}
@@ -112,6 +116,11 @@ public class TableGraph implements Graph {
 		public Point setValue(Point value) {
 			throw new UnsupportedOperationException();
 		}
+	}
+
+	@Override
+	public boolean isEmpty() {
+		return data.isEmpty();
 	}
 
 }

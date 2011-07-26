@@ -3,13 +3,11 @@
  */
 package rinde.sim.core.graph;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.List;
+import java.util.HashSet;
 import java.util.Map.Entry;
-
-import rinde.sim.core.Point;
+import java.util.Set;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
@@ -62,14 +60,10 @@ public class MultimapGraph implements Graph {
 	}
 
 	@Override
-	public List<Point> getNodes() {
-		return Collections.unmodifiableList(new ArrayList<Point>(data.keySet()));
+	public Set<Point> getNodes() {
+		return Collections.unmodifiableSet(new HashSet<Point>(data.keySet()));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see rinde.sim.core.Graph#getConnections()
-	 */
 	@Override
 	public Collection<Entry<Point, Point>> getConnections() {
 		return data.entries();
@@ -80,19 +74,25 @@ public class MultimapGraph implements Graph {
 		return Multimaps.unmodifiableMultimap(data);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see rinde.sim.core.graph.Graph#merge(rinde.sim.core.graph.Graph)
-	 */
 	@Override
 	public void merge(Graph other) {
 		if (other instanceof MultimapGraph) {
 			data.putAll(((MultimapGraph) other).getMultimap());
 		} else {
-			for (Entry<Point, Point> connection : other.getConnections()) {
-				data.put(connection.getKey(), connection.getValue());
-			}
+			addConnections(other.getConnections());
 		}
 
+	}
+
+	@Override
+	public void addConnections(Collection<Entry<Point, Point>> connections) {
+		for (Entry<Point, Point> connection : connections) {
+			addConnection(connection.getKey(), connection.getValue());
+		}
+	}
+
+	@Override
+	public boolean isEmpty() {
+		return data.isEmpty();
 	}
 }

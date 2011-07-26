@@ -11,12 +11,12 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import rinde.sim.core.PathFinder;
-import rinde.sim.core.PathNotFoundException;
-import rinde.sim.core.Point;
+import rinde.sim.core.graph.Graph;
+import rinde.sim.core.graph.Graphs;
+import rinde.sim.core.graph.MultimapGraph;
+import rinde.sim.core.graph.PathNotFoundException;
+import rinde.sim.core.graph.Point;
 
-import com.google.common.collect.HashMultimap;
-import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 
 /**
@@ -25,46 +25,46 @@ import com.google.common.collect.Sets;
  */
 public class MapFixer {
 
-	public static Multimap<Point, Point> hack(Multimap<Point, Point> graph) {
-		Multimap<Point, Point> newGraph = HashMultimap.create();
-		newGraph.putAll(graph);
+	private static Graph hack(Graph graph) {
+		Graph newGraph = new MultimapGraph();
+		newGraph.merge(graph);
 
 		HashSet<Point> connected = new HashSet<Point>();
 		HashSet<Point> neighbors = new HashSet<Point>();
 
-		Point root = graph.keySet().iterator().next();
+		Point root = graph.getNodes().iterator().next();
 		connected.add(root);
-		neighbors.addAll(graph.get(root));
+		neighbors.addAll(graph.getConnectedNodes(root));
 
 		fixCluster(newGraph, connected, neighbors, new HashSet<Point>());
 		return newGraph;
 	}
 
-	public static Multimap<Point, Point> connect2(Multimap<Point, Point> graph) {
-		Multimap<Point, Point> newGraph = HashMultimap.create();
-		newGraph.putAll(graph);
+	static Graph connect2(Graph graph) {
+		Graph newGraph = new MultimapGraph();
+		newGraph.merge(graph);
 
 		HashSet<Point> connected = new HashSet<Point>();
 		HashSet<Point> neighbors = new HashSet<Point>();
 
-		Point root = graph.keySet().iterator().next();
+		Point root = graph.getNodes().iterator().next();
 		connected.add(root);
-		neighbors.addAll(graph.get(root));
+		neighbors.addAll(graph.getConnectedNodes(root));
 		fixCluster(newGraph, connected, neighbors, new HashSet<Point>());
 
 		Set<Point> unconnected;
-		while (!(unconnected = Sets.difference(newGraph.keySet(), connected)).isEmpty()) {
+		while (!(unconnected = Sets.difference(newGraph.getNodes(), connected)).isEmpty()) {
 			Point p = unconnected.iterator().next();
 			System.out.println("unconnected: " + unconnected.size());
 			HashSet<Point> cluster = new HashSet<Point>(asList(p));
-			fixCluster(newGraph, cluster, new HashSet<Point>(newGraph.get(p)), connected);
+			fixCluster(newGraph, cluster, new HashSet<Point>(newGraph.getConnectedNodes(p)), connected);
 			//			System.out.println("cluster: " + cluster);
 			Tuple<Point, Point> pair = findClosestPair(cluster, connected);
 
 			if (!isConnected(newGraph, cluster, connected)) {
 				//				System.out.println("not connection from cluster -> main");
-				newGraph.put(pair.getKey(), pair.getValue());
-				newGraph.put(pair.getValue(), pair.getKey());
+				newGraph.addConnection(pair.getKey(), pair.getValue());
+				newGraph.addConnection(pair.getValue(), pair.getKey());
 			}
 
 			connected.addAll(cluster);
@@ -86,7 +86,7 @@ public class MapFixer {
 		return newGraph;
 	}
 
-	private static void fixCluster(Multimap<Point, Point> newGraph, HashSet<Point> connected, HashSet<Point> neighbors, HashSet<Point> otherClusters) {
+	private static void fixCluster(Graph newGraph, HashSet<Point> connected, HashSet<Point> neighbors, HashSet<Point> otherClusters) {
 		//		System.out.println(">> fixCluster");
 		while (!neighbors.isEmpty()) {
 			Point n = neighbors.iterator().next();
@@ -95,7 +95,7 @@ public class MapFixer {
 			neighbors.remove(n);
 			// if this point is also in a other cluster, we don't have to check its neighbors
 			if (!otherClusters.contains(n)) {
-				for (Point b : newGraph.get(n)) {
+				for (Point b : newGraph.getConnectedNodes(n)) {
 					if (b != null && !connected.contains(b) && !neighbors.contains(b)) {
 
 						neighbors.add(b);
@@ -106,7 +106,7 @@ public class MapFixer {
 				assert n != null;
 				assert !connected.isEmpty();
 				assert !newGraph.isEmpty();
-				newGraph.put(n, findClosest(n, connected));// connect it
+				newGraph.addConnection(n, findClosest(n, connected));// connect it
 			}
 			connected.add(n);
 		}
@@ -145,14 +145,14 @@ public class MapFixer {
 		return closestPair;
 	}
 
-	private static boolean isConnected(Multimap<Point, Point> graph, Set<Point> set1, Set<Point> set2) {
+	private static boolean isConnected(Graph graph, Set<Point> set1, Set<Point> set2) {
 		HashSet<Point> visited = new HashSet<Point>();
 		HashSet<Point> queue = new HashSet<Point>();
 		queue.addAll(set1);
 		while (!queue.isEmpty()) {
 			Point b = queue.iterator().next();
 			queue.remove(b);
-			Collection<Point> neighbours = graph.get(b);
+			Collection<Point> neighbours = graph.getConnectedNodes(b);
 			for (Point n : neighbours) {
 				if (set2.contains(n)) {
 					return true;
@@ -174,12 +174,13 @@ public class MapFixer {
 	 * @param set
 	 * @return
 	 */
-	private static boolean isConnectedWith(Multimap<Point, Point> graph, Point p, Set<Point> set) {
+	private static boolean isConnectedWith(Graph graph, Point p, Set<Point> set) {
 		return isConnected(graph, new HashSet<Point>(asList(p)), set);
 	}
 
-	public static Multimap<Point, Point> connect(Multimap<Point, Point> graph) {
-		Multimap<Point, Point> currentGraph = HashMultimap.create(graph);
+	public static Graph connect(Graph graph) {
+		Graph currentGraph = new MultimapGraph();
+		currentGraph.merge(graph);
 
 		List<Set<Point>> result = findNotFullyConnectedNodes(currentGraph);
 
@@ -201,8 +202,8 @@ public class MapFixer {
 				}
 			}
 
-			currentGraph.put(connection.getKey(), connection.getValue());
-			currentGraph.put(connection.getValue(), connection.getKey());
+			currentGraph.addConnection(connection.getKey(), connection.getValue());
+			currentGraph.addConnection(connection.getValue(), connection.getKey());
 			result = findNotFullyConnectedNodes(currentGraph);
 			if (result.get(0).isEmpty()) {
 				isFullyConnected = true;
@@ -212,27 +213,27 @@ public class MapFixer {
 		return currentGraph;
 	}
 
-	public static List<Set<Point>> findNotFullyConnectedNodes(Multimap<Point, Point> graph) {
+	public static List<Set<Point>> findNotFullyConnectedNodes(Graph graph) {
 		// just get a 'random' starting point
-		return findNotFullyConnectedNodes(graph, new ArrayList<Point>(graph.keySet()).get(0));
+		return findNotFullyConnectedNodes(graph, new ArrayList<Point>(graph.getNodes()).get(0));
 	}
 
-	public static List<Set<Point>> findNotFullyConnectedNodes(Multimap<Point, Point> graph, Point root) {
+	public static List<Set<Point>> findNotFullyConnectedNodes(Graph graph, Point root) {
 
 		HashSet<Point> fullyConnectedSet = new HashSet<Point>();
 		HashSet<Point> neighbours = new HashSet<Point>();
 		HashSet<Point> notConnectedSet = new HashSet<Point>();
 
 		fullyConnectedSet.add(root);
-		neighbours.addAll(graph.get(root));
+		neighbours.addAll(graph.getConnectedNodes(root));
 
 		while (!neighbours.isEmpty()) {
 			List<Point> path = null;
 			Point current = neighbours.iterator().next();
 			neighbours.remove(current);
-			if (graph.containsKey(current)) {
+			if (graph.containsNode(current)) {
 				try {
-					path = PathFinder.shortestDistance(graph, current, root);
+					path = Graphs.shortestPathDistance(graph, current, root);
 				} catch (PathNotFoundException e) {
 				}
 			}
@@ -245,7 +246,7 @@ public class MapFixer {
 					if (neighbours.contains(p)) {
 						neighbours.remove(p);
 					}
-					for (Point q : graph.get(p)) {
+					for (Point q : graph.getConnectedNodes(p)) {
 						if (!fullyConnectedSet.contains(q)) {
 							neighbours.add(q);
 						}
@@ -253,7 +254,7 @@ public class MapFixer {
 				}
 			}
 		}
-		for (Point p : graph.keySet()) {
+		for (Point p : graph.getNodes()) {
 			if (!fullyConnectedSet.contains(p)) {
 				notConnectedSet.add(p);
 			}
@@ -263,7 +264,7 @@ public class MapFixer {
 	}
 
 	public static void main(String[] args) {
-		Multimap<Point, Point> graph;
+		Graph graph = new MultimapGraph();
 
 		String name = "brussels";
 
@@ -277,7 +278,7 @@ public class MapFixer {
 		// graph = OSM.parse("/Users/rindevanlon/Downloads/netherlands.osm.highway");
 
 		//graph = OSM.parse("/Users/rindevanlon/Downloads/" + name + ".osm");
-		graph = OSM.parse("../RinSim/files/maps/brussels.osm");
+		graph.addConnections(OSM.parse("../RinSim/files/maps/brussels.osm").entries());
 		System.out.println("loaded map of " + name);
 		graph = MapFixer.connect2(graph);
 		//graph = MapFixer.hack(graph);

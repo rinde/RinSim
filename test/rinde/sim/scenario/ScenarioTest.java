@@ -14,7 +14,7 @@ import org.apache.commons.math.random.MersenneTwister;
 import org.apache.commons.math.random.RandomGenerator;
 import org.junit.Test;
 
-import rinde.sim.core.Point;
+import rinde.sim.core.graph.Point;
 
 /**
  * @author Rinde van Lon (rinde.vanlon@cs.kuleuven.be)

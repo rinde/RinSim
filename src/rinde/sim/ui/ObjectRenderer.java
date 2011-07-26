@@ -10,8 +10,8 @@ import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.RGB;
 
-import rinde.sim.core.Point;
-import rinde.sim.core.RoadStructure;
+import rinde.sim.core.RoadModel;
+import rinde.sim.core.graph.Point;
 
 /**
  * @author Rinde van Lon (rinde.vanlon@cs.kuleuven.be)
@@ -19,15 +19,15 @@ import rinde.sim.core.RoadStructure;
  */
 public class ObjectRenderer implements Renderer {
 
-	protected RoadStructure rs;
+	protected RoadModel rs;
 	protected Map<Class<?>, RGB> colorMap;
 	protected boolean useEncirclement;
 
-	public ObjectRenderer(RoadStructure rs) {
+	public ObjectRenderer(RoadModel rs) {
 		this(rs, null, false);
 	}
 
-	public ObjectRenderer(RoadStructure rs, Map<Class<?>, RGB> colorMap, boolean useEncirclement) {
+	public ObjectRenderer(RoadModel rs, Map<Class<?>, RGB> colorMap, boolean useEncirclement) {
 		this.rs = rs;
 		this.colorMap = colorMap;
 		this.useEncirclement = useEncirclement;

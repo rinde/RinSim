@@ -21,6 +21,7 @@ import org.junit.runners.Parameterized.Parameters;
 
 import rinde.sim.core.graph.Graph;
 import rinde.sim.core.graph.MultimapGraph;
+import rinde.sim.core.graph.Point;
 import rinde.sim.core.graph.TableGraph;
 
 /**
@@ -33,7 +34,7 @@ public class RoadStructureTest {
 	final double EPSILON = 0.02;
 
 	Class<? extends Graph> rsType;
-	RoadStructure rs;
+	RoadModel rs;
 	Queue<Point> path;
 	Point p1, p2, p3, p4;
 
@@ -48,7 +49,7 @@ public class RoadStructureTest {
 
 	@Before
 	public void setUp() throws InstantiationException, IllegalAccessException {
-		rs = new RoadStructure(rsType.newInstance());
+		rs = new RoadModel(rsType.newInstance());
 		p1 = new Point(0, 0);
 		p2 = new Point(10, 0);
 		p3 = new Point(10, 10);

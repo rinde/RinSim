@@ -11,10 +11,9 @@ import java.util.Set;
 import org.junit.Before;
 import org.junit.Test;
 
-import rinde.sim.core.Point;
-
-import com.google.common.collect.HashMultimap;
-import com.google.common.collect.Multimap;
+import rinde.sim.core.graph.Graph;
+import rinde.sim.core.graph.MultimapGraph;
+import rinde.sim.core.graph.Point;
 
 /**
  * @author Rinde van Lon (rinde.vanlon@cs.kuleuven.be)
@@ -30,21 +29,21 @@ public class MapFixerTest {
 	@Test
 	public void testFindNotFullyConnectedNodes1() {
 		Point a, b, c, d, e;
-		Multimap<Point, Point> graph = HashMultimap.create();
+		Graph graph = new MultimapGraph();
 		a = new Point(0, 0);
 		b = new Point(10, 0);
 		c = new Point(0, 10);
 		d = new Point(10, 10);
 		e = new Point(15, 5);
 
-		graph.put(a, b);
-		graph.put(a, c);
-		graph.put(b, c);
-		graph.put(c, a);
-		graph.put(c, d);
-		graph.put(b, e);
-		graph.put(d, e);
-		graph.put(e, d);
+		graph.addConnection(a, b);
+		graph.addConnection(a, c);
+		graph.addConnection(b, c);
+		graph.addConnection(c, a);
+		graph.addConnection(c, d);
+		graph.addConnection(b, e);
+		graph.addConnection(d, e);
+		graph.addConnection(e, d);
 		for (Point root : asList(a, b, c)) {
 			Set<Point> unconnectedSet = MapFixer.findNotFullyConnectedNodes(graph, root).get(0);
 			assertTrue(unconnectedSet.size() == 2);
@@ -62,20 +61,20 @@ public class MapFixerTest {
 	@Test
 	public void testFindNotFullyConnectedNodes2() {
 		Point a, b, c, d, e;
-		Multimap<Point, Point> graph = HashMultimap.create();
+		Graph graph = new MultimapGraph();
 		a = new Point(0, 0);
 		b = new Point(10, 0);
 		c = new Point(0, 10);
 		d = new Point(10, 10);
 		e = new Point(15, 5);
 
-		graph.put(a, b);
-		graph.put(a, c);
-		graph.put(b, c);
-		graph.put(c, a);
-		graph.put(c, d);
-		graph.put(b, e);
-		graph.put(d, e);
+		graph.addConnection(a, b);
+		graph.addConnection(a, c);
+		graph.addConnection(b, c);
+		graph.addConnection(c, a);
+		graph.addConnection(c, d);
+		graph.addConnection(b, e);
+		graph.addConnection(d, e);
 
 		for (Point root : asList(a, b, c)) {
 			Set<Point> unconnectedSet = MapFixer.findNotFullyConnectedNodes(graph, root).get(0);
@@ -95,23 +94,23 @@ public class MapFixerTest {
 	@Test
 	public void testConnect() {
 		Point a, b, c, d, e;
-		Multimap<Point, Point> graph = HashMultimap.create();
+		Graph graph = new MultimapGraph();
 		a = new Point(0, 0);
 		b = new Point(10, 0);
 		c = new Point(0, 10);
 		d = new Point(10, 10);
 		e = new Point(15, 5);
 
-		graph.put(a, b);
-		graph.put(a, c);
-		graph.put(b, c);
-		graph.put(c, a);
-		graph.put(c, d);
-		graph.put(b, e);
-		graph.put(d, e);
-		graph.put(e, d);
+		graph.addConnection(a, b);
+		graph.addConnection(a, c);
+		graph.addConnection(b, c);
+		graph.addConnection(c, a);
+		graph.addConnection(c, d);
+		graph.addConnection(b, e);
+		graph.addConnection(d, e);
+		graph.addConnection(e, d);
 
-		Multimap<Point, Point> result = MapFixer.connect(graph);
+		Graph result = MapFixer.connect(graph);
 		DotUtils.saveToDot(graph, "files/test/input");
 		DotUtils.saveToDot(result, "files/test/fixed");
 	}
@@ -119,23 +118,23 @@ public class MapFixerTest {
 	@Test
 	public void testConnect2() {
 		Point a, b, c, d, e;
-		Multimap<Point, Point> graph = HashMultimap.create();
+		Graph graph = new MultimapGraph();
 		a = new Point(0, 0);
 		b = new Point(10, 0);
 		c = new Point(0, 10);
 		d = new Point(10, 10);
 		e = new Point(15, 5);
 
-		graph.put(a, b);
-		graph.put(a, c);
-		graph.put(b, c);
-		graph.put(c, a);
-		graph.put(c, d);
-		graph.put(b, e);
-		graph.put(d, e);
-		graph.put(e, d);
+		graph.addConnection(a, b);
+		graph.addConnection(a, c);
+		graph.addConnection(b, c);
+		graph.addConnection(c, a);
+		graph.addConnection(c, d);
+		graph.addConnection(b, e);
+		graph.addConnection(d, e);
+		graph.addConnection(e, d);
 
-		Multimap<Point, Point> result = MapFixer.connect2(graph);
+		Graph result = MapFixer.connect2(graph);
 		DotUtils.saveToDot(graph, "files/test/input2");
 		DotUtils.saveToDot(result, "files/test/fixed2");
 	}

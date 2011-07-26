@@ -14,6 +14,7 @@ import java.util.Set;
 
 import rinde.sim.core.graph.Graph;
 import rinde.sim.core.graph.Graphs;
+import rinde.sim.core.graph.Point;
 
 import com.google.common.base.Predicate;
 import com.google.common.collect.Sets;
@@ -22,23 +23,25 @@ import com.google.common.collect.Sets;
  * @author Rinde van Lon (rinde.vanlon@cs.kuleuven.be)
  * 
  */
-public class RoadStructure {
+public class RoadModel {
 
 	protected volatile Map<Object, Location> objLocs;
-	final Graph struc;
+	final Graph graph;
 
-	public RoadStructure(Graph struc) {
-		super();
-		this.struc = struc;
+	public RoadModel(Graph graph) {
+		if (graph == null) {
+			throw new IllegalArgumentException("Graph cannot be null");
+		}
+		this.graph = graph;
 		objLocs = Collections.synchronizedMap(new LinkedHashMap<Object, Location>());
 	}
 
 	public void addConnection(Point from, Point to) {
-		if (struc.hasConnection(from, to)) {
+		if (graph.hasConnection(from, to)) {
 			throw new IllegalArgumentException("Connection already exists.");
 		}
-		struc.addConnection(from, to);
-		assert struc.containsNode(from);
+		graph.addConnection(from, to);
+		assert graph.containsNode(from);
 	}
 
 	/**
@@ -46,11 +49,11 @@ public class RoadStructure {
 	 * @param other The specified graph.
 	 */
 	public void addGraph(Graph other) {
-		struc.merge(other);
+		graph.merge(other);
 	}
 
 	public void addObjectAt(Object newObj, Point pos) {
-		if (!struc.containsNode(pos)) {
+		if (!graph.containsNode(pos)) {
 			throw new IllegalArgumentException("Object must be initiated on a crossroad.");
 		} else if (objLocs.containsKey(newObj)) {
 			throw new IllegalArgumentException("Object is already added.");
@@ -70,9 +73,9 @@ public class RoadStructure {
 	}
 
 	protected Location checkLocation(Location l) {
-		if (l.to == null && !struc.containsNode(l.from)) {
+		if (l.to == null && !graph.containsNode(l.from)) {
 			throw new IllegalStateException("Location points to non-existing vertex: " + l.from + ".");
-		} else if (l.to != null && !struc.hasConnection(l.from, l.to)) {
+		} else if (l.to != null && !graph.hasConnection(l.from, l.to)) {
 			throw new IllegalStateException("Location points to non-existing connection: " + l.from + " >> " + l.to + ".");
 		}
 		return l;
@@ -136,7 +139,7 @@ public class RoadStructure {
 		while (travelDistance > 0 && path.size() >= 1) {
 			double dist = Point.distance(tempPos, path.peek());
 
-			if (dist > 0 && struc.containsNode(tempPos) && !struc.hasConnection(tempPos, path.peek()) && !(path.peek() instanceof MidPoint)) {
+			if (dist > 0 && graph.containsNode(tempPos) && !graph.hasConnection(tempPos, path.peek()) && !(path.peek() instanceof MidPoint)) {
 				throw new IllegalStateException("followPath() attempts to use non-existing connection: " + tempPos + " >> " + path.peek() + ".");
 			}
 
@@ -178,7 +181,7 @@ public class RoadStructure {
 	 * @return An unmodifiable view on the graph.
 	 */
 	public Graph getGraph() {
-		return Graphs.unmodifiableGraph(struc);
+		return Graphs.unmodifiableGraph(graph);
 	}
 
 	protected Point getNode(Object obj) {
@@ -192,16 +195,16 @@ public class RoadStructure {
 		}
 	}
 
-	public List<Point> getNodes() {
-		return struc.getNodes();
+	public Set<Point> getNodes() {
+		return graph.getNodes();
 	}
 
 	public int getNumberOfConnections() {
-		return struc.getNumberOfConnections();
+		return graph.getNumberOfConnections();
 	}
 
 	public int getNumberOfNodes() {
-		return struc.getNumberOfNodes();
+		return graph.getNumberOfNodes();
 	}
 
 	public List<Point> getObjectPositions() {
@@ -273,11 +276,11 @@ public class RoadStructure {
 	public List<Point> getShortestPathTo(Object obj, Point dest) {
 		assert objLocs.containsKey(obj);
 		Point n = getNode(obj);
-		return PathFinder.shortestDistance(struc, n, dest);
+		return Graphs.shortestPathDistance(graph, n, dest);
 	}
 
 	public boolean hasConnection(Point from, Point to) {
-		return struc.hasConnection(from, to);
+		return graph.hasConnection(from, to);
 	}
 
 	public void removeObject(Object o) {
