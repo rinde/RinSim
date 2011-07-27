@@ -15,9 +15,13 @@ public interface Graph {
 
 	public boolean containsNode(Point node);
 
-	public Collection<Point> getConnectedNodes(Point node);
+	public Collection<Point> getOutgoingConnections(Point node);
+
+	public Collection<Point> getIncomingConnections(Point node);
 
 	public boolean hasConnection(Point from, Point to);
+
+	public double connectionLength(Point from, Point to);
 
 	public int getNumberOfConnections();
 
@@ -34,5 +38,11 @@ public interface Graph {
 	public void merge(Graph other);
 
 	public boolean isEmpty();
+
+	public void removeNode(Point node);
+
+	public void removeConnection(Point from, Point to);
+
+	public boolean equals(Graph other);
 
 }

@@ -4,6 +4,7 @@
 package rinde.sim.core.graph;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -27,8 +28,42 @@ import com.google.common.collect.Collections2;
  */
 public class Graphs {
 
+	public static void addPath(Graph g, Point... path) {
+		for (int i = 1; i < path.length; i++) {
+			g.addConnection(path[i - 1], path[i]);
+		}
+	}
+
+	// bidirectional
+	public static void addBiPath(Graph g, Point... path) {
+		addPath(g, path);
+
+		List<Point> list = Arrays.asList(path);
+		Collections.reverse(list);
+		addPath(g, list.toArray(new Point[path.length]));
+	}
+
 	public static Graph unmodifiableGraph(Graph delegate) {
 		return new UnmodifiableGraph(delegate);
+	}
+
+	public static boolean equals(Graph g1, Graph g2) {
+		if (g1.getNumberOfNodes() != g2.getNumberOfNodes()) {
+			return false;
+		}
+		if (g1.getNumberOfConnections() != g2.getNumberOfConnections()) {
+			return false;
+		}
+		for (Entry<Point, Point> connection : g1.getConnections()) {
+			if (!g2.hasConnection(connection.getKey(), connection.getValue())) {
+				return false;
+			}
+			if (g1.connectionLength(connection.getKey(), connection.getValue()) != g2.connectionLength(connection.getKey(), connection.getValue())) {
+				return false;
+			}
+		}
+		return true;
+
 	}
 
 	private static class UnmodifiableGraph implements Graph {
@@ -44,8 +79,13 @@ public class Graphs {
 		}
 
 		@Override
-		public Collection<Point> getConnectedNodes(Point node) {
-			return Collections.unmodifiableCollection(delegate.getConnectedNodes(node));
+		public Collection<Point> getOutgoingConnections(Point node) {
+			return Collections.unmodifiableCollection(delegate.getOutgoingConnections(node));
+		}
+
+		@Override
+		public Collection<Point> getIncomingConnections(Point node) {
+			return Collections.unmodifiableCollection(delegate.getIncomingConnections(node));
 		}
 
 		@Override
@@ -74,6 +114,16 @@ public class Graphs {
 		}
 
 		@Override
+		public double connectionLength(Point from, Point to) {
+			return delegate.connectionLength(from, to);
+		}
+
+		@Override
+		public boolean isEmpty() {
+			return delegate.isEmpty();
+		}
+
+		@Override
 		public void addConnection(Point from, Point to) {
 			throw new UnsupportedOperationException();
 		}
@@ -89,9 +139,25 @@ public class Graphs {
 		}
 
 		@Override
-		public boolean isEmpty() {
-			return delegate.isEmpty();
+		public void removeNode(Point node) {
+			throw new UnsupportedOperationException();
 		}
+
+		@Override
+		public void removeConnection(Point from, Point to) {
+			throw new UnsupportedOperationException();
+		}
+
+		@Override
+		public boolean equals(Object other) {
+			return other instanceof Graph ? equals((Graph) other) : false;
+		}
+
+		@Override
+		public boolean equals(Graph other) {
+			return Graphs.equals(this, other);
+		}
+
 	}
 
 	public static List<Point> shortestPathDistance(Graph graph, final Point from, final Point to) {
@@ -137,7 +203,7 @@ public class Graphs {
 
 			closedSet.add(current);
 
-			for (final Point outgoingPoint : graph.getConnectedNodes(current)) {
+			for (final Point outgoingPoint : graph.getOutgoingConnections(current)) {
 				if (closedSet.contains(outgoingPoint)) {
 					continue;
 				}

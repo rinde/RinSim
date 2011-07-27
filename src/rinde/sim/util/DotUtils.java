@@ -15,9 +15,7 @@ import java.util.Map.Entry;
 import rinde.sim.core.graph.Graph;
 import rinde.sim.core.graph.MultimapGraph;
 import rinde.sim.core.graph.Point;
-
-import com.google.common.collect.HashMultimap;
-import com.google.common.collect.Multimap;
+import rinde.sim.core.graph.TableGraph;
 
 /**
  * @author Rinde van Lon (rinde.vanlon@cs.kuleuven.be)
@@ -25,7 +23,7 @@ import com.google.common.collect.Multimap;
  */
 public class DotUtils {
 
-	public static void saveToDot(Graph mp, String fileName) {
+	public static void saveToDot(Graph mp, String fileName, boolean pdf) {
 
 		try {
 			FileWriter fileWriter = new FileWriter(fileName + ".dot");
@@ -45,7 +43,7 @@ public class DotUtils {
 
 			for (Entry<Point, Point> entry : mp.getConnections()) {
 
-				String label = "" + Math.round(Point.distance(entry.getKey(), entry.getValue()) * 10d) / 10d;
+				String label = "" + Math.round(mp.connectionLength(entry.getKey(), entry.getValue()) * 10d) / 10d;
 				if (!idMap.containsKey(entry.getValue())) {
 					Point p = entry.getValue();
 					string.append("node" + nodeId + "[pos=\"" + p.x / 3 + "," + p.y / 3 + "\", label=\"" + p + "\", pin=true]\n");
@@ -59,7 +57,9 @@ public class DotUtils {
 			out.append(string);
 			out.close();
 
-			dotToPDF(fileName + ".dot", fileName + ".pdf");
+			if (pdf) {
+				dotToPDF(fileName + ".dot", fileName + ".pdf");
+			}
 
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
@@ -69,13 +69,15 @@ public class DotUtils {
 	}
 
 	// copied from rinde graduation
-	protected static final boolean isDotAvailable = checkCommandAvailability("dot");
+	protected static final boolean isDotAvailable = checkCommandAvailability("/usr/local/bin/dot");
 
 	private static boolean dotToPDF(final String dotFile, final String pdfFile) {
 		if (isDotAvailable) {
 			try {
 				// Execute a command with an argument that contains a space
-				final String[] commands = new String[] { "dot", "-Kfdp", "-o", pdfFile, "-Tpdf", dotFile };
+				//"-Kneato", // -Kfdp
+				final String[] commands = new String[] { "/usr/local/bin/dot", "-o", pdfFile, "-Tpdf", dotFile };
+				//				System.out.println(Arrays.toString(commands).replace(",", ""));
 				final Process p = Runtime.getRuntime().exec(commands);
 
 				// final BufferedReader stdInput = new BufferedReader(new
@@ -105,7 +107,9 @@ public class DotUtils {
 		try {
 			BufferedReader reader = new BufferedReader(new FileReader(file));
 
-			Multimap<Point, Point> graph = HashMultimap.create();
+			TableGraph graph = new TableGraph();
+			boolean containsDistances = false;
+
 			HashMap<String, Point> nodeMapping = new HashMap<String, Point>();
 			String line;
 			while ((line = reader.readLine()) != null) {
@@ -115,14 +119,29 @@ public class DotUtils {
 					Point p = new Point(Double.parseDouble(position[0]), Double.parseDouble(position[1]));
 					nodeMapping.put(nodeName, p);
 				} else if (line.contains("->")) {
+					// example: 
+					// node1004 -> node820[label="163.3"]
 					String[] names = line.split("->");
-					String from = names[0].trim();
-					String to = names[1].substring(0, names[1].indexOf("[")).trim();
-					graph.put(nodeMapping.get(from), nodeMapping.get(to));
+					String fromStr = names[0].trim();
+					String toStr = names[1].substring(0, names[1].indexOf("[")).trim();
+					double distance = Double.parseDouble(line.split("\"")[1]);
+					Point from = nodeMapping.get(fromStr);
+					Point to = nodeMapping.get(toStr);
+					if (Point.distance(from, to) == distance) {
+						graph.addConnection(from, to);
+					} else {
+						graph.addConnection(from, to, distance);
+						containsDistances = true;
+					}
 				}
 			}
-
-			return new MultimapGraph(graph);
+			//			if (containsDistances) {
+			//				return graph;
+			//			} else {
+			Graph g = new MultimapGraph();
+			g.merge(graph);
+			return g;
+			//			}
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}
