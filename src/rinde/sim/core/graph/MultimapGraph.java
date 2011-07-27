@@ -99,21 +99,36 @@ public class MultimapGraph implements Graph {
 		return data.isEmpty();
 	}
 
+	/**
+	 * Warning: very inefficient! If this function is needed regularly it is
+	 * advised to use {@link TableGraph} instead.
+	 */
 	@Override
 	public Collection<Point> getIncomingConnections(Point node) {
-		throw new UnsupportedOperationException();
+		HashSet<Point> set = new HashSet<Point>();
+		for (Entry<Point, Point> entry : data.entries()) {
+			if (entry.getValue().equals(node)) {
+				set.add(entry.getKey());
+			}
+		}
+		return set;
 	}
 
+	/**
+	 * Warning: very inefficient! If this function is needed regularly it is
+	 * advised to use {@link TableGraph} instead.
+	 */
 	@Override
 	public void removeNode(Point node) {
-		throw new UnsupportedOperationException();
-
+		data.removeAll(node);
+		for (Point p : getIncomingConnections(node)) {
+			removeConnection(p, node);
+		}
 	}
 
 	@Override
-	public void removeConnection(Point form, Point to) {
-		throw new UnsupportedOperationException();
-
+	public void removeConnection(Point from, Point to) {
+		data.remove(from, to);
 	}
 
 	@Override

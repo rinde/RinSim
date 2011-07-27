@@ -7,10 +7,14 @@ import static java.util.Arrays.asList;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Set;
 
-import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
+import org.junit.runners.Parameterized.Parameters;
 
 import rinde.sim.core.graph.Graph;
 import rinde.sim.core.graph.Graphs;
@@ -22,17 +26,32 @@ import rinde.sim.core.graph.TableGraph;
  * @author Rinde van Lon (rinde.vanlon@cs.kuleuven.be)
  * 
  */
+@RunWith(Parameterized.class)
 public class MapFixerTest {
 
-	@Before
-	public void setUp() {
+	Class<? extends Graph> graphType;
 
+	public Graph createGraph() {
+		try {
+			return graphType.newInstance();
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	public MapFixerTest(Class<? extends Graph> c) {
+		graphType = c;
+	}
+
+	@Parameters
+	public static Collection<Object[]> configs() {
+		return Arrays.asList(new Object[][] { { MultimapGraph.class }, { TableGraph.class } });
 	}
 
 	@Test
 	public void testFindNotFullyConnectedNodes1() {
 		Point a, b, c, d, e;
-		Graph graph = new MultimapGraph();
+		Graph graph = createGraph();
 		a = new Point(0, 0);
 		b = new Point(10, 0);
 		c = new Point(0, 10);
@@ -64,7 +83,7 @@ public class MapFixerTest {
 	@Test
 	public void testFindNotFullyConnectedNodes2() {
 		Point a, b, c, d, e;
-		Graph graph = new MultimapGraph();
+		Graph graph = createGraph();
 		a = new Point(0, 0);
 		b = new Point(10, 0);
 		c = new Point(0, 10);
@@ -97,7 +116,7 @@ public class MapFixerTest {
 	@Test
 	public void testConnect() {
 		Point a, b, c, d, e;
-		Graph graph = new MultimapGraph();
+		Graph graph = createGraph();
 		a = new Point(0, 0);
 		b = new Point(10, 0);
 		c = new Point(0, 10);
@@ -121,7 +140,7 @@ public class MapFixerTest {
 	@Test
 	public void testConnect2() {
 		Point a, b, c, d, e;
-		Graph graph = new MultimapGraph();
+		Graph graph = createGraph();
 		a = new Point(0, 0);
 		b = new Point(10, 0);
 		c = new Point(0, 10);
@@ -148,7 +167,7 @@ public class MapFixerTest {
 		a = new Point(0, 0);
 		b = new Point(1, 0);
 		c = new Point(2, 0);
-		Graph graph = new TableGraph();
+		Graph graph = createGraph();
 
 		Graphs.addPath(graph, a, b, c, a);
 		DotUtils.saveToDot(graph, "files/test/mapfixer/simplify-1-in", true);
@@ -161,14 +180,14 @@ public class MapFixerTest {
 		DotUtils.saveToDot(out, "files/test/mapfixer/simplify-2-out", true);
 		assertEquals(graph, out);
 
-		graph = new TableGraph();
+		graph = createGraph();
 		Graphs.addBiPath(graph, a, b, c, a);
 		assertEquals(graph, MapFixer.simplify(graph));
 	}
 
 	@Test
 	public void testSimplify3() {
-		Graph graph = new TableGraph();
+		Graph graph = createGraph();
 		Point a, b, c, d, e, f;
 		a = new Point(0, 0);
 		b = new Point(1, 0);
@@ -185,7 +204,7 @@ public class MapFixerTest {
 		//		assertEquals(1, out.getNumberOfConnections());
 		//		assertEquals(12.0, out.connectionLength(a, f), 0.0002);
 
-		graph = new TableGraph();
+		graph = createGraph();
 		Graphs.addBiPath(graph, a, b, c, d, e, f);
 		DotUtils.saveToDot(graph, "files/test/mapfixer/simplify-4-in", true);
 
@@ -201,7 +220,7 @@ public class MapFixerTest {
 	@Test
 	public void testIsContractableZero() {
 		Point a, b, c;
-		Graph graph = new TableGraph();
+		Graph graph = createGraph();
 		a = new Point(0, 0);
 		b = new Point(1, 0);
 		c = new Point(2, 0);
@@ -226,7 +245,7 @@ public class MapFixerTest {
 		assertEquals(MapFixer.ContractType.NO, MapFixer.isContractable(graph, a, b));
 		assertEquals(MapFixer.ContractType.NO, MapFixer.isContractable(graph, b, a));
 
-		graph = new TableGraph();
+		graph = createGraph();
 		Graphs.addPath(graph, a, b);
 		DotUtils.saveToDot(graph, "files/test/mapfixer/contractable-zero-4", true);
 		assertEquals(MapFixer.ContractType.NO, MapFixer.isContractable(graph, a, b));
@@ -237,7 +256,7 @@ public class MapFixerTest {
 		assertEquals(MapFixer.ContractType.NO, MapFixer.isContractable(graph, a, b));
 		assertEquals(MapFixer.ContractType.NO, MapFixer.isContractable(graph, b, a));
 
-		graph = new TableGraph();
+		graph = createGraph();
 		graph.addConnection(a, b);
 		graph.addConnection(b, a);
 		DotUtils.saveToDot(graph, "files/test/mapfixer/contractable-zero-6", true);
@@ -249,7 +268,7 @@ public class MapFixerTest {
 	@Test(expected = IllegalArgumentException.class)
 	public void testIsContractableIllegal() {
 		Point a, b, c;
-		Graph graph = new TableGraph();
+		Graph graph = createGraph();
 		a = new Point(0, 0);
 		b = new Point(1, 0);
 		c = new Point(2, 0);
@@ -261,7 +280,7 @@ public class MapFixerTest {
 	@Test
 	public void testIsContractableOneAndOne() {
 		Point a, b, c, d;
-		Graph graph = new TableGraph();
+		Graph graph = createGraph();
 		a = new Point(0, 0);
 		b = new Point(1, 0);
 		c = new Point(2, 0);
@@ -292,7 +311,7 @@ public class MapFixerTest {
 		assertEquals(MapFixer.ContractType.NO, MapFixer.isContractable(graph, b, c));
 		assertEquals(MapFixer.ContractType.NO, MapFixer.isContractable(graph, c, b));
 
-		graph = new TableGraph();
+		graph = createGraph();
 		Graphs.addPath(graph, a, b, c, d);
 		graph.addConnection(c, b);
 		DotUtils.saveToDot(graph, "files/test/mapfixer/contractable-one-and-one-6", true);
@@ -304,7 +323,7 @@ public class MapFixerTest {
 	@Test
 	public void testIsContractableMoreThanOne() {
 		Point a, b, c, d, e, f;
-		Graph graph = new TableGraph();
+		Graph graph = createGraph();
 		a = new Point(0, 0);
 		b = new Point(1, 0);
 		c = new Point(2, 0);
@@ -327,7 +346,7 @@ public class MapFixerTest {
 	@Test
 	public void testIsContractableSameNeigh() {
 		Point a, b, c;
-		Graph graph = new TableGraph();
+		Graph graph = createGraph();
 		a = new Point(0, 0);
 		b = new Point(1, 0);
 		c = new Point(2, 0);
