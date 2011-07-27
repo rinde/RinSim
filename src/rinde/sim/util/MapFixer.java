@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import rinde.sim.core.graph.Graph;
@@ -16,6 +17,7 @@ import rinde.sim.core.graph.Graphs;
 import rinde.sim.core.graph.MultimapGraph;
 import rinde.sim.core.graph.PathNotFoundException;
 import rinde.sim.core.graph.Point;
+import rinde.sim.core.graph.TableGraph;
 
 import com.google.common.collect.Sets;
 
@@ -34,7 +36,7 @@ public class MapFixer {
 
 		Point root = graph.getNodes().iterator().next();
 		connected.add(root);
-		neighbors.addAll(graph.getConnectedNodes(root));
+		neighbors.addAll(graph.getOutgoingConnections(root));
 
 		fixCluster(newGraph, connected, neighbors, new HashSet<Point>());
 		return newGraph;
@@ -49,7 +51,7 @@ public class MapFixer {
 
 		Point root = graph.getNodes().iterator().next();
 		connected.add(root);
-		neighbors.addAll(graph.getConnectedNodes(root));
+		neighbors.addAll(graph.getOutgoingConnections(root));
 		fixCluster(newGraph, connected, neighbors, new HashSet<Point>());
 
 		Set<Point> unconnected;
@@ -57,7 +59,7 @@ public class MapFixer {
 			Point p = unconnected.iterator().next();
 			System.out.println("unconnected: " + unconnected.size());
 			HashSet<Point> cluster = new HashSet<Point>(asList(p));
-			fixCluster(newGraph, cluster, new HashSet<Point>(newGraph.getConnectedNodes(p)), connected);
+			fixCluster(newGraph, cluster, new HashSet<Point>(newGraph.getOutgoingConnections(p)), connected);
 			//			System.out.println("cluster: " + cluster);
 			Tuple<Point, Point> pair = findClosestPair(cluster, connected);
 
@@ -95,7 +97,7 @@ public class MapFixer {
 			neighbors.remove(n);
 			// if this point is also in a other cluster, we don't have to check its neighbors
 			if (!otherClusters.contains(n)) {
-				for (Point b : newGraph.getConnectedNodes(n)) {
+				for (Point b : newGraph.getOutgoingConnections(n)) {
 					if (b != null && !connected.contains(b) && !neighbors.contains(b)) {
 
 						neighbors.add(b);
@@ -152,7 +154,7 @@ public class MapFixer {
 		while (!queue.isEmpty()) {
 			Point b = queue.iterator().next();
 			queue.remove(b);
-			Collection<Point> neighbours = graph.getConnectedNodes(b);
+			Collection<Point> neighbours = graph.getOutgoingConnections(b);
 			for (Point n : neighbours) {
 				if (set2.contains(n)) {
 					return true;
@@ -213,6 +215,163 @@ public class MapFixer {
 		return currentGraph;
 	}
 
+	private static Set<Point> unseenNeighbours(Graph g, Set<Point> seen, Set<Point> current) {
+		HashSet<Point> set = new HashSet<Point>();
+		for (Point p : current) {
+			set.addAll(g.getIncomingConnections(p));
+			set.addAll(g.getOutgoingConnections(p));
+		}
+		set.removeAll(seen);
+		return set;
+	}
+
+	private static boolean isConnected(Graph g, Point from, Point to, Set<Point> subgraph) {
+
+		Point cur = from;
+		Set<Point> seen = new HashSet<Point>();
+
+		while (true) {
+			seen.add(cur);
+			Set<Point> ns = new HashSet<Point>(g.getOutgoingConnections(cur));
+
+			ns.retainAll(subgraph);
+			ns.removeAll(seen);
+
+			if (ns.contains(to)) {
+				return true;
+			} else if (ns.isEmpty()) {
+				return false;
+			} else if (ns.size() == 1) {
+				cur = ns.iterator().next();
+			} else {
+				throw new RuntimeException("not expected..");
+			}
+
+		}
+
+	}
+
+	public static Graph simplify(Graph g) {
+		TableGraph newGraph = new TableGraph();
+		newGraph.merge(g);
+		boolean working = true;
+
+		while (working) {
+			boolean edit = false;
+			//			System.out.println(newGraph.getConnections());
+
+			for (Entry<Point, Point> connection : newGraph.getConnections()) {
+				Point left = connection.getKey();
+				Point right = connection.getValue();
+
+				ContractType type = isContractable(newGraph, left, right);
+				//				System.out.println(type + " " + left + " " + right);
+				if (type == ContractType.NO) {
+					continue;
+				} else {
+					double length = newGraph.connectionLength(left, right);
+					newGraph.removeConnection(left, right);
+					Point removeNode = (type == ContractType.RIGHT) ? right : left;
+					Point mergeNode = (type == ContractType.RIGHT) ? left : right;
+					//					System.out.println("remove: " + removeNode);
+					//					System.out.println("merge into: " + mergeNode);
+
+					for (Point outgoing : newGraph.getOutgoingConnections(removeNode)) {
+						if (!outgoing.equals(mergeNode)) {
+							double newLength = length + newGraph.connectionLength(removeNode, outgoing);
+							newGraph.addConnection(mergeNode, outgoing, newLength);
+						}
+					}
+					for (Point incoming : newGraph.getIncomingConnections(removeNode)) {
+						if (!incoming.equals(mergeNode)) {
+							double newLength = length + newGraph.connectionLength(incoming, removeNode);
+							newGraph.addConnection(incoming, mergeNode, newLength);
+						}
+					}
+					newGraph.removeNode(removeNode);
+					edit = true;
+					break;
+				}
+			}
+			if (!edit) {
+				working = false;
+			}
+		}
+		return newGraph;
+	}
+
+	enum ContractType {
+		BOTH, LEFT, RIGHT, NO
+	}
+
+	static ContractType isContractable(Graph g, Point node1, Point node2) {
+		boolean n12 = g.getOutgoingConnections(node1).contains(node2);
+		boolean n21 = g.getOutgoingConnections(node2).contains(node1);
+
+		if (!(n12 || n21)) {
+			throw new IllegalArgumentException("There is no connection between the nodes.");
+		}
+		boolean bidi1 = n12 && n21;
+		boolean bidi0 = false, bidi2 = false;
+
+		Set<Point> outgoing1 = new HashSet<Point>(g.getOutgoingConnections(node1));
+		Set<Point> incoming1 = new HashSet<Point>(g.getIncomingConnections(node1));
+		outgoing1.remove(node2);
+		incoming1.remove(node2);
+
+		Set<Point> outgoing2 = new HashSet<Point>(g.getOutgoingConnections(node2));
+		Set<Point> incoming2 = new HashSet<Point>(g.getIncomingConnections(node2));
+		outgoing2.remove(node1);
+		incoming2.remove(node1);
+
+		Set<Point> neighbors1 = new HashSet<Point>();
+		neighbors1.addAll(outgoing1);
+		neighbors1.addAll(incoming1);
+
+		if (neighbors1.size() == 1) {
+			Point node0 = neighbors1.iterator().next();
+			bidi0 = outgoing1.contains(node0) && incoming1.contains(node0);
+		}
+
+		Set<Point> neighbors2 = new HashSet<Point>();
+		neighbors2.addAll(outgoing2);
+		neighbors2.addAll(incoming2);
+
+		if (neighbors2.size() == 1) {
+			Point node3 = neighbors2.iterator().next();
+			bidi2 = outgoing2.contains(node3) && incoming2.contains(node3);
+		}
+
+		if (neighbors1.size() != 1 && neighbors2.size() != 1) {
+			return ContractType.NO;
+		} else if (neighbors1.size() == 1 && neighbors2.size() == 1) {
+			boolean sameneigh = neighbors1.iterator().next().equals(neighbors2.iterator().next());
+
+			if (sameneigh) {
+				if (!bidi0 && !bidi1 && !bidi2) {
+					return ContractType.BOTH;
+				}
+				return ContractType.NO;
+			}
+
+			if ((bidi0 == bidi1) && (bidi1 == bidi2)) {
+				return ContractType.BOTH;
+			} else if ((bidi0 == bidi1) && (bidi1 != bidi2)) {
+				return ContractType.LEFT;
+			} else if ((bidi0 != bidi1) && (bidi1 == bidi2)) {
+				return ContractType.RIGHT;
+			} else {
+				return ContractType.NO;
+			}
+		} else if (neighbors1.size() == 1 && neighbors2.size() != 1) {
+			return bidi0 == bidi1 ? ContractType.LEFT : ContractType.NO;
+		} else if (neighbors1.size() != 1 && neighbors2.size() == 1) {
+			return bidi1 == bidi2 ? ContractType.RIGHT : ContractType.NO;
+		}
+
+		throw new IllegalStateException("Unexpected node configuration..");
+	}
+
 	public static List<Set<Point>> findNotFullyConnectedNodes(Graph graph) {
 		// just get a 'random' starting point
 		return findNotFullyConnectedNodes(graph, new ArrayList<Point>(graph.getNodes()).get(0));
@@ -225,7 +384,7 @@ public class MapFixer {
 		HashSet<Point> notConnectedSet = new HashSet<Point>();
 
 		fullyConnectedSet.add(root);
-		neighbours.addAll(graph.getConnectedNodes(root));
+		neighbours.addAll(graph.getOutgoingConnections(root));
 
 		while (!neighbours.isEmpty()) {
 			List<Point> path = null;
@@ -246,7 +405,7 @@ public class MapFixer {
 					if (neighbours.contains(p)) {
 						neighbours.remove(p);
 					}
-					for (Point q : graph.getConnectedNodes(p)) {
+					for (Point q : graph.getOutgoingConnections(p)) {
 						if (!fullyConnectedSet.contains(q)) {
 							neighbours.add(q);
 						}
@@ -264,9 +423,9 @@ public class MapFixer {
 	}
 
 	public static void main(String[] args) {
-		Graph graph = new MultimapGraph();
-
-		String name = "brussels";
+		//		Graph graph = new MultimapGraph();
+		//
+		//		String name = "brussels";
 
 		//graph = OSM.parse("/Users/rindevanlon/Downloads/belgium.osm");
 		//graph = OSM.parse("/Users/rindevanlon/Downloads/corse.osm");
@@ -278,19 +437,29 @@ public class MapFixer {
 		// graph = OSM.parse("/Users/rindevanlon/Downloads/netherlands.osm.highway");
 
 		//graph = OSM.parse("/Users/rindevanlon/Downloads/" + name + ".osm");
-		graph.addConnections(OSM.parse("../RinSim/files/maps/brussels.osm").entries());
-		System.out.println("loaded map of " + name);
-		graph = MapFixer.connect2(graph);
-		//graph = MapFixer.hack(graph);
-		System.out.println("fixed map of " + name);
-		DotUtils.saveToDot(graph, "files/maps/dot/" + name);
-		System.out.println("converted map of " + name + " to .dot");
+		//		graph.addConnections(OSM.parse("../RinSim/files/maps/brussels.osm").entries());
+		//		System.out.println("loaded map of " + name);
+		//		graph = MapFixer.connect2(graph);
+		//		//graph = MapFixer.hack(graph);
+		//		System.out.println("fixed map of " + name);
+		//		DotUtils.saveToDot(graph, "files/maps/dot/" + name);
+		//		System.out.println("converted map of " + name + " to .dot");
 
 		//		(1098696.6105863547,1.334706587029543E7) from (1099936.0,1.3346904333333334E7)
 
 		//		Point p1 = new Point(1098696.6105863547, 1.334706587029543E7);
 		//		Point p2 = new Point(1099936.0, 1.3346904333333334E7);
 		//		PathFinder.shortestDistance(graph, p2, p1);
+
+		//		Graph graph = new TableGraph();
+		//		graph.addConnections(OSM.parse("/Users/rindevanlon/Downloads/leuven-centrum-small.osm").entries());
+		//		graph = MapFixer.connect2(graph);
+		//
+		//		DotUtils.saveToDot(graph, "files/maps/dot/leuven-centrum");
+
+		Graph g = DotUtils.parseDot("files/maps/dot/leuven.dot");
+		Graph simple = simplify(g);
+		DotUtils.saveToDot(simple, "files/maps/dot/leuven-simple", false);
 
 	}
 }

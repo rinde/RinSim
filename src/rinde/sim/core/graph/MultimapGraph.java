@@ -35,7 +35,7 @@ public class MultimapGraph implements Graph {
 	}
 
 	@Override
-	public Collection<Point> getConnectedNodes(Point node) {
+	public Collection<Point> getOutgoingConnections(Point node) {
 		return data.get(node);
 	}
 
@@ -56,6 +56,9 @@ public class MultimapGraph implements Graph {
 
 	@Override
 	public void addConnection(Point from, Point to) {
+		if (from.equals(to)) {
+			throw new IllegalArgumentException("A connection cannot be circular");
+		}
 		data.put(from, to);
 	}
 
@@ -94,5 +97,40 @@ public class MultimapGraph implements Graph {
 	@Override
 	public boolean isEmpty() {
 		return data.isEmpty();
+	}
+
+	@Override
+	public Collection<Point> getIncomingConnections(Point node) {
+		throw new UnsupportedOperationException();
+	}
+
+	@Override
+	public void removeNode(Point node) {
+		throw new UnsupportedOperationException();
+
+	}
+
+	@Override
+	public void removeConnection(Point form, Point to) {
+		throw new UnsupportedOperationException();
+
+	}
+
+	@Override
+	public double connectionLength(Point from, Point to) {
+		if (hasConnection(from, to)) {
+			return Point.distance(from, to);
+		}
+		throw new IllegalArgumentException("Can not get connection length from a non-existing connection.");
+	}
+
+	@Override
+	public boolean equals(Object other) {
+		return other instanceof Graph ? equals((Graph) other) : false;
+	}
+
+	@Override
+	public boolean equals(Graph other) {
+		return Graphs.equals(this, other);
 	}
 }

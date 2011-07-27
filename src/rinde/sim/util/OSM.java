@@ -9,6 +9,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map.Entry;
 
 import org.xml.sax.Attributes;
 import org.xml.sax.InputSource;
@@ -37,6 +38,18 @@ public class OSM {
 			xmlReader.setContentHandler(parser);
 			xmlReader.setErrorHandler(parser);
 			xmlReader.parse(inputSource);
+
+			// remove circular connections
+			List<Entry<Point, Point>> removeList = new ArrayList<Entry<Point, Point>>();
+			for (Entry<Point, Point> connection : graph.entries()) {
+				if (connection.getKey().equals(connection.getValue())) {
+					removeList.add(connection);
+				}
+			}
+			for (Entry<Point, Point> connection : removeList) {
+				graph.remove(connection.getKey(), connection.getValue());
+			}
+
 			return graph;
 		} catch (Exception e) {
 			e.printStackTrace();
