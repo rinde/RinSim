@@ -235,30 +235,42 @@ public class Graphs {
 		throw new PathNotFoundException("Cannot reach " + to + " from " + from);
 	}
 
-	@SuppressWarnings("unchecked")
+	/**
+	 * Convenience method
+	 * @param pos
+	 * @param rs
+	 * @param type
+	 * @return
+	 * @see #findClosestObject(Point, RoadModel, Collection)
+	 */
 	public static <T> T findClosestObject(Point pos, RoadModel rs, final Class<T> type) {
-		return (T) Graphs.findClosestObject(pos, rs, new Predicate<Object>() {
-			@Override
-			public boolean apply(Object input) {
-				return type.isInstance(input);
-			}
-		});
+		return findClosestObject(pos, rs, rs.getObjectsOfType(type));
 	}
 
+	/**
+	 * Convenience method
+	 * @param pos
+	 * @param rs
+	 * @param predicate
+	 * @return
+	 * @see #findClosestObject(Point, RoadModel, Collection)
+	 */
 	public static Object findClosestObject(Point pos, RoadModel rs, Predicate<Object> predicate) {
 		Collection<Object> filtered = Collections2.filter(rs.getObjects(), predicate);
+		return findClosestObject(pos, rs, filtered);
+	}
 
+	protected static <T> T findClosestObject(Point pos, RoadModel rm, Collection<T> objects) {
 		double dist = Double.MAX_VALUE;
-		Object closest = null;
-		for (Object obj : filtered) {
-			Point objPos = rs.getPosition(obj);
+		T closest = null;
+		for (T obj : objects) {
+			Point objPos = rm.getPosition(obj);
 			double currentDist = Point.distance(pos, objPos);
 			if (currentDist < dist) {
 				dist = currentDist;
 				closest = obj;
 			}
 		}
-
 		return closest;
 	}
 
@@ -266,24 +278,29 @@ public class Graphs {
 		return Graphs.findObjectsWithinRadius(position, model, radius, Object.class);
 	}
 
-	@SuppressWarnings("unchecked")
 	public static <T> Collection<T> findObjectsWithinRadius(final Point position, final RoadModel model, final double radius, final Class<T> type) {
-		return (Collection<T>) Graphs.findObjectsWithinRadius(position, model, radius, new Predicate<Object>() {
-			@Override
-			public boolean apply(Object input) {
-				return type.isInstance(input);
-			}
-		});
+		return findObjectsWithinRadius(position, model, radius, model.getObjectsOfType(type));
 	}
 
-	public static Collection<Object> findObjectsWithinRadius(final Point position, final RoadModel model, final double radius, Predicate<Object> predicate) {
-		Collection<Object> filtered = Collections2.filter(model.getObjects(), predicate);
-		return Collections2.filter(filtered, new Predicate<Object>() {
-			@Override
-			public boolean apply(Object input) {
-				return Point.distance(model.getPosition(input), position) < radius;
-			}
-		});
+	protected static <T> Collection<T> findObjectsWithinRadius(final Point position, final RoadModel model, final double radius, Collection<T> objects) {
+		return Collections2.filter(objects, new DistancePredicate(position, model, radius));
+	}
+
+	private static class DistancePredicate implements Predicate<Object> {
+		private final Point position;
+		private final RoadModel model;
+		private final double radius;
+
+		public DistancePredicate(final Point position, final RoadModel model, final double radius) {
+			this.position = position;
+			this.model = model;
+			this.radius = radius;
+		}
+
+		@Override
+		public boolean apply(Object input) {
+			return Point.distance(model.getPosition(input), position) < radius;
+		}
 	}
 
 	public static double length(List<Point> path) {
