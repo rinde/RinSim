@@ -47,7 +47,7 @@ public class View implements PaintListener, SelectionListener, ControlListener, 
 	protected org.eclipse.swt.graphics.Point origin;
 	protected org.eclipse.swt.graphics.Point size;
 	protected final Display display;
-	protected final Simulator<RoadModel> simulator;
+	protected final Simulator<? extends RoadModel> simulator;
 	protected final Renderer[] renderers;
 	protected final ScrollBar hBar;
 	protected final ScrollBar vBar;
@@ -61,7 +61,7 @@ public class View implements PaintListener, SelectionListener, ControlListener, 
 
 	protected Label timeLabel;
 
-	private View(Composite parent, Simulator<RoadModel> simulator, long sleepInterval, Renderer... renderers) {
+	private View(Composite parent, Simulator<? extends RoadModel> simulator, long sleepInterval, Renderer... renderers) {
 		this.simulator = simulator;
 		this.simulator.addAfterTickListener(this);
 		this.renderers = renderers;
@@ -174,7 +174,7 @@ public class View implements PaintListener, SelectionListener, ControlListener, 
 		return img;
 	}
 
-	public static void startGui(final Simulator<RoadModel> simulator, long sleepInterval, Renderer... renderers) {
+	public static void startGui(final Simulator<? extends RoadModel> simulator, long sleepInterval, Renderer... renderers) {
 		Display.setAppName("RinSim");
 		final Display display = new Display();
 

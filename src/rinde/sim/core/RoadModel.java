@@ -4,6 +4,7 @@
 package rinde.sim.core;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -242,11 +243,11 @@ public class RoadModel {
 	}
 
 	@SuppressWarnings("unchecked")
-	public <Y> Set<Y> getObjectsOfType(final Class<Y> type) {
-		return (Set<Y>) getObjects(new Predicate<Object>() {
+	public <Y> Collection<Y> getObjectsOfType(final Class<Y> type) {
+		return (Collection<Y>) getObjects(new Predicate<Object>() {
 			@Override
 			public boolean apply(Object input) {
-				return input.getClass().equals(type);
+				return type.isInstance(input);
 			}
 		});
 	}

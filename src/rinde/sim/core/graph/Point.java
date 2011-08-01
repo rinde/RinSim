@@ -3,14 +3,16 @@
  */
 package rinde.sim.core.graph;
 
+import java.io.Serializable;
 import java.util.List;
 
 /**
  * @author Rinde van Lon (rinde.vanlon@cs.kuleuven.be)
  * 
  */
-public class Point {
+public class Point implements Serializable {
 
+	private static final long serialVersionUID = -7501053764573661924L;
 	public final double x;
 	public final double y;
 
@@ -40,6 +42,10 @@ public class Point {
 	public static Point parsePoint(String pointString) {
 		String[] parts = pointString.replaceAll("\\(|\\)", "").split(",");
 		return new Point(Double.parseDouble(parts[0]), Double.parseDouble(parts[1]));
+	}
+
+	public static Point duplicate(Point p) {
+		return new Point(p.x, p.y);
 	}
 
 	@Override
