@@ -19,6 +19,7 @@ import java.util.TreeMap;
 
 import rinde.sim.core.RoadModel;
 
+import com.google.common.base.Function;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Collections2;
 
@@ -260,11 +261,15 @@ public class Graphs {
 		return findClosestObject(pos, rs, filtered);
 	}
 
-	protected static <T> T findClosestObject(Point pos, RoadModel rm, Collection<T> objects) {
+	public static <T> T findClosestObject(Point pos, RoadModel rm, Collection<T> objects) {
+		return findClosestObject(pos, objects, new RoadModelObjectToPointFunction<T>(rm));
+	}
+
+	public static <T> T findClosestObject(Point pos, Collection<T> objects, Function<T, Point> transformation) {
 		double dist = Double.MAX_VALUE;
 		T closest = null;
 		for (T obj : objects) {
-			Point objPos = rm.getPosition(obj);
+			Point objPos = transformation.apply(obj);
 			double currentDist = Point.distance(pos, objPos);
 			if (currentDist < dist) {
 				dist = currentDist;
@@ -272,6 +277,19 @@ public class Graphs {
 			}
 		}
 		return closest;
+	}
+
+	static class RoadModelObjectToPointFunction<T> implements Function<T, Point> {
+		private final RoadModel rm;
+
+		public RoadModelObjectToPointFunction(RoadModel rm) {
+			this.rm = rm;
+		}
+
+		@Override
+		public Point apply(T input) {
+			return rm.getPosition(input);
+		}
 	}
 
 	public static Collection<Object> findObjectsWithinRadius(final Point position, final RoadModel model, final double radius) {
@@ -303,7 +321,7 @@ public class Graphs {
 		}
 	}
 
-	public static double length(List<Point> path) {
+	public static double pathLength(List<Point> path) {
 		double dist = 0;
 		for (int i = 1; i < path.size(); i++) {
 			dist += Point.distance(path.get(i - 1), path.get(i));
