@@ -41,15 +41,12 @@ public class CachedRoadModel extends RoadModel {
 	}
 
 	@Override
-	public List<Point> getShortestPathTo(Object obj, Point dest) {
-		assert objLocs.containsKey(obj);
-		Point origin = getNode(obj);
-
-		if (pathTable.contains(origin, dest)) {
-			return pathTable.get(origin, dest);
+	public List<Point> getShortestPathTo(Point from, Point to) {
+		if (pathTable.contains(from, to)) {
+			return pathTable.get(from, to);
 		} else {
-			List<Point> path = Graphs.shortestPathDistance(graph, origin, dest);
-			pathTable.put(origin, dest, path);
+			List<Point> path = Graphs.shortestPathDistance(graph, from, to);
+			pathTable.put(from, to, path);
 			return path;
 		}
 	}

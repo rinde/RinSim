@@ -49,6 +49,14 @@ public class Util {
 		return true;
 	}
 
+	public static <T> List<T> select(List<T> list, final int... indices) {
+		List<T> newList = new ArrayList<T>();
+		for (int i : indices) {
+			newList.add(list.get(i));
+		}
+		return newList;
+	}
+
 	public static <T> T[] select(final T[] array, final int... indices) {
 		@SuppressWarnings("unchecked")
 		final T[] subset = (T[]) Array.newInstance(array.getClass().getComponentType(), indices.length);
@@ -56,6 +64,20 @@ public class Util {
 			subset[i] = array[indices[i]];
 		}
 		return subset;
+	}
+
+	public static int[] select(final int[] array, final int... indices) {
+		final int[] subset = new int[indices.length];
+		for (int i = 0; i < indices.length; i++) {
+			subset[i] = array[indices[i]];
+		}
+		return subset;
+	}
+
+	public static int[] reverse(int[] ints) {
+		List<Integer> collection = toIntegerList(ints);
+		Collections.reverse(collection);
+		return toIntArray(collection);
 	}
 
 	public static boolean setEquals(final double[] set1, final double[] set2) {
@@ -161,6 +183,48 @@ public class Util {
 			outMatrix.add(Util.toDoubleList(i));
 		}
 		return outMatrix;
+	}
+
+	public static <T> List<List<T>> permutations(Collection<T> items) {
+		if (items instanceof List) {
+			return permutations((List<T>) items);
+		}
+		return permutations(new ArrayList<T>(items));
+	}
+
+	public static <T> List<List<T>> permutations(List<T> items) {
+		List<List<T>> perms = new ArrayList<List<T>>();
+
+		//		Find the largest index k such that a[k] < a[k + 1]. If no such index exists, the permutation is the last permutation.
+		//		Find the largest index l such that a[k] < a[l]. Since k + 1 is such an index, l is well defined and satisfies k < l.
+		//		Swap a[k] with a[l].
+		//		Reverse the sequence from a[k + 1] up to and including the final element a[n].
+
+		int[] indices = ints(0, items.size());
+		while (true) {
+			perms.add(select(items, indices));
+
+			int k = -1;
+			for (int j = indices.length - 2; j >= 0; j--) {
+				if (indices[j] < indices[j + 1]) {
+					k = j;
+					break;
+				}
+			}
+			if (k == -1) {
+				break;
+			}
+			int l;
+			for (l = indices.length - 1; l >= 0; l--) {
+				if (indices[k] < indices[l]) {
+					break;
+				}
+			}
+			swap(indices, k, l);
+			int[] subset = reverse(select(indices, ints(k + 1, indices.length)));
+			indices = concat(Arrays.copyOf(indices, k + 1), subset);
+		}
+		return perms;
 	}
 
 	/**
@@ -712,6 +776,12 @@ public class Util {
 	 */
 	private static void swap(final Object[] arr, final int i, final int j) {
 		final Object tmp = arr[i];
+		arr[i] = arr[j];
+		arr[j] = tmp;
+	}
+
+	private static void swap(final int[] arr, final int i, final int j) {
+		final int tmp = arr[i];
 		arr[i] = arr[j];
 		arr[j] = tmp;
 	}

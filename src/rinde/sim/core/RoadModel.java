@@ -264,20 +264,45 @@ public class RoadModel {
 		return objLocs.get(obj).getPosition();
 	}
 
-	public List<Point> getShortestPathTo(Object from, Object to) {
-		assert objLocs.containsKey(to) : " to object should be in RoadStructure. " + to;
-		Location l = objLocs.get(to);
-		List<Point> path = getShortestPathTo(from, l.from);
+	/**
+	 * Convenience method for @link {@link #getShortestPathTo(Point, Point)}
+	 * @param fromObj The object which is used as the path origin
+	 * @param toObj The object which is used as the path destination
+	 * @return The shortest path from 'fromObj' to 'toObj'.
+	 */
+	public List<Point> getShortestPathTo(Object fromObj, Object toObj) {
+		assert objLocs.containsKey(toObj) : " to object should be in RoadStructure. " + toObj;
+		Location l = objLocs.get(toObj);
+		List<Point> path = getShortestPathTo(fromObj, l.from);
 		if (l.to != null) {
 			path.add(new MidPoint(l));
 		}
 		return path;
 	}
 
-	public List<Point> getShortestPathTo(Object obj, Point dest) {
-		assert objLocs.containsKey(obj);
-		Point n = getNode(obj);
-		return Graphs.shortestPathDistance(graph, n, dest);
+	/**
+	 * Convenience method for @link {@link #getShortestPathTo(Point, Point)}
+	 * @param fromObj The object which is used as the path origin
+	 * @param to The path destination
+	 * @return The shortest path from 'fromObj' to 'to'
+	 */
+	public List<Point> getShortestPathTo(Object fromObj, Point to) {
+		assert objLocs.containsKey(fromObj);
+		Point from = getNode(fromObj);
+		return getShortestPathTo(from, to);
+	}
+
+	/**
+	 * Computes the shortest path between the two specified points. This method
+	 * can be overridden by subclasses to provide specific features such as
+	 * caching.
+	 * @param from The path origin
+	 * @param to The path destination
+	 * @return The shortest path from 'from' to 'to'.
+	 * @see Graphs#shortestPathDistance(Graph, Point, Point)
+	 */
+	public List<Point> getShortestPathTo(Point from, Point to) {
+		return Graphs.shortestPathDistance(graph, from, to);
 	}
 
 	public boolean hasConnection(Point from, Point to) {
