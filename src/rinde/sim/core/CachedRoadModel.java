@@ -3,8 +3,9 @@
  */
 package rinde.sim.core;
 
-import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import rinde.sim.core.graph.Graph;
 import rinde.sim.core.graph.Graphs;
@@ -23,7 +24,7 @@ public class CachedRoadModel extends RoadModel {
 
 	private Table<Point, Point, List<Point>> pathTable;
 
-	private final Multimap<Class<?>, Object> classObjectMap;
+	private final Multimap<Class<?>, RoadUser> classObjectMap;
 
 	public CachedRoadModel(Graph graph) {
 		super(graph);
@@ -52,13 +53,13 @@ public class CachedRoadModel extends RoadModel {
 	}
 
 	@Override
-	public void addObjectAt(Object newObj, Point pos) {
+	public void addObjectAt(RoadUser newObj, Point pos) {
 		super.addObjectAt(newObj, pos);
 		classObjectMap.put(newObj.getClass(), newObj);
 	}
 
 	@Override
-	public void addObjectAtSamePosition(Object newObj, Object existingObj) {
+	public void addObjectAtSamePosition(RoadUser newObj, RoadUser existingObj) {
 		super.addObjectAtSamePosition(newObj, existingObj);
 		classObjectMap.put(newObj.getClass(), newObj);
 	}
@@ -71,12 +72,14 @@ public class CachedRoadModel extends RoadModel {
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public <Y> Collection<Y> getObjectsOfType(final Class<Y> type) {
-		return (Collection<Y>) classObjectMap.get(type);
+	public <Y extends RoadUser> Set<Y> getObjectsOfType(final Class<Y> type) {
+		Set<Y> set = new HashSet<Y>();
+		set.addAll((Set<Y>) classObjectMap.get(type));
+		return set;
 	}
 
 	@Override
-	public void removeObject(Object o) {
+	public void removeObject(RoadUser o) {
 		super.removeObject(o);
 		classObjectMap.remove(o.getClass(), o);
 	}

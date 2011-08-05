@@ -46,8 +46,7 @@ public class PathFinderTest {
 	RoadModel rs;
 	Point a, b, c, d, e, f, g;
 
-	String o1, o2, o3;
-	Long o4, o5, o6;
+	RoadUser o1, o2, o3, o4, o5, o6;
 
 	@Before
 	public void setUp() throws InstantiationException, IllegalAccessException {
@@ -80,12 +79,12 @@ public class PathFinderTest {
 
 		rs.addConnection(g, a);
 
-		o1 = "object1";
-		o2 = "object2";
-		o3 = "object3";
-		o4 = new Long(444);
-		o5 = new Long(555);
-		o6 = new Long(666);
+		o1 = new StringRoadUser("object1");
+		o2 = new StringRoadUser("object2");
+		o3 = new StringRoadUser("object3");
+		o4 = new LongRoadUser(444L);
+		o5 = new LongRoadUser(555L);
+		o6 = new LongRoadUser(666L);
 
 		rs.addObjectAt(o1, a);
 		rs.addObjectAt(o2, b);
@@ -94,6 +93,32 @@ public class PathFinderTest {
 		rs.addObjectAt(o5, e);
 		rs.addObjectAt(o6, f);
 
+	}
+
+	class StringRoadUser implements RoadUser {
+		public final String name;
+
+		public StringRoadUser(String name) {
+			this.name = name;
+		}
+
+		@Override
+		public String toString() {
+			return name;
+		}
+	}
+
+	class LongRoadUser implements RoadUser {
+		public final long number;
+
+		public LongRoadUser(long number) {
+			this.number = number;
+		}
+
+		@Override
+		public String toString() {
+			return "" + number;
+		}
 	}
 
 	@Test
@@ -133,7 +158,8 @@ public class PathFinderTest {
 	}
 
 	public void compatibilityCheck(List<Point> t) {
-		Object truck = new Object();
+		RoadUser truck = new RoadUser() {
+		};
 		rs.addObjectAt(truck, t.get(0));
 		double len = length(t);
 		double travelled = rs.followPath(truck, new LinkedList<Point>(t), len);
@@ -171,7 +197,7 @@ public class PathFinderTest {
 
 	@Test
 	public void findObjectsWithinRadius() {
-		Collection<Object> objects = Graphs.findObjectsWithinRadius(new Point(10, 10), rs, 15);
+		Collection<RoadUser> objects = Graphs.findObjectsWithinRadius(new Point(10, 10), rs, 15);
 		System.out.println(objects);
 	}
 }

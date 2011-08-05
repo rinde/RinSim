@@ -4,7 +4,6 @@
 package rinde.sim.core.graph;
 
 import java.io.Serializable;
-import java.util.List;
 
 /**
  * @author Rinde van Lon (rinde.vanlon@cs.kuleuven.be)
@@ -27,13 +26,13 @@ public class Point implements Serializable {
 		return Math.sqrt(dx * dx + dy * dy);
 	}
 
-	public static double length(List<Point> path) {
-		double length = 0;
-		for (int i = 1; i < path.size(); i++) {
-			length += Point.distance(path.get(i - 1), path.get(i));
-		}
-		return length;
-	}
+	//	public static double length(List<Point> path) {
+	//		double length = 0;
+	//		for (int i = 1; i < path.size(); i++) {
+	//			length += Point.distance(path.get(i - 1), path.get(i));
+	//		}
+	//		return length;
+	//	}
 
 	public static Point diff(Point p1, Point p2) {
 		return new Point(p1.x - p2.x, p1.y - p2.y);

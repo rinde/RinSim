@@ -18,6 +18,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
+import java.util.Map;
 import java.util.RandomAccess;
 import java.util.Set;
 
@@ -1007,6 +1008,39 @@ public class Util {
 		return result;
 	}
 
+	public static <R extends Collection<V>, V> R deepCollectionCopy(Collection<V> original, Class<R> returnType) {
+		try {
+			R copy = returnType.newInstance();
+			for (V obj : original) {
+				copy.add(obj);
+			}
+			return copy;
+		} catch (Throwable e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	@SuppressWarnings("unchecked")
+	public static <T extends Collection<V>, V> T deepCollectionCopy(T original) {
+		return (T) deepCollectionCopy(original, original.getClass());
+	}
+
+	public static <R extends Map<K, V>, T extends Map<K, V>, K, V> R deepMapCopy(T original, Class<R> returnType) {
+		try {
+			R copy = returnType.newInstance();
+			for (java.util.Map.Entry<K, V> entry : original.entrySet()) {
+				copy.put(entry.getKey(), entry.getValue());
+			}
+			return copy;
+		} catch (Throwable e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	@SuppressWarnings("unchecked")
+	public static <T extends Map<K, V>, K, V> T deepMapCopy(T original) {
+		return (T) deepMapCopy(original, original.getClass());
+	}
 }
 
 final class Entry implements Comparable<Entry> {

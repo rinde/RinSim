@@ -18,6 +18,7 @@ import java.util.SortedMap;
 import java.util.TreeMap;
 
 import rinde.sim.core.RoadModel;
+import rinde.sim.core.RoadUser;
 
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;
@@ -244,7 +245,7 @@ public class Graphs {
 	 * @return
 	 * @see #findClosestObject(Point, RoadModel, Collection)
 	 */
-	public static <T> T findClosestObject(Point pos, RoadModel rs, final Class<T> type) {
+	public static <T extends RoadUser> T findClosestObject(Point pos, RoadModel rs, final Class<T> type) {
 		return findClosestObject(pos, rs, rs.getObjectsOfType(type));
 	}
 
@@ -256,13 +257,13 @@ public class Graphs {
 	 * @return
 	 * @see #findClosestObject(Point, RoadModel, Collection)
 	 */
-	public static Object findClosestObject(Point pos, RoadModel rs, Predicate<Object> predicate) {
-		Collection<Object> filtered = Collections2.filter(rs.getObjects(), predicate);
+	public static RoadUser findClosestObject(Point pos, RoadModel rs, Predicate<RoadUser> predicate) {
+		Collection<RoadUser> filtered = Collections2.filter(rs.getObjects(), predicate);
 		return findClosestObject(pos, rs, filtered);
 	}
 
-	public static <T> T findClosestObject(Point pos, RoadModel rm, Collection<T> objects) {
-		return findClosestObject(pos, objects, new RoadModelObjectToPointFunction<T>(rm));
+	public static <T extends RoadUser> T findClosestObject(Point pos, RoadModel rm, Collection<T> objects) {
+		return findClosestObject(pos, objects, new RoadUserToPositionFunction<T>(rm));
 	}
 
 	public static <T> T findClosestObject(Point pos, Collection<T> objects, Function<T, Point> transformation) {
@@ -279,10 +280,10 @@ public class Graphs {
 		return closest;
 	}
 
-	static class RoadModelObjectToPointFunction<T> implements Function<T, Point> {
+	static class RoadUserToPositionFunction<T extends RoadUser> implements Function<T, Point> {
 		private final RoadModel rm;
 
-		public RoadModelObjectToPointFunction(RoadModel rm) {
+		public RoadUserToPositionFunction(RoadModel rm) {
 			this.rm = rm;
 		}
 
@@ -292,19 +293,19 @@ public class Graphs {
 		}
 	}
 
-	public static Collection<Object> findObjectsWithinRadius(final Point position, final RoadModel model, final double radius) {
-		return Graphs.findObjectsWithinRadius(position, model, radius, Object.class);
+	public static Collection<RoadUser> findObjectsWithinRadius(final Point position, final RoadModel model, final double radius) {
+		return Graphs.findObjectsWithinRadius(position, model, radius, model.getObjects());
 	}
 
-	public static <T> Collection<T> findObjectsWithinRadius(final Point position, final RoadModel model, final double radius, final Class<T> type) {
+	public static <T extends RoadUser> Collection<T> findObjectsWithinRadius(final Point position, final RoadModel model, final double radius, final Class<T> type) {
 		return findObjectsWithinRadius(position, model, radius, model.getObjectsOfType(type));
 	}
 
-	protected static <T> Collection<T> findObjectsWithinRadius(final Point position, final RoadModel model, final double radius, Collection<T> objects) {
+	protected static <T extends RoadUser> Collection<T> findObjectsWithinRadius(final Point position, final RoadModel model, final double radius, Collection<T> objects) {
 		return Collections2.filter(objects, new DistancePredicate(position, model, radius));
 	}
 
-	private static class DistancePredicate implements Predicate<Object> {
+	private static class DistancePredicate implements Predicate<RoadUser> {
 		private final Point position;
 		private final RoadModel model;
 		private final double radius;
@@ -316,7 +317,7 @@ public class Graphs {
 		}
 
 		@Override
-		public boolean apply(Object input) {
+		public boolean apply(RoadUser input) {
 			return Point.distance(model.getPosition(input), position) < radius;
 		}
 	}
