@@ -11,6 +11,7 @@ import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.RGB;
 
 import rinde.sim.core.RoadModel;
+import rinde.sim.core.RoadUser;
 import rinde.sim.core.graph.Point;
 
 /**
@@ -39,9 +40,9 @@ public class ObjectRenderer implements Renderer {
 		final int outerRadius = 10;
 		gc.setBackground(new Color(gc.getDevice(), 255, 0, 0));
 
-		Map<Object, Point> objects = rs.getObjectsAndPositions();
+		Map<RoadUser, Point> objects = rs.getObjectsAndPositions();
 		synchronized (objects) {
-			for (Entry<Object, Point> entry : objects.entrySet()) {
+			for (Entry<RoadUser, Point> entry : objects.entrySet()) {
 				Point p = entry.getValue();
 				if (colorMap != null) {
 					if (colorMap.containsKey(entry.getKey().getClass())) {

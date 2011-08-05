@@ -3,13 +3,12 @@
  */
 package rinde.sim.core;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Queue;
 import java.util.Set;
 
@@ -26,7 +25,7 @@ import com.google.common.collect.Sets;
  */
 public class RoadModel {
 
-	protected volatile Map<Object, Location> objLocs;
+	protected volatile Map<RoadUser, Location> objLocs;
 	final Graph graph;
 
 	public RoadModel(Graph graph) {
@@ -34,7 +33,7 @@ public class RoadModel {
 			throw new IllegalArgumentException("Graph cannot be null");
 		}
 		this.graph = graph;
-		objLocs = Collections.synchronizedMap(new LinkedHashMap<Object, Location>());
+		objLocs = Collections.synchronizedMap(new LinkedHashMap<RoadUser, Location>());
 	}
 
 	public void addConnection(Point from, Point to) {
@@ -53,7 +52,7 @@ public class RoadModel {
 		graph.merge(other);
 	}
 
-	public void addObjectAt(Object newObj, Point pos) {
+	public void addObjectAt(RoadUser newObj, Point pos) {
 		if (!graph.containsNode(pos)) {
 			throw new IllegalArgumentException("Object must be initiated on a crossroad.");
 		} else if (objLocs.containsKey(newObj)) {
@@ -64,7 +63,7 @@ public class RoadModel {
 
 	//	public abstract double followPath(Object object, Queue<Point> path, double distance);
 
-	public void addObjectAtSamePosition(Object newObj, Object existingObj) {
+	public void addObjectAtSamePosition(RoadUser newObj, RoadUser existingObj) {
 		if (objLocs.containsKey(newObj)) {
 			throw new IllegalArgumentException("Object " + newObj + " is already added.");
 		} else if (!objLocs.containsKey(existingObj)) {
@@ -89,18 +88,18 @@ public class RoadModel {
 		objLocs.clear();
 	}
 
-	public boolean containsObject(Object obj) {
+	public boolean containsObject(RoadUser obj) {
 		return objLocs.containsKey(obj);
 	}
 
-	public boolean containsObjectAt(Object obj, Point p) {
+	public boolean containsObjectAt(RoadUser obj, Point p) {
 		if (containsObject(obj)) {
 			return objLocs.get(obj).getPosition().equals(p);
 		}
 		return false;
 	}
 
-	public boolean equalPosition(Object obj1, Object obj2) {
+	public boolean equalPosition(RoadUser obj1, RoadUser obj2) {
 		return containsObject(obj1) && containsObject(obj2) && getPosition(obj1).equals(getPosition(obj2));
 	}
 
@@ -116,7 +115,7 @@ public class RoadModel {
 	 * @return The actual distance that <code>object</code> has traveled after
 	 *         the execution of this method has finished.
 	 */
-	public double followPath(Object object, Queue<Point> path, double distance) {
+	public double followPath(RoadUser object, Queue<Point> path, double distance) {
 		assert path != null : "path cannot be null";
 		assert path.peek() != null : "path cannot be empty";
 		assert distance > 0 : "distance must be greater than 0";
@@ -185,7 +184,7 @@ public class RoadModel {
 		return Graphs.unmodifiableGraph(graph);
 	}
 
-	protected Point getNode(Object obj) {
+	protected Point getNode(RoadUser obj) {
 		assert obj != null;
 		assert objLocs.containsKey(obj);
 
@@ -208,48 +207,48 @@ public class RoadModel {
 		return graph.getNumberOfNodes();
 	}
 
-	public List<Point> getObjectPositions() {
-		List<Point> positions = new ArrayList<Point>();
-		for (Location l : objLocs.values()) {
-			positions.add(l.getPosition());
-		}
-		return positions;
+	public Collection<Point> getObjectPositions() {
+		return getObjectsAndPositions().values();
 	}
 
 	/**
 	 * @return A synchronized and unmodifiable set of the objects in the road
 	 *         structure.
 	 */
-	public Set<Object> getObjects() {
+	public Set<RoadUser> getObjects() {
 		synchronized (objLocs) {
-			return Collections.unmodifiableSet(objLocs.keySet());
+			Set<RoadUser> copy = new LinkedHashSet<RoadUser>();
+			copy.addAll(objLocs.keySet());
+			return Collections.unmodifiableSet(copy);
 		}
 	}
 
-	public Set<Object> getObjects(Predicate<Object> p) {
-		synchronized (objLocs) {
-			return Collections.unmodifiableSet(Sets.filter(objLocs.keySet(), p));
-		}
-	}
-
-	public Map<Object, Point> getObjectsAndPositions() {
-		synchronized (objLocs) {
-			Map<Object, Point> map = new LinkedHashMap<Object, Point>();
-			for (Entry<Object, Location> entry : objLocs.entrySet()) {
-				map.put(entry.getKey(), entry.getValue().getPosition());
-			}
-			return map;
-		}
+	public Set<RoadUser> getObjects(Predicate<RoadUser> p) {
+		return Collections.unmodifiableSet(Sets.filter(getObjects(), p));
 	}
 
 	@SuppressWarnings("unchecked")
-	public <Y> Collection<Y> getObjectsOfType(final Class<Y> type) {
-		return (Collection<Y>) getObjects(new Predicate<Object>() {
+	public <Y extends RoadUser> Set<Y> getObjectsOfType(final Class<Y> type) {
+		return (Set<Y>) getObjects(new Predicate<RoadUser>() {
 			@Override
-			public boolean apply(Object input) {
+			public boolean apply(RoadUser input) {
 				return type.isInstance(input);
 			}
 		});
+	}
+
+	public Map<RoadUser, Point> getObjectsAndPositions() {
+		Map<RoadUser, Location> copiedMap;
+		synchronized (objLocs) {
+			copiedMap = new LinkedHashMap<RoadUser, Location>();
+			copiedMap.putAll(objLocs);
+		}// its save to release the lock now
+
+		Map<RoadUser, Point> theMap = new LinkedHashMap<RoadUser, Point>();
+		for (java.util.Map.Entry<RoadUser, Location> entry : copiedMap.entrySet()) {
+			theMap.put(entry.getKey(), entry.getValue().getPosition());
+		}
+		return Collections.unmodifiableMap(theMap);
 	}
 
 	/**
@@ -258,7 +257,7 @@ public class RoadModel {
 	 * @return The position (as a {@link Point} object) for the specified
 	 *         <code>obj</code> object.
 	 */
-	public Point getPosition(Object obj) {
+	public Point getPosition(RoadUser obj) {
 		assert obj != null : "object cannot be null";
 		assert objLocs.containsKey(obj) : "object must have a location in RoadStructure " + obj;
 		return objLocs.get(obj).getPosition();
@@ -270,7 +269,7 @@ public class RoadModel {
 	 * @param toObj The object which is used as the path destination
 	 * @return The shortest path from 'fromObj' to 'toObj'.
 	 */
-	public List<Point> getShortestPathTo(Object fromObj, Object toObj) {
+	public List<Point> getShortestPathTo(RoadUser fromObj, RoadUser toObj) {
 		assert objLocs.containsKey(toObj) : " to object should be in RoadStructure. " + toObj;
 		Location l = objLocs.get(toObj);
 		List<Point> path = getShortestPathTo(fromObj, l.from);
@@ -286,8 +285,8 @@ public class RoadModel {
 	 * @param to The path destination
 	 * @return The shortest path from 'fromObj' to 'to'
 	 */
-	public List<Point> getShortestPathTo(Object fromObj, Point to) {
-		assert objLocs.containsKey(fromObj);
+	public List<Point> getShortestPathTo(RoadUser fromObj, Point to) {
+		assert objLocs.containsKey(fromObj) : " from object should be in RoadStructure. " + fromObj;
 		Point from = getNode(fromObj);
 		return getShortestPathTo(from, to);
 	}
@@ -309,7 +308,8 @@ public class RoadModel {
 		return graph.hasConnection(from, to);
 	}
 
-	public void removeObject(Object o) {
+	public void removeObject(RoadUser o) {
+		assert objLocs.containsKey(o);
 		objLocs.remove(o);
 	}
 }
