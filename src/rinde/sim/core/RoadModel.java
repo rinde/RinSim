@@ -24,6 +24,7 @@ import com.google.common.collect.Sets;
  * 
  */
 public class RoadModel {
+	// TODO remove the Graph related functions, and give a reference to an unmodifiable Graph instance instead
 
 	protected volatile Map<RoadUser, Location> objLocs;
 	final Graph graph;
@@ -61,8 +62,6 @@ public class RoadModel {
 		objLocs.put(newObj, new Location(pos, null, 0));
 	}
 
-	//	public abstract double followPath(Object object, Queue<Point> path, double distance);
-
 	public void addObjectAtSamePosition(RoadUser newObj, RoadUser existingObj) {
 		if (objLocs.containsKey(newObj)) {
 			throw new IllegalArgumentException("Object " + newObj + " is already added.");
@@ -70,15 +69,6 @@ public class RoadModel {
 			throw new IllegalArgumentException("Object " + existingObj + " does not exist.");
 		}
 		objLocs.put(newObj, objLocs.get(existingObj));
-	}
-
-	protected Location checkLocation(Location l) {
-		if (l.to == null && !graph.containsNode(l.from)) {
-			throw new IllegalStateException("Location points to non-existing vertex: " + l.from + ".");
-		} else if (l.to != null && !graph.hasConnection(l.from, l.to)) {
-			throw new IllegalStateException("Location points to non-existing connection: " + l.from + " >> " + l.to + ".");
-		}
-		return l;
 	}
 
 	/**
@@ -104,6 +94,9 @@ public class RoadModel {
 	}
 
 	/**
+	 * This method moves the specified {@link RoadUser} using the specified path
+	 * and the specified distance.
+	 * <p>
 	 * This method can be called repeatedly to follow a path. Each time this
 	 * method is invoked the <code>path</code> {@link Queue} can be modified.
 	 * When a vertex in <code>path</code> has been visited, it is removed from
@@ -184,17 +177,6 @@ public class RoadModel {
 		return Graphs.unmodifiableGraph(graph);
 	}
 
-	protected Point getNode(RoadUser obj) {
-		assert obj != null;
-		assert objLocs.containsKey(obj);
-
-		if (objLocs.get(obj).to != null) {
-			return objLocs.get(obj).to;
-		} else {
-			return objLocs.get(obj).from;
-		}
-	}
-
 	public Set<Point> getNodes() {
 		return graph.getNodes();
 	}
@@ -207,36 +189,47 @@ public class RoadModel {
 		return graph.getNumberOfNodes();
 	}
 
+	/**
+	 * This method returns a collection of {@link Point} objects which are the
+	 * positions of the objects that exist in this model. The returned
+	 * collection is not a live view on the set, but a new created copy.
+	 * @return The collection of {@link Point} objects.
+	 */
 	public Collection<Point> getObjectPositions() {
 		return getObjectsAndPositions().values();
 	}
 
 	/**
-	 * @return A synchronized and unmodifiable set of the objects in the road
-	 *         structure.
+	 * This method returns the set of {@link RoadUser} objects which exist in
+	 * this model. The returned set is not a live view on the set, but a new
+	 * created copy.
+	 * @return The set of {@link RoadUser} objects.
 	 */
 	public Set<RoadUser> getObjects() {
 		synchronized (objLocs) {
 			Set<RoadUser> copy = new LinkedHashSet<RoadUser>();
 			copy.addAll(objLocs.keySet());
-			return Collections.unmodifiableSet(copy);
+			return copy;
 		}
 	}
 
-	public Set<RoadUser> getObjects(Predicate<RoadUser> p) {
-		return Collections.unmodifiableSet(Sets.filter(getObjects(), p));
+	/**
+	 * This method returns a set of {@link RoadUser} objects which exist in this
+	 * model and satisfy the given {@link Predicate}. The returned set is not a
+	 * live view on this model, but a new created copy.
+	 * @param predicate The predicate that decides which objects to return.
+	 * @return A set of {@link RoadUser} objects.
+	 */
+	public Set<RoadUser> getObjects(Predicate<RoadUser> predicate) {
+		return Sets.filter(getObjects(), predicate);
 	}
 
-	@SuppressWarnings("unchecked")
-	public <Y extends RoadUser> Set<Y> getObjectsOfType(final Class<Y> type) {
-		return (Set<Y>) getObjects(new Predicate<RoadUser>() {
-			@Override
-			public boolean apply(RoadUser input) {
-				return type.isInstance(input);
-			}
-		});
-	}
-
+	/**
+	 * This method returns a mapping of {@link RoadUser} to {@link Point}
+	 * objects which exist in this model. The returned map is not a live view on
+	 * this model, but a new created copy.
+	 * @return A map of {@link RoadUser} to {@link Point} objects.
+	 */
 	public Map<RoadUser, Point> getObjectsAndPositions() {
 		Map<RoadUser, Location> copiedMap;
 		synchronized (objLocs) {
@@ -248,7 +241,24 @@ public class RoadModel {
 		for (java.util.Map.Entry<RoadUser, Location> entry : copiedMap.entrySet()) {
 			theMap.put(entry.getKey(), entry.getValue().getPosition());
 		}
-		return Collections.unmodifiableMap(theMap);
+		return theMap;
+	}
+
+	/**
+	 * This method returns a set of {@link RoadUser} objects which exist in this
+	 * model and are instances of the specified {@link Class}. The returned set
+	 * is not a live view on the set, but a new created copy.
+	 * @param type The type of returned objects.
+	 * @return A set of {@link RoadUser} objects.
+	 */
+	@SuppressWarnings("unchecked")
+	public <Y extends RoadUser> Set<Y> getObjectsOfType(final Class<Y> type) {
+		return (Set<Y>) getObjects(new Predicate<RoadUser>() {
+			@Override
+			public boolean apply(RoadUser input) {
+				return type.isInstance(input);
+			}
+		});
 	}
 
 	/**
@@ -261,6 +271,31 @@ public class RoadModel {
 		assert obj != null : "object cannot be null";
 		assert objLocs.containsKey(obj) : "object must have a location in RoadStructure " + obj;
 		return objLocs.get(obj).getPosition();
+	}
+
+	/**
+	 * Computes the shortest path between the two specified points. This method
+	 * can be overridden by subclasses to provide specific features such as
+	 * caching.
+	 * @param from The path origin
+	 * @param to The path destination
+	 * @return The shortest path from 'from' to 'to'.
+	 * @see Graphs#shortestPathDistance(Graph, Point, Point)
+	 */
+	public List<Point> getShortestPathTo(Point from, Point to) {
+		return Graphs.shortestPathDistance(graph, from, to);
+	}
+
+	/**
+	 * Convenience method for @link {@link #getShortestPathTo(Point, Point)}
+	 * @param fromObj The object which is used as the path origin
+	 * @param to The path destination
+	 * @return The shortest path from 'fromObj' to 'to'
+	 */
+	public List<Point> getShortestPathTo(RoadUser fromObj, Point to) {
+		assert objLocs.containsKey(fromObj) : " from object should be in RoadStructure. " + fromObj;
+		Point from = getNode(fromObj);
+		return getShortestPathTo(from, to);
 	}
 
 	/**
@@ -279,31 +314,6 @@ public class RoadModel {
 		return path;
 	}
 
-	/**
-	 * Convenience method for @link {@link #getShortestPathTo(Point, Point)}
-	 * @param fromObj The object which is used as the path origin
-	 * @param to The path destination
-	 * @return The shortest path from 'fromObj' to 'to'
-	 */
-	public List<Point> getShortestPathTo(RoadUser fromObj, Point to) {
-		assert objLocs.containsKey(fromObj) : " from object should be in RoadStructure. " + fromObj;
-		Point from = getNode(fromObj);
-		return getShortestPathTo(from, to);
-	}
-
-	/**
-	 * Computes the shortest path between the two specified points. This method
-	 * can be overridden by subclasses to provide specific features such as
-	 * caching.
-	 * @param from The path origin
-	 * @param to The path destination
-	 * @return The shortest path from 'from' to 'to'.
-	 * @see Graphs#shortestPathDistance(Graph, Point, Point)
-	 */
-	public List<Point> getShortestPathTo(Point from, Point to) {
-		return Graphs.shortestPathDistance(graph, from, to);
-	}
-
 	public boolean hasConnection(Point from, Point to) {
 		return graph.hasConnection(from, to);
 	}
@@ -311,6 +321,26 @@ public class RoadModel {
 	public void removeObject(RoadUser o) {
 		assert objLocs.containsKey(o);
 		objLocs.remove(o);
+	}
+
+	protected Location checkLocation(Location l) {
+		if (l.to == null && !graph.containsNode(l.from)) {
+			throw new IllegalStateException("Location points to non-existing vertex: " + l.from + ".");
+		} else if (l.to != null && !graph.hasConnection(l.from, l.to)) {
+			throw new IllegalStateException("Location points to non-existing connection: " + l.from + " >> " + l.to + ".");
+		}
+		return l;
+	}
+
+	protected Point getNode(RoadUser obj) {
+		assert obj != null;
+		assert objLocs.containsKey(obj);
+
+		if (objLocs.get(obj).to != null) {
+			return objLocs.get(obj).to;
+		} else {
+			return objLocs.get(obj).from;
+		}
 	}
 }
 
@@ -337,6 +367,11 @@ class Location {
 		}
 	}
 
+	@Override
+	public String toString() {
+		return "from:" + from + ", to:" + to + ", relativepos:" + relativePos;
+	}
+
 	Point getPosition() {
 		if (to == null) {
 			return from;
@@ -344,11 +379,6 @@ class Location {
 		Point diff = Point.diff(to, from);
 		double perc = relativePos / roadLength;
 		return new Point(from.x + perc * diff.x, from.y + perc * diff.y);
-	}
-
-	@Override
-	public String toString() {
-		return "from:" + from + ", to:" + to + ", relativepos:" + relativePos;
 	}
 }
 
