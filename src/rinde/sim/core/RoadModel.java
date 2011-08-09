@@ -293,7 +293,7 @@ public class RoadModel {
 	 * @return The shortest path from 'fromObj' to 'to'
 	 */
 	public List<Point> getShortestPathTo(RoadUser fromObj, Point to) {
-		assert objLocs.containsKey(fromObj) : " from object should be in RoadStructure. " + fromObj;
+		assert objLocs.containsKey(fromObj) : " from object should be in RoadModel. " + fromObj;
 		Point from = getNode(fromObj);
 		return getShortestPathTo(from, to);
 	}
@@ -305,7 +305,7 @@ public class RoadModel {
 	 * @return The shortest path from 'fromObj' to 'toObj'.
 	 */
 	public List<Point> getShortestPathTo(RoadUser fromObj, RoadUser toObj) {
-		assert objLocs.containsKey(toObj) : " to object should be in RoadStructure. " + toObj;
+		assert objLocs.containsKey(toObj) : " to object should be in RoadModel. " + toObj;
 		Location l = objLocs.get(toObj);
 		List<Point> path = getShortestPathTo(fromObj, l.from);
 		if (l.to != null) {
