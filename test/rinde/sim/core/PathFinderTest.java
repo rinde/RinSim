@@ -198,6 +198,6 @@ public class PathFinderTest {
 	@Test
 	public void findObjectsWithinRadius() {
 		Collection<RoadUser> objects = Graphs.findObjectsWithinRadius(new Point(10, 10), rs, 15);
-		System.out.println(objects);
+		//		System.out.println(objects);
 	}
 }

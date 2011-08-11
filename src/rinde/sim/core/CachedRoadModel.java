@@ -8,7 +8,6 @@ import java.util.List;
 import java.util.Set;
 
 import rinde.sim.core.graph.Graph;
-import rinde.sim.core.graph.Graphs;
 import rinde.sim.core.graph.Point;
 
 import com.google.common.collect.HashBasedTable;
@@ -46,7 +45,7 @@ public class CachedRoadModel extends RoadModel {
 		if (pathTable.contains(from, to)) {
 			return pathTable.get(from, to);
 		} else {
-			List<Point> path = Graphs.shortestPathDistance(graph, from, to);
+			List<Point> path = super.getShortestPathTo(from, to);
 			pathTable.put(from, to, path);
 			return path;
 		}
