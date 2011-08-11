@@ -3,6 +3,7 @@
  */
 package rinde.sim.core;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -235,7 +236,7 @@ public class RoadModel {
 		synchronized (objLocs) {
 			copiedMap = new LinkedHashMap<RoadUser, Location>();
 			copiedMap.putAll(objLocs);
-		}// its save to release the lock now
+		}// it is save to release the lock now
 
 		Map<RoadUser, Point> theMap = new LinkedHashMap<RoadUser, Point>();
 		for (java.util.Map.Entry<RoadUser, Location> entry : copiedMap.entrySet()) {
@@ -282,9 +283,9 @@ public class RoadModel {
 	 * @return The shortest path from 'from' to 'to'.
 	 * @see Graphs#shortestPathDistance(Graph, Point, Point)
 	 */
-	public List<Point> getShortestPathTo(Point from, Point to) {
-		return Graphs.shortestPathDistance(graph, from, to);
-	}
+	//	public List<Point> getShortestPathTo(Point from, Point to) {
+	//		return Graphs.shortestPathDistance(graph, from, to);
+	//	}
 
 	/**
 	 * Convenience method for @link {@link #getShortestPathTo(Point, Point)}
@@ -306,10 +307,29 @@ public class RoadModel {
 	 */
 	public List<Point> getShortestPathTo(RoadUser fromObj, RoadUser toObj) {
 		assert objLocs.containsKey(toObj) : " to object should be in RoadModel. " + toObj;
-		Location l = objLocs.get(toObj);
-		List<Point> path = getShortestPathTo(fromObj, l.from);
-		if (l.to != null) {
-			path.add(new MidPoint(l));
+		//		Location l = objLocs.get(toObj);
+		List<Point> path = getShortestPathTo(fromObj, getPosition(toObj));
+		//		if (l.isEdgePoint()) {
+		//			path.add(l.getPosition());
+		//		}
+		return path;
+	}
+
+	public List<Point> getShortestPathTo(Point from, Point to) {
+		List<Point> path = new ArrayList<Point>();
+		Point f = from;
+		if (from instanceof MidPoint) {
+			f = ((MidPoint) from).loc.to;
+			path.add(from);
+		}
+
+		Point t = to;
+		if (to instanceof MidPoint) {
+			t = ((MidPoint) to).loc.from;
+		}
+		path.addAll(Graphs.shortestPathDistance(graph, f, t));
+		if (to instanceof MidPoint) {
+			path.add(to);
 		}
 		return path;
 	}
@@ -358,7 +378,7 @@ class Location {
 	public Location(Point from, Point to, double relativePos) {
 		this.from = from;
 		this.to = to;
-		if (to != null) {
+		if (isEdgePoint()) {
 			this.relativePos = relativePos;
 			roadLength = Point.distance(from, to);
 		} else {
@@ -367,26 +387,36 @@ class Location {
 		}
 	}
 
+	public boolean isEdgePoint() {
+		return to != null;
+	}
+
 	@Override
 	public String toString() {
 		return "from:" + from + ", to:" + to + ", relativepos:" + relativePos;
 	}
 
 	Point getPosition() {
-		if (to == null) {
+		if (!isEdgePoint()) {
 			return from;
 		}
 		Point diff = Point.diff(to, from);
 		double perc = relativePos / roadLength;
-		return new Point(from.x + perc * diff.x, from.y + perc * diff.y);
+		return new MidPoint(from.x + perc * diff.x, from.y + perc * diff.y, this);
 	}
 }
 
-class MidPoint extends Point {
-	final Location loc;
+final class MidPoint extends Point {
+	private static final long serialVersionUID = -8442184033570204979L;
+	protected final Location loc;
 
-	public MidPoint(Location l) {
-		super(l.getPosition().x, l.getPosition().y);
+	public MidPoint(double x, double y, Location l) {
+		super(x, y);
 		loc = l;
+	}
+
+	@Override
+	public String toString() {
+		return super.toString() + "{" + loc + "}";
 	}
 }

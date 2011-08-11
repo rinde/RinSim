@@ -146,6 +146,19 @@ public class Util {
 		return sum / doubles.length;
 	}
 
+	public static double var(Collection<Long> vals) {
+		final double mean = mean(vals);
+		double sum = 0;
+		for (final long v : vals) {
+			sum += Math.pow(v - mean, 2);
+		}
+		return sum / vals.size();
+	}
+
+	public static double std(Collection<Long> vals) {
+		return Math.sqrt(var(vals));
+	}
+
 	public static double mean(Collection<Long> vals) {
 		long sum = 0;
 		for (Long l : vals) {
