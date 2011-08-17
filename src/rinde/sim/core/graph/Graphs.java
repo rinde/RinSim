@@ -8,7 +8,8 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -180,18 +181,18 @@ public class Graphs {
 		//			throw new IllegalArgumentException("to should be valid vertex");
 		//		}
 
-		final Set<Point> closedSet = new HashSet<Point>(); // The set of nodes already evaluated.
+		final Set<Point> closedSet = new LinkedHashSet<Point>(); // The set of nodes already evaluated.
 
-		final Map<Point, Double> g_score = new HashMap<Point, Double>();// Distance from start along optimal path.
+		final Map<Point, Double> g_score = new LinkedHashMap<Point, Double>();// Distance from start along optimal path.
 		g_score.put(from, 0d);
 
-		final Map<Point, Double> h_score = new HashMap<Point, Double>();// heuristic estimates 
+		final Map<Point, Double> h_score = new LinkedHashMap<Point, Double>();// heuristic estimates 
 		h_score.put(from, h.calculateHeuristic(Point.distance(from, to)));
 
 		final SortedMap<Double, Point> f_score = new TreeMap<Double, Point>(); // Estimated total distance from start to goal through y.
 		f_score.put(h.calculateHeuristic(Point.distance(from, to)), from);
 
-		final HashMap<Point, Point> came_from = new HashMap<Point, Point>();// The map of navigated nodes.
+		final HashMap<Point, Point> came_from = new LinkedHashMap<Point, Point>();// The map of navigated nodes.
 
 		while (!f_score.isEmpty()) {
 			final Point current = f_score.remove(f_score.firstKey());

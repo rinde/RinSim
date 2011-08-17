@@ -5,6 +5,8 @@ package rinde.sim.core.graph;
 
 import java.io.Serializable;
 
+import org.apache.commons.lang.builder.HashCodeBuilder;
+
 /**
  * @author Rinde van Lon (rinde.vanlon@cs.kuleuven.be)
  * 
@@ -15,9 +17,12 @@ public class Point implements Serializable {
 	public final double x;
 	public final double y;
 
+	private final int hashCode;
+
 	public Point(double x, double y) {
 		this.x = x;
 		this.y = y;
+		hashCode = new HashCodeBuilder(17, 37).append(x + "," + y).toHashCode();
 	}
 
 	public static double distance(Point p1, Point p2) {
@@ -49,15 +54,27 @@ public class Point implements Serializable {
 
 	@Override
 	public int hashCode() {
-		return new Double(x).hashCode() ^ new Double(y).hashCode();
+		return hashCode;
+	}
+
+	public boolean equals(Point p) {
+		if (p == null) {
+			return false;
+		}
+		return hashCode() == p.hashCode();
 	}
 
 	@Override
 	public boolean equals(Object p) {
 		if (p instanceof Point) {
-			return ((Point) p).x == x && ((Point) p).y == y;
+			return equals((Point) p);
 		}
 		return false;
+
+		//		if (p instanceof Point) {
+		//			return this.equals((Point) p);
+		//		}
+		//		return false;
 	}
 
 	@Override
