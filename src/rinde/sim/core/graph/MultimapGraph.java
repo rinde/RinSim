@@ -6,10 +6,11 @@ package rinde.sim.core.graph;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Map.Entry;
 import java.util.Set;
 
-import com.google.common.collect.HashMultimap;
+import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Multimaps;
 
@@ -22,11 +23,11 @@ public class MultimapGraph implements Graph {
 	private final Multimap<Point, Point> data;
 
 	public MultimapGraph(Multimap<Point, Point> data) {
-		this.data = data;
+		this.data = LinkedHashMultimap.create(data);
 	}
 
 	public MultimapGraph() {
-		data = HashMultimap.create();
+		data = LinkedHashMultimap.create();
 	}
 
 	@Override
@@ -64,12 +65,12 @@ public class MultimapGraph implements Graph {
 
 	@Override
 	public Set<Point> getNodes() {
-		return Collections.unmodifiableSet(new HashSet<Point>(data.keySet()));
+		return Collections.unmodifiableSet(new LinkedHashSet<Point>(data.keySet()));
 	}
 
 	@Override
 	public Collection<Entry<Point, Point>> getConnections() {
-		return data.entries();
+		return Collections.unmodifiableCollection(data.entries());
 	}
 
 	// returns the backing multimap
@@ -105,7 +106,7 @@ public class MultimapGraph implements Graph {
 	 */
 	@Override
 	public Collection<Point> getIncomingConnections(Point node) {
-		HashSet<Point> set = new HashSet<Point>();
+		HashSet<Point> set = new LinkedHashSet<Point>();
 		for (Entry<Point, Point> entry : data.entries()) {
 			if (entry.getValue().equals(node)) {
 				set.add(entry.getKey());
@@ -128,7 +129,11 @@ public class MultimapGraph implements Graph {
 
 	@Override
 	public void removeConnection(Point from, Point to) {
-		data.remove(from, to);
+		if (hasConnection(from, to)) {
+			data.remove(from, to);
+		} else {
+			throw new IllegalArgumentException("Can not remove non-existing connection: " + from + " -> " + to);
+		}
 	}
 
 	@Override

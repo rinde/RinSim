@@ -3,7 +3,7 @@
  */
 package rinde.sim.core;
 
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -11,7 +11,7 @@ import rinde.sim.core.graph.Graph;
 import rinde.sim.core.graph.Point;
 
 import com.google.common.collect.HashBasedTable;
-import com.google.common.collect.HashMultimap;
+import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Table;
 
@@ -29,7 +29,7 @@ public class CachedRoadModel extends RoadModel {
 		super(graph);
 
 		pathTable = HashBasedTable.create();
-		classObjectMap = HashMultimap.create();
+		classObjectMap = LinkedHashMultimap.create();
 	}
 
 	public void setPathCache(Table<Point, Point, List<Point>> pathTable) {
@@ -72,7 +72,7 @@ public class CachedRoadModel extends RoadModel {
 	@SuppressWarnings("unchecked")
 	@Override
 	public <Y extends RoadUser> Set<Y> getObjectsOfType(final Class<Y> type) {
-		Set<Y> set = new HashSet<Y>();
+		Set<Y> set = new LinkedHashSet<Y>();
 		set.addAll((Set<Y>) classObjectMap.get(type));
 		return set;
 	}

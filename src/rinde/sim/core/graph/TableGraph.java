@@ -10,7 +10,7 @@ import java.util.HashSet;
 import java.util.Map.Entry;
 import java.util.Set;
 
-import com.google.common.collect.HashBasedTable;
+import com.google.common.collect.LinkedHashBasedTable;
 import com.google.common.collect.Table;
 import com.google.common.collect.Table.Cell;
 
@@ -23,7 +23,7 @@ public class TableGraph implements Graph {
 	private final Table<Point, Point, ConnectionAttributes> data;
 
 	public TableGraph() {
-		data = HashBasedTable.create();
+		data = LinkedHashBasedTable.create();
 	}
 
 	/**
@@ -95,10 +95,6 @@ public class TableGraph implements Graph {
 			throw new IllegalArgumentException("A connection cannot be circular: " + from + " -> " + to);
 		}
 		data.put(from, to, attributes);
-	}
-
-	public static TableGraph create() {
-		return new TableGraph();
 	}
 
 	@Override

@@ -9,11 +9,13 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Queue;
 import java.util.Set;
 
@@ -29,6 +31,7 @@ import rinde.sim.core.graph.MultimapGraph;
 import rinde.sim.core.graph.Point;
 import rinde.sim.core.graph.TableGraph;
 
+import com.google.common.base.Predicate;
 import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.Table;
 
@@ -374,6 +377,9 @@ public class RoadModelTest {
 	class TestRoadUser implements RoadUser {
 	}
 
+	class TestRoadUser2 implements RoadUser {
+	}
+
 	@Test
 	public void followPathHalfway2() {
 		RoadUser agent1 = new TestRoadUser();
@@ -487,5 +493,74 @@ public class RoadModelTest {
 
 		List<Point> shortestPath = model.getShortestPathTo(a1, a2);
 		assertEquals(Arrays.asList(a1, SE, NE, a2), shortestPath);
+	}
+
+	@Test
+	public void testObjectOrder() {
+		List<RoadUser> objects = new ArrayList<RoadUser>();
+		List<Point> positions = Arrays.asList(NE, SE, SW, NE);
+		for (int i = 0; i < 100; i++) {
+			RoadUser u;
+			if (i % 2 == 0) {
+				u = new TestRoadUser();
+			} else {
+				u = new TestRoadUser2();
+			}
+			objects.add(u);
+			model.addObjectAt(u, positions.get(i % positions.size()));
+		}
+
+		// checking whether the returned objects are in insertion order
+		List<RoadUser> modelObjects = new ArrayList<RoadUser>(model.getObjects());
+		assertEquals(objects.size(), modelObjects.size());
+		for (int i = 0; i < modelObjects.size(); i++) {
+			assertTrue(modelObjects.get(i) == objects.get(i));
+		}
+
+		model.removeObject(objects.remove(97));
+		model.removeObject(objects.remove(67));
+		model.removeObject(objects.remove(44));
+		model.removeObject(objects.remove(13));
+		model.removeObject(objects.remove(3));
+
+		// check to see if the objects are still in insertion order, event after removals
+		List<RoadUser> modelObjects2 = new ArrayList<RoadUser>(model.getObjects());
+		assertEquals(objects.size(), modelObjects2.size());
+		for (int i = 0; i < modelObjects2.size(); i++) {
+			assertTrue(modelObjects2.get(i) == objects.get(i));
+		}
+
+		// make sure that the order is preserved, even when using a predicate
+		List<RoadUser> modelObjects3 = new ArrayList<RoadUser>(model.getObjects(new Predicate<RoadUser>() {
+			@Override
+			public boolean apply(RoadUser input) {
+				return true;
+			}
+		}));
+		assertEquals(objects.size(), modelObjects3.size());
+		for (int i = 0; i < modelObjects3.size(); i++) {
+			assertTrue(modelObjects3.get(i) == objects.get(i));
+		}
+
+		// make sure that the order of the objects is preserved, even in this RoadUser, Point map
+		List<Entry<RoadUser, Point>> modelObjects4 = new ArrayList<Entry<RoadUser, Point>>(model.getObjectsAndPositions().entrySet());
+		assertEquals(objects.size(), modelObjects4.size());
+		for (int i = 0; i < modelObjects4.size(); i++) {
+			assertTrue(modelObjects4.get(i).getKey() == objects.get(i));
+		}
+
+		// make sure that the order is preserved, even when using a type
+		List<RoadUser> modelObjects5 = new ArrayList<RoadUser>(model.getObjectsOfType(TestRoadUser2.class));
+		assertEquals(46, modelObjects5.size());
+		int j = 0;
+		for (int i = 0; i < modelObjects5.size(); i++) {
+			// skip all other objects
+			while (!(objects.get(j) instanceof TestRoadUser2)) {
+				j++;
+			}
+			assertTrue(modelObjects5.get(i) == objects.get(j));
+			j++;
+		}
+
 	}
 }

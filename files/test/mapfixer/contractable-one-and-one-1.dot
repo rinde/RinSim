@@ -1,9 +1,9 @@
 digraph genegraph {
-node0[pos="0.0,0.0", label="(0.0,0.0)", pin=true]
-node1[pos="0.6666666666666666,0.0", label="(2.0,0.0)", pin=true]
-node2[pos="0.3333333333333333,0.0", label="(1.0,0.0)", pin=true]
-node0 -> node2[label="1.0"]
-node3[pos="1.0,0.0", label="(3.0,0.0)", pin=true]
-node1 -> node3[label="1.0"]
+node0[pos="0.6666666666666666,0.0", label="(2.0,0.0)", pin=true]
+node1[pos="0.3333333333333333,0.0", label="(1.0,0.0)", pin=true]
+node2[pos="0.0,0.0", label="(0.0,0.0)", pin=true]
 node2 -> node1[label="1.0"]
+node1 -> node0[label="1.0"]
+node3[pos="1.0,0.0", label="(3.0,0.0)", pin=true]
+node0 -> node3[label="1.0"]
 }
