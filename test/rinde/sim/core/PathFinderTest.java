@@ -123,27 +123,27 @@ public class PathFinderTest {
 
 	@Test
 	public void shortestDistance() {
-		List<Point> t = Graphs.shortestPathDistance(rs.getGraph(), a, d);
+		List<Point> t = Graphs.shortestPathEuclidianDistance(rs.getGraph(), a, d);
 		compatibilityCheck(t);
 		assertEquals(asList(a, c, d), t);
 
-		List<Point> t2 = Graphs.shortestPathDistance(rs.getGraph(), d, a);
+		List<Point> t2 = Graphs.shortestPathEuclidianDistance(rs.getGraph(), d, a);
 		compatibilityCheck(t2);
 		assertEquals(asList(d, f, g, a), t2);
 
-		List<Point> t3 = Graphs.shortestPathDistance(rs.getGraph(), g, e);
+		List<Point> t3 = Graphs.shortestPathEuclidianDistance(rs.getGraph(), g, e);
 		compatibilityCheck(t3);
 		assertEquals(asList(g, a, c, e), t3);
 
-		List<Point> t4 = Graphs.shortestPathDistance(rs.getGraph(), a, e);
+		List<Point> t4 = Graphs.shortestPathEuclidianDistance(rs.getGraph(), a, e);
 		compatibilityCheck(t4);
 		assertEquals(asList(a, c, e), t4);
 
-		List<Point> t5 = Graphs.shortestPathDistance(rs.getGraph(), a, c);
+		List<Point> t5 = Graphs.shortestPathEuclidianDistance(rs.getGraph(), a, c);
 		compatibilityCheck(t5);
 		assertEquals(asList(a, c), t5);
 
-		List<Point> t6 = Graphs.shortestPathDistance(rs.getGraph(), e, g);
+		List<Point> t6 = Graphs.shortestPathEuclidianDistance(rs.getGraph(), e, g);
 		compatibilityCheck(t6);
 		assertEquals(asList(e, b, c, d, f, g), t6);
 	}
@@ -154,7 +154,7 @@ public class PathFinderTest {
 		roads.addConnection(a, b);
 		roads.addConnection(b, c);
 
-		Graphs.shortestPathDistance(roads.getGraph(), b, a);
+		Graphs.shortestPathEuclidianDistance(roads.getGraph(), b, a);
 	}
 
 	public void compatibilityCheck(List<Point> t) {
@@ -184,7 +184,7 @@ public class PathFinderTest {
 		//DotExporter.saveToDot(graph.getGraph(), "files/test/rutgerbug");
 
 		// this shouldn't fail
-		Graphs.shortestPathDistance(graph, q, t);
+		Graphs.shortestPathEuclidianDistance(graph, q, t);
 	}
 
 	private double length(List<Point> path) {

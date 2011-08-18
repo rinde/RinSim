@@ -163,8 +163,8 @@ public class Graphs {
 
 	}
 
-	public static List<Point> shortestPathDistance(Graph graph, final Point from, final Point to) {
-		return Graphs.shortestPath(graph, from, to, new Graphs.Distance());
+	public static List<Point> shortestPathEuclidianDistance(Graph graph, final Point from, final Point to) {
+		return Graphs.shortestPath(graph, from, to, new Graphs.EuclidianDistance());
 	}
 
 	/**
@@ -347,7 +347,7 @@ public class Graphs {
 		public abstract double calculateCostOff(Point from, Point to);
 	}
 
-	static class Distance implements Graphs.Heuristic {
+	static class EuclidianDistance implements Graphs.Heuristic {
 
 		@Override
 		public double calculateCostOff(final Point from, Point to) {

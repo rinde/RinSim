@@ -327,11 +327,15 @@ public class RoadModel {
 		if (to instanceof MidPoint) {
 			t = ((MidPoint) to).loc.from;
 		}
-		path.addAll(Graphs.shortestPathDistance(graph, f, t));
+		path.addAll(doGetShortestPathTo(f, t));
 		if (to instanceof MidPoint) {
 			path.add(to);
 		}
 		return path;
+	}
+
+	protected List<Point> doGetShortestPathTo(Point from, Point to) {
+		return Graphs.shortestPathEuclidianDistance(graph, from, to);
 	}
 
 	public boolean hasConnection(Point from, Point to) {

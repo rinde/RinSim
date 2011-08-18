@@ -53,9 +53,9 @@ public class GraphsTest {
 		D = new Point(10, 0);
 		Graphs.addBiPath(graph, A, B, C, D, A);
 
-		List<Point> prevPath = Graphs.shortestPathDistance(graph, A, C);
+		List<Point> prevPath = Graphs.shortestPathEuclidianDistance(graph, A, C);
 		for (int i = 0; i < 100; i++) {
-			List<Point> newPath = Graphs.shortestPathDistance(graph, A, C);
+			List<Point> newPath = Graphs.shortestPathEuclidianDistance(graph, A, C);
 			assertEquals(prevPath, newPath);
 			prevPath = newPath;
 		}
@@ -78,9 +78,9 @@ public class GraphsTest {
 		NW = new Point(-5, 5);
 		Graphs.addBiPath(graph, N, NE, E, SE, S, SW, W, NW);
 
-		List<Point> prevPath = Graphs.shortestPathDistance(graph, N, S);
+		List<Point> prevPath = Graphs.shortestPathEuclidianDistance(graph, N, S);
 		for (int i = 0; i < 100; i++) {
-			List<Point> newPath = Graphs.shortestPathDistance(graph, N, S);
+			List<Point> newPath = Graphs.shortestPathEuclidianDistance(graph, N, S);
 			assertEquals(prevPath, newPath);
 			prevPath = newPath;
 		}

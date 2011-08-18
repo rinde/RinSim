@@ -392,7 +392,7 @@ public class MapFixer {
 			neighbours.remove(current);
 			if (graph.containsNode(current)) {
 				try {
-					path = Graphs.shortestPathDistance(graph, current, root);
+					path = Graphs.shortestPathEuclidianDistance(graph, current, root);
 				} catch (PathNotFoundException e) {
 				}
 			}
