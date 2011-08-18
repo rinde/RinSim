@@ -40,12 +40,13 @@ public class CachedRoadModel extends RoadModel {
 		return pathTable;
 	}
 
+	// overrides internal func to add caching
 	@Override
-	public List<Point> getShortestPathTo(Point from, Point to) {
+	protected List<Point> doGetShortestPathTo(Point from, Point to) {
 		if (pathTable.contains(from, to)) {
 			return pathTable.get(from, to);
 		} else {
-			List<Point> path = super.getShortestPathTo(from, to);
+			List<Point> path = super.doGetShortestPathTo(from, to);
 			pathTable.put(from, to, path);
 			return path;
 		}

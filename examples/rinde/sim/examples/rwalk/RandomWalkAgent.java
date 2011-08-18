@@ -37,7 +37,7 @@ public class RandomWalkAgent implements TickListener, RoadUser {
 			}
 			Point destination = findRandomNode();
 			rs.addObjectAt(currentPackage, destination);
-			path = new LinkedList<Point>(Graphs.shortestPathDistance(rs.getGraph(), rs.getPosition(this), destination));
+			path = new LinkedList<Point>(Graphs.shortestPathEuclidianDistance(rs.getGraph(), rs.getPosition(this), destination));
 		} else {
 			// follow current path
 			rs.followPath(this, path, 5);
