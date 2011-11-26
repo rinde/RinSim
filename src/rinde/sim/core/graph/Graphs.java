@@ -281,6 +281,48 @@ public class Graphs {
 		return closest;
 	}
 
+	static class RoadUserWithDistance<T> implements Comparable<RoadUserWithDistance<T>> {
+		public final double dist;
+		public final T obj;
+
+		public RoadUserWithDistance(T obj, double dist) {
+			this.obj = obj;
+			this.dist = dist;
+		}
+
+		@Override
+		public int compareTo(RoadUserWithDistance<T> o) {
+			return Double.compare(dist, o.dist);
+		}
+	}
+
+	public static List<RoadUser> findClosestObjects(Point pos, RoadModel rm, Predicate<RoadUser> predicate, int n) {
+		Collection<RoadUser> filtered = Collections2.filter(rm.getObjects(), predicate);
+		return findClosestObjects(pos, rm, filtered, n);
+	}
+
+	public static <T extends RoadUser> List<T> findClosestObjects(Point pos, RoadModel rm, Class<T> type, int n) {
+		return findClosestObjects(pos, rm, rm.getObjectsOfType(type), n);
+	}
+
+	public static <T extends RoadUser> List<T> findClosestObjects(Point pos, RoadModel rm, Collection<T> objects, int n) {
+		return findClosestObjects(pos, objects, new RoadUserToPositionFunction<T>(rm), n);
+	}
+
+	public static <T> List<T> findClosestObjects(Point pos, Collection<T> objects, Function<T, Point> transformation, int n) {
+		List<RoadUserWithDistance<T>> objs = new ArrayList<RoadUserWithDistance<T>>();
+		for (T obj : objects) {
+			Point objPos = transformation.apply(obj);
+			objs.add(new RoadUserWithDistance<T>(obj, Point.distance(pos, objPos)));
+		}
+		Collections.sort(objs);
+		List<T> results = new ArrayList<T>();
+		for (RoadUserWithDistance<T> o : objs.subList(0, Math.min(n, objs.size()))) {
+			results.add(o.obj);
+		}
+		return results;
+	}
+
 	static class RoadUserToPositionFunction<T extends RoadUser> implements Function<T, Point> {
 		private final RoadModel rm;
 

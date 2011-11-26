@@ -1,12 +1,15 @@
 package rinde.sim.scenario;
 
+import java.io.Serializable;
 import java.lang.reflect.Field;
 
 /**
  * @author Rinde van Lon (rinde.vanlon@cs.kuleuven.be)
  * 
  */
-public class SerializedScenarioEvent implements Comparable<SerializedScenarioEvent> {
+public abstract class SerializedScenarioEvent implements Comparable<SerializedScenarioEvent>, Serializable {
+	private static final long serialVersionUID = 1958386532982367241L;
+
 	public final long time;
 
 	public SerializedScenarioEvent(long time) {

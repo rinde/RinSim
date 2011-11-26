@@ -287,7 +287,7 @@ public class RoadModel {
 	//	}
 
 	/**
-	 * Convenience method for @link {@link #getShortestPathTo(Point, Point)}
+	 * Convenience method for {@link #getShortestPathTo(Point, Point)}
 	 * @param fromObj The object which is used as the path origin
 	 * @param to The path destination
 	 * @return The shortest path from 'fromObj' to 'to'
@@ -299,7 +299,7 @@ public class RoadModel {
 	}
 
 	/**
-	 * Convenience method for @link {@link #getShortestPathTo(Point, Point)}
+	 * Convenience method for {@link #getShortestPathTo(Point, Point)}
 	 * @param fromObj The object which is used as the path origin
 	 * @param toObj The object which is used as the path destination
 	 * @return The shortest path from 'fromObj' to 'toObj'.

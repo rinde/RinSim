@@ -16,6 +16,8 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 
+import com.google.common.base.Function;
+
 /**
  * @author Rinde van Lon (rinde.vanlon@cs.kuleuven.be)
  * 
@@ -172,5 +174,30 @@ public class GraphsTest {
 	@Test
 	public void equalsTest() {
 		assertFalse(graph.equals(new Object()));
+	}
+
+	@Test
+	public void closestObjectsTest() {
+		Function<Point, Point> f = new Function<Point, Point>() {
+			@Override
+			public Point apply(Point input) {
+				return input;
+			}
+		};
+
+		List<Point> points = Arrays.asList(new Point(10, 34), new Point(234, 2), new Point(10, 10), new Point(1, 1));
+
+		List<Point> results = Graphs.findClosestObjects(new Point(0, 0), points, f, 2);
+		assertEquals(results.size(), 2);
+		assertEquals(new Point(1, 1), results.get(0));
+		assertEquals(new Point(10, 10), results.get(1));
+
+		List<Point> results2 = Graphs.findClosestObjects(new Point(0, 0), points, f, 5);
+		assertEquals(results2.size(), 4);
+		assertEquals(new Point(1, 1), results2.get(0));
+		assertEquals(new Point(10, 10), results2.get(1));
+		assertEquals(new Point(10, 34), results2.get(2));
+		assertEquals(new Point(234, 2), results2.get(3));
+
 	}
 }
