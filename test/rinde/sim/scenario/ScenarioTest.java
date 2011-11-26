@@ -15,6 +15,7 @@ import org.apache.commons.math.random.RandomGenerator;
 import org.junit.Test;
 
 import rinde.sim.core.graph.Point;
+import rinde.sim.util.IO;
 
 /**
  * @author Rinde van Lon (rinde.vanlon@cs.kuleuven.be)
@@ -31,13 +32,13 @@ public class ScenarioTest {
 
 		Scenario original = randomScenario(new MersenneTwister(123), 10, 20, 1000, points);
 
-		Scenario.toFile(original, "files/original.scen");
-		Scenario copied = Scenario.parseFile("files/original.scen");
+		IO.serialize(original, "files/original.scen");
+		Scenario copied = IO.deserialize("files/original.scen", Scenario.class);
 
 		assertEquals(original, copied);
 
-		Scenario.toFile(copied, "files/copied.scen");
-		assertEquals(Scenario.parseFile("files/original.scen"), Scenario.parseFile("files/copied.scen"));
+		IO.serialize(copied, "files/copied.scen");
+		assertEquals(IO.deserialize("files/original.scen", Scenario.class), IO.deserialize("files/copied.scen", Scenario.class));
 
 		(new File("files/original.scen")).delete();
 		(new File("files/copied.scen")).delete();
@@ -56,7 +57,7 @@ public class ScenarioTest {
 }
 
 class AddObjectEvent extends SerializedScenarioEvent {
-
+	private static final long serialVersionUID = 5946753206998904050L;
 	public final Point pos;
 
 	public AddObjectEvent(String[] parts) {

@@ -19,26 +19,37 @@ public class ScenarioController implements TickListener {
 	private int index;
 	private final EventDispatcher disp;
 
-	public ScenarioController(Scenario scen, Simulator<?> sim, Listener l) {
+	public ScenarioController(Scenario scen, Simulator<?> sim) {
 		scenario = scen;
 		simulator = sim;
 		index = 0;
 		disp = new EventDispatcher(ScenarioEvent.Type.SCENARIO_EVENT);
-		disp.addListener(l, ScenarioEvent.Type.SCENARIO_EVENT);
 		sim.addTickListener(this);
+	}
+
+	public void addListener(Listener l) {
+		disp.addListener(l, ScenarioEvent.Type.SCENARIO_EVENT);
 	}
 
 	public void stop() {
 		simulator.removeTickListener(this);
 	}
 
+	/**
+	 * Returns true if all events of this scenario have been dispatched.
+	 * @return
+	 */
+	public boolean isFinished() {
+		return index == scenario.getEvents().size();
+	}
+
 	@Override
 	public void tick(long currentTime, long timeStep) {
 		//		System.out.println("tick: " + index);
-		while (index < scenario.events.size()) {
+		while (index < scenario.getEvents().size()) {
 			//			System.out.println(scenario.events.get(index).time);
-			if (scenario.events.get(index).time <= currentTime) {
-				disp.dispatchEvent(new ScenarioEvent(scenario, scenario.events.get(index)));
+			if (scenario.getEvents().get(index).time <= currentTime) {
+				disp.dispatchEvent(new ScenarioEvent(scenario, scenario.getEvents().get(index)));
 				index++;
 			} else {
 				break;

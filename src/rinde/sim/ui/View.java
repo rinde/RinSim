@@ -179,7 +179,7 @@ public class View implements PaintListener, SelectionListener, ControlListener, 
 		final Display display = new Display();
 
 		final Shell shell = new Shell(display, SWT.TITLE | SWT.CLOSE | SWT.RESIZE);
-		shell.setText("RinSim - Simulation made elegant, clean and simple");
+		shell.setText("RinSim - Simulator");
 		shell.setLayout(new FillLayout());
 
 		Menu bar = new Menu(shell, SWT.BAR);
