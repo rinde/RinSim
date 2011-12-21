@@ -135,7 +135,6 @@ public class RoadModel {
 			if (dist > 0 && graph.containsNode(tempPos) && !graph.hasConnection(tempPos, path.peek()) && !(path.peek() instanceof MidPoint) && !(tempPos instanceof MidPoint)) {
 				throw new IllegalStateException("followPath() attempts to use non-existing connection: " + tempPos + " >> " + path.peek() + ".");
 			}
-
 			if (travelDistance >= dist) {
 				tempPos = path.remove();
 				travelDistance -= dist;

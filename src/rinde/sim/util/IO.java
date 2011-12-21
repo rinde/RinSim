@@ -28,7 +28,7 @@ public class IO {
 			s.writeObject(o);
 			s.close();
 		} catch (final IOException e) {
-			throw new RuntimeException("Could not serialize object.", e);
+			throw new RuntimeException("Could not serialize object. " + e.getMessage(), e);
 		}
 	}
 
@@ -54,6 +54,10 @@ public class IO {
 
 	public static boolean saveToFile(final String file, final CharSequence text) {
 		return toFile(file, text, false);
+	}
+
+	public static boolean appendToFile(final String file, final CharSequence text) {
+		return toFile(file, text, true);
 	}
 
 	protected static boolean toFile(final String file, final CharSequence text, final boolean append) {

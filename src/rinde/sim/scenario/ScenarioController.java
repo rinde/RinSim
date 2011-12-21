@@ -43,6 +43,22 @@ public class ScenarioController implements TickListener {
 		return index == scenario.getEvents().size();
 	}
 
+	/**
+	 * Dispatch all events which should happen before the scenario starts
+	 * playing. Should be called before any {@link #tick(long, long)}
+	 * invocations.
+	 */
+	public void init() {
+		while (index < scenario.getEvents().size()) {
+			if (scenario.getEvents().get(index).time <= 0) {
+				disp.dispatchEvent(new ScenarioEvent(scenario, scenario.getEvents().get(index)));
+				index++;
+			} else {
+				break;
+			}
+		}
+	}
+
 	@Override
 	public void tick(long currentTime, long timeStep) {
 		//		System.out.println("tick: " + index);
