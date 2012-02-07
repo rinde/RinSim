@@ -20,9 +20,10 @@ public class TimeFormatter {
 	public static String format(long ms) {
 		String day = "";
 		if (ms > DAY) {
-			day = "" + Math.round(ms / DAY);
+			day = Math.round(ms / DAY) + " ";
 		}
-		return day + " " + dateFormat.format(new Date(ms));
+		String sign = ms < 0 ? "-" : "";
+		return sign + day + dateFormat.format(new Date(Math.abs(ms)));
 	}
 
 	public static String format(double ms) {

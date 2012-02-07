@@ -95,7 +95,8 @@ public class Simulator<T> {
 	public void tick() {
 		// using a copy to avoid concurrent modifications of this set
 		// this also means that adding or removing a TickListener is 
-		// effectively executed after a 'tick' 
+		// effectively executed after a 'tick'
+
 		List<TickListener> localCopy = new ArrayList<TickListener>();
 		localCopy.addAll(tickListeners);
 		for (TickListener t : localCopy) {
@@ -107,6 +108,7 @@ public class Simulator<T> {
 		}
 
 		time += timeStep;
+
 	}
 
 	/**
