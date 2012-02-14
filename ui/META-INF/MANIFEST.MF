@@ -1,0 +1,7 @@
+Manifest-Version: 1.0
+Bundle-ManifestVersion: 2
+Bundle-Name: Ui
+Bundle-SymbolicName: rinsim.ui
+Bundle-Version: 1.0.0.qualifier
+Export-Package: rinde.sim.ui
+Require-Bundle: org.eclipse.swt;bundle-version="3.5.0"
