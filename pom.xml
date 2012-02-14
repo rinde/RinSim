@@ -8,6 +8,7 @@
 	<modules>
 		<module>core</module>
 		<module>ui</module>
+		<module>example</module>
 	</modules>
 	<build>
 		<plugins>
