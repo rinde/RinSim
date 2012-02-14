@@ -6,6 +6,8 @@ package rinde.sim.ui;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import org.eclipse.jface.resource.ColorRegistry;
+import org.eclipse.jface.resource.ImageRegistry;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ControlEvent;
 import org.eclipse.swt.events.ControlListener;
@@ -14,8 +16,10 @@ import org.eclipse.swt.events.PaintListener;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.graphics.Color;
+import org.eclipse.swt.graphics.DeviceData;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.widgets.Canvas;
@@ -29,19 +33,30 @@ import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.ScrollBar;
 import org.eclipse.swt.widgets.Shell;
 
+
 import rinde.sim.core.RoadModel;
 import rinde.sim.core.Simulator;
 import rinde.sim.core.TickListener;
 import rinde.sim.core.graph.Graph;
 import rinde.sim.core.graph.Point;
+import rinde.sim.ui.renderers.Renderer;
+import rinde.sim.ui.utils.Sleak;
 import rinde.sim.util.TimeFormatter;
 
 /**
  * @author Rinde van Lon (rinde.vanlon@cs.kuleuven.be)
- * 
+ * @author Bartosz Michalik <bartosz.michalik@cs.kuleuven.be> - color resource management
  */
 public class View implements PaintListener, SelectionListener, ControlListener, TickListener, Listener {
 
+	public static final String COLOR_WHITE = "white";
+	public static final String COLOR_GREEN = "green";
+	public static final String COLOR_BLACK = "black";
+	
+	public static final String DEFAULT_COLOR = "default_color"; 
+	
+	public static final String ICO_PKG = "package";
+	
 	protected final Canvas canvas;
 	protected Image image;
 	protected org.eclipse.swt.graphics.Point origin;
@@ -55,6 +70,11 @@ public class View implements PaintListener, SelectionListener, ControlListener, 
 	protected double minX;
 	protected double minY;
 	protected final long sleepInterval;
+	
+	protected static boolean testingMode = false;
+	
+	private ColorRegistry colorRegistry;
+	
 
 	double deltaX;
 	double deltaY;
@@ -64,12 +84,13 @@ public class View implements PaintListener, SelectionListener, ControlListener, 
 	private View(Composite parent, Simulator<? extends RoadModel> simulator, long sleepInterval, Renderer... renderers) {
 		this.simulator = simulator;
 		this.simulator.addAfterTickListener(this);
-		this.renderers = renderers;
 		this.sleepInterval = sleepInterval;
 		display = parent.getDisplay();
-		canvas = new Canvas(parent, SWT.NONE | SWT.NO_REDRAW_RESIZE | SWT.V_SCROLL | SWT.H_SCROLL);
+		this.renderers = renderers;
+		initColors();
+		canvas = new Canvas(parent, SWT.DOUBLE_BUFFERED | SWT.NONE | SWT.NO_REDRAW_RESIZE | SWT.V_SCROLL | SWT.H_SCROLL);
 		//canvas.setBounds(0, 0, 800, 500);
-		canvas.setBackground(new Color(display, 0xEF, 0xEF, 0xEF));
+		canvas.setBackground(colorRegistry.get(COLOR_WHITE));
 		origin = new org.eclipse.swt.graphics.Point(0, 0);
 		size = new org.eclipse.swt.graphics.Point(800, 500);
 		canvas.addPaintListener(this);
@@ -79,12 +100,26 @@ public class View implements PaintListener, SelectionListener, ControlListener, 
 		timeLabel = new Label(canvas, SWT.NONE);
 		timeLabel.setText("hello world");
 		timeLabel.setBounds(20, 20, 200, 20);
+		timeLabel.setBackground(colorRegistry.get(COLOR_WHITE));
 
 		hBar = canvas.getHorizontalBar();
 		hBar.addSelectionListener(this);
 		vBar = canvas.getVerticalBar();
 		vBar.addSelectionListener(this);
 
+	}
+
+	/**
+	 * Initializes color registry and passes it to all renderers
+	 */
+	private void initColors() {
+		assert display != null : "should be called after display is initialized";
+		assert renderers != null : "should be called after renderers are initialized";
+		colorRegistry = new ColorRegistry(display);
+		colorRegistry.put(COLOR_WHITE, new RGB(0xFF,0xFF,0xFF));
+		colorRegistry.put(COLOR_BLACK, new RGB(0x00,0x00,0x00));
+		colorRegistry.put(COLOR_GREEN, new RGB(0x00,0xFF,0x00));
+		
 	}
 
 	boolean firstTime = true;
@@ -162,21 +197,40 @@ public class View implements PaintListener, SelectionListener, ControlListener, 
 		for (Entry<Point, Point> e : graph.getConnections()) {
 			int x1 = (int) ((e.getKey().x - minX) * m);
 			int y1 = (int) ((e.getKey().y - minY) * m);
-			gc.setForeground(new Color(gc.getDevice(), 0, 255, 0));
+			gc.setForeground(colorRegistry.get(COLOR_GREEN));
 			gc.drawOval(x1 - 2, y1 - 2, 4, 4);
 
 			int x2 = (int) ((e.getValue().x - minX) * m);
 			int y2 = (int) ((e.getValue().y - minY) * m);
-			gc.setForeground(new Color(gc.getDevice(), 0, 0, 0));
+			gc.setForeground(colorRegistry.get(COLOR_BLACK));
 			gc.drawLine(x1, y1, x2, y2);
 		}
+		gc.dispose();
 
 		return img;
+	}
+	
+	/**
+	 * Define the SWT handles tracing mode. Disabled by default
+	 * @param testingMode
+	 */
+	public static void setTestingMode(boolean testingMode) {
+		View.testingMode = testingMode;
 	}
 
 	public static void startGui(final Simulator<? extends RoadModel> simulator, long sleepInterval, Renderer... renderers) {
 		Display.setAppName("RinSim");
-		final Display display = new Display();
+		
+		Display display;
+		if(testingMode) {
+			DeviceData data = new DeviceData();
+			data.tracking = true;
+			display = new Display(data);
+			Sleak sleak = new Sleak();
+			sleak.open();			
+		} else {
+			display =  new Display();
+		}
 
 		final Shell shell = new Shell(display, SWT.TITLE | SWT.CLOSE | SWT.RESIZE);
 		shell.setText("RinSim - Simulator");
@@ -363,7 +417,8 @@ public class View implements PaintListener, SelectionListener, ControlListener, 
 			origin.x += m * deltaX / 2;
 			origin.y += m * deltaY / 2;
 		}
-
+		if(image != null)
+			image.dispose();
 		image = null;// this forces a redraw
 		canvas.redraw();
 	}

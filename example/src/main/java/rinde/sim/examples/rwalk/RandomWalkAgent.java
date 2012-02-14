@@ -50,17 +50,6 @@ public class RandomWalkAgent implements TickListener, RoadUser {
 		return nodes.get(rnd.nextInt(nodes.size()));
 	}
 
-	private class Package implements RoadUser {
-		public final String name;
-
-		public Package(String name) {
-			this.name = name;
-		}
-
-		@Override
-		public String toString() {
-			return name;
-		}
-	}
+	
 
 }
