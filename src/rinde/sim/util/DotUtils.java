@@ -127,12 +127,14 @@ public class DotUtils {
 					double distance = Double.parseDouble(line.split("\"")[1]);
 					Point from = nodeMapping.get(fromStr);
 					Point to = nodeMapping.get(toStr);
+					//if (!from.equals(to)) {
 					if (Point.distance(from, to) == distance) {
 						graph.addConnection(from, to);
 					} else {
 						graph.addConnection(from, to, distance);
 						containsDistances = true;
 					}
+					//}
 				}
 			}
 			//			if (containsDistances) {
