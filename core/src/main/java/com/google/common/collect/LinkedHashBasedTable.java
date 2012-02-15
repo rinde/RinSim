@@ -12,6 +12,9 @@ import com.google.common.base.Supplier;
 /**
  * @author Rinde van Lon (rinde.vanlon@cs.kuleuven.be)
  * 
+ *         Currently (February 2012) Guava does not have this class itself. This
+ *         class must reside in the com.google.common.collect package since
+ *         the {@link StandardTable} class has package visibility.
  */
 public class LinkedHashBasedTable<R, C, V> extends StandardTable<R, C, V> {
 
