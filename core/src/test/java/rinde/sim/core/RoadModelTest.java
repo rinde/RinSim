@@ -476,6 +476,21 @@ public class RoadModelTest {
 	}
 
 	@Test
+	public void testEqualPosition() {
+		RoadUser agent1 = new TestRoadUser();
+		RoadUser agent2 = new TestRoadUser();
+
+		assertFalse(model.equalPosition(agent1, agent2));
+		model.addObjectAt(agent1, SW);
+		assertFalse(model.equalPosition(agent1, agent2));
+		model.addObjectAt(agent2, NE);
+		assertFalse(model.equalPosition(agent1, agent2));
+		model.removeObject(agent2);
+		model.addObjectAt(agent2, SW);
+		assertTrue(model.equalPosition(agent1, agent2));
+	}
+
+	@Test
 	public void testMiddlePoint() {
 		RoadUser agent1 = new TestRoadUser();
 		RoadUser agent2 = new TestRoadUser();
@@ -493,6 +508,11 @@ public class RoadModelTest {
 
 		List<Point> shortestPath = model.getShortestPathTo(a1, a2);
 		assertEquals(Arrays.asList(a1, SE, NE, a2), shortestPath);
+	}
+
+	@Test(expected = UnsupportedOperationException.class)
+	public void testGetGraph() {
+		model.getGraph().removeConnection(NE, SE);
 	}
 
 	@Test

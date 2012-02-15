@@ -246,7 +246,8 @@ public class RoadModel {
 	/**
 	 * This method returns a set of {@link RoadUser} objects which exist in this
 	 * model and are instances of the specified {@link Class}. The returned set
-	 * is not a live view on the set, but a new created copy.
+	 * is not a live view on the set, but a new created copy. The time
+	 * complexity of this method is O(n).
 	 * @param type The type of returned objects.
 	 * @return A set of {@link RoadUser} objects.
 	 */
