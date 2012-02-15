@@ -22,6 +22,9 @@ import rinde.sim.core.graph.Graphs;
 import rinde.sim.core.graph.MultimapGraph;
 import rinde.sim.core.graph.Point;
 import rinde.sim.core.graph.TableGraph;
+import rinde.sim.core.model.RoadModel;
+import rinde.sim.core.model.RoadUser;
+import rinde.sim.util.TrivialRoadUser;
 
 /**
  * @author Rinde van Lon (rinde.vanlon@cs.kuleuven.be)
@@ -95,7 +98,7 @@ public class PathFinderTest {
 
 	}
 
-	class StringRoadUser implements RoadUser {
+	class StringRoadUser extends TrivialRoadUser {
 		public final String name;
 
 		public StringRoadUser(String name) {
@@ -106,9 +109,10 @@ public class PathFinderTest {
 		public String toString() {
 			return name;
 		}
+
 	}
 
-	class LongRoadUser implements RoadUser {
+	class LongRoadUser extends TrivialRoadUser {
 		public final long number;
 
 		public LongRoadUser(long number) {
@@ -158,8 +162,7 @@ public class PathFinderTest {
 	}
 
 	public void compatibilityCheck(List<Point> t) {
-		RoadUser truck = new RoadUser() {
-		};
+		RoadUser truck = new TrivialRoadUser();		
 		rs.addObjectAt(truck, t.get(0));
 		double len = length(t);
 		double travelled = rs.followPath(truck, new LinkedList<Point>(t), len);

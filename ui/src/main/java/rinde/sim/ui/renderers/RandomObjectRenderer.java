@@ -11,9 +11,9 @@ import org.eclipse.jface.resource.ImageRegistry;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.GC;
 
-import rinde.sim.core.RoadModel;
-import rinde.sim.core.RoadUser;
 import rinde.sim.core.graph.Point;
+import rinde.sim.core.model.RoadModel;
+import rinde.sim.core.model.RoadUser;
 
 /**
  * @author Rinde van Lon (rinde.vanlon@cs.kuleuven.be)

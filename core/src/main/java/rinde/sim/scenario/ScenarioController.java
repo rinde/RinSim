@@ -15,11 +15,11 @@ import rinde.sim.event.Listener;
 public class ScenarioController implements TickListener {
 
 	private final Scenario scenario;
-	private final Simulator<?> simulator;
+	private final Simulator simulator;
 	private int index;
 	private final EventDispatcher disp;
 
-	public ScenarioController(Scenario scen, Simulator<?> sim) {
+	public ScenarioController(Scenario scen, Simulator sim) {
 		scenario = scen;
 		simulator = sim;
 		index = 0;

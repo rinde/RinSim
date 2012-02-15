@@ -18,8 +18,8 @@ import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
-import rinde.sim.core.RoadModel;
-import rinde.sim.core.RoadUser;
+import rinde.sim.core.model.RoadModel;
+import rinde.sim.core.model.RoadUser;
 
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;

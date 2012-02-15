@@ -15,6 +15,7 @@ import rinde.sim.core.graph.TableGraph;
 
 /**
  * Dot format serializer for a road model graph.
+ * Allows for reading storing maps in dot format.
  * @author Bartosz Michalik <bartosz.michalik@cs.kuleuven.be>
  *
  */
@@ -25,6 +26,10 @@ public class DotGraphSerializer extends AbstractGraphSerializer {
 	public DotGraphSerializer(SerializerFilter<?>... filters) {
 		this.filters = filters;
 		if(filters == null) filters = new SerializerFilter<?>[0];
+	}
+	
+	public DotGraphSerializer() {
+		this(new SerializerFilter[0]);
 	}
 	
 	@Override
@@ -98,9 +103,4 @@ public class DotGraphSerializer extends AbstractGraphSerializer {
 		}
 		string.append("}");
 	}
-	
-	public DotGraphSerializer() {
-		
-	}
-	
 }

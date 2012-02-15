@@ -3,6 +3,7 @@
  */
 package rinde.sim.ui;
 
+import java.util.List;
 import java.util.Map.Entry;
 import java.util.Set;
 
@@ -34,11 +35,12 @@ import org.eclipse.swt.widgets.ScrollBar;
 import org.eclipse.swt.widgets.Shell;
 
 
-import rinde.sim.core.RoadModel;
 import rinde.sim.core.Simulator;
 import rinde.sim.core.TickListener;
 import rinde.sim.core.graph.Graph;
 import rinde.sim.core.graph.Point;
+import rinde.sim.core.model.Model;
+import rinde.sim.core.model.RoadModel;
 import rinde.sim.ui.renderers.Renderer;
 import rinde.sim.ui.utils.Sleak;
 import rinde.sim.util.TimeFormatter;
@@ -62,14 +64,13 @@ public class View implements PaintListener, SelectionListener, ControlListener, 
 	protected org.eclipse.swt.graphics.Point origin;
 	protected org.eclipse.swt.graphics.Point size;
 	protected final Display display;
-	protected final Simulator<? extends RoadModel> simulator;
+	protected final Simulator simulator;
 	protected final Renderer[] renderers;
 	protected final ScrollBar hBar;
 	protected final ScrollBar vBar;
 	protected double m;//multiplier
 	protected double minX;
 	protected double minY;
-	protected final long sleepInterval;
 	
 	protected static boolean testingMode = false;
 	
@@ -80,11 +81,25 @@ public class View implements PaintListener, SelectionListener, ControlListener, 
 	double deltaY;
 
 	protected Label timeLabel;
+	private RoadModel roadModel;
+	private long lastRefresh;
+	private final int speedUp;
 
-	private View(Composite parent, Simulator<? extends RoadModel> simulator, long sleepInterval, Renderer... renderers) {
+	private View(Composite parent, Simulator simulator, int speedUp, Renderer... renderers) {
 		this.simulator = simulator;
+		
+		List<Model<?>> models = simulator.getModels();
+		for (Model<?> m : models) {
+			//FIXME ugly hack for now
+			if(m instanceof RoadModel) {
+				this.roadModel = (RoadModel)m;
+				break;
+			}
+		}
+		
 		this.simulator.addAfterTickListener(this);
-		this.sleepInterval = sleepInterval;
+		this.speedUp = speedUp;
+		this.lastRefresh = simulator.getCurrentTime();
 		display = parent.getDisplay();
 		this.renderers = renderers;
 		initColors();
@@ -158,7 +173,7 @@ public class View implements PaintListener, SelectionListener, ControlListener, 
 	}
 
 	private void calculateSizes() {
-		Set<Point> nodes = simulator.model.getNodes();
+		Set<Point> nodes = roadModel.getNodes();
 
 		minX = Double.POSITIVE_INFINITY;
 		double maxX = Double.NEGATIVE_INFINITY;
@@ -193,7 +208,7 @@ public class View implements PaintListener, SelectionListener, ControlListener, 
 		final Image img = new Image(display, size.x + 10, size.y + 10);
 		final GC gc = new GC(img);
 
-		Graph graph = simulator.model.getGraph();
+		Graph graph = roadModel.getGraph();
 		for (Entry<Point, Point> e : graph.getConnections()) {
 			int x1 = (int) ((e.getKey().x - minX) * m);
 			int y1 = (int) ((e.getKey().y - minY) * m);
@@ -218,9 +233,8 @@ public class View implements PaintListener, SelectionListener, ControlListener, 
 		View.testingMode = testingMode;
 	}
 
-	public static void startGui(final Simulator<? extends RoadModel> simulator, long sleepInterval, Renderer... renderers) {
+	public static void startGui(final Simulator simulator, final int speedup, Renderer... renderers) {
 		Display.setAppName("RinSim");
-		
 		Display display;
 		if(testingMode) {
 			DeviceData data = new DeviceData();
@@ -300,7 +314,7 @@ public class View implements PaintListener, SelectionListener, ControlListener, 
 		//shell.setMaximized(true);
 		shell.setMinimumSize(400, 300);
 
-		View v = new View(shell, simulator, sleepInterval, renderers);
+		View v = new View(shell, simulator, speedup, renderers);
 		zoomInItem.addListener(SWT.Selection, v);
 		zoomOutItem.addListener(SWT.Selection, v);
 
@@ -383,11 +397,13 @@ public class View implements PaintListener, SelectionListener, ControlListener, 
 
 	@Override
 	public void tick(long currentTime, long timeStep) {
+		if(simulator.isPlaying() && lastRefresh + timeStep * speedUp > currentTime) return;
+		lastRefresh = currentTime;
 		if (display.isDisposed()) {
 			return;
 		}
-
-		display.asyncExec(new Runnable() {
+		display.syncExec(new Runnable() {
+//		display.asyncExec(new Runnable() {
 			@Override
 			public void run() {
 				if (!canvas.isDisposed()) {
@@ -396,13 +412,13 @@ public class View implements PaintListener, SelectionListener, ControlListener, 
 				}
 			}
 		});
-		if (sleepInterval > 0) {
-			try {
-				Thread.sleep(sleepInterval);
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
-		}
+//		if (sleepInterval > 0) {
+//			try {
+//				Thread.sleep(sleepInterval);
+//			} catch (InterruptedException e) {
+//				e.printStackTrace();
+//			}
+//		}
 	}
 
 	@Override

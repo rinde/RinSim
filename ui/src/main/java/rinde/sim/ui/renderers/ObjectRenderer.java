@@ -15,9 +15,9 @@ import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.RGB;
 
-import rinde.sim.core.RoadModel;
-import rinde.sim.core.RoadUser;
 import rinde.sim.core.graph.Point;
+import rinde.sim.core.model.RoadModel;
+import rinde.sim.core.model.RoadUser;
 import rinde.sim.ui.View;
 
 /**

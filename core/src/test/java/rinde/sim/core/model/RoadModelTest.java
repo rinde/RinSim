@@ -1,7 +1,7 @@
 /**
  * 
  */
-package rinde.sim.core;
+package rinde.sim.core.model;
 
 import static java.util.Arrays.asList;
 import static org.junit.Assert.assertEquals;
@@ -30,6 +30,11 @@ import rinde.sim.core.graph.Graph;
 import rinde.sim.core.graph.MultimapGraph;
 import rinde.sim.core.graph.Point;
 import rinde.sim.core.graph.TableGraph;
+import rinde.sim.core.model.CachedRoadModel;
+import rinde.sim.core.model.MidPoint;
+import rinde.sim.core.model.RoadModel;
+import rinde.sim.core.model.RoadUser;
+import rinde.sim.util.TrivialRoadUser;
 
 import com.google.common.base.Predicate;
 import com.google.common.collect.HashBasedTable;
@@ -350,6 +355,11 @@ public class RoadModelTest {
 		RoadUser agent1 = new TestRoadUser();
 		RoadUser agent2 = new TestRoadUser();
 		RoadUser agent3 = new RoadUser() {
+
+			@Override
+			public void initRoadUser(RoadModel model) {
+				// XXX can be ignored in this test [bm]
+			}
 		};
 		model.addObjectAt(agent1, SW);
 		model.addObjectAt(agent2, SE);
@@ -374,10 +384,10 @@ public class RoadModelTest {
 		assertEquals(3, posCopy.size());
 	}
 
-	class TestRoadUser implements RoadUser {
+	class TestRoadUser extends TrivialRoadUser {
 	}
 
-	class TestRoadUser2 implements RoadUser {
+	class TestRoadUser2 extends TrivialRoadUser {
 	}
 
 	@Test

@@ -11,6 +11,8 @@ import java.util.Set;
 
 import org.apache.commons.math.random.RandomGenerator;
 
+import rinde.sim.core.model.Model;
+import rinde.sim.core.model.ModelManager;
 import rinde.sim.event.Event;
 import rinde.sim.event.EventDispatcher;
 import rinde.sim.event.Events;
@@ -19,22 +21,56 @@ import rinde.sim.event.Events;
  * @author Rinde van Lon (rinde.vanlon@cs.kuleuven.be)
  * 
  */
-public class Simulator<T> {
+public class Simulator {
 
+	/**
+	 * Enum that describes the possible events from simulator itself
+	 *
+	 */
 	public enum EventTypes {
 		STOPPED, STARTED
 	}
 
 	protected volatile Set<TickListener> tickListeners;
 	protected List<TickListener> afterTickListeners;
-
-	public final T model;
+	
 	public final RandomGenerator rand;
 	public final Events events;
 	protected final EventDispatcher dispatcher;
 	protected final long timeStep;
 	protected boolean isPlaying;
 	protected long time;
+	
+	protected ModelManager modelManager;
+
+	public void configure() {
+		modelManager.configure();
+	}
+	
+	
+
+	public boolean register(Model<?> model) {
+		if(model instanceof TickListener) {
+			addTickListener((TickListener) model);
+		}
+		return modelManager.register(model);
+	}
+
+	public boolean register(Object o) {
+		if(o instanceof TickListener) {
+			//FIXME refactor the TickListener interface
+			addTickListener((TickListener) o);
+		}
+		return modelManager.register(o);
+	}
+
+	/**
+	 * Returns a safe to modify list of all models registered in the simulator
+	 * @return list of models
+	 */
+	public List<Model<?>> getModels() {
+		return modelManager.getModels();
+	}
 
 	/**
 	 * @param model The model that this simulator instance is using
@@ -42,8 +78,7 @@ public class Simulator<T> {
 	 * @param timeStep The time that passes each tick. This can be in any unit
 	 *            the programmer prefers.
 	 */
-	public Simulator(T model, RandomGenerator r, long timeStep) {
-		this.model = model;
+	public Simulator(RandomGenerator r, long timeStep) {
 		this.timeStep = timeStep;
 		tickListeners = Collections.synchronizedSet(new LinkedHashSet<TickListener>());
 		afterTickListeners = new ArrayList<TickListener>();
@@ -51,6 +86,8 @@ public class Simulator<T> {
 		rand = r;
 		time = 0L;
 
+		modelManager = new ModelManager();
+		
 		dispatcher = new EventDispatcher(EventTypes.STOPPED, EventTypes.STARTED);
 		events = dispatcher.getEvents();
 	}

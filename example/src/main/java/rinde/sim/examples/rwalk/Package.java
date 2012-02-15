@@ -1,6 +1,7 @@
 package rinde.sim.examples.rwalk;
 
-import rinde.sim.core.RoadUser;
+import rinde.sim.core.model.RoadModel;
+import rinde.sim.core.model.RoadUser;
 
 class Package implements RoadUser {
 	public final String name;
@@ -12,5 +13,10 @@ class Package implements RoadUser {
 	@Override
 	public String toString() {
 		return name;
+	}
+
+	@Override
+	public void initRoadUser(RoadModel model) {
+		
 	}
 }

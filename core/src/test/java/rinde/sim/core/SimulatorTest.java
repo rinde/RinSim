@@ -15,11 +15,11 @@ import org.junit.Test;
  */
 public class SimulatorTest {
 
-	Simulator<?> simulator;
+	Simulator simulator;
 
 	@Before
 	public void setUp() {
-		simulator = new Simulator<Object>(null, new MersenneTwister(123), 100L);
+		simulator = new Simulator(new MersenneTwister(123), 100L);
 	}
 
 	@Test

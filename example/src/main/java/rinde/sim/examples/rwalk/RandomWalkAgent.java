@@ -7,24 +7,23 @@ import java.util.Queue;
 
 import org.apache.commons.math.random.RandomGenerator;
 
-import rinde.sim.core.RoadModel;
-import rinde.sim.core.RoadUser;
 import rinde.sim.core.TickListener;
 import rinde.sim.core.graph.Graphs;
 import rinde.sim.core.graph.Point;
+import rinde.sim.core.model.RoadModel;
+import rinde.sim.core.model.RoadUser;
 
 /**
  * @author Rinde van Lon (rinde.vanlon@cs.kuleuven.be)
  */
 public class RandomWalkAgent implements TickListener, RoadUser {
 
-	protected final RoadModel rs;
+	protected RoadModel rs;
 	protected RoadUser currentPackage;
 	protected Queue<Point> path;
 	protected final RandomGenerator rnd;
 
-	public RandomWalkAgent(RoadModel rs, RandomGenerator rnd) {
-		this.rs = rs;
+	public RandomWalkAgent(RandomGenerator rnd) {
 		this.rnd = rnd;
 		currentPackage = new Package("dummy package " + toString());
 	}
@@ -48,6 +47,14 @@ public class RandomWalkAgent implements TickListener, RoadUser {
 	private Point findRandomNode() {
 		List<Point> nodes = new ArrayList<Point>(rs.getNodes());
 		return nodes.get(rnd.nextInt(nodes.size()));
+	}
+
+	@Override
+	public void initRoadUser(RoadModel model) {
+		rs = model;
+		List<Point> nodes = new ArrayList<Point>(rs.getNodes());
+		Point pos = nodes.get(rnd.nextInt(nodes.size()));
+		rs.addObjectAt(this, pos);
 	}
 
 	
