@@ -23,7 +23,7 @@ public class RandomWalkExample {
 
 	public static void main(String[] args) throws Exception {
 		// create a new simulator, load map of Leuven
-		Simulator simulator = new Simulator(new MersenneTwister(123), 1000);
+		Simulator simulator = new Simulator(new MersenneTwister(123), 100000);
 		RoadModel roadModel = new RoadModel(new MultimapGraph());
 		roadModel.addGraph(new DotGraphSerializer(new SelfCycleFilter()).read("files/leuven.dot"));
 		
