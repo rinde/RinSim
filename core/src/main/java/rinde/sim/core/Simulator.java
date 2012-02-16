@@ -10,6 +10,8 @@ import java.util.List;
 import java.util.Set;
 
 import org.apache.commons.math.random.RandomGenerator;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import rinde.sim.core.model.Model;
 import rinde.sim.core.model.ModelManager;
@@ -19,9 +21,12 @@ import rinde.sim.event.Events;
 
 /**
  * @author Rinde van Lon (rinde.vanlon@cs.kuleuven.be)
+ * @author Bartosz Michalik <bartosz.michalik@cs.kuleuven.be> - simulator API changes
  * 
  */
-public class Simulator {
+public class Simulator implements SimulatorAPI {
+	
+	protected static final Logger LOGGER = LoggerFactory.getLogger(Simulator.class); 
 
 	/**
 	 * Enum that describes the possible events from simulator itself
@@ -50,19 +55,36 @@ public class Simulator {
 	
 
 	public boolean register(Model<?> model) {
+		if(model == null) throw new IllegalArgumentException("parameter cannot be null");
 		if(model instanceof TickListener) {
 			addTickListener((TickListener) model);
 		}
+		LOGGER.info("registering model :" + model.getClass().getName() + " for type:" + model.getSupportedType().getName());
 		return modelManager.register(model);
 	}
 
 	public boolean register(Object o) {
+		if(o == null) throw new IllegalArgumentException("parameter cannot be null");
+		injectDependencies(o);
 		if(o instanceof TickListener) {
 			//FIXME refactor the TickListener interface
 			addTickListener((TickListener) o);
 		}
 		return modelManager.register(o);
 	}
+
+	/**
+	 * Inject all required dependecies basing on the declared types of the object
+	 * @param o object that need to have dependecies injected
+	 */
+	protected void injectDependencies(Object o) {
+		if(o instanceof SimulatorUser) {
+			((SimulatorUser) o).setSimulator(this);
+		}
+		
+	}
+
+
 
 	/**
 	 * Returns a safe to modify list of all models registered in the simulator

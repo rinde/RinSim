@@ -30,7 +30,6 @@ import rinde.sim.core.graph.Graph;
 import rinde.sim.core.graph.MultimapGraph;
 import rinde.sim.core.graph.Point;
 import rinde.sim.core.graph.TableGraph;
-import rinde.sim.core.model.CachedRoadModel;
 import rinde.sim.core.model.MidPoint;
 import rinde.sim.core.model.RoadModel;
 import rinde.sim.core.model.RoadUser;
@@ -483,6 +482,21 @@ public class RoadModelTest {
 
 			assertEquals(cache, ((CachedRoadModel) model).getPathCache());
 		}
+	}
+
+	@Test
+	public void testEqualPosition() {
+		RoadUser agent1 = new TestRoadUser();
+		RoadUser agent2 = new TestRoadUser();
+
+		assertFalse(model.equalPosition(agent1, agent2));
+		model.addObjectAt(agent1, SW);
+		assertFalse(model.equalPosition(agent1, agent2));
+		model.addObjectAt(agent2, NE);
+		assertFalse(model.equalPosition(agent1, agent2));
+		model.removeObject(agent2);
+		model.addObjectAt(agent2, SW);
+		assertTrue(model.equalPosition(agent1, agent2));
 	}
 
 	@Test
