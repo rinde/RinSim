@@ -6,19 +6,11 @@ package rinde.sim.ui.renderers;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import javax.xml.validation.Schema;
-
-import org.eclipse.jface.resource.ColorRegistry;
-import org.eclipse.jface.resource.ImageRegistry;
-import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
-import org.eclipse.swt.graphics.RGB;
-
 import rinde.sim.core.graph.Point;
 import rinde.sim.core.model.RoadModel;
 import rinde.sim.core.model.RoadUser;
-import rinde.sim.ui.View;
 
 /**
  * @author Rinde van Lon (rinde.vanlon@cs.kuleuven.be)

@@ -28,7 +28,7 @@ public class TableGraph implements Graph {
 	}
 
 	/**
-	 * @see rinde.sim.core.model.RoadModel#getNodes()
+	 * @see rinde.sim.core.RoadModel#getNodes()
 	 */
 	@Override
 	public Set<Point> getNodes() {
