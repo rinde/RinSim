@@ -83,7 +83,7 @@ public class View implements PaintListener, SelectionListener, ControlListener, 
 	protected Label timeLabel;
 	private RoadModel roadModel;
 	private long lastRefresh;
-	private final int speedUp;
+	private int speedUp;
 
 	private View(Composite parent, Simulator simulator, int speedUp, Renderer... renderers) {
 		this.simulator = simulator;
@@ -235,7 +235,7 @@ public class View implements PaintListener, SelectionListener, ControlListener, 
 
 	public static void startGui(final Simulator simulator, final int speedup, Renderer... renderers) {
 		Display.setAppName("RinSim");
-		Display display;
+		final Display display;
 		if(testingMode) {
 			DeviceData data = new DeviceData();
 			data.tracking = true;
@@ -245,11 +245,23 @@ public class View implements PaintListener, SelectionListener, ControlListener, 
 		} else {
 			display =  new Display();
 		}
+		
+	
 
 		final Shell shell = new Shell(display, SWT.TITLE | SWT.CLOSE | SWT.RESIZE);
 		shell.setText("RinSim - Simulator");
 		shell.setLayout(new FillLayout());
 
+		
+		shell.addListener(SWT.Close, new Listener() {
+			
+			@Override
+			public void handleEvent(Event event) {
+				simulator.stop();
+				display.dispose();
+			}
+		});
+		
 		Menu bar = new Menu(shell, SWT.BAR);
 
 		shell.setMenuBar(bar);
@@ -293,6 +305,8 @@ public class View implements PaintListener, SelectionListener, ControlListener, 
 				simulator.tick();
 			}
 		});
+		new MenuItem(submenu, SWT.SEPARATOR);
+		
 
 		MenuItem viewItem = new MenuItem(bar, SWT.CASCADE);
 		viewItem.setText("View");
@@ -314,7 +328,30 @@ public class View implements PaintListener, SelectionListener, ControlListener, 
 		//shell.setMaximized(true);
 		shell.setMinimumSize(400, 300);
 
-		View v = new View(shell, simulator, speedup, renderers);
+		final View v = new View(shell, simulator, speedup, renderers);
+		
+		MenuItem increaseSpeed = new MenuItem(submenu, SWT.PUSH);
+		increaseSpeed.setAccelerator(SWT.MOD1 + '.');
+		increaseSpeed.setText("Speed up");
+		increaseSpeed.addListener(SWT.Selection, new Listener() {
+			
+			@Override
+			public void handleEvent(Event event) {
+				v.speedUp = v.speedUp < 100 ? v.speedUp + 5 : v.speedUp;
+			}
+		});
+		
+		MenuItem decreaseSpeed = new MenuItem(submenu, SWT.PUSH);
+		decreaseSpeed.setAccelerator(SWT.MOD1 + ',');
+		decreaseSpeed.setText("Slow down");
+		decreaseSpeed.addListener(SWT.Selection, new Listener() {
+			
+			@Override
+			public void handleEvent(Event event) {
+				v.speedUp = v.speedUp > 5 ? v.speedUp - 5 : v.speedUp;
+			}
+		});
+		
 		zoomInItem.addListener(SWT.Selection, v);
 		zoomOutItem.addListener(SWT.Selection, v);
 
@@ -412,13 +449,6 @@ public class View implements PaintListener, SelectionListener, ControlListener, 
 				}
 			}
 		});
-//		if (sleepInterval > 0) {
-//			try {
-//				Thread.sleep(sleepInterval);
-//			} catch (InterruptedException e) {
-//				e.printStackTrace();
-//			}
-//		}
 	}
 
 	@Override

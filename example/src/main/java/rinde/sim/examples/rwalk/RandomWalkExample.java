@@ -31,8 +31,8 @@ public class RandomWalkExample {
 		
 		simulator.configure();
 
-		for (int i = 0; i < 300; i++) {
-			//FIXME to change that
+		for (int i = 0; i < 50; i++) {
+			//FIXME to change the random generator
 			RandomWalkAgent agent = new RandomWalkAgent(simulator.rand);
 			simulator.register(agent);
 		}
@@ -45,6 +45,6 @@ public class RandomWalkExample {
 		schema.add(Package.class, new RGB(0x0,0x0,0xFF));
 		
 //		View.setTestingMode(true);
-		View.startGui(simulator, 10, new ObjectRenderer(roadModel, schema, false));
+		View.startGui(simulator, 5, new ObjectRenderer(roadModel, schema, false));
 	}
 }
