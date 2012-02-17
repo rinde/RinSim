@@ -26,10 +26,12 @@ public class RandomWalkExample {
 		Simulator simulator = new Simulator(new MersenneTwister(123), 100000);
 		RoadModel roadModel = new RoadModel(new MultimapGraph());
 		roadModel.addGraph(new DotGraphSerializer(new SelfCycleFilter()).read("files/leuven.dot"));
-		
+
 		simulator.register(roadModel);
-		
+
 		simulator.configure();
+
+		//TODO test test
 
 		for (int i = 0; i < 50; i++) {
 			//FIXME to change the random generator
@@ -37,14 +39,14 @@ public class RandomWalkExample {
 			simulator.register(agent);
 		}
 
-//		// GUI stuff: agents are red, packages are blue or have ico represenation
+		//		// GUI stuff: agents are red, packages are blue or have ico represenation
 		UiSchema schema = new UiSchema();
-		schema.add(RandomWalkAgent.class, new RGB(255,0,0));
-//		schema.add(RandomWalkAgent.class, "/graphics/deliverytruck.png");
-//		schema.add(Package.class, "/graphics/flag.png");
-		schema.add(Package.class, new RGB(0x0,0x0,0xFF));
-		
-//		View.setTestingMode(true);
+		schema.add(RandomWalkAgent.class, new RGB(255, 0, 0));
+		//		schema.add(RandomWalkAgent.class, "/graphics/deliverytruck.png");
+		//		schema.add(Package.class, "/graphics/flag.png");
+		schema.add(Package.class, new RGB(0x0, 0x0, 0xFF));
+
+		//		View.setTestingMode(true);
 		View.startGui(simulator, 5, new ObjectRenderer(roadModel, schema, false));
 	}
 }
