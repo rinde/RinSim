@@ -12,7 +12,10 @@ import java.io.InputStreamReader;
 import java.util.HashMap;
 import java.util.Map.Entry;
 
+import rinde.sim.core.graph.Connection;
+import rinde.sim.core.graph.EdgeData;
 import rinde.sim.core.graph.Graph;
+import rinde.sim.core.graph.LengthEdgeData;
 import rinde.sim.core.graph.MultimapGraph;
 import rinde.sim.core.graph.Point;
 import rinde.sim.core.graph.TableGraph;
@@ -23,7 +26,7 @@ import rinde.sim.core.graph.TableGraph;
  */
 public class DotUtils {
 
-	public static void saveToDot(Graph mp, String fileName, boolean pdf) {
+	public static <E extends EdgeData> void saveToDot(Graph<E> mp, String fileName, boolean pdf) {
 
 		try {
 			FileWriter fileWriter = new FileWriter(fileName + ".dot");
@@ -41,16 +44,16 @@ public class DotUtils {
 				nodeId++;
 			}
 
-			for (Entry<Point, Point> entry : mp.getConnections()) {
+			for (Connection<E> entry : mp.getConnections()) {
 
-				String label = "" + Math.round(mp.connectionLength(entry.getKey(), entry.getValue()) * 10d) / 10d;
-				if (!idMap.containsKey(entry.getValue())) {
-					Point p = entry.getValue();
+				String label = "" + Math.round(mp.connectionLength(entry.from, entry.to) * 10d) / 10d;
+				if (!idMap.containsKey(entry.to)) {
+					Point p = entry.to;
 					string.append("node" + nodeId + "[pos=\"" + p.x / 3 + "," + p.y / 3 + "\", label=\"" + p + "\", pin=true]\n");
 					idMap.put(p, nodeId);
 					nodeId++;
 				}
-				string.append("node" + idMap.get(entry.getKey()) + " -> node" + idMap.get(entry.getValue()) + "[label=\"" + label + "\"]\n");
+				string.append("node" + idMap.get(entry.from) + " -> node" + idMap.get(entry.to) + "[label=\"" + label + "\"]\n");
 			}
 
 			string.append("}");
@@ -103,11 +106,11 @@ public class DotUtils {
 		return false;
 	}
 
-	public static Graph parseDot(String file) {
+	public static Graph<LengthEdgeData> parseDot(String file) {
 		try {
 			BufferedReader reader = new BufferedReader(new FileReader(file));
 
-			TableGraph graph = new TableGraph();
+			TableGraph<LengthEdgeData> graph = new TableGraph<LengthEdgeData>(LengthEdgeData.EMPTY);
 			boolean containsDistances = false;
 
 			HashMap<String, Point> nodeMapping = new HashMap<String, Point>();
@@ -131,7 +134,7 @@ public class DotUtils {
 					if (Point.distance(from, to) == distance) {
 						graph.addConnection(from, to);
 					} else {
-						graph.addConnection(from, to, distance);
+						graph.addConnection(from, to, new LengthEdgeData(distance));
 						containsDistances = true;
 					}
 					//}
@@ -140,7 +143,7 @@ public class DotUtils {
 			//			if (containsDistances) {
 			//				return graph;
 			//			} else {
-			Graph g = new MultimapGraph();
+			Graph<LengthEdgeData> g = new MultimapGraph<LengthEdgeData>();
 			g.merge(graph);
 			return g;
 			//			}

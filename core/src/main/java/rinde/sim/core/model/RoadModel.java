@@ -13,6 +13,7 @@ import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
 
+import rinde.sim.core.graph.EdgeData;
 import rinde.sim.core.graph.Graph;
 import rinde.sim.core.graph.Graphs;
 import rinde.sim.core.graph.Point;
@@ -29,9 +30,9 @@ public class RoadModel implements Model<RoadUser> {
 	// TODO remove the Graph related functions, and give a reference to an unmodifiable Graph instance instead
 
 	protected volatile Map<RoadUser, Location> objLocs;
-	final Graph graph;
+	final Graph<? extends EdgeData> graph;
 
-	public RoadModel(Graph graph) {
+	public RoadModel(Graph<? extends EdgeData> graph) {
 		if (graph == null) {
 			throw new IllegalArgumentException("Graph cannot be null");
 		}
@@ -173,7 +174,7 @@ public class RoadModel implements Model<RoadUser> {
 	/**
 	 * @return An unmodifiable view on the graph.
 	 */
-	public Graph getGraph() {
+	public Graph<? extends EdgeData> getGraph() {
 		return Graphs.unmodifiableGraph(graph);
 	}
 

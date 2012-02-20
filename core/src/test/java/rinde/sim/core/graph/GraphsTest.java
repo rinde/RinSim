@@ -8,7 +8,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
-import java.util.Map.Entry;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -24,16 +23,16 @@ import com.google.common.base.Function;
  */
 @RunWith(Parameterized.class)
 public class GraphsTest {
-	Graph graph;
-	Class<? extends Graph> graphType;
+	Graph<LengthEdgeData> graph;
+	Class<? extends Graph<LengthEdgeData>> graphType;
 
-	public GraphsTest(Class<? extends Graph> c) {
+	public GraphsTest(Class<? extends Graph<LengthEdgeData>> c) {
 		graphType = c;
 	}
 
 	@Parameters
 	public static Collection<Object[]> configs() {
-		return Arrays.asList(new Object[][] { { MultimapGraph.class }, { TableGraph.class } });
+		return Arrays.asList(new Object[][] { { LengthMultimapGraph.class }, { LengthTableGraph.class } });
 	}
 
 	@Before
@@ -103,10 +102,10 @@ public class GraphsTest {
 		Graphs.addPath(graph, N, NE, E, SE, S, SW, W, NW);
 		List<Point> points = Arrays.asList(N, NE, E, SE, S, SW, W, NW);
 
-		List<Entry<Point, Point>> connections = new ArrayList<Entry<Point, Point>>(graph.getConnections());
+		List<Connection<LengthEdgeData>> connections = graph.getConnections();
 		for (int i = 1; i < points.size(); i++) {
-			assertTrue(connections.get(i - 1).getKey() == points.get(i - 1));
-			assertTrue(connections.get(i - 1).getValue() == points.get(i));
+			assertTrue(connections.get(i - 1).from == points.get(i - 1));
+			assertTrue(connections.get(i - 1).to == points.get(i));
 		}
 	}
 

@@ -12,6 +12,8 @@ import java.util.List;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import rinde.sim.core.graph.Connection;
+import rinde.sim.core.graph.EdgeData;
 import rinde.sim.core.graph.Graph;
 import rinde.sim.core.graph.Graphs;
 import rinde.sim.core.graph.MultimapGraph;
@@ -27,8 +29,8 @@ import com.google.common.collect.Sets;
  */
 public class MapFixer {
 
-	private static Graph hack(Graph graph) {
-		Graph newGraph = new MultimapGraph();
+	private static <E extends EdgeData> Graph<E> hack(Graph<E> graph) {
+		Graph<E> newGraph = new MultimapGraph<E>();
 		newGraph.merge(graph);
 
 		HashSet<Point> connected = new HashSet<Point>();
@@ -42,8 +44,8 @@ public class MapFixer {
 		return newGraph;
 	}
 
-	static Graph connect2(Graph graph) {
-		Graph newGraph = new MultimapGraph();
+	static <E extends EdgeData> Graph<E> connect2(Graph<E> graph) {
+		Graph<E> newGraph = new MultimapGraph<E>();
 		newGraph.merge(graph);
 
 		HashSet<Point> connected = new HashSet<Point>();
@@ -88,7 +90,7 @@ public class MapFixer {
 		return newGraph;
 	}
 
-	private static void fixCluster(Graph newGraph, HashSet<Point> connected, HashSet<Point> neighbors, HashSet<Point> otherClusters) {
+	private static <E extends EdgeData>void fixCluster(Graph<E> newGraph, HashSet<Point> connected, HashSet<Point> neighbors, HashSet<Point> otherClusters) {
 		//		System.out.println(">> fixCluster");
 		while (!neighbors.isEmpty()) {
 			Point n = neighbors.iterator().next();
@@ -147,7 +149,7 @@ public class MapFixer {
 		return closestPair;
 	}
 
-	private static boolean isConnected(Graph graph, Set<Point> set1, Set<Point> set2) {
+	private static <E extends EdgeData> boolean isConnected(Graph<E> graph, Set<Point> set1, Set<Point> set2) {
 		HashSet<Point> visited = new HashSet<Point>();
 		HashSet<Point> queue = new HashSet<Point>();
 		queue.addAll(set1);
@@ -215,7 +217,7 @@ public class MapFixer {
 		return currentGraph;
 	}
 
-	private static Set<Point> unseenNeighbours(Graph g, Set<Point> seen, Set<Point> current) {
+	private static <E extends EdgeData> Set<Point> unseenNeighbours(Graph<E> g, Set<Point> seen, Set<Point> current) {
 		HashSet<Point> set = new HashSet<Point>();
 		for (Point p : current) {
 			set.addAll(g.getIncomingConnections(p));
@@ -225,7 +227,7 @@ public class MapFixer {
 		return set;
 	}
 
-	private static boolean isConnected(Graph g, Point from, Point to, Set<Point> subgraph) {
+	private static <E extends EdgeData> boolean isConnected(Graph<E> g, Point from, Point to, Set<Point> subgraph) {
 
 		Point cur = from;
 		Set<Point> seen = new HashSet<Point>();
@@ -251,8 +253,8 @@ public class MapFixer {
 
 	}
 
-	public static Graph simplify(Graph g) {
-		TableGraph newGraph = new TableGraph();
+	public static <E extends EdgeData> Graph<E> simplify(Graph<E> g) {
+		TableGraph<E> newGraph = new TableGraph<E>();
 		newGraph.merge(g);
 		boolean working = true;
 
@@ -260,9 +262,9 @@ public class MapFixer {
 			boolean edit = false;
 			//			System.out.println(newGraph.getConnections());
 
-			for (Entry<Point, Point> connection : newGraph.getConnections()) {
-				Point left = connection.getKey();
-				Point right = connection.getValue();
+			for (Connection<E> connection : newGraph.getConnections()) {
+				Point left = connection.from;
+				Point right = connection.to;
 
 				ContractType type = isContractable(newGraph, left, right);
 				//				System.out.println(type + " " + left + " " + right);
@@ -279,6 +281,7 @@ public class MapFixer {
 					for (Point outgoing : newGraph.getOutgoingConnections(removeNode)) {
 						if (!outgoing.equals(mergeNode)) {
 							double newLength = length + newGraph.connectionLength(removeNode, outgoing);
+							E eD = new E();
 							newGraph.addConnection(mergeNode, outgoing, newLength);
 						}
 					}

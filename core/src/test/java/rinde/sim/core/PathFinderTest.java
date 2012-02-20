@@ -19,6 +19,9 @@ import org.junit.runners.Parameterized.Parameters;
 
 import rinde.sim.core.graph.Graph;
 import rinde.sim.core.graph.Graphs;
+import rinde.sim.core.graph.LengthEdgeData;
+import rinde.sim.core.graph.LengthMultimapGraph;
+import rinde.sim.core.graph.LengthTableGraph;
 import rinde.sim.core.graph.MultimapGraph;
 import rinde.sim.core.graph.Point;
 import rinde.sim.core.graph.TableGraph;
@@ -35,14 +38,14 @@ public class PathFinderTest {
 
 	@Parameters
 	public static Collection<Object[]> configs() {
-		return Arrays.asList(new Object[][] { { MultimapGraph.class }, { TableGraph.class } });
+		return Arrays.asList(new Object[][] { { LengthMultimapGraph.class }, { LengthTableGraph.class } });
 	}
 
-	public PathFinderTest(Class<? extends Graph> c) {
+	public PathFinderTest(Class<? extends Graph<LengthEdgeData>> c) {
 		rsType = c;
 	}
 
-	Class<? extends Graph> rsType;
+	Class<? extends Graph<LengthEdgeData>> rsType;
 
 	private final double EPSILON = 0.02;
 

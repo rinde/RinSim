@@ -32,6 +32,8 @@ import org.eclipse.swt.widgets.Shell;
 
 import rinde.sim.core.Simulator;
 import rinde.sim.core.TickListener;
+import rinde.sim.core.graph.Connection;
+import rinde.sim.core.graph.EdgeData;
 import rinde.sim.core.graph.Graph;
 import rinde.sim.core.graph.Point;
 import rinde.sim.core.model.Model;
@@ -330,15 +332,15 @@ public class SimulationViewer extends Composite implements TickListener,
 		final Image img = new Image(getDisplay(), size.x + 10, size.y + 10);
 		final GC gc = new GC(img);
 
-		Graph graph = roadModel.getGraph();
-		for (Entry<Point, Point> e : graph.getConnections()) {
-			int x1 = (int) ((e.getKey().x - minX) * m);
-			int y1 = (int) ((e.getKey().y - minY) * m);
+		Graph<? extends EdgeData> graph = roadModel.getGraph();
+		for (Connection<? extends EdgeData> e : graph.getConnections()) {
+			int x1 = (int) ((e.from.x - minX) * m);
+			int y1 = (int) ((e.from.y - minY) * m);
 			gc.setForeground(colorRegistry.get(COLOR_GREEN));
 			gc.drawOval(x1 - 2, y1 - 2, 4, 4);
 
-			int x2 = (int) ((e.getValue().x - minX) * m);
-			int y2 = (int) ((e.getValue().y - minY) * m);
+			int x2 = (int) ((e.to.x - minX) * m);
+			int y2 = (int) ((e.to.y - minY) * m);
 			gc.setForeground(colorRegistry.get(COLOR_BLACK));
 			gc.drawLine(x1, y1, x2, y2);
 		}

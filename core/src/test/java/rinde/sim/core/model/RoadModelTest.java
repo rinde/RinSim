@@ -27,6 +27,8 @@ import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 
 import rinde.sim.core.graph.Graph;
+import rinde.sim.core.graph.LengthMultimapGraph;
+import rinde.sim.core.graph.LengthTableGraph;
 import rinde.sim.core.graph.MultimapGraph;
 import rinde.sim.core.graph.Point;
 import rinde.sim.core.graph.TableGraph;
@@ -61,8 +63,8 @@ public class RoadModelTest {
 
 	@Parameters
 	public static Collection<Object[]> configs() {
-		return Arrays.asList(new Object[][] { { MultimapGraph.class, RoadModel.class }, { MultimapGraph.class, CachedRoadModel.class }, { TableGraph.class, RoadModel.class },
-				{ TableGraph.class, CachedRoadModel.class } });
+		return Arrays.asList(new Object[][] { { LengthMultimapGraph.class, RoadModel.class }, { LengthMultimapGraph.class, CachedRoadModel.class }, { LengthTableGraph.class, RoadModel.class },
+				{ LengthTableGraph.class, CachedRoadModel.class } });
 	}
 
 	@Before

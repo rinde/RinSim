@@ -7,7 +7,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.Map.Entry;
+import java.util.List;
 import java.util.Set;
 
 
@@ -16,15 +16,22 @@ import com.google.common.collect.Table;
 import com.google.common.collect.Table.Cell;
 
 /**
+ * Table-based implementation of the graph. 
+ * TODO add more comments
  * @author Rinde van Lon (rinde.vanlon@cs.kuleuven.be)
+ * @author Bartosz Michalik <bartosz.michalik@cs.kuleuven.be> - change to the parametric version
  * 
  */
-public class TableGraph implements Graph {
+public class TableGraph<E extends EdgeData> implements Graph<E> {
 
-	private final Table<Point, Point, ConnectionAttributes> data;
+	private final Table<Point, Point, E> data;
+	
+	private final E EMPTY;
 
-	public TableGraph() {
+	public TableGraph(E emptyValue) {
+		if(emptyValue == null) throw new IllegalArgumentException("the representation of empty value is needed");
 		data = LinkedHashBasedTable.create();
+		EMPTY = emptyValue;
 	}
 
 	/**
@@ -83,95 +90,33 @@ public class TableGraph implements Graph {
 
 	@Override
 	public void addConnection(Point from, Point to) {
-
-		addConnection(from, to, -1);
+		addConnection(from, to, null);
 	}
 
-	public void addConnection(Point from, Point to, double length) {
-		addConnection(from, to, new ConnectionAttributes(length));
-	}
-
-	private void addConnection(Point from, Point to, ConnectionAttributes attributes) {
-		if (from.equals(to)) {
-			throw new IllegalArgumentException("A connection cannot be circular: " + from + " -> " + to);
-		}
-		data.put(from, to, attributes);
-	}
 
 	@Override
-	public Collection<Entry<Point, Point>> getConnections() {
-		Collection<Entry<Point, Point>> connections = new ArrayList<Entry<Point, Point>>();
-		for (Cell<Point, Point, ConnectionAttributes> cell : data.cellSet()) {
-			connections.add(new Connection(cell.getRowKey(), cell.getColumnKey(), cell.getValue()));
+	public List<Connection<E>> getConnections() {
+		List<Connection<E>> connections = new ArrayList<Connection<E>>();
+		for (Cell<Point, Point, E> cell : data.cellSet()) {
+			if(EMPTY.equals(cell.getValue()))
+				connections.add(new Connection<E>(cell.getRowKey(), cell.getColumnKey(), null));
+			else connections.add(new Connection<E>(cell.getRowKey(), cell.getColumnKey(), cell.getValue()));
 		}
 		return connections;
 	}
 
 	@Override
-	public void merge(Graph other) {
+	public void merge(Graph<E> other) {
 		addConnections(other.getConnections());
 	}
 
 	@Override
-	public void addConnections(Collection<Entry<Point, Point>> connections) {
-		for (Entry<Point, Point> connection : connections) {
-			if (connection instanceof Connection) {
-				addConnection(connection.getKey(), connection.getValue(), ((Connection) connection).getAttributes());
-			} else {
-				addConnection(connection.getKey(), connection.getValue());
-			}
+	public void addConnections(Collection<Connection<E>> connections) {
+		for (Connection<E> connection : connections) {
+			addConnection(connection);			
 		}
 	}
 
-	class ConnectionAttributes {
-		double length;
-
-		public ConnectionAttributes() {
-			this(-1);
-		}
-
-		public ConnectionAttributes(double length) {
-			this.length = length;
-		}
-	}
-
-	private class Connection implements Entry<Point, Point> {
-
-		final Point key;
-		final Point value;
-		final ConnectionAttributes attributes;
-
-		public Connection(Point key, Point value, ConnectionAttributes attributes) {
-			this.key = key;
-			this.value = value;
-			this.attributes = attributes;
-		}
-
-		@Override
-		public Point getKey() {
-			return key;
-		}
-
-		@Override
-		public Point getValue() {
-			return value;
-		}
-
-		@Override
-		public Point setValue(Point value) {
-			throw new UnsupportedOperationException();
-		}
-
-		public ConnectionAttributes getAttributes() {
-			return attributes;
-		}
-
-		@Override
-		public String toString() {
-			return key + "=" + value;
-		}
-
-	}
 
 	@Override
 	public boolean isEmpty() {
@@ -181,20 +126,62 @@ public class TableGraph implements Graph {
 	@Override
 	public double connectionLength(Point from, Point to) {
 		if (hasConnection(from, to)) {
-			double length = data.get(from, to).length;
-			return length >= 0 ? length : Point.distance(from, to);
+			E e = data.get(from, to);
+			return EMPTY.equals(e) ? Point.distance(from, to) : e.getLength();
 		}
 		throw new IllegalArgumentException("Can not get connection length from a non-existing connection.");
 	}
 
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@Override
 	public boolean equals(Object other) {
 		return other instanceof Graph ? equals((Graph) other) : false;
 	}
 
+
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
-	public boolean equals(Graph other) {
-		return Graphs.equals(this, other);
+	public E connectionData(Point from, Point to) {
+		E e = data.get(from, to);
+		if(EMPTY.equals(e)) return null;
+		return e;
 	}
 
+	@Override
+	public void addConnection(Point from, Point to, E edgeData) {
+		if (from.equals(to)) {
+			throw new IllegalArgumentException("A connection cannot be circular: " + from + " -> " + to);
+		}
+		if(hasConnection(from, to)) {
+			throw new IllegalArgumentException("A connection exists: " + from + " -> " + to);
+		}
+		if(edgeData == null) {
+			data.put(from, to, EMPTY);			
+		} else {
+			data.put(from, to, edgeData);
+		}
+	}
+	
+	@Override
+	public void addConnection(Connection<E> c) {
+		if(c == null) return;
+		addConnection(c.from, c.to, c.edgeData);
+	}
+
+	@Override
+	public E setEdgeData(Point from, Point to, E edgeData) {
+		if(hasConnection(from, to)) {
+			E e = data.put(from, to, edgeData);
+			if(EMPTY.equals(e)) return null;
+			return e;
+		}
+		throw new IllegalArgumentException("Can not get connection length from a non-existing connection.");
+	}
+
+	@Override
+	public boolean equals(Graph<? extends E> other) {
+		return Graphs.equals(this, other);
+	}
 }

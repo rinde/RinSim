@@ -3,6 +3,7 @@
  */
 package rinde.sim.core.graph;
 
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -13,7 +14,6 @@ import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
@@ -25,54 +25,53 @@ import com.google.common.base.Function;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Collections2;
 
+
 /**
  * @author Rinde van Lon (rinde.vanlon@cs.kuleuven.be)
  * 
  */
 public class Graphs {
 
-	public static void addPath(Graph g, Point... path) {
+	public static <E extends EdgeData> void addPath(Graph<E> g, Point... path) {
 		for (int i = 1; i < path.length; i++) {
 			g.addConnection(path[i - 1], path[i]);
 		}
 	}
 
 	// bidirectional
-	public static void addBiPath(Graph g, Point... path) {
+	public static <E extends EdgeData> void addBiPath(Graph<E> g, Point... path) {
 		addPath(g, path);
-
 		List<Point> list = Arrays.asList(path);
 		Collections.reverse(list);
 		addPath(g, list.toArray(new Point[path.length]));
 	}
 
-	public static Graph unmodifiableGraph(Graph delegate) {
-		return new UnmodifiableGraph(delegate);
+	public static <E extends EdgeData> Graph<E> unmodifiableGraph(Graph<E> delegate) {
+		return new UnmodifiableGraph<E>(delegate);
 	}
 
-	public static boolean equals(Graph g1, Graph g2) {
+	public static <E extends EdgeData> boolean equals(Graph<? extends E> g1, Graph<? extends E> g2) {
 		if (g1.getNumberOfNodes() != g2.getNumberOfNodes()) {
 			return false;
 		}
 		if (g1.getNumberOfConnections() != g2.getNumberOfConnections()) {
 			return false;
 		}
-		for (Entry<Point, Point> connection : g1.getConnections()) {
-			if (!g2.hasConnection(connection.getKey(), connection.getValue())) {
+		for (Connection<? extends E> connection : g1.getConnections()) {
+			if (!g2.hasConnection(connection.from, connection.to)) {
 				return false;
-			}
-			if (g1.connectionLength(connection.getKey(), connection.getValue()) != g2.connectionLength(connection.getKey(), connection.getValue())) {
-				return false;
-			}
+			} 
+			E g2Data = g2.connectionData(connection.from, connection.to);
+			if((connection.edgeData == null && g2Data != null) || !connection.edgeData.equals(g2Data)) return false;
 		}
 		return true;
 
 	}
 
-	private static class UnmodifiableGraph implements Graph {
-		final Graph delegate;
+	private static class UnmodifiableGraph<E extends EdgeData> implements Graph<E> {
+		final Graph<E> delegate;
 
-		public UnmodifiableGraph(Graph delegate) {
+		public UnmodifiableGraph(Graph<E> delegate) {
 			this.delegate = delegate;
 		}
 
@@ -102,8 +101,8 @@ public class Graphs {
 		}
 
 		@Override
-		public Collection<Entry<Point, Point>> getConnections() {
-			return Collections.unmodifiableCollection(delegate.getConnections());
+		public List<Connection<E>> getConnections() {
+			return Collections.unmodifiableList(delegate.getConnections());
 		}
 
 		@Override
@@ -132,12 +131,12 @@ public class Graphs {
 		}
 
 		@Override
-		public void merge(Graph other) {
+		public void merge(Graph<E> other) {
 			throw new UnsupportedOperationException();
 		}
 
 		@Override
-		public void addConnections(Collection<Entry<Point, Point>> connections) {
+		public void addConnections(Collection<Connection<E>> connections) {
 			throw new UnsupportedOperationException();
 		}
 
@@ -151,19 +150,40 @@ public class Graphs {
 			throw new UnsupportedOperationException();
 		}
 
+		@SuppressWarnings({ "rawtypes", "unchecked" })
 		@Override
 		public boolean equals(Object other) {
 			return other instanceof Graph ? equals((Graph) other) : false;
 		}
 
 		@Override
-		public boolean equals(Graph other) {
+		public boolean equals(Graph<? extends E> other) {
 			return Graphs.equals(this, other);
+		}
+
+		@Override
+		public E connectionData(Point from, Point to) {
+			return delegate.connectionData(from, to);
+		}
+
+		@Override
+		public void addConnection(Point from, Point to, E edgeData) {
+			throw new UnsupportedOperationException();
+		}
+
+		@Override
+		public void addConnection(Connection<E> connection) {
+			throw new UnsupportedOperationException();
+		}
+
+		@Override
+		public E setEdgeData(Point from, Point to, E edgeData) {
+			throw new UnsupportedOperationException();
 		}
 
 	}
 
-	public static List<Point> shortestPathEuclidianDistance(Graph graph, final Point from, final Point to) {
+	public static <E extends EdgeData> List<Point> shortestPathEuclidianDistance(Graph<E> graph, final Point from, final Point to) {
 		return Graphs.shortestPath(graph, from, to, new Graphs.EuclidianDistance());
 	}
 
@@ -173,7 +193,7 @@ public class Graphs {
 	 * @author Rutger Claes
 	 * @author Rinde van Lon (rinde.vanlon@cs.kuleuven.be)
 	 */
-	public static List<Point> shortestPath(Graph graph, final Point from, final Point to, Graphs.Heuristic h) {
+	public static <E extends EdgeData> List<Point> shortestPath(Graph<E> graph, final Point from, final Point to, Graphs.Heuristic h) {
 		if (from == null || !graph.containsNode(from)) {
 			throw new IllegalArgumentException("from should be valid vertex. " + from);
 		}
@@ -401,5 +421,4 @@ public class Graphs {
 			return distance;
 		}
 	}
-
 }
