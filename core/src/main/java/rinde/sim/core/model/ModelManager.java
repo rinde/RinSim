@@ -33,11 +33,25 @@ public class ModelManager {
 		models = new LinkedList<Model<? extends Object>>();
 	}
 	
-	public boolean register(Model<?> model) {
+	/**
+	 * Add model to the manager.
+	 * 
+	 * @param model
+	 * @return whether the addition was sucessful
+	 * @throws IllegalStateException
+	 *             when method called after calling configure
+	 */
+	public boolean add(Model<?> model) {
+		if (configured)
+			throw new IllegalStateException(
+					"model cannot be registered after configure()");
 		boolean result = models.add(model);
-		if(!result) return false;
+		if (!result)
+			return false;
 		result &= registry.put(model.getSupportedType(), model);
-		if(!result) { models.remove(model); }
+		if (!result) {
+			models.remove(model);
+		}
 		return result;
 	}
 	

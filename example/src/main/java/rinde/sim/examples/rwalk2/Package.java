@@ -1,13 +1,16 @@
 package rinde.sim.examples.rwalk2;
 
+import rinde.sim.core.graph.Point;
 import rinde.sim.core.model.RoadModel;
 import rinde.sim.core.model.RoadUser;
 
 class Package implements RoadUser {
 	public final String name;
+	private Point location;
 
-	public Package(String name) {
+	public Package(String name, Point location) {
 		this.name = name;
+		this.location = location;
 	}
 
 	@Override
@@ -17,6 +20,10 @@ class Package implements RoadUser {
 
 	@Override
 	public void initRoadUser(RoadModel model) {
-		
+		model.addObjectAt(this, location);
+	}
+
+	public Point getLocation() {
+		return location;
 	}
 }

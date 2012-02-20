@@ -1,6 +1,7 @@
 package rinde.sim.core;
 
-import rinde.sim.core.model.RoadUser;
+import org.apache.commons.math.random.RandomGenerator;
+
 
 /**
  * Limited simulator API that provides an API for simulation elements (e.g., agents)
@@ -18,4 +19,11 @@ public interface SimulatorAPI {
 	 * @throws IllegalStateException when simulator is not configured (by calling {@link Simulator#configure()}
 	 */
 	public boolean register(Object o);
+	
+	/**
+	 * Get access to the main random generator used in the simulator
+	 * @return the random generator of the simulatsor
+	 */
+	public RandomGenerator getRandomGenerator();
 }
+

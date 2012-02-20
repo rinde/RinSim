@@ -39,7 +39,7 @@ public class Simulator implements SimulatorAPI {
 	protected volatile Set<TickListener> tickListeners;
 	protected List<TickListener> afterTickListeners;
 	
-	public final RandomGenerator rand;
+	private final RandomGenerator rand;
 	public final Events events;
 	protected final EventDispatcher dispatcher;
 	protected final long timeStep;
@@ -47,24 +47,30 @@ public class Simulator implements SimulatorAPI {
 	protected long time;
 	
 	protected ModelManager modelManager;
+	private boolean configure;
 
 	public void configure() {
 		modelManager.configure();
+		configure = true;
 	}
 	
 	
 
 	public boolean register(Model<?> model) {
 		if(model == null) throw new IllegalArgumentException("parameter cannot be null");
+		if(configure) throw new IllegalStateException("cannot add model after calling configure()");
 		if(model instanceof TickListener) {
 			addTickListener((TickListener) model);
 		}
 		LOGGER.info("registering model :" + model.getClass().getName() + " for type:" + model.getSupportedType().getName());
-		return modelManager.register(model);
+		return modelManager.add(model);
 	}
 
 	public boolean register(Object o) {
 		if(o == null) throw new IllegalArgumentException("parameter cannot be null");
+		if(o instanceof Model<?>) return register((Model<?>) o);
+		if(!configure) throw new IllegalStateException("cannot add object before calling configure()");
+		
 		injectDependencies(o);
 		if(o instanceof TickListener) {
 			//FIXME refactor the TickListener interface
@@ -200,5 +206,10 @@ public class Simulator implements SimulatorAPI {
 
 	public Set<TickListener> getTickListeners() {
 		return Collections.unmodifiableSet(tickListeners);
+	}
+
+	@Override
+	public RandomGenerator getRandomGenerator() {
+		return rand;
 	}
 }

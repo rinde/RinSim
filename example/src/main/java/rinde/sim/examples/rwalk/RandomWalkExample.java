@@ -23,7 +23,8 @@ public class RandomWalkExample {
 
 	public static void main(String[] args) throws Exception {
 		// create a new simulator, load map of Leuven
-		Simulator simulator = new Simulator(new MersenneTwister(123), 100000);
+		MersenneTwister rand = new MersenneTwister(123);
+		Simulator simulator = new Simulator(rand, 100000);
 		RoadModel roadModel = new RoadModel(new MultimapGraph());
 		roadModel.addGraph(new DotGraphSerializer(new SelfCycleFilter()).read("files/leuven.dot"));
 		
@@ -33,7 +34,7 @@ public class RandomWalkExample {
 
 		for (int i = 0; i < 50; i++) {
 			//FIXME to change the random generator
-			RandomWalkAgent agent = new RandomWalkAgent(simulator.rand);
+			RandomWalkAgent agent = new RandomWalkAgent(rand);
 			simulator.register(agent);
 		}
 
