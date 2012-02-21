@@ -28,6 +28,7 @@ import com.google.common.collect.Collections2;
 
 /**
  * @author Rinde van Lon (rinde.vanlon@cs.kuleuven.be)
+ * @author Bartosz Michalik <bartosz.michalik@cs.kuleuven.be> - change in the graphs model
  * 
  */
 public class Graphs {
