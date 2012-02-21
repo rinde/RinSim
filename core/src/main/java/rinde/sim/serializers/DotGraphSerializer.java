@@ -15,6 +15,7 @@ import rinde.sim.core.graph.LengthEdgeData;
 import rinde.sim.core.graph.MultimapGraph;
 import rinde.sim.core.graph.Point;
 import rinde.sim.core.graph.TableGraph;
+import rinde.sim.serializers.dot.DotConnectionSerializer;
 
 /**
  * Dot format serializer for a road model graph.
@@ -22,25 +23,28 @@ import rinde.sim.core.graph.TableGraph;
  * @author Bartosz Michalik <bartosz.michalik@cs.kuleuven.be>
  *
  */
-public class DotGraphSerializer extends AbstractGraphSerializer<LengthEdgeData> {
+public class DotGraphSerializer<E extends EdgeData> extends AbstractGraphSerializer<E> {
 
 	private SerializerFilter<? extends Object>[] filters;
+	private DotConnectionSerializer<E> serializer;
 
-	public DotGraphSerializer(SerializerFilter<?>... filters) {
+	public DotGraphSerializer(DotConnectionSerializer<E> connectionSerializer, SerializerFilter<?>... filters) {
+		if(connectionSerializer == null) throw new IllegalArgumentException("serializer cannot be null");
 		this.filters = filters;
 		if(filters == null) filters = new SerializerFilter<?>[0];
+		this.serializer = connectionSerializer;
 	}
 	
-	public DotGraphSerializer() {
-		this(new SerializerFilter[0]);
+	public DotGraphSerializer(DotConnectionSerializer<E> serializer) {
+		this(serializer, new SerializerFilter[0]);
 	}
 	
 	@Override
-	public Graph<LengthEdgeData> read(Reader r) throws IOException {
+	public Graph<E> read(Reader r) throws IOException {
 		
 		BufferedReader reader = new BufferedReader(r);
 
-		TableGraph<LengthEdgeData> graph = new TableGraph<LengthEdgeData>(LengthEdgeData.EMPTY);
+		MultimapGraph<E> graph = new MultimapGraph<E>();
 
 		HashMap<String, Point> nodeMapping = new HashMap<String, Point>();
 		String line;
@@ -58,29 +62,22 @@ public class DotGraphSerializer extends AbstractGraphSerializer<LengthEdgeData> 
 				String fromStr = names[0].trim();
 				String toStr = names[1].substring(0, names[1].indexOf("["))
 						.trim();
-				double distance = Double.parseDouble(line.split("\"")[1]);
 				Point from = nodeMapping.get(fromStr);
-				Point to = nodeMapping.get(toStr);
-				
+				Point to = nodeMapping.get(toStr);				
 				for (SerializerFilter<?> f : filters) {
 					if(f.filterOut(from, to)) continue;
 				}
+				E data = serializer.deserialize(line);
+				graph.addConnection(from, to,data);
 				
-				if (Point.distance(from, to) == distance) {
-					graph.addConnection(from, to);
-				} else {
-					graph.addConnection(from, to, new LengthEdgeData(distance));
-				}
 			}
 		}
-		Graph<LengthEdgeData> g = new MultimapGraph<LengthEdgeData>();
-		g.merge(graph);
-		return g;
+		return graph;
 
 	}
 
 	@Override
-	public void write(Graph<? extends LengthEdgeData> graph, Writer writer) throws IOException {
+	public void write(Graph<? extends E> graph, Writer writer) throws IOException {
 		final BufferedWriter out = new BufferedWriter(writer);
 
 		final StringBuilder string = new StringBuilder();
@@ -94,7 +91,7 @@ public class DotGraphSerializer extends AbstractGraphSerializer<LengthEdgeData> 
 			nodeId++;
 		}
 
-		for (Connection<? extends LengthEdgeData> entry : graph.getConnections()) {
+		for (Connection<? extends E> entry : graph.getConnections()) {
 
 			String label = "" + Math.round(graph.connectionLength(entry.from, entry.to) * 10d) / 10d;
 			if (!idMap.containsKey(entry.to)) {
@@ -106,5 +103,34 @@ public class DotGraphSerializer extends AbstractGraphSerializer<LengthEdgeData> 
 			string.append("node" + idMap.get(entry.from) + " -> node" + idMap.get(entry.to) + "[label=\"" + label + "\"]\n");
 		}
 		string.append("}");
+		out.append(string);
 	}
+	
+	
+	/** Get instance of the serializer that can read write graph with the edges length information
+	 * @param filters
+	 * @return
+	 */
+	public static DotGraphSerializer<LengthEdgeData> getLengthGraphSerializer(SerializerFilter<?>... filters) {
+		return new DotGraphSerializer<LengthEdgeData>(new LengthConnectionSerializer(), filters);
+	}
+	
+	private static class LengthConnectionSerializer extends DotConnectionSerializer<LengthEdgeData> {
+
+		@Override
+		public String serializeConnection(String idFrom, String idTo, Connection<LengthEdgeData> conn) {
+			StringBuffer buffer = new StringBuffer();
+			buffer.append("node").append(idFrom).append(" -> node").append(idTo);
+			buffer.append("[label=\"").append(Math.round(conn.edgeData.getLength()) / 10d).append("\"]\n");
+			return buffer.toString();
+		}
+
+		@Override
+		public LengthEdgeData deserialize(String connection) {
+			double distance = Double.parseDouble(connection.split("\"")[1]);
+			return new LengthEdgeData(distance);
+		}
+		
+	}
+
 }

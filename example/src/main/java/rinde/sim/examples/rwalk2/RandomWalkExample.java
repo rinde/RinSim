@@ -7,6 +7,8 @@ import org.apache.commons.math.random.MersenneTwister;
 import org.eclipse.swt.graphics.RGB;
 
 import rinde.sim.core.Simulator;
+import rinde.sim.core.graph.Graph;
+import rinde.sim.core.graph.LengthEdgeData;
 import rinde.sim.core.graph.MultimapGraph;
 import rinde.sim.core.model.RoadModel;
 import rinde.sim.serializers.DotGraphSerializer;
@@ -23,17 +25,17 @@ public class RandomWalkExample {
 
 	public static void main(String[] args) throws Exception {
 		// create a new simulator, load map of Leuven
-		Simulator simulator = new Simulator(new MersenneTwister(123), 10000);
-		RoadModel roadModel = new RoadModel(new MultimapGraph());
-		roadModel.addGraph(new DotGraphSerializer(new SelfCycleFilter()).read("files/leuven.dot"));
+		Simulator simulator = new Simulator(new MersenneTwister(123), 1000);
+		Graph<LengthEdgeData> graph = DotGraphSerializer.getLengthGraphSerializer(new SelfCycleFilter()).read("files/leuven.dot");
+//		roadModel.addGraph(DotGraphSerializer.getLengthGraphSerializer(new SelfCycleFilter()).read("files/brussels.dot"));
+		RoadModel roadModel = new RoadModel(graph);
 		
 		simulator.register(roadModel);
 		
 		simulator.configure();
 
-		for (int i = 0; i < 50; i++) {
-			//FIXME to change the random generator
-			RandomWalkAgent agent = new RandomWalkAgent(0.0005);
+		for (int i = 0; i < 100; i++) {
+			RandomWalkAgent agent = new RandomWalkAgent(0.005);
 			simulator.register(agent);
 		}
 

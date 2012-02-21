@@ -2,7 +2,7 @@ package rinde.sim.core.graph;
 
 
 /**
- * Simple data representing an edge's length
+ * Simple data representing an length of the edge
  * @author Bartosz Michalik <bartosz.michalik@cs.kuleuven.be>
  *
  */

@@ -26,7 +26,7 @@ public class RandomWalkExample {
 		MersenneTwister rand = new MersenneTwister(123);
 		Simulator simulator = new Simulator(rand, 100000);
 		RoadModel roadModel = new RoadModel(new MultimapGraph());
-		roadModel.addGraph(new DotGraphSerializer(new SelfCycleFilter()).read("files/leuven.dot"));
+		roadModel.addGraph(DotGraphSerializer.getLengthGraphSerializer(new SelfCycleFilter()).read("files/leuven.dot"));
 		
 		simulator.register(roadModel);
 		
