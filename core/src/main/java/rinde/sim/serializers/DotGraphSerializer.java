@@ -6,7 +6,6 @@ import java.io.IOException;
 import java.io.Reader;
 import java.io.Writer;
 import java.util.HashMap;
-import java.util.Map.Entry;
 
 import rinde.sim.core.graph.Connection;
 import rinde.sim.core.graph.EdgeData;
@@ -14,28 +13,29 @@ import rinde.sim.core.graph.Graph;
 import rinde.sim.core.graph.LengthEdgeData;
 import rinde.sim.core.graph.MultimapGraph;
 import rinde.sim.core.graph.Point;
-import rinde.sim.core.graph.TableGraph;
-import rinde.sim.serializers.dot.DotConnectionSerializer;
 
 /**
  * Dot format serializer for a road model graph.
  * Allows for reading storing maps in dot format.
+ * The default implementation of the serializer for graphs with edge length information 
+ * can be obtained via calling {@link DotGraphSerializer#getLengthGraphSerializer(SerializerFilter...)}
+ * 
  * @author Bartosz Michalik <bartosz.michalik@cs.kuleuven.be>
  *
  */
 public class DotGraphSerializer<E extends EdgeData> extends AbstractGraphSerializer<E> {
 
 	private SerializerFilter<? extends Object>[] filters;
-	private DotConnectionSerializer<E> serializer;
+	private ConnectionSerializer<E> serializer;
 
-	public DotGraphSerializer(DotConnectionSerializer<E> connectionSerializer, SerializerFilter<?>... filters) {
+	public DotGraphSerializer(ConnectionSerializer<E> connectionSerializer, SerializerFilter<?>... filters) {
 		if(connectionSerializer == null) throw new IllegalArgumentException("serializer cannot be null");
 		this.filters = filters;
 		if(filters == null) filters = new SerializerFilter<?>[0];
 		this.serializer = connectionSerializer;
 	}
 	
-	public DotGraphSerializer(DotConnectionSerializer<E> serializer) {
+	public DotGraphSerializer(ConnectionSerializer<E> serializer) {
 		this(serializer, new SerializerFilter[0]);
 	}
 	
@@ -106,16 +106,19 @@ public class DotGraphSerializer<E extends EdgeData> extends AbstractGraphSeriali
 		out.append(string);
 	}
 	
-	
-	/** Get instance of the serializer that can read write graph with the edges length information
-	 * @param filters
-	 * @return
+	/**
+	 * Used to serialize graphs
+	 * @author Bartosz Michalik <bartosz.michalik@cs.kuleuven.be>
+	 *
+	 * @param <E>
+	 * @since 2.0
 	 */
-	public static DotGraphSerializer<LengthEdgeData> getLengthGraphSerializer(SerializerFilter<?>... filters) {
-		return new DotGraphSerializer<LengthEdgeData>(new LengthConnectionSerializer(), filters);
+	public static  abstract class ConnectionSerializer<E extends EdgeData> {
+		public abstract String serializeConnection(String idFrom, String idTo, Connection<E> conn);
+		public abstract E deserialize(String connection);
 	}
 	
-	private static class LengthConnectionSerializer extends DotConnectionSerializer<LengthEdgeData> {
+	private static class LengthConnectionSerializer extends ConnectionSerializer<LengthEdgeData> {
 
 		@Override
 		public String serializeConnection(String idFrom, String idTo, Connection<LengthEdgeData> conn) {
@@ -129,8 +132,16 @@ public class DotGraphSerializer<E extends EdgeData> extends AbstractGraphSeriali
 		public LengthEdgeData deserialize(String connection) {
 			double distance = Double.parseDouble(connection.split("\"")[1]);
 			return new LengthEdgeData(distance);
-		}
-		
+		}	
+	}
+	
+	
+	/** Get instance of the serializer that can read write graph with the edges length information
+	 * @param filters
+	 * @return
+	 */
+	public static DotGraphSerializer<LengthEdgeData> getLengthGraphSerializer(SerializerFilter<?>... filters) {
+		return new DotGraphSerializer<LengthEdgeData>(new LengthConnectionSerializer(), filters);
 	}
 
 }
