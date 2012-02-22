@@ -48,14 +48,6 @@ public class RoadModel implements Model<RoadUser> {
 		assert graph.containsNode(from);
 	}
 
-	/**
-	 * Merges the specified graph into this graph.
-	 * @param other The specified graph.
-	 */
-	public void addGraph(Graph other) {
-		graph.merge(other);
-	}
-
 	public void addObjectAt(RoadUser newObj, Point pos) {
 		if (!graph.containsNode(pos)) {
 			throw new IllegalArgumentException("Object must be initiated on a crossroad.");
@@ -170,6 +162,35 @@ public class RoadModel implements Model<RoadUser> {
 		}
 		return distance - travelDistance;
 	}
+	
+	
+	/**
+	 * This method moves the specified {@link RoadUser} using the specified path
+	 * and with the specified time. The road model is using the information 
+	 * about speed of the {@link RoadUser} and constrains on the graph to reposition the object.
+	 * <p>
+	 * This method can be called repeatedly to follow a path. Each time this
+	 * method is invoked the <code>path</code> {@link Queue} can be modified.
+	 * When a vertex in <code>path</code> has been visited, it is removed from
+	 * the {@link Queue}.
+	 * @param object The object in the physical world that is to be moved.
+	 * @param path The path that is followed, it is modified by this method.
+	 * @param distance The distance that is attempted to be traveled over the
+	 *            <code>path</code>.
+	 * @return The actual distance that <code>object</code> has traveled after
+	 *         the execution of this method has finished.
+	 */
+	public PathProgress followPath(MovingRoadUser object, Queue<Point> path, long time) {
+		assert path != null : "path cannot be null";
+		assert path.peek() != null : "path cannot be empty";
+		assert time > 0 : "distance must be greater than 0";
+		assert object != null : "object cannot be null";
+		assert objLocs.containsKey(object) : "object must have a location";
+
+		Location objLoc = objLocs.get(object);
+		
+		return null;
+	}
 
 	/**
 	 * @return An unmodifiable view on the graph.
@@ -178,17 +199,6 @@ public class RoadModel implements Model<RoadUser> {
 		return Graphs.unmodifiableGraph(graph);
 	}
 
-	public Set<Point> getNodes() {
-		return graph.getNodes();
-	}
-
-	public int getNumberOfConnections() {
-		return graph.getNumberOfConnections();
-	}
-
-	public int getNumberOfNodes() {
-		return graph.getNumberOfNodes();
-	}
 
 	/**
 	 * This method returns a collection of {@link Point} objects which are the
@@ -376,6 +386,30 @@ public class RoadModel implements Model<RoadUser> {
 	@Override
 	public Class<RoadUser> getSupportedType() {
 		return RoadUser.class;
+	}
+	
+	
+	/**
+	 * Represents the distance traveled and time spend in {@link RoadModel#followPath(RoadUser, Queue, long)}
+	 * @author Bartosz Michalik <bartosz.michalik@cs.kuleuven.be>
+	 * @since 2.0
+	 */
+	public static final class PathProgress {
+		/**
+		 * distance traveled in the {@link RoadModel#followPath(RoadUser, Queue, int)}
+		 */
+		public final double distance;
+		/**
+		 * time spend on traveling the distance
+		 */
+		public final long time;
+		
+		public PathProgress(double distance, long time) {
+			assert distance >= 0;
+			assert time >= 0;
+			this.distance = distance;
+			this.time = time;
+		}
 	}
 }
 

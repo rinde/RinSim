@@ -412,7 +412,7 @@ public class SimulationViewer extends Composite implements TickListener,
 	}
 
 	private void calculateSizes() {
-		Set<Point> nodes = roadModel.getNodes();
+		Set<Point> nodes = roadModel.getGraph().getNodes();
 
 		minX = Double.POSITIVE_INFINITY;
 		double maxX = Double.NEGATIVE_INFINITY;

@@ -3,7 +3,6 @@
  */
 package rinde.sim.core.graph;
 
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -64,34 +63,36 @@ public class MultimapGraph<E extends EdgeData> implements Graph<E> {
 
 	@Override
 	public void addConnection(Point from, Point to) {
-		addConnection(from,to,null);
+		addConnection(from, to, null);
 	}
-	
-	
 
 	@Override
 	public void addConnection(Point from, Point to, E edgeData) {
 		if (from.equals(to)) {
-			throw new IllegalArgumentException("A connection cannot be circular");
+			throw new IllegalArgumentException(
+					"A connection cannot be circular");
 		}
 		data.put(from, to);
-		if(edgeData != null) {
+		if (edgeData != null) {
 			this.edgeData.put(new Connection<E>(from, to, null), edgeData);
 		}
 	}
 
 	@Override
 	public void addConnection(Connection<E> c) {
-		if(c == null) return;
+		if (c == null)
+			return;
 		addConnection(c.from, c.to, c.edgeData);
 	}
 
 	@Override
 	public E setEdgeData(Point from, Point to, E edgeData) {
-		if(! hasConnection(from, to)) throw new IllegalArgumentException("the connection " + from + " -> " + to + "does not exist");
+		if (!hasConnection(from, to))
+			throw new IllegalArgumentException("the connection " + from
+					+ " -> " + to + "does not exist");
 		return this.edgeData.put(new Connection<E>(from, to, null), edgeData);
 	}
-	
+
 	@Override
 	public E connectionData(Point from, Point to) {
 		return edgeData.get(new Connection<E>(from, to, null));
@@ -99,14 +100,17 @@ public class MultimapGraph<E extends EdgeData> implements Graph<E> {
 
 	@Override
 	public Set<Point> getNodes() {
-		return Collections.unmodifiableSet(new LinkedHashSet<Point>(data.keySet()));
+		return Collections.unmodifiableSet(new LinkedHashSet<Point>(data
+				.keySet()));
 	}
 
 	@Override
 	public List<Connection<E>> getConnections() {
-		ArrayList<Connection<E>> res = new ArrayList<Connection<E>>(edgeData.size());
+		ArrayList<Connection<E>> res = new ArrayList<Connection<E>>(
+				edgeData.size());
 		for (Entry<Point, Point> p : data.entries()) {
-			Connection<E> connection = new Connection<E>(p.getKey(), p.getValue(), null);
+			Connection<E> connection = new Connection<E>(p.getKey(),
+					p.getValue(), null);
 			E eD = edgeData.get(connection);
 			connection.setEdgeData(eD);
 			res.add(connection);
@@ -119,16 +123,9 @@ public class MultimapGraph<E extends EdgeData> implements Graph<E> {
 		return Multimaps.unmodifiableMultimap(data);
 	}
 
-	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@Override
 	public void merge(Graph<E> other) {
-		//FIXME [bm]
-		if (other instanceof MultimapGraph) {
-			data.putAll(((MultimapGraph) other).getMultimap());
-		} else {
-			addConnections(other.getConnections());
-		}
-
+		addConnections(other.getConnections());
 	}
 
 	@Override
@@ -164,7 +161,7 @@ public class MultimapGraph<E extends EdgeData> implements Graph<E> {
 	 */
 	@Override
 	public void removeNode(Point node) {
-		for(Point p : getOutgoingConnections(node)) {
+		for (Point p : getOutgoingConnections(node)) {
 			removeConnection(node, p);
 		}
 		for (Point p : getIncomingConnections(node)) {
@@ -178,10 +175,12 @@ public class MultimapGraph<E extends EdgeData> implements Graph<E> {
 			data.remove(from, to);
 			removeData(from, to);
 		} else {
-			throw new IllegalArgumentException("Can not remove non-existing connection: " + from + " -> " + to);
+			throw new IllegalArgumentException(
+					"Can not remove non-existing connection: " + from + " -> "
+							+ to);
 		}
 	}
-	
+
 	private void removeData(Point from, Point to) {
 		edgeData.remove(new Connection<EdgeData>(from, to, null));
 	}
@@ -191,7 +190,8 @@ public class MultimapGraph<E extends EdgeData> implements Graph<E> {
 		if (hasConnection(from, to)) {
 			return Point.distance(from, to);
 		}
-		throw new IllegalArgumentException("Can not get connection length from a non-existing connection.");
+		throw new IllegalArgumentException(
+				"Can not get connection length from a non-existing connection.");
 	}
 
 	@Override
@@ -199,7 +199,6 @@ public class MultimapGraph<E extends EdgeData> implements Graph<E> {
 	public boolean equals(Object other) {
 		return other instanceof Graph ? equals((Graph) other) : false;
 	}
-
 
 	@Override
 	public boolean equals(Graph<? extends E> other) {
