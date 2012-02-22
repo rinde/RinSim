@@ -84,6 +84,7 @@ public class SimulationViewer extends Composite implements TickListener,
 	protected double m;// multiplier
 	private double deltaX;
 	private double deltaY;
+	private int zoomRatio;
 
 	public SimulationViewer(Shell shell, Simulator simulator, int speedUp,
 			Renderer... renderers) {
@@ -281,13 +282,17 @@ public class SimulationViewer extends Composite implements TickListener,
 
 	protected void onZooming(MenuItem source) {
 		if (source.getData().equals("in")) {
+			if(zoomRatio == 16) return;
 			origin.x -= m * deltaX / 2;
 			origin.y -= m * deltaY / 2;
 			m *= 2;
+			zoomRatio <<= 1;
 		} else {
+			if(zoomRatio < 2) return;
 			m /= 2;
 			origin.x += m * deltaX / 2;
 			origin.y += m * deltaY / 2;
+			zoomRatio >>= 1;
 		}
 		if (image != null)
 			image.dispose();
@@ -437,6 +442,7 @@ public class SimulationViewer extends Composite implements TickListener,
 		} else {
 			m = area.height / deltaY;
 		}
+		zoomRatio = 1;
 
 		// m *= 2;
 
