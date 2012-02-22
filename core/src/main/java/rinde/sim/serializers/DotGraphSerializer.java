@@ -100,7 +100,7 @@ public class DotGraphSerializer<E extends EdgeData> extends AbstractGraphSeriali
 				idMap.put(p, nodeId);
 				nodeId++;
 			}
-			string.append("node" + idMap.get(entry.from) + " -> node" + idMap.get(entry.to) + "[label=\"" + label + "\"]\n");
+			string.append(serializer.serializeConnection(idMap.get(entry.from), idMap.get(entry.to), entry));
 		}
 		string.append("}");
 		out.append(string);
@@ -114,14 +114,14 @@ public class DotGraphSerializer<E extends EdgeData> extends AbstractGraphSeriali
 	 * @since 2.0
 	 */
 	public static  abstract class ConnectionSerializer<E extends EdgeData> {
-		public abstract String serializeConnection(String idFrom, String idTo, Connection<E> conn);
+		public abstract String serializeConnection(int idFrom, int idTo, Connection<? extends E> conn);
 		public abstract E deserialize(String connection);
 	}
 	
 	private static class LengthConnectionSerializer extends ConnectionSerializer<LengthEdgeData> {
 
 		@Override
-		public String serializeConnection(String idFrom, String idTo, Connection<LengthEdgeData> conn) {
+		public String serializeConnection(int idFrom, int idTo, Connection<? extends LengthEdgeData> conn) {
 			StringBuffer buffer = new StringBuffer();
 			buffer.append("node").append(idFrom).append(" -> node").append(idTo);
 			buffer.append("[label=\"").append(Math.round(conn.edgeData.getLength()) / 10d).append("\"]\n");
