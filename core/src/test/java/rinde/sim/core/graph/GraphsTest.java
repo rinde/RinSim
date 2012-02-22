@@ -1,8 +1,6 @@
 package rinde.sim.core.graph;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -15,6 +13,8 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 
+import rinde.sim.core.model.PointsEquality;
+
 import com.google.common.base.Function;
 
 /**
@@ -23,6 +23,8 @@ import com.google.common.base.Function;
  */
 @RunWith(Parameterized.class)
 public class GraphsTest {
+	protected static final double DELTA = 0.0001;
+	
 	Graph<LengthEdgeData> graph;
 	Class<? extends Graph<LengthEdgeData>> graphType;
 
@@ -62,27 +64,6 @@ public class GraphsTest {
 		}
 	}
 	
-	/**
-	 * Check consistency wrt. handling value objects 
-	 */
-	@Test public void graphDataConsistency() {
-		Point A, B, C, D;
-		A = new Point(0, 0);
-		B = new Point(0, 13);
-		C = new Point(13, 17);
-		D = new Point(17, 0);
-		
-		graph.addConnection(A, B);
-		graph.addConnection(B, C);
-		graph.addConnection(B, D);
-		
-		//contain nodes
-		assertTrue("contains A", graph.containsNode(A));
-		assertTrue("contains B", graph.containsNode(B));
-		assertTrue("contains C", graph.containsNode(C));
-		assertTrue("contains D", graph.containsNode(D));
-	}
-
 	/**
 	 * In this test there are two paths of equal length between two nodes. The
 	 * function should always return the same path.
@@ -189,6 +170,33 @@ public class GraphsTest {
 	@Test(expected = IllegalArgumentException.class)
 	public void connectionLengthFail() {
 		graph.connectionLength(new Point(0, 3), new Point(4, 5));
+	}
+	
+	@Test
+	public void edgeDataUsage()  {
+		Point A = new Point(0,0), B = new Point(0,1), C = new Point(1,0);
+		
+		graph.addConnection(A, B);
+		graph.addConnection(new Connection<LengthEdgeData>(B,A,new LengthEdgeData(1.5)));
+		graph.addConnection(B,C, new LengthEdgeData(2));
+		graph.addConnection(A,C, new LengthEdgeData(Double.NaN)); //explicit empty value
+		
+		assertNull("existing but empty", graph.connectionData(A, B));
+		assertNull("non existing", graph.connectionData(C, A));
+//		assertNull("explicit null A->C", graph.connectionData(A, C)); // works only for TableGraph
+		
+		assertNotNull("existing B->A", graph.connectionData(B, A));
+		assertNotNull("existing B->C", graph.connectionData(B, C));
+		
+		//use of the edge data
+		assertEquals(1, graph.connectionLength(A, B), DELTA);
+		assertEquals(1.5, graph.connectionLength(B, A), DELTA);
+		assertEquals(2, graph.connectionLength(B, C), DELTA);
+		try {
+			graph.connectionLength(C, B); fail();			
+		} catch (IllegalArgumentException e) {}
+		
+		
 	}
 
 	@Test

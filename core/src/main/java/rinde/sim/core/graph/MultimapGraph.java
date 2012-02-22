@@ -5,7 +5,6 @@ package rinde.sim.core.graph;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -203,7 +202,8 @@ public class MultimapGraph<E extends EdgeData> implements Graph<E> {
 	@Override
 	public double connectionLength(Point from, Point to) {
 		if (hasConnection(from, to)) {
-			return Point.distance(from, to);
+			E eD = connectionData(from, to);
+			return eD != null ? eD.getLength() : Point.distance(from, to);
 		}
 		throw new IllegalArgumentException(
 				"Can not get connection length from a non-existing connection.");
