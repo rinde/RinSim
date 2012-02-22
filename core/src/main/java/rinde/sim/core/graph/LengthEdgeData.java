@@ -9,9 +9,9 @@ package rinde.sim.core.graph;
 public class LengthEdgeData implements EdgeData {
 
 	private final double length;
-	private int hashCode;
 
 	public LengthEdgeData(double length) {
+		
 		this.length = length;
 	}
 	
@@ -28,7 +28,7 @@ public class LengthEdgeData implements EdgeData {
 	@Override
 	public boolean equals(Object obj) {
 		if(obj instanceof LengthEdgeData) {
-			return length == ((LengthEdgeData) obj).length;
+			return Double.compare(length, ((LengthEdgeData) obj).length) == 0;
 		}
 		return false;
 	}
