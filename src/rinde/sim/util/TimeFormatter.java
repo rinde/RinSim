@@ -19,7 +19,7 @@ public class TimeFormatter {
 
 	public static String format(long ms) {
 		String day = "";
-		if (ms > DAY) {
+		if (ms >= DAY) {
 			day = Math.round(ms / DAY) + " ";
 		}
 		String sign = ms < 0 ? "-" : "";
