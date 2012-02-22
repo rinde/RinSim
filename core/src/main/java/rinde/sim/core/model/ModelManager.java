@@ -72,7 +72,7 @@ public class ModelManager {
 		assert o != null : "NPE later in code otherwise";
 		if(o instanceof Model) {
 			if(configured) throw new IllegalStateException("model cannot be registered after configure()");
-			return register((Model<?>)o);
+			return add((Model<?>)o);
 		}
 		
 		if(!configured) throw new IllegalStateException("call configure()");

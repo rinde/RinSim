@@ -81,13 +81,13 @@ public class RoadModelTest {
 		model.addConnection(NE, NW);
 
 		Set<Point> points = model.getGraph().getNodes();
-		assertEquals(3, points.size());
+		assertEquals(4, points.size());
 		assertTrue(points.contains(SW));
 		assertTrue(points.contains(SE));
 		assertTrue(points.contains(NE));
 
 		assertEquals(3, model.getGraph().getNumberOfConnections());
-		assertEquals(3, model.getGraph().getNumberOfNodes());
+		assertEquals(4, model.getGraph().getNumberOfNodes());
 
 		path = new LinkedList<Point>();
 		path.addAll(asList(SW, SE, NE));

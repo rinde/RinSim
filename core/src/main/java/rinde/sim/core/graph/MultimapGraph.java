@@ -19,26 +19,32 @@ import com.google.common.collect.Multimaps;
 
 /**
  * @author Rinde van Lon (rinde.vanlon@cs.kuleuven.be)
- * @author Bartosz Michalik <bartosz.michalik@cs.kuleuven.be> - added edge data
+ * @author Bartosz Michalik <bartosz.michalik@cs.kuleuven.be> - added edge data + and  dead end nodes
  */
 public class MultimapGraph<E extends EdgeData> implements Graph<E> {
 
 	private final Multimap<Point, Point> data;
 	private final HashMap<Connection<E>, E> edgeData;
+	private final HashSet<Point> deadEndNodes;
 
 	public MultimapGraph(Multimap<Point, Point> data) {
 		this.data = LinkedHashMultimap.create(data);
 		this.edgeData = new HashMap<Connection<E>, E>();
+		this.deadEndNodes = new HashSet<Point>();
+		deadEndNodes.addAll(data.values());
+		deadEndNodes.removeAll(data.keySet());
+		
 	}
 
 	public MultimapGraph() {
 		data = LinkedHashMultimap.create();
 		this.edgeData = new HashMap<Connection<E>, E>();
+		deadEndNodes = new LinkedHashSet<Point>();
 	}
 
 	@Override
 	public boolean containsNode(Point node) {
-		return data.containsKey(node);
+		return data.containsKey(node) || deadEndNodes.contains(node);
 	}
 
 	@Override
@@ -58,7 +64,7 @@ public class MultimapGraph<E extends EdgeData> implements Graph<E> {
 
 	@Override
 	public int getNumberOfNodes() {
-		return data.keySet().size();
+		return data.keySet().size() + deadEndNodes.size();
 	}
 
 	@Override
@@ -72,7 +78,11 @@ public class MultimapGraph<E extends EdgeData> implements Graph<E> {
 			throw new IllegalArgumentException(
 					"A connection cannot be circular");
 		}
-		data.put(from, to);
+		
+		if(data.put(from, to)) {
+			deadEndNodes.remove(from);
+			if(!data.containsKey(to)) deadEndNodes.add(to);
+		}
 		if (edgeData != null) {
 			this.edgeData.put(new Connection<E>(from, to, null), edgeData);
 		}
@@ -100,8 +110,10 @@ public class MultimapGraph<E extends EdgeData> implements Graph<E> {
 
 	@Override
 	public Set<Point> getNodes() {
-		return Collections.unmodifiableSet(new LinkedHashSet<Point>(data
-				.keySet()));
+		LinkedHashSet<Point> nodes = new LinkedHashSet<Point>(data
+				.keySet());
+		nodes.addAll(deadEndNodes);
+		return nodes;
 	}
 
 	@Override
@@ -167,13 +179,16 @@ public class MultimapGraph<E extends EdgeData> implements Graph<E> {
 		for (Point p : getIncomingConnections(node)) {
 			removeConnection(p, node);
 		}
+		deadEndNodes.remove(node);
 	}
 
 	@Override
 	public void removeConnection(Point from, Point to) {
 		if (hasConnection(from, to)) {
-			data.remove(from, to);
-			removeData(from, to);
+			if(data.remove(from, to)) {
+				removeData(from, to);
+				if(! data.containsKey(to)) deadEndNodes.add(to);
+			}			
 		} else {
 			throw new IllegalArgumentException(
 					"Can not remove non-existing connection: " + from + " -> "

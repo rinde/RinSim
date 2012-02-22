@@ -61,6 +61,27 @@ public class GraphsTest {
 			prevPath = newPath;
 		}
 	}
+	
+	/**
+	 * Check consistency wrt. handling value objects 
+	 */
+	@Test public void graphDataConsistency() {
+		Point A, B, C, D;
+		A = new Point(0, 0);
+		B = new Point(0, 13);
+		C = new Point(13, 17);
+		D = new Point(17, 0);
+		
+		graph.addConnection(A, B);
+		graph.addConnection(B, C);
+		graph.addConnection(B, D);
+		
+		//contain nodes
+		assertTrue("contains A", graph.containsNode(A));
+		assertTrue("contains B", graph.containsNode(B));
+		assertTrue("contains C", graph.containsNode(C));
+		assertTrue("contains D", graph.containsNode(D));
+	}
 
 	/**
 	 * In this test there are two paths of equal length between two nodes. The

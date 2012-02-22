@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -35,11 +36,15 @@ public class TableGraph<E extends EdgeData> implements Graph<E> {
 	}
 
 	/**
-	 * @see rinde.sim.core.RoadModel#getNodes()
+	 * {@inheritDoc}
 	 */
 	@Override
 	public Set<Point> getNodes() {
-		return Collections.unmodifiableSet(new HashSet<Point>(data.rowKeySet()));
+		LinkedHashSet<Point> nodes = new LinkedHashSet<Point>(data.rowKeySet());
+		nodes.addAll(data.columnKeySet());
+		//TODO [bm] unmodifiable is really needed ???
+//		return Collections.unmodifiableSet(nodes);
+		return nodes;
 	}
 
 	@Override
@@ -49,7 +54,7 @@ public class TableGraph<E extends EdgeData> implements Graph<E> {
 
 	@Override
 	public int getNumberOfNodes() {
-		return data.rowKeySet().size();
+		return getNodes().size();
 	}
 
 	@Override
@@ -59,7 +64,7 @@ public class TableGraph<E extends EdgeData> implements Graph<E> {
 
 	@Override
 	public boolean containsNode(Point node) {
-		return data.containsRow(node);
+		return data.containsRow(node) || data.containsColumn(node);
 	}
 
 	@Override
