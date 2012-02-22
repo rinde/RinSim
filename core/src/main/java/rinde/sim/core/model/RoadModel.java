@@ -40,6 +40,8 @@ public class RoadModel implements Model<RoadUser> {
 		objLocs = Collections.synchronizedMap(new LinkedHashMap<RoadUser, Location>());
 	}
 
+	
+	//TODO [bm] remove
 	public void addConnection(Point from, Point to) {
 		if (graph.hasConnection(from, to)) {
 			throw new IllegalArgumentException("Connection already exists.");
@@ -189,7 +191,112 @@ public class RoadModel implements Model<RoadUser> {
 
 		Location objLoc = objLocs.get(object);
 		
-		return null;
+		checkLocation(objLoc);
+
+		if (objLoc.to != null && !path.peek().equals(objLoc.to) && (path.peek() instanceof MidPoint ? !((MidPoint) path.peek()).loc.to.equals(objLoc.to) : true)) {
+			throw new IllegalArgumentException("Illegal path for this object, first point should be in current direction. " + path);
+		} else if (objLoc.to == null && !path.peek().equals(objLoc.from) && !hasConnection(objLoc.from, path.peek())
+				&& (path.peek() instanceof MidPoint ? !hasConnection(objLoc.from, ((MidPoint) path.peek()).loc.to) : true)) {
+			throw new IllegalArgumentException("Illegal path for this object, first point should be current point.");
+		}
+		
+//		if (objLoc.isEdgePoint() && !path.peek().equals(objLoc.to) && // next point is not the end of edge
+//			path.peek() instanceof MidPoint ? !((MidPoint) path.peek()).loc.to.equals(objLoc.to) : true) { //or is incorrect mid point
+//				throw new IllegalArgumentException("Illegal path for this object, first point should be in current direction. " + path);
+//		} else if (!objLoc.isEdgePoint() && !path.peek().equals(objLoc.from) && !hasConnection(objLoc.from, path.peek()) && //there is no connection to next point
+//			(path.peek() instanceof MidPoint ? !hasConnection(objLoc.from, ((MidPoint) path.peek()).loc.to) : true)) { //or is incorrect mid point		
+//			throw new IllegalArgumentException("Illegal path for this object, first point should be current point.");
+//		}
+		
+		long timeLeft = time;
+		double traveled = 0;
+		
+		Point tempPos = objLoc.getPosition();
+		
+		double newDis = Double.NaN;
+		boolean nextVertex = false;
+		while (timeLeft > 0 && path.size() > 0) {
+			
+			
+			double speed = getMaxSpeed(object, tempPos, path.peek());
+			double travelDistance = speed * timeLeft; 
+
+			double dist = getDistance(tempPos, path.peek());
+			
+			
+			if (travelDistance >= dist) {
+				tempPos = path.remove();
+				long timeSpent = Math.round(dist / speed);
+				timeLeft -= timeSpent;
+				nextVertex = true;
+				
+				traveled += dist;
+			} else { // distanceLeft < dist
+				newDis = travelDistance;				
+				timeLeft = 0;
+				long timeSpent = Math.round(travelDistance / speed);
+				timeLeft -= timeSpent;
+				traveled += travelDistance;
+			}
+		}
+
+		if (Double.isNaN(newDis)) {
+			if (tempPos instanceof MidPoint) {
+				objLocs.put(object, checkLocation(((MidPoint) tempPos).loc));
+			} else {
+				objLocs.put(object, checkLocation(new Location(tempPos)));
+			}
+		} else if (nextVertex) {
+			if (path.peek() instanceof MidPoint) {
+				objLocs.put(object, checkLocation(new Location(tempPos, ((MidPoint) path.peek()).loc.to, newDis)));
+			} else {
+				objLocs.put(object, checkLocation(new Location(tempPos, path.peek(), newDis)));
+			}
+		} else {
+			Point t = objLoc.to;
+			double relpos = objLoc.relativePos + newDis;
+			if (t == null) {
+				t = path.peek();
+				relpos = newDis;
+			}
+			objLocs.put(object, checkLocation(new Location(objLoc.from, t, relpos)));
+		}
+		return new PathProgress(traveled, time - (timeLeft > 0 ? timeLeft : 0));
+	}
+	
+	
+	/**
+	 * Compute distance between two points. If points are equal the distance is 0.
+	 * If both points are graph's nodes the method checks if there is a length of edge defined.
+	 * If the from/to is on edge or the length of edge is not defined {@link Point#distance(Point, Point)} is used.
+	 * @return the distance between two points
+	 * @throws IllegalArgumentException when two points are part of the graph but are not equal or there is no connection between them
+	 */
+	private double getDistance(Point from, Point to) {
+		assert from != null && to != null : "parameters are not null";
+		if(from.equals(to)) return 0;
+		if(from instanceof MidPoint || to instanceof MidPoint)
+			return Point.distance(from, to);
+		
+		if(! graph.hasConnection(from, to)) {
+			throw new IllegalArgumentException("followPath() attempts to use non-existing connection: " + from + " >> " + to + ".");
+		}
+		
+		EdgeData data = graph.connectionData(from, to);
+		assert data == null || !Double.isNaN(data.getLength()) : "edge length cannot be NaN";
+		return data == null ? Point.distance(from, to) : data.getLength();
+	}
+
+	/**
+	 * Compute speed of the object taking into account the speed limits of the object
+	 * @param object traveling object
+	 * @param from the point on the graph object is located
+	 * @param to the next point on the path it want to reach
+	 */
+	protected double getMaxSpeed(MovingRoadUser object, Point from, Point to) {
+		// TODO [bm] add support for speed limits on edges (issue #5)
+		assert object != null;
+		return object.getSpeed();
 	}
 
 	/**
@@ -358,9 +465,9 @@ public class RoadModel implements Model<RoadUser> {
 	}
 
 	protected Location checkLocation(Location l) {
-		if (l.to == null && !graph.containsNode(l.from)) {
+		if (!l.isEdgePoint() && !graph.containsNode(l.from)) {
 			throw new IllegalStateException("Location points to non-existing vertex: " + l.from + ".");
-		} else if (l.to != null && !graph.hasConnection(l.from, l.to)) {
+		} else if (l.isEdgePoint() && !graph.hasConnection(l.from, l.to)) {
 			throw new IllegalStateException("Location points to non-existing connection: " + l.from + " >> " + l.to + ".");
 		}
 		return l;
@@ -414,6 +521,11 @@ public class RoadModel implements Model<RoadUser> {
 }
 
 //internal usage only
+/**
+ * Object that is on the graph node has 
+ * to parameter  == <code>null</code>.
+ *
+ */
 class Location {
 	final Point from;
 	final Point to;

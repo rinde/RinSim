@@ -1,4 +1,4 @@
-package rinde.sim.examples.rwalk2;
+package rinde.sim.examples.rwalk3;
 
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -50,8 +50,7 @@ public class RandomWalkAgent implements TickListener, MovingRoadUser, SimulatorU
 			simulator.register(currentPackage);
 			path = new LinkedList<Point>(Graphs.shortestPathEuclidianDistance(rs.getGraph(), rs.getPosition(this), destination));
 		} else {
-			double distance = speed * timeStep;
-			rs.followPath(this, path, distance);
+			rs.followPath(this, path, timeStep);
 		}
 
 	}

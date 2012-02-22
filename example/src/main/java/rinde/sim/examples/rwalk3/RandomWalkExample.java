@@ -1,12 +1,15 @@
 /**
  * 
  */
-package rinde.sim.examples.rwalk;
+package rinde.sim.examples.rwalk3;
+
+import java.util.Random;
 
 import org.apache.commons.math.random.MersenneTwister;
 import org.eclipse.swt.graphics.RGB;
 
 import rinde.sim.core.Simulator;
+import rinde.sim.core.graph.Graph;
 import rinde.sim.core.graph.LengthEdgeData;
 import rinde.sim.core.graph.MultimapGraph;
 import rinde.sim.core.model.RoadModel;
@@ -24,17 +27,18 @@ public class RandomWalkExample {
 
 	public static void main(String[] args) throws Exception {
 		// create a new simulator, load map of Leuven
-		MersenneTwister rand = new MersenneTwister(123);
-		Simulator simulator = new Simulator(rand, 100000);
-		RoadModel roadModel = new RoadModel(DotGraphSerializer.getLengthGraphSerializer(new SelfCycleFilter()).read("files/leuven.dot"));
+		Simulator simulator = new Simulator(new MersenneTwister(123), 1000);
+		Graph<LengthEdgeData> graph = DotGraphSerializer.getLengthGraphSerializer(new SelfCycleFilter()).read("files/leuven.dot");
+//		roadModel.addGraph(DotGraphSerializer.getLengthGraphSerializer(new SelfCycleFilter()).read("files/brussels.dot"));
+		RoadModel roadModel = new RoadModel(graph);
 		
 		simulator.register(roadModel);
 		
 		simulator.configure();
 
-		for (int i = 0; i < 50; i++) {
-			//FIXME to change the random generator
-			RandomWalkAgent agent = new RandomWalkAgent(rand);
+		Random r = new Random(1317);
+		for (int i = 0; i < 100; i++) {
+			RandomWalkAgent agent = new RandomWalkAgent(r.nextDouble() / 100);
 			simulator.register(agent);
 		}
 

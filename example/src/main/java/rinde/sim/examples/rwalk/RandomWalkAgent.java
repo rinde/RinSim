@@ -46,15 +46,14 @@ public class RandomWalkAgent implements TickListener, RoadUser {
 	}
 
 	private Point findRandomNode() {
-		List<Point> nodes = new ArrayList<Point>(rs.getNodes());
+		List<Point> nodes = new ArrayList<Point>(rs.getGraph().getNodes());
 		return nodes.get(rnd.nextInt(nodes.size()));
 	}
 
 	@Override
 	public void initRoadUser(RoadModel model) {
 		rs = model;
-		List<Point> nodes = new ArrayList<Point>(rs.getNodes());
-		Point pos = nodes.get(rnd.nextInt(nodes.size()));
+		Point pos = findRandomNode();
 		rs.addObjectAt(this, pos);
 	}
 

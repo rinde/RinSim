@@ -3,6 +3,8 @@
  */
 package rinde.sim.examples.rwalk2;
 
+import java.util.Random;
+
 import org.apache.commons.math.random.MersenneTwister;
 import org.eclipse.swt.graphics.RGB;
 
@@ -34,8 +36,9 @@ public class RandomWalkExample {
 		
 		simulator.configure();
 
+		Random r = new Random(1317);
 		for (int i = 0; i < 100; i++) {
-			RandomWalkAgent agent = new RandomWalkAgent(0.005);
+			RandomWalkAgent agent = new RandomWalkAgent(r.nextDouble() / 100);
 			simulator.register(agent);
 		}
 

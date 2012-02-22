@@ -34,6 +34,7 @@ import rinde.sim.core.graph.Point;
 import rinde.sim.core.graph.TableGraph;
 import rinde.sim.core.model.MidPoint;
 import rinde.sim.core.model.RoadModel;
+import rinde.sim.core.model.RoadModel.PathProgress;
 import rinde.sim.core.model.RoadUser;
 import rinde.sim.util.TrivialRoadUser;
 
@@ -131,6 +132,35 @@ public class RoadModelTest {
 		assertEquals(2, travelled, EPSILON);
 		assertTrue(path.size() == 0);
 		assertTrue(model.getPosition(agent).equals(new Point(10, 10)));
+	}
+	
+	/**
+	 * Simplest check for time based following path {@link RoadModel#followPath(MovingRoadUser, Queue, long)}
+	 */
+	@Test
+	public void followTrajectoryTime1() {
+		assertEquals(3, path.size());
+		
+		MovingRoadUser agent = new SpeedyRoadUser(5);
+		model.addObjectAt(agent, new Point(0, 0));
+		assertTrue(model.getPosition(agent).equals(new Point(0, 0)));
+		assertEquals(3, path.size());
+		
+		PathProgress progress = model.followPath(agent, path, 1);
+		assertEquals(5d, progress.distance, EPSILON);
+		assertEquals(2, path.size());
+		assertEquals(new Point(5,0), model.getPosition(agent));
+
+		progress = model.followPath(agent, path, 2); //follow path for 2 x time
+		assertEquals(10, progress.distance, EPSILON);
+		assertEquals(1, path.size());
+		assertEquals(new Point(10, 5), model.getPosition(agent));
+		
+		progress = model.followPath(agent, path, 3); //follow path for 3 x time == 15
+		assertEquals(5, progress.distance, EPSILON);
+		assertEquals(1, progress.time);
+		assertEquals(0, path.size());
+		assertEquals(new Point(10, 10), model.getPosition(agent));
 	}
 
 	@Test
@@ -383,6 +413,25 @@ public class RoadModelTest {
 		assertEquals(3, setCopy.size());
 		assertEquals(2, subsetCopy.size());
 		assertEquals(3, posCopy.size());
+	}
+	
+	class SpeedyRoadUser implements MovingRoadUser {
+
+		private double speed;
+
+		public SpeedyRoadUser(double speed) {
+			this.speed = speed;
+		}
+		
+		@Override
+		public void initRoadUser(RoadModel model) {
+		}
+
+		@Override
+		public double getSpeed() {
+			return speed;
+		}
+		
 	}
 
 	class TestRoadUser extends TrivialRoadUser {
