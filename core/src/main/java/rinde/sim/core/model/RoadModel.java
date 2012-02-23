@@ -16,6 +16,7 @@ import java.util.Set;
 import rinde.sim.core.graph.EdgeData;
 import rinde.sim.core.graph.Graph;
 import rinde.sim.core.graph.Graphs;
+import rinde.sim.core.graph.MultiAttributeEdgeData;
 import rinde.sim.core.graph.Point;
 
 import com.google.common.base.Predicate;
@@ -294,8 +295,19 @@ public class RoadModel implements Model<RoadUser> {
 	 * @param to the next point on the path it want to reach
 	 */
 	protected double getMaxSpeed(MovingRoadUser object, Point from, Point to) {
-		// TODO [bm] add support for speed limits on edges (issue #5)
-		assert object != null;
+		assert object != null && from != null && to != null;
+		if(from.equals(to)) return object.getSpeed();
+		
+		Point start = from instanceof MidPoint ? ((MidPoint) from).loc.from : from;
+		Point stop = to instanceof MidPoint ? ((MidPoint) to).loc.to: to;
+		if(!hasConnection(start, stop)) 
+			throw new IllegalArgumentException("points not connected " + from  + " >> " + to);
+		EdgeData data = graph.connectionData(start, stop);
+		if(data instanceof MultiAttributeEdgeData) {
+			MultiAttributeEdgeData maed = (MultiAttributeEdgeData) data;
+			double speed = maed.getMaxSpeed();
+			return Double.isNaN(speed) ? object.getSpeed() : Math.min(speed, object.getSpeed());
+		}
 		return object.getSpeed();
 	}
 
@@ -518,66 +530,74 @@ public class RoadModel implements Model<RoadUser> {
 			this.time = time;
 		}
 	}
-}
+	
+	
+	//internal usage only
+	/**
+	 * Object that is on the graph node has 
+	 * to parameter  == <code>null</code>.
+	 *
+	 */
+	class Location {
+		private static final double DELTA = 0.000001;
+		final Point from;
+		final Point to;
+		final double relativePos;
+		final double roadLength;
 
-//internal usage only
-/**
- * Object that is on the graph node has 
- * to parameter  == <code>null</code>.
- *
- */
-class Location {
-	final Point from;
-	final Point to;
-	final double relativePos;
-	final double roadLength;
+		public Location(Point from) {
+			this(from, null, -1);
+		}
 
-	public Location(Point from) {
-		this(from, null, -1);
-	}
+		public Location(Point from, Point to, double relativePos) {
+			this.from = from;
+			this.to = to;
+			if (isEdgePoint()) {
+				this.relativePos = relativePos;
+				EdgeData data = graph.connectionData(from, to);
+				roadLength = data == null || Double.isNaN(data.getLength()) ?  
+						Point.distance(from, to) : data.getLength();
+			} else {
+				roadLength = -1;
+				this.relativePos = -1;
+			}
+		}
 
-	public Location(Point from, Point to, double relativePos) {
-		this.from = from;
-		this.to = to;
-		if (isEdgePoint()) {
-			this.relativePos = relativePos;
-			roadLength = Point.distance(from, to);
-		} else {
-			roadLength = -1;
-			this.relativePos = -1;
+		public boolean isEdgePoint() {
+			return to != null;
+		}
+
+		@Override
+		public String toString() {
+			return "from:" + from + ", to:" + to + ", relativepos:" + relativePos;
+		}
+
+		Point getPosition() {
+			if (!isEdgePoint()) {
+				return from;
+			}
+			Point diff = Point.diff(to, from);
+			double perc = relativePos / roadLength;
+			if(perc + DELTA >= 1) return to;
+			return new MidPoint(from.x + perc * diff.x, from.y + perc * diff.y, this);
 		}
 	}
 
-	public boolean isEdgePoint() {
-		return to != null;
-	}
 
-	@Override
-	public String toString() {
-		return "from:" + from + ", to:" + to + ", relativepos:" + relativePos;
-	}
+	final class MidPoint extends Point {
+		private static final long serialVersionUID = -8442184033570204979L;
+		protected final Location loc;
 
-	Point getPosition() {
-		if (!isEdgePoint()) {
-			return from;
+		public MidPoint(double x, double y, Location l) {
+			super(x, y);
+			loc = l;
 		}
-		Point diff = Point.diff(to, from);
-		double perc = relativePos / roadLength;
-		return new MidPoint(from.x + perc * diff.x, from.y + perc * diff.y, this);
+
+		@Override
+		public String toString() {
+			return super.toString() + "{" + loc + "}";
+		}
 	}
 }
 
-final class MidPoint extends Point {
-	private static final long serialVersionUID = -8442184033570204979L;
-	protected final Location loc;
 
-	public MidPoint(double x, double y, Location l) {
-		super(x, y);
-		loc = l;
-	}
-
-	@Override
-	public String toString() {
-		return super.toString() + "{" + loc + "}";
-	}
-}

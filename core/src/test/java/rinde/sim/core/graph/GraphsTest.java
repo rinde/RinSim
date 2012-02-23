@@ -34,7 +34,7 @@ public class GraphsTest {
 
 	@Parameters
 	public static Collection<Object[]> configs() {
-		return Arrays.asList(new Object[][] { { LengthMultimapGraph.class }, { LengthTableGraph.class } });
+		return Arrays.asList(new Object[][] { { TestMultimapGraph.class }, { TestTableGraph.class } });
 	}
 
 	@Before

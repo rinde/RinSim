@@ -27,12 +27,9 @@ import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 
 import rinde.sim.core.graph.Graph;
-import rinde.sim.core.graph.LengthMultimapGraph;
-import rinde.sim.core.graph.LengthTableGraph;
-import rinde.sim.core.graph.MultimapGraph;
+import rinde.sim.core.graph.TestMultimapGraph;
+import rinde.sim.core.graph.TestTableGraph;
 import rinde.sim.core.graph.Point;
-import rinde.sim.core.graph.TableGraph;
-import rinde.sim.core.model.MidPoint;
 import rinde.sim.core.model.RoadModel;
 import rinde.sim.core.model.RoadModel.PathProgress;
 import rinde.sim.core.model.RoadUser;
@@ -64,8 +61,8 @@ public class RoadModelTest {
 
 	@Parameters
 	public static Collection<Object[]> configs() {
-		return Arrays.asList(new Object[][] { { LengthMultimapGraph.class, RoadModel.class }, { LengthMultimapGraph.class, CachedRoadModel.class }, { LengthTableGraph.class, RoadModel.class },
-				{ LengthTableGraph.class, CachedRoadModel.class } });
+		return Arrays.asList(new Object[][] { { TestMultimapGraph.class, RoadModel.class }, { TestMultimapGraph.class, CachedRoadModel.class }, { TestTableGraph.class, RoadModel.class },
+				{ TestTableGraph.class, CachedRoadModel.class } });
 	}
 
 	@Before
@@ -93,6 +90,77 @@ public class RoadModelTest {
 		path = new LinkedList<Point>();
 		path.addAll(asList(SW, SE, NE));
 	}
+	
+	/**
+	 * Follow trajectory using time version of the function. 
+	 */
+	@Test
+	public void followTrajectoryAllAtOnce() {
+		SpeedyRoadUser agent = new SpeedyRoadUser(5);
+		model.addObjectAt(agent, new Point(0, 0));
+		assertEquals(new Point(0, 0), model.getPosition(agent));
+
+		assertEquals(3, path.size());
+		PathProgress travelled = model.followPath(agent, path, 5);
+		assertEquals(20, travelled.distance, EPSILON);
+		assertEquals(4, travelled.time);
+		assertEquals(0, path.size());
+		assertEquals(new Point(10, 10),model.getPosition(agent));
+	}
+	
+	@Test(expected = IllegalArgumentException.class)
+	public void followTrajectoryStartFromDifferentPosition() {
+		MovingRoadUser agent = new SpeedyRoadUser(3);
+		model.addObjectAt(agent, new Point(10, 10));
+
+		assertEquals(new Point(10,10), model.getPosition(agent));
+		assertEquals(3,path.size());
+		// the trajectory does not directly connect to the current position
+		model.followPath(agent, path, 1);
+	}
+	
+	@Test(expected = IllegalArgumentException.class)
+	public void followTrajectoryUnconnected() {
+		MovingRoadUser agent = new SpeedyRoadUser(100);
+		model.addObjectAt(agent, new Point(0, 0));
+		assertEquals(new Point(0,0), model.getPosition(agent));
+
+		// illegal trajectory, the two points are not connected
+		Queue<Point> traject = new LinkedList<Point>(Arrays.asList(new Point(0, 0), new Point(10, 10)));
+
+		assertEquals(2, traject.size());
+		model.followPath(agent, traject, 20);
+	}
+	
+	@Test(expected = IllegalArgumentException.class)
+	public void followTrajectoryNotAvertex() {
+		MovingRoadUser agent = new SpeedyRoadUser(EPSILON);
+		model.addObjectAt(agent, new Point(0, 0));
+		assertEquals(new Point(0, 0),model.getPosition(agent));
+
+		// illegal trajectory, the second point is not a vertex
+		Queue<Point> traject = new LinkedList<Point>(Arrays.asList(new Point(0, 0), new Point(10, 1)));
+
+		assertEquals(2, traject.size());
+		model.followPath(agent, traject, 20);
+	}
+	
+	@Test
+	public void followTrajectoryNotTillEnd() {
+		MovingRoadUser agent = new SpeedyRoadUser(1);
+		model.addObjectAt(agent, new Point(0, 0));
+		assertEquals(new Point(0, 0), model.getPosition(agent));
+
+		PathProgress travelled = model.followPath(agent, path, 10);
+		assertEquals(10d, travelled.distance, EPSILON);
+		assertEquals(1, path.size());
+
+		travelled = model.followPath(agent, path, 1);
+		assertEquals(1d, travelled.distance, EPSILON);
+		assertEquals(1, path.size());
+		assertEquals(new Point(10, 1), model.getPosition(agent));
+	}
+	
 
 	@Test(expected = IllegalArgumentException.class)
 	public void addConnection() {
@@ -138,7 +206,7 @@ public class RoadModelTest {
 	 * Simplest check for time based following path {@link RoadModel#followPath(MovingRoadUser, Queue, long)}
 	 */
 	@Test
-	public void followTrajectoryTime1() {
+	public void followTrajectoryTime() {
 		assertEquals(3, path.size());
 		
 		MovingRoadUser agent = new SpeedyRoadUser(5);
@@ -175,6 +243,7 @@ public class RoadModelTest {
 		assertTrue(path.size() == 0);
 		assertTrue(model.getPosition(agent).equals(new Point(10, 10)));
 	}
+	
 
 	@Test(expected = IllegalArgumentException.class)
 	public void followTrajectory3() {
@@ -563,8 +632,8 @@ public class RoadModelTest {
 		Point a2 = model.getPosition(agent2);
 		assertEquals(new Point(1, 0), a1);
 		assertEquals(new Point(9, 10), a2);
-		assertTrue(a1 instanceof MidPoint);
-		assertTrue(a2 instanceof MidPoint);
+		assertTrue(a1 instanceof RoadModel.MidPoint);
+		assertTrue(a2 instanceof RoadModel.MidPoint);
 
 		List<Point> shortestPath = model.getShortestPathTo(a1, a2);
 		assertEquals(Arrays.asList(a1, SE, NE, a2), shortestPath);

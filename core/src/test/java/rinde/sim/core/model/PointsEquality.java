@@ -10,8 +10,8 @@ import org.junit.runners.Parameterized.Parameters;
 
 import rinde.sim.core.graph.Graph;
 import rinde.sim.core.graph.LengthEdgeData;
-import rinde.sim.core.graph.LengthMultimapGraph;
-import rinde.sim.core.graph.LengthTableGraph;
+import rinde.sim.core.graph.TestMultimapGraph;
+import rinde.sim.core.graph.TestTableGraph;
 import rinde.sim.core.graph.Point;
 
 import static org.junit.Assert.*;
@@ -28,7 +28,7 @@ public class PointsEquality {
 	
 	@Parameters
 	public static Collection<Object[]> configs() {
-		return Arrays.asList(new Object[][] { { new LengthMultimapGraph()}, { new LengthTableGraph()} });
+		return Arrays.asList(new Object[][] { { new TestMultimapGraph()}, { new TestTableGraph()} });
 	}
 	
 	private Graph<LengthEdgeData> graph;
@@ -51,8 +51,9 @@ public class PointsEquality {
 	
 	@Test 
 	public void midPointsEqual() {
-		MidPoint p1 = new MidPoint(0.2, 10000, null);
-		MidPoint p2 = new MidPoint(0.2, 10000, new Location(p1));
+		RoadModel rm = new RoadModel(new TestTableGraph());
+		RoadModel.MidPoint p1 = rm.new MidPoint(0.2, 10000, null);
+		RoadModel.MidPoint p2 = rm.new MidPoint(0.2, 10000, rm.new Location(p1));
 		assertEquals(p1, p1);
 		assertEquals(p2, p2);
 		assertEquals(p1, p2);
@@ -64,8 +65,9 @@ public class PointsEquality {
 	
 	@Test
 	public void mixedPointsEqual() {
+		RoadModel rm = new RoadModel(new TestTableGraph());
 		Point p1 = new Point(5, 0.20101);
-		MidPoint p2 = new MidPoint(5, 0.20101, new Location(new Point(0, 0)));
+		RoadModel.MidPoint p2 = rm.new MidPoint(5, 0.20101, rm.new Location(new Point(0, 0)));
 		assertEquals(p1, p1);
 		assertEquals(p2, p2);
 		assertEquals(p1, p2);
@@ -97,8 +99,10 @@ public class PointsEquality {
 		Aa = new Point(0,0);
 		Bb = Point.duplicate(B);
 		
-		MidPoint Cc = new MidPoint(13, 17, null);
-		MidPoint Dd = new MidPoint(17, 0, new Location(A));
+		RoadModel rm = new RoadModel(new TestTableGraph());
+		
+		RoadModel.MidPoint Cc = rm.new MidPoint(13, 17, null);
+		RoadModel.MidPoint Dd = rm.new MidPoint(17, 0, rm.new Location(A));
 		
 		checkAssertions(Aa, Bb, C, D);
 		checkAssertions(A, B, Cc, Dd);
