@@ -73,4 +73,10 @@ public class ScenarioController implements TickListener {
 		}
 
 	}
+
+	@Override
+	public void afterTick(long currentTime, long timeStep) {
+		// TODO implement if needed
+		
+	}
 }

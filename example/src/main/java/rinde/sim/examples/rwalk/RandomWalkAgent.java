@@ -57,6 +57,12 @@ public class RandomWalkAgent implements TickListener, RoadUser {
 		rs.addObjectAt(this, pos);
 	}
 
+	@Override
+	public void afterTick(long currentTime, long timeStep) {
+		// TODO Auto-generated method stub
+		
+	}
+
 	
 
 }

@@ -121,7 +121,7 @@ public class SimulationViewer extends Composite implements TickListener,
 			}
 		}
 
-		this.simulator.addAfterTickListener(this);
+		this.simulator.addTickListener(this);
 	}
 
 	/**
@@ -311,24 +311,7 @@ public class SimulationViewer extends Composite implements TickListener,
 
 	@Override
 	public void tick(long currentTime, long timeStep) {
-		if (simulator.isPlaying()
-				&& lastRefresh + timeStep * speedUp > currentTime)
-			return;
-		lastRefresh = currentTime;
-		if (getDisplay().isDisposed()) {
-			return;
-		}
-		getDisplay().syncExec(new Runnable() {
-			// display.asyncExec(new Runnable() {
-			@Override
-			public void run() {
-				if (!canvas.isDisposed()) {
-					timeLabel.setText(TimeFormatter.format(simulator
-							.getCurrentTime()));
-					canvas.redraw();
-				}
-			}
-		});
+		
 	}
 
 	public Image drawRoads() {
@@ -482,5 +465,27 @@ public class SimulationViewer extends Composite implements TickListener,
 	public void widgetDefaultSelected(SelectionEvent e) {
 		// not needed
 
+	}
+
+	@Override
+	public void afterTick(long currentTime, long timeStep) {
+		if (simulator.isPlaying()
+				&& lastRefresh + timeStep * speedUp > currentTime)
+			return;
+		lastRefresh = currentTime;
+		if (getDisplay().isDisposed()) {
+			return;
+		}
+		getDisplay().syncExec(new Runnable() {
+			// display.asyncExec(new Runnable() {
+			@Override
+			public void run() {
+				if (!canvas.isDisposed()) {
+					timeLabel.setText(TimeFormatter.format(simulator
+							.getCurrentTime()));
+					canvas.redraw();
+				}
+			}
+		});
 	}
 }

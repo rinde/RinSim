@@ -13,6 +13,7 @@ import rinde.sim.core.graph.Graph;
 import rinde.sim.core.graph.LengthEdgeData;
 import rinde.sim.core.graph.MultimapGraph;
 import rinde.sim.core.model.RoadModel;
+import rinde.sim.core.model.communication.CommunicationModel;
 import rinde.sim.serializers.DotGraphSerializer;
 import rinde.sim.serializers.SelfCycleFilter;
 import rinde.sim.ui.View;
@@ -32,7 +33,9 @@ public class RandomWalkExample {
 //		roadModel.addGraph(DotGraphSerializer.getLengthGraphSerializer(new SelfCycleFilter()).read("files/brussels.dot"));
 		RoadModel roadModel = new RoadModel(graph);
 		
+		CommunicationModel communicationModel = new CommunicationModel();
 		simulator.register(roadModel);
+		simulator.register(communicationModel);
 		
 		simulator.configure();
 

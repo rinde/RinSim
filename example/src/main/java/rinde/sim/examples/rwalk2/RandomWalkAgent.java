@@ -79,4 +79,9 @@ public class RandomWalkAgent implements TickListener, MovingRoadUser, SimulatorU
 	public double getSpeed() {
 		return speed;
 	}
+
+	@Override
+	public void afterTick(long currentTime, long timeStep) {
+		// empty 
+	}
 }

@@ -37,7 +37,6 @@ public class Simulator implements SimulatorAPI {
 	}
 
 	protected volatile Set<TickListener> tickListeners;
-	protected List<TickListener> afterTickListeners;
 	
 	private final RandomGenerator rand;
 	public final Events events;
@@ -59,11 +58,16 @@ public class Simulator implements SimulatorAPI {
 	public boolean register(Model<?> model) {
 		if(model == null) throw new IllegalArgumentException("parameter cannot be null");
 		if(configure) throw new IllegalStateException("cannot add model after calling configure()");
-		if(model instanceof TickListener) {
-			addTickListener((TickListener) model);
+		boolean result = modelManager.add(model);
+		if(result) {
+			LOGGER.info("registering model :" + model.getClass().getName() + " for type:" + model.getSupportedType().getName());
+			if(model instanceof TickListener) {
+				LOGGER.info("adding " + model.getClass().getName() + " as a tick listener");
+				addTickListener((TickListener) model);
+			}
+			
 		}
-		LOGGER.info("registering model :" + model.getClass().getName() + " for type:" + model.getSupportedType().getName());
-		return modelManager.add(model);
+		return result;
 	}
 
 	public boolean register(Object o) {
@@ -73,7 +77,7 @@ public class Simulator implements SimulatorAPI {
 		
 		injectDependencies(o);
 		if(o instanceof TickListener) {
-			//FIXME refactor the TickListener interface
+			//FIXME [bm] refactor the TickListener interface
 			addTickListener((TickListener) o);
 		}
 		return modelManager.register(o);
@@ -109,7 +113,6 @@ public class Simulator implements SimulatorAPI {
 	public Simulator(RandomGenerator r, long timeStep) {
 		this.timeStep = timeStep;
 		tickListeners = Collections.synchronizedSet(new LinkedHashSet<TickListener>());
-		afterTickListeners = new ArrayList<TickListener>();
 
 		rand = r;
 		time = 0L;
@@ -128,9 +131,6 @@ public class Simulator implements SimulatorAPI {
 		return timeStep;
 	}
 
-	public void addAfterTickListener(TickListener t) {
-		afterTickListeners.add(t);
-	}
 
 	public void addTickListener(TickListener listener) {
 		tickListeners.add(listener);
@@ -168,8 +168,8 @@ public class Simulator implements SimulatorAPI {
 			t.tick(time, timeStep);
 		}
 
-		for (TickListener t : afterTickListeners) {
-			t.tick(time, timeStep);
+		for (TickListener t : tickListeners) {
+			t.afterTick(time, timeStep);
 		}
 
 		time += timeStep;

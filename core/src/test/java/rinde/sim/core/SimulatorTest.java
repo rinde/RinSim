@@ -41,17 +41,16 @@ public class SimulatorTest {
 	public void testTickOrder() {
 		assertEquals(100L, simulator.getTimeStep());
 		TickListenerImpl normal = new TickListenerImpl();
-		TickListenerImpl after = new TickListenerImpl();
 		simulator.addTickListener(normal);
-		simulator.addAfterTickListener(after);
 		simulator.tick();
-		assertTrue(normal.getExecTime() < after.getExecTime());
+		assertTrue(normal.getExecTime() < normal.getAfterExecTime());
 
 	}
 
 	class TickListenerImpl implements TickListener {
 		private int count = 0;
 		private long execTime;
+		private long afterTime;
 
 		@Override
 		public void tick(long currentTime, long timeStep) {
@@ -62,9 +61,18 @@ public class SimulatorTest {
 		public long getExecTime() {
 			return execTime;
 		}
+		
+		public long getAfterExecTime() {
+			return afterTime;
+		}
 
 		public int getTickCount() {
 			return count;
+		}
+
+		@Override
+		public void afterTick(long currentTime, long timeStep) {
+			afterTime = System.nanoTime();
 		}
 	}
 
