@@ -6,6 +6,7 @@ import org.apache.commons.math.random.RandomGenerator;
 /**
  * Limited simulator API that provides an API for simulation elements (e.g., agents)
  * @author Bartosz Michalik <bartosz.michalik@cs.kuleuven.be>
+ * @since 2.0
  *
  */
 public interface SimulatorAPI {
@@ -19,6 +20,13 @@ public interface SimulatorAPI {
 	 * @throws IllegalStateException when simulator is not configured (by calling {@link Simulator#configure()}
 	 */
 	public boolean register(Object o);
+	
+	/**
+	 * TODO add comment
+	 * @param o
+	 * @return
+	 */
+	public boolean unregister(Object o);
 	
 	/**
 	 * Get access to the main random generator used in the simulator

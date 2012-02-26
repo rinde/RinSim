@@ -598,6 +598,16 @@ public class RoadModel implements Model<RoadUser> {
 			return super.toString() + "{" + loc + "}";
 		}
 	}
+
+
+	@Override
+	public boolean unregister(RoadUser e) {
+		if(containsObject(e)) {
+			removeObject(e);
+			return true;
+		}
+		return false;
+	}
 }
 
 

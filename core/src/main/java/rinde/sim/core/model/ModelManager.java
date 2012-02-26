@@ -8,8 +8,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
-
-import com.google.common.collect.Collections2;
 import com.google.common.collect.LinkedListMultimap;
 import com.google.common.collect.Multimap;
 
@@ -65,7 +63,7 @@ public class ModelManager {
 	
 	/**
 	 * Add object to all models that support a given object
-	 * @param o
+	 * @param o object to register
 	 * @return <code>true</code> if object was added to at least one model
 	 */
 	public boolean register(Object o) {
@@ -84,6 +82,39 @@ public class ModelManager {
 				for (Model<?> m : models) {
 					try {
 						Method method = m.getClass().getMethod("register", k);
+						if(!Modifier.isPublic(method.getModifiers())) continue;
+						method.invoke(m, o);
+						result = true;
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
+				}
+			}
+		}
+		return result;
+	}
+	
+	
+	/**
+	 * Unregister an object from all models it was attached to
+	 * @param o object to unregister
+	 * @return <code>true</code> when the unregistration succeeded in at least on model
+	 * @throws IllegalAccessException if an object is a model
+	 * @throws IllegalStateException if the method is called before simulator is configured
+	 */
+	public boolean unregister(Object o) {
+		assert o != null : "NPE later in code otherwise";
+		if(o instanceof Model) throw new IllegalArgumentException("cannot unregister an model");
+		if(!configured) throw new IllegalStateException("call configure()");
+		
+		boolean result = false;
+		Set<Class<?>> keys = registry.keySet();
+		for (Class<?> k : keys) {
+			if(k.isAssignableFrom(o.getClass())) {
+				Collection<Model<?>> models = registry.get(k);
+				for (Model<?> m : models) {
+					try {
+						Method method = m.getClass().getMethod("unregister", k);
 						if(!Modifier.isPublic(method.getModifiers())) continue;
 						method.invoke(m, o);
 						result = true;

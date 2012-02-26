@@ -77,10 +77,19 @@ public class Simulator implements SimulatorAPI {
 		
 		injectDependencies(o);
 		if(o instanceof TickListener) {
-			//FIXME [bm] refactor the TickListener interface
 			addTickListener((TickListener) o);
 		}
 		return modelManager.register(o);
+	}
+	
+	@Override
+	public boolean unregister(Object o) {
+		if(o == null) throw new IllegalArgumentException("parameter cannot be null");
+		if(o instanceof Model<?>) throw new IllegalArgumentException("cannot unregister a model");
+		if(!configure) throw new IllegalStateException("cannot add object before calling configure()");
+		
+		if(o instanceof TickListener) removeTickListener((TickListener) o);
+		return modelManager.unregister(o);
 	}
 
 	/**
