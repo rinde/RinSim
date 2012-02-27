@@ -10,6 +10,13 @@ import rinde.sim.core.graph.Point;
 public interface CommunicationUser {
 	
 	/**
+	 * Provide communication API that allows for communication with other object in the simulator.
+	 * Method is a callback for the registration of the object in {@link CommunicationModel}
+	 * @param api the access to the communication infrastructure 
+	 */
+	void setCommunicationAPI(CommunicationAPI api);
+	
+	/**
 	 * Get position. The position is required to determine the entities you can communicate with  
 	 * @return positing on the communication user
 	 */
@@ -27,4 +34,11 @@ public interface CommunicationUser {
 	 * @return
 	 */
 	double getReliability();
+	
+	/**
+	 * Receive the message. Multiple messages might be delivered during one tick of the simulator. 
+	 * The simple implementation of handling multiple messages is provided in {@link Mailbox}  
+	 * @param message delivered
+	 */
+	void receive(Message message);
 }

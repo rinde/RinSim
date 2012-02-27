@@ -28,12 +28,14 @@ public class RandomWalkExample {
 
 	public static void main(String[] args) throws Exception {
 		// create a new simulator, load map of Leuven
-		Simulator simulator = new Simulator(new MersenneTwister(123), 1000);
+		MersenneTwister rand = new MersenneTwister(123);
+		Simulator simulator = new Simulator(rand, 1000);
 		Graph<LengthEdgeData> graph = DotGraphSerializer.getLengthGraphSerializer(new SelfCycleFilter()).read("files/leuven.dot");
 //		roadModel.addGraph(DotGraphSerializer.getLengthGraphSerializer(new SelfCycleFilter()).read("files/brussels.dot"));
 		RoadModel roadModel = new RoadModel(graph);
 		
-		CommunicationModel communicationModel = new CommunicationModel();
+		//XXX [bm] to be decided either Communication model have RG as a constructor parameter or implements Simulator user interface
+		CommunicationModel communicationModel = new CommunicationModel(rand);
 		simulator.register(roadModel);
 		simulator.register(communicationModel);
 		
@@ -47,7 +49,7 @@ public class RandomWalkExample {
 
 //		// GUI stuff: agents are red, packages are blue or have ico represenation
 		UiSchema schema = new UiSchema();
-//		schema.add(RandomWalkAgent.class, new RGB(255,0,0));
+		schema.add(RandomWalkAgent.class, new RGB(255,0,0));
 //		schema.add(RandomWalkAgent.class, "/graphics/deliverytruck.png");
 //		schema.add(Package.class, "/graphics/flag.png");
 		schema.add(Package.class, new RGB(0x0,0x0,0xFF));

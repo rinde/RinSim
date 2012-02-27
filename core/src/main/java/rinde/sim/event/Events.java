@@ -15,4 +15,5 @@ public interface Events {
 
 	public boolean containsListener(Listener l, Enum<?> eventType);
 
+//	public Enum<?>[] getSupportedTypes();
 }
