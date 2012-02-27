@@ -11,7 +11,6 @@ import org.eclipse.swt.graphics.RGB;
 import rinde.sim.core.Simulator;
 import rinde.sim.core.graph.Graph;
 import rinde.sim.core.graph.LengthEdgeData;
-import rinde.sim.core.graph.MultimapGraph;
 import rinde.sim.core.model.RoadModel;
 import rinde.sim.core.model.communication.CommunicationModel;
 import rinde.sim.serializers.DotGraphSerializer;

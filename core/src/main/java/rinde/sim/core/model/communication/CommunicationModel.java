@@ -3,6 +3,7 @@ package rinde.sim.core.model.communication;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
+import java.util.LinkedList;
 import java.util.Set;
 
 import org.apache.commons.math.random.RandomGenerator;
@@ -64,7 +65,14 @@ public class CommunicationModel implements Model<CommunicationUser>, TickListene
 	
 	@Override
 	public boolean unregister(CommunicationUser element) {
+		if(element == null) return false;
 		sendQueue.removeAll(element);
+		Collection<Message> values = sendQueue.values();
+		Collection<Message> toRemove = new LinkedList<Message>();
+		for (Message m : values) {
+			if(m.sender.equals(element)) toRemove.add(m);
+		}
+		values.removeAll(toRemove);
 		return users.remove(element);
 	}
 
@@ -161,12 +169,12 @@ public class CommunicationModel implements Model<CommunicationUser>, TickListene
 			if(clazz != null && !clazz.equals(input.getClass())) {
 				return false;
 			}
+			if(input.equals(sender)) return false;
+			
 			double prob = input.getReliability() * sender.getReliability();
-			
 			double minRadius = Math.min(input.getRadius(), sender.getRadius());
-			
 			double rand = generator.nextDouble();
-			return Point.distance(sender.getPosition(), input.getPosition()) <= minRadius && prob <= rand;
+			return Point.distance(sender.getPosition(), input.getPosition()) <= minRadius && prob > rand;
 		}
 		
 	}

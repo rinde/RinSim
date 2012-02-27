@@ -18,10 +18,13 @@ public class Mailbox {
 	}
 
 	/**
-	 * Insert a msg in the box
+	 * Insert a msg in the mailbox. If the message is 
+	 * already present in the box it is not inserted again. 
 	 * @param msg
 	 */
 	public void receive(Message msg) {
+		if(msg == null) throw new NullPointerException();
+		if(box.contains(msg)) return;
 		box.add(msg);
 	}
 
