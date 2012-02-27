@@ -8,6 +8,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
+import org.apache.commons.math.random.RandomGenerator;
+
 /**
  * @author Rinde van Lon (rinde.vanlon@cs.kuleuven.be)
  * @author Bartosz Michalik <bartosz.michalik@cs.kuleuven.be> - added edge data handling
@@ -79,5 +81,13 @@ public interface Graph<E extends EdgeData> {
 	public void removeConnection(Point from, Point to);
 
 	public boolean equals(Graph<? extends E> other);
+	
+	/**
+	 * Get a random node in graph.
+	 * @param generator used to generate the random point.
+	 * @return random {@link Point} 
+	 * @throws NullPointerException should be thrown when parameter is <code>null</code>
+	 */
+	public Point getRandomNode(RandomGenerator generator);
 
 }

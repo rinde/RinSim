@@ -12,6 +12,8 @@ import java.util.List;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import org.apache.commons.math.random.RandomGenerator;
+
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Multimaps;
@@ -218,5 +220,17 @@ public class MultimapGraph<E extends EdgeData> implements Graph<E> {
 	@Override
 	public boolean equals(Graph<? extends E> other) {
 		return Graphs.equals(this, other);
+	}
+
+	@Override
+	public Point getRandomNode(RandomGenerator generator) {
+		if(getNumberOfNodes() == 0) throw new IllegalStateException("no nodes in the graph");
+		Set<Point> nodes = getNodes();
+		int idx = generator.nextInt(nodes.size());
+		int i = 0;
+		for (Point point : nodes) {
+			if(idx == i++) return point;
+		}
+		return null; //should not happen
 	}
 }

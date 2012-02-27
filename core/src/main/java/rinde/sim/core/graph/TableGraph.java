@@ -5,11 +5,11 @@ package rinde.sim.core.graph;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
+
+import org.apache.commons.math.random.RandomGenerator;
 
 
 import com.google.common.collect.LinkedHashBasedTable;
@@ -188,5 +188,17 @@ public class TableGraph<E extends EdgeData> implements Graph<E> {
 	@Override
 	public boolean equals(Graph<? extends E> other) {
 		return Graphs.equals(this, other);
+	}
+	
+	@Override
+	public Point getRandomNode(RandomGenerator generator) {
+		if(getNumberOfNodes() == 0) throw new IllegalStateException("no nodes in the graph");
+		Set<Point> nodes = getNodes();
+		int idx = generator.nextInt(nodes.size());
+		int i = 0;
+		for (Point point : nodes) {
+			if(idx == i++) return point;
+		}
+		return null; //should not happen
 	}
 }

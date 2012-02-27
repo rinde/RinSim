@@ -18,6 +18,8 @@ import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
+import org.apache.commons.math.random.RandomGenerator;
+
 import rinde.sim.core.model.RoadModel;
 import rinde.sim.core.model.RoadUser;
 
@@ -180,6 +182,11 @@ public class Graphs {
 		@Override
 		public E setEdgeData(Point from, Point to, E edgeData) {
 			throw new UnsupportedOperationException();
+		}
+
+		@Override
+		public Point getRandomNode(RandomGenerator generator) {
+			return delegate.getRandomNode(generator);
 		}
 
 	}
