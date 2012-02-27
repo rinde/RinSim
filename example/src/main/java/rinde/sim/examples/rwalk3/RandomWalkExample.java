@@ -47,7 +47,7 @@ public class RandomWalkExample {
 
 //		// GUI stuff: agents are red, packages are blue or have ico represenation
 		UiSchema schema = new UiSchema();
-		schema.add(RandomWalkAgent.class, new RGB(255,0,0));
+//		schema.add(RandomWalkAgent.class, new RGB(255,0,0));
 //		schema.add(RandomWalkAgent.class, "/graphics/deliverytruck.png");
 //		schema.add(Package.class, "/graphics/flag.png");
 		schema.add(Package.class, new RGB(0x0,0x0,0xFF));

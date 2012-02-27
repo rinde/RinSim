@@ -6,6 +6,7 @@ package rinde.sim.ui.renderers;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
 import rinde.sim.core.graph.Point;
@@ -24,12 +25,12 @@ public class ObjectRenderer implements Renderer {
 	private UiSchema uiSchema;
 
 	public ObjectRenderer(RoadModel rs) {
-		this(rs, new UiSchema(), false);
+		this(rs, new UiSchema(false), false);
 		
 	}
 
 	public ObjectRenderer(RoadModel rs, UiSchema schema, boolean useEncirclement) {
-		if(schema == null) schema = new UiSchema();
+		if(schema == null) schema = new UiSchema(false);
 		this.rs = rs;
 		this.useEncirclement = useEncirclement;
 		this.uiSchema = schema;
@@ -55,7 +56,9 @@ public class ObjectRenderer implements Renderer {
 					int offsetY = y - image.getBounds().height / 2;
 					gc.drawImage(image, offsetX, offsetY);
 				} else {
-					gc.setBackground(uiSchema.getColor(type));
+					final Color color = uiSchema.getColor(type);
+					if(color == null) continue;
+					gc.setBackground(color);
 					if (useEncirclement) {
 						gc.setForeground(gc.getBackground());
 						gc.drawOval((int) (xOrigin + (p.x - minX) * m) - outerRadius, (int) (yOrigin + (p.y - minY) * m) - outerRadius, 2 * outerRadius, 2 * outerRadius);

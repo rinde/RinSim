@@ -3,8 +3,6 @@ package rinde.sim.ui.renderers;
 import java.util.HashMap;
 import java.util.Map.Entry;
 
-import javax.imageio.ImageReader;
-
 import org.eclipse.jface.resource.ColorRegistry;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.resource.ImageRegistry;
@@ -23,12 +21,23 @@ public class UiSchema {
 	
 	private HashMap<String, RGB> colorCache;
 	private HashMap<String, ImageDescriptor> imgCache;
+	private boolean useDefault;
 	
 	public final static String DEFAULT = "default_color";
 	
-	public UiSchema() {
+	/**
+	 * Create the schema. 
+	 * @param useDefault when use default is <code>true</code> 
+	 * the default color is used 
+	 */
+	public UiSchema(boolean useDefault) {
 		colorCache = new HashMap<String, RGB>();
 		imgCache = new HashMap<String, ImageDescriptor>();
+		this.useDefault = useDefault;
+	}
+	
+	public UiSchema() {
+		this(true);
 	}
 	
 	
@@ -56,7 +65,7 @@ public class UiSchema {
 	
 	public Color getColor(Class<?> type) {
 		Color color = colorRegistry.get(type.getName());
-		if(color == null) return colorRegistry.get(DEFAULT);
+		if(color == null && !useDefault) return colorRegistry.get(DEFAULT);
 		return color;
 	}
 	
