@@ -1,7 +1,7 @@
 /**
  * 
  */
-package rinde.sim.examples.rwalk3;
+package rinde.sim.examples.rwalk4;
 
 import java.util.Random;
 
@@ -13,7 +13,6 @@ import rinde.sim.core.graph.Graph;
 import rinde.sim.core.graph.LengthEdgeData;
 import rinde.sim.core.model.RoadModel;
 import rinde.sim.core.model.communication.CommunicationModel;
-import rinde.sim.example.rwalk.common.Package;
 import rinde.sim.serializers.DotGraphSerializer;
 import rinde.sim.serializers.SelfCycleFilter;
 import rinde.sim.ui.View;
@@ -42,19 +41,20 @@ public class RandomWalkExample {
 		simulator.configure();
 
 		Random r = new Random(1317);
-		for (int i = 0; i < 100; i++) {
-			RandomWalkAgent agent = new RandomWalkAgent(r.nextDouble() / 100);
+		for (int i = 0; i < 10; i++) {
+			int radius = r.nextInt(300) + 200;
+			RandomWalkAgent agent = new RandomWalkAgent(r.nextDouble() / 100, radius);
 			simulator.register(agent);
 		}
 
 //		// GUI stuff: agents are red, packages are blue or have ico represenation
-		UiSchema schema = new UiSchema();
-		schema.add(RandomWalkAgent.class, new RGB(255,0,0));
-//		schema.add(RandomWalkAgent.class, "/graphics/deliverytruck.png");
-//		schema.add(Package.class, "/graphics/flag.png");
-		schema.add(Package.class, new RGB(0x0,0x0,0xFF));
+		UiSchema schema = new UiSchema(false);
+//		schema.add(RandomWalkAgent.class, new RGB(255,0,0));
+		schema.add(rinde.sim.example.rwalk.common.Package.class, new RGB(0x0,0x0,0xFF));
 		
-//		View.setTestingMode(true);
-		View.startGui(simulator, 5, new ObjectRenderer(roadModel, schema, false));
+		UiSchema schema2 = new UiSchema();
+		schema2.add(RandomWalkAgent.class, new RGB(255,0,0));
+		
+		View.startGui(simulator, 5, new ObjectRenderer(roadModel, schema, false), new MessagingLayerRenderer(roadModel, schema2) );
 	}
 }

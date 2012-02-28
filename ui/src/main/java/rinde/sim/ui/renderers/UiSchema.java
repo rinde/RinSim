@@ -65,7 +65,7 @@ public class UiSchema {
 	
 	public Color getColor(Class<?> type) {
 		Color color = colorRegistry.get(type.getName());
-		if(color == null && !useDefault) return colorRegistry.get(DEFAULT);
+		if(color == null && useDefault) return colorRegistry.get(DEFAULT);
 		return color;
 	}
 	
@@ -76,7 +76,7 @@ public class UiSchema {
 	
 	public Color getColor(String key) {
 		Color color = colorRegistry.get(key);
-		if(color == null) return colorRegistry.get(DEFAULT);
+		if(color == null && useDefault) return colorRegistry.get(DEFAULT);
 		return color;
 	}
 	

@@ -102,7 +102,8 @@ public class SimulationViewer extends Composite implements TickListener,
 			@Override
 			public void handleEvent(Event event) {
 				SimulationViewer.this.simulator.stop();
-				getDisplay().dispose();
+				if(!getDisplay().isDisposed())
+					getDisplay().dispose();
 			}
 		});
 
@@ -477,10 +478,10 @@ public class SimulationViewer extends Composite implements TickListener,
 			return;
 		}
 		getDisplay().syncExec(new Runnable() {
-			// display.asyncExec(new Runnable() {
+//			 getDisplay().asyncExec(new Runnable() {
 			@Override
 			public void run() {
-				if (!canvas.isDisposed()) {
+				if(!getDisplay().isDisposed()) {
 					timeLabel.setText(TimeFormatter.format(simulator
 							.getCurrentTime()));
 					canvas.redraw();

@@ -15,4 +15,8 @@ public abstract class Message implements Cloneable {
 	public Message clone() throws CloneNotSupportedException {
 		return (Message) super.clone();
 	}
+	
+	public CommunicationUser getSender() {
+		return sender;
+	}
 }

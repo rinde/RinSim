@@ -2,7 +2,13 @@ package rinde.sim.core.model.communication;
 
 import static org.junit.Assert.*;
 
+import java.util.Random;
+
 import org.apache.commons.math.random.MersenneTwister;
+import org.hamcrest.BaseMatcher;
+import org.hamcrest.Matcher;
+import org.hamcrest.core.Is;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -220,6 +226,24 @@ public class CommunicationModelTest {
 		
 		assertFalse(res[0]);
 		assertEquals(0, model.sendQueue.size());
+	}
+	
+	@Test
+	public void broadCastPerformanceTest() {
+		Random r = new Random();
+		for(int i = 0; i < 10000; ++i) {
+			TestCommunicationUser t = new TestCommunicationUser(new Point(r.nextDouble() * 100, r.nextDouble() * 100), r.nextDouble() * 100, 1, null);
+			model.register(t);
+		}
+		TestCommunicationUser sender = new TestCommunicationUser(new Point(r.nextDouble() * 100, r.nextDouble() * 100), 200, 1, null);
+		model.register(sender);
+		long time = System.currentTimeMillis();
+		model.broadcast(new Message(sender) {});
+		model.afterTick(0, 100);
+		time = System.currentTimeMillis() - time;
+		System.err.println(time);
+		assertTrue(time  < 120);
+		
 	}
 	
 

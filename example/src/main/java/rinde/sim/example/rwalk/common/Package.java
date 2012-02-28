@@ -1,10 +1,10 @@
-package rinde.sim.examples.rwalk3;
+package rinde.sim.example.rwalk.common;
 
 import rinde.sim.core.graph.Point;
 import rinde.sim.core.model.RoadModel;
 import rinde.sim.core.model.RoadUser;
 
-class Package implements RoadUser {
+public class Package implements RoadUser {
 	public final String name;
 	private Point location;
 

@@ -1,8 +1,6 @@
 package rinde.sim.examples.rwalk3;
 
-import java.util.ArrayList;
 import java.util.LinkedList;
-import java.util.List;
 import java.util.Queue;
 
 import org.apache.commons.math.random.RandomGenerator;
@@ -15,6 +13,7 @@ import rinde.sim.core.graph.Point;
 import rinde.sim.core.model.MovingRoadUser;
 import rinde.sim.core.model.RoadModel;
 import rinde.sim.core.model.RoadUser;
+import rinde.sim.example.rwalk.common.Package;
 
 /**
  * Example of the simple random agent with the use of simulation facilities. 
@@ -45,7 +44,7 @@ public class RandomWalkAgent implements TickListener, MovingRoadUser, SimulatorU
 				rs.removeObject(currentPackage);
 			}
 			
-			Point destination = findRandomNode();
+			Point destination = rs.getGraph().getRandomNode(rnd);
 			currentPackage = new Package("dummy package", destination);
 			simulator.register(currentPackage);
 			path = new LinkedList<Point>(Graphs.shortestPathEuclidianDistance(rs.getGraph(), rs.getPosition(this), destination));
@@ -55,15 +54,10 @@ public class RandomWalkAgent implements TickListener, MovingRoadUser, SimulatorU
 
 	}
 
-	private Point findRandomNode() {
-		List<Point> nodes = new ArrayList<Point>(rs.getGraph().getNodes());
-		return nodes.get(rnd.nextInt(nodes.size()));
-	}
-
 	@Override
 	public void initRoadUser(RoadModel model) {
 		rs = model;
-		Point pos = findRandomNode();
+		Point pos = rs.getGraph().getRandomNode(rnd);
 		rs.addObjectAt(this, pos);
 	}
 

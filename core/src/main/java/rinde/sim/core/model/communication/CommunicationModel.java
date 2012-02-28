@@ -11,6 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Predicate;
+import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Multimap;
@@ -39,7 +40,7 @@ public class CommunicationModel implements Model<CommunicationUser>, TickListene
 	public CommunicationModel(RandomGenerator generator) {
 		if(generator == null) throw new IllegalArgumentException("generator cannot be null");
 		users = new LinkedHashSet<CommunicationUser>();
-		sendQueue = LinkedHashMultimap.create();
+		sendQueue = ArrayListMultimap.create(users.size() / 2, 8);
 		this.generator = generator;
 	}
 	
@@ -88,6 +89,7 @@ public class CommunicationModel implements Model<CommunicationUser>, TickListene
 
 	@Override
 	public void afterTick(long currentTime, long timeStep) {
+		long timeMillis = System.currentTimeMillis();
 		Multimap<CommunicationUser, Message> cache = sendQueue;
 		sendQueue = LinkedHashMultimap.create();
 		for (CommunicationUser u : cache.keySet()) {
@@ -100,6 +102,10 @@ public class CommunicationModel implements Model<CommunicationUser>, TickListene
 					LOGGER.warn("unexpected exception while passing message", e);
 				}
 			}
+		}
+		if(LOGGER.isDebugEnabled()) {
+			timeMillis = (System.currentTimeMillis() - timeMillis);
+			LOGGER.debug("broadcast lasted for:" +  timeMillis);			
 		}
 	}
 
@@ -133,7 +139,15 @@ public class CommunicationModel implements Model<CommunicationUser>, TickListene
 	}
 
 	private void broadcast(Message message, Predicate<CommunicationUser> predicate) {
-		HashSet<CommunicationUser> uSet = new HashSet<CommunicationUser>(Collections2.filter(users, predicate));
+		if(! users.contains(message.sender)) return;
+//		HashSet<CommunicationUser> uSet = new HashSet<CommunicationUser>(Collections2.filter(users, predicate));
+		HashSet<CommunicationUser> uSet = new HashSet<CommunicationUser>(users.size() / 2);
+		
+		for (CommunicationUser u : users) {
+			if(predicate.apply(u))
+				uSet.add(u);			
+		}
+		
 		for (CommunicationUser u : uSet) {
 			try {
 				sendQueue.put(u, message.clone());
@@ -153,10 +167,13 @@ public class CommunicationModel implements Model<CommunicationUser>, TickListene
 
 		private Class<? extends CommunicationUser> clazz;
 		private final CommunicationUser sender;
+		private Rectangle rec;
 
 		public CanCommunicate(CommunicationUser sender, Class<? extends CommunicationUser> clazz) {
 			this.sender = sender;
 			this.clazz = clazz;
+			if(sender.getPosition() != null)
+				rec = new Rectangle(sender.getPosition(), sender.getRadius());
 		}
 		
 		public CanCommunicate(CommunicationUser sender) {
@@ -165,18 +182,41 @@ public class CommunicationModel implements Model<CommunicationUser>, TickListene
 		
 		@Override
 		public boolean apply(CommunicationUser input) {
-			if(input == null) return false;
+//			return true;
+			if(input == null || rec == null) return false;
 			if(clazz != null && !clazz.equals(input.getClass())) {
 				return false;
 			}
 			if(input.equals(sender)) return false;
-			
+			final Point iPos = input.getPosition();
+			if(! rec.contains(iPos)) return false;
 			double prob = input.getReliability() * sender.getReliability();
 			double minRadius = Math.min(input.getRadius(), sender.getRadius());
 			double rand = generator.nextDouble();
-			return Point.distance(sender.getPosition(), input.getPosition()) <= minRadius && prob > rand;
+			Point sPos = sender.getPosition();
+			return Point.distance(sPos, iPos) <= minRadius && prob > rand;
+		}
+	}
+	
+	private static class Rectangle {
+		private double y1;
+		private double x1;
+		private double y0;
+		private double x0;
+
+		public Rectangle(Point p, double radius) {
+			this.x0 = p.x - radius;
+			this.y0 = p.y - radius;
+			this.x1 = p.x + radius;
+			this.y1 = p.y + radius;
 		}
 		
+		public boolean contains(Point p) {
+			if(p == null) return false;
+			if(p.x < x0 || p.x > x1) return false;
+			if(p.y < y0 || p.y > y1) return false;
+			return true;
+		}
 	}
 	
 }

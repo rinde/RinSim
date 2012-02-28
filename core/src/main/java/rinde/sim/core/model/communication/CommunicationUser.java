@@ -18,7 +18,7 @@ public interface CommunicationUser {
 	
 	/**
 	 * Get position. The position is required to determine the entities you can communicate with  
-	 * @return positing on the communication user
+	 * @return positing on the communication user or <code>null</code> if object is not positioned 
 	 */
 	Point getPosition();
 	

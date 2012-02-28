@@ -78,8 +78,8 @@ public class ModelManager {
 		Set<Class<?>> keys = registry.keySet();
 		for (Class<?> k : keys) {
 			if(k.isAssignableFrom(o.getClass())) {
-				Collection<Model<?>> models = registry.get(k);
-				for (Model<?> m : models) {
+				Collection<Model<?>> modelsByType = registry.get(k);
+				for (Model<?> m : modelsByType) {
 					try {
 						Method method = m.getClass().getMethod("register", k);
 						if(!Modifier.isPublic(method.getModifiers())) continue;
@@ -111,8 +111,8 @@ public class ModelManager {
 		Set<Class<?>> keys = registry.keySet();
 		for (Class<?> k : keys) {
 			if(k.isAssignableFrom(o.getClass())) {
-				Collection<Model<?>> models = registry.get(k);
-				for (Model<?> m : models) {
+				Collection<Model<?>> modelsByType = registry.get(k);
+				for (Model<?> m : modelsByType) {
 					try {
 						Method method = m.getClass().getMethod("unregister", k);
 						if(!Modifier.isPublic(method.getModifiers())) continue;

@@ -5,9 +5,11 @@ package rinde.sim.core;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.locks.ReentrantLock;
 
 import org.apache.commons.math.random.RandomGenerator;
 import org.slf4j.Logger;
@@ -47,7 +49,33 @@ public class Simulator implements SimulatorAPI {
 	
 	protected ModelManager modelManager;
 	private boolean configure;
+	
+	
+	private Set<Object> toUnregister; 
+	private ReentrantLock unregisterLock;
 
+	/**
+	 * @param model The model that this simulator instance is using
+	 * @param r The random number generator that is used in this simulator.
+	 * @param timeStep The time that passes each tick. This can be in any unit
+	 *            the programmer prefers.
+	 */
+	public Simulator(RandomGenerator r, long timeStep) {
+		this.timeStep = timeStep;
+		tickListeners = Collections.synchronizedSet(new LinkedHashSet<TickListener>());
+
+		unregisterLock = new ReentrantLock();
+		toUnregister = new LinkedHashSet<Object>();
+		
+		rand = r;
+		time = 0L;
+
+		modelManager = new ModelManager();
+		
+		dispatcher = new EventDispatcher(EventTypes.STOPPED, EventTypes.STARTED);
+		events = dispatcher.getEvents();
+	}
+	
 	public void configure() {
 		modelManager.configure();
 		configure = true;
@@ -79,6 +107,7 @@ public class Simulator implements SimulatorAPI {
 		if(o instanceof TickListener) {
 			addTickListener((TickListener) o);
 		}
+
 		return modelManager.register(o);
 	}
 	
@@ -89,7 +118,11 @@ public class Simulator implements SimulatorAPI {
 		if(!configure) throw new IllegalStateException("cannot add object before calling configure()");
 		
 		if(o instanceof TickListener) removeTickListener((TickListener) o);
-		return modelManager.unregister(o);
+		
+		unregisterLock.lock();
+		toUnregister.add(o);
+		unregisterLock.unlock();
+		return true;
 	}
 
 	/**
@@ -111,25 +144,6 @@ public class Simulator implements SimulatorAPI {
 	 */
 	public List<Model<?>> getModels() {
 		return modelManager.getModels();
-	}
-
-	/**
-	 * @param model The model that this simulator instance is using
-	 * @param r The random number generator that is used in this simulator.
-	 * @param timeStep The time that passes each tick. This can be in any unit
-	 *            the programmer prefers.
-	 */
-	public Simulator(RandomGenerator r, long timeStep) {
-		this.timeStep = timeStep;
-		tickListeners = Collections.synchronizedSet(new LinkedHashSet<TickListener>());
-
-		rand = r;
-		time = 0L;
-
-		modelManager = new ModelManager();
-		
-		dispatcher = new EventDispatcher(EventTypes.STOPPED, EventTypes.STARTED);
-		events = dispatcher.getEvents();
 	}
 
 	public long getCurrentTime() {
@@ -167,20 +181,37 @@ public class Simulator implements SimulatorAPI {
 	}
 
 	public void tick() {
+		//unregister all pending objects
+		unregisterLock.lock();
+		Set<Object> copy = toUnregister;
+		toUnregister = new LinkedHashSet<Object>();
+		unregisterLock.unlock();
+		
+		for (Object c : copy) {
+			modelManager.unregister(c);
+		}
+		
 		// using a copy to avoid concurrent modifications of this set
 		// this also means that adding or removing a TickListener is 
 		// effectively executed after a 'tick'
 
 		List<TickListener> localCopy = new ArrayList<TickListener>();
+		long timeS = System.currentTimeMillis();
 		localCopy.addAll(tickListeners);
 		for (TickListener t : localCopy) {
 			t.tick(time, timeStep);
 		}
-
+		if(LOGGER.isDebugEnabled()) {
+			LOGGER.debug("tick(): " + (System.currentTimeMillis() - timeS));
+			timeS = System.currentTimeMillis();			
+		}
 		for (TickListener t : tickListeners) {
 			t.afterTick(time, timeStep);
 		}
-
+		if(LOGGER.isDebugEnabled()) {
+			LOGGER.debug("aftertick(): " + (System.currentTimeMillis() - timeS));			
+		}
+		
 		time += timeStep;
 
 	}
