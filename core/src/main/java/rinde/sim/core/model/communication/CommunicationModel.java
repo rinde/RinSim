@@ -12,6 +12,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Predicate;
+import com.google.common.collect.LinkedListMultimap;
+import com.google.common.collect.Multimap;
+
 import rinde.sim.core.TickListener;
 import rinde.sim.core.graph.Point;
 import rinde.sim.core.model.Model;
@@ -31,7 +34,6 @@ public class CommunicationModel implements Model<CommunicationUser>, TickListene
 	protected List<Entry<CommunicationUser, Message>> sendQueue;
 
 	protected RandomGenerator generator;
-	
 	
 	public CommunicationModel(RandomGenerator generator) {
 		if(generator == null) throw new IllegalArgumentException("generator cannot be null");
@@ -181,7 +183,9 @@ public class CommunicationModel implements Model<CommunicationUser>, TickListene
 			}
 			if(input.equals(sender)) return false;
 			final Point iPos = input.getPosition();
-			if(! rec.contains(iPos)) return false;
+			if(!rec.contains(iPos)) {
+				return false;
+			}
 			double prob = input.getReliability() * sender.getReliability();
 			double minRadius = Math.min(input.getRadius(), sender.getRadius());
 			double rand = generator.nextDouble();
