@@ -44,7 +44,7 @@ public class Simulator implements SimulatorAPI {
 	public final Events events;
 	protected final EventDispatcher dispatcher;
 	protected final long timeStep;
-	protected boolean isPlaying;
+	protected volatile boolean isPlaying;
 	protected long time;
 	
 	protected ModelManager modelManager;

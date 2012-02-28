@@ -2,8 +2,6 @@ package rinde.sim.ui;
 
 import java.util.List;
 import java.util.Set;
-import java.util.Map.Entry;
-
 import org.eclipse.jface.resource.ColorRegistry;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ControlEvent;
@@ -12,7 +10,6 @@ import org.eclipse.swt.events.PaintEvent;
 import org.eclipse.swt.events.PaintListener;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
-import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.RGB;
@@ -22,7 +19,6 @@ import org.eclipse.swt.widgets.Canvas;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
-import org.eclipse.swt.widgets.Item;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Menu;
@@ -85,6 +81,8 @@ public class SimulationViewer extends Composite implements TickListener,
 	private double deltaX;
 	private double deltaY;
 	private int zoomRatio;
+	
+	private final Display display;
 
 	public SimulationViewer(Shell shell, Simulator simulator, int speedUp,
 			Renderer... renderers) {
@@ -96,14 +94,18 @@ public class SimulationViewer extends Composite implements TickListener,
 		this.setLayout(new FillLayout());
 		bindToSimulator(simulator);
 
+		display = shell.getDisplay();
+		
 		createMenu(shell);
 		shell.addListener(SWT.Close, new Listener() {
 
 			@Override
 			public void handleEvent(Event event) {
 				SimulationViewer.this.simulator.stop();
-				if(!getDisplay().isDisposed())
-					getDisplay().dispose();
+				while(SimulationViewer.this.simulator.isPlaying()) {}
+				
+				if(! display.isDisposed())
+					display.dispose();
 			}
 		});
 
@@ -474,14 +476,14 @@ public class SimulationViewer extends Composite implements TickListener,
 				&& lastRefresh + timeStep * speedUp > currentTime)
 			return;
 		lastRefresh = currentTime;
-		if (getDisplay().isDisposed()) {
+		if (display.isDisposed()) {
 			return;
 		}
-		getDisplay().syncExec(new Runnable() {
+		display.syncExec(new Runnable() {
 //			 getDisplay().asyncExec(new Runnable() {
 			@Override
 			public void run() {
-				if(!getDisplay().isDisposed()) {
+				if(!canvas.isDisposed()) {
 					timeLabel.setText(TimeFormatter.format(simulator
 							.getCurrentTime()));
 					canvas.redraw();

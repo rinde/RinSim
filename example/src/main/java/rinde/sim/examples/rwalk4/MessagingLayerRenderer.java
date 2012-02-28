@@ -1,17 +1,11 @@
 package rinde.sim.examples.rwalk4;
 
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
 
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.GC;
-import org.eclipse.swt.graphics.Image;
-
 import rinde.sim.core.graph.Point;
 import rinde.sim.core.model.RoadModel;
-import rinde.sim.core.model.RoadUser;
 import rinde.sim.ui.renderers.Renderer;
 import rinde.sim.ui.renderers.UiSchema;
 
@@ -46,8 +40,14 @@ public class MessagingLayerRenderer implements Renderer {
 				
 				final int radius = (int) (a.getRadius() * scale);
 				
-				gc.setForeground(uiSchema.getColor(RandomWalkAgent.class));
-				gc.setBackground(uiSchema.getColor(RandomWalkAgent.class));
+				Color c = null;
+				if(a.getReliability() < 0.1) c = uiSchema.getColor(RandomWalkAgent.C_BLACK);
+				else if(a.getReliability() >= 0.1 && a.getReliability() < 0.3) 
+					c = uiSchema.getColor(RandomWalkAgent.C_YELLOW);
+				else c = uiSchema.getColor(RandomWalkAgent.C_GREEN);
+				
+				gc.setForeground(c);
+				gc.setBackground(c);
 				
 				gc.fillOval(x-size, y-size,  size*2, size*2);
 				
@@ -66,3 +66,4 @@ public class MessagingLayerRenderer implements Renderer {
 	}
 
 }
+

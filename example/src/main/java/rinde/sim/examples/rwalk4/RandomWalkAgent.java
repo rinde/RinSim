@@ -29,8 +29,12 @@ import rinde.sim.example.rwalk.common.Package;
  */
 class RandomWalkAgent implements TickListener, MovingRoadUser, SimulatorUser, CommunicationUser {
 
+	public static final String C_BLACK = "color.black";
+	public static final String C_YELLOW = "color.yellow";
+	public static final String C_GREEN = "color.green";
+	
 	private static final int MAX_MSGs = 100;
-	private static final int COMMUNICATION_PERIOD = 100000; //100s
+	private static final int COMMUNICATION_PERIOD = 10000; //10s
 	protected RoadModel rs;
 	protected RoadUser currentPackage;
 	protected Queue<Point> path;
@@ -49,13 +53,14 @@ class RandomWalkAgent implements TickListener, MovingRoadUser, SimulatorUser, Co
 	private int communications; 
 	
 	private long lastCommunication;
+	private double reliability;
 
 	/**
 	 * Create simple agent. 
 	 * @param speed default speed of object in graph units per millisecond
 	 * @param radius in which it can communicate
 	 */
-	public RandomWalkAgent(double speed, int radius) {
+	public RandomWalkAgent(double speed, int radius, double reliability) {
 		this.speed = speed;
 		this.radius = radius;
 		communicatedWith = new LinkedList<RandomWalkAgent>();
@@ -63,6 +68,7 @@ class RandomWalkAgent implements TickListener, MovingRoadUser, SimulatorUser, Co
 		maxSize = 1; 
 		lock = new ReentrantLock();
 		communications = 0;
+		this.reliability = reliability;
 	}
 
 	@Override
@@ -89,8 +95,7 @@ class RandomWalkAgent implements TickListener, MovingRoadUser, SimulatorUser, Co
 	}
 
 	private void sendMsgs(long currentTime) {
-		double percent = rnd.nextDouble();
-		if(percent < 0.1 && lastCommunication + COMMUNICATION_PERIOD < currentTime) {
+		if(lastCommunication + COMMUNICATION_PERIOD < currentTime) {
 			lastCommunication = currentTime;
 			if(cm != null)
 			cm.broadcast(new Message(this) {});			
@@ -158,7 +163,7 @@ class RandomWalkAgent implements TickListener, MovingRoadUser, SimulatorUser, Co
 
 	@Override
 	public double getReliability() {
-		return 1;
+		return reliability;
 	}
 
 	@Override

@@ -230,7 +230,7 @@ public class CommunicationModelTest {
 	
 	@Test
 	public void broadCastPerformanceTest() {
-		Random r = new Random();
+		Random r = new Random(13);
 		for(int i = 0; i < 10000; ++i) {
 			TestCommunicationUser t = new TestCommunicationUser(new Point(r.nextDouble() * 100, r.nextDouble() * 100), r.nextDouble() * 100, 1, null);
 			model.register(t);

@@ -1,9 +1,10 @@
 package rinde.sim.core.model.communication;
 
-import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
+import java.util.List;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import org.apache.commons.math.random.RandomGenerator;
@@ -11,11 +12,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Predicate;
-import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.Collections2;
-import com.google.common.collect.LinkedHashMultimap;
-import com.google.common.collect.Multimap;
-
 import rinde.sim.core.TickListener;
 import rinde.sim.core.graph.Point;
 import rinde.sim.core.model.Model;
@@ -32,7 +28,7 @@ public class CommunicationModel implements Model<CommunicationUser>, TickListene
 	
 	protected final Set<CommunicationUser> users;
 	
-	protected Multimap<CommunicationUser, Message> sendQueue;
+	protected List<Entry<CommunicationUser, Message>> sendQueue;
 
 	protected RandomGenerator generator;
 	
@@ -40,7 +36,7 @@ public class CommunicationModel implements Model<CommunicationUser>, TickListene
 	public CommunicationModel(RandomGenerator generator) {
 		if(generator == null) throw new IllegalArgumentException("generator cannot be null");
 		users = new LinkedHashSet<CommunicationUser>();
-		sendQueue = ArrayListMultimap.create(users.size() / 2, 8);
+		sendQueue = new LinkedList<Entry<CommunicationUser,Message>>();
 		this.generator = generator;
 	}
 	
@@ -67,13 +63,14 @@ public class CommunicationModel implements Model<CommunicationUser>, TickListene
 	@Override
 	public boolean unregister(CommunicationUser element) {
 		if(element == null) return false;
-		sendQueue.removeAll(element);
-		Collection<Message> values = sendQueue.values();
-		Collection<Message> toRemove = new LinkedList<Message>();
-		for (Message m : values) {
-			if(m.sender.equals(element)) toRemove.add(m);
+		List<Entry<CommunicationUser, Message>> toRemove = new LinkedList<Entry<CommunicationUser,Message>>();
+		for (Entry<CommunicationUser, Message> e : sendQueue) {
+			if(element.equals(e.getKey()) || element.equals(e.getValue().getSender())) {
+				toRemove.add(e);
+			}
 		}
-		values.removeAll(toRemove);
+		sendQueue.removeAll(toRemove);
+		
 		return users.remove(element);
 	}
 
@@ -90,17 +87,14 @@ public class CommunicationModel implements Model<CommunicationUser>, TickListene
 	@Override
 	public void afterTick(long currentTime, long timeStep) {
 		long timeMillis = System.currentTimeMillis();
-		Multimap<CommunicationUser, Message> cache = sendQueue;
-		sendQueue = LinkedHashMultimap.create();
-		for (CommunicationUser u : cache.keySet()) {
-			Collection<Message> mesgs = cache.get(u);
-			for (Message m : mesgs) {
-				try {
-					u.receive(m);		
-					//TODO [bm] add msg delivered event
-				} catch(Exception e) {
-					LOGGER.warn("unexpected exception while passing message", e);
-				}
+		List<Entry<CommunicationUser, Message>> cache = sendQueue;
+		sendQueue = new LinkedList<Entry<CommunicationUser,Message>>();
+		for (Entry<CommunicationUser, Message> e : cache) {
+			try {
+				e.getKey().receive(e.getValue());		
+				//TODO [bm] add msg delivered event
+			} catch(Exception e1) {
+				LOGGER.warn("unexpected exception while passing message", e1);
 			}
 		}
 		if(LOGGER.isDebugEnabled()) {
@@ -118,7 +112,7 @@ public class CommunicationModel implements Model<CommunicationUser>, TickListene
 		}
 		
 		if(new CanCommunicate(message.sender).apply(recipient)) {
-			sendQueue.put(recipient, message);
+			sendQueue.add(SimpleEntry.entry(recipient, message));
 		} else {
 			//TODO [bm] implement dropped message EVENT
 			return;
@@ -140,7 +134,6 @@ public class CommunicationModel implements Model<CommunicationUser>, TickListene
 
 	private void broadcast(Message message, Predicate<CommunicationUser> predicate) {
 		if(! users.contains(message.sender)) return;
-//		HashSet<CommunicationUser> uSet = new HashSet<CommunicationUser>(Collections2.filter(users, predicate));
 		HashSet<CommunicationUser> uSet = new HashSet<CommunicationUser>(users.size() / 2);
 		
 		for (CommunicationUser u : users) {
@@ -150,7 +143,7 @@ public class CommunicationModel implements Model<CommunicationUser>, TickListene
 		
 		for (CommunicationUser u : uSet) {
 			try {
-				sendQueue.put(u, message.clone());
+				sendQueue.add(SimpleEntry.entry(u, message.clone()));
 			} catch (CloneNotSupportedException e) {
 				LOGGER.error("clonning exception for message", e);
 			}
@@ -182,7 +175,6 @@ public class CommunicationModel implements Model<CommunicationUser>, TickListene
 		
 		@Override
 		public boolean apply(CommunicationUser input) {
-//			return true;
 			if(input == null || rec == null) return false;
 			if(clazz != null && !clazz.equals(input.getClass())) {
 				return false;
@@ -217,6 +209,37 @@ public class CommunicationModel implements Model<CommunicationUser>, TickListene
 			if(p.y < y0 || p.y > y1) return false;
 			return true;
 		}
+	}
+	
+	private static class SimpleEntry<K,V> implements Entry<K,V> {
+
+		private final V value;
+		private final K key;
+
+		public SimpleEntry(K key, V value) {
+			this.key = key;
+			this.value = value;
+		}
+		
+		@Override
+		public K getKey() {
+			return key;
+		}
+
+		@Override
+		public V getValue() {
+			return value;
+		}
+
+		@Override
+		public V setValue(V value) {
+			return null;
+		}
+		
+		static <V,K> Entry<V,K> entry(V v, K k) {
+			return new SimpleEntry<V,K>(v,k);
+		}
+		
 	}
 	
 }

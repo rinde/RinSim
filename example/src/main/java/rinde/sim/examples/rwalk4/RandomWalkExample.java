@@ -41,9 +41,9 @@ public class RandomWalkExample {
 		simulator.configure();
 
 		Random r = new Random(1317);
-		for (int i = 0; i < 10; i++) {
+		for (int i = 0; i < 100; i++) {
 			int radius = r.nextInt(300) + 200;
-			RandomWalkAgent agent = new RandomWalkAgent(r.nextDouble() / 100, radius);
+			RandomWalkAgent agent = new RandomWalkAgent(r.nextDouble() / 100, radius, r.nextDouble() / 2);
 			simulator.register(agent);
 		}
 
@@ -53,7 +53,9 @@ public class RandomWalkExample {
 		schema.add(rinde.sim.example.rwalk.common.Package.class, new RGB(0x0,0x0,0xFF));
 		
 		UiSchema schema2 = new UiSchema();
-		schema2.add(RandomWalkAgent.class, new RGB(255,0,0));
+		schema2.add(RandomWalkAgent.C_BLACK, new RGB(0,0,0));
+		schema2.add(RandomWalkAgent.C_YELLOW, new RGB(0xff,0,0));
+		schema2.add(RandomWalkAgent.C_GREEN, new RGB(0x0,0x80,0));
 		
 		View.startGui(simulator, 5, new ObjectRenderer(roadModel, schema, false), new MessagingLayerRenderer(roadModel, schema2) );
 	}
