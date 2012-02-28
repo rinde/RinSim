@@ -30,7 +30,7 @@ public class RandomWalkExample {
 		MersenneTwister rand = new MersenneTwister(123);
 		Simulator simulator = new Simulator(rand, 1000);
 		Graph<LengthEdgeData> graph = DotGraphSerializer.getLengthGraphSerializer(new SelfCycleFilter()).read("files/leuven.dot");
-//		roadModel.addGraph(DotGraphSerializer.getLengthGraphSerializer(new SelfCycleFilter()).read("files/brussels.dot"));
+//		Graph<LengthEdgeData> graph = DotGraphSerializer.getLengthGraphSerializer(new SelfCycleFilter()).read("files/brussels.dot");
 		RoadModel roadModel = new RoadModel(graph);
 		
 		//XXX [bm] to be decided either Communication model have RG as a constructor parameter or implements Simulator user interface
@@ -43,7 +43,9 @@ public class RandomWalkExample {
 		Random r = new Random(1317);
 		for (int i = 0; i < 100; i++) {
 			int radius = r.nextInt(300) + 200;
-			RandomWalkAgent agent = new RandomWalkAgent(r.nextDouble() / 100, radius, r.nextDouble() / 2);
+			double minSpeed = 0.005; double maxSpeed = 0.02; 
+			
+			RandomWalkAgent agent = new RandomWalkAgent(minSpeed + (maxSpeed - minSpeed) * r.nextDouble(), radius, 0.01 + r.nextDouble() / 2);
 			simulator.register(agent);
 		}
 

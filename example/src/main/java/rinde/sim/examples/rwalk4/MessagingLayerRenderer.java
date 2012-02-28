@@ -41,8 +41,8 @@ public class MessagingLayerRenderer implements Renderer {
 				final int radius = (int) (a.getRadius() * scale);
 				
 				Color c = null;
-				if(a.getReliability() < 0.1) c = uiSchema.getColor(RandomWalkAgent.C_BLACK);
-				else if(a.getReliability() >= 0.1 && a.getReliability() < 0.3) 
+				if(a.getReliability() < 0.15) c = uiSchema.getColor(RandomWalkAgent.C_BLACK);
+				else if(a.getReliability() >= 0.15 && a.getReliability() < 0.3) 
 					c = uiSchema.getColor(RandomWalkAgent.C_YELLOW);
 				else c = uiSchema.getColor(RandomWalkAgent.C_GREEN);
 				
@@ -52,6 +52,8 @@ public class MessagingLayerRenderer implements Renderer {
 				gc.fillOval(x-size, y-size,  size*2, size*2);
 				
 				gc.drawOval(x-radius, y-radius, radius*2, radius*2);
+				gc.drawText("r:" + a.getNoReceived(), x, y, true);
+				
 				
 				Set<RandomWalkAgent> communicatedWith = a.getCommunicatedWith();
 				for (RandomWalkAgent cw : communicatedWith) {
