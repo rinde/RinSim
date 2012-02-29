@@ -1,6 +1,11 @@
 package rinde.sim.core.graph;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -13,8 +18,6 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 
-import rinde.sim.core.model.PointsEquality;
-
 import com.google.common.base.Function;
 
 /**
@@ -24,7 +27,7 @@ import com.google.common.base.Function;
 @RunWith(Parameterized.class)
 public class GraphsTest {
 	protected static final double DELTA = 0.0001;
-	
+
 	Graph<LengthEdgeData> graph;
 	Class<? extends Graph<LengthEdgeData>> graphType;
 
@@ -63,7 +66,7 @@ public class GraphsTest {
 			prevPath = newPath;
 		}
 	}
-	
+
 	/**
 	 * In this test there are two paths of equal length between two nodes. The
 	 * function should always return the same path.
@@ -171,37 +174,89 @@ public class GraphsTest {
 	public void connectionLengthFail() {
 		graph.connectionLength(new Point(0, 3), new Point(4, 5));
 	}
-	
+
 	@Test
-	public void edgeDataUsage()  {
-		Point A = new Point(0,0), B = new Point(0,1), C = new Point(1,0);
-		
+	public void edgeDataUsage() {
+		Point A = new Point(0, 0), B = new Point(0, 1), C = new Point(1, 0);
+
 		graph.addConnection(A, B);
-		graph.addConnection(new Connection<LengthEdgeData>(B,A,new LengthEdgeData(1.5)));
-		graph.addConnection(B,C, new LengthEdgeData(2));
-		graph.addConnection(A,C, new LengthEdgeData(Double.NaN)); //explicit empty value
-		
+		graph.addConnection(new Connection<LengthEdgeData>(B, A, new LengthEdgeData(1.5)));
+		graph.addConnection(B, C, new LengthEdgeData(2));
+		graph.addConnection(A, C, new LengthEdgeData(Double.NaN)); //explicit empty value
+
 		assertNull("existing but empty", graph.connectionData(A, B));
 		assertNull("non existing", graph.connectionData(C, A));
-//		assertNull("explicit null A->C", graph.connectionData(A, C)); // works only for TableGraph
-		
+		//		assertNull("explicit null A->C", graph.connectionData(A, C)); // works only for TableGraph
+
 		assertNotNull("existing B->A", graph.connectionData(B, A));
 		assertNotNull("existing B->C", graph.connectionData(B, C));
-		
+
 		//use of the edge data
 		assertEquals(1, graph.connectionLength(A, B), DELTA);
 		assertEquals(1.5, graph.connectionLength(B, A), DELTA);
 		assertEquals(2, graph.connectionLength(B, C), DELTA);
 		try {
-			graph.connectionLength(C, B); fail();			
-		} catch (IllegalArgumentException e) {}
-		
-		
+			graph.connectionLength(C, B);
+			fail();
+		} catch (IllegalArgumentException e) {
+		}
+
 	}
 
 	@Test
 	public void equalsTest() {
 		assertFalse(graph.equals(new Object()));
+		assertTrue(graph.equals(graph));
+
+		Point N = new Point(0, 5);
+		Point E = new Point(5, 0);
+		Point S = new Point(0, -5);
+		Point W = new Point(-5, 0);
+
+		Graphs.addBiPath(graph, N, E, S, W, N);
+		assertTrue(graph.equals(graph));
+
+		Graph<LengthEdgeData> g1 = new TableGraph<LengthEdgeData>(LengthEdgeData.EMPTY);
+		g1.merge(graph);
+		assertEquals(g1, graph);
+
+		Graph<LengthEdgeData> g2 = new MultimapGraph<LengthEdgeData>();
+		g2.merge(graph);
+		assertEquals(g2, graph);
+		assertEquals(g1, g2);
+
+		g1.removeConnection(N, E);
+		assertFalse(g1.equals(graph));
+
+		g1.removeNode(N);
+		assertFalse(g1.equals(graph));
+
+		Point C = new Point(0, 0);
+		Graphs.addBiPath(g1, W, C, E);
+		assertFalse(g1.equals(graph));
+
+		graph.removeConnection(N, E);
+		graph.addConnection(N, E, new LengthEdgeData(10));
+		assertFalse(g1.equals(graph));
+		assertFalse(graph.equals(g1));
+
+		Graph<LengthEdgeData> g3 = new TableGraph<LengthEdgeData>(LengthEdgeData.EMPTY);
+		g3.merge(graph);
+		assertEquals(graph, g3);
+
+		g3.removeConnection(N, E);
+		g3.addConnection(N, E, new LengthEdgeData(9));
+		assertFalse(g3.equals(graph));
+
+		assertFalse(g2.equals(graph));
+		assertFalse(g2.equals(g3));
+		assertFalse(graph.equals(g2));
+		assertFalse(g3.equals(g2));
+
+	}
+
+	public void equalsTest2() {
+
 	}
 
 	@Test

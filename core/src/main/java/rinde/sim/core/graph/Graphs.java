@@ -3,7 +3,6 @@
  */
 package rinde.sim.core.graph;
 
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -27,10 +26,10 @@ import com.google.common.base.Function;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Collections2;
 
-
 /**
  * @author Rinde van Lon (rinde.vanlon@cs.kuleuven.be)
- * @author Bartosz Michalik <bartosz.michalik@cs.kuleuven.be> - change in the graphs model
+ * @author Bartosz Michalik <bartosz.michalik@cs.kuleuven.be> - change in the
+ *         graphs model
  * 
  */
 public class Graphs {
@@ -60,12 +59,18 @@ public class Graphs {
 		if (g1.getNumberOfConnections() != g2.getNumberOfConnections()) {
 			return false;
 		}
-		for (Connection<? extends E> connection : g1.getConnections()) {
-			if (!g2.hasConnection(connection.from, connection.to)) {
+		for (Connection<? extends E> g1conn : g1.getConnections()) {
+			if (!g2.hasConnection(g1conn.from, g1conn.to)) {
 				return false;
-			} 
-			E g2Data = g2.connectionData(connection.from, connection.to);
-			if((connection.edgeData == null && g2Data != null) || !connection.edgeData.equals(g2Data)) return false;
+			}
+			E g2connEdgeData = g2.connectionData(g1conn.from, g1conn.to);
+
+			boolean null1 = g1conn.edgeData == null;
+			boolean null2 = g2connEdgeData == null;
+			int nullCount = (null1 ? 1 : 0) + (null2 ? 1 : 0);
+			if ((nullCount == 0 && !g1conn.edgeData.equals(g2connEdgeData)) || nullCount == 1) {
+				return false;
+			}
 		}
 		return true;
 
