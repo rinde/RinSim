@@ -305,10 +305,10 @@ public class SimulationViewer extends Composite implements TickListener,
 
 	protected void onSpeedChange(MenuItem source) {
 		if (">".equals(source.getData())) {
-			speedUp += 1;
+			speedUp <<= 1;
 		} else {
 			if (speedUp > 1)
-				speedUp -= 1;
+				speedUp >>= 1;
 		}
 	}
 
