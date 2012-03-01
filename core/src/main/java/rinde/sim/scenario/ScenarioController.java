@@ -3,6 +3,8 @@ package rinde.sim.scenario;
 import java.util.Arrays;
 import java.util.LinkedList;
 
+import javax.swing.DebugGraphics;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -140,7 +142,12 @@ public abstract class ScenarioController implements TickListener, Listener {
 	
 	public void start() {
 		if (!uiMode) {
-			simulator.start();
+			new Thread(){
+				@Override
+				public void run() {
+					simulator.start();					
+				}
+			}.start();
 		}
 	}
 
@@ -159,8 +166,10 @@ public abstract class ScenarioController implements TickListener, Listener {
 			LOGGER.info("simulation finished at virtual time:" + currentTime);
 			simulator.stop();
 		}
-		LOGGER.debug("ticks to end: " + ticks);
-		ticks--;
+		if(LOGGER.isDebugEnabled() && ticks >= 0) {
+			LOGGER.debug("ticks to end: " + ticks);			
+		} 
+		if(ticks > -1) ticks--;
 		TimedEvent e = null;
 		while ((e = scenario.peek()) != null && e.time <= currentTime) {
 			scenario.poll();
@@ -171,11 +180,11 @@ public abstract class ScenarioController implements TickListener, Listener {
 			e.setIssuer(this);
 			disp.dispatchEvent(e);
 		}
-		if(e == null && status != null) {
+		
+		if(e == null && status != Type.SCENARIO_FINISHED) {
 			status = Type.SCENARIO_FINISHED;
 			disp.dispatchEvent(new Event(status, this));
 		}
-			
 
 	}
 
