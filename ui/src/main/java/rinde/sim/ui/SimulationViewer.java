@@ -2,6 +2,7 @@ package rinde.sim.ui;
 
 import java.util.List;
 import java.util.Set;
+
 import org.eclipse.jface.resource.ColorRegistry;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ControlEvent;
@@ -43,8 +44,7 @@ import rinde.sim.util.TimeFormatter;
  * @author Bartosz Michalik <bartosz.michalik@cs.kuleuven.be>
  * 
  */
-public class SimulationViewer extends Composite implements TickListener,
-		ControlListener, PaintListener, SelectionListener {
+public class SimulationViewer extends Composite implements TickListener, ControlListener, PaintListener, SelectionListener {
 
 	public static final String COLOR_WHITE = "white";
 	public static final String COLOR_GREEN = "green";
@@ -81,31 +81,32 @@ public class SimulationViewer extends Composite implements TickListener,
 	private double deltaX;
 	private double deltaY;
 	private int zoomRatio;
-	
+
 	private final Display display;
 
-	public SimulationViewer(Shell shell, Simulator simulator, int speedUp,
-			Renderer... renderers) {
+	public SimulationViewer(Shell shell, Simulator simulator, int speedUp, Renderer... renderers) {
 		super(shell, SWT.NONE);
 
 		this.renderers = renderers;
 		this.speedUp = speedUp;
 		shell.setLayout(new FillLayout());
-		this.setLayout(new FillLayout());
+		setLayout(new FillLayout());
 		bindToSimulator(simulator);
 
 		display = shell.getDisplay();
-		
+
 		createMenu(shell);
 		shell.addListener(SWT.Close, new Listener() {
 
 			@Override
 			public void handleEvent(Event event) {
 				SimulationViewer.this.simulator.stop();
-				while(SimulationViewer.this.simulator.isPlaying()) {}
-				
-				if(! display.isDisposed())
+				while (SimulationViewer.this.simulator.isPlaying()) {
+				}
+
+				if (!display.isDisposed()) {
 					display.dispose();
+				}
 			}
 		});
 
@@ -119,7 +120,7 @@ public class SimulationViewer extends Composite implements TickListener,
 		for (Model<?> m : models) {
 			// FIXME ugly hack for now
 			if (m instanceof RoadModel) {
-				this.roadModel = (RoadModel) m;
+				roadModel = (RoadModel) m;
 				break;
 			}
 		}
@@ -132,8 +133,7 @@ public class SimulationViewer extends Composite implements TickListener,
 	 */
 	protected void createContent() {
 		initColors();
-		canvas = new Canvas(this, SWT.DOUBLE_BUFFERED | SWT.NONE
-				| SWT.NO_REDRAW_RESIZE | SWT.V_SCROLL | SWT.H_SCROLL);
+		canvas = new Canvas(this, SWT.DOUBLE_BUFFERED | SWT.NONE | SWT.NO_REDRAW_RESIZE | SWT.V_SCROLL | SWT.H_SCROLL);
 		canvas.setBackground(colorRegistry.get(COLOR_WHITE));
 		origin = new org.eclipse.swt.graphics.Point(0, 0);
 		size = new org.eclipse.swt.graphics.Point(800, 500);
@@ -242,11 +242,11 @@ public class SimulationViewer extends Composite implements TickListener,
 		increaseSpeedItem.setData(">");
 		increaseSpeedItem.addListener(SWT.Selection, speedUpListener);
 		//
-		 MenuItem decreaseSpeed = new MenuItem(submenu, SWT.PUSH);
-		 decreaseSpeed.setAccelerator(SWT.MOD1 + ',');
-		 decreaseSpeed.setText("Slow down");
-		 decreaseSpeed.setData("<");
-		 decreaseSpeed.addListener(SWT.Selection, speedUpListener);
+		MenuItem decreaseSpeed = new MenuItem(submenu, SWT.PUSH);
+		decreaseSpeed.setAccelerator(SWT.MOD1 + ',');
+		decreaseSpeed.setText("Slow down");
+		decreaseSpeed.setData("<");
+		decreaseSpeed.addListener(SWT.Selection, speedUpListener);
 
 	}
 
@@ -285,20 +285,25 @@ public class SimulationViewer extends Composite implements TickListener,
 
 	protected void onZooming(MenuItem source) {
 		if (source.getData().equals("in")) {
-			if(zoomRatio == 16) return;
+			if (zoomRatio == 16) {
+				return;
+			}
 			origin.x -= m * deltaX / 2;
 			origin.y -= m * deltaY / 2;
 			m *= 2;
 			zoomRatio <<= 1;
 		} else {
-			if(zoomRatio < 2) return;
+			if (zoomRatio < 2) {
+				return;
+			}
 			m /= 2;
 			origin.x += m * deltaX / 2;
 			origin.y += m * deltaY / 2;
 			zoomRatio >>= 1;
 		}
-		if (image != null)
+		if (image != null) {
 			image.dispose();
+		}
 		image = null;// this forces a redraw
 		canvas.redraw();
 	}
@@ -307,19 +312,19 @@ public class SimulationViewer extends Composite implements TickListener,
 		if (">".equals(source.getData())) {
 			speedUp += 1;
 		} else {
-			if (speedUp > 1)
+			if (speedUp > 1) {
 				speedUp -= 1;
+			}
 		}
 	}
 
 	@Override
 	public void tick(long currentTime, long timeStep) {
-		
+
 	}
 
 	public Image drawRoads() {
-		size = new org.eclipse.swt.graphics.Point((int) (m * deltaX),
-				(int) (m * deltaY));
+		size = new org.eclipse.swt.graphics.Point((int) (m * deltaX), (int) (m * deltaY));
 		final Image img = new Image(getDisplay(), size.x + 10, size.y + 10);
 		final GC gc = new GC(img);
 
@@ -327,8 +332,8 @@ public class SimulationViewer extends Composite implements TickListener,
 		for (Connection<? extends EdgeData> e : graph.getConnections()) {
 			int x1 = (int) ((e.from.x - minX) * m);
 			int y1 = (int) ((e.from.y - minY) * m);
-			gc.setForeground(colorRegistry.get(COLOR_GREEN));
-			gc.drawOval(x1 - 2, y1 - 2, 4, 4);
+			//			gc.setForeground(colorRegistry.get(COLOR_GREEN));
+			//			gc.drawOval(x1 - 2, y1 - 2, 4, 4);
 
 			int x2 = (int) ((e.to.x - minX) * m);
 			int y2 = (int) ((e.to.y - minY) * m);
@@ -472,20 +477,19 @@ public class SimulationViewer extends Composite implements TickListener,
 
 	@Override
 	public void afterTick(long currentTime, long timeStep) {
-		if (simulator.isPlaying()
-				&& lastRefresh + timeStep * speedUp > currentTime)
+		if (simulator.isPlaying() && lastRefresh + timeStep * speedUp > currentTime) {
 			return;
+		}
 		lastRefresh = currentTime;
 		if (display.isDisposed()) {
 			return;
 		}
 		display.syncExec(new Runnable() {
-//			 getDisplay().asyncExec(new Runnable() {
+			//			 getDisplay().asyncExec(new Runnable() {
 			@Override
 			public void run() {
-				if(!canvas.isDisposed()) {
-					timeLabel.setText(TimeFormatter.format(simulator
-							.getCurrentTime()));
+				if (!canvas.isDisposed()) {
+					timeLabel.setText(TimeFormatter.format(simulator.getCurrentTime()));
 					canvas.redraw();
 				}
 			}
