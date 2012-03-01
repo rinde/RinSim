@@ -34,10 +34,10 @@ public class EventDispatcher {
 	}
 
 	public void dispatchEvent(Event e) {
-		if (!types.contains(e.eventType)) {
-			throw new IllegalArgumentException("Cannot dispatch an event of type " + e.eventType + " since it was not registered at this dispatcher.");
+		if (!types.contains(e.getEventType())) {
+			throw new IllegalArgumentException("Cannot dispatch an event of type " + e.getEventType() + " since it was not registered at this dispatcher.");
 		}
-		for (Listener l : listeners.get(e.eventType)) {
+		for (Listener l : listeners.get(e.getEventType())) {
 			l.handleEvent(e);
 		}
 	}
