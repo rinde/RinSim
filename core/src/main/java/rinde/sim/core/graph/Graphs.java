@@ -52,6 +52,18 @@ public class Graphs {
 		return new UnmodifiableGraph<E>(delegate);
 	}
 
+	public static <E extends EdgeData> Connection<E> unmodifiableConnection(Connection<E> conn) {
+		return new Connection<E>(conn.from, conn.to, conn.edgeData == null ? null : unmodifiableEdgeData(conn.edgeData));
+	}
+
+	@SuppressWarnings("unchecked")
+	public static <E extends EdgeData> E unmodifiableEdgeData(E edgeData) {
+		if (edgeData instanceof MultiAttributeEdgeData) {
+			return (E) new UnmodifiableMultiAttributeEdgeData(edgeData.getLength(), ((MultiAttributeEdgeData) edgeData).getMaxSpeed());
+		}
+		return edgeData;
+	}
+
 	public static <E extends EdgeData> boolean equals(Graph<? extends E> g1, Graph<? extends E> g2) {
 		if (g1.getNumberOfNodes() != g2.getNumberOfNodes()) {
 			return false;
@@ -73,6 +85,24 @@ public class Graphs {
 			}
 		}
 		return true;
+
+	}
+
+	private static class UnmodifiableMultiAttributeEdgeData extends MultiAttributeEdgeData {
+
+		public UnmodifiableMultiAttributeEdgeData(double length, double maxSpeed) {
+			super(length, maxSpeed);
+		}
+
+		@Override
+		public double setMaxSpeed(double maxSpeed) {
+			throw new UnsupportedOperationException();
+		}
+
+		@Override
+		public <E> void put(String key, E value) {
+			throw new UnsupportedOperationException();
+		}
 
 	}
 
@@ -110,7 +140,12 @@ public class Graphs {
 
 		@Override
 		public List<Connection<E>> getConnections() {
-			return Collections.unmodifiableList(delegate.getConnections());
+			List<Connection<E>> conn = delegate.getConnections();
+			List<Connection<E>> unmodConn = new ArrayList<Connection<E>>();
+			for (Connection<E> c : conn) {
+				unmodConn.add(unmodifiableConnection(c));
+			}
+			return Collections.unmodifiableList(unmodConn);
 		}
 
 		@Override
@@ -171,7 +206,7 @@ public class Graphs {
 
 		@Override
 		public E connectionData(Point from, Point to) {
-			return delegate.connectionData(from, to);
+			return unmodifiableEdgeData(delegate.connectionData(from, to));
 		}
 
 		@Override
@@ -192,6 +227,11 @@ public class Graphs {
 		@Override
 		public Point getRandomNode(RandomGenerator generator) {
 			return delegate.getRandomNode(generator);
+		}
+
+		@Override
+		public Connection<E> getConnection(Point from, Point to) {
+			return unmodifiableConnection(delegate.getConnection(from, to));
 		}
 
 	}

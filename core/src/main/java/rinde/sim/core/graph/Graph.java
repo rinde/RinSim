@@ -3,7 +3,6 @@
  */
 package rinde.sim.core.graph;
 
-
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
@@ -12,7 +11,8 @@ import org.apache.commons.math.random.RandomGenerator;
 
 /**
  * @author Rinde van Lon (rinde.vanlon@cs.kuleuven.be)
- * @author Bartosz Michalik <bartosz.michalik@cs.kuleuven.be> - added edge data handling
+ * @author Bartosz Michalik <bartosz.michalik@cs.kuleuven.be> - added edge data
+ *         handling
  * @since 1.0
  */
 public interface Graph<E extends EdgeData> {
@@ -25,14 +25,17 @@ public interface Graph<E extends EdgeData> {
 
 	public boolean hasConnection(Point from, Point to);
 
+	public Connection<E> getConnection(Point from, Point to);
+
 	/**
 	 * Get the data associated with connection.
-	 * @param from 
+	 * @param from
 	 * @param to
-	 * @return connection data or <code>null</code> if there is no data or connection does not exists.
+	 * @return connection data or <code>null</code> if there is no data or
+	 *         connection does not exists.
 	 */
 	public E connectionData(Point from, Point to);
-	
+
 	public double connectionLength(Point from, Point to);
 
 	public int getNumberOfConnections();
@@ -50,23 +53,24 @@ public interface Graph<E extends EdgeData> {
 	 * @param edgeData data associated with the edge
 	 */
 	public void addConnection(Point from, Point to, E edgeData);
-	
+
 	public void addConnection(Point from, Point to);
-	
+
 	/**
-	 * Add connection to the graph. 
-	 * @param connection  
+	 * Add connection to the graph.
+	 * @param connection
 	 */
 	public void addConnection(Connection<E> connection);
-	
+
 	/**
-	 * Set connection data 
-	 * @param from 
+	 * Set connection data
+	 * @param from
 	 * @param to
 	 * @param edgeData
 	 * @return old edge data or <code>null</null> if there was no edge
 	 * @precondition connection from -> to exists
-	 * @throws IllegalArgumentException when the connection between nodes do not exists
+	 * @throws IllegalArgumentException when the connection between nodes do not
+	 *             exists
 	 */
 	public E setEdgeData(Point from, Point to, E edgeData);
 
@@ -81,12 +85,13 @@ public interface Graph<E extends EdgeData> {
 	public void removeConnection(Point from, Point to);
 
 	public boolean equals(Graph<? extends E> other);
-	
+
 	/**
 	 * Get a random node in graph.
 	 * @param generator used to generate the random point.
-	 * @return random {@link Point} 
-	 * @throws NullPointerException should be thrown when parameter is <code>null</code>
+	 * @return random {@link Point}
+	 * @throws NullPointerException should be thrown when parameter is
+	 *             <code>null</code>
 	 */
 	public Point getRandomNode(RandomGenerator generator);
 

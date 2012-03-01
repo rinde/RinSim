@@ -11,26 +11,28 @@ import java.util.Set;
 
 import org.apache.commons.math.random.RandomGenerator;
 
-
 import com.google.common.collect.LinkedHashBasedTable;
 import com.google.common.collect.Table;
 import com.google.common.collect.Table.Cell;
 
 /**
- * Table-based implementation of the graph. 
+ * Table-based implementation of the graph.
  * TODO add more comments
  * @author Rinde van Lon (rinde.vanlon@cs.kuleuven.be)
- * @author Bartosz Michalik <bartosz.michalik@cs.kuleuven.be> - change to the parametric version
+ * @author Bartosz Michalik <bartosz.michalik@cs.kuleuven.be> - change to the
+ *         parametric version
  * 
  */
 public class TableGraph<E extends EdgeData> implements Graph<E> {
 
 	private final Table<Point, Point, E> data;
-	
+
 	private final E EMPTY;
 
 	public TableGraph(E emptyValue) {
-		if(emptyValue == null) throw new IllegalArgumentException("the representation of empty value is needed");
+		if (emptyValue == null) {
+			throw new IllegalArgumentException("the representation of empty value is needed");
+		}
 		data = LinkedHashBasedTable.create();
 		EMPTY = emptyValue;
 	}
@@ -43,7 +45,7 @@ public class TableGraph<E extends EdgeData> implements Graph<E> {
 		LinkedHashSet<Point> nodes = new LinkedHashSet<Point>(data.rowKeySet());
 		nodes.addAll(data.columnKeySet());
 		//TODO [bm] unmodifiable is really needed ???
-//		return Collections.unmodifiableSet(nodes);
+		//		return Collections.unmodifiableSet(nodes);
 		return nodes;
 	}
 
@@ -98,14 +100,15 @@ public class TableGraph<E extends EdgeData> implements Graph<E> {
 		addConnection(from, to, null);
 	}
 
-
 	@Override
 	public List<Connection<E>> getConnections() {
 		List<Connection<E>> connections = new ArrayList<Connection<E>>();
 		for (Cell<Point, Point, E> cell : data.cellSet()) {
-			if(EMPTY.equals(cell.getValue()))
+			if (EMPTY.equals(cell.getValue())) {
 				connections.add(new Connection<E>(cell.getRowKey(), cell.getColumnKey(), null));
-			else connections.add(new Connection<E>(cell.getRowKey(), cell.getColumnKey(), cell.getValue()));
+			} else {
+				connections.add(new Connection<E>(cell.getRowKey(), cell.getColumnKey(), cell.getValue()));
+			}
 		}
 		return connections;
 	}
@@ -118,10 +121,9 @@ public class TableGraph<E extends EdgeData> implements Graph<E> {
 	@Override
 	public void addConnections(Collection<Connection<E>> connections) {
 		for (Connection<E> connection : connections) {
-			addConnection(connection);			
+			addConnection(connection);
 		}
 	}
-
 
 	@Override
 	public boolean isEmpty() {
@@ -137,12 +139,19 @@ public class TableGraph<E extends EdgeData> implements Graph<E> {
 		throw new IllegalArgumentException("Can not get connection length from a non-existing connection.");
 	}
 
+	@Override
+	public Connection<E> getConnection(Point from, Point to) {
+		if (!hasConnection(from, to)) {
+			throw new IllegalArgumentException(from + " -> " + to + " is not a connection.");
+		}
+		return new Connection<E>(from, to, connectionData(from, to));
+	}
+
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@Override
 	public boolean equals(Object other) {
 		return other instanceof Graph ? equals((Graph) other) : false;
 	}
-
 
 	/**
 	 * {@inheritDoc}
@@ -150,7 +159,9 @@ public class TableGraph<E extends EdgeData> implements Graph<E> {
 	@Override
 	public E connectionData(Point from, Point to) {
 		E e = data.get(from, to);
-		if(EMPTY.equals(e)) return null;
+		if (EMPTY.equals(e)) {
+			return null;
+		}
 		return e;
 	}
 
@@ -159,27 +170,31 @@ public class TableGraph<E extends EdgeData> implements Graph<E> {
 		if (from.equals(to)) {
 			throw new IllegalArgumentException("A connection cannot be circular: " + from + " -> " + to);
 		}
-		if(hasConnection(from, to)) {
-			throw new IllegalArgumentException("A connection exists: " + from + " -> " + to);
+		if (hasConnection(from, to)) {
+			throw new IllegalArgumentException("Connection already exists: " + from + " -> " + to);
 		}
-		if(edgeData == null) {
-			data.put(from, to, EMPTY);			
+		if (edgeData == null) {
+			data.put(from, to, EMPTY);
 		} else {
 			data.put(from, to, edgeData);
 		}
 	}
-	
+
 	@Override
 	public void addConnection(Connection<E> c) {
-		if(c == null) return;
+		if (c == null) {
+			return;
+		}
 		addConnection(c.from, c.to, c.edgeData);
 	}
 
 	@Override
 	public E setEdgeData(Point from, Point to, E edgeData) {
-		if(hasConnection(from, to)) {
+		if (hasConnection(from, to)) {
 			E e = data.put(from, to, edgeData);
-			if(EMPTY.equals(e)) return null;
+			if (EMPTY.equals(e)) {
+				return null;
+			}
 			return e;
 		}
 		throw new IllegalArgumentException("Can not get connection length from a non-existing connection.");
@@ -189,15 +204,19 @@ public class TableGraph<E extends EdgeData> implements Graph<E> {
 	public boolean equals(Graph<? extends E> other) {
 		return Graphs.equals(this, other);
 	}
-	
+
 	@Override
 	public Point getRandomNode(RandomGenerator generator) {
-		if(getNumberOfNodes() == 0) throw new IllegalStateException("no nodes in the graph");
+		if (getNumberOfNodes() == 0) {
+			throw new IllegalStateException("no nodes in the graph");
+		}
 		Set<Point> nodes = getNodes();
 		int idx = generator.nextInt(nodes.size());
 		int i = 0;
 		for (Point point : nodes) {
-			if(idx == i++) return point;
+			if (idx == i++) {
+				return point;
+			}
 		}
 		return null; //should not happen
 	}

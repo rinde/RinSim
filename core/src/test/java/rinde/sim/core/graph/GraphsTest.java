@@ -255,10 +255,6 @@ public class GraphsTest {
 
 	}
 
-	public void equalsTest2() {
-
-	}
-
 	@Test
 	public void closestObjectsTest() {
 		Function<Point, Point> f = new Function<Point, Point>() {

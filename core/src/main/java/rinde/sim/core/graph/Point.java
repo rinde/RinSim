@@ -61,7 +61,7 @@ public class Point implements Serializable {
 		if (p == null) {
 			return false;
 		}
-		return hashCode() == p.hashCode();
+		return x == p.x && y == p.y; //hashCode() == p.hashCode();
 	}
 
 	@Override

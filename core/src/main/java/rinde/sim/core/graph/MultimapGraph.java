@@ -20,7 +20,8 @@ import com.google.common.collect.Multimaps;
 
 /**
  * @author Rinde van Lon (rinde.vanlon@cs.kuleuven.be)
- * @author Bartosz Michalik <bartosz.michalik@cs.kuleuven.be> - added edge data + and  dead end nodes
+ * @author Bartosz Michalik <bartosz.michalik@cs.kuleuven.be> - added edge data
+ *         + and dead end nodes
  */
 public class MultimapGraph<E extends EdgeData> implements Graph<E> {
 
@@ -34,7 +35,7 @@ public class MultimapGraph<E extends EdgeData> implements Graph<E> {
 		this.deadEndNodes = new HashSet<Point>();
 		deadEndNodes.addAll(data.values());
 		deadEndNodes.removeAll(data.keySet());
-		
+
 	}
 
 	public MultimapGraph() {
@@ -76,13 +77,14 @@ public class MultimapGraph<E extends EdgeData> implements Graph<E> {
 	@Override
 	public void addConnection(Point from, Point to, E edgeData) {
 		if (from.equals(to)) {
-			throw new IllegalArgumentException(
-					"A connection cannot be circular");
+			throw new IllegalArgumentException("A connection cannot be circular");
 		}
-		
-		if(data.put(from, to)) {
+
+		if (data.put(from, to)) {
 			deadEndNodes.remove(from);
-			if(!data.containsKey(to)) deadEndNodes.add(to);
+			if (!data.containsKey(to)) {
+				deadEndNodes.add(to);
+			}
 		}
 		if (edgeData != null) {
 			this.edgeData.put(new Connection<E>(from, to, null), edgeData);
@@ -91,16 +93,17 @@ public class MultimapGraph<E extends EdgeData> implements Graph<E> {
 
 	@Override
 	public void addConnection(Connection<E> c) {
-		if (c == null)
+		if (c == null) {
 			return;
+		}
 		addConnection(c.from, c.to, c.edgeData);
 	}
 
 	@Override
 	public E setEdgeData(Point from, Point to, E edgeData) {
-		if (!hasConnection(from, to))
-			throw new IllegalArgumentException("the connection " + from
-					+ " -> " + to + "does not exist");
+		if (!hasConnection(from, to)) {
+			throw new IllegalArgumentException("the connection " + from + " -> " + to + "does not exist");
+		}
 		return this.edgeData.put(new Connection<E>(from, to, null), edgeData);
 	}
 
@@ -111,19 +114,16 @@ public class MultimapGraph<E extends EdgeData> implements Graph<E> {
 
 	@Override
 	public Set<Point> getNodes() {
-		LinkedHashSet<Point> nodes = new LinkedHashSet<Point>(data
-				.keySet());
+		LinkedHashSet<Point> nodes = new LinkedHashSet<Point>(data.keySet());
 		nodes.addAll(deadEndNodes);
 		return nodes;
 	}
 
 	@Override
 	public List<Connection<E>> getConnections() {
-		ArrayList<Connection<E>> res = new ArrayList<Connection<E>>(
-				edgeData.size());
+		ArrayList<Connection<E>> res = new ArrayList<Connection<E>>(edgeData.size());
 		for (Entry<Point, Point> p : data.entries()) {
-			Connection<E> connection = new Connection<E>(p.getKey(),
-					p.getValue(), null);
+			Connection<E> connection = new Connection<E>(p.getKey(), p.getValue(), null);
 			E eD = edgeData.get(connection);
 			connection.setEdgeData(eD);
 			res.add(connection);
@@ -186,14 +186,14 @@ public class MultimapGraph<E extends EdgeData> implements Graph<E> {
 	@Override
 	public void removeConnection(Point from, Point to) {
 		if (hasConnection(from, to)) {
-			if(data.remove(from, to)) {
+			if (data.remove(from, to)) {
 				removeData(from, to);
-				if(! data.containsKey(to)) deadEndNodes.add(to);
-			}			
+				if (!data.containsKey(to)) {
+					deadEndNodes.add(to);
+				}
+			}
 		} else {
-			throw new IllegalArgumentException(
-					"Can not remove non-existing connection: " + from + " -> "
-							+ to);
+			throw new IllegalArgumentException("Can not remove non-existing connection: " + from + " -> " + to);
 		}
 	}
 
@@ -207,8 +207,7 @@ public class MultimapGraph<E extends EdgeData> implements Graph<E> {
 			E eD = connectionData(from, to);
 			return eD != null ? eD.getLength() : Point.distance(from, to);
 		}
-		throw new IllegalArgumentException(
-				"Can not get connection length from a non-existing connection.");
+		throw new IllegalArgumentException("Can not get connection length from a non-existing connection.");
 	}
 
 	@Override
@@ -224,13 +223,25 @@ public class MultimapGraph<E extends EdgeData> implements Graph<E> {
 
 	@Override
 	public Point getRandomNode(RandomGenerator generator) {
-		if(getNumberOfNodes() == 0) throw new IllegalStateException("no nodes in the graph");
+		if (getNumberOfNodes() == 0) {
+			throw new IllegalStateException("no nodes in the graph");
+		}
 		Set<Point> nodes = getNodes();
 		int idx = generator.nextInt(nodes.size());
 		int i = 0;
 		for (Point point : nodes) {
-			if(idx == i++) return point;
+			if (idx == i++) {
+				return point;
+			}
 		}
 		return null; //should not happen
+	}
+
+	@Override
+	public Connection<E> getConnection(Point from, Point to) {
+		if (!hasConnection(from, to)) {
+			throw new IllegalArgumentException(from + " -> " + to + " is not a connection.");
+		}
+		return new Connection<E>(from, to, connectionData(from, to));
 	}
 }
