@@ -3,8 +3,6 @@ package rinde.sim.scenario;
 import java.util.Arrays;
 import java.util.LinkedList;
 
-import javax.swing.DebugGraphics;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,16 +31,18 @@ public abstract class ScenarioController implements TickListener, Listener {
 			.getLogger(ScenarioController.class);
 
 	protected final Scenario scenario;
-	protected final Simulator simulator;
 	private int ticks;
 	private final EventDispatcher disp;
+
+	
+	private  Simulator simulator;
 	
 	private Type status = null;
 
 	/**
 	 * <code>true</code> when user interface was defined. In ui mode
 	 */
-	protected final boolean uiMode;
+	private boolean uiMode;
 
 	/**
 	 * Create an instance of ScenarioController with defined {@link Scenario}
@@ -61,19 +61,42 @@ public abstract class ScenarioController implements TickListener, Listener {
 			throws ConfigurationException {
 		if (scen == null)
 			throw new ConfigurationException("scenarion cannot be null");
+		ticks = numberOfTicks;
 		scenario = new Scenario(scen);
 		disp = new EventDispatcher(merge(scenario.getPossibleEventTypes(), Type.values()));
 		disp.addListener(this, scenario.getPossibleEventTypes());
-		simulator = createSimulator();
+	}
+
+	/**
+	 * Method that initializes the simulator using {@link ScenarioController#createSimulator()}
+	 * and user interface (if defined) using {@link ScenarioController#createUserInterface()}. 
+	 * Must be called from within a constructor of specialized class.
+	 * @throws ConfigurationException
+	 */
+	final protected void initialize() throws ConfigurationException {
+		try{
+			simulator = createSimulator();			
+		} catch(Exception e) {
+			LOGGER.warn("exceptioin thrown during createSimulator()", e);
+			throw new ConfigurationException("unexpected", e);
+		}
 		checkSimulator();
 		simulator.configure();
-		ticks = numberOfTicks;
 		LOGGER.info("simulator created");
 
 		simulator.addTickListener(this);
 
 		uiMode = createUserInterface();
 	}
+	
+	/**
+	 * Access the simulator from the subclasses. Method returns simulator only after calling {@link ScenarioController#initialize()}.
+	 * @return simulator or <code>null</code>
+	 */
+	public Simulator getSimulator() {
+		return simulator;
+	}
+
 	
 	private static Enum<?>[] merge(Enum<?>[]... enums) {
 		LinkedList<Enum<?>> list = new LinkedList<Enum<?>>();
@@ -94,8 +117,9 @@ public abstract class ScenarioController implements TickListener, Listener {
 	 * 
 	 * @postcondition simulator != null && simulator not configured
 	 * @return simulator
+	 * @throws Exception
 	 */
-	protected abstract Simulator createSimulator();
+	protected abstract Simulator createSimulator() throws Exception;
 
 	/**
 	 * Create the user interface. By default method is empty and disables uiMode
@@ -140,7 +164,8 @@ public abstract class ScenarioController implements TickListener, Listener {
 		}
 	}
 	
-	public void start() {
+	public void start() throws ConfigurationException {
+		checkSimulator();
 		if (!uiMode) {
 			new Thread(){
 				@Override
@@ -174,6 +199,7 @@ public abstract class ScenarioController implements TickListener, Listener {
 		while ((e = scenario.peek()) != null && e.time <= currentTime) {
 			scenario.poll();
 			if(status == null) {
+				LOGGER.info("simulation started at virtual time:" + currentTime);
 				status = Type.SCENARIO_STARTED;
 				disp.dispatchEvent(new Event(status, this));
 			}
@@ -182,7 +208,9 @@ public abstract class ScenarioController implements TickListener, Listener {
 		}
 		
 		if(e == null && status != Type.SCENARIO_FINISHED) {
+			LOGGER.info("simulation finished at virtual time:" + currentTime);
 			status = Type.SCENARIO_FINISHED;
+			simulator.removeTickListener(this);
 			disp.dispatchEvent(new Event(status, this));
 		}
 

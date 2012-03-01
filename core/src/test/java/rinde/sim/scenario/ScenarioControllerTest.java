@@ -72,7 +72,7 @@ public class ScenarioControllerTest {
 			}
 		});
 
-		controller.simulator.tick();
+		controller.getSimulator().tick();
 		assertTrue("event generated", r[0]);
 		assertEquals(3, i[0]);
 	}
@@ -145,6 +145,8 @@ public class ScenarioControllerTest {
 				return null;
 			}
 		};
+		
+		c.start();
 	}
 
 }
@@ -154,18 +156,13 @@ class TestScenarioController extends ScenarioController {
 	public TestScenarioController(Scenario scen, int numberOfTicks)
 			throws ConfigurationException {
 		super(scen, numberOfTicks);
+		initialize();
 	}
 
 	@Override
 	protected Simulator createSimulator() {
 		MersenneTwister rand = new MersenneTwister(123);
 		return new Simulator(rand, 1);
-	}
-
-	@Override
-	protected boolean handleCustomEvent(Event e) {
-		// TODO Auto-generated method stub
-		return false;
 	}
 
 }

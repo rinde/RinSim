@@ -20,8 +20,8 @@ import rinde.sim.ui.renderers.ObjectRenderer;
 import rinde.sim.ui.renderers.UiSchema;
 
 /**
- * @author Rinde van Lon (rinde.vanlon@cs.kuleuven.be)
- * 
+ * @author Bartosz Michalik <bartosz.michalik@cs.kuleuven.be>
+ * @since 2.0
  */
 public class RandomWalkExample {
 
