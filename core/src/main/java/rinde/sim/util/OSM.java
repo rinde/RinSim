@@ -9,7 +9,6 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map.Entry;
 
 import org.xml.sax.Attributes;
 import org.xml.sax.InputSource;
@@ -18,10 +17,11 @@ import org.xml.sax.XMLReader;
 import org.xml.sax.helpers.DefaultHandler;
 import org.xml.sax.helpers.XMLReaderFactory;
 
+import rinde.sim.core.graph.Connection;
+import rinde.sim.core.graph.Graph;
+import rinde.sim.core.graph.MultiAttributeEdgeData;
 import rinde.sim.core.graph.Point;
-
-import com.google.common.collect.HashMultimap;
-import com.google.common.collect.Multimap;
+import rinde.sim.core.graph.TableGraph;
 
 /**
  * @author Rinde van Lon (rinde.vanlon@cs.kuleuven.be)
@@ -29,41 +29,47 @@ import com.google.common.collect.Multimap;
  */
 public class OSM {
 
-	public static Multimap<Point, Point> parse(String filename) {
+	static HashSet<String> highwayNames = new HashSet<String>();
+
+	public static Graph<MultiAttributeEdgeData> parse(String filename) {
 		try {
 			InputSource inputSource = new InputSource(new FileInputStream(filename));
 			XMLReader xmlReader = XMLReaderFactory.createXMLReader();
-			Multimap<Point, Point> graph = HashMultimap.create();
+			//Multimap<Point, Point> graph = HashMultimap.create();
+
+			TableGraph<MultiAttributeEdgeData> graph = new TableGraph<MultiAttributeEdgeData>(MultiAttributeEdgeData.EMPTY);
+
 			OSMParser parser = new OSMParser(graph);
 			xmlReader.setContentHandler(parser);
 			xmlReader.setErrorHandler(parser);
 			xmlReader.parse(inputSource);
 
 			// remove circular connections
-			List<Entry<Point, Point>> removeList = new ArrayList<Entry<Point, Point>>();
-			for (Entry<Point, Point> connection : graph.entries()) {
-				if (connection.getKey().equals(connection.getValue())) {
+			List<Connection<MultiAttributeEdgeData>> removeList = new ArrayList<Connection<MultiAttributeEdgeData>>();
+			for (Connection<MultiAttributeEdgeData> connection : graph.getConnections()) {
+				if (connection.from.equals(connection.to)) {
 					removeList.add(connection);
 				}
 			}
-			for (Entry<Point, Point> connection : removeList) {
-				graph.remove(connection.getKey(), connection.getValue());
+			for (Connection<MultiAttributeEdgeData> connection : removeList) {
+				graph.removeConnection(connection.from, connection.to);
 			}
-
+			System.out.println(highwayNames.toString());
 			return graph;
 		} catch (Exception e) {
 			e.printStackTrace();
 			throw new RuntimeException("Failed to load xml file properly: " + filename);
 		}
+
 	}
 
 	static class OSMParser extends DefaultHandler {
 
-		protected Multimap<Point, Point> rs;
+		protected Graph<MultiAttributeEdgeData> rs;
 		protected HashMap<String, Point> nodes;
 		protected WayParser current;
 
-		public OSMParser(Multimap<Point, Point> rs) {
+		public OSMParser(Graph<MultiAttributeEdgeData> rs) {
 			super();
 			this.rs = rs;
 			nodes = new HashMap<String, Point>();
@@ -120,12 +126,13 @@ public class OSM {
 	static class WayParser extends DefaultHandler {
 
 		protected final HashSet<String> highwayTypes = new HashSet<String>(
-				Arrays.asList("motorway", "motorway_link", "trunk", "trunk_link", "primary", "primary_link", "motorway_junction", "secondary", "secondary_link", "tertiary", "road", "living_street", "residential"));
+				Arrays.asList("motorway", "motorway_link", "trunk", "trunk_link", "primary", "primary_link", "motorway_junction", "secondary", "secondary_link", "tertiary", "road", "living_street", "residental", "residential", "residential;unclassified", "crossing", "ditch", "unclassified", "raceway", "path", "turning_circle", "track", "trunk_link", "trunk", "platform", "minor"));
 		// what about 'unclassified'?
 
 		protected final HashSet<String> junctionTypes = new HashSet<String>(Arrays.asList("roundabout"));
 
 		protected List<String> nodes;
+		protected double maxSpeed;
 		protected boolean oneWay;
 		protected boolean isValidRoad;
 		protected HashMap<String, Point> nodeMapping;
@@ -133,6 +140,7 @@ public class OSM {
 		public WayParser(HashMap<String, Point> nodeMapping) {
 			nodes = new ArrayList<String>();
 			oneWay = false;
+			maxSpeed = Double.NaN;
 			isValidRoad = false;
 			this.nodeMapping = nodeMapping;
 		}
@@ -140,29 +148,41 @@ public class OSM {
 		@Override
 		public void startElement(String namespaceURI, String localName, String qualifiedName, Attributes attributes) {
 			if (localName.equals("tag")) {
+
+				if (attributes.getValue("k").equals("highway")) {
+					highwayNames.add(attributes.getValue("v"));
+				}
+
 				if (attributes.getValue("k").equals("oneway") && attributes.getValue("v").equals("yes")) {
 					oneWay = true;
 				} else if (attributes.getValue("k").equals("highway") && highwayTypes.contains(attributes.getValue("v"))) {
 					isValidRoad = true;
 				} else if (attributes.getValue("k").equals("junction") && junctionTypes.contains(attributes.getValue("v"))) {
 					isValidRoad = true;
+				} else if (attributes.getValue("k").equals("maxspeed")) {
+					try {
+						maxSpeed = Integer.parseInt(attributes.getValue("v").replaceAll("\\D", ""));
+					} catch (NumberFormatException nfe) {
+						// ignore if this happens, it means that no max speed was defined
+					}
 				}
 			} else if (localName.equals("nd")) {
 				nodes.add(attributes.getValue("ref"));
 			}
 		}
 
-		public void addWaysTo(Multimap<Point, Point> graph) {
+		public void addWaysTo(Graph<MultiAttributeEdgeData> graph) {
 			if (isValidRoad) {
 				for (int i = 1; i < nodes.size(); i++) {
 					Point from = nodeMapping.get(nodes.get(i - 1));
 					Point to = nodeMapping.get(nodes.get(i));
-					if (from != null && to != null) {
-						if (!graph.containsEntry(from, to)) {
-							graph.put(from, to);
+					if (from != null && to != null && !from.equals(to)) {
+						double length = Point.distance(from, to);
+						if (!graph.hasConnection(from, to)) {
+							graph.addConnection(from, to, new MultiAttributeEdgeData(length, maxSpeed));
 						}
-						if (!oneWay && !graph.containsEntry(to, from)) {
-							graph.put(to, from);
+						if (!oneWay && !graph.hasConnection(to, from)) {
+							graph.addConnection(to, from, new MultiAttributeEdgeData(length, maxSpeed));
 						}
 					}
 				}

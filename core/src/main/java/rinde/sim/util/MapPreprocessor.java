@@ -9,13 +9,14 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map.Entry;
 import java.util.Set;
 
 import rinde.sim.core.graph.Connection;
 import rinde.sim.core.graph.EdgeData;
 import rinde.sim.core.graph.Graph;
 import rinde.sim.core.graph.Graphs;
+import rinde.sim.core.graph.LengthEdgeData;
+import rinde.sim.core.graph.MultiAttributeEdgeData;
 import rinde.sim.core.graph.MultimapGraph;
 import rinde.sim.core.graph.PathNotFoundException;
 import rinde.sim.core.graph.Point;
@@ -27,7 +28,7 @@ import com.google.common.collect.Sets;
  * @author Rinde van Lon (rinde.vanlon@cs.kuleuven.be)
  * 
  */
-public class MapFixer {
+public class MapPreprocessor {
 
 	private static <E extends EdgeData> Graph<E> hack(Graph<E> graph) {
 		Graph<E> newGraph = new MultimapGraph<E>();
@@ -44,7 +45,7 @@ public class MapFixer {
 		return newGraph;
 	}
 
-	static <E extends EdgeData> Graph<E> connect2(Graph<E> graph) {
+	public static <E extends EdgeData> Graph<E> connect2(Graph<E> graph) {
 		Graph<E> newGraph = new MultimapGraph<E>();
 		newGraph.merge(graph);
 
@@ -90,7 +91,7 @@ public class MapFixer {
 		return newGraph;
 	}
 
-	private static <E extends EdgeData>void fixCluster(Graph<E> newGraph, HashSet<Point> connected, HashSet<Point> neighbors, HashSet<Point> otherClusters) {
+	private static <E extends EdgeData> void fixCluster(Graph<E> newGraph, HashSet<Point> connected, HashSet<Point> neighbors, HashSet<Point> otherClusters) {
 		//		System.out.println(">> fixCluster");
 		while (!neighbors.isEmpty()) {
 			Point n = neighbors.iterator().next();
@@ -182,8 +183,41 @@ public class MapFixer {
 		return isConnected(graph, new HashSet<Point>(asList(p)), set);
 	}
 
-	public static Graph connect(Graph graph) {
-		Graph currentGraph = new MultimapGraph();
+	public static <E extends EdgeData> Graph<E> removeUnconnectedSubGraphs(Graph<E> graph, E empty) {
+		Graph<E> currentGraph = new TableGraph<E>(empty);
+		currentGraph.merge(graph);
+
+		List<Set<Point>> result = findNotFullyConnectedNodes(currentGraph);
+		int totalSize = 0;
+		int biggestIndex = -1;
+		int biggestSize = -1;
+		for (int i = 0; i < result.size(); i++) {
+			totalSize += result.get(i).size();
+			if (result.get(i).size() > biggestSize) {
+				biggestSize = result.get(i).size();
+				biggestIndex = i;
+			}
+		}
+
+		for (int i = 0; i < result.size(); i++) {
+			if (i != biggestIndex) {
+				System.out.println("removing: " + i + " " + result.size());
+				for (Point p : result.get(i)) {
+					currentGraph.removeNode(p);
+				}
+			}
+		}
+
+		System.out.println("Removed " + (result.size() - 1) + " subgraphs, with total size " + (totalSize - currentGraph.getNumberOfNodes()) + " nodes, resulting graph has: "
+				+ currentGraph.getNumberOfNodes() + " nodes.");
+		System.out.println(totalSize);
+		System.out.println(currentGraph.getNumberOfNodes());
+
+		return currentGraph;
+	}
+
+	public static <E extends EdgeData> Graph<E> connect(Graph<E> graph) {
+		Graph<E> currentGraph = new MultimapGraph<E>();
 		currentGraph.merge(graph);
 
 		List<Set<Point>> result = findNotFullyConnectedNodes(currentGraph);
@@ -253,16 +287,33 @@ public class MapFixer {
 
 	}
 
-	public static <E extends EdgeData> Graph<E> simplify(Graph<E> g) {
-		TableGraph<E> newGraph = new TableGraph<E>();
+	public static <E extends EdgeData> double getLength(Graph<E> g, Point from, Point to) {
+		E connectionData = g.connectionData(from, to);
+		if (connectionData == null || Double.isNaN(connectionData.getLength())) {
+			return Point.distance(from, to);
+		} else {
+			return connectionData.getLength();
+		}
+	}
+
+	public static <E extends EdgeData> Graph<E> simplify(Graph<E> g, E empty) {
+		TableGraph<E> newGraph = new TableGraph<E>(empty);
 		newGraph.merge(g);
 		boolean working = true;
 
+		//int iterations = 0;
 		while (working) {
+			//System.out.println("starting iteration: " + iterations);
+			//iterations++;
 			boolean edit = false;
 			//			System.out.println(newGraph.getConnections());
 
-			for (Connection<E> connection : newGraph.getConnections()) {
+			HashSet<Connection<E>> connections = new HashSet<Connection<E>>(newGraph.getConnections());
+			HashSet<Connection<E>> removeList = new HashSet<Connection<E>>();
+			for (Connection<E> connection : connections) {
+				if (removeList.contains(connection)) {
+					continue;
+				}
 				Point left = connection.from;
 				Point right = connection.to;
 
@@ -271,29 +322,74 @@ public class MapFixer {
 				if (type == ContractType.NO) {
 					continue;
 				} else {
-					double length = newGraph.connectionLength(left, right);
+					//					double length = getLength(newGraph, left, right);
+
+					E removeEdgeData = newGraph.connectionData(left, right);
+					double removeLength = newGraph.connectionLength(left, right);
+					removeList.add(newGraph.getConnection(left, right));
 					newGraph.removeConnection(left, right);
+
 					Point removeNode = (type == ContractType.RIGHT) ? right : left;
 					Point mergeNode = (type == ContractType.RIGHT) ? left : right;
+
 					//					System.out.println("remove: " + removeNode);
 					//					System.out.println("merge into: " + mergeNode);
-
 					for (Point outgoing : newGraph.getOutgoingConnections(removeNode)) {
 						if (!outgoing.equals(mergeNode)) {
-							double newLength = length + newGraph.connectionLength(removeNode, outgoing);
-							E eD = new E();
-							newGraph.addConnection(mergeNode, outgoing, newLength);
+							E edgeData = newGraph.connectionData(removeNode, outgoing);
+							double edgeLength = newGraph.connectionLength(removeNode, outgoing);
+							//double newLength = length + getLength(newGraph, removeNode, outgoing);
+
+							if (!newGraph.hasConnection(mergeNode, outgoing)) {
+								newGraph.addConnection(mergeNode, outgoing, mergeEdgeData(empty, removeEdgeData, removeLength, edgeData, edgeLength));
+							}
+							//							if (clazz.equals(LengthEdgeData.class)) {
+							//								newGraph.addConnection(mergeNode, outgoing, (E) new LengthEdgeData(newLength));
+							//							} else if (clazz.equals(MultiAttributeEdgeData.class)) {
+							//								throw new UnsupportedOperationException();
+							// TODO Merge the MultiAttributeEdgeData object here!
+							//								MultiAttributeEdgeData maed = (MultiAttributeEdgeData) newGraph.connectionData(removeNode, outgoing);
+							//
+							//								if(!Double.isNaN(maed.getMaxSpeed())){
+							//									
+							//								}
+							//								newGraph.addConnection(mergeNode, outgoing, (E) new MultiAttributeEdgeData(newLength));
+							//							} else {
+							//								throw new UnsupportedOperationException();
+							//							}
 						}
 					}
 					for (Point incoming : newGraph.getIncomingConnections(removeNode)) {
 						if (!incoming.equals(mergeNode)) {
-							double newLength = length + newGraph.connectionLength(incoming, removeNode);
-							newGraph.addConnection(incoming, mergeNode, newLength);
+							E edgeData = newGraph.connectionData(incoming, removeNode);
+							double edgeLength = newGraph.connectionLength(incoming, removeNode);
+
+							//							double newLength = length + getLength(newGraph, incoming, removeNode);
+							if (!newGraph.hasConnection(incoming, mergeNode)) {
+								newGraph.addConnection(incoming, mergeNode, mergeEdgeData(empty, edgeData, edgeLength, removeEdgeData, removeLength));
+							}
+							//							if (clazz.equals(LengthEdgeData.class)) {
+							//								
+							//							} else {
+							//								throw new UnsupportedOperationException();
+							//							}
+
+							//							newGraph.addConnection(incoming, mergeNode, new LengthEdgeData(newLength));
 						}
 					}
+
+					Collection<Point> in = newGraph.getIncomingConnections(removeNode);
+					for (Point p : in) {
+						removeList.add(newGraph.getConnection(p, removeNode));
+					}
+					Collection<Point> out = newGraph.getOutgoingConnections(removeNode);
+					for (Point p : out) {
+						removeList.add(newGraph.getConnection(removeNode, p));
+					}
+
 					newGraph.removeNode(removeNode);
 					edit = true;
-					break;
+					//break;
 				}
 			}
 			if (!edit) {
@@ -303,11 +399,24 @@ public class MapFixer {
 		return newGraph;
 	}
 
+	// TODO also check if input values are valid!!
+	// TODO do something with maxSpeed!!
+	@SuppressWarnings("unchecked")
+	static <E extends EdgeData> E mergeEdgeData(E empty, E e1, double l1, E e2, double l2) {
+		if (empty instanceof LengthEdgeData) {
+			return (E) new LengthEdgeData(l1 + l2);
+		} else if (empty instanceof MultiAttributeEdgeData) {
+			return (E) new MultiAttributeEdgeData(l1 + l2);
+		}
+		throw new IllegalArgumentException("EdgeData objects are of unknown type");
+	}
+
 	enum ContractType {
 		BOTH, LEFT, RIGHT, NO
 	}
 
-	static ContractType isContractable(Graph g, Point node1, Point node2) {
+	//TODO fix this method to also take the EdgeData into account 
+	static ContractType isContractable(Graph<? extends EdgeData> g, Point node1, Point node2) {
 		boolean n12 = g.getOutgoingConnections(node1).contains(node2);
 		boolean n21 = g.getOutgoingConnections(node2).contains(node1);
 
@@ -375,12 +484,15 @@ public class MapFixer {
 		throw new IllegalStateException("Unexpected node configuration..");
 	}
 
-	public static List<Set<Point>> findNotFullyConnectedNodes(Graph graph) {
+	public static <E extends EdgeData> List<Set<Point>> findNotFullyConnectedNodes(Graph<E> graph) {
+		if (graph == null || graph.isEmpty()) {
+			throw new IllegalArgumentException("Graph may not be null and must contain at least one node.");
+		}
 		// just get a 'random' starting point
 		return findNotFullyConnectedNodes(graph, new ArrayList<Point>(graph.getNodes()).get(0));
 	}
 
-	public static List<Set<Point>> findNotFullyConnectedNodes(Graph graph, Point root) {
+	public static <E extends EdgeData> List<Set<Point>> findNotFullyConnectedNodes(Graph<E> graph, Point root) {
 
 		HashSet<Point> fullyConnectedSet = new HashSet<Point>();
 		HashSet<Point> neighbours = new HashSet<Point>();
@@ -460,9 +572,9 @@ public class MapFixer {
 		//
 		//		DotUtils.saveToDot(graph, "files/maps/dot/leuven-centrum");
 
-		Graph g = DotUtils.parseDot("files/maps/dot/leuven.dot");
-		Graph simple = simplify(g);
-		DotUtils.saveToDot(simple, "files/maps/dot/leuven-simple", false);
+		//Graph g = DotUtils.parseDot("files/maps/dot/leuven.dot");
+		//Graph simple = simplify(g);
+		//DotUtils.saveToDot(simple, "files/maps/dot/leuven-simple", false);
 
 	}
 }
