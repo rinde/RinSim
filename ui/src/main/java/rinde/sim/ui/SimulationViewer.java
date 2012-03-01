@@ -90,7 +90,7 @@ public class SimulationViewer extends Composite implements TickListener, Control
 		this.renderers = renderers;
 		this.speedUp = speedUp;
 		shell.setLayout(new FillLayout());
-		setLayout(new FillLayout());
+		this.setLayout(new FillLayout());
 		bindToSimulator(simulator);
 
 		display = shell.getDisplay();
@@ -310,11 +310,10 @@ public class SimulationViewer extends Composite implements TickListener, Control
 
 	protected void onSpeedChange(MenuItem source) {
 		if (">".equals(source.getData())) {
-			speedUp += 1;
+			speedUp <<= 1;
 		} else {
-			if (speedUp > 1) {
-				speedUp -= 1;
-			}
+			if (speedUp > 1)
+				speedUp >>= 1;
 		}
 	}
 

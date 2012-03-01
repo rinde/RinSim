@@ -20,8 +20,8 @@ import rinde.sim.ui.renderers.ObjectRenderer;
 import rinde.sim.ui.renderers.UiSchema;
 
 /**
- * @author Rinde van Lon (rinde.vanlon@cs.kuleuven.be)
- * 
+ * @author Bartosz Michalik <bartosz.michalik@cs.kuleuven.be>
+ * @since 2.0
  */
 public class RandomWalkExample {
 
@@ -30,7 +30,7 @@ public class RandomWalkExample {
 		MersenneTwister rand = new MersenneTwister(123);
 		Simulator simulator = new Simulator(rand, 1000);
 		Graph<LengthEdgeData> graph = DotGraphSerializer.getLengthGraphSerializer(new SelfCycleFilter()).read("files/leuven.dot");
-//		roadModel.addGraph(DotGraphSerializer.getLengthGraphSerializer(new SelfCycleFilter()).read("files/brussels.dot"));
+//		Graph<LengthEdgeData> graph = DotGraphSerializer.getLengthGraphSerializer(new SelfCycleFilter()).read("files/brussels.dot");
 		RoadModel roadModel = new RoadModel(graph);
 		
 		//XXX [bm] to be decided either Communication model have RG as a constructor parameter or implements Simulator user interface
@@ -43,7 +43,9 @@ public class RandomWalkExample {
 		Random r = new Random(1317);
 		for (int i = 0; i < 100; i++) {
 			int radius = r.nextInt(300) + 200;
-			RandomWalkAgent agent = new RandomWalkAgent(r.nextDouble() / 100, radius, r.nextDouble() / 2);
+			double minSpeed = 0.005; double maxSpeed = 0.02; 
+			
+			RandomWalkAgent agent = new RandomWalkAgent(minSpeed + (maxSpeed - minSpeed) * r.nextDouble(), radius, 0.01 + r.nextDouble() / 2);
 			simulator.register(agent);
 		}
 
@@ -57,6 +59,6 @@ public class RandomWalkExample {
 		schema2.add(RandomWalkAgent.C_YELLOW, new RGB(0xff,0,0));
 		schema2.add(RandomWalkAgent.C_GREEN, new RGB(0x0,0x80,0));
 		
-		View.startGui(simulator, 5, new ObjectRenderer(roadModel, schema, false), new MessagingLayerRenderer(roadModel, schema2) );
+		View.startGui(simulator, 4, new ObjectRenderer(roadModel, schema, false), new MessagingLayerRenderer(roadModel, schema2) );
 	}
 }

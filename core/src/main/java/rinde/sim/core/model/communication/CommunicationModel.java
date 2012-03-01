@@ -32,7 +32,6 @@ public class CommunicationModel implements Model<CommunicationUser>, TickListene
 
 	protected RandomGenerator generator;
 	
-	
 	public CommunicationModel(RandomGenerator generator) {
 		if(generator == null) throw new IllegalArgumentException("generator cannot be null");
 		users = new LinkedHashSet<CommunicationUser>();
@@ -181,7 +180,9 @@ public class CommunicationModel implements Model<CommunicationUser>, TickListene
 			}
 			if(input.equals(sender)) return false;
 			final Point iPos = input.getPosition();
-			if(! rec.contains(iPos)) return false;
+			if(!rec.contains(iPos)) {
+				return false;
+			}
 			double prob = input.getReliability() * sender.getReliability();
 			double minRadius = Math.min(input.getRadius(), sender.getRadius());
 			double rand = generator.nextDouble();

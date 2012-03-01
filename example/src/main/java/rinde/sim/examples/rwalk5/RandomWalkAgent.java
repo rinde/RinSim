@@ -1,4 +1,4 @@
-package rinde.sim.examples.rwalk4;
+package rinde.sim.examples.rwalk5;
 
 import java.security.acl.LastOwnerException;
 import java.util.HashMap;
