@@ -188,7 +188,7 @@ public abstract class ScenarioController implements TickListener, Listener {
 	@Override
 	final public void tick(long currentTime, long timeStep) {
 		if (!uiMode && ticks == 0) {
-			LOGGER.info("simulation finished at virtual time:" + currentTime);
+			LOGGER.info("scenario finished at virtual time:" + currentTime);
 			simulator.stop();
 		}
 		if(LOGGER.isDebugEnabled() && ticks >= 0) {
@@ -199,7 +199,7 @@ public abstract class ScenarioController implements TickListener, Listener {
 		while ((e = scenario.peek()) != null && e.time <= currentTime) {
 			scenario.poll();
 			if(status == null) {
-				LOGGER.info("simulation started at virtual time:" + currentTime);
+				LOGGER.info("scenario started at virtual time:" + currentTime);
 				status = Type.SCENARIO_STARTED;
 				disp.dispatchEvent(new Event(status, this));
 			}
@@ -208,7 +208,7 @@ public abstract class ScenarioController implements TickListener, Listener {
 		}
 		
 		if(e == null && status != Type.SCENARIO_FINISHED) {
-			LOGGER.info("simulation finished at virtual time:" + currentTime);
+			LOGGER.info("scenario finished at virtual time:" + currentTime);
 			status = Type.SCENARIO_FINISHED;
 			simulator.removeTickListener(this);
 			disp.dispatchEvent(new Event(status, this));
