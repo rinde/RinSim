@@ -5,6 +5,7 @@ package rinde.sim.core.graph;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -44,9 +45,7 @@ public class TableGraph<E extends EdgeData> implements Graph<E> {
 	public Set<Point> getNodes() {
 		LinkedHashSet<Point> nodes = new LinkedHashSet<Point>(data.rowKeySet());
 		nodes.addAll(data.columnKeySet());
-		//TODO [bm] unmodifiable is really needed ???
-		//		return Collections.unmodifiableSet(nodes);
-		return nodes;
+		return Collections.unmodifiableSet(nodes);
 	}
 
 	@Override

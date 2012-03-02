@@ -140,7 +140,6 @@ class BarModel extends AbstractModel<Bar> {
 
 	@Override
 	public boolean unregister(Bar element) {
-		// TODO Auto-generated method stub
 		return false;
 	}
 }

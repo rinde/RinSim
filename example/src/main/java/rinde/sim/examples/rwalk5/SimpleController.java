@@ -94,7 +94,7 @@ public class SimpleController extends ScenarioController {
 	@Override
 	protected boolean handleAddTruck(Event e) {
 		int radius = randomizer.nextInt(300) + 200;
-		double minSpeed = 0.0005; double maxSpeed = 0.002; 
+		double minSpeed = 100; double maxSpeed = 700; 
 		RandomWalkAgent agent = new RandomWalkAgent(minSpeed + (maxSpeed - minSpeed) * randomizer.nextDouble(), radius, 0.01 + randomizer.nextDouble() / 2);
 		getSimulator().register(agent);
 		agent.addListener(statistics, RandomWalkAgent.Type.FINISHED_SERVICE);

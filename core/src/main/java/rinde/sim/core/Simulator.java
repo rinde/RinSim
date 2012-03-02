@@ -111,6 +111,11 @@ public class Simulator implements SimulatorAPI {
 		return modelManager.register(o);
 	}
 	
+	/**
+	 * Unregistration from the models is deleyed until all ticks are processed
+	 * 
+	 * @see rinde.sim.core.SimulatorAPI#unregister(java.lang.Object)
+	 */
 	@Override
 	public boolean unregister(Object o) {
 		if(o == null) throw new IllegalArgumentException("parameter cannot be null");

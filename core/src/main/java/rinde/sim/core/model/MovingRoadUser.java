@@ -8,7 +8,9 @@ package rinde.sim.core.model;
  */
 public interface MovingRoadUser extends RoadUser {
 	/**
-	 * Get speed of the road user
+	 * Get speed of the road user. 
+	 * The speed is expressed in graph units (typically meters) per hour.
+	 * @see 
 	 * @return speed
 	 */
 	double getSpeed();

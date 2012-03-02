@@ -22,7 +22,7 @@ public interface SimulatorAPI {
 	public boolean register(Object o);
 	
 	/**
-	 * TODO add comment
+	 * Unregister and object from simulator
 	 * @param o
 	 * @return
 	 */

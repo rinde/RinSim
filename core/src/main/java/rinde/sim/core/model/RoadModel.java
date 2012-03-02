@@ -18,6 +18,8 @@ import rinde.sim.core.graph.Graph;
 import rinde.sim.core.graph.Graphs;
 import rinde.sim.core.graph.MultiAttributeEdgeData;
 import rinde.sim.core.graph.Point;
+import rinde.sim.util.SpeedConverter;
+import rinde.sim.util.TimeUnit;
 
 import com.google.common.base.Predicate;
 import com.google.common.collect.Sets;
@@ -42,7 +44,7 @@ public class RoadModel implements Model<RoadUser> {
 	}
 
 	
-	//TODO [bm] remove
+	//TODO [bm] remove ??
 	public void addConnection(Point from, Point to) {
 		if (graph.hasConnection(from, to)) {
 			throw new IllegalArgumentException("Connection already exists.");
@@ -90,81 +92,6 @@ public class RoadModel implements Model<RoadUser> {
 	public boolean equalPosition(RoadUser obj1, RoadUser obj2) {
 		return containsObject(obj1) && containsObject(obj2) && getPosition(obj1).equals(getPosition(obj2));
 	}
-
-	/**
-	 * This method moves the specified {@link RoadUser} using the specified path
-	 * and the specified distance.
-	 * <p>
-	 * This method can be called repeatedly to follow a path. Each time this
-	 * method is invoked the <code>path</code> {@link Queue} can be modified.
-	 * When a vertex in <code>path</code> has been visited, it is removed from
-	 * the {@link Queue}.
-	 * @param object The object in the physical world that is to be moved.
-	 * @param path The path that is followed, it is modified by this method.
-	 * @param distance The distance that is attempted to be traveled over the
-	 *            <code>path</code>.
-	 * @return The actual distance that <code>object</code> has traveled after
-	 *         the execution of this method has finished.
-	 */
-	public double followPath(RoadUser object, Queue<Point> path, double distance) {
-		assert path != null : "path cannot be null";
-		assert path.peek() != null : "path cannot be empty";
-		assert distance > 0 : "distance must be greater than 0";
-		assert object != null : "object cannot be null";
-		assert objLocs.containsKey(object) : "object must have a location";
-
-		Location objLoc = objLocs.get(object);
-		checkLocation(objLoc);
-
-		if (objLoc.to != null && !path.peek().equals(objLoc.to) && (path.peek() instanceof MidPoint ? !((MidPoint) path.peek()).loc.to.equals(objLoc.to) : true)) {
-			throw new IllegalArgumentException("Illegal path for this object, first point should be in current direction. " + path);
-		} else if (objLoc.to == null && !path.peek().equals(objLoc.from) && !hasConnection(objLoc.from, path.peek())
-				&& (path.peek() instanceof MidPoint ? !hasConnection(objLoc.from, ((MidPoint) path.peek()).loc.to) : true)) {
-			throw new IllegalArgumentException("Illegal path for this object, first point should be current point.");
-		}
-		double travelDistance = distance;
-
-		Point tempPos = objLoc.getPosition();
-		double newDis = -1;
-		boolean nextVertex = false;
-		while (travelDistance > 0 && path.size() >= 1) {
-			double dist = Point.distance(tempPos, path.peek());
-			if (dist > 0 && graph.containsNode(tempPos) && !graph.hasConnection(tempPos, path.peek()) && !(path.peek() instanceof MidPoint) && !(tempPos instanceof MidPoint)) {
-				throw new IllegalStateException("followPath() attempts to use non-existing connection: " + tempPos + " >> " + path.peek() + ".");
-			}
-			if (travelDistance >= dist) {
-				tempPos = path.remove();
-				travelDistance -= dist;
-				nextVertex = true;
-			} else { // distanceLeft < dist
-				newDis = travelDistance;
-				travelDistance = 0;
-			}
-		}
-
-		if (newDis == -1) {
-			if (tempPos instanceof MidPoint) {
-				objLocs.put(object, checkLocation(((MidPoint) tempPos).loc));
-			} else {
-				objLocs.put(object, checkLocation(new Location(tempPos)));
-			}
-		} else if (nextVertex) {
-			if (path.peek() instanceof MidPoint) {
-				objLocs.put(object, checkLocation(new Location(tempPos, ((MidPoint) path.peek()).loc.to, newDis)));
-			} else {
-				objLocs.put(object, checkLocation(new Location(tempPos, path.peek(), newDis)));
-			}
-		} else {
-			Point t = objLoc.to;
-			double relpos = objLoc.relativePos + newDis;
-			if (t == null) {
-				t = path.peek();
-				relpos = newDis;
-			}
-			objLocs.put(object, checkLocation(new Location(objLoc.from, t, relpos)));
-		}
-		return distance - travelDistance;
-	}
 	
 	
 	/**
@@ -186,7 +113,7 @@ public class RoadModel implements Model<RoadUser> {
 	public PathProgress followPath(MovingRoadUser object, Queue<Point> path, long time) {
 		assert path != null : "path cannot be null";
 		assert path.peek() != null : "path cannot be empty";
-		assert time > 0 : "distance must be greater than 0";
+		assert time > 0 : "time must be greater than 0";
 		assert object != null : "object cannot be null";
 		assert objLocs.containsKey(object) : "object must have a location";
 
@@ -216,10 +143,13 @@ public class RoadModel implements Model<RoadUser> {
 		
 		double newDis = Double.NaN;
 		boolean nextVertex = false;
+		
+		final SpeedConverter sc = new SpeedConverter();
 		while (timeLeft > 0 && path.size() > 0) {
 			
-			
+			//speed in graph units per hour -> converting to miliseconds
 			double speed = getMaxSpeed(object, tempPos, path.peek());
+			speed = sc.from(speed, TimeUnit.H).to(TimeUnit.MS);
 			double travelDistance = speed * timeLeft; 
 
 			double dist = getDistance(tempPos, path.peek());

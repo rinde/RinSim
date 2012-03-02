@@ -75,7 +75,6 @@ public class RandomWalkAgent implements TickListener, MovingRoadUser, SimulatorU
 
 	@Override
 	public void afterTick(long currentTime, long timeStep) {
-		// TODO Auto-generated method stub
-		
+		// empty on purpose
 	}
 }

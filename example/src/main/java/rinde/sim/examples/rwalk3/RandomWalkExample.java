@@ -10,7 +10,7 @@ import org.eclipse.swt.graphics.RGB;
 
 import rinde.sim.core.Simulator;
 import rinde.sim.core.graph.Graph;
-import rinde.sim.core.graph.LengthEdgeData;
+import rinde.sim.core.graph.MultiAttributeEdgeData;
 import rinde.sim.core.model.RoadModel;
 import rinde.sim.core.model.communication.CommunicationModel;
 import rinde.sim.example.rwalk.common.Package;
@@ -32,7 +32,7 @@ public class RandomWalkExample {
 		// create a new simulator, load map of Leuven
 		MersenneTwister rand = new MersenneTwister(123);
 		Simulator simulator = new Simulator(rand, 1000);
-		Graph<LengthEdgeData> graph = DotGraphSerializer.getLengthGraphSerializer(new SelfCycleFilter()).read(MAP_DIR + "leuven.dot");
+		Graph<MultiAttributeEdgeData> graph = DotGraphSerializer.getMultiAttributeGraphSerializer(new SelfCycleFilter()).read(MAP_DIR + "leuven.dot");
 //		roadModel.addGraph(DotGraphSerializer.getLengthGraphSerializer(new SelfCycleFilter()).read("files/brussels.dot"));
 		RoadModel roadModel = new RoadModel(graph);
 		
@@ -45,7 +45,7 @@ public class RandomWalkExample {
 
 		Random r = new Random(1317);
 		for (int i = 0; i < 100; i++) {
-			RandomWalkAgent agent = new RandomWalkAgent(r.nextDouble() / 100);
+			RandomWalkAgent agent = new RandomWalkAgent(r.nextDouble() * 100);
 			simulator.register(agent);
 		}
 

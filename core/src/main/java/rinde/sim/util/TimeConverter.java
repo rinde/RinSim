@@ -1,17 +1,13 @@
 package rinde.sim.util;
 
+import static rinde.sim.util.TimeUnit.*;
+
 /**
  * Simple utility class to convert 
  * @author Bartosz Michalik <bartosz.michalik@cs.kuleuven.be>
  * @since 2.0
  */
-public class TimeConverter {
-	
-	private static final long SEC = 1000;
-	private static final long MIN = 60 * SEC;
-	private static final long HOUR = 60 * MIN;
-	private static final long DAY = 24 * HOUR;
-	
+public class TimeConverter {	
 	private long time = 0;
 	private final long tickLength;
 	
@@ -20,22 +16,22 @@ public class TimeConverter {
 	}
 	
 	public TimeConverter day(int days) {
-		time += days * DAY;
+		time += D.toMs(days);
 		return this;
 	}
 	
 	public TimeConverter hour(int hours) {
-		time += hours * HOUR;
+		time += H.toMs(hours);
 		return this;
 	}
 	
 	public TimeConverter min(int minutes) {
-		time += minutes * MIN;
+		time += M.toMs(minutes);
 		return this;
 	}
 	
 	public TimeConverter sec(int seconds) {
-		time += seconds * SEC;
+		time += S.toMs(seconds);
 		return this;
 	}
 	
