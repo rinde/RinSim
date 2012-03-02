@@ -1,6 +1,5 @@
 package rinde.sim.examples.rwalk5;
 
-import java.security.acl.LastOwnerException;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -24,14 +23,25 @@ import rinde.sim.core.model.communication.CommunicationUser;
 import rinde.sim.core.model.communication.Mailbox;
 import rinde.sim.core.model.communication.Message;
 
+import rinde.sim.event.Event;
+import rinde.sim.event.EventDispatcher;
+import rinde.sim.event.Events;
+import rinde.sim.event.Listener;
 import rinde.sim.example.rwalk.common.Package;
 
 /**
  * Example of the simple random agent with the use of simulation facilities. 
  * @author Bartosz Michalik <bartosz.michalik@cs.kuleuven.be>
  */
-class RandomWalkAgent implements TickListener, MovingRoadUser, SimulatorUser, CommunicationUser {
+class RandomWalkAgent implements TickListener, MovingRoadUser, SimulatorUser, CommunicationUser, Events {
 
+	
+	enum Type{
+		START_SERVICE, FINISHED_SERVICE;
+	}
+	
+	private EventDispatcher disp;
+	
 	public static final String C_BLACK = "color.black";
 	public static final String C_YELLOW = "color.yellow";
 	public static final String C_GREEN = "color.green";
@@ -51,7 +61,6 @@ class RandomWalkAgent implements TickListener, MovingRoadUser, SimulatorUser, Co
 	
 	private Set<RandomWalkAgent> communicatedWith;
 	private Mailbox mailbox;
-	private int maxSize;
 	
 	private ReentrantLock lock;
 	
@@ -59,6 +68,8 @@ class RandomWalkAgent implements TickListener, MovingRoadUser, SimulatorUser, Co
 
 	private long lastCommunication;
 	private double reliability;
+	
+	private int pickedUp;
 
 	/**
 	 * Create simple agent. 
@@ -66,15 +77,17 @@ class RandomWalkAgent implements TickListener, MovingRoadUser, SimulatorUser, Co
 	 * @param radius in which it can communicate
 	 */
 	public RandomWalkAgent(double speed, int radius, double reliability) {
-		this.speed = speed;
-		this.radius = radius;
+		disp = new EventDispatcher(Type.values());
 		communicatedWith = new HashSet<RandomWalkAgent>();
 		lastCommunicationTime = new HashMap<RandomWalkAgent, Long>();
-		mailbox = new Mailbox();
-		maxSize = 1; 
 		lock = new ReentrantLock();
+		mailbox = new Mailbox();
 		communications = 0;
+		pickedUp = 0;
+		this.speed = speed;
+		this.radius = radius;
 		this.reliability = reliability;
+		
 	}
 
 	@Override
@@ -85,9 +98,11 @@ class RandomWalkAgent implements TickListener, MovingRoadUser, SimulatorUser, Co
 		if (path == null || path.isEmpty()) {
 			if (rs.containsObject(currentPackage)) {
 				simulator.unregister(currentPackage);
+				pickedUp++;
 			}
-			if(communications > MAX_MSGs) {
+			if(communications > MAX_MSGs || pickedUp == 1000) {
 				simulator.unregister(this);
+				disp.dispatchEvent(new ServiceEndEvent(pickedUp, communications, this));
 				return;
 			}
 			Point destination = rs.getGraph().getRandomNode(rnd);
@@ -143,6 +158,8 @@ class RandomWalkAgent implements TickListener, MovingRoadUser, SimulatorUser, Co
 		rs = model;
 		Point pos = rs.getGraph().getRandomNode(rnd);
 		rs.addObjectAt(this, pos);
+		
+		disp.dispatchEvent(new Event(Type.START_SERVICE, this));
 	}
 
 
@@ -189,6 +206,22 @@ class RandomWalkAgent implements TickListener, MovingRoadUser, SimulatorUser, Co
 	
 	public int getNoReceived() {
 		return communications;
+	}
+
+	@Override
+	public void addListener(Listener l, Enum<?>... eventTypes) {
+		disp.addListener(l, eventTypes);
+	}
+
+	@Override
+	public void removeListener(Listener l, Enum<?>... eventTypes) {
+		disp.removeListener(l, eventTypes);
+		
+	}
+
+	@Override
+	public boolean containsListener(Listener l, Enum<?> eventType) {
+		return disp.containsListener(l, eventType);
 	}
 
 }
