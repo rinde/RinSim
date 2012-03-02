@@ -26,9 +26,11 @@ import rinde.sim.ui.renderers.UiSchema;
 public class RandomWalkExample {
 
 	public static void main(String[] args) throws Exception {
+		final String MAP_DIR = "../core/files/maps/dot/";
+		
 		// create a new simulator, load map of Leuven
 		Simulator simulator = new Simulator(new MersenneTwister(123), 1000);
-		Graph<LengthEdgeData> graph = DotGraphSerializer.getLengthGraphSerializer(new SelfCycleFilter()).read("files/leuven.dot");
+		Graph<LengthEdgeData> graph = DotGraphSerializer.getLengthGraphSerializer(new SelfCycleFilter()).read(MAP_DIR + "leuven.dot");
 //		roadModel.addGraph(DotGraphSerializer.getLengthGraphSerializer(new SelfCycleFilter()).read("files/brussels.dot"));
 		RoadModel roadModel = new RoadModel(graph);
 		

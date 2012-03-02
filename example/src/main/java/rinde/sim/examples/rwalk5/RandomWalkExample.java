@@ -49,7 +49,8 @@ public class RandomWalkExample {
 		Scenario s = builder.build();
 		
 		// run scenario with visualization attached
+		final String MAP_DIR = "../core/files/maps/dot/";
 		
-		new SimpleController(s, "files/leuven.dot");
+		new SimpleController(s, MAP_DIR + "leuven.dot");
 	}
 }

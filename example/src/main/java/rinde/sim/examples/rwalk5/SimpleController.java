@@ -61,7 +61,7 @@ public class SimpleController extends ScenarioController {
 	protected Simulator createSimulator() throws Exception {
 		
 		MersenneTwister rand = new MersenneTwister(123);
-		Simulator s = new Simulator(rand, 1000);
+		Simulator s = new Simulator(rand, 100);
 		CommunicationModel communicationModel = new CommunicationModel(rand);
 		s.register(roadModel);
 		s.register(communicationModel);
@@ -94,7 +94,7 @@ public class SimpleController extends ScenarioController {
 	@Override
 	protected boolean handleAddTruck(Event e) {
 		int radius = randomizer.nextInt(300) + 200;
-		double minSpeed = 0.005; double maxSpeed = 0.02; 
+		double minSpeed = 0.0005; double maxSpeed = 0.002; 
 		RandomWalkAgent agent = new RandomWalkAgent(minSpeed + (maxSpeed - minSpeed) * randomizer.nextDouble(), radius, 0.01 + randomizer.nextDouble() / 2);
 		getSimulator().register(agent);
 		agent.addListener(statistics, RandomWalkAgent.Type.FINISHED_SERVICE);
