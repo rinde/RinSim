@@ -22,6 +22,12 @@ import rinde.sim.ui.renderers.UiSchema;
 
 public class SimpleController extends ScenarioController {
 
+	private StatisticsCollector statistics = new StatisticsCollector();
+
+	private RoadModel roadModel;
+	private Random randomizer;
+	
+	
 	/**
 	 * Simple controller 
 	 * @param scen scenario to realize
@@ -42,12 +48,11 @@ public class SimpleController extends ScenarioController {
 		}
 		roadModel = new RoadModel(graph);
 		
+		
+		
 		//MUST be called !!!
 		initialize();
 	}
-
-	private RoadModel roadModel;
-	private Random randomizer;
 	
 	/**
 	 * the method is called as part of initialize method
@@ -92,6 +97,7 @@ public class SimpleController extends ScenarioController {
 		double minSpeed = 0.005; double maxSpeed = 0.02; 
 		RandomWalkAgent agent = new RandomWalkAgent(minSpeed + (maxSpeed - minSpeed) * randomizer.nextDouble(), radius, 0.01 + randomizer.nextDouble() / 2);
 		getSimulator().register(agent);
+		agent.addListener(statistics, RandomWalkAgent.Type.FINISHED_SERVICE);
 		//it is important to inform controller that event was handled to aviod runtime exception
 		return true;
 	}
