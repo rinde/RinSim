@@ -25,13 +25,15 @@ public class StatisticsCollector implements Listener {
 			totalMSGs += event.communicates;
 			totalPkgs += event.pickedUp;
 			totalTrucks++;
-//			Formatter formatter = new Formatter();
-//			formatter.format("trucks: %", args)
+			Formatter formatter = new Formatter();
+			String s = formatter.format("trucks: %1$d avg Msg: %2$.3f avg Pkg: %3$.3f", 
+					totalTrucks, ((double)totalMSGs / totalTrucks),
+						((double)totalPkgs / totalTrucks)).toString();
 //			StringWriter w = new StringWriter();
 //			PrintWriter pw = new PrintWriter(w);
 //			pw.printf(format, args)
 			
-			LOGGER.info("total trucks: {} | avgMsgs: {}", new Object[] {totalTrucks, ((double)totalMSGs / totalTrucks)}); 
+			LOGGER.info(s);
 		}
 	}
 

@@ -46,7 +46,7 @@ class RandomWalkAgent implements TickListener, MovingRoadUser, SimulatorUser, Co
 	public static final String C_YELLOW = "color.yellow";
 	public static final String C_GREEN = "color.green";
 	
-	private static final int MAX_MSGs = 20;
+	private static final int MAX_MSGs = 100;
 	private static final int COMMUNICATION_PERIOD = 10000; //10s
 	protected RoadModel rs;
 	protected RoadUser currentPackage;
@@ -100,7 +100,7 @@ class RandomWalkAgent implements TickListener, MovingRoadUser, SimulatorUser, Co
 				simulator.unregister(currentPackage);
 				pickedUp++;
 			}
-			if(communications > MAX_MSGs || pickedUp == 1000) {
+			if(communications > MAX_MSGs || pickedUp > MAX_MSGs) {
 				simulator.unregister(this);
 				disp.dispatchEvent(new ServiceEndEvent(pickedUp, communications, this));
 				return;

@@ -35,6 +35,10 @@ public class RandomWalkExample {
 					new ScenarioBuilder.EventTypeFunction(StandardType.ADD_TRUCK)));
 		
 		builder.add(new ScenarioBuilder.TimeSeries<TimedEvent>(
+				conv.day(3).toTime(), conv.day(15).toTime(), conv.hour(1).min(1).toTime(), 
+					new ScenarioBuilder.EventTypeFunction(StandardType.ADD_TRUCK)));
+		
+		builder.add(new ScenarioBuilder.TimeSeries<TimedEvent>(
 				conv.tick(2000).toTime(), conv.tick(20000).toTime(), conv.tick(1000).toTime(), new ScenarioBuilder.EventTypeFunction(StandardType.ADD_TRUCK)));
 		
 		
