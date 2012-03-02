@@ -68,12 +68,11 @@ Note that git will require you to first commit your own changes.
 
 ### The RinSim project structure
 
-After finishing the import (with any of the above methods), you should see five projects in eclipse:
+After finishing the import (with any of the above methods), you should see four projects in eclipse:
 
 * _core_: the heart of the simulator and the models.
 * _example_: some simple examples of how to use the simulator.
 * _main_: main Maven project. 
-* _playground_: TODO
 * _ui_: everything related to visualizing stuff for the simulator. 
 
 If desired, you can group the projects into one working set.
@@ -88,34 +87,42 @@ Execute one of the random walk examples in the _example_ project.
 
 ## Simulator Architecture
 
-The simulator consists of four important parts: the _Simulator_, _Models_, the GUI, and application objects.
-A simplified class diagram can be found [here](docs/classDiagram.png).
+This section gives a brief overview of the most important elements of the simulator. For a deeper understanding you should have a look at the examples, the source code, and the tests.
+A simplified class diagram of the key elements can be found [here](http://people.cs.kuleuven.be/~robrecht.haesevoets/mascourse/docs/classDiagram.png).
 
 ### Simulator
 
 The _Simulator_ class is the heart of RinSim.
-It has little functionality on its own, apart from maintaining the time.
-Application-specific simulator functionality is realized by models that can be registered in the simulator.
-The simulator uses _ModelManager_ to maintain all its models.
+Its main concern is to simulate time.
+This is done in a discrete manner. Time is divided in ticks of a certain length, which is chosen upon initializing the simulator (see examples and code).
 
-TODO
+Of course time on its own is not so useful, so we can register objects in the simulator. That is, objects implementing the _TickListener_ interface.
+These objects will listen to the internal clock of the simulator.
 
-* TickListener
-* Pluggable models
+Once started, the simulator will start to tick, and with each tick it will call all registered tickListeners, in turn, to perform some actions within the length of the time step (as illustrated [here](http://people.cs.kuleuven.be/~robrecht.haesevoets/mascourse/docs/tickListeners.png)).
+
+As you can see there is also an _afterTick_, but we'll ignore this for now.
+
+Apart from simulating time, the simulator has little functionality on its own.
+All additional functionality (such as movement, communication, etc.) that is required by your simulation, should be delegated to models.
+These models can be easily plugged (or registered) in the simulator.
 
 ### Models
 
-By using models the simulator can easily be extended.
-
-Out of the box, RinSim comes with two basic models.
+Out of the box, RinSim comes with two basic models: _RoadModel_ and _CommunicationModel_. Further on, you will see how you can implement your own models.
 
 #### RoadModel
 
-TODO
+_RoadModel_ is a model to simulate a physical road on top of a _Graph_ object.
+The _Graph_ object represents the structure of the roads. The _RoadModel_ allows to place and move objects (_RoadUsers_) on the roads.
+The _RoadModel_ can, for example, be used to simulate physical trucks and packages.
 
 #### CommunicationModel
 
-TODO
+_CommunicationModel_ is a model to simulate simple message-based communication.
+It supports both direct messaging and broadcasting.
+It can also take distance, communication radius, and communication reliability into account.
+Messages between agents are send asynchronously (as illustrated [here](http://people.cs.kuleuven.be/~robrecht.haesevoets/mascourse/docs/communication.png)).
 
 ### GUI
 
@@ -125,7 +132,7 @@ The GUI is realized by the _SimulationViewer_, which relies on a set of _Rendere
 
 This class is responsible for rendering the simulator.
 By default is renders the road of the loaded graph.
-Additional rendering is done by application specific renderers.
+Additional rendering is done by application specific renderers that are passed on creation of the GUI (see examples and code).
 
 #### Renderer
 
@@ -133,25 +140,76 @@ A _Renderer_ is responsible for rendering one or more model (or more).
 Examples are the _ObjectRenderer_ to do basic rendering of objects in the _RoadModel_, or _MessagingLayerRenderer_ to visualize messages between agents.
 When introducing new models you can create new custom renderers for these models.
 
-### Application Objects
+### Simulation Entities
 
-## How to create an agent
+Simulation entities are entities that are the actual objects in our simulation, such as agents, trucks, and packages.
+They typically implement the _TickListener_ interface and some interfaces to use additional models.
 
-### Simple sequence diagram
+## A simple example
+
+```java
+public class SimpleAgent implements TickListener, MovingRoadUser, SimulatorUser {
+	protected RoadModel rm;
+	protected Queue<Point> currentPath;
+	protected RandomGenerator rnd;
+	private SimulatorAPI simulator;
+	private Point startingPosition;
+	private double speed;
+
+	public SimpleAgent(Point startingPosition, double speed) {
+		this.speed = speed;
+		this.startingPosition = startingPosition;
+	}
+
+	@Override
+	public void setSimulator(SimulatorAPI api) {
+		this.simulator = api;
+		this.rnd  = api.getRandomGenerator();
+	}
+	
+	@Override
+	public void initRoadUser(RoadModel model) {
+		rm = model;
+		rm.addObjectAt(this, startingPosition);
+	}
+	
+	@Override
+	public void tick(long currentTime, long timeStep) {
+		if (currentPath == null || currentPath.isEmpty()) {
+			Point destination = rm.getGraph().getRandomNode(rnd);
+			currentPath = new LinkedList<Point>(rm.getShortestPathTo(this, destination));
+		} else{
+			rm.followPath(this, currentPath, timeStep);
+		}
+	}
+
+	@Override
+	public double getSpeed() {
+		return speed;
+	}
+}
+```
+
+(as illustrated [here](http://people.cs.kuleuven.be/~robrecht.haesevoets/mascourse/docs/example.png))
 
 * When is what invoked, ...
 
 ## How to create a model
 
-* (Available soon)
+_available soon_
 
 ## Additional guidelines
 
 ### Using gitHub's issues to report changes
 
+_available soon_
+
 ### Making pull requests for simulator
+
+_available soon_
 
 ### Look at test code for deeper understanding
 
+_available soon_
 
 
