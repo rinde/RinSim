@@ -90,7 +90,7 @@ public class SimulationViewer extends Composite implements TickListener, Control
 		this.renderers = renderers;
 		this.speedUp = speedUp;
 		shell.setLayout(new FillLayout());
-		this.setLayout(new FillLayout());
+		setLayout(new FillLayout());
 		bindToSimulator(simulator);
 
 		display = shell.getDisplay();
@@ -312,8 +312,9 @@ public class SimulationViewer extends Composite implements TickListener, Control
 		if (">".equals(source.getData())) {
 			speedUp <<= 1;
 		} else {
-			if (speedUp > 1)
+			if (speedUp > 1) {
 				speedUp >>= 1;
+			}
 		}
 	}
 
@@ -338,6 +339,9 @@ public class SimulationViewer extends Composite implements TickListener, Control
 			int y2 = (int) ((e.to.y - minY) * m);
 			gc.setForeground(colorRegistry.get(COLOR_BLACK));
 			gc.drawLine(x1, y1, x2, y2);
+
+			//			gc.setBackground(colorRegistry.get(COLOR_WHITE));
+			//			gc.drawText(Math.round(e.edgeData.getLength() * 10.0) / 10.0 + "m", (x1 + x2) / 2, (y1 + y2) / 2, false);
 		}
 		gc.dispose();
 
