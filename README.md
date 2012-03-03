@@ -11,7 +11,7 @@ The best way to get the simulator and handle future updates is to use git.
 
 Alternatively you can use a zip that contains the current version of RinSim.
 
-
+<!--
 ### Using the Zip file
 
 __Only use this method to tryout the simulator. Updating RinSim using this method will be annoying.__
@@ -21,23 +21,6 @@ __Only use this method to tryout the simulator. Updating RinSim using this metho
 * Open eclipse and select _File -> Import... -> General -> Existing Projects into Workspace_
 * Browse to the directory where you unzipped the project.
 * Click _finish_
-
-### Using Git
-
-#### Prerequisites
-
-* git
-* eclipse
-* m2e Maven plugin for eclipse.
-	* Get it [here](http://www.eclipse.org/m2e/), or use the following update site:
-````
-http://download.eclipse.org/technology/m2e/releases
-````
-
-#### Cloning the RinSim project
-
-_If you using a windows or graphical client for git, please see their documentation on how to clone a project._
-=======
 -->
 
 ### Prerequisites
@@ -87,55 +70,17 @@ To update the simulator later on, right-click on the top-level project, go to _T
 
 
 #### Using Git
->>>>>>> c1ebd980334938d2e793206f5a838bd5dabd3962
 
 * Open a terminal.
 * Navigate to the directory where you want to store the RinSim project.
 * Execute the following git command
 
 	````
-<<<<<<< HEAD
-	git clone git@github.com:rinde/RinSim.git
-=======
 	git clone git@github.com:rinde/RinSim.git TODO
->>>>>>> c1ebd980334938d2e793206f5a838bd5dabd3962
 	````
 	
 	This will download all the source files of the RinSim project to you local directory.
 
-<<<<<<< HEAD
-#### Importing the RinSim project into eclipse
-
-* In eclipse go to _File -> Import... -> Maven -> Existing Maven Projects
-* Browse to your local RinSim directory.
-* You will now see a list of .pom files (they should all be selected).
-* Click _Finish_
-
-#### Updating the simulator
-
-The simulator will likely change in the future (updates, bug fixes, etc.)
-
-* To update the simulator you can use the normal git pull command:
-
-	````
-	git pull origin master
-	````
-
-Note that git will require you to first commit your own changes.
-
-### The RinSim project structure
-
-After finishing the import (with any of the above methods), you should see five projects in eclipse:
-
-* _core_: the heart of the simulator and the models.
-* _example_: some simple examples of how to use the simulator.
-* _main_: main Maven project. 
-* _playground_: TODO
-* _ui_: everything related to visualizing stuff for the simulator. 
-
-If desired, you can group the projects into one working set.
-
-=======
 To update the simulator later on, you can use the _pull_ command:
 
 ````
@@ -161,7 +106,6 @@ After finishing the import, you should see the following three projects in your 
 * _example_: some simple examples of how to use the simulator.
 * _ui_: everything related to visualizing stuff for the simulator. 
 
->>>>>>> c1ebd980334938d2e793206f5a838bd5dabd3962
 ### Running the example
 
 Execute one of the random walk examples in the _example_ project.
@@ -172,41 +116,12 @@ Execute one of the random walk examples in the _example_ project.
 
 ## Simulator Architecture
 
-<<<<<<< HEAD
-The simulator consists of four important parts: the _Simulator_, _Models_, the GUI, and application objects.
-A simplified class diagram can be found [here](docs/classDiagram.png).
-=======
 This section gives a brief overview of the most important elements of the simulator. For a deeper understanding you should have a look at the examples, the source code, and the tests.
 A simplified class diagram of the key elements can be found [here](http://people.cs.kuleuven.be/~robrecht.haesevoets/mascourse/docs/classDiagram.png).
->>>>>>> c1ebd980334938d2e793206f5a838bd5dabd3962
 
 ### Simulator
 
 The _Simulator_ class is the heart of RinSim.
-<<<<<<< HEAD
-It has little functionality on its own, apart from maintaining the time.
-Application-specific simulator functionality is realized by models that can be registered in the simulator.
-The simulator uses _ModelManager_ to maintain all its models.
-
-TODO
-
-* TickListener
-* Pluggable models
-
-### Models
-
-By using models the simulator can easily be extended.
-
-Out of the box, RinSim comes with two basic models.
-
-#### RoadModel
-
-TODO
-
-#### CommunicationModel
-
-TODO
-=======
 Its main concern is to simulate time.
 This is done in a discrete manner. Time is divided in ticks of a certain length, which is chosen upon initializing the simulator (see examples and code).
 
@@ -233,40 +148,21 @@ The _RoadModel_ can, for example, be used to simulate physical trucks and packag
 It supports both direct messaging and broadcasting.
 It can also take distance, communication radius, and communication reliability into account.
 Messages between agents are send asynchronously (as illustrated [here](http://people.cs.kuleuven.be/~robrecht.haesevoets/mascourse/docs/communication.png)).
->>>>>>> c1ebd980334938d2e793206f5a838bd5dabd3962
 
 ### GUI
 
 The GUI is realized by the _SimulationViewer_, which relies on a set of _Renderers_.
 
-<<<<<<< HEAD
-#### SimulationViewer
-
-This class is responsible for rendering the simulator.
-By default is renders the road of the loaded graph.
-Additional rendering is done by application specific renderers.
-
-#### Renderer
-
-=======
 * __SimulationViewer__.
 This class is responsible for rendering the simulator.
 By default is renders the road of the loaded graph.
 Additional rendering is done by application specific renderers that are passed on creation of the GUI (see examples and code).
 
 * __Renderer__.
->>>>>>> c1ebd980334938d2e793206f5a838bd5dabd3962
 A _Renderer_ is responsible for rendering one or more model (or more).
 Examples are the _ObjectRenderer_ to do basic rendering of objects in the _RoadModel_, or _MessagingLayerRenderer_ to visualize messages between agents.
 When introducing new models you can create new custom renderers for these models.
 
-<<<<<<< HEAD
-### Application Objects
-
-## How to create an agent
-
-### Simple sequence diagram
-=======
 ### Simulation Entities
 
 Simulation entities are entities that are the actual objects in our simulation, such as agents, trucks, and packages.
@@ -318,28 +214,17 @@ public class SimpleAgent implements TickListener, MovingRoadUser, SimulatorUser 
 ```
 
 (as illustrated [here](http://people.cs.kuleuven.be/~robrecht.haesevoets/mascourse/docs/example.png))
->>>>>>> c1ebd980334938d2e793206f5a838bd5dabd3962
 
 * When is what invoked, ...
 
 ## How to create a model
 
-<<<<<<< HEAD
-* (Available soon)
-=======
 _available soon_
->>>>>>> c1ebd980334938d2e793206f5a838bd5dabd3962
 
 ## Additional guidelines
 
 ### Using gitHub's issues to report changes
 
-<<<<<<< HEAD
-### Making pull requests for simulator
-
-### Look at test code for deeper understanding
-
-=======
 _available soon_
 
 ### Making pull requests for simulator
@@ -350,6 +235,5 @@ _available soon_
 
 _available soon_
 
->>>>>>> c1ebd980334938d2e793206f5a838bd5dabd3962
 
 
