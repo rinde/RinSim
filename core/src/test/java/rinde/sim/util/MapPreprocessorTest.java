@@ -32,6 +32,8 @@ import rinde.sim.core.graph.TableGraph;
 @RunWith(Parameterized.class)
 public class MapPreprocessorTest<E extends EdgeData> {
 
+	final static boolean WRITE_TO_FILE = false;
+
 	protected Class<? extends Graph<E>> graphType;
 	protected E empty;
 
@@ -169,8 +171,12 @@ public class MapPreprocessorTest<E extends EdgeData> {
 		graph.addConnection(e, d);
 
 		Graph<E> result = MapPreprocessor.connect(graph);
-		DotUtils.saveToDot(graph, "files/test/input", true);
-		DotUtils.saveToDot(result, "files/test/fixed", true);
+		if (WRITE_TO_FILE) {
+			DotUtils.saveToDot(graph, "files/test/input", true);
+		}
+		if (WRITE_TO_FILE) {
+			DotUtils.saveToDot(result, "files/test/fixed", true);
+		}
 	}
 
 	@Test
@@ -193,8 +199,12 @@ public class MapPreprocessorTest<E extends EdgeData> {
 		graph.addConnection(e, d);
 
 		Graph<E> result = MapPreprocessor.connect2(graph);
-		DotUtils.saveToDot(graph, "files/test/input2", true);
-		DotUtils.saveToDot(result, "files/test/fixed2", true);
+		if (WRITE_TO_FILE) {
+			DotUtils.saveToDot(graph, "files/test/input2", true);
+		}
+		if (WRITE_TO_FILE) {
+			DotUtils.saveToDot(result, "files/test/fixed2", true);
+		}
 	}
 
 	// TODO extend these tests, also check all EdgeData stuff!
@@ -208,17 +218,25 @@ public class MapPreprocessorTest<E extends EdgeData> {
 
 		Graphs.addPath(graph, a, b, c, a);
 		//		System.out.println(graph.getConnections());
-		DotUtils.saveToDot(graph, "files/test/mapfixer/simplify-1-in", true);
+		if (WRITE_TO_FILE) {
+			DotUtils.saveToDot(graph, "files/test/mapfixer/simplify-1-in", true);
+		}
 		Graph<E> out = MapPreprocessor.simplify(graph, empty);
 
 		//		System.out.println(out.getConnections());
 
-		DotUtils.saveToDot(out, "files/test/mapfixer/simplify-1-out", true);
+		if (WRITE_TO_FILE) {
+			DotUtils.saveToDot(out, "files/test/mapfixer/simplify-1-out", true);
+		}
 
 		graph.addConnection(b, a);
-		DotUtils.saveToDot(graph, "files/test/mapfixer/simplify-2-in", true);
+		if (WRITE_TO_FILE) {
+			DotUtils.saveToDot(graph, "files/test/mapfixer/simplify-2-in", true);
+		}
 		out = MapPreprocessor.simplify(graph, empty);
-		DotUtils.saveToDot(out, "files/test/mapfixer/simplify-2-out", true);
+		if (WRITE_TO_FILE) {
+			DotUtils.saveToDot(out, "files/test/mapfixer/simplify-2-out", true);
+		}
 
 		assertEquals(graph, out);
 
@@ -248,12 +266,16 @@ public class MapPreprocessorTest<E extends EdgeData> {
 
 		graph = createGraph();
 		Graphs.addBiPath(graph, a, b, c, d, e, f);
-		DotUtils.saveToDot(graph, "files/test/mapfixer/simplify-4-in", true);
+		if (WRITE_TO_FILE) {
+			DotUtils.saveToDot(graph, "files/test/mapfixer/simplify-4-in", true);
+		}
 
 		assertEquals(MapPreprocessor.ContractType.RIGHT, MapPreprocessor.isContractable(graph, a, b));
 
 		out = MapPreprocessor.simplify(graph, empty);
-		DotUtils.saveToDot(out, "files/test/mapfixer/simplify-4-out", true);
+		if (WRITE_TO_FILE) {
+			DotUtils.saveToDot(out, "files/test/mapfixer/simplify-4-out", true);
+		}
 		assertEquals(2, out.getNumberOfNodes());
 		assertEquals(2, out.getNumberOfConnections());
 		assertEquals(12.0, out.connectionLength(a, f), 0.0002);
@@ -268,14 +290,18 @@ public class MapPreprocessorTest<E extends EdgeData> {
 		c = new Point(2, 0);
 
 		Graphs.addPath(graph, a, b, c);
-		DotUtils.saveToDot(graph, "files/test/mapfixer/contractable-zero-1", true);
+		if (WRITE_TO_FILE) {
+			DotUtils.saveToDot(graph, "files/test/mapfixer/contractable-zero-1", true);
+		}
 		assertEquals(MapPreprocessor.ContractType.RIGHT, MapPreprocessor.isContractable(graph, a, b));
 		assertEquals(MapPreprocessor.ContractType.LEFT, MapPreprocessor.isContractable(graph, b, a));
 		assertEquals(MapPreprocessor.ContractType.LEFT, MapPreprocessor.isContractable(graph, b, c));
 		assertEquals(MapPreprocessor.ContractType.RIGHT, MapPreprocessor.isContractable(graph, c, b));
 
 		Graphs.addPath(graph, c, b, a);
-		DotUtils.saveToDot(graph, "files/test/mapfixer/contractable-zero-2", true);
+		if (WRITE_TO_FILE) {
+			DotUtils.saveToDot(graph, "files/test/mapfixer/contractable-zero-2", true);
+		}
 		assertEquals(MapPreprocessor.ContractType.RIGHT, MapPreprocessor.isContractable(graph, a, b));
 		assertEquals(MapPreprocessor.ContractType.LEFT, MapPreprocessor.isContractable(graph, b, a));
 		assertEquals(MapPreprocessor.ContractType.LEFT, MapPreprocessor.isContractable(graph, b, c));
@@ -283,25 +309,33 @@ public class MapPreprocessorTest<E extends EdgeData> {
 
 		Point d = new Point(3, 0);
 		graph.addConnection(b, d);
-		DotUtils.saveToDot(graph, "files/test/mapfixer/contractable-zero-3", true);
+		if (WRITE_TO_FILE) {
+			DotUtils.saveToDot(graph, "files/test/mapfixer/contractable-zero-3", true);
+		}
 		assertEquals(MapPreprocessor.ContractType.NO, MapPreprocessor.isContractable(graph, a, b));
 		assertEquals(MapPreprocessor.ContractType.NO, MapPreprocessor.isContractable(graph, b, a));
 
 		graph = createGraph();
 		Graphs.addPath(graph, a, b);
-		DotUtils.saveToDot(graph, "files/test/mapfixer/contractable-zero-4", true);
+		if (WRITE_TO_FILE) {
+			DotUtils.saveToDot(graph, "files/test/mapfixer/contractable-zero-4", true);
+		}
 		assertEquals(MapPreprocessor.ContractType.NO, MapPreprocessor.isContractable(graph, a, b));
 		assertEquals(MapPreprocessor.ContractType.NO, MapPreprocessor.isContractable(graph, b, a));
 
 		Graphs.addPath(graph, b, a);
-		DotUtils.saveToDot(graph, "files/test/mapfixer/contractable-zero-5", true);
+		if (WRITE_TO_FILE) {
+			DotUtils.saveToDot(graph, "files/test/mapfixer/contractable-zero-5", true);
+		}
 		assertEquals(MapPreprocessor.ContractType.NO, MapPreprocessor.isContractable(graph, a, b));
 		assertEquals(MapPreprocessor.ContractType.NO, MapPreprocessor.isContractable(graph, b, a));
 
 		graph = createGraph();
 		graph.addConnection(a, b);
 		graph.addConnection(b, a);
-		DotUtils.saveToDot(graph, "files/test/mapfixer/contractable-zero-6", true);
+		if (WRITE_TO_FILE) {
+			DotUtils.saveToDot(graph, "files/test/mapfixer/contractable-zero-6", true);
+		}
 		assertEquals(MapPreprocessor.ContractType.NO, MapPreprocessor.isContractable(graph, a, b));
 		assertEquals(MapPreprocessor.ContractType.NO, MapPreprocessor.isContractable(graph, b, a));
 
@@ -329,34 +363,46 @@ public class MapPreprocessorTest<E extends EdgeData> {
 		d = new Point(3, 0);
 
 		Graphs.addPath(graph, a, b, c, d);
-		DotUtils.saveToDot(graph, "files/test/mapfixer/contractable-one-and-one-1", true);
+		if (WRITE_TO_FILE) {
+			DotUtils.saveToDot(graph, "files/test/mapfixer/contractable-one-and-one-1", true);
+		}
 		assertEquals(MapPreprocessor.ContractType.BOTH, MapPreprocessor.isContractable(graph, b, c));
 		assertEquals(MapPreprocessor.ContractType.BOTH, MapPreprocessor.isContractable(graph, c, b));
 
 		graph.addConnection(b, a);
-		DotUtils.saveToDot(graph, "files/test/mapfixer/contractable-one-and-one-2", true);
+		if (WRITE_TO_FILE) {
+			DotUtils.saveToDot(graph, "files/test/mapfixer/contractable-one-and-one-2", true);
+		}
 		assertEquals(MapPreprocessor.ContractType.RIGHT, MapPreprocessor.isContractable(graph, b, c));
 		assertEquals(MapPreprocessor.ContractType.LEFT, MapPreprocessor.isContractable(graph, c, b));
 
 		graph.addConnection(c, b);
-		DotUtils.saveToDot(graph, "files/test/mapfixer/contractable-one-and-one-3", true);
+		if (WRITE_TO_FILE) {
+			DotUtils.saveToDot(graph, "files/test/mapfixer/contractable-one-and-one-3", true);
+		}
 		assertEquals(MapPreprocessor.ContractType.LEFT, MapPreprocessor.isContractable(graph, b, c));
 		assertEquals(MapPreprocessor.ContractType.RIGHT, MapPreprocessor.isContractable(graph, c, b));
 
 		graph.addConnection(d, c);
-		DotUtils.saveToDot(graph, "files/test/mapfixer/contractable-one-and-one-4", true);
+		if (WRITE_TO_FILE) {
+			DotUtils.saveToDot(graph, "files/test/mapfixer/contractable-one-and-one-4", true);
+		}
 		assertEquals(MapPreprocessor.ContractType.BOTH, MapPreprocessor.isContractable(graph, b, c));
 		assertEquals(MapPreprocessor.ContractType.BOTH, MapPreprocessor.isContractable(graph, c, b));
 
 		graph.removeConnection(b, c);
-		DotUtils.saveToDot(graph, "files/test/mapfixer/contractable-one-and-one-5", true);
+		if (WRITE_TO_FILE) {
+			DotUtils.saveToDot(graph, "files/test/mapfixer/contractable-one-and-one-5", true);
+		}
 		assertEquals(MapPreprocessor.ContractType.NO, MapPreprocessor.isContractable(graph, b, c));
 		assertEquals(MapPreprocessor.ContractType.NO, MapPreprocessor.isContractable(graph, c, b));
 
 		graph = createGraph();
 		Graphs.addPath(graph, a, b, c, d);
 		graph.addConnection(c, b);
-		DotUtils.saveToDot(graph, "files/test/mapfixer/contractable-one-and-one-6", true);
+		if (WRITE_TO_FILE) {
+			DotUtils.saveToDot(graph, "files/test/mapfixer/contractable-one-and-one-6", true);
+		}
 		assertEquals(MapPreprocessor.ContractType.NO, MapPreprocessor.isContractable(graph, b, c));
 		assertEquals(MapPreprocessor.ContractType.NO, MapPreprocessor.isContractable(graph, c, b));
 
@@ -375,12 +421,16 @@ public class MapPreprocessorTest<E extends EdgeData> {
 
 		Graphs.addPath(graph, a, c, d, f);
 		Graphs.addPath(graph, a, b, c);
-		DotUtils.saveToDot(graph, "files/test/mapfixer/contractable-more-than-one-1", true);
+		if (WRITE_TO_FILE) {
+			DotUtils.saveToDot(graph, "files/test/mapfixer/contractable-more-than-one-1", true);
+		}
 		assertEquals(MapPreprocessor.ContractType.RIGHT, MapPreprocessor.isContractable(graph, c, d));
 		assertEquals(MapPreprocessor.ContractType.LEFT, MapPreprocessor.isContractable(graph, d, c));
 
 		Graphs.addPath(graph, f, e, d);
-		DotUtils.saveToDot(graph, "files/test/mapfixer/contractable-more-than-one-2", true);
+		if (WRITE_TO_FILE) {
+			DotUtils.saveToDot(graph, "files/test/mapfixer/contractable-more-than-one-2", true);
+		}
 		assertEquals(MapPreprocessor.ContractType.NO, MapPreprocessor.isContractable(graph, c, d));
 		assertEquals(MapPreprocessor.ContractType.NO, MapPreprocessor.isContractable(graph, d, c));
 	}
@@ -394,7 +444,9 @@ public class MapPreprocessorTest<E extends EdgeData> {
 		c = new Point(2, 0);
 
 		Graphs.addPath(graph, a, b, c, a);
-		DotUtils.saveToDot(graph, "files/test/mapfixer/contractable-same-neigh-1", true);
+		if (WRITE_TO_FILE) {
+			DotUtils.saveToDot(graph, "files/test/mapfixer/contractable-same-neigh-1", true);
+		}
 		assertEquals(MapPreprocessor.ContractType.BOTH, MapPreprocessor.isContractable(graph, a, b));
 		assertEquals(MapPreprocessor.ContractType.BOTH, MapPreprocessor.isContractable(graph, b, a));
 	}
