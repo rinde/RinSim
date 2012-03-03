@@ -16,7 +16,7 @@ import rinde.sim.core.model.RoadUser;
 import rinde.sim.example.rwalk.common.Package;
 
 /**
- * Example of the simple random agent with the use of simulation facilities. 
+ * Example of the simple random agent with the use of simulation facilities.
  * @author Bartosz Michalik <bartosz.michalik@cs.kuleuven.be>
  */
 public class RandomWalkAgent implements TickListener, MovingRoadUser, SimulatorUser {
@@ -26,10 +26,10 @@ public class RandomWalkAgent implements TickListener, MovingRoadUser, SimulatorU
 	protected Queue<Point> path;
 	protected RandomGenerator rnd;
 	private SimulatorAPI simulator;
-	private double speed;
+	private final double speed;
 
 	/**
-	 * Create simple agent. 
+	 * Create simple agent.
 	 * @param rnd generator to be removed
 	 * @param speed default speed of object in graph units per millisecond
 	 */
@@ -43,7 +43,7 @@ public class RandomWalkAgent implements TickListener, MovingRoadUser, SimulatorU
 			if (rs.containsObject(currentPackage)) {
 				rs.removeObject(currentPackage);
 			}
-			
+
 			Point destination = rs.getGraph().getRandomNode(rnd);
 			currentPackage = new Package("dummy package", destination);
 			simulator.register(currentPackage);
@@ -61,11 +61,10 @@ public class RandomWalkAgent implements TickListener, MovingRoadUser, SimulatorU
 		rs.addObjectAt(this, pos);
 	}
 
-
 	@Override
 	public void setSimulator(SimulatorAPI api) {
-		this.simulator = api;
-		this.rnd  = api.getRandomGenerator();
+		simulator = api;
+		rnd = api.getRandomGenerator();
 	}
 
 	@Override
@@ -75,7 +74,6 @@ public class RandomWalkAgent implements TickListener, MovingRoadUser, SimulatorU
 
 	@Override
 	public void afterTick(long currentTime, long timeStep) {
-		// TODO Auto-generated method stub
-		
+		// empty on purpose
 	}
 }

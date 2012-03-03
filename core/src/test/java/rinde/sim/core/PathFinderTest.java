@@ -20,13 +20,14 @@ import org.junit.runners.Parameterized.Parameters;
 import rinde.sim.core.graph.Graph;
 import rinde.sim.core.graph.Graphs;
 import rinde.sim.core.graph.LengthEdgeData;
+import rinde.sim.core.graph.Point;
 import rinde.sim.core.graph.TestMultimapGraph;
 import rinde.sim.core.graph.TestTableGraph;
-import rinde.sim.core.graph.MultimapGraph;
-import rinde.sim.core.graph.Point;
-import rinde.sim.core.graph.TableGraph;
+import rinde.sim.core.model.MovingRoadUser;
 import rinde.sim.core.model.RoadModel;
+import rinde.sim.core.model.RoadModel.PathProgress;
 import rinde.sim.core.model.RoadUser;
+import rinde.sim.util.TimeUnit;
 import rinde.sim.util.TrivialRoadUser;
 
 /**
@@ -165,19 +166,17 @@ public class PathFinderTest {
 	}
 
 	public void compatibilityCheck(List<Point> t) {
-		RoadUser truck = new TrivialRoadUser();		
+		MovingRoadUser truck = new TrivialRoadUser();
 		rs.addObjectAt(truck, t.get(0));
 		double len = length(t);
-		double travelled = rs.followPath(truck, new LinkedList<Point>(t), len);
-		assertEquals(len, travelled, EPSILON);
-
+		//speed of trivial truck is 1 len per hour thus we need to travel 'len' hours
+		PathProgress progress = rs.followPath(truck, new LinkedList<Point>(t), TimeUnit.H.toMs((long) Math.ceil(len)));
+		assertEquals(len, progress.distance, EPSILON);
 	}
 
 	@Test
 	public void checkRutgerBug() throws InstantiationException, IllegalAccessException {
-
-		Graph graph = rsType.newInstance();
-
+		Graph<?> graph = rsType.newInstance();
 		Point q = new Point(0, 10);
 		Point r = new Point(10, 15);
 		Point s = new Point(10, 5);
