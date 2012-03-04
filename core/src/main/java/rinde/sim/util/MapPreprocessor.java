@@ -5,6 +5,8 @@ package rinde.sim.util;
 
 import static java.util.Arrays.asList;
 
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
@@ -21,6 +23,7 @@ import rinde.sim.core.graph.MultimapGraph;
 import rinde.sim.core.graph.PathNotFoundException;
 import rinde.sim.core.graph.Point;
 import rinde.sim.core.graph.TableGraph;
+import rinde.sim.serializers.DotGraphSerializer;
 
 import com.google.common.collect.Sets;
 
@@ -63,11 +66,11 @@ public class MapPreprocessor {
 			System.out.println("unconnected: " + unconnected.size());
 			HashSet<Point> cluster = new HashSet<Point>(asList(p));
 			fixCluster(newGraph, cluster, new HashSet<Point>(newGraph.getOutgoingConnections(p)), connected);
-			//			System.out.println("cluster: " + cluster);
+			// System.out.println("cluster: " + cluster);
 			Tuple<Point, Point> pair = findClosestPair(cluster, connected);
 
 			if (!isConnected(newGraph, cluster, connected)) {
-				//				System.out.println("not connection from cluster -> main");
+				// System.out.println("not connection from cluster -> main");
 				newGraph.addConnection(pair.getKey(), pair.getValue());
 				newGraph.addConnection(pair.getValue(), pair.getKey());
 			}
@@ -75,30 +78,34 @@ public class MapPreprocessor {
 			connected.addAll(cluster);
 		}
 
-		//			newGraph.put(findClosest(p, connected), p);
-		//			connected.add(p);
-		//		}
+		// newGraph.put(findClosest(p, connected), p);
+		// connected.add(p);
+		// }
 
 		//
-		// 		if( neighbour n isConnectedWith(n, connectedSet) )
-		// 			add to connected set
-		// 		else
-		// 			create connection from n to one of the connectedSet (maybe make one of them bidirectional)
+		// if( neighbour n isConnectedWith(n, connectedSet) )
+		// add to connected set
+		// else
+		// create connection from n to one of the connectedSet (maybe make one
+		// of them bidirectional)
 		// endwhile
 
-		// traverse all unvisited nodes, create connection between each unvisited node and one of the connected nodes.
+		// traverse all unvisited nodes, create connection between each
+		// unvisited node and one of the connected nodes.
 
 		return newGraph;
 	}
 
-	private static <E extends EdgeData> void fixCluster(Graph<E> newGraph, HashSet<Point> connected, HashSet<Point> neighbors, HashSet<Point> otherClusters) {
-		//		System.out.println(">> fixCluster");
+	private static <E extends EdgeData> void fixCluster(Graph<E> newGraph, HashSet<Point> connected,
+			HashSet<Point> neighbors, HashSet<Point> otherClusters) {
+		// System.out.println(">> fixCluster");
 		while (!neighbors.isEmpty()) {
 			Point n = neighbors.iterator().next();
 			assert n != null;
-			//			System.out.println(n);
+			// System.out.println(n);
 			neighbors.remove(n);
-			// if this point is also in a other cluster, we don't have to check its neighbors
+			// if this point is also in a other cluster, we don't have to check
+			// its neighbors
 			if (!otherClusters.contains(n)) {
 				for (Point b : newGraph.getOutgoingConnections(n)) {
 					if (b != null && !connected.contains(b) && !neighbors.contains(b)) {
@@ -111,7 +118,8 @@ public class MapPreprocessor {
 				assert n != null;
 				assert !connected.isEmpty();
 				assert !newGraph.isEmpty();
-				newGraph.addConnection(n, findClosest(n, connected));// connect it
+				newGraph.addConnection(n, findClosest(n, connected));// connect
+																		// it
 			}
 			connected.add(n);
 		}
@@ -208,7 +216,8 @@ public class MapPreprocessor {
 			}
 		}
 
-		System.out.println("Removed " + (result.size() - 1) + " subgraphs, with total size " + (totalSize - currentGraph.getNumberOfNodes()) + " nodes, resulting graph has: "
+		System.out.println("Removed " + (result.size() - 1) + " subgraphs, with total size "
+				+ (totalSize - currentGraph.getNumberOfNodes()) + " nodes, resulting graph has: "
 				+ currentGraph.getNumberOfNodes() + " nodes.");
 		System.out.println(totalSize);
 		System.out.println(currentGraph.getNumberOfNodes());
@@ -301,12 +310,12 @@ public class MapPreprocessor {
 		newGraph.merge(g);
 		boolean working = true;
 
-		//int iterations = 0;
+		// int iterations = 0;
 		while (working) {
-			//System.out.println("starting iteration: " + iterations);
-			//iterations++;
+			// System.out.println("starting iteration: " + iterations);
+			// iterations++;
 			boolean edit = false;
-			//			System.out.println(newGraph.getConnections());
+			// System.out.println(newGraph.getConnections());
 
 			HashSet<Connection<E>> connections = new HashSet<Connection<E>>(newGraph.getConnections());
 			HashSet<Connection<E>> removeList = new HashSet<Connection<E>>();
@@ -318,11 +327,11 @@ public class MapPreprocessor {
 				Point right = connection.to;
 
 				ContractType type = isContractable(newGraph, left, right);
-				//				System.out.println(type + " " + left + " " + right);
+				// System.out.println(type + " " + left + " " + right);
 				if (type == ContractType.NO) {
 					continue;
 				} else {
-					//					double length = getLength(newGraph, left, right);
+					// double length = getLength(newGraph, left, right);
 
 					E removeEdgeData = newGraph.connectionData(left, right);
 					double removeLength = newGraph.connectionLength(left, right);
@@ -332,31 +341,38 @@ public class MapPreprocessor {
 					Point removeNode = (type == ContractType.RIGHT) ? right : left;
 					Point mergeNode = (type == ContractType.RIGHT) ? left : right;
 
-					//					System.out.println("remove: " + removeNode);
-					//					System.out.println("merge into: " + mergeNode);
+					// System.out.println("remove: " + removeNode);
+					// System.out.println("merge into: " + mergeNode);
 					for (Point outgoing : newGraph.getOutgoingConnections(removeNode)) {
 						if (!outgoing.equals(mergeNode)) {
 							E edgeData = newGraph.connectionData(removeNode, outgoing);
 							double edgeLength = newGraph.connectionLength(removeNode, outgoing);
-							//double newLength = length + getLength(newGraph, removeNode, outgoing);
+							// double newLength = length + getLength(newGraph,
+							// removeNode, outgoing);
 
 							if (!newGraph.hasConnection(mergeNode, outgoing)) {
 								newGraph.addConnection(mergeNode, outgoing, mergeEdgeData(empty, removeEdgeData, removeLength, edgeData, edgeLength));
 							}
-							//							if (clazz.equals(LengthEdgeData.class)) {
-							//								newGraph.addConnection(mergeNode, outgoing, (E) new LengthEdgeData(newLength));
-							//							} else if (clazz.equals(MultiAttributeEdgeData.class)) {
-							//								throw new UnsupportedOperationException();
-							// TODO Merge the MultiAttributeEdgeData object here!
-							//								MultiAttributeEdgeData maed = (MultiAttributeEdgeData) newGraph.connectionData(removeNode, outgoing);
+							// if (clazz.equals(LengthEdgeData.class)) {
+							// newGraph.addConnection(mergeNode, outgoing, (E)
+							// new LengthEdgeData(newLength));
+							// } else if
+							// (clazz.equals(MultiAttributeEdgeData.class)) {
+							// throw new UnsupportedOperationException();
+							// TODO Merge the MultiAttributeEdgeData object
+							// here!
+							// MultiAttributeEdgeData maed =
+							// (MultiAttributeEdgeData)
+							// newGraph.connectionData(removeNode, outgoing);
 							//
-							//								if(!Double.isNaN(maed.getMaxSpeed())){
-							//									
-							//								}
-							//								newGraph.addConnection(mergeNode, outgoing, (E) new MultiAttributeEdgeData(newLength));
-							//							} else {
-							//								throw new UnsupportedOperationException();
-							//							}
+							// if(!Double.isNaN(maed.getMaxSpeed())){
+							//
+							// }
+							// newGraph.addConnection(mergeNode, outgoing, (E)
+							// new MultiAttributeEdgeData(newLength));
+							// } else {
+							// throw new UnsupportedOperationException();
+							// }
 						}
 					}
 					for (Point incoming : newGraph.getIncomingConnections(removeNode)) {
@@ -364,17 +380,19 @@ public class MapPreprocessor {
 							E edgeData = newGraph.connectionData(incoming, removeNode);
 							double edgeLength = newGraph.connectionLength(incoming, removeNode);
 
-							//							double newLength = length + getLength(newGraph, incoming, removeNode);
+							// double newLength = length + getLength(newGraph,
+							// incoming, removeNode);
 							if (!newGraph.hasConnection(incoming, mergeNode)) {
 								newGraph.addConnection(incoming, mergeNode, mergeEdgeData(empty, edgeData, edgeLength, removeEdgeData, removeLength));
 							}
-							//							if (clazz.equals(LengthEdgeData.class)) {
-							//								
-							//							} else {
-							//								throw new UnsupportedOperationException();
-							//							}
+							// if (clazz.equals(LengthEdgeData.class)) {
+							//
+							// } else {
+							// throw new UnsupportedOperationException();
+							// }
 
-							//							newGraph.addConnection(incoming, mergeNode, new LengthEdgeData(newLength));
+							// newGraph.addConnection(incoming, mergeNode, new
+							// LengthEdgeData(newLength));
 						}
 					}
 
@@ -389,7 +407,7 @@ public class MapPreprocessor {
 
 					newGraph.removeNode(removeNode);
 					edit = true;
-					//break;
+					// break;
 				}
 			}
 			if (!edit) {
@@ -415,7 +433,7 @@ public class MapPreprocessor {
 		BOTH, LEFT, RIGHT, NO
 	}
 
-	//TODO fix this method to also take the EdgeData into account 
+	// TODO fix this method to also take the EdgeData into account
 	static ContractType isContractable(Graph<? extends EdgeData> g, Point node1, Point node2) {
 		boolean n12 = g.getOutgoingConnections(node1).contains(node2);
 		boolean n21 = g.getOutgoingConnections(node2).contains(node1);
@@ -508,8 +526,7 @@ public class MapPreprocessor {
 			if (graph.containsNode(current)) {
 				try {
 					path = Graphs.shortestPathEuclidianDistance(graph, current, root);
-				} catch (PathNotFoundException e) {
-				}
+				} catch (PathNotFoundException e) {}
 			}
 
 			if (path == null) {
@@ -537,44 +554,36 @@ public class MapPreprocessor {
 		return new ArrayList<Set<Point>>(asList(notConnectedSet, fullyConnectedSet));
 	}
 
-	public static void main(String[] args) {
-		//		Graph graph = new MultimapGraph();
-		//
-		//		String name = "brussels";
+	// when executing there should be two folders at the same level as this
+	// class (or jar):
+	// 1. osm-files/
+	// 2. dot-files/
+	// when calling main("brussels") a file named brussels.osm is expected in
+	// osm-files. All .dot output is written in dot-files.
+	public static void main(String[] args) throws FileNotFoundException, IOException {
+		DotGraphSerializer<MultiAttributeEdgeData> serializer = DotGraphSerializer.getMultiAttributeGraphSerializer();
 
-		//graph = OSM.parse("/Users/rindevanlon/Downloads/belgium.osm");
-		//graph = OSM.parse("/Users/rindevanlon/Downloads/corse.osm");
-		//graph = OSM.parse("/Users/rindevanlon/Downloads/enfield.osm");
-		//graph = OSM.parse("/Users/rindevanlon/Downloads/luxembourg.osm");
-		//graph = OSM.parse("/Users/rindevanlon/Downloads/andorra.osm");
-		//graph = OSM.parse("/Users/rindevanlon/Downloads/liechtenstein.osm");
-		//graph = OSM.parse("/Users/rindevanlon/Downloads/berlin.osm");
-		// graph = OSM.parse("/Users/rindevanlon/Downloads/netherlands.osm.highway");
+		String name = args[0];// "wroclaw";
 
-		//graph = OSM.parse("/Users/rindevanlon/Downloads/" + name + ".osm");
-		//		graph.addConnections(OSM.parse("../RinSim/files/maps/brussels.osm").entries());
-		//		System.out.println("loaded map of " + name);
-		//		graph = MapFixer.connect2(graph);
-		//		//graph = MapFixer.hack(graph);
-		//		System.out.println("fixed map of " + name);
-		//		DotUtils.saveToDot(graph, "files/maps/dot/" + name);
-		//		System.out.println("converted map of " + name + " to .dot");
+		System.out.println(name);
+		Graph<MultiAttributeEdgeData> g = OSM.parse("osm-files/" + name + ".osm");
+		serializer.write(g, "dot-files/" + name + "-raw.dot");
+		System.out.println(g);
 
-		//		(1098696.6105863547,1.334706587029543E7) from (1099936.0,1.3346904333333334E7)
+		long startRead = System.currentTimeMillis();
+		Graph<MultiAttributeEdgeData> g2 = serializer.read("dot-files/" + name + "-raw.dot");
+		System.out.println("loading took: " + (System.currentTimeMillis() - startRead));
+		Graph<MultiAttributeEdgeData> graph = new TableGraph<MultiAttributeEdgeData>(MultiAttributeEdgeData.EMPTY);
+		graph.merge(g2);
+		System.out.println("(V,E) = (" + graph.getNumberOfNodes() + "," + graph.getNumberOfConnections() + ")");
 
-		//		Point p1 = new Point(1098696.6105863547, 1.334706587029543E7);
-		//		Point p2 = new Point(1099936.0, 1.3346904333333334E7);
-		//		PathFinder.shortestDistance(graph, p2, p1);
+		long startSimplify = System.currentTimeMillis();
+		graph = MapPreprocessor.simplify(graph, MultiAttributeEdgeData.EMPTY);
+		System.out.println("simplifying took: " + (System.currentTimeMillis() - startSimplify));
 
-		//		Graph graph = new TableGraph();
-		//		graph.addConnections(OSM.parse("/Users/rindevanlon/Downloads/leuven-centrum-small.osm").entries());
-		//		graph = MapFixer.connect2(graph);
-		//
-		//		DotUtils.saveToDot(graph, "files/maps/dot/leuven-centrum");
-
-		//Graph g = DotUtils.parseDot("files/maps/dot/leuven.dot");
-		//Graph simple = simplify(g);
-		//DotUtils.saveToDot(simple, "files/maps/dot/leuven-simple", false);
-
+		long startFix = System.currentTimeMillis();
+		graph = MapPreprocessor.removeUnconnectedSubGraphs(graph, MultiAttributeEdgeData.EMPTY);
+		System.out.println("fixing took: " + (System.currentTimeMillis() - startFix));
+		serializer.write(graph, "dot-files/" + name + "-simple.dot");
 	}
 }
