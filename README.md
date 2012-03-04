@@ -235,5 +235,8 @@ _available soon_
 
 _available soon_
 
+### Maps
+On this [page](http://people.cs.kuleuven.be/~rinde.vanlon/rinsim/maps/) a number of maps are made available.
+
 
 
