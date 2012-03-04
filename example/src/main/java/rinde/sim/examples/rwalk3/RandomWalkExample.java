@@ -28,15 +28,18 @@ public class RandomWalkExample {
 
 	public static void main(String[] args) throws Exception {
 
-		final String MAP_DIR = "../core/files/maps/dot/";
+		final String MAP_DIR = "../core/files/maps/";
 		// create a new simulator, load map of Leuven
 		MersenneTwister rand = new MersenneTwister(123);
 		Simulator simulator = new Simulator(rand, 1000);
-		Graph<MultiAttributeEdgeData> graph = DotGraphSerializer.getMultiAttributeGraphSerializer(new SelfCycleFilter()).read(MAP_DIR + "leuven.dot");
-		//		roadModel.addGraph(DotGraphSerializer.getLengthGraphSerializer(new SelfCycleFilter()).read("files/brussels.dot"));
+		Graph<MultiAttributeEdgeData> graph = DotGraphSerializer
+				.getMultiAttributeGraphSerializer(new SelfCycleFilter()).read(MAP_DIR + "leuven-simple.dot");
+		// roadModel.addGraph(DotGraphSerializer.getLengthGraphSerializer(new
+		// SelfCycleFilter()).read("files/brussels.dot"));
 		RoadModel roadModel = new RoadModel(graph);
 
-		//XXX [bm] to be decided either Communication model have RG as a constructor parameter or implements Simulator user interface
+		// XXX [bm] to be decided either Communication model have RG as a
+		// constructor parameter or implements Simulator user interface
 		CommunicationModel communicationModel = new CommunicationModel(rand);
 		simulator.register(roadModel);
 		simulator.register(communicationModel);
@@ -50,14 +53,15 @@ public class RandomWalkExample {
 			simulator.register(agent);
 		}
 
-		//		// GUI stuff: agents are red, packages are blue or have ico represenation
+		// // GUI stuff: agents are red, packages are blue or have ico
+		// represenation
 		UiSchema schema = new UiSchema();
 		schema.add(RandomWalkAgent.class, new RGB(255, 0, 0));
-		//		schema.add(RandomWalkAgent.class, "/graphics/deliverytruck.png");
-		//		schema.add(Package.class, "/graphics/flag.png");
+		// schema.add(RandomWalkAgent.class, "/graphics/deliverytruck.png");
+		// schema.add(Package.class, "/graphics/flag.png");
 		schema.add(Package.class, new RGB(0x0, 0x0, 0xFF));
 
-		//		View.setTestingMode(true);
+		// View.setTestingMode(true);
 		View.startGui(simulator, 5, new ObjectRenderer(roadModel, schema, false));
 	}
 }
