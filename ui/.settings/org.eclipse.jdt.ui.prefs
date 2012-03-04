@@ -1,4 +1,4 @@
-#Sat Mar 03 13:50:02 CET 2012
+#Sun Mar 04 17:09:59 CET 2012
 cleanup.add_default_serial_version_id=true
 cleanup.add_generated_serial_version_id=false
 cleanup.add_missing_annotations=true
@@ -50,10 +50,10 @@ cleanup.use_this_for_non_static_field_access=true
 cleanup.use_this_for_non_static_field_access_only_if_necessary=true
 cleanup.use_this_for_non_static_method_access=true
 cleanup.use_this_for_non_static_method_access_only_if_necessary=true
-cleanup_profile=_Eclipse [rinde]
+cleanup_profile=_rinsim-clean-up
 cleanup_settings_version=2
 eclipse.preferences.version=1
-formatter_profile=_rinde
+formatter_profile=_rinsim-formatter
 formatter_settings_version=12
 org.eclipse.jdt.ui.exception.name=e
 org.eclipse.jdt.ui.gettersetter.use.is=true
