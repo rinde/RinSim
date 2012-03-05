@@ -51,7 +51,7 @@ To install an eclipse plugin:
 
 RinSim is hosted on gitHub. You can get it using eGit (the eclipse plugin) or git.
 
-(If you are using a pc from the lab and cannot install eclipse plugins, you can find a zipped workspace [here](open http://people.cs.kuleuven.be/~robrecht.haesevoets/mascourse/simulator2.zip).
+(If you are using a pc from the lab and cannot install eclipse plugins, you can find a zipped workspace [here](http://people.cs.kuleuven.be/~robrecht.haesevoets/mascourse/simulator2.zip).
 You should open this workspace as a workspace in eclipse _File -> Switch Workspace -> Other..._
 Using this zipped workspace is not the recommended method, since you cannot update RinSim.)
 
