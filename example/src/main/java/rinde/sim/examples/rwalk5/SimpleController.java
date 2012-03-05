@@ -10,6 +10,7 @@ import rinde.sim.core.graph.Graph;
 import rinde.sim.core.graph.MultiAttributeEdgeData;
 import rinde.sim.core.model.RoadModel;
 import rinde.sim.core.model.communication.CommunicationModel;
+import rinde.sim.core.model.communication.CommunicationModel2;
 import rinde.sim.event.Event;
 import rinde.sim.scenario.ConfigurationException;
 import rinde.sim.scenario.Scenario;
@@ -60,8 +61,8 @@ public class SimpleController extends ScenarioController {
 		roadModel = new RoadModel(graph);
 
 		MersenneTwister rand = new MersenneTwister(123);
-		Simulator s = new Simulator(rand, 1000);
-		CommunicationModel communicationModel = new CommunicationModel(rand);
+		Simulator s = new Simulator(rand, 10000);
+		CommunicationModel communicationModel = new CommunicationModel2(rand);
 		s.register(roadModel);
 		s.register(communicationModel);
 		return s;

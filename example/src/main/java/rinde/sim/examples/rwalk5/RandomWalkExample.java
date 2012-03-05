@@ -40,14 +40,14 @@ public class RandomWalkExample {
 				conv.tick(1000).toTime(), new ScenarioBuilder.EventTypeFunction(StandardType.ADD_TRUCK)));
 
 		ScenarioBuilder builder2 = new ScenarioBuilder(StandardType.ADD_TRUCK);
-		builder2.add(new ScenarioBuilder.MultipleEventGenerator<TimedEvent>(0, 30,
+		builder2.add(new ScenarioBuilder.MultipleEventGenerator<TimedEvent>(0, 100,
 				new ScenarioBuilder.EventTypeFunction(StandardType.ADD_TRUCK)));
-		builder2.add(new ScenarioBuilder.MultipleEventGenerator<TimedEvent>(200000000, 140,
+		builder2.add(new ScenarioBuilder.MultipleEventGenerator<TimedEvent>(conv.day(1).toTime(), 200,
 				new ScenarioBuilder.EventTypeFunction(StandardType.ADD_TRUCK)));
-		builder2.add(new ScenarioBuilder.MultipleEventGenerator<TimedEvent>(200000, 30,
+		builder2.add(new ScenarioBuilder.MultipleEventGenerator<TimedEvent>(conv.day(3).toTime(), 300,
 				new ScenarioBuilder.EventTypeFunction(StandardType.ADD_TRUCK)));
 
-		Scenario s = builder.build();
+		Scenario s = builder2.build();
 
 		// run scenario with visualization attached
 		final String MAP_DIR = "../core/files/maps/";
