@@ -217,7 +217,7 @@ Out of the box, RinSim comes with two basic models: _RoadModel_ and _Communicati
 A _Graph_ object represents the structure of the roads. The _RoadModel_ allows to place and move objects (_RoadUsers_) on the roads.
 The _RoadModel_ can, for example, be used to simulate physical trucks and packages.
 
-* __CommunicationModel__: simulates simple message-based communication.
+* __CommunicationModel__: simulates simple message-based communication between objects implementing the _CommunicationUser_ interface.
 It supports both direct messaging and broadcasting.
 It can also take distance, communication radius, and communication reliability into account.
 Messages between agents are send asynchronously (as illustrated [here](http://people.cs.kuleuven.be/~robrecht.haesevoets/mascourse/docs/communication.png)).
@@ -238,9 +238,7 @@ When introducing new models you can create new custom renderers for these models
 
 Simulation entities are entities that are the actual objects in our simulation, such as agents, trucks, and packages.
 They can implement the _TickListener_ interface and/or other interfaces to use additional models.
-Once registered in the simulator, the simulator will make sure they receive ticks (if required) and are registered in all required models.
-An illustration can be found [here](http://people.cs.kuleuven.be/~robrecht.haesevoets/mascourse/docs/example.png).
-
+Once registered in the simulator, the simulator will make sure they receive ticks (if required) and are registered in all required models (see the example below).
 
 ## A simple example
 
@@ -288,6 +286,10 @@ View.startGui(simulator, 5, new ObjectRenderer(roadModel, schema, false));
 _available soon_
 
 ## Additional guidelines
+
+### Maps
+
+On this [page](http://people.cs.kuleuven.be/~rinde.vanlon/rinsim/maps/) a number of maps are made available.
 
 ### Using gitHub's issues to report changes
 
