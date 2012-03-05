@@ -64,7 +64,7 @@ Using this zipped workspace is not the recommended method, since you cannot upda
 ````
 git@github.com:rinde/RinSim.git
 ````
-in the URI field (do not alter any other input fields) and click _next_.
+in the URI field, select _https_ as protocol, and click _next_.
 * Select the __v2__ branch and click _next_.
 * Choose a local directory for your project and click _next_.
 * Wait for eGit to download the project.
