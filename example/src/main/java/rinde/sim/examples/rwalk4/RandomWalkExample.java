@@ -40,7 +40,7 @@ public class RandomWalkExample {
 
 		// XXX [bm] to be decided either Communication model have RG as a
 		// constructor parameter or implements Simulator user interface
-		CommunicationModel communicationModel = new CommunicationModel(rand, true);
+		CommunicationModel communicationModel = new CommunicationModel(rand, false);
 		simulator.register(roadModel);
 		simulator.register(communicationModel);
 
