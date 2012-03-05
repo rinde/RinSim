@@ -40,7 +40,7 @@ public class RandomWalkExample {
 
 		// XXX [bm] to be decided either Communication model have RG as a
 		// constructor parameter or implements Simulator user interface
-		CommunicationModel communicationModel = new CommunicationModel(rand);
+		CommunicationModel communicationModel = new CommunicationModel(rand, true);
 		simulator.register(roadModel);
 		simulator.register(communicationModel);
 
@@ -49,8 +49,8 @@ public class RandomWalkExample {
 		Random r = new Random(1317);
 		for (int i = 0; i < 100; i++) {
 			int radius = r.nextInt(300) + 200;
-			double minSpeed = 0.005;
-			double maxSpeed = 0.02;
+			double minSpeed = 50;
+			double maxSpeed = 100;
 
 			RandomWalkAgent agent = new RandomWalkAgent(minSpeed + (maxSpeed - minSpeed) * r.nextDouble(), radius,
 					0.01 + r.nextDouble() / 2);

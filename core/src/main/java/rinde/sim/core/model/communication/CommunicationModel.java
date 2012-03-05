@@ -31,13 +31,30 @@ public class CommunicationModel implements Model<CommunicationUser>, TickListene
 	protected List<Entry<CommunicationUser, Message>> sendQueue;
 
 	protected RandomGenerator generator;
+
+	private final boolean ignoreDistances;
 	
-	public CommunicationModel(RandomGenerator generator) {
+	/**
+	 * Constructs the communication model.
+	 * @param generator the random number generator that is used for reliability computations
+	 * @param ignoreDistances when <code>true</code> the distances constrains are ignored.
+	 */
+	public CommunicationModel(RandomGenerator generator, boolean ignoreDistances) {
 		if(generator == null) throw new IllegalArgumentException("generator cannot be null");
 		users = new LinkedHashSet<CommunicationUser>();
 		sendQueue = new LinkedList<Entry<CommunicationUser,Message>>();
 		this.generator = generator;
+		this.ignoreDistances = ignoreDistances;
 	}
+	
+	/**
+	 * Construct the communication model that respects the distance constrains 
+	 * @param generator the random number generator that is used for reliability computations
+	 */
+	public CommunicationModel(RandomGenerator generator) {
+		this(generator, false);
+	}
+	
 	
 	/** 
 	 * Register communication user {@link CommunicationUser}. Communication user is registered only 
@@ -180,14 +197,14 @@ public class CommunicationModel implements Model<CommunicationUser>, TickListene
 			}
 			if(input.equals(sender)) return false;
 			final Point iPos = input.getPosition();
-			if(!rec.contains(iPos)) {
+			if(!ignoreDistances && !rec.contains(iPos)) {
 				return false;
 			}
 			double prob = input.getReliability() * sender.getReliability();
 			double minRadius = Math.min(input.getRadius(), sender.getRadius());
 			double rand = generator.nextDouble();
 			Point sPos = sender.getPosition();
-			return Point.distance(sPos, iPos) <= minRadius && prob > rand;
+			return prob > rand && (ignoreDistances ? true : Point.distance(sPos, iPos) <= minRadius);
 		}
 	}
 	
