@@ -212,7 +212,7 @@ public class CommunicationModel implements Model<CommunicationUser>, TickListene
 		}
 	}
 	
-	private static class SimpleEntry<K,V> implements Entry<K,V> {
+	protected static class SimpleEntry<K,V> implements Entry<K,V> {
 
 		private final V value;
 		private final K key;

@@ -2,25 +2,46 @@ package rinde.sim.core.model.communication;
 
 import static org.junit.Assert.*;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Random;
 
 import org.apache.commons.math.random.MersenneTwister;
-import org.hamcrest.BaseMatcher;
-import org.hamcrest.Matcher;
-import org.hamcrest.core.Is;
-import org.junit.Assert;
+import org.apache.commons.math.random.RandomGenerator;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
+import org.junit.runners.Parameterized.Parameters;
 
 import rinde.sim.core.graph.Point;
 
+@RunWith(Parameterized.class)
 public class CommunicationModelTest {
 
 	private CommunicationModel model;
+	private Class<? extends CommunicationModel> type;
+	private double radius;
+	
+	
+	public CommunicationModelTest(Class<? extends CommunicationModel> clazz, double rad) {
+		type = clazz;
+		radius = rad;
+	}
 	
 	@Before
 	public void setUp() throws Exception {
-		model = new CommunicationModel(new MersenneTwister(123));
+		model = type.getConstructor(RandomGenerator.class).newInstance(new MersenneTwister(123));
+	}
+	
+	@Parameters
+	public static List<Object[]> parameters() {
+		return Arrays.asList(new Object[][]{
+				{CommunicationModel.class, 5}, {CommunicationModel2.class, 5},
+				{CommunicationModel.class, 50}, {CommunicationModel2.class, 50}
+		});
+//		return Arrays.asList(new Object[][]{ {CommunicationModel2.class}});
 	}
 
 	@Test
@@ -243,46 +264,32 @@ public class CommunicationModelTest {
 		time = System.currentTimeMillis() - time;
 		System.err.println(time);
 		assertTrue(time  < 120);
+	}
+	
+	@Test
+	public void broadStressTest() {
+		List<TestCommunicationUser> users = new ArrayList<CommunicationModelTest.TestCommunicationUser>(10000);
 		
+		Random r = new Random(13);
+		for(int i = 0; i < 10000; ++i) {
+			TestCommunicationUser t = new TestCommunicationUser(new Point(r.nextDouble() * 1000, r.nextDouble() * 1000), r.nextDouble() * radius, 1, null);
+			users.add(t);
+			model.register(t);
+		}
+		long time = System.currentTimeMillis();
+		for(int k = 0; k < 10; ++k)
+		for (TestCommunicationUser u : users) {
+			model.broadcast(new Message(u) {});
+		}
+		model.afterTick(0, 100);
+		time = System.currentTimeMillis() - time;
+		assertTrue(time  < 20000);
 	}
 	
 
 	@Test
 	public void testGetSupportedType() {
 		assertEquals(CommunicationUser.class, model.getSupportedType());
-	}
-
-	@Test
-	public void testBroadcastMessage() {
-		final boolean[] res = new boolean[1];
-		
-		TestCommunicationUser sender = new TestCommunicationUser(new Point(0,0), 10, 1, null);
-		TestCommunicationUser recipient = new TestCommunicationUser(new Point(0,5), 5, 1, new Callback() {
-			
-			@Override
-			void callBack(Message m) {
-				res[0] = true;
-			}
-		});
-		TestCommunicationUser recipient2 = new TestCommunicationUser(new Point(0,5), 15, 1, null);
-		
-		model.register(sender);
-		model.register(recipient);
-		model.register(recipient2);
-		
-		model.broadcast(new Message(sender) {
-		});
-		
-		assertEquals(3, model.users.size());
-		
-		assertFalse(res[0]);
-		assertEquals(2, model.sendQueue.size());
-		
-		
-		model.afterTick(0, 100);
-		
-		assertTrue(res[0]);
-		assertEquals(0, model.sendQueue.size());
 	}
 
 	
