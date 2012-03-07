@@ -28,7 +28,10 @@ __Only use this method to tryout the simulator. Updating RinSim using this metho
 
 To use RinSim, you need the following:
 
-* [eclipse](http://eclipse.org)
+__Note__: if you install the latest [_Eclipse IDE for Java Developers_](http://www.eclipse.org/downloads/packages/eclipse-ide-java-developers/indigosr2), the m2e and eGit plugins are preinstalled, but __not__ PDE.
+If you install _Eclipse IDE for Java EE Developers_ or _Eclipse Classic_, PDE will be preinstalled, but not m2e or eGit.
+
+* [eclipse](http://www.eclipse.org/)
 * [m2e](http://www.eclipse.org/m2e/) Maven plugin for eclipse.
 	* Update site: 
 ````
@@ -39,13 +42,21 @@ http://download.eclipse.org/technology/m2e/releases
 ````
 http://download.eclipse.org/egit/updates
 ````
+* PDE (Eclipse Plug-In Development Environment)
 
-To install an eclipse plugin:
+To install m2e and eGit:
 
 * Go to _Help -> Install New Software..._
 * Click _Add..._
 * Enter the update site in location and enter any local name for the update site.
 * Select the desired packages and install.
+
+To install PDE
+
+* Go to _Help -> Install New Software..._.
+* In _Work with_, click the drop down and select _Indigo - http://download.eclipse.org/releases/indigo_.
+* Search for _plug-in_.
+* Install the _Eclipse Plug-In Development Environment_.
 
 ### Getting RinSim
 
