@@ -54,7 +54,7 @@ To install m2e and eGit:
 To install PDE
 
 * Go to _Help -> Install New Software..._.
-* In _Work with_, click the drop down and select _Indigo - http://download.eclipse.org/releases/indigo_.
+* In _Work with_, click the drop down and select _[Indigo - http://download.eclipse.org/releases/indigo]()_ (or the update site for your eclipse release).
 * Search for _plug-in_.
 * Install the _Eclipse Plug-In Development Environment_.
 
