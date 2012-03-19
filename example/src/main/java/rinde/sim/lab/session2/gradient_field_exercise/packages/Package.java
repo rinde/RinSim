@@ -35,7 +35,7 @@ public class Package implements SimulatorUser, RoadUser{
 		this.simulator.unregister(this);
 	}
 	
-	public void dropOff(){
+	public void deliver(){
 		this.delivered = true;
 		this.simulator.unregister(deliveryLocation);
 	}

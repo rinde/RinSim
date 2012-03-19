@@ -80,11 +80,11 @@ public class Truck implements MovingRoadUser{
 		return false;
 	}
 	
-	public boolean dropOff(){
+	public boolean tryDelivery(){
 		if(load!=null){
 			if(load.getDeliveryLocation().equals(this.getPosition())){
-				LOGGER.info(this.truckID + " dropped off "+load);
-				load.dropOff();
+				LOGGER.info(this.truckID + " delivered "+load);
+				load.deliver();
 				load = null;
 				return true;
 			}
