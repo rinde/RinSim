@@ -6,8 +6,10 @@ package rinde.sim.core.model;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
@@ -145,6 +147,8 @@ public class RoadModel implements Model<RoadUser> {
 		boolean nextVertex = false;
 
 		final SpeedConverter sc = new SpeedConverter();
+				List<Point> travelledNodes = new ArrayList<Point>();
+
 		while (timeLeft > 0 && path.size() > 0) {
 
 			//speed in graph units per hour -> converting to miliseconds
@@ -156,6 +160,7 @@ public class RoadModel implements Model<RoadUser> {
 
 			if (travelDistance >= dist) {
 				tempPos = path.remove();
+				travelledNodes.add(tempPos);
 				long timeSpent = Math.round(dist / speed);
 				timeLeft -= timeSpent;
 				nextVertex = true;
@@ -191,7 +196,7 @@ public class RoadModel implements Model<RoadUser> {
 			}
 			objLocs.put(object, checkLocation(new Location(objLoc.from, t, relpos)));
 		}
-		return new PathProgress(traveled, time - (timeLeft > 0 ? timeLeft : 0));
+		return new PathProgress(traveled, time - (timeLeft > 0 ? timeLeft : 0), travelledNodes);
 	}
 
 	/**
@@ -293,6 +298,38 @@ public class RoadModel implements Model<RoadUser> {
 	}
 
 	/**
+	 * Returns all objects of the given type located in the same position as the given object
+	 * @param roadUser
+	 * @param type
+	 * @return A set of {@link type} objects.
+	 */
+	public<Y extends RoadUser> Set<Y> getObjectsAt(RoadUser roadUser, Class<Y> type){
+		Set<Y> result = new HashSet<Y>();
+		for(RoadUser ru: getObjects(new SameLocationPredicate(roadUser, type, this))){
+			result.add((Y) ru);
+		}
+		return result;
+	}
+	
+	private static class SameLocationPredicate implements Predicate<RoadUser> {
+		private final RoadUser reference;
+		private final RoadModel model;
+		private final Class type;
+
+		public SameLocationPredicate(final RoadUser reference, final Class type, final RoadModel model) {
+			this.reference = reference;
+			this.type = type;
+			this.model = model;
+		}
+
+		@Override
+		public boolean apply(RoadUser input) {
+			return type.isInstance(input) && model.equalPosition(input, reference);
+		}
+	}
+
+
+	/**
 	 * This method returns a mapping of {@link RoadUser} to {@link Point}
 	 * objects which exist in this model. The returned map is not a live view on
 	 * this model, but a new created copy.
@@ -339,6 +376,10 @@ public class RoadModel implements Model<RoadUser> {
 		assert obj != null : "object cannot be null";
 		assert objLocs.containsKey(obj) : "object must have a location in RoadStructure " + obj;
 		return objLocs.get(obj).getPosition();
+	}
+	
+	public Point getLastCrossRoad(RoadUser obj){
+		return objLocs.get(obj).from;
 	}
 
 	/**
@@ -461,12 +502,15 @@ public class RoadModel implements Model<RoadUser> {
 		 * time spend on traveling the distance
 		 */
 		public final long time;
+		
+		public final List<Point> travelledNodes;
 
-		public PathProgress(double distance, long time) {
+		public PathProgress(double distance, long time, List<Point> travelledNodes) {
 			assert distance >= 0;
 			assert time >= 0;
 			this.distance = distance;
 			this.time = time;
+			this.travelledNodes = travelledNodes;
 		}
 	}
 

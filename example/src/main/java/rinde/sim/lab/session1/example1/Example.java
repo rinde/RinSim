@@ -34,7 +34,7 @@ public class Example {
 	
 		//create and register a number of RandomWalkAgents
 		for (int i = 0; i < 30; i++) {
-			RandomWalkAgent agent = new RandomWalkAgent(1, graph.getRandomNode(rand));
+			RandomWalkAgent agent = new RandomWalkAgent(7, graph.getRandomNode(rand));
 			simulator.register(agent);
 		}
 		
