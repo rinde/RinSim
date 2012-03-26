@@ -98,6 +98,7 @@ public class SimulationViewer extends Composite implements TickListener, Control
 		createMenu(shell);
 		shell.addListener(SWT.Close, new Listener() {
 
+			@SuppressWarnings("synthetic-access")
 			@Override
 			public void handleEvent(Event event) {
 				SimulationViewer.this.simulator.stop();
@@ -139,7 +140,8 @@ public class SimulationViewer extends Composite implements TickListener, Control
 		size = new org.eclipse.swt.graphics.Point(800, 500);
 		canvas.addPaintListener(this);
 		canvas.addControlListener(this);
-		canvas.redraw();
+//		canvas.redraw();
+		this.layout();
 
 		timeLabel = new Label(canvas, SWT.NONE);
 		timeLabel.setText("hello world");
@@ -164,6 +166,7 @@ public class SimulationViewer extends Composite implements TickListener, Control
 		colorRegistry.put(COLOR_GREEN, new RGB(0x00, 0xFF, 0x00));
 	}
 
+	@SuppressWarnings("unused")
 	protected void createMenu(Shell shell) {
 		Menu bar = new Menu(shell, SWT.BAR);
 		shell.setMenuBar(bar);
