@@ -10,7 +10,7 @@ import rinde.sim.core.graph.Point;
 import rinde.sim.core.model.MovingRoadUser;
 import rinde.sim.core.model.RoadModel;
 import rinde.sim.core.model.RoadModel.PathProgress;
-import rinde.sim.lab.session2.gradient_field_exercise.packages.Package;
+import rinde.sim.lab.common.packages.Package;
 
 public class Truck implements MovingRoadUser{
 
