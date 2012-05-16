@@ -59,10 +59,22 @@ public abstract class ScenarioController implements TickListener, Listener {
 	 */
 	public ScenarioController(final Scenario scen, int numberOfTicks)
 			throws ConfigurationException {
+		for(Object o: scen.getPossibleEventTypes()){
+			System.out.println("c: "+o);
+		}
 		if (scen == null)
 			throw new ConfigurationException("scenarion cannot be null");
 		ticks = numberOfTicks;
-		scenario = new Scenario(scen);
+		
+		//scenario = new Scenario(scen);
+		
+		scenario = new Scenario(scen) {
+			@Override
+			public Enum<?>[] getPossibleEventTypes() {
+				return scen.getPossibleEventTypes();
+			}
+		};
+		
 		disp = new EventDispatcher(merge(scenario.getPossibleEventTypes(), Type.values()));
 		disp.addListener(this, scenario.getPossibleEventTypes());
 	}
