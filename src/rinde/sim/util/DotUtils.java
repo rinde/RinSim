@@ -54,6 +54,7 @@ public class DotUtils {
 				}
 				string.append("node" + idMap.get(entry.getKey()) + " -> node" + idMap.get(entry.getValue())
 						+ "[label=\"" + label + "\"]\n");
+
 			}
 
 			string.append("}");
@@ -82,6 +83,7 @@ public class DotUtils {
 				final String[] commands = new String[] { "/usr/local/bin/dot", "-o", pdfFile, "-Tpdf", dotFile };
 				// System.out.println(Arrays.toString(commands).replace(",",
 				// ""));
+
 				final Process p = Runtime.getRuntime().exec(commands);
 
 				// final BufferedReader stdInput = new BufferedReader(new
@@ -124,6 +126,7 @@ public class DotUtils {
 					nodeMapping.put(nodeName, p);
 				} else if (line.contains("->")) {
 					// example:
+
 					// node1004 -> node820[label="163.3"]
 					String[] names = line.split("->");
 					String fromStr = names[0].trim();

@@ -51,7 +51,7 @@ public class View implements PaintListener, SelectionListener, ControlListener, 
 	protected final Renderer[] renderers;
 	protected final ScrollBar hBar;
 	protected final ScrollBar vBar;
-	protected double m;//multiplier
+	protected double m;// multiplier
 	protected double minX;
 	protected double minY;
 	protected long sleepInterval;
@@ -68,7 +68,7 @@ public class View implements PaintListener, SelectionListener, ControlListener, 
 		this.sleepInterval = sleepInterval;
 		display = parent.getDisplay();
 		canvas = new Canvas(parent, SWT.NONE | SWT.NO_REDRAW_RESIZE | SWT.V_SCROLL | SWT.H_SCROLL);
-		//canvas.setBounds(0, 0, 800, 500);
+		// canvas.setBounds(0, 0, 800, 500);
 		canvas.setBackground(new Color(display, 0xEF, 0xEF, 0xEF));
 		origin = new org.eclipse.swt.graphics.Point(0, 0);
 		size = new org.eclipse.swt.graphics.Point(800, 500);
@@ -140,7 +140,7 @@ public class View implements PaintListener, SelectionListener, ControlListener, 
 		deltaX = maxX - minX;
 		deltaY = maxY - minY;
 
-		//		System.out.println(deltaX + " " + deltaY);
+		// System.out.println(deltaX + " " + deltaY);
 
 		Rectangle area = canvas.getClientArea();
 		if (deltaX > deltaY) {
@@ -149,7 +149,7 @@ public class View implements PaintListener, SelectionListener, ControlListener, 
 			m = area.height / deltaY;
 		}
 
-		//m *= 2;
+		// m *= 2;
 
 	}
 
@@ -174,7 +174,8 @@ public class View implements PaintListener, SelectionListener, ControlListener, 
 		return img;
 	}
 
-	public static void startGui(final Simulator<? extends RoadModel> simulator, long sleepInterval, Renderer... renderers) {
+	public static void startGui(final Simulator<? extends RoadModel> simulator, long sleepInterval,
+			Renderer... renderers) {
 		Display.setAppName("RinSim");
 		final Display display = new Display();
 
@@ -243,7 +244,7 @@ public class View implements PaintListener, SelectionListener, ControlListener, 
 		zoomOutItem.setData("out");
 
 		shell.setSize(new org.eclipse.swt.graphics.Point(1024, 768));
-		//shell.setMaximized(true);
+		// shell.setMaximized(true);
 		shell.setMinimumSize(400, 300);
 
 		final MenuItem speedUpItem = new MenuItem(submenu, SWT.PUSH);
@@ -336,7 +337,7 @@ public class View implements PaintListener, SelectionListener, ControlListener, 
 	}
 
 	@Override
-	public void controlMoved(ControlEvent e) {//not needed
+	public void controlMoved(ControlEvent e) {// not needed
 	}
 
 	@Override
@@ -369,7 +370,6 @@ public class View implements PaintListener, SelectionListener, ControlListener, 
 			origin.x -= m * deltaX / 2;
 			origin.y -= m * deltaY / 2;
 			m *= 2;
-
 		} else if (event.widget.getData().equals("out")) {
 			m /= 2;
 			origin.x += m * deltaX / 2;
