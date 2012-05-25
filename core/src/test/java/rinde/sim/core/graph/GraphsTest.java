@@ -1,5 +1,6 @@
 package rinde.sim.core.graph;
 
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -12,6 +13,8 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
+import org.apache.commons.math.random.MersenneTwister;
+import org.apache.commons.math.random.RandomGenerator;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -51,6 +54,11 @@ public class GraphsTest {
 	}
 
 	@Test
+	public void addNullConnection() {
+		graph.addConnection(null);
+	}
+
+	@Test
 	public void shortestPathConsistencyCheck() {
 		Point A, B, C, D;
 		A = new Point(0, 0);
@@ -65,6 +73,12 @@ public class GraphsTest {
 			assertEquals(prevPath, newPath);
 			prevPath = newPath;
 		}
+	}
+
+	@SuppressWarnings("unused")
+	@Test(expected = IllegalArgumentException.class)
+	public void tableGraphConstructor() {
+		new TableGraph<MultiAttributeEdgeData>(null);
 	}
 
 	/**
@@ -91,6 +105,25 @@ public class GraphsTest {
 			prevPath = newPath;
 		}
 
+	}
+
+	@Test(expected = IllegalArgumentException.class)
+	public void shortestPathNull() {
+		Graphs.shortestPathEuclidianDistance(graph, null, new Point(2, 3));
+	}
+
+	@Test(expected = IllegalArgumentException.class)
+	public void shortestPathNotExistingPoint() {
+		Graphs.shortestPathEuclidianDistance(graph, new Point(1, 2), new Point(2, 3));
+	}
+
+	@Test(expected = PathNotFoundException.class)
+	public void noShortestPath() {
+		Point from = new Point(0, 0);
+		Graphs.addBiPath(graph, from, new Point(1, 0));
+		Point to = new Point(10, 0);
+		Graphs.addBiPath(graph, to, new Point(9, 0));
+		Graphs.shortestPathEuclidianDistance(graph, from, to);
 	}
 
 	@Test
@@ -182,24 +215,26 @@ public class GraphsTest {
 		graph.addConnection(A, B);
 		graph.addConnection(new Connection<LengthEdgeData>(B, A, new LengthEdgeData(1.5)));
 		graph.addConnection(B, C, new LengthEdgeData(2));
-		graph.addConnection(A, C, new LengthEdgeData(Double.NaN)); //explicit empty value
+		graph.addConnection(A, C, new LengthEdgeData(Double.NaN)); // explicit
+																	// empty
+																	// value
 
 		assertNull("existing but empty", graph.connectionData(A, B));
 		assertNull("non existing", graph.connectionData(C, A));
-		//		assertNull("explicit null A->C", graph.connectionData(A, C)); // works only for TableGraph
+		// assertNull("explicit null A->C", graph.connectionData(A, C)); //
+		// works only for TableGraph
 
 		assertNotNull("existing B->A", graph.connectionData(B, A));
 		assertNotNull("existing B->C", graph.connectionData(B, C));
 
-		//use of the edge data
+		// use of the edge data
 		assertEquals(1, graph.connectionLength(A, B), DELTA);
 		assertEquals(1.5, graph.connectionLength(B, A), DELTA);
 		assertEquals(2, graph.connectionLength(B, C), DELTA);
 		try {
 			graph.connectionLength(C, B);
 			fail();
-		} catch (IllegalArgumentException e) {
-		}
+		} catch (IllegalArgumentException e) {}
 
 	}
 
@@ -279,4 +314,113 @@ public class GraphsTest {
 		assertEquals(new Point(234, 2), results2.get(3));
 
 	}
+
+	@Test(expected = IllegalArgumentException.class)
+	public void nonExistingConnection() {
+		graph.getConnection(new Point(1, 2), new Point(2, 3));
+	}
+
+	@Test
+	public void testRandomNode() {
+		RandomGenerator rnd = new MersenneTwister(456);
+		for (int i = 0; i < 500; i++) {
+			Graphs.addBiPath(graph, new Point(rnd.nextInt(), rnd.nextInt()), new Point(rnd.nextInt(), rnd.nextInt()));
+		}
+		Graph<LengthEdgeData> unmod = Graphs.unmodifiableGraph(graph);
+		Point p1 = graph.getRandomNode(new MersenneTwister(123));
+		Point p2 = unmod.getRandomNode(new MersenneTwister(123));
+		assertEquals(p1, p2);
+	}
+
+	@Test(expected = IllegalStateException.class)
+	public void randomNodeEmptyGraph() {
+		graph.getRandomNode(new MersenneTwister(234));
+	}
+
+	@Test
+	public void unmodifiable() {
+		Point N = new Point(0, 5);
+		Point E = new Point(5, 0);
+		Point S = new Point(0, -5);
+		Point W = new Point(-5, 0);
+
+		Graphs.addBiPath(graph, N, E, S, W, N);
+		Graph<LengthEdgeData> g = Graphs.unmodifiableGraph(graph);
+
+		assertEquals(graph, g);
+		assertEquals(g, graph);
+		assertFalse(g.equals(new Object()));
+		assertFalse(g.isEmpty());
+
+		for (Point p : g.getNodes()) {
+			assertArrayEquals(graph.getIncomingConnections(p).toArray(), g.getIncomingConnections(p).toArray());
+		}
+
+		for (Connection<LengthEdgeData> c : g.getConnections()) {
+			assertEquals(graph.connectionLength(c.from, c.to), g.connectionLength(c.from, c.to), DELTA);
+		}
+	}
+
+	@Test
+	public void unmodifiable2() {
+		Point N = new Point(0, 5);
+		Point E = new Point(5, 0);
+		Point S = new Point(0, -5);
+		Point W = new Point(-5, 0);
+
+		Graphs.addBiPath(graph, N, E, S, W, N);
+		Graph<LengthEdgeData> unmod = Graphs.unmodifiableGraph(graph);
+
+		graph.addConnection(N, S);
+		assertEquals(graph.getConnection(N, S), unmod.getConnection(N, S));
+	}
+
+	@Test(expected = UnsupportedOperationException.class)
+	public void unmodAddConn() {
+		Graphs.unmodifiableGraph(graph).addConnection(new Point(1, 2), new Point(2, 3));
+	}
+
+	@Test(expected = UnsupportedOperationException.class)
+	public void unmodMerge() {
+		Graphs.unmodifiableGraph(graph).merge(null);
+	}
+
+	@Test(expected = UnsupportedOperationException.class)
+	public void unmodAddConns() {
+		Graphs.unmodifiableGraph(graph).addConnections(null);
+	}
+
+	@Test(expected = UnsupportedOperationException.class)
+	public void unmodRemoveNode() {
+		Graphs.unmodifiableGraph(graph).removeNode(null);
+	}
+
+	@Test(expected = UnsupportedOperationException.class)
+	public void unmodRemoveConnection() {
+		Graphs.unmodifiableGraph(graph).removeConnection(null, null);
+	}
+
+	@Test(expected = UnsupportedOperationException.class)
+	public void unmodAddConnection() {
+		Graphs.unmodifiableGraph(graph).addConnection(null, null, null);
+	}
+
+	@Test(expected = UnsupportedOperationException.class)
+	public void unmodAddConnection2() {
+		Graphs.unmodifiableGraph(graph).addConnection(null);
+	}
+
+	@Test(expected = UnsupportedOperationException.class)
+	public void unmodSetEdgeData() {
+		Graphs.unmodifiableGraph(graph).setEdgeData(null, null, null);
+	}
+
+	@Test(expected = IllegalArgumentException.class)
+	public void addExistingConnection() {
+		Point N = new Point(0, 5);
+		Point E = new Point(5, 0);
+		Graphs.addBiPath(graph, N, E);
+		Graphs.addBiPath(graph, N, E);
+	}
+
 }

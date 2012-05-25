@@ -13,6 +13,7 @@ import org.apache.commons.math.random.RandomGenerator;
  * @author Rinde van Lon (rinde.vanlon@cs.kuleuven.be)
  * @author Bartosz Michalik <bartosz.michalik@cs.kuleuven.be> - added edge data
  *         handling
+ * @param <E> The type of {@link EdgeData} that is used in the edges.
  * @since 1.0
  */
 public interface Graph<E extends EdgeData> {
@@ -29,8 +30,8 @@ public interface Graph<E extends EdgeData> {
 
 	/**
 	 * Get the data associated with connection.
-	 * @param from
-	 * @param to
+	 * @param from Start of connection
+	 * @param to End of connection
 	 * @return connection data or <code>null</code> if there is no data or
 	 *         connection does not exists.
 	 */
@@ -58,15 +59,15 @@ public interface Graph<E extends EdgeData> {
 
 	/**
 	 * Add connection to the graph.
-	 * @param connection
+	 * @param connection the connection to add.
 	 */
 	public void addConnection(Connection<E> connection);
 
 	/**
 	 * Set connection data
-	 * @param from
-	 * @param to
-	 * @param edgeData
+	 * @param from Start point of connection
+	 * @param to End point of connection
+	 * @param edgeData The edge data used for the connection
 	 * @return old edge data or <code>null</null> if there was no edge
 	 * @precondition connection from -> to exists
 	 * @throws IllegalArgumentException when the connection between nodes do not

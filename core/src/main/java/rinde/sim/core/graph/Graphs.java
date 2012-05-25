@@ -32,7 +32,9 @@ import com.google.common.collect.Collections2;
  *         graphs model
  * 
  */
-public class Graphs {
+public final class Graphs {
+
+	private Graphs() {}
 
 	public static <E extends EdgeData> void addPath(Graph<E> g, Point... path) {
 		for (int i = 1; i < path.length; i++) {
@@ -59,7 +61,8 @@ public class Graphs {
 	@SuppressWarnings("unchecked")
 	public static <E extends EdgeData> E unmodifiableEdgeData(E edgeData) {
 		if (edgeData instanceof MultiAttributeEdgeData) {
-			return (E) new UnmodifiableMultiAttributeEdgeData(edgeData.getLength(), ((MultiAttributeEdgeData) edgeData).getMaxSpeed());
+			return (E) new UnmodifiableMultiAttributeEdgeData(edgeData.getLength(),
+					((MultiAttributeEdgeData) edgeData).getMaxSpeed());
 		}
 		return edgeData;
 	}
@@ -109,8 +112,8 @@ public class Graphs {
 	private static class UnmodifiableGraph<E extends EdgeData> implements Graph<E> {
 		final Graph<E> delegate;
 
-		public UnmodifiableGraph(Graph<E> delegate) {
-			this.delegate = delegate;
+		public UnmodifiableGraph(Graph<E> delegate1) {
+			this.delegate = delegate1;
 		}
 
 		@Override
@@ -236,49 +239,62 @@ public class Graphs {
 
 	}
 
-	public static <E extends EdgeData> List<Point> shortestPathEuclidianDistance(Graph<E> graph, final Point from, final Point to) {
+	public static <E extends EdgeData> List<Point> shortestPathEuclidianDistance(Graph<E> graph, final Point from,
+			final Point to) {
 		return Graphs.shortestPath(graph, from, to, new Graphs.EuclidianDistance());
 	}
 
 	/**
+	 * A standard implementation of the A* algorithm.
 	 * http://en.wikipedia.org/wiki/A*_search_algorithm
 	 * 
 	 * @author Rutger Claes
 	 * @author Rinde van Lon (rinde.vanlon@cs.kuleuven.be)
+	 * 
+	 * @param graph The {@link Graph} which contains <code>from</code> and
+	 *            <code>to</code>.
+	 * @param from The start position
+	 * @param to The end position
+	 * @param h The {@link Heuristic} used in the A* implementation.
+	 * @return The shortest path from <code>from</code> to <code>to</code> if it
+	 *         exists, otherwise a {@link PathNotFoundException} is thrown.
 	 */
-	public static <E extends EdgeData> List<Point> shortestPath(Graph<E> graph, final Point from, final Point to, Graphs.Heuristic h) {
+	public static <E extends EdgeData> List<Point> shortestPath(Graph<E> graph, final Point from, final Point to,
+			Graphs.Heuristic h) {
 		if (from == null || !graph.containsNode(from)) {
 			throw new IllegalArgumentException("from should be valid vertex. " + from);
 		}
-		//		if (to == null || !graph.containsKey(to)) {
-		//			throw new IllegalArgumentException("to should be valid vertex");
-		//		}
+		// if (to == null || !graph.containsKey(to)) {
+		// throw new IllegalArgumentException("to should be valid vertex");
+		// }
 
-		final Set<Point> closedSet = new LinkedHashSet<Point>(); // The set of nodes already evaluated.
+		// The set of nodes already evaluated.
+		final Set<Point> closedSet = new LinkedHashSet<Point>();
 
-		final Map<Point, Double> g_score = new LinkedHashMap<Point, Double>();// Distance from start along optimal path.
+		// Distance from start along optimal path.
+		final Map<Point, Double> g_score = new LinkedHashMap<Point, Double>();
 		g_score.put(from, 0d);
 
-		final Map<Point, Double> h_score = new LinkedHashMap<Point, Double>();// heuristic estimates 
+		// heuristic estimates
+		final Map<Point, Double> h_score = new LinkedHashMap<Point, Double>();
 		h_score.put(from, h.calculateHeuristic(Point.distance(from, to)));
 
-		final SortedMap<Double, Point> f_score = new TreeMap<Double, Point>(); // Estimated total distance from start to goal through y.
+		// Estimated total distance from start to goal through y
+		final SortedMap<Double, Point> f_score = new TreeMap<Double, Point>();
 		f_score.put(h.calculateHeuristic(Point.distance(from, to)), from);
 
-		final HashMap<Point, Point> came_from = new LinkedHashMap<Point, Point>();// The map of navigated nodes.
+		// The map of navigated nodes.
+		final HashMap<Point, Point> came_from = new LinkedHashMap<Point, Point>();
 
 		while (!f_score.isEmpty()) {
 			final Point current = f_score.remove(f_score.firstKey());
-
 			if (current.equals(to)) {
 				List<Point> result = new ArrayList<Point>();
 				result.add(from);
 				result.addAll(Graphs.reconstructPath(came_from, to));
 				return result;
 			}
-
 			closedSet.add(current);
-
 			for (final Point outgoingPoint : graph.getOutgoingConnections(current)) {
 				if (closedSet.contains(outgoingPoint)) {
 					continue;
@@ -312,34 +328,59 @@ public class Graphs {
 	}
 
 	/**
-	 * Convenience method
-	 * @param pos
-	 * @param rs
-	 * @param type
-	 * @return
+	 * Convenience method for
+	 * {@link #findClosestObject(Point, RoadModel, Collection)}.
+	 * @param pos The {@link Point} which is used as reference.
+	 * @param rm The {@link RoadModel} which is searched.
+	 * @param type The type of object that is searched.
+	 * @return The closest object in <code>rm</code> to <code>pos</code> of type
+	 *         <code>type</code>.
 	 * @see #findClosestObject(Point, RoadModel, Collection)
 	 */
-	public static <T extends RoadUser> T findClosestObject(Point pos, RoadModel rs, final Class<T> type) {
-		return findClosestObject(pos, rs, rs.getObjectsOfType(type));
+	public static <T extends RoadUser> T findClosestObject(Point pos, RoadModel rm, final Class<T> type) {
+		return findClosestObject(pos, rm, rm.getObjectsOfType(type));
 	}
 
 	/**
-	 * Convenience method
-	 * @param pos
-	 * @param rs
-	 * @param predicate
-	 * @return
+	 * Convenience method for
+	 * {@link #findClosestObject(Point, RoadModel, Collection)}.
+	 * @param pos The {@link Point} which is used as reference.
+	 * @param rm The {@link RoadModel} which is searched.
+	 * @param predicate A {@link Predicate} indicating which objects are
+	 *            included in the search.
+	 * @return The closest object in <code>rm</code> to <code>pos</code> which
+	 *         satisfies the <code>predicate</code>.
 	 * @see #findClosestObject(Point, RoadModel, Collection)
 	 */
-	public static RoadUser findClosestObject(Point pos, RoadModel rs, Predicate<RoadUser> predicate) {
-		Collection<RoadUser> filtered = Collections2.filter(rs.getObjects(), predicate);
-		return findClosestObject(pos, rs, filtered);
+	public static RoadUser findClosestObject(Point pos, RoadModel rm, Predicate<RoadUser> predicate) {
+		Collection<RoadUser> filtered = Collections2.filter(rm.getObjects(), predicate);
+		return findClosestObject(pos, rm, filtered);
 	}
 
+	/**
+	 * Convenience method for
+	 * {@link #findClosestObject(Point, Collection, Function)}.
+	 * @param pos The {@link Point} which is used as reference.
+	 * @param rm The {@link RoadModel} which is searched.
+	 * @param objects The {@link Collection} which is searched, each object must
+	 *            exist in <code>rm</code>.
+	 * @return The closest object in <code>rm</code> to <code>pos</code> which
+	 *         satisfies the <code>predicate</code>.
+	 * @see #findClosestObject(Point, Collection, Function)
+	 */
 	public static <T extends RoadUser> T findClosestObject(Point pos, RoadModel rm, Collection<T> objects) {
 		return findClosestObject(pos, objects, new RoadUserToPositionFunction<T>(rm));
 	}
 
+	/**
+	 * A method for finding the closest object to a point.
+	 * @param pos The {@link Point} which is used as reference.
+	 * @param objects The {@link Collection} which is searched.
+	 * @param transformation A {@link Function} that transforms an object from
+	 *            <code>objects</code> into a {@link Point}, normally this means
+	 *            that the position of the object is retrieved.
+	 * @return The closest object in <code>objects</code> to <code>pos</code>.
+	 */
 	public static <T> T findClosestObject(Point pos, Collection<T> objects, Function<T, Point> transformation) {
 		double dist = Double.MAX_VALUE;
 		T closest = null;
@@ -358,9 +399,9 @@ public class Graphs {
 		public final double dist;
 		public final T obj;
 
-		public RoadUserWithDistance(T obj, double dist) {
-			this.obj = obj;
-			this.dist = dist;
+		public RoadUserWithDistance(T obj1, double dist1) {
+			this.obj = obj1;
+			this.dist = dist1;
 		}
 
 		@Override
@@ -382,7 +423,8 @@ public class Graphs {
 		return findClosestObjects(pos, objects, new RoadUserToPositionFunction<T>(rm), n);
 	}
 
-	public static <T> List<T> findClosestObjects(Point pos, Collection<T> objects, Function<T, Point> transformation, int n) {
+	public static <T> List<T> findClosestObjects(Point pos, Collection<T> objects, Function<T, Point> transformation,
+			int n) {
 		List<RoadUserWithDistance<T>> objs = new ArrayList<RoadUserWithDistance<T>>();
 		for (T obj : objects) {
 			Point objPos = transformation.apply(obj);
@@ -399,8 +441,8 @@ public class Graphs {
 	static class RoadUserToPositionFunction<T extends RoadUser> implements Function<T, Point> {
 		private final RoadModel rm;
 
-		public RoadUserToPositionFunction(RoadModel rm) {
-			this.rm = rm;
+		public RoadUserToPositionFunction(RoadModel roadModel) {
+			this.rm = roadModel;
 		}
 
 		@Override
@@ -409,15 +451,18 @@ public class Graphs {
 		}
 	}
 
-	public static Collection<RoadUser> findObjectsWithinRadius(final Point position, final RoadModel model, final double radius) {
+	public static Collection<RoadUser> findObjectsWithinRadius(final Point position, final RoadModel model,
+			final double radius) {
 		return Graphs.findObjectsWithinRadius(position, model, radius, model.getObjects());
 	}
 
-	public static <T extends RoadUser> Collection<T> findObjectsWithinRadius(final Point position, final RoadModel model, final double radius, final Class<T> type) {
+	public static <T extends RoadUser> Collection<T> findObjectsWithinRadius(final Point position,
+			final RoadModel model, final double radius, final Class<T> type) {
 		return findObjectsWithinRadius(position, model, radius, model.getObjectsOfType(type));
 	}
 
-	protected static <T extends RoadUser> Collection<T> findObjectsWithinRadius(final Point position, final RoadModel model, final double radius, Collection<T> objects) {
+	protected static <T extends RoadUser> Collection<T> findObjectsWithinRadius(final Point position,
+			final RoadModel model, final double radius, Collection<T> objects) {
 		return Collections2.filter(objects, new DistancePredicate(position, model, radius));
 	}
 
@@ -426,10 +471,10 @@ public class Graphs {
 		private final RoadModel model;
 		private final double radius;
 
-		public DistancePredicate(final Point position, final RoadModel model, final double radius) {
-			this.position = position;
-			this.model = model;
-			this.radius = radius;
+		public DistancePredicate(final Point p, final RoadModel m, final double r) {
+			position = p;
+			model = m;
+			radius = r;
 		}
 
 		@Override

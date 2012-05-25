@@ -22,6 +22,7 @@ import com.google.common.collect.Multimaps;
  * @author Rinde van Lon (rinde.vanlon@cs.kuleuven.be)
  * @author Bartosz Michalik <bartosz.michalik@cs.kuleuven.be> - added edge data
  *         + and dead end nodes
+ * @param <E> The type of {@link EdgeData} that is used in the edges.
  */
 public class MultimapGraph<E extends EdgeData> implements Graph<E> {
 
@@ -29,13 +30,12 @@ public class MultimapGraph<E extends EdgeData> implements Graph<E> {
 	private final HashMap<Connection<E>, E> edgeData;
 	private final HashSet<Point> deadEndNodes;
 
-	public MultimapGraph(Multimap<Point, Point> data) {
-		this.data = LinkedHashMultimap.create(data);
+	public MultimapGraph(Multimap<Point, Point> map) {
+		this.data = LinkedHashMultimap.create(map);
 		this.edgeData = new HashMap<Connection<E>, E>();
 		this.deadEndNodes = new HashSet<Point>();
 		deadEndNodes.addAll(data.values());
 		deadEndNodes.removeAll(data.keySet());
-
 	}
 
 	public MultimapGraph() {
@@ -75,19 +75,22 @@ public class MultimapGraph<E extends EdgeData> implements Graph<E> {
 	}
 
 	@Override
-	public void addConnection(Point from, Point to, E edgeData) {
+	public void addConnection(Point from, Point to, E connData) {
 		if (from.equals(to)) {
 			throw new IllegalArgumentException("A connection cannot be circular");
 		}
-
-		if (data.put(from, to)) {
-			deadEndNodes.remove(from);
-			if (!data.containsKey(to)) {
-				deadEndNodes.add(to);
-			}
+		if (hasConnection(from, to)) {
+			throw new IllegalArgumentException("Connection already exists: " + from + " -> " + to);
 		}
-		if (edgeData != null) {
-			this.edgeData.put(new Connection<E>(from, to, null), edgeData);
+
+		data.put(from, to);
+		deadEndNodes.remove(from);
+		if (!data.containsKey(to)) {
+			deadEndNodes.add(to);
+		}
+
+		if (connData != null) {
+			this.edgeData.put(new Connection<E>(from, to, null), connData);
 		}
 	}
 
@@ -100,11 +103,11 @@ public class MultimapGraph<E extends EdgeData> implements Graph<E> {
 	}
 
 	@Override
-	public E setEdgeData(Point from, Point to, E edgeData) {
+	public E setEdgeData(Point from, Point to, E connData) {
 		if (!hasConnection(from, to)) {
 			throw new IllegalArgumentException("the connection " + from + " -> " + to + "does not exist");
 		}
-		return this.edgeData.put(new Connection<E>(from, to, null), edgeData);
+		return this.edgeData.put(new Connection<E>(from, to, null), connData);
 	}
 
 	@Override
@@ -234,7 +237,7 @@ public class MultimapGraph<E extends EdgeData> implements Graph<E> {
 				return point;
 			}
 		}
-		return null; //should not happen
+		return null; // should not happen
 	}
 
 	@Override
