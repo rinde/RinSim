@@ -44,7 +44,11 @@ public class SimulatorTest {
 		simulator.addTickListener(normal);
 		simulator.tick();
 		assertTrue(normal.getExecTime() < normal.getAfterExecTime());
+	}
 
+	@Test(expected = IllegalArgumentException.class)
+	public void testRegisterNull() {
+		simulator.register(null);
 	}
 
 	class TickListenerImpl implements TickListener {
@@ -61,7 +65,7 @@ public class SimulatorTest {
 		public long getExecTime() {
 			return execTime;
 		}
-		
+
 		public long getAfterExecTime() {
 			return afterTime;
 		}
