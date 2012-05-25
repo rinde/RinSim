@@ -36,7 +36,8 @@ public class DotUtils {
 			int nodeId = 0;
 			HashMap<Point, Integer> idMap = new HashMap<Point, Integer>();
 			for (Point p : mp.getNodes()) {
-				string.append("node" + nodeId + "[pos=\"" + p.x / 3 + "," + p.y / 3 + "\", label=\"" + p + "\", pin=true]\n");
+				string.append("node" + nodeId + "[pos=\"" + p.x / 3 + "," + p.y / 3 + "\", label=\"" + p
+						+ "\", pin=true]\n");
 				idMap.put(p, nodeId);
 				nodeId++;
 			}
@@ -46,11 +47,13 @@ public class DotUtils {
 				String label = "" + Math.round(mp.connectionLength(entry.getKey(), entry.getValue()) * 10d) / 10d;
 				if (!idMap.containsKey(entry.getValue())) {
 					Point p = entry.getValue();
-					string.append("node" + nodeId + "[pos=\"" + p.x / 3 + "," + p.y / 3 + "\", label=\"" + p + "\", pin=true]\n");
+					string.append("node" + nodeId + "[pos=\"" + p.x / 3 + "," + p.y / 3 + "\", label=\"" + p
+							+ "\", pin=true]\n");
 					idMap.put(p, nodeId);
 					nodeId++;
 				}
-				string.append("node" + idMap.get(entry.getKey()) + " -> node" + idMap.get(entry.getValue()) + "[label=\"" + label + "\"]\n");
+				string.append("node" + idMap.get(entry.getKey()) + " -> node" + idMap.get(entry.getValue())
+						+ "[label=\"" + label + "\"]\n");
 			}
 
 			string.append("}");
@@ -71,13 +74,14 @@ public class DotUtils {
 	// copied from rinde graduation
 	protected static final boolean isDotAvailable = checkCommandAvailability("/usr/local/bin/dot");
 
-	private static boolean dotToPDF(final String dotFile, final String pdfFile) {
+	public static boolean dotToPDF(final String dotFile, final String pdfFile) {
 		if (isDotAvailable) {
 			try {
 				// Execute a command with an argument that contains a space
-				//"-Kneato", // -Kfdp
+				// "-Kneato", // -Kfdp
 				final String[] commands = new String[] { "/usr/local/bin/dot", "-o", pdfFile, "-Tpdf", dotFile };
-				//				System.out.println(Arrays.toString(commands).replace(",", ""));
+				// System.out.println(Arrays.toString(commands).replace(",",
+				// ""));
 				final Process p = Runtime.getRuntime().exec(commands);
 
 				// final BufferedReader stdInput = new BufferedReader(new
@@ -119,7 +123,7 @@ public class DotUtils {
 					Point p = new Point(Double.parseDouble(position[0]), Double.parseDouble(position[1]));
 					nodeMapping.put(nodeName, p);
 				} else if (line.contains("->")) {
-					// example: 
+					// example:
 					// node1004 -> node820[label="163.3"]
 					String[] names = line.split("->");
 					String fromStr = names[0].trim();
@@ -127,23 +131,23 @@ public class DotUtils {
 					double distance = Double.parseDouble(line.split("\"")[1]);
 					Point from = nodeMapping.get(fromStr);
 					Point to = nodeMapping.get(toStr);
-					//if (!from.equals(to)) {
+					// if (!from.equals(to)) {
 					if (Point.distance(from, to) == distance) {
 						graph.addConnection(from, to);
 					} else {
 						graph.addConnection(from, to, distance);
 						containsDistances = true;
 					}
-					//}
+					// }
 				}
 			}
-			//			if (containsDistances) {
-			//				return graph;
-			//			} else {
+			// if (containsDistances) {
+			// return graph;
+			// } else {
 			Graph g = new MultimapGraph();
 			g.merge(graph);
 			return g;
-			//			}
+			// }
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}

@@ -54,7 +54,7 @@ public class View implements PaintListener, SelectionListener, ControlListener, 
 	protected double m;//multiplier
 	protected double minX;
 	protected double minY;
-	protected final long sleepInterval;
+	protected long sleepInterval;
 
 	double deltaX;
 	double deltaY;
@@ -246,9 +246,21 @@ public class View implements PaintListener, SelectionListener, ControlListener, 
 		//shell.setMaximized(true);
 		shell.setMinimumSize(400, 300);
 
+		final MenuItem speedUpItem = new MenuItem(submenu, SWT.PUSH);
+		speedUpItem.setText("Faster");
+		speedUpItem.setAccelerator(SWT.MOD1 + SWT.ARROW_UP);
+		speedUpItem.setData("faster");
+
+		final MenuItem speedDownItem = new MenuItem(submenu, SWT.PUSH);
+		speedDownItem.setText("Slower");
+		speedDownItem.setAccelerator(SWT.MOD1 + SWT.ARROW_DOWN);
+		speedDownItem.setData("slower");
+
 		View v = new View(shell, simulator, sleepInterval, renderers);
 		zoomInItem.addListener(SWT.Selection, v);
 		zoomOutItem.addListener(SWT.Selection, v);
+		speedUpItem.addListener(SWT.Selection, v);
+		speedDownItem.addListener(SWT.Selection, v);
 
 		shell.open();
 
@@ -358,10 +370,14 @@ public class View implements PaintListener, SelectionListener, ControlListener, 
 			origin.y -= m * deltaY / 2;
 			m *= 2;
 
-		} else {
+		} else if (event.widget.getData().equals("out")) {
 			m /= 2;
 			origin.x += m * deltaX / 2;
 			origin.y += m * deltaY / 2;
+		} else if (event.widget.getData().equals("faster")) {
+			sleepInterval /= 2;
+		} else if (event.widget.getData().equals("slower")) {
+			sleepInterval *= 2;
 		}
 
 		image = null;// this forces a redraw
