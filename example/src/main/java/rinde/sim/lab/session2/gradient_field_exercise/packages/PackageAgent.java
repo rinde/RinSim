@@ -6,9 +6,9 @@ import rinde.sim.core.TickListener;
 import rinde.sim.core.graph.Point;
 import rinde.sim.core.model.RoadModel;
 import rinde.sim.core.model.RoadUser;
-import rinde.sim.core.model.virtual.FieldData;
-import rinde.sim.core.model.virtual.GradientFieldAPI;
-import rinde.sim.core.model.virtual.VirtualEntity;
+import rinde.sim.lab.model.virtual.FieldData;
+import rinde.sim.lab.model.virtual.GradientFieldAPI;
+import rinde.sim.lab.model.virtual.VirtualEntity;
 
 public class PackageAgent implements TickListener, SimulatorUser {
 

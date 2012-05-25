@@ -1,4 +1,4 @@
-package rinde.sim.core.model.virtual;
+package rinde.sim.lab.model.virtual;
 
 
 import java.util.Collection;
