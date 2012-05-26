@@ -8,6 +8,11 @@ import static org.junit.Assert.assertTrue;
 import org.junit.Before;
 import org.junit.Test;
 
+import rinde.sim.core.graph.EdgeData;
+import rinde.sim.core.graph.Graph;
+import rinde.sim.core.graph.LengthEdgeData;
+import rinde.sim.core.graph.MultimapGraph;
+
 public class ModelManagerTest {
 
 	protected ModelManager manager;
@@ -56,11 +61,76 @@ public class ModelManagerTest {
 		assertArrayEquals(new Model<?>[] { model, model2 }, manager.getModels().toArray(new Model<?>[2]));
 	}
 
+	@Test(expected = IllegalArgumentException.class)
+	public void registerNull() {
+		manager.register(null);
+	}
+
+	@Test(expected = IllegalStateException.class)
+	public void registerModelTooLate() {
+		manager.configure();
+		manager.register(new RoadModel(new MultimapGraph<LengthEdgeData>()));
+	}
+
+	@Test(expected = IllegalStateException.class)
+	public void addModelTooLate() {
+		manager.configure();
+		manager.add(new RoadModel(new MultimapGraph<LengthEdgeData>()));
+	}
+
+	@Test(expected = RuntimeException.class)
+	public void registerWithBrokenModel() {
+		manager.add(new RoadModel(new MultimapGraph<LengthEdgeData>()));
+		manager.add(new BrokenRoadModel(new MultimapGraph<LengthEdgeData>()));
+		manager.configure();
+		manager.register(new RoadUser() {
+			@Override
+			public void initRoadUser(RoadModel model) {}
+		});
+	}
+
 	@Test
 	public void unregisterWithoutModels() {
 		manager.configure();
 		assertEquals(0, manager.getModels().size());
 		assertFalse(manager.unregister(new Object()));
+	}
+
+	@Test(expected = IllegalArgumentException.class)
+	public void unregisterNull() {
+		manager.unregister(null);
+	}
+
+	@Test(expected = IllegalArgumentException.class)
+	public void unregisterModel() {
+		manager.unregister(new RoadModel(new MultimapGraph<LengthEdgeData>()));
+	}
+
+	@Test(expected = IllegalStateException.class)
+	public void unregisterWhenNotConfigured() {
+		manager.unregister(new Object());
+	}
+
+	@Test
+	public void unregister() {
+		manager.add(new RoadModel(new MultimapGraph<LengthEdgeData>()));
+		manager.add(new RoadModel(new MultimapGraph<LengthEdgeData>()));
+		manager.configure();
+		manager.unregister(new RoadUser() {
+			@Override
+			public void initRoadUser(RoadModel model) {}
+		});
+	}
+
+	@Test(expected = RuntimeException.class)
+	public void unregisterWithBrokenModel() {
+		manager.add(new RoadModel(new MultimapGraph<LengthEdgeData>()));
+		manager.add(new BrokenRoadModel(new MultimapGraph<LengthEdgeData>()));
+		manager.configure();
+		manager.unregister(new RoadUser() {
+			@Override
+			public void initRoadUser(RoadModel model) {}
+		});
 	}
 
 	@Test
@@ -70,7 +140,7 @@ public class ModelManagerTest {
 		manager.configure();
 		Object o = new Object();
 		assertFalse(manager.unregister(o));
-		// it wont be register 
+		// it wont be register
 		assertFalse(manager.register(o));
 		assertFalse(manager.unregister(o));
 	}
@@ -94,6 +164,22 @@ public class ModelManagerTest {
 		assertEquals(1, model2.calledRegister);
 		assertEquals(1, model.callUnregister);
 
+	}
+}
+
+class BrokenRoadModel extends RoadModel {
+	public BrokenRoadModel(Graph<? extends EdgeData> pGraph) {
+		super(pGraph);
+	}
+
+	@Override
+	public boolean register(RoadUser obj) {
+		throw new RuntimeException("intended failure");
+	}
+
+	@Override
+	public boolean unregister(RoadUser obj) {
+		throw new RuntimeException("intended failure");
 	}
 }
 
@@ -141,8 +227,6 @@ class BarModel extends AbstractModel<Bar> {
 	}
 }
 
-class Foo {
-}
+class Foo {}
 
-class Bar {
-}
+class Bar {}

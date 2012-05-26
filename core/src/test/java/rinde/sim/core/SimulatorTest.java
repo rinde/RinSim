@@ -9,13 +9,10 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import java.util.Arrays;
-import java.util.HashSet;
 
 import org.apache.commons.math.random.MersenneTwister;
 import org.junit.Before;
 import org.junit.Test;
-
-import rinde.sim.core.model.Model;
 
 import com.google.common.collect.Sets;
 
@@ -88,12 +85,12 @@ public class SimulatorTest {
 		assertFalse(simulator.register(m1));
 		assertTrue(simulator.register(m2));
 		assertTrue(simulator.register(m3));
-		assertFalse(simulator.register((Object) m3));
+		assertFalse(simulator.register(m3));
 
 		assertEquals(Arrays.asList(m1, m2, m3), simulator.getModels());
 		simulator.configure();
 
-		assertFalse(simulator.register(new DummyObject()));
+		assertTrue(simulator.register(new DummyObject()));
 
 		DummyObjectTickListener dotl = new DummyObjectTickListener();
 		assertFalse(simulator.register(dotl));
@@ -169,30 +166,6 @@ public class SimulatorTest {
 
 		public SimulatorAPI getAPI() {
 			return receivedAPI;
-		}
-	}
-
-	class DummyModel implements Model<DummyObject> {
-
-		private final HashSet<DummyObject> objs;
-
-		public DummyModel() {
-			objs = new HashSet<DummyObject>();
-		}
-
-		@Override
-		public boolean register(DummyObject element) {
-			return objs.add(element);
-		}
-
-		@Override
-		public boolean unregister(DummyObject element) {
-			return objs.remove(element);
-		}
-
-		@Override
-		public Class<DummyObject> getSupportedType() {
-			return DummyObject.class;
 		}
 	}
 

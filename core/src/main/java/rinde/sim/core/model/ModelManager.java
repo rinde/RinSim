@@ -1,7 +1,6 @@
 package rinde.sim.core.model;
 
 import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedList;
@@ -16,6 +15,7 @@ import com.google.common.collect.Multimap;
  * responsible for adding a simulation object to the appropriate models
  * 
  * @author Bartosz Michalik <bartosz.michalik@cs.kuleuven.be>
+ * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
  * 
  */
 public class ModelManager {
@@ -32,8 +32,8 @@ public class ModelManager {
 	/**
 	 * Add model to the manager. Note: a model can be added only once.
 	 * 
-	 * @param model
-	 * @return whether the addition was sucessful
+	 * @param model The model to be added.
+	 * @return true when the addition was sucessful, false otherwise.
 	 * @throws IllegalStateException when method called after calling configure
 	 */
 	public boolean add(Model<?> model) {
@@ -66,10 +66,12 @@ public class ModelManager {
 	 * @return <code>true</code> if object was added to at least one model
 	 */
 	public boolean register(Object o) {
-		assert o != null : "NPE later in code otherwise";
+		if (o == null) {
+			throw new IllegalArgumentException("Can not register null");
+		}
 		if (o instanceof Model) {
 			if (configured) {
-				throw new IllegalStateException("model cannot be registered after configure()");
+				throw new IllegalStateException("model can not be registered after configure()");
 			}
 			return add((Model<?>) o);
 		}
@@ -85,13 +87,14 @@ public class ModelManager {
 				for (Model<?> m : modelsByType) {
 					try {
 						Method method = m.getClass().getMethod("register", k);
-						if (!Modifier.isPublic(method.getModifiers())) {
-							continue;
-						}
+						// note: the register() method is always public since it
+						// is enforced by the Model interface
 						method.invoke(m, o);
 						result = true;
 					} catch (Exception e) {
-						// e.printStackTrace();
+						throw new RuntimeException(
+								"There is either an implementation error in the model or the Model is not a public class",
+								e);
 					}
 				}
 			}
@@ -104,34 +107,37 @@ public class ModelManager {
 	 * @param o object to unregister
 	 * @return <code>true</code> when the unregistration succeeded in at least
 	 *         on model
-	 * @throws IllegalAccessException if an object is a model
 	 * @throws IllegalStateException if the method is called before simulator is
 	 *             configured
 	 */
 	public boolean unregister(Object o) {
-		assert o != null : "NPE later in code otherwise";
+		if (o == null) {
+			throw new IllegalArgumentException("can not unregister null");
+		}
 		if (o instanceof Model) {
-			throw new IllegalArgumentException("cannot unregister an model");
+			throw new IllegalArgumentException("can not unregister an model");
 		}
 		if (!configured) {
-			throw new IllegalStateException("call configure()");
+			throw new IllegalStateException("can not unregister when not registerd, call configure() first");
 		}
 
 		boolean result = false;
 		Set<Class<?>> keys = registry.keySet();
 		for (Class<?> k : keys) {
+			// check if object is from a known type
 			if (k.isAssignableFrom(o.getClass())) {
 				Collection<Model<?>> modelsByType = registry.get(k);
 				for (Model<?> m : modelsByType) {
 					try {
 						Method method = m.getClass().getMethod("unregister", k);
-						if (!Modifier.isPublic(method.getModifiers())) {
-							continue;
-						}
+						// note: the register() method is always public since it
+						// is enforced by the Model interface
 						method.invoke(m, o);
 						result = true;
 					} catch (Exception e) {
-						e.printStackTrace();
+						throw new RuntimeException(
+								"There is either an implementation error in the model or the Model is not a public class",
+								e);
 					}
 				}
 			}
