@@ -9,9 +9,8 @@ public class LengthEdgeData implements EdgeData {
 
 	private final double length;
 
-	public LengthEdgeData(double length) {
-
-		this.length = length;
+	public LengthEdgeData(double pLength) {
+		length = pLength;
 	}
 
 	@Override
@@ -38,7 +37,7 @@ public class LengthEdgeData implements EdgeData {
 	}
 
 	/**
-	 * represents a empty value for purpose of {@link TableGraph}
+	 * represents an empty value for purpose of {@link TableGraph}
 	 */
 	public static final LengthEdgeData EMPTY = new LengthEdgeData(Double.NaN);
 }

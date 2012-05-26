@@ -99,7 +99,7 @@ public class MultimapGraph<E extends EdgeData> implements Graph<E> {
 		if (c == null) {
 			return;
 		}
-		addConnection(c.from, c.to, c.edgeData);
+		addConnection(c.from, c.to, c.getEdgeData());
 	}
 
 	@Override

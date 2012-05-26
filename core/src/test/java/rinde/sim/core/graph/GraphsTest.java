@@ -423,4 +423,20 @@ public class GraphsTest {
 		Graphs.addBiPath(graph, N, E);
 	}
 
+	@Test
+	public void testMultimapGraphConstructor() {
+		RandomGenerator rnd = new MersenneTwister(123);
+		List<Point> path = new ArrayList<Point>();
+		for (int i = 0; i < 20; i++) {
+			path.add(new Point(rnd.nextInt(50), rnd.nextInt(50)));
+		}
+		Graphs.addBiPath(graph, path.toArray(new Point[path.size()]));
+
+		MultimapGraph<LengthEdgeData> testGraph = new MultimapGraph<LengthEdgeData>();
+		testGraph.merge(graph);
+
+		MultimapGraph<LengthEdgeData> newGraph = new MultimapGraph<LengthEdgeData>(testGraph.getMultimap());
+
+		assertEquals(testGraph.getMultimap(), newGraph.getMultimap());
+	}
 }

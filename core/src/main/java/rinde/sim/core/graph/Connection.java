@@ -5,32 +5,38 @@ import org.apache.commons.lang.builder.HashCodeBuilder;
 /**
  * Class representing a connection in a graph.
  * @author Bartosz Michalik <bartosz.michalik@cs.kuleuven.be>
+ * @param <E> Type of {@link EdgeData} that is used. This data object can be
+ *            used to add additional information to the connection.
  * @since 2.0
  */
 public class Connection<E extends EdgeData> {
 	public final Point from;
 	public final Point to;
-	public E edgeData;
-
-	public void setEdgeData(E edgeData) {
-		this.edgeData = edgeData;
-	}
+	private E edgeData;
 
 	private final int hashCode;
 
-	public Connection(Point from, Point to, E edgeData) {
-		if (from == null || to == null) {
+	public Connection(Point pFrom, Point pTo, E pEdgeData) {
+		if (pFrom == null || pTo == null) {
 			throw new IllegalArgumentException("points cannot be null");
 		}
-		this.from = from;
-		this.to = to;
-		this.edgeData = edgeData;
+		this.from = pFrom;
+		this.to = pTo;
+		this.edgeData = pEdgeData;
 
-		HashCodeBuilder builder = new HashCodeBuilder(13, 17).append(from).append(to);
-		if (edgeData != null) {
-			builder.append(edgeData);
+		HashCodeBuilder builder = new HashCodeBuilder(13, 17).append(pFrom).append(pTo);
+		if (pEdgeData != null) {
+			builder.append(pEdgeData);
 		}
 		hashCode = builder.toHashCode();
+	}
+
+	public void setEdgeData(E pEdgeData) {
+		this.edgeData = pEdgeData;
+	}
+
+	public E getEdgeData() {
+		return edgeData;
 	}
 
 	@Override
@@ -54,13 +60,13 @@ public class Connection<E extends EdgeData> {
 		if (edgeData == null) {
 			return other.edgeData == null;
 		}
-
-		return edgeData.equals(other.edgeData);
+		return edgeData.equals(other.getEdgeData());
 	}
 
 	@Override
 	public String toString() {
-		return new StringBuilder().append("[").append(from).append("->").append(to).append("[").append(edgeData).append("]]").toString();
+		return new StringBuilder().append("[").append(from).append("->").append(to).append("[").append(edgeData)
+				.append("]]").toString();
 	}
 
 }

@@ -16,11 +16,9 @@ import rinde.sim.core.graph.MultimapGraph;
 import rinde.sim.core.graph.Point;
 
 /**
- * Dot format serializer for a road model graph.
- * Allows for reading storing maps in dot format.
- * The default implementation of the serializer for graphs with edge length
- * information
- * can be obtained via calling
+ * Dot format serializer for a road model graph. Allows for reading storing maps
+ * in dot format. The default implementation of the serializer for graphs with
+ * edge length information can be obtained via calling
  * {@link DotGraphSerializer#getLengthGraphSerializer(SerializerFilter...)}
  * 
  * @author Bartosz Michalik <bartosz.michalik@cs.kuleuven.be>
@@ -98,7 +96,8 @@ public class DotGraphSerializer<E extends EdgeData> extends AbstractGraphSeriali
 		int nodeId = 0;
 		HashMap<Point, Integer> idMap = new HashMap<Point, Integer>();
 		for (Point p : graph.getNodes()) {
-			string.append(NODE_PREFIX).append(nodeId).append("[").append(POS).append("=\"").append(p.x).append(",").append(p.y).append("\"]\n");
+			string.append(NODE_PREFIX).append(nodeId).append("[").append(POS).append("=\"").append(p.x).append(",")
+					.append(p.y).append("\"]\n");
 			idMap.put(p, nodeId);
 			nodeId++;
 		}
@@ -108,7 +107,8 @@ public class DotGraphSerializer<E extends EdgeData> extends AbstractGraphSeriali
 		}
 		string.append("}");
 		out.append(string);
-		out.close(); // it is important to close the BufferedWriter! otherwise there is no guarantee that it has reached the end..
+		out.close(); // it is important to close the BufferedWriter! otherwise
+						// there is no guarantee that it has reached the end..
 	}
 
 	/**
@@ -126,14 +126,14 @@ public class DotGraphSerializer<E extends EdgeData> extends AbstractGraphSeriali
 
 	private static class LengthConnectionSerializer extends ConnectionSerializer<LengthEdgeData> {
 
-		public LengthConnectionSerializer() {
-		}
+		public LengthConnectionSerializer() {}
 
 		@Override
 		public String serializeConnection(int idFrom, int idTo, Connection<? extends LengthEdgeData> conn) {
 			StringBuffer buffer = new StringBuffer();
 			buffer.append(NODE_PREFIX).append(idFrom).append(" -> ").append(NODE_PREFIX).append(idTo);
-			buffer.append("[").append(DISTANCE).append("=\"").append(Math.round(conn.edgeData.getLength()) / 10d).append("\"]\n");
+			buffer.append("[").append(DISTANCE).append("=\"").append(Math.round(conn.getEdgeData().getLength()) / 10d)
+					.append("\"]\n");
 			return buffer.toString();
 		}
 
@@ -145,16 +145,15 @@ public class DotGraphSerializer<E extends EdgeData> extends AbstractGraphSeriali
 	}
 
 	private static class MultiAttributeConnectionSerializer extends ConnectionSerializer<MultiAttributeEdgeData> {
-		public MultiAttributeConnectionSerializer() {
-		}
+		public MultiAttributeConnectionSerializer() {}
 
 		@Override
 		public String serializeConnection(int idFrom, int idTo, Connection<? extends MultiAttributeEdgeData> conn) {
 			StringBuffer buffer = new StringBuffer();
 			buffer.append(NODE_PREFIX).append(idFrom).append(" -> ").append(NODE_PREFIX).append(idTo);
-			buffer.append("[").append(DISTANCE).append("=\"").append(Math.round(conn.edgeData.getLength()) / 10d);
-			if (!Double.isNaN(conn.edgeData.getMaxSpeed()) && conn.edgeData.getMaxSpeed() > 0) {
-				buffer.append("\", ").append(MAX_SPEED).append("=\"").append(conn.edgeData.getMaxSpeed());
+			buffer.append("[").append(DISTANCE).append("=\"").append(Math.round(conn.getEdgeData().getLength()) / 10d);
+			if (!Double.isNaN(conn.getEdgeData().getMaxSpeed()) && conn.getEdgeData().getMaxSpeed() > 0) {
+				buffer.append("\", ").append(MAX_SPEED).append("=\"").append(conn.getEdgeData().getMaxSpeed());
 			}
 			buffer.append("\"]\n");
 			return buffer.toString();
@@ -182,7 +181,8 @@ public class DotGraphSerializer<E extends EdgeData> extends AbstractGraphSeriali
 		return new DotGraphSerializer<LengthEdgeData>(new LengthConnectionSerializer(), filters);
 	}
 
-	public static DotGraphSerializer<MultiAttributeEdgeData> getMultiAttributeGraphSerializer(SerializerFilter<?>... filters) {
+	public static DotGraphSerializer<MultiAttributeEdgeData> getMultiAttributeGraphSerializer(
+			SerializerFilter<?>... filters) {
 		return new DotGraphSerializer<MultiAttributeEdgeData>(new MultiAttributeConnectionSerializer(), filters);
 	}
 }

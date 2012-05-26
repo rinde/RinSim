@@ -55,14 +55,13 @@ public final class Graphs {
 	}
 
 	public static <E extends EdgeData> Connection<E> unmodifiableConnection(Connection<E> conn) {
-		return new Connection<E>(conn.from, conn.to, conn.edgeData == null ? null : unmodifiableEdgeData(conn.edgeData));
+		return new UnmodifiableConnection<E>(conn);
 	}
 
 	@SuppressWarnings("unchecked")
 	public static <E extends EdgeData> E unmodifiableEdgeData(E edgeData) {
 		if (edgeData instanceof MultiAttributeEdgeData) {
-			return (E) new UnmodifiableMultiAttributeEdgeData(edgeData.getLength(),
-					((MultiAttributeEdgeData) edgeData).getMaxSpeed());
+			return (E) new UnmodifiableMultiAttributeEdgeData((MultiAttributeEdgeData) edgeData);
 		}
 		return edgeData;
 	}
@@ -80,10 +79,10 @@ public final class Graphs {
 			}
 			E g2connEdgeData = g2.connectionData(g1conn.from, g1conn.to);
 
-			boolean null1 = g1conn.edgeData == null;
+			boolean null1 = g1conn.getEdgeData() == null;
 			boolean null2 = g2connEdgeData == null;
 			int nullCount = (null1 ? 1 : 0) + (null2 ? 1 : 0);
-			if ((nullCount == 0 && !g1conn.edgeData.equals(g2connEdgeData)) || nullCount == 1) {
+			if ((nullCount == 0 && !g1conn.getEdgeData().equals(g2connEdgeData)) || nullCount == 1) {
 				return false;
 			}
 		}
@@ -93,8 +92,31 @@ public final class Graphs {
 
 	private static class UnmodifiableMultiAttributeEdgeData extends MultiAttributeEdgeData {
 
-		public UnmodifiableMultiAttributeEdgeData(double length, double maxSpeed) {
-			super(length, maxSpeed);
+		private final MultiAttributeEdgeData original;
+
+		public UnmodifiableMultiAttributeEdgeData(MultiAttributeEdgeData pOriginal) {
+			super(-1);
+			original = pOriginal;
+		}
+
+		@Override
+		public double getLength() {
+			return original.getLength();
+		}
+
+		@Override
+		public double getMaxSpeed() {
+			return original.getMaxSpeed();
+		}
+
+		@Override
+		public Map<String, Object> getProperties() {
+			return original.getProperties();
+		}
+
+		@Override
+		public <E> E get(String key, Class<E> type) {
+			return original.get(key, type);
 		}
 
 		@Override
@@ -107,6 +129,53 @@ public final class Graphs {
 			throw new UnsupportedOperationException();
 		}
 
+		@Override
+		public boolean equals(Object obj) {
+			return original.equals(obj);
+		}
+
+		@Override
+		public int hashCode() {
+			return original.hashCode();
+		}
+
+	}
+
+	private static final class UnmodifiableConnection<E extends EdgeData> extends Connection<E> {
+		private final Connection<E> original;
+
+		public UnmodifiableConnection(Connection<E> c) {
+			super(c.from, c.to, null);
+			original = c;
+		}
+
+		@Override
+		public void setEdgeData(E data) {
+			throw new UnsupportedOperationException();
+		}
+
+		@Override
+		public E getEdgeData() {
+			if (original.getEdgeData() == null) {
+				return null;
+			}
+			return Graphs.unmodifiableEdgeData(original.getEdgeData());
+		}
+
+		@Override
+		public boolean equals(Object obj) {
+			return original.equals(obj);
+		}
+
+		@Override
+		public int hashCode() {
+			return original.hashCode();
+		}
+
+		@Override
+		public String toString() {
+			return original.toString();
+		}
 	}
 
 	private static class UnmodifiableGraph<E extends EdgeData> implements Graph<E> {
