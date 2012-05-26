@@ -82,7 +82,7 @@ public class SimulatorTest {
 		DummyModel m2 = new DummyModel();
 		DummyModelAsTickListener m3 = new DummyModelAsTickListener();
 		assertTrue(simulator.register(m1));
-		assertFalse(simulator.register(m1));
+		assertFalse(simulator.register((Object) m1));
 		assertTrue(simulator.register(m2));
 		assertTrue(simulator.register(m3));
 		assertFalse(simulator.register(m3));
