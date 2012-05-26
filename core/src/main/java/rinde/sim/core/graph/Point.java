@@ -19,9 +19,9 @@ public class Point implements Serializable {
 
 	private final int hashCode;
 
-	public Point(double x, double y) {
-		this.x = x;
-		this.y = y;
+	public Point(double pX, double pY) {
+		x = pX;
+		y = pY;
 		hashCode = new HashCodeBuilder(17, 37).append(x + "," + y).toHashCode();
 	}
 

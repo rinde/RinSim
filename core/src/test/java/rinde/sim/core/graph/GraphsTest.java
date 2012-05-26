@@ -439,4 +439,42 @@ public class GraphsTest {
 
 		assertEquals(testGraph.getMultimap(), newGraph.getMultimap());
 	}
+
+	@Test
+	public void setEdgeData() {
+		Point N = new Point(0, 5);
+		Point E = new Point(5, 0);
+		Point S = new Point(0, -5);
+		Point W = new Point(-5, 0);
+
+		Graphs.addBiPath(graph, N, E, S, W, N);
+		assertNull(graph.setEdgeData(N, E, new LengthEdgeData(100)));
+		assertEquals(new LengthEdgeData(100), graph.setEdgeData(N, E, null));
+		if (graph instanceof TableGraph) {
+
+		}
+	}
+
+	@Test(expected = IllegalArgumentException.class)
+	public void setNonExistingEdgeData() {
+		graph.setEdgeData(new Point(1, 1), new Point(2, 3), null);
+	}
+
+	@Test
+	public void removeNode() {
+		Point N = new Point(0, 5);
+		Point E = new Point(5, 0);
+		Point S = new Point(0, -5);
+		Point W = new Point(-5, 0);
+
+		Graphs.addBiPath(graph, N, E, S, W, N);
+		Graph<LengthEdgeData> unmod = Graphs.unmodifiableGraph(graph);
+		assertEquals(graph, unmod);
+		assertTrue(graph.getNodes().size() == 4);
+		assertTrue(graph.getConnections().size() == 8);
+		graph.removeNode(N);
+		assertEquals(graph, unmod);
+		assertTrue(graph.getNodes().size() == 3);
+		assertTrue(graph.getConnections().size() == 4);
+	}
 }

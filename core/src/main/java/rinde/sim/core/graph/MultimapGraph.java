@@ -177,10 +177,15 @@ public class MultimapGraph<E extends EdgeData> implements Graph<E> {
 	 */
 	@Override
 	public void removeNode(Point node) {
-		for (Point p : getOutgoingConnections(node)) {
+		// copy data first to avoid concurrent modification exceptions
+		List<Point> out = new ArrayList<Point>();
+		out.addAll(getOutgoingConnections(node));
+		for (Point p : out) {
 			removeConnection(node, p);
 		}
-		for (Point p : getIncomingConnections(node)) {
+		List<Point> in = new ArrayList<Point>();
+		in.addAll(getIncomingConnections(node));
+		for (Point p : in) {
 			removeConnection(p, node);
 		}
 		deadEndNodes.remove(node);
@@ -189,11 +194,10 @@ public class MultimapGraph<E extends EdgeData> implements Graph<E> {
 	@Override
 	public void removeConnection(Point from, Point to) {
 		if (hasConnection(from, to)) {
-			if (data.remove(from, to)) {
-				removeData(from, to);
-				if (!data.containsKey(to)) {
-					deadEndNodes.add(to);
-				}
+			data.remove(from, to);
+			removeData(from, to);
+			if (!data.containsKey(to)) {
+				deadEndNodes.add(to);
 			}
 		} else {
 			throw new IllegalArgumentException("Can not remove non-existing connection: " + from + " -> " + to);

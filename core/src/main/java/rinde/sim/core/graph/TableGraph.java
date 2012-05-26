@@ -186,10 +186,19 @@ public class TableGraph<E extends EdgeData> implements Graph<E> {
 		addConnection(c.from, c.to, c.getEdgeData());
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	public E setEdgeData(Point from, Point to, E edgeData) {
 		if (hasConnection(from, to)) {
-			E e = data.put(from, to, edgeData);
+			E e;
+			if (edgeData == null) {
+				e = data.put(from, to, EMPTY);
+			} else {
+				e = data.put(from, to, edgeData);
+			}
+
 			if (EMPTY.equals(e)) {
 				return null;
 			}
