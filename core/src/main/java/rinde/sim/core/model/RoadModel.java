@@ -119,6 +119,7 @@ public class RoadModel implements Model<RoadUser> {
 	 * @return The actual distance that <code>object</code> has traveled after
 	 *         the execution of this method has finished.
 	 */
+	// TODO write more tests checking for travel distance etc
 	public PathProgress followPath(MovingRoadUser object, Queue<Point> path, long time) {
 		checkArgument(object != null, "object cannot be null");
 		checkArgument(objLocs.containsKey(object), "object must have a location");
@@ -130,89 +131,110 @@ public class RoadModel implements Model<RoadUser> {
 		checkArgument(time > 0, "time must be a positive number");
 
 		Location objLoc = objLocs.get(object);
-
 		checkLocation(objLoc);
 
+		long timeLeft = time;
+		double traveled = 0;
+
+		Location tempLoc = objLoc;
+		Point tempPos = objLoc.getPosition();
+
+		double newDis = Double.NaN;
+
+		final SpeedConverter sc = new SpeedConverter();
+
+		List<Point> travelledNodes = new ArrayList<Point>();
+		while (timeLeft > 0 && path.size() > 0) {
+			checkIsValidMove(tempLoc, path.peek());
+
+			// speed in graph units per hour -> converting to miliseconds
+			double speed = getMaxSpeed(object, tempPos, path.peek());
+			speed = sc.from(speed, TimeUnit.H).to(TimeUnit.MS);
+
+			// distance that can be traveled in current edge with timeleft
+			double travelDistance = speed * timeLeft;
+			double connLength = computeConnectionLength(tempPos, path.peek());
+
+			if (travelDistance >= connLength) {
+				// jump to next vertex
+				tempPos = path.remove();
+				travelledNodes.add(tempPos);
+				long timeSpent = Math.round(connLength / speed);
+				timeLeft -= timeSpent;
+				traveled += connLength;
+
+				if (tempPos instanceof MidPoint) {
+					tempLoc = checkLocation(((MidPoint) tempPos).loc);
+				} else {
+					tempLoc = checkLocation(new Location(tempPos));
+				}
+
+			} else { // distanceLeft < connLength
+				newDis = travelDistance;
+				timeLeft = 0;
+				long timeSpent = Math.round(travelDistance / speed);
+				timeLeft -= timeSpent;
+				traveled += travelDistance;
+
+				// we have jumped OVER the next vertex and landed somewhere
+				// after
+				// if (nextVertex) {
+				// if (path.peek() instanceof MidPoint) {
+				// tempLoc = checkLocation(new Location(tempLoc.from,
+				// ((MidPoint) path.peek()).loc.to, newDis));
+				// } else {
+				// tempLoc = checkLocation(new Location(tempLoc.from,
+				// path.peek(), newDis));
+				// }
+				// }
+				// // we have moved on the current edge
+				// else {
+				// // double relpos = tempLoc.isEdgePoint() ?
+				// // tempLoc.relativePos + newDis : newDis;
+				// tempLoc = checkLocation(new Location(tempLoc.from,
+				// path.peek(), tempLoc.relativePos + newDis));
+				// }
+
+				// Point to = ;
+				// if (nextVertex && path.peek() instanceof MidPoint) {
+				// to = ((MidPoint) path.peek()).loc.to;
+				// }
+				//
+				// double d = newDis;
+				// if (!nextVertex) {
+				// d = tempLoc.relativePos + newDis;
+				// }
+
+				tempLoc = checkLocation(new Location(tempLoc.from, path.peek(), tempLoc.relativePos + newDis));
+
+			}
+			tempPos = tempLoc.getPosition();
+		}
+
+		objLocs.put(object, tempLoc);
+		return new PathProgress(traveled, time - (timeLeft > 0 ? timeLeft : 0), travelledNodes);
+	}
+
+	protected void checkIsValidMove(Location objLoc, Point nextHop) {
 		// in case we start from an edge and our next destination is to go to
 		// the end of the current edge then its ok. Otherwise more checks are
 		// required..
-		if (objLoc.isEdgePoint() && !path.peek().equals(objLoc.to)) {
+		if (objLoc.isEdgePoint() && !nextHop.equals(objLoc.to)) {
 			// check if next destination is a MidPoint
-			checkArgument(path.peek() instanceof MidPoint, "Illegal path for this object, from a position on an edge we can not jump to another edge or go back.");
-			MidPoint dest = (MidPoint) path.peek();
+			checkArgument(nextHop instanceof MidPoint, "Illegal path for this object, from a position on an edge we can not jump to another edge or go back.");
+			MidPoint dest = (MidPoint) nextHop;
 			// check for same edge
 			checkArgument(objLoc.isOnSameEdge(dest.loc), "Illegal path for this object, first point is not on the same edge as the object.");
 			// check for relative position
 			checkArgument(objLoc.relativePos <= dest.loc.relativePos, "Illegal path for this object, can not move backward over an edge.");
 		}
 		// in case we start from a node and we are not going to another node
-		else if (!objLoc.isEdgePoint() && !path.peek().equals(objLoc.from) && !hasConnection(objLoc.from, path.peek())) {
-			checkArgument(path.peek() instanceof MidPoint, "Illegal path, first point should be directly connected to object location.");
-			MidPoint dest = (MidPoint) path.peek();
+		else if (!objLoc.isEdgePoint() && !nextHop.equals(objLoc.from) && !hasConnection(objLoc.from, nextHop)) {
+			checkArgument(nextHop instanceof MidPoint, "Illegal path, first point should be directly connected to object location.");
+			MidPoint dest = (MidPoint) nextHop;
 			checkArgument(hasConnection(objLoc.from, dest.loc.to), "Illegal path, first point is on an edge not connected to object location. ");
 			checkArgument(objLoc.from.equals(dest.loc.from), "Illegal path, first point is on a different edge.");
 		}
-
-		long timeLeft = time;
-		double traveled = 0;
-
-		Point tempPos = objLoc.getPosition();
-
-		double newDis = Double.NaN;
-		boolean nextVertex = false;
-
-		final SpeedConverter sc = new SpeedConverter();
-
-		List<Point> travelledNodes = new ArrayList<Point>();
-
-		while (timeLeft > 0 && path.size() > 0) {
-
-			// speed in graph units per hour -> converting to miliseconds
-			double speed = getMaxSpeed(object, tempPos, path.peek());
-			speed = sc.from(speed, TimeUnit.H).to(TimeUnit.MS);
-			double travelDistance = speed * timeLeft;
-
-			double dist = getDistance(tempPos, path.peek());
-
-			if (travelDistance >= dist) {
-				tempPos = path.remove();
-				travelledNodes.add(tempPos);
-				long timeSpent = Math.round(dist / speed);
-				timeLeft -= timeSpent;
-				nextVertex = true;
-
-				traveled += dist;
-			} else { // distanceLeft < dist
-				newDis = travelDistance;
-				timeLeft = 0;
-				long timeSpent = Math.round(travelDistance / speed);
-				timeLeft -= timeSpent;
-				traveled += travelDistance;
-			}
-		}
-
-		if (Double.isNaN(newDis)) {
-			if (tempPos instanceof MidPoint) {
-				objLocs.put(object, checkLocation(((MidPoint) tempPos).loc));
-			} else {
-				objLocs.put(object, checkLocation(new Location(tempPos)));
-			}
-		} else if (nextVertex) {
-			if (path.peek() instanceof MidPoint) {
-				objLocs.put(object, checkLocation(new Location(tempPos, ((MidPoint) path.peek()).loc.to, newDis)));
-			} else {
-				objLocs.put(object, checkLocation(new Location(tempPos, path.peek(), newDis)));
-			}
-		} else {
-			Point t = objLoc.to;
-			double relpos = objLoc.relativePos + newDis;
-			if (t == null) {
-				t = path.peek();
-				relpos = newDis;
-			}
-			objLocs.put(object, checkLocation(new Location(objLoc.from, t, relpos)));
-		}
-		return new PathProgress(traveled, time - (timeLeft > 0 ? timeLeft : 0), travelledNodes);
 	}
 
 	/**
@@ -224,7 +246,7 @@ public class RoadModel implements Model<RoadUser> {
 	 * @throws IllegalArgumentException when two points are part of the graph
 	 *             but are not equal or there is no connection between them
 	 */
-	private double getDistance(Point from, Point to) {
+	private double computeConnectionLength(Point from, Point to) {
 		assert from != null && to != null : "parameters are not null";
 		if (from.equals(to)) {
 			return 0;
@@ -554,21 +576,26 @@ public class RoadModel implements Model<RoadUser> {
 		final double relativePos;
 		final double roadLength;
 
-		public Location(Point from) {
-			this(from, null, -1);
+		public Location(Point pFrom) {
+			this(pFrom, null, 0);
 		}
 
-		public Location(Point from, Point to, double relativePos) {
-			this.from = from;
-			this.to = to;
+		public Location(Point pFrom, Point pTo, double pRelativePos) {
+			from = pFrom;
+
+			if (pTo instanceof MidPoint) {
+				to = ((MidPoint) pTo).loc.to;
+			} else {
+				to = pTo;
+			}
 			if (isEdgePoint()) {
-				this.relativePos = relativePos;
-				EdgeData data = graph.connectionData(from, to);
-				roadLength = data == null || Double.isNaN(data.getLength()) ? Point.distance(from, to) : data
+				relativePos = pRelativePos;
+				EdgeData data = graph.connectionData(pFrom, to);
+				roadLength = data == null || Double.isNaN(data.getLength()) ? Point.distance(pFrom, to) : data
 						.getLength();
 			} else {
 				roadLength = -1;
-				this.relativePos = -1;
+				relativePos = 0;
 			}
 		}
 

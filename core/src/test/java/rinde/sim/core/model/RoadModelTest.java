@@ -433,6 +433,28 @@ public class RoadModelTest {
 	}
 
 	/**
+	 * Situation: <code>SW(tru2) ->- SE ->- tru1 ->- NE </code><br/>
+	 * tru2 moves towards tru1, it should end up between SE and tru1.
+	 */
+	@Test
+	public void followPathMoveTowardOther() {
+		TestRoadUser tru1 = new TestRoadUser();
+		model.addObjectAt(tru1, SW);
+		model.followPath(tru1, asQueue(SW, SE, NE), 12 * h1);
+
+		TestRoadUser tru2 = new TestRoadUser();
+		model.addObjectAt(tru2, SW);
+		PathProgress pp = model.followPath(tru2, asQueue(SW, SE, model.getPosition(tru1)), 11 * h1);
+		assertEquals(11, pp.distance, EPSILON);
+
+		Point p1 = model.getPosition(tru1);
+		Point p2 = model.getPosition(tru2);
+
+		Point diff = Point.diff(p1, p2);
+		assertTrue(diff.x == 0 && diff.y > 0);
+	}
+
+	/**
 	 * Situation: <code>SW ->- tru1 ->- SE </code><br/>
 	 * tru1 wants to move directly to SW, which should throw an exception since
 	 * moving backward over an directed edge is not allowed.
