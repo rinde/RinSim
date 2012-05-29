@@ -41,41 +41,20 @@ public class RoadModel implements Model<RoadUser> {
 	final Graph<? extends EdgeData> graph;
 
 	public RoadModel(Graph<? extends EdgeData> pGraph) {
-		if (pGraph == null) {
-			throw new IllegalArgumentException("Graph cannot be null");
-		}
+		checkArgument(pGraph != null, "Graph can not be null");
 		graph = pGraph;
 		objLocs = Collections.synchronizedMap(new LinkedHashMap<RoadUser, Location>());
 	}
 
-	/**
-	 * Use {@link Graph#addConnection(Point, Point)} instead.
-	 */
-	// TODO [bm] remove ??
-	@Deprecated
-	public void addConnection(Point from, Point to) {
-		if (graph.hasConnection(from, to)) {
-			throw new IllegalArgumentException("Connection already exists.");
-		}
-		graph.addConnection(from, to);
-		assert graph.containsNode(from);
-	}
-
 	public void addObjectAt(RoadUser newObj, Point pos) {
-		if (!graph.containsNode(pos)) {
-			throw new IllegalArgumentException("Object must be initiated on a crossroad.");
-		} else if (objLocs.containsKey(newObj)) {
-			throw new IllegalArgumentException("Object is already added.");
-		}
+		checkArgument(graph.containsNode(pos), "Object must be initiated on a crossroad.");
+		checkArgument(!objLocs.containsKey(newObj), "Object is already added");
 		objLocs.put(newObj, new Location(pos, null, 0));
 	}
 
 	public void addObjectAtSamePosition(RoadUser newObj, RoadUser existingObj) {
-		if (objLocs.containsKey(newObj)) {
-			throw new IllegalArgumentException("Object " + newObj + " is already added.");
-		} else if (!objLocs.containsKey(existingObj)) {
-			throw new IllegalArgumentException("Object " + existingObj + " does not exist.");
-		}
+		checkArgument(!objLocs.containsKey(newObj), "Object " + newObj + " is already added.");
+		checkArgument(objLocs.containsKey(existingObj), "Object " + existingObj + " does not exist.");
 		objLocs.put(newObj, objLocs.get(existingObj));
 	}
 
@@ -87,10 +66,12 @@ public class RoadModel implements Model<RoadUser> {
 	}
 
 	public boolean containsObject(RoadUser obj) {
+		checkArgument(obj != null, "obj can not be null");
 		return objLocs.containsKey(obj);
 	}
 
 	public boolean containsObjectAt(RoadUser obj, Point p) {
+		checkArgument(p != null, "point can not be null");
 		if (containsObject(obj)) {
 			return objLocs.get(obj).getPosition().equals(p);
 		}
@@ -229,10 +210,10 @@ public class RoadModel implements Model<RoadUser> {
 			checkArgument(objLoc.relativePos <= dest.loc.relativePos, "Illegal path for this object, can not move backward over an edge.");
 		}
 		// in case we start from a node and we are not going to another node
-		else if (!objLoc.isEdgePoint() && !nextHop.equals(objLoc.from) && !hasConnection(objLoc.from, nextHop)) {
+		else if (!objLoc.isEdgePoint() && !nextHop.equals(objLoc.from) && !graph.hasConnection(objLoc.from, nextHop)) {
 			checkArgument(nextHop instanceof MidPoint, "Illegal path, first point should be directly connected to object location.");
 			MidPoint dest = (MidPoint) nextHop;
-			checkArgument(hasConnection(objLoc.from, dest.loc.to), "Illegal path, first point is on an edge not connected to object location. ");
+			checkArgument(graph.hasConnection(objLoc.from, dest.loc.to), "Illegal path, first point is on an edge not connected to object location. ");
 			checkArgument(objLoc.from.equals(dest.loc.from), "Illegal path, first point is on a different edge.");
 		}
 	}
@@ -247,7 +228,10 @@ public class RoadModel implements Model<RoadUser> {
 	 *             but are not equal or there is no connection between them
 	 */
 	private double computeConnectionLength(Point from, Point to) {
-		assert from != null && to != null : "parameters are not null";
+		if (from == null) {
+			throw new IllegalArgumentException("from can not be null");
+		}
+		checkArgument(to != null, "to can not be null");
 		if (from.equals(to)) {
 			return 0;
 		}
@@ -273,6 +257,14 @@ public class RoadModel implements Model<RoadUser> {
 	 * @param to the next point on the path it want to reach
 	 */
 	protected double getMaxSpeed(MovingRoadUser object, Point from, Point to) {
+		if (object == null) {
+			throw new IllegalArgumentException("object can not be null");
+		}
+		if (from == null) {
+			throw new IllegalArgumentException("to can not be null");
+		}
+		checkArgument(to != null, "to can not be null");
+
 		assert object != null && from != null && to != null;
 		if (from.equals(to)) {
 			return object.getSpeed();
@@ -280,9 +272,7 @@ public class RoadModel implements Model<RoadUser> {
 
 		Point start = from instanceof MidPoint ? ((MidPoint) from).loc.from : from;
 		Point stop = to instanceof MidPoint ? ((MidPoint) to).loc.to : to;
-		if (!hasConnection(start, stop)) {
-			throw new IllegalArgumentException("points not connected " + from + " >> " + to);
-		}
+		checkArgument(graph.hasConnection(start, stop), "points not connected " + from + " >> " + to);
 		EdgeData data = graph.connectionData(start, stop);
 		if (data instanceof MultiAttributeEdgeData) {
 			MultiAttributeEdgeData maed = (MultiAttributeEdgeData) data;
@@ -336,11 +326,12 @@ public class RoadModel implements Model<RoadUser> {
 
 	/**
 	 * Returns all objects of the given type located in the same position as the
-	 * given object
-	 * @param roadUser
-	 * @param type
-	 * @return A set of {@link type} objects.
+	 * given {@link RoadUser}.
+	 * @param roadUser The object which location is checked for other objects.
+	 * @param type The type of the objects to be returned.
+	 * @return A set of objects of type <code>type</code>.
 	 */
+	@SuppressWarnings("unchecked")
 	public <Y extends RoadUser> Set<Y> getObjectsAt(RoadUser roadUser, Class<Y> type) {
 		Set<Y> result = new HashSet<Y>();
 		for (RoadUser ru : getObjects(new SameLocationPredicate(roadUser, type, this))) {
@@ -352,12 +343,12 @@ public class RoadModel implements Model<RoadUser> {
 	private static class SameLocationPredicate implements Predicate<RoadUser> {
 		private final RoadUser reference;
 		private final RoadModel model;
-		private final Class type;
+		private final Class<?> type;
 
-		public SameLocationPredicate(final RoadUser reference, final Class type, final RoadModel model) {
-			this.reference = reference;
-			this.type = type;
-			this.model = model;
+		public SameLocationPredicate(final RoadUser pReference, final Class<?> pType, final RoadModel pModel) {
+			reference = pReference;
+			type = pType;
+			model = pModel;
 		}
 
 		@Override
@@ -408,43 +399,20 @@ public class RoadModel implements Model<RoadUser> {
 
 	/**
 	 * Method to retrieve the location of an object.
-	 * @param obj The object for which the position is examined.
+	 * @param roadUser The object for which the position is examined.
 	 * @return The position (as a {@link Point} object) for the specified
 	 *         <code>obj</code> object.
 	 */
-	public Point getPosition(RoadUser obj) {
-		assert obj != null : "object cannot be null";
-		assert objLocs.containsKey(obj) : "object must have a location in RoadStructure " + obj;
-		return objLocs.get(obj).getPosition();
+	public Point getPosition(RoadUser roadUser) {
+		checkArgument(roadUser != null, "object can not be null");
+		checkArgument(containsObject(roadUser), "RoadUser does not exist");
+		return objLocs.get(roadUser).getPosition();
 	}
 
-	public Point getLastCrossRoad(RoadUser obj) {
-		return objLocs.get(obj).from;
-	}
-
-	/**
-	 * Computes the shortest path between the two specified points. This method
-	 * can be overridden by subclasses to provide specific features such as
-	 * caching.
-	 * @param from The path origin
-	 * @param to The path destination
-	 * @return The shortest path from 'from' to 'to'.
-	 * @see Graphs#shortestPathDistance(Graph, Point, Point)
-	 */
-	// public List<Point> getShortestPathTo(Point from, Point to) {
-	// return Graphs.shortestPathDistance(graph, from, to);
-	// }
-
-	/**
-	 * Convenience method for {@link #getShortestPathTo(Point, Point)}
-	 * @param fromObj The object which is used as the path origin
-	 * @param to The path destination
-	 * @return The shortest path from 'fromObj' to 'to'
-	 */
-	public List<Point> getShortestPathTo(RoadUser fromObj, Point to) {
-		assert objLocs.containsKey(fromObj) : " from object should be in RoadModel. " + fromObj;
-		Point from = getNode(fromObj);
-		return getShortestPathTo(from, to);
+	public Point getLastCrossRoad(RoadUser roadUser) {
+		checkArgument(roadUser != null, "RoadUser can not be null");
+		checkArgument(containsObject(roadUser), "RoadUser does not exist");
+		return objLocs.get(roadUser).from;
 	}
 
 	/**
@@ -454,7 +422,8 @@ public class RoadModel implements Model<RoadUser> {
 	 * @return The shortest path from 'fromObj' to 'toObj'.
 	 */
 	public List<Point> getShortestPathTo(RoadUser fromObj, RoadUser toObj) {
-		assert objLocs.containsKey(toObj) : " to object should be in RoadModel. " + toObj;
+		checkArgument(fromObj != null, "fromObj can not be null");
+		checkArgument(objLocs.containsKey(toObj), " to object should be in RoadModel. " + toObj);
 		// Location l = objLocs.get(toObj);
 		List<Point> path = getShortestPathTo(fromObj, getPosition(toObj));
 		// if (l.isEdgePoint()) {
@@ -463,7 +432,22 @@ public class RoadModel implements Model<RoadUser> {
 		return path;
 	}
 
+	/**
+	 * Convenience method for {@link #getShortestPathTo(Point, Point)}
+	 * @param fromObj The object which is used as the path origin
+	 * @param to The path destination
+	 * @return The shortest path from 'fromObj' to 'to'
+	 */
+	public List<Point> getShortestPathTo(RoadUser fromObj, Point to) {
+		checkArgument(fromObj != null, "fromObj can not be null");
+		checkArgument(objLocs.containsKey(fromObj), " from object should be in RoadModel. " + fromObj);
+		Point from = getNode(fromObj);
+		return getShortestPathTo(from, to);
+	}
+
 	public List<Point> getShortestPathTo(Point from, Point to) {
+		checkArgument(from != null, "from can not be null");
+		checkArgument(to != null, "to can not be null");
 		List<Point> path = new ArrayList<Point>();
 		Point f = from;
 		if (from instanceof MidPoint) {
@@ -486,29 +470,52 @@ public class RoadModel implements Model<RoadUser> {
 		return Graphs.shortestPathEuclidianDistance(graph, from, to);
 	}
 
+	/**
+	 * Use {@link Graph#hasConnection(Point, Point)} instead.
+	 * @param from Start position of connection.
+	 * @param to End position of connection.
+	 * @return True if the connection exists, false otherwise.
+	 */
+	// TODO remove
+	@Deprecated
 	public boolean hasConnection(Point from, Point to) {
 		return graph.hasConnection(from, to);
 	}
 
-	public void removeObject(RoadUser o) {
-		assert objLocs.containsKey(o);
-		objLocs.remove(o);
+	/**
+	 * Use {@link Graph#addConnection(Point, Point)} instead.
+	 * @param from Start point of connection
+	 * @param to End point of connection
+	 */
+	// TODO remove
+	@Deprecated
+	public void addConnection(Point from, Point to) {
+		checkArgument(!graph.hasConnection(from, to), "Connection already exists.");
+		graph.addConnection(from, to);
+		assert graph.containsNode(from);
+	}
+
+	/**
+	 * Removes the specified {@link RoadUser} from this model.
+	 * @param roadUser the object to be removed.
+	 */
+	public void removeObject(RoadUser roadUser) {
+		checkArgument(roadUser != null, "RoadUser can not be null");
+		checkArgument(objLocs.containsKey(roadUser), "RoadUser does not exist.");
+		objLocs.remove(roadUser);
 	}
 
 	protected Location checkLocation(Location l) {
-		if (!l.isEdgePoint() && !graph.containsNode(l.from)) {
-			throw new IllegalStateException("Location points to non-existing vertex: " + l.from + ".");
-		} else if (l.isEdgePoint() && !graph.hasConnection(l.from, l.to)) {
-			throw new IllegalStateException("Location points to non-existing connection: " + l.from + " >> " + l.to
-					+ ".");
-		}
+		checkArgument(l.isEdgePoint() || graph.containsNode(l.from), "Location points to non-existing vertex: "
+				+ l.from + ".");
+		checkArgument(!l.isEdgePoint() || graph.hasConnection(l.from, l.to), "Location points to non-existing connection: "
+				+ l.from + " >> " + l.to + ".");
 		return l;
 	}
 
 	protected Point getNode(RoadUser obj) {
-		assert obj != null;
-		assert objLocs.containsKey(obj);
-
+		checkArgument(obj != null, "object can not be null");
+		checkArgument(objLocs.containsKey(obj), "object must exist");
 		if (objLocs.get(obj).to != null) {
 			return objLocs.get(obj).to;
 		} else {
@@ -518,6 +525,9 @@ public class RoadModel implements Model<RoadUser> {
 
 	@Override
 	public boolean register(RoadUser element) {
+		if (element == null) {
+			throw new IllegalArgumentException("element can not be null");
+		}
 		element.initRoadUser(this);
 		return true;
 	}
@@ -528,9 +538,10 @@ public class RoadModel implements Model<RoadUser> {
 	}
 
 	@Override
-	public boolean unregister(RoadUser e) {
-		if (containsObject(e)) {
-			removeObject(e);
+	public boolean unregister(RoadUser roadUser) {
+		checkArgument(roadUser != null, "RoadUser can not be null");
+		if (containsObject(roadUser)) {
+			removeObject(roadUser);
 			return true;
 		}
 		return false;
@@ -632,8 +643,8 @@ public class RoadModel implements Model<RoadUser> {
 		private static final long serialVersionUID = -8442184033570204979L;
 		protected final Location loc;
 
-		public MidPoint(double x, double y, Location l) {
-			super(x, y);
+		public MidPoint(double pX, double pY, Location l) {
+			super(pX, pY);
 			loc = l;
 		}
 
