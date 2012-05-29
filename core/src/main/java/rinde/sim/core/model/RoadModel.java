@@ -3,13 +3,14 @@
  */
 package rinde.sim.core.model;
 
+import static com.google.common.base.Preconditions.checkArgument;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
@@ -33,20 +34,25 @@ import com.google.common.collect.Sets;
  * 
  */
 public class RoadModel implements Model<RoadUser> {
-	// TODO remove the Graph related functions, and give a reference to an unmodifiable Graph instance instead
+	// TODO remove the Graph related functions, and give a reference to an
+	// unmodifiable Graph instance instead
 
 	protected volatile Map<RoadUser, Location> objLocs;
 	final Graph<? extends EdgeData> graph;
 
-	public RoadModel(Graph<? extends EdgeData> graph) {
-		if (graph == null) {
+	public RoadModel(Graph<? extends EdgeData> pGraph) {
+		if (pGraph == null) {
 			throw new IllegalArgumentException("Graph cannot be null");
 		}
-		this.graph = graph;
+		graph = pGraph;
 		objLocs = Collections.synchronizedMap(new LinkedHashMap<RoadUser, Location>());
 	}
 
-	//TODO [bm] remove ??
+	/**
+	 * Use {@link Graph#addConnection(Point, Point)} instead.
+	 */
+	// TODO [bm] remove ??
+	@Deprecated
 	public void addConnection(Point from, Point to) {
 		if (graph.hasConnection(from, to)) {
 			throw new IllegalArgumentException("Connection already exists.");
@@ -107,36 +113,45 @@ public class RoadModel implements Model<RoadUser> {
 	 * the {@link Queue}.
 	 * @param object The object in the physical world that is to be moved.
 	 * @param path The path that is followed, it is modified by this method.
-	 * @param distance The distance that is attempted to be traveled over the
-	 *            <code>path</code>.
+	 * @param time The time that has elapsed. The actual distance that the
+	 *            {@link MovingRoadUser} has traveld is based on its speed an
+	 *            the elapsed time.
 	 * @return The actual distance that <code>object</code> has traveled after
 	 *         the execution of this method has finished.
 	 */
 	public PathProgress followPath(MovingRoadUser object, Queue<Point> path, long time) {
-		assert path != null : "path cannot be null";
-		assert path.peek() != null : "path cannot be empty";
-		assert time > 0 : "time must be greater than 0";
-		assert object != null : "object cannot be null";
-		assert objLocs.containsKey(object) : "object must have a location";
+		checkArgument(object != null, "object cannot be null");
+		checkArgument(objLocs.containsKey(object), "object must have a location");
+		if (path == null) {// to avoid warnings about potential null pointers we
+							// use the old fashioned way
+			throw new IllegalArgumentException("path can not be null");
+		}
+		checkArgument(path.peek() != null, "path can not be empty");
+		checkArgument(time > 0, "time must be a positive number");
 
 		Location objLoc = objLocs.get(object);
 
 		checkLocation(objLoc);
 
-		if (objLoc.to != null && !path.peek().equals(objLoc.to) && (path.peek() instanceof MidPoint ? !((MidPoint) path.peek()).loc.to.equals(objLoc.to) : true)) {
-			throw new IllegalArgumentException("Illegal path for this object, first point should be in current direction. " + path);
-		} else if (objLoc.to == null && !path.peek().equals(objLoc.from) && !hasConnection(objLoc.from, path.peek())
-				&& (path.peek() instanceof MidPoint ? !hasConnection(objLoc.from, ((MidPoint) path.peek()).loc.to) : true)) {
-			throw new IllegalArgumentException("Illegal path for this object, first point should be current point.");
+		// in case we start from an edge and our next destination is to go to
+		// the end of the current edge then its ok. Otherwise more checks are
+		// required..
+		if (objLoc.isEdgePoint() && !path.peek().equals(objLoc.to)) {
+			// check if next destination is a MidPoint
+			checkArgument(path.peek() instanceof MidPoint, "Illegal path for this object, from a position on an edge we can not jump to another edge or go back.");
+			MidPoint dest = (MidPoint) path.peek();
+			// check for same edge
+			checkArgument(objLoc.isOnSameEdge(dest.loc), "Illegal path for this object, first point is not on the same edge as the object.");
+			// check for relative position
+			checkArgument(objLoc.relativePos <= dest.loc.relativePos, "Illegal path for this object, can not move backward over an edge.");
 		}
-
-		//		if (objLoc.isEdgePoint() && !path.peek().equals(objLoc.to) && // next point is not the end of edge
-		//			path.peek() instanceof MidPoint ? !((MidPoint) path.peek()).loc.to.equals(objLoc.to) : true) { //or is incorrect mid point
-		//				throw new IllegalArgumentException("Illegal path for this object, first point should be in current direction. " + path);
-		//		} else if (!objLoc.isEdgePoint() && !path.peek().equals(objLoc.from) && !hasConnection(objLoc.from, path.peek()) && //there is no connection to next point
-		//			(path.peek() instanceof MidPoint ? !hasConnection(objLoc.from, ((MidPoint) path.peek()).loc.to) : true)) { //or is incorrect mid point		
-		//			throw new IllegalArgumentException("Illegal path for this object, first point should be current point.");
-		//		}
+		// in case we start from a node and we are not going to another node
+		else if (!objLoc.isEdgePoint() && !path.peek().equals(objLoc.from) && !hasConnection(objLoc.from, path.peek())) {
+			checkArgument(path.peek() instanceof MidPoint, "Illegal path, first point should be directly connected to object location.");
+			MidPoint dest = (MidPoint) path.peek();
+			checkArgument(hasConnection(objLoc.from, dest.loc.to), "Illegal path, first point is on an edge not connected to object location. ");
+			checkArgument(objLoc.from.equals(dest.loc.from), "Illegal path, first point is on a different edge.");
+		}
 
 		long timeLeft = time;
 		double traveled = 0;
@@ -147,11 +162,12 @@ public class RoadModel implements Model<RoadUser> {
 		boolean nextVertex = false;
 
 		final SpeedConverter sc = new SpeedConverter();
-				List<Point> travelledNodes = new ArrayList<Point>();
+
+		List<Point> travelledNodes = new ArrayList<Point>();
 
 		while (timeLeft > 0 && path.size() > 0) {
 
-			//speed in graph units per hour -> converting to miliseconds
+			// speed in graph units per hour -> converting to miliseconds
 			double speed = getMaxSpeed(object, tempPos, path.peek());
 			speed = sc.from(speed, TimeUnit.H).to(TimeUnit.MS);
 			double travelDistance = speed * timeLeft;
@@ -201,11 +217,9 @@ public class RoadModel implements Model<RoadUser> {
 
 	/**
 	 * Compute distance between two points. If points are equal the distance is
-	 * 0.
-	 * If both points are graph's nodes the method checks if there is a length
-	 * of edge defined.
-	 * If the from/to is on edge or the length of edge is not defined
-	 * {@link Point#distance(Point, Point)} is used.
+	 * 0. If both points are graph's nodes the method checks if there is a
+	 * length of edge defined. If the from/to is on edge or the length of edge
+	 * is not defined {@link Point#distance(Point, Point)} is used.
 	 * @return the distance between two points
 	 * @throws IllegalArgumentException when two points are part of the graph
 	 *             but are not equal or there is no connection between them
@@ -220,7 +234,8 @@ public class RoadModel implements Model<RoadUser> {
 		}
 
 		if (!graph.hasConnection(from, to)) {
-			throw new IllegalArgumentException("followPath() attempts to use non-existing connection: " + from + " >> " + to + ".");
+			throw new IllegalArgumentException("followPath() attempts to use non-existing connection: " + from + " >> "
+					+ to + ".");
 		}
 
 		EdgeData data = graph.connectionData(from, to);
@@ -298,19 +313,20 @@ public class RoadModel implements Model<RoadUser> {
 	}
 
 	/**
-	 * Returns all objects of the given type located in the same position as the given object
+	 * Returns all objects of the given type located in the same position as the
+	 * given object
 	 * @param roadUser
 	 * @param type
 	 * @return A set of {@link type} objects.
 	 */
-	public<Y extends RoadUser> Set<Y> getObjectsAt(RoadUser roadUser, Class<Y> type){
+	public <Y extends RoadUser> Set<Y> getObjectsAt(RoadUser roadUser, Class<Y> type) {
 		Set<Y> result = new HashSet<Y>();
-		for(RoadUser ru: getObjects(new SameLocationPredicate(roadUser, type, this))){
+		for (RoadUser ru : getObjects(new SameLocationPredicate(roadUser, type, this))) {
 			result.add((Y) ru);
 		}
 		return result;
 	}
-	
+
 	private static class SameLocationPredicate implements Predicate<RoadUser> {
 		private final RoadUser reference;
 		private final RoadModel model;
@@ -327,7 +343,6 @@ public class RoadModel implements Model<RoadUser> {
 			return type.isInstance(input) && model.equalPosition(input, reference);
 		}
 	}
-
 
 	/**
 	 * This method returns a mapping of {@link RoadUser} to {@link Point}
@@ -358,6 +373,9 @@ public class RoadModel implements Model<RoadUser> {
 	 */
 	@SuppressWarnings("unchecked")
 	public <Y extends RoadUser> Set<Y> getObjectsOfType(final Class<Y> type) {
+		if (type == null) {
+			throw new IllegalArgumentException("type can not be null");
+		}
 		return (Set<Y>) getObjects(new Predicate<RoadUser>() {
 			@Override
 			public boolean apply(RoadUser input) {
@@ -377,8 +395,8 @@ public class RoadModel implements Model<RoadUser> {
 		assert objLocs.containsKey(obj) : "object must have a location in RoadStructure " + obj;
 		return objLocs.get(obj).getPosition();
 	}
-	
-	public Point getLastCrossRoad(RoadUser obj){
+
+	public Point getLastCrossRoad(RoadUser obj) {
 		return objLocs.get(obj).from;
 	}
 
@@ -391,9 +409,9 @@ public class RoadModel implements Model<RoadUser> {
 	 * @return The shortest path from 'from' to 'to'.
 	 * @see Graphs#shortestPathDistance(Graph, Point, Point)
 	 */
-	//	public List<Point> getShortestPathTo(Point from, Point to) {
-	//		return Graphs.shortestPathDistance(graph, from, to);
-	//	}
+	// public List<Point> getShortestPathTo(Point from, Point to) {
+	// return Graphs.shortestPathDistance(graph, from, to);
+	// }
 
 	/**
 	 * Convenience method for {@link #getShortestPathTo(Point, Point)}
@@ -415,11 +433,11 @@ public class RoadModel implements Model<RoadUser> {
 	 */
 	public List<Point> getShortestPathTo(RoadUser fromObj, RoadUser toObj) {
 		assert objLocs.containsKey(toObj) : " to object should be in RoadModel. " + toObj;
-		//		Location l = objLocs.get(toObj);
+		// Location l = objLocs.get(toObj);
 		List<Point> path = getShortestPathTo(fromObj, getPosition(toObj));
-		//		if (l.isEdgePoint()) {
-		//			path.add(l.getPosition());
-		//		}
+		// if (l.isEdgePoint()) {
+		// path.add(l.getPosition());
+		// }
 		return path;
 	}
 
@@ -459,7 +477,8 @@ public class RoadModel implements Model<RoadUser> {
 		if (!l.isEdgePoint() && !graph.containsNode(l.from)) {
 			throw new IllegalStateException("Location points to non-existing vertex: " + l.from + ".");
 		} else if (l.isEdgePoint() && !graph.hasConnection(l.from, l.to)) {
-			throw new IllegalStateException("Location points to non-existing connection: " + l.from + " >> " + l.to + ".");
+			throw new IllegalStateException("Location points to non-existing connection: " + l.from + " >> " + l.to
+					+ ".");
 		}
 		return l;
 	}
@@ -486,38 +505,46 @@ public class RoadModel implements Model<RoadUser> {
 		return RoadUser.class;
 	}
 
+	@Override
+	public boolean unregister(RoadUser e) {
+		if (containsObject(e)) {
+			removeObject(e);
+			return true;
+		}
+		return false;
+	}
+
 	/**
 	 * Represents the distance traveled and time spend in
-	 * {@link RoadModel#followPath(RoadUser, Queue, long)}
+	 * {@link RoadModel#followPath(MovingRoadUser, Queue, long)}
 	 * @author Bartosz Michalik <bartosz.michalik@cs.kuleuven.be>
 	 * @since 2.0
 	 */
 	public static final class PathProgress {
 		/**
 		 * distance traveled in the
-		 * {@link RoadModel#followPath(RoadUser, Queue, int)}
+		 * {@link RoadModel#followPath(MovingRoadUser, Queue, long)}
 		 */
 		public final double distance;
 		/**
 		 * time spend on traveling the distance
 		 */
 		public final long time;
-		
+
 		public final List<Point> travelledNodes;
 
-		public PathProgress(double distance, long time, List<Point> travelledNodes) {
-			assert distance >= 0;
-			assert time >= 0;
-			this.distance = distance;
-			this.time = time;
-			this.travelledNodes = travelledNodes;
+		public PathProgress(double dist, long pTime, List<Point> pTravelledNodes) {
+			checkArgument(dist >= 0, "distance must be greater than or equal to 0");
+			checkArgument(pTime >= 0, "time must be greather than or equal to 0");
+			distance = dist;
+			time = pTime;
+			travelledNodes = pTravelledNodes;
 		}
 	}
 
-	//internal usage only
+	// internal usage only
 	/**
-	 * Object that is on the graph node has
-	 * to parameter == <code>null</code>.
+	 * Object that is on the graph node has to parameter == <code>null</code>.
 	 * 
 	 */
 	class Location {
@@ -537,11 +564,19 @@ public class RoadModel implements Model<RoadUser> {
 			if (isEdgePoint()) {
 				this.relativePos = relativePos;
 				EdgeData data = graph.connectionData(from, to);
-				roadLength = data == null || Double.isNaN(data.getLength()) ? Point.distance(from, to) : data.getLength();
+				roadLength = data == null || Double.isNaN(data.getLength()) ? Point.distance(from, to) : data
+						.getLength();
 			} else {
 				roadLength = -1;
 				this.relativePos = -1;
 			}
+		}
+
+		public boolean isOnSameEdge(Location l) {
+			if (!isEdgePoint()) {
+				return false;
+			}
+			return from.equals(l.from) && to.equals(l.to);
 		}
 
 		public boolean isEdgePoint() {
@@ -581,12 +616,4 @@ public class RoadModel implements Model<RoadUser> {
 		}
 	}
 
-	@Override
-	public boolean unregister(RoadUser e) {
-		if (containsObject(e)) {
-			removeObject(e);
-			return true;
-		}
-		return false;
-	}
 }
