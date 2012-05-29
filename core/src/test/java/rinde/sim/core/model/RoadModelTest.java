@@ -6,6 +6,7 @@ package rinde.sim.core.model;
 import static java.util.Arrays.asList;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import java.lang.reflect.InvocationTargetException;
@@ -26,8 +27,10 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 
+import rinde.sim.core.graph.Connection;
 import rinde.sim.core.graph.EdgeData;
 import rinde.sim.core.graph.Graph;
+import rinde.sim.core.graph.Graphs;
 import rinde.sim.core.graph.Point;
 import rinde.sim.core.graph.TestMultimapGraph;
 import rinde.sim.core.graph.TestTableGraph;
@@ -47,8 +50,12 @@ import com.google.common.collect.Table;
 @RunWith(Parameterized.class)
 public class RoadModelTest {
 
-	static Queue<Point> asQueue(Point... points) {
+	static Queue<Point> asPath(Point... points) {
 		return new LinkedList<Point>(Arrays.asList(points));
+	}
+
+	static boolean connectionEquals(Connection<? extends EdgeData> conn, Point from, Point to) {
+		return conn.from.equals(from) && conn.to.equals(to);
 	}
 
 	private static final long ONE_HOUR = 60 * 60 * 1000;
@@ -62,7 +69,6 @@ public class RoadModelTest {
 	Graph<? extends EdgeData> graph;
 	Class<? extends RoadModel> roadModelType;
 	RoadModel model;
-	Queue<Point> path;
 	Point SW, SE, NE, NW;
 
 	public RoadModelTest(Class<? extends Graph<?>> pGraphType, Class<? extends RoadModel> pRoadModelType) {
@@ -101,27 +107,65 @@ public class RoadModelTest {
 
 		assertEquals(3, model.getGraph().getNumberOfConnections());
 		assertEquals(4, model.getGraph().getNumberOfNodes());
-
-		path = new LinkedList<Point>();
-		path.addAll(asList(SW, SE, NE));
-
 	}
 
 	/**
-	 * Follow trajectory using time version of the function.
+	 * Follow path
 	 */
 	@Test
-	public void followTrajectoryAllAtOnce() {
+	public void followPathAllAtOnce() {
 		SpeedyRoadUser agent = new SpeedyRoadUser(sc.from(5, TimeUnit.MS).to(TimeUnit.H));
-		model.addObjectAt(agent, new Point(0, 0));
-		assertEquals(new Point(0, 0), model.getPosition(agent));
+		model.addObjectAt(agent, SW);
+		assertEquals(SW, model.getPosition(agent));
 
-		assertEquals(3, path.size());
+		Queue<Point> path = asPath(SW, SE, NE);
 		PathProgress travelled = model.followPath(agent, path, 5);
 		assertEquals(20, travelled.distance, EPSILON);
 		assertEquals(4, travelled.time);
 		assertEquals(0, path.size());
-		assertEquals(new Point(10, 10), model.getPosition(agent));
+		assertEquals(NE, model.getPosition(agent));
+	}
+
+	@Test
+	public void followLongPath() {
+		Point A = new Point(10, 20);
+		Point B = new Point(10, 22);
+		Point C = new Point(0, 15);
+		Graphs.addPath(graph, NE, A, B, C);
+
+		TestRoadUser ab = new TestRoadUser();
+		model.addObjectAt(ab, A);
+		model.followPath(ab, asPath(B), ONE_HOUR);
+		assertEquals(A, model.getConnection(ab).from);
+		assertEquals(B, model.getConnection(ab).to);
+
+		TestRoadUser bc = new TestRoadUser();
+		model.addObjectAt(bc, B);
+		model.followPath(bc, asPath(C), ONE_HOUR);
+		assertEquals(B, model.getConnection(bc).from);
+		assertEquals(C, model.getConnection(bc).to);
+
+		Queue<Point> path = asPath(SW, SE, NE, A, model.getPosition(ab), B, model.getPosition(bc), C);
+		assertEquals(8, path.size());
+
+		TestRoadUser driver1 = new TestRoadUser();
+		model.addObjectAt(driver1, SW);
+		PathProgress pp = model.followPath(driver1, path, 44 * ONE_HOUR);
+		assertEquals(44 * ONE_HOUR, pp.time);
+		assertEquals(44, pp.distance, EPSILON);
+		assertEquals(asList(SW, SE, NE, A, B), pp.travelledNodes);
+	}
+
+	@Test(expected = IllegalArgumentException.class)
+	public void followPathToMiddleAndBackFail() {
+		TestRoadUser middle = new TestRoadUser();
+		model.addObjectAt(middle, SW);
+		model.followPath(middle, asPath(SE), ONE_HOUR);
+		assertTrue(connectionEquals(model.getConnection(middle), SW, SE));
+
+		TestRoadUser driver = new TestRoadUser();
+		model.addObjectAt(driver, SW);
+		model.followPath(driver, asPath(model.getPosition(middle), SW), 10 * ONE_HOUR);
 	}
 
 	// @Test(expected = IllegalArgumentException.class)
@@ -130,7 +174,7 @@ public class RoadModelTest {
 	// }
 
 	@Test(expected = IllegalArgumentException.class)
-	public void followTrajectoryUnconnected() {
+	public void followPathUnconnected() {
 		MovingRoadUser agent = new SpeedyRoadUser(100);
 		model.addObjectAt(agent, new Point(0, 0));
 		assertEquals(new Point(0, 0), model.getPosition(agent));
@@ -156,11 +200,21 @@ public class RoadModelTest {
 	}
 
 	@Test
+	public void getConnectionTest() {
+		TestRoadUser driver = new TestRoadUser();
+		model.addObjectAt(driver, SE);
+		assertNull(model.getConnection(driver));
+		model.followPath(driver, asPath(NE), ONE_HOUR);
+		assertTrue(connectionEquals(model.getConnection(driver), SE, NE));
+	}
+
+	@Test
 	public void followTrajectoryNotTillEnd() {
 		MovingRoadUser agent = new SpeedyRoadUser(sc.from(1, TimeUnit.MS).to(TimeUnit.H));
 		model.addObjectAt(agent, new Point(0, 0));
 		assertEquals(new Point(0, 0), model.getPosition(agent));
 
+		Queue<Point> path = asPath(SW, SE, NE);
 		PathProgress travelled = model.followPath(agent, path, 10);
 		assertEquals(10d, travelled.distance, EPSILON);
 		assertEquals(1, path.size());
@@ -216,7 +270,8 @@ public class RoadModelTest {
 	 * {@link RoadModel#followPath(MovingRoadUser, Queue, long)}
 	 */
 	@Test
-	public void followTrajectoryTime() {
+	public void followPathTime() {
+		Queue<Point> path = asPath(SW, SE, NE);
 		assertEquals(3, path.size());
 
 		MovingRoadUser agent = new SpeedyRoadUser(sc.from(5, TimeUnit.MS).to(TimeUnit.H));
@@ -393,6 +448,7 @@ public class RoadModelTest {
 		MovingRoadUser agent = new SpeedyRoadUser(3);
 		model.addObjectAt(agent, new Point(10, 10));
 
+		Queue<Point> path = asPath(SW, SE, NE);
 		assertEquals(new Point(10, 10), model.getPosition(agent));
 		assertEquals(3, path.size());
 		// the path does not directly connect to the current position
@@ -414,7 +470,7 @@ public class RoadModelTest {
 		assertEquals(asList(SE), p);
 		assertEquals(3600000, progress.time);
 		assertEquals(asList(SW), progress.travelledNodes);
-		model.followPath(testRoadUser, asQueue(SW), 1);
+		model.followPath(testRoadUser, asPath(SW), 1);
 	}
 
 	@Test(expected = IllegalArgumentException.class)
@@ -424,12 +480,12 @@ public class RoadModelTest {
 
 		graph.addConnection(SE, SW);
 
-		model.followPath(testRoadUser1, asQueue(SW, SE, SW), 11 * ONE_HOUR);
+		model.followPath(testRoadUser1, asPath(SW, SE, SW), 11 * ONE_HOUR);
 
 		TestRoadUser testRoadUser2 = new TestRoadUser();
 		model.addObjectAt(testRoadUser2, SW);
-		model.followPath(testRoadUser2, asQueue(SW, SE), 2 * ONE_HOUR);
-		model.followPath(testRoadUser2, asQueue(model.getPosition(testRoadUser1)), 2 * ONE_HOUR);
+		model.followPath(testRoadUser2, asPath(SW, SE), 2 * ONE_HOUR);
+		model.followPath(testRoadUser2, asPath(model.getPosition(testRoadUser1)), 2 * ONE_HOUR);
 	}
 
 	/**
@@ -440,11 +496,11 @@ public class RoadModelTest {
 	public void followPathMoveTowardOther() {
 		TestRoadUser tru1 = new TestRoadUser();
 		model.addObjectAt(tru1, SW);
-		model.followPath(tru1, asQueue(SW, SE, NE), 12 * ONE_HOUR);
+		model.followPath(tru1, asPath(SW, SE, NE), 12 * ONE_HOUR);
 
 		TestRoadUser tru2 = new TestRoadUser();
 		model.addObjectAt(tru2, SW);
-		PathProgress pp = model.followPath(tru2, asQueue(SW, SE, model.getPosition(tru1)), 11 * ONE_HOUR);
+		PathProgress pp = model.followPath(tru2, asPath(SW, SE, model.getPosition(tru1)), 11 * ONE_HOUR);
 		assertEquals(11, pp.distance, EPSILON);
 
 		Point p1 = model.getPosition(tru1);
@@ -463,8 +519,8 @@ public class RoadModelTest {
 	public void followPathFailGoBackwardToNode() {
 		TestRoadUser testRoadUser1 = new TestRoadUser();
 		model.addObjectAt(testRoadUser1, SW);
-		model.followPath(testRoadUser1, asQueue(SW, SE), ONE_HOUR);
-		model.followPath(testRoadUser1, asQueue(SW), ONE_HOUR);
+		model.followPath(testRoadUser1, asPath(SW, SE), ONE_HOUR);
+		model.followPath(testRoadUser1, asPath(SW), ONE_HOUR);
 	}
 
 	/**
@@ -477,17 +533,17 @@ public class RoadModelTest {
 		// first move tru1 and tru2 in position
 		TestRoadUser tru1 = new TestRoadUser();
 		model.addObjectAt(tru1, SW);
-		model.followPath(tru1, asQueue(SW, SE), ONE_HOUR);
+		model.followPath(tru1, asPath(SW, SE), ONE_HOUR);
 
 		TestRoadUser tru2 = new TestRoadUser();
 		model.addObjectAt(tru2, SW);
-		model.followPath(tru2, asQueue(SW, SE), 2 * ONE_HOUR);
+		model.followPath(tru2, asPath(SW, SE), 2 * ONE_HOUR);
 
 		// now the road users are in the above described positions
 		Point difference = Point.diff(model.getPosition(tru1), model.getPosition(tru2));
 		assertTrue(difference.x < 0 && difference.y == 0);
 
-		model.followPath(tru2, asQueue(model.getPosition(tru1)), 2 * ONE_HOUR);
+		model.followPath(tru2, asPath(model.getPosition(tru1)), 2 * ONE_HOUR);
 	}
 
 	/**
@@ -502,13 +558,13 @@ public class RoadModelTest {
 		// first move tru1 and tru2 in position
 		TestRoadUser tru1 = new TestRoadUser();
 		model.addObjectAt(tru1, SW);
-		model.followPath(tru1, asQueue(SW, SE), ONE_HOUR);
+		model.followPath(tru1, asPath(SW, SE), ONE_HOUR);
 
 		TestRoadUser tru2 = new TestRoadUser();
 		model.addObjectAt(tru2, NE);
-		model.followPath(tru2, asQueue(NE, SE), 2 * ONE_HOUR);
+		model.followPath(tru2, asPath(NE, SE), 2 * ONE_HOUR);
 
-		model.followPath(tru2, asQueue(model.getPosition(tru1)), 2 * ONE_HOUR);
+		model.followPath(tru2, asPath(model.getPosition(tru1)), 2 * ONE_HOUR);
 	}
 
 	/**
@@ -526,9 +582,9 @@ public class RoadModelTest {
 
 		TestRoadUser tru2 = new TestRoadUser();
 		model.addObjectAt(tru2, NE);
-		model.followPath(tru2, asQueue(NE, SE), 2 * ONE_HOUR);
+		model.followPath(tru2, asPath(NE, SE), 2 * ONE_HOUR);
 
-		model.followPath(tru1, asQueue(model.getPosition(tru2)), 2 * ONE_HOUR);
+		model.followPath(tru1, asPath(model.getPosition(tru2)), 2 * ONE_HOUR);
 	}
 
 	/**
@@ -546,9 +602,9 @@ public class RoadModelTest {
 
 		TestRoadUser tru2 = new TestRoadUser();
 		model.addObjectAt(tru2, NE);
-		model.followPath(tru2, asQueue(NE, SE), 2 * ONE_HOUR);
+		model.followPath(tru2, asPath(NE, SE), 2 * ONE_HOUR);
 
-		model.followPath(tru1, asQueue(SW, model.getPosition(tru2)), 200 * ONE_HOUR);
+		model.followPath(tru1, asPath(SW, model.getPosition(tru2)), 200 * ONE_HOUR);
 	}
 
 	/**
@@ -560,13 +616,13 @@ public class RoadModelTest {
 		// first move tru1 and tru2 in position
 		TestRoadUser tru1 = new TestRoadUser();
 		model.addObjectAt(tru1, SW);
-		model.followPath(tru1, asQueue(SW, SE), ONE_HOUR);
+		model.followPath(tru1, asPath(SW, SE), ONE_HOUR);
 
 		TestRoadUser tru2 = new TestRoadUser();
 		model.addObjectAt(tru2, SW);
-		model.followPath(tru2, asQueue(SW, SE), 2 * ONE_HOUR);
+		model.followPath(tru2, asPath(SW, SE), 2 * ONE_HOUR);
 
-		model.followPath(tru1, asQueue(model.getPosition(tru2)), 2 * ONE_HOUR);
+		model.followPath(tru1, asPath(model.getPosition(tru2)), 2 * ONE_HOUR);
 		assertEquals(model.getPosition(tru1), model.getPosition(tru2));
 	}
 
@@ -582,72 +638,11 @@ public class RoadModelTest {
 
 		TestRoadUser tru2 = new TestRoadUser();
 		model.addObjectAt(tru2, SW);
-		model.followPath(tru2, asQueue(SW, SE), 2 * ONE_HOUR);
+		model.followPath(tru2, asPath(SW, SE), 2 * ONE_HOUR);
 
-		model.followPath(tru1, asQueue(model.getPosition(tru2)), 3 * ONE_HOUR);
+		model.followPath(tru1, asPath(model.getPosition(tru2)), 3 * ONE_HOUR);
 		assertEquals(model.getPosition(tru1), model.getPosition(tru2));
 	}
-
-	//
-	// @Test(expected = IllegalArgumentException.class)
-	// public void followPathFailWrongDirection() {
-	// model.followPath(testRoadUser, new LinkedList<Point>(Arrays.asList(SW)),
-	// 1);
-	// model.followPath(testRoadUser, new LinkedList<Point>(Arrays.asList(SW)),
-	// 1);
-	// }
-
-	// @Test(expected = AssertionError.class)
-	// public void followPathFail5() {
-	// model.followPath(new TestRoadUser(), new
-	// LinkedList<Point>(Arrays.asList(SW)), 1);
-	// }
-
-	// @Test(expected = IllegalArgumentException.class)
-	// public void followPathFail6() {
-	// RoadUser agent = new TestRoadUser();
-	// model.addObjectAt(agent, SW);
-	// model.followPath(agent, path, 1);
-	// model.followPath(agent, new LinkedList<Point>(Arrays.asList(SW, SE, NE)),
-	// 1);
-	// }
-
-	// @Test(expected = IllegalArgumentException.class)
-	// public void followPathFail7() {
-	// RoadUser agent = new TestRoadUser();
-	// RoadUser agent2 = new TestRoadUser();
-	//
-	// model.addObjectAt(agent2, NE);
-	// model.addConnection(NE, SE);
-	// model.followPath(agent2, new LinkedList<Point>(Arrays.asList(NE, SE)),
-	// 1);
-	//
-	// model.addObjectAt(agent, SW);
-	// List<Point> curPath = model.getShortestPathTo(agent, agent2);
-	// model.followPath(agent, new LinkedList<Point>(curPath), 1);
-	//
-	// model.followPath(agent, new LinkedList<Point>(Arrays.asList(SW,
-	// curPath.get(0))), 1);
-	// }
-
-	// @Test
-	// public void followPathOk() {
-	// RoadUser agent = new TestRoadUser();
-	// RoadUser agent2 = new TestRoadUser();
-	//
-	// model.addObjectAt(agent2, NE);
-	// model.addConnection(NE, SE);
-	// model.followPath(agent2, new LinkedList<Point>(Arrays.asList(NE, SE)),
-	// 1);
-	//
-	// model.addObjectAt(agent, SW);
-	// Queue<Point> curPath = new
-	// LinkedList<Point>(model.getShortestPathTo(agent, agent2));
-	// model.followPath(agent, curPath, 1);
-	//
-	// // this is to get more test coverage
-	// model.followPath(agent, curPath, 19.5);
-	// }
 
 	@Test(expected = IllegalArgumentException.class)
 	public void getShortestPathToFail() {
@@ -846,7 +841,7 @@ public class RoadModelTest {
 		assertFalse(model.containsObjectAt(ru, new Point(2, 3)));
 		assertTrue(model.containsObjectAt(ru, SW));
 
-		model.followPath(ru, asQueue(SE), 1 * ONE_HOUR);
+		model.followPath(ru, asPath(SE), 1 * ONE_HOUR);
 		Point p = model.getPosition(ru);
 		assertTrue(model.containsObjectAt(ru, Point.duplicate(p)));
 	}

@@ -16,6 +16,7 @@ import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
 
+import rinde.sim.core.graph.Connection;
 import rinde.sim.core.graph.EdgeData;
 import rinde.sim.core.graph.Graph;
 import rinde.sim.core.graph.Graphs;
@@ -83,6 +84,22 @@ public class RoadModel implements Model<RoadUser> {
 	}
 
 	/**
+	 * Retrieves the connection which the specified {@link RoadUser} is at. If
+	 * the road user is at a vertex <code>null</code> is returned instead.
+	 * @param obj The object which position is checked.
+	 * @return A {@link Connection} if <code>obj</code> is on one,
+	 *         <code>null</code> otherwise.
+	 */
+	public Connection<? extends EdgeData> getConnection(RoadUser obj) {
+		Point p = getPosition(obj);
+		if (p instanceof MidPoint) {
+			MidPoint mp = ((MidPoint) p);
+			return graph.getConnection(mp.loc.from, mp.loc.to);
+		}
+		return null;
+	}
+
+	/**
 	 * This method moves the specified {@link RoadUser} using the specified path
 	 * and with the specified time. The road model is using the information
 	 * about speed of the {@link RoadUser} and constrains on the graph to
@@ -139,7 +156,9 @@ public class RoadModel implements Model<RoadUser> {
 			if (travelDistance >= connLength) {
 				// jump to next vertex
 				tempPos = path.remove();
-				travelledNodes.add(tempPos);
+				if (!(tempPos instanceof MidPoint)) {
+					travelledNodes.add(tempPos);
+				}
 				long timeSpent = Math.round(connLength / speed);
 				timeLeft -= timeSpent;
 				traveled += connLength;
@@ -157,37 +176,7 @@ public class RoadModel implements Model<RoadUser> {
 				timeLeft -= timeSpent;
 				traveled += travelDistance;
 
-				// we have jumped OVER the next vertex and landed somewhere
-				// after
-				// if (nextVertex) {
-				// if (path.peek() instanceof MidPoint) {
-				// tempLoc = checkLocation(new Location(tempLoc.from,
-				// ((MidPoint) path.peek()).loc.to, newDis));
-				// } else {
-				// tempLoc = checkLocation(new Location(tempLoc.from,
-				// path.peek(), newDis));
-				// }
-				// }
-				// // we have moved on the current edge
-				// else {
-				// // double relpos = tempLoc.isEdgePoint() ?
-				// // tempLoc.relativePos + newDis : newDis;
-				// tempLoc = checkLocation(new Location(tempLoc.from,
-				// path.peek(), tempLoc.relativePos + newDis));
-				// }
-
-				// Point to = ;
-				// if (nextVertex && path.peek() instanceof MidPoint) {
-				// to = ((MidPoint) path.peek()).loc.to;
-				// }
-				//
-				// double d = newDis;
-				// if (!nextVertex) {
-				// d = tempLoc.relativePos + newDis;
-				// }
-
 				tempLoc = checkLocation(new Location(tempLoc.from, path.peek(), tempLoc.relativePos + newDis));
-
 			}
 			tempPos = tempLoc.getPosition();
 		}
@@ -261,11 +250,9 @@ public class RoadModel implements Model<RoadUser> {
 			throw new IllegalArgumentException("object can not be null");
 		}
 		if (from == null) {
-			throw new IllegalArgumentException("to can not be null");
+			throw new IllegalArgumentException("from can not be null");
 		}
 		checkArgument(to != null, "to can not be null");
-
-		assert object != null && from != null && to != null;
 		if (from.equals(to)) {
 			return object.getSpeed();
 		}
