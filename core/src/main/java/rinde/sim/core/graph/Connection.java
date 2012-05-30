@@ -65,7 +65,7 @@ public class Connection<E extends EdgeData> {
 
 	@Override
 	public String toString() {
-		return new StringBuilder().append("[").append(from).append("->").append(to).append("[").append(edgeData)
+		return new StringBuilder(7).append('[').append(from).append("->").append(to).append('[').append(edgeData)
 				.append("]]").toString();
 	}
 

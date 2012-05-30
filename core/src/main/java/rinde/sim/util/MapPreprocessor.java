@@ -530,7 +530,10 @@ public class MapPreprocessor {
 			if (graph.containsNode(current)) {
 				try {
 					path = Graphs.shortestPathEuclidianDistance(graph, current, root);
-				} catch (PathNotFoundException e) {}
+				} catch (PathNotFoundException e) {/*
+													 * this is intentionally
+													 * empty
+													 */}
 			}
 
 			if (path == null) {

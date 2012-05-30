@@ -65,6 +65,8 @@ public class ModelManager {
 	 * @param o object to register
 	 * @return <code>true</code> if object was added to at least one model
 	 */
+	// TODO transforming this method to a typed method might solve the problem
+	// which reflection is now used for.
 	public boolean register(Object o) {
 		if (o == null) {
 			throw new IllegalArgumentException("Can not register null");

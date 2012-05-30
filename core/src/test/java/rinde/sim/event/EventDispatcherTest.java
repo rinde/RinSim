@@ -20,6 +20,8 @@ import java.util.List;
 import org.junit.Before;
 import org.junit.Test;
 
+import rinde.sim.event.pdp.StandardType;
+
 /**
  * @author Rinde van Lon (rinde.vanlon@cs.kuleuven.be)
  * 
@@ -43,6 +45,8 @@ public class EventDispatcherTest {
 		l1 = new HistoryKeeper();
 		l2 = new HistoryKeeper();
 		l3 = new HistoryKeeper();
+
+		StandardType.valueOf("ADD_TRUCK");
 
 		dispatcher = new EventDispatcher(EVENT1, EVENT2, EVENT3);
 	}

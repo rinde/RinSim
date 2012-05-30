@@ -20,7 +20,7 @@ public class LengthEdgeData implements EdgeData {
 
 	@Override
 	public int hashCode() {
-		return new Double(length).hashCode();
+		return Double.valueOf(length).hashCode();
 	}
 
 	@Override

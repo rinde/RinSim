@@ -22,7 +22,7 @@ public class Point implements Serializable {
 	public Point(double pX, double pY) {
 		x = pX;
 		y = pY;
-		hashCode = new HashCodeBuilder(17, 37).append(x + "," + y).toHashCode();
+		hashCode = new HashCodeBuilder(17, 37).append(x).append(y).toHashCode();
 	}
 
 	public static double distance(Point p1, Point p2) {

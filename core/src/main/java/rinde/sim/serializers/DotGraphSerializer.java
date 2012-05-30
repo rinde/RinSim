@@ -96,7 +96,7 @@ public class DotGraphSerializer<E extends EdgeData> extends AbstractGraphSeriali
 		int nodeId = 0;
 		HashMap<Point, Integer> idMap = new HashMap<Point, Integer>();
 		for (Point p : graph.getNodes()) {
-			string.append(NODE_PREFIX).append(nodeId).append("[").append(POS).append("=\"").append(p.x).append(",")
+			string.append(NODE_PREFIX).append(nodeId).append('[').append(POS).append("=\"").append(p.x).append(',')
 					.append(p.y).append("\"]\n");
 			idMap.put(p, nodeId);
 			nodeId++;
@@ -105,7 +105,7 @@ public class DotGraphSerializer<E extends EdgeData> extends AbstractGraphSeriali
 		for (Connection<? extends E> entry : graph.getConnections()) {
 			string.append(serializer.serializeConnection(idMap.get(entry.from), idMap.get(entry.to), entry));
 		}
-		string.append("}");
+		string.append('}');
 		out.append(string);
 		out.close(); // it is important to close the BufferedWriter! otherwise
 						// there is no guarantee that it has reached the end..
@@ -132,7 +132,7 @@ public class DotGraphSerializer<E extends EdgeData> extends AbstractGraphSeriali
 		public String serializeConnection(int idFrom, int idTo, Connection<? extends LengthEdgeData> conn) {
 			StringBuffer buffer = new StringBuffer();
 			buffer.append(NODE_PREFIX).append(idFrom).append(" -> ").append(NODE_PREFIX).append(idTo);
-			buffer.append("[").append(DISTANCE).append("=\"").append(Math.round(conn.getEdgeData().getLength()) / 10d)
+			buffer.append('[').append(DISTANCE).append("=\"").append(Math.round(conn.getEdgeData().getLength()) / 10d)
 					.append("\"]\n");
 			return buffer.toString();
 		}
@@ -151,7 +151,7 @@ public class DotGraphSerializer<E extends EdgeData> extends AbstractGraphSeriali
 		public String serializeConnection(int idFrom, int idTo, Connection<? extends MultiAttributeEdgeData> conn) {
 			StringBuffer buffer = new StringBuffer();
 			buffer.append(NODE_PREFIX).append(idFrom).append(" -> ").append(NODE_PREFIX).append(idTo);
-			buffer.append("[").append(DISTANCE).append("=\"").append(Math.round(conn.getEdgeData().getLength()) / 10d);
+			buffer.append('[').append(DISTANCE).append("=\"").append(Math.round(conn.getEdgeData().getLength()) / 10d);
 			if (!Double.isNaN(conn.getEdgeData().getMaxSpeed()) && conn.getEdgeData().getMaxSpeed() > 0) {
 				buffer.append("\", ").append(MAX_SPEED).append("=\"").append(conn.getEdgeData().getMaxSpeed());
 			}
