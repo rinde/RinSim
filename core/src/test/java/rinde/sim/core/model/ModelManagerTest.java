@@ -61,6 +61,13 @@ public class ModelManagerTest {
 		assertArrayEquals(new Model<?>[] { model, model2 }, manager.getModels().toArray(new Model<?>[2]));
 	}
 
+	@Test
+	public void addDuplicateModel() {
+		OtherFooModel model = new OtherFooModel();
+		assertTrue(manager.add(model));
+		assertFalse(manager.add(model));
+	}
+
 	@Test(expected = IllegalArgumentException.class)
 	public void registerNull() {
 		manager.register(null);
