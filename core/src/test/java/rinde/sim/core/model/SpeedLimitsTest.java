@@ -55,10 +55,11 @@ public class SpeedLimitsTest {
 		assertTrue(assertionsAreOn);
 	}
 
-	public SpeedLimitsTest(Class<? extends Graph<MultiAttributeEdgeData>> graphType, Class<? extends RoadModel> roadModelType, double speed) {
-		this.graphType = graphType;
-		this.roadModelType = roadModelType;
-		this.speed = speed;
+	public SpeedLimitsTest(Class<? extends Graph<MultiAttributeEdgeData>> pGraphType,
+			Class<? extends RoadModel> pRoadModelType, double pSpeed) {
+		graphType = pGraphType;
+		roadModelType = pRoadModelType;
+		speed = pSpeed;
 	}
 
 	@Parameters
@@ -66,14 +67,18 @@ public class SpeedLimitsTest {
 
 		double five = 5;
 		double twoAndHalf = 2.5;
-		return Arrays.asList(new Object[][] { { TestMultimapGraph.class, RoadModel.class, five }, { TestMultimapGraph.class, CachedRoadModel.class, five },
-				{ TestMultimapGraph.class, RoadModel.class, twoAndHalf }, { TestMultimapGraph.class, CachedRoadModel.class, twoAndHalf },
-				{ TestTableGraph.class, RoadModel.class, five }, { TestTableGraph.class, CachedRoadModel.class, five }, { TestTableGraph.class, RoadModel.class, twoAndHalf },
+		return Arrays.asList(new Object[][] { { TestMultimapGraph.class, RoadModel.class, five },
+				{ TestMultimapGraph.class, CachedRoadModel.class, five },
+				{ TestMultimapGraph.class, RoadModel.class, twoAndHalf },
+				{ TestMultimapGraph.class, CachedRoadModel.class, twoAndHalf },
+				{ TestTableGraph.class, RoadModel.class, five }, { TestTableGraph.class, CachedRoadModel.class, five },
+				{ TestTableGraph.class, RoadModel.class, twoAndHalf },
 				{ TestTableGraph.class, CachedRoadModel.class, twoAndHalf } });
 	}
 
 	@Before
-	public void setUp() throws InstantiationException, IllegalAccessException, IllegalArgumentException, SecurityException, InvocationTargetException, NoSuchMethodException {
+	public void setUp() throws InstantiationException, IllegalAccessException, IllegalArgumentException,
+			SecurityException, InvocationTargetException, NoSuchMethodException {
 
 		Graph<MultiAttributeEdgeData> graph = graphType.newInstance();
 
@@ -86,11 +91,20 @@ public class SpeedLimitsTest {
 		E = new Point(5, 15);
 
 		graph.addConnection(A, B); // length 10 no speed limit
-		graph.addConnection(B, C, new MultiAttributeEdgeData(10, 2.5)); //length 10 speed 4
+		graph.addConnection(B, C, new MultiAttributeEdgeData(10, 2.5)); // length
+																		// 10
+																		// speed
+																		// 4
 		graph.addConnection(C, B); // length Math.sqr(10^2 + 10^2)
-		graph.addConnection(B, D, new MultiAttributeEdgeData(10, 10)); //length 10 speed 10
-		graph.addConnection(C, D); //length 10
-		graph.addConnection(D, C, new MultiAttributeEdgeData(12, 1)); //length 12 speed 1
+		graph.addConnection(B, D, new MultiAttributeEdgeData(10, 10)); // length
+																		// 10
+																		// speed
+																		// 10
+		graph.addConnection(C, D); // length 10
+		graph.addConnection(D, C, new MultiAttributeEdgeData(12, 1)); // length
+																		// 12
+																		// speed
+																		// 1
 		graph.addConnection(D, E, new MultiAttributeEdgeData(5, 7));
 
 		Set<Point> points = graph.getNodes();
@@ -110,11 +124,8 @@ public class SpeedLimitsTest {
 		pathLength = 10 + 10 + 10 + 5;
 	}
 
-	/**
-	 * Follow trajectory using time version of the function.
-	 */
 	@Test
-	public void followTrajectoryAllAtOnce() {
+	public void followPathAllAtOnce() {
 		int timeNeeded = (int) (TimeUnit.H.toMs((long) pathLength) / speed * 1.5);
 
 		SpeedyRoadUser agent = new SpeedyRoadUser(speed);
@@ -135,7 +146,7 @@ public class SpeedLimitsTest {
 	 * {@link RoadModel#followPath(MovingRoadUser, Queue, long)}
 	 */
 	@Test
-	public void followTrajectory() {
+	public void followPath() {
 		assertEquals(5, path.size());
 
 		MovingRoadUser agent = new SpeedyRoadUser(speed);
@@ -146,34 +157,41 @@ public class SpeedLimitsTest {
 		PathProgress progress = model.followPath(agent, path, TimeUnit.H.toMs(2));
 		assertEquals(2 * speed, progress.distance, DELTA);
 		assertEquals(new Point(0, 2 * speed), model.getPosition(agent));
+
 		if (speed < 5) {
 			progress = model.followPath(agent, path, TimeUnit.H.toMs(2));
 			assertEquals(2 * speed, progress.distance, DELTA);
 		}
 
 		assertEquals(3, path.size());
+
 		assertEquals(new Point(0, 10), model.getPosition(agent));
 
 		// traveling on edge with max speed 2.5
 
 		progress = model.followPath(agent, path, TimeUnit.H.toMs(2));
-		assertEquals(3, path.size());
 		assertEquals(5, progress.distance, DELTA);
+		assertEquals(3, path.size());
 
 		progress = model.followPath(agent, path, TimeUnit.H.toMs(2));
-		assertEquals(3, path.size());
 		assertEquals(5, progress.distance, DELTA);
 		assertEquals(C, model.getPosition(agent));
+		assertEquals(2, path.size());
 
 		long time = speed < 5 ? 4 : 2;
 
-		progress = model.followPath(agent, path, TimeUnit.H.toMs(time)); //follow path for 2 x time
+		progress = model.followPath(agent, path, TimeUnit.H.toMs(time)); // follow
+																			// path
+																			// for
+																			// 2
+																			// x
+																			// time
 		assertEquals(10, progress.distance, DELTA);
 		assertEquals(TimeUnit.H.toMs(time), progress.time);
 		assertEquals(1, path.size());
 		assertEquals(D, model.getPosition(agent));
 
-		//travel with max speed of the vehicle and time longer than needed
+		// travel with max speed of the vehicle and time longer than needed
 		time = speed < 5 ? 2 : 1;
 
 		progress = model.followPath(agent, path, TimeUnit.H.toMs(3));
@@ -212,13 +230,12 @@ public class SpeedLimitsTest {
 
 		private final double speedRU;
 
-		public SpeedyRoadUser(double speed) {
-			speedRU = speed;
+		public SpeedyRoadUser(double pSpeed) {
+			speedRU = pSpeed;
 		}
 
 		@Override
-		public void initRoadUser(RoadModel model) {
-		}
+		public void initRoadUser(RoadModel pModel) {}
 
 		@Override
 		public double getSpeed() {

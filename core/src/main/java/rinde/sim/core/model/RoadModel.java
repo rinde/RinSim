@@ -117,7 +117,6 @@ public class RoadModel implements Model<RoadUser> {
 	 * @return The actual distance that <code>object</code> has traveled after
 	 *         the execution of this method has finished.
 	 */
-	// TODO write more tests checking for travel distance etc
 	public PathProgress followPath(MovingRoadUser object, Queue<Point> path, long time) {
 		checkArgument(object != null, "object cannot be null");
 		checkArgument(objLocs.containsKey(object), "object must have a location");
@@ -194,7 +193,7 @@ public class RoadModel implements Model<RoadUser> {
 			checkArgument(nextHop instanceof MidPoint, "Illegal path for this object, from a position on an edge we can not jump to another edge or go back.");
 			MidPoint dest = (MidPoint) nextHop;
 			// check for same edge
-			checkArgument(objLoc.isOnSameEdge(dest.loc), "Illegal path for this object, first point is not on the same edge as the object.");
+			checkArgument(objLoc.isOnSameConnection(dest.loc), "Illegal path for this object, first point is not on the same edge as the object.");
 			// check for relative position
 			checkArgument(objLoc.relativePos <= dest.loc.relativePos, "Illegal path for this object, can not move backward over an edge.");
 		}
@@ -209,14 +208,13 @@ public class RoadModel implements Model<RoadUser> {
 
 	/**
 	 * Compute distance between two points. If points are equal the distance is
-	 * 0. If both points are graph's nodes the method checks if there is a
-	 * length of edge defined. If the from/to is on edge or the length of edge
-	 * is not defined {@link Point#distance(Point, Point)} is used.
+	 * 0. This method uses length stored in {@link EdgeData} objects when
+	 * available.
 	 * @return the distance between two points
 	 * @throws IllegalArgumentException when two points are part of the graph
 	 *             but are not equal or there is no connection between them
 	 */
-	private double computeConnectionLength(Point from, Point to) {
+	protected double computeConnectionLength(Point from, Point to) {
 		if (from == null) {
 			throw new IllegalArgumentException("from can not be null");
 		}
@@ -224,18 +222,24 @@ public class RoadModel implements Model<RoadUser> {
 		if (from.equals(to)) {
 			return 0;
 		}
-		if (from instanceof MidPoint || to instanceof MidPoint) {
-			return Point.distance(from, to);
+		if (from instanceof MidPoint && to instanceof MidPoint) {
+			MidPoint start = (MidPoint) from;
+			MidPoint end = (MidPoint) to;
+			checkArgument(start.loc.isOnSameConnection(end.loc), "the points are not on the same connection");
+			return Math.abs(start.loc.relativePos - end.loc.relativePos);
+		} else if (from instanceof MidPoint) {
+			MidPoint start = (MidPoint) from;
+			checkArgument(start.loc.to.equals(to), "from is not on a connection leading to 'to'");
+			return start.loc.roadLength - start.loc.relativePos;
+		} else if (to instanceof MidPoint) {
+			MidPoint end = (MidPoint) to;
+			checkArgument(end.loc.from.equals(from), "to is not connected to from");
+			return end.loc.relativePos;
+		} else {
+			checkArgument(graph.hasConnection(from, to), "connection does not exist");
+			EdgeData data = graph.connectionData(from, to);
+			return data == null ? Point.distance(from, to) : data.getLength();
 		}
-
-		if (!graph.hasConnection(from, to)) {
-			throw new IllegalArgumentException("followPath() attempts to use non-existing connection: " + from + " >> "
-					+ to + ".");
-		}
-
-		EdgeData data = graph.connectionData(from, to);
-		assert data == null || !Double.isNaN(data.getLength()) : "edge length cannot be NaN";
-		return data == null ? Point.distance(from, to) : data.getLength();
 	}
 
 	/**
@@ -619,7 +623,7 @@ public class RoadModel implements Model<RoadUser> {
 			}
 		}
 
-		public boolean isOnSameEdge(Location l) {
+		public boolean isOnSameConnection(Location l) {
 			if (!isEdgePoint() || !l.isEdgePoint()) {
 				return false;
 			}

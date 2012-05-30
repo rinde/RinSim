@@ -32,7 +32,9 @@ import rinde.sim.core.graph.Connection;
 import rinde.sim.core.graph.EdgeData;
 import rinde.sim.core.graph.Graph;
 import rinde.sim.core.graph.Graphs;
+import rinde.sim.core.graph.LengthEdgeData;
 import rinde.sim.core.graph.MultiAttributeEdgeData;
+import rinde.sim.core.graph.MultimapGraph;
 import rinde.sim.core.graph.Point;
 import rinde.sim.core.graph.TestMultimapGraph;
 import rinde.sim.core.graph.TestTableGraph;
@@ -941,14 +943,14 @@ public class RoadModelTest {
 
 		assertEquals(NE, loc3.getPosition());
 
-		assertTrue(loc1.isOnSameEdge(loc2));
-		assertTrue(loc2.isOnSameEdge(loc1));
-		assertFalse(loc1.isOnSameEdge(loc3));
-		assertFalse(loc3.isOnSameEdge(loc1));
-		assertFalse(loc4.isOnSameEdge(loc1));
-		assertFalse(loc1.isOnSameEdge(loc4));
-		assertFalse(loc3.isOnSameEdge(loc5));
-		assertFalse(loc3.isOnSameEdge(loc6));
+		assertTrue(loc1.isOnSameConnection(loc2));
+		assertTrue(loc2.isOnSameConnection(loc1));
+		assertFalse(loc1.isOnSameConnection(loc3));
+		assertFalse(loc3.isOnSameConnection(loc1));
+		assertFalse(loc4.isOnSameConnection(loc1));
+		assertFalse(loc1.isOnSameConnection(loc4));
+		assertFalse(loc3.isOnSameConnection(loc5));
+		assertFalse(loc3.isOnSameConnection(loc6));
 	}
 
 	@Test(expected = IllegalArgumentException.class)
@@ -974,6 +976,68 @@ public class RoadModelTest {
 	@Test(expected = IllegalArgumentException.class)
 	public void getMaxSpeedFail3() {
 		model.getMaxSpeed(new TestRoadUser(), new Point(1, 2), null);
+	}
+
+	@Test(expected = IllegalArgumentException.class)
+	public void getMaxSpeedFail4() {
+		model.getMaxSpeed(new TestRoadUser(), new Point(1, 2), new Point(2, 1));
+	}
+
+	@SuppressWarnings("unchecked")
+	@Test
+	public void getMaxSpeed() {
+		Point A = new Point(0, 0);
+		Point B = new Point(10, 0);
+
+		Graph<LengthEdgeData> g = new MultimapGraph<LengthEdgeData>();
+		RoadModel rm = new RoadModel(g);
+		g.addConnection(A, B, new LengthEdgeData(3));
+		assertEquals(10, rm.getMaxSpeed(new SpeedyRoadUser(10), A, B), EPSILON);
+
+		((Graph<MultiAttributeEdgeData>) graph).addConnection(SE, SW, new MultiAttributeEdgeData(3, 5));
+		assertEquals(5, model.getMaxSpeed(new SpeedyRoadUser(10), SE, SW), EPSILON);
+
+		((Graph<MultiAttributeEdgeData>) graph).addConnection(NE, SE, new MultiAttributeEdgeData(3, Double.NaN));
+		assertEquals(10, model.getMaxSpeed(new SpeedyRoadUser(10), NE, SE), EPSILON);
+	}
+
+	@Test(expected = IllegalArgumentException.class)
+	public void computeConnectionLengthFail1() {
+		model.computeConnectionLength(null, null);
+	}
+
+	@Test(expected = IllegalArgumentException.class)
+	public void computeConnectionLengthFail2() {
+		model.computeConnectionLength(new Point(1, 2), null);
+	}
+
+	@Test(expected = IllegalArgumentException.class)
+	public void computeConnectionLengthFail3() {
+		model.computeConnectionLength(new Point(1, 2), new Point(2, 1));
+	}
+
+	@SuppressWarnings("unchecked")
+	@Test
+	public void computeConnectionLength() {
+		assertEquals(0, model.computeConnectionLength(new Point(1, 2), new Point(1, 2)), EPSILON);
+		((Graph<MultiAttributeEdgeData>) graph).addConnection(SE, SW, new MultiAttributeEdgeData(5, 5));
+
+		TestRoadUser agent1 = new TestRoadUser();
+		model.addObjectAt(agent1, SE);
+		PathProgress pp1 = model.followPath(agent1, asPath(SW), ONE_HOUR);
+		assertEquals(1, pp1.distance, EPSILON);
+		assertEquals(ONE_HOUR, pp1.time);
+
+		TestRoadUser agent2 = new TestRoadUser();
+		model.addObjectAt(agent2, SE);
+		PathProgress pp2 = model.followPath(agent2, asPath(SW), 2 * ONE_HOUR);
+		assertEquals(2, pp2.distance, EPSILON);
+		assertEquals(2 * ONE_HOUR, pp2.time);
+
+		assertEquals(1, model.computeConnectionLength(model.getPosition(agent1), model.getPosition(agent2)), EPSILON);
+
+		assertEquals(4, model.computeConnectionLength(model.getPosition(agent1), SW), EPSILON);
+		assertEquals(1, model.computeConnectionLength(SE, model.getPosition(agent1)), EPSILON);
 	}
 
 	@Test
