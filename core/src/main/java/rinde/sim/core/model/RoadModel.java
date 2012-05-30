@@ -411,12 +411,7 @@ public class RoadModel implements Model<RoadUser> {
 	public List<Point> getShortestPathTo(RoadUser fromObj, RoadUser toObj) {
 		checkArgument(fromObj != null, "fromObj can not be null");
 		checkArgument(objLocs.containsKey(toObj), " to object should be in RoadModel. " + toObj);
-		// Location l = objLocs.get(toObj);
-		List<Point> path = getShortestPathTo(fromObj, getPosition(toObj));
-		// if (l.isEdgePoint()) {
-		// path.add(l.getPosition());
-		// }
-		return path;
+		return getShortestPathTo(fromObj, getPosition(toObj));
 	}
 
 	/**
@@ -428,10 +423,18 @@ public class RoadModel implements Model<RoadUser> {
 	public List<Point> getShortestPathTo(RoadUser fromObj, Point to) {
 		checkArgument(fromObj != null, "fromObj can not be null");
 		checkArgument(objLocs.containsKey(fromObj), " from object should be in RoadModel. " + fromObj);
-		Point from = getNode(fromObj);
-		return getShortestPathTo(from, to);
+		return getShortestPathTo(getPosition(fromObj), to);
 	}
 
+	/**
+	 * Searches for the shortest path between <code>from</code> and
+	 * <code>to</code>.
+	 * @param from The start position of the path.
+	 * @param to The end position of the path.
+	 * @return The shortest path between <code>from</code> and <code>to</code>
+	 *         if it exists, <code>null</code> otherwise.
+	 * @see Graphs#shortestPathEuclidianDistance(Graph, Point, Point)
+	 */
 	public List<Point> getShortestPathTo(Point from, Point to) {
 		checkArgument(from != null, "from can not be null");
 		checkArgument(to != null, "to can not be null");
@@ -500,30 +503,37 @@ public class RoadModel implements Model<RoadUser> {
 		return l;
 	}
 
-	protected Point getNode(RoadUser obj) {
-		checkArgument(obj != null, "object can not be null");
-		checkArgument(objLocs.containsKey(obj), "object must exist");
-		if (objLocs.get(obj).to != null) {
-			return objLocs.get(obj).to;
-		} else {
-			return objLocs.get(obj).from;
-		}
-	}
-
+	/**
+	 * Registers the specified {@link RoadUser} in the model. When the specified
+	 * {@link RoadUser} is registered successfully, this method calls
+	 * {@link RoadUser#initRoadUser(RoadModel)}. Note that the RoadModel does
+	 * <strong>not</strong> keep a reference to the specified
+	 * <code>element</code>. It is the responsibility of <code>element</code> to
+	 * add itself <i>on</i> the road model (this can be done via
+	 * {@link #addObjectAt(RoadUser, Point)}).
+	 * @param roadUser The road user to register.
+	 * @return <code>true</code>
+	 */
 	@Override
-	public boolean register(RoadUser element) {
-		if (element == null) {
-			throw new IllegalArgumentException("element can not be null");
+	public boolean register(RoadUser roadUser) {
+		if (roadUser == null) {
+			throw new IllegalArgumentException("roadUser can not be null");
 		}
-		element.initRoadUser(this);
+		roadUser.initRoadUser(this);
 		return true;
 	}
 
-	@Override
-	public Class<RoadUser> getSupportedType() {
-		return RoadUser.class;
-	}
-
+	/**
+	 * Unregisters the specified {@link RoadUser} from the model. If the
+	 * specified road user is not on the model (i.e.
+	 * {@link #containsObject(RoadUser)} returns <code>false</code>) this method
+	 * also returns <code>false</code> and has no effect. If the specified road
+	 * user exists on the model it is removed via
+	 * {@link #removeObject(RoadUser)} and <code> true</code> is returned.
+	 * @param roadUser the road user to register.
+	 * @return <code>true</code> if the object was removed from the model,
+	 *         <code>false</code> if it didn't exist.
+	 */
 	@Override
 	public boolean unregister(RoadUser roadUser) {
 		checkArgument(roadUser != null, "RoadUser can not be null");
@@ -532,6 +542,14 @@ public class RoadModel implements Model<RoadUser> {
 			return true;
 		}
 		return false;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public Class<RoadUser> getSupportedType() {
+		return RoadUser.class;
 	}
 
 	/**
@@ -556,6 +574,7 @@ public class RoadModel implements Model<RoadUser> {
 		public PathProgress(double dist, long pTime, List<Point> pTravelledNodes) {
 			checkArgument(dist >= 0, "distance must be greater than or equal to 0");
 			checkArgument(pTime >= 0, "time must be greather than or equal to 0");
+			checkArgument(pTravelledNodes != null, "travelledNodes can not be null");
 			distance = dist;
 			time = pTime;
 			travelledNodes = pTravelledNodes;

@@ -11,9 +11,15 @@ import rinde.sim.core.model.RoadModel;
  */
 public class TrivialRoadUser implements MovingRoadUser {
 
+	private RoadModel model;
+
+	public RoadModel getRoadModel() {
+		return model;
+	}
+
 	@Override
-	public void initRoadUser(RoadModel model) {
-		// XXX use if the registration can be ignored in tests [bm]
+	public void initRoadUser(RoadModel m) {
+		model = m;
 	}
 
 	@Override

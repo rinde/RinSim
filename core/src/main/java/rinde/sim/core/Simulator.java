@@ -110,13 +110,13 @@ public class Simulator implements SimulatorAPI {
 	@Override
 	public boolean register(Object obj) {
 		if (obj == null) {
-			throw new IllegalArgumentException("parameter cannot be null");
+			throw new IllegalArgumentException("parameter can not be null");
 		}
 		if (obj instanceof Model<?>) {
 			return register((Model<?>) obj);
 		}
 		if (!configured) {
-			throw new IllegalStateException("cannot add object before calling configure()");
+			throw new IllegalStateException("can not add object before calling configure()");
 		}
 		injectDependencies(obj);
 		if (obj instanceof TickListener) {
@@ -136,10 +136,10 @@ public class Simulator implements SimulatorAPI {
 			throw new IllegalArgumentException("parameter cannot be null");
 		}
 		if (o instanceof Model<?>) {
-			throw new IllegalArgumentException("cannot unregister a model");
+			throw new IllegalArgumentException("can not unregister a model");
 		}
 		if (!configured) {
-			throw new IllegalStateException("cannot unregister object before calling configure()");
+			throw new IllegalStateException("can not unregister object before calling configure()");
 		}
 		if (o instanceof TickListener) {
 			removeTickListener((TickListener) o);

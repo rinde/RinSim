@@ -168,11 +168,6 @@ public class RoadModelTest {
 		model.followPath(driver, asPath(model.getPosition(middle), SW), 10 * ONE_HOUR);
 	}
 
-	// @Test(expected = IllegalArgumentException.class)
-	// public void followPathFail1() {
-	// model.followPath(null, null, 0);
-	// }
-
 	@Test(expected = IllegalArgumentException.class)
 	public void followPathUnconnected() {
 		MovingRoadUser agent = new SpeedyRoadUser(100);
@@ -187,7 +182,7 @@ public class RoadModelTest {
 	}
 
 	@Test(expected = IllegalArgumentException.class)
-	public void followTrajectoryNotAvertex() {
+	public void followPathNotAvertex() {
 		MovingRoadUser agent = new SpeedyRoadUser(EPSILON);
 		model.addObjectAt(agent, new Point(0, 0));
 		assertEquals(new Point(0, 0), model.getPosition(agent));
@@ -200,16 +195,7 @@ public class RoadModelTest {
 	}
 
 	@Test
-	public void getConnectionTest() {
-		TestRoadUser driver = new TestRoadUser();
-		model.addObjectAt(driver, SE);
-		assertNull(model.getConnection(driver));
-		model.followPath(driver, asPath(NE), ONE_HOUR);
-		assertTrue(connectionEquals(model.getConnection(driver), SE, NE));
-	}
-
-	@Test
-	public void followTrajectoryNotTillEnd() {
+	public void followPathNotTillEnd() {
 		MovingRoadUser agent = new SpeedyRoadUser(sc.from(1, TimeUnit.MS).to(TimeUnit.H));
 		model.addObjectAt(agent, new Point(0, 0));
 		assertEquals(new Point(0, 0), model.getPosition(agent));
@@ -224,46 +210,6 @@ public class RoadModelTest {
 		assertEquals(1, path.size());
 		assertEquals(new Point(10, 1), model.getPosition(agent));
 	}
-
-	@Test(expected = IllegalArgumentException.class)
-	public void addConnection() {
-		// connection already exists
-		graph.addConnection(SW, SE);
-	}
-
-	// @Test
-	// public void followTrajectory() {
-	// RoadUser agent = new TestRoadUser();
-	// model.addObjectAt(agent, new Point(0, 0));
-	// assertTrue(model.getPosition(agent).equals(new Point(0, 0)));
-	//
-	// assertTrue(path.size() == 3);
-	// double travelled = model.followPath(agent, path, 5);
-	// assertTrue(travelled == 5);
-	// assertTrue(path.size() == 2);
-	// assertTrue(model.getPosition(agent).equals(new Point(5, 0)));
-	//
-	// travelled = model.followPath(agent, path, 10);
-	// assertEquals(10, travelled, EPSILON);
-	// assertTrue(path.size() == 1);
-	// assertTrue(model.getPosition(agent).equals(new Point(10, 5)));
-	//
-	// travelled = model.followPath(agent, path, 1);
-	// assertEquals(1, travelled, EPSILON);
-	// assertTrue(path.size() == 1);
-	// assertTrue(model.getPosition(agent).equals(new Point(10, 6)));
-	//
-	// travelled = model.followPath(agent, path, 2);
-	// assertEquals(2, travelled, EPSILON);
-	// assertTrue(path.size() == 1);
-	// assertTrue(model.getPosition(agent).equals(new Point(10, 8)));
-	//
-	// travelled = model.followPath(agent, path, 3);
-	// assertTrue(travelled == 2);
-	// assertEquals(2, travelled, EPSILON);
-	// assertTrue(path.size() == 0);
-	// assertTrue(model.getPosition(agent).equals(new Point(10, 10)));
-	// }
 
 	/**
 	 * Simplest check for time based following path
@@ -297,74 +243,6 @@ public class RoadModelTest {
 		assertEquals(new Point(10, 10), model.getPosition(agent));
 	}
 
-	// @Test
-	// public void followTrajectory2() {
-	// RoadUser agent = new TestRoadUser();
-	// model.addObjectAt(agent, new Point(0, 0));
-	// assertTrue(model.getPosition(agent).equals(new Point(0, 0)));
-	//
-	// assertTrue(path.size() == 3);
-	// double travelled = model.followPath(agent, path, 20);
-	// assertTrue(travelled == 20);
-	// assertTrue(path.size() == 0);
-	// assertTrue(model.getPosition(agent).equals(new Point(10, 10)));
-	// }
-
-	// @Test(expected = IllegalArgumentException.class)
-	// public void followTrajectory3() {
-	// RoadUser agent = new TestRoadUser();
-	// model.addObjectAt(agent, new Point(10, 10));
-	// assertTrue(model.getPosition(agent).equals(new Point(10, 10)));
-	//
-	// assertTrue(path.size() == 3);
-	// // the trajectory does not directly connect to the current position
-	// model.followPath(agent, path, 20);
-	// }
-
-	// @Test(expected = IllegalStateException.class)
-	// public void followTrajectory4() {
-	// RoadUser agent = new TestRoadUser();
-	// model.addObjectAt(agent, new Point(0, 0));
-	// assertTrue(model.getPosition(agent).equals(new Point(0, 0)));
-	//
-	// // illegal trajectory, the two points are not connected
-	// Queue<Point> traject = new LinkedList<Point>(Arrays.asList(new Point(0,
-	// 0), new Point(10, 10)));
-	//
-	// assertTrue(traject.size() == 2);
-	// model.followPath(agent, traject, 20);
-	// }
-
-	// @Test(expected = IllegalStateException.class)
-	// public void followTrajectory5() {
-	// RoadUser agent = new TestRoadUser();
-	// model.addObjectAt(agent, new Point(0, 0));
-	// assertTrue(model.getPosition(agent).equals(new Point(0, 0)));
-	//
-	// // illegal trajectory, the second point is not a vertex
-	// Queue<Point> traject = new LinkedList<Point>(Arrays.asList(new Point(0,
-	// 0), new Point(10, 1)));
-	//
-	// assertTrue(traject.size() == 2);
-	// model.followPath(agent, traject, 20);
-	// }
-
-	// @Test
-	// public void followTrajectory6() {
-	// RoadUser agent = new TestRoadUser();
-	// model.addObjectAt(agent, new Point(0, 0));
-	// assertTrue(model.getPosition(agent).equals(new Point(0, 0)));
-	//
-	// double travelled = model.followPath(agent, path, 10);
-	// assertEquals(10d, travelled, EPSILON);
-	// assertTrue(path.size() == 1);
-	//
-	// travelled = model.followPath(agent, path, 1);
-	// assertEquals(1d, travelled, EPSILON);
-	// assertTrue(path.size() == 1);
-	// assertEquals(new Point(10, 1), model.getPosition(agent));
-	// }
-
 	@Test
 	public void followPathHalfway1() {
 		graph.addConnection(SE, SW);
@@ -386,13 +264,14 @@ public class RoadModelTest {
 		assertEquals(new Point(5, 0), model.getPosition(agent2));
 
 		Queue<Point> path2 = new LinkedList<Point>(model.getShortestPathTo(agent2, NE));
-		assertEquals(asList(SE, NE), path2);
+		assertEquals(asList(new Point(5, 0), SE, NE), path2);
 		model.followPath(agent2, path2, TimeUnit.H.toMs(10));
 		assertEquals(new Point(10, 5), model.getPosition(agent2));
+		assertTrue(connectionEquals(model.getConnection(agent2), SE, NE));
 
 		// coming from the front side, we have to turn around at p1
 		Queue<Point> path3 = new LinkedList<Point>(model.getShortestPathTo(agent2, agent1));
-		assertEquals(asList(NE, SE, SW, new Point(5, 0)), path3);
+		assertEquals(asList(new Point(10, 5), NE, SE, SW, new Point(5, 0)), path3);
 		model.followPath(agent2, path3, TimeUnit.H.toMs(100));
 
 		assertEquals(new Point(5, 0), model.getPosition(agent1));
@@ -644,6 +523,27 @@ public class RoadModelTest {
 		assertEquals(model.getPosition(tru1), model.getPosition(tru2));
 	}
 
+	@Test
+	public void getConnectionTest() {
+		TestRoadUser driver = new TestRoadUser();
+		model.addObjectAt(driver, SE);
+		assertNull(model.getConnection(driver));
+		model.followPath(driver, asPath(NE), ONE_HOUR);
+		assertTrue(connectionEquals(model.getConnection(driver), SE, NE));
+	}
+
+	@Test
+	public void getShortestPath() {
+		TestRoadUser driver = new TestRoadUser();
+		model.addObjectAt(driver, SW);
+		model.followPath(driver, asPath(SE), ONE_HOUR);
+		assertTrue(connectionEquals(model.getConnection(driver), SW, SE));
+
+		List<Point> path = model.getShortestPathTo(driver, NE);
+		assertEquals(asList(model.getPosition(driver), SE, NE), path);
+
+	}
+
 	@Test(expected = IllegalArgumentException.class)
 	public void getShortestPathToFail() {
 		model.getShortestPathTo(new TestRoadUser(), new Point(0, 0));
@@ -670,6 +570,11 @@ public class RoadModelTest {
 	}
 
 	@Test(expected = IllegalArgumentException.class)
+	public void getShortestPathToFail6() {
+		model.getShortestPathTo((RoadUser) null, (RoadUser) null);
+	}
+
+	@Test(expected = IllegalArgumentException.class)
 	public void getPositionFail() {
 		model.getPosition(null);
 	}
@@ -683,6 +588,38 @@ public class RoadModelTest {
 	public void constructorFail() throws IllegalArgumentException, SecurityException, InstantiationException,
 			IllegalAccessException, InvocationTargetException, NoSuchMethodException {
 		roadModelType.getConstructor(Graph.class).newInstance((Graph<?>) null);
+	}
+
+	@Test(expected = IllegalArgumentException.class)
+	public void registerNull() {
+		model.register(null);
+	}
+
+	@Test
+	public void register() {
+		TestRoadUser driver = new TestRoadUser();
+		model.register(driver);
+		assertEquals(model, driver.getRoadModel());
+	}
+
+	@Test(expected = IllegalArgumentException.class)
+	public void unregisterNull() {
+		model.unregister(null);
+	}
+
+	@Test
+	public void unregister() {
+		assertFalse(model.unregister(new TestRoadUser()));
+		TestRoadUser driver = new TestRoadUser();
+		assertTrue(model.register(driver));
+		assertFalse(model.unregister(driver));
+		model.addObjectAt(driver, SW);
+		assertTrue(model.unregister(driver));
+	}
+
+	@Test
+	public void getSupportedType() {
+		assertEquals(RoadUser.class, model.getSupportedType());
 	}
 
 	@Test
