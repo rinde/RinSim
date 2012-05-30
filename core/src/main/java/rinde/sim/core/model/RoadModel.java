@@ -29,34 +29,69 @@ import com.google.common.base.Predicate;
 import com.google.common.collect.Sets;
 
 /**
+ * The RoadModel is a model that manages a fleet of vehicles ({@link RoadUser}s)
+ * on top of a {@link Graph}. Its responsibilities are:
+ * <ul>
+ * <li>adding and removing objects</li>
+ * <li>moving objects around</li>
+ * </ul>
+ * On top of that the RoadModel provides several functions for retrieving
+ * objects and finding the shortest path.
+ * 
  * @author Rinde van Lon (rinde.vanlon@cs.kuleuven.be)
  * @author Bartosz Michalik <bartosz.michalik@cs.kuleuven.be> changes wrt.
  *         models infrastructure
- * 
  */
 public class RoadModel implements Model<RoadUser> {
-	// TODO remove the Graph related functions, and give a reference to an
-	// unmodifiable Graph instance instead
 
 	protected volatile Map<RoadUser, Location> objLocs;
 	final Graph<? extends EdgeData> graph;
 
+	/**
+	 * Create a new instance using the specified graph.
+	 * @param pGraph The graph which will be used as road strucutre.
+	 */
 	public RoadModel(Graph<? extends EdgeData> pGraph) {
 		checkArgument(pGraph != null, "Graph can not be null");
 		graph = pGraph;
 		objLocs = Collections.synchronizedMap(new LinkedHashMap<RoadUser, Location>());
 	}
 
+	/**
+	 * Adds a new object to the model at the specified position.
+	 * @param newObj The object to be added to the model. It can not be an
+	 *            already added object.
+	 * @param pos The position on which the object is to be added. This must be
+	 *            a node which already exists in the model.
+	 */
 	public void addObjectAt(RoadUser newObj, Point pos) {
 		checkArgument(graph.containsNode(pos), "Object must be initiated on a crossroad.");
 		checkArgument(!objLocs.containsKey(newObj), "Object is already added");
 		objLocs.put(newObj, new Location(pos, null, 0));
 	}
 
+	/**
+	 * Adds an object at the same position as the existing object.
+	 * @param newObj The new object to be added to the model. It can not be an
+	 *            already added object.
+	 * @param existingObj The existing object which location is used for the
+	 *            target of the <code>newObj</code>. This object
+	 *            <strong>must</strong> already exist in the model.
+	 */
 	public void addObjectAtSamePosition(RoadUser newObj, RoadUser existingObj) {
 		checkArgument(!objLocs.containsKey(newObj), "Object " + newObj + " is already added.");
 		checkArgument(objLocs.containsKey(existingObj), "Object " + existingObj + " does not exist.");
 		objLocs.put(newObj, objLocs.get(existingObj));
+	}
+
+	/**
+	 * Removes the specified {@link RoadUser} from this model.
+	 * @param roadUser the object to be removed.
+	 */
+	public void removeObject(RoadUser roadUser) {
+		checkArgument(roadUser != null, "RoadUser can not be null");
+		checkArgument(objLocs.containsKey(roadUser), "RoadUser does not exist.");
+		objLocs.remove(roadUser);
 	}
 
 	/**
@@ -66,11 +101,26 @@ public class RoadModel implements Model<RoadUser> {
 		objLocs.clear();
 	}
 
+	/**
+	 * Checks if the specified {@link RoadUser} exists in the model.
+	 * @param obj The {@link RoadUser} to check for existence, may not be
+	 *            <code>null</code>.
+	 * @return <code>true</code> if <code>obj</code> exists in the model,
+	 *         <code>false</code> otherwise.
+	 */
 	public boolean containsObject(RoadUser obj) {
 		checkArgument(obj != null, "obj can not be null");
 		return objLocs.containsKey(obj);
 	}
 
+	/**
+	 * Checks if the specified {@link RoadUser} exists at the specified
+	 * position.
+	 * @param obj The {@link RoadUser} to check.
+	 * @param p The position to check.
+	 * @return <code>true</code> if <code>obj</code> exists at position
+	 *         <code>p</code>, <code>false</code> otherwise.
+	 */
 	public boolean containsObjectAt(RoadUser obj, Point p) {
 		checkArgument(p != null, "point can not be null");
 		if (containsObject(obj)) {
@@ -79,24 +129,16 @@ public class RoadModel implements Model<RoadUser> {
 		return false;
 	}
 
+	/**
+	 * Checks if the positions of the <code>obj1</code> and <code>obj2</code>
+	 * are equal.
+	 * @param obj1 A {@link RoadUser}.
+	 * @param obj2 A {@link RoadUser}.
+	 * @return <code>true</code> if the positions are equal, <code>false</code>
+	 *         otherwise.
+	 */
 	public boolean equalPosition(RoadUser obj1, RoadUser obj2) {
 		return containsObject(obj1) && containsObject(obj2) && getPosition(obj1).equals(getPosition(obj2));
-	}
-
-	/**
-	 * Retrieves the connection which the specified {@link RoadUser} is at. If
-	 * the road user is at a vertex <code>null</code> is returned instead.
-	 * @param obj The object which position is checked.
-	 * @return A {@link Connection} if <code>obj</code> is on one,
-	 *         <code>null</code> otherwise.
-	 */
-	public Connection<? extends EdgeData> getConnection(RoadUser obj) {
-		Point p = getPosition(obj);
-		if (p instanceof MidPoint) {
-			MidPoint mp = ((MidPoint) p);
-			return graph.getConnection(mp.loc.from, mp.loc.to);
-		}
-		return null;
 	}
 
 	/**
@@ -281,6 +323,54 @@ public class RoadModel implements Model<RoadUser> {
 	}
 
 	/**
+	 * Retrieves the connection which the specified {@link RoadUser} is at. If
+	 * the road user is at a vertex <code>null</code> is returned instead.
+	 * @param obj The object which position is checked.
+	 * @return A {@link Connection} if <code>obj</code> is on one,
+	 *         <code>null</code> otherwise.
+	 */
+	public Connection<? extends EdgeData> getConnection(RoadUser obj) {
+		Point p = getPosition(obj);
+		if (p instanceof MidPoint) {
+			MidPoint mp = ((MidPoint) p);
+			return graph.getConnection(mp.loc.from, mp.loc.to);
+		}
+		return null;
+	}
+
+	/**
+	 * This method returns a mapping of {@link RoadUser} to {@link Point}
+	 * objects which exist in this model. The returned map is not a live view on
+	 * this model, but a new created copy.
+	 * @return A map of {@link RoadUser} to {@link Point} objects.
+	 */
+	public Map<RoadUser, Point> getObjectsAndPositions() {
+		Map<RoadUser, Location> copiedMap;
+		synchronized (objLocs) {
+			copiedMap = new LinkedHashMap<RoadUser, Location>();
+			copiedMap.putAll(objLocs);
+		}// it is save to release the lock now
+
+		Map<RoadUser, Point> theMap = new LinkedHashMap<RoadUser, Point>();
+		for (java.util.Map.Entry<RoadUser, Location> entry : copiedMap.entrySet()) {
+			theMap.put(entry.getKey(), entry.getValue().getPosition());
+		}
+		return theMap;
+	}
+
+	/**
+	 * Method to retrieve the location of an object.
+	 * @param roadUser The object for which the position is examined.
+	 * @return The position (as a {@link Point} object) for the specified
+	 *         <code>obj</code> object.
+	 */
+	public Point getPosition(RoadUser roadUser) {
+		checkArgument(roadUser != null, "object can not be null");
+		checkArgument(containsObject(roadUser), "RoadUser does not exist");
+		return objLocs.get(roadUser).getPosition();
+	}
+
+	/**
 	 * This method returns a collection of {@link Point} objects which are the
 	 * positions of the objects that exist in this model. The returned
 	 * collection is not a live view on the set, but a new created copy.
@@ -351,26 +441,6 @@ public class RoadModel implements Model<RoadUser> {
 	}
 
 	/**
-	 * This method returns a mapping of {@link RoadUser} to {@link Point}
-	 * objects which exist in this model. The returned map is not a live view on
-	 * this model, but a new created copy.
-	 * @return A map of {@link RoadUser} to {@link Point} objects.
-	 */
-	public Map<RoadUser, Point> getObjectsAndPositions() {
-		Map<RoadUser, Location> copiedMap;
-		synchronized (objLocs) {
-			copiedMap = new LinkedHashMap<RoadUser, Location>();
-			copiedMap.putAll(objLocs);
-		}// it is save to release the lock now
-
-		Map<RoadUser, Point> theMap = new LinkedHashMap<RoadUser, Point>();
-		for (java.util.Map.Entry<RoadUser, Location> entry : copiedMap.entrySet()) {
-			theMap.put(entry.getKey(), entry.getValue().getPosition());
-		}
-		return theMap;
-	}
-
-	/**
 	 * This method returns a set of {@link RoadUser} objects which exist in this
 	 * model and are instances of the specified {@link Class}. The returned set
 	 * is not a live view on the set, but a new created copy.
@@ -388,24 +458,6 @@ public class RoadModel implements Model<RoadUser> {
 				return type.isInstance(input);
 			}
 		});
-	}
-
-	/**
-	 * Method to retrieve the location of an object.
-	 * @param roadUser The object for which the position is examined.
-	 * @return The position (as a {@link Point} object) for the specified
-	 *         <code>obj</code> object.
-	 */
-	public Point getPosition(RoadUser roadUser) {
-		checkArgument(roadUser != null, "object can not be null");
-		checkArgument(containsObject(roadUser), "RoadUser does not exist");
-		return objLocs.get(roadUser).getPosition();
-	}
-
-	public Point getLastCrossRoad(RoadUser roadUser) {
-		checkArgument(roadUser != null, "RoadUser can not be null");
-		checkArgument(containsObject(roadUser), "RoadUser does not exist");
-		return objLocs.get(roadUser).from;
 	}
 
 	/**
@@ -464,41 +516,6 @@ public class RoadModel implements Model<RoadUser> {
 
 	protected List<Point> doGetShortestPathTo(Point from, Point to) {
 		return Graphs.shortestPathEuclidianDistance(graph, from, to);
-	}
-
-	/**
-	 * Use {@link Graph#hasConnection(Point, Point)} instead.
-	 * @param from Start position of connection.
-	 * @param to End position of connection.
-	 * @return True if the connection exists, false otherwise.
-	 */
-	// TODO remove
-	@Deprecated
-	public boolean hasConnection(Point from, Point to) {
-		return graph.hasConnection(from, to);
-	}
-
-	/**
-	 * Use {@link Graph#addConnection(Point, Point)} instead.
-	 * @param from Start point of connection
-	 * @param to End point of connection
-	 */
-	// TODO remove
-	@Deprecated
-	public void addConnection(Point from, Point to) {
-		checkArgument(!graph.hasConnection(from, to), "Connection already exists.");
-		graph.addConnection(from, to);
-		assert graph.containsNode(from);
-	}
-
-	/**
-	 * Removes the specified {@link RoadUser} from this model.
-	 * @param roadUser the object to be removed.
-	 */
-	public void removeObject(RoadUser roadUser) {
-		checkArgument(roadUser != null, "RoadUser can not be null");
-		checkArgument(objLocs.containsKey(roadUser), "RoadUser does not exist.");
-		objLocs.remove(roadUser);
 	}
 
 	protected Location checkLocation(Location l) {
