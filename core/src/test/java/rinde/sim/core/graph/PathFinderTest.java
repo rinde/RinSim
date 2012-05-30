@@ -59,7 +59,8 @@ public class PathFinderTest {
 
 	@Before
 	public void setUp() throws InstantiationException, IllegalAccessException {
-		rm = new RoadModel(rmType.newInstance());
+		Graph<?> gg = rmType.newInstance();
+		rm = new RoadModel(gg);
 
 		a = new Point(0, 0);
 		b = new Point(10, 0);
@@ -69,24 +70,24 @@ public class PathFinderTest {
 		f = new Point(8, 20);
 		g = new Point(0, 12);
 
-		rm.addConnection(a, b);
-		rm.addConnection(a, c);
+		gg.addConnection(a, b);
+		gg.addConnection(a, c);
 		// rs.addConnection(a, d);
 
-		rm.addConnection(b, a);
-		rm.addConnection(b, c);
+		gg.addConnection(b, a);
+		gg.addConnection(b, c);
 
-		rm.addConnection(c, d);
-		rm.addConnection(c, e);
+		gg.addConnection(c, d);
+		gg.addConnection(c, e);
 
-		rm.addConnection(d, c);
-		rm.addConnection(d, f);
+		gg.addConnection(d, c);
+		gg.addConnection(d, f);
 
-		rm.addConnection(e, b);
+		gg.addConnection(e, b);
 
-		rm.addConnection(f, g);
+		gg.addConnection(f, g);
 
-		rm.addConnection(g, a);
+		gg.addConnection(g, a);
 
 		o1 = new StringRoadUser("object1");
 		o2 = new StringRoadUser("object2");
@@ -161,9 +162,10 @@ public class PathFinderTest {
 
 	@Test(expected = RuntimeException.class)
 	public void impossiblePath() throws InstantiationException, IllegalAccessException {
-		RoadModel roads = new RoadModel(rmType.newInstance());
-		roads.addConnection(a, b);
-		roads.addConnection(b, c);
+		Graph<?> gg = rmType.newInstance();
+		RoadModel roads = new RoadModel(gg);
+		gg.addConnection(a, b);
+		gg.addConnection(b, c);
 
 		Graphs.shortestPathEuclidianDistance(roads.getGraph(), b, a);
 	}

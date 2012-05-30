@@ -13,6 +13,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -31,9 +32,11 @@ import rinde.sim.core.graph.Connection;
 import rinde.sim.core.graph.EdgeData;
 import rinde.sim.core.graph.Graph;
 import rinde.sim.core.graph.Graphs;
+import rinde.sim.core.graph.MultiAttributeEdgeData;
 import rinde.sim.core.graph.Point;
 import rinde.sim.core.graph.TestMultimapGraph;
 import rinde.sim.core.graph.TestTableGraph;
+import rinde.sim.core.model.RoadModel.Location;
 import rinde.sim.core.model.RoadModel.PathProgress;
 import rinde.sim.util.SpeedConverter;
 import rinde.sim.util.TimeUnit;
@@ -41,6 +44,7 @@ import rinde.sim.util.TrivialRoadUser;
 
 import com.google.common.base.Predicate;
 import com.google.common.collect.HashBasedTable;
+import com.google.common.collect.Sets;
 import com.google.common.collect.Table;
 
 /**
@@ -52,6 +56,10 @@ public class RoadModelTest {
 
 	static Queue<Point> asPath(Point... points) {
 		return new LinkedList<Point>(Arrays.asList(points));
+	}
+
+	public static <T> Set<T> asSet(T... list) {
+		return new LinkedHashSet<T>(asList(list));
 	}
 
 	static boolean connectionEquals(Connection<? extends EdgeData> conn, Point from, Point to) {
@@ -640,10 +648,8 @@ public class RoadModelTest {
 		RoadUser agent1 = new TestRoadUser();
 		RoadUser agent2 = new TestRoadUser();
 		RoadUser agent3 = new RoadUser() {
-
 			@Override
 			public void initRoadUser(RoadModel pModel) {
-
 				// can be ignored in this test [bm]
 			}
 		};
@@ -668,6 +674,39 @@ public class RoadModelTest {
 		assertEquals(3, setCopy.size());
 		assertEquals(2, subsetCopy.size());
 		assertEquals(3, posCopy.size());
+	}
+
+	@Test
+	public void getObjectsAt() {
+		TestRoadUser agent1 = new TestRoadUser();
+		TestRoadUser agent2 = new TestRoadUser();
+		TestRoadUser agent3 = new TestRoadUser();
+		TestRoadUser agent4 = new TestRoadUser();
+		TestRoadUser agent5 = new TestRoadUser();
+
+		model.addObjectAt(agent1, SW);
+		model.addObjectAt(agent2, NE);
+		model.addObjectAt(agent3, SE);
+		model.addObjectAt(agent4, NE);
+		model.addObjectAt(agent5, SE);
+		assertTrue(Sets.difference(asSet(agent1), model.getObjectsAt(agent1, TestRoadUser.class)).isEmpty());
+		assertTrue(Sets.difference(asSet(agent2, agent4), model.getObjectsAt(agent2, TestRoadUser.class)).isEmpty());
+		assertTrue(model.getObjectsAt(agent2, SpeedyRoadUser.class).isEmpty());
+	}
+
+	@Test(expected = IllegalArgumentException.class)
+	public void getObjectsOfTypeFail() {
+		model.getObjectsOfType(null);
+	}
+
+	@Test(expected = IllegalArgumentException.class)
+	public void getObjectsAtFail1() {
+		model.getObjectsAt(null, null);
+	}
+
+	@Test(expected = IllegalArgumentException.class)
+	public void getObjectsAtFail2() {
+		model.getObjectsAt(new TestRoadUser(), null);
 	}
 
 	class SpeedyRoadUser implements MovingRoadUser {
@@ -864,27 +903,78 @@ public class RoadModelTest {
 		assertTrue(model.equalPosition(agent1, agent2));
 	}
 
-	// @Test
-	// public void testMiddlePoint() {
-	// RoadUser agent1 = new TestRoadUser();
-	// RoadUser agent2 = new TestRoadUser();
-	// model.addObjectAt(agent1, SW);
-	// model.addObjectAt(agent2, NE);
-	// model.followPath(agent1, new LinkedList<Point>(Arrays.asList(SW, SE)),
-	// 1);
-	// model.followPath(agent2, new LinkedList<Point>(Arrays.asList(NE, NW)),
-	// 1);
-	//
-	// Point a1 = model.getPosition(agent1);
-	// Point a2 = model.getPosition(agent2);
-	// assertEquals(new Point(1, 0), a1);
-	// assertEquals(new Point(9, 10), a2);
-	// assertTrue(a1 instanceof RoadModel.MidPoint);
-	// assertTrue(a2 instanceof RoadModel.MidPoint);
-	//
-	// List<Point> shortestPath = model.getShortestPathTo(a1, a2);
-	// assertEquals(Arrays.asList(a1, SE, NE, a2), shortestPath);
-	// }
+	@SuppressWarnings("unused")
+	@Test(expected = IllegalArgumentException.class)
+	public void pathProgressConstructorFail1() {
+		new PathProgress(-1, 1, null);
+	}
+
+	@SuppressWarnings("unused")
+	@Test(expected = IllegalArgumentException.class)
+	public void pathProgressConstructorFail2() {
+		new PathProgress(1, -1, null);
+	}
+
+	@SuppressWarnings("unused")
+	@Test(expected = IllegalArgumentException.class)
+	public void pathProgressConstructorFail3() {
+		new PathProgress(1, 1, null);
+	}
+
+	@SuppressWarnings("unused")
+	@Test(expected = IllegalArgumentException.class)
+	public void locationConstructorFail() {
+		model.new Location(null);
+	}
+
+	@SuppressWarnings("unchecked")
+	@Test
+	public void locationIsOnSameEdge() {
+		((Graph<MultiAttributeEdgeData>) graph).addConnection(SE, SW, new MultiAttributeEdgeData(300));
+		((Graph<MultiAttributeEdgeData>) graph).addConnection(NE, SW, new MultiAttributeEdgeData(Double.NaN));
+		Location loc1 = model.new Location(SW, SE, 3);
+		Location loc2 = model.new Location(SW, SE, 1);
+		Location loc3 = model.new Location(SE, NE, 9.999999);
+		Location loc4 = model.new Location(SW);
+		Location loc5 = model.new Location(SE, SW, 1);
+		Location loc6 = model.new Location(NE, SW, 1);
+
+		assertEquals(NE, loc3.getPosition());
+
+		assertTrue(loc1.isOnSameEdge(loc2));
+		assertTrue(loc2.isOnSameEdge(loc1));
+		assertFalse(loc1.isOnSameEdge(loc3));
+		assertFalse(loc3.isOnSameEdge(loc1));
+		assertFalse(loc4.isOnSameEdge(loc1));
+		assertFalse(loc1.isOnSameEdge(loc4));
+		assertFalse(loc3.isOnSameEdge(loc5));
+		assertFalse(loc3.isOnSameEdge(loc6));
+	}
+
+	@Test(expected = IllegalArgumentException.class)
+	public void checkLocationFail1() {
+		model.checkLocation(model.new Location(new Point(1, 2), SE, 3));
+	}
+
+	@Test(expected = IllegalArgumentException.class)
+	public void checkLocationFail2() {
+		model.checkLocation(model.new Location(new Point(1, 2)));
+	}
+
+	@Test(expected = IllegalArgumentException.class)
+	public void getMaxSpeedFail1() {
+		model.getMaxSpeed(null, null, null);
+	}
+
+	@Test(expected = IllegalArgumentException.class)
+	public void getMaxSpeedFail2() {
+		model.getMaxSpeed(new TestRoadUser(), null, null);
+	}
+
+	@Test(expected = IllegalArgumentException.class)
+	public void getMaxSpeedFail3() {
+		model.getMaxSpeed(new TestRoadUser(), new Point(1, 2), null);
+	}
 
 	@Test
 	public void testObjectOrder() {

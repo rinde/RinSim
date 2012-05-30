@@ -3,6 +3,8 @@
  */
 package rinde.sim.core.model;
 
+import static com.google.common.base.Preconditions.checkArgument;
+
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -25,15 +27,14 @@ public class CachedRoadModel extends RoadModel {
 
 	private final Multimap<Class<?>, RoadUser> classObjectMap;
 
-	public CachedRoadModel(Graph graph) {
-		super(graph);
-
+	public CachedRoadModel(Graph<?> pGraph) {
+		super(pGraph);
 		pathTable = HashBasedTable.create();
 		classObjectMap = LinkedHashMultimap.create();
 	}
 
-	public void setPathCache(Table<Point, Point, List<Point>> pathTable) {
-		this.pathTable = pathTable;
+	public void setPathCache(Table<Point, Point, List<Point>> pPathTable) {
+		pathTable = pPathTable;
 	}
 
 	public Table<Point, Point, List<Point>> getPathCache() {
@@ -73,6 +74,7 @@ public class CachedRoadModel extends RoadModel {
 	@SuppressWarnings("unchecked")
 	@Override
 	public <Y extends RoadUser> Set<Y> getObjectsOfType(final Class<Y> type) {
+		checkArgument(type != null, "type can not be null");
 		Set<Y> set = new LinkedHashSet<Y>();
 		set.addAll((Set<Y>) classObjectMap.get(type));
 		return set;

@@ -320,6 +320,8 @@ public class RoadModel implements Model<RoadUser> {
 	 */
 	@SuppressWarnings("unchecked")
 	public <Y extends RoadUser> Set<Y> getObjectsAt(RoadUser roadUser, Class<Y> type) {
+		checkArgument(roadUser != null, "roadUser can not be null");
+		checkArgument(type != null, "type can not be null");
 		Set<Y> result = new HashSet<Y>();
 		for (RoadUser ru : getObjects(new SameLocationPredicate(roadUser, type, this))) {
 			result.add((Y) ru);
@@ -583,8 +585,8 @@ public class RoadModel implements Model<RoadUser> {
 
 	// internal usage only
 	/**
-	 * Object that is on the graph node has to parameter == <code>null</code>.
-	 * 
+	 * Indicates a location somewhere on the graph. This can be either on a
+	 * vertex or an edge.
 	 */
 	class Location {
 		private static final double DELTA = 0.000001;
@@ -598,6 +600,7 @@ public class RoadModel implements Model<RoadUser> {
 		}
 
 		public Location(Point pFrom, Point pTo, double pRelativePos) {
+			checkArgument(pFrom != null, "from can not be null");
 			from = pFrom;
 
 			if (pTo instanceof MidPoint) {
@@ -617,7 +620,7 @@ public class RoadModel implements Model<RoadUser> {
 		}
 
 		public boolean isOnSameEdge(Location l) {
-			if (!isEdgePoint()) {
+			if (!isEdgePoint() || !l.isEdgePoint()) {
 				return false;
 			}
 			return from.equals(l.from) && to.equals(l.to);
