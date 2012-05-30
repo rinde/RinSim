@@ -3,6 +3,9 @@
  */
 package rinde.sim.event;
 
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkState;
+
 import java.io.Serializable;
 
 import rinde.sim.scenario.TimedEvent;
@@ -14,35 +17,41 @@ import rinde.sim.scenario.TimedEvent;
  */
 public class Event implements Serializable {
 	private static final long serialVersionUID = -390528892294335442L;
-	
+
 	protected final Enum<?> eventType;
 	transient private Object issuer;
 
-	public Event(Enum<?> type, Object issuer) {
+	/**
+	 * Create a new event instance.
+	 * @param type the event type.
+	 * @param pIssuer The event issuer, may be null.
+	 */
+	public Event(Enum<?> type, Object pIssuer) {
+		checkArgument(type != null, "type can not be null");
 		eventType = type;
-		this.issuer = issuer;
+		issuer = pIssuer;
 	}
-	
+
 	/**
 	 * Should be used only by extension classes when the issuer is not known at
-	 * creation time. 
+	 * creation time.
 	 * @see TimedEvent
 	 * @param type
 	 */
 	protected Event(Enum<?> type) {
 		this(type, null);
 	}
-	
+
 	/**
 	 * Issuer is set only if it was previously empty.
-	 * @param issuer
+	 * @param pIssuer The issuer of the event.
 	 */
-	public void setIssuer(Object issuer) {
-		if(this.issuer == null) {
-			this.issuer = issuer;
-		}
+	public void setIssuer(Object pIssuer) {
+		checkArgument(pIssuer != null, "issuer can not be null");
+		checkState(issuer == null, "issuer is already set, can not be overridden");
+		issuer = pIssuer;
 	}
-	
+
 	/**
 	 * 
 	 * @return typed issuer
@@ -50,7 +59,7 @@ public class Event implements Serializable {
 	public Object getIssuer() {
 		return issuer;
 	}
-	
+
 	public Enum<?> getEventType() {
 		return eventType;
 	}

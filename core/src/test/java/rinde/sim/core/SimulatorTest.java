@@ -28,6 +28,8 @@ public class SimulatorTest {
 	@Before
 	public void setUp() {
 		simulator = new Simulator(new MersenneTwister(123), timeStep);
+		Simulator.EventTypes.valueOf("STOPPED");// just for test coverage of the
+												// enum
 	}
 
 	@Test

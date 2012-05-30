@@ -41,6 +41,12 @@ public class CommunicationModelTest {
 		// return Arrays.asList(new Object[][]{ {CommunicationModel2.class}});
 	}
 
+	@SuppressWarnings("unused")
+	@Test(expected = IllegalArgumentException.class)
+	public void constructorFail() throws Exception {
+		new CommunicationModel(null);
+	}
+
 	@Test
 	public void testRegister() {
 
@@ -48,6 +54,11 @@ public class CommunicationModelTest {
 		boolean register = model.register(user);
 		assertTrue(register);
 		assertTrue(model.users.contains(user));
+	}
+
+	@Test(expected = IllegalArgumentException.class)
+	public void registerFail() {
+		model.register(null);
 	}
 
 	@Test
