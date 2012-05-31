@@ -330,9 +330,9 @@ public class RoadModel implements Model<RoadUser> {
 	 *         <code>null</code> otherwise.
 	 */
 	public Connection<? extends EdgeData> getConnection(RoadUser obj) {
-		Point p = getPosition(obj);
-		if (p instanceof MidPoint) {
-			MidPoint mp = ((MidPoint) p);
+		Point point = getPosition(obj);
+		if (point instanceof MidPoint) {
+			MidPoint mp = ((MidPoint) point);
 			return graph.getConnection(mp.loc.from, mp.loc.to);
 		}
 		return null;
@@ -497,17 +497,17 @@ public class RoadModel implements Model<RoadUser> {
 		checkArgument(from != null, "from can not be null");
 		checkArgument(to != null, "to can not be null");
 		List<Point> path = new ArrayList<Point>();
-		Point f = from;
+		Point start = from;
 		if (from instanceof MidPoint) {
-			f = ((MidPoint) from).loc.to;
+			start = ((MidPoint) from).loc.to;
 			path.add(from);
 		}
 
-		Point t = to;
+		Point end = to;
 		if (to instanceof MidPoint) {
-			t = ((MidPoint) to).loc.from;
+			end = ((MidPoint) to).loc.from;
 		}
-		path.addAll(doGetShortestPathTo(f, t));
+		path.addAll(doGetShortestPathTo(start, end));
 		if (to instanceof MidPoint) {
 			path.add(to);
 		}
