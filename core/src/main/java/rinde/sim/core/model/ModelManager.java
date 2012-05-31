@@ -43,9 +43,14 @@ public class ModelManager {
 	 * @throws IllegalStateException when method called after calling configure
 	 */
 	public boolean add(Model<?> model) {
+		if (model == null) {
+			throw new IllegalArgumentException("model can not be null");
+		}
 		checkState(!configured, "model can not be registered after configure()");
+		Class<?> supportedType = model.getSupportedType();
+		checkArgument(supportedType != null, "model must implement getSupportedType() and return a non-null");
 		models.add(model);
-		boolean result = registry.put(model.getSupportedType(), model);
+		boolean result = registry.put(supportedType, model);
 		if (!result) {
 			models.remove(model);
 		}
@@ -84,8 +89,7 @@ public class ModelManager {
 			if (modelSupportedType.isAssignableFrom(object.getClass())) {
 				Collection<Model<?>> assignableModels = registry.get(modelSupportedType);
 				for (Model<?> m : assignableModels) {
-					((Model<T>) m).register(object);
-					result = true;
+					result |= ((Model<T>) m).register(object);
 				}
 			}
 		}
@@ -97,7 +101,7 @@ public class ModelManager {
 	 * @param object object to unregister
 	 * @param <T> the type of object to unregister
 	 * @return <code>true</code> when the unregistration succeeded in at least
-	 *         on model
+	 *         one model
 	 * @throws IllegalStateException if the method is called before simulator is
 	 *             configured
 	 */
@@ -107,7 +111,7 @@ public class ModelManager {
 			throw new IllegalArgumentException("can not unregister null");
 		}
 		checkArgument(!(object instanceof Model), "can not unregister a model");
-		checkState(configured, "can not unregister when not registerd, call configure() first");
+		checkState(configured, "can not unregister when not configured, call configure() first");
 
 		boolean result = false;
 		Set<Class<?>> modelSupportedTypes = registry.keySet();
@@ -116,8 +120,7 @@ public class ModelManager {
 			if (modelSupportedType.isAssignableFrom(object.getClass())) {
 				Collection<Model<?>> assignableModels = registry.get(modelSupportedType);
 				for (Model<?> m : assignableModels) {
-					((Model<T>) m).unregister(object);
-					result = true;
+					result |= ((Model<T>) m).unregister(object);
 				}
 			}
 		}
