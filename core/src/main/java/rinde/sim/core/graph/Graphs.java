@@ -7,7 +7,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
@@ -181,8 +180,8 @@ public final class Graphs {
 	private static class UnmodifiableGraph<E extends EdgeData> implements Graph<E> {
 		final Graph<E> delegate;
 
-		public UnmodifiableGraph(Graph<E> delegate1) {
-			this.delegate = delegate1;
+		public UnmodifiableGraph(Graph<E> pDelegate) {
+			delegate = pDelegate;
 		}
 
 		@Override
@@ -272,6 +271,11 @@ public final class Graphs {
 		}
 
 		@Override
+		public int hashCode() {
+			return delegate.hashCode();
+		}
+
+		@Override
 		public boolean equals(Graph<? extends E> other) {
 			return Graphs.equals(this, other);
 		}
@@ -353,7 +357,7 @@ public final class Graphs {
 		f_score.put(h.calculateHeuristic(Point.distance(from, to)), from);
 
 		// The map of navigated nodes.
-		final HashMap<Point, Point> came_from = new LinkedHashMap<Point, Point>();
+		final Map<Point, Point> came_from = new LinkedHashMap<Point, Point>();
 
 		while (!f_score.isEmpty()) {
 			final Point current = f_score.remove(f_score.firstKey());
@@ -482,9 +486,9 @@ public final class Graphs {
 		public final double dist;
 		public final T obj;
 
-		public RoadUserWithDistance(T obj1, double dist1) {
-			this.obj = obj1;
-			this.dist = dist1;
+		public RoadUserWithDistance(T pObj, double pDist) {
+			obj = pObj;
+			dist = pDist;
 		}
 
 		@Override
@@ -628,7 +632,7 @@ public final class Graphs {
 		private final RoadModel rm;
 
 		public RoadUserToPositionFunction(RoadModel roadModel) {
-			this.rm = roadModel;
+			rm = roadModel;
 		}
 
 		@Override
@@ -704,7 +708,7 @@ public final class Graphs {
 		return dist;
 	}
 
-	static List<Point> reconstructPath(final HashMap<Point, Point> cameFrom, final Point end) {
+	static List<Point> reconstructPath(final Map<Point, Point> cameFrom, final Point end) {
 		if (cameFrom.containsKey(end)) {
 			final List<Point> path = reconstructPath(cameFrom, cameFrom.get(end));
 			path.add(end);
