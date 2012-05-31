@@ -3,6 +3,8 @@
  */
 package rinde.sim.scenario;
 
+import static com.google.common.base.Preconditions.checkArgument;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -24,27 +26,37 @@ import com.google.common.collect.Iterables;
  */
 public class Scenario implements Serializable {
 	private static final long serialVersionUID = 1839693038677831786L;
-	
+
 	private final PriorityQueue<TimedEvent> events;
 
-	public Scenario(Collection<? extends TimedEvent> events) {
-		if(events == null) events = Collections.emptyList();
-		checkEvents(events, getPossibleEventTypes());
-		this.events = new PriorityQueue<TimedEvent>(1024, new TimeComparator());
-		this.events.addAll(events);
+	public Scenario(Collection<? extends TimedEvent> pEvents) {
+		Collection<? extends TimedEvent> tempEvents = pEvents;
+		if (pEvents == null) {
+			tempEvents = Collections.emptyList();
+		}
+		checkEvents(tempEvents, getPossibleEventTypes());
+		events = new PriorityQueue<TimedEvent>(1024, new TimeComparator());
+		events.addAll(tempEvents);
 	}
-	
-	protected static void checkEvents(Collection<? extends TimedEvent> eC,
-			final Enum<?>[] types) {
-		if(types == null) throw new IllegalArgumentException("types not specified via getPossibleEventTypes()");
+
+	protected static void checkEvents(Collection<? extends TimedEvent> eC, final Enum<?>[] types) {
+		if (types == null) {
+			throw new IllegalArgumentException("types not specified via getPossibleEventTypes()");
+		}
 		boolean violation = Iterables.any(eC, new Predicate<TimedEvent>() {
 			@Override
 			public boolean apply(TimedEvent i) {
-				for (Enum<?> e : types) { if(i.getEventType() == e) return false; }
+				for (Enum<?> e : types) {
+					if (i.getEventType() == e) {
+						return false;
+					}
+				}
 				return true;
 			}
 		});
-		if(violation) throw new IllegalArgumentException("not supported event type");
+		if (violation) {
+			throw new IllegalArgumentException("not supported event type");
+		}
 	}
 
 	/**
@@ -52,13 +64,15 @@ public class Scenario implements Serializable {
 	 * @param s
 	 */
 	public Scenario(Scenario s) {
-		if(s == null) throw new IllegalArgumentException("scenario cannot be null");
-		this.events = new PriorityQueue<TimedEvent>(1024, new TimeComparator());
-		this.events.addAll(s.events);
+		if (s == null) {
+			throw new IllegalArgumentException("scenario cannot be null");
+		}
+		events = new PriorityQueue<TimedEvent>(1024, new TimeComparator());
+		events.addAll(s.events);
 	}
-	
+
 	public Scenario() {
-		this.events = new PriorityQueue<TimedEvent>(1024, new TimeComparator());
+		events = new PriorityQueue<TimedEvent>(1024, new TimeComparator());
 	}
 
 	/**
@@ -69,14 +83,14 @@ public class Scenario implements Serializable {
 		ArrayList<TimedEvent> result = new ArrayList<TimedEvent>();
 		PriorityQueue<TimedEvent> copy = new PriorityQueue<TimedEvent>(events);
 		TimedEvent e = null;
-		while((e = copy.poll()) != null)
-				result.add(e);
+		while ((e = copy.poll()) != null) {
+			result.add(e);
+		}
 		return result;
 	}
 
-
 	/**
-	 * Get the access to the first event in the scenario (without removing it) 
+	 * Get the access to the first event in the scenario (without removing it)
 	 * @return
 	 */
 	public TimedEvent peek() {
@@ -92,23 +106,27 @@ public class Scenario implements Serializable {
 	}
 
 	public boolean add(TimedEvent e) {
+		checkArgument(e != null, "event can not be null");
 		checkEvents(Collections.singleton(e), getPossibleEventTypes());
 		return events.add(e);
 	}
-	
-	public boolean addAll(Collection<? extends TimedEvent> c) {
-		checkEvents(c, getPossibleEventTypes());
-		return events.addAll(c);
+
+	public boolean addAll(Collection<? extends TimedEvent> collection) {
+		checkArgument(collection != null, "collection can not be null");
+		checkEvents(collection, getPossibleEventTypes());
+		return events.addAll(collection);
 	}
 
-	public boolean remove(Object o) {
-		return events.remove(o);
+	public boolean remove(Object object) {
+		checkArgument(object != null, "object can not be null");
+		return events.remove(object);
 	}
 
-	public boolean removeAll(Collection<?> c) {
-		return events.removeAll(c);
+	public boolean removeAll(Collection<?> collection) {
+		checkArgument(collection != null);
+		return events.removeAll(collection);
 	}
-	
+
 	public void clear() {
 		events.clear();
 	}
@@ -116,7 +134,7 @@ public class Scenario implements Serializable {
 	public int size() {
 		return events.size();
 	}
-	
+
 	@Override
 	public boolean equals(Object other) {
 		if (other instanceof Scenario && events.size() == ((Scenario) other).events.size()) {
@@ -125,23 +143,28 @@ public class Scenario implements Serializable {
 		}
 		return false;
 	}
-	
+
 	/**
-	 * Specify event types that can occur in a scenario. The events added to scenario are 
-	 * checked for the event type.
+	 * Specify event types that can occur in a scenario. The events added to
+	 * scenario are checked for the event type.
 	 * @return event types
 	 */
 	public Enum<?>[] getPossibleEventTypes() {
 		return StandardType.values();
 	}
-	
+
 	private static class TimeComparator implements Comparator<TimedEvent>, Serializable {
 
 		private static final long serialVersionUID = -2711991793346719648L;
+
+		/**
+		 * 
+		 */
+		public TimeComparator() {}
 
 		@Override
 		public int compare(TimedEvent o1, TimedEvent o2) {
 			return (int) (o1.time - o2.time);
 		}
-	};
+	}
 }

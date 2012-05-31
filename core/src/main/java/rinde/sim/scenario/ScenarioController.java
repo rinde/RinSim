@@ -1,5 +1,7 @@
 package rinde.sim.scenario;
 
+import static com.google.common.base.Preconditions.checkArgument;
+
 import java.util.Arrays;
 import java.util.LinkedList;
 
@@ -22,6 +24,9 @@ import rinde.sim.event.pdp.StandardType;
  * @since 2.0
  */
 public abstract class ScenarioController implements TickListener, Listener {
+
+	// TODO investigate if ConfigurationException can be replaced with
+	// IllegalStateException
 
 	public enum Type {
 		SCENARIO_STARTED, SCENARIO_FINISHED;
@@ -101,6 +106,9 @@ public abstract class ScenarioController implements TickListener, Listener {
 	}
 
 	private static Enum<?>[] merge(Enum<?>[]... enums) {
+		if (enums == null) {
+			throw new IllegalArgumentException("enums can not be null");
+		}
 		LinkedList<Enum<?>> list = new LinkedList<Enum<?>>();
 		for (Enum<?>[] e : enums) {
 			list.addAll(Arrays.asList(e));
@@ -134,17 +142,21 @@ public abstract class ScenarioController implements TickListener, Listener {
 		return false;
 	}
 
+	// TODO remove event related functions and give access to Event API instead
+
 	/**
 	 * Add listener for all possible scenario events and {@link Type#values()}
-	 * @param l
+	 * @param listener
 	 */
-	public void addListener(Listener l) {
-		disp.addListener(l, merge(scenario.getPossibleEventTypes(), Type.values()));
+	public void addListener(Listener listener) {
+		checkArgument(listener != null, "listener can not be null");
+		disp.addListener(listener, merge(scenario.getPossibleEventTypes(), Type.values()));
 	}
 
 	/**
 	 * Add listener for all possible scenario events
 	 * @param l
+	 * @param eventTypes
 	 */
 	public void addListener(Listener l, Enum<?>... eventTypes) {
 		disp.addListener(l, eventTypes);
