@@ -13,10 +13,7 @@ import static rinde.sim.event.EventDispatcherTest.EventTypes.EVENT2;
 import static rinde.sim.event.EventDispatcherTest.EventTypes.EVENT3;
 import static rinde.sim.event.EventDispatcherTest.OtherEventTypes.OTHER_EVENT1;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 import org.junit.Before;
@@ -38,16 +35,16 @@ public class EventDispatcherTest {
 		OTHER_EVENT1
 	}
 
-	HistoryKeeper l1, l2, l3;
+	ListenerEventHistory l1, l2, l3;
 
 	EventDispatcher dispatcher;
 	EventAPI api;
 
 	@Before
 	public void setup() {
-		l1 = new HistoryKeeper();
-		l2 = new HistoryKeeper();
-		l3 = new HistoryKeeper();
+		l1 = new ListenerEventHistory();
+		l2 = new ListenerEventHistory();
+		l3 = new ListenerEventHistory();
 
 		StandardType.valueOf("ADD_TRUCK");
 
@@ -193,7 +190,7 @@ public class EventDispatcherTest {
 		assertFalse(dispatcher.containsListener(l2, EVENT3));
 		assertFalse(dispatcher.containsListener(l2, OTHER_EVENT1));
 
-		dispatcher.removeListener(new HistoryKeeper());
+		dispatcher.removeListener(new ListenerEventHistory());
 	}
 
 	@Test(expected = IllegalArgumentException.class)
@@ -280,7 +277,6 @@ public class EventDispatcherTest {
 	public void removeTest() {
 
 		EventDispatcher disp = new EventDispatcher(EventTypes.values());
-		EventAPI api = disp.getEventAPI();
 
 		assertTrue(disp.listeners.isEmpty());
 		api.addListener(l1, EventTypes.values());
@@ -298,30 +294,4 @@ public class EventDispatcherTest {
 
 	}
 
-	class HistoryKeeper implements Listener {
-
-		private final List<Event> history;
-
-		public HistoryKeeper() {
-			history = new ArrayList<Event>();
-		}
-
-		@Override
-		public void handleEvent(Event e) {
-			history.add(e);
-			e.toString();
-		}
-
-		public List<Event> getHistory() {
-			return Collections.unmodifiableList(history);
-		}
-
-		public List<Enum<?>> getEventTypeHistory() {
-			List<Enum<?>> types = new ArrayList<Enum<?>>();
-			for (Event e : history) {
-				types.add(e.eventType);
-			}
-			return types;
-		}
-	}
 }
