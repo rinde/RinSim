@@ -33,7 +33,7 @@ public class Example {
 		
 		ScenarioBuilder builder = new ScenarioBuilder(StandardType.ADD_TRUCK, StandardType.ADD_PACKAGE);
 		
-		builder.add(
+		builder.addEventGenerator(
 				new ScenarioBuilder.MultipleEventGenerator<TimedEvent>(
 						0, //at time 0
 						10, //amount of trucks to be added
@@ -44,7 +44,7 @@ public class Example {
 		);
 		
 		
-		builder.add(
+		builder.addEventGenerator(
 				new ScenarioBuilder.TimeSeries<TimedEvent>(
 						0, // start time
 						20*interval, // end time

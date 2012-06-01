@@ -13,7 +13,7 @@ public class Example {
 	public static void main(String[] args) throws Exception{
 		ScenarioBuilder builder = new ScenarioBuilder(StandardType.ADD_TRUCK, StandardType.ADD_PACKAGE);
 		
-		builder.add(
+		builder.addEventGenerator(
 				new ScenarioBuilder.MultipleEventGenerator<TimedEvent>(
 						0, //at time 0
 						3, //amount of trucks to be added
@@ -23,7 +23,7 @@ public class Example {
 				)
 		);
 		
-		builder.add(
+		builder.addEventGenerator(
 				new ScenarioBuilder.MultipleEventGenerator<TimedEvent>(
 						0, 
 						10,

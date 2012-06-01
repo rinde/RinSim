@@ -13,7 +13,7 @@ public class Example {
 	public static void main(String[] args) throws Exception{
 		ScenarioBuilder builder = new ScenarioBuilder(StandardType.ADD_TRUCK, StandardType.ADD_PACKAGE);
 		
-		builder.add(
+		builder.addEventGenerator(
 				new ScenarioBuilder.MultipleEventGenerator<TimedEvent>(
 						0, //at time 0
 						3, //amount of trucks to be added
@@ -23,7 +23,7 @@ public class Example {
 				)
 		);
 		
-		builder.add(
+		builder.addEventGenerator(
 				new ScenarioBuilder.MultipleEventGenerator<TimedEvent>(
 						0, 
 						10,
@@ -35,7 +35,7 @@ public class Example {
 		
 		int timeStep = 100000000;
 		
-		builder.add(
+		builder.addEventGenerator(
 				new ScenarioBuilder.TimeSeries<TimedEvent>(
 						0, // start time
 						20*timeStep, // end time
