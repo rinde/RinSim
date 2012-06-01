@@ -45,7 +45,7 @@ class RandomWalkAgent implements TickListener, MovingRoadUser, SimulatorUser, Co
 	public static final String C_GREEN = "color.green";
 
 	private static final int MAX_MSGs = 100;
-	private static final int COMMUNICATION_PERIOD = 10000; //10s
+	private static final int COMMUNICATION_PERIOD = 10000; // 10s
 	protected RoadModel rs;
 	protected RoadUser currentPackage;
 	protected Queue<Point> path;
@@ -94,7 +94,7 @@ class RandomWalkAgent implements TickListener, MovingRoadUser, SimulatorUser, Co
 		refreshList(currentTime);
 
 		if (path == null || path.isEmpty()) {
-			if (rs.containsObject(currentPackage)) {
+			if (currentPackage != null && rs.containsObject(currentPackage)) {
 				simulator.unregister(currentPackage);
 
 				pickedUp++;
@@ -107,7 +107,8 @@ class RandomWalkAgent implements TickListener, MovingRoadUser, SimulatorUser, Co
 			Point destination = rs.getGraph().getRandomNode(rnd);
 			currentPackage = new Package("dummy package", destination);
 			simulator.register(currentPackage);
-			path = new LinkedList<Point>(Graphs.shortestPathEuclidianDistance(rs.getGraph(), rs.getPosition(this), destination));
+			path = new LinkedList<Point>(
+					Graphs.shortestPathEuclidianDistance(rs.getGraph(), rs.getPosition(this), destination));
 		} else {
 			rs.followPath(this, path, timeStep);
 		}
@@ -132,8 +133,7 @@ class RandomWalkAgent implements TickListener, MovingRoadUser, SimulatorUser, Co
 		if (lastCommunication + COMMUNICATION_PERIOD < currentTime) {
 			lastCommunication = currentTime;
 			if (cm != null) {
-				cm.broadcast(new Message(this) {
-				});
+				cm.broadcast(new Message(this) {});
 			}
 		}
 	}

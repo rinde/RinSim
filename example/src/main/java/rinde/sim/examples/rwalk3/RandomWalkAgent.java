@@ -30,7 +30,6 @@ public class RandomWalkAgent implements TickListener, MovingRoadUser, SimulatorU
 
 	/**
 	 * Create simple agent.
-	 * @param rnd generator to be removed
 	 * @param speed default speed of object in graph units per millisecond
 	 */
 	public RandomWalkAgent(double speed) {
@@ -40,14 +39,15 @@ public class RandomWalkAgent implements TickListener, MovingRoadUser, SimulatorU
 	@Override
 	public void tick(long currentTime, long timeStep) {
 		if (path == null || path.isEmpty()) {
-			if (rs.containsObject(currentPackage)) {
+			if (currentPackage != null && rs.containsObject(currentPackage)) {
 				rs.removeObject(currentPackage);
 			}
 
 			Point destination = rs.getGraph().getRandomNode(rnd);
 			currentPackage = new Package("dummy package", destination);
 			simulator.register(currentPackage);
-			path = new LinkedList<Point>(Graphs.shortestPathEuclidianDistance(rs.getGraph(), rs.getPosition(this), destination));
+			path = new LinkedList<Point>(
+					Graphs.shortestPathEuclidianDistance(rs.getGraph(), rs.getPosition(this), destination));
 		} else {
 			rs.followPath(this, path, timeStep);
 		}
