@@ -5,6 +5,7 @@ package rinde.sim.event;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.collect.Sets.newHashSet;
+import static java.util.Arrays.asList;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -24,8 +25,11 @@ public class EventDispatcher {
 	protected final Set<Enum<?>> types;
 
 	/**
-	 * TODO add docs
-	 * @param supportedEventTypes
+	 * Creates a new {@link EventDispatcher} instance which is capable of
+	 * dispatching any {@link Event} with a <code>type</code> attribute that is
+	 * one of <code>eventTypes</code>.
+	 * @param supportedEventTypes The types of events this EventDispatcher
+	 *            supports.
 	 */
 	public EventDispatcher(Set<Enum<?>> supportedEventTypes) {
 		checkArgument(supportedEventTypes != null, "event types can not be null");
@@ -41,9 +45,7 @@ public class EventDispatcher {
 	 *            supports.
 	 */
 	public EventDispatcher(Enum<?>... supportedEventTypes) {
-		checkArgument(supportedEventTypes != null, "event types can not be null");
-		listeners = LinkedHashMultimap.create();
-		types = newHashSet(supportedEventTypes);
+		this(new HashSet<Enum<?>>(asList(supportedEventTypes)));
 	}
 
 	/**

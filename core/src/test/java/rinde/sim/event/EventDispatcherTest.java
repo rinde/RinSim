@@ -16,6 +16,7 @@ import static rinde.sim.event.EventDispatcherTest.OtherEventTypes.OTHER_EVENT1;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -52,9 +53,15 @@ public class EventDispatcherTest {
 	}
 
 	@SuppressWarnings("unused")
-	@Test(expected = IllegalArgumentException.class)
-	public void constructorFail() {
+	@Test(expected = NullPointerException.class)
+	public void constructorFail1() {
 		new EventDispatcher((EventTypes[]) null);
+	}
+
+	@SuppressWarnings("unused")
+	@Test(expected = IllegalArgumentException.class)
+	public void constructorFail2() {
+		new EventDispatcher((Set<Enum<?>>) null);
 	}
 
 	@Test(expected = IllegalArgumentException.class)
@@ -95,12 +102,22 @@ public class EventDispatcherTest {
 	}
 
 	@Test(expected = IllegalArgumentException.class)
-	public void addListenerFail1() {
+	public void addListenerFail1A() {
+		dispatcher.addListener(null, (Set<Enum<?>>) null);
+	}
+
+	@Test(expected = IllegalArgumentException.class)
+	public void addListenerFail1B() {
 		dispatcher.addListener(null, (Enum<?>) null);
 	}
 
 	@Test(expected = IllegalArgumentException.class)
-	public void addListenerFail2() {
+	public void addListenerFail2A() {
+		dispatcher.addListener(l1, (Set<Enum<?>>) null);
+	}
+
+	@Test(expected = IllegalArgumentException.class)
+	public void addListenerFail2B() {
 		dispatcher.addListener(l1, (Enum<?>) null);
 	}
 
