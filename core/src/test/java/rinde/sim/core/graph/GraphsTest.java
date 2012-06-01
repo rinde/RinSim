@@ -346,6 +346,7 @@ public class GraphsTest {
 
 		Graphs.addBiPath(graph, N, E, S, W, N);
 		Graph<LengthEdgeData> g = Graphs.unmodifiableGraph(graph);
+		g.hashCode();
 
 		assertEquals(graph, g);
 		assertEquals(g, graph);

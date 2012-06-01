@@ -1,11 +1,17 @@
 package rinde.sim.scenario;
 
+import static java.util.Arrays.asList;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static rinde.sim.event.pdp.StandardType.ADD_PACKAGE;
 import static rinde.sim.event.pdp.StandardType.ADD_TRUCK;
+import static rinde.sim.event.pdp.StandardType.REMOVE_PACKAGE;
 import static rinde.sim.event.pdp.StandardType.REMOVE_TRUCK;
+import static rinde.sim.scenario.ScenarioController.Type.SCENARIO_FINISHED;
+import static rinde.sim.scenario.ScenarioController.Type.SCENARIO_STARTED;
 
 import org.apache.commons.math.random.MersenneTwister;
 import org.junit.Before;
@@ -14,6 +20,7 @@ import org.junit.Test;
 import rinde.sim.core.Simulator;
 import rinde.sim.event.Event;
 import rinde.sim.event.Listener;
+import rinde.sim.event.ListenerEventHistory;
 
 public class ScenarioControllerTest {
 
@@ -27,6 +34,9 @@ public class ScenarioControllerTest {
 				.addEvent(new TimedEvent(ADD_TRUCK, 0)).addEvent(new TimedEvent(ADD_PACKAGE, 1))
 				.addEvent(new TimedEvent(REMOVE_TRUCK, 5)).addEvent(new TimedEvent(REMOVE_TRUCK, 100));
 		scenario = sb.build();
+		assertNotNull(scenario);
+		ScenarioController.Type.valueOf("SCENARIO_STARTED");
+
 	}
 
 	@Test(expected = IllegalArgumentException.class)
@@ -35,10 +45,112 @@ public class ScenarioControllerTest {
 		controller.tick(0, 1);
 	}
 
+	@Test(expected = ConfigurationException.class)
+	public void initializeFail() throws ConfigurationException {
+		ScenarioController sc = new ScenarioController(scenario, 1) {
+			@Override
+			protected Simulator createSimulator() throws Exception {
+				throw new RuntimeException("this is what we want");
+			}
+		};
+		sc.initialize();
+	}
+
+	@Test
+	public void handleStandard() {
+		ScenarioController sc = new ScenarioController(scenario, 1) {
+			@Override
+			protected Simulator createSimulator() throws Exception {
+				return null;
+			}
+		};
+		assertFalse(sc.handleStandard(new Event(ADD_PACKAGE, this)));
+		assertFalse(sc.handleStandard(new Event(REMOVE_PACKAGE, this)));
+		assertFalse(sc.handleStandard(new Event(ADD_TRUCK, this)));
+		assertFalse(sc.handleStandard(new Event(REMOVE_TRUCK, this)));
+	}
+
+	@Test(expected = IllegalArgumentException.class)
+	public void eventNotHandled() {
+		ScenarioController sc = new ScenarioController(scenario, 1) {
+			@Override
+			protected Simulator createSimulator() throws Exception {
+				return null;
+			}
+		};
+		sc.handleEvent(new Event(SCENARIO_FINISHED, null));
+	}
+
+	@Test
+	public void finiteSimulation() throws ConfigurationException, InterruptedException {
+		ScenarioController sc = new TestScenarioController(scenario, 101) {
+			@Override
+			protected boolean handleAddPackage(Event event) {
+				return true;
+			}
+
+			@Override
+			protected boolean handleRemovePackage(Event event) {
+				return true;
+			}
+
+			@Override
+			protected boolean handleAddTruck(Event event) {
+				return true;
+			}
+
+			@Override
+			protected boolean handleRemoveTruck(Event e) {
+				return true;
+			}
+		};
+
+		ListenerEventHistory leh = new ListenerEventHistory();
+		sc.eventAPI.addListener(leh);
+		assertFalse(sc.isScenarioFinished());
+		sc.start();
+		while (!sc.isScenarioFinished()) {
+			Thread.sleep(100);
+		}
+		assertEquals(asList(SCENARIO_STARTED, ADD_PACKAGE, ADD_TRUCK, ADD_TRUCK, ADD_PACKAGE, REMOVE_TRUCK, REMOVE_TRUCK, SCENARIO_FINISHED), leh
+				.getEventTypeHistory());
+
+		assertTrue(sc.isScenarioFinished());
+		sc.stop();
+		synchronized (sc.getSimulator()) {
+			long before = sc.getSimulator().getCurrentTime();
+			sc.start();// should have no effect
+			assertEquals(before, sc.getSimulator().getCurrentTime());
+		}
+		sc.tick(0, 0);
+	}
+
+	@Test
+	public void fakeUImode() throws ConfigurationException {
+		ScenarioController sc = new TestScenarioController(scenario, 3) {
+
+			@Override
+			protected boolean createUserInterface() {
+				return true;
+			}
+
+			@Override
+			protected boolean handleCustomEvent(Event e) {
+				return true;
+			}
+
+		};
+
+		sc.start();
+		sc.stop();
+		sc.tick(0, 0);
+
+	}
+
 	/**
 	 * check whether the start event was generated. following scenario is
 	 * interrupted after 3rd step so there are some events left
-	 * @throws ConfigurationException
+	 * @throws ConfigurationException yes
 	 */
 	@Test
 	public void testStartEventGenerated() throws ConfigurationException {
@@ -60,7 +172,7 @@ public class ScenarioControllerTest {
 		final boolean[] r = new boolean[1];
 		final int[] i = new int[1];
 
-		controller.getEventAPI().addListener(new Listener() {
+		controller.eventAPI.addListener(new Listener() {
 
 			@Override
 			public void handleEvent(Event e) {
@@ -102,7 +214,7 @@ public class ScenarioControllerTest {
 		final boolean[] r = new boolean[1];
 		final int[] i = new int[1];
 
-		controller.getEventAPI().addListener(new Listener() {
+		controller.eventAPI.addListener(new Listener() {
 
 			@Override
 			public void handleEvent(Event e) {
@@ -131,7 +243,8 @@ public class ScenarioControllerTest {
 		controller.stop();
 	}
 
-	@Test(expected = ConfigurationException.class)
+	@SuppressWarnings("unused")
+	@Test(expected = IllegalArgumentException.class)
 	public void testNullScenario() throws ConfigurationException {
 		new TestScenarioController(null, -1);
 	}
@@ -139,14 +252,12 @@ public class ScenarioControllerTest {
 	@Test(expected = ConfigurationException.class)
 	public void testIncorrectUseOfScenarioController() throws ConfigurationException {
 		ScenarioController c = new ScenarioController(scenario, 1) {
-
 			@Override
 			protected Simulator createSimulator() {
 				// designed behavior for this test
 				return null;
 			}
 		};
-
 		c.start();
 	}
 

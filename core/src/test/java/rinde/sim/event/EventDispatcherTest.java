@@ -277,20 +277,21 @@ public class EventDispatcherTest {
 	public void removeTest() {
 
 		EventDispatcher disp = new EventDispatcher(EventTypes.values());
+		EventAPI eventAPI = disp.getEventAPI();
 
 		assertTrue(disp.listeners.isEmpty());
-		api.addListener(l1, EventTypes.values());
+		eventAPI.addListener(l1, EVENT1, EVENT2, EVENT3);
 		assertEquals(3, disp.listeners.size());
-		assertTrue(disp.listeners.containsEntry(EventTypes.EVENT1, l1));
-		assertTrue(api.containsListener(l1, EventTypes.EVENT1));
-		assertTrue(api.containsListener(l1, EventTypes.EVENT2));
-		assertTrue(api.containsListener(l1, EventTypes.EVENT3));
+		assertTrue(disp.listeners.containsEntry(EVENT1, l1));
+		assertTrue(eventAPI.containsListener(l1, EVENT1));
+		assertTrue(eventAPI.containsListener(l1, EVENT2));
+		assertTrue(eventAPI.containsListener(l1, EVENT3));
 
-		api.removeListener(l1);
+		eventAPI.removeListener(l1);
 		assertTrue(disp.listeners.isEmpty());
-		assertFalse(api.containsListener(l1, EventTypes.EVENT1));
-		assertFalse(api.containsListener(l1, EventTypes.EVENT2));
-		assertFalse(api.containsListener(l1, EventTypes.EVENT3));
+		assertFalse(eventAPI.containsListener(l1, EVENT1));
+		assertFalse(eventAPI.containsListener(l1, EVENT2));
+		assertFalse(eventAPI.containsListener(l1, EVENT3));
 
 	}
 

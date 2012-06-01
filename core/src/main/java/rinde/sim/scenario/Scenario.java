@@ -37,7 +37,9 @@ public class Scenario implements Serializable {
 	 * @param pEvents The actual events.
 	 */
 	public Scenario(Collection<? extends TimedEvent> pEvents, Set<Enum<?>> pSupportedTypes) {
-		checkArgument(pEvents != null && !pEvents.isEmpty(), "events can not be null");
+		if (pEvents == null || pEvents.isEmpty()) {
+			throw new IllegalArgumentException("events can not be null or empty");
+		}
 		checkArgument(pSupportedTypes != null && !pSupportedTypes.isEmpty(), "supported types must be a non-empty set");
 		supportedTypes = pSupportedTypes;
 		events = new PriorityQueue<TimedEvent>(max(pEvents.size(), 1), new TimeComparator());
@@ -125,7 +127,9 @@ public class Scenario implements Serializable {
 	}
 
 	protected static Set<Enum<?>> collectEventTypes(Collection<? extends TimedEvent> pEvents) {
-		checkArgument(pEvents != null, "events can not be null");
+		if (pEvents == null) {
+			throw new IllegalArgumentException("events can not be null");
+		}
 		Set<Enum<?>> types = newHashSet();
 		for (TimedEvent te : pEvents) {
 			types.add(te.getEventType());

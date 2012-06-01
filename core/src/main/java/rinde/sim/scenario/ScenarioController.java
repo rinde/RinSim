@@ -12,13 +12,13 @@ import org.slf4j.LoggerFactory;
 import rinde.sim.core.Simulator;
 import rinde.sim.core.TickListener;
 import rinde.sim.event.Event;
-import rinde.sim.event.EventDispatcher;
 import rinde.sim.event.EventAPI;
+import rinde.sim.event.EventDispatcher;
 import rinde.sim.event.Listener;
 import rinde.sim.event.pdp.StandardType;
 
 /**
- * A simulator controller represents single simulation run. This class is
+ * A scenario controller represents a single simulation run. This class is
  * intended for extension.
  * 
  * @author Rinde van Lon (rinde.vanlon@cs.kuleuven.be)
@@ -26,9 +26,6 @@ import rinde.sim.event.pdp.StandardType;
  * @since 2.0
  */
 public abstract class ScenarioController implements TickListener, Listener {
-
-	// TODO investigate if ConfigurationException can be replaced with
-	// IllegalStateException
 
 	public enum Type {
 		SCENARIO_STARTED, SCENARIO_FINISHED;
@@ -39,8 +36,9 @@ public abstract class ScenarioController implements TickListener, Listener {
 	protected final Scenario scenario;
 	private int ticks;
 	private final EventDispatcher disp;
+	public final EventAPI eventAPI;
 
-	private Simulator simulator;
+	Simulator simulator;
 
 	private Type status = null;
 
@@ -57,16 +55,16 @@ public abstract class ScenarioController implements TickListener, Listener {
 	 * 
 	 * @param scen to realize
 	 * @param numberOfTicks when negative the number of tick is infinite
-	 * @throws ConfigurationException on multiple problems that might occur
-	 *             during configuration
 	 */
-	public ScenarioController(final Scenario scen, int numberOfTicks) throws ConfigurationException {
-		if (scen == null) {
-			throw new ConfigurationException("scenario cannot be null");
-		}
+	public ScenarioController(final Scenario scen, int numberOfTicks) {
+		checkArgument(scen != null, "scenario can not be null");
 		ticks = numberOfTicks;
 		scenario = new Scenario(scen);
-		disp = new EventDispatcher(merge(scenario.getPossibleEventTypes(), Type.values()));
+
+		Set<Enum<?>> typeSet = newHashSet(scenario.getPossibleEventTypes());
+		typeSet.addAll(asList(Type.values()));
+		disp = new EventDispatcher(typeSet);
+		eventAPI = disp.getEventAPI();
 		disp.addListener(this, scenario.getPossibleEventTypes());
 	}
 
@@ -81,8 +79,8 @@ public abstract class ScenarioController implements TickListener, Listener {
 		try {
 			simulator = createSimulator();
 		} catch (Exception e) {
-			LOGGER.warn("exceptioin thrown during createSimulator()", e);
-			throw new ConfigurationException("unexpected", e);
+			LOGGER.warn("exception thrown during createSimulator()", e);
+			throw new ConfigurationException("An exception was thrown while instantiating the simulator", e);
 		}
 		checkSimulator();
 		simulator.configure();
@@ -100,28 +98,6 @@ public abstract class ScenarioController implements TickListener, Listener {
 	 */
 	public Simulator getSimulator() {
 		return simulator;
-	}
-
-	private static Set<Enum<?>> merge(Set<Enum<?>> initialSet, Enum<?>[]... enums) {
-		checkArgument(initialSet != null, "initial set can not be null");
-		if (enums == null) {
-			throw new IllegalArgumentException("enums can not be null");
-		}
-		Set<Enum<?>> mergedSet = newHashSet(initialSet);
-		for (Enum<?>[] e : enums) {
-			mergedSet.addAll(asList(e));
-		}
-		return mergedSet;
-	}
-
-	private final void checkSimulator() throws ConfigurationException {
-		if (simulator == null) {
-			throw new ConfigurationException("use createSimulator() to define simulator");
-		}
-	}
-
-	public EventAPI getEventAPI() {
-		return disp.getEventAPI();
 	}
 
 	/**
@@ -144,6 +120,9 @@ public abstract class ScenarioController implements TickListener, Listener {
 		return false;
 	}
 
+	/**
+	 * Stop the simulation.
+	 */
 	public void stop() {
 		if (!uiMode) {
 			simulator.removeTickListener(this);
@@ -151,9 +130,14 @@ public abstract class ScenarioController implements TickListener, Listener {
 		}
 	}
 
+	/**
+	 * Starts the simulation.
+	 * @throws ConfigurationException If the scenario controller was not
+	 *             configured properly.
+	 */
 	public void start() throws ConfigurationException {
 		checkSimulator();
-		if (!uiMode) {
+		if (ticks != 0 && !uiMode) {
 			new Thread() {
 				@Override
 				public void run() {
@@ -161,12 +145,12 @@ public abstract class ScenarioController implements TickListener, Listener {
 				}
 			}.start();
 		}
+
 	}
 
 	/**
-	 * Returns true if all events of this scenario have been dispatched.
-	 * 
-	 * @return
+	 * @return <code>true</code> if all events of this scenario have been
+	 *         dispatched, <code>false</code> otherwise.
 	 */
 	public boolean isScenarioFinished() {
 		return scenario.peek() == null;
@@ -181,7 +165,7 @@ public abstract class ScenarioController implements TickListener, Listener {
 		if (LOGGER.isDebugEnabled() && ticks >= 0) {
 			LOGGER.debug("ticks to end: " + ticks);
 		}
-		if (ticks > -1) {
+		if (ticks > 0) {
 			ticks--;
 		}
 		TimedEvent e = null;
@@ -195,7 +179,6 @@ public abstract class ScenarioController implements TickListener, Listener {
 			e.setIssuer(this);
 			disp.dispatchEvent(e);
 		}
-
 		if (e == null && status != Type.SCENARIO_FINISHED) {
 			LOGGER.info("scenario finished at virtual time:" + currentTime);
 			status = Type.SCENARIO_FINISHED;
@@ -235,7 +218,7 @@ public abstract class ScenarioController implements TickListener, Listener {
 		return false;
 	}
 
-	private boolean handleStandard(Event e) {
+	final boolean handleStandard(Event e) {
 		StandardType eT = (StandardType) e.getEventType();
 		switch (eT) {
 		case ADD_PACKAGE:
@@ -251,19 +234,57 @@ public abstract class ScenarioController implements TickListener, Listener {
 		}
 	}
 
+	/**
+	 * Is called when an event of type {@link StandardType#REMOVE_TRUCK} occurs.
+	 * This method is normally overridden to add application specific actions to
+	 * this event. This method should return <code>true</code> if it has handled
+	 * the event, otherwise <code>false</code> should be returned.
+	 * @param e
+	 * @return <code>false</code>
+	 */
 	protected boolean handleRemoveTruck(Event e) {
 		return false;
 	}
 
-	protected boolean handleAddTruck(Event e) {
+	/**
+	 * Is called when an event of type {@link StandardType#ADD_TRUCK} occurs.
+	 * This method is normally overridden to add application specific actions to
+	 * this event. This method should return <code>true</code> if it has handled
+	 * the event, otherwise <code>false</code> should be returned.
+	 * @param event
+	 * @return <code>false</code>
+	 */
+	protected boolean handleAddTruck(Event event) {
 		return false;
 	}
 
-	protected boolean handleRemovePackage(Event e) {
+	/**
+	 * Is called when an event of type {@link StandardType#REMOVE_PACKAGE}
+	 * occurs. This method is normally overridden to add application specific
+	 * actions to this event. This method should return <code>true</code> if it
+	 * has handled the event, otherwise <code>false</code> should be returned.
+	 * @param event
+	 * @return <code>false</code>
+	 */
+	protected boolean handleRemovePackage(Event event) {
 		return false;
 	}
 
-	protected boolean handleAddPackage(Event e) {
+	/**
+	 * Is called when an event of type {@link StandardType#ADD_PACKAGE} occurs.
+	 * This method is normally overridden to add application specific actions to
+	 * this event. This method should return <code>true</code> if it has handled
+	 * the event, otherwise <code>false</code> should be returned.
+	 * @param event
+	 * @return <code>false</code>
+	 */
+	protected boolean handleAddPackage(Event event) {
 		return false;
+	}
+
+	private final void checkSimulator() throws ConfigurationException {
+		if (simulator == null) {
+			throw new ConfigurationException("use createSimulator() to define simulator");
+		}
 	}
 }

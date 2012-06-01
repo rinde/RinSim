@@ -9,6 +9,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static rinde.sim.event.pdp.StandardType.ADD_TRUCK;
+import static rinde.sim.event.pdp.StandardType.REMOVE_TRUCK;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -153,6 +154,20 @@ public class ScenarioTest {
 
 	}
 
+	@Test
+	public void timedEventEquals() {
+		assertFalse(new AddObjectEvent(10, new Point(10, 0)).equals(new TimedEvent(ADD_TRUCK, 10)));
+		assertFalse(new TimedEvent(ADD_TRUCK, 10).equals(null));
+		assertFalse(new TimedEvent(ADD_TRUCK, 10).equals(new TimedEvent(REMOVE_TRUCK, 10)));
+		assertTrue(new TimedEvent(REMOVE_TRUCK, 10).equals(new TimedEvent(REMOVE_TRUCK, 10)));
+	}
+
+	@SuppressWarnings("unused")
+	@Test(expected = IllegalArgumentException.class)
+	public void timedEventConstructorFail() {
+		new TimedEvent(ADD_TRUCK, -1);
+	}
+
 	public static Scenario randomScenario(RandomGenerator gen, int numTrucks, List<Point> positions) {
 		ScenarioBuilder res = new ScenarioBuilder(ADD_TRUCK);
 		int size = positions.size();
@@ -176,6 +191,8 @@ class AddObjectEvent extends TimedEvent {
 	public AddObjectEvent(long pTime, Point pPos) {
 		super(ADD_TRUCK, pTime);
 		pos = pPos;
+		hashCode();
+		toString();
 	}
 
 	@Override

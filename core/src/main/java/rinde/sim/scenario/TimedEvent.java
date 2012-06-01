@@ -22,7 +22,7 @@ public class TimedEvent extends Event {
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = prime * result + ((eventType == null) ? 0 : eventType.hashCode());
+		result = prime * result + eventType.hashCode();
 		result = prime * result + (int) (time ^ (time >>> 32));
 		return result;
 	}
