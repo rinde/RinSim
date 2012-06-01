@@ -52,10 +52,12 @@ public class ScenarioBuilder {
 	/**
 	 * Convenience method for adding a single event.
 	 * @param event The {@link TimedEvent} to add.
+	 * @return this
 	 */
-	public void addEvent(TimedEvent event) {
+	public ScenarioBuilder addEvent(TimedEvent event) {
 		checkArgument(supportedTypes.contains(event.getEventType()), "event must have type that is supported by this ScenarioBuilder");
 		events.add(event);
+		return this;
 	}
 
 	/**
@@ -113,18 +115,16 @@ public class ScenarioBuilder {
 	 * @return The new scenario.
 	 */
 	public Scenario build() {
-		@SuppressWarnings("serial")
-		Scenario s = new Scenario() {
-			@Override
-			public Set<Enum<?>> getPossibleEventTypes() {
-				return supportedTypes;
-			}
-		};
-		s.addAll(events);
+		List<TimedEvent> es = newArrayList(events);
 		for (EventGenerator<? extends TimedEvent> g : generators) {
-			s.addAll(g.generate());
+			Collection<? extends TimedEvent> collection = g.generate();
+			for (TimedEvent te : collection) {
+				checkArgument(supportedTypes.contains(te.getEventType()), te.getEventType()
+						+ "is not supported by this ScenarioBuilder");
+				es.add(te);
+			}
 		}
-		return s;
+		return new Scenario(es, supportedTypes);
 	}
 
 	/**

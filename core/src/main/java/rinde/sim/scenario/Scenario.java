@@ -5,24 +5,20 @@ package rinde.sim.scenario;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.collect.Sets.newHashSet;
+import static java.lang.Math.max;
 import static java.util.Collections.unmodifiableSet;
 
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.PriorityQueue;
 import java.util.Set;
 
-import rinde.sim.event.pdp.StandardType;
-
-import com.google.common.base.Predicate;
-import com.google.common.collect.Iterables;
-
 /**
- * Scenario is an unmodifiable list of events sorted by the time stamp.
+ * Scenario is a list of events sorted by the time stamp. For help with creating
+ * scenarios {@link ScenarioBuilder} is provided.
  * @author Rinde van Lon (rinde.vanlon@cs.kuleuven.be)
  * @author Bartosz Michalik <bartosz.michalik@cs.kuleuven.be>
  * 
@@ -31,53 +27,45 @@ public class Scenario implements Serializable {
 	private static final long serialVersionUID = 1839693038677831786L;
 
 	private final PriorityQueue<TimedEvent> events;
+	private final Set<Enum<?>> supportedTypes;
 
-	public Scenario() {
-		events = new PriorityQueue<TimedEvent>(1024, new TimeComparator());
+	/**
+	 * Create a new scenario which supports the specified event types with the
+	 * specified events. Note that it is not checked whether the supported types
+	 * match the events.
+	 * @param pSupportedTypes The types of event this scenario supports.
+	 * @param pEvents The actual events.
+	 */
+	public Scenario(Collection<? extends TimedEvent> pEvents, Set<Enum<?>> pSupportedTypes) {
+		checkArgument(pEvents != null && !pEvents.isEmpty(), "events can not be null");
+		checkArgument(pSupportedTypes != null && !pSupportedTypes.isEmpty(), "supported types must be a non-empty set");
+		supportedTypes = pSupportedTypes;
+		events = new PriorityQueue<TimedEvent>(max(pEvents.size(), 1), new TimeComparator());
+		events.addAll(pEvents);
 	}
 
+	/**
+	 * Create a new scenario with the specified events.
+	 * @param pEvents The events of the scenario.
+	 */
 	public Scenario(Collection<? extends TimedEvent> pEvents) {
-		Collection<? extends TimedEvent> tempEvents = pEvents;
-		if (pEvents == null) {
-			tempEvents = Collections.emptyList();
-		}
-		checkEvents(tempEvents, getPossibleEventTypes());
-		events = new PriorityQueue<TimedEvent>(1024, new TimeComparator());
-		events.addAll(tempEvents);
+		this(pEvents, collectEventTypes(pEvents));
 	}
 
 	/**
 	 * Copying constructor.
-	 * @param s
+	 * @param s the scenario to copy.
 	 */
 	public Scenario(Scenario s) {
-		if (s == null) {
-			throw new IllegalArgumentException("scenario cannot be null");
-		}
-		events = new PriorityQueue<TimedEvent>(1024, new TimeComparator());
-		events.addAll(s.events);
-	}
-
-	protected static void checkEvents(Collection<? extends TimedEvent> eC, final Set<Enum<?>> types) {
-		if (types == null) {
-			throw new IllegalArgumentException("types not specified via getPossibleEventTypes()");
-		}
-		boolean violation = Iterables.any(eC, new Predicate<TimedEvent>() {
-			@Override
-			public boolean apply(TimedEvent i) {
-				return !types.contains(i.getEventType());
-			}
-		});
-		if (violation) {
-			throw new IllegalArgumentException("not supported event type");
-		}
+		this(s.events, s.getPossibleEventTypes());
 	}
 
 	/**
 	 * Return a scenario as a list of (time sorted) events;
-	 * @return
+	 * @return the list of events.
 	 */
 	public List<TimedEvent> asList() {
+		// copy first to avoid concurrent modifications
 		ArrayList<TimedEvent> result = new ArrayList<TimedEvent>();
 		PriorityQueue<TimedEvent> copy = new PriorityQueue<TimedEvent>(events);
 		TimedEvent e = null;
@@ -89,7 +77,7 @@ public class Scenario implements Serializable {
 
 	/**
 	 * Get the access to the first event in the scenario (without removing it)
-	 * @return
+	 * @return element or <code>null</code> when scenario has no more events.
 	 */
 	public TimedEvent peek() {
 		return events.peek();
@@ -101,32 +89,6 @@ public class Scenario implements Serializable {
 	 */
 	public TimedEvent poll() {
 		return events.poll();
-	}
-
-	public boolean add(TimedEvent e) {
-		checkArgument(e != null, "event can not be null");
-		checkEvents(Collections.singleton(e), getPossibleEventTypes());
-		return events.add(e);
-	}
-
-	public boolean addAll(Collection<? extends TimedEvent> collection) {
-		checkArgument(collection != null, "collection can not be null");
-		checkEvents(collection, getPossibleEventTypes());
-		return events.addAll(collection);
-	}
-
-	public boolean remove(Object object) {
-		checkArgument(object != null, "object can not be null");
-		return events.remove(object);
-	}
-
-	public boolean removeAll(Collection<?> collection) {
-		checkArgument(collection != null);
-		return events.removeAll(collection);
-	}
-
-	public void clear() {
-		events.clear();
 	}
 
 	public int size() {
@@ -148,21 +110,26 @@ public class Scenario implements Serializable {
 	 * @return event types
 	 */
 	public Set<Enum<?>> getPossibleEventTypes() {
-		return unmodifiableSet(newHashSet((Enum<?>[]) StandardType.values()));
+		return unmodifiableSet(supportedTypes);
 	}
 
 	private static class TimeComparator implements Comparator<TimedEvent>, Serializable {
-
 		private static final long serialVersionUID = -2711991793346719648L;
 
-		/**
-		 * 
-		 */
 		public TimeComparator() {}
 
 		@Override
 		public int compare(TimedEvent o1, TimedEvent o2) {
 			return (int) (o1.time - o2.time);
 		}
+	}
+
+	protected static Set<Enum<?>> collectEventTypes(Collection<? extends TimedEvent> pEvents) {
+		checkArgument(pEvents != null, "events can not be null");
+		Set<Enum<?>> types = newHashSet();
+		for (TimedEvent te : pEvents) {
+			types.add(te.getEventType());
+		}
+		return types;
 	}
 }

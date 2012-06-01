@@ -38,9 +38,7 @@ public class ScenarioBuilderTest {
 	public void addMultipleEvents() {
 		scenarioBuilder.addEventGenerator(new ScenarioBuilder.MultipleEventGenerator<TimedEvent>(100, 3,
 				new ScenarioBuilder.EventTypeFunction(ADD_PACKAGE)));
-
 		scenarioBuilder.addMultipleEvents(0, 2, ADD_PACKAGE);
-
 		Scenario s = scenarioBuilder.build();
 
 		assertEquals(2, frequency(s.asList(), new TimedEvent(ADD_PACKAGE, 0)));

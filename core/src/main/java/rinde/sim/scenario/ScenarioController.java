@@ -61,7 +61,7 @@ public abstract class ScenarioController implements TickListener, Listener {
 	 */
 	public ScenarioController(final Scenario scen, int numberOfTicks) throws ConfigurationException {
 		if (scen == null) {
-			throw new ConfigurationException("scenarion cannot be null");
+			throw new ConfigurationException("scenario cannot be null");
 		}
 		ticks = numberOfTicks;
 		scenario = new Scenario(scen) {
