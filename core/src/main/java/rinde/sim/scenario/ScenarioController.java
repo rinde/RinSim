@@ -1,9 +1,10 @@
 package rinde.sim.scenario;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.collect.Sets.newHashSet;
+import static java.util.Arrays.asList;
 
-import java.util.Arrays;
-import java.util.LinkedList;
+import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -65,7 +66,7 @@ public abstract class ScenarioController implements TickListener, Listener {
 		ticks = numberOfTicks;
 		scenario = new Scenario(scen) {
 			@Override
-			public Enum<?>[] getPossibleEventTypes() {
+			public Set<Enum<?>> getPossibleEventTypes() {
 				return scen.getPossibleEventTypes();
 			}
 		};
@@ -105,15 +106,16 @@ public abstract class ScenarioController implements TickListener, Listener {
 		return simulator;
 	}
 
-	private static Enum<?>[] merge(Enum<?>[]... enums) {
+	private static Set<Enum<?>> merge(Set<Enum<?>> initialSet, Enum<?>[]... enums) {
+		checkArgument(initialSet != null, "initial set can not be null");
 		if (enums == null) {
 			throw new IllegalArgumentException("enums can not be null");
 		}
-		LinkedList<Enum<?>> list = new LinkedList<Enum<?>>();
+		Set<Enum<?>> mergedSet = newHashSet(initialSet);
 		for (Enum<?>[] e : enums) {
-			list.addAll(Arrays.asList(e));
+			mergedSet.addAll(asList(e));
 		}
-		return list.toArray(new Enum<?>[0]);
+		return mergedSet;
 	}
 
 	private final void checkSimulator() throws ConfigurationException {

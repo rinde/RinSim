@@ -4,6 +4,8 @@
 package rinde.sim.scenario;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.collect.Sets.newHashSet;
+import static java.util.Collections.unmodifiableSet;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -12,6 +14,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.PriorityQueue;
+import java.util.Set;
 
 import rinde.sim.event.pdp.StandardType;
 
@@ -29,6 +32,10 @@ public class Scenario implements Serializable {
 
 	private final PriorityQueue<TimedEvent> events;
 
+	public Scenario() {
+		events = new PriorityQueue<TimedEvent>(1024, new TimeComparator());
+	}
+
 	public Scenario(Collection<? extends TimedEvent> pEvents) {
 		Collection<? extends TimedEvent> tempEvents = pEvents;
 		if (pEvents == null) {
@@ -37,26 +44,6 @@ public class Scenario implements Serializable {
 		checkEvents(tempEvents, getPossibleEventTypes());
 		events = new PriorityQueue<TimedEvent>(1024, new TimeComparator());
 		events.addAll(tempEvents);
-	}
-
-	protected static void checkEvents(Collection<? extends TimedEvent> eC, final Enum<?>[] types) {
-		if (types == null) {
-			throw new IllegalArgumentException("types not specified via getPossibleEventTypes()");
-		}
-		boolean violation = Iterables.any(eC, new Predicate<TimedEvent>() {
-			@Override
-			public boolean apply(TimedEvent i) {
-				for (Enum<?> e : types) {
-					if (i.getEventType() == e) {
-						return false;
-					}
-				}
-				return true;
-			}
-		});
-		if (violation) {
-			throw new IllegalArgumentException("not supported event type");
-		}
 	}
 
 	/**
@@ -71,8 +58,19 @@ public class Scenario implements Serializable {
 		events.addAll(s.events);
 	}
 
-	public Scenario() {
-		events = new PriorityQueue<TimedEvent>(1024, new TimeComparator());
+	protected static void checkEvents(Collection<? extends TimedEvent> eC, final Set<Enum<?>> types) {
+		if (types == null) {
+			throw new IllegalArgumentException("types not specified via getPossibleEventTypes()");
+		}
+		boolean violation = Iterables.any(eC, new Predicate<TimedEvent>() {
+			@Override
+			public boolean apply(TimedEvent i) {
+				return !types.contains(i.getEventType());
+			}
+		});
+		if (violation) {
+			throw new IllegalArgumentException("not supported event type");
+		}
 	}
 
 	/**
@@ -149,8 +147,8 @@ public class Scenario implements Serializable {
 	 * scenario are checked for the event type.
 	 * @return event types
 	 */
-	public Enum<?>[] getPossibleEventTypes() {
-		return StandardType.values();
+	public Set<Enum<?>> getPossibleEventTypes() {
+		return unmodifiableSet(newHashSet((Enum<?>[]) StandardType.values()));
 	}
 
 	private static class TimeComparator implements Comparator<TimedEvent>, Serializable {

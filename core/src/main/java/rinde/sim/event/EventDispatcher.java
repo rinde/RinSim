@@ -4,7 +4,7 @@
 package rinde.sim.event;
 
 import static com.google.common.base.Preconditions.checkArgument;
-import static java.util.Arrays.asList;
+import static com.google.common.collect.Sets.newHashSet;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -24,6 +24,16 @@ public class EventDispatcher {
 	protected final Set<Enum<?>> types;
 
 	/**
+	 * TODO add docs
+	 * @param supportedEventTypes
+	 */
+	public EventDispatcher(Set<Enum<?>> supportedEventTypes) {
+		checkArgument(supportedEventTypes != null, "event types can not be null");
+		listeners = LinkedHashMultimap.create();
+		types = newHashSet(supportedEventTypes);
+	}
+
+	/**
 	 * Creates a new {@link EventDispatcher} instance which is capable of
 	 * dispatching any {@link Event} with a <code>type</code> attribute that is
 	 * one of <code>eventTypes</code>.
@@ -33,7 +43,7 @@ public class EventDispatcher {
 	public EventDispatcher(Enum<?>... supportedEventTypes) {
 		checkArgument(supportedEventTypes != null, "event types can not be null");
 		listeners = LinkedHashMultimap.create();
-		types = new HashSet<Enum<?>>(asList(supportedEventTypes));
+		types = newHashSet(supportedEventTypes);
 	}
 
 	/**
@@ -76,11 +86,24 @@ public class EventDispatcher {
 	 *            not be empty.
 	 */
 	public void addListener(Listener l, Enum<?>... eventTypes) {
+		checkArgument(eventTypes != null, "event types can not be null");
+		addListener(l, newHashSet(eventTypes));
+	}
+
+	/**
+	 * Adds the specified listener. From now on, the specified listener will be
+	 * notified of events with one of the <code>eventTypes</code>.
+	 * @param l The listener, may not be null.
+	 * @param eventTypes The {@link Event} types, each type but be a type that
+	 *            is supported by this EventDispatcher. May not be null and may
+	 *            not be empty.
+	 */
+	public void addListener(Listener l, Set<Enum<?>> eventTypes) {
 		checkArgument(l != null, "listener can not be null");
 		if (eventTypes == null) {
 			throw new IllegalArgumentException("event types can not be null");
 		}
-		checkArgument(eventTypes.length > 0, "A listener has to listen to at least one event type.");
+		checkArgument(eventTypes.size() > 0, "A listener has to listen to at least one event type.");
 		for (Enum<?> t : eventTypes) {
 			addListener(l, t);
 		}

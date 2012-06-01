@@ -1,100 +1,241 @@
 package rinde.sim.scenario;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.collect.Lists.newArrayList;
+import static com.google.common.collect.Lists.newLinkedList;
+import static com.google.common.collect.Sets.newHashSet;
 
 import java.util.Collection;
 import java.util.LinkedList;
+import java.util.List;
+import java.util.Set;
 
 import com.google.common.base.Function;
 
+/**
+ * The ScenarioBuilder is a helper class to easily generate {@link Scenario}
+ * instances. It provides a set of easy to use methods and it is extensible by
+ * adding {@link EventGenerator}s to the builder. The specific class of
+ * {@link TimedEvent} that should be generated can be changed by using
+ * {@link EventCreator}.
+ * 
+ * @author Bartosz Michalik <bartosz.michalik@cs.kuleuven.be>
+ * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+ */
 public class ScenarioBuilder {
 
-	private final LinkedList<Generator<? extends TimedEvent>> generators;
-	private final Enum<?>[] supportedTypes;
+	private final LinkedList<EventGenerator<? extends TimedEvent>> generators;
+	private final List<TimedEvent> events;
+	final Set<Enum<?>> supportedTypes;
 
+	/**
+	 * Initializes a new ScenarioBuilder which supports the specified types of
+	 * events.
+	 * @param pSupportedTypes The event types this ScenarioBuilder supports.
+	 */
 	public ScenarioBuilder(Enum<?>... pSupportedTypes) {
 		checkArgument(pSupportedTypes != null, "supported types can not be null");
-		supportedTypes = pSupportedTypes;
-		generators = new LinkedList<Generator<? extends TimedEvent>>();
+		supportedTypes = newHashSet(pSupportedTypes);
+		generators = newLinkedList();
+		events = newArrayList();
 	}
 
-	public boolean add(Generator<? extends TimedEvent> generator) {
+	/**
+	 * Add an {@link EventGenerator} to this ScenarioBuilder.
+	 * @param generator The generator to add.
+	 */
+	public void addEventGenerator(EventGenerator<? extends TimedEvent> generator) {
 		checkArgument(generator != null, "generator can not be null");
-		return generators.add(generator);
+		generators.add(generator);
 	}
 
+	/**
+	 * Convenience method for adding a single event.
+	 * @param event The {@link TimedEvent} to add.
+	 */
+	public void addEvent(TimedEvent event) {
+		checkArgument(supportedTypes.contains(event.getEventType()), "event must have type that is supported by this ScenarioBuilder");
+		events.add(event);
+	}
+
+	/**
+	 * Adds multiple events.
+	 * @param time The time at which the {@link TimedEvent} will be added.
+	 * @param amount The amount of events to add.
+	 * @param eventCreator The {@link EventCreator} that instantiates the
+	 *            events.
+	 */
+	public <T extends TimedEvent> void addMultipleEvents(long time, int amount, EventCreator<T> eventCreator) {
+		generators.add(new MultipleEventGenerator<T>(time, amount, eventCreator));
+	}
+
+	/**
+	 * Adds multiple {@link TimedEvent} using the specified type.
+	 * @param time The time at which the {@link TimedEvent} will be added.
+	 * @param amount The amount of events to add.
+	 * @param type The type of event to add.
+	 */
+	public void addMultipleEvents(long time, int amount, Enum<?> type) {
+		addMultipleEvents(time, amount, new EventTypeFunction(type));
+	}
+
+	/**
+	 * Adds a series of events. The first event will be added at
+	 * <code>startTime</code>, the next events will be added with intervals of
+	 * size <code>timeStep</code> up to and <strong>including</strong>
+	 * <code>endTime</code>
+	 * @param startTime The time of the first event in the series.
+	 * @param endTime The end time of the series.
+	 * @param timeStep The interval between events.
+	 * @param eventCreator The {@link EventCreator} that creates events.
+	 */
+	public <T extends TimedEvent> void addTimeSeriesOfEvents(long startTime, long endTime, long timeStep,
+			EventCreator<T> eventCreator) {
+		generators.add(new TimeSeries<T>(startTime, endTime, timeStep, eventCreator));
+	}
+
+	/**
+	 * Adds a series of events. The first event will be added at
+	 * <code>startTime</code>, the next events will be added with intervals of
+	 * size <code>timeStep</code> up to and <strong>including</strong>
+	 * <code>endTime</code>
+	 * @param startTime The time of the first event in the series.
+	 * @param endTime The end time of the series.
+	 * @param timeStep The interval between events.
+	 * @param type The type of event to add.
+	 */
+	public <T extends TimedEvent> void addTimeSeriesOfEvents(long startTime, long endTime, long timeStep, Enum<?> type) {
+		addTimeSeriesOfEvents(startTime, endTime, timeStep, new EventTypeFunction(type));
+	}
+
+	/**
+	 * Generates a new {@link Scenario}
+	 * @return The new scenario.
+	 */
 	public Scenario build() {
 		@SuppressWarnings("serial")
 		Scenario s = new Scenario() {
 			@Override
-			public Enum<?>[] getPossibleEventTypes() {
+			public Set<Enum<?>> getPossibleEventTypes() {
 				return supportedTypes;
 			}
 		};
-		for (Generator<? extends TimedEvent> g : generators) {
+		s.addAll(events);
+		for (EventGenerator<? extends TimedEvent> g : generators) {
 			s.addAll(g.generate());
 		}
 		return s;
 	}
 
-	public static interface Generator<T extends TimedEvent> {
+	/**
+	 * Classes that implement this interfaces can be used to generate a sequence
+	 * of events.
+	 * @param <T> The subtype of {@link TimedEvent} that is generated.
+	 * 
+	 * @author Bartosz Michalik <bartosz.michalik@cs.kuleuven.be>
+	 * @author Rinde van Lon (rinde.vanlon@cs.kuleuven.be)
+	 */
+	public static interface EventGenerator<T extends TimedEvent> {
 		Collection<T> generate();
 	}
 
-	public static class MultipleEventGenerator<T extends TimedEvent> implements Generator<T> {
-
+	/**
+	 * An {@link EventGenerator} that generates multiple events.
+	 * @param <T> The subtype of {@link TimedEvent} to generate.
+	 * 
+	 * @author Bartosz Michalik <bartosz.michalik@cs.kuleuven.be>
+	 * @author Rinde van Lon (rinde.vanlon@cs.kuleuven.be)
+	 */
+	public static class MultipleEventGenerator<T extends TimedEvent> implements EventGenerator<T> {
 		private final long time;
 		private final int amount;
-		private final Function<Long, T> function;
+		private final Function<Long, T> eventCreator;
 
-		public MultipleEventGenerator(long pTime, int pAmount, Function<Long, T> pFunction) {
+		/**
+		 * Instantiate the MultipleEventGenerator.
+		 * @param pTime The time at which the {@link TimedEvent}s will be added.
+		 * @param pAmount The amount of events to add.
+		 * @param pEventCreator The {@link EventCreator} that instantiates the
+		 *            events.
+		 */
+		public MultipleEventGenerator(long pTime, int pAmount, EventCreator<T> pEventCreator) {
 			checkArgument(pTime >= 0, "time can not be negative");
 			checkArgument(pAmount >= 1, "amount must be at least 1");
-			checkArgument(pFunction != null, "function can not be null");
-			this.time = pTime;
-			this.amount = pAmount;
-			this.function = pFunction;
+			checkArgument(pEventCreator != null, "event creator can not be null");
+			time = pTime;
+			amount = pAmount;
+			eventCreator = pEventCreator;
 		}
 
 		@Override
 		public Collection<T> generate() {
 			LinkedList<T> result = new LinkedList<T>();
 			for (int i = 0; i < amount; ++i) {
-				result.add(function.apply(time));
+				result.add(eventCreator.apply(time));
 			}
 			return result;
 		}
-
 	}
 
-	public static class TimeSeries<T extends TimedEvent> implements Generator<T> {
+	/**
+	 * An {@link EventGenerator} that generates events using a fixed interval.
+	 * The first event will be added at <code>startTime</code>, the next events
+	 * will be added with intervals of size <code>timeStep</code> up to and
+	 * <strong>including</strong> <code>endTime</code>
+	 * @param <T> The subtype of {@link TimedEvent} to generate.
+	 * 
+	 * @author Bartosz Michalik <bartosz.michalik@cs.kuleuven.be>
+	 * @author Rinde van Lon (rinde.vanlon@cs.kuleuven.be)
+	 */
+	public static class TimeSeries<T extends TimedEvent> implements EventGenerator<T> {
 		private final long start;
 		private final long end;
 		private final long step;
-		private final Function<Long, T> function;
+		private final Function<Long, T> eventCreator;
 
-		public TimeSeries(long pStart, long pEnd, long pStep, Function<Long, T> pFunction) {
-			checkArgument(pStart < pEnd, "start time must be before end");
-			checkArgument(pEnd > 0, "end time must be greather than 0");
-			checkArgument(pStep >= 1, "time step must be >= than 1");
-			checkArgument(pFunction != null, "function can not be null");
-			this.start = pStart;
-			this.end = pEnd;
-			this.step = pStep;
-			this.function = pFunction;
+		/**
+		 * Instantiates a new TimeSeries.
+		 * @param pStartTime The time of the first event in the series.
+		 * @param pEndTime The end time of the series.
+		 * @param pTimeStep The interval between events.
+		 * @param pEventCreator The {@link EventCreator} that creates events.
+		 */
+		public TimeSeries(long pStartTime, long pEndTime, long pTimeStep, EventCreator<T> pEventCreator) {
+			checkArgument(pStartTime < pEndTime, "start time must be before end time");
+			checkArgument(pEndTime > 0, "end time must be greater than 0");
+			checkArgument(pTimeStep >= 1, "time step must be >= than 1");
+			checkArgument(pEventCreator != null, "event creator can not be null");
+			start = pStartTime;
+			end = pEndTime;
+			step = pTimeStep;
+			eventCreator = pEventCreator;
 		}
 
 		@Override
 		public Collection<T> generate() {
 			LinkedList<T> result = new LinkedList<T>();
 			for (long t = start; t <= end; t += step) {
-				result.add(function.apply(t));
+				result.add(eventCreator.apply(t));
 			}
 			return result;
 		}
 	}
 
-	public static class EventTypeFunction implements Function<Long, TimedEvent> {
+	/**
+	 * Instances create {@link TimedEvent}s at specified times.
+	 * @param <T> The subtype of {@link TimedEvent} to create.
+	 * @author Rinde van Lon (rinde.vanlon@cs.kuleuven.be)
+	 */
+	public static abstract class EventCreator<T extends TimedEvent> implements Function<Long, T> {}
+
+	/**
+	 * An {@link EventCreator} that creates {@link TimedEvent}s with the
+	 * specified type.
+	 * 
+	 * @author Bartosz Michalik <bartosz.michalik@cs.kuleuven.be>
+	 * @author Rinde van Lon (rinde.vanlon@cs.kuleuven.be)
+	 */
+	public static class EventTypeFunction extends EventCreator<TimedEvent> {
 
 		private final Enum<?> typeEvent;
 
