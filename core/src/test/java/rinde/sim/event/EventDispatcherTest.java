@@ -15,6 +15,7 @@ import static rinde.sim.event.EventDispatcherTest.OtherEventTypes.OTHER_EVENT1;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -40,6 +41,7 @@ public class EventDispatcherTest {
 	HistoryKeeper l1, l2, l3;
 
 	EventDispatcher dispatcher;
+	EventAPI api;
 
 	@Before
 	public void setup() {
@@ -50,6 +52,7 @@ public class EventDispatcherTest {
 		StandardType.valueOf("ADD_TRUCK");
 
 		dispatcher = new EventDispatcher(EVENT1, EVENT2, EVENT3);
+		api = dispatcher.getEventAPI();
 	}
 
 	@SuppressWarnings("unused")
@@ -77,7 +80,9 @@ public class EventDispatcherTest {
 	@Test
 	public void dispatchEvent() {
 		dispatcher.addListener(l1, EVENT1);
-		dispatcher.addListener(l2, EVENT1, EVENT2);
+
+		Set<Enum<?>> set = new HashSet<Enum<?>>(asList(EVENT1, EVENT2));
+		api.addListener(l2, set);
 		dispatcher.addListener(l3, EVENT1, EVENT2, EVENT3);
 
 		dispatcher.dispatchEvent(new Event(EVENT2));
@@ -118,7 +123,7 @@ public class EventDispatcherTest {
 
 	@Test(expected = IllegalArgumentException.class)
 	public void addListenerFail2B() {
-		dispatcher.addListener(l1, (Enum<?>) null);
+		dispatcher.addListener(l1, (Enum<?>[]) null);
 	}
 
 	@Test(expected = IllegalArgumentException.class)
@@ -138,24 +143,27 @@ public class EventDispatcherTest {
 
 	@Test(expected = IllegalArgumentException.class)
 	public void addListenerFail6() {
-		dispatcher.addListener(l1, (new Enum<?>[] {}));
+		dispatcher.addListener(l1, new Enum<?>[] { EVENT2, null, EVENT3 });
 	}
 
-	@Test(expected = IllegalArgumentException.class)
-	public void removeListenerForAllTypesFail() {
-		dispatcher.removeListenerForAllTypes(null);
+	@Test
+	public void addListenerToAll() {
+		dispatcher.addListener(l1, new Enum<?>[] {});
+		assertTrue(dispatcher.containsListener(l1, EVENT1));
+		assertTrue(dispatcher.containsListener(l1, EVENT2));
+		assertTrue(dispatcher.containsListener(l1, EVENT3));
 	}
 
 	@Test
 	public void removeListenerForAllTypes() {
 		dispatcher.addListener(l1, EVENT1);
 		dispatcher.addListener(l2, EVENT1, EVENT2);
-		dispatcher.addListener(l3, EVENT1, EVENT2, EVENT3);
+		api.addListener(l3, EVENT1, EVENT2, EVENT3);
 
-		assertTrue(dispatcher.containsListener(l1, EVENT1));
-		assertFalse(dispatcher.containsListener(l1, EVENT2));
-		assertFalse(dispatcher.containsListener(l1, EVENT3));
-		assertFalse(dispatcher.containsListener(l1, OTHER_EVENT1));
+		assertTrue(api.containsListener(l1, EVENT1));
+		assertFalse(api.containsListener(l1, EVENT2));
+		assertFalse(api.containsListener(l1, EVENT3));
+		assertFalse(api.containsListener(l1, OTHER_EVENT1));
 
 		assertTrue(dispatcher.containsListener(l2, EVENT1));
 		assertTrue(dispatcher.containsListener(l2, EVENT2));
@@ -167,13 +175,13 @@ public class EventDispatcherTest {
 		assertTrue(dispatcher.containsListener(l3, EVENT3));
 		assertFalse(dispatcher.containsListener(l3, OTHER_EVENT1));
 
-		dispatcher.removeListenerForAllTypes(l3);
+		api.removeListener(l3, new HashSet<Enum<?>>());
 		assertFalse(dispatcher.containsListener(l3, EVENT1));
 		assertFalse(dispatcher.containsListener(l3, EVENT2));
 		assertFalse(dispatcher.containsListener(l3, EVENT3));
 		assertFalse(dispatcher.containsListener(l3, OTHER_EVENT1));
 
-		dispatcher.removeListenerForAllTypes(l1);
+		dispatcher.removeListener(l1);
 		assertFalse(dispatcher.containsListener(l1, EVENT1));
 		assertFalse(dispatcher.containsListener(l1, EVENT2));
 		assertFalse(dispatcher.containsListener(l1, EVENT3));
@@ -185,7 +193,7 @@ public class EventDispatcherTest {
 		assertFalse(dispatcher.containsListener(l2, EVENT3));
 		assertFalse(dispatcher.containsListener(l2, OTHER_EVENT1));
 
-		dispatcher.removeListenerForAllTypes(new HistoryKeeper());
+		dispatcher.removeListener(new HistoryKeeper());
 	}
 
 	@Test(expected = IllegalArgumentException.class)
@@ -205,12 +213,12 @@ public class EventDispatcherTest {
 
 	@Test(expected = IllegalArgumentException.class)
 	public void removeListenerFail4() {
-		dispatcher.removeListener(null, (Enum<?>[]) null);
+		dispatcher.getEventAPI().removeListener(null, (Set<Enum<?>>) null);
 	}
 
 	@Test(expected = IllegalArgumentException.class)
 	public void removeListenerFail5() {
-		dispatcher.removeListener(l1, (Enum<?>[]) null);
+		dispatcher.getEventAPI().removeListener(l1, (Set<Enum<?>>) null);
 	}
 
 	@Test
@@ -272,7 +280,7 @@ public class EventDispatcherTest {
 	public void removeTest() {
 
 		EventDispatcher disp = new EventDispatcher(EventTypes.values());
-		Events api = disp.getEvents();
+		EventAPI api = disp.getEventAPI();
 
 		assertTrue(disp.listeners.isEmpty());
 		api.addListener(l1, EventTypes.values());

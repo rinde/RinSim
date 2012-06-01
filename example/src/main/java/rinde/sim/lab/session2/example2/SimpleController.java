@@ -17,18 +17,18 @@ import rinde.sim.ui.View;
 import rinde.sim.ui.renderers.ObjectRenderer;
 import rinde.sim.ui.renderers.UiSchema;
 
-public class SimpleController extends ScenarioController{
+public class SimpleController extends ScenarioController {
 
-	//the statistics collector we'll use
+	// the statistics collector we'll use
 	private final StatisticsCollector statistics = new StatisticsCollector();
 	String map;
-	
+
 	private RoadModel roadModel;
-	
+
 	public SimpleController(Scenario scen, int numberOfTicks, String map) throws ConfigurationException {
 		super(scen, numberOfTicks);
 		this.map = map;
-		
+
 		initialize();
 	}
 
@@ -45,9 +45,9 @@ public class SimpleController extends ScenarioController{
 		MersenneTwister rand = new MersenneTwister(123);
 		Simulator s = new Simulator(rand, 10000);
 		s.register(roadModel);
-		return s;	
+		return s;
 	}
-	
+
 	@Override
 	protected boolean createUserInterface() {
 		UiSchema schema = new UiSchema();
@@ -60,11 +60,12 @@ public class SimpleController extends ScenarioController{
 
 	@Override
 	protected boolean handleAddTruck(Event e) {
-		RandomWalkAgent agent = new RandomWalkAgent(7, roadModel.getGraph().getRandomNode(this.getSimulator().getRandomGenerator())); 
+		RandomWalkAgent agent = new RandomWalkAgent(7, roadModel.getGraph().getRandomNode(getSimulator()
+				.getRandomGenerator()));
 		getSimulator().register(agent);
-		//add the statistics collector as listener to the new agent
-		agent.addListener(statistics, RandomWalkAgent.Type.values());
+		// add the statistics collector as listener to the new agent
+		agent.eventAPI.addListener(statistics, RandomWalkAgent.Type.values());
 		return true;
-	}	
+	}
 
 }

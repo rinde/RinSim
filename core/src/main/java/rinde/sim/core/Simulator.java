@@ -18,7 +18,7 @@ import rinde.sim.core.model.Model;
 import rinde.sim.core.model.ModelManager;
 import rinde.sim.event.Event;
 import rinde.sim.event.EventDispatcher;
-import rinde.sim.event.Events;
+import rinde.sim.event.EventAPI;
 
 /**
  * @author Rinde van Lon (rinde.vanlon@cs.kuleuven.be)
@@ -41,7 +41,7 @@ public class Simulator implements SimulatorAPI {
 	protected volatile Set<TickListener> tickListeners;
 
 	private final RandomGenerator rand;
-	public final Events events;
+	public final EventAPI events;
 	protected final EventDispatcher dispatcher;
 	protected final long timeStep;
 	protected volatile boolean isPlaying;
@@ -71,7 +71,7 @@ public class Simulator implements SimulatorAPI {
 		modelManager = new ModelManager();
 
 		dispatcher = new EventDispatcher(EventTypes.STOPPED, EventTypes.STARTED);
-		events = dispatcher.getEvents();
+		events = dispatcher.getEventAPI();
 	}
 
 	public void configure() {

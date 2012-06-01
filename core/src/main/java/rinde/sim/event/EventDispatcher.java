@@ -19,10 +19,10 @@ import com.google.common.collect.Multimap;
  * 
  * @author Rinde van Lon (rinde.vanlon@cs.kuleuven.be)
  */
-public class EventDispatcher {
+public class EventDispatcher implements EventAPI {
 
 	protected final Multimap<Enum<?>, Listener> listeners;
-	protected final Set<Enum<?>> types;
+	protected final Set<Enum<?>> supportedTypes;
 
 	/**
 	 * Creates a new {@link EventDispatcher} instance which is capable of
@@ -34,7 +34,7 @@ public class EventDispatcher {
 	public EventDispatcher(Set<Enum<?>> supportedEventTypes) {
 		checkArgument(supportedEventTypes != null, "event types can not be null");
 		listeners = LinkedHashMultimap.create();
-		types = newHashSet(supportedEventTypes);
+		supportedTypes = newHashSet(supportedEventTypes);
 	}
 
 	/**
@@ -58,7 +58,7 @@ public class EventDispatcher {
 		if (e == null) {
 			throw new IllegalArgumentException("event can not be null");
 		}
-		checkArgument(types.contains(e.getEventType()), "Cannot dispatch an event of type " + e.getEventType()
+		checkArgument(supportedTypes.contains(e.getEventType()), "Cannot dispatch an event of type " + e.getEventType()
 				+ " since it was not registered at this dispatcher.");
 		for (Listener l : listeners.get(e.getEventType())) {
 			l.handleEvent(e);
@@ -66,136 +66,107 @@ public class EventDispatcher {
 	}
 
 	/**
-	 * Adds the specified listener. From now on, the specified listener will be
-	 * notified of events with type <code>eventType</code>.
-	 * @param l The listener, may not be null.
-	 * @param eventType The type of {@link Event}, this must be a type that is
-	 *            supported by this EventDispatcher. May not be null.
+	 * {@inheritDoc}
 	 */
-	public void addListener(Listener l, Enum<?> eventType) {
-		checkArgument(l != null, "listener can not be null");
-		checkArgument(eventType != null, "event type can not be null");
-		checkArgument(types.contains(eventType), "A listener for type " + eventType + " is not allowed");
-		listeners.put(eventType, l);
-	}
-
-	/**
-	 * Adds the specified listener. From now on, the specified listener will be
-	 * notified of events with one of the <code>eventTypes</code>.
-	 * @param l The listener, may not be null.
-	 * @param eventTypes The {@link Event} types, each type but be a type that
-	 *            is supported by this EventDispatcher. May not be null and may
-	 *            not be empty.
-	 */
-	public void addListener(Listener l, Enum<?>... eventTypes) {
+	@Override
+	public void addListener(Listener listener, Enum<?>... eventTypes) {
 		checkArgument(eventTypes != null, "event types can not be null");
-		addListener(l, newHashSet(eventTypes));
+		addListener(listener, newHashSet(eventTypes));
 	}
 
 	/**
-	 * Adds the specified listener. From now on, the specified listener will be
-	 * notified of events with one of the <code>eventTypes</code>.
-	 * @param l The listener, may not be null.
-	 * @param eventTypes The {@link Event} types, each type but be a type that
-	 *            is supported by this EventDispatcher. May not be null and may
-	 *            not be empty.
+	 * {@inheritDoc}
 	 */
-	public void addListener(Listener l, Set<Enum<?>> eventTypes) {
-		checkArgument(l != null, "listener can not be null");
+	@Override
+	public void addListener(Listener listener, Set<Enum<?>> eventTypes) {
+		checkArgument(listener != null, "listener can not be null");
 		if (eventTypes == null) {
 			throw new IllegalArgumentException("event types can not be null");
 		}
-		checkArgument(eventTypes.size() > 0, "A listener has to listen to at least one event type.");
-		for (Enum<?> t : eventTypes) {
-			addListener(l, t);
+		Set<Enum<?>> theTypes = eventTypes.isEmpty() ? supportedTypes : eventTypes;
+		for (Enum<?> eventType : theTypes) {
+			checkArgument(eventType != null, "event type can not be null");
+			checkArgument(supportedTypes.contains(eventType), "A listener for type " + eventType + " is not allowed");
+			listeners.put(eventType, listener);
 		}
 	}
 
 	/**
-	 * Removes the specified listener from all event types it is registered to.
-	 * @param listener The listener to remove, may not be null.
+	 * {@inheritDoc}
 	 */
-	public void removeListenerForAllTypes(Listener listener) {
-		checkArgument(listener != null, "listener can not be null");
-		// store keys in intermediate set to avoid concurrent modifications
-		Set<Enum<?>> keys = new HashSet<Enum<?>>(listeners.keySet());
-		for (Enum<?> eventType : keys) {
-			if (listeners.containsEntry(eventType, listener)) {
-				removeListener(listener, eventType);
-			}
-		}
-	}
-
-	/**
-	 * Removes the specified listener with the specified event type. From now
-	 * on, <code>listener</code> will no longer be notified of new {@link Event}
-	 * s with type <code>eventType</code>.
-	 * @param listener The {@link Listener} to remove.
-	 * @param eventType The event type.
-	 */
-	public void removeListener(Listener listener, Enum<?> eventType) {
-		checkArgument(listener != null, "listener can not be null");
-		checkArgument(eventType != null, "event type can not be null");
-		checkArgument(containsListener(listener, eventType), "The listener " + listener + " for the type " + eventType
-				+ " cannot be removed because it does not exist.");
-		listeners.remove(eventType, listener);
-	}
-
-	/**
-	 * Removes the specified listener with the specified event types. From now
-	 * on, <code>listener</code> will no longer be notified of new {@link Event}
-	 * s with any of <code>eventTypes</code>. If <code>eventTypes</code> is
-	 * empty the listener will be removed using
-	 * {@link #removeListenerForAllTypes(Listener)}.
-	 * @param listener The {@link Listener} to remove.
-	 * @param eventTypes The event types.
-	 */
+	@Override
 	public void removeListener(Listener listener, Enum<?>... eventTypes) {
+		removeListener(listener, newHashSet(eventTypes));
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public void removeListener(Listener listener, Set<Enum<?>> eventTypes) {
 		checkArgument(listener != null, "listener can not be null");
 		if (eventTypes == null) {
 			throw new IllegalArgumentException("event types can not be null");
 		}
-		if (eventTypes.length == 0) {
-			removeListenerForAllTypes(listener);
+
+		if (eventTypes.isEmpty()) {
+			// remove all
+			// store keys in intermediate set to avoid concurrent modifications
+			Set<Enum<?>> keys = new HashSet<Enum<?>>(listeners.keySet());
+			for (Enum<?> eventType : keys) {
+				if (listeners.containsEntry(eventType, listener)) {
+					removeListener(listener, eventType);
+				}
+			}
 		} else {
-			for (Enum<?> e : eventTypes) {
-				removeListener(listener, e);
+			for (Enum<?> eventType : eventTypes) {
+				checkArgument(eventType != null, "event type can not be null");
+				checkArgument(containsListener(listener, eventType), "The listener " + listener + " for the type "
+						+ eventType + " cannot be removed because it does not exist.");
+				listeners.remove(eventType, listener);
 			}
 		}
+
 	}
 
 	/**
-	 * Checks if the specified <code>listener</code> is registered as listening
-	 * to <code>eventType</code>.
-	 * @param listener The listener to check.
-	 * @param eventType The type of event.
-	 * @return <code>true</code> if the listener is listening to
-	 *         <code>eventType</code>, <code>false</code> otherwise.
+	 * {@inheritDoc}
 	 */
+	@Override
 	public boolean containsListener(Listener listener, Enum<?> eventType) {
 		return listeners.containsEntry(eventType, listener);
 	}
 
 	/**
-	 * This method returns an {@link Events} instance which can be made publicly
-	 * available to classes outside the scope of the events. Through this
-	 * instance listeners can be added and removed to this
+	 * This method returns an {@link EventAPI} instance which can be made
+	 * publicly available to classes outside the scope of the events. Through
+	 * this instance listeners can be added and removed to this
 	 * {@link EventDispatcher}.
 	 * @return A wrapper for {@link EventDispatcher}, only shows the methods
-	 *         which should be allowed to be modified outside of the
-	 *         dispatcher's parent.
+	 *         which should be allowed to be called outside of the dispatcher's
+	 *         parent.
 	 */
-	public Events getEvents() {
+	public EventAPI getEventAPI() {
 		final EventDispatcher ref = this;
-		return new Events() {
+		return new EventAPI() {
 			@Override
 			public void addListener(Listener l, Enum<?>... eventTypes) {
 				ref.addListener(l, eventTypes);
 			}
 
 			@Override
+			public void addListener(Listener listener, Set<Enum<?>> eventTypes) {
+				ref.addListener(listener, eventTypes);
+			}
+
+			@Override
 			public void removeListener(Listener l, Enum<?>... eventTypes) {
 				ref.removeListener(l, eventTypes);
+			}
+
+			@Override
+			public void removeListener(Listener listener, Set<Enum<?>> eventTypes) {
+				ref.removeListener(listener, eventTypes);
 			}
 
 			@Override

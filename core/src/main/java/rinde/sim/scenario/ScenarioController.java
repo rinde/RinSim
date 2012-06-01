@@ -13,6 +13,7 @@ import rinde.sim.core.Simulator;
 import rinde.sim.core.TickListener;
 import rinde.sim.event.Event;
 import rinde.sim.event.EventDispatcher;
+import rinde.sim.event.EventAPI;
 import rinde.sim.event.Listener;
 import rinde.sim.event.pdp.StandardType;
 
@@ -64,12 +65,7 @@ public abstract class ScenarioController implements TickListener, Listener {
 			throw new ConfigurationException("scenario cannot be null");
 		}
 		ticks = numberOfTicks;
-		scenario = new Scenario(scen) {
-			@Override
-			public Set<Enum<?>> getPossibleEventTypes() {
-				return scen.getPossibleEventTypes();
-			}
-		};
+		scenario = new Scenario(scen);
 		disp = new EventDispatcher(merge(scenario.getPossibleEventTypes(), Type.values()));
 		disp.addListener(this, scenario.getPossibleEventTypes());
 	}
@@ -124,6 +120,10 @@ public abstract class ScenarioController implements TickListener, Listener {
 		}
 	}
 
+	public EventAPI getEventAPI() {
+		return disp.getEventAPI();
+	}
+
 	/**
 	 * Create simulator that will run the scenario.
 	 * 
@@ -142,34 +142,6 @@ public abstract class ScenarioController implements TickListener, Listener {
 	 */
 	protected boolean createUserInterface() {
 		return false;
-	}
-
-	// TODO remove event related functions and give access to Event API instead
-
-	/**
-	 * Add listener for all possible scenario events and {@link Type#values()}
-	 * @param listener
-	 */
-	public void addListener(Listener listener) {
-		checkArgument(listener != null, "listener can not be null");
-		disp.addListener(listener, merge(scenario.getPossibleEventTypes(), Type.values()));
-	}
-
-	/**
-	 * Add listener for all possible scenario events
-	 * @param l
-	 * @param eventTypes
-	 */
-	public void addListener(Listener l, Enum<?>... eventTypes) {
-		disp.addListener(l, eventTypes);
-	}
-
-	/**
-	 * Remove event listener
-	 * @param l
-	 */
-	public void removeListener(Listener l) {
-		disp.removeListenerForAllTypes(l);
 	}
 
 	public void stop() {

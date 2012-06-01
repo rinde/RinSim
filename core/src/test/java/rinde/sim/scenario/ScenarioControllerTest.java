@@ -60,7 +60,7 @@ public class ScenarioControllerTest {
 		final boolean[] r = new boolean[1];
 		final int[] i = new int[1];
 
-		controller.addListener(new Listener() {
+		controller.getEventAPI().addListener(new Listener() {
 
 			@Override
 			public void handleEvent(Event e) {
@@ -102,7 +102,7 @@ public class ScenarioControllerTest {
 		final boolean[] r = new boolean[1];
 		final int[] i = new int[1];
 
-		controller.addListener(new Listener() {
+		controller.getEventAPI().addListener(new Listener() {
 
 			@Override
 			public void handleEvent(Event e) {

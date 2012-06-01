@@ -23,22 +23,22 @@ import rinde.sim.core.model.communication.CommunicationUser;
 import rinde.sim.core.model.communication.Mailbox;
 import rinde.sim.core.model.communication.Message;
 import rinde.sim.event.Event;
+import rinde.sim.event.EventAPI;
 import rinde.sim.event.EventDispatcher;
-import rinde.sim.event.Events;
-import rinde.sim.event.Listener;
 import rinde.sim.example.rwalk.common.Package;
 
 /**
  * Example of the simple random agent with the use of simulation facilities.
  * @author Bartosz Michalik <bartosz.michalik@cs.kuleuven.be>
  */
-class RandomWalkAgent implements TickListener, MovingRoadUser, SimulatorUser, CommunicationUser, Events {
+class RandomWalkAgent implements TickListener, MovingRoadUser, SimulatorUser, CommunicationUser {
 
 	enum Type {
 		START_SERVICE, FINISHED_SERVICE;
 	}
 
 	private final EventDispatcher disp;
+	public final EventAPI eventAPI;
 
 	public static final String C_BLACK = "color.black";
 	public static final String C_YELLOW = "color.yellow";
@@ -76,6 +76,7 @@ class RandomWalkAgent implements TickListener, MovingRoadUser, SimulatorUser, Co
 	 */
 	public RandomWalkAgent(double speed, int radius, double reliability) {
 		disp = new EventDispatcher(Type.values());
+		eventAPI = disp.getEventAPI();
 		communicatedWith = new HashSet<RandomWalkAgent>();
 		lastCommunicationTime = new HashMap<RandomWalkAgent, Long>();
 		lock = new ReentrantLock();
@@ -207,21 +208,4 @@ class RandomWalkAgent implements TickListener, MovingRoadUser, SimulatorUser, Co
 	public int getNoReceived() {
 		return communications;
 	}
-
-	@Override
-	public void addListener(Listener l, Enum<?>... eventTypes) {
-		disp.addListener(l, eventTypes);
-	}
-
-	@Override
-	public void removeListener(Listener l, Enum<?>... eventTypes) {
-		disp.removeListener(l, eventTypes);
-
-	}
-
-	@Override
-	public boolean containsListener(Listener l, Enum<?> eventType) {
-		return disp.containsListener(l, eventType);
-	}
-
 }
