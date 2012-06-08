@@ -21,7 +21,7 @@ import com.google.common.collect.Table;
  * @author Rinde van Lon (rinde.vanlon@cs.kuleuven.be)
  * 
  */
-public class CachedRoadModel extends RoadModel {
+public class CachedRoadModel extends GraphRoadModel {
 
 	private Table<Point, Point, List<Point>> pathTable;
 

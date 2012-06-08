@@ -23,7 +23,7 @@ import rinde.sim.core.graph.MultiAttributeEdgeData;
 import rinde.sim.core.graph.Point;
 import rinde.sim.core.graph.TestMultimapGraph;
 import rinde.sim.core.graph.TestTableGraph;
-import rinde.sim.core.model.RoadModel.PathProgress;
+import rinde.sim.core.model.AbstractRoadModel.PathProgress;
 import rinde.sim.util.TimeUnit;
 
 /**
@@ -36,8 +36,8 @@ public class SpeedLimitsTest {
 	final double DELTA = 0.00001;
 
 	Class<? extends Graph<MultiAttributeEdgeData>> graphType;
-	Class<? extends RoadModel> roadModelType;
-	RoadModel model;
+	Class<? extends GraphRoadModel> roadModelType;
+	GraphRoadModel model;
 	Queue<Point> path;
 	Point A, B, C, D, E;
 
@@ -56,7 +56,7 @@ public class SpeedLimitsTest {
 	}
 
 	public SpeedLimitsTest(Class<? extends Graph<MultiAttributeEdgeData>> pGraphType,
-			Class<? extends RoadModel> pRoadModelType, double pSpeed) {
+			Class<? extends GraphRoadModel> pRoadModelType, double pSpeed) {
 		graphType = pGraphType;
 		roadModelType = pRoadModelType;
 		speed = pSpeed;
@@ -67,12 +67,13 @@ public class SpeedLimitsTest {
 
 		double five = 5;
 		double twoAndHalf = 2.5;
-		return Arrays.asList(new Object[][] { { TestMultimapGraph.class, RoadModel.class, five },
+		return Arrays.asList(new Object[][] { { TestMultimapGraph.class, GraphRoadModel.class, five },
 				{ TestMultimapGraph.class, CachedRoadModel.class, five },
-				{ TestMultimapGraph.class, RoadModel.class, twoAndHalf },
+				{ TestMultimapGraph.class, GraphRoadModel.class, twoAndHalf },
 				{ TestMultimapGraph.class, CachedRoadModel.class, twoAndHalf },
-				{ TestTableGraph.class, RoadModel.class, five }, { TestTableGraph.class, CachedRoadModel.class, five },
-				{ TestTableGraph.class, RoadModel.class, twoAndHalf },
+				{ TestTableGraph.class, GraphRoadModel.class, five },
+				{ TestTableGraph.class, CachedRoadModel.class, five },
+				{ TestTableGraph.class, GraphRoadModel.class, twoAndHalf },
 				{ TestTableGraph.class, CachedRoadModel.class, twoAndHalf } });
 	}
 
@@ -94,7 +95,7 @@ public class SpeedLimitsTest {
 		graph.addConnection(B, C, new MultiAttributeEdgeData(10, 2.5)); // length
 																		// 10
 																		// speed
-																		// 4
+																		// 2.5
 		graph.addConnection(C, B); // length Math.sqr(10^2 + 10^2)
 		graph.addConnection(B, D, new MultiAttributeEdgeData(10, 10)); // length
 																		// 10
@@ -164,6 +165,8 @@ public class SpeedLimitsTest {
 		}
 
 		assertEquals(3, path.size());
+		// assertTrue(model.getConnection(agent).from.equals(B));
+		// assertTrue(model.getConnection(agent).to.equals(C));
 
 		assertEquals(new Point(0, 10), model.getPosition(agent));
 

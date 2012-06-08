@@ -33,6 +33,8 @@ import com.google.common.collect.Collections2;
  */
 public final class Graphs {
 
+	// TODO move all RoadModel related methods to RoadModel
+
 	private Graphs() {}
 
 	public static <E extends EdgeData> void addPath(Graph<E> g, Point... path) {
@@ -408,6 +410,7 @@ public final class Graphs {
 	 * @return The closest object in <code>rm</code> to <code>pos</code>.
 	 * @see #findClosestObject(Point, RoadModel, Collection)
 	 */
+	@Deprecated
 	public static RoadUser findClosestObject(Point pos, RoadModel rm) {
 		return findClosestObject(pos, rm, RoadUser.class);
 	}
@@ -422,6 +425,7 @@ public final class Graphs {
 	 *         <code>type</code>.
 	 * @see #findClosestObject(Point, RoadModel, Collection)
 	 */
+	@Deprecated
 	public static <T extends RoadUser> T findClosestObject(Point pos, RoadModel rm, final Class<T> type) {
 		return findClosestObject(pos, rm, rm.getObjectsOfType(type));
 	}
@@ -437,6 +441,7 @@ public final class Graphs {
 	 *         satisfies the <code>predicate</code>.
 	 * @see #findClosestObject(Point, RoadModel, Collection)
 	 */
+	@Deprecated
 	public static RoadUser findClosestObject(Point pos, RoadModel rm, Predicate<RoadUser> predicate) {
 		Collection<RoadUser> filtered = Collections2.filter(rm.getObjects(), predicate);
 		return findClosestObject(pos, rm, filtered);
@@ -453,6 +458,7 @@ public final class Graphs {
 	 *         satisfies the <code>predicate</code>.
 	 * @see #findClosestObject(Point, Collection, Function)
 	 */
+	@Deprecated
 	public static <T extends RoadUser> T findClosestObject(Point pos, RoadModel rm, Collection<T> objects) {
 		return findClosestObject(pos, objects, new RoadUserToPositionFunction<T>(rm));
 	}
@@ -507,6 +513,7 @@ public final class Graphs {
 	 *         is ordered such that the closest object appears first. An empty
 	 *         list is returned when <code>objects</code> is empty.
 	 */
+	@Deprecated
 	public static List<RoadUser> findClosestObjects(Point pos, RoadModel rm) {
 		return findClosestObjects(pos, rm, RoadUser.class, Integer.MAX_VALUE);
 	}
@@ -522,6 +529,7 @@ public final class Graphs {
 	 *         is ordered such that the closest object appears first. An empty
 	 *         list is returned when <code>objects</code> is empty.
 	 */
+	@Deprecated
 	public static List<RoadUser> findClosestObjects(Point pos, RoadModel rm, int n) {
 		return findClosestObjects(pos, rm, RoadUser.class, n);
 	}
@@ -540,6 +548,7 @@ public final class Graphs {
 	 *         is ordered such that the closest object appears first. An empty
 	 *         list is returned when <code>objects</code> is empty.
 	 */
+	@Deprecated
 	public static List<RoadUser> findClosestObjects(Point pos, RoadModel rm, Predicate<RoadUser> predicate, int n) {
 		if (rm == null) {
 			throw new IllegalArgumentException("rm can not be null");
@@ -563,6 +572,7 @@ public final class Graphs {
 	 *         is ordered such that the closest object appears first. An empty
 	 *         list is returned when <code>objects</code> is empty.
 	 */
+	@Deprecated
 	public static <T extends RoadUser> List<T> findClosestObjects(Point pos, RoadModel rm, Class<T> type, int n) {
 		if (rm == null) {
 			throw new IllegalArgumentException("rm can not be null");
@@ -582,6 +592,7 @@ public final class Graphs {
 	 *         is ordered such that the closest object appears first. An empty
 	 *         list is returned when <code>objects</code> is empty.
 	 */
+	@Deprecated
 	public static <T extends RoadUser> List<T> findClosestObjects(Point pos, RoadModel rm, Collection<T> objects, int n) {
 		if (rm == null) {
 			throw new IllegalArgumentException("rm can not be null");
@@ -651,6 +662,7 @@ public final class Graphs {
 	 *            <code>position</code> are included.
 	 * @return A collection of {@link RoadUser}s.
 	 */
+	@Deprecated
 	public static Collection<RoadUser> findObjectsWithinRadius(final Point position, final RoadModel model,
 			final double radius) {
 		return Graphs.findObjectsWithinRadius(position, model, radius, model.getObjects());
@@ -667,11 +679,13 @@ public final class Graphs {
 	 * @param type The {@link Class} of the required type.
 	 * @return A collection of type <code>type</code>.
 	 */
+	@Deprecated
 	public static <T extends RoadUser> Collection<T> findObjectsWithinRadius(final Point position,
 			final RoadModel model, final double radius, final Class<T> type) {
 		return findObjectsWithinRadius(position, model, radius, model.getObjectsOfType(type));
 	}
 
+	@Deprecated
 	protected static <T extends RoadUser> Collection<T> findObjectsWithinRadius(final Point position,
 			final RoadModel model, final double radius, Collection<T> objects) {
 		return Collections2.filter(objects, new DistancePredicate(position, model, radius));

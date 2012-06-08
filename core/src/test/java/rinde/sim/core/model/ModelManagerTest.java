@@ -95,18 +95,18 @@ public class ModelManagerTest {
 	@Test(expected = IllegalStateException.class)
 	public void registerModelTooLate() {
 		manager.configure();
-		manager.register(new RoadModel(new MultimapGraph<LengthEdgeData>()));
+		manager.register(new GraphRoadModel(new MultimapGraph<LengthEdgeData>()));
 	}
 
 	@Test(expected = IllegalStateException.class)
 	public void addModelTooLate() {
 		manager.configure();
-		manager.add(new RoadModel(new MultimapGraph<LengthEdgeData>()));
+		manager.add(new GraphRoadModel(new MultimapGraph<LengthEdgeData>()));
 	}
 
 	@Test(expected = RuntimeException.class)
 	public void registerWithBrokenModel() {
-		manager.add(new RoadModel(new MultimapGraph<LengthEdgeData>()));
+		manager.add(new GraphRoadModel(new MultimapGraph<LengthEdgeData>()));
 		manager.add(new BrokenRoadModel(new MultimapGraph<LengthEdgeData>()));
 		manager.configure();
 		manager.register(new RoadUser() {
@@ -129,7 +129,7 @@ public class ModelManagerTest {
 
 	@Test(expected = IllegalArgumentException.class)
 	public void unregisterModel() {
-		manager.unregister(new RoadModel(new MultimapGraph<LengthEdgeData>()));
+		manager.unregister(new GraphRoadModel(new MultimapGraph<LengthEdgeData>()));
 	}
 
 	@Test(expected = IllegalStateException.class)
@@ -139,8 +139,8 @@ public class ModelManagerTest {
 
 	@Test
 	public void unregister() {
-		manager.add(new RoadModel(new MultimapGraph<LengthEdgeData>()));
-		manager.add(new RoadModel(new MultimapGraph<LengthEdgeData>()));
+		manager.add(new GraphRoadModel(new MultimapGraph<LengthEdgeData>()));
+		manager.add(new GraphRoadModel(new MultimapGraph<LengthEdgeData>()));
 		manager.configure();
 		manager.unregister(new RoadUser() {
 			@Override
@@ -150,7 +150,7 @@ public class ModelManagerTest {
 
 	@Test(expected = RuntimeException.class)
 	public void unregisterWithBrokenModel() {
-		manager.add(new RoadModel(new MultimapGraph<LengthEdgeData>()));
+		manager.add(new GraphRoadModel(new MultimapGraph<LengthEdgeData>()));
 		manager.add(new BrokenRoadModel(new MultimapGraph<LengthEdgeData>()));
 		manager.configure();
 		manager.unregister(new RoadUser() {
@@ -312,7 +312,7 @@ public class ModelManagerTest {
 	class InnerObject {}
 }
 
-class BrokenRoadModel extends RoadModel {
+class BrokenRoadModel extends GraphRoadModel {
 	public BrokenRoadModel(Graph<? extends EdgeData> pGraph) {
 		super(pGraph);
 	}

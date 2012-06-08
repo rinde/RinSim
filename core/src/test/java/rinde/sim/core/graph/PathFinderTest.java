@@ -22,9 +22,10 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 
+import rinde.sim.core.model.AbstractRoadModel.PathProgress;
+import rinde.sim.core.model.GraphRoadModel;
 import rinde.sim.core.model.MovingRoadUser;
 import rinde.sim.core.model.RoadModel;
-import rinde.sim.core.model.RoadModel.PathProgress;
 import rinde.sim.core.model.RoadUser;
 import rinde.sim.util.TimeUnit;
 import rinde.sim.util.TrivialRoadUser;
@@ -52,6 +53,7 @@ public class PathFinderTest {
 	private final double EPSILON = 0.02;
 
 	RoadModel rm;
+	Graph<?> graph;
 	Point a, b, c, d, e, f, g;
 
 	RoadUser o1, o2, o3, o4, o5, o6;
@@ -59,8 +61,8 @@ public class PathFinderTest {
 
 	@Before
 	public void setUp() throws InstantiationException, IllegalAccessException {
-		Graph<?> gg = rmType.newInstance();
-		rm = new RoadModel(gg);
+		graph = rmType.newInstance();
+		rm = new GraphRoadModel(graph);
 
 		a = new Point(0, 0);
 		b = new Point(10, 0);
@@ -70,24 +72,24 @@ public class PathFinderTest {
 		f = new Point(8, 20);
 		g = new Point(0, 12);
 
-		gg.addConnection(a, b);
-		gg.addConnection(a, c);
+		graph.addConnection(a, b);
+		graph.addConnection(a, c);
 		// rs.addConnection(a, d);
 
-		gg.addConnection(b, a);
-		gg.addConnection(b, c);
+		graph.addConnection(b, a);
+		graph.addConnection(b, c);
 
-		gg.addConnection(c, d);
-		gg.addConnection(c, e);
+		graph.addConnection(c, d);
+		graph.addConnection(c, e);
 
-		gg.addConnection(d, c);
-		gg.addConnection(d, f);
+		graph.addConnection(d, c);
+		graph.addConnection(d, f);
 
-		gg.addConnection(e, b);
+		graph.addConnection(e, b);
 
-		gg.addConnection(f, g);
+		graph.addConnection(f, g);
 
-		gg.addConnection(g, a);
+		graph.addConnection(g, a);
 
 		o1 = new StringRoadUser("object1");
 		o2 = new StringRoadUser("object2");
@@ -135,27 +137,27 @@ public class PathFinderTest {
 
 	@Test
 	public void shortestDistance() {
-		List<Point> t = Graphs.shortestPathEuclidianDistance(rm.getGraph(), a, d);
+		List<Point> t = Graphs.shortestPathEuclidianDistance(graph, a, d);
 		compatibilityCheck(t);
 		assertEquals(asList(a, c, d), t);
 
-		List<Point> t2 = Graphs.shortestPathEuclidianDistance(rm.getGraph(), d, a);
+		List<Point> t2 = Graphs.shortestPathEuclidianDistance(graph, d, a);
 		compatibilityCheck(t2);
 		assertEquals(asList(d, f, g, a), t2);
 
-		List<Point> t3 = Graphs.shortestPathEuclidianDistance(rm.getGraph(), g, e);
+		List<Point> t3 = Graphs.shortestPathEuclidianDistance(graph, g, e);
 		compatibilityCheck(t3);
 		assertEquals(asList(g, a, c, e), t3);
 
-		List<Point> t4 = Graphs.shortestPathEuclidianDistance(rm.getGraph(), a, e);
+		List<Point> t4 = Graphs.shortestPathEuclidianDistance(graph, a, e);
 		compatibilityCheck(t4);
 		assertEquals(asList(a, c, e), t4);
 
-		List<Point> t5 = Graphs.shortestPathEuclidianDistance(rm.getGraph(), a, c);
+		List<Point> t5 = Graphs.shortestPathEuclidianDistance(graph, a, c);
 		compatibilityCheck(t5);
 		assertEquals(asList(a, c), t5);
 
-		List<Point> t6 = Graphs.shortestPathEuclidianDistance(rm.getGraph(), e, g);
+		List<Point> t6 = Graphs.shortestPathEuclidianDistance(graph, e, g);
 		compatibilityCheck(t6);
 		assertEquals(asList(e, b, c, d, f, g), t6);
 	}
@@ -163,7 +165,7 @@ public class PathFinderTest {
 	@Test(expected = RuntimeException.class)
 	public void impossiblePath() throws InstantiationException, IllegalAccessException {
 		Graph<?> gg = rmType.newInstance();
-		RoadModel roads = new RoadModel(gg);
+		GraphRoadModel roads = new GraphRoadModel(gg);
 		gg.addConnection(a, b);
 		gg.addConnection(b, c);
 
@@ -182,20 +184,20 @@ public class PathFinderTest {
 
 	@Test
 	public void checkRutgerBug() throws InstantiationException, IllegalAccessException {
-		Graph<?> graph = rmType.newInstance();
+		Graph<?> g = rmType.newInstance();
 		Point q = new Point(0, 10);
 		Point r = new Point(10, 15);
 		Point s = new Point(10, 5);
 		Point t = new Point(20, 10);
 
-		graph.addConnection(q, r);
-		graph.addConnection(q, s);
-		graph.addConnection(s, t);
+		g.addConnection(q, r);
+		g.addConnection(q, s);
+		g.addConnection(s, t);
 
 		// DotExporter.saveToDot(graph.getGraph(), "files/test/rutgerbug");
 
 		// this shouldn't fail
-		Graphs.shortestPathEuclidianDistance(graph, q, t);
+		Graphs.shortestPathEuclidianDistance(g, q, t);
 	}
 
 	@Test
