@@ -56,6 +56,8 @@ import com.google.common.collect.Table;
 @RunWith(Parameterized.class)
 public class RoadModelTest {
 
+	// TODO what about negative speeds? and what about negative speed limits?
+
 	static Queue<Point> asPath(Point... points) {
 		return new LinkedList<Point>(Arrays.asList(points));
 	}

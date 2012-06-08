@@ -44,7 +44,8 @@ import rinde.sim.util.TimeFormatter;
  * @author Bartosz Michalik <bartosz.michalik@cs.kuleuven.be>
  * 
  */
-public class SimulationViewer extends Composite implements TickListener, ControlListener, PaintListener, SelectionListener {
+public class SimulationViewer extends Composite implements TickListener, ControlListener, PaintListener,
+		SelectionListener {
 
 	public static final String COLOR_WHITE = "white";
 	public static final String COLOR_GREEN = "green";
@@ -102,8 +103,7 @@ public class SimulationViewer extends Composite implements TickListener, Control
 			@Override
 			public void handleEvent(Event event) {
 				SimulationViewer.this.simulator.stop();
-				while (SimulationViewer.this.simulator.isPlaying()) {
-				}
+				while (SimulationViewer.this.simulator.isPlaying()) {}
 
 				if (!display.isDisposed()) {
 					display.dispose();
@@ -140,7 +140,7 @@ public class SimulationViewer extends Composite implements TickListener, Control
 		size = new org.eclipse.swt.graphics.Point(800, 500);
 		canvas.addPaintListener(this);
 		canvas.addControlListener(this);
-//		canvas.redraw();
+		// canvas.redraw();
 		this.layout();
 
 		timeLabel = new Label(canvas, SWT.NONE);
@@ -332,19 +332,21 @@ public class SimulationViewer extends Composite implements TickListener, Control
 		final GC gc = new GC(img);
 
 		Graph<? extends EdgeData> graph = roadModel.getGraph();
+
 		for (Connection<? extends EdgeData> e : graph.getConnections()) {
 			int x1 = (int) ((e.from.x - minX) * m);
 			int y1 = (int) ((e.from.y - minY) * m);
-			//			gc.setForeground(colorRegistry.get(COLOR_GREEN));
-			//			gc.drawOval(x1 - 2, y1 - 2, 4, 4);
+			// gc.setForeground(colorRegistry.get(COLOR_GREEN));
+			// gc.drawOval(x1 - 2, y1 - 2, 4, 4);
 
 			int x2 = (int) ((e.to.x - minX) * m);
 			int y2 = (int) ((e.to.y - minY) * m);
 			gc.setForeground(colorRegistry.get(COLOR_BLACK));
 			gc.drawLine(x1, y1, x2, y2);
 
-			//			gc.setBackground(colorRegistry.get(COLOR_WHITE));
-			//			gc.drawText(Math.round(e.edgeData.getLength() * 10.0) / 10.0 + "m", (x1 + x2) / 2, (y1 + y2) / 2, false);
+			// gc.setBackground(colorRegistry.get(COLOR_WHITE));
+			// gc.drawText(Math.round(e.edgeData.getLength() * 10.0) / 10.0 +
+			// "m", (x1 + x2) / 2, (y1 + y2) / 2, false);
 		}
 		gc.dispose();
 
@@ -491,7 +493,7 @@ public class SimulationViewer extends Composite implements TickListener, Control
 			return;
 		}
 		display.syncExec(new Runnable() {
-			//			 getDisplay().asyncExec(new Runnable() {
+			// getDisplay().asyncExec(new Runnable() {
 			@Override
 			public void run() {
 				if (!canvas.isDisposed()) {

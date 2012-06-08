@@ -284,7 +284,8 @@ public abstract class ScenarioController implements TickListener, Listener {
 
 	private final void checkSimulator() throws ConfigurationException {
 		if (simulator == null) {
-			throw new ConfigurationException("use createSimulator() to define simulator");
+			throw new ConfigurationException(
+					"use createSimulator() to define simulator and make sure initialize() is called before calling start()");
 		}
 	}
 }

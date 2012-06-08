@@ -609,7 +609,7 @@ public class RoadModel implements Model<RoadUser> {
 	 * Indicates a location somewhere on the graph. This can be either on a
 	 * vertex or an edge.
 	 */
-	class Location {
+	final protected class Location {
 		private static final double DELTA = 0.000001;
 		final Point from;
 		final Point to;
@@ -669,7 +669,7 @@ public class RoadModel implements Model<RoadUser> {
 		}
 	}
 
-	final class MidPoint extends Point {
+	final protected class MidPoint extends Point {
 		private static final long serialVersionUID = -8442184033570204979L;
 		protected final Location loc;
 
