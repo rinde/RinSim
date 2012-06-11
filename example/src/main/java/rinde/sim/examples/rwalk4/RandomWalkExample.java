@@ -17,7 +17,8 @@ import rinde.sim.core.model.road.RoadModel;
 import rinde.sim.serializers.DotGraphSerializer;
 import rinde.sim.serializers.SelfCycleFilter;
 import rinde.sim.ui.View;
-import rinde.sim.ui.renderers.ObjectRenderer;
+import rinde.sim.ui.renderers.RoadsRenderer;
+import rinde.sim.ui.renderers.RoadUserRenderer;
 import rinde.sim.ui.renderers.UiSchema;
 
 /**
@@ -69,7 +70,7 @@ public class RandomWalkExample {
 		schema2.add(RandomWalkAgent.C_YELLOW, new RGB(0xff, 0, 0));
 		schema2.add(RandomWalkAgent.C_GREEN, new RGB(0x0, 0x80, 0));
 
-		View.startGui(simulator, 4, new ObjectRenderer(roadModel, schema, false), new MessagingLayerRenderer(roadModel,
-				schema2));
+		View.startGui(simulator, 4, new RoadsRenderer(), new RoadUserRenderer(schema, false), new MessagingLayerRenderer(
+				roadModel, schema2));
 	}
 }

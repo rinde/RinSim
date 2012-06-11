@@ -21,7 +21,8 @@ import rinde.sim.scenario.ScenarioController;
 import rinde.sim.serializers.DotGraphSerializer;
 import rinde.sim.serializers.SelfCycleFilter;
 import rinde.sim.ui.View;
-import rinde.sim.ui.renderers.ObjectRenderer;
+import rinde.sim.ui.renderers.RoadsRenderer;
+import rinde.sim.ui.renderers.RoadUserRenderer;
 import rinde.sim.ui.renderers.UiSchema;
 
 public class SimpleController extends ScenarioController {
@@ -63,7 +64,7 @@ public class SimpleController extends ScenarioController {
 		schema.add(Package.class, new RGB(255, 0, 0));
 		schema.add(DeliveryLocation.class, new RGB(0, 255, 0));
 
-		View.startGui(getSimulator(), 3, new ObjectRenderer(roadModel, schema, false));
+		View.startGui(getSimulator(), 3, new RoadsRenderer(), new RoadUserRenderer(schema, false));
 
 		return true;
 	}

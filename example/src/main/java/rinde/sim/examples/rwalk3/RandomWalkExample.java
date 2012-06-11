@@ -18,7 +18,8 @@ import rinde.sim.example.rwalk.common.Package;
 import rinde.sim.serializers.DotGraphSerializer;
 import rinde.sim.serializers.SelfCycleFilter;
 import rinde.sim.ui.View;
-import rinde.sim.ui.renderers.ObjectRenderer;
+import rinde.sim.ui.renderers.RoadsRenderer;
+import rinde.sim.ui.renderers.RoadUserRenderer;
 import rinde.sim.ui.renderers.UiSchema;
 
 /**
@@ -47,6 +48,7 @@ public class RandomWalkExample {
 
 		simulator.configure();
 
+		// FIXME never use java.util.Random!!
 		Random r = new Random(1317);
 		for (int i = 0; i < 100; i++) {
 
@@ -63,6 +65,6 @@ public class RandomWalkExample {
 		schema.add(Package.class, new RGB(0x0, 0x0, 0xFF));
 
 		// View.setTestingMode(true);
-		View.startGui(simulator, 5, new ObjectRenderer(roadModel, schema, false));
+		View.startGui(simulator, 5, new RoadsRenderer(20), new RoadUserRenderer(schema, false));
 	}
 }

@@ -13,7 +13,8 @@ import rinde.sim.lab.common.Flag;
 import rinde.sim.serializers.DotGraphSerializer;
 import rinde.sim.serializers.SelfCycleFilter;
 import rinde.sim.ui.View;
-import rinde.sim.ui.renderers.ObjectRenderer;
+import rinde.sim.ui.renderers.RoadsRenderer;
+import rinde.sim.ui.renderers.RoadUserRenderer;
 import rinde.sim.ui.renderers.UiSchema;
 
 /**
@@ -47,6 +48,6 @@ public class CatchTheFlag {
 		schema.add(DepotAgent.class, new RGB(0, 0, 255));
 		schema.add(Flag.class, "/graphics/flag.png");
 
-		View.startGui(simulator, 5, new ObjectRenderer(roadModel, schema, false));
+		View.startGui(simulator, 5, new RoadsRenderer(), new RoadUserRenderer(schema, false));
 	}
 }

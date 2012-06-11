@@ -1,5 +1,6 @@
 package rinde.sim.ui;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
@@ -29,14 +30,16 @@ import org.eclipse.swt.widgets.Shell;
 
 import rinde.sim.core.Simulator;
 import rinde.sim.core.TickListener;
-import rinde.sim.core.graph.Connection;
-import rinde.sim.core.graph.EdgeData;
-import rinde.sim.core.graph.Graph;
 import rinde.sim.core.graph.Point;
 import rinde.sim.core.model.Model;
-import rinde.sim.core.model.road.RoadModel;
+import rinde.sim.ui.renderers.ModelRenderer;
 import rinde.sim.ui.renderers.Renderer;
+import rinde.sim.ui.renderers.ViewPort;
+import rinde.sim.ui.renderers.ViewRect;
 import rinde.sim.util.TimeFormatter;
+
+import com.google.common.collect.LinkedHashMultimap;
+import com.google.common.collect.Multimap;
 
 /**
  * Simulation viewer.
@@ -62,7 +65,6 @@ public class SimulationViewer extends Composite implements TickListener, Control
 	protected Image image;
 
 	private Simulator simulator;
-	private RoadModel roadModel;
 	private ColorRegistry colorRegistry;
 
 	/** model renderers */
@@ -76,17 +78,28 @@ public class SimulationViewer extends Composite implements TickListener, Control
 
 	boolean firstTime = true;
 
-	private double minX;
-	private double minY;
+	ViewRect viewRect;
+
+	// private double minX;
+	// private double minY;
 	protected double m;// multiplier
-	private double deltaX;
-	private double deltaY;
+	// // private double deltaX;
+	// private double deltaY;
 	private int zoomRatio;
 
 	private final Display display;
 
+	private final Multimap<Class<? extends Object>, ModelRenderer<?>> renderRegistry;
+
 	public SimulationViewer(Shell shell, Simulator simulator, int speedUp, Renderer... renderers) {
 		super(shell, SWT.NONE);
+
+		renderRegistry = LinkedHashMultimap.create();
+		for (Renderer r : renderers) {
+			if (r instanceof ModelRenderer<?>) {
+				renderRegistry.put(((ModelRenderer<?>) r).getSupportedModelType(), (ModelRenderer<?>) r);
+			}
+		}
 
 		this.renderers = renderers;
 		this.speedUp = speedUp;
@@ -118,15 +131,23 @@ public class SimulationViewer extends Composite implements TickListener, Control
 		this.simulator = simulator;
 
 		List<Model<?>> models = simulator.getModels();
-		for (Model<?> m : models) {
-			// FIXME ugly hack for now
-			if (m instanceof RoadModel) {
-				roadModel = (RoadModel) m;
-				break;
-			}
+		for (Model<?> model : models) {
+			registerModel(model);
 		}
 
 		this.simulator.addTickListener(this);
+	}
+
+	protected <T extends Model<?>> void registerModel(T model) {
+		Set<Class<?>> rendererSupportedTypes = renderRegistry.keySet();
+		for (Class<?> rendererSupportedType : rendererSupportedTypes) {
+			if (rendererSupportedType.isAssignableFrom(model.getClass())) {
+				Collection<ModelRenderer<?>> assignableModels = renderRegistry.get(rendererSupportedType);
+				for (ModelRenderer<?> modelRenderer : assignableModels) {
+					((ModelRenderer<T>) modelRenderer).register(model);
+				}
+			}
+		}
 	}
 
 	/**
@@ -291,8 +312,8 @@ public class SimulationViewer extends Composite implements TickListener, Control
 			if (zoomRatio == 16) {
 				return;
 			}
-			origin.x -= m * deltaX / 2;
-			origin.y -= m * deltaY / 2;
+			origin.x -= m * viewRect.width / 2;
+			origin.y -= m * viewRect.height / 2;
 			m *= 2;
 			zoomRatio <<= 1;
 		} else {
@@ -300,8 +321,8 @@ public class SimulationViewer extends Composite implements TickListener, Control
 				return;
 			}
 			m /= 2;
-			origin.x += m * deltaX / 2;
-			origin.y += m * deltaY / 2;
+			origin.x += m * viewRect.width / 2;
+			origin.y += m * viewRect.height / 2;
 			zoomRatio >>= 1;
 		}
 		if (image != null) {
@@ -327,27 +348,32 @@ public class SimulationViewer extends Composite implements TickListener, Control
 	}
 
 	public Image drawRoads() {
-		size = new org.eclipse.swt.graphics.Point((int) (m * deltaX), (int) (m * deltaY));
+		size = new org.eclipse.swt.graphics.Point((int) (m * viewRect.width), (int) (m * viewRect.height));
 		final Image img = new Image(getDisplay(), size.x + 10, size.y + 10);
 		final GC gc = new GC(img);
 
-		Graph<? extends EdgeData> graph = roadModel.getGraph();
-
-		for (Connection<? extends EdgeData> e : graph.getConnections()) {
-			int x1 = (int) ((e.from.x - minX) * m);
-			int y1 = (int) ((e.from.y - minY) * m);
-			// gc.setForeground(colorRegistry.get(COLOR_GREEN));
-			// gc.drawOval(x1 - 2, y1 - 2, 4, 4);
-
-			int x2 = (int) ((e.to.x - minX) * m);
-			int y2 = (int) ((e.to.y - minY) * m);
-			gc.setForeground(colorRegistry.get(COLOR_BLACK));
-			gc.drawLine(x1, y1, x2, y2);
-
-			// gc.setBackground(colorRegistry.get(COLOR_WHITE));
-			// gc.drawText(Math.round(e.edgeData.getLength() * 10.0) / 10.0 +
-			// "m", (x1 + x2) / 2, (y1 + y2) / 2, false);
+		for (Renderer r : renderers) {
+			r.renderStatic(gc, new ViewPort(new Point(origin.x, origin.y), viewRect, m, colorRegistry));
 		}
+
+		//
+		// Graph<? extends EdgeData> graph = roadModel.getGraph();
+		//
+		// for (Connection<? extends EdgeData> e : graph.getConnections()) {
+		// int x1 = (int) ((e.from.x - minX) * m);
+		// int y1 = (int) ((e.from.y - minY) * m);
+		// // gc.setForeground(colorRegistry.get(COLOR_GREEN));
+		// // gc.drawOval(x1 - 2, y1 - 2, 4, 4);
+		//
+		// int x2 = (int) ((e.to.x - minX) * m);
+		// int y2 = (int) ((e.to.y - minY) * m);
+		// gc.setForeground(colorRegistry.get(COLOR_BLACK));
+		// gc.drawLine(x1, y1, x2, y2);
+		//
+		// // gc.setBackground(colorRegistry.get(COLOR_WHITE));
+		// // gc.drawText(Math.round(e.edgeData.getLength() * 10.0) / 10.0 +
+		// // "m", (x1 + x2) / 2, (y1 + y2) / 2, false);
+		// }
 		gc.dispose();
 
 		return img;
@@ -381,7 +407,8 @@ public class SimulationViewer extends Composite implements TickListener, Control
 		}
 
 		for (Renderer renderer : renderers) {
-			renderer.render(gc, origin.x, origin.y, minX, minY, m);
+			renderer.renderDynamic(gc, new ViewPort(new Point(origin.x, origin.y), viewRect, m, colorRegistry));
+			// renderer.render(gc, origin.x, origin.y, minX, minY, m);
 		}
 	}
 
@@ -416,30 +443,33 @@ public class SimulationViewer extends Composite implements TickListener, Control
 	}
 
 	private void calculateSizes() {
-		Set<Point> nodes = roadModel.getGraph().getNodes();
 
-		minX = Double.POSITIVE_INFINITY;
+		double minX = Double.POSITIVE_INFINITY;
 		double maxX = Double.NEGATIVE_INFINITY;
-		minY = Double.POSITIVE_INFINITY;
+		double minY = Double.POSITIVE_INFINITY;
 		double maxY = Double.NEGATIVE_INFINITY;
-
-		for (Point p : nodes) {
-			minX = Math.min(minX, p.x);
-			maxX = Math.max(maxX, p.x);
-			minY = Math.min(minY, p.y);
-			maxY = Math.max(maxY, p.y);
+		for (Renderer r : renderers) {
+			ViewRect rect = r.getViewRect();
+			if (rect != null) {
+				minX = Math.min(minX, rect.min.x);
+				maxX = Math.max(maxX, rect.max.x);
+				minY = Math.min(minY, rect.min.y);
+				maxY = Math.max(maxY, rect.max.y);
+			}
 		}
 
-		deltaX = maxX - minX;
-		deltaY = maxY - minY;
+		viewRect = new ViewRect(new Point(minX, minY), new Point(maxX, maxY));
+
+		// deltaX = maxX - minX;
+		// deltaY = maxY - minY;
 
 		// System.out.println(deltaX + " " + deltaY);
 
 		Rectangle area = canvas.getClientArea();
-		if (deltaX > deltaY) {
-			m = area.width / deltaX;
+		if (viewRect.width > viewRect.height) {
+			m = area.width / viewRect.width;
 		} else {
-			m = area.height / deltaY;
+			m = area.height / viewRect.height;
 		}
 		zoomRatio = 1;
 

@@ -18,6 +18,13 @@ public interface Renderer {
 	 * @param minY
 	 * @param scale
 	 */
-	void render(GC gc, double xOrigin, double yOrigin, double minX, double minY, double scale);
+	// void render(GC gc, double xOrigin, double yOrigin, double minX, double
+	// minY, double scale);
+
+	void renderStatic(GC gc, ViewPort vp);
+
+	void renderDynamic(GC gc, ViewPort vp);
+
+	ViewRect getViewRect();
 
 }

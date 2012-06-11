@@ -12,7 +12,8 @@ import rinde.sim.lab.common.Package;
 import rinde.sim.serializers.DotGraphSerializer;
 import rinde.sim.serializers.SelfCycleFilter;
 import rinde.sim.ui.View;
-import rinde.sim.ui.renderers.ObjectRenderer;
+import rinde.sim.ui.renderers.RoadsRenderer;
+import rinde.sim.ui.renderers.RoadUserRenderer;
 import rinde.sim.ui.renderers.UiSchema;
 
 /**
@@ -49,6 +50,6 @@ public class Example {
 		// schema.add(Package.class, "/graphics/order.png");
 
 		// start a gui with the simple objects renderer
-		View.startGui(simulator, 5, new ObjectRenderer(roadModel, schema, false));
+		View.startGui(simulator, 5, new RoadsRenderer(), new RoadUserRenderer(schema, false));
 	}
 }
