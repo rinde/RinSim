@@ -68,10 +68,6 @@ public class GraphRoadModel extends AbstractRoadModel<Loc> {
 	public PathProgress followPath(MovingRoadUser object, Queue<Point> path, long time) {
 		checkArgument(object != null, "object cannot be null");
 		checkArgument(objLocs.containsKey(object), "object must have a location");
-		if (path == null) {// to avoid warnings about potential null pointers we
-							// use the old fashioned way
-			throw new IllegalArgumentException("path can not be null");
-		}
 		checkArgument(path.peek() != null, "path can not be empty");
 		checkArgument(time > 0, "time must be a positive number");
 

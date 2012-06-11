@@ -19,6 +19,7 @@ import java.util.Map.Entry;
 import java.util.Queue;
 import java.util.Set;
 
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -33,6 +34,7 @@ import com.google.common.collect.Table;
 
 /**
  * @author Rinde van Lon (rinde.vanlon@cs.kuleuven.be)
+ * @param <T> the type of RoadModel to test
  * 
  */
 public abstract class AbstractRoadModelTest<T extends RoadModel> {
@@ -46,6 +48,21 @@ public abstract class AbstractRoadModelTest<T extends RoadModel> {
 	protected Point SE;
 	protected Point NE;
 	protected Point NW;
+
+	/**
+	 * must instantiate model and points
+	 * @throws Exception any exception
+	 */
+	@Before
+	public void setUpPoints() throws Exception {
+		SW = new Point(0, 0);
+		SE = new Point(10, 0);
+		NE = new Point(10, 10);
+		NW = new Point(0, 10);
+		setUp();
+	}
+
+	public abstract void setUp() throws Exception;
 
 	@BeforeClass
 	public static void assertionCheck() {
@@ -108,6 +125,27 @@ public abstract class AbstractRoadModelTest<T extends RoadModel> {
 		assertFalse(model.unregister(driver));
 		model.addObjectAt(driver, SW);
 		assertTrue(model.unregister(driver));
+	}
+
+	@Test(expected = NullPointerException.class)
+	public void followPathFailPath1() {
+		TestRoadUser testRoadUser = new TestRoadUser();
+		model.addObjectAt(testRoadUser, SW);
+		model.followPath(testRoadUser, null, 0);
+	}
+
+	@Test(expected = IllegalArgumentException.class)
+	public void followPathFailPath2() {
+		TestRoadUser testRoadUser = new TestRoadUser();
+		model.addObjectAt(testRoadUser, SW);
+		model.followPath(testRoadUser, new LinkedList<Point>(), 0);
+	}
+
+	@Test(expected = IllegalArgumentException.class)
+	public void followPathFailTime() {
+		TestRoadUser testRoadUser = new TestRoadUser();
+		model.addObjectAt(testRoadUser, SW);
+		model.followPath(testRoadUser, new LinkedList<Point>(Arrays.asList(SW)), 0);
 	}
 
 	@Test
@@ -192,15 +230,6 @@ public abstract class AbstractRoadModelTest<T extends RoadModel> {
 	@Test(expected = IllegalArgumentException.class)
 	public void getObjectsAtFail2() {
 		model.getObjectsAt(new TestRoadUser(), null);
-	}
-
-	@Test(expected = IllegalArgumentException.class)
-	public void addTruckTest() {
-		RoadUser agent1 = new TestRoadUser();
-		RoadUser agent2 = new TestRoadUser();
-		model.addObjectAt(agent1, new Point(0, 0));
-		model.addObjectAt(agent2, new Point(1, 0));// this location is not a
-													// crossroad
 	}
 
 	@Test(expected = IllegalArgumentException.class)

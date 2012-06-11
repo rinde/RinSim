@@ -65,17 +65,12 @@ public class GraphRoadModelTest extends AbstractRoadModelTest<GraphRoadModel> {
 				{ TestTableGraph.class, CachedRoadModel.class } });
 	}
 
+	@Override
 	@Before
 	public void setUp() throws InstantiationException, IllegalAccessException, IllegalArgumentException,
 			SecurityException, InvocationTargetException, NoSuchMethodException {
-
 		graph = (graphType.newInstance());
 		model = roadModelType.getConstructor(Graph.class).newInstance(graph);
-
-		SW = new Point(0, 0);
-		SE = new Point(10, 0);
-		NE = new Point(10, 10);
-		NW = new Point(0, 10);
 
 		graph.addConnection(SW, SE);
 		graph.addConnection(SE, NE);
@@ -287,27 +282,6 @@ public class GraphRoadModelTest extends AbstractRoadModelTest<GraphRoadModel> {
 	@Test(expected = IllegalArgumentException.class)
 	public void followPathFailObject2() {
 		model.followPath(new TestRoadUser(), null, 0);
-	}
-
-	@Test(expected = IllegalArgumentException.class)
-	public void followPathFailPath1() {
-		TestRoadUser testRoadUser = new TestRoadUser();
-		model.addObjectAt(testRoadUser, SW);
-		model.followPath(testRoadUser, null, 0);
-	}
-
-	@Test(expected = IllegalArgumentException.class)
-	public void followPathFailPath2() {
-		TestRoadUser testRoadUser = new TestRoadUser();
-		model.addObjectAt(testRoadUser, SW);
-		model.followPath(testRoadUser, new LinkedList<Point>(), 0);
-	}
-
-	@Test(expected = IllegalArgumentException.class)
-	public void followPathFailTime() {
-		TestRoadUser testRoadUser = new TestRoadUser();
-		model.addObjectAt(testRoadUser, SW);
-		model.followPath(testRoadUser, new LinkedList<Point>(Arrays.asList(SW)), 0);
 	}
 
 	@Test(expected = IllegalArgumentException.class)
@@ -711,6 +685,15 @@ public class GraphRoadModelTest extends AbstractRoadModelTest<GraphRoadModel> {
 		assertEquals(g, rm.getGraph());
 		g.addConnection(NE, NW);
 		assertEquals(g, rm.getGraph());
+	}
+
+	@Test(expected = IllegalArgumentException.class)
+	public void addTruckTest() {
+		RoadUser agent1 = new TestRoadUser();
+		RoadUser agent2 = new TestRoadUser();
+		model.addObjectAt(agent1, new Point(0, 0));
+		model.addObjectAt(agent2, new Point(1, 0));// this location is not a
+													// crossroad
 	}
 
 	// @Test
