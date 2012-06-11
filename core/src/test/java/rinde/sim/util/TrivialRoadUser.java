@@ -1,7 +1,7 @@
 package rinde.sim.util;
 
-import rinde.sim.core.model.MovingRoadUser;
-import rinde.sim.core.model.RoadModel;
+import rinde.sim.core.model.road.MovingRoadUser;
+import rinde.sim.core.model.road.RoadModel;
 
 /**
  * 

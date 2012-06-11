@@ -1,7 +1,7 @@
 /**
  * 
  */
-package rinde.sim.core.model;
+package rinde.sim.core.model.road;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
@@ -23,6 +23,7 @@ import com.google.common.base.Predicate;
 import com.google.common.collect.Sets;
 
 /**
+ * TODO update this doc, it is outdated<br/>
  * The RoadModel is a model that manages a fleet of vehicles ({@link RoadUser}s)
  * on top of a {@link Graph}. Its responsibilities are:
  * <ul>
@@ -35,6 +36,7 @@ import com.google.common.collect.Sets;
  * @author Rinde van Lon (rinde.vanlon@cs.kuleuven.be)
  * @author Bartosz Michalik <bartosz.michalik@cs.kuleuven.be> changes wrt.
  *         models infrastructure
+ * @param <T> The type of object that is stored in the model
  */
 public abstract class AbstractRoadModel<T> implements RoadModel {
 
@@ -341,41 +343,6 @@ public abstract class AbstractRoadModel<T> implements RoadModel {
 	@Override
 	public Class<RoadUser> getSupportedType() {
 		return RoadUser.class;
-	}
-
-	/**
-	 * Represents the distance traveled and time spend in
-	 * {@link RoadModel#followPath(MovingRoadUser, Queue, long)}
-	 * @author Bartosz Michalik <bartosz.michalik@cs.kuleuven.be>
-	 * @since 2.0
-	 */
-	public static final class PathProgress {
-		/**
-		 * distance traveled in the
-		 * {@link RoadModel#followPath(MovingRoadUser, Queue, long)}
-		 */
-		public final double distance;
-		/**
-		 * time spend on traveling the distance
-		 */
-		public final long time;
-
-		public final List<Point> travelledNodes;
-
-		public PathProgress(double dist, long pTime, List<Point> pTravelledNodes) {
-			checkArgument(dist >= 0, "distance must be greater than or equal to 0");
-			checkArgument(pTime >= 0, "time must be greather than or equal to 0");
-			checkArgument(pTravelledNodes != null, "travelledNodes can not be null");
-			distance = dist;
-			time = pTime;
-			travelledNodes = pTravelledNodes;
-		}
-
-		@Override
-		public String toString() {
-			return new StringBuilder().append("{PathProgress distance:").append(distance).append(" time:").append(time)
-					.append(" travelledNodes:").append(travelledNodes).append("}").toString();
-		}
 	}
 
 }

@@ -8,12 +8,12 @@ import org.slf4j.LoggerFactory;
 import rinde.sim.core.Simulator;
 import rinde.sim.core.TickListener;
 import rinde.sim.core.graph.Point;
-import rinde.sim.core.model.RoadModel;
-import rinde.sim.core.model.RoadUser;
 import rinde.sim.core.model.communication.CommunicationAPI;
 import rinde.sim.core.model.communication.CommunicationUser;
 import rinde.sim.core.model.communication.Mailbox;
 import rinde.sim.core.model.communication.Message;
+import rinde.sim.core.model.road.RoadModel;
+import rinde.sim.core.model.road.RoadUser;
 import rinde.sim.lab.common.SimpleMessage;
 
 public class DepotAgent implements TickListener, RoadUser, CommunicationUser {

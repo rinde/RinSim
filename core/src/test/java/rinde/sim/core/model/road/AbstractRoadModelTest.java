@@ -1,7 +1,7 @@
 /**
  * 
  */
-package rinde.sim.core.model;
+package rinde.sim.core.model.road;
 
 import static java.util.Arrays.asList;
 import static org.junit.Assert.assertEquals;
@@ -23,7 +23,6 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import rinde.sim.core.graph.Point;
-import rinde.sim.core.model.AbstractRoadModel.PathProgress;
 import rinde.sim.util.SpeedConverter;
 import rinde.sim.util.TrivialRoadUser;
 

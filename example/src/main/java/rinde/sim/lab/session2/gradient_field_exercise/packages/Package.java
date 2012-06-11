@@ -3,8 +3,8 @@ package rinde.sim.lab.session2.gradient_field_exercise.packages;
 import rinde.sim.core.SimulatorAPI;
 import rinde.sim.core.SimulatorUser;
 import rinde.sim.core.graph.Point;
-import rinde.sim.core.model.RoadModel;
-import rinde.sim.core.model.RoadUser;
+import rinde.sim.core.model.road.RoadModel;
+import rinde.sim.core.model.road.RoadUser;
 
 public class Package implements SimulatorUser, RoadUser{
 	public final String packageID;

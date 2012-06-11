@@ -8,9 +8,10 @@ import org.eclipse.swt.graphics.RGB;
 import rinde.sim.core.Simulator;
 import rinde.sim.core.graph.Graph;
 import rinde.sim.core.graph.MultiAttributeEdgeData;
-import rinde.sim.core.model.RoadModel;
 import rinde.sim.core.model.communication.CommunicationModel;
 import rinde.sim.core.model.communication.CommunicationModel2;
+import rinde.sim.core.model.road.GraphRoadModel;
+import rinde.sim.core.model.road.RoadModel;
 import rinde.sim.event.Event;
 import rinde.sim.scenario.ConfigurationException;
 import rinde.sim.scenario.Scenario;
@@ -58,7 +59,7 @@ public class SimpleController extends ScenarioController {
 			// not the smartest error handling
 			throw new ConfigurationException("e:", e);
 		}
-		roadModel = new RoadModel(graph);
+		roadModel = new GraphRoadModel(graph);
 
 		MersenneTwister rand = new MersenneTwister(123);
 		Simulator s = new Simulator(rand, 10000);

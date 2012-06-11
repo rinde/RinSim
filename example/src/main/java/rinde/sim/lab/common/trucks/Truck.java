@@ -7,9 +7,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import rinde.sim.core.graph.Point;
-import rinde.sim.core.model.MovingRoadUser;
-import rinde.sim.core.model.RoadModel;
-import rinde.sim.core.model.RoadModel.PathProgress;
+import rinde.sim.core.model.road.MovingRoadUser;
+import rinde.sim.core.model.road.PathProgress;
+import rinde.sim.core.model.road.RoadModel;
 import rinde.sim.lab.common.packages.Package;
 
 public class Truck implements MovingRoadUser {

@@ -5,7 +5,7 @@ import java.util.Set;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.GC;
 import rinde.sim.core.graph.Point;
-import rinde.sim.core.model.RoadModel;
+import rinde.sim.core.model.road.RoadModel;
 import rinde.sim.ui.renderers.Renderer;
 import rinde.sim.ui.renderers.UiSchema;
 

@@ -18,8 +18,8 @@ import java.util.TreeMap;
 
 import org.apache.commons.math.random.RandomGenerator;
 
-import rinde.sim.core.model.RoadModel;
-import rinde.sim.core.model.RoadUser;
+import rinde.sim.core.model.road.RoadModel;
+import rinde.sim.core.model.road.RoadUser;
 
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;

@@ -1,7 +1,7 @@
 /**
  * 
  */
-package rinde.sim.core.model;
+package rinde.sim.core.model.road;
 
 import java.util.Collection;
 import java.util.List;
@@ -9,8 +9,10 @@ import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
 
+import org.apache.commons.math.random.RandomGenerator;
+
 import rinde.sim.core.graph.Point;
-import rinde.sim.core.model.AbstractRoadModel.PathProgress;
+import rinde.sim.core.model.Model;
 
 import com.google.common.base.Predicate;
 
@@ -97,6 +99,8 @@ public interface RoadModel extends Model<RoadUser> {
 	 *         <code>obj</code> object.
 	 */
 	Point getPosition(RoadUser roadUser);
+
+	Point getRandomPosition(RandomGenerator rnd);
 
 	/**
 	 * This method returns a collection of {@link Point} objects which are the

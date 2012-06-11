@@ -1,7 +1,7 @@
 /**
  * 
  */
-package rinde.sim.core.model;
+package rinde.sim.core.model.road;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static rinde.sim.core.graph.Graphs.shortestPathEuclidianDistance;
@@ -11,12 +11,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Queue;
 
+import org.apache.commons.math.random.RandomGenerator;
+
 import rinde.sim.core.graph.Connection;
 import rinde.sim.core.graph.EdgeData;
 import rinde.sim.core.graph.Graph;
 import rinde.sim.core.graph.MultiAttributeEdgeData;
 import rinde.sim.core.graph.Point;
-import rinde.sim.core.model.GraphRoadModel.Loc;
+import rinde.sim.core.model.road.GraphRoadModel.Loc;
 import rinde.sim.util.SpeedConverter;
 import rinde.sim.util.TimeUnit;
 
@@ -167,7 +169,9 @@ public class GraphRoadModel extends AbstractRoadModel<Loc> {
 		if (from == null) {
 			throw new IllegalArgumentException("from can not be null");
 		}
-		checkArgument(to != null, "to can not be null");
+		if (to == null) {
+			throw new IllegalArgumentException("to can not be null");
+		}
 		if (from.equals(to)) {
 			return 0;
 		}
@@ -268,8 +272,12 @@ public class GraphRoadModel extends AbstractRoadModel<Loc> {
 
 	@Override
 	public List<Point> getShortestPathTo(Point from, Point to) {
-		checkArgument(from != null, "from can not be null");
-		checkArgument(to != null, "to can not be null");
+		if (from == null) {
+			throw new IllegalArgumentException("from can not be null");
+		}
+		if (to == null) {
+			throw new IllegalArgumentException("to can not be null");
+		}
 		List<Point> path = new ArrayList<Point>();
 		Point start = from;
 		if (isMidPoint(from)) {
@@ -308,7 +316,7 @@ public class GraphRoadModel extends AbstractRoadModel<Loc> {
 	 */
 	public Connection<? extends EdgeData> getConnection(RoadUser obj) {
 		Loc point = objLocs.get(obj);
-		if (point != null && point.isEdgePoint()) {
+		if (isMidPoint(point)) {
 			return graph.getConnection(point.conn.from, point.conn.to);
 		}
 		return null;
@@ -381,14 +389,18 @@ public class GraphRoadModel extends AbstractRoadModel<Loc> {
 	// }
 	// }
 
+	@SuppressWarnings("synthetic-access")
 	protected static Loc newLoc(Point p) {
 		return new Loc(p.x, p.y, null, -1, 0);
 	}
 
 	protected static final double DELTA = 0.000001;
 
+	@SuppressWarnings("synthetic-access")
 	protected static Loc newLoc(Connection<? extends EdgeData> conn, double relativePos) {
-		checkArgument(conn != null);
+		if (conn == null) {
+			throw new IllegalArgumentException("conn can not be null");
+		}
 		Point diff = Point.diff(conn.to, conn.from);
 		double roadLength = getConnectionLength(conn);
 
@@ -400,6 +412,10 @@ public class GraphRoadModel extends AbstractRoadModel<Loc> {
 	}
 
 	final protected static class Loc extends Point {
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = 7070585967590832300L;
 		public final double roadLength;
 		public final double relativePos;
 		public final Connection<? extends EdgeData> conn;
@@ -411,9 +427,6 @@ public class GraphRoadModel extends AbstractRoadModel<Loc> {
 			conn = pConn;
 		}
 
-		/**
-		 * @return
-		 */
 		public boolean isEdgePoint() {
 			return conn != null;
 		}
@@ -450,6 +463,17 @@ public class GraphRoadModel extends AbstractRoadModel<Loc> {
 	@Override
 	protected Loc point2LocObj(Point point) {
 		return newLoc(point);
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see
+	 * rinde.sim.core.model.road.RoadModel#getRandomPosition(org.apache.commons
+	 * .math.random.RandomGenerator)
+	 */
+	@Override
+	public Point getRandomPosition(RandomGenerator rnd) {
+		return graph.getRandomNode(rnd);
 	}
 
 	// final protected class MidPoint extends Point {

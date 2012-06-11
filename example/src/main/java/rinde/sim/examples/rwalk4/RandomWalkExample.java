@@ -11,8 +11,9 @@ import org.eclipse.swt.graphics.RGB;
 import rinde.sim.core.Simulator;
 import rinde.sim.core.graph.Graph;
 import rinde.sim.core.graph.LengthEdgeData;
-import rinde.sim.core.model.RoadModel;
 import rinde.sim.core.model.communication.CommunicationModel;
+import rinde.sim.core.model.road.GraphRoadModel;
+import rinde.sim.core.model.road.RoadModel;
 import rinde.sim.serializers.DotGraphSerializer;
 import rinde.sim.serializers.SelfCycleFilter;
 import rinde.sim.ui.View;
@@ -36,7 +37,7 @@ public class RandomWalkExample {
 		// Graph<LengthEdgeData> graph =
 		// DotGraphSerializer.getLengthGraphSerializer(new
 		// SelfCycleFilter()).read("files/brussels.dot");
-		RoadModel roadModel = new RoadModel(graph);
+		RoadModel roadModel = new GraphRoadModel(graph);
 
 		// XXX [bm] to be decided either Communication model have RG as a
 		// constructor parameter or implements Simulator user interface

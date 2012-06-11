@@ -34,7 +34,7 @@ import rinde.sim.core.graph.EdgeData;
 import rinde.sim.core.graph.Graph;
 import rinde.sim.core.graph.Point;
 import rinde.sim.core.model.Model;
-import rinde.sim.core.model.RoadModel;
+import rinde.sim.core.model.road.RoadModel;
 import rinde.sim.ui.renderers.Renderer;
 import rinde.sim.util.TimeFormatter;
 

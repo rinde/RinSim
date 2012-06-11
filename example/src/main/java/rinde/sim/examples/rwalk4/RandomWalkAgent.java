@@ -13,15 +13,14 @@ import org.apache.commons.math.random.RandomGenerator;
 import rinde.sim.core.SimulatorAPI;
 import rinde.sim.core.SimulatorUser;
 import rinde.sim.core.TickListener;
-import rinde.sim.core.graph.Graphs;
 import rinde.sim.core.graph.Point;
-import rinde.sim.core.model.MovingRoadUser;
-import rinde.sim.core.model.RoadModel;
-import rinde.sim.core.model.RoadUser;
 import rinde.sim.core.model.communication.CommunicationAPI;
 import rinde.sim.core.model.communication.CommunicationUser;
 import rinde.sim.core.model.communication.Mailbox;
 import rinde.sim.core.model.communication.Message;
+import rinde.sim.core.model.road.MovingRoadUser;
+import rinde.sim.core.model.road.RoadModel;
+import rinde.sim.core.model.road.RoadUser;
 import rinde.sim.example.rwalk.common.Package;
 
 /**
@@ -88,11 +87,10 @@ class RandomWalkAgent implements TickListener, MovingRoadUser, SimulatorUser, Co
 				simulator.unregister(this);
 				return;
 			}
-			Point destination = rs.getGraph().getRandomNode(rnd);
+			Point destination = rs.getRandomPosition(rnd);
 			currentPackage = new Package("dummy package", destination);
 			simulator.register(currentPackage);
-			path = new LinkedList<Point>(
-					Graphs.shortestPathEuclidianDistance(rs.getGraph(), rs.getPosition(this), destination));
+			path = new LinkedList<Point>(rs.getShortestPathTo(this, destination));
 		} else {
 			rs.followPath(this, path, timeStep);
 		}
@@ -141,7 +139,7 @@ class RandomWalkAgent implements TickListener, MovingRoadUser, SimulatorUser, Co
 	@Override
 	public void initRoadUser(RoadModel model) {
 		rs = model;
-		Point pos = rs.getGraph().getRandomNode(rnd);
+		Point pos = rs.getRandomPosition(rnd);
 		rs.addObjectAt(this, pos);
 	}
 

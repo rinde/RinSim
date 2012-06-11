@@ -16,7 +16,7 @@ import org.slf4j.LoggerFactory;
 import rinde.sim.core.TickListener;
 import rinde.sim.core.graph.Point;
 import rinde.sim.core.model.Model;
-import rinde.sim.core.model.RoadUser;
+import rinde.sim.core.model.road.RoadUser;
 
 import com.google.common.base.Predicate;
 

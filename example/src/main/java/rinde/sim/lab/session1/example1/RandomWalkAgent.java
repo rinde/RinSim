@@ -9,52 +9,51 @@ import rinde.sim.core.SimulatorAPI;
 import rinde.sim.core.SimulatorUser;
 import rinde.sim.core.TickListener;
 import rinde.sim.core.graph.Point;
-import rinde.sim.core.model.MovingRoadUser;
-import rinde.sim.core.model.RoadModel;
+import rinde.sim.core.model.road.MovingRoadUser;
+import rinde.sim.core.model.road.RoadModel;
 
 public class RandomWalkAgent implements TickListener, MovingRoadUser, SimulatorUser {
 
-	private double speed;
-	private Point startingLocation;
+	private final double speed;
+	private final Point startingLocation;
 	private RoadModel rm;
 	private Queue<Point> path;
 	private RandomGenerator rand;
-	
-	
-	public RandomWalkAgent(double speed, Point startingLocation){
+
+	public RandomWalkAgent(double speed, Point startingLocation) {
 		this.speed = speed;
 		this.startingLocation = startingLocation;
 	}
-	
+
 	@Override
 	public void initRoadUser(RoadModel model) {
-		this.rm = model;
-		this.rm.addObjectAt(this, startingLocation);
+		rm = model;
+		rm.addObjectAt(this, startingLocation);
 	}
 
 	@Override
 	public void setSimulator(SimulatorAPI api) {
-		this.rand = api.getRandomGenerator();
+		rand = api.getRandomGenerator();
 	}
 
 	@Override
 	public double getSpeed() {
-		return this.speed;
+		return speed;
 	}
 
 	@Override
 	public void tick(long currentTime, long timeStep) {
-		if(path == null || path.isEmpty()){
-			Point destination = rm.getGraph().getRandomNode(rand);
-			this.path = new LinkedList<Point>(rm.getShortestPathTo(this, destination));
-		}else{
+		if (path == null || path.isEmpty()) {
+			Point destination = rm.getRandomPosition(rand);
+			path = new LinkedList<Point>(rm.getShortestPathTo(this, destination));
+		} else {
 			rm.followPath(this, path, timeStep);
 		}
 	}
 
 	@Override
 	public void afterTick(long currentTime, long timeStep) {
-		//not used
+		// not used
 	}
 
 }

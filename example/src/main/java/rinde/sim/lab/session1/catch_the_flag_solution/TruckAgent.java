@@ -12,12 +12,12 @@ import rinde.sim.core.SimulatorAPI;
 import rinde.sim.core.SimulatorUser;
 import rinde.sim.core.TickListener;
 import rinde.sim.core.graph.Point;
-import rinde.sim.core.model.MovingRoadUser;
-import rinde.sim.core.model.RoadModel;
 import rinde.sim.core.model.communication.CommunicationAPI;
 import rinde.sim.core.model.communication.CommunicationUser;
 import rinde.sim.core.model.communication.Mailbox;
 import rinde.sim.core.model.communication.Message;
+import rinde.sim.core.model.road.MovingRoadUser;
+import rinde.sim.core.model.road.RoadModel;
 import rinde.sim.lab.common.ConfirmationMessage;
 import rinde.sim.lab.common.TransportRequest;
 

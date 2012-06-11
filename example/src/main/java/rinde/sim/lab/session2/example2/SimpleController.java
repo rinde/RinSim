@@ -6,7 +6,8 @@ import org.eclipse.swt.graphics.RGB;
 import rinde.sim.core.Simulator;
 import rinde.sim.core.graph.Graph;
 import rinde.sim.core.graph.MultiAttributeEdgeData;
-import rinde.sim.core.model.RoadModel;
+import rinde.sim.core.model.road.GraphRoadModel;
+import rinde.sim.core.model.road.RoadModel;
 import rinde.sim.event.Event;
 import rinde.sim.scenario.ConfigurationException;
 import rinde.sim.scenario.Scenario;
@@ -40,7 +41,7 @@ public class SimpleController extends ScenarioController {
 		} catch (Exception e) {
 			throw new ConfigurationException("e:", e);
 		}
-		roadModel = new RoadModel(graph);
+		roadModel = new GraphRoadModel(graph);
 
 		MersenneTwister rand = new MersenneTwister(123);
 		Simulator s = new Simulator(rand, 10000);
@@ -60,8 +61,7 @@ public class SimpleController extends ScenarioController {
 
 	@Override
 	protected boolean handleAddTruck(Event e) {
-		RandomWalkAgent agent = new RandomWalkAgent(7, roadModel.getGraph().getRandomNode(getSimulator()
-				.getRandomGenerator()));
+		RandomWalkAgent agent = new RandomWalkAgent(7, roadModel.getRandomPosition(getSimulator().getRandomGenerator()));
 		getSimulator().register(agent);
 		// add the statistics collector as listener to the new agent
 		agent.eventAPI.addListener(statistics, RandomWalkAgent.Type.values());

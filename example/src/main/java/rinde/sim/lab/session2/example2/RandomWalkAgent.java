@@ -9,8 +9,8 @@ import rinde.sim.core.SimulatorAPI;
 import rinde.sim.core.SimulatorUser;
 import rinde.sim.core.TickListener;
 import rinde.sim.core.graph.Point;
-import rinde.sim.core.model.MovingRoadUser;
-import rinde.sim.core.model.RoadModel;
+import rinde.sim.core.model.road.MovingRoadUser;
+import rinde.sim.core.model.road.RoadModel;
 import rinde.sim.event.Event;
 import rinde.sim.event.EventAPI;
 import rinde.sim.event.EventDispatcher;
@@ -65,7 +65,7 @@ public class RandomWalkAgent implements TickListener, MovingRoadUser, SimulatorU
 	@Override
 	public void tick(long currentTime, long timeStep) {
 		if (path == null || path.isEmpty()) {
-			Point destination = rm.getGraph().getRandomNode(rand);
+			Point destination = rm.getRandomPosition(rand);
 			path = new LinkedList<Point>(rm.getShortestPathTo(this, destination));
 			// we selected a new path, dispatch a corresponding event
 		} else {

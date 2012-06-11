@@ -8,7 +8,7 @@ import org.slf4j.LoggerFactory;
 
 import rinde.sim.core.graph.Point;
 import rinde.sim.core.model.Model;
-import rinde.sim.core.model.RoadModel;
+import rinde.sim.core.model.road.RoadModel;
 
 public class GradientFieldModel implements Model<VirtualEntity>, GradientFieldAPI {
 	protected static final Logger LOGGER = LoggerFactory.getLogger(GradientFieldModel.class);

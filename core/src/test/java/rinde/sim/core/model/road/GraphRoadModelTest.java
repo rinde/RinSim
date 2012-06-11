@@ -1,10 +1,11 @@
 /**
  * 
  */
-package rinde.sim.core.model;
+package rinde.sim.core.model.road;
 
 import static java.util.Arrays.asList;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
@@ -16,7 +17,6 @@ import java.util.List;
 import java.util.Queue;
 import java.util.Set;
 
-import org.apache.commons.lang.NotImplementedException;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -33,7 +33,7 @@ import rinde.sim.core.graph.MultimapGraph;
 import rinde.sim.core.graph.Point;
 import rinde.sim.core.graph.TestMultimapGraph;
 import rinde.sim.core.graph.TestTableGraph;
-import rinde.sim.core.model.AbstractRoadModel.PathProgress;
+import rinde.sim.core.model.road.GraphRoadModel.Loc;
 import rinde.sim.util.TimeUnit;
 
 /**
@@ -570,43 +570,57 @@ public class GraphRoadModelTest extends AbstractRoadModelTest<GraphRoadModel> {
 	@SuppressWarnings("unchecked")
 	@Test
 	public void locationIsOnSameEdge() {
-		// FIXME
-		throw new NotImplementedException("todo");
-		// ((Graph<MultiAttributeEdgeData>) graph).addConnection(SE, SW, new
-		// MultiAttributeEdgeData(300));
-		// ((Graph<MultiAttributeEdgeData>) graph).addConnection(NE, SW, new
-		// MultiAttributeEdgeData(Double.NaN));
-		// Location loc1 = model.new Location(SW, SE, 3);
-		// Location loc2 = model.new Location(SW, SE, 1);
-		// Location loc3 = model.new Location(SE, NE, 9.999999);
-		// Location loc4 = model.new Location(SW);
-		// Location loc5 = model.new Location(SE, SW, 1);
-		// Location loc6 = model.new Location(NE, SW, 1);
-		//
-		// assertEquals(NE, loc3.getPosition());
-		//
-		// assertTrue(loc1.isOnSameConnection(loc2));
-		// assertTrue(loc2.isOnSameConnection(loc1));
-		// assertFalse(loc1.isOnSameConnection(loc3));
-		// assertFalse(loc3.isOnSameConnection(loc1));
-		// assertFalse(loc4.isOnSameConnection(loc1));
-		// assertFalse(loc1.isOnSameConnection(loc4));
-		// assertFalse(loc3.isOnSameConnection(loc5));
-		// assertFalse(loc3.isOnSameConnection(loc6));
+		((Graph<MultiAttributeEdgeData>) graph).addConnection(SE, SW, new MultiAttributeEdgeData(300));
+		((Graph<MultiAttributeEdgeData>) graph).addConnection(NE, SW, new MultiAttributeEdgeData(Double.NaN));
+
+		Loc loc1 = GraphRoadModel.newLoc(new Connection<EdgeData>(SW, SE, null), 3);
+		Loc loc2 = GraphRoadModel.newLoc(new Connection<EdgeData>(SW, SE, null), 1);
+		Loc loc3 = GraphRoadModel.newLoc(new Connection<EdgeData>(SE, NE, null), 9.999999);
+		Loc loc4 = GraphRoadModel.newLoc(SW);
+		Loc loc5 = GraphRoadModel.newLoc(new Connection<EdgeData>(SE, SW, null), 1);
+		Loc loc6 = GraphRoadModel.newLoc(new Connection<EdgeData>(NE, SW, null), 1);
+
+		assertEquals(NE, loc3);
+		assertTrue(loc1.isOnSameConnection(loc2));
+		assertTrue(loc2.isOnSameConnection(loc1));
+		assertFalse(loc1.isOnSameConnection(loc3));
+		assertFalse(loc3.isOnSameConnection(loc1));
+		assertFalse(loc4.isOnSameConnection(loc1));
+		assertFalse(loc1.isOnSameConnection(loc4));
+		assertFalse(loc3.isOnSameConnection(loc5));
+		assertFalse(loc3.isOnSameConnection(loc6));
+	}
+
+	@Test(expected = NullPointerException.class)
+	public void newLocationFail1() {
+		GraphRoadModel.newLoc(null);
+	}
+
+	@Test(expected = IllegalArgumentException.class)
+	public void newLocationFail2() {
+		GraphRoadModel.newLoc(null, 0);
 	}
 
 	@Test(expected = IllegalArgumentException.class)
 	public void checkLocationFail1() {
-		// FIXME
-		throw new NotImplementedException("todo");
-		// model.checkLocation(model.new Location(new Point(1, 2), SE, 3));
+		Loc l = GraphRoadModel.newLoc(new Point(-10, -10));
+		model.checkLocation(l);
 	}
 
 	@Test(expected = IllegalArgumentException.class)
 	public void checkLocationFail2() {
-		// FIXME
-		throw new NotImplementedException("todo");
-		// model.checkLocation(model.new Location(new Point(1, 2)));
+		Loc l = GraphRoadModel.newLoc(new Connection<EdgeData>(new Point(-10, -10), new Point(100, 0), null), 1);
+		model.checkLocation(l);
+	}
+
+	@Test
+	public void getConnectionLength() {
+		assertEquals(10, GraphRoadModel.getConnectionLength(new Connection<EdgeData>(NE, NW, null)), EPSILON);
+		Connection<MultiAttributeEdgeData> conn = new Connection<MultiAttributeEdgeData>(NE, NW,
+				new MultiAttributeEdgeData(12, -1));
+		assertEquals(12, GraphRoadModel.getConnectionLength(conn), EPSILON);
+		conn.getEdgeData().put(MultiAttributeEdgeData.KEY_LENGTH, "this is not a number");
+		assertEquals(10, GraphRoadModel.getConnectionLength(conn), EPSILON);
 	}
 
 	@Test(expected = IllegalArgumentException.class)
@@ -671,6 +685,7 @@ public class GraphRoadModelTest extends AbstractRoadModelTest<GraphRoadModel> {
 		TestRoadUser agent1 = new TestRoadUser();
 		model.addObjectAt(agent1, SE);
 		PathProgress pp1 = model.followPath(agent1, asPath(SW), ONE_HOUR);
+		pp1.toString();
 		assertEquals(1, pp1.distance, EPSILON);
 		assertEquals(ONE_HOUR, pp1.time);
 
@@ -684,6 +699,18 @@ public class GraphRoadModelTest extends AbstractRoadModelTest<GraphRoadModel> {
 
 		assertEquals(4, model.computeConnectionLength(model.getPosition(agent1), SW), EPSILON);
 		assertEquals(1, model.computeConnectionLength(SE, model.getPosition(agent1)), EPSILON);
+	}
+
+	@Test
+	public void getGraphTest() {
+		Graph<EdgeData> g = new MultimapGraph<EdgeData>();
+		g.addConnection(NE, SW);
+		g.addConnection(SW, NW);
+
+		GraphRoadModel rm = new GraphRoadModel(g);
+		assertEquals(g, rm.getGraph());
+		g.addConnection(NE, NW);
+		assertEquals(g, rm.getGraph());
 	}
 
 	// @Test
