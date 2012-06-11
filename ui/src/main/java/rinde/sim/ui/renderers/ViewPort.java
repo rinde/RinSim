@@ -29,4 +29,12 @@ public class ViewPort {
 		colorRegistry = registry;
 	}
 
+	public int toCoordX(double x) {
+		return (int) ((x - rect.min.x) * scale);
+	}
+
+	public int toCoordY(double y) {
+		return (int) ((y - rect.min.y) * scale);
+	}
+
 }

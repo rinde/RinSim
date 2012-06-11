@@ -24,13 +24,19 @@ public class RoadUserRenderer implements ModelRenderer<RoadModel> {
 
 	protected RoadModel rs;
 	protected boolean useEncirclement;
-	private final UiSchema uiSchema;
+	protected final UiSchema uiSchema;
+	protected ViewRect viewRect;
 
 	public RoadUserRenderer() {
-		this(new UiSchema(false), false);
+		this(null, new UiSchema(false), false);
 	}
 
 	public RoadUserRenderer(UiSchema schema, boolean useEncirclement) {
+		this(null, schema, useEncirclement);
+	}
+
+	public RoadUserRenderer(ViewRect rect, UiSchema schema, boolean useEncirclement) {
+		viewRect = rect;
 		this.useEncirclement = useEncirclement;
 		uiSchema = schema == null ? new UiSchema(false) : schema;
 	}
@@ -80,7 +86,7 @@ public class RoadUserRenderer implements ModelRenderer<RoadModel> {
 
 	@Override
 	public ViewRect getViewRect() {
-		return null;
+		return viewRect;
 	}
 
 	@Override

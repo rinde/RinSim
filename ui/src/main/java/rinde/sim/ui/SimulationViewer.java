@@ -1,5 +1,8 @@
 package rinde.sim.ui;
 
+import static com.google.common.base.Preconditions.checkState;
+
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
@@ -448,6 +451,8 @@ public class SimulationViewer extends Composite implements TickListener, Control
 		double maxX = Double.NEGATIVE_INFINITY;
 		double minY = Double.POSITIVE_INFINITY;
 		double maxY = Double.NEGATIVE_INFINITY;
+
+		boolean isDefined = false;
 		for (Renderer r : renderers) {
 			ViewRect rect = r.getViewRect();
 			if (rect != null) {
@@ -455,8 +460,12 @@ public class SimulationViewer extends Composite implements TickListener, Control
 				maxX = Math.max(maxX, rect.max.x);
 				minY = Math.min(minY, rect.min.y);
 				maxY = Math.max(maxY, rect.max.y);
+				isDefined = true;
 			}
 		}
+
+		checkState(isDefined, "none of the available renderers implements getViewRect(), known renderers: "
+				+ Arrays.toString(renderers));
 
 		viewRect = new ViewRect(new Point(minX, minY), new Point(maxX, maxY));
 

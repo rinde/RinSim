@@ -34,11 +34,11 @@ public class RoadsRenderer implements ModelRenderer<GraphRoadModel> {
 	public void renderStatic(GC gc, ViewPort vp) {
 		Graph<? extends EdgeData> graph = grm.getGraph();
 		for (Connection<? extends EdgeData> e : graph.getConnections()) {
-			int x1 = (int) ((e.from.x - vp.rect.min.x) * vp.scale);
-			int y1 = (int) ((e.from.y - vp.rect.min.y) * vp.scale);
+			int x1 = vp.toCoordX(e.from.x);
+			int y1 = vp.toCoordY(e.from.y);
 
-			int x2 = (int) ((e.to.x - vp.rect.min.x) * vp.scale);
-			int y2 = (int) ((e.to.y - vp.rect.min.y) * vp.scale);
+			int x2 = vp.toCoordX(e.to.x);
+			int y2 = vp.toCoordY(e.to.y);
 			gc.setForeground(vp.colorRegistry.get(SimulationViewer.COLOR_BLACK));
 			gc.drawLine(x1, y1, x2, y2);
 		}

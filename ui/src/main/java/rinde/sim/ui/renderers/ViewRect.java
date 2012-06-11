@@ -23,4 +23,8 @@ public class ViewRect {
 		height = max.y - min.y;
 	}
 
+	@Override
+	public String toString() {
+		return new StringBuilder().append("{ViewRect: ").append(min).append(" ").append(max).append("}").toString();
+	}
 }
