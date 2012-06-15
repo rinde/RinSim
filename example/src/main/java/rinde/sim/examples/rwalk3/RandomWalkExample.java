@@ -6,7 +6,6 @@ package rinde.sim.examples.rwalk3;
 import java.util.Random;
 
 import org.apache.commons.math.random.MersenneTwister;
-import org.eclipse.swt.graphics.RGB;
 
 import rinde.sim.core.Simulator;
 import rinde.sim.core.graph.Graph;
@@ -18,8 +17,8 @@ import rinde.sim.example.rwalk.common.Package;
 import rinde.sim.serializers.DotGraphSerializer;
 import rinde.sim.serializers.SelfCycleFilter;
 import rinde.sim.ui.View;
-import rinde.sim.ui.renderers.RoadsRenderer;
 import rinde.sim.ui.renderers.RoadUserRenderer;
+import rinde.sim.ui.renderers.RoadsRenderer;
 import rinde.sim.ui.renderers.UiSchema;
 
 /**
@@ -50,7 +49,7 @@ public class RandomWalkExample {
 
 		// FIXME never use java.util.Random!!
 		Random r = new Random(1317);
-		for (int i = 0; i < 100; i++) {
+		for (int i = 0; i < 10; i++) {
 
 			RandomWalkAgent agent = new RandomWalkAgent(r.nextDouble() * 100);
 			simulator.register(agent);
@@ -59,10 +58,10 @@ public class RandomWalkExample {
 		// // GUI stuff: agents are red, packages are blue or have ico
 		// represenation
 		UiSchema schema = new UiSchema();
-		schema.add(RandomWalkAgent.class, new RGB(255, 0, 0));
-		// schema.add(RandomWalkAgent.class, "/graphics/deliverytruck.png");
-		// schema.add(Package.class, "/graphics/flag.png");
-		schema.add(Package.class, new RGB(0x0, 0x0, 0xFF));
+		// schema.add(RandomWalkAgent.class, new RGB(255, 0, 0));
+		schema.add(RandomWalkAgent.class, "/graphics/deliverytruck.png");
+		schema.add(Package.class, "/graphics/deliverypackage.png");
+		// schema.add(Package.class, new RGB(0x0, 0x0, 0xFF));
 
 		// View.setTestingMode(true);
 		View.startGui(simulator, 5, new RoadsRenderer(20), new RoadUserRenderer(schema, false));
