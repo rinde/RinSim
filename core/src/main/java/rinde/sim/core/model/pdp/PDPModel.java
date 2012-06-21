@@ -74,9 +74,9 @@ public class PDPModel implements Model<PDPObject> {
 	 * @param p
 	 */
 	public void pickup(Truck t, Package p) {
+
 		// TODO add event
 		// TODO what to do with the time that is needed for pickup?
-
 		// TODO package.isPickupAllowedBy(truck)
 		// TODO truck.canPickup(package)
 
