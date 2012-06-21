@@ -1,30 +1,37 @@
 package rinde.sim.core.model.communication;
 
-import java.util.LinkedList;
+import static com.google.common.collect.Lists.newLinkedList;
+import static com.google.common.collect.Sets.newLinkedHashSet;
+
 import java.util.Queue;
+import java.util.Set;
 
 /**
- * Simple mailbox with infinite capacity that can be use to serve
+ * Simple mailbox with infinite capacity that can be used to serve
  * {@link CommunicationUser#receive(Message)} method.
  * 
  * @author Bartosz Michalik <bartosz.michalik@cs.kuleuven.be>
  * @since 2.0
  */
 public class Mailbox {
-	protected Queue<Message> box;
+	protected Set<Message> box;
 
 	public Mailbox() {
-		box = new LinkedList<Message>();
+		box = newLinkedHashSet();
 	}
 
 	/**
-	 * Insert a msg in the mailbox. If the message is 
-	 * already present in the box it is not inserted again. 
+	 * Insert a msg in the mailbox. If the message is already present in the box
+	 * it is not inserted again.
 	 * @param msg
 	 */
 	public void receive(Message msg) {
-		if(msg == null) throw new NullPointerException();
-		if(box.contains(msg)) return;
+		if (msg == null) {
+			throw new NullPointerException();
+		}
+		if (box.contains(msg)) {
+			return;
+		}
 		box.add(msg);
 	}
 
@@ -34,8 +41,8 @@ public class Mailbox {
 	 * @return
 	 */
 	public Queue<Message> getMessages() {
-		Queue<Message> messages = box;
-		box = new LinkedList<Message>();
-		return messages;
+		Set<Message> messages = box;
+		box = newLinkedHashSet();
+		return newLinkedList(messages);
 	}
 }
