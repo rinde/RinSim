@@ -67,6 +67,7 @@ public abstract class AbstractRoadModel<T> implements RoadModel {
 	@Override
 	public abstract PathProgress followPath(MovingRoadUser object, Queue<Point> path, long time);
 
+	// TODO add javadoc
 	/*
 	 * (non-Javadoc)
 	 * @see
@@ -79,6 +80,7 @@ public abstract class AbstractRoadModel<T> implements RoadModel {
 		objLocs.put(newObj, point2LocObj(pos));
 	}
 
+	// TODO add javadoc
 	/*
 	 * (non-Javadoc)
 	 * @see
@@ -92,6 +94,7 @@ public abstract class AbstractRoadModel<T> implements RoadModel {
 		objLocs.put(newObj, objLocs.get(existingObj));
 	}
 
+	// TODO add javadoc
 	/*
 	 * (non-Javadoc)
 	 * @see
@@ -105,6 +108,7 @@ public abstract class AbstractRoadModel<T> implements RoadModel {
 		objLocs.remove(roadUser);
 	}
 
+	// TODO add javadoc
 	/*
 	 * (non-Javadoc)
 	 * @see rinde.sim.core.model.RoadModel#clear()
@@ -114,6 +118,7 @@ public abstract class AbstractRoadModel<T> implements RoadModel {
 		objLocs.clear();
 	}
 
+	// TODO add javadoc
 	/*
 	 * (non-Javadoc)
 	 * @see

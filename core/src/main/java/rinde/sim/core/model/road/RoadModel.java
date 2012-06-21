@@ -19,6 +19,7 @@ import com.google.common.base.Predicate;
 /**
  * @author Rinde van Lon (rinde.vanlon@cs.kuleuven.be)
  * 
+ *         TODO add interface comment
  */
 public interface RoadModel extends Model<RoadUser> {
 
@@ -87,7 +88,7 @@ public interface RoadModel extends Model<RoadUser> {
 	/**
 	 * This method returns a mapping of {@link RoadUser} to {@link Point}
 	 * objects which exist in this model. The returned map is not a live view on
-	 * this model, but a new created copy.
+	 * this model, but a new created copy. TODO add test for this live view case
 	 * @return A map of {@link RoadUser} to {@link Point} objects.
 	 */
 	Map<RoadUser, Point> getObjectsAndPositions();
@@ -100,6 +101,7 @@ public interface RoadModel extends Model<RoadUser> {
 	 */
 	Point getPosition(RoadUser roadUser);
 
+	// TODO add documentation
 	Point getRandomPosition(RandomGenerator rnd);
 
 	/**
@@ -161,6 +163,7 @@ public interface RoadModel extends Model<RoadUser> {
 	 */
 	List<Point> getShortestPathTo(RoadUser fromObj, Point to);
 
+	// TODO add documentation
 	List<Point> getShortestPathTo(Point from, Point to);
 
 }

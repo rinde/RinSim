@@ -1,6 +1,6 @@
 /**
  * 
- */ 
+ */
 package rinde.sim.core.model.road;
 
 import static com.google.common.base.Preconditions.checkArgument;
@@ -20,6 +20,7 @@ import com.google.common.collect.Table;
 /**
  * @author Rinde van Lon (rinde.vanlon@cs.kuleuven.be)
  * 
+ *         TODO add class comment
  */
 public class CachedRoadModel extends GraphRoadModel {
 
@@ -27,16 +28,19 @@ public class CachedRoadModel extends GraphRoadModel {
 
 	private final Multimap<Class<?>, RoadUser> classObjectMap;
 
+	// TODO add javadoc
 	public CachedRoadModel(Graph<?> pGraph) {
 		super(pGraph);
 		pathTable = HashBasedTable.create();
 		classObjectMap = LinkedHashMultimap.create();
 	}
 
+	// TODO add javadoc
 	public void setPathCache(Table<Point, Point, List<Point>> pPathTable) {
 		pathTable = pPathTable;
 	}
 
+	// TODO add javadoc
 	public Table<Point, Point, List<Point>> getPathCache() {
 		return pathTable;
 	}

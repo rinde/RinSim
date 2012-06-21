@@ -25,10 +25,13 @@ import rinde.sim.util.TimeUnit;
 /**
  * @author Rinde van Lon (rinde.vanlon@cs.kuleuven.be)
  * 
+ *         TODO add class comment
  */
 public class GraphRoadModel extends AbstractRoadModel<Loc> {
 
 	protected final Graph<? extends EdgeData> graph;
+
+	// TODO add comments to public methods without comment
 
 	/**
 	 * @param pGraph The graph which will be used as road strucutre.

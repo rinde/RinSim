@@ -18,7 +18,7 @@ import rinde.sim.util.SpeedConverter;
 import rinde.sim.util.TimeUnit;
 
 /**
- * @author Rinde van Lon (rinde.vanlon@cs.kuleuven.be)
+ * @author Rinde van Lon (rinde.vanlon@cs.kuleuven.be) TODO add class comment
  */
 public class PlaneRoadModel extends AbstractRoadModel<Point> {
 
@@ -27,6 +27,8 @@ public class PlaneRoadModel extends AbstractRoadModel<Point> {
 	public final double width;
 	public final double height;
 	public final double maxSpeed;
+
+	// TODO add comments to PlaneRoadModel
 
 	public PlaneRoadModel(Point pMin, Point pMax, double pMaxSpeed) {
 		checkArgument(pMin.x < pMax.x && pMin.y < pMax.y, "min should have coordinates smaller than max");
