@@ -1,6 +1,7 @@
 package rinde.sim.core.model.communication;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import java.util.Queue;
 
@@ -12,10 +13,11 @@ import rinde.sim.core.graph.Point;
 public class MailboxTest {
 
 	private Mailbox mBox;
-	
+
 	@Before
 	public void setUp() throws Exception {
 		mBox = new Mailbox();
+		assertTrue(mBox.box.isEmpty());
 	}
 
 	@Test
@@ -27,10 +29,10 @@ public class MailboxTest {
 		assertEquals(1, mBox.box.size());
 		mBox.receive(msg);
 		assertEquals(1, mBox.box.size());
-		
+
 	}
-	
-	@Test(expected=NullPointerException.class)
+
+	@Test(expected = NullPointerException.class)
 	public void addingNull() {
 		mBox.receive(null);
 	}
@@ -44,7 +46,7 @@ public class MailboxTest {
 		assertEquals(1, mBox.box.size());
 		mBox.receive(msg);
 		assertEquals(1, mBox.box.size());
-		
+
 		Queue<Message> messages = mBox.getMessages();
 		assertEquals(0, mBox.box.size());
 		assertEquals(1, messages.size());
@@ -54,8 +56,7 @@ public class MailboxTest {
 	class TestUser implements CommunicationUser {
 
 		@Override
-		public void setCommunicationAPI(CommunicationAPI api) {	
-		}
+		public void setCommunicationAPI(CommunicationAPI api) {}
 
 		@Override
 		public Point getPosition() {
