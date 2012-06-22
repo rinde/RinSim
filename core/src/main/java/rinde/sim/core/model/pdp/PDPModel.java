@@ -120,8 +120,8 @@ public class PDPModel implements Model<PDPObject> {
 	}
 
 	/**
-	 * This method is intended for Packages that wish to initialize themselves
-	 * in either a Truck or a Depot.
+	 * This method is intended for Packages that wish to add themselves to
+	 * either a Truck or a Depot.
 	 * @param container
 	 * @param p
 	 */
