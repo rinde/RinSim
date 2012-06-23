@@ -5,12 +5,15 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
+
 import org.apache.commons.math.random.RandomGenerator;
+
+import rinde.sim.core.TimeLapse;
+import rinde.sim.core.graph.Point;
+
 import com.google.common.base.Predicate;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
-
-import rinde.sim.core.graph.Point;
 
 /**
  * A version optimized for broadcasting
@@ -26,8 +29,9 @@ public class CommunicationModel2 extends CommunicationModel {
 		@Override
 		public int compare(CommunicationUser o1, CommunicationUser o2) {
 			double diff = o1.getPosition().x - o2.getPosition().x;
-			if (diff != 0)
+			if (diff != 0) {
 				return diff > 0 ? 1 : -1;
+			}
 
 			return o1.hashCode() - o2.hashCode();
 		}
@@ -37,8 +41,9 @@ public class CommunicationModel2 extends CommunicationModel {
 		@Override
 		public int compare(CommunicationUser o1, CommunicationUser o2) {
 			double diff = o1.getPosition().y - o2.getPosition().y;
-			if (diff != 0)
+			if (diff != 0) {
 				return diff > 0 ? 1 : -1;
+			}
 
 			return o1.hashCode() - o2.hashCode();
 		}
@@ -49,17 +54,15 @@ public class CommunicationModel2 extends CommunicationModel {
 		toBroadcast = ArrayListMultimap.create();
 	}
 
-
 	@Override
-	public void afterTick(long currentTime, long timeStep) {
+	public void afterTick(TimeLapse timeLapse) {
 		broadcast();
-		super.afterTick(currentTime, timeStep);
+		super.afterTick(timeLapse);
 	}
 
 	private void broadcast() {
 
-		final ArrayList<CommunicationUser> xSorted = new ArrayList<CommunicationUser>(
-				users);
+		final ArrayList<CommunicationUser> xSorted = new ArrayList<CommunicationUser>(users);
 
 		Collections.sort(xSorted, xComp);
 		Multimap<CommunicationUser, SimpleEntry<Message, Class<? extends CommunicationUser>>> cache = toBroadcast;
@@ -73,11 +76,9 @@ public class CommunicationModel2 extends CommunicationModel {
 		}
 	}
 
-	private ArrayList<CommunicationUser> select(
-			final ArrayList<CommunicationUser> from, CommunicationUser sender,
+	private ArrayList<CommunicationUser> select(final ArrayList<CommunicationUser> from, CommunicationUser sender,
 			final boolean isX) {
-		ArrayList<CommunicationUser> toCheck = new ArrayList<CommunicationUser>(
-				1024);
+		ArrayList<CommunicationUser> toCheck = new ArrayList<CommunicationUser>(1024);
 		Comparator<CommunicationUser> c = null;
 		double distance;
 		if (isX) {
@@ -94,8 +95,9 @@ public class CommunicationModel2 extends CommunicationModel {
 
 			if (pos >= distance) {
 				toCheck.add(user);
-			} else
+			} else {
 				break;
+			}
 		}
 		if (isX) {
 			distance = sender.getPosition().x - sender.getRadius();
@@ -107,59 +109,55 @@ public class CommunicationModel2 extends CommunicationModel {
 			double pos = (isX ? user.getPosition().x : user.getPosition().y);
 			if (pos <= distance) {
 				toCheck.add(user);
-			} else
+			} else {
 				break;
+			}
 		}
 		return toCheck;
 	}
 
 	@Override
 	public void broadcast(Message message) {
-		toBroadcast.put(message.sender,
-				new SimpleEntry<Message, Class<? extends CommunicationUser>>(
-						message, null));
+		toBroadcast.put(message.sender, new SimpleEntry<Message, Class<? extends CommunicationUser>>(message, null));
 	}
 
 	@Override
-	public void broadcast(Message message,
-			Class<? extends CommunicationUser> type) {
-		toBroadcast.put(message.sender,
-				new SimpleEntry<Message, Class<? extends CommunicationUser>>(
-						message, type));
+	public void broadcast(Message message, Class<? extends CommunicationUser> type) {
+		toBroadcast.put(message.sender, new SimpleEntry<Message, Class<? extends CommunicationUser>>(message, type));
 	}
 
-	private void broadcast2(
-			CommunicationUser sender,
+	private void broadcast2(CommunicationUser sender,
 			Collection<SimpleEntry<Message, Class<? extends CommunicationUser>>> collection,
-			Predicate<CommunicationUser> predicate,
-			ArrayList<CommunicationUser> toCheck) {
-		if (toCheck.isEmpty())
+			Predicate<CommunicationUser> predicate, ArrayList<CommunicationUser> toCheck) {
+		if (toCheck.isEmpty()) {
 			return;
+		}
 
 		ArrayList<CommunicationUser> toCommunicate = toCheck;
 
 		if (toCheck.size() > 100) {
 			Collections.sort(toCheck, yComp);
 			toCommunicate = select(toCheck, sender, false);
-			if (users.isEmpty())
+			if (users.isEmpty()) {
 				return;
+			}
 		}
 		toCommunicate.remove(sender);
 
-		HashSet<CommunicationUser> uSet = new HashSet<CommunicationUser>(
-				toCommunicate.size() / 2);
+		HashSet<CommunicationUser> uSet = new HashSet<CommunicationUser>(toCommunicate.size() / 2);
 
 		for (CommunicationUser u : toCommunicate) {
-			if (predicate.apply(u))
+			if (predicate.apply(u)) {
 				uSet.add(u);
+			}
 		}
 
 		for (CommunicationUser u : uSet) {
 			try {
 				for (SimpleEntry<Message, Class<? extends CommunicationUser>> p : collection) {
-					if (p.getValue() != null
-							&& !p.getValue().equals(u.getClass()))
+					if (p.getValue() != null && !p.getValue().equals(u.getClass())) {
 						continue;
+					}
 					sendQueue.add(SimpleEntry.entry(u, p.getKey().clone()));
 				}
 			} catch (CloneNotSupportedException e) {
@@ -177,11 +175,10 @@ public class CommunicationModel2 extends CommunicationModel {
 	 */
 	class CanCommunicate implements Predicate<CommunicationUser> {
 
-		private Class<? extends CommunicationUser> clazz;
+		private final Class<? extends CommunicationUser> clazz;
 		private final CommunicationUser sender;
 
-		public CanCommunicate(CommunicationUser sender,
-				Class<? extends CommunicationUser> clazz) {
+		public CanCommunicate(CommunicationUser sender, Class<? extends CommunicationUser> clazz) {
 			this.sender = sender;
 			this.clazz = clazz;
 		}
@@ -192,8 +189,9 @@ public class CommunicationModel2 extends CommunicationModel {
 
 		@Override
 		public boolean apply(CommunicationUser input) {
-			if (input == null)
+			if (input == null) {
 				return false;
+			}
 			if (clazz != null && !clazz.equals(input.getClass())) {
 				return false;
 			}
@@ -202,8 +200,9 @@ public class CommunicationModel2 extends CommunicationModel {
 
 			double prob = input.getReliability() * sender.getReliability();
 			double rand = generator.nextDouble();
-			if (prob <= rand)
+			if (prob <= rand) {
 				return false;
+			}
 
 			double minRadius = Math.min(input.getRadius(), sender.getRadius());
 			Point sPos = sender.getPosition();

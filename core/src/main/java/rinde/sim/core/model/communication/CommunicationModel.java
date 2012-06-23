@@ -14,6 +14,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import rinde.sim.core.TickListener;
+import rinde.sim.core.TimeLapse;
 import rinde.sim.core.graph.Point;
 import rinde.sim.core.model.Model;
 import rinde.sim.core.model.road.RoadUser;
@@ -107,12 +108,12 @@ public class CommunicationModel implements Model<CommunicationUser>, TickListene
 	}
 
 	@Override
-	public void tick(long currentTime, long timeStep) {
+	public void tick(TimeLapse tl) {
 		// empty implementation
 	}
 
 	@Override
-	public void afterTick(long currentTime, long timeStep) {
+	public void afterTick(TimeLapse tl) {
 		long timeMillis = System.currentTimeMillis();
 		List<Entry<CommunicationUser, Message>> cache = sendQueue;
 		sendQueue = new LinkedList<Entry<CommunicationUser, Message>>();

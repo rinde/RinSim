@@ -15,6 +15,7 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 
+import rinde.sim.core.TimeLapseFactory;
 import rinde.sim.core.graph.Point;
 
 @RunWith(Parameterized.class)
@@ -110,12 +111,12 @@ public class CommunicationModelTest {
 		assertFalse(res[0]);
 		assertEquals(1, model.sendQueue.size());
 
-		model.tick(0, 100);
+		model.tick(TimeLapseFactory.create(0, 100));
 
 		assertFalse(res[0]);
 		assertEquals(1, model.sendQueue.size());
 
-		model.afterTick(0, 100);
+		model.afterTick(TimeLapseFactory.create(0, 100));
 
 		assertTrue(res[0]);
 		assertEquals(0, model.sendQueue.size());
@@ -142,7 +143,7 @@ public class CommunicationModelTest {
 		assertFalse(res[0]);
 		assertEquals(1, model.sendQueue.size());
 
-		model.afterTick(0, 100);
+		model.afterTick(TimeLapseFactory.create(0, 100));
 
 		assertTrue(res[0]);
 		assertEquals(0, model.sendQueue.size());
@@ -170,7 +171,7 @@ public class CommunicationModelTest {
 		assertFalse(res[0]);
 		assertEquals(0, model.sendQueue.size());
 
-		model.afterTick(0, 100);
+		model.afterTick(TimeLapseFactory.create(0, 100));
 
 		assertFalse(res[0]);
 		assertEquals(0, model.sendQueue.size());
@@ -205,7 +206,7 @@ public class CommunicationModelTest {
 
 		assertEquals(0, model.sendQueue.size());
 
-		model.afterTick(0, 100);
+		model.afterTick(TimeLapseFactory.create(0, 100));
 
 		assertFalse(res[0]);
 		assertEquals(0, model.sendQueue.size());
@@ -240,7 +241,7 @@ public class CommunicationModelTest {
 
 		assertEquals(0, model.sendQueue.size());
 
-		model.afterTick(0, 100);
+		model.afterTick(TimeLapseFactory.create(0, 100));
 
 		assertFalse(res[0]);
 		assertEquals(0, model.sendQueue.size());

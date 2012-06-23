@@ -28,7 +28,7 @@ public final class TimeLapse {
 	}
 
 	void initialize(long start, long end) {
-		checkArgument(start > 0, "time must be positive");
+		checkArgument(start >= 0, "time must be positive");
 		checkArgument(end > start, "end time must be after start time");
 		startTime = start;
 		endTime = end;

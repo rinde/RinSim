@@ -68,6 +68,7 @@ public class Simulator implements SimulatorAPI {
 
 		rand = r;
 		time = 0L;
+		// time lapse is reused in a Flyweight kind of style
 		timeLapse = new TimeLapse();
 
 		modelManager = new ModelManager();
