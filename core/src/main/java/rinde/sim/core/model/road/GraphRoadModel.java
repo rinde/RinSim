@@ -13,6 +13,7 @@ import java.util.Queue;
 
 import org.apache.commons.math.random.RandomGenerator;
 
+import rinde.sim.core.TimeLapse;
 import rinde.sim.core.graph.Connection;
 import rinde.sim.core.graph.EdgeData;
 import rinde.sim.core.graph.Graph;
@@ -67,17 +68,18 @@ public class GraphRoadModel extends AbstractRoadModel<Loc> {
 	 * @return The actual distance that <code>object</code> has traveled after
 	 *         the execution of this method has finished.
 	 */
+	// TODO add unit tests for timelapse inputs
 	@Override
-	public PathProgress followPath(MovingRoadUser object, Queue<Point> path, long time) {
+	public PathProgress followPath(MovingRoadUser object, Queue<Point> path, TimeLapse time) {
 		checkArgument(object != null, "object cannot be null");
 		checkArgument(objLocs.containsKey(object), "object must have a location");
 		checkArgument(path.peek() != null, "path can not be empty");
-		checkArgument(time > 0, "time must be a positive number");
+		// checkArgument(time > 0, "time must be a positive number");
 
 		Loc objLoc = objLocs.get(object);
 		checkLocation(objLoc);
 
-		long timeLeft = time;
+		// long timeLeft = time;
 		double traveled = 0;
 
 		Loc tempLoc = objLoc;
@@ -88,7 +90,7 @@ public class GraphRoadModel extends AbstractRoadModel<Loc> {
 		final SpeedConverter sc = new SpeedConverter();
 
 		List<Point> travelledNodes = new ArrayList<Point>();
-		while (timeLeft > 0 && path.size() > 0) {
+		while (time.hasTimeLeft() && path.size() > 0) {
 			checkIsValidMove(tempLoc, path.peek());
 
 			// speed in graph units per hour -> converting to miliseconds
@@ -96,7 +98,7 @@ public class GraphRoadModel extends AbstractRoadModel<Loc> {
 			speed = sc.from(speed, TimeUnit.H).to(TimeUnit.MS);
 
 			// distance that can be traveled in current edge with timeleft
-			double travelDistance = speed * timeLeft;
+			double travelDistance = speed * time.getTimeLeft();
 			double connLength = computeConnectionLength(tempPos, path.peek());
 
 			if (travelDistance >= connLength) {
@@ -106,7 +108,7 @@ public class GraphRoadModel extends AbstractRoadModel<Loc> {
 					travelledNodes.add(tempPos);
 				}
 				long timeSpent = Math.round(connLength / speed);
-				timeLeft -= timeSpent;
+				time.consume(timeSpent);
 				traveled += connLength;
 
 				if (tempPos instanceof Loc) {
@@ -117,9 +119,10 @@ public class GraphRoadModel extends AbstractRoadModel<Loc> {
 
 			} else { // distanceLeft < connLength
 				newDis = travelDistance;
-				timeLeft = 0;
-				long timeSpent = Math.round(travelDistance / speed);
-				timeLeft -= timeSpent;
+				time.consumeAll();
+				// timeLeft = 0;
+				// long timeSpent = Math.round(travelDistance / speed);
+				// timeLeft -= timeSpent;
 				traveled += travelDistance;
 
 				Point from = isMidPoint(tempLoc) ? tempLoc.conn.from : tempLoc;
@@ -131,7 +134,7 @@ public class GraphRoadModel extends AbstractRoadModel<Loc> {
 		}
 
 		objLocs.put(object, tempLoc);
-		return new PathProgress(traveled, time - (timeLeft > 0 ? timeLeft : 0), travelledNodes);
+		return new PathProgress(traveled, time.getTimeConsumed(), travelledNodes);
 	}
 
 	protected void checkIsValidMove(Loc objLoc, Point nextHop) {

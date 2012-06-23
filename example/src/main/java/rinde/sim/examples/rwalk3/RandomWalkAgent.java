@@ -8,6 +8,7 @@ import org.apache.commons.math.random.RandomGenerator;
 import rinde.sim.core.SimulatorAPI;
 import rinde.sim.core.SimulatorUser;
 import rinde.sim.core.TickListener;
+import rinde.sim.core.TimeLapse;
 import rinde.sim.core.graph.Point;
 import rinde.sim.core.model.road.MovingRoadUser;
 import rinde.sim.core.model.road.RoadModel;
@@ -36,7 +37,7 @@ public class RandomWalkAgent implements TickListener, MovingRoadUser, SimulatorU
 	}
 
 	@Override
-	public void tick(long currentTime, long timeStep) {
+	public void tick(TimeLapse timeLapse) {
 		if (path == null || path.isEmpty()) {
 			if (currentPackage != null && rs.containsObject(currentPackage)) {
 				rs.removeObject(currentPackage);
@@ -47,7 +48,7 @@ public class RandomWalkAgent implements TickListener, MovingRoadUser, SimulatorU
 			simulator.register(currentPackage);
 			path = new LinkedList<Point>(rs.getShortestPathTo(this, destination));
 		} else {
-			rs.followPath(this, path, timeStep);
+			rs.followPath(this, path, timeLapse);
 		}
 
 	}
@@ -71,7 +72,7 @@ public class RandomWalkAgent implements TickListener, MovingRoadUser, SimulatorU
 	}
 
 	@Override
-	public void afterTick(long currentTime, long timeStep) {
+	public void afterTick(TimeLapse timeLapse) {
 		// empty on purpose
 	}
 }

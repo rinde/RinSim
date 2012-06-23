@@ -17,8 +17,8 @@ import org.slf4j.LoggerFactory;
 import rinde.sim.core.model.Model;
 import rinde.sim.core.model.ModelManager;
 import rinde.sim.event.Event;
-import rinde.sim.event.EventDispatcher;
 import rinde.sim.event.EventAPI;
+import rinde.sim.event.EventDispatcher;
 
 /**
  * @author Rinde van Lon (rinde.vanlon@cs.kuleuven.be)
@@ -224,15 +224,29 @@ public class Simulator implements SimulatorAPI {
 		List<TickListener> localCopy = new ArrayList<TickListener>();
 		long timeS = System.currentTimeMillis();
 		localCopy.addAll(tickListeners);
+
+		// tl = new ()
+
 		for (TickListener t : localCopy) {
-			t.tick(time, timeStep);
+			// tl.initialize( start, end)
+
+			// FIXME reuse objects to avoid continuous object creation!
+			// object reuse implies that references to these objects should
+			// never be stored in the client side
+			TimeLapse tl = new TimeLapse(time, time + timeStep);
+			t.tick(tl);
+			// TODO could enforce that TimeLapse MUST be consumed!
+			// TODO can time lapse be optional?
+
 		}
 		if (LOGGER.isDebugEnabled()) {
 			LOGGER.debug("tick(): " + (System.currentTimeMillis() - timeS));
 			timeS = System.currentTimeMillis();
 		}
 		for (TickListener t : tickListeners) {
-			t.afterTick(time, timeStep);
+			TimeLapse tl = new TimeLapse(time, time + timeStep);
+			t.afterTick(tl);
+			// TODO could enforce that TimeLapse MUST be consumed!
 		}
 		if (LOGGER.isDebugEnabled()) {
 			LOGGER.debug("aftertick(): " + (System.currentTimeMillis() - timeS));

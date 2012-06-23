@@ -13,6 +13,7 @@ import java.util.Queue;
 
 import org.apache.commons.math.random.RandomGenerator;
 
+import rinde.sim.core.TimeLapse;
 import rinde.sim.core.graph.Point;
 import rinde.sim.util.SpeedConverter;
 import rinde.sim.util.TimeUnit;
@@ -58,14 +59,14 @@ public class PlaneRoadModel extends AbstractRoadModel<Point> {
 	 * .model.road.MovingRoadUser, java.util.Queue, long)
 	 */
 	@Override
-	public PathProgress followPath(MovingRoadUser object, Queue<Point> path, long time) {
+	public PathProgress followPath(MovingRoadUser object, Queue<Point> path, TimeLapse time) {
 		checkArgument(containsObject(object), "object must exist in RoadModel");
 		checkArgument(!path.isEmpty(), "path can not be empty");
-		checkArgument(time > 0, "time must be a positive number");
+		// checkArgument(time > 0, "time must be a positive number");
 
 		Point loc = objLocs.get(object);
 
-		long timeLeft = time;
+		// long timeLeft = time.getTimeLeft();
 		double traveled = 0;
 
 		final SpeedConverter sc = new SpeedConverter();
@@ -74,29 +75,28 @@ public class PlaneRoadModel extends AbstractRoadModel<Point> {
 		speed = sc.from(speed, TimeUnit.H).to(TimeUnit.MS);
 
 		List<Point> travelledNodes = new ArrayList<Point>();
-		while (timeLeft > 0 && path.size() > 0) {
+		while (time.hasTimeLeft() && path.size() > 0) {
 			checkArgument(checkPointIsInBoundary(path.peek()), "points in the path must be within the predefined boundary of the plane");
 
 			// distance that can be traveled with timeleft
-			double travelDistance = speed * timeLeft;
+			double travelDistance = speed * time.getTimeLeft();
 			double stepLength = Point.distance(loc, path.peek());
 			double perc = travelDistance / stepLength;
 
 			if (perc + DELTA >= 1) {
 				loc = path.remove();
 				travelledNodes.add(loc);
-				timeLeft -= Math.round(stepLength / speed);
+				time.consume(Math.round(stepLength / speed));
 				traveled += stepLength;
 			} else {
 				Point diff = Point.diff(path.peek(), loc);
 				loc = new Point(loc.x + perc * diff.x, loc.y + perc * diff.y);
-				timeLeft -= Math.round(travelDistance / speed);
+				time.consume(Math.round(travelDistance / speed));
 				traveled += travelDistance;
 			}
 		}
-
 		objLocs.put(object, loc);
-		return new PathProgress(traveled, time - (timeLeft > 0 ? timeLeft : 0), travelledNodes);
+		return new PathProgress(traveled, time.getTimeConsumed(), travelledNodes);
 	}
 
 	protected static final double DELTA = 0.000001;

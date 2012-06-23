@@ -152,10 +152,10 @@ public class SimulatorTest {
 
 	class DummyObjectTickListener implements TickListener {
 		@Override
-		public void tick(long currentTime, long ts) {}
+		public void tick(TimeLapse tl) {}
 
 		@Override
-		public void afterTick(long currentTime, long ts) {}
+		public void afterTick(TimeLapse tl) {}
 	}
 
 	class DummyObjectSimulationUser implements SimulatorUser {
@@ -174,10 +174,10 @@ public class SimulatorTest {
 	class DummyModelAsTickListener extends DummyModel implements TickListener {
 
 		@Override
-		public void tick(long currentTime, long ts) {}
+		public void tick(TimeLapse tl) {}
 
 		@Override
-		public void afterTick(long currentTime, long ts) {}
+		public void afterTick(TimeLapse tl) {}
 
 	}
 
@@ -197,15 +197,15 @@ public class SimulatorTest {
 		}
 
 		@Override
-		public void tick(long currentTime, long ts) {
+		public void tick(TimeLapse tl) {
 			tickCount++;
 		}
 
 		@Override
-		public void afterTick(long currentTime, long ts) {
+		public void afterTick(TimeLapse tl) {
 			if (tickCount >= limit) {
 				assertTrue(sim.isPlaying());
-				if (currentTime > limit * ts) {
+				if (tl.getTime() > limit * tl.getPeriod()) {
 					sim.togglePlayPause();
 				}
 				sim.stop();
@@ -221,7 +221,7 @@ public class SimulatorTest {
 		private long afterTime;
 
 		@Override
-		public void tick(long currentTime, long ts) {
+		public void tick(TimeLapse tl) {
 			count++;
 			execTime = System.nanoTime();
 		}
@@ -239,7 +239,7 @@ public class SimulatorTest {
 		}
 
 		@Override
-		public void afterTick(long currentTime, long ts) {
+		public void afterTick(TimeLapse tl) {
 			afterTime = System.nanoTime();
 		}
 	}
