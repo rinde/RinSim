@@ -46,6 +46,7 @@ public class Simulator implements SimulatorAPI {
 	protected final long timeStep;
 	protected volatile boolean isPlaying;
 	protected long time;
+	protected final TimeLapse timeLapse;
 
 	protected ModelManager modelManager;
 	private boolean configured;
@@ -67,6 +68,7 @@ public class Simulator implements SimulatorAPI {
 
 		rand = r;
 		time = 0L;
+		timeLapse = new TimeLapse();
 
 		modelManager = new ModelManager();
 
@@ -225,33 +227,26 @@ public class Simulator implements SimulatorAPI {
 		long timeS = System.currentTimeMillis();
 		localCopy.addAll(tickListeners);
 
-		// tl = new ()
-
 		for (TickListener t : localCopy) {
-			// tl.initialize( start, end)
-
-			// FIXME reuse objects to avoid continuous object creation!
-			// object reuse implies that references to these objects should
-			// never be stored in the client side
-			TimeLapse tl = new TimeLapse(time, time + timeStep);
-			t.tick(tl);
+			timeLapse.initialize(time, time + timeStep);
+			t.tick(timeLapse);
 			// TODO could enforce that TimeLapse MUST be consumed!
 			// TODO can time lapse be optional?
-
 		}
 		if (LOGGER.isDebugEnabled()) {
 			LOGGER.debug("tick(): " + (System.currentTimeMillis() - timeS));
 			timeS = System.currentTimeMillis();
 		}
+		timeLapse.initialize(time, time + timeStep);
+		timeLapse.consumeAll();
+		// in the after tick the TimeLapse can no longer be consumed
 		for (TickListener t : tickListeners) {
-			TimeLapse tl = new TimeLapse(time, time + timeStep);
-			t.afterTick(tl);
+			t.afterTick(timeLapse);
 			// TODO could enforce that TimeLapse MUST be consumed!
 		}
 		if (LOGGER.isDebugEnabled()) {
 			LOGGER.debug("aftertick(): " + (System.currentTimeMillis() - timeS));
 		}
-
 		time += timeStep;
 
 	}

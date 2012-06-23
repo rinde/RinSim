@@ -15,13 +15,19 @@ import static com.google.common.base.Preconditions.checkArgument;
  * @author Rinde van Lon (rinde.vanlon@cs.kuleuven.be)
  * 
  */
-public class TimeLapse {
+public final class TimeLapse {
 
-	protected final long startTime;
-	protected long endTime;
-	protected long timeLeft;
+	private long startTime;
+	private long endTime;
+	private long timeLeft;
+
+	TimeLapse() {}
 
 	TimeLapse(long start, long end) {
+		initialize(start, end);
+	}
+
+	void initialize(long start, long end) {
 		checkArgument(start > 0, "time must be positive");
 		checkArgument(end > start, "end time must be after start time");
 		startTime = start;
@@ -59,6 +65,7 @@ public class TimeLapse {
 		return (startTime - endTime) - timeLeft;
 	}
 
+	// TODO check if this method doesn't break the entire concept
 	// splits the lapse in two parts. this part will be the earlier part, the
 	// returned path is later part.
 	public TimeLapse split(long length) {
