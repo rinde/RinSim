@@ -57,7 +57,7 @@ public final class TimeLapse {
 		return endTime - timeLeft;
 	}
 
-	public long getPeriod() {
+	public long getTimeStep() {
 		return endTime - startTime;
 	}
 

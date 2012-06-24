@@ -665,13 +665,13 @@ public class GraphRoadModelTest extends AbstractRoadModelTest<GraphRoadModel> {
 		PathProgress pp1 = model.followPath(agent1, asPath(SW), hour());
 		pp1.toString();
 		assertEquals(1, pp1.distance, EPSILON);
-		assertEquals(hour().getPeriod(), pp1.time);
+		assertEquals(hour().getTimeStep(), pp1.time);
 
 		TestRoadUser agent2 = new TestRoadUser();
 		model.addObjectAt(agent2, SE);
 		PathProgress pp2 = model.followPath(agent2, asPath(SW), hour(2));
 		assertEquals(2, pp2.distance, EPSILON);
-		assertEquals(hour(2).getPeriod(), pp2.time);
+		assertEquals(hour(2).getTimeStep(), pp2.time);
 
 		assertEquals(1, model.computeConnectionLength(model.getPosition(agent1), model.getPosition(agent2)), EPSILON);
 
