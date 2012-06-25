@@ -134,7 +134,7 @@ public class GraphRoadModelTest extends AbstractRoadModelTest<GraphRoadModel> {
 		TestRoadUser driver1 = new TestRoadUser();
 		model.addObjectAt(driver1, SW);
 		PathProgress pp = model.followPath(driver1, path, hour(44));
-		assertEquals(hour(44), pp.time);
+		assertEquals(hour(44).getTimeStep(), pp.time);
 		assertEquals(44, pp.distance, EPSILON);
 		assertEquals(asList(SW, SE, NE, A, B), pp.travelledNodes);
 	}

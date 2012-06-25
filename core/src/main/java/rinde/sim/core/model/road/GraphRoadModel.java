@@ -74,6 +74,7 @@ public class GraphRoadModel extends AbstractRoadModel<Loc> {
 		checkArgument(object != null, "object cannot be null");
 		checkArgument(objLocs.containsKey(object), "object must have a location");
 		checkArgument(path.peek() != null, "path can not be empty");
+		checkArgument(time.hasTimeLeft(), "can not follow path when to time is left");
 		// checkArgument(time > 0, "time must be a positive number");
 
 		Loc objLoc = objLocs.get(object);

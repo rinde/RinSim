@@ -62,6 +62,7 @@ public class PlaneRoadModel extends AbstractRoadModel<Point> {
 	public PathProgress followPath(MovingRoadUser object, Queue<Point> path, TimeLapse time) {
 		checkArgument(containsObject(object), "object must exist in RoadModel");
 		checkArgument(!path.isEmpty(), "path can not be empty");
+		checkArgument(time.hasTimeLeft(), "there must be time left to execute follow path");
 		// checkArgument(time > 0, "time must be a positive number");
 
 		Point loc = objLocs.get(object);

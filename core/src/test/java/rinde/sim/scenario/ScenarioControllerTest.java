@@ -18,6 +18,8 @@ import org.junit.Before;
 import org.junit.Test;
 
 import rinde.sim.core.Simulator;
+import rinde.sim.core.TimeLapse;
+import rinde.sim.core.TimeLapseFactory;
 import rinde.sim.event.Event;
 import rinde.sim.event.Listener;
 import rinde.sim.event.ListenerEventHistory;
@@ -42,7 +44,7 @@ public class ScenarioControllerTest {
 	@Test(expected = IllegalArgumentException.class)
 	public void testEmptyController() throws ConfigurationException {
 		controller = new TestScenarioController(scenario, 3);
-		controller.tick(0, 1);
+		controller.tick(TimeLapseFactory.create(0, 1));
 	}
 
 	@Test(expected = ConfigurationException.class)
@@ -122,7 +124,9 @@ public class ScenarioControllerTest {
 			sc.start();// should have no effect
 			assertEquals(before, sc.getSimulator().getCurrentTime());
 		}
-		sc.tick(0, 0);
+		TimeLapse emptyTime = TimeLapseFactory.create(0, 1);
+		emptyTime.consumeAll();
+		sc.tick(emptyTime);
 	}
 
 	@Test
@@ -143,8 +147,9 @@ public class ScenarioControllerTest {
 
 		sc.start();
 		sc.stop();
-		sc.tick(0, 0);
-
+		TimeLapse emptyTime = TimeLapseFactory.create(0, 1);
+		emptyTime.consumeAll();
+		sc.tick(emptyTime);
 	}
 
 	/**

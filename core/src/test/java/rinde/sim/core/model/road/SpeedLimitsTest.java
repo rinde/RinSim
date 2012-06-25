@@ -1,4 +1,4 @@
-package rinde.sim.core.model.road; 
+package rinde.sim.core.model.road;
 
 import static java.util.Arrays.asList;
 import static org.junit.Assert.assertEquals;
@@ -18,6 +18,8 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 
+import rinde.sim.core.TimeLapse;
+import rinde.sim.core.TimeLapseFactory;
 import rinde.sim.core.graph.Graph;
 import rinde.sim.core.graph.MultiAttributeEdgeData;
 import rinde.sim.core.graph.Point;
@@ -127,14 +129,16 @@ public class SpeedLimitsTest {
 	@Test
 	public void followPathAllAtOnce() {
 		int timeNeeded = (int) (TimeUnit.H.toMs((long) pathLength) / speed * 1.5);
+		TimeLapse timeLapse = TimeLapseFactory.create(0, timeNeeded);
 
 		SpeedyRoadUser agent = new SpeedyRoadUser(speed);
 		model.addObjectAt(agent, new Point(0, 0));
 		assertEquals(new Point(0, 0), model.getPosition(agent));
 
 		assertEquals(5, path.size());
-		PathProgress travelled = model.followPath(agent, path, timeNeeded);
+		PathProgress travelled = model.followPath(agent, path, timeLapse);
 
+		assertTrue(timeLapse.hasTimeLeft());
 		assertEquals(pathLength, travelled.distance, DELTA);
 		assertTrue("time spend < timeNeeded", timeNeeded > travelled.time);
 		assertEquals(0, path.size());
@@ -154,12 +158,12 @@ public class SpeedLimitsTest {
 		assertTrue(model.getPosition(agent).equals(new Point(0, 0)));
 		assertEquals(5, path.size());
 
-		PathProgress progress = model.followPath(agent, path, TimeUnit.H.toMs(2));
+		PathProgress progress = model.followPath(agent, path, AbstractRoadModelTest.hour(2));
 		assertEquals(2 * speed, progress.distance, DELTA);
 		assertEquals(new Point(0, 2 * speed), model.getPosition(agent));
 
 		if (speed < 5) {
-			progress = model.followPath(agent, path, TimeUnit.H.toMs(2));
+			progress = model.followPath(agent, path, AbstractRoadModelTest.hour(2));
 			assertEquals(2 * speed, progress.distance, DELTA);
 		}
 
@@ -171,23 +175,23 @@ public class SpeedLimitsTest {
 
 		// traveling on edge with max speed 2.5
 
-		progress = model.followPath(agent, path, TimeUnit.H.toMs(2));
+		progress = model.followPath(agent, path, AbstractRoadModelTest.hour(2));
 		assertEquals(5, progress.distance, DELTA);
 		assertEquals(3, path.size());
 
-		progress = model.followPath(agent, path, TimeUnit.H.toMs(2));
+		progress = model.followPath(agent, path, AbstractRoadModelTest.hour(2));
 		assertEquals(5, progress.distance, DELTA);
 		assertEquals(C, model.getPosition(agent));
 		assertEquals(2, path.size());
 
 		long time = speed < 5 ? 4 : 2;
 
-		progress = model.followPath(agent, path, TimeUnit.H.toMs(time)); // follow
-																			// path
-																			// for
-																			// 2
-																			// x
-																			// time
+		progress = model.followPath(agent, path, AbstractRoadModelTest.hour(time)); // follow
+		// path
+		// for
+		// 2
+		// x
+		// time
 		assertEquals(10, progress.distance, DELTA);
 		assertEquals(TimeUnit.H.toMs(time), progress.time);
 		assertEquals(1, path.size());
@@ -196,7 +200,7 @@ public class SpeedLimitsTest {
 		// travel with max speed of the vehicle and time longer than needed
 		time = speed < 5 ? 2 : 1;
 
-		progress = model.followPath(agent, path, TimeUnit.H.toMs(3));
+		progress = model.followPath(agent, path, AbstractRoadModelTest.hour(3));
 		assertEquals(5, progress.distance, DELTA);
 		assertEquals(TimeUnit.H.toMs(time), progress.time);
 		assertEquals(0, path.size());
@@ -223,7 +227,7 @@ public class SpeedLimitsTest {
 		assertEquals(new Point(0, 0), model.getPosition(agent));
 		assertEquals(5, path.size());
 
-		PathProgress progress = model.followPath(agent, path, TimeUnit.H.toMs(1));
+		PathProgress progress = model.followPath(agent, path, AbstractRoadModelTest.hour());
 		assertEquals(speed, progress.distance, DELTA);
 		assertEquals(4, path.size());
 	}

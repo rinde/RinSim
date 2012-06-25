@@ -17,6 +17,8 @@ import static com.google.common.base.Preconditions.checkArgument;
  */
 public final class TimeLapse {
 
+	// TODO write javadoc
+
 	private long startTime;
 	private long endTime;
 	private long timeLeft;
@@ -36,7 +38,7 @@ public final class TimeLapse {
 	}
 
 	public void consume(long time) {
-		checkArgument(time > 0, "the time to consume must be a positive value");
+		checkArgument(time >= 0, "the time to consume must be a positive value");
 		checkArgument(timeLeft - time >= 0, "there must be enough time left to consume it");
 		timeLeft -= time;
 	}
@@ -62,18 +64,19 @@ public final class TimeLapse {
 	}
 
 	public long getTimeConsumed() {
-		return (startTime - endTime) - timeLeft;
+		return (endTime - startTime) - timeLeft;
 	}
 
 	// TODO check if this method doesn't break the entire concept
 	// splits the lapse in two parts. this part will be the earlier part, the
 	// returned path is later part.
-	public TimeLapse split(long length) {
-		checkArgument(length > 0, "the split length must be positive");
-		checkArgument(timeLeft - length >= 0, "the time to split must be available");
-		long end = endTime;
-		endTime -= length;
-		timeLeft -= length;
-		return new TimeLapse(endTime, end);
-	}
+	// public TimeLapse split(long length) {
+	// checkArgument(length > 0, "the split length must be positive");
+	// checkArgument(timeLeft - length >= 0,
+	// "the time to split must be available");
+	// long end = endTime;
+	// endTime -= length;
+	// timeLeft -= length;
+	// return new TimeLapse(endTime, end);
+	// }
 }
