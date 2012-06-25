@@ -17,8 +17,8 @@ import org.slf4j.LoggerFactory;
 import rinde.sim.core.model.Model;
 import rinde.sim.core.model.ModelManager;
 import rinde.sim.event.Event;
-import rinde.sim.event.EventDispatcher;
 import rinde.sim.event.EventAPI;
+import rinde.sim.event.EventDispatcher;
 
 /**
  * @author Rinde van Lon (rinde.vanlon@cs.kuleuven.be)
@@ -46,6 +46,7 @@ public class Simulator implements SimulatorAPI {
 	protected final long timeStep;
 	protected volatile boolean isPlaying;
 	protected long time;
+	protected final TimeLapse timeLapse;
 
 	protected ModelManager modelManager;
 	private boolean configured;
@@ -67,6 +68,8 @@ public class Simulator implements SimulatorAPI {
 
 		rand = r;
 		time = 0L;
+		// time lapse is reused in a Flyweight kind of style
+		timeLapse = new TimeLapse();
 
 		modelManager = new ModelManager();
 
@@ -224,20 +227,27 @@ public class Simulator implements SimulatorAPI {
 		List<TickListener> localCopy = new ArrayList<TickListener>();
 		long timeS = System.currentTimeMillis();
 		localCopy.addAll(tickListeners);
+
 		for (TickListener t : localCopy) {
-			t.tick(time, timeStep);
+			timeLapse.initialize(time, time + timeStep);
+			t.tick(timeLapse);
+			// TODO could enforce that TimeLapse MUST be consumed!
+			// TODO can time lapse be optional?
 		}
 		if (LOGGER.isDebugEnabled()) {
 			LOGGER.debug("tick(): " + (System.currentTimeMillis() - timeS));
 			timeS = System.currentTimeMillis();
 		}
+		timeLapse.initialize(time, time + timeStep);
+		timeLapse.consumeAll();
+		// in the after tick the TimeLapse can no longer be consumed
 		for (TickListener t : tickListeners) {
-			t.afterTick(time, timeStep);
+			t.afterTick(timeLapse);
+			// TODO could enforce that TimeLapse MUST be consumed!
 		}
 		if (LOGGER.isDebugEnabled()) {
 			LOGGER.debug("aftertick(): " + (System.currentTimeMillis() - timeS));
 		}
-
 		time += timeStep;
 
 	}

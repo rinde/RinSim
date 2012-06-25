@@ -15,6 +15,7 @@ import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
 
+import rinde.sim.core.TimeLapse;
 import rinde.sim.core.graph.Graph;
 import rinde.sim.core.graph.Graphs;
 import rinde.sim.core.graph.Point;
@@ -65,7 +66,7 @@ public abstract class AbstractRoadModel<T> implements RoadModel {
 	 * , java.util.Queue, long)
 	 */
 	@Override
-	public abstract PathProgress followPath(MovingRoadUser object, Queue<Point> path, long time);
+	public abstract PathProgress followPath(MovingRoadUser object, Queue<Point> path, TimeLapse time);
 
 	// TODO add javadoc
 	/*

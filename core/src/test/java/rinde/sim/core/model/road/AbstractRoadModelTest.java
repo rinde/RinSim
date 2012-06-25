@@ -23,6 +23,8 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import rinde.sim.core.TimeLapse;
+import rinde.sim.core.TimeLapseFactory;
 import rinde.sim.core.graph.Point;
 import rinde.sim.util.SpeedConverter;
 import rinde.sim.util.TrivialRoadUser;
@@ -39,7 +41,18 @@ import com.google.common.collect.Table;
  */
 public abstract class AbstractRoadModelTest<T extends RoadModel> {
 
-	protected static final long ONE_HOUR = 60 * 60 * 1000;
+	protected static TimeLapse hour() {
+		return hour(1);
+	}
+
+	protected static TimeLapse hour(long multiplier) {
+		return TimeLapseFactory.create(0, 60 * 60 * 1000 * multiplier);
+	}
+
+	protected static TimeLapse timeLength(long length) {
+		return TimeLapseFactory.create(0, length);
+	}
+
 	protected final SpeedConverter sc = new SpeedConverter();
 	protected final double EPSILON = 0.02;
 
@@ -131,21 +144,29 @@ public abstract class AbstractRoadModelTest<T extends RoadModel> {
 	public void followPathFailPath1() {
 		TestRoadUser testRoadUser = new TestRoadUser();
 		model.addObjectAt(testRoadUser, SW);
-		model.followPath(testRoadUser, null, 0);
+		model.followPath(testRoadUser, null, emptyTimeLapse);
+	}
+
+	static TimeLapse emptyTimeLapse = init();
+
+	static TimeLapse init() {
+		TimeLapse tl = TimeLapseFactory.create(0, 1);
+		tl.consumeAll();
+		return tl;
 	}
 
 	@Test(expected = IllegalArgumentException.class)
 	public void followPathFailPath2() {
 		TestRoadUser testRoadUser = new TestRoadUser();
 		model.addObjectAt(testRoadUser, SW);
-		model.followPath(testRoadUser, new LinkedList<Point>(), 0);
+		model.followPath(testRoadUser, new LinkedList<Point>(), emptyTimeLapse);
 	}
 
 	@Test(expected = IllegalArgumentException.class)
 	public void followPathFailTime() {
 		TestRoadUser testRoadUser = new TestRoadUser();
 		model.addObjectAt(testRoadUser, SW);
-		model.followPath(testRoadUser, new LinkedList<Point>(Arrays.asList(SW)), 0);
+		model.followPath(testRoadUser, new LinkedList<Point>(Arrays.asList(SW)), emptyTimeLapse);
 	}
 
 	@Test
@@ -264,7 +285,7 @@ public abstract class AbstractRoadModelTest<T extends RoadModel> {
 		assertFalse(model.containsObjectAt(ru, new Point(2, 3)));
 		assertTrue(model.containsObjectAt(ru, SW));
 
-		model.followPath(ru, asPath(SE), 1 * ONE_HOUR);
+		model.followPath(ru, asPath(SE), hour(1));
 		Point p = model.getPosition(ru);
 		assertTrue(model.containsObjectAt(ru, Point.duplicate(p)));
 	}

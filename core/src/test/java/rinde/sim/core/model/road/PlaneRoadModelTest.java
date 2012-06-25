@@ -77,24 +77,24 @@ public class PlaneRoadModelTest extends AbstractRoadModelTest<PlaneRoadModel> {
 		model.addObjectAt(mru, new Point(0, 0));
 		Queue<Point> path = asPath(new Point(0, 0), new Point(5, 0), new Point(5, 5));
 
-		PathProgress pp = model.followPath(mru, path, ONE_HOUR);
+		PathProgress pp = model.followPath(mru, path, hour());
 		assertEquals(asPath(new Point(5, 0), new Point(5, 5)), path);
 		assertEquals(1, pp.distance, EPSILON);
-		assertEquals(ONE_HOUR, pp.time, EPSILON);
+		assertEquals(hour().getTimeStep(), pp.time, EPSILON);
 		assertEquals(asList(new Point(0, 0)), pp.travelledNodes);
 		assertTrue(Point.distance(new Point(1, 0), model.getPosition(mru)) < EPSILON);
 
-		PathProgress pp2 = model.followPath(mru, path, 5 * ONE_HOUR);
+		PathProgress pp2 = model.followPath(mru, path, hour(5));
 		assertEquals(asPath(new Point(5, 5)), path);
 		assertEquals(5, pp2.distance, EPSILON);
-		assertEquals(5 * ONE_HOUR, pp2.time, EPSILON);
+		assertEquals(hour(5).getTimeStep(), pp2.time, EPSILON);
 		assertEquals(asList(new Point(5, 0)), pp2.travelledNodes);
 		assertTrue(Point.distance(new Point(5, 1), model.getPosition(mru)) < EPSILON);
 
-		PathProgress pp3 = model.followPath(mru, path, 50 * ONE_HOUR);
+		PathProgress pp3 = model.followPath(mru, path, hour(50));
 		assertTrue(path.isEmpty());
 		assertEquals(4, pp3.distance, EPSILON);
-		assertEquals(4 * ONE_HOUR, pp3.time, EPSILON);
+		assertEquals(hour(4).getTimeStep(), pp3.time, EPSILON);
 		assertEquals(asList(new Point(5, 5)), pp3.travelledNodes);
 		assertTrue(Point.distance(new Point(5, 5), model.getPosition(mru)) < EPSILON);
 	}
@@ -104,7 +104,7 @@ public class PlaneRoadModelTest extends AbstractRoadModelTest<PlaneRoadModel> {
 		Queue<Point> path = asPath(new Point(0, 0), new Point(5, 0), new Point(5, 5), new Point(100, 0));
 		MovingRoadUser mru = new TestRoadUser();
 		model.addObjectAt(mru, new Point(0, 0));
-		model.followPath(mru, path, 100 * ONE_HOUR);
+		model.followPath(mru, path, hour(100));
 	}
 
 	@Test(expected = IllegalArgumentException.class)

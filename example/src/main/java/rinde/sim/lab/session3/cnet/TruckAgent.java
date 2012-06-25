@@ -6,6 +6,7 @@ import java.util.Queue;
 import rinde.sim.core.SimulatorAPI;
 import rinde.sim.core.SimulatorUser;
 import rinde.sim.core.TickListener;
+import rinde.sim.core.TimeLapse;
 import rinde.sim.core.graph.Point;
 import rinde.sim.core.model.communication.CommunicationAPI;
 import rinde.sim.core.model.communication.CommunicationUser;
@@ -39,7 +40,7 @@ public class TruckAgent implements TickListener, SimulatorUser, CommunicationUse
 	 * and deliver stuff at the end of his paths
 	 */
 	@Override
-	public void tick(long currentTime, long timeStep) {
+	public void tick(TimeLapse timeLapse) {
 		// TODO exercise
 		if (path == null || path.isEmpty()) {
 			truck.tryPickup();
@@ -47,12 +48,12 @@ public class TruckAgent implements TickListener, SimulatorUser, CommunicationUse
 			Point destination = truck.getRoadModel().getRandomPosition(simulator.getRandomGenerator());
 			path = new LinkedList<Point>(truck.getRoadModel().getShortestPathTo(truck, destination));
 		} else {
-			truck.drive(path, timeStep);
+			truck.drive(path, timeLapse);
 		}
 	}
 
 	@Override
-	public void afterTick(long currentTime, long timeStep) {
+	public void afterTick(TimeLapse timeLapse) {
 		// TODO Auto-generated method stub
 
 	}

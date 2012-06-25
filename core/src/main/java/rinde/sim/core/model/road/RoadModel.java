@@ -11,6 +11,7 @@ import java.util.Set;
 
 import org.apache.commons.math.random.RandomGenerator;
 
+import rinde.sim.core.TimeLapse;
 import rinde.sim.core.graph.Point;
 import rinde.sim.core.model.Model;
 
@@ -24,7 +25,7 @@ import com.google.common.base.Predicate;
 public interface RoadModel extends Model<RoadUser> {
 
 	// TODO add documentation
-	PathProgress followPath(MovingRoadUser object, Queue<Point> path, long time);
+	PathProgress followPath(MovingRoadUser object, Queue<Point> path, TimeLapse time);
 
 	/**
 	 * Adds a new object to the model at the specified position.

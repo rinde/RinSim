@@ -22,6 +22,7 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 
+import rinde.sim.core.TimeLapseFactory;
 import rinde.sim.core.model.road.GraphRoadModel;
 import rinde.sim.core.model.road.MovingRoadUser;
 import rinde.sim.core.model.road.PathProgress;
@@ -178,7 +179,8 @@ public class PathFinderTest {
 		double len = pathLength(t);
 		// speed of trivial truck is 1 len per hour thus we need to travel 'len'
 		// hours
-		PathProgress progress = rm.followPath(truck, new LinkedList<Point>(t), TimeUnit.H.toMs((long) Math.ceil(len)));
+		PathProgress progress = rm.followPath(truck, new LinkedList<Point>(t), TimeLapseFactory.create(0, TimeUnit.H
+				.toMs((long) Math.ceil(len))));
 		assertEquals(len, progress.distance, EPSILON);
 	}
 

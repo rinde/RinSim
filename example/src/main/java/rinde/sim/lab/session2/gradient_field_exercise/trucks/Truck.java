@@ -6,6 +6,7 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import rinde.sim.core.TimeLapse;
 import rinde.sim.core.graph.Point;
 import rinde.sim.core.model.road.MovingRoadUser;
 import rinde.sim.core.model.road.PathProgress;
@@ -46,8 +47,8 @@ public class Truck implements MovingRoadUser {
 		return rm;
 	}
 
-	public PathProgress drive(Queue<Point> path, long time) {
-		return rm.followPath(this, path, time);
+	public PathProgress drive(Queue<Point> path, TimeLapse timeLapse) {
+		return rm.followPath(this, path, timeLapse);
 	}
 
 	public Point getPosition() {

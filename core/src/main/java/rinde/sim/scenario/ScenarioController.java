@@ -11,6 +11,7 @@ import org.slf4j.LoggerFactory;
 
 import rinde.sim.core.Simulator;
 import rinde.sim.core.TickListener;
+import rinde.sim.core.TimeLapse;
 import rinde.sim.event.Event;
 import rinde.sim.event.EventAPI;
 import rinde.sim.event.EventDispatcher;
@@ -157,9 +158,9 @@ public abstract class ScenarioController implements TickListener, Listener {
 	}
 
 	@Override
-	final public void tick(long currentTime, long timeStep) {
+	final public void tick(TimeLapse timeLapse) {
 		if (!uiMode && ticks == 0) {
-			LOGGER.info("scenario finished at virtual time:" + currentTime);
+			LOGGER.info("scenario finished at virtual time:" + timeLapse.getTime());
 			simulator.stop();
 		}
 		if (LOGGER.isDebugEnabled() && ticks >= 0) {
@@ -169,10 +170,10 @@ public abstract class ScenarioController implements TickListener, Listener {
 			ticks--;
 		}
 		TimedEvent e = null;
-		while ((e = scenario.peek()) != null && e.time <= currentTime) {
+		while ((e = scenario.peek()) != null && e.time <= timeLapse.getTime()) {
 			scenario.poll();
 			if (status == null) {
-				LOGGER.info("scenario started at virtual time:" + currentTime);
+				LOGGER.info("scenario started at virtual time:" + timeLapse.getTime());
 				status = Type.SCENARIO_STARTED;
 				disp.dispatchEvent(new Event(status, this));
 			}
@@ -180,7 +181,7 @@ public abstract class ScenarioController implements TickListener, Listener {
 			disp.dispatchEvent(e);
 		}
 		if (e == null && status != Type.SCENARIO_FINISHED) {
-			LOGGER.info("scenario finished at virtual time:" + currentTime);
+			LOGGER.info("scenario finished at virtual time:" + timeLapse.getTime());
 			status = Type.SCENARIO_FINISHED;
 			simulator.removeTickListener(this);
 			disp.dispatchEvent(new Event(status, this));
@@ -189,7 +190,7 @@ public abstract class ScenarioController implements TickListener, Listener {
 	}
 
 	@Override
-	public void afterTick(long currentTime, long timeStep) {
+	public void afterTick(TimeLapse timeLapse) {
 		// not needed
 	}
 

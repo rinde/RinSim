@@ -33,6 +33,7 @@ import org.eclipse.swt.widgets.Shell;
 
 import rinde.sim.core.Simulator;
 import rinde.sim.core.TickListener;
+import rinde.sim.core.TimeLapse;
 import rinde.sim.core.graph.Point;
 import rinde.sim.core.model.Model;
 import rinde.sim.ui.renderers.ModelRenderer;
@@ -346,7 +347,7 @@ public class SimulationViewer extends Composite implements TickListener, Control
 	}
 
 	@Override
-	public void tick(long currentTime, long timeStep) {
+	public void tick(TimeLapse timeLapse) {
 
 	}
 
@@ -523,11 +524,11 @@ public class SimulationViewer extends Composite implements TickListener, Control
 	}
 
 	@Override
-	public void afterTick(long currentTime, long timeStep) {
-		if (simulator.isPlaying() && lastRefresh + timeStep * speedUp > currentTime) {
+	public void afterTick(TimeLapse timeLapse) {
+		if (simulator.isPlaying() && lastRefresh + timeLapse.getTimeStep() * speedUp > timeLapse.getTime()) {
 			return;
 		}
-		lastRefresh = currentTime;
+		lastRefresh = timeLapse.getTime();
 		if (display.isDisposed()) {
 			return;
 		}
