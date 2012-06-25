@@ -17,7 +17,7 @@ import static com.google.common.base.Preconditions.checkArgument;
  */
 public final class TimeLapse {
 
-	// TODO write javadoc
+	// FIXME write javadoc
 
 	private long startTime;
 	private long endTime;
@@ -65,6 +65,14 @@ public final class TimeLapse {
 
 	public long getTimeConsumed() {
 		return (endTime - startTime) - timeLeft;
+	}
+
+	public long getStartTime() {
+		return startTime;
+	}
+
+	public long getEndTime() {
+		return endTime;
 	}
 
 	// TODO check if this method doesn't break the entire concept
