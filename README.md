@@ -5,7 +5,7 @@ It supports pluggable models which allow to extend the scope of the simulator.
 Out of the box, RinSim currently focusses on MAS for PDP (Pickup and Delivery Problems). 
 You can easily extend RinSim by introducing your own custom models.
 
-[<img src="docs/screenshot.png">](http://vimeo.com/rinde/rinsim-randomwalk-demo)
+[<img src="tree/v2/docs/screenshot.png">](http://vimeo.com/rinde/rinsim-randomwalk-demo)
 
 Click the image above to view a movie showing the simulator in action.
 
