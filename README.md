@@ -5,6 +5,10 @@ It supports pluggable models which allow to extend the scope of the simulator.
 Out of the box, RinSim currently focusses on MAS for PDP (Pickup and Delivery Problems). 
 You can easily extend RinSim by introducing your own custom models.
 
+[<img src="docs/screenshot.png">](http://vimeo.com/rinde/rinsim-randomwalk-demo)
+
+Click the image above to view a movie showing the simulator in action.
+
 ## Getting Started 
 
 <!--
@@ -62,10 +66,12 @@ To install PDE
 
 RinSim is hosted on gitHub. You can get it using eGit (the eclipse plugin) or git.
 
+<!--
+
 (If you are using a pc from the lab and cannot install eclipse plugins, you can find a zipped workspace [here](http://people.cs.kuleuven.be/~robrecht.haesevoets/mascourse/simulator2.zip).
 You should open this workspace as a workspace in eclipse _File -> Switch Workspace -> Other..._
 Using this zipped workspace is not the recommended method, since you cannot update RinSim.)
-
+-->
 #### Using eGit
 
 * Go to _File -> Import..._
