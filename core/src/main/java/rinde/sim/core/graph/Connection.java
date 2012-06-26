@@ -1,6 +1,6 @@
 package rinde.sim.core.graph;
 
-import org.apache.commons.lang.builder.HashCodeBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 /**
  * Class representing a connection in a graph.

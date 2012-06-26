@@ -5,7 +5,7 @@ package rinde.sim.core.graph;
 
 import java.io.Serializable;
 
-import org.apache.commons.lang.builder.HashCodeBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 /**
  * @author Rinde van Lon (rinde.vanlon@cs.kuleuven.be)

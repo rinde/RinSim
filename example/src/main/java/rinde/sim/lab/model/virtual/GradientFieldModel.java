@@ -22,6 +22,7 @@ public class GradientFieldModel implements Model<VirtualEntity>, GradientFieldAP
 	}
 
 	public GradientFieldModel(RoadModel rm) {
+		this();
 		// TODO exercise
 	}
 

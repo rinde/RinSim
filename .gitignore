@@ -1,3 +1,4 @@
 core/files/test/
 example/src/main/java/rinde/sim/playground/
 .DS_Store
+target/

@@ -77,38 +77,16 @@
 			<artifactId>core</artifactId>
 		</dependency>
   	<dependency>
-  		<groupId>org.eclipse.equinox</groupId>
-  		<artifactId>org.eclipse.equinox.registry</artifactId>
-  		<version>3.5.0.v20100503</version>
-  	</dependency>
-  	<dependency>
-  		<groupId>org.eclipse.core</groupId>
-  		<artifactId>org.eclipse.core.runtime</artifactId>
-  		<version>3.6.0.v20100505</version>
-  	</dependency>
-  	<dependency>
-  		<groupId>org.eclipse.equinox</groupId>
-  		<artifactId>org.eclipse.equinox.common</artifactId>
-  		<version>3.6.0.v20100503</version>
-  	</dependency>
-  	<dependency>
-  		<groupId>org.eclipse.core</groupId>
-  		<artifactId>
-  			org.eclipse.core.runtime.compatibility.registry
-  		</artifactId>
-  		<version>3.3.0</version>
-  	</dependency>
-  	<dependency>
-  		<groupId>org.eclipse</groupId>
-  		<artifactId>jface</artifactId>
-  		<version>3.3.0-I20070606-0010</version>
-  	</dependency>
-  	<dependency>
   		<groupId>org.eclipse.swt</groupId>
   		<artifactId>org.eclipse.swt.${swt.variant}</artifactId>
   		<version>3.6.2</version>
   	</dependency>
-  </dependencies>
+  	<dependency>
+  		<groupId>org.eclipse.jface</groupId>
+  		<artifactId>org.eclipse.jface</artifactId>
+  		<version>3.6.2</version>
+  	</dependency>
+	</dependencies>
   <build>
 	<plugins>
       <plugin>

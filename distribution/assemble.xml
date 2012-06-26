@@ -1,0 +1,76 @@
+<assembly
+	xmlns="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.2"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.2 http://maven.apache.org/xsd/assembly-1.1.2.xsd">
+	<id>assemble</id>
+	<formats>
+		<format>dir</format>
+	</formats>
+	<includeBaseDirectory>true</includeBaseDirectory>
+
+
+
+	<moduleSets>
+		<moduleSet>
+
+			<!-- Enable access to all projects in the current multimodule build! -->
+			<useAllReactorProjects>true</useAllReactorProjects>
+
+			<!-- Now, select which projects to include in this module-set. -->
+			<includes>
+				<include>rinsim:*:*:*</include>
+			</includes>
+
+
+			<binaries>
+				<!-- <outputDirectory>modules/${artifactId}</outputDirectory> -->
+				<unpack>false</unpack>
+				<outputDirectory>/bin/</outputDirectory>
+
+				<dependencySets>
+					<dependencySet>
+						<excludes>
+							<exclude>rinsim:*:*:*</exclude>
+						</excludes>
+
+						<outputDirectory>/lib/</outputDirectory>
+						<useProjectArtifact>true</useProjectArtifact>
+						<unpack>false</unpack>
+						<scope>runtime</scope>
+					</dependencySet>
+
+					<!-- <dependencySet> <includes> <include>rinsim:*:*:javadoc</include> 
+						</includes> <outputDirectory>docs</outputDirectory> <unpack>true</unpack> 
+						<useTransitiveDependencies>true</useTransitiveDependencies> <useProjectArtifact>false</useProjectArtifact> 
+						<useStrictFiltering>true</useStrictFiltering> </dependencySet> -->
+
+					<!-- <dependencySet> <useProjectAttachments>true</useProjectAttachments> 
+						<includes> <include>rinsim:main:*:javadoc</include> </includes> <outputDirectory>/docs/</outputDirectory> 
+						</dependencySet> -->
+
+					<dependencySet>
+						<includes>
+							<include>rinsim:main:*:javadoc</include>
+						</includes>
+						<outputDirectory>docs</outputDirectory>
+						<unpack>true</unpack>
+						<useTransitiveDependencies>true</useTransitiveDependencies>
+						<useProjectArtifact>false</useProjectArtifact>
+						<useStrictFiltering>true</useStrictFiltering>
+					</dependencySet>
+
+				</dependencySets>
+
+			</binaries>
+		</moduleSet>
+	</moduleSets>
+
+	<fileSets>
+		<fileSet>
+			<directory>/target/site/apidocs/</directory>
+			<outputDirectory>/docs/</outputDirectory>
+		</fileSet>
+	</fileSets>
+
+
+</assembly>

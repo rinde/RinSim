@@ -122,6 +122,13 @@ public class ScenarioControllerTest {
 		synchronized (sc.getSimulator()) {
 			long before = sc.getSimulator().getCurrentTime();
 			sc.start();// should have no effect
+
+			// FIXME sometimes produces errors...
+
+			// Failed tests:
+			// finiteSimulation(rinde.sim.scenario.ScenarioControllerTest):
+			// expected:<1322> but was:<1323>
+
 			assertEquals(before, sc.getSimulator().getCurrentTime());
 		}
 		TimeLapse emptyTime = TimeLapseFactory.create(0, 1);
