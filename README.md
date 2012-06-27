@@ -10,6 +10,13 @@ You can easily extend RinSim by introducing your own custom models.
 Click the image above to view a movie showing the simulator in action.
 
 ## Getting Started 
+Two options:
+
+* Use the latest builds (see Downloads)
+* Use Maven, Git, etc (start at Prerequisites)
+
+### Downloads
+The latest builds for several platforms are now available from [this page](http://people.cs.kuleuven.be/~rinde.vanlon/rinsim/binaries/), this is an experimental feature, feedback is appreciated.
 
 <!--
 
