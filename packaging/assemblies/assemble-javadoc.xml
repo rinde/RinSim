@@ -1,0 +1,25 @@
+<assembly
+	xmlns="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.2"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.2 http://maven.apache.org/xsd/assembly-1.1.2.xsd">
+	<id>javadoc</id>
+	<formats>
+		<format>tar.gz</format>
+	</formats>
+
+	<baseDirectory>javadoc</baseDirectory>
+	<includeBaseDirectory>true</includeBaseDirectory>
+
+	<dependencySets>
+		<dependencySet>
+			<includes>
+				<include>rinsim:main:*:javadoc</include>
+			</includes>
+			<outputDirectory>/</outputDirectory>
+			<unpack>true</unpack>
+			<useTransitiveDependencies>true</useTransitiveDependencies>
+			<useProjectArtifact>false</useProjectArtifact>
+			<useStrictFiltering>true</useStrictFiltering>
+		</dependencySet>
+	</dependencySets>
+</assembly>
