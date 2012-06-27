@@ -6,10 +6,10 @@
 	<formats>
 		<format>zip</format>
 	</formats>
+	
 
 	<baseDirectory>RinSim-${project.version}-linux-x86_64</baseDirectory>
 	<includeBaseDirectory>true</includeBaseDirectory>
-
 
 	<componentDescriptors>
 		<componentDescriptor>shared-component.xml</componentDescriptor>

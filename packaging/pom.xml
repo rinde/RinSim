@@ -97,6 +97,7 @@
 								<descriptor>assemblies/assemble-win32-x86.xml</descriptor>
 								<descriptor>assemblies/assemble-linux-x86_64.xml</descriptor>
 							</descriptors>
+							<finalName>RinSim-${project.version}</finalName>
 							<appendAssemblyId>true</appendAssemblyId>
 						</configuration>
 					</execution>
