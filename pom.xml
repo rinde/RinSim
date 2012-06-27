@@ -10,7 +10,7 @@
 		<module>core</module>
 		<module>ui</module>
 		<module>example</module>
-		<module>distribution</module>
+		<module>packaging</module>
 	</modules>
 
 

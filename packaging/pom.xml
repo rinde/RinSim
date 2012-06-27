@@ -9,11 +9,16 @@
 		<relativePath>..</relativePath>
 	</parent>
 
-	<artifactId>distribution</artifactId>
+	<artifactId>packaging</artifactId>
 
 	<packaging>pom</packaging>
 
-	<name>Distribution</name>
+	<name>packaging</name>
+
+	<properties>
+		<swt.version>3.6.2</swt.version>
+		<swt.variant>cocoa.macosx.x86_64</swt.variant>
+	</properties>
 
 	<!-- NOTE: These dependency declarations are only required to sort this 
 		project to the end of the line in the multimodule build. Since we only include 
@@ -41,6 +46,37 @@
 			<version>${project.version}</version>
 			<classifier>javadoc</classifier>
 		</dependency>
+		<dependency>
+			<groupId>org.eclipse.swt</groupId>
+			<artifactId>org.eclipse.swt.${swt.variant}</artifactId>
+			<version>${swt.version}</version>
+		</dependency>
+
+		<!-- these dependencies are necessary for the different platforms: -->
+
+		<dependency>
+			<groupId>org.eclipse.swt</groupId>
+			<artifactId>org.eclipse.swt.cocoa.macosx.x86_64</artifactId>
+			<version>${swt.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.eclipse.swt</groupId>
+			<artifactId>org.eclipse.swt.win32.win32.x86_64</artifactId>
+			<version>${swt.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.eclipse.swt</groupId>
+			<artifactId>org.eclipse.swt.win32.win32.x86</artifactId>
+			<version>${swt.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.eclipse.swt</groupId>
+			<artifactId>org.eclipse.swt.gtk.linux.x86_64</artifactId>
+			<version>${swt.version}</version>
+		</dependency>
 	</dependencies>
 
 	<build>
@@ -56,12 +92,27 @@
 						</goals>
 						<configuration>
 							<descriptors>
-								<descriptor>assemble.xml</descriptor>
+								<descriptor>assemblies/assemble-macosx-x86_64.xml</descriptor>
+								<descriptor>assemblies/assemble-win32-x86_64.xml</descriptor>
+								<descriptor>assemblies/assemble-win32-x86.xml</descriptor>
+								<descriptor>assemblies/assemble-linux-x86_64.xml</descriptor>
 							</descriptors>
+							<appendAssemblyId>true</appendAssemblyId>
 						</configuration>
 					</execution>
 				</executions>
 			</plugin>
 		</plugins>
 	</build>
+
+	<repositories>
+		<repository>
+			<snapshots>
+				<enabled>false</enabled>
+			</snapshots>
+			<id>eclipse-testing</id>
+			<name>Eclipse Maven Testing Repository</name>
+			<url>http://maven.eclipse.org/nexus/content/repositories/testing/</url>
+		</repository>
+	</repositories>
 </project>

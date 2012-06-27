@@ -19,7 +19,7 @@
 				</os>
 			</activation>
 			<properties>
-				<swt.variant>win32-win32-x86</swt.variant>
+				<swt.variant>win32.win32.x86</swt.variant>
 			</properties>
 		</profile>
 		<profile>
@@ -31,7 +31,7 @@
 				</os>
 			</activation>
 			<properties>
-				<swt.variant>gtk-linux-x86_64</swt.variant>
+				<swt.variant>gtk.linux.x86_64</swt.variant>
 			</properties>
 		</profile>
 		<profile>
@@ -43,7 +43,7 @@
 				</os>
 			</activation>
 			<properties>
-				<swt.variant>gtk-linux-x86</swt.variant>
+				<swt.variant>gtk.linux.x86</swt.variant>
 			</properties>
 		</profile>
 		<profile>
@@ -57,7 +57,7 @@
 				<swt.variant>cocoa.macosx.x86_64</swt.variant>
 			</properties>
 		</profile>
-		
+
 	</profiles>
 
 	<repositories>
@@ -70,58 +70,62 @@
 			<url>http://maven.eclipse.org/nexus/content/repositories/testing/</url>
 		</repository>
 	</repositories>
+	
+	<properties>
+		<swt.version>3.6.2</swt.version>
+	</properties>
 
 	<dependencies>
 		<dependency>
 			<groupId>rinsim</groupId>
 			<artifactId>core</artifactId>
 		</dependency>
-  	<dependency>
-  		<groupId>org.eclipse.swt</groupId>
-  		<artifactId>org.eclipse.swt.${swt.variant}</artifactId>
-  		<version>3.6.2</version>
-  	</dependency>
-  	<dependency>
-  		<groupId>org.eclipse.jface</groupId>
-  		<artifactId>org.eclipse.jface</artifactId>
-  		<version>3.6.2</version>
-  	</dependency>
+		<dependency>
+			<groupId>org.eclipse.swt</groupId>
+			<artifactId>org.eclipse.swt.${swt.variant}</artifactId>
+			<version>${swt.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.eclipse.jface</groupId>
+			<artifactId>org.eclipse.jface</artifactId>
+			<version>${swt.version}</version>
+		</dependency>
 	</dependencies>
-  <build>
-	<plugins>
-      <plugin>
-        <artifactId>maven-compiler-plugin</artifactId>
-        <version>2.3.2</version>
-        <executions>
-          <execution>
-            <id>default-testCompile</id>
-            <phase>test-compile</phase>
-            <goals>
-              <goal>testCompile</goal>
-            </goals>
-            <configuration>
-              <source>1.6</source>
-              <target>1.6</target>
-            </configuration>
-          </execution>
-          <execution>
-            <id>default-compile</id>
-            <phase>compile</phase>
-            <goals>
-              <goal>compile</goal>
-            </goals>
-            <configuration>
-              <source>1.6</source>
-              <target>1.6</target>
-            </configuration>
-          </execution>
-        </executions>
-        <configuration>
-          <source>1.6</source>
-          <target>1.6</target>
-        </configuration>
-      </plugin>
-      
-</plugins>
-</build>		
+	<build>
+		<plugins>
+			<plugin>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>2.3.2</version>
+				<executions>
+					<execution>
+						<id>default-testCompile</id>
+						<phase>test-compile</phase>
+						<goals>
+							<goal>testCompile</goal>
+						</goals>
+						<configuration>
+							<source>1.6</source>
+							<target>1.6</target>
+						</configuration>
+					</execution>
+					<execution>
+						<id>default-compile</id>
+						<phase>compile</phase>
+						<goals>
+							<goal>compile</goal>
+						</goals>
+						<configuration>
+							<source>1.6</source>
+							<target>1.6</target>
+						</configuration>
+					</execution>
+				</executions>
+				<configuration>
+					<source>1.6</source>
+					<target>1.6</target>
+				</configuration>
+			</plugin>
+
+		</plugins>
+	</build>
 </project>
