@@ -41,10 +41,14 @@
 						<id>javadoc-jar</id>
 						<phase>package</phase>
 						<goals>
+							<goal>aggregate</goal>
 							<goal>aggregate-jar</goal>
 						</goals>
 					</execution>
 				</executions>
+				<configuration>
+					<excludePackageNames>rinde.sim.example.*:rinde.sim.examples.*:rinde.sim.lab.*</excludePackageNames>
+				</configuration>
 			</plugin>
 		</plugins>
 		<defaultGoal>package</defaultGoal>

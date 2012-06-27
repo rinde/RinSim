@@ -46,11 +46,6 @@
 			<version>${project.version}</version>
 			<classifier>javadoc</classifier>
 		</dependency>
-		<dependency>
-			<groupId>org.eclipse.swt</groupId>
-			<artifactId>org.eclipse.swt.${swt.variant}</artifactId>
-			<version>${swt.version}</version>
-		</dependency>
 
 		<!-- these dependencies are necessary for the different platforms: -->
 
