@@ -15,6 +15,8 @@ Two options:
 * Use the latest builds (see Downloads)
 * Use Maven, Git, etc (start at Prerequisites)
 
+The latest JavaDoc can be found [here](http://people.cs.kuleuven.be/~rinde.vanlon/rinsim/javadoc/).
+
 ### Downloads
 The latest builds for several platforms are now available from [this page](http://people.cs.kuleuven.be/~rinde.vanlon/rinsim/binaries/), this is an experimental feature, feedback is appreciated.
 
@@ -309,12 +311,12 @@ schema.add(SomeAgent.class, new RGB(255,0,0));
 View.startGui(simulator, 5, new ObjectRenderer(roadModel, schema, false));
 ```
 
-## How to create a model
+<!--## How to create a model
 
 _available soon_
 
 ## Additional guidelines
-
+-->
 ### Maps
 
 On this [page](http://people.cs.kuleuven.be/~rinde.vanlon/rinsim/maps/) a number of maps are made available.
@@ -331,8 +333,9 @@ Remember:
 * When reporting a bug, give sufficient information on how to reproduce the bug.
 * Think twice before creating a new issue.
 
+<!-- 
 _more guidelines available soon_
 
 ### Making pull requests for RinSim
 
-_available soon_
+_available soon_ -->
