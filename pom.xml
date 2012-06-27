@@ -17,6 +17,16 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
 
+	<reporting>
+		<plugins>
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>cobertura-maven-plugin</artifactId>
+				<version>2.5.1</version>
+			</plugin>
+		</plugins>
+	</reporting>
+
 
 	<build>
 		<plugins>
@@ -50,6 +60,28 @@
 					<excludePackageNames>rinde.sim.example.*:rinde.sim.examples.*:rinde.sim.lab.*</excludePackageNames>
 				</configuration>
 			</plugin>
+
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>cobertura-maven-plugin</artifactId>
+				<version>2.5.1</version>
+				<configuration>
+					<instrumentation>
+						<excludes>
+							<exclude>rinde/sim/example*/**/*.class</exclude>
+							<exclude>rinde/sim/lab/**/*.class</exclude>
+						</excludes>
+					</instrumentation>
+				</configuration>
+				<executions>
+					<execution>
+						<goals>
+							<goal>clean</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+
 		</plugins>
 		<defaultGoal>package</defaultGoal>
 	</build>
