@@ -23,6 +23,7 @@ import com.google.common.base.Supplier;
  * @param <V> value
  * @author Rinde van Lon (rinde.vanlon@cs.kuleuven.be)
  */
+@SuppressWarnings("javadoc")
 public class LinkedHashBasedTable<R, C, V> extends StandardTable<R, C, V> {
 
 	private static final long serialVersionUID = 0L;
@@ -39,6 +40,10 @@ public class LinkedHashBasedTable<R, C, V> extends StandardTable<R, C, V> {
 		private static final long serialVersionUID = 0;
 	}
 
+	/**
+	 * Instantiates a {@link LinkedHashBasedTable}.
+	 * @return The newly created instance.
+	 */
 	public static <R, C, V> LinkedHashBasedTable<R, C, V> create() {
 		return new LinkedHashBasedTable<R, C, V>(new LinkedHashMap<R, Map<C, V>>(), new Factory<C, V>());
 	}
