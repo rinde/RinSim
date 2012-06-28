@@ -24,11 +24,11 @@ import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 
 import rinde.sim.core.graph.Connection;
-import rinde.sim.core.graph.EdgeData;
+import rinde.sim.core.graph.ConnectionData;
 import rinde.sim.core.graph.Graph;
 import rinde.sim.core.graph.Graphs;
-import rinde.sim.core.graph.LengthEdgeData;
-import rinde.sim.core.graph.MultiAttributeEdgeData;
+import rinde.sim.core.graph.LengthData;
+import rinde.sim.core.graph.MultiAttributeData;
 import rinde.sim.core.graph.MultimapGraph;
 import rinde.sim.core.graph.Point;
 import rinde.sim.core.graph.TestMultimapGraph;
@@ -44,12 +44,12 @@ import rinde.sim.util.TimeUnit;
 public class GraphRoadModelTest extends AbstractRoadModelTest<GraphRoadModel> {
 
 	protected Class<? extends Graph<?>> graphType;
-	protected Graph<? extends EdgeData> graph;
+	protected Graph<? extends ConnectionData> graph;
 	protected Class<? extends GraphRoadModel> roadModelType;
 
 	// TODO what about negative speeds? and what about negative speed limits?
 
-	static boolean connectionEquals(Connection<? extends EdgeData> conn, Point from, Point to) {
+	static boolean connectionEquals(Connection<? extends ConnectionData> conn, Point from, Point to) {
 		return conn.from.equals(from) && conn.to.equals(to);
 	}
 
@@ -548,15 +548,15 @@ public class GraphRoadModelTest extends AbstractRoadModelTest<GraphRoadModel> {
 	@SuppressWarnings("unchecked")
 	@Test
 	public void locationIsOnSameEdge() {
-		((Graph<MultiAttributeEdgeData>) graph).addConnection(SE, SW, new MultiAttributeEdgeData(300));
-		((Graph<MultiAttributeEdgeData>) graph).addConnection(NE, SW, new MultiAttributeEdgeData(Double.NaN));
+		((Graph<MultiAttributeData>) graph).addConnection(SE, SW, new MultiAttributeData(300));
+		((Graph<MultiAttributeData>) graph).addConnection(NE, SW, new MultiAttributeData(Double.NaN));
 
-		Loc loc1 = GraphRoadModel.newLoc(new Connection<EdgeData>(SW, SE, null), 3);
-		Loc loc2 = GraphRoadModel.newLoc(new Connection<EdgeData>(SW, SE, null), 1);
-		Loc loc3 = GraphRoadModel.newLoc(new Connection<EdgeData>(SE, NE, null), 9.999999);
+		Loc loc1 = GraphRoadModel.newLoc(new Connection<ConnectionData>(SW, SE, null), 3);
+		Loc loc2 = GraphRoadModel.newLoc(new Connection<ConnectionData>(SW, SE, null), 1);
+		Loc loc3 = GraphRoadModel.newLoc(new Connection<ConnectionData>(SE, NE, null), 9.999999);
 		Loc loc4 = GraphRoadModel.newLoc(SW);
-		Loc loc5 = GraphRoadModel.newLoc(new Connection<EdgeData>(SE, SW, null), 1);
-		Loc loc6 = GraphRoadModel.newLoc(new Connection<EdgeData>(NE, SW, null), 1);
+		Loc loc5 = GraphRoadModel.newLoc(new Connection<ConnectionData>(SE, SW, null), 1);
+		Loc loc6 = GraphRoadModel.newLoc(new Connection<ConnectionData>(NE, SW, null), 1);
 
 		assertEquals(NE, loc3);
 		assertTrue(loc1.isOnSameConnection(loc2));
@@ -587,17 +587,17 @@ public class GraphRoadModelTest extends AbstractRoadModelTest<GraphRoadModel> {
 
 	@Test(expected = IllegalArgumentException.class)
 	public void checkLocationFail2() {
-		Loc l = GraphRoadModel.newLoc(new Connection<EdgeData>(new Point(-10, -10), new Point(100, 0), null), 1);
+		Loc l = GraphRoadModel.newLoc(new Connection<ConnectionData>(new Point(-10, -10), new Point(100, 0), null), 1);
 		model.checkLocation(l);
 	}
 
 	@Test
 	public void getConnectionLength() {
-		assertEquals(10, GraphRoadModel.getConnectionLength(new Connection<EdgeData>(NE, NW, null)), EPSILON);
-		Connection<MultiAttributeEdgeData> conn = new Connection<MultiAttributeEdgeData>(NE, NW,
-				new MultiAttributeEdgeData(12, -1));
+		assertEquals(10, GraphRoadModel.getConnectionLength(new Connection<ConnectionData>(NE, NW, null)), EPSILON);
+		Connection<MultiAttributeData> conn = new Connection<MultiAttributeData>(NE, NW,
+				new MultiAttributeData(12, -1));
 		assertEquals(12, GraphRoadModel.getConnectionLength(conn), EPSILON);
-		conn.getEdgeData().put(MultiAttributeEdgeData.KEY_LENGTH, "this is not a number");
+		conn.getData().put(MultiAttributeData.KEY_LENGTH, "this is not a number");
 		assertEquals(10, GraphRoadModel.getConnectionLength(conn), EPSILON);
 	}
 
@@ -627,15 +627,15 @@ public class GraphRoadModelTest extends AbstractRoadModelTest<GraphRoadModel> {
 		Point A = new Point(0, 0);
 		Point B = new Point(10, 0);
 
-		Graph<LengthEdgeData> g = new MultimapGraph<LengthEdgeData>();
+		Graph<LengthData> g = new MultimapGraph<LengthData>();
 		GraphRoadModel rm = new GraphRoadModel(g);
-		g.addConnection(A, B, new LengthEdgeData(3));
+		g.addConnection(A, B, new LengthData(3));
 		assertEquals(10, rm.getMaxSpeed(new SpeedyRoadUser(10), A, B), EPSILON);
 
-		((Graph<MultiAttributeEdgeData>) graph).addConnection(SE, SW, new MultiAttributeEdgeData(3, 5));
+		((Graph<MultiAttributeData>) graph).addConnection(SE, SW, new MultiAttributeData(3, 5));
 		assertEquals(5, model.getMaxSpeed(new SpeedyRoadUser(10), SE, SW), EPSILON);
 
-		((Graph<MultiAttributeEdgeData>) graph).addConnection(NE, SE, new MultiAttributeEdgeData(3, Double.NaN));
+		((Graph<MultiAttributeData>) graph).addConnection(NE, SE, new MultiAttributeData(3, Double.NaN));
 		assertEquals(10, model.getMaxSpeed(new SpeedyRoadUser(10), NE, SE), EPSILON);
 	}
 
@@ -658,7 +658,7 @@ public class GraphRoadModelTest extends AbstractRoadModelTest<GraphRoadModel> {
 	@Test
 	public void computeConnectionLength() {
 		assertEquals(0, model.computeConnectionLength(new Point(1, 2), new Point(1, 2)), EPSILON);
-		((Graph<MultiAttributeEdgeData>) graph).addConnection(SE, SW, new MultiAttributeEdgeData(5, 5));
+		((Graph<MultiAttributeData>) graph).addConnection(SE, SW, new MultiAttributeData(5, 5));
 
 		TestRoadUser agent1 = new TestRoadUser();
 		model.addObjectAt(agent1, SE);
@@ -681,7 +681,7 @@ public class GraphRoadModelTest extends AbstractRoadModelTest<GraphRoadModel> {
 
 	@Test
 	public void getGraphTest() {
-		Graph<EdgeData> g = new MultimapGraph<EdgeData>();
+		Graph<ConnectionData> g = new MultimapGraph<ConnectionData>();
 		g.addConnection(NE, SW);
 		g.addConnection(SW, NW);
 

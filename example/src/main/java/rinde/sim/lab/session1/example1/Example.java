@@ -5,7 +5,7 @@ import org.eclipse.swt.graphics.RGB;
 
 import rinde.sim.core.Simulator;
 import rinde.sim.core.graph.Graph;
-import rinde.sim.core.graph.MultiAttributeEdgeData;
+import rinde.sim.core.graph.MultiAttributeData;
 import rinde.sim.core.model.road.GraphRoadModel;
 import rinde.sim.core.model.road.RoadModel;
 import rinde.sim.serializers.DotGraphSerializer;
@@ -24,7 +24,7 @@ public class Example {
 		final String MAP_DIR = "../core/files/maps/";
 		MersenneTwister rand = new MersenneTwister(123);
 		Simulator simulator = new Simulator(rand, 1000);
-		Graph<MultiAttributeEdgeData> graph = DotGraphSerializer
+		Graph<MultiAttributeData> graph = DotGraphSerializer
 				.getMultiAttributeGraphSerializer(new SelfCycleFilter()).read(MAP_DIR + "leuven-simple.dot");
 		RoadModel roadModel = new GraphRoadModel(graph);
 

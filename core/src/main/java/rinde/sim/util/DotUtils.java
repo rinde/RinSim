@@ -12,9 +12,9 @@ import java.io.InputStreamReader;
 import java.util.HashMap;
 
 import rinde.sim.core.graph.Connection;
-import rinde.sim.core.graph.EdgeData;
+import rinde.sim.core.graph.ConnectionData;
 import rinde.sim.core.graph.Graph;
-import rinde.sim.core.graph.LengthEdgeData;
+import rinde.sim.core.graph.LengthData;
 import rinde.sim.core.graph.MultimapGraph;
 import rinde.sim.core.graph.Point;
 import rinde.sim.core.graph.TableGraph;
@@ -25,7 +25,7 @@ import rinde.sim.core.graph.TableGraph;
  */
 public class DotUtils {
 
-	public static <E extends EdgeData> void saveToDot(Graph<E> mp, String fileName, boolean pdf) {
+	public static <E extends ConnectionData> void saveToDot(Graph<E> mp, String fileName, boolean pdf) {
 
 		try {
 			FileWriter fileWriter = new FileWriter(fileName + ".dot");
@@ -109,11 +109,11 @@ public class DotUtils {
 		return false;
 	}
 
-	public static Graph<LengthEdgeData> parseDot(String file) {
+	public static Graph<LengthData> parseDot(String file) {
 		try {
 			BufferedReader reader = new BufferedReader(new FileReader(file));
 
-			TableGraph<LengthEdgeData> graph = new TableGraph<LengthEdgeData>(LengthEdgeData.EMPTY);
+			TableGraph<LengthData> graph = new TableGraph<LengthData>(LengthData.EMPTY);
 			boolean containsDistances = false;
 
 			HashMap<String, Point> nodeMapping = new HashMap<String, Point>();
@@ -137,7 +137,7 @@ public class DotUtils {
 					if (Point.distance(from, to) == distance) {
 						graph.addConnection(from, to);
 					} else {
-						graph.addConnection(from, to, new LengthEdgeData(distance));
+						graph.addConnection(from, to, new LengthData(distance));
 						containsDistances = true;
 					}
 					// }
@@ -146,7 +146,7 @@ public class DotUtils {
 			// if (containsDistances) {
 			// return graph;
 			// } else {
-			Graph<LengthEdgeData> g = new MultimapGraph<LengthEdgeData>();
+			Graph<LengthData> g = new MultimapGraph<LengthData>();
 			g.merge(graph);
 			return g;
 			// }

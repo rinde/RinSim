@@ -11,7 +11,7 @@ import java.io.IOException;
 import java.io.Reader;
 import java.io.Writer;
 
-import rinde.sim.core.graph.EdgeData;
+import rinde.sim.core.graph.ConnectionData;
 import rinde.sim.core.graph.Graph;
 
 /**
@@ -19,7 +19,7 @@ import rinde.sim.core.graph.Graph;
  * @author Bartosz Michalik <bartosz.michalik@cs.kuleuven.be>
  *
  */
-public abstract class AbstractGraphSerializer<E extends EdgeData> {
+public abstract class AbstractGraphSerializer<E extends ConnectionData> {
 	abstract public Graph<E> read(Reader reader) throws IOException;
 	abstract public void write(Graph<? extends E> graph, Writer writer) throws IOException;
 	

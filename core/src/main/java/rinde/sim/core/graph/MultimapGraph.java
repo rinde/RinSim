@@ -19,12 +19,12 @@ import com.google.common.collect.Multimap;
 import com.google.common.collect.Multimaps;
 
 /**
- * @author Rinde van Lon (rinde.vanlon@cs.kuleuven.be)
+ * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
  * @author Bartosz Michalik <bartosz.michalik@cs.kuleuven.be> - added edge data
  *         + and dead end nodes
- * @param <E> The type of {@link EdgeData} that is used in the edges.
+ * @param <E> The type of {@link ConnectionData} that is used in the edges.
  */
-public class MultimapGraph<E extends EdgeData> implements Graph<E> {
+public class MultimapGraph<E extends ConnectionData> implements Graph<E> {
 
 	private final Multimap<Point, Point> data;
 	private final HashMap<Connection<E>, E> edgeData;
@@ -99,7 +99,7 @@ public class MultimapGraph<E extends EdgeData> implements Graph<E> {
 		if (c == null) {
 			return;
 		}
-		addConnection(c.from, c.to, c.getEdgeData());
+		addConnection(c.from, c.to, c.getData());
 	}
 
 	@Override
@@ -128,7 +128,7 @@ public class MultimapGraph<E extends EdgeData> implements Graph<E> {
 		for (Entry<Point, Point> p : data.entries()) {
 			Connection<E> connection = new Connection<E>(p.getKey(), p.getValue(), null);
 			E eD = edgeData.get(connection);
-			connection.setEdgeData(eD);
+			connection.setData(eD);
 			res.add(connection);
 		}
 		return res;
@@ -205,7 +205,7 @@ public class MultimapGraph<E extends EdgeData> implements Graph<E> {
 	}
 
 	private void removeData(Point from, Point to) {
-		edgeData.remove(new Connection<EdgeData>(from, to, null));
+		edgeData.remove(new Connection<ConnectionData>(from, to, null));
 	}
 
 	@Override

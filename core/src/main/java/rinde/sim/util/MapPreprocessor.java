@@ -14,11 +14,11 @@ import java.util.List;
 import java.util.Set;
 
 import rinde.sim.core.graph.Connection;
-import rinde.sim.core.graph.EdgeData;
+import rinde.sim.core.graph.ConnectionData;
 import rinde.sim.core.graph.Graph;
 import rinde.sim.core.graph.Graphs;
-import rinde.sim.core.graph.LengthEdgeData;
-import rinde.sim.core.graph.MultiAttributeEdgeData;
+import rinde.sim.core.graph.LengthData;
+import rinde.sim.core.graph.MultiAttributeData;
 import rinde.sim.core.graph.MultimapGraph;
 import rinde.sim.core.graph.PathNotFoundException;
 import rinde.sim.core.graph.Point;
@@ -33,7 +33,7 @@ import com.google.common.collect.Sets;
  */
 public class MapPreprocessor {
 
-	private static <E extends EdgeData> Graph<E> hack(Graph<E> graph) {
+	private static <E extends ConnectionData> Graph<E> hack(Graph<E> graph) {
 		Graph<E> newGraph = new MultimapGraph<E>();
 		newGraph.merge(graph);
 
@@ -48,7 +48,7 @@ public class MapPreprocessor {
 		return newGraph;
 	}
 
-	public static <E extends EdgeData> Graph<E> connect2(Graph<E> graph) {
+	public static <E extends ConnectionData> Graph<E> connect2(Graph<E> graph) {
 		Graph<E> newGraph = new MultimapGraph<E>();
 		newGraph.merge(graph);
 
@@ -96,7 +96,7 @@ public class MapPreprocessor {
 		return newGraph;
 	}
 
-	private static <E extends EdgeData> void fixCluster(Graph<E> newGraph, HashSet<Point> connected,
+	private static <E extends ConnectionData> void fixCluster(Graph<E> newGraph, HashSet<Point> connected,
 			HashSet<Point> neighbors, HashSet<Point> otherClusters) {
 		// System.out.println(">> fixCluster");
 		while (!neighbors.isEmpty()) {
@@ -158,7 +158,7 @@ public class MapPreprocessor {
 		return closestPair;
 	}
 
-	private static <E extends EdgeData> boolean isConnected(Graph<E> graph, Set<Point> set1, Set<Point> set2) {
+	private static <E extends ConnectionData> boolean isConnected(Graph<E> graph, Set<Point> set1, Set<Point> set2) {
 		HashSet<Point> visited = new HashSet<Point>();
 		HashSet<Point> queue = new HashSet<Point>();
 		queue.addAll(set1);
@@ -191,7 +191,7 @@ public class MapPreprocessor {
 		return isConnected(graph, new HashSet<Point>(asList(p)), set);
 	}
 
-	public static <E extends EdgeData> Graph<E> removeUnconnectedSubGraphs(Graph<E> graph, E empty) {
+	public static <E extends ConnectionData> Graph<E> removeUnconnectedSubGraphs(Graph<E> graph, E empty) {
 		Graph<E> currentGraph = new TableGraph<E>(empty);
 		currentGraph.merge(graph);
 
@@ -225,7 +225,7 @@ public class MapPreprocessor {
 		return currentGraph;
 	}
 
-	public static <E extends EdgeData> Graph<E> connect(Graph<E> graph) {
+	public static <E extends ConnectionData> Graph<E> connect(Graph<E> graph) {
 		Graph<E> currentGraph = new MultimapGraph<E>();
 		currentGraph.merge(graph);
 
@@ -264,7 +264,7 @@ public class MapPreprocessor {
 		return currentGraph;
 	}
 
-	private static <E extends EdgeData> Set<Point> unseenNeighbours(Graph<E> g, Set<Point> seen, Set<Point> current) {
+	private static <E extends ConnectionData> Set<Point> unseenNeighbours(Graph<E> g, Set<Point> seen, Set<Point> current) {
 		HashSet<Point> set = new HashSet<Point>();
 		for (Point p : current) {
 			set.addAll(g.getIncomingConnections(p));
@@ -274,7 +274,7 @@ public class MapPreprocessor {
 		return set;
 	}
 
-	private static <E extends EdgeData> boolean isConnected(Graph<E> g, Point from, Point to, Set<Point> subgraph) {
+	private static <E extends ConnectionData> boolean isConnected(Graph<E> g, Point from, Point to, Set<Point> subgraph) {
 
 		Point cur = from;
 		Set<Point> seen = new HashSet<Point>();
@@ -300,7 +300,7 @@ public class MapPreprocessor {
 
 	}
 
-	public static <E extends EdgeData> double getLength(Graph<E> g, Point from, Point to) {
+	public static <E extends ConnectionData> double getLength(Graph<E> g, Point from, Point to) {
 		E connectionData = g.connectionData(from, to);
 		if (connectionData == null || Double.isNaN(connectionData.getLength())) {
 			return Point.distance(from, to);
@@ -309,7 +309,7 @@ public class MapPreprocessor {
 		}
 	}
 
-	public static <E extends EdgeData> Graph<E> simplify(Graph<E> g, E empty) {
+	public static <E extends ConnectionData> Graph<E> simplify(Graph<E> g, E empty) {
 		TableGraph<E> newGraph = new TableGraph<E>(empty);
 		newGraph.merge(g);
 		boolean working = true;
@@ -424,11 +424,11 @@ public class MapPreprocessor {
 	// TODO also check if input values are valid!!
 	// TODO do something with maxSpeed!!
 	@SuppressWarnings("unchecked")
-	static <E extends EdgeData> E mergeEdgeData(E empty, E e1, double l1, E e2, double l2) {
-		if (empty instanceof LengthEdgeData) {
-			return (E) new LengthEdgeData(l1 + l2);
-		} else if (empty instanceof MultiAttributeEdgeData) {
-			return (E) new MultiAttributeEdgeData(l1 + l2);
+	static <E extends ConnectionData> E mergeEdgeData(E empty, E e1, double l1, E e2, double l2) {
+		if (empty instanceof LengthData) {
+			return (E) new LengthData(l1 + l2);
+		} else if (empty instanceof MultiAttributeData) {
+			return (E) new MultiAttributeData(l1 + l2);
 		}
 		throw new IllegalArgumentException("EdgeData objects are of unknown type");
 	}
@@ -438,7 +438,7 @@ public class MapPreprocessor {
 	}
 
 	// TODO fix this method to also take the EdgeData into account
-	static ContractType isContractable(Graph<? extends EdgeData> g, Point node1, Point node2) {
+	static ContractType isContractable(Graph<? extends ConnectionData> g, Point node1, Point node2) {
 		boolean n12 = g.getOutgoingConnections(node1).contains(node2);
 		boolean n21 = g.getOutgoingConnections(node2).contains(node1);
 
@@ -506,7 +506,7 @@ public class MapPreprocessor {
 		throw new IllegalStateException("Unexpected node configuration..");
 	}
 
-	public static <E extends EdgeData> List<Set<Point>> findNotFullyConnectedNodes(Graph<E> graph) {
+	public static <E extends ConnectionData> List<Set<Point>> findNotFullyConnectedNodes(Graph<E> graph) {
 		if (graph == null || graph.isEmpty()) {
 			throw new IllegalArgumentException("Graph may not be null and must contain at least one node.");
 		}
@@ -514,7 +514,7 @@ public class MapPreprocessor {
 		return findNotFullyConnectedNodes(graph, new ArrayList<Point>(graph.getNodes()).get(0));
 	}
 
-	public static <E extends EdgeData> List<Set<Point>> findNotFullyConnectedNodes(Graph<E> graph, Point root) {
+	public static <E extends ConnectionData> List<Set<Point>> findNotFullyConnectedNodes(Graph<E> graph, Point root) {
 
 		HashSet<Point> fullyConnectedSet = new HashSet<Point>();
 		HashSet<Point> neighbours = new HashSet<Point>();
@@ -568,28 +568,28 @@ public class MapPreprocessor {
 	// when calling main("brussels") a file named brussels.osm is expected in
 	// osm-files. All .dot output is written in dot-files.
 	public static void main(String[] args) throws FileNotFoundException, IOException {
-		DotGraphSerializer<MultiAttributeEdgeData> serializer = DotGraphSerializer.getMultiAttributeGraphSerializer();
+		DotGraphSerializer<MultiAttributeData> serializer = DotGraphSerializer.getMultiAttributeGraphSerializer();
 
 		String name = args[0];// "wroclaw";
 
 		System.out.println(name);
-		Graph<MultiAttributeEdgeData> g = OSM.parse("osm-files/" + name + ".osm");
+		Graph<MultiAttributeData> g = OSM.parse("osm-files/" + name + ".osm");
 		serializer.write(g, "dot-files/" + name + "-raw.dot");
 		System.out.println(g);
 
 		long startRead = System.currentTimeMillis();
-		Graph<MultiAttributeEdgeData> g2 = serializer.read("dot-files/" + name + "-raw.dot");
+		Graph<MultiAttributeData> g2 = serializer.read("dot-files/" + name + "-raw.dot");
 		System.out.println("loading took: " + (System.currentTimeMillis() - startRead));
-		Graph<MultiAttributeEdgeData> graph = new TableGraph<MultiAttributeEdgeData>(MultiAttributeEdgeData.EMPTY);
+		Graph<MultiAttributeData> graph = new TableGraph<MultiAttributeData>(MultiAttributeData.EMPTY);
 		graph.merge(g2);
 		System.out.println("(V,E) = (" + graph.getNumberOfNodes() + "," + graph.getNumberOfConnections() + ")");
 
 		long startSimplify = System.currentTimeMillis();
-		graph = MapPreprocessor.simplify(graph, MultiAttributeEdgeData.EMPTY);
+		graph = MapPreprocessor.simplify(graph, MultiAttributeData.EMPTY);
 		System.out.println("simplifying took: " + (System.currentTimeMillis() - startSimplify));
 
 		long startFix = System.currentTimeMillis();
-		graph = MapPreprocessor.removeUnconnectedSubGraphs(graph, MultiAttributeEdgeData.EMPTY);
+		graph = MapPreprocessor.removeUnconnectedSubGraphs(graph, MultiAttributeData.EMPTY);
 		System.out.println("fixing took: " + (System.currentTimeMillis() - startFix));
 		serializer.write(graph, "dot-files/" + name + "-simple.dot");
 	}

@@ -31,10 +31,10 @@ import com.google.common.base.Function;
 public class GraphsTest {
 	protected static final double DELTA = 0.0001;
 
-	Graph<LengthEdgeData> graph;
-	Class<? extends Graph<LengthEdgeData>> graphType;
+	Graph<LengthData> graph;
+	Class<? extends Graph<LengthData>> graphType;
 
-	public GraphsTest(Class<? extends Graph<LengthEdgeData>> c) {
+	public GraphsTest(Class<? extends Graph<LengthData>> c) {
 		graphType = c;
 	}
 
@@ -78,7 +78,7 @@ public class GraphsTest {
 	@SuppressWarnings("unused")
 	@Test(expected = IllegalArgumentException.class)
 	public void tableGraphConstructor() {
-		new TableGraph<MultiAttributeEdgeData>(null);
+		new TableGraph<MultiAttributeData>(null);
 	}
 
 	/**
@@ -140,7 +140,7 @@ public class GraphsTest {
 		Graphs.addPath(graph, N, NE, E, SE, S, SW, W, NW);
 		List<Point> points = Arrays.asList(N, NE, E, SE, S, SW, W, NW);
 
-		List<Connection<LengthEdgeData>> connections = graph.getConnections();
+		List<Connection<LengthData>> connections = graph.getConnections();
 		for (int i = 1; i < points.size(); i++) {
 			assertTrue(connections.get(i - 1).from == points.get(i - 1));
 			assertTrue(connections.get(i - 1).to == points.get(i));
@@ -213,9 +213,9 @@ public class GraphsTest {
 		Point A = new Point(0, 0), B = new Point(0, 1), C = new Point(1, 0);
 
 		graph.addConnection(A, B);
-		graph.addConnection(new Connection<LengthEdgeData>(B, A, new LengthEdgeData(1.5)));
-		graph.addConnection(B, C, new LengthEdgeData(2));
-		graph.addConnection(A, C, new LengthEdgeData(Double.NaN)); // explicit
+		graph.addConnection(new Connection<LengthData>(B, A, new LengthData(1.5)));
+		graph.addConnection(B, C, new LengthData(2));
+		graph.addConnection(A, C, new LengthData(Double.NaN)); // explicit
 																	// empty
 																	// value
 
@@ -251,11 +251,11 @@ public class GraphsTest {
 		Graphs.addBiPath(graph, N, E, S, W, N);
 		assertTrue(graph.equals(graph));
 
-		Graph<LengthEdgeData> g1 = new TableGraph<LengthEdgeData>(LengthEdgeData.EMPTY);
+		Graph<LengthData> g1 = new TableGraph<LengthData>(LengthData.EMPTY);
 		g1.merge(graph);
 		assertEquals(g1, graph);
 
-		Graph<LengthEdgeData> g2 = new MultimapGraph<LengthEdgeData>();
+		Graph<LengthData> g2 = new MultimapGraph<LengthData>();
 		g2.merge(graph);
 		assertEquals(g2, graph);
 		assertEquals(g1, g2);
@@ -271,16 +271,16 @@ public class GraphsTest {
 		assertFalse(g1.equals(graph));
 
 		graph.removeConnection(N, E);
-		graph.addConnection(N, E, new LengthEdgeData(10));
+		graph.addConnection(N, E, new LengthData(10));
 		assertFalse(g1.equals(graph));
 		assertFalse(graph.equals(g1));
 
-		Graph<LengthEdgeData> g3 = new TableGraph<LengthEdgeData>(LengthEdgeData.EMPTY);
+		Graph<LengthData> g3 = new TableGraph<LengthData>(LengthData.EMPTY);
 		g3.merge(graph);
 		assertEquals(graph, g3);
 
 		g3.removeConnection(N, E);
-		g3.addConnection(N, E, new LengthEdgeData(9));
+		g3.addConnection(N, E, new LengthData(9));
 		assertFalse(g3.equals(graph));
 
 		assertFalse(g2.equals(graph));
@@ -326,7 +326,7 @@ public class GraphsTest {
 		for (int i = 0; i < 500; i++) {
 			Graphs.addBiPath(graph, new Point(rnd.nextInt(), rnd.nextInt()), new Point(rnd.nextInt(), rnd.nextInt()));
 		}
-		Graph<LengthEdgeData> unmod = Graphs.unmodifiableGraph(graph);
+		Graph<LengthData> unmod = Graphs.unmodifiableGraph(graph);
 		Point p1 = graph.getRandomNode(new MersenneTwister(123));
 		Point p2 = unmod.getRandomNode(new MersenneTwister(123));
 		assertEquals(p1, p2);
@@ -345,7 +345,7 @@ public class GraphsTest {
 		Point W = new Point(-5, 0);
 
 		Graphs.addBiPath(graph, N, E, S, W, N);
-		Graph<LengthEdgeData> g = Graphs.unmodifiableGraph(graph);
+		Graph<LengthData> g = Graphs.unmodifiableGraph(graph);
 		g.hashCode();
 
 		assertEquals(graph, g);
@@ -357,7 +357,7 @@ public class GraphsTest {
 			assertArrayEquals(graph.getIncomingConnections(p).toArray(), g.getIncomingConnections(p).toArray());
 		}
 
-		for (Connection<LengthEdgeData> c : g.getConnections()) {
+		for (Connection<LengthData> c : g.getConnections()) {
 			assertEquals(graph.connectionLength(c.from, c.to), g.connectionLength(c.from, c.to), DELTA);
 		}
 	}
@@ -370,7 +370,7 @@ public class GraphsTest {
 		Point W = new Point(-5, 0);
 
 		Graphs.addBiPath(graph, N, E, S, W, N);
-		Graph<LengthEdgeData> unmod = Graphs.unmodifiableGraph(graph);
+		Graph<LengthData> unmod = Graphs.unmodifiableGraph(graph);
 
 		graph.addConnection(N, S);
 		assertEquals(graph.getConnection(N, S), unmod.getConnection(N, S));
@@ -433,10 +433,10 @@ public class GraphsTest {
 		}
 		Graphs.addBiPath(graph, path.toArray(new Point[path.size()]));
 
-		MultimapGraph<LengthEdgeData> testGraph = new MultimapGraph<LengthEdgeData>();
+		MultimapGraph<LengthData> testGraph = new MultimapGraph<LengthData>();
 		testGraph.merge(graph);
 
-		MultimapGraph<LengthEdgeData> newGraph = new MultimapGraph<LengthEdgeData>(testGraph.getMultimap());
+		MultimapGraph<LengthData> newGraph = new MultimapGraph<LengthData>(testGraph.getMultimap());
 
 		assertEquals(testGraph.getMultimap(), newGraph.getMultimap());
 	}
@@ -449,8 +449,8 @@ public class GraphsTest {
 		Point W = new Point(-5, 0);
 
 		Graphs.addBiPath(graph, N, E, S, W, N);
-		assertNull(graph.setEdgeData(N, E, new LengthEdgeData(100)));
-		assertEquals(new LengthEdgeData(100), graph.setEdgeData(N, E, null));
+		assertNull(graph.setEdgeData(N, E, new LengthData(100)));
+		assertEquals(new LengthData(100), graph.setEdgeData(N, E, null));
 		if (graph instanceof TableGraph) {
 
 		}
@@ -469,7 +469,7 @@ public class GraphsTest {
 		Point W = new Point(-5, 0);
 
 		Graphs.addBiPath(graph, N, E, S, W, N);
-		Graph<LengthEdgeData> unmod = Graphs.unmodifiableGraph(graph);
+		Graph<LengthData> unmod = Graphs.unmodifiableGraph(graph);
 		assertEquals(graph, unmod);
 		assertTrue(graph.getNodes().size() == 4);
 		assertTrue(graph.getConnections().size() == 8);

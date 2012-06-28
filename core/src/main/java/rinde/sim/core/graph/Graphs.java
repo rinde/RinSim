@@ -26,10 +26,10 @@ import com.google.common.base.Predicate;
 import com.google.common.collect.Collections2;
 
 /**
- * @author Rinde van Lon (rinde.vanlon@cs.kuleuven.be)
+ * Utility class containing many methods for working with graphs.
+ * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
  * @author Bartosz Michalik <bartosz.michalik@cs.kuleuven.be> - change in the
  *         graphs model
- * 
  */
 public final class Graphs {
 
@@ -37,37 +37,37 @@ public final class Graphs {
 
 	private Graphs() {}
 
-	public static <E extends EdgeData> void addPath(Graph<E> g, Point... path) {
+	public static <E extends ConnectionData> void addPath(Graph<E> g, Point... path) {
 		for (int i = 1; i < path.length; i++) {
 			g.addConnection(path[i - 1], path[i]);
 		}
 	}
 
 	// bidirectional
-	public static <E extends EdgeData> void addBiPath(Graph<E> g, Point... path) {
+	public static <E extends ConnectionData> void addBiPath(Graph<E> g, Point... path) {
 		addPath(g, path);
 		List<Point> list = Arrays.asList(path);
 		Collections.reverse(list);
 		addPath(g, list.toArray(new Point[path.length]));
 	}
 
-	public static <E extends EdgeData> Graph<E> unmodifiableGraph(Graph<E> delegate) {
+	public static <E extends ConnectionData> Graph<E> unmodifiableGraph(Graph<E> delegate) {
 		return new UnmodifiableGraph<E>(delegate);
 	}
 
-	public static <E extends EdgeData> Connection<E> unmodifiableConnection(Connection<E> conn) {
+	public static <E extends ConnectionData> Connection<E> unmodifiableConnection(Connection<E> conn) {
 		return new UnmodifiableConnection<E>(conn);
 	}
 
 	@SuppressWarnings("unchecked")
-	public static <E extends EdgeData> E unmodifiableEdgeData(E edgeData) {
-		if (edgeData instanceof MultiAttributeEdgeData) {
-			return (E) new UnmodifiableMultiAttributeEdgeData((MultiAttributeEdgeData) edgeData);
+	public static <E extends ConnectionData> E unmodifiableEdgeData(E edgeData) {
+		if (edgeData instanceof MultiAttributeData) {
+			return (E) new UnmodifiableMultiAttributeEdgeData((MultiAttributeData) edgeData);
 		}
 		return edgeData;
 	}
 
-	public static <E extends EdgeData> boolean equals(Graph<? extends E> g1, Graph<? extends E> g2) {
+	public static <E extends ConnectionData> boolean equals(Graph<? extends E> g1, Graph<? extends E> g2) {
 		if (g1.getNumberOfNodes() != g2.getNumberOfNodes()) {
 			return false;
 		}
@@ -80,10 +80,10 @@ public final class Graphs {
 			}
 			E g2connEdgeData = g2.connectionData(g1conn.from, g1conn.to);
 
-			boolean null1 = g1conn.getEdgeData() == null;
+			boolean null1 = g1conn.getData() == null;
 			boolean null2 = g2connEdgeData == null;
 			int nullCount = (null1 ? 1 : 0) + (null2 ? 1 : 0);
-			if ((nullCount == 0 && !g1conn.getEdgeData().equals(g2connEdgeData)) || nullCount == 1) {
+			if ((nullCount == 0 && !g1conn.getData().equals(g2connEdgeData)) || nullCount == 1) {
 				return false;
 			}
 		}
@@ -91,11 +91,11 @@ public final class Graphs {
 
 	}
 
-	private static class UnmodifiableMultiAttributeEdgeData extends MultiAttributeEdgeData {
+	private static class UnmodifiableMultiAttributeEdgeData extends MultiAttributeData {
 
-		private final MultiAttributeEdgeData original;
+		private final MultiAttributeData original;
 
-		public UnmodifiableMultiAttributeEdgeData(MultiAttributeEdgeData pOriginal) {
+		public UnmodifiableMultiAttributeEdgeData(MultiAttributeData pOriginal) {
 			super(-1);
 			original = pOriginal;
 		}
@@ -111,8 +111,8 @@ public final class Graphs {
 		}
 
 		@Override
-		public Map<String, Object> getProperties() {
-			return original.getProperties();
+		public Map<String, Object> getAttributes() {
+			return original.getAttributes();
 		}
 
 		@Override
@@ -142,7 +142,7 @@ public final class Graphs {
 
 	}
 
-	private static final class UnmodifiableConnection<E extends EdgeData> extends Connection<E> {
+	private static final class UnmodifiableConnection<E extends ConnectionData> extends Connection<E> {
 		private final Connection<E> original;
 
 		public UnmodifiableConnection(Connection<E> c) {
@@ -151,16 +151,16 @@ public final class Graphs {
 		}
 
 		@Override
-		public void setEdgeData(E data) {
+		public void setData(E data) {
 			throw new UnsupportedOperationException();
 		}
 
 		@Override
-		public E getEdgeData() {
-			if (original.getEdgeData() == null) {
+		public E getData() {
+			if (original.getData() == null) {
 				return null;
 			}
-			return Graphs.unmodifiableEdgeData(original.getEdgeData());
+			return Graphs.unmodifiableEdgeData(original.getData());
 		}
 
 		@Override
@@ -179,7 +179,7 @@ public final class Graphs {
 		}
 	}
 
-	private static class UnmodifiableGraph<E extends EdgeData> implements Graph<E> {
+	private static class UnmodifiableGraph<E extends ConnectionData> implements Graph<E> {
 		final Graph<E> delegate;
 
 		public UnmodifiableGraph(Graph<E> pDelegate) {
@@ -314,8 +314,8 @@ public final class Graphs {
 
 	}
 
-	public static <E extends EdgeData> List<Point> shortestPathEuclidianDistance(Graph<E> graph, final Point from,
-			final Point to) {
+	public static <E extends ConnectionData> List<Point> shortestPathEuclidianDistance(Graph<E> graph,
+			final Point from, final Point to) {
 		return Graphs.shortestPath(graph, from, to, new Graphs.EuclidianDistance());
 	}
 
@@ -334,7 +334,7 @@ public final class Graphs {
 	 * @return The shortest path from <code>from</code> to <code>to</code> if it
 	 *         exists, otherwise a {@link PathNotFoundException} is thrown.
 	 */
-	public static <E extends EdgeData> List<Point> shortestPath(Graph<E> graph, final Point from, final Point to,
+	public static <E extends ConnectionData> List<Point> shortestPath(Graph<E> graph, final Point from, final Point to,
 			Graphs.Heuristic h) {
 		if (from == null || !graph.containsNode(from)) {
 			throw new IllegalArgumentException("from should be valid vertex. " + from);

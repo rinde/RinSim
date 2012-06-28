@@ -13,9 +13,9 @@ import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 
 import rinde.sim.core.graph.Connection;
-import rinde.sim.core.graph.EdgeData;
+import rinde.sim.core.graph.ConnectionData;
 import rinde.sim.core.graph.Graph;
-import rinde.sim.core.graph.LengthEdgeData;
+import rinde.sim.core.graph.LengthData;
 import rinde.sim.core.graph.Point;
 import rinde.sim.core.graph.TestMultimapGraph;
 import rinde.sim.core.graph.TestTableGraph;
@@ -35,9 +35,9 @@ public class PointsEquality {
 		return Arrays.asList(new Object[][] { { new TestMultimapGraph() }, { new TestTableGraph() } });
 	}
 
-	private final Graph<LengthEdgeData> graph;
+	private final Graph<LengthData> graph;
 
-	public PointsEquality(Graph<LengthEdgeData> g) {
+	public PointsEquality(Graph<LengthData> g) {
 		graph = g;
 	}
 
@@ -56,7 +56,7 @@ public class PointsEquality {
 	@Test
 	public void midPointsEqual() {
 		GraphRoadModel.Loc p1 = GraphRoadModel.newLoc(new Point(0.2, 10000));
-		Connection<?> conn = new Connection<EdgeData>(new Point(0.2, 10000), new Point(0.2, 10000), null);
+		Connection<?> conn = new Connection<ConnectionData>(new Point(0.2, 10000), new Point(0.2, 10000), null);
 		GraphRoadModel.Loc p2 = GraphRoadModel.newLoc(conn, 10);
 
 		assertEquals(p1, p1);

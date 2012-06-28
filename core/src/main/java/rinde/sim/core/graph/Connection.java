@@ -3,40 +3,61 @@ package rinde.sim.core.graph;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 /**
- * Class representing a connection in a graph.
- * @author Bartosz Michalik <bartosz.michalik@cs.kuleuven.be>
- * @param <E> Type of {@link EdgeData} that is used. This data object can be
+ * Class representing a directed connection (link/edge) in a graph.
+ * @param <E> Type of {@link ConnectionData} that is used. This data object can be
  *            used to add additional information to the connection.
  * @since 2.0
+ * @author Bartosz Michalik <bartosz.michalik@cs.kuleuven.be>
+ * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
  */
-public class Connection<E extends EdgeData> {
+public class Connection<E extends ConnectionData> {
+	/**
+	 * The starting point of the connection.
+	 */
 	public final Point from;
-	public final Point to;
-	private E edgeData;
 
+	/**
+	 * The end point of the connection.
+	 */
+	public final Point to;
+
+	private E data;
 	private final int hashCode;
 
-	public Connection(Point pFrom, Point pTo, E pEdgeData) {
+	/**
+	 * Instantiates a new connection.
+	 * @param pFrom The starting point of the connection.
+	 * @param pTo The end point of the connection.
+	 * @param pData The data that is associated to this connection.
+	 */
+	public Connection(Point pFrom, Point pTo, E pData) {
 		if (pFrom == null || pTo == null) {
 			throw new IllegalArgumentException("points cannot be null");
 		}
 		this.from = pFrom;
 		this.to = pTo;
-		this.edgeData = pEdgeData;
+		this.data = pData;
 
 		HashCodeBuilder builder = new HashCodeBuilder(13, 17).append(pFrom).append(pTo);
-		if (pEdgeData != null) {
-			builder.append(pEdgeData);
+		if (pData != null) {
+			builder.append(pData);
 		}
 		hashCode = builder.toHashCode();
 	}
 
-	public void setEdgeData(E pEdgeData) {
-		this.edgeData = pEdgeData;
+	/**
+	 * Sets the data associated to this connection to the specified value.
+	 * @param pData The new data to be associated to this connection.
+	 */
+	public void setData(E pData) {
+		this.data = pData;
 	}
 
-	public E getEdgeData() {
-		return edgeData;
+	/**
+	 * @return The data that is associated to this connection.
+	 */
+	public E getData() {
+		return data;
 	}
 
 	@Override
@@ -57,15 +78,15 @@ public class Connection<E extends EdgeData> {
 		if (!to.equals(other.to)) {
 			return false;
 		}
-		if (edgeData == null) {
-			return other.edgeData == null;
+		if (data == null) {
+			return other.data == null;
 		}
-		return edgeData.equals(other.getEdgeData());
+		return data.equals(other.getData());
 	}
 
 	@Override
 	public String toString() {
-		return new StringBuilder(7).append('[').append(from).append("->").append(to).append('[').append(edgeData)
+		return new StringBuilder(7).append('[').append(from).append("->").append(to).append('[').append(data)
 				.append("]]").toString();
 	}
 

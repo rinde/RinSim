@@ -10,13 +10,17 @@ import java.util.Set;
 import org.apache.commons.math3.random.RandomGenerator;
 
 /**
- * @author Rinde van Lon (rinde.vanlon@cs.kuleuven.be)
+ * Common interface for graphs (V,E). Vertices are called <code>nodes</code>
+ * which are represented as {@link Point}s and edges are represented by
+ * {@link Connection}s. Graphs are directed.
+ * 
+ * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
  * @author Bartosz Michalik <bartosz.michalik@cs.kuleuven.be> - added edge data
  *         handling
- * @param <E> The type of {@link EdgeData} that is used in the edges.
+ * @param <E> The type of {@link ConnectionData} that is used in the edges.
  * @since 1.0
  */
-public interface Graph<E extends EdgeData> {
+public interface Graph<E extends ConnectionData> {
 
 	public boolean containsNode(Point node);
 

@@ -21,7 +21,7 @@ import org.junit.runners.Parameterized.Parameters;
 import rinde.sim.core.TimeLapse;
 import rinde.sim.core.TimeLapseFactory;
 import rinde.sim.core.graph.Graph;
-import rinde.sim.core.graph.MultiAttributeEdgeData;
+import rinde.sim.core.graph.MultiAttributeData;
 import rinde.sim.core.graph.Point;
 import rinde.sim.core.graph.TestMultimapGraph;
 import rinde.sim.core.graph.TestTableGraph;
@@ -36,7 +36,7 @@ import rinde.sim.util.TimeUnit;
 public class SpeedLimitsTest {
 	final double DELTA = 0.00001;
 
-	Class<? extends Graph<MultiAttributeEdgeData>> graphType;
+	Class<? extends Graph<MultiAttributeData>> graphType;
 	Class<? extends GraphRoadModel> roadModelType;
 	GraphRoadModel model;
 	Queue<Point> path;
@@ -56,7 +56,7 @@ public class SpeedLimitsTest {
 		assertTrue(assertionsAreOn);
 	}
 
-	public SpeedLimitsTest(Class<? extends Graph<MultiAttributeEdgeData>> pGraphType,
+	public SpeedLimitsTest(Class<? extends Graph<MultiAttributeData>> pGraphType,
 			Class<? extends GraphRoadModel> pRoadModelType, double pSpeed) {
 		graphType = pGraphType;
 		roadModelType = pRoadModelType;
@@ -82,7 +82,7 @@ public class SpeedLimitsTest {
 	public void setUp() throws InstantiationException, IllegalAccessException, IllegalArgumentException,
 			SecurityException, InvocationTargetException, NoSuchMethodException {
 
-		Graph<MultiAttributeEdgeData> graph = graphType.newInstance();
+		Graph<MultiAttributeData> graph = graphType.newInstance();
 
 		model = roadModelType.getConstructor(Graph.class).newInstance(graph);
 
@@ -93,21 +93,21 @@ public class SpeedLimitsTest {
 		E = new Point(5, 15);
 
 		graph.addConnection(A, B); // length 10 no speed limit
-		graph.addConnection(B, C, new MultiAttributeEdgeData(10, 2.5)); // length
+		graph.addConnection(B, C, new MultiAttributeData(10, 2.5)); // length
 																		// 10
 																		// speed
 																		// 2.5
 		graph.addConnection(C, B); // length Math.sqr(10^2 + 10^2)
-		graph.addConnection(B, D, new MultiAttributeEdgeData(10, 10)); // length
+		graph.addConnection(B, D, new MultiAttributeData(10, 10)); // length
 																		// 10
 																		// speed
 																		// 10
 		graph.addConnection(C, D); // length 10
-		graph.addConnection(D, C, new MultiAttributeEdgeData(12, 1)); // length
+		graph.addConnection(D, C, new MultiAttributeData(12, 1)); // length
 																		// 12
 																		// speed
 																		// 1
-		graph.addConnection(D, E, new MultiAttributeEdgeData(5, 7));
+		graph.addConnection(D, E, new MultiAttributeData(5, 7));
 
 		Set<Point> points = graph.getNodes();
 		assertEquals(5, points.size());

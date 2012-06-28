@@ -7,7 +7,7 @@ import java.util.Collection;
 import org.eclipse.swt.graphics.GC;
 
 import rinde.sim.core.graph.Connection;
-import rinde.sim.core.graph.EdgeData;
+import rinde.sim.core.graph.ConnectionData;
 import rinde.sim.core.graph.Graph;
 import rinde.sim.core.graph.Point;
 import rinde.sim.core.model.road.GraphRoadModel;
@@ -32,8 +32,8 @@ public class RoadsRenderer implements ModelRenderer<GraphRoadModel> {
 
 	@Override
 	public void renderStatic(GC gc, ViewPort vp) {
-		Graph<? extends EdgeData> graph = grm.getGraph();
-		for (Connection<? extends EdgeData> e : graph.getConnections()) {
+		Graph<? extends ConnectionData> graph = grm.getGraph();
+		for (Connection<? extends ConnectionData> e : graph.getConnections()) {
 			int x1 = vp.toCoordX(e.from.x);
 			int y1 = vp.toCoordY(e.from.y);
 

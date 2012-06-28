@@ -1,9 +1,9 @@
 package rinde.sim.core.graph;
 
-public class TestTableGraph extends TableGraph<MultiAttributeEdgeData> {
+public class TestTableGraph extends TableGraph<MultiAttributeData> {
 
 	public TestTableGraph() {
-		super(MultiAttributeEdgeData.EMPTY);
+		super(MultiAttributeData.EMPTY);
 	}
 
 }

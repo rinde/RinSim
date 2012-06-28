@@ -7,7 +7,7 @@ import org.eclipse.swt.graphics.RGB;
 
 import rinde.sim.core.Simulator;
 import rinde.sim.core.graph.Graph;
-import rinde.sim.core.graph.MultiAttributeEdgeData;
+import rinde.sim.core.graph.MultiAttributeData;
 import rinde.sim.core.model.communication.CommunicationModel;
 import rinde.sim.core.model.communication.CommunicationModel2;
 import rinde.sim.core.model.road.GraphRoadModel;
@@ -53,7 +53,7 @@ public class SimpleController extends ScenarioController {
 	@Override
 	protected Simulator createSimulator() throws Exception {
 		randomizer = new Random(1317);
-		Graph<MultiAttributeEdgeData> graph;
+		Graph<MultiAttributeData> graph;
 		try {
 			graph = DotGraphSerializer.getMultiAttributeGraphSerializer(new SelfCycleFilter()).read(map);
 		} catch (Exception e) {

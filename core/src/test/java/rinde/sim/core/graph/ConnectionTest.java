@@ -25,98 +25,98 @@ public class ConnectionTest {
 	@SuppressWarnings("unused")
 	@Test(expected = IllegalArgumentException.class)
 	public void invalidConnection1() {
-		new Connection<LengthEdgeData>(null, null, null);
+		new Connection<LengthData>(null, null, null);
 	}
 
 	@SuppressWarnings("unused")
 	@Test(expected = IllegalArgumentException.class)
 	public void invalidConnection2() {
-		new Connection<LengthEdgeData>(new Point(1, 1), null, null);
+		new Connection<LengthData>(new Point(1, 1), null, null);
 	}
 
 	@Test
 	public void unmodifiableConnection() {
-		Connection<LengthEdgeData> original = new Connection<LengthEdgeData>(new Point(2, 2), new Point(3, 3), null);
-		Connection<LengthEdgeData> unmod = Graphs.unmodifiableConnection(original);
+		Connection<LengthData> original = new Connection<LengthData>(new Point(2, 2), new Point(3, 3), null);
+		Connection<LengthData> unmod = Graphs.unmodifiableConnection(original);
 
 		assertEquals(unmod, original);
 		assertEquals(original, unmod);
-		original.setEdgeData(new LengthEdgeData(300));
+		original.setData(new LengthData(300));
 
-		assertFalse(original.getEdgeData().equals(null));
+		assertFalse(original.getData().equals(null));
 
-		assertEquals(original.getEdgeData(), unmod.getEdgeData());
-		assertEquals(original.getEdgeData().hashCode(), unmod.getEdgeData().hashCode());
-		assertEquals(original.getEdgeData().getLength(), unmod.getEdgeData().getLength(), DELTA);
+		assertEquals(original.getData(), unmod.getData());
+		assertEquals(original.getData().hashCode(), unmod.getData().hashCode());
+		assertEquals(original.getData().getLength(), unmod.getData().getLength(), DELTA);
 		assertEquals(original.hashCode(), unmod.hashCode());
 		assertEquals(original.toString(), unmod.toString());
 		assertEquals(unmod, original);
 		assertEquals(original, unmod);
 
-		original.setEdgeData(null);
+		original.setData(null);
 		assertEquals(unmod, original);
 		assertEquals(original, unmod);
 	}
 
 	@Test
 	public void unmodifiableMultiAttributeEdgeData() {
-		Connection<MultiAttributeEdgeData> original = new Connection<MultiAttributeEdgeData>(new Point(2, 2),
+		Connection<MultiAttributeData> original = new Connection<MultiAttributeData>(new Point(2, 2),
 				new Point(3, 3), null);
-		Connection<MultiAttributeEdgeData> unmod = Graphs.unmodifiableConnection(original);
+		Connection<MultiAttributeData> unmod = Graphs.unmodifiableConnection(original);
 
 		assertEquals(unmod, original);
 		assertEquals(original, unmod);
-		original.setEdgeData(new MultiAttributeEdgeData(10, 20));
+		original.setData(new MultiAttributeData(10, 20));
 		assertEquals(unmod, original);
 		assertEquals(original, unmod);
 
-		original.getEdgeData().put("test", Arrays.asList(1, 2, 3));
+		original.getData().put("test", Arrays.asList(1, 2, 3));
 		assertEquals(unmod, original);
 		assertEquals(original, unmod);
-		assertEquals(Arrays.asList(1, 2, 3), unmod.getEdgeData().get("test", Object.class));
-		assertEquals(Arrays.asList(1, 2, 3), unmod.getEdgeData().get("test", List.class));
-		assertNull(unmod.getEdgeData().get("test", Map.class));
-		assertNull(unmod.getEdgeData().get("test2", Map.class));
+		assertEquals(Arrays.asList(1, 2, 3), unmod.getData().get("test", Object.class));
+		assertEquals(Arrays.asList(1, 2, 3), unmod.getData().get("test", List.class));
+		assertNull(unmod.getData().get("test", Map.class));
+		assertNull(unmod.getData().get("test2", Map.class));
 
-		assertEquals(original.getEdgeData().getLength(), unmod.getEdgeData().getLength(), DELTA);
-		assertEquals(original.getEdgeData().getMaxSpeed(), unmod.getEdgeData().getMaxSpeed(), DELTA);
+		assertEquals(original.getData().getLength(), unmod.getData().getLength(), DELTA);
+		assertEquals(original.getData().getMaxSpeed(), unmod.getData().getMaxSpeed(), DELTA);
 
-		assertTrue(original.getEdgeData().equals(unmod.getEdgeData()));
-		assertTrue(unmod.getEdgeData().equals(unmod.getEdgeData()));
-		assertEquals(unmod.getEdgeData().hashCode(), unmod.getEdgeData().hashCode());
+		assertTrue(original.getData().equals(unmod.getData()));
+		assertTrue(unmod.getData().equals(unmod.getData()));
+		assertEquals(unmod.getData().hashCode(), unmod.getData().hashCode());
 		assertEquals(original.hashCode(), unmod.hashCode());
 
-		original.getEdgeData().put(MultiAttributeEdgeData.KEY_LENGTH, new Object());
+		original.getData().put(MultiAttributeData.KEY_LENGTH, new Object());
 		assertEquals(original, unmod);
-		original.getEdgeData().put(MultiAttributeEdgeData.KEY_MAX_SPEED, new Object());
+		original.getData().put(MultiAttributeData.KEY_MAX_SPEED, new Object());
 		assertEquals(original, unmod);
 
-		assertTrue(Double.isNaN(original.getEdgeData().getMaxSpeed()));
-		assertTrue(Double.isNaN(original.getEdgeData().getLength()));
+		assertTrue(Double.isNaN(original.getData().getMaxSpeed()));
+		assertTrue(Double.isNaN(original.getData().getLength()));
 
-		assertTrue(Double.isNaN(original.getEdgeData().setMaxSpeed(100)));
-		assertEquals(100, original.getEdgeData().setMaxSpeed(200), DELTA);
+		assertTrue(Double.isNaN(original.getData().setMaxSpeed(100)));
+		assertEquals(100, original.getData().setMaxSpeed(200), DELTA);
 
 		assertEquals(original, unmod);
 	}
 
 	@Test(expected = UnsupportedOperationException.class)
 	public void unmodMultiAttED() {
-		Graphs.unmodifiableEdgeData(new MultiAttributeEdgeData(10, 20)).setMaxSpeed(-1);
+		Graphs.unmodifiableEdgeData(new MultiAttributeData(10, 20)).setMaxSpeed(-1);
 	}
 
 	@Test(expected = UnsupportedOperationException.class)
 	public void unmodMultiAttED2() {
-		Graphs.unmodifiableEdgeData(new MultiAttributeEdgeData(10, 20)).put("", null);
+		Graphs.unmodifiableEdgeData(new MultiAttributeData(10, 20)).put("", null);
 	}
 
 	@Test
 	public void equalsTest() {
-		Connection<LengthEdgeData> c1 = new Connection<LengthEdgeData>(new Point(2, 2), new Point(3, 3), null);
-		Connection<LengthEdgeData> c2 = new Connection<LengthEdgeData>(new Point(2, 2), new Point(2, 3), null);
-		Connection<LengthEdgeData> c3 = new Connection<LengthEdgeData>(new Point(3, 2), new Point(2, 3), null);
-		Connection<LengthEdgeData> c4 = new Connection<LengthEdgeData>(new Point(2, 2), new Point(3, 3),
-				new LengthEdgeData(30));
+		Connection<LengthData> c1 = new Connection<LengthData>(new Point(2, 2), new Point(3, 3), null);
+		Connection<LengthData> c2 = new Connection<LengthData>(new Point(2, 2), new Point(2, 3), null);
+		Connection<LengthData> c3 = new Connection<LengthData>(new Point(3, 2), new Point(2, 3), null);
+		Connection<LengthData> c4 = new Connection<LengthData>(new Point(2, 2), new Point(3, 3),
+				new LengthData(30));
 		assertFalse(c1.equals(new Object()));
 		assertFalse(c1.equals(c2));
 		assertFalse(c1.equals(c3));
@@ -125,7 +125,7 @@ public class ConnectionTest {
 
 	@Test(expected = UnsupportedOperationException.class)
 	public void unmodifiableConnSetEdgeData() {
-		Graphs.unmodifiableConnection(new Connection<LengthEdgeData>(new Point(2, 2), new Point(3, 3), null))
-				.setEdgeData(null);
+		Graphs.unmodifiableConnection(new Connection<LengthData>(new Point(2, 2), new Point(3, 3), null))
+				.setData(null);
 	}
 }

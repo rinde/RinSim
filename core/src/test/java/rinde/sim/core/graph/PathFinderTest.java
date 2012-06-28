@@ -45,11 +45,11 @@ public class PathFinderTest {
 		return Arrays.asList(new Object[][] { { TestMultimapGraph.class }, { TestTableGraph.class } });
 	}
 
-	public PathFinderTest(Class<? extends Graph<LengthEdgeData>> clazz) {
+	public PathFinderTest(Class<? extends Graph<LengthData>> clazz) {
 		rmType = clazz;
 	}
 
-	Class<? extends Graph<LengthEdgeData>> rmType;
+	Class<? extends Graph<LengthData>> rmType;
 
 	private final double EPSILON = 0.02;
 

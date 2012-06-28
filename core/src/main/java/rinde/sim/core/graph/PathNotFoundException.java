@@ -4,8 +4,10 @@
 package rinde.sim.core.graph;
 
 /**
- * @author Rinde van Lon (rinde.vanlon@cs.kuleuven.be)
+ * TODO this exception seems out of place in this package??
  * 
+ * 
+ * @author Rinde van Lon (rinde.vanlon@cs.kuleuven.be)
  */
 public class PathNotFoundException extends RuntimeException {
 

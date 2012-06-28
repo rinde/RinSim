@@ -13,7 +13,7 @@ import org.junit.Test;
 
 import rinde.sim.core.graph.Graph;
 import rinde.sim.core.graph.Graphs;
-import rinde.sim.core.graph.MultiAttributeEdgeData;
+import rinde.sim.core.graph.MultiAttributeData;
 import rinde.sim.core.graph.Point;
 import rinde.sim.core.model.road.GraphRoadModel;
 import rinde.sim.core.model.road.RoadModel;
@@ -30,7 +30,7 @@ public class GradientFieldModelTest {
 	public void setup() throws Exception {
 		String MAP_DIR = "../core/files/maps/";
 		rand = new MersenneTwister(1235);
-		Graph<MultiAttributeEdgeData> graph = DotGraphSerializer
+		Graph<MultiAttributeData> graph = DotGraphSerializer
 				.getMultiAttributeGraphSerializer(new SelfCycleFilter()).read(MAP_DIR + "leuven-simple.dot");
 		roadModel = new GraphRoadModel(graph);
 		gradientFieldModel = new GradientFieldModel(roadModel);

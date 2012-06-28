@@ -8,10 +8,10 @@ import java.io.Writer;
 import java.util.HashMap;
 
 import rinde.sim.core.graph.Connection;
-import rinde.sim.core.graph.EdgeData;
+import rinde.sim.core.graph.ConnectionData;
 import rinde.sim.core.graph.Graph;
-import rinde.sim.core.graph.LengthEdgeData;
-import rinde.sim.core.graph.MultiAttributeEdgeData;
+import rinde.sim.core.graph.LengthData;
+import rinde.sim.core.graph.MultiAttributeData;
 import rinde.sim.core.graph.MultimapGraph;
 import rinde.sim.core.graph.Point;
 
@@ -24,7 +24,7 @@ import rinde.sim.core.graph.Point;
  * @author Bartosz Michalik <bartosz.michalik@cs.kuleuven.be>
  * 
  */
-public class DotGraphSerializer<E extends EdgeData> extends AbstractGraphSerializer<E> {
+public class DotGraphSerializer<E extends ConnectionData> extends AbstractGraphSerializer<E> {
 
 	private SerializerFilter<? extends Object>[] filters;
 	private ConnectionSerializer<E> serializer;
@@ -118,55 +118,55 @@ public class DotGraphSerializer<E extends EdgeData> extends AbstractGraphSeriali
 	 * @param <E>
 	 * @since 2.0
 	 */
-	public static abstract class ConnectionSerializer<E extends EdgeData> {
+	public static abstract class ConnectionSerializer<E extends ConnectionData> {
 		public abstract String serializeConnection(int idFrom, int idTo, Connection<? extends E> conn);
 
 		public abstract E deserialize(String connection);
 	}
 
-	private static class LengthConnectionSerializer extends ConnectionSerializer<LengthEdgeData> {
+	private static class LengthConnectionSerializer extends ConnectionSerializer<LengthData> {
 
 		public LengthConnectionSerializer() {}
 
 		@Override
-		public String serializeConnection(int idFrom, int idTo, Connection<? extends LengthEdgeData> conn) {
+		public String serializeConnection(int idFrom, int idTo, Connection<? extends LengthData> conn) {
 			StringBuffer buffer = new StringBuffer();
 			buffer.append(NODE_PREFIX).append(idFrom).append(" -> ").append(NODE_PREFIX).append(idTo);
-			buffer.append('[').append(DISTANCE).append("=\"").append(Math.round(conn.getEdgeData().getLength()) / 10d)
+			buffer.append('[').append(DISTANCE).append("=\"").append(Math.round(conn.getData().getLength()) / 10d)
 					.append("\"]\n");
 			return buffer.toString();
 		}
 
 		@Override
-		public LengthEdgeData deserialize(String connection) {
+		public LengthData deserialize(String connection) {
 			double distance = Double.parseDouble(connection.split("\"")[1]);
-			return new LengthEdgeData(distance);
+			return new LengthData(distance);
 		}
 	}
 
-	private static class MultiAttributeConnectionSerializer extends ConnectionSerializer<MultiAttributeEdgeData> {
+	private static class MultiAttributeConnectionSerializer extends ConnectionSerializer<MultiAttributeData> {
 		public MultiAttributeConnectionSerializer() {}
 
 		@Override
-		public String serializeConnection(int idFrom, int idTo, Connection<? extends MultiAttributeEdgeData> conn) {
+		public String serializeConnection(int idFrom, int idTo, Connection<? extends MultiAttributeData> conn) {
 			StringBuffer buffer = new StringBuffer();
 			buffer.append(NODE_PREFIX).append(idFrom).append(" -> ").append(NODE_PREFIX).append(idTo);
-			buffer.append('[').append(DISTANCE).append("=\"").append(Math.round(conn.getEdgeData().getLength()) / 10d);
-			if (!Double.isNaN(conn.getEdgeData().getMaxSpeed()) && conn.getEdgeData().getMaxSpeed() > 0) {
-				buffer.append("\", ").append(MAX_SPEED).append("=\"").append(conn.getEdgeData().getMaxSpeed());
+			buffer.append('[').append(DISTANCE).append("=\"").append(Math.round(conn.getData().getLength()) / 10d);
+			if (!Double.isNaN(conn.getData().getMaxSpeed()) && conn.getData().getMaxSpeed() > 0) {
+				buffer.append("\", ").append(MAX_SPEED).append("=\"").append(conn.getData().getMaxSpeed());
 			}
 			buffer.append("\"]\n");
 			return buffer.toString();
 		}
 
 		@Override
-		public MultiAttributeEdgeData deserialize(String connection) {
+		public MultiAttributeData deserialize(String connection) {
 			double distance = Double.parseDouble(connection.split("\"")[1]);
 			try {
 				double maxSpeed = Double.parseDouble(connection.split("\"")[3]);
-				return new MultiAttributeEdgeData(distance, maxSpeed);
+				return new MultiAttributeData(distance, maxSpeed);
 			} catch (Exception e) {
-				return new MultiAttributeEdgeData(distance);
+				return new MultiAttributeData(distance);
 			}
 		}
 	}
@@ -177,12 +177,12 @@ public class DotGraphSerializer<E extends EdgeData> extends AbstractGraphSeriali
 	 * @param filters
 	 * @return
 	 */
-	public static DotGraphSerializer<LengthEdgeData> getLengthGraphSerializer(SerializerFilter<?>... filters) {
-		return new DotGraphSerializer<LengthEdgeData>(new LengthConnectionSerializer(), filters);
+	public static DotGraphSerializer<LengthData> getLengthGraphSerializer(SerializerFilter<?>... filters) {
+		return new DotGraphSerializer<LengthData>(new LengthConnectionSerializer(), filters);
 	}
 
-	public static DotGraphSerializer<MultiAttributeEdgeData> getMultiAttributeGraphSerializer(
+	public static DotGraphSerializer<MultiAttributeData> getMultiAttributeGraphSerializer(
 			SerializerFilter<?>... filters) {
-		return new DotGraphSerializer<MultiAttributeEdgeData>(new MultiAttributeConnectionSerializer(), filters);
+		return new DotGraphSerializer<MultiAttributeData>(new MultiAttributeConnectionSerializer(), filters);
 	}
 }

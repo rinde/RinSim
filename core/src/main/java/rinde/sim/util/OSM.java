@@ -19,7 +19,7 @@ import org.xml.sax.helpers.XMLReaderFactory;
 
 import rinde.sim.core.graph.Connection;
 import rinde.sim.core.graph.Graph;
-import rinde.sim.core.graph.MultiAttributeEdgeData;
+import rinde.sim.core.graph.MultiAttributeData;
 import rinde.sim.core.graph.Point;
 import rinde.sim.core.graph.TableGraph;
 
@@ -31,14 +31,14 @@ public class OSM {
 
 	static HashSet<String> highwayNames = new HashSet<String>();
 
-	public static Graph<MultiAttributeEdgeData> parse(String filename) {
+	public static Graph<MultiAttributeData> parse(String filename) {
 		try {
 			InputSource inputSource = new InputSource(new FileInputStream(filename));
 			XMLReader xmlReader = XMLReaderFactory.createXMLReader();
 			// Multimap<Point, Point> graph = HashMultimap.create();
 
-			TableGraph<MultiAttributeEdgeData> graph = new TableGraph<MultiAttributeEdgeData>(
-					MultiAttributeEdgeData.EMPTY);
+			TableGraph<MultiAttributeData> graph = new TableGraph<MultiAttributeData>(
+					MultiAttributeData.EMPTY);
 
 			OSMParser parser = new OSMParser(graph);
 			xmlReader.setContentHandler(parser);
@@ -46,13 +46,13 @@ public class OSM {
 			xmlReader.parse(inputSource);
 
 			// remove circular connections
-			List<Connection<MultiAttributeEdgeData>> removeList = new ArrayList<Connection<MultiAttributeEdgeData>>();
-			for (Connection<MultiAttributeEdgeData> connection : graph.getConnections()) {
+			List<Connection<MultiAttributeData>> removeList = new ArrayList<Connection<MultiAttributeData>>();
+			for (Connection<MultiAttributeData> connection : graph.getConnections()) {
 				if (connection.from.equals(connection.to)) {
 					removeList.add(connection);
 				}
 			}
-			for (Connection<MultiAttributeEdgeData> connection : removeList) {
+			for (Connection<MultiAttributeData> connection : removeList) {
 				graph.removeConnection(connection.from, connection.to);
 			}
 			// System.out.println(highwayNames.toString());
@@ -66,11 +66,11 @@ public class OSM {
 
 	static class OSMParser extends DefaultHandler {
 
-		protected Graph<MultiAttributeEdgeData> rs;
+		protected Graph<MultiAttributeData> rs;
 		protected HashMap<String, Point> nodes;
 		protected WayParser current;
 
-		public OSMParser(Graph<MultiAttributeEdgeData> rs) {
+		public OSMParser(Graph<MultiAttributeData> rs) {
 			super();
 			this.rs = rs;
 			nodes = new HashMap<String, Point>();
@@ -240,7 +240,7 @@ public class OSM {
 			}
 		}
 
-		public void addWaysTo(Graph<MultiAttributeEdgeData> graph) {
+		public void addWaysTo(Graph<MultiAttributeData> graph) {
 			if (isValidRoad) {
 				for (int i = 1; i < nodes.size(); i++) {
 					Point from = nodeMapping.get(nodes.get(i - 1));
@@ -249,10 +249,10 @@ public class OSM {
 
 						double length = Point.distance(from, to);
 						if (!graph.hasConnection(from, to)) {
-							graph.addConnection(from, to, new MultiAttributeEdgeData(length, maxSpeed));
+							graph.addConnection(from, to, new MultiAttributeData(length, maxSpeed));
 						}
 						if (!oneWay && !graph.hasConnection(to, from)) {
-							graph.addConnection(to, from, new MultiAttributeEdgeData(length, maxSpeed));
+							graph.addConnection(to, from, new MultiAttributeData(length, maxSpeed));
 						}
 					}
 				}

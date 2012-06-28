@@ -15,9 +15,9 @@ import org.apache.commons.math3.random.RandomGenerator;
 
 import rinde.sim.core.TimeLapse;
 import rinde.sim.core.graph.Connection;
-import rinde.sim.core.graph.EdgeData;
+import rinde.sim.core.graph.ConnectionData;
 import rinde.sim.core.graph.Graph;
-import rinde.sim.core.graph.MultiAttributeEdgeData;
+import rinde.sim.core.graph.MultiAttributeData;
 import rinde.sim.core.graph.Point;
 import rinde.sim.core.model.road.GraphRoadModel.Loc;
 import rinde.sim.util.SpeedConverter;
@@ -30,14 +30,14 @@ import rinde.sim.util.TimeUnit;
  */
 public class GraphRoadModel extends AbstractRoadModel<Loc> {
 
-	protected final Graph<? extends EdgeData> graph;
+	protected final Graph<? extends ConnectionData> graph;
 
 	// TODO add comments to public methods without comment
 
 	/**
 	 * @param pGraph The graph which will be used as road strucutre.
 	 */
-	public GraphRoadModel(Graph<? extends EdgeData> pGraph) {
+	public GraphRoadModel(Graph<? extends ConnectionData> pGraph) {
 		super();
 		checkArgument(pGraph != null, "Graph can not be null");
 		graph = pGraph;
@@ -162,7 +162,7 @@ public class GraphRoadModel extends AbstractRoadModel<Loc> {
 
 	/**
 	 * Compute distance between two points. If points are equal the distance is
-	 * 0. This method uses length stored in {@link EdgeData} objects when
+	 * 0. This method uses length stored in {@link ConnectionData} objects when
 	 * available.
 	 * @return the distance between two points
 	 * @throws IllegalArgumentException when two points are part of the graph
@@ -198,8 +198,8 @@ public class GraphRoadModel extends AbstractRoadModel<Loc> {
 	}
 
 	protected static double getConnectionLength(Connection<?> conn) {
-		return conn.getEdgeData() == null || Double.isNaN(conn.getEdgeData().getLength()) ? Point
-				.distance(conn.from, conn.to) : conn.getEdgeData().getLength();
+		return conn.getData() == null || Double.isNaN(conn.getData().getLength()) ? Point
+				.distance(conn.from, conn.to) : conn.getData().getLength();
 	}
 
 	protected static boolean isMidPoint(Point p) {
@@ -242,8 +242,8 @@ public class GraphRoadModel extends AbstractRoadModel<Loc> {
 		// "points not connected " + from + " >> " + to);
 		// EdgeData data = graph.connectionData(from, to);
 
-		if (conn.getEdgeData() instanceof MultiAttributeEdgeData) {
-			MultiAttributeEdgeData maed = (MultiAttributeEdgeData) conn.getEdgeData();
+		if (conn.getData() instanceof MultiAttributeData) {
+			MultiAttributeData maed = (MultiAttributeData) conn.getData();
 			double speed = maed.getMaxSpeed();
 			return Double.isNaN(speed) ? object.getSpeed() : Math.min(speed, object.getSpeed());
 		}
@@ -306,7 +306,7 @@ public class GraphRoadModel extends AbstractRoadModel<Loc> {
 	/**
 	 * @return An unmodifiable view on the graph.
 	 */
-	public Graph<? extends EdgeData> getGraph() {
+	public Graph<? extends ConnectionData> getGraph() {
 		return unmodifiableGraph(graph);
 	}
 
@@ -317,7 +317,7 @@ public class GraphRoadModel extends AbstractRoadModel<Loc> {
 	 * @return A {@link Connection} if <code>obj</code> is on one,
 	 *         <code>null</code> otherwise.
 	 */
-	public Connection<? extends EdgeData> getConnection(RoadUser obj) {
+	public Connection<? extends ConnectionData> getConnection(RoadUser obj) {
 		Loc point = objLocs.get(obj);
 		if (isMidPoint(point)) {
 			return graph.getConnection(point.conn.from, point.conn.to);
@@ -400,7 +400,7 @@ public class GraphRoadModel extends AbstractRoadModel<Loc> {
 	protected static final double DELTA = 0.000001;
 
 	@SuppressWarnings("synthetic-access")
-	protected static Loc newLoc(Connection<? extends EdgeData> conn, double relativePos) {
+	protected static Loc newLoc(Connection<? extends ConnectionData> conn, double relativePos) {
 		if (conn == null) {
 			throw new IllegalArgumentException("conn can not be null");
 		}
@@ -421,9 +421,9 @@ public class GraphRoadModel extends AbstractRoadModel<Loc> {
 		private static final long serialVersionUID = 7070585967590832300L;
 		public final double roadLength;
 		public final double relativePos;
-		public final Connection<? extends EdgeData> conn;
+		public final Connection<? extends ConnectionData> conn;
 
-		private Loc(double pX, double pY, Connection<? extends EdgeData> pConn, double pRoadLength, double pRelativePos) {
+		private Loc(double pX, double pY, Connection<? extends ConnectionData> pConn, double pRoadLength, double pRelativePos) {
 			super(pX, pY);
 			roadLength = pRoadLength;
 			relativePos = pRelativePos;

@@ -16,11 +16,11 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 
-import rinde.sim.core.graph.EdgeData;
+import rinde.sim.core.graph.ConnectionData;
 import rinde.sim.core.graph.Graph;
 import rinde.sim.core.graph.Graphs;
-import rinde.sim.core.graph.LengthEdgeData;
-import rinde.sim.core.graph.MultiAttributeEdgeData;
+import rinde.sim.core.graph.LengthData;
+import rinde.sim.core.graph.MultiAttributeData;
 import rinde.sim.core.graph.MultimapGraph;
 import rinde.sim.core.graph.Point;
 import rinde.sim.core.graph.TableGraph;
@@ -30,7 +30,7 @@ import rinde.sim.core.graph.TableGraph;
  * 
  */
 @RunWith(Parameterized.class)
-public class MapPreprocessorTest<E extends EdgeData> {
+public class MapPreprocessorTest<E extends ConnectionData> {
 
 	final static boolean WRITE_TO_FILE = false;
 
@@ -65,11 +65,11 @@ public class MapPreprocessorTest<E extends EdgeData> {
 
 	@Parameters
 	public static Collection<Object[]> configs() {
-		return Arrays.asList(new Object[][] { { MultimapGraph.class, LengthEdgeData.EMPTY }, { MultimapGraph.class, MultiAttributeEdgeData.EMPTY },
-				{ TableGraph.class, LengthEdgeData.EMPTY }, { TableGraph.class, MultiAttributeEdgeData.EMPTY } });
+		return Arrays.asList(new Object[][] { { MultimapGraph.class, LengthData.EMPTY }, { MultimapGraph.class, MultiAttributeData.EMPTY },
+				{ TableGraph.class, LengthData.EMPTY }, { TableGraph.class, MultiAttributeData.EMPTY } });
 	}
 
-	static class GraphParameterSetting<E extends EdgeData> {
+	static class GraphParameterSetting<E extends ConnectionData> {
 		private final Class<? extends Graph<E>> g;
 		private final E empty;
 

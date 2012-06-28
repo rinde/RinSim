@@ -5,7 +5,7 @@ import org.eclipse.swt.graphics.RGB;
 
 import rinde.sim.core.Simulator;
 import rinde.sim.core.graph.Graph;
-import rinde.sim.core.graph.MultiAttributeEdgeData;
+import rinde.sim.core.graph.MultiAttributeData;
 import rinde.sim.core.graph.Point;
 import rinde.sim.core.model.communication.CommunicationModel;
 import rinde.sim.core.model.road.GraphRoadModel;
@@ -33,7 +33,7 @@ public class SimpleController extends ScenarioController {
 
 	private int truckID = 0;
 	private int packageID = 0;
-	private Graph<MultiAttributeEdgeData> graph;
+	private Graph<MultiAttributeData> graph;
 
 	public SimpleController(Scenario scen, int numberOfTicks, String map) throws ConfigurationException {
 		super(scen, numberOfTicks);

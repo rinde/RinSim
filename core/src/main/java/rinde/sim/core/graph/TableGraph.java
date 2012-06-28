@@ -18,12 +18,12 @@ import com.google.common.collect.Table.Cell;
 
 /**
  * Table-based implementation of the graph. TODO add more comments
- * @author Rinde van Lon (rinde.vanlon@cs.kuleuven.be)
+ * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
  * @author Bartosz Michalik <bartosz.michalik@cs.kuleuven.be> - change to the
  *         parametric version
- * @param <E> The type of {@link EdgeData} that is used in the edges.
+ * @param <E> The type of {@link ConnectionData} that is used in the edges.
  */
-public class TableGraph<E extends EdgeData> implements Graph<E> {
+public class TableGraph<E extends ConnectionData> implements Graph<E> {
 
 	private final Table<Point, Point, E> data;
 
@@ -183,7 +183,7 @@ public class TableGraph<E extends EdgeData> implements Graph<E> {
 		if (c == null) {
 			return;
 		}
-		addConnection(c.from, c.to, c.getEdgeData());
+		addConnection(c.from, c.to, c.getData());
 	}
 
 	/**

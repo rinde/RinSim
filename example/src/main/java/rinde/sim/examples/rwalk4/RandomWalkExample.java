@@ -10,7 +10,7 @@ import org.eclipse.swt.graphics.RGB;
 
 import rinde.sim.core.Simulator;
 import rinde.sim.core.graph.Graph;
-import rinde.sim.core.graph.LengthEdgeData;
+import rinde.sim.core.graph.LengthData;
 import rinde.sim.core.model.communication.CommunicationModel;
 import rinde.sim.core.model.road.GraphRoadModel;
 import rinde.sim.core.model.road.RoadModel;
@@ -33,7 +33,7 @@ public class RandomWalkExample {
 		// create a new simulator, load map of Leuven
 		MersenneTwister rand = new MersenneTwister(123);
 		Simulator simulator = new Simulator(rand, 1000);
-		Graph<LengthEdgeData> graph = DotGraphSerializer.getLengthGraphSerializer(new SelfCycleFilter()).read(MAP_DIR
+		Graph<LengthData> graph = DotGraphSerializer.getLengthGraphSerializer(new SelfCycleFilter()).read(MAP_DIR
 				+ "leuven-simple.dot");
 		// Graph<LengthEdgeData> graph =
 		// DotGraphSerializer.getLengthGraphSerializer(new

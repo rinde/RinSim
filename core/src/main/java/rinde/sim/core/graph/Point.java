@@ -8,8 +8,8 @@ import java.io.Serializable;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 /**
+ * A simple tuple (double,double).
  * @author Rinde van Lon (rinde.vanlon@cs.kuleuven.be)
- * 
  */
 public class Point implements Serializable {
 
