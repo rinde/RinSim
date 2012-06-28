@@ -13,7 +13,7 @@ import static rinde.sim.event.pdp.StandardType.REMOVE_TRUCK;
 import static rinde.sim.scenario.ScenarioController.Type.SCENARIO_FINISHED;
 import static rinde.sim.scenario.ScenarioController.Type.SCENARIO_STARTED;
 
-import org.apache.commons.math.random.MersenneTwister;
+import org.apache.commons.math3.random.MersenneTwister;
 import org.junit.Before;
 import org.junit.Test;
 

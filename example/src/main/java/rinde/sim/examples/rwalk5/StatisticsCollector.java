@@ -1,7 +1,5 @@
 package rinde.sim.examples.rwalk5;
 
-import java.io.PrintWriter;
-import java.io.StringWriter;
 import java.util.Formatter;
 
 import org.slf4j.Logger;

@@ -10,11 +10,12 @@ import static org.junit.Assert.assertTrue;
 
 import java.util.Queue;
 
-import org.apache.commons.math.random.MersenneTwister;
-import org.apache.commons.math.random.RandomGenerator;
+import org.apache.commons.math3.random.MersenneTwister;
+import org.apache.commons.math3.random.RandomGenerator;
 import org.junit.Test;
 
 import rinde.sim.core.graph.Point;
+
 
 /**
  * @author Rinde van Lon (rinde.vanlon@cs.kuleuven.be)

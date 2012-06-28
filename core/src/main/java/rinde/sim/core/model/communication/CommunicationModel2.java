@@ -6,7 +6,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
 
-import org.apache.commons.math.random.RandomGenerator;
+import org.apache.commons.math3.random.RandomGenerator;
 
 import rinde.sim.core.TimeLapse;
 import rinde.sim.core.graph.Point;

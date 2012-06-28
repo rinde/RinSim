@@ -1,6 +1,6 @@
 package rinde.sim.core;
 
-import org.apache.commons.math.random.RandomGenerator;
+import org.apache.commons.math3.random.RandomGenerator;
 
 /**
  * Limited simulator API that provides an API for simulation elements (e.g.,

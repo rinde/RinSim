@@ -3,7 +3,7 @@ package rinde.sim.lab.session1.catch_the_flag_solution;
 import java.util.LinkedList;
 import java.util.Queue;
 
-import org.apache.commons.math.random.RandomGenerator;
+import org.apache.commons.math3.random.RandomGenerator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

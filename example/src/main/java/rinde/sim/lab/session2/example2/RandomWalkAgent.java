@@ -3,7 +3,7 @@ package rinde.sim.lab.session2.example2;
 import java.util.LinkedList;
 import java.util.Queue;
 
-import org.apache.commons.math.random.RandomGenerator;
+import org.apache.commons.math3.random.RandomGenerator;
 
 import rinde.sim.core.SimulatorAPI;
 import rinde.sim.core.SimulatorUser;

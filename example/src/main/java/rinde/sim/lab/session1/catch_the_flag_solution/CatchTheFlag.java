@@ -1,6 +1,6 @@
 package rinde.sim.lab.session1.catch_the_flag_solution;
 
-import org.apache.commons.math.random.MersenneTwister;
+import org.apache.commons.math3.random.MersenneTwister;
 import org.eclipse.swt.graphics.RGB;
 
 import rinde.sim.core.Simulator;

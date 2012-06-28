@@ -5,7 +5,7 @@ package rinde.sim.examples.rwalk3;
 
 import java.util.Random;
 
-import org.apache.commons.math.random.MersenneTwister;
+import org.apache.commons.math3.random.MersenneTwister;
 
 import rinde.sim.core.Simulator;
 import rinde.sim.core.graph.Graph;

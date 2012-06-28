@@ -1,6 +1,6 @@
 package rinde.sim.lab.session1.catch_the_flag;
 
-import org.apache.commons.math.random.MersenneTwister;
+import org.apache.commons.math3.random.MersenneTwister;
 import org.eclipse.swt.graphics.RGB;
 
 import rinde.sim.core.Simulator;
@@ -13,8 +13,8 @@ import rinde.sim.lab.common.Flag;
 import rinde.sim.serializers.DotGraphSerializer;
 import rinde.sim.serializers.SelfCycleFilter;
 import rinde.sim.ui.View;
-import rinde.sim.ui.renderers.RoadsRenderer;
 import rinde.sim.ui.renderers.RoadUserRenderer;
+import rinde.sim.ui.renderers.RoadsRenderer;
 import rinde.sim.ui.renderers.UiSchema;
 
 /**
