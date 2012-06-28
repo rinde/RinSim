@@ -1,13 +1,11 @@
-/**
- * 
- */
 package rinde.sim.core;
 
 /**
  * @author Rinde van Lon (rinde.vanlon@cs.kuleuven.be)
- * 
  */
-public class TimeLapseFactory {
+public final class TimeLapseFactory {
+
+	private TimeLapseFactory() {}
 
 	// this should only be used in tests!
 

@@ -4,7 +4,6 @@
 package com.google.common.collect;
 
 import java.io.Serializable;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -12,8 +11,8 @@ import com.google.common.base.Supplier;
 
 /**
  * Similar to {@link HashBasedTable} but with a predictable iteration order,
- * this is similar to the relation between {@link HashMap} and
- * {@link LinkedHashMap}.<br/>
+ * this is similar to the relation between {@link java.util.HashMap} and
+ * {@link java.util.LinkedHashMap}.<br/>
  * <br/>
  * 
  * Currently (February 2012) Guava does not have this class itself. This class

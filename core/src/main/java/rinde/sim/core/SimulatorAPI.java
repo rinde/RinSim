@@ -4,7 +4,7 @@ import org.apache.commons.math3.random.RandomGenerator;
 
 /**
  * Limited simulator API that provides an API for simulation elements (e.g.,
- * agents)
+ * agents).
  * @author Bartosz Michalik <bartosz.michalik@cs.kuleuven.be>
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
  * @since 2.0
@@ -15,7 +15,7 @@ public interface SimulatorAPI {
 	/**
 	 * Register a given entity in the simulator. During registration the object
 	 * is provided all features it requires (declared by interfaces) and bound
-	 * to the required models (if they were registered in the simulator before)
+	 * to the required models (if they were registered in the simulator before).
 	 * @param o object to register
 	 * @return <code>true</code> when registration of the object in the
 	 *         simulator was successful
@@ -25,14 +25,14 @@ public interface SimulatorAPI {
 	public boolean register(Object o);
 
 	/**
-	 * Unregister and object from simulator
+	 * Unregister an object from simulator.
 	 * @param o The object to be unregistered.
 	 * @return True if the object could be unregistered, false otherwise.
 	 */
 	public boolean unregister(Object o);
 
 	/**
-	 * Get access to the main random generator used in the simulator
+	 * Get access to the main random generator used in the simulator.
 	 * @return the random generator of the simulatsor
 	 */
 	public RandomGenerator getRandomGenerator();

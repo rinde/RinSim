@@ -21,6 +21,25 @@ import rinde.sim.event.EventAPI;
 import rinde.sim.event.EventDispatcher;
 
 /**
+ * Simulator is the core class of a simulation. It is responsible for managing
+ * time which it does by periodically providing {@link TimeLapse} instances to
+ * registered {@link TickListener}s. Further it provides methods to start and
+ * stop simulations. The simulator also acts as a facade through which
+ * {@link Model}s and objects can be added to the simulator, more info about
+ * models can be found in {@link ModelManager}.
+ * 
+ * The configuration phase of the simulator looks as follows:
+ * <ol>
+ * <li>register models using {@link #register(Model)}</li>
+ * <li>call {@link #configure()}
+ * <li>register objects using {@link #register(Object)}</li>
+ * <li>start simulation by calling {@link #start()}</li>
+ * </ol>
+ * Note that objects can not be registered <b>before</b> calling
+ * {@link #configure()} and {@link Model}s can not be registed <b>after</b>
+ * configuring.
+ * 
+ * 
  * @author Rinde van Lon (rinde.vanlon@cs.kuleuven.be)
  * @author Bartosz Michalik <bartosz.michalik@cs.kuleuven.be> - simulator API
  *         changes
@@ -28,33 +47,69 @@ import rinde.sim.event.EventDispatcher;
  */
 public class Simulator implements SimulatorAPI {
 
+	/**
+	 * The logger of the simulator.
+	 */
 	protected static final Logger LOGGER = LoggerFactory.getLogger(Simulator.class);
 
 	/**
-	 * Enum that describes the possible events from simulator itself
-	 * 
+	 * Enum that describes the possible types of events that the simulator can
+	 * dispatch.
 	 */
 	public enum EventTypes {
-		STOPPED, STARTED
+		/**
+		 * Indicates that the simulator has stopped.
+		 */
+		STOPPED,
+
+		/**
+		 * Indicates that the simulator has started.
+		 */
+		STARTED
 	}
 
+	/**
+	 * Reference to the {@link EventAPI} of the Simulator. Can be used to add
+	 * listeners to events dispatched by the simulator. Simulator events are
+	 * defined in {@link EventTypes}.
+	 */
+	public final EventAPI events;
+
+	/**
+	 * Contains the set of registered {@link TickListener}s.
+	 */
 	protected volatile Set<TickListener> tickListeners;
 
-	private final RandomGenerator rand;
-	public final EventAPI events;
+	/**
+	 * Reference to dispatcher of simulator events, can be used by subclasses to
+	 * issue additional events.
+	 */
 	protected final EventDispatcher dispatcher;
-	protected final long timeStep;
-	protected volatile boolean isPlaying;
-	protected long time;
-	protected final TimeLapse timeLapse;
 
-	protected ModelManager modelManager;
+	/**
+	 * @see #isPlaying
+	 */
+	protected volatile boolean isPlaying;
+
+	/**
+	 * @see #getCurrentTime()
+	 */
+	protected long time;
+
+	/**
+	 * Model manager instance.
+	 */
+	protected final ModelManager modelManager;
 	private boolean configured;
 
 	private Set<Object> toUnregister;
 	private final ReentrantLock unregisterLock;
+	private final RandomGenerator rand;
+	private final long timeStep;
+	private final TimeLapse timeLapse;
 
 	/**
+	 * Create a new simulator instance.
 	 * @param r The random number generator that is used in this simulator.
 	 * @param step The time that passes each tick. This can be in any unit the
 	 *            programmer prefers.
@@ -77,6 +132,12 @@ public class Simulator implements SimulatorAPI {
 		events = dispatcher.getEventAPI();
 	}
 
+	/**
+	 * This configures the {@link Model}s in the simulator. After calling this
+	 * method models can no longer be added, objects can only be registered
+	 * after this method is called.
+	 * @see ModelManager#configure()
+	 */
 	public void configure() {
 		modelManager.configure();
 		configured = true;
@@ -148,8 +209,11 @@ public class Simulator implements SimulatorAPI {
 			removeTickListener((TickListener) o);
 		}
 		unregisterLock.lock();
-		toUnregister.add(o);
-		unregisterLock.unlock();
+		try {
+			toUnregister.add(o);
+		} finally {
+			unregisterLock.unlock();
+		}
 		return true;
 	}
 
@@ -172,20 +236,31 @@ public class Simulator implements SimulatorAPI {
 		return modelManager.getModels();
 	}
 
+	/**
+	 * @return The current simulation time.
+	 */
 	public long getCurrentTime() {
 		return time;
 	}
 
+	/**
+	 * @return The time step (in simulation time) which is added to current time
+	 *         at every tick.
+	 */
 	public long getTimeStep() {
 		return timeStep;
 	}
 
+	/**
+	 * Adds a tick listener to the simulator.
+	 * @param listener The listener to add.
+	 */
 	public void addTickListener(TickListener listener) {
 		tickListeners.add(listener);
 	}
 
 	/**
-	 * O(1)
+	 * Removes the listener specified. Implemented in O(1).
 	 * @param listener The listener to remove
 	 */
 	public void removeTickListener(TickListener listener) {
@@ -193,7 +268,7 @@ public class Simulator implements SimulatorAPI {
 	}
 
 	/**
-	 * Start the simulation
+	 * Start the simulation.
 	 */
 	public void start() {
 		if (!configured) {
@@ -209,12 +284,20 @@ public class Simulator implements SimulatorAPI {
 		dispatcher.dispatchEvent(new Event(EventTypes.STOPPED, this));
 	}
 
+	/**
+	 * Advances the simulator with one step (the size is determined by the time
+	 * step).
+	 */
 	public void tick() {
 		// unregister all pending objects
 		unregisterLock.lock();
-		Set<Object> copy = toUnregister;
-		toUnregister = new LinkedHashSet<Object>();
-		unregisterLock.unlock();
+		Set<Object> copy;
+		try {
+			copy = toUnregister;
+			toUnregister = new LinkedHashSet<Object>();
+		} finally {
+			unregisterLock.unlock();
+		}
 
 		for (Object c : copy) {
 			modelManager.unregister(c);
@@ -231,19 +314,16 @@ public class Simulator implements SimulatorAPI {
 		for (TickListener t : localCopy) {
 			timeLapse.initialize(time, time + timeStep);
 			t.tick(timeLapse);
-			// TODO could enforce that TimeLapse MUST be consumed!
-			// TODO can time lapse be optional?
 		}
 		if (LOGGER.isDebugEnabled()) {
 			LOGGER.debug("tick(): " + (System.currentTimeMillis() - timeS));
 			timeS = System.currentTimeMillis();
 		}
 		timeLapse.initialize(time, time + timeStep);
-		timeLapse.consumeAll();
 		// in the after tick the TimeLapse can no longer be consumed
+		timeLapse.consumeAll();
 		for (TickListener t : tickListeners) {
 			t.afterTick(timeLapse);
-			// TODO could enforce that TimeLapse MUST be consumed!
 		}
 		if (LOGGER.isDebugEnabled()) {
 			LOGGER.debug("aftertick(): " + (System.currentTimeMillis() - timeS));
@@ -262,6 +342,9 @@ public class Simulator implements SimulatorAPI {
 		}
 	}
 
+	/**
+	 * Resets the time to 0.
+	 */
 	public void resetTime() {
 		time = 0L;
 	}
@@ -280,10 +363,16 @@ public class Simulator implements SimulatorAPI {
 		return isPlaying;
 	}
 
+	/**
+	 * @return An unmodifiable view on the set of tick listeners.
+	 */
 	public Set<TickListener> getTickListeners() {
 		return Collections.unmodifiableSet(tickListeners);
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override
 	public RandomGenerator getRandomGenerator() {
 		return rand;
