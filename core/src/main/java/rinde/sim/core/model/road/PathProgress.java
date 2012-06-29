@@ -9,14 +9,14 @@ import rinde.sim.core.graph.Point;
 
 /**
  * Represents the distance traveled and time spend in
- * {@link RoadModel#followPath(MovingRoadUser, Queue, long)}
+ * {@link RoadModel#followPath(MovingRoadUser, Queue, rinde.sim.core.TimeLapse)}
  * @author Bartosz Michalik <bartosz.michalik@cs.kuleuven.be>
  * @since 2.0
  */
 public final class PathProgress {
 	/**
 	 * distance traveled in the
-	 * {@link RoadModel#followPath(MovingRoadUser, Queue, long)}
+	 * {@link RoadModel#followPath(MovingRoadUser, Queue, rinde.sim.core.TimeLapse)}
 	 */
 	public final double distance;
 	/**

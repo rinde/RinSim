@@ -1,17 +1,21 @@
 package rinde.sim.core.model.road;
- 
+
 /**
  * Used to represent road users that want to reposition itself using the
- * {@link RoadModel#followPath(MovingRoadUser, java.util.Queue, long)} method
+ * {@link RoadModel#followPath(MovingRoadUser, java.util.Queue, rinde.sim.core.TimeLapse)}
+ * method.
  * @author Bartosz Michalik <bartosz.michalik@cs.kuleuven.be>
+ * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
  * @since 2.0
  */
 public interface MovingRoadUser extends RoadUser {
 	/**
-	 * Get speed of the road user. The speed is expressed in graph units
-	 * (typically meters) per hour.
-	 * @see
-	 * @return speed
+	 * Get preferred speed of the road user. The speed is expressed in graph
+	 * units (typically meters) per hour. Generally there is no guarantee that
+	 * the object will always be moving using this speed.
+	 * @return The preferred speed of this {@link MovingRoadUser}.
+	 * @see RoadModel#followPath(MovingRoadUser, java.util.Queue,
+	 *      rinde.sim.core.TimeLapse)
 	 */
 	double getSpeed();
 }

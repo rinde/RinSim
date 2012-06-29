@@ -93,6 +93,9 @@ public class Scenario implements Serializable {
 		return events.poll();
 	}
 
+	/**
+	 * @return The number of events that is in this scenario.
+	 */
 	public int size() {
 		return events.size();
 	}

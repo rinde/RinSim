@@ -11,8 +11,8 @@ import java.io.Serializable;
 import rinde.sim.scenario.TimedEvent;
 
 /**
- * 
- * @author Rinde van Lon (rinde.vanlon@cs.kuleuven.be)
+ * TODO add class comment
+ * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
  * @author Bartosz Michalik <bartosz.michalik@cs.kuleuven.be>
  */
 public class Event implements Serializable {

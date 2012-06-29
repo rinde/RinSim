@@ -25,6 +25,9 @@ import com.google.common.base.Predicate;
 public interface RoadModel extends Model<RoadUser> {
 
 	// TODO add documentation
+	// no guarantee about speed of objects
+	// talk about queue and time
+	// talk about pathprogress
 	PathProgress followPath(MovingRoadUser object, Queue<Point> path, TimeLapse time);
 
 	/**
