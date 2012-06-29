@@ -529,7 +529,7 @@ public class MapPreprocessor {
 			neighbours.remove(current);
 			if (graph.containsNode(current)) {
 				try {
-					path = Graphs.shortestPathEuclidianDistance(graph, current, root);
+					path = Graphs.shortestPathEuclideanDistance(graph, current, root);
 				} catch (PathNotFoundException e) {/*
 													 * this is intentionally
 													 * empty

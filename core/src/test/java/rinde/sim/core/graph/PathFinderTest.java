@@ -6,9 +6,7 @@ package rinde.sim.core.graph;
 import static java.util.Arrays.asList;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
-import static rinde.sim.core.graph.Graphs.findClosestObject;
 import static rinde.sim.core.graph.Graphs.findClosestObjects;
-import static rinde.sim.core.graph.Graphs.findObjectsWithinRadius;
 import static rinde.sim.core.graph.Graphs.pathLength;
 
 import java.util.Arrays;
@@ -27,6 +25,7 @@ import rinde.sim.core.model.road.GraphRoadModel;
 import rinde.sim.core.model.road.MovingRoadUser;
 import rinde.sim.core.model.road.PathProgress;
 import rinde.sim.core.model.road.RoadModel;
+import rinde.sim.core.model.road.RoadModels;
 import rinde.sim.core.model.road.RoadUser;
 import rinde.sim.util.TimeUnit;
 import rinde.sim.util.TrivialRoadUser;
@@ -34,8 +33,9 @@ import rinde.sim.util.TrivialRoadUser;
 import com.google.common.base.Predicate;
 
 /**
- * @author Rinde van Lon (rinde.vanlon@cs.kuleuven.be)
- * 
+ * @author Rinde van Lon (rinde.vanlon@cs.kuleuven.be) TODO this class should
+ *         only be testing Graph classes. RoadModel related stuff should be
+ *         splitted
  */
 @RunWith(Parameterized.class)
 public class PathFinderTest {
@@ -138,27 +138,27 @@ public class PathFinderTest {
 
 	@Test
 	public void shortestDistance() {
-		List<Point> t = Graphs.shortestPathEuclidianDistance(graph, a, d);
+		List<Point> t = Graphs.shortestPathEuclideanDistance(graph, a, d);
 		compatibilityCheck(t);
 		assertEquals(asList(a, c, d), t);
 
-		List<Point> t2 = Graphs.shortestPathEuclidianDistance(graph, d, a);
+		List<Point> t2 = Graphs.shortestPathEuclideanDistance(graph, d, a);
 		compatibilityCheck(t2);
 		assertEquals(asList(d, f, g, a), t2);
 
-		List<Point> t3 = Graphs.shortestPathEuclidianDistance(graph, g, e);
+		List<Point> t3 = Graphs.shortestPathEuclideanDistance(graph, g, e);
 		compatibilityCheck(t3);
 		assertEquals(asList(g, a, c, e), t3);
 
-		List<Point> t4 = Graphs.shortestPathEuclidianDistance(graph, a, e);
+		List<Point> t4 = Graphs.shortestPathEuclideanDistance(graph, a, e);
 		compatibilityCheck(t4);
 		assertEquals(asList(a, c, e), t4);
 
-		List<Point> t5 = Graphs.shortestPathEuclidianDistance(graph, a, c);
+		List<Point> t5 = Graphs.shortestPathEuclideanDistance(graph, a, c);
 		compatibilityCheck(t5);
 		assertEquals(asList(a, c), t5);
 
-		List<Point> t6 = Graphs.shortestPathEuclidianDistance(graph, e, g);
+		List<Point> t6 = Graphs.shortestPathEuclideanDistance(graph, e, g);
 		compatibilityCheck(t6);
 		assertEquals(asList(e, b, c, d, f, g), t6);
 	}
@@ -170,7 +170,7 @@ public class PathFinderTest {
 		gg.addConnection(a, b);
 		gg.addConnection(b, c);
 
-		Graphs.shortestPathEuclidianDistance(roads.getGraph(), b, a);
+		Graphs.shortestPathEuclideanDistance(roads.getGraph(), b, a);
 	}
 
 	public void compatibilityCheck(List<Point> t) {
@@ -199,19 +199,19 @@ public class PathFinderTest {
 		// DotExporter.saveToDot(graph.getGraph(), "files/test/rutgerbug");
 
 		// this shouldn't fail
-		Graphs.shortestPathEuclidianDistance(g, q, t);
+		Graphs.shortestPathEuclideanDistance(g, q, t);
 	}
 
 	@Test
 	public void findClosestObjectTest() {
 		// actually, o1 and o2 have the same distance to ref (but o1 is added
 		// earlier)
-		assertEquals(o1, findClosestObject(new Point(5, 5), rm));
-		assertEquals(o2, findClosestObject(new Point(5.000001, 5), rm));
+		assertEquals(o1, RoadModels.findClosestObject(new Point(5, 5), rm));
+		assertEquals(o2, RoadModels.findClosestObject(new Point(5.000001, 5), rm));
 
-		assertEquals(o6, findClosestObject(new Point(5, 5), rm, LongRoadUser.class));
+		assertEquals(o6, RoadModels.findClosestObject(new Point(5, 5), rm, LongRoadUser.class));
 
-		assertEquals(null, findClosestObject(new Point(5, 5), rm, new Predicate<RoadUser>() {
+		assertEquals(null, RoadModels.findClosestObject(new Point(5, 5), rm, new Predicate<RoadUser>() {
 			@Override
 			public boolean apply(RoadUser input) {
 				return false;
@@ -221,12 +221,12 @@ public class PathFinderTest {
 
 	@Test
 	public void findClosestObjectsTest() {
-		assertEquals(Arrays.asList(o1, o2, o3, o6, o5, o4), findClosestObjects(new Point(5, 5), rm));
-		assertEquals(Arrays.asList(o1, o2, o3), findClosestObjects(new Point(5, 5), rm, 3));
-		assertEquals(Arrays.asList(o6, o5, o4), findClosestObjects(new Point(5, 5), rm, LongRoadUser.class, 300));
-		assertEquals(Arrays.asList(), findClosestObjects(new Point(5, 5), rm, EmptyRoadUser.class, 1));
+		assertEquals(Arrays.asList(o1, o2, o3, o6, o5, o4), RoadModels.findClosestObjects(new Point(5, 5), rm));
+		assertEquals(Arrays.asList(o1, o2, o3), RoadModels.findClosestObjects(new Point(5, 5), rm, 3));
+		assertEquals(Arrays.asList(o6, o5, o4), RoadModels.findClosestObjects(new Point(5, 5), rm, LongRoadUser.class, 300));
+		assertEquals(Arrays.asList(), RoadModels.findClosestObjects(new Point(5, 5), rm, EmptyRoadUser.class, 1));
 
-		assertEquals(Arrays.asList(o3, o6, o4, o5), findClosestObjects(new Point(8, 8), rm, new Predicate<RoadUser>() {
+		assertEquals(Arrays.asList(o3, o6, o4, o5), RoadModels.findClosestObjects(new Point(8, 8), rm, new Predicate<RoadUser>() {
 			@Override
 			public boolean apply(RoadUser input) {
 				return input instanceof LongRoadUser || rm.getPosition(input).equals(new Point(15, 15));
@@ -236,7 +236,7 @@ public class PathFinderTest {
 
 	@Test(expected = IllegalArgumentException.class)
 	public void findClosestObjectsTestFail1() {
-		findClosestObjects(null, rm, 1);
+		RoadModels.findClosestObjects(null, rm, 1);
 	}
 
 	@Test(expected = IllegalArgumentException.class)
@@ -251,42 +251,46 @@ public class PathFinderTest {
 
 	@Test(expected = IllegalArgumentException.class)
 	public void findClosestObjectsTestFail4() {
-		findClosestObjects(new Point(5, 5), rm, 0);
+		RoadModels.findClosestObjects(new Point(5, 5), rm, 0);
 	}
 
 	@Test(expected = IllegalArgumentException.class)
 	public void findClosestObjectsTestFail5() {
-		findClosestObjects(new Point(5, 5), null, 1);
+		RoadModels.findClosestObjects(new Point(5, 5), null, 1);
 	}
 
 	@Test(expected = IllegalArgumentException.class)
 	public void findClosestObjectsTestFail6() {
-		findClosestObjects(new Point(5, 5), null, (Collection<EmptyRoadUser>) null, 1);
+		RoadModels.findClosestObjects(new Point(5, 5), null, (Collection<EmptyRoadUser>) null, 1);
 	}
 
 	@Test(expected = IllegalArgumentException.class)
 	public void findClosestObjectsTestFail7() {
-		findClosestObjects(new Point(5, 5), null, (Predicate<RoadUser>) null, 1);
+		RoadModels.findClosestObjects(new Point(5, 5), null, (Predicate<RoadUser>) null, 1);
 	}
 
 	@Test(expected = IllegalArgumentException.class)
 	public void findClosestObjectsTestFail8() {
-		findClosestObjects(new Point(5, 5), rm, (Predicate<RoadUser>) null, 1);
+		RoadModels.findClosestObjects(new Point(5, 5), rm, (Predicate<RoadUser>) null, 1);
 	}
 
 	@Test
 	public void findObjectsWithinRadiusTest() {
 		Point ref = new Point(10, 10);
-		assertArrayEquals(asList(o1, o2, o3, o4, o6).toArray(), findObjectsWithinRadius(ref, rm, 15).toArray());
-		assertArrayEquals(asList(o3).toArray(), findObjectsWithinRadius(ref, rm, 10).toArray());
-		assertArrayEquals(asList(o2, o3).toArray(), findObjectsWithinRadius(ref, rm, 10.000000001).toArray());
-		assertArrayEquals(asList().toArray(), findObjectsWithinRadius(ref, rm, 5).toArray());
-
-		assertArrayEquals(asList(o1, o2, o3).toArray(), findObjectsWithinRadius(ref, rm, 15, StringRoadUser.class)
+		assertArrayEquals(asList(o1, o2, o3, o4, o6).toArray(), RoadModels.findObjectsWithinRadius(ref, rm, 15)
 				.toArray());
-		assertArrayEquals(asList(o3).toArray(), findObjectsWithinRadius(ref, rm, 10, StringRoadUser.class).toArray());
-		assertArrayEquals(allObjects.toArray(), findObjectsWithinRadius(ref, rm, 30, RoadUser.class).toArray());
-		assertArrayEquals(asList().toArray(), findObjectsWithinRadius(ref, rm, 30, EmptyRoadUser.class).toArray());
+		assertArrayEquals(asList(o3).toArray(), RoadModels.findObjectsWithinRadius(ref, rm, 10).toArray());
+		assertArrayEquals(asList(o2, o3).toArray(), RoadModels.findObjectsWithinRadius(ref, rm, 10.000000001).toArray());
+		assertArrayEquals(asList().toArray(), RoadModels.findObjectsWithinRadius(ref, rm, 5).toArray());
+
+		assertArrayEquals(asList(o1, o2, o3).toArray(), RoadModels
+				.findObjectsWithinRadius(ref, rm, 15, StringRoadUser.class).toArray());
+		assertArrayEquals(asList(o3).toArray(), RoadModels.findObjectsWithinRadius(ref, rm, 10, StringRoadUser.class)
+				.toArray());
+		assertArrayEquals(allObjects.toArray(), RoadModels.findObjectsWithinRadius(ref, rm, 30, RoadUser.class)
+				.toArray());
+		assertArrayEquals(asList().toArray(), RoadModels.findObjectsWithinRadius(ref, rm, 30, EmptyRoadUser.class)
+				.toArray());
 
 	}
 

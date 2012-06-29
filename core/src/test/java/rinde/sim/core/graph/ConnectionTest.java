@@ -102,12 +102,12 @@ public class ConnectionTest {
 
 	@Test(expected = UnsupportedOperationException.class)
 	public void unmodMultiAttED() {
-		Graphs.unmodifiableEdgeData(new MultiAttributeData(10, 20)).setMaxSpeed(-1);
+		Graphs.unmodifiableConnectionData(new MultiAttributeData(10, 20)).setMaxSpeed(-1);
 	}
 
 	@Test(expected = UnsupportedOperationException.class)
 	public void unmodMultiAttED2() {
-		Graphs.unmodifiableEdgeData(new MultiAttributeData(10, 20)).put("", null);
+		Graphs.unmodifiableConnectionData(new MultiAttributeData(10, 20)).put("", null);
 	}
 
 	@Test

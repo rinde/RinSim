@@ -4,7 +4,7 @@
 package rinde.sim.core.model.road;
 
 import static com.google.common.base.Preconditions.checkArgument;
-import static rinde.sim.core.graph.Graphs.shortestPathEuclidianDistance;
+import static rinde.sim.core.graph.Graphs.shortestPathEuclideanDistance;
 import static rinde.sim.core.graph.Graphs.unmodifiableGraph;
 
 import java.util.ArrayList;
@@ -300,7 +300,7 @@ public class GraphRoadModel extends AbstractRoadModel<Loc> {
 	}
 
 	protected List<Point> doGetShortestPathTo(Point from, Point to) {
-		return shortestPathEuclidianDistance(graph, from, to);
+		return shortestPathEuclideanDistance(graph, from, to);
 	}
 
 	/**

@@ -67,9 +67,9 @@ public class GraphsTest {
 		D = new Point(10, 0);
 		Graphs.addBiPath(graph, A, B, C, D, A);
 
-		List<Point> prevPath = Graphs.shortestPathEuclidianDistance(graph, A, C);
+		List<Point> prevPath = Graphs.shortestPathEuclideanDistance(graph, A, C);
 		for (int i = 0; i < 100; i++) {
-			List<Point> newPath = Graphs.shortestPathEuclidianDistance(graph, A, C);
+			List<Point> newPath = Graphs.shortestPathEuclideanDistance(graph, A, C);
 			assertEquals(prevPath, newPath);
 			prevPath = newPath;
 		}
@@ -98,9 +98,9 @@ public class GraphsTest {
 		NW = new Point(-5, 5);
 		Graphs.addBiPath(graph, N, NE, E, SE, S, SW, W, NW);
 
-		List<Point> prevPath = Graphs.shortestPathEuclidianDistance(graph, N, S);
+		List<Point> prevPath = Graphs.shortestPathEuclideanDistance(graph, N, S);
 		for (int i = 0; i < 100; i++) {
-			List<Point> newPath = Graphs.shortestPathEuclidianDistance(graph, N, S);
+			List<Point> newPath = Graphs.shortestPathEuclideanDistance(graph, N, S);
 			assertEquals(prevPath, newPath);
 			prevPath = newPath;
 		}
@@ -109,12 +109,12 @@ public class GraphsTest {
 
 	@Test(expected = IllegalArgumentException.class)
 	public void shortestPathNull() {
-		Graphs.shortestPathEuclidianDistance(graph, null, new Point(2, 3));
+		Graphs.shortestPathEuclideanDistance(graph, null, new Point(2, 3));
 	}
 
 	@Test(expected = IllegalArgumentException.class)
 	public void shortestPathNotExistingPoint() {
-		Graphs.shortestPathEuclidianDistance(graph, new Point(1, 2), new Point(2, 3));
+		Graphs.shortestPathEuclideanDistance(graph, new Point(1, 2), new Point(2, 3));
 	}
 
 	@Test(expected = PathNotFoundException.class)
@@ -123,7 +123,7 @@ public class GraphsTest {
 		Graphs.addBiPath(graph, from, new Point(1, 0));
 		Point to = new Point(10, 0);
 		Graphs.addBiPath(graph, to, new Point(9, 0));
-		Graphs.shortestPathEuclidianDistance(graph, from, to);
+		Graphs.shortestPathEuclideanDistance(graph, from, to);
 	}
 
 	@Test

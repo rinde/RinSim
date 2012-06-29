@@ -308,7 +308,7 @@ public abstract class AbstractRoadModel<T> implements RoadModel {
 	 * @param to The end position of the path.
 	 * @return The shortest path between <code>from</code> and <code>to</code>
 	 *         if it exists, <code>null</code> otherwise.
-	 * @see Graphs#shortestPathEuclidianDistance(Graph, Point, Point)
+	 * @see Graphs#shortestPathEuclideanDistance(Graph, Point, Point)
 	 */
 	@Override
 	public abstract List<Point> getShortestPathTo(Point from, Point to);

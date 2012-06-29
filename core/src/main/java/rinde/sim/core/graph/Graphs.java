@@ -18,12 +18,7 @@ import java.util.TreeMap;
 
 import org.apache.commons.math3.random.RandomGenerator;
 
-import rinde.sim.core.model.road.RoadModel;
-import rinde.sim.core.model.road.RoadUser;
-
 import com.google.common.base.Function;
-import com.google.common.base.Predicate;
-import com.google.common.collect.Collections2;
 
 /**
  * Utility class containing many methods for working with graphs.
@@ -33,38 +28,67 @@ import com.google.common.collect.Collections2;
  */
 public final class Graphs {
 
-	// TODO move all RoadModel related methods to new RoadModels class
-
 	private Graphs() {}
 
-	public static <E extends ConnectionData> void addPath(Graph<E> g, Point... path) {
+	/**
+	 * Create a path of connections on the specified {@link Graph} using the
+	 * specified {@link Point}s. If the points <code>A, B, C</code> are
+	 * specified, the two connections: <code>A -> B</code> and
+	 * <code>B -> C</code> will be added to the graph.
+	 * @param graph The graph to which the connections will be added.
+	 * @param path Points that will be treated as a path.
+	 */
+	public static <E extends ConnectionData> void addPath(Graph<E> graph, Point... path) {
 		for (int i = 1; i < path.length; i++) {
-			g.addConnection(path[i - 1], path[i]);
+			graph.addConnection(path[i - 1], path[i]);
 		}
 	}
 
-	// bidirectional
-	public static <E extends ConnectionData> void addBiPath(Graph<E> g, Point... path) {
-		addPath(g, path);
+	/**
+	 * Create a path of bi-directional connections on the specified
+	 * {@link Graph} using the specified {@link Point}s. If the points
+	 * <code>A, B, C</code> are specified, the four connections:
+	 * <code>A -> B</code>, <code>B -> A</code>, <code>B -> C</code> and
+	 * <code>C -> B</code> will be added to the graph.
+	 * @param graph The graph to which the connections will be added.
+	 * @param path Points that will be treated as a path.
+	 */
+	public static <E extends ConnectionData> void addBiPath(Graph<E> graph, Point... path) {
+		addPath(graph, path);
 		List<Point> list = Arrays.asList(path);
 		Collections.reverse(list);
-		addPath(g, list.toArray(new Point[path.length]));
+		addPath(graph, list.toArray(new Point[path.length]));
 	}
 
-	public static <E extends ConnectionData> Graph<E> unmodifiableGraph(Graph<E> delegate) {
-		return new UnmodifiableGraph<E>(delegate);
+	/**
+	 * Returns an unmodifiable view on the specified {@link Graph}.
+	 * @param graph A graph.
+	 * @return An unmodifiable view on the graph.
+	 */
+	public static <E extends ConnectionData> Graph<E> unmodifiableGraph(Graph<E> graph) {
+		return new UnmodifiableGraph<E>(graph);
 	}
 
+	/**
+	 * Returns an unmodifiable view on the specified {@link Connection}.
+	 * @param conn A connection.
+	 * @return An unmodifiable view on the connection.
+	 */
 	public static <E extends ConnectionData> Connection<E> unmodifiableConnection(Connection<E> conn) {
 		return new UnmodifiableConnection<E>(conn);
 	}
 
+	/**
+	 * Returns an unmodifiable view on the specified {@link ConnectionData}.
+	 * @param connData Connection data.
+	 * @return An unmodifiable view on the connection data.
+	 */
 	@SuppressWarnings("unchecked")
-	public static <E extends ConnectionData> E unmodifiableEdgeData(E edgeData) {
-		if (edgeData instanceof MultiAttributeData) {
-			return (E) new UnmodifiableMultiAttributeEdgeData((MultiAttributeData) edgeData);
+	public static <E extends ConnectionData> E unmodifiableConnectionData(E connData) {
+		if (connData instanceof MultiAttributeData) {
+			return (E) new UnmodifiableMultiAttributeEdgeData((MultiAttributeData) connData);
 		}
-		return edgeData;
+		return connData;
 	}
 
 	/**
@@ -167,7 +191,7 @@ public final class Graphs {
 			if (original.getData() == null) {
 				return null;
 			}
-			return Graphs.unmodifiableEdgeData(original.getData());
+			return Graphs.unmodifiableConnectionData(original.getData());
 		}
 
 		@Override
@@ -291,7 +315,7 @@ public final class Graphs {
 
 		@Override
 		public E connectionData(Point from, Point to) {
-			return unmodifiableEdgeData(delegate.connectionData(from, to));
+			return unmodifiableConnectionData(delegate.connectionData(from, to));
 		}
 
 		@Override
@@ -321,17 +345,22 @@ public final class Graphs {
 
 	}
 
-	public static <E extends ConnectionData> List<Point> shortestPathEuclidianDistance(Graph<E> graph,
+	/**
+	 * Computes the shortest path based on the euclidean distance.
+	 * @param graph The {@link Graph} on which the shortest path is searched.
+	 * @param from The start point of the path.
+	 * @param to The destination of the path.
+	 * @return The shortest path that exists between <code>from</code> and
+	 *         <code>to</code>.
+	 */
+	public static <E extends ConnectionData> List<Point> shortestPathEuclideanDistance(Graph<E> graph,
 			final Point from, final Point to) {
 		return Graphs.shortestPath(graph, from, to, new Graphs.EuclidianDistance());
 	}
 
 	/**
-	 * A standard implementation of the A* algorithm.
-	 * http://en.wikipedia.org/wiki/A*_search_algorithm
-	 * 
-	 * @author Rutger Claes
-	 * @author Rinde van Lon (rinde.vanlon@cs.kuleuven.be)
+	 * A standard implementation of the <a href="http
+	 * ://en.wikipedia.org/wiki/A*_search_algorithm">A* algorithm</a>.
 	 * 
 	 * @param graph The {@link Graph} which contains <code>from</code> and
 	 *            <code>to</code>.
@@ -340,6 +369,11 @@ public final class Graphs {
 	 * @param h The {@link Heuristic} used in the A* implementation.
 	 * @return The shortest path from <code>from</code> to <code>to</code> if it
 	 *         exists, otherwise a {@link PathNotFoundException} is thrown.
+	 * @throws PathNotFoundException if a path does not exist between
+	 *             <code>from</code> and <code>to</code>.
+	 * 
+	 * @author Rutger Claes
+	 * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
 	 */
 	public static <E extends ConnectionData> List<Point> shortestPath(Graph<E> graph, final Point from, final Point to,
 			Graphs.Heuristic h) {
@@ -359,11 +393,11 @@ public final class Graphs {
 
 		// heuristic estimates
 		final Map<Point, Double> h_score = new LinkedHashMap<Point, Double>();
-		h_score.put(from, h.calculateHeuristic(Point.distance(from, to)));
+		h_score.put(from, h.estimateCost(Point.distance(from, to)));
 
 		// Estimated total distance from start to goal through y
 		final SortedMap<Double, Point> f_score = new TreeMap<Double, Point>();
-		f_score.put(h.calculateHeuristic(Point.distance(from, to)), from);
+		f_score.put(h.estimateCost(Point.distance(from, to)), from);
 
 		// The map of navigated nodes.
 		final Map<Point, Point> came_from = new LinkedHashMap<Point, Point>();
@@ -383,11 +417,11 @@ public final class Graphs {
 				}
 
 				// tentative_g_score := g_score[x] + dist_between(x,y)
-				final double t_g_score = g_score.get(current) + h.calculateCostOff(current, outgoingPoint);
+				final double t_g_score = g_score.get(current) + h.calculateCost(current, outgoingPoint);
 				boolean t_is_better = false;
 
 				if (!f_score.values().contains(outgoingPoint)) {
-					h_score.put(outgoingPoint, h.calculateHeuristic(Point.distance(outgoingPoint, to)));
+					h_score.put(outgoingPoint, h.estimateCost(Point.distance(outgoingPoint, to)));
 					t_is_better = true;
 				} else if (t_g_score < g_score.get(outgoingPoint)) {
 					t_is_better = true;
@@ -407,67 +441,6 @@ public final class Graphs {
 		}
 
 		throw new PathNotFoundException("Cannot reach " + to + " from " + from);
-	}
-
-	/**
-	 * Convenience method for
-	 * {@link #findClosestObject(Point, RoadModel, Class)}.
-	 * @param pos The {@link Point} which is used as reference.
-	 * @param rm The {@link RoadModel} which is searched.
-	 * @return The closest object in <code>rm</code> to <code>pos</code>.
-	 * @see #findClosestObject(Point, RoadModel, Collection)
-	 */
-	@Deprecated
-	public static RoadUser findClosestObject(Point pos, RoadModel rm) {
-		return findClosestObject(pos, rm, RoadUser.class);
-	}
-
-	/**
-	 * Convenience method for
-	 * {@link #findClosestObject(Point, RoadModel, Collection)}.
-	 * @param pos The {@link Point} which is used as reference.
-	 * @param rm The {@link RoadModel} which is searched.
-	 * @param type The type of object that is searched.
-	 * @return The closest object in <code>rm</code> to <code>pos</code> of type
-	 *         <code>type</code>.
-	 * @see #findClosestObject(Point, RoadModel, Collection)
-	 */
-	@Deprecated
-	public static <T extends RoadUser> T findClosestObject(Point pos, RoadModel rm, final Class<T> type) {
-		return findClosestObject(pos, rm, rm.getObjectsOfType(type));
-	}
-
-	/**
-	 * Convenience method for
-	 * {@link #findClosestObject(Point, RoadModel, Collection)}.
-	 * @param pos The {@link Point} which is used as reference.
-	 * @param rm The {@link RoadModel} which is searched.
-	 * @param predicate A {@link Predicate} indicating which objects are
-	 *            included in the search.
-	 * @return The closest object in <code>rm</code> to <code>pos</code> which
-	 *         satisfies the <code>predicate</code>.
-	 * @see #findClosestObject(Point, RoadModel, Collection)
-	 */
-	@Deprecated
-	public static RoadUser findClosestObject(Point pos, RoadModel rm, Predicate<RoadUser> predicate) {
-		Collection<RoadUser> filtered = Collections2.filter(rm.getObjects(), predicate);
-		return findClosestObject(pos, rm, filtered);
-	}
-
-	/**
-	 * Convenience method for
-	 * {@link #findClosestObject(Point, Collection, Function)}.
-	 * @param pos The {@link Point} which is used as reference.
-	 * @param rm The {@link RoadModel} which is searched.
-	 * @param objects The {@link Collection} which is searched, each object must
-	 *            exist in <code>rm</code>.
-	 * @return The closest object in <code>rm</code> to <code>pos</code> which
-	 *         satisfies the <code>predicate</code>.
-	 * @see #findClosestObject(Point, Collection, Function)
-	 */
-	@Deprecated
-	public static <T extends RoadUser> T findClosestObject(Point pos, RoadModel rm, Collection<T> objects) {
-		return findClosestObject(pos, objects, new RoadUserToPositionFunction<T>(rm));
 	}
 
 	/**
@@ -495,116 +468,19 @@ public final class Graphs {
 		return closest;
 	}
 
-	static class RoadUserWithDistance<T> implements Comparable<RoadUserWithDistance<T>> {
+	static class ObjectWithDistance<T> implements Comparable<ObjectWithDistance<T>> {
 		public final double dist;
 		public final T obj;
 
-		public RoadUserWithDistance(T pObj, double pDist) {
+		public ObjectWithDistance(T pObj, double pDist) {
 			obj = pObj;
 			dist = pDist;
 		}
 
 		@Override
-		public int compareTo(RoadUserWithDistance<T> o) {
+		public int compareTo(ObjectWithDistance<T> o) {
 			return Double.compare(dist, o.dist);
 		}
-	}
-
-	/**
-	 * Returns a list of objects from {@link RoadModel} <code>rm</code> ordered
-	 * by its distance to position <code>pos</code>.
-	 * @param pos The {@link Point} which is used as a reference point.
-	 * @param rm The {@link RoadModel} instance in which the closest objects are
-	 *            searched.
-	 * @return A list of objects that are closest to <code>pos</code>. The list
-	 *         is ordered such that the closest object appears first. An empty
-	 *         list is returned when <code>objects</code> is empty.
-	 */
-	@Deprecated
-	public static List<RoadUser> findClosestObjects(Point pos, RoadModel rm) {
-		return findClosestObjects(pos, rm, RoadUser.class, Integer.MAX_VALUE);
-	}
-
-	/**
-	 * Searches the closest <code>n</code> objects to position <code>pos</code>
-	 * in {@link RoadModel} <code>rm</code>.
-	 * @param pos The {@link Point} which is used as a reference point.
-	 * @param rm The {@link RoadModel} instance in which the closest objects are
-	 *            searched.
-	 * @param n The maximum number of objects to return where n must be >= 0.
-	 * @return A list of objects that are closest to <code>pos</code>. The list
-	 *         is ordered such that the closest object appears first. An empty
-	 *         list is returned when <code>objects</code> is empty.
-	 */
-	@Deprecated
-	public static List<RoadUser> findClosestObjects(Point pos, RoadModel rm, int n) {
-		return findClosestObjects(pos, rm, RoadUser.class, n);
-	}
-
-	/**
-	 * Searches the closest <code>n</code> objects to position <code>pos</code>
-	 * in {@link RoadModel} <code>rm</code>. Only the objects that satisfy
-	 * <code>predicate</code> are included in the search.
-	 * @param pos The {@link Point} which is used as a reference point.
-	 * @param rm The {@link RoadModel} instance in which the closest objects are
-	 *            searched.
-	 * @param predicate Only objects that satisfy this predicate will be
-	 *            returned.
-	 * @param n The maximum number of objects to return where n must be >= 0.
-	 * @return A list of objects that are closest to <code>pos</code>. The list
-	 *         is ordered such that the closest object appears first. An empty
-	 *         list is returned when <code>objects</code> is empty.
-	 */
-	@Deprecated
-	public static List<RoadUser> findClosestObjects(Point pos, RoadModel rm, Predicate<RoadUser> predicate, int n) {
-		if (rm == null) {
-			throw new IllegalArgumentException("rm can not be null");
-		}
-		if (predicate == null) {
-			throw new IllegalArgumentException("predicate can not be null");
-		}
-		Collection<RoadUser> filtered = Collections2.filter(rm.getObjects(), predicate);
-		return findClosestObjects(pos, rm, filtered, n);
-	}
-
-	/**
-	 * Searches the closest <code>n</code> objects to position <code>pos</code>
-	 * in {@link RoadModel} <code>rm</code>.
-	 * @param pos The {@link Point} which is used as a reference point.
-	 * @param rm The {@link RoadModel} instance in which the closest objects are
-	 *            searched.
-	 * @param type The type of objects which are included in the search.
-	 * @param n The maximum number of objects to return where n must be >= 0.
-	 * @return A list of objects that are closest to <code>pos</code>. The list
-	 *         is ordered such that the closest object appears first. An empty
-	 *         list is returned when <code>objects</code> is empty.
-	 */
-	@Deprecated
-	public static <T extends RoadUser> List<T> findClosestObjects(Point pos, RoadModel rm, Class<T> type, int n) {
-		if (rm == null) {
-			throw new IllegalArgumentException("rm can not be null");
-		}
-		return findClosestObjects(pos, rm, rm.getObjectsOfType(type), n);
-	}
-
-	/**
-	 * Searches the closest <code>n</code> objects to position <code>pos</code>
-	 * in collection <code>objects</code>.
-	 * @param pos The {@link Point} which is used as a reference point.
-	 * @param rm The {@link RoadModel} instance which is used to lookup the
-	 *            positions of the objects in <code>objects</code>.
-	 * @param objects The list of objects which is searched.
-	 * @param n The maximum number of objects to return where n must be >= 0.
-	 * @return A list of objects that are closest to <code>pos</code>. The list
-	 *         is ordered such that the closest object appears first. An empty
-	 *         list is returned when <code>objects</code> is empty.
-	 */
-	@Deprecated
-	public static <T extends RoadUser> List<T> findClosestObjects(Point pos, RoadModel rm, Collection<T> objects, int n) {
-		if (rm == null) {
-			throw new IllegalArgumentException("rm can not be null");
-		}
-		return findClosestObjects(pos, objects, new RoadUserToPositionFunction<T>(rm), n);
 	}
 
 	/**
@@ -633,86 +509,17 @@ public final class Graphs {
 		if (n <= 0) {
 			throw new IllegalArgumentException("n must be a positive integer");
 		}
-		List<RoadUserWithDistance<T>> objs = new ArrayList<RoadUserWithDistance<T>>();
+		List<ObjectWithDistance<T>> objs = new ArrayList<ObjectWithDistance<T>>();
 		for (T obj : objects) {
 			Point objPos = transformation.apply(obj);
-			objs.add(new RoadUserWithDistance<T>(obj, Point.distance(pos, objPos)));
+			objs.add(new ObjectWithDistance<T>(obj, Point.distance(pos, objPos)));
 		}
 		Collections.sort(objs);
 		List<T> results = new ArrayList<T>();
-		for (RoadUserWithDistance<T> o : objs.subList(0, Math.min(n, objs.size()))) {
+		for (ObjectWithDistance<T> o : objs.subList(0, Math.min(n, objs.size()))) {
 			results.add(o.obj);
 		}
 		return results;
-	}
-
-	static class RoadUserToPositionFunction<T extends RoadUser> implements Function<T, Point> {
-		private final RoadModel rm;
-
-		public RoadUserToPositionFunction(RoadModel roadModel) {
-			rm = roadModel;
-		}
-
-		@Override
-		public Point apply(T input) {
-			return rm.getPosition(input);
-		}
-	}
-
-	/**
-	 * Returns all {@link RoadUser}s in <code>model</code> that are
-	 * <strong>within</strong> a bird-flight distance of <code>radius</code> to
-	 * <code>position</code>.
-	 * @param position The position which is used to measure distance.
-	 * @param model The {@link RoadModel} which contains the objects.
-	 * @param radius Objects with a distance smaller than <code>radius</code> to
-	 *            <code>position</code> are included.
-	 * @return A collection of {@link RoadUser}s.
-	 */
-	@Deprecated
-	public static Collection<RoadUser> findObjectsWithinRadius(final Point position, final RoadModel model,
-			final double radius) {
-		return Graphs.findObjectsWithinRadius(position, model, radius, model.getObjects());
-	}
-
-	/**
-	 * Returns all {@link RoadUser}s of type <code> type</code> in
-	 * <code>model</code> that are <strong>within</strong> a bird-flight
-	 * distance of <code>radius</code> to <code>position</code>.
-	 * @param position The position which is used to measure distance.
-	 * @param model The {@link RoadModel} which contains the objects.
-	 * @param radius Objects with a distance smaller than <code>radius</code> to
-	 *            <code>position</code> are included.
-	 * @param type The {@link Class} of the required type.
-	 * @return A collection of type <code>type</code>.
-	 */
-	@Deprecated
-	public static <T extends RoadUser> Collection<T> findObjectsWithinRadius(final Point position,
-			final RoadModel model, final double radius, final Class<T> type) {
-		return findObjectsWithinRadius(position, model, radius, model.getObjectsOfType(type));
-	}
-
-	@Deprecated
-	protected static <T extends RoadUser> Collection<T> findObjectsWithinRadius(final Point position,
-			final RoadModel model, final double radius, Collection<T> objects) {
-		return Collections2.filter(objects, new DistancePredicate(position, model, radius));
-	}
-
-	private static class DistancePredicate implements Predicate<RoadUser> {
-		private final Point position;
-		private final RoadModel model;
-		private final double radius;
-
-		public DistancePredicate(final Point p, final RoadModel m, final double r) {
-			position = p;
-			model = m;
-			radius = r;
-		}
-
-		@Override
-		public boolean apply(RoadUser input) {
-			return Point.distance(model.getPosition(input), position) < radius;
-		}
 	}
 
 	/**
@@ -739,21 +546,38 @@ public final class Graphs {
 		return new LinkedList<Point>();
 	}
 
-	interface Heuristic {
-		public abstract double calculateHeuristic(double distance);
+	/**
+	 * A heuristic can be used to direct the {@link #shortestPath} algorithm, it
+	 * determines the cost of traveling which should be minimized.
+	 * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+	 */
+	public interface Heuristic {
+		/**
+		 * Can be used to estimate the cost of traveling a distance.
+		 * @param distance A distance.
+		 * @return The estimate of the cost.
+		 */
+		public abstract double estimateCost(double distance);
 
-		public abstract double calculateCostOff(Point from, Point to);
+		/**
+		 * Computes the cost of traveling over the connection as specified by
+		 * the provided points.
+		 * @param from Start point of a connection.
+		 * @param to End point of a connection.
+		 * @return The cost of traveling.
+		 */
+		public abstract double calculateCost(Point from, Point to);
 	}
 
 	static class EuclidianDistance implements Graphs.Heuristic {
 
 		@Override
-		public double calculateCostOff(final Point from, Point to) {
+		public double calculateCost(final Point from, Point to) {
 			return Point.distance(from, to);
 		}
 
 		@Override
-		public double calculateHeuristic(final double distance) {
+		public double estimateCost(final double distance) {
 			return distance;
 		}
 	}
