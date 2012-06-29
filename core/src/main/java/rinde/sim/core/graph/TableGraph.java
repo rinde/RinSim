@@ -24,6 +24,8 @@ import com.google.common.collect.Table.Cell;
  */
 public class TableGraph<E extends ConnectionData> extends AbstractGraph<E> {
 
+	// FIXME implement hashCode()
+
 	private final Table<Point, Point, E> data;
 	private final E EMPTY;
 

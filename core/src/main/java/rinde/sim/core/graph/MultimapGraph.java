@@ -27,6 +27,8 @@ import com.google.common.collect.Multimaps;
  */
 public class MultimapGraph<E extends ConnectionData> extends AbstractGraph<E> {
 
+	// FIXME implement hashCode()
+
 	private final Multimap<Point, Point> data;
 	private final HashMap<Connection<E>, E> edgeData;
 	private final HashSet<Point> deadEndNodes;
