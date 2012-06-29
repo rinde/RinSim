@@ -33,7 +33,7 @@ import com.google.common.collect.Collections2;
  */
 public final class Graphs {
 
-	// TODO move all RoadModel related methods to RoadModel
+	// TODO move all RoadModel related methods to new RoadModels class
 
 	private Graphs() {}
 
@@ -67,6 +67,13 @@ public final class Graphs {
 		return edgeData;
 	}
 
+	/**
+	 * Basic equals method.
+	 * @param g1 A graph.
+	 * @param g2 Another graph.
+	 * @return <code>true</code> if the provided graphs are equal,
+	 *         <code>false</code> otherwise.
+	 */
 	public static <E extends ConnectionData> boolean equals(Graph<? extends E> g1, Graph<? extends E> g2) {
 		if (g1.getNumberOfNodes() != g2.getNumberOfNodes()) {
 			return false;

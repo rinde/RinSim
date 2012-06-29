@@ -24,7 +24,7 @@ import org.junit.runners.Parameterized.Parameters;
 import com.google.common.base.Function;
 
 /**
- * @author Rinde van Lon (rinde.vanlon@cs.kuleuven.be)
+ * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
  * 
  */
 @RunWith(Parameterized.class)
@@ -216,8 +216,8 @@ public class GraphsTest {
 		graph.addConnection(new Connection<LengthData>(B, A, new LengthData(1.5)));
 		graph.addConnection(B, C, new LengthData(2));
 		graph.addConnection(A, C, new LengthData(Double.NaN)); // explicit
-																	// empty
-																	// value
+																// empty
+																// value
 
 		assertNull("existing but empty", graph.connectionData(A, B));
 		assertNull("non existing", graph.connectionData(C, A));
@@ -477,5 +477,82 @@ public class GraphsTest {
 		assertEquals(graph, unmod);
 		assertTrue(graph.getNodes().size() == 3);
 		assertTrue(graph.getConnections().size() == 4);
+	}
+
+	@Test
+	public void isEmptyConnectionData() {
+		AbstractGraph<?> g = ((AbstractGraph<?>) graph);
+		assertTrue(g.isEmptyConnectionData(null));
+
+		TableGraph<MultiAttributeData> tg = new TableGraph<MultiAttributeData>(MultiAttributeData.EMPTY);
+		assertTrue(tg.isEmptyConnectionData(MultiAttributeData.EMPTY));
+	}
+
+	@Test
+	public void getRandomNodeImpossible() {
+
+		Point A, B, C, D;
+		A = new Point(0, 0);
+		B = new Point(0, 10);
+		C = new Point(10, 10);
+		D = new Point(10, 0);
+		Graphs.addBiPath(graph, A, B, C, D, A);
+
+		RandomGenerator rg = new RandomGenerator() {
+
+			@Override
+			public void setSeed(long arg0) {
+
+			}
+
+			@Override
+			public void setSeed(int[] arg0) {
+
+			}
+
+			@Override
+			public void setSeed(int arg0) {
+
+			}
+
+			@Override
+			public long nextLong() {
+				return 0;
+			}
+
+			@Override
+			public int nextInt(int arg0) {
+				return arg0 + 1;
+			}
+
+			@Override
+			public int nextInt() {
+				return 0;
+			}
+
+			@Override
+			public double nextGaussian() {
+				return 0;
+			}
+
+			@Override
+			public float nextFloat() {
+				return 0;
+			}
+
+			@Override
+			public double nextDouble() {
+				return 0;
+			}
+
+			@Override
+			public void nextBytes(byte[] arg0) {}
+
+			@Override
+			public boolean nextBoolean() {
+				return false;
+			}
+		};
+		assertNull(graph.getRandomNode(rg));
 	}
 }
