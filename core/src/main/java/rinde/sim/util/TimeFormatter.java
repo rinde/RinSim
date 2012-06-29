@@ -5,6 +5,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.TimeZone;
 
+// FIXME convert to Joda Time?
 public class TimeFormatter {
 
 	private static SimpleDateFormat dateFormat = init();
