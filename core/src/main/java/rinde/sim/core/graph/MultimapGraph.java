@@ -14,6 +14,8 @@ import java.util.List;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import org.apache.commons.lang3.builder.HashCodeBuilder;
+
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Multimaps;
@@ -26,8 +28,6 @@ import com.google.common.collect.Multimaps;
  * @param <E> The type of {@link ConnectionData} that is used in the edges.
  */
 public class MultimapGraph<E extends ConnectionData> extends AbstractGraph<E> {
-
-	// FIXME implement hashCode()
 
 	private final Multimap<Point, Point> data;
 	private final HashMap<Connection<E>, E> edgeData;
@@ -172,6 +172,11 @@ public class MultimapGraph<E extends ConnectionData> extends AbstractGraph<E> {
 
 	private void removeData(Point from, Point to) {
 		edgeData.remove(new Connection<ConnectionData>(from, to, null));
+	}
+
+	@Override
+	public int hashCode() {
+		return new HashCodeBuilder(201, 199).append(data).append(deadEndNodes).append(edgeData).toHashCode();
 	}
 
 	@Override

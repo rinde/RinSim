@@ -10,6 +10,8 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.apache.commons.lang3.builder.HashCodeBuilder;
+
 import com.google.common.collect.LinkedHashBasedTable;
 import com.google.common.collect.Table;
 import com.google.common.collect.Table.Cell;
@@ -24,10 +26,8 @@ import com.google.common.collect.Table.Cell;
  */
 public class TableGraph<E extends ConnectionData> extends AbstractGraph<E> {
 
-	// FIXME implement hashCode()
-
 	private final Table<Point, Point, E> data;
-	private final E EMPTY;
+	private final E empty;
 
 	/**
 	 * Create a new empty graph.
@@ -39,7 +39,7 @@ public class TableGraph<E extends ConnectionData> extends AbstractGraph<E> {
 			throw new IllegalArgumentException("the representation of empty value is needed");
 		}
 		data = LinkedHashBasedTable.create();
-		EMPTY = emptyValue;
+		empty = emptyValue;
 	}
 
 	@Override
@@ -99,7 +99,7 @@ public class TableGraph<E extends ConnectionData> extends AbstractGraph<E> {
 	public List<Connection<E>> getConnections() {
 		List<Connection<E>> connections = new ArrayList<Connection<E>>();
 		for (Cell<Point, Point, E> cell : data.cellSet()) {
-			if (EMPTY.equals(cell.getValue())) {
+			if (empty.equals(cell.getValue())) {
 				connections.add(new Connection<E>(cell.getRowKey(), cell.getColumnKey(), null));
 			} else {
 				connections.add(new Connection<E>(cell.getRowKey(), cell.getColumnKey(), cell.getValue()));
@@ -115,7 +115,7 @@ public class TableGraph<E extends ConnectionData> extends AbstractGraph<E> {
 
 	@Override
 	protected boolean isEmptyConnectionData(E connData) {
-		return super.isEmptyConnectionData(connData) || EMPTY.equals(connData);
+		return super.isEmptyConnectionData(connData) || empty.equals(connData);
 	}
 
 	@Override
@@ -129,7 +129,7 @@ public class TableGraph<E extends ConnectionData> extends AbstractGraph<E> {
 	@Override
 	public E connectionData(Point from, Point to) {
 		E e = data.get(from, to);
-		if (EMPTY.equals(e)) {
+		if (empty.equals(e)) {
 			return null;
 		}
 		return e;
@@ -138,7 +138,7 @@ public class TableGraph<E extends ConnectionData> extends AbstractGraph<E> {
 	@Override
 	protected void doAddConnection(Point from, Point to, E edgeData) {
 		if (edgeData == null) {
-			data.put(from, to, EMPTY);
+			data.put(from, to, empty);
 		} else {
 			data.put(from, to, edgeData);
 		}
@@ -149,17 +149,22 @@ public class TableGraph<E extends ConnectionData> extends AbstractGraph<E> {
 		if (hasConnection(from, to)) {
 			E e;
 			if (edgeData == null) {
-				e = data.put(from, to, EMPTY);
+				e = data.put(from, to, empty);
 			} else {
 				e = data.put(from, to, edgeData);
 			}
 
-			if (EMPTY.equals(e)) {
+			if (empty.equals(e)) {
 				return null;
 			}
 			return e;
 		}
 		throw new IllegalArgumentException("Can not get connection length from a non-existing connection.");
+	}
+
+	@Override
+	public int hashCode() {
+		return new HashCodeBuilder(201, 199).append(data).append(empty).toHashCode();
 	}
 
 }
