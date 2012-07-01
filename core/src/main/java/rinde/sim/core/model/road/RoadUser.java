@@ -5,10 +5,7 @@ package rinde.sim.core.model.road;
 
 /**
  * A RoadUser is an object living on the {@link RoadModel}.
- * 
- * TODO extend description
- * 
- * @author Rinde van Lon (rinde.vanlon@cs.kuleuven.be)
+ * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
  */
 public interface RoadUser {
 	/**

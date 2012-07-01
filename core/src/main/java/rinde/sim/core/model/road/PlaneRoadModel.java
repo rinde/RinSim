@@ -48,22 +48,18 @@ public class PlaneRoadModel extends AbstractRoadModel<Point> {
 
 	@Override
 	public void addObjectAt(RoadUser obj, Point pos) {
-		checkArgument(checkPointIsInBoundary(pos));
+		checkArgument(isPointInBoundary(pos));
 		super.addObjectAt(obj, pos);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see
-	 * rinde.sim.core.model.road.AbstractRoadModel#followPath(rinde.sim.core
-	 * .model.road.MovingRoadUser, java.util.Queue, long)
-	 */
 	@Override
-	public PathProgress followPath(MovingRoadUser object, Queue<Point> path, TimeLapse time) {
-		checkArgument(containsObject(object), "object must exist in RoadModel");
-		checkArgument(!path.isEmpty(), "path can not be empty");
-		checkArgument(time.hasTimeLeft(), "there must be time left to execute follow path");
-		// checkArgument(time > 0, "time must be a positive number");
+	protected PathProgress doFollowPath(MovingRoadUser object, Queue<Point> path, TimeLapse time) {
+		// checkArgument(containsObject(object),
+		// "object must exist in RoadModel");
+		// checkArgument(!path.isEmpty(), "path can not be empty");
+		// checkArgument(time.hasTimeLeft(),
+		// "there must be time left to execute follow path");
+		// // checkArgument(time > 0, "time must be a positive number");
 
 		Point loc = objLocs.get(object);
 
@@ -77,7 +73,7 @@ public class PlaneRoadModel extends AbstractRoadModel<Point> {
 
 		List<Point> travelledNodes = new ArrayList<Point>();
 		while (time.hasTimeLeft() && path.size() > 0) {
-			checkArgument(checkPointIsInBoundary(path.peek()), "points in the path must be within the predefined boundary of the plane");
+			checkArgument(isPointInBoundary(path.peek()), "points in the path must be within the predefined boundary of the plane");
 
 			// distance that can be traveled with timeleft
 			double travelDistance = speed * time.getTimeLeft();
@@ -104,8 +100,8 @@ public class PlaneRoadModel extends AbstractRoadModel<Point> {
 
 	@Override
 	public List<Point> getShortestPathTo(Point from, Point to) {
-		checkArgument(checkPointIsInBoundary(from), "from must be within the predefined boundary of the plane");
-		checkArgument(checkPointIsInBoundary(to), "to must be within the predefined boundary of the plane");
+		checkArgument(isPointInBoundary(from), "from must be within the predefined boundary of the plane");
+		checkArgument(isPointInBoundary(to), "to must be within the predefined boundary of the plane");
 		return asList(from, to);
 	}
 
@@ -119,7 +115,14 @@ public class PlaneRoadModel extends AbstractRoadModel<Point> {
 		return point;
 	}
 
-	protected boolean checkPointIsInBoundary(Point p) {
+	/**
+	 * Checks whether the specified point is within the plane as defined by this
+	 * model.
+	 * @param p The point to check.
+	 * @return <code>true</code> if the points is within the boundary,
+	 *         <code>false</code> otherwise.
+	 */
+	protected boolean isPointInBoundary(Point p) {
 		return p.x >= min.x && p.x <= max.x && p.y >= min.y && p.y <= max.y;
 	}
 

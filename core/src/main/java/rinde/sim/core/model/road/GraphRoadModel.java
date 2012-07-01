@@ -24,9 +24,11 @@ import rinde.sim.util.SpeedConverter;
 import rinde.sim.util.TimeUnit;
 
 /**
- * @author Rinde van Lon (rinde.vanlon@cs.kuleuven.be)
+ * TODO add class comment {@inheritDoc}
  * 
- *         TODO add class comment
+ * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+ * @author Bartosz Michalik <bartosz.michalik@cs.kuleuven.be> changes wrt.
+ *         models infrastructure
  */
 public class GraphRoadModel extends AbstractRoadModel<Loc> {
 
@@ -35,6 +37,7 @@ public class GraphRoadModel extends AbstractRoadModel<Loc> {
 	// TODO add comments to public methods without comment
 
 	/**
+	 * {@inheritDoc}
 	 * @param pGraph The graph which will be used as road strucutre.
 	 */
 	public GraphRoadModel(Graph<? extends ConnectionData> pGraph) {
@@ -50,32 +53,16 @@ public class GraphRoadModel extends AbstractRoadModel<Loc> {
 		super.addObjectAt(newObj, newLoc(pos));
 	}
 
-	/**
-	 * This method moves the specified {@link RoadUser} using the specified path
-	 * and with the specified time. The road model is using the information
-	 * about speed of the {@link RoadUser} and constrains on the graph to
-	 * reposition the object.
-	 * <p>
-	 * This method can be called repeatedly to follow a path. Each time this
-	 * method is invoked the <code>path</code> {@link Queue} can be modified.
-	 * When a vertex in <code>path</code> has been visited, it is removed from
-	 * the {@link Queue}.
-	 * @param object The object in the physical world that is to be moved.
-	 * @param path The path that is followed, it is modified by this method.
-	 * @param time The time that has elapsed. The actual distance that the
-	 *            {@link MovingRoadUser} has traveled is based on its speed an
-	 *            the elapsed time.
-	 * @return The actual distance that <code>object</code> has traveled after
-	 *         the execution of this method has finished.
-	 */
 	// TODO add unit tests for timelapse inputs
 	@Override
-	public PathProgress followPath(MovingRoadUser object, Queue<Point> path, TimeLapse time) {
-		checkArgument(object != null, "object cannot be null");
-		checkArgument(objLocs.containsKey(object), "object must have a location");
-		checkArgument(path.peek() != null, "path can not be empty");
-		checkArgument(time.hasTimeLeft(), "can not follow path when to time is left");
-		// checkArgument(time > 0, "time must be a positive number");
+	protected PathProgress doFollowPath(MovingRoadUser object, Queue<Point> path, TimeLapse time) {
+		// checkArgument(object != null, "object cannot be null");
+		// checkArgument(objLocs.containsKey(object),
+		// "object must have a location");
+		// checkArgument(path.peek() != null, "path can not be empty");
+		// checkArgument(time.hasTimeLeft(),
+		// "can not follow path when to time is left");
+		// // checkArgument(time > 0, "time must be a positive number");
 
 		Loc objLoc = objLocs.get(object);
 		checkLocation(objLoc);
@@ -198,8 +185,8 @@ public class GraphRoadModel extends AbstractRoadModel<Loc> {
 	}
 
 	protected static double getConnectionLength(Connection<?> conn) {
-		return conn.getData() == null || Double.isNaN(conn.getData().getLength()) ? Point
-				.distance(conn.from, conn.to) : conn.getData().getLength();
+		return conn.getData() == null || Double.isNaN(conn.getData().getLength()) ? Point.distance(conn.from, conn.to)
+				: conn.getData().getLength();
 	}
 
 	protected static boolean isMidPoint(Point p) {
@@ -423,7 +410,8 @@ public class GraphRoadModel extends AbstractRoadModel<Loc> {
 		public final double relativePos;
 		public final Connection<? extends ConnectionData> conn;
 
-		private Loc(double pX, double pY, Connection<? extends ConnectionData> pConn, double pRoadLength, double pRelativePos) {
+		private Loc(double pX, double pY, Connection<? extends ConnectionData> pConn, double pRoadLength,
+				double pRelativePos) {
 			super(pX, pY);
 			roadLength = pRoadLength;
 			relativePos = pRelativePos;

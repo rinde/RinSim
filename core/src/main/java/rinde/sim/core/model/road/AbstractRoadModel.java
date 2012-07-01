@@ -16,78 +16,87 @@ import java.util.Queue;
 import java.util.Set;
 
 import rinde.sim.core.TimeLapse;
-import rinde.sim.core.graph.Graph;
-import rinde.sim.core.graph.Graphs;
 import rinde.sim.core.graph.Point;
+import rinde.sim.core.model.AbstractModel;
 
 import com.google.common.base.Predicate;
 import com.google.common.collect.Sets;
 
 /**
- * TODO update this doc, it is outdated<br/>
- * The RoadModel is a model that manages a fleet of vehicles ({@link RoadUser}s)
- * on top of a {@link Graph}. Its responsibilities are:
- * <ul>
- * <li>adding and removing objects</li>
- * <li>moving objects around</li>
- * </ul>
- * On top of that the RoadModel provides several functions for retrieving
- * objects and finding the shortest path.
+ * A common space neutral implementation of {@link RoadModel}. It implements a
+ * data structure for managing objects and locations and checks many
+ * preconditions as defined in {@link RoadModel}.
+ * @param <T> The type of the location representation that is used for storing
+ *            object locations. This location representation should only be used
+ *            internally in the model.
  * 
- * @author Rinde van Lon (rinde.vanlon@cs.kuleuven.be)
- * @author Bartosz Michalik <bartosz.michalik@cs.kuleuven.be> changes wrt.
- *         models infrastructure
- * @param <T> The type of object that is stored in the model
+ * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
  */
-public abstract class AbstractRoadModel<T> implements RoadModel {
+public abstract class AbstractRoadModel<T> extends AbstractModel<RoadUser> implements RoadModel {
 
+	/**
+	 * A mapping of {@link RoadUser} to location.
+	 */
 	protected volatile Map<RoadUser, T> objLocs;
 
 	/**
 	 * Create a new instance using the specified graph.
 	 */
 	public AbstractRoadModel() {
+		super(RoadUser.class);
 		objLocs = createObjectToLocationMap();
 	}
 
+	/**
+	 * Defines the specific {@link Map} instance used for storing object
+	 * locations.
+	 * @return The map instance.
+	 */
 	protected Map<RoadUser, T> createObjectToLocationMap() {
 		return Collections.synchronizedMap(new LinkedHashMap<RoadUser, T>());
 	}
 
+	/**
+	 * A function for converting the location representation to a {@link Point}.
+	 * @param locObj The location to be converted.
+	 * @return A {@link Point} indicating the position as represented by the
+	 *         specified location.
+	 */
 	protected abstract Point locObj2point(T locObj);
 
+	/**
+	 * A function for converting a {@link Point} to the location representation
+	 * of this model.
+	 * @param point The {@link Point} to be converted.
+	 * @return The location.
+	 */
 	protected abstract T point2LocObj(Point point);
 
-	// TODO add documentation
-	/*
-	 * (non-Javadoc)
-	 * @see
-	 * rinde.sim.core.model.RoadModel#followPath(rinde.sim.core.model.MovingRoadUser
-	 * , java.util.Queue, long)
-	 */
 	@Override
-	public abstract PathProgress followPath(MovingRoadUser object, Queue<Point> path, TimeLapse time);
+	public PathProgress followPath(MovingRoadUser object, Queue<Point> path, TimeLapse time) {
+		checkArgument(objLocs.containsKey(object), "object must have a location");
+		checkArgument(path.peek() != null, "path can not be empty");
+		checkArgument(time.hasTimeLeft(), "can not follow path when to time is left");
+		return doFollowPath(object, path, time);
+	}
 
-	// TODO add javadoc
-	/*
-	 * (non-Javadoc)
-	 * @see
-	 * rinde.sim.core.model.RoadModel#addObjectAt(rinde.sim.core.model.RoadUser,
-	 * rinde.sim.core.graph.Point)
+	/**
+	 * Should be overriden by subclasses to define
+	 * {@link RoadModel#followPath(MovingRoadUser, Queue, TimeLapse)}.
+	 * @param object The object that is moved.
+	 * @param path The path that is followed.
+	 * @param time The time that is available for travel.
+	 * @return A {@link PathProgress} instance containing the actual travel
+	 *         details.
 	 */
+	protected abstract PathProgress doFollowPath(MovingRoadUser object, Queue<Point> path, TimeLapse time);
+
 	@Override
 	public void addObjectAt(RoadUser newObj, Point pos) {
 		checkArgument(!objLocs.containsKey(newObj), "Object is already added");
 		objLocs.put(newObj, point2LocObj(pos));
 	}
 
-	// TODO add javadoc
-	/*
-	 * (non-Javadoc)
-	 * @see
-	 * rinde.sim.core.model.RoadModel#addObjectAtSamePosition(rinde.sim.core
-	 * .model.RoadUser, rinde.sim.core.model.RoadUser)
-	 */
 	@Override
 	public void addObjectAtSamePosition(RoadUser newObj, RoadUser existingObj) {
 		checkArgument(!objLocs.containsKey(newObj), "Object " + newObj + " is already added.");
@@ -95,13 +104,6 @@ public abstract class AbstractRoadModel<T> implements RoadModel {
 		objLocs.put(newObj, objLocs.get(existingObj));
 	}
 
-	// TODO add javadoc
-	/*
-	 * (non-Javadoc)
-	 * @see
-	 * rinde.sim.core.model.RoadModel#removeObject(rinde.sim.core.model.RoadUser
-	 * )
-	 */
 	@Override
 	public void removeObject(RoadUser roadUser) {
 		checkArgument(roadUser != null, "RoadUser can not be null");
@@ -109,35 +111,17 @@ public abstract class AbstractRoadModel<T> implements RoadModel {
 		objLocs.remove(roadUser);
 	}
 
-	// TODO add javadoc
-	/*
-	 * (non-Javadoc)
-	 * @see rinde.sim.core.model.RoadModel#clear()
-	 */
 	@Override
 	public void clear() {
 		objLocs.clear();
 	}
 
-	// TODO add javadoc
-	/*
-	 * (non-Javadoc)
-	 * @see
-	 * rinde.sim.core.model.RoadModel#containsObject(rinde.sim.core.model.RoadUser
-	 * )
-	 */
 	@Override
 	public boolean containsObject(RoadUser obj) {
 		checkArgument(obj != null, "obj can not be null");
 		return objLocs.containsKey(obj);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see
-	 * rinde.sim.core.model.RoadModel#containsObjectAt(rinde.sim.core.model.
-	 * RoadUser, rinde.sim.core.graph.Point)
-	 */
 	@Override
 	public boolean containsObjectAt(RoadUser obj, Point p) {
 		checkArgument(p != null, "point can not be null");
@@ -147,21 +131,11 @@ public abstract class AbstractRoadModel<T> implements RoadModel {
 		return false;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see
-	 * rinde.sim.core.model.RoadModel#equalPosition(rinde.sim.core.model.RoadUser
-	 * , rinde.sim.core.model.RoadUser)
-	 */
 	@Override
 	public boolean equalPosition(RoadUser obj1, RoadUser obj2) {
 		return containsObject(obj1) && containsObject(obj2) && getPosition(obj1).equals(getPosition(obj2));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see rinde.sim.core.model.RoadModel#getObjectsAndPositions()
-	 */
 	@Override
 	public Map<RoadUser, Point> getObjectsAndPositions() {
 		Map<RoadUser, T> copiedMap;
@@ -177,11 +151,6 @@ public abstract class AbstractRoadModel<T> implements RoadModel {
 		return theMap;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see
-	 * rinde.sim.core.model.RoadModel#getPosition(rinde.sim.core.model.RoadUser)
-	 */
 	@Override
 	public Point getPosition(RoadUser roadUser) {
 		checkArgument(roadUser != null, "object can not be null");
@@ -189,19 +158,11 @@ public abstract class AbstractRoadModel<T> implements RoadModel {
 		return locObj2point(objLocs.get(roadUser));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see rinde.sim.core.model.RoadModel#getObjectPositions()
-	 */
 	@Override
 	public Collection<Point> getObjectPositions() {
 		return getObjectsAndPositions().values();
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see rinde.sim.core.model.RoadModel#getObjects()
-	 */
 	@Override
 	public Set<RoadUser> getObjects() {
 		synchronized (objLocs) {
@@ -211,23 +172,11 @@ public abstract class AbstractRoadModel<T> implements RoadModel {
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see
-	 * rinde.sim.core.model.RoadModel#getObjects(com.google.common.base.Predicate
-	 * )
-	 */
 	@Override
 	public Set<RoadUser> getObjects(Predicate<RoadUser> predicate) {
 		return Sets.filter(getObjects(), predicate);
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see
-	 * rinde.sim.core.model.RoadModel#getObjectsAt(rinde.sim.core.model.RoadUser
-	 * , java.lang.Class)
-	 */
 	@Override
 	@SuppressWarnings("unchecked")
 	public <Y extends RoadUser> Set<Y> getObjectsAt(RoadUser roadUser, Class<Y> type) {
@@ -257,10 +206,6 @@ public abstract class AbstractRoadModel<T> implements RoadModel {
 		}
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see rinde.sim.core.model.RoadModel#getObjectsOfType(java.lang.Class)
-	 */
 	@Override
 	@SuppressWarnings("unchecked")
 	public <Y extends RoadUser> Set<Y> getObjectsOfType(final Class<Y> type) {
@@ -275,12 +220,6 @@ public abstract class AbstractRoadModel<T> implements RoadModel {
 		});
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see
-	 * rinde.sim.core.model.RoadModel#getShortestPathTo(rinde.sim.core.model
-	 * .RoadUser, rinde.sim.core.model.RoadUser)
-	 */
 	@Override
 	public List<Point> getShortestPathTo(RoadUser fromObj, RoadUser toObj) {
 		checkArgument(fromObj != null, "fromObj can not be null");
@@ -288,12 +227,6 @@ public abstract class AbstractRoadModel<T> implements RoadModel {
 		return getShortestPathTo(fromObj, getPosition(toObj));
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see
-	 * rinde.sim.core.model.RoadModel#getShortestPathTo(rinde.sim.core.model
-	 * .RoadUser, rinde.sim.core.graph.Point)
-	 */
 	@Override
 	public List<Point> getShortestPathTo(RoadUser fromObj, Point to) {
 		checkArgument(fromObj != null, "fromObj can not be null");
@@ -301,23 +234,6 @@ public abstract class AbstractRoadModel<T> implements RoadModel {
 		return getShortestPathTo(getPosition(fromObj), to);
 	}
 
-	/**
-	 * Searches for the shortest path between <code>from</code> and
-	 * <code>to</code>.
-	 * @param from The start position of the path.
-	 * @param to The end position of the path.
-	 * @return The shortest path between <code>from</code> and <code>to</code>
-	 *         if it exists, <code>null</code> otherwise.
-	 * @see Graphs#shortestPathEuclideanDistance(Graph, Point, Point)
-	 */
-	@Override
-	public abstract List<Point> getShortestPathTo(Point from, Point to);
-
-	/*
-	 * (non-Javadoc)
-	 * @see
-	 * rinde.sim.core.model.RoadModel#register(rinde.sim.core.model.RoadUser)
-	 */
 	@Override
 	public boolean register(RoadUser roadUser) {
 		if (roadUser == null) {
@@ -327,11 +243,6 @@ public abstract class AbstractRoadModel<T> implements RoadModel {
 		return true;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * @see
-	 * rinde.sim.core.model.RoadModel#unregister(rinde.sim.core.model.RoadUser)
-	 */
 	@Override
 	public boolean unregister(RoadUser roadUser) {
 		checkArgument(roadUser != null, "RoadUser can not be null");
@@ -341,14 +252,4 @@ public abstract class AbstractRoadModel<T> implements RoadModel {
 		}
 		return false;
 	}
-
-	/*
-	 * (non-Javadoc)
-	 * @see rinde.sim.core.model.RoadModel#getSupportedType()
-	 */
-	@Override
-	public Class<RoadUser> getSupportedType() {
-		return RoadUser.class;
-	}
-
 }

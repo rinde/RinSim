@@ -255,23 +255,8 @@ public class PathFinderTest {
 	}
 
 	@Test(expected = IllegalArgumentException.class)
-	public void findClosestObjectsTestFail5() {
-		RoadModels.findClosestObjects(new Point(5, 5), null, 1);
-	}
-
-	@Test(expected = IllegalArgumentException.class)
 	public void findClosestObjectsTestFail6() {
 		RoadModels.findClosestObjects(new Point(5, 5), null, (Collection<EmptyRoadUser>) null, 1);
-	}
-
-	@Test(expected = IllegalArgumentException.class)
-	public void findClosestObjectsTestFail7() {
-		RoadModels.findClosestObjects(new Point(5, 5), null, (Predicate<RoadUser>) null, 1);
-	}
-
-	@Test(expected = IllegalArgumentException.class)
-	public void findClosestObjectsTestFail8() {
-		RoadModels.findClosestObjects(new Point(5, 5), rm, (Predicate<RoadUser>) null, 1);
 	}
 
 	@Test

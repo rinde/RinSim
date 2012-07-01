@@ -48,27 +48,27 @@ public class PlaneRoadModelTest extends AbstractRoadModelTest<PlaneRoadModel> {
 
 	@Test
 	public void checkPointIsInBoundary() {
-		assertTrue(model.checkPointIsInBoundary(new Point(0, 0)));
-		assertTrue(model.checkPointIsInBoundary(new Point(10, 10)));
-		assertTrue(model.checkPointIsInBoundary(new Point(0, 10)));
-		assertTrue(model.checkPointIsInBoundary(new Point(10, 0)));
-		assertTrue(model.checkPointIsInBoundary(new Point(5, 5)));
-		assertTrue(model.checkPointIsInBoundary(new Point(0, 3)));
+		assertTrue(model.isPointInBoundary(new Point(0, 0)));
+		assertTrue(model.isPointInBoundary(new Point(10, 10)));
+		assertTrue(model.isPointInBoundary(new Point(0, 10)));
+		assertTrue(model.isPointInBoundary(new Point(10, 0)));
+		assertTrue(model.isPointInBoundary(new Point(5, 5)));
+		assertTrue(model.isPointInBoundary(new Point(0, 3)));
 
-		assertFalse(model.checkPointIsInBoundary(new Point(-1, 5)));
-		assertFalse(model.checkPointIsInBoundary(new Point(11, 5)));
-		assertFalse(model.checkPointIsInBoundary(new Point(5, -234)));
-		assertFalse(model.checkPointIsInBoundary(new Point(5, 10.00001)));
+		assertFalse(model.isPointInBoundary(new Point(-1, 5)));
+		assertFalse(model.isPointInBoundary(new Point(11, 5)));
+		assertFalse(model.isPointInBoundary(new Point(5, -234)));
+		assertFalse(model.isPointInBoundary(new Point(5, 10.00001)));
 
-		assertFalse(model.checkPointIsInBoundary(new Point(-5, -0.0001)));
-		assertFalse(model.checkPointIsInBoundary(new Point(14, -0.0009)));
-		assertFalse(model.checkPointIsInBoundary(new Point(100, 100)));
-		assertFalse(model.checkPointIsInBoundary(new Point(-100, 100)));
+		assertFalse(model.isPointInBoundary(new Point(-5, -0.0001)));
+		assertFalse(model.isPointInBoundary(new Point(14, -0.0009)));
+		assertFalse(model.isPointInBoundary(new Point(100, 100)));
+		assertFalse(model.isPointInBoundary(new Point(-100, 100)));
 
 		RandomGenerator rnd = new MersenneTwister(123);
 		for (int i = 0; i < 100; i++) {
 			Point p = model.getRandomPosition(rnd);
-			assertTrue(model.checkPointIsInBoundary(p));
+			assertTrue(model.isPointInBoundary(p));
 		}
 	}
 
