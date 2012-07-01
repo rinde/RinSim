@@ -19,18 +19,42 @@ import rinde.sim.util.SpeedConverter;
 import rinde.sim.util.TimeUnit;
 
 /**
- * @author Rinde van Lon (rinde.vanlon@cs.kuleuven.be) TODO add class comment
+ * A {@link RoadModel} that uses a plane as road structure. This assumes that
+ * from every point in the plane it is possible to drive to every other point in
+ * the plane. The plane has a boundary as defined by a rectangle.
+ * 
+ * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
  */
 public class PlaneRoadModel extends AbstractRoadModel<Point> {
 
+	/**
+	 * The minimum x and y of the plane.
+	 */
 	public final Point min;
+	/**
+	 * The maximum x and y of the plane.
+	 */
 	public final Point max;
+	/**
+	 * The width of the plane.
+	 */
 	public final double width;
+	/**
+	 * The height of the plane.
+	 */
 	public final double height;
+	/**
+	 * The maximum speed that objects can travel on the plane.
+	 */
 	public final double maxSpeed;
 
-	// TODO add comments to PlaneRoadModel
-
+	/**
+	 * Create a new plane road model using the specified boundaries and max
+	 * speed.
+	 * @param pMin The minimum x and y of the plane.
+	 * @param pMax The maximum x and y of the plane.
+	 * @param pMaxSpeed The maximum speed that objects can travel on the plane.
+	 */
 	public PlaneRoadModel(Point pMin, Point pMax, double pMaxSpeed) {
 		checkArgument(pMin.x < pMax.x && pMin.y < pMax.y, "min should have coordinates smaller than max");
 		checkArgument(pMaxSpeed > 0, "max speed must be positive");
@@ -54,18 +78,9 @@ public class PlaneRoadModel extends AbstractRoadModel<Point> {
 
 	@Override
 	protected PathProgress doFollowPath(MovingRoadUser object, Queue<Point> path, TimeLapse time) {
-		// checkArgument(containsObject(object),
-		// "object must exist in RoadModel");
-		// checkArgument(!path.isEmpty(), "path can not be empty");
-		// checkArgument(time.hasTimeLeft(),
-		// "there must be time left to execute follow path");
-		// // checkArgument(time > 0, "time must be a positive number");
-
 		Point loc = objLocs.get(object);
 
-		// long timeLeft = time.getTimeLeft();
 		double traveled = 0;
-
 		final SpeedConverter sc = new SpeedConverter();
 		// speed in graph units per hour -> converting to milliseconds
 		double speed = min(object.getSpeed(), maxSpeed);
@@ -96,6 +111,10 @@ public class PlaneRoadModel extends AbstractRoadModel<Point> {
 		return new PathProgress(traveled, time.getTimeConsumed(), travelledNodes);
 	}
 
+	/**
+	 * The minimum travelable distance.
+	 */
+	// TODO should this be dynamic?
 	protected static final double DELTA = 0.000001;
 
 	@Override

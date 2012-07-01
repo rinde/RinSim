@@ -24,6 +24,9 @@ public final class PathProgress {
 	 */
 	public final long time;
 
+	/**
+	 * The nodes which were traveled.
+	 */
 	public final List<Point> travelledNodes;
 
 	PathProgress(double dist, long pTime, List<Point> pTravelledNodes) {

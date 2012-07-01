@@ -24,7 +24,12 @@ import rinde.sim.util.SpeedConverter;
 import rinde.sim.util.TimeUnit;
 
 /**
- * TODO add class comment {@inheritDoc}
+ * A {@link RoadModel} that uses a {@link Graph} as road structure.
+ * 
+ * TODO add class comment
+ * 
+ * Graph can define constraints, speed limits
+ * 
  * 
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
  * @author Bartosz Michalik <bartosz.michalik@cs.kuleuven.be> changes wrt.
@@ -32,19 +37,24 @@ import rinde.sim.util.TimeUnit;
  */
 public class GraphRoadModel extends AbstractRoadModel<Loc> {
 
+	/**
+	 * The graph that is used as road structure.
+	 */
 	protected final Graph<? extends ConnectionData> graph;
 
 	// TODO add comments to public methods without comment
 
+	// TODO can null checks be removed now?
+
 	/**
-	 * {@inheritDoc}
+	 * Creates a new instance using the specified {@link Graph} as road
+	 * structure.
 	 * @param pGraph The graph which will be used as road strucutre.
 	 */
 	public GraphRoadModel(Graph<? extends ConnectionData> pGraph) {
 		super();
 		checkArgument(pGraph != null, "Graph can not be null");
 		graph = pGraph;
-		// TODO Auto-generated constructor stub
 	}
 
 	@Override
@@ -148,9 +158,11 @@ public class GraphRoadModel extends AbstractRoadModel<Loc> {
 	}
 
 	/**
-	 * Compute distance between two points. If points are equal the distance is
-	 * 0. This method uses length stored in {@link ConnectionData} objects when
-	 * available.
+	 * Compute length of connection as defined by the two points. If points are
+	 * equal the distance is 0. This method uses length stored in
+	 * {@link ConnectionData} objects when available.
+	 * @param from Start of the connection.
+	 * @param to End of the connection.
 	 * @return the distance between two points
 	 * @throws IllegalArgumentException when two points are part of the graph
 	 *             but are not equal or there is no connection between them
@@ -184,6 +196,11 @@ public class GraphRoadModel extends AbstractRoadModel<Loc> {
 		}
 	}
 
+	/**
+	 * Retrieves the length of the specified connection if it is defined.
+	 * @param conn The connection to check.
+	 * @return The length.
+	 */
 	protected static double getConnectionLength(Connection<?> conn) {
 		return conn.getData() == null || Double.isNaN(conn.getData().getLength()) ? Point.distance(conn.from, conn.to)
 				: conn.getData().getLength();
