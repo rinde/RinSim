@@ -64,9 +64,9 @@ public class GraphRoadModelTest extends AbstractRoadModelTest<GraphRoadModel> {
     public static Collection<Object[]> configs() {
         return Arrays.asList(new Object[][] {
                 { TestMultimapGraph.class, GraphRoadModel.class },
-                { TestMultimapGraph.class, CachedRoadModel.class },
+                { TestMultimapGraph.class, CachedGraphRoadModel.class },
                 { TestTableGraph.class, GraphRoadModel.class },
-                { TestTableGraph.class, CachedRoadModel.class } });
+                { TestTableGraph.class, CachedGraphRoadModel.class } });
     }
 
     @Override

@@ -337,18 +337,18 @@ public abstract class AbstractRoadModelTest<T extends RoadModel> {
 
 	@Test
 	public void cacheTest() {
-		if (model instanceof CachedRoadModel) {
+		if (model instanceof CachedGraphRoadModel) {
 			Table<Point, Point, List<Point>> cache = HashBasedTable.create();
 			List<Point> cachePath = Arrays.asList(SW, NE);
 			cache.put(SW, NE, cachePath);
 
-			((CachedRoadModel) model).setPathCache(cache);
+			((CachedGraphRoadModel) model).setPathCache(cache);
 
 			List<Point> shortPath = model.getShortestPathTo(SW, NE);
 
 			assertEquals(shortPath, cachePath);
 
-			assertEquals(cache, ((CachedRoadModel) model).getPathCache());
+			assertEquals(cache, ((CachedGraphRoadModel) model).getPathCache());
 		}
 	}
 

@@ -71,13 +71,13 @@ public class SpeedLimitsTest {
         double twoAndHalf = 2.5;
         return Arrays.asList(new Object[][] {
                 { TestMultimapGraph.class, GraphRoadModel.class, five },
-                { TestMultimapGraph.class, CachedRoadModel.class, five },
+                { TestMultimapGraph.class, CachedGraphRoadModel.class, five },
                 { TestMultimapGraph.class, GraphRoadModel.class, twoAndHalf },
-                { TestMultimapGraph.class, CachedRoadModel.class, twoAndHalf },
+                { TestMultimapGraph.class, CachedGraphRoadModel.class, twoAndHalf },
                 { TestTableGraph.class, GraphRoadModel.class, five },
-                { TestTableGraph.class, CachedRoadModel.class, five },
+                { TestTableGraph.class, CachedGraphRoadModel.class, five },
                 { TestTableGraph.class, GraphRoadModel.class, twoAndHalf },
-                { TestTableGraph.class, CachedRoadModel.class, twoAndHalf } });
+                { TestTableGraph.class, CachedGraphRoadModel.class, twoAndHalf } });
     }
 
     @Before

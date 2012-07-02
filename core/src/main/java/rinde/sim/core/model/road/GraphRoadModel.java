@@ -17,7 +17,6 @@ import rinde.sim.core.TimeLapse;
 import rinde.sim.core.graph.Connection;
 import rinde.sim.core.graph.ConnectionData;
 import rinde.sim.core.graph.Graph;
-import rinde.sim.core.graph.Graphs;
 import rinde.sim.core.graph.MultiAttributeData;
 import rinde.sim.core.graph.Point;
 import rinde.sim.core.model.road.GraphRoadModel.Loc;
@@ -26,11 +25,10 @@ import rinde.sim.util.TimeUnit;
 
 /**
  * A {@link RoadModel} that uses a {@link Graph} as road structure.
- * 
- * TODO add class comment
- * 
- * Graph can define constraints, speed limits
- * 
+ * {@link RoadUser}s can only be added on nodes on the graph. This model assumes
+ * that the {@link Graph} does <b>not</b> change. Modifying the graph after
+ * passing it to the model may break this model. The graph can define
+ * {@link Connection} specific speed limits using {@link MultiAttributeData}.
  * 
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
  * @author Bartosz Michalik <bartosz.michalik@cs.kuleuven.be> changes wrt.
@@ -45,8 +43,6 @@ public class GraphRoadModel extends AbstractRoadModel<Loc> {
      * The graph that is used as road structure.
      */
     protected final Graph<? extends ConnectionData> graph;
-
-    // TODO add comments to public methods without comment
 
     // TODO can null checks be removed now?
 
@@ -144,6 +140,12 @@ public class GraphRoadModel extends AbstractRoadModel<Loc> {
                 travelledNodes);
     }
 
+    /**
+     * Check if it is possible to move from <code>objLoc</code> to
+     * <code>nextHop</code>.
+     * @param objLoc The current location.
+     * @param nextHop The destination node.
+     */
     protected void checkIsValidMove(Loc objLoc, Point nextHop) {
         // in case we start from an edge and our next destination is to go to
         // the end of the current edge then its ok. Otherwise more checks are
@@ -217,10 +219,22 @@ public class GraphRoadModel extends AbstractRoadModel<Loc> {
                 .distance(conn.from, conn.to) : conn.getData().getLength();
     }
 
+    /**
+     * Checks if the point is on a connection.
+     * @param p The point to check.
+     * @return <code>true</code> if the point is on a connection,
+     *         <code>false</code> otherwise.
+     */
     protected static boolean isOnConnection(Point p) {
         return p instanceof Loc && ((Loc) p).isOnConnection();
     }
 
+    /**
+     * Checks whether the specified location is valid.
+     * @param l The location to check.
+     * @return The location if it is valid.
+     * @throws IllegalArgumentException if the location is not valid.
+     */
     protected Loc checkLocation(Loc l) {
         checkArgument(l.isOnConnection() || graph.containsNode(l), "Location points to non-existing vertex: "
                 + l + ".");
@@ -311,7 +325,8 @@ public class GraphRoadModel extends AbstractRoadModel<Loc> {
     }
 
     /**
-     * Uses the A* algorithm: {@link Graphs#shortestPathEuclideanDistance}. This
+     * Uses the A* algorithm:
+     * {@link rinde.sim.core.graph.Graphs#shortestPathEuclideanDistance}. This
      * method can optionally be overridden by subclasses to define another
      * shortest path algorithm.
      * @param from The start point of the path.
