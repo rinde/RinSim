@@ -8,19 +8,19 @@ package rinde.sim.core.model;
  */
 public abstract class AbstractModel<T> implements Model<T> {
 
-	private final Class<T> clazz;
+    private final Class<T> clazz;
 
-	/**
-	 * Create a new model.
-	 * @param pClazz The class that represents the supported type of this model.
-	 */
-	protected AbstractModel(Class<T> pClazz) {
-		this.clazz = pClazz;
-	}
+    /**
+     * Create a new model.
+     * @param pClazz The class that represents the supported type of this model.
+     */
+    protected AbstractModel(Class<T> pClazz) {
+        this.clazz = pClazz;
+    }
 
-	@Override
-	final public Class<T> getSupportedType() {
-		return clazz;
-	}
+    @Override
+    final public Class<T> getSupportedType() {
+        return clazz;
+    }
 
 }

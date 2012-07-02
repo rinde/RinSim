@@ -17,30 +17,34 @@ import rinde.sim.core.graph.Graph;
 /**
  * Common interface for graph serialization deserialization
  * @author Bartosz Michalik <bartosz.michalik@cs.kuleuven.be>
- *
+ * 
  */
 public abstract class AbstractGraphSerializer<E extends ConnectionData> {
-	abstract public Graph<E> read(Reader reader) throws IOException;
-	abstract public void write(Graph<? extends E> graph, Writer writer) throws IOException;
-	
-	public Graph<E> read(File file) throws FileNotFoundException, IOException {
-		FileReader reader = new FileReader(file);
-		Graph<E> graph = read(reader);
-		reader.close();
-		return graph;
-	}
-	
-	public Graph<E> read(String filePath) throws FileNotFoundException, IOException {
-		return read(new File(filePath));
-	}
-	
-	public void write(Graph<? extends E> graph, File file) throws IOException {
-		FileWriter writer = new FileWriter(file);
-		write(graph, writer);
-		writer.close();
-	}
-	
-	public void write(Graph<? extends E> graph, String filePath) throws IOException {
-		write(graph, new File(filePath));
-	}
+    abstract public Graph<E> read(Reader reader) throws IOException;
+
+    abstract public void write(Graph<? extends E> graph, Writer writer)
+            throws IOException;
+
+    public Graph<E> read(File file) throws FileNotFoundException, IOException {
+        FileReader reader = new FileReader(file);
+        Graph<E> graph = read(reader);
+        reader.close();
+        return graph;
+    }
+
+    public Graph<E> read(String filePath) throws FileNotFoundException,
+            IOException {
+        return read(new File(filePath));
+    }
+
+    public void write(Graph<? extends E> graph, File file) throws IOException {
+        FileWriter writer = new FileWriter(file);
+        write(graph, writer);
+        writer.close();
+    }
+
+    public void write(Graph<? extends E> graph, String filePath)
+            throws IOException {
+        write(graph, new File(filePath));
+    }
 }

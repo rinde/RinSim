@@ -47,334 +47,341 @@ import rinde.sim.event.EventDispatcher;
  */
 public class Simulator implements SimulatorAPI {
 
-	/**
-	 * The logger of the simulator.
-	 */
-	protected static final Logger LOGGER = LoggerFactory.getLogger(Simulator.class);
+    /**
+     * The logger of the simulator.
+     */
+    protected static final Logger LOGGER = LoggerFactory
+            .getLogger(Simulator.class);
 
-	/**
-	 * Enum that describes the possible types of events that the simulator can
-	 * dispatch.
-	 */
-	public enum EventTypes {
-		/**
-		 * Indicates that the simulator has stopped.
-		 */
-		STOPPED,
+    /**
+     * Enum that describes the possible types of events that the simulator can
+     * dispatch.
+     */
+    public enum EventTypes {
+        /**
+         * Indicates that the simulator has stopped.
+         */
+        STOPPED,
 
-		/**
-		 * Indicates that the simulator has started.
-		 */
-		STARTED
-	}
+        /**
+         * Indicates that the simulator has started.
+         */
+        STARTED
+    }
 
-	/**
-	 * Reference to the {@link EventAPI} of the Simulator. Can be used to add
-	 * listeners to events dispatched by the simulator. Simulator events are
-	 * defined in {@link EventTypes}.
-	 */
-	public final EventAPI events;
+    /**
+     * Reference to the {@link EventAPI} of the Simulator. Can be used to add
+     * listeners to events dispatched by the simulator. Simulator events are
+     * defined in {@link EventTypes}.
+     */
+    public final EventAPI events;
 
-	/**
-	 * Contains the set of registered {@link TickListener}s.
-	 */
-	protected volatile Set<TickListener> tickListeners;
+    /**
+     * Contains the set of registered {@link TickListener}s.
+     */
+    protected volatile Set<TickListener> tickListeners;
 
-	/**
-	 * Reference to dispatcher of simulator events, can be used by subclasses to
-	 * issue additional events.
-	 */
-	protected final EventDispatcher dispatcher;
+    /**
+     * Reference to dispatcher of simulator events, can be used by subclasses to
+     * issue additional events.
+     */
+    protected final EventDispatcher dispatcher;
 
-	/**
-	 * @see #isPlaying
-	 */
-	protected volatile boolean isPlaying;
+    /**
+     * @see #isPlaying
+     */
+    protected volatile boolean isPlaying;
 
-	/**
-	 * @see #getCurrentTime()
-	 */
-	protected long time;
+    /**
+     * @see #getCurrentTime()
+     */
+    protected long time;
 
-	/**
-	 * Model manager instance.
-	 */
-	protected final ModelManager modelManager;
-	private boolean configured;
+    /**
+     * Model manager instance.
+     */
+    protected final ModelManager modelManager;
+    private boolean configured;
 
-	private Set<Object> toUnregister;
-	private final ReentrantLock unregisterLock;
-	private final RandomGenerator rand;
-	private final long timeStep;
-	private final TimeLapse timeLapse;
+    private Set<Object> toUnregister;
+    private final ReentrantLock unregisterLock;
+    private final RandomGenerator rand;
+    private final long timeStep;
+    private final TimeLapse timeLapse;
 
-	/**
-	 * Create a new simulator instance.
-	 * @param r The random number generator that is used in this simulator.
-	 * @param step The time that passes each tick. This can be in any unit the
-	 *            programmer prefers.
-	 */
-	public Simulator(RandomGenerator r, long step) {
-		timeStep = step;
-		tickListeners = Collections.synchronizedSet(new LinkedHashSet<TickListener>());
+    /**
+     * Create a new simulator instance.
+     * @param r The random number generator that is used in this simulator.
+     * @param step The time that passes each tick. This can be in any unit the
+     *            programmer prefers.
+     */
+    public Simulator(RandomGenerator r, long step) {
+        timeStep = step;
+        tickListeners = Collections
+                .synchronizedSet(new LinkedHashSet<TickListener>());
 
-		unregisterLock = new ReentrantLock();
-		toUnregister = new LinkedHashSet<Object>();
+        unregisterLock = new ReentrantLock();
+        toUnregister = new LinkedHashSet<Object>();
 
-		rand = r;
-		time = 0L;
-		// time lapse is reused in a Flyweight kind of style
-		timeLapse = new TimeLapse();
+        rand = r;
+        time = 0L;
+        // time lapse is reused in a Flyweight kind of style
+        timeLapse = new TimeLapse();
 
-		modelManager = new ModelManager();
+        modelManager = new ModelManager();
 
-		dispatcher = new EventDispatcher(EventTypes.STOPPED, EventTypes.STARTED);
-		events = dispatcher.getEventAPI();
-	}
+        dispatcher = new EventDispatcher(EventTypes.STOPPED, EventTypes.STARTED);
+        events = dispatcher.getEventAPI();
+    }
 
-	/**
-	 * This configures the {@link Model}s in the simulator. After calling this
-	 * method models can no longer be added, objects can only be registered
-	 * after this method is called.
-	 * @see ModelManager#configure()
-	 */
-	public void configure() {
-		modelManager.configure();
-		configured = true;
-	}
+    /**
+     * This configures the {@link Model}s in the simulator. After calling this
+     * method models can no longer be added, objects can only be registered
+     * after this method is called.
+     * @see ModelManager#configure()
+     */
+    public void configure() {
+        modelManager.configure();
+        configured = true;
+    }
 
-	/**
-	 * Register a model to the simulator.
-	 * @param model The {@link Model} instance to register.
-	 * @return true if succesful, false otherwise
-	 */
-	public boolean register(Model<?> model) {
-		if (model == null) {
-			throw new IllegalArgumentException("parameter cannot be null");
-		}
-		if (configured) {
-			throw new IllegalStateException("cannot add model after calling configure()");
-		}
-		boolean result = modelManager.add(model);
-		if (result) {
-			LOGGER.info("registering model :" + model.getClass().getName() + " for type:"
-					+ model.getSupportedType().getName());
-			if (model instanceof TickListener) {
-				LOGGER.info("adding " + model.getClass().getName() + " as a tick listener");
-				addTickListener((TickListener) model);
-			}
-		}
-		return result;
-	}
+    /**
+     * Register a model to the simulator.
+     * @param model The {@link Model} instance to register.
+     * @return true if succesful, false otherwise
+     */
+    public boolean register(Model<?> model) {
+        if (model == null) {
+            throw new IllegalArgumentException("model can not be null");
+        }
+        if (configured) {
+            throw new IllegalStateException(
+                    "cannot add model after calling configure()");
+        }
+        final boolean result = modelManager.add(model);
+        if (result) {
+            LOGGER.info("registering model :" + model.getClass().getName()
+                    + " for type:" + model.getSupportedType().getName());
+            if (model instanceof TickListener) {
+                LOGGER.info("adding " + model.getClass().getName()
+                        + " as a tick listener");
+                addTickListener((TickListener) model);
+            }
+        }
+        return result;
+    }
 
-	/**
-	 * 
-	 * {@inheritDoc}
-	 */
-	@Override
-	public boolean register(Object obj) {
-		if (obj == null) {
-			throw new IllegalArgumentException("parameter can not be null");
-		}
-		if (obj instanceof Model<?>) {
-			return register((Model<?>) obj);
-		}
-		if (!configured) {
-			throw new IllegalStateException("can not add object before calling configure()");
-		}
-		injectDependencies(obj);
-		if (obj instanceof TickListener) {
-			addTickListener((TickListener) obj);
-		}
-		return modelManager.register(obj);
-	}
+    /**
+     * 
+     * {@inheritDoc}
+     */
+    @Override
+    public boolean register(Object obj) {
+        if (obj == null) {
+            throw new IllegalArgumentException("parameter can not be null");
+        }
+        if (obj instanceof Model<?>) {
+            return register((Model<?>) obj);
+        }
+        if (!configured) {
+            throw new IllegalStateException(
+                    "can not add object before calling configure()");
+        }
+        injectDependencies(obj);
+        if (obj instanceof TickListener) {
+            addTickListener((TickListener) obj);
+        }
+        return modelManager.register(obj);
+    }
 
-	/**
-	 * Unregistration from the models is delayed until all ticks are processed
-	 * 
-	 * @see rinde.sim.core.SimulatorAPI#unregister(java.lang.Object)
-	 */
-	@Override
-	public boolean unregister(Object o) {
-		if (o == null) {
-			throw new IllegalArgumentException("parameter cannot be null");
-		}
-		if (o instanceof Model<?>) {
-			throw new IllegalArgumentException("can not unregister a model");
-		}
-		if (!configured) {
-			throw new IllegalStateException("can not unregister object before calling configure()");
-		}
-		if (o instanceof TickListener) {
-			removeTickListener((TickListener) o);
-		}
-		unregisterLock.lock();
-		try {
-			toUnregister.add(o);
-		} finally {
-			unregisterLock.unlock();
-		}
-		return true;
-	}
+    /**
+     * Unregistration from the models is delayed until all ticks are processed.
+     * 
+     * @see rinde.sim.core.SimulatorAPI#unregister(java.lang.Object)
+     */
+    @Override
+    public boolean unregister(Object o) {
+        if (o == null) {
+            throw new IllegalArgumentException("parameter cannot be null");
+        }
+        if (o instanceof Model<?>) {
+            throw new IllegalArgumentException("can not unregister a model");
+        }
+        if (!configured) {
+            throw new IllegalStateException(
+                    "can not unregister object before calling configure()");
+        }
+        if (o instanceof TickListener) {
+            removeTickListener((TickListener) o);
+        }
+        unregisterLock.lock();
+        try {
+            toUnregister.add(o);
+        } finally {
+            unregisterLock.unlock();
+        }
+        return true;
+    }
 
-	/**
-	 * Inject all required dependecies basing on the declared types of the
-	 * object
-	 * @param o object that need to have dependecies injected
-	 */
-	protected void injectDependencies(Object o) {
-		if (o instanceof SimulatorUser) {
-			((SimulatorUser) o).setSimulator(this);
-		}
-	}
+    /**
+     * Inject all required dependecies basing on the declared types of the
+     * object.
+     * @param o object that need to have dependecies injected
+     */
+    protected void injectDependencies(Object o) {
+        if (o instanceof SimulatorUser) {
+            ((SimulatorUser) o).setSimulator(this);
+        }
+    }
 
-	/**
-	 * Returns a safe to modify list of all models registered in the simulator
-	 * @return list of models
-	 */
-	public List<Model<?>> getModels() {
-		return modelManager.getModels();
-	}
+    /**
+     * Returns a safe to modify list of all models registered in the simulator.
+     * @return list of models
+     */
+    public List<Model<?>> getModels() {
+        return modelManager.getModels();
+    }
 
-	/**
-	 * @return The current simulation time.
-	 */
-	public long getCurrentTime() {
-		return time;
-	}
+    /**
+     * @return The current simulation time.
+     */
+    public long getCurrentTime() {
+        return time;
+    }
 
-	/**
-	 * @return The time step (in simulation time) which is added to current time
-	 *         at every tick.
-	 */
-	public long getTimeStep() {
-		return timeStep;
-	}
+    /**
+     * @return The time step (in simulation time) which is added to current time
+     *         at every tick.
+     */
+    public long getTimeStep() {
+        return timeStep;
+    }
 
-	/**
-	 * Adds a tick listener to the simulator.
-	 * @param listener The listener to add.
-	 */
-	public void addTickListener(TickListener listener) {
-		tickListeners.add(listener);
-	}
+    /**
+     * Adds a tick listener to the simulator.
+     * @param listener The listener to add.
+     */
+    public void addTickListener(TickListener listener) {
+        tickListeners.add(listener);
+    }
 
-	/**
-	 * Removes the listener specified. Implemented in O(1).
-	 * @param listener The listener to remove
-	 */
-	public void removeTickListener(TickListener listener) {
-		tickListeners.remove(listener);
-	}
+    /**
+     * Removes the listener specified. Implemented in O(1).
+     * @param listener The listener to remove
+     */
+    public void removeTickListener(TickListener listener) {
+        tickListeners.remove(listener);
+    }
 
-	/**
-	 * Start the simulation.
-	 */
-	public void start() {
-		if (!configured) {
-			throw new IllegalStateException("Simulator can not be started when it is not configured.");
-		}
-		if (!isPlaying) {
-			dispatcher.dispatchEvent(new Event(EventTypes.STARTED, this));
-		}
-		isPlaying = true;
-		while (isPlaying) {
-			tick();
-		}
-		dispatcher.dispatchEvent(new Event(EventTypes.STOPPED, this));
-	}
+    /**
+     * Start the simulation.
+     */
+    public void start() {
+        if (!configured) {
+            throw new IllegalStateException(
+                    "Simulator can not be started when it is not configured.");
+        }
+        if (!isPlaying) {
+            dispatcher.dispatchEvent(new Event(EventTypes.STARTED, this));
+        }
+        isPlaying = true;
+        while (isPlaying) {
+            tick();
+        }
+        dispatcher.dispatchEvent(new Event(EventTypes.STOPPED, this));
+    }
 
-	/**
-	 * Advances the simulator with one step (the size is determined by the time
-	 * step).
-	 */
-	public void tick() {
-		// unregister all pending objects
-		unregisterLock.lock();
-		Set<Object> copy;
-		try {
-			copy = toUnregister;
-			toUnregister = new LinkedHashSet<Object>();
-		} finally {
-			unregisterLock.unlock();
-		}
+    /**
+     * Advances the simulator with one step (the size is determined by the time
+     * step).
+     */
+    public void tick() {
+        // unregister all pending objects
+        unregisterLock.lock();
+        Set<Object> copy;
+        try {
+            copy = toUnregister;
+            toUnregister = new LinkedHashSet<Object>();
+        } finally {
+            unregisterLock.unlock();
+        }
 
-		for (Object c : copy) {
-			modelManager.unregister(c);
-		}
+        for (final Object c : copy) {
+            modelManager.unregister(c);
+        }
 
-		// using a copy to avoid concurrent modifications of this set
-		// this also means that adding or removing a TickListener is
-		// effectively executed after a 'tick'
+        // using a copy to avoid concurrent modifications of this set
+        // this also means that adding or removing a TickListener is
+        // effectively executed after a 'tick'
 
-		List<TickListener> localCopy = new ArrayList<TickListener>();
-		long timeS = System.currentTimeMillis();
-		localCopy.addAll(tickListeners);
+        final List<TickListener> localCopy = new ArrayList<TickListener>();
+        long timeS = System.currentTimeMillis();
+        localCopy.addAll(tickListeners);
 
-		for (TickListener t : localCopy) {
-			timeLapse.initialize(time, time + timeStep);
-			t.tick(timeLapse);
-		}
-		if (LOGGER.isDebugEnabled()) {
-			LOGGER.debug("tick(): " + (System.currentTimeMillis() - timeS));
-			timeS = System.currentTimeMillis();
-		}
-		timeLapse.initialize(time, time + timeStep);
-		// in the after tick the TimeLapse can no longer be consumed
-		timeLapse.consumeAll();
-		for (TickListener t : tickListeners) {
-			t.afterTick(timeLapse);
-		}
-		if (LOGGER.isDebugEnabled()) {
-			LOGGER.debug("aftertick(): " + (System.currentTimeMillis() - timeS));
-		}
-		time += timeStep;
+        for (final TickListener t : localCopy) {
+            timeLapse.initialize(time, time + timeStep);
+            t.tick(timeLapse);
+        }
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("tick(): " + (System.currentTimeMillis() - timeS));
+            timeS = System.currentTimeMillis();
+        }
+        timeLapse.initialize(time, time + timeStep);
+        // in the after tick the TimeLapse can no longer be consumed
+        timeLapse.consumeAll();
+        for (final TickListener t : tickListeners) {
+            t.afterTick(timeLapse);
+        }
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("aftertick(): " + (System.currentTimeMillis() - timeS));
+        }
+        time += timeStep;
 
-	}
+    }
 
-	/**
-	 * Either starts or stops the simulation depending on the current state.
-	 */
-	public void togglePlayPause() {
-		isPlaying = !isPlaying;
-		if (isPlaying) {
-			start();
-		}
-	}
+    /**
+     * Either starts or stops the simulation depending on the current state.
+     */
+    public void togglePlayPause() {
+        isPlaying = !isPlaying;
+        if (isPlaying) {
+            start();
+        }
+    }
 
-	/**
-	 * Resets the time to 0.
-	 */
-	public void resetTime() {
-		time = 0L;
-	}
+    /**
+     * Resets the time to 0.
+     */
+    public void resetTime() {
+        time = 0L;
+    }
 
-	/**
-	 * Stops the simulation
-	 */
-	public void stop() {
-		isPlaying = false;
-	}
+    /**
+     * Stops the simulation.
+     */
+    public void stop() {
+        isPlaying = false;
+    }
 
-	/**
-	 * @return true if simulator is playing, false otherwise.
-	 */
-	public boolean isPlaying() {
-		return isPlaying;
-	}
+    /**
+     * @return true if simulator is playing, false otherwise.
+     */
+    public boolean isPlaying() {
+        return isPlaying;
+    }
 
-	/**
-	 * @return An unmodifiable view on the set of tick listeners.
-	 */
-	public Set<TickListener> getTickListeners() {
-		return Collections.unmodifiableSet(tickListeners);
-	}
+    /**
+     * @return An unmodifiable view on the set of tick listeners.
+     */
+    public Set<TickListener> getTickListeners() {
+        return Collections.unmodifiableSet(tickListeners);
+    }
 
-	/**
-	 * {@inheritDoc}
-	 */
-	@Override
-	public RandomGenerator getRandomGenerator() {
-		return rand;
-	}
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public RandomGenerator getRandomGenerator() {
+        return rand;
+    }
 }

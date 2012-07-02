@@ -9,12 +9,12 @@ package rinde.sim.core.model.pdp;
  */
 public abstract class Package implements PDPObject {
 
-	@Override
-	public final PDPType getType() {
-		return PDPType.PACKAGE;
-	}
+    @Override
+    public final PDPType getType() {
+        return PDPType.PACKAGE;
+    }
 
-	// indicates 'size'/heaviness/etc
-	abstract double getMagnitude();
+    // indicates 'size'/heaviness/etc
+    abstract double getMagnitude();
 
 }

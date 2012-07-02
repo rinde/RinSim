@@ -7,10 +7,10 @@ package rinde.sim.core;
  * 
  */
 public interface SimulatorUser {
-	/**
-	 * Through this method the user of the simulator receives a reference to the
-	 * {@link SimulatorAPI}.
-	 * @param api The simulator which this uses gets access to.
-	 */
-	void setSimulator(SimulatorAPI api);
+    /**
+     * Through this method the user of the simulator receives a reference to the
+     * {@link SimulatorAPI}.
+     * @param api The simulator which this uses gets access to.
+     */
+    void setSimulator(SimulatorAPI api);
 }

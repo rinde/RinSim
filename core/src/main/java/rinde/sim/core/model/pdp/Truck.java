@@ -11,9 +11,9 @@ import rinde.sim.core.model.road.MovingRoadUser;
  */
 public abstract class Truck implements PackageContainer, MovingRoadUser {
 
-	@Override
-	public final PDPType getType() {
-		return PDPType.TRUCK;
-	}
+    @Override
+    public final PDPType getType() {
+        return PDPType.TRUCK;
+    }
 
 }

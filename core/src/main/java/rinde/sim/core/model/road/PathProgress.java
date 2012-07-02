@@ -14,33 +14,35 @@ import rinde.sim.core.graph.Point;
  * @since 2.0
  */
 public final class PathProgress {
-	/**
-	 * distance traveled in the
-	 * {@link RoadModel#followPath(MovingRoadUser, Queue, rinde.sim.core.TimeLapse)}
-	 */
-	public final double distance;
-	/**
-	 * time spend on traveling the distance
-	 */
-	public final long time;
+    /**
+     * distance traveled in the
+     * {@link RoadModel#followPath(MovingRoadUser, Queue, rinde.sim.core.TimeLapse)}
+     */
+    public final double distance;
+    /**
+     * time spend on traveling the distance
+     */
+    public final long time;
 
-	/**
-	 * The nodes which were traveled.
-	 */
-	public final List<Point> travelledNodes;
+    /**
+     * The nodes which were traveled.
+     */
+    public final List<Point> travelledNodes;
 
-	PathProgress(double dist, long pTime, List<Point> pTravelledNodes) {
-		checkArgument(dist >= 0, "distance must be greater than or equal to 0");
-		checkArgument(pTime >= 0, "time must be greather than or equal to 0");
-		checkArgument(pTravelledNodes != null, "travelledNodes can not be null");
-		distance = dist;
-		time = pTime;
-		travelledNodes = pTravelledNodes;
-	}
+    PathProgress(double dist, long pTime, List<Point> pTravelledNodes) {
+        checkArgument(dist >= 0, "distance must be greater than or equal to 0");
+        checkArgument(pTime >= 0, "time must be greather than or equal to 0");
+        checkArgument(pTravelledNodes != null, "travelledNodes can not be null");
+        distance = dist;
+        time = pTime;
+        travelledNodes = pTravelledNodes;
+    }
 
-	@Override
-	public String toString() {
-		return new StringBuilder().append("{PathProgress distance:").append(distance).append(" time:").append(time)
-				.append(" travelledNodes:").append(travelledNodes).append("}").toString();
-	}
+    @Override
+    public String toString() {
+        return new StringBuilder().append("{PathProgress distance:")
+                .append(distance).append(" time:").append(time)
+                .append(" travelledNodes:").append(travelledNodes).append("}")
+                .toString();
+    }
 }

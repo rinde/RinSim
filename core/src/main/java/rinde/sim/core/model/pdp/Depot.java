@@ -9,8 +9,8 @@ package rinde.sim.core.model.pdp;
  */
 public abstract class Depot implements PackageContainer {
 
-	@Override
-	public final PDPType getType() {
-		return PDPType.DEPOT;
-	}
+    @Override
+    public final PDPType getType() {
+        return PDPType.DEPOT;
+    }
 }
