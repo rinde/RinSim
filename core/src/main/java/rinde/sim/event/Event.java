@@ -8,16 +8,17 @@ import static com.google.common.base.Preconditions.checkState;
 
 import java.io.Serializable;
 
-import rinde.sim.scenario.TimedEvent;
-
 /**
- * TODO add class comment
+ * The base event class.
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
  * @author Bartosz Michalik <bartosz.michalik@cs.kuleuven.be>
  */
 public class Event implements Serializable {
     private static final long serialVersionUID = -390528892294335442L;
 
+    /**
+     * The type of event.
+     */
     protected final Enum<?> eventType;
     transient private Object issuer;
 
@@ -35,8 +36,7 @@ public class Event implements Serializable {
     /**
      * Should be used only by extension classes when the issuer is not known at
      * creation time.
-     * @see TimedEvent
-     * @param type
+     * @param type The event type.
      */
     protected Event(Enum<?> type) {
         this(type, null);
@@ -53,13 +53,15 @@ public class Event implements Serializable {
     }
 
     /**
-     * 
-     * @return typed issuer
+     * @return The event issuer.
      */
     public Object getIssuer() {
         return issuer;
     }
 
+    /**
+     * @return The type of event.
+     */
     public Enum<?> getEventType() {
         return eventType;
     }

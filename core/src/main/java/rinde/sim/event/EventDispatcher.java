@@ -14,14 +14,21 @@ import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Multimap;
 
 /**
- * This class is the root in the Event system. It provides methods for
- * dispatching events and removing and adding of listeners.
- * 
- * @author Rinde van Lon (rinde.vanlon@cs.kuleuven.be)
+ * Basic event dispatcher for easily dispatching {@link Event}s to
+ * {@link Listener}s. It provides methods for dispatching events and removing
+ * and adding of listeners.
+ * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
  */
 public class EventDispatcher implements EventAPI {
 
+    /**
+     * A map of event types to registered {@link Listener}s.
+     */
     protected final Multimap<Enum<?>, Listener> listeners;
+
+    /**
+     * The set of event types that this event dispatcher supports.
+     */
     protected final Set<Enum<?>> supportedTypes;
 
     /**
@@ -61,7 +68,7 @@ public class EventDispatcher implements EventAPI {
         checkArgument(supportedTypes.contains(e.getEventType()), "Cannot dispatch an event of type "
                 + e.getEventType()
                 + " since it was not registered at this dispatcher.");
-        for (Listener l : listeners.get(e.getEventType())) {
+        for (final Listener l : listeners.get(e.getEventType())) {
             l.handleEvent(e);
         }
     }
@@ -84,9 +91,9 @@ public class EventDispatcher implements EventAPI {
         if (eventTypes == null) {
             throw new IllegalArgumentException("event types can not be null");
         }
-        Set<Enum<?>> theTypes = eventTypes.isEmpty() ? supportedTypes
+        final Set<Enum<?>> theTypes = eventTypes.isEmpty() ? supportedTypes
                 : eventTypes;
-        for (Enum<?> eventType : theTypes) {
+        for (final Enum<?> eventType : theTypes) {
             checkArgument(eventType != null, "event type can not be null");
             checkArgument(supportedTypes.contains(eventType), "A listener for type "
                     + eventType + " is not allowed");
@@ -115,14 +122,14 @@ public class EventDispatcher implements EventAPI {
         if (eventTypes.isEmpty()) {
             // remove all
             // store keys in intermediate set to avoid concurrent modifications
-            Set<Enum<?>> keys = new HashSet<Enum<?>>(listeners.keySet());
-            for (Enum<?> eventType : keys) {
+            final Set<Enum<?>> keys = new HashSet<Enum<?>>(listeners.keySet());
+            for (final Enum<?> eventType : keys) {
                 if (listeners.containsEntry(eventType, listener)) {
                     removeListener(listener, eventType);
                 }
             }
         } else {
-            for (Enum<?> eventType : eventTypes) {
+            for (final Enum<?> eventType : eventTypes) {
                 checkArgument(eventType != null, "event type can not be null");
                 checkArgument(containsListener(listener, eventType), "The listener "
                         + listener
