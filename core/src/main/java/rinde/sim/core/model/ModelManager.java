@@ -47,10 +47,10 @@ public class ModelManager {
             throw new IllegalArgumentException("model can not be null");
         }
         checkState(!configured, "model can not be registered after configure()");
-        Class<?> supportedType = model.getSupportedType();
+        final Class<?> supportedType = model.getSupportedType();
         checkArgument(supportedType != null, "model must implement getSupportedType() and return a non-null");
         models.add(model);
-        boolean result = registry.put(supportedType, model);
+        final boolean result = registry.put(supportedType, model);
         if (!result) {
             models.remove(model);
         }
@@ -84,12 +84,12 @@ public class ModelManager {
         checkState(configured, "can not register an object if configure() has not been called");
 
         boolean result = false;
-        Set<Class<?>> modelSupportedTypes = registry.keySet();
-        for (Class<?> modelSupportedType : modelSupportedTypes) {
+        final Set<Class<?>> modelSupportedTypes = registry.keySet();
+        for (final Class<?> modelSupportedType : modelSupportedTypes) {
             if (modelSupportedType.isAssignableFrom(object.getClass())) {
-                Collection<Model<?>> assignableModels = registry
+                final Collection<Model<?>> assignableModels = registry
                         .get(modelSupportedType);
-                for (Model<?> m : assignableModels) {
+                for (final Model<?> m : assignableModels) {
                     result |= ((Model<T>) m).register(object);
                 }
             }
@@ -115,13 +115,13 @@ public class ModelManager {
         checkState(configured, "can not unregister when not configured, call configure() first");
 
         boolean result = false;
-        Set<Class<?>> modelSupportedTypes = registry.keySet();
-        for (Class<?> modelSupportedType : modelSupportedTypes) {
+        final Set<Class<?>> modelSupportedTypes = registry.keySet();
+        for (final Class<?> modelSupportedType : modelSupportedTypes) {
             // check if object is from a known type
             if (modelSupportedType.isAssignableFrom(object.getClass())) {
-                Collection<Model<?>> assignableModels = registry
+                final Collection<Model<?>> assignableModels = registry
                         .get(modelSupportedType);
-                for (Model<?> m : assignableModels) {
+                for (final Model<?> m : assignableModels) {
                     result |= ((Model<T>) m).unregister(object);
                 }
             }

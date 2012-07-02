@@ -22,18 +22,18 @@ public interface SimulatorAPI {
      * @throws IllegalStateException when simulator is not configured (by
      *             calling {@link Simulator#configure()}
      */
-    public boolean register(Object o);
+    boolean register(Object o);
 
     /**
      * Unregister an object from simulator.
      * @param o The object to be unregistered.
      * @return True if the object could be unregistered, false otherwise.
      */
-    public boolean unregister(Object o);
+    boolean unregister(Object o);
 
     /**
      * Get access to the main random generator used in the simulator.
      * @return the random generator of the simulatsor
      */
-    public RandomGenerator getRandomGenerator();
+    RandomGenerator getRandomGenerator();
 }

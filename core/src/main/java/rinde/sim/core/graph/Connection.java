@@ -38,8 +38,8 @@ public class Connection<E extends ConnectionData> {
         this.to = pTo;
         this.data = pData;
 
-        HashCodeBuilder builder = new HashCodeBuilder(13, 17).append(pFrom)
-                .append(pTo);
+        final HashCodeBuilder builder = new HashCodeBuilder(13, 17)
+                .append(pFrom).append(pTo);
         if (pData != null) {
             builder.append(pData);
         }
@@ -72,7 +72,7 @@ public class Connection<E extends ConnectionData> {
             return false;
         }
         @SuppressWarnings("rawtypes")
-        Connection other = (Connection) obj;
+        final Connection other = (Connection) obj;
         if (!from.equals(other.from)) {
             return false;
         }

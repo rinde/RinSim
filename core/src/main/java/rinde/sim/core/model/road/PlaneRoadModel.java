@@ -28,6 +28,12 @@ import rinde.sim.util.TimeUnit;
 public class PlaneRoadModel extends AbstractRoadModel<Point> {
 
     /**
+     * The minimum travelable distance.
+     */
+    // TODO should this be dynamic?
+    protected static final double DELTA = 0.000001;
+
+    /**
      * The minimum x and y of the plane.
      */
     public final Point min;
@@ -88,14 +94,14 @@ public class PlaneRoadModel extends AbstractRoadModel<Point> {
         double speed = min(object.getSpeed(), maxSpeed);
         speed = sc.from(speed, TimeUnit.H).to(TimeUnit.MS);
 
-        List<Point> travelledNodes = new ArrayList<Point>();
+        final List<Point> travelledNodes = new ArrayList<Point>();
         while (time.hasTimeLeft() && path.size() > 0) {
             checkArgument(isPointInBoundary(path.peek()), "points in the path must be within the predefined boundary of the plane");
 
             // distance that can be traveled with timeleft
-            double travelDistance = speed * time.getTimeLeft();
-            double stepLength = Point.distance(loc, path.peek());
-            double perc = travelDistance / stepLength;
+            final double travelDistance = speed * time.getTimeLeft();
+            final double stepLength = Point.distance(loc, path.peek());
+            final double perc = travelDistance / stepLength;
 
             if (perc + DELTA >= 1) {
                 loc = path.remove();
@@ -103,7 +109,7 @@ public class PlaneRoadModel extends AbstractRoadModel<Point> {
                 time.consume(Math.round(stepLength / speed));
                 traveled += stepLength;
             } else {
-                Point diff = Point.diff(path.peek(), loc);
+                final Point diff = Point.diff(path.peek(), loc);
                 loc = new Point(loc.x + perc * diff.x, loc.y + perc * diff.y);
                 time.consume(Math.round(travelDistance / speed));
                 traveled += travelDistance;
@@ -113,12 +119,6 @@ public class PlaneRoadModel extends AbstractRoadModel<Point> {
         return new PathProgress(traveled, time.getTimeConsumed(),
                 travelledNodes);
     }
-
-    /**
-     * The minimum travelable distance.
-     */
-    // TODO should this be dynamic?
-    protected static final double DELTA = 0.000001;
 
     @Override
     public List<Point> getShortestPathTo(Point from, Point to) {

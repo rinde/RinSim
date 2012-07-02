@@ -45,7 +45,7 @@ public class TableGraph<E extends ConnectionData> extends AbstractGraph<E> {
 
     @Override
     public Set<Point> getNodes() {
-        LinkedHashSet<Point> nodes = new LinkedHashSet<Point>(data.rowKeySet());
+        final Set<Point> nodes = new LinkedHashSet<Point>(data.rowKeySet());
         nodes.addAll(data.columnKeySet());
         return Collections.unmodifiableSet(nodes);
     }
@@ -100,8 +100,8 @@ public class TableGraph<E extends ConnectionData> extends AbstractGraph<E> {
 
     @Override
     public List<Connection<E>> getConnections() {
-        List<Connection<E>> connections = new ArrayList<Connection<E>>();
-        for (Cell<Point, Point, E> cell : data.cellSet()) {
+        final List<Connection<E>> connections = new ArrayList<Connection<E>>();
+        for (final Cell<Point, Point, E> cell : data.cellSet()) {
             if (empty.equals(cell.getValue())) {
                 connections.add(new Connection<E>(cell.getRowKey(), cell
                         .getColumnKey(), null));
@@ -134,7 +134,7 @@ public class TableGraph<E extends ConnectionData> extends AbstractGraph<E> {
 
     @Override
     public E connectionData(Point from, Point to) {
-        E e = data.get(from, to);
+        final E e = data.get(from, to);
         if (empty.equals(e)) {
             return null;
         }

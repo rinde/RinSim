@@ -3,24 +3,25 @@ package rinde.sim.core.model.road;
 import static com.google.common.base.Preconditions.checkArgument;
 
 import java.util.List;
-import java.util.Queue;
 
 import rinde.sim.core.graph.Point;
 
 /**
  * Represents the distance traveled and time spend in
- * {@link RoadModel#followPath(MovingRoadUser, Queue, rinde.sim.core.TimeLapse)}
+ * {@link RoadModel#followPath(MovingRoadUser, java.util.Queue, rinde.sim.core.TimeLapse)}
+ * .
  * @author Bartosz Michalik <bartosz.michalik@cs.kuleuven.be>
  * @since 2.0
  */
 public final class PathProgress {
     /**
-     * distance traveled in the
-     * {@link RoadModel#followPath(MovingRoadUser, Queue, rinde.sim.core.TimeLapse)}
+     * Distance traveled in the
+     * {@link RoadModel#followPath(MovingRoadUser, java.util.Queue, rinde.sim.core.TimeLapse)}
+     * .
      */
     public final double distance;
     /**
-     * time spend on traveling the distance
+     * Time spend on traveling the distance.
      */
     public final long time;
 

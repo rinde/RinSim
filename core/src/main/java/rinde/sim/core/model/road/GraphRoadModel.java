@@ -75,7 +75,7 @@ public class GraphRoadModel extends AbstractRoadModel<Loc> {
         // "can not follow path when to time is left");
         // // checkArgument(time > 0, "time must be a positive number");
 
-        Loc objLoc = objLocs.get(object);
+        final Loc objLoc = objLocs.get(object);
         checkLocation(objLoc);
 
         // long timeLeft = time;
@@ -88,7 +88,7 @@ public class GraphRoadModel extends AbstractRoadModel<Loc> {
 
         final SpeedConverter sc = new SpeedConverter();
 
-        List<Point> travelledNodes = new ArrayList<Point>();
+        final List<Point> travelledNodes = new ArrayList<Point>();
         while (time.hasTimeLeft() && path.size() > 0) {
             checkIsValidMove(tempLoc, path.peek());
 
@@ -97,8 +97,8 @@ public class GraphRoadModel extends AbstractRoadModel<Loc> {
             speed = sc.from(speed, TimeUnit.H).to(TimeUnit.MS);
 
             // distance that can be traveled in current edge with timeleft
-            double travelDistance = speed * time.getTimeLeft();
-            double connLength = computeConnectionLength(tempPos, path.peek());
+            final double travelDistance = speed * time.getTimeLeft();
+            final double connLength = computeConnectionLength(tempPos, path.peek());
 
             if (travelDistance >= connLength) {
                 // jump to next vertex
@@ -106,12 +106,12 @@ public class GraphRoadModel extends AbstractRoadModel<Loc> {
                 if (!(tempPos instanceof Loc)) {
                     travelledNodes.add(tempPos);
                 }
-                long timeSpent = Math.round(connLength / speed);
+                final long timeSpent = Math.round(connLength / speed);
                 time.consume(timeSpent);
                 traveled += connLength;
 
                 if (tempPos instanceof Loc) {
-                    tempLoc = checkLocation(((Loc) tempPos));
+                    tempLoc = checkLocation((Loc) tempPos);
                 } else {
                     tempLoc = checkLocation(newLoc(tempPos));
                 }
@@ -124,10 +124,11 @@ public class GraphRoadModel extends AbstractRoadModel<Loc> {
                 // timeLeft -= timeSpent;
                 traveled += travelDistance;
 
-                Point from = isMidPoint(tempLoc) ? tempLoc.conn.from : tempLoc;
-                Point peekTo = isMidPoint(path.peek()) ? ((Loc) path.peek()).conn.to
-                        : path.peek();
-                Connection<?> conn = graph.getConnection(from, peekTo);
+                final Point from = isMidPoint(tempLoc) ? tempLoc.conn.from
+                        : tempLoc;
+                final Point peekTo = isMidPoint(path.peek()) ? ((Loc) path
+                        .peek()).conn.to : path.peek();
+                final Connection<?> conn = graph.getConnection(from, peekTo);
                 tempLoc = checkLocation(newLoc(conn, tempLoc.relativePos
                         + newDis));
             }
@@ -146,7 +147,7 @@ public class GraphRoadModel extends AbstractRoadModel<Loc> {
         if (objLoc.isEdgePoint() && !nextHop.equals(objLoc.conn.to)) {
             // check if next destination is a MidPoint
             checkArgument(nextHop instanceof Loc, "Illegal path for this object, from a position on an edge we can not jump to another edge or go back.");
-            Loc dest = (Loc) nextHop;
+            final Loc dest = (Loc) nextHop;
             // check for same edge
             checkArgument(objLoc.isOnSameConnection(dest), "Illegal path for this object, first point is not on the same edge as the object.");
             // check for relative position
@@ -156,7 +157,7 @@ public class GraphRoadModel extends AbstractRoadModel<Loc> {
         else if (!objLoc.isEdgePoint() && !nextHop.equals(objLoc)
                 && !graph.hasConnection(objLoc, nextHop)) {
             checkArgument(nextHop instanceof Loc, "Illegal path, first point should be directly connected to object location.");
-            Loc dest = (Loc) nextHop;
+            final Loc dest = (Loc) nextHop;
             checkArgument(graph.hasConnection(objLoc, dest.conn.to), "Illegal path, first point is on an edge not connected to object location. ");
             checkArgument(objLoc.equals(dest.conn.from), "Illegal path, first point is on a different edge.");
         }
@@ -183,16 +184,16 @@ public class GraphRoadModel extends AbstractRoadModel<Loc> {
             return 0;
         }
         if (isMidPoint(from) && isMidPoint(to)) {
-            Loc start = (Loc) from;
-            Loc end = (Loc) to;
+            final Loc start = (Loc) from;
+            final Loc end = (Loc) to;
             checkArgument(start.isOnSameConnection(end), "the points are not on the same connection");
             return Math.abs(start.relativePos - end.relativePos);
         } else if (isMidPoint(from)) {
-            Loc start = (Loc) from;
+            final Loc start = (Loc) from;
             checkArgument(start.conn.to.equals(to), "from is not on a connection leading to 'to'");
             return start.roadLength - start.relativePos;
         } else if (isMidPoint(to)) {
-            Loc end = (Loc) to;
+            final Loc end = (Loc) to;
             checkArgument(end.conn.from.equals(from), "to is not connected to from");
             return end.relativePos;
         } else {
@@ -227,7 +228,7 @@ public class GraphRoadModel extends AbstractRoadModel<Loc> {
 
     /**
      * Compute speed of the object taking into account the speed limits of the
-     * object
+     * object.
      * @param object traveling object
      * @param from the point on the graph object is located
      * @param to the next point on the path it want to reach
@@ -244,7 +245,7 @@ public class GraphRoadModel extends AbstractRoadModel<Loc> {
             return object.getSpeed();
         }
 
-        Connection<?> conn = getConnection(from, to);
+        final Connection<?> conn = getConnection(from, to);
 
         // Point start = from instanceof Loc && ((Loc) from).isEdgePoint() ?
         // ((Loc) from).conn.from : from;
@@ -255,8 +256,8 @@ public class GraphRoadModel extends AbstractRoadModel<Loc> {
         // EdgeData data = graph.connectionData(from, to);
 
         if (conn.getData() instanceof MultiAttributeData) {
-            MultiAttributeData maed = (MultiAttributeData) conn.getData();
-            double speed = maed.getMaxSpeed();
+            final MultiAttributeData maed = (MultiAttributeData) conn.getData();
+            final double speed = maed.getMaxSpeed();
             return Double.isNaN(speed) ? object.getSpeed() : Math
                     .min(speed, object.getSpeed());
         }
@@ -265,19 +266,19 @@ public class GraphRoadModel extends AbstractRoadModel<Loc> {
 
     // TODO error messages
     protected Connection<?> getConnection(Point from, Point to) {
-        boolean fromIsMid = isMidPoint(from);
-        boolean toIsMid = isMidPoint(to);
+        final boolean fromIsMid = isMidPoint(from);
+        final boolean toIsMid = isMidPoint(to);
         if (fromIsMid && toIsMid) {
-            Loc start = (Loc) from;
-            Loc end = (Loc) to;
+            final Loc start = (Loc) from;
+            final Loc end = (Loc) to;
             checkArgument(start.isOnSameConnection(end), "should be on same connection");
             return start.conn;
         } else if (fromIsMid) {
-            Loc start = (Loc) from;
+            final Loc start = (Loc) from;
             checkArgument(start.conn.to.equals(to));
             return start.conn;
         } else if (toIsMid) {
-            Loc end = (Loc) to;
+            final Loc end = (Loc) to;
             checkArgument(end.conn.from.equals(from));
             return end.conn;
         } else {
@@ -294,7 +295,7 @@ public class GraphRoadModel extends AbstractRoadModel<Loc> {
         if (to == null) {
             throw new IllegalArgumentException("to can not be null");
         }
-        List<Point> path = new ArrayList<Point>();
+        final List<Point> path = new ArrayList<Point>();
         Point start = from;
         if (isMidPoint(from)) {
             start = ((Loc) from).conn.to;
@@ -331,7 +332,7 @@ public class GraphRoadModel extends AbstractRoadModel<Loc> {
      *         <code>null</code> otherwise.
      */
     public Connection<? extends ConnectionData> getConnection(RoadUser obj) {
-        Loc point = objLocs.get(obj);
+        final Loc point = objLocs.get(obj);
         if (isMidPoint(point)) {
             return graph.getConnection(point.conn.from, point.conn.to);
         }
@@ -418,10 +419,10 @@ public class GraphRoadModel extends AbstractRoadModel<Loc> {
         if (conn == null) {
             throw new IllegalArgumentException("conn can not be null");
         }
-        Point diff = Point.diff(conn.to, conn.from);
-        double roadLength = getConnectionLength(conn);
+        final Point diff = Point.diff(conn.to, conn.from);
+        final double roadLength = getConnectionLength(conn);
 
-        double perc = relativePos / roadLength;
+        final double perc = relativePos / roadLength;
         if (perc + DELTA >= 1) {
             return new Loc(conn.to.x, conn.to.y, null, -1, 0);
         }

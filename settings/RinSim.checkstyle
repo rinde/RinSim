@@ -68,7 +68,6 @@
     <module name="JUnitTestCase"/>
     <module name="MissingCtor"/>
     <module name="MissingSwitchDefault"/>
-    <module name="MultipleStringLiterals"/>
     <module name="MultipleVariableDeclarations"/>
     <module name="NestedForDepth"/>
     <module name="NestedIfDepth"/>
@@ -118,10 +117,15 @@
       <property name="tokens" value="RPAREN,TYPECAST"/>
     </module>
     <module name="WhitespaceAfter"/>
-    <module name="WhitespaceAround"/>
+    <module name="WhitespaceAround">
+      <property name="allowEmptyConstructors" value="true"/>
+      <property name="allowEmptyMethods" value="true"/>
+    </module>
     <module name="AnonInnerLength"/>
     <module name="ExecutableStatementCount">
+      <property name="severity" value="ignore"/>
       <property name="tokens" value="INSTANCE_INIT,STATIC_INIT,METHOD_DEF,CTOR_DEF"/>
+      <metadata name="net.sf.eclipsecs.core.lastEnabledSeverity" value="inherit"/>
     </module>
     <module name="MethodLength"/>
     <module name="ParameterNumber"/>

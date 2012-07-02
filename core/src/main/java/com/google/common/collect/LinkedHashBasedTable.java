@@ -28,17 +28,8 @@ public class LinkedHashBasedTable<R, C, V> extends StandardTable<R, C, V> {
 
     private static final long serialVersionUID = 0L;
 
-    private static class Factory<C, V> implements Supplier<Map<C, V>>,
-            Serializable {
-
-        public Factory() {}
-
-        @Override
-        public Map<C, V> get() {
-            return Maps.newLinkedHashMap();
-        }
-
-        private static final long serialVersionUID = 0;
+    LinkedHashBasedTable(Map<R, Map<C, V>> pBackingMap, Factory<C, V> pFactory) {
+        super(pBackingMap, pFactory);
     }
 
     /**
@@ -50,8 +41,16 @@ public class LinkedHashBasedTable<R, C, V> extends StandardTable<R, C, V> {
                 new LinkedHashMap<R, Map<C, V>>(), new Factory<C, V>());
     }
 
-    LinkedHashBasedTable(Map<R, Map<C, V>> pBackingMap, Factory<C, V> pFactory) {
-        super(pBackingMap, pFactory);
-    }
+    private static class Factory<C, V> implements Supplier<Map<C, V>>,
+            Serializable {
 
+        private static final long serialVersionUID = 0;
+
+        public Factory() {}
+
+        @Override
+        public Map<C, V> get() {
+            return Maps.newLinkedHashMap();
+        }
+    }
 }

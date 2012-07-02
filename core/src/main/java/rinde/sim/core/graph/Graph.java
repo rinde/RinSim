@@ -28,19 +28,19 @@ public interface Graph<E extends ConnectionData> {
      * @return <code>true</code> if the node is a vertex in this graph,
      *         <code>false</code> otherwise.
      */
-    public boolean containsNode(Point node);
+    boolean containsNode(Point node);
 
     /**
      * @param node The node to check for outgoing connections.
      * @return The outgoing connections starting from the specified node.
      */
-    public Collection<Point> getOutgoingConnections(Point node);
+    Collection<Point> getOutgoingConnections(Point node);
 
     /**
      * @param node The node to check for incoming connections.
      * @return The incoming connections starting from the specified node.
      */
-    public Collection<Point> getIncomingConnections(Point node);
+    Collection<Point> getIncomingConnections(Point node);
 
     /**
      * Checks if there exist a directed connection between <code>from</code> and
@@ -50,7 +50,7 @@ public interface Graph<E extends ConnectionData> {
      * @return <code>true</code> if the connection exist, <code>false</code>
      *         otherwise.
      */
-    public boolean hasConnection(Point from, Point to);
+    boolean hasConnection(Point from, Point to);
 
     /**
      * Returns a {@link Connection} between <code>from</code> and
@@ -59,7 +59,7 @@ public interface Graph<E extends ConnectionData> {
      * @param to The end node.
      * @return the {@link Connection} if it exists, <code>null</code> otherwise.
      */
-    public Connection<E> getConnection(Point from, Point to);
+    Connection<E> getConnection(Point from, Point to);
 
     /**
      * Get the data associated with connection.
@@ -68,7 +68,7 @@ public interface Graph<E extends ConnectionData> {
      * @return connection data or <code>null</code> if there is no data or
      *         connection does not exists.
      */
-    public E connectionData(Point from, Point to);
+    E connectionData(Point from, Point to);
 
     /**
      * Computes the length of the connection between <code>from</code> and
@@ -78,27 +78,27 @@ public interface Graph<E extends ConnectionData> {
      * @return The length of the connection.
      * @throws IllegalArgumentException if connection does not exist.
      */
-    public double connectionLength(Point from, Point to);
+    double connectionLength(Point from, Point to);
 
     /**
      * @return The total number of connections in this graph.
      */
-    public int getNumberOfConnections();
+    int getNumberOfConnections();
 
     /**
      * @return All connections in this graph.
      */
-    public List<Connection<E>> getConnections();
+    List<Connection<E>> getConnections();
 
     /**
      * @return The total number of nodes in this graph.
      */
-    public int getNumberOfNodes();
+    int getNumberOfNodes();
 
     /**
      * @return All nodes in this graph.
      */
-    public Set<Point> getNodes();
+    Set<Point> getNodes();
 
     /**
      * Add connection to the graph.
@@ -107,7 +107,7 @@ public interface Graph<E extends ConnectionData> {
      * @param edgeData data associated with the edge
      * @throws IllegalArgumentException if the connection already exists.
      */
-    public void addConnection(Point from, Point to, E edgeData);
+    void addConnection(Point from, Point to, E edgeData);
 
     /**
      * Add a connection to the graph.
@@ -115,14 +115,14 @@ public interface Graph<E extends ConnectionData> {
      * @param to End node
      * @throws IllegalArgumentException if the connection already exists.
      */
-    public void addConnection(Point from, Point to);
+    void addConnection(Point from, Point to);
 
     /**
      * Add connection to the graph.
      * @param connection the connection to add.
      * @throws IllegalArgumentException if the connection already exists.
      */
-    public void addConnection(Connection<E> connection);
+    void addConnection(Connection<E> connection);
 
     /**
      * Set connection data.
@@ -134,7 +134,7 @@ public interface Graph<E extends ConnectionData> {
      * @throw IllegalArgumentException when the connection between nodes do not
      *        exists
      */
-    public E setEdgeData(Point from, Point to, E edgeData);
+    E setEdgeData(Point from, Point to, E edgeData);
 
     /**
      * Adds connections to the graph.
@@ -142,26 +142,26 @@ public interface Graph<E extends ConnectionData> {
      * @throws IllegalArgumentException if any of the connections already
      *             exists.
      */
-    public void addConnections(Collection<Connection<E>> connections);
+    void addConnections(Collection<Connection<E>> connections);
 
     /**
      * Merges <code>other</code> into this graph.
      * @param other The graph to merge into this graph.
      */
-    public void merge(Graph<E> other);
+    void merge(Graph<E> other);
 
     /**
      * @return <code>true</code> if this graph contains no nodes and
      *         connections, <code>false</code> otherwise.
      */
-    public boolean isEmpty();
+    boolean isEmpty();
 
     /**
      * Removes the specified node from the graph, all connected connections
      * (incoming and outgoing) are removed as well.
      * @param node The node to remove.
      */
-    public void removeNode(Point node);
+    void removeNode(Point node);
 
     /**
      * Removes connection between <code>from</code> and <code>to</code>.
@@ -169,13 +169,13 @@ public interface Graph<E extends ConnectionData> {
      * @param to End node of connection.
      * @throws IllegalArgumentException if connection does not exist.
      */
-    public void removeConnection(Point from, Point to);
+    void removeConnection(Point from, Point to);
 
     /**
      * @param other The other graph to compare with this.
      * @return <code>true</code> if equal, <code>false</code> otherwise.
      */
-    public boolean equals(Graph<? extends E> other);
+    boolean equals(Graph<? extends E> other);
 
     /**
      * Get a random node in graph.
@@ -184,6 +184,6 @@ public interface Graph<E extends ConnectionData> {
      * @throws NullPointerException should be thrown when parameter is
      *             <code>null</code>
      */
-    public Point getRandomNode(RandomGenerator generator);
+    Point getRandomNode(RandomGenerator generator);
 
 }

@@ -25,7 +25,7 @@ public interface EventAPI {
      *            eventTypes are specified, the listener will be notified of
      *            <b>all</b> events.
      */
-    public void addListener(Listener listener, Enum<?>... eventTypes);
+    void addListener(Listener listener, Enum<?>... eventTypes);
 
     /**
      * Adds the specified listener. From now on, the specified listener will be
@@ -38,7 +38,7 @@ public interface EventAPI {
      *            eventTypes are specified, the listener will be notified of
      *            <b>all</b> events.
      */
-    public void addListener(Listener listener, Set<Enum<?>> eventTypes);
+    void addListener(Listener listener, Set<Enum<?>> eventTypes);
 
     /**
      * Removes the specified listener with the specified event types. From now
@@ -48,7 +48,7 @@ public interface EventAPI {
      * @param listener The {@link Listener} to remove.
      * @param eventTypes The event types.
      */
-    public void removeListener(Listener listener, Enum<?>... eventTypes);
+    void removeListener(Listener listener, Enum<?>... eventTypes);
 
     /**
      * Removes the specified listener with the specified event types. From now
@@ -58,7 +58,7 @@ public interface EventAPI {
      * @param listener The {@link Listener} to remove.
      * @param eventTypes The event types.
      */
-    public void removeListener(Listener listener, Set<Enum<?>> eventTypes);
+    void removeListener(Listener listener, Set<Enum<?>> eventTypes);
 
     /**
      * Checks if the specified <code>listener</code> is registered as listening
@@ -68,5 +68,5 @@ public interface EventAPI {
      * @return <code>true</code> if the listener is listening to
      *         <code>eventType</code>, <code>false</code> otherwise.
      */
-    public boolean containsListener(Listener listener, Enum<?> eventType);
+    boolean containsListener(Listener listener, Enum<?> eventType);
 }

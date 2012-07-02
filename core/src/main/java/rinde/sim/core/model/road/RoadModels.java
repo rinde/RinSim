@@ -18,7 +18,7 @@ import com.google.common.collect.Collections2;
  * 
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
  */
-public class RoadModels {
+public final class RoadModels {
 
     private RoadModels() {}
 
@@ -52,8 +52,8 @@ public class RoadModels {
      */
     public static RoadUser findClosestObject(Point pos, RoadModel rm,
             Predicate<RoadUser> predicate) {
-        Collection<RoadUser> filtered = Collections2
-                .filter(rm.getObjects(), predicate);
+        final Collection<RoadUser> filtered = Collections2.filter(rm
+                .getObjects(), predicate);
         return findClosestObject(pos, rm, filtered);
     }
 
@@ -129,8 +129,8 @@ public class RoadModels {
      */
     public static List<RoadUser> findClosestObjects(Point pos, RoadModel rm,
             Predicate<RoadUser> predicate, int n) {
-        Collection<RoadUser> filtered = Collections2
-                .filter(rm.getObjects(), predicate);
+        final Collection<RoadUser> filtered = Collections2.filter(rm
+                .getObjects(), predicate);
         return RoadModels.findClosestObjects(pos, rm, filtered, n);
     }
 

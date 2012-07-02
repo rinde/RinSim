@@ -9,6 +9,6 @@ package rinde.sim.event;
  */
 public interface Listener {
 
-    public void handleEvent(Event e);
+    void handleEvent(Event e);
 
 }

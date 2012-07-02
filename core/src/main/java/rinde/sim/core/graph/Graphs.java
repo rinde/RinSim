@@ -57,7 +57,7 @@ public final class Graphs {
     public static <E extends ConnectionData> void addBiPath(Graph<E> graph,
             Point... path) {
         addPath(graph, path);
-        List<Point> list = Arrays.asList(path);
+        final List<Point> list = Arrays.asList(path);
         Collections.reverse(list);
         addPath(graph, list.toArray(new Point[path.length]));
     }
@@ -112,15 +112,15 @@ public final class Graphs {
         if (g1.getNumberOfConnections() != g2.getNumberOfConnections()) {
             return false;
         }
-        for (Connection<? extends E> g1conn : g1.getConnections()) {
+        for (final Connection<? extends E> g1conn : g1.getConnections()) {
             if (!g2.hasConnection(g1conn.from, g1conn.to)) {
                 return false;
             }
-            E g2connEdgeData = g2.connectionData(g1conn.from, g1conn.to);
+            final E g2connEdgeData = g2.connectionData(g1conn.from, g1conn.to);
 
-            boolean null1 = g1conn.getData() == null;
-            boolean null2 = g2connEdgeData == null;
-            int nullCount = (null1 ? 1 : 0) + (null2 ? 1 : 0);
+            final boolean null1 = g1conn.getData() == null;
+            final boolean null2 = g2connEdgeData == null;
+            final int nullCount = (null1 ? 1 : 0) + (null2 ? 1 : 0);
             if ((nullCount == 0 && !g1conn.getData().equals(g2connEdgeData))
                     || nullCount == 1) {
                 return false;
@@ -128,6 +128,241 @@ public final class Graphs {
         }
         return true;
 
+    }
+
+    /**
+     * Computes the shortest path based on the euclidean distance.
+     * @param graph The {@link Graph} on which the shortest path is searched.
+     * @param from The start point of the path.
+     * @param to The destination of the path.
+     * @return The shortest path that exists between <code>from</code> and
+     *         <code>to</code>.
+     */
+    public static <E extends ConnectionData> List<Point> shortestPathEuclideanDistance(
+            Graph<E> graph, final Point from, final Point to) {
+        return Graphs
+                .shortestPath(graph, from, to, new Graphs.EuclidianDistance());
+    }
+
+    /**
+     * A standard implementation of the <a href="http
+     * ://en.wikipedia.org/wiki/A*_search_algorithm">A* algorithm</a>.
+     * 
+     * @param graph The {@link Graph} which contains <code>from</code> and
+     *            <code>to</code>.
+     * @param from The start position
+     * @param to The end position
+     * @param h The {@link Heuristic} used in the A* implementation.
+     * @return The shortest path from <code>from</code> to <code>to</code> if it
+     *         exists, otherwise a {@link PathNotFoundException} is thrown.
+     * @throws PathNotFoundException if a path does not exist between
+     *             <code>from</code> and <code>to</code>.
+     * 
+     * @author Rutger Claes
+     * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+     */
+    public static <E extends ConnectionData> List<Point> shortestPath(
+            Graph<E> graph, final Point from, final Point to, Graphs.Heuristic h) {
+        if (from == null || !graph.containsNode(from)) {
+            throw new IllegalArgumentException("from should be valid vertex. "
+                    + from);
+        }
+        // if (to == null || !graph.containsKey(to)) {
+        // throw new IllegalArgumentException("to should be valid vertex");
+        // }
+
+        // The set of nodes already evaluated.
+        final Set<Point> closedSet = new LinkedHashSet<Point>();
+
+        // Distance from start along optimal path.
+        final Map<Point, Double> gScore = new LinkedHashMap<Point, Double>();
+        gScore.put(from, 0d);
+
+        // heuristic estimates
+        final Map<Point, Double> hScore = new LinkedHashMap<Point, Double>();
+        hScore.put(from, h.estimateCost(Point.distance(from, to)));
+
+        // Estimated total distance from start to goal through y
+        final SortedMap<Double, Point> fScore = new TreeMap<Double, Point>();
+        fScore.put(h.estimateCost(Point.distance(from, to)), from);
+
+        // The map of navigated nodes.
+        final Map<Point, Point> cameFrom = new LinkedHashMap<Point, Point>();
+
+        while (!fScore.isEmpty()) {
+            final Point current = fScore.remove(fScore.firstKey());
+            if (current.equals(to)) {
+                final List<Point> result = new ArrayList<Point>();
+                result.add(from);
+                result.addAll(Graphs.reconstructPath(cameFrom, to));
+                return result;
+            }
+            closedSet.add(current);
+            for (final Point outgoingPoint : graph
+                    .getOutgoingConnections(current)) {
+                if (closedSet.contains(outgoingPoint)) {
+                    continue;
+                }
+
+                // tentative_g_score := g_score[x] + dist_between(x,y)
+                final double tgScore = gScore.get(current)
+                        + h.calculateCost(current, outgoingPoint);
+                boolean tIsBetter = false;
+
+                if (!fScore.values().contains(outgoingPoint)) {
+                    hScore.put(outgoingPoint, h.estimateCost(Point
+                            .distance(outgoingPoint, to)));
+                    tIsBetter = true;
+                } else if (tgScore < gScore.get(outgoingPoint)) {
+                    tIsBetter = true;
+                }
+
+                if (tIsBetter) {
+                    cameFrom.put(outgoingPoint, current);
+                    gScore.put(outgoingPoint, tgScore);
+
+                    double fScoreValue = gScore.get(outgoingPoint)
+                            + hScore.get(outgoingPoint);
+                    while (fScore.containsKey(fScoreValue)) {
+                        fScoreValue = Double.longBitsToDouble(Double
+                                .doubleToLongBits(fScoreValue) + 1);
+                    }
+                    fScore.put(fScoreValue, outgoingPoint);
+                }
+            }
+        }
+
+        throw new PathNotFoundException("Cannot reach " + to + " from " + from);
+    }
+
+    /**
+     * A method for finding the closest object to a point. If there is no object
+     * <code>null</code> is returned instead.
+     * @param pos The {@link Point} which is used as reference.
+     * @param objects The {@link Collection} which is searched.
+     * @param transformation A {@link Function} that transforms an object from
+     *            <code>objects</code> into a {@link Point}, normally this means
+     *            that the position of the object is retrieved.
+     * @return The closest object in <code>objects</code> to <code>pos</code> or
+     *         <code>null</code> if no object exists.
+     */
+    public static <T> T findClosestObject(Point pos, Collection<T> objects,
+            Function<T, Point> transformation) {
+        double dist = Double.MAX_VALUE;
+        T closest = null;
+        for (final T obj : objects) {
+            final Point objPos = transformation.apply(obj);
+            final double currentDist = Point.distance(pos, objPos);
+            if (currentDist < dist) {
+                dist = currentDist;
+                closest = obj;
+            }
+        }
+        return closest;
+    }
+
+    /**
+     * Searches the closest <code>n</code> objects to position <code>pos</code>
+     * in collection <code>objects</code> using <code>transformation</code>.
+     * @param pos The {@link Point} which is used as a reference point.
+     * @param objects The list of objects which is searched.
+     * @param transformation A function that transforms objects from
+     *            <code>objects</code> to a point.
+     * @param n The maximum number of objects to return where n must be >= 0.
+     * @return A list of objects that are closest to <code>pos</code>. The list
+     *         is ordered such that the closest object appears first. An empty
+     *         list is returned when <code>objects</code> is empty.
+     */
+    public static <T> List<T> findClosestObjects(Point pos,
+            Collection<T> objects, Function<T, Point> transformation, int n) {
+        if (pos == null) {
+            throw new IllegalArgumentException("pos can not be null");
+        }
+        if (objects == null) {
+            throw new IllegalArgumentException("objects can not be null");
+        }
+        if (transformation == null) {
+            throw new IllegalArgumentException("transformation can not be null");
+        }
+        if (n <= 0) {
+            throw new IllegalArgumentException("n must be a positive integer");
+        }
+        final List<ObjectWithDistance<T>> objs = new ArrayList<ObjectWithDistance<T>>();
+        for (final T obj : objects) {
+            final Point objPos = transformation.apply(obj);
+            objs.add(new ObjectWithDistance<T>(obj, Point.distance(pos, objPos)));
+        }
+        Collections.sort(objs);
+        final List<T> results = new ArrayList<T>();
+        for (final ObjectWithDistance<T> o : objs.subList(0, Math.min(n, objs
+                .size()))) {
+            results.add(o.obj);
+        }
+        return results;
+    }
+
+    /**
+     * Calculates the length of a path. The length is calculated by simply
+     * summing the distances of every two neighboring positions.
+     * @param path A list of {@link Point}s forming a path.
+     * @return The total length of the path.
+     */
+    public static double pathLength(List<Point> path) {
+        double dist = 0;
+        for (int i = 1; i < path.size(); i++) {
+            dist += Point.distance(path.get(i - 1), path.get(i));
+        }
+        return dist;
+    }
+
+    static List<Point> reconstructPath(final Map<Point, Point> cameFrom,
+            final Point end) {
+        if (cameFrom.containsKey(end)) {
+            final List<Point> path = reconstructPath(cameFrom, cameFrom.get(end));
+            path.add(end);
+            return path;
+        }
+
+        return new LinkedList<Point>();
+    }
+
+    /**
+     * A heuristic can be used to direct the {@link #shortestPath} algorithm, it
+     * determines the cost of traveling which should be minimized.
+     * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+     */
+    public interface Heuristic {
+        /**
+         * Can be used to estimate the cost of traveling a distance.
+         * @param distance A distance.
+         * @return The estimate of the cost.
+         */
+        double estimateCost(double distance);
+
+        /**
+         * Computes the cost of traveling over the connection as specified by
+         * the provided points.
+         * @param from Start point of a connection.
+         * @param to End point of a connection.
+         * @return The cost of traveling.
+         */
+        double calculateCost(Point from, Point to);
+    }
+
+    static class ObjectWithDistance<T> implements
+            Comparable<ObjectWithDistance<T>> {
+        public final double dist;
+        public final T obj;
+
+        public ObjectWithDistance(T pObj, double pDist) {
+            obj = pObj;
+            dist = pDist;
+        }
+
+        @Override
+        public int compareTo(ObjectWithDistance<T> o) {
+            return Double.compare(dist, o.dist);
+        }
     }
 
     private static class UnmodifiableMultiAttributeEdgeData extends
@@ -257,9 +492,9 @@ public final class Graphs {
 
         @Override
         public List<Connection<E>> getConnections() {
-            List<Connection<E>> conn = delegate.getConnections();
-            List<Connection<E>> unmodConn = new ArrayList<Connection<E>>();
-            for (Connection<E> c : conn) {
+            final List<Connection<E>> conn = delegate.getConnections();
+            final List<Connection<E>> unmodConn = new ArrayList<Connection<E>>();
+            for (final Connection<E> c : conn) {
                 unmodConn.add(unmodifiableConnection(c));
             }
             return Collections.unmodifiableList(unmodConn);
@@ -356,241 +591,6 @@ public final class Graphs {
             return unmodifiableConnection(delegate.getConnection(from, to));
         }
 
-    }
-
-    /**
-     * Computes the shortest path based on the euclidean distance.
-     * @param graph The {@link Graph} on which the shortest path is searched.
-     * @param from The start point of the path.
-     * @param to The destination of the path.
-     * @return The shortest path that exists between <code>from</code> and
-     *         <code>to</code>.
-     */
-    public static <E extends ConnectionData> List<Point> shortestPathEuclideanDistance(
-            Graph<E> graph, final Point from, final Point to) {
-        return Graphs
-                .shortestPath(graph, from, to, new Graphs.EuclidianDistance());
-    }
-
-    /**
-     * A standard implementation of the <a href="http
-     * ://en.wikipedia.org/wiki/A*_search_algorithm">A* algorithm</a>.
-     * 
-     * @param graph The {@link Graph} which contains <code>from</code> and
-     *            <code>to</code>.
-     * @param from The start position
-     * @param to The end position
-     * @param h The {@link Heuristic} used in the A* implementation.
-     * @return The shortest path from <code>from</code> to <code>to</code> if it
-     *         exists, otherwise a {@link PathNotFoundException} is thrown.
-     * @throws PathNotFoundException if a path does not exist between
-     *             <code>from</code> and <code>to</code>.
-     * 
-     * @author Rutger Claes
-     * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
-     */
-    public static <E extends ConnectionData> List<Point> shortestPath(
-            Graph<E> graph, final Point from, final Point to, Graphs.Heuristic h) {
-        if (from == null || !graph.containsNode(from)) {
-            throw new IllegalArgumentException("from should be valid vertex. "
-                    + from);
-        }
-        // if (to == null || !graph.containsKey(to)) {
-        // throw new IllegalArgumentException("to should be valid vertex");
-        // }
-
-        // The set of nodes already evaluated.
-        final Set<Point> closedSet = new LinkedHashSet<Point>();
-
-        // Distance from start along optimal path.
-        final Map<Point, Double> gScore = new LinkedHashMap<Point, Double>();
-        gScore.put(from, 0d);
-
-        // heuristic estimates
-        final Map<Point, Double> hScore = new LinkedHashMap<Point, Double>();
-        hScore.put(from, h.estimateCost(Point.distance(from, to)));
-
-        // Estimated total distance from start to goal through y
-        final SortedMap<Double, Point> fScore = new TreeMap<Double, Point>();
-        fScore.put(h.estimateCost(Point.distance(from, to)), from);
-
-        // The map of navigated nodes.
-        final Map<Point, Point> cameFrom = new LinkedHashMap<Point, Point>();
-
-        while (!fScore.isEmpty()) {
-            final Point current = fScore.remove(fScore.firstKey());
-            if (current.equals(to)) {
-                List<Point> result = new ArrayList<Point>();
-                result.add(from);
-                result.addAll(Graphs.reconstructPath(cameFrom, to));
-                return result;
-            }
-            closedSet.add(current);
-            for (final Point outgoingPoint : graph
-                    .getOutgoingConnections(current)) {
-                if (closedSet.contains(outgoingPoint)) {
-                    continue;
-                }
-
-                // tentative_g_score := g_score[x] + dist_between(x,y)
-                final double tgScore = gScore.get(current)
-                        + h.calculateCost(current, outgoingPoint);
-                boolean tIsBetter = false;
-
-                if (!fScore.values().contains(outgoingPoint)) {
-                    hScore.put(outgoingPoint, h.estimateCost(Point
-                            .distance(outgoingPoint, to)));
-                    tIsBetter = true;
-                } else if (tgScore < gScore.get(outgoingPoint)) {
-                    tIsBetter = true;
-                }
-
-                if (tIsBetter) {
-                    cameFrom.put(outgoingPoint, current);
-                    gScore.put(outgoingPoint, tgScore);
-
-                    double fScoreValue = gScore.get(outgoingPoint)
-                            + hScore.get(outgoingPoint);
-                    while (fScore.containsKey(fScoreValue)) {
-                        fScoreValue = Double.longBitsToDouble(Double
-                                .doubleToLongBits(fScoreValue) + 1);
-                    }
-                    fScore.put(fScoreValue, outgoingPoint);
-                }
-            }
-        }
-
-        throw new PathNotFoundException("Cannot reach " + to + " from " + from);
-    }
-
-    /**
-     * A method for finding the closest object to a point. If there is no object
-     * <code>null</code> is returned instead.
-     * @param pos The {@link Point} which is used as reference.
-     * @param objects The {@link Collection} which is searched.
-     * @param transformation A {@link Function} that transforms an object from
-     *            <code>objects</code> into a {@link Point}, normally this means
-     *            that the position of the object is retrieved.
-     * @return The closest object in <code>objects</code> to <code>pos</code> or
-     *         <code>null</code> if no object exists.
-     */
-    public static <T> T findClosestObject(Point pos, Collection<T> objects,
-            Function<T, Point> transformation) {
-        double dist = Double.MAX_VALUE;
-        T closest = null;
-        for (T obj : objects) {
-            Point objPos = transformation.apply(obj);
-            double currentDist = Point.distance(pos, objPos);
-            if (currentDist < dist) {
-                dist = currentDist;
-                closest = obj;
-            }
-        }
-        return closest;
-    }
-
-    static class ObjectWithDistance<T> implements
-            Comparable<ObjectWithDistance<T>> {
-        public final double dist;
-        public final T obj;
-
-        public ObjectWithDistance(T pObj, double pDist) {
-            obj = pObj;
-            dist = pDist;
-        }
-
-        @Override
-        public int compareTo(ObjectWithDistance<T> o) {
-            return Double.compare(dist, o.dist);
-        }
-    }
-
-    /**
-     * Searches the closest <code>n</code> objects to position <code>pos</code>
-     * in collection <code>objects</code> using <code>transformation</code>.
-     * @param pos The {@link Point} which is used as a reference point.
-     * @param objects The list of objects which is searched.
-     * @param transformation A function that transforms objects from
-     *            <code>objects</code> to a point.
-     * @param n The maximum number of objects to return where n must be >= 0.
-     * @return A list of objects that are closest to <code>pos</code>. The list
-     *         is ordered such that the closest object appears first. An empty
-     *         list is returned when <code>objects</code> is empty.
-     */
-    public static <T> List<T> findClosestObjects(Point pos,
-            Collection<T> objects, Function<T, Point> transformation, int n) {
-        if (pos == null) {
-            throw new IllegalArgumentException("pos can not be null");
-        }
-        if (objects == null) {
-            throw new IllegalArgumentException("objects can not be null");
-        }
-        if (transformation == null) {
-            throw new IllegalArgumentException("transformation can not be null");
-        }
-        if (n <= 0) {
-            throw new IllegalArgumentException("n must be a positive integer");
-        }
-        List<ObjectWithDistance<T>> objs = new ArrayList<ObjectWithDistance<T>>();
-        for (T obj : objects) {
-            Point objPos = transformation.apply(obj);
-            objs.add(new ObjectWithDistance<T>(obj, Point.distance(pos, objPos)));
-        }
-        Collections.sort(objs);
-        List<T> results = new ArrayList<T>();
-        for (ObjectWithDistance<T> o : objs
-                .subList(0, Math.min(n, objs.size()))) {
-            results.add(o.obj);
-        }
-        return results;
-    }
-
-    /**
-     * Calculates the length of a path. The length is calculated by simply
-     * summing the distances of every two neighboring positions.
-     * @param path A list of {@link Point}s forming a path.
-     * @return The total length of the path.
-     */
-    public static double pathLength(List<Point> path) {
-        double dist = 0;
-        for (int i = 1; i < path.size(); i++) {
-            dist += Point.distance(path.get(i - 1), path.get(i));
-        }
-        return dist;
-    }
-
-    static List<Point> reconstructPath(final Map<Point, Point> cameFrom,
-            final Point end) {
-        if (cameFrom.containsKey(end)) {
-            final List<Point> path = reconstructPath(cameFrom, cameFrom.get(end));
-            path.add(end);
-            return path;
-        }
-
-        return new LinkedList<Point>();
-    }
-
-    /**
-     * A heuristic can be used to direct the {@link #shortestPath} algorithm, it
-     * determines the cost of traveling which should be minimized.
-     * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
-     */
-    public interface Heuristic {
-        /**
-         * Can be used to estimate the cost of traveling a distance.
-         * @param distance A distance.
-         * @return The estimate of the cost.
-         */
-        public abstract double estimateCost(double distance);
-
-        /**
-         * Computes the cost of traveling over the connection as specified by
-         * the provided points.
-         * @param from Start point of a connection.
-         * @param to End point of a connection.
-         * @return The cost of traveling.
-         */
-        public abstract double calculateCost(Point from, Point to);
     }
 
     static class EuclidianDistance implements Graphs.Heuristic {

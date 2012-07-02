@@ -45,8 +45,8 @@ public class Point implements Serializable {
      * @return The distance between the two points.
      */
     public static double distance(Point p1, Point p2) {
-        double dx = p1.x - p2.x;
-        double dy = p1.y - p2.y;
+        final double dx = p1.x - p2.x;
+        final double dy = p1.y - p2.y;
         return Math.sqrt(dx * dx + dy * dy);
     }
 
@@ -71,7 +71,7 @@ public class Point implements Serializable {
      * @return A point.
      */
     public static Point parsePoint(String pointString) {
-        String[] parts = pointString.replaceAll("\\(|\\)", "").split(",");
+        final String[] parts = pointString.replaceAll("\\(|\\)", "").split(",");
         return new Point(Double.parseDouble(parts[0]),
                 Double.parseDouble(parts[1]));
     }

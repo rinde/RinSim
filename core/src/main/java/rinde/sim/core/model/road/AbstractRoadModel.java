@@ -148,10 +148,11 @@ public abstract class AbstractRoadModel<T> extends AbstractModel<RoadUser>
         synchronized (objLocs) {
             copiedMap = new LinkedHashMap<RoadUser, T>();
             copiedMap.putAll(objLocs);
-        }// it is save to release the lock now
+        } // it is save to release the lock now
 
-        Map<RoadUser, Point> theMap = new LinkedHashMap<RoadUser, Point>();
-        for (java.util.Map.Entry<RoadUser, T> entry : copiedMap.entrySet()) {
+        final Map<RoadUser, Point> theMap = new LinkedHashMap<RoadUser, Point>();
+        for (final java.util.Map.Entry<RoadUser, T> entry : copiedMap
+                .entrySet()) {
             theMap.put(entry.getKey(), locObj2point(entry.getValue()));
         }
         return theMap;
@@ -172,7 +173,7 @@ public abstract class AbstractRoadModel<T> extends AbstractModel<RoadUser>
     @Override
     public Set<RoadUser> getObjects() {
         synchronized (objLocs) {
-            Set<RoadUser> copy = new LinkedHashSet<RoadUser>();
+            final Set<RoadUser> copy = new LinkedHashSet<RoadUser>();
             copy.addAll(objLocs.keySet());
             return copy;
         }
@@ -189,31 +190,12 @@ public abstract class AbstractRoadModel<T> extends AbstractModel<RoadUser>
             Class<Y> type) {
         checkArgument(roadUser != null, "roadUser can not be null");
         checkArgument(type != null, "type can not be null");
-        Set<Y> result = new HashSet<Y>();
-        for (RoadUser ru : getObjects(new SameLocationPredicate(roadUser, type,
-                this))) {
+        final Set<Y> result = new HashSet<Y>();
+        for (final RoadUser ru : getObjects(new SameLocationPredicate(roadUser,
+                type, this))) {
             result.add((Y) ru);
         }
         return result;
-    }
-
-    private static class SameLocationPredicate implements Predicate<RoadUser> {
-        private final RoadUser reference;
-        private final RoadModel model;
-        private final Class<?> type;
-
-        public SameLocationPredicate(final RoadUser pReference,
-                final Class<?> pType, final RoadModel pModel) {
-            reference = pReference;
-            type = pType;
-            model = pModel;
-        }
-
-        @Override
-        public boolean apply(RoadUser input) {
-            return type.isInstance(input)
-                    && model.equalPosition(input, reference);
-        }
     }
 
     @Override
@@ -263,5 +245,24 @@ public abstract class AbstractRoadModel<T> extends AbstractModel<RoadUser>
             return true;
         }
         return false;
+    }
+
+    private static class SameLocationPredicate implements Predicate<RoadUser> {
+        private final RoadUser reference;
+        private final RoadModel model;
+        private final Class<?> type;
+
+        public SameLocationPredicate(final RoadUser pReference,
+                final Class<?> pType, final RoadModel pModel) {
+            reference = pReference;
+            type = pType;
+            model = pModel;
+        }
+
+        @Override
+        public boolean apply(RoadUser input) {
+            return type.isInstance(input)
+                    && model.equalPosition(input, reference);
+        }
     }
 }

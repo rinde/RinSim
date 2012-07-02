@@ -120,10 +120,10 @@ public class ScenarioBuilder {
      * @return The new scenario.
      */
     public Scenario build() {
-        List<TimedEvent> es = newArrayList(events);
-        for (EventGenerator<? extends TimedEvent> g : generators) {
-            Collection<? extends TimedEvent> collection = g.generate();
-            for (TimedEvent te : collection) {
+        final List<TimedEvent> es = newArrayList(events);
+        for (final EventGenerator<? extends TimedEvent> g : generators) {
+            final Collection<? extends TimedEvent> collection = g.generate();
+            for (final TimedEvent te : collection) {
                 checkArgument(supportedTypes.contains(te.getEventType()), te.getEventType()
                         + "is not supported by this ScenarioBuilder");
                 es.add(te);
@@ -140,7 +140,7 @@ public class ScenarioBuilder {
      * @author Bartosz Michalik <bartosz.michalik@cs.kuleuven.be>
      * @author Rinde van Lon (rinde.vanlon@cs.kuleuven.be)
      */
-    public static interface EventGenerator<T extends TimedEvent> {
+    public interface EventGenerator<T extends TimedEvent> {
         Collection<T> generate();
     }
 
@@ -176,7 +176,7 @@ public class ScenarioBuilder {
 
         @Override
         public Collection<T> generate() {
-            LinkedList<T> result = new LinkedList<T>();
+            final LinkedList<T> result = new LinkedList<T>();
             for (int i = 0; i < amount; ++i) {
                 result.add(eventCreator.apply(time));
             }
@@ -222,7 +222,7 @@ public class ScenarioBuilder {
 
         @Override
         public Collection<T> generate() {
-            LinkedList<T> result = new LinkedList<T>();
+            final LinkedList<T> result = new LinkedList<T>();
             for (long t = start; t <= end; t += step) {
                 result.add(eventCreator.apply(t));
             }

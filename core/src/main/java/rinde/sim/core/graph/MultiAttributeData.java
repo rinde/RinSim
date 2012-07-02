@@ -16,6 +16,14 @@ import java.util.Map;
 public class MultiAttributeData implements ConnectionData {
 
     /**
+     * Represents an empty value for usage in {@link TableGraph}.
+     */
+    public static final MultiAttributeData EMPTY = new MultiAttributeData(0);
+    static {
+        EMPTY.attributes.clear();
+    }
+
+    /**
      * Key for length of a connection.
      */
     public static final String KEY_LENGTH = "data.length";
@@ -25,7 +33,7 @@ public class MultiAttributeData implements ConnectionData {
      */
     public static final String KEY_MAX_SPEED = "data.max.speed";
 
-    private final HashMap<String, Object> attributes;
+    private final Map<String, Object> attributes;
 
     /**
      * New instance only using a single attribute: length.
@@ -54,7 +62,7 @@ public class MultiAttributeData implements ConnectionData {
      */
     @Override
     public double getLength() {
-        Object l = attributes.get(KEY_LENGTH);
+        final Object l = attributes.get(KEY_LENGTH);
         if (l instanceof Double) {
             return (Double) l;
         }
@@ -68,7 +76,7 @@ public class MultiAttributeData implements ConnectionData {
      * @see rinde.sim.core.graph.ConnectionData#getLength()
      */
     public double getMaxSpeed() {
-        Object l = attributes.get(KEY_MAX_SPEED);
+        final Object l = attributes.get(KEY_MAX_SPEED);
         if (l instanceof Double) {
             return (Double) l;
         }
@@ -81,7 +89,7 @@ public class MultiAttributeData implements ConnectionData {
      * @return old max speed or {@link Double#NaN}.
      */
     public double setMaxSpeed(double maxSpeed) {
-        Object l = attributes.put(KEY_MAX_SPEED, maxSpeed);
+        final Object l = attributes.put(KEY_MAX_SPEED, maxSpeed);
         if (l instanceof Double) {
             return (Double) l;
         }
@@ -106,7 +114,7 @@ public class MultiAttributeData implements ConnectionData {
      */
     @SuppressWarnings("unchecked")
     public <E> E get(String key, Class<E> type) {
-        Object r = attributes.get(key);
+        final Object r = attributes.get(key);
         if (r != null && type.isAssignableFrom(r.getClass())) {
             return (E) r;
         }
@@ -137,16 +145,8 @@ public class MultiAttributeData implements ConnectionData {
             return false;
         }
 
-        MultiAttributeData other = (MultiAttributeData) obj;
+        final MultiAttributeData other = (MultiAttributeData) obj;
         return attributes.equals(other.getAttributes());
-    }
-
-    /**
-     * Represents an empty value for usage in {@link TableGraph}.
-     */
-    public static final MultiAttributeData EMPTY = new MultiAttributeData(0);
-    static {
-        EMPTY.attributes.clear();
     }
 
 }

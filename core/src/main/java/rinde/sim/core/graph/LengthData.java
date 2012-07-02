@@ -8,6 +8,11 @@ package rinde.sim.core.graph;
  */
 public class LengthData implements ConnectionData {
 
+    /**
+     * Represents an empty value for usage in a {@link TableGraph}.
+     */
+    public static final LengthData EMPTY = new LengthData(Double.NaN);
+
     private final double length;
 
     /**
@@ -41,8 +46,4 @@ public class LengthData implements ConnectionData {
         return length + "";
     }
 
-    /**
-     * Represents an empty value for usage in a {@link TableGraph}.
-     */
-    public static final LengthData EMPTY = new LengthData(Double.NaN);
 }

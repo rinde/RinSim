@@ -63,7 +63,8 @@ public abstract class ScenarioController implements TickListener, Listener {
         ticks = numberOfTicks;
         scenario = new Scenario(scen);
 
-        Set<Enum<?>> typeSet = newHashSet(scenario.getPossibleEventTypes());
+        final Set<Enum<?>> typeSet = newHashSet(scenario
+                .getPossibleEventTypes());
         typeSet.addAll(asList(Type.values()));
         disp = new EventDispatcher(typeSet);
         eventAPI = disp.getEventAPI();
@@ -80,7 +81,7 @@ public abstract class ScenarioController implements TickListener, Listener {
     final protected void initialize() throws ConfigurationException {
         try {
             simulator = createSimulator();
-        } catch (Exception e) {
+        } catch (final Exception e) {
             LOGGER.warn("exception thrown during createSimulator()", e);
             throw new ConfigurationException(
                     "An exception was thrown while instantiating the simulator",
@@ -203,7 +204,7 @@ public abstract class ScenarioController implements TickListener, Listener {
     @Override
     public void handleEvent(Event e) {
         if (e.getEventType() instanceof StandardType) {
-            boolean handled = handleStandard(e);
+            final boolean handled = handleStandard(e);
             if (handled) {
                 return;
             }
@@ -227,7 +228,7 @@ public abstract class ScenarioController implements TickListener, Listener {
     }
 
     final boolean handleStandard(Event e) {
-        StandardType eT = (StandardType) e.getEventType();
+        final StandardType eT = (StandardType) e.getEventType();
         switch (eT) {
         case ADD_PACKAGE:
             return handleAddPackage(e);
@@ -290,7 +291,7 @@ public abstract class ScenarioController implements TickListener, Listener {
         return false;
     }
 
-    private final void checkSimulator() throws ConfigurationException {
+    private void checkSimulator() throws ConfigurationException {
         if (simulator == null) {
             throw new ConfigurationException(
                     "use createSimulator() to define simulator and make sure initialize() is called before calling start()");
