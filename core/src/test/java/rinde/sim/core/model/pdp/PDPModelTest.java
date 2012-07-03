@@ -39,7 +39,7 @@ public class PDPModelTest {
     public void testPickup() {
 
         final Package p = new TestPackage();
-        final Truck t = new TestTruck();
+        final Truck t = new TestTruck(new Point(1, 1));
 
         model.register(p);
         model.register(t);
@@ -47,7 +47,7 @@ public class PDPModelTest {
         rm.register(p);
         rm.register(t);
 
-        rm.addObjectAt(t, new Point(1, 1));
+        // rm.addObjectAt(t, new Point(1, 1));
         rm.addObjectAt(p, new Point(1, 1));
 
         assertEquals(0, model.getContentsSize(t), EPSILON);
@@ -77,6 +77,13 @@ public class PDPModelTest {
     }
 
     class TestTruck extends Truck {
+
+        /**
+         * @param startPos
+         */
+        public TestTruck(Point startPos) {
+            super(startPos);
+        }
 
         @Override
         public double getCapacity() {

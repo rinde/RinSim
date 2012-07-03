@@ -5,6 +5,7 @@ package rinde.sim.core.model.pdp;
 
 import rinde.sim.core.TickListener;
 import rinde.sim.core.TimeLapse;
+import rinde.sim.core.graph.Point;
 import rinde.sim.core.model.road.MovingRoadUser;
 import rinde.sim.core.model.road.RoadModel;
 
@@ -18,8 +19,14 @@ public abstract class Truck implements PackageContainer, MovingRoadUser,
     protected PDPModel pdpModel;
     protected RoadModel roadModel;
 
+    private final Point startPosition;
+
     enum State {
         DRIVING, WAITING, LOADING, UNLOADING
+    }
+
+    public Truck(Point startPos) {
+        startPosition = startPos;
     }
 
     @Override
@@ -36,6 +43,7 @@ public abstract class Truck implements PackageContainer, MovingRoadUser,
         controlLoop(time);
     }
 
+    // TODO is this a good idea?? might make this object way too complicated
     public final void pickup(Package p, TimeLapse time) {
         pdpModel.pickup(this, p, time);
     }
@@ -48,6 +56,7 @@ public abstract class Truck implements PackageContainer, MovingRoadUser,
     @Override
     public final void initRoadUser(RoadModel model) {
         roadModel = model;
+        roadModel.addObjectAt(this, startPosition);
     }
 
     protected abstract void controlLoop(TimeLapse time);
