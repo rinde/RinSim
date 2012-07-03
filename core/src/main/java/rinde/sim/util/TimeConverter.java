@@ -1,13 +1,19 @@
 package rinde.sim.util;
 
-import static rinde.sim.util.TimeUnit.*;
+import static rinde.sim.util.TimeUnit.D;
+import static rinde.sim.util.TimeUnit.H;
+import static rinde.sim.util.TimeUnit.M;
+import static rinde.sim.util.TimeUnit.S;
 
 /**
+ * 
  * Simple utility class to convert
  * @author Bartosz Michalik <bartosz.michalik@cs.kuleuven.be>
  * @since 2.0
  */
 public class TimeConverter {
+    // TODO use joda time for this?
+
     private long time = 0;
     private final long tickLength;
 
@@ -50,7 +56,7 @@ public class TimeConverter {
      * @return
      */
     public long toTime() {
-        long res = time;
+        final long res = time;
         time = 0;
         return res;
     }
