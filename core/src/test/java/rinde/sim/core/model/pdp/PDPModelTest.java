@@ -10,159 +10,107 @@ import static org.junit.Assert.assertTrue;
 import org.junit.Before;
 import org.junit.Test;
 
+import rinde.sim.core.TimeLapse;
+import rinde.sim.core.TimeLapseFactory;
 import rinde.sim.core.graph.Point;
 import rinde.sim.core.model.road.PlaneRoadModel;
 import rinde.sim.core.model.road.RoadModel;
 
 /**
- * @author Rinde van Lon (rinde.vanlon@cs.kuleuven.be)
+ * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
  * 
  */
+@SuppressWarnings("javadoc")
 public class PDPModelTest {
 
-	static final double EPSILON = 0.0000001;
+    static final double EPSILON = 0.0000001;
 
-	PDPModel pdp;
-	RoadModel rm;
+    PDPModel model;
+    RoadModel rm;
 
-	@Before
-	public void setUp() {
-		rm = new PlaneRoadModel(new Point(0, 0), new Point(10, 10), Double.POSITIVE_INFINITY);
-		pdp = new PDPModel(rm);
-	}
+    @Before
+    public void setUp() {
+        rm = new PlaneRoadModel(new Point(0, 0), new Point(10, 10),
+                Double.POSITIVE_INFINITY);
+        model = new PDPModel(rm);
+    }
 
-	@Test
-	public void testPickup() {
+    @Test
+    public void testPickup() {
 
-		Package p = new TestPackage();
-		Truck t = new TestTruck();
+        final Package p = new TestPackage();
+        final Truck t = new TestTruck();
 
-		pdp.register(p);
-		pdp.register(t);
+        model.register(p);
+        model.register(t);
 
-		rm.register(p);
-		rm.register(t);
+        rm.register(p);
+        rm.register(t);
 
-		rm.addObjectAt(t, new Point(1, 1));
-		rm.addObjectAt(p, new Point(1, 1));
+        rm.addObjectAt(t, new Point(1, 1));
+        rm.addObjectAt(p, new Point(1, 1));
 
-		assertEquals(0, pdp.getContentsSize(t), EPSILON);
+        assertEquals(0, model.getContentsSize(t), EPSILON);
 
-		pdp.pickup(t, p);
+        model.pickup(t, p, TimeLapseFactory.create(0, 10000));
 
-		assertFalse(rm.containsObject(p));
-		assertTrue(pdp.truckContains(t, p));
+        assertFalse(rm.containsObject(p));
+        assertTrue(model.truckContains(t, p));
 
-		assertEquals(2, pdp.getContentsSize(t), EPSILON);
+        assertEquals(2, model.getContentsSize(t), EPSILON);
 
-	}
+    }
 
-	class TestPackage extends Package {
+    class TestPackage extends Package {
 
-		@Override
-		public void initPDPObject(PDPModel pModel) {
+        @Override
+        public void initPDPObject(PDPModel pModel) {}
 
-		}
+        @Override
+        public void initRoadUser(RoadModel pModel) {}
 
-		@Override
-		public void initRoadUser(RoadModel pModel) {
+        @Override
+        double getMagnitude() {
+            return 2;
+        }
 
-			// TODO Auto-generated method stub
+    }
 
-		}
+    class TestTruck extends Truck {
 
-		@Override
-		double getMagnitude() {
-			// TODO Auto-generated method stub
-			return 2;
-		}
+        @Override
+        public double getCapacity() {
+            return 10;
+        }
 
-	}
+        @Override
+        public double getSpeed() {
+            return 0;
+        }
 
-	class TestTruck extends Truck {
+        @Override
+        protected void controlLoop(TimeLapse time) {
+            // TODO Auto-generated method stub
 
-		/*
-		 * (non-Javadoc)
-		 * @see rinde.sim.core.model.pdp.PackageContainer#getCapacity()
-		 */
-		@Override
-		public double getCapacity() {
-			// TODO Auto-generated method stub
-			return 10;
-		}
+        }
 
-		/*
-		 * (non-Javadoc)
-		 * @see
-		 * rinde.sim.core.model.pdp.PDPObject#initPDPObject(rinde.sim.core.model
-		 * .pdp.PDPModel)
-		 */
-		@Override
-		public void initPDPObject(PDPModel model) {
-			// TODO Auto-generated method stub
+        @Override
+        public void afterTick(TimeLapse timeLapse) {}
 
-		}
+    }
 
-		/*
-		 * (non-Javadoc)
-		 * @see
-		 * rinde.sim.core.model.road.RoadUser#initRoadUser(rinde.sim.core.model
-		 * .road.RoadModel)
-		 */
-		@Override
-		public void initRoadUser(RoadModel model) {
-			// TODO Auto-generated method stub
+    class TestDepot extends Depot {
 
-		}
+        @Override
+        public double getCapacity() {
+            return 0;
+        }
 
-		/*
-		 * (non-Javadoc)
-		 * @see rinde.sim.core.model.road.MovingRoadUser#getSpeed()
-		 */
-		@Override
-		public double getSpeed() {
-			// TODO Auto-generated method stub
-			return 0;
-		}
+        @Override
+        public void initPDPObject(PDPModel pModel) {}
 
-	}
+        @Override
+        public void initRoadUser(RoadModel pModel) {}
 
-	class TestDepot extends Depot {
-
-		/*
-		 * (non-Javadoc)
-		 * @see rinde.sim.core.model.pdp.PackageContainer#getCapacity()
-		 */
-		@Override
-		public double getCapacity() {
-			// TODO Auto-generated method stub
-			return 0;
-		}
-
-		/*
-		 * (non-Javadoc)
-		 * @see
-		 * rinde.sim.core.model.pdp.PDPObject#initPDPObject(rinde.sim.core.model
-		 * .pdp.PDPModel)
-		 */
-		@Override
-		public void initPDPObject(PDPModel pModel) {
-			// TODO Auto-generated method stub
-
-		}
-
-		/*
-		 * (non-Javadoc)
-		 * @see
-		 * rinde.sim.core.model.road.RoadUser#initRoadUser(rinde.sim.core.model
-		 * .road.RoadModel)
-		 */
-		@Override
-		public void initRoadUser(RoadModel pModel) {
-			// TODO Auto-generated method stub
-
-		}
-
-	}
-
+    }
 }

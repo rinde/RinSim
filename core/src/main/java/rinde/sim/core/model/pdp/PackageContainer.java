@@ -14,6 +14,6 @@ interface PackageContainer extends PDPObject {
      * The returned value is treated as a constant (i.e. it is read only once).
      * @return
      */
-    abstract double getCapacity();
+    double getCapacity();
 
 }
