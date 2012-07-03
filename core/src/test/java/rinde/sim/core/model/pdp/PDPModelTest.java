@@ -104,6 +104,12 @@ public class PDPModelTest {
         @Override
         public void afterTick(TimeLapse timeLapse) {}
 
+        @Override
+        protected void init() {
+            // TODO Auto-generated method stub
+
+        }
+
     }
 
     class TestDepot extends Depot {

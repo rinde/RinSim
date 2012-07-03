@@ -43,22 +43,26 @@ public abstract class Truck implements PackageContainer, MovingRoadUser,
         controlLoop(time);
     }
 
-    // TODO is this a good idea?? might make this object way too complicated
-    public final void pickup(Package p, TimeLapse time) {
-        pdpModel.pickup(this, p, time);
-    }
-
     @Override
     public final void initPDPObject(PDPModel model) {
         pdpModel = model;
+        if (pdpModel != null && roadModel != null) {
+            init();
+        }
     }
 
     @Override
     public final void initRoadUser(RoadModel model) {
         roadModel = model;
         roadModel.addObjectAt(this, startPosition);
+        if (pdpModel != null && roadModel != null) {
+            init();
+        }
     }
 
     protected abstract void controlLoop(TimeLapse time);
+
+    // should perhapse not be abstract (not mandatory)
+    protected abstract void init();
 
 }

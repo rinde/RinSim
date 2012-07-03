@@ -144,6 +144,7 @@ public class PlaneRoadModel extends AbstractRoadModel<Point> {
      * @return <code>true</code> if the points is within the boundary,
      *         <code>false</code> otherwise.
      */
+    // TODO give more general name?
     protected boolean isPointInBoundary(Point p) {
         return p.x >= min.x && p.x <= max.x && p.y >= min.y && p.y <= max.y;
     }

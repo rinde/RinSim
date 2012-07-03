@@ -10,6 +10,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
@@ -39,6 +40,8 @@ public abstract class AbstractRoadModel<T> extends AbstractModel<RoadUser>
      * A mapping of {@link RoadUser} to location.
      */
     protected volatile Map<RoadUser, T> objLocs;
+
+    protected Map<MovingRoadUser, DestinationPath> objDestinations;
 
     /**
      * Create a new instance using the specified graph.
@@ -79,12 +82,38 @@ public abstract class AbstractRoadModel<T> extends AbstractModel<RoadUser>
         checkArgument(objLocs.containsKey(object), "object must have a location");
         checkArgument(path.peek() != null, "path can not be empty");
         checkArgument(time.hasTimeLeft(), "can not follow path when to time is left");
+        objDestinations.remove(object);
         return doFollowPath(object, path, time);
     }
 
+    // FIXME needs proper tests! especially if combining it with followPath
+    // calls()
+    @Override
+    public PathProgress moveTo(MovingRoadUser object, Point destination,
+            TimeLapse time) {
+
+        // TODO is destination valid?
+        Queue<Point> path;
+        if (objDestinations.containsKey(object)
+                && objDestinations.get(object).destination.equals(destination)) {
+            // is valid move? -> assume it is
+            path = objDestinations.get(object).path;
+        } else {
+            path = new LinkedList<Point>(getShortestPathTo(object, destination));
+            objDestinations.put(object, new DestinationPath(destination, path));
+        }
+        return doFollowPath(object, path, time);
+    }
+
+    @Override
+    public PathProgress moveTo(MovingRoadUser object, RoadUser destination,
+            TimeLapse time) {
+        return moveTo(object, getPosition(destination), time);
+    }
+
     /**
-     * Should be overriden by subclasses to define
-     * {@link RoadModel#followPath(MovingRoadUser, Queue, TimeLapse)}.
+     * Should be overriden by subclasses to define actual
+     * {@link RoadModel#followPath(MovingRoadUser, Queue, TimeLapse)} behavior.
      * @param object The object that is moved.
      * @param path The path that is followed.
      * @param time The time that is available for travel.
@@ -114,11 +143,13 @@ public abstract class AbstractRoadModel<T> extends AbstractModel<RoadUser>
         checkArgument(roadUser != null, "RoadUser can not be null");
         checkArgument(objLocs.containsKey(roadUser), "RoadUser does not exist.");
         objLocs.remove(roadUser);
+        objDestinations.remove(roadUser);
     }
 
     @Override
     public void clear() {
         objLocs.clear();
+        objDestinations.clear();
     }
 
     @Override
@@ -263,6 +294,16 @@ public abstract class AbstractRoadModel<T> extends AbstractModel<RoadUser>
         public boolean apply(RoadUser input) {
             return type.isInstance(input)
                     && model.equalPosition(input, reference);
+        }
+    }
+
+    private class DestinationPath {
+        public final Point destination;
+        public final Queue<Point> path;
+
+        public DestinationPath(Point dest, Queue<Point> p) {
+            destination = dest;
+            path = p;
         }
     }
 }

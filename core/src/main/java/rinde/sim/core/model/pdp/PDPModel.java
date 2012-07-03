@@ -42,6 +42,8 @@ public class PDPModel implements Model<PDPObject> {
     protected final Map<PackageContainer, Double> containerContentsSize;
     protected final Map<PackageContainer, Double> containerCapacities;
 
+    protected final Map<Truck, Action> truckActions;
+
     protected final Set<Package> knownPackages;
 
     // TODO what if we give all model actions default visibility? and let them
@@ -58,6 +60,7 @@ public class PDPModel implements Model<PDPObject> {
         containerContentsSize = newHashMap();
         containerCapacities = newHashMap();
         knownPackages = newHashSet();
+        truckActions = newHashMap();
     }
 
     // protected Table<Truck>
@@ -79,7 +82,7 @@ public class PDPModel implements Model<PDPObject> {
      * @param t
      * @param p
      */
-    protected void pickup(Truck t, Package p, TimeLapse time) {
+    public void pickup(Truck t, Package p, TimeLapse time) {
 
         // TODO add event
         // TODO what to do with the time that is needed for pickup?
@@ -103,7 +106,7 @@ public class PDPModel implements Model<PDPObject> {
         // in this case we know we cannot finish this action with the available
         // time. We must continue in the next tick.
         if (time.getTimeLeft() < pickupTime) {
-
+            new PickupAction(t, p, pickupTime);
         }
 
         roadModel.removeObject(p);
@@ -117,22 +120,22 @@ public class PDPModel implements Model<PDPObject> {
     // TODO check for constraints, can a package just be put down everywhere? or
     // only at Depots? is this a global constraint? or only at its predefined
     // destination?
-    public void deliver(Truck t, Package p, TimeLapse time) {
+    // public void deliver(Truck t, Package p, TimeLapse time) {
 
-        // partial delivery?
-        // what if we didn't have time to completely deliver? we should enforce
-        // continuing the delivery in the next tick
-        // how to avoid that the truck moves in the mean time? listening to move
-        // events in the RoadModel? intercepting TimeLapses in the Truck? (could
-        // be done by making an abstract class). the state should be saved
-        // somewhere, in the model? in the truck?
+    // partial delivery?
+    // what if we didn't have time to completely deliver? we should enforce
+    // continuing the delivery in the next tick
+    // how to avoid that the truck moves in the mean time? listening to move
+    // events in the RoadModel? intercepting TimeLapses in the Truck? (could
+    // be done by making an abstract class). the state should be saved
+    // somewhere, in the model? in the truck?
 
-        // TODO package.isDeliveryAllowedAt(currentPos)
-        // TODO truck.canDeliverAt(currentPos / currentDepot)
-        // TODO some of these constraints might be too much for a basic
-        // implementation, if needed they should be implemented in an overriding
-        // subclass
-    }
+    // TODO package.isDeliveryAllowedAt(currentPos)
+    // TODO truck.canDeliverAt(currentPos / currentDepot)
+    // TODO some of these constraints might be too much for a basic
+    // implementation, if needed they should be implemented in an overriding
+    // subclass
+    // }
 
     public void deliver(Truck t, Package p, Point position, TimeLapse time) {
 
@@ -200,8 +203,51 @@ public class PDPModel implements Model<PDPObject> {
      * @param truck
      * @param time
      */
-    public void continuePreviousActions(Truck truck, TimeLapse time) {
-        // TODO implement
+    protected void continuePreviousActions(Truck truck, TimeLapse time) {
+        if (truckActions.containsKey(truck)) {
+            final Action action = truckActions.get(truck);
+            action.perform(time);
+            if (action.isDone()) {
+                truckActions.remove(truck);
+            }
+        }
+    }
+
+    interface Action {
+        void perform(TimeLapse time);
+
+        boolean isDone();
+    }
+
+    class PickupAction implements Action {
+
+        private final Truck truck;
+        private final Package pack;
+        private long timeNeeded;
+
+        public PickupAction(Truck t, Package p, long pTimeNeeded) {
+            truck = t;
+            pack = p;
+            timeNeeded = pTimeNeeded;
+        }
+
+        @Override
+        public void perform(TimeLapse time) {
+            // there is enough time to finish action
+            if (time.getTimeLeft() >= timeNeeded) {
+                timeNeeded = 0;
+                time.consume(timeNeeded);
+                // TODO do something with Truck and Package
+            } else { // there is not enough time to finish action in this step
+                timeNeeded -= time.getTimeLeft();
+                time.consumeAll();
+            }
+        }
+
+        @Override
+        public boolean isDone() {
+            return timeNeeded == 0;
+        }
     }
 
 }

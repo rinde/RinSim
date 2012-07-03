@@ -36,6 +36,10 @@ public interface RoadModel extends Model<RoadUser> {
     // TODO add a function which handles all the traveling. e.g: moveTo(obj,
     // dest, time)
     // this function would automatically find the shortest path to dest
+    PathProgress moveTo(MovingRoadUser object, Point destination, TimeLapse time);
+
+    PathProgress moveTo(MovingRoadUser object, RoadUser destination,
+            TimeLapse time);
 
     /**
      * Moves the specified {@link MovingRoadUser} using the specified path and
