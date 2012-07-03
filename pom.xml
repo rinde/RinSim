@@ -64,6 +64,7 @@
 						<link>http://commons.apache.org/math/apidocs/</link>
 						<link>http://slf4j.org/apidocs/</link>
 						<link>http://help.eclipse.org/indigo/topic/org.eclipse.platform.doc.isv/reference/api/</link>
+						<link>http://joda-time.sourceforge.net/apidocs/</link>
 					</links>
 					<footer></footer>
 
@@ -162,6 +163,11 @@
 				<groupId>org.apache.commons</groupId>
 				<artifactId>commons-math3</artifactId>
 				<version>3.0</version>
+			</dependency>
+			<dependency>
+				<groupId>joda-time</groupId>
+				<artifactId>joda-time</artifactId>
+				<version>2.1</version>
 			</dependency>
 		</dependencies>
 	</dependencyManagement>

@@ -1,48 +1,40 @@
 package rinde.sim.util;
 
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.TimeZone;
+import org.joda.time.Period;
+import org.joda.time.format.PeriodFormatter;
+import org.joda.time.format.PeriodFormatterBuilder;
 
-// FIXME convert to Joda Time?
-public class TimeFormatter {
+/**
+ * Provides methdos for converting time to a nice string representatation: (D)
+ * HH:MM:SS.
+ * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+ */
+public final class TimeFormatter {
 
-    private static SimpleDateFormat dateFormat = init();
+    private static PeriodFormatter formatter = new PeriodFormatterBuilder()
+            .appendDays().appendSeparatorIfFieldsBefore(" ")
+            .minimumPrintedDigits(2).printZeroAlways().appendHours()
+            .appendLiteral(":").appendMinutes().appendLiteral(":")
+            .appendSeconds().toFormatter();
 
-    private static SimpleDateFormat init() {
-        SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss");
-        sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
-        return sdf;
-    }
+    private TimeFormatter() {}
 
-    private static final long DAY = 24 * 60 * 60 * 1000;
-
+    /**
+     * Converts the specified time in to a string.
+     * @param ms The time to format in milliseconds.
+     * @return A nice formatted time string.
+     */
     public static String format(long ms) {
-        String day = "";
-        if (ms > DAY) {
-            day = Math.round(ms / DAY) + " ";
-        }
-        String sign = ms < 0 ? "-" : "";
-        return sign + day + dateFormat.format(new Date(Math.abs(ms)));
+        return formatter.print(new Period(ms));
     }
 
+    /**
+     * Converts the specified time to a string.
+     * @param ms The time to format in milliseconds.
+     * @return A nice formatted time string.
+     */
     public static String format(double ms) {
         return format(Math.round(ms));
     }
 
-    public static long parse(String time) {
-        try {
-            if (time.length() > 8) {
-                String[] parts = time.split(" ");
-                long ms = Integer.parseInt(parts[0]) * DAY;
-                ms += dateFormat.parse(parts[1]).getTime();
-                return ms;
-            }
-            return dateFormat.parse(time).getTime();
-        } catch (ParseException e) {
-            throw new RuntimeException(e);
-        }
-
-    }
 }
