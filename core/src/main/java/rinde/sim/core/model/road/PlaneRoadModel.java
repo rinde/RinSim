@@ -105,15 +105,15 @@ public class PlaneRoadModel extends AbstractRoadModel<Point> {
             // distance that can be traveled with timeleft
             final double travelDistance = speed * time.getTimeLeft();
             final double stepLength = Point.distance(loc, path.peek());
-            final double perc = travelDistance / stepLength;
 
-            if (perc + DELTA >= 1) {
+            if (travelDistance >= stepLength) {
                 loc = path.remove();
                 travelledNodes.add(loc);
                 time.consume(Math.round(stepLength / speed));
                 traveled += stepLength;
             } else {
                 final Point diff = Point.diff(path.peek(), loc);
+                final double perc = travelDistance / stepLength;
                 loc = new Point(loc.x + perc * diff.x, loc.y + perc * diff.y);
                 time.consume(Math.round(travelDistance / speed));
                 traveled += travelDistance;

@@ -42,6 +42,10 @@ import com.google.common.collect.Table;
  */
 public abstract class AbstractRoadModelTest<T extends RoadModel> {
 
+    // TODO add a special class for equivalence testing between roadmodels. The
+    // models should behave exactly the same when traveling over routes which
+    // are possible in both models.
+
     protected static TimeLapse hour() {
         return hour(1);
     }
