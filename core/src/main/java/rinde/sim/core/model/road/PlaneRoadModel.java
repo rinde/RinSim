@@ -92,6 +92,10 @@ public class PlaneRoadModel extends AbstractRoadModel<Point> {
         final SpeedConverter sc = new SpeedConverter();
         // speed in graph units per hour -> converting to milliseconds
         double speed = min(object.getSpeed(), maxSpeed);
+        if (speed == 0) {
+            // FIXME add test for this case, also check GraphRoadModel
+            return new PathProgress(0, 0, new ArrayList<Point>());
+        }
         speed = sc.from(speed, TimeUnit.H).to(TimeUnit.MS);
 
         final List<Point> travelledNodes = new ArrayList<Point>();

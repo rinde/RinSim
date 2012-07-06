@@ -24,6 +24,9 @@ import com.google.common.collect.Multimap;
 /**
  * 
  * 
+ * Assumptions of the model, any truck can pickup any (kind of) package (as long
+ * as size constraints are met).
+ * 
  * Currently supports three kinds of objects:
  * <ul>
  * <li> {@link Package}</li>
@@ -85,7 +88,6 @@ public class PDPModel implements Model<PDPObject> {
     public void pickup(Truck t, Package p, TimeLapse time) {
 
         // TODO add event
-        // TODO what to do with the time that is needed for pickup?
         // TODO package.isPickupAllowedBy(truck)
         // TODO truck.canPickup(package)
 
@@ -101,18 +103,26 @@ public class PDPModel implements Model<PDPObject> {
         final Double newSize = containerContentsSize.get(t) + p.getMagnitude();
         checkArgument(newSize <= containerCapacities.get(t), "package does not fit in truck");
 
-        final long pickupTime = 10;
-
+        // remove the package such that it can no longer be attempted to be
+        // picked up by anyone else
+        roadModel.removeObject(p);
         // in this case we know we cannot finish this action with the available
         // time. We must continue in the next tick.
-        if (time.getTimeLeft() < pickupTime) {
-            new PickupAction(t, p, pickupTime);
+        if (time.getTimeLeft() < p.getLoadingDuration()) {
+            truckActions.put(t, new PickupAction(this, t, p, p
+                    .getLoadingDuration() - time.getTimeLeft()));
+            time.consumeAll();
+        } else {
+            time.consume(p.getLoadingDuration());
+            doPickup(t, p);
+
         }
+    }
 
-        roadModel.removeObject(p);
+    protected void doPickup(Truck t, Package p) {
         containerContents.put(t, p);
-        containerContentsSize.put(t, newSize);
-
+        containerContentsSize.put(t, containerContentsSize.get(t)
+                + p.getMagnitude());
     }
 
     // should deliver (put down) the package p that truck t is carrying.
@@ -221,11 +231,13 @@ public class PDPModel implements Model<PDPObject> {
 
     class PickupAction implements Action {
 
+        private final PDPModel modelRef;
         private final Truck truck;
         private final Package pack;
         private long timeNeeded;
 
-        public PickupAction(Truck t, Package p, long pTimeNeeded) {
+        public PickupAction(PDPModel model, Truck t, Package p, long pTimeNeeded) {
+            modelRef = model;
             truck = t;
             pack = p;
             timeNeeded = pTimeNeeded;
@@ -237,7 +249,7 @@ public class PDPModel implements Model<PDPObject> {
             if (time.getTimeLeft() >= timeNeeded) {
                 timeNeeded = 0;
                 time.consume(timeNeeded);
-                // TODO do something with Truck and Package
+                modelRef.doPickup(truck, pack);
             } else { // there is not enough time to finish action in this step
                 timeNeeded -= time.getTimeLeft();
                 time.consumeAll();

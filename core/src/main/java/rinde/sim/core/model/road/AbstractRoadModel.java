@@ -4,6 +4,7 @@
 package rinde.sim.core.model.road;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.collect.Maps.newLinkedHashMap;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -49,6 +50,7 @@ public abstract class AbstractRoadModel<T> extends AbstractModel<RoadUser>
     public AbstractRoadModel() {
         super(RoadUser.class);
         objLocs = createObjectToLocationMap();
+        objDestinations = newLinkedHashMap();
     }
 
     /**
@@ -141,7 +143,8 @@ public abstract class AbstractRoadModel<T> extends AbstractModel<RoadUser>
     @Override
     public void removeObject(RoadUser roadUser) {
         checkArgument(roadUser != null, "RoadUser can not be null");
-        checkArgument(objLocs.containsKey(roadUser), "RoadUser does not exist.");
+        checkArgument(objLocs.containsKey(roadUser), "RoadUser: " + roadUser
+                + " does not exist.");
         objLocs.remove(roadUser);
         objDestinations.remove(roadUser);
     }

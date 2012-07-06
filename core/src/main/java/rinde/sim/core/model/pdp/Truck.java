@@ -60,6 +60,7 @@ public abstract class Truck implements PackageContainer, MovingRoadUser,
         }
     }
 
+    // TODO better name? something with tick?
     protected abstract void controlLoop(TimeLapse time);
 
     // should perhapse not be abstract (not mandatory)

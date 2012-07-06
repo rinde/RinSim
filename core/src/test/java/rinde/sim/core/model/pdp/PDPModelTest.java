@@ -3,6 +3,8 @@
  */
 package rinde.sim.core.model.pdp;
 
+import static com.google.common.collect.Lists.newLinkedList;
+import static java.util.Arrays.asList;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -37,31 +39,45 @@ public class PDPModelTest {
 
     @Test
     public void testPickup() {
+        final Package pack1 = new TestPackage(0, 0);
+        final Truck truck = new TestTruck(new Point(1, 1));
+        model.register(pack1);
+        model.register(truck);
+        rm.register(pack1);
+        rm.register(truck);
+        rm.addObjectAt(pack1, new Point(1, 1));
 
-        final Package p = new TestPackage();
-        final Truck t = new TestTruck(new Point(1, 1));
+        assertEquals(0, model.getContentsSize(truck), EPSILON);
+        assertTrue(model.getContents(truck).isEmpty());
+        model.pickup(truck, pack1, TimeLapseFactory.create(0, 10000));
 
-        model.register(p);
-        model.register(t);
+        assertFalse(rm.containsObject(pack1));
+        assertTrue(model.truckContains(truck, pack1));
+        assertEquals(2, model.getContentsSize(truck), EPSILON);
+        assertTrue(model.getContents(truck).contains(pack1));
+        assertEquals(1, model.getContents(truck).size());
 
-        rm.register(p);
-        rm.register(t);
+        final Package pack2 = new TestPackage(100, 100);
+        model.register(pack2);
+        rm.register(pack2);
+        rm.addObjectAt(pack2, new Point(1, 2));
 
-        // rm.addObjectAt(t, new Point(1, 1));
-        rm.addObjectAt(p, new Point(1, 1));
+        rm.followPath(truck, newLinkedList(asList(new Point(1, 2))), TimeLapseFactory
+                .create(0, 3600000 - 1));
 
-        assertEquals(0, model.getContentsSize(t), EPSILON);
-
-        model.pickup(t, p, TimeLapseFactory.create(0, 10000));
-
-        assertFalse(rm.containsObject(p));
-        assertTrue(model.truckContains(t, p));
-
-        assertEquals(2, model.getContentsSize(t), EPSILON);
+        assertEquals(new Point(1, 2), rm.getPosition(truck));
 
     }
 
     class TestPackage extends Package {
+
+        /**
+         * @param pLoadingDuration
+         * @param pUnloadingDuration
+         */
+        public TestPackage(int pLoadingDuration, int pUnloadingDuration) {
+            super(pLoadingDuration, pUnloadingDuration);
+        }
 
         @Override
         public void initPDPObject(PDPModel pModel) {}
@@ -92,7 +108,7 @@ public class PDPModelTest {
 
         @Override
         public double getSpeed() {
-            return 0;
+            return 1;
         }
 
         @Override
