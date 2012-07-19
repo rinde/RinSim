@@ -93,6 +93,11 @@ public class PDPModel implements Model<PDPObject> {
 
         checkArgument(time.hasTimeLeft(), "there must be time available to perform the action");
         checkArgument(roadModel.containsObject(t), "truck does not exist in RoadModel");
+
+        // TODO package must be exist in the roadmodel, unless it is already in
+        // the process of being picked up.
+        // this means that package state must be accessible (and kept!)
+        // somewhere
         checkArgument(roadModel.containsObject(p), "package does not exist in RoadModel");
         checkArgument(knownPackages.contains(p), "package must be registered in PDPModel");
         checkArgument(roadModel.equalPosition(t, p), "truck must be at the same location as the package it wishes to pickup");
@@ -247,8 +252,8 @@ public class PDPModel implements Model<PDPObject> {
         public void perform(TimeLapse time) {
             // there is enough time to finish action
             if (time.getTimeLeft() >= timeNeeded) {
-                timeNeeded = 0;
                 time.consume(timeNeeded);
+                timeNeeded = 0;
                 modelRef.doPickup(truck, pack);
             } else { // there is not enough time to finish action in this step
                 timeNeeded -= time.getTimeLeft();
@@ -259,6 +264,10 @@ public class PDPModel implements Model<PDPObject> {
         @Override
         public boolean isDone() {
             return timeNeeded == 0;
+        }
+
+        public long timeNeeded() {
+            return timeNeeded;
         }
     }
 

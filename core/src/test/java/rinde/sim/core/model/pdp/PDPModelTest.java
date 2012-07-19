@@ -15,6 +15,7 @@ import org.junit.Test;
 import rinde.sim.core.TimeLapse;
 import rinde.sim.core.TimeLapseFactory;
 import rinde.sim.core.graph.Point;
+import rinde.sim.core.model.pdp.PDPModel.PickupAction;
 import rinde.sim.core.model.road.PlaneRoadModel;
 import rinde.sim.core.model.road.RoadModel;
 
@@ -63,9 +64,26 @@ public class PDPModelTest {
         rm.addObjectAt(pack2, new Point(1, 2));
 
         rm.followPath(truck, newLinkedList(asList(new Point(1, 2))), TimeLapseFactory
-                .create(0, 3600000 - 1));
+                .create(0, 3600000));
 
         assertEquals(new Point(1, 2), rm.getPosition(truck));
+        assertEquals(new Point(1, 2), rm.getPosition(pack2));
+        model.pickup(truck, pack2, TimeLapseFactory.create(0, 40));
+        assertFalse(rm.containsObject(pack2));
+        final PickupAction action = (PickupAction) model.truckActions
+                .get(truck);
+        assertFalse(action.isDone());
+        assertEquals(60, action.timeNeeded());
+
+        model.continuePreviousActions(truck, TimeLapseFactory.create(0, 40));
+        assertFalse(action.isDone());
+        assertEquals(20, action.timeNeeded());
+
+        final TimeLapse tl = TimeLapseFactory.create(0, 40);
+        model.continuePreviousActions(truck, tl);
+        assertTrue(action.isDone());
+        assertEquals(0, action.timeNeeded());
+        assertEquals(20, tl.getTimeLeft());
 
     }
 
