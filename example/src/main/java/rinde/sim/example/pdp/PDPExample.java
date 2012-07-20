@@ -66,7 +66,7 @@ public class PDPExample {
 		}
 
 		@Override
-		protected void controlLoop(TimeLapse time) {
+		protected void tickImpl(TimeLapse time) {
 			// TODO Auto-generated method stub
 
 		}

@@ -13,10 +13,8 @@ import java.util.Map;
 import java.util.Set;
 
 import rinde.sim.core.TimeLapse;
-import rinde.sim.core.graph.Point;
 import rinde.sim.core.model.Model;
 import rinde.sim.core.model.road.RoadModel;
-import rinde.sim.core.model.road.RoadUser;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
@@ -44,10 +42,20 @@ public class PDPModel implements Model<PDPObject> {
     protected final Multimap<PackageContainer, Package> containerContents;
     protected final Map<PackageContainer, Double> containerContentsSize;
     protected final Map<PackageContainer, Double> containerCapacities;
+    protected final Map<Truck, TruckState> truckState;
+    protected final Map<Package, PackageState> packageState;
 
     protected final Map<Truck, Action> truckActions;
 
     protected final Set<Package> knownPackages;
+
+    enum PackageState {
+        LOADING, UNLOADING, AVAILABLE, IN_CARGO, DELIVERED
+    }
+
+    enum TruckState {
+        IDLE, LOADING, UNLOADING
+    }
 
     // TODO what if we give all model actions default visibility? and let them
     // be accesible only through the abstract class
@@ -64,6 +72,8 @@ public class PDPModel implements Model<PDPObject> {
         containerCapacities = newHashMap();
         knownPackages = newHashSet();
         truckActions = newHashMap();
+        truckState = newHashMap();
+        packageState = newHashMap();
     }
 
     // protected Table<Truck>
@@ -91,22 +101,14 @@ public class PDPModel implements Model<PDPObject> {
         // TODO package.isPickupAllowedBy(truck)
         // TODO truck.canPickup(package)
 
-        checkArgument(time.hasTimeLeft(), "there must be time available to perform the action");
-        checkArgument(roadModel.containsObject(t), "truck does not exist in RoadModel");
-
-        // TODO package must be exist in the roadmodel, unless it is already in
-        // the process of being picked up.
-        // this means that package state must be accessible (and kept!)
-        // somewhere
-        checkArgument(roadModel.containsObject(p), "package does not exist in RoadModel");
-        checkArgument(knownPackages.contains(p), "package must be registered in PDPModel");
-        checkArgument(roadModel.equalPosition(t, p), "truck must be at the same location as the package it wishes to pickup");
-
-        // FIXME this should be made impossible, if so then this check will
-        // become redundant
-        checkArgument(!containerContents.containsEntry(t, p), "truck is already carrying the package");
-        final Double newSize = containerContentsSize.get(t) + p.getMagnitude();
-        checkArgument(newSize <= containerCapacities.get(t), "package does not fit in truck");
+        /* 1 */checkArgument(time.hasTimeLeft(), "there must be time available to perform the action");
+        /* 2 */checkArgument(roadModel.containsObject(t), "truck does not exist in RoadModel");
+        /* 3 */checkArgument(roadModel.containsObject(p), "package does not exist in RoadModel");
+        /* 4 */checkArgument(packageState.get(p) == PackageState.AVAILABLE, "package must be registered and must be available");
+        /* 5 */checkArgument(truckState.get(t) == TruckState.IDLE, "truck must be registered and must be available");
+        /* 6 */checkArgument(roadModel.equalPosition(t, p), "truck must be at the same location as the package it wishes to pickup");
+        final double newSize = containerContentsSize.get(t) + p.getMagnitude();
+        /* 7 */checkArgument(newSize <= containerCapacities.get(t), "package does not fit in truck");
 
         // remove the package such that it can no longer be attempted to be
         // picked up by anyone else
@@ -114,13 +116,15 @@ public class PDPModel implements Model<PDPObject> {
         // in this case we know we cannot finish this action with the available
         // time. We must continue in the next tick.
         if (time.getTimeLeft() < p.getLoadingDuration()) {
+            truckState.put(t, TruckState.LOADING);
+            packageState.put(p, PackageState.LOADING);
+
             truckActions.put(t, new PickupAction(this, t, p, p
                     .getLoadingDuration() - time.getTimeLeft()));
             time.consumeAll();
         } else {
             time.consume(p.getLoadingDuration());
             doPickup(t, p);
-
         }
     }
 
@@ -128,6 +132,8 @@ public class PDPModel implements Model<PDPObject> {
         containerContents.put(t, p);
         containerContentsSize.put(t, containerContentsSize.get(t)
                 + p.getMagnitude());
+
+        packageState.put(p, PackageState.IN_CARGO);
     }
 
     // should deliver (put down) the package p that truck t is carrying.
@@ -152,11 +158,36 @@ public class PDPModel implements Model<PDPObject> {
     // subclass
     // }
 
-    public void deliver(Truck t, Package p, Point position, TimeLapse time) {
+    public void deliver(Truck t, Package p, TimeLapse time) {
+        /* 1 */checkArgument(time.hasTimeLeft(), "there must be time available to perform the action");
+        /* 2 */checkArgument(roadModel.containsObject(t), "truck does not exist in RoadModel");
+        /* 3 */checkArgument(truckState.get(t).equals(TruckState.IDLE), "truck must be idle");
+        /* 4 */checkArgument(containerContents.get(t).contains(p), "truck does not contain package");
+        /* 5 */checkArgument(p.getDestination()
+                .equals(roadModel.getPosition(t)), "package must be delivered at its destination, truck should move there first");
 
+        if (time.getTimeLeft() < p.getUnloadingDuration()) {
+            truckState.put(t, TruckState.UNLOADING);
+            packageState.put(p, PackageState.UNLOADING);
+            truckActions.put(t, new DeliverAction(this, t, p, p
+                    .getUnloadingDuration() - time.getTimeLeft()));
+            time.consumeAll();
+        } else {
+            time.consume(p.getUnloadingDuration());
+            doDeliver(t, p);
+        }
     }
 
-    public void deliver(Truck t, Package p, RoadUser ru, TimeLapse time) {
+    /**
+     * @param truck
+     * @param pack
+     */
+    protected void doDeliver(Truck truck, Package pack) {
+        containerContents.remove(truck, pack);
+        containerContentsSize.put(truck, containerContentsSize.get(truck)
+                - pack.getMagnitude());
+
+        packageState.put(pack, PackageState.DELIVERED);
 
     }
 
@@ -174,21 +205,33 @@ public class PDPModel implements Model<PDPObject> {
         // TODO implement
     }
 
+    public PackageState getPackageState(Package p) {
+        return packageState.get(p);
+    }
+
+    public TruckState getTruckState(Truck t) {
+        return truckState.get(t);
+    }
+
     @Override
     public boolean register(PDPObject element) {
         if (element.getType() == PDPType.PACKAGE) {
             checkArgument(!knownPackages.contains(element));
             knownPackages.add((Package) element);
+            packageState.put((Package) element, PackageState.AVAILABLE);
         } else if (element.getType() == PDPType.TRUCK
                 || element.getType() == PDPType.DEPOT) {
             final PackageContainer pc = (PackageContainer) element;
             containerCapacities.put(pc, pc.getCapacity());
             containerContentsSize.put(pc, 0d);
+
+            if (element.getType() == PDPType.TRUCK) {
+                truckState.put((Truck) element, TruckState.IDLE);
+            }
         }
         element.initPDPObject(this);
 
-        // TODO Auto-generated method stub
-        return false;
+        return true;
     }
 
     @Override
@@ -234,14 +277,14 @@ public class PDPModel implements Model<PDPObject> {
         boolean isDone();
     }
 
-    class PickupAction implements Action {
+    abstract class TruckPackageAction implements Action {
+        protected final PDPModel modelRef;
+        protected final Truck truck;
+        protected final Package pack;
+        protected long timeNeeded;
 
-        private final PDPModel modelRef;
-        private final Truck truck;
-        private final Package pack;
-        private long timeNeeded;
-
-        public PickupAction(PDPModel model, Truck t, Package p, long pTimeNeeded) {
+        public TruckPackageAction(PDPModel model, Truck t, Package p,
+                long pTimeNeeded) {
             modelRef = model;
             truck = t;
             pack = p;
@@ -254,12 +297,14 @@ public class PDPModel implements Model<PDPObject> {
             if (time.getTimeLeft() >= timeNeeded) {
                 time.consume(timeNeeded);
                 timeNeeded = 0;
-                modelRef.doPickup(truck, pack);
+                finish(time);
             } else { // there is not enough time to finish action in this step
                 timeNeeded -= time.getTimeLeft();
                 time.consumeAll();
             }
         }
+
+        abstract protected void finish(TimeLapse time);
 
         @Override
         public boolean isDone() {
@@ -268,6 +313,34 @@ public class PDPModel implements Model<PDPObject> {
 
         public long timeNeeded() {
             return timeNeeded;
+        }
+    }
+
+    class PickupAction extends TruckPackageAction {
+
+        public PickupAction(PDPModel model, Truck t, Package p, long pTimeNeeded) {
+            super(model, t, p, pTimeNeeded);
+        }
+
+        @Override
+        public void finish(TimeLapse time) {
+            modelRef.truckState.put(truck, TruckState.IDLE);
+            modelRef.doPickup(truck, pack);
+
+        }
+    }
+
+    class DeliverAction extends TruckPackageAction {
+
+        public DeliverAction(PDPModel model, Truck t, Package p,
+                long pTimeNeeded) {
+            super(model, t, p, pTimeNeeded);
+        }
+
+        @Override
+        public void finish(TimeLapse time) {
+            modelRef.truckState.put(truck, TruckState.IDLE);
+            modelRef.doDeliver(truck, pack);
         }
     }
 

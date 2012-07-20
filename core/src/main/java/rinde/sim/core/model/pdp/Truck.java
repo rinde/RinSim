@@ -40,7 +40,7 @@ public abstract class Truck implements PackageContainer, MovingRoadUser,
         // consume time
         pdpModel.continuePreviousActions(this, time);
 
-        controlLoop(time);
+        tickImpl(time);
     }
 
     @Override
@@ -60,8 +60,7 @@ public abstract class Truck implements PackageContainer, MovingRoadUser,
         }
     }
 
-    // TODO better name? something with tick?
-    protected abstract void controlLoop(TimeLapse time);
+    protected abstract void tickImpl(TimeLapse time);
 
     // should perhapse not be abstract (not mandatory)
     protected abstract void init();
