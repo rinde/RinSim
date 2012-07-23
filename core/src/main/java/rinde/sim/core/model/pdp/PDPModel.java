@@ -4,9 +4,10 @@
 package rinde.sim.core.model.pdp;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.collect.Maps.filterEntries;
 import static com.google.common.collect.Maps.newHashMap;
-import static com.google.common.collect.Sets.newHashSet;
 import static java.util.Collections.unmodifiableCollection;
+import static java.util.Collections.unmodifiableSet;
 
 import java.util.Collection;
 import java.util.Map;
@@ -16,6 +17,7 @@ import rinde.sim.core.TimeLapse;
 import rinde.sim.core.model.Model;
 import rinde.sim.core.model.road.RoadModel;
 
+import com.google.common.base.Predicate;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 
@@ -44,10 +46,7 @@ public class PDPModel implements Model<PDPObject> {
     protected final Map<PackageContainer, Double> containerCapacities;
     protected final Map<Truck, TruckState> truckState;
     protected final Map<Package, PackageState> packageState;
-
     protected final Map<Truck, Action> truckActions;
-
-    protected final Set<Package> knownPackages;
 
     enum PackageState {
         LOADING, UNLOADING, AVAILABLE, IN_CARGO, DELIVERED
@@ -70,7 +69,6 @@ public class PDPModel implements Model<PDPObject> {
         containerContents = HashMultimap.create();
         containerContentsSize = newHashMap();
         containerCapacities = newHashMap();
-        knownPackages = newHashSet();
         truckActions = newHashMap();
         truckState = newHashMap();
         packageState = newHashMap();
@@ -137,7 +135,6 @@ public class PDPModel implements Model<PDPObject> {
     }
 
     // should deliver (put down) the package p that truck t is carrying.
-    // TODO what to do with the time that is needed for delivery?
     // TODO check for constraints, can a package just be put down everywhere? or
     // only at Depots? is this a global constraint? or only at its predefined
     // destination?
@@ -188,7 +185,6 @@ public class PDPModel implements Model<PDPObject> {
                 - pack.getMagnitude());
 
         packageState.put(pack, PackageState.DELIVERED);
-
     }
 
     /**
@@ -197,12 +193,31 @@ public class PDPModel implements Model<PDPObject> {
      * @param container
      * @param p
      */
-    // TODO can this method be misused for hacking the model? try to avoid!
     public void addPackageIn(PackageContainer container, Package p) {
-        checkArgument(!roadModel.containsObject(p));
-        checkArgument(knownPackages.contains(p));
-        checkArgument(containerContents.containsKey(container));
-        // TODO implement
+        /* 1 */checkArgument(!roadModel.containsObject(p), "this package is already added to the roadmodel");
+        /* 2 */checkArgument(packageState.get(p) == PackageState.AVAILABLE, "package must be registered and in AVAILABLE state");
+        /* 3 */checkArgument(containerCapacities.containsKey(container), "the package container is not registered");
+        /* 4 */checkArgument(roadModel.containsObject(container), "the package container is not on the roadmodel");
+        final double newSize = containerContentsSize.get(container)
+                + p.getMagnitude();
+        /* 5 */checkArgument(newSize <= containerCapacities.get(container), "package does not fit in container");
+
+        containerContents.put(container, p);
+        containerContentsSize.put(container, newSize);
+    }
+
+    /**
+     * @return An unmodifiable view on the the packages which are in
+     *         <code>AVAILABLE</code> state. Note that packages which are
+     *         available are not neccesarily already at a position.
+     */
+    public Set<Package> getAvailablePackages() {
+        return unmodifiableSet(filterEntries(packageState, new Predicate<Map.Entry<Package, PackageState>>() {
+            @Override
+            public boolean apply(Map.Entry<Package, PackageState> input) {
+                return input.getValue() == PackageState.AVAILABLE;
+            }
+        }).keySet());
     }
 
     public PackageState getPackageState(Package p) {
@@ -216,8 +231,7 @@ public class PDPModel implements Model<PDPObject> {
     @Override
     public boolean register(PDPObject element) {
         if (element.getType() == PDPType.PACKAGE) {
-            checkArgument(!knownPackages.contains(element));
-            knownPackages.add((Package) element);
+            checkArgument(!packageState.containsKey(element));
             packageState.put((Package) element, PackageState.AVAILABLE);
         } else if (element.getType() == PDPType.TRUCK
                 || element.getType() == PDPType.DEPOT) {

@@ -4,6 +4,7 @@
 package rinde.sim.core.model.pdp;
 
 import static com.google.common.collect.Lists.newLinkedList;
+import static com.google.common.collect.Sets.newHashSet;
 import static java.util.Arrays.asList;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -211,10 +212,12 @@ public class PDPModelTest {
         assertTrue(rm.equalPosition(truck, pack1));
         assertEquals(PackageState.AVAILABLE, model.getPackageState(pack1));
         assertEquals(TruckState.IDLE, model.getTruckState(truck));
+        assertEquals(newHashSet(pack1), model.getAvailablePackages());
 
         model.pickup(truck, pack1, TimeLapseFactory.create(0, 100));
         assertEquals(PackageState.IN_CARGO, model.getPackageState(pack1));
         assertEquals(TruckState.IDLE, model.getTruckState(truck));
+        assertTrue(model.getAvailablePackages().isEmpty());
 
         rm.moveTo(truck, pack1.getDestination(), TimeLapseFactory
                 .create(0, 3600000 * 3));
@@ -236,10 +239,12 @@ public class PDPModelTest {
         rm.addObjectAtSamePosition(pack2, truck);
         assertEquals(PackageState.AVAILABLE, model.getPackageState(pack2));
         assertEquals(TruckState.IDLE, model.getTruckState(truck));
+        assertEquals(newHashSet(pack2), model.getAvailablePackages());
 
         model.pickup(truck, pack2, TimeLapseFactory.create(0, 10));
         assertEquals(PackageState.IN_CARGO, model.getPackageState(pack2));
         assertEquals(TruckState.IDLE, model.getTruckState(truck));
+        assertTrue(model.getAvailablePackages().isEmpty());
 
         model.deliver(truck, pack2, TimeLapseFactory.create(0, 10));
         assertEquals(PackageState.DELIVERED, model.getPackageState(pack2));
@@ -303,6 +308,61 @@ public class PDPModelTest {
         model.pickup(truck, pack1, TimeLapseFactory.create(0, 10));
         assertTrue(model.getContents(truck).contains(pack1));
         model.deliver(truck, pack1, TimeLapseFactory.create(0, 1));
+    }
+
+    @Test
+    public void addPackageIn() {
+        assertTrue(model.getAvailablePackages().isEmpty());
+        final Depot d = new TestDepot(10);
+        final Package p1 = new TestPackage(new Point(0, 0), 0, 0, 1);
+        model.register(d);
+        model.register(p1);
+        rm.addObjectAt(d, new Point(0, 0));
+        model.addPackageIn(d, p1);
+
+        assertEquals(newHashSet(p1), model.getAvailablePackages());
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void addPackageInFail1() {
+        final Depot d = new TestDepot(10);
+        final Package p1 = new TestPackage(new Point(0, 0), 0, 0, 1);
+        rm.addObjectAt(p1, new Point(0, 0));
+        model.addPackageIn(d, p1);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void addPackageInFail2() {
+        final Depot d = new TestDepot(10);
+        final Package p1 = new TestPackage(new Point(0, 0), 0, 0, 1);
+        model.addPackageIn(d, p1);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void addPackageInFail3() {
+        final Depot d = new TestDepot(10);
+        final Package p1 = new TestPackage(new Point(0, 0), 0, 0, 1);
+        model.register(p1);
+        model.addPackageIn(d, p1);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void addPackageInFail4() {
+        final Depot d = new TestDepot(10);
+        final Package p1 = new TestPackage(new Point(0, 0), 0, 0, 1);
+        model.register(p1);
+        model.register(d);
+        model.addPackageIn(d, p1);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void addPackageInFail5() {
+        final Depot d = new TestDepot(10);
+        final Package p1 = new TestPackage(new Point(0, 0), 0, 0, 11);
+        model.register(p1);
+        model.register(d);
+        rm.addObjectAt(d, new Point(0, 0));
+        model.addPackageIn(d, p1);
     }
 
     class TestPackage extends Package {
@@ -375,9 +435,15 @@ public class PDPModelTest {
 
     class TestDepot extends Depot {
 
+        protected final int capacity;
+
+        public TestDepot(int pCapacity) {
+            capacity = pCapacity;
+        }
+
         @Override
         public double getCapacity() {
-            return 0;
+            return capacity;
         }
 
         @Override
