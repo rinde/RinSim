@@ -8,7 +8,7 @@ package rinde.sim.core.model.pdp;
  * 
  *         An object that can contain packages.
  */
-interface PackageContainer extends PDPObject {
+interface Container extends PDPObject {
 
     /**
      * The returned value is treated as a constant (i.e. it is read only once).

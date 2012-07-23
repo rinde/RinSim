@@ -42,15 +42,9 @@ public class PDPExample {
 		 * @param startPos
 		 */
 		public ExampleTruck(Point startPos) {
-			super(startPos);
+			setStartPosition(startPos);
 
 			// TODO Auto-generated constructor stub
-		}
-
-		@Override
-		public double getCapacity() {
-			// TODO Auto-generated method stub
-			return 0;
 		}
 
 		@Override
@@ -72,7 +66,8 @@ public class PDPExample {
 		}
 
 		@Override
-		protected void init() {
+		public void initRoadPDP(RoadModel pRoadModel, PDPModel pPdpModel) {
+			// TODO Auto-generated method stub
 
 		}
 

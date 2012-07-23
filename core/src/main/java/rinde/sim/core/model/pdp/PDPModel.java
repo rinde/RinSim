@@ -29,7 +29,7 @@ import com.google.common.collect.Multimap;
  * 
  * Currently supports three kinds of objects:
  * <ul>
- * <li> {@link Package}</li>
+ * <li> {@link Parcel}</li>
  * <li> {@link Truck}</li>
  * <li> {@link Depot}</li>
  * </ul>
@@ -41,11 +41,11 @@ import com.google.common.collect.Multimap;
  */
 public class PDPModel implements Model<PDPObject> {
     protected final RoadModel roadModel;
-    protected final Multimap<PackageContainer, Package> containerContents;
-    protected final Map<PackageContainer, Double> containerContentsSize;
-    protected final Map<PackageContainer, Double> containerCapacities;
+    protected final Multimap<Container, Parcel> containerContents;
+    protected final Map<Container, Double> containerContentsSize;
+    protected final Map<Container, Double> containerCapacities;
     protected final Map<Truck, TruckState> truckState;
-    protected final Map<Package, PackageState> packageState;
+    protected final Map<Parcel, PackageState> packageState;
     protected final Map<Truck, Action> truckActions;
 
     enum PackageState {
@@ -76,30 +76,31 @@ public class PDPModel implements Model<PDPObject> {
 
     // protected Table<Truck>
 
-    public Collection<Package> getContents(PackageContainer truck) {
+    public Collection<Parcel> getContents(Container truck) {
         checkArgument(containerCapacities.containsKey(truck));
         return unmodifiableCollection(containerContents.get(truck));
     }
 
-    public double getContentsSize(PackageContainer truck) {
+    public double getContentsSize(Container truck) {
         return containerContentsSize.get(truck);
     }
 
     // public void getPack
 
     /**
-     * {@link Truck} <code>t</code> attempts to pickup {@link Package}
+     * {@link Truck} <code>t</code> attempts to pickup {@link Parcel}
      * <code>p</code>.
      * @param t
      * @param p
      */
-    public void pickup(Truck t, Package p, TimeLapse time) {
+    public void pickup(Truck t, Parcel p, TimeLapse time) {
 
         // TODO add event
         // TODO package.isPickupAllowedBy(truck)
         // TODO truck.canPickup(package)
 
-        /* 1 */checkArgument(time.hasTimeLeft(), "there must be time available to perform the action");
+        /* 1 */// checkArgument(time.hasTimeLeft(),
+               // "there must be time available to perform the action");
         /* 2 */checkArgument(roadModel.containsObject(t), "truck does not exist in RoadModel");
         /* 3 */checkArgument(roadModel.containsObject(p), "package does not exist in RoadModel");
         /* 4 */checkArgument(packageState.get(p) == PackageState.AVAILABLE, "package must be registered and must be available");
@@ -126,7 +127,7 @@ public class PDPModel implements Model<PDPObject> {
         }
     }
 
-    protected void doPickup(Truck t, Package p) {
+    protected void doPickup(Truck t, Parcel p) {
         containerContents.put(t, p);
         containerContentsSize.put(t, containerContentsSize.get(t)
                 + p.getMagnitude());
@@ -155,8 +156,9 @@ public class PDPModel implements Model<PDPObject> {
     // subclass
     // }
 
-    public void deliver(Truck t, Package p, TimeLapse time) {
-        /* 1 */checkArgument(time.hasTimeLeft(), "there must be time available to perform the action");
+    public void deliver(Truck t, Parcel p, TimeLapse time) {
+        /* 1 */// checkArgument(time.hasTimeLeft(),
+               // "there must be time available to perform the action");
         /* 2 */checkArgument(roadModel.containsObject(t), "truck does not exist in RoadModel");
         /* 3 */checkArgument(truckState.get(t).equals(TruckState.IDLE), "truck must be idle");
         /* 4 */checkArgument(containerContents.get(t).contains(p), "truck does not contain package");
@@ -179,7 +181,7 @@ public class PDPModel implements Model<PDPObject> {
      * @param truck
      * @param pack
      */
-    protected void doDeliver(Truck truck, Package pack) {
+    protected void doDeliver(Truck truck, Parcel pack) {
         containerContents.remove(truck, pack);
         containerContentsSize.put(truck, containerContentsSize.get(truck)
                 - pack.getMagnitude());
@@ -193,7 +195,7 @@ public class PDPModel implements Model<PDPObject> {
      * @param container
      * @param p
      */
-    public void addPackageIn(PackageContainer container, Package p) {
+    public void addPackageIn(Container container, Parcel p) {
         /* 1 */checkArgument(!roadModel.containsObject(p), "this package is already added to the roadmodel");
         /* 2 */checkArgument(packageState.get(p) == PackageState.AVAILABLE, "package must be registered and in AVAILABLE state");
         /* 3 */checkArgument(containerCapacities.containsKey(container), "the package container is not registered");
@@ -211,16 +213,16 @@ public class PDPModel implements Model<PDPObject> {
      *         <code>AVAILABLE</code> state. Note that packages which are
      *         available are not neccesarily already at a position.
      */
-    public Set<Package> getAvailablePackages() {
-        return unmodifiableSet(filterEntries(packageState, new Predicate<Map.Entry<Package, PackageState>>() {
+    public Set<Parcel> getAvailableParcels() {
+        return unmodifiableSet(filterEntries(packageState, new Predicate<Map.Entry<Parcel, PackageState>>() {
             @Override
-            public boolean apply(Map.Entry<Package, PackageState> input) {
+            public boolean apply(Map.Entry<Parcel, PackageState> input) {
                 return input.getValue() == PackageState.AVAILABLE;
             }
         }).keySet());
     }
 
-    public PackageState getPackageState(Package p) {
+    public PackageState getPackageState(Parcel p) {
         return packageState.get(p);
     }
 
@@ -232,10 +234,10 @@ public class PDPModel implements Model<PDPObject> {
     public boolean register(PDPObject element) {
         if (element.getType() == PDPType.PACKAGE) {
             checkArgument(!packageState.containsKey(element));
-            packageState.put((Package) element, PackageState.AVAILABLE);
+            packageState.put((Parcel) element, PackageState.AVAILABLE);
         } else if (element.getType() == PDPType.TRUCK
                 || element.getType() == PDPType.DEPOT) {
-            final PackageContainer pc = (PackageContainer) element;
+            final Container pc = (Container) element;
             containerCapacities.put(pc, pc.getCapacity());
             containerContentsSize.put(pc, 0d);
 
@@ -263,11 +265,11 @@ public class PDPModel implements Model<PDPObject> {
      * @param p
      * @return
      */
-    public boolean truckContains(Truck t, Package p) {
+    public boolean truckContains(Truck t, Parcel p) {
         return containerContents.containsEntry(t, p);
     }
 
-    public boolean depotContains(Depot d, Package p) {
+    public boolean depotContains(Depot d, Parcel p) {
         return containerContents.containsEntry(d, p);
     }
 
@@ -294,10 +296,10 @@ public class PDPModel implements Model<PDPObject> {
     abstract class TruckPackageAction implements Action {
         protected final PDPModel modelRef;
         protected final Truck truck;
-        protected final Package pack;
+        protected final Parcel pack;
         protected long timeNeeded;
 
-        public TruckPackageAction(PDPModel model, Truck t, Package p,
+        public TruckPackageAction(PDPModel model, Truck t, Parcel p,
                 long pTimeNeeded) {
             modelRef = model;
             truck = t;
@@ -332,7 +334,7 @@ public class PDPModel implements Model<PDPObject> {
 
     class PickupAction extends TruckPackageAction {
 
-        public PickupAction(PDPModel model, Truck t, Package p, long pTimeNeeded) {
+        public PickupAction(PDPModel model, Truck t, Parcel p, long pTimeNeeded) {
             super(model, t, p, pTimeNeeded);
         }
 
@@ -346,8 +348,7 @@ public class PDPModel implements Model<PDPObject> {
 
     class DeliverAction extends TruckPackageAction {
 
-        public DeliverAction(PDPModel model, Truck t, Package p,
-                long pTimeNeeded) {
+        public DeliverAction(PDPModel model, Truck t, Parcel p, long pTimeNeeded) {
             super(model, t, p, pTimeNeeded);
         }
 

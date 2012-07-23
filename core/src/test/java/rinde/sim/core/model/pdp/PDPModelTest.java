@@ -43,7 +43,7 @@ public class PDPModelTest {
 
     @Test
     public void testPickup() {
-        final Package pack1 = new TestPackage(new Point(2, 2), 0, 0, 2);
+        final Parcel pack1 = new TestPackage(new Point(2, 2), 0, 0, 2);
         final Truck truck = new TestTruck(new Point(1, 1), 10.0, 1.0);
         model.register(pack1);
         model.register(truck);
@@ -65,7 +65,7 @@ public class PDPModelTest {
         assertTrue(model.getContents(truck).contains(pack1));
         assertEquals(1, model.getContents(truck).size());
 
-        final Package pack2 = new TestPackage(new Point(2, 2), 100, 100, 2);
+        final Parcel pack2 = new TestPackage(new Point(2, 2), 100, 100, 2);
         model.register(pack2);
         rm.register(pack2);
         rm.addObjectAt(pack2, new Point(1, 2));
@@ -122,7 +122,7 @@ public class PDPModelTest {
         // package not in roadmodel
         final Truck truck = new TestTruck(new Point(1, 1), 10.0, 1.0);
         rm.register(truck);
-        final Package pack1 = new TestPackage(new Point(2, 2), 0, 0, 2.0);
+        final Parcel pack1 = new TestPackage(new Point(2, 2), 0, 0, 2.0);
         model.pickup(truck, pack1, TimeLapseFactory.create(0, 1));
     }
 
@@ -132,7 +132,7 @@ public class PDPModelTest {
         final Truck truck = new TestTruck(new Point(1, 1), 10.0, 1.0);
         rm.register(truck);
         model.register(truck);
-        final Package pack1 = new TestPackage(new Point(2, 2), 10, 10, 2.0);
+        final Parcel pack1 = new TestPackage(new Point(2, 2), 10, 10, 2.0);
         rm.register(pack1);
         model.register(pack1);
         rm.addObjectAtSamePosition(pack1, truck);
@@ -156,7 +156,7 @@ public class PDPModelTest {
         // package is not registered
         final Truck truck = new TestTruck(new Point(1, 1), 10.0, 1.0);
         rm.register(truck);
-        final Package pack1 = new TestPackage(new Point(2, 2), 0, 0, 2.0);
+        final Parcel pack1 = new TestPackage(new Point(2, 2), 0, 0, 2.0);
         rm.register(pack1);
         rm.addObjectAtSamePosition(pack1, truck);
         model.pickup(truck, pack1, TimeLapseFactory.create(0, 1));
@@ -166,7 +166,7 @@ public class PDPModelTest {
     public void testPickupFail5() {
         final Truck truck = new TestTruck(new Point(1, 1), 10.0, 1.0);
         rm.register(truck);
-        final Package pack1 = new TestPackage(new Point(2, 2), 0, 0, 2.0);
+        final Parcel pack1 = new TestPackage(new Point(2, 2), 0, 0, 2.0);
         rm.register(pack1);
         rm.addObjectAtSamePosition(pack1, truck);
         model.register(pack1);
@@ -179,7 +179,7 @@ public class PDPModelTest {
         final Truck truck = new TestTruck(new Point(1, 1), 10.0, 1.0);
         rm.register(truck);
         model.register(truck);
-        final Package pack1 = new TestPackage(new Point(2, 2), 0, 0, 2.0);
+        final Parcel pack1 = new TestPackage(new Point(2, 2), 0, 0, 2.0);
         rm.register(pack1);
         rm.addObjectAt(pack1, new Point(0, 0));
         model.register(pack1);
@@ -192,7 +192,7 @@ public class PDPModelTest {
         final Truck truck = new TestTruck(new Point(1, 1), 1.0, 1.0);
         rm.register(truck);
         model.register(truck);
-        final Package pack1 = new TestPackage(new Point(2, 2), 0, 0, 2.0);
+        final Parcel pack1 = new TestPackage(new Point(2, 2), 0, 0, 2.0);
         rm.register(pack1);
         model.register(pack1);
         rm.addObjectAtSamePosition(pack1, truck);
@@ -205,19 +205,19 @@ public class PDPModelTest {
         final Truck truck = new TestTruck(new Point(1, 1), 10.0, 1.0);
         rm.register(truck);
         model.register(truck);
-        final Package pack1 = new TestPackage(new Point(2, 2), 10, 10, 2.0);
+        final Parcel pack1 = new TestPackage(new Point(2, 2), 10, 10, 2.0);
         rm.register(pack1);
         model.register(pack1);
         rm.addObjectAtSamePosition(pack1, truck);
         assertTrue(rm.equalPosition(truck, pack1));
         assertEquals(PackageState.AVAILABLE, model.getPackageState(pack1));
         assertEquals(TruckState.IDLE, model.getTruckState(truck));
-        assertEquals(newHashSet(pack1), model.getAvailablePackages());
+        assertEquals(newHashSet(pack1), model.getAvailableParcels());
 
         model.pickup(truck, pack1, TimeLapseFactory.create(0, 100));
         assertEquals(PackageState.IN_CARGO, model.getPackageState(pack1));
         assertEquals(TruckState.IDLE, model.getTruckState(truck));
-        assertTrue(model.getAvailablePackages().isEmpty());
+        assertTrue(model.getAvailableParcels().isEmpty());
 
         rm.moveTo(truck, pack1.getDestination(), TimeLapseFactory
                 .create(0, 3600000 * 3));
@@ -233,18 +233,18 @@ public class PDPModelTest {
         assertEquals(TruckState.IDLE, model.getTruckState(truck));
         assertEquals(8, tl.getTimeLeft());
 
-        final Package pack2 = new TestPackage(new Point(2, 2), 10, 10, 2.0);
+        final Parcel pack2 = new TestPackage(new Point(2, 2), 10, 10, 2.0);
         rm.register(pack2);
         model.register(pack2);
         rm.addObjectAtSamePosition(pack2, truck);
         assertEquals(PackageState.AVAILABLE, model.getPackageState(pack2));
         assertEquals(TruckState.IDLE, model.getTruckState(truck));
-        assertEquals(newHashSet(pack2), model.getAvailablePackages());
+        assertEquals(newHashSet(pack2), model.getAvailableParcels());
 
         model.pickup(truck, pack2, TimeLapseFactory.create(0, 10));
         assertEquals(PackageState.IN_CARGO, model.getPackageState(pack2));
         assertEquals(TruckState.IDLE, model.getTruckState(truck));
-        assertTrue(model.getAvailablePackages().isEmpty());
+        assertTrue(model.getAvailableParcels().isEmpty());
 
         model.deliver(truck, pack2, TimeLapseFactory.create(0, 10));
         assertEquals(PackageState.DELIVERED, model.getPackageState(pack2));
@@ -272,7 +272,7 @@ public class PDPModelTest {
         final Truck truck = new TestTruck(new Point(1, 1), 10.0, 1.0);
         rm.register(truck);
         model.register(truck);
-        final Package pack1 = new TestPackage(new Point(2, 2), 10, 10, 2.0);
+        final Parcel pack1 = new TestPackage(new Point(2, 2), 10, 10, 2.0);
         rm.register(pack1);
         model.register(pack1);
         rm.addObjectAtSamePosition(pack1, truck);
@@ -287,7 +287,7 @@ public class PDPModelTest {
         final Truck truck = new TestTruck(new Point(1, 1), 10.0, 1.0);
         rm.register(truck);
         model.register(truck);
-        final Package pack1 = new TestPackage(new Point(2, 2), 10, 10, 2.0);
+        final Parcel pack1 = new TestPackage(new Point(2, 2), 10, 10, 2.0);
         rm.register(pack1);
         model.register(pack1);
         rm.addObjectAtSamePosition(pack1, truck);
@@ -300,7 +300,7 @@ public class PDPModelTest {
         final Truck truck = new TestTruck(new Point(1, 1), 10.0, 1.0);
         rm.register(truck);
         model.register(truck);
-        final Package pack1 = new TestPackage(new Point(2, 2), 10, 10, 2.0);
+        final Parcel pack1 = new TestPackage(new Point(2, 2), 10, 10, 2.0);
         rm.register(pack1);
         model.register(pack1);
         rm.addObjectAtSamePosition(pack1, truck);
@@ -312,21 +312,21 @@ public class PDPModelTest {
 
     @Test
     public void addPackageIn() {
-        assertTrue(model.getAvailablePackages().isEmpty());
+        assertTrue(model.getAvailableParcels().isEmpty());
         final Depot d = new TestDepot(10);
-        final Package p1 = new TestPackage(new Point(0, 0), 0, 0, 1);
+        final Parcel p1 = new TestPackage(new Point(0, 0), 0, 0, 1);
         model.register(d);
         model.register(p1);
         rm.addObjectAt(d, new Point(0, 0));
         model.addPackageIn(d, p1);
 
-        assertEquals(newHashSet(p1), model.getAvailablePackages());
+        assertEquals(newHashSet(p1), model.getAvailableParcels());
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void addPackageInFail1() {
         final Depot d = new TestDepot(10);
-        final Package p1 = new TestPackage(new Point(0, 0), 0, 0, 1);
+        final Parcel p1 = new TestPackage(new Point(0, 0), 0, 0, 1);
         rm.addObjectAt(p1, new Point(0, 0));
         model.addPackageIn(d, p1);
     }
@@ -334,14 +334,14 @@ public class PDPModelTest {
     @Test(expected = IllegalArgumentException.class)
     public void addPackageInFail2() {
         final Depot d = new TestDepot(10);
-        final Package p1 = new TestPackage(new Point(0, 0), 0, 0, 1);
+        final Parcel p1 = new TestPackage(new Point(0, 0), 0, 0, 1);
         model.addPackageIn(d, p1);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void addPackageInFail3() {
         final Depot d = new TestDepot(10);
-        final Package p1 = new TestPackage(new Point(0, 0), 0, 0, 1);
+        final Parcel p1 = new TestPackage(new Point(0, 0), 0, 0, 1);
         model.register(p1);
         model.addPackageIn(d, p1);
     }
@@ -349,7 +349,7 @@ public class PDPModelTest {
     @Test(expected = IllegalArgumentException.class)
     public void addPackageInFail4() {
         final Depot d = new TestDepot(10);
-        final Package p1 = new TestPackage(new Point(0, 0), 0, 0, 1);
+        final Parcel p1 = new TestPackage(new Point(0, 0), 0, 0, 1);
         model.register(p1);
         model.register(d);
         model.addPackageIn(d, p1);
@@ -358,16 +358,14 @@ public class PDPModelTest {
     @Test(expected = IllegalArgumentException.class)
     public void addPackageInFail5() {
         final Depot d = new TestDepot(10);
-        final Package p1 = new TestPackage(new Point(0, 0), 0, 0, 11);
+        final Parcel p1 = new TestPackage(new Point(0, 0), 0, 0, 11);
         model.register(p1);
         model.register(d);
         rm.addObjectAt(d, new Point(0, 0));
         model.addPackageIn(d, p1);
     }
 
-    class TestPackage extends Package {
-
-        private final double magnitude;
+    class TestPackage extends Parcel {
 
         /**
          * @param pLoadingDuration
@@ -375,40 +373,26 @@ public class PDPModelTest {
          */
         public TestPackage(Point pDestination, int pLoadingDuration,
                 int pUnloadingDuration, double pMagnitude) {
-            super(pDestination, pLoadingDuration, pUnloadingDuration);
-            magnitude = pMagnitude;
+            super(pDestination, pLoadingDuration, pUnloadingDuration,
+                    pMagnitude);
         }
 
         @Override
-        public void initPDPObject(PDPModel pModel) {}
-
-        @Override
-        public void initRoadUser(RoadModel pModel) {}
-
-        @Override
-        double getMagnitude() {
-            return magnitude;
-        }
+        public void initRoadPDP(RoadModel pRoadModel, PDPModel pPdpModel) {}
 
     }
 
     class TestTruck extends Truck {
 
-        private final double capacity;
         private final double speed;
 
         /**
          * @param startPos
          */
         public TestTruck(Point startPos, double pCapacity, double pSpeed) {
-            super(startPos);
-            capacity = pCapacity;
+            setStartPosition(startPos);
+            setCapacity(pCapacity);
             speed = pSpeed;
-        }
-
-        @Override
-        public double getCapacity() {
-            return capacity;
         }
 
         @Override
@@ -417,40 +401,23 @@ public class PDPModelTest {
         }
 
         @Override
-        protected void tickImpl(TimeLapse time) {
-            // TODO Auto-generated method stub
-
-        }
+        protected void tickImpl(TimeLapse time) {}
 
         @Override
         public void afterTick(TimeLapse timeLapse) {}
 
         @Override
-        protected void init() {
-            // TODO Auto-generated method stub
-
-        }
-
+        public void initRoadPDP(RoadModel pRoadModel, PDPModel pPdpModel) {}
     }
 
     class TestDepot extends Depot {
 
-        protected final int capacity;
-
         public TestDepot(int pCapacity) {
-            capacity = pCapacity;
+            setCapacity(pCapacity);
         }
 
         @Override
-        public double getCapacity() {
-            return capacity;
-        }
-
-        @Override
-        public void initPDPObject(PDPModel pModel) {}
-
-        @Override
-        public void initRoadUser(RoadModel pModel) {}
+        public void initRoadPDP(RoadModel pRoadModel, PDPModel pPdpModel) {}
 
     }
 }

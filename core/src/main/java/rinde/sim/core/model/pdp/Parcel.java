@@ -9,17 +9,19 @@ import rinde.sim.core.graph.Point;
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
  * 
  */
-public abstract class Package implements PDPObject {
+public abstract class Parcel extends PDPObjectImpl {
 
     protected final int loadingDuration;
     protected final int unloadingDuration;
     protected final Point destination;
+    protected final double magnitude;
 
-    public Package(Point pDestination, int pLoadingDuration,
-            int pUnloadingDuration) {
+    public Parcel(Point pDestination, int pLoadingDuration,
+            int pUnloadingDuration, double pMagnitude) {
         destination = pDestination;
         loadingDuration = pLoadingDuration;
         unloadingDuration = pUnloadingDuration;
+        magnitude = pMagnitude;
     }
 
     @Override
@@ -28,19 +30,21 @@ public abstract class Package implements PDPObject {
     }
 
     // indicates 'size'/heaviness/etc
-    abstract double getMagnitude();
+    public final double getMagnitude() {
+        return magnitude;
+    }
 
     // time needed for pickup
-    public int getLoadingDuration() {
+    public final int getLoadingDuration() {
         return loadingDuration;
     }
 
     // time needed for delivery
-    public int getUnloadingDuration() {
+    public final int getUnloadingDuration() {
         return unloadingDuration;
     }
 
-    public Point getDestination() {
+    public final Point getDestination() {
         return destination;
     }
 
