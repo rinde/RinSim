@@ -42,6 +42,9 @@ public abstract class AbstractRoadModel<T> extends AbstractModel<RoadUser>
      */
     protected volatile Map<RoadUser, T> objLocs;
 
+    /**
+     * A mapping of {@link MovingRoadUser}s to {@link DestinationPath}s.
+     */
     protected Map<MovingRoadUser, DestinationPath> objDestinations;
 
     /**
@@ -88,13 +91,9 @@ public abstract class AbstractRoadModel<T> extends AbstractModel<RoadUser>
         return doFollowPath(object, path, time);
     }
 
-    // FIXME needs proper tests! especially if combining it with followPath
-    // calls()
     @Override
     public PathProgress moveTo(MovingRoadUser object, Point destination,
             TimeLapse time) {
-
-        // TODO is destination valid?
         Queue<Point> path;
         if (objDestinations.containsKey(object)
                 && objDestinations.get(object).destination.equals(destination)) {
@@ -300,10 +299,25 @@ public abstract class AbstractRoadModel<T> extends AbstractModel<RoadUser>
         }
     }
 
-    private class DestinationPath {
+    /**
+     * Simple class for storing destinations and paths leading to them.
+     * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+     */
+    protected class DestinationPath {
+        /**
+         * The destination of the path.
+         */
         public final Point destination;
+        /**
+         * The path leading to the destination.
+         */
         public final Queue<Point> path;
 
+        /**
+         * Initializes a new instance.
+         * @param dest {@link #destination}
+         * @param p {@link #path}
+         */
         public DestinationPath(Point dest, Queue<Point> p) {
             destination = dest;
             path = p;

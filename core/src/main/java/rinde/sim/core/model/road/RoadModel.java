@@ -33,11 +33,70 @@ import com.google.common.base.Predicate;
  */
 public interface RoadModel extends Model<RoadUser> {
 
-    // TODO add a function which handles all the traveling. e.g: moveTo(obj,
-    // dest, time)
-    // this function would automatically find the shortest path to dest
+    /**
+     * Moves the specified {@link MovingRoadUser} towards the specified
+     * <code>destination</code> using the path returned by
+     * {@link #getShortestPathTo(RoadUser, Point)}. There must be time left in
+     * the provided {@link TimeLapse}.
+     * <p>
+     * <b>Speed</b><br/>
+     * The {@link MovingRoadUser} has to define a speed with which it wants to
+     * travel. This method uses the {@link MovingRoadUser}s speed as an
+     * <i>upper</i> bound, it gives no guarantee about the lower bound (i.e. the
+     * object could stand still). The actual speed of the object depends on the
+     * model implementation. A model can define constraints such as speed limits
+     * or traffic jams which can slow down a {@link MovingRoadUser}.
+     * <p>
+     * <b>Time</b><br/>
+     * The time that is specified as indicated by the {@link TimeLapse} object
+     * may or may not be consumed completely. Normally, this method will try to
+     * consume all time in the {@link TimeLapse} object. In case the destination
+     * is reached before all time is consumed (which depends on the object's
+     * <i>speed</i>, the distance to the <code>destination</code> and any speed
+     * constraints if available) there will be some time left in the
+     * {@link TimeLapse}.
+     * @param object The object that is moved.
+     * @param destination The destination position.
+     * @param time The time that is available for travel.
+     * @return A {@link PathProgress} instance which details: the distance
+     *         traveled, the actual time spent traveling and the nodes which
+     *         where traveled.
+     * @see #moveTo(MovingRoadUser, RoadUser, TimeLapse)
+     * @see #followPath(MovingRoadUser, Queue, TimeLapse)
+     */
     PathProgress moveTo(MovingRoadUser object, Point destination, TimeLapse time);
 
+    /**
+     * Moves the specified {@link MovingRoadUser} towards the specified
+     * <code>destination</code> using the path returned by
+     * {@link #getShortestPathTo(RoadUser, RoadUser)}. There must be time left
+     * in the provided {@link TimeLapse}.
+     * <p>
+     * <b>Speed</b><br/>
+     * The {@link MovingRoadUser} has to define a speed with which it wants to
+     * travel. This method uses the {@link MovingRoadUser}s speed as an
+     * <i>upper</i> bound, it gives no guarantee about the lower bound (i.e. the
+     * object could stand still). The actual speed of the object depends on the
+     * model implementation. A model can define constraints such as speed limits
+     * or traffic jams which can slow down a {@link MovingRoadUser}.
+     * <p>
+     * <b>Time</b><br/>
+     * The time that is specified as indicated by the {@link TimeLapse} object
+     * may or may not be consumed completely. Normally, this method will try to
+     * consume all time in the {@link TimeLapse} object. In case the destination
+     * is reached before all time is consumed (which depends on the object's
+     * <i>speed</i>, the distance to the <code>destination</code> and any speed
+     * constraints if available) there will be some time left in the
+     * {@link TimeLapse}.
+     * @param object The object that is moved.
+     * @param destination The destination position.
+     * @param time The time that is available for travel.
+     * @return A {@link PathProgress} instance which details: the distance
+     *         traveled, the actual time spent traveling and the nodes which
+     *         where traveled.
+     * @see #moveTo(MovingRoadUser, Point, TimeLapse)
+     * @see #followPath(MovingRoadUser, Queue, TimeLapse)
+     */
     PathProgress moveTo(MovingRoadUser object, RoadUser destination,
             TimeLapse time);
 
@@ -81,6 +140,8 @@ public interface RoadModel extends Model<RoadUser> {
      * @return A {@link PathProgress} instance which details: the distance
      *         traveled, the actual time spent traveling and the nodes which
      *         where traveled.
+     * @see #moveTo(MovingRoadUser, Point, TimeLapse)
+     * @see #moveTo(MovingRoadUser, RoadUser, TimeLapse)
      */
     PathProgress followPath(MovingRoadUser object, Queue<Point> path,
             TimeLapse time);
@@ -147,9 +208,10 @@ public interface RoadModel extends Model<RoadUser> {
     /**
      * This method returns a mapping of {@link RoadUser} to {@link Point}
      * objects which exist in this model. The returned map is not a live view on
-     * this model, but a new created copy. TODO add test for this live view case
+     * this model, but a new created copy.
      * @return A map of {@link RoadUser} to {@link Point} objects.
      */
+    // TODO add tests to check that this map really is not a live view
     Map<RoadUser, Point> getObjectsAndPositions();
 
     /**

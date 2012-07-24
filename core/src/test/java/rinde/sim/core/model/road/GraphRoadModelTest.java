@@ -3,6 +3,7 @@
  */
 package rinde.sim.core.model.road;
 
+import static com.google.common.collect.Lists.newLinkedList;
 import static java.util.Arrays.asList;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -511,6 +512,41 @@ public class GraphRoadModelTest extends AbstractRoadModelTest<GraphRoadModel> {
 
         model.followPath(tru1, asPath(model.getPosition(tru2)), hour(3));
         assertEquals(model.getPosition(tru1), model.getPosition(tru2));
+    }
+
+    @Test
+    public void moveTo() {
+        final MovingRoadUser agent = new SpeedyRoadUser(1);
+
+        model.addObjectAt(agent, SW);
+        assertEquals(new Point(0, 0), model.getPosition(agent));
+
+        model.moveTo(agent, NW, hour(9));
+        System.out.println(model.getPosition(agent));
+        assertTrue(Point.distance(model.getPosition(agent), new Point(9, 0)) < EPSILON);
+
+        model.followPath(agent, newLinkedList(asList(SE, NE)), hour(2));
+        assertTrue(Point.distance(model.getPosition(agent), new Point(10, 1)) < EPSILON);
+
+        model.moveTo(agent, NW, hour(2));
+        assertTrue(Point.distance(model.getPosition(agent), new Point(10, 3)) < EPSILON);
+
+        model.moveTo(agent, NW, hour(1));
+        model.moveTo(agent, NE, hour(1));
+        assertTrue(Point.distance(model.getPosition(agent), new Point(10, 5)) < EPSILON);
+
+        model.followPath(agent, newLinkedList(asList(NE)), hour(2));
+        assertTrue(Point.distance(model.getPosition(agent), new Point(10, 7)) < EPSILON);
+
+        model.moveTo(agent, NW, hour(13));
+        assertTrue(Point.distance(model.getPosition(agent), new Point(0, 10)) < EPSILON);
+
+        final MovingRoadUser agent2 = new SpeedyRoadUser(1);
+        model.addObjectAt(agent2, SW);
+        assertEquals(new Point(0, 0), model.getPosition(agent2));
+
+        model.moveTo(agent2, agent, hour(30));
+        assertEquals(model.getPosition(agent), model.getPosition(agent2));
     }
 
     @Test

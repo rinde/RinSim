@@ -36,6 +36,8 @@ import rinde.sim.util.TimeUnit;
  */
 public class GraphRoadModel extends AbstractRoadModel<Loc> {
 
+    // FIXME precision stuff should be defined in the interface, implemented in
+    // abstract class and thoroughly tested
     // TODO what about precision?
     protected static final double DELTA = 0.000001;
 

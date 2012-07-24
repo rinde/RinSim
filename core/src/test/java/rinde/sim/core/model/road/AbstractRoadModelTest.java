@@ -54,6 +54,10 @@ public abstract class AbstractRoadModelTest<T extends RoadModel> {
         return TimeLapseFactory.create(0, 60 * 60 * 1000 * multiplier);
     }
 
+    protected static TimeLapse hour(double multiplier) {
+        return TimeLapseFactory.create(0, (long) (60 * 60 * 1000 * multiplier));
+    }
+
     protected static TimeLapse timeLength(long length) {
         return TimeLapseFactory.create(0, length);
     }

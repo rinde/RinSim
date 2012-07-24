@@ -30,7 +30,7 @@ public class PlaneRoadModel extends AbstractRoadModel<Point> {
     /**
      * The minimum travelable distance.
      */
-    // TODO should this be dynamic?
+    // TODO should this be dynamic? -> YES
     protected static final double DELTA = 0.000001;
 
     /**
