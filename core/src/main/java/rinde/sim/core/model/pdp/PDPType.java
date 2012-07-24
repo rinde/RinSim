@@ -10,6 +10,6 @@ package rinde.sim.core.model.pdp;
  */
 enum PDPType {
 
-    PACKAGE, TRUCK, DEPOT;
+    PARCEL, VEHICLE, DEPOT;
 
 }

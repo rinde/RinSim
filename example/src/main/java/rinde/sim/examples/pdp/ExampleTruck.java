@@ -9,14 +9,14 @@ import rinde.sim.core.TimeLapse;
 import rinde.sim.core.graph.Point;
 import rinde.sim.core.model.pdp.PDPModel;
 import rinde.sim.core.model.pdp.Parcel;
-import rinde.sim.core.model.pdp.Truck;
+import rinde.sim.core.model.pdp.Vehicle;
 import rinde.sim.core.model.road.RoadModel;
 
 /**
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
  * 
  */
-public class ExampleTruck extends Truck {
+public class ExampleTruck extends Vehicle {
 
 	protected RoadModel roadModel;
 	protected PDPModel pdpModel;
@@ -30,15 +30,11 @@ public class ExampleTruck extends Truck {
 
 	@Override
 	public double getSpeed() {
-		// TODO Auto-generated method stub
 		return 1000;
 	}
 
 	@Override
-	public void afterTick(TimeLapse timeLapse) {
-		// TODO Auto-generated method stub
-
-	}
+	public void afterTick(TimeLapse timeLapse) {}
 
 	@Override
 	protected void tickImpl(TimeLapse time) {

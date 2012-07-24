@@ -16,9 +16,9 @@ import org.junit.Test;
 import rinde.sim.core.TimeLapse;
 import rinde.sim.core.TimeLapseFactory;
 import rinde.sim.core.graph.Point;
-import rinde.sim.core.model.pdp.PDPModel.PackageState;
+import rinde.sim.core.model.pdp.PDPModel.ParcelState;
 import rinde.sim.core.model.pdp.PDPModel.PickupAction;
-import rinde.sim.core.model.pdp.PDPModel.TruckState;
+import rinde.sim.core.model.pdp.PDPModel.VehicleState;
 import rinde.sim.core.model.road.PlaneRoadModel;
 import rinde.sim.core.model.road.RoadModel;
 
@@ -44,7 +44,7 @@ public class PDPModelTest {
     @Test
     public void testPickup() {
         final Parcel pack1 = new TestPackage(new Point(2, 2), 0, 0, 2);
-        final Truck truck = new TestTruck(new Point(1, 1), 10.0, 1.0);
+        final Vehicle truck = new TestTruck(new Point(1, 1), 10.0, 1.0);
         model.register(pack1);
         model.register(truck);
         rm.register(pack1);
@@ -53,14 +53,14 @@ public class PDPModelTest {
 
         assertEquals(0, model.getContentsSize(truck), EPSILON);
         assertTrue(model.getContents(truck).isEmpty());
-        assertEquals(PackageState.AVAILABLE, model.getPackageState(pack1));
-        assertEquals(TruckState.IDLE, model.getTruckState(truck));
+        assertEquals(ParcelState.AVAILABLE, model.getParcelState(pack1));
+        assertEquals(VehicleState.IDLE, model.getVehicleState(truck));
         model.pickup(truck, pack1, TimeLapseFactory.create(0, 10000));
-        assertEquals(PackageState.IN_CARGO, model.getPackageState(pack1));
-        assertEquals(TruckState.IDLE, model.getTruckState(truck));
+        assertEquals(ParcelState.IN_CARGO, model.getParcelState(pack1));
+        assertEquals(VehicleState.IDLE, model.getVehicleState(truck));
 
         assertFalse(rm.containsObject(pack1));
-        assertTrue(model.truckContains(truck, pack1));
+        assertTrue(model.containerContains(truck, pack1));
         assertEquals(2, model.getContentsSize(truck), EPSILON);
         assertTrue(model.getContents(truck).contains(pack1));
         assertEquals(1, model.getContents(truck).size());
@@ -75,61 +75,53 @@ public class PDPModelTest {
 
         assertEquals(new Point(1, 2), rm.getPosition(truck));
         assertEquals(new Point(1, 2), rm.getPosition(pack2));
-        assertEquals(PackageState.AVAILABLE, model.getPackageState(pack2));
-        assertEquals(TruckState.IDLE, model.getTruckState(truck));
+        assertEquals(ParcelState.AVAILABLE, model.getParcelState(pack2));
+        assertEquals(VehicleState.IDLE, model.getVehicleState(truck));
         model.pickup(truck, pack2, TimeLapseFactory.create(0, 40));
         assertFalse(rm.containsObject(pack2));
-        final PickupAction action = (PickupAction) model.truckActions
+        final PickupAction action = (PickupAction) model.vehicleActions
                 .get(truck);
         assertFalse(action.isDone());
         assertEquals(60, action.timeNeeded());
-        assertEquals(PackageState.LOADING, model.getPackageState(pack2));
-        assertEquals(TruckState.LOADING, model.getTruckState(truck));
+        assertEquals(ParcelState.LOADING, model.getParcelState(pack2));
+        assertEquals(VehicleState.LOADING, model.getVehicleState(truck));
 
         model.continuePreviousActions(truck, TimeLapseFactory.create(0, 40));
         assertFalse(action.isDone());
         assertEquals(20, action.timeNeeded());
-        assertEquals(PackageState.LOADING, model.getPackageState(pack2));
-        assertEquals(TruckState.LOADING, model.getTruckState(truck));
+        assertEquals(ParcelState.LOADING, model.getParcelState(pack2));
+        assertEquals(VehicleState.LOADING, model.getVehicleState(truck));
 
         final TimeLapse tl = TimeLapseFactory.create(0, 40);
         model.continuePreviousActions(truck, tl);
         assertTrue(action.isDone());
         assertEquals(0, action.timeNeeded());
         assertEquals(20, tl.getTimeLeft());
-        assertEquals(PackageState.IN_CARGO, model.getPackageState(pack2));
-        assertEquals(TruckState.IDLE, model.getTruckState(truck));
+        assertEquals(ParcelState.IN_CARGO, model.getParcelState(pack2));
+        assertEquals(VehicleState.IDLE, model.getVehicleState(truck));
 
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void testPickupFail1() {
-        // not enough time
-        final TimeLapse tl = TimeLapseFactory.create(0, 1);
-        tl.consumeAll();
-        model.pickup(null, null, tl);
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void testPickupFail2() {
         // truck not in roadmodel
-        final Truck truck = new TestTruck(new Point(1, 1), 10.0, 1.0);
+        final Vehicle truck = new TestTruck(new Point(1, 1), 10.0, 1.0);
         model.pickup(truck, null, TimeLapseFactory.create(0, 1));
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void testPickupFail3() {
+    public void testPickupFail2() {
         // package not in roadmodel
-        final Truck truck = new TestTruck(new Point(1, 1), 10.0, 1.0);
+        final Vehicle truck = new TestTruck(new Point(1, 1), 10.0, 1.0);
         rm.register(truck);
         final Parcel pack1 = new TestPackage(new Point(2, 2), 0, 0, 2.0);
         model.pickup(truck, pack1, TimeLapseFactory.create(0, 1));
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void testPickupFail4A() {
+    public void testPickupFail3A() {
         // package not in available state (it is already been picked up)
-        final Truck truck = new TestTruck(new Point(1, 1), 10.0, 1.0);
+        final Vehicle truck = new TestTruck(new Point(1, 1), 10.0, 1.0);
         rm.register(truck);
         model.register(truck);
         final Parcel pack1 = new TestPackage(new Point(2, 2), 10, 10, 2.0);
@@ -137,12 +129,12 @@ public class PDPModelTest {
         model.register(pack1);
         rm.addObjectAtSamePosition(pack1, truck);
         assertTrue(rm.equalPosition(truck, pack1));
-        assertEquals(PackageState.AVAILABLE, model.getPackageState(pack1));
-        assertEquals(TruckState.IDLE, model.getTruckState(truck));
+        assertEquals(ParcelState.AVAILABLE, model.getParcelState(pack1));
+        assertEquals(VehicleState.IDLE, model.getVehicleState(truck));
 
         model.pickup(truck, pack1, TimeLapseFactory.create(0, 100));
-        assertEquals(PackageState.IN_CARGO, model.getPackageState(pack1));
-        assertEquals(TruckState.IDLE, model.getTruckState(truck));
+        assertEquals(ParcelState.IN_CARGO, model.getParcelState(pack1));
+        assertEquals(VehicleState.IDLE, model.getVehicleState(truck));
 
         // checks what happens when you add a package to the roadmodel which has
         // already been picked up
@@ -152,9 +144,9 @@ public class PDPModelTest {
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void testPickupFail4B() {
+    public void testPickupFail3B() {
         // package is not registered
-        final Truck truck = new TestTruck(new Point(1, 1), 10.0, 1.0);
+        final Vehicle truck = new TestTruck(new Point(1, 1), 10.0, 1.0);
         rm.register(truck);
         final Parcel pack1 = new TestPackage(new Point(2, 2), 0, 0, 2.0);
         rm.register(pack1);
@@ -163,8 +155,8 @@ public class PDPModelTest {
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void testPickupFail5() {
-        final Truck truck = new TestTruck(new Point(1, 1), 10.0, 1.0);
+    public void testPickupFail4() {
+        final Vehicle truck = new TestTruck(new Point(1, 1), 10.0, 1.0);
         rm.register(truck);
         final Parcel pack1 = new TestPackage(new Point(2, 2), 0, 0, 2.0);
         rm.register(pack1);
@@ -174,9 +166,9 @@ public class PDPModelTest {
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void testPickupFail6() {
+    public void testPickupFail5() {
         // wrong position
-        final Truck truck = new TestTruck(new Point(1, 1), 10.0, 1.0);
+        final Vehicle truck = new TestTruck(new Point(1, 1), 10.0, 1.0);
         rm.register(truck);
         model.register(truck);
         final Parcel pack1 = new TestPackage(new Point(2, 2), 0, 0, 2.0);
@@ -187,9 +179,9 @@ public class PDPModelTest {
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void testPickupFail7() {
+    public void testPickupFail6() {
         // package does not fit in truck
-        final Truck truck = new TestTruck(new Point(1, 1), 1.0, 1.0);
+        final Vehicle truck = new TestTruck(new Point(1, 1), 1.0, 1.0);
         rm.register(truck);
         model.register(truck);
         final Parcel pack1 = new TestPackage(new Point(2, 2), 0, 0, 2.0);
@@ -202,7 +194,7 @@ public class PDPModelTest {
 
     @Test
     public void testDeliver() {
-        final Truck truck = new TestTruck(new Point(1, 1), 10.0, 1.0);
+        final Vehicle truck = new TestTruck(new Point(1, 1), 10.0, 1.0);
         rm.register(truck);
         model.register(truck);
         final Parcel pack1 = new TestPackage(new Point(2, 2), 10, 10, 2.0);
@@ -210,13 +202,13 @@ public class PDPModelTest {
         model.register(pack1);
         rm.addObjectAtSamePosition(pack1, truck);
         assertTrue(rm.equalPosition(truck, pack1));
-        assertEquals(PackageState.AVAILABLE, model.getPackageState(pack1));
-        assertEquals(TruckState.IDLE, model.getTruckState(truck));
+        assertEquals(ParcelState.AVAILABLE, model.getParcelState(pack1));
+        assertEquals(VehicleState.IDLE, model.getVehicleState(truck));
         assertEquals(newHashSet(pack1), model.getAvailableParcels());
 
         model.pickup(truck, pack1, TimeLapseFactory.create(0, 100));
-        assertEquals(PackageState.IN_CARGO, model.getPackageState(pack1));
-        assertEquals(TruckState.IDLE, model.getTruckState(truck));
+        assertEquals(ParcelState.IN_CARGO, model.getParcelState(pack1));
+        assertEquals(VehicleState.IDLE, model.getVehicleState(truck));
         assertTrue(model.getAvailableParcels().isEmpty());
 
         rm.moveTo(truck, pack1.getDestination(), TimeLapseFactory
@@ -224,52 +216,44 @@ public class PDPModelTest {
         assertEquals(pack1.getDestination(), rm.getPosition(truck));
 
         model.deliver(truck, pack1, TimeLapseFactory.create(0, 8));
-        assertEquals(PackageState.UNLOADING, model.getPackageState(pack1));
-        assertEquals(TruckState.UNLOADING, model.getTruckState(truck));
+        assertEquals(ParcelState.UNLOADING, model.getParcelState(pack1));
+        assertEquals(VehicleState.UNLOADING, model.getVehicleState(truck));
 
         final TimeLapse tl = TimeLapseFactory.create(0, 10);
         model.continuePreviousActions(truck, tl);
-        assertEquals(PackageState.DELIVERED, model.getPackageState(pack1));
-        assertEquals(TruckState.IDLE, model.getTruckState(truck));
+        assertEquals(ParcelState.DELIVERED, model.getParcelState(pack1));
+        assertEquals(VehicleState.IDLE, model.getVehicleState(truck));
         assertEquals(8, tl.getTimeLeft());
 
         final Parcel pack2 = new TestPackage(new Point(2, 2), 10, 10, 2.0);
         rm.register(pack2);
         model.register(pack2);
         rm.addObjectAtSamePosition(pack2, truck);
-        assertEquals(PackageState.AVAILABLE, model.getPackageState(pack2));
-        assertEquals(TruckState.IDLE, model.getTruckState(truck));
+        assertEquals(ParcelState.AVAILABLE, model.getParcelState(pack2));
+        assertEquals(VehicleState.IDLE, model.getVehicleState(truck));
         assertEquals(newHashSet(pack2), model.getAvailableParcels());
 
         model.pickup(truck, pack2, TimeLapseFactory.create(0, 10));
-        assertEquals(PackageState.IN_CARGO, model.getPackageState(pack2));
-        assertEquals(TruckState.IDLE, model.getTruckState(truck));
+        assertEquals(ParcelState.IN_CARGO, model.getParcelState(pack2));
+        assertEquals(VehicleState.IDLE, model.getVehicleState(truck));
         assertTrue(model.getAvailableParcels().isEmpty());
 
         model.deliver(truck, pack2, TimeLapseFactory.create(0, 10));
-        assertEquals(PackageState.DELIVERED, model.getPackageState(pack2));
-        assertEquals(TruckState.IDLE, model.getTruckState(truck));
+        assertEquals(ParcelState.DELIVERED, model.getParcelState(pack2));
+        assertEquals(VehicleState.IDLE, model.getVehicleState(truck));
 
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void testDeliverFail1() {
-        // not enough time
-        final TimeLapse tl = TimeLapseFactory.create(0, 1);
-        tl.consumeAll();
-        model.deliver(null, null, tl);
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void testDeliverFail2() {
         // truck does not exist in roadmodel
         model.deliver(new TestTruck(new Point(1, 1), 20.0, 1.0), null, TimeLapseFactory
                 .create(0, 1));
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void testDeliverFail3() {
-        final Truck truck = new TestTruck(new Point(1, 1), 10.0, 1.0);
+    public void testDeliverFail2() {
+        final Vehicle truck = new TestTruck(new Point(1, 1), 10.0, 1.0);
         rm.register(truck);
         model.register(truck);
         final Parcel pack1 = new TestPackage(new Point(2, 2), 10, 10, 2.0);
@@ -278,13 +262,13 @@ public class PDPModelTest {
         rm.addObjectAtSamePosition(pack1, truck);
 
         model.pickup(truck, pack1, TimeLapseFactory.create(0, 1));
-        assertEquals(TruckState.LOADING, model.getTruckState(truck));
+        assertEquals(VehicleState.LOADING, model.getVehicleState(truck));
         model.deliver(truck, pack1, TimeLapseFactory.create(0, 1));
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void testDeliverFail4() {
-        final Truck truck = new TestTruck(new Point(1, 1), 10.0, 1.0);
+    public void testDeliverFail3() {
+        final Vehicle truck = new TestTruck(new Point(1, 1), 10.0, 1.0);
         rm.register(truck);
         model.register(truck);
         final Parcel pack1 = new TestPackage(new Point(2, 2), 10, 10, 2.0);
@@ -296,8 +280,8 @@ public class PDPModelTest {
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void testDeliverFail5() {
-        final Truck truck = new TestTruck(new Point(1, 1), 10.0, 1.0);
+    public void testDeliverFail4() {
+        final Vehicle truck = new TestTruck(new Point(1, 1), 10.0, 1.0);
         rm.register(truck);
         model.register(truck);
         final Parcel pack1 = new TestPackage(new Point(2, 2), 10, 10, 2.0);
@@ -318,7 +302,7 @@ public class PDPModelTest {
         model.register(d);
         model.register(p1);
         rm.addObjectAt(d, new Point(0, 0));
-        model.addPackageIn(d, p1);
+        model.addParcelIn(d, p1);
 
         assertEquals(newHashSet(p1), model.getAvailableParcels());
     }
@@ -328,14 +312,14 @@ public class PDPModelTest {
         final Depot d = new TestDepot(10);
         final Parcel p1 = new TestPackage(new Point(0, 0), 0, 0, 1);
         rm.addObjectAt(p1, new Point(0, 0));
-        model.addPackageIn(d, p1);
+        model.addParcelIn(d, p1);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void addPackageInFail2() {
         final Depot d = new TestDepot(10);
         final Parcel p1 = new TestPackage(new Point(0, 0), 0, 0, 1);
-        model.addPackageIn(d, p1);
+        model.addParcelIn(d, p1);
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -343,7 +327,7 @@ public class PDPModelTest {
         final Depot d = new TestDepot(10);
         final Parcel p1 = new TestPackage(new Point(0, 0), 0, 0, 1);
         model.register(p1);
-        model.addPackageIn(d, p1);
+        model.addParcelIn(d, p1);
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -352,7 +336,7 @@ public class PDPModelTest {
         final Parcel p1 = new TestPackage(new Point(0, 0), 0, 0, 1);
         model.register(p1);
         model.register(d);
-        model.addPackageIn(d, p1);
+        model.addParcelIn(d, p1);
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -362,7 +346,7 @@ public class PDPModelTest {
         model.register(p1);
         model.register(d);
         rm.addObjectAt(d, new Point(0, 0));
-        model.addPackageIn(d, p1);
+        model.addParcelIn(d, p1);
     }
 
     class TestPackage extends Parcel {
@@ -382,7 +366,7 @@ public class PDPModelTest {
 
     }
 
-    class TestTruck extends Truck {
+    class TestTruck extends Vehicle {
 
         private final double speed;
 

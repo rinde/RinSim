@@ -51,15 +51,14 @@ public class PDPExample {
 		}
 
 		for (int i = 0; i < 30; i++) {
-			simulator.register(new ExamplePackage(roadModel.getRandomPosition(rng), roadModel.getRandomPosition(rng),
+			simulator.register(new ExampleParcel(roadModel.getRandomPosition(rng), roadModel.getRandomPosition(rng),
 					10, 10, 10.0));
 		}
 
 		final UiSchema uis = new UiSchema();
 		uis.add(ExampleDepot.class, "/graphics/perspective/tall-building-64.png");
 		uis.add(ExampleTruck.class, "/graphics/flat/taxi-32.png");
-		uis.add(ExamplePackage.class, "/graphics/flat/hailing-cab-32.png");
-
+		uis.add(ExampleParcel.class, "/graphics/flat/hailing-cab-32.png");
 		View.startGui(simulator, 1, new RoadsRenderer(), new RoadUserRenderer(uis, false));
 
 	}

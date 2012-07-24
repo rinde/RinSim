@@ -22,132 +22,153 @@ import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 
 /**
- * 
- * 
- * Assumptions of the model, any truck can pickup any (kind of) package (as long
- * as size constraints are met).
+ * Assumptions of the model, any vehicle can pickup any (kind of) parcel (as
+ * long as size constraints are met).
  * 
  * Currently supports three kinds of objects:
  * <ul>
  * <li> {@link Parcel}</li>
- * <li> {@link Truck}</li>
+ * <li> {@link Vehicle}</li>
  * <li> {@link Depot}</li>
  * </ul>
  * 
- * A package must be in one of three locations: on a truck, in a depot or on a
+ * A parcel must be in one of three locations: on a vehicle, in a depot or on a
  * road (roadmodel).
+ * 
+ * TODO write more about assumptions in model <br/>
+ * TODO write about extensibility
  * 
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
  */
 public class PDPModel implements Model<PDPObject> {
+    /**
+     * Reference to the {@link RoadModel} on which the pdp objects are situated.
+     */
     protected final RoadModel roadModel;
+    /**
+     * Multimap for keeping references to the contents of {@link Container}s.
+     */
     protected final Multimap<Container, Parcel> containerContents;
+    /**
+     * Map for keeping the size of the contents of {@link Container}s.
+     */
     protected final Map<Container, Double> containerContentsSize;
+    /**
+     * Map for keeping the capacity of {@link Container}s.
+     */
     protected final Map<Container, Double> containerCapacities;
-    protected final Map<Truck, TruckState> truckState;
-    protected final Map<Parcel, PackageState> packageState;
-    protected final Map<Truck, Action> truckActions;
+    /**
+     * Map that stores the state of {@link Vehicle}s.
+     */
+    protected final Map<Vehicle, VehicleState> vehicleState;
+    /**
+     * Map that stores the state of {@link Parcel}s.
+     */
+    protected final Map<Parcel, ParcelState> parcelState;
+    /**
+     * Map that stores any pending {@link Action}s of {@link Vehicle}s.
+     */
+    protected final Map<Vehicle, Action> vehicleActions;
 
-    enum PackageState {
+    enum ParcelState {
         LOADING, UNLOADING, AVAILABLE, IN_CARGO, DELIVERED
     }
 
-    enum TruckState {
+    enum VehicleState {
         IDLE, LOADING, UNLOADING
     }
 
-    // TODO what if we give all model actions default visibility? and let them
-    // be accesible only through the abstract class
+    enum PDPEvent {
+        START_PICKUP, END_PICKUP, START_DELIVERY, END_DELIVERY
+    }
 
-    // TODO where to store pickup and delivery processing times?
-
-    // a Package must always be either in the PDPModel or in the RoadModel not
-    // both! if it exists in neither it doesn't exist at all.
-
+    /**
+     * Initializes the PDPModel.
+     * @param rm The {@link RoadModel} which is associated to this model.
+     */
     public PDPModel(RoadModel rm) {
         roadModel = rm;
         containerContents = HashMultimap.create();
         containerContentsSize = newHashMap();
         containerCapacities = newHashMap();
-        truckActions = newHashMap();
-        truckState = newHashMap();
-        packageState = newHashMap();
+        vehicleActions = newHashMap();
+        vehicleState = newHashMap();
+        parcelState = newHashMap();
     }
 
-    // protected Table<Truck>
-
-    public Collection<Parcel> getContents(Container truck) {
-        checkArgument(containerCapacities.containsKey(truck));
-        return unmodifiableCollection(containerContents.get(truck));
+    /**
+     * Returns an unmodifiable view on the contents of the specified container.
+     * @param container The container to inspect.
+     * @return An unmodifiable collection.
+     */
+    public Collection<Parcel> getContents(Container container) {
+        checkArgument(containerCapacities.containsKey(container));
+        return unmodifiableCollection(containerContents.get(container));
     }
 
-    public double getContentsSize(Container truck) {
-        return containerContentsSize.get(truck);
+    /**
+     * Returns the size of the contents of the specified container.
+     * @param container The container to inspect.
+     * @return A <code>double</code> indicating the size of the contents.
+     */
+    public double getContentsSize(Container container) {
+        return containerContentsSize.get(container);
     }
 
     // public void getPack
 
     /**
-     * {@link Truck} <code>t</code> attempts to pickup {@link Parcel}
-     * <code>p</code>.
-     * @param t
-     * @param p
+     * Attempts to perform a pickup operation using the specified vehicle and
+     * parcel.
+     * 
+     * @param vehicle
+     * @param parcel
+     * @param time
      */
-    public void pickup(Truck t, Parcel p, TimeLapse time) {
+    public void pickup(Vehicle vehicle, Parcel parcel, TimeLapse time) {
 
         // TODO add event
-        // TODO package.isPickupAllowedBy(truck)
-        // TODO truck.canPickup(package)
 
-        /* 1 */// checkArgument(time.hasTimeLeft(),
-               // "there must be time available to perform the action");
-        /* 2 */checkArgument(roadModel.containsObject(t), "truck does not exist in RoadModel");
-        /* 3 */checkArgument(roadModel.containsObject(p), "package does not exist in RoadModel");
-        /* 4 */checkArgument(packageState.get(p) == PackageState.AVAILABLE, "package must be registered and must be available");
-        /* 5 */checkArgument(truckState.get(t) == TruckState.IDLE, "truck must be registered and must be available");
-        /* 6 */checkArgument(roadModel.equalPosition(t, p), "truck must be at the same location as the package it wishes to pickup");
-        final double newSize = containerContentsSize.get(t) + p.getMagnitude();
-        /* 7 */checkArgument(newSize <= containerCapacities.get(t), "package does not fit in truck");
+        /* 1 */checkArgument(roadModel.containsObject(vehicle), "vehicle does not exist in RoadModel");
+        /* 2 */checkArgument(roadModel.containsObject(parcel), "parcel does not exist in RoadModel");
+        /* 3 */checkArgument(parcelState.get(parcel) == ParcelState.AVAILABLE, "parcel must be registered and must be available");
+        /* 4 */checkArgument(vehicleState.get(vehicle) == VehicleState.IDLE, "vehicle must be registered and must be available");
+        /* 5 */checkArgument(roadModel.equalPosition(vehicle, parcel), "vehicle must be at the same location as the parcel it wishes to pickup");
+        final double newSize = containerContentsSize.get(vehicle)
+                + parcel.getMagnitude();
+        /* 6 */checkArgument(newSize <= containerCapacities.get(vehicle), "parcel does not fit in vehicle");
 
-        // remove the package such that it can no longer be attempted to be
+        // remove the parcel such that it can no longer be attempted to be
         // picked up by anyone else
-        roadModel.removeObject(p);
+        roadModel.removeObject(parcel);
         // in this case we know we cannot finish this action with the available
         // time. We must continue in the next tick.
-        if (time.getTimeLeft() < p.getLoadingDuration()) {
-            truckState.put(t, TruckState.LOADING);
-            packageState.put(p, PackageState.LOADING);
+        if (time.getTimeLeft() < parcel.getLoadingDuration()) {
+            vehicleState.put(vehicle, VehicleState.LOADING);
+            parcelState.put(parcel, ParcelState.LOADING);
 
-            truckActions.put(t, new PickupAction(this, t, p, p
-                    .getLoadingDuration() - time.getTimeLeft()));
+            vehicleActions.put(vehicle, new PickupAction(this, vehicle, parcel,
+                    parcel.getLoadingDuration() - time.getTimeLeft()));
             time.consumeAll();
         } else {
-            time.consume(p.getLoadingDuration());
-            doPickup(t, p);
+            time.consume(parcel.getLoadingDuration());
+            doPickup(vehicle, parcel);
         }
     }
 
-    protected void doPickup(Truck t, Parcel p) {
-        containerContents.put(t, p);
-        containerContentsSize.put(t, containerContentsSize.get(t)
-                + p.getMagnitude());
+    protected void doPickup(Vehicle vehicle, Parcel parcel) {
+        containerContents.put(vehicle, parcel);
+        containerContentsSize.put(vehicle, containerContentsSize.get(vehicle)
+                + parcel.getMagnitude());
 
-        packageState.put(p, PackageState.IN_CARGO);
+        parcelState.put(parcel, ParcelState.IN_CARGO);
     }
 
-    // should deliver (put down) the package p that truck t is carrying.
-    // TODO check for constraints, can a package just be put down everywhere? or
+    // should deliver (put down) the parcel p that vehicle t is carrying.
+    // TODO check for constraints, can a parcel just be put down everywhere? or
     // only at Depots? is this a global constraint? or only at its predefined
     // destination?
     // public void deliver(Truck t, Package p, TimeLapse time) {
-
-    // partial delivery?
-    // what if we didn't have time to completely deliver? we should enforce
-    // continuing the delivery in the next tick
-    // how to avoid that the truck moves in the mean time? listening to move
-    // events in the RoadModel? intercepting TimeLapses in the Truck? (could
-    // be done by making an abstract class). the state should be saved
-    // somewhere, in the model? in the truck?
 
     // TODO package.isDeliveryAllowedAt(currentPos)
     // TODO truck.canDeliverAt(currentPos / currentDepot)
@@ -156,93 +177,93 @@ public class PDPModel implements Model<PDPObject> {
     // subclass
     // }
 
-    public void deliver(Truck t, Parcel p, TimeLapse time) {
-        /* 1 */// checkArgument(time.hasTimeLeft(),
-               // "there must be time available to perform the action");
-        /* 2 */checkArgument(roadModel.containsObject(t), "truck does not exist in RoadModel");
-        /* 3 */checkArgument(truckState.get(t).equals(TruckState.IDLE), "truck must be idle");
-        /* 4 */checkArgument(containerContents.get(t).contains(p), "truck does not contain package");
-        /* 5 */checkArgument(p.getDestination()
-                .equals(roadModel.getPosition(t)), "package must be delivered at its destination, truck should move there first");
+    public void deliver(Vehicle vehicle, Parcel parcel, TimeLapse time) {
+        /* 1 */checkArgument(roadModel.containsObject(vehicle), "vehicle does not exist in RoadModel");
+        /* 2 */checkArgument(vehicleState.get(vehicle)
+                .equals(VehicleState.IDLE), "vehicle must be idle");
+        /* 3 */checkArgument(containerContents.get(vehicle).contains(parcel), "vehicle does not contain parcel");
+        /* 4 */checkArgument(parcel.getDestination()
+                .equals(roadModel.getPosition(vehicle)), "parcel must be delivered at its destination, vehicle should move there first");
 
-        if (time.getTimeLeft() < p.getUnloadingDuration()) {
-            truckState.put(t, TruckState.UNLOADING);
-            packageState.put(p, PackageState.UNLOADING);
-            truckActions.put(t, new DeliverAction(this, t, p, p
-                    .getUnloadingDuration() - time.getTimeLeft()));
+        if (time.getTimeLeft() < parcel.getUnloadingDuration()) {
+            vehicleState.put(vehicle, VehicleState.UNLOADING);
+            parcelState.put(parcel, ParcelState.UNLOADING);
+            vehicleActions
+                    .put(vehicle, new DeliverAction(this, vehicle, parcel,
+                            parcel.getUnloadingDuration() - time.getTimeLeft()));
             time.consumeAll();
         } else {
-            time.consume(p.getUnloadingDuration());
-            doDeliver(t, p);
+            time.consume(parcel.getUnloadingDuration());
+            doDeliver(vehicle, parcel);
         }
     }
 
     /**
-     * @param truck
-     * @param pack
+     * @param vehicle
+     * @param parcel
      */
-    protected void doDeliver(Truck truck, Parcel pack) {
-        containerContents.remove(truck, pack);
-        containerContentsSize.put(truck, containerContentsSize.get(truck)
-                - pack.getMagnitude());
+    protected void doDeliver(Vehicle vehicle, Parcel parcel) {
+        containerContents.remove(vehicle, parcel);
+        containerContentsSize.put(vehicle, containerContentsSize.get(vehicle)
+                - parcel.getMagnitude());
 
-        packageState.put(pack, PackageState.DELIVERED);
+        parcelState.put(parcel, ParcelState.DELIVERED);
     }
 
     /**
-     * This method is intended for Packages that wish to add themselves to
-     * either a Truck or a Depot.
+     * This method is intended for {@link Parcel}s that wish to add themselves
+     * to either a {@link Vehicle} or a {@link Depot}.
      * @param container
-     * @param p
+     * @param parcel
      */
-    public void addPackageIn(Container container, Parcel p) {
-        /* 1 */checkArgument(!roadModel.containsObject(p), "this package is already added to the roadmodel");
-        /* 2 */checkArgument(packageState.get(p) == PackageState.AVAILABLE, "package must be registered and in AVAILABLE state");
-        /* 3 */checkArgument(containerCapacities.containsKey(container), "the package container is not registered");
-        /* 4 */checkArgument(roadModel.containsObject(container), "the package container is not on the roadmodel");
+    public void addParcelIn(Container container, Parcel parcel) {
+        /* 1 */checkArgument(!roadModel.containsObject(parcel), "this parcel is already added to the roadmodel");
+        /* 2 */checkArgument(parcelState.get(parcel) == ParcelState.AVAILABLE, "parcel must be registered and in AVAILABLE state");
+        /* 3 */checkArgument(containerCapacities.containsKey(container), "the parcel container is not registered");
+        /* 4 */checkArgument(roadModel.containsObject(container), "the parcel container is not on the roadmodel");
         final double newSize = containerContentsSize.get(container)
-                + p.getMagnitude();
-        /* 5 */checkArgument(newSize <= containerCapacities.get(container), "package does not fit in container");
+                + parcel.getMagnitude();
+        /* 5 */checkArgument(newSize <= containerCapacities.get(container), "parcel does not fit in container");
 
-        containerContents.put(container, p);
+        containerContents.put(container, parcel);
         containerContentsSize.put(container, newSize);
     }
 
     /**
-     * @return An unmodifiable view on the the packages which are in
-     *         <code>AVAILABLE</code> state. Note that packages which are
+     * @return An unmodifiable view on the the parcels which are in
+     *         <code>AVAILABLE</code> state. Note that parcels which are
      *         available are not neccesarily already at a position.
      */
     public Set<Parcel> getAvailableParcels() {
-        return unmodifiableSet(filterEntries(packageState, new Predicate<Map.Entry<Parcel, PackageState>>() {
+        return unmodifiableSet(filterEntries(parcelState, new Predicate<Map.Entry<Parcel, ParcelState>>() {
             @Override
-            public boolean apply(Map.Entry<Parcel, PackageState> input) {
-                return input.getValue() == PackageState.AVAILABLE;
+            public boolean apply(Map.Entry<Parcel, ParcelState> input) {
+                return input.getValue() == ParcelState.AVAILABLE;
             }
         }).keySet());
     }
 
-    public PackageState getPackageState(Parcel p) {
-        return packageState.get(p);
+    public ParcelState getParcelState(Parcel p) {
+        return parcelState.get(p);
     }
 
-    public TruckState getTruckState(Truck t) {
-        return truckState.get(t);
+    public VehicleState getVehicleState(Vehicle t) {
+        return vehicleState.get(t);
     }
 
     @Override
     public boolean register(PDPObject element) {
-        if (element.getType() == PDPType.PACKAGE) {
-            checkArgument(!packageState.containsKey(element));
-            packageState.put((Parcel) element, PackageState.AVAILABLE);
-        } else if (element.getType() == PDPType.TRUCK
+        if (element.getType() == PDPType.PARCEL) {
+            checkArgument(!parcelState.containsKey(element));
+            parcelState.put((Parcel) element, ParcelState.AVAILABLE);
+        } else if (element.getType() == PDPType.VEHICLE
                 || element.getType() == PDPType.DEPOT) {
             final Container pc = (Container) element;
             containerCapacities.put(pc, pc.getCapacity());
             containerContentsSize.put(pc, 0d);
 
-            if (element.getType() == PDPType.TRUCK) {
-                truckState.put((Truck) element, TruckState.IDLE);
+            if (element.getType() == PDPType.VEHICLE) {
+                vehicleState.put((Vehicle) element, VehicleState.IDLE);
             }
         }
         element.initPDPObject(this);
@@ -252,8 +273,8 @@ public class PDPModel implements Model<PDPObject> {
 
     @Override
     public boolean unregister(PDPObject element) {
-        // TODO Auto-generated method stub
-        return false;
+        // TODO implement
+        throw new UnsupportedOperationException();
     }
 
     @Override
@@ -262,48 +283,62 @@ public class PDPModel implements Model<PDPObject> {
     }
 
     /**
-     * @param p
-     * @return
+     * Inspects the contents of the specified {@link Container} for existence of
+     * the specified {@link Parcel} object.
+     * @param container The container which is inspected.
+     * @param parcel The parcel which we are checking.
+     * @return <code>true</code> if the {@link Parcel} is contained in the
+     *         {@link Container}, <code>false</code> otherwise.
      */
-    public boolean truckContains(Truck t, Parcel p) {
-        return containerContents.containsEntry(t, p);
-    }
-
-    public boolean depotContains(Depot d, Parcel p) {
-        return containerContents.containsEntry(d, p);
+    public boolean containerContains(Container container, Parcel parcel) {
+        return containerContents.containsEntry(container, parcel);
     }
 
     /**
-     * @param truck
+     * @param vehicle
      * @param time
      */
-    protected void continuePreviousActions(Truck truck, TimeLapse time) {
-        if (truckActions.containsKey(truck)) {
-            final Action action = truckActions.get(truck);
+    protected void continuePreviousActions(Vehicle vehicle, TimeLapse time) {
+        if (vehicleActions.containsKey(vehicle)) {
+            final Action action = vehicleActions.get(vehicle);
             action.perform(time);
             if (action.isDone()) {
-                truckActions.remove(truck);
+                vehicleActions.remove(vehicle);
             }
         }
     }
 
-    interface Action {
+    /**
+     * Represents an action that takes time. This is used for actions that can
+     * not be done at once (since there is not enough time available), using
+     * this interface actions can be performed in steps.
+     * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+     */
+    protected interface Action {
+        /**
+         * Performs the action using the specified amount of time.
+         * @param time
+         */
         void perform(TimeLapse time);
 
+        /**
+         * @return <code>true</code> when this action is completed,
+         *         <code>false</code> otherwise.
+         */
         boolean isDone();
     }
 
-    abstract class TruckPackageAction implements Action {
+    abstract class VehicleParcelAction implements Action {
         protected final PDPModel modelRef;
-        protected final Truck truck;
-        protected final Parcel pack;
+        protected final Vehicle vehicle;
+        protected final Parcel parcel;
         protected long timeNeeded;
 
-        public TruckPackageAction(PDPModel model, Truck t, Parcel p,
+        public VehicleParcelAction(PDPModel model, Vehicle v, Parcel p,
                 long pTimeNeeded) {
             modelRef = model;
-            truck = t;
-            pack = p;
+            vehicle = v;
+            parcel = p;
             timeNeeded = pTimeNeeded;
         }
 
@@ -332,30 +367,32 @@ public class PDPModel implements Model<PDPObject> {
         }
     }
 
-    class PickupAction extends TruckPackageAction {
+    class PickupAction extends VehicleParcelAction {
 
-        public PickupAction(PDPModel model, Truck t, Parcel p, long pTimeNeeded) {
-            super(model, t, p, pTimeNeeded);
+        public PickupAction(PDPModel model, Vehicle v, Parcel p,
+                long pTimeNeeded) {
+            super(model, v, p, pTimeNeeded);
         }
 
         @Override
         public void finish(TimeLapse time) {
-            modelRef.truckState.put(truck, TruckState.IDLE);
-            modelRef.doPickup(truck, pack);
+            modelRef.vehicleState.put(vehicle, VehicleState.IDLE);
+            modelRef.doPickup(vehicle, parcel);
 
         }
     }
 
-    class DeliverAction extends TruckPackageAction {
+    class DeliverAction extends VehicleParcelAction {
 
-        public DeliverAction(PDPModel model, Truck t, Parcel p, long pTimeNeeded) {
-            super(model, t, p, pTimeNeeded);
+        public DeliverAction(PDPModel model, Vehicle v, Parcel p,
+                long pTimeNeeded) {
+            super(model, v, p, pTimeNeeded);
         }
 
         @Override
         public void finish(TimeLapse time) {
-            modelRef.truckState.put(truck, TruckState.IDLE);
-            modelRef.doDeliver(truck, pack);
+            modelRef.vehicleState.put(vehicle, VehicleState.IDLE);
+            modelRef.doDeliver(vehicle, parcel);
         }
     }
 
