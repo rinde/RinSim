@@ -12,13 +12,13 @@ import rinde.sim.core.graph.Point;
 public abstract class Parcel extends PDPObjectImpl {
 
     /**
-     * The time it takes to load ('pickup') this parcel.
+     * The time it takes to pickup this parcel.
      */
-    protected final int loadingDuration;
+    protected final int pickupDuration;
     /**
-     * The time it takes to unload ('deliver') this parcel.
+     * The time it takes to deliver this parcel.
      */
-    protected final int unloadingDuration;
+    protected final int deliveryDuration;
     /**
      * The destination of this parcel, this is the position to where this parcel
      * needs to be delivered.
@@ -33,15 +33,15 @@ public abstract class Parcel extends PDPObjectImpl {
     /**
      * Create a new parcel.
      * @param pDestination The position where this parcel needs to be delivered.
-     * @param pLoadingDuration The time needed for pickup.
-     * @param pUnloadingDuration The time needed for delivery.
+     * @param pPickupDuration The time needed for pickup.
+     * @param pDeliveryDuration The time needed for delivery.
      * @param pMagnitude The weight/volume/count of this parcel.
      */
-    public Parcel(Point pDestination, int pLoadingDuration,
-            int pUnloadingDuration, double pMagnitude) {
+    public Parcel(Point pDestination, int pPickupDuration,
+            int pDeliveryDuration, double pMagnitude) {
         destination = pDestination;
-        loadingDuration = pLoadingDuration;
-        unloadingDuration = pUnloadingDuration;
+        pickupDuration = pPickupDuration;
+        deliveryDuration = pDeliveryDuration;
         magnitude = pMagnitude;
     }
 
@@ -58,17 +58,17 @@ public abstract class Parcel extends PDPObjectImpl {
     }
 
     /**
-     * @return {@link #loadingDuration}
+     * @return {@link #pickupDuration}
      */
-    public final int getLoadingDuration() {
-        return loadingDuration;
+    public final int getPickupDuration() {
+        return pickupDuration;
     }
 
     /**
-     * @return {@link #unloadingDuration}
+     * @return {@link #deliveryDuration}
      */
-    public final int getUnloadingDuration() {
-        return unloadingDuration;
+    public final int getDeliveryDuration() {
+        return deliveryDuration;
     }
 
     /**

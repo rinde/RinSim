@@ -5,8 +5,8 @@ package rinde.sim.core.model.pdp;
 
 /**
  * Implementors of this interface can contain 'things', typically {@link Parcel}
- * objects.
- * 
+ * objects. This interface is typically not used directly, two often used
+ * implementations are {@link Vehicle} and {@link Depot}.
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
  */
 public interface Container extends PDPObject {

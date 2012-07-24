@@ -14,10 +14,6 @@ import rinde.sim.core.model.road.MovingRoadUser;
 public abstract class Vehicle extends ContainerImpl implements MovingRoadUser,
         TickListener {
 
-    enum State {
-        DRIVING, WAITING, LOADING, UNLOADING
-    }
-
     @Override
     public final PDPType getType() {
         return PDPType.VEHICLE;

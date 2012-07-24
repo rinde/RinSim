@@ -19,7 +19,7 @@ public abstract class ContainerImpl extends PDPObjectImpl implements Container {
      * @param pCapacity The capacity to use.
      */
     protected final void setCapacity(double pCapacity) {
-        checkState(!isRegistered(), "capacity must be set before object is registered");
+        checkState(!isRegistered(), "capacity must be set before object is registered, it can not be changed afterwards.");
         capacity = pCapacity;
     }
 

@@ -29,7 +29,7 @@ public abstract class PDPObjectImpl implements PDPObject {
 
     @Override
     public final void initPDPObject(PDPModel model) {
-        checkState(!isRegistered, "can not be registered twice!");
+        checkState(pdpModel == null, "PDPModel can not be registered twice!");
         pdpModel = model;
 
         if (roadModel != null) {
@@ -40,7 +40,7 @@ public abstract class PDPObjectImpl implements PDPObject {
 
     @Override
     public final void initRoadUser(RoadModel model) {
-        checkState(!isRegistered, "can not be registered twice!");
+        checkState(roadModel == null, "RoadModel can not be registered twice!");
         roadModel = model;
         if (startPosition != null) {
             model.addObjectAt(this, startPosition);
