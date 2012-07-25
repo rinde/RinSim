@@ -19,6 +19,8 @@ public abstract class PDPObjectImpl implements PDPObject {
     private Point startPosition;
     private boolean isRegistered;
 
+    // TODO should this be mandatory (abstract) implemented?? may be remove
+    // abstract keyword to make it optional. pros/cons?
     /**
      * Is called when the object has been registered in both models:
      * {@link RoadModel} and {@link PDPModel}.

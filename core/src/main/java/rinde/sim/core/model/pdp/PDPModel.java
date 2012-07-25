@@ -376,6 +376,19 @@ public class PDPModel implements Model<PDPObject> {
         }).keySet());
     }
 
+    @SuppressWarnings("unchecked")
+    public <T extends Parcel> Set<T> getParcelsWithStateAndType(
+            final ParcelState state, final Class<T> clazz) {
+
+        return unmodifiableSet((Set<T>) filterEntries(parcelState, new Predicate<Map.Entry<Parcel, ParcelState>>() {
+            @Override
+            public boolean apply(Map.Entry<Parcel, ParcelState> input) {
+                return input.getValue() == state
+                        && clazz.isInstance(input.getKey());
+            }
+        }).keySet());
+    }
+
     /**
      * @param parcel The {@link Parcel} for which the state is checked.
      * @return The {@link ParcelState} of the specified {@link Parcel}.

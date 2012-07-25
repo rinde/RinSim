@@ -14,11 +14,11 @@ public abstract class Parcel extends PDPObjectImpl {
     /**
      * The time it takes to pickup this parcel.
      */
-    protected final int pickupDuration;
+    protected final long pickupDuration;
     /**
      * The time it takes to deliver this parcel.
      */
-    protected final int deliveryDuration;
+    protected final long deliveryDuration;
     /**
      * The destination of this parcel, this is the position to where this parcel
      * needs to be delivered.
@@ -37,8 +37,8 @@ public abstract class Parcel extends PDPObjectImpl {
      * @param pDeliveryDuration The time needed for delivery.
      * @param pMagnitude The weight/volume/count of this parcel.
      */
-    public Parcel(Point pDestination, int pPickupDuration,
-            int pDeliveryDuration, double pMagnitude) {
+    public Parcel(Point pDestination, long pPickupDuration,
+            long pDeliveryDuration, double pMagnitude) {
         destination = pDestination;
         pickupDuration = pPickupDuration;
         deliveryDuration = pDeliveryDuration;
@@ -60,14 +60,14 @@ public abstract class Parcel extends PDPObjectImpl {
     /**
      * @return {@link #pickupDuration}
      */
-    public final int getPickupDuration() {
+    public final long getPickupDuration() {
         return pickupDuration;
     }
 
     /**
      * @return {@link #deliveryDuration}
      */
-    public final int getDeliveryDuration() {
+    public final long getDeliveryDuration() {
         return deliveryDuration;
     }
 

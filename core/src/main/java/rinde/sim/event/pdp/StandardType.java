@@ -7,5 +7,7 @@ import rinde.sim.scenario.ScenarioController;
  * @author Bartosz Michalik <bartosz.michalik@cs.kuleuven.be>
  */
 public enum StandardType {
+    // FIXME this should be moved to pdp package, uncoupled from scenario
+    // controller!
     ADD_TRUCK, ADD_PACKAGE, REMOVE_TRUCK, REMOVE_PACKAGE;
 }

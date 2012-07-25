@@ -34,4 +34,7 @@ public abstract class Vehicle extends ContainerImpl implements MovingRoadUser,
      * @see TickListener#tick(TimeLapse)
      */
     protected abstract void tickImpl(TimeLapse time);
+
+    @Override
+    public void afterTick(TimeLapse time) {}
 }
