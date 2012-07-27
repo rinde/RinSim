@@ -3,7 +3,7 @@
  */
 package rinde.sim.examples.rwalk5;
 
-import rinde.sim.event.pdp.StandardType;
+import static rinde.sim.examples.rwalk5.ScenarioEvent.ADD_TRUCK;
 import rinde.sim.scenario.Scenario;
 import rinde.sim.scenario.ScenarioBuilder;
 import rinde.sim.scenario.TimedEvent;
@@ -22,32 +22,32 @@ public class RandomWalkExample {
 
 		// create simple scenario
 
-		TimeConverter conv = new TimeConverter(simStep);
+		final TimeConverter conv = new TimeConverter(simStep);
 
-		ScenarioBuilder builder = new ScenarioBuilder(StandardType.ADD_TRUCK);
+		final ScenarioBuilder builder = new ScenarioBuilder(ADD_TRUCK);
 
 		builder.addEventGenerator(new ScenarioBuilder.MultipleEventGenerator<TimedEvent>(0, 10,
-				new ScenarioBuilder.EventTypeFunction(StandardType.ADD_TRUCK)));
-		builder.addEventGenerator(new ScenarioBuilder.MultipleEventGenerator<TimedEvent>(conv.hour(3).min(30).toTime(), 10,
-				new ScenarioBuilder.EventTypeFunction(StandardType.ADD_TRUCK)));
-		builder.addEventGenerator(new ScenarioBuilder.TimeSeries<TimedEvent>(conv.day(1).toTime(), conv.day(4).toTime(), conv
-				.hour(12).min(17).toTime(), new ScenarioBuilder.EventTypeFunction(StandardType.ADD_TRUCK)));
+				new ScenarioBuilder.EventTypeFunction(ADD_TRUCK)));
+		builder.addEventGenerator(new ScenarioBuilder.MultipleEventGenerator<TimedEvent>(conv.hour(3).min(30).toTime(),
+				10, new ScenarioBuilder.EventTypeFunction(ADD_TRUCK)));
+		builder.addEventGenerator(new ScenarioBuilder.TimeSeries<TimedEvent>(conv.day(1).toTime(),
+				conv.day(4).toTime(), conv.hour(12).min(17).toTime(), new ScenarioBuilder.EventTypeFunction(ADD_TRUCK)));
 
-		builder.addEventGenerator(new ScenarioBuilder.TimeSeries<TimedEvent>(conv.day(3).toTime(), conv.day(15).toTime(), conv
-				.hour(1).min(1).toTime(), new ScenarioBuilder.EventTypeFunction(StandardType.ADD_TRUCK)));
+		builder.addEventGenerator(new ScenarioBuilder.TimeSeries<TimedEvent>(conv.day(3).toTime(), conv.day(15)
+				.toTime(), conv.hour(1).min(1).toTime(), new ScenarioBuilder.EventTypeFunction(ADD_TRUCK)));
 
-		builder.addEventGenerator(new ScenarioBuilder.TimeSeries<TimedEvent>(conv.tick(2000).toTime(), conv.tick(20000).toTime(),
-				conv.tick(1000).toTime(), new ScenarioBuilder.EventTypeFunction(StandardType.ADD_TRUCK)));
+		builder.addEventGenerator(new ScenarioBuilder.TimeSeries<TimedEvent>(conv.tick(2000).toTime(), conv.tick(20000)
+				.toTime(), conv.tick(1000).toTime(), new ScenarioBuilder.EventTypeFunction(ADD_TRUCK)));
 
-		ScenarioBuilder builder2 = new ScenarioBuilder(StandardType.ADD_TRUCK);
+		final ScenarioBuilder builder2 = new ScenarioBuilder(ADD_TRUCK);
 		builder2.addEventGenerator(new ScenarioBuilder.MultipleEventGenerator<TimedEvent>(0, 100,
-				new ScenarioBuilder.EventTypeFunction(StandardType.ADD_TRUCK)));
+				new ScenarioBuilder.EventTypeFunction(ADD_TRUCK)));
 		builder2.addEventGenerator(new ScenarioBuilder.MultipleEventGenerator<TimedEvent>(conv.day(1).toTime(), 200,
-				new ScenarioBuilder.EventTypeFunction(StandardType.ADD_TRUCK)));
+				new ScenarioBuilder.EventTypeFunction(ADD_TRUCK)));
 		builder2.addEventGenerator(new ScenarioBuilder.MultipleEventGenerator<TimedEvent>(conv.day(3).toTime(), 300,
-				new ScenarioBuilder.EventTypeFunction(StandardType.ADD_TRUCK)));
+				new ScenarioBuilder.EventTypeFunction(ADD_TRUCK)));
 
-		Scenario s = builder2.build();
+		final Scenario s = builder2.build();
 
 		// run scenario with visualization attached
 		final String MAP_DIR = "../core/files/maps/";

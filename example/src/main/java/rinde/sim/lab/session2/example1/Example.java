@@ -1,8 +1,8 @@
 package rinde.sim.lab.session2.example1;
 
 import static com.google.common.collect.Lists.newArrayList;
-import static rinde.sim.event.pdp.StandardType.ADD_PACKAGE;
-import static rinde.sim.event.pdp.StandardType.ADD_TRUCK;
+import static rinde.sim.lab.session2.example1.ExampleEvent.ADD_PACKAGE;
+import static rinde.sim.lab.session2.example1.ExampleEvent.ADD_TRUCK;
 
 import java.util.List;
 
@@ -15,12 +15,12 @@ public class Example {
 	@SuppressWarnings("unused")
 	public static void main(String[] args) throws Exception {
 
-		int interval = 50000000;
+		final int interval = 50000000;
 
 		/*
 		 * Building a scenario manually
 		 */
-		List<TimedEvent> events = newArrayList();
+		final List<TimedEvent> events = newArrayList();
 		// Add 10 trucks at time 0
 		for (int i = 0; i < 10; i++) {
 			events.add(new TimedEvent(ADD_TRUCK, 0));
@@ -29,12 +29,12 @@ public class Example {
 		for (int i = 0; i < 20; i++) {
 			events.add(new TimedEvent(ADD_TRUCK, i * interval));
 		}
-		Scenario scenario = new Scenario(events);
+		final Scenario scenario = new Scenario(events);
 
 		/*
 		 * Building a scenario using the scenario builder
 		 */
-		ScenarioBuilder builder = new ScenarioBuilder(ADD_TRUCK, ADD_PACKAGE);
+		final ScenarioBuilder builder = new ScenarioBuilder(ADD_TRUCK, ADD_PACKAGE);
 
 		// add at time 0, 10 events of type ADD_TRUCK
 		builder.addMultipleEvents(0, 10, ADD_TRUCK);
@@ -42,7 +42,7 @@ public class Example {
 		builder.addTimeSeriesOfEvents(0, 20 * interval, interval, ADD_TRUCK);
 
 		// build the scenario
-		Scenario scenario2 = builder.build();
+		final Scenario scenario2 = builder.build();
 
 		/*
 		 * Running a scenario
