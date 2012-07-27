@@ -16,36 +16,58 @@ import rinde.sim.event.Event;
 import rinde.sim.event.EventAPI;
 import rinde.sim.event.EventDispatcher;
 import rinde.sim.event.Listener;
-import rinde.sim.event.pdp.StandardType;
 
 /**
  * A scenario controller represents a single simulation run. This class is
  * intended for extension.
  * 
- * @author Rinde van Lon (rinde.vanlon@cs.kuleuven.be)
+ * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
  * @author Bartosz Michalik <bartosz.michalik@cs.kuleuven.be>
  * @since 2.0
  */
 public abstract class ScenarioController implements TickListener, Listener {
 
-    public enum Type {
-        SCENARIO_STARTED, SCENARIO_FINISHED;
-    }
-
+    /**
+     * Logger for this class.
+     */
     protected static final Logger LOGGER = LoggerFactory
             .getLogger(ScenarioController.class);
 
-    protected final Scenario scenario;
-    private int ticks;
-    private final EventDispatcher disp;
+    /**
+     * The {@link Event} types which can be dispatched by this class.
+     * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+     */
+    public enum EventType {
+        /**
+         * Dispatched when the scenario starts playing.
+         */
+        SCENARIO_STARTED,
+        /**
+         * Dispatched when the scenario has finished playing.
+         */
+        SCENARIO_FINISHED;
+    }
+
+    /**
+     * Provides access to the {@link Event} API, allows adding and removing
+     * {@link Listener}s that are notified when {@link ScenarioController}
+     * dispatches {@link Event}s.
+     */
     public final EventAPI eventAPI;
+
+    /**
+     * The scenario that is played.
+     */
+    protected final Scenario scenario;
 
     Simulator simulator;
 
-    private Type status = null;
+    private int ticks;
+    private final EventDispatcher disp;
+    private EventType status;
 
     /**
-     * <code>true</code> when user interface was defined. In ui mode
+     * <code>true</code> when user interface was defined.
      */
     private boolean uiMode;
 
@@ -65,7 +87,7 @@ public abstract class ScenarioController implements TickListener, Listener {
 
         final Set<Enum<?>> typeSet = newHashSet(scenario
                 .getPossibleEventTypes());
-        typeSet.addAll(asList(Type.values()));
+        typeSet.addAll(asList(EventType.values()));
         disp = new EventDispatcher(typeSet);
         eventAPI = disp.getEventAPI();
         disp.addListener(this, scenario.getPossibleEventTypes());
@@ -180,16 +202,16 @@ public abstract class ScenarioController implements TickListener, Listener {
             if (status == null) {
                 LOGGER.info("scenario started at virtual time:"
                         + timeLapse.getTime());
-                status = Type.SCENARIO_STARTED;
+                status = EventType.SCENARIO_STARTED;
                 disp.dispatchEvent(new Event(status, this));
             }
             e.setIssuer(this);
             disp.dispatchEvent(e);
         }
-        if (e == null && status != Type.SCENARIO_FINISHED) {
+        if (e == null && status != EventType.SCENARIO_FINISHED) {
             LOGGER.info("scenario finished at virtual time:"
                     + timeLapse.getTime());
-            status = Type.SCENARIO_FINISHED;
+            status = EventType.SCENARIO_FINISHED;
             simulator.removeTickListener(this);
             disp.dispatchEvent(new Event(status, this));
         }
@@ -197,19 +219,11 @@ public abstract class ScenarioController implements TickListener, Listener {
     }
 
     @Override
-    public void afterTick(TimeLapse timeLapse) {
-        // not needed
-    }
+    public void afterTick(TimeLapse timeLapse) {} // not needed
 
     @Override
     public void handleEvent(Event e) {
-        if (e.getEventType() instanceof StandardType) {
-            final boolean handled = handleStandard(e);
-            if (handled) {
-                return;
-            }
-        }
-        if (!handleCustomEvent(e)) {
+        if (!handleTimedEvent((TimedEvent) e)) {
             LOGGER.warn("event not handled: " + e.toString());
             throw new IllegalArgumentException("event not handled: "
                     + e.toString());
@@ -217,79 +231,13 @@ public abstract class ScenarioController implements TickListener, Listener {
     }
 
     /**
-     * Can be used to handle additional events not supported by default. Default
-     * implementation lead to the {@link IllegalArgumentException} during event
-     * handling {@link ScenarioController#handleEvent(Event)}
-     * @param e
-     * @return <code>false</code> by default.
+     * Should be overridden to handle all types of {@link TimedEvent}s
+     * dispatched by the {@link Scenario}.
+     * @param event The {@link TimedEvent} that is received.
+     * @return <code>true</code> when the event is handled, <code>false</code>
+     *         otherwise.
      */
-    protected boolean handleCustomEvent(Event e) {
-        return false;
-    }
-
-    final boolean handleStandard(Event e) {
-        final StandardType eT = (StandardType) e.getEventType();
-        switch (eT) {
-        case ADD_PACKAGE:
-            return handleAddPackage(e);
-        case REMOVE_PACKAGE:
-            return handleRemovePackage(e);
-        case ADD_TRUCK:
-            return handleAddTruck(e);
-        case REMOVE_TRUCK:
-            return handleRemoveTruck(e);
-        default:
-            return false;
-        }
-    }
-
-    /**
-     * Is called when an event of type {@link StandardType#REMOVE_TRUCK} occurs.
-     * This method is normally overridden to add application specific actions to
-     * this event. This method should return <code>true</code> if it has handled
-     * the event, otherwise <code>false</code> should be returned.
-     * @param e
-     * @return <code>false</code>
-     */
-    protected boolean handleRemoveTruck(Event e) {
-        return false;
-    }
-
-    /**
-     * Is called when an event of type {@link StandardType#ADD_TRUCK} occurs.
-     * This method is normally overridden to add application specific actions to
-     * this event. This method should return <code>true</code> if it has handled
-     * the event, otherwise <code>false</code> should be returned.
-     * @param event
-     * @return <code>false</code>
-     */
-    protected boolean handleAddTruck(Event event) {
-        return false;
-    }
-
-    /**
-     * Is called when an event of type {@link StandardType#REMOVE_PACKAGE}
-     * occurs. This method is normally overridden to add application specific
-     * actions to this event. This method should return <code>true</code> if it
-     * has handled the event, otherwise <code>false</code> should be returned.
-     * @param event
-     * @return <code>false</code>
-     */
-    protected boolean handleRemovePackage(Event event) {
-        return false;
-    }
-
-    /**
-     * Is called when an event of type {@link StandardType#ADD_PACKAGE} occurs.
-     * This method is normally overridden to add application specific actions to
-     * this event. This method should return <code>true</code> if it has handled
-     * the event, otherwise <code>false</code> should be returned.
-     * @param event
-     * @return <code>false</code>
-     */
-    protected boolean handleAddPackage(Event event) {
-        return false;
-    }
+    protected abstract boolean handleTimedEvent(TimedEvent event);
 
     private void checkSimulator() throws ConfigurationException {
         if (simulator == null) {

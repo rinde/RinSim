@@ -19,7 +19,7 @@ import java.util.Set;
 /**
  * Scenario is a list of events sorted by the time stamp. For help with creating
  * scenarios {@link ScenarioBuilder} is provided.
- * @author Rinde van Lon (rinde.vanlon@cs.kuleuven.be)
+ * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
  * @author Bartosz Michalik <bartosz.michalik@cs.kuleuven.be>
  * 
  */
@@ -66,13 +66,14 @@ public class Scenario implements Serializable {
     }
 
     /**
-     * Return a scenario as a list of (time sorted) events;
+     * Return a scenario as a list of (time sorted) events.
      * @return the list of events.
      */
     public List<TimedEvent> asList() {
         // copy first to avoid concurrent modifications
-        ArrayList<TimedEvent> result = new ArrayList<TimedEvent>();
-        PriorityQueue<TimedEvent> copy = new PriorityQueue<TimedEvent>(events);
+        final List<TimedEvent> result = new ArrayList<TimedEvent>();
+        final PriorityQueue<TimedEvent> copy = new PriorityQueue<TimedEvent>(
+                events);
         TimedEvent e = null;
         while ((e = copy.poll()) != null) {
             result.add(e);
@@ -81,7 +82,7 @@ public class Scenario implements Serializable {
     }
 
     /**
-     * Get the access to the first event in the scenario (without removing it)
+     * Get the access to the first event in the scenario (without removing it).
      * @return element or <code>null</code> when scenario has no more events.
      */
     public TimedEvent peek() {
@@ -89,7 +90,7 @@ public class Scenario implements Serializable {
     }
 
     /**
-     * Retrieve an element from the scenario (removing it from list)
+     * Retrieve an element from the scenario (removing it from list).
      * @return element or <code>null</code> when scenario has no more events
      */
     public TimedEvent poll() {
@@ -107,7 +108,7 @@ public class Scenario implements Serializable {
     public boolean equals(Object other) {
         if (other instanceof Scenario
                 && events.size() == ((Scenario) other).events.size()) {
-            Scenario s1 = (Scenario) other;
+            final Scenario s1 = (Scenario) other;
             return asList().equals(s1.asList());
         }
         return false;
@@ -139,8 +140,8 @@ public class Scenario implements Serializable {
         if (pEvents == null) {
             throw new IllegalArgumentException("events can not be null");
         }
-        Set<Enum<?>> types = newHashSet();
-        for (TimedEvent te : pEvents) {
+        final Set<Enum<?>> types = newHashSet();
+        for (final TimedEvent te : pEvents) {
             types.add(te.getEventType());
         }
         return types;

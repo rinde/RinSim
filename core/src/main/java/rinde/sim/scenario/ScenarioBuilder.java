@@ -24,9 +24,9 @@ import com.google.common.base.Function;
  */
 public class ScenarioBuilder {
 
-    private final LinkedList<EventGenerator<? extends TimedEvent>> generators;
-    private final List<TimedEvent> events;
     final Set<Enum<?>> supportedTypes;
+    private final List<EventGenerator<? extends TimedEvent>> generators;
+    private final List<TimedEvent> events;
 
     /**
      * Initializes a new ScenarioBuilder which supports the specified types of
@@ -116,7 +116,7 @@ public class ScenarioBuilder {
     }
 
     /**
-     * Generates a new {@link Scenario}
+     * Generates a new {@link Scenario}.
      * @return The new scenario.
      */
     public Scenario build() {
@@ -133,12 +133,12 @@ public class ScenarioBuilder {
     }
 
     /**
-     * Classes that implement this interfaces can be used to generate a sequence
+     * Classes that implement this interface can be used to generate a sequence
      * of events.
      * @param <T> The subtype of {@link TimedEvent} that is generated.
      * 
      * @author Bartosz Michalik <bartosz.michalik@cs.kuleuven.be>
-     * @author Rinde van Lon (rinde.vanlon@cs.kuleuven.be)
+     * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
      */
     public interface EventGenerator<T extends TimedEvent> {
         Collection<T> generate();
@@ -149,7 +149,7 @@ public class ScenarioBuilder {
      * @param <T> The subtype of {@link TimedEvent} to generate.
      * 
      * @author Bartosz Michalik <bartosz.michalik@cs.kuleuven.be>
-     * @author Rinde van Lon (rinde.vanlon@cs.kuleuven.be)
+     * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
      */
     public static class MultipleEventGenerator<T extends TimedEvent> implements
             EventGenerator<T> {
@@ -176,7 +176,7 @@ public class ScenarioBuilder {
 
         @Override
         public Collection<T> generate() {
-            final LinkedList<T> result = new LinkedList<T>();
+            final List<T> result = new LinkedList<T>();
             for (int i = 0; i < amount; ++i) {
                 result.add(eventCreator.apply(time));
             }
@@ -222,7 +222,7 @@ public class ScenarioBuilder {
 
         @Override
         public Collection<T> generate() {
-            final LinkedList<T> result = new LinkedList<T>();
+            final List<T> result = new LinkedList<T>();
             for (long t = start; t <= end; t += step) {
                 result.add(eventCreator.apply(t));
             }

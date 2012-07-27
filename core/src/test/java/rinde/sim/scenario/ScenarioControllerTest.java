@@ -6,12 +6,12 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
-import static rinde.sim.event.pdp.StandardType.ADD_PACKAGE;
-import static rinde.sim.event.pdp.StandardType.ADD_TRUCK;
-import static rinde.sim.event.pdp.StandardType.REMOVE_PACKAGE;
-import static rinde.sim.event.pdp.StandardType.REMOVE_TRUCK;
-import static rinde.sim.scenario.ScenarioController.Type.SCENARIO_FINISHED;
-import static rinde.sim.scenario.ScenarioController.Type.SCENARIO_STARTED;
+import static rinde.sim.scenario.ScenarioController.EventType.SCENARIO_FINISHED;
+import static rinde.sim.scenario.ScenarioController.EventType.SCENARIO_STARTED;
+import static rinde.sim.scenario.ScenarioControllerTest.TestEvents.EVENT_A;
+import static rinde.sim.scenario.ScenarioControllerTest.TestEvents.EVENT_B;
+import static rinde.sim.scenario.ScenarioControllerTest.TestEvents.EVENT_C;
+import static rinde.sim.scenario.ScenarioControllerTest.TestEvents.EVENT_D;
 
 import org.apache.commons.math3.random.MersenneTwister;
 import org.junit.Before;
@@ -29,25 +29,35 @@ public class ScenarioControllerTest {
     protected ScenarioController controller;
     protected Scenario scenario;
 
+    public enum TestEvents {
+        EVENT_A, EVENT_B, EVENT_C, EVENT_D;
+    }
+
     @Before
     public void setUp() throws Exception {
-        final ScenarioBuilder sb = new ScenarioBuilder(ADD_PACKAGE, ADD_TRUCK,
-                REMOVE_TRUCK);
-        sb.addEvent(new TimedEvent(ADD_PACKAGE, 0))
-                .addEvent(new TimedEvent(ADD_TRUCK, 0))
-                .addEvent(new TimedEvent(ADD_TRUCK, 0))
-                .addEvent(new TimedEvent(ADD_PACKAGE, 1))
-                .addEvent(new TimedEvent(REMOVE_TRUCK, 5))
-                .addEvent(new TimedEvent(REMOVE_TRUCK, 100));
+        final ScenarioBuilder sb = new ScenarioBuilder(EVENT_A, EVENT_B,
+                EVENT_C, EVENT_D);
+        sb.addEvent(new TimedEvent(EVENT_A, 0))
+                .addEvent(new TimedEvent(EVENT_B, 0))
+                .addEvent(new TimedEvent(EVENT_B, 0))
+                .addEvent(new TimedEvent(EVENT_A, 1))
+                .addEvent(new TimedEvent(EVENT_C, 5))
+                .addEvent(new TimedEvent(EVENT_C, 100));
         scenario = sb.build();
         assertNotNull(scenario);
-        ScenarioController.Type.valueOf("SCENARIO_STARTED");
+        ScenarioController.EventType.valueOf("SCENARIO_STARTED");
 
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void testEmptyController() throws ConfigurationException {
-        controller = new TestScenarioController(scenario, 3);
+        controller = new TestScenarioController(scenario, 3) {
+
+            @Override
+            protected boolean handleTimedEvent(TimedEvent event) {
+                return false;
+            }
+        };
         controller.tick(TimeLapseFactory.create(0, 1));
     }
 
@@ -58,22 +68,33 @@ public class ScenarioControllerTest {
             protected Simulator createSimulator() throws Exception {
                 throw new RuntimeException("this is what we want");
             }
+
+            @Override
+            protected boolean handleTimedEvent(TimedEvent event) {
+                return true;
+            }
         };
         sc.initialize();
     }
 
     @Test
-    public void handleStandard() {
+    public void handleTimedEvent() {
         final ScenarioController sc = new ScenarioController(scenario, 1) {
             @Override
             protected Simulator createSimulator() throws Exception {
                 return null;
             }
+
+            @Override
+            protected boolean handleTimedEvent(TimedEvent event) {
+                return false;
+            }
+
         };
-        assertFalse(sc.handleStandard(new Event(ADD_PACKAGE, this)));
-        assertFalse(sc.handleStandard(new Event(REMOVE_PACKAGE, this)));
-        assertFalse(sc.handleStandard(new Event(ADD_TRUCK, this)));
-        assertFalse(sc.handleStandard(new Event(REMOVE_TRUCK, this)));
+        assertFalse(sc.handleTimedEvent(new TimedEvent(EVENT_A, 0)));
+        assertFalse(sc.handleTimedEvent(new TimedEvent(EVENT_B, 0)));
+        assertFalse(sc.handleTimedEvent(new TimedEvent(EVENT_C, 0)));
+        assertFalse(sc.handleTimedEvent(new TimedEvent(EVENT_D, 0)));
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -83,33 +104,25 @@ public class ScenarioControllerTest {
             protected Simulator createSimulator() throws Exception {
                 return null;
             }
+
+            @Override
+            protected boolean handleTimedEvent(TimedEvent event) {
+                return false;
+            }
         };
-        sc.handleEvent(new Event(SCENARIO_FINISHED, null));
+        sc.handleEvent(new TimedEvent(SCENARIO_FINISHED, 0));
     }
 
     @Test
     public void finiteSimulation() throws ConfigurationException,
             InterruptedException {
         final ScenarioController sc = new TestScenarioController(scenario, 101) {
+
             @Override
-            protected boolean handleAddPackage(Event event) {
+            protected boolean handleTimedEvent(TimedEvent event) {
                 return true;
             }
 
-            @Override
-            protected boolean handleRemovePackage(Event event) {
-                return true;
-            }
-
-            @Override
-            protected boolean handleAddTruck(Event event) {
-                return true;
-            }
-
-            @Override
-            protected boolean handleRemoveTruck(Event e) {
-                return true;
-            }
         };
 
         final ListenerEventHistory leh = new ListenerEventHistory();
@@ -120,7 +133,7 @@ public class ScenarioControllerTest {
             Thread.sleep(100);
         }
         // FIXME sometimes produces errors...
-        assertEquals(asList(SCENARIO_STARTED, ADD_PACKAGE, ADD_TRUCK, ADD_TRUCK, ADD_PACKAGE, REMOVE_TRUCK, REMOVE_TRUCK, SCENARIO_FINISHED), leh
+        assertEquals(asList(SCENARIO_STARTED, EVENT_A, EVENT_B, EVENT_B, EVENT_A, EVENT_C, EVENT_C, SCENARIO_FINISHED), leh
                 .getEventTypeHistory());
 
         assertTrue(sc.isScenarioFinished());
@@ -152,7 +165,7 @@ public class ScenarioControllerTest {
             }
 
             @Override
-            protected boolean handleCustomEvent(Event e) {
+            protected boolean handleTimedEvent(TimedEvent event) {
                 return true;
             }
 
@@ -176,13 +189,13 @@ public class ScenarioControllerTest {
         controller = new TestScenarioController(scenario, 3) {
 
             @Override
-            protected boolean handleAddPackage(Event e) {
-                return true;
-            }
+            protected boolean handleTimedEvent(TimedEvent event) {
+                if (event.getEventType() == EVENT_A
+                        || event.getEventType() == EVENT_B) {
+                    return true;
+                }
 
-            @Override
-            protected boolean handleAddTruck(Event e) {
-                return true;
+                return super.handleTimedEvent(event);
             }
 
         };
@@ -194,7 +207,7 @@ public class ScenarioControllerTest {
 
             @Override
             public void handleEvent(Event e) {
-                if (e.getEventType() == ScenarioController.Type.SCENARIO_STARTED) {
+                if (e.getEventType() == ScenarioController.EventType.SCENARIO_STARTED) {
                     r[0] = true;
                 } else if (!r[0]) {
                     fail();
@@ -215,18 +228,8 @@ public class ScenarioControllerTest {
         controller = new TestScenarioController(scenario, -1) {
 
             @Override
-            protected boolean handleAddPackage(Event e) {
-                return true;
-            }
-
-            @Override
-            protected boolean handleAddTruck(Event e) {
-                return true;
-            }
-
-            @Override
-            protected boolean handleRemoveTruck(Event e) {
-                return true;
+            protected boolean handleTimedEvent(TimedEvent event) {
+                return event.getEventType() != EVENT_D;
             }
         };
 
@@ -237,7 +240,7 @@ public class ScenarioControllerTest {
 
             @Override
             public void handleEvent(Event e) {
-                if (e.getEventType() == ScenarioController.Type.SCENARIO_FINISHED) {
+                if (e.getEventType() == ScenarioController.EventType.SCENARIO_FINISHED) {
                     synchronized (controller) {
                         r[0] = true;
                         controller.notifyAll();
@@ -277,6 +280,11 @@ public class ScenarioControllerTest {
                 // designed behavior for this test
                 return null;
             }
+
+            @Override
+            protected boolean handleTimedEvent(TimedEvent event) {
+                return false;
+            }
         };
         c.start();
     }
@@ -295,6 +303,11 @@ class TestScenarioController extends ScenarioController {
     protected Simulator createSimulator() {
         final MersenneTwister rand = new MersenneTwister(123);
         return new Simulator(rand, 1);
+    }
+
+    @Override
+    protected boolean handleTimedEvent(TimedEvent event) {
+        return false;
     }
 
 }
