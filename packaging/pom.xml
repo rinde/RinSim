@@ -42,10 +42,17 @@
 		</dependency>
 		<dependency>
 			<groupId>rinsim</groupId>
+			<artifactId>parsers</artifactId>
+			<version>${project.version}</version>
+			<classifier>javadoc</classifier>
+		</dependency>
+		<dependency>
+			<groupId>rinsim</groupId>
 			<artifactId>main</artifactId>
 			<version>${project.version}</version>
 			<classifier>javadoc</classifier>
 		</dependency>
+		
 
 		<!-- these dependencies are necessary for the different platforms: -->
 
