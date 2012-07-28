@@ -109,6 +109,13 @@ public class Simulator implements SimulatorAPI {
     private final long timeStep;
     private final TimeLapse timeLapse;
 
+    // TODO RandomGenerator should be moved into an own model. This way, objects
+    // that need a reference to a random generator can get one by implementing
+    // this model's interface. The model could have several policies for
+    // distributing RNGs: ALL_SAME, CLASS_SAME, ALL_DIFFERENT. This would
+    // indicate: every subscribing object uses same RNG, objects of the same
+    // class share same RNG, all objects get a different RNG instance
+    // respectively.
     /**
      * Create a new simulator instance.
      * @param r The random number generator that is used in this simulator.

@@ -6,7 +6,7 @@
     <version>2.0.1-SNAPSHOT</version>
     <relativePath>..</relativePath>
   </parent>
-  <artifactId>parsers</artifactId>
+  <artifactId>problem</artifactId>
   <dependencies>
   	<dependency>
   		<groupId>rinsim</groupId>

@@ -115,11 +115,7 @@ public class ScenarioBuilder {
                 type));
     }
 
-    /**
-     * Generates a new {@link Scenario}.
-     * @return The new scenario.
-     */
-    public Scenario build() {
+    protected List<TimedEvent> buildEventList() {
         final List<TimedEvent> es = newArrayList(events);
         for (final EventGenerator<? extends TimedEvent> g : generators) {
             final Collection<? extends TimedEvent> collection = g.generate();
@@ -129,7 +125,29 @@ public class ScenarioBuilder {
                 es.add(te);
             }
         }
-        return new Scenario(es, supportedTypes);
+        return es;
+    }
+
+    /**
+     * Generates a new {@link Scenario}.
+     * @return The new scenario.
+     */
+    public Scenario build() {
+        return build(new ScenarioCreator<Scenario>() {
+            @Override
+            public Scenario create(List<TimedEvent> eventList,
+                    Set<Enum<?>> eventTypes) {
+                return new Scenario(eventList, supportedTypes);
+            }
+        });
+    }
+
+    public <T extends Scenario> T build(ScenarioCreator<T> sc) {
+        return sc.create(buildEventList(), supportedTypes);
+    }
+
+    public interface ScenarioCreator<T extends Scenario> {
+        T create(List<TimedEvent> eventList, Set<Enum<?>> eventTypes);
     }
 
     /**

@@ -11,7 +11,7 @@
 		<module>ui</module>
 		<module>example</module>
 		<module>packaging</module>
-		<module>parsers</module>
+		<module>problem</module>
 	</modules>
 
 	<properties>
