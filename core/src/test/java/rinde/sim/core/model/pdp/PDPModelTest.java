@@ -37,7 +37,7 @@ public class PDPModelTest {
 
     @Before
     public void setUp() {
-        rm = new PlaneRoadModel(new Point(0, 0), new Point(10, 10),
+        rm = new PlaneRoadModel(new Point(0, 0), new Point(10, 10), true,
                 Double.POSITIVE_INFINITY);
         model = new PDPModel(rm);
 

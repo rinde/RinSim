@@ -25,25 +25,25 @@ public class PlaneRoadModelTest extends AbstractRoadModelTest<PlaneRoadModel> {
 
     @Override
     public void setUp() {
-        model = new PlaneRoadModel(new Point(0, 0), new Point(10, 10), 10);
+        model = new PlaneRoadModel(new Point(0, 0), new Point(10, 10), true, 10);
     }
 
     @SuppressWarnings("unused")
     @Test(expected = IllegalArgumentException.class)
     public void constructorFail1() {
-        new PlaneRoadModel(new Point(1, 0), new Point(0, 1), 1);
+        new PlaneRoadModel(new Point(1, 0), new Point(0, 1), true, 1);
     }
 
     @SuppressWarnings("unused")
     @Test(expected = IllegalArgumentException.class)
     public void constructorFail2() {
-        new PlaneRoadModel(new Point(0, 1), new Point(1, 0), 1);
+        new PlaneRoadModel(new Point(0, 1), new Point(1, 0), true, 1);
     }
 
     @SuppressWarnings("unused")
     @Test(expected = IllegalArgumentException.class)
     public void constructorFail3() {
-        new PlaneRoadModel(new Point(0, 0), new Point(1, 1), 0);
+        new PlaneRoadModel(new Point(0, 0), new Point(1, 1), true, 0);
     }
 
     @Test

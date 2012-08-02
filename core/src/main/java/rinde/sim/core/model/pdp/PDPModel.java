@@ -5,7 +5,7 @@ package rinde.sim.core.model.pdp;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.collect.Maps.filterEntries;
-import static com.google.common.collect.Maps.newHashMap;
+import static com.google.common.collect.Maps.newLinkedHashMap;
 import static java.util.Collections.unmodifiableCollection;
 import static java.util.Collections.unmodifiableSet;
 
@@ -14,6 +14,7 @@ import java.util.Map;
 import java.util.Set;
 
 import rinde.sim.core.TimeLapse;
+import rinde.sim.core.graph.Point;
 import rinde.sim.core.model.Model;
 import rinde.sim.core.model.road.RoadModel;
 import rinde.sim.event.Event;
@@ -21,7 +22,7 @@ import rinde.sim.event.EventAPI;
 import rinde.sim.event.EventDispatcher;
 
 import com.google.common.base.Predicate;
-import com.google.common.collect.HashMultimap;
+import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Multimap;
 
 /**
@@ -177,12 +178,12 @@ public class PDPModel implements Model<PDPObject> {
      */
     public PDPModel(RoadModel rm) {
         roadModel = rm;
-        containerContents = HashMultimap.create();
-        containerContentsSize = newHashMap();
-        containerCapacities = newHashMap();
-        pendingVehicleActions = newHashMap();
-        vehicleState = newHashMap();
-        parcelState = newHashMap();
+        containerContents = LinkedHashMultimap.create();
+        containerContentsSize = newLinkedHashMap();
+        containerCapacities = newLinkedHashMap();
+        pendingVehicleActions = newLinkedHashMap();
+        vehicleState = newLinkedHashMap();
+        parcelState = newLinkedHashMap();
 
         eventDispatcher = new EventDispatcher(PDPEvent.values());
         eventAPI = eventDispatcher.getEventAPI();
@@ -389,6 +390,10 @@ public class PDPModel implements Model<PDPObject> {
         }).keySet());
     }
 
+    public Set<Vehicle> getVehicles() {
+        return unmodifiableSet(vehicleState.keySet());
+    }
+
     /**
      * @param parcel The {@link Parcel} for which the state is checked.
      * @return The {@link ParcelState} of the specified {@link Parcel}.
@@ -403,6 +408,10 @@ public class PDPModel implements Model<PDPObject> {
      */
     public VehicleState getVehicleState(Vehicle vehicle) {
         return vehicleState.get(vehicle);
+    }
+
+    public Point getPosition(PDPObject obj) {
+        return roadModel.getPosition(obj);
     }
 
     @Override

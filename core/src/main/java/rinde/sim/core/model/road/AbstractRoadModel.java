@@ -20,6 +20,8 @@ import java.util.Set;
 import rinde.sim.core.TimeLapse;
 import rinde.sim.core.graph.Point;
 import rinde.sim.core.model.AbstractModel;
+import rinde.sim.util.SpeedConverter;
+import rinde.sim.util.TimeUnit;
 
 import com.google.common.base.Predicate;
 import com.google.common.collect.Sets;
@@ -37,6 +39,10 @@ import com.google.common.collect.Sets;
 public abstract class AbstractRoadModel<T> extends AbstractModel<RoadUser>
         implements RoadModel {
 
+    protected final SpeedConverter speedConverter;
+
+    protected boolean useSpeedConversion;
+
     /**
      * A mapping of {@link RoadUser} to location.
      */
@@ -48,12 +54,21 @@ public abstract class AbstractRoadModel<T> extends AbstractModel<RoadUser>
     protected Map<MovingRoadUser, DestinationPath> objDestinations;
 
     /**
-     * Create a new instance using the specified graph.
+     * Create a new instance.
      */
-    public AbstractRoadModel() {
+    public AbstractRoadModel(boolean pUseSpeedConversion) {
         super(RoadUser.class);
         objLocs = createObjectToLocationMap();
         objDestinations = newLinkedHashMap();
+        speedConverter = new SpeedConverter();
+        useSpeedConversion = pUseSpeedConversion;
+    }
+
+    /**
+     * Create a new instance.
+     */
+    public AbstractRoadModel() {
+        this(true);
     }
 
     /**
@@ -80,6 +95,22 @@ public abstract class AbstractRoadModel<T> extends AbstractModel<RoadUser>
      * @return The location.
      */
     protected abstract T point2LocObj(Point point);
+
+    /**
+     * This method should convert speed values to the unit that is used in the
+     * model. E.g. if speed is defined as km/hour, but the model uses TODO
+     * refine doc
+     * @param speed
+     * @return
+     */
+    protected double speedToSpaceUnit(double speed) {
+        if (useSpeedConversion) {
+            // speed in graph units per hour -> converting to milliseconds
+            return speedConverter.from(speed, TimeUnit.H).to(TimeUnit.MS);
+        } else {
+            return speed;
+        }
+    }
 
     @Override
     public PathProgress followPath(MovingRoadUser object, Queue<Point> path,

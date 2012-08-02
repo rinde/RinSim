@@ -16,7 +16,6 @@ import org.apache.commons.math3.random.RandomGenerator;
 import rinde.sim.core.TimeLapse;
 import rinde.sim.core.graph.Point;
 import rinde.sim.util.SpeedConverter;
-import rinde.sim.util.TimeUnit;
 
 /**
  * A {@link RoadModel} that uses a plane as road structure. This assumes that
@@ -61,7 +60,9 @@ public class PlaneRoadModel extends AbstractRoadModel<Point> {
      * @param pMax The maximum x and y of the plane.
      * @param pMaxSpeed The maximum speed that objects can travel on the plane.
      */
-    public PlaneRoadModel(Point pMin, Point pMax, double pMaxSpeed) {
+    public PlaneRoadModel(Point pMin, Point pMax, boolean useSpeedConversion,
+            double pMaxSpeed) {
+        super(useSpeedConversion);
         checkArgument(pMin.x < pMax.x && pMin.y < pMax.y, "min should have coordinates smaller than max");
         checkArgument(pMaxSpeed > 0, "max speed must be positive");
         min = pMin;
@@ -90,13 +91,12 @@ public class PlaneRoadModel extends AbstractRoadModel<Point> {
 
         double traveled = 0;
         final SpeedConverter sc = new SpeedConverter();
-        // speed in graph units per hour -> converting to milliseconds
         double speed = min(object.getSpeed(), maxSpeed);
         if (speed == 0) {
             // FIXME add test for this case, also check GraphRoadModel
             return new PathProgress(0, 0, new ArrayList<Point>());
         }
-        speed = sc.from(speed, TimeUnit.H).to(TimeUnit.MS);
+        speed = speedToSpaceUnit(speed);
 
         final List<Point> travelledNodes = new ArrayList<Point>();
         while (time.hasTimeLeft() && path.size() > 0) {
