@@ -26,7 +26,7 @@ public abstract class FRVehicle extends Vehicle {
 
 	@Override
 	public final double getSpeed() {
-		return dto.speed * 900000.0;
+		return dto.speed;
 	}
 
 	@Override

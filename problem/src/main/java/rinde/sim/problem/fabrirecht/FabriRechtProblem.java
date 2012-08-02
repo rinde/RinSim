@@ -35,8 +35,7 @@ public abstract class FabriRechtProblem extends ScenarioController {
 	@Override
 	protected Simulator createSimulator() throws Exception {
 		final Simulator sim = new Simulator(new MersenneTwister(123), 1);
-		final RoadModel rm = new PlaneRoadModel(fabriRechtScenario.min, fabriRechtScenario.max,
-				Double.POSITIVE_INFINITY);
+		final RoadModel rm = new PlaneRoadModel(fabriRechtScenario.min, fabriRechtScenario.max, false, 1.0);
 		sim.register(rm);
 		sim.register(new PDPModel(rm));
 		return sim;
