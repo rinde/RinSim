@@ -54,7 +54,7 @@ public class RandomWalkExample {
 		// represenation
 		final UiSchema schema = new UiSchema();
 		// schema.add(RandomWalkAgent.class, new RGB(255, 0, 0));
-		schema.add(RandomWalkAgent.class, "/graphics/perspective/deliverytruck.png");
+		schema.add(RandomWalkAgent.class, "/graphics/perspective/semi-truck-32.png");
 		schema.add(Package.class, "/graphics/perspective/deliverypackage.png");
 		// schema.add(Package.class, new RGB(0x0, 0x0, 0xFF));
 
