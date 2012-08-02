@@ -36,6 +36,7 @@ public class TestProblem {
 
 		@Override
 		protected boolean handleAddVehicle(AddVehicleEvent event) {
+			System.out.println("add a vehicle");
 			return getSimulator().register(new TestVehicle(event.vehicleDTO));
 		}
 

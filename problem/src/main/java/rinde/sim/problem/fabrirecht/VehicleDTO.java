@@ -23,4 +23,18 @@ public class VehicleDTO {
 		availabilityTimeWindow = pAvailabilityTimeWindow;
 	}
 
+	@Override
+	public String toString() {
+		final StringBuilder sb = new StringBuilder("VehicleDTO{startPosition:");
+		sb.append(startPosition);
+		sb.append(",speed:");
+		sb.append(speed);
+		sb.append(",capacity:");
+		sb.append(capacity);
+		sb.append(",availabilityTimeWindow:");
+		sb.append(availabilityTimeWindow);
+		sb.append("}");
+		return sb.toString();
+	}
+
 }

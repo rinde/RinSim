@@ -99,7 +99,7 @@ public class SimulationViewer extends Composite implements TickListener, Control
 		super(shell, SWT.NONE);
 
 		renderRegistry = LinkedHashMultimap.create();
-		for (Renderer r : renderers) {
+		for (final Renderer r : renderers) {
 			if (r instanceof ModelRenderer<?>) {
 				renderRegistry.put(((ModelRenderer<?>) r).getSupportedModelType(), (ModelRenderer<?>) r);
 			}
@@ -134,8 +134,8 @@ public class SimulationViewer extends Composite implements TickListener, Control
 	protected void bindToSimulator(Simulator simulator) {
 		this.simulator = simulator;
 
-		List<Model<?>> models = simulator.getModels();
-		for (Model<?> model : models) {
+		final List<Model<?>> models = simulator.getModels();
+		for (final Model<?> model : models) {
 			registerModel(model);
 		}
 
@@ -143,11 +143,11 @@ public class SimulationViewer extends Composite implements TickListener, Control
 	}
 
 	protected <T extends Model<?>> void registerModel(T model) {
-		Set<Class<?>> rendererSupportedTypes = renderRegistry.keySet();
-		for (Class<?> rendererSupportedType : rendererSupportedTypes) {
+		final Set<Class<?>> rendererSupportedTypes = renderRegistry.keySet();
+		for (final Class<?> rendererSupportedType : rendererSupportedTypes) {
 			if (rendererSupportedType.isAssignableFrom(model.getClass())) {
-				Collection<ModelRenderer<?>> assignableModels = renderRegistry.get(rendererSupportedType);
-				for (ModelRenderer<?> modelRenderer : assignableModels) {
+				final Collection<ModelRenderer<?>> assignableModels = renderRegistry.get(rendererSupportedType);
+				for (final ModelRenderer<?> modelRenderer : assignableModels) {
 					((ModelRenderer<T>) modelRenderer).register(model);
 				}
 			}
@@ -193,13 +193,13 @@ public class SimulationViewer extends Composite implements TickListener, Control
 
 	@SuppressWarnings("unused")
 	protected void createMenu(Shell shell) {
-		Menu bar = new Menu(shell, SWT.BAR);
+		final Menu bar = new Menu(shell, SWT.BAR);
 		shell.setMenuBar(bar);
 
-		MenuItem fileItem = new MenuItem(bar, SWT.CASCADE);
+		final MenuItem fileItem = new MenuItem(bar, SWT.CASCADE);
 		fileItem.setText("Control");
 
-		Menu submenu = new Menu(shell, SWT.DROP_DOWN);
+		final Menu submenu = new Menu(shell, SWT.DROP_DOWN);
 		fileItem.setMenu(submenu);
 
 		// play switch
@@ -228,10 +228,10 @@ public class SimulationViewer extends Composite implements TickListener, Control
 
 		// view options
 
-		MenuItem viewItem = new MenuItem(bar, SWT.CASCADE);
+		final MenuItem viewItem = new MenuItem(bar, SWT.CASCADE);
 		viewItem.setText("View");
 
-		Menu viewMenu = new Menu(shell, SWT.DROP_DOWN);
+		final Menu viewMenu = new Menu(shell, SWT.DROP_DOWN);
 		viewItem.setMenu(viewMenu);
 
 		// zooming
@@ -245,7 +245,7 @@ public class SimulationViewer extends Composite implements TickListener, Control
 		zoomOutItem.setAccelerator(SWT.MOD1 + '-');
 		zoomOutItem.setData("out");
 
-		Listener zoomingListener = new Listener() {
+		final Listener zoomingListener = new Listener() {
 			@Override
 			public void handleEvent(Event e) {
 				onZooming((MenuItem) e.widget);
@@ -256,7 +256,7 @@ public class SimulationViewer extends Composite implements TickListener, Control
 
 		// speedUp
 
-		Listener speedUpListener = new Listener() {
+		final Listener speedUpListener = new Listener() {
 
 			@Override
 			public void handleEvent(Event e) {
@@ -264,13 +264,13 @@ public class SimulationViewer extends Composite implements TickListener, Control
 			}
 		};
 
-		MenuItem increaseSpeedItem = new MenuItem(submenu, SWT.PUSH);
+		final MenuItem increaseSpeedItem = new MenuItem(submenu, SWT.PUSH);
 		increaseSpeedItem.setAccelerator(SWT.MOD1 + '.');
 		increaseSpeedItem.setText("Speed up");
 		increaseSpeedItem.setData(">");
 		increaseSpeedItem.addListener(SWT.Selection, speedUpListener);
 		//
-		MenuItem decreaseSpeed = new MenuItem(submenu, SWT.PUSH);
+		final MenuItem decreaseSpeed = new MenuItem(submenu, SWT.PUSH);
 		decreaseSpeed.setAccelerator(SWT.MOD1 + ',');
 		decreaseSpeed.setText("Slow down");
 		decreaseSpeed.setData("<");
@@ -356,7 +356,7 @@ public class SimulationViewer extends Composite implements TickListener, Control
 		final Image img = new Image(getDisplay(), size.x + 10, size.y + 10);
 		final GC gc = new GC(img);
 
-		for (Renderer r : renderers) {
+		for (final Renderer r : renderers) {
 			r.renderStatic(gc, new ViewPort(new Point(origin.x, origin.y), viewRect, m, colorRegistry));
 		}
 
@@ -410,7 +410,7 @@ public class SimulationViewer extends Composite implements TickListener, Control
 			gc.fillRectangle(0, rect.height, client.width, marginHeight);
 		}
 
-		for (Renderer renderer : renderers) {
+		for (final Renderer renderer : renderers) {
 			renderer.renderDynamic(gc, new ViewPort(new Point(origin.x, origin.y), viewRect, m, colorRegistry));
 			// renderer.render(gc, origin.x, origin.y, minX, minY, m);
 		}
@@ -454,8 +454,8 @@ public class SimulationViewer extends Composite implements TickListener, Control
 		double maxY = Double.NEGATIVE_INFINITY;
 
 		boolean isDefined = false;
-		for (Renderer r : renderers) {
-			ViewRect rect = r.getViewRect();
+		for (final Renderer r : renderers) {
+			final ViewRect rect = r.getViewRect();
 			if (rect != null) {
 				minX = Math.min(minX, rect.min.x);
 				maxX = Math.max(maxX, rect.max.x);
@@ -475,7 +475,7 @@ public class SimulationViewer extends Composite implements TickListener, Control
 
 		// System.out.println(deltaX + " " + deltaY);
 
-		Rectangle area = canvas.getClientArea();
+		final Rectangle area = canvas.getClientArea();
 		if (viewRect.width > viewRect.height) {
 			m = area.width / viewRect.width;
 		} else {
@@ -525,10 +525,10 @@ public class SimulationViewer extends Composite implements TickListener, Control
 
 	@Override
 	public void afterTick(TimeLapse timeLapse) {
-		if (simulator.isPlaying() && lastRefresh + timeLapse.getTimeStep() * speedUp > timeLapse.getTime()) {
+		if (simulator.isPlaying() && lastRefresh + timeLapse.getTimeStep() * speedUp > timeLapse.getStartTime()) {
 			return;
 		}
-		lastRefresh = timeLapse.getTime();
+		lastRefresh = timeLapse.getStartTime();
 		if (display.isDisposed()) {
 			return;
 		}
@@ -537,7 +537,11 @@ public class SimulationViewer extends Composite implements TickListener, Control
 			@Override
 			public void run() {
 				if (!canvas.isDisposed()) {
-					timeLabel.setText(TimeFormatter.format(simulator.getCurrentTime()));
+					if (simulator.getTimeStep() > 500) {
+						timeLabel.setText(TimeFormatter.format(simulator.getCurrentTime()));
+					} else {
+						timeLabel.setText("" + simulator.getCurrentTime());
+					}
 					canvas.redraw();
 				}
 			}

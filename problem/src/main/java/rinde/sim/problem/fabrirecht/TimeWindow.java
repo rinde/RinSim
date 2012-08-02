@@ -8,4 +8,15 @@ public class TimeWindow {
 		begin = pBegin;
 		end = pEnd;
 	}
+
+	@Override
+	public String toString() {
+
+		final StringBuilder sb = new StringBuilder("TimeWindow{");
+		sb.append(begin);
+		sb.append(",");
+		sb.append(end);
+		sb.append("}");
+		return sb.toString();
+	}
 }

@@ -12,6 +12,10 @@
   		<groupId>rinsim</groupId>
   		<artifactId>core</artifactId>
   	</dependency>
+  	<dependency>
+  		<groupId>rinsim</groupId>
+  		<artifactId>ui</artifactId>
+  	</dependency>
   </dependencies>
   
   <build>

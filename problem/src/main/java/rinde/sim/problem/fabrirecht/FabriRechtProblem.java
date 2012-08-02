@@ -27,6 +27,7 @@ public abstract class FabriRechtProblem extends ScenarioController {
 	 */
 	public FabriRechtProblem(FabriRechtScenario scen) {
 		super(scen, (int) (scen.timeWindow.end - scen.timeWindow.begin));
+		System.out.println("events: " + scen.asList());
 		fabriRechtScenario = scen;
 	}
 
@@ -34,10 +35,10 @@ public abstract class FabriRechtProblem extends ScenarioController {
 	@Override
 	protected Simulator createSimulator() throws Exception {
 		final Simulator sim = new Simulator(new MersenneTwister(123), 1);
-		final RoadModel rm = new PlaneRoadModel(fabriRechtScenario.min, fabriRechtScenario.max, 1);
+		final RoadModel rm = new PlaneRoadModel(fabriRechtScenario.min, fabriRechtScenario.max,
+				Double.POSITIVE_INFINITY);
 		sim.register(rm);
 		sim.register(new PDPModel(rm));
-
 		return sim;
 	}
 
