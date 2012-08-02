@@ -42,9 +42,8 @@
 		</dependency>
 		<dependency>
 			<groupId>rinsim</groupId>
-			<artifactId>parsers</artifactId>
+			<artifactId>problem</artifactId>
 			<version>${project.version}</version>
-			<classifier>javadoc</classifier>
 		</dependency>
 		<dependency>
 			<groupId>rinsim</groupId>
