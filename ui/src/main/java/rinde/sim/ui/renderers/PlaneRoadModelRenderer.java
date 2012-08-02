@@ -9,7 +9,7 @@ import rinde.sim.core.graph.Point;
 import rinde.sim.core.model.road.PlaneRoadModel;
 
 /**
- * @author Rinde van Lon (rinde.vanlon@cs.kuleuven.be)
+ * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
  * 
  */
 public class PlaneRoadModelRenderer implements ModelRenderer<PlaneRoadModel> {
@@ -27,10 +27,10 @@ public class PlaneRoadModelRenderer implements ModelRenderer<PlaneRoadModel> {
 
 	@Override
 	public void renderStatic(GC gc, ViewPort vp) {
-		int xMin = vp.toCoordX(rm.min.x) - margin;
-		int yMin = vp.toCoordY(rm.min.y) - margin;
-		int xMax = vp.toCoordX(rm.max.x) + margin;
-		int yMax = vp.toCoordY(rm.max.y) + margin;
+		final int xMin = vp.toCoordX(rm.min.x) - margin;
+		final int yMin = vp.toCoordY(rm.min.y) - margin;
+		final int xMax = vp.toCoordX(rm.max.x) + margin;
+		final int yMax = vp.toCoordY(rm.max.y) + margin;
 		gc.drawRectangle(xMin, yMin, xMax - xMin, yMax - yMin);
 	}
 

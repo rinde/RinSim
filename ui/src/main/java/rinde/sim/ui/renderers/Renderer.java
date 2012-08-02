@@ -11,6 +11,8 @@ import org.eclipse.swt.graphics.GC;
  */
 public interface Renderer {
 
+	// FIXME documentation!
+
 	/**
 	 * @param gc
 	 * @param origin

@@ -30,11 +30,11 @@ public class ViewPort {
 	}
 
 	public int toCoordX(double x) {
-		return (int) ((x - rect.min.x) * scale);
+		return (int) (origin.x + ((x - rect.min.x) * scale));
 	}
 
 	public int toCoordY(double y) {
-		return (int) ((y - rect.min.y) * scale);
+		return (int) (origin.y + ((y - rect.min.y) * scale));
 	}
 
 }
