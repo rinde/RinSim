@@ -53,6 +53,16 @@ class ProblemInstance extends FabriRechtProblem {
 	}
 
 	@Override
+	protected boolean handleTimeOut() {
+
+		System.out.println("total traveled distance: " + statisticsListener.getTotalTraveledDistance());
+		System.out.println(statisticsListener.getTotalPickups() + " / " + parcelCount);
+		System.out.println(statisticsListener.getTotalDeliveries() + " / " + parcelCount);
+
+		return true;
+	}
+
+	@Override
 	protected boolean createUserInterface() {
 		final UiSchema schema = new UiSchema(false);
 		schema.add(Truck.class, "/graphics/perspective/bus-44.png");

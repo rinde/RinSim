@@ -25,7 +25,7 @@ public class FabriRechtParser {
 
 	public static FabriRechtScenario parse(String coordinateFile, String ordersFile) throws IOException {
 		final ScenarioBuilder sb = new ScenarioBuilder(PDPScenarioEvent.ADD_DEPOT, PDPScenarioEvent.ADD_PARCEL,
-				PDPScenarioEvent.ADD_VEHICLE, PDPScenarioEvent.REMOVE_DEPOT);
+				PDPScenarioEvent.ADD_VEHICLE, PDPScenarioEvent.REMOVE_DEPOT, PDPScenarioEvent.TIME_OUT);
 
 		final BufferedReader coordinateFileReader = new BufferedReader(new FileReader(coordinateFile));
 		final BufferedReader ordersFileReader = new BufferedReader(new FileReader(ordersFile));
@@ -68,6 +68,8 @@ public class FabriRechtParser {
 		final long startTime = Long.parseLong(firstLine[2]);
 		final long endTime = Long.parseLong(firstLine[3]);
 		final TimeWindow timeWindow = new TimeWindow(startTime, endTime);
+
+		sb.addEvent(new TimedEvent(PDPScenarioEvent.TIME_OUT, endTime));
 
 		for (int i = 0; i < numVehicles; i++) {
 			sb.addEvent(new AddVehicleEvent(0, new VehicleDTO(coordinates.get(0), 1.0, capacity, timeWindow)));

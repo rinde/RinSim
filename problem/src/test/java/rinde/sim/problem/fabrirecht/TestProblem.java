@@ -40,6 +40,11 @@ public class TestProblem {
 			return getSimulator().register(new TestVehicle(event.vehicleDTO));
 		}
 
+		@Override
+		protected boolean handleTimeOut() {
+			return true;
+		}
+
 	}
 
 	class TestVehicle extends FRVehicle {
