@@ -20,7 +20,6 @@ public abstract class FRVehicle extends Vehicle {
 	public FRVehicle(VehicleDTO pDto) {
 		setStartPosition(pDto.startPosition);
 		setCapacity(pDto.capacity);
-		System.out.println(pDto);
 		dto = pDto;
 	}
 
