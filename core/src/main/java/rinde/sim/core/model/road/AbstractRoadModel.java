@@ -154,7 +154,9 @@ public abstract class AbstractRoadModel<T> extends AbstractModel<RoadUser>
             path = new LinkedList<Point>(getShortestPathTo(object, destination));
             objDestinations.put(object, new DestinationPath(destination, path));
         }
-        return doFollowPath(object, path, time);
+        final MoveProgress mp = doFollowPath(object, path, time);
+        eventDispatcher.dispatchEvent(new MoveEvent(this, object, mp));
+        return mp;
     }
 
     @Override

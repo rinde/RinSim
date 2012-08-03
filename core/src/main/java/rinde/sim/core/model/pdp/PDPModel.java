@@ -59,7 +59,7 @@ public class PDPModel implements Model<PDPObject> {
     /**
      * {@link EventAPI} which allows adding and removing listeners to the model.
      */
-    public final EventAPI eventAPI;
+    protected final EventAPI eventAPI;
     /**
      * The {@link EventDispatcher} used for generating events.
      */
@@ -227,11 +227,12 @@ public class PDPModel implements Model<PDPObject> {
      * <p>
      * When all preconditions are met, the pickup action is started indicated by
      * the dispatching of an {@link Event} with type
-     * {@link PDPModelEvent#START_PICKUP}. In case the specified {@link TimeLapse} is
-     * not big enough to complete the pickup immediately the action will be
-     * continued next tick. When the pickup action is completed an {@link Event}
-     * with type {@link PDPModelEvent#END_PICKUP} is dispatched. When done, the
-     * {@link Parcel} will be contained by the {@link Vehicle}.
+     * {@link PDPModelEvent#START_PICKUP}. In case the specified
+     * {@link TimeLapse} is not big enough to complete the pickup immediately
+     * the action will be continued next tick. When the pickup action is
+     * completed an {@link Event} with type {@link PDPModelEvent#END_PICKUP} is
+     * dispatched. When done, the {@link Parcel} will be contained by the
+     * {@link Vehicle}.
      * @param vehicle The {@link Vehicle} involved in pickup.
      * @param parcel The {@link Parcel} to pick up.
      * @param time The {@link TimeLapse} that is available for the action.
@@ -246,7 +247,8 @@ public class PDPModel implements Model<PDPObject> {
                 + parcel.getMagnitude();
         /* 6 */checkArgument(newSize <= containerCapacities.get(vehicle), "parcel does not fit in vehicle");
 
-        eventDispatcher.dispatchEvent(new Event(PDPModelEvent.START_PICKUP, this));
+        eventDispatcher.dispatchEvent(new Event(PDPModelEvent.START_PICKUP,
+                this));
 
         // remove the parcel such that it can no longer be attempted to be
         // picked up by anyone else
@@ -278,7 +280,8 @@ public class PDPModel implements Model<PDPObject> {
                 + parcel.getMagnitude());
 
         parcelState.put(parcel, ParcelState.IN_CARGO);
-        eventDispatcher.dispatchEvent(new Event(PDPModelEvent.END_PICKUP, this));
+        eventDispatcher
+                .dispatchEvent(new Event(PDPModelEvent.END_PICKUP, this));
     }
 
     /**
@@ -296,12 +299,13 @@ public class PDPModel implements Model<PDPObject> {
      * <p>
      * When all preconditions are met the actual delivery is started, this is
      * indicated by the dispatching of an {@link Event} with
-     * {@link PDPModelEvent#START_DELIVERY} type. If there is not enough time in the
-     * specified {@link TimeLapse} to complete the delivery at once, the action
-     * will be completed in the next tick. When the delivery is completed an
-     * {@link Event} with type {@link PDPModelEvent#END_DELIVERY} is dispatched. As a
-     * result the {@link Vehicle} no longer contains the {@link Parcel} and the
-     * {@link Parcel} is NOT added to the {@link RoadModel} again.
+     * {@link PDPModelEvent#START_DELIVERY} type. If there is not enough time in
+     * the specified {@link TimeLapse} to complete the delivery at once, the
+     * action will be completed in the next tick. When the delivery is completed
+     * an {@link Event} with type {@link PDPModelEvent#END_DELIVERY} is
+     * dispatched. As a result the {@link Vehicle} no longer contains the
+     * {@link Parcel} and the {@link Parcel} is NOT added to the
+     * {@link RoadModel} again.
      * @param vehicle The {@link Vehicle} that wishes to deliver a
      *            {@link Parcel}.
      * @param parcel The {@link Parcel} that is to be delivered.
@@ -315,7 +319,8 @@ public class PDPModel implements Model<PDPObject> {
         /* 4 */checkArgument(parcel.getDestination()
                 .equals(roadModel.getPosition(vehicle)), "parcel must be delivered at its destination, vehicle should move there first");
 
-        eventDispatcher.dispatchEvent(new Event(PDPModelEvent.START_DELIVERY, this));
+        eventDispatcher.dispatchEvent(new Event(PDPModelEvent.START_DELIVERY,
+                this));
         if (time.getTimeLeft() < parcel.getDeliveryDuration()) {
             vehicleState.put(vehicle, VehicleState.DELIVERING);
             parcelState.put(parcel, ParcelState.DELIVERING);
@@ -340,7 +345,8 @@ public class PDPModel implements Model<PDPObject> {
                 - parcel.getMagnitude());
 
         parcelState.put(parcel, ParcelState.DELIVERED);
-        eventDispatcher.dispatchEvent(new Event(PDPModelEvent.END_DELIVERY, this));
+        eventDispatcher.dispatchEvent(new Event(PDPModelEvent.END_DELIVERY,
+                this));
     }
 
     /**
@@ -446,6 +452,11 @@ public class PDPModel implements Model<PDPObject> {
     @Override
     public Class<PDPObject> getSupportedType() {
         return PDPObject.class;
+
+    }
+
+    public EventAPI getEventAPI() {
+        return eventAPI;
     }
 
     /**
