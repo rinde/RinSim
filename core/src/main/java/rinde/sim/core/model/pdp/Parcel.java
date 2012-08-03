@@ -4,6 +4,7 @@
 package rinde.sim.core.model.pdp;
 
 import rinde.sim.core.graph.Point;
+import rinde.sim.util.TimeWindow;
 
 /**
  * The parcel class represents goods that can be transported.
@@ -15,10 +16,12 @@ public abstract class Parcel extends PDPObjectImpl {
      * The time it takes to pickup this parcel.
      */
     protected final long pickupDuration;
+    protected final TimeWindow pickupTimeWindow;
     /**
      * The time it takes to deliver this parcel.
      */
     protected final long deliveryDuration;
+    protected final TimeWindow deliveryTimeWindow;
     /**
      * The destination of this parcel, this is the position to where this parcel
      * needs to be delivered.
@@ -38,10 +41,13 @@ public abstract class Parcel extends PDPObjectImpl {
      * @param pMagnitude The weight/volume/count of this parcel.
      */
     public Parcel(Point pDestination, long pPickupDuration,
-            long pDeliveryDuration, double pMagnitude) {
+            TimeWindow pickupTW, long pDeliveryDuration, TimeWindow deliveryTW,
+            double pMagnitude) {
         destination = pDestination;
         pickupDuration = pPickupDuration;
+        pickupTimeWindow = pickupTW;
         deliveryDuration = pDeliveryDuration;
+        deliveryTimeWindow = deliveryTW;
         magnitude = pMagnitude;
     }
 
@@ -76,6 +82,23 @@ public abstract class Parcel extends PDPObjectImpl {
      */
     public final Point getDestination() {
         return destination;
+    }
+
+    public final TimeWindow getDeliveryTimeWindow() {
+        return deliveryTimeWindow;
+    }
+
+    public final TimeWindow getPickupTimeWindow() {
+        return pickupTimeWindow;
+    }
+
+    // can be overriden to add problem specific constraints on pickup
+    public boolean canBePickedUp(Vehicle v, long time) {
+        return true;
+    }
+
+    public boolean canBeDelivered(Vehicle v, long time) {
+        return true;
     }
 
 }

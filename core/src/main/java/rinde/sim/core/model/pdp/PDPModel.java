@@ -98,6 +98,11 @@ public class PDPModel implements Model<PDPObject> {
      * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
      */
     public enum ParcelState {
+
+        // TODO add ANOUNCED
+        // indicating a parcel which is not yet available for pickup but
+        // announced to be in the near future
+
         /**
          * State that indicates that the {@link Parcel} is available for pickup.
          */
@@ -246,6 +251,7 @@ public class PDPModel implements Model<PDPObject> {
         final double newSize = containerContentsSize.get(vehicle)
                 + parcel.getMagnitude();
         /* 6 */checkArgument(newSize <= containerCapacities.get(vehicle), "parcel does not fit in vehicle");
+        checkArgument(parcel.canBePickedUp(vehicle, time.getTime()), "the parcel does not allow pickup now");
 
         eventDispatcher.dispatchEvent(new Event(PDPModelEvent.START_PICKUP,
                 this));
@@ -318,6 +324,7 @@ public class PDPModel implements Model<PDPObject> {
         /* 3 */checkArgument(containerContents.get(vehicle).contains(parcel), "vehicle does not contain parcel");
         /* 4 */checkArgument(parcel.getDestination()
                 .equals(roadModel.getPosition(vehicle)), "parcel must be delivered at its destination, vehicle should move there first");
+        checkArgument(parcel.canBeDelivered(vehicle, time.getTime()), "the parcel does not allow a delivery now");
 
         eventDispatcher.dispatchEvent(new Event(PDPModelEvent.START_DELIVERY,
                 this));

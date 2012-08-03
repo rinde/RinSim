@@ -22,6 +22,7 @@ import rinde.sim.core.model.pdp.PDPModel.PickupAction;
 import rinde.sim.core.model.pdp.PDPModel.VehicleState;
 import rinde.sim.core.model.road.PlaneRoadModel;
 import rinde.sim.core.model.road.RoadModel;
+import rinde.sim.util.TimeWindow;
 
 /**
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
@@ -420,14 +421,21 @@ public class PDPModelTest {
 
     class TestParcel extends Parcel {
 
+        public TestParcel(Point pDestination, int pLoadingDuration,
+                int pUnloadingDuration, double pMagnitude) {
+            super(pDestination, pLoadingDuration, TimeWindow.ALWAYS,
+                    pUnloadingDuration, TimeWindow.ALWAYS, pMagnitude);
+        }
+
         /**
          * @param pLoadingDuration
          * @param pUnloadingDuration
          */
         public TestParcel(Point pDestination, int pLoadingDuration,
-                int pUnloadingDuration, double pMagnitude) {
-            super(pDestination, pLoadingDuration, pUnloadingDuration,
-                    pMagnitude);
+                TimeWindow pickupTW, int pUnloadingDuration,
+                TimeWindow deliverTW, double pMagnitude) {
+            super(pDestination, pLoadingDuration, pickupTW, pUnloadingDuration,
+                    deliverTW, pMagnitude);
         }
 
         @Override
