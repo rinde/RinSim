@@ -9,7 +9,7 @@ import org.slf4j.LoggerFactory;
 import rinde.sim.core.TimeLapse;
 import rinde.sim.core.graph.Point;
 import rinde.sim.core.model.road.MovingRoadUser;
-import rinde.sim.core.model.road.PathProgress;
+import rinde.sim.core.model.road.MoveProgress;
 import rinde.sim.core.model.road.RoadModel;
 import rinde.sim.lab.session2.gradient_field_exercise.packages.Package;
 
@@ -47,7 +47,7 @@ public class Truck implements MovingRoadUser {
 		return rm;
 	}
 
-	public PathProgress drive(Queue<Point> path, TimeLapse timeLapse) {
+	public MoveProgress drive(Queue<Point> path, TimeLapse timeLapse) {
 		return rm.followPath(this, path, timeLapse);
 	}
 

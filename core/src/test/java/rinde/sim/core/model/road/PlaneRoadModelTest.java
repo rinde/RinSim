@@ -79,21 +79,21 @@ public class PlaneRoadModelTest extends AbstractRoadModelTest<PlaneRoadModel> {
         final Queue<Point> path = asPath(new Point(0, 0), new Point(5, 0), new Point(
                 5, 5));
 
-        final PathProgress pp = model.followPath(mru, path, hour());
+        final MoveProgress pp = model.followPath(mru, path, hour());
         assertEquals(asPath(new Point(5, 0), new Point(5, 5)), path);
         assertEquals(1, pp.distance, EPSILON);
         assertEquals(hour().getTimeStep(), pp.time, EPSILON);
         assertEquals(asList(new Point(0, 0)), pp.travelledNodes);
         assertTrue(Point.distance(new Point(1, 0), model.getPosition(mru)) < EPSILON);
 
-        final PathProgress pp2 = model.followPath(mru, path, hour(5));
+        final MoveProgress pp2 = model.followPath(mru, path, hour(5));
         assertEquals(asPath(new Point(5, 5)), path);
         assertEquals(5, pp2.distance, EPSILON);
         assertEquals(hour(5).getTimeStep(), pp2.time, EPSILON);
         assertEquals(asList(new Point(5, 0)), pp2.travelledNodes);
         assertTrue(Point.distance(new Point(5, 1), model.getPosition(mru)) < EPSILON);
 
-        final PathProgress pp3 = model.followPath(mru, path, hour(50));
+        final MoveProgress pp3 = model.followPath(mru, path, hour(50));
         assertTrue(path.isEmpty());
         assertEquals(4, pp3.distance, EPSILON);
         assertEquals(hour(4).getTimeStep(), pp3.time, EPSILON);

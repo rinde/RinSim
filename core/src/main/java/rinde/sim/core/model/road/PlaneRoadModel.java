@@ -85,7 +85,7 @@ public class PlaneRoadModel extends AbstractRoadModel<Point> {
     }
 
     @Override
-    protected PathProgress doFollowPath(MovingRoadUser object,
+    protected MoveProgress doFollowPath(MovingRoadUser object,
             Queue<Point> path, TimeLapse time) {
         Point loc = objLocs.get(object);
 
@@ -94,7 +94,7 @@ public class PlaneRoadModel extends AbstractRoadModel<Point> {
         double speed = min(object.getSpeed(), maxSpeed);
         if (speed == 0) {
             // FIXME add test for this case, also check GraphRoadModel
-            return new PathProgress(0, 0, new ArrayList<Point>());
+            return new MoveProgress(0, 0, new ArrayList<Point>());
         }
         speed = speedToSpaceUnit(speed);
 
@@ -120,7 +120,7 @@ public class PlaneRoadModel extends AbstractRoadModel<Point> {
             }
         }
         objLocs.put(object, loc);
-        return new PathProgress(traveled, time.getTimeConsumed(),
+        return new MoveProgress(traveled, time.getTimeConsumed(),
                 travelledNodes);
     }
 

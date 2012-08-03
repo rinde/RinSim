@@ -397,19 +397,19 @@ public abstract class AbstractRoadModelTest<T extends RoadModel> {
     @SuppressWarnings("unused")
     @Test(expected = IllegalArgumentException.class)
     public void pathProgressConstructorFail1() {
-        new PathProgress(-1, 1, null);
+        new MoveProgress(-1, 1, null);
     }
 
     @SuppressWarnings("unused")
     @Test(expected = IllegalArgumentException.class)
     public void pathProgressConstructorFail2() {
-        new PathProgress(1, -1, null);
+        new MoveProgress(1, -1, null);
     }
 
     @SuppressWarnings("unused")
     @Test(expected = IllegalArgumentException.class)
     public void pathProgressConstructorFail3() {
-        new PathProgress(1, 1, null);
+        new MoveProgress(1, 1, null);
     }
 
     @Test

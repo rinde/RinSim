@@ -20,6 +20,9 @@ import java.util.Set;
 import rinde.sim.core.TimeLapse;
 import rinde.sim.core.graph.Point;
 import rinde.sim.core.model.AbstractModel;
+import rinde.sim.event.Event;
+import rinde.sim.event.EventAPI;
+import rinde.sim.event.EventDispatcher;
 import rinde.sim.util.SpeedConverter;
 import rinde.sim.util.TimeUnit;
 
@@ -43,6 +46,13 @@ public abstract class AbstractRoadModel<T> extends AbstractModel<RoadUser>
 
     protected boolean useSpeedConversion;
 
+    protected final EventDispatcher eventDispatcher;
+    public final EventAPI eventAPI;
+
+    public enum RoadEvent {
+        MOVE
+    }
+
     /**
      * A mapping of {@link RoadUser} to location.
      */
@@ -62,6 +72,8 @@ public abstract class AbstractRoadModel<T> extends AbstractModel<RoadUser>
         objDestinations = newLinkedHashMap();
         speedConverter = new SpeedConverter();
         useSpeedConversion = pUseSpeedConversion;
+        eventDispatcher = new EventDispatcher(RoadEvent.MOVE);
+        eventAPI = eventDispatcher.getEventAPI();
     }
 
     /**
@@ -113,17 +125,19 @@ public abstract class AbstractRoadModel<T> extends AbstractModel<RoadUser>
     }
 
     @Override
-    public PathProgress followPath(MovingRoadUser object, Queue<Point> path,
-            TimeLapse time) {
+    public final MoveProgress followPath(MovingRoadUser object,
+            Queue<Point> path, TimeLapse time) {
         checkArgument(objLocs.containsKey(object), "object must have a location");
         checkArgument(path.peek() != null, "path can not be empty");
         checkArgument(time.hasTimeLeft(), "can not follow path when to time is left");
         objDestinations.remove(object);
-        return doFollowPath(object, path, time);
+        final MoveProgress pp = doFollowPath(object, path, time);
+        eventDispatcher.dispatchEvent(new Event(RoadEvent.MOVE, this));
+        return pp;
     }
 
     @Override
-    public PathProgress moveTo(MovingRoadUser object, Point destination,
+    public MoveProgress moveTo(MovingRoadUser object, Point destination,
             TimeLapse time) {
         Queue<Point> path;
         if (objDestinations.containsKey(object)
@@ -138,7 +152,7 @@ public abstract class AbstractRoadModel<T> extends AbstractModel<RoadUser>
     }
 
     @Override
-    public PathProgress moveTo(MovingRoadUser object, RoadUser destination,
+    public MoveProgress moveTo(MovingRoadUser object, RoadUser destination,
             TimeLapse time) {
         return moveTo(object, getPosition(destination), time);
     }
@@ -149,10 +163,10 @@ public abstract class AbstractRoadModel<T> extends AbstractModel<RoadUser>
      * @param object The object that is moved.
      * @param path The path that is followed.
      * @param time The time that is available for travel.
-     * @return A {@link PathProgress} instance containing the actual travel
+     * @return A {@link MoveProgress} instance containing the actual travel
      *         details.
      */
-    protected abstract PathProgress doFollowPath(MovingRoadUser object,
+    protected abstract MoveProgress doFollowPath(MovingRoadUser object,
             Queue<Point> path, TimeLapse time);
 
     @Override

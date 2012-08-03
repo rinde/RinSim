@@ -9,7 +9,7 @@ import rinde.sim.core.graph.Point;
 import rinde.sim.core.model.road.PlaneRoadModel;
 
 /**
- * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+ * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>0
  * 
  */
 public class PlaneRoadModelRenderer implements ModelRenderer<PlaneRoadModel> {

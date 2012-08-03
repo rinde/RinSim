@@ -110,7 +110,7 @@ public class GraphRoadModelTest extends AbstractRoadModelTest<GraphRoadModel> {
         assertEquals(SW, model.getPosition(agent));
 
         final Queue<Point> path = asPath(SW, SE, NE);
-        final PathProgress travelled = model
+        final MoveProgress travelled = model
                 .followPath(agent, path, timeLength(5));
         assertEquals(20, travelled.distance, EPSILON);
         assertEquals(4, travelled.time);
@@ -143,7 +143,7 @@ public class GraphRoadModelTest extends AbstractRoadModelTest<GraphRoadModel> {
 
         final TestRoadUser driver1 = new TestRoadUser();
         model.addObjectAt(driver1, SW);
-        final PathProgress pp = model.followPath(driver1, path, hour(44));
+        final MoveProgress pp = model.followPath(driver1, path, hour(44));
         assertEquals(hour(44).getTimeStep(), pp.time);
         assertEquals(44, pp.distance, EPSILON);
         assertEquals(asList(SW, SE, NE, A, B), pp.travelledNodes);
@@ -197,7 +197,7 @@ public class GraphRoadModelTest extends AbstractRoadModelTest<GraphRoadModel> {
         assertEquals(new Point(0, 0), model.getPosition(agent));
 
         final Queue<Point> path = asPath(SW, SE, NE);
-        PathProgress travelled = model.followPath(agent, path, timeLength(10));
+        MoveProgress travelled = model.followPath(agent, path, timeLength(10));
         assertEquals(10d, travelled.distance, EPSILON);
         assertEquals(1, path.size());
 
@@ -222,7 +222,7 @@ public class GraphRoadModelTest extends AbstractRoadModelTest<GraphRoadModel> {
         assertTrue(model.getPosition(agent).equals(new Point(0, 0)));
         assertEquals(3, path.size());
 
-        PathProgress progress = model.followPath(agent, path, timeLength(1));
+        MoveProgress progress = model.followPath(agent, path, timeLength(1));
         assertEquals(5d, progress.distance, EPSILON);
         assertEquals(2, path.size());
         assertEquals(new Point(5, 0), model.getPosition(agent));
@@ -332,7 +332,7 @@ public class GraphRoadModelTest extends AbstractRoadModelTest<GraphRoadModel> {
         final TestRoadUser testRoadUser = new TestRoadUser();
         model.addObjectAt(testRoadUser, SW);
         final Queue<Point> p = new LinkedList<Point>(Arrays.asList(SW, SE));
-        final PathProgress progress = model
+        final MoveProgress progress = model
                 .followPath(testRoadUser, p, timeLength(3600000));
         assertEquals(1.0, progress.distance, EPSILON);
         assertEquals(asList(SE), p);
@@ -368,7 +368,7 @@ public class GraphRoadModelTest extends AbstractRoadModelTest<GraphRoadModel> {
 
         final TestRoadUser tru2 = new TestRoadUser();
         model.addObjectAt(tru2, SW);
-        final PathProgress pp = model.followPath(tru2, asPath(SW, SE, model
+        final MoveProgress pp = model.followPath(tru2, asPath(SW, SE, model
                 .getPosition(tru1)), hour(11));
         assertEquals(11, pp.distance, EPSILON);
 
@@ -721,14 +721,14 @@ public class GraphRoadModelTest extends AbstractRoadModelTest<GraphRoadModel> {
 
         final TestRoadUser agent1 = new TestRoadUser();
         model.addObjectAt(agent1, SE);
-        final PathProgress pp1 = model.followPath(agent1, asPath(SW), hour());
+        final MoveProgress pp1 = model.followPath(agent1, asPath(SW), hour());
         pp1.toString();
         assertEquals(1, pp1.distance, EPSILON);
         assertEquals(hour().getTimeStep(), pp1.time);
 
         final TestRoadUser agent2 = new TestRoadUser();
         model.addObjectAt(agent2, SE);
-        final PathProgress pp2 = model.followPath(agent2, asPath(SW), hour(2));
+        final MoveProgress pp2 = model.followPath(agent2, asPath(SW), hour(2));
         assertEquals(2, pp2.distance, EPSILON);
         assertEquals(hour(2).getTimeStep(), pp2.time);
 

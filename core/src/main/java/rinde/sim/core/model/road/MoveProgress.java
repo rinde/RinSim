@@ -13,7 +13,7 @@ import rinde.sim.core.graph.Point;
  * @author Bartosz Michalik <bartosz.michalik@cs.kuleuven.be>
  * @since 2.0
  */
-public final class PathProgress {
+public final class MoveProgress {
     /**
      * Distance traveled in the
      * {@link RoadModel#followPath(MovingRoadUser, java.util.Queue, rinde.sim.core.TimeLapse)}
@@ -30,7 +30,7 @@ public final class PathProgress {
      */
     public final List<Point> travelledNodes;
 
-    PathProgress(double dist, long pTime, List<Point> pTravelledNodes) {
+    MoveProgress(double dist, long pTime, List<Point> pTravelledNodes) {
         checkArgument(dist >= 0, "distance must be greater than or equal to 0");
         checkArgument(pTime >= 0, "time must be greather than or equal to 0");
         checkArgument(pTravelledNodes != null, "travelledNodes can not be null");

@@ -58,13 +58,13 @@ public interface RoadModel extends Model<RoadUser> {
      * @param object The object that is moved.
      * @param destination The destination position.
      * @param time The time that is available for travel.
-     * @return A {@link PathProgress} instance which details: the distance
+     * @return A {@link MoveProgress} instance which details: the distance
      *         traveled, the actual time spent traveling and the nodes which
      *         where traveled.
      * @see #moveTo(MovingRoadUser, RoadUser, TimeLapse)
      * @see #followPath(MovingRoadUser, Queue, TimeLapse)
      */
-    PathProgress moveTo(MovingRoadUser object, Point destination, TimeLapse time);
+    MoveProgress moveTo(MovingRoadUser object, Point destination, TimeLapse time);
 
     /**
      * Moves the specified {@link MovingRoadUser} towards the specified
@@ -91,13 +91,13 @@ public interface RoadModel extends Model<RoadUser> {
      * @param object The object that is moved.
      * @param destination The destination position.
      * @param time The time that is available for travel.
-     * @return A {@link PathProgress} instance which details: the distance
+     * @return A {@link MoveProgress} instance which details: the distance
      *         traveled, the actual time spent traveling and the nodes which
      *         where traveled.
      * @see #moveTo(MovingRoadUser, Point, TimeLapse)
      * @see #followPath(MovingRoadUser, Queue, TimeLapse)
      */
-    PathProgress moveTo(MovingRoadUser object, RoadUser destination,
+    MoveProgress moveTo(MovingRoadUser object, RoadUser destination,
             TimeLapse time);
 
     /**
@@ -137,13 +137,13 @@ public interface RoadModel extends Model<RoadUser> {
      * @param object The object that is moved.
      * @param path The path that is followed.
      * @param time The time that is available for travel.
-     * @return A {@link PathProgress} instance which details: the distance
+     * @return A {@link MoveProgress} instance which details: the distance
      *         traveled, the actual time spent traveling and the nodes which
      *         where traveled.
      * @see #moveTo(MovingRoadUser, Point, TimeLapse)
      * @see #moveTo(MovingRoadUser, RoadUser, TimeLapse)
      */
-    PathProgress followPath(MovingRoadUser object, Queue<Point> path,
+    MoveProgress followPath(MovingRoadUser object, Queue<Point> path,
             TimeLapse time);
 
     /**
