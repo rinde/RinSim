@@ -221,8 +221,10 @@ public abstract class ScenarioController implements TickListener, Listener {
     @Override
     public void afterTick(TimeLapse timeLapse) {} // not needed
 
+    // TODO this should probably moved into an inner class. Currently,
+    // subclasses can not be a listener because of this.
     @Override
-    public void handleEvent(Event e) {
+    public final void handleEvent(Event e) {
         if (!handleTimedEvent((TimedEvent) e)) {
             LOGGER.warn("event not handled: " + e.toString());
             throw new IllegalArgumentException("event not handled: "

@@ -13,12 +13,12 @@ import rinde.sim.event.Event;
 public class MoveEvent extends Event {
 
     public final RoadModel roadModel;
-    public final RoadUser roadUser;
+    public final MovingRoadUser roadUser;
     public final MoveProgress pathProgress;
 
     /**
      */
-    public MoveEvent(RoadModel rm, RoadUser ru, MoveProgress pp) {
+    public MoveEvent(RoadModel rm, MovingRoadUser ru, MoveProgress pp) {
         super(RoadEvent.MOVE, rm);
         roadModel = rm;
         roadUser = ru;

@@ -20,7 +20,6 @@ import java.util.Set;
 import rinde.sim.core.TimeLapse;
 import rinde.sim.core.graph.Point;
 import rinde.sim.core.model.AbstractModel;
-import rinde.sim.event.Event;
 import rinde.sim.event.EventAPI;
 import rinde.sim.event.EventDispatcher;
 import rinde.sim.util.SpeedConverter;
@@ -46,8 +45,9 @@ public abstract class AbstractRoadModel<T> extends AbstractModel<RoadUser>
 
     protected boolean useSpeedConversion;
 
+    // TODO event dispatching has to be tested
     protected final EventDispatcher eventDispatcher;
-    public final EventAPI eventAPI;
+    protected final EventAPI eventAPI;
 
     public enum RoadEvent {
         MOVE
@@ -72,8 +72,14 @@ public abstract class AbstractRoadModel<T> extends AbstractModel<RoadUser>
         objDestinations = newLinkedHashMap();
         speedConverter = new SpeedConverter();
         useSpeedConversion = pUseSpeedConversion;
-        eventDispatcher = new EventDispatcher(RoadEvent.MOVE);
+        eventDispatcher = createEventDispatcher();
         eventAPI = eventDispatcher.getEventAPI();
+    }
+
+    // factory method for creating event dispatcher, can be overridden by
+    // subclasses to add more event types.
+    protected EventDispatcher createEventDispatcher() {
+        return new EventDispatcher(RoadEvent.MOVE);
     }
 
     /**
@@ -131,9 +137,9 @@ public abstract class AbstractRoadModel<T> extends AbstractModel<RoadUser>
         checkArgument(path.peek() != null, "path can not be empty");
         checkArgument(time.hasTimeLeft(), "can not follow path when to time is left");
         objDestinations.remove(object);
-        final MoveProgress pp = doFollowPath(object, path, time);
-        eventDispatcher.dispatchEvent(new Event(RoadEvent.MOVE, this));
-        return pp;
+        final MoveProgress mp = doFollowPath(object, path, time);
+        eventDispatcher.dispatchEvent(new MoveEvent(this, object, mp));
+        return mp;
     }
 
     @Override
@@ -323,6 +329,11 @@ public abstract class AbstractRoadModel<T> extends AbstractModel<RoadUser>
             return true;
         }
         return false;
+    }
+
+    @Override
+    public final EventAPI getEventAPI() {
+        return eventAPI;
     }
 
     private static class SameLocationPredicate implements Predicate<RoadUser> {

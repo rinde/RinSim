@@ -14,6 +14,7 @@ import org.apache.commons.math3.random.RandomGenerator;
 import rinde.sim.core.TimeLapse;
 import rinde.sim.core.graph.Point;
 import rinde.sim.core.model.Model;
+import rinde.sim.event.EventAPI;
 
 import com.google.common.base.Predicate;
 
@@ -299,5 +300,7 @@ public interface RoadModel extends Model<RoadUser> {
      * @return The shortest path.
      */
     List<Point> getShortestPathTo(Point from, Point to);
+
+    EventAPI getEventAPI();
 
 }
