@@ -5,7 +5,6 @@ package rinde.sim.problem.fabrirecht;
 
 import rinde.sim.core.model.pdp.PDPModel;
 import rinde.sim.core.model.pdp.Parcel;
-import rinde.sim.core.model.pdp.Vehicle;
 import rinde.sim.core.model.road.RoadModel;
 
 /**
@@ -25,15 +24,5 @@ public class FRParcel extends Parcel {
 
 	@Override
 	public void initRoadPDP(RoadModel pRoadModel, PDPModel pPdpModel) {}
-
-	@Override
-	public boolean canBePickedUp(Vehicle v, long time) {
-		return time >= dto.pickupTimeWindow.begin && time < dto.pickupTimeWindow.end;
-	}
-
-	@Override
-	public boolean canBeDelivered(Vehicle v, long time) {
-		return time >= dto.pickupTimeWindow.begin && time < dto.pickupTimeWindow.end;
-	}
 
 }
