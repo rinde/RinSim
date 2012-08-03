@@ -13,6 +13,7 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 
+import rinde.sim.core.TickListener;
 import rinde.sim.core.TimeLapse;
 import rinde.sim.core.graph.Point;
 import rinde.sim.core.model.Model;
@@ -54,7 +55,7 @@ import com.google.common.collect.Multimap;
  * 
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
  */
-public class PDPModel implements Model<PDPObject> {
+public class PDPModel implements Model<PDPObject>, TickListener {
 
     /**
      * {@link EventAPI} which allows adding and removing listeners to the model.
@@ -99,10 +100,13 @@ public class PDPModel implements Model<PDPObject> {
      */
     public enum ParcelState {
 
-        // TODO add ANOUNCED
-        // indicating a parcel which is not yet available for pickup but
-        // announced to be in the near future
-
+        // TODO perhaps a LATE state could be added as well, indicating that a
+        // parcel is late for pickup
+        /**
+         * State that indicates that the {@link Parcel} is not yet available for
+         * pickup but that it will be in the (near) future.
+         */
+        ANNOUNCED,
         /**
          * State that indicates that the {@link Parcel} is available for pickup.
          */
@@ -251,6 +255,9 @@ public class PDPModel implements Model<PDPObject> {
         final double newSize = containerContentsSize.get(vehicle)
                 + parcel.getMagnitude();
         /* 6 */checkArgument(newSize <= containerCapacities.get(vehicle), "parcel does not fit in vehicle");
+
+        // FIXME check pickupTW
+
         checkArgument(parcel.canBePickedUp(vehicle, time.getTime()), "the parcel does not allow pickup now");
 
         eventDispatcher.dispatchEvent(new Event(PDPModelEvent.START_PICKUP,
@@ -324,6 +331,9 @@ public class PDPModel implements Model<PDPObject> {
         /* 3 */checkArgument(containerContents.get(vehicle).contains(parcel), "vehicle does not contain parcel");
         /* 4 */checkArgument(parcel.getDestination()
                 .equals(roadModel.getPosition(vehicle)), "parcel must be delivered at its destination, vehicle should move there first");
+
+        // FIXME check deliverTW
+
         checkArgument(parcel.canBeDelivered(vehicle, time.getTime()), "the parcel does not allow a delivery now");
 
         eventDispatcher.dispatchEvent(new Event(PDPModelEvent.START_DELIVERY,
@@ -498,6 +508,20 @@ public class PDPModel implements Model<PDPObject> {
             }
         }
     }
+
+    @Override
+    public void tick(TimeLapse timeLapse) {
+        // TODO update state of parcels
+
+        // TODO should parcel/state be in a table? this would make lookup times
+        // faster for both key and value
+
+        // parcelState
+
+    }
+
+    @Override
+    public void afterTick(TimeLapse timeLapse) {}
 
     /**
      * Represents an action that takes time. This is used for actions that can
