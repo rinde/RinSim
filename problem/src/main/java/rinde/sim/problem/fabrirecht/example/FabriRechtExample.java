@@ -88,7 +88,7 @@ class Truck extends FRVehicle {
 
 		if (closest != null) {
 			roadModel.moveTo(this, closest, time);
-			if (roadModel.equalPosition(closest, this)) {
+			if (roadModel.equalPosition(closest, this) && closest.canBePickedUp(this, time.getTime())) {
 				pdpModel.pickup(this, closest, time);
 			}
 		}

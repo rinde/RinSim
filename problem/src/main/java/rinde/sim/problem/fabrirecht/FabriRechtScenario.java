@@ -9,6 +9,7 @@ import java.util.Set;
 import rinde.sim.core.graph.Point;
 import rinde.sim.scenario.Scenario;
 import rinde.sim.scenario.TimedEvent;
+import rinde.sim.util.TimeWindow;
 
 /**
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>

@@ -16,6 +16,7 @@ import rinde.sim.core.model.pdp.PDPScenarioEvent;
 import rinde.sim.scenario.ScenarioBuilder;
 import rinde.sim.scenario.ScenarioBuilder.ScenarioCreator;
 import rinde.sim.scenario.TimedEvent;
+import rinde.sim.util.TimeWindow;
 
 /**
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
@@ -51,12 +52,16 @@ public class FabriRechtParser {
 			maxY = Math.max(y, maxY);
 
 			coordinates.add(new Point(x, y));
+			if (Integer.parseInt(parts[0]) == 0) {
+				sb.addEvent(new AddDepotEvent(0, new Point(x, y)));
+			}
 			coordinateCounter++;
 		}
 		coordinateFileReader.close();
 
 		final Point min = new Point(minX, minY);
 		final Point max = new Point(maxX, maxY);
+
 		//
 		// sb.addMultipleEvents(0, 10, PDPScenarioEvent.ADD_DEPOT);
 

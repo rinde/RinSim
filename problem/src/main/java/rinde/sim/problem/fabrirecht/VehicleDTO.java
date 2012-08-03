@@ -4,6 +4,7 @@
 package rinde.sim.problem.fabrirecht;
 
 import rinde.sim.core.graph.Point;
+import rinde.sim.util.TimeWindow;
 
 /**
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>

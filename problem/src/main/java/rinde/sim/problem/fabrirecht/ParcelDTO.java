@@ -1,6 +1,7 @@
 package rinde.sim.problem.fabrirecht;
 
 import rinde.sim.core.graph.Point;
+import rinde.sim.util.TimeWindow;
 
 public class ParcelDTO {
 	public final Point pickupLocation;
