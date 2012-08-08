@@ -3,7 +3,7 @@
  */
 package rinde.sim.examples.pdp;
 
-import java.util.Set;
+import java.util.Collection;
 
 import rinde.sim.core.TimeLapse;
 import rinde.sim.core.graph.Point;
@@ -38,7 +38,7 @@ public class ExampleTruck extends Vehicle {
 
 	@Override
 	protected void tickImpl(TimeLapse time) {
-		final Set<Parcel> parcels = pdpModel.getAvailableParcels();
+		final Collection<Parcel> parcels = pdpModel.getAvailableParcels();
 
 		if (pdpModel.getContents(this).isEmpty()) {
 			if (!parcels.isEmpty() && curr == null) {

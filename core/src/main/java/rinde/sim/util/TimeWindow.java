@@ -18,6 +18,10 @@ public class TimeWindow {
         return time >= begin && time < end;
     }
 
+    public boolean isAfterStart(long time) {
+        return time >= begin;
+    }
+
     @Override
     public String toString() {
 

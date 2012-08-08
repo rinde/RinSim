@@ -4,12 +4,14 @@
 package rinde.sim.core.model.pdp;
 
 import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.collect.Maps.filterEntries;
+import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Maps.newLinkedHashMap;
+import static com.google.common.collect.Sets.newHashSet;
 import static java.util.Collections.unmodifiableCollection;
 import static java.util.Collections.unmodifiableSet;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -17,12 +19,14 @@ import rinde.sim.core.TickListener;
 import rinde.sim.core.TimeLapse;
 import rinde.sim.core.graph.Point;
 import rinde.sim.core.model.Model;
+import rinde.sim.core.model.pdp.twpolicy.LiberalPolicy;
+import rinde.sim.core.model.pdp.twpolicy.TimeWindowPolicy;
 import rinde.sim.core.model.road.RoadModel;
 import rinde.sim.event.Event;
 import rinde.sim.event.EventAPI;
 import rinde.sim.event.EventDispatcher;
+import rinde.sim.util.CategoryMap;
 
-import com.google.common.base.Predicate;
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Multimap;
 
@@ -88,11 +92,14 @@ public class PDPModel implements Model<PDPObject>, TickListener {
     /**
      * Map that stores the state of {@link Parcel}s.
      */
-    protected final Map<Parcel, ParcelState> parcelState;
+    protected final CategoryMap<ParcelState, Parcel> parcelState;
     /**
      * Map that stores any pending {@link Action}s of {@link Vehicle}s.
      */
     protected final Map<Vehicle, Action> pendingVehicleActions;
+
+    protected final TimeWindowPolicy timeWindowPolicy;
+    protected long currentTime;
 
     /**
      * The possible states a {@link Parcel} can be in.
@@ -181,18 +188,23 @@ public class PDPModel implements Model<PDPObject>, TickListener {
         END_DELIVERY
     }
 
+    public PDPModel(RoadModel rm) {
+        this(rm, new LiberalPolicy());
+    }
+
     /**
      * Initializes the PDPModel.
      * @param rm The {@link RoadModel} which is associated to this model.
      */
-    public PDPModel(RoadModel rm) {
+    public PDPModel(RoadModel rm, TimeWindowPolicy twp) {
         roadModel = rm;
+        timeWindowPolicy = twp;
         containerContents = LinkedHashMultimap.create();
         containerContentsSize = newLinkedHashMap();
         containerCapacities = newLinkedHashMap();
         pendingVehicleActions = newLinkedHashMap();
         vehicleState = newLinkedHashMap();
-        parcelState = newLinkedHashMap();
+        parcelState = CategoryMap.create();
 
         eventDispatcher = new EventDispatcher(PDPModelEvent.values());
         eventAPI = eventDispatcher.getEventAPI();
@@ -256,7 +268,9 @@ public class PDPModel implements Model<PDPObject>, TickListener {
                 + parcel.getMagnitude();
         /* 6 */checkArgument(newSize <= containerCapacities.get(vehicle), "parcel does not fit in vehicle");
 
-        // FIXME check pickupTW
+        checkArgument(timeWindowPolicy.canPickup(parcel.getPickupTimeWindow(), time
+                .getTime(), parcel.getPickupDuration()), "parcel pickup is not allowed according to the time window policy: "
+                + timeWindowPolicy);
 
         checkArgument(parcel.canBePickedUp(vehicle, time.getTime()), "the parcel does not allow pickup now");
 
@@ -270,7 +284,7 @@ public class PDPModel implements Model<PDPObject>, TickListener {
         // time. We must continue in the next tick.
         if (time.getTimeLeft() < parcel.getPickupDuration()) {
             vehicleState.put(vehicle, VehicleState.PICKING_UP);
-            parcelState.put(parcel, ParcelState.PICKING_UP);
+            parcelState.put(ParcelState.PICKING_UP, parcel);
 
             pendingVehicleActions.put(vehicle, new PickupAction(this, vehicle,
                     parcel, parcel.getPickupDuration() - time.getTimeLeft()));
@@ -292,7 +306,7 @@ public class PDPModel implements Model<PDPObject>, TickListener {
         containerContentsSize.put(vehicle, containerContentsSize.get(vehicle)
                 + parcel.getMagnitude());
 
-        parcelState.put(parcel, ParcelState.IN_CARGO);
+        parcelState.put(ParcelState.IN_CARGO, parcel);
         eventDispatcher
                 .dispatchEvent(new Event(PDPModelEvent.END_PICKUP, this));
     }
@@ -332,7 +346,10 @@ public class PDPModel implements Model<PDPObject>, TickListener {
         /* 4 */checkArgument(parcel.getDestination()
                 .equals(roadModel.getPosition(vehicle)), "parcel must be delivered at its destination, vehicle should move there first");
 
-        // FIXME check deliverTW
+        checkArgument(timeWindowPolicy.canDeliver(parcel
+                .getDeliveryTimeWindow(), time.getTime(), parcel
+                .getDeliveryDuration()), "parcel delivery is not allowed according to the time window policy: "
+                + timeWindowPolicy);
 
         checkArgument(parcel.canBeDelivered(vehicle, time.getTime()), "the parcel does not allow a delivery now");
 
@@ -340,7 +357,7 @@ public class PDPModel implements Model<PDPObject>, TickListener {
                 this));
         if (time.getTimeLeft() < parcel.getDeliveryDuration()) {
             vehicleState.put(vehicle, VehicleState.DELIVERING);
-            parcelState.put(parcel, ParcelState.DELIVERING);
+            parcelState.put(ParcelState.DELIVERING, parcel);
             pendingVehicleActions.put(vehicle, new DeliverAction(this, vehicle,
                     parcel, parcel.getDeliveryDuration() - time.getTimeLeft()));
             time.consumeAll();
@@ -361,7 +378,7 @@ public class PDPModel implements Model<PDPObject>, TickListener {
         containerContentsSize.put(vehicle, containerContentsSize.get(vehicle)
                 - parcel.getMagnitude());
 
-        parcelState.put(parcel, ParcelState.DELIVERED);
+        parcelState.put(ParcelState.DELIVERED, parcel);
         eventDispatcher.dispatchEvent(new Event(PDPModelEvent.END_DELIVERY,
                 this));
     }
@@ -373,6 +390,7 @@ public class PDPModel implements Model<PDPObject>, TickListener {
      *            {@link Parcel} is added.
      * @param parcel The {@link Parcel} that is added.
      */
+    // TODO what is the use of this method?
     public void addParcelIn(Container container, Parcel parcel) {
         /* 1 */checkArgument(!roadModel.containsObject(parcel), "this parcel is already added to the roadmodel");
         /* 2 */checkArgument(parcelState.get(parcel) == ParcelState.AVAILABLE, "parcel must be registered and in AVAILABLE state");
@@ -391,28 +409,36 @@ public class PDPModel implements Model<PDPObject>, TickListener {
      *         <code>AVAILABLE</code> state. Note that parcels which are
      *         available are not neccesarily already at a position.
      */
-    public Set<Parcel> getAvailableParcels() {
-        return unmodifiableSet(filterEntries(parcelState, new Predicate<Map.Entry<Parcel, ParcelState>>() {
-            @Override
-            public boolean apply(Map.Entry<Parcel, ParcelState> input) {
-                return input.getValue() == ParcelState.AVAILABLE;
-            }
-        }).keySet());
+    // TODO convert to more generic version with state as argument
+    public Collection<Parcel> getAvailableParcels() {
+        return parcelState.get(ParcelState.AVAILABLE);
+    }
+
+    public Collection<Parcel> getParcels(ParcelState state) {
+        return parcelState.get(state);
+    }
+
+    public Collection<Parcel> getParcels(ParcelState... states) {
+        final Collection<Parcel> parcels = newHashSet();
+        for (final ParcelState s : states) {
+            parcels.addAll(parcelState.get(s));
+        }
+        return unmodifiableCollection(parcels);
     }
 
     @SuppressWarnings("unchecked")
-    public <T extends Parcel> Set<T> getParcelsWithStateAndType(
-            final ParcelState state, final Class<T> clazz) {
-
-        return unmodifiableSet((Set<T>) filterEntries(parcelState, new Predicate<Map.Entry<Parcel, ParcelState>>() {
-            @Override
-            public boolean apply(Map.Entry<Parcel, ParcelState> input) {
-                return input.getValue() == state
-                        && clazz.isInstance(input.getKey());
-            }
-        }).keySet());
-    }
-
+    // public <T extends Parcel> Set<T> getParcelsWithStateAndType(
+    // final ParcelState state, final Class<T> clazz) {
+    //
+    // return unmodifiableSet((Set<T>) filterEntries(parcelState, new
+    // Predicate<Map.Entry<Parcel, ParcelState>>() {
+    // @Override
+    // public boolean apply(Map.Entry<Parcel, ParcelState> input) {
+    // return input.getValue() == state
+    // && clazz.isInstance(input.getKey());
+    // }
+    // }).keySet());
+    // }
     public Set<Vehicle> getVehicles() {
         return unmodifiableSet(vehicleState.keySet());
     }
@@ -440,8 +466,11 @@ public class PDPModel implements Model<PDPObject>, TickListener {
     @Override
     public boolean register(PDPObject element) {
         if (element.getType() == PDPType.PARCEL) {
-            checkArgument(!parcelState.containsKey(element));
-            parcelState.put((Parcel) element, ParcelState.AVAILABLE);
+            checkArgument(!parcelState.containsValue(element));
+            final Parcel p = (Parcel) element;
+            parcelState
+                    .put(currentTime < p.getPickupTimeWindow().begin ? ParcelState.ANNOUNCED
+                            : ParcelState.AVAILABLE, (Parcel) element);
         } else { /*
                   * if (element.getType() == PDPType.VEHICLE ||
                   * element.getType() == PDPType.DEPOT)
@@ -511,17 +540,26 @@ public class PDPModel implements Model<PDPObject>, TickListener {
 
     @Override
     public void tick(TimeLapse timeLapse) {
-        // TODO update state of parcels
-
-        // TODO should parcel/state be in a table? this would make lookup times
-        // faster for both key and value
-
-        // parcelState
-
+        currentTime = timeLapse.getStartTime();
+        final Collection<Parcel> parcels = parcelState
+                .get(ParcelState.ANNOUNCED);
+        final List<Parcel> newAvailables = newArrayList();
+        for (final Parcel p : parcels) {
+            if (timeLapse.getStartTime() >= p.getPickupTimeWindow().begin) {
+                newAvailables.add(p);
+            }
+        }
+        for (final Parcel p : newAvailables) {
+            parcelState.put(ParcelState.AVAILABLE, p);
+        }
     }
 
     @Override
     public void afterTick(TimeLapse timeLapse) {}
+
+    public TimeWindowPolicy getTimeWindowPolicy() {
+        return timeWindowPolicy;
+    }
 
     /**
      * Represents an action that takes time. This is used for actions that can

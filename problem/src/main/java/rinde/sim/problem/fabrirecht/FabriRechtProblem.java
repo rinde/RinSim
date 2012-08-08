@@ -13,6 +13,7 @@ import rinde.sim.core.Simulator;
 import rinde.sim.core.model.pdp.PDPModel;
 import rinde.sim.core.model.pdp.PDPModel.PDPModelEvent;
 import rinde.sim.core.model.pdp.PDPScenarioEvent;
+import rinde.sim.core.model.pdp.twpolicy.TardyAllowedPolicy;
 import rinde.sim.core.model.road.AbstractRoadModel.RoadEvent;
 import rinde.sim.core.model.road.MoveEvent;
 import rinde.sim.core.model.road.MovingRoadUser;
@@ -39,7 +40,6 @@ public abstract class FabriRechtProblem extends ScenarioController {
 	 */
 	public FabriRechtProblem(FabriRechtScenario scen) {
 		super(scen, (int) (scen.timeWindow.end - scen.timeWindow.begin));
-		System.out.println("events: " + scen.asList());
 		fabriRechtScenario = scen;
 		statisticsListener = new StatisticsListener();
 		parcelCount = 0;
@@ -50,7 +50,7 @@ public abstract class FabriRechtProblem extends ScenarioController {
 	protected Simulator createSimulator() throws Exception {
 		final Simulator sim = new Simulator(new MersenneTwister(123), 1);
 		final RoadModel rm = new PlaneRoadModel(fabriRechtScenario.min, fabriRechtScenario.max, false, 1.0);
-		final PDPModel pm = new PDPModel(rm);
+		final PDPModel pm = new PDPModel(rm, new TardyAllowedPolicy());
 		rm.getEventAPI().addListener(statisticsListener, RoadEvent.MOVE);
 		pm.getEventAPI().addListener(statisticsListener, PDPModelEvent.END_DELIVERY, PDPModelEvent.END_PICKUP);
 		sim.register(rm);

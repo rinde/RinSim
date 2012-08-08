@@ -6,7 +6,9 @@ package rinde.sim.problem.fabrirecht.example;
 import java.io.IOException;
 
 import rinde.sim.core.TimeLapse;
+import rinde.sim.core.model.pdp.PDPModel.ParcelState;
 import rinde.sim.core.model.road.RoadModels;
+import rinde.sim.core.model.road.RoadUser;
 import rinde.sim.problem.fabrirecht.AddVehicleEvent;
 import rinde.sim.problem.fabrirecht.FRDepot;
 import rinde.sim.problem.fabrirecht.FRParcel;
@@ -20,6 +22,8 @@ import rinde.sim.ui.renderers.PDPModelRenderer;
 import rinde.sim.ui.renderers.PlaneRoadModelRenderer;
 import rinde.sim.ui.renderers.RoadUserRenderer;
 import rinde.sim.ui.renderers.UiSchema;
+
+import com.google.common.base.Predicate;
 
 /**
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
@@ -84,11 +88,25 @@ class Truck extends FRVehicle {
 
 	@Override
 	protected void tickImpl(TimeLapse time) {
-		final FRParcel closest = RoadModels.findClosestObject(roadModel.getPosition(this), roadModel, FRParcel.class);
+		// final FRParcel closest =
+		// RoadModels.findClosestObject(roadModel.getPosition(this), roadModel,
+		// FRParcel.class);
+
+		final FRParcel closest = (FRParcel) RoadModels
+				.findClosestObject(roadModel.getPosition(this), roadModel, new Predicate<RoadUser>() {
+					@Override
+					public boolean apply(RoadUser input) {
+						return input instanceof FRParcel
+								&& pdpModel.getParcelState(((FRParcel) input)) == ParcelState.AVAILABLE;
+					}
+				});
 
 		if (closest != null) {
 			roadModel.moveTo(this, closest, time);
-			if (roadModel.equalPosition(closest, this) && closest.canBePickedUp(this, time.getTime())) {
+			if (roadModel.equalPosition(closest, this)
+					&& pdpModel.getTimeWindowPolicy()
+							.canPickup(closest.getPickupTimeWindow(), time.getTime(), closest.getPickupDuration())) {
+				System.out.println("PICKUP: " + closest);
 				pdpModel.pickup(this, closest, time);
 			}
 		}

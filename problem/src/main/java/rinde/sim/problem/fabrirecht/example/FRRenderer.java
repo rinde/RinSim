@@ -3,7 +3,7 @@
  */
 package rinde.sim.problem.fabrirecht.example;
 
-import java.util.Set;
+import java.util.Collection;
 
 import org.eclipse.swt.graphics.GC;
 
@@ -30,7 +30,7 @@ public class FRRenderer implements ModelRenderer<PDPModel> {
 
 	@Override
 	public void renderDynamic(GC gc, ViewPort vp) {
-		final Set<Parcel> parcels = pdpModel.getAvailableParcels();
+		final Collection<Parcel> parcels = pdpModel.getAvailableParcels();
 		synchronized (parcels) {
 			for (final Parcel parcel : parcels) {
 				final FRParcel p = ((FRParcel) parcel);
