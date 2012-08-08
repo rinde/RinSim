@@ -16,7 +16,7 @@ import org.junit.Test;
 import rinde.sim.core.TimeLapse;
 import rinde.sim.core.TimeLapseFactory;
 import rinde.sim.core.graph.Point;
-import rinde.sim.core.model.pdp.PDPModel.PDPModelEvent;
+import rinde.sim.core.model.pdp.PDPModel.PDPModelEventType;
 import rinde.sim.core.model.pdp.PDPModel.ParcelState;
 import rinde.sim.core.model.pdp.PDPModel.PickupAction;
 import rinde.sim.core.model.pdp.PDPModel.VehicleState;
@@ -51,8 +51,8 @@ public class PDPModelTest {
         ParcelState.valueOf("AVAILABLE");
         VehicleState.values();
         VehicleState.valueOf("IDLE");
-        PDPModelEvent.values();
-        PDPModelEvent.valueOf("START_PICKUP");
+        PDPModelEventType.values();
+        PDPModelEventType.valueOf("START_PICKUP");
 
         assertTrue(model.getSupportedType().equals(PDPObject.class));
     }

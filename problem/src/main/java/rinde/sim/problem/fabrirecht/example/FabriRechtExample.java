@@ -58,11 +58,7 @@ class ProblemInstance extends FabriRechtProblem {
 
 	@Override
 	protected boolean handleTimeOut() {
-
-		System.out.println("total traveled distance: " + statisticsListener.getTotalTraveledDistance());
-		System.out.println(statisticsListener.getTotalPickups() + " / " + parcelCount);
-		System.out.println(statisticsListener.getTotalDeliveries() + " / " + parcelCount);
-
+		System.out.println(statisticsListener.report());
 		return true;
 	}
 
@@ -106,7 +102,6 @@ class Truck extends FRVehicle {
 			if (roadModel.equalPosition(closest, this)
 					&& pdpModel.getTimeWindowPolicy()
 							.canPickup(closest.getPickupTimeWindow(), time.getTime(), closest.getPickupDuration())) {
-				System.out.println("PICKUP: " + closest);
 				pdpModel.pickup(this, closest, time);
 			}
 		}

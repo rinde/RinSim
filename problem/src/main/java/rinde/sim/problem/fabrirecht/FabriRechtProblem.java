@@ -12,6 +12,7 @@ import org.apache.commons.math3.random.MersenneTwister;
 import rinde.sim.core.Simulator;
 import rinde.sim.core.model.pdp.PDPModel;
 import rinde.sim.core.model.pdp.PDPModel.PDPModelEvent;
+import rinde.sim.core.model.pdp.PDPModel.PDPModelEventType;
 import rinde.sim.core.model.pdp.PDPScenarioEvent;
 import rinde.sim.core.model.pdp.twpolicy.TardyAllowedPolicy;
 import rinde.sim.core.model.road.AbstractRoadModel.RoadEvent;
@@ -32,7 +33,6 @@ public abstract class FabriRechtProblem extends ScenarioController {
 
 	protected final FabriRechtScenario fabriRechtScenario;
 	protected final StatisticsListener statisticsListener;
-	protected int parcelCount;
 
 	/**
 	 * @param scen
@@ -42,7 +42,6 @@ public abstract class FabriRechtProblem extends ScenarioController {
 		super(scen, (int) (scen.timeWindow.end - scen.timeWindow.begin));
 		fabriRechtScenario = scen;
 		statisticsListener = new StatisticsListener();
-		parcelCount = 0;
 	}
 
 	// subclasses can override this method to add more models
@@ -52,7 +51,8 @@ public abstract class FabriRechtProblem extends ScenarioController {
 		final RoadModel rm = new PlaneRoadModel(fabriRechtScenario.min, fabriRechtScenario.max, false, 1.0);
 		final PDPModel pm = new PDPModel(rm, new TardyAllowedPolicy());
 		rm.getEventAPI().addListener(statisticsListener, RoadEvent.MOVE);
-		pm.getEventAPI().addListener(statisticsListener, PDPModelEvent.END_DELIVERY, PDPModelEvent.END_PICKUP);
+		pm.getEventAPI()
+				.addListener(statisticsListener, PDPModelEventType.START_PICKUP, PDPModelEventType.END_PICKUP, PDPModelEventType.START_DELIVERY, PDPModelEventType.END_DELIVERY);
 		sim.register(rm);
 		sim.register(pm);
 		return sim;
@@ -61,7 +61,7 @@ public abstract class FabriRechtProblem extends ScenarioController {
 	@Override
 	protected final boolean handleTimedEvent(TimedEvent event) {
 		if (event.getEventType() == PDPScenarioEvent.ADD_PARCEL) {
-			parcelCount++;
+			statisticsListener.parcelCount++;
 			return handleAddParcel(((AddParcelEvent) event));
 		} else if (event.getEventType() == PDPScenarioEvent.ADD_VEHICLE) {
 			return handleAddVehicle((AddVehicleEvent) event);
@@ -92,12 +92,16 @@ public abstract class FabriRechtProblem extends ScenarioController {
 		protected double totalDistance;
 		protected int totalPickups;
 		protected int totalDeliveries;
+		protected long pickupTardiness;
+		protected long deliveryTardiness;
+		protected int parcelCount;
 
 		public StatisticsListener() {
 			distanceMap = newLinkedHashMap();
 			totalDistance = 0d;
 			totalPickups = 0;
 			totalDeliveries = 0;
+			parcelCount = 0;
 		}
 
 		@Override
@@ -106,9 +110,23 @@ public abstract class FabriRechtProblem extends ScenarioController {
 				final MoveEvent me = ((MoveEvent) e);
 				increment(me.roadUser, me.pathProgress.distance);
 				totalDistance += me.pathProgress.distance;
-			} else if (e.getEventType() == PDPModelEvent.END_PICKUP) {
+			} else if (e.getEventType() == PDPModelEventType.START_PICKUP) {
+				final PDPModelEvent pme = (PDPModelEvent) e;
+				final long latestBeginTime = pme.parcel.getPickupTimeWindow().begin - pme.parcel.getPickupDuration();
+				if (pme.time > latestBeginTime) {
+					pickupTardiness += pme.time - latestBeginTime;
+				}
+
+			} else if (e.getEventType() == PDPModelEventType.END_PICKUP) {
 				totalPickups++;
-			} else if (e.getEventType() == PDPModelEvent.END_DELIVERY) {
+			} else if (e.getEventType() == PDPModelEventType.START_DELIVERY) {
+				final PDPModelEvent pme = (PDPModelEvent) e;
+				final long latestBeginTime = pme.parcel.getDeliveryTimeWindow().begin
+						- pme.parcel.getDeliveryDuration();
+				if (pme.time > latestBeginTime) {
+					deliveryTardiness += pme.time - latestBeginTime;
+				}
+			} else if (e.getEventType() == PDPModelEventType.END_DELIVERY) {
 				totalDeliveries++;
 			}
 		}
@@ -131,6 +149,31 @@ public abstract class FabriRechtProblem extends ScenarioController {
 
 		public int getTotalDeliveries() {
 			return totalDeliveries;
+		}
+
+		public String report() {
+			final StringBuilder sb = new StringBuilder();
+			sb.append("\t\t\t = Statistics = \n total traveled distance:\t");
+			sb.append(totalDistance);
+			sb.append("\n pickups:\t\t\t");
+			sb.append(totalPickups);
+			sb.append(" / ");
+			sb.append(parcelCount);
+			sb.append("\t");
+			sb.append(Math.round((totalPickups / parcelCount) * 100d));
+			sb.append("%");
+			sb.append("\n deliveries:\t\t\t");
+			sb.append(totalDeliveries);
+			sb.append(" / ");
+			sb.append(parcelCount);
+			sb.append("\t");
+			sb.append(Math.round((totalDeliveries / parcelCount) * 100d));
+			sb.append("%");
+			sb.append("\n pickup tardiness:\t\t");
+			sb.append(pickupTardiness);
+			sb.append("\n delivery tardiness:\t\t");
+			sb.append(deliveryTardiness);
+			return sb.toString();
 		}
 	}
 
