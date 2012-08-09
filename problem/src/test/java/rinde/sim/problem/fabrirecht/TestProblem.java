@@ -3,6 +3,8 @@
  */
 package rinde.sim.problem.fabrirecht;
 
+import static org.junit.Assert.assertEquals;
+
 import java.io.IOException;
 
 import org.junit.Test;
@@ -22,6 +24,16 @@ public class TestProblem {
 				.parse("data/test/fabri-recht/lc101_coord.csv", "data/test/fabri-recht/lc101.csv");
 
 		final ProblemInstance prob = new ProblemInstance(scen);
+
+		final String json = FabriRechtParser.toJson(scen);
+		final FabriRechtScenario scen2 = FabriRechtParser.fromJson(json);
+		assertEquals(scen, scen2);
+		assertEquals(scen.getPossibleEventTypes(), scen2.getPossibleEventTypes());
+		final String json2 = FabriRechtParser.toJson(scen2);
+		assertEquals(json, json2);
+		final FabriRechtScenario scen3 = FabriRechtParser.fromJson(json2);
+		assertEquals(scen2, scen3);
+		assertEquals(scen2.getPossibleEventTypes(), scen3.getPossibleEventTypes());
 
 	}
 

@@ -6,6 +6,7 @@ package rinde.sim.scenario;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.collect.Lists.newLinkedList;
 import static com.google.common.collect.Sets.newHashSet;
+import static com.google.common.collect.Sets.newLinkedHashSet;
 import static java.lang.Math.max;
 import static java.util.Collections.unmodifiableCollection;
 import static java.util.Collections.unmodifiableSet;
@@ -29,7 +30,7 @@ import java.util.Set;
 public class Scenario implements Serializable {
     private static final long serialVersionUID = 1839693038677831786L;
 
-    private final PriorityQueue<TimedEvent> events;
+    private final Collection<TimedEvent> events;
     private final Set<Enum<?>> supportedTypes;
 
     /**
@@ -43,10 +44,17 @@ public class Scenario implements Serializable {
             Set<Enum<?>> pSupportedTypes) {
         checkArgument(!pEvents.isEmpty(), "events can not be null or empty");
         checkArgument(!pSupportedTypes.isEmpty(), "supported types must be a non-empty set");
-        supportedTypes = pSupportedTypes;
-        events = new PriorityQueue<TimedEvent>(max(pEvents.size(), 1),
-                new TimeComparator());
-        events.addAll(pEvents);
+        supportedTypes = newLinkedHashSet(pSupportedTypes);
+
+        final PriorityQueue<TimedEvent> tmp = new PriorityQueue<TimedEvent>(
+                max(pEvents.size(), 1), new TimeComparator());
+        tmp.addAll(pEvents);
+
+        events = unmodifiableCollection(tmp);
+
+        // events = new PriorityQueue<TimedEvent>(max(pEvents.size(), 1),
+        // new TimeComparator());
+        // events.addAll(pEvents);
     }
 
     /**
@@ -72,12 +80,15 @@ public class Scenario implements Serializable {
     public List<TimedEvent> asList() {
         // copy first to avoid concurrent modifications
         final List<TimedEvent> result = new ArrayList<TimedEvent>();
-        final PriorityQueue<TimedEvent> copy = new PriorityQueue<TimedEvent>(
-                events);
-        TimedEvent e = null;
-        while ((e = copy.poll()) != null) {
-            result.add(e);
-        }
+        // final PriorityQueue<TimedEvent> copy = new PriorityQueue<TimedEvent>(
+        // events);
+
+        result.addAll(events);
+
+        // TimedEvent e = null;
+        // while ((e = copy.poll()) != null) {
+        // result.add(e);
+        // }
         return result;
     }
 

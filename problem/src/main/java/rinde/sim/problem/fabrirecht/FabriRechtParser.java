@@ -4,10 +4,12 @@
 package rinde.sim.problem.fabrirecht;
 
 import static com.google.common.collect.Lists.newArrayList;
+import static com.google.common.collect.Sets.newLinkedHashSet;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
+import java.lang.reflect.Type;
 import java.util.List;
 import java.util.Set;
 
@@ -18,15 +20,30 @@ import rinde.sim.scenario.ScenarioBuilder.ScenarioCreator;
 import rinde.sim.scenario.TimedEvent;
 import rinde.sim.util.TimeWindow;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonDeserializationContext;
+import com.google.gson.JsonDeserializer;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonParseException;
+import com.google.gson.TypeAdapter;
+import com.google.gson.reflect.TypeToken;
+import com.google.gson.stream.JsonReader;
+import com.google.gson.stream.JsonToken;
+import com.google.gson.stream.JsonWriter;
+
 /**
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
  * 
  */
 public class FabriRechtParser {
 
+	private final static Gson gson = initialize();
+
 	public static FabriRechtScenario parse(String coordinateFile, String ordersFile) throws IOException {
 		final ScenarioBuilder sb = new ScenarioBuilder(PDPScenarioEvent.ADD_DEPOT, PDPScenarioEvent.ADD_PARCEL,
-				PDPScenarioEvent.ADD_VEHICLE, PDPScenarioEvent.REMOVE_DEPOT, PDPScenarioEvent.TIME_OUT);
+				PDPScenarioEvent.ADD_VEHICLE, PDPScenarioEvent.TIME_OUT);
 
 		final BufferedReader coordinateFileReader = new BufferedReader(new FileReader(coordinateFile));
 		final BufferedReader ordersFileReader = new BufferedReader(new FileReader(ordersFile));
@@ -101,5 +118,87 @@ public class FabriRechtParser {
 				return new FabriRechtScenario(eventList, eventTypes, min, max, timeWindow);
 			}
 		});
+	}
+
+	public static String toJson(FabriRechtScenario scenario) {
+		return gson.toJson(scenario);
+	}
+
+	public static FabriRechtScenario fromJson(String json) {
+		return gson.fromJson(json, FabriRechtScenario.class);
+	}
+
+	static class EnumDeserializer implements JsonDeserializer<Set<Enum<?>>> {
+		@Override
+		public Set<Enum<?>> deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context)
+				throws JsonParseException {
+			final JsonArray arr = json.getAsJsonArray();
+			final Set<Enum<?>> eventTypes = newLinkedHashSet();
+			for (int i = 0; i < arr.size(); i++) {
+				eventTypes.add(PDPScenarioEvent.valueOf(arr.get(i).getAsJsonObject().get("name").getAsString()));
+			}
+			return eventTypes;
+		}
+	}
+
+	static class PointAdapter extends TypeAdapter<Point> {
+		@Override
+		public Point read(JsonReader reader) throws IOException {
+			if (reader.peek() == JsonToken.NULL) {
+				reader.nextNull();
+				return null;
+			}
+			final String xy = reader.nextString();
+			final String[] parts = xy.split(",");
+			final double x = Double.parseDouble(parts[0]);
+			final double y = Double.parseDouble(parts[1]);
+			return new Point(x, y);
+		}
+
+		@Override
+		public void write(JsonWriter writer, Point value) throws IOException {
+			if (value == null) {
+				writer.nullValue();
+				return;
+			}
+			final String xy = value.x + "," + value.y;
+			writer.value(xy);
+		}
+	}
+
+	static class TimedEventDeserializer implements JsonDeserializer<TimedEvent> {
+		@Override
+		public TimedEvent deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context)
+				throws JsonParseException {
+
+			final long time = json.getAsJsonObject().get("time").getAsLong();
+			final PDPScenarioEvent type = PDPScenarioEvent.valueOf(json.getAsJsonObject().get("eventType")
+					.getAsJsonObject().get("name").getAsString());
+
+			switch (type) {
+			case ADD_DEPOT:
+				return new AddDepotEvent(time,
+						(Point) context.deserialize(json.getAsJsonObject().get("position"), Point.class));
+			case ADD_VEHICLE:
+				return new AddVehicleEvent(time, (VehicleDTO) context.deserialize(json.getAsJsonObject()
+						.get("vehicleDTO"), VehicleDTO.class));
+			case ADD_PARCEL:
+				return new AddParcelEvent(
+						(ParcelDTO) context.deserialize(json.getAsJsonObject().get("parcelDTO"), ParcelDTO.class));
+			case TIME_OUT:
+				return new TimedEvent(type, time);
+			}
+			throw new IllegalStateException();
+		}
+	}
+
+	private final static Gson initialize() {
+		final Type collectionType = new TypeToken<Set<Enum<?>>>() {}.getType();
+
+		final GsonBuilder builder = new GsonBuilder();
+		builder.setPrettyPrinting().registerTypeAdapter(Point.class, new PointAdapter())
+				.registerTypeHierarchyAdapter(TimedEvent.class, new TimedEventDeserializer())
+				.registerTypeAdapter(collectionType, new EnumDeserializer());
+		return builder.create();
 	}
 }
