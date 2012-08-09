@@ -4,6 +4,7 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.collect.Sets.newHashSet;
 import static java.util.Arrays.asList;
 
+import java.util.Queue;
 import java.util.Set;
 
 import org.slf4j.Logger;
@@ -59,6 +60,7 @@ public abstract class ScenarioController implements TickListener, Listener {
      * The scenario that is played.
      */
     protected final Scenario scenario;
+    protected final Queue<TimedEvent> scenarioQueue;
 
     Simulator simulator;
 
@@ -84,6 +86,7 @@ public abstract class ScenarioController implements TickListener, Listener {
         checkArgument(scen != null, "scenario can not be null");
         ticks = numberOfTicks;
         scenario = new Scenario(scen);
+        scenarioQueue = scenario.asQueue();
 
         final Set<Enum<?>> typeSet = newHashSet(scenario
                 .getPossibleEventTypes());
@@ -180,7 +183,7 @@ public abstract class ScenarioController implements TickListener, Listener {
      *         dispatched, <code>false</code> otherwise.
      */
     public boolean isScenarioFinished() {
-        return scenario.peek() == null;
+        return scenarioQueue.isEmpty();
     }
 
     @Override
@@ -197,8 +200,10 @@ public abstract class ScenarioController implements TickListener, Listener {
             ticks--;
         }
         TimedEvent e = null;
-        while ((e = scenario.peek()) != null && e.time <= timeLapse.getTime()) {
-            scenario.poll();
+
+        while ((e = scenarioQueue.peek()) != null
+                && e.time <= timeLapse.getTime()) {
+            scenarioQueue.poll();
             if (status == null) {
                 LOGGER.info("scenario started at virtual time:"
                         + timeLapse.getTime());

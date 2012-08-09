@@ -13,7 +13,6 @@ import static rinde.sim.scenario.ScenarioTest.TestEvents.EVENT_B;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -103,33 +102,21 @@ public class ScenarioTest {
     @SuppressWarnings("unused")
     @Test(expected = IllegalArgumentException.class)
     public void constructorFail1() {
-        new Scenario(null, null);
+        final List<TimedEvent> events = newArrayList();
+        new Scenario(events, new HashSet<Enum<?>>());
     }
 
     @SuppressWarnings("unused")
     @Test(expected = IllegalArgumentException.class)
     public void constructorFail2() {
-        final List<TimedEvent> events = newArrayList();
-        new Scenario(events, null);
-    }
-
-    @SuppressWarnings("unused")
-    @Test(expected = IllegalArgumentException.class)
-    public void constructorFail3() {
-        new Scenario(asList(new TimedEvent(EVENT_A, 1L)), null);
-    }
-
-    @SuppressWarnings("unused")
-    @Test(expected = IllegalArgumentException.class)
-    public void constructorFail4() {
         new Scenario(asList(new TimedEvent(EVENT_A, 1L)),
                 new HashSet<Enum<?>>());
     }
 
     @SuppressWarnings("unused")
     @Test(expected = IllegalArgumentException.class)
-    public void constructorFail5() {
-        new Scenario((Collection<TimedEvent>) null);
+    public void constructorFail3() {
+        new Scenario(new ArrayList<TimedEvent>());
     }
 
     @Test
@@ -147,18 +134,18 @@ public class ScenarioTest {
         assertEquals(3, s.asList().size());
         assertEquals(3, s2.asList().size());
 
-        assertEquals(s.peek(), s2.peek());
-        final TimedEvent sP0 = s.poll();
-
-        assertEquals(2, s.asList().size());
-        assertEquals(3, s2.asList().size());
-
-        final TimedEvent s2P0 = s2.poll();
-
-        assertEquals(2, s.asList().size());
-        assertEquals(2, s2.asList().size());
-
-        assertEquals(sP0, s2P0);
+        // assertEquals(s.peek(), s2.peek());
+        // final TimedEvent sP0 = s.poll();
+        //
+        // assertEquals(2, s.asList().size());
+        // assertEquals(3, s2.asList().size());
+        //
+        // final TimedEvent s2P0 = s2.poll();
+        //
+        // assertEquals(2, s.asList().size());
+        // assertEquals(2, s2.asList().size());
+        //
+        // assertEquals(sP0, s2P0);
 
     }
 

@@ -4,8 +4,10 @@
 package rinde.sim.scenario;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.collect.Lists.newLinkedList;
 import static com.google.common.collect.Sets.newHashSet;
 import static java.lang.Math.max;
+import static java.util.Collections.unmodifiableCollection;
 import static java.util.Collections.unmodifiableSet;
 
 import java.io.Serializable;
@@ -14,11 +16,12 @@ import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 import java.util.PriorityQueue;
+import java.util.Queue;
 import java.util.Set;
 
 /**
- * Scenario is a list of events sorted by the time stamp. For help with creating
- * scenarios {@link ScenarioBuilder} is provided.
+ * Scenario is an unmodifiable list of events sorted by the time stamp. For help
+ * with creating scenarios {@link ScenarioBuilder} is provided.
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
  * @author Bartosz Michalik <bartosz.michalik@cs.kuleuven.be>
  * 
@@ -38,11 +41,8 @@ public class Scenario implements Serializable {
      */
     public Scenario(Collection<? extends TimedEvent> pEvents,
             Set<Enum<?>> pSupportedTypes) {
-        if (pEvents == null || pEvents.isEmpty()) {
-            throw new IllegalArgumentException(
-                    "events can not be null or empty");
-        }
-        checkArgument(pSupportedTypes != null && !pSupportedTypes.isEmpty(), "supported types must be a non-empty set");
+        checkArgument(!pEvents.isEmpty(), "events can not be null or empty");
+        checkArgument(!pSupportedTypes.isEmpty(), "supported types must be a non-empty set");
         supportedTypes = pSupportedTypes;
         events = new PriorityQueue<TimedEvent>(max(pEvents.size(), 1),
                 new TimeComparator());
@@ -54,7 +54,7 @@ public class Scenario implements Serializable {
      * @param pEvents The events of the scenario.
      */
     public Scenario(Collection<? extends TimedEvent> pEvents) {
-        this(pEvents, collectEventTypes(pEvents));
+        this(unmodifiableCollection(pEvents), collectEventTypes(pEvents));
     }
 
     /**
@@ -81,21 +81,27 @@ public class Scenario implements Serializable {
         return result;
     }
 
+    public Queue<TimedEvent> asQueue() {
+        final Queue<TimedEvent> queue = newLinkedList();
+        queue.addAll(events);
+        return queue;
+    }
+
     /**
      * Get the access to the first event in the scenario (without removing it).
      * @return element or <code>null</code> when scenario has no more events.
      */
-    public TimedEvent peek() {
-        return events.peek();
-    }
+    // public TimedEvent peek() {
+    // return events.peek();
+    // }
 
     /**
      * Retrieve an element from the scenario (removing it from list).
      * @return element or <code>null</code> when scenario has no more events
      */
-    public TimedEvent poll() {
-        return events.poll();
-    }
+    // public TimedEvent poll() {
+    // return events.poll();
+    // }
 
     /**
      * @return The number of events that is in this scenario.
