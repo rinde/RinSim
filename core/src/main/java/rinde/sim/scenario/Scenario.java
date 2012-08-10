@@ -4,19 +4,16 @@
 package rinde.sim.scenario;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Lists.newLinkedList;
 import static com.google.common.collect.Sets.newHashSet;
 import static com.google.common.collect.Sets.newLinkedHashSet;
-import static java.lang.Math.max;
-import static java.util.Collections.unmodifiableCollection;
+import static java.util.Collections.unmodifiableList;
 import static java.util.Collections.unmodifiableSet;
 
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Comparator;
 import java.util.List;
-import java.util.PriorityQueue;
 import java.util.Queue;
 import java.util.Set;
 
@@ -30,13 +27,16 @@ import java.util.Set;
 public class Scenario implements Serializable {
     private static final long serialVersionUID = 1839693038677831786L;
 
-    private final Collection<TimedEvent> events;
+    private final List<TimedEvent> events;
     private final Set<Enum<?>> supportedTypes;
 
     /**
      * Create a new scenario which supports the specified event types with the
      * specified events. Note that it is not checked whether the supported types
      * match the events.
+     * 
+     * ORDERING IS NOT CHECKED!
+     * 
      * @param pSupportedTypes The types of event this scenario supports.
      * @param pEvents The actual events.
      */
@@ -46,11 +46,14 @@ public class Scenario implements Serializable {
         checkArgument(!pSupportedTypes.isEmpty(), "supported types must be a non-empty set");
         supportedTypes = newLinkedHashSet(pSupportedTypes);
 
-        final PriorityQueue<TimedEvent> tmp = new PriorityQueue<TimedEvent>(
-                max(pEvents.size(), 1), new TimeComparator());
-        tmp.addAll(pEvents);
+        // final PriorityQueue<TimedEvent> tmp = new PriorityQueue<TimedEvent>(
+        // pEvents.size(), new TimeComparator());
+        // tmp.addAll(pEvents);
+        // System.out.println(tmp);
 
-        events = unmodifiableCollection(tmp);
+        // final List<TimedEvent> tmp = ;
+
+        events = unmodifiableList(newArrayList(pEvents));
 
         // events = new PriorityQueue<TimedEvent>(max(pEvents.size(), 1),
         // new TimeComparator());
@@ -62,7 +65,7 @@ public class Scenario implements Serializable {
      * @param pEvents The events of the scenario.
      */
     public Scenario(Collection<? extends TimedEvent> pEvents) {
-        this(unmodifiableCollection(pEvents), collectEventTypes(pEvents));
+        this(pEvents, collectEventTypes(pEvents));
     }
 
     /**
@@ -78,24 +81,11 @@ public class Scenario implements Serializable {
      * @return the list of events.
      */
     public List<TimedEvent> asList() {
-        // copy first to avoid concurrent modifications
-        final List<TimedEvent> result = new ArrayList<TimedEvent>();
-        // final PriorityQueue<TimedEvent> copy = new PriorityQueue<TimedEvent>(
-        // events);
-
-        result.addAll(events);
-
-        // TimedEvent e = null;
-        // while ((e = copy.poll()) != null) {
-        // result.add(e);
-        // }
-        return result;
+        return newArrayList(events);
     }
 
     public Queue<TimedEvent> asQueue() {
-        final Queue<TimedEvent> queue = newLinkedList();
-        queue.addAll(events);
-        return queue;
+        return newLinkedList(events);
     }
 
     /**
@@ -138,18 +128,6 @@ public class Scenario implements Serializable {
      */
     public Set<Enum<?>> getPossibleEventTypes() {
         return unmodifiableSet(supportedTypes);
-    }
-
-    private static class TimeComparator implements Comparator<TimedEvent>,
-            Serializable {
-        private static final long serialVersionUID = -2711991793346719648L;
-
-        public TimeComparator() {}
-
-        @Override
-        public int compare(TimedEvent o1, TimedEvent o2) {
-            return (int) (o1.time - o2.time);
-        }
     }
 
     protected static Set<Enum<?>> collectEventTypes(

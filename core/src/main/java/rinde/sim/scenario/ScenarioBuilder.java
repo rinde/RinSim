@@ -5,7 +5,10 @@ import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Lists.newLinkedList;
 import static com.google.common.collect.Sets.newHashSet;
 
+import java.io.Serializable;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
@@ -44,9 +47,11 @@ public class ScenarioBuilder {
      * Add an {@link EventGenerator} to this ScenarioBuilder.
      * @param generator The generator to add.
      */
-    public void addEventGenerator(EventGenerator<? extends TimedEvent> generator) {
+    public ScenarioBuilder addEventGenerator(
+            EventGenerator<? extends TimedEvent> generator) {
         checkArgument(generator != null, "generator can not be null");
         generators.add(generator);
+        return this;
     }
 
     /**
@@ -60,6 +65,20 @@ public class ScenarioBuilder {
         return this;
     }
 
+    public ScenarioBuilder addEvents(TimedEvent... event) {
+        for (final TimedEvent te : events) {
+            addEvent(te);
+        }
+        return this;
+    }
+
+    public ScenarioBuilder addEvents(Collection<TimedEvent> events) {
+        for (final TimedEvent te : events) {
+            addEvent(te);
+        }
+        return this;
+    }
+
     /**
      * Adds multiple events.
      * @param time The time at which the {@link TimedEvent} will be added.
@@ -67,10 +86,11 @@ public class ScenarioBuilder {
      * @param eventCreator The {@link EventCreator} that instantiates the
      *            events.
      */
-    public <T extends TimedEvent> void addMultipleEvents(long time, int amount,
-            EventCreator<T> eventCreator) {
+    public <T extends TimedEvent> ScenarioBuilder addMultipleEvents(long time,
+            int amount, EventCreator<T> eventCreator) {
         generators
                 .add(new MultipleEventGenerator<T>(time, amount, eventCreator));
+        return this;
     }
 
     /**
@@ -79,8 +99,9 @@ public class ScenarioBuilder {
      * @param amount The amount of events to add.
      * @param type The type of event to add.
      */
-    public void addMultipleEvents(long time, int amount, Enum<?> type) {
+    public ScenarioBuilder addMultipleEvents(long time, int amount, Enum<?> type) {
         addMultipleEvents(time, amount, new EventTypeFunction(type));
+        return this;
     }
 
     /**
@@ -93,10 +114,12 @@ public class ScenarioBuilder {
      * @param timeStep The interval between events.
      * @param eventCreator The {@link EventCreator} that creates events.
      */
-    public <T extends TimedEvent> void addTimeSeriesOfEvents(long startTime,
-            long endTime, long timeStep, EventCreator<T> eventCreator) {
+    public <T extends TimedEvent> ScenarioBuilder addTimeSeriesOfEvents(
+            long startTime, long endTime, long timeStep,
+            EventCreator<T> eventCreator) {
         generators.add(new TimeSeries<T>(startTime, endTime, timeStep,
                 eventCreator));
+        return this;
     }
 
     /**
@@ -109,10 +132,11 @@ public class ScenarioBuilder {
      * @param timeStep The interval between events.
      * @param type The type of event to add.
      */
-    public <T extends TimedEvent> void addTimeSeriesOfEvents(long startTime,
-            long endTime, long timeStep, Enum<?> type) {
+    public <T extends TimedEvent> ScenarioBuilder addTimeSeriesOfEvents(
+            long startTime, long endTime, long timeStep, Enum<?> type) {
         addTimeSeriesOfEvents(startTime, endTime, timeStep, new EventTypeFunction(
                 type));
+        return this;
     }
 
     protected List<TimedEvent> buildEventList() {
@@ -125,6 +149,7 @@ public class ScenarioBuilder {
                 es.add(te);
             }
         }
+        Collections.sort(es, new TimeComparator());
         return es;
     }
 
@@ -278,4 +303,17 @@ public class ScenarioBuilder {
         }
 
     }
+
+    public static class TimeComparator implements Comparator<TimedEvent>,
+            Serializable {
+        private static final long serialVersionUID = -2711991793346719648L;
+
+        public TimeComparator() {}
+
+        @Override
+        public int compare(TimedEvent o1, TimedEvent o2) {
+            return (int) (o1.time - o2.time);
+        }
+    }
+
 }

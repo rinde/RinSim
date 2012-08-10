@@ -190,7 +190,7 @@ public abstract class ScenarioController implements TickListener, Listener {
     final public void tick(TimeLapse timeLapse) {
         if (!uiMode && ticks == 0) {
             LOGGER.info("scenario finished at virtual time:"
-                    + timeLapse.getTime());
+                    + timeLapse.getTime() + "[stopping simulation]");
             simulator.stop();
         }
         if (LOGGER.isDebugEnabled() && ticks >= 0) {
@@ -214,8 +214,15 @@ public abstract class ScenarioController implements TickListener, Listener {
             disp.dispatchEvent(e);
         }
         if (e == null && status != EventType.SCENARIO_FINISHED) {
-            LOGGER.info("scenario finished at virtual time:"
-                    + timeLapse.getTime());
+            if (ticks == 0) {
+                LOGGER.info("scenario finished at virtual time:"
+                        + timeLapse.getTime() + "[stopping simulation]");
+                simulator.stop();
+            } else {
+                LOGGER.info("scenario finished at virtual time:"
+                        + timeLapse.getTime()
+                        + " [scenario controller is detaching from simulator..]");
+            }
             status = EventType.SCENARIO_FINISHED;
             simulator.removeTickListener(this);
             disp.dispatchEvent(new Event(status, this));

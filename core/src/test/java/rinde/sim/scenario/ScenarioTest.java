@@ -78,25 +78,28 @@ public class ScenarioTest {
     @Test
     public void testSorting() {
         final List<TimedEvent> events = new ArrayList<TimedEvent>(10);
-        events.add(new AddObjectEvent(0, new Point(1, 0)));
-        events.add(new AddObjectEvent(0, new Point(1, 0)));
-        events.add(new AddObjectEvent(1, new Point(1, 1)));
-        events.add(new AddObjectEvent(2, new Point(1, 0)));
-        events.add(new AddObjectEvent(3, new Point(1, 2)));
-        events.add(new AddObjectEvent(3, new Point(1, 3)));
-        events.add(new AddObjectEvent(4, new Point(2, 0)));
-        events.add(new AddObjectEvent(5, new Point(4, 0)));
+        final AddObjectEvent A1 = new AddObjectEvent(0, new Point(1, 0));
+        final AddObjectEvent A2 = new AddObjectEvent(0, new Point(2, 0));
+        final AddObjectEvent B = new AddObjectEvent(1, new Point(1, 1));
+        final AddObjectEvent C = new AddObjectEvent(2, new Point(1, 0));
+        final AddObjectEvent D1 = new AddObjectEvent(3, new Point(1, 2));
+        final AddObjectEvent D2 = new AddObjectEvent(3, new Point(1, 3));
+        final AddObjectEvent E = new AddObjectEvent(4, new Point(2, 0));
+        final AddObjectEvent F = new AddObjectEvent(5, new Point(4, 0));
+        events.addAll(asList(A1, A2, B, C, D1, D2, E, F));
         Collections.reverse(events);
 
-        final Scenario s = new Scenario(events);
+        final ScenarioBuilder builder = new ScenarioBuilder(A1.getEventType());
+        builder.addEvents(events);
 
+        final Scenario s = builder.build();
         final List<TimedEvent> res = s.asList();
+
+        assertEquals(asList(A2, A1, B, C, D2, D1, E, F), res);
         assertFalse(res.equals(events));
         assertEquals(events.size(), res.size());
-
         Collections.reverse(res);
-
-        assertTrue(res.equals(events));
+        assertEquals(res, events);
     }
 
     @SuppressWarnings("unused")

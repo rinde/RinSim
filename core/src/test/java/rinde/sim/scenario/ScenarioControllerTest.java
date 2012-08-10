@@ -129,27 +129,15 @@ public class ScenarioControllerTest {
         sc.eventAPI.addListener(leh);
         assertFalse(sc.isScenarioFinished());
         sc.start();
-        while (!sc.isScenarioFinished()) {
-            Thread.sleep(100);
-        }
-        // FIXME sometimes produces errors...
         assertEquals(asList(SCENARIO_STARTED, EVENT_A, EVENT_B, EVENT_B, EVENT_A, EVENT_C, EVENT_C, SCENARIO_FINISHED), leh
                 .getEventTypeHistory());
 
         assertTrue(sc.isScenarioFinished());
         sc.stop();
-        synchronized (sc.getSimulator()) {
-            final long before = sc.getSimulator().getCurrentTime();
-            sc.start();// should have no effect
+        final long before = sc.getSimulator().getCurrentTime();
+        sc.start();// should have no effect
 
-            // FIXME sometimes produces errors...
-
-            // Failed tests:
-            // finiteSimulation(rinde.sim.scenario.ScenarioControllerTest):
-            // expected:<1322> but was:<1323>
-
-            assertEquals(before, sc.getSimulator().getCurrentTime());
-        }
+        assertEquals(before, sc.getSimulator().getCurrentTime());
         final TimeLapse emptyTime = TimeLapseFactory.create(0, 1);
         emptyTime.consumeAll();
         sc.tick(emptyTime);
@@ -243,7 +231,7 @@ public class ScenarioControllerTest {
                 if (e.getEventType() == ScenarioController.EventType.SCENARIO_FINISHED) {
                     synchronized (controller) {
                         r[0] = true;
-                        controller.notifyAll();
+                        controller.stop();
                     }
                 } else {
                     i[0] += 1;
@@ -253,14 +241,9 @@ public class ScenarioControllerTest {
 
         controller.start();
 
-        synchronized (controller) {
-            while (!r[0]) {
-                controller.wait();
-            }
-            assertTrue(r[0]);
-            assertEquals(scenario.asList().size() + 1, i[0]);
-            assertTrue(controller.isScenarioFinished());
-        }
+        assertTrue(r[0]);
+        assertEquals(scenario.asList().size() + 1, i[0]);
+        assertTrue(controller.isScenarioFinished());
 
         controller.stop();
     }
