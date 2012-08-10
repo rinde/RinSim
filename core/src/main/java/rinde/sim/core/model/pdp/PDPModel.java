@@ -185,7 +185,9 @@ public class PDPModel implements Model<PDPObject>, TickListener {
          * Indicates the start of a delivery of a {@link Parcel} by a
          * {@link Vehicle}.
          */
-        END_DELIVERY
+        END_DELIVERY,
+
+        NEW_PARCEL
     }
 
     public PDPModel(RoadModel rm) {
@@ -473,6 +475,8 @@ public class PDPModel implements Model<PDPObject>, TickListener {
             parcelState
                     .put(currentTime < p.getPickupTimeWindow().begin ? ParcelState.ANNOUNCED
                             : ParcelState.AVAILABLE, (Parcel) element);
+            eventDispatcher.dispatchEvent(new PDPModelEvent(
+                    PDPModelEventType.NEW_PARCEL, this, currentTime, p));
         } else { /*
                   * if (element.getType() == PDPType.VEHICLE ||
                   * element.getType() == PDPType.DEPOT)
