@@ -74,7 +74,7 @@ public class Simulator implements SimulatorAPI {
      * listeners to events dispatched by the simulator. Simulator events are
      * defined in {@link EventTypes}.
      */
-    public final EventAPI events;
+    protected final EventAPI eventAPI;
 
     /**
      * Contains the set of registered {@link TickListener}s.
@@ -138,7 +138,7 @@ public class Simulator implements SimulatorAPI {
         modelManager = new ModelManager();
 
         dispatcher = new EventDispatcher(EventTypes.STOPPED, EventTypes.STARTED);
-        events = dispatcher.getEventAPI();
+        eventAPI = dispatcher.getEventAPI();
     }
 
     /**
@@ -390,5 +390,9 @@ public class Simulator implements SimulatorAPI {
     @Override
     public RandomGenerator getRandomGenerator() {
         return rand;
+    }
+
+    public EventAPI getEventAPI() {
+        return eventAPI;
     }
 }
