@@ -57,7 +57,7 @@ public class Simulator implements SimulatorAPI {
      * Enum that describes the possible types of events that the simulator can
      * dispatch.
      */
-    public enum EventTypes {
+    public enum SimulatorEventType {
         /**
          * Indicates that the simulator has stopped.
          */
@@ -72,7 +72,7 @@ public class Simulator implements SimulatorAPI {
     /**
      * Reference to the {@link EventAPI} of the Simulator. Can be used to add
      * listeners to events dispatched by the simulator. Simulator events are
-     * defined in {@link EventTypes}.
+     * defined in {@link SimulatorEventType}.
      */
     protected final EventAPI eventAPI;
 
@@ -137,7 +137,8 @@ public class Simulator implements SimulatorAPI {
 
         modelManager = new ModelManager();
 
-        dispatcher = new EventDispatcher(EventTypes.STOPPED, EventTypes.STARTED);
+        dispatcher = new EventDispatcher(SimulatorEventType.STOPPED,
+                SimulatorEventType.STARTED);
         eventAPI = dispatcher.getEventAPI();
     }
 
@@ -289,13 +290,14 @@ public class Simulator implements SimulatorAPI {
                     "Simulator can not be started when it is not configured.");
         }
         if (!isPlaying) {
-            dispatcher.dispatchEvent(new Event(EventTypes.STARTED, this));
+            dispatcher
+                    .dispatchEvent(new Event(SimulatorEventType.STARTED, this));
         }
         isPlaying = true;
         while (isPlaying) {
             tick();
         }
-        dispatcher.dispatchEvent(new Event(EventTypes.STOPPED, this));
+        dispatcher.dispatchEvent(new Event(SimulatorEventType.STOPPED, this));
     }
 
     /**
@@ -392,6 +394,12 @@ public class Simulator implements SimulatorAPI {
         return rand;
     }
 
+    /**
+     * Reference to the {@link EventAPI} of the Simulator. Can be used to add
+     * listeners to events dispatched by the simulator. Simulator events are
+     * defined in {@link SimulatorEventType}.
+     * @return {@link EventAPI}
+     */
     public EventAPI getEventAPI() {
         return eventAPI;
     }
