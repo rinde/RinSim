@@ -9,6 +9,8 @@ import static com.google.common.collect.Sets.newLinkedHashSet;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.Reader;
+import java.io.Writer;
 import java.lang.reflect.Type;
 import java.util.List;
 import java.util.Set;
@@ -22,11 +24,12 @@ import rinde.sim.util.TimeWindow;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.google.gson.JsonArray;
 import com.google.gson.JsonDeserializationContext;
 import com.google.gson.JsonDeserializer;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParseException;
+import com.google.gson.JsonSerializationContext;
+import com.google.gson.JsonSerializer;
 import com.google.gson.TypeAdapter;
 import com.google.gson.reflect.TypeToken;
 import com.google.gson.stream.JsonReader;
@@ -124,20 +127,38 @@ public class FabriRechtParser {
 		return gson.toJson(scenario);
 	}
 
+	public static void toJson(FabriRechtScenario scenario, Writer writer) throws IOException {
+		gson.toJson(scenario, FabriRechtScenario.class, writer);
+		writer.close();
+	}
+
 	public static FabriRechtScenario fromJson(String json) {
 		return gson.fromJson(json, FabriRechtScenario.class);
 	}
 
-	static class EnumDeserializer implements JsonDeserializer<Set<Enum<?>>> {
+	public static FabriRechtScenario fromJson(Reader reader) {
+		return gson.fromJson(reader, FabriRechtScenario.class);
+	}
+
+	static class EnumDeserializer implements JsonDeserializer<Set<Enum<?>>>, JsonSerializer<Set<Enum<?>>> {
 		@Override
 		public Set<Enum<?>> deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context)
 				throws JsonParseException {
-			final JsonArray arr = json.getAsJsonArray();
 			final Set<Enum<?>> eventTypes = newLinkedHashSet();
-			for (int i = 0; i < arr.size(); i++) {
-				eventTypes.add(PDPScenarioEvent.valueOf(arr.get(i).getAsJsonObject().get("name").getAsString()));
+			final List<String> list = context.deserialize(json, new TypeToken<List<String>>() {}.getType());
+			for (final String s : list) {
+				eventTypes.add(PDPScenarioEvent.valueOf(s));
 			}
 			return eventTypes;
+		}
+
+		@Override
+		public JsonElement serialize(Set<Enum<?>> src, Type typeOfSrc, JsonSerializationContext context) {
+			final List<String> list = newArrayList();
+			for (final Enum<?> e : src) {
+				list.add(e.name());
+			}
+			return context.serialize(src, new TypeToken<List<String>>() {}.getType());
 		}
 	}
 
@@ -162,6 +183,31 @@ public class FabriRechtParser {
 				return;
 			}
 			final String xy = value.x + "," + value.y;
+			writer.value(xy);
+		}
+	}
+
+	static class TimeWindowAdapter extends TypeAdapter<TimeWindow> {
+		@Override
+		public TimeWindow read(JsonReader reader) throws IOException {
+			if (reader.peek() == JsonToken.NULL) {
+				reader.nextNull();
+				return null;
+			}
+			final String xy = reader.nextString();
+			final String[] parts = xy.split(",");
+			final long x = Long.parseLong(parts[0]);
+			final long y = Long.parseLong(parts[1]);
+			return new TimeWindow(x, y);
+		}
+
+		@Override
+		public void write(JsonWriter writer, TimeWindow value) throws IOException {
+			if (value == null) {
+				writer.nullValue();
+				return;
+			}
+			final String xy = value.begin + "," + value.end;
 			writer.value(xy);
 		}
 	}
@@ -196,7 +242,9 @@ public class FabriRechtParser {
 		final Type collectionType = new TypeToken<Set<Enum<?>>>() {}.getType();
 
 		final GsonBuilder builder = new GsonBuilder();
-		builder.setPrettyPrinting().registerTypeAdapter(Point.class, new PointAdapter())
+		// builder.setPrettyPrinting();
+		builder.registerTypeAdapter(Point.class, new PointAdapter())
+				.registerTypeAdapter(TimeWindow.class, new TimeWindowAdapter())
 				.registerTypeHierarchyAdapter(TimedEvent.class, new TimedEventDeserializer())
 				.registerTypeAdapter(collectionType, new EnumDeserializer());
 		return builder.create();

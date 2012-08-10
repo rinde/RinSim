@@ -86,7 +86,11 @@ public abstract class FabriRechtProblem extends ScenarioController {
 		return getSimulator().register(new FRDepot(event.position));
 	}
 
-	protected class StatisticsListener implements Listener {
+	public StatisticsListener getStatistics() {
+		return statisticsListener;
+	}
+
+	public class StatisticsListener implements Listener {
 
 		protected final Map<MovingRoadUser, Double> distanceMap;
 		protected double totalDistance;

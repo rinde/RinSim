@@ -5,6 +5,8 @@ package rinde.sim.problem.fabrirecht;
 
 import static org.junit.Assert.assertEquals;
 
+import java.io.BufferedWriter;
+import java.io.FileWriter;
 import java.io.IOException;
 
 import org.junit.Test;
@@ -26,6 +28,9 @@ public class TestProblem {
 		final ProblemInstance prob = new ProblemInstance(scen);
 
 		final String json = FabriRechtParser.toJson(scen);
+		// System.out.println(json);
+		FabriRechtParser.toJson(scen, new BufferedWriter(new FileWriter("data/test/fabri-recht/lc101.scenario")));
+
 		final FabriRechtScenario scen2 = FabriRechtParser.fromJson(json);
 		assertEquals(scen, scen2);
 		assertEquals(scen.getPossibleEventTypes(), scen2.getPossibleEventTypes());
