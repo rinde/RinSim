@@ -336,7 +336,7 @@ public class Simulator implements SimulatorAPI {
         timeLapse.initialize(time, time + timeStep);
         // in the after tick the TimeLapse can no longer be consumed
         timeLapse.consumeAll();
-        for (final TickListener t : tickListeners) {
+        for (final TickListener t : localCopy) {
             t.afterTick(timeLapse);
         }
         if (LOGGER.isDebugEnabled()) {

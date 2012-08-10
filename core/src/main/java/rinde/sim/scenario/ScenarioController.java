@@ -168,12 +168,12 @@ public abstract class ScenarioController implements TickListener, Listener {
     public void start() throws ConfigurationException {
         checkSimulator();
         if (ticks != 0 && !uiMode) {
-            new Thread() {
-                @Override
-                public void run() {
-                    simulator.start();
-                }
-            }.start();
+            // new Thread() {
+            // @Override
+            // public void run() {
+            simulator.start();
+            // }
+            // }.start();
         }
 
     }
