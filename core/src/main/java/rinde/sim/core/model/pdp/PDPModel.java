@@ -6,7 +6,7 @@ package rinde.sim.core.model.pdp;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Maps.newLinkedHashMap;
-import static com.google.common.collect.Sets.newHashSet;
+import static com.google.common.collect.Sets.newLinkedHashSet;
 import static java.util.Collections.unmodifiableCollection;
 import static java.util.Collections.unmodifiableSet;
 
@@ -423,7 +423,7 @@ public class PDPModel implements Model<PDPObject>, TickListener {
     }
 
     public Collection<Parcel> getParcels(ParcelState... states) {
-        final Collection<Parcel> parcels = newHashSet();
+        final Collection<Parcel> parcels = newLinkedHashSet();
         for (final ParcelState s : states) {
             parcels.addAll(parcelState.get(s));
         }
