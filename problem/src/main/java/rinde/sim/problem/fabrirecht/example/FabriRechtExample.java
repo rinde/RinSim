@@ -58,7 +58,7 @@ class ProblemInstance extends FabriRechtProblem {
 
 	@Override
 	protected boolean handleTimeOut() {
-		System.out.println(statisticsListener.report());
+		System.out.println(statisticsListener.getDTO());
 		return true;
 	}
 

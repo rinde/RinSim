@@ -10,6 +10,7 @@ import java.util.Map;
 import org.apache.commons.math3.random.MersenneTwister;
 
 import rinde.sim.core.Simulator;
+import rinde.sim.core.Simulator.SimulatorEventType;
 import rinde.sim.core.model.pdp.PDPModel;
 import rinde.sim.core.model.pdp.PDPModel.PDPModelEvent;
 import rinde.sim.core.model.pdp.PDPModel.PDPModelEventType;
@@ -50,6 +51,7 @@ public abstract class FabriRechtProblem extends ScenarioController {
 		final Simulator sim = new Simulator(new MersenneTwister(123), 1);
 		final RoadModel rm = new PlaneRoadModel(fabriRechtScenario.min, fabriRechtScenario.max, false, 1.0);
 		final PDPModel pm = new PDPModel(rm, new TardyAllowedPolicy());
+		sim.getEventAPI().addListener(statisticsListener, SimulatorEventType.values());
 		rm.getEventAPI().addListener(statisticsListener, RoadEvent.MOVE);
 		pm.getEventAPI()
 				.addListener(statisticsListener, PDPModelEventType.START_PICKUP, PDPModelEventType.END_PICKUP, PDPModelEventType.START_DELIVERY, PDPModelEventType.END_DELIVERY);
@@ -61,7 +63,7 @@ public abstract class FabriRechtProblem extends ScenarioController {
 	@Override
 	protected final boolean handleTimedEvent(TimedEvent event) {
 		if (event.getEventType() == PDPScenarioEvent.ADD_PARCEL) {
-			statisticsListener.parcelCount++;
+			statisticsListener.addedParcels++;
 			return handleAddParcel(((AddParcelEvent) event));
 		} else if (event.getEventType() == PDPScenarioEvent.ADD_VEHICLE) {
 			return handleAddVehicle((AddVehicleEvent) event);
@@ -86,8 +88,45 @@ public abstract class FabriRechtProblem extends ScenarioController {
 		return getSimulator().register(new FRDepot(event.position));
 	}
 
-	public StatisticsListener getStatistics() {
-		return statisticsListener;
+	public StatisticsDTO getStatistics() {
+		return statisticsListener.getDTO();
+	}
+
+	public class StatisticsDTO {
+		public final double totalDistance;
+		public final int totalPickups;
+		public final int totalDeliveries;
+		public final int addedParcels;
+		public final long pickupTardiness;
+		public final long deliveryTardiness;
+		public final long computationTime;
+		public final long simulationTime;
+
+		public StatisticsDTO(double dist, int pick, int del, int parc, long pickTar, long delTar, long compT, long simT) {
+			totalDistance = dist;
+			totalPickups = pick;
+			totalDeliveries = del;
+			addedParcels = parc;
+			pickupTardiness = pickTar;
+			deliveryTardiness = delTar;
+			computationTime = compT;
+			simulationTime = simT;
+		}
+
+		@Override
+		public String toString() {
+			final StringBuilder sb = new StringBuilder();
+			sb.append("\t\t\t = Statistics = \ncomputation time:\t\t").append(computationTime);
+			sb.append("\nsimulation time:\t\t").append(simulationTime);
+			sb.append("\ntotal traveled distance:\t").append(totalDistance);
+			sb.append("\npickups:\t\t\t").append(totalPickups).append(" / ").append(addedParcels);
+			sb.append("\t").append(Math.round(((double) totalPickups / addedParcels) * 100d)).append("%");
+			sb.append("\ndeliveries:\t\t\t").append(totalDeliveries).append(" / ").append(addedParcels);
+			sb.append("\t").append(Math.round(((double) totalDeliveries / addedParcels) * 100d)).append("%");
+			sb.append("\npickup tardiness:\t\t").append(pickupTardiness);
+			sb.append("\ndelivery tardiness:\t\t").append(deliveryTardiness);
+			return sb.toString();
+		}
 	}
 
 	public class StatisticsListener implements Listener {
@@ -98,19 +137,29 @@ public abstract class FabriRechtProblem extends ScenarioController {
 		protected int totalDeliveries;
 		protected long pickupTardiness;
 		protected long deliveryTardiness;
-		protected int parcelCount;
+		protected int addedParcels;
+		protected long startTimeReal;
+		protected long startTimeSim;
+		protected long computationTime;
+		protected long simulationTime;
 
 		public StatisticsListener() {
 			distanceMap = newLinkedHashMap();
 			totalDistance = 0d;
 			totalPickups = 0;
 			totalDeliveries = 0;
-			parcelCount = 0;
+			addedParcels = 0;
 		}
 
 		@Override
 		public void handleEvent(Event e) {
-			if (e.getEventType() == RoadEvent.MOVE) {
+			if (e.getEventType() == SimulatorEventType.STARTED) {
+				startTimeReal = System.currentTimeMillis();
+				startTimeSim = getSimulator().getCurrentTime();
+			} else if (e.getEventType() == SimulatorEventType.STOPPED) {
+				computationTime = System.currentTimeMillis() - startTimeReal;
+				simulationTime = getSimulator().getCurrentTime() - startTimeSim;
+			} else if (e.getEventType() == RoadEvent.MOVE) {
 				final MoveEvent me = ((MoveEvent) e);
 				increment(me.roadUser, me.pathProgress.distance);
 				totalDistance += me.pathProgress.distance;
@@ -155,29 +204,13 @@ public abstract class FabriRechtProblem extends ScenarioController {
 			return totalDeliveries;
 		}
 
-		public String report() {
-			final StringBuilder sb = new StringBuilder();
-			sb.append("\t\t\t = Statistics = \n total traveled distance:\t");
-			sb.append(totalDistance);
-			sb.append("\n pickups:\t\t\t");
-			sb.append(totalPickups);
-			sb.append(" / ");
-			sb.append(parcelCount);
-			sb.append("\t");
-			sb.append(Math.round((totalPickups / parcelCount) * 100d));
-			sb.append("%");
-			sb.append("\n deliveries:\t\t\t");
-			sb.append(totalDeliveries);
-			sb.append(" / ");
-			sb.append(parcelCount);
-			sb.append("\t");
-			sb.append(Math.round((totalDeliveries / parcelCount) * 100d));
-			sb.append("%");
-			sb.append("\n pickup tardiness:\t\t");
-			sb.append(pickupTardiness);
-			sb.append("\n delivery tardiness:\t\t");
-			sb.append(deliveryTardiness);
-			return sb.toString();
+		public long getComputationTime() {
+			return computationTime;
+		}
+
+		public StatisticsDTO getDTO() {
+			return new StatisticsDTO(totalDistance, totalPickups, totalDeliveries, addedParcels, pickupTardiness,
+					deliveryTardiness, computationTime, simulationTime);
 		}
 	}
 
