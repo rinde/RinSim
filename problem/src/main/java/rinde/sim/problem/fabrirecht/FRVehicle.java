@@ -34,4 +34,8 @@ public abstract class FRVehicle extends Vehicle {
 		pdpModel = pPdpModel;
 	}
 
+	public VehicleDTO getDTO() {
+		return dto;
+	}
+
 }
