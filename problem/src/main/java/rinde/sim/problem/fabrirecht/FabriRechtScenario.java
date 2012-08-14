@@ -16,6 +16,7 @@ import rinde.sim.util.TimeWindow;
  * 
  */
 public class FabriRechtScenario extends Scenario {
+	private static final long serialVersionUID = -855531034069220296L;
 	public final Point min;
 	public final Point max;
 	public final TimeWindow timeWindow;

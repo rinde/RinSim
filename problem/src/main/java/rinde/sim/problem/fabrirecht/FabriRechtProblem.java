@@ -5,6 +5,7 @@ package rinde.sim.problem.fabrirecht;
 
 import static com.google.common.collect.Maps.newLinkedHashMap;
 
+import java.io.Serializable;
 import java.util.Map;
 
 import org.apache.commons.math3.random.MersenneTwister;
@@ -92,7 +93,8 @@ public abstract class FabriRechtProblem extends ScenarioController {
 		return statisticsListener.getDTO();
 	}
 
-	public class StatisticsDTO {
+	public static class StatisticsDTO implements Serializable {
+		private static final long serialVersionUID = -5355647181107836976L;
 		public final double totalDistance;
 		public final int totalPickups;
 		public final int totalDeliveries;
