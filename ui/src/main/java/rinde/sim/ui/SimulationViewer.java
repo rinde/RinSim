@@ -1,13 +1,14 @@
 package rinde.sim.ui;
 
 import static com.google.common.base.Preconditions.checkState;
+import static com.google.common.collect.Maps.newHashMap;
 
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
-import org.eclipse.jface.resource.ColorRegistry;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ControlEvent;
 import org.eclipse.swt.events.ControlListener;
@@ -15,6 +16,7 @@ import org.eclipse.swt.events.PaintEvent;
 import org.eclipse.swt.events.PaintListener;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
+import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.RGB;
@@ -69,7 +71,7 @@ public class SimulationViewer extends Composite implements TickListener, Control
 	protected Image image;
 
 	private Simulator simulator;
-	private ColorRegistry colorRegistry;
+	private Map<String, Color> colorRegistry;
 
 	/** model renderers */
 	protected final Renderer[] renderers;
@@ -185,10 +187,10 @@ public class SimulationViewer extends Composite implements TickListener, Control
 	protected void initColors() {
 		assert getDisplay() != null : "should be called after display is initialized";
 		assert renderers != null : "should be called after renderers are initialized";
-		colorRegistry = new ColorRegistry(getDisplay());
-		colorRegistry.put(COLOR_WHITE, new RGB(0xFF, 0xFF, 0xFF));
-		colorRegistry.put(COLOR_BLACK, new RGB(0x00, 0x00, 0x00));
-		colorRegistry.put(COLOR_GREEN, new RGB(0x00, 0xFF, 0x00));
+		colorRegistry = newHashMap();
+		colorRegistry.put(COLOR_WHITE, new Color(getDisplay(), new RGB(0xFF, 0xFF, 0xFF)));
+		colorRegistry.put(COLOR_BLACK, new Color(getDisplay(), new RGB(0x00, 0x00, 0x00)));
+		colorRegistry.put(COLOR_GREEN, new Color(getDisplay(), new RGB(0x00, 0xFF, 0x00)));
 	}
 
 	@SuppressWarnings("unused")

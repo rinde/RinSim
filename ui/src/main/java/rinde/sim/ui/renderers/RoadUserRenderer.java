@@ -45,7 +45,7 @@ public class RoadUserRenderer implements ModelRenderer<RoadModel> {
 	public void renderDynamic(GC gc, ViewPort vp, long time) {
 		final int radius = 4;
 		final int outerRadius = 10;
-		uiSchema.initialize();
+		uiSchema.initialize(gc.getDevice());
 		gc.setBackground(uiSchema.getDefaultColor());
 
 		final Map<RoadUser, Point> objects = rs.getObjectsAndPositions();

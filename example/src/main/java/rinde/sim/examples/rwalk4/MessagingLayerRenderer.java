@@ -26,7 +26,7 @@ public class MessagingLayerRenderer implements Renderer {
 	@Override
 	public void renderDynamic(GC gc, ViewPort vp, long time) {
 		final int size = 4;
-		uiSchema.initialize();
+		uiSchema.initialize(gc.getDevice());
 
 		final Set<RandomWalkAgent> objects = rs.getObjectsOfType(RandomWalkAgent.class);
 

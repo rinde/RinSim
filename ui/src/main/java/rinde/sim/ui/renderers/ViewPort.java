@@ -3,7 +3,11 @@
  */
 package rinde.sim.ui.renderers;
 
-import org.eclipse.jface.resource.ColorRegistry;
+import static java.util.Collections.unmodifiableMap;
+
+import java.util.Map;
+
+import org.eclipse.swt.graphics.Color;
 
 import rinde.sim.core.graph.Point;
 
@@ -19,14 +23,13 @@ public class ViewPort {
 	public final Point origin;
 	public final ViewRect rect;
 	public final double scale;
-	// TODO colorRegistry should be read-only
-	public final ColorRegistry colorRegistry;
+	public final Map<String, Color> colorRegistry;
 
-	public ViewPort(Point pOrigin, ViewRect pViewRect, double pZoom, ColorRegistry registry) {
+	public ViewPort(Point pOrigin, ViewRect pViewRect, double pZoom, Map<String, Color> registry) {
 		origin = pOrigin;
 		rect = pViewRect;
 		scale = pZoom;
-		colorRegistry = registry;
+		colorRegistry = unmodifiableMap(registry);
 	}
 
 	public int toCoordX(double x) {

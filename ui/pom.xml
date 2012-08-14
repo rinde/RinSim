@@ -65,14 +65,14 @@
 			<snapshots>
 				<enabled>false</enabled>
 			</snapshots>
-			<id>eclipse-testing</id>
-			<name>Eclipse Maven Testing Repository</name>
-			<url>http://maven.eclipse.org/nexus/content/repositories/testing/</url>
+			<id>swt-repo</id>
+			<name>SWT Repo</name>
+			<url>https://swt-repo.googlecode.com/svn/repo/</url>
 		</repository>
 	</repositories>
 	
 	<properties>
-		<swt.version>3.6.2</swt.version>
+		<swt.version>3.8</swt.version>
 	</properties>
 
 	<dependencies>
@@ -85,16 +85,11 @@
 			<artifactId>org.eclipse.swt.${swt.variant}</artifactId>
 			<version>${swt.version}</version>
 		</dependency>
-		<dependency>
+		<!-- <dependency>
 			<groupId>org.eclipse.jface</groupId>
 			<artifactId>org.eclipse.jface</artifactId>
 			<version>${swt.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>org.scala-lang</groupId>
-			<artifactId>scala-library</artifactId>
-			<version>2.9.2</version>
-		</dependency>
+		</dependency> -->
 	</dependencies>
 	<build>
 		<plugins>
