@@ -24,14 +24,14 @@ public class MessagingLayerRenderer implements Renderer {
 	}
 
 	@Override
-	public void renderDynamic(GC gc, ViewPort vp) {
+	public void renderDynamic(GC gc, ViewPort vp, long time) {
 		final int size = 4;
 		uiSchema.initialize();
 
-		Set<RandomWalkAgent> objects = rs.getObjectsOfType(RandomWalkAgent.class);
+		final Set<RandomWalkAgent> objects = rs.getObjectsOfType(RandomWalkAgent.class);
 
 		synchronized (objects) {
-			for (RandomWalkAgent a : objects) {
+			for (final RandomWalkAgent a : objects) {
 				Point p = a.getPosition();
 				if (p == null) {
 					continue;
@@ -58,8 +58,8 @@ public class MessagingLayerRenderer implements Renderer {
 				gc.drawOval(x - radius, y - radius, radius * 2, radius * 2);
 				gc.drawText("r:" + a.getNoReceived(), x, y, true);
 
-				Set<RandomWalkAgent> communicatedWith = a.getCommunicatedWith();
-				for (RandomWalkAgent cw : communicatedWith) {
+				final Set<RandomWalkAgent> communicatedWith = a.getCommunicatedWith();
+				for (final RandomWalkAgent cw : communicatedWith) {
 					p = cw.getPosition();
 					if (p == null) {
 						continue;

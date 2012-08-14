@@ -29,7 +29,7 @@ public class FRRenderer implements ModelRenderer<PDPModel> {
 	}
 
 	@Override
-	public void renderDynamic(GC gc, ViewPort vp) {
+	public void renderDynamic(GC gc, ViewPort vp, long time) {
 		final Collection<Parcel> parcels = pdpModel.getAvailableParcels();
 		synchronized (parcels) {
 			for (final Parcel parcel : parcels) {
