@@ -411,7 +411,8 @@ public class SimulationViewer extends Composite implements TickListener, Control
 		}
 
 		for (final Renderer renderer : renderers) {
-			renderer.renderDynamic(gc, new ViewPort(new Point(origin.x, origin.y), viewRect, m, colorRegistry));
+			renderer.renderDynamic(gc, new ViewPort(new Point(origin.x, origin.y), viewRect, m, colorRegistry), simulator
+					.getCurrentTime());
 			// renderer.render(gc, origin.x, origin.y, minX, minY, m);
 		}
 	}

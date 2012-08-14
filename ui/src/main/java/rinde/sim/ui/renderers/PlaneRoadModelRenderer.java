@@ -35,7 +35,7 @@ public class PlaneRoadModelRenderer implements ModelRenderer<PlaneRoadModel> {
 	}
 
 	@Override
-	public void renderDynamic(GC gc, ViewPort vp) {}
+	public void renderDynamic(GC gc, ViewPort vp, long time) {}
 
 	@Override
 	public ViewRect getViewRect() {

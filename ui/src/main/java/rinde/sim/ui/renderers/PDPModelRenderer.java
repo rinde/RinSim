@@ -23,6 +23,7 @@ import rinde.sim.core.model.pdp.Vehicle;
  */
 public class PDPModelRenderer implements ModelRenderer<PDPModel> {
 
+	protected final static RGB GRAY = new RGB(80, 80, 80);
 	protected final static RGB GREEN = new RGB(0, 255, 0);
 	protected final static RGB ORANGE = new RGB(255, 160, 0);
 
@@ -32,7 +33,7 @@ public class PDPModelRenderer implements ModelRenderer<PDPModel> {
 	public void renderStatic(GC gc, ViewPort vp) {}
 
 	@Override
-	public void renderDynamic(GC gc, ViewPort vp) {
+	public void renderDynamic(GC gc, ViewPort vp, long time) {
 		final Set<Vehicle> vehicles = pdpModel.getVehicles();
 		synchronized (vehicles) {
 			for (final Vehicle v : vehicles) {
@@ -60,8 +61,16 @@ public class PDPModelRenderer implements ModelRenderer<PDPModel> {
 				final int x = vp.toCoordX(p.x);
 				final int y = vp.toCoordY(p.y);
 				gc.drawLine(x, y, vp.toCoordX(parcel.getDestination().x), vp.toCoordY(parcel.getDestination().y));
-				gc.setBackground(new Color(gc.getDevice(),
-						pdpModel.getParcelState(parcel) == ParcelState.AVAILABLE ? GREEN : ORANGE));
+
+				RGB color = null;
+				if (pdpModel.getParcelState(parcel) == ParcelState.ANNOUNCED) {
+					color = GRAY;
+				} else if (parcel.getPickupTimeWindow().isIn(time)) {
+					color = GREEN;
+				} else {
+					color = ORANGE;
+				}
+				gc.setBackground(new Color(gc.getDevice(), color));
 				gc.fillOval(x - 5, y - 5, 10, 10);
 
 			}

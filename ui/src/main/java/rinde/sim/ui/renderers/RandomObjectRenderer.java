@@ -27,7 +27,7 @@ public class RandomObjectRenderer implements Renderer {
 	}
 
 	@Override
-	public void renderDynamic(GC gc, ViewPort viewPort) {
+	public void renderDynamic(GC gc, ViewPort viewPort, long time) {
 		final int radius = 4;
 		final int outerRadius = 10;
 		if (defaultColor == null) {
@@ -36,10 +36,10 @@ public class RandomObjectRenderer implements Renderer {
 
 		gc.setBackground(defaultColor);
 
-		Map<RoadUser, Point> objects = model.getObjectsAndPositions();
+		final Map<RoadUser, Point> objects = model.getObjectsAndPositions();
 		synchronized (objects) {
-			for (Entry<RoadUser, Point> entry : objects.entrySet()) {
-				Point p = entry.getValue();
+			for (final Entry<RoadUser, Point> entry : objects.entrySet()) {
+				final Point p = entry.getValue();
 				// if (colorMap != null) {
 				// if (colorMap.containsKey(entry.getKey().getClass())) {
 				// gc.setBackground(new Color(gc.getDevice(),
@@ -56,8 +56,8 @@ public class RandomObjectRenderer implements Renderer {
 				// }
 				gc.setBackground(defaultColor);
 
-				int x = (int) (viewPort.origin.x + (p.x - viewPort.rect.min.x) * viewPort.scale) - radius;
-				int y = (int) (viewPort.origin.y + (p.y - viewPort.rect.min.y) * viewPort.scale) - radius;
+				final int x = (int) (viewPort.origin.x + (p.x - viewPort.rect.min.x) * viewPort.scale) - radius;
+				final int y = (int) (viewPort.origin.y + (p.y - viewPort.rect.min.y) * viewPort.scale) - radius;
 
 				gc.fillOval(x, y, 2 * radius, 2 * radius);
 				gc.drawText(entry.getKey() + "", x + 5, y - 15);

@@ -25,7 +25,7 @@ public interface Renderer {
 
 	void renderStatic(GC gc, ViewPort vp);
 
-	void renderDynamic(GC gc, ViewPort vp);
+	void renderDynamic(GC gc, ViewPort vp, long time);
 
 	ViewRect getViewRect();
 

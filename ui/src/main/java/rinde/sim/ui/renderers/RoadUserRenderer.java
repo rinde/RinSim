@@ -42,23 +42,23 @@ public class RoadUserRenderer implements ModelRenderer<RoadModel> {
 	}
 
 	@Override
-	public void renderDynamic(GC gc, ViewPort vp) {
+	public void renderDynamic(GC gc, ViewPort vp, long time) {
 		final int radius = 4;
 		final int outerRadius = 10;
 		uiSchema.initialize();
 		gc.setBackground(uiSchema.getDefaultColor());
 
-		Map<RoadUser, Point> objects = rs.getObjectsAndPositions();
+		final Map<RoadUser, Point> objects = rs.getObjectsAndPositions();
 		synchronized (objects) {
-			for (Entry<RoadUser, Point> entry : objects.entrySet()) {
-				Point p = entry.getValue();
-				Class<?> type = entry.getKey().getClass();
+			for (final Entry<RoadUser, Point> entry : objects.entrySet()) {
+				final Point p = entry.getValue();
+				final Class<?> type = entry.getKey().getClass();
 				final Image image = uiSchema.getImage(type);
 				final int x = (int) (vp.origin.x + (p.x - vp.rect.min.x) * vp.scale) - radius;
 				final int y = (int) (vp.origin.y + (p.y - vp.rect.min.y) * vp.scale) - radius;
 				if (image != null) {
-					int offsetX = x - image.getBounds().width / 2;
-					int offsetY = y - image.getBounds().height / 2;
+					final int offsetX = x - image.getBounds().width / 2;
+					final int offsetY = y - image.getBounds().height / 2;
 					gc.drawImage(image, offsetX, offsetY);
 				} else {
 					final Color color = uiSchema.getColor(type);

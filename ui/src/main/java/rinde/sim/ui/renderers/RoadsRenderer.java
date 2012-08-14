@@ -32,32 +32,32 @@ public class RoadsRenderer implements ModelRenderer<GraphRoadModel> {
 
 	@Override
 	public void renderStatic(GC gc, ViewPort vp) {
-		Graph<? extends ConnectionData> graph = grm.getGraph();
-		for (Connection<? extends ConnectionData> e : graph.getConnections()) {
-			int x1 = vp.toCoordX(e.from.x);
-			int y1 = vp.toCoordY(e.from.y);
+		final Graph<? extends ConnectionData> graph = grm.getGraph();
+		for (final Connection<? extends ConnectionData> e : graph.getConnections()) {
+			final int x1 = vp.toCoordX(e.from.x);
+			final int y1 = vp.toCoordY(e.from.y);
 
-			int x2 = vp.toCoordX(e.to.x);
-			int y2 = vp.toCoordY(e.to.y);
+			final int x2 = vp.toCoordX(e.to.x);
+			final int y2 = vp.toCoordY(e.to.y);
 			gc.setForeground(vp.colorRegistry.get(SimulationViewer.COLOR_BLACK));
 			gc.drawLine(x1, y1, x2, y2);
 		}
 	}
 
 	@Override
-	public void renderDynamic(GC gc, ViewPort vp) {}
+	public void renderDynamic(GC gc, ViewPort vp, long time) {}
 
 	@Override
 	public ViewRect getViewRect() {
 		checkState(!grm.getGraph().isEmpty(), "graph may not be empty at this point");
-		Collection<Point> nodes = grm.getGraph().getNodes();
+		final Collection<Point> nodes = grm.getGraph().getNodes();
 
 		double minX = Double.POSITIVE_INFINITY;
 		double maxX = Double.NEGATIVE_INFINITY;
 		double minY = Double.POSITIVE_INFINITY;
 		double maxY = Double.NEGATIVE_INFINITY;
 
-		for (Point p : nodes) {
+		for (final Point p : nodes) {
 			minX = Math.min(minX, p.x);
 			maxX = Math.max(maxX, p.x);
 			minY = Math.min(minY, p.y);
