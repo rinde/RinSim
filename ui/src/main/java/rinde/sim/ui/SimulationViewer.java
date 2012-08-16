@@ -2,9 +2,9 @@ package rinde.sim.ui;
 
 import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.collect.Maps.newHashMap;
+import static com.google.common.collect.Sets.newLinkedHashSet;
 
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -38,14 +38,12 @@ import rinde.sim.core.TickListener;
 import rinde.sim.core.TimeLapse;
 import rinde.sim.core.graph.Point;
 import rinde.sim.core.model.Model;
+import rinde.sim.ui.renderers.ModelProvider;
 import rinde.sim.ui.renderers.ModelRenderer;
 import rinde.sim.ui.renderers.Renderer;
 import rinde.sim.ui.renderers.ViewPort;
 import rinde.sim.ui.renderers.ViewRect;
 import rinde.sim.util.TimeFormatter;
-
-import com.google.common.collect.LinkedHashMultimap;
-import com.google.common.collect.Multimap;
 
 /**
  * Simulation viewer.
@@ -54,7 +52,7 @@ import com.google.common.collect.Multimap;
  * 
  */
 public class SimulationViewer extends Composite implements TickListener, ControlListener, PaintListener,
-		SelectionListener {
+		SelectionListener, ModelProvider {
 
 	public static final String COLOR_WHITE = "white";
 	public static final String COLOR_GREEN = "green";
@@ -70,7 +68,7 @@ public class SimulationViewer extends Composite implements TickListener, Control
 
 	protected Image image;
 
-	private Simulator simulator;
+	private final Simulator simulator;
 	private Map<String, Color> colorRegistry;
 
 	/** model renderers */
@@ -95,23 +93,24 @@ public class SimulationViewer extends Composite implements TickListener, Control
 
 	private final Display display;
 
-	private final Multimap<Class<? extends Object>, ModelRenderer<?>> renderRegistry;
+	protected final Set<ModelRenderer> modelRenderers;
 
-	public SimulationViewer(Shell shell, Simulator simulator, int speedUp, Renderer... renderers) {
+	public SimulationViewer(Shell shell, final Simulator sim, int speedUp, Renderer... renderers) {
 		super(shell, SWT.NONE);
 
-		renderRegistry = LinkedHashMultimap.create();
+		modelRenderers = newLinkedHashSet();
 		for (final Renderer r : renderers) {
-			if (r instanceof ModelRenderer<?>) {
-				renderRegistry.put(((ModelRenderer<?>) r).getSupportedModelType(), (ModelRenderer<?>) r);
+			if (r instanceof ModelRenderer) {
+				modelRenderers.add((ModelRenderer) r);
 			}
 		}
+		simulator = sim;
+		simulator.addTickListener(this);
 
 		this.renderers = renderers;
 		this.speedUp = speedUp;
 		shell.setLayout(new FillLayout());
 		setLayout(new FillLayout());
-		bindToSimulator(simulator);
 
 		display = shell.getDisplay();
 
@@ -121,8 +120,8 @@ public class SimulationViewer extends Composite implements TickListener, Control
 			@SuppressWarnings("synthetic-access")
 			@Override
 			public void handleEvent(Event event) {
-				SimulationViewer.this.simulator.stop();
-				while (SimulationViewer.this.simulator.isPlaying()) {}
+				simulator.stop();
+				while (simulator.isPlaying()) {}
 
 				if (!display.isDisposed()) {
 					display.dispose();
@@ -133,28 +132,37 @@ public class SimulationViewer extends Composite implements TickListener, Control
 		createContent();
 	}
 
-	protected void bindToSimulator(Simulator simulator) {
-		this.simulator = simulator;
+	protected void configureModelRenderers() {
+		for (final ModelRenderer mr : modelRenderers) {
+			mr.registerModelProvider(this);
+		}
+	}
 
+	@SuppressWarnings("unchecked")
+	@Override
+	public <T extends Model<?>> T getModel(Class<T> clazz) {
 		final List<Model<?>> models = simulator.getModels();
 		for (final Model<?> model : models) {
-			registerModel(model);
-		}
-
-		this.simulator.addTickListener(this);
-	}
-
-	protected <T extends Model<?>> void registerModel(T model) {
-		final Set<Class<?>> rendererSupportedTypes = renderRegistry.keySet();
-		for (final Class<?> rendererSupportedType : rendererSupportedTypes) {
-			if (rendererSupportedType.isAssignableFrom(model.getClass())) {
-				final Collection<ModelRenderer<?>> assignableModels = renderRegistry.get(rendererSupportedType);
-				for (final ModelRenderer<?> modelRenderer : assignableModels) {
-					((ModelRenderer<T>) modelRenderer).register(model);
-				}
+			if (clazz.isInstance(model)) {
+				return (T) model;
 			}
 		}
+		throw new IllegalArgumentException("There is no model of type: " + clazz);
 	}
+
+	// @SuppressWarnings("unchecked")
+	// protected <T extends Model<?>> void registerModel(T model) {
+	// final Set<Class<?>> rendererSupportedTypes = renderRegistry.keySet();
+	// for (final Class<?> rendererSupportedType : rendererSupportedTypes) {
+	// if (rendererSupportedType.isAssignableFrom(model.getClass())) {
+	// final Collection<ModelRenderer<?>> assignableModels =
+	// renderRegistry.get(rendererSupportedType);
+	// for (final ModelRenderer<?> modelRenderer : assignableModels) {
+	// ((ModelRenderer<T>) modelRenderer).register(model);
+	// }
+	// }
+	// }
+	// }
 
 	/**
 	 * Configure shell
@@ -390,6 +398,7 @@ public class SimulationViewer extends Composite implements TickListener, Control
 		final GC gc = e.gc;
 
 		if (firstTime) {
+			configureModelRenderers();
 			calculateSizes();
 			firstTime = false;
 		}
@@ -450,6 +459,10 @@ public class SimulationViewer extends Composite implements TickListener, Control
 	}
 
 	private void calculateSizes() {
+		System.out.println("SIM IS CONFIGURED: " + simulator.isConfigured());
+		if (!simulator.isConfigured()) {
+			return;
+		}
 
 		double minX = Double.POSITIVE_INFINITY;
 		double maxX = Double.NEGATIVE_INFINITY;

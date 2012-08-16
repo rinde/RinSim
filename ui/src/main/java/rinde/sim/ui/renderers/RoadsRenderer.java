@@ -18,7 +18,7 @@ import rinde.sim.ui.SimulationViewer;
  * @author Rinde van Lon (rinde.vanlon@cs.kuleuven.be)
  * 
  */
-public class RoadsRenderer implements ModelRenderer<GraphRoadModel> {
+public class RoadsRenderer implements ModelRenderer {
 	protected GraphRoadModel grm;
 	protected final int margin;
 
@@ -67,12 +67,8 @@ public class RoadsRenderer implements ModelRenderer<GraphRoadModel> {
 	}
 
 	@Override
-	public void register(GraphRoadModel model) {
-		grm = model;
+	public void registerModelProvider(ModelProvider mp) {
+		grm = mp.getModel(GraphRoadModel.class);
 	}
 
-	@Override
-	public Class<GraphRoadModel> getSupportedModelType() {
-		return GraphRoadModel.class;
-	}
 }

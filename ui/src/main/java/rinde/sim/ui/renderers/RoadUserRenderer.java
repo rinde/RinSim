@@ -20,7 +20,7 @@ import rinde.sim.core.model.road.RoadUser;
  *         handling colors
  * 
  */
-public class RoadUserRenderer implements ModelRenderer<RoadModel> {
+public class RoadUserRenderer implements ModelRenderer {
 
 	protected RoadModel rs;
 	protected boolean useEncirclement;
@@ -90,13 +90,8 @@ public class RoadUserRenderer implements ModelRenderer<RoadModel> {
 	}
 
 	@Override
-	public void register(RoadModel model) {
-		rs = model;
-	}
-
-	@Override
-	public Class<RoadModel> getSupportedModelType() {
-		return RoadModel.class;
+	public void registerModelProvider(ModelProvider mp) {
+		rs = mp.getModel(RoadModel.class);
 	}
 
 }

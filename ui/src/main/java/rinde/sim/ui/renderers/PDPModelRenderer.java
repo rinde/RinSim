@@ -21,7 +21,7 @@ import rinde.sim.core.model.pdp.Vehicle;
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
  * 
  */
-public class PDPModelRenderer implements ModelRenderer<PDPModel> {
+public class PDPModelRenderer implements ModelRenderer {
 
 	protected final static RGB GRAY = new RGB(80, 80, 80);
 	protected final static RGB GREEN = new RGB(0, 255, 0);
@@ -84,11 +84,10 @@ public class PDPModelRenderer implements ModelRenderer<PDPModel> {
 	}
 
 	@Override
-	public void register(PDPModel model) {
-		pdpModel = model;
+	public void registerModelProvider(ModelProvider mp) {
+		pdpModel = mp.getModel(PDPModel.class);
 	}
 
-	@Override
 	public Class<PDPModel> getSupportedModelType() {
 		return PDPModel.class;
 	}

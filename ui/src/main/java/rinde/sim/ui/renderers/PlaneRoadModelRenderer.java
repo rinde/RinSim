@@ -12,7 +12,7 @@ import rinde.sim.core.model.road.PlaneRoadModel;
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
  * 
  */
-public class PlaneRoadModelRenderer implements ModelRenderer<PlaneRoadModel> {
+public class PlaneRoadModelRenderer implements ModelRenderer {
 
 	protected PlaneRoadModel rm;
 	protected final int margin;
@@ -45,13 +45,9 @@ public class PlaneRoadModelRenderer implements ModelRenderer<PlaneRoadModel> {
 	}
 
 	@Override
-	public void register(PlaneRoadModel model) {
-		rm = model;
-	}
-
-	@Override
-	public Class<PlaneRoadModel> getSupportedModelType() {
-		return PlaneRoadModel.class;
+	public void registerModelProvider(ModelProvider mp) {
+		rm = mp.getModel(PlaneRoadModel.class);
+		System.out.println("RM: " + rm);
 	}
 
 }
