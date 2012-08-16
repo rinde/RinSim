@@ -10,6 +10,7 @@ import org.eclipse.swt.graphics.GC;
 import rinde.sim.core.model.pdp.PDPModel;
 import rinde.sim.core.model.pdp.Parcel;
 import rinde.sim.problem.fabrirecht.FRParcel;
+import rinde.sim.ui.renderers.ModelProvider;
 import rinde.sim.ui.renderers.ModelRenderer;
 import rinde.sim.ui.renderers.ViewPort;
 import rinde.sim.ui.renderers.ViewRect;
@@ -18,7 +19,7 @@ import rinde.sim.ui.renderers.ViewRect;
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
  * 
  */
-public class FRRenderer implements ModelRenderer<PDPModel> {
+public class FRRenderer implements ModelRenderer {
 
 	PDPModel pdpModel;
 
@@ -52,13 +53,8 @@ public class FRRenderer implements ModelRenderer<PDPModel> {
 	}
 
 	@Override
-	public void register(PDPModel model) {
-		pdpModel = model;
-	}
-
-	@Override
-	public Class<PDPModel> getSupportedModelType() {
-		return PDPModel.class;
+	public void registerModelProvider(ModelProvider mp) {
+		pdpModel = mp.getModel(PDPModel.class);
 	}
 
 }
