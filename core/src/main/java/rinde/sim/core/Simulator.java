@@ -66,7 +66,9 @@ public class Simulator implements SimulatorAPI {
         /**
          * Indicates that the simulator has started.
          */
-        STARTED
+        STARTED,
+
+        CONFIGURED
     }
 
     /**
@@ -137,8 +139,7 @@ public class Simulator implements SimulatorAPI {
 
         modelManager = new ModelManager();
 
-        dispatcher = new EventDispatcher(SimulatorEventType.STOPPED,
-                SimulatorEventType.STARTED);
+        dispatcher = new EventDispatcher(SimulatorEventType.values());
         eventAPI = dispatcher.getEventAPI();
     }
 
@@ -151,6 +152,8 @@ public class Simulator implements SimulatorAPI {
     public void configure() {
         modelManager.configure();
         configured = true;
+        dispatcher
+                .dispatchEvent(new Event(SimulatorEventType.CONFIGURED, this));
     }
 
     /**
@@ -377,6 +380,10 @@ public class Simulator implements SimulatorAPI {
      */
     public boolean isPlaying() {
         return isPlaying;
+    }
+
+    public boolean isConfigured() {
+        return configured;
     }
 
     /**
