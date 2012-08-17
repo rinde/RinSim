@@ -15,6 +15,8 @@ import rinde.sim.problem.fabrirecht.FRParcel;
 import rinde.sim.problem.fabrirecht.FRVehicle;
 import rinde.sim.problem.fabrirecht.FabriRechtParser;
 import rinde.sim.problem.fabrirecht.FabriRechtProblem;
+import rinde.sim.problem.fabrirecht.ParcelAssesor;
+import rinde.sim.problem.fabrirecht.ParcelDTO;
 import rinde.sim.problem.fabrirecht.VehicleDTO;
 import rinde.sim.scenario.ConfigurationException;
 import rinde.sim.ui.View;
@@ -70,6 +72,16 @@ class ProblemInstance extends FabriRechtProblem {
 		schema.add(FRParcel.class, "/graphics/flat/hailing-cab-32.png");
 		View.startGui(getSimulator(), 1, new PlaneRoadModelRenderer(40), new RoadUserRenderer(schema, false), new PDPModelRenderer());
 		return true;
+	}
+
+	@Override
+	protected ParcelAssesor createParcelAssesor() {
+		return new ParcelAssesor() {
+			@Override
+			public boolean acceptParcel(ParcelDTO parcel) {
+				return true;
+			}
+		};
 	}
 }
 

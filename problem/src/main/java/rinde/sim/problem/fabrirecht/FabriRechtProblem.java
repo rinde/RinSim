@@ -33,6 +33,10 @@ import rinde.sim.scenario.TimedEvent;
  */
 public abstract class FabriRechtProblem extends ScenarioController {
 
+	protected Simulator simulator;
+	protected RoadModel roadModel;
+	protected PDPModel pdpModel;
+	protected ParcelAssesor parcelAssesor;
 	protected final FabriRechtScenario fabriRechtScenario;
 	protected final StatisticsListener statisticsListener;
 
@@ -44,21 +48,23 @@ public abstract class FabriRechtProblem extends ScenarioController {
 		super(scen, (int) (scen.timeWindow.end - scen.timeWindow.begin));
 		fabriRechtScenario = scen;
 		statisticsListener = new StatisticsListener();
+
 	}
 
 	// subclasses can override this method to add more models
 	@Override
 	protected Simulator createSimulator() throws Exception {
-		final Simulator sim = new Simulator(new MersenneTwister(123), 1);
-		final RoadModel rm = new PlaneRoadModel(fabriRechtScenario.min, fabriRechtScenario.max, false, 1.0);
-		final PDPModel pm = new PDPModel(rm, new TardyAllowedPolicy());
-		sim.getEventAPI().addListener(statisticsListener, SimulatorEventType.values());
-		rm.getEventAPI().addListener(statisticsListener, RoadEvent.MOVE);
-		pm.getEventAPI()
+		simulator = new Simulator(new MersenneTwister(123), 1);
+		roadModel = new PlaneRoadModel(fabriRechtScenario.min, fabriRechtScenario.max, false, 1.0);
+		pdpModel = new PDPModel(roadModel, new TardyAllowedPolicy());
+		simulator.getEventAPI().addListener(statisticsListener, SimulatorEventType.values());
+		roadModel.getEventAPI().addListener(statisticsListener, RoadEvent.MOVE);
+		pdpModel.getEventAPI()
 				.addListener(statisticsListener, PDPModelEventType.START_PICKUP, PDPModelEventType.END_PICKUP, PDPModelEventType.START_DELIVERY, PDPModelEventType.END_DELIVERY);
-		sim.register(rm);
-		sim.register(pm);
-		return sim;
+		simulator.register(roadModel);
+		simulator.register(pdpModel);
+		parcelAssesor = createParcelAssesor();
+		return simulator;
 	}
 
 	@Override
@@ -77,12 +83,18 @@ public abstract class FabriRechtProblem extends ScenarioController {
 		return false;
 	}
 
+	protected abstract ParcelAssesor createParcelAssesor();
+
 	protected abstract boolean handleAddVehicle(AddVehicleEvent event);
 
 	protected abstract boolean handleTimeOut();
 
 	protected boolean handleAddParcel(AddParcelEvent event) {
-		return getSimulator().register(new FRParcel(event.parcelDTO));
+		if (parcelAssesor.acceptParcel(event.parcelDTO)) {
+			statisticsListener.acceptedParcels++;
+			return getSimulator().register(new FRParcel(event.parcelDTO));
+		}
+		return true;
 	}
 
 	protected boolean handleAddDepot(AddDepotEvent event) {
@@ -98,17 +110,20 @@ public abstract class FabriRechtProblem extends ScenarioController {
 		public final double totalDistance;
 		public final int totalPickups;
 		public final int totalDeliveries;
-		public final int addedParcels;
+		public final int totalParcels;
+		public final int acceptedParcels;
 		public final long pickupTardiness;
 		public final long deliveryTardiness;
 		public final long computationTime;
 		public final long simulationTime;
 
-		public StatisticsDTO(double dist, int pick, int del, int parc, long pickTar, long delTar, long compT, long simT) {
+		public StatisticsDTO(double dist, int pick, int del, int parc, int accP, long pickTar, long delTar, long compT,
+				long simT) {
 			totalDistance = dist;
 			totalPickups = pick;
 			totalDeliveries = del;
-			addedParcels = parc;
+			totalParcels = parc;
+			acceptedParcels = accP;
 			pickupTardiness = pickTar;
 			deliveryTardiness = delTar;
 			computationTime = compT;
@@ -121,10 +136,12 @@ public abstract class FabriRechtProblem extends ScenarioController {
 			sb.append("\t\t\t = Statistics = \ncomputation time:\t\t").append(computationTime);
 			sb.append("\nsimulation time:\t\t").append(simulationTime);
 			sb.append("\ntotal traveled distance:\t").append(totalDistance);
-			sb.append("\npickups:\t\t\t").append(totalPickups).append(" / ").append(addedParcels);
-			sb.append("\t").append(Math.round(((double) totalPickups / addedParcels) * 100d)).append("%");
-			sb.append("\ndeliveries:\t\t\t").append(totalDeliveries).append(" / ").append(addedParcels);
-			sb.append("\t").append(Math.round(((double) totalDeliveries / addedParcels) * 100d)).append("%");
+			sb.append("\naccepted parcels:\t\t").append(acceptedParcels).append(" / ").append(totalParcels);
+			sb.append("\t").append(Math.round(((double) acceptedParcels / totalParcels) * 100d)).append("%");
+			sb.append("\npickups:\t\t\t").append(totalPickups).append(" / ").append(acceptedParcels);
+			sb.append("\t").append(Math.round(((double) totalPickups / acceptedParcels) * 100d)).append("%");
+			sb.append("\ndeliveries:\t\t\t").append(totalDeliveries).append(" / ").append(acceptedParcels);
+			sb.append("\t").append(Math.round(((double) totalDeliveries / acceptedParcels) * 100d)).append("%");
 			sb.append("\npickup tardiness:\t\t").append(pickupTardiness);
 			sb.append("\ndelivery tardiness:\t\t").append(deliveryTardiness);
 			return sb.toString();
@@ -133,6 +150,7 @@ public abstract class FabriRechtProblem extends ScenarioController {
 
 	public class StatisticsListener implements Listener {
 
+		protected int acceptedParcels;
 		protected final Map<MovingRoadUser, Double> distanceMap;
 		protected double totalDistance;
 		protected int totalPickups;
@@ -151,6 +169,7 @@ public abstract class FabriRechtProblem extends ScenarioController {
 			totalPickups = 0;
 			totalDeliveries = 0;
 			addedParcels = 0;
+			acceptedParcels = 0;
 		}
 
 		@Override
@@ -211,8 +230,8 @@ public abstract class FabriRechtProblem extends ScenarioController {
 		}
 
 		public StatisticsDTO getDTO() {
-			return new StatisticsDTO(totalDistance, totalPickups, totalDeliveries, addedParcels, pickupTardiness,
-					deliveryTardiness, computationTime, simulationTime);
+			return new StatisticsDTO(totalDistance, totalPickups, totalDeliveries, addedParcels, acceptedParcels,
+					pickupTardiness, deliveryTardiness, computationTime, simulationTime);
 		}
 	}
 

@@ -62,6 +62,15 @@ public class TestProblem {
 			return true;
 		}
 
+		@Override
+		protected ParcelAssesor createParcelAssesor() {
+			return new ParcelAssesor() {
+				@Override
+				public boolean acceptParcel(ParcelDTO parcel) {
+					return true;
+				}
+			};
+		}
 	}
 
 	class TestVehicle extends FRVehicle {
