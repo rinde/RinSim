@@ -101,4 +101,10 @@ public final class TimeLapse {
     public long getEndTime() {
         return endTime;
     }
+
+    @Override
+    public String toString() {
+        return new StringBuilder("[").append(startTime).append(",")
+                .append(endTime).append(")").toString();
+    }
 }

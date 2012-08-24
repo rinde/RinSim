@@ -316,4 +316,10 @@ public class ScenarioBuilder {
         }
     }
 
+    public static boolean isTimeOrderingConsistent(Scenario scen) {
+        final List<TimedEvent> es = newArrayList(scen.asList());
+        Collections.sort(es, new TimeComparator());
+        return scen.asList().equals(es);
+    }
+
 }

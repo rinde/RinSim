@@ -23,6 +23,8 @@ import rinde.sim.core.model.road.MovingRoadUser;
 import rinde.sim.core.model.road.PlaneRoadModel;
 import rinde.sim.core.model.road.RoadModel;
 import rinde.sim.event.Event;
+import rinde.sim.event.EventAPI;
+import rinde.sim.event.EventDispatcher;
 import rinde.sim.event.Listener;
 import rinde.sim.scenario.ScenarioController;
 import rinde.sim.scenario.TimedEvent;
@@ -148,7 +150,13 @@ public abstract class FabriRechtProblem extends ScenarioController {
 		}
 	}
 
+	public enum StatisticsEventType {
+		PICKUP_TARDINESS, DELIVERY_TARDINESS;
+	}
+
 	public class StatisticsListener implements Listener {
+
+		protected EventDispatcher eventDispatcher;
 
 		protected int acceptedParcels;
 		protected final Map<MovingRoadUser, Double> distanceMap;
@@ -170,6 +178,7 @@ public abstract class FabriRechtProblem extends ScenarioController {
 			totalDeliveries = 0;
 			addedParcels = 0;
 			acceptedParcels = 0;
+			eventDispatcher = new EventDispatcher(StatisticsEventType.values());
 		}
 
 		@Override
@@ -185,20 +194,30 @@ public abstract class FabriRechtProblem extends ScenarioController {
 				increment(me.roadUser, me.pathProgress.distance);
 				totalDistance += me.pathProgress.distance;
 			} else if (e.getEventType() == PDPModelEventType.START_PICKUP) {
+
 				final PDPModelEvent pme = (PDPModelEvent) e;
-				final long latestBeginTime = pme.parcel.getPickupTimeWindow().begin - pme.parcel.getPickupDuration();
+				final long latestBeginTime = pme.parcel.getPickupTimeWindow().end - pme.parcel.getPickupDuration();
 				if (pme.time > latestBeginTime) {
+					// System.out.println(pme.time);
+					// System.out.println("pickup tardiness for: " +
+					// ReflectionToStringBuilder.toString(pme.parcel));
+					// System.out.println(pme.time - latestBeginTime);
 					pickupTardiness += pme.time - latestBeginTime;
+					eventDispatcher.dispatchEvent(new Event(StatisticsEventType.PICKUP_TARDINESS, this));
+
+					// throw new RuntimeException();
 				}
 
 			} else if (e.getEventType() == PDPModelEventType.END_PICKUP) {
 				totalPickups++;
 			} else if (e.getEventType() == PDPModelEventType.START_DELIVERY) {
 				final PDPModelEvent pme = (PDPModelEvent) e;
-				final long latestBeginTime = pme.parcel.getDeliveryTimeWindow().begin
-						- pme.parcel.getDeliveryDuration();
+				final long latestBeginTime = pme.parcel.getDeliveryTimeWindow().end - pme.parcel.getDeliveryDuration();
 				if (pme.time > latestBeginTime) {
+					// System.out.println("delivery tardiness for: " +
+					// ReflectionToStringBuilder.toString(pme.parcel));
 					deliveryTardiness += pme.time - latestBeginTime;
+					eventDispatcher.dispatchEvent(new Event(StatisticsEventType.DELIVERY_TARDINESS, this));
 				}
 			} else if (e.getEventType() == PDPModelEventType.END_DELIVERY) {
 				totalDeliveries++;
@@ -227,6 +246,10 @@ public abstract class FabriRechtProblem extends ScenarioController {
 
 		public long getComputationTime() {
 			return computationTime;
+		}
+
+		public EventAPI getEventAPI() {
+			return eventDispatcher.getEventAPI();
 		}
 
 		public StatisticsDTO getDTO() {

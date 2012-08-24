@@ -36,7 +36,7 @@ public interface EventAPI {
      * @param eventTypes The {@link Event} types, each type but be a type that
      *            is supported by this EventDispatcher. May not be null. If no
      *            eventTypes are specified, the listener will be notified of
-     *            <b>all</b> events.
+     *            <b>no</b> events.
      */
     void addListener(Listener listener, Set<Enum<?>> eventTypes);
 

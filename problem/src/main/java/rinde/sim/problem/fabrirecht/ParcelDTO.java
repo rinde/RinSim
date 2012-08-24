@@ -1,5 +1,7 @@
 package rinde.sim.problem.fabrirecht;
 
+import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
+
 import rinde.sim.core.graph.Point;
 import rinde.sim.util.TimeWindow;
 
@@ -24,5 +26,10 @@ public class ParcelDTO {
 		orderArrivalTime = pOrderArrivalTime;
 		pickupDuration = pPickupDuration;
 		deliveryDuration = pDeliveryDuration;
+	}
+
+	@Override
+	public String toString() {
+		return ReflectionToStringBuilder.toString(this);
 	}
 }

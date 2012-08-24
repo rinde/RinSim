@@ -394,10 +394,10 @@ public class PDPModel implements Model<PDPObject>, TickListener {
      *            {@link Parcel} is added.
      * @param parcel The {@link Parcel} that is added.
      */
-    // TODO what is the use of this method?
     public void addParcelIn(Container container, Parcel parcel) {
         /* 1 */checkArgument(!roadModel.containsObject(parcel), "this parcel is already added to the roadmodel");
-        /* 2 */checkArgument(parcelState.get(parcel) == ParcelState.AVAILABLE, "parcel must be registered and in AVAILABLE state");
+        /* 2 */checkArgument(parcelState.get(parcel) == ParcelState.AVAILABLE, "parcel must be registered and in AVAILABLE state, current state: "
+                + parcelState.get(parcel));
         /* 3 */checkArgument(containerCapacities.containsKey(container), "the parcel container is not registered");
         /* 4 */checkArgument(roadModel.containsObject(container), "the parcel container is not on the roadmodel");
         final double newSize = containerContentsSize.get(container)
@@ -406,6 +406,7 @@ public class PDPModel implements Model<PDPObject>, TickListener {
 
         containerContents.put(container, parcel);
         containerContentsSize.put(container, newSize);
+        parcelState.put(ParcelState.IN_CARGO, parcel);
     }
 
     /**
@@ -461,6 +462,12 @@ public class PDPModel implements Model<PDPObject>, TickListener {
      */
     public VehicleState getVehicleState(Vehicle vehicle) {
         return vehicleState.get(vehicle);
+    }
+
+    public VehicleParcelActionInfo getVehicleActionInfo(Vehicle vehicle) {
+        checkArgument(vehicleState.get(vehicle) == VehicleState.DELIVERING
+                || vehicleState.get(vehicle) == VehicleState.PICKING_UP, "the vehicle must be in either DELIVERING or PICKING_UP state");
+        return (VehicleParcelActionInfo) pendingVehicleActions.get(vehicle);
     }
 
     public Point getPosition(PDPObject obj) {
@@ -603,7 +610,16 @@ public class PDPModel implements Model<PDPObject>, TickListener {
         boolean isDone();
     }
 
-    abstract class VehicleParcelAction implements Action {
+    public interface VehicleParcelActionInfo {
+        long timeNeeded();
+
+        Vehicle getVehicle();
+
+        Parcel getParcel();
+    }
+
+    abstract class VehicleParcelAction implements Action,
+            VehicleParcelActionInfo {
         protected final PDPModel modelRef;
         protected final Vehicle vehicle;
         protected final Parcel parcel;
@@ -637,8 +653,19 @@ public class PDPModel implements Model<PDPObject>, TickListener {
             return timeNeeded == 0;
         }
 
+        @Override
         public long timeNeeded() {
             return timeNeeded;
+        }
+
+        @Override
+        public Parcel getParcel() {
+            return parcel;
+        }
+
+        @Override
+        public Vehicle getVehicle() {
+            return vehicle;
         }
     }
 

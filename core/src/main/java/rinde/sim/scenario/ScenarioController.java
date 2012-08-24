@@ -26,7 +26,7 @@ import rinde.sim.event.Listener;
  * @author Bartosz Michalik <bartosz.michalik@cs.kuleuven.be>
  * @since 2.0
  */
-public abstract class ScenarioController implements TickListener, Listener {
+public abstract class ScenarioController implements TickListener {
 
     /**
      * Logger for this class.
@@ -85,7 +85,7 @@ public abstract class ScenarioController implements TickListener, Listener {
     public ScenarioController(final Scenario scen, int numberOfTicks) {
         checkArgument(scen != null, "scenario can not be null");
         ticks = numberOfTicks;
-        scenario = new Scenario(scen);
+        scenario = scen;// new Scenario(scen);
         scenarioQueue = scenario.asQueue();
 
         final Set<Enum<?>> typeSet = newHashSet(scenario
@@ -93,7 +93,8 @@ public abstract class ScenarioController implements TickListener, Listener {
         typeSet.addAll(asList(EventType.values()));
         disp = new EventDispatcher(typeSet);
         eventAPI = disp.getEventAPI();
-        disp.addListener(this, scenario.getPossibleEventTypes());
+        disp.addListener(new TimedEventHandler(), scenario
+                .getPossibleEventTypes());
     }
 
     /**
@@ -233,14 +234,17 @@ public abstract class ScenarioController implements TickListener, Listener {
     @Override
     public void afterTick(TimeLapse timeLapse) {} // not needed
 
-    // TODO this should probably moved into an inner class. Currently,
-    // subclasses can not be a listener because of this.
-    @Override
-    public final void handleEvent(Event e) {
-        if (!handleTimedEvent((TimedEvent) e)) {
-            LOGGER.warn("event not handled: " + e.toString());
-            throw new IllegalArgumentException("event not handled: "
-                    + e.toString());
+    class TimedEventHandler implements Listener {
+
+        public TimedEventHandler() {}
+
+        @Override
+        public final void handleEvent(Event e) {
+            if (!handleTimedEvent((TimedEvent) e)) {
+                LOGGER.warn("event not handled: " + e.toString());
+                throw new IllegalArgumentException("event not handled: "
+                        + e.toString());
+            }
         }
     }
 

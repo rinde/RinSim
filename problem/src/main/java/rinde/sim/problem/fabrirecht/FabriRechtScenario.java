@@ -21,6 +21,14 @@ public class FabriRechtScenario extends Scenario {
 	public final Point max;
 	public final TimeWindow timeWindow;
 
+	// empty scenario
+	public FabriRechtScenario(Point pMin, Point pMax, TimeWindow pTimeWindow) {
+		super();
+		min = pMin;
+		max = pMax;
+		timeWindow = pTimeWindow;
+	}
+
 	/**
 	 * @param pEvents
 	 * @param pSupportedTypes

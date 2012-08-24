@@ -22,6 +22,10 @@ public class TimeWindow {
         return time >= begin;
     }
 
+    public long length() {
+        return end - begin;
+    }
+
     @Override
     public String toString() {
 

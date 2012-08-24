@@ -79,7 +79,7 @@ public class EventDispatcher implements EventAPI {
     @Override
     public void addListener(Listener listener, Enum<?>... eventTypes) {
         checkArgument(eventTypes != null, "event types can not be null");
-        addListener(listener, newHashSet(eventTypes));
+        addListener(listener, newHashSet(eventTypes), eventTypes.length == 0);
     }
 
     /**
@@ -87,12 +87,16 @@ public class EventDispatcher implements EventAPI {
      */
     @Override
     public void addListener(Listener listener, Set<Enum<?>> eventTypes) {
+        addListener(listener, eventTypes, false);
+    }
+
+    protected void addListener(Listener listener, Set<Enum<?>> eventTypes,
+            boolean all) {
         checkArgument(listener != null, "listener can not be null");
         if (eventTypes == null) {
             throw new IllegalArgumentException("event types can not be null");
         }
-        final Set<Enum<?>> theTypes = eventTypes.isEmpty() ? supportedTypes
-                : eventTypes;
+        final Set<Enum<?>> theTypes = all ? supportedTypes : eventTypes;
         for (final Enum<?> eventType : theTypes) {
             checkArgument(eventType != null, "event type can not be null");
             checkArgument(supportedTypes.contains(eventType), "A listener for type "

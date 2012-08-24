@@ -49,7 +49,7 @@ public class PDPModelRenderer implements ModelRenderer {
 				}
 				final VehicleState state = pdpModel.getVehicleState(v);
 				if (state != VehicleState.IDLE) {
-					gc.drawText(state.toString(), x, y - 20);
+					gc.drawText(state.toString() + " " + pdpModel.getVehicleActionInfo(v).timeNeeded(), x, y - 20);
 				}
 			}
 		}
@@ -72,10 +72,8 @@ public class PDPModelRenderer implements ModelRenderer {
 				}
 				gc.setBackground(new Color(gc.getDevice(), color));
 				gc.fillOval(x - 5, y - 5, 10, 10);
-
 			}
 		}
-
 	}
 
 	@Override

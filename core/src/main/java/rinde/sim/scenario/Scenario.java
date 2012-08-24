@@ -12,7 +12,9 @@ import static java.util.Collections.unmodifiableList;
 import static java.util.Collections.unmodifiableSet;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Queue;
 import java.util.Set;
@@ -30,6 +32,11 @@ public class Scenario implements Serializable {
     private final List<TimedEvent> events;
     private final Set<Enum<?>> supportedTypes;
 
+    public Scenario() {
+        supportedTypes = unmodifiableSet(new LinkedHashSet<Enum<?>>());
+        events = unmodifiableList(new ArrayList<TimedEvent>());
+    }
+
     /**
      * Create a new scenario which supports the specified event types with the
      * specified events. Note that it is not checked whether the supported types
@@ -44,7 +51,7 @@ public class Scenario implements Serializable {
             Set<Enum<?>> pSupportedTypes) {
         checkArgument(!pEvents.isEmpty(), "events can not be null or empty");
         checkArgument(!pSupportedTypes.isEmpty(), "supported types must be a non-empty set");
-        supportedTypes = newLinkedHashSet(pSupportedTypes);
+        supportedTypes = unmodifiableSet(newLinkedHashSet(pSupportedTypes));
 
         // final PriorityQueue<TimedEvent> tmp = new PriorityQueue<TimedEvent>(
         // pEvents.size(), new TimeComparator());
@@ -81,6 +88,7 @@ public class Scenario implements Serializable {
      * @return the list of events.
      */
     public List<TimedEvent> asList() {
+        // TODO can return original list?
         return newArrayList(events);
     }
 
@@ -127,7 +135,7 @@ public class Scenario implements Serializable {
      * @return event types
      */
     public Set<Enum<?>> getPossibleEventTypes() {
-        return unmodifiableSet(supportedTypes);
+        return supportedTypes;
     }
 
     protected static Set<Enum<?>> collectEventTypes(
