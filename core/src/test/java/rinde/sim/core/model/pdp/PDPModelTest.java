@@ -323,7 +323,8 @@ public class PDPModelTest {
         rm.addObjectAt(d, new Point(0, 0));
         model.addParcelIn(d, p1);
 
-        assertEquals(newHashSet(p1), model.getAvailableParcels());
+        assertTrue(model.getContents(d).size() == 1);
+        assertTrue(model.getContents(d).contains(p1));
     }
 
     @Test(expected = IllegalArgumentException.class)

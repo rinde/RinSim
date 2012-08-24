@@ -65,7 +65,7 @@ public abstract class ScenarioController implements TickListener {
     Simulator simulator;
 
     private int ticks;
-    private final EventDispatcher disp;
+    protected final EventDispatcher disp;
     private EventType status;
 
     /**

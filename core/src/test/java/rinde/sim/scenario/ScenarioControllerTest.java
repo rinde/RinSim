@@ -110,7 +110,7 @@ public class ScenarioControllerTest {
                 return false;
             }
         };
-        sc.handleEvent(new TimedEvent(SCENARIO_FINISHED, 0));
+        sc.disp.dispatchEvent(new TimedEvent(EVENT_A, 0));
     }
 
     @Test
