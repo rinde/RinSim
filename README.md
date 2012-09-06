@@ -10,86 +10,19 @@ Click the image above to view a movie showing the simulator in action.
 For installing the RinSim simulator there are generally two options:
 
 * Use the latest builds available on [this page](http://people.cs.kuleuven.be/~rinde.vanlon/rinsim/binaries/). The zip file contains all the jars, dependencies and JavaDocs of the simulator. All Jars have to be added manually to your classpath.
-* Use Git and Maven, see the section on [Git & Maven](https://github.com/rinde/RinSim#git-and-maven) . Currently this is the preferred option since it allows one to easily follow changes in the code by updating the repository.
+* Use Git and Maven, see the section on [Git & Maven](https://github.com/rinde/RinSim#git-and-maven). Currently this is the preferred option since it allows one to easily follow changes in the code by updating the repository.
 
  
 ## Getting Started 
 Once the simulator is installed, you are ready to explore the simulator. It is recommended to start by running and studying the [simple example](https://github.com/rinde/RinSim/blob/v2/example/src/main/java/rinde/sim/examples/simple/SimpleExample.java). The JavaDocs are also available online on [this page](http://people.cs.kuleuven.be/~rinde.vanlon/rinsim/javadoc/). The remainder of this page gives a high level overview of the simulator.
 
-<!--
+## About
+RinSim is being developed at [AgentWise](http://distrinet.cs.kuleuven.be/research/taskforces/showTaskforce.do?taskforceID=agentwise) in the [DistriNet group](http://distrinet.cs.kuleuven.be/) at the [Department of Computer Science, KU Leuven, Belgium](http://www.cs.kuleuven.be/). The lead author is [Rinde van Lon](http://distrinet.cs.kuleuven.be/people/showMember.do?memberID=u0075143). Contributions were made by Bartosz Michalik and Robrecht Haesevoets.
 
-The best way to get the simulator and handle future updates is to use git.
-
-Alternatively you can use a zip that contains the current version of RinSim.
-
-### Using the Zip file
-
-__Only use this method to tryout the simulator. Updating RinSim using this method will be annoying.__
-
-* Download the zipped project [here](http://TODO).
-* Unzip the project to your desired location.
-* Open eclipse and select _File -> Import... -> General -> Existing Projects into Workspace_
-* Browse to the directory where you unzipped the project.
-* Click _finish_
--->
-
-<!-- ### Prerequisites
-
-To use RinSim, you need the following:
-
-__Note__: if you install the latest [_Eclipse IDE for Java Developers_](http://www.eclipse.org/downloads/packages/eclipse-ide-java-developers/indigosr2), the m2e and eGit plugins are preinstalled, but __not__ PDE.
-If you install _Eclipse IDE for Java EE Developers_ or _Eclipse Classic_, PDE will be preinstalled, but not m2e or eGit.
-
-* [eclipse](http://www.eclipse.org/)
-* [m2e](http://www.eclipse.org/m2e/) Maven plugin for eclipse.
-	* Update site: 
-````
-http://download.eclipse.org/technology/m2e/releases
-````
-* [eGit](http://www.eclipse.org/egit/) Git plugin for eclipse (or another git client)
-	* Update site: 
-````
-http://download.eclipse.org/egit/updates
-````
-* PDE (Eclipse Plug-In Development Environment)
-
-To install m2e and eGit:
-
-* Go to _Help -> Install New Software..._
-* Click _Add..._
-* Enter the update site in location and enter any local name for the update site.
-* Select the desired packages and install.
-
-To install PDE
-
-* Go to _Help -> Install New Software..._.
-* In _Work with_, click the drop down and select _[Indigo - http://download.eclipse.org/releases/indigo]()_ (or the update site for your eclipse release).
-* Search for _plug-in_.
-* Install the _Eclipse Plug-In Development Environment_.
-
-### Getting RinSim
-
-RinSim is hosted on gitHub. You can get it using eGit (the eclipse plugin) or git.
--->
-<!--
-
-(If you are using a pc from the lab and cannot install eclipse plugins, you can find a zipped workspace [here](http://people.cs.kuleuven.be/~robrecht.haesevoets/mascourse/simulator2.zip).
-You should open this workspace as a workspace in eclipse _File -> Switch Workspace -> Other..._
-Using this zipped workspace is not the recommended method, since you cannot update RinSim.)
--->
-<!--
+RinSim is being used in both research and education. It is used in several publications on multi-agent systems and it is used in a MAS course as a testbed for students.
 
 
-<!-- ### Running the example
-
-Execute one of the examples in the _example_ project.
-	
-* Right-click on _Example.java_ or _RandomWalkExample.java_ and select _Run As -> Java Application_
-* You should now see a map of Leuven. Agents and other objects on the map are represented by dots.
-* Use the menu or keyboard shortcuts to start, stop, speedup or slowdown the simulation.
--->
-
-## Simulator Architecture
+## Design Overview
 
 This section gives a brief overview of the most important elements of the simulator. For a deeper understanding you should have a look at the examples, the source code, and the tests.
 <!--A simplified class diagram of the key elements can be found [here](http://people.cs.kuleuven.be/~robrecht.haesevoets/mascourse/docs/classDiagram.png). -->
@@ -136,55 +69,6 @@ When introducing new models you can create new custom renderers for these models
 Simulation entities are entities that are the actual objects in our simulation, such as agents, trucks, and packages.
 They can implement the _TickListener_ interface and/or other interfaces to use additional models.
 Once registered in the simulator, the simulator will make sure they receive ticks (if required) and are registered in all required models (see the example below).
-
-<!--
-## A simple example
-
-The following code illustrates how a simulator can be created.
-A sequence diagram can be found [here](http://people.cs.kuleuven.be/~robrecht.haesevoets/mascourse/docs/example.png).
-
-```java
-//create a new random number generator
-MersenneTwister rand = new MersenneTwister(123);
-
-//create a new simulator
-Simulator simulator = new Simulator(rand, 1000);
-
-//load graph of Leuven
-Graph<MultiAttributeEdgeData> graph = DotGraphSerializer.getMultiAttributeGraphSerializer(new SelfCycleFilter()).read(MAP_DIR + "leuven-simple.dot");
-
-//create a new road model for Leuven and register it in the simulator
-RoadModel roadModel = new RoadModel(graph);
-simulator.register(roadModel);
-
-//create a new communication model and register it in the simulator
-CommunicationModel communicationModel = new CommunicationModel(rand);
-simulator.register(communicationModel);
-
-//configure the simulator
-//after this call, no more models be registered in the simulator
-//before this call, no simulation entities can be registered in the simulator
-simulator.configure();
-		
-//create some agent and register it in the simulator
-SomeAgent agent = new SomeAgent();
-simulator.register(agent);
-				
-//create a ui schema used by object renderer
-UiSchema schema = new UiSchema();
-//some agents will be red
-schema.add(SomeAgent.class, new RGB(255,0,0));
-		
-//start the GUI with a simple object renderer
-View.startGui(simulator, 5, new ObjectRenderer(roadModel, schema, false));
-```
--->
-<!--## How to create a model
-
-_available soon_
-
-## Additional guidelines
--->
 
 ## Git and Maven
 This section assumes that you are using [Eclipse](http://www.eclipse.org) with [m2e](http://eclipse.org/m2e/) and optionally [eGit](http://www.eclipse.org/egit/). Installation instructions for each can be found on their respective websites.
