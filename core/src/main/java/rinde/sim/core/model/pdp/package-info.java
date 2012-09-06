@@ -1,6 +1,5 @@
 /**
- * UNDER CONSTRUCTION: pickup-and-delivery problem model. TODO write decent
- * package description
+ * Provides models for defining pickup-and-delivery problems.
  */
 @ParametersAreNonnullByDefault
 package rinde.sim.core.model.pdp;
