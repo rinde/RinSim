@@ -55,6 +55,7 @@ Out of the box, RinSim comes with three basic models: _RoadModel_, _Communicatio
 It supports both direct messaging and broadcasting.
 It can also take distance, communication radius, and communication reliability into account.
 Messages between agents are send asynchronously (as illustrated [here](http://people.cs.kuleuven.be/~robrecht.haesevoets/mascourse/docs/communication.png)).
+![RoadModel](docs/RoadModel.png) ![PDPModel](docs/PDPModel.png) ![CommunicationModel](docs/CommunicationModel.png)
 
 ### GUI
 
@@ -114,8 +115,6 @@ To update the simulator later on, you can use the _pull_ command:
 git pull origin v2
 ````
 
-Note that git might require you to first commit your own changes.
-
 ### Importing the Maven projects in eclipse
 
 RinSim relies on Maven to load all required dependencies.
@@ -124,14 +123,15 @@ To make use of Maven in eclipse you have to execute the following steps:
 * In eclipse go to _File -> Import... -> Maven -> Existing Maven Projects_.
 * Browse to your local RinSim directory.
 * You will now see a list of _.pom_ files.
-* Select the _.pom_ files for __core__, __example__, and __ui__.
+* Select all the _.pom_ files except the one named _packaging_
 * Click _Finish_.
 
-After finishing the import, you should see the following three projects in your workspace:
+After finishing the import, you should see the following four projects in your workspace:
 
 * _core_: the heart of the simulator and the models.
 * _ui_: everything related to visualizing stuff for the simulator. 
 * _example_: some simple examples of how to use the simulator.
+* _problem_: some specific problem implementations.
 
 
 
@@ -153,11 +153,11 @@ in the URI field (do not alter any other input fields) and click _next_.
 
 You will now have one project in eclipse.
 Because we use Maven, you cannot use this project directly.
-Instead, You now have to import the following three sub-projects individually: __core__, __ui__, and __example__.
-Perform steps __1__ to __9__ again for __core__, __ui__, and __example__.
+Instead, You now have to import the all sub-projects (except __packaging__) individually.
+Perform steps __1__ to __9__ again for each sub-project
 
 __Important__: In step 6, choose another directory for the specific sub-project.
-In step 8, select core/ui/example from the working directory (like [this](http://people.cs.kuleuven.be/~robrecht.haesevoets/mascourse/docs/Subproject.png)).
+In step 8, select core/ui/example from the working directory.
 
 __Note__: Some versions of eclipse do not show the sub-directories in step 8.
 To solve this, first click _back_ then again _next_.
@@ -183,14 +183,15 @@ To make use of Maven in eclipse you have to execute the following steps:
 * In eclipse go to _File -> Import... -> Maven -> Existing Maven Projects_
 * Browse to your local RinSim directory.
 * You will now see a list of _.pom_ files.
-* Select the _.pom_ files for _core_, _examples_, and _ui_.
+* Select all _.pom_ files except (_packaging.pom_).
 * Click _Finish_
 
 After finishing the import, you should see the following three projects in your workspace:
 
 * _core_: the heart of the simulator and the models.
 * _ui_: everything related to visualizing stuff for the simulator.
-* _example_: some simple examples of how to use the simulator. This is where you will initially write your application code.
+* _example_: some simple examples of how to use the simulator. 
+* _problem_: standard problem implementations.
 
 To update the simulator later on, you can use the _pull_ command:
 
@@ -198,7 +199,7 @@ To update the simulator later on, you can use the _pull_ command:
 git pull origin v2
 ````
 
-Note that git might require you to first commit your own changes.
+
 
 
 
