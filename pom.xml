@@ -75,6 +75,10 @@
 							<packages>*</packages>
 						</group>
 						<group>
+							<title>Problem Packages</title>
+							<packages>rinde.sim.problem*</packages>
+						</group>
+						<group>
 							<title>UI Packages</title>
 							<packages>rinde.sim.ui*</packages>
 						</group>
