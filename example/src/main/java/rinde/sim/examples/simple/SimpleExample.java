@@ -20,7 +20,10 @@ import rinde.sim.ui.renderers.RoadUserRenderer;
 /**
  * This is a very simple example of the RinSim simulator that shows how a
  * simulation is set up. It is heavily documented to provide a sort of
- * 'walk-through' experience for new users of the simulator.
+ * 'walk-through' experience for new users of the simulator.<br/>
+ * 
+ * If this class is run on MacOS it might be neccessary to use
+ * -XstartOnFirstThread as a VM argument.
  * 
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
  */

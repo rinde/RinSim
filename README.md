@@ -187,6 +187,7 @@ _available soon_
 -->
 
 ## Git and Maven
+This section assumes that you are using [Eclipse](http://www.eclipse.org) with [m2e](http://eclipse.org/m2e/) and optionally [eGit](http://www.eclipse.org/egit/). Installation instructions for each can be found on their respective websites.
 
 ### Using eGit
 
