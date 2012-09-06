@@ -77,7 +77,7 @@ public class SimpleController extends ScenarioController {
 	@Override
 	protected boolean createUserInterface() {
 		final UiSchema schema = new UiSchema(false);
-		schema.add(rinde.sim.example.rwalk.common.Package.class, new RGB(0x0, 0x0, 0xFF));
+		schema.add(rinde.sim.examples.common.Package.class, new RGB(0x0, 0x0, 0xFF));
 
 		final UiSchema schema2 = new UiSchema();
 		schema2.add(RandomWalkAgent.C_BLACK, new RGB(0, 0, 0));

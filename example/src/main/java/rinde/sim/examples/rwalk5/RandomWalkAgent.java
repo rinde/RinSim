@@ -25,7 +25,7 @@ import rinde.sim.core.model.road.RoadUser;
 import rinde.sim.event.Event;
 import rinde.sim.event.EventAPI;
 import rinde.sim.event.EventDispatcher;
-import rinde.sim.example.rwalk.common.Package;
+import rinde.sim.examples.common.Package;
 
 /**
  * Example of the simple random agent with the use of simulation facilities.

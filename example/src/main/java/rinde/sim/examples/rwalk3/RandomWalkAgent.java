@@ -13,7 +13,7 @@ import rinde.sim.core.graph.Point;
 import rinde.sim.core.model.road.MovingRoadUser;
 import rinde.sim.core.model.road.RoadModel;
 import rinde.sim.core.model.road.RoadUser;
-import rinde.sim.example.rwalk.common.Package;
+import rinde.sim.examples.common.Package;
 
 /**
  * Example of the simple random agent with the use of simulation facilities.

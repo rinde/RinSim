@@ -22,7 +22,7 @@ import rinde.sim.core.model.road.GraphRoadModel;
 import rinde.sim.core.model.road.RoadModel;
 import rinde.sim.core.model.road.RoadModels;
 import rinde.sim.core.model.road.RoadUser;
-import rinde.sim.example.rwalk.common.Package;
+import rinde.sim.examples.common.Package;
 import rinde.sim.serializers.DotGraphSerializer;
 import rinde.sim.serializers.SelfCycleFilter;
 import rinde.sim.ui.View;

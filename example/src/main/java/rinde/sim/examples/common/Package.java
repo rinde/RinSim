@@ -1,4 +1,4 @@
-package rinde.sim.lab.common;
+package rinde.sim.examples.common;
 
 import rinde.sim.core.graph.Point;
 import rinde.sim.core.model.road.RoadModel;
