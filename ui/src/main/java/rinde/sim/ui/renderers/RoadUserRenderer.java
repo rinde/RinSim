@@ -28,7 +28,7 @@ public class RoadUserRenderer implements ModelRenderer {
 	protected ViewRect viewRect;
 
 	public RoadUserRenderer() {
-		this(null, new UiSchema(false), false);
+		this(null, null, false);
 	}
 
 	public RoadUserRenderer(UiSchema schema, boolean useEncirclement) {
@@ -38,7 +38,7 @@ public class RoadUserRenderer implements ModelRenderer {
 	public RoadUserRenderer(ViewRect rect, UiSchema schema, boolean useEncirclement) {
 		viewRect = rect;
 		this.useEncirclement = useEncirclement;
-		uiSchema = schema == null ? new UiSchema(false) : schema;
+		uiSchema = schema == null ? new UiSchema() : schema;
 	}
 
 	@Override
@@ -56,6 +56,7 @@ public class RoadUserRenderer implements ModelRenderer {
 				final Image image = uiSchema.getImage(type);
 				final int x = (int) (vp.origin.x + (p.x - vp.rect.min.x) * vp.scale) - radius;
 				final int y = (int) (vp.origin.y + (p.y - vp.rect.min.y) * vp.scale) - radius;
+
 				if (image != null) {
 					final int offsetX = x - image.getBounds().width / 2;
 					final int offsetY = y - image.getBounds().height / 2;
