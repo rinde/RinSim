@@ -3,8 +3,9 @@
 RinSim is an extensible MAS (Multi-Agent System) simulator. The simulator focusses on __simplicity__ and __consistency__ which makes it ideal for performing scientific simulations. Further, there is huge focus on software quality which results in an ever improving test suite and JavaDoc comments. RinSim supports pluggable models which allow to extend the scope of the simulator. Out of the box, RinSim currently focusses on MAS for PDP (Pickup and Delivery Problems). You can easily extend RinSim by introducing your own custom models.
 
 [<img src="https://github.com/rinde/RinSim/raw/v2/docs/screenshot.png">](http://vimeo.com/rinde/rinsim-gecco-demo)
+_Click the image above to view a demonstration movie of the simulator._
 
-Click the image above to view a movie showing the simulator in action.
+
 
 ## Installation
 For installing the RinSim simulator there are generally two options:
@@ -68,7 +69,7 @@ When introducing new models you can create new custom renderers for these models
 
 Simulation entities are entities that are the actual objects in our simulation, such as agents, trucks, and packages.
 They can implement the _TickListener_ interface and/or other interfaces to use additional models.
-Once registered in the simulator, the simulator will make sure they receive ticks (if required) and are registered in all required models (see the example below).
+Once registered in the simulator, the simulator will make sure they receive ticks (if required) and are registered in all required models.
 
 ## Git and Maven
 This section assumes that you are using [Eclipse](http://www.eclipse.org) with [m2e](http://eclipse.org/m2e/) and optionally [eGit](http://www.eclipse.org/egit/). Installation instructions for each can be found on their respective websites.
