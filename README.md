@@ -55,7 +55,8 @@ Out of the box, RinSim comes with three basic models: _RoadModel_, _Communicatio
 It supports both direct messaging and broadcasting.
 It can also take distance, communication radius, and communication reliability into account.
 Messages between agents are send asynchronously (as illustrated [here](http://people.cs.kuleuven.be/~robrecht.haesevoets/mascourse/docs/communication.png)).
-![RoadModel](docs/RoadModel.png) ![PDPModel](docs/PDPModel.png) ![CommunicationModel](docs/CommunicationModel.png)
+
+![RoadModel](https://github.com/rinde/RinSim/raw/v2/docs/RoadModel.png) ![PDPModel](https://github.com/rinde/RinSim/raw/v2/docs/PDPModel.png) ![CommunicationModel](https://github.com/rinde/RinSim/raw/v2/docs/CommunicationModel.png)
 
 ### GUI
 
