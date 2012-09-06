@@ -106,7 +106,7 @@ To update the simulator later on, right-click on the top-level project, go to _T
 	git clone git@github.com:rinde/RinSim.git -b v2
 	````
 	
-	This will download all the source files of the RinSim project to you local directory.
+	This will download all the source files of the RinSim project to your local directory.
 
 To update the simulator later on, you can use the _pull_ command:
 
