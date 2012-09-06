@@ -1,24 +1,20 @@
 # RinSim
 
-RinSim is an extensible MAS (Multi-Agent System) simulator.
-It supports pluggable models which allow to extend the scope of the simulator.
-Out of the box, RinSim currently focusses on MAS for PDP (Pickup and Delivery Problems). 
-You can easily extend RinSim by introducing your own custom models.
+RinSim is an extensible MAS (Multi-Agent System) simulator. The simulator focusses on __simplicity__ and __consistency__ which makes it ideal for performing scientific simulations. Further, there is huge focus on software quality which results in an ever improving test suite and JavaDoc comments. RinSim supports pluggable models which allow to extend the scope of the simulator. Out of the box, RinSim currently focusses on MAS for PDP (Pickup and Delivery Problems). You can easily extend RinSim by introducing your own custom models.
 
 [<img src="https://github.com/rinde/RinSim/raw/v2/docs/screenshot.png">](http://vimeo.com/rinde/rinsim-gecco-demo)
 
 Click the image above to view a movie showing the simulator in action.
 
+## Installation
+For installing the RinSim simulator there are generally two options:
+
+* Use the latest builds available on [this page](http://people.cs.kuleuven.be/~rinde.vanlon/rinsim/binaries/). The zip file contains all the jars, dependencies and JavaDocs of the simulator. All Jars have to be added manually to your classpath.
+* Use Git and Maven, see the section on [Git & Maven](https://github.com/rinde/RinSim#git-and-maven) . Currently this is the preferred option since it allows one to easily follow changes in the code by updating the repository.
+
+ 
 ## Getting Started 
-Two options:
-
-* Use the latest builds (see Downloads)
-* Use Maven, Git, etc (start at Prerequisites)
-
-The latest JavaDoc can be found [here](http://people.cs.kuleuven.be/~rinde.vanlon/rinsim/javadoc/).
-
-### Downloads
-The latest builds for several platforms are now available from [this page](http://people.cs.kuleuven.be/~rinde.vanlon/rinsim/binaries/), this is an experimental feature, feedback is appreciated.
+Once the simulator is installed, you are ready to explore the simulator. It is recommended to start by running and studying the [simple example](https://github.com/rinde/RinSim/blob/v2/example/src/main/java/rinde/sim/examples/simple/SimpleExample.java). The JavaDocs are also available online on [this page](http://people.cs.kuleuven.be/~rinde.vanlon/rinsim/javadoc/). The remainder of this page gives a high level overview of the simulator.
 
 <!--
 
@@ -37,7 +33,7 @@ __Only use this method to tryout the simulator. Updating RinSim using this metho
 * Click _finish_
 -->
 
-### Prerequisites
+<!-- ### Prerequisites
 
 To use RinSim, you need the following:
 
@@ -74,14 +70,125 @@ To install PDE
 ### Getting RinSim
 
 RinSim is hosted on gitHub. You can get it using eGit (the eclipse plugin) or git.
-
+-->
 <!--
 
 (If you are using a pc from the lab and cannot install eclipse plugins, you can find a zipped workspace [here](http://people.cs.kuleuven.be/~robrecht.haesevoets/mascourse/simulator2.zip).
 You should open this workspace as a workspace in eclipse _File -> Switch Workspace -> Other..._
 Using this zipped workspace is not the recommended method, since you cannot update RinSim.)
 -->
-#### Using eGit
+<!--
+
+
+<!-- ### Running the example
+
+Execute one of the examples in the _example_ project.
+	
+* Right-click on _Example.java_ or _RandomWalkExample.java_ and select _Run As -> Java Application_
+* You should now see a map of Leuven. Agents and other objects on the map are represented by dots.
+* Use the menu or keyboard shortcuts to start, stop, speedup or slowdown the simulation.
+-->
+
+## Simulator Architecture
+
+This section gives a brief overview of the most important elements of the simulator. For a deeper understanding you should have a look at the examples, the source code, and the tests.
+<!--A simplified class diagram of the key elements can be found [here](http://people.cs.kuleuven.be/~robrecht.haesevoets/mascourse/docs/classDiagram.png). -->
+
+### Simulator
+
+The _Simulator_ class is the heart of RinSim. Its main concern is to simulate time. This is done in a discrete manner. Time is divided in ticks of a certain length, which is chosen upon initializing the simulator (see examples and code).
+
+Of course time on its own is not so useful, so we can register objects in the simulator, such as objects implementing the _TickListener_ interface. These objects will listen to the internal clock of the simulator. You can also register other objects, as we will see in a moment.
+
+Once started, the simulator will start to tick, and with each tick it will call all registered tickListeners, in turn, to perform some actions within the length of the time step (as illustrated [here](http://people.cs.kuleuven.be/~robrecht.haesevoets/mascourse/docs/tickListeners.png)). Time consistency is enforced by the _TimeLapse_ objects. Each _TickListener_ receives a single _TimeLapse_ object every tick, the time in this object can be 'spent' on actions. This spending can be done only once, as such an agent can not violate the time consistency in the simulator. For example, calling _RoadModel#moveTo(..)_ several times will have no effect.
+
+As you can see there is also an _afterTick_, but we'll ignore this for now.
+
+Apart from simulating time, the simulator has little functionality on its own.
+All additional functionality (such as movement, communication, etc.) that is required by your simulation, should be delegated to models.
+These models can be easily plugged (or registered) in the simulator.
+
+### Models
+
+Out of the box, RinSim comes with three basic models: _RoadModel_, _CommunicationModel_ and _PDPModel_. When this is not enough, it is easy to define your own custom model.
+
+* __RoadModel__: simulates a physical road structure. The _RoadModel_ allows to place and move objects (_RoadUsers_) on roads. It comes in two flavors:
+	* __GraphRoadModel__: A graph based road model, objects can only move on edges of the graph. Several maps are currently available [here](http://people.cs.kuleuven.be/~rinde.vanlon/rinsim/maps/).
+	* __PlaneRoadModel__: A plane based road model, objects can move anywhere within the plane.
+* __PDPModel__: the pickup-and-delivery model. The model collaborates with the _RoadModel_, the models comes with three different _RoadUser_s: _Vehicle_, _Parcel_ and _Depot_. _Vehicle_s can transport _Parcel_s from and to _Depot_s. The model enforces capacity constraints, time windows and position consistency.
+* __CommunicationModel__: simulates simple message-based communication between objects implementing the _CommunicationUser_ interface.
+It supports both direct messaging and broadcasting.
+It can also take distance, communication radius, and communication reliability into account.
+Messages between agents are send asynchronously (as illustrated [here](http://people.cs.kuleuven.be/~robrecht.haesevoets/mascourse/docs/communication.png)).
+
+### GUI
+
+The GUI is realized by the _SimulationViewer_, which relies on a set of _Renderers_.
+
+* __SimulationViewer__: is responsible for rendering the simulator. Specific renderers can be added for each model, for the provided models there exist default renderers.
+
+* __Renderer__: is responsible for rendering one model (or more).
+Examples are the _RoadUserRenderer_ to do basic rendering of objects in the _RoadModel_, or _MessagingLayerRenderer_ to visualize messages between agents.
+When introducing new models you can create new custom renderers for these models.
+
+### Simulation Entities
+
+Simulation entities are entities that are the actual objects in our simulation, such as agents, trucks, and packages.
+They can implement the _TickListener_ interface and/or other interfaces to use additional models.
+Once registered in the simulator, the simulator will make sure they receive ticks (if required) and are registered in all required models (see the example below).
+
+<!--
+## A simple example
+
+The following code illustrates how a simulator can be created.
+A sequence diagram can be found [here](http://people.cs.kuleuven.be/~robrecht.haesevoets/mascourse/docs/example.png).
+
+```java
+//create a new random number generator
+MersenneTwister rand = new MersenneTwister(123);
+
+//create a new simulator
+Simulator simulator = new Simulator(rand, 1000);
+
+//load graph of Leuven
+Graph<MultiAttributeEdgeData> graph = DotGraphSerializer.getMultiAttributeGraphSerializer(new SelfCycleFilter()).read(MAP_DIR + "leuven-simple.dot");
+
+//create a new road model for Leuven and register it in the simulator
+RoadModel roadModel = new RoadModel(graph);
+simulator.register(roadModel);
+
+//create a new communication model and register it in the simulator
+CommunicationModel communicationModel = new CommunicationModel(rand);
+simulator.register(communicationModel);
+
+//configure the simulator
+//after this call, no more models be registered in the simulator
+//before this call, no simulation entities can be registered in the simulator
+simulator.configure();
+		
+//create some agent and register it in the simulator
+SomeAgent agent = new SomeAgent();
+simulator.register(agent);
+				
+//create a ui schema used by object renderer
+UiSchema schema = new UiSchema();
+//some agents will be red
+schema.add(SomeAgent.class, new RGB(255,0,0));
+		
+//start the GUI with a simple object renderer
+View.startGui(simulator, 5, new ObjectRenderer(roadModel, schema, false));
+```
+-->
+<!--## How to create a model
+
+_available soon_
+
+## Additional guidelines
+-->
+
+## Git and Maven
+
+### Using eGit
 
 * Go to _File -> Import..._
 * Select _Git -> Projects from Git_ and click _next_.
@@ -102,7 +209,7 @@ You will now have one project in eclipse. See _Importing the Maven projects in e
 To update the simulator later on, right-click on the top-level project, go to _Team_ and select and select _Pull_.
 
 
-#### Using Git
+### Using Git (commandline)
 
 * Open a terminal.
 * Navigate to the directory where you want to store the RinSim project.
@@ -139,7 +246,7 @@ After finishing the import, you should see the following three projects in your 
 * _ui_: everything related to visualizing stuff for the simulator. 
 * _example_: some simple examples of how to use the simulator.
 
-<!--
+
 
 #### Using eGit
 
@@ -206,121 +313,11 @@ git pull origin v2
 
 Note that git might require you to first commit your own changes.
 
--->
 
-### Running the example
 
-Execute one of the examples in the _example_ project.
-	
-* Right-click on _Example.java_ or _RandomWalkExample.java_ and select _Run As -> Java Application_
-* You should now see a map of Leuven. Agents and other objects on the map are represented by dots.
-* Use the menu or keyboard shortcuts to start, stop, speedup or slowdown the simulation.
 
-## Simulator Architecture
 
-This section gives a brief overview of the most important elements of the simulator. For a deeper understanding you should have a look at the examples, the source code, and the tests.
-A simplified class diagram of the key elements can be found [here](http://people.cs.kuleuven.be/~robrecht.haesevoets/mascourse/docs/classDiagram.png).
-
-### Simulator
-
-The _Simulator_ class is the heart of RinSim.
-Its main concern is to simulate time.
-This is done in a discrete manner. Time is divided in ticks of a certain length, which is chosen upon initializing the simulator (see examples and code).
-
-Of course time on its own is not so useful, so we can register objects in the simulator, such as objects implementing the _TickListener_ interface.
-These objects will listen to the internal clock of the simulator.
-You can also register other objects, as we will see in a moment.
-
-Once started, the simulator will start to tick, and with each tick it will call all registered tickListeners, in turn, to perform some actions within the length of the time step (as illustrated [here](http://people.cs.kuleuven.be/~robrecht.haesevoets/mascourse/docs/tickListeners.png)).
-
-As you can see there is also an _afterTick_, but we'll ignore this for now.
-
-Apart from simulating time, the simulator has little functionality on its own.
-All additional functionality (such as movement, communication, etc.) that is required by your simulation, should be delegated to models.
-These models can be easily plugged (or registered) in the simulator.
-
-### Models
-
-Out of the box, RinSim comes with two basic models: _RoadModel_ and _CommunicationModel_. Further on, you will see how you can implement your own models.
-
-* __RoadModel__: simulates a physical road on top of a _Graph_ object.
-A _Graph_ object represents the structure of the roads. The _RoadModel_ allows to place and move objects (_RoadUsers_) on the roads.
-The _RoadModel_ can, for example, be used to simulate physical trucks and packages.
-
-* __CommunicationModel__: simulates simple message-based communication between objects implementing the _CommunicationUser_ interface.
-It supports both direct messaging and broadcasting.
-It can also take distance, communication radius, and communication reliability into account.
-Messages between agents are send asynchronously (as illustrated [here](http://people.cs.kuleuven.be/~robrecht.haesevoets/mascourse/docs/communication.png)).
-
-### GUI
-
-The GUI is realized by the _SimulationViewer_, which relies on a set of _Renderers_.
-
-* __SimulationViewer__: is responsible for rendering the simulator.
-By default, if a __RoadModel__ is registered in the simulator, it renders the road of the loaded graph.
-Additional rendering is done by application specific renderers that are passed on creation of the GUI (see examples and code).
-
-* __Renderer__: is responsible for rendering one model (or more).
-Examples are the _ObjectRenderer_ to do basic rendering of objects in the _RoadModel_, or _MessagingLayerRenderer_ to visualize messages between agents.
-When introducing new models you can create new custom renderers for these models.
-
-### Simulation Entities
-
-Simulation entities are entities that are the actual objects in our simulation, such as agents, trucks, and packages.
-They can implement the _TickListener_ interface and/or other interfaces to use additional models.
-Once registered in the simulator, the simulator will make sure they receive ticks (if required) and are registered in all required models (see the example below).
-
-## A simple example
-
-The following code illustrates how a simulator can be created.
-A sequence diagram can be found [here](http://people.cs.kuleuven.be/~robrecht.haesevoets/mascourse/docs/example.png).
-
-```java
-//create a new random number generator
-MersenneTwister rand = new MersenneTwister(123);
-
-//create a new simulator
-Simulator simulator = new Simulator(rand, 1000);
-
-//load graph of Leuven
-Graph<MultiAttributeEdgeData> graph = DotGraphSerializer.getMultiAttributeGraphSerializer(new SelfCycleFilter()).read(MAP_DIR + "leuven-simple.dot");
-
-//create a new road model for Leuven and register it in the simulator
-RoadModel roadModel = new RoadModel(graph);
-simulator.register(roadModel);
-
-//create a new communication model and register it in the simulator
-CommunicationModel communicationModel = new CommunicationModel(rand);
-simulator.register(communicationModel);
-
-//configure the simulator
-//after this call, no more models be registered in the simulator
-//before this call, no simulation entities can be registered in the simulator
-simulator.configure();
-		
-//create some agent and register it in the simulator
-SomeAgent agent = new SomeAgent();
-simulator.register(agent);
-				
-//create a ui schema used by object renderer
-UiSchema schema = new UiSchema();
-//some agents will be red
-schema.add(SomeAgent.class, new RGB(255,0,0));
-		
-//start the GUI with a simple object renderer
-View.startGui(simulator, 5, new ObjectRenderer(roadModel, schema, false));
-```
-
-<!--## How to create a model
-
-_available soon_
-
-## Additional guidelines
--->
-### Maps
-
-On this [page](http://people.cs.kuleuven.be/~rinde.vanlon/rinsim/maps/) a number of maps are made available.
-
+<!--
 ### Using gitHub's issues to report changes
 
 You can use gitHub's issue feature to report problems, bugs, or useful features for RinSim.
@@ -332,7 +329,7 @@ Remember:
 * Be precise in the description of your issue.
 * When reporting a bug, give sufficient information on how to reproduce the bug.
 * Think twice before creating a new issue.
-
+-->
 <!-- 
 _more guidelines available soon_
 

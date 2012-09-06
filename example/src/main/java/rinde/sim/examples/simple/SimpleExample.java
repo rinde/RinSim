@@ -56,6 +56,8 @@ public class SimpleExample {
 		// (indicating its boundaries), and the drivers are rendererd as red
 		// dots.
 		View.startGui(sim, 1, new PlaneRoadModelRenderer(), new RoadUserRenderer());
+		// in case a GUI is not desired, the simulation can simply be run by
+		// calling: sim.start();
 	}
 
 	static class Driver implements MovingRoadUser, TickListener {
