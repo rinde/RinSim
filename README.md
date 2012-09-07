@@ -57,7 +57,7 @@ Out of the box, RinSim comes with three basic models: _RoadModel_, _Communicatio
 * __RoadModel__: simulates a physical road structure. The _RoadModel_ allows to place and move objects (_RoadUsers_) on roads. It comes in two flavors:
 	* __GraphRoadModel__: A graph based road model, objects can only move on edges of the graph. Several maps are currently available [here](http://people.cs.kuleuven.be/~rinde.vanlon/rinsim/maps/).
 	* __PlaneRoadModel__: A plane based road model, objects can move anywhere within the plane.
-* __PDPModel__: the pickup-and-delivery model. The model collaborates with the _RoadModel_, the models comes with three different _RoadUser_s: _Vehicle_, _Parcel_ and _Depot_. _Vehicle_s can transport _Parcel_s from and to _Depot_s. The model enforces capacity constraints, time windows and position consistency.
+* __PDPModel__: the pickup-and-delivery model. The model collaborates with the _RoadModel_, the models comes with three different _RoadUser_s: _Vehicle_, _Parcel_ and _Depot_. _Vehicles_ can transport _Parcels_ from and to _Depots_. The model enforces capacity constraints, time windows and position consistency.
 * __CommunicationModel__: simulates simple message-based communication between objects implementing the _CommunicationUser_ interface.
 It supports both direct messaging and broadcasting.
 It can also take distance, communication radius, and communication reliability into account.
