@@ -16,6 +16,8 @@ import org.junit.Test;
 import rinde.sim.core.TimeLapse;
 import rinde.sim.core.TimeLapseFactory;
 import rinde.sim.core.graph.Point;
+import rinde.sim.core.model.Model;
+import rinde.sim.core.model.ModelProvider;
 import rinde.sim.core.model.pdp.PDPModel.PDPModelEventType;
 import rinde.sim.core.model.pdp.PDPModel.ParcelState;
 import rinde.sim.core.model.pdp.PDPModel.PickupAction;
@@ -40,7 +42,14 @@ public class PDPModelTest {
     public void setUp() {
         rm = new PlaneRoadModel(new Point(0, 0), new Point(10, 10), true,
                 Double.POSITIVE_INFINITY);
-        model = new PDPModel(rm);
+        model = new PDPModel();
+        model.registerModelProvider(new ModelProvider() {
+            @SuppressWarnings("unchecked")
+            @Override
+            public <T extends Model<?>> T getModel(Class<T> clazz) {
+                return (T) rm;
+            }
+        });
 
         /*
          * Added to remove noise in coverage tool.

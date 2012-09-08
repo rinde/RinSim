@@ -5,7 +5,6 @@ import static com.google.common.collect.Maps.newHashMap;
 import static com.google.common.collect.Sets.newLinkedHashSet;
 
 import java.util.Arrays;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -37,9 +36,7 @@ import rinde.sim.core.Simulator;
 import rinde.sim.core.TickListener;
 import rinde.sim.core.TimeLapse;
 import rinde.sim.core.graph.Point;
-import rinde.sim.core.model.Model;
-import rinde.sim.ui.renderers.ModelProvider;
-import rinde.sim.ui.renderers.ModelRenderer;
+import rinde.sim.core.model.ModelReceiver;
 import rinde.sim.ui.renderers.Renderer;
 import rinde.sim.ui.renderers.ViewPort;
 import rinde.sim.ui.renderers.ViewRect;
@@ -52,7 +49,7 @@ import rinde.sim.util.TimeFormatter;
  * 
  */
 public class SimulationViewer extends Composite implements TickListener, ControlListener, PaintListener,
-		SelectionListener, ModelProvider {
+		SelectionListener {
 
 	public static final String COLOR_WHITE = "white";
 	public static final String COLOR_GREEN = "green";
@@ -93,15 +90,15 @@ public class SimulationViewer extends Composite implements TickListener, Control
 
 	private final Display display;
 
-	protected final Set<ModelRenderer> modelRenderers;
+	protected final Set<ModelReceiver> modelRenderers;
 
 	public SimulationViewer(Shell shell, final Simulator sim, int speedUp, Renderer... renderers) {
 		super(shell, SWT.NONE);
 
 		modelRenderers = newLinkedHashSet();
 		for (final Renderer r : renderers) {
-			if (r instanceof ModelRenderer) {
-				modelRenderers.add((ModelRenderer) r);
+			if (r instanceof ModelReceiver) {
+				modelRenderers.add((ModelReceiver) r);
 			}
 		}
 		simulator = sim;
@@ -133,21 +130,9 @@ public class SimulationViewer extends Composite implements TickListener, Control
 	}
 
 	protected void configureModelRenderers() {
-		for (final ModelRenderer mr : modelRenderers) {
-			mr.registerModelProvider(this);
+		for (final ModelReceiver mr : modelRenderers) {
+			mr.registerModelProvider(simulator.getModelProvider());
 		}
-	}
-
-	@SuppressWarnings("unchecked")
-	@Override
-	public <T extends Model<?>> T getModel(Class<T> clazz) {
-		final List<Model<?>> models = simulator.getModels();
-		for (final Model<?> model : models) {
-			if (clazz.isInstance(model)) {
-				return (T) model;
-			}
-		}
-		throw new IllegalArgumentException("There is no model of type: " + clazz);
 	}
 
 	// @SuppressWarnings("unchecked")

@@ -22,7 +22,7 @@ import com.google.common.collect.Multimap;
  * @author Bartosz Michalik <bartosz.michalik@cs.kuleuven.be>
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
  */
-public class ModelManager {
+public class ModelManager implements ModelProvider {
 
     private final Multimap<Class<? extends Object>, Model<? extends Object>> registry;
     private final List<Model<? extends Object>> models;
@@ -63,6 +63,11 @@ public class ModelManager {
      * registered in the manager.
      */
     public void configure() {
+        for (final Model<?> m : models) {
+            if (m instanceof ModelReceiver) {
+                ((ModelReceiver) m).registerModelProvider(this);
+            }
+        }
         configured = true;
     }
 
@@ -134,5 +139,17 @@ public class ModelManager {
      */
     public List<Model<?>> getModels() {
         return Collections.unmodifiableList(models);
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public <T extends Model<?>> T getModel(Class<T> clazz) {
+        for (final Model<?> model : models) {
+            if (clazz.isInstance(model)) {
+                return (T) model;
+            }
+        }
+        throw new IllegalArgumentException("There is no model of type: "
+                + clazz);
     }
 }

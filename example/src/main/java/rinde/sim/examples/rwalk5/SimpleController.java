@@ -20,7 +20,7 @@ import rinde.sim.serializers.DotGraphSerializer;
 import rinde.sim.serializers.SelfCycleFilter;
 import rinde.sim.ui.View;
 import rinde.sim.ui.renderers.RoadUserRenderer;
-import rinde.sim.ui.renderers.RoadsRenderer;
+import rinde.sim.ui.renderers.GraphRoadModelRenderer;
 import rinde.sim.ui.renderers.UiSchema;
 
 public class SimpleController extends ScenarioController {
@@ -84,7 +84,7 @@ public class SimpleController extends ScenarioController {
 		schema2.add(RandomWalkAgent.C_YELLOW, new RGB(0xff, 0, 0));
 		schema2.add(RandomWalkAgent.C_GREEN, new RGB(0x0, 0x80, 0));
 
-		View.startGui(getSimulator(), 4, new RoadsRenderer(), new RoadUserRenderer(schema, false), new MessagingLayerRenderer(
+		View.startGui(getSimulator(), 4, new GraphRoadModelRenderer(), new RoadUserRenderer(schema, false), new MessagingLayerRenderer(
 				roadModel, schema2));
 
 		return true;

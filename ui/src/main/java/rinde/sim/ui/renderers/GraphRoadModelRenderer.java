@@ -10,6 +10,7 @@ import rinde.sim.core.graph.Connection;
 import rinde.sim.core.graph.ConnectionData;
 import rinde.sim.core.graph.Graph;
 import rinde.sim.core.graph.Point;
+import rinde.sim.core.model.ModelProvider;
 import rinde.sim.core.model.road.GraphRoadModel;
 import rinde.sim.ui.SimulationViewer;
 
@@ -18,15 +19,15 @@ import rinde.sim.ui.SimulationViewer;
  * @author Rinde van Lon (rinde.vanlon@cs.kuleuven.be)
  * 
  */
-public class RoadsRenderer implements ModelRenderer {
+public class GraphRoadModelRenderer implements ModelRenderer {
 	protected GraphRoadModel grm;
 	protected final int margin;
 
-	public RoadsRenderer(int pMargin) {
+	public GraphRoadModelRenderer(int pMargin) {
 		margin = pMargin;
 	}
 
-	public RoadsRenderer() {
+	public GraphRoadModelRenderer() {
 		this(20);
 	}
 

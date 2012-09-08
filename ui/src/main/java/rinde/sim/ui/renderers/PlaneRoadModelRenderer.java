@@ -6,6 +6,7 @@ package rinde.sim.ui.renderers;
 import org.eclipse.swt.graphics.GC;
 
 import rinde.sim.core.graph.Point;
+import rinde.sim.core.model.ModelProvider;
 import rinde.sim.core.model.road.PlaneRoadModel;
 
 /**

@@ -19,6 +19,8 @@ import rinde.sim.core.TickListener;
 import rinde.sim.core.TimeLapse;
 import rinde.sim.core.graph.Point;
 import rinde.sim.core.model.Model;
+import rinde.sim.core.model.ModelProvider;
+import rinde.sim.core.model.ModelReceiver;
 import rinde.sim.core.model.pdp.twpolicy.LiberalPolicy;
 import rinde.sim.core.model.pdp.twpolicy.TimeWindowPolicy;
 import rinde.sim.core.model.road.RoadModel;
@@ -59,7 +61,7 @@ import com.google.common.collect.Multimap;
  * 
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
  */
-public class PDPModel implements Model<PDPObject>, TickListener {
+public class PDPModel implements Model<PDPObject>, TickListener, ModelReceiver {
 
     /**
      * {@link EventAPI} which allows adding and removing listeners to the model.
@@ -72,7 +74,7 @@ public class PDPModel implements Model<PDPObject>, TickListener {
     /**
      * Reference to the {@link RoadModel} on which the pdp objects are situated.
      */
-    protected final RoadModel roadModel;
+    protected RoadModel roadModel;
     /**
      * Multimap for keeping references to the contents of {@link Container}s.
      */
@@ -190,16 +192,15 @@ public class PDPModel implements Model<PDPObject>, TickListener {
         NEW_PARCEL
     }
 
-    public PDPModel(RoadModel rm) {
-        this(rm, new LiberalPolicy());
+    public PDPModel() {
+        this(new LiberalPolicy());
     }
 
     /**
      * Initializes the PDPModel.
      * @param rm The {@link RoadModel} which is associated to this model.
      */
-    public PDPModel(RoadModel rm, TimeWindowPolicy twp) {
-        roadModel = rm;
+    public PDPModel(TimeWindowPolicy twp) {
         timeWindowPolicy = twp;
         containerContents = LinkedHashMultimap.create();
         containerContentsSize = newLinkedHashMap();
@@ -575,6 +576,11 @@ public class PDPModel implements Model<PDPObject>, TickListener {
         return timeWindowPolicy;
     }
 
+    @Override
+    public void registerModelProvider(ModelProvider mp) {
+        roadModel = mp.getModel(RoadModel.class);
+    }
+
     public class PDPModelEvent extends Event {
 
         public final PDPModel pdpModel;
@@ -698,5 +704,4 @@ public class PDPModel implements Model<PDPObject>, TickListener {
             modelRef.doDeliver(vehicle, parcel, time.getTime());
         }
     }
-
 }

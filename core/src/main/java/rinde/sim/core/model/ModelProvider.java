@@ -1,9 +1,8 @@
 /**
  * 
  */
-package rinde.sim.ui.renderers;
+package rinde.sim.core.model;
 
-import rinde.sim.core.model.Model;
 
 /**
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>

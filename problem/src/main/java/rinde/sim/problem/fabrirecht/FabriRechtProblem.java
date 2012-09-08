@@ -58,7 +58,7 @@ public abstract class FabriRechtProblem extends ScenarioController {
 	protected Simulator createSimulator() throws Exception {
 		simulator = new Simulator(new MersenneTwister(123), 1);
 		roadModel = new PlaneRoadModel(fabriRechtScenario.min, fabriRechtScenario.max, false, 1.0);
-		pdpModel = new PDPModel(roadModel, new TardyAllowedPolicy());
+		pdpModel = new PDPModel(new TardyAllowedPolicy());
 		simulator.getEventAPI().addListener(statisticsListener, SimulatorEventType.values());
 		roadModel.getEventAPI().addListener(statisticsListener, RoadEvent.MOVE);
 		pdpModel.getEventAPI()

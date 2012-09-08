@@ -16,6 +16,7 @@ import org.slf4j.LoggerFactory;
 
 import rinde.sim.core.model.Model;
 import rinde.sim.core.model.ModelManager;
+import rinde.sim.core.model.ModelProvider;
 import rinde.sim.event.Event;
 import rinde.sim.event.EventAPI;
 import rinde.sim.event.EventDispatcher;
@@ -251,6 +252,14 @@ public class Simulator implements SimulatorAPI {
      */
     public List<Model<?>> getModels() {
         return modelManager.getModels();
+    }
+
+    /**
+     * Returns the {@link ModelProvider} that has all registered models.
+     * @return The model provider
+     */
+    public ModelProvider getModelProvider() {
+        return modelManager;
     }
 
     /**

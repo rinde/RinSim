@@ -7,10 +7,10 @@ import java.util.Collection;
 
 import org.eclipse.swt.graphics.GC;
 
+import rinde.sim.core.model.ModelProvider;
 import rinde.sim.core.model.pdp.PDPModel;
 import rinde.sim.core.model.pdp.Parcel;
 import rinde.sim.problem.fabrirecht.FRParcel;
-import rinde.sim.ui.renderers.ModelProvider;
 import rinde.sim.ui.renderers.ModelRenderer;
 import rinde.sim.ui.renderers.ViewPort;
 import rinde.sim.ui.renderers.ViewRect;

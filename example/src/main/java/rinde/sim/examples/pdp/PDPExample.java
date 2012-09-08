@@ -18,8 +18,8 @@ import rinde.sim.core.model.road.RoadModel;
 import rinde.sim.serializers.DotGraphSerializer;
 import rinde.sim.serializers.SelfCycleFilter;
 import rinde.sim.ui.View;
+import rinde.sim.ui.renderers.GraphRoadModelRenderer;
 import rinde.sim.ui.renderers.RoadUserRenderer;
-import rinde.sim.ui.renderers.RoadsRenderer;
 import rinde.sim.ui.renderers.UiSchema;
 
 /**
@@ -37,7 +37,7 @@ public class PDPExample {
 		final Graph<MultiAttributeData> graph = DotGraphSerializer
 				.getMultiAttributeGraphSerializer(new SelfCycleFilter()).read(MAP_DIR + "leuven-simple.dot");
 		final RoadModel roadModel = new GraphRoadModel(graph);
-		final PDPModel pdpModel = new PDPModel(roadModel);
+		final PDPModel pdpModel = new PDPModel();
 		simulator.register(roadModel);
 		simulator.register(pdpModel);
 		simulator.configure();
@@ -59,7 +59,7 @@ public class PDPExample {
 		uis.add(ExampleDepot.class, "/graphics/perspective/tall-building-64.png");
 		uis.add(ExampleTruck.class, "/graphics/flat/taxi-32.png");
 		uis.add(ExampleParcel.class, "/graphics/flat/hailing-cab-32.png");
-		View.startGui(simulator, 1, new RoadsRenderer(), new RoadUserRenderer(uis, false));
+		View.startGui(simulator, 1, new GraphRoadModelRenderer(), new RoadUserRenderer(uis, false));
 
 	}
 }

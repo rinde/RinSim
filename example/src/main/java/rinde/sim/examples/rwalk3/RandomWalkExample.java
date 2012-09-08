@@ -17,6 +17,7 @@ import rinde.sim.core.Simulator;
 import rinde.sim.core.graph.Graph;
 import rinde.sim.core.graph.MultiAttributeData;
 import rinde.sim.core.graph.Point;
+import rinde.sim.core.model.ModelProvider;
 import rinde.sim.core.model.communication.CommunicationModel;
 import rinde.sim.core.model.road.GraphRoadModel;
 import rinde.sim.core.model.road.RoadModel;
@@ -26,10 +27,9 @@ import rinde.sim.examples.common.Package;
 import rinde.sim.serializers.DotGraphSerializer;
 import rinde.sim.serializers.SelfCycleFilter;
 import rinde.sim.ui.View;
-import rinde.sim.ui.renderers.ModelProvider;
+import rinde.sim.ui.renderers.GraphRoadModelRenderer;
 import rinde.sim.ui.renderers.ModelRenderer;
 import rinde.sim.ui.renderers.RoadUserRenderer;
-import rinde.sim.ui.renderers.RoadsRenderer;
 import rinde.sim.ui.renderers.UiSchema;
 import rinde.sim.ui.renderers.ViewPort;
 import rinde.sim.ui.renderers.ViewRect;
@@ -79,7 +79,8 @@ public class RandomWalkExample {
 		// schema.add(Package.class, new RGB(0x0, 0x0, 0xFF));
 
 		// View.setTestingMode(true);
-		View.startGui(simulator, 5, new RoadsRenderer(20), new FancyRenderer(), new RoadUserRenderer(schema, false));
+		View.startGui(simulator, 5, new GraphRoadModelRenderer(20), new FancyRenderer(), new RoadUserRenderer(schema,
+				false));
 	}
 
 	static class FancyRenderer implements ModelRenderer {
