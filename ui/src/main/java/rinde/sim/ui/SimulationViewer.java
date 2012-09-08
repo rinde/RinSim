@@ -545,11 +545,15 @@ public class SimulationViewer extends Composite implements TickListener, Control
 			return;
 		}
 		lastRefresh = timeLapse.getStartTime();
+		try {
+			Thread.sleep(30);
+		} catch (final InterruptedException e) {
+			throw new RuntimeException(e);
+		}
 		if (display.isDisposed()) {
 			return;
 		}
 		display.syncExec(new Runnable() {
-			// getDisplay().asyncExec(new Runnable() {
 			@Override
 			public void run() {
 				if (!canvas.isDisposed()) {
