@@ -49,7 +49,8 @@ public class PDPModelRenderer implements ModelRenderer {
 					gc.drawLine(x, y, vp.toCoordX(parcel.getDestination().x), vp.toCoordY(parcel.getDestination().y));
 				}
 				final VehicleState state = pdpModel.getVehicleState(v);
-				if (state != VehicleState.IDLE) {
+				// FIXME, investigate why the second check is neccesary..
+				if (state != VehicleState.IDLE && pdpModel.getVehicleActionInfo(v) != null) {
 					gc.drawText(state.toString() + " " + pdpModel.getVehicleActionInfo(v).timeNeeded(), x, y - 20);
 				}
 			}

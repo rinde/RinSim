@@ -4,6 +4,7 @@
 package rinde.sim.core.model.pdp;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Maps.newLinkedHashMap;
 import static com.google.common.collect.Sets.newLinkedHashSet;
@@ -344,7 +345,8 @@ public class PDPModel implements Model<PDPObject>, TickListener, ModelReceiver {
     public void deliver(Vehicle vehicle, Parcel parcel, TimeLapse time) {
         /* 1 */checkArgument(roadModel.containsObject(vehicle), "vehicle does not exist in RoadModel");
         /* 2 */checkArgument(vehicleState.get(vehicle)
-                .equals(VehicleState.IDLE), "vehicle must be idle");
+                .equals(VehicleState.IDLE), "vehicle must be idle but is: "
+                + vehicleState.get(vehicle));
         /* 3 */checkArgument(containerContents.get(vehicle).contains(parcel), "vehicle does not contain parcel");
         /* 4 */checkArgument(parcel.getDestination()
                 .equals(roadModel.getPosition(vehicle)), "parcel must be delivered at its destination, vehicle should move there first");
@@ -537,7 +539,7 @@ public class PDPModel implements Model<PDPObject>, TickListener, ModelReceiver {
      * previously started {@link Action}. By calling this method before
      * executing other actions, time consistency is enforced since any pending
      * actions will consume time first. It is possible that after this call is
-     * completed, there is not time left for other actions. When the specified
+     * completed, there is no time left for other actions. When the specified
      * {@link Vehicle} has no pending {@link Action}s nothing will happen.
      * @param vehicle {@link Vehicle}
      * @param time {@link TimeLapse} that is available for performing the
@@ -549,7 +551,10 @@ public class PDPModel implements Model<PDPObject>, TickListener, ModelReceiver {
             action.perform(time);
             if (action.isDone()) {
                 pendingVehicleActions.remove(vehicle);
+                checkState(!pendingVehicleActions.containsKey(vehicle));
+                checkState(vehicleState.get(vehicle) == VehicleState.IDLE);
             }
+
         }
     }
 
