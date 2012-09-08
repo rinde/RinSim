@@ -8,7 +8,6 @@ import org.eclipse.swt.graphics.DeviceData;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
 
-
 import rinde.sim.core.Simulator;
 import rinde.sim.ui.renderers.Renderer;
 import rinde.sim.ui.utils.Sleak;
@@ -18,12 +17,12 @@ import rinde.sim.ui.utils.Sleak;
  * @author Bartosz Michalik <bartosz.michalik@cs.kuleuven.be>
  * @since 2.0
  */
-public class View  {
-	
+public class View {
+
 	protected static boolean testingMode = false;
-	
-	private View(){};
-	
+
+	private View() {};
+
 	/**
 	 * Define the SWT handles tracing mode. Disabled by default
 	 * @param testingMode
@@ -35,21 +34,21 @@ public class View  {
 	public static void startGui(final Simulator simulator, final int speedup, Renderer... renderers) {
 		Display.setAppName("RinSim");
 		final Display display;
-		if(testingMode) {
-			DeviceData data = new DeviceData();
+		if (testingMode) {
+			final DeviceData data = new DeviceData();
 			data.tracking = true;
 			display = new Display(data);
-			Sleak sleak = new Sleak();
-			sleak.open();			
+			final Sleak sleak = new Sleak();
+			sleak.open();
 		} else {
-			display =  new Display();
+			display = new Display();
 		}
-	
+
 		final Shell shell = new Shell(display, SWT.TITLE | SWT.CLOSE | SWT.RESIZE);
 		shell.setText("RinSim - Simulator");
-		shell.setSize(new org.eclipse.swt.graphics.Point(1024, 768));
-		
-		//simulator viewer is run in here
+		shell.setSize(new org.eclipse.swt.graphics.Point(800, 600));
+
+		// simulator viewer is run in here
 		new SimulationViewer(shell, simulator, speedup, renderers);
 
 		shell.open();
@@ -62,5 +61,5 @@ public class View  {
 		if (shell.isDisposed()) {
 			simulator.stop();
 		}
-	}	
+	}
 }
