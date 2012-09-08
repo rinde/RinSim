@@ -80,7 +80,8 @@ public class PlaneRoadModel extends AbstractRoadModel<Point> {
 
     @Override
     public void addObjectAt(RoadUser obj, Point pos) {
-        checkArgument(isPointInBoundary(pos));
+        checkArgument(isPointInBoundary(pos), "objects can only be added within the boundaries of the plane, "
+                + pos + " is not in the boundary.");
         super.addObjectAt(obj, pos);
     }
 
