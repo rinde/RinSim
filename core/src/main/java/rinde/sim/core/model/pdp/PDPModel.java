@@ -461,6 +461,7 @@ public class PDPModel implements Model<PDPObject>, TickListener {
      * @return The {@link VehicleState} of the specified {@link Vehicle}.
      */
     public VehicleState getVehicleState(Vehicle vehicle) {
+        checkArgument(vehicleState.containsKey(vehicle), "vehicle must be registered");
         return vehicleState.get(vehicle);
     }
 
