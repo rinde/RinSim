@@ -9,15 +9,15 @@ import rinde.sim.core.TimeLapse;
 import rinde.sim.core.model.pdp.PDPModel.ParcelState;
 import rinde.sim.core.model.road.RoadModels;
 import rinde.sim.core.model.road.RoadUser;
-import rinde.sim.examples.fabrirecht.AddVehicleEvent;
-import rinde.sim.examples.fabrirecht.FRDepot;
-import rinde.sim.examples.fabrirecht.FRParcel;
-import rinde.sim.examples.fabrirecht.FRVehicle;
-import rinde.sim.examples.fabrirecht.FabriRechtParser;
-import rinde.sim.examples.fabrirecht.FabriRechtProblem;
-import rinde.sim.examples.fabrirecht.ParcelAssesor;
-import rinde.sim.examples.fabrirecht.ParcelDTO;
-import rinde.sim.examples.fabrirecht.VehicleDTO;
+import rinde.sim.problem.fabrirecht.AddVehicleEvent;
+import rinde.sim.problem.fabrirecht.FRDepot;
+import rinde.sim.problem.fabrirecht.FRParcel;
+import rinde.sim.problem.fabrirecht.FRVehicle;
+import rinde.sim.problem.fabrirecht.FabriRechtParser;
+import rinde.sim.problem.fabrirecht.FabriRechtProblem;
+import rinde.sim.problem.fabrirecht.ParcelAssesor;
+import rinde.sim.problem.fabrirecht.ParcelDTO;
+import rinde.sim.problem.fabrirecht.VehicleDTO;
 import rinde.sim.scenario.ConfigurationException;
 import rinde.sim.ui.View;
 import rinde.sim.ui.renderers.PDPModelRenderer;
@@ -34,8 +34,8 @@ import com.google.common.base.Predicate;
 public class FabriRechtExample {
 
 	public static void main(String[] args) throws IOException, ConfigurationException {
-		final ProblemInstance pi = new ProblemInstance("data/test/fabri-recht/lc101_coord.csv",
-				"data/test/fabri-recht/lc101.csv");
+		final ProblemInstance pi = new ProblemInstance("../problem/data/test/fabri-recht/lc101_coord.csv",
+				"../problem/data/test/fabri-recht/lc101.csv");
 
 	}
 
@@ -76,7 +76,7 @@ class ProblemInstance extends FabriRechtProblem {
 
 	@Override
 	protected ParcelAssesor createParcelAssesor() {
-		//Simple solution: always accept any parcel requests
+		// Simple solution: always accept any parcel requests
 		return new ParcelAssesor() {
 			@Override
 			public boolean acceptParcel(ParcelDTO parcel) {

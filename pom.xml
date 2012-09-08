@@ -185,6 +185,11 @@
 				<artifactId>gson</artifactId>
 				<version>2.2.1</version>
 			</dependency>
+			<dependency>
+				<groupId>rinsim</groupId>
+				<artifactId>problem</artifactId>
+				<version>${project.version}</version>
+			</dependency>
 		</dependencies>
 	</dependencyManagement>
 
