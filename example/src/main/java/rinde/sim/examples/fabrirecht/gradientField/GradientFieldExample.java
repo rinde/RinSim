@@ -76,7 +76,8 @@ class ProblemInstance extends FabriRechtProblem {
 		schema.add(Truck.class, "/graphics/perspective/bus-44.png");
 		schema.add(FRDepot.class, "/graphics/flat/warehouse-32.png");
 		schema.add(FRParcel.class, "/graphics/flat/hailing-cab-32.png");
-		View.startGui(getSimulator(), 1, new PlaneRoadModelRenderer(40), new RoadUserRenderer(schema, false), new PDPModelRenderer());
+		View.startGui(getSimulator(), 1, new PlaneRoadModelRenderer(40), new RoadUserRenderer(schema, false), new PDPModelRenderer(),
+				new GradientFieldRenderer());
 		return true;
 	}
 
