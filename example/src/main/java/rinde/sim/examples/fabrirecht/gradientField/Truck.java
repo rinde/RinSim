@@ -1,5 +1,7 @@
 package rinde.sim.examples.fabrirecht.gradientField;
 
+import java.util.Map;
+
 import rinde.sim.core.TimeLapse;
 import rinde.sim.core.graph.Point;
 import rinde.sim.core.model.pdp.PDPModel.ParcelState;
@@ -95,5 +97,9 @@ class Truck extends FRVehicle implements FieldEmitter {
 	@Override
 	public float getStrength() {
 		return -1;
+	}
+
+	public Map<Point, Float> getFields() {
+		return gradientModel.getFields(this);
 	}
 }

@@ -1,7 +1,9 @@
 package rinde.sim.examples.fabrirecht.gradientField;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import rinde.sim.core.graph.Point;
 import rinde.sim.core.model.Model;
@@ -16,6 +18,21 @@ public class GradientModel implements Model<FieldEmitter>{
 	private int minY;
 	private int maxY;
 	private PDPModel pdpModel;
+	
+	public List<FieldEmitter> getEmitters(){
+		return emitters;
+	}
+	
+	public List<Truck> getTruckEmitters(){
+		List<Truck> trucks = new ArrayList<Truck>();
+		
+		for(FieldEmitter emitter: emitters){
+			if(emitter instanceof Truck)
+				trucks.add((Truck) emitter);
+		}
+
+		return trucks;
+	}
 	
 	public GradientModel(int minX, int maxX, int minY, int maxY, PDPModel pdpModel){
 		this.minX = minX;
@@ -84,5 +101,28 @@ public class GradientModel implements Model<FieldEmitter>{
 	@Override
 	public Class<FieldEmitter> getSupportedType() {
 		return FieldEmitter.class;
+	}
+
+	public Map<Point, Float> getFields(Truck truck) {
+		Map<Point, Float> fields = new HashMap<Point, Float>();
+		
+		for(int i = 0;i < x.length;i++){
+			Point p = new Point(truck.getPosition().x + x[i], truck.getPosition().y + y[i]);
+			
+			if( p.x < minX || p.x > maxX || p.y < minY || p.y > maxY)
+				continue;
+			
+			fields.put(new Point(x[i], y[i]), getField(p, truck));
+		}
+		
+		float avg = 0;
+		for(Point p:fields.keySet()){
+			avg += fields.get(p);
+		}
+		avg /= fields.size();
+		for(Point p:fields.keySet()){
+			fields.put(p, fields.get(p) - avg);
+		}
+		return fields;
 	}
 }
