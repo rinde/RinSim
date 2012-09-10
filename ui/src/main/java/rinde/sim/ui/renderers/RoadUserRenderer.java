@@ -55,8 +55,8 @@ public class RoadUserRenderer implements ModelRenderer {
 				final Point p = entry.getValue();
 				final Class<?> type = entry.getKey().getClass();
 				final Image image = uiSchema.getImage(type);
-				final int x = (int) (vp.origin.x + (p.x - vp.rect.min.x) * vp.scale) - radius;
-				final int y = (int) (vp.origin.y + (p.y - vp.rect.min.y) * vp.scale) - radius;
+				final int x = vp.toCoordX(p.x) - radius;
+				final int y = vp.toCoordY(p.y) - radius;
 
 				if (image != null) {
 					final int offsetX = x - image.getBounds().width / 2;

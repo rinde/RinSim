@@ -46,6 +46,7 @@ import rinde.sim.util.TimeFormatter;
  * Simulation viewer.
  * 
  * @author Bartosz Michalik <bartosz.michalik@cs.kuleuven.be>
+ * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
  * 
  */
 public class SimulationViewer extends Composite implements TickListener, ControlListener, PaintListener,
@@ -352,7 +353,11 @@ public class SimulationViewer extends Composite implements TickListener, Control
 		final GC gc = new GC(img);
 
 		for (final Renderer r : renderers) {
-			r.renderStatic(gc, new ViewPort(new Point(origin.x, origin.y), viewRect, m, colorRegistry));
+			r.renderStatic(gc, new ViewPort(new Point(0, 0)/*
+															 * new
+															 * Point(origin.x,
+															 * origin.y)
+															 */, viewRect, m, colorRegistry));
 		}
 
 		//
