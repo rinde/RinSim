@@ -265,7 +265,7 @@ public class PDPModel implements Model<PDPObject>, TickListener, ModelReceiver {
     public void pickup(Vehicle vehicle, Parcel parcel, TimeLapse time) {
         /* 1 */checkArgument(roadModel.containsObject(vehicle), "vehicle does not exist in RoadModel");
         /* 2 */checkArgument(roadModel.containsObject(parcel), "parcel does not exist in RoadModel");
-        /* 3 */checkArgument(parcelState.get(parcel) == ParcelState.AVAILABLE, "parcel must be registered and must be available");
+        /* 3 */checkArgument(parcelState.getKeys(parcel) == ParcelState.AVAILABLE, "parcel must be registered and must be available");
         /* 4 */checkArgument(vehicleState.get(vehicle) == VehicleState.IDLE, "vehicle must be registered and must be available");
         /* 5 */checkArgument(roadModel.equalPosition(vehicle, parcel), "vehicle must be at the same location as the parcel it wishes to pickup");
         final double newSize = containerContentsSize.get(vehicle)
@@ -399,8 +399,8 @@ public class PDPModel implements Model<PDPObject>, TickListener, ModelReceiver {
      */
     public void addParcelIn(Container container, Parcel parcel) {
         /* 1 */checkArgument(!roadModel.containsObject(parcel), "this parcel is already added to the roadmodel");
-        /* 2 */checkArgument(parcelState.get(parcel) == ParcelState.AVAILABLE, "parcel must be registered and in AVAILABLE state, current state: "
-                + parcelState.get(parcel));
+        /* 2 */checkArgument(parcelState.getKeys(parcel) == ParcelState.AVAILABLE, "parcel must be registered and in AVAILABLE state, current state: "
+                + parcelState.getKeys(parcel));
         /* 3 */checkArgument(containerCapacities.containsKey(container), "the parcel container is not registered");
         /* 4 */checkArgument(roadModel.containsObject(container), "the parcel container is not on the roadmodel");
         final double newSize = containerContentsSize.get(container)
@@ -456,7 +456,7 @@ public class PDPModel implements Model<PDPObject>, TickListener, ModelReceiver {
      * @return The {@link ParcelState} of the specified {@link Parcel}.
      */
     public ParcelState getParcelState(Parcel parcel) {
-        return parcelState.get(parcel);
+        return parcelState.getKeys(parcel);
     }
 
     /**

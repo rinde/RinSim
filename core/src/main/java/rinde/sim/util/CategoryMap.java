@@ -105,7 +105,7 @@ public class CategoryMap<C, V> implements Multimap<C, V> {
         return categoryValueMultiMap.get(key);
     }
 
-    public C get(V value) {
+    public C getKeys(V value) {
         return valueCategoryMap.get(value);
     }
 
