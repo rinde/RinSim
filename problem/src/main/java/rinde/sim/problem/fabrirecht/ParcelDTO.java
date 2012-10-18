@@ -1,11 +1,14 @@
 package rinde.sim.problem.fabrirecht;
 
+import java.io.Serializable;
+
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 
 import rinde.sim.core.graph.Point;
 import rinde.sim.util.TimeWindow;
 
-public class ParcelDTO {
+public class ParcelDTO implements Serializable {
+	private static final long serialVersionUID = -6128057042614968652L;
 	public final Point pickupLocation;
 	public final Point destinationLocation;
 	public final TimeWindow pickupTimeWindow;

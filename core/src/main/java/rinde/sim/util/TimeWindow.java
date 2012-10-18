@@ -1,7 +1,15 @@
 package rinde.sim.util;
 
+import java.io.Serializable;
+
+/**
+ * 
+ * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+ * 
+ */
 // half open interval: [begin, end)
-public class TimeWindow {
+public class TimeWindow implements Serializable {
+    private static final long serialVersionUID = 7548761538022038612L;
 
     public static TimeWindow ALWAYS = new TimeWindow(0, Long.MAX_VALUE);
 

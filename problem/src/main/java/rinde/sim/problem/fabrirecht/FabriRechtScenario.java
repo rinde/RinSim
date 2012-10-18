@@ -40,5 +40,4 @@ public class FabriRechtScenario extends Scenario {
 		max = pMax;
 		timeWindow = pTimeWindow;
 	}
-
 }

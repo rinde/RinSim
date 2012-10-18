@@ -3,6 +3,8 @@
  */
 package rinde.sim.problem.fabrirecht;
 
+import java.io.Serializable;
+
 import rinde.sim.core.graph.Point;
 import rinde.sim.util.TimeWindow;
 
@@ -10,8 +12,9 @@ import rinde.sim.util.TimeWindow;
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
  * 
  */
-public class VehicleDTO {
+public class VehicleDTO implements Serializable {
 
+	private static final long serialVersionUID = -631074532620454156L;
 	public final Point startPosition;
 	public final double speed;
 	public final int capacity;
