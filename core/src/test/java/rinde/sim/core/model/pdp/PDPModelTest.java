@@ -130,6 +130,27 @@ public class PDPModelTest {
 
     }
 
+    @Test
+    public void testDelayedPickup() {
+
+        final Parcel pack1 = new TestParcel(new Point(2, 2), 10, 10, 2);
+        final Vehicle truck = new TestVehicle(new Point(1, 1), 10.0, 1.0);
+        model.register(pack1);
+        model.register(truck);
+        rm.register(pack1);
+        rm.register(truck);
+        rm.addObjectAt(pack1, new Point(1, 1));
+
+        model.pickup(truck, pack1, TimeLapseFactory.create(0, 1));
+        assertTrue(model.getContents(truck).isEmpty());
+        assertEquals(model.getContentsSize(truck), 0, EPSILON);
+
+        truck.tick(TimeLapseFactory.create(1, 10));
+        assertFalse(model.getContents(truck).isEmpty());
+        assertTrue(model.getContents(truck).contains(pack1));
+        assertEquals(model.getContentsSize(truck), 2, EPSILON);
+    }
+
     @Test(expected = IllegalArgumentException.class)
     public void testPickupFail1() {
         // truck not in roadmodel
@@ -207,7 +228,7 @@ public class PDPModelTest {
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void testPickupFail6() {
+    public void testPickupFail6A() {
         // package does not fit in truck
         final Vehicle truck = new TestVehicle(new Point(1, 1), 1.0, 1.0);
         rm.register(truck);
@@ -218,6 +239,35 @@ public class PDPModelTest {
         rm.addObjectAtSamePosition(pack1, truck);
         assertTrue(rm.equalPosition(truck, pack1));
         model.pickup(truck, pack1, TimeLapseFactory.create(0, 100));
+    }
+
+    @Test
+    public void testPickupFail6B() {
+        // last package does not fit in truck
+        final Vehicle truck = new TestVehicle(new Point(1, 1), 10.0, 1.0);
+        rm.register(truck);
+        model.register(truck);
+
+        for (int i = 0; i < 9; i++) {
+            final Parcel newPack = new TestParcel(new Point(2, 2), 0, 0, 1.0);
+            rm.register(newPack);
+            model.register(newPack);
+            rm.addObjectAtSamePosition(newPack, truck);
+            model.pickup(truck, newPack, TimeLapseFactory.create(0, 1));
+        }
+        assertEquals(model.getContents(truck).size(), 9);
+        assertEquals(model.getContentsSize(truck), 9.0, EPSILON);
+
+        final Parcel packTooMuch = new TestParcel(new Point(2, 2), 0, 0, 1.0);
+        rm.register(packTooMuch);
+        model.register(packTooMuch);
+        rm.addObjectAtSamePosition(packTooMuch, truck);
+        try {
+            model.pickup(truck, packTooMuch, TimeLapseFactory.create(0, 1));
+        } catch (final IllegalArgumentException e) {
+            assertTrue(true);
+        }
+
     }
 
     @Test

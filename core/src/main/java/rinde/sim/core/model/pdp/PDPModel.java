@@ -233,6 +233,10 @@ public class PDPModel implements Model<PDPObject>, TickListener, ModelReceiver {
         return containerContentsSize.get(container);
     }
 
+    public double getContainerCapacity(Container container) {
+        return containerCapacities.get(container);
+    }
+
     /**
      * Attempts to pickup the specified {@link Parcel} into the specified
      * {@link Vehicle}. Preconditions:
@@ -405,7 +409,11 @@ public class PDPModel implements Model<PDPObject>, TickListener, ModelReceiver {
         /* 4 */checkArgument(roadModel.containsObject(container), "the parcel container is not on the roadmodel");
         final double newSize = containerContentsSize.get(container)
                 + parcel.getMagnitude();
-        /* 5 */checkArgument(newSize <= containerCapacities.get(container), "parcel does not fit in container");
+        /* 5 */checkArgument(newSize <= containerCapacities.get(container), "parcel does not fit in container. Capacity is "
+                + containerCapacities.get(container)
+                + ", current content size is "
+                + containerContentsSize.get(container)
+                + ", new parcel size is " + parcel.getMagnitude());
 
         containerContents.put(container, parcel);
         containerContentsSize.put(container, newSize);
