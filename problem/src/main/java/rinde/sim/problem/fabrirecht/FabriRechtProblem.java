@@ -4,11 +4,15 @@
 package rinde.sim.problem.fabrirecht;
 
 import static com.google.common.collect.Maps.newLinkedHashMap;
+import static com.google.common.collect.Sets.newHashSet;
 
 import java.io.Serializable;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.apache.commons.lang3.builder.ToStringStyle;
 import org.apache.commons.math3.random.MersenneTwister;
 
 import rinde.sim.core.Simulator;
@@ -23,6 +27,7 @@ import rinde.sim.core.model.road.MoveEvent;
 import rinde.sim.core.model.road.MovingRoadUser;
 import rinde.sim.core.model.road.PlaneRoadModel;
 import rinde.sim.core.model.road.RoadModel;
+import rinde.sim.core.model.road.RoadUser;
 import rinde.sim.event.Event;
 import rinde.sim.event.EventAPI;
 import rinde.sim.event.EventDispatcher;
@@ -122,6 +127,9 @@ public abstract class FabriRechtProblem extends ScenarioController {
 
 	public static class StatisticsDTO implements Serializable {
 		private static final long serialVersionUID = 1968951252238291733L;
+		/**
+		 * The cummulative distance all vehicle have traveled.
+		 */
 		public final double totalDistance;
 		public final int totalPickups;
 		public final int totalDeliveries;
@@ -129,14 +137,39 @@ public abstract class FabriRechtProblem extends ScenarioController {
 		public final int acceptedParcels;
 		public final long pickupTardiness;
 		public final long deliveryTardiness;
+		/**
+		 * The time (ms) it took to compute the simulation.
+		 */
 		public final long computationTime;
+		/**
+		 * The time that has elapsed in the simulation.
+		 */
 		public final long simulationTime;
+		/**
+		 * Indicates whether the scenario has finished.
+		 */
 		public final boolean simFinish;
+		/**
+		 * The number of vehicles that are back at the depot.
+		 */
 		public final int vehiclesAtDepot;
+		/**
+		 * Total number of vehicles available.
+		 */
 		public final int totalVehicles;
+		/**
+		 * Number of vehicles that have been used, 'used' means has moved.
+		 */
+		public final int movedVehicles;
+		/**
+		 * The average cost per demand. Both pickups and deliveries are demands.
+		 * It is defined as:
+		 * <code>totalDistance / (totalPickups + totalDeliveries)</code>.
+		 */
+		public final double costPerDemand;
 
 		public StatisticsDTO(double dist, int pick, int del, int parc, int accP, long pickTar, long delTar, long compT,
-				long simT, boolean finish, int atDepot, int total) {
+				long simT, boolean finish, int atDepot, int total, int moved) {
 			totalDistance = dist;
 			totalPickups = pick;
 			totalDeliveries = del;
@@ -149,23 +182,29 @@ public abstract class FabriRechtProblem extends ScenarioController {
 			simFinish = finish;
 			vehiclesAtDepot = atDepot;
 			totalVehicles = total;
+			movedVehicles = moved;
+			costPerDemand = totalDistance / (totalPickups + totalDeliveries);
 		}
 
 		@Override
 		public String toString() {
-			final StringBuilder sb = new StringBuilder();
-			sb.append("\t\t\t = Statistics = \ncomputation time:\t\t").append(computationTime);
-			sb.append("\nsimulation time:\t\t").append(simulationTime);
-			sb.append("\ntotal traveled distance:\t").append(totalDistance);
-			sb.append("\naccepted parcels:\t\t").append(acceptedParcels).append(" / ").append(totalParcels);
-			sb.append("\t").append(Math.round(((double) acceptedParcels / totalParcels) * 100d)).append("%");
-			sb.append("\npickups:\t\t\t").append(totalPickups).append(" / ").append(acceptedParcels);
-			sb.append("\t").append(Math.round(((double) totalPickups / acceptedParcels) * 100d)).append("%");
-			sb.append("\ndeliveries:\t\t\t").append(totalDeliveries).append(" / ").append(acceptedParcels);
-			sb.append("\t").append(Math.round(((double) totalDeliveries / acceptedParcels) * 100d)).append("%");
-			sb.append("\npickup tardiness:\t\t").append(pickupTardiness);
-			sb.append("\ndelivery tardiness:\t\t").append(deliveryTardiness);
-			return sb.toString();
+			return ToStringBuilder.reflectionToString(this, ToStringStyle.MULTI_LINE_STYLE);
+			// final StringBuilder sb = new StringBuilder();
+			// sb.append("\t\t\t = Statistics = \ncomputation time:\t\t").append(computationTime);
+			// sb.append("\nsimulation time:\t\t").append(simulationTime);
+			// sb.append("\ntotal traveled distance:\t").append(totalDistance);
+			// sb.append("\naccepted parcels:\t\t").append(acceptedParcels).append(" / ").append(totalParcels);
+			// sb.append("\t").append(Math.round(((double) acceptedParcels /
+			// totalParcels) * 100d)).append("%");
+			// sb.append("\npickups:\t\t\t").append(totalPickups).append(" / ").append(acceptedParcels);
+			// sb.append("\t").append(Math.round(((double) totalPickups /
+			// acceptedParcels) * 100d)).append("%");
+			// sb.append("\ndeliveries:\t\t\t").append(totalDeliveries).append(" / ").append(acceptedParcels);
+			// sb.append("\t").append(Math.round(((double) totalDeliveries /
+			// acceptedParcels) * 100d)).append("%");
+			// sb.append("\npickup tardiness:\t\t").append(pickupTardiness);
+			// sb.append("\ndelivery tardiness:\t\t").append(deliveryTardiness);
+			// return sb.toString();
 		}
 	}
 
@@ -193,6 +232,8 @@ public abstract class FabriRechtProblem extends ScenarioController {
 		protected int vehiclesAtDepot;
 		protected int totalVehicles;
 
+		protected HashSet<RoadUser> movedVehicles;
+
 		public StatisticsListener() {
 			distanceMap = newLinkedHashMap();
 			totalDistance = 0d;
@@ -201,6 +242,7 @@ public abstract class FabriRechtProblem extends ScenarioController {
 			addedParcels = 0;
 			acceptedParcels = 0;
 			simFinish = false;
+			movedVehicles = newHashSet();
 			eventDispatcher = new EventDispatcher(StatisticsEventType.values());
 		}
 
@@ -216,6 +258,7 @@ public abstract class FabriRechtProblem extends ScenarioController {
 				final MoveEvent me = ((MoveEvent) e);
 				increment(me.roadUser, me.pathProgress.distance);
 				totalDistance += me.pathProgress.distance;
+				movedVehicles.add(me.roadUser);
 			} else if (e.getEventType() == PDPModelEventType.START_PICKUP) {
 
 				final PDPModelEvent pme = (PDPModelEvent) e;
@@ -284,7 +327,7 @@ public abstract class FabriRechtProblem extends ScenarioController {
 		public StatisticsDTO getDTO() {
 			return new StatisticsDTO(totalDistance, totalPickups, totalDeliveries, addedParcels, acceptedParcels,
 					pickupTardiness, deliveryTardiness, computationTime, simulationTime, simFinish, vehiclesAtDepot,
-					totalVehicles);
+					totalVehicles, movedVehicles.size());
 		}
 	}
 
