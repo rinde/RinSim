@@ -7,6 +7,7 @@ import static com.google.common.collect.Maps.newLinkedHashMap;
 
 import java.io.Serializable;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.commons.math3.random.MersenneTwister;
 
@@ -80,6 +81,18 @@ public abstract class FabriRechtProblem extends ScenarioController {
 			return handleAddDepot((AddDepotEvent) event);
 		} else if (event.getEventType() == PDPScenarioEvent.TIME_OUT) {
 			getSimulator().stop();
+
+			final Set<FRVehicle> vehicles = roadModel.getObjectsOfType(FRVehicle.class);
+			final FRDepot depot = roadModel.getObjectsOfType(FRDepot.class).iterator().next();
+			int vehicleBack = 0;
+			for (final FRVehicle v : vehicles) {
+				if (roadModel.equalPosition(depot, v)) {
+					vehicleBack++;
+				}
+			}
+
+			statisticsListener.handleSimFinish(vehicleBack, vehicles.size());
+
 			return handleTimeOut();
 		}
 		return false;
@@ -108,7 +121,7 @@ public abstract class FabriRechtProblem extends ScenarioController {
 	}
 
 	public static class StatisticsDTO implements Serializable {
-		private static final long serialVersionUID = -5355647181107836976L;
+		private static final long serialVersionUID = 1968951252238291733L;
 		public final double totalDistance;
 		public final int totalPickups;
 		public final int totalDeliveries;
@@ -118,9 +131,12 @@ public abstract class FabriRechtProblem extends ScenarioController {
 		public final long deliveryTardiness;
 		public final long computationTime;
 		public final long simulationTime;
+		public final boolean simFinish;
+		public final int vehiclesAtDepot;
+		public final int totalVehicles;
 
 		public StatisticsDTO(double dist, int pick, int del, int parc, int accP, long pickTar, long delTar, long compT,
-				long simT) {
+				long simT, boolean finish, int atDepot, int total) {
 			totalDistance = dist;
 			totalPickups = pick;
 			totalDeliveries = del;
@@ -130,6 +146,9 @@ public abstract class FabriRechtProblem extends ScenarioController {
 			deliveryTardiness = delTar;
 			computationTime = compT;
 			simulationTime = simT;
+			simFinish = finish;
+			vehiclesAtDepot = atDepot;
+			totalVehicles = total;
 		}
 
 		@Override
@@ -170,6 +189,9 @@ public abstract class FabriRechtProblem extends ScenarioController {
 		protected long startTimeSim;
 		protected long computationTime;
 		protected long simulationTime;
+		protected boolean simFinish;
+		protected int vehiclesAtDepot;
+		protected int totalVehicles;
 
 		public StatisticsListener() {
 			distanceMap = newLinkedHashMap();
@@ -178,6 +200,7 @@ public abstract class FabriRechtProblem extends ScenarioController {
 			totalDeliveries = 0;
 			addedParcels = 0;
 			acceptedParcels = 0;
+			simFinish = false;
 			eventDispatcher = new EventDispatcher(StatisticsEventType.values());
 		}
 
@@ -224,6 +247,12 @@ public abstract class FabriRechtProblem extends ScenarioController {
 			}
 		}
 
+		void handleSimFinish(int numVehiclesBack, int totalNumVehicles) {
+			simFinish = true;
+			vehiclesAtDepot = numVehiclesBack;
+			totalVehicles = totalNumVehicles;
+		}
+
 		protected void increment(MovingRoadUser mru, double num) {
 			if (!distanceMap.containsKey(mru)) {
 				distanceMap.put(mru, num);
@@ -254,7 +283,8 @@ public abstract class FabriRechtProblem extends ScenarioController {
 
 		public StatisticsDTO getDTO() {
 			return new StatisticsDTO(totalDistance, totalPickups, totalDeliveries, addedParcels, acceptedParcels,
-					pickupTardiness, deliveryTardiness, computationTime, simulationTime);
+					pickupTardiness, deliveryTardiness, computationTime, simulationTime, simFinish, vehiclesAtDepot,
+					totalVehicles);
 		}
 	}
 

@@ -96,9 +96,11 @@ public class FabriRechtParser {
 
 		sb.addEvent(new TimedEvent(PDPScenarioEvent.TIME_OUT, endTime));
 
-		for (int i = 0; i < numVehicles; i++) {
-			sb.addEvent(new AddVehicleEvent(0, new VehicleDTO(coordinates.get(0), 1.0, capacity, timeWindow)));
-		}
+		// for (int i = 0; i < numVehicles; i++) {
+		// sb.addEvent(new AddVehicleEvent(0, new VehicleDTO(coordinates.get(0),
+		// 1.0, capacity, timeWindow)));
+		// }
+		final VehicleDTO defaultVehicle = new VehicleDTO(coordinates.get(0), 1.0, capacity, timeWindow);
 
 		// Nr. des Pickup-Orts; Nr. des Delivery-Orts; untere Zeitfenstergrenze
 		// Pickup; obere Zeitfenstergrenze Pickup; untere Zeitfenstergrenze
@@ -106,9 +108,12 @@ public class FabriRechtParser {
 		// Anrufzeit; Servicezeit Pickup; Servicezeit Delivery
 		while ((line = ordersFileReader.readLine()) != null) {
 			final String[] parts = line.split(";");
+
+			final int neededCapacity = 1;// Integer.parseInt(parts[6]);
+
 			final ParcelDTO o = new ParcelDTO(coordinates.get(Integer.parseInt(parts[0])), coordinates.get(Integer
 					.parseInt(parts[1])), new TimeWindow(Long.parseLong(parts[2]), Long.parseLong(parts[3])),
-					new TimeWindow(Long.parseLong(parts[4]), Long.parseLong(parts[5])), Integer.parseInt(parts[6]),
+					new TimeWindow(Long.parseLong(parts[4]), Long.parseLong(parts[5])), neededCapacity,
 					Long.parseLong(parts[7]), Long.parseLong(parts[8]), Long.parseLong(parts[9]));
 
 			sb.addEvent(new AddParcelEvent(o));
@@ -118,7 +123,7 @@ public class FabriRechtParser {
 		return sb.build(new ScenarioCreator<FabriRechtScenario>() {
 			@Override
 			public FabriRechtScenario create(List<TimedEvent> eventList, Set<Enum<?>> eventTypes) {
-				return new FabriRechtScenario(eventList, eventTypes, min, max, timeWindow);
+				return new FabriRechtScenario(eventList, eventTypes, min, max, timeWindow, defaultVehicle);
 			}
 		});
 	}
@@ -136,8 +141,32 @@ public class FabriRechtParser {
 		return gson.fromJson(json, FabriRechtScenario.class);
 	}
 
+	public static FabriRechtScenario fromJson(String json, int numVehicles, int vehicleCapacity) {
+		final FabriRechtScenario scen = fromJson(json);
+		final List<TimedEvent> events = newArrayList();
+		for (int i = 0; i < numVehicles; i++) {
+			events.add(new AddVehicleEvent(0, new VehicleDTO(scen.defaultVehicle.startPosition,
+					scen.defaultVehicle.speed, vehicleCapacity, scen.defaultVehicle.availabilityTimeWindow)));
+		}
+		events.addAll(scen.asList());
+		return new FabriRechtScenario(events, scen.getPossibleEventTypes(), scen.min, scen.max, scen.timeWindow,
+				scen.defaultVehicle);
+	}
+
 	public static FabriRechtScenario fromJson(Reader reader) {
 		return gson.fromJson(reader, FabriRechtScenario.class);
+	}
+
+	public static FabriRechtScenario fromJson(Reader reader, int numVehicles, int vehicleCapacity) {
+		final FabriRechtScenario scen = fromJson(reader);
+		final List<TimedEvent> events = newArrayList();
+		for (int i = 0; i < numVehicles; i++) {
+			events.add(new AddVehicleEvent(0, new VehicleDTO(scen.defaultVehicle.startPosition,
+					scen.defaultVehicle.speed, vehicleCapacity, scen.defaultVehicle.availabilityTimeWindow)));
+		}
+		events.addAll(scen.asList());
+		return new FabriRechtScenario(events, scen.getPossibleEventTypes(), scen.min, scen.max, scen.timeWindow,
+				scen.defaultVehicle);
 	}
 
 	static class EnumDeserializer implements JsonDeserializer<Set<Enum<?>>>, JsonSerializer<Set<Enum<?>>> {

@@ -16,17 +16,19 @@ import rinde.sim.util.TimeWindow;
  * 
  */
 public class FabriRechtScenario extends Scenario {
-	private static final long serialVersionUID = -855531034069220296L;
+	private static final long serialVersionUID = 8654500529284785728L;
 	public final Point min;
 	public final Point max;
 	public final TimeWindow timeWindow;
+	public final VehicleDTO defaultVehicle;
 
 	// empty scenario
-	public FabriRechtScenario(Point pMin, Point pMax, TimeWindow pTimeWindow) {
+	public FabriRechtScenario(Point pMin, Point pMax, TimeWindow pTimeWindow, VehicleDTO pDefaultVehicle) {
 		super();
 		min = pMin;
 		max = pMax;
 		timeWindow = pTimeWindow;
+		defaultVehicle = pDefaultVehicle;
 	}
 
 	/**
@@ -34,10 +36,12 @@ public class FabriRechtScenario extends Scenario {
 	 * @param pSupportedTypes
 	 */
 	public FabriRechtScenario(Collection<? extends TimedEvent> pEvents, Set<Enum<?>> pSupportedTypes, Point pMin,
-			Point pMax, TimeWindow pTimeWindow) {
+			Point pMax, TimeWindow pTimeWindow, VehicleDTO pDefaultVehicle) {
 		super(pEvents, pSupportedTypes);
 		min = pMin;
 		max = pMax;
 		timeWindow = pTimeWindow;
+		defaultVehicle = pDefaultVehicle;
 	}
+
 }
