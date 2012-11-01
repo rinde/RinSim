@@ -151,6 +151,13 @@ public class Simulator implements SimulatorAPI {
      * @see ModelManager#configure()
      */
     public void configure() {
+        for (final Model<?> m : modelManager.getModels()) {
+            if (m instanceof TickListener) {
+                LOGGER.info("adding " + m.getClass().getName()
+                        + " as a tick listener");
+                addTickListener((TickListener) m);
+            }
+        }
         modelManager.configure();
         configured = true;
         dispatcher
@@ -174,11 +181,6 @@ public class Simulator implements SimulatorAPI {
         if (result) {
             LOGGER.info("registering model :" + model.getClass().getName()
                     + " for type:" + model.getSupportedType().getName());
-            if (model instanceof TickListener) {
-                LOGGER.info("adding " + model.getClass().getName()
-                        + " as a tick listener");
-                addTickListener((TickListener) model);
-            }
         }
         return result;
     }

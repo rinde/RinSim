@@ -49,7 +49,7 @@ public abstract class AbstractRoadModel<T> extends AbstractModel<RoadUser>
     protected final EventDispatcher eventDispatcher;
     protected final EventAPI eventAPI;
 
-    public enum RoadEvent {
+    public enum RoadEventType {
         MOVE
     }
 
@@ -79,7 +79,7 @@ public abstract class AbstractRoadModel<T> extends AbstractModel<RoadUser>
     // factory method for creating event dispatcher, can be overridden by
     // subclasses to add more event types.
     protected EventDispatcher createEventDispatcher() {
-        return new EventDispatcher(RoadEvent.MOVE);
+        return new EventDispatcher(RoadEventType.MOVE);
     }
 
     /**

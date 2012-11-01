@@ -1,6 +1,5 @@
 package rinde.sim.scenario;
 
-import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.collect.Sets.newHashSet;
 import static java.util.Arrays.asList;
 
@@ -19,14 +18,16 @@ import rinde.sim.event.EventDispatcher;
 import rinde.sim.event.Listener;
 
 /**
- * A scenario controller represents a single simulation run. This class is
- * intended for extension.
+ * A scenario controller represents a single simulation run using a
+ * {@link Scenario}. The scenario controller makes sure that all events in the
+ * scenario are dispatched at their respective time and it checks whether they
+ * are handled.
  * 
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
  * @author Bartosz Michalik <bartosz.michalik@cs.kuleuven.be>
  * @since 2.0
  */
-public abstract class ScenarioController implements TickListener {
+public class ScenarioController implements TickListener {
 
     /**
      * Logger for this class.
@@ -54,23 +55,25 @@ public abstract class ScenarioController implements TickListener {
      * {@link Listener}s that are notified when {@link ScenarioController}
      * dispatches {@link Event}s.
      */
-    public final EventAPI eventAPI;
+    protected final EventAPI eventAPI;
 
     /**
      * The scenario that is played.
      */
     protected final Scenario scenario;
-    protected final Queue<TimedEvent> scenarioQueue;
-
-    Simulator simulator;
-
-    private int ticks;
-    protected final EventDispatcher disp;
-    private EventType status;
 
     /**
-     * <code>true</code> when user interface was defined.
+     * The {@link Event} queue.
      */
+    protected final Queue<TimedEvent> scenarioQueue;
+    protected final EventDispatcher disp;
+    protected final Simulator simulator;
+
+    protected UICreator uiCreator;
+    protected TimedEventHandler timedEventHandler;
+
+    private int ticks;
+    private EventType status;
     private boolean uiMode;
 
     /**
@@ -79,13 +82,20 @@ public abstract class ScenarioController implements TickListener {
      * simulator will run until the {@link Simulator#stop()} method is called.
      * TODO refine documentation
      * 
-     * @param scen to realize
-     * @param numberOfTicks when negative the number of tick is infinite
+     * @param scen Scenario which is controlled.
+     * @param sim Simulator which is controlled.
+     * @param eventHandler Is used to handle scenario events.
+     * @param numberOfTicks The number of ticks play, when negative the number
+     *            of tick is infinite.
      */
-    public ScenarioController(final Scenario scen, int numberOfTicks) {
-        checkArgument(scen != null, "scenario can not be null");
+    public ScenarioController(final Scenario scen, Simulator sim,
+            TimedEventHandler eventHandler, int numberOfTicks) {
+
+        scenario = scen;
+        simulator = sim;
+        timedEventHandler = eventHandler;
         ticks = numberOfTicks;
-        scenario = scen;// new Scenario(scen);
+
         scenarioQueue = scenario.asQueue();
 
         final Set<Enum<?>> typeSet = newHashSet(scenario
@@ -93,62 +103,30 @@ public abstract class ScenarioController implements TickListener {
         typeSet.addAll(asList(EventType.values()));
         disp = new EventDispatcher(typeSet);
         eventAPI = disp.getEventAPI();
-        disp.addListener(new TimedEventHandler(), scenario
+        disp.addListener(new InternalTimedEventHandler(), scenario
                 .getPossibleEventTypes());
-    }
-
-    /**
-     * Method that initializes the simulator using
-     * {@link ScenarioController#createSimulator()} and user interface (if
-     * defined) using {@link ScenarioController#createUserInterface()}. Must be
-     * called from within a constructor of specialized class.
-     * @throws ConfigurationException
-     */
-    final protected void initialize() throws ConfigurationException {
-        try {
-            simulator = createSimulator();
-        } catch (final Exception e) {
-            LOGGER.warn("exception thrown during createSimulator()", e);
-            throw new ConfigurationException(
-                    "An exception was thrown while instantiating the simulator",
-                    e);
-        }
-        checkSimulator();
-        simulator.configure();
-        LOGGER.info("simulator created");
 
         simulator.addTickListener(this);
+        simulator.configure();
 
-        uiMode = createUserInterface();
     }
 
     /**
-     * Access the simulator from the subclasses. Method returns simulator only
-     * after calling {@link ScenarioController#initialize()}.
-     * @return simulator or <code>null</code>
+     * Enables the UI for this scenario controller. This means that when
+     * {@link #start()} is called the UI is fired up. Using {@link UICreator}
+     * any kind of UI can be hooked to the simulation.
+     * @param creator The creator of the UI.
      */
-    public Simulator getSimulator() {
-        return simulator;
+    public void enableUI(UICreator creator) {
+        uiMode = true;
+        uiCreator = creator;
     }
 
     /**
-     * Create simulator that will run the scenario.
-     * 
-     * @postcondition simulator != null && simulator not configured
-     * @return simulator
-     * @throws Exception
+     * @return The event API of the scenario controller.
      */
-    protected abstract Simulator createSimulator() throws Exception;
-
-    /**
-     * Create the user interface. By default method is empty and disables uiMode
-     * 
-     * @precondition simulator != null and simulator is configured
-     * @return uiMode. should be <code>true</code> when user interface was
-     *         created.
-     */
-    protected boolean createUserInterface() {
-        return false;
+    public EventAPI getEventAPI() {
+        return eventAPI;
     }
 
     /**
@@ -156,27 +134,24 @@ public abstract class ScenarioController implements TickListener {
      */
     public void stop() {
         if (!uiMode) {
-            simulator.removeTickListener(this);
             simulator.stop();
         }
     }
 
     /**
-     * Starts the simulation.
-     * @throws ConfigurationException If the scenario controller was not
-     *             configured properly.
+     * Starts the simulation, if UI is enabled it will start the UI instead.
+     * @see #enableUI(UICreator)
+     * @see #stop()
      */
-    public void start() throws ConfigurationException {
-        checkSimulator();
-        if (ticks != 0 && !uiMode) {
-            // new Thread() {
-            // @Override
-            // public void run() {
-            simulator.start();
-            // }
-            // }.start();
-        }
+    public void start() {
+        if (ticks != 0) {
 
+            if (!uiMode) {
+                simulator.start();
+            } else {
+                uiCreator.createUI(simulator);
+            }
+        }
     }
 
     /**
@@ -215,18 +190,14 @@ public abstract class ScenarioController implements TickListener {
             disp.dispatchEvent(e);
         }
         if (e == null && status != EventType.SCENARIO_FINISHED) {
-            if (ticks == 0) {
-                LOGGER.info("scenario finished at virtual time:"
-                        + timeLapse.getTime() + "[stopping simulation]");
-                simulator.stop();
-            } else {
-                LOGGER.info("scenario finished at virtual time:"
-                        + timeLapse.getTime()
-                        + " [scenario controller is detaching from simulator..]");
-            }
             status = EventType.SCENARIO_FINISHED;
-            simulator.removeTickListener(this);
             disp.dispatchEvent(new Event(status, this));
+        }
+        if (ticks == 0 && status == EventType.SCENARIO_FINISHED) {
+            LOGGER.info("scenario finished at virtual time:"
+                    + timeLapse.getTime() + "[stopping simulation]");
+            simulator.stop();
+            simulator.removeTickListener(this);
         }
 
     }
@@ -234,33 +205,31 @@ public abstract class ScenarioController implements TickListener {
     @Override
     public void afterTick(TimeLapse timeLapse) {} // not needed
 
-    class TimedEventHandler implements Listener {
+    /**
+     * A UICreator can be used to dynamically create a UI for the simulation
+     * run. It can be used with any kind of GUI imaginable.
+     * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+     */
+    public interface UICreator {
+        /**
+         * Should instantiate the UI.
+         * @param sim The {@link Simulator} instance for which the UI should be
+         *            created.
+         */
+        void createUI(Simulator sim);
+    }
 
-        public TimedEventHandler() {}
+    class InternalTimedEventHandler implements Listener {
+
+        public InternalTimedEventHandler() {}
 
         @Override
         public final void handleEvent(Event e) {
-            if (!handleTimedEvent((TimedEvent) e)) {
-                LOGGER.warn("event not handled: " + e.toString());
+            if (!timedEventHandler.handleTimedEvent((TimedEvent) e)) {
                 throw new IllegalArgumentException("event not handled: "
                         + e.toString());
             }
         }
     }
 
-    /**
-     * Should be overridden to handle all types of {@link TimedEvent}s
-     * dispatched by the {@link Scenario}.
-     * @param event The {@link TimedEvent} that is received.
-     * @return <code>true</code> when the event is handled, <code>false</code>
-     *         otherwise.
-     */
-    protected abstract boolean handleTimedEvent(TimedEvent event);
-
-    private void checkSimulator() throws ConfigurationException {
-        if (simulator == null) {
-            throw new ConfigurationException(
-                    "use createSimulator() to define simulator and make sure initialize() is called before calling start()");
-        }
-    }
 }

@@ -6,28 +6,9 @@
 	<version>2.0.1-SNAPSHOT</version>
 	<packaging>pom</packaging>
 
-	<modules>
-		<module>core</module>
-		<module>ui</module>
-		<module>example</module>
-		<module>packaging</module>
-		<module>problem</module>
-	</modules>
-
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
-
-	<reporting>
-		<plugins>
-			<plugin>
-				<groupId>org.codehaus.mojo</groupId>
-				<artifactId>cobertura-maven-plugin</artifactId>
-				<version>2.5.1</version>
-			</plugin>
-		</plugins>
-	</reporting>
-
 
 	<build>
 		<plugins>
@@ -91,16 +72,6 @@
 			</plugin>
 
 			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-checkstyle-plugin</artifactId>
-				<version>2.9.1</version>
-				<configuration>
-					<configLocation>settings/RinSim.checkstyle</configLocation>
-				</configuration>
-
-			</plugin>
-
-			<plugin>
 				<groupId>org.codehaus.mojo</groupId>
 				<artifactId>cobertura-maven-plugin</artifactId>
 				<version>2.5.1</version>
@@ -129,6 +100,17 @@
 		</plugins>
 		<defaultGoal>package</defaultGoal>
 	</build>
+
+	<reporting>
+		<plugins>
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>cobertura-maven-plugin</artifactId>
+				<version>2.5.1</version>
+			</plugin>
+		</plugins>
+	</reporting>
+
 	<dependencies>
 		<dependency>
 			<groupId>junit</groupId>
@@ -136,6 +118,7 @@
 			<version>4.10</version>
 			<scope>test</scope>
 		</dependency>
+
 	</dependencies>
 	<dependencyManagement>
 		<dependencies>
@@ -193,7 +176,14 @@
 		</dependencies>
 	</dependencyManagement>
 
+	<modules>
+		<module>core</module>
+		<module>ui</module>
+		<module>example</module>
+		<module>packaging</module>
+		<module>problem</module>
 
+	</modules>
 
 
 </project>

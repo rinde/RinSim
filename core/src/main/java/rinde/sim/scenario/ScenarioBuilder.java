@@ -60,7 +60,8 @@ public class ScenarioBuilder {
      * @return this
      */
     public ScenarioBuilder addEvent(TimedEvent event) {
-        checkArgument(supportedTypes.contains(event.getEventType()), "event must have type that is supported by this ScenarioBuilder");
+        checkArgument(supportedTypes.contains(event.getEventType()), event.getEventType()
+                + " is not a supported event type of this ScenarioBuilder, it should be added in its constructor.");
         events.add(event);
         return this;
     }
