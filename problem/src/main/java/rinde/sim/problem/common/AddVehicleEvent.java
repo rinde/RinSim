@@ -1,7 +1,7 @@
 /**
  * 
  */
-package rinde.sim.problem.fabrirecht;
+package rinde.sim.problem.common;
 
 import rinde.sim.core.model.pdp.PDPScenarioEvent;
 import rinde.sim.scenario.TimedEvent;

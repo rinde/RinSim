@@ -1,7 +1,7 @@
 /**
  * 
  */
-package rinde.sim.problem.fabrirecht;
+package rinde.sim.problem.common;
 
 import rinde.sim.core.graph.Point;
 import rinde.sim.core.model.pdp.Depot;
@@ -12,9 +12,9 @@ import rinde.sim.core.model.road.RoadModel;
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
  * 
  */
-public class FRDepot extends Depot {
+public class DefaultDepot extends Depot {
 
-	public FRDepot(Point startPosition) {
+	public DefaultDepot(Point startPosition) {
 		setStartPosition(startPosition);
 	}
 
