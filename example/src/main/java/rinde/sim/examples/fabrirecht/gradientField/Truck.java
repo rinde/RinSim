@@ -9,13 +9,13 @@ import rinde.sim.core.model.pdp.PDPModel.VehicleState;
 import rinde.sim.core.model.pdp.Parcel;
 import rinde.sim.core.model.road.RoadModels;
 import rinde.sim.core.model.road.RoadUser;
-import rinde.sim.problem.fabrirecht.FRParcel;
-import rinde.sim.problem.fabrirecht.FRVehicle;
-import rinde.sim.problem.fabrirecht.VehicleDTO;
+import rinde.sim.problem.common.DefaultParcel;
+import rinde.sim.problem.common.DefaultVehicle;
+import rinde.sim.problem.common.VehicleDTO;
 
 import com.google.common.base.Predicate;
 
-class Truck extends FRVehicle implements FieldEmitter {
+class Truck extends DefaultVehicle implements FieldEmitter {
 	private GradientModel gradientModel;
 
 	public Truck(VehicleDTO pDto) {
@@ -24,7 +24,6 @@ class Truck extends FRVehicle implements FieldEmitter {
 
 	@Override
 	protected void tickImpl(TimeLapse time) {
-
 		// Check if we can deliver nearby
 		final Parcel delivery = getDelivery(time, 5);
 
@@ -38,12 +37,12 @@ class Truck extends FRVehicle implements FieldEmitter {
 		}
 
 		// Otherwise, Check if we can pickup nearby
-		final FRParcel closest = (FRParcel) RoadModels
+		final DefaultParcel closest = (DefaultParcel) RoadModels
 				.findClosestObject(roadModel.getPosition(this), roadModel, new Predicate<RoadUser>() {
 					@Override
 					public boolean apply(RoadUser input) {
-						return input instanceof FRParcel
-								&& pdpModel.getParcelState(((FRParcel) input)) == ParcelState.AVAILABLE;
+						return input instanceof DefaultParcel
+								&& pdpModel.getParcelState(((DefaultParcel) input)) == ParcelState.AVAILABLE;
 					}
 				});
 

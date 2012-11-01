@@ -2,10 +2,10 @@ package rinde.sim.examples.fabrirecht.gradientField;
 
 import rinde.sim.core.graph.Point;
 import rinde.sim.core.model.pdp.PDPModel.ParcelState;
-import rinde.sim.problem.fabrirecht.FRParcel;
-import rinde.sim.problem.fabrirecht.ParcelDTO;
+import rinde.sim.problem.common.DefaultParcel;
+import rinde.sim.problem.common.ParcelDTO;
 
-public class GFParcel extends FRParcel implements FieldEmitter{
+public class GFParcel extends DefaultParcel implements FieldEmitter{
 	private Point pos;
 	
 	public GFParcel(ParcelDTO pDto) {

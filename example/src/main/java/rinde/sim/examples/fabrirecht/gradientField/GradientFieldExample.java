@@ -3,18 +3,21 @@
  */
 package rinde.sim.examples.fabrirecht.gradientField;
 
+import java.io.FileReader;
 import java.io.IOException;
 
 import rinde.sim.core.Simulator;
-import rinde.sim.problem.fabrirecht.AddParcelEvent;
-import rinde.sim.problem.fabrirecht.AddVehicleEvent;
-import rinde.sim.problem.fabrirecht.FRDepot;
-import rinde.sim.problem.fabrirecht.FRParcel;
+import rinde.sim.problem.common.AddParcelEvent;
+import rinde.sim.problem.common.AddVehicleEvent;
+import rinde.sim.problem.common.DefaultDepot;
+import rinde.sim.problem.common.DefaultParcel;
+import rinde.sim.problem.common.DynamicPDPTWProblem;
+import rinde.sim.problem.common.DynamicPDPTWProblem.Creator;
+import rinde.sim.problem.common.StatsTracker;
 import rinde.sim.problem.fabrirecht.FabriRechtParser;
-import rinde.sim.problem.fabrirecht.FabriRechtProblem;
-import rinde.sim.problem.fabrirecht.ParcelAssesor;
-import rinde.sim.problem.fabrirecht.ParcelDTO;
+import rinde.sim.problem.fabrirecht.FabriRechtScenario;
 import rinde.sim.scenario.ConfigurationException;
+import rinde.sim.scenario.ScenarioController.UICreator;
 import rinde.sim.ui.View;
 import rinde.sim.ui.renderers.PDPModelRenderer;
 import rinde.sim.ui.renderers.PlaneRoadModelRenderer;
@@ -29,66 +32,46 @@ import rinde.sim.ui.renderers.UiSchema;
 public class GradientFieldExample {
 
 	public static void main(String[] args) throws IOException, ConfigurationException {
-		final ProblemInstance pi = new ProblemInstance("../problem/data/test/fabri-recht/lc101_coord.csv",
-				"../problem/data/test/fabri-recht/lc101.csv");
+		final FabriRechtScenario scenario = FabriRechtParser.fromJson(new FileReader(
+				"../problem/data/test/fabri-recht/lc101.scenario"), 10, 4);
 
-	}
+		// instantiate the problem and adding our custom model
+		final DynamicPDPTWProblem problem = new DynamicPDPTWProblem(scenario, 123, new GradientModel(0, 95, 5, 85));
 
-}
-
-class ProblemInstance extends FabriRechtProblem {
-	private GradientModel gradientModel;
-
-	public ProblemInstance(String coordinateFile, String ordersFile) throws IOException, ConfigurationException {
-		super(FabriRechtParser.parse(coordinateFile, ordersFile));
-		initialize();
-	}
-
-	@Override
-	protected Simulator createSimulator() throws Exception {
-		super.createSimulator();
-
-		gradientModel = new GradientModel(0, 95, 5, 85, pdpModel);
-		simulator.register(gradientModel);
-
-		return simulator;
-	}
-
-	@Override
-	protected boolean handleAddVehicle(AddVehicleEvent event) {
-		return getSimulator().register(new Truck(event.vehicleDTO));
-	}
-
-	@Override
-	protected boolean handleAddParcel(AddParcelEvent event) {
-		return getSimulator().register(new GFParcel(event.parcelDTO));
-	}
-
-	@Override
-	protected boolean handleTimeOut() {
-		System.out.println(statisticsListener.getDTO());
-		return true;
-	}
-
-	@Override
-	protected boolean createUserInterface() {
-		final UiSchema schema = new UiSchema(false);
-		schema.add(Truck.class, "/graphics/perspective/bus-44.png");
-		schema.add(FRDepot.class, "/graphics/flat/warehouse-32.png");
-		schema.add(FRParcel.class, "/graphics/flat/hailing-cab-32.png");
-		View.startGui(getSimulator(), 1, new PlaneRoadModelRenderer(40), new RoadUserRenderer(schema, false), new PDPModelRenderer(),
-				new GradientFieldRenderer());
-		return true;
-	}
-
-	@Override
-	protected ParcelAssesor createParcelAssesor() {
-		// Simple solution: always accept any parcel requests
-		return new ParcelAssesor() {
+		// plugging our own vehicle in
+		problem.addCreator(AddVehicleEvent.class, new Creator<AddVehicleEvent>() {
 			@Override
-			public boolean acceptParcel(ParcelDTO parcel) {
-				return true;
+			public boolean create(Simulator sim, AddVehicleEvent event) {
+				return sim.register(new Truck(event.vehicleDTO));
 			}
-		};
+		});
+		// pluggin our custom parcel in
+		problem.addCreator(AddParcelEvent.class, new Creator<AddParcelEvent>() {
+			@Override
+			public boolean create(Simulator sim, AddParcelEvent event) {
+				// all parcels are accepted by default
+				return sim.register(new GFParcel(event.parcelDTO));
+			}
+		});
+
+		// enabling UI using our custom viz
+		problem.enableUI(new UICreator() {
+
+			@Override
+			public void createUI(Simulator sim) {
+				final UiSchema schema = new UiSchema(false);
+				schema.add(Truck.class, "/graphics/perspective/bus-44.png");
+				schema.add(DefaultDepot.class, "/graphics/flat/warehouse-32.png");
+				schema.add(DefaultParcel.class, "/graphics/flat/hailing-cab-32.png");
+				View.startGui(sim, 1, new PlaneRoadModelRenderer(40), new RoadUserRenderer(schema, false), new PDPModelRenderer(), new GradientFieldRenderer());
+
+			}
+		});
+
+		final StatsTracker statsTracker = new StatsTracker();
+		problem.addStatisticsListener(statsTracker);
+		problem.simulate();
+		System.out.println(statsTracker.getStatsDTO());
 	}
+
 }
