@@ -3,6 +3,8 @@
  */
 package rinde.sim.core;
 
+import static com.google.common.base.Preconditions.checkArgument;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashSet;
@@ -126,6 +128,7 @@ public class Simulator implements SimulatorAPI {
      *            programmer prefers.
      */
     public Simulator(RandomGenerator r, long step) {
+        checkArgument(step > 0, "Step must be a positive number.");
         timeStep = step;
         tickListeners = Collections
                 .synchronizedSet(new LinkedHashSet<TickListener>());

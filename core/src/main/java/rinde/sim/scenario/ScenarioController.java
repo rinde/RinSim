@@ -1,5 +1,6 @@
 package rinde.sim.scenario;
 
+import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.collect.Sets.newHashSet;
 import static java.util.Arrays.asList;
 
@@ -225,10 +226,8 @@ public class ScenarioController implements TickListener {
 
         @Override
         public final void handleEvent(Event e) {
-            if (!timedEventHandler.handleTimedEvent((TimedEvent) e)) {
-                throw new IllegalArgumentException("event not handled: "
-                        + e.toString());
-            }
+            checkState(timedEventHandler.handleTimedEvent((TimedEvent) e), "The event "
+                    + e.getEventType() + " is not handled.");
         }
     }
 
