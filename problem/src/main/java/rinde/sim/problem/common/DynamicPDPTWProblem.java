@@ -3,6 +3,7 @@
  */
 package rinde.sim.problem.common;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.collect.Maps.newHashMap;
 import static java.util.Arrays.asList;
@@ -20,6 +21,7 @@ import rinde.sim.core.Simulator;
 import rinde.sim.core.model.Model;
 import rinde.sim.core.model.pdp.Depot;
 import rinde.sim.core.model.pdp.PDPModel;
+import rinde.sim.core.model.pdp.PDPScenarioEvent;
 import rinde.sim.core.model.pdp.Parcel;
 import rinde.sim.core.model.pdp.Vehicle;
 import rinde.sim.core.model.pdp.twpolicy.TardyAllowedPolicy;
@@ -37,22 +39,71 @@ import rinde.sim.ui.renderers.RoadUserRenderer;
 import rinde.sim.ui.renderers.UiSchema;
 
 /**
+ * A problem instance for the class of problems which is called dynamic
+ * pickup-and-delivery problems with time windows, often abbreviated as dynamic
+ * PDPTW.
+ * <p>
+ * A problem instance is an instance which sets up everything related to the
+ * 'problem' which one tries to solve. The idea is that a user only needs to
+ * worry about adding its own solution to this instance.
+ * <p>
+ * By default this class needs very little customization, it needs to be given a
+ * scenario which it then uses to configure the simulation. Further it is
+ * required to plug your own vehicle in by using
+ * {@link #addCreator(Class, Creator)}. Optionally this method can also be used
+ * to plug custom parcels and depots in.
+ * <p>
+ * Currently the Gendreau et al. (2006) benchmark is supported. In the future
+ * this class will also support the Fabri & Recht and Pankratz benchmarks.
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
- * 
  */
 public class DynamicPDPTWProblem {
 
+	/**
+	 * A map which contains the default {@link Creator}s.
+	 */
 	protected static final Map<Class<?>, Creator<?>> DEFAULT_EVENT_CREATOR_MAP = initDefaultEventCreatorMap();
 
+	/**
+	 * Map containing the {@link Creator}s which handle specific
+	 * {@link TimedEvent}s.
+	 */
 	protected final Map<Class<?>, Creator<?>> eventCreatorMap;
+
+	/**
+	 * The {@link ScenarioController} which is used to play the scenario.
+	 */
 	protected final ScenarioController controller;
+
+	/**
+	 * The {@link Simulator} which is used for the simulation.
+	 */
 	protected final Simulator simulator;
+
+	/**
+	 * The {@link UICreator} which is used for creating the default UI.
+	 */
 	protected final DefaultUICreator defaultUICreator;
+
+	/**
+	 * The {@link TimeOutHandler} which is used to handle
+	 * {@link PDPScenarioEvent#TIME_OUT} events.
+	 */
 	protected TimeOutHandler timeOutHandler;
 
+	/**
+	 * Create a new problem instance using the specified scenario.
+	 * @param scen The the {@link DynamicPDPTWScenario} which is used in this
+	 *            problem.
+	 * @param randomSeed The random seed which will be passed into the random
+	 *            number generator in the simulator.
+	 * @param models An optional list of models which can be added, with this
+	 *            option custom models for specific solutions can be added.
+	 */
 	public DynamicPDPTWProblem(DynamicPDPTWScenario scen, long randomSeed, Model<?>... models) {
 		simulator = new Simulator(new MersenneTwister(randomSeed), scen.getTickSize());
-		// TODO (max) speed must be dependent on scenario
+		// TODO speed converter needs to depend on scenario
+		// TODO road model needs to depend on scenario
 		simulator.register(new PlaneRoadModel(scen.getMin(), scen.getMax(), scen instanceof Gendreau06Scenario, scen
 				.getMaxSpeed()));
 		simulator.register(new PDPModel(new TardyAllowedPolicy()));
@@ -138,16 +189,25 @@ public class DynamicPDPTWProblem {
 		statList.register(controller, simulator);
 	}
 
-	// @SuppressWarnings("unchecked")
-	// private <T extends TimedEvent> Creator<T> get(Class<T> clazz) {
-	// return (Creator<T>) eventCreatorMap.get(clazz);
-	//
-	// }
-
-	public <T extends TimedEvent> void addCreator(Class<T> clazz, Creator<T> creator) {
-		eventCreatorMap.put(clazz, creator);
+	/**
+	 * Using this method a {@link Creator} instance can be associated with a
+	 * certain event. The creator will be called when the event is issued, it is
+	 * the responsibility of the {@link Creator} the create the apropriate
+	 * response. This method will override a previously existing creator for the
+	 * specified event type if applicable.
+	 * @param eventType The event type to which the creator will be associated.
+	 * @param creator The creator that will be used.
+	 */
+	public <T extends TimedEvent> void addCreator(Class<T> eventType, Creator<T> creator) {
+		checkArgument(eventType == AddVehicleEvent.class || eventType == AddParcelEvent.class
+				|| eventType == AddDepotEvent.class, "A creator can only be added to one of the following classes: AddVehicleEvent, AddParcelEvent, AddDepotEvent.");
+		eventCreatorMap.put(eventType, creator);
 	}
 
+	/**
+	 * With this method the {@link TimeOutHandler} which is used can be changed.
+	 * @param toh The time out handler to use.
+	 */
 	public void setTimeOutHandler(TimeOutHandler toh) {
 		timeOutHandler = toh;
 	}

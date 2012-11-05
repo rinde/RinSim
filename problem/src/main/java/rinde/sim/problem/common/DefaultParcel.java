@@ -14,8 +14,15 @@ import rinde.sim.core.model.road.RoadModel;
  */
 public class DefaultParcel extends Parcel {
 
+	/**
+	 * A data object which describes the immutable properties of this parcel.
+	 */
 	public final ParcelDTO dto;
 
+	/**
+	 * Instantiate a new parcel using the data transfer object.
+	 * @param pDto {@link #dto}
+	 */
 	public DefaultParcel(ParcelDTO pDto) {
 		super(pDto.destinationLocation, pDto.pickupDuration, pDto.pickupTimeWindow, pDto.deliveryDuration,
 				pDto.deliveryTimeWindow, pDto.neededCapacity);
@@ -25,5 +32,4 @@ public class DefaultParcel extends Parcel {
 
 	@Override
 	public void initRoadPDP(RoadModel pRoadModel, PDPModel pPdpModel) {}
-
 }

@@ -14,10 +14,28 @@ import rinde.sim.core.model.road.RoadModel;
  */
 public abstract class DefaultVehicle extends Vehicle {
 
+	/**
+	 * The data transfer object which holds the immutable properties of this
+	 * vehicle.
+	 */
 	protected final VehicleDTO dto;
+
+	/**
+	 * A reference to the {@link RoadModel}, it is <code>null</code> until
+	 * {@link #initRoadPDP(RoadModel, PDPModel)} is called.
+	 */
 	protected RoadModel roadModel;
+
+	/**
+	 * A reference to the {@link PDPModel}, it is <code>null</code> until
+	 * {@link #initRoadPDP(RoadModel, PDPModel)} is called.
+	 */
 	protected PDPModel pdpModel;
 
+	/**
+	 * Instantiate a new vehicle using the specified properties.
+	 * @param pDto {@link #dto}
+	 */
 	public DefaultVehicle(VehicleDTO pDto) {
 		setStartPosition(pDto.startPosition);
 		setCapacity(pDto.capacity);
@@ -35,6 +53,9 @@ public abstract class DefaultVehicle extends Vehicle {
 		pdpModel = pPdpModel;
 	}
 
+	/**
+	 * @return The {@link #dto}.
+	 */
 	public VehicleDTO getDTO() {
 		return dto;
 	}

@@ -9,6 +9,10 @@ import rinde.sim.event.Event;
  */
 public class TimedEvent extends Event {
     private static final long serialVersionUID = 6832559417793517102L;
+
+    /**
+     * The time at which the event is to be dispatched.
+     */
     public final long time;
 
     public TimedEvent(Enum<?> type, long timestamp) {
