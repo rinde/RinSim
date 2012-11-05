@@ -113,10 +113,19 @@ public class PlaneRoadModel extends AbstractRoadModel<Point> {
                 traveled += stepLength;
             } else {
                 final Point diff = Point.diff(path.peek(), loc);
-                final double perc = travelDistance / stepLength;
-                loc = new Point(loc.x + perc * diff.x, loc.y + perc * diff.y);
-                time.consume(Math.round(travelDistance / speed));
-                traveled += travelDistance;
+
+                if (stepLength - travelDistance < 0.00000001) {
+                    loc = path.peek();
+                    traveled += stepLength;
+                } else {
+                    final double perc = travelDistance / stepLength;
+                    loc = new Point(loc.x + perc * diff.x, loc.y + perc
+                            * diff.y);
+                    // time.consume(Math.round(travelDistance / speed));
+                    traveled += travelDistance;
+                }
+                time.consumeAll();
+
             }
         }
         objLocs.put(object, loc);

@@ -357,7 +357,9 @@ public class PDPModel implements Model<PDPObject>, TickListener, ModelReceiver {
 
         checkArgument(timeWindowPolicy.canDeliver(parcel
                 .getDeliveryTimeWindow(), time.getTime(), parcel
-                .getDeliveryDuration()), "parcel delivery is not allowed according to the time window policy: "
+                .getDeliveryDuration()), "parcel delivery is not allowed at this time ("
+                + time.getTime()
+                + ") according to the time window policy: "
                 + timeWindowPolicy);
 
         checkArgument(parcel.canBeDelivered(vehicle, time.getTime()), "the parcel does not allow a delivery now");
