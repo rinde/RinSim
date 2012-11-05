@@ -1,6 +1,5 @@
 package rinde.sim.scenario;
 
-import static com.google.common.base.Preconditions.checkArgument;
 import rinde.sim.event.Event;
 
 /**
@@ -14,7 +13,6 @@ public class TimedEvent extends Event {
 
     public TimedEvent(Enum<?> type, long timestamp) {
         super(type);
-        checkArgument(timestamp >= 0, "timestamp cannot be negative");
         time = timestamp;
     }
 
@@ -38,7 +36,7 @@ public class TimedEvent extends Event {
         if (getClass() != obj.getClass()) {
             return false;
         }
-        TimedEvent other = (TimedEvent) obj;
+        final TimedEvent other = (TimedEvent) obj;
         if (!eventType.equals(other.eventType)) {
             return false;
         }

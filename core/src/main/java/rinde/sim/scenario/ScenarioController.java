@@ -147,6 +147,15 @@ public class ScenarioController implements TickListener {
     public void start() {
         if (ticks != 0) {
 
+            // dispatch all setup events (the ones that define initial
+            // settings).
+            TimedEvent e = null;
+            while ((e = scenarioQueue.peek()) != null && e.time < 0) {
+                scenarioQueue.poll();
+                e.setIssuer(this);
+                disp.dispatchEvent(e);
+            }
+
             if (!uiMode) {
                 simulator.start();
             } else {

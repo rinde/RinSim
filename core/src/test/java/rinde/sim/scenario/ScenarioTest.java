@@ -163,12 +163,6 @@ public class ScenarioTest {
                 10)));
     }
 
-    @SuppressWarnings("unused")
-    @Test(expected = IllegalArgumentException.class)
-    public void timedEventConstructorFail() {
-        new TimedEvent(EVENT_A, -1);
-    }
-
     public static Scenario randomScenario(RandomGenerator gen, int numTrucks,
             List<Point> positions) {
         final ScenarioBuilder res = new ScenarioBuilder(EVENT_A);

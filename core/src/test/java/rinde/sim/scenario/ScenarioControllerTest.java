@@ -1,5 +1,6 @@
 package rinde.sim.scenario;
 
+import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Sets.newHashSet;
 import static java.util.Arrays.asList;
 import static org.junit.Assert.assertEquals;
@@ -14,6 +15,7 @@ import static rinde.sim.scenario.ScenarioControllerTest.TestEvents.EVENT_B;
 import static rinde.sim.scenario.ScenarioControllerTest.TestEvents.EVENT_C;
 import static rinde.sim.scenario.ScenarioControllerTest.TestEvents.EVENT_D;
 
+import java.util.List;
 import java.util.Set;
 
 import org.apache.commons.math3.random.MersenneTwister;
@@ -99,19 +101,6 @@ public class ScenarioControllerTest {
         sc.disp.dispatchEvent(new TimedEvent(EVENT_A, 0));
     }
 
-    class TestHandler implements TimedEventHandler {
-        Set<Enum<?>> types;
-
-        public TestHandler(Enum<?>... handledTypes) {
-            types = newHashSet(handledTypes);
-        }
-
-        @Override
-        public boolean handleTimedEvent(TimedEvent event) {
-            return types.contains(event.getEventType());
-        }
-    }
-
     @Test
     public void finiteSimulation() throws ConfigurationException,
             InterruptedException {
@@ -154,6 +143,26 @@ public class ScenarioControllerTest {
         final TimeLapse emptyTime = TimeLapseFactory.create(0, 1);
         emptyTime.consumeAll();
         sc.tick(emptyTime);
+    }
+
+    @Test
+    public void testSetupEvents() {
+        final ScenarioBuilder sb = new ScenarioBuilder(EVENT_A, EVENT_B,
+                EVENT_C, EVENT_D);
+        sb.addEvent(new TimedEvent(EVENT_A, 0))
+                .addEvent(new TimedEvent(EVENT_B, -1))
+                .addEvent(new TimedEvent(EVENT_B, 2))
+                .addEvent(new TimedEvent(EVENT_A, 2))
+                .addEvent(new TimedEvent(EVENT_C, -1))
+                .addEvent(new TimedEvent(EVENT_C, 100));
+        final Scenario s = sb.build();
+
+        final EventHistory th = new EventHistory();
+        final ScenarioController sc = new ScenarioController(s, simulator, th,
+                1);
+        sc.start();
+        assertEquals(asList(EVENT_B, EVENT_C, EVENT_A), th.eventTypes);
+
     }
 
     /**
@@ -235,49 +244,36 @@ public class ScenarioControllerTest {
         controller.stop();
     }
 
-    // @SuppressWarnings("unused")
-    // @Test(expected = IllegalArgumentException.class)
-    // public void testNullScenario() throws ConfigurationException {
-    // new TestScenarioController(null, -1);
-    // }
+    class TestHandler implements TimedEventHandler {
+        Set<Enum<?>> types;
 
-    // @Test(expected = ConfigurationException.class)
-    // public void testIncorrectUseOfScenarioController()
-    // throws ConfigurationException {
-    // final ScenarioController c = new ScenarioController(scenario, 1) {
-    // @Override
-    // protected Simulator createSimulator() {
-    // // designed behavior for this test
-    // return null;
-    // }
-    //
-    // @Override
-    // protected boolean handleTimedEvent(TimedEvent event) {
-    // return false;
-    // }
-    // };
-    // c.start();
-    // }
+        public TestHandler(Enum<?>... handledTypes) {
+            types = newHashSet(handledTypes);
+        }
+
+        @Override
+        public boolean handleTimedEvent(TimedEvent event) {
+            return types.contains(event.getEventType());
+        }
+    }
+
+    class EventHistory implements TimedEventHandler {
+
+        protected final List<TimedEvent> eventList;
+        protected final List<Enum<?>> eventTypes;
+
+        public EventHistory() {
+            eventList = newArrayList();
+            eventTypes = newArrayList();
+        }
+
+        @Override
+        public boolean handleTimedEvent(TimedEvent event) {
+            eventList.add(event);
+            eventTypes.add(event.getEventType());
+            return true;
+        }
+
+    }
 
 }
-
-// class TestScenarioController extends ScenarioController {
-//
-// public TestScenarioController(Scenario scen, int numberOfTicks)
-// throws ConfigurationException {
-// super(scen, numberOfTicks);
-// initialize();
-// }
-//
-// @Override
-// protected Simulator createSimulator() {
-// final MersenneTwister rand = new MersenneTwister(123);
-// return new Simulator(rand, 1);
-// }
-//
-// @Override
-// protected boolean handleTimedEvent(TimedEvent event) {
-// return false;
-// }
-//
-// }
