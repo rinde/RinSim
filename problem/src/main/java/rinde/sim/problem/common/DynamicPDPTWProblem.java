@@ -26,6 +26,7 @@ import rinde.sim.core.model.pdp.Parcel;
 import rinde.sim.core.model.pdp.Vehicle;
 import rinde.sim.core.model.pdp.twpolicy.TardyAllowedPolicy;
 import rinde.sim.core.model.road.PlaneRoadModel;
+import rinde.sim.problem.common.StatsTracker.StatisticsDTO;
 import rinde.sim.problem.gendreau06.Gendreau06Scenario;
 import rinde.sim.scenario.ScenarioController;
 import rinde.sim.scenario.ScenarioController.UICreator;
@@ -91,6 +92,8 @@ public class DynamicPDPTWProblem {
 	 */
 	protected TimeOutHandler timeOutHandler;
 
+	protected final StatsTracker statsTracker;
+
 	/**
 	 * Create a new problem instance using the specified scenario.
 	 * @param scen The the {@link DynamicPDPTWScenario} which is used in this
@@ -140,7 +143,12 @@ public class DynamicPDPTWProblem {
 				.getTimeWindow().begin);
 		controller = new ScenarioController(scen, simulator, handler, ticks);
 
+		statsTracker = new StatsTracker(controller, simulator);
 		defaultUICreator = new DefaultUICreator();
+	}
+
+	public StatisticsDTO getStatistics() {
+		return statsTracker.getStatsDTO();
 	}
 
 	/**
@@ -174,19 +182,8 @@ public class DynamicPDPTWProblem {
 		controller.start();
 	}
 
-	public void forceStop() {
-		// this forces the simulation to stop. this should be used to indicate
-		// that the simulation has to terminate earlier than expected.
-		// TODO add special event? -> at least have property available somewhere
-		simulator.stop();
-	}
-
 	public Simulator getSimulator() {
 		return simulator;
-	}
-
-	public void addStatisticsListener(StatisticsListener statList) {
-		statList.register(controller, simulator);
 	}
 
 	/**
@@ -238,10 +235,6 @@ public class DynamicPDPTWProblem {
 
 	public interface TimeOutHandler {
 		void handleTimeOut(Simulator sim);
-	}
-
-	public interface StatisticsListener {
-		void register(ScenarioController scenContr, Simulator sim);
 	}
 
 	class DefaultUICreator implements UICreator {

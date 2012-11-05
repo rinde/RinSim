@@ -13,7 +13,6 @@ import rinde.sim.problem.common.DefaultDepot;
 import rinde.sim.problem.common.DefaultParcel;
 import rinde.sim.problem.common.DynamicPDPTWProblem;
 import rinde.sim.problem.common.DynamicPDPTWProblem.Creator;
-import rinde.sim.problem.common.StatsTracker;
 import rinde.sim.problem.fabrirecht.FabriRechtParser;
 import rinde.sim.problem.fabrirecht.FabriRechtScenario;
 import rinde.sim.scenario.ConfigurationException;
@@ -68,10 +67,8 @@ public class GradientFieldExample {
 			}
 		});
 
-		final StatsTracker statsTracker = new StatsTracker();
-		problem.addStatisticsListener(statsTracker);
 		problem.simulate();
-		System.out.println(statsTracker.getStatsDTO());
+		System.out.println(problem.getStatistics());
 	}
 
 }

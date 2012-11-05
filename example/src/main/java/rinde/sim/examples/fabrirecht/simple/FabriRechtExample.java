@@ -16,7 +16,6 @@ import rinde.sim.problem.common.DefaultParcel;
 import rinde.sim.problem.common.DefaultVehicle;
 import rinde.sim.problem.common.DynamicPDPTWProblem;
 import rinde.sim.problem.common.DynamicPDPTWProblem.Creator;
-import rinde.sim.problem.common.StatsTracker;
 import rinde.sim.problem.common.VehicleDTO;
 import rinde.sim.problem.fabrirecht.FabriRechtParser;
 import rinde.sim.problem.fabrirecht.FabriRechtScenario;
@@ -53,15 +52,11 @@ public class FabriRechtExample {
 		// enable the default UI
 		problem.enableUI();
 
-		// init a statistics tracker and attach it to the problem
-		final StatsTracker statsTracker = new StatsTracker();
-		problem.addStatisticsListener(statsTracker);
-
 		// start the simulation
 		problem.simulate();
 
 		// simulation is done, lets print the statistics!
-		System.out.println(statsTracker.getStatsDTO());
+		System.out.println(problem.getStatistics());
 	}
 }
 

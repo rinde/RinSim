@@ -3,7 +3,6 @@
  */
 package rinde.sim.problem.common;
 
-import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.collect.Maps.newLinkedHashMap;
 import static rinde.sim.core.Simulator.SimulatorEventType.STARTED;
 import static rinde.sim.core.Simulator.SimulatorEventType.STOPPED;
@@ -40,7 +39,6 @@ import rinde.sim.event.Event;
 import rinde.sim.event.EventAPI;
 import rinde.sim.event.EventDispatcher;
 import rinde.sim.event.Listener;
-import rinde.sim.problem.common.DynamicPDPTWProblem.StatisticsListener;
 import rinde.sim.scenario.ScenarioController;
 import rinde.sim.scenario.TimedEvent;
 
@@ -48,24 +46,19 @@ import rinde.sim.scenario.TimedEvent;
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
  * 
  */
-public class StatsTracker implements StatisticsListener {
+public class StatsTracker {
 
 	protected final EventDispatcher eventDispatcher;
 	protected final TheListener theListener;
-	protected Simulator simulator;
+	protected final Simulator simulator;
 
 	public enum StatisticsEventType {
 		PICKUP_TARDINESS, DELIVERY_TARDINESS;
 	}
 
-	public StatsTracker() {
+	public StatsTracker(ScenarioController scenContr, Simulator sim) {
 		eventDispatcher = new EventDispatcher(StatisticsEventType.values());
 		theListener = new TheListener();
-	}
-
-	@Override
-	public void register(ScenarioController scenContr, Simulator sim) {
-		checkState(simulator == null, "StatsTracker can be attached to only one Simulator instance");
 		simulator = sim;
 		scenContr
 				.getEventAPI()

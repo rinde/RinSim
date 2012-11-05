@@ -34,7 +34,6 @@ import rinde.sim.problem.common.DynamicPDPTWProblem.Creator;
 import rinde.sim.problem.common.DynamicPDPTWProblem.TimeOutHandler;
 import rinde.sim.problem.common.ObjectiveFunction;
 import rinde.sim.problem.common.ParcelDTO;
-import rinde.sim.problem.common.StatsTracker;
 import rinde.sim.problem.common.StatsTracker.StatisticsDTO;
 import rinde.sim.problem.common.VehicleDTO;
 import rinde.sim.scenario.TimedEvent;
@@ -117,22 +116,12 @@ public class Gendreau06Test {
 				return sim.register(new SimpleTruck(event.vehicleDTO, new ClosestParcelStrategy()));
 			}
 		});
-		final StatsTracker st = new StatsTracker();
 		final ObjectiveFunction of = new Gendreau06ObjectiveFunction();
-
-		// st.getEventAPI().addListener(new Listener() {
-		// @Override
-		// public void handleEvent(Event e) {
-		// System.out.println(e);
-		// }
-		// });
-
-		// problem.enableUI();
 
 		problem.setTimeOutHandler(new TimeOutHandler() {
 			@Override
 			public void handleTimeOut(final Simulator sim) {
-				if (of.isValidResult(st.getStatsDTO())) {
+				if (of.isValidResult(problem.getStatistics())) {
 					sim.stop();
 				} else {
 					sim.addTickListener(new TickListener() {
@@ -141,7 +130,7 @@ public class Gendreau06Test {
 
 						@Override
 						public void afterTick(TimeLapse timeLapse) {
-							if (of.isValidResult(st.getStatsDTO())) {
+							if (of.isValidResult(problem.getStatistics())) {
 								sim.stop();
 							}
 						}
@@ -149,9 +138,8 @@ public class Gendreau06Test {
 				}
 			}
 		});
-		problem.addStatisticsListener(st);
 		problem.simulate();
-		return st.getStatsDTO();
+		return problem.getStatistics();
 	}
 
 	static Gendreau06Scenario create(int numVehicles, long endTime, AddParcelEvent... parcelEvents) {
