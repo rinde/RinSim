@@ -3,6 +3,7 @@
  */
 package rinde.sim.problem.common;
 
+import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.collect.Maps.newHashMap;
 import static java.util.Arrays.asList;
 import static java.util.Collections.unmodifiableMap;
@@ -23,6 +24,7 @@ import rinde.sim.core.model.pdp.Parcel;
 import rinde.sim.core.model.pdp.Vehicle;
 import rinde.sim.core.model.pdp.twpolicy.TardyAllowedPolicy;
 import rinde.sim.core.model.road.PlaneRoadModel;
+import rinde.sim.problem.gendreau06.Gendreau06Scenario;
 import rinde.sim.scenario.ScenarioController;
 import rinde.sim.scenario.ScenarioController.UICreator;
 import rinde.sim.scenario.TimedEvent;
@@ -40,22 +42,31 @@ import rinde.sim.ui.renderers.UiSchema;
  */
 public class DynamicPDPTWProblem {
 
-	protected Map<Class<?>, Creator<?>> eventCreatorMap;
-	protected static final Map<Class<?>, Creator<?>> defaultEventCreatorMap = initDefaultEventCreatorMap();
+	protected static final Map<Class<?>, Creator<?>> DEFAULT_EVENT_CREATOR_MAP = initDefaultEventCreatorMap();
 
-	protected ScenarioController controller;
+	protected final Map<Class<?>, Creator<?>> eventCreatorMap;
+	protected final ScenarioController controller;
 	protected final Simulator simulator;
-
 	protected final DefaultUICreator defaultUICreator;
+	protected TimeOutHandler timeOutHandler;
 
 	public DynamicPDPTWProblem(DynamicPDPTWScenario scen, long randomSeed, Model<?>... models) {
 		simulator = new Simulator(new MersenneTwister(randomSeed), scen.getTickSize());
-		simulator.register(new PlaneRoadModel(scen.getMin(), scen.getMax(), false, 1.0));
+		// TODO (max) speed must be dependent on scenario
+		simulator.register(new PlaneRoadModel(scen.getMin(), scen.getMax(), scen instanceof Gendreau06Scenario, scen
+				.getMaxSpeed()));
 		simulator.register(new PDPModel(new TardyAllowedPolicy()));
 		for (final Model<?> m : models) {
 			simulator.register(m);
 		}
 		eventCreatorMap = newHashMap();
+
+		timeOutHandler = new TimeOutHandler() {
+			@Override
+			public void handleTimeOut(Simulator sim) {
+				sim.stop();
+			}
+		};
 
 		final TimedEventHandler handler = new TimedEventHandler() {
 
@@ -64,17 +75,17 @@ public class DynamicPDPTWProblem {
 			public boolean handleTimedEvent(TimedEvent event) {
 				if (eventCreatorMap.containsKey(event.getClass())) {
 					return ((Creator<TimedEvent>) eventCreatorMap.get(event.getClass())).create(simulator, event);
-				} else if (defaultEventCreatorMap.containsKey(event.getClass())) {
-					return ((Creator<TimedEvent>) defaultEventCreatorMap.get(event.getClass()))
+				} else if (DEFAULT_EVENT_CREATOR_MAP.containsKey(event.getClass())) {
+					return ((Creator<TimedEvent>) DEFAULT_EVENT_CREATOR_MAP.get(event.getClass()))
 							.create(simulator, event);
 				} else if (event.getEventType() == TIME_OUT) {
-					simulator.stop();
+					timeOutHandler.handleTimeOut(simulator);
 					return true;
 				}
 				return false;
 			}
 		};
-		final int ticks = scen.getTimeWindow().end == Long.MAX_VALUE ? 0 : (int) (scen.getTimeWindow().end - scen
+		final int ticks = scen.getTimeWindow().end == Long.MAX_VALUE ? -1 : (int) (scen.getTimeWindow().end - scen
 				.getTimeWindow().begin);
 		controller = new ScenarioController(scen, simulator, handler, ticks);
 
@@ -104,7 +115,11 @@ public class DynamicPDPTWProblem {
 		controller.enableUI(creator);
 	}
 
+	/**
+	 * Executes a simulation of the problem.
+	 */
 	public void simulate() {
+		checkState(eventCreatorMap.containsKey(AddVehicleEvent.class), "A creator for AddVehicleEvent is required, use addCreator(..)");
 		controller.start();
 	}
 
@@ -129,19 +144,12 @@ public class DynamicPDPTWProblem {
 	//
 	// }
 
-	// factory method for dealing with scenario events, note that the created
-	// object must be registered to the simulator, not returned
-	public interface Creator<T extends TimedEvent> {
-
-		boolean create(Simulator sim, T event);
-	}
-
-	public interface StatisticsListener {
-		void register(ScenarioController scenContr, Simulator sim);
-	}
-
 	public <T extends TimedEvent> void addCreator(Class<T> clazz, Creator<T> creator) {
 		eventCreatorMap.put(clazz, creator);
+	}
+
+	public void setTimeOutHandler(TimeOutHandler toh) {
+		timeOutHandler = toh;
 	}
 
 	static Map<Class<?>, Creator<?>> initDefaultEventCreatorMap() {
@@ -159,6 +167,21 @@ public class DynamicPDPTWProblem {
 			}
 		});
 		return unmodifiableMap(map);
+	}
+
+	// factory method for dealing with scenario events, note that the created
+	// object must be registered to the simulator, not returned
+	public interface Creator<T extends TimedEvent> {
+
+		boolean create(Simulator sim, T event);
+	}
+
+	public interface TimeOutHandler {
+		void handleTimeOut(Simulator sim);
+	}
+
+	public interface StatisticsListener {
+		void register(ScenarioController scenContr, Simulator sim);
 	}
 
 	class DefaultUICreator implements UICreator {

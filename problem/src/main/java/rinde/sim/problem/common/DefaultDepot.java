@@ -9,8 +9,8 @@ import rinde.sim.core.model.pdp.PDPModel;
 import rinde.sim.core.model.road.RoadModel;
 
 /**
+ * A default {@link Depot} implementation, it does nothing.
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
- * 
  */
 public class DefaultDepot extends Depot {
 

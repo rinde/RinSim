@@ -8,8 +8,9 @@ import rinde.sim.core.model.pdp.Vehicle;
 import rinde.sim.core.model.road.RoadModel;
 
 /**
+ * Default implementation of {@link Vehicle}, it initializes the vehicle based
+ * on a {@link VehicleDTO} but it does not move.
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
- * 
  */
 public abstract class DefaultVehicle extends Vehicle {
 

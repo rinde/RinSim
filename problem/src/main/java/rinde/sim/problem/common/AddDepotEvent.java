@@ -8,11 +8,12 @@ import rinde.sim.core.model.pdp.PDPScenarioEvent;
 import rinde.sim.scenario.TimedEvent;
 
 /**
+ * Event indicating that a depot can be created.
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
- * 
  */
 public class AddDepotEvent extends TimedEvent {
 
+	private static final long serialVersionUID = -7517322583609266323L;
 	public Point position;
 
 	public AddDepotEvent(long time, Point pPosition) {

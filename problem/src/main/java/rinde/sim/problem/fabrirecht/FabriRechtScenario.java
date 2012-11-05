@@ -65,4 +65,9 @@ public class FabriRechtScenario extends DynamicPDPTWScenario {
 		return 1L;
 	}
 
+	@Override
+	public double getMaxSpeed() {
+		return 1.0;
+	}
+
 }

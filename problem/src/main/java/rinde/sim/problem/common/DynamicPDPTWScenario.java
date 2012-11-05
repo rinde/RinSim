@@ -34,4 +34,6 @@ public abstract class DynamicPDPTWScenario extends Scenario {
 
 	public abstract long getTickSize();
 
+	public abstract double getMaxSpeed();
+
 }

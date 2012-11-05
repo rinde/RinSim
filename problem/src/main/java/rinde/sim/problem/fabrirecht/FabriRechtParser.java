@@ -114,7 +114,7 @@ public class FabriRechtParser {
 		while ((line = ordersFileReader.readLine()) != null) {
 			final String[] parts = line.split(";");
 
-			final int neededCapacity = 1;// Integer.parseInt(parts[6]);
+			final int neededCapacity = 1; // Integer.parseInt(parts[6]);
 
 			final ParcelDTO o = new ParcelDTO(coordinates.get(Integer.parseInt(parts[0])), coordinates.get(Integer
 					.parseInt(parts[1])), new TimeWindow(Long.parseLong(parts[2]), Long.parseLong(parts[3])),

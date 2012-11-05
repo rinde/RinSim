@@ -15,6 +15,18 @@ import rinde.sim.scenario.TimedEvent;
 import rinde.sim.util.TimeWindow;
 
 /**
+ * 
+ * The length of the scenario is a soft constraint. There is a pre defined
+ * length of the day (either 4 hours or 7.5 hours), vehicles are allowed to
+ * continue driving after the end of the day.
+ * 
+ * Once a vehicle is moving towards a Parcel it is obliged to service it. This
+ * means that diversion is not allowed.
+ * 
+ * Distance is expressed in km, time is expressed in ms (the original format is
+ * in seconds, however it allows fractions as such it was translated to ms),
+ * speed is expressed as km/h.
+ * 
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
  * 
  */
@@ -47,6 +59,11 @@ public class Gendreau06Scenario extends DynamicPDPTWScenario {
 
 	@Override
 	public long getTickSize() {
-		return 1;
+		return 1000;
+	}
+
+	@Override
+	public double getMaxSpeed() {
+		return 30.0;
 	}
 }

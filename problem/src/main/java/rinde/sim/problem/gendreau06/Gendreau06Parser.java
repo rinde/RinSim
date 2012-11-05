@@ -9,12 +9,16 @@ import static rinde.sim.core.model.pdp.PDPScenarioEvent.ADD_PARCEL;
 import static rinde.sim.core.model.pdp.PDPScenarioEvent.ADD_VEHICLE;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.List;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import rinde.sim.core.graph.Point;
+import rinde.sim.core.model.pdp.PDPScenarioEvent;
 import rinde.sim.problem.common.AddDepotEvent;
 import rinde.sim.problem.common.AddParcelEvent;
 import rinde.sim.problem.common.AddVehicleEvent;
@@ -26,34 +30,51 @@ import rinde.sim.scenario.TimedEvent;
 import rinde.sim.util.TimeWindow;
 
 /**
- * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+ * Expects files from the Gendreau06 dataset [1]. <br/>
  * 
+ * <ul>
+ * <li>[1]. Gendreau, M., Guertin, F., Potvin, J.-Y., and Séguin, R.
+ * Neighborhood search heuristics for a dynamic vehicle dispatching problem with
+ * pick-ups and deliveries. Transportation Research Part C: Emerging
+ * Technologies 14, 3 (2006), 157–174.</li>
+ * </ul>
+ * <b>Format specification: (columns)</b>
+ * <ul>
+ * <li>1: request arrival time</li>
+ * <li>2: pick-up service time</li>
+ * <li>3 and 4: x and y position for the pick-up</li>
+ * <li>5 and 6: service window time of the pick-up</li>
+ * <li>7: delivery service time</li>
+ * <li>8 and 9:x and y position for the delivery</li>
+ * <li>10 and 11: service window time of the delivery</li>
+ * </ul>
+ * 
+ * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
  */
-public class Gendreau06Parser {
+public final class Gendreau06Parser {
 
-	/**
-	 * <b>Format: (columns)</b>
-	 * <ul>
-	 * <li>1: request arrival time</li>
-	 * <li>2: pick-up service time</li>
-	 * <li>3 and 4: x and y position for the pick-up</li>
-	 * <li>5 and 6: service window time of the pick-up</li>
-	 * <li>7: delivery service time</li>
-	 * <li>8 and 9:x and y position for the delivery</li>
-	 * <li>10 and 11: service window time of the delivery</li>
-	 * </ul>
-	 */
+	private Gendreau06Parser() {}
 
 	public static Gendreau06Scenario parse(String file, int numVehicles) throws IOException {
 		checkArgument(numVehicles > 0, "at least one vehicle is necessary in the scenario");
 		final ScenarioBuilder sb = new ScenarioBuilder(ADD_PARCEL, ADD_DEPOT, ADD_VEHICLE);
 		final BufferedReader reader = new BufferedReader(new FileReader(file));
 
+		final String fileName = new File(file).getName();
+
+		final String regex = "req_rapide_[1-5]_(540|240)_(24|33)";
+		final Matcher m = Pattern.compile(regex).matcher(fileName);
+		checkArgument(m.matches(), "The filename must conform to the following regex: " + regex);
+		checkArgument(fileName.contains("240") || fileName.contains("540"), "The filename must follow the following pattern: req_rapide_I_T_R, where I=instance number, T=total time (either 240 or 540 minutes), R=number of requests per hour (either 24 or 33).");
+
+		final long totalTime = Long.parseLong(m.group(1));
+		final long requestsPerHour = Long.parseLong(m.group(2));
+
 		final Point depotPosition = new Point(2.0, 2.5);
 		final double truckSpeed = 30;
-		sb.addEvent(new AddDepotEvent(0, depotPosition));
+		sb.addEvent(new AddDepotEvent(-1, depotPosition));
 		for (int i = 0; i < numVehicles; i++) {
-			sb.addEvent(new AddVehicleEvent(0, new VehicleDTO(depotPosition, truckSpeed, 0, TimeWindow.ALWAYS)));
+			sb.addEvent(new AddVehicleEvent(-1, new VehicleDTO(depotPosition, truckSpeed, 0, TimeWindow.ALWAYS)));
 		}
 		String line;
 		while ((line = reader.readLine()) != null) {
@@ -80,6 +101,9 @@ public class Gendreau06Parser {
 				sb.addEvent(new AddParcelEvent(dto));
 			}
 		}
+
+		sb.addEvent(new TimedEvent(PDPScenarioEvent.TIME_OUT, totalTime));
+
 		return sb.build(new ScenarioCreator<Gendreau06Scenario>() {
 			@Override
 			public Gendreau06Scenario create(List<TimedEvent> eventList, Set<Enum<?>> eventTypes) {

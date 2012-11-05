@@ -22,13 +22,13 @@ import static rinde.sim.scenario.ScenarioController.EventType.SCENARIO_STARTED;
 
 import java.io.Serializable;
 import java.util.Map;
-import java.util.Set;
 
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 
 import rinde.sim.core.Simulator;
 import rinde.sim.core.Simulator.SimulatorEventType;
+import rinde.sim.core.graph.Point;
 import rinde.sim.core.model.pdp.PDPModel;
 import rinde.sim.core.model.pdp.PDPModel.PDPModelEvent;
 import rinde.sim.core.model.pdp.PDPModel.PDPModelEventType;
@@ -42,6 +42,7 @@ import rinde.sim.event.EventDispatcher;
 import rinde.sim.event.Listener;
 import rinde.sim.problem.common.DynamicPDPTWProblem.StatisticsListener;
 import rinde.sim.scenario.ScenarioController;
+import rinde.sim.scenario.TimedEvent;
 
 /**
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
@@ -79,6 +80,37 @@ public class StatsTracker implements StatisticsListener {
 		return eventDispatcher.getEventAPI();
 	}
 
+	public StatisticsDTO getStatsDTO() {
+
+		// final RoadModel rm =
+		// simulator.getModelProvider().getModel(RoadModel.class);
+		// final Set<DefaultVehicle> vehicles =
+		// rm.getObjectsOfType(DefaultVehicle.class);
+		// int vehicleBack = 0;
+		// for (final DefaultVehicle v : vehicles) {
+		// if (rm.getPosition(v).equals(v.getDTO().startPosition)) {
+		// vehicleBack++;
+		// }
+		// }
+
+		final int vehicleBack = theListener.lastArrivalTimeAtDepot.size();
+		long overTime = 0;
+		if (theListener.simFinish) {
+			for (final Long time : theListener.lastArrivalTimeAtDepot.values()) {
+				if (time - theListener.scenarioEndTime > 0) {
+					overTime += time - theListener.scenarioEndTime;
+				}
+			}
+		} else {
+			overTime = -1;
+		}
+
+		return new StatisticsDTO(theListener.totalDistance, theListener.totalPickups, theListener.totalDeliveries,
+				theListener.totalParcels, theListener.acceptedParcels, theListener.pickupTardiness,
+				theListener.deliveryTardiness, theListener.computationTime, theListener.simulationTime,
+				theListener.simFinish, vehicleBack, overTime, theListener.totalVehicles, theListener.distanceMap.size());
+	}
+
 	class TheListener implements Listener {
 		// parcels
 		protected int totalParcels;
@@ -88,6 +120,7 @@ public class StatsTracker implements StatisticsListener {
 		protected int totalVehicles;
 		protected final Map<MovingRoadUser, Double> distanceMap;
 		protected double totalDistance;
+		protected final Map<MovingRoadUser, Long> lastArrivalTimeAtDepot;
 
 		protected int totalPickups;
 		protected int totalDeliveries;
@@ -101,6 +134,7 @@ public class StatsTracker implements StatisticsListener {
 		protected long simulationTime;
 
 		protected boolean simFinish;
+		protected long scenarioEndTime;
 
 		public TheListener() {
 			totalParcels = 0;
@@ -109,6 +143,7 @@ public class StatsTracker implements StatisticsListener {
 			totalVehicles = 0;
 			distanceMap = newLinkedHashMap();
 			totalDistance = 0d;
+			lastArrivalTimeAtDepot = newLinkedHashMap();
 
 			totalPickups = 0;
 			totalDeliveries = 0;
@@ -128,9 +163,26 @@ public class StatsTracker implements StatisticsListener {
 				computationTime = System.currentTimeMillis() - startTimeReal;
 				simulationTime = simulator.getCurrentTime() - startTimeSim;
 			} else if (e.getEventType() == RoadEventType.MOVE) {
-				final MoveEvent me = ((MoveEvent) e);
+				final MoveEvent me = (MoveEvent) e;
 				increment(me.roadUser, me.pathProgress.distance);
 				totalDistance += me.pathProgress.distance;
+				// if we are closer than 10 cm to the depot, we say we are 'at'
+				// the depot
+				if (Point
+						.distance(me.roadModel.getPosition(me.roadUser), ((DefaultVehicle) me.roadUser).dto.startPosition) < 0.0001) {
+					// only override time if the vehicle did actually move
+					if (me.pathProgress.distance > 0.0001) {
+						lastArrivalTimeAtDepot.put(me.roadUser, simulator.getCurrentTime());
+					}
+				} else {
+					lastArrivalTimeAtDepot.remove(me.roadUser);
+				}
+
+				//
+				// if( totalVehicles == lastArrivalTimeAtDepot.size() ){
+				//
+				// }
+
 			} else if (e.getEventType() == PDPModelEventType.START_PICKUP) {
 				final PDPModelEvent pme = (PDPModelEvent) e;
 				final long latestBeginTime = pme.parcel.getPickupTimeWindow().end - pme.parcel.getPickupDuration();
@@ -159,6 +211,7 @@ public class StatsTracker implements StatisticsListener {
 				totalVehicles++;
 			} else if (e.getEventType() == TIME_OUT) {
 				simFinish = true;
+				scenarioEndTime = ((TimedEvent) e).time;
 			} else {
 				// System.out.println("fall through: " + e);
 			}
@@ -172,23 +225,6 @@ public class StatsTracker implements StatisticsListener {
 				distanceMap.put(mru, distanceMap.get(mru) + num);
 			}
 		}
-	}
-
-	public StatisticsDTO getStatsDTO() {
-
-		final RoadModel rm = simulator.getModelProvider().getModel(RoadModel.class);
-		final Set<DefaultVehicle> vehicles = rm.getObjectsOfType(DefaultVehicle.class);
-		int vehicleBack = 0;
-		for (final DefaultVehicle v : vehicles) {
-			if (rm.getPosition(v).equals(v.getDTO().startPosition)) {
-				vehicleBack++;
-			}
-		}
-
-		return new StatisticsDTO(theListener.totalDistance, theListener.totalPickups, theListener.totalDeliveries,
-				theListener.totalParcels, theListener.acceptedParcels, theListener.pickupTardiness,
-				theListener.deliveryTardiness, theListener.computationTime, theListener.simulationTime,
-				theListener.simFinish, vehicleBack, theListener.totalVehicles, theListener.distanceMap.size());
 	}
 
 	public static class StatisticsDTO implements Serializable {
@@ -238,6 +274,10 @@ public class StatsTracker implements StatisticsListener {
 		 */
 		public final int vehiclesAtDepot;
 		/**
+		 * The cummulative tardiness of vehicle arrival at depot.
+		 */
+		public final long overTime;
+		/**
 		 * Total number of vehicles available.
 		 */
 		public final int totalVehicles;
@@ -253,7 +293,7 @@ public class StatsTracker implements StatisticsListener {
 		public final double costPerDemand;
 
 		public StatisticsDTO(double dist, int pick, int del, int parc, int accP, long pickTar, long delTar, long compT,
-				long simT, boolean finish, int atDepot, int total, int moved) {
+				long simT, boolean finish, int atDepot, long overT, int total, int moved) {
 			totalDistance = dist;
 			totalPickups = pick;
 			totalDeliveries = del;
@@ -265,6 +305,7 @@ public class StatsTracker implements StatisticsListener {
 			simulationTime = simT;
 			simFinish = finish;
 			vehiclesAtDepot = atDepot;
+			overTime = overT;
 			totalVehicles = total;
 			movedVehicles = moved;
 			costPerDemand = totalDistance / (totalPickups + totalDeliveries);
