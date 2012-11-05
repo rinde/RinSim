@@ -54,7 +54,7 @@ public class ScenarioControllerTest {
         simulator = new Simulator(new MersenneTwister(123), 1);
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test(expected = IllegalStateException.class)
     public void testEmptyController() throws ConfigurationException {
         controller = new ScenarioController(scenario, simulator,
                 new TestHandler(), 3);
@@ -92,7 +92,7 @@ public class ScenarioControllerTest {
                 EVENT_D, 0)));
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test(expected = IllegalStateException.class)
     public void eventNotHandled() {
         final ScenarioController sc = new ScenarioController(scenario,
                 simulator, new TestHandler(), 1);
