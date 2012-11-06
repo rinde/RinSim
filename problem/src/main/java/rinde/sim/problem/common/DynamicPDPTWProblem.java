@@ -18,6 +18,8 @@ import org.apache.commons.math3.random.MersenneTwister;
 import org.eclipse.swt.graphics.RGB;
 
 import rinde.sim.core.Simulator;
+import rinde.sim.core.TickListener;
+import rinde.sim.core.TimeLapse;
 import rinde.sim.core.model.Model;
 import rinde.sim.core.model.pdp.Depot;
 import rinde.sim.core.model.pdp.PDPModel;
@@ -25,10 +27,7 @@ import rinde.sim.core.model.pdp.Parcel;
 import rinde.sim.core.model.pdp.Vehicle;
 import rinde.sim.core.model.pdp.twpolicy.TardyAllowedPolicy;
 import rinde.sim.core.model.road.PlaneRoadModel;
-import rinde.sim.event.Event;
-import rinde.sim.event.Listener;
 import rinde.sim.problem.common.StatsTracker.StatisticsDTO;
-import rinde.sim.problem.common.StatsTracker.StatisticsEventType;
 import rinde.sim.scenario.ScenarioController;
 import rinde.sim.scenario.ScenarioController.UICreator;
 import rinde.sim.scenario.TimedEvent;
@@ -39,6 +38,7 @@ import rinde.sim.ui.renderers.PlaneRoadModelRenderer;
 import rinde.sim.ui.renderers.Renderer;
 import rinde.sim.ui.renderers.RoadUserRenderer;
 import rinde.sim.ui.renderers.UiSchema;
+import rinde.sim.util.spec.CompositeSpecification;
 
 /**
  * A problem instance for the class of problems which is called dynamic
@@ -53,7 +53,7 @@ import rinde.sim.ui.renderers.UiSchema;
  * scenario which it then uses to configure the simulation. Further it is
  * required to plug your own vehicle in by using
  * {@link #addCreator(Class, Creator)}. Optionally this method can also be used
- * to plug custom parcels and depots in.
+ * to plug in custom parcels and depots.
  * <p>
  * Currently the Gendreau et al. (2006) benchmark is supported. In the future
  * this class will also support the Fabri & Recht and Pankratz benchmarks.
@@ -62,32 +62,9 @@ import rinde.sim.ui.renderers.UiSchema;
 public class DynamicPDPTWProblem {
 
 	/**
-	 * This enum contains several stopping conditions for terminating the
-	 * simulation.
-	 * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
-	 */
-	public enum StopCondition {
-		/**
-		 * The simulation is terminated as soon as the
-		 * {@link rinde.sim.core.model.pdp.PDPScenarioEvent#TIME_OUT} event is
-		 * dispatched.
-		 */
-		TIME_OUT_EVENT,
-
-		/**
-		 * The simulation is terminated as soon as all the vehicles are back at
-		 * the depot, note that this can be before or after the
-		 * {@link rinde.sim.core.model.pdp.PDPScenarioEvent#TIME_OUT} event is
-		 * dispatched.
-		 */
-		VEHICLES_BACK_AT_DEPOT
-	}
-
-	/**
 	 * A map which contains the default {@link Creator}s.
 	 */
 	protected static final Map<Class<?>, Creator<?>> DEFAULT_EVENT_CREATOR_MAP;
-
 	static {
 		final Map<Class<?>, Creator<?>> map = newHashMap();
 		map.put(AddParcelEvent.class, new Creator<AddParcelEvent>() {
@@ -132,6 +109,8 @@ public class DynamicPDPTWProblem {
 	 */
 	protected final StatsTracker statsTracker;
 
+	protected StopCondition stopCondition;
+
 	/**
 	 * Create a new problem instance using the specified scenario.
 	 * @param scen The the {@link DynamicPDPTWScenario} which is used in this
@@ -162,9 +141,6 @@ public class DynamicPDPTWProblem {
 					return ((Creator<TimedEvent>) DEFAULT_EVENT_CREATOR_MAP.get(event.getClass()))
 							.create(simulator, event);
 				} else if (event.getEventType() == TIME_OUT) {
-					if (scen.getStopCondition() == StopCondition.TIME_OUT_EVENT) {
-						simulator.stop();
-					}
 					return true;
 				}
 				return false;
@@ -175,14 +151,18 @@ public class DynamicPDPTWProblem {
 		controller = new ScenarioController(scen, simulator, handler, ticks);
 		statsTracker = new StatsTracker(controller, simulator);
 
-		if (scen.getStopCondition() == StopCondition.VEHICLES_BACK_AT_DEPOT) {
-			statsTracker.getEventAPI().addListener(new Listener() {
-				@Override
-				public void handleEvent(Event e) {
+		stopCondition = scen.getStopCondition();
+		simulator.addTickListener(new TickListener() {
+			@Override
+			public void tick(TimeLapse timeLapse) {}
+
+			@Override
+			public void afterTick(TimeLapse timeLapse) {
+				if (stopCondition.isSatisfiedBy(new SimulationInfo(statsTracker.getStatsDTO(), scen))) {
 					simulator.stop();
 				}
-			}, StatisticsEventType.ALL_VEHICLES_AT_DEPOT);
-		}
+			}
+		});
 		defaultUICreator = new DefaultUICreator();
 	}
 
@@ -208,6 +188,10 @@ public class DynamicPDPTWProblem {
 	 */
 	public void addRendererToUI(Renderer r) {
 		defaultUICreator.addRenderer(r);
+	}
+
+	public void addStopCondition(StopCondition condition) {
+		stopCondition = (StopCondition) stopCondition.or(condition);
 	}
 
 	/**
@@ -262,6 +246,45 @@ public class DynamicPDPTWProblem {
 		 *         was succesfully, <code>false</code> otherwise.
 		 */
 		boolean create(Simulator sim, T event);
+	}
+
+	public static abstract class StopCondition extends CompositeSpecification<SimulationInfo> {
+		/**
+		 * The simulation is terminated once the
+		 * {@link rinde.sim.core.model.pdp.PDPScenarioEvent#TIME_OUT} event is
+		 * dispatched.
+		 */
+		public static final StopCondition TIME_OUT_EVENT = new StopCondition() {
+			@Override
+			public boolean isSatisfiedBy(SimulationInfo context) {
+				return context.stats.simFinish;
+			}
+		};
+
+		/**
+		 * The simulation is terminated as soon as all the vehicles are back at
+		 * the depot, note that this can be before or after the
+		 * {@link rinde.sim.core.model.pdp.PDPScenarioEvent#TIME_OUT} event is
+		 * dispatched.
+		 */
+		public static final StopCondition VEHICLES_BACK_AT_DEPOT = new StopCondition() {
+			@Override
+			public boolean isSatisfiedBy(SimulationInfo context) {
+				return context.stats.totalVehicles == context.stats.vehiclesAtDepot;
+			}
+		};
+
+	}
+
+	public class SimulationInfo {
+		public final StatisticsDTO stats;
+		public final DynamicPDPTWScenario scenario;
+
+		protected SimulationInfo(StatisticsDTO st, DynamicPDPTWScenario scen) {
+			stats = st;
+			scenario = scen;
+		}
+
 	}
 
 	class DefaultUICreator implements UICreator {
