@@ -258,10 +258,13 @@ public class PDPModel implements Model<PDPObject>, TickListener, ModelReceiver {
      * the dispatching of an {@link Event} with type
      * {@link PDPModelEventType#START_PICKUP}. In case the specified
      * {@link TimeLapse} is not big enough to complete the pickup immediately
-     * the action will be continued next tick. When the pickup action is
-     * completed an {@link Event} with type {@link PDPModelEventType#END_PICKUP}
-     * is dispatched. When done, the {@link Parcel} will be contained by the
-     * {@link Vehicle}.
+     * the action will be continued next tick. Note that this method does not,
+     * and in fact, should not be called again in the next tick to continue the
+     * pickup. The continued pickup is handled automatically, the effect is that
+     * the {@link Vehicle} will receive less time (or no time at all) in its
+     * next tick. When the pickup action is completed an {@link Event} with type
+     * {@link PDPModelEventType#END_PICKUP} is dispatched. When done, the
+     * {@link Parcel} will be contained by the {@link Vehicle}.
      * @param vehicle The {@link Vehicle} involved in pickup.
      * @param parcel The {@link Parcel} to pick up.
      * @param time The {@link TimeLapse} that is available for the action.
@@ -336,8 +339,11 @@ public class PDPModel implements Model<PDPObject>, TickListener, ModelReceiver {
      * indicated by the dispatching of an {@link Event} with
      * {@link PDPModelEventType#START_DELIVERY} type. If there is not enough
      * time in the specified {@link TimeLapse} to complete the delivery at once,
-     * the action will be completed in the next tick. When the delivery is
-     * completed an {@link Event} with type
+     * the action will be completed in the next tick. Note that this method does
+     * not, and in fact, should not be called again in the next tick to continue
+     * the delivery. The continued delivery is handled automatically, the effect
+     * is that the {@link Vehicle} will receive less time (or no time at all) in
+     * its next tick. When the delivery is completed an {@link Event} with type
      * {@link PDPModelEventType#END_DELIVERY} is dispatched. As a result the
      * {@link Vehicle} no longer contains the {@link Parcel} and the
      * {@link Parcel} is NOT added to the {@link RoadModel} again.
