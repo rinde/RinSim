@@ -8,6 +8,8 @@ import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Sets.newHashSet;
 import static java.util.Arrays.asList;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
 import java.util.HashSet;
@@ -17,7 +19,6 @@ import java.util.Set;
 import org.junit.Test;
 
 import rinde.sim.core.Simulator;
-import rinde.sim.core.TickListener;
 import rinde.sim.core.TimeLapse;
 import rinde.sim.core.graph.Point;
 import rinde.sim.core.model.pdp.PDPModel;
@@ -31,8 +32,6 @@ import rinde.sim.problem.common.AddVehicleEvent;
 import rinde.sim.problem.common.DefaultVehicle;
 import rinde.sim.problem.common.DynamicPDPTWProblem;
 import rinde.sim.problem.common.DynamicPDPTWProblem.Creator;
-import rinde.sim.problem.common.DynamicPDPTWProblem.TimeOutHandler;
-import rinde.sim.problem.common.ObjectiveFunction;
 import rinde.sim.problem.common.ParcelDTO;
 import rinde.sim.problem.common.StatsTracker.StatisticsDTO;
 import rinde.sim.problem.common.VehicleDTO;
@@ -57,6 +56,7 @@ public class Gendreau06Test {
 		// reaching the package. the reason is that it is too late since the
 		// first truck will pickup the parcel.
 		final double distInOneTick = 30.0 / 3600.0;
+		assertFalse(dto.simFinish);
 		assertEquals(9 - (2.0 * distInOneTick), dto.totalDistance, EPSILON);
 		assertEquals(1, dto.totalParcels);
 		assertEquals(0, dto.overTime);
@@ -66,12 +66,16 @@ public class Gendreau06Test {
 		assertEquals(2, dto.movedVehicles);
 	}
 
+	/**
+	 * Checks whether overtime is computed correctly.
+	 */
 	@Test
 	public void overtimeScenario() {
 		final Gendreau06Scenario scenario = create(1, minutes(6), new AddParcelEvent(new ParcelDTO(new Point(2, 1),
 				new Point(4, 1), new TimeWindow(0, minutes(12)), new TimeWindow(5, minutes(12)), 0, 0, 0, 0)));
 		final StatisticsDTO dto = runProblem(scenario);
 
+		assertTrue(dto.simFinish);
 		assertEquals(6, dto.totalDistance, EPSILON);
 		assertEquals(1, dto.totalDeliveries);
 		assertEquals(minutes(6) - 1000, dto.overTime);
@@ -79,19 +83,37 @@ public class Gendreau06Test {
 		assertEquals(0, dto.deliveryTardiness);
 	}
 
+	/**
+	 * Check whether tardiness is computed correctly.
+	 * <p>
+	 * The layout of this test is shown below. P is pickup location, D is
+	 * delivery location, DEP is depot. A <code>-</code> or <code>|</code> is a
+	 * distance of .5 km which takes the vehicle exactly 1 minute to traverse.
+	 * White space means nothing.
+	 * <p>
+	 * <code>
+	 * P1 - - P2
+	 * |      |
+	 * DEP    
+	 * |      |
+	 * |      |
+	 * |      |
+	 * D1 - - D2
+	 * </code>
+	 */
 	@Test
 	public void tardinessScenario() {
 		final Gendreau06Scenario scenario = create(1, minutes(12), /* */
 				parcelEvent(2, 3, 2, 1, 0, seconds(15), 0, minutes(9)), /* */
 				parcelEvent(3, 3, 3, 1, 0, minutes(3), 0, minutes(4)));
 		final StatisticsDTO dto = runProblem(scenario);
-
+		assertFalse(dto.simFinish); // the vehicles have returned to the depot
+									// just before the TIME_OUT event
 		assertEquals(6, dto.totalDistance, EPSILON);
 		assertEquals(2, dto.totalDeliveries);
 		assertEquals(0, dto.overTime);
 		assertEquals(seconds(45), dto.pickupTardiness);
 		assertEquals(minutes(3), dto.deliveryTardiness);
-
 	}
 
 	static long minutes(long n) {
@@ -114,28 +136,6 @@ public class Gendreau06Test {
 			@Override
 			public boolean create(Simulator sim, AddVehicleEvent event) {
 				return sim.register(new SimpleTruck(event.vehicleDTO, new ClosestParcelStrategy()));
-			}
-		});
-		final ObjectiveFunction of = new Gendreau06ObjectiveFunction();
-
-		problem.setTimeOutHandler(new TimeOutHandler() {
-			@Override
-			public void handleTimeOut(final Simulator sim) {
-				if (of.isValidResult(problem.getStatistics())) {
-					sim.stop();
-				} else {
-					sim.addTickListener(new TickListener() {
-						@Override
-						public void tick(TimeLapse timeLapse) {}
-
-						@Override
-						public void afterTick(TimeLapse timeLapse) {
-							if (of.isValidResult(problem.getStatistics())) {
-								sim.stop();
-							}
-						}
-					});
-				}
 			}
 		});
 		problem.simulate();

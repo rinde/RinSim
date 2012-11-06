@@ -10,6 +10,7 @@ import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 
 import rinde.sim.core.graph.Point;
+import rinde.sim.problem.common.DynamicPDPTWProblem.StopCondition;
 import rinde.sim.problem.common.DynamicPDPTWScenario;
 import rinde.sim.scenario.TimedEvent;
 import rinde.sim.util.TimeWindow;
@@ -65,5 +66,15 @@ public class Gendreau06Scenario extends DynamicPDPTWScenario {
 	@Override
 	public double getMaxSpeed() {
 		return 30.0;
+	}
+
+	@Override
+	public StopCondition getStopCondition() {
+		return StopCondition.VEHICLES_BACK_AT_DEPOT;
+	}
+
+	@Override
+	public boolean useSpeedConversion() {
+		return true;
 	}
 }

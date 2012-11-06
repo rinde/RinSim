@@ -7,6 +7,7 @@ import java.util.Collection;
 import java.util.Set;
 
 import rinde.sim.core.graph.Point;
+import rinde.sim.problem.common.DynamicPDPTWProblem.StopCondition;
 import rinde.sim.scenario.Scenario;
 import rinde.sim.scenario.TimedEvent;
 import rinde.sim.util.TimeWindow;
@@ -35,5 +36,9 @@ public abstract class DynamicPDPTWScenario extends Scenario {
 	public abstract long getTickSize();
 
 	public abstract double getMaxSpeed();
+
+	public abstract StopCondition getStopCondition();
+
+	public abstract boolean useSpeedConversion();
 
 }

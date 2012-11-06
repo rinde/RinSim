@@ -7,6 +7,7 @@ import java.util.Collection;
 import java.util.Set;
 
 import rinde.sim.core.graph.Point;
+import rinde.sim.problem.common.DynamicPDPTWProblem.StopCondition;
 import rinde.sim.problem.common.DynamicPDPTWScenario;
 import rinde.sim.problem.common.VehicleDTO;
 import rinde.sim.scenario.TimedEvent;
@@ -68,6 +69,16 @@ public class FabriRechtScenario extends DynamicPDPTWScenario {
 	@Override
 	public double getMaxSpeed() {
 		return 1.0;
+	}
+
+	@Override
+	public StopCondition getStopCondition() {
+		return StopCondition.TIME_OUT_EVENT;
+	}
+
+	@Override
+	public boolean useSpeedConversion() {
+		return false;
 	}
 
 }

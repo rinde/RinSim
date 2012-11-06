@@ -25,8 +25,10 @@ import rinde.sim.core.model.pdp.Parcel;
 import rinde.sim.core.model.pdp.Vehicle;
 import rinde.sim.core.model.pdp.twpolicy.TardyAllowedPolicy;
 import rinde.sim.core.model.road.PlaneRoadModel;
+import rinde.sim.event.Event;
+import rinde.sim.event.Listener;
 import rinde.sim.problem.common.StatsTracker.StatisticsDTO;
-import rinde.sim.problem.gendreau06.Gendreau06Scenario;
+import rinde.sim.problem.common.StatsTracker.StatisticsEventType;
 import rinde.sim.scenario.ScenarioController;
 import rinde.sim.scenario.ScenarioController.UICreator;
 import rinde.sim.scenario.TimedEvent;
@@ -60,9 +62,48 @@ import rinde.sim.ui.renderers.UiSchema;
 public class DynamicPDPTWProblem {
 
 	/**
+	 * This enum contains several stopping conditions for terminating the
+	 * simulation.
+	 * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+	 */
+	public enum StopCondition {
+		/**
+		 * The simulation is terminated as soon as the
+		 * {@link rinde.sim.core.model.pdp.PDPScenarioEvent#TIME_OUT} event is
+		 * dispatched.
+		 */
+		TIME_OUT_EVENT,
+
+		/**
+		 * The simulation is terminated as soon as all the vehicles are back at
+		 * the depot, note that this can be before or after the
+		 * {@link rinde.sim.core.model.pdp.PDPScenarioEvent#TIME_OUT} event is
+		 * dispatched.
+		 */
+		VEHICLES_BACK_AT_DEPOT
+	}
+
+	/**
 	 * A map which contains the default {@link Creator}s.
 	 */
-	protected static final Map<Class<?>, Creator<?>> DEFAULT_EVENT_CREATOR_MAP = initDefaultEventCreatorMap();
+	protected static final Map<Class<?>, Creator<?>> DEFAULT_EVENT_CREATOR_MAP;
+
+	static {
+		final Map<Class<?>, Creator<?>> map = newHashMap();
+		map.put(AddParcelEvent.class, new Creator<AddParcelEvent>() {
+			@Override
+			public boolean create(Simulator sim, AddParcelEvent event) {
+				return sim.register(new DefaultParcel(event.parcelDTO));
+			}
+		});
+		map.put(AddDepotEvent.class, new Creator<AddDepotEvent>() {
+			@Override
+			public boolean create(Simulator sim, AddDepotEvent event) {
+				return sim.register(new DefaultDepot(event.position));
+			}
+		});
+		DEFAULT_EVENT_CREATOR_MAP = unmodifiableMap(map);
+	}
 
 	/**
 	 * Map containing the {@link Creator}s which handle specific
@@ -92,12 +133,6 @@ public class DynamicPDPTWProblem {
 	protected final StatsTracker statsTracker;
 
 	/**
-	 * The {@link TimeOutHandler} which is used to handle
-	 * {@link rinde.sim.core.model.pdp.PDPScenarioEvent#TIME_OUT} events.
-	 */
-	protected TimeOutHandler timeOutHandler;
-
-	/**
 	 * Create a new problem instance using the specified scenario.
 	 * @param scen The the {@link DynamicPDPTWScenario} which is used in this
 	 *            problem.
@@ -106,11 +141,10 @@ public class DynamicPDPTWProblem {
 	 * @param models An optional list of models which can be added, with this
 	 *            option custom models for specific solutions can be added.
 	 */
-	public DynamicPDPTWProblem(DynamicPDPTWScenario scen, long randomSeed, Model<?>... models) {
+	public DynamicPDPTWProblem(final DynamicPDPTWScenario scen, long randomSeed, Model<?>... models) {
 		simulator = new Simulator(new MersenneTwister(randomSeed), scen.getTickSize());
-		// TODO speed converter needs to depend on scenario
 		// TODO road model needs to depend on scenario
-		simulator.register(new PlaneRoadModel(scen.getMin(), scen.getMax(), scen instanceof Gendreau06Scenario, scen
+		simulator.register(new PlaneRoadModel(scen.getMin(), scen.getMax(), scen.useSpeedConversion(), scen
 				.getMaxSpeed()));
 		simulator.register(new PDPModel(new TardyAllowedPolicy()));
 		for (final Model<?> m : models) {
@@ -118,15 +152,7 @@ public class DynamicPDPTWProblem {
 		}
 		eventCreatorMap = newHashMap();
 
-		timeOutHandler = new TimeOutHandler() {
-			@Override
-			public void handleTimeOut(Simulator sim) {
-				sim.stop();
-			}
-		};
-
 		final TimedEventHandler handler = new TimedEventHandler() {
-
 			@SuppressWarnings("unchecked")
 			@Override
 			public boolean handleTimedEvent(TimedEvent event) {
@@ -136,7 +162,9 @@ public class DynamicPDPTWProblem {
 					return ((Creator<TimedEvent>) DEFAULT_EVENT_CREATOR_MAP.get(event.getClass()))
 							.create(simulator, event);
 				} else if (event.getEventType() == TIME_OUT) {
-					timeOutHandler.handleTimeOut(simulator);
+					if (scen.getStopCondition() == StopCondition.TIME_OUT_EVENT) {
+						simulator.stop();
+					}
 					return true;
 				}
 				return false;
@@ -145,11 +173,24 @@ public class DynamicPDPTWProblem {
 		final int ticks = scen.getTimeWindow().end == Long.MAX_VALUE ? -1 : (int) (scen.getTimeWindow().end - scen
 				.getTimeWindow().begin);
 		controller = new ScenarioController(scen, simulator, handler, ticks);
-
 		statsTracker = new StatsTracker(controller, simulator);
+
+		if (scen.getStopCondition() == StopCondition.VEHICLES_BACK_AT_DEPOT) {
+			statsTracker.getEventAPI().addListener(new Listener() {
+				@Override
+				public void handleEvent(Event e) {
+					simulator.stop();
+				}
+			}, StatisticsEventType.ALL_VEHICLES_AT_DEPOT);
+		}
 		defaultUICreator = new DefaultUICreator();
 	}
 
+	/**
+	 * @return The statistics of the current simulation. Note that calling this
+	 *         method while the simulation is not yet finished gives the
+	 *         statistics that were gathered up until that moment.
+	 */
 	public StatisticsDTO getStatistics() {
 		return statsTracker.getStatsDTO();
 	}
@@ -178,15 +219,14 @@ public class DynamicPDPTWProblem {
 	}
 
 	/**
-	 * Executes a simulation of the problem.
+	 * Executes a simulation of the problem. When the simulation is finished
+	 * (and this method returns) the statistics of the simulation are returned.
+	 * @return The statistics that were gathered during the simulation.
 	 */
-	public void simulate() {
+	public StatisticsDTO simulate() {
 		checkState(eventCreatorMap.containsKey(AddVehicleEvent.class), "A creator for AddVehicleEvent is required, use addCreator(..)");
 		controller.start();
-	}
-
-	public Simulator getSimulator() {
-		return simulator;
+		return getStatistics();
 	}
 
 	/**
@@ -205,39 +245,23 @@ public class DynamicPDPTWProblem {
 	}
 
 	/**
-	 * With this method the {@link TimeOutHandler} which is used can be changed.
-	 * @param toh The time out handler to use.
+	 * Factory for handling a certain type {@link TimedEvent}s. It is the
+	 * responsible of this instance to create the appropriate object when an
+	 * event occurs. All created objects can be added to the {@link Simulator}
+	 * by using {@link Simulator#register(Object)}.
+	 * @param <T> The specific subclass of {@link TimedEvent} for which the
+	 *            creator should create objects.
 	 */
-	public void setTimeOutHandler(TimeOutHandler toh) {
-		timeOutHandler = toh;
-	}
-
-	static Map<Class<?>, Creator<?>> initDefaultEventCreatorMap() {
-		final Map<Class<?>, Creator<?>> map = newHashMap();
-		map.put(AddParcelEvent.class, new Creator<AddParcelEvent>() {
-			@Override
-			public boolean create(Simulator sim, AddParcelEvent event) {
-				return sim.register(new DefaultParcel(event.parcelDTO));
-			}
-		});
-		map.put(AddDepotEvent.class, new Creator<AddDepotEvent>() {
-			@Override
-			public boolean create(Simulator sim, AddDepotEvent event) {
-				return sim.register(new DefaultDepot(event.position));
-			}
-		});
-		return unmodifiableMap(map);
-	}
-
-	// factory method for dealing with scenario events, note that the created
-	// object must be registered to the simulator, not returned
 	public interface Creator<T extends TimedEvent> {
-
+		/**
+		 * Should add an object to the simulation.
+		 * @param sim The simulator to which the objects can be added.
+		 * @param event The {@link TimedEvent} instance that contains the event
+		 *            details.
+		 * @return <code>true</code> if the creation and adding of the object
+		 *         was succesfully, <code>false</code> otherwise.
+		 */
 		boolean create(Simulator sim, T event);
-	}
-
-	public interface TimeOutHandler {
-		void handleTimeOut(Simulator sim);
 	}
 
 	class DefaultUICreator implements UICreator {

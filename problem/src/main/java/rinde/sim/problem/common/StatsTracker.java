@@ -53,7 +53,7 @@ public class StatsTracker {
 	protected final Simulator simulator;
 
 	public enum StatisticsEventType {
-		PICKUP_TARDINESS, DELIVERY_TARDINESS;
+		PICKUP_TARDINESS, DELIVERY_TARDINESS, ALL_VEHICLES_AT_DEPOT;
 	}
 
 	public StatsTracker(ScenarioController scenContr, Simulator sim) {
@@ -94,9 +94,9 @@ public class StatsTracker {
 					overTime += time - theListener.scenarioEndTime;
 				}
 			}
-		} else {
-			overTime = -1;
-		}
+		}// else {
+			// overTime = -1;
+		// }
 
 		return new StatisticsDTO(theListener.totalDistance, theListener.totalPickups, theListener.totalDeliveries,
 				theListener.totalParcels, theListener.acceptedParcels, theListener.pickupTardiness,
@@ -166,15 +166,13 @@ public class StatsTracker {
 					// only override time if the vehicle did actually move
 					if (me.pathProgress.distance > 0.0001) {
 						lastArrivalTimeAtDepot.put(me.roadUser, simulator.getCurrentTime());
+						if (totalVehicles == lastArrivalTimeAtDepot.size()) {
+							eventDispatcher.dispatchEvent(new Event(StatisticsEventType.ALL_VEHICLES_AT_DEPOT, this));
+						}
 					}
 				} else {
 					lastArrivalTimeAtDepot.remove(me.roadUser);
 				}
-
-				//
-				// if( totalVehicles == lastArrivalTimeAtDepot.size() ){
-				//
-				// }
 
 			} else if (e.getEventType() == PDPModelEventType.START_PICKUP) {
 				final PDPModelEvent pme = (PDPModelEvent) e;

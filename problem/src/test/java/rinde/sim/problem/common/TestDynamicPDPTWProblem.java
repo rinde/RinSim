@@ -11,6 +11,8 @@ import java.util.Set;
 import org.junit.Test;
 
 import rinde.sim.core.graph.Point;
+import rinde.sim.core.model.pdp.PDPScenarioEvent;
+import rinde.sim.problem.common.DynamicPDPTWProblem.StopCondition;
 import rinde.sim.scenario.TimedEvent;
 import rinde.sim.util.TimeWindow;
 
@@ -25,18 +27,14 @@ public class TestDynamicPDPTWProblem {
 	 */
 	@Test(expected = IllegalStateException.class)
 	public void testSimulate() {
-		final Set<TimedEvent> events = newHashSet(new TimedEvent(DummyEvent.DUMMY, 10));
+		final Set<TimedEvent> events = newHashSet(new TimedEvent(PDPScenarioEvent.ADD_DEPOT, 10));
 		new DynamicPDPTWProblem(new DummyScenario(events), 123).simulate();
-	}
-
-	enum DummyEvent {
-		DUMMY
 	}
 
 	class DummyScenario extends DynamicPDPTWScenario {
 
 		public DummyScenario(Set<TimedEvent> events) {
-			super(events, new HashSet<Enum<?>>(java.util.Arrays.asList(DummyEvent.values())));
+			super(events, new HashSet<Enum<?>>(java.util.Arrays.asList(PDPScenarioEvent.values())));
 		}
 
 		@Override
@@ -62,6 +60,16 @@ public class TestDynamicPDPTWProblem {
 		@Override
 		public double getMaxSpeed() {
 			return 1.0;
+		}
+
+		@Override
+		public StopCondition getStopCondition() {
+			return StopCondition.TIME_OUT_EVENT;
+		}
+
+		@Override
+		public boolean useSpeedConversion() {
+			return false;
 		}
 
 	}
