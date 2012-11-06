@@ -21,7 +21,6 @@ import rinde.sim.core.Simulator;
 import rinde.sim.core.model.Model;
 import rinde.sim.core.model.pdp.Depot;
 import rinde.sim.core.model.pdp.PDPModel;
-import rinde.sim.core.model.pdp.PDPScenarioEvent;
 import rinde.sim.core.model.pdp.Parcel;
 import rinde.sim.core.model.pdp.Vehicle;
 import rinde.sim.core.model.pdp.twpolicy.TardyAllowedPolicy;
@@ -87,12 +86,16 @@ public class DynamicPDPTWProblem {
 	protected final DefaultUICreator defaultUICreator;
 
 	/**
+	 * The {@link StatsTracker} which is used internally for gathering
+	 * statistics.
+	 */
+	protected final StatsTracker statsTracker;
+
+	/**
 	 * The {@link TimeOutHandler} which is used to handle
-	 * {@link PDPScenarioEvent#TIME_OUT} events.
+	 * {@link rinde.sim.core.model.pdp.PDPScenarioEvent#TIME_OUT} events.
 	 */
 	protected TimeOutHandler timeOutHandler;
-
-	protected final StatsTracker statsTracker;
 
 	/**
 	 * Create a new problem instance using the specified scenario.
