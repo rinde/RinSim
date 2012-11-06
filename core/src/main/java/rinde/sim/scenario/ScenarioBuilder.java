@@ -3,7 +3,6 @@ package rinde.sim.scenario;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Lists.newLinkedList;
-import static com.google.common.collect.Sets.newHashSet;
 
 import java.io.Serializable;
 import java.util.Collection;
@@ -14,6 +13,7 @@ import java.util.List;
 import java.util.Set;
 
 import com.google.common.base.Function;
+import com.google.common.collect.ImmutableSet;
 
 /**
  * The ScenarioBuilder is a helper class to easily generate {@link Scenario}
@@ -38,7 +38,7 @@ public class ScenarioBuilder {
      */
     public ScenarioBuilder(Enum<?>... pSupportedTypes) {
         checkArgument(pSupportedTypes != null, "supported types can not be null");
-        supportedTypes = newHashSet(pSupportedTypes);
+        supportedTypes = ImmutableSet.copyOf(pSupportedTypes);
         generators = newLinkedList();
         events = newArrayList();
     }
