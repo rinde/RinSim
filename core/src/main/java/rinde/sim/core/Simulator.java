@@ -10,7 +10,6 @@ import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.locks.ReentrantLock;
 
 import org.apache.commons.math3.random.RandomGenerator;
 import org.slf4j.Logger;
@@ -109,7 +108,7 @@ public class Simulator implements SimulatorAPI {
     private boolean configured;
 
     private Set<Object> toUnregister;
-    private final ReentrantLock unregisterLock;
+    // private final ReentrantLock unregisterLock;
     private final RandomGenerator rand;
     private final long timeStep;
     private final TimeLapse timeLapse;
@@ -133,7 +132,7 @@ public class Simulator implements SimulatorAPI {
         tickListeners = Collections
                 .synchronizedSet(new LinkedHashSet<TickListener>());
 
-        unregisterLock = new ReentrantLock();
+        // unregisterLock = new ReentrantLock();
         toUnregister = new LinkedHashSet<Object>();
 
         rand = r;
@@ -231,11 +230,11 @@ public class Simulator implements SimulatorAPI {
         if (o instanceof TickListener) {
             removeTickListener((TickListener) o);
         }
-        unregisterLock.lock();
+        // unregisterLock.lock();
         try {
             toUnregister.add(o);
         } finally {
-            unregisterLock.unlock();
+            // unregisterLock.unlock();
         }
         return true;
     }
@@ -323,13 +322,13 @@ public class Simulator implements SimulatorAPI {
      */
     public void tick() {
         // unregister all pending objects
-        unregisterLock.lock();
+        // unregisterLock.lock();
         Set<Object> copy;
         try {
             copy = toUnregister;
             toUnregister = new LinkedHashSet<Object>();
         } finally {
-            unregisterLock.unlock();
+            // unregisterLock.unlock();
         }
 
         for (final Object c : copy) {
