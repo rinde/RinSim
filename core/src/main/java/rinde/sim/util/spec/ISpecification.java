@@ -7,14 +7,14 @@ package rinde.sim.util.spec;
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
  * 
  */
-public interface ISpecification<T> {
+public interface ISpecification<T, U extends ISpecification<T, U>> {
 
     boolean isSatisfiedBy(T context);
 
-    ISpecification<T> and(ISpecification<T> other);
+    U and(U other);
 
-    ISpecification<T> or(ISpecification<T> other);
+    U or(U other);
 
-    ISpecification<T> not();
+    U not();
 
 }
