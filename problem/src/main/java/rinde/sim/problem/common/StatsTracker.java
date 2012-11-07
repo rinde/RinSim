@@ -100,7 +100,7 @@ public class StatsTracker {
 
 		return new StatisticsDTO(theListener.totalDistance, theListener.totalPickups, theListener.totalDeliveries,
 				theListener.totalParcels, theListener.acceptedParcels, theListener.pickupTardiness,
-				theListener.deliveryTardiness, theListener.computationTime, theListener.simulationTime,
+				theListener.deliveryTardiness, theListener.computationTime, simulator.getCurrentTime(),
 				theListener.simFinish, vehicleBack, overTime, theListener.totalVehicles, theListener.distanceMap.size());
 	}
 

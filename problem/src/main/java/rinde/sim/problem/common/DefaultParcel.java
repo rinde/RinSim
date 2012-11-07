@@ -32,4 +32,9 @@ public class DefaultParcel extends Parcel {
 
 	@Override
 	public void initRoadPDP(RoadModel pRoadModel, PDPModel pPdpModel) {}
+
+	@Override
+	public String toString() {
+		return "[DefaultParcel " + dto + " ]";
+	}
 }

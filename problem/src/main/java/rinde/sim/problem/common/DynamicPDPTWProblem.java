@@ -157,12 +157,15 @@ public class DynamicPDPTWProblem {
 		statsTracker = new StatsTracker(controller, simulator);
 
 		stopCondition = scen.getStopCondition();
+
 		simulator.addTickListener(new TickListener() {
+
 			@Override
 			public void tick(TimeLapse timeLapse) {}
 
 			@Override
 			public void afterTick(TimeLapse timeLapse) {
+				final long start = System.currentTimeMillis();
 				if (stopCondition.isSatisfiedBy(new SimulationInfo(statsTracker.getStatsDTO(), scen))) {
 					simulator.stop();
 				}
