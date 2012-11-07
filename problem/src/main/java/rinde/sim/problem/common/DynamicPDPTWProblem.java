@@ -39,6 +39,7 @@ import rinde.sim.ui.renderers.Renderer;
 import rinde.sim.ui.renderers.RoadUserRenderer;
 import rinde.sim.ui.renderers.UiSchema;
 import rinde.sim.util.spec.CompositeSpecification;
+import rinde.sim.util.spec.ISpecification;
 
 /**
  * A problem instance for the class of problems which is called dynamic
@@ -109,6 +110,10 @@ public class DynamicPDPTWProblem {
 	 */
 	protected final StatsTracker statsTracker;
 
+	/**
+	 * The {@link StopCondition} which is used as the condition when the
+	 * simulation has to stop.
+	 */
 	protected StopCondition stopCondition;
 
 	/**
@@ -190,8 +195,17 @@ public class DynamicPDPTWProblem {
 		defaultUICreator.addRenderer(r);
 	}
 
+	/**
+	 * Adds a {@link StopCondition} which indicates when the simulation has to
+	 * stop. The condition is added in an OR fashion to the predefined stop
+	 * condition of the scenario. So after this method is called the simulation
+	 * stops if the scenario stop condition is true OR new condition is true.
+	 * Subsequent invocations of this method will just add more conditions in
+	 * the same way.
+	 * @param condition The stop condition to add.
+	 */
 	public void addStopCondition(StopCondition condition) {
-		stopCondition = (StopCondition) stopCondition.or(condition);
+		stopCondition = stopCondition.or(condition);
 	}
 
 	/**
@@ -211,6 +225,16 @@ public class DynamicPDPTWProblem {
 		checkState(eventCreatorMap.containsKey(AddVehicleEvent.class), "A creator for AddVehicleEvent is required, use addCreator(..)");
 		controller.start();
 		return getStatistics();
+	}
+
+	/**
+	 * This method exposes the {@link Simulator} that is managed by this problem
+	 * instance. Be careful with using it since it is possible to significantly
+	 * alter the behavior of the simulation.
+	 * @return The simulator.
+	 */
+	public Simulator getSimulator() {
+		return simulator;
 	}
 
 	/**
@@ -248,7 +272,29 @@ public class DynamicPDPTWProblem {
 		boolean create(Simulator sim, T event);
 	}
 
-	public static abstract class StopCondition extends CompositeSpecification<SimulationInfo> {
+	/**
+	 * This class contains default stop conditions which can be used in the
+	 * problem. The class itself is an alias of {@link CompositeSpecification}.
+	 * If you want to create your own stop condition you can do it in the
+	 * following way:
+	 * 
+	 * <pre>
+	 * StopCondition sc = new StopCondition() {
+	 * 	&#064;Override
+	 * 	public boolean isSatisfiedBy(SimulationInfo context) {
+	 * 		return true; // &lt;- insert your own condition here
+	 * 	}
+	 * };
+	 * </pre>
+	 * 
+	 * StopConditions can be composited into more complex conditions by using
+	 * the {@link CompositeSpecification#and(ISpecification)},
+	 * {@link CompositeSpecification#or(ISpecification)} and
+	 * {@link CompositeSpecification#not()} methods.
+	 * 
+	 * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+	 */
+	public static abstract class StopCondition extends CompositeSpecification<SimulationInfo, StopCondition> {
 		/**
 		 * The simulation is terminated once the
 		 * {@link rinde.sim.core.model.pdp.PDPScenarioEvent#TIME_OUT} event is
@@ -274,17 +320,57 @@ public class DynamicPDPTWProblem {
 			}
 		};
 
+		/**
+		 * The simulation is terminated as soon as any tardiness occurs.
+		 */
+		public static final StopCondition ANY_TARDINESS = new StopCondition() {
+			@Override
+			public boolean isSatisfiedBy(SimulationInfo context) {
+				return context.stats.pickupTardiness > 0 || context.stats.deliveryTardiness > 0;
+			}
+		};
+
+		/**
+		 * this methods wraps any spec into a stop condition, as to make sure
+		 * that all products of the <code>and, or</code> and <code>not</code>
+		 * operations are always a StopCondition.
+		 */
+		@Override
+		protected StopCondition wrap(final ISpecification<SimulationInfo, StopCondition> spec) {
+			return new StopCondition() {
+				@Override
+				public boolean isSatisfiedBy(SimulationInfo context) {
+					return spec.isSatisfiedBy(context);
+				}
+			};
+		}
 	}
 
+	/**
+	 * This is an immutable state object which is exposed to
+	 * {@link StopCondition}s.
+	 * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+	 */
 	public class SimulationInfo {
+		/**
+		 * The current statistics.
+		 */
 		public final StatisticsDTO stats;
+
+		/**
+		 * The scenario which is playing.
+		 */
 		public final DynamicPDPTWScenario scenario;
 
+		/**
+		 * Instantiate a new instance using statistics and scenario.
+		 * @param st Statistics.
+		 * @param scen Scenario.
+		 */
 		protected SimulationInfo(StatisticsDTO st, DynamicPDPTWScenario scen) {
 			stats = st;
 			scenario = scen;
 		}
-
 	}
 
 	class DefaultUICreator implements UICreator {
@@ -308,4 +394,5 @@ public class DynamicPDPTWProblem {
 			renderers.add(r);
 		}
 	}
+
 }
