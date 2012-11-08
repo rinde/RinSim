@@ -56,11 +56,12 @@ public final class Gendreau06Parser {
 	private Gendreau06Parser() {}
 
 	public static Gendreau06Scenario parse(String file, int numVehicles) throws IOException {
+		return parse(new BufferedReader(new FileReader(file)), new File(file).getName(), numVehicles);
+	}
+
+	public static Gendreau06Scenario parse(BufferedReader reader, String fileName, int numVehicles) throws IOException {
 		checkArgument(numVehicles > 0, "at least one vehicle is necessary in the scenario");
 		final ScenarioBuilder sb = new ScenarioBuilder(ADD_PARCEL, ADD_DEPOT, ADD_VEHICLE);
-		final BufferedReader reader = new BufferedReader(new FileReader(file));
-
-		final String fileName = new File(file).getName();
 
 		final String regex = "req_rapide_[1-5]_(540|240)_(24|33)";
 		final Matcher m = Pattern.compile(regex).matcher(fileName);
