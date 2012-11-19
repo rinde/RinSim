@@ -112,7 +112,7 @@ To update the simulator later on, right-click on the top-level project, go to _T
 * Execute the following git command
 
 	````
-	git clone git@github.com:rinde/RinSim.git -b v2
+	git clone git://github.com/rinde/RinSim.git
 	````
 	
 	This will download all the source files of the RinSim project to your local directory.
@@ -180,7 +180,7 @@ To update the simulator later on, right-click on a specific sub-project, go to _
 * Execute the following git command
 
 	````
-	git clone git@github.com:rinde/RinSim.git -b v2
+	git clone git://github.com/rinde/RinSim.git
 	````
 	
 	This will download all the source files of the RinSim project to you local directory.
