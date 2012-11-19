@@ -1,10 +1,41 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-	<groupId>rinsim</groupId>
-	<artifactId>main</artifactId>
+	<groupId>com.github.rinde</groupId>
+	<artifactId>rinsim-main</artifactId>
 	<version>2.0.1-SNAPSHOT</version>
 	<packaging>pom</packaging>
+
+	<description>RinSim is a multi-agent system simulator written in Java. It supports problems in the fields of transportation and logistics, most notably pickup-and-delivery problems (PDP).</description>
+	<url>http://github.com/rinde/RinSim</url>
+
+	<parent>
+		<groupId>org.sonatype.oss</groupId>
+		<artifactId>oss-parent</artifactId>
+		<version>7</version>
+	</parent>
+
+	<scm>
+		<connection>scm:git:git@github.com:rinde/rinsim.git</connection>
+		<developerConnection>scm:git:git@github.com:rinde/rinsim.git</developerConnection>
+		<url>git@github.com:rinde/rinsim.git</url>
+	</scm>
+
+	<developers>
+		<developer>
+			<id>rinde</id>
+			<name>Rinde van Lon</name>
+			<email>rinde.vanlon@cs.kuleuven.be</email>
+			<url>http://www.rinde.nl/</url>
+			<organization>DistriNet - KU Leuven</organization>
+			<organizationUrl>http://distrinet.cs.kuleuven.be/people/rinde</organizationUrl>
+			<roles>
+				<role>architect</role>
+				<role>developer</role>
+			</roles>
+			<timezone>+1</timezone>
+		</developer>
+	</developers>
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -100,6 +131,36 @@
 		</plugins>
 		<defaultGoal>package</defaultGoal>
 	</build>
+
+	<profiles>
+		<profile>
+			<id>release-sign-artifacts</id>
+			<activation>
+				<property>
+					<name>performRelease</name>
+					<value>true</value>
+				</property>
+			</activation>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-gpg-plugin</artifactId>
+						<version>1.1</version>
+						<executions>
+							<execution>
+								<id>sign-artifacts</id>
+								<phase>verify</phase>
+								<goals>
+									<goal>sign</goal>
+								</goals>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+	</profiles>
 
 	<reporting>
 		<plugins>
