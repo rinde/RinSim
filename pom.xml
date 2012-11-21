@@ -6,7 +6,17 @@
 	<version>2.0.1-SNAPSHOT</version>
 	<packaging>pom</packaging>
 
-	<description>RinSim is a multi-agent system simulator written in Java. It supports problems in the fields of transportation and logistics, most notably pickup-and-delivery problems (PDP).</description>
+	<modules>
+		<module>core</module>
+		<module>ui</module>
+		<module>example</module>
+		<!--<module>packaging</module>-->
+		<module>problem</module>
+	</modules>
+	
+	<description>
+		RinSim is a multi-agent system simulator written in Java. It supports problems in the fields of transportation and logistics, most notably pickup-and-delivery problems (PDP).
+	</description>
 	<url>http://github.com/rinde/RinSim</url>
 
 	<parent>
@@ -131,7 +141,7 @@
 		</plugins>
 		<defaultGoal>package</defaultGoal>
 	</build>
-
+	
 	<profiles>
 		<profile>
 			<id>release-sign-artifacts</id>
@@ -179,7 +189,6 @@
 			<version>4.10</version>
 			<scope>test</scope>
 		</dependency>
-
 	</dependencies>
 	<dependencyManagement>
 		<dependencies>
@@ -193,21 +202,23 @@
 				<artifactId>slf4j-api</artifactId>
 				<version>1.6.4</version>
 			</dependency>
+			<!--
+			<dependency>
+				<groupId>com.github.rinde</groupId>
+				<artifactId>rinsim-core</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>com.github.rinde</groupId>
+				<artifactId>rinsim-ui</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+			-->
 			<dependency>
 				<groupId>org.slf4j</groupId>
 				<artifactId>slf4j-simple</artifactId>
 				<version>1.6.4</version>
 				<scope>provided</scope>
-			</dependency>
-			<dependency>
-				<groupId>rinsim</groupId>
-				<artifactId>core</artifactId>
-				<version>${project.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>rinsim</groupId>
-				<artifactId>ui</artifactId>
-				<version>${project.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>org.apache.commons</groupId>
@@ -229,22 +240,13 @@
 				<artifactId>gson</artifactId>
 				<version>2.2.1</version>
 			</dependency>
+			<!--
 			<dependency>
-				<groupId>rinsim</groupId>
-				<artifactId>problem</artifactId>
+				<groupId>com.github.rinde</groupId>
+				<artifactId>rinsim-problem</artifactId>
 				<version>${project.version}</version>
 			</dependency>
+			-->
 		</dependencies>
 	</dependencyManagement>
-
-	<modules>
-		<module>core</module>
-		<module>ui</module>
-		<module>example</module>
-		<module>packaging</module>
-		<module>problem</module>
-
-	</modules>
-
-
 </project>
