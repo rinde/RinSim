@@ -3,17 +3,17 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<parent>
-		<artifactId>main</artifactId>
-		<groupId>rinsim</groupId>
-		<version>2.0.1-SNAPSHOT</version>
+		<groupId>com.github.rinde</groupId>
+		<artifactId>rinsim-main</artifactId>
+		<version>2.1.0-SNAPSHOT</version>
 		<relativePath>..</relativePath>
 	</parent>
 
-	<artifactId>packaging</artifactId>
-
+	<artifactId>rinsim-packaging</artifactId>
+	<name>RinSim Packaging</name>
 	<packaging>pom</packaging>
 
-	<name>packaging</name>
+	
 
 	<properties>
 		<swt.version>3.6.2</swt.version>
@@ -26,28 +26,28 @@
 		project builds AFTER that one... -->
 	<dependencies>
 		<dependency>
-			<groupId>rinsim</groupId>
-			<artifactId>core</artifactId>
+			<groupId>com.github.rinde</groupId>
+			<artifactId>rinsim-core</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 		<dependency>
-			<groupId>rinsim</groupId>
-			<artifactId>ui</artifactId>
+			<groupId>com.github.rinde</groupId>
+			<artifactId>rinsim-ui</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 		<dependency>
-			<groupId>rinsim</groupId>
-			<artifactId>example</artifactId>
+			<groupId>com.github.rinde</groupId>
+			<artifactId>rinsim-example</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 		<dependency>
-			<groupId>rinsim</groupId>
-			<artifactId>problem</artifactId>
+			<groupId>com.github.rinde</groupId>
+			<artifactId>rinsim-problem</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 		<dependency>
-			<groupId>rinsim</groupId>
-			<artifactId>main</artifactId>
+			<groupId>com.github.rinde</groupId>
+			<artifactId>rinsim-main</artifactId>
 			<version>${project.version}</version>
 			<classifier>javadoc</classifier>
 		</dependency>

@@ -3,11 +3,15 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.github.rinde</groupId>
 	<artifactId>rinsim-main</artifactId>
-	<version>2.0.1-SNAPSHOT</version>
+	<version>2.1.0-SNAPSHOT</version>
 	<packaging>pom</packaging>
 
+ 	<name>RinSim</name>
 	<description>RinSim is a multi-agent system simulator written in Java. It supports problems in the fields of transportation and logistics, most notably pickup-and-delivery problems (PDP).</description>
 	<url>http://github.com/rinde/RinSim</url>
+	<inceptionYear>2011</inceptionYear>
+	
+	<licenses></licenses>
 
 	<parent>
 		<groupId>org.sonatype.oss</groupId>
@@ -18,7 +22,7 @@
 	<scm>
 		<connection>scm:git:git@github.com:rinde/rinsim.git</connection>
 		<developerConnection>scm:git:git@github.com:rinde/rinsim.git</developerConnection>
-		<url>git@github.com:rinde/rinsim.git</url>
+		<url>http://github.com/rinde/RinSim</url>
 	</scm>
 
 	<developers>
@@ -26,7 +30,7 @@
 			<id>rinde</id>
 			<name>Rinde van Lon</name>
 			<email>rinde.vanlon@cs.kuleuven.be</email>
-			<url>http://www.rinde.nl/</url>
+			<url>http://rinde.nl/</url>
 			<organization>DistriNet - KU Leuven</organization>
 			<organizationUrl>http://distrinet.cs.kuleuven.be/people/rinde</organizationUrl>
 			<roles>
