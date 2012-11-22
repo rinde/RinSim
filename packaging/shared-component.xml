@@ -3,7 +3,7 @@
 	<dependencySets>
 		<dependencySet>
 			<excludes>
-				<exclude>rinsim:*:*:*</exclude>
+				<exclude>${project.groupId}:rinsim*:*:*</exclude>
 				<exclude>org.eclipse.swt:*:*:*</exclude>
 			</excludes>
 
@@ -15,7 +15,7 @@
 		
 		<dependencySet>
 			<includes>
-				<include>rinsim:main:*:javadoc</include>
+				<include>${project.groupId}:rinsim-main:*:javadoc</include>
 			</includes>
 			<outputDirectory>docs</outputDirectory>
 			<unpack>true</unpack>
@@ -33,13 +33,13 @@
 
 			<!-- Now, select which projects to include in this module-set. -->
 			<includes>
-				<include>rinsim:*:*:*</include>
+				<include>${project.groupId}:rinsim*:*:*</include>
 			</includes>
 
 			<binaries>
 				<!-- don't want the javadoc jars in the bin folder -->
 				<excludes>
-					<exclude>rinsim:*:*:javadoc</exclude>
+					<exclude>${project.groupId}:rinsim*:*:javadoc</exclude>
 				</excludes>
 				<!-- <outputDirectory>modules/${artifactId}</outputDirectory> -->
 				<unpack>false</unpack>

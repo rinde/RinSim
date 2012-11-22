@@ -24,7 +24,7 @@
 		<developerConnection>scm:git:git@github.com:rinde/rinsim.git</developerConnection>
 		<url>http://github.com/rinde/RinSim</url>
 	</scm>
-	
+
 	<developers>
 		<developer>
 			<id>rinde</id>
@@ -195,6 +195,11 @@
 	</dependencies>
 	<dependencyManagement>
 		<dependencies>
+			<dependency>
+				<groupId>com.github.rinde</groupId>
+				<artifactId>rinsim-core</artifactId>
+				<version>${project.version}</version>
+			</dependency>
 			<dependency>
 				<groupId>com.google.guava</groupId>
 				<artifactId>guava</artifactId>
