@@ -9,6 +9,7 @@
 	</parent>
 	<artifactId>ui</artifactId>
 
+
 	<profiles>
 		<profile>
 			<id>swt.win32-win32-x86</id>
@@ -57,6 +58,7 @@
 			</activation>
 			<properties>
 				<swt.variant>gtk.linux.x86</swt.variant>
+
 			</properties>
 		</profile>
 		<profile>
@@ -68,6 +70,8 @@
 			</activation>
 			<properties>
 				<swt.variant>cocoa.macosx.x86_64</swt.variant>
+				<!-- adds the required argument for SWT applications of systems running OS X -->
+				<test.arg>-XstartOnFirstThread</test.arg>
 			</properties>
 		</profile>
 
@@ -86,6 +90,8 @@
 
 	<properties>
 		<swt.version>3.8</swt.version>
+		<!-- by default there are no arguments passed to tests -->
+		<test.arg></test.arg>
 	</properties>
 
 	<dependencies>
@@ -107,7 +113,7 @@
 				<artifactId>maven-surefire-plugin</artifactId>
 				<version>2.7.1</version>
 				<configuration>
-					<argLine>-XstartOnFirstThread</argLine>
+					<argLine>${test.arg}</argLine>
 				</configuration>
 				<executions>
 					<execution>
