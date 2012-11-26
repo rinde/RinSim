@@ -13,7 +13,7 @@
 	<dependencySets>
 		<dependencySet>
 			<includes>
-				<include>${project.groupId}:rinsim-main:*:javadoc</include>
+				<include>${project.groupId}:rinsim-packaging:*:javadoc</include>
 			</includes>
 			<outputDirectory>/</outputDirectory>
 			<unpack>true</unpack>

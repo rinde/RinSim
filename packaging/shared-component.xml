@@ -15,7 +15,7 @@
 		
 		<dependencySet>
 			<includes>
-				<include>${project.groupId}:rinsim-main:*:javadoc</include>
+				<include>${project.groupId}:rinsim-packaging:*:javadoc</include>
 			</includes>
 			<outputDirectory>docs</outputDirectory>
 			<unpack>true</unpack>
