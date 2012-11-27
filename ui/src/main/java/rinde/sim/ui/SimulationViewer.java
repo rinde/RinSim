@@ -193,14 +193,14 @@ public class SimulationViewer extends Composite implements TickListener, Control
 		shell.setMenuBar(bar);
 
 		final MenuItem fileItem = new MenuItem(bar, SWT.CASCADE);
-		fileItem.setText("Control");
+		fileItem.setText("&Control");
 
 		final Menu submenu = new Menu(shell, SWT.DROP_DOWN);
 		fileItem.setMenu(submenu);
 
 		// play switch
 		final MenuItem item = new MenuItem(submenu, SWT.PUSH);
-		item.setText("&Play");
+		item.setText("&Play\tCtrl+P");
 		item.setAccelerator(SWT.MOD1 + 'P');
 		item.addListener(SWT.Selection, new Listener() {
 
@@ -213,7 +213,7 @@ public class SimulationViewer extends Composite implements TickListener, Control
 		new MenuItem(submenu, SWT.SEPARATOR);
 		// step execution switch
 		final MenuItem nextItem = new MenuItem(submenu, SWT.PUSH);
-		nextItem.setText("Next tick");
+		nextItem.setText("Next tick\tCtrl+Shift+]");
 		nextItem.setAccelerator(SWT.MOD1 + SWT.SHIFT + ']');
 		nextItem.addListener(SWT.Selection, new Listener() {
 			@Override
@@ -225,19 +225,19 @@ public class SimulationViewer extends Composite implements TickListener, Control
 		// view options
 
 		final MenuItem viewItem = new MenuItem(bar, SWT.CASCADE);
-		viewItem.setText("View");
+		viewItem.setText("&View");
 
 		final Menu viewMenu = new Menu(shell, SWT.DROP_DOWN);
 		viewItem.setMenu(viewMenu);
 
 		// zooming
 		final MenuItem zoomInItem = new MenuItem(viewMenu, SWT.PUSH);
-		zoomInItem.setText("Zoom in");
+		zoomInItem.setText("Zoom &in\tCtrl++");
 		zoomInItem.setAccelerator(SWT.MOD1 + '+');
 		zoomInItem.setData("in");
 
 		final MenuItem zoomOutItem = new MenuItem(viewMenu, SWT.PUSH);
-		zoomOutItem.setText("Zoom out");
+		zoomOutItem.setText("Zoom &out\tCtrl+-");
 		zoomOutItem.setAccelerator(SWT.MOD1 + '-');
 		zoomOutItem.setData("out");
 
@@ -262,13 +262,13 @@ public class SimulationViewer extends Composite implements TickListener, Control
 
 		final MenuItem increaseSpeedItem = new MenuItem(submenu, SWT.PUSH);
 		increaseSpeedItem.setAccelerator(SWT.MOD1 + ']');
-		increaseSpeedItem.setText("Speed up");
+		increaseSpeedItem.setText("Speed &up\tCtrl+]");
 		increaseSpeedItem.setData(">");
 		increaseSpeedItem.addListener(SWT.Selection, speedUpListener);
 		//
 		final MenuItem decreaseSpeed = new MenuItem(submenu, SWT.PUSH);
 		decreaseSpeed.setAccelerator(SWT.MOD1 + '[');
-		decreaseSpeed.setText("Slow down");
+		decreaseSpeed.setText("Slow &down\tCtrl+[");
 		decreaseSpeed.setData("<");
 		decreaseSpeed.addListener(SWT.Selection, speedUpListener);
 
@@ -282,9 +282,9 @@ public class SimulationViewer extends Composite implements TickListener, Control
 	 */
 	protected void onToglePlay(MenuItem source) {
 		if (simulator.isPlaying()) {
-			source.setText("&Play");
+			source.setText("&Play\tCtrl+P");
 		} else {
-			source.setText("&Pause");
+			source.setText("&Pause\tCtrl+P");
 		}
 		new Thread() {
 			@Override
