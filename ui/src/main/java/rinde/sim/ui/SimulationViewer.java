@@ -214,7 +214,7 @@ public class SimulationViewer extends Composite implements TickListener, Control
 		// step execution switch
 		final MenuItem nextItem = new MenuItem(submenu, SWT.PUSH);
 		nextItem.setText("Next tick");
-		nextItem.setAccelerator(SWT.MOD1 + ']');
+		nextItem.setAccelerator(SWT.MOD1 + SWT.SHIFT + ']');
 		nextItem.addListener(SWT.Selection, new Listener() {
 			@Override
 			public void handleEvent(Event e) {
@@ -261,13 +261,13 @@ public class SimulationViewer extends Composite implements TickListener, Control
 		};
 
 		final MenuItem increaseSpeedItem = new MenuItem(submenu, SWT.PUSH);
-		increaseSpeedItem.setAccelerator(SWT.MOD1 + '.');
+		increaseSpeedItem.setAccelerator(SWT.MOD1 + ']');
 		increaseSpeedItem.setText("Speed up");
 		increaseSpeedItem.setData(">");
 		increaseSpeedItem.addListener(SWT.Selection, speedUpListener);
 		//
 		final MenuItem decreaseSpeed = new MenuItem(submenu, SWT.PUSH);
-		decreaseSpeed.setAccelerator(SWT.MOD1 + ',');
+		decreaseSpeed.setAccelerator(SWT.MOD1 + '[');
 		decreaseSpeed.setText("Slow down");
 		decreaseSpeed.setData("<");
 		decreaseSpeed.addListener(SWT.Selection, speedUpListener);
