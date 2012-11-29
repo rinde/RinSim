@@ -376,7 +376,7 @@ public class DynamicPDPTWProblem {
 		}
 	}
 
-	class DefaultUICreator implements UICreator {
+	public static class DefaultUICreator implements UICreator {
 		protected List<Renderer> renderers;
 
 		public DefaultUICreator() {
