@@ -48,7 +48,6 @@ public class PlaneRoadModelRenderer implements ModelRenderer {
 	@Override
 	public void registerModelProvider(ModelProvider mp) {
 		rm = mp.getModel(PlaneRoadModel.class);
-		System.out.println("RM: " + rm);
 	}
 
 }
