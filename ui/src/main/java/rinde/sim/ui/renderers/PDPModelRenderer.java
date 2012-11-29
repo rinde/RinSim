@@ -26,10 +26,16 @@ import rinde.sim.core.model.road.RoadUser;
  * 
  */
 public class PDPModelRenderer implements ModelRenderer {
-
-	protected final static RGB GRAY = new RGB(80, 80, 80);
-	protected final static RGB GREEN = new RGB(0, 255, 0);
-	protected final static RGB ORANGE = new RGB(255, 160, 0);
+	protected static final RGB BLACK = new RGB(0, 0, 0);
+	protected static final RGB WHITE = new RGB(255, 255, 255);
+	protected static final RGB GRAY = new RGB(80, 80, 80);
+	protected static final RGB LIGHT_GRAY = new RGB(205, 201, 201);
+	protected static final RGB DARK_GREEN = new RGB(0, 200, 0);
+	protected static final RGB GREEN = new RGB(0, 255, 0);
+	protected static final RGB ORANGE = new RGB(255, 160, 0);
+	protected static final RGB BLUE = new RGB(0, 0, 255);
+	protected static final RGB FOREGROUND_INFO = WHITE;
+	protected static final RGB BACKGROUND_INFO = BLUE;
 
 	protected PDPModel pdpModel;
 	protected RoadModel roadModel;
@@ -45,22 +51,40 @@ public class PDPModelRenderer implements ModelRenderer {
 			final Set<Vehicle> vehicles = pdpModel.getVehicles();
 
 			for (final Vehicle v : vehicles) {
-				final Point p = posMap.get(v);
-				final double size = pdpModel.getContentsSize(v);
+				if (posMap.containsKey(v)) {
+					final Point p = posMap.get(v);
+					final double size = pdpModel.getContentsSize(v);
 
-				final Collection<Parcel> contents = pdpModel.getContents(v);
-				final int x = vp.toCoordX(p.x);
-				final int y = vp.toCoordY(p.y);
-				gc.drawText("" + size, x, y);
+					final Collection<Parcel> contents = pdpModel.getContents(v);
+					final int x = vp.toCoordX(p.x);
+					final int y = vp.toCoordY(p.y);
 
-				for (final Parcel parcel : contents) {
-					gc.drawLine(x, y, vp.toCoordX(parcel.getDestination().x), vp.toCoordY(parcel.getDestination().y));
-				}
-				final VehicleState state = pdpModel.getVehicleState(v);
-				// FIXME, investigate why the second check is
-				// neccesary..
-				if (state != VehicleState.IDLE && pdpModel.getVehicleActionInfo(v) != null) {
-					gc.drawText(state.toString() + " " + pdpModel.getVehicleActionInfo(v).timeNeeded(), x, y - 20);
+					gc.setForeground(new Color(gc.getDevice(), BLACK));
+
+					for (final Parcel parcel : contents) {
+
+						final Point po = parcel.getDestination();
+						final int xd = vp.toCoordX(po.x);
+						final int yd = vp.toCoordY(po.y);
+						if (parcel.getDeliveryTimeWindow().isIn(time)) {
+							gc.setBackground(new Color(gc.getDevice(), DARK_GREEN));
+						} else {
+							gc.setBackground(new Color(gc.getDevice(), ORANGE));
+						}
+
+						gc.drawLine(x, y, xd, yd);
+						gc.fillOval(xd - 5, yd - 5, 10, 10);
+						gc.drawOval(xd - 5, yd - 5, 10, 10);
+					}
+					gc.setBackground(new Color(gc.getDevice(), BACKGROUND_INFO));
+					gc.setForeground(new Color(gc.getDevice(), FOREGROUND_INFO));
+					final VehicleState state = pdpModel.getVehicleState(v);
+					// FIXME, investigate why the second check is
+					// neccesary..
+					if (state != VehicleState.IDLE && pdpModel.getVehicleActionInfo(v) != null) {
+						gc.drawText(state.toString() + " " + pdpModel.getVehicleActionInfo(v).timeNeeded(), x, y - 20);
+					}
+					gc.drawText("" + size, x, y);
 				}
 			}
 
@@ -68,20 +92,24 @@ public class PDPModelRenderer implements ModelRenderer {
 			for (final Parcel parcel : parcels) {
 
 				final Point p = posMap.get(parcel);
-				final int x = vp.toCoordX(p.x);
-				final int y = vp.toCoordY(p.y);
-				gc.drawLine(x, y, vp.toCoordX(parcel.getDestination().x), vp.toCoordY(parcel.getDestination().y));
+				if (posMap.containsKey(parcel)) {
+					final int x = vp.toCoordX(p.x);
+					final int y = vp.toCoordY(p.y);
+					gc.setForeground(new Color(gc.getDevice(), LIGHT_GRAY));
+					gc.drawLine(x, y, vp.toCoordX(parcel.getDestination().x), vp.toCoordY(parcel.getDestination().y));
 
-				RGB color = null;
-				if (pdpModel.getParcelState(parcel) == ParcelState.ANNOUNCED) {
-					color = GRAY;
-				} else if (parcel.getPickupTimeWindow().isIn(time)) {
-					color = GREEN;
-				} else {
-					color = ORANGE;
+					RGB color = null;
+					if (pdpModel.getParcelState(parcel) == ParcelState.ANNOUNCED) {
+						color = GRAY;
+					} else if (parcel.getPickupTimeWindow().isIn(time)) {
+						color = GREEN;
+					} else {
+						color = ORANGE;
+					}
+					gc.setForeground(new Color(gc.getDevice(), BLACK));
+					gc.setBackground(new Color(gc.getDevice(), color));
+					gc.fillOval(x - 5, y - 5, 10, 10);
 				}
-				gc.setBackground(new Color(gc.getDevice(), color));
-				gc.fillOval(x - 5, y - 5, 10, 10);
 			}
 		}
 	}
