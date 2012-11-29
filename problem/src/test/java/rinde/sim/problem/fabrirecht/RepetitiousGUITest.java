@@ -34,7 +34,7 @@ public class RepetitiousGUITest {
 
 	public static void main(String[] args) throws IOException, ConfigurationException {
 		System.out.println();
-		for (int i = 0; i < 1; i++) {
+		for (int i = 0; i < 100; i++) {
 			final FabriRechtScenario scenario = FabriRechtParser.fromJson(new FileReader(
 					"../problem/data/test/fabri-recht/lc101.scenario"), 8, 20);
 
@@ -48,7 +48,7 @@ public class RepetitiousGUITest {
 			final int iteration = i;
 
 			View.setAutoPlay(true);
-			View.setAutoClose(false);
+			View.setAutoClose(true);
 			problem.enableUI(new DefaultUICreator() {
 				@Override
 				public void createUI(Simulator sim) {
