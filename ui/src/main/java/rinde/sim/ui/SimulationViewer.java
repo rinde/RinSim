@@ -93,8 +93,14 @@ public class SimulationViewer extends Composite implements TickListener, Control
 
 	protected final Set<ModelReceiver> modelRenderers;
 
-	public SimulationViewer(Shell shell, final Simulator sim, int speedUp, Renderer... renderers) {
+	protected final boolean autoPlay;
+
+	protected MenuItem playPauseMenuItem;
+
+	public SimulationViewer(Shell shell, final Simulator sim, int speedUp, boolean auto, Renderer... renderers) {
 		super(shell, SWT.NONE);
+
+		autoPlay = auto;
 
 		modelRenderers = newLinkedHashSet();
 		for (final Renderer r : renderers) {
@@ -199,10 +205,10 @@ public class SimulationViewer extends Composite implements TickListener, Control
 		fileItem.setMenu(submenu);
 
 		// play switch
-		final MenuItem item = new MenuItem(submenu, SWT.PUSH);
-		item.setText("&Play\tCtrl+P");
-		item.setAccelerator(SWT.MOD1 + 'P');
-		item.addListener(SWT.Selection, new Listener() {
+		playPauseMenuItem = new MenuItem(submenu, SWT.PUSH);
+		playPauseMenuItem.setText("&Play\tCtrl+P");
+		playPauseMenuItem.setAccelerator(SWT.MOD1 + 'P');
+		playPauseMenuItem.addListener(SWT.Selection, new Listener() {
 
 			@Override
 			public void handleEvent(Event e) {
@@ -387,6 +393,7 @@ public class SimulationViewer extends Composite implements TickListener, Control
 	public void paintControl(PaintEvent e) {
 		final GC gc = e.gc;
 
+		final boolean wasFirstTime = firstTime;
 		if (firstTime) {
 			configureModelRenderers();
 			calculateSizes();
@@ -415,6 +422,11 @@ public class SimulationViewer extends Composite implements TickListener, Control
 			renderer.renderDynamic(gc, new ViewPort(new Point(origin.x, origin.y), viewRect, m, colorRegistry), simulator
 					.getCurrentTime());
 			// renderer.render(gc, origin.x, origin.y, minX, minY, m);
+		}
+
+		// auto play sim if required
+		if (wasFirstTime && autoPlay) {
+			onToglePlay(playPauseMenuItem);
 		}
 	}
 
@@ -449,7 +461,7 @@ public class SimulationViewer extends Composite implements TickListener, Control
 	}
 
 	private void calculateSizes() {
-		System.out.println("SIM IS CONFIGURED: " + simulator.isConfigured());
+		// System.out.println("SIM IS CONFIGURED: " + simulator.isConfigured());
 		if (!simulator.isConfigured()) {
 			return;
 		}
