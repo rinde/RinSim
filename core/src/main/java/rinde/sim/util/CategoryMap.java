@@ -4,6 +4,7 @@
 package rinde.sim.util;
 
 import static com.google.common.collect.Maps.newLinkedHashMap;
+import static com.google.common.collect.Sets.newLinkedHashSet;
 
 import java.util.Collection;
 import java.util.Map;
@@ -30,16 +31,20 @@ import com.google.common.collect.Multiset;
  */
 public class CategoryMap<C, V> implements Multimap<C, V> {
 
-    public static <C, V> CategoryMap<C, V> create() {
-        return new CategoryMap<C, V>();
-    }
-
-    Multimap<C, V> categoryValueMultiMap;
-    Map<V, C> valueCategoryMap;
+    final Multimap<C, V> categoryValueMultiMap;
+    final Map<V, C> valueCategoryMap;
 
     public CategoryMap() {
-        valueCategoryMap = newLinkedHashMap();
-        categoryValueMultiMap = LinkedHashMultimap.create();
+        valueCategoryMap = createMap();
+        categoryValueMultiMap = createMultimap();
+    }
+
+    protected Map<V, C> createMap() {
+        return newLinkedHashMap();
+    }
+
+    protected Multimap<C, V> createMultimap() {
+        return LinkedHashMultimap.create();
     }
 
     @Override
@@ -105,6 +110,17 @@ public class CategoryMap<C, V> implements Multimap<C, V> {
         return categoryValueMultiMap.get(key);
     }
 
+    public Collection<V> getMultiple(C... keys) {
+        final Collection<V> values = newLinkedHashSet();
+        for (final C k : keys) {
+            for (final V v : categoryValueMultiMap.get(k)) {
+                values.add(v);
+            }
+            // values.addAll(categoryValueMultiMap.get(k));
+        }
+        return values;
+    }
+
     public C getKeys(V value) {
         return valueCategoryMap.get(value);
     }
@@ -152,4 +168,7 @@ public class CategoryMap<C, V> implements Multimap<C, V> {
         return categoryValueMultiMap.asMap();
     }
 
+    public static <C, V> CategoryMap<C, V> create() {
+        return new CategoryMap<C, V>();
+    }
 }
