@@ -253,7 +253,8 @@ public class StatsTracker {
 		 */
 		public final long computationTime;
 		/**
-		 * The time that has elapsed in the simulation.
+		 * The time that has elapsed in the simulation (this is in the unit
+		 * which is used in the simulation).
 		 */
 		public final long simulationTime;
 		/**
