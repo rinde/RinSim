@@ -77,7 +77,8 @@ public final class Gendreau06Parser {
 		final double truckSpeed = 30;
 		sb.addEvent(new AddDepotEvent(-1, depotPosition));
 		for (int i = 0; i < numVehicles; i++) {
-			sb.addEvent(new AddVehicleEvent(-1, new VehicleDTO(depotPosition, truckSpeed, 0, TimeWindow.ALWAYS)));
+			sb.addEvent(new AddVehicleEvent(-1, new VehicleDTO(depotPosition, truckSpeed, 0, new TimeWindow(0,
+					totalTime))));
 		}
 		String line;
 		while ((line = reader.readLine()) != null) {
