@@ -49,6 +49,8 @@ import rinde.sim.util.TimeWindow;
  * <li>10 and 11: service window time of the delivery</li>
  * </ul>
  * 
+ * All times are expressed in seconds.
+ * 
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
  */
 public final class Gendreau06Parser {
@@ -70,7 +72,7 @@ public final class Gendreau06Parser {
 		// checkArgument(fileName.contains("240") || fileName.contains("540"),
 		// "The filename must follow the following pattern: req_rapide_I_T_R, where I=instance number, T=total time (either 240 or 540 minutes), R=number of requests per hour (either 24 or 33).");
 
-		final long totalTime = Long.parseLong(m.group(1)) * 60 * 1000;
+		final long totalTime = Long.parseLong(m.group(1)) * 60000;
 		final long requestsPerHour = Long.parseLong(m.group(2));
 
 		final Point depotPosition = new Point(2.0, 2.5);
@@ -87,12 +89,12 @@ public final class Gendreau06Parser {
 			// FIXME currently filtering out first and last lines of file. Is
 			// this ok?
 			if (requestArrivalTime >= 0) {
-				final long pickupServiceTime = Long.parseLong(parts[1]);
+				final long pickupServiceTime = Long.parseLong(parts[1]) * 1000;
 				final double pickupX = Double.parseDouble(parts[2]);
 				final double pickupY = Double.parseDouble(parts[3]);
 				final long pickupTimeWindowBegin = (long) (Double.parseDouble(parts[4]) * 1000.0);
 				final long pickupTimeWindowEnd = (long) (Double.parseDouble(parts[5]) * 1000.0);
-				final long deliveryServiceTime = Long.parseLong(parts[6]);
+				final long deliveryServiceTime = Long.parseLong(parts[6]) * 1000;
 				final double deliveryX = Double.parseDouble(parts[7]);
 				final double deliveryY = Double.parseDouble(parts[8]);
 				final long deliveryTimeWindowBegin = (long) (Double.parseDouble(parts[9]) * 1000.0);
