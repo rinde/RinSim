@@ -384,7 +384,7 @@ public class DynamicPDPTWProblem {
 			schema.add(Vehicle.class, new RGB(255, 0, 0));
 			schema.add(Depot.class, new RGB(0, 255, 255));
 			schema.add(Parcel.class, new RGB(0, 0, 255));
-			renderers = new ArrayList<Renderer>(asList(new PlaneRoadModelRenderer(40), new RoadUserRenderer(schema,
+			renderers = new ArrayList<Renderer>(asList(new PlaneRoadModelRenderer(0.05), new RoadUserRenderer(schema,
 					false), new PDPModelRenderer()));
 		}
 
