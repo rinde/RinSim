@@ -356,7 +356,7 @@ public class SimulationViewer extends Composite implements TickListener, Control
 
 	public Image drawRoads() {
 		size = new org.eclipse.swt.graphics.Point((int) (m * viewRect.width), (int) (m * viewRect.height));
-		final Image img = new Image(getDisplay(), size.x + 10, size.y + 10);
+		final Image img = new Image(getDisplay(), size.x, size.y);
 		final GC gc = new GC(img);
 
 		for (final Renderer r : renderers) {
