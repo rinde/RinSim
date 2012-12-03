@@ -172,7 +172,8 @@ public class SimulationViewer extends Composite implements TickListener, Control
 
 		timeLabel = new Label(canvas, SWT.NONE);
 		timeLabel.setText("hello world");
-		timeLabel.setBounds(20, 20, 200, 20);
+		timeLabel.pack();
+		timeLabel.setLocation(50, 10);
 		timeLabel.setBackground(colorRegistry.get(COLOR_WHITE));
 
 		hBar = canvas.getHorizontalBar();
@@ -564,6 +565,7 @@ public class SimulationViewer extends Composite implements TickListener, Control
 					} else {
 						timeLabel.setText("" + simulator.getCurrentTime());
 					}
+					timeLabel.pack();
 					canvas.redraw();
 				}
 			}
