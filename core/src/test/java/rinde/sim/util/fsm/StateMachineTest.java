@@ -4,6 +4,9 @@
 package rinde.sim.util.fsm;
 
 import static com.google.common.collect.Lists.newArrayList;
+import static rinde.sim.util.fsm.StateMachineTest.States.PAUSED;
+import static rinde.sim.util.fsm.StateMachineTest.States.STARTED;
+import static rinde.sim.util.fsm.StateMachineTest.States.STOPPED;
 
 import java.util.List;
 
@@ -22,70 +25,61 @@ public class StateMachineTest {
         START, STOP, PAUSE
     }
 
-    protected StateMachine<Events> fsm;
-    protected State<Events> started;
-    protected State<Events> stopped;
-    protected State<Events> paused;
+    enum States implements State<Events, Context> {
+
+        STARTED {},
+        STOPPED {},
+        PAUSED {};
+
+        protected List<Events> history;
+
+        private States() {
+            history = newArrayList();
+        }
+
+        @Override
+        public void onEntry(Events event, Context context) {}
+
+        @Override
+        public void onExit(Events event, Context context) {}
+
+        @Override
+        public Events handle(Events event, Context context) {
+            history.add(event);
+            return null;
+        }
+
+    }
+
+    class Context {
+
+    }
+
+    protected StateMachine<Events, Context> fsm;
 
     @Before
     public void setUp() {
-        started = new TestState("started");
-        stopped = new TestState("stopped");
-        paused = new TestState("paused");
-        fsm = StateMachine.create(Events.class, stopped)
-                .addTransition(started, stopped, Events.STOP)
-                .addTransition(stopped, started, Events.START)
-                .addTransition(stopped, stopped, Events.STOP)
-                .addTransition(started, paused, Events.PAUSE)
-                .addTransition(paused, stopped, Events.STOP)
-                .addTransition(paused, started, Events.START).build();
+        fsm = StateMachine.create(STOPPED)
+                .addTransition(STARTED, Events.STOP, STOPPED)
+                .addTransition(STOPPED, Events.START, STARTED)
+                .addTransition(STOPPED, Events.STOP, STOPPED)
+                .addTransition(STARTED, Events.PAUSE, PAUSED)
+                .addTransition(PAUSED, Events.STOP, STOPPED)
+                .addTransition(PAUSED, Events.START, STARTED).build();
     }
 
     @Test
     public void test() {
         System.out.println("Current state: " + fsm.currentState);
-        fsm.fire(Events.START);
+        fsm.handle(Events.START, null);
         System.out.println("Current state: " + fsm.currentState + " "
-                + ((TestState) fsm.currentState).history);
+                + ((States) fsm.currentState).history);
 
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void impossibleTransition() {
-        fsm.fire(Events.START);
-        fsm.fire(Events.START);
+        fsm.handle(Events.START, null);
+        fsm.handle(Events.START, null);
     }
-
-    class TestState implements State<Events> {
-
-        List<String> history;
-        String name;
-
-        public TestState(String n) {
-            name = n;
-            history = newArrayList();
-        }
-
-        @Override
-        public void onEntry(Events event) {
-            history.add("onEntry(" + event + ")");
-        }
-
-        @Override
-        public void onEvent(Events event) {
-            history.add("body(" + event + ")");
-        }
-
-        @Override
-        public void onExit(Events event) {
-            history.add("onExit(" + event + ")");
-        }
-
-        @Override
-        public String toString() {
-            return "[" + name + "]";
-        }
-
-    }
-
 }

@@ -16,47 +16,89 @@ import com.google.common.collect.Table;
 import com.google.common.collect.Table.Cell;
 
 /**
+ * A simple state machine.
+ * @param <E> The event type.
+ * @param <C> The context type.
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
- * 
  */
-public class StateMachine<T> {
+public class StateMachine<E, C> {
 
-    protected Table<State<T>, T, State<T>> transitionTable;
-    protected State<T> currentState;
-    protected final State<T> startState;
+    protected Table<State<E, C>, E, State<E, C>> transitionTable;
+    protected State<E, C> currentState;
+    protected final State<E, C> startState;
 
-    StateMachine(State<T> start, Table<State<T>, T, State<T>> table) {
+    StateMachine(State<E, C> start, Table<State<E, C>, E, State<E, C>> table) {
         startState = start;
         currentState = start;
         transitionTable = unmodifiableTable(table);
     }
 
-    // transition
-    public void fire(T event) {
+    /**
+     * Calls the {@link State#handle(Object, Object)} method to the current
+     * {@link State}.
+     * @param context
+     */
+    public void handle(C context) {
+        handle(null, context);
+    }
+
+    public void handle(E event, C context) {
+        if (event != null) {
+            changeState(event, context);
+        }
+        final E newEvent = currentState.handle(event, context);
+        if (newEvent != null) {
+            handle(newEvent, context);
+        }
+    }
+
+    protected void changeState(E event, C context) {
         checkArgument(transitionTable.contains(currentState, event), "The event "
                 + event + " is not supported when in state " + currentState);
-        final State<T> newState = transitionTable.get(currentState, event);
+        final State<E, C> newState = transitionTable.get(currentState, event);
         if (newState != currentState) {
-            currentState.onExit(event);
+            // System.out.println(currentState + " + " + event + " = " +
+            // newState);
+            currentState.onExit(event, context);
             currentState = newState;
-            currentState.onEntry(event);
-        } else {
-            currentState.onEvent(event);
+            currentState.onEntry(event, context);
         }
+    }
+
+    public boolean stateIs(State<E, C> s) {
+        return currentState == s;
+    }
+
+    public boolean stateIsOneOf(State<E, C>... states) {
+        for (final State<E, C> s : states) {
+            if (currentState == s) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Returns true if the current state supports the event.
+     * @param event
+     * @return
+     */
+    public boolean isSupported(E event) {
+        return transitionTable.contains(currentState, event);
     }
 
     public String toDot() {
         int id = 0;
         final StringBuilder string = new StringBuilder();
         string.append("digraph stategraph {\n");
-        final Set<State<T>> allStates = newHashSet();
+        final Set<State<E, C>> allStates = newHashSet();
         allStates.addAll(transitionTable.rowKeySet());
         allStates.addAll(transitionTable.values());
 
-        final Map<State<T>, Integer> idMap = newHashMap();
-        for (final State<T> s : allStates) {
+        final Map<State<E, C>, Integer> idMap = newHashMap();
+        for (final State<E, C> s : allStates) {
             string.append("node").append(id).append("[label=\"")
-                    .append(s.getClass().getSimpleName()).append("\"]\n");
+                    .append(s.name()).append("\"]\n");
             idMap.put(s, id);
             id++;
         }
@@ -65,7 +107,8 @@ public class StateMachine<T> {
         string.append("node").append(id).append(" -> ").append("node")
                 .append(idMap.get(startState)).append("\n");
 
-        for (final Cell<State<T>, T, State<T>> cell : transitionTable.cellSet()) {
+        for (final Cell<State<E, C>, E, State<E, C>> cell : transitionTable
+                .cellSet()) {
             final int id1 = idMap.get(cell.getRowKey());
             final int id2 = idMap.get(cell.getValue());
             string.append("node").append(id1).append(" -> ").append("node")
@@ -77,56 +120,39 @@ public class StateMachine<T> {
         return string.toString();
     }
 
-    public static <T> StateMachineBuilder<T> create(Class<T> eventType,
-            State<T> initialState) {
-        return new StateMachineBuilder<T>(initialState);
+    public static <E, C> StateMachineBuilder<E, C> create(
+            State<E, C> initialState) {
+        return new StateMachineBuilder<E, C>(initialState);
     }
 
-    public interface State<E> {
-        void onEntry(E event);
+    public interface State<E, C> {
 
-        void onEvent(E event);
+        String name();
 
-        void onExit(E event);
+        E handle(E event, C context);
+
+        void onEntry(E event, C context);
+
+        void onExit(E event, C context);
     }
 
-    public static class DefaultState<E> implements State<E> {
-        @Override
-        public void onEntry(E event) {}
+    public final static class StateMachineBuilder<E, C> {
+        protected Table<State<E, C>, E, State<E, C>> table;
+        protected State<E, C> start;
 
-        @Override
-        public void onEvent(E event) {}
-
-        @Override
-        public void onExit(E event) {}
-    }
-
-    public final static class StateMachineBuilder<T> {
-        protected Table<State<T>, T, State<T>> table;
-        protected State<T> start;
-
-        private StateMachineBuilder(State<T> initialState) {
+        private StateMachineBuilder(State<E, C> initialState) {
             table = HashBasedTable.create();
             start = initialState;
         }
 
-        public StateMachineBuilder<T> addTransition(State<T> from, State<T> to,
-                T event) {
+        public StateMachineBuilder<E, C> addTransition(State<E, C> from,
+                E event, State<E, C> to) {
             table.put(from, event, to);
             return this;
         }
 
-        public StateMachineBuilder<T> addSelfTransitionToAll(T event) {
-            final Set<State<T>> union = newHashSet(table.rowKeySet());
-            union.addAll(table.values());
-            for (final State<T> s : union) {
-                table.put(s, event, s);
-            }
-            return this;
-        }
-
-        public StateMachine<T> build() {
-            return new StateMachine<T>(start, table);
+        public StateMachine<E, C> build() {
+            return new StateMachine<E, C>(start, table);
         }
     }
 
