@@ -334,7 +334,7 @@ public class DynamicPDPTWProblem {
 		};
 
 		/**
-		 * this methods wraps any spec into a stop condition, as to make sure
+		 * This method wraps any spec into a stop condition, as to make sure
 		 * that all products of the <code>and, or</code> and <code>not</code>
 		 * operations are always a StopCondition.
 		 */
