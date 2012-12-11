@@ -34,8 +34,15 @@ import rinde.sim.util.TimeWindow;
 public class Gendreau06Scenario extends DynamicPDPTWScenario {
 	private static final long serialVersionUID = 1386559671732721432L;
 
-	protected Gendreau06Scenario(Collection<? extends TimedEvent> pEvents, Set<Enum<?>> pSupportedTypes) {
+	protected final long tickSize;
+
+	protected Gendreau06Scenario(Collection<? extends TimedEvent> pEvents, Set<Enum<?>> pSupportedTypes, long ts) {
 		super(pEvents, pSupportedTypes);
+		tickSize = ts;
+	}
+
+	protected Gendreau06Scenario(Collection<? extends TimedEvent> pEvents, Set<Enum<?>> pSupportedTypes) {
+		this(pEvents, pSupportedTypes, 1000L);
 	}
 
 	@Override
@@ -60,7 +67,7 @@ public class Gendreau06Scenario extends DynamicPDPTWScenario {
 
 	@Override
 	public long getTickSize() {
-		return 1000;
+		return tickSize;
 	}
 
 	@Override

@@ -62,6 +62,11 @@ public final class Gendreau06Parser {
 	}
 
 	public static Gendreau06Scenario parse(BufferedReader reader, String fileName, int numVehicles) throws IOException {
+		return parse(reader, fileName, numVehicles, -1);
+	}
+
+	public static Gendreau06Scenario parse(BufferedReader reader, String fileName, int numVehicles, final long tickSize)
+			throws IOException {
 		checkArgument(numVehicles > 0, "at least one vehicle is necessary in the scenario");
 		final ScenarioBuilder sb = new ScenarioBuilder(ADD_PARCEL, ADD_DEPOT, ADD_VEHICLE, TIME_OUT);
 
@@ -113,6 +118,9 @@ public final class Gendreau06Parser {
 		return sb.build(new ScenarioCreator<Gendreau06Scenario>() {
 			@Override
 			public Gendreau06Scenario create(List<TimedEvent> eventList, Set<Enum<?>> eventTypes) {
+				if (tickSize > 0) {
+					return new Gendreau06Scenario(eventList, eventTypes, tickSize);
+				}
 				return new Gendreau06Scenario(eventList, eventTypes);
 			}
 		});
