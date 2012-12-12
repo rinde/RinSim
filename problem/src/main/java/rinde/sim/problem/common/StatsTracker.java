@@ -9,6 +9,7 @@ import static rinde.sim.core.Simulator.SimulatorEventType.STOPPED;
 import static rinde.sim.core.model.pdp.PDPModel.PDPModelEventType.END_DELIVERY;
 import static rinde.sim.core.model.pdp.PDPModel.PDPModelEventType.END_PICKUP;
 import static rinde.sim.core.model.pdp.PDPModel.PDPModelEventType.NEW_PARCEL;
+import static rinde.sim.core.model.pdp.PDPModel.PDPModelEventType.NEW_VEHICLE;
 import static rinde.sim.core.model.pdp.PDPModel.PDPModelEventType.START_DELIVERY;
 import static rinde.sim.core.model.pdp.PDPModel.PDPModelEventType.START_PICKUP;
 import static rinde.sim.core.model.pdp.PDPScenarioEvent.ADD_DEPOT;
@@ -65,8 +66,11 @@ public class StatsTracker {
 				.addListener(theListener, SCENARIO_STARTED, SCENARIO_FINISHED, ADD_DEPOT, ADD_PARCEL, ADD_VEHICLE, TIME_OUT);
 		simulator.getEventAPI().addListener(theListener, STARTED, STOPPED);
 		simulator.getModelProvider().getModel(RoadModel.class).getEventAPI().addListener(theListener, MOVE);
-		simulator.getModelProvider().getModel(PDPModel.class).getEventAPI()
-				.addListener(theListener, START_PICKUP, END_PICKUP, START_DELIVERY, END_DELIVERY, NEW_PARCEL);
+		simulator
+				.getModelProvider()
+				.getModel(PDPModel.class)
+				.getEventAPI()
+				.addListener(theListener, START_PICKUP, END_PICKUP, START_DELIVERY, END_DELIVERY, NEW_PARCEL, NEW_VEHICLE);
 	}
 
 	public EventAPI getEventAPI() {
@@ -152,6 +156,7 @@ public class StatsTracker {
 			if (e.getEventType() == SimulatorEventType.STARTED) {
 				startTimeReal = System.currentTimeMillis();
 				startTimeSim = simulator.getCurrentTime();
+
 			} else if (e.getEventType() == SimulatorEventType.STOPPED) {
 				computationTime = System.currentTimeMillis() - startTimeReal;
 				simulationTime = simulator.getCurrentTime() - startTimeSim;
@@ -200,6 +205,9 @@ public class StatsTracker {
 				acceptedParcels++;
 			} else if (e.getEventType() == ADD_VEHICLE) {
 				totalVehicles++;
+			} else if (e.getEventType() == NEW_VEHICLE) {
+				final PDPModelEvent ev = (PDPModelEvent) e;
+				lastArrivalTimeAtDepot.put(ev.vehicle, simulator.getCurrentTime());
 			} else if (e.getEventType() == TIME_OUT) {
 				simFinish = true;
 				scenarioEndTime = ((TimedEvent) e).time;

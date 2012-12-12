@@ -318,7 +318,7 @@ public class DynamicPDPTWProblem {
 		public static final StopCondition VEHICLES_BACK_AT_DEPOT = new StopCondition() {
 			@Override
 			public boolean isSatisfiedBy(SimulationInfo context) {
-				return context.stats.totalVehicles == context.stats.vehiclesAtDepot;
+				return context.stats.totalVehicles == context.stats.vehiclesAtDepot && context.stats.movedVehicles > 0;
 			}
 		};
 
