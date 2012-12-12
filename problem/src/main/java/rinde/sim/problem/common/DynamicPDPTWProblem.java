@@ -10,7 +10,6 @@ import static java.util.Arrays.asList;
 import static java.util.Collections.unmodifiableMap;
 import static rinde.sim.core.model.pdp.PDPScenarioEvent.TIME_OUT;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -380,12 +379,27 @@ public class DynamicPDPTWProblem {
 		protected List<Renderer> renderers;
 
 		public DefaultUICreator() {
+			renderers = createRenderers();
+		}
+
+		protected List<Renderer> createRenderers() {
+			return asList(planeRoadModelRenderer(), roadUserRenderer(), pdpModelRenderer());
+		}
+
+		protected Renderer planeRoadModelRenderer() {
+			return new PlaneRoadModelRenderer(0.05);
+		}
+
+		protected Renderer roadUserRenderer() {
 			final UiSchema schema = new UiSchema(false);
 			schema.add(Vehicle.class, new RGB(255, 0, 0));
 			schema.add(Depot.class, new RGB(0, 255, 255));
 			schema.add(Parcel.class, new RGB(0, 0, 255));
-			renderers = new ArrayList<Renderer>(asList(new PlaneRoadModelRenderer(0.05), new RoadUserRenderer(schema,
-					false), new PDPModelRenderer()));
+			return new RoadUserRenderer(schema, false);
+		}
+
+		protected Renderer pdpModelRenderer() {
+			return new PDPModelRenderer();
 		}
 
 		@Override
