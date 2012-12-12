@@ -15,6 +15,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import javax.annotation.Nullable;
+
 import rinde.sim.core.TickListener;
 import rinde.sim.core.TimeLapse;
 import rinde.sim.core.graph.Point;
@@ -188,17 +190,27 @@ public class PDPModel implements Model<PDPObject>, TickListener, ModelReceiver {
          * {@link Vehicle}.
          */
         END_DELIVERY,
-
-        NEW_PARCEL
+        /**
+         * Indicates that a new {@link Parcel} has been added to the model.
+         */
+        NEW_PARCEL,
+        /**
+         * Indicates that a new {@link Vehicle} has been added to the model.
+         */
+        NEW_VEHICLE
     }
 
+    /**
+     * Initializes the model using a {@link LiberalPolicy} as
+     * {@link TimeWindowPolicy}.
+     */
     public PDPModel() {
         this(new LiberalPolicy());
     }
 
     /**
      * Initializes the PDPModel.
-     * @param rm The {@link RoadModel} which is associated to this model.
+     * @param twp The {@link TimeWindowPolicy} which is used in the model.
      */
     public PDPModel(TimeWindowPolicy twp) {
         timeWindowPolicy = twp;
@@ -298,7 +310,7 @@ public class PDPModel implements Model<PDPObject>, TickListener, ModelReceiver {
 
             eventDispatcher.dispatchEvent(new PDPModelEvent(
                     PDPModelEventType.START_PICKUP, this, time.getTime(),
-                    parcel));
+                    parcel, vehicle));
 
             // remove the parcel such that it can no longer be attempted to be
             // picked up by anyone else
@@ -336,7 +348,7 @@ public class PDPModel implements Model<PDPObject>, TickListener, ModelReceiver {
 
             parcelState.put(ParcelState.IN_CARGO, parcel);
             eventDispatcher.dispatchEvent(new PDPModelEvent(
-                    PDPModelEventType.END_PICKUP, this, time, parcel));
+                    PDPModelEventType.END_PICKUP, this, time, parcel, vehicle));
         }
     }
 
@@ -392,7 +404,7 @@ public class PDPModel implements Model<PDPObject>, TickListener, ModelReceiver {
 
             eventDispatcher.dispatchEvent(new PDPModelEvent(
                     PDPModelEventType.START_DELIVERY, this, time.getTime(),
-                    parcel));
+                    parcel, vehicle));
             if (time.getTimeLeft() < parcel.getDeliveryDuration()) {
                 vehicleState.put(vehicle, VehicleState.DELIVERING);
                 parcelState.put(ParcelState.DELIVERING, parcel);
@@ -420,8 +432,10 @@ public class PDPModel implements Model<PDPObject>, TickListener, ModelReceiver {
                     .get(vehicle) - parcel.getMagnitude());
 
             parcelState.put(ParcelState.DELIVERED, parcel);
-            eventDispatcher.dispatchEvent(new PDPModelEvent(
-                    PDPModelEventType.END_DELIVERY, this, time, parcel));
+            eventDispatcher
+                    .dispatchEvent(new PDPModelEvent(
+                            PDPModelEventType.END_DELIVERY, this, time, parcel,
+                            vehicle));
         }
     }
 
@@ -549,7 +563,8 @@ public class PDPModel implements Model<PDPObject>, TickListener, ModelReceiver {
                         .put(currentTime < p.getPickupTimeWindow().begin ? ParcelState.ANNOUNCED
                                 : ParcelState.AVAILABLE, (Parcel) element);
                 eventDispatcher.dispatchEvent(new PDPModelEvent(
-                        PDPModelEventType.NEW_PARCEL, this, currentTime, p));
+                        PDPModelEventType.NEW_PARCEL, this, currentTime, p,
+                        null));
             } else { /*
                       * if (element.getType() == PDPType.VEHICLE ||
                       * element.getType() == PDPType.DEPOT)
@@ -560,7 +575,11 @@ public class PDPModel implements Model<PDPObject>, TickListener, ModelReceiver {
                 containerContentsSize.put(container, 0d);
 
                 if (element.getType() == PDPType.VEHICLE) {
-                    vehicleState.put((Vehicle) element, VehicleState.IDLE);
+                    final Vehicle v = (Vehicle) element;
+                    vehicleState.put(v, VehicleState.IDLE);
+                    eventDispatcher.dispatchEvent(new PDPModelEvent(
+                            PDPModelEventType.NEW_VEHICLE, this, currentTime,
+                            null, v));
                 }
             }
             element.initPDPObject(this);
@@ -581,6 +600,11 @@ public class PDPModel implements Model<PDPObject>, TickListener, ModelReceiver {
 
     }
 
+    /**
+     * @return The {@link EventAPI} used by this model. Events that are
+     *         dispatched are instances of {@link PDPModelEvent}, the possible
+     *         event types are listed in {@link PDPModelEventType}.
+     */
     public EventAPI getEventAPI() {
         return eventAPI;
     }
@@ -659,15 +683,16 @@ public class PDPModel implements Model<PDPObject>, TickListener, ModelReceiver {
         public final PDPModel pdpModel;
         public final long time;
         public final Parcel parcel;
+        public final Vehicle vehicle;
 
         public PDPModelEvent(PDPModelEventType type, PDPModel model, long t,
-                Parcel p) {
+                @Nullable Parcel p, @Nullable Vehicle v) {
             super(type, model);
             pdpModel = model;
             time = t;
             parcel = p;
+            vehicle = v;
         }
-
     }
 
     /**
