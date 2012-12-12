@@ -65,6 +65,10 @@ public class StateMachine<E, C> {
         }
     }
 
+    public State<E, C> getCurrentState() {
+        return currentState;
+    }
+
     public boolean stateIs(State<E, C> s) {
         return currentState == s;
     }
