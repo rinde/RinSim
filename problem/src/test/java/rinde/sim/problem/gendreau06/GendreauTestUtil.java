@@ -10,7 +10,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
-import rinde.sim.problem.common.AddParcelEvent;
 import rinde.sim.scenario.ScenarioBuilder;
 import rinde.sim.scenario.ScenarioBuilder.ScenarioCreator;
 import rinde.sim.scenario.TimedEvent;
@@ -26,7 +25,7 @@ public class GendreauTestUtil {
 		return new Gendreau06Scenario(pEvents, pSupportedTypes, ts);
 	}
 
-	public static Gendreau06Scenario create(Collection<AddParcelEvent> parcels) {
+	public static Gendreau06Scenario create(Collection<TimedEvent> parcels) {
 		Gendreau06Scenario gs;
 		try {
 			gs = Gendreau06Parser.parse(new BufferedReader(new StringReader("")), "req_rapide_1_240_24", 1, 1000L);
@@ -35,6 +34,7 @@ public class GendreauTestUtil {
 		}
 		final ScenarioBuilder sb = new ScenarioBuilder(gs.getPossibleEventTypes());
 		sb.addEvents(gs.asList());
+		sb.addEvents(parcels);
 		return sb.build(new ScenarioCreator<Gendreau06Scenario>() {
 			@Override
 			public Gendreau06Scenario create(List<TimedEvent> eventList, Set<Enum<?>> eventTypes) {
