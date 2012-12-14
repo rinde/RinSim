@@ -31,12 +31,6 @@ public class ScenarioBuilderTest {
         scenarioBuilder = new ScenarioBuilder(EVENT_A, EVENT_B);
     }
 
-    @SuppressWarnings("unused")
-    @Test(expected = IllegalArgumentException.class)
-    public void constructorFail() {
-        new ScenarioBuilder((Enum<?>[]) null);
-    }
-
     @Test
     public void addMultipleEvents() {
         scenarioBuilder
