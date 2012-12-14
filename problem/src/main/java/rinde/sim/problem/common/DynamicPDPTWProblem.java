@@ -224,7 +224,8 @@ public class DynamicPDPTWProblem {
 	 * @return The statistics that were gathered during the simulation.
 	 */
 	public StatisticsDTO simulate() {
-		checkState(eventCreatorMap.containsKey(AddVehicleEvent.class), "A creator for AddVehicleEvent is required, use addCreator(..)");
+		checkState(eventCreatorMap.containsKey(AddVehicleEvent.class), "A creator for AddVehicleEvent is required, use "
+				+ this.getClass().getName() + ".addCreator(..)");
 		controller.start();
 		return getStatistics();
 	}
