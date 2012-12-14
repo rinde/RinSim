@@ -5,8 +5,8 @@ package rinde.sim.problem.common;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
+import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Maps.newHashMap;
-import static java.util.Arrays.asList;
 import static java.util.Collections.unmodifiableMap;
 import static rinde.sim.core.model.pdp.PDPScenarioEvent.TIME_OUT;
 
@@ -383,7 +383,7 @@ public class DynamicPDPTWProblem {
 		}
 
 		protected List<Renderer> createRenderers() {
-			return asList(planeRoadModelRenderer(), roadUserRenderer(), pdpModelRenderer());
+			return newArrayList(planeRoadModelRenderer(), roadUserRenderer(), pdpModelRenderer());
 		}
 
 		protected Renderer planeRoadModelRenderer() {
