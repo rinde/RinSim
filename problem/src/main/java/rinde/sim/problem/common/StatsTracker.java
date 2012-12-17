@@ -102,10 +102,15 @@ public class StatsTracker {
 			// overTime = -1;
 		// }
 
+		long compTime = theListener.computationTime;
+		if (compTime == 0) {
+			compTime = System.currentTimeMillis() - theListener.startTimeReal;
+		}
+
 		return new StatisticsDTO(theListener.totalDistance, theListener.totalPickups, theListener.totalDeliveries,
 				theListener.totalParcels, theListener.acceptedParcels, theListener.pickupTardiness,
-				theListener.deliveryTardiness, theListener.computationTime, simulator.getCurrentTime(),
-				theListener.simFinish, vehicleBack, overTime, theListener.totalVehicles, theListener.distanceMap.size());
+				theListener.deliveryTardiness, compTime, simulator.getCurrentTime(), theListener.simFinish,
+				vehicleBack, overTime, theListener.totalVehicles, theListener.distanceMap.size());
 	}
 
 	class TheListener implements Listener {
@@ -156,6 +161,7 @@ public class StatsTracker {
 			if (e.getEventType() == SimulatorEventType.STARTED) {
 				startTimeReal = System.currentTimeMillis();
 				startTimeSim = simulator.getCurrentTime();
+				computationTime = 0;
 
 			} else if (e.getEventType() == SimulatorEventType.STOPPED) {
 				computationTime = System.currentTimeMillis() - startTimeReal;
