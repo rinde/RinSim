@@ -368,9 +368,10 @@ public class Simulator implements SimulatorAPI {
      * Either starts or stops the simulation depending on the current state.
      */
     public void togglePlayPause() {
-        isPlaying = !isPlaying;
-        if (isPlaying) {
+        if (!isPlaying) {
             start();
+        } else {
+            isPlaying = false;
         }
     }
 
