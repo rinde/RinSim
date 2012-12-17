@@ -85,7 +85,7 @@ public class PDPModelRenderer implements ModelRenderer {
 						gc.drawText(state.toString() + " " + pdpModel.getVehicleActionInfo(v).timeNeeded(), x, y - 20);
 					}
 					gc.drawText("" + size, x, y);
-					drawMore(gc, vp, time, v, p);
+					drawMore(gc, vp, time, v, p, posMap);
 				}
 			}
 
@@ -115,7 +115,7 @@ public class PDPModelRenderer implements ModelRenderer {
 		}
 	}
 
-	protected void drawMore(GC gc, ViewPort vp, long time, Vehicle v, Point p) {}
+	protected void drawMore(GC gc, ViewPort vp, long time, Vehicle v, Point p, Map<RoadUser, Point> posMap) {}
 
 	@Override
 	public ViewRect getViewRect() {
