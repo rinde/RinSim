@@ -70,7 +70,7 @@ public final class Gendreau06Parser {
 		checkArgument(numVehicles > 0, "at least one vehicle is necessary in the scenario");
 		final ScenarioBuilder sb = new ScenarioBuilder(ADD_PARCEL, ADD_DEPOT, ADD_VEHICLE, TIME_OUT);
 
-		final String regex = ".*req_rapide_[1-5]_(450|240)_(24|33)";
+		final String regex = ".*req_rapide_\\d+_(450|240)_(24|33)";
 		final Matcher m = Pattern.compile(regex).matcher(fileName);
 		checkArgument(m.matches(), "The filename must conform to the following regex: " + regex + " input was: "
 				+ fileName);
