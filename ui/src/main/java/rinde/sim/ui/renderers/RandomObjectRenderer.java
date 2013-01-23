@@ -17,7 +17,7 @@ import rinde.sim.core.model.road.RoadUser;
  * @author Rinde van Lon (rinde.vanlon@cs.kuleuven.be)
  * 
  */
-public class RandomObjectRenderer implements Renderer {
+public class RandomObjectRenderer implements CanvasRenderer {
 
 	private final RoadModel model;
 	private Color defaultColor;

@@ -20,7 +20,7 @@ import rinde.sim.problem.common.DynamicPDPTWProblem.DefaultUICreator;
 import rinde.sim.problem.common.VehicleDTO;
 import rinde.sim.scenario.ConfigurationException;
 import rinde.sim.ui.View;
-import rinde.sim.ui.renderers.Renderer;
+import rinde.sim.ui.renderers.CanvasRenderer;
 
 import com.google.common.base.Predicate;
 
@@ -53,7 +53,7 @@ public class RepetitiousGUITest {
 				@Override
 				public void createUI(Simulator sim) {
 					try {
-						View.startGui(sim, 15, renderers.toArray(new Renderer[] {}));
+						View.startGui(sim, 15, renderers.toArray(new CanvasRenderer[] {}));
 					} catch (final Throwable e) {
 						System.err.println("Crash occured at iteration " + iteration);
 						e.printStackTrace();
