@@ -4,7 +4,7 @@
   <local-check-config name="RinSim" location="/RinSim/settings/RinSim.checkstyle" type="project" description="">
     <additional-data name="protect-config-file" value="false"/>
   </local-check-config>
-  <fileset name="all" enabled="true" check-config-name="Sun Checks" local="false">
+  <fileset name="all" enabled="true" check-config-name="RinSim" local="true">
     <file-match-pattern match-pattern="." include-pattern="true"/>
   </fileset>
 </fileset-config>
