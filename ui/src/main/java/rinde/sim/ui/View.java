@@ -19,30 +19,44 @@ import rinde.sim.ui.utils.Sleak;
  * @author Bartosz Michalik <bartosz.michalik@cs.kuleuven.be>
  * @since 2.0
  */
-public class View {
+public final class View {
 
-	protected static boolean testingMode = false;
-	protected static boolean autoPlay = false;
-	protected static boolean autoClose = false;
+	/**
+	 * Indicates whether using the SWT handles tracing mode. Default value is
+	 * <code>false</code>.
+	 */
+	protected static boolean testingMode;
 
-	private View() {};
+	/**
+	 * Indicates whether to start the simulation immediatly after launch.
+	 * Default value is <code>false</code>.
+	 */
+	protected static boolean autoPlay;
+
+	/**
+	 * Indicates whether to stop/close the app when the simulation has stopped.
+	 * Default value is <code>false</code>.
+	 */
+	protected static boolean autoClose;
+
+	private View() {}
 
 	/**
 	 * Define the SWT handles tracing mode. Disabled by default
-	 * @param testingMode
 	 */
-	public static void setTestingMode(boolean testingMode) {
-		View.testingMode = testingMode;
+	public static void setTestingMode(boolean pTestingMode) {
+		View.testingMode = pTestingMode;
 	}
 
-	public static void setAutoPlay(boolean autoPlay) {
-		View.autoPlay = autoPlay;
+	public static void setAutoPlay(boolean pAutoPlay) {
+		View.autoPlay = pAutoPlay;
 	}
 
-	public static void setAutoClose(boolean autoClose) {
-		View.autoClose = autoClose;
+	public static void setAutoClose(boolean pAutoClose) {
+		View.autoClose = pAutoClose;
 	}
 
+	@SuppressWarnings("unused")
 	public static void startGui(final Simulator simulator, final int speedup, Renderer... renderers) {
 		Display.setAppName("RinSim");
 		final Display display;

@@ -47,7 +47,6 @@ import rinde.sim.util.TimeFormatter;
  * 
  * @author Bartosz Michalik <bartosz.michalik@cs.kuleuven.be>
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
- * 
  */
 public class SimulationViewer extends Composite implements TickListener, ControlListener, PaintListener,
 		SelectionListener {
@@ -65,45 +64,39 @@ public class SimulationViewer extends Composite implements TickListener, Control
 	protected org.eclipse.swt.graphics.Point size;
 
 	protected Image image;
-
-	private final Simulator simulator;
-	private Map<String, Color> colorRegistry;
-
-	/** model renderers */
 	protected final Renderer[] renderers;
-	private Label timeLabel;
-	private ScrollBar hBar;
-	private ScrollBar vBar;
-	// rendering frequency related
-	private int speedUp;
-	private long lastRefresh;
-
-	boolean firstTime = true;
-
-	ViewRect viewRect;
-
-	// private double minX;
-	// private double minY;
-	protected double m;// multiplier
-	// // private double deltaX;
-	// private double deltaY;
-	private int zoomRatio;
-
-	private final Display display;
 
 	protected final Set<ModelReceiver> modelRenderers;
 
 	protected final boolean autoPlay;
 
 	protected MenuItem playPauseMenuItem;
+	protected double m; // multiplier
 
-	public SimulationViewer(Shell shell, final Simulator sim, int speedUp, boolean auto, Renderer... renderers) {
+	boolean firstTime = true;
+	final Simulator simulator;
+	ViewRect viewRect;
+	Label timeLabel;
+
+	private Map<String, Color> colorRegistry;
+
+	private ScrollBar hBar;
+	private ScrollBar vBar;
+
+	// rendering frequency related
+	private int speedUp;
+	private long lastRefresh;
+
+	private int zoomRatio;
+	private final Display display;
+
+	public SimulationViewer(Shell shell, final Simulator sim, int pSpeedUp, boolean pAutoPlay, Renderer... pRenderers) {
 		super(shell, SWT.NONE);
 
-		autoPlay = auto;
+		autoPlay = pAutoPlay;
 
 		modelRenderers = newLinkedHashSet();
-		for (final Renderer r : renderers) {
+		for (final Renderer r : pRenderers) {
 			if (r instanceof ModelReceiver) {
 				modelRenderers.add((ModelReceiver) r);
 			}
@@ -111,8 +104,8 @@ public class SimulationViewer extends Composite implements TickListener, Control
 		simulator = sim;
 		simulator.addTickListener(this);
 
-		this.renderers = renderers;
-		this.speedUp = speedUp;
+		renderers = pRenderers;
+		speedUp = pSpeedUp;
 		shell.setLayout(new FillLayout());
 		setLayout(new FillLayout());
 
@@ -125,7 +118,10 @@ public class SimulationViewer extends Composite implements TickListener, Control
 			@Override
 			public void handleEvent(Event event) {
 				simulator.stop();
-				while (simulator.isPlaying()) {}
+				while (simulator.isPlaying()) {
+					// wait until simulator acutally stops (it finishes its
+					// current tick first).
+				}
 
 				if (!display.isDisposed()) {
 					display.dispose();
@@ -142,22 +138,8 @@ public class SimulationViewer extends Composite implements TickListener, Control
 		}
 	}
 
-	// @SuppressWarnings("unchecked")
-	// protected <T extends Model<?>> void registerModel(T model) {
-	// final Set<Class<?>> rendererSupportedTypes = renderRegistry.keySet();
-	// for (final Class<?> rendererSupportedType : rendererSupportedTypes) {
-	// if (rendererSupportedType.isAssignableFrom(model.getClass())) {
-	// final Collection<ModelRenderer<?>> assignableModels =
-	// renderRegistry.get(rendererSupportedType);
-	// for (final ModelRenderer<?> modelRenderer : assignableModels) {
-	// ((ModelRenderer<T>) modelRenderer).register(model);
-	// }
-	// }
-	// }
-	// }
-
 	/**
-	 * Configure shell
+	 * Configure shell.
 	 */
 	protected void createContent() {
 		initColors();
@@ -183,7 +165,7 @@ public class SimulationViewer extends Composite implements TickListener, Control
 	}
 
 	/**
-	 * Initializes color registry and passes it to all renderers
+	 * Initializes color registry and passes it to all renderers.
 	 */
 	protected void initColors() {
 		assert getDisplay() != null : "should be called after display is initialized";
@@ -315,7 +297,7 @@ public class SimulationViewer extends Composite implements TickListener, Control
 	}
 
 	protected void onZooming(MenuItem source) {
-		if (source.getData().equals("in")) {
+		if ("in".equals(source.getData())) {
 			if (zoomRatio == 16) {
 				return;
 			}
@@ -335,7 +317,7 @@ public class SimulationViewer extends Composite implements TickListener, Control
 		if (image != null) {
 			image.dispose();
 		}
-		image = null;// this forces a redraw
+		image = null; // this forces a redraw
 		canvas.redraw();
 	}
 
@@ -347,11 +329,6 @@ public class SimulationViewer extends Composite implements TickListener, Control
 				speedUp >>= 1;
 			}
 		}
-	}
-
-	@Override
-	public void tick(TimeLapse timeLapse) {
-
 	}
 
 	public Image drawRoads() {
@@ -541,6 +518,9 @@ public class SimulationViewer extends Composite implements TickListener, Control
 		// not needed
 
 	}
+
+	@Override
+	public void tick(TimeLapse timeLapse) {}
 
 	@Override
 	public void afterTick(TimeLapse timeLapse) {
