@@ -7,9 +7,9 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 
+import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.GC;
-import org.eclipse.swt.graphics.RGB;
 
 import rinde.sim.core.graph.Point;
 import rinde.sim.core.model.ModelProvider;
@@ -26,25 +26,49 @@ import rinde.sim.core.model.road.RoadUser;
  * 
  */
 public class PDPModelRenderer implements ModelRenderer {
-	protected static final RGB BLACK = new RGB(0, 0, 0);
-	protected static final RGB WHITE = new RGB(255, 255, 255);
-	protected static final RGB GRAY = new RGB(80, 80, 80);
-	protected static final RGB LIGHT_GRAY = new RGB(205, 201, 201);
-	protected static final RGB DARK_GREEN = new RGB(0, 200, 0);
-	protected static final RGB GREEN = new RGB(0, 255, 0);
-	protected static final RGB ORANGE = new RGB(255, 160, 0);
-	protected static final RGB BLUE = new RGB(0, 0, 255);
-	protected static final RGB FOREGROUND_INFO = WHITE;
-	protected static final RGB BACKGROUND_INFO = BLUE;
+
+	protected Color black;
+	protected Color white;
+	protected Color gray;
+	protected Color lightGray;
+	protected Color darkGreen;
+	protected Color green;
+	protected Color orange;
+	protected Color blue;
+	protected Color foregroundInfo;
+	protected Color backgroundInfo;
 
 	protected PDPModel pdpModel;
 	protected RoadModel roadModel;
+
+	protected boolean isInitialized;
+
+	public PDPModelRenderer() {}
+
+	// TODO dispose colors on exit!
+	protected void initialize(GC gc) {
+		System.out.println();
+		isInitialized = true;
+		black = gc.getDevice().getSystemColor(SWT.COLOR_BLACK);
+		white = gc.getDevice().getSystemColor(SWT.COLOR_WHITE);
+		gray = gc.getDevice().getSystemColor(SWT.COLOR_GRAY);
+		lightGray = new Color(gc.getDevice(), 205, 201, 201);
+		darkGreen = gc.getDevice().getSystemColor(SWT.COLOR_DARK_GREEN);
+		green = gc.getDevice().getSystemColor(SWT.COLOR_GREEN);
+		orange = new Color(gc.getDevice(), 255, 160, 0);
+		blue = gc.getDevice().getSystemColor(SWT.COLOR_BLUE);
+		foregroundInfo = white;
+		backgroundInfo = blue;
+	}
 
 	@Override
 	public void renderStatic(GC gc, ViewPort vp) {}
 
 	@Override
 	public void renderDynamic(GC gc, ViewPort vp, long time) {
+		if (!isInitialized) {
+			initialize(gc);
+		}
 
 		synchronized (pdpModel) {
 			final Map<RoadUser, Point> posMap = roadModel.getObjectsAndPositions();
@@ -59,7 +83,7 @@ public class PDPModelRenderer implements ModelRenderer {
 					final int x = vp.toCoordX(p.x);
 					final int y = vp.toCoordY(p.y);
 
-					gc.setForeground(new Color(gc.getDevice(), BLACK));
+					gc.setForeground(black);
 
 					for (final Parcel parcel : contents) {
 
@@ -67,17 +91,17 @@ public class PDPModelRenderer implements ModelRenderer {
 						final int xd = vp.toCoordX(po.x);
 						final int yd = vp.toCoordY(po.y);
 						if (parcel.getDeliveryTimeWindow().isIn(time)) {
-							gc.setBackground(new Color(gc.getDevice(), DARK_GREEN));
+							gc.setBackground(darkGreen);
 						} else {
-							gc.setBackground(new Color(gc.getDevice(), ORANGE));
+							gc.setBackground(orange);
 						}
 
 						gc.drawLine(x, y, xd, yd);
 						gc.fillOval(xd - 5, yd - 5, 10, 10);
 						gc.drawOval(xd - 5, yd - 5, 10, 10);
 					}
-					gc.setBackground(new Color(gc.getDevice(), BACKGROUND_INFO));
-					gc.setForeground(new Color(gc.getDevice(), FOREGROUND_INFO));
+					gc.setBackground(backgroundInfo);
+					gc.setForeground(foregroundInfo);
 					final VehicleState state = pdpModel.getVehicleState(v);
 					// FIXME, investigate why the second check is
 					// neccesary..
@@ -96,19 +120,19 @@ public class PDPModelRenderer implements ModelRenderer {
 				if (posMap.containsKey(parcel)) {
 					final int x = vp.toCoordX(p.x);
 					final int y = vp.toCoordY(p.y);
-					gc.setForeground(new Color(gc.getDevice(), LIGHT_GRAY));
+					gc.setForeground(lightGray);
 					gc.drawLine(x, y, vp.toCoordX(parcel.getDestination().x), vp.toCoordY(parcel.getDestination().y));
 
-					RGB color = null;
+					Color color = null;
 					if (pdpModel.getParcelState(parcel) == ParcelState.ANNOUNCED) {
-						color = GRAY;
+						color = gray;
 					} else if (parcel.getPickupTimeWindow().isIn(time)) {
-						color = GREEN;
+						color = green;
 					} else {
-						color = ORANGE;
+						color = orange;
 					}
-					gc.setForeground(new Color(gc.getDevice(), BLACK));
-					gc.setBackground(new Color(gc.getDevice(), color));
+					gc.setForeground(black);
+					gc.setBackground(color);
 					gc.fillOval(x - 5, y - 5, 10, 10);
 				}
 			}
