@@ -3,7 +3,7 @@
  */
 package rinde.sim.ui.renderers;
 
-import org.eclipse.swt.graphics.Color;
+import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.GC;
 
 import rinde.sim.core.graph.Point;
@@ -42,10 +42,10 @@ public class PlaneRoadModelRenderer implements ModelRenderer {
 		final int outerXmax = vp.toCoordX(vp.rect.max.x);
 		final int outerYmax = vp.toCoordY(vp.rect.max.y);
 
-		gc.setBackground(new Color(gc.getDevice(), 200, 200, 200));
+		gc.setBackground(gc.getDevice().getSystemColor(SWT.COLOR_WIDGET_BACKGROUND));
 		gc.fillRectangle(outerXmin, outerYmin, outerXmax, outerYmax);
 
-		gc.setBackground(new Color(gc.getDevice(), 255, 255, 255));
+		gc.setBackground(gc.getDevice().getSystemColor(SWT.COLOR_WHITE));
 		gc.fillRectangle(xMin, yMin, xMax - xMin, yMax - yMin);
 		gc.drawRectangle(xMin, yMin, xMax - xMin, yMax - yMin);
 	}
