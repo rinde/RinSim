@@ -126,6 +126,11 @@ public class SimulationViewer extends Composite implements TickListener, Control
 			}
 
 			checkState(valid, "A renderer was not of a recognized subtype: " + r);
+
+			if (r instanceof TickListener) {
+				sim.addTickListener((TickListener) r);
+			}
+
 		}
 		simulator = sim;
 		simulator.addTickListener(this);
@@ -202,7 +207,7 @@ public class SimulationViewer extends Composite implements TickListener, Control
 
 			final Group g = new Group(this, SWT.SHADOW_NONE);
 			g.setText(p.getName());
-			p.setParent(g);
+			p.initializePanel(g);
 			c = g;
 
 		} else {
@@ -213,7 +218,7 @@ public class SimulationViewer extends Composite implements TickListener, Control
 				ti.setText(p.getName());
 				final Composite comp = new Composite(tab, SWT.NONE);
 				ti.setControl(comp);
-				p.setParent(tab);
+				p.initializePanel(comp);
 			}
 
 			c = tab;
@@ -250,7 +255,7 @@ public class SimulationViewer extends Composite implements TickListener, Control
 	protected Canvas createContent() {
 		initColors();
 		canvas = new Canvas(this, SWT.DOUBLE_BUFFERED | SWT.NONE | SWT.NO_REDRAW_RESIZE | SWT.V_SCROLL | SWT.H_SCROLL);
-		canvas.setBackground(colorRegistry.get(COLOR_WHITE));
+		canvas.setBackground(display.getSystemColor(SWT.COLOR_WIDGET_BACKGROUND));
 
 		origin = new org.eclipse.swt.graphics.Point(0, 0);
 		size = new org.eclipse.swt.graphics.Point(800, 500);

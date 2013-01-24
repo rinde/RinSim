@@ -5,6 +5,8 @@ package rinde.sim.ui;
 
 import org.apache.commons.math3.random.MersenneTwister;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.layout.FillLayout;
+import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 
 import rinde.sim.core.Simulator;
@@ -48,7 +50,11 @@ public final class PanelTest {
 		}
 
 		@Override
-		public void setParent(Composite c) {
+		public void initializePanel(Composite c) {
+			c.setLayout(new FillLayout());
+			final Button b = new Button(c, SWT.PUSH);
+
+			b.setText("push me");
 			// TODO Auto-generated method stub
 
 		}
