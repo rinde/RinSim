@@ -32,9 +32,10 @@ import rinde.sim.scenario.ScenarioController.UICreator;
 import rinde.sim.scenario.TimedEvent;
 import rinde.sim.scenario.TimedEventHandler;
 import rinde.sim.ui.View;
+import rinde.sim.ui.renderers.CanvasRenderer;
 import rinde.sim.ui.renderers.PDPModelRenderer;
 import rinde.sim.ui.renderers.PlaneRoadModelRenderer;
-import rinde.sim.ui.renderers.CanvasRenderer;
+import rinde.sim.ui.renderers.Renderer;
 import rinde.sim.ui.renderers.RoadUserRenderer;
 import rinde.sim.ui.renderers.UiSchema;
 import rinde.sim.util.spec.CompositeSpecification;
@@ -170,7 +171,7 @@ public class DynamicPDPTWProblem {
 				}
 			}
 		});
-		defaultUICreator = new DefaultUICreator();
+		defaultUICreator = new DefaultUICreator(this);
 	}
 
 	/**
@@ -377,21 +378,28 @@ public class DynamicPDPTWProblem {
 	}
 
 	public static class DefaultUICreator implements UICreator {
-		protected List<CanvasRenderer> renderers;
+		protected List<Renderer> renderers;
 
-		public DefaultUICreator() {
+		public DefaultUICreator(DynamicPDPTWProblem prob) {
 			renderers = createRenderers();
+			if (prob != null) {
+				renderers.add(new StatsPanel(prob.statsTracker));
+			}
 		}
 
-		protected List<CanvasRenderer> createRenderers() {
+		public DefaultUICreator() {
+			this(null);
+		}
+
+		protected List<Renderer> createRenderers() {
 			return newArrayList(planeRoadModelRenderer(), roadUserRenderer(), pdpModelRenderer());
 		}
 
-		protected CanvasRenderer planeRoadModelRenderer() {
+		protected Renderer planeRoadModelRenderer() {
 			return new PlaneRoadModelRenderer(0.05);
 		}
 
-		protected CanvasRenderer roadUserRenderer() {
+		protected Renderer roadUserRenderer() {
 			final UiSchema schema = new UiSchema(false);
 			schema.add(Vehicle.class, new RGB(255, 0, 0));
 			schema.add(Depot.class, new RGB(0, 255, 255));
@@ -399,16 +407,16 @@ public class DynamicPDPTWProblem {
 			return new RoadUserRenderer(schema, false);
 		}
 
-		protected CanvasRenderer pdpModelRenderer() {
+		protected Renderer pdpModelRenderer() {
 			return new PDPModelRenderer();
 		}
 
 		@Override
 		public void createUI(Simulator sim) {
-			View.startGui(sim, 1, renderers.toArray(new CanvasRenderer[] {}));
+			View.startGui(sim, 1, renderers.toArray(new Renderer[] {}));
 		}
 
-		public void addRenderer(CanvasRenderer r) {
+		public void addRenderer(Renderer r) {
 			renderers.add(r);
 		}
 	}

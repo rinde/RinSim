@@ -32,6 +32,8 @@ import rinde.sim.core.graph.Point;
 import rinde.sim.core.model.pdp.PDPModel;
 import rinde.sim.core.model.pdp.PDPModel.PDPModelEvent;
 import rinde.sim.core.model.pdp.PDPModel.PDPModelEventType;
+import rinde.sim.core.model.pdp.Parcel;
+import rinde.sim.core.model.pdp.Vehicle;
 import rinde.sim.core.model.road.AbstractRoadModel.RoadEventType;
 import rinde.sim.core.model.road.MoveEvent;
 import rinde.sim.core.model.road.MovingRoadUser;
@@ -189,8 +191,10 @@ public class StatsTracker {
 				final PDPModelEvent pme = (PDPModelEvent) e;
 				final long latestBeginTime = pme.parcel.getPickupTimeWindow().end - pme.parcel.getPickupDuration();
 				if (pme.time > latestBeginTime) {
-					pickupTardiness += pme.time - latestBeginTime;
-					eventDispatcher.dispatchEvent(new Event(StatisticsEventType.PICKUP_TARDINESS, this));
+					final long tardiness = pme.time - latestBeginTime;
+					pickupTardiness += tardiness;
+					eventDispatcher.dispatchEvent(new StatisticsEvent(StatisticsEventType.PICKUP_TARDINESS, this,
+							pme.parcel, pme.vehicle, tardiness, pme.time));
 				}
 			} else if (e.getEventType() == PDPModelEventType.END_PICKUP) {
 				totalPickups++;
@@ -198,8 +202,10 @@ public class StatsTracker {
 				final PDPModelEvent pme = (PDPModelEvent) e;
 				final long latestBeginTime = pme.parcel.getDeliveryTimeWindow().end - pme.parcel.getDeliveryDuration();
 				if (pme.time > latestBeginTime) {
-					deliveryTardiness += pme.time - latestBeginTime;
-					eventDispatcher.dispatchEvent(new Event(StatisticsEventType.DELIVERY_TARDINESS, this));
+					final long tardiness = pme.time - latestBeginTime;
+					deliveryTardiness += tardiness;
+					eventDispatcher.dispatchEvent(new StatisticsEvent(StatisticsEventType.DELIVERY_TARDINESS, this,
+							pme.parcel, pme.vehicle, tardiness, pme.time));
 				}
 			} else if (e.getEventType() == PDPModelEventType.END_DELIVERY) {
 				totalDeliveries++;
@@ -321,6 +327,23 @@ public class StatsTracker {
 		public String toString() {
 			return ToStringBuilder.reflectionToString(this, ToStringStyle.MULTI_LINE_STYLE);
 		}
+	}
+
+	public static class StatisticsEvent extends Event {
+
+		public final Parcel parcel;
+		public final Vehicle vehicle;
+		public final long tardiness;
+		public final long time;
+
+		public StatisticsEvent(Enum<?> type, Object pIssuer, Parcel p, Vehicle v, long tar, long tim) {
+			super(type, pIssuer);
+			parcel = p;
+			vehicle = v;
+			tardiness = tar;
+			time = tim;
+		}
+
 	}
 
 }
