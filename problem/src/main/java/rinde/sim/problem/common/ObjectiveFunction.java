@@ -15,4 +15,6 @@ public interface ObjectiveFunction {
 
 	double computeCost(StatisticsDTO stats);
 
+	String printHumanReadableFormat(StatisticsDTO stats);
+
 }

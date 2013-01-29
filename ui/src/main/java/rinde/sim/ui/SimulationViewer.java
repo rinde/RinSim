@@ -1,62 +1,62 @@
 package rinde.sim.ui;
 
 import static com.google.common.base.Preconditions.checkState;
-import static com.google.common.collect.Maps.newHashMap;
+import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Sets.newLinkedHashSet;
 
-import java.util.Arrays;
-import java.util.Map;
+import java.util.Collection;
+import java.util.List;
 import java.util.Set;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.SashForm;
 import org.eclipse.swt.events.ControlEvent;
 import org.eclipse.swt.events.ControlListener;
 import org.eclipse.swt.events.PaintEvent;
 import org.eclipse.swt.events.PaintListener;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
-import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
-import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.widgets.Canvas;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.ScrollBar;
 import org.eclipse.swt.widgets.Shell;
+import org.eclipse.swt.widgets.TabFolder;
+import org.eclipse.swt.widgets.TabItem;
 
 import rinde.sim.core.Simulator;
 import rinde.sim.core.TickListener;
 import rinde.sim.core.TimeLapse;
 import rinde.sim.core.graph.Point;
 import rinde.sim.core.model.ModelReceiver;
+import rinde.sim.ui.renderers.CanvasRenderer;
+import rinde.sim.ui.renderers.PanelRenderer;
 import rinde.sim.ui.renderers.Renderer;
 import rinde.sim.ui.renderers.ViewPort;
 import rinde.sim.ui.renderers.ViewRect;
 import rinde.sim.util.TimeFormatter;
+
+import com.google.common.collect.LinkedHashMultimap;
+import com.google.common.collect.Multimap;
 
 /**
  * Simulation viewer.
  * 
  * @author Bartosz Michalik <bartosz.michalik@cs.kuleuven.be>
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
- * 
  */
 public class SimulationViewer extends Composite implements TickListener, ControlListener, PaintListener,
 		SelectionListener {
-
-	public static final String COLOR_WHITE = "white";
-	public static final String COLOR_GREEN = "green";
-	public static final String COLOR_BLACK = "black";
-
-	public static final String DEFAULT_COLOR = "default_color";
 
 	public static final String ICO_PKG = "package";
 
@@ -65,61 +65,80 @@ public class SimulationViewer extends Composite implements TickListener, Control
 	protected org.eclipse.swt.graphics.Point size;
 
 	protected Image image;
+	protected final List<CanvasRenderer> renderers;
 
-	private final Simulator simulator;
-	private Map<String, Color> colorRegistry;
+	protected final Set<ModelReceiver> modelRenderers;
 
-	/** model renderers */
-	protected final Renderer[] renderers;
-	private Label timeLabel;
+	protected final boolean autoPlay;
+
+	protected MenuItem playPauseMenuItem;
+	protected double m; // multiplier
+
+	boolean firstTime = true;
+	final Simulator simulator;
+	ViewRect viewRect;
+	Label timeLabel;
+
+	// private Map<String, Color> colorRegistry;
+
 	private ScrollBar hBar;
 	private ScrollBar vBar;
+
 	// rendering frequency related
 	private int speedUp;
 	private long lastRefresh;
 
-	boolean firstTime = true;
-
-	ViewRect viewRect;
-
-	// private double minX;
-	// private double minY;
-	protected double m;// multiplier
-	// // private double deltaX;
-	// private double deltaY;
 	private int zoomRatio;
-
 	private final Display display;
 
-	protected final Set<ModelReceiver> modelRenderers;
-
-	public SimulationViewer(Shell shell, final Simulator sim, int speedUp, Renderer... renderers) {
+	public SimulationViewer(Shell shell, final Simulator sim, int pSpeedUp, boolean pAutoPlay, Renderer... pRenderers) {
 		super(shell, SWT.NONE);
 
+		autoPlay = pAutoPlay;
+
+		final Multimap<Integer, PanelRenderer> panels = LinkedHashMultimap.create();
+		renderers = newArrayList();
 		modelRenderers = newLinkedHashSet();
-		for (final Renderer r : renderers) {
+		for (final Renderer r : pRenderers) {
 			if (r instanceof ModelReceiver) {
 				modelRenderers.add((ModelReceiver) r);
 			}
+			boolean valid = false;
+			if (r instanceof PanelRenderer) {
+				panels.put(((PanelRenderer) r).getPreferredPosition(), (PanelRenderer) r);
+				valid = true;
+			}
+
+			if (r instanceof CanvasRenderer) {
+				renderers.add((CanvasRenderer) r);
+				valid = true;
+			}
+
+			checkState(valid, "A renderer was not of a recognized subtype: " + r);
+
+			if (r instanceof TickListener) {
+				sim.addTickListener((TickListener) r);
+			}
+
 		}
 		simulator = sim;
 		simulator.addTickListener(this);
 
-		this.renderers = renderers;
-		this.speedUp = speedUp;
+		speedUp = pSpeedUp;
 		shell.setLayout(new FillLayout());
-		setLayout(new FillLayout());
-
 		display = shell.getDisplay();
+		setLayout(new FillLayout());
 
 		createMenu(shell);
 		shell.addListener(SWT.Close, new Listener() {
-
 			@SuppressWarnings("synthetic-access")
 			@Override
 			public void handleEvent(Event event) {
 				simulator.stop();
-				while (simulator.isPlaying()) {}
+				while (simulator.isPlaying()) {
+					// wait until simulator acutally stops (it finishes its
+					// current tick first).
+				}
 
 				if (!display.isDisposed()) {
 					display.dispose();
@@ -127,7 +146,79 @@ public class SimulationViewer extends Composite implements TickListener, Control
 			}
 		});
 
-		createContent();
+		if (panels.isEmpty()) {
+
+			createContent(this);
+		} else {
+
+			final SashForm vertical = new SashForm(this, SWT.VERTICAL | SWT.SMOOTH);
+			vertical.setLayout(new FillLayout());
+
+			final int topHeight = configurePanels(vertical, panels.removeAll(SWT.TOP));
+
+			final SashForm horizontal = new SashForm(vertical, SWT.HORIZONTAL | SWT.SMOOTH);
+			horizontal.setLayout(new FillLayout());
+
+			final int leftWidth = configurePanels(horizontal, panels.removeAll(SWT.LEFT));
+
+			// create canvas
+			createContent(horizontal);
+
+			final int rightWidth = configurePanels(horizontal, panels.removeAll(SWT.RIGHT));
+			final int bottomHeight = configurePanels(vertical, panels.removeAll(SWT.BOTTOM));
+
+			final int canvasHeight = (size.y - topHeight) - bottomHeight;
+			if (topHeight > 0 && bottomHeight > 0) {
+				vertical.setWeights(varargs(topHeight, canvasHeight, bottomHeight));
+			} else if (topHeight > 0) {
+				vertical.setWeights(varargs(topHeight, canvasHeight));
+			} else if (bottomHeight > 0) {
+				vertical.setWeights(varargs(canvasHeight, bottomHeight));
+			}
+
+			final int canvasWidth = (size.x - leftWidth) - rightWidth;
+			if (leftWidth > 0 && rightWidth > 0) {
+				horizontal.setWeights(varargs(leftWidth, canvasWidth, rightWidth));
+			} else if (leftWidth > 0) {
+				horizontal.setWeights(varargs(leftWidth, canvasWidth));
+			} else if (rightWidth > 0) {
+				horizontal.setWeights(varargs(canvasWidth, rightWidth));
+			}
+
+			checkState(panels.isEmpty(), "Invalid preferred position set for panels: " + panels.values());
+		}
+
+	}
+
+	static int[] varargs(int... ints) {
+		return ints;
+	}
+
+	protected int configurePanels(SashForm parent, Collection<PanelRenderer> panels) {
+		if (panels.isEmpty()) {
+			return 0;
+		}
+
+		int prefSize = 0;
+		for (final PanelRenderer p : panels) {
+			prefSize = Math.max(p.preferredSize(), prefSize);
+		}
+		if (panels.size() == 1) {
+			final PanelRenderer p = panels.iterator().next();
+			final Group g = new Group(parent, SWT.SHADOW_NONE);
+			p.initializePanel(g);
+		} else {
+			final TabFolder tab = new TabFolder(parent, SWT.NONE);
+
+			for (final PanelRenderer p : panels) {
+				final TabItem ti = new TabItem(tab, SWT.NONE);
+				ti.setText(p.getName());
+				final Composite comp = new Composite(tab, SWT.NONE);
+				ti.setControl(comp);
+				p.initializePanel(comp);
+			}
+		}
+		return prefSize;
 	}
 
 	protected void configureModelRenderers() {
@@ -136,27 +227,13 @@ public class SimulationViewer extends Composite implements TickListener, Control
 		}
 	}
 
-	// @SuppressWarnings("unchecked")
-	// protected <T extends Model<?>> void registerModel(T model) {
-	// final Set<Class<?>> rendererSupportedTypes = renderRegistry.keySet();
-	// for (final Class<?> rendererSupportedType : rendererSupportedTypes) {
-	// if (rendererSupportedType.isAssignableFrom(model.getClass())) {
-	// final Collection<ModelRenderer<?>> assignableModels =
-	// renderRegistry.get(rendererSupportedType);
-	// for (final ModelRenderer<?> modelRenderer : assignableModels) {
-	// ((ModelRenderer<T>) modelRenderer).register(model);
-	// }
-	// }
-	// }
-	// }
-
 	/**
-	 * Configure shell
+	 * Configure shell.
 	 */
-	protected void createContent() {
-		initColors();
-		canvas = new Canvas(this, SWT.DOUBLE_BUFFERED | SWT.NONE | SWT.NO_REDRAW_RESIZE | SWT.V_SCROLL | SWT.H_SCROLL);
-		canvas.setBackground(colorRegistry.get(COLOR_WHITE));
+	protected Canvas createContent(Composite parent) {
+		canvas = new Canvas(parent, SWT.DOUBLE_BUFFERED | SWT.NONE | SWT.NO_REDRAW_RESIZE | SWT.V_SCROLL | SWT.H_SCROLL);
+		canvas.setBackground(display.getSystemColor(SWT.COLOR_WIDGET_BACKGROUND));
+
 		origin = new org.eclipse.swt.graphics.Point(0, 0);
 		size = new org.eclipse.swt.graphics.Point(800, 500);
 		canvas.addPaintListener(this);
@@ -166,25 +243,16 @@ public class SimulationViewer extends Composite implements TickListener, Control
 
 		timeLabel = new Label(canvas, SWT.NONE);
 		timeLabel.setText("hello world");
-		timeLabel.setBounds(20, 20, 200, 20);
-		timeLabel.setBackground(colorRegistry.get(COLOR_WHITE));
+		timeLabel.pack();
+		timeLabel.setLocation(50, 10);
+		timeLabel.setBackground(canvas.getDisplay().getSystemColor(SWT.COLOR_WHITE));
 
 		hBar = canvas.getHorizontalBar();
 		hBar.addSelectionListener(this);
 		vBar = canvas.getVerticalBar();
 		vBar.addSelectionListener(this);
-	}
 
-	/**
-	 * Initializes color registry and passes it to all renderers
-	 */
-	protected void initColors() {
-		assert getDisplay() != null : "should be called after display is initialized";
-		assert renderers != null : "should be called after renderers are initialized";
-		colorRegistry = newHashMap();
-		colorRegistry.put(COLOR_WHITE, new Color(getDisplay(), new RGB(0xFF, 0xFF, 0xFF)));
-		colorRegistry.put(COLOR_BLACK, new Color(getDisplay(), new RGB(0x00, 0x00, 0x00)));
-		colorRegistry.put(COLOR_GREEN, new Color(getDisplay(), new RGB(0x00, 0xFF, 0x00)));
+		return canvas;
 	}
 
 	@SuppressWarnings("unused")
@@ -193,16 +261,16 @@ public class SimulationViewer extends Composite implements TickListener, Control
 		shell.setMenuBar(bar);
 
 		final MenuItem fileItem = new MenuItem(bar, SWT.CASCADE);
-		fileItem.setText("Control");
+		fileItem.setText("&Control");
 
 		final Menu submenu = new Menu(shell, SWT.DROP_DOWN);
 		fileItem.setMenu(submenu);
 
 		// play switch
-		final MenuItem item = new MenuItem(submenu, SWT.PUSH);
-		item.setText("&Play");
-		item.setAccelerator(SWT.MOD1 + 'P');
-		item.addListener(SWT.Selection, new Listener() {
+		playPauseMenuItem = new MenuItem(submenu, SWT.PUSH);
+		playPauseMenuItem.setText("&Play\tCtrl+P");
+		playPauseMenuItem.setAccelerator(SWT.MOD1 + 'P');
+		playPauseMenuItem.addListener(SWT.Selection, new Listener() {
 
 			@Override
 			public void handleEvent(Event e) {
@@ -213,8 +281,8 @@ public class SimulationViewer extends Composite implements TickListener, Control
 		new MenuItem(submenu, SWT.SEPARATOR);
 		// step execution switch
 		final MenuItem nextItem = new MenuItem(submenu, SWT.PUSH);
-		nextItem.setText("Next tick");
-		nextItem.setAccelerator(SWT.MOD1 + ']');
+		nextItem.setText("Next tick\tCtrl+Shift+]");
+		nextItem.setAccelerator(SWT.MOD1 + SWT.SHIFT + ']');
 		nextItem.addListener(SWT.Selection, new Listener() {
 			@Override
 			public void handleEvent(Event e) {
@@ -225,19 +293,19 @@ public class SimulationViewer extends Composite implements TickListener, Control
 		// view options
 
 		final MenuItem viewItem = new MenuItem(bar, SWT.CASCADE);
-		viewItem.setText("View");
+		viewItem.setText("&View");
 
 		final Menu viewMenu = new Menu(shell, SWT.DROP_DOWN);
 		viewItem.setMenu(viewMenu);
 
 		// zooming
 		final MenuItem zoomInItem = new MenuItem(viewMenu, SWT.PUSH);
-		zoomInItem.setText("Zoom in");
+		zoomInItem.setText("Zoom &in\tCtrl++");
 		zoomInItem.setAccelerator(SWT.MOD1 + '+');
 		zoomInItem.setData("in");
 
 		final MenuItem zoomOutItem = new MenuItem(viewMenu, SWT.PUSH);
-		zoomOutItem.setText("Zoom out");
+		zoomOutItem.setText("Zoom &out\tCtrl+-");
 		zoomOutItem.setAccelerator(SWT.MOD1 + '-');
 		zoomOutItem.setData("out");
 
@@ -261,14 +329,14 @@ public class SimulationViewer extends Composite implements TickListener, Control
 		};
 
 		final MenuItem increaseSpeedItem = new MenuItem(submenu, SWT.PUSH);
-		increaseSpeedItem.setAccelerator(SWT.MOD1 + '.');
-		increaseSpeedItem.setText("Speed up");
+		increaseSpeedItem.setAccelerator(SWT.MOD1 + ']');
+		increaseSpeedItem.setText("Speed &up\tCtrl+]");
 		increaseSpeedItem.setData(">");
 		increaseSpeedItem.addListener(SWT.Selection, speedUpListener);
 		//
 		final MenuItem decreaseSpeed = new MenuItem(submenu, SWT.PUSH);
-		decreaseSpeed.setAccelerator(SWT.MOD1 + ',');
-		decreaseSpeed.setText("Slow down");
+		decreaseSpeed.setAccelerator(SWT.MOD1 + '[');
+		decreaseSpeed.setText("Slow &down\tCtrl+[");
 		decreaseSpeed.setData("<");
 		decreaseSpeed.addListener(SWT.Selection, speedUpListener);
 
@@ -282,9 +350,9 @@ public class SimulationViewer extends Composite implements TickListener, Control
 	 */
 	protected void onToglePlay(MenuItem source) {
 		if (simulator.isPlaying()) {
-			source.setText("&Play");
+			source.setText("&Play\tCtrl+P");
 		} else {
-			source.setText("&Pause");
+			source.setText("&Pause\tCtrl+P");
 		}
 		new Thread() {
 			@Override
@@ -308,7 +376,7 @@ public class SimulationViewer extends Composite implements TickListener, Control
 	}
 
 	protected void onZooming(MenuItem source) {
-		if (source.getData().equals("in")) {
+		if ("in".equals(source.getData())) {
 			if (zoomRatio == 16) {
 				return;
 			}
@@ -328,7 +396,7 @@ public class SimulationViewer extends Composite implements TickListener, Control
 		if (image != null) {
 			image.dispose();
 		}
-		image = null;// this forces a redraw
+		image = null; // this forces a redraw
 		canvas.redraw();
 	}
 
@@ -342,22 +410,17 @@ public class SimulationViewer extends Composite implements TickListener, Control
 		}
 	}
 
-	@Override
-	public void tick(TimeLapse timeLapse) {
-
-	}
-
 	public Image drawRoads() {
 		size = new org.eclipse.swt.graphics.Point((int) (m * viewRect.width), (int) (m * viewRect.height));
-		final Image img = new Image(getDisplay(), size.x + 10, size.y + 10);
+		final Image img = new Image(getDisplay(), size.x, size.y);
 		final GC gc = new GC(img);
 
-		for (final Renderer r : renderers) {
+		for (final CanvasRenderer r : renderers) {
 			r.renderStatic(gc, new ViewPort(new Point(0, 0)/*
 															 * new
 															 * Point(origin.x,
 															 * origin.y)
-															 */, viewRect, m, colorRegistry));
+															 */, viewRect, m));
 		}
 
 		//
@@ -387,6 +450,7 @@ public class SimulationViewer extends Composite implements TickListener, Control
 	public void paintControl(PaintEvent e) {
 		final GC gc = e.gc;
 
+		final boolean wasFirstTime = firstTime;
 		if (firstTime) {
 			configureModelRenderers();
 			calculateSizes();
@@ -411,10 +475,15 @@ public class SimulationViewer extends Composite implements TickListener, Control
 			gc.fillRectangle(0, rect.height, client.width, marginHeight);
 		}
 
-		for (final Renderer renderer : renderers) {
-			renderer.renderDynamic(gc, new ViewPort(new Point(origin.x, origin.y), viewRect, m, colorRegistry), simulator
+		for (final CanvasRenderer renderer : renderers) {
+			renderer.renderDynamic(gc, new ViewPort(new Point(origin.x, origin.y), viewRect, m), simulator
 					.getCurrentTime());
 			// renderer.render(gc, origin.x, origin.y, minX, minY, m);
+		}
+
+		// auto play sim if required
+		if (wasFirstTime && autoPlay) {
+			onToglePlay(playPauseMenuItem);
 		}
 	}
 
@@ -449,7 +518,7 @@ public class SimulationViewer extends Composite implements TickListener, Control
 	}
 
 	private void calculateSizes() {
-		System.out.println("SIM IS CONFIGURED: " + simulator.isConfigured());
+		// System.out.println("SIM IS CONFIGURED: " + simulator.isConfigured());
 		if (!simulator.isConfigured()) {
 			return;
 		}
@@ -460,7 +529,7 @@ public class SimulationViewer extends Composite implements TickListener, Control
 		double maxY = Double.NEGATIVE_INFINITY;
 
 		boolean isDefined = false;
-		for (final Renderer r : renderers) {
+		for (final CanvasRenderer r : renderers) {
 			final ViewRect rect = r.getViewRect();
 			if (rect != null) {
 				minX = Math.min(minX, rect.min.x);
@@ -471,8 +540,7 @@ public class SimulationViewer extends Composite implements TickListener, Control
 			}
 		}
 
-		checkState(isDefined, "none of the available renderers implements getViewRect(), known renderers: "
-				+ Arrays.toString(renderers));
+		checkState(isDefined, "none of the available renderers implements getViewRect(), known renderers: " + renderers);
 
 		viewRect = new ViewRect(new Point(minX, minY), new Point(maxX, maxY));
 
@@ -530,6 +598,9 @@ public class SimulationViewer extends Composite implements TickListener, Control
 	}
 
 	@Override
+	public void tick(TimeLapse timeLapse) {}
+
+	@Override
 	public void afterTick(TimeLapse timeLapse) {
 		if (simulator.isPlaying() && lastRefresh + timeLapse.getTimeStep() * speedUp > timeLapse.getStartTime()) {
 			return;
@@ -552,6 +623,7 @@ public class SimulationViewer extends Composite implements TickListener, Control
 					} else {
 						timeLabel.setText("" + simulator.getCurrentTime());
 					}
+					timeLabel.pack();
 					canvas.redraw();
 				}
 			}

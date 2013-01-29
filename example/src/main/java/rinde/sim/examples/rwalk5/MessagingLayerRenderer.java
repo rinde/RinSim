@@ -9,12 +9,12 @@ import rinde.sim.core.graph.Point;
 import rinde.sim.core.model.ModelProvider;
 import rinde.sim.core.model.ModelReceiver;
 import rinde.sim.core.model.road.RoadModel;
-import rinde.sim.ui.renderers.Renderer;
+import rinde.sim.ui.renderers.CanvasRenderer;
 import rinde.sim.ui.renderers.UiSchema;
 import rinde.sim.ui.renderers.ViewPort;
 import rinde.sim.ui.renderers.ViewRect;
 
-public class MessagingLayerRenderer implements Renderer, ModelReceiver {
+public class MessagingLayerRenderer implements CanvasRenderer, ModelReceiver {
 
 	protected RoadModel roadModel;
 	protected boolean useEncirclement;

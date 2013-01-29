@@ -36,9 +36,26 @@ public class ScenarioBuilder {
      * events.
      * @param pSupportedTypes The event types this ScenarioBuilder supports.
      */
+    public ScenarioBuilder(Set<Enum<?>> pSupportedTypes) {
+        this(ImmutableSet.copyOf(pSupportedTypes));
+    }
+
+    /**
+     * Initializes a new ScenarioBuilder which supports the specified types of
+     * events.
+     * @param pSupportedTypes The event types this ScenarioBuilder supports.
+     */
     public ScenarioBuilder(Enum<?>... pSupportedTypes) {
-        checkArgument(pSupportedTypes != null, "supported types can not be null");
-        supportedTypes = ImmutableSet.copyOf(pSupportedTypes);
+        this(ImmutableSet.copyOf(pSupportedTypes));
+    }
+
+    /**
+     * Initializes a new ScenarioBuilder which supports the specified types of
+     * events.
+     * @param types The event types this ScenarioBuilder supports.
+     */
+    protected ScenarioBuilder(ImmutableSet<Enum<?>> types) {
+        supportedTypes = types;
         generators = newLinkedList();
         events = newArrayList();
     }
@@ -46,6 +63,7 @@ public class ScenarioBuilder {
     /**
      * Add an {@link EventGenerator} to this ScenarioBuilder.
      * @param generator The generator to add.
+     * @return this
      */
     public ScenarioBuilder addEventGenerator(
             EventGenerator<? extends TimedEvent> generator) {
@@ -66,26 +84,37 @@ public class ScenarioBuilder {
         return this;
     }
 
-    public ScenarioBuilder addEvents(TimedEvent... event) {
-        for (final TimedEvent te : events) {
-            addEvent(te);
-        }
-        return this;
-    }
-
-    public ScenarioBuilder addEvents(Collection<TimedEvent> events) {
-        for (final TimedEvent te : events) {
+    /**
+     * Convenience method for adding events.
+     * @param es The {@link TimedEvent} to add.
+     * @return this
+     */
+    public ScenarioBuilder addEvents(TimedEvent... es) {
+        for (final TimedEvent te : es) {
             addEvent(te);
         }
         return this;
     }
 
     /**
-     * Adds multiple events.
+     * Convenience method for adding events.
+     * @param es The {@link TimedEvent} to add.
+     * @return this
+     */
+    public ScenarioBuilder addEvents(Collection<TimedEvent> es) {
+        for (final TimedEvent te : es) {
+            addEvent(te);
+        }
+        return this;
+    }
+
+    /**
+     * Adds multiple events using a creator.
      * @param time The time at which the {@link TimedEvent} will be added.
      * @param amount The amount of events to add.
      * @param eventCreator The {@link EventCreator} that instantiates the
      *            events.
+     * @return this
      */
     public <T extends TimedEvent> ScenarioBuilder addMultipleEvents(long time,
             int amount, EventCreator<T> eventCreator) {
@@ -99,6 +128,7 @@ public class ScenarioBuilder {
      * @param time The time at which the {@link TimedEvent} will be added.
      * @param amount The amount of events to add.
      * @param type The type of event to add.
+     * @return this
      */
     public ScenarioBuilder addMultipleEvents(long time, int amount, Enum<?> type) {
         addMultipleEvents(time, amount, new EventTypeFunction(type));
@@ -114,6 +144,7 @@ public class ScenarioBuilder {
      * @param endTime The end time of the series.
      * @param timeStep The interval between events.
      * @param eventCreator The {@link EventCreator} that creates events.
+     * @return this
      */
     public <T extends TimedEvent> ScenarioBuilder addTimeSeriesOfEvents(
             long startTime, long endTime, long timeStep,
@@ -132,6 +163,7 @@ public class ScenarioBuilder {
      * @param endTime The end time of the series.
      * @param timeStep The interval between events.
      * @param type The type of event to add.
+     * @return this
      */
     public <T extends TimedEvent> ScenarioBuilder addTimeSeriesOfEvents(
             long startTime, long endTime, long timeStep, Enum<?> type) {
@@ -140,6 +172,9 @@ public class ScenarioBuilder {
         return this;
     }
 
+    /**
+     * @return the current events as a sorted list.
+     */
     protected List<TimedEvent> buildEventList() {
         final List<TimedEvent> es = newArrayList(events);
         for (final EventGenerator<? extends TimedEvent> g : generators) {
@@ -168,11 +203,40 @@ public class ScenarioBuilder {
         });
     }
 
+    /**
+     * Build the scenario using the specified {@link ScenarioCreator}.
+     * @param sc ScenarioCreator which instantiates the scenario.
+     * @return A scenario.
+     */
     public <T extends Scenario> T build(ScenarioCreator<T> sc) {
         return sc.create(buildEventList(), supportedTypes);
     }
 
+    /**
+     * Checks whether the specified scenario is time consistent, i.e. all events
+     * should be sorted by time.
+     * @param scen The scenario to check.
+     * @return <code>true</code> if it is consistent, <code>false</code>
+     *         otherwise.
+     */
+    public static boolean isTimeOrderingConsistent(Scenario scen) {
+        final List<TimedEvent> es = newArrayList(scen.asList());
+        Collections.sort(es, new TimeComparator());
+        return scen.asList().equals(es);
+    }
+
+    /**
+     * A scenario creator can be used to create custom scenarios (subclasses of
+     * {@link Scenario}.
+     * @param <T> The type of scenario the creator creates.
+     * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+     */
     public interface ScenarioCreator<T extends Scenario> {
+        /**
+         * @param eventList
+         * @param eventTypes
+         * @return The scenario
+         */
         T create(List<TimedEvent> eventList, Set<Enum<?>> eventTypes);
     }
 
@@ -185,6 +249,9 @@ public class ScenarioBuilder {
      * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
      */
     public interface EventGenerator<T extends TimedEvent> {
+        /**
+         * @return A sequence of events.
+         */
         Collection<T> generate();
     }
 
@@ -293,6 +360,9 @@ public class ScenarioBuilder {
 
         private final Enum<?> typeEvent;
 
+        /**
+         * @param type The type which events created by this creator will have.
+         */
         public EventTypeFunction(Enum<?> type) {
             checkArgument(type != null);
             typeEvent = type;
@@ -305,10 +375,17 @@ public class ScenarioBuilder {
 
     }
 
+    /**
+     * Comparator for comparing {@link TimedEvent}s on their time.
+     * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+     */
     public static class TimeComparator implements Comparator<TimedEvent>,
             Serializable {
         private static final long serialVersionUID = -2711991793346719648L;
 
+        /**
+         * Instantiate.
+         */
         public TimeComparator() {}
 
         @Override
@@ -316,11 +393,4 @@ public class ScenarioBuilder {
             return (int) (o1.time - o2.time);
         }
     }
-
-    public static boolean isTimeOrderingConsistent(Scenario scen) {
-        final List<TimedEvent> es = newArrayList(scen.asList());
-        Collections.sort(es, new TimeComparator());
-        return scen.asList().equals(es);
-    }
-
 }

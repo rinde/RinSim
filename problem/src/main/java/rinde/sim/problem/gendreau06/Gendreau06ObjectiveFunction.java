@@ -41,16 +41,36 @@ public class Gendreau06ObjectiveFunction implements ObjectiveFunction {
 	 * Where: Tk is the total travel time on route Rk, alpha and beta are
 	 * weighting parameters which were set to 1 in the paper. The definition of
 	 * lateness: <code>max(0,lateness)</code> is commonly referred to as
-	 * <i>tardiness</i>.
+	 * <i>tardiness</i>. All times are expressed in minutes.
 	 * 
 	 */
 	@Override
 	public double computeCost(StatisticsDTO stats) {
-		// FIXME distance / speed?
-		final double totalTravelTime = (stats.totalDistance / 30.0) * 3600000.0;
-		final long sumTardiness = stats.pickupTardiness + stats.deliveryTardiness;
-		final long overTime = stats.overTime;
+		final double totalTravelTime = travelTime(stats);
+		final double sumTardiness = tardiness(stats);
+		final double overTime = overTime(stats);
 		return totalTravelTime + (alpha * sumTardiness) + (beta * overTime);
+	}
+
+	@Override
+	public String printHumanReadableFormat(StatisticsDTO stats) {
+		return new StringBuilder().append("Travel time: ").append(travelTime(stats)).append("\nTardiness: ")
+				.append(tardiness(stats)).append("\nOvertime: ").append(overTime(stats)).append("\nTotal: ")
+				.append(computeCost(stats)).toString();
+
+	}
+
+	protected long travelTime(StatisticsDTO stats) {
+		// avg speed is 30 km/h
+		return (long) ((stats.totalDistance / 30d) * 60d);
+	}
+
+	protected double tardiness(StatisticsDTO stats) {
+		return (stats.pickupTardiness + stats.deliveryTardiness) / 60000d;
+	}
+
+	protected double overTime(StatisticsDTO stats) {
+		return stats.overTime / 60000d;
 	}
 
 }

@@ -9,6 +9,7 @@ import static rinde.sim.core.Simulator.SimulatorEventType.STOPPED;
 import static rinde.sim.core.model.pdp.PDPModel.PDPModelEventType.END_DELIVERY;
 import static rinde.sim.core.model.pdp.PDPModel.PDPModelEventType.END_PICKUP;
 import static rinde.sim.core.model.pdp.PDPModel.PDPModelEventType.NEW_PARCEL;
+import static rinde.sim.core.model.pdp.PDPModel.PDPModelEventType.NEW_VEHICLE;
 import static rinde.sim.core.model.pdp.PDPModel.PDPModelEventType.START_DELIVERY;
 import static rinde.sim.core.model.pdp.PDPModel.PDPModelEventType.START_PICKUP;
 import static rinde.sim.core.model.pdp.PDPScenarioEvent.ADD_DEPOT;
@@ -31,6 +32,8 @@ import rinde.sim.core.graph.Point;
 import rinde.sim.core.model.pdp.PDPModel;
 import rinde.sim.core.model.pdp.PDPModel.PDPModelEvent;
 import rinde.sim.core.model.pdp.PDPModel.PDPModelEventType;
+import rinde.sim.core.model.pdp.Parcel;
+import rinde.sim.core.model.pdp.Vehicle;
 import rinde.sim.core.model.road.AbstractRoadModel.RoadEventType;
 import rinde.sim.core.model.road.MoveEvent;
 import rinde.sim.core.model.road.MovingRoadUser;
@@ -65,8 +68,11 @@ public class StatsTracker {
 				.addListener(theListener, SCENARIO_STARTED, SCENARIO_FINISHED, ADD_DEPOT, ADD_PARCEL, ADD_VEHICLE, TIME_OUT);
 		simulator.getEventAPI().addListener(theListener, STARTED, STOPPED);
 		simulator.getModelProvider().getModel(RoadModel.class).getEventAPI().addListener(theListener, MOVE);
-		simulator.getModelProvider().getModel(PDPModel.class).getEventAPI()
-				.addListener(theListener, START_PICKUP, END_PICKUP, START_DELIVERY, END_DELIVERY, NEW_PARCEL);
+		simulator
+				.getModelProvider()
+				.getModel(PDPModel.class)
+				.getEventAPI()
+				.addListener(theListener, START_PICKUP, END_PICKUP, START_DELIVERY, END_DELIVERY, NEW_PARCEL, NEW_VEHICLE);
 	}
 
 	public EventAPI getEventAPI() {
@@ -98,10 +104,15 @@ public class StatsTracker {
 			// overTime = -1;
 		// }
 
+		long compTime = theListener.computationTime;
+		if (compTime == 0) {
+			compTime = System.currentTimeMillis() - theListener.startTimeReal;
+		}
+
 		return new StatisticsDTO(theListener.totalDistance, theListener.totalPickups, theListener.totalDeliveries,
 				theListener.totalParcels, theListener.acceptedParcels, theListener.pickupTardiness,
-				theListener.deliveryTardiness, theListener.computationTime, simulator.getCurrentTime(),
-				theListener.simFinish, vehicleBack, overTime, theListener.totalVehicles, theListener.distanceMap.size());
+				theListener.deliveryTardiness, compTime, simulator.getCurrentTime(), theListener.simFinish,
+				vehicleBack, overTime, theListener.totalVehicles, theListener.distanceMap.size());
 	}
 
 	class TheListener implements Listener {
@@ -152,6 +163,8 @@ public class StatsTracker {
 			if (e.getEventType() == SimulatorEventType.STARTED) {
 				startTimeReal = System.currentTimeMillis();
 				startTimeSim = simulator.getCurrentTime();
+				computationTime = 0;
+
 			} else if (e.getEventType() == SimulatorEventType.STOPPED) {
 				computationTime = System.currentTimeMillis() - startTimeReal;
 				simulationTime = simulator.getCurrentTime() - startTimeSim;
@@ -178,8 +191,10 @@ public class StatsTracker {
 				final PDPModelEvent pme = (PDPModelEvent) e;
 				final long latestBeginTime = pme.parcel.getPickupTimeWindow().end - pme.parcel.getPickupDuration();
 				if (pme.time > latestBeginTime) {
-					pickupTardiness += pme.time - latestBeginTime;
-					eventDispatcher.dispatchEvent(new Event(StatisticsEventType.PICKUP_TARDINESS, this));
+					final long tardiness = pme.time - latestBeginTime;
+					pickupTardiness += tardiness;
+					eventDispatcher.dispatchEvent(new StatisticsEvent(StatisticsEventType.PICKUP_TARDINESS, this,
+							pme.parcel, pme.vehicle, tardiness, pme.time));
 				}
 			} else if (e.getEventType() == PDPModelEventType.END_PICKUP) {
 				totalPickups++;
@@ -187,8 +202,10 @@ public class StatsTracker {
 				final PDPModelEvent pme = (PDPModelEvent) e;
 				final long latestBeginTime = pme.parcel.getDeliveryTimeWindow().end - pme.parcel.getDeliveryDuration();
 				if (pme.time > latestBeginTime) {
-					deliveryTardiness += pme.time - latestBeginTime;
-					eventDispatcher.dispatchEvent(new Event(StatisticsEventType.DELIVERY_TARDINESS, this));
+					final long tardiness = pme.time - latestBeginTime;
+					deliveryTardiness += tardiness;
+					eventDispatcher.dispatchEvent(new StatisticsEvent(StatisticsEventType.DELIVERY_TARDINESS, this,
+							pme.parcel, pme.vehicle, tardiness, pme.time));
 				}
 			} else if (e.getEventType() == PDPModelEventType.END_DELIVERY) {
 				totalDeliveries++;
@@ -200,6 +217,9 @@ public class StatsTracker {
 				acceptedParcels++;
 			} else if (e.getEventType() == ADD_VEHICLE) {
 				totalVehicles++;
+			} else if (e.getEventType() == NEW_VEHICLE) {
+				final PDPModelEvent ev = (PDPModelEvent) e;
+				lastArrivalTimeAtDepot.put(ev.vehicle, simulator.getCurrentTime());
 			} else if (e.getEventType() == TIME_OUT) {
 				simFinish = true;
 				scenarioEndTime = ((TimedEvent) e).time;
@@ -253,7 +273,8 @@ public class StatsTracker {
 		 */
 		public final long computationTime;
 		/**
-		 * The time that has elapsed in the simulation.
+		 * The time that has elapsed in the simulation (this is in the unit
+		 * which is used in the simulation).
 		 */
 		public final long simulationTime;
 		/**
@@ -306,6 +327,23 @@ public class StatsTracker {
 		public String toString() {
 			return ToStringBuilder.reflectionToString(this, ToStringStyle.MULTI_LINE_STYLE);
 		}
+	}
+
+	public static class StatisticsEvent extends Event {
+
+		public final Parcel parcel;
+		public final Vehicle vehicle;
+		public final long tardiness;
+		public final long time;
+
+		public StatisticsEvent(Enum<?> type, Object pIssuer, Parcel p, Vehicle v, long tar, long tim) {
+			super(type, pIssuer);
+			parcel = p;
+			vehicle = v;
+			tardiness = tar;
+			time = tim;
+		}
+
 	}
 
 }

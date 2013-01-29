@@ -4,6 +4,7 @@ import static com.google.common.base.Preconditions.checkState;
 
 import java.util.Collection;
 
+import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.GC;
 
 import rinde.sim.core.graph.Connection;
@@ -12,7 +13,6 @@ import rinde.sim.core.graph.Graph;
 import rinde.sim.core.graph.Point;
 import rinde.sim.core.model.ModelProvider;
 import rinde.sim.core.model.road.GraphRoadModel;
-import rinde.sim.ui.SimulationViewer;
 
 /**
  * 
@@ -40,7 +40,7 @@ public class GraphRoadModelRenderer implements ModelRenderer {
 
 			final int x2 = vp.toCoordX(e.to.x);
 			final int y2 = vp.toCoordY(e.to.y);
-			gc.setForeground(vp.colorRegistry.get(SimulationViewer.COLOR_BLACK));
+			gc.setForeground(gc.getDevice().getSystemColor(SWT.COLOR_BLACK));
 			gc.drawLine(x1, y1, x2, y2);
 		}
 	}

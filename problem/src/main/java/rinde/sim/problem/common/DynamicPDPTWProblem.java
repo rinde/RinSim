@@ -5,17 +5,16 @@ package rinde.sim.problem.common;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
+import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Maps.newHashMap;
-import static java.util.Arrays.asList;
 import static java.util.Collections.unmodifiableMap;
 import static rinde.sim.core.model.pdp.PDPScenarioEvent.TIME_OUT;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.math3.random.MersenneTwister;
-import org.eclipse.swt.graphics.RGB;
+import org.eclipse.swt.SWT;
 
 import rinde.sim.core.Simulator;
 import rinde.sim.core.TickListener;
@@ -33,6 +32,7 @@ import rinde.sim.scenario.ScenarioController.UICreator;
 import rinde.sim.scenario.TimedEvent;
 import rinde.sim.scenario.TimedEventHandler;
 import rinde.sim.ui.View;
+import rinde.sim.ui.renderers.CanvasRenderer;
 import rinde.sim.ui.renderers.PDPModelRenderer;
 import rinde.sim.ui.renderers.PlaneRoadModelRenderer;
 import rinde.sim.ui.renderers.Renderer;
@@ -171,7 +171,7 @@ public class DynamicPDPTWProblem {
 				}
 			}
 		});
-		defaultUICreator = new DefaultUICreator();
+		defaultUICreator = new DefaultUICreator(this);
 	}
 
 	/**
@@ -191,10 +191,10 @@ public class DynamicPDPTWProblem {
 	}
 
 	/**
-	 * Allows to add an additional {@link Renderer} to the default UI.
-	 * @param r The {@link Renderer} to add.
+	 * Allows to add an additional {@link CanvasRenderer} to the default UI.
+	 * @param r The {@link CanvasRenderer} to add.
 	 */
-	public void addRendererToUI(Renderer r) {
+	public void addRendererToUI(CanvasRenderer r) {
 		defaultUICreator.addRenderer(r);
 	}
 
@@ -225,7 +225,8 @@ public class DynamicPDPTWProblem {
 	 * @return The statistics that were gathered during the simulation.
 	 */
 	public StatisticsDTO simulate() {
-		checkState(eventCreatorMap.containsKey(AddVehicleEvent.class), "A creator for AddVehicleEvent is required, use addCreator(..)");
+		checkState(eventCreatorMap.containsKey(AddVehicleEvent.class), "A creator for AddVehicleEvent is required, use "
+				+ this.getClass().getName() + ".addCreator(..)");
 		controller.start();
 		return getStatistics();
 	}
@@ -319,7 +320,7 @@ public class DynamicPDPTWProblem {
 		public static final StopCondition VEHICLES_BACK_AT_DEPOT = new StopCondition() {
 			@Override
 			public boolean isSatisfiedBy(SimulationInfo context) {
-				return context.stats.totalVehicles == context.stats.vehiclesAtDepot;
+				return context.stats.totalVehicles == context.stats.vehiclesAtDepot && context.stats.movedVehicles > 0;
 			}
 		};
 
@@ -334,7 +335,7 @@ public class DynamicPDPTWProblem {
 		};
 
 		/**
-		 * this methods wraps any spec into a stop condition, as to make sure
+		 * This method wraps any spec into a stop condition, as to make sure
 		 * that all products of the <code>and, or</code> and <code>not</code>
 		 * operations are always a StopCondition.
 		 */
@@ -376,16 +377,38 @@ public class DynamicPDPTWProblem {
 		}
 	}
 
-	class DefaultUICreator implements UICreator {
+	public static class DefaultUICreator implements UICreator {
 		protected List<Renderer> renderers;
 
+		public DefaultUICreator(DynamicPDPTWProblem prob) {
+			renderers = createRenderers();
+			if (prob != null) {
+				renderers.add(new StatsPanel(prob.statsTracker));
+			}
+		}
+
 		public DefaultUICreator() {
+			this(null);
+		}
+
+		protected List<Renderer> createRenderers() {
+			return newArrayList(planeRoadModelRenderer(), roadUserRenderer(), pdpModelRenderer());
+		}
+
+		protected Renderer planeRoadModelRenderer() {
+			return new PlaneRoadModelRenderer(0.05);
+		}
+
+		protected Renderer roadUserRenderer() {
 			final UiSchema schema = new UiSchema(false);
-			schema.add(Vehicle.class, new RGB(255, 0, 0));
-			schema.add(Depot.class, new RGB(0, 255, 0));
-			schema.add(Parcel.class, new RGB(0, 0, 255));
-			renderers = new ArrayList<Renderer>(asList(new PlaneRoadModelRenderer(40), new RoadUserRenderer(schema,
-					false), new PDPModelRenderer()));
+			schema.add(Vehicle.class, SWT.COLOR_RED);
+			schema.add(Depot.class, SWT.COLOR_CYAN);
+			schema.add(Parcel.class, SWT.COLOR_BLUE);
+			return new RoadUserRenderer(schema, false);
+		}
+
+		protected Renderer pdpModelRenderer() {
+			return new PDPModelRenderer();
 		}
 
 		@Override

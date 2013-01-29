@@ -7,6 +7,7 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static rinde.sim.core.model.pdp.PDPScenarioEvent.ADD_DEPOT;
 import static rinde.sim.core.model.pdp.PDPScenarioEvent.ADD_PARCEL;
 import static rinde.sim.core.model.pdp.PDPScenarioEvent.ADD_VEHICLE;
+import static rinde.sim.core.model.pdp.PDPScenarioEvent.TIME_OUT;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -18,7 +19,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import rinde.sim.core.graph.Point;
-import rinde.sim.core.model.pdp.PDPScenarioEvent;
 import rinde.sim.problem.common.AddDepotEvent;
 import rinde.sim.problem.common.AddParcelEvent;
 import rinde.sim.problem.common.AddVehicleEvent;
@@ -49,6 +49,8 @@ import rinde.sim.util.TimeWindow;
  * <li>10 and 11: service window time of the delivery</li>
  * </ul>
  * 
+ * All times are expressed in seconds.
+ * 
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
  */
 public final class Gendreau06Parser {
@@ -60,22 +62,30 @@ public final class Gendreau06Parser {
 	}
 
 	public static Gendreau06Scenario parse(BufferedReader reader, String fileName, int numVehicles) throws IOException {
+		return parse(reader, fileName, numVehicles, -1);
+	}
+
+	public static Gendreau06Scenario parse(BufferedReader reader, String fileName, int numVehicles, final long tickSize)
+			throws IOException {
 		checkArgument(numVehicles > 0, "at least one vehicle is necessary in the scenario");
-		final ScenarioBuilder sb = new ScenarioBuilder(ADD_PARCEL, ADD_DEPOT, ADD_VEHICLE);
+		final ScenarioBuilder sb = new ScenarioBuilder(ADD_PARCEL, ADD_DEPOT, ADD_VEHICLE, TIME_OUT);
 
-		final String regex = "req_rapide_[1-5]_(540|240)_(24|33)";
+		final String regex = ".*req_rapide_\\d+_(450|240)_(24|33)";
 		final Matcher m = Pattern.compile(regex).matcher(fileName);
-		checkArgument(m.matches(), "The filename must conform to the following regex: " + regex);
-		checkArgument(fileName.contains("240") || fileName.contains("540"), "The filename must follow the following pattern: req_rapide_I_T_R, where I=instance number, T=total time (either 240 or 540 minutes), R=number of requests per hour (either 24 or 33).");
+		checkArgument(m.matches(), "The filename must conform to the following regex: " + regex + " input was: "
+				+ fileName);
+		// checkArgument(fileName.contains("240") || fileName.contains("540"),
+		// "The filename must follow the following pattern: req_rapide_I_T_R, where I=instance number, T=total time (either 240 or 540 minutes), R=number of requests per hour (either 24 or 33).");
 
-		final long totalTime = Long.parseLong(m.group(1));
+		final long totalTime = Long.parseLong(m.group(1)) * 60000;
 		final long requestsPerHour = Long.parseLong(m.group(2));
 
 		final Point depotPosition = new Point(2.0, 2.5);
 		final double truckSpeed = 30;
 		sb.addEvent(new AddDepotEvent(-1, depotPosition));
 		for (int i = 0; i < numVehicles; i++) {
-			sb.addEvent(new AddVehicleEvent(-1, new VehicleDTO(depotPosition, truckSpeed, 0, TimeWindow.ALWAYS)));
+			sb.addEvent(new AddVehicleEvent(-1, new VehicleDTO(depotPosition, truckSpeed, 0, new TimeWindow(0,
+					totalTime))));
 		}
 		String line;
 		while ((line = reader.readLine()) != null) {
@@ -84,12 +94,12 @@ public final class Gendreau06Parser {
 			// FIXME currently filtering out first and last lines of file. Is
 			// this ok?
 			if (requestArrivalTime >= 0) {
-				final long pickupServiceTime = Long.parseLong(parts[1]);
+				final long pickupServiceTime = Long.parseLong(parts[1]) * 1000;
 				final double pickupX = Double.parseDouble(parts[2]);
 				final double pickupY = Double.parseDouble(parts[3]);
 				final long pickupTimeWindowBegin = (long) (Double.parseDouble(parts[4]) * 1000.0);
 				final long pickupTimeWindowEnd = (long) (Double.parseDouble(parts[5]) * 1000.0);
-				final long deliveryServiceTime = Long.parseLong(parts[6]);
+				final long deliveryServiceTime = Long.parseLong(parts[6]) * 1000;
 				final double deliveryX = Double.parseDouble(parts[7]);
 				final double deliveryY = Double.parseDouble(parts[8]);
 				final long deliveryTimeWindowBegin = (long) (Double.parseDouble(parts[9]) * 1000.0);
@@ -103,11 +113,14 @@ public final class Gendreau06Parser {
 			}
 		}
 
-		sb.addEvent(new TimedEvent(PDPScenarioEvent.TIME_OUT, totalTime));
-
+		sb.addEvent(new TimedEvent(TIME_OUT, totalTime));
+		reader.close();
 		return sb.build(new ScenarioCreator<Gendreau06Scenario>() {
 			@Override
 			public Gendreau06Scenario create(List<TimedEvent> eventList, Set<Enum<?>> eventTypes) {
+				if (tickSize > 0) {
+					return new Gendreau06Scenario(eventList, eventTypes, tickSize);
+				}
 				return new Gendreau06Scenario(eventList, eventTypes);
 			}
 		});
