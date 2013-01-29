@@ -54,7 +54,7 @@ public final class PanelTest {
 			c.setLayout(new FillLayout());
 			final Button b = new Button(c, SWT.PUSH);
 
-			b.setText("push me");
+			b.setText("push me " + name);
 			// TODO Auto-generated method stub
 
 		}

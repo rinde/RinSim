@@ -11,6 +11,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.SashForm;
 import org.eclipse.swt.events.ControlEvent;
 import org.eclipse.swt.events.ControlListener;
 import org.eclipse.swt.events.PaintEvent;
@@ -23,8 +24,6 @@ import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.FillLayout;
-import org.eclipse.swt.layout.GridData;
-import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Canvas;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
@@ -138,6 +137,7 @@ public class SimulationViewer extends Composite implements TickListener, Control
 		speedUp = pSpeedUp;
 		shell.setLayout(new FillLayout());
 		display = shell.getDisplay();
+		setLayout(new FillLayout());
 
 		createMenu(shell);
 		shell.addListener(SWT.Close, new Listener() {
@@ -157,61 +157,68 @@ public class SimulationViewer extends Composite implements TickListener, Control
 		});
 
 		if (panels.isEmpty()) {
-			setLayout(new FillLayout());
-			createContent();
+
+			createContent(this);
 		} else {
 
-			setLayout(new GridLayout(3, false));
+			final SashForm vertical = new SashForm(this, SWT.VERTICAL | SWT.SMOOTH);
+			vertical.setLayout(new FillLayout());
 
-			final boolean usesTop = panels.containsKey(SWT.TOP);
-			final boolean usesBottom = panels.containsKey(SWT.BOTTOM);
-			final boolean usesLeft = panels.containsKey(SWT.LEFT);
-			final boolean usesRight = panels.containsKey(SWT.RIGHT);
+			final int topHeight = configurePanels(vertical, panels.removeAll(SWT.TOP));
 
-			configurePanels(panels.removeAll(SWT.TOP), usesTop, usesBottom, true);
-			configurePanels(panels.removeAll(SWT.LEFT), usesTop, usesBottom, false);
+			final SashForm horizontal = new SashForm(vertical, SWT.HORIZONTAL | SWT.SMOOTH);
+			horizontal.setLayout(new FillLayout());
+
+			final int leftWidth = configurePanels(horizontal, panels.removeAll(SWT.LEFT));
 
 			// create canvas
-			final Canvas c = createContent();
-			final GridData gd = new GridData();
-			gd.grabExcessHorizontalSpace = true;
-			gd.grabExcessVerticalSpace = true;
-			gd.horizontalAlignment = SWT.FILL;
-			gd.verticalAlignment = SWT.FILL;
-			gd.horizontalSpan = usesLeft ^ usesRight ? 2 : usesLeft ? 1 : 3;
-			gd.verticalSpan = usesTop ^ usesBottom ? 2 : usesTop ? 1 : 3;
+			createContent(horizontal);
 
-			c.setLayoutData(gd);
-			configurePanels(panels.removeAll(SWT.RIGHT), usesTop, usesBottom, false);
-			configurePanels(panels.removeAll(SWT.BOTTOM), usesTop, usesBottom, true);
+			final int rightWidth = configurePanels(horizontal, panels.removeAll(SWT.RIGHT));
+			final int bottomHeight = configurePanels(vertical, panels.removeAll(SWT.BOTTOM));
+
+			final int canvasHeight = (size.y - topHeight) - bottomHeight;
+			if (topHeight > 0 && bottomHeight > 0) {
+				vertical.setWeights(varargs(topHeight, canvasHeight, bottomHeight));
+			} else if (topHeight > 0) {
+				vertical.setWeights(varargs(topHeight, canvasHeight));
+			} else if (bottomHeight > 0) {
+				vertical.setWeights(varargs(canvasHeight, bottomHeight));
+			}
+
+			final int canvasWidth = (size.x - leftWidth) - rightWidth;
+			if (leftWidth > 0 && rightWidth > 0) {
+				horizontal.setWeights(varargs(leftWidth, canvasWidth, rightWidth));
+			} else if (leftWidth > 0) {
+				horizontal.setWeights(varargs(leftWidth, canvasWidth));
+			} else if (rightWidth > 0) {
+				horizontal.setWeights(varargs(canvasWidth, rightWidth));
+			}
 
 			checkState(panels.isEmpty(), "Invalid preferred position set for panels: " + panels.values());
 		}
 
 	}
 
-	protected void configurePanels(Collection<PanelRenderer> panels, boolean usesTop, boolean usesBottom, boolean topBot) {
+	static int[] varargs(int... ints) {
+		return ints;
+	}
+
+	protected int configurePanels(SashForm parent, Collection<PanelRenderer> panels) {
 		if (panels.isEmpty()) {
-			return;
+			return 0;
 		}
 
 		int prefSize = 0;
 		for (final PanelRenderer p : panels) {
 			prefSize = Math.max(p.preferredSize(), prefSize);
 		}
-
-		Composite c;
-
 		if (panels.size() == 1) {
 			final PanelRenderer p = panels.iterator().next();
-
-			final Group g = new Group(this, SWT.SHADOW_NONE);
-			g.setText(p.getName());
+			final Group g = new Group(parent, SWT.SHADOW_NONE);
 			p.initializePanel(g);
-			c = g;
-
 		} else {
-			final TabFolder tab = new TabFolder(this, SWT.NONE);
+			final TabFolder tab = new TabFolder(parent, SWT.NONE);
 
 			for (final PanelRenderer p : panels) {
 				final TabItem ti = new TabItem(tab, SWT.NONE);
@@ -220,27 +227,8 @@ public class SimulationViewer extends Composite implements TickListener, Control
 				ti.setControl(comp);
 				p.initializePanel(comp);
 			}
-
-			c = tab;
 		}
-
-		final GridData gd = new GridData();
-		gd.grabExcessHorizontalSpace = topBot;
-		gd.grabExcessVerticalSpace = !topBot;
-		gd.horizontalAlignment = SWT.FILL;
-		gd.verticalAlignment = SWT.FILL;
-
-		gd.heightHint = prefSize;
-		gd.widthHint = prefSize;
-
-		if (topBot) {
-			gd.verticalSpan = 1;
-			gd.horizontalSpan = 3;
-		} else {
-			gd.horizontalSpan = 1;
-			gd.verticalSpan = usesTop ^ usesBottom ? 2 : usesTop ? 1 : 3;
-		}
-		c.setLayoutData(gd);
+		return prefSize;
 	}
 
 	protected void configureModelRenderers() {
@@ -252,9 +240,9 @@ public class SimulationViewer extends Composite implements TickListener, Control
 	/**
 	 * Configure shell.
 	 */
-	protected Canvas createContent() {
+	protected Canvas createContent(Composite parent) {
 		initColors();
-		canvas = new Canvas(this, SWT.DOUBLE_BUFFERED | SWT.NONE | SWT.NO_REDRAW_RESIZE | SWT.V_SCROLL | SWT.H_SCROLL);
+		canvas = new Canvas(parent, SWT.DOUBLE_BUFFERED | SWT.NONE | SWT.NO_REDRAW_RESIZE | SWT.V_SCROLL | SWT.H_SCROLL);
 		canvas.setBackground(display.getSystemColor(SWT.COLOR_WIDGET_BACKGROUND));
 
 		origin = new org.eclipse.swt.graphics.Point(0, 0);
