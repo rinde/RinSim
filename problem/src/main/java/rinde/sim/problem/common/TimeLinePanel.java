@@ -165,6 +165,9 @@ public class TimeLinePanel implements ModelReceiver, PanelRenderer, TickListener
 	@Override
 	public void afterTick(TimeLapse timeLapse) {
 		currentTime = timeLapse.getStartTime();
+		if (canvas.isDisposed()) {
+			return;
+		}
 		canvas.getDisplay().syncExec(new Runnable() {
 			@Override
 			public void run() {

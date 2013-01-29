@@ -119,12 +119,15 @@ public class StatsPanel implements PanelRenderer, TickListener {
 		final StatisticsDTO stats = statsTracker.getStatsDTO();
 
 		final Field[] fields = stats.getClass().getFields();
-		if (statsTable.getDisplay().isDisposed()) {
+		if (statsTable.isDisposed()) {
 			return;
 		}
 		statsTable.getDisplay().syncExec(new Runnable() {
 			@Override
 			public void run() {
+				if (statsTable.isDisposed()) {
+					return;
+				}
 				for (int i = 0; i < fields.length; i++) {
 					try {
 						statsTable.getItem(i).setText(1, fields[i].get(stats).toString());
