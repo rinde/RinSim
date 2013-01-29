@@ -114,7 +114,7 @@ public final class Gendreau06Parser {
 		}
 
 		sb.addEvent(new TimedEvent(TIME_OUT, totalTime));
-
+		reader.close();
 		return sb.build(new ScenarioCreator<Gendreau06Scenario>() {
 			@Override
 			public Gendreau06Scenario create(List<TimedEvent> eventList, Set<Enum<?>> eventTypes) {
