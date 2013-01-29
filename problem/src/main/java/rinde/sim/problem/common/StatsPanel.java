@@ -116,10 +116,12 @@ public class StatsPanel implements PanelRenderer, TickListener {
 
 	@Override
 	public void afterTick(TimeLapse timeLapse) {
-
 		final StatisticsDTO stats = statsTracker.getStatsDTO();
 
 		final Field[] fields = stats.getClass().getFields();
+		if (statsTable.getDisplay().isDisposed()) {
+			return;
+		}
 		statsTable.getDisplay().syncExec(new Runnable() {
 			@Override
 			public void run() {
