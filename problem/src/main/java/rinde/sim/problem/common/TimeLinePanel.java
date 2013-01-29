@@ -259,7 +259,7 @@ public class TimeLinePanel implements ModelReceiver, PanelRenderer, TickListener
 			display = d;
 			parcels = newArrayList();
 			newParcels = newArrayList();
-			lineColor = new Color(d, 20, 20, 20);
+			lineColor = d.getSystemColor(SWT.COLOR_WIDGET_BORDER);
 		}
 
 		protected void ensureImg() {
@@ -330,7 +330,6 @@ public class TimeLinePanel implements ModelReceiver, PanelRenderer, TickListener
 		}
 
 		public void dispose() {
-			lineColor.dispose();
 			contents.dispose();
 		}
 

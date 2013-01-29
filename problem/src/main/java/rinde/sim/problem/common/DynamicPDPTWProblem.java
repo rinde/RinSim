@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.math3.random.MersenneTwister;
-import org.eclipse.swt.graphics.RGB;
+import org.eclipse.swt.SWT;
 
 import rinde.sim.core.Simulator;
 import rinde.sim.core.TickListener;
@@ -401,9 +401,9 @@ public class DynamicPDPTWProblem {
 
 		protected Renderer roadUserRenderer() {
 			final UiSchema schema = new UiSchema(false);
-			schema.add(Vehicle.class, new RGB(255, 0, 0));
-			schema.add(Depot.class, new RGB(0, 255, 255));
-			schema.add(Parcel.class, new RGB(0, 0, 255));
+			schema.add(Vehicle.class, SWT.COLOR_RED);
+			schema.add(Depot.class, SWT.COLOR_CYAN);
+			schema.add(Parcel.class, SWT.COLOR_BLUE);
 			return new RoadUserRenderer(schema, false);
 		}
 

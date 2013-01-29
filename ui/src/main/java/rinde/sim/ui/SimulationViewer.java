@@ -2,12 +2,10 @@ package rinde.sim.ui;
 
 import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.collect.Lists.newArrayList;
-import static com.google.common.collect.Maps.newHashMap;
 import static com.google.common.collect.Sets.newLinkedHashSet;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import org.eclipse.swt.SWT;
@@ -18,10 +16,8 @@ import org.eclipse.swt.events.PaintEvent;
 import org.eclipse.swt.events.PaintListener;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
-import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
-import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.widgets.Canvas;
@@ -62,12 +58,6 @@ import com.google.common.collect.Multimap;
 public class SimulationViewer extends Composite implements TickListener, ControlListener, PaintListener,
 		SelectionListener {
 
-	public static final String COLOR_WHITE = "white";
-	public static final String COLOR_GREEN = "green";
-	public static final String COLOR_BLACK = "black";
-
-	public static final String DEFAULT_COLOR = "default_color";
-
 	public static final String ICO_PKG = "package";
 
 	protected Canvas canvas;
@@ -89,7 +79,7 @@ public class SimulationViewer extends Composite implements TickListener, Control
 	ViewRect viewRect;
 	Label timeLabel;
 
-	private Map<String, Color> colorRegistry;
+	// private Map<String, Color> colorRegistry;
 
 	private ScrollBar hBar;
 	private ScrollBar vBar;
@@ -241,7 +231,6 @@ public class SimulationViewer extends Composite implements TickListener, Control
 	 * Configure shell.
 	 */
 	protected Canvas createContent(Composite parent) {
-		initColors();
 		canvas = new Canvas(parent, SWT.DOUBLE_BUFFERED | SWT.NONE | SWT.NO_REDRAW_RESIZE | SWT.V_SCROLL | SWT.H_SCROLL);
 		canvas.setBackground(display.getSystemColor(SWT.COLOR_WIDGET_BACKGROUND));
 
@@ -256,7 +245,7 @@ public class SimulationViewer extends Composite implements TickListener, Control
 		timeLabel.setText("hello world");
 		timeLabel.pack();
 		timeLabel.setLocation(50, 10);
-		timeLabel.setBackground(colorRegistry.get(COLOR_WHITE));
+		timeLabel.setBackground(canvas.getDisplay().getSystemColor(SWT.COLOR_WHITE));
 
 		hBar = canvas.getHorizontalBar();
 		hBar.addSelectionListener(this);
@@ -264,18 +253,6 @@ public class SimulationViewer extends Composite implements TickListener, Control
 		vBar.addSelectionListener(this);
 
 		return canvas;
-	}
-
-	/**
-	 * Initializes color registry and passes it to all renderers.
-	 */
-	protected void initColors() {
-		assert getDisplay() != null : "should be called after display is initialized";
-		assert renderers != null : "should be called after renderers are initialized";
-		colorRegistry = newHashMap();
-		colorRegistry.put(COLOR_WHITE, new Color(getDisplay(), new RGB(0xFF, 0xFF, 0xFF)));
-		colorRegistry.put(COLOR_BLACK, new Color(getDisplay(), new RGB(0x00, 0x00, 0x00)));
-		colorRegistry.put(COLOR_GREEN, new Color(getDisplay(), new RGB(0x00, 0xFF, 0x00)));
 	}
 
 	@SuppressWarnings("unused")
@@ -443,7 +420,7 @@ public class SimulationViewer extends Composite implements TickListener, Control
 															 * new
 															 * Point(origin.x,
 															 * origin.y)
-															 */, viewRect, m, colorRegistry));
+															 */, viewRect, m));
 		}
 
 		//
@@ -499,7 +476,7 @@ public class SimulationViewer extends Composite implements TickListener, Control
 		}
 
 		for (final CanvasRenderer renderer : renderers) {
-			renderer.renderDynamic(gc, new ViewPort(new Point(origin.x, origin.y), viewRect, m, colorRegistry), simulator
+			renderer.renderDynamic(gc, new ViewPort(new Point(origin.x, origin.y), viewRect, m), simulator
 					.getCurrentTime());
 			// renderer.render(gc, origin.x, origin.y, minX, minY, m);
 		}

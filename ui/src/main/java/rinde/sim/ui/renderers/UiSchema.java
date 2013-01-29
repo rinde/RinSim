@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Device;
 import org.eclipse.swt.graphics.Image;
@@ -22,6 +23,8 @@ public class UiSchema {
 	protected Map<String, Image> imageRegistry;
 
 	private final HashMap<String, RGB> colorCache;
+	private final HashMap<String, Integer> defaultColorCache;
+
 	private final HashMap<String, String> imgCache;
 	private final boolean useDefault;
 
@@ -37,6 +40,7 @@ public class UiSchema {
 	 */
 	public UiSchema(boolean pUseDefault) {
 		colorCache = newHashMap();
+		defaultColorCache = newHashMap();
 		imgCache = newHashMap();
 		useDefault = pUseDefault;
 	}
@@ -63,6 +67,10 @@ public class UiSchema {
 	 */
 	public void add(Class<?> type, RGB rgb) {
 		colorCache.put(type.getName(), rgb);
+	}
+
+	public void add(Class<?> type, int defaultColor) {
+		defaultColorCache.put(type.getName(), defaultColor);
 	}
 
 	public void add(String key, RGB rgb) {
@@ -132,9 +140,12 @@ public class UiSchema {
 		}
 		colorRegistry = newHashMap();
 		imageRegistry = newHashMap();
-		colorRegistry.put(DEFAULT, new Color(d, new RGB(0xff, 0, 0)));
+		colorRegistry.put(DEFAULT, d.getSystemColor(SWT.COLOR_RED));
 		for (final Entry<String, RGB> e : colorCache.entrySet()) {
 			colorRegistry.put(e.getKey(), new Color(d, e.getValue()));
+		}
+		for (final Entry<String, Integer> e : defaultColorCache.entrySet()) {
+			colorRegistry.put(e.getKey(), d.getSystemColor(e.getValue()));
 		}
 
 		for (final Entry<String, String> e : imgCache.entrySet()) {

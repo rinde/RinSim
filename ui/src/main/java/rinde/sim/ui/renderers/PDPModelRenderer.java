@@ -52,13 +52,16 @@ public class PDPModelRenderer implements ModelRenderer {
 		black = gc.getDevice().getSystemColor(SWT.COLOR_BLACK);
 		white = gc.getDevice().getSystemColor(SWT.COLOR_WHITE);
 		gray = gc.getDevice().getSystemColor(SWT.COLOR_GRAY);
-		lightGray = new Color(gc.getDevice(), 205, 201, 201);
 		darkGreen = gc.getDevice().getSystemColor(SWT.COLOR_DARK_GREEN);
 		green = gc.getDevice().getSystemColor(SWT.COLOR_GREEN);
-		orange = new Color(gc.getDevice(), 255, 160, 0);
 		blue = gc.getDevice().getSystemColor(SWT.COLOR_BLUE);
+
+		lightGray = new Color(gc.getDevice(), 205, 201, 201);
+		orange = new Color(gc.getDevice(), 255, 160, 0);
+
 		foregroundInfo = white;
 		backgroundInfo = blue;
+
 	}
 
 	@Override
