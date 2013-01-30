@@ -108,7 +108,7 @@
 	</repositories>
 
 	<properties>
-		<swt.version>3.8</swt.version>
+		<swt.version>3.8</swt.version> <!--  SHOULD BE SAME AS IN packaging/pom.xml -->
 		<!-- by default there are no arguments passed to tests -->
 		<test.arg></test.arg>
 	</properties>

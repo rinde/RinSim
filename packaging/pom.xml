@@ -16,8 +16,7 @@
 
 
 	<properties>
-		<swt.version>3.6.2</swt.version>
-		<swt.variant>cocoa.macosx.x86_64</swt.variant>
+		<swt.version>3.8</swt.version> <!-- SHOULD BE SAME AS IN ui/pom.xml -->
 	</properties>
 
 	<!-- NOTE: These dependency declarations are only required to sort this 
@@ -45,12 +44,8 @@
 			<artifactId>rinsim-problem</artifactId>
 			<version>${project.version}</version>
 		</dependency>
-		<!-- <dependency>
-			<groupId>com.github.rinde</groupId>
-			<artifactId>rinsim-packaging</artifactId>
-			<version>${project.version}</version>
-			<classifier>javadoc</classifier>
-		</dependency>-->
+		<!-- <dependency> <groupId>com.github.rinde</groupId> <artifactId>rinsim-packaging</artifactId> 
+			<version>${project.version}</version> <classifier>javadoc</classifier> </dependency> -->
 
 
 		<!-- these dependencies are necessary for the different platforms: -->
@@ -82,24 +77,24 @@
 
 	<build>
 		<plugins>
-			<plugin>
+
+		<!-- 	<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-javadoc-plugin</artifactId>
 				<version>2.9</version>
+
 				<executions>
 					<execution>
-						<!-- <id>javadoc-jar</id> -->
 						<id>aggregate</id>
-						<!-- <phase>package</phase> -->
+						<phase>compile</phase>
 						<goals>
 							<goal>aggregate</goal>
 							<goal>aggregate-jar</goal>
 						</goals>
-						<phase>compile</phase>
 					</execution>
 				</executions>
 				<configuration>
-					<!-- <detectLinks>true</detectLinks> -->
+				-->	<!-- <detectLinks>true</detectLinks> --> <!-- 
 					<links>
 						<link>http://docs.guava-libraries.googlecode.com/git-history/v12.0/javadoc/</link>
 						<link>http://commons.apache.org/lang/api-3.1/</link>
@@ -142,11 +137,11 @@
 						</goals>
 						<configuration>
 							<descriptors>
+								<descriptor>assemblies/assemble-javadoc.xml</descriptor>
 								<descriptor>assemblies/assemble-macosx-x86_64.xml</descriptor>
 								<descriptor>assemblies/assemble-win32-x86_64.xml</descriptor>
 								<descriptor>assemblies/assemble-win32-x86.xml</descriptor>
 								<descriptor>assemblies/assemble-linux-x86_64.xml</descriptor>
-								<descriptor>assemblies/assemble-javadoc.xml</descriptor>
 							</descriptors>
 							<finalName>RinSim-${project.version}</finalName>
 							<appendAssemblyId>true</appendAssemblyId>
@@ -155,19 +150,52 @@
 				</executions>
 			</plugin>
 
-
+-->
 
 		</plugins>
 	</build>
+
+	<reporting>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-javadoc-plugin</artifactId>
+				<version>2.9</version>
+				<configuration>
+					<!-- Default configuration for all reports -->
+				</configuration>
+				<reportSets>
+					<reportSet>
+						<id>non-aggregate</id>
+						<configuration>
+							<!-- Specific configuration for the non aggregate report -->
+						</configuration>
+						<reports>
+							<report>javadoc</report>
+						</reports>
+					</reportSet>
+					<reportSet>
+						<id>aggregate</id>
+						<configuration>
+							<!-- Specific configuration for the aggregate report -->
+						</configuration>
+						<reports>
+							<report>aggregate</report>
+						</reports>
+					</reportSet>
+				</reportSets>
+			</plugin>
+		</plugins>
+	</reporting>
 
 	<repositories>
 		<repository>
 			<snapshots>
 				<enabled>false</enabled>
 			</snapshots>
-			<id>eclipse-testing</id>
-			<name>Eclipse Maven Testing Repository</name>
-			<url>http://maven.eclipse.org/nexus/content/repositories/testing/</url>
+			<id>swt-repo</id>
+			<name>SWT Repo</name>
+			<url>https://swt-repo.googlecode.com/svn/repo/</url>
 		</repository>
 	</repositories>
 </project>

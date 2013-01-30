@@ -13,7 +13,7 @@
 			<scope>runtime</scope>
 		</dependencySet>
 		
-		<dependencySet>
+		<!-- <dependencySet>
 			<includes>
 				<include>${project.groupId}:rinsim-packaging:*:javadoc</include>
 			</includes>
@@ -22,10 +22,19 @@
 			<useTransitiveDependencies>true</useTransitiveDependencies>
 			<useProjectArtifact>false</useProjectArtifact>
 			<useStrictFiltering>true</useStrictFiltering>
-		</dependencySet>
+		</dependencySet>-->
 	</dependencySets>
 
 	<moduleSets>
+		<moduleSet>
+			<binaries>
+				<attachmentClassifier>javadoc</attachmentClassifier>
+				<includeDependencies>false</includeDependencies>
+				<outputDirectory>docs</outputDirectory>
+				<unpack>true</unpack>
+			</binaries>
+		</moduleSet>
+	
 		<moduleSet>
 
 			<!-- Enable access to all projects in the current multimodule build! -->
