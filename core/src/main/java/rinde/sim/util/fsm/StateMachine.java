@@ -129,17 +129,6 @@ public class StateMachine<E, C> {
         return new StateMachineBuilder<E, C>(initialState);
     }
 
-    public interface State<E, C> {
-
-        String name();
-
-        E handle(E event, C context);
-
-        void onEntry(E event, C context);
-
-        void onExit(E event, C context);
-    }
-
     public final static class StateMachineBuilder<E, C> {
         protected Table<State<E, C>, E, State<E, C>> table;
         protected State<E, C> start;

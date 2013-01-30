@@ -13,8 +13,6 @@ import java.util.List;
 import org.junit.Before;
 import org.junit.Test;
 
-import rinde.sim.util.fsm.StateMachine.State;
-
 /**
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
  * 
