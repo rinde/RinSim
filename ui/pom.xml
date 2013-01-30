@@ -7,7 +7,7 @@
 		<version>2.1.0-SNAPSHOT</version>
 		<relativePath>..</relativePath>
 	</parent>
-	
+
 	<artifactId>rinsim-ui</artifactId>
 	<name>RinSim UI</name>
 	<packaging>jar</packaging>
@@ -88,7 +88,8 @@
 			</activation>
 			<properties>
 				<swt.variant>cocoa.macosx.x86_64</swt.variant>
-				<!-- adds the required argument for SWT applications of systems running OS X -->
+				<!-- adds the required argument for SWT applications of systems running 
+					OS X -->
 				<test.arg>-XstartOnFirstThread</test.arg>
 			</properties>
 		</profile>
@@ -132,40 +133,6 @@
 					</execution>
 				</executions>
 			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-compiler-plugin</artifactId>
-				<version>2.3.2</version>
-				<executions>
-					<execution>
-						<id>default-testCompile</id>
-						<phase>test-compile</phase>
-						<goals>
-							<goal>testCompile</goal>
-						</goals>
-						<configuration>
-							<source>1.6</source>
-							<target>1.6</target>
-						</configuration>
-					</execution>
-					<execution>
-						<id>default-compile</id>
-						<phase>compile</phase>
-						<goals>
-							<goal>compile</goal>
-						</goals>
-						<configuration>
-							<source>1.6</source>
-							<target>1.6</target>
-						</configuration>
-					</execution>
-				</executions>
-				<configuration>
-					<source>1.6</source>
-					<target>1.6</target>
-				</configuration>
-			</plugin>
-
 		</plugins>
 	</build>
 </project>
