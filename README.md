@@ -37,9 +37,8 @@ Other modules can be added similarly:
 -->
  
 ## Getting Started 
-Once the simulator is installed, you are ready to explore the simulator. It is recommended to start by running and studying the [simple example](example/src/main/java/rinde/sim/examples/simple/SimpleExample.java). Note, that when using Maven in Eclipse, the RinSim JavaDocs are automatically made available which makes exploration of the code much easier.
+Once the simulator is installed, you are ready to explore the simulator. It is recommended to start by running and studying the [simple example](example/src/main/java/rinde/sim/examples/simple/SimpleExample.java). Note, that when using Maven in Eclipse, the RinSim JavaDocs are automatically made available which makes exploration of the code much easier.  The remainder of this page gives a high level overview of the simulator.
 <!-- The JavaDocs are also available online on [this page](http://people.cs.kuleuven.be/~rinde.vanlon/rinsim/javadoc/). -->
-The remainder of this page gives a high level overview of the simulator.
 
 ## About
 RinSim is being developed at [AgentWise](http://distrinet.cs.kuleuven.be/research/taskforces/showTaskforce.do?taskforceID=agentwise) in the [DistriNet group](http://distrinet.cs.kuleuven.be/) at the [Department of Computer Science, KU Leuven, Belgium](http://www.cs.kuleuven.be/). The lead developer is [Rinde van Lon](http://distrinet.cs.kuleuven.be/people/rinde). Valuable contributions were made by Bartosz Michalik and Robrecht Haesevoets.
