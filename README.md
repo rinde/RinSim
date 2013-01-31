@@ -1,8 +1,10 @@
-# RinSim
+# RinSim 2.0.0
+
+> Note that instructions on this page are outdated. Version 2.0.0 does not exist in a Maven repository therefore it must be checked out using Git by specifying the 'v2.0.0' tag.
 
 RinSim is an extensible MAS (Multi-Agent System) simulator. The simulator focusses on __simplicity__ and __consistency__ which makes it ideal for performing scientific simulations. Further, there is huge focus on software quality which results in an ever improving test suite and JavaDoc comments. RinSim supports pluggable models which allow to extend the scope of the simulator. Out of the box, RinSim currently focusses on MAS for PDP (Pickup and Delivery Problems). You can easily extend RinSim by introducing your own custom models.
 
-[<img src="https://github.com/rinde/RinSim/raw/v2/docs/screenshot.png">](http://vimeo.com/rinde/rinsim-gecco-demo)
+[<img src="docs/screenshot.png">](http://vimeo.com/rinde/rinsim-gecco-demo)
 
 _Click the image above to view a demonstration movie of the simulator._
 
@@ -16,7 +18,7 @@ For installing the RinSim simulator there are generally two options:
 
  
 ## Getting Started 
-Once the simulator is installed, you are ready to explore the simulator. It is recommended to start by running and studying the [simple example](https://github.com/rinde/RinSim/blob/v2/example/src/main/java/rinde/sim/examples/simple/SimpleExample.java). The JavaDocs are also available online on [this page](http://people.cs.kuleuven.be/~rinde.vanlon/rinsim/javadoc/). The remainder of this page gives a high level overview of the simulator.
+Once the simulator is installed, you are ready to explore the simulator. It is recommended to start by running and studying the [simple example](example/src/main/java/rinde/sim/examples/simple/SimpleExample.java). The JavaDocs are also available online on [this page](http://people.cs.kuleuven.be/~rinde.vanlon/rinsim/javadoc/). The remainder of this page gives a high level overview of the simulator.
 
 ## About
 RinSim is being developed at [AgentWise](http://distrinet.cs.kuleuven.be/research/taskforces/showTaskforce.do?taskforceID=agentwise) in the [DistriNet group](http://distrinet.cs.kuleuven.be/) at the [Department of Computer Science, KU Leuven, Belgium](http://www.cs.kuleuven.be/). The lead developer is [Rinde van Lon](http://distrinet.cs.kuleuven.be/people/showMember.do?memberID=u0075143). Valuable contributions were made by Bartosz Michalik and Robrecht Haesevoets.
@@ -30,7 +32,7 @@ This section gives a brief overview of the most important elements of the simula
 
 In RinSim terminology, the parts of the simulation that define the problem and environment are called models, the parts of the simulation that solve the problem (i.e. the solution, the collective adaptive system) are called agents. The design of RinSim allows for easy use and recombination of models to configure a simulation problem. When the problem is configured, the programmer can focus on solving the actual problem by designing a collective adaptive system without having to worry about accidentally violating simulation consistency. The following figure shows a high-level component diagram:
 
-![PDPModel](https://github.com/rinde/RinSim/raw/v2/docs/DesignOverview.png)
+![PDPModel](docs/DesignOverview.png)
 
 Actions that agents can take are considered to be part of the problem not the solution, e.g. a vehicle that can pickup things or can communicate with other vehicles. Actions define the problem space in which a good solution has to be found.
 
@@ -63,7 +65,7 @@ It supports both direct messaging and broadcasting.
 It can also take distance, communication radius, and communication reliability into account.
 Messages between agents are send asynchronously (as illustrated [here](http://people.cs.kuleuven.be/~robrecht.haesevoets/mascourse/docs/communication.png)).
 
-![RoadModel](https://github.com/rinde/RinSim/raw/v2/docs/RoadModel.png) ![PDPModel](https://github.com/rinde/RinSim/raw/v2/docs/PDPModel.png) ![CommunicationModel](https://github.com/rinde/RinSim/raw/v2/docs/CommunicationModel.png)
+![RoadModel](docs/RoadModel.png) ![PDPModel](docs/PDPModel.png) ![CommunicationModel](docs/CommunicationModel.png)
 
 ### GUI
 
