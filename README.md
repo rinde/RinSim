@@ -1,4 +1,4 @@
-# RinSim
+# RinSim 2.1.0
 
 RinSim is an extensible MAS (Multi-Agent System) simulator. The simulator focusses on __simplicity__ and __consistency__ which makes it ideal for performing scientific simulations. Further, there is huge focus on software quality which results in an ever improving test suite and JavaDoc comments. RinSim supports pluggable models which allow to extend the scope of the simulator. Out of the box, RinSim currently focusses on MAS for PDP (Pickup and Delivery Problems). You can easily extend RinSim by introducing your own custom models.
 
@@ -9,17 +9,40 @@ _Click the image above to view a demonstration movie of the simulator._
 
 
 ## Installation
-For installing the RinSim simulator there are generally two options:
+The RinSim simulator uses [Maven](http://maven.apache.org/) for managing its dependencies. We recommend the [Maven plugin for Eclipse](http://www.eclipse.org/m2e/). Once this is installed and a new Maven project is created, RinSim can be added by including the following in your pom file.
 
+	<dependency>
+		<groupId>com.github.rinde</groupId>
+		<artifactId>rinsim-core</artifactId>
+		<version>2.1.0</version>
+	</dependency>
+	
+Other modules can be added similarly:
+
+	<dependency>
+		<groupId>com.github.rinde</groupId>
+		<artifactId>rinsim-ui</artifactId>
+		<version>2.1.0</version>
+	</dependency>
+	<dependency>
+		<groupId>com.github.rinde</groupId>
+		<artifactId>rinsim-problem</artifactId>
+		<version>2.1.0</version>
+	</dependency>
+
+
+<!-- 
 * Use the latest builds available on [this page](http://people.cs.kuleuven.be/~rinde.vanlon/rinsim/binaries/). The zip file contains all the jars, dependencies and JavaDocs of the simulator. All Jars have to be added manually to your classpath.
 * Use Git and Maven, see the section on [Git & Maven](https://github.com/rinde/RinSim#git-and-maven). Currently this is the preferred option since it allows one to easily follow changes in the code by updating the repository.
-
+-->
  
 ## Getting Started 
-Once the simulator is installed, you are ready to explore the simulator. It is recommended to start by running and studying the [simple example](https://github.com/rinde/RinSim/blob/v2/example/src/main/java/rinde/sim/examples/simple/SimpleExample.java). The JavaDocs are also available online on [this page](http://people.cs.kuleuven.be/~rinde.vanlon/rinsim/javadoc/). The remainder of this page gives a high level overview of the simulator.
+Once the simulator is installed, you are ready to explore the simulator. It is recommended to start by running and studying the [simple example](example/src/main/java/rinde/sim/examples/simple/SimpleExample.java). Note, that when using Maven in Eclipse, the RinSim JavaDocs are automatically made available which makes exploration of the code much easier.
+<!-- The JavaDocs are also available online on [this page](http://people.cs.kuleuven.be/~rinde.vanlon/rinsim/javadoc/). -->
+The remainder of this page gives a high level overview of the simulator.
 
 ## About
-RinSim is being developed at [AgentWise](http://distrinet.cs.kuleuven.be/research/taskforces/showTaskforce.do?taskforceID=agentwise) in the [DistriNet group](http://distrinet.cs.kuleuven.be/) at the [Department of Computer Science, KU Leuven, Belgium](http://www.cs.kuleuven.be/). The lead developer is [Rinde van Lon](http://distrinet.cs.kuleuven.be/people/showMember.do?memberID=u0075143). Valuable contributions were made by Bartosz Michalik and Robrecht Haesevoets.
+RinSim is being developed at [AgentWise](http://distrinet.cs.kuleuven.be/research/taskforces/showTaskforce.do?taskforceID=agentwise) in the [DistriNet group](http://distrinet.cs.kuleuven.be/) at the [Department of Computer Science, KU Leuven, Belgium](http://www.cs.kuleuven.be/). The lead developer is [Rinde van Lon](http://distrinet.cs.kuleuven.be/people/rinde). Valuable contributions were made by Bartosz Michalik and Robrecht Haesevoets.
 
 RinSim is being used in both research and education. It is used in several publications on multi-agent systems and it is used in a MAS course as a testbed for students.
 
@@ -30,7 +53,7 @@ This section gives a brief overview of the most important elements of the simula
 
 In RinSim terminology, the parts of the simulation that define the problem and environment are called models, the parts of the simulation that solve the problem (i.e. the solution, the collective adaptive system) are called agents. The design of RinSim allows for easy use and recombination of models to configure a simulation problem. When the problem is configured, the programmer can focus on solving the actual problem by designing a collective adaptive system without having to worry about accidentally violating simulation consistency. The following figure shows a high-level component diagram:
 
-![PDPModel](https://github.com/rinde/RinSim/raw/v2/docs/DesignOverview.png)
+![PDPModel](docs/DesignOverview.png)
 
 Actions that agents can take are considered to be part of the problem not the solution, e.g. a vehicle that can pickup things or can communicate with other vehicles. Actions define the problem space in which a good solution has to be found.
 
@@ -63,7 +86,7 @@ It supports both direct messaging and broadcasting.
 It can also take distance, communication radius, and communication reliability into account.
 Messages between agents are send asynchronously (as illustrated [here](http://people.cs.kuleuven.be/~robrecht.haesevoets/mascourse/docs/communication.png)).
 
-![RoadModel](https://github.com/rinde/RinSim/raw/v2/docs/RoadModel.png) ![PDPModel](https://github.com/rinde/RinSim/raw/v2/docs/PDPModel.png) ![CommunicationModel](https://github.com/rinde/RinSim/raw/v2/docs/CommunicationModel.png)
+![RoadModel](docs/RoadModel.png) ![PDPModel](docs/PDPModel.png) ![CommunicationModel](docs/CommunicationModel.png)
 
 ### GUI
 
@@ -81,6 +104,7 @@ Simulation entities are entities that are the actual objects in our simulation, 
 They can implement the _TickListener_ interface and/or other interfaces to use additional models.
 Once registered in the simulator, the simulator will make sure they receive ticks (if required) and are registered in all required models.
 
+<!--
 ## Git and Maven
 This section assumes that you are using [Eclipse](http://www.eclipse.org) with [m2e](http://eclipse.org/m2e/) and optionally [eGit](http://www.eclipse.org/egit/). Installation instructions for each can be found on their respective websites.
 
@@ -207,7 +231,7 @@ To update the simulator later on, you can use the _pull_ command:
 git pull origin v2
 ````
 
-
+-->
 
 
 
