@@ -28,7 +28,7 @@
 	<scm>
 		<connection>scm:git:git@github.com:rinde/rinsim.git</connection>
 		<developerConnection>scm:git:git@github.com:rinde/rinsim.git</developerConnection>
-		<url>http://github.com/rinde/RinSim</url>
+		<url>scm:git:git@github.com:rinde/rinsim.git</url>
 	</scm>
 
 	<developers>
