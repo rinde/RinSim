@@ -2,7 +2,7 @@
 
 RinSim is an extensible MAS (Multi-Agent System) simulator. The simulator focusses on __simplicity__ and __consistency__ which makes it ideal for performing scientific simulations. Further, there is huge focus on software quality which results in an ever improving test suite and JavaDoc comments. RinSim supports pluggable models which allow to extend the scope of the simulator. Out of the box, RinSim currently focusses on MAS for PDP (Pickup and Delivery Problems). You can easily extend RinSim by introducing your own custom models.
 
-[<img src="https://github.com/rinde/RinSim/raw/v2/docs/screenshot.png">](http://vimeo.com/rinde/rinsim-gecco-demo)
+[<img src="docs/screenshot.png">](http://vimeo.com/rinde/rinsim-gecco-demo)
 
 _Click the image above to view a demonstration movie of the simulator._
 
