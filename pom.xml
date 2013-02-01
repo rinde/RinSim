@@ -11,7 +11,13 @@
 	<url>http://github.com/rinde/RinSim</url>
 	<inceptionYear>2011</inceptionYear>
 
-	<licenses></licenses>
+	<licenses>
+		<license>
+			<name>The Apache Software License, Version 2.0</name>
+			<url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+			<distribution>repo</distribution>
+		</license>
+	</licenses>
 
 	<parent>
 		<groupId>org.sonatype.oss</groupId>
