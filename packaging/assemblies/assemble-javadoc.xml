@@ -10,10 +10,22 @@
 	<baseDirectory>javadoc</baseDirectory>
 	<includeBaseDirectory>true</includeBaseDirectory>
 
-	<dependencySets>
+
+	<moduleSets>
+		<moduleSet>
+			<binaries>
+				<attachmentClassifier>javadoc</attachmentClassifier>
+				<includeDependencies>false</includeDependencies>
+				<outputDirectory>/</outputDirectory>
+				<unpack>true</unpack>
+			</binaries>
+		</moduleSet>
+	</moduleSets>
+
+	<!-- <dependencySets>
 		<dependencySet>
 			<includes>
-				<include>rinsim:main:*:javadoc</include>
+				<include>${project.groupId}:rinsim-packaging:*:javadoc</include>
 			</includes>
 			<outputDirectory>/</outputDirectory>
 			<unpack>true</unpack>
@@ -21,5 +33,5 @@
 			<useProjectArtifact>false</useProjectArtifact>
 			<useStrictFiltering>true</useStrictFiltering>
 		</dependencySet>
-	</dependencySets>
+	</dependencySets>-->
 </assembly>

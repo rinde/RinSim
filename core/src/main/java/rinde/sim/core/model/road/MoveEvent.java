@@ -3,7 +3,9 @@
  */
 package rinde.sim.core.model.road;
 
-import rinde.sim.core.model.road.AbstractRoadModel.RoadEvent;
+import org.apache.commons.lang3.builder.ToStringBuilder;
+
+import rinde.sim.core.model.road.AbstractRoadModel.RoadEventType;
 import rinde.sim.event.Event;
 
 /**
@@ -19,10 +21,15 @@ public class MoveEvent extends Event {
     /**
      */
     public MoveEvent(RoadModel rm, MovingRoadUser ru, MoveProgress pp) {
-        super(RoadEvent.MOVE, rm);
+        super(RoadEventType.MOVE, rm);
         roadModel = rm;
         roadUser = ru;
         pathProgress = pp;
+    }
+
+    @Override
+    public String toString() {
+        return ToStringBuilder.reflectionToString(this);
     }
 
 }

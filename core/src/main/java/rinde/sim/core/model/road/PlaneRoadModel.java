@@ -15,7 +15,6 @@ import org.apache.commons.math3.random.RandomGenerator;
 
 import rinde.sim.core.TimeLapse;
 import rinde.sim.core.graph.Point;
-import rinde.sim.util.SpeedConverter;
 
 /**
  * A {@link RoadModel} that uses a plane as road structure. This assumes that
@@ -91,7 +90,7 @@ public class PlaneRoadModel extends AbstractRoadModel<Point> {
         Point loc = objLocs.get(object);
 
         double traveled = 0;
-        final SpeedConverter sc = new SpeedConverter();
+        // final SpeedConverter sc = new SpeedConverter();
         double speed = min(object.getSpeed(), maxSpeed);
         if (speed == 0) {
             // FIXME add test for this case, also check GraphRoadModel
@@ -114,10 +113,19 @@ public class PlaneRoadModel extends AbstractRoadModel<Point> {
                 traveled += stepLength;
             } else {
                 final Point diff = Point.diff(path.peek(), loc);
-                final double perc = travelDistance / stepLength;
-                loc = new Point(loc.x + perc * diff.x, loc.y + perc * diff.y);
-                time.consume(Math.round(travelDistance / speed));
-                traveled += travelDistance;
+
+                if (stepLength - travelDistance < 0.00000001) {
+                    loc = path.peek();
+                    traveled += stepLength;
+                } else {
+                    final double perc = travelDistance / stepLength;
+                    loc = new Point(loc.x + perc * diff.x, loc.y + perc
+                            * diff.y);
+                    // time.consume(Math.round(travelDistance / speed));
+                    traveled += travelDistance;
+                }
+                time.consumeAll();
+
             }
         }
         objLocs.put(object, loc);

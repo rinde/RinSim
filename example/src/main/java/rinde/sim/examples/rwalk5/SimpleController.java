@@ -15,22 +15,24 @@ import rinde.sim.core.model.road.RoadModel;
 import rinde.sim.scenario.ConfigurationException;
 import rinde.sim.scenario.Scenario;
 import rinde.sim.scenario.ScenarioController;
+import rinde.sim.scenario.ScenarioController.UICreator;
 import rinde.sim.scenario.TimedEvent;
+import rinde.sim.scenario.TimedEventHandler;
 import rinde.sim.serializers.DotGraphSerializer;
 import rinde.sim.serializers.SelfCycleFilter;
 import rinde.sim.ui.View;
-import rinde.sim.ui.renderers.RoadUserRenderer;
 import rinde.sim.ui.renderers.GraphRoadModelRenderer;
+import rinde.sim.ui.renderers.RoadUserRenderer;
 import rinde.sim.ui.renderers.UiSchema;
 
-public class SimpleController extends ScenarioController {
+public class SimpleController {
 
 	private final StatisticsCollector statistics = new StatisticsCollector();
 
-	private RoadModel roadModel;
+	private final RoadModel roadModel;
 	private Random randomizer;
 
-	private final String map;
+	protected final Simulator simulator;
 
 	/**
 	 * Simple controller
@@ -39,20 +41,6 @@ public class SimpleController extends ScenarioController {
 	 * @throws ConfigurationException
 	 */
 	public SimpleController(Scenario scen, String map) throws ConfigurationException {
-		super(scen, -1);
-
-		this.map = map;
-
-		// MUST be called !!!
-		initialize();
-	}
-
-	/**
-	 * the method is called as part of initialize method
-	 */
-	@Override
-	protected Simulator createSimulator() throws Exception {
-		randomizer = new Random(1317);
 		Graph<MultiAttributeData> graph;
 		try {
 			graph = DotGraphSerializer.getMultiAttributeGraphSerializer(new SelfCycleFilter()).read(map);
@@ -63,51 +51,53 @@ public class SimpleController extends ScenarioController {
 		roadModel = new GraphRoadModel(graph);
 
 		final MersenneTwister rand = new MersenneTwister(123);
-		final Simulator s = new Simulator(rand, 10000);
+		simulator = new Simulator(rand, 10000);
 		final CommunicationModel communicationModel = new CommunicationModel2(rand);
-		s.register(roadModel);
-		s.register(communicationModel);
-		return s;
+		simulator.register(roadModel);
+		simulator.register(communicationModel);
+
+		final TimedEventHandler teh = new TimedEventHandler() {
+			@Override
+			public boolean handleTimedEvent(TimedEvent event) {
+				if (event.getEventType() == ScenarioEvent.ADD_TRUCK) {
+					final int radius = rand.nextInt(300) + 200;
+
+					final double minSpeed = 30;
+					final double maxSpeed = 140;
+					final RandomWalkAgent agent = new RandomWalkAgent(minSpeed + (maxSpeed - minSpeed)
+							* rand.nextDouble(), radius, 0.01 + rand.nextDouble() / 2);
+					simulator.register(agent);
+					agent.eventAPI.addListener(statistics, RandomWalkAgent.Type.FINISHED_SERVICE);
+					// it is important to inform controller that this event was
+					// handled
+					// to avoid runtime exceptions
+					return true;
+				}
+				// likewise, it is important to inform the controller that other
+				// events are *not* handled, this ensures fail-fast behavior in
+				// case the
+				// scenario contains events which were not anticipated.
+				return false;
+			}
+		};
+
+		final ScenarioController scenarioController = new ScenarioController(scen, simulator, teh, -1);
+		scenarioController.enableUI(new UICreator() {
+			@Override
+			public void createUI(Simulator sim) {
+				final UiSchema schema = new UiSchema(false);
+				schema.add(rinde.sim.examples.common.Package.class, new RGB(0x0, 0x0, 0xFF));
+
+				final UiSchema schema2 = new UiSchema();
+				schema2.add(RandomWalkAgent.C_BLACK, new RGB(0, 0, 0));
+				schema2.add(RandomWalkAgent.C_YELLOW, new RGB(0xff, 0, 0));
+				schema2.add(RandomWalkAgent.C_GREEN, new RGB(0x0, 0x80, 0));
+				View.startGui(sim, 4, new GraphRoadModelRenderer(), new RoadUserRenderer(schema, false), new MessagingLayerRenderer(
+						schema2));
+			}
+		});
+
+		scenarioController.start();
 	}
 
-	/**
-	 * Create user interface for the simulation
-	 * @see rinde.sim.scenario.ScenarioController#createUserInterface()
-	 */
-	@Override
-	protected boolean createUserInterface() {
-		final UiSchema schema = new UiSchema(false);
-		schema.add(rinde.sim.examples.common.Package.class, new RGB(0x0, 0x0, 0xFF));
-
-		final UiSchema schema2 = new UiSchema();
-		schema2.add(RandomWalkAgent.C_BLACK, new RGB(0, 0, 0));
-		schema2.add(RandomWalkAgent.C_YELLOW, new RGB(0xff, 0, 0));
-		schema2.add(RandomWalkAgent.C_GREEN, new RGB(0x0, 0x80, 0));
-
-		View.startGui(getSimulator(), 4, new GraphRoadModelRenderer(), new RoadUserRenderer(schema, false), new MessagingLayerRenderer(
-				roadModel, schema2));
-
-		return true;
-	}
-
-	@Override
-	protected boolean handleTimedEvent(TimedEvent event) {
-		if (event.getEventType() == ScenarioEvent.ADD_TRUCK) {
-			final int radius = randomizer.nextInt(300) + 200;
-
-			final double minSpeed = 30;
-			final double maxSpeed = 140;
-			final RandomWalkAgent agent = new RandomWalkAgent(minSpeed + (maxSpeed - minSpeed)
-					* randomizer.nextDouble(), radius, 0.01 + randomizer.nextDouble() / 2);
-			getSimulator().register(agent);
-			agent.eventAPI.addListener(statistics, RandomWalkAgent.Type.FINISHED_SERVICE);
-			// it is important to inform controller that this event was handled
-			// to avoid runtime exceptions
-			return true;
-		}
-		// likewise, it is important to inform the controller that other
-		// events are *not* handled, this ensures fail-fast behavior in case the
-		// scenario contains events which were not anticipated.
-		return false;
-	}
 }

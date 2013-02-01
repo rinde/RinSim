@@ -17,6 +17,11 @@ import java.util.Set;
 
 import rinde.sim.core.graph.Point;
 import rinde.sim.core.model.pdp.PDPScenarioEvent;
+import rinde.sim.problem.common.AddDepotEvent;
+import rinde.sim.problem.common.AddParcelEvent;
+import rinde.sim.problem.common.AddVehicleEvent;
+import rinde.sim.problem.common.ParcelDTO;
+import rinde.sim.problem.common.VehicleDTO;
 import rinde.sim.scenario.ScenarioBuilder;
 import rinde.sim.scenario.ScenarioBuilder.ScenarioCreator;
 import rinde.sim.scenario.TimedEvent;
@@ -109,7 +114,7 @@ public class FabriRechtParser {
 		while ((line = ordersFileReader.readLine()) != null) {
 			final String[] parts = line.split(";");
 
-			final int neededCapacity = 1;// Integer.parseInt(parts[6]);
+			final int neededCapacity = 1; // Integer.parseInt(parts[6]);
 
 			final ParcelDTO o = new ParcelDTO(coordinates.get(Integer.parseInt(parts[0])), coordinates.get(Integer
 					.parseInt(parts[1])), new TimeWindow(Long.parseLong(parts[2]), Long.parseLong(parts[3])),

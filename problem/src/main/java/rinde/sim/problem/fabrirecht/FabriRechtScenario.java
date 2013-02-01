@@ -7,7 +7,9 @@ import java.util.Collection;
 import java.util.Set;
 
 import rinde.sim.core.graph.Point;
-import rinde.sim.scenario.Scenario;
+import rinde.sim.problem.common.DynamicPDPTWProblem.StopCondition;
+import rinde.sim.problem.common.DynamicPDPTWScenario;
+import rinde.sim.problem.common.VehicleDTO;
 import rinde.sim.scenario.TimedEvent;
 import rinde.sim.util.TimeWindow;
 
@@ -15,7 +17,7 @@ import rinde.sim.util.TimeWindow;
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
  * 
  */
-public class FabriRechtScenario extends Scenario {
+public class FabriRechtScenario extends DynamicPDPTWScenario {
 	private static final long serialVersionUID = 8654500529284785728L;
 	public final Point min;
 	public final Point max;
@@ -42,6 +44,41 @@ public class FabriRechtScenario extends Scenario {
 		max = pMax;
 		timeWindow = pTimeWindow;
 		defaultVehicle = pDefaultVehicle;
+	}
+
+	@Override
+	public Point getMin() {
+		return min;
+	}
+
+	@Override
+	public Point getMax() {
+		return max;
+	}
+
+	@Override
+	public TimeWindow getTimeWindow() {
+		return timeWindow;
+	}
+
+	@Override
+	public long getTickSize() {
+		return 1L;
+	}
+
+	@Override
+	public double getMaxSpeed() {
+		return 1.0;
+	}
+
+	@Override
+	public StopCondition getStopCondition() {
+		return StopCondition.TIME_OUT_EVENT;
+	}
+
+	@Override
+	public boolean useSpeedConversion() {
+		return false;
 	}
 
 }

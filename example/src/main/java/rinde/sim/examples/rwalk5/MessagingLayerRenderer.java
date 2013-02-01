@@ -6,20 +6,21 @@ import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.GC;
 
 import rinde.sim.core.graph.Point;
+import rinde.sim.core.model.ModelProvider;
+import rinde.sim.core.model.ModelReceiver;
 import rinde.sim.core.model.road.RoadModel;
-import rinde.sim.ui.renderers.Renderer;
+import rinde.sim.ui.renderers.CanvasRenderer;
 import rinde.sim.ui.renderers.UiSchema;
 import rinde.sim.ui.renderers.ViewPort;
 import rinde.sim.ui.renderers.ViewRect;
 
-public class MessagingLayerRenderer implements Renderer {
+public class MessagingLayerRenderer implements CanvasRenderer, ModelReceiver {
 
-	protected RoadModel rs;
+	protected RoadModel roadModel;
 	protected boolean useEncirclement;
 	private final UiSchema uiSchema;
 
-	public MessagingLayerRenderer(RoadModel rs, UiSchema uiSchema) {
-		this.rs = rs;
+	public MessagingLayerRenderer(UiSchema uiSchema) {
 		this.uiSchema = uiSchema;
 	}
 
@@ -28,7 +29,7 @@ public class MessagingLayerRenderer implements Renderer {
 		final int size = 4;
 		uiSchema.initialize(gc.getDevice());
 
-		final Set<RandomWalkAgent> objects = rs.getObjectsOfType(RandomWalkAgent.class);
+		final Set<RandomWalkAgent> objects = roadModel.getObjectsOfType(RandomWalkAgent.class);
 
 		synchronized (objects) {
 			for (final RandomWalkAgent a : objects) {
@@ -78,6 +79,11 @@ public class MessagingLayerRenderer implements Renderer {
 	@Override
 	public ViewRect getViewRect() {
 		return null;
+	}
+
+	@Override
+	public void registerModelProvider(ModelProvider mp) {
+		roadModel = mp.getModel(RoadModel.class);
 	}
 
 }

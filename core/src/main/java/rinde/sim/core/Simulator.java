@@ -3,12 +3,13 @@
  */
 package rinde.sim.core;
 
+import static com.google.common.base.Preconditions.checkArgument;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.locks.ReentrantLock;
 
 import org.apache.commons.math3.random.RandomGenerator;
 import org.slf4j.Logger;
@@ -107,7 +108,7 @@ public class Simulator implements SimulatorAPI {
     private boolean configured;
 
     private Set<Object> toUnregister;
-    private final ReentrantLock unregisterLock;
+    // private final ReentrantLock unregisterLock;
     private final RandomGenerator rand;
     private final long timeStep;
     private final TimeLapse timeLapse;
@@ -126,11 +127,12 @@ public class Simulator implements SimulatorAPI {
      *            programmer prefers.
      */
     public Simulator(RandomGenerator r, long step) {
+        checkArgument(step > 0, "Step must be a positive number.");
         timeStep = step;
         tickListeners = Collections
                 .synchronizedSet(new LinkedHashSet<TickListener>());
 
-        unregisterLock = new ReentrantLock();
+        // unregisterLock = new ReentrantLock();
         toUnregister = new LinkedHashSet<Object>();
 
         rand = r;
@@ -151,6 +153,13 @@ public class Simulator implements SimulatorAPI {
      * @see ModelManager#configure()
      */
     public void configure() {
+        for (final Model<?> m : modelManager.getModels()) {
+            if (m instanceof TickListener) {
+                LOGGER.info("adding " + m.getClass().getName()
+                        + " as a tick listener");
+                addTickListener((TickListener) m);
+            }
+        }
         modelManager.configure();
         configured = true;
         dispatcher
@@ -174,11 +183,6 @@ public class Simulator implements SimulatorAPI {
         if (result) {
             LOGGER.info("registering model :" + model.getClass().getName()
                     + " for type:" + model.getSupportedType().getName());
-            if (model instanceof TickListener) {
-                LOGGER.info("adding " + model.getClass().getName()
-                        + " as a tick listener");
-                addTickListener((TickListener) model);
-            }
         }
         return result;
     }
@@ -226,11 +230,11 @@ public class Simulator implements SimulatorAPI {
         if (o instanceof TickListener) {
             removeTickListener((TickListener) o);
         }
-        unregisterLock.lock();
+        // unregisterLock.lock();
         try {
             toUnregister.add(o);
         } finally {
-            unregisterLock.unlock();
+            // unregisterLock.unlock();
         }
         return true;
     }
@@ -318,13 +322,13 @@ public class Simulator implements SimulatorAPI {
      */
     public void tick() {
         // unregister all pending objects
-        unregisterLock.lock();
+        // unregisterLock.lock();
         Set<Object> copy;
         try {
             copy = toUnregister;
             toUnregister = new LinkedHashSet<Object>();
         } finally {
-            unregisterLock.unlock();
+            // unregisterLock.unlock();
         }
 
         for (final Object c : copy) {
@@ -364,9 +368,10 @@ public class Simulator implements SimulatorAPI {
      * Either starts or stops the simulation depending on the current state.
      */
     public void togglePlayPause() {
-        isPlaying = !isPlaying;
-        if (isPlaying) {
+        if (!isPlaying) {
             start();
+        } else {
+            isPlaying = false;
         }
     }
 

@@ -49,7 +49,6 @@ public class Scenario implements Serializable {
      */
     public Scenario(Collection<? extends TimedEvent> pEvents,
             Set<Enum<?>> pSupportedTypes) {
-        checkArgument(!pEvents.isEmpty(), "events can not be null or empty");
         checkArgument(!pSupportedTypes.isEmpty(), "supported types must be a non-empty set");
         supportedTypes = unmodifiableSet(newLinkedHashSet(pSupportedTypes));
 

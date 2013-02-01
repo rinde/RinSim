@@ -7,12 +7,12 @@ import org.eclipse.swt.graphics.GC;
 
 import rinde.sim.core.graph.Point;
 import rinde.sim.core.model.road.RoadModel;
-import rinde.sim.ui.renderers.Renderer;
+import rinde.sim.ui.renderers.CanvasRenderer;
 import rinde.sim.ui.renderers.UiSchema;
 import rinde.sim.ui.renderers.ViewPort;
 import rinde.sim.ui.renderers.ViewRect;
 
-public class MessagingLayerRenderer implements Renderer {
+public class MessagingLayerRenderer implements CanvasRenderer {
 
 	protected RoadModel rs;
 	protected boolean useEncirclement;
