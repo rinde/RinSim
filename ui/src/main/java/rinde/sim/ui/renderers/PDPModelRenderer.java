@@ -47,7 +47,7 @@ public class PDPModelRenderer implements ModelRenderer {
 
 	// TODO dispose colors on exit!
 	protected void initialize(GC gc) {
-		System.out.println();
+		System.out.println("PDPModelRenderer");
 		isInitialized = true;
 		black = gc.getDevice().getSystemColor(SWT.COLOR_BLACK);
 		white = gc.getDevice().getSystemColor(SWT.COLOR_WHITE);
@@ -87,18 +87,17 @@ public class PDPModelRenderer implements ModelRenderer {
 					final int y = vp.toCoordY(p.y);
 
 					gc.setForeground(black);
-
 					for (final Parcel parcel : contents) {
-
 						final Point po = parcel.getDestination();
 						final int xd = vp.toCoordX(po.x);
 						final int yd = vp.toCoordY(po.y);
-						if (parcel.getDeliveryTimeWindow().isIn(time)) {
+						if (parcel.getDeliveryTimeWindow().isBeforeStart(time)) {
 							gc.setBackground(darkGreen);
+						} else if (parcel.getDeliveryTimeWindow().isBeforeEnd(time)) {
+							gc.setBackground(green);
 						} else {
 							gc.setBackground(orange);
 						}
-
 						gc.drawLine(x, y, xd, yd);
 						gc.fillOval(xd - 5, yd - 5, 10, 10);
 						gc.drawOval(xd - 5, yd - 5, 10, 10);
@@ -126,16 +125,14 @@ public class PDPModelRenderer implements ModelRenderer {
 					gc.setForeground(lightGray);
 					gc.drawLine(x, y, vp.toCoordX(parcel.getDestination().x), vp.toCoordY(parcel.getDestination().y));
 
-					Color color = null;
-					if (pdpModel.getParcelState(parcel) == ParcelState.ANNOUNCED) {
-						color = gray;
-					} else if (parcel.getPickupTimeWindow().isIn(time)) {
-						color = green;
+					if (parcel.getPickupTimeWindow().isBeforeStart(time)) {
+						gc.setBackground(darkGreen);
+					} else if (parcel.getPickupTimeWindow().isBeforeEnd(time)) {
+						gc.setBackground(green);
 					} else {
-						color = orange;
+						gc.setBackground(orange);
 					}
 					gc.setForeground(black);
-					gc.setBackground(color);
 					gc.fillOval(x - 5, y - 5, 10, 10);
 				}
 			}
