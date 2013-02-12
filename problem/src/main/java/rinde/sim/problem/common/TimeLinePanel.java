@@ -257,12 +257,16 @@ public class TimeLinePanel implements ModelReceiver, PanelRenderer, TickListener
 		protected int width;
 
 		protected Color lineColor;
+		protected Color pickupColor;
+		protected Color deliveryColor;
 
 		public Timeline(Display d) {
 			display = d;
 			parcels = newArrayList();
 			newParcels = newArrayList();
 			lineColor = d.getSystemColor(SWT.COLOR_WIDGET_BORDER);
+			pickupColor = d.getSystemColor(SWT.COLOR_BLUE);
+			deliveryColor = d.getSystemColor(SWT.COLOR_DARK_RED);
 		}
 
 		protected void ensureImg() {
@@ -318,9 +322,17 @@ public class TimeLinePanel implements ModelReceiver, PanelRenderer, TickListener
 			gc.setForeground(lineColor);
 			gc.drawLine(startX, y + 1, startX, y + 13);
 			gc.drawLine(startX, y + 8, startPickX, y + 8);
+
+			gc.setBackground(pickupColor);
+			gc.fillRectangle(startPickX, y + 2, endPickX - startPickX, 6);
 			gc.drawRectangle(startPickX, y + 2, endPickX - startPickX, 6);
+
 			gc.drawLine(endPickX, y + 8, startDelX, y + 8);
+
+			gc.setBackground(deliveryColor);
+			gc.fillRectangle(startDelX, y + 8, endDelX - startDelX, 6);
 			gc.drawRectangle(startDelX, y + 8, endDelX - startDelX, 6);
+
 			gc.dispose();
 		}
 
