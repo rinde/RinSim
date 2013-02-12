@@ -23,11 +23,23 @@ public class TimeWindow implements Serializable {
 
     // is time in [begin,end) ?
     public boolean isIn(long time) {
-        return time >= begin && time < end;
+        return isAfterStart(time) && isBeforeEnd(time);
     }
 
     public boolean isAfterStart(long time) {
         return time >= begin;
+    }
+
+    public boolean isBeforeEnd(long time) {
+        return time < end;
+    }
+
+    public boolean isBeforeStart(long time) {
+        return time < begin;
+    }
+
+    public boolean isAfterEnd(long time) {
+        return time >= end;
     }
 
     public long length() {
