@@ -108,7 +108,7 @@ public class ScenarioControllerTest {
                 simulator, new TestHandler(TestEvents.values()), 101);
 
         final ListenerEventHistory leh = new ListenerEventHistory();
-        sc.eventAPI.addListener(leh);
+        sc.getEventAPI().addListener(leh);
         assertFalse(sc.isScenarioFinished());
         sc.start();
         assertEquals(asList(SCENARIO_STARTED, EVENT_A, EVENT_B, EVENT_B, EVENT_A, EVENT_C, EVENT_C, SCENARIO_FINISHED), leh
@@ -192,7 +192,7 @@ public class ScenarioControllerTest {
         final boolean[] r = new boolean[1];
         final int[] i = new int[1];
 
-        controller.eventAPI.addListener(new Listener() {
+        controller.getEventAPI().addListener(new Listener() {
 
             @Override
             public void handleEvent(Event e) {
@@ -220,7 +220,7 @@ public class ScenarioControllerTest {
         final boolean[] r = new boolean[1];
         final int[] i = new int[1];
 
-        controller.eventAPI.addListener(new Listener() {
+        controller.getEventAPI().addListener(new Listener() {
 
             @Override
             public void handleEvent(Event e) {

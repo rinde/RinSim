@@ -47,7 +47,6 @@ public abstract class AbstractRoadModel<T> extends AbstractModel<RoadUser>
 
     // TODO event dispatching has to be tested
     protected final EventDispatcher eventDispatcher;
-    protected final EventAPI eventAPI;
 
     public enum RoadEventType {
         MOVE
@@ -73,7 +72,6 @@ public abstract class AbstractRoadModel<T> extends AbstractModel<RoadUser>
         speedConverter = new SpeedConverter();
         useSpeedConversion = pUseSpeedConversion;
         eventDispatcher = createEventDispatcher();
-        eventAPI = eventDispatcher.getEventAPI();
     }
 
     // factory method for creating event dispatcher, can be overridden by
@@ -336,7 +334,7 @@ public abstract class AbstractRoadModel<T> extends AbstractModel<RoadUser>
 
     @Override
     public final EventAPI getEventAPI() {
-        return eventAPI;
+        return eventDispatcher.getPublicEventAPI();
     }
 
     private static class SameLocationPredicate implements Predicate<RoadUser> {

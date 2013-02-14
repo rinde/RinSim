@@ -30,8 +30,8 @@ public interface EventAPI {
     /**
      * Adds the specified listener. From now on, the specified listener will be
      * notified of events with one of the <code>eventTypes</code>. If
-     * <code>eventTypes</code> is not specified, the listener will be notified
-     * of <b>all</b> events.
+     * <code>eventTypes</code> is empty, the listener will be notified of
+     * <b>no</b> events.
      * @param listener The listener, may not be null.
      * @param eventTypes The {@link Event} types, each type but be a type that
      *            is supported by this EventDispatcher. May not be null. If no

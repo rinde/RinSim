@@ -67,7 +67,7 @@ public class SimpleController {
 					final RandomWalkAgent agent = new RandomWalkAgent(minSpeed + (maxSpeed - minSpeed)
 							* rand.nextDouble(), radius, 0.01 + rand.nextDouble() / 2);
 					simulator.register(agent);
-					agent.eventAPI.addListener(statistics, RandomWalkAgent.Type.FINISHED_SERVICE);
+					agent.getEventAPI().addListener(statistics, RandomWalkAgent.Type.FINISHED_SERVICE);
 					// it is important to inform controller that this event was
 					// handled
 					// to avoid runtime exceptions

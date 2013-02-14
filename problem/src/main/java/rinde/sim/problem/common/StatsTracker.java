@@ -76,7 +76,7 @@ public class StatsTracker {
 	}
 
 	public EventAPI getEventAPI() {
-		return eventDispatcher.getEventAPI();
+		return eventDispatcher.getPublicEventAPI();
 	}
 
 	public StatisticsDTO getStatsDTO() {

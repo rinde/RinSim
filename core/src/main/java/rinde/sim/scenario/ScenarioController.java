@@ -52,13 +52,6 @@ public class ScenarioController implements TickListener {
     }
 
     /**
-     * Provides access to the {@link Event} API, allows adding and removing
-     * {@link Listener}s that are notified when {@link ScenarioController}
-     * dispatches {@link Event}s.
-     */
-    protected final EventAPI eventAPI;
-
-    /**
      * The scenario that is played.
      */
     protected final Scenario scenario;
@@ -103,7 +96,6 @@ public class ScenarioController implements TickListener {
                 .getPossibleEventTypes());
         typeSet.addAll(asList(EventType.values()));
         disp = new EventDispatcher(typeSet);
-        eventAPI = disp.getEventAPI();
         disp.addListener(new InternalTimedEventHandler(), scenario
                 .getPossibleEventTypes());
 
@@ -124,10 +116,13 @@ public class ScenarioController implements TickListener {
     }
 
     /**
+     * Provides access to the {@link Event} API, allows adding and removing
+     * {@link Listener}s that are notified when {@link ScenarioController}
+     * dispatches {@link Event}s.
      * @return The event API of the scenario controller.
      */
     public EventAPI getEventAPI() {
-        return eventAPI;
+        return disp.getPublicEventAPI();
     }
 
     /**

@@ -38,7 +38,6 @@ class RandomWalkAgent implements TickListener, MovingRoadUser, SimulatorUser, Co
 	}
 
 	private final EventDispatcher disp;
-	public final EventAPI eventAPI;
 
 	public static final String C_BLACK = "color.black";
 	public static final String C_YELLOW = "color.yellow";
@@ -76,7 +75,6 @@ class RandomWalkAgent implements TickListener, MovingRoadUser, SimulatorUser, Co
 	 */
 	public RandomWalkAgent(double speed, int radius, double reliability) {
 		disp = new EventDispatcher(Type.values());
-		eventAPI = disp.getEventAPI();
 		communicatedWith = new HashSet<RandomWalkAgent>();
 		lastCommunicationTime = new HashMap<RandomWalkAgent, Long>();
 		lock = new ReentrantLock();
@@ -105,7 +103,7 @@ class RandomWalkAgent implements TickListener, MovingRoadUser, SimulatorUser, Co
 				disp.dispatchEvent(new ServiceEndEvent(pickedUp, communications, this));
 				return;
 			}
-			Point destination = rs.getRandomPosition(rnd);
+			final Point destination = rs.getRandomPosition(rnd);
 			currentPackage = new Package("dummy package", destination);
 			simulator.register(currentPackage);
 			path = new LinkedList<Point>(rs.getShortestPathTo(this, destination));
@@ -120,7 +118,7 @@ class RandomWalkAgent implements TickListener, MovingRoadUser, SimulatorUser, Co
 		if (lastCommunication + COMMUNICATION_PERIOD < currentTime) {
 			lock.lock();
 			communicatedWith = new HashSet<RandomWalkAgent>();
-			for (Entry<RandomWalkAgent, Long> e : lastCommunicationTime.entrySet()) {
+			for (final Entry<RandomWalkAgent, Long> e : lastCommunicationTime.entrySet()) {
 				if (e.getValue() + COMMUNICATION_PERIOD * 100 >= currentTime) {
 					communicatedWith.add(e.getKey());
 				}
@@ -139,9 +137,9 @@ class RandomWalkAgent implements TickListener, MovingRoadUser, SimulatorUser, Co
 	}
 
 	private void checkMsgs(long currentTime) {
-		Queue<Message> messages = mailbox.getMessages();
+		final Queue<Message> messages = mailbox.getMessages();
 
-		for (Message m : messages) {
+		for (final Message m : messages) {
 			lastCommunicationTime.put((RandomWalkAgent) m.getSender(), currentTime);
 			communications++;
 		}
@@ -149,7 +147,7 @@ class RandomWalkAgent implements TickListener, MovingRoadUser, SimulatorUser, Co
 
 	public Set<RandomWalkAgent> getCommunicatedWith() {
 		lock.lock();
-		HashSet<RandomWalkAgent> result = new HashSet<RandomWalkAgent>(communicatedWith);
+		final HashSet<RandomWalkAgent> result = new HashSet<RandomWalkAgent>(communicatedWith);
 		lock.unlock();
 		return result;
 	}
@@ -157,7 +155,7 @@ class RandomWalkAgent implements TickListener, MovingRoadUser, SimulatorUser, Co
 	@Override
 	public void initRoadUser(RoadModel model) {
 		rs = model;
-		Point pos = rs.getRandomPosition(rnd);
+		final Point pos = rs.getRandomPosition(rnd);
 		rs.addObjectAt(this, pos);
 
 		disp.dispatchEvent(new Event(Type.START_SERVICE, this));
@@ -206,5 +204,9 @@ class RandomWalkAgent implements TickListener, MovingRoadUser, SimulatorUser, Co
 
 	public int getNoReceived() {
 		return communications;
+	}
+
+	public EventAPI getEventAPI() {
+		return disp.getPublicEventAPI();
 	}
 }

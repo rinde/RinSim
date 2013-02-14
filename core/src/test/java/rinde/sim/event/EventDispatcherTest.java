@@ -45,7 +45,7 @@ public class EventDispatcherTest {
         l3 = new ListenerEventHistory();
 
         dispatcher = new EventDispatcher(EVENT1, EVENT2, EVENT3);
-        api = dispatcher.getEventAPI();
+        api = dispatcher.getPublicEventAPI();
     }
 
     @SuppressWarnings("unused")
@@ -206,12 +206,12 @@ public class EventDispatcherTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void removeListenerFail4() {
-        dispatcher.getEventAPI().removeListener(null, (Set<Enum<?>>) null);
+        dispatcher.getPublicEventAPI().removeListener(null, (Set<Enum<?>>) null);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void removeListenerFail5() {
-        dispatcher.getEventAPI().removeListener(l1, (Set<Enum<?>>) null);
+        dispatcher.getPublicEventAPI().removeListener(l1, (Set<Enum<?>>) null);
     }
 
     @Test
@@ -273,7 +273,7 @@ public class EventDispatcherTest {
     public void removeTest() {
 
         final EventDispatcher disp = new EventDispatcher(EventTypes.values());
-        final EventAPI eventAPI = disp.getEventAPI();
+        final EventAPI eventAPI = disp.getPublicEventAPI();
 
         assertTrue(disp.listeners.isEmpty());
         eventAPI.addListener(l1, EVENT1, EVENT2, EVENT3);

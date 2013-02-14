@@ -32,6 +32,13 @@ public class EventDispatcher implements EventAPI {
     protected final Set<Enum<?>> supportedTypes;
 
     /**
+     * The 'public' api of this dispatcher. Public in this context means API
+     * that is intended for <i>users</i> of the dispatcher, that is, classes
+     * that want to be notified of events.
+     */
+    protected final PublicEventAPI publicAPI;
+
+    /**
      * Creates a new {@link EventDispatcher} instance which is capable of
      * dispatching any {@link Event} with a <code>type</code> attribute that is
      * one of <code>eventTypes</code>.
@@ -42,6 +49,7 @@ public class EventDispatcher implements EventAPI {
         checkArgument(supportedEventTypes != null, "event types can not be null");
         listeners = LinkedHashMultimap.create();
         supportedTypes = newHashSet(supportedEventTypes);
+        publicAPI = new PublicEventAPI(this);
     }
 
     /**
@@ -90,6 +98,20 @@ public class EventDispatcher implements EventAPI {
         addListener(listener, eventTypes, false);
     }
 
+    /**
+     * Adds the specified listener. From now on, the specified listener will be
+     * notified of events with one of the <code>eventTypes</code>. If
+     * <code>eventTypes</code> is empty, the listener will be notified of no
+     * events. If <code>all</code> is <code>true</code> the value for
+     * <code>eventTypes</code> is ignored and the listener is registered for
+     * <i>all</i> events. Otherwise, if <code>all</code> is <code>false</code>
+     * the listener is only registered for the event types in
+     * <code>eventTypes</code>.
+     * @param listener The listener to register.
+     * @param eventTypes The event types to listen to.
+     * @param all Indicates whether <code>eventTypes</code> is used or if the
+     *            listener is registered to all event types.
+     */
     protected void addListener(Listener listener, Set<Enum<?>> eventTypes,
             boolean all) {
         checkArgument(listener != null, "listener can not be null");
@@ -155,42 +177,50 @@ public class EventDispatcher implements EventAPI {
     }
 
     /**
-     * This method returns an {@link EventAPI} instance which can be made
-     * publicly available to classes outside the scope of the events. Through
-     * this instance listeners can be added and removed to this
+     * This method returns the public {@link EventAPI} instance associated to
+     * this {@link EventDispatcher}. This instance can be made publicly
+     * available to classes outside the scope of the events. Through this
+     * instance listeners can be added and removed to this
      * {@link EventDispatcher}.
      * @return A wrapper for {@link EventDispatcher}, only shows the methods
      *         which should be allowed to be called outside of the dispatcher's
      *         parent.
      */
-    public EventAPI getEventAPI() {
-        final EventDispatcher ref = this;
-        return new EventAPI() {
-            @Override
-            public void addListener(Listener l, Enum<?>... eventTypes) {
-                ref.addListener(l, eventTypes);
-            }
+    public EventAPI getPublicEventAPI() {
+        return publicAPI;
+    }
 
-            @Override
-            public void addListener(Listener listener, Set<Enum<?>> eventTypes) {
-                ref.addListener(listener, eventTypes);
-            }
+    class PublicEventAPI implements EventAPI {
 
-            @Override
-            public void removeListener(Listener l, Enum<?>... eventTypes) {
-                ref.removeListener(l, eventTypes);
-            }
+        private final EventDispatcher ref;
 
-            @Override
-            public void removeListener(Listener listener,
-                    Set<Enum<?>> eventTypes) {
-                ref.removeListener(listener, eventTypes);
-            }
+        public PublicEventAPI(EventDispatcher ed) {
+            ref = ed;
+        }
 
-            @Override
-            public boolean containsListener(Listener l, Enum<?> eventType) {
-                return ref.containsListener(l, eventType);
-            }
-        };
+        @Override
+        public void addListener(Listener l, Enum<?>... eventTypes) {
+            ref.addListener(l, eventTypes);
+        }
+
+        @Override
+        public void addListener(Listener listener, Set<Enum<?>> eventTypes) {
+            ref.addListener(listener, eventTypes);
+        }
+
+        @Override
+        public void removeListener(Listener l, Enum<?>... eventTypes) {
+            ref.removeListener(l, eventTypes);
+        }
+
+        @Override
+        public void removeListener(Listener listener, Set<Enum<?>> eventTypes) {
+            ref.removeListener(listener, eventTypes);
+        }
+
+        @Override
+        public boolean containsListener(Listener l, Enum<?> eventType) {
+            return ref.containsListener(l, eventType);
+        }
     }
 }

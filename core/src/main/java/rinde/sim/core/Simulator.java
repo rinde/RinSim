@@ -74,13 +74,6 @@ public class Simulator implements SimulatorAPI {
     }
 
     /**
-     * Reference to the {@link EventAPI} of the Simulator. Can be used to add
-     * listeners to events dispatched by the simulator. Simulator events are
-     * defined in {@link SimulatorEventType}.
-     */
-    protected final EventAPI eventAPI;
-
-    /**
      * Contains the set of registered {@link TickListener}s.
      */
     protected volatile Set<TickListener> tickListeners;
@@ -143,7 +136,6 @@ public class Simulator implements SimulatorAPI {
         modelManager = new ModelManager();
 
         dispatcher = new EventDispatcher(SimulatorEventType.values());
-        eventAPI = dispatcher.getEventAPI();
     }
 
     /**
@@ -422,6 +414,6 @@ public class Simulator implements SimulatorAPI {
      * @return {@link EventAPI}
      */
     public EventAPI getEventAPI() {
-        return eventAPI;
+        return dispatcher.getPublicEventAPI();
     }
 }

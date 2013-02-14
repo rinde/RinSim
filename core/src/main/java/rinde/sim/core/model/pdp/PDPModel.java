@@ -66,10 +66,6 @@ import com.google.common.collect.Multimap;
 public class PDPModel implements Model<PDPObject>, TickListener, ModelReceiver {
 
     /**
-     * {@link EventAPI} which allows adding and removing listeners to the model.
-     */
-    protected final EventAPI eventAPI;
-    /**
      * The {@link EventDispatcher} used for generating events.
      */
     protected final EventDispatcher eventDispatcher;
@@ -223,7 +219,6 @@ public class PDPModel implements Model<PDPObject>, TickListener, ModelReceiver {
         parcelState = CategoryMap.create();
 
         eventDispatcher = new EventDispatcher(PDPModelEventType.values());
-        eventAPI = eventDispatcher.getEventAPI();
     }
 
     /**
@@ -606,7 +601,7 @@ public class PDPModel implements Model<PDPObject>, TickListener, ModelReceiver {
      *         event types are listed in {@link PDPModelEventType}.
      */
     public EventAPI getEventAPI() {
-        return eventAPI;
+        return eventDispatcher.getPublicEventAPI();
     }
 
     /**
