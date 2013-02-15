@@ -47,7 +47,6 @@ public class PDPModelRenderer implements ModelRenderer {
 
 	// TODO dispose colors on exit!
 	protected void initialize(GC gc) {
-		System.out.println("PDPModelRenderer");
 		isInitialized = true;
 		black = gc.getDevice().getSystemColor(SWT.COLOR_BLACK);
 		white = gc.getDevice().getSystemColor(SWT.COLOR_WHITE);
