@@ -379,8 +379,15 @@ public class DynamicPDPTWProblem {
 
 	public static class DefaultUICreator implements UICreator {
 		protected List<Renderer> renderers;
+		protected int speedup;
 
 		public DefaultUICreator(DynamicPDPTWProblem prob) {
+			this(prob, 1);
+		}
+
+		public DefaultUICreator(DynamicPDPTWProblem prob, int speed) {
+			checkArgument(speed >= 1, "speed must be a positive integer");
+			speedup = speed;
 			renderers = createRenderers();
 			if (prob != null) {
 				renderers.add(new StatsPanel(prob.statsTracker));
@@ -388,7 +395,7 @@ public class DynamicPDPTWProblem {
 		}
 
 		public DefaultUICreator() {
-			this(null);
+			this(null, 1);
 		}
 
 		protected List<Renderer> createRenderers() {
@@ -413,7 +420,7 @@ public class DynamicPDPTWProblem {
 
 		@Override
 		public void createUI(Simulator sim) {
-			View.startGui(sim, 1, renderers.toArray(new Renderer[] {}));
+			View.startGui(sim, speedup, renderers.toArray(new Renderer[] {}));
 		}
 
 		public void addRenderer(Renderer r) {
