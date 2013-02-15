@@ -1,4 +1,5 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<parent>
 		<groupId>com.github.rinde</groupId>
@@ -10,7 +11,7 @@
 	<artifactId>rinsim-problem</artifactId>
 	<name>RinSim Problems</name>
 	<packaging>jar</packaging>
-	
+
 	<dependencies>
 		<dependency>
 			<groupId>com.github.rinde</groupId>
@@ -23,4 +24,48 @@
 			<version>${project.version}</version>
 		</dependency>
 	</dependencies>
+	
+	<properties>
+	<!--  by default we do not need commandline arguments for running tests -->
+	<test.arg />
+	</properties>
+
+	<profiles>
+		<profile>
+		<!-- on mac we need a special argument -->
+			<id>swt.cocoa-macosx-x86_64</id>
+			<activation>
+				<os>
+					<family>mac</family>
+				</os>
+			</activation>
+			<properties>
+				<!-- adds the required argument for SWT applications of systems running 
+					OS X -->
+				<test.arg>-XstartOnFirstThread</test.arg>
+			</properties>
+		</profile>
+	</profiles>
+
+	<build>
+		<plugins>
+			<plugin>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<version>2.7.1</version>
+				<configuration>
+					<argLine>${test.arg}</argLine>
+				</configuration>
+				<executions>
+					<execution>
+						<id>default-test</id>
+						<phase>test</phase>
+
+						<goals>
+							<goal>test</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+	</build>
 </project>
