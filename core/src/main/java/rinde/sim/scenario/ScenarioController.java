@@ -11,6 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import rinde.sim.core.Simulator;
+import rinde.sim.core.Simulator.SimulatorEventType;
 import rinde.sim.core.TickListener;
 import rinde.sim.core.TimeLapse;
 import rinde.sim.event.Event;
@@ -99,6 +100,15 @@ public class ScenarioController implements TickListener {
         disp.addListener(new InternalTimedEventHandler(), scenario
                 .getPossibleEventTypes());
 
+        simulator.getEventAPI().addListener(new Listener() {
+            @Override
+            public void handleEvent(Event e) {
+                if (simulator.getCurrentTime() == 0) {
+                    dispatchSetupEvents();
+                }
+
+            }
+        }, SimulatorEventType.STARTED);
         simulator.addTickListener(this);
         simulator.configure();
 
@@ -147,14 +157,20 @@ public class ScenarioController implements TickListener {
                 uiCreator.createUI(simulator);
             }
 
-            // dispatch all setup events (the ones that define initial
-            // settings).
-            TimedEvent e = null;
-            while ((e = scenarioQueue.peek()) != null && e.time < 0) {
-                scenarioQueue.poll();
-                e.setIssuer(this);
-                disp.dispatchEvent(e);
-            }
+        }
+    }
+
+    protected void dispatchSetupEvents() {
+        // dispatch all setup events (the ones that define initial
+        // settings). For example, a vehicle that is added during setup (at time
+        // < 0) will receive its first tick at time 0. If the vehicle is added
+        // at the beginning of the simulation (time 0) the first tick it will
+        // receive will be the second (globally) tick.
+        TimedEvent e = null;
+        while ((e = scenarioQueue.peek()) != null && e.time < 0) {
+            scenarioQueue.poll();
+            e.setIssuer(this);
+            disp.dispatchEvent(e);
         }
     }
 
