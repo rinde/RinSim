@@ -12,11 +12,18 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
+import org.junit.runners.Parameterized.Parameters;
 
 import rinde.sim.core.Simulator;
 import rinde.sim.core.TimeLapse;
@@ -32,25 +39,52 @@ import rinde.sim.problem.common.AddVehicleEvent;
 import rinde.sim.problem.common.DefaultVehicle;
 import rinde.sim.problem.common.DynamicPDPTWProblem;
 import rinde.sim.problem.common.DynamicPDPTWProblem.Creator;
+import rinde.sim.problem.common.DynamicPDPTWProblem.DefaultUICreator;
 import rinde.sim.problem.common.ParcelDTO;
 import rinde.sim.problem.common.StatsTracker.StatisticsDTO;
 import rinde.sim.problem.common.VehicleDTO;
 import rinde.sim.scenario.TimedEvent;
+import rinde.sim.ui.View;
 import rinde.sim.util.TimeWindow;
 
 /**
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
  * 
  */
+@RunWith(value = Parameterized.class)
 public class Gendreau06Test {
 
 	protected static final double EPSILON = 0.0001;
+
+	protected final boolean useGui;
+
+	public Gendreau06Test(boolean gui) {
+		useGui = gui;
+	}
+
+	@BeforeClass
+	public static void setUpClass() {
+		View.setAutoClose(true);
+		View.setAutoPlay(true);
+	}
+
+	@AfterClass
+	public static void tearDownClass() {
+		View.setAutoClose(false);
+		View.setAutoPlay(false);
+	}
+
+	@Parameters
+	public static Collection<Object[]> data() {
+		final Object[][] data = new Object[][] { { true }, { false } };
+		return Arrays.asList(data);
+	}
 
 	@Test
 	public void simpleScenario() throws IOException {
 		final Gendreau06Scenario scenario = create(2, minutes(15), new AddParcelEvent(new ParcelDTO(new Point(2, 1),
 				new Point(4, 1), new TimeWindow(0, 720000), new TimeWindow(5, 720000), 0, 0, 0, 0)));
-		final StatisticsDTO dto = runProblem(scenario);
+		final StatisticsDTO dto = runProblem(scenario, useGui);
 
 		// the second truck will turn around just one tick distance before
 		// reaching the package. the reason is that it is too late since the
@@ -73,11 +107,12 @@ public class Gendreau06Test {
 	public void overtimeScenario() {
 		final Gendreau06Scenario scenario = create(1, minutes(6), new AddParcelEvent(new ParcelDTO(new Point(2, 1),
 				new Point(4, 1), new TimeWindow(0, minutes(12)), new TimeWindow(5, minutes(12)), 0, 0, 0, 0)));
-		final StatisticsDTO dto = runProblem(scenario);
+		final StatisticsDTO dto = runProblem(scenario, useGui);
 
 		assertTrue(dto.simFinish);
 		assertEquals(6, dto.totalDistance, EPSILON);
 		assertEquals(1, dto.totalDeliveries);
+		System.out.println(dto);
 		assertEquals(minutes(6) - 1000, dto.overTime);
 		assertEquals(0, dto.pickupTardiness);
 		assertEquals(0, dto.deliveryTardiness);
@@ -106,7 +141,7 @@ public class Gendreau06Test {
 		final Gendreau06Scenario scenario = create(1, minutes(12), /* */
 				parcelEvent(2, 3, 2, 1, 0, seconds(15), 0, minutes(9)), /* */
 				parcelEvent(3, 3, 3, 1, 0, minutes(3), 0, minutes(4)));
-		final StatisticsDTO dto = runProblem(scenario);
+		final StatisticsDTO dto = runProblem(scenario, useGui);
 		assertFalse(dto.simFinish); // the vehicles have returned to the depot
 									// just before the TIME_OUT event
 		assertEquals(6, dto.totalDistance, EPSILON);
@@ -130,8 +165,11 @@ public class Gendreau06Test {
 				new TimeWindow(tw2b, tw2e), 0, 0, 0, 0));
 	}
 
-	static StatisticsDTO runProblem(Gendreau06Scenario s) {
+	static StatisticsDTO runProblem(Gendreau06Scenario s, boolean useGui) {
 		final DynamicPDPTWProblem problem = new DynamicPDPTWProblem(s, 123);
+		if (useGui) {
+			problem.enableUI(new DefaultUICreator(problem, 10));
+		}
 		problem.addCreator(AddVehicleEvent.class, new Creator<AddVehicleEvent>() {
 			@Override
 			public boolean create(Simulator sim, AddVehicleEvent event) {
