@@ -107,6 +107,10 @@ public class PDPModel implements Model<PDPObject>, TickListener, ModelReceiver {
      */
     public enum ParcelState {
 
+        // TODO add states:
+        // AVAILABLE_FOR_PICKUP
+        // AVAILABLE_FOR_DELIVERY
+
         // TODO perhaps a LATE state could be added as well, indicating that a
         // parcel is late for pickup
         /**
@@ -191,9 +195,16 @@ public class PDPModel implements Model<PDPObject>, TickListener, ModelReceiver {
          */
         NEW_PARCEL,
         /**
-         * Indicates that a new {@link Vehicle} has been added to the model.
+         * Indicates that a new {@link Vehicle} has been added to the model. It
+         * automatically
          */
-        NEW_VEHICLE
+        NEW_VEHICLE,
+        /**
+         * Indicates that a {@link Parcel} has become available. This means that
+         * it switched state from {@link ParcelState#ANNOUNCED} state to
+         * {@link ParcelState#AVAILABLE} state.
+         */
+        PARCEL_AVAILABLE;
     }
 
     /**
@@ -554,12 +565,19 @@ public class PDPModel implements Model<PDPObject>, TickListener, ModelReceiver {
             if (element.getType() == PDPType.PARCEL) {
                 checkArgument(!parcelState.containsValue(element));
                 final Parcel p = (Parcel) element;
-                parcelState
-                        .put(currentTime < p.getPickupTimeWindow().begin ? ParcelState.ANNOUNCED
-                                : ParcelState.AVAILABLE, (Parcel) element);
+                final ParcelState state = currentTime < p.getPickupTimeWindow().begin ? ParcelState.ANNOUNCED
+                        : ParcelState.AVAILABLE;
+                parcelState.put(state, (Parcel) element);
                 eventDispatcher.dispatchEvent(new PDPModelEvent(
                         PDPModelEventType.NEW_PARCEL, this, currentTime, p,
                         null));
+                // if the parcel is immediately available, we send this event as
+                // well
+                if (state == ParcelState.AVAILABLE) {
+                    eventDispatcher.dispatchEvent(new PDPModelEvent(
+                            PDPModelEventType.PARCEL_AVAILABLE, this,
+                            currentTime, p, null));
+                }
             } else { /*
                       * if (element.getType() == PDPType.VEHICLE ||
                       * element.getType() == PDPType.DEPOT)
@@ -657,6 +675,10 @@ public class PDPModel implements Model<PDPObject>, TickListener, ModelReceiver {
             }
             for (final Parcel p : newAvailables) {
                 parcelState.put(ParcelState.AVAILABLE, p);
+                eventDispatcher.dispatchEvent(new PDPModelEvent(
+                        PDPModelEventType.PARCEL_AVAILABLE, this, currentTime,
+                        p, null));
+
             }
         }
     }
