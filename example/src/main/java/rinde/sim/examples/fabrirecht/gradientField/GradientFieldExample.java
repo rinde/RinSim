@@ -62,7 +62,7 @@ public class GradientFieldExample {
 				schema.add(Truck.class, "/graphics/perspective/bus-44.png");
 				schema.add(DefaultDepot.class, "/graphics/flat/warehouse-32.png");
 				schema.add(DefaultParcel.class, "/graphics/flat/hailing-cab-32.png");
-				View.startGui(sim, 1, new PlaneRoadModelRenderer(40), new RoadUserRenderer(schema, false), new PDPModelRenderer(), new GradientFieldRenderer());
+				View.startGui(sim, 1, new PlaneRoadModelRenderer(0.05), new RoadUserRenderer(schema, false), new PDPModelRenderer(), new GradientFieldRenderer());
 
 			}
 		});
