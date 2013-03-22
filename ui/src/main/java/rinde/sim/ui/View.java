@@ -3,6 +3,8 @@
  */
 package rinde.sim.ui;
 
+import static com.google.common.base.Preconditions.checkState;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.DeviceData;
 import org.eclipse.swt.widgets.Display;
@@ -58,6 +60,7 @@ public final class View {
 
 	@SuppressWarnings("unused")
 	public static void startGui(final Simulator simulator, final int speedup, Renderer... renderers) {
+		checkState(simulator.isConfigured(), "Simulator needs to be configured before it can be visualized, see Simulator.configure()");
 		Display.setAppName("RinSim");
 		final Display display;
 		if (testingMode) {
