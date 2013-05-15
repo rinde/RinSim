@@ -48,8 +48,7 @@ public class Event implements Serializable {
      */
     public void setIssuer(Object pIssuer) {
         checkArgument(pIssuer != null, "issuer can not be null");
-        checkState(issuer == null, "issuer is already set, can not be overridden. Value: "
-                + issuer);
+        checkState(issuer == null, "issuer is already set, can not be overridden. Value: %s.", issuer);
         issuer = pIssuer;
     }
 

@@ -76,10 +76,8 @@ public abstract class AbstractGraph<E extends ConnectionData> implements
 
     @Override
     public void addConnection(Point from, Point to, E connData) {
-        checkArgument(!from.equals(to), "A connection cannot be circular: "
-                + from + " -> " + to);
-        checkArgument(!hasConnection(from, to), "Connection already exists: "
-                + from + " -> " + to);
+        checkArgument(!from.equals(to), "A connection cannot be circular: %s -> %s ", from, to);
+        checkArgument(!hasConnection(from, to), "Connection already exists: %s -> %s ", from, to);
         doAddConnection(from, to, connData);
     }
 

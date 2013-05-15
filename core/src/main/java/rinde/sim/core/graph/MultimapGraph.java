@@ -166,8 +166,7 @@ public class MultimapGraph<E extends ConnectionData> extends AbstractGraph<E> {
 
     @Override
     public void removeConnection(Point from, Point to) {
-        checkArgument(hasConnection(from, to), "Can not remove non-existing connection: "
-                + from + " -> " + to);
+        checkArgument(hasConnection(from, to), "Can not remove non-existing connection: %s -> %s", from, to);
         data.remove(from, to);
         removeData(from, to);
         if (!data.containsKey(to)) {

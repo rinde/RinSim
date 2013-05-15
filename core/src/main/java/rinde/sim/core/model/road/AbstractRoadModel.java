@@ -183,18 +183,15 @@ public abstract class AbstractRoadModel<T> extends AbstractModel<RoadUser>
 
     @Override
     public void addObjectAtSamePosition(RoadUser newObj, RoadUser existingObj) {
-        checkArgument(!objLocs.containsKey(newObj), "Object " + newObj
-                + " is already added.");
-        checkArgument(objLocs.containsKey(existingObj), "Object " + existingObj
-                + " does not exist.");
+        checkArgument(!objLocs.containsKey(newObj), "Object %s is already added.", newObj);
+        checkArgument(objLocs.containsKey(existingObj), "Object %s does not exist.", existingObj);
         objLocs.put(newObj, objLocs.get(existingObj));
     }
 
     @Override
     public void removeObject(RoadUser roadUser) {
         checkArgument(roadUser != null, "RoadUser can not be null");
-        checkArgument(objLocs.containsKey(roadUser), "RoadUser: " + roadUser
-                + " does not exist.");
+        checkArgument(objLocs.containsKey(roadUser), "RoadUser: %s does not exist.", roadUser);
         objLocs.remove(roadUser);
         objDestinations.remove(roadUser);
     }
@@ -245,8 +242,7 @@ public abstract class AbstractRoadModel<T> extends AbstractModel<RoadUser>
     @Override
     public Point getPosition(RoadUser roadUser) {
         // checkArgument(roadUser != null, "object can not be null");
-        checkArgument(containsObject(roadUser), "RoadUser does not exist: "
-                + roadUser);
+        checkArgument(containsObject(roadUser), "RoadUser does not exist: %s ", roadUser);
         return locObj2point(objLocs.get(roadUser));
     }
 
@@ -300,16 +296,14 @@ public abstract class AbstractRoadModel<T> extends AbstractModel<RoadUser>
     @Override
     public List<Point> getShortestPathTo(RoadUser fromObj, RoadUser toObj) {
         checkArgument(fromObj != null, "fromObj can not be null");
-        checkArgument(objLocs.containsKey(toObj), " to object should be in RoadModel. "
-                + toObj);
+        checkArgument(objLocs.containsKey(toObj), " to object should be in RoadModel. %s", toObj);
         return getShortestPathTo(fromObj, getPosition(toObj));
     }
 
     @Override
     public List<Point> getShortestPathTo(RoadUser fromObj, Point to) {
         checkArgument(fromObj != null, "fromObj can not be null");
-        checkArgument(objLocs.containsKey(fromObj), " from object should be in RoadModel. "
-                + fromObj);
+        checkArgument(objLocs.containsKey(fromObj), " from object should be in RoadModel. %s", fromObj);
         return getShortestPathTo(getPosition(fromObj), to);
     }
 

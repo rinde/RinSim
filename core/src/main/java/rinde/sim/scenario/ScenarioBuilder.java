@@ -78,8 +78,8 @@ public class ScenarioBuilder {
      * @return this
      */
     public ScenarioBuilder addEvent(TimedEvent event) {
-        checkArgument(supportedTypes.contains(event.getEventType()), event.getEventType()
-                + " is not a supported event type of this ScenarioBuilder, it should be added in its constructor.");
+        checkArgument(supportedTypes.contains(event.getEventType()), "%s is not a supported event type of this ScenarioBuilder, it should be added in its constructor.", event
+                .getEventType());
         events.add(event);
         return this;
     }
@@ -180,8 +180,8 @@ public class ScenarioBuilder {
         for (final EventGenerator<? extends TimedEvent> g : generators) {
             final Collection<? extends TimedEvent> collection = g.generate();
             for (final TimedEvent te : collection) {
-                checkArgument(supportedTypes.contains(te.getEventType()), te.getEventType()
-                        + "is not supported by this ScenarioBuilder");
+                checkArgument(supportedTypes.contains(te.getEventType()), "%s is not supported by this ScenarioBuilder", te
+                        .getEventType());
                 es.add(te);
             }
         }

@@ -309,8 +309,7 @@ public class PDPModel implements Model<PDPObject>, TickListener, ModelReceiver {
 
             checkArgument(timeWindowPolicy.canPickup(parcel
                     .getPickupTimeWindow(), time.getTime(), parcel
-                    .getPickupDuration()), "parcel pickup is not allowed according to the time window policy: "
-                    + timeWindowPolicy);
+                    .getPickupDuration()), "parcel pickup is not allowed according to the time window policy: %s", timeWindowPolicy);
 
             checkArgument(parcel.canBePickedUp(vehicle, time.getTime()), "the parcel does not allow pickup now");
 
@@ -392,8 +391,8 @@ public class PDPModel implements Model<PDPObject>, TickListener, ModelReceiver {
         synchronized (this) {
             /* 1 */checkArgument(roadModel.containsObject(vehicle), "vehicle does not exist in RoadModel");
             /* 2 */checkArgument(vehicleState.get(vehicle)
-                    .equals(VehicleState.IDLE), "vehicle must be idle but is: "
-                    + vehicleState.get(vehicle));
+                    .equals(VehicleState.IDLE), "vehicle must be idle but is: %s ", vehicleState
+                    .get(vehicle));
             /* 3 */checkArgument(containerContents.get(vehicle)
                     .contains(parcel), "vehicle does not contain parcel");
             /* 4 */checkArgument(parcel.getDestination()
@@ -401,10 +400,8 @@ public class PDPModel implements Model<PDPObject>, TickListener, ModelReceiver {
 
             checkArgument(timeWindowPolicy.canDeliver(parcel
                     .getDeliveryTimeWindow(), time.getTime(), parcel
-                    .getDeliveryDuration()), "parcel delivery is not allowed at this time ("
-                    + time.getTime()
-                    + ") according to the time window policy: "
-                    + timeWindowPolicy);
+                    .getDeliveryDuration()), "parcel delivery is not allowed at this time (%s) according to the time window policy: %s", time
+                    .getTime(), timeWindowPolicy);
 
             checkArgument(parcel.canBeDelivered(vehicle, time.getTime()), "the parcel does not allow a delivery now");
 
@@ -455,17 +452,15 @@ public class PDPModel implements Model<PDPObject>, TickListener, ModelReceiver {
     public void addParcelIn(Container container, Parcel parcel) {
         synchronized (this) {
             /* 1 */checkArgument(!roadModel.containsObject(parcel), "this parcel is already added to the roadmodel");
-            /* 2 */checkArgument(parcelState.getKeys(parcel) == ParcelState.AVAILABLE, "parcel must be registered and in AVAILABLE state, current state: "
-                    + parcelState.getKeys(parcel));
+            /* 2 */checkArgument(parcelState.getKeys(parcel) == ParcelState.AVAILABLE, "parcel must be registered and in AVAILABLE state, current state: %s", parcelState
+                    .getKeys(parcel));
             /* 3 */checkArgument(containerCapacities.containsKey(container), "the parcel container is not registered");
             /* 4 */checkArgument(roadModel.containsObject(container), "the parcel container is not on the roadmodel");
             final double newSize = containerContentsSize.get(container)
                     + parcel.getMagnitude();
-            /* 5 */checkArgument(newSize <= containerCapacities.get(container), "parcel does not fit in container. Capacity is "
-                    + containerCapacities.get(container)
-                    + ", current content size is "
-                    + containerContentsSize.get(container)
-                    + ", new parcel size is " + parcel.getMagnitude());
+            /* 5 */checkArgument(newSize <= containerCapacities.get(container), "parcel does not fit in container. Capacity is %s, current content size is %s, new parcel size is %s", containerCapacities
+                    .get(container), containerContentsSize.get(container), parcel
+                    .getMagnitude());
 
             containerContents.put(container, parcel);
             containerContentsSize.put(container, newSize);

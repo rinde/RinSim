@@ -73,9 +73,8 @@ public class EventDispatcher implements EventAPI {
         if (e == null) {
             throw new IllegalArgumentException("event can not be null");
         }
-        checkArgument(supportedTypes.contains(e.getEventType()), "Cannot dispatch an event of type "
-                + e.getEventType()
-                + " since it was not registered at this dispatcher.");
+        checkArgument(supportedTypes.contains(e.getEventType()), "Cannot dispatch an event of type %s since it was not registered at this dispatcher.", e
+                .getEventType());
         for (final Listener l : listeners.get(e.getEventType())) {
             l.handleEvent(e);
         }
@@ -121,8 +120,7 @@ public class EventDispatcher implements EventAPI {
         final Set<Enum<?>> theTypes = all ? supportedTypes : eventTypes;
         for (final Enum<?> eventType : theTypes) {
             checkArgument(eventType != null, "event type can not be null");
-            checkArgument(supportedTypes.contains(eventType), "A listener for type "
-                    + eventType + " is not allowed");
+            checkArgument(supportedTypes.contains(eventType), "A listener for type %s is not allowed.", eventType);
             listeners.put(eventType, listener);
         }
     }
@@ -157,11 +155,7 @@ public class EventDispatcher implements EventAPI {
         } else {
             for (final Enum<?> eventType : eventTypes) {
                 checkArgument(eventType != null, "event type can not be null");
-                checkArgument(containsListener(listener, eventType), "The listener "
-                        + listener
-                        + " for the type "
-                        + eventType
-                        + " cannot be removed because it does not exist.");
+                checkArgument(containsListener(listener, eventType), "The listener %s for the type %s cannot be removed because it does not exist.", listener, eventType);
                 listeners.remove(eventType, listener);
             }
         }

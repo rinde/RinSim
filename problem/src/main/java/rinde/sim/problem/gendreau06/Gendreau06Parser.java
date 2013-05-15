@@ -72,8 +72,7 @@ public final class Gendreau06Parser {
 
 		final String regex = ".*req_rapide_\\d+_(450|240)_(24|33)";
 		final Matcher m = Pattern.compile(regex).matcher(fileName);
-		checkArgument(m.matches(), "The filename must conform to the following regex: " + regex + " input was: "
-				+ fileName);
+		checkArgument(m.matches(), "The filename must conform to the following regex: %s input was: %s", regex, fileName);
 		// checkArgument(fileName.contains("240") || fileName.contains("540"),
 		// "The filename must follow the following pattern: req_rapide_I_T_R, where I=instance number, T=total time (either 240 or 540 minutes), R=number of requests per hour (either 24 or 33).");
 

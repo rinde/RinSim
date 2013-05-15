@@ -114,7 +114,7 @@ public class SimulationViewer extends Composite implements TickListener, Control
 				valid = true;
 			}
 
-			checkState(valid, "A renderer was not of a recognized subtype: " + r);
+			checkState(valid, "A renderer was not of a recognized subtype: %s", r);
 
 			if (r instanceof TickListener) {
 				sim.addTickListener((TickListener) r);
@@ -185,7 +185,7 @@ public class SimulationViewer extends Composite implements TickListener, Control
 				horizontal.setWeights(varargs(canvasWidth, rightWidth));
 			}
 
-			checkState(panels.isEmpty(), "Invalid preferred position set for panels: " + panels.values());
+			checkState(panels.isEmpty(), "Invalid preferred position set for panels: %s", panels.values());
 		}
 
 	}
@@ -540,7 +540,7 @@ public class SimulationViewer extends Composite implements TickListener, Control
 			}
 		}
 
-		checkState(isDefined, "none of the available renderers implements getViewRect(), known renderers: " + renderers);
+		checkState(isDefined, "none of the available renderers implements getViewRect(), known renderers: %s", renderers);
 
 		viewRect = new ViewRect(new Point(minX, minY), new Point(maxX, maxY));
 

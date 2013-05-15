@@ -245,8 +245,7 @@ public class ScenarioController implements TickListener {
 
         @Override
         public final void handleEvent(Event e) {
-            checkState(timedEventHandler.handleTimedEvent((TimedEvent) e), "The event "
-                    + e.getEventType() + " is not handled.");
+            checkState(timedEventHandler.handleTimedEvent((TimedEvent) e), "The event %s is not handled.",e.getEventType());
         }
     }
 

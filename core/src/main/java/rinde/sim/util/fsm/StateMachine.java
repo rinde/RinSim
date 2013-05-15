@@ -53,8 +53,7 @@ public class StateMachine<E, C> {
     }
 
     protected void changeState(E event, C context) {
-        checkArgument(transitionTable.contains(currentState, event), "The event "
-                + event + " is not supported when in state " + currentState);
+        checkArgument(transitionTable.contains(currentState, event), "The event %s is not supported when in state %s.", event, currentState);
         final State<E, C> newState = transitionTable.get(currentState, event);
         if (newState != currentState) {
             // System.out.println(currentState + " + " + event + " = " +

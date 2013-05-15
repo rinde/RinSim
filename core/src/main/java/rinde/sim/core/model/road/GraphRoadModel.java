@@ -238,21 +238,9 @@ public class GraphRoadModel extends AbstractRoadModel<Loc> {
      * @throws IllegalArgumentException if the location is not valid.
      */
     protected Loc checkLocation(Loc l) {
-        /*
-         * NOTE: Since this method is called VERY often, for performance reasons
-         * the checkArgument(..) method provided by Guava is not used here. The
-         * method provided by Guava is slower since in that case the error
-         * string is built EVERY invocation, instead of merely when needed.
-         */
-        if (!l.isOnConnection() && !graph.containsNode(l)) {
-            throw new IllegalArgumentException(
-                    "Location points to non-existing vertex: " + l + ".");
-        } else if (l.isOnConnection()
-                && !graph.hasConnection(l.conn.from, l.conn.to)) {
-            throw new IllegalArgumentException(
-                    "Location points to non-existing connection: " + l.conn
-                            + ".");
-        }
+        checkArgument(l.isOnConnection() || graph.containsNode(l), "Location points to non-existing vertex: %s.", l);
+        checkArgument(!l.isOnConnection()
+                || graph.hasConnection(l.conn.from, l.conn.to), "Location points to non-existing connection: %s.", l.conn);
         return l;
     }
 
