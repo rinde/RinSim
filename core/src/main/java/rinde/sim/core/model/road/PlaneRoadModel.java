@@ -134,8 +134,8 @@ public class PlaneRoadModel extends AbstractRoadModel<Point> {
 
     @Override
     public List<Point> getShortestPathTo(Point from, Point to) {
-        checkArgument(isPointInBoundary(from), "from must be within the predefined boundary of the plane");
-        checkArgument(isPointInBoundary(to), "to must be within the predefined boundary of the plane");
+        checkArgument(isPointInBoundary(from), "from must be within the predefined boundary of the plane, from is %s", from);
+        checkArgument(isPointInBoundary(to), "to must be within the predefined boundary of the plane, to is %s", to);
         return asList(from, to);
     }
 
