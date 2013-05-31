@@ -60,9 +60,11 @@ public class Gendreau06ObjectiveFunction implements ObjectiveFunction {
 
 	}
 
-	protected long travelTime(StatisticsDTO stats) {
+	// time in minutes
+	protected double travelTime(StatisticsDTO stats) {
 		// avg speed is 30 km/h
-		return (long) ((stats.totalDistance / 30d) * 60d);
+		// = (dist / 30.0) * 60.0
+		return stats.totalDistance * 2d;
 	}
 
 	protected double tardiness(StatisticsDTO stats) {
