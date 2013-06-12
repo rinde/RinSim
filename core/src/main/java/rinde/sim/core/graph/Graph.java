@@ -14,6 +14,9 @@ import org.apache.commons.math3.random.RandomGenerator;
  * which are represented as {@link Point}s and edges are represented by
  * {@link Connection}s. Graphs are directed.
  * 
+ * TODO should be split up in an UnmodifiableGraph and Graph. Graphs should be
+ * created using the builder pattern?
+ * 
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
  * @author Bartosz Michalik <bartosz.michalik@cs.kuleuven.be> - added edge data
  *         handling

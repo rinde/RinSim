@@ -113,6 +113,10 @@ public class Simulator implements SimulatorAPI {
     // indicate: every subscribing object uses same RNG, objects of the same
     // class share same RNG, all objects get a different RNG instance
     // respectively.
+
+    // TODO investigate if a TimeModel should be created, this would move all
+    // time/tick related stuff into its own class. Making it easier to extend
+    // this part.
     /**
      * Create a new simulator instance.
      * @param r The random number generator that is used in this simulator.
@@ -158,6 +162,8 @@ public class Simulator implements SimulatorAPI {
                 .dispatchEvent(new Event(SimulatorEventType.CONFIGURED, this));
     }
 
+    // TODO create a SimulatorBuilder for configuration of Simulator?
+    // TODO should fail on error instead of returning a boolean
     /**
      * Register a model to the simulator.
      * @param model The {@link Model} instance to register.

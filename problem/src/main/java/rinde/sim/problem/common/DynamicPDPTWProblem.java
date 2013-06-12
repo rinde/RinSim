@@ -61,6 +61,8 @@ import rinde.sim.util.spec.ISpecification;
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
  */
 public class DynamicPDPTWProblem {
+	
+	// TODO create a builder for configuration of problems
 
 	/**
 	 * A map which contains the default {@link Creator}s.

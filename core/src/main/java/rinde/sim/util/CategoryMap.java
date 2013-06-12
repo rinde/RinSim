@@ -31,6 +31,8 @@ import com.google.common.collect.Multiset;
  */
 public class CategoryMap<C, V> implements Multimap<C, V> {
 
+    // TODO use Guava test tools
+
     final Multimap<C, V> categoryValueMultiMap;
     final Map<V, C> valueCategoryMap;
 

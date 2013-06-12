@@ -71,6 +71,8 @@ public class ScenarioController implements TickListener {
     private EventType status;
     private boolean uiMode;
 
+    // TODO ScenarioController should be added to Simulator not other way
+    // around.
     /**
      * Create an instance of ScenarioController with defined {@link Scenario}
      * and number of ticks till end. If the number of ticks is negative the
@@ -114,6 +116,7 @@ public class ScenarioController implements TickListener {
 
     }
 
+    // TODO add UICreator directly to Simulator?
     /**
      * Enables the UI for this scenario controller. This means that when
      * {@link #start()} is called the UI is fired up. Using {@link UICreator}
@@ -245,7 +248,8 @@ public class ScenarioController implements TickListener {
 
         @Override
         public final void handleEvent(Event e) {
-            checkState(timedEventHandler.handleTimedEvent((TimedEvent) e), "The event %s is not handled.",e.getEventType());
+            checkState(timedEventHandler.handleTimedEvent((TimedEvent) e), "The event %s is not handled.", e
+                    .getEventType());
         }
     }
 
