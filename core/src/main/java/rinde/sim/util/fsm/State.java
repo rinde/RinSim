@@ -1,8 +1,7 @@
 package rinde.sim.util.fsm;
 
 /**
- * Defines a state in a state machine. It is defined such that it can be
- * implemented by an enum if needed.
+ * Defines a state in a state machine.
  * 
  * @param <E> Event type, see {@link StateMachine} for details.
  * @param <C> Context type, see {@link StateMachine} for details.

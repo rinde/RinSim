@@ -164,6 +164,7 @@ public class StateMachineTest {
     public void eventNotEqualBehavior() {
 
         final TestState state1 = new TestState("state1");
+        state1.name();
         final TestState state2 = new TestState("state2");
         final Object event1 = "event1";
         final Object event2 = new Object();
@@ -187,7 +188,7 @@ public class StateMachineTest {
         assertFalse(sm.isSupported(new Object()));
     }
 
-    static class TestState implements State<Object, Object> {
+    static class TestState extends AbstractState<Object, Object> {
         private final String name;
 
         public TestState(String pName) {
@@ -196,18 +197,12 @@ public class StateMachineTest {
 
         @Override
         public String name() {
-            return name;
+            return super.name() + name;
         }
 
         @Override
         public Object handle(Object event, Object context) {
             return null;
         }
-
-        @Override
-        public void onEntry(Object event, Object context) {}
-
-        @Override
-        public void onExit(Object event, Object context) {}
     }
 }

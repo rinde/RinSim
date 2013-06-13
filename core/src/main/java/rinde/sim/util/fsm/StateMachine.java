@@ -131,11 +131,11 @@ public class StateMachine<E, C> {
      * Convenience method for checking whether the current state is the same as
      * the specified state.
      * @param s The state to be checked.
-     * @return <code>true</code> when the states are equal, <code>false</code>
-     *         otherwise.
+     * @return <code>true</code> when the states are the same object,
+     *         <code>false</code> otherwise.
      */
     public boolean stateIs(State<E, C> s) {
-        return currentState.equals(s);
+        return currentState == s;
     }
 
     /**
@@ -147,7 +147,7 @@ public class StateMachine<E, C> {
      */
     public boolean stateIsOneOf(State<E, C>... states) {
         for (final State<E, C> s : states) {
-            if (currentState.equals(s)) {
+            if (stateIs(s)) {
                 return true;
             }
         }
