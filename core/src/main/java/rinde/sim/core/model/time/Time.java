@@ -5,8 +5,10 @@ package rinde.sim.core.model.time;
 
 /**
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
- *
+ * 
  */
+// FIXME think of name, perhaps TimeControls is better? This should be the thing
+// that allows modifying time progress
 public interface Time {
 
     /**
