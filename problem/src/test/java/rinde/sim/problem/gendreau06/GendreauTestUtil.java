@@ -24,11 +24,15 @@ public class GendreauTestUtil {
 			long ts) {
 		return new Gendreau06Scenario(pEvents, pSupportedTypes, ts);
 	}
-
+	
 	public static Gendreau06Scenario create(Collection<TimedEvent> parcels) {
+		return create(parcels,1);
+	}
+
+	public static Gendreau06Scenario create(Collection<TimedEvent> parcels, int numTrucks) {
 		Gendreau06Scenario gs;
 		try {
-			gs = Gendreau06Parser.parse(new BufferedReader(new StringReader("")), "req_rapide_1_240_24", 1, 1000L);
+			gs = Gendreau06Parser.parse(new BufferedReader(new StringReader("")), "req_rapide_1_240_24", numTrucks, 1000L);
 		} catch (final IOException e) {
 			throw new RuntimeException("if this is thrown it is due to a programming error in the line above");
 		}
