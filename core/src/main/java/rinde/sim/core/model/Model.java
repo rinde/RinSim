@@ -6,6 +6,10 @@ package rinde.sim.core.model;
  */
 public interface Model<T> {
 
+    // FIXME should be injected with a interface not the class itself
+    // TODO, maybe add return value? e.g. other models?
+    void initModel(ModelManager mm);
+
     /**
      * Register element in a model.
      * @param element the <code>! null</code> should be imposed

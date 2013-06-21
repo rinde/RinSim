@@ -3,8 +3,6 @@
  */
 package rinde.sim.core;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -70,7 +68,7 @@ public class Simulator implements SimulatorAPI {
     protected final ModelManager modelManager;
     private boolean configured;
 
-    private Set<Object> toUnregister;
+    private final Set<Object> toUnregister;
     // private final ReentrantLock unregisterLock;
     private final RandomGenerator rand;
 
@@ -103,6 +101,14 @@ public class Simulator implements SimulatorAPI {
         dispatcher = new EventDispatcher(SimulatorEventType.values());
     }
 
+    public void start() {
+        if (!configured) {
+            throw new IllegalStateException(
+                    "Simulator can not be started when it is not configured.");
+        }
+        // TODO time model start?
+    }
+
     /**
      * This configures the {@link Model}s in the simulator. After calling this
      * method models can no longer be added, objects can only be registered
@@ -110,13 +116,13 @@ public class Simulator implements SimulatorAPI {
      * @see ModelManager#configure()
      */
     public void configure() {
-        for (final Model<?> m : modelManager.getModels()) {
-            if (m instanceof TickListener) {
-                LOGGER.info("adding " + m.getClass().getName()
-                        + " as a tick listener");
-                addTickListener((TickListener) m);
-            }
-        }
+        // for (final Model<?> m : modelManager.getModels()) {
+        // if (m instanceof TickListener) {
+        // LOGGER.info("adding " + m.getClass().getName()
+        // + " as a tick listener");
+        // addTickListener((TickListener) m);
+        // }
+        // }
         modelManager.configure();
         configured = true;
         dispatcher
@@ -225,145 +231,8 @@ public class Simulator implements SimulatorAPI {
         return modelManager;
     }
 
-    /**
-     * @return The current simulation time.
-     */
-    public long getCurrentTime() {
-        return time;
-    }
-
-    /**
-     * @return The time step (in simulation time) which is added to current time
-     *         at every tick.
-     */
-    public long getTimeStep() {
-        return timeStep;
-    }
-
-    /**
-     * Adds a tick listener to the simulator.
-     * @param listener The listener to add.
-     */
-    public void addTickListener(TickListener listener) {
-        tickListeners.add(listener);
-    }
-
-    /**
-     * Removes the listener specified. Implemented in O(1).
-     * @param listener The listener to remove
-     */
-    public void removeTickListener(TickListener listener) {
-        tickListeners.remove(listener);
-    }
-
-    /**
-     * Start the simulation.
-     */
-    public void start() {
-        if (!configured) {
-            throw new IllegalStateException(
-                    "Simulator can not be started when it is not configured.");
-        }
-        if (!isPlaying) {
-            dispatcher
-                    .dispatchEvent(new Event(SimulatorEventType.STARTED, this));
-        }
-        isPlaying = true;
-        while (isPlaying) {
-            tick();
-        }
-        dispatcher.dispatchEvent(new Event(SimulatorEventType.STOPPED, this));
-    }
-
-    /**
-     * Advances the simulator with one step (the size is determined by the time
-     * step).
-     */
-    public void tick() {
-        // unregister all pending objects
-        // unregisterLock.lock();
-        Set<Object> copy;
-        try {
-            copy = toUnregister;
-            toUnregister = new LinkedHashSet<Object>();
-        } finally {
-            // unregisterLock.unlock();
-        }
-
-        for (final Object c : copy) {
-            modelManager.unregister(c);
-        }
-
-        // using a copy to avoid concurrent modifications of this set
-        // this also means that adding or removing a TickListener is
-        // effectively executed after a 'tick'
-
-        final List<TickListener> localCopy = new ArrayList<TickListener>();
-        long timeS = System.currentTimeMillis();
-        localCopy.addAll(tickListeners);
-
-        for (final TickListener t : localCopy) {
-            timeLapse.initialize(time, time + timeStep);
-            t.tick(timeLapse);
-        }
-        if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("tick(): " + (System.currentTimeMillis() - timeS));
-            timeS = System.currentTimeMillis();
-        }
-        timeLapse.initialize(time, time + timeStep);
-        // in the after tick the TimeLapse can no longer be consumed
-        timeLapse.consumeAll();
-        for (final TickListener t : localCopy) {
-            t.afterTick(timeLapse);
-        }
-        if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("aftertick(): " + (System.currentTimeMillis() - timeS));
-        }
-        time += timeStep;
-
-    }
-
-    /**
-     * Either starts or stops the simulation depending on the current state.
-     */
-    public void togglePlayPause() {
-        if (!isPlaying) {
-            start();
-        } else {
-            isPlaying = false;
-        }
-    }
-
-    /**
-     * Resets the time to 0.
-     */
-    public void resetTime() {
-        time = 0L;
-    }
-
-    /**
-     * Stops the simulation.
-     */
-    public void stop() {
-        isPlaying = false;
-    }
-
-    /**
-     * @return true if simulator is playing, false otherwise.
-     */
-    public boolean isPlaying() {
-        return isPlaying;
-    }
-
     public boolean isConfigured() {
         return configured;
-    }
-
-    /**
-     * @return An unmodifiable view on the set of tick listeners.
-     */
-    public Set<TickListener> getTickListeners() {
-        return Collections.unmodifiableSet(tickListeners);
     }
 
     /**
