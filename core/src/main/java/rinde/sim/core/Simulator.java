@@ -3,8 +3,6 @@
  */
 package rinde.sim.core;
 
-import static com.google.common.base.Preconditions.checkArgument;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashSet;
@@ -18,6 +16,8 @@ import org.slf4j.LoggerFactory;
 import rinde.sim.core.model.Model;
 import rinde.sim.core.model.ModelManager;
 import rinde.sim.core.model.ModelProvider;
+import rinde.sim.core.model.time.TickListener;
+import rinde.sim.core.model.time.TimeLapse;
 import rinde.sim.event.Event;
 import rinde.sim.event.EventAPI;
 import rinde.sim.event.EventDispatcher;
@@ -60,39 +60,9 @@ public class Simulator implements SimulatorAPI {
      * dispatch.
      */
     public enum SimulatorEventType {
-        /**
-         * Indicates that the simulator has stopped.
-         */
-        STOPPED,
-
-        /**
-         * Indicates that the simulator has started.
-         */
-        STARTED,
 
         CONFIGURED
     }
-
-    /**
-     * Contains the set of registered {@link TickListener}s.
-     */
-    protected volatile Set<TickListener> tickListeners;
-
-    /**
-     * Reference to dispatcher of simulator events, can be used by subclasses to
-     * issue additional events.
-     */
-    protected final EventDispatcher dispatcher;
-
-    /**
-     * @see #isPlaying
-     */
-    protected volatile boolean isPlaying;
-
-    /**
-     * @see #getCurrentTime()
-     */
-    protected long time;
 
     /**
      * Model manager instance.
@@ -103,8 +73,6 @@ public class Simulator implements SimulatorAPI {
     private Set<Object> toUnregister;
     // private final ReentrantLock unregisterLock;
     private final RandomGenerator rand;
-    private final long timeStep;
-    private final TimeLapse timeLapse;
 
     // TODO RandomGenerator should be moved into an own model. This way, objects
     // that need a reference to a random generator can get one by implementing
@@ -124,18 +92,11 @@ public class Simulator implements SimulatorAPI {
      *            programmer prefers.
      */
     public Simulator(RandomGenerator r, long step) {
-        checkArgument(step > 0, "Step must be a positive number.");
-        timeStep = step;
-        tickListeners = Collections
-                .synchronizedSet(new LinkedHashSet<TickListener>());
 
         // unregisterLock = new ReentrantLock();
         toUnregister = new LinkedHashSet<Object>();
 
         rand = r;
-        time = 0L;
-        // time lapse is reused in a Flyweight kind of style
-        timeLapse = new TimeLapse();
 
         modelManager = new ModelManager();
 

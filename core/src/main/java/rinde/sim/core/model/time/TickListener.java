@@ -1,7 +1,7 @@
 /**
  * 
  */
-package rinde.sim.core;
+package rinde.sim.core.model.time;
 
 /**
  * Allows an implementor to receive updates when time progresses in the

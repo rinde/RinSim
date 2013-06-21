@@ -25,14 +25,14 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.ScrollBar;
 
-import rinde.sim.core.TickListener;
-import rinde.sim.core.TimeLapse;
 import rinde.sim.core.model.ModelProvider;
 import rinde.sim.core.model.ModelReceiver;
 import rinde.sim.core.model.pdp.PDPModel;
 import rinde.sim.core.model.pdp.PDPModel.PDPModelEvent;
 import rinde.sim.core.model.pdp.PDPModel.PDPModelEventType;
 import rinde.sim.core.model.pdp.Parcel;
+import rinde.sim.core.model.time.TickListener;
+import rinde.sim.core.model.time.TimeLapse;
 import rinde.sim.event.Event;
 import rinde.sim.event.Listener;
 import rinde.sim.ui.renderers.PanelRenderer;

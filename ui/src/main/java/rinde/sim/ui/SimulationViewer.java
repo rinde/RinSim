@@ -35,10 +35,10 @@ import org.eclipse.swt.widgets.TabFolder;
 import org.eclipse.swt.widgets.TabItem;
 
 import rinde.sim.core.Simulator;
-import rinde.sim.core.TickListener;
-import rinde.sim.core.TimeLapse;
 import rinde.sim.core.graph.Point;
 import rinde.sim.core.model.ModelReceiver;
+import rinde.sim.core.model.time.TickListener;
+import rinde.sim.core.model.time.TimeLapse;
 import rinde.sim.ui.renderers.CanvasRenderer;
 import rinde.sim.ui.renderers.PanelRenderer;
 import rinde.sim.ui.renderers.Renderer;

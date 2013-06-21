@@ -26,13 +26,13 @@ import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 
 import rinde.sim.core.Simulator;
-import rinde.sim.core.TimeLapse;
 import rinde.sim.core.graph.Point;
 import rinde.sim.core.model.pdp.PDPModel;
 import rinde.sim.core.model.pdp.PDPModel.ParcelState;
 import rinde.sim.core.model.pdp.PDPScenarioEvent;
 import rinde.sim.core.model.pdp.Parcel;
 import rinde.sim.core.model.road.RoadModel;
+import rinde.sim.core.model.time.TimeLapse;
 import rinde.sim.problem.common.AddDepotEvent;
 import rinde.sim.problem.common.AddParcelEvent;
 import rinde.sim.problem.common.AddVehicleEvent;

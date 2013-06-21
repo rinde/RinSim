@@ -18,13 +18,13 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 
-import rinde.sim.core.TimeLapse;
 import rinde.sim.core.TimeLapseFactory;
 import rinde.sim.core.graph.Graph;
 import rinde.sim.core.graph.MultiAttributeData;
 import rinde.sim.core.graph.Point;
 import rinde.sim.core.graph.TestMultimapGraph;
 import rinde.sim.core.graph.TestTableGraph;
+import rinde.sim.core.model.time.TimeLapse;
 import rinde.sim.util.TimeUnit;
 
 /**

@@ -17,8 +17,6 @@ import java.util.Set;
 
 import javax.annotation.Nullable;
 
-import rinde.sim.core.TickListener;
-import rinde.sim.core.TimeLapse;
 import rinde.sim.core.graph.Point;
 import rinde.sim.core.model.Model;
 import rinde.sim.core.model.ModelProvider;
@@ -26,6 +24,8 @@ import rinde.sim.core.model.ModelReceiver;
 import rinde.sim.core.model.pdp.twpolicy.LiberalPolicy;
 import rinde.sim.core.model.pdp.twpolicy.TimeWindowPolicy;
 import rinde.sim.core.model.road.RoadModel;
+import rinde.sim.core.model.time.TickListener;
+import rinde.sim.core.model.time.TimeLapse;
 import rinde.sim.event.Event;
 import rinde.sim.event.EventAPI;
 import rinde.sim.event.EventDispatcher;

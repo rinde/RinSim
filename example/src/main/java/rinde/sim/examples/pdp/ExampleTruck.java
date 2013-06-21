@@ -5,12 +5,12 @@ package rinde.sim.examples.pdp;
 
 import java.util.Collection;
 
-import rinde.sim.core.TimeLapse;
 import rinde.sim.core.graph.Point;
 import rinde.sim.core.model.pdp.PDPModel;
 import rinde.sim.core.model.pdp.Parcel;
 import rinde.sim.core.model.pdp.Vehicle;
 import rinde.sim.core.model.road.RoadModel;
+import rinde.sim.core.model.time.TimeLapse;
 
 /**
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>

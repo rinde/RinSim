@@ -7,10 +7,10 @@ import java.io.FileReader;
 import java.io.IOException;
 
 import rinde.sim.core.Simulator;
-import rinde.sim.core.TimeLapse;
 import rinde.sim.core.model.pdp.PDPModel.ParcelState;
 import rinde.sim.core.model.road.RoadModels;
 import rinde.sim.core.model.road.RoadUser;
+import rinde.sim.core.model.time.TimeLapse;
 import rinde.sim.problem.common.AddVehicleEvent;
 import rinde.sim.problem.common.DefaultParcel;
 import rinde.sim.problem.common.DefaultVehicle;

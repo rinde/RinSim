@@ -1,9 +1,10 @@
 /**
  * 
  */
-package rinde.sim.core;
+package rinde.sim.core.model.time;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import rinde.sim.core.Simulator;
 
 /**
  * Represents a consumable interval of time: [start, end). Instances of time

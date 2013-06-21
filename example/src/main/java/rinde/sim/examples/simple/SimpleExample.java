@@ -7,12 +7,12 @@ import org.apache.commons.math3.random.MersenneTwister;
 import org.apache.commons.math3.random.RandomGenerator;
 
 import rinde.sim.core.Simulator;
-import rinde.sim.core.TickListener;
-import rinde.sim.core.TimeLapse;
 import rinde.sim.core.graph.Point;
 import rinde.sim.core.model.road.MovingRoadUser;
 import rinde.sim.core.model.road.PlaneRoadModel;
 import rinde.sim.core.model.road.RoadModel;
+import rinde.sim.core.model.time.TickListener;
+import rinde.sim.core.model.time.TimeLapse;
 import rinde.sim.ui.View;
 import rinde.sim.ui.renderers.PlaneRoadModelRenderer;
 import rinde.sim.ui.renderers.RoadUserRenderer;

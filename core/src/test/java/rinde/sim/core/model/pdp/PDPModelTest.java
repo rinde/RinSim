@@ -13,7 +13,6 @@ import static org.junit.Assert.assertTrue;
 import org.junit.Before;
 import org.junit.Test;
 
-import rinde.sim.core.TimeLapse;
 import rinde.sim.core.TimeLapseFactory;
 import rinde.sim.core.graph.Point;
 import rinde.sim.core.model.Model;
@@ -24,6 +23,7 @@ import rinde.sim.core.model.pdp.PDPModel.PickupAction;
 import rinde.sim.core.model.pdp.PDPModel.VehicleState;
 import rinde.sim.core.model.road.PlaneRoadModel;
 import rinde.sim.core.model.road.RoadModel;
+import rinde.sim.core.model.time.TimeLapse;
 import rinde.sim.util.TimeWindow;
 
 /**

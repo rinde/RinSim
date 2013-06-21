@@ -1,5 +1,7 @@
 package rinde.sim.core;
 
+import rinde.sim.core.model.time.TimeLapse;
+
 /**
  * @author Rinde van Lon (rinde.vanlon@cs.kuleuven.be)
  */

@@ -12,8 +12,8 @@ import org.slf4j.LoggerFactory;
 
 import rinde.sim.core.Simulator;
 import rinde.sim.core.Simulator.SimulatorEventType;
-import rinde.sim.core.TickListener;
-import rinde.sim.core.TimeLapse;
+import rinde.sim.core.model.time.TickListener;
+import rinde.sim.core.model.time.TimeLapse;
 import rinde.sim.event.Event;
 import rinde.sim.event.EventAPI;
 import rinde.sim.event.EventDispatcher;

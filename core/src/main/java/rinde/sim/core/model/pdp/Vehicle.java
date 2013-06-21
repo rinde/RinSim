@@ -3,9 +3,9 @@
  */
 package rinde.sim.core.model.pdp;
 
-import rinde.sim.core.TickListener;
-import rinde.sim.core.TimeLapse;
 import rinde.sim.core.model.road.MovingRoadUser;
+import rinde.sim.core.model.time.TickListener;
+import rinde.sim.core.model.time.TimeLapse;
 
 /**
  * Abstract base class for vehicle concept: moving {@link Container}.

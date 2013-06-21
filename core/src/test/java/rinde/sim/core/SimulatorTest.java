@@ -14,6 +14,9 @@ import org.apache.commons.math3.random.MersenneTwister;
 import org.junit.Before;
 import org.junit.Test;
 
+import rinde.sim.core.model.time.TickListener;
+import rinde.sim.core.model.time.TimeLapse;
+
 import com.google.common.collect.Sets;
 
 /**

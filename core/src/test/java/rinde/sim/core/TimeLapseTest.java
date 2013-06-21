@@ -9,6 +9,8 @@ import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 
+import rinde.sim.core.model.time.TimeLapse;
+
 /**
  * @author Rinde van Lon (rinde.vanlon@cs.kuleuven.be)
  * 

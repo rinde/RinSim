@@ -8,8 +8,8 @@ import java.util.HashSet;
 
 import org.apache.commons.math3.random.RandomGenerator;
 
-import rinde.sim.core.TimeLapse;
 import rinde.sim.core.graph.Point;
+import rinde.sim.core.model.time.TimeLapse;
 
 import com.google.common.base.Predicate;
 import com.google.common.collect.ArrayListMultimap;

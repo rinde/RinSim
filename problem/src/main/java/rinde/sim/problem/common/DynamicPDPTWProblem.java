@@ -17,8 +17,6 @@ import org.apache.commons.math3.random.MersenneTwister;
 import org.eclipse.swt.SWT;
 
 import rinde.sim.core.Simulator;
-import rinde.sim.core.TickListener;
-import rinde.sim.core.TimeLapse;
 import rinde.sim.core.model.Model;
 import rinde.sim.core.model.pdp.Depot;
 import rinde.sim.core.model.pdp.PDPModel;
@@ -26,6 +24,8 @@ import rinde.sim.core.model.pdp.Parcel;
 import rinde.sim.core.model.pdp.Vehicle;
 import rinde.sim.core.model.pdp.twpolicy.TardyAllowedPolicy;
 import rinde.sim.core.model.road.PlaneRoadModel;
+import rinde.sim.core.model.time.TickListener;
+import rinde.sim.core.model.time.TimeLapse;
 import rinde.sim.problem.common.StatsTracker.StatisticsDTO;
 import rinde.sim.scenario.ScenarioController;
 import rinde.sim.scenario.ScenarioController.UICreator;

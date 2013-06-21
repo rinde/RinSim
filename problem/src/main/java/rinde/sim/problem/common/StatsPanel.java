@@ -12,8 +12,8 @@ import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.TableItem;
 
-import rinde.sim.core.TickListener;
-import rinde.sim.core.TimeLapse;
+import rinde.sim.core.model.time.TickListener;
+import rinde.sim.core.model.time.TimeLapse;
 import rinde.sim.event.Event;
 import rinde.sim.event.Listener;
 import rinde.sim.problem.common.StatsTracker.StatisticsDTO;

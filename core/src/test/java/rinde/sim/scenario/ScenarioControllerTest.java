@@ -23,8 +23,8 @@ import org.junit.Before;
 import org.junit.Test;
 
 import rinde.sim.core.Simulator;
-import rinde.sim.core.TimeLapse;
 import rinde.sim.core.TimeLapseFactory;
+import rinde.sim.core.model.time.TimeLapse;
 import rinde.sim.event.Event;
 import rinde.sim.event.Listener;
 import rinde.sim.event.ListenerEventHistory;

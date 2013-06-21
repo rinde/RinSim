@@ -17,9 +17,9 @@ import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
 
-import rinde.sim.core.TimeLapse;
 import rinde.sim.core.graph.Point;
 import rinde.sim.core.model.AbstractModel;
+import rinde.sim.core.model.time.TimeLapse;
 import rinde.sim.event.EventAPI;
 import rinde.sim.event.EventDispatcher;
 import rinde.sim.util.SpeedConverter;

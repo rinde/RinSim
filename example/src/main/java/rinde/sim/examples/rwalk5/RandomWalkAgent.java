@@ -12,8 +12,6 @@ import org.apache.commons.math3.random.RandomGenerator;
 
 import rinde.sim.core.SimulatorAPI;
 import rinde.sim.core.SimulatorUser;
-import rinde.sim.core.TickListener;
-import rinde.sim.core.TimeLapse;
 import rinde.sim.core.graph.Point;
 import rinde.sim.core.model.communication.CommunicationAPI;
 import rinde.sim.core.model.communication.CommunicationUser;
@@ -22,6 +20,8 @@ import rinde.sim.core.model.communication.Message;
 import rinde.sim.core.model.road.MovingRoadUser;
 import rinde.sim.core.model.road.RoadModel;
 import rinde.sim.core.model.road.RoadUser;
+import rinde.sim.core.model.time.TickListener;
+import rinde.sim.core.model.time.TimeLapse;
 import rinde.sim.event.Event;
 import rinde.sim.event.EventAPI;
 import rinde.sim.event.EventDispatcher;
