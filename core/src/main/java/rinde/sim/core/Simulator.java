@@ -7,7 +7,6 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
-import org.apache.commons.math3.random.RandomGenerator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -69,16 +68,14 @@ public class Simulator implements SimulatorAPI {
     private boolean configured;
 
     private final Set<Object> toUnregister;
-    // private final ReentrantLock unregisterLock;
-    private final RandomGenerator rand;
 
-    // TODO RandomGenerator should be moved into an own model. This way, objects
-    // that need a reference to a random generator can get one by implementing
-    // this model's interface. The model could have several policies for
-    // distributing RNGs: ALL_SAME, CLASS_SAME, ALL_DIFFERENT. This would
-    // indicate: every subscribing object uses same RNG, objects of the same
-    // class share same RNG, all objects get a different RNG instance
-    // respectively.
+    /**
+     * Reference to dispatcher of simulator events, can be used by subclasses to
+     * issue additional events.
+     */
+    protected final EventDispatcher dispatcher;
+
+    // private final ReentrantLock unregisterLock;
 
     // TODO investigate if a TimeModel should be created, this would move all
     // time/tick related stuff into its own class. Making it easier to extend
@@ -89,12 +86,10 @@ public class Simulator implements SimulatorAPI {
      * @param step The time that passes each tick. This can be in any unit the
      *            programmer prefers.
      */
-    public Simulator(RandomGenerator r, long step) {
+    public Simulator() {
 
         // unregisterLock = new ReentrantLock();
         toUnregister = new LinkedHashSet<Object>();
-
-        rand = r;
 
         modelManager = new ModelManager();
 
@@ -169,9 +164,9 @@ public class Simulator implements SimulatorAPI {
                     "can not add object before calling configure()");
         }
         injectDependencies(obj);
-        if (obj instanceof TickListener) {
-            addTickListener((TickListener) obj);
-        }
+        // if (obj instanceof TickListener) {
+        // addTickListener((TickListener) obj);
+        // }
         return modelManager.register(obj);
     }
 
@@ -192,9 +187,9 @@ public class Simulator implements SimulatorAPI {
             throw new IllegalStateException(
                     "can not unregister object before calling configure()");
         }
-        if (o instanceof TickListener) {
-            removeTickListener((TickListener) o);
-        }
+        // if (o instanceof TickListener) {
+        // removeTickListener((TickListener) o);
+        // }
         // unregisterLock.lock();
         try {
             toUnregister.add(o);
@@ -233,14 +228,6 @@ public class Simulator implements SimulatorAPI {
 
     public boolean isConfigured() {
         return configured;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public RandomGenerator getRandomGenerator() {
-        return rand;
     }
 
     /**

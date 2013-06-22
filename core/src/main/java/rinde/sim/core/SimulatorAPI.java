@@ -1,6 +1,5 @@
 package rinde.sim.core;
 
-import org.apache.commons.math3.random.RandomGenerator;
 
 /**
  * Limited simulator API that provides an API for simulation elements (e.g.,
@@ -31,9 +30,4 @@ public interface SimulatorAPI {
      */
     boolean unregister(Object o);
 
-    /**
-     * Get access to the main random generator used in the simulator.
-     * @return the random generator of the simulatsor
-     */
-    RandomGenerator getRandomGenerator();
 }
