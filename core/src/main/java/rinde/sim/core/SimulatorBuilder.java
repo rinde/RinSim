@@ -35,13 +35,18 @@ public class SimulatorBuilder {
         return this;
     }
 
+    public SimulatorBuilder addScenario() {
+        // TODO add scenario
+        return this;
+    }
+
     public SimulatorBuilder addStopCondition() {
         // TODO add stop conditions
         return this;
     }
 
     public Simulator build() {
-        // check all configuration stuff
+        // TODO check all configuration stuff
 
         // TODO add TimeModel if not specified
         final Simulator s = new Simulator();
