@@ -6,14 +6,13 @@ package rinde.sim.core.model;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.collect.Lists.newArrayList;
+import static com.google.common.collect.Maps.newLinkedHashMap;
 
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
-
-import com.google.common.collect.LinkedHashMultimap;
-import com.google.common.collect.Multimap;
 
 /**
  * Models manager keeps track of all models used in the simulator. It is
@@ -24,7 +23,7 @@ import com.google.common.collect.Multimap;
  */
 public class ModelManager implements ModelProvider {
 
-    private final Multimap<Class<? extends Object>, ModelLink<? extends Object>> registry;
+    private final Map<Class<? extends Object>, ModelLink<? extends Object>> registry;
     private final List<Model> models;
     private boolean configured;
 
@@ -32,7 +31,7 @@ public class ModelManager implements ModelProvider {
      * Instantiate a new model manager.
      */
     public ModelManager() {
-        registry = LinkedHashMultimap.create();
+        registry = newLinkedHashMap();
         models = newArrayList();
     }
 
@@ -48,12 +47,12 @@ public class ModelManager implements ModelProvider {
         checkState(!configured, "model can not be registered after configure()");
         final Collection<? extends ModelLink<?>> modelLinks = model
                 .getModelLinks();
-        checkArgument(!modelLinks.isEmpty(), "every model needs to define at least one link");
+        checkArgument(!modelLinks.isEmpty(), "Implementations of \"%s\" need to define at least one link. Model: %s", Model.class, model);
         for (final ModelLink<?> m : modelLinks) {
             final Class<?> supportedType = m.getSupportedType();
 
-            checkArgument(supportedType != null, "modellink must implement getSupportedType() and return a non-null");
-            checkArgument(!registry.containsKey(supportedType), "Model conflict: there can be at most one ModelLink for every class");
+            checkArgument(supportedType != null, "Implementations of \"%s\" must implement getSupportedType() and return a non-null", ModelLink.class);
+            checkArgument(!registry.containsKey(supportedType), "Model conflict: there can be at most one Model linked to a type");
             registry.put(supportedType, m);
         }
         models.add(model);
@@ -65,6 +64,9 @@ public class ModelManager implements ModelProvider {
      * registered in the manager.
      */
     public void configure() {
+
+        // TODO should attempt to link every model with every other model?
+
         for (final Model m : models) {
             if (m instanceof ModelReceiver) {
                 ((ModelReceiver) m).registerModelProvider(this);
@@ -91,18 +93,16 @@ public class ModelManager implements ModelProvider {
         }
         checkState(configured, "can not register an object if configure() has not been called");
 
-        boolean result = false;
+        boolean isRegistered = false;
         final Set<Class<?>> modelSupportedTypes = registry.keySet();
         for (final Class<?> modelSupportedType : modelSupportedTypes) {
             if (modelSupportedType.isAssignableFrom(object.getClass())) {
-                final Collection<ModelLink<?>> assignableModels = registry
+                final ModelLink<T> assignableModelLink = (ModelLink<T>) registry
                         .get(modelSupportedType);
-                for (final ModelLink<?> m : assignableModels) {
-                    result |= ((ModelLink<T>) m).register(object);
-                }
+                isRegistered |= assignableModelLink.register(object);
             }
         }
-        checkState(result);
+        checkArgument(isRegistered, "The object could not be registered to any model.");
     }
 
     /**
@@ -122,19 +122,17 @@ public class ModelManager implements ModelProvider {
         checkArgument(!(object instanceof Model), "can not unregister a model");
         checkState(configured, "can not unregister when not configured, call configure() first");
 
-        boolean result = false;
+        boolean isUnregistered = false;
         final Set<Class<?>> modelSupportedTypes = registry.keySet();
         for (final Class<?> modelSupportedType : modelSupportedTypes) {
             // check if object is from a known type
             if (modelSupportedType.isAssignableFrom(object.getClass())) {
-                final Collection<ModelLink<?>> assignableModels = registry
+                final ModelLink<T> assignableModelLink = (ModelLink<T>) registry
                         .get(modelSupportedType);
-                for (final ModelLink<?> m : assignableModels) {
-                    result |= ((ModelLink<T>) m).unregister(object);
-                }
+                isUnregistered |= assignableModelLink.unregister(object);
             }
         }
-        checkState(result);
+        checkArgument(isUnregistered, "The object could not be unregistered from any model.");
     }
 
     /**
