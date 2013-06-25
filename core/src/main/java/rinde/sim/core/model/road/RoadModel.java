@@ -32,7 +32,7 @@ import com.google.common.base.Predicate;
  * {@link RoadModel}s are defined in {@link RoadModels}.
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
  */
-public interface RoadModel extends Model<RoadUser> {
+public interface RoadModel extends Model {
 
     /**
      * Moves the specified {@link MovingRoadUser} towards the specified

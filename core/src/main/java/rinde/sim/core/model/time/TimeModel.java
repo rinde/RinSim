@@ -14,10 +14,13 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import rinde.sim.core.model.AbstractModel;
-import rinde.sim.core.model.ModelManager;
+import rinde.sim.core.model.AbstractModelLink;
+import rinde.sim.core.model.Model;
+import rinde.sim.core.model.ModelLink;
 import rinde.sim.event.Event;
 import rinde.sim.event.EventDispatcher;
+
+import com.google.common.collect.ImmutableList;
 
 /**
  * 
@@ -30,7 +33,7 @@ import rinde.sim.event.EventDispatcher;
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
  * 
  */
-public class TimeModel extends AbstractModel<TimeController> implements Time {
+public class TimeModel implements Model, Time {
 
     protected static final Logger LOGGER = LoggerFactory
             .getLogger(TimeModel.class);
@@ -77,7 +80,6 @@ public class TimeModel extends AbstractModel<TimeController> implements Time {
     private final TimeLapse timeLapse;
 
     public TimeModel(long step) {
-        super(TimeController.class);
         checkArgument(step > 0, "Step must be a positive number.");
         timeStep = step;
         tickListeners = Collections
@@ -122,6 +124,14 @@ public class TimeModel extends AbstractModel<TimeController> implements Time {
     // FIXME should not be available -> only via SImulator.unregister
     protected void removeTickListener(TickListener listener) {
         tickListeners.remove(listener);
+    }
+
+    protected void registerTimeController(TimeController tc) {
+
+    }
+
+    protected void unregisterTimeController(TimeController tc) {
+
     }
 
     /**
@@ -225,56 +235,55 @@ public class TimeModel extends AbstractModel<TimeController> implements Time {
         return isPlaying;
     }
 
+    @Override
+    public List<ModelLink<?>> getModelLinks() {
+        return ImmutableList
+                .of((ModelLink<?>) new TimeControllerLink(), new TickListenerLink());
+    }
+
     /**
      * @return An unmodifiable view on the set of tick listeners.
      */
     // public Set<TickListener> getTickListeners() {
     // return Collections.unmodifiableSet(tickListeners);
     // }
+    private class TimeControllerLink extends AbstractModelLink<TimeController> {
 
-    @Override
-    public boolean register(TimeController element) {
-        // TODO Auto-generated method stub
-        return false;
-    }
+        protected TimeControllerLink() {
+            super(TimeController.class);
+        }
 
-    @Override
-    public boolean unregister(TimeController element) {
-        // TODO Auto-generated method stub
-        return false;
+        @Override
+        public boolean register(TimeController element) {
+            registerTimeController(element);
+            return true;
+        }
+
+        @Override
+        public boolean unregister(TimeController element) {
+            unregisterTimeController(element);
+            return true;
+        }
     }
 
     // forwards calls to TimeModel
-    private class TickListenerModel extends AbstractModel<TickListener> {
+    private class TickListenerLink extends AbstractModelLink<TickListener> {
 
-        private final TimeModel timeModel;
-
-        protected TickListenerModel(TimeModel tm) {
+        protected TickListenerLink() {
             super(TickListener.class);
-            timeModel = tm;
         }
 
         @Override
         public boolean register(TickListener element) {
-            timeModel.addTickListener(element);
+            addTickListener(element);
             return true;
         }
 
         @Override
         public boolean unregister(TickListener element) {
-            timeModel.removeTickListener(element);
+            removeTickListener(element);
             return true;
         }
-
-        @Override
-        public void initModel(ModelManager mm) {}
-
-    }
-
-    @Override
-    public void initModel(ModelManager mm) {
-        mm.add(new TickListenerModel(this));
-
     }
 
 }

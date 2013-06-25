@@ -6,14 +6,13 @@ package rinde.sim.core.model.rng;
 import org.apache.commons.math3.random.MersenneTwister;
 import org.apache.commons.math3.random.RandomGenerator;
 
-import rinde.sim.core.model.AbstractModel;
-import rinde.sim.core.model.ModelManager;
+import rinde.sim.core.model.SimpleModel;
 
 /**
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
  * 
  */
-public class RandomModel extends AbstractModel<RandomReceiver> {
+public class RandomModel extends SimpleModel<RandomReceiver> {
     // TODO RandomGenerator should be moved into an own model. This way, objects
     // that need a reference to a random generator can get one by implementing
     // this model's interface. The model could have several policies for
@@ -34,12 +33,6 @@ public class RandomModel extends AbstractModel<RandomReceiver> {
     }
 
     @Override
-    public void initModel(ModelManager mm) {
-        // TODO Auto-generated method stub
-
-    }
-
-    @Override
     public boolean register(RandomReceiver element) {
         element.receiveRandom(randomGenerator);
         return true;
@@ -49,5 +42,4 @@ public class RandomModel extends AbstractModel<RandomReceiver> {
     public boolean unregister(RandomReceiver element) {
         return true;
     }
-
 }

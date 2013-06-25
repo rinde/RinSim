@@ -131,7 +131,7 @@ public class Simulator implements SimulatorAPI {
      * @param model The {@link Model} instance to register.
      * @return true if succesful, false otherwise
      */
-    public boolean register(Model<?> model) {
+    public void register(Model model) {
         if (model == null) {
             throw new IllegalArgumentException("model can not be null");
         }
@@ -139,12 +139,13 @@ public class Simulator implements SimulatorAPI {
             throw new IllegalStateException(
                     "cannot add model after calling configure()");
         }
-        final boolean result = modelManager.add(model);
-        if (result) {
-            LOGGER.info("registering model :" + model.getClass().getName()
-                    + " for type:" + model.getSupportedType().getName());
-        }
-        return result;
+        // final boolean result =
+        modelManager.add(model);
+        // if (result) {
+        LOGGER.info("registering model :" + model.getClass().getName()
+                + " with links:" + model.getModelLinks());
+        // }
+        // return result;
     }
 
     /**
@@ -156,8 +157,9 @@ public class Simulator implements SimulatorAPI {
         if (obj == null) {
             throw new IllegalArgumentException("parameter can not be null");
         }
-        if (obj instanceof Model<?>) {
-            return register((Model<?>) obj);
+        if (obj instanceof Model) {
+            register((Model) obj);
+            return true;
         }
         if (!configured) {
             throw new IllegalStateException(
@@ -167,7 +169,8 @@ public class Simulator implements SimulatorAPI {
         // if (obj instanceof TickListener) {
         // addTickListener((TickListener) obj);
         // }
-        return modelManager.register(obj);
+        modelManager.register(obj);
+        return true;
     }
 
     /**
@@ -180,7 +183,7 @@ public class Simulator implements SimulatorAPI {
         if (o == null) {
             throw new IllegalArgumentException("parameter cannot be null");
         }
-        if (o instanceof Model<?>) {
+        if (o instanceof Model) {
             throw new IllegalArgumentException("can not unregister a model");
         }
         if (!configured) {
@@ -214,7 +217,7 @@ public class Simulator implements SimulatorAPI {
      * Returns a safe to modify list of all models registered in the simulator.
      * @return list of models
      */
-    public List<Model<?>> getModels() {
+    public List<Model> getModels() {
         return modelManager.getModels();
     }
 

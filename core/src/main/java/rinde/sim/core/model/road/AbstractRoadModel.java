@@ -18,7 +18,7 @@ import java.util.Queue;
 import java.util.Set;
 
 import rinde.sim.core.graph.Point;
-import rinde.sim.core.model.AbstractModel;
+import rinde.sim.core.model.SimpleModel;
 import rinde.sim.core.model.time.TimeLapse;
 import rinde.sim.event.EventAPI;
 import rinde.sim.event.EventDispatcher;
@@ -38,7 +38,7 @@ import com.google.common.collect.Sets;
  * 
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
  */
-public abstract class AbstractRoadModel<T> extends AbstractModel<RoadUser>
+public abstract class AbstractRoadModel<T> extends SimpleModel<RoadUser>
         implements RoadModel {
 
     protected final SpeedConverter speedConverter;

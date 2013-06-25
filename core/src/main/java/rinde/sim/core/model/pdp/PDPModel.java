@@ -18,9 +18,9 @@ import java.util.Set;
 import javax.annotation.Nullable;
 
 import rinde.sim.core.graph.Point;
-import rinde.sim.core.model.Model;
 import rinde.sim.core.model.ModelProvider;
 import rinde.sim.core.model.ModelReceiver;
+import rinde.sim.core.model.SimpleModel;
 import rinde.sim.core.model.pdp.twpolicy.LiberalPolicy;
 import rinde.sim.core.model.pdp.twpolicy.TimeWindowPolicy;
 import rinde.sim.core.model.road.RoadModel;
@@ -63,7 +63,8 @@ import com.google.common.collect.Multimap;
  * 
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
  */
-public class PDPModel implements Model<PDPObject>, TickListener, ModelReceiver {
+public class PDPModel extends SimpleModel<PDPObject> implements TickListener,
+        ModelReceiver {
 
     /**
      * The {@link EventDispatcher} used for generating events.
@@ -220,6 +221,7 @@ public class PDPModel implements Model<PDPObject>, TickListener, ModelReceiver {
      * @param twp The {@link TimeWindowPolicy} which is used in the model.
      */
     public PDPModel(TimeWindowPolicy twp) {
+        super(PDPObject.class);
         timeWindowPolicy = twp;
 
         containerContents = LinkedHashMultimap.create();
@@ -600,12 +602,6 @@ public class PDPModel implements Model<PDPObject>, TickListener, ModelReceiver {
     public boolean unregister(PDPObject element) {
         // TODO implement
         throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public Class<PDPObject> getSupportedType() {
-        return PDPObject.class;
-
     }
 
     /**

@@ -5,10 +5,10 @@ package rinde.sim.core.model;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
+import static com.google.common.collect.Lists.newArrayList;
 
 import java.util.Collection;
 import java.util.Collections;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
@@ -24,8 +24,8 @@ import com.google.common.collect.Multimap;
  */
 public class ModelManager implements ModelProvider {
 
-    private final Multimap<Class<? extends Object>, Model<? extends Object>> registry;
-    private final List<Model<? extends Object>> models;
+    private final Multimap<Class<? extends Object>, ModelLink<? extends Object>> registry;
+    private final List<Model> models;
     private boolean configured;
 
     /**
@@ -33,28 +33,30 @@ public class ModelManager implements ModelProvider {
      */
     public ModelManager() {
         registry = LinkedHashMultimap.create();
-        models = new LinkedList<Model<? extends Object>>();
+        models = newArrayList();
     }
 
     /**
      * Adds a model to the manager. Note: a model can be added only once.
      * @param model The model to be added.
-     * @return true when the addition was sucessful, false otherwise.
      * @throws IllegalStateException when method called after calling configure
      */
-    public boolean add(Model<?> model) {
+    public void add(Model model) {
         if (model == null) {
             throw new IllegalArgumentException("model can not be null");
         }
         checkState(!configured, "model can not be registered after configure()");
-        final Class<?> supportedType = model.getSupportedType();
-        checkArgument(supportedType != null, "model must implement getSupportedType() and return a non-null");
-        models.add(model);
-        final boolean result = registry.put(supportedType, model);
-        if (!result) {
-            models.remove(model);
+        final Collection<? extends ModelLink<?>> modelLinks = model
+                .getModelLinks();
+        checkArgument(!modelLinks.isEmpty(), "every model needs to define at least one link");
+        for (final ModelLink<?> m : modelLinks) {
+            final Class<?> supportedType = m.getSupportedType();
+
+            checkArgument(supportedType != null, "modellink must implement getSupportedType() and return a non-null");
+            checkArgument(!registry.containsKey(supportedType), "Model conflict: there can be at most one ModelLink for every class");
+            registry.put(supportedType, m);
         }
-        return result;
+        models.add(model);
     }
 
     /**
@@ -63,7 +65,7 @@ public class ModelManager implements ModelProvider {
      * registered in the manager.
      */
     public void configure() {
-        for (final Model<?> m : models) {
+        for (final Model m : models) {
             if (m instanceof ModelReceiver) {
                 ((ModelReceiver) m).registerModelProvider(this);
             }
@@ -78,13 +80,14 @@ public class ModelManager implements ModelProvider {
      * @return <code>true</code> if object was added to at least one model
      */
     @SuppressWarnings("unchecked")
-    public <T> boolean register(T object) {
+    public <T> void register(T object) {
         if (object == null) {
             throw new IllegalArgumentException("Can not register null");
         }
         if (object instanceof Model) {
             checkState(!configured, "model can not be registered after configure()");
-            return add((Model<?>) object);
+            add((Model) object);
+            return;
         }
         checkState(configured, "can not register an object if configure() has not been called");
 
@@ -92,14 +95,14 @@ public class ModelManager implements ModelProvider {
         final Set<Class<?>> modelSupportedTypes = registry.keySet();
         for (final Class<?> modelSupportedType : modelSupportedTypes) {
             if (modelSupportedType.isAssignableFrom(object.getClass())) {
-                final Collection<Model<?>> assignableModels = registry
+                final Collection<ModelLink<?>> assignableModels = registry
                         .get(modelSupportedType);
-                for (final Model<?> m : assignableModels) {
-                    result |= ((Model<T>) m).register(object);
+                for (final ModelLink<?> m : assignableModels) {
+                    result |= ((ModelLink<T>) m).register(object);
                 }
             }
         }
-        return result;
+        checkState(result);
     }
 
     /**
@@ -112,7 +115,7 @@ public class ModelManager implements ModelProvider {
      *             configured
      */
     @SuppressWarnings("unchecked")
-    public <T> boolean unregister(T object) {
+    public <T> void unregister(T object) {
         if (object == null) {
             throw new IllegalArgumentException("can not unregister null");
         }
@@ -124,27 +127,27 @@ public class ModelManager implements ModelProvider {
         for (final Class<?> modelSupportedType : modelSupportedTypes) {
             // check if object is from a known type
             if (modelSupportedType.isAssignableFrom(object.getClass())) {
-                final Collection<Model<?>> assignableModels = registry
+                final Collection<ModelLink<?>> assignableModels = registry
                         .get(modelSupportedType);
-                for (final Model<?> m : assignableModels) {
-                    result |= ((Model<T>) m).unregister(object);
+                for (final ModelLink<?> m : assignableModels) {
+                    result |= ((ModelLink<T>) m).unregister(object);
                 }
             }
         }
-        return result;
+        checkState(result);
     }
 
     /**
      * @return An unmodifiable view on all registered models.
      */
-    public List<Model<?>> getModels() {
+    public List<Model> getModels() {
         return Collections.unmodifiableList(models);
     }
 
     @SuppressWarnings("unchecked")
     @Override
-    public <T extends Model<?>> T getModel(Class<T> clazz) {
-        for (final Model<?> model : models) {
+    public <T extends Model> T getModel(Class<T> clazz) {
+        for (final Model model : models) {
             if (clazz.isInstance(model)) {
                 return (T) model;
             }

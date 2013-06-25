@@ -19,7 +19,7 @@ public class SimulatorBuilder {
     // should be possible to disable some of the options to add restrictions in
     // the config
 
-    protected List<Model<?>> models;
+    protected List<Model> models;
 
     protected SimulatorBuilder() {
         models = newArrayList();
@@ -30,7 +30,7 @@ public class SimulatorBuilder {
         return this;
     }
 
-    public SimulatorBuilder addModel(Model<?> m) {
+    public SimulatorBuilder addModel(Model m) {
         models.add(m);
         return this;
     }
@@ -50,7 +50,7 @@ public class SimulatorBuilder {
 
         // TODO add TimeModel if not specified
         final Simulator s = new Simulator();
-        for (final Model<?> m : models) {
+        for (final Model m : models) {
             s.register(m);
         }
         return s;
