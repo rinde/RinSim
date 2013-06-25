@@ -31,6 +31,11 @@ public class ModelManager implements ModelProvider {
      * Instantiate a new model manager.
      */
     public ModelManager() {
+        // constructor should be package private?
+        // FIXME should expect two datastructures:
+        // - Map<Class<?>, ModelLink<?>>
+        // - List<Model>
+
         registry = newLinkedHashMap();
         models = newArrayList();
     }
