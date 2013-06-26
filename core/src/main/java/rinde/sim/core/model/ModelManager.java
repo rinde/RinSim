@@ -16,8 +16,9 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 
 /**
- * Models manager keeps track of all models used in the simulator. It is
- * responsible for adding a simulation object to the appropriate models
+ * Models manager keeps track of all models used in the simulator. Further it
+ * provides methods for registering and unregistering objects to these models.
+ * To obtain an instance use {@link #build(Model...)} or {@link #builder()}.
  * 
  * @author Bartosz Michalik <bartosz.michalik@cs.kuleuven.be>
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
@@ -51,19 +52,7 @@ public class ModelManager {
      */
     @SuppressWarnings("unchecked")
     public <T> void register(T object) {
-        if (object == null) {
-            throw new IllegalArgumentException("Can not register null");
-        }
         checkArgument(!(object instanceof Model), "Can not register a model, for adding models see %s", ModelManager.Builder.class);
-        // if (object instanceof Model) {
-        // checkState(!configured,
-        // "model can not be registered after configure()");
-        // add((Model) object);
-        // return;
-        // }
-        // checkState(configured,
-        // "can not register an object if configure() has not been called");
-
         boolean isRegistered = false;
         final Set<Class<?>> modelSupportedTypes = registry.keySet();
         for (final Class<?> modelSupportedType : modelSupportedTypes) {
@@ -86,9 +75,6 @@ public class ModelManager {
      */
     @SuppressWarnings("unchecked")
     public <T> void unregister(T object) {
-        if (object == null) {
-            throw new IllegalArgumentException("Can not unregister null.");
-        }
         checkArgument(!(object instanceof Model), "Models can not be unregistered.");
 
         boolean isUnregistered = false;
@@ -187,7 +173,6 @@ public class ModelManager {
                     }
                 }
             }
-
             return new ModelManager(reg, models);
         }
 
@@ -195,6 +180,5 @@ public class ModelManager {
         private static <T> void register(ModelLink<T> ml, Model m) {
             ml.register((T) m);
         }
-
     }
 }

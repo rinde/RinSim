@@ -32,10 +32,7 @@ import com.google.common.collect.ImmutableList;
  */
 public class ModelManagerTest {
 
-    /**
-     * Manager instance, must be created in every method.
-     */
-    protected ModelManager manager;
+    // TODO test multiple calls to Builder.build() -> should throw error?
 
     /**
      * Object registration fails since there are no models to which it can be
@@ -43,7 +40,7 @@ public class ModelManagerTest {
      */
     @Test(expected = IllegalArgumentException.class)
     public void emptyModelManager() {
-        manager = ModelManager.builder().build();
+        final ModelManager manager = ModelManager.builder().build();
         manager.register(new Object());
     }
 
@@ -70,7 +67,7 @@ public class ModelManagerTest {
     @Test
     public void addOtherFooModel() {
         final OtherFooModel model = new OtherFooModel();
-        manager = ModelManager.builder().add(model).build();
+        final ModelManager manager = ModelManager.builder().add(model).build();
         manager.register(new Foo());
         try {
             manager.register(new Bar());
@@ -87,7 +84,8 @@ public class ModelManagerTest {
     public void addWhenTwoModels() {
         final OtherFooModel model = new OtherFooModel();
         final BarModel model2 = new BarModel();
-        manager = ModelManager.builder().add(model).add(model2).build();
+        final ModelManager manager = ModelManager.builder().add(model)
+                .add(model2).build();
         manager.register(new Foo());
         manager.register(new Bar());
         manager.register(new Foo());
@@ -142,7 +140,7 @@ public class ModelManagerTest {
         final Model modelB = new ModelDependsOnA(mlB);
         final Model modelC = new ModelDependsOnB(mlC);
 
-        manager = ModelManager.build(modelA, modelB, modelC);
+        final ModelManager manager = ModelManager.build(modelA, modelB, modelC);
 
         assertEquals(1, mlA.registered.size());
         assertEquals(modelB, mlA.registered.iterator().next());
@@ -186,7 +184,7 @@ public class ModelManagerTest {
         for (final Model m : models) {
             b.add(m);
         }
-        manager = b.build();
+        final ModelManager manager = b.build();
 
         assertEquals(models, manager.models);
         @SuppressWarnings("unchecked")
@@ -198,39 +196,24 @@ public class ModelManagerTest {
 
     }
 
-    /**
-     * Null is not allowed.
-     */
-    @Test(expected = NullPointerException.class)
-    public void addNull() {
-        ModelManager.builder().add(null);
-    }
-
+    // is no statically checked
     /**
      * ModelLink which returns <code>null</code> for
      * {@link ModelLink#getSupportedType()} is not allowed.
      */
-    @Test(expected = IllegalArgumentException.class)
-    public void addFaultyModel() {
-        final DebugModel<ObjectA> model = new DebugModel<ObjectA>(null);
-        ModelManager.builder().add(model);
-    }
-
-    /**
-     * A null object can not be registered.
-     */
-    @Test(expected = IllegalArgumentException.class)
-    public void registerNull() {
-        manager = ModelManager.builder().add(new OtherFooModel()).build();
-        manager.register(null);
-    }
+    // @Test(expected = IllegalArgumentException.class)
+    // public void addFaultyModel() {
+    // final DebugModel<ObjectA> model = new DebugModel<ObjectA>(null);
+    // ModelManager.builder().add(model);
+    // }
 
     /**
      * Can not register a model as a user.
      */
     @Test(expected = IllegalArgumentException.class)
     public void registerModelAsUser() {
-        manager = ModelManager.builder().add(new OtherFooModel()).build();
+        final ModelManager manager = ModelManager.builder()
+                .add(new OtherFooModel()).build();
         manager.register(new GraphRoadModel(new MultimapGraph<LengthData>()));
     }
 
@@ -239,7 +222,7 @@ public class ModelManagerTest {
      */
     @Test(expected = IntendedException.class)
     public void registerWithBrokenModel() {
-        manager = ModelManager.builder()
+        final ModelManager manager = ModelManager.builder()
                 .add(new BrokenRoadModel(new MultimapGraph<LengthData>()))
                 .build();
         manager.register(new RoadUser() {
@@ -253,7 +236,7 @@ public class ModelManagerTest {
      */
     @Test
     public void unregisterWithoutModels() {
-        manager = ModelManager.builder().build();
+        final ModelManager manager = ModelManager.builder().build();
         assertEquals(0, manager.models.size());
         assertEquals(0, manager.registry.size());
         try {
@@ -263,20 +246,11 @@ public class ModelManagerTest {
     }
 
     /**
-     * Can not unregister null.
-     */
-    @Test(expected = IllegalArgumentException.class)
-    public void unregisterNull() {
-        manager = ModelManager.builder().build();
-        manager.unregister(null);
-    }
-
-    /**
      * Models can not be unregistered.
      */
     @Test(expected = IllegalArgumentException.class)
     public void unregisterModel() {
-        manager = ModelManager.builder().build();
+        final ModelManager manager = ModelManager.builder().build();
         manager.unregister(new GraphRoadModel(new MultimapGraph<LengthData>()));
     }
 
@@ -285,7 +259,7 @@ public class ModelManagerTest {
      */
     @Test(expected = IllegalArgumentException.class)
     public void unregister() {
-        manager = ModelManager.builder()
+        final ModelManager manager = ModelManager.builder()
                 .add(new GraphRoadModel(new MultimapGraph<LengthData>()))
                 .build();
         manager.unregister(new RoadUser() {
@@ -301,7 +275,8 @@ public class ModelManagerTest {
     public void unregisterRegistered() {
         final OtherFooModel model = new OtherFooModel();
         final BarModel model2 = new BarModel();
-        manager = ModelManager.builder().add(model).add(model2).build();
+        final ModelManager manager = ModelManager.builder().add(model)
+                .add(model2).build();
 
         final Foo foo = new Foo();
         final Bar bar = new Bar();
@@ -324,7 +299,8 @@ public class ModelManagerTest {
         final ModelB mB = new ModelB();
         final ModelC mC = new ModelC();
 
-        manager = ModelManager.builder().add(mA).add(mB).add(mC).build();
+        final ModelManager manager = ModelManager.builder().add(mA).add(mB)
+                .add(mC).build();
 
         final ObjectA a1 = new ObjectA();
         manager.register(a1);
@@ -388,20 +364,20 @@ public class ModelManagerTest {
      */
     @Test
     public void anonymousModelTest() {
-        manager = ModelManager.build(new SimpleModel<InnerObject>(
-                InnerObject.class) {
+        final ModelManager manager = ModelManager
+                .build(new SimpleModel<InnerObject>(InnerObject.class) {
 
-            @Override
-            public boolean register(InnerObject element) {
-                return false;
-            }
+                    @Override
+                    public boolean register(InnerObject element) {
+                        return false;
+                    }
 
-            @Override
-            public boolean unregister(InnerObject element) {
-                return false;
-            }
+                    @Override
+                    public boolean unregister(InnerObject element) {
+                        return false;
+                    }
 
-        });
+                });
 
         try {
             manager.register(new InnerObject());
@@ -605,7 +581,7 @@ public class ModelManagerTest {
 
         @Override
         public Class<Object> getSupportedType() {
-            return null;
+            return Object.class;
         }
 
         @Override
@@ -630,8 +606,8 @@ public class ModelManagerTest {
             super(type);
             registeredElements = new ArrayList<T>();
             unregisteredElements = new ArrayList<T>();
-            setRegisterAction(Action.ALLOW);
-            setUnregisterAction(Action.ALLOW);
+            registerAction = ALLOW;
+            unregisterAction = ALLOW;
         }
 
         public void setRegisterAction(Action a) {
