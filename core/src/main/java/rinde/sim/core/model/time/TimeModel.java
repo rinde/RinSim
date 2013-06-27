@@ -14,6 +14,7 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import rinde.sim.core.IBuilder;
 import rinde.sim.core.model.AbstractModelLink;
 import rinde.sim.core.model.Model;
 import rinde.sim.core.model.ModelLink;
@@ -84,7 +85,7 @@ public class TimeModel implements Model, Time {
     private final long timeStep;
     private final TimeLapse timeLapse;
 
-    public TimeModel(long step) {
+    protected TimeModel(long step) {
         checkArgument(step > 0, "Step must be a positive number.");
         timeStep = step;
         tickListeners = Collections
@@ -302,6 +303,29 @@ public class TimeModel implements Model, Time {
         @Override
         public boolean unregister(TickListener element) {
             return removeTickListener(element);
+        }
+    }
+
+    public static Builder builder() {
+        return new Builder();
+    }
+
+    public static TimeModel build(long ts) {
+        return builder().withTimeStep(ts).build();
+    }
+
+    public static class Builder implements IBuilder<TimeModel> {
+
+        long timeStep;
+
+        public Builder withTimeStep(long ts) {
+            timeStep = ts;
+            return this;
+        }
+
+        @Override
+        public TimeModel build() {
+            return new TimeModel(timeStep);
         }
     }
 

@@ -144,6 +144,8 @@ public class ModelManager {
             for (final ModelLink<?> modelLink : modelLinks) {
                 final Class<?> supportedType = modelLink.getSupportedType();
                 checkArgument(supportedType != null, "Implementations of \"%s\" must implement getSupportedType() and return a non-null", ModelLink.class);
+                // TODO improve error message: point to two Models + ModelLinks
+                // which have caused the error
                 checkArgument(!linkTypes.contains(supportedType), "Any type can be linked to by only one ModelLink. Found a duplicate in Model: %s, ModelLink: %s, type: %s", model, modelLink, supportedType);
                 linkTypes.add(supportedType);
                 registryBuilder.put(supportedType, modelLink);

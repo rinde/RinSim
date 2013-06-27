@@ -6,6 +6,7 @@ package rinde.sim.core.model.rng;
 import org.apache.commons.math3.random.MersenneTwister;
 import org.apache.commons.math3.random.RandomGenerator;
 
+import rinde.sim.core.IBuilder;
 import rinde.sim.core.model.SimpleModel;
 
 /**
@@ -23,11 +24,11 @@ public class RandomModel extends SimpleModel<RandomReceiver> {
 
     protected RandomGenerator randomGenerator;
 
-    public RandomModel(long seed) {
+    protected RandomModel(long seed) {
         this(new MersenneTwister(seed));
     }
 
-    public RandomModel(RandomGenerator rng) {
+    protected RandomModel(RandomGenerator rng) {
         super(RandomReceiver.class);
         randomGenerator = rng;
     }
@@ -41,5 +42,29 @@ public class RandomModel extends SimpleModel<RandomReceiver> {
     @Override
     public boolean unregister(RandomReceiver element) {
         return true;
+    }
+
+    public static Builder builder() {
+        return new Builder();
+    }
+
+    public static RandomModel build(long seed) {
+        return builder().withSeed(seed).build();
+    }
+
+    public static class Builder implements IBuilder<RandomModel> {
+
+        protected long seed;
+
+        public Builder withSeed(long s) {
+            seed = s;
+            return this;
+        }
+
+        @Override
+        public RandomModel build() {
+            return new RandomModel(seed);
+        }
+
     }
 }

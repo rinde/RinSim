@@ -29,9 +29,11 @@ import java.util.Set;
 public class Scenario implements Serializable {
     private static final long serialVersionUID = 1839693038677831786L;
 
+    // TODO use sorted immutable list
     private final List<TimedEvent> events;
     private final Set<Enum<?>> supportedTypes;
 
+    // TODO make protected
     public Scenario() {
         supportedTypes = unmodifiableSet(new LinkedHashSet<Enum<?>>());
         events = unmodifiableList(new ArrayList<TimedEvent>());

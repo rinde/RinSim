@@ -4,6 +4,9 @@
 package rinde.sim.core;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.collect.Lists.newArrayList;
+
+import java.util.List;
 
 import javax.annotation.Nullable;
 
@@ -23,7 +26,7 @@ import rinde.sim.core.model.time.TimeModel;
  * by an instance of {@link AbstractBuilder}, the default implementation is
  * {@link Builder}.
  * <p>
- * A typical configuration looks like:
+ * A typical configuration looks like: TODO no longer correct:
  * 
  * <pre>
  * Simulator sim = Simulator.builder().addTimeModel(1000).add(model1).add(model2)
@@ -159,10 +162,12 @@ public class Simulator implements SimulatorAPI {
          * @return This builder instance.
          */
         public Builder addRandomModel(long seed) {
-            mmBuilder.add(new RandomModel(seed));
-            return this;
+            return (Builder) add(RandomModel.builder().withSeed(seed));
         }
 
+        // TODO think about ordering of Builders vs Models -> it can no longer
+        // follow insertion order since they are distributed over two
+        // datastructures
         /**
          * Add a Model, see {@link rinde.sim.core.model.ModelManager.Builder}
          * for more information.
@@ -182,20 +187,20 @@ public class Simulator implements SimulatorAPI {
          * @return This builder instance.
          */
         public Builder addTimeModel(long timeStep) {
-            return addTimeModel(new TimeModel(timeStep));
+            return (Builder) add(TimeModel.builder().withTimeStep(timeStep));
         }
 
-        /**
-         * Add a {@link TimeModel}. See
-         * {@link rinde.sim.core.model.ModelManager.Builder} for more
-         * information about adding models.
-         * @param tm The {@link TimeModel} to add.
-         * @return This builder instance.
-         */
-        public Builder addTimeModel(TimeModel tm) {
-            mmBuilder.add(tm);
-            return this;
-        }
+        // /**
+        // * Add a {@link TimeModel}. See
+        // * {@link rinde.sim.core.model.ModelManager.Builder} for more
+        // * information about adding models.
+        // * @param tm The {@link TimeModel} to add.
+        // * @return This builder instance.
+        // */
+        // public Builder addTimeModel(TimeModel tm) {
+        // mmBuilder.add(tm);
+        // return this;
+        // }
 
         /**
          * @return This builder instance.
@@ -219,18 +224,26 @@ public class Simulator implements SimulatorAPI {
      * Abstract builder for creating {@link Simulator} objects.
      * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
      */
-    public abstract static class AbstractBuilder {
+    public abstract static class AbstractBuilder implements IBuilder<Simulator> {
         /**
          * Reference to the {@link rinde.sim.core.model.ModelManager.Builder}
          * that is used.
          */
         protected ModelManager.Builder mmBuilder;
 
+        protected List<IBuilder<? extends Model>> modelBuilders;
+
         /**
          * Instantiates the builder.
          */
         protected AbstractBuilder() {
             mmBuilder = ModelManager.builder();
+            modelBuilders = newArrayList();
+        }
+
+        public AbstractBuilder add(IBuilder<? extends Model> b) {
+            modelBuilders.add(b);
+            return this;
         }
 
         /**
@@ -238,7 +251,15 @@ public class Simulator implements SimulatorAPI {
          * @throws IllegalArgumentException if there is no Model responsible for
          *             {@link TickListener}s.
          */
+        @Override
         public Simulator build() {
+
+            for (final IBuilder<? extends Model> builder : modelBuilders) {
+                mmBuilder.add(builder.build());
+            }
+
+            // TODO check for repeated calls in case Models have been added
+            // directly
             checkArgument(mmBuilder.containsLinkFor(TickListener.class), "A Simulator can not be build without a ModelLink to TickListener, for a default implementation use TimeModel via addTimeModel(..)");
             final TimeReference tr = new TimeReference();
             final ModelManager mm = mmBuilder.build();
