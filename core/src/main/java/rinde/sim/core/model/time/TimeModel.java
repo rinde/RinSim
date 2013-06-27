@@ -4,8 +4,8 @@
 package rinde.sim.core.model.time;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.collect.Sets.newLinkedHashSet;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -23,6 +23,9 @@ import rinde.sim.event.EventDispatcher;
 import com.google.common.collect.ImmutableList;
 
 /**
+ * It is responsible for managing time which it does by periodically providing
+ * {@link TimeLapse} instances to registered {@link TickListener}s. Further it
+ * provides methods to start and stop simulations.
  * 
  * Two users:
  * <ul>
@@ -60,6 +63,8 @@ public class TimeModel implements Model, Time {
      */
     protected volatile Set<TickListener> tickListeners;
 
+    protected Set<TickListener> tickListeningModels;
+
     /**
      * Reference to dispatcher of simulator events, can be used by subclasses to
      * issue additional events.
@@ -84,6 +89,8 @@ public class TimeModel implements Model, Time {
         timeStep = step;
         tickListeners = Collections
                 .synchronizedSet(new LinkedHashSet<TickListener>());
+
+        tickListeningModels = newLinkedHashSet();
 
         time = 0L;
         // time lapse is reused in a Flyweight kind of style
@@ -113,25 +120,29 @@ public class TimeModel implements Model, Time {
      * Adds a tick listener to the simulator.
      * @param listener The listener to add.
      */
-    protected void addTickListener(TickListener listener) {
-        tickListeners.add(listener);
+    protected boolean addTickListener(TickListener listener) {
+        if (listener instanceof Model) {
+            return tickListeningModels.add(listener);
+        }
+        return tickListeners.add(listener);
     }
 
     /**
      * Removes the listener specified. Implemented in O(1).
      * @param listener The listener to remove
      */
-    // FIXME should not be available -> only via SImulator.unregister
-    protected void removeTickListener(TickListener listener) {
-        tickListeners.remove(listener);
+    protected boolean removeTickListener(TickListener listener) {
+        checkArgument(!(listener instanceof Model), "Models can not be removed");
+        return tickListeners.remove(listener);
     }
 
-    protected void registerTimeController(TimeController tc) {
-
+    protected boolean registerTimeController(TimeController tc) {
+        tc.receiveTime(this);
+        return true;
     }
 
-    protected void unregisterTimeController(TimeController tc) {
-
+    protected boolean unregisterTimeController(TimeController tc) {
+        return true;
     }
 
     /**
@@ -175,11 +186,17 @@ public class TimeModel implements Model, Time {
         // this also means that adding or removing a TickListener is
         // effectively executed after a 'tick'
 
-        final List<TickListener> localCopy = new ArrayList<TickListener>();
+        // final List<TickListener> localCopy = new ArrayList<TickListener>();
         long timeS = System.currentTimeMillis();
-        localCopy.addAll(tickListeners);
+        // localCopy.addAll(tickListeners);
 
-        for (final TickListener t : localCopy) {
+        for (final TickListener t : tickListeningModels) {
+            timeLapse.initialize(time, time + timeStep);
+            timeLapse.consumeAll();
+            t.tick(timeLapse);
+        }
+
+        for (final TickListener t : tickListeners) {
             timeLapse.initialize(time, time + timeStep);
             t.tick(timeLapse);
         }
@@ -190,11 +207,17 @@ public class TimeModel implements Model, Time {
         timeLapse.initialize(time, time + timeStep);
         // in the after tick the TimeLapse can no longer be consumed
         timeLapse.consumeAll();
-        for (final TickListener t : localCopy) {
+        for (final TickListener t : tickListeners) {
             t.afterTick(timeLapse);
         }
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("aftertick(): " + (System.currentTimeMillis() - timeS));
+        }
+
+        for (final TickListener t : tickListeningModels) {
+            timeLapse.initialize(time, time + timeStep);
+            timeLapse.consumeAll();
+            t.afterTick(timeLapse);
         }
         time += timeStep;
 
@@ -255,14 +278,12 @@ public class TimeModel implements Model, Time {
 
         @Override
         public boolean register(TimeController element) {
-            registerTimeController(element);
-            return true;
+            return registerTimeController(element);
         }
 
         @Override
         public boolean unregister(TimeController element) {
-            unregisterTimeController(element);
-            return true;
+            return unregisterTimeController(element);
         }
     }
 
@@ -275,14 +296,12 @@ public class TimeModel implements Model, Time {
 
         @Override
         public boolean register(TickListener element) {
-            addTickListener(element);
-            return true;
+            return addTickListener(element);
         }
 
         @Override
         public boolean unregister(TickListener element) {
-            removeTickListener(element);
-            return true;
+            return removeTickListener(element);
         }
     }
 
