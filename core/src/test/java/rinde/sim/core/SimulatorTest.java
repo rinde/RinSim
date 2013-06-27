@@ -3,21 +3,25 @@
  */
 package rinde.sim.core;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
-import java.util.Arrays;
+import javax.annotation.Nullable;
 
 import org.apache.commons.math3.random.MersenneTwister;
-import org.junit.Before;
+import org.apache.commons.math3.random.RandomGenerator;
 import org.junit.Test;
 
+import rinde.sim.core.model.Model;
+import rinde.sim.core.model.ModelManagerTest.DebugModel;
+import rinde.sim.core.model.rng.RandomReceiver;
 import rinde.sim.core.model.time.TickListener;
+import rinde.sim.core.model.time.Time;
+import rinde.sim.core.model.time.TimeController;
 import rinde.sim.core.model.time.TimeLapse;
-
-import com.google.common.collect.Sets;
 
 /**
  * @author Rinde van Lon (rinde.vanlon@cs.kuleuven.be)
@@ -25,226 +29,231 @@ import com.google.common.collect.Sets;
  */
 public class SimulatorTest {
 
-	private final long timeStep = 100L;
-	private Simulator simulator;
+    private final long timeStep = 100L;
 
-	@Before
-	public void setUp() {
-		simulator = new Simulator(new MersenneTwister(123), timeStep);
-		Simulator.SimulatorEventType.valueOf("STOPPED");// just for test coverage of the
-												// enum
-	}
+    @Test(expected = IllegalArgumentException.class)
+    public void noTimeModel() {
+        Simulator.builder().add(new DummyModel()).build();
+    }
 
-	@Test
-	public void testTicks() {
-		assertEquals(0L, simulator.getCurrentTime());
-		TickListenerImpl tl = new TickListenerImpl();
-		assertEquals(0, tl.getTickCount());
-		simulator.addTickListener(tl);
-		simulator.tick();
-		assertEquals(100L, simulator.getCurrentTime());
-		assertEquals(1, tl.getTickCount());
-		simulator.removeTickListener(tl);
-		simulator.tick();
-		assertEquals(1, tl.getTickCount());
-	}
+    @Test
+    public void startTest() {
 
-	@Test
-	public void testTickOrder() {
-		assertEquals(100L, simulator.getTimeStep());
-		TickListenerImpl normal = new TickListenerImpl();
-		simulator.addTickListener(normal);
-		simulator.tick();
-		assertTrue(normal.getExecTime() < normal.getAfterExecTime());
-	}
+        final Simulator sim = Simulator.build(10);
+        final TimeManager tm = new TimeManager(10);
+        sim.register(tm);
+        sim.start();
 
-	@Test(expected = IllegalArgumentException.class)
-	public void testRegisterNull() {
-		simulator.register(null);
-	}
+        assertEquals(10, tm.ticks);
+    }
 
-	@Test(expected = IllegalArgumentException.class)
-	public void testRegisterNull2() {
-		Object o = null;
-		simulator.register(o);
-	}
+    @Test
+    public void testRegister() {
+        final Model m1 = new DummyModel();
+        final Model m2 = new DebugModel(DummyObject2.class);
+        final Model m3 = new DummyModelAsTickListener(DummyObject3.class);
 
-	@Test(expected = IllegalStateException.class)
-	public void testRegisterTooEarly() {
-		simulator.register(new DummyObject());
-	}
+        final Simulator sim = Simulator.build(10, m1, m3);
 
-	@Test(expected = IllegalStateException.class)
-	public void testRegisterModelTooLate() {
-		simulator.configure();
-		simulator.register(new DummyModel());
-	}
+        sim.register(new DummyObject());
 
-	@Test
-	public void testRegister() {
-		assertTrue(simulator.getModels().isEmpty());
-		DummyModel m1 = new DummyModel();
-		DummyModel m2 = new DummyModel();
-		DummyModelAsTickListener m3 = new DummyModelAsTickListener();
-		assertTrue(simulator.register(m1));
-		assertFalse(simulator.register((Object) m1));
-		assertTrue(simulator.register(m2));
-		assertTrue(simulator.register(m3));
-		assertFalse(simulator.register(m3));
+        final DummyObjectTickListener dotl = new DummyObjectTickListener();
+        // should not fail
+        sim.register(dotl);
 
-		assertEquals(Arrays.asList(m1, m2, m3), simulator.getModels());
-		simulator.configure();
+        // should fail
+        try {
+            sim.register(new DummyObjectSimulationUser());
+            fail();
+        } catch (final IllegalArgumentException e) {}
+        try {
+            sim.unregister(new DummyObject());
+            fail();
+        } catch (final IllegalArgumentException e) {}
+        try {
+            sim.unregister(new DummyObjectTickListener());
+            fail();
+        } catch (final IllegalArgumentException e) {}
 
-		assertTrue(simulator.register(new DummyObject()));
+        sim.unregister(dotl);
+    }
 
-		DummyObjectTickListener dotl = new DummyObjectTickListener();
-		assertFalse(simulator.register(dotl));
+    @Test
+    public void addRandomModel() {
+        final long seed = 123;
+        final RandomGenerator ref = new MersenneTwister(seed);
+        final Simulator sim = Simulator.builder().addTimeModel(10)
+                .addRandomModel(seed).build();
+        final DebugRandomReceiver drr = new DebugRandomReceiver();
+        sim.register(drr);
 
-		assertEquals(Sets.newHashSet(m3, dotl), simulator.getTickListeners());
+        assertEquals(1, drr.calls);
 
-		DummyObjectSimulationUser dosu = new DummyObjectSimulationUser();
-		assertFalse(simulator.register(dosu));
-		assertEquals(simulator, dosu.getAPI());
+        for (int i = 0; i < 100; i++) {
+            assertEquals(ref.nextLong(), drr.rng.nextLong());
+        }
 
-		simulator.unregister(new DummyObject());
-		simulator.unregister(new DummyObjectTickListener());
+    }
 
-	}
+    class DebugRandomReceiver implements RandomReceiver {
 
-	@Test(expected = IllegalArgumentException.class)
-	public void testUnregisterNull() {
-		simulator.unregister(null);
-	}
+        int calls = 0;
 
-	@Test(expected = IllegalArgumentException.class)
-	public void testUnregisterModel() {
-		simulator.unregister(new DummyModel());
-	}
+        @Nullable
+        protected RandomGenerator rng;
 
-	@Test(expected = IllegalStateException.class)
-	public void testUnregisterTooEarly() {
-		simulator.unregister(new Object());
-	}
+        @Override
+        public void receiveRandom(RandomGenerator r) {
+            calls++;
+            rng = r;
+        }
 
-	@Test(expected = IllegalStateException.class)
-	public void testStartWithoutConfiguring() {
-		simulator.start();
-	}
+    }
 
-	@Test
-	public void testStart() {
-		simulator.configure();
-		LimitingTickListener ltl = new LimitingTickListener(simulator, 3);
-		simulator.addTickListener(ltl);
-		simulator.start();
-		assertTrue(simulator.getCurrentTime() == 3 * timeStep);
+    class TimeManager implements TimeController, TickListener {
 
-		simulator.unregister(new Object());
-		simulator.togglePlayPause();
-		assertTrue(simulator.getCurrentTime() == 6 * timeStep);
-		simulator.resetTime();
-		assertTrue(simulator.getCurrentTime() == 0);
-	}
+        protected final int max;
+        protected int ticks = 0;
 
-	@Test
-	public void testGetRnd() {
-		assertNotNull(simulator.getRandomGenerator());
-	}
+        @Nullable
+        protected Time time;
 
-	class DummyObject {}
+        public TimeManager(int maxTicks) {
+            max = maxTicks;
+        }
 
-	class DummyObjectTickListener implements TickListener {
-		@Override
-		public void tick(TimeLapse tl) {}
+        @Override
+        public void tick(TimeLapse timeLapse) {
+            ticks++;
 
-		@Override
-		public void afterTick(TimeLapse tl) {}
-	}
+        }
 
-	class DummyObjectSimulationUser implements SimulatorUser {
-		private SimulatorAPI receivedAPI;
+        @Override
+        public void afterTick(TimeLapse timeLapse) {
+            if (ticks >= 10) {
+                time.stop();
+            }
 
-		@Override
-		public void setSimulator(SimulatorAPI api) {
-			receivedAPI = api;
-		}
+        }
 
-		public SimulatorAPI getAPI() {
-			return receivedAPI;
-		}
-	}
+        @Override
+        public void receiveTime(Time t) {
+            time = t;
+        }
 
-	class DummyModelAsTickListener extends DummyModel implements TickListener {
+    }
 
-		@Override
-		public void tick(TimeLapse tl) {}
+    class DummyObject {}
 
-		@Override
-		public void afterTick(TimeLapse tl) {}
+    class DummyObject2 {}
 
-	}
+    class DummyObject3 {}
 
-	class LimitingTickListener implements TickListener {
-		private final int limit;
-		private int tickCount;
-		private final Simulator sim;
+    class DummyObjectTickListener implements TickListener {
+        @Override
+        public void tick(TimeLapse tl) {}
 
-		public LimitingTickListener(Simulator s, int tickLimit) {
-			sim = s;
-			limit = tickLimit;
-			tickCount = 0;
-		}
+        @Override
+        public void afterTick(TimeLapse tl) {}
+    }
 
-		public void reset() {
-			tickCount = 0;
-		}
+    class DummyObjectSimulationUser implements SimulatorUser {
+        @Nullable
+        private SimulatorAPI receivedAPI;
 
-		@Override
-		public void tick(TimeLapse tl) {
-			tickCount++;
-		}
+        @Override
+        public void setSimulator(SimulatorAPI api) {
+            receivedAPI = api;
+        }
 
-		@Override
-		public void afterTick(TimeLapse tl) {
-			if (tickCount >= limit) {
-				assertTrue(sim.isPlaying());
-				if (tl.getTime() > limit * tl.getTimeStep()) {
-					sim.togglePlayPause();
-				}
-				sim.stop();
-				assertFalse(sim.isPlaying());
-				reset();
-			}
-		}
-	}
+        public SimulatorAPI getAPI() {
+            checkNotNull(receivedAPI);
+            return receivedAPI;
+        }
+    }
 
-	class TickListenerImpl implements TickListener {
-		private int count = 0;
-		private long execTime;
-		private long afterTime;
+    class DummyModelAsTickListener<T> extends DebugModel<T> implements
+            TickListener {
 
-		@Override
-		public void tick(TimeLapse tl) {
-			count++;
-			execTime = System.nanoTime();
-		}
+        public DummyModelAsTickListener(Class<T> type) {
+            super(type);
+        }
 
-		public long getExecTime() {
-			return execTime;
-		}
+        @Override
+        public void tick(TimeLapse tl) {}
 
-		public long getAfterExecTime() {
-			return afterTime;
-		}
+        @Override
+        public void afterTick(TimeLapse tl) {}
 
-		public int getTickCount() {
-			return count;
-		}
+    }
 
-		@Override
-		public void afterTick(TimeLapse tl) {
-			afterTime = System.nanoTime();
-		}
-	}
+    class LimitingTickListener implements TickListener, TimeController {
+        private final int limit;
+        private int tickCount;
+        @Nullable
+        private Time time;
+
+        public LimitingTickListener(int tickLimit) {
+            limit = tickLimit;
+            tickCount = 0;
+        }
+
+        public void reset() {
+            tickCount = 0;
+        }
+
+        @Override
+        public void tick(TimeLapse tl) {
+            tickCount++;
+        }
+
+        @SuppressWarnings("null")
+        @Override
+        public void afterTick(TimeLapse tl) {
+            if (tickCount >= limit) {
+                assertTrue(time.isPlaying());
+                if (tl.getTime() > limit * tl.getTimeStep()) {
+                    time.togglePlayPause();
+                }
+                time.stop();
+                assertFalse(time.isPlaying());
+                reset();
+            }
+        }
+
+        @Override
+        public void receiveTime(Time t) {
+            time = t;
+        }
+    }
+    //
+    // class TickListenerImpl implements TickListener {
+    // private int count = 0;
+    // private long execTime;
+    // private long afterTime;
+    //
+    // @Override
+    // public void tick(TimeLapse tl) {
+    // count++;
+    // execTime = System.nanoTime();
+    // }
+    //
+    // public long getExecTime() {
+    // return execTime;
+    // }
+    //
+    // public long getAfterExecTime() {
+    // return afterTime;
+    // }
+    //
+    // public int getTickCount() {
+    // return count;
+    // }
+    //
+    // @Override
+    // public void afterTick(TimeLapse tl) {
+    // afterTime = System.nanoTime();
+    // }
+    // }
 
 }
