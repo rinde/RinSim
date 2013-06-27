@@ -4,6 +4,9 @@
 package rinde.sim.core.model.pdp;
 
 import static com.google.common.base.Preconditions.checkState;
+
+import javax.annotation.Nullable;
+
 import rinde.sim.core.graph.Point;
 import rinde.sim.core.model.road.RoadModel;
 
@@ -14,8 +17,11 @@ import rinde.sim.core.model.road.RoadModel;
  */
 public abstract class PDPObjectImpl implements PDPObject {
 
+    @Nullable
     private PDPModel pdpModel;
+    @Nullable
     private RoadModel roadModel;
+    @Nullable
     private Point startPosition;
     private boolean isRegistered;
 
@@ -77,6 +83,7 @@ public abstract class PDPObjectImpl implements PDPObject {
      * @return The @{link PDPModel} reference if this object is registered,
      *         <code> null</code> otherwise.
      */
+    @Nullable
     protected PDPModel getPDPModel() {
         return pdpModel;
     }
@@ -87,6 +94,7 @@ public abstract class PDPObjectImpl implements PDPObject {
      * @return The {@link RoadModel} reference if this object is registered,
      *         <code>null</code> otherwise.
      */
+    @Nullable
     protected RoadModel getRoadModel() {
         return roadModel;
     }
