@@ -236,11 +236,6 @@ public class CommunicationModel extends SimpleModel<CommunicationUser>
                     && (ignoreDistances ? true
                             : Point.distance(sPos, iPos) <= minRadius);
         }
-
-        @Override
-        public boolean equals(@Nullable Object o) {
-            return super.equals(o);
-        }
     }
 
     private static class Rectangle {

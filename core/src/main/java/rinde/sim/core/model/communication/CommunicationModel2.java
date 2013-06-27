@@ -228,10 +228,5 @@ public class CommunicationModel2 extends CommunicationModel {
             return Point.distance(sPos, iPos) <= minRadius;
 
         }
-
-        @Override
-        public boolean equals(@Nullable Object o) {
-            return super.equals(o);
-        }
     }
 }
