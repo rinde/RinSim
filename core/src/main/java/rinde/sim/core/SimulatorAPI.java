@@ -1,6 +1,5 @@
 package rinde.sim.core;
 
-
 /**
  * Limited simulator API that provides an API for simulation elements (e.g.,
  * agents).
@@ -21,13 +20,13 @@ public interface SimulatorAPI {
      * @throws IllegalStateException when simulator is not configured (by
      *             calling {@link Simulator#configure()}
      */
-    boolean register(Object o);
+    void register(Object o);
 
     /**
      * Unregister an object from simulator.
      * @param o The object to be unregistered.
      * @return True if the object could be unregistered, false otherwise.
      */
-    boolean unregister(Object o);
+    void unregister(Object o);
 
 }
