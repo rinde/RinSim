@@ -176,6 +176,10 @@ public class ModelManager {
             return new ModelManager(reg, models);
         }
 
+        public boolean containsLinkFor(Class<?> cl) {
+            return linkTypes.contains(cl);
+        }
+
         @SuppressWarnings("unchecked")
         private static <T> void register(ModelLink<T> ml, Model m) {
             ml.register((T) m);
