@@ -9,6 +9,8 @@ import java.util.List;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import javax.annotation.Nullable;
+
 import org.apache.commons.math3.random.RandomGenerator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -190,12 +192,14 @@ public class CommunicationModel extends SimpleModel<CommunicationUser>
      */
     class CanCommunicate implements Predicate<CommunicationUser> {
 
+        @Nullable
         private final Class<? extends CommunicationUser> clazz;
         private final CommunicationUser sender;
+        @Nullable
         private Rectangle rec;
 
         public CanCommunicate(CommunicationUser sender,
-                Class<? extends CommunicationUser> clazz) {
+                @Nullable Class<? extends CommunicationUser> clazz) {
             this.sender = sender;
             this.clazz = clazz;
             if (sender.getPosition() != null) {
@@ -232,6 +236,11 @@ public class CommunicationModel extends SimpleModel<CommunicationUser>
                     && (ignoreDistances ? true
                             : Point.distance(sPos, iPos) <= minRadius);
         }
+
+        @Override
+        public boolean equals(@Nullable Object o) {
+            return super.equals(o);
+        }
     }
 
     private static class Rectangle {
@@ -262,11 +271,11 @@ public class CommunicationModel extends SimpleModel<CommunicationUser>
     }
 
     protected static class SimpleEntry<K, V> implements Entry<K, V> {
-
+        @Nullable
         private final V value;
         private final K key;
 
-        public SimpleEntry(K key, V value) {
+        public SimpleEntry(K key, @Nullable V value) {
             this.key = key;
             this.value = value;
         }
@@ -276,11 +285,13 @@ public class CommunicationModel extends SimpleModel<CommunicationUser>
             return key;
         }
 
+        @Nullable
         @Override
         public V getValue() {
             return value;
         }
 
+        @Nullable
         @Override
         public V setValue(V value) {
             return null;

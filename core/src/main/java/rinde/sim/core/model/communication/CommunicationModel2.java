@@ -6,6 +6,8 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
 
+import javax.annotation.Nullable;
+
 import org.apache.commons.math3.random.RandomGenerator;
 
 import rinde.sim.core.graph.Point;
@@ -28,7 +30,7 @@ public class CommunicationModel2 extends CommunicationModel {
     private final Comparator<CommunicationUser> xComp = new Comparator<CommunicationUser>() {
         @Override
         public int compare(CommunicationUser o1, CommunicationUser o2) {
-            double diff = o1.getPosition().x - o2.getPosition().x;
+            final double diff = o1.getPosition().x - o2.getPosition().x;
             if (diff != 0) {
                 return diff > 0 ? 1 : -1;
             }
@@ -40,7 +42,7 @@ public class CommunicationModel2 extends CommunicationModel {
     private final Comparator<CommunicationUser> yComp = new Comparator<CommunicationUser>() {
         @Override
         public int compare(CommunicationUser o1, CommunicationUser o2) {
-            double diff = o1.getPosition().y - o2.getPosition().y;
+            final double diff = o1.getPosition().y - o2.getPosition().y;
             if (diff != 0) {
                 return diff > 0 ? 1 : -1;
             }
@@ -66,13 +68,13 @@ public class CommunicationModel2 extends CommunicationModel {
                 users);
 
         Collections.sort(xSorted, xComp);
-        Multimap<CommunicationUser, SimpleEntry<Message, Class<? extends CommunicationUser>>> cache = toBroadcast;
+        final Multimap<CommunicationUser, SimpleEntry<Message, Class<? extends CommunicationUser>>> cache = toBroadcast;
         toBroadcast = ArrayListMultimap.create();
 
-        for (CommunicationUser sender : cache.keySet()) {
-            ArrayList<CommunicationUser> toCheck = select(xSorted, sender, true);
+        for (final CommunicationUser sender : cache.keySet()) {
+            final ArrayList<CommunicationUser> toCheck = select(xSorted, sender, true);
 
-            CanCommunicate predicate = new CanCommunicate(sender);
+            final CanCommunicate predicate = new CanCommunicate(sender);
             broadcast2(sender, cache.get(sender), predicate, toCheck);
         }
     }
@@ -80,7 +82,7 @@ public class CommunicationModel2 extends CommunicationModel {
     private ArrayList<CommunicationUser> select(
             final ArrayList<CommunicationUser> from, CommunicationUser sender,
             final boolean isX) {
-        ArrayList<CommunicationUser> toCheck = new ArrayList<CommunicationUser>(
+        final ArrayList<CommunicationUser> toCheck = new ArrayList<CommunicationUser>(
                 1024);
         Comparator<CommunicationUser> c = null;
         double distance;
@@ -91,10 +93,11 @@ public class CommunicationModel2 extends CommunicationModel {
             c = yComp;
             distance = sender.getPosition().y - sender.getRadius();
         }
-        int idx = Collections.binarySearch(from, sender, c);
+        final int idx = Collections.binarySearch(from, sender, c);
         for (int i = idx; i >= 0; --i) {
-            CommunicationUser user = from.get(i);
-            double pos = (isX ? user.getPosition().x : user.getPosition().y);
+            final CommunicationUser user = from.get(i);
+            final double pos = (isX ? user.getPosition().x
+                    : user.getPosition().y);
 
             if (pos >= distance) {
                 toCheck.add(user);
@@ -108,8 +111,9 @@ public class CommunicationModel2 extends CommunicationModel {
             distance = sender.getPosition().y - sender.getRadius();
         }
         for (int i = idx + 1; i < from.size(); ++i) {
-            CommunicationUser user = from.get(i);
-            double pos = (isX ? user.getPosition().x : user.getPosition().y);
+            final CommunicationUser user = from.get(i);
+            final double pos = (isX ? user.getPosition().x
+                    : user.getPosition().y);
             if (pos <= distance) {
                 toCheck.add(user);
             } else {
@@ -154,25 +158,25 @@ public class CommunicationModel2 extends CommunicationModel {
         }
         toCommunicate.remove(sender);
 
-        HashSet<CommunicationUser> uSet = new HashSet<CommunicationUser>(
+        final HashSet<CommunicationUser> uSet = new HashSet<CommunicationUser>(
                 toCommunicate.size() / 2);
 
-        for (CommunicationUser u : toCommunicate) {
+        for (final CommunicationUser u : toCommunicate) {
             if (predicate.apply(u)) {
                 uSet.add(u);
             }
         }
 
-        for (CommunicationUser u : uSet) {
+        for (final CommunicationUser u : uSet) {
             try {
-                for (SimpleEntry<Message, Class<? extends CommunicationUser>> p : collection) {
+                for (final SimpleEntry<Message, Class<? extends CommunicationUser>> p : collection) {
                     if (p.getValue() != null
                             && !p.getValue().equals(u.getClass())) {
                         continue;
                     }
                     sendQueue.add(SimpleEntry.entry(u, p.getKey().clone()));
                 }
-            } catch (CloneNotSupportedException e) {
+            } catch (final CloneNotSupportedException e) {
                 LOGGER.error("clonning exception for message", e);
             }
         }
@@ -186,12 +190,12 @@ public class CommunicationModel2 extends CommunicationModel {
      * @since 2.0
      */
     class CanCommunicate implements Predicate<CommunicationUser> {
-
+        @Nullable
         private final Class<? extends CommunicationUser> clazz;
         private final CommunicationUser sender;
 
         public CanCommunicate(CommunicationUser sender,
-                Class<? extends CommunicationUser> clazz) {
+                @Nullable Class<? extends CommunicationUser> clazz) {
             this.sender = sender;
             this.clazz = clazz;
         }
@@ -211,16 +215,23 @@ public class CommunicationModel2 extends CommunicationModel {
             // if(input.equals(sender)) return false;
             final Point iPos = input.getPosition();
 
-            double prob = input.getReliability() * sender.getReliability();
-            double rand = generator.nextDouble();
+            final double prob = input.getReliability()
+                    * sender.getReliability();
+            final double rand = generator.nextDouble();
             if (prob <= rand) {
                 return false;
             }
 
-            double minRadius = Math.min(input.getRadius(), sender.getRadius());
-            Point sPos = sender.getPosition();
+            final double minRadius = Math.min(input.getRadius(), sender
+                    .getRadius());
+            final Point sPos = sender.getPosition();
             return Point.distance(sPos, iPos) <= minRadius;
 
+        }
+
+        @Override
+        public boolean equals(@Nullable Object o) {
+            return super.equals(o);
         }
     }
 }

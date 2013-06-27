@@ -1,5 +1,7 @@
 package rinde.sim.core.model.communication;
 
+import javax.annotation.Nullable;
+
 import rinde.sim.core.graph.Point;
 
 /**
@@ -23,6 +25,7 @@ public interface CommunicationUser {
      * @return positing on the communication user or <code>null</code> if object
      *         is not positioned
      */
+    @Nullable
     Point getPosition();
 
     /**
