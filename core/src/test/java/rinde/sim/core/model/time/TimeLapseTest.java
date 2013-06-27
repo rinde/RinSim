@@ -1,7 +1,7 @@
 /**
  * 
  */
-package rinde.sim.core;
+package rinde.sim.core.model.time;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;

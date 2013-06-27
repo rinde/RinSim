@@ -1,4 +1,4 @@
-package rinde.sim.core;
+package rinde.sim.core.model.time;
 
 import rinde.sim.core.model.time.TimeLapse;
 
