@@ -591,7 +591,7 @@ public class ModelManagerTest {
 
     }
 
-    static class DebugModel<T> extends SimpleModel<T> {
+    public static class DebugModel<T> extends SimpleModel<T> {
 
         public enum Action {
             ALLOW, REJECT, FAIL

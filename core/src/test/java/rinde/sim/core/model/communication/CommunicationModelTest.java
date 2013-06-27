@@ -15,8 +15,8 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 
-import rinde.sim.core.TimeLapseFactory;
 import rinde.sim.core.graph.Point;
+import rinde.sim.core.model.time.TimeLapseFactory;
 
 @RunWith(Parameterized.class)
 public class CommunicationModelTest {

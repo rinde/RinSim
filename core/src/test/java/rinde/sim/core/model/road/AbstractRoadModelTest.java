@@ -24,9 +24,9 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import rinde.sim.core.TimeLapseFactory;
 import rinde.sim.core.graph.Point;
 import rinde.sim.core.model.time.TimeLapse;
+import rinde.sim.core.model.time.TimeLapseFactory;
 import rinde.sim.util.SpeedConverter;
 import rinde.sim.util.TrivialRoadUser;
 
