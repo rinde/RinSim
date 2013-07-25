@@ -10,4 +10,6 @@ package rinde.sim.core;
 public interface IBuilder<T> {
 
     T build();
+
+    Class<T> getType();
 }
