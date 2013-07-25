@@ -101,7 +101,7 @@ public class ScenarioBuilder {
      * @param es The {@link TimedEvent} to add.
      * @return this
      */
-    public ScenarioBuilder addEvents(Collection<TimedEvent> es) {
+    public ScenarioBuilder addEvents(Collection<? extends TimedEvent> es) {
         for (final TimedEvent te : es) {
             addEvent(te);
         }
