@@ -1,5 +1,7 @@
 package rinde.sim.util;
 
+import static com.google.common.base.Preconditions.checkArgument;
+
 import java.io.Serializable;
 
 /**
@@ -17,6 +19,8 @@ public class TimeWindow implements Serializable {
     public final long end;
 
     public TimeWindow(long pBegin, long pEnd) {
+        checkArgument(pBegin >= 0, "Time must be positive.");
+        checkArgument(pBegin <= pEnd, "Begin can not be later than end.");
         begin = pBegin;
         end = pEnd;
     }
@@ -48,7 +52,6 @@ public class TimeWindow implements Serializable {
 
     @Override
     public String toString() {
-
         final StringBuilder sb = new StringBuilder("TimeWindow{");
         sb.append(begin);
         sb.append(",");
