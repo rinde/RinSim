@@ -1,5 +1,7 @@
 package rinde.sim.problem.common;
 
+import static com.google.common.base.Preconditions.checkArgument;
+
 import java.io.Serializable;
 
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
@@ -21,6 +23,11 @@ public class ParcelDTO implements Serializable {
 	public ParcelDTO(Point pPickupLocation, Point pDestinationLocation, TimeWindow pPickupTimeWindow,
 			TimeWindow pDeliveryTimeWindow, int pNeededCapacity, long pOrderArrivalTime, long pPickupDuration,
 			long pDeliveryDuration) {
+	    checkArgument(pOrderArrivalTime <= pPickupTimeWindow.begin, "Order arrival time may not be after the pickup TW has already opened.");
+	    checkArgument(pNeededCapacity >= 0, "Capacity can not be negative.");
+	    checkArgument(pPickupDuration >= 0,"Pickup duration needs to be strictly positive.");
+	    checkArgument(pDeliveryDuration >= 0,"Delivery duration needs to be strictly positive.");
+	    
 		pickupLocation = pPickupLocation;
 		destinationLocation = pDestinationLocation;
 		pickupTimeWindow = pPickupTimeWindow;
