@@ -6,10 +6,19 @@ package rinde.sim.central;
 import static com.google.common.base.Preconditions.checkArgument;
 
 import java.math.RoundingMode;
+import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
+import rinde.sim.central.GlobalStateObject.VehicleState;
 import rinde.sim.core.graph.Point;
+import rinde.sim.core.model.pdp.PDPModel;
+import rinde.sim.core.model.pdp.Parcel;
+import rinde.sim.core.model.road.RoadModel;
+import rinde.sim.problem.common.DefaultParcel;
+import rinde.sim.problem.common.DefaultVehicle;
 
+import com.google.common.collect.ImmutableSet;
 import com.google.common.math.DoubleMath;
 
 /**
@@ -19,6 +28,44 @@ import com.google.common.math.DoubleMath;
 public class Converter {
 
     private Converter() {}
+
+    public static GlobalStateObject convert(RoadModel rm, PDPModel pm,
+            DefaultVehicle vehicle, Collection<DefaultParcel> availableParcels,
+            long time) {
+        final ImmutableSet<VehicleState> vehicles = ImmutableSet
+                .of(new VehicleState(rm.getPosition(vehicle), toDefaultParcelSet(pm
+                        .getContents(vehicle))));
+        return new GlobalStateObject(toDefaultParcelSet(availableParcels), vehicles);
+    }
+
+    public static GlobalStateObject convert(RoadModel rm, PDPModel pm, long time) {
+
+        final ImmutableSet<DefaultParcel> parcels = ImmutableSet.copyOf(rm
+                .getObjectsOfType(DefaultParcel.class));
+        final Set<DefaultVehicle> vehicles = rm
+                .getObjectsOfType(DefaultVehicle.class);
+        final ImmutableSet.Builder<VehicleState> vbuilder = ImmutableSet
+                .builder();
+        for (final DefaultVehicle v : vehicles) {
+            vbuilder.add(new VehicleState(rm.getPosition(v), toDefaultParcelSet(pm
+                    .getContents(v))));
+        }
+
+        return new GlobalStateObject(parcels, vbuilder.build());
+    }
+
+    // TODO convert GlobalStateObject to matrices
+
+    static ImmutableSet<DefaultParcel> toDefaultParcelSet(
+            Collection<? extends Parcel> parcels) {
+        final ImmutableSet.Builder<DefaultParcel> builder = ImmutableSet
+                .builder();
+        for (final Parcel p : parcels) {
+            checkArgument(p instanceof DefaultParcel, "this method expects DefaultParcels");
+            builder.add((DefaultParcel) p);
+        }
+        return builder.build();
+    }
 
     /**
      * Converts the list of points on a plane into a travel time matrix. For
