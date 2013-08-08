@@ -232,6 +232,7 @@ public class PDPModel implements Model<PDPObject>, TickListener, ModelReceiver {
         eventDispatcher = new EventDispatcher(PDPModelEventType.values());
     }
 
+    // TODO change return type to ImmutableSet
     /**
      * Returns an unmodifiable view on the contents of the specified container.
      * @param container The container to inspect.
