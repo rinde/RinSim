@@ -32,14 +32,19 @@ public class Converter {
     public static GlobalStateObject convert(RoadModel rm, PDPModel pm,
             DefaultVehicle vehicle, Collection<DefaultParcel> availableParcels,
             long time) {
+
+        final long remainingServiceTime = pm.getVehicleState(vehicle) == PDPModel.VehicleState.IDLE ? 0
+                : pm.getVehicleActionInfo(vehicle).timeNeeded();
         final ImmutableSet<VehicleState> vehicles = ImmutableSet
-                .of(new VehicleState(rm.getPosition(vehicle), toDefaultParcelSet(pm
-                        .getContents(vehicle))));
-        return new GlobalStateObject(toDefaultParcelSet(availableParcels), vehicles);
+                .of(new VehicleState(vehicle, rm.getPosition(vehicle),
+                        toDefaultParcelSet(pm.getContents(vehicle)),
+                        remainingServiceTime));
+
+        return new GlobalStateObject(toDefaultParcelSet(availableParcels),
+                vehicles, time);
     }
 
     public static GlobalStateObject convert(RoadModel rm, PDPModel pm, long time) {
-
         final ImmutableSet<DefaultParcel> parcels = ImmutableSet.copyOf(rm
                 .getObjectsOfType(DefaultParcel.class));
         final Set<DefaultVehicle> vehicles = rm
@@ -47,14 +52,13 @@ public class Converter {
         final ImmutableSet.Builder<VehicleState> vbuilder = ImmutableSet
                 .builder();
         for (final DefaultVehicle v : vehicles) {
-            vbuilder.add(new VehicleState(rm.getPosition(v), toDefaultParcelSet(pm
-                    .getContents(v))));
+            final long remainingServiceTime = pm.getVehicleState(v) == PDPModel.VehicleState.IDLE ? 0
+                    : pm.getVehicleActionInfo(v).timeNeeded();
+            vbuilder.add(new VehicleState(v, rm.getPosition(v),
+                    toDefaultParcelSet(pm.getContents(v)), remainingServiceTime));
         }
-
-        return new GlobalStateObject(parcels, vbuilder.build());
+        return new GlobalStateObject(parcels, vbuilder.build(), time);
     }
-
-    // TODO convert GlobalStateObject to matrices
 
     static ImmutableSet<DefaultParcel> toDefaultParcelSet(
             Collection<? extends Parcel> parcels) {
