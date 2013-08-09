@@ -3,6 +3,11 @@
  */
 package rinde.sim.central;
 
+import javax.measure.quantity.Duration;
+import javax.measure.quantity.Length;
+import javax.measure.quantity.Velocity;
+import javax.measure.unit.Unit;
+
 import rinde.sim.core.graph.Point;
 import rinde.sim.problem.common.DefaultParcel;
 import rinde.sim.problem.common.DefaultVehicle;
@@ -20,11 +25,20 @@ public class GlobalStateObject {
     public final ImmutableSet<VehicleState> vehicles;
     public final long time;
 
-    public GlobalStateObject(ImmutableSet<DefaultParcel> availableParcels,
-            ImmutableSet<VehicleState> vehicles, long time) {
+    public final Unit<Duration> timeUnit;
+    public final Unit<Velocity> speedUnit;
+    public final Unit<Length> distUnit;
+
+    GlobalStateObject(ImmutableSet<DefaultParcel> availableParcels,
+            ImmutableSet<VehicleState> vehicles, long time,
+            Unit<Duration> timeUnit, Unit<Velocity> speedUnit,
+            Unit<Length> distUnit) {
         this.availableParcels = availableParcels;
         this.vehicles = vehicles;
         this.time = time;
+        this.timeUnit = timeUnit;
+        this.speedUnit = speedUnit;
+        this.distUnit = distUnit;
     }
 
     public static class VehicleState {
@@ -33,11 +47,11 @@ public class GlobalStateObject {
         public final ImmutableSet<DefaultParcel> contents;
         public final long remainingServiceTime;
 
-        public VehicleState(DefaultVehicle vehicle, Point location,
+        VehicleState(DefaultVehicle vehicle, Point location,
                 ImmutableSet<DefaultParcel> contents, long remainingServiceTime) {
             this.vehicle = vehicle;
             this.location = location;
-            this.contents = ImmutableSet.copyOf(contents);
+            this.contents = contents;
             this.remainingServiceTime = remainingServiceTime;
         }
     }
