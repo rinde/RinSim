@@ -54,6 +54,7 @@ public class ConcreteModelABC implements ModelA, ModelC, Model {
     }
 
     // should be put in a provider for ModelB
+    // whenever someone requires ModelB we give them a guard instead.
     @Controller
     ModelB createController(Point p) {
         return new ModelBGuard(this, p);

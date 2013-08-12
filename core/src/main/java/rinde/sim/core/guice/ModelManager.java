@@ -96,8 +96,21 @@ class ModelManager {
                 // create provider based on return type
                 inv.getReturnType();
 
+                // TODO somehow we need to create a provider which can fetch the
+                // init parameters
+
             }
         }
+    }
+
+    public static class GenericProvider<T> implements Provider<T> {
+
+        @Override
+        public T get() {
+            // TODO Auto-generated method stub
+            return null;
+        }
+
     }
 
     public static class Tuple {
