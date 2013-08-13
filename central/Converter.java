@@ -23,6 +23,7 @@ import rinde.sim.problem.common.DefaultParcel;
 import rinde.sim.problem.common.DefaultVehicle;
 import rinde.sim.problem.common.ParcelDTO;
 import rinde.sim.problem.common.VehicleDTO;
+import rinde.solver.pdptw.Solver;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -47,6 +48,24 @@ public final class Converter {
             this.vehicleMap = vehicleMap;
             this.parcelMap = parcelMap;
         }
+    }
+
+    // solver for multi vehicle
+    public static List<Queue<DefaultParcel>> solve(Solver solver, RoadModel rm,
+            PDPModel pm, long time, Unit<Duration> timeUnit,
+            Unit<Velocity> speedUnit, Unit<Length> distUnit) {
+        final StateContext state = convert(rm, pm, time, timeUnit, speedUnit, distUnit);
+        return convertRoutes(state, solver.solve(state.state));
+    }
+
+    // solver for single vehicle
+    public static Queue<DefaultParcel> solve(Solver solver, RoadModel rm,
+            PDPModel pm, DefaultVehicle vehicle,
+            Collection<DefaultParcel> availableParcels, long time,
+            Unit<Duration> timeUnit, Unit<Velocity> speedUnit,
+            Unit<Length> distUnit) {
+        final StateContext state = convert(rm, pm, vehicle, availableParcels, time, timeUnit, speedUnit, distUnit);
+        return convertRoutes(state, solver.solve(state.state)).get(0);
     }
 
     // converts the routes received from Solver.solve(..) into a format which is
