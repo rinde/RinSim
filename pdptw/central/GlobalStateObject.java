@@ -1,7 +1,7 @@
 /**
  * 
  */
-package rinde.sim.central;
+package rinde.sim.pdptw.central;
 
 import javax.measure.quantity.Duration;
 import javax.measure.quantity.Length;

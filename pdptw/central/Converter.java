@@ -1,7 +1,7 @@
 /**
  * 
  */
-package rinde.sim.central;
+package rinde.sim.pdptw.central;
 
 import static com.google.common.collect.Lists.newLinkedList;
 import static java.util.Arrays.asList;
@@ -16,14 +16,14 @@ import javax.measure.quantity.Length;
 import javax.measure.quantity.Velocity;
 import javax.measure.unit.Unit;
 
-import rinde.sim.central.GlobalStateObject.VehicleState;
 import rinde.sim.core.model.pdp.PDPModel;
 import rinde.sim.core.model.road.RoadModel;
+import rinde.sim.pdptw.central.GlobalStateObject.VehicleState;
+import rinde.sim.pdptw.central.solver.Solver;
 import rinde.sim.problem.common.DefaultParcel;
 import rinde.sim.problem.common.DefaultVehicle;
 import rinde.sim.problem.common.ParcelDTO;
 import rinde.sim.problem.common.VehicleDTO;
-import rinde.solver.pdptw.Solver;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
