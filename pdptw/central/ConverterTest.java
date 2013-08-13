@@ -1,15 +1,16 @@
 /**
  * 
  */
-package rinde.sim.central;
+package rinde.sim.pdptw.central;
 
 import javax.measure.quantity.Duration;
 import javax.measure.quantity.Length;
 import javax.measure.quantity.Velocity;
 import javax.measure.unit.Unit;
 
-import rinde.sim.central.GlobalStateObject.VehicleState;
 import rinde.sim.core.graph.Point;
+import rinde.sim.pdptw.central.GlobalStateObject;
+import rinde.sim.pdptw.central.GlobalStateObject.VehicleState;
 import rinde.sim.problem.common.ParcelDTO;
 import rinde.sim.problem.common.VehicleDTO;
 
