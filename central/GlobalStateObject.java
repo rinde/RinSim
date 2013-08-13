@@ -9,9 +9,10 @@ import javax.measure.quantity.Velocity;
 import javax.measure.unit.Unit;
 
 import rinde.sim.core.graph.Point;
-import rinde.sim.problem.common.DefaultParcel;
-import rinde.sim.problem.common.DefaultVehicle;
+import rinde.sim.problem.common.ParcelDTO;
+import rinde.sim.problem.common.VehicleDTO;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 
 /**
@@ -20,17 +21,39 @@ import com.google.common.collect.ImmutableSet;
  */
 public class GlobalStateObject {
 
-    // parcels on map
-    public final ImmutableSet<DefaultParcel> availableParcels;
-    public final ImmutableSet<VehicleState> vehicles;
+    /**
+     * All known parcels which require both a pickup and a delivery. They are
+     * not in the inventory of a vehicle.
+     */
+    public final ImmutableSet<ParcelDTO> availableParcels;
+
+    /**
+     * All vehicles.
+     */
+    public final ImmutableList<VehicleState> vehicles;
+
+    /**
+     * The current time.
+     */
     public final long time;
 
+    /**
+     * The unit of time.
+     */
     public final Unit<Duration> timeUnit;
+
+    /**
+     * The unit of (vehicle) speed.
+     */
     public final Unit<Velocity> speedUnit;
+
+    /**
+     * The unit of distances.
+     */
     public final Unit<Length> distUnit;
 
-    GlobalStateObject(ImmutableSet<DefaultParcel> availableParcels,
-            ImmutableSet<VehicleState> vehicles, long time,
+    GlobalStateObject(ImmutableSet<ParcelDTO> availableParcels,
+            ImmutableList<VehicleState> vehicles, long time,
             Unit<Duration> timeUnit, Unit<Velocity> speedUnit,
             Unit<Length> distUnit) {
         this.availableParcels = availableParcels;
@@ -41,15 +64,33 @@ public class GlobalStateObject {
         this.distUnit = distUnit;
     }
 
-    public static class VehicleState {
-        public final DefaultVehicle vehicle;
+    /**
+     * Immutable state object of a vehicle.
+     * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+     */
+    public static class VehicleState extends VehicleDTO {
+        private static final long serialVersionUID = -9021013328998791086L;
+
+        /**
+         * Location of the vehicle.
+         */
         public final Point location;
-        public final ImmutableSet<DefaultParcel> contents;
+
+        /**
+         * The contents of the vehicle.
+         */
+        public final ImmutableSet<ParcelDTO> contents;
+
+        /**
+         * The remaining time the vehicle needs for completion of its current
+         * task.
+         */
         public final long remainingServiceTime;
 
-        VehicleState(DefaultVehicle vehicle, Point location,
-                ImmutableSet<DefaultParcel> contents, long remainingServiceTime) {
-            this.vehicle = vehicle;
+        VehicleState(VehicleDTO dto, Point location,
+                ImmutableSet<ParcelDTO> contents, long remainingServiceTime) {
+            super(dto.startPosition, dto.speed, dto.capacity,
+                    dto.availabilityTimeWindow);
             this.location = location;
             this.contents = contents;
             this.remainingServiceTime = remainingServiceTime;
