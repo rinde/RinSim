@@ -1,4 +1,4 @@
-package rinde.sim.pdptw.central.solver;
+package rinde.sim.pdptw.central.arrays;
 
 /**
  * Interface for solvers for the single vehicle pickup-and-delivery problem with
@@ -11,7 +11,7 @@ public interface SingleVehicleArraysSolver {
     /**
      * Gives a solution for the single vehicle PDPTW as specified by the
      * parameters. The returned solution does not necessarily need to be optimal
-     * but it needs to be feasible. The {@link SolverValidator} can check
+     * but it needs to be feasible. The {@link ArraysSolverValidator} can check
      * whether a {@link SingleVehicleArraysSolver} produces a valid solution and
      * it can check whether the parameters for the
      * {@link SingleVehicleArraysSolver} are valid.

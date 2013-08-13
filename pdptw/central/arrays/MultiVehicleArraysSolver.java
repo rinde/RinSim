@@ -1,7 +1,7 @@
 /**
  * 
  */
-package rinde.sim.pdptw.central.solver;
+package rinde.sim.pdptw.central.arrays;
 
 /**
  * Interface for solvers for the multi vehicle pickup-and-delivery problem with
@@ -14,7 +14,7 @@ public interface MultiVehicleArraysSolver {
     /**
      * Computes a solution for the multi vehicle PDPTW as specified by the
      * parameters. The returned solution does not necessarily need to be optimal
-     * but it needs to be feasible. The {@link SolverValidator} can check
+     * but it needs to be feasible. The {@link ArraysSolverValidator} can check
      * whether a {@link MultiVehicleArraysSolver} produces a valid solution and
      * it can check whether the parameters for the
      * {@link MultiVehicleArraysSolver} are valid.

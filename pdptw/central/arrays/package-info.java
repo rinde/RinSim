@@ -3,4 +3,4 @@
  * 
  */
 @javax.annotation.ParametersAreNonnullByDefault
-package rinde.sim.pdptw.central.solver;
+package rinde.sim.pdptw.central.arrays;

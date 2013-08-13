@@ -1,13 +1,14 @@
 /**
  * 
  */
-package rinde.sim.pdptw.central.solver;
+package rinde.sim.pdptw.central.arrays;
 
 import javax.measure.quantity.Duration;
 import javax.measure.unit.Unit;
 
 import rinde.sim.pdptw.central.GlobalStateObject;
-import rinde.sim.pdptw.central.solver.ArraysSolvers.MVArraysObject;
+import rinde.sim.pdptw.central.Solver;
+import rinde.sim.pdptw.central.arrays.ArraysSolvers.MVArraysObject;
 import rinde.sim.problem.common.ParcelDTO;
 
 import com.google.common.collect.ImmutableList;

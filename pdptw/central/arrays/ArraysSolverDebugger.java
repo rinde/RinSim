@@ -1,7 +1,7 @@
 /**
  * 
  */
-package rinde.sim.pdptw.central.solver;
+package rinde.sim.pdptw.central.arrays;
 
 import static com.google.common.collect.Lists.newArrayList;
 import static java.lang.System.out;
@@ -16,7 +16,7 @@ import java.util.List;
  * A {@link SingleVehicleArraysSolver} wrapper that adds debugging.
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
  */
-public class SolverDebugger implements SingleVehicleArraysSolver {
+public class ArraysSolverDebugger implements SingleVehicleArraysSolver {
 
     private final List<InputObject> inputMemory;
     private final List<SolutionObject> outputMemory;
@@ -24,7 +24,7 @@ public class SolverDebugger implements SingleVehicleArraysSolver {
     private final SingleVehicleArraysSolver solver;
     private final boolean print;
 
-    private SolverDebugger(SingleVehicleArraysSolver solver, boolean print) {
+    private ArraysSolverDebugger(SingleVehicleArraysSolver solver, boolean print) {
         this.solver = solver;
         this.print = print;
         inputMemory = newArrayList();
@@ -117,8 +117,8 @@ public class SolverDebugger implements SingleVehicleArraysSolver {
      * @param s The {@link SingleVehicleArraysSolver} to wrap.
      * @return The wrapped solver.
      */
-    public static SolverDebugger wrap(SingleVehicleArraysSolver s) {
-        return new SolverDebugger(s, true);
+    public static ArraysSolverDebugger wrap(SingleVehicleArraysSolver s) {
+        return new ArraysSolverDebugger(s, true);
     }
 
     /**
@@ -130,8 +130,8 @@ public class SolverDebugger implements SingleVehicleArraysSolver {
      *            well.
      * @return The wrapped solver.
      */
-    public static SolverDebugger wrap(SingleVehicleArraysSolver s, boolean print) {
-        return new SolverDebugger(s, print);
+    public static ArraysSolverDebugger wrap(SingleVehicleArraysSolver s, boolean print) {
+        return new ArraysSolverDebugger(s, print);
     }
 
     static String fix(String s) {

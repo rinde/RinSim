@@ -1,7 +1,7 @@
 /**
  * 
  */
-package rinde.sim.pdptw.central.solver;
+package rinde.sim.pdptw.central.arrays;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
@@ -26,6 +26,7 @@ import javax.measure.unit.Unit;
 
 import rinde.sim.core.graph.Point;
 import rinde.sim.pdptw.central.GlobalStateObject;
+import rinde.sim.pdptw.central.Solver;
 import rinde.sim.pdptw.central.GlobalStateObject.VehicleState;
 import rinde.sim.problem.common.DefaultParcel;
 import rinde.sim.problem.common.ParcelDTO;

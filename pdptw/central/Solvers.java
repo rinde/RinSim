@@ -19,7 +19,6 @@ import javax.measure.unit.Unit;
 import rinde.sim.core.model.pdp.PDPModel;
 import rinde.sim.core.model.road.RoadModel;
 import rinde.sim.pdptw.central.GlobalStateObject.VehicleState;
-import rinde.sim.pdptw.central.solver.Solver;
 import rinde.sim.problem.common.DefaultParcel;
 import rinde.sim.problem.common.DefaultVehicle;
 import rinde.sim.problem.common.ParcelDTO;
@@ -32,9 +31,9 @@ import com.google.common.collect.ImmutableMap;
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
  * 
  */
-public final class Converter {
+public final class Solvers {
 
-    private Converter() {}
+    private Solvers() {}
 
     public static class StateContext {
         public final GlobalStateObject state;
