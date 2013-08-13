@@ -26,7 +26,7 @@ import javax.measure.unit.Unit;
 import org.junit.Test;
 
 import rinde.sim.core.graph.Point;
-import rinde.sim.pdptw.central.solver.ArraysSolvers;
+import rinde.sim.pdptw.central.arrays.ArraysSolvers;
 
 /**
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
