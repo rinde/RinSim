@@ -134,6 +134,8 @@ public abstract class AbstractRoadModelTest<T extends RoadModel> {
     public void register() {
         final TestRoadUser driver = new TestRoadUser();
         model.register(driver);
+        // this is important for checking whether a decorated RoadModel actually
+        // sends its decorated reference to RoadUsers
         assertEquals(model, driver.getRoadModel());
     }
 
