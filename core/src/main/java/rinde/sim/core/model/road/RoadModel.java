@@ -9,6 +9,8 @@ import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
 
+import javax.annotation.Nullable;
+
 import org.apache.commons.math3.random.RandomGenerator;
 
 import rinde.sim.core.TimeLapse;
@@ -222,6 +224,9 @@ public interface RoadModel extends Model<RoadUser> {
      *         <code>obj</code> object.
      */
     Point getPosition(RoadUser roadUser);
+
+    @Nullable
+    Point getDestination(MovingRoadUser roadUser);
 
     /**
      * Searches a random position in the space which is defined by this model.

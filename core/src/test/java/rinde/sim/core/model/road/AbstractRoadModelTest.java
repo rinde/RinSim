@@ -7,6 +7,7 @@ import static com.google.common.collect.Lists.newLinkedList;
 import static java.util.Arrays.asList;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
@@ -147,6 +148,21 @@ public abstract class AbstractRoadModelTest<T extends RoadModel> {
         assertFalse(model.unregister(driver));
         model.addObjectAt(driver, SW);
         assertTrue(model.unregister(driver));
+    }
+
+    @Test
+    public void getDestination() {
+        final TestRoadUser testRoadUser = new TestRoadUser();
+        model.addObjectAt(testRoadUser, SW);
+        assertNull(model.getDestination(testRoadUser));
+        assertNull(model.getDestination(new TestRoadUser()));
+        final List<Point> path = model.getShortestPathTo(SW, NW);
+        model.followPath(testRoadUser, newLinkedList(path), TimeLapseFactory
+                .create(0, 1));
+        assertEquals(NW, model.getDestination(testRoadUser));
+
+        model.moveTo(testRoadUser, NE, TimeLapseFactory.create(0, 1));
+        assertEquals(NE, model.getDestination(testRoadUser));
     }
 
     @Test(expected = NullPointerException.class)

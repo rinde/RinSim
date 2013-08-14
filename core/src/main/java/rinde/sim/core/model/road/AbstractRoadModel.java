@@ -4,6 +4,7 @@
 package rinde.sim.core.model.road;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Maps.newLinkedHashMap;
 
 import java.util.Collection;
@@ -16,6 +17,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
+
+import javax.annotation.Nullable;
 
 import rinde.sim.core.TimeLapse;
 import rinde.sim.core.graph.Point;
@@ -134,7 +137,8 @@ public abstract class AbstractRoadModel<T> extends AbstractModel<RoadUser>
         checkArgument(objLocs.containsKey(object), "object must have a location");
         checkArgument(path.peek() != null, "path can not be empty");
         checkArgument(time.hasTimeLeft(), "can not follow path when to time is left");
-        objDestinations.remove(object);
+        final Point dest = newArrayList(path).get(path.size() - 1);
+        objDestinations.put(object, new DestinationPath(dest, path));
         final MoveProgress mp = doFollowPath(object, path, time);
         eventDispatcher.dispatchEvent(new MoveEvent(this, object, mp));
         return mp;
@@ -174,6 +178,15 @@ public abstract class AbstractRoadModel<T> extends AbstractModel<RoadUser>
      */
     protected abstract MoveProgress doFollowPath(MovingRoadUser object,
             Queue<Point> path, TimeLapse time);
+
+    @Override
+    @Nullable
+    public Point getDestination(MovingRoadUser object) {
+        if (objDestinations.containsKey(object)) {
+            return objDestinations.get(object).destination;
+        }
+        return null;
+    }
 
     @Override
     public void addObjectAt(RoadUser newObj, Point pos) {
