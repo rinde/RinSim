@@ -41,8 +41,9 @@ public class NoDiversionPlaneRoadModelTest {
 
     @Before
     public void setUp() {
-        rm = new NoDiversionPlaneRoadModel(new Point(0, 0), new Point(10, 10),
-                false, 0.1);
+        rm =
+                new NoDiversionPlaneRoadModel(new Point(0, 0),
+                        new Point(10, 10), false, 0.1);
         dp1 = create(new Point(1, 0), new Point(0, 7));
         dp2 = create(new Point(5, 0), new Point(0, 5));
         dp3 = create(new Point(1, 0), new Point(0, 6));
@@ -58,8 +59,8 @@ public class NoDiversionPlaneRoadModelTest {
         rm.addObjectAt(dv, dv.getDTO().startPosition);
 
         // to satisfy coverage tool
-        NoDiversionRoadModel.DestType.DEPOT.toString();
-        NoDiversionRoadModel.DestType.valueOf("DEPOT").toString();
+        NoDiversionPlaneRoadModel.DestType.DEPOT.toString();
+        NoDiversionPlaneRoadModel.DestType.valueOf("DEPOT").toString();
     }
 
     @Test
@@ -160,7 +161,8 @@ public class NoDiversionPlaneRoadModelTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void testInvalidRoadUser2() {
-        rm.addObjectAtSamePosition(create(new Point(1, 1), new Point(2, 2)), dp2);
+        rm.addObjectAtSamePosition(create(new Point(1, 1), new Point(2, 2)),
+                                   dp2);
         rm.addObjectAtSamePosition(new PlainTestParcel(new Point(6, 6)), dp2);
     }
 
@@ -173,8 +175,10 @@ public class NoDiversionPlaneRoadModelTest {
     @Test(expected = UnsupportedOperationException.class)
     @SuppressWarnings("null")
     public void invalidFollowPath() {
-        rm.followPath(dv, newLinkedList(rm
-                .getShortestPathTo(new Point(0, 0), new Point(10, 10))), time(1));
+        rm.followPath(dv,
+                      newLinkedList(rm.getShortestPathTo(new Point(0, 0),
+                                                         new Point(10, 10))),
+                      time(1));
     }
 
     static TimeLapse time(long t) {
