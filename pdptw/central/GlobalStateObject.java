@@ -3,12 +3,15 @@
  */
 package rinde.sim.pdptw.central;
 
+import javax.annotation.Nullable;
 import javax.measure.quantity.Duration;
 import javax.measure.quantity.Length;
 import javax.measure.quantity.Velocity;
 import javax.measure.unit.Unit;
 
+import rinde.sim.core.Simulator;
 import rinde.sim.core.graph.Point;
+import rinde.sim.problem.common.DynamicPDPTWProblem;
 import rinde.sim.problem.common.ParcelDTO;
 import rinde.sim.problem.common.VehicleDTO;
 
@@ -16,8 +19,12 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 
 /**
+ * An immutable state object representing the state of an entire
+ * {@link Simulator} configured using {@link DynamicPDPTWProblem}. Instances can
+ * be obtained via
+ * {@link Solvers#convert(rinde.sim.core.model.road.RoadModel, rinde.sim.core.model.pdp.PDPModel, long, Unit, Unit, Unit)}
+ * .
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
- * 
  */
 public class GlobalStateObject {
 
@@ -87,14 +94,32 @@ public class GlobalStateObject {
          */
         public final long remainingServiceTime;
 
+        /**
+         * This field is only not <code>null</code> in case all of the following
+         * holds:
+         * <ul>
+         * <li>Vehicles are not allowed to divert from their previously started
+         * routes.</li>
+         * <li>The vehicle is moving to a parcel (either pickup or delivery
+         * location).</li>
+         * <li>The vehicle has not yet reached its destination.</li>
+         * </ul>
+         * When it is not <code>null</code> it indicates the current destination
+         * of a vehicle. When a vehicle has a destination it <b>must</b> first
+         * move to and service this destination.
+         */
+        @Nullable
+        public final ParcelDTO destination;
+
         VehicleState(VehicleDTO dto, Point location,
-                ImmutableSet<ParcelDTO> contents, long remainingServiceTime) {
+                ImmutableSet<ParcelDTO> contents, long remainingServiceTime,
+                @Nullable ParcelDTO destination) {
             super(dto.startPosition, dto.speed, dto.capacity,
                     dto.availabilityTimeWindow);
             this.location = location;
             this.contents = contents;
             this.remainingServiceTime = remainingServiceTime;
+            this.destination = destination;
         }
     }
-
 }

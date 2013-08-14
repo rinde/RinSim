@@ -21,6 +21,7 @@ import rinde.sim.core.model.road.RoadModel;
 import rinde.sim.pdptw.central.GlobalStateObject.VehicleState;
 import rinde.sim.problem.common.DefaultParcel;
 import rinde.sim.problem.common.DefaultVehicle;
+import rinde.sim.problem.common.NoDiversionRoadModel;
 import rinde.sim.problem.common.ParcelDTO;
 import rinde.sim.problem.common.VehicleDTO;
 
@@ -133,8 +134,18 @@ public final class Solvers {
             ImmutableMap<ParcelDTO, DefaultParcel> contents) {
         final long remainingServiceTime = pm.getVehicleState(vehicle) == PDPModel.VehicleState.IDLE ? 0
                 : pm.getVehicleActionInfo(vehicle).timeNeeded();
+
+        ParcelDTO destination = null;
+        if (rm instanceof NoDiversionRoadModel) {
+            // check whether the vehicle is already underway to parcel
+            final NoDiversionRoadModel ndrm = (NoDiversionRoadModel) rm;
+            final DefaultParcel p = ndrm.getDestinationToParcel(vehicle);
+            if (p != null) {
+                destination = p.dto;
+            }
+        }
         return new VehicleState(vehicle.getDTO(), rm.getPosition(vehicle),
-                contents.keySet(), remainingServiceTime);
+                contents.keySet(), remainingServiceTime, destination);
     }
 
     static ImmutableMap<ParcelDTO, DefaultParcel> toMap(
