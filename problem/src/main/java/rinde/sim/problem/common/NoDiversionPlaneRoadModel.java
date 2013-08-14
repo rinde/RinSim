@@ -27,7 +27,8 @@ import com.google.common.collect.Multimap;
  * A {@link PlaneRoadModel} which does not allow diversion of vehicles.
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
  */
-public class NoDiversionPlaneRoadModel extends PlaneRoadModel {
+public class NoDiversionPlaneRoadModel extends PlaneRoadModel implements
+        NoDiversionRoadModel {
 
     final Map<MovingRoadUser, DestinationObject> destinations;
     final Multimap<MovingRoadUser, DestinationObject> destinationHistory;
@@ -134,17 +135,7 @@ public class NoDiversionPlaneRoadModel extends PlaneRoadModel {
         return mp;
     }
 
-    /**
-     * Returns the destination of the specified {@link MovingRoadUser} if both:
-     * <ul>
-     * <li>The destination is a {@link DefaultParcel}.</li>
-     * <li>The {@link MovingRoadUser} has not yet reached its destination.</li>
-     * </ul>
-     * Returns <code>null</code> otherwise.
-     * @param obj The {@link MovingRoadUser} to check its destination for.
-     * @return The parcel the road user is heading to or <code>null</code>
-     *         otherwise.
-     */
+    @Override
     @Nullable
     public DefaultParcel getDestinationToParcel(MovingRoadUser obj) {
         if (destinations.containsKey(obj)

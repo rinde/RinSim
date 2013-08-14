@@ -58,8 +58,8 @@ public class NoDiversionPlaneRoadModelTest {
         rm.addObjectAt(dv, dv.getDTO().startPosition);
 
         // to satisfy coverage tool
-        NoDiversionPlaneRoadModel.DestType.DEPOT.toString();
-        NoDiversionPlaneRoadModel.DestType.valueOf("DEPOT").toString();
+        NoDiversionRoadModel.DestType.DEPOT.toString();
+        NoDiversionRoadModel.DestType.valueOf("DEPOT").toString();
     }
 
     @Test
