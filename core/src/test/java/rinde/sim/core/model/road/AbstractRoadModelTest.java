@@ -28,6 +28,8 @@ import org.junit.Test;
 import rinde.sim.core.TimeLapse;
 import rinde.sim.core.TimeLapseFactory;
 import rinde.sim.core.graph.Point;
+import rinde.sim.core.model.road.AbstractRoadModel.RoadEventType;
+import rinde.sim.event.ListenerEventHistory;
 import rinde.sim.util.SpeedConverter;
 import rinde.sim.util.TrivialRoadUser;
 
@@ -426,6 +428,42 @@ public abstract class AbstractRoadModelTest<T extends RoadModel> {
     @Test(expected = IllegalArgumentException.class)
     public void pathProgressConstructorFail3() {
         new MoveProgress(1, 1, null);
+    }
+
+    @Test
+    public void moveToEventIssuerType() {
+        final MovingRoadUser user = new TestRoadUser();
+        model.addObjectAt(user, SW);
+
+        final ListenerEventHistory list = new ListenerEventHistory();
+        model.getEventAPI().addListener(list, RoadEventType.MOVE);
+        assertTrue(list.getHistory().isEmpty());
+        model.moveTo(user, NW, TimeLapseFactory.create(0, 10));
+
+        assertEquals(1, list.getHistory().size());
+
+        assertEquals(RoadEventType.MOVE, list.getHistory().get(0)
+                .getEventType());
+        assertEquals(model, list.getHistory().get(0).getIssuer());
+
+    }
+
+    @Test
+    public void followPathEventIssuerType() {
+        final MovingRoadUser user = new TestRoadUser();
+        model.addObjectAt(user, SW);
+
+        final ListenerEventHistory list = new ListenerEventHistory();
+        model.getEventAPI().addListener(list, RoadEventType.MOVE);
+        assertTrue(list.getHistory().isEmpty());
+        model.followPath(user, newLinkedList(asList(SW, SE, NE, NW)), TimeLapseFactory
+                .create(0, 10));
+
+        assertEquals(1, list.getHistory().size());
+
+        assertEquals(RoadEventType.MOVE, list.getHistory().get(0)
+                .getEventType());
+        assertEquals(model, list.getHistory().get(0).getIssuer());
     }
 
     @Test

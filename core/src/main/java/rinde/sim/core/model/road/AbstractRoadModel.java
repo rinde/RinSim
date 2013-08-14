@@ -132,7 +132,12 @@ public abstract class AbstractRoadModel<T> extends AbstractModel<RoadUser>
     }
 
     @Override
-    public final MoveProgress followPath(MovingRoadUser object,
+    public MoveProgress followPath(MovingRoadUser object, Queue<Point> path,
+            TimeLapse time) {
+        return followPath(this, object, path, time);
+    }
+
+    public MoveProgress followPath(RoadModel self, MovingRoadUser object,
             Queue<Point> path, TimeLapse time) {
         checkArgument(objLocs.containsKey(object), "object must have a location");
         checkArgument(path.peek() != null, "path can not be empty");
@@ -140,13 +145,18 @@ public abstract class AbstractRoadModel<T> extends AbstractModel<RoadUser>
         final Point dest = newArrayList(path).get(path.size() - 1);
         objDestinations.put(object, new DestinationPath(dest, path));
         final MoveProgress mp = doFollowPath(object, path, time);
-        eventDispatcher.dispatchEvent(new MoveEvent(this, object, mp));
+        eventDispatcher.dispatchEvent(new MoveEvent(self, object, mp));
         return mp;
     }
 
     @Override
     public MoveProgress moveTo(MovingRoadUser object, Point destination,
             TimeLapse time) {
+        return moveTo(this, object, destination, time);
+    }
+
+    protected MoveProgress moveTo(RoadModel self, MovingRoadUser object,
+            Point destination, TimeLapse time) {
         Queue<Point> path;
         if (objDestinations.containsKey(object)
                 && objDestinations.get(object).destination.equals(destination)) {
@@ -157,7 +167,7 @@ public abstract class AbstractRoadModel<T> extends AbstractModel<RoadUser>
             objDestinations.put(object, new DestinationPath(destination, path));
         }
         final MoveProgress mp = doFollowPath(object, path, time);
-        eventDispatcher.dispatchEvent(new MoveEvent(this, object, mp));
+        eventDispatcher.dispatchEvent(new MoveEvent(self, object, mp));
         return mp;
     }
 
@@ -278,18 +288,23 @@ public abstract class AbstractRoadModel<T> extends AbstractModel<RoadUser>
         return Sets.filter(getObjects(), predicate);
     }
 
-    @Override
     @SuppressWarnings("unchecked")
-    public <Y extends RoadUser> Set<Y> getObjectsAt(RoadUser roadUser,
+    <Y extends RoadUser> Set<Y> getObjectsAt(RoadModel self, RoadUser roadUser,
             Class<Y> type) {
         checkArgument(roadUser != null, "roadUser can not be null");
         checkArgument(type != null, "type can not be null");
         final Set<Y> result = new HashSet<Y>();
         for (final RoadUser ru : getObjects(new SameLocationPredicate(roadUser,
-                type, this))) {
+                type, self))) {
             result.add((Y) ru);
         }
         return result;
+    }
+
+    @Override
+    public <Y extends RoadUser> Set<Y> getObjectsAt(RoadUser roadUser,
+            Class<Y> type) {
+        return getObjectsAt(this, roadUser, type);
     }
 
     @Override
@@ -322,10 +337,14 @@ public abstract class AbstractRoadModel<T> extends AbstractModel<RoadUser>
 
     @Override
     public boolean register(RoadUser roadUser) {
+        return register(this, roadUser);
+    }
+
+    protected boolean register(RoadModel self, RoadUser roadUser) {
         if (roadUser == null) {
             throw new IllegalArgumentException("roadUser can not be null");
         }
-        roadUser.initRoadUser(this);
+        roadUser.initRoadUser(self);
         return true;
     }
 
