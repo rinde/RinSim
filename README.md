@@ -29,6 +29,8 @@ Other modules can be added similarly:
 		<artifactId>rinsim-problem</artifactId>
 		<version>2.x.y</version>
 	</dependency>
+	
+For release notes of the latest release click [here](releasenotes.md).
 
 
 <!-- 
