@@ -1,9 +1,7 @@
 package rinde.sim.problem.common;
 
 import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.collect.Maps.newLinkedHashMap;
 
-import java.util.Map;
 import java.util.Queue;
 
 import javax.annotation.Nullable;
@@ -20,16 +18,19 @@ import rinde.sim.core.model.road.MovingRoadUser;
 import rinde.sim.core.model.road.RoadModel;
 import rinde.sim.core.model.road.RoadUser;
 
+import com.google.common.collect.BiMap;
+import com.google.common.collect.HashBiMap;
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Multimap;
 
 /**
- * A decorator for {@link RoadModel} which adds restrictions. TODO explain what!
+ * A decorator for {@link RoadModel} which provides a more convenient API for
+ * PDP problems. TODO explain what!
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
  */
-public class StrictRoadModel extends ForwardingRoadModel {
+public class PDPRoadModel extends ForwardingRoadModel {
 
-    protected final Map<MovingRoadUser, DestinationObject> destinations;
+    protected final BiMap<MovingRoadUser, DestinationObject> destinations;
     protected final Multimap<MovingRoadUser, DestinationObject> destinationHistory;
     protected final AbstractRoadModel<?> delegate;
     protected final boolean allowDiversion;
@@ -39,11 +40,10 @@ public class StrictRoadModel extends ForwardingRoadModel {
      * @param rm
      * @param allowVehicleDiversion
      */
-    public StrictRoadModel(AbstractRoadModel<?> rm,
-            boolean allowVehicleDiversion) {
+    public PDPRoadModel(AbstractRoadModel<?> rm, boolean allowVehicleDiversion) {
         allowDiversion = allowVehicleDiversion;
         delegate = rm;
-        destinations = newLinkedHashMap();
+        destinations = HashBiMap.create();
         // does not allow duplicates: WE NEED THIS
         destinationHistory = LinkedHashMultimap.create();
     }
@@ -117,8 +117,7 @@ public class StrictRoadModel extends ForwardingRoadModel {
                 // when we haven't reached our destination and the destination
                 // isn't the depot we are not allowed to change destination
                 checkArgument(
-                    prev.roadUser == destinationObject
-                            || !containsObject(prev.roadUser),
+                    prev.roadUser == destinationObject,
                     "Diversion from the current destination is not allowed: %s.",
                     prev.dest);
                 destChange = false;
@@ -145,8 +144,14 @@ public class StrictRoadModel extends ForwardingRoadModel {
                 }
             }
         }
+        if (destChange && !allowDiversion) {
+            checkArgument(
+                !destinations.inverse().containsKey(newDestinationObject),
+                "Only one vehicle is allowed to travel towards a Parcel.");
+        }
         destinations.put(object, newDestinationObject);
         if (destChange) {
+
             checkArgument(
                 allowDiversion
                         || !destinationHistory.containsEntry(object,

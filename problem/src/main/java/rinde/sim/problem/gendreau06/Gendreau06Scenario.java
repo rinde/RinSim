@@ -23,7 +23,7 @@ import rinde.sim.core.model.road.PlaneRoadModel;
 import rinde.sim.core.model.road.RoadModel;
 import rinde.sim.problem.common.DynamicPDPTWProblem.StopCondition;
 import rinde.sim.problem.common.DynamicPDPTWScenario;
-import rinde.sim.problem.common.StrictRoadModel;
+import rinde.sim.problem.common.PDPRoadModel;
 import rinde.sim.scenario.TimedEvent;
 import rinde.sim.util.TimeWindow;
 
@@ -85,7 +85,7 @@ public class Gendreau06Scenario extends DynamicPDPTWScenario {
 
     @Override
     public RoadModel createRoadModel() {
-        return new StrictRoadModel(
+        return new PDPRoadModel(
                 new PlaneRoadModel(min, max, true, maxSpeed), false);
     }
 

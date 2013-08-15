@@ -85,24 +85,20 @@ public class Gendreau06Test {
     @Test
     public void simpleScenario() throws IOException {
         final Gendreau06Scenario scenario =
-                create(2, minutes(15),
+                create(1, minutes(15),
                     new AddParcelEvent(new ParcelDTO(new Point(2, 1),
                             new Point(4, 1), new TimeWindow(0, 720000),
                             new TimeWindow(5, 720000), 0, 0, 0, 0)));
         final StatisticsDTO dto = runProblem(scenario, useGui);
 
-        // the second truck will turn around just one tick distance before
-        // reaching the package. the reason is that it is too late since the
-        // first truck will pickup the parcel.
-        final double distInOneTick = 30.0 / 3600.0;
         assertFalse(dto.simFinish);
-        assertEquals(9 - (2.0 * distInOneTick), dto.totalDistance, EPSILON);
+        assertEquals(6, dto.totalDistance, EPSILON);
         assertEquals(1, dto.totalParcels);
         assertEquals(0, dto.overTime);
         assertEquals(0, dto.pickupTardiness);
         assertEquals(0, dto.deliveryTardiness);
-        assertEquals(2, dto.totalVehicles);
-        assertEquals(2, dto.movedVehicles);
+        assertEquals(1, dto.totalVehicles);
+        assertEquals(1, dto.movedVehicles);
     }
 
     /**

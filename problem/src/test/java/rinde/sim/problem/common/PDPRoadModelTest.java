@@ -25,16 +25,17 @@ import rinde.sim.util.TimeWindow;
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
  * 
  */
-public class NoDiversionPlaneRoadModelTest {
+public class PDPRoadModelTest {
 
     DefaultParcel dp1;
     DefaultParcel dp2;
     DefaultParcel dp3;
     DefaultDepot depot;
 
-    DefaultVehicle dv;
+    DefaultVehicle dv1;
+    DefaultVehicle dv2;
 
-    StrictRoadModel rm;
+    PDPRoadModel rm;
 
     static final TimeLapse TIME = TimeLapseFactory.create(0, 1);
 
@@ -43,8 +44,8 @@ public class NoDiversionPlaneRoadModelTest {
     @Before
     public void setUp() {
         rm =
-                new StrictRoadModel(new PlaneRoadModel(
-                        new Point(0, 0), new Point(10, 10), false, 0.1), false);
+                new PDPRoadModel(new PlaneRoadModel(new Point(0, 0), new Point(
+                        10, 10), false, 0.1), false);
         dp1 = create(new Point(1, 0), new Point(0, 7));
         dp2 = create(new Point(5, 0), new Point(0, 5));
         dp3 = create(new Point(1, 0), new Point(0, 6));
@@ -56,108 +57,117 @@ public class NoDiversionPlaneRoadModelTest {
         depot = new DefaultDepot(depotLocation);
         rm.addObjectAt(depot, depotLocation);
 
-        dv = new TestVehicle(new Point(0, 0));
-        rm.addObjectAt(dv, dv.getDTO().startPosition);
+        dv1 = new TestVehicle(new Point(0, 0));
+        dv2 = new TestVehicle(new Point(0, 0));
+        for (final DefaultVehicle tv : asList(dv1, dv2)) {
+            rm.addObjectAt(tv, tv.getDTO().startPosition);
+        }
 
         // to satisfy coverage tool
-        StrictRoadModel.DestType.DEPOT.toString();
-        StrictRoadModel.DestType.valueOf("DEPOT").toString();
+        PDPRoadModel.DestType.DEPOT.toString();
+        PDPRoadModel.DestType.valueOf("DEPOT").toString();
     }
 
     @Test
     public void test1() {
-        assertNull(rm.getDestinationToParcel(dv));
-        rm.moveTo(dv, dp1, time(7));
-        assertEquals(dp1, rm.getDestinationToParcel(dv));
+        assertNull(rm.getDestinationToParcel(dv1));
+        rm.moveTo(dv1, dp1, time(7));
+        assertEquals(dp1, rm.getDestinationToParcel(dv1));
 
-        rm.moveTo(dv, dp1, time(4));
-        assertNull(rm.getDestinationToParcel(dv));
+        rm.moveTo(dv1, dp1, time(4));
+        assertNull(rm.getDestinationToParcel(dv1));
 
         rm.removeObject(dp1);
-        rm.moveTo(dv, dp1, time(1));
-        assertEquals(dp1, rm.getDestinationToParcel(dv));
+        rm.moveTo(dv1, dp1, time(1));
+        assertEquals(dp1, rm.getDestinationToParcel(dv1));
 
-        rm.moveTo(dv, dp1, time(80));
-        assertNull(rm.getDestinationToParcel(dv));
+        rm.moveTo(dv1, dp1, time(80));
+        assertNull(rm.getDestinationToParcel(dv1));
 
-        rm.moveTo(dv, dp2, time(50));
-        assertEquals(dp2, rm.getDestinationToParcel(dv));
+        rm.moveTo(dv1, dp2, time(50));
+        assertEquals(dp2, rm.getDestinationToParcel(dv1));
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void divertFromDest() {
-        rm.moveTo(dv, dp1, time(7));
-        rm.moveTo(dv, dp2, time(4));
+        rm.moveTo(dv1, dp1, time(7));
+        rm.moveTo(dv1, dp2, time(4));
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void divertToSameBeforePickup() {
-        rm.moveTo(dv, dp1, time(7));
-        rm.moveTo(dv, dp1, time(4));
-        assertEquals(rm.getPosition(dv), rm.getPosition(dp1));
-        rm.moveTo(dv, dp1, time(80));
+        rm.moveTo(dv1, dp1, time(7));
+        rm.moveTo(dv1, dp1, time(4));
+        assertEquals(rm.getPosition(dv1), rm.getPosition(dp1));
+        rm.moveTo(dv1, dp1, time(80));
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void divertToOtherBeforePickup() {
-        rm.moveTo(dv, dp1, time(7));
-        rm.moveTo(dv, dp1, time(4));
-        assertEquals(rm.getPosition(dv), rm.getPosition(dp1));
-        rm.moveTo(dv, dp2, time(80));
+        rm.moveTo(dv1, dp1, time(7));
+        rm.moveTo(dv1, dp1, time(4));
+        assertEquals(rm.getPosition(dv1), rm.getPosition(dp1));
+        rm.moveTo(dv1, dp2, time(80));
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void divertToOtherBeforeDelivery() {
-        rm.moveTo(dv, dp1, time(10));
-        assertEquals(rm.getPosition(dv), rm.getPosition(dp1));
+        rm.moveTo(dv1, dp1, time(10));
+        assertEquals(rm.getPosition(dv1), rm.getPosition(dp1));
         rm.removeObject(dp1);
-        rm.moveTo(dv, dp1, time(1));
-        rm.moveTo(dv, dp2, time(80));
+        rm.moveTo(dv1, dp1, time(1));
+        rm.moveTo(dv1, dp2, time(80));
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void attemptVisitFor3rdTime() {
         // first pickup
-        rm.moveTo(dv, dp1, time(11));
+        rm.moveTo(dv1, dp1, time(11));
         rm.removeObject(dp1);
         // then deliver
-        rm.moveTo(dv, dp1, time(80));
+        rm.moveTo(dv1, dp1, time(80));
         // 3rd time is not allowed!
-        rm.moveTo(dv, dp1, time(80));
+        rm.moveTo(dv1, dp1, time(80));
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void attemptVisitFor3rdTime2() {
         // first pickup
-        rm.moveTo(dv, dp1, time(11));
-        assertTrue(rm.equalPosition(dv, dp1));
+        rm.moveTo(dv1, dp1, time(11));
+        assertTrue(rm.equalPosition(dv1, dp1));
         rm.removeObject(dp1);
         // then deliver
-        rm.moveTo(dv, dp1, time(80));
-        assertEquals(rm.getPosition(dv), dp1.getDestination());
+        rm.moveTo(dv1, dp1, time(80));
+        assertEquals(rm.getPosition(dv1), dp1.getDestination());
 
-        rm.moveTo(dv, dp2, time(180));
-        assertTrue(rm.equalPosition(dv, dp2));
+        rm.moveTo(dv1, dp2, time(180));
+        assertTrue(rm.equalPosition(dv1, dp2));
         rm.removeObject(dp2);
 
         // it is not allowed to revisit this position
-        rm.moveTo(dv, dp1, time(80));
+        rm.moveTo(dv1, dp1, time(80));
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void twoVehiclesGoToSame() {
+        rm.moveTo(dv1, dp1, time(1));
+        rm.moveTo(dv2, dp1, time(1));
     }
 
     @Test
     public void moveToDepot() {
-        rm.moveTo(dv, depot, time(1));
-        assertNull(rm.getDestinationToParcel(dv));
-        rm.moveTo(dv, depot, time(1));
-        rm.moveTo(dv, dp1, time(1));
-        assertEquals(dp1, rm.getDestinationToParcel(dv));
+        rm.moveTo(dv1, depot, time(1));
+        assertNull(rm.getDestinationToParcel(dv1));
+        rm.moveTo(dv1, depot, time(1));
+        rm.moveTo(dv1, dp1, time(1));
+        assertEquals(dp1, rm.getDestinationToParcel(dv1));
 
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void testInvalidRoadUser() {
         // does not exist
-        rm.moveTo(dv, new PlainTestParcel(new Point(6, 6)), time(1));
+        rm.moveTo(dv1, new PlainTestParcel(new Point(6, 6)), time(1));
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -176,7 +186,7 @@ public class NoDiversionPlaneRoadModelTest {
     @Test(expected = UnsupportedOperationException.class)
     @SuppressWarnings("null")
     public void invalidFollowPath() {
-        rm.followPath(dv, newLinkedList(rm.getShortestPathTo(new Point(0, 0),
+        rm.followPath(dv1, newLinkedList(rm.getShortestPathTo(new Point(0, 0),
             new Point(10, 10))), time(1));
     }
 
