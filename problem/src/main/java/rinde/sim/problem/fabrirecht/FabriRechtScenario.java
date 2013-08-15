@@ -6,7 +6,16 @@ package rinde.sim.problem.fabrirecht;
 import java.util.Collection;
 import java.util.Set;
 
+import javax.measure.quantity.Duration;
+import javax.measure.quantity.Length;
+import javax.measure.quantity.Velocity;
+import javax.measure.unit.Unit;
+
 import rinde.sim.core.graph.Point;
+import rinde.sim.core.model.pdp.PDPModel;
+import rinde.sim.core.model.pdp.twpolicy.TardyAllowedPolicy;
+import rinde.sim.core.model.road.PlaneRoadModel;
+import rinde.sim.core.model.road.RoadModel;
 import rinde.sim.problem.common.DynamicPDPTWProblem.StopCondition;
 import rinde.sim.problem.common.DynamicPDPTWScenario;
 import rinde.sim.problem.common.VehicleDTO;
@@ -18,67 +27,73 @@ import rinde.sim.util.TimeWindow;
  * 
  */
 public class FabriRechtScenario extends DynamicPDPTWScenario {
-	private static final long serialVersionUID = 8654500529284785728L;
-	public final Point min;
-	public final Point max;
-	public final TimeWindow timeWindow;
-	public final VehicleDTO defaultVehicle;
+    private static final long serialVersionUID = 8654500529284785728L;
+    public final Point min;
+    public final Point max;
+    public final TimeWindow timeWindow;
+    public final VehicleDTO defaultVehicle;
 
-	// empty scenario
-	public FabriRechtScenario(Point pMin, Point pMax, TimeWindow pTimeWindow, VehicleDTO pDefaultVehicle) {
-		super();
-		min = pMin;
-		max = pMax;
-		timeWindow = pTimeWindow;
-		defaultVehicle = pDefaultVehicle;
-	}
+    // empty scenario
+    public FabriRechtScenario(Point pMin, Point pMax, TimeWindow pTimeWindow,
+            VehicleDTO pDefaultVehicle) {
+        super();
+        min = pMin;
+        max = pMax;
+        timeWindow = pTimeWindow;
+        defaultVehicle = pDefaultVehicle;
+    }
 
-	/**
-	 * @param pEvents
-	 * @param pSupportedTypes
-	 */
-	public FabriRechtScenario(Collection<? extends TimedEvent> pEvents, Set<Enum<?>> pSupportedTypes, Point pMin,
-			Point pMax, TimeWindow pTimeWindow, VehicleDTO pDefaultVehicle) {
-		super(pEvents, pSupportedTypes);
-		min = pMin;
-		max = pMax;
-		timeWindow = pTimeWindow;
-		defaultVehicle = pDefaultVehicle;
-	}
+    /**
+     * @param pEvents
+     * @param pSupportedTypes
+     */
+    public FabriRechtScenario(Collection<? extends TimedEvent> pEvents,
+            Set<Enum<?>> pSupportedTypes, Point pMin, Point pMax,
+            TimeWindow pTimeWindow, VehicleDTO pDefaultVehicle) {
+        super(pEvents, pSupportedTypes);
+        min = pMin;
+        max = pMax;
+        timeWindow = pTimeWindow;
+        defaultVehicle = pDefaultVehicle;
+    }
 
-	@Override
-	public Point getMin() {
-		return min;
-	}
+    @Override
+    public TimeWindow getTimeWindow() {
+        return timeWindow;
+    }
 
-	@Override
-	public Point getMax() {
-		return max;
-	}
+    @Override
+    public long getTickSize() {
+        return 1L;
+    }
 
-	@Override
-	public TimeWindow getTimeWindow() {
-		return timeWindow;
-	}
+    @Override
+    public StopCondition getStopCondition() {
+        return StopCondition.TIME_OUT_EVENT;
+    }
 
-	@Override
-	public long getTickSize() {
-		return 1L;
-	}
+    @Override
+    public RoadModel createRoadModel() {
+        return new PlaneRoadModel(min, max, false, 1d);
+    }
 
-	@Override
-	public double getMaxSpeed() {
-		return 1.0;
-	}
+    @Override
+    public PDPModel createPDPModel() {
+        return new PDPModel(new TardyAllowedPolicy());
+    }
 
-	@Override
-	public StopCondition getStopCondition() {
-		return StopCondition.TIME_OUT_EVENT;
-	}
+    @Override
+    public Unit<Duration> getTimeUnit() {
+        throw new UnsupportedOperationException("Not implemented.");
+    }
 
-	@Override
-	public boolean useSpeedConversion() {
-		return false;
-	}
+    @Override
+    public Unit<Velocity> getSpeedUnit() {
+        throw new UnsupportedOperationException("Not implemented.");
+    }
 
+    @Override
+    public Unit<Length> getDistanceUnit() {
+        throw new UnsupportedOperationException("Not implemented.");
+    }
 }

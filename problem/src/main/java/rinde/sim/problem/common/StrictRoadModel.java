@@ -65,6 +65,18 @@ public class StrictRoadModel extends ForwardingRoadModel {
     }
 
     @Override
+    public boolean equalPosition(RoadUser obj1, RoadUser obj2) {
+        return getParcelPos(obj1).equals(getParcelPos(obj2));
+    }
+
+    Point getParcelPos(RoadUser obj) {
+        if (!containsObject(obj) && obj instanceof DefaultParcel) {
+            return ((DefaultParcel) obj).getDestination();
+        }
+        return getPosition(obj);
+    }
+
+    @Override
     public void addObjectAt(RoadUser newObj, Point pos) {
         checkType(newObj);
         delegate.addObjectAt(newObj, pos);
@@ -105,7 +117,8 @@ public class StrictRoadModel extends ForwardingRoadModel {
                 // when we haven't reached our destination and the destination
                 // isn't the depot we are not allowed to change destination
                 checkArgument(
-                    prev.roadUser == destinationObject,
+                    prev.roadUser == destinationObject
+                            || !containsObject(prev.roadUser),
                     "Diversion from the current destination is not allowed: %s.",
                     prev.dest);
                 destChange = false;
