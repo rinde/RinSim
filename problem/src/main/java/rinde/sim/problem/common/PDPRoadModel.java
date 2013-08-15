@@ -1,7 +1,9 @@
 package rinde.sim.problem.common;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.collect.Maps.newHashMap;
 
+import java.util.Map;
 import java.util.Queue;
 
 import javax.annotation.Nullable;
@@ -11,6 +13,10 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 import rinde.sim.core.TimeLapse;
 import rinde.sim.core.graph.Point;
+import rinde.sim.core.model.ModelProvider;
+import rinde.sim.core.model.ModelReceiver;
+import rinde.sim.core.model.pdp.PDPModel;
+import rinde.sim.core.model.pdp.PDPModel.ParcelState;
 import rinde.sim.core.model.road.AbstractRoadModel;
 import rinde.sim.core.model.road.ForwardingRoadModel;
 import rinde.sim.core.model.road.MoveProgress;
@@ -18,8 +24,6 @@ import rinde.sim.core.model.road.MovingRoadUser;
 import rinde.sim.core.model.road.RoadModel;
 import rinde.sim.core.model.road.RoadUser;
 
-import com.google.common.collect.BiMap;
-import com.google.common.collect.HashBiMap;
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Multimap;
 
@@ -28,12 +32,14 @@ import com.google.common.collect.Multimap;
  * PDP problems. TODO explain what!
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
  */
-public class PDPRoadModel extends ForwardingRoadModel {
+public class PDPRoadModel extends ForwardingRoadModel implements ModelReceiver {
 
-    protected final BiMap<MovingRoadUser, DestinationObject> destinations;
+    protected final Map<MovingRoadUser, DestinationObject> destinations;
     protected final Multimap<MovingRoadUser, DestinationObject> destinationHistory;
     protected final AbstractRoadModel<?> delegate;
     protected final boolean allowDiversion;
+
+    protected PDPModel pdpModel;
 
     /**
      * Decorates the {@link RoadModel}
@@ -43,7 +49,7 @@ public class PDPRoadModel extends ForwardingRoadModel {
     public PDPRoadModel(AbstractRoadModel<?> rm, boolean allowVehicleDiversion) {
         allowDiversion = allowVehicleDiversion;
         delegate = rm;
-        destinations = HashBiMap.create();
+        destinations = newHashMap();
         // does not allow duplicates: WE NEED THIS
         destinationHistory = LinkedHashMultimap.create();
     }
@@ -71,6 +77,10 @@ public class PDPRoadModel extends ForwardingRoadModel {
 
     Point getParcelPos(RoadUser obj) {
         if (!containsObject(obj) && obj instanceof DefaultParcel) {
+            final ParcelState state =
+                    pdpModel.getParcelState((DefaultParcel) obj);
+            checkArgument(state == ParcelState.IN_CARGO,
+                "Can only move to parcels which are either on the map or in cargo.");
             return ((DefaultParcel) obj).getDestination();
         }
         return getPosition(obj);
@@ -97,9 +107,15 @@ public class PDPRoadModel extends ForwardingRoadModel {
             final DefaultParcel dp = (DefaultParcel) destinationObject;
             final DestType type =
                     containsObject(dp) ? DestType.PICKUP : DestType.DELIVERY;
-            final Point pos =
-                    type == DestType.PICKUP ? dp.dto.pickupLocation
-                            : dp.dto.destinationLocation;
+            final Point pos = getParcelPos(destinationObject);
+            if (type == DestType.DELIVERY) {
+                checkArgument(
+                    pdpModel.containerContains((DefaultVehicle) object,
+                        (DefaultParcel) destinationObject),
+                    "A vehicle can only move to the delivery location of a parcel if it is carrying it.");
+            }
+            // type == DestType.PICKUP ? dp.dto.pickupLocation
+            // : dp.dto.destinationLocation;
             newDestinationObject = new DestinationObject(type, pos, dp);
         } else {
             newDestinationObject =
@@ -111,13 +127,26 @@ public class PDPRoadModel extends ForwardingRoadModel {
         if (destinations.containsKey(object) && !allowDiversion) {
             final DestinationObject prev = destinations.get(object);
             final boolean atDestination = getPosition(object).equals(prev.dest);
-            final boolean isOnMap = containsObject(prev.roadUser);
 
             if (!atDestination && prev.type != DestType.DEPOT) {
                 // when we haven't reached our destination and the destination
                 // isn't the depot we are not allowed to change destination
+
+                boolean alreadyServiced = false;
+                if (prev.type == DestType.PICKUP) {
+                    alreadyServiced =
+                            pdpModel.getParcelState((DefaultParcel) prev.roadUser) == ParcelState.PICKING_UP
+                                    || pdpModel
+                                            .getParcelState((DefaultParcel) prev.roadUser) == ParcelState.IN_CARGO;
+                } else if (prev.type == DestType.DELIVERY) {
+                    alreadyServiced =
+                            pdpModel.getParcelState((DefaultParcel) prev.roadUser) == ParcelState.DELIVERING
+                                    || pdpModel
+                                            .getParcelState((DefaultParcel) prev.roadUser) == ParcelState.DELIVERED;
+                }
+
                 checkArgument(
-                    prev.roadUser == destinationObject,
+                    prev.roadUser == destinationObject || alreadyServiced,
                     "Diversion from the current destination is not allowed: %s.",
                     prev.dest);
                 destChange = false;
@@ -127,15 +156,20 @@ public class PDPRoadModel extends ForwardingRoadModel {
                     // when we are at the prev destination, and it was a pickup,
                     // we are allowed to move if it has been picked up
                     checkArgument(
-                        !isOnMap,
+                        pdpModel.getParcelState((DefaultParcel) prev.roadUser) != ParcelState.AVAILABLE,
                         "Can not move away before the parcel has been picked up: %s.",
                         prev.roadUser);
                 } else if (prev.type == DestType.DELIVERY) {
                     // when we are at the prev destination and it was a
-                    // delivery, we are allowed to move to other objects only
+                    // delivery, we are allowed to move to other objects only,
+                    // and only if the parcel is delivered
                     checkArgument(
                         prev.roadUser != destinationObject,
-                        "Can not move to the same parcel again, it has already been picked up: %s.",
+                        "Can not move to the same parcel since we are already there: %s.",
+                        prev.roadUser);
+                    checkArgument(
+                        pdpModel.getParcelState((DefaultParcel) prev.roadUser) == ParcelState.DELIVERED,
+                        "The parcel needs to be delivered before moving away: %s.",
                         prev.roadUser);
                 } else {// it is a depot
                     // the destination is only changed in case we are no longer
@@ -144,11 +178,11 @@ public class PDPRoadModel extends ForwardingRoadModel {
                 }
             }
         }
-        if (destChange && !allowDiversion) {
-            checkArgument(
-                !destinations.inverse().containsKey(newDestinationObject),
-                "Only one vehicle is allowed to travel towards a Parcel.");
-        }
+        // if (destChange && !allowDiversion) {
+        // checkArgument(
+        // !destinations.inverse().containsKey(newDestinationObject),
+        // "Only one vehicle is allowed to travel towards a Parcel.");
+        // }
         destinations.put(object, newDestinationObject);
         if (destChange) {
 
@@ -235,5 +269,11 @@ public class PDPRoadModel extends ForwardingRoadModel {
 
     enum DestType {
         PICKUP, DELIVERY, DEPOT;
+    }
+
+    @Override
+    public void registerModelProvider(ModelProvider mp) {
+        pdpModel = mp.getModel(PDPModel.class);
+
     }
 }

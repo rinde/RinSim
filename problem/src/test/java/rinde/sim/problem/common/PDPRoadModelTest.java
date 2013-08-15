@@ -6,6 +6,7 @@ package rinde.sim.problem.common;
 import static com.google.common.collect.Lists.newLinkedList;
 import static java.util.Arrays.asList;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
@@ -15,8 +16,12 @@ import org.junit.Test;
 import rinde.sim.core.TimeLapse;
 import rinde.sim.core.TimeLapseFactory;
 import rinde.sim.core.graph.Point;
+import rinde.sim.core.model.ModelProvider;
+import rinde.sim.core.model.TestModelProvider;
 import rinde.sim.core.model.pdp.PDPModel;
+import rinde.sim.core.model.pdp.PDPModel.ParcelState;
 import rinde.sim.core.model.pdp.Parcel;
+import rinde.sim.core.model.pdp.twpolicy.TardyAllowedPolicy;
 import rinde.sim.core.model.road.PlaneRoadModel;
 import rinde.sim.core.model.road.RoadModel;
 import rinde.sim.util.TimeWindow;
@@ -36,6 +41,7 @@ public class PDPRoadModelTest {
     DefaultVehicle dv2;
 
     PDPRoadModel rm;
+    PDPModel pm;
 
     static final TimeLapse TIME = TimeLapseFactory.create(0, 1);
 
@@ -46,11 +52,17 @@ public class PDPRoadModelTest {
         rm =
                 new PDPRoadModel(new PlaneRoadModel(new Point(0, 0), new Point(
                         10, 10), false, 0.1), false);
+        pm = new PDPModel(new TardyAllowedPolicy());
+        final ModelProvider mp = new TestModelProvider(asList(pm, rm));
+        rm.registerModelProvider(mp);
+        pm.registerModelProvider(mp);
+
         dp1 = create(new Point(1, 0), new Point(0, 7));
         dp2 = create(new Point(5, 0), new Point(0, 5));
         dp3 = create(new Point(1, 0), new Point(0, 6));
         for (final DefaultParcel dp : asList(dp1, dp2, dp3)) {
             rm.addObjectAt(dp, dp.dto.pickupLocation);
+            pm.register(dp);
         }
 
         final Point depotLocation = new Point(5, 5);
@@ -61,6 +73,7 @@ public class PDPRoadModelTest {
         dv2 = new TestVehicle(new Point(0, 0));
         for (final DefaultVehicle tv : asList(dv1, dv2)) {
             rm.addObjectAt(tv, tv.getDTO().startPosition);
+            pm.register(tv);
         }
 
         // to satisfy coverage tool
@@ -77,13 +90,18 @@ public class PDPRoadModelTest {
         rm.moveTo(dv1, dp1, time(4));
         assertNull(rm.getDestinationToParcel(dv1));
 
-        rm.removeObject(dp1);
+        pm.pickup(dv1, dp1, time(1));
+        assertFalse(rm.containsObject(dp1));
+        assertEquals(ParcelState.IN_CARGO, pm.getParcelState(dp1));
+
         rm.moveTo(dv1, dp1, time(1));
         assertEquals(dp1, rm.getDestinationToParcel(dv1));
 
         rm.moveTo(dv1, dp1, time(80));
         assertNull(rm.getDestinationToParcel(dv1));
+        pm.deliver(dv1, dp1, time(1));
 
+        assertEquals(ParcelState.AVAILABLE, pm.getParcelState(dp2));
         rm.moveTo(dv1, dp2, time(50));
         assertEquals(dp2, rm.getDestinationToParcel(dv1));
     }
@@ -148,10 +166,17 @@ public class PDPRoadModelTest {
         rm.moveTo(dv1, dp1, time(80));
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void twoVehiclesGoToSame() {
-        rm.moveTo(dv1, dp1, time(1));
-        rm.moveTo(dv2, dp1, time(1));
+        // this is allowed
+        rm.moveTo(dv1, dp1, time(10));
+        rm.moveTo(dv2, dp1, time(10));
+        assertEquals(rm.getPosition(dv1), rm.getPosition(dp1));
+        assertEquals(rm.getPosition(dv2), rm.getPosition(dp1));
+        pm.pickup(dv2, dp1, time(1));
+        assertFalse(rm.containsObject(dp1));
+        assertEquals(ParcelState.IN_CARGO, pm.getParcelState(dp1));
+        rm.moveTo(dv1, dp2, time(3));
     }
 
     @Test
