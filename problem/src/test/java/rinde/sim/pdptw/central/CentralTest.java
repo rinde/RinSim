@@ -21,9 +21,9 @@ import org.junit.Test;
 import rinde.sim.pdptw.central.arrays.ArraysSolverValidator;
 import rinde.sim.pdptw.central.arrays.MultiVehicleSolverAdapter;
 import rinde.sim.pdptw.central.arrays.RandomMVArraysSolver;
-import rinde.sim.problem.gendreau06.Gendreau06ObjectiveFunction;
-import rinde.sim.problem.gendreau06.Gendreau06Parser;
-import rinde.sim.problem.gendreau06.Gendreau06Scenario;
+import rinde.sim.pdptw.gendreau06.Gendreau06ObjectiveFunction;
+import rinde.sim.pdptw.gendreau06.Gendreau06Parser;
+import rinde.sim.pdptw.gendreau06.Gendreau06Scenario;
 import rinde.sim.ui.View;
 
 /**

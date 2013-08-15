@@ -13,8 +13,8 @@ import javax.measure.unit.Unit;
 
 import rinde.sim.core.Simulator;
 import rinde.sim.core.model.pdp.PDPModel;
-import rinde.sim.problem.common.DefaultParcel;
-import rinde.sim.problem.common.PDPRoadModel;
+import rinde.sim.pdptw.common.DefaultParcel;
+import rinde.sim.pdptw.common.PDPRoadModel;
 
 /**
  * Adapts any {@link Solver} to its simplest form such that it is automatically

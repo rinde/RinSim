@@ -15,7 +15,7 @@ import rinde.sim.pdptw.central.GlobalStateObject;
 import rinde.sim.pdptw.central.Solver;
 import rinde.sim.pdptw.central.GlobalStateObject.VehicleState;
 import rinde.sim.pdptw.central.arrays.ArraysSolvers.ArraysObject;
-import rinde.sim.problem.common.ParcelDTO;
+import rinde.sim.pdptw.common.ParcelDTO;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.math.DoubleMath;

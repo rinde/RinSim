@@ -12,8 +12,8 @@ import java.math.RoundingMode;
 import java.util.List;
 
 import rinde.sim.core.graph.Point;
-import rinde.sim.problem.common.AddParcelEvent;
-import rinde.sim.problem.common.AddVehicleEvent;
+import rinde.sim.pdptw.common.AddParcelEvent;
+import rinde.sim.pdptw.common.AddVehicleEvent;
 import rinde.sim.scenario.Scenario;
 import rinde.sim.scenario.TimedEvent;
 

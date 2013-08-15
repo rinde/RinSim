@@ -7,8 +7,8 @@ import static java.util.Collections.nCopies;
 
 import org.apache.commons.math3.random.RandomGenerator;
 
-import rinde.sim.problem.common.AddVehicleEvent;
-import rinde.sim.problem.common.VehicleDTO;
+import rinde.sim.pdptw.common.AddVehicleEvent;
+import rinde.sim.pdptw.common.VehicleDTO;
 
 import com.google.common.collect.ImmutableList;
 

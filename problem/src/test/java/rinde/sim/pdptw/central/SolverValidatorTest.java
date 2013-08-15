@@ -7,8 +7,8 @@ import org.junit.Test;
 
 import rinde.sim.core.graph.Point;
 import rinde.sim.pdptw.central.GlobalStateObject.VehicleState;
-import rinde.sim.problem.common.ParcelDTO;
-import rinde.sim.problem.common.VehicleDTO;
+import rinde.sim.pdptw.common.ParcelDTO;
+import rinde.sim.pdptw.common.VehicleDTO;
 import rinde.sim.util.TestUtil;
 import rinde.sim.util.TimeWindow;
 

@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.Set;
 
 import rinde.sim.pdptw.central.GlobalStateObject.VehicleState;
-import rinde.sim.problem.common.ParcelDTO;
+import rinde.sim.pdptw.common.ParcelDTO;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;

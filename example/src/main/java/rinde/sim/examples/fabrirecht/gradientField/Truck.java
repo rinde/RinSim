@@ -9,9 +9,9 @@ import rinde.sim.core.model.pdp.PDPModel.VehicleState;
 import rinde.sim.core.model.pdp.Parcel;
 import rinde.sim.core.model.road.RoadModels;
 import rinde.sim.core.model.road.RoadUser;
-import rinde.sim.problem.common.DefaultParcel;
-import rinde.sim.problem.common.DefaultVehicle;
-import rinde.sim.problem.common.VehicleDTO;
+import rinde.sim.pdptw.common.DefaultParcel;
+import rinde.sim.pdptw.common.DefaultVehicle;
+import rinde.sim.pdptw.common.VehicleDTO;
 
 import com.google.common.base.Predicate;
 

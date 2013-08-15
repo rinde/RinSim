@@ -21,11 +21,11 @@ import javax.measure.unit.Unit;
 import rinde.sim.core.model.pdp.PDPModel;
 import rinde.sim.core.model.pdp.PDPModel.ParcelState;
 import rinde.sim.pdptw.central.GlobalStateObject.VehicleState;
-import rinde.sim.problem.common.DefaultParcel;
-import rinde.sim.problem.common.DefaultVehicle;
-import rinde.sim.problem.common.PDPRoadModel;
-import rinde.sim.problem.common.ParcelDTO;
-import rinde.sim.problem.common.VehicleDTO;
+import rinde.sim.pdptw.common.DefaultParcel;
+import rinde.sim.pdptw.common.DefaultVehicle;
+import rinde.sim.pdptw.common.PDPRoadModel;
+import rinde.sim.pdptw.common.ParcelDTO;
+import rinde.sim.pdptw.common.VehicleDTO;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;

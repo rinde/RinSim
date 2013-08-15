@@ -9,7 +9,7 @@ import javax.measure.unit.Unit;
 import rinde.sim.pdptw.central.GlobalStateObject;
 import rinde.sim.pdptw.central.Solver;
 import rinde.sim.pdptw.central.arrays.ArraysSolvers.MVArraysObject;
-import rinde.sim.problem.common.ParcelDTO;
+import rinde.sim.pdptw.common.ParcelDTO;
 
 import com.google.common.collect.ImmutableList;
 

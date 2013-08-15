@@ -4,7 +4,7 @@
 package rinde.sim.pdptw.central;
 
 import rinde.sim.pdptw.central.arrays.ArraysSolverValidator;
-import rinde.sim.problem.common.ParcelDTO;
+import rinde.sim.pdptw.common.ParcelDTO;
 
 import com.google.common.collect.ImmutableList;
 

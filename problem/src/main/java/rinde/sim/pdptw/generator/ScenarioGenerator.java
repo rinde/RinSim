@@ -15,10 +15,10 @@ import org.apache.commons.math3.random.RandomGenerator;
 
 import rinde.sim.core.graph.Point;
 import rinde.sim.core.model.pdp.PDPScenarioEvent;
-import rinde.sim.problem.common.AddDepotEvent;
-import rinde.sim.problem.common.AddParcelEvent;
-import rinde.sim.problem.common.ParcelDTO;
-import rinde.sim.problem.common.VehicleDTO;
+import rinde.sim.pdptw.common.AddDepotEvent;
+import rinde.sim.pdptw.common.AddParcelEvent;
+import rinde.sim.pdptw.common.ParcelDTO;
+import rinde.sim.pdptw.common.VehicleDTO;
 import rinde.sim.scenario.Scenario;
 import rinde.sim.scenario.ScenarioBuilder;
 import rinde.sim.util.TimeWindow;

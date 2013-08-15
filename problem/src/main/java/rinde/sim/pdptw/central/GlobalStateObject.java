@@ -11,9 +11,9 @@ import javax.measure.unit.Unit;
 
 import rinde.sim.core.Simulator;
 import rinde.sim.core.graph.Point;
-import rinde.sim.problem.common.DynamicPDPTWProblem;
-import rinde.sim.problem.common.ParcelDTO;
-import rinde.sim.problem.common.VehicleDTO;
+import rinde.sim.pdptw.common.DynamicPDPTWProblem;
+import rinde.sim.pdptw.common.ParcelDTO;
+import rinde.sim.pdptw.common.VehicleDTO;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;

@@ -34,17 +34,17 @@ import rinde.sim.event.EventAPI;
 import rinde.sim.event.EventDispatcher;
 import rinde.sim.event.Listener;
 import rinde.sim.pdptw.central.arrays.ArraysSolvers;
-import rinde.sim.problem.common.AddVehicleEvent;
-import rinde.sim.problem.common.DefaultDepot;
-import rinde.sim.problem.common.DefaultParcel;
-import rinde.sim.problem.common.DefaultVehicle;
-import rinde.sim.problem.common.DynamicPDPTWProblem;
-import rinde.sim.problem.common.DynamicPDPTWProblem.Creator;
-import rinde.sim.problem.common.DynamicPDPTWScenario;
-import rinde.sim.problem.common.ObjectiveFunction;
-import rinde.sim.problem.common.PDPRoadModel;
-import rinde.sim.problem.common.StatsTracker.StatisticsDTO;
-import rinde.sim.problem.common.VehicleDTO;
+import rinde.sim.pdptw.common.AddVehicleEvent;
+import rinde.sim.pdptw.common.DefaultDepot;
+import rinde.sim.pdptw.common.DefaultParcel;
+import rinde.sim.pdptw.common.DefaultVehicle;
+import rinde.sim.pdptw.common.DynamicPDPTWProblem;
+import rinde.sim.pdptw.common.DynamicPDPTWScenario;
+import rinde.sim.pdptw.common.ObjectiveFunction;
+import rinde.sim.pdptw.common.PDPRoadModel;
+import rinde.sim.pdptw.common.VehicleDTO;
+import rinde.sim.pdptw.common.DynamicPDPTWProblem.Creator;
+import rinde.sim.pdptw.common.StatsTracker.StatisticsDTO;
 
 import com.google.common.math.DoubleMath;
 

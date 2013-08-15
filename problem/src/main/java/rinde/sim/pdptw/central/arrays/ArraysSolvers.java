@@ -27,8 +27,8 @@ import rinde.sim.core.graph.Point;
 import rinde.sim.pdptw.central.GlobalStateObject;
 import rinde.sim.pdptw.central.GlobalStateObject.VehicleState;
 import rinde.sim.pdptw.central.Solver;
-import rinde.sim.problem.common.DefaultParcel;
-import rinde.sim.problem.common.ParcelDTO;
+import rinde.sim.pdptw.common.DefaultParcel;
+import rinde.sim.pdptw.common.ParcelDTO;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;

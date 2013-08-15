@@ -5,7 +5,7 @@ package rinde.sim.pdptw.generator;
 
 import org.apache.commons.math3.random.RandomGenerator;
 
-import rinde.sim.problem.common.AddVehicleEvent;
+import rinde.sim.pdptw.common.AddVehicleEvent;
 
 import com.google.common.collect.ImmutableList;
 

@@ -15,9 +15,9 @@ import java.util.List;
 import org.junit.Test;
 
 import rinde.sim.core.graph.Point;
+import rinde.sim.pdptw.common.AddParcelEvent;
+import rinde.sim.pdptw.common.ParcelDTO;
 import rinde.sim.pdptw.generator.Metrics.LoadPart;
-import rinde.sim.problem.common.AddParcelEvent;
-import rinde.sim.problem.common.ParcelDTO;
 import rinde.sim.util.TimeWindow;
 
 /**
