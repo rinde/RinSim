@@ -13,8 +13,8 @@ import javax.measure.unit.Unit;
 
 import rinde.sim.core.Simulator;
 import rinde.sim.core.model.pdp.PDPModel;
-import rinde.sim.core.model.road.RoadModel;
 import rinde.sim.problem.common.DefaultParcel;
+import rinde.sim.problem.common.PDPRoadModel;
 
 /**
  * Adapts any {@link Solver} to its simplest form such that it is automatically
@@ -25,7 +25,7 @@ public class SolverAdapter {
 
     private final Solver solver;
     private final Simulator simulator;
-    private final RoadModel roadModel;
+    private final PDPRoadModel roadModel;
     private final PDPModel pdpModel;
     private final Unit<Duration> timeUnit;
     private final Unit<Velocity> speedUnit;
@@ -36,7 +36,8 @@ public class SolverAdapter {
             Unit<Length> distUnit) {
         this.solver = solver;
         this.simulator = simulator;
-        roadModel = simulator.getModelProvider().getModel(RoadModel.class);
+        roadModel =
+                simulator.getModelProvider().getModel(PDPRoadModel.class);
         pdpModel = simulator.getModelProvider().getModel(PDPModel.class);
         this.timeUnit = timeUnit;
         this.speedUnit = speedUnit;
@@ -44,7 +45,7 @@ public class SolverAdapter {
     }
 
     public List<Queue<DefaultParcel>> solve() {
-        return Solvers.solve(solver, roadModel, pdpModel, simulator
-                .getCurrentTime(), timeUnit, speedUnit, distUnit);
+        return Solvers.solve(solver, roadModel, pdpModel,
+            simulator.getCurrentTime(), timeUnit, speedUnit, distUnit);
     }
 }

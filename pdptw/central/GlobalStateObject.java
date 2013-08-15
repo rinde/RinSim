@@ -28,6 +28,9 @@ import com.google.common.collect.ImmutableSet;
  */
 public class GlobalStateObject {
 
+    // TODO add generic way for storing travel distances based on shortest path
+    // in road model
+
     /**
      * All known parcels which require both a pickup and a delivery. They are
      * not in the inventory of a vehicle.

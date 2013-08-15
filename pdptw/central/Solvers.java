@@ -17,12 +17,11 @@ import javax.measure.quantity.Velocity;
 import javax.measure.unit.Unit;
 
 import rinde.sim.core.model.pdp.PDPModel;
-import rinde.sim.core.model.road.RoadModel;
 import rinde.sim.pdptw.central.GlobalStateObject.VehicleState;
 import rinde.sim.problem.common.DefaultParcel;
 import rinde.sim.problem.common.DefaultVehicle;
-import rinde.sim.problem.common.NoDiversionRoadModel;
 import rinde.sim.problem.common.ParcelDTO;
+import rinde.sim.problem.common.PDPRoadModel;
 import rinde.sim.problem.common.VehicleDTO;
 
 import com.google.common.collect.ImmutableList;
@@ -51,20 +50,24 @@ public final class Solvers {
     }
 
     // solver for multi vehicle
-    public static List<Queue<DefaultParcel>> solve(Solver solver, RoadModel rm,
-            PDPModel pm, long time, Unit<Duration> timeUnit,
-            Unit<Velocity> speedUnit, Unit<Length> distUnit) {
-        final StateContext state = convert(rm, pm, time, timeUnit, speedUnit, distUnit);
+    public static List<Queue<DefaultParcel>> solve(Solver solver,
+            PDPRoadModel rm, PDPModel pm, long time,
+            Unit<Duration> timeUnit, Unit<Velocity> speedUnit,
+            Unit<Length> distUnit) {
+        final StateContext state =
+                convert(rm, pm, time, timeUnit, speedUnit, distUnit);
         return convertRoutes(state, solver.solve(state.state));
     }
 
     // solver for single vehicle
-    public static Queue<DefaultParcel> solve(Solver solver, RoadModel rm,
+    public static Queue<DefaultParcel> solve(Solver solver, PDPRoadModel rm,
             PDPModel pm, DefaultVehicle vehicle,
             Collection<DefaultParcel> availableParcels, long time,
             Unit<Duration> timeUnit, Unit<Velocity> speedUnit,
             Unit<Length> distUnit) {
-        final StateContext state = convert(rm, pm, vehicle, availableParcels, time, timeUnit, speedUnit, distUnit);
+        final StateContext state =
+                convert(rm, pm, vehicle, availableParcels, time, timeUnit,
+                    speedUnit, distUnit);
         return convertRoutes(state, solver.solve(state.state)).get(0);
     }
 
@@ -72,8 +75,8 @@ public final class Solvers {
     // expected by the simulator
     public static List<Queue<DefaultParcel>> convertRoutes(StateContext cont,
             List<? extends List<ParcelDTO>> routes) {
-        final ImmutableList.Builder<Queue<DefaultParcel>> routesBuilder = ImmutableList
-                .builder();
+        final ImmutableList.Builder<Queue<DefaultParcel>> routesBuilder =
+                ImmutableList.builder();
         for (final List<ParcelDTO> route : routes) {
             final Queue<DefaultParcel> newRoute = newLinkedList();
             for (final ParcelDTO dto : route) {
@@ -84,34 +87,40 @@ public final class Solvers {
         return routesBuilder.build();
     }
 
-    public static StateContext convert(RoadModel rm, PDPModel pm,
+    public static StateContext convert(PDPRoadModel rm, PDPModel pm,
             DefaultVehicle vehicle, Collection<DefaultParcel> availableParcels,
             long time, Unit<Duration> timeUnit, Unit<Velocity> speedUnit,
             Unit<Length> distUnit) {
-        return convert(rm, pm, asList(vehicle), availableParcels, time, timeUnit, speedUnit, distUnit);
+        return convert(rm, pm, asList(vehicle), availableParcels, time,
+            timeUnit, speedUnit, distUnit);
     }
 
-    public static StateContext convert(RoadModel rm, PDPModel pm, long time,
-            Unit<Duration> timeUnit, Unit<Velocity> speedUnit,
+    public static StateContext convert(PDPRoadModel rm, PDPModel pm,
+            long time, Unit<Duration> timeUnit, Unit<Velocity> speedUnit,
             Unit<Length> distUnit) {
-        return convert(rm, pm, rm.getObjectsOfType(DefaultVehicle.class), rm.getObjectsOfType(DefaultParcel.class), time, timeUnit, speedUnit, distUnit);
+        return convert(rm, pm, rm.getObjectsOfType(DefaultVehicle.class),
+            rm.getObjectsOfType(DefaultParcel.class), time, timeUnit,
+            speedUnit, distUnit);
     }
 
-    static StateContext convert(RoadModel rm, PDPModel pm,
+    static StateContext convert(PDPRoadModel rm, PDPModel pm,
             Collection<DefaultVehicle> vehicles,
             Collection<DefaultParcel> availableParcels, long time,
             Unit<Duration> timeUnit, Unit<Velocity> speedUnit,
             Unit<Length> distUnit) {
 
-        final ImmutableMap<ParcelDTO, DefaultParcel> parcelMap = toMap(availableParcels);
-        final ImmutableMap<VehicleDTO, DefaultVehicle> vehicleMap = toVehicleMap(vehicles);
-        final ImmutableList.Builder<VehicleState> vbuilder = ImmutableList
-                .builder();
-        final ImmutableMap.Builder<ParcelDTO, DefaultParcel> allParcels = ImmutableMap
-                .builder();
+        final ImmutableMap<ParcelDTO, DefaultParcel> parcelMap =
+                toMap(availableParcels);
+        final ImmutableMap<VehicleDTO, DefaultVehicle> vehicleMap =
+                toVehicleMap(vehicles);
+        final ImmutableList.Builder<VehicleState> vbuilder =
+                ImmutableList.builder();
+        final ImmutableMap.Builder<ParcelDTO, DefaultParcel> allParcels =
+                ImmutableMap.builder();
         allParcels.putAll(parcelMap);
         for (final DefaultVehicle v : vehicles) {
-            final ImmutableMap<ParcelDTO, DefaultParcel> contentsMap = contentsToMap(pm, v);
+            final ImmutableMap<ParcelDTO, DefaultParcel> contentsMap =
+                    contentsToMap(pm, v);
             vbuilder.add(convertToVehicleState(rm, pm, v, contentsMap));
             allParcels.putAll(contentsMap);
         }
@@ -124,22 +133,23 @@ public final class Solvers {
             DefaultVehicle vehicle) {
         // this is ok since we actually check the type
         @SuppressWarnings({ "unchecked", "rawtypes" })
-        final Collection<DefaultParcel> ps = Collections
-                .checkedCollection((Collection) pm.getContents(vehicle), DefaultParcel.class);
+        final Collection<DefaultParcel> ps =
+                Collections.checkedCollection(
+                    (Collection) pm.getContents(vehicle), DefaultParcel.class);
         return toMap(ps);
     }
 
-    static VehicleState convertToVehicleState(RoadModel rm, PDPModel pm,
+    static VehicleState convertToVehicleState(PDPRoadModel rm, PDPModel pm,
             DefaultVehicle vehicle,
             ImmutableMap<ParcelDTO, DefaultParcel> contents) {
-        final long remainingServiceTime = pm.getVehicleState(vehicle) == PDPModel.VehicleState.IDLE ? 0
-                : pm.getVehicleActionInfo(vehicle).timeNeeded();
+        final long remainingServiceTime =
+                pm.getVehicleState(vehicle) == PDPModel.VehicleState.IDLE ? 0
+                        : pm.getVehicleActionInfo(vehicle).timeNeeded();
 
         ParcelDTO destination = null;
-        if (rm instanceof NoDiversionRoadModel) {
+        if (!rm.isVehicleDiversionAllowed()) {
             // check whether the vehicle is already underway to parcel
-            final NoDiversionRoadModel ndrm = (NoDiversionRoadModel) rm;
-            final DefaultParcel p = ndrm.getDestinationToParcel(vehicle);
+            final DefaultParcel p = rm.getDestinationToParcel(vehicle);
             if (p != null) {
                 destination = p.dto;
             }
@@ -150,8 +160,8 @@ public final class Solvers {
 
     static ImmutableMap<ParcelDTO, DefaultParcel> toMap(
             Collection<DefaultParcel> parcels) {
-        final ImmutableMap.Builder<ParcelDTO, DefaultParcel> parcelMapBuilder = ImmutableMap
-                .builder();
+        final ImmutableMap.Builder<ParcelDTO, DefaultParcel> parcelMapBuilder =
+                ImmutableMap.builder();
         for (final DefaultParcel dp : parcels) {
             parcelMapBuilder.put(dp.dto, dp);
         }
@@ -160,8 +170,8 @@ public final class Solvers {
 
     static ImmutableMap<VehicleDTO, DefaultVehicle> toVehicleMap(
             Collection<DefaultVehicle> vehicles) {
-        final ImmutableMap.Builder<VehicleDTO, DefaultVehicle> vehicleMapBuilder = ImmutableMap
-                .builder();
+        final ImmutableMap.Builder<VehicleDTO, DefaultVehicle> vehicleMapBuilder =
+                ImmutableMap.builder();
         for (final DefaultVehicle dp : vehicles) {
             vehicleMapBuilder.put(dp.getDTO(), dp);
         }
