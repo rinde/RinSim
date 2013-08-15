@@ -26,8 +26,8 @@ import javax.measure.unit.Unit;
 
 import rinde.sim.core.graph.Point;
 import rinde.sim.pdptw.central.GlobalStateObject;
-import rinde.sim.pdptw.central.Solver;
 import rinde.sim.pdptw.central.GlobalStateObject.VehicleState;
+import rinde.sim.pdptw.central.Solver;
 import rinde.sim.problem.common.DefaultParcel;
 import rinde.sim.problem.common.ParcelDTO;
 
@@ -59,7 +59,8 @@ public final class ArraysSolvers {
      */
     public static int[][] toTravelTimeMatrix(List<Point> points, double speed,
             RoundingMode rm) {
-        return toTravelTimeMatrix(points, SI.METER, Measure.valueOf(speed, SI.METERS_PER_SECOND), SI.SECOND, rm);
+        return toTravelTimeMatrix(points, SI.METER,
+            Measure.valueOf(speed, SI.METERS_PER_SECOND), SI.SECOND, rm);
     }
 
     /**
@@ -90,10 +91,13 @@ public final class ArraysSolvers {
             for (int j = 0; j < i; j++) {
                 if (i != j) {
                     // compute distance
-                    final Measure<Double, Length> dist = Measure.valueOf(Point
-                            .distance(points.get(i), points.get(j)), distUnit);
+                    final Measure<Double, Length> dist =
+                            Measure.valueOf(
+                                Point.distance(points.get(i), points.get(j)),
+                                distUnit);
                     // calculate duration in desired unit
-                    final double duration = computeTravelTime(speed, dist, outputTimeUnit);
+                    final double duration =
+                            computeTravelTime(speed, dist, outputTimeUnit);
                     // round duration
                     final int tt = DoubleMath.roundToInt(duration, rm);
                     matrix[i][j] = tt;
@@ -115,15 +119,15 @@ public final class ArraysSolvers {
     public static ArraysObject toSingleVehicleArrays(GlobalStateObject state,
             Unit<Duration> outputTimeUnit) {
 
-        final UnitConverter timeConverter = state.timeUnit
-                .getConverterTo(outputTimeUnit);
+        final UnitConverter timeConverter =
+                state.timeUnit.getConverterTo(outputTimeUnit);
 
         final VehicleState v = state.vehicles.iterator().next();
         final Collection<ParcelDTO> inCargo = v.contents;
         // there are always two locations: the current vehicle location and
         // the depot
-        final int numLocations = 2 + (state.availableParcels.size() * 2)
-                + inCargo.size();
+        final int numLocations =
+                2 + (state.availableParcels.size() * 2) + inCargo.size();
 
         final int[] releaseDates = new int[numLocations];
         final int[] dueDates = new int[numLocations];
@@ -137,35 +141,47 @@ public final class ArraysSolvers {
         int index = 1;
         int spIndex = 0;
         for (final ParcelDTO p : state.availableParcels) {
-            serviceTimes[index] = DoubleMath.roundToInt(timeConverter
-                    .convert(p.pickupDuration), RoundingMode.CEILING);
+            serviceTimes[index] =
+                    DoubleMath.roundToInt(
+                        timeConverter.convert(p.pickupDuration),
+                        RoundingMode.CEILING);
             // add pickup location and time window
             locations[index] = p.pickupLocation;
             point2dto.put(locations[index], p);
-            releaseDates[index] = fixTWstart(p.pickupTimeWindow.begin, state.time, timeConverter);
-            dueDates[index] = fixTWend(p.pickupTimeWindow.end, state.time, timeConverter);
+            releaseDates[index] =
+                    fixTWstart(p.pickupTimeWindow.begin, state.time,
+                        timeConverter);
+            dueDates[index] =
+                    fixTWend(p.pickupTimeWindow.end, state.time, timeConverter);
 
             // link the pair with its delivery location (see next loop)
-            servicePairs[spIndex++] = new int[] { index,
-                    index + state.availableParcels.size() };
+            servicePairs[spIndex++] =
+                    new int[] { index, index + state.availableParcels.size() };
 
             index++;
         }
-        checkState(spIndex == state.availableParcels.size(), "%s %s", state.availableParcels
-                .size(), spIndex);
+        checkState(spIndex == state.availableParcels.size(), "%s %s",
+            state.availableParcels.size(), spIndex);
 
-        final List<ParcelDTO> deliveries = newArrayListWithCapacity(state.availableParcels
-                .size() + inCargo.size());
+        final List<ParcelDTO> deliveries =
+                newArrayListWithCapacity(state.availableParcels.size()
+                        + inCargo.size());
         deliveries.addAll(state.availableParcels);
         deliveries.addAll(inCargo);
         for (final ParcelDTO p : deliveries) {
-            serviceTimes[index] = DoubleMath.roundToInt(timeConverter
-                    .convert(p.deliveryDuration), RoundingMode.CEILING);
+            serviceTimes[index] =
+                    DoubleMath.roundToInt(
+                        timeConverter.convert(p.deliveryDuration),
+                        RoundingMode.CEILING);
 
             locations[index] = p.destinationLocation;
             point2dto.put(locations[index], p);
-            releaseDates[index] = fixTWstart(p.deliveryTimeWindow.begin, state.time, timeConverter);
-            dueDates[index] = fixTWend(p.deliveryTimeWindow.end, state.time, timeConverter);
+            releaseDates[index] =
+                    fixTWstart(p.deliveryTimeWindow.begin, state.time,
+                        timeConverter);
+            dueDates[index] =
+                    fixTWend(p.deliveryTimeWindow.end, state.time,
+                        timeConverter);
             index++;
         }
         checkState(index == numLocations - 1);
@@ -173,13 +189,17 @@ public final class ArraysSolvers {
         // the start position of the truck is the depot
         locations[index] = v.startPosition;
         // end of the day
-        dueDates[index] = fixTWend(v.availabilityTimeWindow.end, state.time, timeConverter);
+        dueDates[index] =
+                fixTWend(v.availabilityTimeWindow.end, state.time,
+                    timeConverter);
 
-        final Measure<Double, Velocity> speed = Measure
-                .valueOf(v.speed, state.speedUnit);
+        final Measure<Double, Velocity> speed =
+                Measure.valueOf(v.speed, state.speedUnit);
 
-        final int[][] travelTime = ArraysSolvers
-                .toTravelTimeMatrix(asList(locations), state.distUnit, speed, outputTimeUnit, RoundingMode.CEILING);
+        final int[][] travelTime =
+                ArraysSolvers
+                        .toTravelTimeMatrix(asList(locations), state.distUnit,
+                            speed, outputTimeUnit, RoundingMode.CEILING);
 
         return new ArraysObject(travelTime, releaseDates, dueDates,
                 servicePairs, serviceTimes, locations, point2dto);
@@ -194,12 +214,16 @@ public final class ArraysSolvers {
      */
     public static MVArraysObject toMultiVehicleArrays(GlobalStateObject state,
             Unit<Duration> outputTimeUnit) {
-        final ArraysObject singleVehicleArrays = toSingleVehicleArrays(state, outputTimeUnit);
+        final ArraysObject singleVehicleArrays =
+                toSingleVehicleArrays(state, outputTimeUnit);
         checkArgument(state.vehicles.size() > 0, "We need at least one vehicle");
 
-        final int[][] vehicleTravelTimes = toVehicleTravelTimes(state, singleVehicleArrays, outputTimeUnit);
-        final int[][] inventories = toInventoriesArray(state, singleVehicleArrays);
-        final int[] remainingServiceTimes = toRemainingServiceTimes(state, outputTimeUnit);
+        final int[][] vehicleTravelTimes =
+                toVehicleTravelTimes(state, singleVehicleArrays, outputTimeUnit);
+        final int[][] inventories =
+                toInventoriesArray(state, singleVehicleArrays);
+        final int[] remainingServiceTimes =
+                toRemainingServiceTimes(state, outputTimeUnit);
         return new MVArraysObject(singleVehicleArrays, vehicleTravelTimes,
                 inventories, remainingServiceTimes);
     }
@@ -217,8 +241,8 @@ public final class ArraysSolvers {
     public static ImmutableList<ParcelDTO> convertSolutionObject(
             SolutionObject sol, Map<Point, ParcelDTO> point2dto,
             List<Point> locations) {
-        final ImmutableList.Builder<ParcelDTO> builder = ImmutableList
-                .builder();
+        final ImmutableList.Builder<ParcelDTO> builder =
+                ImmutableList.builder();
         // ignore first (current pos) and last (depot)
         for (int i = 1; i < sol.route.length - 1; i++) {
             builder.add(point2dto.get(locations.get(sol.route[i])));
@@ -233,40 +257,43 @@ public final class ArraysSolvers {
         // compute vehicle travel times
         final int[][] vehicleTravelTimes = new int[v][n];
 
-        final UnmodifiableIterator<VehicleState> iterator = state.vehicles
-                .iterator();
+        final UnmodifiableIterator<VehicleState> iterator =
+                state.vehicles.iterator();
 
         for (int i = 0; i < v; i++) {
             final VehicleState cur = iterator.next();
             for (int j = 1; j < n; j++) {
-                final double dist = Point.distance(cur.location, sva.locations
-                        .get(j));
+                final double dist =
+                        Point.distance(cur.location, sva.locations.get(j));
 
-                final Measure<Double, Velocity> speed = Measure
-                        .valueOf(cur.speed, state.speedUnit);
-                final double duration = computeTravelTime(speed, Measure.valueOf(dist, state.distUnit), outputTimeUnit);
-                vehicleTravelTimes[i][j] = DoubleMath
-                        .roundToInt(duration, RoundingMode.CEILING);
+                final Measure<Double, Velocity> speed =
+                        Measure.valueOf(cur.speed, state.speedUnit);
+                final double duration =
+                        computeTravelTime(speed,
+                            Measure.valueOf(dist, state.distUnit),
+                            outputTimeUnit);
+                vehicleTravelTimes[i][j] =
+                        DoubleMath.roundToInt(duration, RoundingMode.CEILING);
             }
         }
         return vehicleTravelTimes;
     }
 
     static int[][] toInventoriesArray(GlobalStateObject state, ArraysObject sva) {
-        final ImmutableMap.Builder<Point, Integer> point2indexBuilder = ImmutableMap
-                .builder();
+        final ImmutableMap.Builder<Point, Integer> point2indexBuilder =
+                ImmutableMap.builder();
         for (int i = 0; i < sva.locations.size(); i++) {
             point2indexBuilder.put(sva.locations.get(i), i);
         }
         final Map<Point, Integer> point2index = point2indexBuilder.build();
-        final UnmodifiableIterator<VehicleState> iterator = state.vehicles
-                .iterator();
+        final UnmodifiableIterator<VehicleState> iterator =
+                state.vehicles.iterator();
         final List<List<Integer>> inventoryPairs = newArrayList();
         for (int i = 0; i < state.vehicles.size(); i++) {
             final VehicleState cur = iterator.next();
             for (final ParcelDTO dp : cur.contents) {
-                inventoryPairs.add(newArrayList(i, point2index
-                        .get(dp.destinationLocation)));
+                inventoryPairs.add(newArrayList(i,
+                    point2index.get(dp.destinationLocation)));
             }
         }
 
@@ -280,33 +307,35 @@ public final class ArraysSolvers {
 
     static int[] toRemainingServiceTimes(GlobalStateObject state,
             Unit<Duration> outputTimeUnit) {
-        final UnmodifiableIterator<VehicleState> iterator = state.vehicles
-                .iterator();
+        final UnmodifiableIterator<VehicleState> iterator =
+                state.vehicles.iterator();
         final int[] remainingServiceTimes = new int[state.vehicles.size()];
         for (int i = 0; i < state.vehicles.size(); i++) {
-            remainingServiceTimes[i] = DoubleMath
-                    .roundToInt(Measure
-                            .valueOf(iterator.next().remainingServiceTime, state.timeUnit)
-                            .doubleValue(outputTimeUnit), RoundingMode.CEILING);
+            remainingServiceTimes[i] =
+                    DoubleMath.roundToInt(
+                        Measure.valueOf(iterator.next().remainingServiceTime,
+                            state.timeUnit).doubleValue(outputTimeUnit),
+                        RoundingMode.CEILING);
         }
         return remainingServiceTimes;
     }
 
     /**
      * Computes the duration which is required to travel the specified distance
-     * with the given velocity. Note: although time is normally as a long, we
-     * use double here instead. Converting it to long in this method would
-     * introduce rounding in a too early stage.
-     * @param speed
-     * @param distance
-     * @param outputTimeUnit
-     * @return
+     * with the given velocity. Note: although time is normally a long, we use
+     * double here instead. Converting it to long in this method would introduce
+     * rounding in a too early stage.
+     * @param speed The travel speed.
+     * @param distance The distance to travel.
+     * @param outputTimeUnit The time unit to use for the output.
+     * @return The time it takes to travel the specified distance with the
+     *         specified speed.
      */
-    static double computeTravelTime(Measure<Double, Velocity> speed,
+    public static double computeTravelTime(Measure<Double, Velocity> speed,
             Measure<Double, Length> distance, Unit<Duration> outputTimeUnit) {
         return Measure.valueOf(distance.doubleValue(SI.METER)// meters
                 / speed.doubleValue(SI.METERS_PER_SECOND), // divided by m/s
-        SI.SECOND) // gives seconds
+            SI.SECOND) // gives seconds
                 .doubleValue(outputTimeUnit); // convert to desired unit
     }
 
@@ -428,12 +457,12 @@ public final class ArraysSolvers {
     }
 
     static int fixTWstart(long start, long time, UnitConverter timeConverter) {
-        return Math.max((DoubleMath.roundToInt(timeConverter.convert(start
-                - time), RoundingMode.CEILING)), 0);
+        return Math.max((DoubleMath.roundToInt(
+            timeConverter.convert(start - time), RoundingMode.CEILING)), 0);
     }
 
     static int fixTWend(long end, long time, UnitConverter timeConverter) {
-        return Math.max((DoubleMath.roundToInt(timeConverter
-                .convert(end - time), RoundingMode.FLOOR)), 0);
+        return Math.max((DoubleMath.roundToInt(
+            timeConverter.convert(end - time), RoundingMode.FLOOR)), 0);
     }
 }
