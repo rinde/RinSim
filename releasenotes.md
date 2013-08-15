@@ -1,5 +1,16 @@
 # Release notes
 
+## v2.3.0
+
+* Core module
+
+* UI module
+
+* Problem module
+	* rinde.sim.pdptw.generator package
+	* rinde.sim.pdptw.central package
+
+
 ## v2.2.0
 
 * Core module
