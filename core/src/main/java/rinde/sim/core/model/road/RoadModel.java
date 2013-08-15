@@ -19,6 +19,7 @@ import rinde.sim.core.model.Model;
 import rinde.sim.event.EventAPI;
 
 import com.google.common.base.Predicate;
+import com.google.common.collect.ImmutableList;
 
 /**
  * RoadModel is a model that manages a fleet of vehicles ({@link RoadUser}s) on
@@ -307,5 +308,10 @@ public interface RoadModel extends Model<RoadUser> {
     List<Point> getShortestPathTo(Point from, Point to);
 
     EventAPI getEventAPI();
+
+    // should return exactly two points. the first point contains the min x and
+    // min y value, the second point contains the max x and max y value. this
+    // can be used to draw a rectangle around all reachable positions
+    ImmutableList<Point> getBounds();
 
 }

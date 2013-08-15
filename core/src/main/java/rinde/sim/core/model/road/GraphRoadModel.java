@@ -23,6 +23,8 @@ import rinde.sim.core.model.road.GraphRoadModel.Loc;
 import rinde.sim.util.SpeedConverter;
 import rinde.sim.util.TimeUnit;
 
+import com.google.common.collect.ImmutableList;
+
 /**
  * A {@link RoadModel} that uses a {@link Graph} as road structure.
  * {@link RoadUser}s can only be added on nodes on the graph. This model assumes
@@ -468,6 +470,11 @@ public class GraphRoadModel extends AbstractRoadModel<Loc> {
         public String toString() {
             return super.toString() + "{" + conn + "}";
         }
+    }
+
+    @Override
+    public ImmutableList<Point> getBounds() {
+        throw new UnsupportedOperationException("Not yet implemented.");
     }
 
 }

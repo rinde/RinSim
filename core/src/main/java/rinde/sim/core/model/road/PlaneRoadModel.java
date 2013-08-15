@@ -16,6 +16,8 @@ import org.apache.commons.math3.random.RandomGenerator;
 import rinde.sim.core.TimeLapse;
 import rinde.sim.core.graph.Point;
 
+import com.google.common.collect.ImmutableList;
+
 /**
  * A {@link RoadModel} that uses a plane as road structure. This assumes that
  * from every point in the plane it is possible to drive to every other point in
@@ -159,6 +161,11 @@ public class PlaneRoadModel extends AbstractRoadModel<Point> {
     // TODO give more general name?
     protected boolean isPointInBoundary(Point p) {
         return p.x >= min.x && p.x <= max.x && p.y >= min.y && p.y <= max.y;
+    }
+
+    @Override
+    public ImmutableList<Point> getBounds() {
+        return ImmutableList.of(min, max);
     }
 
 }

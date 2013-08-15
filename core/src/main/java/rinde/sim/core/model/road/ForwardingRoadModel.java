@@ -16,6 +16,7 @@ import rinde.sim.core.graph.Point;
 import rinde.sim.event.EventAPI;
 
 import com.google.common.base.Predicate;
+import com.google.common.collect.ImmutableList;
 
 /**
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
@@ -166,5 +167,10 @@ public abstract class ForwardingRoadModel implements RoadModel {
     @Override
     public EventAPI getEventAPI() {
         return delegate().getEventAPI();
+    }
+
+    @Override
+    public ImmutableList<Point> getBounds() {
+        return delegate().getBounds();
     }
 }
