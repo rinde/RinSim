@@ -3,14 +3,16 @@
  */
 package rinde.sim.pdptw.central.arrays;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static rinde.sim.pdptw.central.arrays.ArraysSolverValidator.validateInputs;
 import static rinde.sim.pdptw.central.arrays.ArraysSolverValidator.validateOutputs;
 import static rinde.sim.pdptw.central.arrays.ArraysSolverValidator.wrap;
 
+import java.util.Arrays;
+
 import org.junit.Test;
 
 import rinde.sim.util.TestUtil;
-import rinde.solver.pdptw.MipTest;
 
 /**
  * You could see this class as the validator of the validator, so now you might
@@ -519,8 +521,7 @@ public class ArraysSolverValidatorTest {
                 { 0, 2139143, 2606143, 1758143, 2242143, 1968143, 2564143,
                         1395843, 2401143, 1843643, 2030043, 2940143 };
         final int[][] servicePairs = { { 1, 2 }, { 3, 4 }, { 5, 6 }, { 7, 8 } };
-        final int[] serviceTimes =
-                MipTest.createServiceTimes(300, releaseDates.length);
+        final int[] serviceTimes = createServiceTimes(300, releaseDates.length);
 
         // Route: [0, 1, 10, 9, 5, 8, 7, 4, 3, 6, 2, 11]
         // Arrival times: [0, 132, 4384, 3467, 2982, 1614, 4023, 2399, 2074,
@@ -580,6 +581,7 @@ public class ArraysSolverValidatorTest {
             this.answer = answer;
         }
 
+        @Override
         public SolutionObject solve(int[][] travelTime, int[] releaseDates,
                 int[] dueDates, int[][] servicePairs, int serviceTimes[]) {
             return answer;
@@ -593,11 +595,21 @@ public class ArraysSolverValidatorTest {
             this.answer = answer;
         }
 
+        @Override
         public SolutionObject[] solve(int[][] travelTime, int[] releaseDates,
                 int[] dueDates, int[][] servicePairs, int[] serviceTimes,
                 int[][] vehicleTravelTimes, int[][] inventories,
                 int[] remainingServiceTimes) {
             return answer;
         }
+    }
+
+    public static int[] createServiceTimes(int val, int length) {
+        checkArgument(length > 2);
+        final int[] serviceTimes = new int[length];
+        Arrays.fill(serviceTimes, val);
+        serviceTimes[0] = 0;
+        serviceTimes[length - 1] = 0;
+        return serviceTimes;
     }
 }
