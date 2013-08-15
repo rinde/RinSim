@@ -86,32 +86,50 @@ public final class ArraysSolverValidator {
         checkArgument(n > 0, "Travel time matrix cannot be empty");
         // check that matrix is n x n
         for (int i = 0; i < n; i++) {
-            checkArgument(travelTime[i].length == n, "row %s has invalid length %s", i, travelTime[i].length);
+            checkArgument(travelTime[i].length == n,
+                "row %s has invalid length %s", i, travelTime[i].length);
         }
-        checkArgument(releaseDates.length == n, "ReleaseDates array has incorrect length (%s) should be %s", releaseDates.length, n);
-        checkArgument(dueDates.length == n, "dueDates array has incorrect length (%s) should be %s", dueDates.length, n);
-        checkArgument(serviceTimes.length == n, "serviceTimes has incorrect length (%s) should be %s", serviceTimes.length, n);
+        checkArgument(releaseDates.length == n,
+            "ReleaseDates array has incorrect length (%s) should be %s",
+            releaseDates.length, n);
+        checkArgument(dueDates.length == n,
+            "dueDates array has incorrect length (%s) should be %s",
+            dueDates.length, n);
+        checkArgument(serviceTimes.length == n,
+            "serviceTimes has incorrect length (%s) should be %s",
+            serviceTimes.length, n);
         for (int i = 0; i < n; i++) {
             checkArgument(serviceTimes[i] >= 0, "serviceTimes should be >= 0");
         }
 
         // check time windows validity
         for (int i = 0; i < n; i++) {
-            checkArgument(releaseDates[i] <= dueDates[i], "Index %s, release date (%s) should always be before the due date (%s)", i, releaseDates[i], dueDates[i]);
+            checkArgument(
+                releaseDates[i] <= dueDates[i],
+                "Index %s, release date (%s) should always be before the due date (%s)",
+                i, releaseDates[i], dueDates[i]);
         }
 
-        checkArgument(releaseDates[0] == 0 && dueDates[0] == 0, "Start location should have release date and due date 0");
-        checkArgument(releaseDates[n - 1] == 0, "Depot should have release date 0");
+        checkArgument(releaseDates[0] == 0 && dueDates[0] == 0,
+            "Start location should have release date and due date 0");
+        checkArgument(releaseDates[n - 1] == 0,
+            "Depot should have release date 0");
 
         // check that every pair consists of valid ids and that a location is in
         // only one pair
         final Set<Integer> set = newHashSet();
         for (int i = 0; i < servicePairs.length; i++) {
-            checkArgument(servicePairs[i].length == 2, "Each pair entry should consist of exactly two locations.");
+            checkArgument(servicePairs[i].length == 2,
+                "Each pair entry should consist of exactly two locations.");
             for (int j = 0; j < 2; j++) {
-                checkArgument(servicePairs[i][j] > 0
-                        && servicePairs[i][j] < n - 1, "Pair consists of an invalid location (start location and depot are not allowed), index is %s, location is %s", i, servicePairs[i][j]);
-                checkArgument(!set.contains(servicePairs[i][j]), "Location can be part of only one pair, duplicate location: %s (index %s,%s)", servicePairs[i][j], i, j);
+                checkArgument(
+                    servicePairs[i][j] > 0 && servicePairs[i][j] < n - 1,
+                    "Pair consists of an invalid location (start location and depot are not allowed), index is %s, location is %s",
+                    i, servicePairs[i][j]);
+                checkArgument(
+                    !set.contains(servicePairs[i][j]),
+                    "Location can be part of only one pair, duplicate location: %s (index %s,%s)",
+                    servicePairs[i][j], i, j);
                 set.add(servicePairs[i][j]);
             }
         }
@@ -153,7 +171,8 @@ public final class ArraysSolverValidator {
             int[][] vehicleTravelTimes, int[][] inventories,
             int[] remainingServiceTimes) {
 
-        validateInputs(travelTime, releaseDates, dueDates, servicePairs, serviceTimes);
+        validateInputs(travelTime, releaseDates, dueDates, servicePairs,
+            serviceTimes);
 
         // number of vehicles v
         final int v = vehicleTravelTimes.length;
@@ -161,9 +180,15 @@ public final class ArraysSolverValidator {
         checkArgument(v > 0, "At least one vehicle is required.");
 
         for (int i = 0; i < v; i++) {
-            checkArgument(n == vehicleTravelTimes[i].length, "We expected vehicleTravelTimes matrix of size v x %s, but we found v x %s at index %s.", n, vehicleTravelTimes[i].length, i);
+            checkArgument(
+                n == vehicleTravelTimes[i].length,
+                "We expected vehicleTravelTimes matrix of size v x %s, but we found v x %s at index %s.",
+                n, vehicleTravelTimes[i].length, i);
             for (int j = 0; j < n; j++) {
-                checkArgument(vehicleTravelTimes[i][j] >= 0, "Found an invalid vehicle travel time (%s) at position %s,%s. All times must be >= 0.", vehicleTravelTimes[i][j], i, j);
+                checkArgument(
+                    vehicleTravelTimes[i][j] >= 0,
+                    "Found an invalid vehicle travel time (%s) at position %s,%s. All times must be >= 0.",
+                    vehicleTravelTimes[i][j], i, j);
             }
         }
 
@@ -175,21 +200,41 @@ public final class ArraysSolverValidator {
         final Set<Integer> availLocs = b.build();
 
         final int m = n - 2 - (servicePairs.length * 2);
-        checkArgument(inventories.length == m, "Invalid number of inventory entries, expected %s found %s.", m, servicePairs.length);
+        checkArgument(inventories.length == m,
+            "Invalid number of inventory entries, expected %s found %s.", m,
+            servicePairs.length);
 
         final Set<Integer> parcelsInInventory = newHashSet();
         for (int i = 0; i < m; i++) {
-            checkArgument(2 == inventories[i].length, "We expected inventories matrix of size m x 2, but we found m x %s at index %s.", inventories[i].length, i);
-            checkArgument(inventories[i][0] >= 0 && inventories[i][0] < v, "Found a reference to a non-existing vehicle (%s) at row %s.", inventories[i][0], i);
-            checkArgument(inventories[i][1] >= 1 && inventories[i][1] < n - 1, "Found a reference to a non-existing location (%s) at row %s.", inventories[i][1], i);
-            checkArgument(!availLocs.contains(inventories[i][1]), "Found a reference to a location (%s) at row %s which is available, as such, it can not be in the inventory.", inventories[i][1], i);
-            checkArgument(!parcelsInInventory.contains(inventories[i][1]), "Found a duplicate inventory entry, first duplicate at row %s.", i);
+            checkArgument(
+                2 == inventories[i].length,
+                "We expected inventories matrix of size m x 2, but we found m x %s at index %s.",
+                inventories[i].length, i);
+            checkArgument(inventories[i][0] >= 0 && inventories[i][0] < v,
+                "Found a reference to a non-existing vehicle (%s) at row %s.",
+                inventories[i][0], i);
+            checkArgument(inventories[i][1] >= 1 && inventories[i][1] < n - 1,
+                "Found a reference to a non-existing location (%s) at row %s.",
+                inventories[i][1], i);
+            checkArgument(
+                !availLocs.contains(inventories[i][1]),
+                "Found a reference to a location (%s) at row %s which is available, as such, it can not be in the inventory.",
+                inventories[i][1], i);
+            checkArgument(
+                !parcelsInInventory.contains(inventories[i][1]),
+                "Found a duplicate inventory entry, first duplicate at row %s.",
+                i);
             parcelsInInventory.add(inventories[i][1]);
         }
 
-        checkArgument(v == remainingServiceTimes.length, "We expected remainingServiceTimes array of size %s, but we found %s.", v, remainingServiceTimes.length);
+        checkArgument(
+            v == remainingServiceTimes.length,
+            "We expected remainingServiceTimes array of size %s, but we found %s.",
+            v, remainingServiceTimes.length);
         for (int i = 0; i < v; i++) {
-            checkArgument(remainingServiceTimes[i] >= 0, "Remaining service time must be >= 0, found %s.", remainingServiceTimes[i]);
+            checkArgument(remainingServiceTimes[i] >= 0,
+                "Remaining service time must be >= 0, found %s.",
+                remainingServiceTimes[i]);
         }
     }
 
@@ -226,8 +271,9 @@ public final class ArraysSolverValidator {
         for (int i = 0; i < n; i++) {
             vehicleTravelTimes[0][i] = travelTime[0][i];
         }
-        final Set<Integer> locationSet = newHashSet(Ranges.closedOpen(1, n - 1)
-                .asSet(DiscreteDomains.integers()));
+        final Set<Integer> locationSet =
+                newHashSet(Ranges.closedOpen(1, n - 1).asSet(
+                    DiscreteDomains.integers()));
         for (int i = 0; i < servicePairs.length; i++) {
             locationSet.remove(servicePairs[i][0]);
             locationSet.remove(servicePairs[i][1]);
@@ -242,10 +288,14 @@ public final class ArraysSolverValidator {
 
         final int[] remainingServiceTimes = new int[] { 0 };
         // check inputs again since we just modified them
-        validateInputs(travelTime, releaseDates, dueDates, servicePairs, serviceTimes, vehicleTravelTimes, inventories, remainingServiceTimes);
+        validateInputs(travelTime, releaseDates, dueDates, servicePairs,
+            serviceTimes, vehicleTravelTimes, inventories,
+            remainingServiceTimes);
 
         final SolutionObject[] sols = new SolutionObject[] { sol };
-        validateOutputs(sols, travelTime, releaseDates, dueDates, servicePairs, serviceTimes, vehicleTravelTimes, inventories, remainingServiceTimes);
+        validateOutputs(sols, travelTime, releaseDates, dueDates, servicePairs,
+            serviceTimes, vehicleTravelTimes, inventories,
+            remainingServiceTimes);
         return sol;
     }
 
@@ -288,34 +338,41 @@ public final class ArraysSolverValidator {
 
         final int n = travelTime.length;
 
-        final ImmutableSet.Builder<Integer> routeSetBuilder = ImmutableSet
-                .builder();
+        final ImmutableSet.Builder<Integer> routeSetBuilder =
+                ImmutableSet.builder();
         int visitedLocations = 0;
         for (final SolutionObject sol : sols) {
             routeSetBuilder.addAll(toSet(sol.route));
             visitedLocations += sol.route.length - 2;
         }
         final Set<Integer> routeSet = routeSetBuilder.build();
-        final Set<Integer> locationSet = Ranges
-                .closedOpen(0, travelTime.length)
-                .asSet(DiscreteDomains.integers());
+        final Set<Integer> locationSet =
+                Ranges.closedOpen(0, travelTime.length).asSet(
+                    DiscreteDomains.integers());
 
-        checkArgument(visitedLocations == n - 2, "The number of visits in routes should equal the number of locations.");
+        checkArgument(
+            visitedLocations == n - 2,
+            "The number of visits in routes should equal the number of locations, expected: %s, observed: %s.",
+            n - 2, visitedLocations);
 
         // checks duplicates and missing locations
-        checkArgument(routeSet.size() == n, "Every location should appear exactly once in one route. Missing location: %s.", Sets
-                .difference(locationSet, routeSet));
+        checkArgument(
+            routeSet.size() == n,
+            "Every location should appear exactly once in one route. Missing location: %s.",
+            Sets.difference(locationSet, routeSet));
         // checks for completeness of tour
-        checkArgument(routeSet.equals(locationSet), "Not all locations are serviced, there is probably a non-existing location in the route. Set difference: %s.", Sets
-                .difference(routeSet, locationSet));
+        checkArgument(
+            routeSet.equals(locationSet),
+            "Not all locations are serviced, there is probably a non-existing location in the route. Set difference: %s.",
+            Sets.difference(routeSet, locationSet));
 
-        final ImmutableMultimap.Builder<Integer, Integer> inventoryBuilder = ImmutableMultimap
-                .builder();
+        final ImmutableMultimap.Builder<Integer, Integer> inventoryBuilder =
+                ImmutableMultimap.builder();
         for (int i = 0; i < inventories.length; i++) {
             inventoryBuilder.put(inventories[i][0], inventories[i][1]);
         }
-        final Multimap<Integer, Integer> inventoryMap = inventoryBuilder
-                .build();
+        final Multimap<Integer, Integer> inventoryMap =
+                inventoryBuilder.build();
 
         for (int v = 0; v < sols.length; v++) {
             final SolutionObject sol = sols[v];
@@ -325,14 +382,21 @@ public final class ArraysSolverValidator {
              */
             // checkArgument(sol.route.length == n,
             // "The route should always contain all locations.");
-            checkArgument(sol.route[0] == 0, "The route should always start with the vehicle start location (0).");
-            checkArgument(sol.route[sol.route.length - 1] == n - 1, "The route should always finish with the depot.");
+            checkArgument(
+                sol.route[0] == 0,
+                "The route should always start with the vehicle start location: 0, actual:%s.",
+                sol.route[0]);
+            checkArgument(sol.route[sol.route.length - 1] == n - 1,
+                "The route should always finish with the depot.");
 
-            final Set<Integer> locs = ImmutableSet.copyOf(Ints
-                    .asList(sol.route));
+            final Set<Integer> locs =
+                    ImmutableSet.copyOf(Ints.asList(sol.route));
             final Collection<Integer> inventory = inventoryMap.get(v);
             for (final Integer i : inventory) {
-                checkArgument(locs.contains(i), "Every location in the inventory of a vehicle should occur in its route, route for vehicle %s does not contain location %s.", v, i);
+                checkArgument(
+                    locs.contains(i),
+                    "Every location in the inventory of a vehicle should occur in its route, route for vehicle %s does not contain location %s.",
+                    v, i);
             }
 
             // check service pairs ordering, pickups should be visited before
@@ -342,10 +406,12 @@ public final class ArraysSolverValidator {
                 pairs.put(servicePairs[i][0], servicePairs[i][1]);
             }
             final Set<Integer> seen = newHashSet();
-            for (int i = 1; i < n - 1; i++) {
+            for (int i = 1; i < sol.route.length - 1; i++) {
                 if (pairs.containsKey(sol.route[i])) {
-                    checkArgument(!seen.contains(pairs.get(sol.route[i])), "Pickups should be visited before their corresponding deliveries. Location %s should be visited after location %s.", pairs
-                            .get(sol.route[i]), sol.route[i]);
+                    checkArgument(
+                        !seen.contains(pairs.get(sol.route[i])),
+                        "Pickups should be visited before their corresponding deliveries. Location %s should be visited after location %s.",
+                        pairs.get(sol.route[i]), sol.route[i]);
                 }
                 seen.add(sol.route[i]);
             }
@@ -353,8 +419,12 @@ public final class ArraysSolverValidator {
             /*
              * CHECK ARRIVAL TIMES
              */
-            checkArgument(sol.arrivalTimes.length == sol.route.length, "Number of arrival times should equal number of locations.");
-            checkArgument(sol.arrivalTimes[0] == remainingServiceTimes[v], "The first arrival time should be the remaining service time for this vehicle, expected %s, was %s.", remainingServiceTimes[v], sol.arrivalTimes[0]);
+            checkArgument(sol.arrivalTimes.length == sol.route.length,
+                "Number of arrival times should equal number of locations.");
+            checkArgument(
+                sol.arrivalTimes[0] == remainingServiceTimes[v],
+                "The first arrival time should be the remaining service time for this vehicle, expected %s, was %s.",
+                remainingServiceTimes[v], sol.arrivalTimes[0]);
 
             // check feasibility
             for (int i = 1; i < sol.route.length; i++) {
@@ -364,20 +434,24 @@ public final class ArraysSolverValidator {
                 // we compute the travel time. If it is the first step in the
                 // route, we use the time from vehicle location to the next
                 // location in the route.
-                final int tt = i == 1 ? vehicleTravelTimes[v][cur]
-                        : travelTime[prev][cur];
+                final int tt =
+                        i == 1 ? vehicleTravelTimes[v][cur]
+                                : travelTime[prev][cur];
 
                 // we compute the first possible arrival time for the vehicle to
                 // arrive at location i, given that it first visited location
                 // i-1
-                final int earliestArrivalTime = sol.arrivalTimes[i - 1]
-                        + serviceTimes[prev] + tt;
+                final int earliestArrivalTime =
+                        sol.arrivalTimes[i - 1] + serviceTimes[prev] + tt;
 
                 // we also have to take into account the time window
-                final int minArrivalTime = Math
-                        .max(earliestArrivalTime, releaseDates[cur]);
+                final int minArrivalTime =
+                        Math.max(earliestArrivalTime, releaseDates[cur]);
 
-                checkArgument(sol.arrivalTimes[i] >= minArrivalTime, "Vehicle %s, route index %s, arrivalTime (%s) needs to be greater or equal to minArrivalTime (%s).", v, i, sol.arrivalTimes[i], minArrivalTime);
+                checkArgument(
+                    sol.arrivalTimes[i] >= minArrivalTime,
+                    "Vehicle %s, route index %s, arrivalTime (%s) needs to be greater or equal to minArrivalTime (%s).",
+                    v, i, sol.arrivalTimes[i], minArrivalTime);
             }
 
             /*
@@ -385,26 +459,20 @@ public final class ArraysSolverValidator {
              */
 
             // sum travel time
-            int totalTravelTime = 0;
-            for (int i = 1; i < sol.route.length; i++) {
-                if (i == 1) {
-                    totalTravelTime += vehicleTravelTimes[v][sol.route[i]];
-                } else {
-                    totalTravelTime += travelTime[sol.route[i - 1]][sol.route[i]];
-                }
-            }
+            final int totalTravelTime =
+                    ArraysSolvers.computeTotalTravelTime(sol.route, travelTime,
+                        vehicleTravelTimes[v]);
 
             // sum tardiness
-            int tardiness = 0;
-            for (int i = 0; i < sol.route.length; i++) {
-                final int lateness = (sol.arrivalTimes[i] + serviceTimes[sol.route[i]])
-                        - dueDates[sol.route[i]];
-                if (lateness > 0) {
-                    tardiness += lateness;
-                }
-            }
-            checkArgument(sol.objectiveValue == totalTravelTime + tardiness, "Incorrect objective value (%s), it should be travel time + tardiness = %s + %s = %s.", sol.objectiveValue, totalTravelTime, tardiness, totalTravelTime
-                    + tardiness);
+            final int tardiness =
+                    ArraysSolvers.computeSumTardiness(sol.route,
+                        sol.arrivalTimes, serviceTimes, dueDates);
+
+            checkArgument(
+                sol.objectiveValue == totalTravelTime + tardiness,
+                "Vehicle %s: incorrect objective value (%s), it should be travel time + tardiness = %s + %s = %s.",
+                v, sol.objectiveValue, totalTravelTime, tardiness,
+                totalTravelTime + tardiness);
 
         }
 
@@ -429,12 +497,15 @@ public final class ArraysSolverValidator {
         public SolutionObject solve(int[][] travelTime, int[] releaseDates,
                 int[] dueDates, int[][] servicePairs, int[] serviceTimes) {
             // first check inputs
-            validateInputs(travelTime, releaseDates, dueDates, servicePairs, serviceTimes);
+            validateInputs(travelTime, releaseDates, dueDates, servicePairs,
+                serviceTimes);
             // execute solver
-            final SolutionObject output = delegateSolver
-                    .solve(travelTime, releaseDates, dueDates, servicePairs, serviceTimes);
+            final SolutionObject output =
+                    delegateSolver.solve(travelTime, releaseDates, dueDates,
+                        servicePairs, serviceTimes);
             // check outputs
-            return validateOutputs(output, travelTime, releaseDates, dueDates, servicePairs, serviceTimes);
+            return validateOutputs(output, travelTime, releaseDates, dueDates,
+                servicePairs, serviceTimes);
         }
     }
 
@@ -449,10 +520,16 @@ public final class ArraysSolverValidator {
                 int[] dueDates, int[][] servicePairs, int[] serviceTimes,
                 int[][] vehicleTravelTimes, int[][] inventories,
                 int[] remainingServiceTimes) {
-            validateInputs(travelTime, releaseDates, dueDates, servicePairs, serviceTimes, vehicleTravelTimes, inventories, remainingServiceTimes);
-            final SolutionObject[] output = delegateSolver
-                    .solve(travelTime, releaseDates, dueDates, servicePairs, serviceTimes, vehicleTravelTimes, inventories, remainingServiceTimes);
-            return validateOutputs(output, travelTime, releaseDates, dueDates, servicePairs, serviceTimes, vehicleTravelTimes, inventories, remainingServiceTimes);
+            validateInputs(travelTime, releaseDates, dueDates, servicePairs,
+                serviceTimes, vehicleTravelTimes, inventories,
+                remainingServiceTimes);
+            final SolutionObject[] output =
+                    delegateSolver.solve(travelTime, releaseDates, dueDates,
+                        servicePairs, serviceTimes, vehicleTravelTimes,
+                        inventories, remainingServiceTimes);
+            return validateOutputs(output, travelTime, releaseDates, dueDates,
+                servicePairs, serviceTimes, vehicleTravelTimes, inventories,
+                remainingServiceTimes);
         }
     }
 }

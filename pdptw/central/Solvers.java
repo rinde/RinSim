@@ -4,12 +4,14 @@
 package rinde.sim.pdptw.central;
 
 import static com.google.common.collect.Lists.newLinkedList;
+import static com.google.common.collect.Sets.newHashSet;
 import static java.util.Arrays.asList;
 
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Queue;
+import java.util.Set;
 
 import javax.measure.quantity.Duration;
 import javax.measure.quantity.Length;
@@ -17,11 +19,12 @@ import javax.measure.quantity.Velocity;
 import javax.measure.unit.Unit;
 
 import rinde.sim.core.model.pdp.PDPModel;
+import rinde.sim.core.model.pdp.PDPModel.ParcelState;
 import rinde.sim.pdptw.central.GlobalStateObject.VehicleState;
 import rinde.sim.problem.common.DefaultParcel;
 import rinde.sim.problem.common.DefaultVehicle;
-import rinde.sim.problem.common.ParcelDTO;
 import rinde.sim.problem.common.PDPRoadModel;
+import rinde.sim.problem.common.ParcelDTO;
 import rinde.sim.problem.common.VehicleDTO;
 
 import com.google.common.collect.ImmutableList;
@@ -51,9 +54,8 @@ public final class Solvers {
 
     // solver for multi vehicle
     public static List<Queue<DefaultParcel>> solve(Solver solver,
-            PDPRoadModel rm, PDPModel pm, long time,
-            Unit<Duration> timeUnit, Unit<Velocity> speedUnit,
-            Unit<Length> distUnit) {
+            PDPRoadModel rm, PDPModel pm, long time, Unit<Duration> timeUnit,
+            Unit<Velocity> speedUnit, Unit<Length> distUnit) {
         final StateContext state =
                 convert(rm, pm, time, timeUnit, speedUnit, distUnit);
         return convertRoutes(state, solver.solve(state.state));
@@ -95,8 +97,8 @@ public final class Solvers {
             timeUnit, speedUnit, distUnit);
     }
 
-    public static StateContext convert(PDPRoadModel rm, PDPModel pm,
-            long time, Unit<Duration> timeUnit, Unit<Velocity> speedUnit,
+    public static StateContext convert(PDPRoadModel rm, PDPModel pm, long time,
+            Unit<Duration> timeUnit, Unit<Velocity> speedUnit,
             Unit<Length> distUnit) {
         return convert(rm, pm, rm.getObjectsOfType(DefaultVehicle.class),
             rm.getObjectsOfType(DefaultParcel.class), time, timeUnit,
@@ -133,18 +135,36 @@ public final class Solvers {
             DefaultVehicle vehicle) {
         // this is ok since we actually check the type
         @SuppressWarnings({ "unchecked", "rawtypes" })
-        final Collection<DefaultParcel> ps =
-                Collections.checkedCollection(
-                    (Collection) pm.getContents(vehicle), DefaultParcel.class);
+        final Set<DefaultParcel> ps =
+                Collections.checkedSet(
+                    (Set) newHashSet(pm.getContents(vehicle)),
+                    DefaultParcel.class);
+
+        // fix all parcels which are in a transition process: either being
+        // delivered or picked up.
+        if (pm.getVehicleState(vehicle) != PDPModel.VehicleState.IDLE) {
+            final DefaultParcel dp =
+                    (DefaultParcel) pm.getVehicleActionInfo(vehicle)
+                            .getParcel();
+            final ParcelState parcelState = pm.getParcelState(dp);
+            if (parcelState == ParcelState.DELIVERING) {
+                ps.remove(dp);
+            } else if (parcelState == ParcelState.PICKING_UP) {
+                ps.add(dp);
+            } else {
+                throw new IllegalArgumentException();
+            }
+        }
         return toMap(ps);
     }
 
     static VehicleState convertToVehicleState(PDPRoadModel rm, PDPModel pm,
             DefaultVehicle vehicle,
             ImmutableMap<ParcelDTO, DefaultParcel> contents) {
+        final boolean isIdle =
+                pm.getVehicleState(vehicle) == PDPModel.VehicleState.IDLE;
         final long remainingServiceTime =
-                pm.getVehicleState(vehicle) == PDPModel.VehicleState.IDLE ? 0
-                        : pm.getVehicleActionInfo(vehicle).timeNeeded();
+                isIdle ? 0 : pm.getVehicleActionInfo(vehicle).timeNeeded();
 
         ParcelDTO destination = null;
         if (!rm.isVehicleDiversionAllowed()) {
