@@ -815,4 +815,17 @@ public class PDPModel implements Model<PDPObject>, TickListener, ModelReceiver {
             modelRef.doDeliver(vehicle, parcel, time.getTime());
         }
     }
+
+    /**
+     * @param vehicle
+     * @param parcel
+     * @param time
+     */
+    public void service(Vehicle vehicle, Parcel parcel, TimeLapse time) {
+        if (getContents(vehicle).contains(parcel)) {
+            deliver(vehicle, parcel, time);
+        } else {
+            pickup(vehicle, parcel, time);
+        }
+    }
 }
