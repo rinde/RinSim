@@ -3,12 +3,14 @@
  */
 package rinde.sim.ui.renderers;
 
+import java.util.List;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.GC;
 
 import rinde.sim.core.graph.Point;
 import rinde.sim.core.model.ModelProvider;
-import rinde.sim.core.model.road.PlaneRoadModel;
+import rinde.sim.core.model.road.RoadModel;
 
 /**
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
@@ -16,11 +18,13 @@ import rinde.sim.core.model.road.PlaneRoadModel;
  */
 public class PlaneRoadModelRenderer implements ModelRenderer {
 
-	protected PlaneRoadModel rm;
+	protected RoadModel rm;
 	protected final double margin;
 
 	protected double xMargin;
 	protected double yMargin;
+	
+	List<Point> bounds;
 
 	public PlaneRoadModelRenderer() {
 		this(0.02);
@@ -32,10 +36,10 @@ public class PlaneRoadModelRenderer implements ModelRenderer {
 
 	@Override
 	public void renderStatic(GC gc, ViewPort vp) {
-		final int xMin = vp.toCoordX(rm.min.x);
-		final int yMin = vp.toCoordY(rm.min.y);
-		final int xMax = vp.toCoordX(rm.max.x);
-		final int yMax = vp.toCoordY(rm.max.y);
+		final int xMin = vp.toCoordX(bounds.get(0).x);
+		final int yMin = vp.toCoordY(bounds.get(0).y);
+		final int xMax = vp.toCoordX(bounds.get(1).x);
+		final int yMax = vp.toCoordY(bounds.get(1).y);
 
 		final int outerXmin = vp.toCoordX(vp.rect.min.x);
 		final int outerYmin = vp.toCoordY(vp.rect.min.y);
@@ -55,15 +59,16 @@ public class PlaneRoadModelRenderer implements ModelRenderer {
 
 	@Override
 	public ViewRect getViewRect() {
-		return new ViewRect(new Point(rm.min.x - xMargin, rm.min.y - yMargin), new Point(rm.max.x + xMargin, rm.max.y
+		return new ViewRect(new Point(bounds.get(0).x - xMargin, bounds.get(0).y - yMargin), new Point(bounds.get(1).x + xMargin, bounds.get(1).y
 				+ yMargin));
 	}
 
 	@Override
 	public void registerModelProvider(ModelProvider mp) {
-		rm = mp.getModel(PlaneRoadModel.class);
-		final double width = rm.max.x - rm.min.x;
-		final double height = rm.max.y - rm.min.y;
+		rm = mp.getModel(RoadModel.class);
+		bounds = rm.getBounds();
+		final double width = bounds.get(1).x - bounds.get(0).x;
+		final double height = bounds.get(1).y - bounds.get(0).y;
 		xMargin = width * margin;
 		yMargin = height * margin;
 	}
