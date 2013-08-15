@@ -1,7 +1,7 @@
 /**
  * 
  */
-package rinde.sim.pdptw.central.solver;
+package rinde.sim.pdptw.central.arrays;
 
 import static rinde.sim.pdptw.central.arrays.ArraysSolverValidator.validateInputs;
 import static rinde.sim.pdptw.central.arrays.ArraysSolverValidator.validateOutputs;

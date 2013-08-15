@@ -1,7 +1,7 @@
 /**
  * 
  */
-package rinde.sim.pdptw.central.solver;
+package rinde.sim.pdptw.central.arrays;
 
 import static java.util.Arrays.asList;
 import static javax.measure.unit.NonSI.KILOMETERS_PER_HOUR;
