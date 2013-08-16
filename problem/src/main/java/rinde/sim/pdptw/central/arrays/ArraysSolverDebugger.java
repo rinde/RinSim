@@ -31,6 +31,7 @@ public class ArraysSolverDebugger implements SingleVehicleArraysSolver {
         outputMemory = newArrayList();
     }
 
+    @Override
     public SolutionObject solve(int[][] travelTime, int[] releaseDates,
             int[] dueDates, int[][] servicePairs, int[] serviceTimes) {
 
@@ -48,8 +49,9 @@ public class ArraysSolverDebugger implements SingleVehicleArraysSolver {
         }
 
         final long start = System.currentTimeMillis();
-        final SolutionObject sol = solver
-                .solve(travelTime, releaseDates, dueDates, servicePairs, serviceTimes);
+        final SolutionObject sol =
+                solver.solve(travelTime, releaseDates, dueDates, servicePairs,
+                    serviceTimes);
         if (print) {
             out.println(System.currentTimeMillis() - start + "ms");
             out.println("route: " + Arrays.toString(sol.route));
@@ -58,9 +60,8 @@ public class ArraysSolverDebugger implements SingleVehicleArraysSolver {
         }
 
         outputMemory.add(new SolutionObject(
-                copyOf(sol.route, sol.route.length),
-                copyOf(sol.arrivalTimes, sol.arrivalTimes.length),
-                sol.objectiveValue));
+                copyOf(sol.route, sol.route.length), copyOf(sol.arrivalTimes,
+                    sol.arrivalTimes.length), sol.objectiveValue));
 
         int totalTravelTime = 0;
         for (int i = 1; i < travelTime.length; i++) {
@@ -109,8 +110,9 @@ public class ArraysSolverDebugger implements SingleVehicleArraysSolver {
     }
 
     /**
-     * Wraps the specified {@link SingleVehicleArraysSolver} to allow easy debugging. Every
-     * invocation of {@link SingleVehicleArraysSolver#solve(int[][], int[], int[], int[][], int[])}
+     * Wraps the specified {@link SingleVehicleArraysSolver} to allow easy
+     * debugging. Every invocation of
+     * {@link SingleVehicleArraysSolver#solve(int[][], int[], int[], int[][], int[])}
      * all inputs and outputs are printed to <code>System.out</code>, also all
      * inputs and outputs are stored (accessible via {@link #getInputMemory()}
      * and {@link #getOutputMemory()}.
@@ -122,15 +124,16 @@ public class ArraysSolverDebugger implements SingleVehicleArraysSolver {
     }
 
     /**
-     * Wraps the specified {@link SingleVehicleArraysSolver} to allow easy debugging. Stores all
-     * invocation arguments and outputs and optionally prints them to
-     * <code>System.out</code>.
+     * Wraps the specified {@link SingleVehicleArraysSolver} to allow easy
+     * debugging. Stores all invocation arguments and outputs and optionally
+     * prints them to <code>System.out</code>.
      * @param s The {@link SingleVehicleArraysSolver} to wrap.
      * @param print If <code>true</code> all information will be printed as
      *            well.
      * @return The wrapped solver.
      */
-    public static ArraysSolverDebugger wrap(SingleVehicleArraysSolver s, boolean print) {
+    public static ArraysSolverDebugger wrap(SingleVehicleArraysSolver s,
+            boolean print) {
         return new ArraysSolverDebugger(s, print);
     }
 
@@ -140,7 +143,8 @@ public class ArraysSolverDebugger implements SingleVehicleArraysSolver {
 
     /**
      * Object containing a copy of the call arguments of
-     * {@link SingleVehicleArraysSolver#solve(int[][], int[], int[], int[][], int[])}.
+     * {@link SingleVehicleArraysSolver#solve(int[][], int[], int[], int[][], int[])}
+     * .
      * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
      */
     public static class InputObject {

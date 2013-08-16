@@ -395,6 +395,14 @@ public final class ArraysSolvers {
                 .doubleValue(outputTimeUnit); // convert to desired unit
     }
 
+    /**
+     * Computes the total travel time of the specified route.
+     * @param route The route.
+     * @param travelTime The travel time matrix.
+     * @param vehicleTravelTimes The vehicle travel time for the vehicle that is
+     *            driving the specified route.
+     * @return The travel time of the specified route.
+     */
     public static int computeTotalTravelTime(int[] route, int[][] travelTime,
             int[] vehicleTravelTimes) {
         int totalTravelTime = 0;
@@ -408,6 +416,17 @@ public final class ArraysSolvers {
         return totalTravelTime;
     }
 
+    /**
+     * Computes the total tardiness of the specified route with the specified
+     * arrivalTimes.
+     * @param route The route.
+     * @param arrivalTimes The arrival times at every index of the route.
+     * @param serviceTimes The full serviceTimes array containing all locations,
+     *            using the original indices.
+     * @param dueDates The full dueDates array containing all locations, using
+     *            the original indices.
+     * @return The sum tardiness.
+     */
     public static int computeSumTardiness(int[] route, int[] arrivalTimes,
             int[] serviceTimes, int[] dueDates) {
         int tardiness = 0;

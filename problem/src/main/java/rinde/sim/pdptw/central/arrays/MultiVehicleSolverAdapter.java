@@ -34,16 +34,19 @@ public class MultiVehicleSolverAdapter implements Solver {
         this.outputTimeUnit = outputTimeUnit;
     }
 
+    @Override
     public ImmutableList<ImmutableList<ParcelDTO>> solve(GlobalStateObject state) {
-        final MVArraysObject o = ArraysSolvers
-                .toMultiVehicleArrays(state, outputTimeUnit);
-        final SolutionObject[] sols = solver
-                .solve(o.travelTime, o.releaseDates, o.dueDates, o.servicePairs, o.serviceTimes, o.vehicleTravelTimes, o.inventories, o.remainingServiceTimes);
-        final ImmutableList.Builder<ImmutableList<ParcelDTO>> b = ImmutableList
-                .builder();
+        final MVArraysObject o =
+                ArraysSolvers.toMultiVehicleArrays(state, outputTimeUnit);
+        final SolutionObject[] sols =
+                solver.solve(o.travelTime, o.releaseDates, o.dueDates,
+                    o.servicePairs, o.serviceTimes, o.vehicleTravelTimes,
+                    o.inventories, o.remainingServiceTimes);
+        final ImmutableList.Builder<ImmutableList<ParcelDTO>> b =
+                ImmutableList.builder();
         for (final SolutionObject sol : sols) {
-            b.add(ArraysSolvers
-                    .convertSolutionObject(sol, o.point2dto, o.locations));
+            b.add(ArraysSolvers.convertSolutionObject(sol, o.point2dto,
+                o.locations));
         }
         return b.build();
     }

@@ -9,11 +9,12 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
-import com.google.common.collect.DiscreteDomains;
+import com.google.common.collect.ContiguousSet;
+import com.google.common.collect.DiscreteDomain;
 import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Multimap;
-import com.google.common.collect.Ranges;
+import com.google.common.collect.Range;
 import com.google.common.collect.Sets;
 import com.google.common.primitives.Ints;
 
@@ -272,8 +273,8 @@ public final class ArraysSolverValidator {
             vehicleTravelTimes[0][i] = travelTime[0][i];
         }
         final Set<Integer> locationSet =
-                newHashSet(Ranges.closedOpen(1, n - 1).asSet(
-                    DiscreteDomains.integers()));
+                newHashSet(ContiguousSet.create(Range.closedOpen(1, n - 1),
+                    DiscreteDomain.integers()));
         for (int i = 0; i < servicePairs.length; i++) {
             locationSet.remove(servicePairs[i][0]);
             locationSet.remove(servicePairs[i][1]);
@@ -347,8 +348,8 @@ public final class ArraysSolverValidator {
         }
         final Set<Integer> routeSet = routeSetBuilder.build();
         final Set<Integer> locationSet =
-                Ranges.closedOpen(0, travelTime.length).asSet(
-                    DiscreteDomains.integers());
+                ContiguousSet.create(Range.closedOpen(0, travelTime.length),
+                    DiscreteDomain.integers());
 
         checkArgument(
             visitedLocations == n - 2,
@@ -490,10 +491,11 @@ public final class ArraysSolverValidator {
     private static class SingleValidator implements SingleVehicleArraysSolver {
         private final SingleVehicleArraysSolver delegateSolver;
 
-        private SingleValidator(SingleVehicleArraysSolver delegate) {
+        SingleValidator(SingleVehicleArraysSolver delegate) {
             delegateSolver = delegate;
         }
 
+        @Override
         public SolutionObject solve(int[][] travelTime, int[] releaseDates,
                 int[] dueDates, int[][] servicePairs, int[] serviceTimes) {
             // first check inputs
@@ -512,10 +514,11 @@ public final class ArraysSolverValidator {
     private static class MultiValidator implements MultiVehicleArraysSolver {
         private final MultiVehicleArraysSolver delegateSolver;
 
-        private MultiValidator(MultiVehicleArraysSolver delegate) {
+        MultiValidator(MultiVehicleArraysSolver delegate) {
             delegateSolver = delegate;
         }
 
+        @Override
         public SolutionObject[] solve(int[][] travelTime, int[] releaseDates,
                 int[] dueDates, int[][] servicePairs, int[] serviceTimes,
                 int[][] vehicleTravelTimes, int[][] inventories,
