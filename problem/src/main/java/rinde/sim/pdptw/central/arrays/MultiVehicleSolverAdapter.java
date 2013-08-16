@@ -41,7 +41,8 @@ public class MultiVehicleSolverAdapter implements Solver {
         final SolutionObject[] sols =
                 solver.solve(o.travelTime, o.releaseDates, o.dueDates,
                     o.servicePairs, o.serviceTimes, o.vehicleTravelTimes,
-                    o.inventories, o.remainingServiceTimes);
+                    o.inventories, o.remainingServiceTimes,
+                    o.currentDestinations);
         final ImmutableList.Builder<ImmutableList<ParcelDTO>> b =
                 ImmutableList.builder();
         for (final SolutionObject sol : sols) {

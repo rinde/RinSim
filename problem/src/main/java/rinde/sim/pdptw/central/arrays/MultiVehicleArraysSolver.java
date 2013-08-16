@@ -61,6 +61,6 @@ public interface MultiVehicleArraysSolver {
     SolutionObject[] solve(int[][] travelTime, int[] releaseDates,
             int[] dueDates, int[][] servicePairs, int[] serviceTimes,
             int[][] vehicleTravelTimes, int[][] inventories,
-            int[] remainingServiceTimes);
+            int[] remainingServiceTimes, int[] currentDestinations);
 
 }

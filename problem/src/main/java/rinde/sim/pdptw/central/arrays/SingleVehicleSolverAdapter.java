@@ -12,7 +12,7 @@ import javax.measure.quantity.Duration;
 import javax.measure.unit.Unit;
 
 import rinde.sim.pdptw.central.GlobalStateObject;
-import rinde.sim.pdptw.central.GlobalStateObject.VehicleState;
+import rinde.sim.pdptw.central.GlobalStateObject.VehicleStateObject;
 import rinde.sim.pdptw.central.Solver;
 import rinde.sim.pdptw.central.arrays.ArraysSolvers.ArraysObject;
 import rinde.sim.pdptw.common.ParcelDTO;
@@ -49,7 +49,7 @@ public class SingleVehicleSolverAdapter implements Solver {
             "This solver can only deal with the single vehicle problem, found %s vehicles.",
             state.vehicles.size());
 
-        final VehicleState v = state.vehicles.iterator().next();
+        final VehicleStateObject v = state.vehicles.iterator().next();
         checkArgument(
             v.remainingServiceTime == 0,
             "This solver can not deal with remaining service time, it should be 0, it was %s.",

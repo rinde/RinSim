@@ -5,12 +5,20 @@ package rinde.sim.core;
  */
 public final class TimeLapseFactory {
 
-	private TimeLapseFactory() {}
+    private TimeLapseFactory() {}
 
-	// this should only be used in tests!
+    // this should only be used in tests!
 
-	public static TimeLapse create(long start, long end) {
-		return new TimeLapse(start, end);
-	}
+    public static TimeLapse create(long start, long end) {
+        return new TimeLapse(start, end);
+    }
+
+    public static TimeLapse time(long start, long end) {
+        return create(start, end);
+    }
+
+    public static TimeLapse time(long end) {
+        return create(0, end);
+    }
 
 }

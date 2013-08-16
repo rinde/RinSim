@@ -296,7 +296,7 @@ public final class ArraysSolverValidator {
         final SolutionObject[] sols = new SolutionObject[] { sol };
         validateOutputs(sols, travelTime, releaseDates, dueDates, servicePairs,
             serviceTimes, vehicleTravelTimes, inventories,
-            remainingServiceTimes);
+            remainingServiceTimes, new int[1]);
         return sol;
     }
 
@@ -335,7 +335,7 @@ public final class ArraysSolverValidator {
             int[][] travelTime, int[] releaseDates, int[] dueDates,
             int[][] servicePairs, int[] serviceTimes,
             int[][] vehicleTravelTimes, int[][] inventories,
-            int[] remainingServiceTimes) {
+            int[] remainingServiceTimes, int[] currentDestinations) {
 
         final int n = travelTime.length;
 
@@ -522,17 +522,19 @@ public final class ArraysSolverValidator {
         public SolutionObject[] solve(int[][] travelTime, int[] releaseDates,
                 int[] dueDates, int[][] servicePairs, int[] serviceTimes,
                 int[][] vehicleTravelTimes, int[][] inventories,
-                int[] remainingServiceTimes) {
+                int[] remainingServiceTimes, int[] currentDestinations) {
             validateInputs(travelTime, releaseDates, dueDates, servicePairs,
                 serviceTimes, vehicleTravelTimes, inventories,
                 remainingServiceTimes);
             final SolutionObject[] output =
-                    delegateSolver.solve(travelTime, releaseDates, dueDates,
-                        servicePairs, serviceTimes, vehicleTravelTimes,
-                        inventories, remainingServiceTimes);
+                    delegateSolver
+                            .solve(travelTime, releaseDates, dueDates,
+                                servicePairs, serviceTimes, vehicleTravelTimes,
+                                inventories, remainingServiceTimes,
+                                currentDestinations);
             return validateOutputs(output, travelTime, releaseDates, dueDates,
                 servicePairs, serviceTimes, vehicleTravelTimes, inventories,
-                remainingServiceTimes);
+                remainingServiceTimes, currentDestinations);
         }
     }
 }

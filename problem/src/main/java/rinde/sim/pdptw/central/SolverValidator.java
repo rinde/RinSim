@@ -10,7 +10,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
-import rinde.sim.pdptw.central.GlobalStateObject.VehicleState;
+import rinde.sim.pdptw.central.GlobalStateObject.VehicleStateObject;
 import rinde.sim.pdptw.common.ParcelDTO;
 
 import com.google.common.collect.ImmutableList;
@@ -49,7 +49,7 @@ public final class SolverValidator {
     public static GlobalStateObject validateInputs(GlobalStateObject state) {
         checkArgument(state.time >= 0, "Time must be >= 0, is %s.", state.time);
         final Set<ParcelDTO> inventoryParcels = newHashSet();
-        for (final VehicleState vs : state.vehicles) {
+        for (final VehicleStateObject vs : state.vehicles) {
             checkArgument(vs.remainingServiceTime >= 0,
                 "Remaining service time must be >= 0, is %s.",
                 vs.remainingServiceTime);

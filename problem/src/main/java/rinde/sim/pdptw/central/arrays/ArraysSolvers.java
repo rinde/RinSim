@@ -25,7 +25,7 @@ import javax.measure.unit.Unit;
 
 import rinde.sim.core.graph.Point;
 import rinde.sim.pdptw.central.GlobalStateObject;
-import rinde.sim.pdptw.central.GlobalStateObject.VehicleState;
+import rinde.sim.pdptw.central.GlobalStateObject.VehicleStateObject;
 import rinde.sim.pdptw.central.Solver;
 import rinde.sim.pdptw.common.DefaultParcel;
 import rinde.sim.pdptw.common.ParcelDTO;
@@ -126,12 +126,12 @@ public final class ArraysSolvers {
         final UnitConverter timeConverter =
                 state.timeUnit.getConverterTo(outputTimeUnit);
 
-        final VehicleState v = state.vehicles.iterator().next();
+        final VehicleStateObject v = state.vehicles.iterator().next();
 
         // we check all vehicles in case this method is used in other contexts
         final ImmutableSet.Builder<ParcelDTO> cargoBuilder =
                 ImmutableSet.builder();
-        for (final VehicleState vs : state.vehicles) {
+        for (final VehicleStateObject vs : state.vehicles) {
             cargoBuilder.addAll(vs.contents);
         }
         final Set<ParcelDTO> inCargo = cargoBuilder.build();
@@ -236,8 +236,12 @@ public final class ArraysSolvers {
                 toInventoriesArray(state, singleVehicleArrays);
         final int[] remainingServiceTimes =
                 toRemainingServiceTimes(state, outputTimeUnit);
+
+        final int[] currentDestinations =
+                toVehicleDestinations(state, singleVehicleArrays);
+
         return new MVArraysObject(singleVehicleArrays, vehicleTravelTimes,
-                inventories, remainingServiceTimes);
+                inventories, remainingServiceTimes, currentDestinations);
     }
 
     /**
@@ -262,6 +266,30 @@ public final class ArraysSolvers {
         return builder.build();
     }
 
+    static int[] toVehicleDestinations(GlobalStateObject state, ArraysObject sva) {
+        final int v = state.vehicles.size();
+        final UnmodifiableIterator<VehicleStateObject> iterator =
+                state.vehicles.iterator();
+
+        final int[] destinations = new int[v];
+        for (int i = 0; i < v; i++) {
+            final VehicleStateObject cur = iterator.next();
+
+            final ParcelDTO dest = cur.destination;
+            if (dest == null) {
+                destinations[i] = 0;
+            } else {
+                final boolean isInCargo = cur.contents.contains(dest);
+                final int index =
+                        sva.locations
+                                .indexOf(isInCargo ? dest.destinationLocation
+                                        : dest.pickupLocation);
+                destinations[i] = index;
+            }
+        }
+        return destinations;
+    }
+
     static int[][] toVehicleTravelTimes(GlobalStateObject state,
             ArraysObject sva, Unit<Duration> outputTimeUnit) {
         final int v = state.vehicles.size();
@@ -269,11 +297,11 @@ public final class ArraysSolvers {
         // compute vehicle travel times
         final int[][] vehicleTravelTimes = new int[v][n];
 
-        final UnmodifiableIterator<VehicleState> iterator =
+        final UnmodifiableIterator<VehicleStateObject> iterator =
                 state.vehicles.iterator();
 
         for (int i = 0; i < v; i++) {
-            final VehicleState cur = iterator.next();
+            final VehicleStateObject cur = iterator.next();
             final Measure<Double, Velocity> speed =
                     Measure.valueOf(cur.speed, state.speedUnit);
 
@@ -338,13 +366,13 @@ public final class ArraysSolvers {
             point2indexBuilder.put(sva.locations.get(i), i);
         }
         final Map<Point, Integer> point2index = point2indexBuilder.build();
-        final UnmodifiableIterator<VehicleState> iterator =
+        final UnmodifiableIterator<VehicleStateObject> iterator =
                 state.vehicles.iterator();
 
         final ImmutableList.Builder<ImmutableList<Integer>> invPairBuilder =
                 ImmutableList.builder();
         for (int i = 0; i < state.vehicles.size(); i++) {
-            final VehicleState cur = iterator.next();
+            final VehicleStateObject cur = iterator.next();
             for (final ParcelDTO dp : cur.contents) {
                 invPairBuilder.add(ImmutableList.of(i,
                     point2index.get(dp.destinationLocation)));
@@ -363,7 +391,7 @@ public final class ArraysSolvers {
 
     static int[] toRemainingServiceTimes(GlobalStateObject state,
             Unit<Duration> outputTimeUnit) {
-        final UnmodifiableIterator<VehicleState> iterator =
+        final UnmodifiableIterator<VehicleStateObject> iterator =
                 state.vehicles.iterator();
         final int[] remainingServiceTimes = new int[state.vehicles.size()];
         for (int i = 0; i < state.vehicles.size(); i++) {
@@ -537,24 +565,29 @@ public final class ArraysSolvers {
          */
         public final int[] remainingServiceTimes;
 
+        public final int[] currentDestinations;
+
         MVArraysObject(int[][] travelTime, int[] releaseDates, int[] dueDates,
                 int[][] servicePairs, int[] serviceTimes, Point[] locations,
                 Map<Point, ParcelDTO> point2dto, int[][] vehicleTravelTimes,
-                int[][] inventories, int[] remainingServiceTimes) {
+                int[][] inventories, int[] remainingServiceTimes,
+                int[] currentDestinations) {
             super(travelTime, releaseDates, dueDates, servicePairs,
                     serviceTimes, locations, point2dto);
             this.vehicleTravelTimes = vehicleTravelTimes;
             this.inventories = inventories;
             this.remainingServiceTimes = remainingServiceTimes;
+            this.currentDestinations = currentDestinations;
         }
 
         MVArraysObject(ArraysObject ao, int[][] vehicleTravelTimes,
-                int[][] inventories, int[] remainingServiceTimes) {
+                int[][] inventories, int[] remainingServiceTimes,
+                int[] currentDestinations) {
             this(ao.travelTime, ao.releaseDates, ao.dueDates, ao.servicePairs,
                     ao.serviceTimes, ao.locations
                             .toArray(new Point[ao.locations.size()]),
                     ao.point2dto, vehicleTravelTimes, inventories,
-                    remainingServiceTimes);
+                    remainingServiceTimes, currentDestinations);
         }
     }
 

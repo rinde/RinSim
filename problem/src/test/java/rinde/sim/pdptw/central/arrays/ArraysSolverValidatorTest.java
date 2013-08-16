@@ -377,7 +377,7 @@ public class ArraysSolverValidatorTest {
                         100, 108 }, 238);
         validateOutputs(new SolutionObject[] { sol1, sol2 }, travelTimes,
             new int[4], new int[4], new int[][] {}, new int[4], new int[2][4],
-            new int[2][2], new int[2]);
+            new int[2][2], new int[2], new int[2]);
     }
 
     @Test
@@ -408,7 +408,7 @@ public class ArraysSolverValidatorTest {
 
         validateOutputs(new SolutionObject[] { sol1, sol2 }, travelTime,
             releaseDates, dueDates, new int[][] {}, new int[4],
-            vehicleTravelTime, new int[2][2], new int[2]);
+            vehicleTravelTime, new int[2][2], new int[2], new int[2]);
     }
 
     /**
@@ -429,7 +429,7 @@ public class ArraysSolverValidatorTest {
 
         validateOutputs(new SolutionObject[] { sol1, sol2 }, new int[4][4],
             new int[4], new int[4], new int[][] {}, new int[4], new int[2][4],
-            inventories, new int[2]);
+            inventories, new int[2], new int[2]);
     }
 
     /**
@@ -447,7 +447,7 @@ public class ArraysSolverValidatorTest {
         final int[] remainingServiceTimes = new int[] { 3, 700 };
         validateOutputs(new SolutionObject[] { sol1, sol2 }, new int[4][4],
             new int[4], new int[4], new int[][] {}, new int[4], new int[2][4],
-            new int[0][0], remainingServiceTimes);
+            new int[0][0], remainingServiceTimes, new int[2]);
     }
 
     @Test
@@ -483,7 +483,7 @@ public class ArraysSolverValidatorTest {
 
         validateOutputs(new SolutionObject[] { sol1, sol2 }, travelTimes,
             new int[4], new int[4], new int[][] {}, new int[4], new int[2][4],
-            new int[2][2], new int[2]);
+            new int[2][2], new int[2], new int[2]);
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -571,7 +571,7 @@ public class ArraysSolverValidatorTest {
 
         s.solve(travelTimes, new int[4], new int[4], new int[][] {},
             new int[4], new int[2][4], new int[][] { { 0, 1 }, { 0, 2 } },
-            new int[2]);
+            new int[2], new int[2]);
     }
 
     class FakeSingleSolver implements SingleVehicleArraysSolver {
@@ -599,7 +599,7 @@ public class ArraysSolverValidatorTest {
         public SolutionObject[] solve(int[][] travelTime, int[] releaseDates,
                 int[] dueDates, int[][] servicePairs, int[] serviceTimes,
                 int[][] vehicleTravelTimes, int[][] inventories,
-                int[] remainingServiceTimes) {
+                int[] remainingServiceTimes, int[] currentDestinations) {
             return answer;
         }
     }

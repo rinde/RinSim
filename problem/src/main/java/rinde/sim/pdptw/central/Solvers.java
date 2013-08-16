@@ -20,7 +20,7 @@ import javax.measure.unit.Unit;
 
 import rinde.sim.core.model.pdp.PDPModel;
 import rinde.sim.core.model.pdp.PDPModel.ParcelState;
-import rinde.sim.pdptw.central.GlobalStateObject.VehicleState;
+import rinde.sim.pdptw.central.GlobalStateObject.VehicleStateObject;
 import rinde.sim.pdptw.common.DefaultParcel;
 import rinde.sim.pdptw.common.DefaultVehicle;
 import rinde.sim.pdptw.common.PDPRoadModel;
@@ -115,7 +115,7 @@ public final class Solvers {
                 toMap(availableParcels);
         final ImmutableMap<VehicleDTO, DefaultVehicle> vehicleMap =
                 toVehicleMap(vehicles);
-        final ImmutableList.Builder<VehicleState> vbuilder =
+        final ImmutableList.Builder<VehicleStateObject> vbuilder =
                 ImmutableList.builder();
         final ImmutableMap.Builder<ParcelDTO, DefaultParcel> allParcels =
                 ImmutableMap.builder();
@@ -158,7 +158,7 @@ public final class Solvers {
         return toMap(ps);
     }
 
-    static VehicleState convertToVehicleState(PDPRoadModel rm, PDPModel pm,
+    static VehicleStateObject convertToVehicleState(PDPRoadModel rm, PDPModel pm,
             DefaultVehicle vehicle,
             ImmutableMap<ParcelDTO, DefaultParcel> contents) {
         final boolean isIdle =
@@ -174,7 +174,7 @@ public final class Solvers {
                 destination = p.dto;
             }
         }
-        return new VehicleState(vehicle.getDTO(), rm.getPosition(vehicle),
+        return new VehicleStateObject(vehicle.getDTO(), rm.getPosition(vehicle),
                 contents.keySet(), remainingServiceTime, destination);
     }
 

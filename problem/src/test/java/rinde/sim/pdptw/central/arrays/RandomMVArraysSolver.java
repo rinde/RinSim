@@ -27,10 +27,11 @@ public class RandomMVArraysSolver implements MultiVehicleArraysSolver {
         this.rng = rng;
     }
 
+    @Override
     public SolutionObject[] solve(int[][] travelTime, int[] releaseDates,
             int[] dueDates, int[][] servicePairs, int[] serviceTimes,
             int[][] vehicleTravelTimes, int[][] inventories,
-            int[] remainingServiceTimes) {
+            int[] remainingServiceTimes, int[] currentDestinations) {
 
         final int n = travelTime.length;
         final int v = vehicleTravelTimes.length;

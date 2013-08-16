@@ -40,7 +40,7 @@ public class GlobalStateObject {
     /**
      * All vehicles.
      */
-    public final ImmutableList<VehicleState> vehicles;
+    public final ImmutableList<VehicleStateObject> vehicles;
 
     /**
      * The current time.
@@ -63,7 +63,7 @@ public class GlobalStateObject {
     public final Unit<Length> distUnit;
 
     GlobalStateObject(ImmutableSet<ParcelDTO> availableParcels,
-            ImmutableList<VehicleState> vehicles, long time,
+            ImmutableList<VehicleStateObject> vehicles, long time,
             Unit<Duration> timeUnit, Unit<Velocity> speedUnit,
             Unit<Length> distUnit) {
         this.availableParcels = availableParcels;
@@ -78,7 +78,7 @@ public class GlobalStateObject {
      * Immutable state object of a vehicle.
      * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
      */
-    public static class VehicleState extends VehicleDTO {
+    public static class VehicleStateObject extends VehicleDTO {
         private static final long serialVersionUID = -9021013328998791086L;
 
         /**
@@ -114,7 +114,7 @@ public class GlobalStateObject {
         @Nullable
         public final ParcelDTO destination;
 
-        VehicleState(VehicleDTO dto, Point location,
+        VehicleStateObject(VehicleDTO dto, Point location,
                 ImmutableSet<ParcelDTO> contents, long remainingServiceTime,
                 @Nullable ParcelDTO destination) {
             super(dto.startPosition, dto.speed, dto.capacity,
