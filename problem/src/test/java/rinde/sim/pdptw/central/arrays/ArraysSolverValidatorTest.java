@@ -136,7 +136,7 @@ public class ArraysSolverValidatorTest {
     public void validateInputsInvalidNoVehicles() {
         validateInputs(new int[6][6], new int[6], new int[6], new int[][] {
                 new int[] { 4, 2 }, new int[] { 3, 1 } }, new int[6],//
-            new int[0][0], new int[0][0], new int[0]);
+            new int[0][0], new int[0][0], new int[0], new int[0]);
     }
 
     @Test(expected = IllegalArgumentException.class)

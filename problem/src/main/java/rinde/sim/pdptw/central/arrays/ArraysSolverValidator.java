@@ -139,38 +139,41 @@ public final class ArraysSolverValidator {
     /**
      * Validates the inputs for the {@link MultiVehicleArraysSolver}. This
      * method checks all properties as defined in
-     * {@link MultiVehicleArraysSolver#solve(int[][], int[], int[], int[][], int[], int[][], int[][], int[])}
+     * {@link MultiVehicleArraysSolver#solve(int[][], int[], int[], int[][], int[], int[][], int[][], int[],int[])}
      * . If the inputs are not correct an {@link IllegalArgumentException} is
      * thrown.
      * @param travelTime Parameter as specified by
-     *            {@link MultiVehicleArraysSolver#solve(int[][], int[], int[], int[][], int[], int[][], int[][], int[])}
+     *            {@link MultiVehicleArraysSolver#solve(int[][], int[], int[], int[][], int[], int[][], int[][], int[],int[])}
      *            .
      * @param releaseDates Parameter as specified by
-     *            {@link MultiVehicleArraysSolver#solve(int[][], int[], int[], int[][], int[], int[][], int[][], int[])}
+     *            {@link MultiVehicleArraysSolver#solve(int[][], int[], int[], int[][], int[], int[][], int[][], int[],int[])}
      *            .
      * @param dueDates Parameter as specified by
-     *            {@link MultiVehicleArraysSolver#solve(int[][], int[], int[], int[][], int[], int[][], int[][], int[])}
+     *            {@link MultiVehicleArraysSolver#solve(int[][], int[], int[], int[][], int[], int[][], int[][], int[],int[])}
      *            .
      * @param servicePairs Parameter as specified by
-     *            {@link MultiVehicleArraysSolver#solve(int[][], int[], int[], int[][], int[], int[][], int[][], int[])}
+     *            {@link MultiVehicleArraysSolver#solve(int[][], int[], int[], int[][], int[], int[][], int[][], int[],int[])}
      *            .
      * @param serviceTimes Parameter as specified by
-     *            {@link MultiVehicleArraysSolver#solve(int[][], int[], int[], int[][], int[], int[][], int[][], int[])}
+     *            {@link MultiVehicleArraysSolver#solve(int[][], int[], int[], int[][], int[], int[][], int[][], int[],int[])}
      *            .
      * @param vehicleTravelTimes Parameter as specified by
-     *            {@link MultiVehicleArraysSolver#solve(int[][], int[], int[], int[][], int[], int[][], int[][], int[])}
+     *            {@link MultiVehicleArraysSolver#solve(int[][], int[], int[], int[][], int[], int[][], int[][], int[],int[])}
      *            .
      * @param inventories Parameter as specified by
-     *            {@link MultiVehicleArraysSolver#solve(int[][], int[], int[], int[][], int[], int[][], int[][], int[])}
+     *            {@link MultiVehicleArraysSolver#solve(int[][], int[], int[], int[][], int[], int[][], int[][], int[],int[])}
      *            .
      * @param remainingServiceTimes Parameter as specified by
-     *            {@link MultiVehicleArraysSolver#solve(int[][], int[], int[], int[][], int[], int[][], int[][], int[])}
+     *            {@link MultiVehicleArraysSolver#solve(int[][], int[], int[], int[][], int[], int[][], int[][], int[],int[])}
+     *            .
+     * @param currentDestinations Parameter as specified by
+     *            {@link MultiVehicleArraysSolver#solve(int[][], int[], int[], int[][], int[], int[][], int[][], int[],int[])}
      *            .
      */
     public static void validateInputs(int[][] travelTime, int[] releaseDates,
             int[] dueDates, int[][] servicePairs, int[] serviceTimes,
             int[][] vehicleTravelTimes, int[][] inventories,
-            int[] remainingServiceTimes) {
+            int[] remainingServiceTimes, int[] currentDestinations) {
 
         validateInputs(travelTime, releaseDates, dueDates, servicePairs,
             serviceTimes);
@@ -205,6 +208,8 @@ public final class ArraysSolverValidator {
             "Invalid number of inventory entries, expected %s found %s.", m,
             servicePairs.length);
 
+        // Multimap
+
         final Set<Integer> parcelsInInventory = newHashSet();
         for (int i = 0; i < m; i++) {
             checkArgument(
@@ -230,13 +235,31 @@ public final class ArraysSolverValidator {
 
         checkArgument(
             v == remainingServiceTimes.length,
-            "We expected remainingServiceTimes array of size %s, but we found %s.",
+            "Expected a remainingServiceTimes array of size %s, but found one with size %s.",
             v, remainingServiceTimes.length);
         for (int i = 0; i < v; i++) {
             checkArgument(remainingServiceTimes[i] >= 0,
                 "Remaining service time must be >= 0, found %s.",
                 remainingServiceTimes[i]);
         }
+
+        checkArgument(currentDestinations.length == v);
+        for (int i = 0; i < v; i++) {
+            if (currentDestinations[i] != 0) {
+                final int dest = currentDestinations[i];
+                checkArgument(dest >= 0 || dest < n - 1,
+                    "The destination must be a valid location, it can not be the depot.");
+
+                // TODO check destinations
+                // checkArgument(parcelsInInventory.contains(dest));
+                checkArgument(
+                    remainingServiceTimes[i] == 0,
+                    "When a vehicle is moving towards a destination it can not at the same time be busy with something else, hence remainingServiceTime for that vehicle must be 0, found %s.",
+                    remainingServiceTimes[i]);
+
+            }
+        }
+
     }
 
     /**
@@ -288,15 +311,16 @@ public final class ArraysSolverValidator {
         }
 
         final int[] remainingServiceTimes = new int[] { 0 };
+        final int[] currentDestinations = new int[] { 0 };
         // check inputs again since we just modified them
         validateInputs(travelTime, releaseDates, dueDates, servicePairs,
             serviceTimes, vehicleTravelTimes, inventories,
-            remainingServiceTimes);
+            remainingServiceTimes, currentDestinations);
 
         final SolutionObject[] sols = new SolutionObject[] { sol };
         validateOutputs(sols, travelTime, releaseDates, dueDates, servicePairs,
             serviceTimes, vehicleTravelTimes, inventories,
-            remainingServiceTimes, new int[1]);
+            remainingServiceTimes, currentDestinations);
         return sol;
     }
 
@@ -407,12 +431,27 @@ public final class ArraysSolverValidator {
                 pairs.put(servicePairs[i][0], servicePairs[i][1]);
             }
             final Set<Integer> seen = newHashSet();
+            final Set<Integer> set = newHashSet(Ints.asList(sol.route));
             for (int i = 1; i < sol.route.length - 1; i++) {
+
                 if (pairs.containsKey(sol.route[i])) {
                     checkArgument(
                         !seen.contains(pairs.get(sol.route[i])),
                         "Pickups should be visited before their corresponding deliveries. Location %s should be visited after location %s.",
                         pairs.get(sol.route[i]), sol.route[i]);
+
+                    // TODO check if this also catches the reverse situation:
+                    // found delivery loc but no pickup
+                    checkArgument(
+                        set.contains(pairs.get(sol.route[i])),
+                        "Vehicle %s: this route should contain both the pickup and delivery location, found %s, didn't find %s.",
+                        v, sol.route[i], pairs.get(sol.route[i]));
+
+                    // checkArgument(
+                    // frequency == 2,
+                    // "Vehicle %s: a parcel (%s) that is not yet picked up needs to occur twice in the route",
+                    // v, sol.route[i]);
+
                 }
                 seen.add(sol.route[i]);
             }
@@ -525,7 +564,7 @@ public final class ArraysSolverValidator {
                 int[] remainingServiceTimes, int[] currentDestinations) {
             validateInputs(travelTime, releaseDates, dueDates, servicePairs,
                 serviceTimes, vehicleTravelTimes, inventories,
-                remainingServiceTimes);
+                remainingServiceTimes, currentDestinations);
             final SolutionObject[] output =
                     delegateSolver
                             .solve(travelTime, releaseDates, dueDates,

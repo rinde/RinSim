@@ -51,6 +51,8 @@ import com.google.common.collect.ImmutableSet;
  */
 public class SolversTest {
 
+    // TODO check for determinism of outputs
+
     PDPRoadModel rm;
     PDPModel pm;
 

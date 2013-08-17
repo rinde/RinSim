@@ -39,12 +39,12 @@ import rinde.sim.pdptw.common.DefaultDepot;
 import rinde.sim.pdptw.common.DefaultParcel;
 import rinde.sim.pdptw.common.DefaultVehicle;
 import rinde.sim.pdptw.common.DynamicPDPTWProblem;
+import rinde.sim.pdptw.common.DynamicPDPTWProblem.Creator;
 import rinde.sim.pdptw.common.DynamicPDPTWScenario;
 import rinde.sim.pdptw.common.ObjectiveFunction;
 import rinde.sim.pdptw.common.PDPRoadModel;
-import rinde.sim.pdptw.common.VehicleDTO;
-import rinde.sim.pdptw.common.DynamicPDPTWProblem.Creator;
 import rinde.sim.pdptw.common.StatsTracker.StatisticsDTO;
+import rinde.sim.pdptw.common.VehicleDTO;
 
 import com.google.common.math.DoubleMath;
 
@@ -74,6 +74,7 @@ public class Central {
 
         problemInstance.addCreator(AddVehicleEvent.class,
             new Creator<AddVehicleEvent>() {
+                @Override
                 public boolean create(Simulator sim, AddVehicleEvent event) {
                     return sim.register(new RemoteDriver(event.vehicleDTO,
                             timeUnit, speedUnit, distUnit));
@@ -85,6 +86,7 @@ public class Central {
         final PDPModel pm = sim.getModelProvider().getModel(PDPModel.class);
 
         parcelReceiver.getEventAPI().addListener(new Listener() {
+            @Override
             public void handleEvent(Event e) {
                 final Iterator<Queue<DefaultParcel>> routes =
                         Solvers.solve(solver, rm, pm, sim.getCurrentTime(),
@@ -119,6 +121,7 @@ public class Central {
             eventDispatcher = new EventDispatcher(ReceiveEvent.RECEIVE);
         }
 
+        @Override
         public boolean register(T element) {
             objects.add(element);
             eventDispatcher.dispatchEvent(new Event(ReceiveEvent.RECEIVE,
@@ -126,10 +129,12 @@ public class Central {
             return false;
         }
 
+        @Override
         public boolean unregister(T element) {
             return false;
         }
 
+        @Override
         public Class<T> getSupportedType() {
             return type;
         }
@@ -207,10 +212,27 @@ public class Central {
                         // we have to wait
                         time.consumeAll();
                     } else {
-                        roadModel.moveTo(this, cur, time);
+                        // TODO check this code, why can we still be too early?
+                        if (!roadModel.equalPosition(this, cur)) {
+                            roadModel.moveTo(this, cur, time);
+                        }
                         if (roadModel.equalPosition(this, cur)) {
-                            pdpModel.service(this, cur, time);
-                            r.remove();
+
+                            // same can happen with delivery?
+                            if (pdpModel.getParcelState(cur) == ParcelState.ANNOUNCED) {
+                                // too early for pickup
+                                // final long timeleft =
+                                // cur.getPickupTimeWindow().begin
+                                // - time.getTime();
+                                // if (timeleft <= time.getTimeLeft()) {
+                                // time.consume(timeleft);
+                                // }
+                                time.consumeAll();
+                            } else {
+                                pdpModel.service(this, cur, time);
+
+                                r.remove();
+                            }
                         }
                     }
                 }

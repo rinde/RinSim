@@ -4,7 +4,7 @@
 package rinde.sim.pdptw.central;
 
 import static com.google.common.collect.Lists.newLinkedList;
-import static com.google.common.collect.Sets.newHashSet;
+import static com.google.common.collect.Sets.newLinkedHashSet;
 import static java.util.Arrays.asList;
 
 import java.util.Collection;
@@ -29,6 +29,7 @@ import rinde.sim.pdptw.common.VehicleDTO;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 
 /**
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
@@ -137,7 +138,7 @@ public final class Solvers {
         @SuppressWarnings({ "unchecked", "rawtypes" })
         final Set<DefaultParcel> ps =
                 Collections.checkedSet(
-                    (Set) newHashSet(pm.getContents(vehicle)),
+                    (Set) newLinkedHashSet(pm.getContents(vehicle)),
                     DefaultParcel.class);
 
         // fix all parcels which are in a transition process: either being
@@ -158,8 +159,8 @@ public final class Solvers {
         return toMap(ps);
     }
 
-    static VehicleStateObject convertToVehicleState(PDPRoadModel rm, PDPModel pm,
-            DefaultVehicle vehicle,
+    static VehicleStateObject convertToVehicleState(PDPRoadModel rm,
+            PDPModel pm, DefaultVehicle vehicle,
             ImmutableMap<ParcelDTO, DefaultParcel> contents) {
         final boolean isIdle =
                 pm.getVehicleState(vehicle) == PDPModel.VehicleState.IDLE;
@@ -174,8 +175,9 @@ public final class Solvers {
                 destination = p.dto;
             }
         }
-        return new VehicleStateObject(vehicle.getDTO(), rm.getPosition(vehicle),
-                contents.keySet(), remainingServiceTime, destination);
+        return new VehicleStateObject(vehicle.getDTO(),
+                rm.getPosition(vehicle), contents.keySet(),
+                remainingServiceTime, destination);
     }
 
     static ImmutableMap<ParcelDTO, DefaultParcel> toMap(

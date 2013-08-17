@@ -53,6 +53,13 @@ public interface MultiVehicleArraysSolver {
      * @param remainingServiceTimes contains the remaining service time for
      *            every vehicle. The length of this array equals the number of
      *            vehicles.
+     * @param currentDestinations contains a pointer to a location which
+     *            indicates the current destination for every vehicle. If the
+     *            value is <code>0</code> for a vehicle, it means that the
+     *            vehicle has no destination. In case a vehicle has a
+     *            destination, <b>the vehicle is obliged to continue travelling
+     *            towards this destination and service it</b>. The length of
+     *            this array equals the number of vehicles.
      * @return A solution object for every vehicle. Each location may occur in
      *         only one route at a time. Routes must respect the inventories,
      *         i.e. a vehicle with a location in its inventory <i>must</i> have

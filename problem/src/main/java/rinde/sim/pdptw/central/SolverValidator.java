@@ -127,8 +127,8 @@ public final class SolverValidator {
                     // the route (once for pickup, once for delivery).
                     checkArgument(
                         frequency == 2,
-                        "A parcel that is picked up needs to be delivered as well, so it should occur twice in the route, found %s occurence(s) of parcel %s.",
-                        frequency, p);
+                        "Route %s: a parcel that is picked up needs to be delivered as well, so it should occur twice in the route, found %s occurence(s) of parcel %s.",
+                        i, frequency, p);
                 } else {
                     checkArgument(
                         state.vehicles.get(i).contents.contains(p),
@@ -157,6 +157,7 @@ public final class SolverValidator {
             delegateSolver = delegate;
         }
 
+        @Override
         public ImmutableList<ImmutableList<ParcelDTO>> solve(
                 GlobalStateObject state) {
             return validateOutputs(delegateSolver.solve(validateInputs(state)),
