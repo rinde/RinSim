@@ -38,7 +38,7 @@ public final class TimeLapse {
      * @param time The time to consume.
      */
     public void consume(long time) {
-        checkArgument(time >= 0, "the time to consume must be a positive value");
+        checkArgument(time >= 0, "the time to consume must be a positive value, it is %s.", time);
         checkArgument(timeLeft - time >= 0, "there is not enough time left to consume %s.", time);
         timeLeft -= time;
     }
