@@ -7,7 +7,6 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Maps.newLinkedHashMap;
-import static com.google.common.collect.Sets.newLinkedHashSet;
 import static java.util.Collections.unmodifiableSet;
 
 import java.util.Collection;
@@ -31,6 +30,7 @@ import rinde.sim.event.EventAPI;
 import rinde.sim.event.EventDispatcher;
 import rinde.sim.util.CategoryMap;
 
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Multimap;
 
@@ -254,24 +254,21 @@ public class PDPModel implements Model<PDPObject>, TickListener, ModelReceiver {
         eventDispatcher = new EventDispatcher(PDPModelEventType.values());
     }
 
-    // TODO change return type to ImmutableSet
     /**
      * Returns an unmodifiable view on the contents of the specified container.
      * @param container The container to inspect.
      * @return An unmodifiable collection.
      */
-    public Collection<Parcel> getContents(Container container) {
+    public ImmutableSet<Parcel> getContents(Container container) {
         synchronized (this) {
             checkArgument(containerCapacities.containsKey(container));
-            final Collection<Parcel> contents = newLinkedHashSet();
-            contents.addAll(containerContents.get(container));
-            return contents;
-            // return unmodifiableCollection();
+            return ImmutableSet.copyOf(containerContents.get(container));
         }
     }
 
     /**
-     * Returns the size of the contents of the specified container.
+     * Returns the size of the contents of the specified container, this is the
+     * sum of the contents magnitudes.
      * @param container The container to inspect.
      * @return A <code>double</code> indicating the size of the contents.
      */
