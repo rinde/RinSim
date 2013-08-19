@@ -293,7 +293,8 @@ public class PDPModel implements Model<PDPObject>, TickListener, ModelReceiver {
      * <li>{@link Vehicle} must be in {@link VehicleState#IDLE} state.</li>
      * <li>{@link Parcel} must be on {@link RoadModel}.</li>
      * <li>{@link Parcel} must be registered in {@link PDPModel}.</li>
-     * <li>{@link Parcel} must be in {@link ParcelState#AVAILABLE} state.</li>
+     * <li>{@link Parcel} must be in {@link ParcelState#ANNOUNCED} or
+     * {@link ParcelState#AVAILABLE} state.</li>
      * <li>{@link Vehicle} and {@link Parcel} must be at same position in
      * {@link RoadModel}.</li>
      * <li>{@link Parcel} must fit in {@link Vehicle}.</li>
@@ -320,8 +321,9 @@ public class PDPModel implements Model<PDPObject>, TickListener, ModelReceiver {
         synchronized (this) {
             /* 1 */checkArgument(roadModel.containsObject(vehicle), "vehicle does not exist in RoadModel");
             /* 2 */checkArgument(roadModel.containsObject(parcel), "parcel does not exist in RoadModel");
-            /* 3 */checkArgument(parcelState.getKeys(parcel) == ParcelState.AVAILABLE, "parcel must be registered and must be available, it is %s.", parcelState
-                    .getKeys(parcel));
+            final ParcelState ps = parcelState.getKeys(parcel);
+            /* 3 */checkArgument(ps == ParcelState.AVAILABLE
+                    || ps == ParcelState.ANNOUNCED, "Parcel must be registered and must be either ANNOUNCED or AVAILABE, it is: %s. Parcel: %s.", ps, parcel);
             /* 4 */checkArgument(vehicleState.get(vehicle) == VehicleState.IDLE, "vehicle must be registered and must be available");
             /* 5 */checkArgument(roadModel.equalPosition(vehicle, parcel), "vehicle must be at the same location as the parcel it wishes to pickup");
             final double newSize = containerContentsSize.get(vehicle)
