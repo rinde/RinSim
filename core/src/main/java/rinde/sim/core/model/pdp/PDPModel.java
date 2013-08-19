@@ -117,30 +117,52 @@ public class PDPModel implements Model<PDPObject>, TickListener, ModelReceiver {
          * State that indicates that the {@link Parcel} is not yet available for
          * pickup but that it will be in the (near) future.
          */
-        ANNOUNCED,
+        ANNOUNCED(false, false, false),
         /**
          * State that indicates that the {@link Parcel} is available for pickup.
          */
-        AVAILABLE,
+        AVAILABLE(false, false, false),
         /**
          * State that indicates that the {@link Parcel} is in the process of
          * being picked up.
          */
-        PICKING_UP,
+        PICKING_UP(false, false, true),
         /**
          * State that indicates that the {@link Parcel} is currently in the
          * cargo of a {@link Vehicle}.
          */
-        IN_CARGO,
+        IN_CARGO(true, false, false),
         /**
          * State that indicates that the {@link Parcel} is in the process of
          * being delivered.
          */
-        DELIVERING,
+        DELIVERING(true, false, true),
         /**
          * State that indicates that the {@link Parcel} has been delivered.
          */
-        DELIVERED
+        DELIVERED(true, true, false);
+
+        private boolean picked;
+        private boolean delivered;
+        private boolean transition;
+
+        ParcelState(boolean picked, boolean delivered, boolean transition) {
+            this.picked = picked;
+            this.delivered = delivered;
+            this.transition = transition;
+        }
+
+        public boolean isPickedUp() {
+            return picked;
+        }
+
+        public boolean isDelivered() {
+            return delivered;
+        }
+
+        public boolean isTransitionState() {
+            return transition;
+        }
     }
 
     /**
