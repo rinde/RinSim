@@ -101,6 +101,10 @@ public final class TimeLapse {
         return endTime;
     }
 
+    public boolean isIn(long t) {
+        return t >= startTime && t < endTime;
+    }
+
     @Override
     public String toString() {
         return new StringBuilder("[").append(startTime).append(",")
