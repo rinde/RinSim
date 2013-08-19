@@ -143,7 +143,7 @@ public class ArraysSolverValidatorTest {
     public void validateInputsInvalidVehicleTravelTimes1() {
         validateInputs(new int[6][6], new int[6], new int[6], new int[][] {
                 new int[] { 4, 2 }, new int[] { 3, 1 } }, new int[6], //
-            new int[2][0], new int[0][0], new int[0]);
+            new int[2][0], new int[0][0], new int[0], new int[0]);
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -151,7 +151,7 @@ public class ArraysSolverValidatorTest {
         validateInputs(new int[6][6], new int[6], new int[6], new int[][] {
                 new int[] { 4, 2 }, new int[] { 3, 1 } }, new int[6], //
             new int[][] { { 0, 0, 0, 0, 0, 0 }, { 0, 0, 0, 0, -1, 0 } }, //
-            new int[0][0], new int[0]);
+            new int[0][0], new int[0], new int[0]);
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -160,7 +160,7 @@ public class ArraysSolverValidatorTest {
         validateInputs(new int[6][6], new int[6], new int[6], new int[][] {
                 new int[] { 4, 2 }, new int[] { 3, 1 } }, new int[6], //
             new int[][] { { 0, 0, 0, 0, 0, 0 }, { 0, 0, 0, 0, 0, 0 } }, //
-            new int[][] { { 0 } }, new int[0]);
+            new int[][] { { 0 } }, new int[0], new int[0]);
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -169,7 +169,7 @@ public class ArraysSolverValidatorTest {
         validateInputs(new int[6][6], new int[6], new int[6],
             new int[][] { new int[] { 3, 1 } }, new int[6], //
             new int[][] { { 0, 0, 0, 0, 0, 0 }, { 0, 0, 0, 0, 0, 0 } }, //
-            new int[][] { { 0 } }, new int[0]);
+            new int[][] { { 0 } }, new int[0], new int[0]);
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -178,7 +178,7 @@ public class ArraysSolverValidatorTest {
         validateInputs(new int[6][6], new int[6], new int[6],
             new int[][] { new int[] { 3, 1 } }, new int[6], //
             new int[][] { { 0, 0, 0, 0, 0, 0 }, { 0, 0, 0, 0, 0, 0 } }, //
-            new int[][] { { 0 }, { 0 } }, new int[0]);
+            new int[][] { { 0 }, { 0 } }, new int[0], new int[0]);
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -187,7 +187,7 @@ public class ArraysSolverValidatorTest {
         validateInputs(new int[6][6], new int[6], new int[6],
             new int[][] { new int[] { 3, 1 } }, new int[6], //
             new int[][] { { 0, 0, 0, 0, 0, 0 }, { 0, 0, 0, 0, 0, 0 } }, //
-            new int[][] { { 2, 0 }, { 2, 0 } }, new int[0]);
+            new int[][] { { 2, 0 }, { 2, 0 } }, new int[0], new int[0]);
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -196,7 +196,7 @@ public class ArraysSolverValidatorTest {
         validateInputs(new int[6][6], new int[6], new int[6],
             new int[][] { new int[] { 3, 1 } }, new int[6], //
             new int[][] { { 0, 0, 0, 0, 0, 0 }, { 0, 0, 0, 0, 0, 0 } }, //
-            new int[][] { { -1, 0 }, { 2, 0 } }, new int[0]);
+            new int[][] { { -1, 0 }, { 2, 0 } }, new int[0], new int[0]);
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -205,7 +205,7 @@ public class ArraysSolverValidatorTest {
         validateInputs(new int[6][6], new int[6], new int[6],
             new int[][] { new int[] { 3, 1 } }, new int[6], //
             new int[][] { { 0, 0, 0, 0, 0, 0 }, { 0, 0, 0, 0, 0, 0 } }, //
-            new int[][] { { 1, 0 }, { 1, 0 } }, new int[0]);
+            new int[][] { { 1, 0 }, { 1, 0 } }, new int[0], new int[0]);
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -214,7 +214,7 @@ public class ArraysSolverValidatorTest {
         validateInputs(new int[6][6], new int[6], new int[6],
             new int[][] { new int[] { 3, 1 } }, new int[6], //
             new int[][] { { 0, 0, 0, 0, 0, 0 }, { 0, 0, 0, 0, 0, 0 } }, //
-            new int[][] { { 1, 5 }, { 1, 5 } }, new int[0]);
+            new int[][] { { 1, 5 }, { 1, 5 } }, new int[0], new int[0]);
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -223,7 +223,7 @@ public class ArraysSolverValidatorTest {
         validateInputs(new int[6][6], new int[6], new int[6],
             new int[][] { new int[] { 3, 1 } }, new int[6], //
             new int[][] { { 0, 0, 0, 0, 0, 0 }, { 0, 0, 0, 0, 0, 0 } }, //
-            new int[][] { { 1, 1 }, { 1, 1 } }, new int[0]);
+            new int[][] { { 1, 1 }, { 1, 1 } }, new int[0], new int[0]);
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -232,7 +232,7 @@ public class ArraysSolverValidatorTest {
         validateInputs(new int[6][6], new int[6], new int[6],
             new int[][] { new int[] { 4, 2 } }, new int[6], //
             new int[][] { { 0, 0, 0, 0, 0, 0 }, { 0, 0, 0, 0, 0, 0 } }, //
-            new int[][] { { 1, 1 }, { 1, 1 } }, new int[0]);
+            new int[][] { { 1, 1 }, { 1, 1 } }, new int[0], new int[0]);
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -241,25 +241,29 @@ public class ArraysSolverValidatorTest {
         validateInputs(new int[6][6], new int[6], new int[6],
             new int[][] { new int[] { 4, 2 } }, new int[6], //
             new int[][] { { 0, 0, 0, 0, 0, 0 }, { 0, 0, 0, 0, 0, 0 } }, //
-            new int[][] { { 1, 1 }, { 1, 3 } }, new int[] { 1 });
+            new int[][] { { 1, 1 }, { 1, 3 } }, new int[] { 1 }, new int[1]);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void validateInputsInvalidRemainingServiceTimes2() {
         // incorrect time value
         validateInputs(new int[6][6], new int[6], new int[6],
-            new int[][] { new int[] { 4, 2 } }, new int[6], //
+            new int[][] { new int[] { 4, 2 } },
+            new int[6], //
             new int[][] { { 0, 0, 0, 0, 0, 0 }, { 0, 0, 0, 0, 0, 0 } }, //
-            new int[][] { { 1, 1 }, { 1, 3 } }, new int[] { 300, -1 });
+            new int[][] { { 1, 1 }, { 1, 3 } }, new int[] { 300, -1 },
+            new int[2]);
     }
 
     @Test
     public void validateInputsValidMulti() {
         // incorrect time value
         validateInputs(new int[6][6], new int[6], new int[6],
-            new int[][] { new int[] { 4, 2 } }, new int[6], //
+            new int[][] { new int[] { 4, 2 } },
+            new int[6], //
             new int[][] { { 0, 0, 0, 0, 0, 0 }, { 0, 0, 0, 0, 0, 0 } }, //
-            new int[][] { { 1, 1 }, { 1, 3 } }, new int[] { 300, 0 });
+            new int[][] { { 1, 1 }, { 1, 3 } }, new int[] { 300, 0 },
+            new int[2]);
     }
 
     /*
