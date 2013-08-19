@@ -28,7 +28,6 @@ import rinde.sim.core.model.ModelProvider;
 import rinde.sim.core.model.TestModelProvider;
 import rinde.sim.core.model.pdp.PDPModel;
 import rinde.sim.core.model.pdp.PDPModel.VehicleState;
-import rinde.sim.core.model.pdp.PDPObject;
 import rinde.sim.core.model.pdp.Parcel;
 import rinde.sim.core.model.pdp.twpolicy.TardyAllowedPolicy;
 import rinde.sim.core.model.road.PlaneRoadModel;
@@ -37,6 +36,7 @@ import rinde.sim.pdptw.central.Solvers.StateContext;
 import rinde.sim.pdptw.common.DefaultParcel;
 import rinde.sim.pdptw.common.DefaultVehicle;
 import rinde.sim.pdptw.common.PDPRoadModel;
+import rinde.sim.pdptw.common.PDPTWTestUtil;
 import rinde.sim.pdptw.common.ParcelDTO;
 import rinde.sim.pdptw.common.VehicleDTO;
 import rinde.sim.util.TimeWindow;
@@ -84,23 +84,9 @@ public class SolversTest {
         p3 = createParcel(new Point(2, 8), new Point(8, 2));
     }
 
-    public void register(PDPObject... objs) {
-        for (final PDPObject obj : objs) {
-            if (obj instanceof DefaultVehicle) {
-                final DefaultVehicle dv = (DefaultVehicle) obj;
-                rm.addObjectAt(dv, dv.getDTO().startPosition);
-                pm.register(dv);
-            } else {
-                final DefaultParcel dp = (DefaultParcel) obj;
-                rm.addObjectAt(dp, dp.dto.pickupLocation);
-                pm.register(dp);
-            }
-        }
-    }
-
     @Test
     public void convertTest() {
-        register(v1, p1);
+        PDPTWTestUtil.register(rm, pm, v1, p1);
 
         final StateContext sc =
                 convert(rm, pm, 0, NonSI.MINUTE, NonSI.KILOMETERS_PER_HOUR,

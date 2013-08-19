@@ -149,7 +149,7 @@ public class Central {
 
     }
 
-    private static class RemoteDriver extends DefaultVehicle {
+    protected static class RemoteDriver extends DefaultVehicle {
 
         @Nullable
         private Queue<DefaultParcel> route;
@@ -204,40 +204,54 @@ public class Central {
         @Override
         protected void tickImpl(TimeLapse time) {
             final Queue<DefaultParcel> r = route;
-            if (r != null && !r.isEmpty()) {
+            if (route == null) {
+                return;
+            }
+            if (!r.isEmpty()) {
                 while (time.hasTimeLeft() && r.peek() != null) {
                     final DefaultParcel cur = r.element();
-
+                    // if leaving now would mean we are too early, wait
                     if (isTooEarly(cur, time)) {
-                        // we have to wait
                         time.consumeAll();
                     } else {
-                        // TODO check this code, why can we still be too early?
+                        // if not there yet, go there
                         if (!roadModel.equalPosition(this, cur)) {
                             roadModel.moveTo(this, cur, time);
                         }
-                        if (roadModel.equalPosition(this, cur)) {
+                        // if arrived
+                        if (roadModel.equalPosition(this, cur)
+                                && time.hasTimeLeft()) {
+                            // if parcel is not ready yet, wait
+                            final boolean pickup =
+                                    !pdpModel.getContents(this).contains(cur);
+                            final long timeUntilReady =
+                                    (pickup ? cur.dto.pickupTimeWindow.begin
+                                            : cur.dto.deliveryTimeWindow.begin)
+                                            - time.getTime();
 
-                            // same can happen with delivery?
-                            if (pdpModel.getParcelState(cur) == ParcelState.ANNOUNCED) {
-                                // too early for pickup
-                                // final long timeleft =
-                                // cur.getPickupTimeWindow().begin
-                                // - time.getTime();
-                                // if (timeleft <= time.getTimeLeft()) {
-                                // time.consume(timeleft);
-                                // }
-                                time.consumeAll();
-                            } else {
+                            boolean canStart = true;
+                            if (timeUntilReady > 0) {
+                                if (time.getTimeLeft() < timeUntilReady) {
+                                    // in this case we can not yet start
+                                    // servicing
+                                    time.consumeAll();
+                                    canStart = false;
+                                } else {
+                                    time.consume(timeUntilReady);
+                                }
+                            }
+
+                            if (canStart) {
+                                // parcel is ready, service
                                 pdpModel.service(this, cur, time);
-
                                 r.remove();
                             }
                         }
                     }
                 }
             }
-            if (isEndOfDay(time) && !roadModel.equalPosition(this, depot)) {
+            if (r.isEmpty() && isEndOfDay(time)
+                    && !roadModel.equalPosition(this, depot)) {
                 roadModel.moveTo(this, depot, time);
             }
         }
@@ -245,22 +259,47 @@ public class Central {
         // FIXME, check to see if correct, and to see if it makes sense to leave
         // one step earlier
         protected boolean isTooEarly(Parcel p, TimeLapse time) {
-            final boolean isPickup =
-                    pdpModel.getParcelState(p) != ParcelState.IN_CARGO;
+
+            final ParcelState parcelState = pdpModel.getParcelState(p);
+            checkArgument(
+                !parcelState.isTransitionState() && !parcelState.isDelivered(),
+                parcelState);
+
+            final boolean isPickup = !parcelState.isPickedUp();
+
+            // if it is available, we know we can't be too early
+            if (isPickup && parcelState == ParcelState.AVAILABLE) {
+                return false;
+            }
+
             final Point loc =
                     isPickup ? ((DefaultParcel) p).dto.pickupLocation : p
                             .getDestination();
             final long travelTime = computeTravelTimeTo(loc);
-            long timeUntilAvailable =
+            final long timeUntilAvailable =
                     (isPickup ? p.getPickupTimeWindow().begin : p
-                            .getDeliveryTimeWindow().begin)
-                            - time.getStartTime();
+                            .getDeliveryTimeWindow().begin) - time.getTime();
 
-            final long remainder = timeUntilAvailable % time.getTimeStep();
-            if (remainder > 0) {
-                timeUntilAvailable += time.getTimeStep() - remainder;
+            // compute how many ticks from now the parcel will be available
+            long ticksUntilAvailable = 0;
+            if (time.getTimeLeft() < timeUntilAvailable) {
+                ticksUntilAvailable =
+                        DoubleMath.roundToLong(
+                            (timeUntilAvailable - time.getTimeLeft())
+                                    / (double) time.getTimeStep(),
+                            RoundingMode.FLOOR);
             }
-            return timeUntilAvailable - travelTime > 0;
+
+            // compute how many ticks from now we arrive at the parcel
+            long ticksUntilArrival = 0;
+            if (time.getTimeLeft() < travelTime) {
+                ticksUntilArrival =
+                        DoubleMath.roundToLong(
+                            (travelTime - time.getTimeLeft())
+                                    / (double) time.getTimeStep(),
+                            RoundingMode.FLOOR);
+            }
+            return ticksUntilArrival < ticksUntilAvailable;
         }
 
         protected long computeTravelTimeTo(Point p) {
@@ -274,10 +313,10 @@ public class Central {
         }
 
         protected boolean isEndOfDay(TimeLapse time) {
-            final long travelTime = computeTravelTimeTo(dto.startPosition);
-
+            final long travelTime =
+                    computeTravelTimeTo(roadModel.getPosition(depot));
             return time.hasTimeLeft()
-                    && time.getTime() > dto.availabilityTimeWindow.end
+                    && time.getTime() >= dto.availabilityTimeWindow.end
                             - travelTime;
         }
     }
