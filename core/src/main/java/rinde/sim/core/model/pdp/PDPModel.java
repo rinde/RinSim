@@ -682,6 +682,7 @@ public class PDPModel implements Model<PDPObject>, TickListener, ModelReceiver {
     @Override
     public void tick(TimeLapse timeLapse) {
         synchronized (this) {
+            // TODO this can be optimized by scheduling events upon registering
             currentTime = timeLapse.getStartTime();
             final Collection<Parcel> parcels = parcelState
                     .get(ParcelState.ANNOUNCED);
@@ -696,7 +697,6 @@ public class PDPModel implements Model<PDPObject>, TickListener, ModelReceiver {
                 eventDispatcher.dispatchEvent(new PDPModelEvent(
                         PDPModelEventType.PARCEL_AVAILABLE, this, currentTime,
                         p, null));
-
             }
         }
     }

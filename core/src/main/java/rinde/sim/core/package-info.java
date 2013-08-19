@@ -4,4 +4,5 @@
  * several interfaces which exposes implementors to specific simulation
  * functionality.
  */
+@javax.annotation.ParametersAreNonnullByDefault
 package rinde.sim.core;

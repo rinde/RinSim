@@ -200,7 +200,7 @@ public abstract class AbstractRoadModel<T> extends AbstractModel<RoadUser>
 
     @Override
     public void addObjectAt(RoadUser newObj, Point pos) {
-        checkArgument(!objLocs.containsKey(newObj), "Object is already added");
+        checkArgument(!objLocs.containsKey(newObj), "Object is already added: %s.", newObj);
         objLocs.put(newObj, point2LocObj(pos));
     }
 
