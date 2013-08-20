@@ -128,14 +128,13 @@ public interface Graph<E extends ConnectionData> {
     void addConnection(Connection<E> connection);
 
     /**
-     * Set connection data.
+     * Set connection data. Precondition: connection from -> to exists.
      * @param from Start point of connection
      * @param to End point of connection
      * @param edgeData The edge data used for the connection
      * @return old edge data or <code>null</code> if there was no edge
-     * @precondition connection from -> to exists
-     * @throw IllegalArgumentException when the connection between nodes do not
-     *        exists
+     * @throws IllegalArgumentException when the connection between nodes do not
+     *             exists
      */
     E setEdgeData(Point from, Point to, E edgeData);
 

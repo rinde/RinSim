@@ -23,7 +23,6 @@ public class Mailbox {
     /**
      * Insert a msg in the mailbox. If the message is already present in the box
      * it is not inserted again.
-     * @param msg
      */
     public void receive(Message msg) {
         if (msg == null) {
@@ -38,10 +37,9 @@ public class Mailbox {
     /**
      * Getting messages empties the mailbox
      * 
-     * @return
      */
     public Queue<Message> getMessages() {
-        Set<Message> messages = box;
+        final Set<Message> messages = box;
         box = newLinkedHashSet();
         return newLinkedList(messages);
     }

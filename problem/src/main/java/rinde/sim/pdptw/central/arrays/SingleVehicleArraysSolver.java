@@ -33,9 +33,6 @@ public interface SingleVehicleArraysSolver {
      *            delivery location respectively. Each location may occur at
      *            maximum once in the matrix (either as an pickup or as a
      *            delivery).
-     * @param vehicleLocation specifies the location index where the vehicle is
-     *            currently. It is assumed that when a vehicle is at a customer
-     *            location, all customer interactions are done.
      * @param serviceTimes specifies the service time for all locations (both
      *            pickups and deliveries).
      * @return The solution object which indicates a (usually the best found)

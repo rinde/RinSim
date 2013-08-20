@@ -27,7 +27,7 @@ public interface CommunicationUser {
 
     /**
      * Get the distance in which you want to communicate.
-     * @return
+     * @return The distance.
      */
     double getRadius();
 
@@ -35,7 +35,7 @@ public interface CommunicationUser {
      * Get the connection reliability. This is probability (0,1] that the
      * message is send/received. When two entities communicate the probability
      * of message delivery is a product of their reliability.
-     * @return
+     * @return The reliability.
      */
     double getReliability();
 

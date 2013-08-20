@@ -22,7 +22,7 @@ import com.google.common.collect.ImmutableSet;
  * An immutable state object representing the state of an entire
  * {@link Simulator} configured using {@link DynamicPDPTWProblem}. Instances can
  * be obtained via
- * {@link Solvers#convert(rinde.sim.core.model.road.RoadModel, rinde.sim.core.model.pdp.PDPModel, long, Unit, Unit, Unit)}
+ * {@link Solvers#solve(Solver, rinde.sim.pdptw.common.PDPRoadModel, rinde.sim.core.model.pdp.PDPModel, long, Unit, Unit, Unit)}
  * .
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
  */

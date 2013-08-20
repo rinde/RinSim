@@ -19,7 +19,6 @@ public interface CommunicationAPI {
      * Send the message to a given recipient. Message will be delivered with a
      * specific probability to all possible recipients within the range (see
      * {@link CommunicationUser} for details).
-     * @param recipient
      * @param message
      */
     void broadcast(Message message);
