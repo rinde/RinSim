@@ -255,9 +255,110 @@ public class ArraysSolverValidatorTest {
             new int[2]);
     }
 
+    /**
+     * Dest array length should equal v.
+     */
+    @Test(expected = IllegalArgumentException.class)
+    public void validateInputsInvalidDestinations1() {
+        validateInputs(new int[6][6], new int[6], new int[6],
+            new int[][] { new int[] { 4, 2 } },
+            new int[6], //
+            new int[][] { { 0, 0, 0, 0, 0, 0 }, { 0, 0, 0, 0, 0, 0 } }, //
+            new int[][] { { 1, 1 }, { 1, 3 } }, new int[] { 300, 0 },
+            new int[1]);
+    }
+
+    /**
+     * Can not have the depot as dest.
+     */
+    @Test(expected = IllegalArgumentException.class)
+    public void validateInputsInvalidDestinations2a() {
+        validateInputs(new int[6][6], new int[6], new int[6],
+            new int[][] { new int[] { 4, 2 } },
+            new int[6], //
+            new int[][] { { 0, 0, 0, 0, 0, 0 }, { 0, 0, 0, 0, 0, 0 } }, //
+            new int[][] { { 1, 1 }, { 1, 3 } }, new int[] { 300, 0 },
+            new int[] { 5, 3 });
+    }
+
+    /**
+     * Can not have a negative value as dest.
+     */
+    @Test(expected = IllegalArgumentException.class)
+    public void validateInputsInvalidDestinations2b() {
+        validateInputs(new int[6][6], new int[6], new int[6],
+            new int[][] { new int[] { 4, 2 } },
+            new int[6], //
+            new int[][] { { 0, 0, 0, 0, 0, 0 }, { 0, 0, 0, 0, 0, 0 } }, //
+            new int[][] { { 1, 1 }, { 1, 3 } }, new int[] { 300, 0 },
+            new int[] { -1, 3 });
+    }
+
+    /**
+     * Can not have a delivery point as a destination when its corresponding
+     * pickup point has not been visited first.
+     */
+    @Test(expected = IllegalArgumentException.class)
+    public void validateInputsInvalidDestinations3() {
+        validateInputs(new int[6][6], new int[6], new int[6],
+            new int[][] { new int[] { 4, 2 } }, // servicePairs
+            new int[6], // serviceTimes
+            new int[][] { { 0, 0, 0, 0, 0, 0 }, { 0, 0, 0, 0, 0, 0 } }, // vehicleTravelTimes
+            new int[][] { { 1, 3 }, { 1, 1 } }, // inventories
+            new int[] { 300, 0 }, // remainingServiceTimes
+            new int[] { 0, 2 }// current destinations
+        );
+    }
+
+    /**
+     * Can not have a delivery point as a destination when it is not in *this*
+     * vehicle's inventory.
+     */
+    @Test(expected = IllegalArgumentException.class)
+    public void validateInputsInvalidDestinations4() {
+        validateInputs(new int[6][6], new int[6], new int[6],
+            new int[][] { new int[] { 4, 2 } }, // servicePairs
+            new int[6], // serviceTimes
+            new int[][] { { 0, 0, 0, 0, 0, 0 }, { 0, 0, 0, 0, 0, 0 } }, // vehicleTravelTimes
+            new int[][] { { 1, 3 }, { 1, 1 } }, // inventories
+            new int[] { 300, 0 }, // remainingServiceTimes
+            new int[] { 1, 0 }// current destinations
+        );
+    }
+
+    /**
+     * A vehicle can not have a dest and have remaining service time.
+     */
+    @Test(expected = IllegalArgumentException.class)
+    public void validateInputsInvalidDestinations5() {
+        validateInputs(new int[6][6], new int[6], new int[6],
+            new int[][] { new int[] { 4, 2 } }, // servicePairs
+            new int[6], // serviceTimes
+            new int[][] { { 0, 0, 0, 0, 0, 0 }, { 0, 0, 0, 0, 0, 0 } }, // vehicleTravelTimes
+            new int[][] { { 1, 3 }, { 1, 1 } }, // inventories
+            new int[] { 300, 0 }, // remainingServiceTimes
+            new int[] { 4, 0 }// current destinations
+        );
+    }
+
+    /**
+     * Valid destinations.
+     */
+    @Test
+    public void validateInputsValidDestinations() {
+        validateInputs(new int[6][6], new int[6], new int[6],
+            new int[][] { new int[] { 4, 2 } }, // servicePairs
+            new int[6], // serviceTimes
+            new int[][] { { 0, 0, 0, 0, 0, 0 }, { 0, 0, 0, 0, 0, 0 } }, // vehicleTravelTimes
+            new int[][] { { 1, 3 }, { 1, 1 } }, // inventories
+            new int[] { 0, 0 }, // remainingServiceTimes
+            new int[] { 4, 3 }// current destinations
+        );
+    }
+
     @Test
     public void validateInputsValidMulti() {
-        // incorrect time value
+
         validateInputs(new int[6][6], new int[6], new int[6],
             new int[][] { new int[] { 4, 2 } },
             new int[6], //

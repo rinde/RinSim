@@ -11,6 +11,8 @@ import java.util.Set;
 
 import com.google.common.collect.ContiguousSet;
 import com.google.common.collect.DiscreteDomain;
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.ImmutableBiMap;
 import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Multimap;
@@ -208,8 +210,7 @@ public final class ArraysSolverValidator {
             "Invalid number of inventory entries, expected %s found %s.", m,
             servicePairs.length);
 
-        // Multimap
-
+        final Multimap<Integer, Integer> inventoriesMap = HashMultimap.create();
         final Set<Integer> parcelsInInventory = newHashSet();
         for (int i = 0; i < m; i++) {
             checkArgument(
@@ -231,6 +232,7 @@ public final class ArraysSolverValidator {
                 "Found a duplicate inventory entry, first duplicate at row %s.",
                 i);
             parcelsInInventory.add(inventories[i][1]);
+            inventoriesMap.put(inventories[i][0], inventories[i][1]);
         }
 
         checkArgument(
@@ -243,15 +245,41 @@ public final class ArraysSolverValidator {
                 remainingServiceTimes[i]);
         }
 
-        checkArgument(currentDestinations.length == v);
+        final ImmutableBiMap.Builder<Integer, Integer> servicePairsBuilder =
+                ImmutableBiMap.builder();
+        for (int i = 0; i < servicePairs.length; i++) {
+            servicePairsBuilder.put(servicePairs[i][0], servicePairs[i][1]);
+        }
+        final ImmutableBiMap<Integer, Integer> servicePairsMap =
+                servicePairsBuilder.build();
+
+        checkArgument(
+            currentDestinations.length == v,
+            "The currentDestinations array should be of length v=%s, it is %s.",
+            v, currentDestinations.length);
         for (int i = 0; i < v; i++) {
             if (currentDestinations[i] != 0) {
                 final int dest = currentDestinations[i];
-                checkArgument(dest >= 0 || dest < n - 1,
-                    "The destination must be a valid location, it can not be the depot.");
+                checkArgument(
+                    dest >= 1 && dest < n - 1,
+                    "The destination must be a valid location, it can not be the depot. It is %s.",
+                    dest);
 
-                // TODO check destinations
-                // checkArgument(parcelsInInventory.contains(dest));
+                final boolean isAvailablePickupLoc =
+                        servicePairsMap.keySet().contains(dest);
+                final boolean isInInventory =
+                        inventoriesMap.containsValue(dest);
+                checkArgument(
+                    isAvailablePickupLoc != isInInventory,
+                    "The destination location %s must be an available pickup location OR a delivery location which is in the inventory, available pickup loc: %s, in inventory: %s.",
+                    dest, isAvailablePickupLoc, isInInventory);
+
+                if (parcelsInInventory.contains(dest)) {
+                    checkArgument(
+                        inventoriesMap.get(i).contains(dest),
+                        "When a vehicle is moving towards a destination which is a delivery location, it must contain this parcel in its cargo. Vehicle %s, destination %s.",
+                        i, dest);
+                }
                 checkArgument(
                     remainingServiceTimes[i] == 0,
                     "When a vehicle is moving towards a destination it can not at the same time be busy with something else, hence remainingServiceTime for that vehicle must be 0, found %s.",
@@ -330,28 +358,31 @@ public final class ArraysSolverValidator {
      * is infeasible, an {@link IllegalArgumentException} is thrown.
      * @param sols The {@link SolutionObject}s that are validated.
      * @param travelTime Parameter as specified by
-     *            {@link MultiVehicleArraysSolver#solve(int[][], int[], int[], int[][], int[], int[][], int[][], int[])}
+     *            {@link MultiVehicleArraysSolver#solve(int[][], int[], int[], int[][], int[], int[][], int[][], int[], int[])}
      *            .
      * @param releaseDates Parameter as specified by
-     *            {@link MultiVehicleArraysSolver#solve(int[][], int[], int[], int[][], int[], int[][], int[][], int[])}
+     *            {@link MultiVehicleArraysSolver#solve(int[][], int[], int[], int[][], int[], int[][], int[][], int[], int[])}
      *            .
      * @param dueDates Parameter as specified by
-     *            {@link MultiVehicleArraysSolver#solve(int[][], int[], int[], int[][], int[], int[][], int[][], int[])}
+     *            {@link MultiVehicleArraysSolver#solve(int[][], int[], int[], int[][], int[], int[][], int[][], int[], int[])}
      *            .
      * @param servicePairs Parameter as specified by
-     *            {@link MultiVehicleArraysSolver#solve(int[][], int[], int[], int[][], int[], int[][], int[][], int[])}
+     *            {@link MultiVehicleArraysSolver#solve(int[][], int[], int[], int[][], int[], int[][], int[][], int[], int[])}
      *            .
      * @param serviceTimes Parameter as specified by
-     *            {@link MultiVehicleArraysSolver#solve(int[][], int[], int[], int[][], int[], int[][], int[][], int[])}
+     *            {@link MultiVehicleArraysSolver#solve(int[][], int[], int[], int[][], int[], int[][], int[][], int[], int[])}
      *            .
      * @param vehicleTravelTimes Parameter as specified by
-     *            {@link MultiVehicleArraysSolver#solve(int[][], int[], int[], int[][], int[], int[][], int[][], int[])}
+     *            {@link MultiVehicleArraysSolver#solve(int[][], int[], int[], int[][], int[], int[][], int[][], int[], int[])}
      *            .
      * @param inventories Parameter as specified by
-     *            {@link MultiVehicleArraysSolver#solve(int[][], int[], int[], int[][], int[], int[][], int[][], int[])}
+     *            {@link MultiVehicleArraysSolver#solve(int[][], int[], int[], int[][], int[], int[][], int[][], int[], int[])}
      *            .
      * @param remainingServiceTimes Parameter as specified by
-     *            {@link MultiVehicleArraysSolver#solve(int[][], int[], int[], int[][], int[], int[][], int[][], int[])}
+     *            {@link MultiVehicleArraysSolver#solve(int[][], int[], int[], int[][], int[], int[][], int[][], int[], int[])}
+     *            .
+     * @param currentDestinations Parameter as specified by
+     *            {@link MultiVehicleArraysSolver#solve(int[][], int[], int[], int[][], int[], int[][], int[][], int[], int[])}
      *            .
      * @return The solution as is supplied, used for method chaining.
      */
@@ -433,7 +464,6 @@ public final class ArraysSolverValidator {
             final Set<Integer> seen = newHashSet();
             final Set<Integer> set = newHashSet(Ints.asList(sol.route));
             for (int i = 1; i < sol.route.length - 1; i++) {
-
                 if (pairs.containsKey(sol.route[i])) {
                     checkArgument(
                         !seen.contains(pairs.get(sol.route[i])),
@@ -446,12 +476,6 @@ public final class ArraysSolverValidator {
                         set.contains(pairs.get(sol.route[i])),
                         "Vehicle %s: this route should contain both the pickup and delivery location, found %s, didn't find %s.",
                         v, sol.route[i], pairs.get(sol.route[i]));
-
-                    // checkArgument(
-                    // frequency == 2,
-                    // "Vehicle %s: a parcel (%s) that is not yet picked up needs to occur twice in the route",
-                    // v, sol.route[i]);
-
                 }
                 seen.add(sol.route[i]);
             }
