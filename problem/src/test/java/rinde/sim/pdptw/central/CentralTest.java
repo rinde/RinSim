@@ -41,7 +41,7 @@ public class CentralTest {
             // final String file = "data/test/gendreau06/req_rapide_2_450_24";
 
             System.out.println(file);
-            for (int i = 0; i < 10; i++) {
+            for (int i = 0; i < 1; i++) {
                 final Gendreau06Scenario scenario =
                         Gendreau06Parser.parse(file, 10);
 
