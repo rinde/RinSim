@@ -42,9 +42,9 @@ import com.google.common.math.DoubleMath;
  */
 public final class ArraysSolvers {
 
-    // TODO create a Converter class which uses the Units as parameters. All
-    // methods can then easily access them, making most of the code much
-    // cleaner.
+    // TODO create a Converter class which uses the Units as constructor
+    // parameters. All methods can then easily access them, making most of the
+    // code much cleaner.
 
     private ArraysSolvers() {}
 
@@ -538,7 +538,7 @@ public final class ArraysSolvers {
 
     /**
      * Object which specifies the parameters of
-     * {@link MultiVehicleArraysSolver#solve(int[][], int[], int[], int[][], int[], int[][], int[][], int[])}
+     * {@link MultiVehicleArraysSolver#solve(int[][], int[], int[], int[][], int[], int[][], int[][], int[], int[])}
      * . Also includes additional information which is required to interpret the
      * resulting {@link SolutionObject}.
      * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
@@ -546,25 +546,30 @@ public final class ArraysSolvers {
     public static class MVArraysObject extends ArraysObject {
         /**
          * See
-         * {@link MultiVehicleArraysSolver#solve(int[][], int[], int[], int[][], int[], int[][], int[][], int[])}
+         * {@link MultiVehicleArraysSolver#solve(int[][], int[], int[], int[][], int[], int[][], int[][], int[], int[])}
          * .
          */
         public final int[][] vehicleTravelTimes;
 
         /**
          * See
-         * {@link MultiVehicleArraysSolver#solve(int[][], int[], int[], int[][], int[], int[][], int[][], int[])}
+         * {@link MultiVehicleArraysSolver#solve(int[][], int[], int[], int[][], int[], int[][], int[][], int[], int[])}
          * .
          */
         public final int[][] inventories;
 
         /**
          * See
-         * {@link MultiVehicleArraysSolver#solve(int[][], int[], int[], int[][], int[], int[][], int[][], int[])}
+         * {@link MultiVehicleArraysSolver#solve(int[][], int[], int[], int[][], int[], int[][], int[][], int[], int[])}
          * .
          */
         public final int[] remainingServiceTimes;
 
+        /**
+         * See
+         * {@link MultiVehicleArraysSolver#solve(int[][], int[], int[], int[][], int[], int[][], int[][], int[], int[])}
+         * .
+         */
         public final int[] currentDestinations;
 
         MVArraysObject(int[][] travelTime, int[] releaseDates, int[] dueDates,
