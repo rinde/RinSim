@@ -206,9 +206,10 @@ public final class ArraysSolverValidator {
         final Set<Integer> availLocs = b.build();
 
         final int m = n - 2 - (servicePairs.length * 2);
-        checkArgument(inventories.length == m,
-            "Invalid number of inventory entries, expected %s found %s.", m,
-            servicePairs.length);
+        checkArgument(
+            inventories.length == m,
+            "Invalid number of inventory entries, must be equal to number of delivery locations: %s, found: %s.",
+            m, servicePairs.length);
 
         final Multimap<Integer, Integer> inventoriesMap = HashMultimap.create();
         final Set<Integer> parcelsInInventory = newHashSet();
@@ -217,15 +218,17 @@ public final class ArraysSolverValidator {
                 2 == inventories[i].length,
                 "We expected inventories matrix of size m x 2, but we found m x %s at index %s.",
                 inventories[i].length, i);
-            checkArgument(inventories[i][0] >= 0 && inventories[i][0] < v,
-                "Found a reference to a non-existing vehicle (%s) at row %s.",
+            checkArgument(
+                inventories[i][0] >= 0 && inventories[i][0] < v,
+                "Found a reference to a non-existing vehicle (%s) in inventories at row %s.",
                 inventories[i][0], i);
-            checkArgument(inventories[i][1] >= 1 && inventories[i][1] < n - 1,
-                "Found a reference to a non-existing location (%s) at row %s.",
+            checkArgument(
+                inventories[i][1] >= 1 && inventories[i][1] < n - 1,
+                "Found a reference to a non-existing location (%s) in inventories at row %s.",
                 inventories[i][1], i);
             checkArgument(
                 !availLocs.contains(inventories[i][1]),
-                "Found a reference to a location (%s) at row %s which is available, as such, it can not be in the inventory.",
+                "Found a reference to a location (%s) in inventories at row %s which is available, as such, it can not be in the inventory.",
                 inventories[i][1], i);
             checkArgument(
                 !parcelsInInventory.contains(inventories[i][1]),
@@ -445,6 +448,13 @@ public final class ArraysSolverValidator {
             checkArgument(sol.route[sol.route.length - 1] == n - 1,
                 "The route should always finish with the depot.");
 
+            if (currentDestinations[v] != 0) {
+                checkArgument(
+                    sol.route[1] == currentDestinations[v],
+                    "Vehicle %s has a current destination %s, as such this must be the first point to visit (at index 1). The first point in the route is currently: %s.",
+                    v, currentDestinations[v], sol.route[1]);
+            }
+
             final Set<Integer> locs =
                     ImmutableSet.copyOf(Ints.asList(sol.route));
             final Collection<Integer> inventory = inventoryMap.get(v);
@@ -470,8 +480,6 @@ public final class ArraysSolverValidator {
                         "Pickups should be visited before their corresponding deliveries. Location %s should be visited after location %s.",
                         pairs.get(sol.route[i]), sol.route[i]);
 
-                    // TODO check if this also catches the reverse situation:
-                    // found delivery loc but no pickup
                     checkArgument(
                         set.contains(pairs.get(sol.route[i])),
                         "Vehicle %s: this route should contain both the pickup and delivery location, found %s, didn't find %s.",

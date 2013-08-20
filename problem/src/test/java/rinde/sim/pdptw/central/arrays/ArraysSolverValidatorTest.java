@@ -555,6 +555,24 @@ public class ArraysSolverValidatorTest {
             new int[0][0], remainingServiceTimes, new int[2]);
     }
 
+    /**
+     * The first point to visit in a route must be the destination (if there is
+     * a destination).
+     */
+    @Test(expected = IllegalArgumentException.class)
+    public void validateCurrentDestination() {
+        final SolutionObject sol1 =
+                new SolutionObject(new int[] { 0, 2, 3 }, new int[] { 0, 10,
+                        100 }, 73);
+        final SolutionObject sol2 =
+                new SolutionObject(new int[] { 0, 1, 3 },
+                        new int[] { 0, 15, 90 }, 59);
+        final int[] remainingServiceTimes = new int[] { 0, 0 };
+        validateOutputs(new SolutionObject[] { sol1, sol2 }, new int[4][4],
+            new int[4], new int[4], new int[][] {}, new int[4], new int[2][4],
+            new int[0][0], remainingServiceTimes, new int[] { 1, 2 });
+    }
+
     @Test
     public void validateCorrect() {
         validateOutputs(
@@ -565,8 +583,7 @@ public class ArraysSolverValidatorTest {
 
     @Test
     public void validateCorrect2() {
-
-        final int[][] travelTimes = new int[][] {
+        final int[][] tt = new int[][] {
         /* */new int[] { 999, 999, 999, 999 },
         /* */new int[] { 999, 0, 3, 999 },
         /* */new int[] { 999, 999, 0, 7 },
@@ -575,20 +592,60 @@ public class ArraysSolverValidatorTest {
         // travel time = 0 + 3 + 7 = 10
         // tardiness = 10 + 100 + 108 = 218
         // objval = 228
-        final SolutionObject sol1 =
-                new SolutionObject(new int[] { 0, 1, 2, 3 }, new int[] { 0, 10,
-                        100, 108 }, 228);
+        final SolutionObject sol1 = new SolutionObject(//
+                new int[] { 0, 1, 2, 3 },// route
+                new int[] { 0, 10, 100, 108 },// arrival times
+                228);// objective value
 
         // travel time = 0
         // tardiness = 999
         // objval = 999
-        final SolutionObject sol2 =
-                new SolutionObject(new int[] { 0, 3 }, new int[] { 0, 999 },
-                        999);
+        final SolutionObject sol2 = new SolutionObject(//
+                new int[] { 0, 3 }, // route
+                new int[] { 0, 999 },// arrival times
+                999);// objective value
 
-        validateOutputs(new SolutionObject[] { sol1, sol2 }, travelTimes,
-            new int[4], new int[4], new int[][] {}, new int[4], new int[2][4],
+        validateOutputs(new SolutionObject[] { sol1, sol2 }, tt, new int[4],
+            new int[4], new int[][] {}, new int[4], new int[2][4],
             new int[2][2], new int[2], new int[2]);
+    }
+
+    /**
+     * Valid test with currentDestinations set.
+     */
+    @Test
+    public void validateCorrect3() {
+        final int[][] tt = new int[][] {
+        /* */new int[] { 999, 999, 999, 999, 999 },
+        /* */new int[] { 999, 0, 3, 999, 60 },
+        /* */new int[] { 999, 999, 0, 7, 999 },
+        /* */new int[] { 999, 999, 0, 7, 50 },
+        /* */new int[] { 999, 999, 999, 0, 999 } };
+
+        final SolutionObject sol1 = new SolutionObject(//
+                new int[] { 0, 1, 4 },// route
+                new int[] { 0, 10, 70 },// arrival times
+                140);// objective value
+
+        final SolutionObject sol2 = new SolutionObject(//
+                new int[] { 0, 2, 3, 4 },// route
+                new int[] { 0, 10, 20, 108 },// arrival times
+                195);// objective value
+
+        final MultiVehicleArraysSolver s =
+                ArraysSolverValidator.wrap(new FakeMultiSolver(
+                        new SolutionObject[] { sol1, sol2 }));
+
+        s.solve(tt, // travel times
+            new int[5], // release dates
+            new int[5], // due dates
+            new int[][] { { 2, 3 } }, // service pairs
+            new int[5], // service times
+            new int[2][5], // vehicle travel times
+            new int[][] { { 0, 1 } }, // inventories
+            new int[2], // remaining service times
+            new int[] { 1, 2 }); // current destinations
+
     }
 
     @Test(expected = IllegalArgumentException.class)
