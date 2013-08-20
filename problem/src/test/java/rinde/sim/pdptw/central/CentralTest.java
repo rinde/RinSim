@@ -19,8 +19,8 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import rinde.sim.pdptw.central.arrays.ArraysSolverValidator;
-import rinde.sim.pdptw.central.arrays.MultiVehicleHeuristicSolver;
 import rinde.sim.pdptw.central.arrays.MultiVehicleSolverAdapter;
+import rinde.sim.pdptw.central.arrays.RandomMVArraysSolver;
 import rinde.sim.pdptw.gendreau06.Gendreau06ObjectiveFunction;
 import rinde.sim.pdptw.gendreau06.Gendreau06Parser;
 import rinde.sim.pdptw.gendreau06.Gendreau06Scenario;
@@ -48,7 +48,7 @@ public class CentralTest {
                 final Solver s =
                         SolverValidator.wrap(new MultiVehicleSolverAdapter(
                                 ArraysSolverValidator
-                                        .wrap(new MultiVehicleHeuristicSolver(
+                                        .wrap(new RandomMVArraysSolver(
                                                 new MersenneTwister(rng
                                                         .nextLong()))),
                                 scenario.getTimeUnit()));
