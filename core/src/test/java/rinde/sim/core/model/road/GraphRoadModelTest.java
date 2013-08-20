@@ -300,11 +300,13 @@ public class GraphRoadModelTest extends AbstractRoadModelTest<GraphRoadModel> {
         assertEquals(new Point(5, 0), model.getPosition(agent2));
     }
 
+    @SuppressWarnings("null")
     @Test(expected = IllegalArgumentException.class)
     public void followPathFailObject1() {
         model.followPath(null, null, emptyTimeLapse);
     }
 
+    @SuppressWarnings("null")
     @Test(expected = IllegalArgumentException.class)
     public void followPathFailObject2() {
         model.followPath(new TestRoadUser(), null, emptyTimeLapse);
@@ -580,26 +582,31 @@ public class GraphRoadModelTest extends AbstractRoadModelTest<GraphRoadModel> {
         model.getShortestPathTo(new TestRoadUser(), new TestRoadUser());
     }
 
+    @SuppressWarnings("null")
     @Test(expected = IllegalArgumentException.class)
     public void getShortestPathToFail3() {
         model.getShortestPathTo((RoadUser) null, new Point(0, 0));
     }
 
+    @SuppressWarnings("null")
     @Test(expected = IllegalArgumentException.class)
     public void getShortestPathToFail4() {
         model.getShortestPathTo((Point) null, new Point(0, 0));
     }
 
+    @SuppressWarnings("null")
     @Test(expected = IllegalArgumentException.class)
     public void getShortestPathToFail5() {
         model.getShortestPathTo(new Point(1, 2), null);
     }
 
+    @SuppressWarnings("null")
     @Test(expected = IllegalArgumentException.class)
     public void getShortestPathToFail6() {
         model.getShortestPathTo((RoadUser) null, (RoadUser) null);
     }
 
+    @SuppressWarnings("null")
     @Test(expected = NullPointerException.class)
     public void locationConstructorFail() {
         GraphRoadModel.newLoc(null);
@@ -638,12 +645,14 @@ public class GraphRoadModelTest extends AbstractRoadModelTest<GraphRoadModel> {
 
     @Test(expected = NullPointerException.class)
     public void newLocationFail1() {
-        GraphRoadModel.newLoc(null);
+        @SuppressWarnings({ "null", "unused" })
+        final Loc l = GraphRoadModel.newLoc(null);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void newLocationFail2() {
-        GraphRoadModel.newLoc(null, 0);
+        @SuppressWarnings({ "null", "unused" })
+        final Loc l = GraphRoadModel.newLoc(null, 0);
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -696,11 +705,13 @@ public class GraphRoadModelTest extends AbstractRoadModelTest<GraphRoadModel> {
         assertEquals(10, model.getMaxSpeed(new SpeedyRoadUser(10), NE, SE), EPSILON);
     }
 
+    @SuppressWarnings("null")
     @Test(expected = IllegalArgumentException.class)
     public void computeConnectionLengthFail1() {
         model.computeConnectionLength(null, null);
     }
 
+    @SuppressWarnings("null")
     @Test(expected = IllegalArgumentException.class)
     public void computeConnectionLengthFail2() {
         model.computeConnectionLength(new Point(1, 2), null);

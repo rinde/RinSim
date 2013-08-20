@@ -19,6 +19,8 @@ import java.util.List;
 import java.util.Queue;
 import java.util.Set;
 
+import com.google.common.base.Objects;
+
 /**
  * Scenario is an unmodifiable list of events sorted by the time stamp. For help
  * with creating scenarios {@link ScenarioBuilder} is provided.
@@ -126,6 +128,11 @@ public class Scenario implements Serializable {
             return asList().equals(s1.asList());
         }
         return false;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(supportedTypes, events);
     }
 
     /**

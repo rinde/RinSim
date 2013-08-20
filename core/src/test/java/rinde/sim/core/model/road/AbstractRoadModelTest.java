@@ -272,16 +272,19 @@ public abstract class AbstractRoadModelTest<T extends RoadModel> {
         assertTrue(model.getObjectsAt(agent2, SpeedyRoadUser.class).isEmpty());
     }
 
+    @SuppressWarnings("null")
     @Test(expected = IllegalArgumentException.class)
     public void getObjectsOfTypeFail() {
         model.getObjectsOfType(null);
     }
 
+    @SuppressWarnings("null")
     @Test(expected = IllegalArgumentException.class)
     public void getObjectsAtFail1() {
         model.getObjectsAt(null, null);
     }
 
+    @SuppressWarnings("null")
     @Test(expected = IllegalArgumentException.class)
     public void getObjectsAtFail2() {
         model.getObjectsAt(new TestRoadUser(), null);
@@ -301,11 +304,13 @@ public abstract class AbstractRoadModelTest<T extends RoadModel> {
         model.removeObject(agent1);
     }
 
+    @SuppressWarnings("null")
     @Test(expected = IllegalArgumentException.class)
     public void removeObjectTestFail() {
         model.removeObject(null);
     }
 
+    @SuppressWarnings("null")
     @Test(expected = IllegalArgumentException.class)
     public void containsObjectNull() {
         model.containsObject(null);
@@ -336,11 +341,13 @@ public abstract class AbstractRoadModelTest<T extends RoadModel> {
 
     }
 
+    @SuppressWarnings("null")
     @Test(expected = IllegalArgumentException.class)
     public void containsObjectAtNull1() {
         model.containsObjectAt(null, new Point(1, 2));
     }
 
+    @SuppressWarnings("null")
     @Test(expected = IllegalArgumentException.class)
     public void containsObjectAtNull2() {
         model.containsObjectAt(new TestRoadUser(), null);
@@ -414,19 +421,19 @@ public abstract class AbstractRoadModelTest<T extends RoadModel> {
         assertTrue(model.equalPosition(agent1, agent2));
     }
 
-    @SuppressWarnings("unused")
+    @SuppressWarnings({ "unused", "null" })
     @Test(expected = IllegalArgumentException.class)
     public void pathProgressConstructorFail1() {
         new MoveProgress(-1, 1, null);
     }
 
-    @SuppressWarnings("unused")
+    @SuppressWarnings({ "unused", "null" })
     @Test(expected = IllegalArgumentException.class)
     public void pathProgressConstructorFail2() {
         new MoveProgress(1, -1, null);
     }
 
-    @SuppressWarnings("unused")
+    @SuppressWarnings({ "unused", "null" })
     @Test(expected = IllegalArgumentException.class)
     public void pathProgressConstructorFail3() {
         new MoveProgress(1, 1, null);
