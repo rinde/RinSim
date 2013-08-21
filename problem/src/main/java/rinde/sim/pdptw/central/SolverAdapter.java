@@ -45,7 +45,7 @@ public class SolverAdapter {
 
     /**
      * 
-     * @return
+     * @return A list of routes, one for every vehicle.
      */
     public List<Queue<DefaultParcel>> solve() {
         return Solvers.solve(solver, roadModel, pdpModel,
