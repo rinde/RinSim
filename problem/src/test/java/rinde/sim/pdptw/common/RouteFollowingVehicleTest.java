@@ -1,9 +1,8 @@
 /**
  * 
  */
-package rinde.sim.pdptw.central;
+package rinde.sim.pdptw.common;
 
-import static com.google.common.collect.Lists.newLinkedList;
 import static com.google.common.collect.Sets.newHashSet;
 import static java.util.Arrays.asList;
 import static javax.measure.unit.NonSI.KILOMETERS_PER_HOUR;
@@ -16,9 +15,14 @@ import static org.junit.Assert.assertTrue;
 import static rinde.sim.core.TimeLapseFactory.time;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
+import org.junit.runners.Parameterized.Parameters;
 
 import rinde.sim.core.TimeLapse;
 import rinde.sim.core.graph.Point;
@@ -30,35 +34,52 @@ import rinde.sim.core.model.pdp.PDPModel.ParcelState;
 import rinde.sim.core.model.pdp.PDPModel.VehicleState;
 import rinde.sim.core.model.pdp.twpolicy.TardyAllowedPolicy;
 import rinde.sim.core.model.road.PlaneRoadModel;
-import rinde.sim.pdptw.central.Central.RemoteDriver;
-import rinde.sim.pdptw.common.DefaultDepot;
-import rinde.sim.pdptw.common.DefaultParcel;
-import rinde.sim.pdptw.common.PDPRoadModel;
-import rinde.sim.pdptw.common.PDPTWTestUtil;
-import rinde.sim.pdptw.common.ParcelDTO;
-import rinde.sim.pdptw.common.VehicleDTO;
 import rinde.sim.util.TimeWindow;
 
 /**
+ * Tests for {@link RouteFollowingVehicle}.
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
- * 
  */
-public class DriverTest {
+@RunWith(value = Parameterized.class)
+public class RouteFollowingVehicleTest {
 
     // EPSILON in km: maximum allowed deviation is 10 cm
     static final double EPSILON = 0.0001;
 
-    protected PDPRoadModel rm;
-    protected PDPModel pm;
-    protected RemoteDriver d;
-    protected DefaultParcel p1;
-    protected DefaultParcel p2;
+    private PDPRoadModel rm;
+    private PDPModel pm;
+    private RouteFollowingVehicle d;
+    private DefaultParcel p1;
+    private DefaultParcel p2;
+    private DefaultDepot depot;
+    private final boolean diversionIsAllowed;
 
+    /**
+     * Create test.
+     * @param allowDiversion Is vehicle diversion allowed.
+     */
+    @SuppressWarnings("null")
+    public RouteFollowingVehicleTest(boolean allowDiversion) {
+        diversionIsAllowed = allowDiversion;
+    }
+
+    /**
+     * @return parameters for constructor.
+     */
+    @Parameters
+    public static Collection<Object[]> data() {
+        return Arrays.asList(new Object[][] { { true }, { false } });
+    }
+
+    /**
+     * Set up a simple simulation with models, one vehicle, two parcels and one
+     * depot.
+     */
     @Before
     public void setUp() {
         rm =
                 new PDPRoadModel(new PlaneRoadModel(new Point(0, 0), new Point(
-                        10, 10), true, 30), false);
+                        10, 10), true, 30), diversionIsAllowed);
 
         pm = new PDPModel(new TardyAllowedPolicy());
         @SuppressWarnings("unchecked")
@@ -70,7 +91,9 @@ public class DriverTest {
         final VehicleDTO v =
                 new VehicleDTO(new Point(1, 1), 30, 1, new TimeWindow(0,
                         minute(30)));
-        d = new RemoteDriver(v, MILLI(SECOND), KILOMETERS_PER_HOUR, KILOMETER);
+        d =
+                new RouteFollowingVehicle(v, MILLI(SECOND),
+                        KILOMETERS_PER_HOUR, KILOMETER);
 
         p1 = new DefaultParcel(new ParcelDTO(new Point(1, 2), new Point(1, 4), //
                 new TimeWindow(minute(5), minute(15)), // pickup tw
@@ -82,11 +105,14 @@ public class DriverTest {
                 new TimeWindow(minute(22) + 10, minute(30)),// delivery tw
                 0, 0, minute(0), minute(3)));
 
-        final DefaultDepot depot = new DefaultDepot(new Point(3, 5));
+        depot = new DefaultDepot(new Point(3, 5));
 
         PDPTWTestUtil.register(rm, pm, depot, d, p1, p2);
     }
 
+    /**
+     * Test definition of isTooEarly.
+     */
     @Test
     public void testIsTooEarly() {
         // travelling 1km at 30km/h should take 2 minutes
@@ -114,9 +140,12 @@ public class DriverTest {
         d.tick(tl);
     }
 
+    /**
+     * Tests the proper execution of a route, including having to wait.
+     */
     @Test
     public void test() {
-        d.setRoute(newLinkedList(asList(p1, p2, p1)));
+        d.setRoute(asList(p1, p2, p1));
 
         // we are too early, don't move
         tick(0, 1);
@@ -193,7 +222,7 @@ public class DriverTest {
         assertEquals(new Point(1, 4), rm.getPosition(d));
         assertEquals(VehicleState.IDLE, pm.getVehicleState(d));
 
-        d.setRoute(newLinkedList(asList(p2)));
+        d.setRoute(asList(p2));
 
         // move towards delivery p2
         tick(20, 21);
@@ -243,11 +272,60 @@ public class DriverTest {
         // stay there
         tick(30, 31);
         assertEquals(new Point(3, 5), rm.getPosition(d));
+    }
 
+    /**
+     * Tests whether the agent supports diversion (if the underlying models
+     * support it).
+     */
+    @Test
+    public void diversionTest() {
+        d.setRoute(asList(p1, p2));
+        tick(2, 3);
+        assertEquals(new Point(1, 1), rm.getPosition(d));
+
+        tick(3, 4);
+        d.setRoute(asList(p2, p1));
+
+        boolean error = false;
+        try {
+            tick(13, 14);
+            tick(14, 20);
+            // in case diversion is allowed, check that the vehicle actually
+            // diverted to this parcel, and serviced it.
+            assertEquals(newHashSet(p2), pm.getContents(d));
+        } catch (final IllegalArgumentException e) {
+            error = true;
+        }
+        assertEquals(!diversionIsAllowed, error);
+    }
+
+    /**
+     * Test the correctness of end of day definition.
+     */
+    @Test
+    public void isEndOfDayTest() {
+        // travel time = 0
+        rm.removeObject(d);
+        rm.addObjectAtSamePosition(d, depot);
+        assertFalse(d.isEndOfDay(time(minute(0), minute(1))));
+        assertFalse(d.isEndOfDay(time(minute(29), minute(30))));
+        assertTrue(d.isEndOfDay(time(minute(30), minute(31))));
+
+        // travel time = 4 minutes from the depot at (3,5)
+        rm.removeObject(d);
+        rm.addObjectAt(d, new Point(5, 5));
+        assertFalse(d.isEndOfDay(time(minute(25), minute(26))));
+        assertTrue(d.isEndOfDay(time(minute(26), minute(27))));
+
+        // travel time = 4.5 minutes from the depot
+        rm.removeObject(d);
+        rm.addObjectAt(d, new Point(5, 5.5));
+        assertFalse(d.isEndOfDay(time(minute(24), minute(25))));
+        assertTrue(d.isEndOfDay(time(minute(25), minute(26))));
     }
 
     static long minute(long minutes) {
         return minutes * 60000;
     }
-
 }

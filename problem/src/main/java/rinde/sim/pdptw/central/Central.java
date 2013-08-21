@@ -3,50 +3,34 @@
  */
 package rinde.sim.pdptw.central;
 
-import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.collect.Lists.newArrayList;
 
-import java.math.RoundingMode;
-import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Queue;
-import java.util.Set;
 
-import javax.annotation.Nullable;
-import javax.measure.Measure;
 import javax.measure.quantity.Duration;
 import javax.measure.quantity.Length;
 import javax.measure.quantity.Velocity;
 import javax.measure.unit.Unit;
 
 import rinde.sim.core.Simulator;
-import rinde.sim.core.TimeLapse;
-import rinde.sim.core.graph.Point;
 import rinde.sim.core.model.Model;
 import rinde.sim.core.model.pdp.PDPModel;
-import rinde.sim.core.model.pdp.PDPModel.ParcelState;
-import rinde.sim.core.model.pdp.Parcel;
-import rinde.sim.core.model.road.RoadModel;
 import rinde.sim.event.Event;
 import rinde.sim.event.EventAPI;
 import rinde.sim.event.EventDispatcher;
 import rinde.sim.event.Listener;
-import rinde.sim.pdptw.central.arrays.ArraysSolvers;
 import rinde.sim.pdptw.common.AddVehicleEvent;
-import rinde.sim.pdptw.common.DefaultDepot;
 import rinde.sim.pdptw.common.DefaultParcel;
-import rinde.sim.pdptw.common.DefaultVehicle;
 import rinde.sim.pdptw.common.DynamicPDPTWProblem;
 import rinde.sim.pdptw.common.DynamicPDPTWProblem.Creator;
 import rinde.sim.pdptw.common.DynamicPDPTWScenario;
 import rinde.sim.pdptw.common.ObjectiveFunction;
 import rinde.sim.pdptw.common.PDPRoadModel;
+import rinde.sim.pdptw.common.RouteFollowingVehicle;
 import rinde.sim.pdptw.common.StatsTracker.StatisticsDTO;
-import rinde.sim.pdptw.common.VehicleDTO;
-
-import com.google.common.math.DoubleMath;
 
 /**
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
@@ -60,8 +44,8 @@ public class Central {
         final Unit<Velocity> speedUnit = scenario.getSpeedUnit();
         final Unit<Length> distUnit = scenario.getDistanceUnit();
 
-        final ReceiverModel<RemoteDriver> driverReceiver =
-                ReceiverModel.create(RemoteDriver.class);
+        final ReceiverModel<RouteFollowingVehicle> driverReceiver =
+                ReceiverModel.create(RouteFollowingVehicle.class);
         final ReceiverModel<DefaultParcel> parcelReceiver =
                 ReceiverModel.create(DefaultParcel.class);
         final DynamicPDPTWProblem problemInstance =
@@ -76,8 +60,8 @@ public class Central {
             new Creator<AddVehicleEvent>() {
                 @Override
                 public boolean create(Simulator sim, AddVehicleEvent event) {
-                    return sim.register(new RemoteDriver(event.vehicleDTO,
-                            timeUnit, speedUnit, distUnit));
+                    return sim.register(new RouteFollowingVehicle(
+                            event.vehicleDTO, timeUnit, speedUnit, distUnit));
                 }
             });
         final Simulator sim = problemInstance.getSimulator();
@@ -91,8 +75,9 @@ public class Central {
                 final Iterator<Queue<DefaultParcel>> routes =
                         Solvers.solve(solver, rm, pm, sim.getCurrentTime(),
                             timeUnit, speedUnit, distUnit).iterator();
-                final Iterator<RemoteDriver> drivers =
-                        rm.getObjectsOfType(RemoteDriver.class).iterator();
+                final Iterator<RouteFollowingVehicle> drivers =
+                        rm.getObjectsOfType(RouteFollowingVehicle.class)
+                                .iterator();
                 while (drivers.hasNext()) {
                     drivers.next().setRoute(routes.next());
                 }
@@ -149,175 +134,4 @@ public class Central {
 
     }
 
-    protected static class RemoteDriver extends DefaultVehicle {
-
-        @Nullable
-        private Queue<DefaultParcel> route;
-        @Nullable
-        private DefaultDepot depot;
-        private final Unit<Duration> timeUnit;
-        final Measure<Double, Velocity> speed;
-        private final Unit<Length> distUnit;
-
-        /**
-         * @param pDto
-         * @param tu
-         * @param su
-         * @param du
-         */
-        public RemoteDriver(VehicleDTO pDto, Unit<Duration> tu,
-                Unit<Velocity> su, Unit<Length> du) {
-            super(pDto);
-            timeUnit = tu;
-            distUnit = du;
-            speed = Measure.valueOf(getSpeed(), su);
-        }
-
-        /**
-         * @param r
-         */
-        public void setRoute(Queue<DefaultParcel> r) {
-            // print(r);
-            route = r;
-        }
-
-        static void print(Collection<DefaultParcel> ps) {
-            final StringBuilder sb = new StringBuilder();
-            for (final DefaultParcel p : ps) {
-                sb.append(p.hashCode()).append(",");
-            }
-            System.out.println(sb.toString());
-        }
-
-        @Override
-        public void initRoadPDP(RoadModel pRoadModel, PDPModel pPdpModel) {
-            super.initRoadPDP(pRoadModel, pPdpModel);
-
-            final Set<DefaultDepot> depots =
-                    roadModel.getObjectsOfType(DefaultDepot.class);
-            checkArgument(depots.size() == 1,
-                "This vehicle requires exactly 1 depot, found %s depots.",
-                depots.size());
-            depot = depots.iterator().next();
-        }
-
-        @Override
-        protected void tickImpl(TimeLapse time) {
-            final Queue<DefaultParcel> r = route;
-            if (route == null) {
-                return;
-            }
-            if (!r.isEmpty()) {
-                while (time.hasTimeLeft() && r.peek() != null) {
-                    final DefaultParcel cur = r.element();
-                    // if leaving now would mean we are too early, wait
-                    if (isTooEarly(cur, time)) {
-                        time.consumeAll();
-                    } else {
-                        // if not there yet, go there
-                        if (!roadModel.equalPosition(this, cur)) {
-                            roadModel.moveTo(this, cur, time);
-                        }
-                        // if arrived
-                        if (roadModel.equalPosition(this, cur)
-                                && time.hasTimeLeft()) {
-                            // if parcel is not ready yet, wait
-                            final boolean pickup =
-                                    !pdpModel.getContents(this).contains(cur);
-                            final long timeUntilReady =
-                                    (pickup ? cur.dto.pickupTimeWindow.begin
-                                            : cur.dto.deliveryTimeWindow.begin)
-                                            - time.getTime();
-
-                            boolean canStart = true;
-                            if (timeUntilReady > 0) {
-                                if (time.getTimeLeft() < timeUntilReady) {
-                                    // in this case we can not yet start
-                                    // servicing
-                                    time.consumeAll();
-                                    canStart = false;
-                                } else {
-                                    time.consume(timeUntilReady);
-                                }
-                            }
-
-                            if (canStart) {
-                                // parcel is ready, service
-                                pdpModel.service(this, cur, time);
-                                r.remove();
-                            }
-                        }
-                    }
-                }
-            }
-            if (r.isEmpty() && isEndOfDay(time)
-                    && !roadModel.equalPosition(this, depot)) {
-                roadModel.moveTo(this, depot, time);
-            }
-        }
-
-        // FIXME, check to see if correct, and to see if it makes sense to leave
-        // one step earlier
-        protected boolean isTooEarly(Parcel p, TimeLapse time) {
-
-            final ParcelState parcelState = pdpModel.getParcelState(p);
-            checkArgument(
-                !parcelState.isTransitionState() && !parcelState.isDelivered(),
-                parcelState);
-
-            final boolean isPickup = !parcelState.isPickedUp();
-
-            // if it is available, we know we can't be too early
-            if (isPickup && parcelState == ParcelState.AVAILABLE) {
-                return false;
-            }
-
-            final Point loc =
-                    isPickup ? ((DefaultParcel) p).dto.pickupLocation : p
-                            .getDestination();
-            final long travelTime = computeTravelTimeTo(loc);
-            final long timeUntilAvailable =
-                    (isPickup ? p.getPickupTimeWindow().begin : p
-                            .getDeliveryTimeWindow().begin) - time.getTime();
-
-            // compute how many ticks from now the parcel will be available
-            long ticksUntilAvailable = 0;
-            if (time.getTimeLeft() < timeUntilAvailable) {
-                ticksUntilAvailable =
-                        DoubleMath.roundToLong(
-                            (timeUntilAvailable - time.getTimeLeft())
-                                    / (double) time.getTimeStep(),
-                            RoundingMode.FLOOR);
-            }
-
-            // compute how many ticks from now we arrive at the parcel
-            long ticksUntilArrival = 0;
-            if (time.getTimeLeft() < travelTime) {
-                ticksUntilArrival =
-                        DoubleMath.roundToLong(
-                            (travelTime - time.getTimeLeft())
-                                    / (double) time.getTimeStep(),
-                            RoundingMode.FLOOR);
-            }
-            return ticksUntilArrival < ticksUntilAvailable;
-        }
-
-        protected long computeTravelTimeTo(Point p) {
-            final Measure<Double, Length> distance =
-                    Measure.valueOf(
-                        Point.distance(roadModel.getPosition(this), p),
-                        distUnit);
-            return DoubleMath.roundToLong(
-                ArraysSolvers.computeTravelTime(speed, distance, timeUnit),
-                RoundingMode.CEILING);
-        }
-
-        protected boolean isEndOfDay(TimeLapse time) {
-            final long travelTime =
-                    computeTravelTimeTo(roadModel.getPosition(depot));
-            return time.hasTimeLeft()
-                    && time.getTime() >= dto.availabilityTimeWindow.end
-                            - travelTime;
-        }
-    }
 }
