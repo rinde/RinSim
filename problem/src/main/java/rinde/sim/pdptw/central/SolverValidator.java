@@ -153,7 +153,7 @@ public final class SolverValidator {
     private static class Validator implements Solver {
         private final Solver delegateSolver;
 
-        private Validator(Solver delegate) {
+        Validator(Solver delegate) {
             delegateSolver = delegate;
         }
 
