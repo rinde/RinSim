@@ -36,14 +36,17 @@ public class SolverAdapter {
             Unit<Length> distUnit) {
         this.solver = solver;
         this.simulator = simulator;
-        roadModel =
-                simulator.getModelProvider().getModel(PDPRoadModel.class);
+        roadModel = simulator.getModelProvider().getModel(PDPRoadModel.class);
         pdpModel = simulator.getModelProvider().getModel(PDPModel.class);
         this.timeUnit = timeUnit;
         this.speedUnit = speedUnit;
         this.distUnit = distUnit;
     }
 
+    /**
+     * 
+     * @return
+     */
     public List<Queue<DefaultParcel>> solve() {
         return Solvers.solve(solver, roadModel, pdpModel,
             simulator.getCurrentTime(), timeUnit, speedUnit, distUnit);
