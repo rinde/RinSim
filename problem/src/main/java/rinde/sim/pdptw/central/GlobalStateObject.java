@@ -9,6 +9,8 @@ import javax.measure.quantity.Length;
 import javax.measure.quantity.Velocity;
 import javax.measure.unit.Unit;
 
+import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
+
 import rinde.sim.core.graph.Point;
 import rinde.sim.pdptw.common.ParcelDTO;
 import rinde.sim.pdptw.common.VehicleDTO;
@@ -73,6 +75,11 @@ public class GlobalStateObject {
         this.distUnit = distUnit;
     }
 
+    @Override
+    public String toString() {
+        return new ReflectionToStringBuilder(this).toString();
+    }
+
     /**
      * Immutable state object of a vehicle.
      * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
@@ -122,6 +129,11 @@ public class GlobalStateObject {
             this.contents = contents;
             this.remainingServiceTime = remainingServiceTime;
             this.destination = destination;
+        }
+
+        @Override
+        public String toString() {
+            return new ReflectionToStringBuilder(this).toString();
         }
     }
 }
