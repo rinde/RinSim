@@ -18,15 +18,16 @@ import com.google.common.collect.ImmutableList;
  */
 public class HomogenousVehicleGenerator implements VehicleGenerator {
 
-	private final VehicleDTO vehicleDto;
-	private final int n;
+  private final VehicleDTO vehicleDto;
+  private final int n;
 
-	public HomogenousVehicleGenerator(int numberOfVehicles, VehicleDTO dto) {
-		vehicleDto = dto;
-		n = numberOfVehicles;
-	}
+  public HomogenousVehicleGenerator(int numberOfVehicles, VehicleDTO dto) {
+    vehicleDto = dto;
+    n = numberOfVehicles;
+  }
 
-	public ImmutableList<AddVehicleEvent> generate(RandomGenerator rng) {
-		return ImmutableList.copyOf(nCopies(n, new AddVehicleEvent(-1, vehicleDto)));
-	}
+  public ImmutableList<AddVehicleEvent> generate(RandomGenerator rng) {
+    return ImmutableList
+        .copyOf(nCopies(n, new AddVehicleEvent(-1, vehicleDto)));
+  }
 }

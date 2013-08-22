@@ -23,32 +23,31 @@ import rinde.sim.pdptw.common.PDPRoadModel;
  */
 public class SolverAdapter {
 
-    private final Solver solver;
-    private final Simulator simulator;
-    private final PDPRoadModel roadModel;
-    private final PDPModel pdpModel;
-    private final Unit<Duration> timeUnit;
-    private final Unit<Velocity> speedUnit;
-    private final Unit<Length> distUnit;
+  private final Solver solver;
+  private final Simulator simulator;
+  private final PDPRoadModel roadModel;
+  private final PDPModel pdpModel;
+  private final Unit<Duration> timeUnit;
+  private final Unit<Velocity> speedUnit;
+  private final Unit<Length> distUnit;
 
-    public SolverAdapter(Solver solver, Simulator simulator,
-            Unit<Duration> timeUnit, Unit<Velocity> speedUnit,
-            Unit<Length> distUnit) {
-        this.solver = solver;
-        this.simulator = simulator;
-        roadModel = simulator.getModelProvider().getModel(PDPRoadModel.class);
-        pdpModel = simulator.getModelProvider().getModel(PDPModel.class);
-        this.timeUnit = timeUnit;
-        this.speedUnit = speedUnit;
-        this.distUnit = distUnit;
-    }
+  public SolverAdapter(Solver solver, Simulator simulator,
+      Unit<Duration> timeUnit, Unit<Velocity> speedUnit, Unit<Length> distUnit) {
+    this.solver = solver;
+    this.simulator = simulator;
+    roadModel = simulator.getModelProvider().getModel(PDPRoadModel.class);
+    pdpModel = simulator.getModelProvider().getModel(PDPModel.class);
+    this.timeUnit = timeUnit;
+    this.speedUnit = speedUnit;
+    this.distUnit = distUnit;
+  }
 
-    /**
-     * 
-     * @return A list of routes, one for every vehicle.
-     */
-    public List<Queue<DefaultParcel>> solve() {
-        return Solvers.solve(solver, roadModel, pdpModel,
-            simulator.getCurrentTime(), timeUnit, speedUnit, distUnit);
-    }
+  /**
+   * 
+   * @return A list of routes, one for every vehicle.
+   */
+  public List<Queue<DefaultParcel>> solve() {
+    return Solvers.solve(solver, roadModel, pdpModel, simulator
+        .getCurrentTime(), timeUnit, speedUnit, distUnit);
+  }
 }

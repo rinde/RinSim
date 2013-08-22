@@ -15,6 +15,6 @@ import com.google.common.collect.ImmutableList;
  */
 public interface LocationsGenerator {
 
-	ImmutableList<Point> generate(int numOrders, RandomGenerator rng);
+  ImmutableList<Point> generate(int numOrders, RandomGenerator rng);
 
 }

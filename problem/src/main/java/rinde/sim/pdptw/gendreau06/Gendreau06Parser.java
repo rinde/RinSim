@@ -55,73 +55,80 @@ import rinde.sim.util.TimeWindow;
  */
 public final class Gendreau06Parser {
 
-	private Gendreau06Parser() {}
+  private Gendreau06Parser() {}
 
-	public static Gendreau06Scenario parse(String file, int numVehicles) throws IOException {
-		return parse(new BufferedReader(new FileReader(file)), new File(file).getName(), numVehicles);
-	}
+  public static Gendreau06Scenario parse(String file, int numVehicles)
+      throws IOException {
+    return parse(new BufferedReader(new FileReader(file)), new File(file).getName(), numVehicles);
+  }
 
-	public static Gendreau06Scenario parse(BufferedReader reader, String fileName, int numVehicles) throws IOException {
-		return parse(reader, fileName, numVehicles, -1);
-	}
+  public static Gendreau06Scenario parse(BufferedReader reader,
+      String fileName, int numVehicles) throws IOException {
+    return parse(reader, fileName, numVehicles, -1);
+  }
 
-	public static Gendreau06Scenario parse(BufferedReader reader, String fileName, int numVehicles, final long tickSize)
-			throws IOException {
-		checkArgument(numVehicles > 0, "at least one vehicle is necessary in the scenario");
-		final ScenarioBuilder sb = new ScenarioBuilder(ADD_PARCEL, ADD_DEPOT, ADD_VEHICLE, TIME_OUT);
+  public static Gendreau06Scenario parse(BufferedReader reader,
+      String fileName, int numVehicles, final long tickSize) throws IOException {
+    checkArgument(numVehicles > 0, "at least one vehicle is necessary in the scenario");
+    final ScenarioBuilder sb = new ScenarioBuilder(ADD_PARCEL, ADD_DEPOT,
+        ADD_VEHICLE, TIME_OUT);
 
-		final String regex = ".*req_rapide_\\d+_(450|240)_(24|33)";
-		final Matcher m = Pattern.compile(regex).matcher(fileName);
-		checkArgument(m.matches(), "The filename must conform to the following regex: %s input was: %s", regex, fileName);
-		// checkArgument(fileName.contains("240") || fileName.contains("540"),
-		// "The filename must follow the following pattern: req_rapide_I_T_R, where I=instance number, T=total time (either 240 or 540 minutes), R=number of requests per hour (either 24 or 33).");
+    final String regex = ".*req_rapide_\\d+_(450|240)_(24|33)";
+    final Matcher m = Pattern.compile(regex).matcher(fileName);
+    checkArgument(m.matches(), "The filename must conform to the following regex: %s input was: %s", regex, fileName);
+    // checkArgument(fileName.contains("240") || fileName.contains("540"),
+    // "The filename must follow the following pattern: req_rapide_I_T_R, where I=instance number, T=total time (either 240 or 540 minutes), R=number of requests per hour (either 24 or 33).");
 
-		final long totalTime = Long.parseLong(m.group(1)) * 60000;
-		final long requestsPerHour = Long.parseLong(m.group(2));
+    final long totalTime = Long.parseLong(m.group(1)) * 60000;
+    final long requestsPerHour = Long.parseLong(m.group(2));
 
-		final Point depotPosition = new Point(2.0, 2.5);
-		final double truckSpeed = 30;
-		sb.addEvent(new AddDepotEvent(-1, depotPosition));
-		for (int i = 0; i < numVehicles; i++) {
-			sb.addEvent(new AddVehicleEvent(-1, new VehicleDTO(depotPosition, truckSpeed, 0, new TimeWindow(0,
-					totalTime))));
-		}
-		String line;
-		while ((line = reader.readLine()) != null) {
-			final String[] parts = line.split(" ");
-			final long requestArrivalTime = (long) (Double.parseDouble(parts[0]) * 1000.0);
-			// FIXME currently filtering out first and last lines of file. Is
-			// this ok?
-			if (requestArrivalTime >= 0) {
-				final long pickupServiceTime = Long.parseLong(parts[1]) * 1000;
-				final double pickupX = Double.parseDouble(parts[2]);
-				final double pickupY = Double.parseDouble(parts[3]);
-				final long pickupTimeWindowBegin = (long) (Double.parseDouble(parts[4]) * 1000.0);
-				final long pickupTimeWindowEnd = (long) (Double.parseDouble(parts[5]) * 1000.0);
-				final long deliveryServiceTime = Long.parseLong(parts[6]) * 1000;
-				final double deliveryX = Double.parseDouble(parts[7]);
-				final double deliveryY = Double.parseDouble(parts[8]);
-				final long deliveryTimeWindowBegin = (long) (Double.parseDouble(parts[9]) * 1000.0);
-				final long deliveryTimeWindowEnd = (long) (Double.parseDouble(parts[10]) * 1000.0);
+    final Point depotPosition = new Point(2.0, 2.5);
+    final double truckSpeed = 30;
+    sb.addEvent(new AddDepotEvent(-1, depotPosition));
+    for (int i = 0; i < numVehicles; i++) {
+      sb.addEvent(new AddVehicleEvent(-1, new VehicleDTO(depotPosition,
+          truckSpeed, 0, new TimeWindow(0, totalTime))));
+    }
+    String line;
+    while ((line = reader.readLine()) != null) {
+      final String[] parts = line.split(" ");
+      final long requestArrivalTime = (long) (Double.parseDouble(parts[0]) * 1000.0);
+      // FIXME currently filtering out first and last lines of file. Is
+      // this ok?
+      if (requestArrivalTime >= 0) {
+        final long pickupServiceTime = Long.parseLong(parts[1]) * 1000;
+        final double pickupX = Double.parseDouble(parts[2]);
+        final double pickupY = Double.parseDouble(parts[3]);
+        final long pickupTimeWindowBegin = (long) (Double.parseDouble(parts[4]) * 1000.0);
+        final long pickupTimeWindowEnd = (long) (Double.parseDouble(parts[5]) * 1000.0);
+        final long deliveryServiceTime = Long.parseLong(parts[6]) * 1000;
+        final double deliveryX = Double.parseDouble(parts[7]);
+        final double deliveryY = Double.parseDouble(parts[8]);
+        final long deliveryTimeWindowBegin = (long) (Double
+            .parseDouble(parts[9]) * 1000.0);
+        final long deliveryTimeWindowEnd = (long) (Double
+            .parseDouble(parts[10]) * 1000.0);
 
-				final ParcelDTO dto = new ParcelDTO(new Point(pickupX, pickupY), new Point(deliveryX, deliveryY),
-						new TimeWindow(pickupTimeWindowBegin, pickupTimeWindowEnd), new TimeWindow(
-								deliveryTimeWindowBegin, deliveryTimeWindowEnd), 0, requestArrivalTime,
-						pickupServiceTime, deliveryServiceTime);
-				sb.addEvent(new AddParcelEvent(dto));
-			}
-		}
+        final ParcelDTO dto = new ParcelDTO(new Point(pickupX, pickupY),
+            new Point(deliveryX, deliveryY), new TimeWindow(
+                pickupTimeWindowBegin, pickupTimeWindowEnd), new TimeWindow(
+                deliveryTimeWindowBegin, deliveryTimeWindowEnd), 0,
+            requestArrivalTime, pickupServiceTime, deliveryServiceTime);
+        sb.addEvent(new AddParcelEvent(dto));
+      }
+    }
 
-		sb.addEvent(new TimedEvent(TIME_OUT, totalTime));
-		reader.close();
-		return sb.build(new ScenarioCreator<Gendreau06Scenario>() {
-			@Override
-			public Gendreau06Scenario create(List<TimedEvent> eventList, Set<Enum<?>> eventTypes) {
-				if (tickSize > 0) {
-					return new Gendreau06Scenario(eventList, eventTypes, tickSize);
-				}
-				return new Gendreau06Scenario(eventList, eventTypes);
-			}
-		});
-	}
+    sb.addEvent(new TimedEvent(TIME_OUT, totalTime));
+    reader.close();
+    return sb.build(new ScenarioCreator<Gendreau06Scenario>() {
+      @Override
+      public Gendreau06Scenario create(List<TimedEvent> eventList,
+          Set<Enum<?>> eventTypes) {
+        if (tickSize > 0) {
+          return new Gendreau06Scenario(eventList, eventTypes, tickSize);
+        }
+        return new Gendreau06Scenario(eventList, eventTypes);
+      }
+    });
+  }
 }

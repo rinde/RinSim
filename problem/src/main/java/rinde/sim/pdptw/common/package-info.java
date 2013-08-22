@@ -1,6 +1,6 @@
 /**
  * This package provides commons classes for problems.
  */
-@ParametersAreNonnullByDefault
+@javax.annotation.ParametersAreNonnullByDefault
 package rinde.sim.pdptw.common;
-import javax.annotation.ParametersAreNonnullByDefault;
+

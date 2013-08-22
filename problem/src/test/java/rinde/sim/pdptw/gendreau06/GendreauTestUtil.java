@@ -22,31 +22,36 @@ import rinde.sim.scenario.TimedEvent;
  */
 public class GendreauTestUtil {
 
-	public static Gendreau06Scenario create(Collection<? extends TimedEvent> pEvents, Set<Enum<?>> pSupportedTypes,
-			long ts) {
-		return new Gendreau06Scenario(pEvents, pSupportedTypes, ts);
-	}
-	
-	public static Gendreau06Scenario create(Collection<TimedEvent> parcels) {
-		return create(parcels,1);
-	}
+  public static Gendreau06Scenario create(
+      Collection<? extends TimedEvent> pEvents, Set<Enum<?>> pSupportedTypes,
+      long ts) {
+    return new Gendreau06Scenario(pEvents, pSupportedTypes, ts);
+  }
 
-	public static Gendreau06Scenario create(Collection<TimedEvent> parcels, int numTrucks) {
-		Gendreau06Scenario gs;
-		try {
-			gs = Gendreau06Parser.parse(new BufferedReader(new StringReader("")), "req_rapide_1_240_24", numTrucks, 1000L);
-		} catch (final IOException e) {
-			throw new RuntimeException("if this is thrown it is due to a programming error in the line above");
-		}
-		final ScenarioBuilder sb = new ScenarioBuilder(gs.getPossibleEventTypes());
-		sb.addEvents(gs.asList());
-		sb.addEvents(parcels);
-		return sb.build(new ScenarioCreator<Gendreau06Scenario>() {
-			@Override
-			public Gendreau06Scenario create(List<TimedEvent> eventList, Set<Enum<?>> eventTypes) {
-				return GendreauTestUtil.create(eventList, eventTypes, 1000);
-			}
-		});
-	}
+  public static Gendreau06Scenario create(Collection<TimedEvent> parcels) {
+    return create(parcels, 1);
+  }
+
+  public static Gendreau06Scenario create(Collection<TimedEvent> parcels,
+      int numTrucks) {
+    Gendreau06Scenario gs;
+    try {
+      gs = Gendreau06Parser
+          .parse(new BufferedReader(new StringReader("")), "req_rapide_1_240_24", numTrucks, 1000L);
+    } catch (final IOException e) {
+      throw new RuntimeException(
+          "if this is thrown it is due to a programming error in the line above");
+    }
+    final ScenarioBuilder sb = new ScenarioBuilder(gs.getPossibleEventTypes());
+    sb.addEvents(gs.asList());
+    sb.addEvents(parcels);
+    return sb.build(new ScenarioCreator<Gendreau06Scenario>() {
+      @Override
+      public Gendreau06Scenario create(List<TimedEvent> eventList,
+          Set<Enum<?>> eventTypes) {
+        return GendreauTestUtil.create(eventList, eventTypes, 1000);
+      }
+    });
+  }
 
 }

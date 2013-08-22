@@ -20,35 +20,31 @@ import com.google.common.collect.ImmutableList;
  */
 public class MultiVehicleSolverAdapter implements Solver {
 
-    private final MultiVehicleArraysSolver solver;
-    private final Unit<Duration> outputTimeUnit;
+  private final MultiVehicleArraysSolver solver;
+  private final Unit<Duration> outputTimeUnit;
 
-    /**
-     * @param solver The solver to use.
-     * @param outputTimeUnit The time unit which is expected by the specified
-     *            solver.
-     */
-    public MultiVehicleSolverAdapter(MultiVehicleArraysSolver solver,
-            Unit<Duration> outputTimeUnit) {
-        this.solver = solver;
-        this.outputTimeUnit = outputTimeUnit;
-    }
+  /**
+   * @param solver The solver to use.
+   * @param outputTimeUnit The time unit which is expected by the specified
+   *          solver.
+   */
+  public MultiVehicleSolverAdapter(MultiVehicleArraysSolver solver,
+      Unit<Duration> outputTimeUnit) {
+    this.solver = solver;
+    this.outputTimeUnit = outputTimeUnit;
+  }
 
-    @Override
-    public ImmutableList<ImmutableList<ParcelDTO>> solve(GlobalStateObject state) {
-        final MVArraysObject o =
-                ArraysSolvers.toMultiVehicleArrays(state, outputTimeUnit);
-        final SolutionObject[] sols =
-                solver.solve(o.travelTime, o.releaseDates, o.dueDates,
-                    o.servicePairs, o.serviceTimes, o.vehicleTravelTimes,
-                    o.inventories, o.remainingServiceTimes,
-                    o.currentDestinations);
-        final ImmutableList.Builder<ImmutableList<ParcelDTO>> b =
-                ImmutableList.builder();
-        for (final SolutionObject sol : sols) {
-            b.add(ArraysSolvers.convertSolutionObject(sol, o.point2dto,
-                o.locations));
-        }
-        return b.build();
+  @Override
+  public ImmutableList<ImmutableList<ParcelDTO>> solve(GlobalStateObject state) {
+    final MVArraysObject o = ArraysSolvers
+        .toMultiVehicleArrays(state, outputTimeUnit);
+    final SolutionObject[] sols = solver
+        .solve(o.travelTime, o.releaseDates, o.dueDates, o.servicePairs, o.serviceTimes, o.vehicleTravelTimes, o.inventories, o.remainingServiceTimes, o.currentDestinations);
+    final ImmutableList.Builder<ImmutableList<ParcelDTO>> b = ImmutableList
+        .builder();
+    for (final SolutionObject sol : sols) {
+      b.add(ArraysSolvers.convertSolutionObject(sol, o.point2dto, o.locations));
     }
+    return b.build();
+  }
 }

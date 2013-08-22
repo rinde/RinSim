@@ -43,69 +43,68 @@ import rinde.sim.util.TimeWindow;
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
  */
 public class Gendreau06Scenario extends DynamicPDPTWScenario {
-    private static final long serialVersionUID = 1386559671732721432L;
+  private static final long serialVersionUID = 1386559671732721432L;
 
-    protected final long tickSize;
+  protected final long tickSize;
 
-    protected static final Point min = new Point(0, 0);
-    protected static final Point max = new Point(5, 5);
-    protected static final double maxSpeed = 30.0;
+  protected static final Point min = new Point(0, 0);
+  protected static final Point max = new Point(5, 5);
+  protected static final double maxSpeed = 30.0;
 
-    protected Gendreau06Scenario(Collection<? extends TimedEvent> pEvents,
-            Set<Enum<?>> pSupportedTypes, long ts) {
-        super(pEvents, pSupportedTypes);
-        tickSize = ts;
-    }
+  protected Gendreau06Scenario(Collection<? extends TimedEvent> pEvents,
+      Set<Enum<?>> pSupportedTypes, long ts) {
+    super(pEvents, pSupportedTypes);
+    tickSize = ts;
+  }
 
-    protected Gendreau06Scenario(Collection<? extends TimedEvent> pEvents,
-            Set<Enum<?>> pSupportedTypes) {
-        this(pEvents, pSupportedTypes, 1000L);
-    }
+  protected Gendreau06Scenario(Collection<? extends TimedEvent> pEvents,
+      Set<Enum<?>> pSupportedTypes) {
+    this(pEvents, pSupportedTypes, 1000L);
+  }
 
-    @Override
-    public String toString() {
-        return ToStringBuilder.reflectionToString(this,
-            ToStringStyle.MULTI_LINE_STYLE);
-    }
+  @Override
+  public String toString() {
+    return ToStringBuilder
+        .reflectionToString(this, ToStringStyle.MULTI_LINE_STYLE);
+  }
 
-    @Override
-    public TimeWindow getTimeWindow() {
-        return TimeWindow.ALWAYS;
-    }
+  @Override
+  public TimeWindow getTimeWindow() {
+    return TimeWindow.ALWAYS;
+  }
 
-    @Override
-    public long getTickSize() {
-        return tickSize;
-    }
+  @Override
+  public long getTickSize() {
+    return tickSize;
+  }
 
-    @Override
-    public StopCondition getStopCondition() {
-        return StopCondition.VEHICLES_BACK_AT_DEPOT;
-    }
+  @Override
+  public StopCondition getStopCondition() {
+    return StopCondition.VEHICLES_BACK_AT_DEPOT;
+  }
 
-    @Override
-    public RoadModel createRoadModel() {
-        return new PDPRoadModel(
-                new PlaneRoadModel(min, max, true, maxSpeed), false);
-    }
+  @Override
+  public RoadModel createRoadModel() {
+    return new PDPRoadModel(new PlaneRoadModel(min, max, true, maxSpeed), false);
+  }
 
-    @Override
-    public PDPModel createPDPModel() {
-        return new PDPModel(new TardyAllowedPolicy());
-    }
+  @Override
+  public PDPModel createPDPModel() {
+    return new PDPModel(new TardyAllowedPolicy());
+  }
 
-    @Override
-    public Unit<Duration> getTimeUnit() {
-        return SI.MILLI(SI.SECOND);
-    }
+  @Override
+  public Unit<Duration> getTimeUnit() {
+    return SI.MILLI(SI.SECOND);
+  }
 
-    @Override
-    public Unit<Velocity> getSpeedUnit() {
-        return NonSI.KILOMETERS_PER_HOUR;
-    }
+  @Override
+  public Unit<Velocity> getSpeedUnit() {
+    return NonSI.KILOMETERS_PER_HOUR;
+  }
 
-    @Override
-    public Unit<Length> getDistanceUnit() {
-        return SI.KILOMETER;
-    }
+  @Override
+  public Unit<Length> getDistanceUnit() {
+    return SI.KILOMETER;
+  }
 }

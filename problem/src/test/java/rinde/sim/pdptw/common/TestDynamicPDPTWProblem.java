@@ -39,102 +39,100 @@ import rinde.sim.util.TimeWindow;
  */
 public class TestDynamicPDPTWProblem {
 
-    protected static final Creator<AddVehicleEvent> DUMMY_ADD_VEHICLE_EVENT_CREATOR =
-            new Creator<AddVehicleEvent>() {
-                @Override
-                public boolean create(Simulator sim, AddVehicleEvent event) {
-                    return true;
-                }
-            };
+  protected static final Creator<AddVehicleEvent> DUMMY_ADD_VEHICLE_EVENT_CREATOR = new Creator<AddVehicleEvent>() {
+    @Override
+    public boolean create(Simulator sim, AddVehicleEvent event) {
+      return true;
+    }
+  };
 
-    /**
-     * Checks for the absence of a creator for AddVehicleEvent.
-     */
-    @Test(expected = IllegalStateException.class)
-    public void noVehicleCreator() {
-        final Set<TimedEvent> events =
-                newHashSet(new TimedEvent(PDPScenarioEvent.ADD_DEPOT, 10));
-        new DynamicPDPTWProblem(new DummyScenario(events), 123).simulate();
+  /**
+   * Checks for the absence of a creator for AddVehicleEvent.
+   */
+  @Test(expected = IllegalStateException.class)
+  public void noVehicleCreator() {
+    final Set<TimedEvent> events = newHashSet(new TimedEvent(
+        PDPScenarioEvent.ADD_DEPOT, 10));
+    new DynamicPDPTWProblem(new DummyScenario(events), 123).simulate();
+  }
+
+  @Test
+  public void testStopCondition() {
+    final Set<TimedEvent> events = newHashSet(new TimedEvent(
+        PDPScenarioEvent.ADD_DEPOT, 10));
+    final DynamicPDPTWProblem prob = new DynamicPDPTWProblem(new DummyScenario(
+        events), 123);
+    prob.addCreator(AddVehicleEvent.class, DUMMY_ADD_VEHICLE_EVENT_CREATOR);
+
+    prob.addStopCondition(new TimeStopCondition(4));
+    final StatisticsDTO stats = prob.simulate();
+
+    assertEquals(5, stats.simulationTime);
+  }
+
+  class TimeStopCondition extends StopCondition {
+    protected final long time;
+
+    public TimeStopCondition(long t) {
+      time = t;
     }
 
-    @Test
-    public void testStopCondition() {
-        final Set<TimedEvent> events =
-                newHashSet(new TimedEvent(PDPScenarioEvent.ADD_DEPOT, 10));
-        final DynamicPDPTWProblem prob =
-                new DynamicPDPTWProblem(new DummyScenario(events), 123);
-        prob.addCreator(AddVehicleEvent.class, DUMMY_ADD_VEHICLE_EVENT_CREATOR);
+    @Override
+    public boolean isSatisfiedBy(SimulationInfo context) {
+      return context.stats.simulationTime == time;
+    }
+  }
 
-        prob.addStopCondition(new TimeStopCondition(4));
-        final StatisticsDTO stats = prob.simulate();
+  class DummyScenario extends DynamicPDPTWScenario {
 
-        assertEquals(5, stats.simulationTime);
+    public DummyScenario(Set<TimedEvent> events) {
+      super(events, new HashSet<Enum<?>>(
+          java.util.Arrays.asList(PDPScenarioEvent.values())));
     }
 
-    class TimeStopCondition extends StopCondition {
-        protected final long time;
-
-        public TimeStopCondition(long t) {
-            time = t;
-        }
-
-        @Override
-        public boolean isSatisfiedBy(SimulationInfo context) {
-            return context.stats.simulationTime == time;
-        }
+    @Override
+    public TimeWindow getTimeWindow() {
+      return TimeWindow.ALWAYS;
     }
 
-    class DummyScenario extends DynamicPDPTWScenario {
-
-        public DummyScenario(Set<TimedEvent> events) {
-            super(events, new HashSet<Enum<?>>(
-                    java.util.Arrays.asList(PDPScenarioEvent.values())));
-        }
-
-        @Override
-        public TimeWindow getTimeWindow() {
-            return TimeWindow.ALWAYS;
-        }
-
-        @Override
-        public long getTickSize() {
-            return 1;
-        }
-
-        @Override
-        public StopCondition getStopCondition() {
-            return StopCondition.TIME_OUT_EVENT;
-        }
-
-        @Override
-        public RoadModel createRoadModel() {
-            return new PlaneRoadModel(new Point(0, 0), new Point(10, 10),
-                    false, 1d);
-        }
-
-        @Override
-        public PDPModel createPDPModel() {
-            return new PDPModel(new TardyAllowedPolicy());
-        }
-
-        @Override
-        public Unit<Duration> getTimeUnit() {
-            // TODO Auto-generated method stub
-            return null;
-        }
-
-        @Override
-        public Unit<Velocity> getSpeedUnit() {
-            // TODO Auto-generated method stub
-            return null;
-        }
-
-        @Override
-        public Unit<Length> getDistanceUnit() {
-            // TODO Auto-generated method stub
-            return null;
-        }
-
+    @Override
+    public long getTickSize() {
+      return 1;
     }
+
+    @Override
+    public StopCondition getStopCondition() {
+      return StopCondition.TIME_OUT_EVENT;
+    }
+
+    @Override
+    public RoadModel createRoadModel() {
+      return new PlaneRoadModel(new Point(0, 0), new Point(10, 10), false, 1d);
+    }
+
+    @Override
+    public PDPModel createPDPModel() {
+      return new PDPModel(new TardyAllowedPolicy());
+    }
+
+    @Override
+    public Unit<Duration> getTimeUnit() {
+      // TODO Auto-generated method stub
+      return null;
+    }
+
+    @Override
+    public Unit<Velocity> getSpeedUnit() {
+      // TODO Auto-generated method stub
+      return null;
+    }
+
+    @Override
+    public Unit<Length> getDistanceUnit() {
+      // TODO Auto-generated method stub
+      return null;
+    }
+
+  }
 
 }

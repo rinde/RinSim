@@ -14,14 +14,14 @@ import rinde.sim.core.model.road.RoadModel;
  */
 public class DefaultDepot extends Depot {
 
-	/**
-	 * Instantiate the depot at the provided position.
-	 * @param startPosition The position where the depot will be located.
-	 */
-	public DefaultDepot(Point startPosition) {
-		setStartPosition(startPosition);
-	}
+  /**
+   * Instantiate the depot at the provided position.
+   * @param startPosition The position where the depot will be located.
+   */
+  public DefaultDepot(Point startPosition) {
+    setStartPosition(startPosition);
+  }
 
-	@Override
-	public void initRoadPDP(RoadModel pRoadModel, PDPModel pPdpModel) {}
+  @Override
+  public void initRoadPDP(RoadModel pRoadModel, PDPModel pPdpModel) {}
 }

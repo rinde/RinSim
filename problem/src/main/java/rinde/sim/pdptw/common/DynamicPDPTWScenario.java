@@ -24,31 +24,31 @@ import rinde.sim.util.TimeWindow;
  */
 public abstract class DynamicPDPTWScenario extends Scenario {
 
-    private static final long serialVersionUID = 7258024865764689371L;
+  private static final long serialVersionUID = 7258024865764689371L;
 
-    public DynamicPDPTWScenario() {
-        super();
-    }
+  public DynamicPDPTWScenario() {
+    super();
+  }
 
-    public DynamicPDPTWScenario(Collection<? extends TimedEvent> events,
-            Set<Enum<?>> supportedTypes) {
-        super(events, supportedTypes);
-    }
+  public DynamicPDPTWScenario(Collection<? extends TimedEvent> events,
+      Set<Enum<?>> supportedTypes) {
+    super(events, supportedTypes);
+  }
 
-    public abstract RoadModel createRoadModel();
+  public abstract RoadModel createRoadModel();
 
-    public abstract PDPModel createPDPModel();
+  public abstract PDPModel createPDPModel();
 
-    public abstract TimeWindow getTimeWindow();
+  public abstract TimeWindow getTimeWindow();
 
-    public abstract long getTickSize();
+  public abstract long getTickSize();
 
-    public abstract StopCondition getStopCondition();
+  public abstract StopCondition getStopCondition();
 
-    public abstract Unit<Duration> getTimeUnit();
+  public abstract Unit<Duration> getTimeUnit();
 
-    public abstract Unit<Velocity> getSpeedUnit();
+  public abstract Unit<Velocity> getSpeedUnit();
 
-    public abstract Unit<Length> getDistanceUnit();
+  public abstract Unit<Length> getDistanceUnit();
 
 }

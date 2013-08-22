@@ -20,23 +20,24 @@ import rinde.sim.pdptw.fabrirecht.FabriRechtScenario;
  */
 public class ScenarioTest {
 
-	@Test
-	public void test() throws IOException {
-		final FabriRechtScenario scen = FabriRechtParser
-				.parse("data/test/fabri-recht/lc101_coord.csv", "data/test/fabri-recht/lc101.csv");
+  @Test
+  public void test() throws IOException {
+    final FabriRechtScenario scen = FabriRechtParser
+        .parse("data/test/fabri-recht/lc101_coord.csv", "data/test/fabri-recht/lc101.csv");
 
-		final String json = FabriRechtParser.toJson(scen);
-		// System.out.println(json);
-		FabriRechtParser.toJson(scen, new BufferedWriter(new FileWriter("data/test/fabri-recht/lc101.scenario")));
+    final String json = FabriRechtParser.toJson(scen);
+    // System.out.println(json);
+    FabriRechtParser.toJson(scen, new BufferedWriter(new FileWriter(
+        "data/test/fabri-recht/lc101.scenario")));
 
-		final FabriRechtScenario scen2 = FabriRechtParser.fromJson(json);
-		assertEquals(scen, scen2);
-		assertEquals(scen.getPossibleEventTypes(), scen2.getPossibleEventTypes());
-		final String json2 = FabriRechtParser.toJson(scen2);
-		assertEquals(json, json2);
-		final FabriRechtScenario scen3 = FabriRechtParser.fromJson(json2);
-		assertEquals(scen2, scen3);
-		assertEquals(scen2.getPossibleEventTypes(), scen3.getPossibleEventTypes());
-	}
+    final FabriRechtScenario scen2 = FabriRechtParser.fromJson(json);
+    assertEquals(scen, scen2);
+    assertEquals(scen.getPossibleEventTypes(), scen2.getPossibleEventTypes());
+    final String json2 = FabriRechtParser.toJson(scen2);
+    assertEquals(json, json2);
+    final FabriRechtScenario scen3 = FabriRechtParser.fromJson(json2);
+    assertEquals(scen2, scen3);
+    assertEquals(scen2.getPossibleEventTypes(), scen3.getPossibleEventTypes());
+  }
 
 }

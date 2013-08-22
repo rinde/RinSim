@@ -32,65 +32,57 @@ import rinde.sim.ui.View;
  * 
  */
 public class CentralTest {
-    @Test
-    public void test() throws IOException {
-        final List<String> files = getFilesFromDir("data/test/gendreau06/", "");
+  @Test
+  public void test() throws IOException {
+    final List<String> files = getFilesFromDir("data/test/gendreau06/", "");
 
-        final RandomGenerator rng = new MersenneTwister(123);
-        // "files/scenarios/gendreau06/req_rapide_1_240_24"
-        for (final String file : files) {
-            // final String file = "data/test/gendreau06/req_rapide_2_450_24";
+    final RandomGenerator rng = new MersenneTwister(123);
+    // "files/scenarios/gendreau06/req_rapide_1_240_24"
+    for (final String file : files) {
+      // final String file = "data/test/gendreau06/req_rapide_2_450_24";
 
-            System.out.println(file);
-            for (int i = 0; i < 1; i++) {
-                final Gendreau06Scenario scenario =
-                        Gendreau06Parser.parse(file, 10);
-                final Solver s =
-                        SolverValidator.wrap(new MultiVehicleSolverAdapter(
-                                ArraysSolverValidator
-                                        .wrap(new RandomMVArraysSolver(
-                                                new MersenneTwister(rng
-                                                        .nextLong()))),
-                                scenario.getTimeUnit()));
+      System.out.println(file);
+      for (int i = 0; i < 1; i++) {
+        final Gendreau06Scenario scenario = Gendreau06Parser.parse(file, 10);
+        final Solver s = SolverValidator.wrap(new MultiVehicleSolverAdapter(
+            ArraysSolverValidator.wrap(new RandomMVArraysSolver(
+                new MersenneTwister(rng.nextLong()))), scenario.getTimeUnit()));
 
-                final Gendreau06ObjectiveFunction objFunc =
-                        new Gendreau06ObjectiveFunction();
-                final StatisticsDTO stats =
-                        Central.solve(scenario, s, objFunc, false);
-                System.out.println(objFunc.printHumanReadableFormat(stats));
-            }
-        }
+        final Gendreau06ObjectiveFunction objFunc = new Gendreau06ObjectiveFunction();
+        final StatisticsDTO stats = Central.solve(scenario, s, objFunc, false);
+        System.out.println(objFunc.printHumanReadableFormat(stats));
+      }
     }
+  }
 
-    @BeforeClass
-    public static void setUpClass() {
-        View.setAutoClose(true);
-        View.setAutoPlay(true);
-    }
+  @BeforeClass
+  public static void setUpClass() {
+    View.setAutoClose(true);
+    View.setAutoPlay(true);
+  }
 
-    @AfterClass
-    public static void tearDownClass() {
-        View.setAutoClose(false);
-        View.setAutoPlay(false);
-    }
+  @AfterClass
+  public static void tearDownClass() {
+    View.setAutoClose(false);
+    View.setAutoPlay(false);
+  }
 
-    public static List<String> getFilesFromDir(String dir, final String suffix) {
-        final File directory = new File(dir);
-        checkArgument(directory.isDirectory());
-        final String[] names = directory.list(new FilenameFilter() {
-            @Override
-            public boolean accept(File d, String name) {
-                return name.endsWith(suffix)
-                        && new File(d + "/" + name).isFile();
-            }
-        });
-        // sort on file name such that order of returned list does not depend on
-        // filesystem ordering.
-        Arrays.sort(names);
-        final List<String> paths = newArrayList();
-        for (final String scen : names) {
-            paths.add(dir + scen);
-        }
-        return paths;
+  public static List<String> getFilesFromDir(String dir, final String suffix) {
+    final File directory = new File(dir);
+    checkArgument(directory.isDirectory());
+    final String[] names = directory.list(new FilenameFilter() {
+      @Override
+      public boolean accept(File d, String name) {
+        return name.endsWith(suffix) && new File(d + "/" + name).isFile();
+      }
+    });
+    // sort on file name such that order of returned list does not depend on
+    // filesystem ordering.
+    Arrays.sort(names);
+    final List<String> paths = newArrayList();
+    for (final String scen : names) {
+      paths.add(dir + scen);
     }
+    return paths;
+  }
 }

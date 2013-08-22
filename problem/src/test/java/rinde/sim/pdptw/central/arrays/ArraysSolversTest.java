@@ -32,58 +32,52 @@ import rinde.sim.util.TimeWindow;
  */
 public class ArraysSolversTest {
 
-    @Test
-    public void travelTimeMatrix() {
-        final Point p0 = new Point(0, 0);
-        final Point p1 = new Point(10, 0);
-        final Point p2 = new Point(10, 10);
-        final Point p3 = new Point(0, 10);
+  @Test
+  public void travelTimeMatrix() {
+    final Point p0 = new Point(0, 0);
+    final Point p1 = new Point(10, 0);
+    final Point p2 = new Point(10, 10);
+    final Point p3 = new Point(0, 10);
 
-        // input in kilometers, output in minutes (rounded up), speed 40 km/h
-        final Measure<Double, Velocity> speed1 =
-                Measure.valueOf(40d, KILOMETERS_PER_HOUR);
-        final int[][] matrix1 =
-                ArraysSolvers.toTravelTimeMatrix(asList(p0, p1, p2, p3),
-                    KILOMETER, speed1, MINUTE, RoundingMode.CEILING);
-        assertArrayEquals(new int[] { 0, 15, 22, 15 }, matrix1[0]);
-        assertArrayEquals(new int[] { 15, 0, 15, 22 }, matrix1[1]);
-        assertArrayEquals(new int[] { 22, 15, 0, 15 }, matrix1[2]);
-        assertArrayEquals(new int[] { 15, 22, 15, 0 }, matrix1[3]);
+    // input in kilometers, output in minutes (rounded up), speed 40 km/h
+    final Measure<Double, Velocity> speed1 = Measure
+        .valueOf(40d, KILOMETERS_PER_HOUR);
+    final int[][] matrix1 = ArraysSolvers
+        .toTravelTimeMatrix(asList(p0, p1, p2, p3), KILOMETER, speed1, MINUTE, RoundingMode.CEILING);
+    assertArrayEquals(new int[] { 0, 15, 22, 15 }, matrix1[0]);
+    assertArrayEquals(new int[] { 15, 0, 15, 22 }, matrix1[1]);
+    assertArrayEquals(new int[] { 22, 15, 0, 15 }, matrix1[2]);
+    assertArrayEquals(new int[] { 15, 22, 15, 0 }, matrix1[3]);
 
-        final Point p4 = new Point(11, 3);
-        // input in meters, output in milliseconds (round down), speed .0699
-        // m/ms
-        final Measure<Double, Velocity> speed2 =
-                Measure.valueOf(.0699,
-                    new ProductUnit<Velocity>(METER.divide(MILLI(SECOND))));
-        final int[][] matrix2 =
-                ArraysSolvers.toTravelTimeMatrix(asList(p0, p1, p2, p3, p4),
-                    METER, speed2, MILLI(SECOND), RoundingMode.FLOOR);
-        assertArrayEquals(new int[] { 0, 143, 202, 143, 163 }, matrix2[0]);
-        assertArrayEquals(new int[] { 143, 0, 143, 202, 45 }, matrix2[1]);
-        assertArrayEquals(new int[] { 202, 143, 0, 143, 101 }, matrix2[2]);
-        assertArrayEquals(new int[] { 143, 202, 143, 0, 186 }, matrix2[3]);
-        assertArrayEquals(new int[] { 163, 45, 101, 186, 0 }, matrix2[4]);
-    }
+    final Point p4 = new Point(11, 3);
+    // input in meters, output in milliseconds (round down), speed .0699
+    // m/ms
+    final Measure<Double, Velocity> speed2 = Measure
+        .valueOf(.0699, new ProductUnit<Velocity>(METER.divide(MILLI(SECOND))));
+    final int[][] matrix2 = ArraysSolvers
+        .toTravelTimeMatrix(asList(p0, p1, p2, p3, p4), METER, speed2, MILLI(SECOND), RoundingMode.FLOOR);
+    assertArrayEquals(new int[] { 0, 143, 202, 143, 163 }, matrix2[0]);
+    assertArrayEquals(new int[] { 143, 0, 143, 202, 45 }, matrix2[1]);
+    assertArrayEquals(new int[] { 202, 143, 0, 143, 101 }, matrix2[2]);
+    assertArrayEquals(new int[] { 143, 202, 143, 0, 186 }, matrix2[3]);
+    assertArrayEquals(new int[] { 163, 45, 101, 186, 0 }, matrix2[4]);
+  }
 
-    @Test
-    public void convertTWtest() {
-        final UnitConverter timeConverter =
-                MILLI(SECOND).getConverterTo(SECOND);
+  @Test
+  public void convertTWtest() {
+    final UnitConverter timeConverter = MILLI(SECOND).getConverterTo(SECOND);
 
-        final int[] tw1 = convertTW(new TimeWindow(300, 800), 5, timeConverter);
-        assertEquals(0, tw1[0]);
-        assertEquals(1, tw1[1]);
+    final int[] tw1 = convertTW(new TimeWindow(300, 800), 5, timeConverter);
+    assertEquals(0, tw1[0]);
+    assertEquals(1, tw1[1]);
 
-        final int[] tw2 =
-                convertTW(new TimeWindow(7300, 8800), 0, timeConverter);
-        assertEquals(8, tw2[0]);
-        assertEquals(8, tw2[1]);
+    final int[] tw2 = convertTW(new TimeWindow(7300, 8800), 0, timeConverter);
+    assertEquals(8, tw2[0]);
+    assertEquals(8, tw2[1]);
 
-        final int[] tw3 =
-                convertTW(new TimeWindow(7300, 8800), 7300, timeConverter);
-        assertEquals(0, tw3[0]);
-        assertEquals(1, tw3[1]);
+    final int[] tw3 = convertTW(new TimeWindow(7300, 8800), 7300, timeConverter);
+    assertEquals(0, tw3[0]);
+    assertEquals(1, tw3[1]);
 
-    }
+  }
 }

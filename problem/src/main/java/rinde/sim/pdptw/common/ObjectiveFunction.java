@@ -11,10 +11,10 @@ import rinde.sim.pdptw.common.StatsTracker.StatisticsDTO;
  */
 public interface ObjectiveFunction {
 
-	boolean isValidResult(StatisticsDTO stats);
+  boolean isValidResult(StatisticsDTO stats);
 
-	double computeCost(StatisticsDTO stats);
+  double computeCost(StatisticsDTO stats);
 
-	String printHumanReadableFormat(StatisticsDTO stats);
+  String printHumanReadableFormat(StatisticsDTO stats);
 
 }

@@ -15,6 +15,6 @@ import com.google.common.collect.ImmutableList;
  */
 public interface VehicleGenerator {
 
-	ImmutableList<AddVehicleEvent> generate(RandomGenerator rng);
+  ImmutableList<AddVehicleEvent> generate(RandomGenerator rng);
 
 }
