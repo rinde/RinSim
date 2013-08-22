@@ -29,7 +29,6 @@ import rinde.sim.pdptw.common.VehicleDTO;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
 
 /**
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>

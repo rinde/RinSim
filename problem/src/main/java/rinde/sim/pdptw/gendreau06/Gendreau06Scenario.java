@@ -21,9 +21,9 @@ import rinde.sim.core.model.pdp.PDPModel;
 import rinde.sim.core.model.pdp.twpolicy.TardyAllowedPolicy;
 import rinde.sim.core.model.road.PlaneRoadModel;
 import rinde.sim.core.model.road.RoadModel;
+import rinde.sim.pdptw.common.DynamicPDPTWProblem.StopCondition;
 import rinde.sim.pdptw.common.DynamicPDPTWScenario;
 import rinde.sim.pdptw.common.PDPRoadModel;
-import rinde.sim.pdptw.common.DynamicPDPTWProblem.StopCondition;
 import rinde.sim.scenario.TimedEvent;
 import rinde.sim.util.TimeWindow;
 
@@ -106,5 +106,11 @@ public class Gendreau06Scenario extends DynamicPDPTWScenario {
   @Override
   public Unit<Length> getDistanceUnit() {
     return SI.KILOMETER;
+  }
+
+  @Override
+  protected Gendreau06Scenario newInstance(
+      Collection<? extends TimedEvent> events) {
+    return new Gendreau06Scenario(events, getPossibleEventTypes(), tickSize);
   }
 }

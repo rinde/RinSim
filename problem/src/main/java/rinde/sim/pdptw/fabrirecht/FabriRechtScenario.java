@@ -16,9 +16,9 @@ import rinde.sim.core.model.pdp.PDPModel;
 import rinde.sim.core.model.pdp.twpolicy.TardyAllowedPolicy;
 import rinde.sim.core.model.road.PlaneRoadModel;
 import rinde.sim.core.model.road.RoadModel;
+import rinde.sim.pdptw.common.DynamicPDPTWProblem.StopCondition;
 import rinde.sim.pdptw.common.DynamicPDPTWScenario;
 import rinde.sim.pdptw.common.VehicleDTO;
-import rinde.sim.pdptw.common.DynamicPDPTWProblem.StopCondition;
 import rinde.sim.scenario.TimedEvent;
 import rinde.sim.util.TimeWindow;
 
@@ -96,4 +96,12 @@ public class FabriRechtScenario extends DynamicPDPTWScenario {
   public Unit<Length> getDistanceUnit() {
     throw new UnsupportedOperationException("Not implemented.");
   }
+
+  @Override
+  protected FabriRechtScenario newInstance(
+      Collection<? extends TimedEvent> events) {
+    return new FabriRechtScenario(events, getPossibleEventTypes(), min, max,
+        timeWindow, defaultVehicle);
+  }
+
 }

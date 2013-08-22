@@ -6,6 +6,7 @@ package rinde.sim.pdptw.common;
 import static com.google.common.collect.Sets.newHashSet;
 import static org.junit.Assert.assertEquals;
 
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -23,9 +24,6 @@ import rinde.sim.core.model.pdp.PDPScenarioEvent;
 import rinde.sim.core.model.pdp.twpolicy.TardyAllowedPolicy;
 import rinde.sim.core.model.road.PlaneRoadModel;
 import rinde.sim.core.model.road.RoadModel;
-import rinde.sim.pdptw.common.AddVehicleEvent;
-import rinde.sim.pdptw.common.DynamicPDPTWProblem;
-import rinde.sim.pdptw.common.DynamicPDPTWScenario;
 import rinde.sim.pdptw.common.DynamicPDPTWProblem.Creator;
 import rinde.sim.pdptw.common.DynamicPDPTWProblem.SimulationInfo;
 import rinde.sim.pdptw.common.DynamicPDPTWProblem.StopCondition;
@@ -129,6 +127,13 @@ public class TestDynamicPDPTWProblem {
 
     @Override
     public Unit<Length> getDistanceUnit() {
+      // TODO Auto-generated method stub
+      return null;
+    }
+
+    @Override
+    protected DynamicPDPTWScenario newInstance(
+        Collection<? extends TimedEvent> events) {
       // TODO Auto-generated method stub
       return null;
     }

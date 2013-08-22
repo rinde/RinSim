@@ -3,7 +3,10 @@
  */
 package rinde.sim.pdptw.common;
 
+import static com.google.common.collect.Lists.newArrayList;
+
 import java.util.Collection;
+import java.util.List;
 import java.util.Set;
 
 import javax.measure.quantity.Duration;
@@ -12,6 +15,7 @@ import javax.measure.quantity.Velocity;
 import javax.measure.unit.Unit;
 
 import rinde.sim.core.model.pdp.PDPModel;
+import rinde.sim.core.model.pdp.PDPScenarioEvent;
 import rinde.sim.core.model.road.RoadModel;
 import rinde.sim.pdptw.common.DynamicPDPTWProblem.StopCondition;
 import rinde.sim.scenario.Scenario;
@@ -51,4 +55,35 @@ public abstract class DynamicPDPTWScenario extends Scenario {
 
   public abstract Unit<Length> getDistanceUnit();
 
+  protected abstract DynamicPDPTWScenario newInstance(
+      Collection<? extends TimedEvent> events);
+
+  @SuppressWarnings("unchecked")
+  public static <T extends DynamicPDPTWScenario> T convertToOffline(T scenario) {
+    final List<TimedEvent> events = scenario.asList();
+    final List<TimedEvent> newEvents = newArrayList();
+    for (final TimedEvent e : events) {
+      final Class<?> clazz = e.getClass();
+      if (clazz == AddDepotEvent.class || clazz == AddVehicleEvent.class
+          || e.getEventType() == PDPScenarioEvent.TIME_OUT) {
+        newEvents.add(e);
+      } else if (clazz == AddParcelEvent.class) {
+        final AddParcelEvent old = (AddParcelEvent) e;
+        final ParcelDTO newDto = new ParcelDTO(//
+            old.parcelDTO.pickupLocation,//
+            old.parcelDTO.destinationLocation, //
+            old.parcelDTO.pickupTimeWindow,//
+            old.parcelDTO.deliveryTimeWindow,//
+            old.parcelDTO.neededCapacity,//
+            -1,// CHANGING ORDER ARRIVAL TIME TO -1
+            old.parcelDTO.pickupDuration,//
+            old.parcelDTO.deliveryDuration);
+        newEvents.add(new AddParcelEvent(newDto));
+      } else {
+        throw new IllegalArgumentException("Unrecognized class: " + clazz
+            + ", instance: " + e);
+      }
+    }
+    return (T) scenario.newInstance(newEvents);
+  }
 }

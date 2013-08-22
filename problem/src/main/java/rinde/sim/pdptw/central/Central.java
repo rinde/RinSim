@@ -16,6 +16,8 @@ import javax.measure.quantity.Velocity;
 import javax.measure.unit.Unit;
 
 import rinde.sim.core.Simulator;
+import rinde.sim.core.TickListener;
+import rinde.sim.core.TimeLapse;
 import rinde.sim.core.model.Model;
 import rinde.sim.core.model.pdp.PDPModel;
 import rinde.sim.event.Event;
@@ -32,6 +34,7 @@ import rinde.sim.pdptw.common.PDPRoadModel;
 import rinde.sim.pdptw.common.RouteFollowingVehicle;
 import rinde.sim.pdptw.common.StatsTracker.StatisticsDTO;
 
+// FIXME test this class thoroughly
 /**
  * A facade for RinSim which provides a centralized interface such that
  * {@link Solver} instances can solve {@link DynamicPDPTWScenario}s.
@@ -59,6 +62,7 @@ public final class Central {
     final Unit<Velocity> speedUnit = scenario.getSpeedUnit();
     final Unit<Length> distUnit = scenario.getDistanceUnit();
 
+    // TODO remove driverReceiver?
     final ReceiverModel<RouteFollowingVehicle> driverReceiver = ReceiverModel
         .create(RouteFollowingVehicle.class);
     final ReceiverModel<DefaultParcel> parcelReceiver = ReceiverModel
@@ -83,8 +87,11 @@ public final class Central {
     final PDPModel pm = sim.getModelProvider().getModel(PDPModel.class);
 
     parcelReceiver.getEventAPI().addListener(new Listener() {
+      // TODO check to see that this is called the first possible moment after
+      // the add parcel event was dispatched
       @Override
       public void handleEvent(Event e) {
+        System.out.println("call solver");
         final Iterator<Queue<DefaultParcel>> routes = Solvers
             .solve(solver, rm, pm, sim.getCurrentTime(), timeUnit, speedUnit, distUnit)
             .iterator();
@@ -105,11 +112,13 @@ public final class Central {
     RECEIVE;
   }
 
-  private static final class ReceiverModel<T> implements Model<T> {
+  private static final class ReceiverModel<T> implements Model<T>, TickListener {
 
     private final Class<T> type;
     private final List<T> objects;
     private final EventDispatcher eventDispatcher;
+
+    private boolean hasChanged;
 
     private ReceiverModel(Class<T> type) {
       this.type = type;
@@ -119,8 +128,9 @@ public final class Central {
 
     @Override
     public boolean register(T element) {
+      hasChanged = true;
       objects.add(element);
-      eventDispatcher.dispatchEvent(new Event(ReceiveEvent.RECEIVE, element));
+
       return false;
     }
 
@@ -140,6 +150,21 @@ public final class Central {
 
     public EventAPI getEventAPI() {
       return eventDispatcher.getPublicEventAPI();
+    }
+
+    @Override
+    public void tick(TimeLapse timeLapse) {
+      if (hasChanged) {
+        hasChanged = false;
+        eventDispatcher.dispatchEvent(new Event(ReceiveEvent.RECEIVE, null));
+      }
+
+    }
+
+    @Override
+    public void afterTick(TimeLapse timeLapse) {
+      // TODO Auto-generated method stub
+
     }
   }
 }
