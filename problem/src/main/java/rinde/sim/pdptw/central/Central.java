@@ -33,12 +33,28 @@ import rinde.sim.pdptw.common.RouteFollowingVehicle;
 import rinde.sim.pdptw.common.StatsTracker.StatisticsDTO;
 
 /**
+ * A facade for RinSim which provides a centralized interface such that
+ * {@link Solver} instances can solve {@link DynamicPDPTWScenario}s.
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
- * 
  */
-public class Central {
+public final class Central {
 
-    public static void solve(DynamicPDPTWScenario scenario,
+    private Central() {}
+
+    /**
+     * Runs the specified solver on the specified scenario in a simulation. The
+     * result is evaluated using the objective function.
+     * @param scenario The scenario which defines the problem to solve.
+     * @param solver The {@link Solver}.
+     * @param objFunc The objective function which is used to evaluate the
+     *            solver.
+     * @param showGui If <code>true</code> the gui will be fired up.
+     * @throws IllegalStateException if the resulting statistics are not valid
+     *             according to the objective function:
+     *             {@link ObjectiveFunction#isValidResult(StatisticsDTO)}.
+     * @return The statistics that were gathered during the simulation.
+     */
+    public static StatisticsDTO solve(DynamicPDPTWScenario scenario,
             final Solver solver, ObjectiveFunction objFunc, boolean showGui) {
         final Unit<Duration> timeUnit = scenario.getTimeUnit();
         final Unit<Velocity> speedUnit = scenario.getSpeedUnit();
@@ -87,14 +103,14 @@ public class Central {
 
         checkState(objFunc.isValidResult(result),
             "The simulation did not result in a valid result: %s.", result);
-        System.out.println(objFunc.printHumanReadableFormat(result));
+        return result;
     }
 
     private enum ReceiveEvent {
         RECEIVE;
     }
 
-    private static class ReceiverModel<T> implements Model<T> {
+    private static final class ReceiverModel<T> implements Model<T> {
 
         private final Class<T> type;
         private final List<T> objects;
@@ -131,7 +147,5 @@ public class Central {
         public EventAPI getEventAPI() {
             return eventDispatcher.getPublicEventAPI();
         }
-
     }
-
 }

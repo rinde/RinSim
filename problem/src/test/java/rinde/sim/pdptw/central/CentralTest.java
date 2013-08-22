@@ -21,6 +21,7 @@ import org.junit.Test;
 import rinde.sim.pdptw.central.arrays.ArraysSolverValidator;
 import rinde.sim.pdptw.central.arrays.MultiVehicleSolverAdapter;
 import rinde.sim.pdptw.central.arrays.RandomMVArraysSolver;
+import rinde.sim.pdptw.common.StatsTracker.StatisticsDTO;
 import rinde.sim.pdptw.gendreau06.Gendreau06ObjectiveFunction;
 import rinde.sim.pdptw.gendreau06.Gendreau06Parser;
 import rinde.sim.pdptw.gendreau06.Gendreau06Scenario;
@@ -44,7 +45,6 @@ public class CentralTest {
             for (int i = 0; i < 1; i++) {
                 final Gendreau06Scenario scenario =
                         Gendreau06Parser.parse(file, 10);
-
                 final Solver s =
                         SolverValidator.wrap(new MultiVehicleSolverAdapter(
                                 ArraysSolverValidator
@@ -53,8 +53,11 @@ public class CentralTest {
                                                         .nextLong()))),
                                 scenario.getTimeUnit()));
 
-                Central.solve(scenario, s, new Gendreau06ObjectiveFunction(),
-                    false);
+                final Gendreau06ObjectiveFunction objFunc =
+                        new Gendreau06ObjectiveFunction();
+                final StatisticsDTO stats =
+                        Central.solve(scenario, s, objFunc, false);
+                System.out.println(objFunc.printHumanReadableFormat(stats));
             }
         }
     }
