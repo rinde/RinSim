@@ -16,6 +16,8 @@ import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
+import javax.annotation.Nullable;
+
 import org.apache.commons.math3.random.RandomGenerator;
 
 import com.google.common.base.Function;
@@ -246,6 +248,7 @@ public final class Graphs {
      * @return The closest object in <code>objects</code> to <code>pos</code> or
      *         <code>null</code> if no object exists.
      */
+    @Nullable
     public static <T> T findClosestObject(Point pos, Collection<T> objects,
             Function<T, Point> transformation) {
         double dist = Double.MAX_VALUE;

@@ -6,6 +6,8 @@ package rinde.sim.core.model.road;
 import java.util.Collection;
 import java.util.List;
 
+import javax.annotation.Nullable;
+
 import rinde.sim.core.graph.Graphs;
 import rinde.sim.core.graph.Point;
 
@@ -33,6 +35,7 @@ public final class RoadModels {
      *         satisfies the <code>predicate</code>.
      * @see Graphs#findClosestObject(Point, Collection, Function)
      */
+    @Nullable
     public static <T extends RoadUser> T findClosestObject(Point pos,
             RoadModel rm, Collection<T> objects) {
         return Graphs
@@ -50,6 +53,7 @@ public final class RoadModels {
      *         satisfies the <code>predicate</code>.
      * @see Graphs#findClosestObject
      */
+    @Nullable
     public static RoadUser findClosestObject(Point pos, RoadModel rm,
             Predicate<RoadUser> predicate) {
         final Collection<RoadUser> filtered = Collections2.filter(rm
@@ -66,6 +70,7 @@ public final class RoadModels {
      *         <code>type</code>.
      * @see Graphs#findClosestObject
      */
+    @Nullable
     public static <T extends RoadUser> T findClosestObject(Point pos,
             RoadModel rm, final Class<T> type) {
         return findClosestObject(pos, rm, rm.getObjectsOfType(type));
@@ -78,6 +83,7 @@ public final class RoadModels {
      * @return The closest object in <code>rm</code> to <code>pos</code>.
      * @see Graphs#findClosestObject
      */
+    @Nullable
     public static RoadUser findClosestObject(Point pos, RoadModel rm) {
         return findClosestObject(pos, rm, RoadUser.class);
     }
