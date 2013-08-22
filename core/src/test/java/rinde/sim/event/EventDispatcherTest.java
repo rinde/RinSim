@@ -48,23 +48,6 @@ public class EventDispatcherTest {
         api = dispatcher.getPublicEventAPI();
     }
 
-    @SuppressWarnings("unused")
-    @Test(expected = NullPointerException.class)
-    public void constructorFail1() {
-        new EventDispatcher((EventTypes[]) null);
-    }
-
-    @SuppressWarnings("unused")
-    @Test(expected = IllegalArgumentException.class)
-    public void constructorFail2() {
-        new EventDispatcher((Set<Enum<?>>) null);
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void dispatchEventFail1() {
-        dispatcher.dispatchEvent(null);
-    }
-
     @Test(expected = IllegalArgumentException.class)
     public void dispatchEventFail2() {
         dispatcher.dispatchEvent(new Event(OTHER_EVENT1));
@@ -100,38 +83,8 @@ public class EventDispatcherTest {
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void addListenerFail1A() {
-        dispatcher.addListener(null, (Set<Enum<?>>) null);
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void addListenerFail1B() {
-        dispatcher.addListener(null, (Enum<?>) null);
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void addListenerFail2A() {
-        dispatcher.addListener(l1, (Set<Enum<?>>) null);
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void addListenerFail2B() {
-        dispatcher.addListener(l1, (Enum<?>[]) null);
-    }
-
-    @Test(expected = IllegalArgumentException.class)
     public void addListenerFail3() {
         dispatcher.addListener(l1, OTHER_EVENT1);
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void addListenerFail4() {
-        dispatcher.addListener(null, (Enum<?>[]) null);
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void addListenerFail5() {
-        dispatcher.addListener(l1, (Enum<?>[]) null);
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -190,28 +143,8 @@ public class EventDispatcherTest {
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void removeListenerFail1() {
-        dispatcher.removeListener(null, (Enum<?>) null);
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void removeListenerFail2() {
-        dispatcher.removeListener(l1, (Enum<?>) null);
-    }
-
-    @Test(expected = IllegalArgumentException.class)
     public void removeListenerFail3() {
         dispatcher.removeListener(l1, EVENT1);
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void removeListenerFail4() {
-        dispatcher.getPublicEventAPI().removeListener(null, (Set<Enum<?>>) null);
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void removeListenerFail5() {
-        dispatcher.getPublicEventAPI().removeListener(l1, (Set<Enum<?>>) null);
     }
 
     @Test
@@ -240,17 +173,6 @@ public class EventDispatcherTest {
         assertFalse(dispatcher.containsListener(l2, EVENT2));
         assertFalse(dispatcher.containsListener(l2, EVENT3));
         assertFalse(dispatcher.containsListener(l2, OTHER_EVENT1));
-    }
-
-    @SuppressWarnings("unused")
-    @Test(expected = IllegalArgumentException.class)
-    public void eventConstructorFail() {
-        new Event(null, null);
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void eventSetIssuerFail1() {
-        new Event(EVENT1).setIssuer(null);
     }
 
     @Test(expected = IllegalStateException.class)

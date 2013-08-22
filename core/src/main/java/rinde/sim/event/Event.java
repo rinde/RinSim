@@ -3,10 +3,11 @@
  */
 package rinde.sim.event;
 
-import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
 
 import java.io.Serializable;
+
+import javax.annotation.Nullable;
 
 /**
  * The base event class.
@@ -20,15 +21,15 @@ public class Event implements Serializable {
      * The type of event.
      */
     protected final Enum<?> eventType;
-    transient private Object issuer;
+    @Nullable
+    private transient Object issuer;
 
     /**
      * Create a new event instance.
      * @param type the event type.
      * @param pIssuer The event issuer, may be null.
      */
-    public Event(Enum<?> type, Object pIssuer) {
-        checkArgument(type != null, "type can not be null");
+    public Event(Enum<?> type, @Nullable Object pIssuer) {
         eventType = type;
         issuer = pIssuer;
     }
@@ -47,7 +48,6 @@ public class Event implements Serializable {
      * @param pIssuer The issuer of the event.
      */
     public void setIssuer(Object pIssuer) {
-        checkArgument(pIssuer != null, "issuer can not be null");
         checkState(issuer == null, "issuer is already set, can not be overridden. Value: %s.", issuer);
         issuer = pIssuer;
     }
@@ -55,6 +55,7 @@ public class Event implements Serializable {
     /**
      * @return The event issuer.
      */
+    @Nullable
     public Object getIssuer() {
         return issuer;
     }

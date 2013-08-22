@@ -10,6 +10,7 @@ import static java.util.Arrays.asList;
 import java.util.HashSet;
 import java.util.Set;
 
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Multimap;
 
@@ -29,7 +30,7 @@ public class EventDispatcher implements EventAPI {
     /**
      * The set of event types that this event dispatcher supports.
      */
-    protected final Set<Enum<?>> supportedTypes;
+    protected final ImmutableSet<Enum<?>> supportedTypes;
 
     /**
      * The 'public' api of this dispatcher. Public in this context means API
@@ -46,9 +47,8 @@ public class EventDispatcher implements EventAPI {
      *            supports.
      */
     public EventDispatcher(Set<Enum<?>> supportedEventTypes) {
-        checkArgument(supportedEventTypes != null, "event types can not be null");
         listeners = LinkedHashMultimap.create();
-        supportedTypes = newHashSet(supportedEventTypes);
+        supportedTypes = ImmutableSet.copyOf(supportedEventTypes);
         publicAPI = new PublicEventAPI(this);
     }
 
@@ -70,9 +70,6 @@ public class EventDispatcher implements EventAPI {
      *            can be dispatched.
      */
     public void dispatchEvent(Event e) {
-        if (e == null) {
-            throw new IllegalArgumentException("event can not be null");
-        }
         checkArgument(supportedTypes.contains(e.getEventType()), "Cannot dispatch an event of type %s since it was not registered at this dispatcher.", e
                 .getEventType());
         for (final Listener l : listeners.get(e.getEventType())) {
@@ -85,7 +82,6 @@ public class EventDispatcher implements EventAPI {
      */
     @Override
     public void addListener(Listener listener, Enum<?>... eventTypes) {
-        checkArgument(eventTypes != null, "event types can not be null");
         addListener(listener, newHashSet(eventTypes), eventTypes.length == 0);
     }
 
@@ -113,10 +109,6 @@ public class EventDispatcher implements EventAPI {
      */
     protected void addListener(Listener listener, Set<Enum<?>> eventTypes,
             boolean all) {
-        checkArgument(listener != null, "listener can not be null");
-        if (eventTypes == null) {
-            throw new IllegalArgumentException("event types can not be null");
-        }
         final Set<Enum<?>> theTypes = all ? supportedTypes : eventTypes;
         for (final Enum<?> eventType : theTypes) {
             checkArgument(eventType != null, "event type can not be null");
@@ -138,11 +130,6 @@ public class EventDispatcher implements EventAPI {
      */
     @Override
     public void removeListener(Listener listener, Set<Enum<?>> eventTypes) {
-        checkArgument(listener != null, "listener can not be null");
-        if (eventTypes == null) {
-            throw new IllegalArgumentException("event types can not be null");
-        }
-
         if (eventTypes.isEmpty()) {
             // remove all
             // store keys in intermediate set to avoid concurrent modifications
@@ -184,7 +171,7 @@ public class EventDispatcher implements EventAPI {
         return publicAPI;
     }
 
-    class PublicEventAPI implements EventAPI {
+    static class PublicEventAPI implements EventAPI {
 
         private final EventDispatcher ref;
 
