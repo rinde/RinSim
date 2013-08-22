@@ -9,9 +9,7 @@ import javax.measure.quantity.Length;
 import javax.measure.quantity.Velocity;
 import javax.measure.unit.Unit;
 
-import rinde.sim.core.Simulator;
 import rinde.sim.core.graph.Point;
-import rinde.sim.pdptw.common.DynamicPDPTWProblem;
 import rinde.sim.pdptw.common.ParcelDTO;
 import rinde.sim.pdptw.common.VehicleDTO;
 
@@ -20,8 +18,9 @@ import com.google.common.collect.ImmutableSet;
 
 /**
  * An immutable state object representing the state of an entire
- * {@link Simulator} configured using {@link DynamicPDPTWProblem}. Instances can
- * be obtained via
+ * {@link rinde.sim.core.Simulator} configured using
+ * {@link rinde.sim.pdptw.common.DynamicPDPTWProblem}. Instances can be obtained
+ * via
  * {@link Solvers#solve(Solver, rinde.sim.pdptw.common.PDPRoadModel, rinde.sim.core.model.pdp.PDPModel, long, Unit, Unit, Unit)}
  * .
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
