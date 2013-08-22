@@ -30,21 +30,23 @@
 			<artifactId>rinsim-ui</artifactId>
 			<version>${project.version}</version>
 		</dependency>
-			<dependency>
+		<dependency>
 			<groupId>org.jscience</groupId>
 			<artifactId>jscience</artifactId>
 			<version>4.3.1</version>
 		</dependency>
 	</dependencies>
-	
+
 	<properties>
-	<!--  by default we do not need commandline arguments for running tests -->
-	<test.arg />
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<sonar.language>java</sonar.language>
+		<!-- by default we do not need commandline arguments for running tests -->
+		<test.arg />
 	</properties>
 
 	<profiles>
 		<profile>
-		<!-- on mac we need a special argument -->
+			<!-- on mac we need a special argument -->
 			<id>swt.cocoa-macosx-x86_64</id>
 			<activation>
 				<os>

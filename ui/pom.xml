@@ -10,7 +10,7 @@
 	<artifactId>rinsim-ui</artifactId>
 	<name>RinSim UI</name>
 	<packaging>jar</packaging>
-
+	
 	<dependencies>
 		<dependency>
 			<groupId>com.github.rinde</groupId>
@@ -107,6 +107,8 @@
 	</repositories>
 
 	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<sonar.language>java</sonar.language>
 		<swt.version>3.8</swt.version> <!--  SHOULD BE SAME AS IN packaging/pom.xml -->
 		<!-- by default there are no arguments passed to tests -->
 		<test.arg />

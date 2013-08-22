@@ -58,8 +58,9 @@
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<sonar.language>java</sonar.language>
 	</properties>
-
+	
 	<build>
 		<plugins>
 			<!-- adds a source jar to every executable jar -->
