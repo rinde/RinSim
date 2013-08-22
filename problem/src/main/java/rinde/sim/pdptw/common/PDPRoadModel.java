@@ -24,6 +24,7 @@ import rinde.sim.core.model.road.MovingRoadUser;
 import rinde.sim.core.model.road.RoadModel;
 import rinde.sim.core.model.road.RoadUser;
 
+import com.google.common.base.Optional;
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Multimap;
 
@@ -39,7 +40,7 @@ public class PDPRoadModel extends ForwardingRoadModel implements ModelReceiver {
     protected final AbstractRoadModel<?> delegate;
     protected final boolean allowDiversion;
 
-    protected PDPModel pdpModel;
+    protected Optional<PDPModel> pdpModel;
 
     /**
      * Decorates the {@link RoadModel}
@@ -52,6 +53,7 @@ public class PDPRoadModel extends ForwardingRoadModel implements ModelReceiver {
         destinations = newHashMap();
         // does not allow duplicates: WE NEED THIS
         destinationHistory = LinkedHashMultimap.create();
+        pdpModel = Optional.absent();
     }
 
     public boolean isVehicleDiversionAllowed() {
@@ -78,7 +80,7 @@ public class PDPRoadModel extends ForwardingRoadModel implements ModelReceiver {
     Point getParcelPos(RoadUser obj) {
         if (!containsObject(obj) && obj instanceof DefaultParcel) {
             final ParcelState state =
-                    pdpModel.getParcelState((DefaultParcel) obj);
+                    pdpModel.get().getParcelState((DefaultParcel) obj);
             checkArgument(
                 state == ParcelState.IN_CARGO,
                 "Can only move to parcels which are either on the map or in cargo, state is %s.",
@@ -104,6 +106,8 @@ public class PDPRoadModel extends ForwardingRoadModel implements ModelReceiver {
     public MoveProgress moveTo(MovingRoadUser object,
             RoadUser destinationObject, TimeLapse time) {
 
+        final PDPModel pm = pdpModel.get();
+
         DestinationObject newDestinationObject;
         if (destinationObject instanceof DefaultParcel) {
             final DefaultParcel dp = (DefaultParcel) destinationObject;
@@ -112,7 +116,7 @@ public class PDPRoadModel extends ForwardingRoadModel implements ModelReceiver {
             final Point pos = getParcelPos(destinationObject);
             if (type == DestType.DELIVERY) {
                 checkArgument(
-                    pdpModel.containerContains((DefaultVehicle) object,
+                    pm.containerContains((DefaultVehicle) object,
                         (DefaultParcel) destinationObject),
                     "A vehicle can only move to the delivery location of a parcel if it is carrying it.");
             }
@@ -137,14 +141,12 @@ public class PDPRoadModel extends ForwardingRoadModel implements ModelReceiver {
                 boolean alreadyServiced = false;
                 if (prev.type == DestType.PICKUP) {
                     alreadyServiced =
-                            pdpModel.getParcelState((DefaultParcel) prev.roadUser) == ParcelState.PICKING_UP
-                                    || pdpModel
-                                            .getParcelState((DefaultParcel) prev.roadUser) == ParcelState.IN_CARGO;
+                            pm.getParcelState((DefaultParcel) prev.roadUser) == ParcelState.PICKING_UP
+                                    || pm.getParcelState((DefaultParcel) prev.roadUser) == ParcelState.IN_CARGO;
                 } else if (prev.type == DestType.DELIVERY) {
                     alreadyServiced =
-                            pdpModel.getParcelState((DefaultParcel) prev.roadUser) == ParcelState.DELIVERING
-                                    || pdpModel
-                                            .getParcelState((DefaultParcel) prev.roadUser) == ParcelState.DELIVERED;
+                            pm.getParcelState((DefaultParcel) prev.roadUser) == ParcelState.DELIVERING
+                                    || pm.getParcelState((DefaultParcel) prev.roadUser) == ParcelState.DELIVERED;
                 }
 
                 checkArgument(
@@ -158,7 +160,7 @@ public class PDPRoadModel extends ForwardingRoadModel implements ModelReceiver {
                     // when we are at the prev destination, and it was a pickup,
                     // we are allowed to move if it has been picked up
                     checkArgument(
-                        pdpModel.getParcelState((DefaultParcel) prev.roadUser) != ParcelState.AVAILABLE,
+                        pm.getParcelState((DefaultParcel) prev.roadUser) != ParcelState.AVAILABLE,
                         "Can not move away before the parcel has been picked up: %s.",
                         prev.roadUser);
                 } else if (prev.type == DestType.DELIVERY) {
@@ -170,7 +172,7 @@ public class PDPRoadModel extends ForwardingRoadModel implements ModelReceiver {
                         "Can not move to the same parcel since we are already there: %s.",
                         prev.roadUser);
                     checkArgument(
-                        pdpModel.getParcelState((DefaultParcel) prev.roadUser) == ParcelState.DELIVERED,
+                        pm.getParcelState((DefaultParcel) prev.roadUser) == ParcelState.DELIVERED,
                         "The parcel needs to be delivered before moving away: %s.",
                         prev.roadUser);
                 } else {// it is a depot
@@ -275,7 +277,7 @@ public class PDPRoadModel extends ForwardingRoadModel implements ModelReceiver {
 
     @Override
     public void registerModelProvider(ModelProvider mp) {
-        pdpModel = mp.getModel(PDPModel.class);
+        pdpModel = Optional.of(mp.getModel(PDPModel.class));
 
     }
 }

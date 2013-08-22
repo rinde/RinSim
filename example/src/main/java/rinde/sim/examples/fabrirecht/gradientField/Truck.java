@@ -4,9 +4,11 @@ import java.util.Map;
 
 import rinde.sim.core.TimeLapse;
 import rinde.sim.core.graph.Point;
+import rinde.sim.core.model.pdp.PDPModel;
 import rinde.sim.core.model.pdp.PDPModel.ParcelState;
 import rinde.sim.core.model.pdp.PDPModel.VehicleState;
 import rinde.sim.core.model.pdp.Parcel;
+import rinde.sim.core.model.road.RoadModel;
 import rinde.sim.core.model.road.RoadModels;
 import rinde.sim.core.model.road.RoadUser;
 import rinde.sim.pdptw.common.DefaultParcel;
@@ -26,54 +28,57 @@ class Truck extends DefaultVehicle implements FieldEmitter {
 	protected void tickImpl(TimeLapse time) {
 		// Check if we can deliver nearby
 		final Parcel delivery = getDelivery(time, 5);
+		
+		final RoadModel rm = roadModel.get();
+		final PDPModel pm = pdpModel.get();
 
 		if (delivery != null) {
-			if (delivery.getDestination().equals(getPosition()) && pdpModel.getVehicleState(this) == VehicleState.IDLE) {
-				pdpModel.deliver(this, delivery, time);
+			if (delivery.getDestination().equals(getPosition()) && pm.getVehicleState(this) == VehicleState.IDLE) {
+				pm.deliver(this, delivery, time);
 			} else {
-				roadModel.moveTo(this, delivery.getDestination(), time);
+				rm.moveTo(this, delivery.getDestination(), time);
 			}
 			return;
 		}
 
 		// Otherwise, Check if we can pickup nearby
 		final DefaultParcel closest = (DefaultParcel) RoadModels
-				.findClosestObject(roadModel.getPosition(this), roadModel, new Predicate<RoadUser>() {
+				.findClosestObject(rm.getPosition(this), rm, new Predicate<RoadUser>() {
 					@Override
 					public boolean apply(RoadUser input) {
 						return input instanceof DefaultParcel
-								&& pdpModel.getParcelState(((DefaultParcel) input)) == ParcelState.AVAILABLE;
+								&& pm.getParcelState(((DefaultParcel) input)) == ParcelState.AVAILABLE;
 					}
 				});
 
-		if (closest != null && Point.distance(pdpModel.getPosition(closest), getPosition()) < 10) {
-			if (roadModel.equalPosition(closest, this)
-					&& pdpModel.getTimeWindowPolicy()
+		if (closest != null && Point.distance(pm.getPosition(closest), getPosition()) < 10) {
+			if (rm.equalPosition(closest, this)
+					&& pm.getTimeWindowPolicy()
 							.canPickup(closest.getPickupTimeWindow(), time.getTime(), closest.getPickupDuration())) {
 				final double newSize = getPDPModel().getContentsSize(this) + closest.getMagnitude();
 
 				if (newSize <= getCapacity()) {
-					pdpModel.pickup(this, closest, time);
+					pm.pickup(this, closest, time);
 				}
 			} else {
-				roadModel.moveTo(this, pdpModel.getPosition(closest), time);
+				rm.moveTo(this, pm.getPosition(closest), time);
 			}
 			return;
 		}
 
 		// If none of the above, let the gradient field guide us!
-		roadModel.moveTo(this, gradientModel.getTargetFor(this), time);
+		rm.moveTo(this, gradientModel.getTargetFor(this), time);
 	}
 
 	public Parcel getDelivery(TimeLapse time, int distance) {
 		Parcel target = null;
 		double closest = distance;
+PDPModel pm = pdpModel.get();
+		for (final Parcel p : pm.getContents(this)) {
 
-		for (final Parcel p : pdpModel.getContents(this)) {
-
-			final double dist = Point.distance(pdpModel.getPosition(this), p.getDestination());
+			final double dist = Point.distance(pm.getPosition(this), p.getDestination());
 			if (dist < closest
-					&& pdpModel.getTimeWindowPolicy()
+					&& pm.getTimeWindowPolicy()
 							.canDeliver(p.getDeliveryTimeWindow(), time.getTime(), p.getPickupDuration())) {
 				closest = dist;
 				target = p;
@@ -90,7 +95,7 @@ class Truck extends DefaultVehicle implements FieldEmitter {
 
 	@Override
 	public Point getPosition() {
-		return roadModel.getPosition(this);
+		return roadModel.get().getPosition(this);
 	}
 
 	@Override

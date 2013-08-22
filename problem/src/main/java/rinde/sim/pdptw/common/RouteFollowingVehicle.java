@@ -23,6 +23,7 @@ import rinde.sim.core.model.pdp.Parcel;
 import rinde.sim.core.model.road.RoadModel;
 import rinde.sim.pdptw.central.arrays.ArraysSolvers;
 
+import com.google.common.base.Optional;
 import com.google.common.math.DoubleMath;
 
 /**
@@ -43,10 +44,10 @@ public class RouteFollowingVehicle extends DefaultVehicle {
 
     @Nullable
     private Queue<DefaultParcel> route;
-    @Nullable
-    private DefaultDepot depot;
+
+    private Optional<DefaultDepot> depot;
     private final Unit<Duration> timeUnit;
-    final Measure<Double, Velocity> speed;
+    private final Measure<Double, Velocity> speed;
     private final Unit<Length> distUnit;
 
     /**
@@ -59,6 +60,7 @@ public class RouteFollowingVehicle extends DefaultVehicle {
     public RouteFollowingVehicle(VehicleDTO pDto, Unit<Duration> tu,
             Unit<Velocity> su, Unit<Length> du) {
         super(pDto);
+        depot = Optional.absent();
         timeUnit = tu;
         distUnit = du;
         speed = Measure.valueOf(getSpeed(), su);
@@ -81,11 +83,11 @@ public class RouteFollowingVehicle extends DefaultVehicle {
         super.initRoadPDP(pRoadModel, pPdpModel);
 
         final Set<DefaultDepot> depots =
-                roadModel.getObjectsOfType(DefaultDepot.class);
+                roadModel.get().getObjectsOfType(DefaultDepot.class);
         checkArgument(depots.size() == 1,
             "This vehicle requires exactly 1 depot, found %s depots.",
             depots.size());
-        depot = depots.iterator().next();
+        depot = Optional.of(depots.iterator().next());
     }
 
     /**
@@ -99,6 +101,8 @@ public class RouteFollowingVehicle extends DefaultVehicle {
     protected final void tickImpl(TimeLapse time) {
         preTick(time);
         final Queue<DefaultParcel> r = route;
+        final RoadModel rm = roadModel.get();
+        final PDPModel pm = pdpModel.get();
         if (r != null && !r.isEmpty()) {
             while (time.hasTimeLeft() && r.peek() != null) {
                 final DefaultParcel cur = r.element();
@@ -107,15 +111,14 @@ public class RouteFollowingVehicle extends DefaultVehicle {
                     time.consumeAll();
                 } else {
                     // if not there yet, go there
-                    if (!roadModel.equalPosition(this, cur)) {
-                        roadModel.moveTo(this, cur, time);
+                    if (!rm.equalPosition(this, cur)) {
+                        rm.moveTo(this, cur, time);
                     }
                     // if arrived
-                    if (roadModel.equalPosition(this, cur)
-                            && time.hasTimeLeft()) {
+                    if (rm.equalPosition(this, cur) && time.hasTimeLeft()) {
                         // if parcel is not ready yet, wait
                         final boolean pickup =
-                                !pdpModel.getContents(this).contains(cur);
+                                !pm.getContents(this).contains(cur);
                         final long timeUntilReady =
                                 (pickup ? cur.dto.pickupTimeWindow.begin
                                         : cur.dto.deliveryTimeWindow.begin)
@@ -135,7 +138,7 @@ public class RouteFollowingVehicle extends DefaultVehicle {
 
                         if (canStart) {
                             // parcel is ready, service
-                            pdpModel.service(this, cur, time);
+                            pm.service(this, cur, time);
                             r.remove();
                         }
                     }
@@ -143,8 +146,8 @@ public class RouteFollowingVehicle extends DefaultVehicle {
             }
         }
         if (time.hasTimeLeft() && (r == null || r.isEmpty())
-                && isEndOfDay(time) && !roadModel.equalPosition(this, depot)) {
-            roadModel.moveTo(this, depot, time);
+                && isEndOfDay(time) && !rm.equalPosition(this, depot.get())) {
+            rm.moveTo(this, depot.get(), time);
         }
     }
 
@@ -162,7 +165,7 @@ public class RouteFollowingVehicle extends DefaultVehicle {
      *         early, <code>false</code> otherwise.
      */
     protected boolean isTooEarly(Parcel p, TimeLapse time) {
-        final ParcelState parcelState = pdpModel.getParcelState(p);
+        final ParcelState parcelState = pdpModel.get().getParcelState(p);
         checkArgument(
             !parcelState.isTransitionState() && !parcelState.isDelivered(),
             parcelState);
@@ -209,7 +212,8 @@ public class RouteFollowingVehicle extends DefaultVehicle {
      */
     protected long computeTravelTimeTo(Point p) {
         final Measure<Double, Length> distance =
-                Measure.valueOf(Point.distance(roadModel.getPosition(this), p),
+                Measure.valueOf(
+                    Point.distance(roadModel.get().getPosition(this), p),
                     distUnit);
         return DoubleMath.roundToLong(
             ArraysSolvers.computeTravelTime(speed, distance, timeUnit),
@@ -225,7 +229,7 @@ public class RouteFollowingVehicle extends DefaultVehicle {
      */
     protected boolean isEndOfDay(TimeLapse time) {
         final long travelTime =
-                computeTravelTimeTo(roadModel.getPosition(depot));
+                computeTravelTimeTo(roadModel.get().getPosition(depot.get()));
         return time.getEndTime() - 1 >= dto.availabilityTimeWindow.end
                 - travelTime;
     }

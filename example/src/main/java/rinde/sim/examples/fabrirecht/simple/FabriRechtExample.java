@@ -8,15 +8,17 @@ import java.io.IOException;
 
 import rinde.sim.core.Simulator;
 import rinde.sim.core.TimeLapse;
+import rinde.sim.core.model.pdp.PDPModel;
 import rinde.sim.core.model.pdp.PDPModel.ParcelState;
+import rinde.sim.core.model.road.RoadModel;
 import rinde.sim.core.model.road.RoadModels;
 import rinde.sim.core.model.road.RoadUser;
 import rinde.sim.pdptw.common.AddVehicleEvent;
 import rinde.sim.pdptw.common.DefaultParcel;
 import rinde.sim.pdptw.common.DefaultVehicle;
 import rinde.sim.pdptw.common.DynamicPDPTWProblem;
-import rinde.sim.pdptw.common.VehicleDTO;
 import rinde.sim.pdptw.common.DynamicPDPTWProblem.Creator;
+import rinde.sim.pdptw.common.VehicleDTO;
 import rinde.sim.pdptw.fabrirecht.FabriRechtParser;
 import rinde.sim.pdptw.fabrirecht.FabriRechtScenario;
 import rinde.sim.scenario.ConfigurationException;
@@ -73,22 +75,24 @@ class Truck extends DefaultVehicle {
 
 	@Override
 	protected void tickImpl(TimeLapse time) {
+	    final RoadModel rm = roadModel.get();
+	    final PDPModel pm = pdpModel.get();
 		// we always go to the closest available parcel
 		final DefaultParcel closest = (DefaultParcel) RoadModels
-				.findClosestObject(roadModel.getPosition(this), roadModel, new Predicate<RoadUser>() {
+				.findClosestObject(rm.getPosition(this), rm, new Predicate<RoadUser>() {
 					@Override
 					public boolean apply(RoadUser input) {
 						return input instanceof DefaultParcel
-								&& pdpModel.getParcelState(((DefaultParcel) input)) == ParcelState.AVAILABLE;
+								&& pm.getParcelState(((DefaultParcel) input)) == ParcelState.AVAILABLE;
 					}
 				});
 
 		if (closest != null) {
-			roadModel.moveTo(this, closest, time);
-			if (roadModel.equalPosition(closest, this)
-					&& pdpModel.getTimeWindowPolicy()
+			rm.moveTo(this, closest, time);
+			if (rm.equalPosition(closest, this)
+					&& pm.getTimeWindowPolicy()
 							.canPickup(closest.getPickupTimeWindow(), time.getTime(), closest.getPickupDuration())) {
-				pdpModel.pickup(this, closest, time);
+				pm.pickup(this, closest, time);
 			}
 		}
 	}
