@@ -9,6 +9,8 @@ import java.io.Serializable;
 
 import javax.annotation.Nullable;
 
+import com.google.common.base.Optional;
+
 /**
  * The base event class.
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
@@ -21,8 +23,7 @@ public class Event implements Serializable {
      * The type of event.
      */
     protected final Enum<?> eventType;
-    @Nullable
-    private transient Object issuer;
+    private transient Optional<Object> issuer;
 
     /**
      * Create a new event instance.
@@ -31,7 +32,7 @@ public class Event implements Serializable {
      */
     public Event(Enum<?> type, @Nullable Object pIssuer) {
         eventType = type;
-        issuer = pIssuer;
+        issuer = Optional.fromNullable(pIssuer);
     }
 
     /**
@@ -48,16 +49,23 @@ public class Event implements Serializable {
      * @param pIssuer The issuer of the event.
      */
     public void setIssuer(Object pIssuer) {
-        checkState(issuer == null, "issuer is already set, can not be overridden. Value: %s.", issuer);
-        issuer = pIssuer;
+        checkState(!issuer.isPresent(), "issuer is already set, can not be overridden. Value: %s.", issuer);
+        issuer = Optional.of(pIssuer);
+    }
+
+    /**
+     * @return <code>true</code> if this event has an issuer, <code>false</code>
+     *         otherwise.
+     */
+    public boolean hasIssuer() {
+        return issuer.isPresent();
     }
 
     /**
      * @return The event issuer.
      */
-    @Nullable
     public Object getIssuer() {
-        return issuer;
+        return issuer.get();
     }
 
     /**
@@ -71,5 +79,4 @@ public class Event implements Serializable {
     public String toString() {
         return "[Event " + eventType + "]";
     }
-
 }

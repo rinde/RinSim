@@ -6,7 +6,6 @@ package rinde.sim.event;
 import static java.util.Arrays.asList;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static rinde.sim.event.EventDispatcherTest.EventTypes.EVENT1;
 import static rinde.sim.event.EventDispatcherTest.EventTypes.EVENT2;
@@ -186,7 +185,7 @@ public class EventDispatcherTest {
         assertEquals("I AM ISSUER", e.getIssuer());
 
         final Event event2 = new Event(EVENT1, null);
-        assertNull(event2.getIssuer());
+        assertFalse(event2.hasIssuer());
         event2.setIssuer("I AM THE NEW ISSUER");
         assertEquals("I AM THE NEW ISSUER", event2.getIssuer());
     }
@@ -213,4 +212,9 @@ public class EventDispatcherTest {
 
     }
 
+    @Test(expected = IllegalArgumentException.class)
+    public void removeFail() {
+        final EventDispatcher disp = new EventDispatcher(EventTypes.values());
+        disp.removeListener(l1, EVENT1, null);
+    }
 }
