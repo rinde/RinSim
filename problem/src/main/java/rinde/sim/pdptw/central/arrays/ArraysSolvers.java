@@ -29,6 +29,7 @@ import rinde.sim.pdptw.central.GlobalStateObject.VehicleStateObject;
 import rinde.sim.pdptw.central.Solver;
 import rinde.sim.pdptw.common.DefaultParcel;
 import rinde.sim.pdptw.common.ParcelDTO;
+import rinde.sim.util.TimeWindow;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -160,11 +161,12 @@ public final class ArraysSolvers {
             // add pickup location and time window
             locations[index] = p.pickupLocation;
             point2dto.put(locations[index], p);
-            releaseDates[index] =
-                    fixTWstart(p.pickupTimeWindow.begin, state.time,
-                        timeConverter);
-            dueDates[index] =
-                    fixTWend(p.pickupTimeWindow.end, state.time, timeConverter);
+
+            final int[] tw =
+                    convertTW(p.pickupTimeWindow, state.time, timeConverter);
+            releaseDates[index] = tw[0];
+            dueDates[index] = tw[1];
+            checkState(releaseDates[index] <= dueDates[index]);
 
             // link the pair with its delivery location (see next loop)
             servicePairs[spIndex++] =
@@ -188,12 +190,13 @@ public final class ArraysSolvers {
 
             locations[index] = p.destinationLocation;
             point2dto.put(locations[index], p);
-            releaseDates[index] =
-                    fixTWstart(p.deliveryTimeWindow.begin, state.time,
-                        timeConverter);
-            dueDates[index] =
-                    fixTWend(p.deliveryTimeWindow.end, state.time,
-                        timeConverter);
+
+            final int[] tw =
+                    convertTW(p.deliveryTimeWindow, state.time, timeConverter);
+            releaseDates[index] = tw[0];
+            dueDates[index] = tw[1];
+            checkState(releaseDates[index] <= dueDates[index]);
+
             index++;
         }
         checkState(index == numLocations - 1);
@@ -348,15 +351,6 @@ public final class ArraysSolvers {
             computeTravelTime(speed, dist, outputTimeUnit),
             RoundingMode.CEILING);
     }
-
-    // static long computeTravelTime(double speed, double dist){
-    // final Measure<Double, Velocity> speed =
-    // Measure.valueOf(cur.speed, state.speedUnit);
-    // final double duration =
-    // computeTravelTime(speed,
-    // Measure.valueOf(dist, state.distUnit),
-    // outputTimeUnit);
-    // }
 
     static int[][] toInventoriesArray(GlobalStateObject state, ArraysObject sva) {
         final ImmutableMap.Builder<Point, Integer> point2indexBuilder =
@@ -594,6 +588,18 @@ public final class ArraysSolvers {
                     ao.point2dto, vehicleTravelTimes, inventories,
                     remainingServiceTimes, currentDestinations);
         }
+    }
+
+    static int[] convertTW(TimeWindow tw, long time, UnitConverter timeConverter) {
+        final int releaseDate = fixTWstart(tw.begin, time, timeConverter);
+        final int dueDate = fixTWend(tw.end, time, timeConverter);
+        if (releaseDate > dueDate) {
+            // if this happens, we know this is the result of rounding behavior:
+            // release is rounded up, due is rounded down. We also know that the
+            // difference is only 1. Therefore we flip the values.
+            return new int[] { dueDate, releaseDate };
+        }
+        return new int[] { releaseDate, dueDate };
     }
 
     static int fixTWstart(long start, long time, UnitConverter timeConverter) {
