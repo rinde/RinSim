@@ -14,16 +14,16 @@ import rinde.sim.util.TimeWindow;
  */
 public class TardyAllowedPolicy implements TimeWindowPolicy {
 
-    public TardyAllowedPolicy() {}
+  public TardyAllowedPolicy() {}
 
-    @Override
-    public boolean canPickup(TimeWindow tw, long time, long duration) {
-        return tw.isAfterStart(time);
-    }
+  @Override
+  public boolean canPickup(TimeWindow tw, long time, long duration) {
+    return tw.isAfterStart(time);
+  }
 
-    @Override
-    public boolean canDeliver(TimeWindow tw, long time, long duration) {
-        return tw.isAfterStart(time);
-    }
+  @Override
+  public boolean canDeliver(TimeWindow tw, long time, long duration) {
+    return tw.isAfterStart(time);
+  }
 
 }

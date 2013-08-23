@@ -8,48 +8,48 @@ import rinde.sim.event.Event;
  * @since 2.0
  */
 public class TimedEvent extends Event {
-    private static final long serialVersionUID = 6832559417793517102L;
+  private static final long serialVersionUID = 6832559417793517102L;
 
-    /**
-     * The time at which the event is to be dispatched.
-     */
-    public final long time;
+  /**
+   * The time at which the event is to be dispatched.
+   */
+  public final long time;
 
-    public TimedEvent(Enum<?> type, long timestamp) {
-        super(type);
-        time = timestamp;
+  public TimedEvent(Enum<?> type, long timestamp) {
+    super(type);
+    time = timestamp;
+  }
+
+  @Override
+  public int hashCode() {
+    final int prime = 31;
+    int result = 1;
+    result = prime * result + eventType.hashCode();
+    result = prime * result + (int) (time ^ (time >>> 32));
+    return result;
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj) {
+      return true;
     }
-
-    @Override
-    public int hashCode() {
-        final int prime = 31;
-        int result = 1;
-        result = prime * result + eventType.hashCode();
-        result = prime * result + (int) (time ^ (time >>> 32));
-        return result;
+    if (obj == null) {
+      return false;
     }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (this == obj) {
-            return true;
-        }
-        if (obj == null) {
-            return false;
-        }
-        if (getClass() != obj.getClass()) {
-            return false;
-        }
-        final TimedEvent other = (TimedEvent) obj;
-        if (!eventType.equals(other.eventType)) {
-            return false;
-        }
-        return time == other.time;
+    if (getClass() != obj.getClass()) {
+      return false;
     }
-
-    @Override
-    public String toString() {
-        return eventType + "|" + time;
+    final TimedEvent other = (TimedEvent) obj;
+    if (!eventType.equals(other.eventType)) {
+      return false;
     }
+    return time == other.time;
+  }
+
+  @Override
+  public String toString() {
+    return eventType + "|" + time;
+  }
 
 }

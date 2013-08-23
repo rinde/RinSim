@@ -9,14 +9,14 @@ import rinde.sim.core.graph.Point;
  */
 public class SelfCycleFilter implements SerializerFilter<Double> {
 
-    @Override
-    public boolean filterOut(Point from, Point to) {
-        return from.equals(to);
-    }
+  @Override
+  public boolean filterOut(Point from, Point to) {
+    return from.equals(to);
+  }
 
-    @Override
-    public boolean filterOut(Point from, Point to, Double data) {
-        return filterOut(from, to);
-    }
+  @Override
+  public boolean filterOut(Point from, Point to, Double data) {
+    return filterOut(from, to);
+  }
 
 }

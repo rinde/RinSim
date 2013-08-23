@@ -9,12 +9,12 @@ package rinde.sim.util.spec;
  */
 public interface ISpecification<T, U extends ISpecification<T, U>> {
 
-    boolean isSatisfiedBy(T context);
+  boolean isSatisfiedBy(T context);
 
-    U and(U other);
+  U and(U other);
 
-    U or(U other);
+  U or(U other);
 
-    U not();
+  U not();
 
 }

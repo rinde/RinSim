@@ -12,29 +12,29 @@ import rinde.sim.core.model.road.MovingRoadUser;
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
  */
 public abstract class Vehicle extends ContainerImpl implements MovingRoadUser,
-        TickListener {
+    TickListener {
 
-    @Override
-    public final PDPType getType() {
-        return PDPType.VEHICLE;
-    }
+  @Override
+  public final PDPType getType() {
+    return PDPType.VEHICLE;
+  }
 
-    @Override
-    public final void tick(TimeLapse time) {
-        // finish previously started pickup and delivery actions that need to
-        // consume time
-        getPDPModel().continuePreviousActions(this, time);
-        tickImpl(time);
-    }
+  @Override
+  public final void tick(TimeLapse time) {
+    // finish previously started pickup and delivery actions that need to
+    // consume time
+    getPDPModel().continuePreviousActions(this, time);
+    tickImpl(time);
+  }
 
-    /**
-     * Is called every tick. This replaces the
-     * {@link TickListener#tick(TimeLapse)} for vehicles.
-     * @param time The time lapse that can be used.
-     * @see TickListener#tick(TimeLapse)
-     */
-    protected abstract void tickImpl(TimeLapse time);
+  /**
+   * Is called every tick. This replaces the
+   * {@link TickListener#tick(TimeLapse)} for vehicles.
+   * @param time The time lapse that can be used.
+   * @see TickListener#tick(TimeLapse)
+   */
+  protected abstract void tickImpl(TimeLapse time);
 
-    @Override
-    public void afterTick(TimeLapse time) {}
+  @Override
+  public void afterTick(TimeLapse time) {}
 }

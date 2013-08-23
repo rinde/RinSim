@@ -26,31 +26,31 @@ import com.google.common.base.Supplier;
 @SuppressWarnings("javadoc")
 public class LinkedHashBasedTable<R, C, V> extends StandardTable<R, C, V> {
 
-    private static final long serialVersionUID = 0L;
+  private static final long serialVersionUID = 0L;
 
-    LinkedHashBasedTable(Map<R, Map<C, V>> pBackingMap, Factory<C, V> pFactory) {
-        super(pBackingMap, pFactory);
+  LinkedHashBasedTable(Map<R, Map<C, V>> pBackingMap, Factory<C, V> pFactory) {
+    super(pBackingMap, pFactory);
+  }
+
+  /**
+   * Instantiates a {@link LinkedHashBasedTable}.
+   * @return The newly created instance.
+   */
+  public static <R, C, V> LinkedHashBasedTable<R, C, V> create() {
+    return new LinkedHashBasedTable<R, C, V>(new LinkedHashMap<R, Map<C, V>>(),
+        new Factory<C, V>());
+  }
+
+  private static class Factory<C, V> implements Supplier<Map<C, V>>,
+      Serializable {
+
+    private static final long serialVersionUID = 0;
+
+    public Factory() {}
+
+    @Override
+    public Map<C, V> get() {
+      return Maps.newLinkedHashMap();
     }
-
-    /**
-     * Instantiates a {@link LinkedHashBasedTable}.
-     * @return The newly created instance.
-     */
-    public static <R, C, V> LinkedHashBasedTable<R, C, V> create() {
-        return new LinkedHashBasedTable<R, C, V>(
-                new LinkedHashMap<R, Map<C, V>>(), new Factory<C, V>());
-    }
-
-    private static class Factory<C, V> implements Supplier<Map<C, V>>,
-            Serializable {
-
-        private static final long serialVersionUID = 0;
-
-        public Factory() {}
-
-        @Override
-        public Map<C, V> get() {
-            return Maps.newLinkedHashMap();
-        }
-    }
+  }
 }

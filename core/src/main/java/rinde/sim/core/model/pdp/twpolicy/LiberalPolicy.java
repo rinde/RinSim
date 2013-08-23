@@ -13,15 +13,15 @@ import rinde.sim.util.TimeWindow;
  */
 public class LiberalPolicy implements TimeWindowPolicy {
 
-    public LiberalPolicy() {}
+  public LiberalPolicy() {}
 
-    @Override
-    public boolean canPickup(TimeWindow tw, long time, long duration) {
-        return true;
-    }
+  @Override
+  public boolean canPickup(TimeWindow tw, long time, long duration) {
+    return true;
+  }
 
-    @Override
-    public boolean canDeliver(TimeWindow tw, long time, long duration) {
-        return true;
-    }
+  @Override
+  public boolean canDeliver(TimeWindow tw, long time, long duration) {
+    return true;
+  }
 }

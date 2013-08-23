@@ -9,6 +9,6 @@ package rinde.sim.scenario;
  */
 public interface TimedEventHandler {
 
-    boolean handleTimedEvent(TimedEvent event);
+  boolean handleTimedEvent(TimedEvent event);
 
 }

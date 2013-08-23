@@ -14,33 +14,33 @@ import java.util.Set;
  * @since 2.0
  */
 public class Mailbox {
-    protected Set<Message> box;
+  protected Set<Message> box;
 
-    public Mailbox() {
-        box = newLinkedHashSet();
-    }
+  public Mailbox() {
+    box = newLinkedHashSet();
+  }
 
-    /**
-     * Insert a msg in the mailbox. If the message is already present in the box
-     * it is not inserted again.
-     */
-    public void receive(Message msg) {
-        if (msg == null) {
-            throw new NullPointerException();
-        }
-        if (box.contains(msg)) {
-            return;
-        }
-        box.add(msg);
+  /**
+   * Insert a msg in the mailbox. If the message is already present in the box
+   * it is not inserted again.
+   */
+  public void receive(Message msg) {
+    if (msg == null) {
+      throw new NullPointerException();
     }
+    if (box.contains(msg)) {
+      return;
+    }
+    box.add(msg);
+  }
 
-    /**
-     * Getting messages empties the mailbox
-     * 
-     */
-    public Queue<Message> getMessages() {
-        final Set<Message> messages = box;
-        box = newLinkedHashSet();
-        return newLinkedList(messages);
-    }
+  /**
+   * Getting messages empties the mailbox
+   * 
+   */
+  public Queue<Message> getMessages() {
+    final Set<Message> messages = box;
+    box = newLinkedHashSet();
+    return newLinkedList(messages);
+  }
 }

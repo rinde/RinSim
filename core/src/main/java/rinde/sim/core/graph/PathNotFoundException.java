@@ -9,14 +9,14 @@ package rinde.sim.core.graph;
  */
 public class PathNotFoundException extends RuntimeException {
 
-    private static final long serialVersionUID = -1605717570711159457L;
+  private static final long serialVersionUID = -1605717570711159457L;
 
-    /**
-     * Create new exeception with specified error message.
-     * @param string the error message.
-     */
-    public PathNotFoundException(String string) {
-        super(string);
-    }
+  /**
+   * Create new exeception with specified error message.
+   * @param string the error message.
+   */
+  public PathNotFoundException(String string) {
+    super(string);
+  }
 
 }

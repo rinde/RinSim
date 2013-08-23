@@ -13,16 +13,16 @@ import rinde.sim.util.TimeWindow;
  */
 public class StrictPolicy implements TimeWindowPolicy {
 
-    public StrictPolicy() {}
+  public StrictPolicy() {}
 
-    @Override
-    public boolean canPickup(TimeWindow tw, long time, long duration) {
-        return tw.isIn(time);
-    }
+  @Override
+  public boolean canPickup(TimeWindow tw, long time, long duration) {
+    return tw.isIn(time);
+  }
 
-    @Override
-    public boolean canDeliver(TimeWindow tw, long time, long duration) {
-        return tw.isIn(time);
-    }
+  @Override
+  public boolean canDeliver(TimeWindow tw, long time, long duration) {
+    return tw.isIn(time);
+  }
 
 }

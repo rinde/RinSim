@@ -13,8 +13,8 @@ import rinde.sim.util.TimeWindow;
  */
 public interface TimeWindowPolicy {
 
-    boolean canPickup(TimeWindow tw, long time, long duration);
+  boolean canPickup(TimeWindow tw, long time, long duration);
 
-    boolean canDeliver(TimeWindow tw, long time, long duration);
+  boolean canDeliver(TimeWindow tw, long time, long duration);
 
 }

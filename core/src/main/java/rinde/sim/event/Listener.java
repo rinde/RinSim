@@ -8,9 +8,9 @@ package rinde.sim.event;
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
  */
 public interface Listener {
-    /**
-     * Is called to notify the listener that an {@link Event} was issued.
-     * @param e The event.
-     */
-    void handleEvent(Event e);
+  /**
+   * Is called to notify the listener that an {@link Event} was issued.
+   * @param e The event.
+   */
+  void handleEvent(Event e);
 }

@@ -9,10 +9,10 @@ package rinde.sim.core.graph;
  */
 public interface ConnectionData {
 
-    /**
-     * This method can be implemented to override the default length (euclidean
-     * distance).
-     * @return The length of the {@link Connection}.
-     */
-    double getLength();
+  /**
+   * This method can be implemented to override the default length (euclidean
+   * distance).
+   * @return The length of the {@link Connection}.
+   */
+  double getLength();
 }

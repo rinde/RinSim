@@ -28,82 +28,82 @@ import com.google.common.collect.Tables;
  */
 public class CachedGraphRoadModel extends GraphRoadModel {
 
-    // TODO add cache specific unit tests
+  // TODO add cache specific unit tests
 
-    private Table<Point, Point, List<Point>> pathTable;
-    private final Multimap<Class<?>, RoadUser> classObjectMap;
+  private Table<Point, Point, List<Point>> pathTable;
+  private final Multimap<Class<?>, RoadUser> classObjectMap;
 
-    /**
-     * Create a new instance using the specified {@link Graph}.
-     * @param pGraph The graph to use.
-     */
-    public CachedGraphRoadModel(Graph<?> pGraph) {
-        super(pGraph);
-        pathTable = HashBasedTable.create();
-        classObjectMap = LinkedHashMultimap.create();
+  /**
+   * Create a new instance using the specified {@link Graph}.
+   * @param pGraph The graph to use.
+   */
+  public CachedGraphRoadModel(Graph<?> pGraph) {
+    super(pGraph);
+    pathTable = HashBasedTable.create();
+    classObjectMap = LinkedHashMultimap.create();
+  }
+
+  /**
+   * Sets the path cache.
+   * @param pPathTable The new path cache to use.
+   */
+  public void setPathCache(Table<Point, Point, List<Point>> pPathTable) {
+    pathTable = pPathTable;
+  }
+
+  /**
+   * @return An unmodifiable view on the cache that is kept in this model.
+   */
+  public Table<Point, Point, List<Point>> getPathCache() {
+    return Tables.unmodifiableTable(pathTable);
+  }
+
+  // overrides internal func to add caching
+  @Override
+  protected List<Point> doGetShortestPathTo(Point from, Point to) {
+    if (pathTable.contains(from, to)) {
+      return pathTable.get(from, to);
+    } else {
+      final List<Point> path = super.doGetShortestPathTo(from, to);
+      pathTable.put(from, to, path);
+      return path;
     }
+  }
 
-    /**
-     * Sets the path cache.
-     * @param pPathTable The new path cache to use.
-     */
-    public void setPathCache(Table<Point, Point, List<Point>> pPathTable) {
-        pathTable = pPathTable;
-    }
+  @Override
+  public void addObjectAt(RoadUser newObj, Point pos) {
+    super.addObjectAt(newObj, pos);
+    classObjectMap.put(newObj.getClass(), newObj);
+  }
 
-    /**
-     * @return An unmodifiable view on the cache that is kept in this model.
-     */
-    public Table<Point, Point, List<Point>> getPathCache() {
-        return Tables.unmodifiableTable(pathTable);
-    }
+  @Override
+  public void addObjectAtSamePosition(RoadUser newObj, RoadUser existingObj) {
+    super.addObjectAtSamePosition(newObj, existingObj);
+    classObjectMap.put(newObj.getClass(), newObj);
+  }
 
-    // overrides internal func to add caching
-    @Override
-    protected List<Point> doGetShortestPathTo(Point from, Point to) {
-        if (pathTable.contains(from, to)) {
-            return pathTable.get(from, to);
-        } else {
-            final List<Point> path = super.doGetShortestPathTo(from, to);
-            pathTable.put(from, to, path);
-            return path;
-        }
-    }
+  @Override
+  public void clear() {
+    super.clear();
+    classObjectMap.clear();
+  }
 
-    @Override
-    public void addObjectAt(RoadUser newObj, Point pos) {
-        super.addObjectAt(newObj, pos);
-        classObjectMap.put(newObj.getClass(), newObj);
-    }
+  /**
+   * O(1) using a direct lookup. {@inheritDoc}
+   */
+  @SuppressWarnings("unchecked")
+  @Override
+  public <Y extends RoadUser> Set<Y> getObjectsOfType(final Class<Y> type) {
+    checkArgument(type != null, "type can not be null");
+    final Set<Y> set = new LinkedHashSet<Y>();
+    set.addAll((Set<Y>) classObjectMap.get(type));
+    return set;
+  }
 
-    @Override
-    public void addObjectAtSamePosition(RoadUser newObj, RoadUser existingObj) {
-        super.addObjectAtSamePosition(newObj, existingObj);
-        classObjectMap.put(newObj.getClass(), newObj);
-    }
-
-    @Override
-    public void clear() {
-        super.clear();
-        classObjectMap.clear();
-    }
-
-    /**
-     * O(1) using a direct lookup. {@inheritDoc}
-     */
-    @SuppressWarnings("unchecked")
-    @Override
-    public <Y extends RoadUser> Set<Y> getObjectsOfType(final Class<Y> type) {
-        checkArgument(type != null, "type can not be null");
-        final Set<Y> set = new LinkedHashSet<Y>();
-        set.addAll((Set<Y>) classObjectMap.get(type));
-        return set;
-    }
-
-    @Override
-    public void removeObject(RoadUser o) {
-        super.removeObject(o);
-        classObjectMap.remove(o.getClass(), o);
-    }
+  @Override
+  public void removeObject(RoadUser o) {
+    super.removeObject(o);
+    classObjectMap.remove(o.getClass(), o);
+  }
 
 }

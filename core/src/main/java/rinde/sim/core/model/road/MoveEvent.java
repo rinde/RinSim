@@ -14,22 +14,22 @@ import rinde.sim.event.Event;
  */
 public class MoveEvent extends Event {
 
-    public final RoadModel roadModel;
-    public final MovingRoadUser roadUser;
-    public final MoveProgress pathProgress;
+  public final RoadModel roadModel;
+  public final MovingRoadUser roadUser;
+  public final MoveProgress pathProgress;
 
-    /**
+  /**
      */
-    public MoveEvent(RoadModel rm, MovingRoadUser ru, MoveProgress pp) {
-        super(RoadEventType.MOVE, rm);
-        roadModel = rm;
-        roadUser = ru;
-        pathProgress = pp;
-    }
+  public MoveEvent(RoadModel rm, MovingRoadUser ru, MoveProgress pp) {
+    super(RoadEventType.MOVE, rm);
+    roadModel = rm;
+    roadUser = ru;
+    pathProgress = pp;
+  }
 
-    @Override
-    public String toString() {
-        return ToStringBuilder.reflectionToString(this);
-    }
+  @Override
+  public String toString() {
+    return ToStringBuilder.reflectionToString(this);
+  }
 
 }

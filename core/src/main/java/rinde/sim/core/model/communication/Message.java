@@ -5,18 +5,18 @@ package rinde.sim.core.model.communication;
  * 
  */
 public abstract class Message implements Cloneable {
-    protected final CommunicationUser sender;
+  protected final CommunicationUser sender;
 
-    public Message(CommunicationUser sender) {
-        this.sender = sender;
-    }
+  public Message(CommunicationUser sender) {
+    this.sender = sender;
+  }
 
-    @Override
-    public Message clone() throws CloneNotSupportedException {
-        return (Message) super.clone();
-    }
+  @Override
+  public Message clone() throws CloneNotSupportedException {
+    return (Message) super.clone();
+  }
 
-    public CommunicationUser getSender() {
-        return sender;
-    }
+  public CommunicationUser getSender() {
+    return sender;
+  }
 }

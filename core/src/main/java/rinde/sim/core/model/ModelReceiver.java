@@ -9,6 +9,6 @@ package rinde.sim.core.model;
  */
 public interface ModelReceiver {
 
-    // FIXME documentation
-    void registerModelProvider(ModelProvider mp);
+  // FIXME documentation
+  void registerModelProvider(ModelProvider mp);
 }

@@ -18,15 +18,15 @@ import rinde.sim.core.model.road.RoadUser;
  */
 public interface PDPObject extends RoadUser {
 
-    /**
-     * @return The type of the PDPObject.
-     */
-    PDPType getType();
+  /**
+   * @return The type of the PDPObject.
+   */
+  PDPType getType();
 
-    /**
-     * Is called when object is registered in {@link PDPModel}.
-     * @param model A reference to the model.
-     */
-    void initPDPObject(PDPModel model);
+  /**
+   * Is called when object is registered in {@link PDPModel}.
+   * @param model A reference to the model.
+   */
+  void initPDPObject(PDPModel model);
 
 }

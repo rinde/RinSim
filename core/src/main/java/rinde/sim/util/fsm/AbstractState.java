@@ -12,18 +12,18 @@ package rinde.sim.util.fsm;
  */
 public abstract class AbstractState<E, C> implements State<E, C> {
 
-    @Override
-    public String name() {
-        return getClass().getName();
-    }
+  @Override
+  public String name() {
+    return getClass().getName();
+  }
 
-    @Override
-    public abstract E handle(E event, C context);
+  @Override
+  public abstract E handle(E event, C context);
 
-    @Override
-    public void onEntry(E event, C context) {}
+  @Override
+  public void onEntry(E event, C context) {}
 
-    @Override
-    public void onExit(E event, C context) {}
+  @Override
+  public void onExit(E event, C context) {}
 
 }

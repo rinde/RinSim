@@ -29,303 +29,301 @@ import com.google.common.collect.Table.Cell;
  * {@link #create(State)} method.
  * 
  * @param <E> The event type. Concrete event objects that describe the same
- *            event should be <i>equal</i> (according to {@link #equals(Object)}
- *            ) and their {@link #hashCode()} implementation should return the
- *            same value. If the events do not need to contain additional meta
- *            data, {@link Enum}s are the best choice.
+ *          event should be <i>equal</i> (according to {@link #equals(Object)} )
+ *          and their {@link #hashCode()} implementation should return the same
+ *          value. If the events do not need to contain additional meta data,
+ *          {@link Enum}s are the best choice.
  * @param <C> The context type. This is typically the object that contains the
- *            {@link StateMachine}, a {@link State} represents a state of this
- *            object.
+ *          {@link StateMachine}, a {@link State} represents a state of this
+ *          object.
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
  */
 public class StateMachine<E, C> {
 
+  /**
+   * The type of {@link Event}s that this {@link StateMachine} supports.
+   */
+  public enum StateMachineEvent {
     /**
-     * The type of {@link Event}s that this {@link StateMachine} supports.
+     * This event is dispatched when the state machine changes its state. It is
+     * called right after the actual state change, after the
+     * {@link State#onEntry(Object, Object)} is called but before
+     * {@link State#handle(Object, Object)} is called.
      */
-    public enum StateMachineEvent {
-        /**
-         * This event is dispatched when the state machine changes its state. It
-         * is called right after the actual state change, after the
-         * {@link State#onEntry(Object, Object)} is called but before
-         * {@link State#handle(Object, Object)} is called.
-         */
-        STATE_TRANSITION;
+    STATE_TRANSITION;
+  }
+
+  /**
+   * The {@link EventDispatcher} used for dispatching events.
+   */
+  protected final EventDispatcher eventDispatcher;
+  /**
+   * The transition table which defines the allowed transitions.
+   */
+  protected Table<State<E, C>, E, State<E, C>> transitionTable;
+  /**
+   * The current state.
+   */
+  protected State<E, C> currentState;
+  /**
+   * The initial state.
+   */
+  protected final State<E, C> startState;
+
+  StateMachine(State<E, C> start, Table<State<E, C>, E, State<E, C>> table) {
+    eventDispatcher = new EventDispatcher(StateMachineEvent.values());
+    startState = start;
+    currentState = start;
+    transitionTable = unmodifiableTable(table);
+  }
+
+  /**
+   * Gives the current {@link State} time to update.
+   * @param context Reference to the context.
+   */
+  public void handle(C context) {
+    handle(null, context);
+  }
+
+  /**
+   * Handle the specified event.
+   * @param event The event that needs to be handled by the state machine. If
+   *          this results in an attempt to perform a transition which is not
+   *          allowed an {@link IllegalArgumentException} is thrown.
+   * @param context Reference to the context.
+   */
+  public void handle(E event, C context) {
+    if (event != null) {
+      changeState(event, context);
+    }
+    final E newEvent = currentState.handle(event, context);
+    if (newEvent != null) {
+      handle(newEvent, context);
+    }
+  }
+
+  /**
+   * Perform a state change if possible.
+   * @param event The event that may initiate a state change.
+   * @param context Reference to the context.
+   */
+  protected void changeState(E event, C context) {
+    checkArgument(transitionTable.contains(currentState, event), "The event %s is not supported when in state %s.", event, currentState);
+    final State<E, C> newState = transitionTable.get(currentState, event);
+    if (newState != currentState) {
+      currentState.onExit(event, context);
+      final State<E, C> oldState = currentState;
+      currentState = newState;
+      currentState.onEntry(event, context);
+      eventDispatcher.dispatchEvent(new StateTransitionEvent<E, C>(this,
+          oldState, event, newState));
+    }
+  }
+
+  /**
+   * @return A reference to the current state of this {@link StateMachine}.
+   */
+  public State<E, C> getCurrentState() {
+    return currentState;
+  }
+
+  /**
+   * Convenience method for checking whether the current state is the same as
+   * the specified state.
+   * @param s The state to be checked.
+   * @return <code>true</code> when the states are the same object,
+   *         <code>false</code> otherwise.
+   */
+  public boolean stateIs(State<E, C> s) {
+    return currentState == s;
+  }
+
+  /**
+   * Convenience method for checking whether the current state is one of the
+   * specified states.
+   * @param states The states to be checked.
+   * @return <code>true</code> when the current state is one of the specified
+   *         states, <code>false</code> otherwise.
+   */
+  public boolean stateIsOneOf(State<E, C>... states) {
+    for (final State<E, C> s : states) {
+      if (stateIs(s)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /**
+   * Returns true if the current state supports the event.
+   * @param event The event to check.
+   * @return <code>true</code> whent the specified event is supported by the
+   *         current state, <code>false</code> otherwise.
+   */
+  public boolean isSupported(E event) {
+    return transitionTable.contains(currentState, event);
+  }
+
+  /**
+   * @return The {@link EventAPI} which allows to add and remove
+   *         {@link rinde.sim.event.Listener}s to this {@link StateMachine}.
+   */
+  public EventAPI getEventAPI() {
+    return eventDispatcher.getPublicEventAPI();
+  }
+
+  /**
+   * @return A dot representation of the state machine, can be used for
+   *         debugging the transition table.
+   */
+  public String toDot() {
+    int id = 0;
+    final StringBuilder string = new StringBuilder();
+    string.append("digraph stategraph {\n");
+    final Set<State<E, C>> allStates = newHashSet();
+    allStates.addAll(transitionTable.rowKeySet());
+    allStates.addAll(transitionTable.values());
+
+    final Map<State<E, C>, Integer> idMap = newHashMap();
+    for (final State<E, C> s : allStates) {
+      string.append("node").append(id).append("[label=\"").append(s.name())
+          .append("\"]\n");
+      idMap.put(s, id);
+      id++;
+    }
+
+    string.append("node").append(id).append("[label=\"\",shape=point]\n");
+    string.append("node").append(id).append(" -> ").append("node")
+        .append(idMap.get(startState)).append("\n");
+
+    for (final Cell<State<E, C>, E, State<E, C>> cell : transitionTable
+        .cellSet()) {
+      final int id1 = idMap.get(cell.getRowKey());
+      final int id2 = idMap.get(cell.getValue());
+      string.append("node").append(id1).append(" -> ").append("node")
+          .append(id2).append("[label=\"").append(cell.getColumnKey())
+          .append("\"]\n");
+    }
+
+    string.append("}");
+    return string.toString();
+  }
+
+  /**
+   * Create a new {@link StateMachine} instance with the specified initial
+   * state. This method returns a reference to the {@link StateMachineBuilder}
+   * which allows for adding of transitions to the state machine.
+   * @param initialState The start state of the state machine.
+   * @return A reference to the {@link StateMachineBuilder} which is used for
+   *         creating the {@link StateMachine}.
+   */
+  @SuppressWarnings("synthetic-access")
+  public static <E, C> StateMachineBuilder<E, C> create(State<E, C> initialState) {
+    return new StateMachineBuilder<E, C>(initialState);
+  }
+
+  /**
+   * Facilitates the creation of a {@link StateMachine}.
+   * @param <E> Event parameter of {@link StateMachine}.
+   * @param <C> Context parameter of {@link StateMachine}.
+   * @see StateMachine
+   */
+  public final static class StateMachineBuilder<E, C> {
+    /**
+     * The transition table.
+     */
+    protected final Table<State<E, C>, E, State<E, C>> table;
+
+    /**
+     * The start state.
+     */
+    protected final State<E, C> start;
+
+    private StateMachineBuilder(State<E, C> initialState) {
+      table = HashBasedTable.create();
+      start = initialState;
     }
 
     /**
-     * The {@link EventDispatcher} used for dispatching events.
+     * Add a transition: <code>state + event &rarr; new state</code>.
+     * @param from The from state.
+     * @param event The event which triggers the transition.
+     * @param to The destination of the transition, the new state.
+     * @return A reference to this for method chaining.
      */
-    protected final EventDispatcher eventDispatcher;
-    /**
-     * The transition table which defines the allowed transitions.
-     */
-    protected Table<State<E, C>, E, State<E, C>> transitionTable;
-    /**
-     * The current state.
-     */
-    protected State<E, C> currentState;
-    /**
-     * The initial state.
-     */
-    protected final State<E, C> startState;
-
-    StateMachine(State<E, C> start, Table<State<E, C>, E, State<E, C>> table) {
-        eventDispatcher = new EventDispatcher(StateMachineEvent.values());
-        startState = start;
-        currentState = start;
-        transitionTable = unmodifiableTable(table);
+    public StateMachineBuilder<E, C> addTransition(State<E, C> from, E event,
+        State<E, C> to) {
+      table.put(from, event, to);
+      return this;
     }
 
     /**
-     * Gives the current {@link State} time to update.
-     * @param context Reference to the context.
+     * Builds the {@link StateMachine} as configured by this
+     * {@link rinde.sim.util.fsm.StateMachine.StateMachineBuilder}.
+     * @return The {@link StateMachine}.
      */
-    public void handle(C context) {
-        handle(null, context);
+    public StateMachine<E, C> build() {
+      return new StateMachine<E, C>(start, table);
+    }
+  }
+
+  /**
+   * Event class used by {@link StateMachine}.
+   * @param <E> Event parameter of {@link StateMachine}.
+   * @param <C> Context parameter of {@link StateMachine}.
+   * @see StateMachine
+   * @see StateMachineEvent
+   */
+  public static class StateTransitionEvent<E, C> extends Event {
+    private static final long serialVersionUID = -1478171329851890047L;
+    /**
+     * The previous state of the state machine prior to the current state.
+     */
+    public final State<E, C> previousState;
+    /**
+     * The new state which was activated just before this event was issued.
+     */
+    public final State<E, C> newState;
+    /**
+     * The event which trigger the event transition.
+     */
+    public final E event;
+
+    /**
+     * Create new event instance.
+     * @param issuer Issuer of the event.
+     * @param prev {@link #previousState}.
+     * @param e {@link #event}.
+     * @param next {@link #newState}.
+     */
+    protected StateTransitionEvent(StateMachine<E, C> issuer, State<E, C> prev,
+        E e, State<E, C> next) {
+      super(StateMachineEvent.STATE_TRANSITION);
+      previousState = prev;
+      event = e;
+      newState = next;
     }
 
     /**
-     * Handle the specified event.
-     * @param event The event that needs to be handled by the state machine. If
-     *            this results in an attempt to perform a transition which is
-     *            not allowed an {@link IllegalArgumentException} is thrown.
-     * @param context Reference to the context.
+     * Convenience method for checking whether this event equals a transition as
+     * specified by the parameters.
+     * @param prev Previous state.
+     * @param ev Trigger event.
+     * @param next New state.
+     * @return <code>true</code> when all parameters are equal to the properties
+     *         of this event, <code>false</code> otherwise.
      */
-    public void handle(E event, C context) {
-        if (event != null) {
-            changeState(event, context);
-        }
-        final E newEvent = currentState.handle(event, context);
-        if (newEvent != null) {
-            handle(newEvent, context);
-        }
+    public boolean equalTo(State<E, C> prev, E ev, State<E, C> next) {
+      return previousState.equals(prev) && event.equals(ev)
+          && newState.equals(next);
     }
 
-    /**
-     * Perform a state change if possible.
-     * @param event The event that may initiate a state change.
-     * @param context Reference to the context.
-     */
-    protected void changeState(E event, C context) {
-        checkArgument(transitionTable.contains(currentState, event), "The event %s is not supported when in state %s.", event, currentState);
-        final State<E, C> newState = transitionTable.get(currentState, event);
-        if (newState != currentState) {
-            currentState.onExit(event, context);
-            final State<E, C> oldState = currentState;
-            currentState = newState;
-            currentState.onEntry(event, context);
-            eventDispatcher.dispatchEvent(new StateTransitionEvent<E, C>(this,
-                    oldState, event, newState));
-        }
+    @Override
+    public String toString() {
+      return new StringBuilder("[Event ").append(getEventType()).append(" ")
+          .append(previousState).append(" + ").append(event).append(" -> ")
+          .append(newState).append("]").toString();
     }
-
-    /**
-     * @return A reference to the current state of this {@link StateMachine}.
-     */
-    public State<E, C> getCurrentState() {
-        return currentState;
-    }
-
-    /**
-     * Convenience method for checking whether the current state is the same as
-     * the specified state.
-     * @param s The state to be checked.
-     * @return <code>true</code> when the states are the same object,
-     *         <code>false</code> otherwise.
-     */
-    public boolean stateIs(State<E, C> s) {
-        return currentState == s;
-    }
-
-    /**
-     * Convenience method for checking whether the current state is one of the
-     * specified states.
-     * @param states The states to be checked.
-     * @return <code>true</code> when the current state is one of the specified
-     *         states, <code>false</code> otherwise.
-     */
-    public boolean stateIsOneOf(State<E, C>... states) {
-        for (final State<E, C> s : states) {
-            if (stateIs(s)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    /**
-     * Returns true if the current state supports the event.
-     * @param event The event to check.
-     * @return <code>true</code> whent the specified event is supported by the
-     *         current state, <code>false</code> otherwise.
-     */
-    public boolean isSupported(E event) {
-        return transitionTable.contains(currentState, event);
-    }
-
-    /**
-     * @return The {@link EventAPI} which allows to add and remove
-     *         {@link rinde.sim.event.Listener}s to this {@link StateMachine}.
-     */
-    public EventAPI getEventAPI() {
-        return eventDispatcher.getPublicEventAPI();
-    }
-
-    /**
-     * @return A dot representation of the state machine, can be used for
-     *         debugging the transition table.
-     */
-    public String toDot() {
-        int id = 0;
-        final StringBuilder string = new StringBuilder();
-        string.append("digraph stategraph {\n");
-        final Set<State<E, C>> allStates = newHashSet();
-        allStates.addAll(transitionTable.rowKeySet());
-        allStates.addAll(transitionTable.values());
-
-        final Map<State<E, C>, Integer> idMap = newHashMap();
-        for (final State<E, C> s : allStates) {
-            string.append("node").append(id).append("[label=\"")
-                    .append(s.name()).append("\"]\n");
-            idMap.put(s, id);
-            id++;
-        }
-
-        string.append("node").append(id).append("[label=\"\",shape=point]\n");
-        string.append("node").append(id).append(" -> ").append("node")
-                .append(idMap.get(startState)).append("\n");
-
-        for (final Cell<State<E, C>, E, State<E, C>> cell : transitionTable
-                .cellSet()) {
-            final int id1 = idMap.get(cell.getRowKey());
-            final int id2 = idMap.get(cell.getValue());
-            string.append("node").append(id1).append(" -> ").append("node")
-                    .append(id2).append("[label=\"")
-                    .append(cell.getColumnKey()).append("\"]\n");
-        }
-
-        string.append("}");
-        return string.toString();
-    }
-
-    /**
-     * Create a new {@link StateMachine} instance with the specified initial
-     * state. This method returns a reference to the {@link StateMachineBuilder}
-     * which allows for adding of transitions to the state machine.
-     * @param initialState The start state of the state machine.
-     * @return A reference to the {@link StateMachineBuilder} which is used for
-     *         creating the {@link StateMachine}.
-     */
-    @SuppressWarnings("synthetic-access")
-    public static <E, C> StateMachineBuilder<E, C> create(
-            State<E, C> initialState) {
-        return new StateMachineBuilder<E, C>(initialState);
-    }
-
-    /**
-     * Facilitates the creation of a {@link StateMachine}.
-     * @param <E> Event parameter of {@link StateMachine}.
-     * @param <C> Context parameter of {@link StateMachine}.
-     * @see StateMachine
-     */
-    public final static class StateMachineBuilder<E, C> {
-        /**
-         * The transition table.
-         */
-        protected final Table<State<E, C>, E, State<E, C>> table;
-
-        /**
-         * The start state.
-         */
-        protected final State<E, C> start;
-
-        private StateMachineBuilder(State<E, C> initialState) {
-            table = HashBasedTable.create();
-            start = initialState;
-        }
-
-        /**
-         * Add a transition: <code>state + event &rarr; new state</code>.
-         * @param from The from state.
-         * @param event The event which triggers the transition.
-         * @param to The destination of the transition, the new state.
-         * @return A reference to this for method chaining.
-         */
-        public StateMachineBuilder<E, C> addTransition(State<E, C> from,
-                E event, State<E, C> to) {
-            table.put(from, event, to);
-            return this;
-        }
-
-        /**
-         * Builds the {@link StateMachine} as configured by this
-         * {@link rinde.sim.util.fsm.StateMachine.StateMachineBuilder}.
-         * @return The {@link StateMachine}.
-         */
-        public StateMachine<E, C> build() {
-            return new StateMachine<E, C>(start, table);
-        }
-    }
-
-    /**
-     * Event class used by {@link StateMachine}.
-     * @param <E> Event parameter of {@link StateMachine}.
-     * @param <C> Context parameter of {@link StateMachine}.
-     * @see StateMachine
-     * @see StateMachineEvent
-     */
-    public static class StateTransitionEvent<E, C> extends Event {
-        private static final long serialVersionUID = -1478171329851890047L;
-        /**
-         * The previous state of the state machine prior to the current state.
-         */
-        public final State<E, C> previousState;
-        /**
-         * The new state which was activated just before this event was issued.
-         */
-        public final State<E, C> newState;
-        /**
-         * The event which trigger the event transition.
-         */
-        public final E event;
-
-        /**
-         * Create new event instance.
-         * @param issuer Issuer of the event.
-         * @param prev {@link #previousState}.
-         * @param e {@link #event}.
-         * @param next {@link #newState}.
-         */
-        protected StateTransitionEvent(StateMachine<E, C> issuer,
-                State<E, C> prev, E e, State<E, C> next) {
-            super(StateMachineEvent.STATE_TRANSITION);
-            previousState = prev;
-            event = e;
-            newState = next;
-        }
-
-        /**
-         * Convenience method for checking whether this event equals a
-         * transition as specified by the parameters.
-         * @param prev Previous state.
-         * @param ev Trigger event.
-         * @param next New state.
-         * @return <code>true</code> when all parameters are equal to the
-         *         properties of this event, <code>false</code> otherwise.
-         */
-        public boolean equalTo(State<E, C> prev, E ev, State<E, C> next) {
-            return previousState.equals(prev) && event.equals(ev)
-                    && newState.equals(next);
-        }
-
-        @Override
-        public String toString() {
-            return new StringBuilder("[Event ").append(getEventType())
-                    .append(" ").append(previousState).append(" + ")
-                    .append(event).append(" -> ").append(newState).append("]")
-                    .toString();
-        }
-    }
+  }
 
 }
