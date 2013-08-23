@@ -1,5 +1,7 @@
 package rinde.sim.util.fsm;
 
+import javax.annotation.Nullable;
+
 /**
  * Defines a state in a state machine.
  * 
@@ -25,7 +27,8 @@ public interface State<E, C> {
    *         {@link RuntimeException} will be thrown by the {@link StateMachine}
    *         .
    */
-  E handle(E event, C context);
+  @Nullable
+  E handle(@Nullable E event, C context);
 
   /**
    * This method is called at the moment the {@link StateMachine} 'enters' this

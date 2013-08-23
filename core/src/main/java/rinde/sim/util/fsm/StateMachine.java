@@ -8,6 +8,8 @@ import static com.google.common.collect.Tables.unmodifiableTable;
 import java.util.Map;
 import java.util.Set;
 
+import javax.annotation.Nullable;
+
 import rinde.sim.event.Event;
 import rinde.sim.event.EventAPI;
 import rinde.sim.event.EventDispatcher;
@@ -92,10 +94,11 @@ public class StateMachine<E, C> {
    *          allowed an {@link IllegalArgumentException} is thrown.
    * @param context Reference to the context.
    */
-  public void handle(E event, C context) {
+  public void handle(@Nullable E event, C context) {
     if (event != null) {
       changeState(event, context);
     }
+    @Nullable
     final E newEvent = currentState.handle(event, context);
     if (newEvent != null) {
       handle(newEvent, context);
@@ -228,7 +231,7 @@ public class StateMachine<E, C> {
    * @param <C> Context parameter of {@link StateMachine}.
    * @see StateMachine
    */
-  public final static class StateMachineBuilder<E, C> {
+  public static final class StateMachineBuilder<E, C> {
     /**
      * The transition table.
      */
