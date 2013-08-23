@@ -12,7 +12,7 @@ import rinde.sim.util.TimeWindow;
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
  * 
  */
-public class TardyAllowedPolicy implements TimeWindowPolicy {
+public final class TardyAllowedPolicy implements TimeWindowPolicy {
 
   public TardyAllowedPolicy() {}
 

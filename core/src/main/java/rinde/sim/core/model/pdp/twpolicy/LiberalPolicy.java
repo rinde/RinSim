@@ -11,7 +11,7 @@ import rinde.sim.util.TimeWindow;
  * 
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
  */
-public class LiberalPolicy implements TimeWindowPolicy {
+public final class LiberalPolicy implements TimeWindowPolicy {
 
   public LiberalPolicy() {}
 

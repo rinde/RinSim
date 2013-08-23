@@ -11,7 +11,7 @@ import rinde.sim.util.TimeWindow;
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
  * 
  */
-public class StrictPolicy implements TimeWindowPolicy {
+public final class StrictPolicy implements TimeWindowPolicy {
 
   public StrictPolicy() {}
 
