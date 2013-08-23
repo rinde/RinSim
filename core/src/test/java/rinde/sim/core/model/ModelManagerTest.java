@@ -25,354 +25,340 @@ import rinde.sim.core.model.road.RoadUser;
 
 public class ModelManagerTest {
 
-	protected ModelManager manager;
+  protected ModelManager manager;
 
-	@Before
-	public void setUp() {
-		manager = new ModelManager();
-	}
+  @Before
+  public void setUp() {
+    manager = new ModelManager();
+  }
 
-	@Test(expected = IllegalStateException.class)
-	public void notConfigured() {
-		manager.register(new Object());
-	}
+  @Test(expected = IllegalStateException.class)
+  public void notConfigured() {
+    manager.register(new Object());
+  }
 
-	@Test
-	public void addToEmpty() {
-		manager.configure();
-		assertFalse(manager.register(new Object()));
-	}
+  @Test
+  public void addToEmpty() {
+    manager.configure();
+    assertFalse(manager.register(new Object()));
+  }
 
-	@Test
-	public void addOtherFooModel() {
-		OtherFooModel model = new OtherFooModel();
-		manager.register(model);
-		manager.configure();
-		assertTrue(manager.register(new Foo()));
-		assertFalse(manager.register(new Bar()));
-		assertEquals(1, model.calledRegister);
-		assertEquals(1, model.calledTypes);
-	}
+  @Test
+  public void addOtherFooModel() {
+    final OtherFooModel model = new OtherFooModel();
+    manager.register(model);
+    manager.configure();
+    assertTrue(manager.register(new Foo()));
+    assertFalse(manager.register(new Bar()));
+    assertEquals(1, model.calledRegister);
+    assertEquals(1, model.calledTypes);
+  }
 
-	@Test
-	public void addWhenTwoModels() {
-		OtherFooModel model = new OtherFooModel();
-		BarModel model2 = new BarModel();
-		manager.register(model);
-		manager.register(model2);
-		manager.configure();
-		assertTrue(manager.register(new Foo()));
-		assertTrue(manager.register(new Bar()));
-		assertTrue(manager.register(new Foo()));
-		assertEquals(2, model.calledRegister);
-		assertEquals(1, model.calledTypes);
-		assertEquals(1, model2.calledRegister);
+  @Test
+  public void addWhenTwoModels() {
+    final OtherFooModel model = new OtherFooModel();
+    final BarModel model2 = new BarModel();
+    manager.register(model);
+    manager.register(model2);
+    manager.configure();
+    assertTrue(manager.register(new Foo()));
+    assertTrue(manager.register(new Bar()));
+    assertTrue(manager.register(new Foo()));
+    assertEquals(2, model.calledRegister);
+    assertEquals(1, model.calledTypes);
+    assertEquals(1, model2.calledRegister);
 
-		assertArrayEquals(new Model<?>[] { model, model2 }, manager.getModels().toArray(new Model<?>[2]));
-	}
+    assertArrayEquals(new Model<?>[] { model, model2 }, manager.getModels()
+        .toArray(new Model<?>[2]));
+  }
 
-	@Test
-	public void addDuplicateModel() {
-		OtherFooModel model = new OtherFooModel();
-		assertTrue(manager.add(model));
-		assertFalse(manager.add(model));
-	}
+  @Test
+  public void addDuplicateModel() {
+    final OtherFooModel model = new OtherFooModel();
+    assertTrue(manager.add(model));
+    assertFalse(manager.add(model));
+  }
 
-	@Test(expected = IllegalArgumentException.class)
-	public void addNull() {
-		manager.add(null);
-	}
+  @Test(expected = IllegalArgumentException.class)
+  public void addFaultyModel() {
+    final ModelA model = new ModelA();
+    model.setSupportedType(null);
+    manager.add(model);
+  }
 
-	@Test(expected = IllegalArgumentException.class)
-	public void addFaultyModel() {
-		ModelA model = new ModelA();
-		model.setSupportedType(null);
-		manager.add(model);
-	}
+  @Test(expected = IllegalStateException.class)
+  public void registerModelTooLate() {
+    manager.configure();
+    manager.register(new GraphRoadModel(new MultimapGraph<LengthData>()));
+  }
 
-	@Test(expected = IllegalArgumentException.class)
-	public void registerNull() {
-		manager.register(null);
-	}
+  @Test(expected = IllegalStateException.class)
+  public void addModelTooLate() {
+    manager.configure();
+    manager.add(new GraphRoadModel(new MultimapGraph<LengthData>()));
+  }
 
-	@Test(expected = IllegalStateException.class)
-	public void registerModelTooLate() {
-		manager.configure();
-		manager.register(new GraphRoadModel(new MultimapGraph<LengthData>()));
-	}
+  @Test(expected = RuntimeException.class)
+  public void registerWithBrokenModel() {
+    manager.add(new GraphRoadModel(new MultimapGraph<LengthData>()));
+    manager.add(new BrokenRoadModel(new MultimapGraph<LengthData>()));
+    manager.configure();
+    manager.register(new RoadUser() {
+      @Override
+      public void initRoadUser(RoadModel model) {}
+    });
+  }
 
-	@Test(expected = IllegalStateException.class)
-	public void addModelTooLate() {
-		manager.configure();
-		manager.add(new GraphRoadModel(new MultimapGraph<LengthData>()));
-	}
+  @Test
+  public void unregisterWithoutModels() {
+    manager.configure();
+    assertEquals(0, manager.getModels().size());
+    assertFalse(manager.unregister(new Object()));
+  }
 
-	@Test(expected = RuntimeException.class)
-	public void registerWithBrokenModel() {
-		manager.add(new GraphRoadModel(new MultimapGraph<LengthData>()));
-		manager.add(new BrokenRoadModel(new MultimapGraph<LengthData>()));
-		manager.configure();
-		manager.register(new RoadUser() {
-			@Override
-			public void initRoadUser(RoadModel model) {}
-		});
-	}
+  @Test(expected = IllegalArgumentException.class)
+  public void unregisterModel() {
+    manager.unregister(new GraphRoadModel(new MultimapGraph<LengthData>()));
+  }
 
-	@Test
-	public void unregisterWithoutModels() {
-		manager.configure();
-		assertEquals(0, manager.getModels().size());
-		assertFalse(manager.unregister(new Object()));
-	}
+  @Test(expected = IllegalStateException.class)
+  public void unregisterWhenNotConfigured() {
+    manager.unregister(new Object());
+  }
 
-	@Test(expected = IllegalArgumentException.class)
-	public void unregisterNull() {
-		manager.unregister(null);
-	}
+  @Test
+  public void unregister() {
+    manager.add(new GraphRoadModel(new MultimapGraph<LengthData>()));
+    manager.add(new GraphRoadModel(new MultimapGraph<LengthData>()));
+    manager.configure();
+    manager.unregister(new RoadUser() {
+      @Override
+      public void initRoadUser(RoadModel model) {}
+    });
+  }
 
-	@Test(expected = IllegalArgumentException.class)
-	public void unregisterModel() {
-		manager.unregister(new GraphRoadModel(new MultimapGraph<LengthData>()));
-	}
+  @Test(expected = RuntimeException.class)
+  public void unregisterWithBrokenModel() {
+    manager.add(new GraphRoadModel(new MultimapGraph<LengthData>()));
+    manager.add(new BrokenRoadModel(new MultimapGraph<LengthData>()));
+    manager.configure();
+    manager.unregister(new RoadUser() {
+      @Override
+      public void initRoadUser(RoadModel model) {}
+    });
+  }
 
-	@Test(expected = IllegalStateException.class)
-	public void unregisterWhenNotConfigured() {
-		manager.unregister(new Object());
-	}
+  @Test
+  public void unregisterUnregistered() {
+    final OtherFooModel model = new OtherFooModel();
+    manager.register(model);
+    manager.configure();
+    final Object o = new Object();
+    assertFalse(manager.unregister(o));
+    // it wont be register
+    assertFalse(manager.register(o));
+    assertFalse(manager.unregister(o));
+  }
 
-	@Test
-	public void unregister() {
-		manager.add(new GraphRoadModel(new MultimapGraph<LengthData>()));
-		manager.add(new GraphRoadModel(new MultimapGraph<LengthData>()));
-		manager.configure();
-		manager.unregister(new RoadUser() {
-			@Override
-			public void initRoadUser(RoadModel model) {}
-		});
-	}
+  public void unregisterRegistered() {
+    final OtherFooModel model = new OtherFooModel();
+    final BarModel model2 = new BarModel();
+    manager.register(model);
+    manager.register(model2);
+    manager.configure();
 
-	@Test(expected = RuntimeException.class)
-	public void unregisterWithBrokenModel() {
-		manager.add(new GraphRoadModel(new MultimapGraph<LengthData>()));
-		manager.add(new BrokenRoadModel(new MultimapGraph<LengthData>()));
-		manager.configure();
-		manager.unregister(new RoadUser() {
-			@Override
-			public void initRoadUser(RoadModel model) {}
-		});
-	}
+    final Foo foo = new Foo();
+    final Bar bar = new Bar();
 
-	@Test
-	public void unregisterUnregistered() {
-		OtherFooModel model = new OtherFooModel();
-		manager.register(model);
-		manager.configure();
-		Object o = new Object();
-		assertFalse(manager.unregister(o));
-		// it wont be register
-		assertFalse(manager.register(o));
-		assertFalse(manager.unregister(o));
-	}
+    assertTrue(manager.register(foo));
+    assertTrue(manager.register(bar));
 
-	public void unregisterRegistered() {
-		OtherFooModel model = new OtherFooModel();
-		BarModel model2 = new BarModel();
-		manager.register(model);
-		manager.register(model2);
-		manager.configure();
+    assertTrue(manager.unregister(foo));
 
-		final Foo foo = new Foo();
-		final Bar bar = new Bar();
+    assertEquals(1, model.calledRegister);
+    assertEquals(1, model2.calledRegister);
+    assertEquals(1, model.callUnregister);
+  }
 
-		assertTrue(manager.register(foo));
-		assertTrue(manager.register(bar));
+  @Test
+  public void manyModelsTest() {
+    final ModelA mA = new ModelA();
+    final ModelAA mAA = new ModelAA();
+    final ModelB mB = new ModelB();
+    final ModelB mB2 = new ModelB();
+    final ModelBB mBB = new ModelBB();
+    final ModelBBB mBBB = new ModelBBB();
+    final SpecialModelB mSB = new SpecialModelB();
+    final ModelC mC = new ModelC();
 
-		assertTrue(manager.unregister(foo));
+    manager.register(mA);
+    manager.register(mAA);
+    manager.register(mB);
+    manager.register(mB2);
+    manager.register(mBB);
+    manager.register(mBBB);
+    manager.register(mSB);
+    manager.register(mC);
 
-		assertEquals(1, model.calledRegister);
-		assertEquals(1, model2.calledRegister);
-		assertEquals(1, model.callUnregister);
-	}
+    manager.configure();
 
-	@Test
-	public void manyModelsTest() {
-		ModelA mA = new ModelA();
-		ModelAA mAA = new ModelAA();
-		ModelB mB = new ModelB();
-		ModelB mB2 = new ModelB();
-		ModelBB mBB = new ModelBB();
-		ModelBBB mBBB = new ModelBBB();
-		SpecialModelB mSB = new SpecialModelB();
-		ModelC mC = new ModelC();
+    final ObjectA a1 = new ObjectA();
+    assertTrue(manager.register(a1));
+    assertEquals(asList(a1), mA.getRegisteredElements());
+    assertEquals(asList(a1), mAA.getRegisteredElements());
 
-		manager.register(mA);
-		manager.register(mAA);
-		manager.register(mB);
-		manager.register(mB2);
-		manager.register(mBB);
-		manager.register(mBBB);
-		manager.register(mSB);
-		manager.register(mC);
+    mA.setRegisterAction(REJECT);
+    final ObjectA a2 = new ObjectA();
+    assertTrue(manager.register(a2));
+    assertEquals(asList(a1, a2), mA.getRegisteredElements());
+    assertEquals(asList(a1, a2), mAA.getRegisteredElements());
 
-		manager.configure();
+    mAA.setRegisterAction(REJECT);
+    final ObjectA a3 = new ObjectA();
+    assertFalse(manager.register(a3));
+    assertEquals(asList(a1, a2, a3), mA.getRegisteredElements());
+    assertEquals(asList(a1, a2, a3), mAA.getRegisteredElements());
 
-		ObjectA a1 = new ObjectA();
-		assertTrue(manager.register(a1));
-		assertEquals(asList(a1), mA.getRegisteredElements());
-		assertEquals(asList(a1), mAA.getRegisteredElements());
+    mA.setRegisterAction(ALLOW);
+    mAA.setRegisterAction(ALLOW);
+    assertTrue(manager.register(a1));// allow duplicates
+    assertEquals(asList(a1, a2, a3, a1), mA.getRegisteredElements());
+    assertEquals(asList(a1, a2, a3, a1), mAA.getRegisteredElements());
 
-		mA.setRegisterAction(REJECT);
-		ObjectA a2 = new ObjectA();
-		assertTrue(manager.register(a2));
-		assertEquals(asList(a1, a2), mA.getRegisteredElements());
-		assertEquals(asList(a1, a2), mAA.getRegisteredElements());
+    final ObjectB b1 = new ObjectB();
+    assertTrue(manager.register(b1));
+    assertEquals(asList(b1), mB.getRegisteredElements());
+    assertEquals(asList(b1), mB2.getRegisteredElements());
+    assertEquals(asList(b1), mBB.getRegisteredElements());
+    assertEquals(asList(b1), mBBB.getRegisteredElements());
+    assertEquals(asList(), mSB.getRegisteredElements());
 
-		mAA.setRegisterAction(REJECT);
-		ObjectA a3 = new ObjectA();
-		assertFalse(manager.register(a3));
-		assertEquals(asList(a1, a2, a3), mA.getRegisteredElements());
-		assertEquals(asList(a1, a2, a3), mAA.getRegisteredElements());
+    // subclass of B is registerd in all general models and its subclass
+    // model
+    final SpecialB s1 = new SpecialB();
+    assertTrue(manager.register(s1));
+    assertEquals(asList(b1, s1), mB.getRegisteredElements());
+    assertEquals(asList(b1, s1), mB2.getRegisteredElements());
+    assertEquals(asList(b1, s1), mBB.getRegisteredElements());
+    assertEquals(asList(b1, s1), mBBB.getRegisteredElements());
+    assertEquals(asList(s1), mSB.getRegisteredElements());
 
-		mA.setRegisterAction(ALLOW);
-		mAA.setRegisterAction(ALLOW);
-		assertTrue(manager.register(a1));// allow duplicates
-		assertEquals(asList(a1, a2, a3, a1), mA.getRegisteredElements());
-		assertEquals(asList(a1, a2, a3, a1), mAA.getRegisteredElements());
+    assertTrue(mC.getRegisteredElements().isEmpty());
 
-		ObjectB b1 = new ObjectB();
-		assertTrue(manager.register(b1));
-		assertEquals(asList(b1), mB.getRegisteredElements());
-		assertEquals(asList(b1), mB2.getRegisteredElements());
-		assertEquals(asList(b1), mBB.getRegisteredElements());
-		assertEquals(asList(b1), mBBB.getRegisteredElements());
-		assertEquals(asList(), mSB.getRegisteredElements());
+    // unregister not registered object
+    final ObjectA a4 = new ObjectA();
+    assertTrue(manager.unregister(a4));
+    assertEquals(asList(a4), mA.getUnregisteredElements());
+    assertEquals(asList(a4), mAA.getUnregisteredElements());
 
-		// subclass of B is registerd in all general models and its subclass
-		// model
-		SpecialB s1 = new SpecialB();
-		assertTrue(manager.register(s1));
-		assertEquals(asList(b1, s1), mB.getRegisteredElements());
-		assertEquals(asList(b1, s1), mB2.getRegisteredElements());
-		assertEquals(asList(b1, s1), mBB.getRegisteredElements());
-		assertEquals(asList(b1, s1), mBBB.getRegisteredElements());
-		assertEquals(asList(s1), mSB.getRegisteredElements());
+    // try again, this time with models rejecting unregister
+    mA.setUnregisterAction(REJECT);
+    mAA.setUnregisterAction(REJECT);
+    assertFalse(manager.unregister(a4));
+    assertEquals(asList(a4, a4), mA.getUnregisteredElements());
+    assertEquals(asList(a4, a4), mAA.getUnregisteredElements());
 
-		assertTrue(mC.getRegisteredElements().isEmpty());
+    assertTrue(manager.unregister(b1));
+    assertEquals(asList(b1), mB.getUnregisteredElements());
+    assertEquals(asList(b1), mB2.getUnregisteredElements());
+    assertEquals(asList(b1), mBB.getUnregisteredElements());
+    assertEquals(asList(b1), mBBB.getUnregisteredElements());
+    assertEquals(asList(), mSB.getUnregisteredElements());
 
-		// unregister not registered object
-		ObjectA a4 = new ObjectA();
-		assertTrue(manager.unregister(a4));
-		assertEquals(asList(a4), mA.getUnregisteredElements());
-		assertEquals(asList(a4), mAA.getUnregisteredElements());
+    assertTrue(manager.unregister(s1));
+    assertEquals(asList(b1, s1), mB.getUnregisteredElements());
+    assertEquals(asList(b1, s1), mB2.getUnregisteredElements());
+    assertEquals(asList(b1, s1), mBB.getUnregisteredElements());
+    assertEquals(asList(b1, s1), mBBB.getUnregisteredElements());
+    assertEquals(asList(s1), mSB.getUnregisteredElements());
 
-		// try again, this time with models rejecting unregister
-		mA.setUnregisterAction(REJECT);
-		mAA.setUnregisterAction(REJECT);
-		assertFalse(manager.unregister(a4));
-		assertEquals(asList(a4, a4), mA.getUnregisteredElements());
-		assertEquals(asList(a4, a4), mAA.getUnregisteredElements());
+  }
 
-		assertTrue(manager.unregister(b1));
-		assertEquals(asList(b1), mB.getUnregisteredElements());
-		assertEquals(asList(b1), mB2.getUnregisteredElements());
-		assertEquals(asList(b1), mBB.getUnregisteredElements());
-		assertEquals(asList(b1), mBBB.getUnregisteredElements());
-		assertEquals(asList(), mSB.getUnregisteredElements());
+  @Test
+  public void anonymousModelTest() {
+    manager.add(new Model<InnerObject>() {
+      @Override
+      public boolean register(InnerObject element) {
+        return false;
+      }
 
-		assertTrue(manager.unregister(s1));
-		assertEquals(asList(b1, s1), mB.getUnregisteredElements());
-		assertEquals(asList(b1, s1), mB2.getUnregisteredElements());
-		assertEquals(asList(b1, s1), mBB.getUnregisteredElements());
-		assertEquals(asList(b1, s1), mBBB.getUnregisteredElements());
-		assertEquals(asList(s1), mSB.getUnregisteredElements());
+      @Override
+      public boolean unregister(InnerObject element) {
+        return false;
+      }
 
-	}
+      @Override
+      public Class<InnerObject> getSupportedType() {
+        return InnerObject.class;
+      }
+    });
 
-	@Test
-	public void anonymousModelTest() {
-		manager.add(new Model<InnerObject>() {
-			@Override
-			public boolean register(InnerObject element) {
-				return false;
-			}
+    manager.configure();
 
-			@Override
-			public boolean unregister(InnerObject element) {
-				return false;
-			}
+    assertFalse(manager.register(new InnerObject()));
+  }
 
-			@Override
-			public Class<InnerObject> getSupportedType() {
-				return InnerObject.class;
-			}
-		});
-
-		manager.configure();
-
-		assertFalse(manager.register(new InnerObject()));
-	}
-
-	class InnerObject {}
+  class InnerObject {}
 }
 
 class BrokenRoadModel extends GraphRoadModel {
-	public BrokenRoadModel(Graph<? extends ConnectionData> pGraph) {
-		super(pGraph);
-	}
+  public BrokenRoadModel(Graph<? extends ConnectionData> pGraph) {
+    super(pGraph);
+  }
 
-	@Override
-	public boolean register(RoadUser obj) {
-		throw new RuntimeException("intended failure");
-	}
+  @Override
+  public boolean register(RoadUser obj) {
+    throw new RuntimeException("intended failure");
+  }
 
-	@Override
-	public boolean unregister(RoadUser obj) {
-		throw new RuntimeException("intended failure");
-	}
+  @Override
+  public boolean unregister(RoadUser obj) {
+    throw new RuntimeException("intended failure");
+  }
 }
 
 class OtherFooModel implements Model<Foo> {
 
-	int calledTypes;
-	int calledRegister;
-	int callUnregister;
+  int calledTypes;
+  int calledRegister;
+  int callUnregister;
 
-	@Override
-	public boolean register(Foo element) {
-		calledRegister += 1;
-		return true;
-	}
+  @Override
+  public boolean register(Foo element) {
+    calledRegister += 1;
+    return true;
+  }
 
-	@Override
-	public Class<Foo> getSupportedType() {
-		calledTypes += 1;
-		return Foo.class;
-	}
+  @Override
+  public Class<Foo> getSupportedType() {
+    calledTypes += 1;
+    return Foo.class;
+  }
 
-	@Override
-	public boolean unregister(Foo element) {
-		callUnregister += 1;
-		return true;
-	}
+  @Override
+  public boolean unregister(Foo element) {
+    callUnregister += 1;
+    return true;
+  }
 }
 
 class BarModel extends AbstractModel<Bar> {
-	int calledRegister;
+  int calledRegister;
 
-	protected BarModel() {
-		super(Bar.class);
-	}
+  protected BarModel() {
+    super(Bar.class);
+  }
 
-	@Override
-	public boolean register(Bar element) {
-		calledRegister += 1;
-		return true;
-	}
+  @Override
+  public boolean register(Bar element) {
+    calledRegister += 1;
+    return true;
+  }
 
-	@Override
-	public boolean unregister(Bar element) {
-		return false;
-	}
+  @Override
+  public boolean unregister(Bar element) {
+    return false;
+  }
 }
 
 class ObjectA {}
@@ -384,116 +370,116 @@ class SpecialB extends ObjectB {}
 class ObjectC {}
 
 class ModelA extends DebugModel<ObjectA> {
-	ModelA() {
-		super(ObjectA.class);
-	}
+  ModelA() {
+    super(ObjectA.class);
+  }
 }
 
 class ModelAA extends DebugModel<ObjectA> {
-	ModelAA() {
-		super(ObjectA.class);
-	}
+  ModelAA() {
+    super(ObjectA.class);
+  }
 }
 
 class ModelB extends DebugModel<ObjectB> {
-	ModelB() {
-		super(ObjectB.class);
-	}
+  ModelB() {
+    super(ObjectB.class);
+  }
 }
 
 class ModelBB extends DebugModel<ObjectB> {
-	ModelBB() {
-		super(ObjectB.class);
-	}
+  ModelBB() {
+    super(ObjectB.class);
+  }
 }
 
 class ModelBBB extends DebugModel<ObjectB> {
-	ModelBBB() {
-		super(ObjectB.class);
-	}
+  ModelBBB() {
+    super(ObjectB.class);
+  }
 }
 
 class SpecialModelB extends DebugModel<SpecialB> {
-	SpecialModelB() {
-		super(SpecialB.class);
-	}
+  SpecialModelB() {
+    super(SpecialB.class);
+  }
 }
 
 class ModelC extends DebugModel<ObjectC> {
-	ModelC() {
-		super(ObjectC.class);
-	}
+  ModelC() {
+    super(ObjectC.class);
+  }
 }
 
 class DebugModel<T> implements Model<T> {
 
-	enum Action {
-		ALLOW, REJECT, FAIL
-	}
+  enum Action {
+    ALLOW, REJECT, FAIL
+  }
 
-	private Action registerAction;
-	private Action unregisterAction;
-	private Class<T> supportedType;
-	private final List<T> registeredElements;
-	private final List<T> unregisteredElements;
+  private Action registerAction;
+  private Action unregisterAction;
+  private Class<T> supportedType;
+  private final List<T> registeredElements;
+  private final List<T> unregisteredElements;
 
-	public DebugModel(Class<T> type) {
-		supportedType = type;
-		registeredElements = new ArrayList<T>();
-		unregisteredElements = new ArrayList<T>();
-		setRegisterAction(ALLOW);
-		setUnregisterAction(ALLOW);
-	}
+  public DebugModel(Class<T> type) {
+    supportedType = type;
+    registeredElements = new ArrayList<T>();
+    unregisteredElements = new ArrayList<T>();
+    setRegisterAction(ALLOW);
+    setUnregisterAction(ALLOW);
+  }
 
-	public void setRegisterAction(Action a) {
-		registerAction = a;
-	}
+  public void setRegisterAction(Action a) {
+    registerAction = a;
+  }
 
-	public void setUnregisterAction(Action a) {
-		unregisterAction = a;
-	}
+  public void setUnregisterAction(Action a) {
+    unregisterAction = a;
+  }
 
-	public void setSupportedType(Class<T> type) {
-		supportedType = type;
-	}
+  public void setSupportedType(Class<T> type) {
+    supportedType = type;
+  }
 
-	@Override
-	public boolean register(T element) {
-		registeredElements.add(element);
-		return actionResponse(registerAction);
-	}
+  @Override
+  public boolean register(T element) {
+    registeredElements.add(element);
+    return actionResponse(registerAction);
+  }
 
-	@Override
-	public boolean unregister(T element) {
-		unregisteredElements.add(element);
-		return actionResponse(unregisterAction);
-	}
+  @Override
+  public boolean unregister(T element) {
+    unregisteredElements.add(element);
+    return actionResponse(unregisterAction);
+  }
 
-	public List<T> getRegisteredElements() {
-		return Collections.unmodifiableList(registeredElements);
-	}
+  public List<T> getRegisteredElements() {
+    return Collections.unmodifiableList(registeredElements);
+  }
 
-	public List<T> getUnregisteredElements() {
-		return Collections.unmodifiableList(unregisteredElements);
-	}
+  public List<T> getUnregisteredElements() {
+    return Collections.unmodifiableList(unregisteredElements);
+  }
 
-	private boolean actionResponse(Action a) {
-		switch (a) {
-		case ALLOW:
-			return true;
-		case REJECT:
-			return false;
-		case FAIL:
-			throw new RuntimeException("this is an intentional failure");
-		default:
-			throw new IllegalStateException();
-		}
-	}
+  private boolean actionResponse(Action a) {
+    switch (a) {
+    case ALLOW:
+      return true;
+    case REJECT:
+      return false;
+    case FAIL:
+      throw new RuntimeException("this is an intentional failure");
+    default:
+      throw new IllegalStateException();
+    }
+  }
 
-	@Override
-	public Class<T> getSupportedType() {
-		return supportedType;
-	}
+  @Override
+  public Class<T> getSupportedType() {
+    return supportedType;
+  }
 
 }
 

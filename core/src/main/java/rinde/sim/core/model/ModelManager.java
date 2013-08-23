@@ -43,9 +43,6 @@ public class ModelManager implements ModelProvider {
    * @throws IllegalStateException when method called after calling configure
    */
   public boolean add(Model<?> model) {
-    if (model == null) {
-      throw new IllegalArgumentException("model can not be null");
-    }
     checkState(!configured, "model can not be registered after configure()");
     final Class<?> supportedType = model.getSupportedType();
     checkArgument(supportedType != null, "model must implement getSupportedType() and return a non-null");
@@ -79,9 +76,6 @@ public class ModelManager implements ModelProvider {
    */
   @SuppressWarnings("unchecked")
   public <T> boolean register(T object) {
-    if (object == null) {
-      throw new IllegalArgumentException("Can not register null");
-    }
     if (object instanceof Model) {
       checkState(!configured, "model can not be registered after configure()");
       return add((Model<?>) object);
@@ -113,9 +107,6 @@ public class ModelManager implements ModelProvider {
    */
   @SuppressWarnings("unchecked")
   public <T> boolean unregister(T object) {
-    if (object == null) {
-      throw new IllegalArgumentException("can not unregister null");
-    }
     checkArgument(!(object instanceof Model), "can not unregister a model");
     checkState(configured, "can not unregister when not configured, call configure() first");
 

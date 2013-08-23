@@ -19,7 +19,7 @@ public abstract class AbstractModel<T> implements Model<T> {
   }
 
   @Override
-  final public Class<T> getSupportedType() {
+  public final Class<T> getSupportedType() {
     return clazz;
   }
 
