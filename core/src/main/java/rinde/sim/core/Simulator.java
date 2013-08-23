@@ -70,6 +70,9 @@ public class Simulator implements SimulatorAPI {
      */
     STARTED,
 
+    /**
+     * Indicates that the simulator has been configured.
+     */
     CONFIGURED
   }
 
@@ -101,7 +104,6 @@ public class Simulator implements SimulatorAPI {
   private boolean configured;
 
   private Set<Object> toUnregister;
-  // private final ReentrantLock unregisterLock;
   private final RandomGenerator rand;
   private final long timeStep;
   private final TimeLapse timeLapse;
@@ -129,7 +131,6 @@ public class Simulator implements SimulatorAPI {
     tickListeners = Collections
         .synchronizedSet(new LinkedHashSet<TickListener>());
 
-    // unregisterLock = new ReentrantLock();
     toUnregister = new LinkedHashSet<Object>();
 
     rand = r;
@@ -168,9 +169,6 @@ public class Simulator implements SimulatorAPI {
    * @return true if succesful, false otherwise
    */
   public boolean register(Model<?> model) {
-    if (model == null) {
-      throw new IllegalArgumentException("model can not be null");
-    }
     if (configured) {
       throw new IllegalStateException(
           "cannot add model after calling configure()");
@@ -189,9 +187,6 @@ public class Simulator implements SimulatorAPI {
    */
   @Override
   public boolean register(Object obj) {
-    if (obj == null) {
-      throw new IllegalArgumentException("parameter can not be null");
-    }
     if (obj instanceof Model<?>) {
       return register((Model<?>) obj);
     }
@@ -213,9 +208,6 @@ public class Simulator implements SimulatorAPI {
    */
   @Override
   public boolean unregister(Object o) {
-    if (o == null) {
-      throw new IllegalArgumentException("parameter cannot be null");
-    }
     if (o instanceof Model<?>) {
       throw new IllegalArgumentException("can not unregister a model");
     }
@@ -226,12 +218,7 @@ public class Simulator implements SimulatorAPI {
     if (o instanceof TickListener) {
       removeTickListener((TickListener) o);
     }
-    // unregisterLock.lock();
-    try {
-      toUnregister.add(o);
-    } finally {
-      // unregisterLock.unlock();
-    }
+    toUnregister.add(o);
     return true;
   }
 
@@ -390,6 +377,10 @@ public class Simulator implements SimulatorAPI {
     return isPlaying;
   }
 
+  /**
+   * @return <code>true</code> if the simulator is configured, see
+   *         {@link Simulator} for more information.
+   */
   public boolean isConfigured() {
     return configured;
   }

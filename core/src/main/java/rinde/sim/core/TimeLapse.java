@@ -100,6 +100,12 @@ public final class TimeLapse {
     return endTime;
   }
 
+  /**
+   * Checks whether the specified time lies in this {@link TimeLapse}.
+   * @param t The time to check.
+   * @return <code>true</code> if the specified time is in this
+   *         {@link TimeLapse}, <code>false</code> otherwise.
+   */
   public boolean isIn(long t) {
     return t >= startTime && t < endTime;
   }

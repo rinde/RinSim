@@ -22,226 +22,211 @@ import com.google.common.collect.Sets;
  */
 public class SimulatorTest {
 
-	private final long timeStep = 100L;
-	private Simulator simulator;
+  private final long timeStep = 100L;
+  private Simulator simulator;
 
-	@Before
-	public void setUp() {
-		simulator = new Simulator(new MersenneTwister(123), timeStep);
-		Simulator.SimulatorEventType.valueOf("STOPPED");// just for test coverage of the
-												// enum
-	}
+  @Before
+  public void setUp() {
+    simulator = new Simulator(new MersenneTwister(123), timeStep);
+    Simulator.SimulatorEventType.valueOf("STOPPED");// just for test coverage of
+                                                    // the
+    // enum
+  }
 
-	@Test
-	public void testTicks() {
-		assertEquals(0L, simulator.getCurrentTime());
-		TickListenerImpl tl = new TickListenerImpl();
-		assertEquals(0, tl.getTickCount());
-		simulator.addTickListener(tl);
-		simulator.tick();
-		assertEquals(100L, simulator.getCurrentTime());
-		assertEquals(1, tl.getTickCount());
-		simulator.removeTickListener(tl);
-		simulator.tick();
-		assertEquals(1, tl.getTickCount());
-	}
+  @Test
+  public void testTicks() {
+    assertEquals(0L, simulator.getCurrentTime());
+    final TickListenerImpl tl = new TickListenerImpl();
+    assertEquals(0, tl.getTickCount());
+    simulator.addTickListener(tl);
+    simulator.tick();
+    assertEquals(100L, simulator.getCurrentTime());
+    assertEquals(1, tl.getTickCount());
+    simulator.removeTickListener(tl);
+    simulator.tick();
+    assertEquals(1, tl.getTickCount());
+  }
 
-	@Test
-	public void testTickOrder() {
-		assertEquals(100L, simulator.getTimeStep());
-		TickListenerImpl normal = new TickListenerImpl();
-		simulator.addTickListener(normal);
-		simulator.tick();
-		assertTrue(normal.getExecTime() < normal.getAfterExecTime());
-	}
+  @Test
+  public void testTickOrder() {
+    assertEquals(100L, simulator.getTimeStep());
+    final TickListenerImpl normal = new TickListenerImpl();
+    simulator.addTickListener(normal);
+    simulator.tick();
+    assertTrue(normal.getExecTime() < normal.getAfterExecTime());
+  }
 
-	@Test(expected = IllegalArgumentException.class)
-	public void testRegisterNull() {
-		simulator.register(null);
-	}
+  @Test(expected = IllegalStateException.class)
+  public void testRegisterTooEarly() {
+    simulator.register(new DummyObject());
+  }
 
-	@Test(expected = IllegalArgumentException.class)
-	public void testRegisterNull2() {
-		Object o = null;
-		simulator.register(o);
-	}
+  @Test(expected = IllegalStateException.class)
+  public void testRegisterModelTooLate() {
+    simulator.configure();
+    simulator.register(new DummyModel());
+  }
 
-	@Test(expected = IllegalStateException.class)
-	public void testRegisterTooEarly() {
-		simulator.register(new DummyObject());
-	}
+  @Test
+  public void testRegister() {
+    assertTrue(simulator.getModels().isEmpty());
+    final DummyModel m1 = new DummyModel();
+    final DummyModel m2 = new DummyModel();
+    final DummyModelAsTickListener m3 = new DummyModelAsTickListener();
+    assertTrue(simulator.register(m1));
+    assertFalse(simulator.register((Object) m1));
+    assertTrue(simulator.register(m2));
+    assertTrue(simulator.register(m3));
+    assertFalse(simulator.register(m3));
 
-	@Test(expected = IllegalStateException.class)
-	public void testRegisterModelTooLate() {
-		simulator.configure();
-		simulator.register(new DummyModel());
-	}
+    assertEquals(Arrays.asList(m1, m2, m3), simulator.getModels());
+    simulator.configure();
 
-	@Test
-	public void testRegister() {
-		assertTrue(simulator.getModels().isEmpty());
-		DummyModel m1 = new DummyModel();
-		DummyModel m2 = new DummyModel();
-		DummyModelAsTickListener m3 = new DummyModelAsTickListener();
-		assertTrue(simulator.register(m1));
-		assertFalse(simulator.register((Object) m1));
-		assertTrue(simulator.register(m2));
-		assertTrue(simulator.register(m3));
-		assertFalse(simulator.register(m3));
+    assertTrue(simulator.register(new DummyObject()));
 
-		assertEquals(Arrays.asList(m1, m2, m3), simulator.getModels());
-		simulator.configure();
+    final DummyObjectTickListener dotl = new DummyObjectTickListener();
+    assertFalse(simulator.register(dotl));
 
-		assertTrue(simulator.register(new DummyObject()));
+    assertEquals(Sets.newHashSet(m3, dotl), simulator.getTickListeners());
 
-		DummyObjectTickListener dotl = new DummyObjectTickListener();
-		assertFalse(simulator.register(dotl));
+    final DummyObjectSimulationUser dosu = new DummyObjectSimulationUser();
+    assertFalse(simulator.register(dosu));
+    assertEquals(simulator, dosu.getAPI());
 
-		assertEquals(Sets.newHashSet(m3, dotl), simulator.getTickListeners());
+    simulator.unregister(new DummyObject());
+    simulator.unregister(new DummyObjectTickListener());
 
-		DummyObjectSimulationUser dosu = new DummyObjectSimulationUser();
-		assertFalse(simulator.register(dosu));
-		assertEquals(simulator, dosu.getAPI());
+  }
 
-		simulator.unregister(new DummyObject());
-		simulator.unregister(new DummyObjectTickListener());
+  @Test(expected = IllegalArgumentException.class)
+  public void testUnregisterModel() {
+    simulator.unregister(new DummyModel());
+  }
 
-	}
+  @Test(expected = IllegalStateException.class)
+  public void testUnregisterTooEarly() {
+    simulator.unregister(new Object());
+  }
 
-	@Test(expected = IllegalArgumentException.class)
-	public void testUnregisterNull() {
-		simulator.unregister(null);
-	}
+  @Test(expected = IllegalStateException.class)
+  public void testStartWithoutConfiguring() {
+    simulator.start();
+  }
 
-	@Test(expected = IllegalArgumentException.class)
-	public void testUnregisterModel() {
-		simulator.unregister(new DummyModel());
-	}
+  @Test
+  public void testStart() {
+    simulator.configure();
+    final LimitingTickListener ltl = new LimitingTickListener(simulator, 3);
+    simulator.addTickListener(ltl);
+    simulator.start();
+    assertTrue(simulator.getCurrentTime() == 3 * timeStep);
 
-	@Test(expected = IllegalStateException.class)
-	public void testUnregisterTooEarly() {
-		simulator.unregister(new Object());
-	}
+    simulator.unregister(new Object());
+    simulator.togglePlayPause();
+    assertTrue(simulator.getCurrentTime() == 6 * timeStep);
+    simulator.resetTime();
+    assertTrue(simulator.getCurrentTime() == 0);
+  }
 
-	@Test(expected = IllegalStateException.class)
-	public void testStartWithoutConfiguring() {
-		simulator.start();
-	}
+  @Test
+  public void testGetRnd() {
+    assertNotNull(simulator.getRandomGenerator());
+  }
 
-	@Test
-	public void testStart() {
-		simulator.configure();
-		LimitingTickListener ltl = new LimitingTickListener(simulator, 3);
-		simulator.addTickListener(ltl);
-		simulator.start();
-		assertTrue(simulator.getCurrentTime() == 3 * timeStep);
+  class DummyObject {}
 
-		simulator.unregister(new Object());
-		simulator.togglePlayPause();
-		assertTrue(simulator.getCurrentTime() == 6 * timeStep);
-		simulator.resetTime();
-		assertTrue(simulator.getCurrentTime() == 0);
-	}
+  class DummyObjectTickListener implements TickListener {
+    @Override
+    public void tick(TimeLapse tl) {}
 
-	@Test
-	public void testGetRnd() {
-		assertNotNull(simulator.getRandomGenerator());
-	}
+    @Override
+    public void afterTick(TimeLapse tl) {}
+  }
 
-	class DummyObject {}
+  class DummyObjectSimulationUser implements SimulatorUser {
+    private SimulatorAPI receivedAPI;
 
-	class DummyObjectTickListener implements TickListener {
-		@Override
-		public void tick(TimeLapse tl) {}
+    @Override
+    public void setSimulator(SimulatorAPI api) {
+      receivedAPI = api;
+    }
 
-		@Override
-		public void afterTick(TimeLapse tl) {}
-	}
+    public SimulatorAPI getAPI() {
+      return receivedAPI;
+    }
+  }
 
-	class DummyObjectSimulationUser implements SimulatorUser {
-		private SimulatorAPI receivedAPI;
+  class DummyModelAsTickListener extends DummyModel implements TickListener {
 
-		@Override
-		public void setSimulator(SimulatorAPI api) {
-			receivedAPI = api;
-		}
+    @Override
+    public void tick(TimeLapse tl) {}
 
-		public SimulatorAPI getAPI() {
-			return receivedAPI;
-		}
-	}
+    @Override
+    public void afterTick(TimeLapse tl) {}
 
-	class DummyModelAsTickListener extends DummyModel implements TickListener {
+  }
 
-		@Override
-		public void tick(TimeLapse tl) {}
+  class LimitingTickListener implements TickListener {
+    private final int limit;
+    private int tickCount;
+    private final Simulator sim;
 
-		@Override
-		public void afterTick(TimeLapse tl) {}
+    public LimitingTickListener(Simulator s, int tickLimit) {
+      sim = s;
+      limit = tickLimit;
+      tickCount = 0;
+    }
 
-	}
+    public void reset() {
+      tickCount = 0;
+    }
 
-	class LimitingTickListener implements TickListener {
-		private final int limit;
-		private int tickCount;
-		private final Simulator sim;
+    @Override
+    public void tick(TimeLapse tl) {
+      tickCount++;
+    }
 
-		public LimitingTickListener(Simulator s, int tickLimit) {
-			sim = s;
-			limit = tickLimit;
-			tickCount = 0;
-		}
+    @Override
+    public void afterTick(TimeLapse tl) {
+      if (tickCount >= limit) {
+        assertTrue(sim.isPlaying());
+        if (tl.getTime() > limit * tl.getTimeStep()) {
+          sim.togglePlayPause();
+        }
+        sim.stop();
+        assertFalse(sim.isPlaying());
+        reset();
+      }
+    }
+  }
 
-		public void reset() {
-			tickCount = 0;
-		}
+  class TickListenerImpl implements TickListener {
+    private int count = 0;
+    private long execTime;
+    private long afterTime;
 
-		@Override
-		public void tick(TimeLapse tl) {
-			tickCount++;
-		}
+    @Override
+    public void tick(TimeLapse tl) {
+      count++;
+      execTime = System.nanoTime();
+    }
 
-		@Override
-		public void afterTick(TimeLapse tl) {
-			if (tickCount >= limit) {
-				assertTrue(sim.isPlaying());
-				if (tl.getTime() > limit * tl.getTimeStep()) {
-					sim.togglePlayPause();
-				}
-				sim.stop();
-				assertFalse(sim.isPlaying());
-				reset();
-			}
-		}
-	}
+    public long getExecTime() {
+      return execTime;
+    }
 
-	class TickListenerImpl implements TickListener {
-		private int count = 0;
-		private long execTime;
-		private long afterTime;
+    public long getAfterExecTime() {
+      return afterTime;
+    }
 
-		@Override
-		public void tick(TimeLapse tl) {
-			count++;
-			execTime = System.nanoTime();
-		}
+    public int getTickCount() {
+      return count;
+    }
 
-		public long getExecTime() {
-			return execTime;
-		}
-
-		public long getAfterExecTime() {
-			return afterTime;
-		}
-
-		public int getTickCount() {
-			return count;
-		}
-
-		@Override
-		public void afterTick(TimeLapse tl) {
-			afterTime = System.nanoTime();
-		}
-	}
+    @Override
+    public void afterTick(TimeLapse tl) {
+      afterTime = System.nanoTime();
+    }
+  }
 
 }
