@@ -2,3 +2,5 @@ core/files/test/
 example/src/main/java/rinde/sim/playground/
 .DS_Store
 target/
+problem/files/generator/*
+problem/files/test/gendreau06/req_rapide_*
