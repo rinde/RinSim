@@ -35,7 +35,7 @@ import rinde.sim.ui.View;
 public class CentralTest {
   @Test
   public void test() throws IOException {
-    final List<String> files = getFilesFromDir("data/test/gendreau06/", "");
+    final List<String> files = getFilesFromDir("files/test/gendreau06/", "");
 
     final RandomGenerator rng = new MersenneTwister(123);
     // "files/scenarios/gendreau06/req_rapide_1_240_24"

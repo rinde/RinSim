@@ -13,7 +13,6 @@ import java.util.List;
 import org.junit.Test;
 
 import rinde.sim.core.model.pdp.PDPScenarioEvent;
-import rinde.sim.pdptw.gendreau06.Gendreau06Scenario;
 import rinde.sim.scenario.TimedEvent;
 
 /**
@@ -25,7 +24,7 @@ public class Gendreau06ParserTest {
   @Test
   public void parseTest() throws IOException {
 
-    final Gendreau06Scenario scen = parse("data/test/gendreau06/req_rapide_1_240_24", 5);
+    final Gendreau06Scenario scen = parse("files/test/gendreau06/req_rapide_1_240_24", 5);
 
     final List<TimedEvent> events = scen.asList();
 

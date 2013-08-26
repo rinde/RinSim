@@ -11,9 +11,6 @@ import java.io.IOException;
 
 import org.junit.Test;
 
-import rinde.sim.pdptw.fabrirecht.FabriRechtParser;
-import rinde.sim.pdptw.fabrirecht.FabriRechtScenario;
-
 /**
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
  * 
@@ -23,12 +20,12 @@ public class ScenarioTest {
   @Test
   public void test() throws IOException {
     final FabriRechtScenario scen = FabriRechtParser
-        .parse("data/test/fabri-recht/lc101_coord.csv", "data/test/fabri-recht/lc101.csv");
+        .parse("files/test/fabri-recht/lc101_coord.csv", "files/test/fabri-recht/lc101.csv");
 
     final String json = FabriRechtParser.toJson(scen);
     // System.out.println(json);
     FabriRechtParser.toJson(scen, new BufferedWriter(new FileWriter(
-        "data/test/fabri-recht/lc101.scenario")));
+        "files/test/fabri-recht/lc101.scenario")));
 
     final FabriRechtScenario scen2 = FabriRechtParser.fromJson(json);
     assertEquals(scen, scen2);
