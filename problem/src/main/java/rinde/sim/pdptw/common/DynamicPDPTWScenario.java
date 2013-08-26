@@ -64,9 +64,13 @@ public abstract class DynamicPDPTWScenario extends Scenario {
     final List<TimedEvent> newEvents = newArrayList();
     for (final TimedEvent e : events) {
       final Class<?> clazz = e.getClass();
-      if (clazz == AddDepotEvent.class || clazz == AddVehicleEvent.class
-          || e.getEventType() == PDPScenarioEvent.TIME_OUT) {
-        newEvents.add(e);
+      if (clazz == AddDepotEvent.class) {
+        newEvents.add(new AddDepotEvent(e.time, ((AddDepotEvent) e).position));
+      } else if (clazz == AddVehicleEvent.class) {
+        newEvents.add(new AddVehicleEvent(e.time,
+            ((AddVehicleEvent) e).vehicleDTO));
+      } else if (e.getEventType() == PDPScenarioEvent.TIME_OUT) {
+        newEvents.add(new TimedEvent(e.getEventType(), e.time));
       } else if (clazz == AddParcelEvent.class) {
         final AddParcelEvent old = (AddParcelEvent) e;
         final ParcelDTO newDto = new ParcelDTO(//

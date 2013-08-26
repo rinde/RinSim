@@ -91,7 +91,6 @@ public final class Central {
       // the add parcel event was dispatched
       @Override
       public void handleEvent(Event e) {
-        System.out.println("call solver");
         final Iterator<Queue<DefaultParcel>> routes = Solvers
             .solve(solver, rm, pm, sim.getCurrentTime(), timeUnit, speedUnit, distUnit)
             .iterator();
@@ -162,9 +161,6 @@ public final class Central {
     }
 
     @Override
-    public void afterTick(TimeLapse timeLapse) {
-      // TODO Auto-generated method stub
-
-    }
+    public void afterTick(TimeLapse timeLapse) {}
   }
 }
