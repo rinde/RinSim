@@ -21,7 +21,6 @@ import org.junit.Test;
 import rinde.sim.pdptw.central.arrays.ArraysSolverValidator;
 import rinde.sim.pdptw.central.arrays.MultiVehicleSolverAdapter;
 import rinde.sim.pdptw.central.arrays.RandomMVArraysSolver;
-import rinde.sim.pdptw.common.DynamicPDPTWScenario;
 import rinde.sim.pdptw.common.StatsTracker.StatisticsDTO;
 import rinde.sim.pdptw.gendreau06.Gendreau06ObjectiveFunction;
 import rinde.sim.pdptw.gendreau06.Gendreau06Parser;
@@ -40,12 +39,8 @@ public class CentralTest {
     final RandomGenerator rng = new MersenneTwister(123);
     // "files/scenarios/gendreau06/req_rapide_1_240_24"
     for (final String file : files) {
-      // final String file = "data/test/gendreau06/req_rapide_2_450_24";
-
-      System.out.println(file);
       for (int i = 0; i < 1; i++) {
-        Gendreau06Scenario scenario = Gendreau06Parser.parse(file, 10);
-        scenario = DynamicPDPTWScenario.convertToOffline(scenario);
+        final Gendreau06Scenario scenario = Gendreau06Parser.parse(file, 10);
 
         final Solver s = SolverValidator.wrap(new MultiVehicleSolverAdapter(
             ArraysSolverValidator.wrap(new RandomMVArraysSolver(
@@ -53,8 +48,8 @@ public class CentralTest {
 
         final Gendreau06ObjectiveFunction objFunc = new Gendreau06ObjectiveFunction();
         final StatisticsDTO stats = Central.solve(scenario, s, objFunc, false);
-        System.out.println(objFunc.printHumanReadableFormat(stats));
       }
+      break;
     }
   }
 
