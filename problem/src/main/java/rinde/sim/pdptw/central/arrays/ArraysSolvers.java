@@ -10,6 +10,7 @@ import static com.google.common.collect.Maps.newHashMap;
 import static java.util.Arrays.asList;
 
 import java.math.RoundingMode;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
@@ -486,6 +487,12 @@ public final class ArraysSolvers {
       this.locations = ImmutableList.copyOf(asList(locations));
       this.point2dto = ImmutableMap.copyOf(point2dto);
     }
+
+    ArraysObject(int[][] travelTime, int[] releaseDates, int[] dueDates,
+        int[][] servicePairs, int[] serviceTimes) {
+      this(travelTime, releaseDates, dueDates, servicePairs, serviceTimes,
+          new Point[] {}, Collections.EMPTY_MAP);
+    }
   }
 
   /**
@@ -545,6 +552,17 @@ public final class ArraysSolvers {
           ao.locations.toArray(new Point[ao.locations.size()]), ao.point2dto,
           vehicleTravelTimes, inventories, remainingServiceTimes,
           currentDestinations);
+    }
+
+    MVArraysObject(int[][] travelTime, int[] releaseDates, int[] dueDates,
+        int[][] servicePairs, int[] serviceTimes, int[][] vehicleTravelTimes,
+        int[][] inventories, int[] remainingServiceTimes,
+        int[] currentDestinations) {
+      super(travelTime, releaseDates, dueDates, servicePairs, serviceTimes);
+      this.vehicleTravelTimes = vehicleTravelTimes;
+      this.inventories = inventories;
+      this.remainingServiceTimes = remainingServiceTimes;
+      this.currentDestinations = currentDestinations;
     }
   }
 
