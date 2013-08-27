@@ -16,8 +16,11 @@ import org.apache.commons.math3.random.RandomGenerator;
 import com.google.common.primitives.Ints;
 
 /**
+ * This is a random implementation of {@link MultiVehicleArraysSolver} used for
+ * testing. Note that it is not perfectly random, it is a 'lazy' implementation
+ * that creates feasible solutions but not necessary with an equal or non-zero
+ * probability.
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
- * 
  */
 public class RandomMVArraysSolver implements MultiVehicleArraysSolver {
 
