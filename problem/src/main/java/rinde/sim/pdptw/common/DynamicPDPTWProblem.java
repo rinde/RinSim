@@ -7,7 +7,6 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Maps.newHashMap;
-import static java.util.Collections.unmodifiableMap;
 import static rinde.sim.core.model.pdp.PDPScenarioEvent.TIME_OUT;
 
 import java.util.List;
@@ -38,6 +37,8 @@ import rinde.sim.ui.renderers.UiSchema;
 import rinde.sim.util.spec.CompositeSpecification;
 import rinde.sim.util.spec.ISpecification;
 
+import com.google.common.collect.ImmutableMap;
+
 /**
  * A problem instance for the class of problems which is called dynamic
  * pickup-and-delivery problems with time windows, often abbreviated as dynamic
@@ -64,22 +65,20 @@ public class DynamicPDPTWProblem {
   /**
    * A map which contains the default {@link Creator}s.
    */
-  protected static final Map<Class<?>, Creator<?>> DEFAULT_EVENT_CREATOR_MAP;
+  protected static final ImmutableMap<Class<?>, Creator<?>> DEFAULT_EVENT_CREATOR_MAP;
   static {
-    final Map<Class<?>, Creator<?>> map = newHashMap();
-    map.put(AddParcelEvent.class, new Creator<AddParcelEvent>() {
-      @Override
-      public boolean create(Simulator sim, AddParcelEvent event) {
-        return sim.register(new DefaultParcel(event.parcelDTO));
-      }
-    });
-    map.put(AddDepotEvent.class, new Creator<AddDepotEvent>() {
-      @Override
-      public boolean create(Simulator sim, AddDepotEvent event) {
-        return sim.register(new DefaultDepot(event.position));
-      }
-    });
-    DEFAULT_EVENT_CREATOR_MAP = unmodifiableMap(map);
+    DEFAULT_EVENT_CREATOR_MAP = ImmutableMap
+        .of((Class<?>) AddParcelEvent.class, new Creator<AddParcelEvent>() {
+          @Override
+          public boolean create(Simulator sim, AddParcelEvent event) {
+            return sim.register(new DefaultParcel(event.parcelDTO));
+          }
+        }, AddDepotEvent.class, new Creator<AddDepotEvent>() {
+          @Override
+          public boolean create(Simulator sim, AddDepotEvent event) {
+            return sim.register(new DefaultDepot(event.position));
+          }
+        });
   }
 
   /**
