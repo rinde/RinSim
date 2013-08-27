@@ -135,7 +135,6 @@ public class DynamicPDPTWProblem {
     eventCreatorMap = newHashMap();
 
     final TimedEventHandler handler = new TimedEventHandler() {
-      @SuppressWarnings("unchecked")
       @Override
       public boolean handleTimedEvent(TimedEvent event) {
         if (eventCreatorMap.containsKey(event.getClass())) {
@@ -164,7 +163,6 @@ public class DynamicPDPTWProblem {
 
       @Override
       public void afterTick(TimeLapse timeLapse) {
-        final long start = System.currentTimeMillis();
         if (stopCondition.isSatisfiedBy(new SimulationInfo(statsTracker
             .getStatsDTO(), scen))) {
           simulator.stop();
@@ -300,7 +298,7 @@ public class DynamicPDPTWProblem {
    * 
    * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
    */
-  public static abstract class StopCondition extends
+  public abstract static class StopCondition extends
       CompositeSpecification<SimulationInfo, StopCondition> {
     /**
      * The simulation is terminated once the
@@ -361,7 +359,7 @@ public class DynamicPDPTWProblem {
    * s.
    * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
    */
-  public class SimulationInfo {
+  public static class SimulationInfo {
     /**
      * The current statistics.
      */
@@ -383,35 +381,53 @@ public class DynamicPDPTWProblem {
     }
   }
 
+  /**
+   * A default {@link UICreator} used for creating a UI for a problem.
+   * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+   */
   public static class DefaultUICreator implements UICreator {
-    protected List<Renderer> renderers;
-    protected int speedup;
+    /**
+     * A list of renderers;
+     */
+    protected final List<Renderer> renderers;
 
+    /**
+     * The speedup that is passed to the gui.
+     */
+    protected final int speedup;
+
+    private final DynamicPDPTWProblem problem;
+
+    /**
+     * Create a GUI for the specified problem.
+     * @param prob The problem to create a GUI for.
+     */
     public DefaultUICreator(DynamicPDPTWProblem prob) {
       this(prob, 1);
     }
 
+    /**
+     * Create a GUI for the specified problem with the specified speed.
+     * @param prob The problem to create a GUI for.
+     * @param speed The speed to use.
+     */
     public DefaultUICreator(DynamicPDPTWProblem prob, int speed) {
       checkArgument(speed >= 1, "speed must be a positive integer");
       speedup = speed;
-      renderers = createRenderers();
-      if (prob != null) {
-        renderers.add(new StatsPanel(prob.statsTracker));
-      }
+      problem = prob;
+      renderers = newArrayList();
     }
 
-    public DefaultUICreator() {
-      this(null, 1);
-    }
-
-    protected List<Renderer> createRenderers() {
-      return newArrayList(planeRoadModelRenderer(), roadUserRenderer(), pdpModelRenderer());
-    }
-
+    /**
+     * @return The default road model renderer.
+     */
     protected Renderer planeRoadModelRenderer() {
       return new PlaneRoadModelRenderer(0.05);
     }
 
+    /**
+     * @return The default road user renderer.
+     */
     protected Renderer roadUserRenderer() {
       final UiSchema schema = new UiSchema(false);
       schema.add(Vehicle.class, SWT.COLOR_RED);
@@ -420,18 +436,35 @@ public class DynamicPDPTWProblem {
       return new RoadUserRenderer(schema, false);
     }
 
+    /**
+     * @return The default pdp model renderer.
+     */
     protected Renderer pdpModelRenderer() {
       return new PDPModelRenderer();
     }
 
+    /**
+     * Initializes all renderers.
+     */
+    protected void initRenderers() {
+      renderers.add(planeRoadModelRenderer());
+      renderers.add(roadUserRenderer());
+      renderers.add(pdpModelRenderer());
+      renderers.add(new StatsPanel(problem.statsTracker));
+    }
+
     @Override
     public void createUI(Simulator sim) {
+      initRenderers();
       View.startGui(sim, speedup, renderers.toArray(new Renderer[] {}));
     }
 
+    /**
+     * Add a renderer.
+     * @param r The renderer to add.
+     */
     public void addRenderer(Renderer r) {
       renderers.add(r);
     }
   }
-
 }
