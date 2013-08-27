@@ -22,7 +22,6 @@ import rinde.sim.pdptw.common.DynamicPDPTWProblem.DefaultUICreator;
 import rinde.sim.pdptw.common.VehicleDTO;
 import rinde.sim.scenario.ConfigurationException;
 import rinde.sim.ui.View;
-import rinde.sim.ui.renderers.CanvasRenderer;
 
 import com.google.common.base.Predicate;
 
@@ -39,8 +38,7 @@ public class RepetitiousGUITest {
     System.out.println();
     for (int i = 0; i < 100; i++) {
       final FabriRechtScenario scenario = FabriRechtParser
-          .fromJson(new FileReader(
-              "../problem/data/test/fabri-recht/lc101.scenario"), 8, 20);
+          .fromJson(new FileReader("files/test/fabri-recht/lc101.scenario"), 8, 20);
 
       final DynamicPDPTWProblem problem = new DynamicPDPTWProblem(scenario, 123);
       problem.addCreator(AddVehicleEvent.class, new Creator<AddVehicleEvent>() {
@@ -53,11 +51,11 @@ public class RepetitiousGUITest {
 
       View.setAutoPlay(true);
       View.setAutoClose(true);
-      problem.enableUI(new DefaultUICreator() {
+      problem.enableUI(new DefaultUICreator(problem, 15) {
         @Override
         public void createUI(Simulator sim) {
           try {
-            View.startGui(sim, 15, renderers.toArray(new CanvasRenderer[] {}));
+            super.createUI(sim);
           } catch (final Throwable e) {
             System.err.println("Crash occured at iteration " + iteration);
             e.printStackTrace();
