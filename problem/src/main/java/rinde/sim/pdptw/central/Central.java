@@ -86,11 +86,16 @@ public final class Central {
     final PDPRoadModel rm = sim.getModelProvider().getModel(PDPRoadModel.class);
     final PDPModel pm = sim.getModelProvider().getModel(PDPModel.class);
 
+    // TODO most of this code should probably be moved into a
+    // 'CentralizedModel'.
+
     parcelReceiver.getEventAPI().addListener(new Listener() {
       // TODO check to see that this is called the first possible moment after
       // the add parcel event was dispatched
       @Override
       public void handleEvent(Event e) {
+        // TODO it must be checked whether the calculated routes end up in the
+        // correct vehicles
         final Iterator<Queue<DefaultParcel>> routes = Solvers
             .solve(solver, rm, pm, sim.getCurrentTime(), timeUnit, speedUnit, distUnit)
             .iterator();
