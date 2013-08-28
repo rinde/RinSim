@@ -171,7 +171,6 @@ public class ScenarioController implements TickListener {
     TimedEvent e = null;
     while ((e = scenarioQueue.peek()) != null && e.time < 0) {
       scenarioQueue.poll();
-      e.setIssuer(this);
       disp.dispatchEvent(e);
     }
   }
@@ -206,7 +205,6 @@ public class ScenarioController implements TickListener {
         status = EventType.SCENARIO_STARTED;
         disp.dispatchEvent(new Event(status, this));
       }
-      e.setIssuer(this);
       disp.dispatchEvent(e);
     }
     if (e == null && status != EventType.SCENARIO_FINISHED) {

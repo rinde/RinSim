@@ -3,8 +3,6 @@
  */
 package rinde.sim.event;
 
-import static com.google.common.base.Preconditions.checkState;
-
 import java.io.Serializable;
 
 import javax.annotation.Nullable;
@@ -12,7 +10,7 @@ import javax.annotation.Nullable;
 import com.google.common.base.Optional;
 
 /**
- * The base event class.
+ * The base event class. It is immutable.
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
  * @author Bartosz Michalik <bartosz.michalik@cs.kuleuven.be>
  */
@@ -23,7 +21,7 @@ public class Event implements Serializable {
    * The type of event.
    */
   protected final Enum<?> eventType;
-  private transient Optional<Object> issuer;
+  private final Optional<Object> issuer;
 
   /**
    * Create a new event instance.
@@ -36,21 +34,11 @@ public class Event implements Serializable {
   }
 
   /**
-   * Should be used only by extension classes when the issuer is not known at
-   * creation time.
+   * Create a new event without a issuer.
    * @param type The event type.
    */
   protected Event(Enum<?> type) {
     this(type, null);
-  }
-
-  /**
-   * Issuer is set only if it was previously empty.
-   * @param pIssuer The issuer of the event.
-   */
-  public void setIssuer(Object pIssuer) {
-    checkState(!issuer.isPresent(), "issuer is already set, can not be overridden. Value: %s.", issuer);
-    issuer = Optional.of(pIssuer);
   }
 
   /**
