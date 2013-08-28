@@ -5,7 +5,6 @@ package rinde.sim.pdptw.experiments;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
-import static com.google.common.collect.Lists.newArrayList;
 
 import java.util.List;
 
@@ -25,6 +24,8 @@ import rinde.sim.pdptw.common.StatsTracker.StatisticsDTO;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableTable;
+import com.google.common.collect.Table.Cell;
+import com.google.common.collect.UnmodifiableIterator;
 
 /**
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
@@ -39,55 +40,62 @@ public class Experiments {
 
   // TODO make sure Central can reuse this code
 
-  // TODO builder pattern?
-
   // experimentOn(scenario).addSolution(config).addObjectiveFunction(objFunc).showGui().setMasterSeed(123).repeat(10).run()
   // ..addSolution(config1).addSolution(config2).addScenario(scen1)
 
-  public static class ExperimentBuilder {
+  public static ExperimentSetup experiment(ObjectiveFunction objectiveFunction) {
+    return new ExperimentSetup(objectiveFunction);
+  }
+
+  public static final class ExperimentSetup {
     private final ObjectiveFunction objectiveFunction;
-    private final List<SimulatorConfigurator> solutions;
-    private final List<DynamicPDPTWScenario> scenarios;
+    private final ImmutableList.Builder<MASConfigurator> configurators;
+    private final ImmutableList.Builder<DynamicPDPTWScenario> scenarios;
     private boolean showGui;
     private int repetitions;
     private long masterSeed;
 
-    private ExperimentBuilder(ObjectiveFunction objectiveFunction) {
+    private ExperimentSetup(ObjectiveFunction objectiveFunction) {
       this.objectiveFunction = objectiveFunction;
-      solutions = newArrayList();
-      scenarios = newArrayList();
+      configurators = ImmutableList.builder();
+      scenarios = ImmutableList.builder();
       showGui = false;
       repetitions = 1;
       masterSeed = 0L;
     }
 
-    public ExperimentBuilder repeat(int repetitions) {
+    public ExperimentSetup repeat(int repetitions) {
       checkArgument(repetitions > 0);
       this.repetitions = repetitions;
       return this;
     }
 
-    public ExperimentBuilder showGui() {
+    public ExperimentSetup showGui() {
       showGui = true;
       return this;
     }
 
-    public ExperimentBuilder addSolution(SimulatorConfigurator config) {
-      solutions.add(config);
+    public ExperimentSetup addSolution(MASConfigurator config) {
+      configurators.add(config);
       return this;
     }
 
-    public ExperimentBuilder addScenario(DynamicPDPTWScenario scenario) {
+    public ExperimentSetup addScenario(DynamicPDPTWScenario scenario) {
       scenarios.add(scenario);
       return this;
     }
 
-    public ExperimentBuilder addScenarios(List<DynamicPDPTWScenario> scenarios) {
-      scenarios.addAll(scenarios);
+    public ExperimentSetup addScenarios(List<DynamicPDPTWScenario> scenarios) {
+      this.scenarios.addAll(scenarios);
       return this;
     }
 
-    public ExperimentBuilder addScenarios(
+    public ExperimentSetup addScenarioProvider(ScenarioProvider scenarioProvider) {
+      scenarios.addAll(scenarioProvider.provide());
+      return this;
+    }
+
+    public ExperimentSetup addScenarios(
         ScenarioParser<? extends DynamicPDPTWScenario> parser,
         List<String> files) {
       for (final String file : files) {
@@ -96,20 +104,23 @@ public class Experiments {
       return this;
     }
 
-    public ExperimentBuilder withRandomSeed(long seed) {
+    public ExperimentSetup withRandomSeed(long seed) {
       masterSeed = seed;
       return this;
     }
 
-    public ImmutableTable<DynamicPDPTWScenario, SimulatorConfigurator, ImmutableList<StatisticsDTO>> start() {
-      checkArgument(!scenarios.isEmpty());
-      checkArgument(!solutions.isEmpty());
+    public ExperimentResults perform() {
+      final ImmutableList<DynamicPDPTWScenario> scen = scenarios.build();
+      final ImmutableList<MASConfigurator> conf = configurators.build();
+
+      checkArgument(!scen.isEmpty());
+      checkArgument(!conf.isEmpty());
       final RandomGenerator rng = new MersenneTwister(masterSeed);
-      final ImmutableTable.Builder<DynamicPDPTWScenario, SimulatorConfigurator, ImmutableList<StatisticsDTO>> resultBuilder = ImmutableTable
+      final ImmutableTable.Builder<DynamicPDPTWScenario, MASConfigurator, ImmutableList<StatisticsDTO>> resultBuilder = ImmutableTable
           .builder();
 
-      for (final DynamicPDPTWScenario scenario : scenarios) {
-        for (final SimulatorConfigurator solution : solutions) {
+      for (final DynamicPDPTWScenario scenario : scen) {
+        for (final MASConfigurator solution : conf) {
           final ImmutableList.Builder<StatisticsDTO> statsBuilder = ImmutableList
               .builder();
           for (int i = 0; i < repetitions; i++) {
@@ -119,19 +130,38 @@ public class Experiments {
           resultBuilder.put(scenario, solution, statsBuilder.build());
         }
       }
-      return resultBuilder.build();
+      return new ExperimentResults(resultBuilder.build());
     }
   }
 
+  public static final class ExperimentResults {
+    private final ImmutableTable<DynamicPDPTWScenario, MASConfigurator, ImmutableList<StatisticsDTO>> results;
+
+    private ExperimentResults(
+        ImmutableTable<DynamicPDPTWScenario, MASConfigurator, ImmutableList<StatisticsDTO>> results) {
+      this.results = results;
+    }
+
+    public UnmodifiableIterator<Cell<DynamicPDPTWScenario, MASConfigurator, ImmutableList<StatisticsDTO>>> iterator() {
+      return results.cellSet().iterator();
+    }
+
+    public ImmutableList<StatisticsDTO> getAllResultsFor(
+        DynamicPDPTWScenario scenario, MASConfigurator configurator) {
+      return results.get(scenario, configurator);
+    }
+
+  }
+
   // public static ImmutableList<StatisticsDTO> run(ScenarioParser sp,
-  // ImmutableList<String> files, SimulatorConfigurator config) {
+  // ImmutableList<String> files, MASConfigurator config) {
   // for (final String f : files) {
   //
   // }
   // }
   //
   // public static ImmutableList<StatisticsDTO>
-  // run(ImmutableList<DynamicPDPTWScenario> scenarios, SimulatorConfigurator
+  // run(ImmutableList<DynamicPDPTWScenario> scenarios, MASConfigurator
   // config, ObjectiveFunction objFunc,boolean showGui){
   //
   //
@@ -140,8 +170,8 @@ public class Experiments {
   // }
   // }
 
-  public static StatisticsDTO singleRun(DynamicPDPTWScenario scenario,
-      SimulatorConfiguration c, ObjectiveFunction objFunc, boolean showGui) {
+  static StatisticsDTO singleRun(DynamicPDPTWScenario scenario,
+      MASConfiguration c, ObjectiveFunction objFunc, boolean showGui) {
 
     final StatisticsDTO stats = init(scenario, c).simulate();
 
@@ -152,7 +182,7 @@ public class Experiments {
 
   @VisibleForTesting
   static DynamicPDPTWProblem init(DynamicPDPTWScenario scenario,
-      SimulatorConfiguration config) {
+      MASConfiguration config) {
     final DynamicPDPTWProblem problem = new DynamicPDPTWProblem(scenario, 123,
         config.getModels().toArray(new Model<?>[] {}));
 

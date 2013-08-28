@@ -15,21 +15,20 @@ import com.google.common.collect.ImmutableList;
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
  * 
  */
-public abstract class DefaultSimulatorConfiguration implements
-    SimulatorConfiguration {
+public abstract class DefaultMASConfiguration implements MASConfiguration {
 
   @Override
-  public ImmutableList<Model<?>> getModels() {
+  public ImmutableList<? extends Model<?>> getModels() {
     return ImmutableList.of();
   }
 
   @Override
-  public Optional<Creator<AddDepotEvent>> getDepotCreator() {
+  public Optional<? extends Creator<AddDepotEvent>> getDepotCreator() {
     return Optional.absent();
   }
 
   @Override
-  public Optional<Creator<AddParcelEvent>> getParcelCreator() {
+  public Optional<? extends Creator<AddParcelEvent>> getParcelCreator() {
     return Optional.absent();
   }
 }

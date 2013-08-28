@@ -15,23 +15,23 @@ import com.google.common.collect.ImmutableList;
 /**
  * This represents the 'solution'/approach to solving the problem.
  * 
- * A configuration should be used for only one simulation!
+ * A configuration should be used for only one simulation, a single experiment!
  * 
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
  * 
  */
-public interface SimulatorConfiguration {
+public interface MASConfiguration {
 
   /**
    * May be empty.
    * @return
    */
-  ImmutableList<Model<?>> getModels();
+  ImmutableList<? extends Model<?>> getModels();
 
   Creator<AddVehicleEvent> getVehicleCreator();
 
-  Optional<Creator<AddDepotEvent>> getDepotCreator();
+  Optional<? extends Creator<AddDepotEvent>> getDepotCreator();
 
-  Optional<Creator<AddParcelEvent>> getParcelCreator();
+  Optional<? extends Creator<AddParcelEvent>> getParcelCreator();
 
 }
