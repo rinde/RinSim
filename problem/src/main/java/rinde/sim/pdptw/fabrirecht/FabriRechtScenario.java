@@ -98,10 +98,19 @@ public class FabriRechtScenario extends DynamicPDPTWScenario {
   }
 
   @Override
+  public ProblemClass getProblemClass() {
+    throw new UnsupportedOperationException("Not implemented.");
+  }
+
+  @Override
+  public String getProblemInstanceId() {
+    throw new UnsupportedOperationException("Not implemented.");
+  }
+
+  @Override
   protected FabriRechtScenario newInstance(
       Collection<? extends TimedEvent> events) {
     return new FabriRechtScenario(events, getPossibleEventTypes(), min, max,
         timeWindow, defaultVehicle);
   }
-
 }

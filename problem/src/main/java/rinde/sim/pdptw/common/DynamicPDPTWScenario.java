@@ -55,6 +55,11 @@ public abstract class DynamicPDPTWScenario extends Scenario {
 
   public abstract Unit<Length> getDistanceUnit();
 
+  public abstract ProblemClass getProblemClass();
+
+  // used to distinguish between two instances from the same class
+  public abstract String getProblemInstanceId();
+
   protected abstract DynamicPDPTWScenario newInstance(
       Collection<? extends TimedEvent> events);
 
@@ -89,5 +94,9 @@ public abstract class DynamicPDPTWScenario extends Scenario {
       }
     }
     return (T) scenario.newInstance(newEvents);
+  }
+
+  public interface ProblemClass {
+    String getId();
   }
 }

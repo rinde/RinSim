@@ -32,12 +32,13 @@ public class Gendreau06Scenarios implements ScenarioProvider {
         .builder();
     for (final GendreauProblemClass claz : classes) {
       final List<String> files = ExperimentUtil
-          .getFilesFromDir("files/scenarios/gendreau06/", claz.fileId);
+          .getFilesFromDir(dir, claz.fileId);
       for (final String file : files) {
         try {
           scenarios.add(Gendreau06Parser.parse(file, claz.vehicles));
         } catch (final IOException e) {
-          throw new IllegalArgumentException("Failed loading scenario: " + file);
+          throw new IllegalArgumentException(
+              "Failed loading scenario: " + file, e);
         }
       }
     }

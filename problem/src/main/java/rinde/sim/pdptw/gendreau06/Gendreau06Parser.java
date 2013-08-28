@@ -64,23 +64,27 @@ public final class Gendreau06Parser {
 
   public static Gendreau06Scenario parse(BufferedReader reader,
       String fileName, int numVehicles) throws IOException {
-    return parse(reader, fileName, numVehicles, -1);
+    return parse(reader, fileName, numVehicles, 1000L);
   }
 
   public static Gendreau06Scenario parse(BufferedReader reader,
       String fileName, int numVehicles, final long tickSize) throws IOException {
     checkArgument(numVehicles > 0, "at least one vehicle is necessary in the scenario");
+    checkArgument(tickSize > 0);
     final ScenarioBuilder sb = new ScenarioBuilder(ADD_PARCEL, ADD_DEPOT,
         ADD_VEHICLE, TIME_OUT);
 
-    final String regex = ".*req_rapide_\\d+_(450|240)_(24|33)";
+    final String regex = ".*req_rapide_(1|2|3|4|5)_(450|240)_(24|33)";
     final Matcher m = Pattern.compile(regex).matcher(fileName);
     checkArgument(m.matches(), "The filename must conform to the following regex: %s input was: %s", regex, fileName);
-    // checkArgument(fileName.contains("240") || fileName.contains("540"),
-    // "The filename must follow the following pattern: req_rapide_I_T_R, where I=instance number, T=total time (either 240 or 540 minutes), R=number of requests per hour (either 24 or 33).");
 
-    final long totalTime = Long.parseLong(m.group(1)) * 60000;
-    final long requestsPerHour = Long.parseLong(m.group(2));
+    final int instanceNumber = Integer.parseInt(m.group(1));
+    final long minutes = Long.parseLong(m.group(2));
+    final long totalTime = minutes * 60000;
+    final long requestsPerHour = Long.parseLong(m.group(3));
+
+    final GendreauProblemClass problemClass = GendreauProblemClass
+        .with(minutes, requestsPerHour);
 
     final Point depotPosition = new Point(2.0, 2.5);
     final double truckSpeed = 30;
@@ -124,10 +128,8 @@ public final class Gendreau06Parser {
       @Override
       public Gendreau06Scenario create(List<TimedEvent> eventList,
           Set<Enum<?>> eventTypes) {
-        if (tickSize > 0) {
-          return new Gendreau06Scenario(eventList, eventTypes, tickSize);
-        }
-        return new Gendreau06Scenario(eventList, eventTypes);
+        return new Gendreau06Scenario(eventList, eventTypes, tickSize,
+            problemClass, instanceNumber);
       }
     });
   }

@@ -10,8 +10,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
-import rinde.sim.pdptw.gendreau06.Gendreau06Parser;
-import rinde.sim.pdptw.gendreau06.Gendreau06Scenario;
 import rinde.sim.scenario.ScenarioBuilder;
 import rinde.sim.scenario.ScenarioBuilder.ScenarioCreator;
 import rinde.sim.scenario.TimedEvent;
@@ -25,7 +23,8 @@ public class GendreauTestUtil {
   public static Gendreau06Scenario create(
       Collection<? extends TimedEvent> pEvents, Set<Enum<?>> pSupportedTypes,
       long ts) {
-    return new Gendreau06Scenario(pEvents, pSupportedTypes, ts);
+    return new Gendreau06Scenario(pEvents, pSupportedTypes, ts,
+        GendreauProblemClass.SHORT_LOW_FREQ, 1);
   }
 
   public static Gendreau06Scenario create(Collection<TimedEvent> parcels) {

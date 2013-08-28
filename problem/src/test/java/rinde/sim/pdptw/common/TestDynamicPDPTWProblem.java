@@ -115,27 +115,33 @@ public class TestDynamicPDPTWProblem {
 
     @Override
     public Unit<Duration> getTimeUnit() {
-      // TODO Auto-generated method stub
-      return null;
+      throw new UnsupportedOperationException("Not implemented.");
     }
 
     @Override
     public Unit<Velocity> getSpeedUnit() {
-      // TODO Auto-generated method stub
-      return null;
+      throw new UnsupportedOperationException("Not implemented.");
     }
 
     @Override
     public Unit<Length> getDistanceUnit() {
-      // TODO Auto-generated method stub
-      return null;
+      throw new UnsupportedOperationException("Not implemented.");
     }
 
     @Override
     protected DynamicPDPTWScenario newInstance(
         Collection<? extends TimedEvent> events) {
-      // TODO Auto-generated method stub
-      return null;
+      throw new UnsupportedOperationException("Not implemented.");
+    }
+
+    @Override
+    public ProblemClass getProblemClass() {
+      throw new UnsupportedOperationException("Not implemented.");
+    }
+
+    @Override
+    public String getProblemInstanceId() {
+      throw new UnsupportedOperationException("Not implemented.");
     }
 
   }

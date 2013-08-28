@@ -40,12 +40,11 @@ import rinde.sim.pdptw.common.AddVehicleEvent;
 import rinde.sim.pdptw.common.DefaultDepot;
 import rinde.sim.pdptw.common.DefaultVehicle;
 import rinde.sim.pdptw.common.DynamicPDPTWProblem;
-import rinde.sim.pdptw.common.ParcelDTO;
-import rinde.sim.pdptw.common.VehicleDTO;
 import rinde.sim.pdptw.common.DynamicPDPTWProblem.Creator;
 import rinde.sim.pdptw.common.DynamicPDPTWProblem.DefaultUICreator;
+import rinde.sim.pdptw.common.ParcelDTO;
 import rinde.sim.pdptw.common.StatsTracker.StatisticsDTO;
-import rinde.sim.pdptw.gendreau06.Gendreau06Scenario;
+import rinde.sim.pdptw.common.VehicleDTO;
 import rinde.sim.scenario.TimedEvent;
 import rinde.sim.ui.View;
 import rinde.sim.util.TimeWindow;
@@ -205,7 +204,8 @@ public class Gendreau06Test {
 
     final Set<Enum<?>> eventTypes = new HashSet<Enum<?>>(
         asList(PDPScenarioEvent.values()));
-    return new Gendreau06Scenario(events, eventTypes);
+    return new Gendreau06Scenario(events, eventTypes, 1000L,
+        GendreauProblemClass.LONG_LOW_FREQ, 1);
   }
 
   static class SimpleTruck extends DefaultVehicle {

@@ -5,6 +5,7 @@ package rinde.sim.pdptw.experiments;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.collect.Lists.newArrayList;
+import static com.google.common.collect.Sets.newLinkedHashSet;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -14,6 +15,11 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
+
+import org.apache.commons.math3.random.RandomGenerator;
+
+import com.google.common.collect.ImmutableList;
 
 /**
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
@@ -25,6 +31,7 @@ public class ExperimentUtil {
     final File directory = new File(dir);
     checkArgument(directory.isDirectory());
     final String[] names = directory.list(new FilenameFilter() {
+      @Override
       public boolean accept(File d, String name) {
         return name.endsWith(suffix) && new File(d + "/" + name).isFile();
       }
@@ -72,6 +79,15 @@ public class ExperimentUtil {
     }
     return sb.toString();
 
+  }
+
+  public static ImmutableList<Long> generateDistinct(RandomGenerator rng,
+      int size) {
+    final Set<Long> numbers = newLinkedHashSet();
+    while (numbers.size() < size) {
+      numbers.add(rng.nextLong());
+    }
+    return ImmutableList.copyOf(numbers);
   }
 
 }

@@ -32,35 +32,39 @@ import rinde.sim.util.TimeWindow;
  * The length of the scenario is a soft constraint. There is a pre defined
  * length of the day (either 4 hours or 7.5 hours), vehicles are allowed to
  * continue driving after the end of the day.
- * 
+ * <p>
  * Once a vehicle is moving towards a Parcel it is obliged to service it. This
  * means that diversion is not allowed.
- * 
+ * <p>
  * Distance is expressed in km, time is expressed in ms (the original format is
  * in seconds, however it allows fractions as such it was translated to ms),
  * speed is expressed as km/h.
- * 
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
  */
-public class Gendreau06Scenario extends DynamicPDPTWScenario {
+public final class Gendreau06Scenario extends DynamicPDPTWScenario {
   private static final long serialVersionUID = 1386559671732721432L;
 
-  protected final long tickSize;
+  private final long tickSize;
+  private final GendreauProblemClass problemClass;
+  private final int instanceNumber;
 
-  protected static final Point min = new Point(0, 0);
-  protected static final Point max = new Point(5, 5);
-  protected static final double maxSpeed = 30.0;
+  private static final Point min = new Point(0, 0);
+  private static final Point max = new Point(5, 5);
+  private static final double maxSpeed = 30.0;
 
-  protected Gendreau06Scenario(Collection<? extends TimedEvent> pEvents,
-      Set<Enum<?>> pSupportedTypes, long ts) {
+  Gendreau06Scenario(Collection<? extends TimedEvent> pEvents,
+      Set<Enum<?>> pSupportedTypes, long ts, GendreauProblemClass problemClass,
+      int instanceNumber) {
     super(pEvents, pSupportedTypes);
     tickSize = ts;
+    this.problemClass = problemClass;
+    this.instanceNumber = instanceNumber;
   }
 
-  protected Gendreau06Scenario(Collection<? extends TimedEvent> pEvents,
-      Set<Enum<?>> pSupportedTypes) {
-    this(pEvents, pSupportedTypes, 1000L);
-  }
+  // protected Gendreau06Scenario(Collection<? extends TimedEvent> pEvents,
+  // Set<Enum<?>> pSupportedTypes) {
+  // this(pEvents, pSupportedTypes, 1000L);
+  // }
 
   @Override
   public String toString() {
@@ -111,6 +115,17 @@ public class Gendreau06Scenario extends DynamicPDPTWScenario {
   @Override
   protected Gendreau06Scenario newInstance(
       Collection<? extends TimedEvent> events) {
-    return new Gendreau06Scenario(events, getPossibleEventTypes(), tickSize);
+    return new Gendreau06Scenario(events, getPossibleEventTypes(), tickSize,
+        problemClass, instanceNumber);
+  }
+
+  @Override
+  public ProblemClass getProblemClass() {
+    return problemClass;
+  }
+
+  @Override
+  public String getProblemInstanceId() {
+    return "" + instanceNumber;
   }
 }
