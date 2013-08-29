@@ -6,6 +6,7 @@ package rinde.sim.pdptw.fabrirecht;
 import java.util.Collection;
 import java.util.Set;
 
+import javax.measure.Measure;
 import javax.measure.quantity.Duration;
 import javax.measure.quantity.Length;
 import javax.measure.quantity.Velocity;
@@ -74,7 +75,8 @@ public class FabriRechtScenario extends DynamicPDPTWScenario {
 
   @Override
   public RoadModel createRoadModel() {
-    return new PlaneRoadModel(min, max, false, 1d);
+    return new PlaneRoadModel(min, max, Unit.ONE.asType(Length.class),
+        Measure.valueOf(1d, Unit.ONE.asType(Velocity.class)));
   }
 
   @Override

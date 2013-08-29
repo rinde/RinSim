@@ -7,7 +7,7 @@ import static java.util.Arrays.asList;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
-import static rinde.sim.core.TimeLapseFactory.time;
+import static rinde.sim.core.TimeLapseFactory.create;
 import static rinde.sim.pdptw.central.Solvers.convert;
 
 import java.util.ArrayList;
@@ -67,7 +67,7 @@ public class SolversTest {
   @Before
   public void setUp() {
     rm = new PDPRoadModel(new PlaneRoadModel(new Point(0, 0),
-        new Point(10, 10), false, 300), false);
+        new Point(10, 10), 300d), false);
     pm = new PDPModel(new TardyAllowedPolicy());
     final ModelProvider mp = new TestModelProvider(new ArrayList<Model<?>>(
         asList(rm, pm)));
@@ -95,13 +95,13 @@ public class SolversTest {
     assertEquals(ImmutableSet.of(p1.dto), sc.state.availableParcels);
     checkVehicles(asList(v1), sc.state.vehicles);
 
-    rm.moveTo(v1, p1, time(1));
+    rm.moveTo(v1, p1, create(NonSI.HOUR, 0L, 1L));
 
     checkVehicles(asList(v1), convert(rm, pm, 0, NonSI.MINUTE, NonSI.KILOMETERS_PER_HOUR, SI.KILOMETER).state.vehicles);
 
-    rm.moveTo(v1, p1, time(40));
+    rm.moveTo(v1, p1, create(NonSI.HOUR, 0, 40));
     assertTrue(rm.equalPosition(v1, p1));
-    pm.service(v1, p1, time(1));
+    pm.service(v1, p1, create(NonSI.HOUR, 0, 1));
 
     final StateContext sc2 = convert(rm, pm, 0, NonSI.MINUTE, NonSI.KILOMETERS_PER_HOUR, SI.KILOMETER);
 

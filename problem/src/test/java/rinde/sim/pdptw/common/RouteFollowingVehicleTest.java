@@ -78,7 +78,7 @@ public class RouteFollowingVehicleTest {
   @Before
   public void setUp() {
     rm = new PDPRoadModel(new PlaneRoadModel(new Point(0, 0),
-        new Point(10, 10), true, 30), diversionIsAllowed);
+        new Point(10, 10), 30d), diversionIsAllowed);
 
     pm = new PDPModel(new TardyAllowedPolicy());
     @SuppressWarnings("unchecked")

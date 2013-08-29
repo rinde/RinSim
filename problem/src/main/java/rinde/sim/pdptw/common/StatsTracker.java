@@ -103,7 +103,7 @@ public class StatsTracker {
       }
     }// else {
      // overTime = -1;
-    // }
+     // }
 
     long compTime = theListener.computationTime;
     if (compTime == 0) {
@@ -173,14 +173,15 @@ public class StatsTracker {
         simulationTime = simulator.getCurrentTime() - startTimeSim;
       } else if (e.getEventType() == RoadEventType.MOVE) {
         final MoveEvent me = (MoveEvent) e;
-        increment(me.roadUser, me.pathProgress.distance);
-        totalDistance += me.pathProgress.distance;
+        increment(me.roadUser, me.pathProgress.distance.getValue()
+            .doubleValue());
+        totalDistance += me.pathProgress.distance.getValue().doubleValue();
         // if we are closer than 10 cm to the depot, we say we are 'at'
         // the depot
         if (Point
             .distance(me.roadModel.getPosition(me.roadUser), ((DefaultVehicle) me.roadUser).dto.startPosition) < 0.0001) {
           // only override time if the vehicle did actually move
-          if (me.pathProgress.distance > 0.0001) {
+          if (me.pathProgress.distance.getValue().doubleValue() > 0.0001) {
             lastArrivalTimeAtDepot.put(me.roadUser, simulator.getCurrentTime());
             if (totalVehicles == lastArrivalTimeAtDepot.size()) {
               eventDispatcher.dispatchEvent(new Event(

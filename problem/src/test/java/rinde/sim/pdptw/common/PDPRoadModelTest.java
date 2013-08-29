@@ -10,6 +10,10 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
+import javax.measure.Measure;
+import javax.measure.unit.NonSI;
+import javax.measure.unit.SI;
+
 import org.junit.Before;
 import org.junit.Test;
 
@@ -24,12 +28,6 @@ import rinde.sim.core.model.pdp.Parcel;
 import rinde.sim.core.model.pdp.twpolicy.TardyAllowedPolicy;
 import rinde.sim.core.model.road.PlaneRoadModel;
 import rinde.sim.core.model.road.RoadModel;
-import rinde.sim.pdptw.common.DefaultDepot;
-import rinde.sim.pdptw.common.DefaultParcel;
-import rinde.sim.pdptw.common.DefaultVehicle;
-import rinde.sim.pdptw.common.PDPRoadModel;
-import rinde.sim.pdptw.common.ParcelDTO;
-import rinde.sim.pdptw.common.VehicleDTO;
 import rinde.sim.util.TimeWindow;
 
 /**
@@ -56,7 +54,8 @@ public class PDPRoadModelTest {
   @Before
   public void setUp() {
     rm = new PDPRoadModel(new PlaneRoadModel(new Point(0, 0),
-        new Point(10, 10), false, 0.1), false);
+        new Point(10, 10), SI.KILOMETER,
+        Measure.valueOf(0.1, NonSI.KILOMETERS_PER_HOUR)), false);
     pm = new PDPModel(new TardyAllowedPolicy());
     final ModelProvider mp = new TestModelProvider(asList(pm, rm));
     rm.registerModelProvider(mp);
@@ -220,7 +219,7 @@ public class PDPRoadModelTest {
   }
 
   static TimeLapse time(long t) {
-    return TimeLapseFactory.create(0, t);
+    return TimeLapseFactory.create(NonSI.HOUR, 0, t);
   }
 
   static DefaultParcel create(Point p1, Point p2) {

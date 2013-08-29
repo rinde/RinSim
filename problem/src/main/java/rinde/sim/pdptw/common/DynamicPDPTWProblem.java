@@ -12,6 +12,8 @@ import static rinde.sim.core.model.pdp.PDPScenarioEvent.TIME_OUT;
 import java.util.List;
 import java.util.Map;
 
+import javax.measure.Measure;
+
 import org.apache.commons.math3.random.MersenneTwister;
 import org.eclipse.swt.SWT;
 
@@ -125,7 +127,7 @@ public class DynamicPDPTWProblem {
   public DynamicPDPTWProblem(final DynamicPDPTWScenario scen, long randomSeed,
       Model<?>... models) {
     simulator = new Simulator(new MersenneTwister(randomSeed),
-        scen.getTickSize());
+        Measure.valueOf(scen.getTickSize(), scen.getTimeUnit()));
     simulator.register(scen.createRoadModel());
     simulator.register(scen.createPDPModel());
     for (final Model<?> m : models) {

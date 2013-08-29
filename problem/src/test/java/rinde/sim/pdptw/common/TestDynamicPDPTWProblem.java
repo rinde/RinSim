@@ -13,6 +13,7 @@ import java.util.Set;
 import javax.measure.quantity.Duration;
 import javax.measure.quantity.Length;
 import javax.measure.quantity.Velocity;
+import javax.measure.unit.SI;
 import javax.measure.unit.Unit;
 
 import org.junit.Test;
@@ -105,7 +106,7 @@ public class TestDynamicPDPTWProblem {
 
     @Override
     public RoadModel createRoadModel() {
-      return new PlaneRoadModel(new Point(0, 0), new Point(10, 10), false, 1d);
+      return new PlaneRoadModel(new Point(0, 0), new Point(10, 10), 1d);
     }
 
     @Override
@@ -115,7 +116,7 @@ public class TestDynamicPDPTWProblem {
 
     @Override
     public Unit<Duration> getTimeUnit() {
-      throw new UnsupportedOperationException("Not implemented.");
+      return SI.SECOND;
     }
 
     @Override

@@ -6,6 +6,7 @@ package rinde.sim.pdptw.gendreau06;
 import java.util.Collection;
 import java.util.Set;
 
+import javax.measure.Measure;
 import javax.measure.quantity.Duration;
 import javax.measure.quantity.Length;
 import javax.measure.quantity.Velocity;
@@ -48,9 +49,10 @@ public final class Gendreau06Scenario extends DynamicPDPTWScenario {
   private final GendreauProblemClass problemClass;
   private final int instanceNumber;
 
-  private static final Point min = new Point(0, 0);
-  private static final Point max = new Point(5, 5);
-  private static final double maxSpeed = 30.0;
+  private static final Point MIN = new Point(0, 0);
+  private static final Point MAX = new Point(5, 5);
+  private static final Measure<Double, Velocity> MAX_SPEED = Measure
+      .valueOf(30d, NonSI.KILOMETERS_PER_HOUR);
 
   Gendreau06Scenario(Collection<? extends TimedEvent> pEvents,
       Set<Enum<?>> pSupportedTypes, long ts, GendreauProblemClass problemClass,
@@ -89,7 +91,8 @@ public final class Gendreau06Scenario extends DynamicPDPTWScenario {
 
   @Override
   public RoadModel createRoadModel() {
-    return new PDPRoadModel(new PlaneRoadModel(min, max, true, maxSpeed), false);
+    return new PDPRoadModel(new PlaneRoadModel(MIN, MAX, getDistanceUnit(),
+        MAX_SPEED), false);
   }
 
   @Override

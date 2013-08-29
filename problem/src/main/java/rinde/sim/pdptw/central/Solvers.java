@@ -36,6 +36,9 @@ import com.google.common.collect.ImmutableMap;
  */
 public final class Solvers {
 
+  // TODO this class' methods requires explicit units, this is no longer
+  // necessary since they can be retrieved from the models
+
   private Solvers() {}
 
   public static class StateContext {
