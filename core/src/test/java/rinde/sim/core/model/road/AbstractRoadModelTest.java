@@ -35,7 +35,6 @@ import rinde.sim.core.TimeLapseFactory;
 import rinde.sim.core.graph.Point;
 import rinde.sim.core.model.road.AbstractRoadModel.RoadEventType;
 import rinde.sim.event.ListenerEventHistory;
-import rinde.sim.util.SpeedConverter;
 import rinde.sim.util.TrivialRoadUser;
 
 import com.google.common.base.Predicate;
@@ -78,7 +77,6 @@ public abstract class AbstractRoadModelTest<T extends RoadModel> {
     return Measure.valueOf(s, SI.SECOND);
   }
 
-  protected final SpeedConverter sc = new SpeedConverter();
   protected final double EPSILON = 0.02;
 
   protected T model;

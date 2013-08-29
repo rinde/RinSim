@@ -5,6 +5,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import java.lang.reflect.InvocationTargetException;
+import java.math.RoundingMode;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.LinkedList;
@@ -31,7 +32,8 @@ import rinde.sim.core.graph.MultiAttributeData;
 import rinde.sim.core.graph.Point;
 import rinde.sim.core.graph.TestMultimapGraph;
 import rinde.sim.core.graph.TestTableGraph;
-import rinde.sim.util.TimeUnit;
+
+import com.google.common.math.DoubleMath;
 
 /**
  * Test for graph with speed limits
@@ -136,8 +138,10 @@ public class SpeedLimitsTest {
 
   @Test
   public void followPathAllAtOnce() {
-    final int timeNeeded = (int) (TimeUnit.H.toMs((long) pathLength) / speed * 1.5);
-    final TimeLapse timeLapse = TimeLapseFactory.create(0, timeNeeded);
+    final int timeNeeded = DoubleMath
+        .roundToInt((pathLength / speed) * 1.5, RoundingMode.CEILING);
+    final TimeLapse timeLapse = TimeLapseFactory
+        .create(NonSI.HOUR, 0, timeNeeded);
 
     final SpeedyRoadUser agent = new SpeedyRoadUser(speed);
     model.addObjectAt(agent, new Point(0, 0));
@@ -145,7 +149,6 @@ public class SpeedLimitsTest {
 
     assertEquals(5, path.size());
     final MoveProgress travelled = model.followPath(agent, path, timeLapse);
-
     assertTrue(timeLapse.hasTimeLeft());
     assertEquals(pathLength, travelled.distance.getValue(), DELTA);
     assertTrue("time spend < timeNeeded", timeNeeded > travelled.time.getValue());

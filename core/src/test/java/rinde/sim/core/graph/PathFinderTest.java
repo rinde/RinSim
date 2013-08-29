@@ -9,6 +9,7 @@ import static org.junit.Assert.assertEquals;
 import static rinde.sim.core.graph.Graphs.findClosestObjects;
 import static rinde.sim.core.graph.Graphs.pathLength;
 
+import java.math.RoundingMode;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.LinkedList;
@@ -30,10 +31,10 @@ import rinde.sim.core.model.road.MovingRoadUser;
 import rinde.sim.core.model.road.RoadModel;
 import rinde.sim.core.model.road.RoadModels;
 import rinde.sim.core.model.road.RoadUser;
-import rinde.sim.util.TimeUnit;
 import rinde.sim.util.TrivialRoadUser;
 
 import com.google.common.base.Predicate;
+import com.google.common.math.DoubleMath;
 
 /**
  * TODO this class should only be testing Graph classes. RoadModel related stuff
@@ -187,7 +188,8 @@ public class PathFinderTest {
     // hours
     final MoveProgress progress = rm
         .followPath(truck, new LinkedList<Point>(t), TimeLapseFactory
-            .create(0, TimeUnit.H.toMs((long) Math.ceil(len))));
+            .create(NonSI.HOUR, 0, DoubleMath
+                .roundToLong(len, RoundingMode.CEILING)));
     assertEquals(len, progress.distance.getValue(), EPSILON);
   }
 

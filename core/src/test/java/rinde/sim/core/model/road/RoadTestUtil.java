@@ -11,15 +11,15 @@ import javax.measure.unit.SI;
 
 /**
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
- *
+ * 
  */
 public class RoadTestUtil {
 
-  static Measure<Double, Velocity> kmh(double km) {
+  public static Measure<Double, Velocity> kmh(double km) {
     return Measure.valueOf(km, NonSI.KILOMETERS_PER_HOUR);
   }
 
-  static Measure<Double, Length> km(double km) {
+  public static Measure<Double, Length> km(double km) {
     return Measure.valueOf(km, SI.KILOMETER);
   }
 
