@@ -23,6 +23,7 @@ import javax.measure.converter.UnitConverter;
 import javax.measure.quantity.Duration;
 import javax.measure.quantity.Length;
 import javax.measure.quantity.Velocity;
+import javax.measure.unit.NonSI;
 import javax.measure.unit.SI;
 import javax.measure.unit.Unit;
 
@@ -86,6 +87,10 @@ public abstract class AbstractRoadModel<T> extends AbstractModel<RoadUser>
    * A mapping of {@link MovingRoadUser}s to {@link DestinationPath}s.
    */
   protected Map<MovingRoadUser, DestinationPath> objDestinations;
+
+  public AbstractRoadModel() {
+    this(SI.KILOMETER, NonSI.KILOMETERS_PER_HOUR);
+  }
 
   /**
    * Create a new instance.

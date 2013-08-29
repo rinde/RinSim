@@ -17,6 +17,8 @@ import javax.measure.converter.UnitConverter;
 import javax.measure.quantity.Duration;
 import javax.measure.quantity.Length;
 import javax.measure.quantity.Velocity;
+import javax.measure.unit.NonSI;
+import javax.measure.unit.SI;
 import javax.measure.unit.Unit;
 
 import org.apache.commons.math3.random.RandomGenerator;
@@ -82,6 +84,11 @@ public class PlaneRoadModel extends AbstractRoadModel<Point> {
     width = max.x - min.x;
     height = max.y - min.y;
     maxSpeed = pMaxSpeed.doubleValue(internalSpeedUnit);
+  }
+
+  public PlaneRoadModel(Point pMin, Point pMax, double speedLimitInKmh) {
+    this(pMin, pMax, SI.KILOMETER, Measure
+        .valueOf(speedLimitInKmh, NonSI.KILOMETERS_PER_HOUR));
   }
 
   @Override

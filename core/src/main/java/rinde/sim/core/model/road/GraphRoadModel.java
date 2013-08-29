@@ -67,6 +67,11 @@ public class GraphRoadModel extends AbstractRoadModel<Loc> {
     graph = pGraph;
   }
 
+  public GraphRoadModel(Graph<? extends ConnectionData> pGraph) {
+    super();
+    graph = pGraph;
+  }
+
   @Override
   public void addObjectAt(RoadUser newObj, Point pos) {
     checkArgument(graph.containsNode(pos), "Object must be initiated on a crossroad.");
@@ -259,8 +264,8 @@ public class GraphRoadModel extends AbstractRoadModel<Loc> {
         final MultiAttributeData maed = (MultiAttributeData) conn.getData();
         @SuppressWarnings("null")
         final double connSpeedLimit = maed.getMaxSpeed();
-        return Double.isNaN(connSpeedLimit) ? objSpeed : Math.min(toInternalSpeedConv
-            .convert(connSpeedLimit), objSpeed);
+        return Double.isNaN(connSpeedLimit) ? objSpeed : Math
+            .min(toInternalSpeedConv.convert(connSpeedLimit), objSpeed);
       }
     }
     return objSpeed;
