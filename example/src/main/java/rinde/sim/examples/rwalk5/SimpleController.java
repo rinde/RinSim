@@ -2,6 +2,9 @@ package rinde.sim.examples.rwalk5;
 
 import java.util.Random;
 
+import javax.measure.Measure;
+import javax.measure.unit.SI;
+
 import org.apache.commons.math3.random.MersenneTwister;
 import org.eclipse.swt.graphics.RGB;
 
@@ -51,7 +54,7 @@ public class SimpleController {
 		roadModel = new GraphRoadModel(graph);
 
 		final MersenneTwister rand = new MersenneTwister(123);
-		simulator = new Simulator(rand, 10000);
+		simulator = new Simulator(rand, Measure.valueOf(1000L,SI.MILLI(SI.SECOND)));
 		final CommunicationModel communicationModel = new CommunicationModel2(rand);
 		simulator.register(roadModel);
 		simulator.register(communicationModel);

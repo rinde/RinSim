@@ -5,6 +5,9 @@ package rinde.sim.examples.rwalk4;
 
 import java.util.Random;
 
+import javax.measure.Measure;
+import javax.measure.unit.SI;
+
 import org.apache.commons.math3.random.MersenneTwister;
 import org.eclipse.swt.graphics.RGB;
 
@@ -17,8 +20,8 @@ import rinde.sim.core.model.road.RoadModel;
 import rinde.sim.serializers.DotGraphSerializer;
 import rinde.sim.serializers.SelfCycleFilter;
 import rinde.sim.ui.View;
-import rinde.sim.ui.renderers.RoadUserRenderer;
 import rinde.sim.ui.renderers.GraphRoadModelRenderer;
+import rinde.sim.ui.renderers.RoadUserRenderer;
 import rinde.sim.ui.renderers.UiSchema;
 
 /**
@@ -32,7 +35,7 @@ public class RandomWalkExample {
 		final String MAP_DIR = "../core/files/maps/";
 		// create a new simulator, load map of Leuven
 		MersenneTwister rand = new MersenneTwister(123);
-		Simulator simulator = new Simulator(rand, 1000);
+		Simulator simulator = new Simulator(rand, Measure.valueOf(1000L,SI.MILLI(SI.SECOND)));
 		Graph<LengthData> graph = DotGraphSerializer.getLengthGraphSerializer(new SelfCycleFilter()).read(MAP_DIR
 				+ "leuven-simple.dot");
 		// Graph<LengthEdgeData> graph =

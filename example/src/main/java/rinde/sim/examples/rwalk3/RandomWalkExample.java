@@ -7,6 +7,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import javax.measure.Measure;
+import javax.measure.unit.SI;
+
 import org.apache.commons.math3.random.MersenneTwister;
 import org.apache.commons.math3.random.RandomGenerator;
 import org.eclipse.swt.graphics.Color;
@@ -44,7 +47,7 @@ public class RandomWalkExample {
 		final String MAP_DIR = "../core/files/maps/";
 		// create a new simulator, load map of Leuven
 		final RandomGenerator rand = new MersenneTwister(123);
-		final Simulator simulator = new Simulator(rand, 1000);
+		final Simulator simulator = new Simulator(rand, Measure.valueOf(1000L,SI.MILLI(SI.SECOND)));
 		final Graph<MultiAttributeData> graph = DotGraphSerializer
 				.getMultiAttributeGraphSerializer(new SelfCycleFilter())
 				// .read("/Users/rindevanlon/Downloads/dot-files/brussels.dot");

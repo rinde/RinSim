@@ -6,6 +6,9 @@ package rinde.sim.examples.pdp;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 
+import javax.measure.Measure;
+import javax.measure.unit.SI;
+
 import org.apache.commons.math3.random.MersenneTwister;
 import org.apache.commons.math3.random.RandomGenerator;
 
@@ -33,7 +36,7 @@ public class PDPExample {
 		final String MAP_DIR = "../core/files/maps/";
 		// create a new simulator, load map of Leuven
 		final RandomGenerator rng = new MersenneTwister(123);
-		final Simulator simulator = new Simulator(rng, 1000);
+		final Simulator simulator = new Simulator(rng, Measure.valueOf(1000L,SI.MILLI(SI.SECOND)));
 		final Graph<MultiAttributeData> graph = DotGraphSerializer
 				.getMultiAttributeGraphSerializer(new SelfCycleFilter()).read(MAP_DIR + "leuven-simple.dot");
 		final RoadModel roadModel = new GraphRoadModel(graph);

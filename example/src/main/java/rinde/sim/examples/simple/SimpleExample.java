@@ -3,6 +3,9 @@
  */
 package rinde.sim.examples.simple;
 
+import javax.measure.Measure;
+import javax.measure.unit.SI;
+
 import org.apache.commons.math3.random.MersenneTwister;
 import org.apache.commons.math3.random.RandomGenerator;
 
@@ -35,12 +38,12 @@ public class SimpleExample {
 		final RandomGenerator rnd = new MersenneTwister(123);
 
 		// initialize a new Simulator instance
-		final Simulator sim = new Simulator(rnd, 1);
+		final Simulator sim = new Simulator(rnd, Measure.valueOf(1000L,SI.SECOND));
 
 		// register a PlaneRoadModel, a model which facilitates the moving of
 		// RoadUsers on a plane. The plane is bounded by two corner points:
 		// (0,0) and (10,10)
-		sim.register(new PlaneRoadModel(new Point(0, 0), new Point(10, 10), false, 1));
+		sim.register(new PlaneRoadModel(new Point(0, 0), new Point(10, 10), 10d));
 		// configure the simulator, once configured we can no longer change the
 		// configuration (i.e. add new models) but we can start adding objects
 		sim.configure();
