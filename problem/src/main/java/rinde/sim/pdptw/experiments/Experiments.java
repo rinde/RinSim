@@ -133,7 +133,7 @@ public final class Experiments {
     }
   }
 
-  public static class Result {
+  public static final class Result {
     public final StatisticsDTO stats;
     public final DynamicPDPTWScenario scenario;
     public final MASConfigurator masConfigurator;

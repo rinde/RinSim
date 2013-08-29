@@ -33,6 +33,9 @@ import rinde.sim.pdptw.common.ObjectiveFunction;
 import rinde.sim.pdptw.common.PDPRoadModel;
 import rinde.sim.pdptw.common.RouteFollowingVehicle;
 import rinde.sim.pdptw.common.StatsTracker.StatisticsDTO;
+import rinde.sim.pdptw.experiments.DefaultMASConfiguration;
+import rinde.sim.pdptw.experiments.MASConfiguration;
+import rinde.sim.pdptw.experiments.MASConfigurator;
 
 // FIXME test this class thoroughly
 /**
@@ -43,6 +46,35 @@ import rinde.sim.pdptw.common.StatsTracker.StatisticsDTO;
 public final class Central {
 
   private Central() {}
+
+  public static final class CentralConfigurator implements MASConfigurator {
+
+    @Override
+    public MASConfiguration configure(long seed) {
+      return new DefaultMASConfiguration() {
+
+        @Override
+        public Creator<AddVehicleEvent> getVehicleCreator() {
+          return new VehicleCreator();
+        }
+      };
+    }
+
+    private static final class VehicleCreator implements
+        Creator<AddVehicleEvent> {
+
+      private VehicleCreator() {}
+
+      @Override
+      public boolean create(Simulator sim, AddVehicleEvent event) {
+
+        return false; // sim.register(new
+                      // RouteFollowingVehicle(event.vehicleDTO,
+        // timeUnit, speedUnit, distUnit));
+      }
+    }
+
+  }
 
   /**
    * Runs the specified solver on the specified scenario in a simulation. The
@@ -117,11 +149,9 @@ public final class Central {
   }
 
   private static final class ReceiverModel<T> implements Model<T>, TickListener {
-
     private final Class<T> type;
     private final List<T> objects;
     private final EventDispatcher eventDispatcher;
-
     private boolean hasChanged;
 
     private ReceiverModel(Class<T> type) {
@@ -134,7 +164,6 @@ public final class Central {
     public boolean register(T element) {
       hasChanged = true;
       objects.add(element);
-
       return false;
     }
 
@@ -162,7 +191,6 @@ public final class Central {
         hasChanged = false;
         eventDispatcher.dispatchEvent(new Event(ReceiveEvent.RECEIVE, null));
       }
-
     }
 
     @Override
