@@ -9,6 +9,9 @@ import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
 
+import javax.measure.quantity.Length;
+import javax.measure.unit.Unit;
+
 import org.apache.commons.math3.random.RandomGenerator;
 
 import rinde.sim.core.TimeLapse;
@@ -172,5 +175,10 @@ public abstract class ForwardingRoadModel implements RoadModel {
   @Override
   public ImmutableList<Point> getBounds() {
     return delegate().getBounds();
+  }
+
+  @Override
+  public Unit<Length> getDistanceUnit() {
+    return delegate().getDistanceUnit();
   }
 }

@@ -10,6 +10,10 @@ import static org.junit.Assert.assertTrue;
 
 import java.util.Arrays;
 
+import javax.measure.Measure;
+import javax.measure.quantity.Duration;
+import javax.measure.unit.SI;
+
 import org.apache.commons.math3.random.MersenneTwister;
 import org.junit.Before;
 import org.junit.Test;
@@ -22,7 +26,8 @@ import com.google.common.collect.Sets;
  */
 public class SimulatorTest {
 
-  private final long timeStep = 100L;
+  private final Measure<Long, Duration> timeStep = Measure
+      .valueOf(100L, SI.SECOND);
   private Simulator simulator;
 
   @Before
@@ -119,11 +124,11 @@ public class SimulatorTest {
     final LimitingTickListener ltl = new LimitingTickListener(simulator, 3);
     simulator.addTickListener(ltl);
     simulator.start();
-    assertTrue(simulator.getCurrentTime() == 3 * timeStep);
+    assertTrue(simulator.getCurrentTime() == 3 * timeStep.getValue());
 
     simulator.unregister(new Object());
     simulator.togglePlayPause();
-    assertTrue(simulator.getCurrentTime() == 6 * timeStep);
+    assertTrue(simulator.getCurrentTime() == 6 * timeStep.getValue());
     simulator.resetTime();
     assertTrue(simulator.getCurrentTime() == 0);
   }

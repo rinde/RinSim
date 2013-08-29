@@ -19,14 +19,18 @@ import java.util.Queue;
 import java.util.Set;
 
 import javax.annotation.Nullable;
+import javax.measure.converter.UnitConverter;
+import javax.measure.quantity.Duration;
+import javax.measure.quantity.Length;
+import javax.measure.quantity.Velocity;
+import javax.measure.unit.SI;
+import javax.measure.unit.Unit;
 
 import rinde.sim.core.TimeLapse;
 import rinde.sim.core.graph.Point;
 import rinde.sim.core.model.AbstractModel;
 import rinde.sim.event.EventAPI;
 import rinde.sim.event.EventDispatcher;
-import rinde.sim.util.SpeedConverter;
-import rinde.sim.util.TimeUnit;
 
 import com.google.common.base.Predicate;
 import com.google.common.collect.Sets;
@@ -44,12 +48,26 @@ import com.google.common.collect.Sets;
 public abstract class AbstractRoadModel<T> extends AbstractModel<RoadUser>
     implements RoadModel {
 
-  protected final SpeedConverter speedConverter;
-
-  protected boolean useSpeedConversion;
-
   // TODO event dispatching has to be tested
   protected final EventDispatcher eventDispatcher;
+
+  protected final Unit<Length> externalDistanceUnit;
+
+  protected static final Unit<Duration> internalTimeUnit = SI.SECOND;
+  protected static final Unit<Length> internalDistUnit = SI.METER;
+  protected static final Unit<Velocity> internalSpeedUnit = SI.METERS_PER_SECOND;
+
+  /**
+   * Converter that converts distances in meters (which are used internally) to
+   * distances in {@link #externalDistanceUnit}.
+   */
+  protected final UnitConverter toExternalDistConv;
+
+  /**
+   * Converter that converts distances in {@link #externalDistanceUnit} to
+   * meters.
+   */
+  protected final UnitConverter toInternalDistConv;
 
   public enum RoadEventType {
     MOVE
@@ -68,12 +86,13 @@ public abstract class AbstractRoadModel<T> extends AbstractModel<RoadUser>
   /**
    * Create a new instance.
    */
-  public AbstractRoadModel(boolean pUseSpeedConversion) {
+  public AbstractRoadModel(Unit<Length> distanceUnit) {
     super(RoadUser.class);
+    externalDistanceUnit = distanceUnit;
+    toExternalDistConv = internalDistUnit.getConverterTo(externalDistanceUnit);
+    toInternalDistConv = externalDistanceUnit.getConverterTo(internalDistUnit);
     objLocs = createObjectToLocationMap();
     objDestinations = newLinkedHashMap();
-    speedConverter = new SpeedConverter();
-    useSpeedConversion = pUseSpeedConversion;
     eventDispatcher = createEventDispatcher();
   }
 
@@ -81,13 +100,6 @@ public abstract class AbstractRoadModel<T> extends AbstractModel<RoadUser>
   // subclasses to add more event types.
   protected EventDispatcher createEventDispatcher() {
     return new EventDispatcher(RoadEventType.MOVE);
-  }
-
-  /**
-   * Create a new instance.
-   */
-  public AbstractRoadModel() {
-    this(true);
   }
 
   /**
@@ -115,21 +127,13 @@ public abstract class AbstractRoadModel<T> extends AbstractModel<RoadUser>
    */
   protected abstract T point2LocObj(Point point);
 
-  /**
-   * This method should convert speed values to the unit that is used in the
-   * model. E.g. if speed is defined as km/hour, but the model uses TODO refine
-   * doc
-   * @param speed
-   * @return
-   */
-  protected double speedToSpaceUnit(double speed) {
-    if (useSpeedConversion) {
-      // speed in graph units per hour -> converting to milliseconds
-      return speedConverter.from(speed, TimeUnit.H).to(TimeUnit.MS);
-    } else {
-      return speed;
-    }
-  }
+  // // returns travel distance in used unit
+  // protected double computeTravelDistance(double metersPerSecond,
+  // Measure<Long, Duration> time) {
+  // final double seconds = time.doubleValue(internalTimeUnit);
+  // final double meters = seconds / metersPerSecond;
+  // return toExternalDistConv.convert(meters);
+  // }
 
   @Override
   public MoveProgress followPath(MovingRoadUser object, Queue<Point> path,
@@ -360,6 +364,11 @@ public abstract class AbstractRoadModel<T> extends AbstractModel<RoadUser>
   @Override
   public final EventAPI getEventAPI() {
     return eventDispatcher.getPublicEventAPI();
+  }
+
+  @Override
+  public Unit<Length> getDistanceUnit() {
+    return externalDistanceUnit;
   }
 
   private static class SameLocationPredicate implements Predicate<RoadUser> {

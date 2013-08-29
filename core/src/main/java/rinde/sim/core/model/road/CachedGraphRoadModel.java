@@ -9,6 +9,9 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
+import javax.measure.quantity.Length;
+import javax.measure.unit.Unit;
+
 import rinde.sim.core.graph.Graph;
 import rinde.sim.core.graph.Point;
 
@@ -37,8 +40,8 @@ public class CachedGraphRoadModel extends GraphRoadModel {
    * Create a new instance using the specified {@link Graph}.
    * @param pGraph The graph to use.
    */
-  public CachedGraphRoadModel(Graph<?> pGraph) {
-    super(pGraph);
+  public CachedGraphRoadModel(Graph<?> pGraph, Unit<Length> distanceUnit) {
+    super(pGraph, distanceUnit);
     pathTable = HashBasedTable.create();
     classObjectMap = LinkedHashMultimap.create();
   }

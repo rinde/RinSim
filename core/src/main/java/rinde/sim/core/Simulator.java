@@ -11,6 +11,10 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
+import javax.measure.Measure;
+import javax.measure.quantity.Duration;
+import javax.measure.unit.Unit;
+
 import org.apache.commons.math3.random.RandomGenerator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -125,9 +129,9 @@ public class Simulator implements SimulatorAPI {
    * @param step The time that passes each tick. This can be in any unit the
    *          programmer prefers.
    */
-  public Simulator(RandomGenerator r, long step) {
-    checkArgument(step > 0, "Step must be a positive number.");
-    timeStep = step;
+  public Simulator(RandomGenerator r, Measure<Long, Duration> step) {
+    checkArgument(step.getValue() > 0L, "Step must be a positive number.");
+    timeStep = step.getValue();
     tickListeners = Collections
         .synchronizedSet(new LinkedHashSet<TickListener>());
 
@@ -136,7 +140,7 @@ public class Simulator implements SimulatorAPI {
     rand = r;
     time = 0L;
     // time lapse is reused in a Flyweight kind of style
-    timeLapse = new TimeLapse();
+    timeLapse = new TimeLapse(step.getUnit());
 
     modelManager = new ModelManager();
 
@@ -398,6 +402,10 @@ public class Simulator implements SimulatorAPI {
   @Override
   public RandomGenerator getRandomGenerator() {
     return rand;
+  }
+
+  public Unit<Duration> getTimeUnit() {
+    return timeLapse.getTimeUnit();
   }
 
   /**

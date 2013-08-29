@@ -10,6 +10,9 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 
+import javax.measure.Measure;
+import javax.measure.unit.NonSI;
+
 import org.xml.sax.Attributes;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
@@ -33,31 +36,33 @@ public class OSM {
 
   public static Graph<MultiAttributeData> parse(String filename) {
     try {
-      InputSource inputSource = new InputSource(new FileInputStream(filename));
-      XMLReader xmlReader = XMLReaderFactory.createXMLReader();
+      final InputSource inputSource = new InputSource(new FileInputStream(
+          filename));
+      final XMLReader xmlReader = XMLReaderFactory.createXMLReader();
       // Multimap<Point, Point> graph = HashMultimap.create();
 
-      TableGraph<MultiAttributeData> graph = new TableGraph<MultiAttributeData>(
+      final TableGraph<MultiAttributeData> graph = new TableGraph<MultiAttributeData>(
           MultiAttributeData.EMPTY);
 
-      OSMParser parser = new OSMParser(graph);
+      final OSMParser parser = new OSMParser(graph);
       xmlReader.setContentHandler(parser);
       xmlReader.setErrorHandler(parser);
       xmlReader.parse(inputSource);
 
       // remove circular connections
-      List<Connection<MultiAttributeData>> removeList = new ArrayList<Connection<MultiAttributeData>>();
-      for (Connection<MultiAttributeData> connection : graph.getConnections()) {
+      final List<Connection<MultiAttributeData>> removeList = new ArrayList<Connection<MultiAttributeData>>();
+      for (final Connection<MultiAttributeData> connection : graph
+          .getConnections()) {
         if (connection.from.equals(connection.to)) {
           removeList.add(connection);
         }
       }
-      for (Connection<MultiAttributeData> connection : removeList) {
+      for (final Connection<MultiAttributeData> connection : removeList) {
         graph.removeConnection(connection.from, connection.to);
       }
       // System.out.println(highwayNames.toString());
       return graph;
-    } catch (Exception e) {
+    } catch (final Exception e) {
       e.printStackTrace();
       throw new RuntimeException("Failed to load xml file properly: "
           + filename);
@@ -91,8 +96,8 @@ public class OSM {
         current
             .startElement(namespaceURI, localName, qualifiedName, attributes);
       } else if (localName.equals("node")) {
-        double lat = Double.parseDouble(attributes.getValue("lat"));
-        double lon = Double.parseDouble(attributes.getValue("lon"));
+        final double lat = Double.parseDouble(attributes.getValue("lat"));
+        final double lon = Double.parseDouble(attributes.getValue("lon"));
         // LatLng latlong = new LatLng(lat, lon);
         // latlong.toWGS84();
         // UTMRef ref = latlong.toUTMRef();
@@ -111,11 +116,11 @@ public class OSM {
 
         // MAGIC constant! Don't touch this without consulting either
         // Rinde van Lon or Bartosz Michalik, preferably both :-)
-        double scale = 1000000 / 1.425139046;// Math.toDegrees(Math.cos(Math.toRadians(lat)
-                                             // * Math.PI /
-                                             // Math.toRadians(180)))
-                                             // * 2 * Math.PI *
-                                             // earthRadius / 1000;
+        final double scale = 1000000 / 1.425139046;// Math.toDegrees(Math.cos(Math.toRadians(lat)
+        // * Math.PI /
+        // Math.toRadians(180)))
+        // * 2 * Math.PI *
+        // earthRadius / 1000;
 
         //
 
@@ -132,9 +137,9 @@ public class OSM {
         // sinLattitude)) / (4 * Math.PI));
 
         // MERCATOR:
-        double x = scale * lon; // Math.round(earthRadius *
-                                // Math.cos(lat) * Math.sin(lon));
-        double y = scale
+        final double x = scale * lon; // Math.round(earthRadius *
+        // Math.cos(lat) * Math.sin(lon));
+        final double y = scale
             * Math.toDegrees(1.0 / Math.sinh(Math.tan(Math.toRadians(lat))));// Math.log(Math.tan(.25
                                                                              // *
                                                                              // Math.PI
@@ -240,7 +245,7 @@ public class OSM {
           try {
             maxSpeed = 1000.0 * Integer.parseInt(attributes.getValue("v")
                 .replaceAll("\\D", ""));
-          } catch (NumberFormatException nfe) {
+          } catch (final NumberFormatException nfe) {
             // ignore if this happens, it means that no max speed
             // was defined
           }
@@ -253,18 +258,18 @@ public class OSM {
     public void addWaysTo(Graph<MultiAttributeData> graph) {
       if (isValidRoad) {
         for (int i = 1; i < nodes.size(); i++) {
-          Point from = nodeMapping.get(nodes.get(i - 1));
-          Point to = nodeMapping.get(nodes.get(i));
+          final Point from = nodeMapping.get(nodes.get(i - 1));
+          final Point to = nodeMapping.get(nodes.get(i));
           if (from != null && to != null && !from.equals(to)) {
 
-            double length = Point.distance(from, to);
+            final double length = Point.distance(from, to);
             if (!graph.hasConnection(from, to)) {
               graph.addConnection(from, to, new MultiAttributeData(length,
-                  maxSpeed));
+                  Measure.valueOf(maxSpeed, NonSI.KILOMETERS_PER_HOUR)));
             }
             if (!oneWay && !graph.hasConnection(to, from)) {
               graph.addConnection(to, from, new MultiAttributeData(length,
-                  maxSpeed));
+                  Measure.valueOf(maxSpeed, NonSI.KILOMETERS_PER_HOUR)));
             }
           }
         }

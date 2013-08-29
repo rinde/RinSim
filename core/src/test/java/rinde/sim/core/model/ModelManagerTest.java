@@ -12,6 +12,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import javax.measure.unit.SI;
+
 import org.junit.Before;
 import org.junit.Test;
 
@@ -89,18 +91,19 @@ public class ModelManagerTest {
   @Test(expected = IllegalStateException.class)
   public void registerModelTooLate() {
     manager.configure();
-    manager.register(new GraphRoadModel(new MultimapGraph<LengthData>()));
+    manager.register(new GraphRoadModel(new MultimapGraph<LengthData>(),
+        SI.METER));
   }
 
   @Test(expected = IllegalStateException.class)
   public void addModelTooLate() {
     manager.configure();
-    manager.add(new GraphRoadModel(new MultimapGraph<LengthData>()));
+    manager.add(new GraphRoadModel(new MultimapGraph<LengthData>(), SI.METER));
   }
 
   @Test(expected = RuntimeException.class)
   public void registerWithBrokenModel() {
-    manager.add(new GraphRoadModel(new MultimapGraph<LengthData>()));
+    manager.add(new GraphRoadModel(new MultimapGraph<LengthData>(), SI.METER));
     manager.add(new BrokenRoadModel(new MultimapGraph<LengthData>()));
     manager.configure();
     manager.register(new RoadUser() {
@@ -118,7 +121,8 @@ public class ModelManagerTest {
 
   @Test(expected = IllegalArgumentException.class)
   public void unregisterModel() {
-    manager.unregister(new GraphRoadModel(new MultimapGraph<LengthData>()));
+    manager.unregister(new GraphRoadModel(new MultimapGraph<LengthData>(),
+        SI.METER));
   }
 
   @Test(expected = IllegalStateException.class)
@@ -128,8 +132,8 @@ public class ModelManagerTest {
 
   @Test
   public void unregister() {
-    manager.add(new GraphRoadModel(new MultimapGraph<LengthData>()));
-    manager.add(new GraphRoadModel(new MultimapGraph<LengthData>()));
+    manager.add(new GraphRoadModel(new MultimapGraph<LengthData>(), SI.METER));
+    manager.add(new GraphRoadModel(new MultimapGraph<LengthData>(), SI.METER));
     manager.configure();
     manager.unregister(new RoadUser() {
       @Override
@@ -139,7 +143,7 @@ public class ModelManagerTest {
 
   @Test(expected = RuntimeException.class)
   public void unregisterWithBrokenModel() {
-    manager.add(new GraphRoadModel(new MultimapGraph<LengthData>()));
+    manager.add(new GraphRoadModel(new MultimapGraph<LengthData>(), SI.METER));
     manager.add(new BrokenRoadModel(new MultimapGraph<LengthData>()));
     manager.configure();
     manager.unregister(new RoadUser() {
@@ -303,7 +307,7 @@ public class ModelManagerTest {
 
 class BrokenRoadModel extends GraphRoadModel {
   public BrokenRoadModel(Graph<? extends ConnectionData> pGraph) {
-    super(pGraph);
+    super(pGraph, SI.METER);
   }
 
   @Override

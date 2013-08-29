@@ -7,6 +7,9 @@ import java.io.Reader;
 import java.io.Writer;
 import java.util.HashMap;
 
+import javax.measure.Measure;
+import javax.measure.unit.NonSI;
+
 import rinde.sim.core.graph.Connection;
 import rinde.sim.core.graph.ConnectionData;
 import rinde.sim.core.graph.Graph;
@@ -54,33 +57,34 @@ public class DotGraphSerializer<E extends ConnectionData> extends
   @Override
   public Graph<E> read(Reader r) throws IOException {
 
-    BufferedReader reader = new BufferedReader(r);
+    final BufferedReader reader = new BufferedReader(r);
 
-    MultimapGraph<E> graph = new MultimapGraph<E>();
+    final MultimapGraph<E> graph = new MultimapGraph<E>();
 
-    HashMap<String, Point> nodeMapping = new HashMap<String, Point>();
+    final HashMap<String, Point> nodeMapping = new HashMap<String, Point>();
     String line;
     while ((line = reader.readLine()) != null) {
       if (line.contains(POS + "=")) {
-        String nodeName = line.substring(0, line.indexOf("[")).trim();
-        String[] position = line.split("\"")[1].split(",");
-        Point p = new Point(Double.parseDouble(position[0]),
+        final String nodeName = line.substring(0, line.indexOf("[")).trim();
+        final String[] position = line.split("\"")[1].split(",");
+        final Point p = new Point(Double.parseDouble(position[0]),
             Double.parseDouble(position[1]));
         nodeMapping.put(nodeName, p);
       } else if (line.contains("->")) {
         // example:
         // node1004 -> node820[label="163.3"]
-        String[] names = line.split("->");
-        String fromStr = names[0].trim();
-        String toStr = names[1].substring(0, names[1].indexOf("[")).trim();
-        Point from = nodeMapping.get(fromStr);
-        Point to = nodeMapping.get(toStr);
-        for (SerializerFilter<?> f : filters) {
+        final String[] names = line.split("->");
+        final String fromStr = names[0].trim();
+        final String toStr = names[1].substring(0, names[1].indexOf("["))
+            .trim();
+        final Point from = nodeMapping.get(fromStr);
+        final Point to = nodeMapping.get(toStr);
+        for (final SerializerFilter<?> f : filters) {
           if (f.filterOut(from, to)) {
             continue;
           }
         }
-        E data = serializer.deserialize(line);
+        final E data = serializer.deserialize(line);
         graph.addConnection(from, to, data);
 
       }
@@ -97,15 +101,15 @@ public class DotGraphSerializer<E extends ConnectionData> extends
     string.append("digraph mapgraph {\n");
 
     int nodeId = 0;
-    HashMap<Point, Integer> idMap = new HashMap<Point, Integer>();
-    for (Point p : graph.getNodes()) {
+    final HashMap<Point, Integer> idMap = new HashMap<Point, Integer>();
+    for (final Point p : graph.getNodes()) {
       string.append(NODE_PREFIX).append(nodeId).append('[').append(POS)
           .append("=\"").append(p.x).append(',').append(p.y).append("\"]\n");
       idMap.put(p, nodeId);
       nodeId++;
     }
 
-    for (Connection<? extends E> entry : graph.getConnections()) {
+    for (final Connection<? extends E> entry : graph.getConnections()) {
       string.append(serializer.serializeConnection(idMap.get(entry.from), idMap
           .get(entry.to), entry));
     }
@@ -137,7 +141,7 @@ public class DotGraphSerializer<E extends ConnectionData> extends
     @Override
     public String serializeConnection(int idFrom, int idTo,
         Connection<? extends LengthData> conn) {
-      StringBuffer buffer = new StringBuffer();
+      final StringBuffer buffer = new StringBuffer();
       buffer.append(NODE_PREFIX).append(idFrom).append(" -> ")
           .append(NODE_PREFIX).append(idTo);
       buffer.append('[').append(DISTANCE).append("=\"")
@@ -147,7 +151,7 @@ public class DotGraphSerializer<E extends ConnectionData> extends
 
     @Override
     public LengthData deserialize(String connection) {
-      double distance = Double.parseDouble(connection.split("\"")[1]);
+      final double distance = Double.parseDouble(connection.split("\"")[1]);
       return new LengthData(distance);
     }
   }
@@ -159,13 +163,13 @@ public class DotGraphSerializer<E extends ConnectionData> extends
     @Override
     public String serializeConnection(int idFrom, int idTo,
         Connection<? extends MultiAttributeData> conn) {
-      StringBuffer buffer = new StringBuffer();
+      final StringBuffer buffer = new StringBuffer();
       buffer.append(NODE_PREFIX).append(idFrom).append(" -> ")
           .append(NODE_PREFIX).append(idTo);
       buffer.append('[').append(DISTANCE).append("=\"")
           .append(Math.round(conn.getData().getLength()) / 10d);
-      if (!Double.isNaN(conn.getData().getMaxSpeed())
-          && conn.getData().getMaxSpeed() > 0) {
+      if (conn.getData().getMaxSpeed() != null
+          && conn.getData().getMaxSpeed().getValue() > 0) {
         buffer.append("\", ").append(MAX_SPEED).append("=\"")
             .append(conn.getData().getMaxSpeed());
       }
@@ -175,11 +179,13 @@ public class DotGraphSerializer<E extends ConnectionData> extends
 
     @Override
     public MultiAttributeData deserialize(String connection) {
-      double distance = Double.parseDouble(connection.split("\"")[1]);
+      final double distance = Double.parseDouble(connection.split("\"")[1]);
       try {
-        double maxSpeed = Double.parseDouble(connection.split("\"")[3]);
-        return new MultiAttributeData(distance, maxSpeed);
-      } catch (Exception e) {
+        final double maxSpeed = Double.parseDouble(connection.split("\"")[3]);
+        // TODO this should be customized to support different units
+        return new MultiAttributeData(distance,
+            Measure.valueOf(maxSpeed, NonSI.KILOMETERS_PER_HOUR));
+      } catch (final Exception e) {
         return new MultiAttributeData(distance);
       }
     }

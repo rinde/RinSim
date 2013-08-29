@@ -7,9 +7,17 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static java.lang.Math.min;
 import static java.util.Arrays.asList;
 
+import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Queue;
+
+import javax.measure.Measure;
+import javax.measure.converter.UnitConverter;
+import javax.measure.quantity.Duration;
+import javax.measure.quantity.Length;
+import javax.measure.quantity.Velocity;
+import javax.measure.unit.Unit;
 
 import org.apache.commons.math3.random.RandomGenerator;
 
@@ -17,6 +25,7 @@ import rinde.sim.core.TimeLapse;
 import rinde.sim.core.graph.Point;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.math.DoubleMath;
 
 /**
  * A {@link RoadModel} that uses a plane as road structure. This assumes that
@@ -50,7 +59,8 @@ public class PlaneRoadModel extends AbstractRoadModel<Point> {
    */
   public final double height;
   /**
-   * The maximum speed that objects can travel on the plane.
+   * The maximum speed in meters per second that objects can travel on the
+   * plane.
    */
   public final double maxSpeed;
 
@@ -58,18 +68,20 @@ public class PlaneRoadModel extends AbstractRoadModel<Point> {
    * Create a new plane road model using the specified boundaries and max speed.
    * @param pMin The minimum x and y of the plane.
    * @param pMax The maximum x and y of the plane.
+   * @param externalDistanceUnit This is the unit in which all input distances
+   *          and locations (i.e. {@link Point}s) should be specified.
    * @param pMaxSpeed The maximum speed that objects can travel on the plane.
    */
-  public PlaneRoadModel(Point pMin, Point pMax, boolean useSpeedConversion,
-      double pMaxSpeed) {
-    super(useSpeedConversion);
+  public PlaneRoadModel(Point pMin, Point pMax, Unit<Length> distanceUnit,
+      Measure<Double, Velocity> pMaxSpeed) {
+    super(distanceUnit);
     checkArgument(pMin.x < pMax.x && pMin.y < pMax.y, "min should have coordinates smaller than max");
-    checkArgument(pMaxSpeed > 0, "max speed must be positive");
+    checkArgument(pMaxSpeed.getValue() > 0, "max speed must be positive");
     min = pMin;
     max = pMax;
     width = max.x - min.x;
     height = max.y - min.y;
-    maxSpeed = pMaxSpeed;
+    maxSpeed = pMaxSpeed.doubleValue(internalSpeedUnit);
   }
 
   @Override
@@ -87,29 +99,42 @@ public class PlaneRoadModel extends AbstractRoadModel<Point> {
   @Override
   protected MoveProgress doFollowPath(MovingRoadUser object, Queue<Point> path,
       TimeLapse time) {
+    final long startTimeConsumed = time.getTimeConsumed();
     Point loc = objLocs.get(object);
 
+    final UnitConverter toInternalTimeConv = time.getTimeUnit()
+        .getConverterTo(internalTimeUnit);
+    final UnitConverter toExternalTimeConv = internalTimeUnit
+        .getConverterTo(time.getTimeUnit());
+
     double traveled = 0;
-    // final SpeedConverter sc = new SpeedConverter();
-    double speed = min(object.getSpeed(), maxSpeed);
-    if (speed == 0) {
+    final double speed = min(object.getSpeed().doubleValue(internalSpeedUnit), maxSpeed);
+    if (speed == 0d) {
       // FIXME add test for this case, also check GraphRoadModel
-      return new MoveProgress(0, 0, new ArrayList<Point>());
+      final Measure<Double, Length> dist = Measure
+          .valueOf(0d, externalDistanceUnit);
+      final Measure<Long, Duration> dur = Measure.valueOf(0L, time
+          .getTimeUnit());
+      return new MoveProgress(dist, dur, new ArrayList<Point>());
     }
-    speed = speedToSpaceUnit(speed);
 
     final List<Point> travelledNodes = new ArrayList<Point>();
     while (time.hasTimeLeft() && path.size() > 0) {
       checkArgument(isPointInBoundary(path.peek()), "points in the path must be within the predefined boundary of the plane");
 
-      // distance that can be traveled with timeleft
-      final double travelDistance = speed * time.getTimeLeft();
-      final double stepLength = Point.distance(loc, path.peek());
+      // distance in internal time unit that can be traveled with timeleft
+      final double travelDistance = speed
+          * toInternalTimeConv.convert(time.getTimeLeft());
+      final double stepLength = toInternalDistConv.convert(Point
+          .distance(loc, path.peek()));
 
       if (travelDistance >= stepLength) {
         loc = path.remove();
         travelledNodes.add(loc);
-        time.consume(Math.round(stepLength / speed));
+
+        final long timeSpent = DoubleMath.roundToLong(toExternalTimeConv
+            .convert(stepLength / speed), RoundingMode.HALF_DOWN);
+        time.consume(timeSpent);
         traveled += stepLength;
       } else {
         final Point diff = Point.diff(path.peek(), loc);
@@ -120,7 +145,6 @@ public class PlaneRoadModel extends AbstractRoadModel<Point> {
         } else {
           final double perc = travelDistance / stepLength;
           loc = new Point(loc.x + perc * diff.x, loc.y + perc * diff.y);
-          // time.consume(Math.round(travelDistance / speed));
           traveled += travelDistance;
         }
         time.consumeAll();
@@ -128,7 +152,13 @@ public class PlaneRoadModel extends AbstractRoadModel<Point> {
       }
     }
     objLocs.put(object, loc);
-    return new MoveProgress(traveled, time.getTimeConsumed(), travelledNodes);
+
+    // convert to external units
+    final Measure<Double, Length> distTraveled = Measure
+        .valueOf(toExternalDistConv.convert(traveled), externalDistanceUnit);
+    final Measure<Long, Duration> timeConsumed = Measure.valueOf(time
+        .getTimeConsumed() - startTimeConsumed, time.getTimeUnit());
+    return new MoveProgress(distTraveled, timeConsumed, travelledNodes);
   }
 
   @Override

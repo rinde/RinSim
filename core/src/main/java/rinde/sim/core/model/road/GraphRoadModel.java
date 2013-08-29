@@ -7,9 +7,17 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static rinde.sim.core.graph.Graphs.shortestPathEuclideanDistance;
 import static rinde.sim.core.graph.Graphs.unmodifiableGraph;
 
+import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Queue;
+
+import javax.measure.Measure;
+import javax.measure.converter.UnitConverter;
+import javax.measure.quantity.Duration;
+import javax.measure.quantity.Length;
+import javax.measure.quantity.Velocity;
+import javax.measure.unit.Unit;
 
 import org.apache.commons.math3.random.RandomGenerator;
 
@@ -20,10 +28,9 @@ import rinde.sim.core.graph.Graph;
 import rinde.sim.core.graph.MultiAttributeData;
 import rinde.sim.core.graph.Point;
 import rinde.sim.core.model.road.GraphRoadModel.Loc;
-import rinde.sim.util.SpeedConverter;
-import rinde.sim.util.TimeUnit;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.math.DoubleMath;
 
 /**
  * A {@link RoadModel} that uses a {@link Graph} as road structure.
@@ -54,9 +61,9 @@ public class GraphRoadModel extends AbstractRoadModel<Loc> {
    * Creates a new instance using the specified {@link Graph} as road structure.
    * @param pGraph The graph which will be used as road strucutre.
    */
-  public GraphRoadModel(Graph<? extends ConnectionData> pGraph) {
-    super();
-    checkArgument(pGraph != null, "Graph can not be null");
+  public GraphRoadModel(Graph<? extends ConnectionData> pGraph,
+      Unit<Length> distanceUnit) {
+    super(distanceUnit);
     graph = pGraph;
   }
 
@@ -70,38 +77,33 @@ public class GraphRoadModel extends AbstractRoadModel<Loc> {
   @Override
   protected MoveProgress doFollowPath(MovingRoadUser object, Queue<Point> path,
       TimeLapse time) {
-    // checkArgument(object != null, "object cannot be null");
-    // checkArgument(objLocs.containsKey(object),
-    // "object must have a location");
-    // checkArgument(path.peek() != null, "path can not be empty");
-    // checkArgument(time.hasTimeLeft(),
-    // "can not follow path when to time is left");
-    // // checkArgument(time > 0, "time must be a positive number");
-
+    final long startTimeConsumed = time.getTimeConsumed();
     final Loc objLoc = objLocs.get(object);
     checkLocation(objLoc);
-
-    // long timeLeft = time;
     double traveled = 0;
+
+    final UnitConverter toInternalTimeConv = time.getTimeUnit()
+        .getConverterTo(internalTimeUnit);
+    final UnitConverter toExternalTimeConv = internalTimeUnit
+        .getConverterTo(time.getTimeUnit());
 
     Loc tempLoc = objLoc;
     Point tempPos = objLoc;
 
     double newDis = Double.NaN;
 
-    final SpeedConverter sc = new SpeedConverter();
-
     final List<Point> travelledNodes = new ArrayList<Point>();
     while (time.hasTimeLeft() && path.size() > 0) {
       checkIsValidMove(tempLoc, path.peek());
 
-      // speed in graph units per hour -> converting to miliseconds
-      double speed = getMaxSpeed(object, tempPos, path.peek());
-      speed = sc.from(speed, TimeUnit.H).to(TimeUnit.MS);
+      // speed in internal speed unit
+      final double speed = getMaxSpeed(object, tempPos, path.peek());
 
       // distance that can be traveled in current edge with timeleft
-      final double travelDistance = speed * time.getTimeLeft();
-      final double connLength = computeConnectionLength(tempPos, path.peek());
+      final double travelDistance = speed
+          * toInternalTimeConv.convert(time.getTimeLeft());
+      final double connLength = toInternalDistConv
+          .convert(computeConnectionLength(tempPos, path.peek()));
 
       if (travelDistance >= connLength) {
         // jump to next vertex
@@ -109,7 +111,8 @@ public class GraphRoadModel extends AbstractRoadModel<Loc> {
         if (!(tempPos instanceof Loc)) {
           travelledNodes.add(tempPos);
         }
-        final long timeSpent = Math.round(connLength / speed);
+        final long timeSpent = DoubleMath.roundToLong(toExternalTimeConv
+            .convert(connLength / speed), RoundingMode.HALF_DOWN);
         time.consume(timeSpent);
         traveled += connLength;
 
@@ -122,9 +125,6 @@ public class GraphRoadModel extends AbstractRoadModel<Loc> {
       } else { // distanceLeft < connLength
         newDis = travelDistance;
         time.consumeAll();
-        // timeLeft = 0;
-        // long timeSpent = Math.round(travelDistance / speed);
-        // timeLeft -= timeSpent;
         traveled += travelDistance;
 
         final Point from = isOnConnection(tempLoc) ? tempLoc.conn.from
@@ -132,13 +132,20 @@ public class GraphRoadModel extends AbstractRoadModel<Loc> {
         final Point peekTo = isOnConnection(path.peek()) ? ((Loc) path.peek()).conn.to
             : path.peek();
         final Connection<?> conn = graph.getConnection(from, peekTo);
-        tempLoc = checkLocation(newLoc(conn, tempLoc.relativePos + newDis));
+        tempLoc = checkLocation(newLoc(conn, tempLoc.relativePos
+            + toExternalDistConv.convert(newDis)));
       }
       tempPos = tempLoc;
     }
 
     objLocs.put(object, tempLoc);
-    return new MoveProgress(traveled, time.getTimeConsumed(), travelledNodes);
+
+    // convert to external units
+    final Measure<Double, Length> distTraveled = Measure
+        .valueOf(toExternalDistConv.convert(traveled), externalDistanceUnit);
+    final Measure<Long, Duration> timeConsumed = Measure.valueOf(time
+        .getTimeConsumed() - startTimeConsumed, time.getTimeUnit());
+    return new MoveProgress(distTraveled, timeConsumed, travelledNodes);
   }
 
   /**
@@ -181,12 +188,6 @@ public class GraphRoadModel extends AbstractRoadModel<Loc> {
    *           are not equal or there is no connection between them
    */
   protected double computeConnectionLength(Point from, Point to) {
-    if (from == null) {
-      throw new IllegalArgumentException("from can not be null");
-    }
-    if (to == null) {
-      throw new IllegalArgumentException("to can not be null");
-    }
     if (from.equals(to)) {
       return 0;
     }
@@ -248,19 +249,21 @@ public class GraphRoadModel extends AbstractRoadModel<Loc> {
    * @param object traveling object
    * @param from the point on the graph object is located
    * @param to the next point on the path it want to reach
-   * @return The maximum speed.
+   * @return The maximum speed in the internal unit.
    */
   protected double getMaxSpeed(MovingRoadUser object, Point from, Point to) {
+    final double objSpeed = object.getSpeed().doubleValue(internalSpeedUnit);
     if (!from.equals(to)) {
       final Connection<?> conn = getConnection(from, to);
       if (conn.getData() instanceof MultiAttributeData) {
         final MultiAttributeData maed = (MultiAttributeData) conn.getData();
-        final double speed = maed.getMaxSpeed();
-        return Double.isNaN(speed) ? object.getSpeed() : Math.min(speed, object
-            .getSpeed());
+        @SuppressWarnings("null")
+        final Measure<Double, Velocity> speed = maed.getMaxSpeed();
+        return speed == null ? objSpeed : Math.min(speed
+            .doubleValue(internalSpeedUnit), objSpeed);
       }
     }
-    return object.getSpeed();
+    return objSpeed;
   }
 
   /**

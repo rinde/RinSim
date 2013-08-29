@@ -1,5 +1,7 @@
 package rinde.sim.core.graph;
 
+import javax.annotation.Nullable;
+
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 /**
@@ -21,6 +23,7 @@ public class Connection<E extends ConnectionData> {
    */
   public final Point to;
 
+  @Nullable
   private E data;
   private final int hashCode;
 
@@ -30,10 +33,7 @@ public class Connection<E extends ConnectionData> {
    * @param pTo The end point of the connection.
    * @param pData The data that is associated to this connection.
    */
-  public Connection(Point pFrom, Point pTo, E pData) {
-    if (pFrom == null || pTo == null) {
-      throw new IllegalArgumentException("points cannot be null");
-    }
+  public Connection(Point pFrom, Point pTo, @Nullable E pData) {
     this.from = pFrom;
     this.to = pTo;
     this.data = pData;
@@ -57,6 +57,7 @@ public class Connection<E extends ConnectionData> {
   /**
    * @return The data that is associated to this connection.
    */
+  @Nullable
   public E getData() {
     return data;
   }
@@ -67,7 +68,7 @@ public class Connection<E extends ConnectionData> {
   }
 
   @Override
-  public boolean equals(Object obj) {
+  public boolean equals(@Nullable Object obj) {
     if (!(obj instanceof Connection)) {
       return false;
     }

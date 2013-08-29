@@ -5,6 +5,9 @@ package rinde.sim.core;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
+import javax.measure.quantity.Duration;
+import javax.measure.unit.Unit;
+
 /**
  * Represents a consumable interval of time: [start, end). Instances of time
  * lapse are handed out by the {@link Simulator} and can be received by
@@ -13,14 +16,13 @@ import static com.google.common.base.Preconditions.checkArgument;
  */
 public final class TimeLapse {
 
+  private final Unit<Duration> timeUnit;
   private long startTime;
   private long endTime;
   private long timeLeft;
 
-  TimeLapse() {}
-
-  TimeLapse(long start, long end) {
-    initialize(start, end);
+  TimeLapse(Unit<Duration> unit) {
+    timeUnit = unit;
   }
 
   void initialize(long start, long end) {
@@ -108,6 +110,13 @@ public final class TimeLapse {
    */
   public boolean isIn(long t) {
     return t >= startTime && t < endTime;
+  }
+
+  /**
+   * @return The time unit of this {@link TimeLapse}.
+   */
+  public Unit<Duration> getTimeUnit() {
+    return timeUnit;
   }
 
   @Override

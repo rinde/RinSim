@@ -10,6 +10,8 @@ import java.util.Queue;
 import java.util.Set;
 
 import javax.annotation.Nullable;
+import javax.measure.quantity.Length;
+import javax.measure.unit.Unit;
 
 import org.apache.commons.math3.random.RandomGenerator;
 
@@ -310,5 +312,7 @@ public interface RoadModel extends Model<RoadUser> {
   // min y value, the second point contains the max x and max y value. this
   // can be used to draw a rectangle around all reachable positions
   ImmutableList<Point> getBounds();
+
+  Unit<Length> getDistanceUnit();
 
 }
