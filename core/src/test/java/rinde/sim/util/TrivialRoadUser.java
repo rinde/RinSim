@@ -1,9 +1,5 @@
 package rinde.sim.util;
 
-import javax.measure.Measure;
-import javax.measure.quantity.Velocity;
-import javax.measure.unit.NonSI;
-
 import rinde.sim.core.model.road.MovingRoadUser;
 import rinde.sim.core.model.road.RoadModel;
 
@@ -16,8 +12,6 @@ import rinde.sim.core.model.road.RoadModel;
 public class TrivialRoadUser implements MovingRoadUser {
 
   private RoadModel model;
-  private static final Measure<Double, Velocity> SPEED = Measure
-      .valueOf(1d, NonSI.KILOMETERS_PER_HOUR);
 
   public RoadModel getRoadModel() {
     return model;
@@ -29,7 +23,7 @@ public class TrivialRoadUser implements MovingRoadUser {
   }
 
   @Override
-  public Measure<Double, Velocity> getSpeed() {
-    return SPEED;
+  public double getSpeed() {
+    return 1d;
   }
 }

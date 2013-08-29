@@ -37,7 +37,7 @@ public class ForwardingRoadModelTest extends AbstractRoadModelTest<RoadModel> {
           @Override
           public RoadModel create(ForwardingRoadModelTest testClass) {
             return new TestForwardingRoadModel(new GraphRoadModel(testClass
-                .createGraph(), SI.METER));
+                .createGraph(), SI.METER, SI.METERS_PER_SECOND));
           }
         } } });
   }

@@ -10,9 +10,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 
-import javax.measure.Measure;
-import javax.measure.unit.NonSI;
-
 import org.xml.sax.Attributes;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
@@ -265,11 +262,11 @@ public class OSM {
             final double length = Point.distance(from, to);
             if (!graph.hasConnection(from, to)) {
               graph.addConnection(from, to, new MultiAttributeData(length,
-                  Measure.valueOf(maxSpeed, NonSI.KILOMETERS_PER_HOUR)));
+                  maxSpeed));
             }
             if (!oneWay && !graph.hasConnection(to, from)) {
               graph.addConnection(to, from, new MultiAttributeData(length,
-                  Measure.valueOf(maxSpeed, NonSI.KILOMETERS_PER_HOUR)));
+                  maxSpeed));
             }
           }
         }

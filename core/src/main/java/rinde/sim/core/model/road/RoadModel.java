@@ -11,6 +11,7 @@ import java.util.Set;
 
 import javax.annotation.Nullable;
 import javax.measure.quantity.Length;
+import javax.measure.quantity.Velocity;
 import javax.measure.unit.Unit;
 
 import org.apache.commons.math3.random.RandomGenerator;
@@ -314,5 +315,7 @@ public interface RoadModel extends Model<RoadUser> {
   ImmutableList<Point> getBounds();
 
   Unit<Length> getDistanceUnit();
+
+  Unit<Velocity> getSpeedUnit();
 
 }

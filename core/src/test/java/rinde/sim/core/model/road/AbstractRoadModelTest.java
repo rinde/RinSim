@@ -24,8 +24,6 @@ import java.util.Set;
 import javax.measure.Measure;
 import javax.measure.quantity.Duration;
 import javax.measure.quantity.Length;
-import javax.measure.quantity.Velocity;
-import javax.measure.unit.NonSI;
 import javax.measure.unit.SI;
 
 import org.junit.Before;
@@ -347,15 +345,12 @@ public abstract class AbstractRoadModelTest<T extends RoadModel> {
 
   @Test
   public void followPathRoundingTimeCheck() {
-
     // FIXME fix this rounding time bug!
-    final MovingRoadUser ru = new SpeedyRoadUser(
-        Measure.valueOf(1d, NonSI.KILOMETERS_PER_HOUR));
+    final MovingRoadUser ru = new SpeedyRoadUser(1d);
     model.addObjectAt(ru, SW);
 
     model.followPath(ru, newLinkedList(asList(SE)), TimeLapseFactory
         .create(0, 36000000 - 1));
-
   }
 
   @SuppressWarnings("null")
@@ -564,9 +559,9 @@ public abstract class AbstractRoadModelTest<T extends RoadModel> {
 
 class SpeedyRoadUser implements MovingRoadUser {
 
-  private final Measure<Double, Velocity> speed;
+  private final double speed;
 
-  public SpeedyRoadUser(Measure<Double, Velocity> pSpeed) {
+  public SpeedyRoadUser(double pSpeed) {
     speed = pSpeed;
   }
 
@@ -574,7 +569,7 @@ class SpeedyRoadUser implements MovingRoadUser {
   public void initRoadUser(RoadModel pModel) {}
 
   @Override
-  public Measure<Double, Velocity> getSpeed() {
+  public double getSpeed() {
     return speed;
   }
 

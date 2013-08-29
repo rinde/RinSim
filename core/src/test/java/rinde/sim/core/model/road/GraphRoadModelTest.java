@@ -9,7 +9,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
-import static rinde.sim.core.model.road.RoadTestUtil.kmh;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
@@ -19,7 +18,6 @@ import java.util.List;
 import java.util.Queue;
 import java.util.Set;
 
-import javax.measure.Measure;
 import javax.measure.converter.UnitConverter;
 import javax.measure.unit.NonSI;
 import javax.measure.unit.SI;
@@ -83,8 +81,8 @@ public class GraphRoadModelTest extends AbstractRoadModelTest<GraphRoadModel> {
       IllegalArgumentException, SecurityException, InvocationTargetException,
       NoSuchMethodException {
     graph = (graphType.newInstance());
-    model = roadModelType.getConstructor(Graph.class, Unit.class)
-        .newInstance(graph, SI.KILOMETER);
+    model = roadModelType.getConstructor(Graph.class, Unit.class, Unit.class)
+        .newInstance(graph, SI.KILOMETER, NonSI.KILOMETERS_PER_HOUR);
 
     graph.addConnection(SW, SE);
     graph.addConnection(SE, NE);
@@ -104,8 +102,8 @@ public class GraphRoadModelTest extends AbstractRoadModelTest<GraphRoadModel> {
   public void constructorFail() throws IllegalArgumentException,
       SecurityException, InstantiationException, IllegalAccessException,
       InvocationTargetException, NoSuchMethodException {
-    roadModelType.getConstructor(Graph.class, Unit.class)
-        .newInstance((Graph<?>) null, (Unit<?>) null);
+    roadModelType.getConstructor(Graph.class, Unit.class, Unit.class)
+        .newInstance((Graph<?>) null, (Unit<?>) null, (Unit<?>) null);
   }
 
   /**
@@ -113,8 +111,7 @@ public class GraphRoadModelTest extends AbstractRoadModelTest<GraphRoadModel> {
    */
   @Test
   public void followPathAllAtOnce() {
-    final SpeedyRoadUser agent = new SpeedyRoadUser(
-        Measure.valueOf(18000000d, NonSI.KILOMETERS_PER_HOUR));
+    final SpeedyRoadUser agent = new SpeedyRoadUser(18000000d);
     // sc.from(5, TimeUnit.MS)
     // .to(TimeUnit.H));
     model.addObjectAt(agent, SW);
@@ -173,7 +170,7 @@ public class GraphRoadModelTest extends AbstractRoadModelTest<GraphRoadModel> {
 
   @Test(expected = IllegalArgumentException.class)
   public void followPathUnconnected() {
-    final MovingRoadUser agent = new SpeedyRoadUser(kmh(100));
+    final MovingRoadUser agent = new SpeedyRoadUser(100);
     model.addObjectAt(agent, new Point(0, 0));
     assertEquals(new Point(0, 0), model.getPosition(agent));
 
@@ -187,7 +184,7 @@ public class GraphRoadModelTest extends AbstractRoadModelTest<GraphRoadModel> {
 
   @Test(expected = IllegalArgumentException.class)
   public void followPathNotAvertex() {
-    final MovingRoadUser agent = new SpeedyRoadUser(kmh(EPSILON));
+    final MovingRoadUser agent = new SpeedyRoadUser(EPSILON);
     model.addObjectAt(agent, new Point(0, 0));
     assertEquals(new Point(0, 0), model.getPosition(agent));
 
@@ -201,8 +198,9 @@ public class GraphRoadModelTest extends AbstractRoadModelTest<GraphRoadModel> {
 
   @Test
   public void followPathNotTillEnd() {
-    final MovingRoadUser agent = new SpeedyRoadUser(kmh(sc.from(1, TimeUnit.MS)
-        .to(TimeUnit.H)));
+    // FIXME remove speed convert stuff
+    final MovingRoadUser agent = new SpeedyRoadUser(
+        (sc.from(1, TimeUnit.MS).to(TimeUnit.H)));
     model.addObjectAt(agent, new Point(0, 0));
     assertEquals(new Point(0, 0), model.getPosition(agent));
 
@@ -226,8 +224,8 @@ public class GraphRoadModelTest extends AbstractRoadModelTest<GraphRoadModel> {
     final Queue<Point> path = asPath(SW, SE, NE);
     assertEquals(3, path.size());
 
-    final MovingRoadUser agent = new SpeedyRoadUser(kmh(sc.from(5, TimeUnit.MS)
-        .to(TimeUnit.H)));
+    final MovingRoadUser agent = new SpeedyRoadUser(
+        (sc.from(5, TimeUnit.MS).to(TimeUnit.H)));
     model.addObjectAt(agent, new Point(0, 0));
     assertTrue(model.getPosition(agent).equals(new Point(0, 0)));
     assertEquals(3, path.size());
@@ -326,7 +324,7 @@ public class GraphRoadModelTest extends AbstractRoadModelTest<GraphRoadModel> {
 
   @Test(expected = IllegalArgumentException.class)
   public void followPathWrongFirstPoint() {
-    final MovingRoadUser agent = new SpeedyRoadUser(kmh(3));
+    final MovingRoadUser agent = new SpeedyRoadUser(3);
     model.addObjectAt(agent, new Point(10, 10));
 
     final Queue<Point> path = asPath(SW, SE, NE);
@@ -531,7 +529,7 @@ public class GraphRoadModelTest extends AbstractRoadModelTest<GraphRoadModel> {
 
   @Test
   public void moveTo() {
-    final MovingRoadUser agent = new SpeedyRoadUser(kmh(1));
+    final MovingRoadUser agent = new SpeedyRoadUser(1);
 
     model.addObjectAt(agent, SW);
     assertEquals(new Point(0, 0), model.getPosition(agent));
@@ -555,7 +553,7 @@ public class GraphRoadModelTest extends AbstractRoadModelTest<GraphRoadModel> {
     model.moveTo(agent, NW, hour(13));
     assertTrue(Point.distance(model.getPosition(agent), new Point(0, 10)) < EPSILON);
 
-    final MovingRoadUser agent2 = new SpeedyRoadUser(kmh(1));
+    final MovingRoadUser agent2 = new SpeedyRoadUser(1);
     model.addObjectAt(agent2, SW);
     assertEquals(new Point(0, 0), model.getPosition(agent2));
 
@@ -685,8 +683,7 @@ public class GraphRoadModelTest extends AbstractRoadModelTest<GraphRoadModel> {
     assertEquals(10, GraphRoadModel.getConnectionLength(new Connection<ConnectionData>(
         NE, NW, null)), EPSILON);
     final Connection<MultiAttributeData> conn = new Connection<MultiAttributeData>(
-        NE, NW, new MultiAttributeData(12,
-            Measure.valueOf(0d, SI.METERS_PER_SECOND)));
+        NE, NW, new MultiAttributeData(12, 0d));
     assertEquals(12, GraphRoadModel.getConnectionLength(conn), EPSILON);
     conn.getData().put(MultiAttributeData.KEY_LENGTH, "this is not a number");
     assertEquals(10, GraphRoadModel.getConnectionLength(conn), EPSILON);
@@ -704,22 +701,22 @@ public class GraphRoadModelTest extends AbstractRoadModelTest<GraphRoadModel> {
     final Point B = new Point(10, 0);
 
     final Graph<LengthData> g = new MultimapGraph<LengthData>();
-    final GraphRoadModel rm = new GraphRoadModel(g, SI.METER);
+    final GraphRoadModel rm = new GraphRoadModel(g, SI.KILOMETER,
+        NonSI.KILOMETERS_PER_HOUR);
     g.addConnection(A, B, new LengthData(3));
 
     final UnitConverter conv = NonSI.KILOMETERS_PER_HOUR
         .getConverterTo(AbstractRoadModel.internalSpeedUnit);
 
-    assertEquals(conv.convert(10), rm.getMaxSpeed(new SpeedyRoadUser(kmh(10)), A, B), EPSILON);
+    assertEquals(conv.convert(10), rm.getMaxSpeed(new SpeedyRoadUser(10), A, B), EPSILON);
 
     ((Graph<MultiAttributeData>) graph)
-        .addConnection(SE, SW, new MultiAttributeData(3, Measure
-            .valueOf(5d, NonSI.KILOMETERS_PER_HOUR)));
-    assertEquals(conv.convert(5), model.getMaxSpeed(new SpeedyRoadUser(kmh(10)), SE, SW), EPSILON);
+        .addConnection(SE, SW, new MultiAttributeData(3, 5d));
+    assertEquals(conv.convert(5), model.getMaxSpeed(new SpeedyRoadUser(10), SE, SW), EPSILON);
 
     ((Graph<MultiAttributeData>) graph)
-        .addConnection(NE, SE, new MultiAttributeData(3, null));
-    assertEquals(conv.convert(10), model.getMaxSpeed(new SpeedyRoadUser(kmh(10)), NE, SE), EPSILON);
+        .addConnection(NE, SE, new MultiAttributeData(3, Double.NaN));
+    assertEquals(conv.convert(10), model.getMaxSpeed(new SpeedyRoadUser(10), NE, SE), EPSILON);
   }
 
   @SuppressWarnings("null")
@@ -739,8 +736,7 @@ public class GraphRoadModelTest extends AbstractRoadModelTest<GraphRoadModel> {
     assertEquals(0, model.computeConnectionLength(new Point(1, 2), new Point(1,
         2)), EPSILON);
     ((Graph<MultiAttributeData>) graph)
-        .addConnection(SE, SW, new MultiAttributeData(5, Measure
-            .valueOf(5d, NonSI.KILOMETERS_PER_HOUR)));
+        .addConnection(SE, SW, new MultiAttributeData(5, 5d));
 
     final TestRoadUser agent1 = new TestRoadUser();
     model.addObjectAt(agent1, SE);
@@ -768,7 +764,8 @@ public class GraphRoadModelTest extends AbstractRoadModelTest<GraphRoadModel> {
     g.addConnection(NE, SW);
     g.addConnection(SW, NW);
 
-    final GraphRoadModel rm = new GraphRoadModel(g, SI.METER);
+    final GraphRoadModel rm = new GraphRoadModel(g, SI.METER,
+        SI.METERS_PER_SECOND);
     assertEquals(g, rm.getGraph());
     g.addConnection(NE, NW);
     assertEquals(g, rm.getGraph());

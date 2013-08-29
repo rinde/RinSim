@@ -8,7 +8,6 @@ import static java.util.Arrays.asList;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
-import static rinde.sim.core.model.road.RoadTestUtil.kmh;
 
 import java.util.Queue;
 
@@ -114,7 +113,7 @@ public class PlaneRoadModelTest extends AbstractRoadModelTest<PlaneRoadModel> {
 
   @Test
   public void moveTo() {
-    final MovingRoadUser agent = new SpeedyRoadUser(kmh(1));
+    final MovingRoadUser agent = new SpeedyRoadUser(1);
 
     model.addObjectAt(agent, SW);
     assertEquals(new Point(0, 0), model.getPosition(agent));
@@ -140,7 +139,7 @@ public class PlaneRoadModelTest extends AbstractRoadModelTest<PlaneRoadModel> {
     model.moveTo(agent, NW, hour(13));
     assertTrue(Point.distance(model.getPosition(agent), new Point(0, 10)) < EPSILON);
 
-    final MovingRoadUser agent2 = new SpeedyRoadUser(kmh(1));
+    final MovingRoadUser agent2 = new SpeedyRoadUser(1);
     model.addObjectAt(agent2, SW);
     assertEquals(new Point(0, 0), model.getPosition(agent2));
 

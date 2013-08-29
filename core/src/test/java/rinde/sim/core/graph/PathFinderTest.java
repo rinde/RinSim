@@ -14,6 +14,7 @@ import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 
+import javax.measure.unit.NonSI;
 import javax.measure.unit.SI;
 
 import org.junit.Before;
@@ -66,7 +67,7 @@ public class PathFinderTest {
   @Before
   public void setUp() throws InstantiationException, IllegalAccessException {
     graph = rmType.newInstance();
-    rm = new GraphRoadModel(graph, SI.KILOMETER);
+    rm = new GraphRoadModel(graph, SI.KILOMETER, NonSI.KILOMETERS_PER_HOUR);
 
     a = new Point(0, 0);
     b = new Point(10, 0);
@@ -170,7 +171,8 @@ public class PathFinderTest {
   public void impossiblePath() throws InstantiationException,
       IllegalAccessException {
     final Graph<?> gg = rmType.newInstance();
-    final GraphRoadModel roads = new GraphRoadModel(gg, SI.KILOMETER);
+    final GraphRoadModel roads = new GraphRoadModel(gg, SI.KILOMETER,
+        NonSI.KILOMETERS_PER_HOUR);
     gg.addConnection(a, b);
     gg.addConnection(b, c);
 

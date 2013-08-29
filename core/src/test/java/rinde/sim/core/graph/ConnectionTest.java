@@ -12,11 +12,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
-import javax.measure.Measure;
-import javax.measure.quantity.Velocity;
-import javax.measure.unit.NonSI;
-import javax.measure.unit.SI;
-
 import org.junit.Test;
 
 /**
@@ -62,8 +57,7 @@ public class ConnectionTest {
 
     assertEquals(unmod, original);
     assertEquals(original, unmod);
-    original.setData(new MultiAttributeData(10, Measure
-        .valueOf(20d, NonSI.KILOMETERS_PER_HOUR)));
+    original.setData(new MultiAttributeData(10, 20d));
     assertEquals(unmod, original);
     assertEquals(original, unmod);
 
@@ -80,7 +74,7 @@ public class ConnectionTest {
     assertEquals(original.getData().getLength(), unmod.getData().getLength(), DELTA);
     // both are null
     assertEquals(original.getData().getMaxSpeed(), unmod.getData()
-        .getMaxSpeed());
+        .getMaxSpeed(), DELTA);
 
     assertTrue(original.getData().equals(unmod.getData()));
     assertTrue(unmod.getData().equals(unmod.getData()));
@@ -92,29 +86,25 @@ public class ConnectionTest {
     original.getData().put(MultiAttributeData.KEY_MAX_SPEED, new Object());
     assertEquals(original, unmod);
 
-    assertNull(original.getData().getMaxSpeed());
+    assertTrue(Double.isNaN(original.getData().getMaxSpeed()));
     assertTrue(Double.isNaN(original.getData().getLength()));
 
-    final Measure<Double, Velocity> m100mps = Measure
-        .valueOf(100d, SI.METERS_PER_SECOND);
-    final Measure<Double, Velocity> m200mps = Measure
-        .valueOf(200d, SI.METERS_PER_SECOND);
-    assertNull(original.getData().setMaxSpeed(m100mps));
-    assertEquals(m100mps, original.getData().setMaxSpeed(m200mps));
+    assertTrue(Double.isNaN(original.getData().setMaxSpeed(100)));
+    assertEquals(100d, original.getData().setMaxSpeed(200), DELTA);
 
     assertEquals(original, unmod);
   }
 
   @Test(expected = UnsupportedOperationException.class)
   public void unmodMultiAttED() {
-    Graphs.unmodifiableConnectionData(new MultiAttributeData(10,
-        Measure.valueOf(20d, NonSI.KILOMETERS_PER_HOUR))).setMaxSpeed(null);
+    Graphs.unmodifiableConnectionData(new MultiAttributeData(10, 20d))
+        .setMaxSpeed(-1);
   }
 
   @Test(expected = UnsupportedOperationException.class)
   public void unmodMultiAttED2() {
-    Graphs.unmodifiableConnectionData(new MultiAttributeData(10,
-        Measure.valueOf(20d, NonSI.KILOMETERS_PER_HOUR))).put("", null);
+    Graphs.unmodifiableConnectionData(new MultiAttributeData(10, 20d))
+        .put("", null);
   }
 
   @Test

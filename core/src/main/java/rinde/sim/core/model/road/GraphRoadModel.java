@@ -62,8 +62,8 @@ public class GraphRoadModel extends AbstractRoadModel<Loc> {
    * @param pGraph The graph which will be used as road strucutre.
    */
   public GraphRoadModel(Graph<? extends ConnectionData> pGraph,
-      Unit<Length> distanceUnit) {
-    super(distanceUnit);
+      Unit<Length> distanceUnit, Unit<Velocity> speedUnit) {
+    super(distanceUnit, speedUnit);
     graph = pGraph;
   }
 
@@ -252,15 +252,15 @@ public class GraphRoadModel extends AbstractRoadModel<Loc> {
    * @return The maximum speed in the internal unit.
    */
   protected double getMaxSpeed(MovingRoadUser object, Point from, Point to) {
-    final double objSpeed = object.getSpeed().doubleValue(internalSpeedUnit);
+    final double objSpeed = toInternalSpeedConv.convert(object.getSpeed());
     if (!from.equals(to)) {
       final Connection<?> conn = getConnection(from, to);
       if (conn.getData() instanceof MultiAttributeData) {
         final MultiAttributeData maed = (MultiAttributeData) conn.getData();
         @SuppressWarnings("null")
-        final Measure<Double, Velocity> speed = maed.getMaxSpeed();
-        return speed == null ? objSpeed : Math.min(speed
-            .doubleValue(internalSpeedUnit), objSpeed);
+        final double connSpeedLimit = maed.getMaxSpeed();
+        return Double.isNaN(connSpeedLimit) ? objSpeed : Math.min(toInternalSpeedConv
+            .convert(connSpeedLimit), objSpeed);
       }
     }
     return objSpeed;

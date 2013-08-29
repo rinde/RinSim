@@ -11,7 +11,6 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import javax.measure.Measure;
-import javax.measure.quantity.Velocity;
 import javax.measure.unit.SI;
 
 import org.junit.Before;
@@ -510,7 +509,7 @@ public class PDPModelTest {
 
   class TestVehicle extends Vehicle {
 
-    private final Measure<Double, Velocity> speed;
+    private final double speed;
 
     /**
      * @param startPos
@@ -518,11 +517,11 @@ public class PDPModelTest {
     public TestVehicle(Point startPos, double pCapacity, double pSpeed) {
       setStartPosition(startPos);
       setCapacity(pCapacity);
-      speed = Measure.valueOf(pSpeed, SI.METERS_PER_SECOND);
+      speed = pSpeed;
     }
 
     @Override
-    public Measure<Double, Velocity> getSpeed() {
+    public double getSpeed() {
       return speed;
     }
 

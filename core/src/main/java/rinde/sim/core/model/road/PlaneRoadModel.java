@@ -74,7 +74,7 @@ public class PlaneRoadModel extends AbstractRoadModel<Point> {
    */
   public PlaneRoadModel(Point pMin, Point pMax, Unit<Length> distanceUnit,
       Measure<Double, Velocity> pMaxSpeed) {
-    super(distanceUnit);
+    super(distanceUnit, pMaxSpeed.getUnit());
     checkArgument(pMin.x < pMax.x && pMin.y < pMax.y, "min should have coordinates smaller than max");
     checkArgument(pMaxSpeed.getValue() > 0, "max speed must be positive");
     min = pMin;
@@ -108,7 +108,7 @@ public class PlaneRoadModel extends AbstractRoadModel<Point> {
         .getConverterTo(time.getTimeUnit());
 
     double traveled = 0;
-    final double speed = min(object.getSpeed().doubleValue(internalSpeedUnit), maxSpeed);
+    final double speed = min(toInternalSpeedConv.convert(object.getSpeed()), maxSpeed);
     if (speed == 0d) {
       // FIXME add test for this case, also check GraphRoadModel
       final Measure<Double, Length> dist = Measure

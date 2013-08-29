@@ -52,6 +52,7 @@ public abstract class AbstractRoadModel<T> extends AbstractModel<RoadUser>
   protected final EventDispatcher eventDispatcher;
 
   protected final Unit<Length> externalDistanceUnit;
+  protected final Unit<Velocity> externalSpeedUnit;
 
   protected static final Unit<Duration> internalTimeUnit = SI.SECOND;
   protected static final Unit<Length> internalDistUnit = SI.METER;
@@ -68,6 +69,9 @@ public abstract class AbstractRoadModel<T> extends AbstractModel<RoadUser>
    * meters.
    */
   protected final UnitConverter toInternalDistConv;
+
+  protected final UnitConverter toExternalSpeedConv;
+  protected final UnitConverter toInternalSpeedConv;
 
   public enum RoadEventType {
     MOVE
@@ -86,11 +90,15 @@ public abstract class AbstractRoadModel<T> extends AbstractModel<RoadUser>
   /**
    * Create a new instance.
    */
-  public AbstractRoadModel(Unit<Length> distanceUnit) {
+  public AbstractRoadModel(Unit<Length> distanceUnit, Unit<Velocity> speedUnit) {
     super(RoadUser.class);
     externalDistanceUnit = distanceUnit;
+    externalSpeedUnit = speedUnit;
     toExternalDistConv = internalDistUnit.getConverterTo(externalDistanceUnit);
     toInternalDistConv = externalDistanceUnit.getConverterTo(internalDistUnit);
+    toExternalSpeedConv = internalSpeedUnit.getConverterTo(externalSpeedUnit);
+    toInternalSpeedConv = externalSpeedUnit.getConverterTo(internalSpeedUnit);
+
     objLocs = createObjectToLocationMap();
     objDestinations = newLinkedHashMap();
     eventDispatcher = createEventDispatcher();
@@ -369,6 +377,11 @@ public abstract class AbstractRoadModel<T> extends AbstractModel<RoadUser>
   @Override
   public Unit<Length> getDistanceUnit() {
     return externalDistanceUnit;
+  }
+
+  @Override
+  public Unit<Velocity> getSpeedUnit() {
+    return externalSpeedUnit;
   }
 
   private static class SameLocationPredicate implements Predicate<RoadUser> {

@@ -13,7 +13,6 @@ import java.util.Set;
 
 import javax.measure.Measure;
 import javax.measure.converter.UnitConverter;
-import javax.measure.quantity.Velocity;
 import javax.measure.unit.NonSI;
 import javax.measure.unit.SI;
 import javax.measure.unit.Unit;
@@ -93,8 +92,8 @@ public class SpeedLimitsTest {
 
     final Graph<MultiAttributeData> graph = graphType.newInstance();
 
-    model = roadModelType.getConstructor(Graph.class, Unit.class)
-        .newInstance(graph, SI.KILOMETER);
+    model = roadModelType.getConstructor(Graph.class, Unit.class, Unit.class)
+        .newInstance(graph, SI.KILOMETER, NonSI.KILOMETERS_PER_HOUR);
 
     A = new Point(0, 0);
     B = new Point(0, 10);
@@ -106,19 +105,17 @@ public class SpeedLimitsTest {
     graph.addConnection(A, B);
 
     // length 10 speed 2.5
-    graph
-        .addConnection(B, C, new MultiAttributeData(10d, RoadTestUtil.kmh(2.5)));
+    graph.addConnection(B, C, new MultiAttributeData(10d, 2.5));
     graph.addConnection(C, B); // length Math.sqr(10^2 + 10^2)
 
     // length 10 speed 10
-    graph
-        .addConnection(B, D, new MultiAttributeData(10d, RoadTestUtil.kmh(10)));
+    graph.addConnection(B, D, new MultiAttributeData(10d, 10));
 
     graph.addConnection(C, D); // length 10
 
     // length 12 speed 1
-    graph.addConnection(D, C, new MultiAttributeData(12, RoadTestUtil.kmh(1)));
-    graph.addConnection(D, E, new MultiAttributeData(5, RoadTestUtil.kmh(7)));
+    graph.addConnection(D, C, new MultiAttributeData(12, 1));
+    graph.addConnection(D, E, new MultiAttributeData(5, 7));
 
     final Set<Point> points = graph.getNodes();
     assertEquals(5, points.size());
@@ -246,17 +243,17 @@ public class SpeedLimitsTest {
 
   private class SpeedyRoadUser implements MovingRoadUser {
 
-    private final Measure<Double, Velocity> speedRU;
+    private final double speedRU;
 
     public SpeedyRoadUser(double pSpeed) {
-      speedRU = Measure.valueOf(pSpeed, NonSI.KILOMETERS_PER_HOUR);
+      speedRU = pSpeed;
     }
 
     @Override
     public void initRoadUser(RoadModel pModel) {}
 
     @Override
-    public Measure<Double, Velocity> getSpeed() {
+    public double getSpeed() {
       return speedRU;
     }
   }

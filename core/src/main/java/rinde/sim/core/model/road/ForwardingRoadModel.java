@@ -10,6 +10,7 @@ import java.util.Queue;
 import java.util.Set;
 
 import javax.measure.quantity.Length;
+import javax.measure.quantity.Velocity;
 import javax.measure.unit.Unit;
 
 import org.apache.commons.math3.random.RandomGenerator;
@@ -180,5 +181,10 @@ public abstract class ForwardingRoadModel implements RoadModel {
   @Override
   public Unit<Length> getDistanceUnit() {
     return delegate().getDistanceUnit();
+  }
+
+  @Override
+  public Unit<Velocity> getSpeedUnit() {
+    return delegate().getSpeedUnit();
   }
 }

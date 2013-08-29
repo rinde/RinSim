@@ -7,9 +7,6 @@ import java.io.Reader;
 import java.io.Writer;
 import java.util.HashMap;
 
-import javax.measure.Measure;
-import javax.measure.unit.NonSI;
-
 import rinde.sim.core.graph.Connection;
 import rinde.sim.core.graph.ConnectionData;
 import rinde.sim.core.graph.Graph;
@@ -168,8 +165,8 @@ public class DotGraphSerializer<E extends ConnectionData> extends
           .append(NODE_PREFIX).append(idTo);
       buffer.append('[').append(DISTANCE).append("=\"")
           .append(Math.round(conn.getData().getLength()) / 10d);
-      if (conn.getData().getMaxSpeed() != null
-          && conn.getData().getMaxSpeed().getValue() > 0) {
+      if (!Double.isNaN(conn.getData().getMaxSpeed())
+          && conn.getData().getMaxSpeed() > 0) {
         buffer.append("\", ").append(MAX_SPEED).append("=\"")
             .append(conn.getData().getMaxSpeed());
       }
@@ -182,9 +179,7 @@ public class DotGraphSerializer<E extends ConnectionData> extends
       final double distance = Double.parseDouble(connection.split("\"")[1]);
       try {
         final double maxSpeed = Double.parseDouble(connection.split("\"")[3]);
-        // TODO this should be customized to support different units
-        return new MultiAttributeData(distance,
-            Measure.valueOf(maxSpeed, NonSI.KILOMETERS_PER_HOUR));
+        return new MultiAttributeData(distance, maxSpeed);
       } catch (final Exception e) {
         return new MultiAttributeData(distance);
       }

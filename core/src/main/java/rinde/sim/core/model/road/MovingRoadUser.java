@@ -1,7 +1,5 @@
 package rinde.sim.core.model.road;
 
-import javax.measure.Measure;
-import javax.measure.quantity.Velocity;
 
 /**
  * Used to represent road users that want to reposition itself using the
@@ -20,5 +18,5 @@ public interface MovingRoadUser extends RoadUser {
    * @see RoadModel#followPath(MovingRoadUser, java.util.Queue,
    *      rinde.sim.core.TimeLapse)
    */
-  Measure<Double, Velocity> getSpeed();
+  double getSpeed();
 }

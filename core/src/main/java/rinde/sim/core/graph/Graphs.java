@@ -17,8 +17,6 @@ import java.util.SortedMap;
 import java.util.TreeMap;
 
 import javax.annotation.Nullable;
-import javax.measure.Measure;
-import javax.measure.quantity.Velocity;
 
 import org.apache.commons.math3.random.RandomGenerator;
 
@@ -382,8 +380,7 @@ public final class Graphs {
     }
 
     @Override
-    @Nullable
-    public Measure<Double, Velocity> getMaxSpeed() {
+    public double getMaxSpeed() {
       return original.getMaxSpeed();
     }
 
@@ -398,9 +395,7 @@ public final class Graphs {
     }
 
     @Override
-    @Nullable
-    public Measure<Double, Velocity> setMaxSpeed(
-        Measure<Double, Velocity> maxSpeed) {
+    public double setMaxSpeed(double maxSpeed) {
       throw new UnsupportedOperationException();
     }
 
@@ -438,10 +433,11 @@ public final class Graphs {
     @Override
     @Nullable
     public E getData() {
-      if (original.getData() == null) {
+      final E d = original.getData();
+      if (d == null) {
         return null;
       }
-      return Graphs.unmodifiableConnectionData(original.getData());
+      return Graphs.unmodifiableConnectionData(d);
     }
 
     @Override

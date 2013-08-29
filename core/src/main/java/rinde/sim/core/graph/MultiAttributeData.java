@@ -5,9 +5,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import javax.annotation.Nullable;
-import javax.measure.Measure;
-import javax.measure.quantity.Velocity;
-import javax.measure.unit.SI;
 
 /**
  * {@link ConnectionData} implementation which allows to associate multiple
@@ -54,7 +51,7 @@ public class MultiAttributeData implements ConnectionData {
    * @param length The length of the connection.
    * @param maxSpeed The maximum speed for the connection.
    */
-  public MultiAttributeData(double length, Measure<Double, Velocity> maxSpeed) {
+  public MultiAttributeData(double length, double maxSpeed) {
     attributes = new HashMap<String, Object>();
     attributes.put(KEY_LENGTH, length);
     attributes.put(KEY_MAX_SPEED, maxSpeed);
@@ -76,41 +73,29 @@ public class MultiAttributeData implements ConnectionData {
 
   /**
    * Returns max speed defined for an edge. If the max speed is not specified
-   * null is returned
+   * the {@link Double#NaN} value is returned
    * @return The max speed.
    * @see rinde.sim.core.graph.ConnectionData#getLength()
    */
-  @SuppressWarnings("unchecked")
-  @Nullable
-  public Measure<Double, Velocity> getMaxSpeed() {
+  public double getMaxSpeed() {
     final Object l = attributes.get(KEY_MAX_SPEED);
-    // check that it is a measure AND that it is compatible with another
-    // Velocity unit
-    if (l instanceof Measure<?, ?>
-        && ((Measure<Double, Velocity>) l).getUnit()
-            .isCompatible(SI.METERS_PER_SECOND)) {
-      return (Measure<Double, Velocity>) l;
+    if (l instanceof Double) {
+      return (Double) l;
     }
-    return null;
-
+    return Double.NaN;
   }
 
   /**
    * Set max speed.
    * @param maxSpeed The new speed.
-   * @return old max speed or null.
+   * @return old max speed or {@link Double#NaN}.
    */
-  @SuppressWarnings("unchecked")
-  @Nullable
-  public Measure<Double, Velocity> setMaxSpeed(
-      Measure<Double, Velocity> maxSpeed) {
+  public double setMaxSpeed(double maxSpeed) {
     final Object l = attributes.put(KEY_MAX_SPEED, maxSpeed);
-    if (l instanceof Measure<?, ?>
-        && ((Measure<Double, Velocity>) l).getUnit()
-            .isCompatible(SI.METERS_PER_SECOND)) {
-      return (Measure<Double, Velocity>) l;
+    if (l instanceof Double) {
+      return (Double) l;
     }
-    return null;
+    return Double.NaN;
   }
 
   /**
