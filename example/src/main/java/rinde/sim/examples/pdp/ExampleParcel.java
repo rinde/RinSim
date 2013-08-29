@@ -15,13 +15,14 @@ import rinde.sim.util.TimeWindow;
  */
 public class ExampleParcel extends Parcel {
 
-	public ExampleParcel(Point startPosition, Point pDestination, int pLoadingDuration, int pUnloadingDuration,
-			double magnitude) {
-		super(pDestination, pLoadingDuration, TimeWindow.ALWAYS, pUnloadingDuration, TimeWindow.ALWAYS, magnitude);
-		setStartPosition(startPosition);
-	}
+  public ExampleParcel(Point startPosition, Point pDestination,
+      int pLoadingDuration, int pUnloadingDuration, double magnitude) {
+    super(pDestination, pLoadingDuration, TimeWindow.ALWAYS,
+        pUnloadingDuration, TimeWindow.ALWAYS, magnitude);
+    setStartPosition(startPosition);
+  }
 
-	@Override
-	public void initRoadPDP(RoadModel pRoadModel, PDPModel pPdpModel) {}
+  @Override
+  public void initRoadPDP(RoadModel pRoadModel, PDPModel pPdpModel) {}
 
 }

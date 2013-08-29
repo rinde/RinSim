@@ -18,92 +18,98 @@ import rinde.sim.pdptw.common.VehicleDTO;
 import com.google.common.base.Predicate;
 
 class Truck extends DefaultVehicle implements FieldEmitter {
-	private GradientModel gradientModel;
+  private GradientModel gradientModel;
 
-	public Truck(VehicleDTO pDto) {
-		super(pDto);
-	}
+  public Truck(VehicleDTO pDto) {
+    super(pDto);
+  }
 
-	@Override
-	protected void tickImpl(TimeLapse time) {
-		// Check if we can deliver nearby
-		final Parcel delivery = getDelivery(time, 5);
-		
-		final RoadModel rm = roadModel.get();
-		final PDPModel pm = pdpModel.get();
+  @Override
+  protected void tickImpl(TimeLapse time) {
+    // Check if we can deliver nearby
+    final Parcel delivery = getDelivery(time, 5);
 
-		if (delivery != null) {
-			if (delivery.getDestination().equals(getPosition()) && pm.getVehicleState(this) == VehicleState.IDLE) {
-				pm.deliver(this, delivery, time);
-			} else {
-				rm.moveTo(this, delivery.getDestination(), time);
-			}
-			return;
-		}
+    final RoadModel rm = roadModel.get();
+    final PDPModel pm = pdpModel.get();
 
-		// Otherwise, Check if we can pickup nearby
-		final DefaultParcel closest = (DefaultParcel) RoadModels
-				.findClosestObject(rm.getPosition(this), rm, new Predicate<RoadUser>() {
-					@Override
-					public boolean apply(RoadUser input) {
-						return input instanceof DefaultParcel
-								&& pm.getParcelState(((DefaultParcel) input)) == ParcelState.AVAILABLE;
-					}
-				});
+    if (delivery != null) {
+      if (delivery.getDestination().equals(getPosition())
+          && pm.getVehicleState(this) == VehicleState.IDLE) {
+        pm.deliver(this, delivery, time);
+      } else {
+        rm.moveTo(this, delivery.getDestination(), time);
+      }
+      return;
+    }
 
-		if (closest != null && Point.distance(pm.getPosition(closest), getPosition()) < 10) {
-			if (rm.equalPosition(closest, this)
-					&& pm.getTimeWindowPolicy()
-							.canPickup(closest.getPickupTimeWindow(), time.getTime(), closest.getPickupDuration())) {
-				final double newSize = getPDPModel().getContentsSize(this) + closest.getMagnitude();
+    // Otherwise, Check if we can pickup nearby
+    final DefaultParcel closest = (DefaultParcel) RoadModels
+        .findClosestObject(rm.getPosition(this), rm, new Predicate<RoadUser>() {
+          @Override
+          public boolean apply(RoadUser input) {
+            return input instanceof DefaultParcel
+                && pm.getParcelState(((DefaultParcel) input)) == ParcelState.AVAILABLE;
+          }
+        });
 
-				if (newSize <= getCapacity()) {
-					pm.pickup(this, closest, time);
-				}
-			} else {
-				rm.moveTo(this, pm.getPosition(closest), time);
-			}
-			return;
-		}
+    if (closest != null
+        && Point.distance(pm.getPosition(closest), getPosition()) < 10) {
+      if (rm.equalPosition(closest, this)
+          && pm
+              .getTimeWindowPolicy()
+              .canPickup(closest.getPickupTimeWindow(), time.getTime(), closest.getPickupDuration())) {
+        final double newSize = getPDPModel().getContentsSize(this)
+            + closest.getMagnitude();
 
-		// If none of the above, let the gradient field guide us!
-		rm.moveTo(this, gradientModel.getTargetFor(this), time);
-	}
+        if (newSize <= getCapacity()) {
+          pm.pickup(this, closest, time);
+        }
+      } else {
+        rm.moveTo(this, pm.getPosition(closest), time);
+      }
+      return;
+    }
 
-	public Parcel getDelivery(TimeLapse time, int distance) {
-		Parcel target = null;
-		double closest = distance;
-PDPModel pm = pdpModel.get();
-		for (final Parcel p : pm.getContents(this)) {
+    // If none of the above, let the gradient field guide us!
+    rm.moveTo(this, gradientModel.getTargetFor(this), time);
+  }
 
-			final double dist = Point.distance(pm.getPosition(this), p.getDestination());
-			if (dist < closest
-					&& pm.getTimeWindowPolicy()
-							.canDeliver(p.getDeliveryTimeWindow(), time.getTime(), p.getPickupDuration())) {
-				closest = dist;
-				target = p;
-			}
-		}
+  public Parcel getDelivery(TimeLapse time, int distance) {
+    Parcel target = null;
+    double closest = distance;
+    PDPModel pm = pdpModel.get();
+    for (final Parcel p : pm.getContents(this)) {
 
-		return target;
-	}
+      final double dist = Point.distance(pm.getPosition(this), p
+          .getDestination());
+      if (dist < closest
+          && pm
+              .getTimeWindowPolicy()
+              .canDeliver(p.getDeliveryTimeWindow(), time.getTime(), p.getPickupDuration())) {
+        closest = dist;
+        target = p;
+      }
+    }
 
-	@Override
-	public void setModel(GradientModel model) {
-		gradientModel = model;
-	}
+    return target;
+  }
 
-	@Override
-	public Point getPosition() {
-		return roadModel.get().getPosition(this);
-	}
+  @Override
+  public void setModel(GradientModel model) {
+    gradientModel = model;
+  }
 
-	@Override
-	public float getStrength() {
-		return -1;
-	}
+  @Override
+  public Point getPosition() {
+    return roadModel.get().getPosition(this);
+  }
 
-	public Map<Point, Float> getFields() {
-		return gradientModel.getFields(this);
-	}
+  @Override
+  public float getStrength() {
+    return -1;
+  }
+
+  public Map<Point, Float> getFields() {
+    return gradientModel.getFields(this);
+  }
 }

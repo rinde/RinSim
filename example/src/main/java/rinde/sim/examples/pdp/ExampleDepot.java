@@ -14,12 +14,12 @@ import rinde.sim.core.model.road.RoadModel;
  */
 public class ExampleDepot extends Depot {
 
-	public ExampleDepot(Point position, double capacity) {
-		setStartPosition(position);
-		setCapacity(capacity);
-	}
+  public ExampleDepot(Point position, double capacity) {
+    setStartPosition(position);
+    setCapacity(capacity);
+  }
 
-	@Override
-	public void initRoadPDP(RoadModel pRoadModel, PDPModel pPdpModel) {}
+  @Override
+  public void initRoadPDP(RoadModel pRoadModel, PDPModel pPdpModel) {}
 
 }

@@ -5,25 +5,25 @@ import rinde.sim.core.model.road.RoadModel;
 import rinde.sim.core.model.road.RoadUser;
 
 public class Package implements RoadUser {
-	public final String name;
-	private Point location;
+  public final String name;
+  private Point location;
 
-	public Package(String name, Point location) {
-		this.name = name;
-		this.location = location;
-	}
+  public Package(String name, Point location) {
+    this.name = name;
+    this.location = location;
+  }
 
-	@Override
-	public String toString() {
-		return name;
-	}
+  @Override
+  public String toString() {
+    return name;
+  }
 
-	@Override
-	public void initRoadUser(RoadModel model) {
-		model.addObjectAt(this, location);
-	}
+  @Override
+  public void initRoadUser(RoadModel model) {
+    model.addObjectAt(this, location);
+  }
 
-	public Point getLocation() {
-		return location;
-	}
+  public Point getLocation() {
+    return location;
+  }
 }

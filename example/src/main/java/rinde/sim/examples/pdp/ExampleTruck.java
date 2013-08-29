@@ -18,60 +18,61 @@ import rinde.sim.core.model.road.RoadModel;
  */
 public class ExampleTruck extends Vehicle {
 
-	protected RoadModel roadModel;
-	protected PDPModel pdpModel;
+  protected RoadModel roadModel;
+  protected PDPModel pdpModel;
 
-	protected Parcel curr;
+  protected Parcel curr;
 
-	public ExampleTruck(Point startPosition, double capacity) {
-		setStartPosition(startPosition);
-		setCapacity(capacity);
-	}
+  public ExampleTruck(Point startPosition, double capacity) {
+    setStartPosition(startPosition);
+    setCapacity(capacity);
+  }
 
-	@Override
-	public double getSpeed() {
-		return 1000;
-	}
+  @Override
+  public double getSpeed() {
+    return 1000;
+  }
 
-	@Override
-	public void afterTick(TimeLapse timeLapse) {}
+  @Override
+  public void afterTick(TimeLapse timeLapse) {}
 
-	@Override
-	protected void tickImpl(TimeLapse time) {
-		final Collection<Parcel> parcels = pdpModel.getAvailableParcels();
+  @Override
+  protected void tickImpl(TimeLapse time) {
+    final Collection<Parcel> parcels = pdpModel.getAvailableParcels();
 
-		if (pdpModel.getContents(this).isEmpty()) {
-			if (!parcels.isEmpty() && curr == null) {
-				double dist = Double.POSITIVE_INFINITY;
-				for (final Parcel p : parcels) {
-					final double d = Point.distance(roadModel.getPosition(this), roadModel.getPosition(p));
-					if (d < dist) {
-						dist = d;
-						curr = p;
-					}
-				}
-			}
+    if (pdpModel.getContents(this).isEmpty()) {
+      if (!parcels.isEmpty() && curr == null) {
+        double dist = Double.POSITIVE_INFINITY;
+        for (final Parcel p : parcels) {
+          final double d = Point
+              .distance(roadModel.getPosition(this), roadModel.getPosition(p));
+          if (d < dist) {
+            dist = d;
+            curr = p;
+          }
+        }
+      }
 
-			if (curr != null && roadModel.containsObject(curr)) {
-				roadModel.moveTo(this, curr, time);
+      if (curr != null && roadModel.containsObject(curr)) {
+        roadModel.moveTo(this, curr, time);
 
-				if (roadModel.equalPosition(this, curr)) {
-					pdpModel.pickup(this, curr, time);
-				}
-			} else {
-				curr = null;
-			}
-		} else {
-			roadModel.moveTo(this, curr.getDestination(), time);
-			if (roadModel.getPosition(this).equals(curr.getDestination())) {
-				pdpModel.deliver(this, curr, time);
-			}
-		}
-	}
+        if (roadModel.equalPosition(this, curr)) {
+          pdpModel.pickup(this, curr, time);
+        }
+      } else {
+        curr = null;
+      }
+    } else {
+      roadModel.moveTo(this, curr.getDestination(), time);
+      if (roadModel.getPosition(this).equals(curr.getDestination())) {
+        pdpModel.deliver(this, curr, time);
+      }
+    }
+  }
 
-	@Override
-	public void initRoadPDP(RoadModel pRoadModel, PDPModel pPdpModel) {
-		roadModel = pRoadModel;
-		pdpModel = pPdpModel;
-	}
+  @Override
+  public void initRoadPDP(RoadModel pRoadModel, PDPModel pPdpModel) {
+    roadModel = pRoadModel;
+    pdpModel = pPdpModel;
+  }
 }

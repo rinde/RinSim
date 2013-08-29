@@ -8,6 +8,6 @@ package rinde.sim.examples.rwalk5;
  * 
  */
 public enum ScenarioEvent {
-	ADD_TRUCK;
+  ADD_TRUCK;
 
 }
