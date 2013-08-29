@@ -3,6 +3,9 @@
  */
 package rinde.sim.ui;
 
+import javax.measure.Measure;
+import javax.measure.unit.SI;
+
 import org.apache.commons.math3.random.MersenneTwister;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.FillLayout;
@@ -26,8 +29,8 @@ public final class PanelTest {
 
 	public static void main(String[] args) {
 
-		final Simulator sim = new Simulator(new MersenneTwister(123), 1000);
-		sim.register(new PlaneRoadModel(new Point(0, 0), new Point(10, 10), false, 10));
+		final Simulator sim = new Simulator(new MersenneTwister(123), Measure.valueOf(1000L, SI.MILLI(SI.SECOND)));
+		sim.register(new PlaneRoadModel(new Point(0, 0), new Point(10, 10), 10));
 		sim.configure();
 
 		View.startGui(sim, 1, new RoadUserRenderer(), new PlaneRoadModelRenderer(), new TestPanelRenderer("LEFT",
