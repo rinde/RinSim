@@ -41,6 +41,7 @@ import rinde.sim.util.spec.ISpecification;
 
 import com.google.common.collect.ImmutableMap;
 
+// TODO rename to ProblemInstance? or to Problem?
 /**
  * A problem instance for the class of problems which is called dynamic
  * pickup-and-delivery problems with time windows, often abbreviated as dynamic

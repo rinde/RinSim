@@ -26,97 +26,203 @@ import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 
 /**
- * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+ * Utility for defining and performing experiments. An experiment is composed of
+ * a set of {@link DynamicPDPTWScenario}s and a set of {@link MASConfigurator}s.
+ * For <b>each</b> combination of these a user configurable number of
+ * simulations is performed.
+ * <p>
+ * <b>Example</b> Consider an experiment with three scenarios and two
+ * configurators, and each simulation needs to be repeated twice. The code
+ * required for this setup:
  * 
+ * <pre>
+ * {@code
+ * Experiments.experiment(objFunc)
+ *    .addConfigurator(config1)
+ *    .addConfigurator(config2)
+ *    .addScenario(scen1)
+ *    .addScenarios(asList(scen2,scen3))
+ *    .repeat(2)
+ *    .perform();
+ *    }
+ * </pre>
+ * 
+ * The following simulations will be run:
+ * <ol>
+ * <li>config1, scen1, seed1</li>
+ * <li>config1, scen1, seed2</li>
+ * <li>config1, scen2, seed1</li>
+ * <li>config1, scen2, seed2</li>
+ * <li>config1, scen3, seed1</li>
+ * <li>config1, scen3, seed2</li>
+ * <li>config2, scen1, seed1</li>
+ * <li>config2, scen1, seed2</li>
+ * <li>config2, scen2, seed1</li>
+ * <li>config2, scen2, seed2</li>
+ * <li>config2, scen3, seed1</li>
+ * <li>config2, scen3, seed2</li>
+ * </ol>
+ * For each simulation a {@link SimulationResult} returned.
+ * 
+ * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
  */
 public final class Experiments {
-
+  // TODO make sure Central can reuse this code
   // TODO add strict mode which checks whether there are not too many
   // vehicles/parcels/depots?
 
   private Experiments() {}
 
-  // TODO make sure Central can reuse this code
-
-  // experimentOn(scenario).addSolution(config).addObjectiveFunction(objFunc).showGui().setMasterSeed(123).repeat(10).run()
-  // ..addSolution(config1).addSolution(config2).addScenario(scen1)
-
-  public static ExperimentSetup experiment(ObjectiveFunction objectiveFunction) {
-    return new ExperimentSetup(objectiveFunction);
+  /**
+   * Create an experiment with the specified {@link ObjectiveFunction}.
+   * @param objectiveFunction The objective function which is used to evalute
+   *          all simulation runs.
+   * @return An {@link Builder} instance as per the builder pattern.
+   */
+  public static Builder experiment(ObjectiveFunction objectiveFunction) {
+    return new Builder(objectiveFunction);
   }
 
-  public static final class ExperimentSetup {
+  /**
+   * Builder for configuring experiments.
+   * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+   */
+  public static final class Builder {
     private final ObjectiveFunction objectiveFunction;
-    private final ImmutableList.Builder<MASConfigurator> configurators;
-    private final ImmutableList.Builder<DynamicPDPTWScenario> scenarios;
+    private final ImmutableList.Builder<MASConfigurator> configuratorsBuilder;
+    private final ImmutableList.Builder<DynamicPDPTWScenario> scenariosBuilder;
     private boolean showGui;
     private int repetitions;
     private long masterSeed;
 
-    private ExperimentSetup(ObjectiveFunction objectiveFunction) {
+    private Builder(ObjectiveFunction objectiveFunction) {
       this.objectiveFunction = objectiveFunction;
-      configurators = ImmutableList.builder();
-      scenarios = ImmutableList.builder();
+      configuratorsBuilder = ImmutableList.builder();
+      scenariosBuilder = ImmutableList.builder();
       showGui = false;
       repetitions = 1;
       masterSeed = 0L;
     }
 
-    public ExperimentSetup repeat(int repetitions) {
-      checkArgument(repetitions > 0);
-      this.repetitions = repetitions;
+    /**
+     * Set the number of repetitions for each simulation.
+     * @param times The number of repetitions.
+     * @return This, as per the builder pattern.
+     */
+    public Builder repeat(int times) {
+      checkArgument(times > 0);
+      repetitions = times;
       return this;
     }
 
-    public ExperimentSetup showGui() {
+    /**
+     * Enable the GUI for each simulation. When a large number of simulations is
+     * performed this may slow down the experiment significantly.
+     * @return This, as per the builder pattern.
+     */
+    public Builder showGui() {
       showGui = true;
       return this;
     }
 
-    public ExperimentSetup addSolution(MASConfigurator config) {
-      configurators.add(config);
+    /**
+     * Add a configurator to the experiment. For each simulation
+     * {@link MASConfigurator#configure(long)} is called and the resulting
+     * {@link MASConfiguration} is used for a <i>single</i> simulation.
+     * @param config The configurator to add.
+     * @return This, as per the builder pattern.
+     */
+    public Builder addConfigurator(MASConfigurator config) {
+      configuratorsBuilder.add(config);
       return this;
     }
 
-    public ExperimentSetup addScenario(DynamicPDPTWScenario scenario) {
-      scenarios.add(scenario);
+    /**
+     * Adds all configurators to the experiment. For each simulation
+     * {@link MASConfigurator#configure(long)} is called and the resulting
+     * {@link MASConfiguration} is used for a <i>single</i> simulation.
+     * @param configs The configurators to add.
+     * @return This, as per the builder pattern.
+     */
+    public Builder addConfigurators(List<MASConfigurator> configs) {
+      configuratorsBuilder.addAll(configs);
       return this;
     }
 
-    public ExperimentSetup addScenarios(List<DynamicPDPTWScenario> scenarios) {
-      this.scenarios.addAll(scenarios);
+    /**
+     * Add a scenario to the set of scenarios.
+     * @param scenario The scenario to add.
+     * @return This, as per the builder pattern.
+     */
+    public Builder addScenario(DynamicPDPTWScenario scenario) {
+      scenariosBuilder.add(scenario);
       return this;
     }
 
-    public ExperimentSetup addScenarioProvider(ScenarioProvider scenarioProvider) {
-      scenarios.addAll(scenarioProvider.provide());
+    /**
+     * Add all scenarios to the set of scenarios.
+     * @param scenarios The scenarios to add.
+     * @return This, as per the builder pattern.
+     */
+    public Builder addScenarios(List<DynamicPDPTWScenario> scenarios) {
+      scenariosBuilder.addAll(scenarios);
       return this;
     }
 
-    public ExperimentSetup addScenarios(
+    /**
+     * Parse all scenarios with the given file names and parse them using the
+     * given parser.
+     * @param parser The parser to use for parsing.
+     * @param files The files to parse.
+     * @return This, as per the builder pattern.
+     */
+    public Builder addScenarios(
         ScenarioParser<? extends DynamicPDPTWScenario> parser,
         List<String> files) {
       for (final String file : files) {
-        scenarios.add(parser.parse(file));
+        scenariosBuilder.add(parser.parse(file));
       }
       return this;
     }
 
-    public ExperimentSetup withRandomSeed(long seed) {
+    /**
+     * Add all scenarios which are generated by the specified
+     * {@link ScenarioProvider}.
+     * @param sp The scenario provider to use.
+     * @return This, as per the builder pattern.
+     */
+    public Builder addScenarioProvider(ScenarioProvider sp) {
+      scenariosBuilder.addAll(sp.provide());
+      return this;
+    }
+
+    /**
+     * Set the master random seed for the experiments.
+     * @param seed The seed to use.
+     * @return This, as per the builder pattern.
+     */
+    public Builder withRandomSeed(long seed) {
       masterSeed = seed;
       return this;
     }
 
+    /**
+     * Perform the experiment. For every scenario every configurator is used
+     * <code>n</code> times. Where <code>n</code> is the number of repetitions
+     * as specified.
+     * @return An {@link ExperimentResults} instance which contains all
+     *         experiment parameters and the corresponding results.
+     */
     public ExperimentResults perform() {
-      final ImmutableList<DynamicPDPTWScenario> scen = scenarios.build();
-      final ImmutableList<MASConfigurator> conf = configurators.build();
+      final ImmutableList<DynamicPDPTWScenario> scen = scenariosBuilder.build();
+      final ImmutableList<MASConfigurator> conf = configuratorsBuilder.build();
 
-      checkArgument(!scen.isEmpty());
-      checkArgument(!conf.isEmpty());
+      checkArgument(!scen.isEmpty(), "At least one scenario is required.");
+      checkArgument(!conf.isEmpty(), "At least one configurator is required.");
+
       final RandomGenerator rng = new MersenneTwister(masterSeed);
-      final ImmutableList.Builder<Result> resultBuilder = ImmutableList
+      final ImmutableList.Builder<SimulationResult> resultBuilder = ImmutableList
           .builder();
-
       final List<Long> seeds = ExperimentUtil
           .generateDistinct(rng, repetitions);
       for (final DynamicPDPTWScenario scenario : scen) {
@@ -124,23 +230,24 @@ public final class Experiments {
           for (int i = 0; i < repetitions; i++) {
             final long seed = seeds.get(i);
             final StatisticsDTO stats = singleRun(scenario, solution.configure(seed), objectiveFunction, showGui);
-            resultBuilder.add(new Result(stats, scenario, solution, seed));
+            resultBuilder.add(new SimulationResult(stats, scenario, solution,
+                seed));
           }
-
         }
       }
       return new ExperimentResults(this, resultBuilder.build());
     }
   }
 
-  public static final class Result {
+  public static final class SimulationResult {
     public final StatisticsDTO stats;
     public final DynamicPDPTWScenario scenario;
     public final MASConfigurator masConfigurator;
     public final long seed;
 
-    private Result(StatisticsDTO stats, DynamicPDPTWScenario scenario,
-        MASConfigurator masConfigurator, long seed) {
+    private SimulationResult(StatisticsDTO stats,
+        DynamicPDPTWScenario scenario, MASConfigurator masConfigurator,
+        long seed) {
       this.stats = stats;
       this.scenario = scenario;
       this.masConfigurator = masConfigurator;
@@ -164,12 +271,13 @@ public final class Experiments {
     public final boolean showGui;
     public final int repetitions;
     public final long masterSeed;
-    public final ImmutableList<Result> results;
+    public final ImmutableList<SimulationResult> results;
 
-    private ExperimentResults(ExperimentSetup exp, ImmutableList<Result> results) {
+    private ExperimentResults(Builder exp,
+        ImmutableList<SimulationResult> results) {
       objectiveFunction = exp.objectiveFunction;
-      configurators = exp.configurators.build();
-      scenarios = exp.scenarios.build();
+      configurators = exp.configuratorsBuilder.build();
+      scenarios = exp.scenariosBuilder.build();
       showGui = exp.showGui;
       repetitions = exp.repetitions;
       masterSeed = exp.masterSeed;
@@ -179,11 +287,8 @@ public final class Experiments {
 
   static StatisticsDTO singleRun(DynamicPDPTWScenario scenario,
       MASConfiguration c, ObjectiveFunction objFunc, boolean showGui) {
-
     final StatisticsDTO stats = init(scenario, c, showGui).simulate();
-
     checkState(objFunc.isValidResult(stats), "The simulation did not result in a valid result: %s.", stats);
-
     return stats;
   }
 
@@ -205,5 +310,4 @@ public final class Experiments {
     }
     return problem;
   }
-
 }
