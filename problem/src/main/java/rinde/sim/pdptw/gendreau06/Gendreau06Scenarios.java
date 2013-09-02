@@ -20,10 +20,17 @@ public class Gendreau06Scenarios implements ScenarioProvider {
 
   private final String dir;
   private final List<GendreauProblemClass> classes;
+  private final boolean online;
+
+  public Gendreau06Scenarios(String dir, boolean online,
+      GendreauProblemClass... classes) {
+    this.dir = dir;
+    this.online = online;
+    this.classes = ImmutableList.copyOf(classes);
+  }
 
   public Gendreau06Scenarios(String dir, GendreauProblemClass... classes) {
-    this.dir = dir;
-    this.classes = ImmutableList.copyOf(classes);
+    this(dir, true, classes);
   }
 
   @Override
@@ -31,11 +38,15 @@ public class Gendreau06Scenarios implements ScenarioProvider {
     final ImmutableList.Builder<DynamicPDPTWScenario> scenarios = ImmutableList
         .builder();
     for (final GendreauProblemClass claz : classes) {
-      final List<String> files = ExperimentUtil
-          .getFilesFromDir(dir, claz.fileId);
+      final List<String> files = ExperimentUtil.getFilesFromDir(dir,
+          claz.fileId);
       for (final String file : files) {
         try {
-          scenarios.add(Gendreau06Parser.parse(file, claz.vehicles));
+          Gendreau06Scenario scen = Gendreau06Parser.parse(file, claz.vehicles);
+          if (!online) {
+            scen = DynamicPDPTWScenario.convertToOffline(scen);
+          }
+          scenarios.add(scen);
         } catch (final IOException e) {
           throw new IllegalArgumentException(
               "Failed loading scenario: " + file, e);

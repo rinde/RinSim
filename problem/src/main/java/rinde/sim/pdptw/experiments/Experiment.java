@@ -331,6 +331,7 @@ public final class Experiment {
     }
   }
 
+  @VisibleForTesting
   static StatisticsDTO singleRun(DynamicPDPTWScenario scenario,
       MASConfiguration c, ObjectiveFunction objFunc, boolean showGui) {
     final StatisticsDTO stats = init(scenario, c, showGui).simulate();
@@ -339,6 +340,13 @@ public final class Experiment {
     return stats;
   }
 
+  /**
+   * Initialize a {@link DynamicPDPTWProblem} instance.
+   * @param scenario The scenario to use.
+   * @param config The configuration to use.
+   * @param showGui Whether to show the gui.
+   * @return The {@link DynamicPDPTWProblem} instance.
+   */
   @VisibleForTesting
   static DynamicPDPTWProblem init(DynamicPDPTWScenario scenario,
       MASConfiguration config, boolean showGui) {
