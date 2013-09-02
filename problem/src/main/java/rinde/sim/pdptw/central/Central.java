@@ -46,7 +46,21 @@ public final class Central {
    * @return A new configurator.
    */
   public static MASConfigurator solverConfigurator(SolverCreator solverCreator) {
-    return new CentralConfigurator(solverCreator);
+    return new CentralConfigurator(solverCreator,
+        CentralConfigurator.class.getSimpleName());
+  }
+
+  /**
+   * Provides a {@link MASConfigurator} instance that creates
+   * {@link MASConfiguration}s that are controlled centrally by a {@link Solver}
+   * .
+   * @param solverCreator The solver creator to use for instantiating solvers.
+   * @param name A string which is used as toString() for the configurator.
+   * @return A new configurator.
+   */
+  public static MASConfigurator solverConfigurator(SolverCreator solverCreator,
+      String name) {
+    return new CentralConfigurator(solverCreator, name);
   }
 
   /**
@@ -65,9 +79,16 @@ public final class Central {
 
   private static final class CentralConfigurator implements MASConfigurator {
     private final SolverCreator solverCreator;
+    private final String name;
 
-    private CentralConfigurator(SolverCreator solverCreator) {
+    private CentralConfigurator(SolverCreator solverCreator, String name) {
       this.solverCreator = solverCreator;
+      this.name = name;
+    }
+
+    @Override
+    public String toString() {
+      return name;
     }
 
     @Override
@@ -96,7 +117,6 @@ public final class Central {
         return sim.register(new RouteFollowingVehicle(event.vehicleDTO));
       }
     }
-
   }
 
   private static final class CentralModel implements Model<DefaultParcel>,
