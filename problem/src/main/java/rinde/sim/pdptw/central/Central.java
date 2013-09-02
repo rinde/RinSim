@@ -18,7 +18,6 @@ import rinde.sim.core.model.pdp.PDPModel;
 import rinde.sim.pdptw.common.AddVehicleEvent;
 import rinde.sim.pdptw.common.DefaultParcel;
 import rinde.sim.pdptw.common.DynamicPDPTWProblem.Creator;
-import rinde.sim.pdptw.common.DynamicPDPTWScenario;
 import rinde.sim.pdptw.common.PDPRoadModel;
 import rinde.sim.pdptw.common.RouteFollowingVehicle;
 import rinde.sim.pdptw.experiments.DefaultMASConfiguration;
@@ -31,7 +30,8 @@ import com.google.common.collect.ImmutableList;
 // FIXME test this class thoroughly
 /**
  * A facade for RinSim which provides a centralized interface such that
- * {@link Solver} instances can solve {@link DynamicPDPTWScenario}s.
+ * {@link Solver} instances can solve
+ * {@link rinde.sim.pdptw.common.DynamicPDPTWScenario}s.
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
  */
 public final class Central {
