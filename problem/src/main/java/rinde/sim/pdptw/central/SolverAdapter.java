@@ -3,13 +3,12 @@
  */
 package rinde.sim.pdptw.central;
 
+import static com.google.common.base.Preconditions.checkArgument;
+
 import java.util.List;
 import java.util.Queue;
 
-import javax.measure.quantity.Duration;
-import javax.measure.quantity.Length;
-import javax.measure.quantity.Velocity;
-import javax.measure.unit.Unit;
+import javax.measure.Measure;
 
 import rinde.sim.core.Simulator;
 import rinde.sim.core.model.pdp.PDPModel;
@@ -27,19 +26,18 @@ public class SolverAdapter {
   private final Simulator simulator;
   private final PDPRoadModel roadModel;
   private final PDPModel pdpModel;
-  private final Unit<Duration> timeUnit;
-  private final Unit<Velocity> speedUnit;
-  private final Unit<Length> distUnit;
 
-  public SolverAdapter(Solver solver, Simulator simulator,
-      Unit<Duration> timeUnit, Unit<Velocity> speedUnit, Unit<Length> distUnit) {
+  /**
+   * Create a new instance based on a solver and a simulator.
+   * @param solver The {@link Solver} to use.
+   * @param simulator The {@link Simulator} to use.
+   */
+  public SolverAdapter(Solver solver, Simulator simulator) {
+    checkArgument(simulator.isConfigured());
     this.solver = solver;
     this.simulator = simulator;
     roadModel = simulator.getModelProvider().getModel(PDPRoadModel.class);
     pdpModel = simulator.getModelProvider().getModel(PDPModel.class);
-    this.timeUnit = timeUnit;
-    this.speedUnit = speedUnit;
-    this.distUnit = distUnit;
   }
 
   /**
@@ -47,7 +45,7 @@ public class SolverAdapter {
    * @return A list of routes, one for every vehicle.
    */
   public List<Queue<DefaultParcel>> solve() {
-    return Solvers.solve(solver, roadModel, pdpModel, simulator
-        .getCurrentTime(), timeUnit, speedUnit, distUnit);
+    return Solvers.solve(solver, roadModel, pdpModel, Measure.valueOf(simulator
+        .getCurrentTime(), simulator.getTimeUnit()));
   }
 }

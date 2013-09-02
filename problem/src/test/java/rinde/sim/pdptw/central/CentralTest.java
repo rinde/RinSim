@@ -3,84 +3,54 @@
  */
 package rinde.sim.pdptw.central;
 
-import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.collect.Lists.newArrayList;
+import static org.junit.Assert.assertEquals;
 
-import java.io.File;
-import java.io.FilenameFilter;
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.List;
 
 import org.apache.commons.math3.random.MersenneTwister;
-import org.apache.commons.math3.random.RandomGenerator;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
+import rinde.sim.pdptw.central.Central.SolverCreator;
 import rinde.sim.pdptw.central.arrays.ArraysSolverValidator;
 import rinde.sim.pdptw.central.arrays.MultiVehicleSolverAdapter;
 import rinde.sim.pdptw.central.arrays.RandomMVArraysSolver;
-import rinde.sim.pdptw.common.StatsTracker.StatisticsDTO;
+import rinde.sim.pdptw.experiments.Experiment;
+import rinde.sim.pdptw.experiments.Experiment.ExperimentResults;
 import rinde.sim.pdptw.gendreau06.Gendreau06ObjectiveFunction;
 import rinde.sim.pdptw.gendreau06.Gendreau06Parser;
 import rinde.sim.pdptw.gendreau06.Gendreau06Scenario;
-import rinde.sim.ui.View;
 
 /**
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
  * 
  */
 public class CentralTest {
+  /**
+   * Tests whether the SolverConfigurator works.
+   * @throws IOException When something goes wrong with loading the file.
+   */
   @Test
   public void test() throws IOException {
-    final List<String> files = getFilesFromDir("files/test/gendreau06/", "");
+    final Gendreau06Scenario scenario = Gendreau06Parser
+        .parse("files/test/gendreau06/req_rapide_1_240_24", 10);
 
-    final RandomGenerator rng = new MersenneTwister(123);
-    // "files/scenarios/gendreau06/req_rapide_1_240_24"
-    for (final String file : files) {
-      for (int i = 0; i < 1; i++) {
-        final Gendreau06Scenario scenario = Gendreau06Parser.parse(file, 10);
-
-        final Solver s = SolverValidator.wrap(new MultiVehicleSolverAdapter(
-            ArraysSolverValidator.wrap(new RandomMVArraysSolver(
-                new MersenneTwister(rng.nextLong()))), scenario.getTimeUnit()));
-
-        final Gendreau06ObjectiveFunction objFunc = new Gendreau06ObjectiveFunction();
-        final StatisticsDTO stats = Central.solve(scenario, s, objFunc, false);
-      }
-      break;
-    }
-  }
-
-  @BeforeClass
-  public static void setUpClass() {
-    View.setAutoClose(true);
-    View.setAutoPlay(true);
-  }
-
-  @AfterClass
-  public static void tearDownClass() {
-    View.setAutoClose(false);
-    View.setAutoPlay(false);
-  }
-
-  public static List<String> getFilesFromDir(String dir, final String suffix) {
-    final File directory = new File(dir);
-    checkArgument(directory.isDirectory());
-    final String[] names = directory.list(new FilenameFilter() {
+    final SolverCreator s = new SolverCreator() {
       @Override
-      public boolean accept(File d, String name) {
-        return name.endsWith(suffix) && new File(d + "/" + name).isFile();
+      public Solver create(long seed) {
+        return SolverValidator.wrap(new MultiVehicleSolverAdapter(
+            ArraysSolverValidator.wrap(new RandomMVArraysSolver(
+                new MersenneTwister(seed))), scenario.getTimeUnit()));
       }
-    });
-    // sort on file name such that order of returned list does not depend on
-    // filesystem ordering.
-    Arrays.sort(names);
-    final List<String> paths = newArrayList();
-    for (final String scen : names) {
-      paths.add(dir + scen);
-    }
-    return paths;
+    };
+    final Experiment.Builder builder = Experiment
+        .build(new Gendreau06ObjectiveFunction()) //
+        .addScenario(scenario) //
+        .addConfigurator(Central.solverConfigurator(s)) //
+        .withRandomSeed(123);
+
+    final ExperimentResults res1 = builder.perform();
+    final ExperimentResults res2 = builder.perform();
+
+    assertEquals(res1.results, res2.results);
   }
 }

@@ -15,8 +15,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
+import javax.measure.Measure;
 import javax.measure.unit.NonSI;
-import javax.measure.unit.SI;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -87,7 +87,7 @@ public class SolversTest {
   public void convertTest() {
     PDPTWTestUtil.register(rm, pm, v1, p1);
 
-    final StateContext sc = convert(rm, pm, 0, NonSI.MINUTE, NonSI.KILOMETERS_PER_HOUR, SI.KILOMETER);
+    final StateContext sc = convert(rm, pm, Measure.valueOf(0L, NonSI.MINUTE));
 
     assertEquals(ImmutableMap.of(v1.dto, v1), sc.vehicleMap);
     assertEquals(ImmutableMap.of(p1.dto, p1), sc.parcelMap);
@@ -97,13 +97,14 @@ public class SolversTest {
 
     rm.moveTo(v1, p1, create(NonSI.HOUR, 0L, 1L));
 
-    checkVehicles(asList(v1), convert(rm, pm, 0, NonSI.MINUTE, NonSI.KILOMETERS_PER_HOUR, SI.KILOMETER).state.vehicles);
+    checkVehicles(asList(v1),
+        convert(rm, pm, Measure.valueOf(0L, NonSI.MINUTE)).state.vehicles);
 
     rm.moveTo(v1, p1, create(NonSI.HOUR, 0, 40));
     assertTrue(rm.equalPosition(v1, p1));
     pm.service(v1, p1, create(NonSI.HOUR, 0, 1));
 
-    final StateContext sc2 = convert(rm, pm, 0, NonSI.MINUTE, NonSI.KILOMETERS_PER_HOUR, SI.KILOMETER);
+    final StateContext sc2 = convert(rm, pm, Measure.valueOf(0L, NonSI.MINUTE));
 
     // checkVehicles(asList(v1), sc2.state.vehicles);
   }
@@ -137,7 +138,8 @@ public class SolversTest {
       if (pm.getVehicleState(vehicle) == VehicleState.IDLE) {
         assertEquals(0, vs.remainingServiceTime);
       } else {
-        assertEquals(pm.getVehicleActionInfo(vehicle).timeNeeded(), vs.remainingServiceTime);
+        assertEquals(pm.getVehicleActionInfo(vehicle).timeNeeded(),
+            vs.remainingServiceTime);
       }
     }
   }

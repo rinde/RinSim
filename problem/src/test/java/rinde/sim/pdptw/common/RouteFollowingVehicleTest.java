@@ -5,10 +5,6 @@ package rinde.sim.pdptw.common;
 
 import static com.google.common.collect.Sets.newHashSet;
 import static java.util.Arrays.asList;
-import static javax.measure.unit.NonSI.KILOMETERS_PER_HOUR;
-import static javax.measure.unit.SI.KILOMETER;
-import static javax.measure.unit.SI.MILLI;
-import static javax.measure.unit.SI.SECOND;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -17,6 +13,8 @@ import static rinde.sim.core.TimeLapseFactory.time;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+
+import javax.measure.unit.SI;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -89,8 +87,7 @@ public class RouteFollowingVehicleTest {
 
     final VehicleDTO v = new VehicleDTO(new Point(1, 1), 30, 1, new TimeWindow(
         0, minute(30)));
-    d = new RouteFollowingVehicle(v, MILLI(SECOND), KILOMETERS_PER_HOUR,
-        KILOMETER);
+    d = new RouteFollowingVehicle(v);
 
     p1 = new DefaultParcel(new ParcelDTO(new Point(1, 2), new Point(1, 4), //
         new TimeWindow(minute(5), minute(15)), // pickup tw
@@ -113,7 +110,8 @@ public class RouteFollowingVehicleTest {
   @Test
   public void testIsTooEarly() {
     // travelling 1km at 30km/h should take 2 minutes
-    assertEquals(minute(2), d.computeTravelTimeTo(new Point(1, 2)));
+    assertEquals(minute(2),
+        d.computeTravelTimeTo(new Point(1, 2), SI.MILLI(SI.SECOND)));
 
     // if we start immediately we are too early
     assertTrue(d.isTooEarly(p1, time(0, 10)));
@@ -194,12 +192,14 @@ public class RouteFollowingVehicleTest {
 
     // pickup and move towards destination p1
     tick(15, 16);
-    assertEquals(0d, Point.distance(new Point(1, 3.5), rm.getPosition(d)), EPSILON);
+    assertEquals(0d, Point.distance(new Point(1, 3.5), rm.getPosition(d)),
+        EPSILON);
     assertEquals(newHashSet(p1, p2), pm.getContents(d));
 
     // move
     tick(16, 17);
-    assertEquals(0d, Point.distance(new Point(1, 4d), rm.getPosition(d)), EPSILON);
+    assertEquals(0d, Point.distance(new Point(1, 4d), rm.getPosition(d)),
+        EPSILON);
 
     // arrive and start
     tick(17, 18);
@@ -245,7 +245,8 @@ public class RouteFollowingVehicleTest {
 
     // travel time back to the depot is 4 minutes. so we should go to depot
     // at 26'.
-    assertEquals(minute(4), d.computeTravelTimeTo(new Point(3, 5)));
+    assertEquals(minute(4),
+        d.computeTravelTimeTo(new Point(3, 5), SI.MILLI(SI.SECOND)));
 
     // don't do anything yet
     tick(25, 26);

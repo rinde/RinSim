@@ -23,6 +23,9 @@ import static rinde.sim.scenario.ScenarioController.EventType.SCENARIO_STARTED;
 import java.io.Serializable;
 import java.util.Map;
 
+import javax.annotation.Nullable;
+
+import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 
@@ -45,6 +48,8 @@ import rinde.sim.event.Listener;
 import rinde.sim.scenario.ScenarioController;
 import rinde.sim.scenario.TimedEvent;
 
+import com.google.common.base.Objects;
+
 /**
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
  * 
@@ -63,9 +68,8 @@ public class StatsTracker {
     eventDispatcher = new EventDispatcher(StatisticsEventType.values());
     theListener = new TheListener();
     simulator = sim;
-    scenContr
-        .getEventAPI()
-        .addListener(theListener, SCENARIO_STARTED, SCENARIO_FINISHED, ADD_DEPOT, ADD_PARCEL, ADD_VEHICLE, TIME_OUT);
+    scenContr.getEventAPI().addListener(theListener, SCENARIO_STARTED,
+        SCENARIO_FINISHED, ADD_DEPOT, ADD_PARCEL, ADD_VEHICLE, TIME_OUT);
     simulator.getEventAPI().addListener(theListener, STARTED, STOPPED);
     simulator.getModelProvider().getModel(RoadModel.class).getEventAPI()
         .addListener(theListener, MOVE);
@@ -73,7 +77,8 @@ public class StatsTracker {
         .getModelProvider()
         .getModel(PDPModel.class)
         .getEventAPI()
-        .addListener(theListener, START_PICKUP, END_PICKUP, START_DELIVERY, END_DELIVERY, NEW_PARCEL, NEW_VEHICLE);
+        .addListener(theListener, START_PICKUP, END_PICKUP, START_DELIVERY,
+            END_DELIVERY, NEW_PARCEL, NEW_VEHICLE);
   }
 
   public EventAPI getEventAPI() {
@@ -178,8 +183,8 @@ public class StatsTracker {
         totalDistance += me.pathProgress.distance.getValue().doubleValue();
         // if we are closer than 10 cm to the depot, we say we are 'at'
         // the depot
-        if (Point
-            .distance(me.roadModel.getPosition(me.roadUser), ((DefaultVehicle) me.roadUser).dto.startPosition) < 0.0001) {
+        if (Point.distance(me.roadModel.getPosition(me.roadUser),
+            ((DefaultVehicle) me.roadUser).dto.startPosition) < 0.0001) {
           // only override time if the vehicle did actually move
           if (me.pathProgress.distance.getValue().doubleValue() > 0.0001) {
             lastArrivalTimeAtDepot.put(me.roadUser, simulator.getCurrentTime());
@@ -247,6 +252,8 @@ public class StatsTracker {
     }
   }
 
+  // note: two statistics objects are equal when all fields, EXCEPT computation
+  // time, are equal.
   public static class StatisticsDTO implements Serializable {
     private static final long serialVersionUID = 1968951252238291733L;
     /**
@@ -335,8 +342,44 @@ public class StatsTracker {
 
     @Override
     public String toString() {
-      return ToStringBuilder
-          .reflectionToString(this, ToStringStyle.MULTI_LINE_STYLE);
+      return ToStringBuilder.reflectionToString(this,
+          ToStringStyle.MULTI_LINE_STYLE);
+    }
+
+    @Override
+    public boolean equals(@Nullable Object obj) {
+      if (obj == null) {
+        return false;
+      }
+      if (obj == this) {
+        return true;
+      }
+      if (obj.getClass() != getClass()) {
+        return false;
+      }
+      final StatisticsDTO other = (StatisticsDTO) obj;
+      return new EqualsBuilder().append(totalDistance, other.totalDistance)
+          .append(totalPickups, other.totalPickups)
+          .append(totalDeliveries, other.totalDeliveries)
+          .append(totalParcels, other.totalParcels)
+          .append(acceptedParcels, other.acceptedParcels)
+          .append(pickupTardiness, other.pickupTardiness)
+          .append(deliveryTardiness, other.deliveryTardiness)
+          .append(simulationTime, other.simulationTime)
+          .append(simFinish, other.simFinish)
+          .append(vehiclesAtDepot, other.vehiclesAtDepot)
+          .append(overTime, other.overTime)
+          .append(totalVehicles, other.totalVehicles)
+          .append(movedVehicles, other.movedVehicles)
+          .append(costPerDemand, other.costPerDemand).isEquals();
+    }
+
+    @Override
+    public int hashCode() {
+      return Objects.hashCode(totalDistance, totalPickups, totalParcels,
+          acceptedParcels, pickupTardiness, deliveryTardiness, simulationTime,
+          simFinish, vehiclesAtDepot, overTime, totalVehicles, movedVehicles,
+          costPerDemand);
     }
   }
 

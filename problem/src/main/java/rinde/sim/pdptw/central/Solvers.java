@@ -13,10 +13,8 @@ import java.util.List;
 import java.util.Queue;
 import java.util.Set;
 
+import javax.measure.Measure;
 import javax.measure.quantity.Duration;
-import javax.measure.quantity.Length;
-import javax.measure.quantity.Velocity;
-import javax.measure.unit.Unit;
 
 import rinde.sim.core.model.pdp.PDPModel;
 import rinde.sim.core.model.pdp.PDPModel.ParcelState;
@@ -57,18 +55,16 @@ public final class Solvers {
 
   // solver for multi vehicle
   public static List<Queue<DefaultParcel>> solve(Solver solver,
-      PDPRoadModel rm, PDPModel pm, long time, Unit<Duration> timeUnit,
-      Unit<Velocity> speedUnit, Unit<Length> distUnit) {
-    final StateContext state = convert(rm, pm, time, timeUnit, speedUnit, distUnit);
+      PDPRoadModel rm, PDPModel pm, Measure<Long, Duration> time) {
+    final StateContext state = convert(rm, pm, time);
     return convertRoutes(state, solver.solve(state.state));
   }
 
   // solver for single vehicle
   public static Queue<DefaultParcel> solve(Solver solver, PDPRoadModel rm,
       PDPModel pm, DefaultVehicle vehicle,
-      Collection<DefaultParcel> availableParcels, long time,
-      Unit<Duration> timeUnit, Unit<Velocity> speedUnit, Unit<Length> distUnit) {
-    final StateContext state = convert(rm, pm, vehicle, availableParcels, time, timeUnit, speedUnit, distUnit);
+      Collection<DefaultParcel> availableParcels, Measure<Long, Duration> time) {
+    final StateContext state = convert(rm, pm, vehicle, availableParcels, time);
     return convertRoutes(state, solver.solve(state.state)).get(0);
   }
 
@@ -90,20 +86,18 @@ public final class Solvers {
 
   public static StateContext convert(PDPRoadModel rm, PDPModel pm,
       DefaultVehicle vehicle, Collection<DefaultParcel> availableParcels,
-      long time, Unit<Duration> timeUnit, Unit<Velocity> speedUnit,
-      Unit<Length> distUnit) {
-    return convert(rm, pm, asList(vehicle), availableParcels, time, timeUnit, speedUnit, distUnit);
+      Measure<Long, Duration> time) {
+    return convert(rm, pm, asList(vehicle), availableParcels, time);
   }
 
-  public static StateContext convert(PDPRoadModel rm, PDPModel pm, long time,
-      Unit<Duration> timeUnit, Unit<Velocity> speedUnit, Unit<Length> distUnit) {
-    return convert(rm, pm, rm.getObjectsOfType(DefaultVehicle.class), rm.getObjectsOfType(DefaultParcel.class), time, timeUnit, speedUnit, distUnit);
+  public static StateContext convert(PDPRoadModel rm, PDPModel pm,
+      Measure<Long, Duration> time) {
+    return convert(rm, pm, rm.getObjectsOfType(DefaultVehicle.class), rm.getObjectsOfType(DefaultParcel.class), time);
   }
 
   static StateContext convert(PDPRoadModel rm, PDPModel pm,
       Collection<DefaultVehicle> vehicles,
-      Collection<DefaultParcel> availableParcels, long time,
-      Unit<Duration> timeUnit, Unit<Velocity> speedUnit, Unit<Length> distUnit) {
+      Collection<DefaultParcel> availableParcels, Measure<Long, Duration> time) {
 
     final ImmutableMap<ParcelDTO, DefaultParcel> parcelMap = toMap(availableParcels);
     final ImmutableMap<VehicleDTO, DefaultVehicle> vehicleMap = toVehicleMap(vehicles);
@@ -118,7 +112,8 @@ public final class Solvers {
       allParcels.putAll(contentsMap);
     }
     return new StateContext(new GlobalStateObject(parcelMap.keySet(),
-        vbuilder.build(), time, timeUnit, speedUnit, distUnit),//
+        vbuilder.build(), time.getValue().longValue(), time.getUnit(),
+        rm.getSpeedUnit(), rm.getDistanceUnit()),//
         vehicleMap, allParcels.build());
   }
 

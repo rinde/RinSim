@@ -8,6 +8,9 @@ import static com.google.common.base.Preconditions.checkState;
 
 import java.util.List;
 
+import javax.annotation.Nullable;
+
+import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.math3.random.MersenneTwister;
 import org.apache.commons.math3.random.RandomGenerator;
 
@@ -37,7 +40,7 @@ import com.google.common.collect.ImmutableList;
  * 
  * <pre>
  * {@code
- * Experiments.experiment(objFunc)
+ * Experiment.experiment(objFunc)
  *    .addConfigurator(config1)
  *    .addConfigurator(config2)
  *    .addScenario(scen1)
@@ -66,12 +69,11 @@ import com.google.common.collect.ImmutableList;
  * 
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
  */
-public final class Experiments {
-  // TODO make sure Central can reuse this code
+public final class Experiment {
   // TODO add strict mode which checks whether there are not too many
   // vehicles/parcels/depots?
 
-  private Experiments() {}
+  private Experiment() {}
 
   /**
    * Create an experiment with the specified {@link ObjectiveFunction}.
@@ -79,7 +81,7 @@ public final class Experiments {
    *          all simulation runs.
    * @return An {@link Builder} instance as per the builder pattern.
    */
-  public static Builder experiment(ObjectiveFunction objectiveFunction) {
+  public static Builder build(ObjectiveFunction objectiveFunction) {
     return new Builder(objectiveFunction);
   }
 
@@ -229,7 +231,8 @@ public final class Experiments {
         for (final MASConfigurator solution : conf) {
           for (int i = 0; i < repetitions; i++) {
             final long seed = seeds.get(i);
-            final StatisticsDTO stats = singleRun(scenario, solution.configure(seed), objectiveFunction, showGui);
+            final StatisticsDTO stats = singleRun(scenario,
+                solution.configure(seed), objectiveFunction, showGui);
             resultBuilder.add(new SimulationResult(stats, scenario, solution,
                 seed));
           }
@@ -239,10 +242,30 @@ public final class Experiments {
     }
   }
 
+  /**
+   * The result of a single simulation. It contains both the resulting
+   * statistics as well as the inputs used to obtain this result.
+   * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+   */
   public static final class SimulationResult {
+    /**
+     * The simulation statistics.
+     */
     public final StatisticsDTO stats;
+
+    /**
+     * The scenario on which the simulation was run.
+     */
     public final DynamicPDPTWScenario scenario;
+
+    /**
+     * The configurator which was used to configure the MAS.
+     */
     public final MASConfigurator masConfigurator;
+
+    /**
+     * The seed that was supplied to {@link MASConfigurator#configure(long)}.
+     */
     public final long seed;
 
     private SimulationResult(StatisticsDTO stats,
@@ -252,6 +275,29 @@ public final class Experiments {
       this.scenario = scenario;
       this.masConfigurator = masConfigurator;
       this.seed = seed;
+    }
+
+    @Override
+    public boolean equals(@Nullable Object obj) {
+      if (obj == null) {
+        return false;
+      }
+      if (obj == this) {
+        return true;
+      }
+      if (obj.getClass() != getClass()) {
+        return false;
+      }
+      final SimulationResult other = (SimulationResult) obj;
+      return new EqualsBuilder().append(stats, other.stats)
+          .append(scenario, other.scenario)
+          .append(masConfigurator, other.masConfigurator)
+          .append(seed, other.seed).isEquals();
+    }
+
+    @Override
+    public int hashCode() {
+      return Objects.hashCode(stats, scenario, masConfigurator, seed);
     }
 
     @Override
@@ -288,7 +334,8 @@ public final class Experiments {
   static StatisticsDTO singleRun(DynamicPDPTWScenario scenario,
       MASConfiguration c, ObjectiveFunction objFunc, boolean showGui) {
     final StatisticsDTO stats = init(scenario, c, showGui).simulate();
-    checkState(objFunc.isValidResult(stats), "The simulation did not result in a valid result: %s.", stats);
+    checkState(objFunc.isValidResult(stats),
+        "The simulation did not result in a valid result: %s.", stats);
     return stats;
   }
 

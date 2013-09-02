@@ -8,7 +8,6 @@ import java.util.Collection;
 import java.util.Queue;
 import java.util.Set;
 
-import javax.annotation.Nullable;
 import javax.measure.Measure;
 import javax.measure.quantity.Duration;
 import javax.measure.quantity.Length;
@@ -42,28 +41,19 @@ import com.google.common.math.DoubleMath;
  */
 public class RouteFollowingVehicle extends DefaultVehicle {
 
-  @Nullable
   private Queue<DefaultParcel> route;
-
   private Optional<DefaultDepot> depot;
-  private final Unit<Duration> timeUnit;
-  private final Measure<Double, Velocity> speed;
-  private final Unit<Length> distUnit;
+  private Optional<Measure<Double, Velocity>> speed;
 
   /**
    * Initializes the vehicle.
    * @param pDto The {@link VehicleDTO} that defines this vehicle.
-   * @param tu The time unit.
-   * @param su The speed unit.
-   * @param du The distance unit.
    */
-  public RouteFollowingVehicle(VehicleDTO pDto, Unit<Duration> tu,
-      Unit<Velocity> su, Unit<Length> du) {
+  public RouteFollowingVehicle(VehicleDTO pDto) {
     super(pDto);
     depot = Optional.absent();
-    timeUnit = tu;
-    distUnit = du;
-    speed = Measure.valueOf(getSpeed(), su);
+    speed = Optional.absent();
+    route = newLinkedList();
   }
 
   /**
@@ -87,6 +77,8 @@ public class RouteFollowingVehicle extends DefaultVehicle {
     checkArgument(depots.size() == 1, "This vehicle requires exactly 1 depot, found %s depots.", depots
         .size());
     depot = Optional.of(depots.iterator().next());
+    speed = Optional.of(Measure.valueOf(getSpeed(), roadModel.get()
+        .getSpeedUnit()));
   }
 
   /**
@@ -99,12 +91,11 @@ public class RouteFollowingVehicle extends DefaultVehicle {
   @Override
   protected final void tickImpl(TimeLapse time) {
     preTick(time);
-    final Queue<DefaultParcel> r = route;
     final RoadModel rm = roadModel.get();
     final PDPModel pm = pdpModel.get();
-    if (r != null && !r.isEmpty()) {
-      while (time.hasTimeLeft() && r.peek() != null) {
-        final DefaultParcel cur = r.element();
+    if (!route.isEmpty()) {
+      while (time.hasTimeLeft() && route.peek() != null) {
+        final DefaultParcel cur = route.element();
         // if leaving now would mean we are too early, wait
         if (isTooEarly(cur, time)) {
           time.consumeAll();
@@ -136,13 +127,13 @@ public class RouteFollowingVehicle extends DefaultVehicle {
             if (canStart) {
               // parcel is ready, service
               pm.service(this, cur, time);
-              r.remove();
+              route.remove();
             }
           }
         }
       }
     }
-    if (time.hasTimeLeft() && (r == null || r.isEmpty()) && isEndOfDay(time)
+    if (time.hasTimeLeft() && route.isEmpty() && isEndOfDay(time)
         && !rm.equalPosition(this, depot.get())) {
       rm.moveTo(this, depot.get(), time);
     }
@@ -175,7 +166,7 @@ public class RouteFollowingVehicle extends DefaultVehicle {
 
     final Point loc = isPickup ? ((DefaultParcel) p).dto.pickupLocation : p
         .getDestination();
-    final long travelTime = computeTravelTimeTo(loc);
+    final long travelTime = computeTravelTimeTo(loc, time.getTimeUnit());
     final long timeUntilAvailable = (isPickup ? p.getPickupTimeWindow().begin
         : p.getDeliveryTimeWindow().begin) - time.getTime();
 
@@ -198,13 +189,16 @@ public class RouteFollowingVehicle extends DefaultVehicle {
   /**
    * Computes the travel time for this vehicle to any point.
    * @param p The point to calculate travel time to.
+   * @param timeUnit The time unit used in the simulation.
    * @return The travel time in the used time unit.
    */
-  protected long computeTravelTimeTo(Point p) {
+  protected long computeTravelTimeTo(Point p, Unit<Duration> timeUnit) {
     final Measure<Double, Length> distance = Measure.valueOf(Point
-        .distance(roadModel.get().getPosition(this), p), distUnit);
-    return DoubleMath.roundToLong(ArraysSolvers
-        .computeTravelTime(speed, distance, timeUnit), RoundingMode.CEILING);
+        .distance(roadModel.get().getPosition(this), p), roadModel.get()
+        .getDistanceUnit());
+
+    return DoubleMath
+        .roundToLong(ArraysSolvers.computeTravelTime(speed.get(), distance, timeUnit), RoundingMode.CEILING);
   }
 
   /**
@@ -216,7 +210,7 @@ public class RouteFollowingVehicle extends DefaultVehicle {
    */
   protected boolean isEndOfDay(TimeLapse time) {
     final long travelTime = computeTravelTimeTo(roadModel.get()
-        .getPosition(depot.get()));
+        .getPosition(depot.get()), time.getTimeUnit());
     return time.getEndTime() - 1 >= dto.availabilityTimeWindow.end - travelTime;
   }
 }
