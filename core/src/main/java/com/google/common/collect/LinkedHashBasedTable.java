@@ -21,7 +21,7 @@ import com.google.common.base.Supplier;
  * @param <R> row
  * @param <C> column
  * @param <V> value
- * @author Rinde van Lon (rinde.vanlon@cs.kuleuven.be)
+ * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
  */
 @SuppressWarnings("javadoc")
 public class LinkedHashBasedTable<R, C, V> extends StandardTable<R, C, V> {
@@ -34,6 +34,9 @@ public class LinkedHashBasedTable<R, C, V> extends StandardTable<R, C, V> {
 
   /**
    * Instantiates a {@link LinkedHashBasedTable}.
+   * @param <R> row
+   * @param <C> column
+   * @param <V> value
    * @return The newly created instance.
    */
   public static <R, C, V> LinkedHashBasedTable<R, C, V> create() {

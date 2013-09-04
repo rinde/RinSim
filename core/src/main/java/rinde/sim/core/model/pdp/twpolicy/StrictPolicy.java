@@ -9,10 +9,12 @@ import rinde.sim.util.TimeWindow;
  * Only allows pickups and deliveries which fit in the time windows, treats the
  * time windows as a hard constraint.
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
- * 
  */
 public final class StrictPolicy implements TimeWindowPolicy {
 
+  /**
+   * Instantiate a new strict policy.
+   */
   public StrictPolicy() {}
 
   @Override

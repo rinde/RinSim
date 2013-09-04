@@ -8,12 +8,13 @@ import rinde.sim.util.TimeWindow;
 /**
  * Being tardy (late) is allowed, being early is NOT! Earliness is a hard
  * constraint, tardiness is a soft constraint.
- * 
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
- * 
  */
 public final class TardyAllowedPolicy implements TimeWindowPolicy {
 
+  /**
+   * Instantiate the policy.
+   */
   public TardyAllowedPolicy() {}
 
   @Override

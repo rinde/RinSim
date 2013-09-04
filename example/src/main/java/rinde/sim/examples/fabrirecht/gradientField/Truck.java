@@ -43,8 +43,8 @@ class Truck extends DefaultVehicle implements FieldEmitter {
     }
 
     // Otherwise, Check if we can pickup nearby
-    final DefaultParcel closest = (DefaultParcel) RoadModels
-        .findClosestObject(rm.getPosition(this), rm, new Predicate<RoadUser>() {
+    final DefaultParcel closest = (DefaultParcel) RoadModels.findClosestObject(
+        rm.getPosition(this), rm, new Predicate<RoadUser>() {
           @Override
           public boolean apply(RoadUser input) {
             return input instanceof DefaultParcel
@@ -53,11 +53,10 @@ class Truck extends DefaultVehicle implements FieldEmitter {
         });
 
     if (closest != null
-        && Point.distance(pm.getPosition(closest), getPosition()) < 10) {
+        && Point.distance(rm.getPosition(closest), getPosition()) < 10) {
       if (rm.equalPosition(closest, this)
-          && pm
-              .getTimeWindowPolicy()
-              .canPickup(closest.getPickupTimeWindow(), time.getTime(), closest.getPickupDuration())) {
+          && pm.getTimeWindowPolicy().canPickup(closest.getPickupTimeWindow(),
+              time.getTime(), closest.getPickupDuration())) {
         final double newSize = getPDPModel().getContentsSize(this)
             + closest.getMagnitude();
 
@@ -65,7 +64,7 @@ class Truck extends DefaultVehicle implements FieldEmitter {
           pm.pickup(this, closest, time);
         }
       } else {
-        rm.moveTo(this, pm.getPosition(closest), time);
+        rm.moveTo(this, rm.getPosition(closest), time);
       }
       return;
     }
@@ -77,15 +76,14 @@ class Truck extends DefaultVehicle implements FieldEmitter {
   public Parcel getDelivery(TimeLapse time, int distance) {
     Parcel target = null;
     double closest = distance;
-    PDPModel pm = pdpModel.get();
+    final PDPModel pm = pdpModel.get();
     for (final Parcel p : pm.getContents(this)) {
 
-      final double dist = Point.distance(pm.getPosition(this), p
-          .getDestination());
+      final double dist = Point.distance(roadModel.get().getPosition(this),
+          p.getDestination());
       if (dist < closest
-          && pm
-              .getTimeWindowPolicy()
-              .canDeliver(p.getDeliveryTimeWindow(), time.getTime(), p.getPickupDuration())) {
+          && pm.getTimeWindowPolicy().canDeliver(p.getDeliveryTimeWindow(),
+              time.getTime(), p.getPickupDuration())) {
         closest = dist;
         target = p;
       }

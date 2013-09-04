@@ -185,10 +185,6 @@ public class Simulator implements SimulatorAPI {
     return result;
   }
 
-  /**
-   * 
-   * {@inheritDoc}
-   */
   @Override
   public boolean register(Object obj) {
     if (obj instanceof Model<?>) {
@@ -206,9 +202,8 @@ public class Simulator implements SimulatorAPI {
   }
 
   /**
-   * Unregistration from the models is delayed until all ticks are processed.
-   * 
-   * @see rinde.sim.core.SimulatorAPI#unregister(java.lang.Object)
+   * {@inheritDoc} Unregistration from the models is delayed until all ticks are
+   * processed.
    */
   @Override
   public boolean unregister(Object o) {
@@ -307,14 +302,9 @@ public class Simulator implements SimulatorAPI {
    */
   public void tick() {
     // unregister all pending objects
-    // unregisterLock.lock();
     Set<Object> copy;
-    try {
-      copy = toUnregister;
-      toUnregister = new LinkedHashSet<Object>();
-    } finally {
-      // unregisterLock.unlock();
-    }
+    copy = toUnregister;
+    toUnregister = new LinkedHashSet<Object>();
 
     for (final Object c : copy) {
       modelManager.unregister(c);
@@ -404,6 +394,9 @@ public class Simulator implements SimulatorAPI {
     return rand;
   }
 
+  /**
+   * @return The unit of time that is used for generating ticks.
+   */
   public Unit<Duration> getTimeUnit() {
     return timeLapse.getTimeUnit();
   }
