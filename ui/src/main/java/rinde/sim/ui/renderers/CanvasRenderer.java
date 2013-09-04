@@ -11,22 +11,22 @@ import org.eclipse.swt.graphics.GC;
  */
 public interface CanvasRenderer extends Renderer {
 
-	// FIXME documentation!
+  // FIXME documentation!
 
-	/**
-	 * @param gc
-	 * @param origin
-	 * @param minX
-	 * @param minY
-	 * @param scale
-	 */
-	// void render(GC gc, double xOrigin, double yOrigin, double minX, double
-	// minY, double scale);
+  /**
+   * @param gc
+   * @param origin
+   * @param minX
+   * @param minY
+   * @param scale
+   */
+  // void render(GC gc, double xOrigin, double yOrigin, double minX, double
+  // minY, double scale);
 
-	void renderStatic(GC gc, ViewPort vp);
+  void renderStatic(GC gc, ViewPort vp);
 
-	void renderDynamic(GC gc, ViewPort vp, long time);
+  void renderDynamic(GC gc, ViewPort vp, long time);
 
-	ViewRect getViewRect();
+  ViewRect getViewRect();
 
 }

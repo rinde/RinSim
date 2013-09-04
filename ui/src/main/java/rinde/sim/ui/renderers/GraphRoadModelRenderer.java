@@ -20,56 +20,58 @@ import rinde.sim.core.model.road.GraphRoadModel;
  * 
  */
 public class GraphRoadModelRenderer implements ModelRenderer {
-	protected GraphRoadModel grm;
-	protected final int margin;
+  protected GraphRoadModel grm;
+  protected final int margin;
 
-	public GraphRoadModelRenderer(int pMargin) {
-		margin = pMargin;
-	}
+  public GraphRoadModelRenderer(int pMargin) {
+    margin = pMargin;
+  }
 
-	public GraphRoadModelRenderer() {
-		this(20);
-	}
+  public GraphRoadModelRenderer() {
+    this(20);
+  }
 
-	@Override
-	public void renderStatic(GC gc, ViewPort vp) {
-		final Graph<? extends ConnectionData> graph = grm.getGraph();
-		for (final Connection<? extends ConnectionData> e : graph.getConnections()) {
-			final int x1 = vp.toCoordX(e.from.x);
-			final int y1 = vp.toCoordY(e.from.y);
+  @Override
+  public void renderStatic(GC gc, ViewPort vp) {
+    final Graph<? extends ConnectionData> graph = grm.getGraph();
+    for (final Connection<? extends ConnectionData> e : graph.getConnections()) {
+      final int x1 = vp.toCoordX(e.from.x);
+      final int y1 = vp.toCoordY(e.from.y);
 
-			final int x2 = vp.toCoordX(e.to.x);
-			final int y2 = vp.toCoordY(e.to.y);
-			gc.setForeground(gc.getDevice().getSystemColor(SWT.COLOR_BLACK));
-			gc.drawLine(x1, y1, x2, y2);
-		}
-	}
+      final int x2 = vp.toCoordX(e.to.x);
+      final int y2 = vp.toCoordY(e.to.y);
+      gc.setForeground(gc.getDevice().getSystemColor(SWT.COLOR_BLACK));
+      gc.drawLine(x1, y1, x2, y2);
+    }
+  }
 
-	@Override
-	public void renderDynamic(GC gc, ViewPort vp, long time) {}
+  @Override
+  public void renderDynamic(GC gc, ViewPort vp, long time) {}
 
-	@Override
-	public ViewRect getViewRect() {
-		checkState(!grm.getGraph().isEmpty(), "graph may not be empty at this point");
-		final Collection<Point> nodes = grm.getGraph().getNodes();
+  @Override
+  public ViewRect getViewRect() {
+    checkState(!grm.getGraph().isEmpty(),
+        "graph may not be empty at this point");
+    final Collection<Point> nodes = grm.getGraph().getNodes();
 
-		double minX = Double.POSITIVE_INFINITY;
-		double maxX = Double.NEGATIVE_INFINITY;
-		double minY = Double.POSITIVE_INFINITY;
-		double maxY = Double.NEGATIVE_INFINITY;
+    double minX = Double.POSITIVE_INFINITY;
+    double maxX = Double.NEGATIVE_INFINITY;
+    double minY = Double.POSITIVE_INFINITY;
+    double maxY = Double.NEGATIVE_INFINITY;
 
-		for (final Point p : nodes) {
-			minX = Math.min(minX, p.x);
-			maxX = Math.max(maxX, p.x);
-			minY = Math.min(minY, p.y);
-			maxY = Math.max(maxY, p.y);
-		}
-		return new ViewRect(new Point(minX - margin, minY - margin), new Point(maxX + margin, maxY + margin));
-	}
+    for (final Point p : nodes) {
+      minX = Math.min(minX, p.x);
+      maxX = Math.max(maxX, p.x);
+      minY = Math.min(minY, p.y);
+      maxY = Math.max(maxY, p.y);
+    }
+    return new ViewRect(new Point(minX - margin, minY - margin), new Point(maxX
+        + margin, maxY + margin));
+  }
 
-	@Override
-	public void registerModelProvider(ModelProvider mp) {
-		grm = mp.getModel(GraphRoadModel.class);
-	}
+  @Override
+  public void registerModelProvider(ModelProvider mp) {
+    grm = mp.getModel(GraphRoadModel.class);
+  }
 
 }

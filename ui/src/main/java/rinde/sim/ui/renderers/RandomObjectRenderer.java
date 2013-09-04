@@ -22,47 +22,51 @@ import rinde.sim.core.model.road.RoadUser;
  */
 public class RandomObjectRenderer implements ModelRenderer {
 
-	private RoadModel rm;
-	private Color defaultColor;
+  private RoadModel rm;
+  private Color defaultColor;
 
-	public RandomObjectRenderer() {}
+  public RandomObjectRenderer() {}
 
-	@Override
-	public void renderDynamic(GC gc, ViewPort viewPort, long time) {
-		final int radius = 4;
-		final int outerRadius = 10;
-		if (defaultColor == null) {
-			defaultColor = gc.getDevice().getSystemColor(SWT.COLOR_RED);
-		}
+  @Override
+  public void renderDynamic(GC gc, ViewPort viewPort, long time) {
+    final int radius = 4;
+    final int outerRadius = 10;
+    if (defaultColor == null) {
+      defaultColor = gc.getDevice().getSystemColor(SWT.COLOR_RED);
+    }
 
-		gc.setBackground(defaultColor);
+    gc.setBackground(defaultColor);
 
-		final Map<RoadUser, Point> objects = rm.getObjectsAndPositions();
-		synchronized (objects) {
-			for (final Entry<RoadUser, Point> entry : objects.entrySet()) {
-				final Point p = entry.getValue();
+    final Map<RoadUser, Point> objects = rm.getObjectsAndPositions();
+    synchronized (objects) {
+      for (final Entry<RoadUser, Point> entry : objects.entrySet()) {
+        final Point p = entry.getValue();
 
-				gc.setBackground(defaultColor);
+        gc.setBackground(defaultColor);
 
-				final int x = (int) (viewPort.origin.x + (p.x - viewPort.rect.min.x) * viewPort.scale) - radius;
-				final int y = (int) (viewPort.origin.y + (p.y - viewPort.rect.min.y) * viewPort.scale) - radius;
+        final int x = (int) (viewPort.origin.x + (p.x - viewPort.rect.min.x)
+            * viewPort.scale)
+            - radius;
+        final int y = (int) (viewPort.origin.y + (p.y - viewPort.rect.min.y)
+            * viewPort.scale)
+            - radius;
 
-				gc.fillOval(x, y, 2 * radius, 2 * radius);
-				gc.drawText(entry.getKey() + "", x + 5, y - 15);
-			}
-		}
-	}
+        gc.fillOval(x, y, 2 * radius, 2 * radius);
+        gc.drawText(entry.getKey() + "", x + 5, y - 15);
+      }
+    }
+  }
 
-	@Override
-	public void renderStatic(GC gc, ViewPort vp) {}
+  @Override
+  public void renderStatic(GC gc, ViewPort vp) {}
 
-	@Override
-	public ViewRect getViewRect() {
-		return null;
-	}
+  @Override
+  public ViewRect getViewRect() {
+    return null;
+  }
 
-	@Override
-	public void registerModelProvider(ModelProvider mp) {
-		rm = mp.getModel(PlaneRoadModel.class);
-	}
+  @Override
+  public void registerModelProvider(ModelProvider mp) {
+    rm = mp.getModel(PlaneRoadModel.class);
+  }
 }

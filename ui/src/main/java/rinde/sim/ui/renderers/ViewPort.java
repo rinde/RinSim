@@ -14,22 +14,22 @@ import rinde.sim.core.graph.Point;
  */
 public class ViewPort {
 
-	public final Point origin;
-	public final ViewRect rect;
-	public final double scale;
+  public final Point origin;
+  public final ViewRect rect;
+  public final double scale;
 
-	public ViewPort(Point pOrigin, ViewRect pViewRect, double pZoom) {
-		origin = pOrigin;
-		rect = pViewRect;
-		scale = pZoom;
-	}
+  public ViewPort(Point pOrigin, ViewRect pViewRect, double pZoom) {
+    origin = pOrigin;
+    rect = pViewRect;
+    scale = pZoom;
+  }
 
-	public int toCoordX(double x) {
-		return (int) (origin.x + ((x - rect.min.x) * scale));
-	}
+  public int toCoordX(double x) {
+    return (int) (origin.x + ((x - rect.min.x) * scale));
+  }
 
-	public int toCoordY(double y) {
-		return (int) (origin.y + ((y - rect.min.y) * scale));
-	}
+  public int toCoordY(double y) {
+    return (int) (origin.y + ((y - rect.min.y) * scale));
+  }
 
 }

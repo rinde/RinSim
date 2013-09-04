@@ -18,58 +18,59 @@ import rinde.sim.core.model.road.RoadModel;
  */
 public class PlaneRoadModelRenderer implements ModelRenderer {
 
-	protected RoadModel rm;
-	protected final double margin;
+  protected RoadModel rm;
+  protected final double margin;
 
-	protected double xMargin;
-	protected double yMargin;
-	
-	List<Point> bounds;
+  protected double xMargin;
+  protected double yMargin;
 
-	public PlaneRoadModelRenderer() {
-		this(0.02);
-	}
+  List<Point> bounds;
 
-	public PlaneRoadModelRenderer(double pMargin) {
-		margin = pMargin;
-	}
+  public PlaneRoadModelRenderer() {
+    this(0.02);
+  }
 
-	@Override
-	public void renderStatic(GC gc, ViewPort vp) {
-		final int xMin = vp.toCoordX(bounds.get(0).x);
-		final int yMin = vp.toCoordY(bounds.get(0).y);
-		final int xMax = vp.toCoordX(bounds.get(1).x);
-		final int yMax = vp.toCoordY(bounds.get(1).y);
+  public PlaneRoadModelRenderer(double pMargin) {
+    margin = pMargin;
+  }
 
-		final int outerXmin = vp.toCoordX(vp.rect.min.x);
-		final int outerYmin = vp.toCoordY(vp.rect.min.y);
-		final int outerXmax = vp.toCoordX(vp.rect.max.x);
-		final int outerYmax = vp.toCoordY(vp.rect.max.y);
+  @Override
+  public void renderStatic(GC gc, ViewPort vp) {
+    final int xMin = vp.toCoordX(bounds.get(0).x);
+    final int yMin = vp.toCoordY(bounds.get(0).y);
+    final int xMax = vp.toCoordX(bounds.get(1).x);
+    final int yMax = vp.toCoordY(bounds.get(1).y);
 
-		gc.setBackground(gc.getDevice().getSystemColor(SWT.COLOR_WIDGET_BACKGROUND));
-		gc.fillRectangle(outerXmin, outerYmin, outerXmax, outerYmax);
+    final int outerXmin = vp.toCoordX(vp.rect.min.x);
+    final int outerYmin = vp.toCoordY(vp.rect.min.y);
+    final int outerXmax = vp.toCoordX(vp.rect.max.x);
+    final int outerYmax = vp.toCoordY(vp.rect.max.y);
 
-		gc.setBackground(gc.getDevice().getSystemColor(SWT.COLOR_WHITE));
-		gc.fillRectangle(xMin, yMin, xMax - xMin, yMax - yMin);
-		gc.drawRectangle(xMin, yMin, xMax - xMin, yMax - yMin);
-	}
+    gc.setBackground(gc.getDevice().getSystemColor(SWT.COLOR_WIDGET_BACKGROUND));
+    gc.fillRectangle(outerXmin, outerYmin, outerXmax, outerYmax);
 
-	@Override
-	public void renderDynamic(GC gc, ViewPort vp, long time) {}
+    gc.setBackground(gc.getDevice().getSystemColor(SWT.COLOR_WHITE));
+    gc.fillRectangle(xMin, yMin, xMax - xMin, yMax - yMin);
+    gc.drawRectangle(xMin, yMin, xMax - xMin, yMax - yMin);
+  }
 
-	@Override
-	public ViewRect getViewRect() {
-		return new ViewRect(new Point(bounds.get(0).x - xMargin, bounds.get(0).y - yMargin), new Point(bounds.get(1).x + xMargin, bounds.get(1).y
-				+ yMargin));
-	}
+  @Override
+  public void renderDynamic(GC gc, ViewPort vp, long time) {}
 
-	@Override
-	public void registerModelProvider(ModelProvider mp) {
-		rm = mp.getModel(RoadModel.class);
-		bounds = rm.getBounds();
-		final double width = bounds.get(1).x - bounds.get(0).x;
-		final double height = bounds.get(1).y - bounds.get(0).y;
-		xMargin = width * margin;
-		yMargin = height * margin;
-	}
+  @Override
+  public ViewRect getViewRect() {
+    return new ViewRect(new Point(bounds.get(0).x - xMargin, bounds.get(0).y
+        - yMargin), new Point(bounds.get(1).x + xMargin, bounds.get(1).y
+        + yMargin));
+  }
+
+  @Override
+  public void registerModelProvider(ModelProvider mp) {
+    rm = mp.getModel(RoadModel.class);
+    bounds = rm.getBounds();
+    final double width = bounds.get(1).x - bounds.get(0).x;
+    final double height = bounds.get(1).y - bounds.get(0).y;
+    xMargin = width * margin;
+    yMargin = height * margin;
+  }
 }
