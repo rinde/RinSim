@@ -6,6 +6,8 @@ package rinde.sim.ui.renderers;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import javax.annotation.Nullable;
+
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
@@ -21,12 +23,14 @@ import rinde.sim.core.model.road.RoadUser;
  *         handling colors
  * 
  */
-public class RoadUserRenderer implements ModelRenderer {
+public final class RoadUserRenderer implements ModelRenderer {
 
-  protected RoadModel rs;
-  protected boolean useEncirclement;
-  protected final UiSchema uiSchema;
-  protected ViewRect viewRect;
+  @Nullable
+  private RoadModel rs;
+  private final boolean useEncirclement;
+  private final UiSchema uiSchema;
+  @Nullable
+  private final ViewRect viewRect;
 
   public RoadUserRenderer() {
     this(null, null, false);
@@ -36,7 +40,7 @@ public class RoadUserRenderer implements ModelRenderer {
     this(null, schema, useEncirclement);
   }
 
-  public RoadUserRenderer(ViewRect rect, UiSchema schema,
+  public RoadUserRenderer(@Nullable ViewRect rect, @Nullable UiSchema schema,
       boolean useEncirclement) {
     viewRect = rect;
     this.useEncirclement = useEncirclement;
@@ -88,6 +92,7 @@ public class RoadUserRenderer implements ModelRenderer {
   @Override
   public void renderStatic(GC gc, ViewPort vp) {}
 
+  @Nullable
   @Override
   public ViewRect getViewRect() {
     return viewRect;
@@ -97,5 +102,4 @@ public class RoadUserRenderer implements ModelRenderer {
   public void registerModelProvider(ModelProvider mp) {
     rs = mp.getModel(RoadModel.class);
   }
-
 }

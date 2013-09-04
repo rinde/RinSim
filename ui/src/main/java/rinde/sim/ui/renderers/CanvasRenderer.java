@@ -3,6 +3,8 @@
  */
 package rinde.sim.ui.renderers;
 
+import javax.annotation.Nullable;
+
 import org.eclipse.swt.graphics.GC;
 
 /**
@@ -20,13 +22,12 @@ public interface CanvasRenderer extends Renderer {
    * @param minY
    * @param scale
    */
-  // void render(GC gc, double xOrigin, double yOrigin, double minX, double
-  // minY, double scale);
 
   void renderStatic(GC gc, ViewPort vp);
 
   void renderDynamic(GC gc, ViewPort vp, long time);
 
+  @Nullable
   ViewRect getViewRect();
 
 }

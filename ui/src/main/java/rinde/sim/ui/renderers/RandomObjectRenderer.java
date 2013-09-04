@@ -3,8 +3,12 @@
  */
 package rinde.sim.ui.renderers;
 
+import static com.google.common.base.Preconditions.checkState;
+
 import java.util.Map;
 import java.util.Map.Entry;
+
+import javax.annotation.Nullable;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Color;
@@ -20,9 +24,11 @@ import rinde.sim.core.model.road.RoadUser;
  * @author Rinde van Lon (rinde.vanlon@cs.kuleuven.be)
  * 
  */
-public class RandomObjectRenderer implements ModelRenderer {
+public final class RandomObjectRenderer implements ModelRenderer {
 
+  @Nullable
   private RoadModel rm;
+  @Nullable
   private Color defaultColor;
 
   public RandomObjectRenderer() {}
@@ -37,6 +43,7 @@ public class RandomObjectRenderer implements ModelRenderer {
 
     gc.setBackground(defaultColor);
 
+    checkState(rm != null);
     final Map<RoadUser, Point> objects = rm.getObjectsAndPositions();
     synchronized (objects) {
       for (final Entry<RoadUser, Point> entry : objects.entrySet()) {
@@ -60,6 +67,7 @@ public class RandomObjectRenderer implements ModelRenderer {
   @Override
   public void renderStatic(GC gc, ViewPort vp) {}
 
+  @Nullable
   @Override
   public ViewRect getViewRect() {
     return null;

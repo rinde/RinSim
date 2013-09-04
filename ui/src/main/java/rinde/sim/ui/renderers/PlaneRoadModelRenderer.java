@@ -16,15 +16,15 @@ import rinde.sim.core.model.road.RoadModel;
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
  * 
  */
-public class PlaneRoadModelRenderer implements ModelRenderer {
+public final class PlaneRoadModelRenderer implements ModelRenderer {
 
-  protected RoadModel rm;
-  protected final double margin;
+  private RoadModel rm;
+  private final double margin;
 
-  protected double xMargin;
-  protected double yMargin;
+  private double xMargin;
+  private double yMargin;
 
-  List<Point> bounds;
+  private List<Point> bounds;
 
   public PlaneRoadModelRenderer() {
     this(0.02);

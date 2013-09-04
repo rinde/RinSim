@@ -60,8 +60,6 @@ import com.google.common.collect.Multimap;
 public class SimulationViewer extends Composite implements TickListener,
     ControlListener, PaintListener, SelectionListener {
 
-  private static final String ICO_PKG = "package";
-
   private Canvas canvas;
   private org.eclipse.swt.graphics.Point origin;
   private org.eclipse.swt.graphics.Point size;
@@ -74,13 +72,6 @@ public class SimulationViewer extends Composite implements TickListener,
   private MenuItem playPauseMenuItem;
   private double m; // multiplier
 
-  boolean firstTime = true;
-  final Simulator simulator;
-  @Nullable
-  ViewRect viewRect;
-  @Nullable
-  Label timeLabel;
-
   @Nullable
   private ScrollBar hBar;
   @Nullable
@@ -92,6 +83,13 @@ public class SimulationViewer extends Composite implements TickListener,
 
   private int zoomRatio;
   private final Display display;
+
+  boolean firstTime = true;
+  final Simulator simulator;
+  @Nullable
+  ViewRect viewRect;
+  @Nullable
+  Label timeLabel;
 
   SimulationViewer(Shell shell, final Simulator sim, int pSpeedUp,
       boolean pAutoPlay, Renderer... pRenderers) {
@@ -284,6 +282,7 @@ public class SimulationViewer extends Composite implements TickListener,
 
       @Override
       public void handleEvent(@Nullable Event e) {
+        checkState(e != null);
         onToglePlay((MenuItem) e.widget);
       }
     });
@@ -296,6 +295,7 @@ public class SimulationViewer extends Composite implements TickListener,
     nextItem.addListener(SWT.Selection, new Listener() {
       @Override
       public void handleEvent(@Nullable Event e) {
+        checkState(e != null);
         onTick((MenuItem) e.widget);
       }
     });
@@ -322,6 +322,7 @@ public class SimulationViewer extends Composite implements TickListener,
     final Listener zoomingListener = new Listener() {
       @Override
       public void handleEvent(@Nullable Event e) {
+        checkState(e != null);
         onZooming((MenuItem) e.widget);
       }
     };
@@ -334,6 +335,7 @@ public class SimulationViewer extends Composite implements TickListener,
 
       @Override
       public void handleEvent(@Nullable Event e) {
+        checkState(e != null);
         onSpeedChange((MenuItem) e.widget);
       }
     };
@@ -435,6 +437,7 @@ public class SimulationViewer extends Composite implements TickListener,
 
   @Override
   public void paintControl(@Nullable PaintEvent e) {
+    checkState(e != null);
     final GC gc = e.gc;
 
     final boolean wasFirstTime = firstTime;
@@ -465,7 +468,6 @@ public class SimulationViewer extends Composite implements TickListener,
     for (final CanvasRenderer renderer : renderers) {
       renderer.renderDynamic(gc, new ViewPort(new Point(origin.x, origin.y),
           viewRect, m), simulator.getCurrentTime());
-      // renderer.render(gc, origin.x, origin.y, minX, minY, m);
     }
 
     // auto play sim if required
@@ -533,11 +535,6 @@ public class SimulationViewer extends Composite implements TickListener,
 
     viewRect = new ViewRect(new Point(minX, minY), new Point(maxX, maxY));
 
-    // deltaX = maxX - minX;
-    // deltaY = maxY - minY;
-
-    // System.out.println(deltaX + " " + deltaY);
-
     final Rectangle area = canvas.getClientArea();
     if (viewRect.width > viewRect.height) {
       m = area.width / viewRect.width;
@@ -545,8 +542,6 @@ public class SimulationViewer extends Composite implements TickListener,
       m = area.height / viewRect.height;
     }
     zoomRatio = 1;
-
-    // m *= 2;
 
   }
 

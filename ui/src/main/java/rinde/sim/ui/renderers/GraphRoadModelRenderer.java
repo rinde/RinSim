@@ -4,6 +4,8 @@ import static com.google.common.base.Preconditions.checkState;
 
 import java.util.Collection;
 
+import javax.annotation.Nullable;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.GC;
 
@@ -48,6 +50,7 @@ public class GraphRoadModelRenderer implements ModelRenderer {
   @Override
   public void renderDynamic(GC gc, ViewPort vp, long time) {}
 
+  @Nullable
   @Override
   public ViewRect getViewRect() {
     checkState(!grm.getGraph().isEmpty(),

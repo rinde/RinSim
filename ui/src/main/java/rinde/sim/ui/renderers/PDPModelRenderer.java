@@ -7,6 +7,8 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 
+import javax.annotation.Nullable;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.GC;
@@ -25,28 +27,28 @@ import rinde.sim.core.model.road.RoadUser;
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
  * 
  */
-public class PDPModelRenderer implements ModelRenderer {
+public final class PDPModelRenderer implements ModelRenderer {
 
-  protected Color black;
-  protected Color white;
-  protected Color gray;
-  protected Color lightGray;
-  protected Color darkGreen;
-  protected Color green;
-  protected Color orange;
-  protected Color blue;
-  protected Color foregroundInfo;
-  protected Color backgroundInfo;
+  private Color black;
+  private Color white;
+  private Color gray;
+  private Color lightGray;
+  private Color darkGreen;
+  private Color green;
+  private Color orange;
+  private Color blue;
+  private Color foregroundInfo;
+  private Color backgroundInfo;
 
-  protected PDPModel pdpModel;
-  protected RoadModel roadModel;
+  private PDPModel pdpModel;
+  private RoadModel roadModel;
 
-  protected boolean isInitialized;
+  private boolean isInitialized;
 
   public PDPModelRenderer() {}
 
   // TODO dispose colors on exit!
-  protected void initialize(GC gc) {
+  private void initialize(GC gc) {
     isInitialized = true;
     black = gc.getDevice().getSystemColor(SWT.COLOR_BLACK);
     white = gc.getDevice().getSystemColor(SWT.COLOR_WHITE);
@@ -146,6 +148,7 @@ public class PDPModelRenderer implements ModelRenderer {
   protected void drawMore(GC gc, ViewPort vp, long time, Vehicle v, Point p,
       Map<RoadUser, Point> posMap) {}
 
+  @Nullable
   @Override
   public ViewRect getViewRect() {
     return null;
@@ -155,10 +158,6 @@ public class PDPModelRenderer implements ModelRenderer {
   public void registerModelProvider(ModelProvider mp) {
     pdpModel = mp.getModel(PDPModel.class);
     roadModel = mp.getModel(RoadModel.class);
-  }
-
-  public Class<PDPModel> getSupportedModelType() {
-    return PDPModel.class;
   }
 
 }

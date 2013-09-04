@@ -44,6 +44,12 @@ public final class View {
     View.autoClose = pAutoClose;
   }
 
+  /**
+   * Immediately starts the gui for the specified simulator.
+   * @param simulator The simulator to visualize.
+   * @param speedup The speedup to use.
+   * @param renderers Any additional renderers to use.
+   */
   @SuppressWarnings("unused")
   public static void startGui(final Simulator simulator, final int speedup,
       Renderer... renderers) {

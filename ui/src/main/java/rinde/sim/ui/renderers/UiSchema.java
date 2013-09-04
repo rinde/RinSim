@@ -3,9 +3,10 @@ package rinde.sim.ui.renderers;
 import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.collect.Maps.newHashMap;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
+
+import javax.annotation.Nullable;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Color;
@@ -19,19 +20,21 @@ import org.eclipse.swt.graphics.RGB;
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
  */
 public class UiSchema {
-  protected Map<String, Color> colorRegistry;
-  protected Map<String, Image> imageRegistry;
-
-  private final HashMap<String, RGB> colorCache;
-  private final HashMap<String, Integer> defaultColorCache;
-
-  private final HashMap<String, String> imgCache;
-  private final boolean useDefault;
-
   /**
    * This is the key that is used for the default color.
    */
   public final static String DEFAULT = "default_color";
+
+  @Nullable
+  Map<String, Color> colorRegistry;
+  @Nullable
+  Map<String, Image> imageRegistry;
+
+  private final Map<String, RGB> colorCache;
+  private final Map<String, Integer> defaultColorCache;
+
+  private final Map<String, String> imgCache;
+  private final boolean useDefault;
 
   /**
    * Create the schema.
@@ -83,6 +86,7 @@ public class UiSchema {
     imgCache.put(type.getName(), fileName);
   }
 
+  @Nullable
   public Image getImage(Class<?> type) {
     checkState(colorRegistry != null,
         "UiSchema needs to be initialized before it can be used");
@@ -103,6 +107,7 @@ public class UiSchema {
    *         otherwise.
    * @see #add(Class, RGB)
    */
+  @Nullable
   public Color getColor(Class<?> type) {
     checkState(colorRegistry != null,
         "UiSchema needs to be initialized before it can be used");
