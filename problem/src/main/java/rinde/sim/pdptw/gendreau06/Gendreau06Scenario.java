@@ -45,14 +45,14 @@ import rinde.sim.util.TimeWindow;
 public final class Gendreau06Scenario extends DynamicPDPTWScenario {
   private static final long serialVersionUID = 1386559671732721432L;
 
+  private static final Point MIN = new Point(0, 0);
+  private static final Point MAX = new Point(5, 5);
+  private static final Measure<Double, Velocity> MAX_SPEED = Measure.valueOf(
+      30d, NonSI.KILOMETERS_PER_HOUR);
+
   private final long tickSize;
   private final GendreauProblemClass problemClass;
   private final int instanceNumber;
-
-  private static final Point MIN = new Point(0, 0);
-  private static final Point MAX = new Point(5, 5);
-  private static final Measure<Double, Velocity> MAX_SPEED = Measure
-      .valueOf(30d, NonSI.KILOMETERS_PER_HOUR);
 
   Gendreau06Scenario(Collection<? extends TimedEvent> pEvents,
       Set<Enum<?>> pSupportedTypes, long ts, GendreauProblemClass problemClass,
@@ -63,15 +63,10 @@ public final class Gendreau06Scenario extends DynamicPDPTWScenario {
     this.instanceNumber = instanceNumber;
   }
 
-  // protected Gendreau06Scenario(Collection<? extends TimedEvent> pEvents,
-  // Set<Enum<?>> pSupportedTypes) {
-  // this(pEvents, pSupportedTypes, 1000L);
-  // }
-
   @Override
   public String toString() {
-    return ToStringBuilder
-        .reflectionToString(this, ToStringStyle.MULTI_LINE_STYLE);
+    return ToStringBuilder.reflectionToString(this,
+        ToStringStyle.MULTI_LINE_STYLE);
   }
 
   @Override
