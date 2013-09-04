@@ -7,8 +7,8 @@ import java.io.IOException;
 import java.util.List;
 
 import rinde.sim.pdptw.common.DynamicPDPTWScenario;
-import rinde.sim.pdptw.experiments.ExperimentUtil;
-import rinde.sim.pdptw.experiments.ScenarioProvider;
+import rinde.sim.pdptw.experiment.ExperimentUtil;
+import rinde.sim.pdptw.experiment.ScenarioProvider;
 
 import com.google.common.collect.ImmutableList;
 

@@ -1,7 +1,7 @@
 /**
  * 
  */
-package rinde.sim.pdptw.experiments;
+package rinde.sim.pdptw.experiment;
 
 import rinde.sim.pdptw.common.DynamicPDPTWScenario;
 

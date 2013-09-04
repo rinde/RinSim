@@ -20,9 +20,9 @@ import rinde.sim.pdptw.common.DefaultParcel;
 import rinde.sim.pdptw.common.DynamicPDPTWProblem.Creator;
 import rinde.sim.pdptw.common.PDPRoadModel;
 import rinde.sim.pdptw.common.RouteFollowingVehicle;
-import rinde.sim.pdptw.experiments.DefaultMASConfiguration;
-import rinde.sim.pdptw.experiments.MASConfiguration;
-import rinde.sim.pdptw.experiments.MASConfigurator;
+import rinde.sim.pdptw.experiment.DefaultMASConfiguration;
+import rinde.sim.pdptw.experiment.MASConfiguration;
+import rinde.sim.pdptw.experiment.MASConfigurator;
 
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;

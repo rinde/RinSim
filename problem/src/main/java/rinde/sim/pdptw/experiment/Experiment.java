@@ -1,7 +1,7 @@
 /**
  * 
  */
-package rinde.sim.pdptw.experiments;
+package rinde.sim.pdptw.experiment;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;

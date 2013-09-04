@@ -21,8 +21,8 @@ import rinde.sim.pdptw.central.arrays.MultiVehicleSolverAdapter;
 import rinde.sim.pdptw.central.arrays.RandomMVArraysSolver;
 import rinde.sim.pdptw.central.arrays.SolutionObject;
 import rinde.sim.pdptw.common.DynamicPDPTWScenario;
-import rinde.sim.pdptw.experiments.Experiment;
-import rinde.sim.pdptw.experiments.Experiment.ExperimentResults;
+import rinde.sim.pdptw.experiment.Experiment;
+import rinde.sim.pdptw.experiment.Experiment.ExperimentResults;
 import rinde.sim.pdptw.gendreau06.Gendreau06ObjectiveFunction;
 import rinde.sim.pdptw.gendreau06.Gendreau06Parser;
 
