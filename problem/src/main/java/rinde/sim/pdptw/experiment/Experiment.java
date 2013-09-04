@@ -7,6 +7,9 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
 
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import javax.annotation.Nullable;
 
@@ -96,6 +99,7 @@ public final class Experiment {
     private boolean showGui;
     private int repetitions;
     private long masterSeed;
+    private int numThreads;
 
     private Builder(ObjectiveFunction objectiveFunction) {
       this.objectiveFunction = objectiveFunction;
@@ -104,6 +108,7 @@ public final class Experiment {
       showGui = false;
       repetitions = 1;
       masterSeed = 0L;
+      numThreads = 1;
     }
 
     /**
@@ -119,7 +124,8 @@ public final class Experiment {
 
     /**
      * Enable the GUI for each simulation. When a large number of simulations is
-     * performed this may slow down the experiment significantly.
+     * performed this may slow down the experiment significantly. The GUI can
+     * not be shown when more than one thread is used.
      * @return This, as per the builder pattern.
      */
     public Builder showGui() {
@@ -199,6 +205,19 @@ public final class Experiment {
     }
 
     /**
+     * Specify the number of threads to use for computing the experiments, the
+     * default is <code>1</code>.
+     * @param threads The number of threads to use.
+     * @return This, as per the builder pattern.
+     */
+    public Builder withThreads(int threads) {
+      checkArgument(threads > 0,
+          "Only a positive number of threads is allowed, was %s.", threads);
+      numThreads = threads;
+      return this;
+    }
+
+    /**
      * Set the master random seed for the experiments.
      * @param seed The seed to use.
      * @return This, as per the builder pattern.
@@ -216,6 +235,8 @@ public final class Experiment {
      *         experiment parameters and the corresponding results.
      */
     public ExperimentResults perform() {
+      checkArgument(numThreads == 1 || !showGui,
+          "The GUI can not be shown when using more than one thread.");
       final ImmutableList<DynamicPDPTWScenario> scen = scenariosBuilder.build();
       final ImmutableList<MASConfigurator> conf = configuratorsBuilder.build();
 
@@ -223,22 +244,82 @@ public final class Experiment {
       checkArgument(!conf.isEmpty(), "At least one configurator is required.");
 
       final RandomGenerator rng = new MersenneTwister(masterSeed);
-      final ImmutableList.Builder<SimulationResult> resultBuilder = ImmutableList
-          .builder();
       final List<Long> seeds = ExperimentUtil
           .generateDistinct(rng, repetitions);
+
+      // gather all runners
+      final ImmutableList.Builder<ExperimentRunner> runnerBuilder = ImmutableList
+          .builder();
       for (final DynamicPDPTWScenario scenario : scen) {
-        for (final MASConfigurator solution : conf) {
+        for (final MASConfigurator configurator : conf) {
           for (int i = 0; i < repetitions; i++) {
             final long seed = seeds.get(i);
-            final StatisticsDTO stats = singleRun(scenario,
-                solution.configure(seed), objectiveFunction, showGui);
-            resultBuilder.add(new SimulationResult(stats, scenario, solution,
-                seed));
+            runnerBuilder.add(new ExperimentRunner(scenario, configurator,
+                seed, objectiveFunction, showGui));
           }
         }
       }
+      final List<ExperimentRunner> runners = runnerBuilder.build();
+
+      if (numThreads > 1) {
+        final ExecutorService executor = Executors
+            .newFixedThreadPool(numThreads);
+
+        for (final ExperimentRunner er : runners) {
+          executor.execute(er);
+        }
+        executor.shutdown();
+        try {
+          executor.awaitTermination(10, TimeUnit.DAYS);
+        } catch (final InterruptedException e) {
+          throw new IllegalStateException(e);
+        }
+      } else {
+        for (final ExperimentRunner er : runners) {
+          er.run();
+        }
+      }
+
+      final ImmutableList.Builder<SimulationResult> resultBuilder = ImmutableList
+          .builder();
+      for (final ExperimentRunner er : runners) {
+        resultBuilder.add(er.getResult());
+      }
       return new ExperimentResults(this, resultBuilder.build());
+    }
+  }
+
+  private static class ExperimentRunner implements Runnable {
+
+    private final DynamicPDPTWScenario scenario;
+    private final MASConfigurator configurator;
+    private final long seed;
+    private final ObjectiveFunction objectiveFunction;
+    private final boolean showGui;
+
+    @Nullable
+    private SimulationResult result;
+
+    ExperimentRunner(DynamicPDPTWScenario scenario,
+        MASConfigurator configurator, long seed,
+        ObjectiveFunction objectiveFunction, boolean showGui) {
+      this.scenario = scenario;
+      this.configurator = configurator;
+      this.seed = seed;
+      this.objectiveFunction = objectiveFunction;
+      this.showGui = showGui;
+    }
+
+    @Override
+    public void run() {
+      final StatisticsDTO stats = singleRun(scenario,
+          configurator.configure(seed), objectiveFunction, showGui);
+      result = new SimulationResult(stats, scenario, configurator, seed);
+    }
+
+    @Nullable
+    SimulationResult getResult() {
+      return result;
     }
   }
 
@@ -310,13 +391,46 @@ public final class Experiment {
     }
   }
 
+  /**
+   * Value object containig all the result of a single experiment as performed
+   * by {@link Builder#perform()}.
+   * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+   */
   public static final class ExperimentResults {
+    /**
+     * The {@link ObjectiveFunction} that was used for this experiment.
+     */
     public final ObjectiveFunction objectiveFunction;
+
+    /**
+     * The configurators that were used in this experiment.
+     */
     public final ImmutableList<MASConfigurator> configurators;
+
+    /**
+     * The scenarios that were used in this experiment.
+     */
     public final ImmutableList<DynamicPDPTWScenario> scenarios;
+
+    /**
+     * Indicates whether the experiment was executed with or without the
+     * graphical user interface.
+     */
     public final boolean showGui;
+
+    /**
+     * The number of repetitions for each run (with a different seed).
+     */
     public final int repetitions;
+
+    /**
+     * The seed of the master random generator.
+     */
     public final long masterSeed;
+
+    /**
+     * The list of individual simulation results.
+     */
     public final ImmutableList<SimulationResult> results;
 
     private ExperimentResults(Builder exp,

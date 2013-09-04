@@ -55,12 +55,13 @@ public final class Central {
    * {@link MASConfiguration}s that are controlled centrally by a {@link Solver}
    * .
    * @param solverCreator The solver creator to use for instantiating solvers.
-   * @param name A string which is used as toString() for the configurator.
+   * @param nameSuffix A string which is append to the toString() for the
+   *          configurator.
    * @return A new configurator.
    */
   public static MASConfigurator solverConfigurator(SolverCreator solverCreator,
-      String name) {
-    return new CentralConfigurator(solverCreator, name);
+      String nameSuffix) {
+    return new CentralConfigurator(solverCreator, nameSuffix);
   }
 
   /**
@@ -79,16 +80,16 @@ public final class Central {
 
   private static final class CentralConfigurator implements MASConfigurator {
     private final SolverCreator solverCreator;
-    private final String name;
+    private final String nameSuffix;
 
     private CentralConfigurator(SolverCreator solverCreator, String name) {
       this.solverCreator = solverCreator;
-      this.name = name;
+      nameSuffix = name;
     }
 
     @Override
     public String toString() {
-      return name;
+      return "Central-" + solverCreator.toString() + nameSuffix;
     }
 
     @Override
