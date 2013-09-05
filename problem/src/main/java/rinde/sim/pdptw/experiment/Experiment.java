@@ -323,7 +323,7 @@ public final class Experiment {
           configurator.configure(seed), objectiveFunction, showGui);
       result = new SimulationResult(stats, scenario, configurator, seed);
       // FIXME this should be changed into a more decent progress indicator
-      System.out.print("..");
+      System.out.print(".");
     }
 
     @Nullable
