@@ -240,6 +240,7 @@ public class RouteFollowingVehicle extends DefaultVehicle {
       service(context);
     }
 
+    // FIXME write tests to check if this state is not entered to early
     private void service(RouteFollowingVehicle context) {
       final PDPModel pm = pdpModel.get();
       final TimeLapse time = currentTime.get();
