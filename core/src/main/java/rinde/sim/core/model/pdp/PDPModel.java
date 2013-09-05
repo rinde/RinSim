@@ -363,8 +363,8 @@ public class PDPModel implements Model<PDPObject>, TickListener, ModelReceiver {
       checkArgument(
           timeWindowPolicy.canPickup(parcel.getPickupTimeWindow(),
               time.getTime(), parcel.getPickupDuration()),
-          "parcel pickup is not allowed according to the time window policy: %s",
-          timeWindowPolicy);
+          "parcel pickup is not allowed according to the time window policy: %s, current time: %s, time window %s.",
+          timeWindowPolicy, time.getTime(), parcel.getPickupTimeWindow());
 
       checkArgument(parcel.canBePickedUp(vehicle, time.getTime()),
           "the parcel does not allow pickup now");
