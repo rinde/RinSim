@@ -54,8 +54,8 @@ public class PDPRoadModelTest {
   @Before
   public void setUp() {
     rm = new PDPRoadModel(new PlaneRoadModel(new Point(0, 0),
-        new Point(10, 10), SI.KILOMETER,
-        Measure.valueOf(0.1, NonSI.KILOMETERS_PER_HOUR)), false);
+        new Point(10, 10), SI.KILOMETER, Measure.valueOf(0.1,
+            NonSI.KILOMETERS_PER_HOUR)), false);
     pm = new PDPModel(new TardyAllowedPolicy());
     final ModelProvider mp = new TestModelProvider(asList(pm, rm));
     rm.registerModelProvider(mp);
@@ -214,8 +214,30 @@ public class PDPRoadModelTest {
   @Test(expected = UnsupportedOperationException.class)
   @SuppressWarnings("null")
   public void invalidFollowPath() {
-    rm.followPath(dv1, newLinkedList(rm
-        .getShortestPathTo(new Point(0, 0), new Point(10, 10))), time(1));
+    rm.followPath(
+        dv1,
+        newLinkedList(rm.getShortestPathTo(new Point(0, 0), new Point(10, 10))),
+        time(1));
+  }
+
+  /**
+   * A vehicle should always be allowed to go back the depot, even multiple
+   * times.
+   */
+  @Test
+  public void revisitDepot() {
+    // move to depot
+    rm.moveTo(dv1, depot, time(1));
+    // move to pickup location
+    rm.moveTo(dv1, dp1, time(100));
+    // pickup
+    pm.service(dv1, dp1, time(100));
+    // move to delivery location
+    rm.moveTo(dv1, dp1, time(100));
+    // deliver
+    pm.service(dv1, dp1, time(100));
+    // move to depot again
+    rm.moveTo(dv1, depot, time(1));
   }
 
   static TimeLapse time(long t) {
@@ -249,5 +271,4 @@ public class PDPRoadModelTest {
     @Override
     public void initRoadPDP(RoadModel pRoadModel, PDPModel pPdpModel) {}
   }
-
 }

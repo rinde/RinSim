@@ -21,7 +21,6 @@ import rinde.sim.core.model.road.AbstractRoadModel;
 import rinde.sim.core.model.road.ForwardingRoadModel;
 import rinde.sim.core.model.road.MoveProgress;
 import rinde.sim.core.model.road.MovingRoadUser;
-import rinde.sim.core.model.road.RoadModel;
 import rinde.sim.core.model.road.RoadUser;
 
 import com.google.common.base.Optional;
@@ -29,8 +28,8 @@ import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Multimap;
 
 /**
- * A decorator for {@link RoadModel} which provides a more convenient API for
- * PDP problems. TODO explain what!
+ * A decorator for {@link AbstractRoadModel} which provides a more convenient
+ * API for PDP problems. TODO explain what!
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
  */
 public class PDPRoadModel extends ForwardingRoadModel implements ModelReceiver {
@@ -43,7 +42,7 @@ public class PDPRoadModel extends ForwardingRoadModel implements ModelReceiver {
   protected Optional<PDPModel> pdpModel;
 
   /**
-   * Decorates the {@link RoadModel}
+   * Decorates the {@link AbstractRoadModel}
    * @param rm
    * @param allowVehicleDiversion
    */
@@ -66,8 +65,10 @@ public class PDPRoadModel extends ForwardingRoadModel implements ModelReceiver {
   }
 
   private void checkType(RoadUser ru) {
-    checkArgument(ru instanceof DefaultVehicle || ru instanceof DefaultDepot
-        || ru instanceof DefaultParcel, "This RoadModel only allows instances of DefaultVehicle, DefaultDepot and DefaultParcel.");
+    checkArgument(
+        ru instanceof DefaultVehicle || ru instanceof DefaultDepot
+            || ru instanceof DefaultParcel,
+        "This RoadModel only allows instances of DefaultVehicle, DefaultDepot and DefaultParcel.");
   }
 
   @Override
@@ -77,9 +78,12 @@ public class PDPRoadModel extends ForwardingRoadModel implements ModelReceiver {
 
   Point getParcelPos(RoadUser obj) {
     if (!containsObject(obj) && obj instanceof DefaultParcel) {
-      final ParcelState state = pdpModel.get()
-          .getParcelState((DefaultParcel) obj);
-      checkArgument(state == ParcelState.IN_CARGO, "Can only move to parcels which are either on the map or in cargo, state is %s.", state);
+      final ParcelState state = pdpModel.get().getParcelState(
+          (DefaultParcel) obj);
+      checkArgument(
+          state == ParcelState.IN_CARGO,
+          "Can only move to parcels which are either on the map or in cargo, state is %s.",
+          state);
       return ((DefaultParcel) obj).getDestination();
     }
     return getPosition(obj);
@@ -97,27 +101,39 @@ public class PDPRoadModel extends ForwardingRoadModel implements ModelReceiver {
     delegate.addObjectAtSamePosition(newObj, existingObj);
   }
 
-  @Override
-  public MoveProgress moveTo(MovingRoadUser object, RoadUser destinationObject,
-      TimeLapse time) {
-
+  private boolean isAlreadyServiced(DestType type, RoadUser ru) {
     final PDPModel pm = pdpModel.get();
+    boolean alreadyServiced = false;
+    if (type == DestType.PICKUP) {
+      alreadyServiced = pm.getParcelState((DefaultParcel) ru) == ParcelState.PICKING_UP
+          || pm.getParcelState((DefaultParcel) ru) == ParcelState.IN_CARGO;
+    } else if (type == DestType.DELIVERY) {
+      alreadyServiced = pm.getParcelState((DefaultParcel) ru) == ParcelState.DELIVERING
+          || pm.getParcelState((DefaultParcel) ru) == ParcelState.DELIVERED;
+    }
+    return alreadyServiced;
+  }
 
+  @Override
+  public MoveProgress moveTo(MovingRoadUser object,
+      RoadUser destinationRoadUser, TimeLapse time) {
+    final PDPModel pm = pdpModel.get();
     DestinationObject newDestinationObject;
-    if (destinationObject instanceof DefaultParcel) {
-      final DefaultParcel dp = (DefaultParcel) destinationObject;
+    if (destinationRoadUser instanceof DefaultParcel) {
+      final DefaultParcel dp = (DefaultParcel) destinationRoadUser;
       final DestType type = containsObject(dp) ? DestType.PICKUP
           : DestType.DELIVERY;
-      final Point pos = getParcelPos(destinationObject);
+      final Point pos = getParcelPos(destinationRoadUser);
       if (type == DestType.DELIVERY) {
-        checkArgument(pm.containerContains((DefaultVehicle) object, (DefaultParcel) destinationObject), "A vehicle can only move to the delivery location of a parcel if it is carrying it.");
+        checkArgument(
+            pm.containerContains((DefaultVehicle) object,
+                (DefaultParcel) destinationRoadUser),
+            "A vehicle can only move to the delivery location of a parcel if it is carrying it.");
       }
-      // type == DestType.PICKUP ? dp.dto.pickupLocation
-      // : dp.dto.destinationLocation;
       newDestinationObject = new DestinationObject(type, pos, dp);
     } else {
       newDestinationObject = new DestinationObject(DestType.DEPOT,
-          getPosition(destinationObject), destinationObject);
+          getPosition(destinationRoadUser), destinationRoadUser);
     }
 
     boolean destChange = true;
@@ -128,47 +144,46 @@ public class PDPRoadModel extends ForwardingRoadModel implements ModelReceiver {
       if (!atDestination && prev.type != DestType.DEPOT) {
         // when we haven't reached our destination and the destination
         // isn't the depot we are not allowed to change destination
-
-        boolean alreadyServiced = false;
-        if (prev.type == DestType.PICKUP) {
-          alreadyServiced = pm.getParcelState((DefaultParcel) prev.roadUser) == ParcelState.PICKING_UP
-              || pm.getParcelState((DefaultParcel) prev.roadUser) == ParcelState.IN_CARGO;
-        } else if (prev.type == DestType.DELIVERY) {
-          alreadyServiced = pm.getParcelState((DefaultParcel) prev.roadUser) == ParcelState.DELIVERING
-              || pm.getParcelState((DefaultParcel) prev.roadUser) == ParcelState.DELIVERED;
-        }
-
-        checkArgument(prev.roadUser == destinationObject || alreadyServiced, "Diversion from the current destination is not allowed: %s.", prev.dest);
+        checkArgument(prev.roadUser == destinationRoadUser
+            || isAlreadyServiced(prev.type, prev.roadUser),
+            "Diversion from the current destination is not allowed: %s.",
+            prev.dest);
         destChange = false;
-      } else {
-        // change destination
-        if (prev.type == DestType.PICKUP) {
-          // when we are at the prev destination, and it was a pickup,
-          // we are allowed to move if it has been picked up
-          checkArgument(pm.getParcelState((DefaultParcel) prev.roadUser) != ParcelState.AVAILABLE, "Can not move away before the parcel has been picked up: %s.", prev.roadUser);
-        } else if (prev.type == DestType.DELIVERY) {
-          // when we are at the prev destination and it was a
-          // delivery, we are allowed to move to other objects only,
-          // and only if the parcel is delivered
-          checkArgument(prev.roadUser != destinationObject, "Can not move to the same parcel since we are already there: %s.", prev.roadUser);
-          checkArgument(pm.getParcelState((DefaultParcel) prev.roadUser) == ParcelState.DELIVERED, "The parcel needs to be delivered before moving away: %s.", prev.roadUser);
-        } else {// it is a depot
-          // the destination is only changed in case we are no longer
-          // going towards the depot
-          destChange = newDestinationObject.type != DestType.DEPOT;
-        }
+      } else
+      // change destination
+      if (prev.type == DestType.PICKUP) {
+        // when we are at the prev destination, and it was a pickup, we are
+        // allowed to move if it has been picked up
+        checkArgument(
+            pm.getParcelState((DefaultParcel) prev.roadUser) != ParcelState.AVAILABLE,
+            "Can not move away before the parcel has been picked up: %s.",
+            prev.roadUser);
+      } else if (prev.type == DestType.DELIVERY) {
+        // when we are at the prev destination and it was a delivery, we are
+        // allowed to move to other objects only, and only if the parcel is
+        // delivered
+        checkArgument(prev.roadUser != destinationRoadUser,
+            "Can not move to the same parcel since we are already there: %s.",
+            prev.roadUser);
+        checkArgument(
+            pm.getParcelState((DefaultParcel) prev.roadUser) == ParcelState.DELIVERED,
+            "The parcel needs to be delivered before moving away: %s.",
+            prev.roadUser);
+      } else {// it is a depot
+        // the destination is only changed in case we are no longer going
+        // towards the depot
+        destChange = newDestinationObject.type != DestType.DEPOT;
       }
     }
-    // if (destChange && !allowDiversion) {
-    // checkArgument(
-    // !destinations.inverse().containsKey(newDestinationObject),
-    // "Only one vehicle is allowed to travel towards a Parcel.");
-    // }
-    destinations.put(object, newDestinationObject);
-    if (destChange) {
 
-      checkArgument(allowDiversion
-          || !destinationHistory.containsEntry(object, newDestinationObject), "It is not allowed to revisit this parcel, it should have been picked up and been delivered already: %s.", newDestinationObject.roadUser);
+    destinations.put(object, newDestinationObject);
+    if (destChange && newDestinationObject.type != DestType.DEPOT) {
+      checkArgument(
+          allowDiversion
+              || !destinationHistory
+                  .containsEntry(object, newDestinationObject),
+          "It is not allowed to revisit this parcel, it should have been picked up and been delivered already: %s.",
+          newDestinationObject.roadUser);
       destinationHistory.put(object, newDestinationObject);
     }
     return delegate.moveTo(object, newDestinationObject.dest, time);
@@ -230,11 +245,14 @@ public class PDPRoadModel extends ForwardingRoadModel implements ModelReceiver {
       return hashCode;
     }
 
-    // since this class is only used internally, we don't have to check for
-    // null or instanceof
-    @SuppressWarnings("null")
     @Override
     public boolean equals(@Nullable Object obj) {
+      if (obj == null || getClass() != this.getClass()) {
+        return false;
+      }
+      if (obj == this) {
+        return true;
+      }
       final DestinationObject other = (DestinationObject) obj;
       return new EqualsBuilder()//
           .append(type, other.type)//
