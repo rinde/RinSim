@@ -250,8 +250,8 @@ public final class Experiment {
       // gather all runners
       final ImmutableList.Builder<ExperimentRunner> runnerBuilder = ImmutableList
           .builder();
-      for (final DynamicPDPTWScenario scenario : scen) {
-        for (final MASConfigurator configurator : conf) {
+      for (final MASConfigurator configurator : conf) {
+        for (final DynamicPDPTWScenario scenario : scen) {
           for (int i = 0; i < repetitions; i++) {
             final long seed = seeds.get(i);
             runnerBuilder.add(new ExperimentRunner(scenario, configurator,
@@ -264,7 +264,6 @@ public final class Experiment {
       if (numThreads > 1) {
         final ExecutorService executor = Executors
             .newFixedThreadPool(numThreads);
-
         for (final ExperimentRunner er : runners) {
           executor.execute(er);
         }
@@ -319,9 +318,21 @@ public final class Experiment {
 
     @Override
     public void run() {
-      final StatisticsDTO stats = singleRun(scenario,
-          configurator.configure(seed), objectiveFunction, showGui);
-      result = new SimulationResult(stats, scenario, configurator, seed);
+      MASConfiguration masConfig = null;
+      try {
+        masConfig = configurator.configure(seed);
+        final StatisticsDTO stats = singleRun(scenario, masConfig,
+            objectiveFunction, showGui);
+        result = new SimulationResult(stats, scenario, configurator, seed);
+      } catch (final RuntimeException e) {
+        final StringBuilder sb = new StringBuilder().append("[Scenario= ")
+            .append(scenario).append(",").append(scenario.getProblemClass())
+            .append(",").append(scenario.getProblemInstanceId()).append("]")
+            .append(",seed=").append(seed).append(",[Configurator=")
+            .append(configurator).append(",config=").append(masConfig)
+            .append("]");
+        throw new RuntimeException(sb.toString(), e);
+      }
       // FIXME this should be changed into a more decent progress indicator
       System.out.print(".");
     }
