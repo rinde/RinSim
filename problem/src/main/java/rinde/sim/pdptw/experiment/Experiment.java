@@ -93,15 +93,15 @@ public final class Experiment {
    * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
    */
   public static final class Builder {
-    private final ObjectiveFunction objectiveFunction;
-    private final ImmutableList.Builder<MASConfigurator> configuratorsBuilder;
-    private final ImmutableList.Builder<DynamicPDPTWScenario> scenariosBuilder;
-    private boolean showGui;
-    private int repetitions;
-    private long masterSeed;
+    final ObjectiveFunction objectiveFunction;
+    final ImmutableList.Builder<MASConfigurator> configuratorsBuilder;
+    final ImmutableList.Builder<DynamicPDPTWScenario> scenariosBuilder;
+    boolean showGui;
+    int repetitions;
+    long masterSeed;
     private int numThreads;
 
-    private Builder(ObjectiveFunction objectiveFunction) {
+    Builder(ObjectiveFunction objectiveFunction) {
       this.objectiveFunction = objectiveFunction;
       configuratorsBuilder = ImmutableList.builder();
       scenariosBuilder = ImmutableList.builder();
@@ -358,9 +358,8 @@ public final class Experiment {
      */
     public final long seed;
 
-    private SimulationResult(StatisticsDTO stats,
-        DynamicPDPTWScenario scenario, MASConfigurator masConfigurator,
-        long seed) {
+    SimulationResult(StatisticsDTO stats, DynamicPDPTWScenario scenario,
+        MASConfigurator masConfigurator, long seed) {
       this.stats = stats;
       this.scenario = scenario;
       this.masConfigurator = masConfigurator;
@@ -442,15 +441,14 @@ public final class Experiment {
      */
     public final ImmutableList<SimulationResult> results;
 
-    private ExperimentResults(Builder exp,
-        ImmutableList<SimulationResult> results) {
+    ExperimentResults(Builder exp, ImmutableList<SimulationResult> res) {
       objectiveFunction = exp.objectiveFunction;
       configurators = exp.configuratorsBuilder.build();
       scenarios = exp.scenariosBuilder.build();
       showGui = exp.showGui;
       repetitions = exp.repetitions;
       masterSeed = exp.masterSeed;
-      this.results = results;
+      results = res;
     }
   }
 
