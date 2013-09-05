@@ -368,14 +368,14 @@ public class RouteFollowingVehicle extends DefaultVehicle {
   /**
    * @return the depot
    */
-  protected Optional<DefaultDepot> getDepot() {
-    return depot;
+  protected DefaultDepot getDepot() {
+    return depot.get();
   }
 
   /**
    * @return the currentTime
    */
-  protected Optional<TimeLapse> getCurrentTime() {
-    return currentTime;
+  protected TimeLapse getCurrentTime() {
+    return currentTime.get();
   }
 }
