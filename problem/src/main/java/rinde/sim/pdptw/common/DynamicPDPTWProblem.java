@@ -70,8 +70,8 @@ public class DynamicPDPTWProblem {
    */
   protected static final ImmutableMap<Class<?>, Creator<?>> DEFAULT_EVENT_CREATOR_MAP;
   static {
-    DEFAULT_EVENT_CREATOR_MAP = ImmutableMap
-        .of((Class<?>) AddParcelEvent.class, new Creator<AddParcelEvent>() {
+    DEFAULT_EVENT_CREATOR_MAP = ImmutableMap.of(
+        (Class<?>) AddParcelEvent.class, new Creator<AddParcelEvent>() {
           @Override
           public boolean create(Simulator sim, AddParcelEvent event) {
             return sim.register(new DefaultParcel(event.parcelDTO));
@@ -127,8 +127,8 @@ public class DynamicPDPTWProblem {
    */
   public DynamicPDPTWProblem(final DynamicPDPTWScenario scen, long randomSeed,
       Model<?>... models) {
-    simulator = new Simulator(new MersenneTwister(randomSeed),
-        Measure.valueOf(scen.getTickSize(), scen.getTimeUnit()));
+    simulator = new Simulator(new MersenneTwister(randomSeed), Measure.valueOf(
+        scen.getTickSize(), scen.getTimeUnit()));
     simulator.register(scen.createRoadModel());
     simulator.register(scen.createPDPModel());
     for (final Model<?> m : models) {
@@ -225,8 +225,9 @@ public class DynamicPDPTWProblem {
    * @return The statistics that were gathered during the simulation.
    */
   public StatisticsDTO simulate() {
-    checkState(eventCreatorMap.containsKey(AddVehicleEvent.class), "A creator for AddVehicleEvent is required, use %s.addCreator(..)", this
-        .getClass().getName());
+    checkState(eventCreatorMap.containsKey(AddVehicleEvent.class),
+        "A creator for AddVehicleEvent is required, use %s.addCreator(..)",
+        this.getClass().getName());
     controller.start();
     return getStatistics();
   }
@@ -249,12 +250,14 @@ public class DynamicPDPTWProblem {
    * specified event type if applicable.
    * @param eventType The event type to which the creator will be associated.
    * @param creator The creator that will be used.
+   * @param <T> The type of the event.
    */
   public <T extends TimedEvent> void addCreator(Class<T> eventType,
       Creator<T> creator) {
-    checkArgument(eventType == AddVehicleEvent.class
-        || eventType == AddParcelEvent.class
-        || eventType == AddDepotEvent.class, "A creator can only be added to one of the following classes: AddVehicleEvent, AddParcelEvent, AddDepotEvent.");
+    checkArgument(
+        eventType == AddVehicleEvent.class || eventType == AddParcelEvent.class
+            || eventType == AddDepotEvent.class,
+        "A creator can only be added to one of the following classes: AddVehicleEvent, AddParcelEvent, AddDepotEvent.");
     eventCreatorMap.put(eventType, creator);
   }
 
@@ -343,6 +346,8 @@ public class DynamicPDPTWProblem {
      * This method wraps any spec into a stop condition, as to make sure that
      * all products of the <code>and, or</code> and <code>not</code> operations
      * are always a StopCondition.
+     * @param spec The spec to wrap.
+     * @return The wrapped stop condition.
      */
     @Override
     protected StopCondition wrap(
@@ -389,7 +394,7 @@ public class DynamicPDPTWProblem {
    */
   public static class DefaultUICreator implements UICreator {
     /**
-     * A list of renderers;
+     * A list of renderers.
      */
     protected final List<Renderer> renderers;
 
