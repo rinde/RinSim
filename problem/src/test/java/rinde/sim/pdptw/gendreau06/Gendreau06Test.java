@@ -9,7 +9,6 @@ import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Sets.newHashSet;
 import static java.util.Arrays.asList;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
@@ -84,16 +83,16 @@ public class Gendreau06Test {
 
   @Test
   public void simpleScenario() throws IOException {
-    final Gendreau06Scenario scenario = create(2, minutes(15), new AddParcelEvent(
-        new ParcelDTO(new Point(2, 1), new Point(4, 1), new TimeWindow(0,
-            720000), new TimeWindow(5, 720000), 0, 0, 0, 0)));
+    final Gendreau06Scenario scenario = create(2, minutes(15),
+        new AddParcelEvent(new ParcelDTO(new Point(2, 1), new Point(4, 1),
+            new TimeWindow(0, 720000), new TimeWindow(5, 720000), 0, 0, 0, 0)));
     final StatisticsDTO dto = runProblem(scenario, useGui);
 
     // the second truck will turn around just one tick distance before
     // reaching the package. the reason is that it is too late since the
     // first truck will pickup the parcel.
     final double distInOneTick = 30.0 / 3600.0;
-    assertFalse(dto.simFinish);
+    assertTrue(dto.simFinish);
     assertEquals(9 - (2.0 * distInOneTick), dto.totalDistance, EPSILON);
     assertEquals(1, dto.totalParcels);
     assertEquals(0, dto.overTime);
@@ -108,9 +107,10 @@ public class Gendreau06Test {
    */
   @Test
   public void overtimeScenario() {
-    final Gendreau06Scenario scenario = create(1, minutes(6), new AddParcelEvent(
-        new ParcelDTO(new Point(2, 1), new Point(4, 1), new TimeWindow(0,
-            minutes(12)), new TimeWindow(5, minutes(12)), 0, 0, 0, 0)));
+    final Gendreau06Scenario scenario = create(1, minutes(6),
+        new AddParcelEvent(new ParcelDTO(new Point(2, 1), new Point(4, 1),
+            new TimeWindow(0, minutes(12)), new TimeWindow(5, minutes(12)), 0,
+            0, 0, 0)));
     final StatisticsDTO dto = runProblem(scenario, useGui);
 
     assertTrue(dto.simFinish);
@@ -146,8 +146,10 @@ public class Gendreau06Test {
         parcelEvent(2, 3, 2, 1, 0, seconds(15), 0, minutes(9)), /* */
         parcelEvent(3, 3, 3, 1, 0, minutes(3), 0, minutes(4)));
     final StatisticsDTO dto = runProblem(scenario, useGui);
-    assertFalse(dto.simFinish); // the vehicles have returned to the depot
-                                // just before the TIME_OUT event
+    assertTrue(dto.simFinish); // the vehicles have returned to the depot
+                               // just before the TIME_OUT event, but the
+                               // simulation continues until the end of the
+                               // scenario.
     assertEquals(6, dto.totalDistance, EPSILON);
     assertEquals(2, dto.totalDeliveries);
     assertEquals(0, dto.overTime);
@@ -246,13 +248,15 @@ public class Gendreau06Test {
 
     @Override
     public void init(DefaultVehicle v, RoadModel rm, PDPModel pm) {
-      checkState(vehicle == null && roadModel == null && pdpModel == null, "init can be called only once!");
+      checkState(vehicle == null && roadModel == null && pdpModel == null,
+          "init can be called only once!");
       vehicle = v;
       roadModel = rm;
       pdpModel = pm;
 
       final Set<DefaultDepot> set = rm.getObjectsOfType(DefaultDepot.class);
-      checkArgument(set.size() == 1, "This strategy only supports problems with one depot.");
+      checkArgument(set.size() == 1,
+          "This strategy only supports problems with one depot.");
       depot = set.iterator().next();
     }
 
