@@ -235,8 +235,12 @@ public class RouteFollowingVehicle extends DefaultVehicle {
     public void onEntry(StateEvent event, RouteFollowingVehicle context) {
       checkArgument(currentTime.get().hasTimeLeft(),
           "We can't go into service state when there is no time left to consume.");
-
       startedServicing = false;
+
+      service(context);
+    }
+
+    private void service(RouteFollowingVehicle context) {
       final PDPModel pm = pdpModel.get();
       final TimeLapse time = currentTime.get();
       final DefaultParcel cur = route.element();
@@ -270,8 +274,7 @@ public class RouteFollowingVehicle extends DefaultVehicle {
     @Override
     public StateEvent handle(StateEvent event, RouteFollowingVehicle context) {
       if (!startedServicing && currentTime.get().hasTimeLeft()) {
-        pdpModel.get().service(context, route.peek(), currentTime.get());
-        startedServicing = true;
+        service(context);
       } else if (currentTime.get().hasTimeLeft()) {
         return StateEvent.DONE;
       }
