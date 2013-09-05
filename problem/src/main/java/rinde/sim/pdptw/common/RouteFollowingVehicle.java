@@ -2,12 +2,14 @@ package rinde.sim.pdptw.common;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.collect.Lists.newLinkedList;
+import static java.util.Collections.unmodifiableCollection;
 
 import java.math.RoundingMode;
 import java.util.Collection;
 import java.util.Queue;
 import java.util.Set;
 
+import javax.annotation.Nullable;
 import javax.measure.Measure;
 import javax.measure.quantity.Duration;
 import javax.measure.quantity.Length;
@@ -21,6 +23,8 @@ import rinde.sim.core.model.pdp.PDPModel.ParcelState;
 import rinde.sim.core.model.pdp.Parcel;
 import rinde.sim.core.model.road.RoadModel;
 import rinde.sim.pdptw.central.arrays.ArraysSolvers;
+import rinde.sim.util.fsm.AbstractState;
+import rinde.sim.util.fsm.StateMachine;
 
 import com.google.common.base.Optional;
 import com.google.common.math.DoubleMath;
@@ -44,6 +48,28 @@ public class RouteFollowingVehicle extends DefaultVehicle {
   private Queue<DefaultParcel> route;
   private Optional<DefaultDepot> depot;
   private Optional<Measure<Double, Velocity>> speed;
+  private Optional<TimeLapse> currentTime;
+
+  /**
+   * The state machine that defines the states and the allowed transitions
+   * between them.
+   */
+  protected final StateMachine<StateEvent, RouteFollowingVehicle> stateMachine;
+
+  /**
+   * The wait state: {@link Wait}.
+   */
+  protected final Wait waitState;
+
+  /**
+   * The goto state: {@link Goto}.
+   */
+  protected final Goto gotoState;
+
+  /**
+   * The service state: {@link Service}.
+   */
+  protected final Service serviceState;
 
   /**
    * Initializes the vehicle.
@@ -54,6 +80,15 @@ public class RouteFollowingVehicle extends DefaultVehicle {
     depot = Optional.absent();
     speed = Optional.absent();
     route = newLinkedList();
+    currentTime = Optional.absent();
+
+    waitState = new Wait();
+    gotoState = new Goto();
+    serviceState = new Service();
+    stateMachine = StateMachine.create(waitState)
+        .addTransition(waitState, StateEvent.GOTO, gotoState)
+        .addTransition(gotoState, StateEvent.ARRIVED, serviceState)
+        .addTransition(serviceState, StateEvent.DONE, waitState).build();
   }
 
   /**
@@ -72,10 +107,11 @@ public class RouteFollowingVehicle extends DefaultVehicle {
   public void initRoadPDP(RoadModel pRoadModel, PDPModel pPdpModel) {
     super.initRoadPDP(pRoadModel, pPdpModel);
 
-    final Set<DefaultDepot> depots = roadModel.get()
-        .getObjectsOfType(DefaultDepot.class);
-    checkArgument(depots.size() == 1, "This vehicle requires exactly 1 depot, found %s depots.", depots
-        .size());
+    final Set<DefaultDepot> depots = roadModel.get().getObjectsOfType(
+        DefaultDepot.class);
+    checkArgument(depots.size() == 1,
+        "This vehicle requires exactly 1 depot, found %s depots.",
+        depots.size());
     depot = Optional.of(depots.iterator().next());
     speed = Optional.of(Measure.valueOf(getSpeed(), roadModel.get()
         .getSpeedUnit()));
@@ -90,59 +126,163 @@ public class RouteFollowingVehicle extends DefaultVehicle {
 
   @Override
   protected final void tickImpl(TimeLapse time) {
+    currentTime = Optional.of(time);
     preTick(time);
-    final RoadModel rm = roadModel.get();
-    final PDPModel pm = pdpModel.get();
-    if (!route.isEmpty()) {
-      while (time.hasTimeLeft() && route.peek() != null) {
-        final DefaultParcel cur = route.element();
-        // if leaving now would mean we are too early, wait
-        if (isTooEarly(cur, time)) {
-          time.consumeAll();
-        } else {
-          // if not there yet, go there
-          if (!rm.equalPosition(this, cur)) {
-            rm.moveTo(this, cur, time);
-          }
-          // if arrived
-          if (rm.equalPosition(this, cur) && time.hasTimeLeft()) {
-            // if parcel is not ready yet, wait
-            final boolean pickup = !pm.getContents(this).contains(cur);
-            final long timeUntilReady = (pickup ? cur.dto.pickupTimeWindow.begin
-                : cur.dto.deliveryTimeWindow.begin)
-                - time.getTime();
+    stateMachine.handle(this);
+  }
 
-            boolean canStart = true;
-            if (timeUntilReady > 0) {
-              if (time.getTimeLeft() < timeUntilReady) {
-                // in this case we can not yet start
-                // servicing
-                time.consumeAll();
-                canStart = false;
-              } else {
-                time.consume(timeUntilReady);
-              }
-            }
+  /**
+   * The event types of the state machine.
+   * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+   */
+  protected enum StateEvent {
+    /**
+     * Indicates that waiting is over, the vehicle is going to a parcel.
+     */
+    GOTO,
+    /**
+     * Indicates that the vehicle has arrived at a service location.
+     */
+    ARRIVED,
+    /**
+     * Indicates that servicing is finished.
+     */
+    DONE;
+  }
 
-            if (canStart) {
-              // parcel is ready, service
-              pm.service(this, cur, time);
-              route.remove();
-            }
-          }
+  abstract class AbstractTruckState extends
+      AbstractState<StateEvent, RouteFollowingVehicle> {
+    @Override
+    public String toString() {
+      return this.getClass().getSimpleName();
+    }
+
+  }
+
+  /**
+   * Implementation of waiting state, is also responsible for driving back to
+   * the depot.
+   * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+   */
+  protected class Wait extends AbstractTruckState {
+
+    /**
+     * New instance.
+     */
+    protected Wait() {}
+
+    @Nullable
+    @Override
+    public StateEvent handle(StateEvent event, RouteFollowingVehicle context) {
+      if (route.peek() != null) {
+        if (!isTooEarly(route.peek(), currentTime.get())) {
+          return StateEvent.GOTO;
         }
       }
+      // check if it is time to go back to the depot
+      else if (currentTime.get().hasTimeLeft() && route.isEmpty()
+          && isEndOfDay(currentTime.get())
+          && !roadModel.get().equalPosition(context, depot.get())) {
+        roadModel.get().moveTo(context, depot.get(), currentTime.get());
+      }
+      currentTime.get().consumeAll();
+      return null;
     }
-    if (time.hasTimeLeft() && route.isEmpty() && isEndOfDay(time)
-        && !rm.equalPosition(this, depot.get())) {
-      rm.moveTo(this, depot.get(), time);
+  }
+
+  /**
+   * State responsible for moving to a service location.
+   * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+   */
+  protected class Goto extends AbstractTruckState {
+    /**
+     * New instance.
+     */
+    protected Goto() {}
+
+    @Nullable
+    @Override
+    public StateEvent handle(StateEvent event, RouteFollowingVehicle context) {
+      final DefaultParcel cur = route.element();
+      if (roadModel.get().equalPosition(context, cur)) {
+        return StateEvent.ARRIVED;
+      }
+      roadModel.get().moveTo(context, cur, currentTime.get());
+      if (roadModel.get().equalPosition(context, cur)
+          && currentTime.get().hasTimeLeft()) {
+        return StateEvent.ARRIVED;
+      }
+      return null;
+    }
+  }
+
+  /**
+   * State responsible for servicing a parcel.
+   * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+   */
+  protected class Service extends AbstractTruckState {
+    /**
+     * Indicates whether servicing has started upon entry in the state.
+     */
+    protected boolean startedServicing;
+
+    /**
+     * New instance.
+     */
+    protected Service() {}
+
+    @Override
+    public void onEntry(StateEvent event, RouteFollowingVehicle context) {
+      checkArgument(currentTime.get().hasTimeLeft(),
+          "We can't go into service state when there is no time left to consume.");
+
+      startedServicing = false;
+      final PDPModel pm = pdpModel.get();
+      final TimeLapse time = currentTime.get();
+      final DefaultParcel cur = route.element();
+
+      // if parcel is not ready yet, wait
+      final boolean pickup = !pm.getContents(context).contains(cur);
+      final long timeUntilReady = (pickup ? cur.dto.pickupTimeWindow.begin
+          : cur.dto.deliveryTimeWindow.begin) - time.getTime();
+
+      boolean canStart = true;
+      if (timeUntilReady > 0) {
+        if (time.getTimeLeft() < timeUntilReady) {
+          // in this case we can not yet start
+          // servicing
+          time.consumeAll();
+          canStart = false;
+        } else {
+          time.consume(timeUntilReady);
+        }
+      }
+
+      if (canStart) {
+        // parcel is ready, service
+        pm.service(context, cur, time);
+        route.remove();
+        startedServicing = true;
+      }
+    }
+
+    @Nullable
+    @Override
+    public StateEvent handle(StateEvent event, RouteFollowingVehicle context) {
+      if (!startedServicing && currentTime.get().hasTimeLeft()) {
+        pdpModel.get().service(context, route.peek(), currentTime.get());
+        startedServicing = true;
+      } else if (currentTime.get().hasTimeLeft()) {
+        return StateEvent.DONE;
+      }
+      return null;
     }
   }
 
   /**
    * Calculates the arrival time of this vehicle at the parcel if it were to
-   * leave right now (where now is indicated by the specified {@link TimeLapse}.
-   * If the arrival time at the parcel is such that it <i>can not</i> start
+   * leave right now (where now is indicated by the specified {@link TimeLapse}
+   * ). If the arrival time at the parcel is such that it <i>can not</i> start
    * servicing the parcel in the next tick, this method returns
    * <code>true</code>, and <code>false</code> otherwise. If the parcel is in
    * state {@link ParcelState#AVAILABLE} the vehicle can not be too early, in
@@ -154,8 +294,9 @@ public class RouteFollowingVehicle extends DefaultVehicle {
    */
   protected boolean isTooEarly(Parcel p, TimeLapse time) {
     final ParcelState parcelState = pdpModel.get().getParcelState(p);
-    checkArgument(!parcelState.isTransitionState()
-        && !parcelState.isDelivered(), parcelState);
+    checkArgument(
+        !parcelState.isTransitionState() && !parcelState.isDelivered(),
+        parcelState);
 
     final boolean isPickup = !parcelState.isPickedUp();
 
@@ -173,15 +314,17 @@ public class RouteFollowingVehicle extends DefaultVehicle {
     // compute how many ticks from now the parcel will be available
     long ticksUntilAvailable = 0;
     if (time.getTimeLeft() < timeUntilAvailable) {
-      ticksUntilAvailable = DoubleMath.roundToLong((timeUntilAvailable - time
-          .getTimeLeft()) / (double) time.getTimeStep(), RoundingMode.FLOOR);
+      ticksUntilAvailable = DoubleMath.roundToLong(
+          (timeUntilAvailable - time.getTimeLeft())
+              / (double) time.getTimeStep(), RoundingMode.FLOOR);
     }
 
     // compute how many ticks from now we arrive at the parcel
     long ticksUntilArrival = 0;
     if (time.getTimeLeft() < travelTime) {
-      ticksUntilArrival = DoubleMath.roundToLong((travelTime - time
-          .getTimeLeft()) / (double) time.getTimeStep(), RoundingMode.FLOOR);
+      ticksUntilArrival = DoubleMath.roundToLong(
+          (travelTime - time.getTimeLeft()) / (double) time.getTimeStep(),
+          RoundingMode.FLOOR);
     }
     return ticksUntilArrival < ticksUntilAvailable;
   }
@@ -193,12 +336,13 @@ public class RouteFollowingVehicle extends DefaultVehicle {
    * @return The travel time in the used time unit.
    */
   protected long computeTravelTimeTo(Point p, Unit<Duration> timeUnit) {
-    final Measure<Double, Length> distance = Measure.valueOf(Point
-        .distance(roadModel.get().getPosition(this), p), roadModel.get()
+    final Measure<Double, Length> distance = Measure.valueOf(Point.distance(
+        roadModel.get().getPosition(this), p), roadModel.get()
         .getDistanceUnit());
 
-    return DoubleMath
-        .roundToLong(ArraysSolvers.computeTravelTime(speed.get(), distance, timeUnit), RoundingMode.CEILING);
+    return DoubleMath.roundToLong(
+        ArraysSolvers.computeTravelTime(speed.get(), distance, timeUnit),
+        RoundingMode.CEILING);
   }
 
   /**
@@ -209,8 +353,29 @@ public class RouteFollowingVehicle extends DefaultVehicle {
    *         otherwise.
    */
   protected boolean isEndOfDay(TimeLapse time) {
-    final long travelTime = computeTravelTimeTo(roadModel.get()
-        .getPosition(depot.get()), time.getTimeUnit());
+    final long travelTime = computeTravelTimeTo(
+        roadModel.get().getPosition(depot.get()), time.getTimeUnit());
     return time.getEndTime() - 1 >= dto.availabilityTimeWindow.end - travelTime;
+  }
+
+  /**
+   * @return the route
+   */
+  protected Collection<DefaultParcel> getRoute() {
+    return unmodifiableCollection(route);
+  }
+
+  /**
+   * @return the depot
+   */
+  protected Optional<DefaultDepot> getDepot() {
+    return depot;
+  }
+
+  /**
+   * @return the currentTime
+   */
+  protected Optional<TimeLapse> getCurrentTime() {
+    return currentTime;
   }
 }

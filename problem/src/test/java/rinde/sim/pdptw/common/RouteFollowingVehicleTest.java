@@ -291,6 +291,7 @@ public class RouteFollowingVehicleTest {
       // diverted to this parcel, and serviced it.
       assertEquals(newHashSet(p2), pm.getContents(d));
     } catch (final IllegalArgumentException e) {
+      assertTrue(e.getMessage().startsWith("Diversion"));
       error = true;
     }
     assertEquals(!diversionIsAllowed, error);
