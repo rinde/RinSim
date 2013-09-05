@@ -283,7 +283,14 @@ public final class Experiment {
       final ImmutableList.Builder<SimulationResult> resultBuilder = ImmutableList
           .builder();
       for (final ExperimentRunner er : runners) {
-        resultBuilder.add(er.getResult());
+        final SimulationResult sr = er.getResult();
+        if (sr != null) {
+          resultBuilder.add(sr);
+        } else {
+          // FIXME need some way to gracefully handle this error. All data
+          // should be saved to reproduce this simulation.
+          System.err.println("Found a null result");
+        }
       }
       return new ExperimentResults(this, resultBuilder.build());
     }
@@ -315,6 +322,8 @@ public final class Experiment {
       final StatisticsDTO stats = singleRun(scenario,
           configurator.configure(seed), objectiveFunction, showGui);
       result = new SimulationResult(stats, scenario, configurator, seed);
+      // FIXME this should be changed into a more decent progress indicator
+      System.out.print("..");
     }
 
     @Nullable
