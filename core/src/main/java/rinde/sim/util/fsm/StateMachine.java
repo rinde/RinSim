@@ -3,7 +3,6 @@ package rinde.sim.util.fsm;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.collect.Maps.newHashMap;
 import static com.google.common.collect.Sets.newHashSet;
-import static com.google.common.collect.Tables.unmodifiableTable;
 
 import java.util.Map;
 import java.util.Set;
@@ -14,8 +13,7 @@ import rinde.sim.event.Event;
 import rinde.sim.event.EventAPI;
 import rinde.sim.event.EventDispatcher;
 
-import com.google.common.collect.HashBasedTable;
-import com.google.common.collect.Table;
+import com.google.common.collect.ImmutableTable;
 import com.google.common.collect.Table.Cell;
 
 /**
@@ -62,7 +60,7 @@ public class StateMachine<E, C> {
   /**
    * The transition table which defines the allowed transitions.
    */
-  protected Table<State<E, C>, E, State<E, C>> transitionTable;
+  protected ImmutableTable<State<E, C>, E, State<E, C>> transitionTable;
   /**
    * The current state.
    */
@@ -72,11 +70,12 @@ public class StateMachine<E, C> {
    */
   protected final State<E, C> startState;
 
-  StateMachine(State<E, C> start, Table<State<E, C>, E, State<E, C>> table) {
+  StateMachine(State<E, C> start,
+      ImmutableTable<State<E, C>, E, State<E, C>> table) {
     eventDispatcher = new EventDispatcher(StateMachineEvent.values());
     startState = start;
     currentState = start;
-    transitionTable = unmodifiableTable(table);
+    transitionTable = table;
   }
 
   /**
@@ -111,9 +110,10 @@ public class StateMachine<E, C> {
    * @param context Reference to the context.
    */
   protected void changeState(E event, C context) {
-    checkArgument(transitionTable.contains(currentState, event), "The event %s is not supported when in state %s.", event, currentState);
+    checkArgument(transitionTable.contains(currentState, event),
+        "The event %s is not supported when in state %s.", event, currentState);
     final State<E, C> newState = transitionTable.get(currentState, event);
-    if (newState != currentState) {
+    if (!newState.equals(currentState)) {
       currentState.onExit(event, context);
       final State<E, C> oldState = currentState;
       currentState = newState;
@@ -138,7 +138,7 @@ public class StateMachine<E, C> {
    *         <code>false</code> otherwise.
    */
   public boolean stateIs(State<E, C> s) {
-    return currentState == s;
+    return currentState.equals(s);
   }
 
   /**
@@ -175,41 +175,45 @@ public class StateMachine<E, C> {
     return eventDispatcher.getPublicEventAPI();
   }
 
+  private static final String NODE = "node";
+  private static final String NODE_DEFINITION = "[label=\"\",shape=point]\n";
+  private static final String CONN = " -> ";
+  private static final String LABEL_OPEN = "[label=\"";
+  private static final String LABEL_CLOSE = "\"]\n";
+  private static final String FILE_OPEN = "digraph stategraph {\n";
+  private static final String FILE_CLOSE = "}";
+
   /**
    * @return A dot representation of the state machine, can be used for
    *         debugging the transition table.
    */
   public String toDot() {
     int id = 0;
-    final StringBuilder string = new StringBuilder();
-    string.append("digraph stategraph {\n");
+    final StringBuilder builder = new StringBuilder();
+    builder.append(FILE_OPEN);
     final Set<State<E, C>> allStates = newHashSet();
     allStates.addAll(transitionTable.rowKeySet());
     allStates.addAll(transitionTable.values());
-
     final Map<State<E, C>, Integer> idMap = newHashMap();
     for (final State<E, C> s : allStates) {
-      string.append("node").append(id).append("[label=\"").append(s.name())
-          .append("\"]\n");
+      builder.append(NODE).append(id).append(LABEL_OPEN).append(s.name())
+          .append(LABEL_CLOSE);
       idMap.put(s, id);
       id++;
     }
-
-    string.append("node").append(id).append("[label=\"\",shape=point]\n");
-    string.append("node").append(id).append(" -> ").append("node")
-        .append(idMap.get(startState)).append("\n");
+    builder.append(NODE).append(id).append(NODE_DEFINITION);
+    builder.append(NODE).append(id).append(CONN).append(NODE)
+        .append(idMap.get(startState)).append(System.lineSeparator());
 
     for (final Cell<State<E, C>, E, State<E, C>> cell : transitionTable
         .cellSet()) {
       final int id1 = idMap.get(cell.getRowKey());
       final int id2 = idMap.get(cell.getValue());
-      string.append("node").append(id1).append(" -> ").append("node")
-          .append(id2).append("[label=\"").append(cell.getColumnKey())
-          .append("\"]\n");
+      builder.append(NODE).append(id1).append(CONN).append(NODE).append(id2)
+          .append(LABEL_OPEN).append(cell.getColumnKey()).append(LABEL_CLOSE);
     }
-
-    string.append("}");
-    return string.toString();
+    builder.append(FILE_CLOSE);
+    return builder.toString();
   }
 
   /**
@@ -217,10 +221,11 @@ public class StateMachine<E, C> {
    * state. This method returns a reference to the {@link StateMachineBuilder}
    * which allows for adding of transitions to the state machine.
    * @param initialState The start state of the state machine.
+   * @param <E> The event type.
+   * @param <C> The context type.
    * @return A reference to the {@link StateMachineBuilder} which is used for
    *         creating the {@link StateMachine}.
    */
-  @SuppressWarnings("synthetic-access")
   public static <E, C> StateMachineBuilder<E, C> create(State<E, C> initialState) {
     return new StateMachineBuilder<E, C>(initialState);
   }
@@ -232,18 +237,11 @@ public class StateMachine<E, C> {
    * @see StateMachine
    */
   public static final class StateMachineBuilder<E, C> {
-    /**
-     * The transition table.
-     */
-    protected final Table<State<E, C>, E, State<E, C>> table;
+    private final ImmutableTable.Builder<State<E, C>, E, State<E, C>> tableBuilder;
+    private final State<E, C> start;
 
-    /**
-     * The start state.
-     */
-    protected final State<E, C> start;
-
-    private StateMachineBuilder(State<E, C> initialState) {
-      table = HashBasedTable.create();
+    StateMachineBuilder(State<E, C> initialState) {
+      tableBuilder = ImmutableTable.builder();
       start = initialState;
     }
 
@@ -256,7 +254,7 @@ public class StateMachine<E, C> {
      */
     public StateMachineBuilder<E, C> addTransition(State<E, C> from, E event,
         State<E, C> to) {
-      table.put(from, event, to);
+      tableBuilder.put(from, event, to);
       return this;
     }
 
@@ -266,7 +264,7 @@ public class StateMachine<E, C> {
      * @return The {@link StateMachine}.
      */
     public StateMachine<E, C> build() {
-      return new StateMachine<E, C>(start, table);
+      return new StateMachine<E, C>(start, tableBuilder.build());
     }
   }
 
@@ -301,7 +299,7 @@ public class StateMachine<E, C> {
      */
     protected StateTransitionEvent(StateMachine<E, C> issuer, State<E, C> prev,
         E e, State<E, C> next) {
-      super(StateMachineEvent.STATE_TRANSITION);
+      super(StateMachineEvent.STATE_TRANSITION, issuer);
       previousState = prev;
       event = e;
       newState = next;
@@ -328,5 +326,4 @@ public class StateMachine<E, C> {
           .append(newState).append("]").toString();
     }
   }
-
 }
