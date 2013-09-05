@@ -39,6 +39,13 @@ import com.google.common.collect.Table.Cell;
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
  */
 public class StateMachine<E, C> {
+  private static final String NODE = "node";
+  private static final String NODE_DEFINITION = "[label=\"\",shape=point]\n";
+  private static final String CONN = " -> ";
+  private static final String LABEL_OPEN = "[label=\"";
+  private static final String LABEL_CLOSE = "\"]\n";
+  private static final String FILE_OPEN = "digraph stategraph {\n";
+  private static final String FILE_CLOSE = "}";
 
   /**
    * The type of {@link Event}s that this {@link StateMachine} supports.
@@ -174,14 +181,6 @@ public class StateMachine<E, C> {
   public EventAPI getEventAPI() {
     return eventDispatcher.getPublicEventAPI();
   }
-
-  private static final String NODE = "node";
-  private static final String NODE_DEFINITION = "[label=\"\",shape=point]\n";
-  private static final String CONN = " -> ";
-  private static final String LABEL_OPEN = "[label=\"";
-  private static final String LABEL_CLOSE = "\"]\n";
-  private static final String FILE_OPEN = "digraph stategraph {\n";
-  private static final String FILE_CLOSE = "}";
 
   /**
    * @return A dot representation of the state machine, can be used for

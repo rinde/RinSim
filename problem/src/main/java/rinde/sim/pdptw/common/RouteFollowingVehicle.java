@@ -45,11 +45,6 @@ import com.google.common.math.DoubleMath;
  */
 public class RouteFollowingVehicle extends DefaultVehicle {
 
-  private Queue<DefaultParcel> route;
-  private Optional<DefaultDepot> depot;
-  private Optional<Measure<Double, Velocity>> speed;
-  private Optional<TimeLapse> currentTime;
-
   /**
    * The state machine that defines the states and the allowed transitions
    * between them.
@@ -70,6 +65,11 @@ public class RouteFollowingVehicle extends DefaultVehicle {
    * The service state: {@link Service}.
    */
   protected final Service serviceState;
+
+  Queue<DefaultParcel> route;
+  Optional<DefaultDepot> depot;
+  Optional<TimeLapse> currentTime;
+  private Optional<Measure<Double, Velocity>> speed;
 
   /**
    * Initializes the vehicle.
