@@ -28,10 +28,14 @@ import rinde.sim.core.model.Model;
 import rinde.sim.core.model.ModelProvider;
 import rinde.sim.core.model.TestModelProvider;
 import rinde.sim.core.model.pdp.PDPModel;
+import rinde.sim.core.model.pdp.PDPModel.PDPModelEvent;
+import rinde.sim.core.model.pdp.PDPModel.PDPModelEventType;
 import rinde.sim.core.model.pdp.PDPModel.ParcelState;
 import rinde.sim.core.model.pdp.PDPModel.VehicleState;
 import rinde.sim.core.model.pdp.twpolicy.TardyAllowedPolicy;
 import rinde.sim.core.model.road.PlaneRoadModel;
+import rinde.sim.event.Event;
+import rinde.sim.event.Listener;
 import rinde.sim.util.TimeWindow;
 
 /**
@@ -129,10 +133,18 @@ public class RouteFollowingVehicleTest {
     assertFalse(d.isTooEarly(p2, time(minute(20), minute(21))));
   }
 
-  void tick(long beginMinute, long endMinute) {
+  void tick(long beginMinute, long endMinute, long consumeSeconds) {
     final TimeLapse tl = time(minute(beginMinute), minute(endMinute));
+    if (consumeSeconds > 0) {
+      tl.consume(consumeSeconds * 1000);
+    }
     pm.tick(tl);
     d.tick(tl);
+    assertFalse(tl.hasTimeLeft());
+  }
+
+  void tick(long beginMinute, long endMinute) {
+    tick(beginMinute, endMinute, 0);
   }
 
   /**
@@ -322,7 +334,154 @@ public class RouteFollowingVehicleTest {
     assertTrue(d.isEndOfDay(time(minute(25), minute(26))));
   }
 
+  /**
+   * Arrive too early, pickup at start of next tick.
+   */
+  @Test
+  public void tooEarlyTest1() {
+    final DefaultParcel p3 = new DefaultParcel(new ParcelDTO(new Point(1, 2),
+        new Point(1, 4), //
+        new TimeWindow(minute(5) + second(30), minute(15)), // pickup tw
+        new TimeWindow(minute(16), minute(30)),// delivery tw
+        0, 0, minute(3), minute(1)));
+
+    PDPTWTestUtil.register(rm, pm, p3);
+
+    d.setRoute(asList(p3));
+
+    // we are too early, don't move
+    tick(0, 1);
+    tick(1, 2);
+    tick(2, 3);
+    assertEquals(d.waitState, d.stateMachine.getCurrentState());
+    assertEquals(new Point(1, 1), rm.getPosition(d));
+
+    // we can go
+    tick(3, 4);
+    assertEquals(new Point(1, 1.5), rm.getPosition(d));
+    assertEquals(d.gotoState, d.stateMachine.getCurrentState());
+
+    tick(4, 5);
+    // we have arrived, but no time left to start pickup
+    assertEquals(new Point(1, 2.0), rm.getPosition(d));
+    assertEquals(d.gotoState, d.stateMachine.getCurrentState());
+
+    // check that pickup occurs exactly at opening of time window
+    pm.getEventAPI().addListener(new Listener() {
+      @Override
+      public void handleEvent(Event e) {
+        assertEquals(minute(5) + second(30), ((PDPModelEvent) e).time);
+      }
+    }, PDPModelEventType.START_PICKUP);
+
+    // now start pickup
+    tick(5, 6);
+    assertEquals(d.serviceState, d.stateMachine.getCurrentState());
+  }
+
+  /**
+   * Arrive too early, pickup in same tick.
+   */
+  @Test
+  public void tooEarlyTest2() {
+    final DefaultParcel p3 = new DefaultParcel(new ParcelDTO(new Point(1, 2.2),
+        new Point(1, 4), //
+        new TimeWindow(minute(5) + second(30), minute(15)), // pickup tw
+        new TimeWindow(minute(16), minute(30)),// delivery tw
+        0, 0, minute(3), minute(1)));
+
+    PDPTWTestUtil.register(rm, pm, p3);
+
+    d.setRoute(asList(p3));
+
+    // we are too early, don't move
+    tick(0, 1);
+    tick(1, 2);
+    tick(2, 3);
+    assertEquals(d.waitState, d.stateMachine.getCurrentState());
+    assertEquals(new Point(1, 1), rm.getPosition(d));
+
+    // we can go
+    tick(3, 4);
+    assertEquals(new Point(1, 1.5), rm.getPosition(d));
+    assertEquals(d.gotoState, d.stateMachine.getCurrentState());
+
+    tick(4, 5);
+    assertEquals(new Point(1, 2.0), rm.getPosition(d));
+    assertEquals(d.gotoState, d.stateMachine.getCurrentState());
+
+    // check that pickup occurs exactly at opening of time window
+    pm.getEventAPI().addListener(new Listener() {
+      @Override
+      public void handleEvent(Event e) {
+        assertEquals(minute(5) + second(30), ((PDPModelEvent) e).time);
+      }
+    }, PDPModelEventType.START_PICKUP);
+
+    // now start pickup
+    tick(5, 6);
+    assertEquals(d.serviceState, d.stateMachine.getCurrentState());
+  }
+
+  /**
+   * Arrive too early with some time left, pickup in middle of next tick.
+   */
+  @Test
+  public void tooEarlyTest3() {
+    final DefaultParcel p3 = new DefaultParcel(new ParcelDTO(
+        new Point(1, 1.99), new Point(1, 4), //
+        new TimeWindow(minute(5) + second(30), minute(15)), // pickup tw
+        new TimeWindow(minute(16), minute(30)),// delivery tw
+        0, 0, minute(3), minute(1)));
+
+    PDPTWTestUtil.register(rm, pm, p3);
+
+    d.setRoute(asList(p3));
+
+    final long travelTime = d.computeTravelTimeTo(p3.dto.pickupLocation,
+        SI.SECOND);
+    System.out.println(travelTime);
+
+    // we are too early, don't move
+    tick(0, 1);
+    tick(1, 2);
+    tick(2, 3);
+    assertEquals(d.waitState, d.stateMachine.getCurrentState());
+    assertEquals(new Point(1, 1), rm.getPosition(d));
+
+    System.out.println(d.isTooEarly(p3, time(minute(3), minute(4))));
+
+    // we can go
+    tick(3, 4);
+    assertEquals(new Point(1, 1.5), rm.getPosition(d));
+    assertEquals(d.gotoState, d.stateMachine.getCurrentState());
+
+    // we arrive with some time left, so we transition to service state
+    tick(4, 5);
+    assertEquals(new Point(1, 1.99), rm.getPosition(d));
+    assertEquals(d.serviceState, d.stateMachine.getCurrentState());
+
+    // check that pickup occurs exactly at opening of time window
+    pm.getEventAPI().addListener(new Listener() {
+      @Override
+      public void handleEvent(Event e) {
+        System.out.println(e);
+        assertEquals(minute(5) + second(30), ((PDPModelEvent) e).time);
+      }
+    }, PDPModelEventType.START_PICKUP);
+
+    // now start pickup
+    tick(5, 6);
+    assertEquals(d.serviceState, d.stateMachine.getCurrentState());
+    tick(6, 7);
+
+  }
+
   static long minute(long minutes) {
     return minutes * 60000;
+  }
+
+  static long second(long sec) {
+    return sec * 1000;
   }
 }

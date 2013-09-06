@@ -240,7 +240,6 @@ public class RouteFollowingVehicle extends DefaultVehicle {
       service(context);
     }
 
-    // FIXME write tests to check if this state is not entered to early
     private void service(RouteFollowingVehicle context) {
       final PDPModel pm = pdpModel.get();
       final TimeLapse time = currentTime.get();
@@ -250,7 +249,6 @@ public class RouteFollowingVehicle extends DefaultVehicle {
       final boolean pickup = !pm.getContents(context).contains(cur);
       final long timeUntilReady = (pickup ? cur.dto.pickupTimeWindow.begin
           : cur.dto.deliveryTimeWindow.begin) - time.getTime();
-
       boolean canStart = true;
       if (timeUntilReady > 0) {
         if (time.getTimeLeft() < timeUntilReady) {
@@ -284,16 +282,19 @@ public class RouteFollowingVehicle extends DefaultVehicle {
   }
 
   /**
-   * Calculates the arrival time of this vehicle at the parcel if it were to
-   * leave right now (where now is indicated by the specified {@link TimeLapse}
-   * ). If the arrival time at the parcel is such that it <i>can not</i> start
-   * servicing the parcel in the next tick, this method returns
-   * <code>true</code>, and <code>false</code> otherwise. If the parcel is in
-   * state {@link ParcelState#AVAILABLE} the vehicle can not be too early, in
-   * this case <code>false</code> is always returned.
-   * @param p The parcel to check travel time to.
+   * Check if leaving in the specified {@link TimeLapse} to the specified
+   * {@link Parcel} would mean a too early arrival time. When this method
+   * returns <code>true</code> it is not necessary to leave already, when
+   * <code>false</code> is returned the vehicle should leave as soon as
+   * possible.
+   * <p>
+   * Calculates the latest time to leave (lttl) to be just in time at the parcel
+   * location. In case lttl is in this {@link TimeLapse} or has already passed,
+   * this method returns <code>false</code>, returns <code>true</code>
+   * otherwise.
+   * @param p The parcel to travel to.
    * @param time The current time.
-   * @return <code>true</code> when arrival at the specified parcel is too
+   * @return <code>true</code> when leaving in this tick would mean arriving too
    *         early, <code>false</code> otherwise.
    */
   protected boolean isTooEarly(Parcel p, TimeLapse time) {
@@ -301,36 +302,18 @@ public class RouteFollowingVehicle extends DefaultVehicle {
     checkArgument(
         !parcelState.isTransitionState() && !parcelState.isDelivered(),
         parcelState);
-
     final boolean isPickup = !parcelState.isPickedUp();
-
     // if it is available, we know we can't be too early
     if (isPickup && parcelState == ParcelState.AVAILABLE) {
       return false;
     }
-
     final Point loc = isPickup ? ((DefaultParcel) p).dto.pickupLocation : p
         .getDestination();
     final long travelTime = computeTravelTimeTo(loc, time.getTimeUnit());
-    final long timeUntilAvailable = (isPickup ? p.getPickupTimeWindow().begin
-        : p.getDeliveryTimeWindow().begin) - time.getTime();
-
-    // compute how many ticks from now the parcel will be available
-    long ticksUntilAvailable = 0;
-    if (time.getTimeLeft() < timeUntilAvailable) {
-      ticksUntilAvailable = DoubleMath.roundToLong(
-          (timeUntilAvailable - time.getTimeLeft())
-              / (double) time.getTimeStep(), RoundingMode.FLOOR);
-    }
-
-    // compute how many ticks from now we arrive at the parcel
-    long ticksUntilArrival = 0;
-    if (time.getTimeLeft() < travelTime) {
-      ticksUntilArrival = DoubleMath.roundToLong(
-          (travelTime - time.getTimeLeft()) / (double) time.getTimeStep(),
-          RoundingMode.FLOOR);
-    }
-    return ticksUntilArrival < ticksUntilAvailable;
+    final long openingTime = isPickup ? p.getPickupTimeWindow().begin : p
+        .getDeliveryTimeWindow().begin;
+    final long latestTimeToLeave = openingTime - travelTime;
+    return latestTimeToLeave >= time.getEndTime();
   }
 
   /**
