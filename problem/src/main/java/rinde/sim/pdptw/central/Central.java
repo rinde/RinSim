@@ -65,7 +65,7 @@ public final class Central {
   }
 
   /**
-   * Implementations should create a new {@link Solver} instances.
+   * Implementations should create new {@link Solver} instances.
    * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
    */
   public interface SolverCreator {
