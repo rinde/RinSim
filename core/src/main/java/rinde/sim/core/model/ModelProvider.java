@@ -14,6 +14,7 @@ public interface ModelProvider {
 
   /**
    * @param clazz The type of {@link Model}.
+   * @param <T> The type of model.
    * @return A {@link Model} instance of the specified type if it knows about
    *         it, <code>null</code> otherwise.
    */
