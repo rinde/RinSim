@@ -79,10 +79,10 @@ public final class Central {
   }
 
   private static final class CentralConfigurator implements MASConfigurator {
-    private final SolverCreator solverCreator;
+    final SolverCreator solverCreator;
     private final String nameSuffix;
 
-    private CentralConfigurator(SolverCreator solverCreator, String name) {
+    CentralConfigurator(SolverCreator solverCreator, String name) {
       this.solverCreator = solverCreator;
       nameSuffix = name;
     }
@@ -111,7 +111,7 @@ public final class Central {
     private static final class VehicleCreator implements
         Creator<AddVehicleEvent> {
 
-      private VehicleCreator() {}
+      VehicleCreator() {}
 
       @Override
       public boolean create(Simulator sim, AddVehicleEvent event) {
@@ -127,7 +127,7 @@ public final class Central {
     private Optional<PDPModel> pm;
     private final Solver solver;
 
-    private CentralModel(Solver solver) {
+    CentralModel(Solver solver) {
       rm = Optional.absent();
       pm = Optional.absent();
       this.solver = solver;
@@ -164,6 +164,8 @@ public final class Central {
             .iterator();
         final Iterator<RouteFollowingVehicle> drivers = rm.get()
             .getObjectsOfType(RouteFollowingVehicle.class).iterator();
+
+        // FIXME, the route can only be set if the vehicle is in waiting state
         while (drivers.hasNext()) {
           drivers.next().setRoute(routes.next());
         }
@@ -175,8 +177,8 @@ public final class Central {
 
     @Override
     public void registerModelProvider(ModelProvider mp) {
-      pm = Optional.of(mp.getModel(PDPModel.class));
-      rm = Optional.of(mp.getModel(PDPRoadModel.class));
+      pm = Optional.fromNullable(mp.getModel(PDPModel.class));
+      rm = Optional.fromNullable(mp.getModel(PDPRoadModel.class));
     }
   }
 }

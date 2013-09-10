@@ -321,7 +321,7 @@ public final class Experiment {
       MASConfiguration masConfig = null;
       try {
         masConfig = configurator.configure(seed);
-        final StatisticsDTO stats = singleRun(scenario, masConfig,
+        final StatisticsDTO stats = performSingleRun(scenario, masConfig,
             objectiveFunction, showGui);
         result = new SimulationResult(stats, scenario, configurator, seed);
       } catch (final RuntimeException e) {
@@ -463,10 +463,17 @@ public final class Experiment {
     }
   }
 
-  @VisibleForTesting
-  static StatisticsDTO singleRun(DynamicPDPTWScenario scenario,
-      MASConfiguration c, ObjectiveFunction objFunc, boolean showGui) {
-    final StatisticsDTO stats = init(scenario, c, showGui).simulate();
+  /**
+   * Can be used to run a single simulation run.
+   * @param scenario The scenario to run on.
+   * @param configuration The configuration to use.
+   * @param objFunc The {@link ObjectiveFunction} to use.
+   * @param showGui If <code>true</code> enables the gui.
+   * @return The statistics generated in the run.
+   */
+  public static StatisticsDTO performSingleRun(DynamicPDPTWScenario scenario,
+      MASConfiguration configuration, ObjectiveFunction objFunc, boolean showGui) {
+    final StatisticsDTO stats = init(scenario, configuration, showGui).simulate();
     checkState(objFunc.isValidResult(stats),
         "The simulation did not result in a valid result: %s.", stats);
     return stats;

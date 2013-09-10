@@ -23,6 +23,7 @@ import rinde.sim.core.model.road.MoveProgress;
 import rinde.sim.core.model.road.MovingRoadUser;
 import rinde.sim.core.model.road.RoadUser;
 
+import com.google.common.base.Objects;
 import com.google.common.base.Optional;
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Multimap;
@@ -144,10 +145,11 @@ public class PDPRoadModel extends ForwardingRoadModel implements ModelReceiver {
       if (!atDestination && prev.type != DestType.DEPOT) {
         // when we haven't reached our destination and the destination
         // isn't the depot we are not allowed to change destination
-        checkArgument(prev.roadUser == destinationRoadUser
-            || isAlreadyServiced(prev.type, prev.roadUser),
-            "Diversion from the current destination is not allowed: %s.",
-            prev.dest);
+        checkArgument(
+            prev.roadUser == destinationRoadUser
+                || isAlreadyServiced(prev.type, prev.roadUser),
+            "Diversion from the current destination is not allowed. Prev: %s, new: %s.",
+            prev, destinationRoadUser);
         destChange = false;
       } else
       // change destination
@@ -258,6 +260,12 @@ public class PDPRoadModel extends ForwardingRoadModel implements ModelReceiver {
           .append(type, other.type)//
           .append(dest, other.dest)//
           .append(roadUser, other.roadUser).isEquals();
+    }
+
+    @Override
+    public String toString() {
+      return Objects.toStringHelper(this).add("type", type).add("dest", dest)
+          .add("roadUser", roadUser).toString();
     }
   }
 
