@@ -63,6 +63,11 @@ public class RouteFollowingVehicle extends DefaultVehicle {
   protected final Goto gotoState;
 
   /**
+   * The wait at service state: {@link WaitAtService}.
+   */
+  protected final WaitAtService waitForServiceState;
+
+  /**
    * The service state: {@link Service}.
    */
   protected final Service serviceState;
@@ -86,12 +91,21 @@ public class RouteFollowingVehicle extends DefaultVehicle {
     newRoute = Optional.absent();
     currentTime = Optional.absent();
 
+    // FIXME coverage should be 100% again
+
     waitState = new Wait();
     gotoState = new Goto();
+    waitForServiceState = new WaitAtService();
     serviceState = new Service();
-    stateMachine = StateMachine.create(waitState)
+    stateMachine = StateMachine
+        .create(waitState)
         .addTransition(waitState, StateEvent.GOTO, gotoState)
-        .addTransition(gotoState, StateEvent.ARRIVED, serviceState)
+        // TODO test this transition
+        .addTransition(gotoState, StateEvent.NOGO, waitState)
+        .addTransition(gotoState, StateEvent.ARRIVED, waitForServiceState)
+        .addTransition(waitForServiceState, StateEvent.READY_TO_SERVICE,
+            serviceState)
+        .addTransition(waitForServiceState, StateEvent.REROUTE, gotoState)
         .addTransition(serviceState, StateEvent.DONE, waitState).build();
   }
 
@@ -115,20 +129,22 @@ public class RouteFollowingVehicle extends DefaultVehicle {
    * vehicle enters its {@link #waitState}. The situations when the route is
    * changed immediately are:
    * <ul>
-   * <li>If diversion is allowed and the vehicle is not currently servicing.</li>
    * <li>If the vehicle is waiting.</li>
+   * <li>If diversion is allowed and the vehicle is not currently servicing.</li>
+   * <li>If the current route is empty.</li>
    * <li>If the first destination in the new route equals the first destination
    * of the current route.</li>
    * </ul>
+   * <p>
+   * It is further important to know that a parcel is removed from the route
+   * upon start of servicing.
    * @param r The route to set. The elements are copied from the
    *          {@link Collection} using its iteration order.
    */
   public void setRoute(Collection<DefaultParcel> r) {
-    if ((isDiversionAllowed && !stateMachine.stateIs(serviceState))
-        || stateMachine.stateIs(waitState)
-        // we know that in the line below route can not be empty so we don't
-        // check it
-        || (!r.isEmpty() && r.iterator().next().equals(route.element()))) {
+    if (stateMachine.stateIs(waitState) || route.isEmpty()
+        || (isDiversionAllowed && !stateMachine.stateIs(serviceState))
+        || firstEqualsFirstInRoute(r)) {
       route = newLinkedList(r);
       newRoute = Optional.absent();
     } else {
@@ -136,10 +152,14 @@ public class RouteFollowingVehicle extends DefaultVehicle {
     }
   }
 
+  boolean firstEqualsFirstInRoute(Collection<DefaultParcel> r) {
+    return (!r.isEmpty() && !route.isEmpty() && r.iterator().next()
+        .equals(route.element()));
+  }
+
   @Override
   public void initRoadPDP(RoadModel pRoadModel, PDPModel pPdpModel) {
     super.initRoadPDP(pRoadModel, pPdpModel);
-
     final Set<DefaultDepot> depots = roadModel.get().getObjectsOfType(
         DefaultDepot.class);
     checkArgument(depots.size() == 1,
@@ -166,159 +186,6 @@ public class RouteFollowingVehicle extends DefaultVehicle {
     currentTime = Optional.of(time);
     preTick(time);
     stateMachine.handle(this);
-  }
-
-  /**
-   * The event types of the state machine.
-   * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
-   */
-  protected enum StateEvent {
-    /**
-     * Indicates that waiting is over, the vehicle is going to a parcel.
-     */
-    GOTO,
-    /**
-     * Indicates that the vehicle has arrived at a service location.
-     */
-    ARRIVED,
-    /**
-     * Indicates that servicing is finished.
-     */
-    DONE;
-  }
-
-  abstract class AbstractTruckState extends
-      AbstractState<StateEvent, RouteFollowingVehicle> {
-    @Override
-    public String toString() {
-      return this.getClass().getSimpleName();
-    }
-  }
-
-  /**
-   * Implementation of waiting state, is also responsible for driving back to
-   * the depot.
-   * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
-   */
-  protected class Wait extends AbstractTruckState {
-
-    /**
-     * New instance.
-     */
-    protected Wait() {}
-
-    @Override
-    public void onEntry(StateEvent event, RouteFollowingVehicle context) {
-      if (context.newRoute.isPresent()) {
-        context.setRoute(context.newRoute.get());
-      }
-    }
-
-    @Nullable
-    @Override
-    public StateEvent handle(StateEvent event, RouteFollowingVehicle context) {
-      if (route.peek() != null) {
-        if (!isTooEarly(route.peek(), currentTime.get())) {
-          return StateEvent.GOTO;
-        }
-      }
-      // check if it is time to go back to the depot
-      else if (currentTime.get().hasTimeLeft() && route.isEmpty()
-          && isEndOfDay(currentTime.get())
-          && !roadModel.get().equalPosition(context, depot.get())) {
-        roadModel.get().moveTo(context, depot.get(), currentTime.get());
-      }
-      currentTime.get().consumeAll();
-      return null;
-    }
-  }
-
-  /**
-   * State responsible for moving to a service location.
-   * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
-   */
-  protected class Goto extends AbstractTruckState {
-    /**
-     * New instance.
-     */
-    protected Goto() {}
-
-    @Nullable
-    @Override
-    public StateEvent handle(StateEvent event, RouteFollowingVehicle context) {
-      final DefaultParcel cur = route.element();
-      if (roadModel.get().equalPosition(context, cur)) {
-        return StateEvent.ARRIVED;
-      }
-      roadModel.get().moveTo(context, cur, currentTime.get());
-      if (roadModel.get().equalPosition(context, cur)
-          && currentTime.get().hasTimeLeft()) {
-        return StateEvent.ARRIVED;
-      }
-      return null;
-    }
-  }
-
-  /**
-   * State responsible for servicing a parcel.
-   * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
-   */
-  protected class Service extends AbstractTruckState {
-    /**
-     * Indicates whether servicing has started upon entry in the state.
-     */
-    protected boolean startedServicing;
-
-    /**
-     * New instance.
-     */
-    protected Service() {}
-
-    @Override
-    public void onEntry(StateEvent event, RouteFollowingVehicle context) {
-      checkArgument(currentTime.get().hasTimeLeft(),
-          "We can't go into service state when there is no time left to consume.");
-      startedServicing = false;
-      service(context);
-    }
-
-    private void service(RouteFollowingVehicle context) {
-      final PDPModel pm = pdpModel.get();
-      final TimeLapse time = currentTime.get();
-      final DefaultParcel cur = route.element();
-
-      // if parcel is not ready yet, wait
-      final boolean pickup = !pm.getContents(context).contains(cur);
-      final long timeUntilReady = (pickup ? cur.dto.pickupTimeWindow.begin
-          : cur.dto.deliveryTimeWindow.begin) - time.getTime();
-      boolean canStart = true;
-      if (timeUntilReady > 0) {
-        if (time.getTimeLeft() < timeUntilReady) {
-          // in this case we can not yet start servicing
-          time.consumeAll();
-          canStart = false;
-        } else {
-          time.consume(timeUntilReady);
-        }
-      }
-      if (canStart) {
-        // parcel is ready, service
-        pm.service(context, cur, time);
-        startedServicing = true;
-      }
-    }
-
-    @Nullable
-    @Override
-    public StateEvent handle(StateEvent event, RouteFollowingVehicle context) {
-      if (!startedServicing && currentTime.get().hasTimeLeft()) {
-        service(context);
-      } else if (currentTime.get().hasTimeLeft()) {
-        route.remove();
-        return StateEvent.DONE;
-      }
-      return null;
-    }
   }
 
   /**
@@ -405,5 +272,173 @@ public class RouteFollowingVehicle extends DefaultVehicle {
    */
   protected TimeLapse getCurrentTime() {
     return currentTime.get();
+  }
+
+  /**
+   * The event types of the state machine.
+   * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+   */
+  protected enum StateEvent {
+    /**
+     * Indicates that waiting is over, the vehicle is going to a parcel.
+     */
+    GOTO,
+    /**
+     * Indicates that the vehicle no longer has a destination.
+     */
+    NOGO,
+    /**
+     * Indicates that the vehicle has arrived at a service location.
+     */
+    ARRIVED,
+    /**
+     * Indicates that the vehicle is at a service location and that the vehicle
+     * and the parcel are both ready to start the servicing.
+     */
+    READY_TO_SERVICE,
+    /**
+     * Indicates that the vehicle has been waiting at a service point until it
+     * became available but is now going to a new location.
+     */
+    REROUTE,
+    /**
+     * Indicates that servicing is finished.
+     */
+    DONE;
+  }
+
+  abstract class AbstractTruckState extends
+      AbstractState<StateEvent, RouteFollowingVehicle> {
+    @Override
+    public String toString() {
+      return this.getClass().getSimpleName();
+    }
+  }
+
+  /**
+   * Implementation of waiting state, is also responsible for driving back to
+   * the depot.
+   * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+   */
+  protected class Wait extends AbstractTruckState {
+
+    /**
+     * New instance.
+     */
+    protected Wait() {}
+
+    @Override
+    public void onEntry(StateEvent event, RouteFollowingVehicle context) {
+      if (context.newRoute.isPresent()) {
+        context.setRoute(context.newRoute.get());
+      }
+    }
+
+    @Nullable
+    @Override
+    public StateEvent handle(StateEvent event, RouteFollowingVehicle context) {
+      if (route.peek() != null) {
+        if (!isTooEarly(route.peek(), currentTime.get())) {
+          return StateEvent.GOTO;
+        }
+        // else it is too early, and we do nothing
+      }
+      // check if it is time to go back to the depot
+      else if (currentTime.get().hasTimeLeft() && route.isEmpty()
+          && isEndOfDay(currentTime.get())
+          && !roadModel.get().equalPosition(context, depot.get())) {
+        roadModel.get().moveTo(context, depot.get(), currentTime.get());
+      }
+      currentTime.get().consumeAll();
+      return null;
+    }
+  }
+
+  /**
+   * State responsible for moving to a service location.
+   * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+   */
+  protected class Goto extends AbstractTruckState {
+    /**
+     * New instance.
+     */
+    protected Goto() {}
+
+    @Nullable
+    @Override
+    public StateEvent handle(StateEvent event, RouteFollowingVehicle context) {
+      if (route.isEmpty()) {
+        return StateEvent.NOGO;
+      }
+      final DefaultParcel cur = route.element();
+      if (roadModel.get().equalPosition(context, cur)) {
+        return StateEvent.ARRIVED;
+      }
+      roadModel.get().moveTo(context, cur, currentTime.get());
+      if (roadModel.get().equalPosition(context, cur)
+          && currentTime.get().hasTimeLeft()) {
+        return StateEvent.ARRIVED;
+      }
+      return null;
+    }
+  }
+
+  /**
+   * State responsible for waiting at a service location to become available.
+   * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+   */
+  protected class WaitAtService extends AbstractTruckState {
+
+    @Nullable
+    @Override
+    public StateEvent handle(StateEvent event, RouteFollowingVehicle context) {
+      final PDPModel pm = pdpModel.get();
+      final TimeLapse time = currentTime.get();
+      final DefaultParcel cur = route.element();
+      // we are not at the parcel's position, this means the next parcel has
+      // changed in the mean time, so we have to reroute.
+      if (!roadModel.get().equalPosition(context, cur)) {
+        return StateEvent.REROUTE;
+      }
+      // if parcel is not ready yet, wait
+      final boolean pickup = !pm.getContents(context).contains(cur);
+      final long timeUntilReady = (pickup ? cur.dto.pickupTimeWindow.begin
+          : cur.dto.deliveryTimeWindow.begin) - time.getTime();
+      if (timeUntilReady > 0) {
+        if (time.getTimeLeft() < timeUntilReady) {
+          // in this case we can not yet start servicing
+          time.consumeAll();
+          return null;
+        } else {
+          time.consume(timeUntilReady);
+        }
+      }
+      return StateEvent.READY_TO_SERVICE;
+    }
+  }
+
+  /**
+   * State responsible for servicing a parcel.
+   * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+   */
+  protected class Service extends AbstractTruckState {
+    /**
+     * New instance.
+     */
+    protected Service() {}
+
+    @Override
+    public void onEntry(StateEvent event, RouteFollowingVehicle context) {
+      pdpModel.get().service(context, route.remove(), currentTime.get());
+    }
+
+    @Nullable
+    @Override
+    public StateEvent handle(StateEvent event, RouteFollowingVehicle context) {
+      if (currentTime.get().hasTimeLeft()) {
+        return StateEvent.DONE;
+      }
+      return null;
+    }
   }
 }

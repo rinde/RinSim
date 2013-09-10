@@ -617,7 +617,7 @@ public class RouteFollowingVehicleTest {
     // we arrive with some time left, so we transition to service state
     tick(4, 5);
     assertEquals(new Point(1, 1.99), rm.getPosition(d));
-    assertEquals(d.serviceState, d.stateMachine.getCurrentState());
+    assertEquals(d.waitForServiceState, d.stateMachine.getCurrentState());
 
     // check that pickup occurs exactly at opening of time window
     pm.getEventAPI().addListener(new Listener() {
