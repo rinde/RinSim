@@ -3,6 +3,9 @@
  */
 package rinde.sim.core.graph;
 
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -281,21 +284,12 @@ public final class Graphs {
    */
   public static <T> List<T> findClosestObjects(Point pos,
       Collection<T> objects, Function<T, Point> transformation, int n) {
-    if (pos == null) {
-      throw new IllegalArgumentException("pos can not be null");
-    }
-    if (objects == null) {
-      throw new IllegalArgumentException("objects can not be null");
-    }
-    if (transformation == null) {
-      throw new IllegalArgumentException("transformation can not be null");
-    }
-    if (n <= 0) {
-      throw new IllegalArgumentException("n must be a positive integer");
-    }
+    checkArgument(n > 0, "n must be positive.");
     final List<ObjectWithDistance<T>> objs = new ArrayList<ObjectWithDistance<T>>();
     for (final T obj : objects) {
+      @Nullable
       final Point objPos = transformation.apply(obj);
+      checkNotNull(objPos);
       objs.add(new ObjectWithDistance<T>(obj, Point.distance(pos, objPos)));
     }
     Collections.sort(objs);

@@ -5,7 +5,9 @@ package rinde.sim.core.graph;
 
 import java.io.Serializable;
 
-import org.apache.commons.lang3.builder.HashCodeBuilder;
+import javax.annotation.Nullable;
+
+import com.google.common.base.Objects;
 
 /**
  * Point represents a position in euclidean space, it is defined as a simple
@@ -35,7 +37,7 @@ public class Point implements Serializable {
   public Point(double pX, double pY) {
     x = pX;
     y = pY;
-    hashCode = new HashCodeBuilder(17, 37).append(x).append(y).toHashCode();
+    hashCode = Objects.hashCode(x, y);
   }
 
   /**
@@ -89,29 +91,25 @@ public class Point implements Serializable {
     return hashCode;
   }
 
-  /**
-   * Standard equality method.
-   * @param p The point to compare with.
-   * @return <code>true</code> when equal, <code>false</code> otherwise.
-   */
-  public boolean equals(Point p) {
-    if (p == null) {
+  @Override
+  public boolean equals(@Nullable Object other) {
+    if (other == null) {
       return false;
     }
+    if (other == this) {
+      return true;
+    }
+    // allows comparison with subclasses
+    if (!(other instanceof Point)) {
+      return false;
+    }
+    final Point p = (Point) other;
     return x == p.x && y == p.y;
   }
 
   @Override
-  public boolean equals(Object p) {
-    if (p instanceof Point) {
-      return equals((Point) p);
-    }
-    return false;
-  }
-
-  @Override
   public String toString() {
-    return "(" + x + "," + y + ")";
+    return new StringBuilder().append("(").append(x).append(",").append(y)
+        .append(")").toString();
   }
-
 }

@@ -88,8 +88,7 @@ public class Connection<E extends ConnectionData> {
 
   @Override
   public String toString() {
-    return new StringBuilder(7).append('[').append(from).append("->")
-        .append(to).append('[').append(data).append("]]").toString();
+    return Objects.toStringHelper(this).add("from", from).add("to", to)
+        .add("data", data).omitNullValues().toString();
   }
-
 }
