@@ -58,8 +58,9 @@ public class MultiAttributeData implements ConnectionData {
   }
 
   /**
-   * Returns edge's length. If the length is not specified the
-   * {@link Double#NaN} value is returned
+   * 
+   * @return Length of the connection. If the length is not specified the
+   *         {@link Double#NaN} value is returned
    * @see rinde.sim.core.graph.ConnectionData#getLength()
    */
   @Override
@@ -72,8 +73,8 @@ public class MultiAttributeData implements ConnectionData {
   }
 
   /**
-   * Returns max speed defined for an edge. If the max speed is not specified
-   * the {@link Double#NaN} value is returned
+   * Returns max speed defined for a connection. If the max speed is not
+   * specified the {@link Double#NaN} value is returned
    * @return The max speed.
    * @see rinde.sim.core.graph.ConnectionData#getLength()
    */
