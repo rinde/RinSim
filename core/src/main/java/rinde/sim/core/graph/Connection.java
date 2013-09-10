@@ -2,7 +2,7 @@ package rinde.sim.core.graph;
 
 import javax.annotation.Nullable;
 
-import org.apache.commons.lang3.builder.HashCodeBuilder;
+import com.google.common.base.Objects;
 
 /**
  * Class representing a directed connection (link/edge) in a graph.
@@ -38,12 +38,11 @@ public class Connection<E extends ConnectionData> {
     this.to = pTo;
     this.data = pData;
 
-    final HashCodeBuilder builder = new HashCodeBuilder(13, 17).append(pFrom)
-        .append(pTo);
     if (pData != null) {
-      builder.append(pData);
+      hashCode = Objects.hashCode(from, to, data);
+    } else {
+      hashCode = Objects.hashCode(from, to);
     }
-    hashCode = builder.toHashCode();
   }
 
   /**
@@ -80,10 +79,11 @@ public class Connection<E extends ConnectionData> {
     if (!to.equals(other.to)) {
       return false;
     }
-    if (data == null) {
+    final E d = data;
+    if (d == null) {
       return other.data == null;
     }
-    return data.equals(other.getData());
+    return d.equals(other.getData());
   }
 
   @Override

@@ -15,8 +15,9 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
-import org.apache.commons.lang3.builder.HashCodeBuilder;
+import javax.annotation.Nullable;
 
+import com.google.common.base.Objects;
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Multimaps;
@@ -81,7 +82,8 @@ public class MultimapGraph<E extends ConnectionData> extends AbstractGraph<E> {
   }
 
   @Override
-  public E setEdgeData(Point from, Point to, E connData) {
+  public E setConnectionData(Point from, Point to, @Nullable E connData) {
+
     if (!hasConnection(from, to)) {
       throw new IllegalArgumentException("the connection " + from + " -> " + to
           + "does not exist");
@@ -89,6 +91,7 @@ public class MultimapGraph<E extends ConnectionData> extends AbstractGraph<E> {
     return this.edgeData.put(new Connection<E>(from, to, null), connData);
   }
 
+  @Nullable
   @Override
   public E connectionData(Point from, Point to) {
     return edgeData.get(new Connection<E>(from, to, null));
@@ -146,6 +149,7 @@ public class MultimapGraph<E extends ConnectionData> extends AbstractGraph<E> {
   /**
    * Warning: very inefficient! If this function is needed regularly it is
    * advised to use {@link TableGraph} instead.
+   * @param node The node to remove.
    */
   @Override
   public void removeNode(Point node) {
@@ -165,7 +169,8 @@ public class MultimapGraph<E extends ConnectionData> extends AbstractGraph<E> {
 
   @Override
   public void removeConnection(Point from, Point to) {
-    checkArgument(hasConnection(from, to), "Can not remove non-existing connection: %s -> %s", from, to);
+    checkArgument(hasConnection(from, to),
+        "Can not remove non-existing connection: %s -> %s", from, to);
     data.remove(from, to);
     removeData(from, to);
     if (!data.containsKey(to)) {
@@ -179,12 +184,11 @@ public class MultimapGraph<E extends ConnectionData> extends AbstractGraph<E> {
 
   @Override
   public int hashCode() {
-    return new HashCodeBuilder(201, 199).append(data).append(deadEndNodes)
-        .append(edgeData).toHashCode();
+    return Objects.hashCode(data, deadEndNodes, edgeData);
   }
 
   @Override
-  protected void doAddConnection(Point from, Point to, E connData) {
+  protected void doAddConnection(Point from, Point to, @Nullable E connData) {
     data.put(from, to);
     deadEndNodes.remove(from);
     if (!data.containsKey(to)) {

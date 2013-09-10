@@ -3,18 +3,25 @@
  */
 package rinde.sim.core.graph;
 
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.collect.Maps.newLinkedHashMap;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
-import org.apache.commons.lang3.builder.HashCodeBuilder;
+import javax.annotation.Nullable;
 
-import com.google.common.collect.LinkedHashBasedTable;
+import com.google.common.base.Objects;
+import com.google.common.base.Supplier;
 import com.google.common.collect.Table;
 import com.google.common.collect.Table.Cell;
+import com.google.common.collect.Tables;
 
 /**
  * Table-based implementation of a graph. Since this graph is backed by a table
@@ -35,11 +42,8 @@ public class TableGraph<E extends ConnectionData> extends AbstractGraph<E> {
    *          'empty' instance.
    */
   public TableGraph(E emptyValue) {
-    if (emptyValue == null) {
-      throw new IllegalArgumentException(
-          "the representation of empty value is needed");
-    }
-    data = LinkedHashBasedTable.create();
+    data = Tables.newCustomTable(new LinkedHashMap<Point, Map<Point, E>>(),
+        new Factory<E>());
     empty = emptyValue;
   }
 
@@ -124,13 +128,12 @@ public class TableGraph<E extends ConnectionData> extends AbstractGraph<E> {
 
   @Override
   public Connection<E> getConnection(Point from, Point to) {
-    if (!hasConnection(from, to)) {
-      throw new IllegalArgumentException(from + " -> " + to
-          + " is not a connection.");
-    }
+    checkArgument(hasConnection(from, to), "%s -> %s is not a connection",
+        from, to);
     return new Connection<E>(from, to, connectionData(from, to));
   }
 
+  @Nullable
   @Override
   public E connectionData(Point from, Point to) {
     final E e = data.get(from, to);
@@ -141,7 +144,7 @@ public class TableGraph<E extends ConnectionData> extends AbstractGraph<E> {
   }
 
   @Override
-  protected void doAddConnection(Point from, Point to, E edgeData) {
+  protected void doAddConnection(Point from, Point to, @Nullable E edgeData) {
     if (edgeData == null) {
       data.put(from, to, empty);
     } else {
@@ -149,8 +152,9 @@ public class TableGraph<E extends ConnectionData> extends AbstractGraph<E> {
     }
   }
 
+  @Nullable
   @Override
-  public E setEdgeData(Point from, Point to, E edgeData) {
+  public E setConnectionData(Point from, Point to, @Nullable E edgeData) {
     if (hasConnection(from, to)) {
       E e;
       if (edgeData == null) {
@@ -170,8 +174,17 @@ public class TableGraph<E extends ConnectionData> extends AbstractGraph<E> {
 
   @Override
   public int hashCode() {
-    return new HashCodeBuilder(201, 199).append(data).append(empty)
-        .toHashCode();
+    return Objects.hashCode(data, empty);
+  }
+
+  private static final class Factory<E> implements Supplier<Map<Point, E>> {
+
+    Factory() {}
+
+    @Override
+    public Map<Point, E> get() {
+      return newLinkedHashMap();
+    }
   }
 
 }

@@ -39,6 +39,7 @@ public final class Graphs {
    * added to the graph.
    * @param graph The graph to which the connections will be added.
    * @param path Points that will be treated as a path.
+   * @param <E> The type of connection data.
    */
   public static <E extends ConnectionData> void addPath(Graph<E> graph,
       Point... path) {
@@ -54,6 +55,7 @@ public final class Graphs {
    * <code>B -> C</code> and <code>C -> B</code> will be added to the graph.
    * @param graph The graph to which the connections will be added.
    * @param path Points that will be treated as a path.
+   * @param <E> The type of connection data.
    */
   public static <E extends ConnectionData> void addBiPath(Graph<E> graph,
       Point... path) {
@@ -66,6 +68,7 @@ public final class Graphs {
   /**
    * Returns an unmodifiable view on the specified {@link Graph}.
    * @param graph A graph.
+   * @param <E> The type of connection data.
    * @return An unmodifiable view on the graph.
    */
   public static <E extends ConnectionData> Graph<E> unmodifiableGraph(
@@ -76,6 +79,7 @@ public final class Graphs {
   /**
    * Returns an unmodifiable view on the specified {@link Connection}.
    * @param conn A connection.
+   * @param <E> The type of connection data.
    * @return An unmodifiable view on the connection.
    */
   public static <E extends ConnectionData> Connection<E> unmodifiableConnection(
@@ -86,11 +90,13 @@ public final class Graphs {
   /**
    * Returns an unmodifiable view on the specified {@link ConnectionData}.
    * @param connData Connection data.
+   * @param <E> The type of connection data.
    * @return An unmodifiable view on the connection data.
    */
   @SuppressWarnings("unchecked")
+  @Nullable
   public static <E extends ConnectionData> E unmodifiableConnectionData(
-      E connData) {
+      @Nullable E connData) {
     if (connData instanceof MultiAttributeData) {
       return (E) new UnmodifiableMultiAttributeEdgeData(
           (MultiAttributeData) connData);
@@ -102,6 +108,7 @@ public final class Graphs {
    * Basic equals method.
    * @param g1 A graph.
    * @param g2 Another graph.
+   * @param <E> The type of connection data.
    * @return <code>true</code> if the provided graphs are equal,
    *         <code>false</code> otherwise.
    */
@@ -136,6 +143,7 @@ public final class Graphs {
    * @param graph The {@link Graph} on which the shortest path is searched.
    * @param from The start point of the path.
    * @param to The destination of the path.
+   * @param <E> The type of connection data.
    * @return The shortest path that exists between <code>from</code> and
    *         <code>to</code>.
    */
@@ -153,6 +161,7 @@ public final class Graphs {
    * @param from The start position
    * @param to The end position
    * @param h The {@link Heuristic} used in the A* implementation.
+   * @param <E> The type of connection data.
    * @return The shortest path from <code>from</code> to <code>to</code> if it
    *         exists, otherwise a {@link PathNotFoundException} is thrown.
    * @throws PathNotFoundException if a path does not exist between
@@ -163,12 +172,9 @@ public final class Graphs {
    */
   public static <E extends ConnectionData> List<Point> shortestPath(
       Graph<E> graph, final Point from, final Point to, Graphs.Heuristic h) {
-    if (from == null || !graph.containsNode(from)) {
+    if (!graph.containsNode(from)) {
       throw new IllegalArgumentException("from should be valid vertex. " + from);
     }
-    // if (to == null || !graph.containsKey(to)) {
-    // throw new IllegalArgumentException("to should be valid vertex");
-    // }
 
     // The set of nodes already evaluated.
     final Set<Point> closedSet = new LinkedHashSet<Point>();
@@ -208,8 +214,8 @@ public final class Graphs {
         boolean tIsBetter = false;
 
         if (!fScore.values().contains(outgoingPoint)) {
-          hScore.put(outgoingPoint, h.estimateCost(Point
-              .distance(outgoingPoint, to)));
+          hScore.put(outgoingPoint,
+              h.estimateCost(Point.distance(outgoingPoint, to)));
           tIsBetter = true;
         } else if (tgScore < gScore.get(outgoingPoint)) {
           tIsBetter = true;
@@ -241,6 +247,7 @@ public final class Graphs {
    * @param transformation A {@link Function} that transforms an object from
    *          <code>objects</code> into a {@link Point}, normally this means
    *          that the position of the object is retrieved.
+   * @param <T> the type of object.
    * @return The closest object in <code>objects</code> to <code>pos</code> or
    *         <code>null</code> if no object exists.
    */
@@ -293,8 +300,8 @@ public final class Graphs {
     }
     Collections.sort(objs);
     final List<T> results = new ArrayList<T>();
-    for (final ObjectWithDistance<T> o : objs.subList(0, Math.min(n, objs
-        .size()))) {
+    for (final ObjectWithDistance<T> o : objs.subList(0,
+        Math.min(n, objs.size()))) {
       results.add(o.obj);
     }
     return results;
@@ -546,10 +553,11 @@ public final class Graphs {
       throw new UnsupportedOperationException();
     }
 
-    @SuppressWarnings({ "rawtypes", "unchecked" })
+    @SuppressWarnings({ "unchecked" })
     @Override
-    public boolean equals(Object other) {
-      return other instanceof Graph ? equals((Graph) other) : false;
+    public boolean equals(@Nullable Object other) {
+      return other instanceof Graph ? Graphs.equals(this, (Graph<E>) other)
+          : false;
     }
 
     @Override
@@ -557,11 +565,7 @@ public final class Graphs {
       return delegate.hashCode();
     }
 
-    @Override
-    public boolean equals(Graph<? extends E> other) {
-      return Graphs.equals(this, other);
-    }
-
+    @Nullable
     @Override
     public E connectionData(Point from, Point to) {
       return unmodifiableConnectionData(delegate.connectionData(from, to));
@@ -578,7 +582,7 @@ public final class Graphs {
     }
 
     @Override
-    public E setEdgeData(Point from, Point to, E edgeData) {
+    public E setConnectionData(Point from, Point to, E edgeData) {
       throw new UnsupportedOperationException();
     }
 

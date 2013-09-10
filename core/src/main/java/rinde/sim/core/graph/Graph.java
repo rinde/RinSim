@@ -7,6 +7,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
+import javax.annotation.Nullable;
+
 import org.apache.commons.math3.random.RandomGenerator;
 
 /**
@@ -14,7 +16,7 @@ import org.apache.commons.math3.random.RandomGenerator;
  * which are represented as {@link Point}s and edges are represented by
  * {@link Connection}s. Graphs are directed.
  * 
- * TODO should be split up in an UnmodifiableGraph and Graph. Graphs should be
+ * TODO should be split up in an ImmutableGraph and Graph. Graphs should be
  * created using the builder pattern?
  * 
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
@@ -56,11 +58,11 @@ public interface Graph<E extends ConnectionData> {
   boolean hasConnection(Point from, Point to);
 
   /**
-   * Returns a {@link Connection} between <code>from</code> and <code>to</code>
-   * if it exists.
+   * Returns a {@link Connection} between <code>from</code> and <code>to</code>.
    * @param from The starting node.
    * @param to The end node.
-   * @return the {@link Connection} if it exists, <code>null</code> otherwise.
+   * @return the {@link Connection}.
+   * @throws IllegalArgumentException if connection does not exist.
    */
   Connection<E> getConnection(Point from, Point to);
 
@@ -71,6 +73,7 @@ public interface Graph<E extends ConnectionData> {
    * @return connection data or <code>null</code> if there is no data or
    *         connection does not exists.
    */
+  @Nullable
   E connectionData(Point from, Point to);
 
   /**
@@ -110,7 +113,7 @@ public interface Graph<E extends ConnectionData> {
    * @param edgeData data associated with the edge
    * @throws IllegalArgumentException if the connection already exists.
    */
-  void addConnection(Point from, Point to, E edgeData);
+  void addConnection(Point from, Point to, @Nullable E edgeData);
 
   /**
    * Add a connection to the graph.
@@ -136,7 +139,8 @@ public interface Graph<E extends ConnectionData> {
    * @throws IllegalArgumentException when the connection between nodes do not
    *           exists
    */
-  E setEdgeData(Point from, Point to, E edgeData);
+  @Nullable
+  E setConnectionData(Point from, Point to, @Nullable E edgeData);
 
   /**
    * Adds connections to the graph.
@@ -173,17 +177,9 @@ public interface Graph<E extends ConnectionData> {
   void removeConnection(Point from, Point to);
 
   /**
-   * @param other The other graph to compare with this.
-   * @return <code>true</code> if equal, <code>false</code> otherwise.
-   */
-  boolean equals(Graph<? extends E> other);
-
-  /**
    * Get a random node in graph.
    * @param generator used to generate the random point.
    * @return random {@link Point}
-   * @throws NullPointerException should be thrown when parameter is
-   *           <code>null</code>
    */
   Point getRandomNode(RandomGenerator generator);
 

@@ -9,6 +9,8 @@ import static com.google.common.base.Preconditions.checkState;
 import java.util.Collection;
 import java.util.Set;
 
+import javax.annotation.Nullable;
+
 import org.apache.commons.math3.random.RandomGenerator;
 
 /**
@@ -30,7 +32,8 @@ public abstract class AbstractGraph<E extends ConnectionData> implements
 
   @Override
   public double connectionLength(Point from, Point to) {
-    checkArgument(hasConnection(from, to), "Can not get connection length from a non-existing connection.");
+    checkArgument(hasConnection(from, to),
+        "Can not get connection length from a non-existing connection.");
     final E connData = connectionData(from, to);
     return !isEmptyConnectionData(connData) ? connData.getLength() : Point
         .distance(from, to);
@@ -45,7 +48,7 @@ public abstract class AbstractGraph<E extends ConnectionData> implements
    * @return <code>true</code> if the specified connection data is considered
    *         empty, <code>false</code> otherwise.
    */
-  protected boolean isEmptyConnectionData(E connData) {
+  protected boolean isEmptyConnectionData(@Nullable E connData) {
     return connData == null;
   }
 
@@ -56,9 +59,6 @@ public abstract class AbstractGraph<E extends ConnectionData> implements
 
   @Override
   public void addConnection(Connection<E> c) {
-    if (c == null) {
-      return;
-    }
     addConnection(c.from, c.to, c.getData());
   }
 
@@ -75,9 +75,11 @@ public abstract class AbstractGraph<E extends ConnectionData> implements
   }
 
   @Override
-  public void addConnection(Point from, Point to, E connData) {
-    checkArgument(!from.equals(to), "A connection cannot be circular: %s -> %s ", from, to);
-    checkArgument(!hasConnection(from, to), "Connection already exists: %s -> %s ", from, to);
+  public void addConnection(Point from, Point to, @Nullable E connData) {
+    checkArgument(!from.equals(to),
+        "A connection cannot be circular: %s -> %s ", from, to);
+    checkArgument(!hasConnection(from, to),
+        "Connection already exists: %s -> %s ", from, to);
     doAddConnection(from, to, connData);
   }
 
@@ -89,18 +91,18 @@ public abstract class AbstractGraph<E extends ConnectionData> implements
    * @param to End point of the connection.
    * @param connData The data to be associated to the connection.
    */
-  protected abstract void doAddConnection(Point from, Point to, E connData);
+  protected abstract void doAddConnection(Point from, Point to,
+      @Nullable E connData);
 
   @Override
-  @SuppressWarnings({ "rawtypes", "unchecked" })
-  public boolean equals(Object other) {
-    return other instanceof Graph ? equals((Graph) other) : false;
+  @SuppressWarnings({ "unchecked" })
+  public boolean equals(@Nullable Object other) {
+    return other instanceof Graph ? Graphs.equals(this, (Graph<E>) other)
+        : false;
   }
 
   @Override
-  public boolean equals(Graph<? extends E> other) {
-    return Graphs.equals(this, other);
-  }
+  public abstract int hashCode();
 
   @Override
   public Point getRandomNode(RandomGenerator generator) {
@@ -113,15 +115,13 @@ public abstract class AbstractGraph<E extends ConnectionData> implements
         return point;
       }
     }
-    return null; // should not happen
+    throw new IllegalStateException();
   }
 
   @Override
   public Connection<E> getConnection(Point from, Point to) {
-    if (!hasConnection(from, to)) {
-      throw new IllegalArgumentException(from + " -> " + to
-          + " is not a connection.");
-    }
+    checkArgument(hasConnection(from, to), "%s -> %s is not a connection.",
+        from, to);
     return new Connection<E>(from, to, connectionData(from, to));
   }
 
