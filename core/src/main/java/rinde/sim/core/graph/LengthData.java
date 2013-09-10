@@ -1,5 +1,7 @@
 package rinde.sim.core.graph;
 
+import javax.annotation.Nullable;
+
 /**
  * Simple implementation of {@link ConnectionData}, allowing to specify the
  * length of a connection.
@@ -34,7 +36,7 @@ public class LengthData implements ConnectionData {
   }
 
   @Override
-  public boolean equals(Object obj) {
+  public boolean equals(@Nullable Object obj) {
     if (obj instanceof LengthData) {
       return Double.compare(length, ((LengthData) obj).length) == 0;
     }

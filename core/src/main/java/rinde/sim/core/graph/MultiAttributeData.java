@@ -102,6 +102,7 @@ public class MultiAttributeData implements ConnectionData {
    * Add an attribute. Note: this can override existing attributes.
    * @param key A string used as key.
    * @param value The value associated with <code>key</code>.
+   * @param <E> The type of value.
    */
   public <E> void put(String key, E value) {
     attributes.put(key, value);
@@ -111,10 +112,12 @@ public class MultiAttributeData implements ConnectionData {
    * Retrieve an attribute.
    * @param key The key to use.
    * @param type The type of object that needs to be retrieved.
+   * @param <E> The type.
    * @return An object associated to the key or <code>null</code> if it does not
    *         exist.
    */
   @SuppressWarnings("unchecked")
+  @Nullable
   public <E> E get(String key, Class<E> type) {
     final Object r = attributes.get(key);
     if (r != null && type.isAssignableFrom(r.getClass())) {

@@ -260,7 +260,9 @@ public final class Graphs {
     double dist = Double.MAX_VALUE;
     T closest = null;
     for (final T obj : objects) {
+      @Nullable
       final Point objPos = transformation.apply(obj);
+      checkNotNull(objPos);
       final double currentDist = Point.distance(pos, objPos);
       if (currentDist < dist) {
         dist = currentDist;
@@ -278,6 +280,7 @@ public final class Graphs {
    * @param transformation A function that transforms objects from
    *          <code>objects</code> to a point.
    * @param n The maximum number of objects to return where n must be >= 0.
+   * @param <T> The type of object.
    * @return A list of objects that are closest to <code>pos</code>. The list is
    *         ordered such that the closest object appears first. An empty list
    *         is returned when <code>objects</code> is empty.

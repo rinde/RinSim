@@ -34,6 +34,7 @@ public abstract class AbstractGraph<E extends ConnectionData> implements
   public double connectionLength(Point from, Point to) {
     checkArgument(hasConnection(from, to),
         "Can not get connection length from a non-existing connection.");
+    @Nullable
     final E connData = connectionData(from, to);
     return !isEmptyConnectionData(connData) ? connData.getLength() : Point
         .distance(from, to);
