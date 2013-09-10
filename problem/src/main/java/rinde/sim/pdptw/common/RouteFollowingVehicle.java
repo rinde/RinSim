@@ -33,14 +33,15 @@ import com.google.common.math.DoubleMath;
  * A simple vehicle implementation that follows a route comprised of
  * {@link DefaultParcel}s. At every stop in the route, the corresponding parcel
  * is serviced (either picked up or delivered). The route can be set via
- * {@link #setRoute(Collection)}.
+ * {@link #setRoute(Collection)}. The vehicle attempts route diversion when the
+ * underlying {@link PDPRoadModel} allows it, otherwise it will change its route
+ * at the next possible instant.
  * <p>
  * This vehicle uses a strategy that postpones travelling towards a parcel such
  * that any waiting time <i>at the parcel's site is minimized</i>.
  * <p>
  * If it is the end of the day (as defined by {@link #isEndOfDay(TimeLapse)})
  * and the route is empty, the vehicle will automatically return to the depot.
- * 
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
  */
 public class RouteFollowingVehicle extends DefaultVehicle {
@@ -67,8 +68,10 @@ public class RouteFollowingVehicle extends DefaultVehicle {
   protected final Service serviceState;
 
   Queue<DefaultParcel> route;
+  Optional<? extends Queue<DefaultParcel>> newRoute;
   Optional<DefaultDepot> depot;
   Optional<TimeLapse> currentTime;
+  boolean isDiversionAllowed;
   private Optional<Measure<Double, Velocity>> speed;
 
   /**
@@ -80,6 +83,7 @@ public class RouteFollowingVehicle extends DefaultVehicle {
     depot = Optional.absent();
     speed = Optional.absent();
     route = newLinkedList();
+    newRoute = Optional.absent();
     currentTime = Optional.absent();
 
     waitState = new Wait();
@@ -92,15 +96,44 @@ public class RouteFollowingVehicle extends DefaultVehicle {
   }
 
   /**
-   * Change the route this vehicle is following. Parcels that have not yet been
-   * picked up can at maximum occur twice in the route, parcels that have been
-   * picked up can occur at maximum once in the route. Parcels that are
-   * delivered may not occur in the route. This method copies the elements from
-   * the {@link Collection} in the order as specified by this collection.
-   * @param r The route to set.
+   * Change the route this vehicle is following. The route must adhere to the
+   * following requirements:
+   * <ul>
+   * <li>Parcels that have not yet been picked up can at maximum occur twice in
+   * the route.</li>
+   * <li>Parcels that have been picked up can occur at maximum once in the
+   * route.</li>
+   * <li>Parcels that are delivered may not occur in the route.</li>
+   * </ul>
+   * These requirements are <b>not</b> checked defensively! It is the callers
+   * responsibility to make sure this is the case. Note that the underlying
+   * models normally <i>should</i> throw exceptions whenever a vehicle attempts
+   * to revisit an already delivered parcel.
+   * <p>
+   * In some case the models do not allow this vehicle to change its route
+   * immediately. If this is the case the route is changed the next time this
+   * vehicle enters its {@link #waitState}. The situations when the route is
+   * changed immediately are:
+   * <ul>
+   * <li>If diversion is allowed and the vehicle is not currently servicing.</li>
+   * <li>If the vehicle is waiting.</li>
+   * <li>If the first destination in the new route equals the first destination
+   * of the current route.</li>
+   * </ul>
+   * @param r The route to set. The elements are copied from the
+   *          {@link Collection} using its iteration order.
    */
   public void setRoute(Collection<DefaultParcel> r) {
-    route = newLinkedList(r);
+    if ((isDiversionAllowed && !stateMachine.stateIs(serviceState))
+        || stateMachine.stateIs(waitState)
+        // we know that in the line below route can not be empty so we don't
+        // check it
+        || (!r.isEmpty() && r.iterator().next().equals(route.element()))) {
+      route = newLinkedList(r);
+      newRoute = Optional.absent();
+    } else {
+      newRoute = Optional.of(newLinkedList(r));
+    }
   }
 
   @Override
@@ -112,6 +145,10 @@ public class RouteFollowingVehicle extends DefaultVehicle {
     checkArgument(depots.size() == 1,
         "This vehicle requires exactly 1 depot, found %s depots.",
         depots.size());
+    checkArgument(roadModel.get() instanceof PDPRoadModel,
+        "This vehicle requires the PDPRoadModel.");
+    isDiversionAllowed = ((PDPRoadModel) roadModel.get())
+        .isVehicleDiversionAllowed();
     depot = Optional.of(depots.iterator().next());
     speed = Optional.of(Measure.valueOf(getSpeed(), roadModel.get()
         .getSpeedUnit()));
@@ -156,7 +193,6 @@ public class RouteFollowingVehicle extends DefaultVehicle {
     public String toString() {
       return this.getClass().getSimpleName();
     }
-
   }
 
   /**
@@ -170,6 +206,13 @@ public class RouteFollowingVehicle extends DefaultVehicle {
      * New instance.
      */
     protected Wait() {}
+
+    @Override
+    public void onEntry(StateEvent event, RouteFollowingVehicle context) {
+      if (context.newRoute.isPresent()) {
+        context.setRoute(context.newRoute.get());
+      }
+    }
 
     @Nullable
     @Override
@@ -236,7 +279,6 @@ public class RouteFollowingVehicle extends DefaultVehicle {
       checkArgument(currentTime.get().hasTimeLeft(),
           "We can't go into service state when there is no time left to consume.");
       startedServicing = false;
-
       service(context);
     }
 
@@ -252,19 +294,16 @@ public class RouteFollowingVehicle extends DefaultVehicle {
       boolean canStart = true;
       if (timeUntilReady > 0) {
         if (time.getTimeLeft() < timeUntilReady) {
-          // in this case we can not yet start
-          // servicing
+          // in this case we can not yet start servicing
           time.consumeAll();
           canStart = false;
         } else {
           time.consume(timeUntilReady);
         }
       }
-
       if (canStart) {
         // parcel is ready, service
         pm.service(context, cur, time);
-        route.remove();
         startedServicing = true;
       }
     }
@@ -275,6 +314,7 @@ public class RouteFollowingVehicle extends DefaultVehicle {
       if (!startedServicing && currentTime.get().hasTimeLeft()) {
         service(context);
       } else if (currentTime.get().hasTimeLeft()) {
+        route.remove();
         return StateEvent.DONE;
       }
       return null;
@@ -301,6 +341,7 @@ public class RouteFollowingVehicle extends DefaultVehicle {
     final ParcelState parcelState = pdpModel.get().getParcelState(p);
     checkArgument(
         !parcelState.isTransitionState() && !parcelState.isDelivered(),
+        "State may not be a transition state nor may it be delivered, it is %s.",
         parcelState);
     final boolean isPickup = !parcelState.isPickedUp();
     // if it is available, we know we can't be too early

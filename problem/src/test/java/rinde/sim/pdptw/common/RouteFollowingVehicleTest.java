@@ -3,10 +3,12 @@
  */
 package rinde.sim.pdptw.common;
 
+import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Sets.newHashSet;
 import static java.util.Arrays.asList;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 import static rinde.sim.core.TimeLapseFactory.time;
 
@@ -36,7 +38,10 @@ import rinde.sim.core.model.pdp.twpolicy.TardyAllowedPolicy;
 import rinde.sim.core.model.road.PlaneRoadModel;
 import rinde.sim.event.Event;
 import rinde.sim.event.Listener;
+import rinde.sim.pdptw.common.RouteFollowingVehicle.StateEvent;
 import rinde.sim.util.TimeWindow;
+
+import com.google.common.base.Optional;
 
 /**
  * Tests for {@link RouteFollowingVehicle}.
@@ -63,6 +68,9 @@ public class RouteFollowingVehicleTest {
   @SuppressWarnings("null")
   public RouteFollowingVehicleTest(boolean allowDiversion) {
     diversionIsAllowed = allowDiversion;
+
+    StateEvent.values();
+    StateEvent.valueOf("GOTO");
   }
 
   /**
@@ -79,6 +87,14 @@ public class RouteFollowingVehicleTest {
    */
   @Before
   public void setUp() {
+    init(true);
+  }
+
+  /**
+   * Sets up the test environment.
+   * @param register If true the objects will be registered in their models.
+   */
+  protected void init(boolean register) {
     rm = new PDPRoadModel(new PlaneRoadModel(new Point(0, 0),
         new Point(10, 10), 30d), diversionIsAllowed);
 
@@ -105,7 +121,22 @@ public class RouteFollowingVehicleTest {
 
     depot = new DefaultDepot(new Point(3, 5));
 
-    PDPTWTestUtil.register(rm, pm, depot, d, p1, p2);
+    if (register) {
+      PDPTWTestUtil.register(rm, pm, depot, d, p1, p2);
+      assertEquals(depot, d.getDepot());
+    }
+
+    d.waitState.toString();
+
+  }
+
+  /**
+   * Tests the check for the number of depots, only 1 is allowed.
+   */
+  @Test(expected = IllegalArgumentException.class)
+  public void multiDepotFail() {
+    init(false);
+    PDPTWTestUtil.register(rm, pm, depot, new DefaultDepot(new Point(3, 5)), d);
   }
 
   /**
@@ -140,6 +171,7 @@ public class RouteFollowingVehicleTest {
     }
     pm.tick(tl);
     d.tick(tl);
+    assertSame(tl, d.getCurrentTime());
     assertFalse(tl.hasTimeLeft());
   }
 
@@ -283,30 +315,131 @@ public class RouteFollowingVehicleTest {
   }
 
   /**
-   * Tests whether the agent supports diversion (if the underlying models
-   * support it).
+   * Tests agent behavior when diversion is attempted while in the goto state.
    */
   @Test
-  public void diversionTest() {
-    d.setRoute(asList(p1, p2));
+  public void diversionTestInGotoState() {
+    d.setRoute(asList(p1));
+    assertEquals(Optional.absent(), d.newRoute);
     tick(2, 3);
+    assertEquals(d.waitState, d.stateMachine.getCurrentState());
     assertEquals(new Point(1, 1), rm.getPosition(d));
 
     tick(3, 4);
-    d.setRoute(asList(p2, p1));
+    assertEquals(d.gotoState, d.stateMachine.getCurrentState());
 
-    boolean error = false;
-    try {
-      tick(13, 14);
-      tick(14, 20);
+    // changing the remainder of the route is always allowed
+    d.setRoute(asList(p1, p2, p1));
+    assertEquals(asList(p1, p2, p1), newArrayList(d.getRoute()));
+    assertEquals(Optional.absent(), d.newRoute);
+
+    // making it empty is not always immediately allowed
+    d.setRoute(new ArrayList<DefaultParcel>());
+
+    if (diversionIsAllowed) {
+      assertTrue(d.route.isEmpty());
+      assertEquals(Optional.absent(), d.newRoute);
+    } else {
+      // no diversion allowed, no change yet
+      assertEquals(asList(p1, p2, p1), d.route);
+      assertEquals(Optional.of(new ArrayList<DefaultParcel>()), d.newRoute);
+    }
+
+    // change it back
+    d.setRoute(asList(p1));
+
+    // changing the first destination in the route is not always immediately
+    // allowed
+    d.setRoute(asList(p2));
+    if (diversionIsAllowed) {
+      assertEquals(asList(p2), d.route);
+      assertEquals(Optional.absent(), d.newRoute);
+    } else {
+      assertEquals(asList(p1), d.route);
+      assertEquals(asList(p2), d.newRoute.get());
+    }
+
+    tick(13, 14);
+    tick(14, 20);
+
+    if (diversionIsAllowed) {
       // in case diversion is allowed, check that the vehicle actually
       // diverted to this parcel, and serviced it.
       assertEquals(newHashSet(p2), pm.getContents(d));
-    } catch (final IllegalArgumentException e) {
-      assertTrue(e.getMessage().startsWith("Diversion"));
-      error = true;
+    } else {
+      // first continue moving to p1 and pickup, then move to p2 and pickup
+      assertEquals(newHashSet(p1, p2), pm.getContents(d));
     }
-    assertEquals(!diversionIsAllowed, error);
+    assertTrue(d.route.isEmpty());
+  }
+
+  /**
+   * Tests agent behavior when diversion is attempted in the service state.
+   */
+  @Test
+  public void diversionTestInServiceState() {
+    d.setRoute(asList(p1));
+    assertEquals(Optional.absent(), d.newRoute);
+
+    // too early
+    tick(2, 3);
+    assertEquals(d.waitState, d.stateMachine.getCurrentState());
+
+    // start moving towards
+    tick(3, 4);
+    assertEquals(d.gotoState, d.stateMachine.getCurrentState());
+
+    tick(4, 5);
+    assertEquals(d.gotoState, d.stateMachine.getCurrentState());
+
+    // start servicing
+    tick(5, 6);
+    assertEquals(d.serviceState, d.stateMachine.getCurrentState());
+
+    // during servicing, the first part of the route can not be changed
+
+    d.setRoute(asList(p1, p2, p1));
+    assertEquals(asList(p1, p2, p1), d.route);
+    assertEquals(Optional.absent(), d.newRoute);
+    d.setRoute(asList(p1));
+    assertEquals(asList(p1), d.route);
+    assertEquals(Optional.absent(), d.newRoute);
+
+    d.setRoute(asList(p2));
+    assertEquals(asList(p2), d.newRoute.get());
+    assertEquals(asList(p1), d.route);
+
+    tick(6, 7);
+    assertEquals(d.serviceState, d.stateMachine.getCurrentState());
+    tick(7, 8);
+    assertEquals(d.serviceState, d.stateMachine.getCurrentState());
+    assertEquals(asList(p1), pm.getContents(d).asList());
+
+    // it is still too early to go to p2, but the route should be updated
+    tick(8, 9);
+    assertEquals(d.waitState, d.stateMachine.getCurrentState());
+    assertEquals(asList(p2), d.route);
+    assertEquals(Optional.absent(), d.newRoute);
+  }
+
+  /**
+   * Tests agent behavior when diversion is attempted in the wait state. This is
+   * always allowed.
+   */
+  @Test
+  public void diversionTestInWaitState() {
+    assertEquals(d.waitState, d.stateMachine.getCurrentState());
+    d.setRoute(asList(p1));
+    assertEquals(Optional.absent(), d.newRoute);
+    assertEquals(asList(p1), d.route);
+
+    d.setRoute(asList(p1, p2, p1, p2));
+    assertEquals(Optional.absent(), d.newRoute);
+    assertEquals(asList(p1, p2, p1, p2), d.route);
+
+    d.setRoute(asList(p2, p2, p1, p1));
+    assertEquals(Optional.absent(), d.newRoute);
+    assertEquals(asList(p2, p2, p1, p1), d.route);
   }
 
   /**
@@ -332,6 +465,37 @@ public class RouteFollowingVehicleTest {
     rm.addObjectAt(d, new Point(5, 5.5));
     assertFalse(d.isEndOfDay(time(minute(24), minute(25))));
     assertTrue(d.isEndOfDay(time(minute(25), minute(26))));
+  }
+
+  /**
+   * Test illegal argument: transition state.
+   */
+  @Test(expected = IllegalArgumentException.class)
+  public void isTooEarlyTransitionStateFail() {
+    d.setRoute(asList(p1));
+    tick(3, 6);
+    assertEquals(ParcelState.PICKING_UP, pm.getParcelState(p1));
+    d.isTooEarly(p1, time(2));
+  }
+
+  /**
+   * Test illegal argument: delivered state.
+   */
+  @Test(expected = IllegalArgumentException.class)
+  public void isTooEarlyDeliveredStateFail() {
+    d.setRoute(asList(p1, p1));
+    tick(0, 60);
+    assertEquals(ParcelState.DELIVERED, pm.getParcelState(p1));
+    d.isTooEarly(p1, time(2));
+  }
+
+  /**
+   * Test method when parcel is already in the available state.
+   */
+  @Test
+  public void isTooEarlyAvailableState() {
+    tick(5, 6);
+    assertFalse(d.isTooEarly(p1, time(2)));
   }
 
   /**
@@ -438,18 +602,12 @@ public class RouteFollowingVehicleTest {
 
     d.setRoute(asList(p3));
 
-    final long travelTime = d.computeTravelTimeTo(p3.dto.pickupLocation,
-        SI.SECOND);
-    System.out.println(travelTime);
-
     // we are too early, don't move
     tick(0, 1);
     tick(1, 2);
     tick(2, 3);
     assertEquals(d.waitState, d.stateMachine.getCurrentState());
     assertEquals(new Point(1, 1), rm.getPosition(d));
-
-    System.out.println(d.isTooEarly(p3, time(minute(3), minute(4))));
 
     // we can go
     tick(3, 4);
@@ -465,7 +623,6 @@ public class RouteFollowingVehicleTest {
     pm.getEventAPI().addListener(new Listener() {
       @Override
       public void handleEvent(Event e) {
-        System.out.println(e);
         assertEquals(minute(5) + second(30), ((PDPModelEvent) e).time);
       }
     }, PDPModelEventType.START_PICKUP);

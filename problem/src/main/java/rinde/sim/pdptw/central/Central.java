@@ -164,8 +164,6 @@ public final class Central {
             .iterator();
         final Iterator<RouteFollowingVehicle> drivers = rm.get()
             .getObjectsOfType(RouteFollowingVehicle.class).iterator();
-
-        // FIXME, the route can only be set if the vehicle is in waiting state
         while (drivers.hasNext()) {
           drivers.next().setRoute(routes.next());
         }
