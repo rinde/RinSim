@@ -1,6 +1,10 @@
 package rinde.sim.scenario;
 
+import javax.annotation.Nullable;
+
 import rinde.sim.event.Event;
+
+import com.google.common.base.Objects;
 
 /**
  * Simplest time event. The object is a value object.
@@ -15,6 +19,11 @@ public class TimedEvent extends Event {
    */
   public final long time;
 
+  /**
+   * Create a new TimedEvent.
+   * @param type The type of the event.
+   * @param timestamp The time at which the event occurs.
+   */
   public TimedEvent(Enum<?> type, long timestamp) {
     super(type);
     time = timestamp;
@@ -22,15 +31,11 @@ public class TimedEvent extends Event {
 
   @Override
   public int hashCode() {
-    final int prime = 31;
-    int result = 1;
-    result = prime * result + eventType.hashCode();
-    result = prime * result + (int) (time ^ (time >>> 32));
-    return result;
+    return Objects.hashCode(eventType, time);
   }
 
   @Override
-  public boolean equals(Object obj) {
+  public boolean equals(@Nullable Object obj) {
     if (this == obj) {
       return true;
     }
@@ -49,7 +54,7 @@ public class TimedEvent extends Event {
 
   @Override
   public String toString() {
-    return eventType + "|" + time;
+    return new StringBuilder().append(eventType).append("|").append(time)
+        .toString();
   }
-
 }

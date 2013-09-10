@@ -6,7 +6,6 @@ package rinde.sim.scenario;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Lists.newLinkedList;
-import static com.google.common.collect.Sets.newHashSet;
 import static com.google.common.collect.Sets.newLinkedHashSet;
 import static java.util.Collections.unmodifiableList;
 import static java.util.Collections.unmodifiableSet;
@@ -19,14 +18,17 @@ import java.util.List;
 import java.util.Queue;
 import java.util.Set;
 
+import javax.annotation.Nullable;
+
 import com.google.common.base.Objects;
 
+// TODO should be converted to use immutable collections and move builder into
+// this class.
 /**
  * Scenario is an unmodifiable list of events sorted by the time stamp. For help
  * with creating scenarios {@link ScenarioBuilder} is provided.
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
  * @author Bartosz Michalik <bartosz.michalik@cs.kuleuven.be>
- * 
  */
 public class Scenario implements Serializable {
   private static final long serialVersionUID = 1839693038677831786L;
@@ -34,6 +36,9 @@ public class Scenario implements Serializable {
   private final List<TimedEvent> events;
   private final Set<Enum<?>> supportedTypes;
 
+  /**
+   * Create an empty scenario.
+   */
   public Scenario() {
     supportedTypes = unmodifiableSet(new LinkedHashSet<Enum<?>>());
     events = unmodifiableList(new ArrayList<TimedEvent>());
@@ -51,21 +56,10 @@ public class Scenario implements Serializable {
    */
   public Scenario(Collection<? extends TimedEvent> pEvents,
       Set<Enum<?>> pSupportedTypes) {
-    checkArgument(!pSupportedTypes.isEmpty(), "supported types must be a non-empty set");
+    checkArgument(!pSupportedTypes.isEmpty(),
+        "supported types must be a non-empty set");
     supportedTypes = unmodifiableSet(newLinkedHashSet(pSupportedTypes));
-
-    // final PriorityQueue<TimedEvent> tmp = new PriorityQueue<TimedEvent>(
-    // pEvents.size(), new TimeComparator());
-    // tmp.addAll(pEvents);
-    // System.out.println(tmp);
-
-    // final List<TimedEvent> tmp = ;
-
     events = unmodifiableList(newArrayList(pEvents));
-
-    // events = new PriorityQueue<TimedEvent>(max(pEvents.size(), 1),
-    // new TimeComparator());
-    // events.addAll(pEvents);
   }
 
   /**
@@ -93,25 +87,12 @@ public class Scenario implements Serializable {
     return newArrayList(events);
   }
 
+  /**
+   * @return A queue containing all events of this scenario.
+   */
   public Queue<TimedEvent> asQueue() {
     return newLinkedList(events);
   }
-
-  /**
-   * Get the access to the first event in the scenario (without removing it).
-   * @return element or <code>null</code> when scenario has no more events.
-   */
-  // public TimedEvent peek() {
-  // return events.peek();
-  // }
-
-  /**
-   * Retrieve an element from the scenario (removing it from list).
-   * @return element or <code>null</code> when scenario has no more events
-   */
-  // public TimedEvent poll() {
-  // return events.poll();
-  // }
 
   /**
    * @return The number of events that is in this scenario.
@@ -121,13 +102,17 @@ public class Scenario implements Serializable {
   }
 
   @Override
-  public boolean equals(Object other) {
-    if (other instanceof Scenario
-        && events.size() == ((Scenario) other).events.size()) {
-      final Scenario s1 = (Scenario) other;
-      return asList().equals(s1.asList());
+  public boolean equals(@Nullable Object other) {
+    if (other == null) {
+      return false;
     }
-    return false;
+    if (other == this) {
+      return true;
+    }
+    if (other.getClass() != getClass()) {
+      return false;
+    }
+    return events.equals(((Scenario) other).events);
   }
 
   @Override
@@ -144,12 +129,14 @@ public class Scenario implements Serializable {
     return supportedTypes;
   }
 
+  /**
+   * Finds all event types in the provided events.
+   * @param pEvents The events to check.
+   * @return A set of event types.
+   */
   protected static Set<Enum<?>> collectEventTypes(
       Collection<? extends TimedEvent> pEvents) {
-    if (pEvents == null) {
-      throw new IllegalArgumentException("events can not be null");
-    }
-    final Set<Enum<?>> types = newHashSet();
+    final Set<Enum<?>> types = newLinkedHashSet();
     for (final TimedEvent te : pEvents) {
       types.add(te.getEventType());
     }

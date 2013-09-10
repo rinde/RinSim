@@ -7,6 +7,8 @@ import static java.util.Arrays.asList;
 import java.util.Queue;
 import java.util.Set;
 
+import javax.annotation.Nullable;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -61,13 +63,31 @@ public class ScenarioController implements TickListener {
    * The {@link Event} queue.
    */
   protected final Queue<TimedEvent> scenarioQueue;
+
+  /**
+   * The {@link EventDispatcher} that is used for dispatching all events.
+   */
   protected final EventDispatcher disp;
+
+  /**
+   * A reference to the simulator.
+   */
   protected final Simulator simulator;
 
+  /**
+   * A reference to the {@link UICreator} that is responsible for creating the
+   * UI.
+   */
+  @Nullable
   protected UICreator uiCreator;
+
+  /**
+   * A handler for the TimedEvents.
+   */
   protected TimedEventHandler timedEventHandler;
 
   private int ticks;
+  @Nullable
   private EventType status;
   private boolean uiMode;
 
@@ -98,8 +118,8 @@ public class ScenarioController implements TickListener {
     final Set<Enum<?>> typeSet = newHashSet(scenario.getPossibleEventTypes());
     typeSet.addAll(asList(EventType.values()));
     disp = new EventDispatcher(typeSet);
-    disp.addListener(new InternalTimedEventHandler(), scenario
-        .getPossibleEventTypes());
+    disp.addListener(new InternalTimedEventHandler(),
+        scenario.getPossibleEventTypes());
 
     simulator.getEventAPI().addListener(new Listener() {
       @Override
@@ -158,16 +178,18 @@ public class ScenarioController implements TickListener {
       } else {
         uiCreator.createUI(simulator);
       }
-
     }
   }
 
+  /**
+   * Dispatch all setup events (the ones that define initial settings). For
+   * example, a vehicle that is added during setup (at time < 0) will receive
+   * its first tick at time 0. If the vehicle is added at the beginning of the
+   * simulation (time 0) the first tick it will receive will be the second
+   * (globally) tick.
+   */
   protected void dispatchSetupEvents() {
-    // dispatch all setup events (the ones that define initial
-    // settings). For example, a vehicle that is added during setup (at time
-    // < 0) will receive its first tick at time 0. If the vehicle is added
-    // at the beginning of the simulation (time 0) the first tick it will
-    // receive will be the second (globally) tick.
+
     TimedEvent e = null;
     while ((e = scenarioQueue.peek()) != null && e.time < 0) {
       scenarioQueue.poll();
@@ -184,7 +206,7 @@ public class ScenarioController implements TickListener {
   }
 
   @Override
-  final public void tick(TimeLapse timeLapse) {
+  public final void tick(TimeLapse timeLapse) {
     if (!uiMode && ticks == 0) {
       LOGGER.info("scenario finished at virtual time:" + timeLapse.getTime()
           + "[stopping simulation]");
@@ -221,7 +243,7 @@ public class ScenarioController implements TickListener {
   }
 
   @Override
-  public void afterTick(TimeLapse timeLapse) {} // not needed
+  public void afterTick(TimeLapse timeLapse) {}
 
   /**
    * A UICreator can be used to dynamically create a UI for the simulation run.
@@ -243,8 +265,8 @@ public class ScenarioController implements TickListener {
 
     @Override
     public final void handleEvent(Event e) {
-      checkState(timedEventHandler.handleTimedEvent((TimedEvent) e), "The event %s is not handled.", e
-          .getEventType());
+      checkState(timedEventHandler.handleTimedEvent((TimedEvent) e),
+          "The event %s is not handled.", e.getEventType());
     }
   }
 
