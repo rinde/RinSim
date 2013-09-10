@@ -8,6 +8,7 @@ import static com.google.common.base.Preconditions.checkArgument;
 import javax.measure.quantity.Duration;
 import javax.measure.unit.Unit;
 
+// TODO investigate: could TimeLapse and TimeWindow both be a Range?
 /**
  * Represents a consumable interval of time: [start, end). Instances of time
  * lapse are handed out by the {@link Simulator} and can be received by
@@ -39,8 +40,10 @@ public final class TimeLapse {
    * @param time The time to consume.
    */
   public void consume(long time) {
-    checkArgument(time >= 0, "the time to consume must be a positive value, it is %s.", time);
-    checkArgument(timeLeft - time >= 0, "there is not enough time left to consume %s.", time);
+    checkArgument(time >= 0,
+        "the time to consume must be a positive value, it is %s.", time);
+    checkArgument(timeLeft - time >= 0,
+        "there is not enough time left to consume %s.", time);
     timeLeft -= time;
   }
 
