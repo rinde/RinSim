@@ -81,29 +81,38 @@ public class PDPRoadModelTest {
     }
 
     // to satisfy coverage tool
-    PDPRoadModel.DestType.DEPOT.toString();
     PDPRoadModel.DestType.valueOf("DEPOT").toString();
   }
 
   @Test
   public void test1() {
+    dp1 = new DefaultParcel(new ParcelDTO(new Point(1, 0), new Point(0, 7),
+        DEFAULT_TW, DEFAULT_TW, 0, 0, 2, 0));
+    rm.addObjectAt(dp1, dp1.dto.pickupLocation);
+    pm.register(dp1);
+
     assertNull(rm.getDestinationToParcel(dv1));
     rm.moveTo(dv1, dp1, time(7));
     assertEquals(dp1, rm.getDestinationToParcel(dv1));
 
     rm.moveTo(dv1, dp1, time(4));
-    assertNull(rm.getDestinationToParcel(dv1));
+    assertEquals(dp1, rm.getDestinationToParcel(dv1));
 
     pm.pickup(dv1, dp1, time(1));
+
+    assertNull(rm.getDestinationToParcel(dv1));
     assertFalse(rm.containsObject(dp1));
+    assertEquals(ParcelState.PICKING_UP, pm.getParcelState(dp1));
+    dv1.tick(time(1));
     assertEquals(ParcelState.IN_CARGO, pm.getParcelState(dp1));
 
     rm.moveTo(dv1, dp1, time(1));
     assertEquals(dp1, rm.getDestinationToParcel(dv1));
 
     rm.moveTo(dv1, dp1, time(80));
-    assertNull(rm.getDestinationToParcel(dv1));
+    assertEquals(dp1, rm.getDestinationToParcel(dv1));
     pm.deliver(dv1, dp1, time(1));
+    assertNull(rm.getDestinationToParcel(dv1));
 
     assertEquals(ParcelState.AVAILABLE, pm.getParcelState(dp2));
     rm.moveTo(dv1, dp2, time(50));

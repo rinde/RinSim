@@ -116,7 +116,6 @@ public class Gendreau06Test {
     assertTrue(dto.simFinish);
     assertEquals(6, dto.totalDistance, EPSILON);
     assertEquals(1, dto.totalDeliveries);
-    System.out.println(dto);
     assertEquals(minutes(6) - 1000, dto.overTime);
     assertEquals(0, dto.pickupTardiness);
     assertEquals(0, dto.deliveryTardiness);
