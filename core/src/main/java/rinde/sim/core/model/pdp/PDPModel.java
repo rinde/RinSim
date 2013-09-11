@@ -373,8 +373,7 @@ public class PDPModel implements Model<PDPObject>, TickListener, ModelReceiver {
           .dispatchEvent(new PDPModelEvent(PDPModelEventType.START_PICKUP,
               this, time.getTime(), parcel, vehicle));
 
-      // remove the parcel such that it can no longer be attempted to be
-      // picked up by anyone else
+      // remove the parcel such that no other attempts to pickup can be made
       roadModel.get().removeObject(parcel);
 
       // in this case we know we cannot finish this action with the
@@ -584,11 +583,15 @@ public class PDPModel implements Model<PDPObject>, TickListener, ModelReceiver {
     }
   }
 
+  // TODO create a similar method but with a parcel as key
+
   public VehicleParcelActionInfo getVehicleActionInfo(Vehicle vehicle) {
     synchronized (this) {
-      checkArgument(vehicleState.get(vehicle) == VehicleState.DELIVERING
-          || vehicleState.get(vehicle) == VehicleState.PICKING_UP,
-          "the vehicle must be in either DELIVERING or PICKING_UP state");
+      final VehicleState state = vehicleState.get(vehicle);
+      checkArgument(
+          state == VehicleState.DELIVERING || state == VehicleState.PICKING_UP,
+          "the vehicle must be in either DELIVERING or PICKING_UP state, but it is %s.",
+          state);
       return (VehicleParcelActionInfo) pendingVehicleActions.get(vehicle);
     }
   }
@@ -610,7 +613,8 @@ public class PDPModel implements Model<PDPObject>, TickListener, ModelReceiver {
           eventDispatcher.dispatchEvent(new PDPModelEvent(
               PDPModelEventType.PARCEL_AVAILABLE, this, currentTime, p, null));
         }
-      } else { // it is a vehicle or a depot
+      } else {
+        // it is a vehicle or a depot
         final Container container = (Container) element;
         checkArgument(!containerCapacities.containsKey(container));
         containerCapacities.put(container, container.getCapacity());
@@ -638,7 +642,6 @@ public class PDPModel implements Model<PDPObject>, TickListener, ModelReceiver {
   @Override
   public Class<PDPObject> getSupportedType() {
     return PDPObject.class;
-
   }
 
   /**
@@ -789,7 +792,8 @@ public class PDPModel implements Model<PDPObject>, TickListener, ModelReceiver {
         time.consume(timeNeeded);
         timeNeeded = 0;
         finish(time);
-      } else { // there is not enough time to finish action in this step
+      } else {
+        // there is not enough time to finish action in this step
         timeNeeded -= time.getTimeLeft();
         time.consumeAll();
       }
@@ -828,7 +832,6 @@ public class PDPModel implements Model<PDPObject>, TickListener, ModelReceiver {
     public void finish(TimeLapse time) {
       modelRef.vehicleState.put(vehicle, VehicleState.IDLE);
       modelRef.doPickup(vehicle, parcel, time.getTime());
-
     }
   }
 
