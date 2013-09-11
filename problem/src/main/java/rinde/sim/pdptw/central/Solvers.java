@@ -34,6 +34,8 @@ import com.google.common.collect.ImmutableMap;
  */
 public final class Solvers {
 
+  // FIXME write tests for the conversion methods!
+
   // TODO this class' methods requires explicit units, this is no longer
   // necessary since they can be retrieved from the models
 
@@ -92,7 +94,8 @@ public final class Solvers {
 
   public static StateContext convert(PDPRoadModel rm, PDPModel pm,
       Measure<Long, Duration> time) {
-    return convert(rm, pm, rm.getObjectsOfType(DefaultVehicle.class), rm.getObjectsOfType(DefaultParcel.class), time);
+    return convert(rm, pm, rm.getObjectsOfType(DefaultVehicle.class),
+        rm.getObjectsOfType(DefaultParcel.class), time);
   }
 
   static StateContext convert(PDPRoadModel rm, PDPModel pm,
@@ -107,22 +110,23 @@ public final class Solvers {
         .builder();
     allParcels.putAll(parcelMap);
     for (final DefaultVehicle v : vehicles) {
-      final ImmutableMap<ParcelDTO, DefaultParcel> contentsMap = contentsToMap(pm, v);
+      final ImmutableMap<ParcelDTO, DefaultParcel> contentsMap = contentsToMap(
+          pm, v);
       vbuilder.add(convertToVehicleState(rm, pm, v, contentsMap));
       allParcels.putAll(contentsMap);
     }
     return new StateContext(new GlobalStateObject(parcelMap.keySet(),
         vbuilder.build(), time.getValue().longValue(), time.getUnit(),
-        rm.getSpeedUnit(), rm.getDistanceUnit()),//
-        vehicleMap, allParcels.build());
+        rm.getSpeedUnit(), rm.getDistanceUnit()), vehicleMap,
+        allParcels.build());
   }
 
   static ImmutableMap<ParcelDTO, DefaultParcel> contentsToMap(PDPModel pm,
       DefaultVehicle vehicle) {
     // this is ok since we actually check the type
     @SuppressWarnings({ "unchecked", "rawtypes" })
-    final Set<DefaultParcel> ps = Collections
-        .checkedSet((Set) newLinkedHashSet(pm.getContents(vehicle)), DefaultParcel.class);
+    final Set<DefaultParcel> ps = Collections.checkedSet(
+        (Set) newLinkedHashSet(pm.getContents(vehicle)), DefaultParcel.class);
 
     // fix all parcels which are in a transition process: either being
     // delivered or picked up.
@@ -141,11 +145,12 @@ public final class Solvers {
     return toMap(ps);
   }
 
+  // TODO check for bugs
   static VehicleStateObject convertToVehicleState(PDPRoadModel rm, PDPModel pm,
       DefaultVehicle vehicle, ImmutableMap<ParcelDTO, DefaultParcel> contents) {
     final boolean isIdle = pm.getVehicleState(vehicle) == PDPModel.VehicleState.IDLE;
-    final long remainingServiceTime = isIdle ? 0 : pm
-        .getVehicleActionInfo(vehicle).timeNeeded();
+    final long remainingServiceTime = isIdle ? 0 : pm.getVehicleActionInfo(
+        vehicle).timeNeeded();
 
     ParcelDTO destination = null;
     if (!rm.isVehicleDiversionAllowed()) {
