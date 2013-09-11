@@ -114,6 +114,8 @@ public class PDPModel implements Model<PDPObject>, TickListener, ModelReceiver {
    */
   public enum ParcelState {
 
+    // TODO what about using the ordinal value in comparisons?
+
     // TODO add states:
     // AVAILABLE_FOR_PICKUP
     // AVAILABLE_FOR_DELIVERY
