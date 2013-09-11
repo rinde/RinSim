@@ -9,7 +9,6 @@ import java.util.Queue;
 import javax.annotation.Nullable;
 
 import org.apache.commons.lang3.builder.EqualsBuilder;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 import rinde.sim.core.TimeLapse;
 import rinde.sim.core.graph.Point;
@@ -17,6 +16,7 @@ import rinde.sim.core.model.ModelProvider;
 import rinde.sim.core.model.ModelReceiver;
 import rinde.sim.core.model.pdp.PDPModel;
 import rinde.sim.core.model.pdp.PDPModel.ParcelState;
+import rinde.sim.core.model.pdp.Parcel;
 import rinde.sim.core.model.road.AbstractRoadModel;
 import rinde.sim.core.model.road.ForwardingRoadModel;
 import rinde.sim.core.model.road.MoveProgress;
@@ -84,7 +84,7 @@ public class PDPRoadModel extends ForwardingRoadModel implements ModelReceiver {
       checkArgument(
           state == ParcelState.IN_CARGO,
           "Can only move to parcels which are either on the map or in cargo, state is %s.",
-          state);
+          state, obj.hashCode());
       return ((DefaultParcel) obj).getDestination();
     }
     return getPosition(obj);
@@ -171,7 +171,8 @@ public class PDPRoadModel extends ForwardingRoadModel implements ModelReceiver {
             pm.getParcelState((DefaultParcel) prev.roadUser) == ParcelState.DELIVERED,
             "The parcel needs to be delivered before moving away: %s.",
             prev.roadUser);
-      } else {// it is a depot
+      } else {
+        // it is a depot
         // the destination is only changed in case we are no longer going
         // towards the depot
         destChange = newDestinationObject.type != DestType.DEPOT;
@@ -197,7 +198,8 @@ public class PDPRoadModel extends ForwardingRoadModel implements ModelReceiver {
    * <ul>
    * <li>The {@link MovingRoadUser} is moving to some destination.</li>
    * <li>The destination is a {@link DefaultParcel}.</li>
-   * <li>The {@link MovingRoadUser} has not yet reached its destination.</li>
+   * <li>The {@link MovingRoadUser} has not yet started servicing at its
+   * destination.</li>
    * </ul>
    * Returns <code>null</code> otherwise.
    * @param obj The {@link MovingRoadUser} to check its destination for.
@@ -207,9 +209,16 @@ public class PDPRoadModel extends ForwardingRoadModel implements ModelReceiver {
   @Nullable
   public DefaultParcel getDestinationToParcel(MovingRoadUser obj) {
     if (destinations.containsKey(obj)
-        && destinations.get(obj).type != DestType.DEPOT
-        && !destinations.get(obj).dest.equals(getPosition(obj))) {
-      return (DefaultParcel) destinations.get(obj).roadUser;
+        && destinations.get(obj).type != DestType.DEPOT) {
+      final ParcelState parcelState = pdpModel.get().getParcelState(
+          (Parcel) destinations.get(obj).roadUser);
+      // if it is a pickup destination it must still be available
+      if ((destinations.get(obj).type == DestType.PICKUP
+          && parcelState == ParcelState.AVAILABLE || parcelState == ParcelState.ANNOUNCED)
+          // if it is a delivery destination it must still be in cargo
+          || (destinations.get(obj).type == DestType.DELIVERY && parcelState == ParcelState.IN_CARGO)) {
+        return (DefaultParcel) destinations.get(obj).roadUser;
+      }
     }
     return null;
   }
@@ -238,8 +247,7 @@ public class PDPRoadModel extends ForwardingRoadModel implements ModelReceiver {
       this.type = type;
       this.dest = dest;
       roadUser = obj;
-      hashCode = new HashCodeBuilder(17, 31).append(type).append(dest)
-          .append(obj).toHashCode();
+      hashCode = Objects.hashCode(type, dest, obj);
     }
 
     @Override
@@ -256,10 +264,8 @@ public class PDPRoadModel extends ForwardingRoadModel implements ModelReceiver {
         return true;
       }
       final DestinationObject other = (DestinationObject) obj;
-      return new EqualsBuilder()//
-          .append(type, other.type)//
-          .append(dest, other.dest)//
-          .append(roadUser, other.roadUser).isEquals();
+      return new EqualsBuilder().append(type, other.type)
+          .append(dest, other.dest).append(roadUser, other.roadUser).isEquals();
     }
 
     @Override
@@ -275,7 +281,6 @@ public class PDPRoadModel extends ForwardingRoadModel implements ModelReceiver {
 
   @Override
   public void registerModelProvider(ModelProvider mp) {
-    pdpModel = Optional.of(mp.getModel(PDPModel.class));
-
+    pdpModel = Optional.fromNullable(mp.getModel(PDPModel.class));
   }
 }
