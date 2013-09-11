@@ -6,6 +6,7 @@ import static java.util.Collections.unmodifiableCollection;
 
 import java.math.RoundingMode;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Queue;
 import java.util.Set;
 
@@ -20,6 +21,7 @@ import rinde.sim.core.TimeLapse;
 import rinde.sim.core.graph.Point;
 import rinde.sim.core.model.pdp.PDPModel;
 import rinde.sim.core.model.pdp.PDPModel.ParcelState;
+import rinde.sim.core.model.pdp.PDPModel.VehicleState;
 import rinde.sim.core.model.pdp.Parcel;
 import rinde.sim.core.model.road.RoadModel;
 import rinde.sim.pdptw.central.arrays.ArraysSolvers;
@@ -93,6 +95,8 @@ public class RouteFollowingVehicle extends DefaultVehicle {
 
     // FIXME coverage should be 100% again
 
+    // TODO split up the Wait state into a GoHome or GotoDepot state.
+
     waitState = new Wait();
     gotoState = new Goto();
     waitForServiceState = new WaitAtService();
@@ -103,9 +107,9 @@ public class RouteFollowingVehicle extends DefaultVehicle {
         // TODO test this transition
         .addTransition(gotoState, StateEvent.NOGO, waitState)
         .addTransition(gotoState, StateEvent.ARRIVED, waitForServiceState)
+        .addTransition(waitForServiceState, StateEvent.REROUTE, gotoState)
         .addTransition(waitForServiceState, StateEvent.READY_TO_SERVICE,
             serviceState)
-        .addTransition(waitForServiceState, StateEvent.REROUTE, gotoState)
         .addTransition(serviceState, StateEvent.DONE, waitState).build();
   }
 
@@ -142,6 +146,21 @@ public class RouteFollowingVehicle extends DefaultVehicle {
    *          {@link Collection} using its iteration order.
    */
   public void setRoute(Collection<DefaultParcel> r) {
+
+    // note: the following checks can not detect if a parcel has been set to
+    // multiple vehicles at the same time
+    for (final DefaultParcel dp : r) {
+      final ParcelState state = pdpModel.get().getParcelState(dp);
+      checkArgument(!state.isDelivered());
+      if (state == ParcelState.PICKING_UP) {
+        checkArgument(pdpModel.get().getVehicleActionInfo(this).getParcel() == dp);
+        checkArgument(Collections.frequency(r, dp) <= 2);
+      } else if (state.isPickedUp()) {
+        checkArgument(pdpModel.get().getContents(this).contains(dp));
+        checkArgument(Collections.frequency(r, dp) <= 1);
+      }
+    }
+
     if (stateMachine.stateIs(waitState) || route.isEmpty()
         || (isDiversionAllowed && !stateMachine.stateIs(serviceState))
         || firstEqualsFirstInRoute(r)) {
@@ -208,8 +227,9 @@ public class RouteFollowingVehicle extends DefaultVehicle {
     final ParcelState parcelState = pdpModel.get().getParcelState(p);
     checkArgument(
         !parcelState.isTransitionState() && !parcelState.isDelivered(),
-        "State may not be a transition state nor may it be delivered, it is %s.",
-        parcelState);
+        "Parcel state may not be a transition state nor may it be delivered, it is %s.",
+        parcelState, parcelState.isTransitionState() ? pdpModel.get()
+            .getVehicleActionInfo(this).timeNeeded() : null);
     final boolean isPickup = !parcelState.isPickedUp();
     // if it is available, we know we can't be too early
     if (isPickup && parcelState == ParcelState.AVAILABLE) {
@@ -329,6 +349,7 @@ public class RouteFollowingVehicle extends DefaultVehicle {
 
     @Override
     public void onEntry(StateEvent event, RouteFollowingVehicle context) {
+      checkArgument(pdpModel.get().getVehicleState(context) == VehicleState.IDLE);
       if (context.newRoute.isPresent()) {
         context.setRoute(context.newRoute.get());
       }
@@ -337,7 +358,7 @@ public class RouteFollowingVehicle extends DefaultVehicle {
     @Nullable
     @Override
     public StateEvent handle(StateEvent event, RouteFollowingVehicle context) {
-      if (route.peek() != null) {
+      if (!route.isEmpty()) {
         if (!isTooEarly(route.peek(), currentTime.get())) {
           return StateEvent.GOTO;
         }
@@ -388,6 +409,10 @@ public class RouteFollowingVehicle extends DefaultVehicle {
    * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
    */
   protected class WaitAtService extends AbstractTruckState {
+    /**
+     * New instance.
+     */
+    protected WaitAtService() {}
 
     @Nullable
     @Override
@@ -400,6 +425,7 @@ public class RouteFollowingVehicle extends DefaultVehicle {
       if (!roadModel.get().equalPosition(context, cur)) {
         return StateEvent.REROUTE;
       }
+      // FIXME streamline these ifs
       // if parcel is not ready yet, wait
       final boolean pickup = !pm.getContents(context).contains(cur);
       final long timeUntilReady = (pickup ? cur.dto.pickupTimeWindow.begin
@@ -413,7 +439,11 @@ public class RouteFollowingVehicle extends DefaultVehicle {
           time.consume(timeUntilReady);
         }
       }
-      return StateEvent.READY_TO_SERVICE;
+      if (time.hasTimeLeft()) {
+        return StateEvent.READY_TO_SERVICE;
+      } else {
+        return null;
+      }
     }
   }
 
