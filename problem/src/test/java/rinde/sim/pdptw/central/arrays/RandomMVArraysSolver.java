@@ -11,6 +11,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import javax.annotation.Nullable;
+
 import org.apache.commons.math3.random.RandomGenerator;
 
 import com.google.common.primitives.Ints;
@@ -34,7 +36,8 @@ public class RandomMVArraysSolver implements MultiVehicleArraysSolver {
   public SolutionObject[] solve(int[][] travelTime, int[] releaseDates,
       int[] dueDates, int[][] servicePairs, int[] serviceTimes,
       int[][] vehicleTravelTimes, int[][] inventories,
-      int[] remainingServiceTimes, int[] currentDestinations) {
+      int[] remainingServiceTimes, int[] currentDestinations,
+      @Nullable SolutionObject[] currentSolutions) {
 
     final int n = travelTime.length;
     final int v = vehicleTravelTimes.length;
@@ -79,7 +82,6 @@ public class RandomMVArraysSolver implements MultiVehicleArraysSolver {
           remove(routes, deliveryIndex);
           routes.get(i).add(1, deliveryIndex);
         }
-
       }
     }
 
@@ -111,15 +113,15 @@ public class RandomMVArraysSolver implements MultiVehicleArraysSolver {
             + serviceTimes[prev] + tt;
 
         // we also have to take into account the time window
-        final int minArrivalTime = Math
-            .max(earliestArrivalTime, releaseDates[cur]);
+        final int minArrivalTime = Math.max(earliestArrivalTime,
+            releaseDates[cur]);
         arrivalTimes[j] = minArrivalTime;
       }
 
-      final int totalTravelTime = ArraysSolvers
-          .computeTotalTravelTime(route, travelTime, vehicleTravelTimes[i]);
-      final int tardiness = ArraysSolvers
-          .computeSumTardiness(route, arrivalTimes, serviceTimes, dueDates);
+      final int totalTravelTime = ArraysSolvers.computeTotalTravelTime(route,
+          travelTime, vehicleTravelTimes[i]);
+      final int tardiness = ArraysSolvers.computeSumTardiness(route,
+          arrivalTimes, serviceTimes, dueDates);
       sols[i] = new SolutionObject(route, arrivalTimes, totalTravelTime
           + tardiness);
       // System.out.println(sols[i]);

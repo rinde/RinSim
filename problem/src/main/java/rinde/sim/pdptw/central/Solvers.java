@@ -9,10 +9,12 @@ import static java.util.Arrays.asList;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Queue;
 import java.util.Set;
 
+import javax.annotation.Nullable;
 import javax.measure.Measure;
 import javax.measure.quantity.Duration;
 
@@ -39,6 +41,7 @@ public final class Solvers {
   // TODO this class' methods requires explicit units, this is no longer
   // necessary since they can be retrieved from the models
 
+  // TODO builder?
   private Solvers() {}
 
   public static class StateContext {
@@ -58,7 +61,14 @@ public final class Solvers {
   // solver for multi vehicle
   public static List<Queue<DefaultParcel>> solve(Solver solver,
       PDPRoadModel rm, PDPModel pm, Measure<Long, Duration> time) {
-    final StateContext state = convert(rm, pm, time);
+    return solve(solver, rm, pm, time, null);
+  }
+
+  // solve multi with current routes
+  public static List<Queue<DefaultParcel>> solve(Solver solver,
+      PDPRoadModel rm, PDPModel pm, Measure<Long, Duration> time,
+      @Nullable ImmutableList<ImmutableList<DefaultParcel>> currentRoutes) {
+    final StateContext state = convert(rm, pm, time, currentRoutes);
     return convertRoutes(state, solver.solve(state.state));
   }
 
@@ -66,7 +76,15 @@ public final class Solvers {
   public static Queue<DefaultParcel> solve(Solver solver, PDPRoadModel rm,
       PDPModel pm, DefaultVehicle vehicle,
       Collection<DefaultParcel> availableParcels, Measure<Long, Duration> time) {
-    final StateContext state = convert(rm, pm, vehicle, availableParcels, time);
+    return solve(solver, rm, pm, vehicle, availableParcels, time, null);
+  }
+
+  public static Queue<DefaultParcel> solve(Solver solver, PDPRoadModel rm,
+      PDPModel pm, DefaultVehicle vehicle,
+      Collection<DefaultParcel> availableParcels, Measure<Long, Duration> time,
+      @Nullable ImmutableList<DefaultParcel> currentRoute) {
+    final StateContext state = convert(rm, pm, vehicle, availableParcels, time,
+        currentRoute);
     return convertRoutes(state, solver.solve(state.state)).get(0);
   }
 
@@ -86,21 +104,26 @@ public final class Solvers {
     return routesBuilder.build();
   }
 
+  // single vehicle
   public static StateContext convert(PDPRoadModel rm, PDPModel pm,
       DefaultVehicle vehicle, Collection<DefaultParcel> availableParcels,
-      Measure<Long, Duration> time) {
-    return convert(rm, pm, asList(vehicle), availableParcels, time);
+      Measure<Long, Duration> time,
+      @Nullable ImmutableList<DefaultParcel> currentRoute) {
+    return convert(rm, pm, asList(vehicle), availableParcels, time,
+        currentRoute == null ? null : ImmutableList.of(currentRoute));
   }
 
   public static StateContext convert(PDPRoadModel rm, PDPModel pm,
-      Measure<Long, Duration> time) {
+      Measure<Long, Duration> time,
+      @Nullable ImmutableList<ImmutableList<DefaultParcel>> currentRoutes) {
     return convert(rm, pm, rm.getObjectsOfType(DefaultVehicle.class),
-        rm.getObjectsOfType(DefaultParcel.class), time);
+        rm.getObjectsOfType(DefaultParcel.class), time, currentRoutes);
   }
 
   static StateContext convert(PDPRoadModel rm, PDPModel pm,
       Collection<DefaultVehicle> vehicles,
-      Collection<DefaultParcel> availableParcels, Measure<Long, Duration> time) {
+      Collection<DefaultParcel> availableParcels, Measure<Long, Duration> time,
+      @Nullable ImmutableList<ImmutableList<DefaultParcel>> currentRoutes) {
 
     final ImmutableMap<ParcelDTO, DefaultParcel> parcelMap = toMap(availableParcels);
     final ImmutableMap<VehicleDTO, DefaultVehicle> vehicleMap = toVehicleMap(vehicles);
@@ -109,10 +132,23 @@ public final class Solvers {
     final ImmutableMap.Builder<ParcelDTO, DefaultParcel> allParcels = ImmutableMap
         .builder();
     allParcels.putAll(parcelMap);
+
+    @Nullable
+    Iterator<ImmutableList<DefaultParcel>> routeIterator = null;
+    if (currentRoutes != null) {
+      routeIterator = currentRoutes.iterator();
+    }
+
     for (final DefaultVehicle v : vehicles) {
       final ImmutableMap<ParcelDTO, DefaultParcel> contentsMap = contentsToMap(
           pm, v);
-      vbuilder.add(convertToVehicleState(rm, pm, v, contentsMap));
+
+      @Nullable
+      ImmutableList<DefaultParcel> route = null;
+      if (routeIterator != null) {
+        route = routeIterator.next();
+      }
+      vbuilder.add(convertToVehicleState(rm, pm, v, contentsMap, route));
       allParcels.putAll(contentsMap);
     }
     return new StateContext(new GlobalStateObject(parcelMap.keySet(),
@@ -147,7 +183,8 @@ public final class Solvers {
 
   // TODO check for bugs
   static VehicleStateObject convertToVehicleState(PDPRoadModel rm, PDPModel pm,
-      DefaultVehicle vehicle, ImmutableMap<ParcelDTO, DefaultParcel> contents) {
+      DefaultVehicle vehicle, ImmutableMap<ParcelDTO, DefaultParcel> contents,
+      @Nullable ImmutableList<DefaultParcel> route) {
     final boolean isIdle = pm.getVehicleState(vehicle) == PDPModel.VehicleState.IDLE;
     final long remainingServiceTime = isIdle ? 0 : pm.getVehicleActionInfo(
         vehicle).timeNeeded();
@@ -160,8 +197,23 @@ public final class Solvers {
         destination = p.dto;
       }
     }
+
+    @Nullable
+    ImmutableList<ParcelDTO> r = null;
+    if (route != null) {
+      r = toDtoList(route);
+    }
+
     return new VehicleStateObject(vehicle.getDTO(), rm.getPosition(vehicle),
-        contents.keySet(), remainingServiceTime, destination);
+        contents.keySet(), remainingServiceTime, destination, r);
+  }
+
+  static ImmutableList<ParcelDTO> toDtoList(Collection<DefaultParcel> parcels) {
+    final ImmutableList.Builder<ParcelDTO> builder = ImmutableList.builder();
+    for (final DefaultParcel p : parcels) {
+      builder.add(p.dto);
+    }
+    return builder.build();
   }
 
   static ImmutableMap<ParcelDTO, DefaultParcel> toMap(

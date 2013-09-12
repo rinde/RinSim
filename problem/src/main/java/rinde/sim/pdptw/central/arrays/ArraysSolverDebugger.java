@@ -12,6 +12,8 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import javax.annotation.Nullable;
+
 import rinde.sim.pdptw.central.arrays.ArraysSolvers.ArraysObject;
 import rinde.sim.pdptw.central.arrays.ArraysSolvers.MVArraysObject;
 
@@ -69,7 +71,7 @@ public final class ArraysSolverDebugger {
     protected final List<O> outputMemory;
     protected final boolean print;
 
-    private Debugger(boolean print) {
+    Debugger(boolean print) {
       this.print = print;
       inputMemory = newArrayList();
       outputMemory = newArrayList();
@@ -116,10 +118,12 @@ public final class ArraysSolverDebugger {
 
     @Override
     public SolutionObject solve(int[][] travelTime, int[] releaseDates,
-        int[] dueDates, int[][] servicePairs, int[] serviceTimes) {
+        int[] dueDates, int[][] servicePairs, int[] serviceTimes,
+        @Nullable SolutionObject currentSolution) {
 
       inputMemory.add(new ArraysObject(travelTime, releaseDates, dueDates,
-          servicePairs, serviceTimes));
+          servicePairs, serviceTimes, currentSolution == null ? null
+              : new SolutionObject[] { currentSolution }));
       if (print) {
         out.println("int[][] travelTime = " + fix(deepToString(travelTime)));
         out.println("int[] releaseDates = "
@@ -130,8 +134,8 @@ public final class ArraysSolverDebugger {
       }
 
       final long start = System.currentTimeMillis();
-      final SolutionObject sol = solver
-          .solve(travelTime, releaseDates, dueDates, servicePairs, serviceTimes);
+      final SolutionObject sol = solver.solve(travelTime, releaseDates,
+          dueDates, servicePairs, serviceTimes, currentSolution);
       if (print) {
         out.println(System.currentTimeMillis() - start + "ms");
         out.println("route: " + Arrays.toString(sol.route));
@@ -140,9 +144,8 @@ public final class ArraysSolverDebugger {
       }
 
       outputMemory
-          .add(new SolutionObject(copyOf(sol.route, sol.route.length),
-              copyOf(sol.arrivalTimes, sol.arrivalTimes.length),
-              sol.objectiveValue));
+          .add(new SolutionObject(copyOf(sol.route, sol.route.length), copyOf(
+              sol.arrivalTimes, sol.arrivalTimes.length), sol.objectiveValue));
 
       int totalTravelTime = 0;
       for (int i = 1; i < travelTime.length; i++) {
@@ -174,14 +177,17 @@ public final class ArraysSolverDebugger {
     public SolutionObject[] solve(int[][] travelTime, int[] releaseDates,
         int[] dueDates, int[][] servicePairs, int[] serviceTimes,
         int[][] vehicleTravelTimes, int[][] inventories,
-        int[] remainingServiceTimes, int[] currentDestinations) {
+        int[] remainingServiceTimes, int[] currentDestinations,
+        @Nullable SolutionObject[] currentSolutions) {
 
       inputMemory.add(new MVArraysObject(travelTime, releaseDates, dueDates,
           servicePairs, serviceTimes, vehicleTravelTimes, inventories,
-          remainingServiceTimes, currentDestinations));
+          remainingServiceTimes, currentDestinations, currentSolutions));
 
-      final SolutionObject[] output = solver
-          .solve(travelTime, releaseDates, dueDates, servicePairs, serviceTimes, vehicleTravelTimes, inventories, remainingServiceTimes, currentDestinations);
+      final SolutionObject[] output = solver.solve(travelTime, releaseDates,
+          dueDates, servicePairs, serviceTimes, vehicleTravelTimes,
+          inventories, remainingServiceTimes, currentDestinations,
+          currentSolutions);
       outputMemory.add(output);
       return output;
     }

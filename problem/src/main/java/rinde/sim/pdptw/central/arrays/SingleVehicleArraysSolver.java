@@ -1,5 +1,7 @@
 package rinde.sim.pdptw.central.arrays;
 
+import javax.annotation.Nullable;
+
 /**
  * Interface for solvers for the single vehicle pickup-and-delivery problem with
  * time windows (SPDPTW). This interface uses <code>int</code> arrays for
@@ -38,6 +40,7 @@ public interface SingleVehicleArraysSolver {
    *         solution for the single vehilce PDPTW.
    */
   SolutionObject solve(int[][] travelTime, int[] releaseDates, int[] dueDates,
-      int[][] servicePairs, int[] serviceTimes);
+      int[][] servicePairs, int[] serviceTimes,
+      @Nullable SolutionObject currentSolution);
 
 }

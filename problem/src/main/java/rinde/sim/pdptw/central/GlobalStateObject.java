@@ -15,6 +15,7 @@ import rinde.sim.core.graph.Point;
 import rinde.sim.pdptw.common.ParcelDTO;
 import rinde.sim.pdptw.common.VehicleDTO;
 
+import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 
@@ -23,7 +24,7 @@ import com.google.common.collect.ImmutableSet;
  * {@link rinde.sim.core.Simulator} configured using
  * {@link rinde.sim.pdptw.common.DynamicPDPTWProblem}. Instances can be obtained
  * via
- * {@link Solvers#solve(Solver, rinde.sim.pdptw.common.PDPRoadModel, rinde.sim.core.model.pdp.PDPModel, long, Unit, Unit, Unit)}
+ * {@link Solvers#convert(rinde.sim.pdptw.common.PDPRoadModel, rinde.sim.core.model.pdp.PDPModel, javax.measure.Measure)}
  * .
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
  */
@@ -101,6 +102,8 @@ public class GlobalStateObject {
      */
     public final long remainingServiceTime;
 
+    public final Optional<ImmutableList<ParcelDTO>> route;
+
     /**
      * This field is only not <code>null</code> in case all of the following
      * holds:
@@ -120,13 +123,15 @@ public class GlobalStateObject {
 
     VehicleStateObject(VehicleDTO dto, Point location,
         ImmutableSet<ParcelDTO> contents, long remainingServiceTime,
-        @Nullable ParcelDTO destination) {
+        @Nullable ParcelDTO destination,
+        @Nullable ImmutableList<ParcelDTO> route) {
       super(dto.startPosition, dto.speed, dto.capacity,
           dto.availabilityTimeWindow);
       this.location = location;
       this.contents = contents;
       this.remainingServiceTime = remainingServiceTime;
       this.destination = destination;
+      this.route = Optional.fromNullable(route);
     }
 
     @Override

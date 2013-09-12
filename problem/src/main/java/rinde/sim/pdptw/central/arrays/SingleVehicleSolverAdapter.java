@@ -44,11 +44,16 @@ public class SingleVehicleSolverAdapter implements Solver {
 
   @Override
   public ImmutableList<ImmutableList<ParcelDTO>> solve(GlobalStateObject state) {
-    checkArgument(state.vehicles.size() == 1, "This solver can only deal with the single vehicle problem, found %s vehicles.", state.vehicles
-        .size());
+    checkArgument(
+        state.vehicles.size() == 1,
+        "This solver can only deal with the single vehicle problem, found %s vehicles.",
+        state.vehicles.size());
 
     final VehicleStateObject v = state.vehicles.iterator().next();
-    checkArgument(v.remainingServiceTime == 0, "This solver can not deal with remaining service time, it should be 0, it was %s.", v.remainingServiceTime);
+    checkArgument(
+        v.remainingServiceTime == 0,
+        "This solver can not deal with remaining service time, it should be 0, it was %s.",
+        v.remainingServiceTime);
     final Collection<ParcelDTO> inCargo = v.contents;
 
     // there are always two locations: the current vehicle location and
@@ -72,24 +77,25 @@ public class SingleVehicleSolverAdapter implements Solver {
     }
     // else, we are going to look for the optimal solution
 
-    final ArraysObject ao = ArraysSolvers
-        .toSingleVehicleArrays(state, outputTimeUnit);
+    final ArraysObject ao = ArraysSolvers.toSingleVehicleArrays(state,
+        outputTimeUnit);
 
-    final SolutionObject sol = solver
-        .solve(ao.travelTime, ao.releaseDates, ao.dueDates, ao.servicePairs, ao.serviceTimes);
+    final SolutionObject sol = solver.solve(ao.travelTime, ao.releaseDates,
+        ao.dueDates, ao.servicePairs, ao.serviceTimes,
+        ao.currentSolutions == null ? null : ao.currentSolutions[0]);
 
-    return ImmutableList.of(ArraysSolvers
-        .convertSolutionObject(sol, ao.point2dto, ao.locations));
+    return ImmutableList.of(ArraysSolvers.convertSolutionObject(sol,
+        ao.index2parcel));
   }
 
   static int fixTWstart(long start, long time) {
-    return Math
-        .max((DoubleMath.roundToInt(Ints.checkedCast(start - time) / 1000d, RoundingMode.CEILING)), 0);
+    return Math.max((DoubleMath.roundToInt(
+        Ints.checkedCast(start - time) / 1000d, RoundingMode.CEILING)), 0);
   }
 
   static int fixTWend(long end, long time) {
-    return Math
-        .max((DoubleMath.roundToInt(Ints.checkedCast(end - time) / 1000d, RoundingMode.FLOOR)), 0);
+    return Math.max((DoubleMath.roundToInt(
+        Ints.checkedCast(end - time) / 1000d, RoundingMode.FLOOR)), 0);
   }
 
 }

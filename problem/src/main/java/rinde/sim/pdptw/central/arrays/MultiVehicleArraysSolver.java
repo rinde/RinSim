@@ -3,6 +3,8 @@
  */
 package rinde.sim.pdptw.central.arrays;
 
+import javax.annotation.Nullable;
+
 /**
  * Interface for solvers for the multi vehicle pickup-and-delivery problem with
  * time windows (PDPTW). This interface uses <code>int</code> arrays for
@@ -67,6 +69,7 @@ public interface MultiVehicleArraysSolver {
   SolutionObject[] solve(int[][] travelTime, int[] releaseDates,
       int[] dueDates, int[][] servicePairs, int[] serviceTimes,
       int[][] vehicleTravelTimes, int[][] inventories,
-      int[] remainingServiceTimes, int[] currentDestinations);
+      int[] remainingServiceTimes, int[] currentDestinations,
+      @Nullable SolutionObject[] currentSolutions);
 
 }

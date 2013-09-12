@@ -5,6 +5,7 @@ package rinde.sim.pdptw.central;
 
 import java.util.Iterator;
 import java.util.Queue;
+import java.util.Set;
 
 import javax.measure.Measure;
 
@@ -32,6 +33,8 @@ import com.google.common.collect.ImmutableList;
  * A facade for RinSim which provides a centralized interface such that
  * {@link Solver} instances can solve
  * {@link rinde.sim.pdptw.common.DynamicPDPTWScenario}s.
+ * <p>
+ * TODO update this comment
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
  */
 public final class Central {
@@ -158,14 +161,23 @@ public final class Central {
 
         // TODO it must be checked whether the calculated routes end up in the
         // correct vehicles
+
+        final Set<RouteFollowingVehicle> vehicles = rm.get().getObjectsOfType(
+            RouteFollowingVehicle.class);
+
+        // gather current routes
+        final ImmutableList.Builder<ImmutableList<DefaultParcel>> currentRouteBuilder = ImmutableList
+            .builder();
+        for (final RouteFollowingVehicle vehicle : vehicles) {
+          currentRouteBuilder.add(ImmutableList.copyOf(vehicle.getRoute()));
+        }
+
         final Iterator<Queue<DefaultParcel>> routes = Solvers.solve(solver,
             rm.get(), pm.get(),
-            Measure.valueOf(timeLapse.getTime(), timeLapse.getTimeUnit()))
-            .iterator();
-        final Iterator<RouteFollowingVehicle> drivers = rm.get()
-            .getObjectsOfType(RouteFollowingVehicle.class).iterator();
-        while (drivers.hasNext()) {
-          drivers.next().setRoute(routes.next());
+            Measure.valueOf(timeLapse.getTime(), timeLapse.getTimeUnit()),
+            currentRouteBuilder.build()).iterator();
+        for (final RouteFollowingVehicle vehicle : vehicles) {
+          vehicle.setRoute(routes.next());
         }
       }
     }

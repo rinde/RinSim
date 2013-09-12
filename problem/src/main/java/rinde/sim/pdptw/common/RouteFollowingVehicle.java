@@ -171,6 +171,13 @@ public class RouteFollowingVehicle extends DefaultVehicle {
     }
   }
 
+  /**
+   * @return The route that is currently being followed.
+   */
+  public Collection<DefaultParcel> getRoute() {
+    return unmodifiableCollection(route);
+  }
+
   boolean firstEqualsFirstInRoute(Collection<DefaultParcel> r) {
     return (!r.isEmpty() && !route.isEmpty() && r.iterator().next()
         .equals(route.element()));
@@ -271,13 +278,6 @@ public class RouteFollowingVehicle extends DefaultVehicle {
     final long travelTime = computeTravelTimeTo(
         roadModel.get().getPosition(depot.get()), time.getTimeUnit());
     return time.getEndTime() - 1 >= dto.availabilityTimeWindow.end - travelTime;
-  }
-
-  /**
-   * @return the route
-   */
-  protected Collection<DefaultParcel> getRoute() {
-    return unmodifiableCollection(route);
   }
 
   /**

@@ -36,8 +36,8 @@ public class SolutionObject {
    * @param objectiveValue {@link #objectiveValue}
    */
   public SolutionObject(int[] route, int[] arrivalTimes, int objectiveValue) {
-    this.route = route;
-    this.arrivalTimes = arrivalTimes;
+    this.route = Arrays.copyOf(route, route.length);
+    this.arrivalTimes = Arrays.copyOf(arrivalTimes, arrivalTimes.length);
     this.objectiveValue = objectiveValue;
   }
 

@@ -87,7 +87,8 @@ public class SolversTest {
   public void convertTest() {
     PDPTWTestUtil.register(rm, pm, v1, p1);
 
-    final StateContext sc = convert(rm, pm, Measure.valueOf(0L, NonSI.MINUTE));
+    final StateContext sc = convert(rm, pm, Measure.valueOf(0L, NonSI.MINUTE),
+        null);
 
     assertEquals(ImmutableMap.of(v1.dto, v1), sc.vehicleMap);
     assertEquals(ImmutableMap.of(p1.dto, p1), sc.parcelMap);
@@ -98,13 +99,14 @@ public class SolversTest {
     rm.moveTo(v1, p1, create(NonSI.HOUR, 0L, 1L));
 
     checkVehicles(asList(v1),
-        convert(rm, pm, Measure.valueOf(0L, NonSI.MINUTE)).state.vehicles);
+        convert(rm, pm, Measure.valueOf(0L, NonSI.MINUTE), null).state.vehicles);
 
     rm.moveTo(v1, p1, create(NonSI.HOUR, 0, 40));
     assertTrue(rm.equalPosition(v1, p1));
     pm.service(v1, p1, create(NonSI.HOUR, 0, 1));
 
-    final StateContext sc2 = convert(rm, pm, Measure.valueOf(0L, NonSI.MINUTE));
+    final StateContext sc2 = convert(rm, pm, Measure.valueOf(0L, NonSI.MINUTE),
+        null);
 
     // checkVehicles(asList(v1), sc2.state.vehicles);
   }
