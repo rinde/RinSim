@@ -5,7 +5,9 @@ import static com.google.common.collect.Maps.newHashMap;
 import static com.google.common.collect.Sets.newHashSet;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -15,6 +17,7 @@ import com.google.common.collect.ContiguousSet;
 import com.google.common.collect.DiscreteDomain;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableBiMap;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Multimap;
@@ -175,7 +178,8 @@ public final class ArraysSolverValidator {
   public static void validateInputs(int[][] travelTime, int[] releaseDates,
       int[] dueDates, int[][] servicePairs, int[] serviceTimes,
       int[][] vehicleTravelTimes, int[][] inventories,
-      int[] remainingServiceTimes, int[] currentDestinations) {
+      int[] remainingServiceTimes, int[] currentDestinations,
+      @Nullable SolutionObject[] currentSolutions) {
 
     validateInputs(travelTime, releaseDates, dueDates, servicePairs,
         serviceTimes);
@@ -287,6 +291,48 @@ public final class ArraysSolverValidator {
       }
     }
 
+    if (currentSolutions != null) {
+      checkArgument(
+          currentSolutions.length == v,
+          "The number of currentSolutions (%s) should equal the number of vehicles (%s).",
+          currentSolutions.length, v);
+
+      for (int i = 0; i < currentSolutions.length; i++) {
+        final List<Integer> route = ImmutableList.copyOf(Ints
+            .asList(currentSolutions[i].route));
+        if (currentDestinations[i] > 0) {
+          // there is a current destination
+          checkArgument(
+              currentDestinations[i] == route.get(0),
+              "The vehicle has a current destination (%s) but it is not the first item in its route: %s.",
+              currentDestinations[i], route);
+        }
+        final Collection<Integer> inventory = inventoriesMap.get(i);
+        checkArgument(
+            ImmutableSet.copyOf(route).containsAll(inventory),
+            "The route should contain all locations in its inventory. Route: %s, inventory: %s.",
+            route, inventory);
+
+        for (final Integer item : route) {
+          final int freq = Collections.frequency(route, item);
+          checkArgument(
+              freq == 1,
+              "Vehicle %s: each location should occur only once, found %s instances of location %s.",
+              i, freq, item);
+          if (!inventoriesMap.containsEntry(i, item)) {
+            // not in cargo, so the pair should appear in the route
+            if (servicePairsMap.containsKey(item)) {
+              checkArgument(route.contains(servicePairsMap.get(item)));
+            } else {
+              checkArgument(route.contains(servicePairsMap.inverse().get(item)));
+            }
+          }
+
+        }
+      }
+
+    }
+
   }
 
   /**
@@ -313,7 +359,8 @@ public final class ArraysSolverValidator {
    */
   public static SolutionObject validateOutputs(SolutionObject sol,
       int[][] travelTime, int[] releaseDates, int[] dueDates,
-      int[][] servicePairs, int[] serviceTimes) {
+      int[][] servicePairs, int[] serviceTimes,
+      @Nullable SolutionObject currentSolution) {
     // convert single vehicle version to multi vehicle version for checking
     // of inputs
     final int n = travelTime.length;
@@ -338,10 +385,15 @@ public final class ArraysSolverValidator {
 
     final int[] remainingServiceTimes = new int[] { 0 };
     final int[] currentDestinations = new int[] { 0 };
+
+    @Nullable
+    final SolutionObject[] currentSolutions = currentSolution == null ? null
+        : new SolutionObject[] { currentSolution };
+
     // check inputs again since we just modified them
     validateInputs(travelTime, releaseDates, dueDates, servicePairs,
         serviceTimes, vehicleTravelTimes, inventories, remainingServiceTimes,
-        currentDestinations);
+        currentDestinations, currentSolutions);
 
     final SolutionObject[] sols = new SolutionObject[] { sol };
     validateOutputs(sols, travelTime, releaseDates, dueDates, servicePairs,
@@ -567,7 +619,7 @@ public final class ArraysSolverValidator {
           releaseDates, dueDates, servicePairs, serviceTimes, currentSolution);
       // check outputs
       return validateOutputs(output, travelTime, releaseDates, dueDates,
-          servicePairs, serviceTimes);
+          servicePairs, serviceTimes, currentSolution);
     }
   }
 
@@ -586,7 +638,7 @@ public final class ArraysSolverValidator {
         @Nullable SolutionObject[] currentSolutions) {
       validateInputs(travelTime, releaseDates, dueDates, servicePairs,
           serviceTimes, vehicleTravelTimes, inventories, remainingServiceTimes,
-          currentDestinations);
+          currentDestinations, currentSolutions);
       final SolutionObject[] output = delegateSolver.solve(travelTime,
           releaseDates, dueDates, servicePairs, serviceTimes,
           vehicleTravelTimes, inventories, remainingServiceTimes,

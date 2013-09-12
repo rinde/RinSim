@@ -263,25 +263,29 @@ public final class ArraysSolvers {
 
     @Nullable
     SolutionObject[] sol = null;
-    if (v.route.isPresent()) {
+    if (v.route.isPresent() && state.vehicles.size() == 1) {
       // the assumption is that if the current route of one vehicle is known,
       // the routes of all vehicles should be known.
-      sol = toCurrentSolutions(state, parcel2indexMap);
+      sol = toCurrentSolutions(state, parcel2indexMap, travelTime,
+          releaseDates, dueDates, serviceTimes, new int[][] { travelTime[0] },
+          new int[] { 0 });
     }
-
     return new ArraysObject(travelTime, releaseDates, dueDates, servicePairs,
         serviceTimes, sol, pointList, parcel2indexMap, index2parcelMap);
   }
 
   @Nullable
   static SolutionObject[] toCurrentSolutions(GlobalStateObject state,
-      Map<ParcelDTO, ParcelIndexObj> mapping) {
-
+      Map<ParcelDTO, ParcelIndexObj> mapping, int[][] travelTime,
+      int[] releaseDates, int[] dueDates, int[] serviceTimes,
+      int[][] vehicleTravelTimes, int[] remainingServiceTimes) {
     final SolutionObject[] sols = new SolutionObject[state.vehicles.size()];
     for (int i = 0; i < state.vehicles.size(); i++) {
-      sols[i] = convertRouteToSolutionObject(state.vehicles.get(i), mapping);
+      sols[i] = convertRouteToSolutionObject(state.vehicles.get(i), mapping,
+          travelTime, releaseDates, dueDates, serviceTimes,
+          vehicleTravelTimes[i], remainingServiceTimes[i]);
     }
-    return null;
+    return sols;
   }
 
   // parceldto -> pickup index / deliver index
@@ -300,7 +304,9 @@ public final class ArraysSolvers {
   }
 
   static SolutionObject convertRouteToSolutionObject(VehicleStateObject vso,
-      Map<ParcelDTO, ParcelIndexObj> mapping) {
+      Map<ParcelDTO, ParcelIndexObj> mapping, int[][] travelTime,
+      int[] releaseDates, int[] dueDates, int[] serviceTimes,
+      int[] vehicleTravelTimes, int remainingServiceTime) {
     final int[] route = new int[vso.route.get().size()];
 
     final Set<ParcelDTO> seen = newHashSet();
@@ -315,10 +321,45 @@ public final class ArraysSolvers {
       }
       seen.add(dto);
     }
+    final int[] arrivalTimes = computeArrivalTimes(route, travelTime,
+        remainingServiceTime, vehicleTravelTimes, serviceTimes, releaseDates);
 
-    // FIXME compute travel time and tardiness
+    final int tardiness = computeSumTardiness(route, arrivalTimes,
+        serviceTimes, dueDates);
+    final int tt = computeTotalTravelTime(route, travelTime, vehicleTravelTimes);
+    return new SolutionObject(route, arrivalTimes, tt + tardiness);
+  }
 
-    return null;
+  // FIXME make sure this is reused in the random impl
+  static int[] computeArrivalTimes(int[] route, int[][] travelTime,
+      int remainingServiceTime, int[] vehicleTravelTimes, int[] serviceTimes,
+      int[] releaseDates) {
+    final int[] arrivalTimes = new int[route.length];
+    if (route.length > 0) {
+      arrivalTimes[0] = remainingServiceTime;
+    }
+
+    for (int j = 1; j < route.length; j++) {
+      final int prev = route[j - 1];
+      final int cur = route[j];
+
+      // we compute the travel time. If it is the first step in the
+      // route, we use the time from vehicle location to the next
+      // location in the route.
+      final int tt = j == 1 ? vehicleTravelTimes[cur] : travelTime[prev][cur];
+
+      // we compute the first possible arrival time for the vehicle to
+      // arrive at location i, given that it first visited location
+      // i-1
+      final int earliestArrivalTime = arrivalTimes[j - 1] + serviceTimes[prev]
+          + tt;
+
+      // we also have to take into account the time window
+      final int minArrivalTime = Math.max(earliestArrivalTime,
+          releaseDates[cur]);
+      arrivalTimes[j] = minArrivalTime;
+    }
+    return arrivalTimes;
   }
 
   /**
@@ -343,7 +384,18 @@ public final class ArraysSolvers {
     final int[] currentDestinations = toVehicleDestinations(state,
         singleVehicleArrays);
 
-    return new MVArraysObject(singleVehicleArrays, vehicleTravelTimes,
+    @Nullable
+    SolutionObject[] sols = null;
+    if (state.vehicles.iterator().next().route.isPresent()) {
+      // the assumption is that if the current route of one vehicle is known,
+      // the routes of all vehicles should be known.
+      sols = toCurrentSolutions(state, singleVehicleArrays.parcel2index,
+          singleVehicleArrays.travelTime, singleVehicleArrays.releaseDates,
+          singleVehicleArrays.dueDates, singleVehicleArrays.serviceTimes,
+          vehicleTravelTimes, remainingServiceTimes);
+    }
+
+    return new MVArraysObject(singleVehicleArrays, sols, vehicleTravelTimes,
         inventories, remainingServiceTimes, currentDestinations);
   }
 
@@ -684,11 +736,12 @@ public final class ArraysSolvers {
       this.currentDestinations = currentDestinations;
     }
 
-    MVArraysObject(ArraysObject ao, int[][] vehicleTravelTimes,
-        int[][] inventories, int[] remainingServiceTimes,
-        int[] currentDestinations) {
+    MVArraysObject(ArraysObject ao,
+        @Nullable SolutionObject[] currentSolutions,
+        int[][] vehicleTravelTimes, int[][] inventories,
+        int[] remainingServiceTimes, int[] currentDestinations) {
       this(ao.travelTime, ao.releaseDates, ao.dueDates, ao.servicePairs,
-          ao.serviceTimes, ao.currentSolutions, ao.location2index,
+          ao.serviceTimes, currentSolutions, ao.location2index,
           ao.parcel2index, ao.index2parcel, vehicleTravelTimes, inventories,
           remainingServiceTimes, currentDestinations);
     }
