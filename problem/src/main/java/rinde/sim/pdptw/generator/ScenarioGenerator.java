@@ -47,7 +47,7 @@ public class ScenarioGenerator {
   // - dynamism (distribution?)
   // - scale (factor and ratios, density?)
   // - load
-  private ScenarioGenerator(ArrivalTimesGenerator atg, LocationsGenerator lg,
+  ScenarioGenerator(ArrivalTimesGenerator atg, LocationsGenerator lg,
       TimeWindowGenerator twg, VehicleGenerator vg, Point depotLoc,
       long scenarioLength) {
     arrivalTimesGenerator = atg;
@@ -60,8 +60,8 @@ public class ScenarioGenerator {
 
   public Scenario generate(RandomGenerator rng) {
     final ImmutableList<Long> times = arrivalTimesGenerator.generate(rng);
-    final ImmutableList<Point> locations = locationsGenerator.generate(times
-        .size(), rng);
+    final ImmutableList<Point> locations = locationsGenerator.generate(
+        times.size(), rng);
     int index = 0;
 
     final ScenarioBuilder sb = new ScenarioBuilder(PDPScenarioEvent.ADD_DEPOT,
@@ -72,8 +72,8 @@ public class ScenarioGenerator {
     for (final long time : times) {
       final Point pickup = locations.get(index++);
       final Point delivery = locations.get(index++);
-      final ImmutableList<TimeWindow> tws = timeWindowGenerator
-          .generate(time, pickup, delivery, rng);
+      final ImmutableList<TimeWindow> tws = timeWindowGenerator.generate(time,
+          pickup, delivery, rng);
       sb.addEvent(new AddParcelEvent(new ParcelDTO(pickup, delivery,
           tws.get(0), tws.get(1), 0, time, 5, 5)));
     }
@@ -85,11 +85,11 @@ public class ScenarioGenerator {
   }
 
   public static class Builder {
-    private final double vehicleSpeed = 40;
-    private final int vehicleCapacity = 1;// this is actually irrelevant
-                                          // since parcels are weightless
-    private final long minResponseTime = 30;
-    private final long serviceTime = 5;
+    private final static double VEHICLE_SPEED = 40;
+    // this is actually irrelevant since parcels are weightless
+    private final static int VEHICLE_CAPACITY = 1;
+    private final static long MIN_RESPONSE_TIME = 30;
+    private final static long SERVICE_TIME = 5;
 
     private int vehicles = -1;
     private double size = -1;
@@ -106,7 +106,9 @@ public class ScenarioGenerator {
     }
 
     public Builder setScenarioLength(long minutes) {
-      checkArgument(minutes > minResponseTime, "Scenario length must be greater than minResponseTime %s.", minResponseTime);
+      checkArgument(minutes > MIN_RESPONSE_TIME,
+          "Scenario length must be greater than minResponseTime %s.",
+          MIN_RESPONSE_TIME);
       scenarioLength = minutes;
       return this;
     }
@@ -131,12 +133,13 @@ public class ScenarioGenerator {
     // there will be only < .5 vehicles, the number of vehicles is set to 1.
     // TODO comment about num vehicles rounding etc
     public Builder setScale(double numVehiclesKM2, double size) {
-      checkArgument(numVehiclesKM2 > 0d, "Number of vehicles per km2 must be a positive number.");
+      checkArgument(numVehiclesKM2 > 0d,
+          "Number of vehicles per km2 must be a positive number.");
       checkArgument(size > 0d, "Size must be a positive number.");
       this.size = size;
       final double area = size * size;
-      vehicles = Math.max(1, DoubleMath
-          .roundToInt(numVehiclesKM2 * area, RoundingMode.HALF_DOWN));
+      vehicles = Math.max(1,
+          DoubleMath.roundToInt(numVehiclesKM2 * area, RoundingMode.HALF_DOWN));
       return this;
     }
 
@@ -145,10 +148,17 @@ public class ScenarioGenerator {
     // }
 
     public ScenarioGenerator build() {
-      checkArgument(vehicles > 0 && vehicles > 0, "Cannot build generator, scale needs to be set via setScale(double,double).");
-      checkArgument(ordersPerAnnouncement > 0, "Cannot build generator, orders need to be set via setOrdersPerAnnouncement(double).");
-      checkArgument(scenarioLength > 0, "Cannot build generator, scenario length needs to be set via setScenarioLength(long).");
-      checkArgument(announcementIntensity > 0, "Cannot build generator, announcement intensity needs to be set via setAnnouncementIntensityPerKm2(double).");
+      checkArgument(vehicles > 0 && size > 0,
+          "Cannot build generator, scale needs to be set via setScale(double,double).");
+      checkArgument(
+          ordersPerAnnouncement > 0,
+          "Cannot build generator, orders need to be set via setOrdersPerAnnouncement(double).");
+      checkArgument(
+          scenarioLength > 0,
+          "Cannot build generator, scenario length needs to be set via setScenarioLength(long).");
+      checkArgument(
+          announcementIntensity > 0,
+          "Cannot build generator, announcement intensity needs to be set via setAnnouncementIntensityPerKm2(double).");
 
       final double area = size * size;
       final double globalAnnouncementIntensity = area * announcementIntensity;
@@ -159,15 +169,15 @@ public class ScenarioGenerator {
       // this computes the traveltime it would take to travel from one of
       // the corners of the environment to another corner of the
       // environment and then back to the depot.
-      final long time1 = travelTime(extreme1, extreme2, vehicleSpeed);
-      final long time2 = travelTime(extreme2, depotLoc, vehicleSpeed);
+      final long time1 = travelTime(extreme1, extreme2, VEHICLE_SPEED);
+      final long time2 = travelTime(extreme2, depotLoc, VEHICLE_SPEED);
       final long travelTime = time1 + time2;
 
       // this is the maximum *theoretical* time that is required to
       // service an order. In this context, theoretical means: given
       // enough resources (vehicles).
-      final long maxRequiredTime = minResponseTime + travelTime
-          + (2 * serviceTime);
+      final long maxRequiredTime = MIN_RESPONSE_TIME + travelTime
+          + (2 * SERVICE_TIME);
       final long latestOrderAnnounceTime = scenarioLength - maxRequiredTime;
 
       // TODO this can be improved by allowing orders which are closer to
@@ -175,17 +185,18 @@ public class ScenarioGenerator {
       // rejecting any orders which are not feasible. This could be a
       // reasonable company policy in case minimizing overTime is more
       // important than customer satisfaction.
-      checkArgument(scenarioLength > maxRequiredTime, "The scenario length must be long enough such that there is enough time for a vehicle to service a pickup at one end of the environment and to service a delivery at an opposite end of the environment and be back in time at the depot.");
+      checkArgument(
+          scenarioLength > maxRequiredTime,
+          "The scenario length must be long enough such that there is enough time for a vehicle to service a pickup at one end of the environment and to service a delivery at an opposite end of the environment and be back in time at the depot.");
 
-      final VehicleDTO vehicleDto = new VehicleDTO(depotLoc, vehicleSpeed,
-          vehicleCapacity, new TimeWindow(0, scenarioLength));
+      final VehicleDTO vehicleDto = new VehicleDTO(depotLoc, VEHICLE_SPEED,
+          VEHICLE_CAPACITY, new TimeWindow(0, scenarioLength));
 
       return new ScenarioGenerator(new PoissonProcessArrivalTimes(
           latestOrderAnnounceTime, globalAnnouncementIntensity,
-          ordersPerAnnouncement),
-          new NormalLocationsGenerator(size, .15, .05),
+          ordersPerAnnouncement), new NormalLocationsGenerator(size, .15, .05),
           new ProportionateUniformTWGenerator(depotLoc, scenarioLength,
-              serviceTime, minResponseTime, vehicleSpeed),//
+              SERVICE_TIME, MIN_RESPONSE_TIME, VEHICLE_SPEED),
           new HomogenousVehicleGenerator(vehicles, vehicleDto), depotLoc,
           scenarioLength);
     }
