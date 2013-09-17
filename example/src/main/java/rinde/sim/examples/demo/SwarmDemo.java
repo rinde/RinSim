@@ -3,7 +3,9 @@
  */
 package rinde.sim.examples.demo;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.Lists.newArrayList;
+import static com.google.common.collect.Sets.newHashSet;
 
 import java.util.Collections;
 import java.util.Iterator;
@@ -52,6 +54,7 @@ import rinde.sim.ui.renderers.PlaneRoadModelRenderer;
 import rinde.sim.ui.renderers.ViewPort;
 import rinde.sim.ui.renderers.ViewRect;
 
+import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 
 /**
@@ -59,6 +62,26 @@ import com.google.common.collect.ImmutableList;
  * 
  */
 public class SwarmDemo {
+
+  /**
+   * Starts the demo.
+   * @param args No args.
+   */
+  public static void main(String[] args) {
+    final String string = "AgentWise";
+    final List<Point> points = measureString(string);
+    final RandomGenerator rng = new MersenneTwister(123);
+    final Simulator sim = new Simulator(rng, Measure.valueOf(1000L,
+        SI.MILLI(SI.SECOND)));
+    sim.register(new PlaneRoadModel(new Point(0, 0), new Point(4500, 1200),
+        SI.METER, Measure.valueOf(1000d, NonSI.KILOMETERS_PER_HOUR)));
+    sim.configure();
+    for (final Point p : points) {
+      sim.register(new Vehicle(p, rng));
+    }
+    View.startGui(sim, 1, new PlaneRoadModelRenderer(), new VehicleRenderer(),
+        new DemoPanel(string, rng));
+  }
 
   static List<Point> measureString(String string) {
     if (string.trim().isEmpty()) {
@@ -106,34 +129,6 @@ public class SwarmDemo {
     }
     final List<Point> points = coordinateBuilder.build();
 
-    //
-    // for (final Point p : points) {
-    // sim.register(new Vehicle(p));
-    // }
-
-    // final Shell shell = new Shell(display);
-    // shell.setLayout(new FillLayout());
-    // final Group group = new Group(shell, SWT.NONE);
-    // group.setLayout(new FillLayout());
-    // group.setText("a square");
-    // final Canvas canvas = new Canvas(group, SWT.NONE);
-    //
-    // canvas.addPaintListener(new PaintListener() {
-    // @Override
-    // public void paintControl(PaintEvent e) {
-    // e.gc.drawImage(image, 0, 0);
-    // }
-    // });
-    //
-    // shell.setSize(200, 200);
-    // // shell.pack();
-    // shell.open();
-    // while (!shell.isDisposed()) {
-    // if (!display.readAndDispatch()) {
-    // display.sleep();
-    // }
-    // }
-
     image.dispose();
     if (haveToDispose) {
       display.dispose();
@@ -141,34 +136,19 @@ public class SwarmDemo {
     return points;
   }
 
-  public static void main(String[] args) {
-    final String string = "AgentWise";
-    final List<Point> points = measureString(string);
-    final RandomGenerator rng = new MersenneTwister(123);
-    final Simulator sim = new Simulator(rng, Measure.valueOf(1000L,
-        SI.MILLI(SI.SECOND)));
-    sim.register(new PlaneRoadModel(new Point(0, 0), new Point(4500, 1200),
-        SI.METER, Measure.valueOf(1000d, NonSI.KILOMETERS_PER_HOUR)));
-    sim.configure();
-    for (final Point p : points) {
-      sim.register(new Vehicle(p, rng));
-    }
-    View.startGui(sim, 1, new PlaneRoadModelRenderer(), new VehicleRenderer(),
-        new DemoPanel(string, rng));
-  }
-
-  public static final class Vehicle implements MovingRoadUser, TickListener {
+  static final class Vehicle implements MovingRoadUser, TickListener {
     Point destPos;
     RandomGenerator rng;
 
-    private RoadModel rm;
+    private Optional<RoadModel> rm;
     double speed;
     boolean active;
 
-    public Vehicle(Point p, RandomGenerator rng) {
+    Vehicle(Point p, RandomGenerator r) {
       destPos = p;
-      this.rng = rng;
+      rng = r;
       active = true;
+      rm = Optional.absent();
     }
 
     @Override
@@ -176,7 +156,7 @@ public class SwarmDemo {
       final Point startPos = model.getRandomPosition(rng);
       model.addObjectAt(this, startPos);
 
-      rm = model;
+      rm = Optional.of(model);
       setDestination(destPos);
     }
 
@@ -187,35 +167,35 @@ public class SwarmDemo {
 
     @Override
     public void tick(TimeLapse timeLapse) {
-      rm.moveTo(this, destPos, timeLapse);
+      rm.get().moveTo(this, destPos, timeLapse);
     }
 
     @Override
     public void afterTick(TimeLapse timeLapse) {}
 
     /**
-     * @param next
+     * Change the destination of the vehicle.
+     * @param dest The new destination.
      */
     public void setDestination(Point dest) {
-
       active = true;
       doSetDestination(dest);
     }
 
     private void doSetDestination(Point dest) {
       destPos = dest;
-      speed = Point.distance(rm.getPosition(this), destPos)
+      speed = Point.distance(rm.get().getPosition(this), destPos)
           / (30 + 40 * rng.nextDouble());
     }
 
     /**
-     * 
+     * Moves the vehicle to a point on the border of the plane.
      */
     public void setInactive() {
       if (active) {
         active = false;
-        final List<Point> bounds = rm.getBounds();
-        final Point p = rm.getRandomPosition(rng);
+        final List<Point> bounds = rm.get().getBounds();
+        final Point p = rm.get().getRandomPosition(rng);
         if (rng.nextBoolean()) {
           doSetDestination(new Point(bounds.get(rng.nextInt(2)).x, p.y));
         } else {
@@ -225,17 +205,18 @@ public class SwarmDemo {
     }
   }
 
-  public static class DemoPanel implements PanelRenderer, Listener,
-      ModelReceiver {
-    RoadModel rm;
+  static class DemoPanel implements PanelRenderer, Listener, ModelReceiver {
+    Optional<RoadModel> rm;
     Set<Vehicle> vehicles;
 
     final String startString;
     RandomGenerator rng;
 
-    public DemoPanel(String s, RandomGenerator r) {
+    DemoPanel(String s, RandomGenerator r) {
       startString = s;
       rng = r;
+      vehicles = newHashSet();
+      rm = Optional.absent();
     }
 
     @Override
@@ -273,8 +254,8 @@ public class SwarmDemo {
     }
 
     @Override
-    public void handleEvent(Event event) {
-
+    public void handleEvent(@Nullable Event event) {
+      checkNotNull(event);
       final Iterator<Point> points = measureString(
           ((Text) event.widget).getText()).iterator();
       final List<Vehicle> vs = newArrayList(vehicles);
@@ -292,35 +273,29 @@ public class SwarmDemo {
 
     @Override
     public void registerModelProvider(ModelProvider mp) {
-      rm = mp.getModel(RoadModel.class);
-      vehicles = rm.getObjectsOfType(Vehicle.class);
+      rm = Optional.fromNullable(mp.getModel(RoadModel.class));
+      vehicles = rm.get().getObjectsOfType(Vehicle.class);
     }
   }
 
-  public static final class VehicleRenderer implements ModelRenderer {
+  static final class VehicleRenderer implements ModelRenderer {
+    private Optional<RoadModel> rm;
 
-    @Nullable
-    private RoadModel rs;
-
-    public VehicleRenderer() {}
+    VehicleRenderer() {
+      rm = Optional.absent();
+    }
 
     @Override
     public void renderDynamic(GC gc, ViewPort vp, long time) {
       final int radius = 2;
       gc.setBackground(new Color(gc.getDevice(), 255, 0, 0));
-
-      final Map<RoadUser, Point> objects = rs.getObjectsAndPositions();
+      final Map<RoadUser, Point> objects = rm.get().getObjectsAndPositions();
       synchronized (objects) {
         for (final Entry<RoadUser, Point> entry : objects.entrySet()) {
           final Point p = entry.getValue();
-          final Class<?> type = entry.getKey().getClass();
-          final int x = vp.toCoordX(p.x) - radius;
-          final int y = vp.toCoordY(p.y) - radius;
-
           gc.fillOval((int) (vp.origin.x + (p.x - vp.rect.min.x) * vp.scale)
               - radius, (int) (vp.origin.y + (p.y - vp.rect.min.y) * vp.scale)
               - radius, 2 * radius, 2 * radius);
-
         }
       }
     }
@@ -336,7 +311,7 @@ public class SwarmDemo {
 
     @Override
     public void registerModelProvider(ModelProvider mp) {
-      rs = mp.getModel(RoadModel.class);
+      rm = Optional.fromNullable(mp.getModel(RoadModel.class));
     }
   }
 
