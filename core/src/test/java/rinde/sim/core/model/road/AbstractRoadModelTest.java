@@ -8,6 +8,7 @@ import static java.util.Arrays.asList;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
@@ -172,8 +173,8 @@ public abstract class AbstractRoadModelTest<T extends RoadModel> {
     assertNull(model.getDestination(testRoadUser));
     assertNull(model.getDestination(new TestRoadUser()));
     final List<Point> path = model.getShortestPathTo(SW, NW);
-    model.followPath(testRoadUser, newLinkedList(path), TimeLapseFactory
-        .create(0, 1));
+    model.followPath(testRoadUser, newLinkedList(path),
+        TimeLapseFactory.create(0, 1));
     assertEquals(NW, model.getDestination(testRoadUser));
 
     model.moveTo(testRoadUser, NE, TimeLapseFactory.create(0, 1));
@@ -206,8 +207,8 @@ public abstract class AbstractRoadModelTest<T extends RoadModel> {
   public void followPathFailTime() {
     final TestRoadUser testRoadUser = new TestRoadUser();
     model.addObjectAt(testRoadUser, SW);
-    model
-        .followPath(testRoadUser, new LinkedList<Point>(Arrays.asList(SW)), emptyTimeLapse);
+    model.followPath(testRoadUser, new LinkedList<Point>(Arrays.asList(SW)),
+        emptyTimeLapse);
   }
 
   @Test
@@ -275,12 +276,10 @@ public abstract class AbstractRoadModelTest<T extends RoadModel> {
     model.addObjectAt(agent3, SE);
     model.addObjectAt(agent4, NE);
     model.addObjectAt(agent5, SE);
-    assertTrue(Sets
-        .difference(asSet(agent1), model.getObjectsAt(agent1, TestRoadUser.class))
-        .isEmpty());
-    assertTrue(Sets
-        .difference(asSet(agent2, agent4), model.getObjectsAt(agent2, TestRoadUser.class))
-        .isEmpty());
+    assertTrue(Sets.difference(asSet(agent1),
+        model.getObjectsAt(agent1, TestRoadUser.class)).isEmpty());
+    assertTrue(Sets.difference(asSet(agent2, agent4),
+        model.getObjectsAt(agent2, TestRoadUser.class)).isEmpty());
     assertTrue(model.getObjectsAt(agent2, SpeedyRoadUser.class).isEmpty());
   }
 
@@ -347,8 +346,8 @@ public abstract class AbstractRoadModelTest<T extends RoadModel> {
     final MovingRoadUser ru = new SpeedyRoadUser(1d);
     model.addObjectAt(ru, SW);
 
-    model.followPath(ru, newLinkedList(asList(SE)), TimeLapseFactory
-        .create(0, 36000000 - 1));
+    model.followPath(ru, newLinkedList(asList(SE)),
+        TimeLapseFactory.create(0, 36000000 - 1));
   }
 
   @SuppressWarnings("null")
@@ -467,9 +466,8 @@ public abstract class AbstractRoadModelTest<T extends RoadModel> {
     final ListenerEventHistory list = new ListenerEventHistory();
     model.getEventAPI().addListener(list, RoadEventType.MOVE);
     assertTrue(list.getHistory().isEmpty());
-    model
-        .followPath(user, newLinkedList(asList(SW, SE, NE, NW)), TimeLapseFactory
-            .create(0, 10));
+    model.followPath(user, newLinkedList(asList(SW, SE, NE, NW)),
+        TimeLapseFactory.create(0, 10));
 
     assertEquals(1, list.getHistory().size());
 
@@ -477,6 +475,10 @@ public abstract class AbstractRoadModelTest<T extends RoadModel> {
     assertEquals(model, list.getHistory().get(0).getIssuer());
   }
 
+  /**
+   * Tests whether the iteration order in the model is according to insertion
+   * ordering.
+   */
   @Test
   public void testObjectOrder() {
     final List<RoadUser> objects = new ArrayList<RoadUser>();
@@ -497,7 +499,7 @@ public abstract class AbstractRoadModelTest<T extends RoadModel> {
         model.getObjects());
     assertEquals(objects.size(), modelObjects.size());
     for (int i = 0; i < modelObjects.size(); i++) {
-      assertTrue(modelObjects.get(i) == objects.get(i));
+      assertSame(modelObjects.get(i), objects.get(i));
     }
 
     model.removeObject(objects.remove(97));
@@ -506,13 +508,13 @@ public abstract class AbstractRoadModelTest<T extends RoadModel> {
     model.removeObject(objects.remove(13));
     model.removeObject(objects.remove(3));
 
-    // check to see if the objects are still in insertion order, event after
+    // check to see if the objects are still in insertion order, even after
     // removals
     final List<RoadUser> modelObjects2 = new ArrayList<RoadUser>(
         model.getObjects());
     assertEquals(objects.size(), modelObjects2.size());
     for (int i = 0; i < modelObjects2.size(); i++) {
-      assertTrue(modelObjects2.get(i) == objects.get(i));
+      assertSame(modelObjects2.get(i), objects.get(i));
     }
 
     // make sure that the order is preserved, even when using a predicate
@@ -525,7 +527,7 @@ public abstract class AbstractRoadModelTest<T extends RoadModel> {
         }));
     assertEquals(objects.size(), modelObjects3.size());
     for (int i = 0; i < modelObjects3.size(); i++) {
-      assertTrue(modelObjects3.get(i) == objects.get(i));
+      assertSame(modelObjects3.get(i), objects.get(i));
     }
 
     // make sure that the order of the objects is preserved, even in this
@@ -534,7 +536,7 @@ public abstract class AbstractRoadModelTest<T extends RoadModel> {
         model.getObjectsAndPositions().entrySet());
     assertEquals(objects.size(), modelObjects4.size());
     for (int i = 0; i < modelObjects4.size(); i++) {
-      assertTrue(modelObjects4.get(i).getKey() == objects.get(i));
+      assertSame(modelObjects4.get(i).getKey(), objects.get(i));
     }
 
     // make sure that the order is preserved, even when using a type
@@ -547,7 +549,7 @@ public abstract class AbstractRoadModelTest<T extends RoadModel> {
       while (!(objects.get(j) instanceof TestRoadUser2)) {
         j++;
       }
-      assertTrue(modelObjects5.get(i) == objects.get(j));
+      assertSame(modelObjects5.get(i), objects.get(j));
       j++;
     }
 

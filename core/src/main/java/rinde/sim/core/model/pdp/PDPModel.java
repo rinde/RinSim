@@ -538,6 +538,7 @@ public class PDPModel implements Model<PDPObject>, TickListener, ModelReceiver {
    *         are not neccesarily already at a position.
    */
   // TODO convert to more generic version with state as argument
+  @Deprecated
   public Collection<Parcel> getAvailableParcels() {
     synchronized (this) {
       return parcelState.get(ParcelState.AVAILABLE);
