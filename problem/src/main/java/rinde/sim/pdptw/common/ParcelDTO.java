@@ -4,8 +4,6 @@ import static com.google.common.base.Preconditions.checkArgument;
 
 import java.io.Serializable;
 
-import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
-
 import rinde.sim.core.graph.Point;
 import rinde.sim.util.TimeWindow;
 
@@ -24,10 +22,13 @@ public class ParcelDTO implements Serializable {
       TimeWindow pPickupTimeWindow, TimeWindow pDeliveryTimeWindow,
       int pNeededCapacity, long pOrderArrivalTime, long pPickupDuration,
       long pDeliveryDuration) {
-    checkArgument(pOrderArrivalTime <= pPickupTimeWindow.begin, "Order arrival time may not be after the pickup TW has already opened.");
+    checkArgument(pOrderArrivalTime <= pPickupTimeWindow.begin,
+        "Order arrival time may not be after the pickup TW has already opened.");
     checkArgument(pNeededCapacity >= 0, "Capacity can not be negative.");
-    checkArgument(pPickupDuration >= 0, "Pickup duration needs to be strictly positive.");
-    checkArgument(pDeliveryDuration >= 0, "Delivery duration needs to be strictly positive.");
+    checkArgument(pPickupDuration >= 0,
+        "Pickup duration needs to be strictly positive.");
+    checkArgument(pDeliveryDuration >= 0,
+        "Delivery duration needs to be strictly positive.");
 
     pickupLocation = pPickupLocation;
     destinationLocation = pDestinationLocation;
@@ -41,6 +42,9 @@ public class ParcelDTO implements Serializable {
 
   @Override
   public String toString() {
-    return ReflectionToStringBuilder.toString(this);
+
+    return new StringBuilder("ParcelDTO-").append(
+        Integer.toHexString(hashCode())).toString();
+    // return ReflectionToStringBuilder.toString(this);
   }
 }

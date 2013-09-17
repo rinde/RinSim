@@ -5,18 +5,22 @@ package rinde.sim.pdptw.central;
 
 import static java.util.Arrays.asList;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 import static rinde.sim.core.TimeLapseFactory.create;
 import static rinde.sim.pdptw.central.Solvers.convert;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
 import javax.measure.Measure;
 import javax.measure.unit.NonSI;
+import javax.measure.unit.SI;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -64,13 +68,17 @@ public class SolversTest {
   DefaultParcel p2;
   DefaultParcel p3;
 
+  /**
+   * Setup an environment with three vehicles and three parcels.
+   */
   @Before
   public void setUp() {
     rm = new PDPRoadModel(new PlaneRoadModel(new Point(0, 0),
-        new Point(10, 10), 300d), false);
+        new Point(10, 10), SI.KILOMETER, Measure.valueOf(300d,
+            NonSI.KILOMETERS_PER_HOUR)), false);
     pm = new PDPModel(new TardyAllowedPolicy());
     final ModelProvider mp = new TestModelProvider(new ArrayList<Model<?>>(
-        asList(rm, pm)));
+        Arrays.<Model<?>> asList(rm, pm)));
     rm.registerModelProvider(mp);
     pm.registerModelProvider(mp);
 
@@ -85,6 +93,7 @@ public class SolversTest {
 
   @Test
   public void convertTest() {
+    // time unit = hour
     PDPTWTestUtil.register(rm, pm, v1, p1);
 
     final StateContext sc = convert(rm, pm, Measure.valueOf(0L, NonSI.MINUTE),
@@ -105,8 +114,15 @@ public class SolversTest {
     assertTrue(rm.equalPosition(v1, p1));
     pm.service(v1, p1, create(NonSI.HOUR, 0, 1));
 
+    assertEquals(VehicleState.PICKING_UP, pm.getVehicleState(v1));
     final StateContext sc2 = convert(rm, pm, Measure.valueOf(0L, NonSI.MINUTE),
         null);
+
+    assertTrue(sc2.state.availableParcels.contains(p1.dto));
+    assertFalse(sc2.state.vehicles.get(0).contents.contains(p1.dto));
+    assertSame(p1.dto, sc2.state.vehicles.get(0).destination);
+    assertEquals(29, sc2.state.vehicles.get(0).remainingServiceTime);
+    assertFalse(sc2.state.vehicles.get(0).route.isPresent());
 
     // checkVehicles(asList(v1), sc2.state.vehicles);
   }

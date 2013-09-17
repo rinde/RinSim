@@ -3,6 +3,7 @@
  */
 package rinde.sim.pdptw.common;
 
+import rinde.sim.core.Simulator;
 import rinde.sim.core.model.pdp.PDPModel;
 import rinde.sim.core.model.pdp.PDPObject;
 import rinde.sim.core.model.road.RoadModel;
@@ -32,6 +33,12 @@ public class PDPTWTestUtil {
       // // rm.addObjectAt(dp, dp.dto.pickupLocation);
       // pm.register(dp);
       // }
+    }
+  }
+
+  public static void register(Simulator sim, Object... objs) {
+    for (final Object o : objs) {
+      sim.register(o);
     }
   }
 

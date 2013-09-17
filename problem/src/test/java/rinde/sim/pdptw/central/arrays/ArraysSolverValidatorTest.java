@@ -327,10 +327,9 @@ public class ArraysSolverValidatorTest {
   }
 
   /**
-   * A vehicle can not have a dest and have remaining service time.
+   * A vehicle can have a dest and have remaining service time.
    */
-  @Test(expected = IllegalArgumentException.class)
-  public void validateInputsInvalidDestinations5() {
+  public void validateInputsValidDestinations1() {
     validateInputs(new int[6][6], new int[6], new int[6],
         new int[][] { new int[] { 4, 2 } }, // servicePairs
         new int[6], // serviceTimes
@@ -345,7 +344,7 @@ public class ArraysSolverValidatorTest {
    * Valid destinations.
    */
   @Test
-  public void validateInputsValidDestinations() {
+  public void validateInputsValidDestinations2() {
     validateInputs(new int[6][6], new int[6], new int[6],
         new int[][] { new int[] { 4, 2 } }, // servicePairs
         new int[6], // serviceTimes
@@ -360,11 +359,10 @@ public class ArraysSolverValidatorTest {
   public void validateInputsValidMulti() {
 
     validateInputs(new int[6][6], new int[6], new int[6],
-        new int[][] { new int[] { 4, 2 } },
-        new int[6], //
+        new int[][] { new int[] { 4, 2 } }, new int[6], //
         new int[][] { { 0, 0, 0, 0, 0, 0 }, { 0, 0, 0, 0, 0, 0 } }, //
-        new int[][] { { 1, 1 }, { 1, 3 } }, new int[] { 300, 0 }, new int[2],
-        null);
+        new int[][] { { 1, 1 }, { 1, 3 } }, new int[] { 300, 0 }, new int[] {
+            4, 0 }, null);
   }
 
   /*

@@ -81,17 +81,21 @@ public class RouteFollowingVehicle extends DefaultVehicle {
   boolean isDiversionAllowed;
   private Optional<Measure<Double, Velocity>> speed;
 
+  private final boolean allowDelayedRouteChanges;
+
   /**
    * Initializes the vehicle.
    * @param pDto The {@link VehicleDTO} that defines this vehicle.
    */
-  public RouteFollowingVehicle(VehicleDTO pDto) {
+  public RouteFollowingVehicle(VehicleDTO pDto,
+      boolean allowDelayedRouteChanging) {
     super(pDto);
     depot = Optional.absent();
     speed = Optional.absent();
     route = newLinkedList();
     newRoute = Optional.absent();
     currentTime = Optional.absent();
+    allowDelayedRouteChanges = allowDelayedRouteChanging;
 
     // FIXME coverage should be 100% again
 
@@ -167,6 +171,7 @@ public class RouteFollowingVehicle extends DefaultVehicle {
       route = newLinkedList(r);
       newRoute = Optional.absent();
     } else {
+      checkArgument(allowDelayedRouteChanges);
       newRoute = Optional.of(newLinkedList(r));
     }
   }
@@ -175,6 +180,10 @@ public class RouteFollowingVehicle extends DefaultVehicle {
    * @return The route that is currently being followed.
    */
   public Collection<DefaultParcel> getRoute() {
+    System.out.println("get, in state" + stateMachine.getCurrentState());
+    if (newRoute.isPresent()) {
+      System.out.println(" >> " + newRoute.get());
+    }
     return unmodifiableCollection(route);
   }
 
@@ -350,6 +359,9 @@ public class RouteFollowingVehicle extends DefaultVehicle {
     @Override
     public void onEntry(StateEvent event, RouteFollowingVehicle context) {
       checkArgument(pdpModel.get().getVehicleState(context) == VehicleState.IDLE);
+      if (event == StateEvent.NOGO) {
+        checkArgument(isDiversionAllowed);
+      }
       if (context.newRoute.isPresent()) {
         context.setRoute(context.newRoute.get());
       }
@@ -359,6 +371,10 @@ public class RouteFollowingVehicle extends DefaultVehicle {
     @Override
     public StateEvent handle(StateEvent event, RouteFollowingVehicle context) {
       if (!route.isEmpty()) {
+        checkArgument(
+            !pdpModel.get().getParcelState(route.peek()).isTransitionState(),
+            "Parcel is already being serviced by another vehicle. Parcel state: %s",
+            pdpModel.get().getParcelState(route.peek()));
         if (!isTooEarly(route.peek(), currentTime.get())) {
           return StateEvent.GOTO;
         }
@@ -384,6 +400,17 @@ public class RouteFollowingVehicle extends DefaultVehicle {
      * New instance.
      */
     protected Goto() {}
+
+    @Override
+    public void onEntry(StateEvent event, RouteFollowingVehicle context) {
+      if (event == StateEvent.REROUTE) {
+        checkArgument(isDiversionAllowed);
+      }
+      checkArgument(
+          !pdpModel.get().getParcelState(route.peek()).isTransitionState(),
+          "Parcel is already being serviced by another vehicle. Parcel state: %s",
+          pdpModel.get().getParcelState(route.peek()));
+    }
 
     @Nullable
     @Override
@@ -417,6 +444,10 @@ public class RouteFollowingVehicle extends DefaultVehicle {
     @Nullable
     @Override
     public StateEvent handle(StateEvent event, RouteFollowingVehicle context) {
+      checkArgument(
+          !pdpModel.get().getParcelState(route.peek()).isTransitionState(),
+          "Parcel is already being serviced by another vehicle. Parcel state: %s",
+          pdpModel.get().getParcelState(route.peek()));
       final PDPModel pm = pdpModel.get();
       final TimeLapse time = currentTime.get();
       final DefaultParcel cur = route.element();
@@ -459,13 +490,14 @@ public class RouteFollowingVehicle extends DefaultVehicle {
 
     @Override
     public void onEntry(StateEvent event, RouteFollowingVehicle context) {
-      pdpModel.get().service(context, route.remove(), currentTime.get());
+      pdpModel.get().service(context, route.peek(), currentTime.get());
     }
 
     @Nullable
     @Override
     public StateEvent handle(StateEvent event, RouteFollowingVehicle context) {
       if (currentTime.get().hasTimeLeft()) {
+        route.remove();
         return StateEvent.DONE;
       }
       return null;

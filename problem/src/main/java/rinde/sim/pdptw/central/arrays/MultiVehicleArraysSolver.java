@@ -54,6 +54,7 @@ public interface MultiVehicleArraysSolver {
    *          the inventory.
    * @param remainingServiceTimes contains the remaining service time for every
    *          vehicle. The length of this array equals the number of vehicles.
+   *          TODO describe coupling with currentDestinations
    * @param currentDestinations contains a pointer to a location which indicates
    *          the current destination for every vehicle. If the value is
    *          <code>0</code> for a vehicle, it means that the vehicle has no

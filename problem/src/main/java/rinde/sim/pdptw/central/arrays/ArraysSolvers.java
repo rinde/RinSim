@@ -8,7 +8,6 @@ import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.collect.Sets.newHashSet;
 
 import java.math.RoundingMode;
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
@@ -108,30 +107,6 @@ public final class ArraysSolvers {
       }
     }
     return matrix;
-  }
-
-  private static class PointWrapper {
-    final Point p;
-
-    PointWrapper(Point p) {
-      this.p = p;
-    }
-  }
-
-  static PointWrapper wrap(Point p) {
-    return new PointWrapper(p);
-  }
-
-  static Point unwrap(PointWrapper pw) {
-    return pw.p;
-  }
-
-  static ImmutableList<Point> unwrap(Collection<PointWrapper> col) {
-    final ImmutableList.Builder<Point> b = ImmutableList.builder();
-    for (final PointWrapper pw : col) {
-      b.add(pw.p);
-    }
-    return b.build();
   }
 
   /**
@@ -281,8 +256,8 @@ public final class ArraysSolvers {
       int[][] vehicleTravelTimes, int[] remainingServiceTimes) {
     final SolutionObject[] sols = new SolutionObject[state.vehicles.size()];
     for (int i = 0; i < state.vehicles.size(); i++) {
-      sols[i] = convertRouteToSolutionObject(state.vehicles.get(i), mapping,
-          travelTime, releaseDates, dueDates, serviceTimes,
+      sols[i] = convertRouteToSolutionObject(state, state.vehicles.get(i),
+          mapping, travelTime, releaseDates, dueDates, serviceTimes,
           vehicleTravelTimes[i], remainingServiceTimes[i]);
     }
     return sols;
@@ -303,22 +278,25 @@ public final class ArraysSolvers {
     }
   }
 
-  static SolutionObject convertRouteToSolutionObject(VehicleStateObject vso,
-      Map<ParcelDTO, ParcelIndexObj> mapping, int[][] travelTime,
-      int[] releaseDates, int[] dueDates, int[] serviceTimes,
-      int[] vehicleTravelTimes, int remainingServiceTime) {
+  static SolutionObject convertRouteToSolutionObject(GlobalStateObject state,
+      VehicleStateObject vso, Map<ParcelDTO, ParcelIndexObj> mapping,
+      int[][] travelTime, int[] releaseDates, int[] dueDates,
+      int[] serviceTimes, int[] vehicleTravelTimes, int remainingServiceTime) {
     final int[] route = new int[vso.route.get().size()];
 
     final Set<ParcelDTO> seen = newHashSet();
     for (int i = 0; i < vso.route.get().size(); i++) {
       final ParcelDTO dto = vso.route.get().get(i);
+
       if (vso.contents.contains(dto) || seen.contains(dto)) {
         // it is in cargo
         route[i] = mapping.get(dto).deliveryIndex;
       } else {
+        checkArgument(state.availableParcels.contains(dto));
         // it is available
         route[i] = mapping.get(dto).pickupIndex;
       }
+      checkArgument(route[i] > 0);
       seen.add(dto);
     }
     final int[] arrivalTimes = computeArrivalTimes(route, travelTime,
@@ -428,15 +406,18 @@ public final class ArraysSolvers {
     for (int i = 0; i < v; i++) {
       final VehicleStateObject cur = iterator.next();
 
+      // TODO merge destination and serviceLoc concepts
       final ParcelDTO dest = cur.destination;
-      if (dest == null) {
-        destinations[i] = 0;
-      } else {
+      if (dest != null) {
+        checkArgument(sva.parcel2index.containsKey(dest));
         final boolean isInCargo = cur.contents.contains(dest);
-        final int index = sva.location2index
-            .indexOf(isInCargo ? dest.destinationLocation : dest.pickupLocation);
+        final ParcelIndexObj pio = sva.parcel2index.get(dest);
+        final int index = isInCargo ? pio.deliveryIndex : pio.pickupIndex;
         destinations[i] = index;
+      } else {
+        destinations[i] = 0;
       }
+      checkArgument(destinations[i] >= 0, "Invalid destination.", dest);
     }
     return destinations;
   }

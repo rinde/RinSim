@@ -262,6 +262,10 @@ public final class ArraysSolverValidator {
         "The currentDestinations array should be of length v=%s, it is %s.", v,
         currentDestinations.length);
     for (int i = 0; i < v; i++) {
+      if (remainingServiceTimes[i] != 0) {
+        checkArgument(currentDestinations[i] != 0);
+      }
+
       if (currentDestinations[i] != 0) {
         final int dest = currentDestinations[i];
         checkArgument(
@@ -283,10 +287,10 @@ public final class ArraysSolverValidator {
               "When a vehicle is moving towards a destination which is a delivery location, it must contain this parcel in its cargo. Vehicle %s, destination %s.",
               i, dest);
         }
-        checkArgument(
-            remainingServiceTimes[i] == 0,
-            "When a vehicle is moving towards a destination it can not at the same time be busy with something else, hence remainingServiceTime for that vehicle must be 0, found %s.",
-            remainingServiceTimes[i]);
+        // checkArgument(
+        // remainingServiceTimes[i] == 0,
+        // "When a vehicle is moving towards a destination it can not at the same time be busy with something else, hence remainingServiceTime for that vehicle must be 0, found %s.",
+        // remainingServiceTimes[i]);
 
       }
     }
@@ -308,17 +312,17 @@ public final class ArraysSolverValidator {
               currentDestinations[i], route);
         }
         final Collection<Integer> inventory = inventoriesMap.get(i);
-        checkArgument(
-            ImmutableSet.copyOf(route).containsAll(inventory),
-            "The route should contain all locations in its inventory. Route: %s, inventory: %s.",
-            route, inventory);
+        // checkArgument(
+        // ImmutableSet.copyOf(route).containsAll(inventory),
+        // "The route should contain all locations in its inventory. Vehicle %s, route: %s, inventory: %s.",
+        // i, route, inventory);
 
         for (final Integer item : route) {
           final int freq = Collections.frequency(route, item);
           checkArgument(
               freq == 1,
-              "Vehicle %s: each location should occur only once, found %s instances of location %s.",
-              i, freq, item);
+              "Vehicle %s: each location should occur only once, found %s instances of location %s. Route: %s.",
+              i, freq, item, route);
           if (!inventoriesMap.containsEntry(i, item)) {
             // not in cargo, so the pair should appear in the route
             if (servicePairsMap.containsKey(item)) {
@@ -327,12 +331,9 @@ public final class ArraysSolverValidator {
               checkArgument(route.contains(servicePairsMap.inverse().get(item)));
             }
           }
-
         }
       }
-
     }
-
   }
 
   /**
@@ -542,6 +543,7 @@ public final class ArraysSolverValidator {
           "The first arrival time should be the remaining service time for this vehicle, expected %s, was %s.",
           remainingServiceTimes[v], sol.arrivalTimes[0]);
 
+      // FIXME use method version!
       // check feasibility
       for (int i = 1; i < sol.route.length; i++) {
         final int prev = sol.route[i - 1];

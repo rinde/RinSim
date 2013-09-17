@@ -83,8 +83,8 @@ public class PDPRoadModel extends ForwardingRoadModel implements ModelReceiver {
           (DefaultParcel) obj);
       checkArgument(
           state == ParcelState.IN_CARGO,
-          "Can only move to parcels which are either on the map or in cargo, state is %s.",
-          state, obj.hashCode());
+          "Can only move to parcels which are either on the map or in cargo, state is %s, obj is %s.",
+          state, obj);
       return ((DefaultParcel) obj).getDestination();
     }
     return getPosition(obj);

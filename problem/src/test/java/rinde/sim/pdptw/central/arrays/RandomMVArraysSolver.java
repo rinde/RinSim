@@ -6,10 +6,12 @@ package rinde.sim.pdptw.central.arrays;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Maps.newHashMap;
+import static com.google.common.collect.Sets.newLinkedHashSet;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.annotation.Nullable;
 
@@ -45,15 +47,25 @@ public class RandomMVArraysSolver implements MultiVehicleArraysSolver {
     final List<List<Integer>> routes = newArrayList();
     for (int i = 0; i < v; i++) {
       routes.add(new ArrayList<Integer>());
+      if (currentDestinations[i] > 0) {
+        routes.get(i).add(currentDestinations[i]);
+      }
     }
+    final Set<Integer> curDestSet = newLinkedHashSet(Ints
+        .asList(currentDestinations));
+
     for (int i = 0; i < inventories.length; i++) {
-      routes.get(inventories[i][0]).add(inventories[i][1]);
+      if (!curDestSet.contains(inventories[i][1])) {
+        routes.get(inventories[i][0]).add(inventories[i][1]);
+      }
     }
 
     for (int i = 0; i < servicePairs.length; i++) {
-      final List<Integer> route = routes.get(rng.nextInt(v));
-      route.add(servicePairs[i][0]);
-      route.add(servicePairs[i][1]);
+      if (!curDestSet.contains(servicePairs[i][0])) {
+        final List<Integer> route = routes.get(rng.nextInt(v));
+        route.add(servicePairs[i][0]);
+        route.add(servicePairs[i][1]);
+      }
     }
 
     final Map<Integer, Integer> servicePairMap = newHashMap();
@@ -62,16 +74,17 @@ public class RandomMVArraysSolver implements MultiVehicleArraysSolver {
     }
 
     for (int i = 0; i < v; i++) {
-      final boolean hasDest = vehicleTravelTimes[i][1] == Integer.MAX_VALUE
-          || vehicleTravelTimes[i][2] == Integer.MAX_VALUE;
+      final boolean hasDest = currentDestinations[i] > 0;
+      // vehicleTravelTimes[i][1] == Integer.MAX_VALUE
+      // || vehicleTravelTimes[i][2] == Integer.MAX_VALUE;
       if (hasDest) {
-        int destIndex = -1;
-        for (int j = 1; j < n; j++) {
-          if (vehicleTravelTimes[i][j] != Integer.MAX_VALUE) {
-            destIndex = j;
-            break;
-          }
-        }
+        final int destIndex = currentDestinations[i];
+        // for (int j = 1; j < n; j++) {
+        // if (vehicleTravelTimes[i][j] != Integer.MAX_VALUE) {
+        // destIndex = j;
+        // break;
+        // }
+        // }
         checkArgument(destIndex >= 0);
 
         remove(routes, destIndex);

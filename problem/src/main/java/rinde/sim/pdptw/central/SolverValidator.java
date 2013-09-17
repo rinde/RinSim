@@ -48,22 +48,90 @@ public final class SolverValidator {
   public static GlobalStateObject validateInputs(GlobalStateObject state) {
     checkArgument(state.time >= 0, "Time must be >= 0, is %s.", state.time);
     final Set<ParcelDTO> inventoryParcels = newHashSet();
+    System.out.println("============ " + state.vehicles.size());
+
+    final boolean routeIsPresent = state.vehicles.get(0).route.isPresent();
+    final Set<ParcelDTO> allParcels = newHashSet();
     for (final VehicleStateObject vs : state.vehicles) {
-      checkArgument(vs.remainingServiceTime >= 0, "Remaining service time must be >= 0, is %s.", vs.remainingServiceTime);
+      checkArgument(
+          vs.route.isPresent() == routeIsPresent,
+          "Either a route should be present for all vehicles, or no route should be present for all vehicles.");
+      if (vs.route.isPresent()) {
+        System.out.println(vs.route.get());
+        for (final ParcelDTO p : vs.route.get()) {
+          checkArgument(
+              !allParcels.contains(p),
+              "Found parcel which is already present in the route of another vehicle. Parcel %s.",
+              p);
+        }
+        allParcels.addAll(vs.route.get());
+      }
+    }
+
+    for (int i = 0; i < state.vehicles.size(); i++) {
+      final VehicleStateObject vs = state.vehicles.get(i);
+
+      checkArgument(vs.remainingServiceTime >= 0,
+          "Remaining service time must be >= 0, is %s.",
+          vs.remainingServiceTime);
       checkArgument(vs.speed > 0, "Speed must be positive, is %s.", vs.speed);
-      final Set<ParcelDTO> intersection = Sets
-          .intersection(state.availableParcels, vs.contents);
-      checkArgument(intersection.isEmpty(), "Parcels can not be available AND in the inventory of a vehicle, found: %s.", intersection);
-      final Set<ParcelDTO> inventoryIntersection = Sets
-          .intersection(inventoryParcels, vs.contents);
-      checkArgument(inventoryIntersection.isEmpty(), "Parcels can not be in the inventory of two vehicles at the same time, found: %s.", inventoryIntersection);
+      final Set<ParcelDTO> intersection = Sets.intersection(
+          state.availableParcels, vs.contents);
+      checkArgument(
+          intersection.isEmpty(),
+          "Parcels can not be available AND in the inventory of a vehicle, found: %s.",
+          intersection);
+      final Set<ParcelDTO> inventoryIntersection = Sets.intersection(
+          inventoryParcels, vs.contents);
+      checkArgument(
+          inventoryIntersection.isEmpty(),
+          "Parcels can not be in the inventory of two vehicles at the same time, found: %s.",
+          inventoryIntersection);
       inventoryParcels.addAll(vs.contents);
 
+      // if the destination parcel is not available, it must be in the
+      // cargo of the vehicle
       if (vs.destination != null) {
-        // if the destination parcel is not available, it must be in the
-        // cargo of the vehicle
-        if (!state.availableParcels.contains(vs.destination)) {
-          checkArgument(vs.contents.contains(vs.destination), "The current destination is not available therefore it must be in the contents of the vehicle.");
+        final boolean isAvailable = state.availableParcels
+            .contains(vs.destination);
+        final boolean isInCargo = vs.contents.contains(vs.destination);
+        checkArgument(
+            isAvailable != isInCargo,
+            "Destination must be either available (%s) or in the current vehicle's cargo (%s), but not both (i.e. XOR).",
+            isAvailable, isInCargo, vs.destination, vs.remainingServiceTime);
+
+        // && !state.availableParcels.contains(vs.destination)) {
+        // checkArgument(
+        // vs.contents.contains(vs.destination),
+        // "The current destination is not available therefore it must be in the contents of the vehicle.");
+      }
+
+      if (vs.route.isPresent()) {
+        checkArgument(
+            vs.route.get().containsAll(vs.contents),
+            "Vehicle %s's route doesn't contain all locations it has in cargo. Route: %s, cargo: %s.",
+            i, vs.route.get(), vs.contents);
+        if (vs.destination != null) {
+          checkArgument(
+              !vs.route.get().isEmpty()
+                  && vs.route.get().get(0) == vs.destination,
+              "First location in route must equal destination (%s), route is: %s.",
+              vs.destination, vs.route.get());
+        }
+
+        for (final ParcelDTO dp : vs.route.get()) {
+          final int freq = Collections.frequency(vs.route.get(), dp);
+          if (vs.contents.contains(dp)) {
+            checkArgument(
+                freq == 1,
+                "A parcel already in cargo should occur once in the route, found %s instance(s). Parcel: %s, route: %s.",
+                freq, dp, vs.route.get());
+          } else {
+            checkArgument(
+                freq == 2,
+                "A parcel that is still available should occur twice in the route, found %s instance(s). Parcel: %s, route: %s.",
+                freq, dp, vs.route.get(), vs.remainingServiceTime);
+          }
         }
       }
     }
@@ -81,40 +149,58 @@ public final class SolverValidator {
   public static ImmutableList<ImmutableList<ParcelDTO>> validateOutputs(
       ImmutableList<ImmutableList<ParcelDTO>> routes, GlobalStateObject state) {
 
-    checkArgument(routes.size() == state.vehicles.size(), "There must be exactly one route for every vehicle, found %s routes with %s vehicles.", routes
-        .size(), state.vehicles.size());
+    checkArgument(
+        routes.size() == state.vehicles.size(),
+        "There must be exactly one route for every vehicle, found %s routes with %s vehicles.",
+        routes.size(), state.vehicles.size());
 
     final Set<ParcelDTO> inputParcels = newHashSet(state.availableParcels);
-
+    System.out.println(" >>>> output <<<<< ");
     final Set<ParcelDTO> outputParcels = newHashSet();
     for (int i = 0; i < routes.size(); i++) {
       final List<ParcelDTO> route = routes.get(i);
+      System.out.println(route);
       final Set<ParcelDTO> routeSet = ImmutableSet.copyOf(route);
-      checkArgument(routeSet.containsAll(state.vehicles.get(i).contents), "The route of vehicle %s doesn't visit all parcels in its cargo.", i);
+      checkArgument(routeSet.containsAll(state.vehicles.get(i).contents),
+          "The route of vehicle %s doesn't visit all parcels in its cargo.", i);
       inputParcels.addAll(state.vehicles.get(i).contents);
 
       if (state.vehicles.get(i).destination != null) {
-        checkArgument(route.get(0) == state.vehicles.get(i).destination, "The route of vehicle %s should start with its current destination: %s.", i, state.vehicles
-            .get(i).destination);
+        checkArgument(
+            route.get(0) == state.vehicles.get(i).destination,
+            "The route of vehicle %s should start with its current destination: %s.",
+            i, state.vehicles.get(i).destination);
       }
 
       for (final ParcelDTO p : route) {
-        checkArgument(!outputParcels.contains(p), "Found a parcel which is already in another route: %s.", p);
+        checkArgument(!outputParcels.contains(p),
+            "Found a parcel which is already in another route: %s.", p);
         final int frequency = Collections.frequency(route, p);
         if (state.availableParcels.contains(p)) {
           // if the parcel is available, it needs to occur twice in
           // the route (once for pickup, once for delivery).
-          checkArgument(frequency == 2, "Route %s: a parcel that is picked up needs to be delivered as well, so it should occur twice in the route, found %s occurence(s) of parcel %s.", i, frequency, p);
+          checkArgument(
+              frequency == 2,
+              "Route %s: a parcel that is picked up needs to be delivered as well, so it should occur twice in the route, found %s occurence(s) of parcel %s.",
+              i, frequency, p);
         } else {
-          checkArgument(state.vehicles.get(i).contents.contains(p), "The parcel in this route is not available, which means it should be in the contents of this vehicle. Parcel: %s.", p);
-          checkArgument(frequency == 1, "A parcel that is already in cargo should occur once in the route, found %s occurences of parcel %s.", frequency, p);
+          checkArgument(
+              state.vehicles.get(i).contents.contains(p),
+              "The parcel in this route is not available, which means it should be in the contents of this vehicle. Parcel: %s.",
+              p);
+          checkArgument(
+              frequency == 1,
+              "A parcel that is already in cargo should occur once in the route, found %s occurences of parcel %s.",
+              frequency, p);
         }
       }
       outputParcels.addAll(route);
     }
-    checkArgument(inputParcels.equals(outputParcels), "The number of distinct parcels in the routes should equal the number of parcels in the input, parcels that should be added in routes: %s, parcels that should be removed from routes: %s.", Sets
-        .difference(inputParcels, outputParcels), Sets
-        .difference(outputParcels, inputParcels));
+    checkArgument(
+        inputParcels.equals(outputParcels),
+        "The number of distinct parcels in the routes should equal the number of parcels in the input, parcels that should be added in routes: %s, parcels that should be removed from routes: %s.",
+        Sets.difference(inputParcels, outputParcels),
+        Sets.difference(outputParcels, inputParcels));
     return routes;
   }
 

@@ -33,6 +33,15 @@ public class GlobalStateObject {
   // TODO add generic way for storing travel distances based on shortest path
   // in road model
 
+  // in a multimap? state -> parcels
+  // AVAILABLE -> PICKING_UP -> IN_CARGO -> DELIVERING -> DELIVERED
+
+  // ImmutableMap<ParcelState, ParcelDTO> parcelStateMap;
+
+  // association with vehicle (if any)
+  // vehicle -> parcels
+  // parcel -> vehicle
+
   /**
    * All known parcels which require both a pickup and a delivery. They are not
    * in the inventory of a vehicle.
@@ -98,9 +107,17 @@ public class GlobalStateObject {
     public final ImmutableSet<ParcelDTO> contents;
 
     /**
-     * The remaining time the vehicle needs for completion of its current task.
+     * The remaining time the vehicle needs for completion of its current
+     * servicing operation.
      */
     public final long remainingServiceTime;
+
+    /**
+     * The parcel which is currently being serviced, only defined if
+     * {@link #remainingServiceTime} <code>> 0</code>.
+     */
+    // @Nullable
+    // public final ParcelDTO serviceLocation;
 
     public final Optional<ImmutableList<ParcelDTO>> route;
 
@@ -112,7 +129,7 @@ public class GlobalStateObject {
      * routes.</li>
      * <li>The vehicle is moving to a parcel (either pickup or delivery
      * location).</li>
-     * <li>The vehicle has not yet reached its destination.</li>
+     * <li>The vehicle has not yet started servicing.</li>
      * </ul>
      * When it is not <code>null</code> it indicates the current destination of
      * a vehicle. When a vehicle has a destination it <b>must</b> first move to
@@ -123,13 +140,13 @@ public class GlobalStateObject {
 
     VehicleStateObject(VehicleDTO dto, Point location,
         ImmutableSet<ParcelDTO> contents, long remainingServiceTime,
-        @Nullable ParcelDTO destination,
-        @Nullable ImmutableList<ParcelDTO> route) {
+        @Nullable ParcelDTO destination, @Nullable ImmutableList<ParcelDTO> route) {
       super(dto.startPosition, dto.speed, dto.capacity,
           dto.availabilityTimeWindow);
       this.location = location;
       this.contents = contents;
       this.remainingServiceTime = remainingServiceTime;
+      // this.serviceLocation = serviceLocation;
       this.destination = destination;
       this.route = Optional.fromNullable(route);
     }

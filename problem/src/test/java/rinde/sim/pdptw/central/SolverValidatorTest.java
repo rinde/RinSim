@@ -3,6 +3,8 @@
  */
 package rinde.sim.pdptw.central;
 
+import javax.measure.unit.SI;
+
 import org.junit.Test;
 
 import rinde.sim.core.graph.Point;
@@ -90,6 +92,144 @@ public class SolverValidatorTest {
 
     final GlobalStateObject state = new GlobalStateObject(empty,
         ImmutableList.of(vs1, vs2), 0, null, null, null);
+    SolverValidator.validateInputs(state);
+  }
+
+  /**
+   * One route is present, one is not.
+   */
+  @Test(expected = IllegalArgumentException.class)
+  public void validateInvalidCurrentRoute1() {
+    final Point p = new Point(0, 0);
+    final VehicleStateObject vs1 = new VehicleStateObject(vdto(), p,
+        ImmutableSet.of(p1), 0, p1, ImmutableList.of(p1));
+    final VehicleStateObject vs2 = new VehicleStateObject(vdto(), p,
+        ImmutableSet.of(p2), 0, null, null);
+    final ImmutableSet<ParcelDTO> available = ImmutableSet.of(p3);
+    final GlobalStateObject state = new GlobalStateObject(available,
+        ImmutableList.of(vs1, vs2), 0, SI.SECOND, SI.METERS_PER_SECOND,
+        SI.METER);
+    SolverValidator.validateInputs(state);
+  }
+
+  /**
+   * Parcel 2 occurs in two different routes.
+   */
+  @Test(expected = IllegalArgumentException.class)
+  public void validateInvalidCurrentRoute2() {
+    final Point p = new Point(0, 0);
+    final VehicleStateObject vs1 = new VehicleStateObject(vdto(), p,
+        ImmutableSet.<ParcelDTO> of(), 0, p1, ImmutableList.of(p1, p2, p1, p2));
+    final VehicleStateObject vs2 = new VehicleStateObject(vdto(), p,
+        ImmutableSet.<ParcelDTO> of(), 0, null, ImmutableList.of(p2, p2));
+    final ImmutableSet<ParcelDTO> available = ImmutableSet.of(p1, p2);
+    final GlobalStateObject state = new GlobalStateObject(available,
+        ImmutableList.of(vs1, vs2), 0, SI.SECOND, SI.METERS_PER_SECOND,
+        SI.METER);
+    SolverValidator.validateInputs(state);
+  }
+
+  /**
+   * Vehicle doesn't have its cargo in its route.
+   */
+  @Test(expected = IllegalArgumentException.class)
+  public void validateInvalidCurrentRoute3() {
+    final Point p = new Point(0, 0);
+    final VehicleStateObject vs1 = new VehicleStateObject(vdto(), p,
+        ImmutableSet.of(p1), 0, p1, ImmutableList.of(p3));
+    final ImmutableSet<ParcelDTO> available = ImmutableSet.of(p3);
+    final GlobalStateObject state = new GlobalStateObject(available,
+        ImmutableList.of(vs1), 0, SI.SECOND, SI.METERS_PER_SECOND, SI.METER);
+    SolverValidator.validateInputs(state);
+  }
+
+  /**
+   * The first location in a route must match the destination field if not null.
+   * In this test it is another parcel.
+   */
+  @Test(expected = IllegalArgumentException.class)
+  public void validateInvalidCurrentRoute4a() {
+    final Point p = new Point(0, 0);
+    final VehicleStateObject vs1 = new VehicleStateObject(vdto(), p,
+        ImmutableSet.of(p1), 0, p1, ImmutableList.of(p3, p1, p3));
+    final ImmutableSet<ParcelDTO> available = ImmutableSet.of(p3);
+    final GlobalStateObject state = new GlobalStateObject(available,
+        ImmutableList.of(vs1), 0, SI.SECOND, SI.METERS_PER_SECOND, SI.METER);
+    SolverValidator.validateInputs(state);
+  }
+
+  /**
+   * The first location in a route must match the destination field if not null.
+   * In this test the route is empty.
+   */
+  @Test(expected = IllegalArgumentException.class)
+  public void validateInvalidCurrentRoute4b() {
+    final Point p = new Point(0, 0);
+    final VehicleStateObject vs1 = new VehicleStateObject(vdto(), p,
+        ImmutableSet.<ParcelDTO> of(), 0, p1, ImmutableList.<ParcelDTO> of());
+    final ImmutableSet<ParcelDTO> available = ImmutableSet.of(p1);
+    final GlobalStateObject state = new GlobalStateObject(available,
+        ImmutableList.of(vs1), 0, SI.SECOND, SI.METERS_PER_SECOND, SI.METER);
+    SolverValidator.validateInputs(state);
+  }
+
+  /**
+   * Duplicate in route.
+   */
+  @Test(expected = IllegalArgumentException.class)
+  public void validateInvalidCurrentRoute5() {
+    final Point p = new Point(0, 0);
+    final VehicleStateObject vs1 = new VehicleStateObject(vdto(), p,
+        ImmutableSet.of(p1), 0, p1, ImmutableList.of(p1, p1, p3));
+    final ImmutableSet<ParcelDTO> available = ImmutableSet.of(p3);
+    final GlobalStateObject state = new GlobalStateObject(available,
+        ImmutableList.of(vs1), 0, SI.SECOND, SI.METERS_PER_SECOND, SI.METER);
+    SolverValidator.validateInputs(state);
+  }
+
+  /**
+   * Only once occurence of available parcel, should occur twice.
+   */
+  @Test(expected = IllegalArgumentException.class)
+  public void validateInvalidCurrentRoute6a() {
+    final Point p = new Point(0, 0);
+    final VehicleStateObject vs1 = new VehicleStateObject(vdto(), p,
+        ImmutableSet.of(p1), 0, p1, ImmutableList.of(p1, p2));
+    final ImmutableSet<ParcelDTO> available = ImmutableSet.of(p2);
+    final GlobalStateObject state = new GlobalStateObject(available,
+        ImmutableList.of(vs1), 0, SI.SECOND, SI.METERS_PER_SECOND, SI.METER);
+    SolverValidator.validateInputs(state);
+  }
+
+  /**
+   * Too many occurences of available parcel, should occur twice.
+   */
+  @Test(expected = IllegalArgumentException.class)
+  public void validateInvalidCurrentRoute6b() {
+    final Point p = new Point(0, 0);
+    final VehicleStateObject vs1 = new VehicleStateObject(vdto(), p,
+        ImmutableSet.of(p1), 0, p1, ImmutableList.of(p1, p2, p2, p2));
+    final ImmutableSet<ParcelDTO> available = ImmutableSet.of(p2);
+    final GlobalStateObject state = new GlobalStateObject(available,
+        ImmutableList.of(vs1), 0, SI.SECOND, SI.METERS_PER_SECOND, SI.METER);
+    SolverValidator.validateInputs(state);
+  }
+
+  /**
+   * Valid routes.
+   */
+  @Test
+  public void validateValidCurrentRoutes() {
+    final ImmutableSet<ParcelDTO> empty = ImmutableSet.of();
+    final VehicleStateObject vs1 = new VehicleStateObject(vdto(), null,
+        ImmutableSet.of(p1), 0, p1, ImmutableList.of(p1));
+    final VehicleStateObject vs2 = new VehicleStateObject(vdto(), null,
+        ImmutableSet.of(p2), 0, null, ImmutableList.of(p2));
+    final VehicleStateObject vs3 = new VehicleStateObject(vdto(), null, empty,
+        0, p3, ImmutableList.<ParcelDTO> of(p3, p3));
+    final ImmutableSet<ParcelDTO> available = ImmutableSet.of(p3);
+    final GlobalStateObject state = new GlobalStateObject(available,
+        ImmutableList.of(vs1, vs2, vs3), 0, null, null, null);
     SolverValidator.validateInputs(state);
   }
 

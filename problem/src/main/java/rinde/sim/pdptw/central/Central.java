@@ -16,6 +16,7 @@ import rinde.sim.core.model.Model;
 import rinde.sim.core.model.ModelProvider;
 import rinde.sim.core.model.ModelReceiver;
 import rinde.sim.core.model.pdp.PDPModel;
+import rinde.sim.pdptw.central.Solvers.StateContext;
 import rinde.sim.pdptw.common.AddVehicleEvent;
 import rinde.sim.pdptw.common.DefaultParcel;
 import rinde.sim.pdptw.common.DynamicPDPTWProblem.Creator;
@@ -118,7 +119,7 @@ public final class Central {
 
       @Override
       public boolean create(Simulator sim, AddVehicleEvent event) {
-        return sim.register(new RouteFollowingVehicle(event.vehicleDTO));
+        return sim.register(new RouteFollowingVehicle(event.vehicleDTO, false));
       }
     }
   }
@@ -165,20 +166,44 @@ public final class Central {
         final Set<RouteFollowingVehicle> vehicles = rm.get().getObjectsOfType(
             RouteFollowingVehicle.class);
 
+        System.out.println(vehicles.getClass());
+
         // gather current routes
         final ImmutableList.Builder<ImmutableList<DefaultParcel>> currentRouteBuilder = ImmutableList
             .builder();
+        System.out.println(".......in vehicle");
         for (final RouteFollowingVehicle vehicle : vehicles) {
-          currentRouteBuilder.add(ImmutableList.copyOf(vehicle.getRoute()));
+          final ImmutableList<DefaultParcel> l = ImmutableList.copyOf(vehicle
+              .getRoute());
+          System.out.println(l);
+          currentRouteBuilder.add(l);
         }
 
         final Iterator<Queue<DefaultParcel>> routes = Solvers.solve(solver,
             rm.get(), pm.get(),
             Measure.valueOf(timeLapse.getTime(), timeLapse.getTimeUnit()),
             currentRouteBuilder.build()).iterator();
+        System.out.println("....... set route");
         for (final RouteFollowingVehicle vehicle : vehicles) {
-          vehicle.setRoute(routes.next());
+          final Queue<DefaultParcel> route = routes.next();
+          System.out.println(route);
+          vehicle.setRoute(route);
         }
+
+        final ImmutableList.Builder<ImmutableList<DefaultParcel>> currentRouteBuilder2 = ImmutableList
+            .builder();
+        for (final RouteFollowingVehicle vehicle : vehicles) {
+          final ImmutableList<DefaultParcel> l = ImmutableList.copyOf(vehicle
+              .getRoute());
+          currentRouteBuilder2.add(l);
+        }
+
+        final StateContext sc = Solvers.convert(rm.get(), pm.get(),
+            Measure.valueOf(timeLapse.getTime(), timeLapse.getTimeUnit()),
+            currentRouteBuilder2.build());
+
+        SolverValidator.validateInputs(sc.state);
+
       }
     }
 

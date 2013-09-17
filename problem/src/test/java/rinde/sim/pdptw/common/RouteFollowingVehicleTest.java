@@ -107,7 +107,7 @@ public class RouteFollowingVehicleTest {
 
     final VehicleDTO v = new VehicleDTO(new Point(1, 1), 30, 1, new TimeWindow(
         0, minute(30)));
-    d = new RouteFollowingVehicle(v);
+    d = new RouteFollowingVehicle(v, false);
 
     p1 = new DefaultParcel(new ParcelDTO(new Point(1, 2), new Point(1, 4), //
         new TimeWindow(minute(5), minute(15)), // pickup tw
@@ -334,15 +334,22 @@ public class RouteFollowingVehicleTest {
     assertEquals(Optional.absent(), d.newRoute);
 
     // making it empty is not always immediately allowed
-    d.setRoute(new ArrayList<DefaultParcel>());
+    boolean exception = false;
+    try {
+      d.setRoute(new ArrayList<DefaultParcel>());
+    } catch (final IllegalArgumentException e) {
+      exception = true;
+    }
 
     if (diversionIsAllowed) {
       assertTrue(d.route.isEmpty());
       assertEquals(Optional.absent(), d.newRoute);
+      assertFalse(exception);
     } else {
       // no diversion allowed, no change yet
       assertEquals(asList(p1, p2, p1), d.route);
-      assertEquals(Optional.of(new ArrayList<DefaultParcel>()), d.newRoute);
+      assertFalse(d.newRoute.isPresent());
+      assertTrue(exception);
     }
 
     // change it back
@@ -350,13 +357,20 @@ public class RouteFollowingVehicleTest {
 
     // changing the first destination in the route is not always immediately
     // allowed
-    d.setRoute(asList(p2));
+    boolean exception2 = false;
+    try {
+      d.setRoute(asList(p2));
+    } catch (final IllegalArgumentException e) {
+      exception2 = true;
+    }
     if (diversionIsAllowed) {
       assertEquals(asList(p2), d.route);
       assertEquals(Optional.absent(), d.newRoute);
+      assertFalse(exception2);
     } else {
       assertEquals(asList(p1), d.route);
-      assertEquals(asList(p2), d.newRoute.get());
+      assertFalse(d.newRoute.isPresent());
+      assertTrue(exception2);
     }
 
     tick(13, 14);
@@ -367,8 +381,8 @@ public class RouteFollowingVehicleTest {
       // diverted to this parcel, and serviced it.
       assertEquals(newHashSet(p2), pm.getContents(d));
     } else {
-      // first continue moving to p1 and pickup, then move to p2 and pickup
-      assertEquals(newHashSet(p1, p2), pm.getContents(d));
+      // first continue moving to p1 and pickup
+      assertEquals(newHashSet(p1), pm.getContents(d));
     }
     assertTrue(d.route.isEmpty());
   }
@@ -405,9 +419,15 @@ public class RouteFollowingVehicleTest {
     assertEquals(asList(p1), d.route);
     assertEquals(Optional.absent(), d.newRoute);
 
-    d.setRoute(asList(p2));
-    assertEquals(asList(p2), d.newRoute.get());
-    assertEquals(asList(p1), d.route);
+    boolean excep = false;
+    try {
+      d.setRoute(asList(p2));
+      assertEquals(asList(p2), d.newRoute.get());
+      assertEquals(asList(p1), d.route);
+    } catch (final IllegalArgumentException e) {
+      excep = true;
+    }
+    assertTrue(excep);
 
     tick(6, 7);
     assertEquals(d.serviceState, d.stateMachine.getCurrentState());
@@ -418,7 +438,7 @@ public class RouteFollowingVehicleTest {
     // it is still too early to go to p2, but the route should be updated
     tick(8, 9);
     assertEquals(d.waitState, d.stateMachine.getCurrentState());
-    assertEquals(asList(p2), d.route);
+    assertEquals(asList(), d.route);
     assertEquals(Optional.absent(), d.newRoute);
   }
 
