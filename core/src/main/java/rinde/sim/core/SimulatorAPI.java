@@ -1,5 +1,8 @@
 package rinde.sim.core;
 
+import javax.measure.quantity.Duration;
+import javax.measure.unit.Unit;
+
 import org.apache.commons.math3.random.RandomGenerator;
 
 /**
@@ -36,4 +39,20 @@ public interface SimulatorAPI {
    * @return the random generator of the simulatsor
    */
   RandomGenerator getRandomGenerator();
+
+  /**
+   * @return The current simulation time.
+   */
+  long getCurrentTime();
+
+  /**
+   * @return The time step (in simulation time) which is added to current time
+   *         at every tick.
+   */
+  long getTimeStep();
+
+  /**
+   * @return The unit of time that is used for generating ticks.
+   */
+  Unit<Duration> getTimeUnit();
 }

@@ -177,6 +177,7 @@ public class Simulator implements SimulatorAPI {
       throw new IllegalStateException(
           "cannot add model after calling configure()");
     }
+    injectDependencies(model);
     final boolean result = modelManager.add(model);
     if (result) {
       LOGGER.info("registering model :" + model.getClass().getName()
@@ -247,17 +248,12 @@ public class Simulator implements SimulatorAPI {
     return modelManager;
   }
 
-  /**
-   * @return The current simulation time.
-   */
+  @Override
   public long getCurrentTime() {
     return time;
   }
 
-  /**
-   * @return The time step (in simulation time) which is added to current time
-   *         at every tick.
-   */
+  @Override
   public long getTimeStep() {
     return timeStep;
   }
@@ -394,9 +390,7 @@ public class Simulator implements SimulatorAPI {
     return rand;
   }
 
-  /**
-   * @return The unit of time that is used for generating ticks.
-   */
+  @Override
   public Unit<Duration> getTimeUnit() {
     return timeLapse.getTimeUnit();
   }
