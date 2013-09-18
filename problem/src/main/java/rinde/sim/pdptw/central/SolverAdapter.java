@@ -8,12 +8,9 @@ import static com.google.common.base.Preconditions.checkArgument;
 import java.util.List;
 import java.util.Queue;
 
-import javax.measure.Measure;
-
 import rinde.sim.core.Simulator;
-import rinde.sim.core.model.pdp.PDPModel;
+import rinde.sim.pdptw.central.Solvers.SolverHandle;
 import rinde.sim.pdptw.common.DefaultParcel;
-import rinde.sim.pdptw.common.PDPRoadModel;
 
 /**
  * Adapts any {@link Solver} to its simplest form such that it is automatically
@@ -22,10 +19,7 @@ import rinde.sim.pdptw.common.PDPRoadModel;
  */
 public class SolverAdapter {
 
-  private final Solver solver;
-  private final Simulator simulator;
-  private final PDPRoadModel roadModel;
-  private final PDPModel pdpModel;
+  private final SolverHandle handle;
 
   /**
    * Create a new instance based on a solver and a simulator.
@@ -34,10 +28,7 @@ public class SolverAdapter {
    */
   public SolverAdapter(Solver solver, Simulator simulator) {
     checkArgument(simulator.isConfigured());
-    this.solver = solver;
-    this.simulator = simulator;
-    roadModel = simulator.getModelProvider().getModel(PDPRoadModel.class);
-    pdpModel = simulator.getModelProvider().getModel(PDPModel.class);
+    handle = Solvers.solver(solver, simulator);
   }
 
   /**
@@ -45,7 +36,6 @@ public class SolverAdapter {
    * @return A list of routes, one for every vehicle.
    */
   public List<Queue<DefaultParcel>> solve() {
-    return Solvers.solve(solver, roadModel, pdpModel, Measure.valueOf(simulator
-        .getCurrentTime(), simulator.getTimeUnit()));
+    return handle.solve();
   }
 }

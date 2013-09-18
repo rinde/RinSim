@@ -115,7 +115,7 @@ public class CentralTest {
 
     final SolverHandle s = Solvers.solver(null, sim);
 
-    StateContext res = s.convert();
+    StateContext res = s.convert(null);
     assertEquals(2, res.state.vehicles.size());
     assertTrue(res.state.vehicles.get(0).contents.isEmpty());
     assertNull(res.state.vehicles.get(0).destination);
@@ -130,7 +130,7 @@ public class CentralTest {
 
     while (v1.getState() == v1.getGotoState()) {
       assertFalse(new Point(0, 1).equals(rm.getPosition(v1)));
-      res = s.convert();
+      res = s.convert(null);
       assertEquals(2, res.state.vehicles.size());
       assertTrue(res.state.vehicles.get(0).contents.isEmpty());
       assertEquals(p1.dto, res.state.vehicles.get(0).destination);
@@ -141,7 +141,7 @@ public class CentralTest {
     // arrived at parcel1: waitForService
     assertEquals(new Point(3, 0), rm.getPosition(v1));
     assertEquals(v1.getWaitForServiceState(), v1.getState());
-    res = s.convert();
+    res = s.convert(null);
     assertEquals(2, res.state.vehicles.size());
     assertTrue(res.state.vehicles.get(0).contents.isEmpty());
     assertEquals(p1.dto, res.state.vehicles.get(0).destination);
@@ -150,7 +150,7 @@ public class CentralTest {
     // start servicing: service
     sim.tick();
     assertEquals(v1.getServiceState(), v1.getState());
-    res = s.convert();
+    res = s.convert(null);
     assertSame(p1.dto, res.state.vehicles.get(0).destination);
     assertEquals(v1.getServiceState(), v1.getState());
   }

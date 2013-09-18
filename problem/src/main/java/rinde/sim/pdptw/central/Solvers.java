@@ -21,6 +21,8 @@ import javax.measure.Measure;
 import javax.measure.quantity.Duration;
 
 import rinde.sim.core.Simulator;
+import rinde.sim.core.SimulatorAPI;
+import rinde.sim.core.model.ModelProvider;
 import rinde.sim.core.model.pdp.PDPModel;
 import rinde.sim.core.model.pdp.PDPModel.ParcelState;
 import rinde.sim.core.model.pdp.PDPModel.VehicleParcelActionInfo;
@@ -50,71 +52,50 @@ public final class Solvers {
   private Solvers() {}
 
   public static SolverHandle solver(Solver sol, Simulator sim) {
-    return new SolverHandle(sol, sim);
+    return new SolverHandle(sol, sim.getModelProvider(), sim);
+  }
+
+  public static SolverHandle solver(Solver sol, ModelProvider mp,
+      SimulatorAPI simulator) {
+    return new SolverHandle(sol, mp, simulator);
   }
 
   static class SolverHandle {
     private final Solver solver;
-    private final Simulator simulator;
+    private final SimulatorAPI simulator;
     private final PDPRoadModel rm;
     private final PDPModel pm;
 
-    SolverHandle(Solver s, Simulator sim) {
+    SolverHandle(Solver s, ModelProvider mp, SimulatorAPI sim) {
       solver = s;
       simulator = sim;
-      final PDPRoadModel r = sim.getModelProvider()
-          .getModel(PDPRoadModel.class);
+      final PDPRoadModel r = mp.getModel(PDPRoadModel.class);
       checkArgument(r != null);
       rm = r;
-      final PDPModel p = sim.getModelProvider().getModel(PDPModel.class);
+      final PDPModel p = mp.getModel(PDPModel.class);
       checkArgument(p != null);
       pm = p;
     }
 
     public List<Queue<DefaultParcel>> solve() {
-      return Solvers.solve(solver, rm, pm,
-          Measure.valueOf(simulator.getCurrentTime(), simulator.getTimeUnit()),
-          null);
+      return solve(null);
     }
 
-    StateContext convert() {
-      return Solvers.convert(rm, pm,
-          Measure.valueOf(simulator.getCurrentTime(), simulator.getTimeUnit()),
-          null);
+    public List<Queue<DefaultParcel>> solve(
+        @Nullable ImmutableList<ImmutableList<DefaultParcel>> currentRoutes) {
+      final StateContext state = convert(currentRoutes);
+      return Solvers.convertRoutes(state, solver.solve(state.state));
     }
 
-  }
+    StateContext convert(
+        @Nullable ImmutableList<ImmutableList<DefaultParcel>> currentRoutes) {
+      return Solvers.convert(rm, pm, rm.getObjectsOfType(DefaultVehicle.class),
+          conv(pm.getParcels(ParcelState.ANNOUNCED, ParcelState.AVAILABLE,
+              ParcelState.PICKING_UP)), Measure.valueOf(
+              simulator.getCurrentTime(), simulator.getTimeUnit()),
+          currentRoutes);
+    }
 
-  /**
-   * 
-   * @param solver
-   * @param rm
-   * @param pm
-   * @param time
-   * @return
-   */
-  public static List<Queue<DefaultParcel>> solve(Solver solver,
-      PDPRoadModel rm, PDPModel pm, Measure<Long, Duration> time) {
-    return solve(solver, rm, pm, time, null);
-  }
-
-  /**
-   * 
-   * @param solver
-   * @param rm
-   * @param pm
-   * @param time
-   * @param currentRoutes The current routes the vehicles are following, this is
-   *          passed to the solver such that it can be used as an initial
-   *          solution.
-   * @return
-   */
-  public static List<Queue<DefaultParcel>> solve(Solver solver,
-      PDPRoadModel rm, PDPModel pm, Measure<Long, Duration> time,
-      @Nullable ImmutableList<ImmutableList<DefaultParcel>> currentRoutes) {
-    final StateContext state = convert(rm, pm, time, currentRoutes);
-    System.out.println("available: " + state.state.availableParcels);
-    return convertRoutes(state, solver.solve(state.state));
   }
 
   // solver for single vehicle
@@ -136,7 +117,7 @@ public final class Solvers {
 
   // converts the routes received from Solver.solve(..) into a format which is
   // expected by the simulator
-  public static List<Queue<DefaultParcel>> convertRoutes(StateContext cont,
+  static List<Queue<DefaultParcel>> convertRoutes(StateContext cont,
       List<? extends List<ParcelDTO>> routes) {
     final ImmutableList.Builder<Queue<DefaultParcel>> routesBuilder = ImmutableList
         .builder();
@@ -159,13 +140,13 @@ public final class Solvers {
         currentRoute == null ? null : ImmutableList.of(currentRoute));
   }
 
-  public static StateContext convert(PDPRoadModel rm, PDPModel pm,
-      Measure<Long, Duration> time,
-      @Nullable ImmutableList<ImmutableList<DefaultParcel>> currentRoutes) {
-    return convert(rm, pm, rm.getObjectsOfType(DefaultVehicle.class),
-        conv(pm.getParcels(ParcelState.ANNOUNCED, ParcelState.AVAILABLE,
-            ParcelState.PICKING_UP)), time, currentRoutes);
-  }
+  // public static StateContext convert(PDPRoadModel rm, PDPModel pm,
+  // Measure<Long, Duration> time,
+  // @Nullable ImmutableList<ImmutableList<DefaultParcel>> currentRoutes) {
+  // return convert(rm, pm, rm.getObjectsOfType(DefaultVehicle.class),
+  // conv(pm.getParcels(ParcelState.ANNOUNCED, ParcelState.AVAILABLE,
+  // ParcelState.PICKING_UP)), time, currentRoutes);
+  // }
 
   static Collection<DefaultParcel> conv(Collection<Parcel> input) {
     final List<DefaultParcel> l = newArrayList();
@@ -222,22 +203,6 @@ public final class Solvers {
     @SuppressWarnings({ "unchecked", "rawtypes" })
     final Set<DefaultParcel> ps = Collections.checkedSet(
         (Set) newLinkedHashSet(pm.getContents(vehicle)), DefaultParcel.class);
-
-    // fix all parcels which are in a transition process: either being
-    // delivered or picked up.
-    if (pm.getVehicleState(vehicle) != PDPModel.VehicleState.IDLE) {
-      final DefaultParcel dp = (DefaultParcel) pm.getVehicleActionInfo(vehicle)
-          .getParcel();
-      final ParcelState parcelState = pm.getParcelState(dp);
-      if (parcelState == ParcelState.DELIVERING) {
-        // FIXME update this
-        // ps.remove(dp);
-      } else if (parcelState == ParcelState.PICKING_UP) {
-        // ps.add(dp);
-      } else {
-        throw new IllegalArgumentException();
-      }
-    }
     return toMap(ps);
   }
 
@@ -274,17 +239,8 @@ public final class Solvers {
   static ImmutableList<ParcelDTO> toDtoList(Collection<DefaultParcel> parcels,
       PDPModel pm) {
     final ImmutableList.Builder<ParcelDTO> builder = ImmutableList.builder();
-
-    // TODO clean this up
-    final Iterator<DefaultParcel> it = parcels.iterator();
-    if (it.hasNext()) {
-      // final DefaultParcel first = it.next();
-      // if (!pm.getParcelState(first).isTransitionState()) {
-      // builder.add(first.dto);
-      // }
-      while (it.hasNext()) {
-        builder.add(it.next().dto);
-      }
+    for (final DefaultParcel dp : parcels) {
+      builder.add(dp.dto);
     }
     return builder.build();
   }

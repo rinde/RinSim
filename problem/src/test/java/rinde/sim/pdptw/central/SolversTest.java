@@ -10,7 +10,6 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 import static rinde.sim.core.TimeLapseFactory.create;
-import static rinde.sim.pdptw.central.Solvers.convert;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -19,12 +18,16 @@ import java.util.List;
 import java.util.Set;
 
 import javax.measure.Measure;
+import javax.measure.quantity.Duration;
 import javax.measure.unit.NonSI;
 import javax.measure.unit.SI;
+import javax.measure.unit.Unit;
 
+import org.apache.commons.math3.random.RandomGenerator;
 import org.junit.Before;
 import org.junit.Test;
 
+import rinde.sim.core.SimulatorAPI;
 import rinde.sim.core.TimeLapse;
 import rinde.sim.core.graph.Point;
 import rinde.sim.core.model.Model;
@@ -36,6 +39,7 @@ import rinde.sim.core.model.pdp.Parcel;
 import rinde.sim.core.model.pdp.twpolicy.TardyAllowedPolicy;
 import rinde.sim.core.model.road.PlaneRoadModel;
 import rinde.sim.pdptw.central.GlobalStateObject.VehicleStateObject;
+import rinde.sim.pdptw.central.Solvers.SolverHandle;
 import rinde.sim.pdptw.central.Solvers.StateContext;
 import rinde.sim.pdptw.common.DefaultParcel;
 import rinde.sim.pdptw.common.DefaultVehicle;
@@ -59,6 +63,7 @@ public class SolversTest {
 
   PDPRoadModel rm;
   PDPModel pm;
+  ModelProvider mp;
 
   TestVehicle v1;
   TestVehicle v2;
@@ -77,7 +82,7 @@ public class SolversTest {
         new Point(10, 10), SI.KILOMETER, Measure.valueOf(300d,
             NonSI.KILOMETERS_PER_HOUR)), false);
     pm = new PDPModel(new TardyAllowedPolicy());
-    final ModelProvider mp = new TestModelProvider(new ArrayList<Model<?>>(
+    mp = new TestModelProvider(new ArrayList<Model<?>>(
         Arrays.<Model<?>> asList(rm, pm)));
     rm.registerModelProvider(mp);
     pm.registerModelProvider(mp);
@@ -96,9 +101,10 @@ public class SolversTest {
     // time unit = hour
     PDPTWTestUtil.register(rm, pm, v1, p1);
 
-    final StateContext sc = convert(rm, pm, Measure.valueOf(0L, NonSI.MINUTE),
-        null);
+    final TestSimAPI simAPI = new TestSimAPI(0, 1, NonSI.MINUTE);
+    final SolverHandle handle = Solvers.solver(null, mp, simAPI);
 
+    final StateContext sc = handle.convert(null);
     assertEquals(ImmutableMap.of(v1.dto, v1), sc.vehicleMap);
     assertEquals(ImmutableMap.of(p1.dto, p1), sc.parcelMap);
 
@@ -107,16 +113,14 @@ public class SolversTest {
 
     rm.moveTo(v1, p1, create(NonSI.HOUR, 0L, 1L));
 
-    checkVehicles(asList(v1),
-        convert(rm, pm, Measure.valueOf(0L, NonSI.MINUTE), null).state.vehicles);
+    checkVehicles(asList(v1), handle.convert(null).state.vehicles);
 
     rm.moveTo(v1, p1, create(NonSI.HOUR, 0, 40));
     assertTrue(rm.equalPosition(v1, p1));
     pm.service(v1, p1, create(NonSI.HOUR, 0, 1));
 
     assertEquals(VehicleState.PICKING_UP, pm.getVehicleState(v1));
-    final StateContext sc2 = convert(rm, pm, Measure.valueOf(0L, NonSI.MINUTE),
-        null);
+    final StateContext sc2 = handle.convert(null);
 
     assertTrue(sc2.state.availableParcels.contains(p1.dto));
     assertFalse(sc2.state.vehicles.get(0).contents.contains(p1.dto));
@@ -128,7 +132,7 @@ public class SolversTest {
   }
 
   // doesn't check the contents!
-  public void checkVehicles(List<? extends TestVehicle> expected,
+  void checkVehicles(List<? extends TestVehicle> expected,
       ImmutableList<VehicleStateObject> states) {
 
     assertEquals(expected.size(), states.size());
@@ -177,13 +181,9 @@ public class SolversTest {
   }
 
   static class TestVehicle extends DefaultVehicle {
-
     public final VehicleDTO dto;
 
-    /**
-     * @param pDto
-     */
-    public TestVehicle(Point start) {
+    TestVehicle(Point start) {
       super(new VehicleDTO(start, .1, 1, TW));
       dto = getDTO();
     }
@@ -192,4 +192,50 @@ public class SolversTest {
     protected void tickImpl(TimeLapse time) {}
   }
 
+  static class TestSimAPI implements SimulatorAPI {
+
+    long time;
+    final long step;
+    final Unit<Duration> unit;
+
+    TestSimAPI(long currentTime, long step, Unit<Duration> unit) {
+      time = currentTime;
+      this.step = step;
+      this.unit = unit;
+    }
+
+    @Override
+    public boolean register(Object o) {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public boolean unregister(Object o) {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public RandomGenerator getRandomGenerator() {
+      throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public long getCurrentTime() {
+      return time;
+    }
+
+    @Override
+    public long getTimeStep() {
+      return step;
+    }
+
+    @Override
+    public Unit<Duration> getTimeUnit() {
+      return unit;
+    }
+
+    public void setTime(long t) {
+      time = t;
+    }
+  }
 }

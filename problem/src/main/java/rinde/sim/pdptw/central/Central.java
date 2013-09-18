@@ -7,15 +7,15 @@ import java.util.Iterator;
 import java.util.Queue;
 import java.util.Set;
 
-import javax.measure.Measure;
-
 import rinde.sim.core.Simulator;
+import rinde.sim.core.SimulatorAPI;
+import rinde.sim.core.SimulatorUser;
 import rinde.sim.core.TickListener;
 import rinde.sim.core.TimeLapse;
 import rinde.sim.core.model.Model;
 import rinde.sim.core.model.ModelProvider;
 import rinde.sim.core.model.ModelReceiver;
-import rinde.sim.core.model.pdp.PDPModel;
+import rinde.sim.pdptw.central.Solvers.SolverHandle;
 import rinde.sim.pdptw.central.Solvers.StateContext;
 import rinde.sim.pdptw.common.AddVehicleEvent;
 import rinde.sim.pdptw.common.DefaultParcel;
@@ -125,15 +125,19 @@ public final class Central {
   }
 
   private static final class CentralModel implements Model<DefaultParcel>,
-      TickListener, ModelReceiver {
+      TickListener, ModelReceiver, SimulatorUser {
     private boolean hasChanged;
-    private Optional<PDPRoadModel> rm;
-    private Optional<PDPModel> pm;
+    private Optional<ModelProvider> modelProvider;
+    private Optional<PDPRoadModel> roadModel;
+    private Optional<SolverHandle> solverHandle;
     private final Solver solver;
+    private Optional<SimulatorAPI> simulatorAPI;
 
     CentralModel(Solver solver) {
-      rm = Optional.absent();
-      pm = Optional.absent();
+      modelProvider = Optional.absent();
+      roadModel = Optional.absent();
+      solverHandle = Optional.absent();
+      simulatorAPI = Optional.absent();
       this.solver = solver;
     }
 
@@ -163,30 +167,23 @@ public final class Central {
         // TODO it must be checked whether the calculated routes end up in the
         // correct vehicles
 
-        final Set<RouteFollowingVehicle> vehicles = rm.get().getObjectsOfType(
-            RouteFollowingVehicle.class);
-
-        System.out.println(vehicles.getClass());
+        final Set<RouteFollowingVehicle> vehicles = roadModel.get()
+            .getObjectsOfType(RouteFollowingVehicle.class);
 
         // gather current routes
         final ImmutableList.Builder<ImmutableList<DefaultParcel>> currentRouteBuilder = ImmutableList
             .builder();
-        System.out.println(".......in vehicle");
         for (final RouteFollowingVehicle vehicle : vehicles) {
           final ImmutableList<DefaultParcel> l = ImmutableList.copyOf(vehicle
               .getRoute());
-          System.out.println(l);
           currentRouteBuilder.add(l);
         }
 
-        final Iterator<Queue<DefaultParcel>> routes = Solvers.solve(solver,
-            rm.get(), pm.get(),
-            Measure.valueOf(timeLapse.getTime(), timeLapse.getTimeUnit()),
-            currentRouteBuilder.build()).iterator();
-        System.out.println("....... set route");
+        final Iterator<Queue<DefaultParcel>> routes = solverHandle.get()
+            .solve(currentRouteBuilder.build()).iterator();
+
         for (final RouteFollowingVehicle vehicle : vehicles) {
           final Queue<DefaultParcel> route = routes.next();
-          System.out.println(route);
           vehicle.setRoute(route);
         }
 
@@ -198,12 +195,9 @@ public final class Central {
           currentRouteBuilder2.add(l);
         }
 
-        final StateContext sc = Solvers.convert(rm.get(), pm.get(),
-            Measure.valueOf(timeLapse.getTime(), timeLapse.getTimeUnit()),
+        final StateContext sc = solverHandle.get().convert(
             currentRouteBuilder2.build());
-
         SolverValidator.validateInputs(sc.state);
-
       }
     }
 
@@ -212,8 +206,22 @@ public final class Central {
 
     @Override
     public void registerModelProvider(ModelProvider mp) {
-      pm = Optional.fromNullable(mp.getModel(PDPModel.class));
-      rm = Optional.fromNullable(mp.getModel(PDPRoadModel.class));
+      modelProvider = Optional.of(mp);
+      roadModel = Optional.fromNullable(mp.getModel(PDPRoadModel.class));
+      initSolver();
+    }
+
+    @Override
+    public void setSimulator(SimulatorAPI api) {
+      simulatorAPI = Optional.of(api);
+      initSolver();
+    }
+
+    void initSolver() {
+      if (modelProvider.isPresent() && simulatorAPI.isPresent()) {
+        solverHandle = Optional.of(Solvers.solver(solver, modelProvider.get(),
+            simulatorAPI.get()));
+      }
     }
   }
 }
