@@ -75,16 +75,8 @@ public class RandomMVArraysSolver implements MultiVehicleArraysSolver {
 
     for (int i = 0; i < v; i++) {
       final boolean hasDest = currentDestinations[i] > 0;
-      // vehicleTravelTimes[i][1] == Integer.MAX_VALUE
-      // || vehicleTravelTimes[i][2] == Integer.MAX_VALUE;
       if (hasDest) {
         final int destIndex = currentDestinations[i];
-        // for (int j = 1; j < n; j++) {
-        // if (vehicleTravelTimes[i][j] != Integer.MAX_VALUE) {
-        // destIndex = j;
-        // break;
-        // }
-        // }
         checkArgument(destIndex >= 0);
 
         remove(routes, destIndex);
@@ -101,45 +93,18 @@ public class RandomMVArraysSolver implements MultiVehicleArraysSolver {
     final SolutionObject[] sols = new SolutionObject[v];
     for (int i = 0; i < v; i++) {
       routes.get(i).add(0, 0);
-      routes.get(i).add(routes.get(i).size(), travelTime.length - 1);
-
+      routes.get(i).add(routes.get(i).size(), n - 1);
       final int[] route = Ints.toArray(routes.get(i));
-      final int[] arrivalTimes = new int[route.length];
-      if (route.length > 0) {
-        arrivalTimes[0] = remainingServiceTimes[i];
-      }
-
-      for (int j = 1; j < route.length; j++) {
-        final int prev = route[j - 1];
-        final int cur = route[j];
-
-        // we compute the travel time. If it is the first step in the
-        // route, we use the time from vehicle location to the next
-        // location in the route.
-        final int tt = j == 1 ? vehicleTravelTimes[i][cur]
-            : travelTime[prev][cur];
-
-        // we compute the first possible arrival time for the vehicle to
-        // arrive at location i, given that it first visited location
-        // i-1
-        final int earliestArrivalTime = arrivalTimes[j - 1]
-            + serviceTimes[prev] + tt;
-
-        // we also have to take into account the time window
-        final int minArrivalTime = Math.max(earliestArrivalTime,
-            releaseDates[cur]);
-        arrivalTimes[j] = minArrivalTime;
-      }
-
+      final int[] arrivalTimes = ArraysSolvers.computeArrivalTimes(route,
+          travelTime, remainingServiceTimes[i], vehicleTravelTimes[i],
+          serviceTimes, releaseDates);
       final int totalTravelTime = ArraysSolvers.computeTotalTravelTime(route,
           travelTime, vehicleTravelTimes[i]);
       final int tardiness = ArraysSolvers.computeSumTardiness(route,
           arrivalTimes, serviceTimes, dueDates);
       sols[i] = new SolutionObject(route, arrivalTimes, totalTravelTime
           + tardiness);
-      // System.out.println(sols[i]);
     }
-
     return sols;
   }
 

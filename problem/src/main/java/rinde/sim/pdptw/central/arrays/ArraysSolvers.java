@@ -8,9 +8,9 @@ import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.collect.Sets.newHashSet;
 
 import java.math.RoundingMode;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.Queue;
 import java.util.Set;
 
 import javax.annotation.Nullable;
@@ -25,8 +25,6 @@ import javax.measure.unit.Unit;
 import rinde.sim.core.graph.Point;
 import rinde.sim.pdptw.central.GlobalStateObject;
 import rinde.sim.pdptw.central.GlobalStateObject.VehicleStateObject;
-import rinde.sim.pdptw.central.Solver;
-import rinde.sim.pdptw.common.DefaultParcel;
 import rinde.sim.pdptw.common.ParcelDTO;
 import rinde.sim.util.TimeWindow;
 
@@ -145,7 +143,6 @@ public final class ArraysSolvers {
     // we need to create two mappings:
     // parceldto -> pickup index / deliver index
     // index -> parceldto
-
     final ImmutableMap.Builder<ParcelDTO, ParcelIndexObj> parcel2indexBuilder = ImmutableMap
         .builder();
     final ImmutableMap.Builder<Integer, ParcelIndexObj> index2parcelBuilder = ImmutableMap
@@ -154,10 +151,6 @@ public final class ArraysSolvers {
     // we wrap the points in PointWrapper to avoid problems with (possibly)
     // duplicates in the points
     final ImmutableList.Builder<Point> points = ImmutableList.builder();
-    // final ImmutableMap.Builder<Point, ParcelDTO> point2dtoBuilder =
-    // ImmutableMap
-    // .builder();
-
     points.add(v.location);
 
     int index = 1;
@@ -167,8 +160,6 @@ public final class ArraysSolvers {
           timeConverter.convert(p.pickupDuration), RoundingMode.CEILING);
       // add pickup location and time window
       points.add(p.pickupLocation);
-      // point2dtoBuilder.put(p.pickupLocation, p);
-
       final int deliveryIndex = index + state.availableParcels.size();
       final ParcelIndexObj pio = new ParcelIndexObj(p, index, deliveryIndex);
       parcel2indexBuilder.put(p, pio);
@@ -195,8 +186,6 @@ public final class ArraysSolvers {
           timeConverter.convert(p.deliveryDuration), RoundingMode.CEILING);
 
       points.add(p.destinationLocation);
-      // point2dtoBuilder.put(p.destinationLocation, p);
-
       if (inCargo.contains(p)) {
         final ParcelIndexObj pio = new ParcelIndexObj(p, -1, index);
         parcel2indexBuilder.put(p, pio);
@@ -222,10 +211,6 @@ public final class ArraysSolvers {
 
     final Measure<Double, Velocity> speed = Measure.valueOf(v.speed,
         state.speedUnit);
-
-    // final ImmutableBiMap<PointWrapper, Integer> point2index =
-    // point2indexBuilder
-    // .build();
 
     final ImmutableList<Point> pointList = points.build();
     final ImmutableMap<ParcelDTO, ParcelIndexObj> parcel2indexMap = parcel2indexBuilder
@@ -263,21 +248,6 @@ public final class ArraysSolvers {
     return sols;
   }
 
-  // parceldto -> pickup index / deliver index
-  // index -> parceldto
-
-  static class ParcelIndexObj {
-    final ParcelDTO dto;
-    final int pickupIndex;
-    final int deliveryIndex;
-
-    ParcelIndexObj(ParcelDTO dto, int pickupIndex, int deliveryIndex) {
-      this.dto = dto;
-      this.pickupIndex = pickupIndex;
-      this.deliveryIndex = deliveryIndex;
-    }
-  }
-
   static SolutionObject convertRouteToSolutionObject(GlobalStateObject state,
       VehicleStateObject vso, Map<ParcelDTO, ParcelIndexObj> mapping,
       int[][] travelTime, int[] releaseDates, int[] dueDates,
@@ -308,7 +278,6 @@ public final class ArraysSolvers {
     return new SolutionObject(route, arrivalTimes, tt + tardiness);
   }
 
-  // FIXME make sure this is reused in the random impl
   static int[] computeArrivalTimes(int[] route, int[][] travelTime,
       int remainingServiceTime, int[] vehicleTravelTimes, int[] serviceTimes,
       int[] releaseDates) {
@@ -378,13 +347,10 @@ public final class ArraysSolvers {
   }
 
   /**
-   * Converts a {@link SolutionObject} into a {@link Queue} which conforms to
-   * the return value of {@link Solver#solve(GlobalStateObject)}.
+   * Converts a {@link SolutionObject} into a list of {@link ParcelDTO}s.
    * @param sol The solution to convert.
-   * @param point2dto A mapping of locations to parcels.
-   * @param locations A list of locations which is used to lookup the positions
-   *          in the {@link SolutionObject#route}.
-   * @return A queue containing the route as specified by the
+   * @param index2parcel Mapping of indices to {@link ParcelDTO}s.
+   * @return A list containing the route as specified by the
    *         {@link SolutionObject}.
    */
   public static ImmutableList<ParcelDTO> convertSolutionObject(
@@ -405,8 +371,6 @@ public final class ArraysSolvers {
     final int[] destinations = new int[v];
     for (int i = 0; i < v; i++) {
       final VehicleStateObject cur = iterator.next();
-
-      // TODO merge destination and serviceLoc concepts
       final ParcelDTO dest = cur.destination;
       if (dest != null) {
         checkArgument(sva.parcel2index.containsKey(dest));
@@ -528,10 +492,14 @@ public final class ArraysSolvers {
    */
   public static double computeTravelTime(Measure<Double, Velocity> speed,
       Measure<Double, Length> distance, Unit<Duration> outputTimeUnit) {
-    return Measure.valueOf(distance.doubleValue(SI.METER)// meters
-        / speed.doubleValue(SI.METERS_PER_SECOND), // divided by m/s
-        SI.SECOND) // gives seconds
-        .doubleValue(outputTimeUnit); // convert to desired unit
+    // meters
+    return Measure.valueOf(distance.doubleValue(SI.METER)
+    // divided by m/s
+        / speed.doubleValue(SI.METERS_PER_SECOND),
+    // gives seconds
+        SI.SECOND)
+    // convert to desired unit
+        .doubleValue(outputTimeUnit);
   }
 
   /**
@@ -579,9 +547,31 @@ public final class ArraysSolvers {
     return tardiness;
   }
 
+  static int[] convertTW(TimeWindow tw, long time, UnitConverter timeConverter) {
+    final int releaseDate = fixTWstart(tw.begin, time, timeConverter);
+    final int dueDate = fixTWend(tw.end, time, timeConverter);
+    if (releaseDate > dueDate) {
+      // if this happens, we know this is the result of rounding behavior:
+      // release is rounded up, due is rounded down. We also know that the
+      // difference is only 1. Therefore we flip the values.
+      return new int[] { dueDate, releaseDate };
+    }
+    return new int[] { releaseDate, dueDate };
+  }
+
+  static int fixTWstart(long start, long time, UnitConverter timeConverter) {
+    return Math.max((DoubleMath.roundToInt(timeConverter.convert(start - time),
+        RoundingMode.CEILING)), 0);
+  }
+
+  static int fixTWend(long end, long time, UnitConverter timeConverter) {
+    return Math.max((DoubleMath.roundToInt(timeConverter.convert(end - time),
+        RoundingMode.FLOOR)), 0);
+  }
+
   /**
    * Object which specifies the parameters of
-   * {@link SingleVehicleArraysSolver#solve(int[][], int[], int[], int[][], int[])}
+   * {@link SingleVehicleArraysSolver#solve(int[][], int[], int[], int[][], int[], SolutionObject)}
    * . Also includes additional information which is required to interpret the
    * resulting {@link SolutionObject}.
    * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
@@ -589,39 +579,44 @@ public final class ArraysSolvers {
   public static class ArraysObject {
     /**
      * See
-     * {@link SingleVehicleArraysSolver#solve(int[][], int[], int[], int[][], int[])}
+     * {@link SingleVehicleArraysSolver#solve(int[][], int[], int[], int[][], int[], SolutionObject)}
      * .
      */
     public final int[][] travelTime;
 
     /**
      * See
-     * {@link SingleVehicleArraysSolver#solve(int[][], int[], int[], int[][], int[])}
+     * {@link SingleVehicleArraysSolver#solve(int[][], int[], int[], int[][], int[], SolutionObject)}
      * .
      */
     public final int[] releaseDates;
 
     /**
      * See
-     * {@link SingleVehicleArraysSolver#solve(int[][], int[], int[], int[][], int[])}
+     * {@link SingleVehicleArraysSolver#solve(int[][], int[], int[], int[][], int[], SolutionObject)}
      * .
      */
     public final int[] dueDates;
 
     /**
      * See
-     * {@link SingleVehicleArraysSolver#solve(int[][], int[], int[], int[][], int[])}
+     * {@link SingleVehicleArraysSolver#solve(int[][], int[], int[], int[][], int[], SolutionObject)}
      * .
      */
     public final int[][] servicePairs;
 
     /**
      * See
-     * {@link SingleVehicleArraysSolver#solve(int[][], int[], int[], int[][], int[])}
+     * {@link SingleVehicleArraysSolver#solve(int[][], int[], int[], int[][], int[], SolutionObject)}
      * .
      */
     public final int[] serviceTimes;
 
+    /**
+     * See
+     * {@link MultiVehicleArraysSolver#solve(int[][], int[], int[], int[][], int[], int[][], int[][], int[], int[], SolutionObject[])}
+     * .
+     */
     @Nullable
     public final SolutionObject[] currentSolutions;
 
@@ -631,11 +626,13 @@ public final class ArraysSolvers {
     public final ImmutableList<Point> location2index;
 
     /**
-     * A mapping between locations and {@link DefaultParcel}s.
+     * A mapping between parcels and their locations.
      */
-    // public final ImmutableMap<Point, ParcelDTO> point2dto;
-
     public final ImmutableMap<ParcelDTO, ParcelIndexObj> parcel2index;
+
+    /**
+     * A mapping between indices and parcels/locations.
+     */
     public final ImmutableMap<Integer, ParcelIndexObj> index2parcel;
 
     ArraysObject(int[][] travelTime, int[] releaseDates, int[] dueDates,
@@ -667,7 +664,7 @@ public final class ArraysSolvers {
 
   /**
    * Object which specifies the parameters of
-   * {@link MultiVehicleArraysSolver#solve(int[][], int[], int[], int[][], int[], int[][], int[][], int[], int[])}
+   * {@link MultiVehicleArraysSolver#solve(int[][], int[], int[], int[][], int[], int[][], int[][], int[], int[], SolutionObject[])}
    * . Also includes additional information which is required to interpret the
    * resulting {@link SolutionObject}.
    * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
@@ -675,28 +672,28 @@ public final class ArraysSolvers {
   public static class MVArraysObject extends ArraysObject {
     /**
      * See
-     * {@link MultiVehicleArraysSolver#solve(int[][], int[], int[], int[][], int[], int[][], int[][], int[], int[])}
+     * {@link MultiVehicleArraysSolver#solve(int[][], int[], int[], int[][], int[], int[][], int[][], int[], int[], SolutionObject[])}
      * .
      */
     public final int[][] vehicleTravelTimes;
 
     /**
      * See
-     * {@link MultiVehicleArraysSolver#solve(int[][], int[], int[], int[][], int[], int[][], int[][], int[], int[])}
+     * {@link MultiVehicleArraysSolver#solve(int[][], int[], int[], int[][], int[], int[][], int[][], int[], int[], SolutionObject[])}
      * .
      */
     public final int[][] inventories;
 
     /**
      * See
-     * {@link MultiVehicleArraysSolver#solve(int[][], int[], int[], int[][], int[], int[][], int[][], int[], int[])}
+     * {@link MultiVehicleArraysSolver#solve(int[][], int[], int[], int[][], int[], int[][], int[][], int[], int[], SolutionObject[])}
      * .
      */
     public final int[] remainingServiceTimes;
 
     /**
      * See
-     * {@link MultiVehicleArraysSolver#solve(int[][], int[], int[], int[][], int[], int[][], int[][], int[], int[])}
+     * {@link MultiVehicleArraysSolver#solve(int[][], int[], int[], int[][], int[], int[][], int[][], int[], int[], SolutionObject[])}
      * .
      */
     public final int[] currentDestinations;
@@ -711,10 +708,13 @@ public final class ArraysSolvers {
         int[] remainingServiceTimes, int[] currentDestinations) {
       super(travelTime, releaseDates, dueDates, servicePairs, serviceTimes,
           currentSolutions, locations, parcel2index, index2parcel);
-      this.vehicleTravelTimes = vehicleTravelTimes;
-      this.inventories = inventories;
-      this.remainingServiceTimes = remainingServiceTimes;
-      this.currentDestinations = currentDestinations;
+      this.vehicleTravelTimes = Arrays.copyOf(vehicleTravelTimes,
+          vehicleTravelTimes.length);
+      this.inventories = Arrays.copyOf(inventories, inventories.length);
+      this.remainingServiceTimes = Arrays.copyOf(remainingServiceTimes,
+          remainingServiceTimes.length);
+      this.currentDestinations = Arrays.copyOf(currentDestinations,
+          currentDestinations.length);
     }
 
     MVArraysObject(ArraysObject ao,
@@ -733,32 +733,25 @@ public final class ArraysSolvers {
         int[] currentDestinations, @Nullable SolutionObject[] curSolutions) {
       super(travelTime, releaseDates, dueDates, servicePairs, serviceTimes,
           curSolutions);
-      this.vehicleTravelTimes = vehicleTravelTimes;
-      this.inventories = inventories;
-      this.remainingServiceTimes = remainingServiceTimes;
-      this.currentDestinations = currentDestinations;
+      this.vehicleTravelTimes = Arrays.copyOf(vehicleTravelTimes,
+          vehicleTravelTimes.length);
+      this.inventories = Arrays.copyOf(inventories, inventories.length);
+      this.remainingServiceTimes = Arrays.copyOf(remainingServiceTimes,
+          remainingServiceTimes.length);
+      this.currentDestinations = Arrays.copyOf(currentDestinations,
+          currentDestinations.length);
     }
   }
 
-  static int[] convertTW(TimeWindow tw, long time, UnitConverter timeConverter) {
-    final int releaseDate = fixTWstart(tw.begin, time, timeConverter);
-    final int dueDate = fixTWend(tw.end, time, timeConverter);
-    if (releaseDate > dueDate) {
-      // if this happens, we know this is the result of rounding behavior:
-      // release is rounded up, due is rounded down. We also know that the
-      // difference is only 1. Therefore we flip the values.
-      return new int[] { dueDate, releaseDate };
+  static class ParcelIndexObj {
+    final ParcelDTO dto;
+    final int pickupIndex;
+    final int deliveryIndex;
+
+    ParcelIndexObj(ParcelDTO dto, int pickupIndex, int deliveryIndex) {
+      this.dto = dto;
+      this.pickupIndex = pickupIndex;
+      this.deliveryIndex = deliveryIndex;
     }
-    return new int[] { releaseDate, dueDate };
-  }
-
-  static int fixTWstart(long start, long time, UnitConverter timeConverter) {
-    return Math.max((DoubleMath.roundToInt(timeConverter.convert(start - time),
-        RoundingMode.CEILING)), 0);
-  }
-
-  static int fixTWend(long end, long time, UnitConverter timeConverter) {
-    return Math.max((DoubleMath.roundToInt(timeConverter.convert(end - time),
-        RoundingMode.FLOOR)), 0);
   }
 }

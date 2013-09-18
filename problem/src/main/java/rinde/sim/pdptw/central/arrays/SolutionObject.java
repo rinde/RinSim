@@ -44,8 +44,8 @@ public class SolutionObject {
   @Override
   public String toString() {
     return new StringBuilder("Route: ").append(Arrays.toString(route))
-        .append("\n").append("Arrival times: ")
-        .append(Arrays.toString(arrivalTimes)).append("\n")
+        .append(System.lineSeparator()).append("Arrival times: ")
+        .append(Arrays.toString(arrivalTimes)).append(System.lineSeparator())
         .append("Objective: ").append(objectiveValue).toString();
   }
 

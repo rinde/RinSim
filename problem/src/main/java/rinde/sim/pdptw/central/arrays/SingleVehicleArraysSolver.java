@@ -6,6 +6,10 @@ import javax.annotation.Nullable;
  * Interface for solvers for the single vehicle pickup-and-delivery problem with
  * time windows (SPDPTW). This interface uses <code>int</code> arrays for
  * specification of the inputs and outputs.
+ * <p>
+ * <b>Note that usage of this interface is not recommended.</b> The
+ * {@link rinde.sim.pdptw.central.Solver} interface provides exactly the same
+ * functionality but in a type safe manner.
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
  */
 public interface SingleVehicleArraysSolver {
@@ -36,11 +40,16 @@ public interface SingleVehicleArraysSolver {
    *          the matrix (either as an pickup or as a delivery).
    * @param serviceTimes specifies the service time for all locations (both
    *          pickups and deliveries).
+   * @param currentSolution If defined it contains the current route of the
+   *          vehicle. This can be used as a starting point for a new solution.
+   *          If any new parcels have become known since this current solution
+   *          was computed these parcels will <i>not</i> be part of the
+   *          solutions. This means that these solutions may not be feasible
+   *          solutions and thus require adaptation.
    * @return The solution object which indicates a (usually the best found)
    *         solution for the single vehilce PDPTW.
    */
   SolutionObject solve(int[][] travelTime, int[] releaseDates, int[] dueDates,
       int[][] servicePairs, int[] serviceTimes,
       @Nullable SolutionObject currentSolution);
-
 }

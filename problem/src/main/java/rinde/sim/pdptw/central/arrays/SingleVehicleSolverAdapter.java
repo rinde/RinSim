@@ -88,6 +88,7 @@ public class SingleVehicleSolverAdapter implements Solver {
         ao.index2parcel));
   }
 
+  // FIXME what to do with these methods?
   static int fixTWstart(long start, long time) {
     return Math.max((DoubleMath.roundToInt(
         Ints.checkedCast(start - time) / 1000d, RoundingMode.CEILING)), 0);
