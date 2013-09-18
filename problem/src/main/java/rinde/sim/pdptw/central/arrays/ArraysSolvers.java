@@ -560,13 +560,13 @@ public final class ArraysSolvers {
   }
 
   static int fixTWstart(long start, long time, UnitConverter timeConverter) {
-    return Math.max((DoubleMath.roundToInt(timeConverter.convert(start - time),
-        RoundingMode.CEILING)), 0);
+    return Math.max(DoubleMath.roundToInt(timeConverter.convert(start - time),
+        RoundingMode.CEILING), 0);
   }
 
   static int fixTWend(long end, long time, UnitConverter timeConverter) {
-    return Math.max((DoubleMath.roundToInt(timeConverter.convert(end - time),
-        RoundingMode.FLOOR)), 0);
+    return Math.max(DoubleMath.roundToInt(timeConverter.convert(end - time),
+        RoundingMode.FLOOR), 0);
   }
 
   /**

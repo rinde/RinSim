@@ -30,7 +30,7 @@ public final class ArraysSolverDebugger {
   /**
    * Wraps the specified {@link SingleVehicleArraysSolver} to allow easy
    * debugging. Every invocation of
-   * {@link SingleVehicleArraysSolver#solve(int[][], int[], int[], int[][], int[])}
+   * {@link SingleVehicleArraysSolver#solve(int[][], int[], int[], int[][], int[], SolutionObject)}
    * all inputs and outputs are printed to <code>System.out</code>, also all
    * inputs and outputs are stored (accessible via
    * {@link SVASDebugger#getInputMemory()} and
@@ -64,6 +64,10 @@ public final class ArraysSolverDebugger {
    */
   public static MVASDebugger wrap(MultiVehicleArraysSolver s, boolean print) {
     return new MVASDebugger(s, print);
+  }
+
+  static String fix(String s) {
+    return s.replace('[', '{').replace(']', '}') + ";";
   }
 
   private static class Debugger<I extends ArraysObject, O> {
@@ -111,7 +115,7 @@ public final class ArraysSolverDebugger {
       SingleVehicleArraysSolver {
     private final SingleVehicleArraysSolver solver;
 
-    private SVASDebugger(SingleVehicleArraysSolver solver, boolean print) {
+    SVASDebugger(SingleVehicleArraysSolver solver, boolean print) {
       super(print);
       this.solver = solver;
     }
@@ -191,9 +195,5 @@ public final class ArraysSolverDebugger {
       outputMemory.add(output);
       return output;
     }
-  }
-
-  static String fix(String s) {
-    return s.replace('[', '{').replace(']', '}') + ";";
   }
 }
