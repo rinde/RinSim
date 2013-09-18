@@ -48,7 +48,6 @@ public final class SolverValidator {
   public static GlobalStateObject validateInputs(GlobalStateObject state) {
     checkArgument(state.time >= 0, "Time must be >= 0, is %s.", state.time);
     final Set<ParcelDTO> inventoryParcels = newHashSet();
-    System.out.println("============ " + state.vehicles.size());
 
     final boolean routeIsPresent = state.vehicles.get(0).route.isPresent();
     final Set<ParcelDTO> allParcels = newHashSet();
@@ -57,7 +56,6 @@ public final class SolverValidator {
           vs.route.isPresent() == routeIsPresent,
           "Either a route should be present for all vehicles, or no route should be present for all vehicles.");
       if (vs.route.isPresent()) {
-        System.out.println(vs.route.get());
         for (final ParcelDTO p : vs.route.get()) {
           checkArgument(
               !allParcels.contains(p),
@@ -99,11 +97,6 @@ public final class SolverValidator {
             isAvailable != isInCargo,
             "Destination must be either available (%s) or in the current vehicle's cargo (%s), but not both (i.e. XOR).",
             isAvailable, isInCargo, vs.destination, vs.remainingServiceTime);
-
-        // && !state.availableParcels.contains(vs.destination)) {
-        // checkArgument(
-        // vs.contents.contains(vs.destination),
-        // "The current destination is not available therefore it must be in the contents of the vehicle.");
       }
 
       if (vs.route.isPresent()) {
@@ -155,11 +148,9 @@ public final class SolverValidator {
         routes.size(), state.vehicles.size());
 
     final Set<ParcelDTO> inputParcels = newHashSet(state.availableParcels);
-    System.out.println(" >>>> output <<<<< ");
     final Set<ParcelDTO> outputParcels = newHashSet();
     for (int i = 0; i < routes.size(); i++) {
       final List<ParcelDTO> route = routes.get(i);
-      System.out.println(route);
       final Set<ParcelDTO> routeSet = ImmutableSet.copyOf(route);
       checkArgument(routeSet.containsAll(state.vehicles.get(i).contents),
           "The route of vehicle %s doesn't visit all parcels in its cargo.", i);
@@ -216,5 +207,4 @@ public final class SolverValidator {
       return validateOutputs(delegateSolver.solve(validateInputs(state)), state);
     }
   }
-
 }

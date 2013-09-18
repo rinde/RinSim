@@ -22,25 +22,12 @@ import com.google.common.collect.ImmutableSet;
 /**
  * An immutable state object representing the state of an entire
  * {@link rinde.sim.core.Simulator} configured using
- * {@link rinde.sim.pdptw.common.DynamicPDPTWProblem}. Instances can be obtained
- * via
- * {@link Solvers#convert(rinde.sim.pdptw.common.PDPRoadModel, rinde.sim.core.model.pdp.PDPModel, javax.measure.Measure)}
- * .
+ * {@link rinde.sim.pdptw.common.DynamicPDPTWProblem}.
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
  */
 public class GlobalStateObject {
-
   // TODO add generic way for storing travel distances based on shortest path
   // in road model
-
-  // in a multimap? state -> parcels
-  // AVAILABLE -> PICKING_UP -> IN_CARGO -> DELIVERING -> DELIVERED
-
-  // ImmutableMap<ParcelState, ParcelDTO> parcelStateMap;
-
-  // association with vehicle (if any)
-  // vehicle -> parcels
-  // parcel -> vehicle
 
   /**
    * All known parcels which require both a pickup and a delivery. They are not
@@ -113,17 +100,15 @@ public class GlobalStateObject {
     public final long remainingServiceTime;
 
     /**
-     * The parcel which is currently being serviced, only defined if
-     * {@link #remainingServiceTime} <code>> 0</code>.
+     * If present this field contains the route the vehicle is currently
+     * following.
      */
-    // @Nullable
-    // public final ParcelDTO serviceLocation;
-
     public final Optional<ImmutableList<ParcelDTO>> route;
 
     /**
-     * This field is only not <code>null</code> in case all of the following
-     * holds:
+     * This field is not <code>null</code> in two situations:
+     * <ol>
+     * <li>In case all of the following holds:
      * <ul>
      * <li>Vehicles are not allowed to divert from their previously started
      * routes.</li>
@@ -131,22 +116,27 @@ public class GlobalStateObject {
      * location).</li>
      * <li>The vehicle has not yet started servicing.</li>
      * </ul>
-     * When it is not <code>null</code> it indicates the current destination of
-     * a vehicle. When a vehicle has a destination it <b>must</b> first move to
-     * and service this destination.
+     * In this case it indicates the current destination of the vehicle. When a
+     * vehicle has a destination it <b>must</b> first move to and service this
+     * destination.</li>
+     * <li>In case the vehicle is servicing a parcel. In this case the
+     * {@link ParcelDTO} as specified by this field is the one being serviced.
+     * In this case servicing <b>must</b> first complete before the vehicle can
+     * do something else.</li>
+     * </ol>
      */
     @Nullable
     public final ParcelDTO destination;
 
     VehicleStateObject(VehicleDTO dto, Point location,
         ImmutableSet<ParcelDTO> contents, long remainingServiceTime,
-        @Nullable ParcelDTO destination, @Nullable ImmutableList<ParcelDTO> route) {
+        @Nullable ParcelDTO destination,
+        @Nullable ImmutableList<ParcelDTO> route) {
       super(dto.startPosition, dto.speed, dto.capacity,
           dto.availabilityTimeWindow);
       this.location = location;
       this.contents = contents;
       this.remainingServiceTime = remainingServiceTime;
-      // this.serviceLocation = serviceLocation;
       this.destination = destination;
       this.route = Optional.fromNullable(route);
     }
