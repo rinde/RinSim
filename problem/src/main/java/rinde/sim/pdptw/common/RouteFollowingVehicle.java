@@ -1,6 +1,7 @@
 package rinde.sim.pdptw.common;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.collect.Lists.newLinkedList;
 import static java.util.Collections.unmodifiableCollection;
 
@@ -86,6 +87,8 @@ public class RouteFollowingVehicle extends DefaultVehicle {
   /**
    * Initializes the vehicle.
    * @param pDto The {@link VehicleDTO} that defines this vehicle.
+   * @param allowDelayedRouteChanging This boolean changes the behavior of the
+   *          {@link #setRoute(Collection)} method.
    */
   public RouteFollowingVehicle(VehicleDTO pDto,
       boolean allowDelayedRouteChanging) {
@@ -97,8 +100,6 @@ public class RouteFollowingVehicle extends DefaultVehicle {
     currentTime = Optional.absent();
     allowDelayedRouteChanges = allowDelayedRouteChanging;
 
-    // FIXME coverage should be 100% again
-
     // TODO split up the Wait state into a GoHome or GotoDepot state.
 
     waitState = new Wait();
@@ -108,7 +109,6 @@ public class RouteFollowingVehicle extends DefaultVehicle {
     stateMachine = StateMachine
         .create(waitState)
         .addTransition(waitState, StateEvent.GOTO, gotoState)
-        // TODO test this transition
         .addTransition(gotoState, StateEvent.NOGO, waitState)
         .addTransition(gotoState, StateEvent.ARRIVED, waitForServiceState)
         .addTransition(waitForServiceState, StateEvent.REROUTE, gotoState)
@@ -134,8 +134,11 @@ public class RouteFollowingVehicle extends DefaultVehicle {
    * <p>
    * In some case the models do not allow this vehicle to change its route
    * immediately. If this is the case the route is changed the next time this
-   * vehicle enters its {@link #waitState}. The situations when the route is
-   * changed immediately are:
+   * vehicle enters its {@link #waitState}. If
+   * <code>allowDelayedRouteChanging</code> is set to <code>false</code> any
+   * attempts to to this will result in an runtime exception, in this case the
+   * caller must ensure that a route is always changed immediately. The
+   * situations when the route is changed immediately are:
    * <ul>
    * <li>If the vehicle is waiting.</li>
    * <li>If diversion is allowed and the vehicle is not currently servicing.</li>
@@ -143,25 +146,47 @@ public class RouteFollowingVehicle extends DefaultVehicle {
    * <li>If the first destination in the new route equals the first destination
    * of the current route.</li>
    * </ul>
-   * <p>
-   * It is further important to know that a parcel is removed from the route
-   * upon start of servicing.
    * @param r The route to set. The elements are copied from the
    *          {@link Collection} using its iteration order.
    */
   public void setRoute(Collection<DefaultParcel> r) {
-
     // note: the following checks can not detect if a parcel has been set to
     // multiple vehicles at the same time
     for (final DefaultParcel dp : r) {
       final ParcelState state = pdpModel.get().getParcelState(dp);
-      checkArgument(!state.isDelivered());
-      if (state == ParcelState.PICKING_UP) {
-        checkArgument(pdpModel.get().getVehicleActionInfo(this).getParcel() == dp);
-        checkArgument(Collections.frequency(r, dp) <= 2);
-      } else if (state.isPickedUp()) {
-        checkArgument(pdpModel.get().getContents(this).contains(dp));
-        checkArgument(Collections.frequency(r, dp) <= 1);
+      checkArgument(
+          !state.isDelivered(),
+          "A parcel that is already delivered can not be part of a route. Parcel %s in route %s.",
+          dp, r);
+      if (state.isTransitionState()) {
+        if (state == ParcelState.PICKING_UP) {
+          checkArgument(
+              pdpModel.get().getVehicleState(this) == VehicleState.PICKING_UP,
+              "When a parcel in the route is in PICKING UP state the vehicle must also be in that state.");
+        } else {
+          checkArgument(
+              pdpModel.get().getVehicleState(this) == VehicleState.DELIVERING,
+              "When a parcel in the route is in DELIVERING state the vehicle must also be in that state.");
+        }
+        checkArgument(
+            pdpModel.get().getVehicleActionInfo(this).getParcel() == dp,
+            "A parcel in the route that is being serviced should be serviced by this truck. This truck is servicing %s.",
+            pdpModel.get().getVehicleActionInfo(this).getParcel());
+      }
+
+      final int frequency = Collections.frequency(r, dp);
+      if (state.isPickedUp()) {
+        checkArgument(pdpModel.get().getContents(this).contains(dp),
+            "A parcel that is in cargo state must be in cargo of this vehicle.");
+        checkArgument(
+            frequency <= 1,
+            "A parcel that is in cargo may not occur more than once in a route, found %s instance(s).",
+            frequency);
+      } else {
+        checkArgument(
+            frequency <= 2,
+            "A parcel that is available may not occur more than twice in a route, found %s instance(s).",
+            frequency);
       }
     }
 
@@ -171,7 +196,8 @@ public class RouteFollowingVehicle extends DefaultVehicle {
       route = newLinkedList(r);
       newRoute = Optional.absent();
     } else {
-      checkArgument(allowDelayedRouteChanges);
+      checkArgument(allowDelayedRouteChanges,
+          "Delayed route changes are not allowed, rejected route: %s.", r);
       newRoute = Optional.of(newLinkedList(r));
     }
   }
@@ -180,16 +206,12 @@ public class RouteFollowingVehicle extends DefaultVehicle {
    * @return The route that is currently being followed.
    */
   public Collection<DefaultParcel> getRoute() {
-    System.out.println("get, in state" + stateMachine.getCurrentState());
-    if (newRoute.isPresent()) {
-      System.out.println(" >> " + newRoute.get());
-    }
     return unmodifiableCollection(route);
   }
 
   boolean firstEqualsFirstInRoute(Collection<DefaultParcel> r) {
-    return (!r.isEmpty() && !route.isEmpty() && r.iterator().next()
-        .equals(route.element()));
+    return !r.isEmpty() && !route.isEmpty()
+        && r.iterator().next().equals(route.element());
   }
 
   @Override
@@ -303,6 +325,13 @@ public class RouteFollowingVehicle extends DefaultVehicle {
     return currentTime.get();
   }
 
+  void checkCurrentParcelOwnership() {
+    checkState(
+        !pdpModel.get().getParcelState(route.peek()).isTransitionState(),
+        "Parcel is already being serviced by another vehicle. Parcel state: %s",
+        pdpModel.get().getParcelState(route.peek()));
+  }
+
   /**
    * The event types of the state machine.
    * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
@@ -358,7 +387,10 @@ public class RouteFollowingVehicle extends DefaultVehicle {
 
     @Override
     public void onEntry(StateEvent event, RouteFollowingVehicle context) {
-      checkArgument(pdpModel.get().getVehicleState(context) == VehicleState.IDLE);
+      checkState(
+          pdpModel.get().getVehicleState(context) == VehicleState.IDLE,
+          "We can only be in Wait state when the vehicle is idle, vehicle is %s.",
+          pdpModel.get().getVehicleState(context));
       if (event == StateEvent.NOGO) {
         checkArgument(isDiversionAllowed);
       }
@@ -371,17 +403,14 @@ public class RouteFollowingVehicle extends DefaultVehicle {
     @Override
     public StateEvent handle(StateEvent event, RouteFollowingVehicle context) {
       if (!route.isEmpty()) {
-        checkArgument(
-            !pdpModel.get().getParcelState(route.peek()).isTransitionState(),
-            "Parcel is already being serviced by another vehicle. Parcel state: %s",
-            pdpModel.get().getParcelState(route.peek()));
+        checkCurrentParcelOwnership();
         if (!isTooEarly(route.peek(), currentTime.get())) {
           return StateEvent.GOTO;
         }
         // else it is too early, and we do nothing
       }
       // check if it is time to go back to the depot
-      else if (currentTime.get().hasTimeLeft() && route.isEmpty()
+      else if (currentTime.get().hasTimeLeft() //
           && isEndOfDay(currentTime.get())
           && !roadModel.get().equalPosition(context, depot.get())) {
         roadModel.get().moveTo(context, depot.get(), currentTime.get());
@@ -406,10 +435,7 @@ public class RouteFollowingVehicle extends DefaultVehicle {
       if (event == StateEvent.REROUTE) {
         checkArgument(isDiversionAllowed);
       }
-      checkArgument(
-          !pdpModel.get().getParcelState(route.peek()).isTransitionState(),
-          "Parcel is already being serviced by another vehicle. Parcel state: %s",
-          pdpModel.get().getParcelState(route.peek()));
+      checkCurrentParcelOwnership();
     }
 
     @Nullable
@@ -444,10 +470,7 @@ public class RouteFollowingVehicle extends DefaultVehicle {
     @Nullable
     @Override
     public StateEvent handle(StateEvent event, RouteFollowingVehicle context) {
-      checkArgument(
-          !pdpModel.get().getParcelState(route.peek()).isTransitionState(),
-          "Parcel is already being serviced by another vehicle. Parcel state: %s",
-          pdpModel.get().getParcelState(route.peek()));
+      checkCurrentParcelOwnership();
       final PDPModel pm = pdpModel.get();
       final TimeLapse time = currentTime.get();
       final DefaultParcel cur = route.element();
@@ -456,7 +479,6 @@ public class RouteFollowingVehicle extends DefaultVehicle {
       if (!roadModel.get().equalPosition(context, cur)) {
         return StateEvent.REROUTE;
       }
-      // FIXME streamline these ifs
       // if parcel is not ready yet, wait
       final boolean pickup = !pm.getContents(context).contains(cur);
       final long timeUntilReady = (pickup ? cur.dto.pickupTimeWindow.begin

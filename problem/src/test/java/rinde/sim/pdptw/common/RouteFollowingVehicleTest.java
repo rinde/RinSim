@@ -55,20 +55,22 @@ public class RouteFollowingVehicleTest {
 
   private PDPRoadModel rm;
   private PDPModel pm;
-  private RouteFollowingVehicle d;
-  private DefaultParcel p1;
-  private DefaultParcel p2;
+  private RouteFollowingVehicle d, d2;
+  private DefaultParcel p1, p2, p3;
   private DefaultDepot depot;
   private final boolean diversionIsAllowed;
+  private final boolean allowDelayedRouteChanges;
 
   /**
    * Create test.
    * @param allowDiversion Is vehicle diversion allowed.
+   * @param allowDelayedRouteChange Are delayed route changes allowed.
    */
   @SuppressWarnings("null")
-  public RouteFollowingVehicleTest(boolean allowDiversion) {
+  public RouteFollowingVehicleTest(boolean allowDiversion,
+      boolean allowDelayedRouteChange) {
     diversionIsAllowed = allowDiversion;
-
+    allowDelayedRouteChanges = allowDelayedRouteChange;
     StateEvent.values();
     StateEvent.valueOf("GOTO");
   }
@@ -78,7 +80,8 @@ public class RouteFollowingVehicleTest {
    */
   @Parameters
   public static Collection<Object[]> data() {
-    return Arrays.asList(new Object[][] { { true }, { false } });
+    return Arrays.asList(new Object[][] { { true, true }, { true, false },
+        { false, true }, { false, false } });
   }
 
   /**
@@ -107,7 +110,8 @@ public class RouteFollowingVehicleTest {
 
     final VehicleDTO v = new VehicleDTO(new Point(1, 1), 30, 1, new TimeWindow(
         0, minute(30)));
-    d = new RouteFollowingVehicle(v, false);
+    d = new RouteFollowingVehicle(v, allowDelayedRouteChanges);
+    d2 = new RouteFollowingVehicle(v, allowDelayedRouteChanges);
 
     p1 = new DefaultParcel(new ParcelDTO(new Point(1, 2), new Point(1, 4), //
         new TimeWindow(minute(5), minute(15)), // pickup tw
@@ -119,10 +123,15 @@ public class RouteFollowingVehicleTest {
         new TimeWindow(minute(22) + 10, minute(30)),// delivery tw
         0, 0, minute(0), minute(3)));
 
+    p3 = new DefaultParcel(new ParcelDTO(new Point(1, 3), new Point(1, 5), //
+        new TimeWindow(minute(15) + 10, minute(25)), // pickup tw
+        new TimeWindow(minute(22) + 10, minute(30)),// delivery tw
+        0, 0, minute(3), minute(3)));
+
     depot = new DefaultDepot(new Point(3, 5));
 
     if (register) {
-      PDPTWTestUtil.register(rm, pm, depot, d, p1, p2);
+      PDPTWTestUtil.register(rm, pm, depot, d, d2, p1, p2, p3);
       assertEquals(depot, d.getDepot());
     }
 
@@ -183,7 +192,7 @@ public class RouteFollowingVehicleTest {
    * Tests the proper execution of a route, including having to wait.
    */
   @Test
-  public void test() {
+  public void testRouteExecution() {
     d.setRoute(asList(p1, p2, p1));
 
     // we are too early, don't move
@@ -300,6 +309,10 @@ public class RouteFollowingVehicleTest {
     tick(26, 27);
     assertEquals(new Point(1.5, 5), rm.getPosition(d));
 
+    // make sure that no movement takes place when there is no time to consume
+    tick(27, 28, 60);
+    assertEquals(new Point(1.5, 5), rm.getPosition(d));
+
     tick(27, 28);
     assertEquals(new Point(2, 5), rm.getPosition(d));
 
@@ -312,6 +325,201 @@ public class RouteFollowingVehicleTest {
     // stay there
     tick(30, 31);
     assertEquals(new Point(3, 5), rm.getPosition(d));
+  }
+
+  /**
+   * Test that an already delivered parcel is rejected by setRoute.
+   */
+  @Test
+  public void setRouteTest1() {
+    d.setRoute(asList(p2, p2));
+
+    // when delivering the route may still contain p2
+    tick(0, 25);
+    assertEquals(ParcelState.DELIVERING, pm.getParcelState(p2));
+    d.setRoute(asList(p2));
+
+    // when delivered the route may no longer contain p2
+    tick(25, 30);
+    assertEquals(ParcelState.DELIVERED, pm.getParcelState(p2));
+    boolean exception = false;
+    try {
+      d.setRoute(asList(p2));
+    } catch (final IllegalArgumentException e) {
+      exception = true;
+    }
+    assertTrue(exception);
+  }
+
+  /**
+   * Tests whether setRoute correctly rejects vehicles that attempt to go to
+   * parcels already being serviced by someone else.
+   */
+  @Test
+  public void setRouteTest2() {
+    d.setRoute(asList(p1, p1));
+    tick(12, 15);
+    assertEquals(ParcelState.PICKING_UP, pm.getParcelState(p1));
+    assertEquals(ParcelState.ANNOUNCED, pm.getParcelState(p3));
+    assertEquals(VehicleState.PICKING_UP, pm.getVehicleState(d));
+    assertEquals(VehicleState.IDLE, pm.getVehicleState(d2));
+
+    // vehicle must also be in picking up state
+    boolean exception = false;
+    try {
+      d2.setRoute(asList(p1));
+    } catch (final IllegalArgumentException e) {
+      exception = true;
+    }
+    assertTrue(exception);
+
+    d2.setRoute(asList(p3));
+    d2.tick(time(minute(10), minute(16)));
+    assertEquals(ParcelState.PICKING_UP, pm.getParcelState(p1));
+    assertEquals(ParcelState.PICKING_UP, pm.getParcelState(p3));
+    assertEquals(VehicleState.PICKING_UP, pm.getVehicleState(d));
+    assertEquals(VehicleState.PICKING_UP, pm.getVehicleState(d2));
+
+    // vehicle must be picking up the same parcel
+    boolean exception2 = false;
+    try {
+      d2.setRoute(asList(p1));
+    } catch (final IllegalArgumentException e) {
+      exception2 = true;
+    }
+    assertTrue(exception2);
+
+    tick(16, 23, 10);
+    assertEquals(ParcelState.DELIVERING, pm.getParcelState(p1));
+    assertEquals(ParcelState.PICKING_UP, pm.getParcelState(p3));
+    assertEquals(VehicleState.DELIVERING, pm.getVehicleState(d));
+    assertEquals(VehicleState.PICKING_UP, pm.getVehicleState(d2));
+
+    // vehicle must be in delivering state
+    boolean exception3 = false;
+    try {
+      d2.setRoute(asList(p1));
+    } catch (final IllegalArgumentException e) {
+      exception3 = true;
+    }
+    assertTrue(exception3);
+  }
+
+  /**
+   * Tests whether setRoute correctly rejects too many occurences of a parcel.
+   */
+  @Test
+  public void setRouteTest3() {
+    // too many of available parcel
+    boolean exception = false;
+    try {
+      d.setRoute(asList(p1, p1, p1));
+    } catch (final IllegalArgumentException e) {
+      exception = true;
+    }
+    assertTrue(exception);
+
+    // vehicle doesn't have this parcel in cargo
+    d.setRoute(asList(p1));
+    tick(0, 10);
+    assertEquals(ParcelState.IN_CARGO, pm.getParcelState(p1));
+    boolean exception2 = false;
+    try {
+      d2.setRoute(asList(p1));
+    } catch (final IllegalArgumentException e) {
+      exception2 = true;
+    }
+    assertTrue(exception2);
+
+    // too many of incargo parcel
+    boolean exception3 = false;
+    try {
+      d.setRoute(asList(p1, p1));
+    } catch (final IllegalArgumentException e) {
+      exception3 = true;
+    }
+    assertTrue(exception3);
+  }
+
+  /**
+   * Checks wheter delayed route changing is rejected if neccessary.
+   */
+  @Test
+  public void setRouteTest4() {
+    d.setRoute(asList(p1, p1));
+    tick(12, 15);
+    assertEquals(ParcelState.PICKING_UP, pm.getParcelState(p1));
+    assertEquals(VehicleState.PICKING_UP, pm.getVehicleState(d));
+
+    boolean exception = false;
+    try {
+      d.setRoute(asList(p2));
+      assertEquals(asList(p2), d.newRoute.get());
+    } catch (final IllegalArgumentException e) {
+      exception = true;
+    }
+    assertTrue(exception != allowDelayedRouteChanges);
+  }
+
+  /**
+   * Tests the NOGO event.
+   */
+  @Test
+  public void testNogoEvent() {
+    d.setRoute(asList(p2));
+    tick(0, 11);
+    tick(11, 12);
+    assertEquals(d.gotoState, d.stateMachine.getCurrentState());
+
+    boolean exception = false;
+    try {
+      d.setRoute(Arrays.<DefaultParcel> asList());
+      tick(12, 13);
+      if (diversionIsAllowed) {
+        // route has changed, here the actual NOGO event will be sent
+        assertEquals(d.waitState, d.stateMachine.getCurrentState());
+        assertEquals(asList(), d.route);
+        assertFalse(d.newRoute.isPresent());
+      } else {
+        // route has not yet changed
+        assertEquals(d.gotoState, d.stateMachine.getCurrentState());
+        assertEquals(asList(p2), d.route);
+        assertEquals(asList(), d.newRoute.get());
+      }
+    } catch (final IllegalArgumentException e) {
+      exception = true;
+    }
+    assertEquals(!allowDelayedRouteChanges && !diversionIsAllowed, exception);
+  }
+
+  /**
+   * Tests the REROUTE event.
+   */
+  @Test
+  public void testRerouteEvent() {
+    d.setRoute(asList(p1));
+    tick(0, 5, 20);
+    assertEquals(d.waitForServiceState, d.stateMachine.getCurrentState());
+
+    boolean exception = false;
+    try {
+      d.setRoute(Arrays.<DefaultParcel> asList(p2));
+      tick(12, 13);
+      if (diversionIsAllowed) {
+        // route has changed, here the actual REROUTE event will be sent
+        assertEquals(d.gotoState, d.stateMachine.getCurrentState());
+        assertEquals(asList(p2), d.route);
+        assertFalse(d.newRoute.isPresent());
+      } else {
+        // route has not yet changed
+        assertEquals(d.serviceState, d.stateMachine.getCurrentState());
+        assertEquals(asList(p1), d.route);
+        assertEquals(asList(p2), d.newRoute.get());
+      }
+    } catch (final IllegalArgumentException e) {
+      exception = true;
+    }
+    assertEquals(!allowDelayedRouteChanges && !diversionIsAllowed, exception);
   }
 
   /**
@@ -346,10 +554,15 @@ public class RouteFollowingVehicleTest {
       assertEquals(Optional.absent(), d.newRoute);
       assertFalse(exception);
     } else {
+      if (allowDelayedRouteChanges) {
+        assertFalse(exception);
+        assertTrue(d.newRoute.isPresent());
+      } else {
+        assertTrue(exception);
+        assertFalse(d.newRoute.isPresent());
+      }
       // no diversion allowed, no change yet
       assertEquals(asList(p1, p2, p1), d.route);
-      assertFalse(d.newRoute.isPresent());
-      assertTrue(exception);
     }
 
     // change it back
@@ -369,8 +582,14 @@ public class RouteFollowingVehicleTest {
       assertFalse(exception2);
     } else {
       assertEquals(asList(p1), d.route);
-      assertFalse(d.newRoute.isPresent());
-      assertTrue(exception2);
+
+      if (allowDelayedRouteChanges) {
+        assertFalse(exception2);
+        assertTrue(d.newRoute.isPresent());
+      } else {
+        assertTrue(exception2);
+        assertFalse(d.newRoute.isPresent());
+      }
     }
 
     tick(13, 14);
@@ -381,8 +600,13 @@ public class RouteFollowingVehicleTest {
       // diverted to this parcel, and serviced it.
       assertEquals(newHashSet(p2), pm.getContents(d));
     } else {
-      // first continue moving to p1 and pickup
-      assertEquals(newHashSet(p1), pm.getContents(d));
+      if (allowDelayedRouteChanges) {
+        // pickup both
+        assertEquals(newHashSet(p1, p2), pm.getContents(d));
+      } else {
+        // continue moving to p1 and pickup
+        assertEquals(newHashSet(p1), pm.getContents(d));
+      }
     }
     assertTrue(d.route.isEmpty());
   }
@@ -427,7 +651,7 @@ public class RouteFollowingVehicleTest {
     } catch (final IllegalArgumentException e) {
       excep = true;
     }
-    assertTrue(excep);
+    assertTrue(excep != allowDelayedRouteChanges);
 
     tick(6, 7);
     assertEquals(d.serviceState, d.stateMachine.getCurrentState());
@@ -438,8 +662,14 @@ public class RouteFollowingVehicleTest {
     // it is still too early to go to p2, but the route should be updated
     tick(8, 9);
     assertEquals(d.waitState, d.stateMachine.getCurrentState());
-    assertEquals(asList(), d.route);
-    assertEquals(Optional.absent(), d.newRoute);
+    if (excep) {
+      assertEquals(asList(), d.route);
+      assertEquals(Optional.absent(), d.newRoute);
+    } else {
+      assertEquals(asList(p2), d.route);
+      assertEquals(Optional.absent(), d.newRoute);
+    }
+
   }
 
   /**
@@ -460,6 +690,53 @@ public class RouteFollowingVehicleTest {
     d.setRoute(asList(p2, p2, p1, p1));
     assertEquals(Optional.absent(), d.newRoute);
     assertEquals(asList(p2, p2, p1, p1), d.route);
+  }
+
+  /**
+   * 
+   */
+  @Test
+  public void brokenWaitState() {
+    d.setRoute(asList(p1));
+    tick(4, 5, 30);
+    assertEquals(d.gotoState, d.stateMachine.getCurrentState());
+
+    if (allowDelayedRouteChanges) {
+      d.setRoute(Arrays.<DefaultParcel> asList());
+      rm.moveTo(d, p1, time(minute(0), minute(10)));
+      assertTrue(rm.equalPosition(d, p1));
+      pm.pickup(d, p1, time(minute(16), minute(17)));
+      assertEquals(VehicleState.PICKING_UP, pm.getVehicleState(d));
+      if (diversionIsAllowed) {
+        boolean exception = false;
+        try {
+          tick(5, 6);
+        } catch (final IllegalStateException e) {
+          exception = true;
+        }
+        assertTrue(exception);
+      }
+    }
+  }
+
+  /**
+   * Tests a check what happens if someone else is picking up a parcel that a
+   * vehicle wants to pick up.
+   */
+  @Test
+  public void testParcelOwnerShip() {
+    d.setRoute(asList(p1));
+    d2.setRoute(asList(p1));
+    tick(0, 7);
+    assertEquals(ParcelState.PICKING_UP, pm.getParcelState(p1));
+
+    boolean exception = false;
+    try {
+      d2.checkCurrentParcelOwnership();
+    } catch (final IllegalStateException e) {
+      exception = true;
+    }
+    assertTrue(exception);
   }
 
   /**
@@ -523,15 +800,15 @@ public class RouteFollowingVehicleTest {
    */
   @Test
   public void tooEarlyTest1() {
-    final DefaultParcel p3 = new DefaultParcel(new ParcelDTO(new Point(1, 2),
+    final DefaultParcel p4 = new DefaultParcel(new ParcelDTO(new Point(1, 2),
         new Point(1, 4), //
         new TimeWindow(minute(5) + second(30), minute(15)), // pickup tw
         new TimeWindow(minute(16), minute(30)),// delivery tw
         0, 0, minute(3), minute(1)));
 
-    PDPTWTestUtil.register(rm, pm, p3);
+    PDPTWTestUtil.register(rm, pm, p4);
 
-    d.setRoute(asList(p3));
+    d.setRoute(asList(p4));
 
     // we are too early, don't move
     tick(0, 1);
@@ -568,15 +845,15 @@ public class RouteFollowingVehicleTest {
    */
   @Test
   public void tooEarlyTest2() {
-    final DefaultParcel p3 = new DefaultParcel(new ParcelDTO(new Point(1, 2.2),
+    final DefaultParcel p4 = new DefaultParcel(new ParcelDTO(new Point(1, 2.2),
         new Point(1, 4), //
         new TimeWindow(minute(5) + second(30), minute(15)), // pickup tw
         new TimeWindow(minute(16), minute(30)),// delivery tw
         0, 0, minute(3), minute(1)));
 
-    PDPTWTestUtil.register(rm, pm, p3);
+    PDPTWTestUtil.register(rm, pm, p4);
 
-    d.setRoute(asList(p3));
+    d.setRoute(asList(p4));
 
     // we are too early, don't move
     tick(0, 1);
@@ -612,15 +889,15 @@ public class RouteFollowingVehicleTest {
    */
   @Test
   public void tooEarlyTest3() {
-    final DefaultParcel p3 = new DefaultParcel(new ParcelDTO(
+    final DefaultParcel p4 = new DefaultParcel(new ParcelDTO(
         new Point(1, 1.99), new Point(1, 4), //
         new TimeWindow(minute(5) + second(30), minute(15)), // pickup tw
         new TimeWindow(minute(16), minute(30)),// delivery tw
         0, 0, minute(3), minute(1)));
 
-    PDPTWTestUtil.register(rm, pm, p3);
+    PDPTWTestUtil.register(rm, pm, p4);
 
-    d.setRoute(asList(p3));
+    d.setRoute(asList(p4));
 
     // we are too early, don't move
     tick(0, 1);
