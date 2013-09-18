@@ -172,7 +172,7 @@ public final class ArraysSolverDebugger {
 
     private final MultiVehicleArraysSolver solver;
 
-    private MVASDebugger(MultiVehicleArraysSolver solver, boolean print) {
+    MVASDebugger(MultiVehicleArraysSolver solver, boolean print) {
       super(print);
       this.solver = solver;
     }

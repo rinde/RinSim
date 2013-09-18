@@ -5,7 +5,6 @@ package rinde.sim.pdptw.central.arrays;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
-import java.math.RoundingMode;
 import java.util.Collection;
 
 import javax.measure.quantity.Duration;
@@ -18,8 +17,6 @@ import rinde.sim.pdptw.central.arrays.ArraysSolvers.ArraysObject;
 import rinde.sim.pdptw.common.ParcelDTO;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.math.DoubleMath;
-import com.google.common.primitives.Ints;
 
 /**
  * Adapter for {@link SingleVehicleArraysSolver} to conform to the
@@ -80,23 +77,12 @@ public class SingleVehicleSolverAdapter implements Solver {
     final ArraysObject ao = ArraysSolvers.toSingleVehicleArrays(state,
         outputTimeUnit);
 
+    final SolutionObject[] curSols = ao.currentSolutions;
     final SolutionObject sol = solver.solve(ao.travelTime, ao.releaseDates,
-        ao.dueDates, ao.servicePairs, ao.serviceTimes,
-        ao.currentSolutions == null ? null : ao.currentSolutions[0]);
+        ao.dueDates, ao.servicePairs, ao.serviceTimes, curSols == null ? null
+            : curSols[0]);
 
     return ImmutableList.of(ArraysSolvers.convertSolutionObject(sol,
         ao.index2parcel));
   }
-
-  // FIXME what to do with these methods?
-  static int fixTWstart(long start, long time) {
-    return Math.max((DoubleMath.roundToInt(
-        Ints.checkedCast(start - time) / 1000d, RoundingMode.CEILING)), 0);
-  }
-
-  static int fixTWend(long end, long time) {
-    return Math.max((DoubleMath.roundToInt(
-        Ints.checkedCast(end - time) / 1000d, RoundingMode.FLOOR)), 0);
-  }
-
 }
