@@ -47,7 +47,7 @@ public interface SingleVehicleArraysSolver {
    *          solutions. This means that these solutions may not be feasible
    *          solutions and thus require adaptation.
    * @return The solution object which indicates a (usually the best found)
-   *         solution for the single vehilce PDPTW.
+   *         solution for the single vehicle PDPTW.
    */
   SolutionObject solve(int[][] travelTime, int[] releaseDates, int[] dueDates,
       int[][] servicePairs, int[] serviceTimes,

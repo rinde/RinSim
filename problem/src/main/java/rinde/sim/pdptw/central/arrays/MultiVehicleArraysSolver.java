@@ -67,11 +67,10 @@ public interface MultiVehicleArraysSolver {
    *          location). If the value is <code>0</code> for a vehicle, it means
    *          that the vehicle has no destination or service location. In case a
    *          vehicle has a destination, <b>the vehicle is obliged to continue
-   *          travelling towards this destination and/or finish servicing
-   *          it</b>. In case <code>remainingServiceTimes[i] > 0</code> the
-   *          value at <code>currentDestinations[i]</code> points to the current
-   *          service location. The length of this array equals the number of
-   *          vehicles.
+   *          traveling towards this destination and/or finish servicing it</b>.
+   *          In case <code>remainingServiceTimes[i] > 0</code> the value at
+   *          <code>currentDestinations[i]</code> points to the current service
+   *          location. The length of this array equals the number of vehicles.
    * @param currentSolutions If defined it contains a list of
    *          {@link SolutionObject}s containing the current routes of the
    *          vehicles. This can be used as a starting point for a new solution.

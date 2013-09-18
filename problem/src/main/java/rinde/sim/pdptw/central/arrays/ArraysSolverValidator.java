@@ -4,6 +4,7 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.collect.Maps.newHashMap;
 import static com.google.common.collect.Sets.newHashSet;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
@@ -197,12 +198,19 @@ public final class ArraysSolverValidator {
           n == vehicleTravelTimes[i].length,
           "We expected vehicleTravelTimes matrix of size v x %s, but we found v x %s at index %s.",
           n, vehicleTravelTimes[i].length, i);
+      boolean foundNonMaxInt = false;
       for (int j = 0; j < n; j++) {
         checkArgument(
             vehicleTravelTimes[i][j] >= 0,
             "Found an invalid vehicle travel time (%s) at position %s,%s. All times must be >= 0.",
             vehicleTravelTimes[i][j], i, j);
+        if (!foundNonMaxInt && j > 0
+            && vehicleTravelTimes[i][j] != Integer.MAX_VALUE) {
+          foundNonMaxInt = true;
+        }
       }
+      // FIXME improve this test! make sure it is the right index!
+      checkArgument(foundNonMaxInt);
     }
 
     final ImmutableSet.Builder<Integer> b = ImmutableSet.builder();
@@ -496,8 +504,8 @@ public final class ArraysSolverValidator {
       if (currentDestinations[v] != 0) {
         checkArgument(
             sol.route[1] == currentDestinations[v],
-            "Vehicle %s has a current destination %s, as such this must be the first point to visit (at index 1). The first point in the route is currently: %s.",
-            v, currentDestinations[v], sol.route[1]);
+            "Vehicle %s has a current destination %s, as such this must be the first point to visit (at index 1). The route: %s.",
+            v, currentDestinations[v], Arrays.toString(sol.route));
       }
 
       final Set<Integer> locs = ImmutableSet.copyOf(Ints.asList(sol.route));

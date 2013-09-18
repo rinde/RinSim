@@ -407,10 +407,11 @@ public final class ArraysSolvers {
         for (int j = 1; j < n; j++) {
           vehicleTravelTimes[i][j] = Integer.MAX_VALUE;
         }
-        final boolean isInCargo = cur.contents.contains(cur.destination);
-        final int index = sva.location2index
-            .indexOf(isInCargo ? dest.destinationLocation : dest.pickupLocation);
+        final boolean isInCargo = cur.contents.contains(dest);
+        final ParcelIndexObj pio = sva.parcel2index.get(dest);
+        final int index = isInCargo ? pio.deliveryIndex : pio.pickupIndex;
 
+        checkArgument(index > 0);
         vehicleTravelTimes[i][index] = computeRoundedTravelTime(speed,
             Measure.valueOf(
                 Point.distance(cur.location, sva.location2index.get(index)),
