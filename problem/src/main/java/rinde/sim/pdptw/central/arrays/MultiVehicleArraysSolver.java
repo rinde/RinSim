@@ -61,7 +61,8 @@ public interface MultiVehicleArraysSolver {
    *          When <code>remainingServiceTimes[i] > 0</code> vehicle
    *          <code>i</code> will be servicing for the specified amount of time.
    *          The location it is currently servicing is defined by
-   *          <code>currentDestinations[i]</code>.
+   *          <code>currentDestinations[i]</code>. The length of this array
+   *          equals the number of vehicles.
    * @param currentDestinations contains a pointer to a location which indicates
    *          the current destination for every vehicle (or its current service
    *          location). If the value is <code>0</code> for a vehicle, it means

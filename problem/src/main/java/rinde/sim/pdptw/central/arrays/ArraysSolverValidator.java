@@ -193,24 +193,42 @@ public final class ArraysSolverValidator {
     final int n = travelTime.length;
     checkArgument(v > 0, "At least one vehicle is required.");
 
+    checkArgument(
+        v == remainingServiceTimes.length,
+        "Expected a remainingServiceTimes array of size %s, but found one with size %s.",
+        v, remainingServiceTimes.length);
+    checkArgument(currentDestinations.length == v,
+        "The currentDestinations array should be of length v=%s, it is %s.", v,
+        currentDestinations.length);
+
     for (int i = 0; i < v; i++) {
       checkArgument(
           n == vehicleTravelTimes[i].length,
           "We expected vehicleTravelTimes matrix of size v x %s, but we found v x %s at index %s.",
           n, vehicleTravelTimes[i].length, i);
-      boolean foundNonMaxInt = false;
+
       for (int j = 0; j < n; j++) {
         checkArgument(
             vehicleTravelTimes[i][j] >= 0,
             "Found an invalid vehicle travel time (%s) at position %s,%s. All times must be >= 0.",
             vehicleTravelTimes[i][j], i, j);
-        if (!foundNonMaxInt && j > 0
-            && vehicleTravelTimes[i][j] != Integer.MAX_VALUE) {
-          foundNonMaxInt = true;
+
+        if (j == 0) {
+          checkArgument(0 == vehicleTravelTimes[i][j],
+              "vehicleTravelTimes[%s][%s] == %s, but must be 0.", i, j,
+              vehicleTravelTimes[i][j]);
+        } else if (currentDestinations[i] != 0 && j != currentDestinations[i]) {
+          checkArgument(
+              vehicleTravelTimes[i][j] == Integer.MAX_VALUE,
+              "vehicleTravelTimes[%s][%s] == %s, but must be Integer.MAX_VALUE.",
+              i, j, vehicleTravelTimes[i][j]);
+        } else {
+          checkArgument(
+              vehicleTravelTimes[i][j] != Integer.MAX_VALUE,
+              "vehicleTravelTimes[%s][%s] == Integer.MAX_VALUE, but must be normal value.",
+              i, j);
         }
       }
-      // FIXME improve this test! make sure it is the right index!
-      checkArgument(foundNonMaxInt);
     }
 
     final ImmutableSet.Builder<Integer> b = ImmutableSet.builder();
@@ -251,10 +269,6 @@ public final class ArraysSolverValidator {
       inventoriesMap.put(inventories[i][0], inventories[i][1]);
     }
 
-    checkArgument(
-        v == remainingServiceTimes.length,
-        "Expected a remainingServiceTimes array of size %s, but found one with size %s.",
-        v, remainingServiceTimes.length);
     for (int i = 0; i < v; i++) {
       checkArgument(remainingServiceTimes[i] >= 0,
           "Remaining service time must be >= 0, found %s.",
@@ -269,9 +283,6 @@ public final class ArraysSolverValidator {
     final ImmutableBiMap<Integer, Integer> servicePairsMap = servicePairsBuilder
         .build();
 
-    checkArgument(currentDestinations.length == v,
-        "The currentDestinations array should be of length v=%s, it is %s.", v,
-        currentDestinations.length);
     for (int i = 0; i < v; i++) {
       if (remainingServiceTimes[i] != 0) {
         checkArgument(currentDestinations[i] != 0);
