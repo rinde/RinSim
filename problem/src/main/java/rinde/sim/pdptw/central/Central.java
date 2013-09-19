@@ -15,8 +15,7 @@ import rinde.sim.core.TimeLapse;
 import rinde.sim.core.model.Model;
 import rinde.sim.core.model.ModelProvider;
 import rinde.sim.core.model.ModelReceiver;
-import rinde.sim.pdptw.central.Solvers.SolverHandle;
-import rinde.sim.pdptw.central.Solvers.StateContext;
+import rinde.sim.pdptw.central.Solvers.MVSolverHandle;
 import rinde.sim.pdptw.common.AddVehicleEvent;
 import rinde.sim.pdptw.common.DefaultParcel;
 import rinde.sim.pdptw.common.DynamicPDPTWProblem.Creator;
@@ -129,7 +128,7 @@ public final class Central {
     private boolean hasChanged;
     private Optional<ModelProvider> modelProvider;
     private Optional<PDPRoadModel> roadModel;
-    private Optional<SolverHandle> solverHandle;
+    private Optional<MVSolverHandle> solverHandle;
     private final Solver solver;
     private Optional<SimulatorAPI> simulatorAPI;
 
@@ -183,21 +182,8 @@ public final class Central {
             .solve(currentRouteBuilder.build()).iterator();
 
         for (final RouteFollowingVehicle vehicle : vehicles) {
-          final Queue<DefaultParcel> route = routes.next();
-          vehicle.setRoute(route);
+          vehicle.setRoute(routes.next());
         }
-
-        final ImmutableList.Builder<ImmutableList<DefaultParcel>> currentRouteBuilder2 = ImmutableList
-            .builder();
-        for (final RouteFollowingVehicle vehicle : vehicles) {
-          final ImmutableList<DefaultParcel> l = ImmutableList.copyOf(vehicle
-              .getRoute());
-          currentRouteBuilder2.add(l);
-        }
-
-        final StateContext sc = solverHandle.get().convert(
-            currentRouteBuilder2.build());
-        SolverValidator.validateInputs(sc.state);
       }
     }
 

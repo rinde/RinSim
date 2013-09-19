@@ -113,7 +113,7 @@ public class CentralTest {
     final TestVehicle v2 = new TestVehicle(new Point(0, 1));
     PDPTWTestUtil.register(sim, p1, p2, p3, v1, v2);
 
-    final SolverHandle s = Solvers.solver(null, sim);
+    final SolverHandle s = (SolverHandle) Solvers.solver(null, sim);
 
     StateContext res = s.convert(null);
     assertEquals(2, res.state.vehicles.size());

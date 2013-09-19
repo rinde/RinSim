@@ -102,7 +102,7 @@ public class SolversTest {
     PDPTWTestUtil.register(rm, pm, v1, p1);
 
     final TestSimAPI simAPI = new TestSimAPI(0, 1, NonSI.MINUTE);
-    final SolverHandle handle = Solvers.solver(null, mp, simAPI);
+    final SolverHandle handle = (SolverHandle) Solvers.solver(null, mp, simAPI);
 
     final StateContext sc = handle.convert(null);
     assertEquals(ImmutableMap.of(v1.dto, v1), sc.vehicleMap);

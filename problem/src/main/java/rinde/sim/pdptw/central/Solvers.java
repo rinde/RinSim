@@ -45,68 +45,58 @@ public final class Solvers {
 
   // FIXME write tests for the conversion methods!
 
-  // TODO this class' methods requires explicit units, this is no longer
-  // necessary since they can be retrieved from the models
-
-  // TODO builder?
   private Solvers() {}
 
-  public static SolverHandle solver(Solver sol, Simulator sim) {
+  /**
+   * Create a {@link MVSolverHandle} which can be used to repeatedly solve multi
+   * vehicle routing problem instances using the same {@link Solver} and
+   * {@link Simulator} instance.
+   * @param sol The {@link Solver} to use.
+   * @param sim The {@link Simulator} to use.
+   * @return The handle.
+   */
+  public static MVSolverHandle solver(Solver sol, Simulator sim) {
     return new SolverHandle(sol, sim.getModelProvider(), sim);
   }
 
-  public static SolverHandle solver(Solver sol, ModelProvider mp,
+  /**
+   * Create a {@link MVSolverHandle} which can be used to repeatedly solve multi
+   * vehicle routing problem instances using the same {@link Solver},
+   * {@link ModelProvider} and {@link SimulatorAPI} instance.
+   * @param sol The {@link Solver} to use.
+   * @param mp The {@link ModelProvider} to use.
+   * @param simulator The {@link Simulator} to use.
+   * @return The handle.
+   */
+  public static MVSolverHandle solver(Solver sol, ModelProvider mp,
       SimulatorAPI simulator) {
     return new SolverHandle(sol, mp, simulator);
   }
 
-  static class SolverHandle {
-    private final Solver solver;
-    private final SimulatorAPI simulator;
-    private final PDPRoadModel rm;
-    private final PDPModel pm;
-
-    SolverHandle(Solver s, ModelProvider mp, SimulatorAPI sim) {
-      solver = s;
-      simulator = sim;
-      final PDPRoadModel r = mp.getModel(PDPRoadModel.class);
-      checkArgument(r != null);
-      rm = r;
-      final PDPModel p = mp.getModel(PDPModel.class);
-      checkArgument(p != null);
-      pm = p;
-    }
-
-    public List<Queue<DefaultParcel>> solve() {
-      return solve(null);
-    }
-
-    public List<Queue<DefaultParcel>> solve(
-        @Nullable ImmutableList<ImmutableList<DefaultParcel>> currentRoutes) {
-      final StateContext state = convert(currentRoutes);
-      return Solvers.convertRoutes(state, solver.solve(state.state));
-    }
-
-    StateContext convert(
-        @Nullable ImmutableList<ImmutableList<DefaultParcel>> currentRoutes) {
-      return Solvers.convert(rm, pm, rm.getObjectsOfType(DefaultVehicle.class),
-          conv(pm.getParcels(ParcelState.ANNOUNCED, ParcelState.AVAILABLE,
-              ParcelState.PICKING_UP)), Measure.valueOf(
-              simulator.getCurrentTime(), simulator.getTimeUnit()),
-          currentRoutes);
-    }
-
+  /**
+   * Create a {@link SVSolverHandle} which can be used to repeatedly solve
+   * single vehicle routing problem instances.
+   * @param s The {@link Solver} to use.
+   * @param rm The {@link PDPRoadModel} to use.
+   * @param pm The {@link PDPModel} to use.
+   * @param sim The {@link SimulatorAPI} of the simulator.
+   * @param v The {@link DefaultVehicle} to solve the problem for.
+   * @return A {@link SVSolverHandle}.
+   */
+  public static SVSolverHandle singleVehicleSolver(Solver s, PDPRoadModel rm,
+      PDPModel pm, SimulatorAPI sim, DefaultVehicle v) {
+    return new SingleVehicleSolverHandle(s, rm, pm, sim, v);
   }
 
   // solver for single vehicle
-  public static Queue<DefaultParcel> solveSingleVehicle(Solver solver,
+  static Queue<DefaultParcel> solveSingleVehicle(Solver solver,
       PDPRoadModel rm, PDPModel pm, DefaultVehicle vehicle,
       Collection<DefaultParcel> availableParcels, Measure<Long, Duration> time) {
     return solveSingleVehicle(solver, rm, pm, vehicle, availableParcels, time,
         null);
   }
 
-  public static Queue<DefaultParcel> solveSingleVehicle(Solver solver,
+  static Queue<DefaultParcel> solveSingleVehicle(Solver solver,
       PDPRoadModel rm, PDPModel pm, DefaultVehicle vehicle,
       Collection<DefaultParcel> availableParcels, Measure<Long, Duration> time,
       @Nullable ImmutableList<DefaultParcel> currentRoute) {
@@ -132,21 +122,13 @@ public final class Solvers {
   }
 
   // single vehicle
-  public static StateContext convert(PDPRoadModel rm, PDPModel pm,
+  static StateContext convert(PDPRoadModel rm, PDPModel pm,
       DefaultVehicle vehicle, Collection<DefaultParcel> availableParcels,
       Measure<Long, Duration> time,
       @Nullable ImmutableList<DefaultParcel> currentRoute) {
     return convert(rm, pm, asList(vehicle), availableParcels, time,
         currentRoute == null ? null : ImmutableList.of(currentRoute));
   }
-
-  // public static StateContext convert(PDPRoadModel rm, PDPModel pm,
-  // Measure<Long, Duration> time,
-  // @Nullable ImmutableList<ImmutableList<DefaultParcel>> currentRoutes) {
-  // return convert(rm, pm, rm.getObjectsOfType(DefaultVehicle.class),
-  // conv(pm.getParcels(ParcelState.ANNOUNCED, ParcelState.AVAILABLE,
-  // ParcelState.PICKING_UP)), time, currentRoutes);
-  // }
 
   static Collection<DefaultParcel> conv(Collection<Parcel> input) {
     final List<DefaultParcel> l = newArrayList();
@@ -263,6 +245,133 @@ public final class Solvers {
       vehicleMapBuilder.put(dp.getDTO(), dp);
     }
     return vehicleMapBuilder.build();
+  }
+
+  /**
+   * A handle for solving single vehicle routing problems.
+   * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+   */
+  public interface SVSolverHandle {
+    /**
+     * Solve the single vehicle problem instance using the provided collection
+     * of {@link DefaultParcel}s.
+     * @param parcels The parcels for which a route is searched for.
+     * @return A route containing all specified parcels and the parcels which
+     *         are currently in the cargo of the vehicle.
+     */
+    Queue<DefaultParcel> solve(Collection<DefaultParcel> parcels);
+
+    /**
+     * Solve the single vehicle problem instance using the provided collection
+     * of {@link DefaultParcel}s. And additionally a list containing the route
+     * the vehicle is currently following.
+     * @param parcels The parcels for which a route is searched for.
+     * @param currentRoute The current route.
+     * @return A route containing all specified parcels and the parcels which
+     *         are currently in the cargo of the vehicle.
+     */
+    Queue<DefaultParcel> solve(Collection<DefaultParcel> parcels,
+        @Nullable ImmutableList<DefaultParcel> currentRoute);
+  }
+
+  /**
+   * A handle for solving multi vehicle routing problems.
+   * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+   */
+  public interface MVSolverHandle {
+    /**
+     * Solve the multi vehicle problem instance as represented by this handle's
+     * simulator instance.
+     * @return A list of routes, one for every vehicle in the simulation.
+     */
+    List<Queue<DefaultParcel>> solve();
+
+    /**
+     * Solve the multi vehicle problem instance as represented by this handle's
+     * simulator instance.
+     * @param currentRoutes A list of current routes the vehicles are following.
+     * @return A list of routes, one for every vehicle in the simulation.
+     */
+    List<Queue<DefaultParcel>> solve(
+        @Nullable ImmutableList<ImmutableList<DefaultParcel>> currentRoutes);
+  }
+
+  static class SingleVehicleSolverHandle extends SolverHandle implements
+      SVSolverHandle {
+
+    private final DefaultVehicle vehicle;
+
+    /**
+     * @param s
+     * @param mp
+     * @param sim
+     */
+    SingleVehicleSolverHandle(Solver s, PDPRoadModel rm, PDPModel pm,
+        SimulatorAPI sim, DefaultVehicle v) {
+      super(s, rm, pm, sim);
+      vehicle = v;
+    }
+
+    @Override
+    public Queue<DefaultParcel> solve(Collection<DefaultParcel> parcels) {
+      return solve(parcels, null);
+    }
+
+    @Override
+    public Queue<DefaultParcel> solve(Collection<DefaultParcel> parcels,
+        @Nullable ImmutableList<DefaultParcel> currentRoute) {
+      return solveSingleVehicle(solver, rm, pm, vehicle, parcels, time());
+    }
+  }
+
+  static class SolverHandle implements MVSolverHandle {
+    final Solver solver;
+    final SimulatorAPI simulator;
+    final PDPRoadModel rm;
+    final PDPModel pm;
+
+    SolverHandle(Solver s, ModelProvider mp, SimulatorAPI sim) {
+      solver = s;
+      simulator = sim;
+      final PDPRoadModel r = mp.getModel(PDPRoadModel.class);
+      checkArgument(r != null);
+      rm = r;
+      final PDPModel p = mp.getModel(PDPModel.class);
+      checkArgument(p != null);
+      pm = p;
+    }
+
+    SolverHandle(Solver s, PDPRoadModel rm, PDPModel pm, SimulatorAPI sim) {
+      solver = s;
+      simulator = sim;
+      this.rm = rm;
+      this.pm = pm;
+    }
+
+    @Override
+    public List<Queue<DefaultParcel>> solve() {
+      return solve(null);
+    }
+
+    @Override
+    public List<Queue<DefaultParcel>> solve(
+        @Nullable ImmutableList<ImmutableList<DefaultParcel>> currentRoutes) {
+      final StateContext state = convert(currentRoutes);
+      return Solvers.convertRoutes(state, solver.solve(state.state));
+    }
+
+    Measure<Long, Duration> time() {
+      return Measure.valueOf(simulator.getCurrentTime(),
+          simulator.getTimeUnit());
+    }
+
+    StateContext convert(
+        @Nullable ImmutableList<ImmutableList<DefaultParcel>> currentRoutes) {
+      return Solvers.convert(rm, pm, rm.getObjectsOfType(DefaultVehicle.class),
+          conv(pm.getParcels(ParcelState.ANNOUNCED, ParcelState.AVAILABLE,
+              ParcelState.PICKING_UP)), time(), currentRoutes);
+    }
+
   }
 
   /**

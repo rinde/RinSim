@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.Queue;
 
 import rinde.sim.core.Simulator;
-import rinde.sim.pdptw.central.Solvers.SolverHandle;
+import rinde.sim.pdptw.central.Solvers.MVSolverHandle;
 import rinde.sim.pdptw.common.DefaultParcel;
 
 /**
@@ -19,7 +19,7 @@ import rinde.sim.pdptw.common.DefaultParcel;
  */
 public class SolverAdapter {
 
-  private final SolverHandle handle;
+  private final MVSolverHandle handle;
 
   /**
    * Create a new instance based on a solver and a simulator.
