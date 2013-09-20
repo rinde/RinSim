@@ -548,6 +548,20 @@ public final class ArraysSolvers {
     return tardiness;
   }
 
+  public static int computeTotalObjectiveValue(SolutionObject[] sols) {
+    int obj = 0;
+    for (final SolutionObject sol : sols) {
+      obj += sol.objectiveValue;
+    }
+    return obj;
+  }
+
+  public static int computeTotalObjectiveValue(SolutionObject[] sols,
+      Unit<Duration> inputUnit, Unit<Duration> outputUnit) {
+    return Measure.valueOf(computeTotalObjectiveValue(sols), inputUnit)
+        .intValue(outputUnit);
+  }
+
   static int[] convertTW(TimeWindow tw, long time, UnitConverter timeConverter) {
     final int releaseDate = fixTWstart(tw.begin, time, timeConverter);
     final int dueDate = fixTWend(tw.end, time, timeConverter);
