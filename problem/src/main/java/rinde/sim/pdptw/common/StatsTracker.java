@@ -49,9 +49,9 @@ import com.google.common.base.Optional;
  */
 final class StatsTracker {
 
-  private final EventDispatcher eventDispatcher;
-  private final TheListener theListener;
-  private final Simulator simulator;
+  final EventDispatcher eventDispatcher;
+  final TheListener theListener;
+  final Simulator simulator;
 
   enum StatisticsEventType {
     PICKUP_TARDINESS, DELIVERY_TARDINESS, ALL_VEHICLES_AT_DEPOT;
@@ -237,6 +237,7 @@ final class StatsTracker {
   }
 
   static class StatisticsEvent extends Event {
+    private static final long serialVersionUID = 3941445489579790997L;
 
     final Parcel parcel;
     final Vehicle vehicle;

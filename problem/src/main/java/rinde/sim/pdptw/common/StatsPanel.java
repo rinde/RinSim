@@ -21,15 +21,21 @@ import rinde.sim.pdptw.common.StatsTracker.StatisticsEventType;
 import rinde.sim.ui.renderers.PanelRenderer;
 
 /**
+ * A UI panel that gives a live view of the current statistics of a simulation.
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
- * 
  */
-public class StatsPanel implements PanelRenderer, TickListener {
+public final class StatsPanel implements PanelRenderer, TickListener {
 
-  protected final StatsTracker statsTracker;
+  private static final int PREFERRED_SIZE = 300;
 
-  protected Table statsTable;
+  private final StatsTracker statsTracker;
+  Table statsTable;
 
+  /**
+   * Create a new instance using the specified {@link StatsTracker} which
+   * supplies the statistics.
+   * @param stats The tracker to use.
+   */
   public StatsPanel(StatsTracker stats) {
     statsTracker = stats;
   }
@@ -87,12 +93,10 @@ public class StatsPanel implements PanelRenderer, TickListener {
           @Override
           public void run() {
             final TableItem ti = new TableItem(eventList, 0);
-            ti.setText(0, "" + se.time);
-            ti.setText(1, "" + se.tardiness);
-
+            ti.setText(0, Long.toString(se.time));
+            ti.setText(1, Long.toString(se.tardiness));
           }
         });
-
       }
     }, StatisticsEventType.PICKUP_TARDINESS,
         StatisticsEventType.DELIVERY_TARDINESS);
@@ -100,7 +104,7 @@ public class StatsPanel implements PanelRenderer, TickListener {
 
   @Override
   public int preferredSize() {
-    return 300;
+    return PREFERRED_SIZE;
   }
 
   @Override
@@ -139,6 +143,5 @@ public class StatsPanel implements PanelRenderer, TickListener {
         }
       }
     });
-
   }
 }
