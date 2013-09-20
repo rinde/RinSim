@@ -88,23 +88,6 @@ public final class Solvers {
     return new SingleVehicleSolverHandle(s, rm, pm, sim, v);
   }
 
-  // solver for single vehicle
-  static Queue<DefaultParcel> solveSingleVehicle(Solver solver,
-      PDPRoadModel rm, PDPModel pm, DefaultVehicle vehicle,
-      Collection<DefaultParcel> availableParcels, Measure<Long, Duration> time) {
-    return solveSingleVehicle(solver, rm, pm, vehicle, availableParcels, time,
-        null);
-  }
-
-  static Queue<DefaultParcel> solveSingleVehicle(Solver solver,
-      PDPRoadModel rm, PDPModel pm, DefaultVehicle vehicle,
-      Collection<DefaultParcel> availableParcels, Measure<Long, Duration> time,
-      @Nullable ImmutableList<DefaultParcel> currentRoute) {
-    final StateContext state = convert(rm, pm, vehicle, availableParcels, time,
-        currentRoute);
-    return convertRoutes(state, solver.solve(state.state)).get(0);
-  }
-
   // converts the routes received from Solver.solve(..) into a format which is
   // expected by the simulator
   static List<Queue<DefaultParcel>> convertRoutes(StateContext cont,
@@ -119,15 +102,6 @@ public final class Solvers {
       routesBuilder.add(newRoute);
     }
     return routesBuilder.build();
-  }
-
-  // single vehicle
-  static StateContext convert(PDPRoadModel rm, PDPModel pm,
-      DefaultVehicle vehicle, Collection<DefaultParcel> availableParcels,
-      Measure<Long, Duration> time,
-      @Nullable ImmutableList<DefaultParcel> currentRoute) {
-    return convert(rm, pm, asList(vehicle), availableParcels, time,
-        currentRoute == null ? null : ImmutableList.of(currentRoute));
   }
 
   static Collection<DefaultParcel> conv(Collection<Parcel> input) {
@@ -272,6 +246,16 @@ public final class Solvers {
      */
     Queue<DefaultParcel> solve(Collection<DefaultParcel> parcels,
         @Nullable ImmutableList<DefaultParcel> currentRoute);
+
+    /**
+     * Converts the simulation state into a value object which is used by the
+     * solver internally.
+     * @param parcels
+     * @param currentRoute
+     * @return The {@link StateContext} containig the simulation state.
+     */
+    StateContext convert(Collection<DefaultParcel> parcels,
+        @Nullable ImmutableList<DefaultParcel> currentRoute);
   }
 
   /**
@@ -301,11 +285,6 @@ public final class Solvers {
 
     private final DefaultVehicle vehicle;
 
-    /**
-     * @param s
-     * @param mp
-     * @param sim
-     */
     SingleVehicleSolverHandle(Solver s, PDPRoadModel rm, PDPModel pm,
         SimulatorAPI sim, DefaultVehicle v) {
       super(s, rm, pm, sim);
@@ -320,7 +299,15 @@ public final class Solvers {
     @Override
     public Queue<DefaultParcel> solve(Collection<DefaultParcel> parcels,
         @Nullable ImmutableList<DefaultParcel> currentRoute) {
-      return solveSingleVehicle(solver, rm, pm, vehicle, parcels, time());
+      final StateContext state = convert(parcels, currentRoute);
+      return Solvers.convertRoutes(state, solver.solve(state.state)).get(0);
+    }
+
+    @Override
+    public StateContext convert(Collection<DefaultParcel> parcels,
+        @Nullable ImmutableList<DefaultParcel> currentRoute) {
+      return Solvers.convert(rm, pm, asList(vehicle), parcels, time(),
+          currentRoute == null ? null : ImmutableList.of(currentRoute));
     }
   }
 
@@ -380,8 +367,17 @@ public final class Solvers {
    * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
    */
   public static class StateContext {
+    /**
+     * A reference to the {@link GlobalStateObject}.
+     */
     public final GlobalStateObject state;
+    /**
+     * A mapping of {@link VehicleDTO} to {@link DefaultVehicle}.
+     */
     public final ImmutableMap<VehicleDTO, DefaultVehicle> vehicleMap;
+    /**
+     * A mapping of {@link ParcelDTO} to {@link DefaultParcel}.
+     */
     public final ImmutableMap<ParcelDTO, DefaultParcel> parcelMap;
 
     StateContext(GlobalStateObject state,

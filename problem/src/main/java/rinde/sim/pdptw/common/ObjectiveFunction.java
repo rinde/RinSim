@@ -3,9 +3,10 @@
  */
 package rinde.sim.pdptw.common;
 
-import rinde.sim.pdptw.common.StatsTracker.StatisticsDTO;
-
 /**
+ * Instances of this interface define an objective on which a .. can be
+ * measured.
+ * <p>
  * Implementations should not keep any internal state.
  * 
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>

@@ -42,7 +42,7 @@ import rinde.sim.pdptw.common.DynamicPDPTWProblem;
 import rinde.sim.pdptw.common.DynamicPDPTWProblem.Creator;
 import rinde.sim.pdptw.common.DynamicPDPTWProblem.DefaultUICreator;
 import rinde.sim.pdptw.common.ParcelDTO;
-import rinde.sim.pdptw.common.StatsTracker.StatisticsDTO;
+import rinde.sim.pdptw.common.StatisticsDTO;
 import rinde.sim.pdptw.common.VehicleDTO;
 import rinde.sim.scenario.TimedEvent;
 import rinde.sim.ui.View;

@@ -24,7 +24,6 @@ import rinde.sim.core.model.Model;
 import rinde.sim.core.model.pdp.Depot;
 import rinde.sim.core.model.pdp.Parcel;
 import rinde.sim.core.model.pdp.Vehicle;
-import rinde.sim.pdptw.common.StatsTracker.StatisticsDTO;
 import rinde.sim.scenario.ScenarioController;
 import rinde.sim.scenario.ScenarioController.UICreator;
 import rinde.sim.scenario.TimedEvent;

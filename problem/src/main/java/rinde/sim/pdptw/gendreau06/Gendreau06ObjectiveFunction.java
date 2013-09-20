@@ -4,7 +4,7 @@
 package rinde.sim.pdptw.gendreau06;
 
 import rinde.sim.pdptw.common.ObjectiveFunction;
-import rinde.sim.pdptw.common.StatsTracker.StatisticsDTO;
+import rinde.sim.pdptw.common.StatisticsDTO;
 
 /**
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>

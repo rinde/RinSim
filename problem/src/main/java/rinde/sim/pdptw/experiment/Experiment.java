@@ -26,7 +26,7 @@ import rinde.sim.pdptw.common.DynamicPDPTWScenario;
 import rinde.sim.pdptw.common.ObjectiveFunction;
 import rinde.sim.pdptw.common.RouteRenderer;
 import rinde.sim.pdptw.common.ScenarioParser;
-import rinde.sim.pdptw.common.StatsTracker.StatisticsDTO;
+import rinde.sim.pdptw.common.StatisticsDTO;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Objects;

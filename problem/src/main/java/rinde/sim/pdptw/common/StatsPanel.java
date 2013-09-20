@@ -16,7 +16,6 @@ import rinde.sim.core.TickListener;
 import rinde.sim.core.TimeLapse;
 import rinde.sim.event.Event;
 import rinde.sim.event.Listener;
-import rinde.sim.pdptw.common.StatsTracker.StatisticsDTO;
 import rinde.sim.pdptw.common.StatsTracker.StatisticsEvent;
 import rinde.sim.pdptw.common.StatsTracker.StatisticsEventType;
 import rinde.sim.ui.renderers.PanelRenderer;
@@ -80,24 +79,23 @@ public class StatsPanel implements PanelRenderer, TickListener {
       eventList.getColumn(i).pack();
     }
 
-    statsTracker
-        .getEventAPI()
-        .addListener(new Listener() {
+    statsTracker.getEventAPI().addListener(new Listener() {
+      @Override
+      public void handleEvent(Event e) {
+        final StatisticsEvent se = (StatisticsEvent) e;
+        eventList.getDisplay().asyncExec(new Runnable() {
           @Override
-          public void handleEvent(Event e) {
-            final StatisticsEvent se = (StatisticsEvent) e;
-            eventList.getDisplay().asyncExec(new Runnable() {
-              @Override
-              public void run() {
-                final TableItem ti = new TableItem(eventList, 0);
-                ti.setText(0, "" + se.time);
-                ti.setText(1, "" + se.tardiness);
-
-              }
-            });
+          public void run() {
+            final TableItem ti = new TableItem(eventList, 0);
+            ti.setText(0, "" + se.time);
+            ti.setText(1, "" + se.tardiness);
 
           }
-        }, StatisticsEventType.PICKUP_TARDINESS, StatisticsEventType.DELIVERY_TARDINESS);
+        });
+
+      }
+    }, StatisticsEventType.PICKUP_TARDINESS,
+        StatisticsEventType.DELIVERY_TARDINESS);
   }
 
   @Override
