@@ -24,6 +24,7 @@ import rinde.sim.pdptw.common.AddVehicleEvent;
 import rinde.sim.pdptw.common.DynamicPDPTWProblem;
 import rinde.sim.pdptw.common.DynamicPDPTWScenario;
 import rinde.sim.pdptw.common.ObjectiveFunction;
+import rinde.sim.pdptw.common.RouteRenderer;
 import rinde.sim.pdptw.common.ScenarioParser;
 import rinde.sim.pdptw.common.StatsTracker.StatisticsDTO;
 
@@ -473,7 +474,8 @@ public final class Experiment {
    */
   public static StatisticsDTO performSingleRun(DynamicPDPTWScenario scenario,
       MASConfiguration configuration, ObjectiveFunction objFunc, boolean showGui) {
-    final StatisticsDTO stats = init(scenario, configuration, showGui).simulate();
+    final StatisticsDTO stats = init(scenario, configuration, showGui)
+        .simulate();
     checkState(objFunc.isValidResult(stats),
         "The simulation did not result in a valid result: %s.", stats);
     return stats;
@@ -500,6 +502,7 @@ public final class Experiment {
       problem.addCreator(AddParcelEvent.class, config.getParcelCreator().get());
     }
     if (showGui) {
+      problem.addRendererToUI(new RouteRenderer());
       problem.enableUI();
     }
     return problem;
