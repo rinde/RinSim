@@ -5,9 +5,6 @@ package rinde.sim.util.spec;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
-import static rinde.sim.util.spec.SpecificationTest.Spec.ALWAYS_FALSE;
-import static rinde.sim.util.spec.SpecificationTest.Spec.ALWAYS_TRUE;
-import static rinde.sim.util.spec.SpecificationTest.Spec.PLAIN;
 
 import org.junit.Test;
 
@@ -63,27 +60,23 @@ public class SpecificationTest {
         .isSatisfiedBy(true));
   }
 
-  public static abstract class Spec implements ISpecification<Boolean> {
-
-    public static Spec ALWAYS_TRUE = new Spec() {
-      @Override
-      public boolean isSatisfiedBy(Boolean context) {
-        return true;
-      }
-    };
-    public static Spec ALWAYS_FALSE = new Spec() {
-      @Override
-      public boolean isSatisfiedBy(Boolean context) {
-        return false;
-      }
-    };
-    public static Spec PLAIN = new Spec() {
-      @Override
-      public boolean isSatisfiedBy(Boolean context) {
-        return context;
-      }
-    };
-
-  }
+  public static ISpecification<Boolean> ALWAYS_TRUE = new ISpecification<Boolean>() {
+    @Override
+    public boolean isSatisfiedBy(Boolean context) {
+      return true;
+    }
+  };
+  public static ISpecification<Boolean> ALWAYS_FALSE = new ISpecification<Boolean>() {
+    @Override
+    public boolean isSatisfiedBy(Boolean context) {
+      return false;
+    }
+  };
+  public static ISpecification<Boolean> PLAIN = new ISpecification<Boolean>() {
+    @Override
+    public boolean isSatisfiedBy(Boolean context) {
+      return context;
+    }
+  };
 
 }
