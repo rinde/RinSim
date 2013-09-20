@@ -5,6 +5,7 @@ package rinde.sim.pdptw.common;
 
 /**
  * A parser for {@link DynamicPDPTWScenario}s.
+ * @param <T> The type of scenario that is parsed.
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
  */
 public interface ScenarioParser<T extends DynamicPDPTWScenario> {

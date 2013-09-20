@@ -3,9 +3,12 @@
  */
 package rinde.sim.pdptw.common;
 
+import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.collect.Lists.newArrayList;
 
 import java.util.List;
+
+import javax.annotation.Nullable;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.PaintEvent;
@@ -38,25 +41,28 @@ import rinde.sim.event.Listener;
 import rinde.sim.ui.renderers.PanelRenderer;
 import rinde.sim.util.TimeFormatter;
 
-public class TimeLinePanel implements ModelReceiver, PanelRenderer,
+/**
+ * Time line panel is an UI element that shows a real time visualization of
+ * parcels and their time windows in a simulation.
+ * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+ */
+public final class TimeLinePanel implements ModelReceiver, PanelRenderer,
     TickListener {
 
-  protected Canvas canvas;
-  protected Canvas barCanvas;
-
+  Canvas canvas;
+  Canvas barCanvas;
   Point origin = new Point(0, 0);
-
   ScrollBar hBar;
   ScrollBar vBar;
   long currentTime = 0;
-
-  protected Timeline timeline;
+  Timeline timeline;
 
   public TimeLinePanel() {}
 
   @Override
   public void registerModelProvider(ModelProvider mp) {
     final PDPModel pdp = mp.getModel(PDPModel.class);
+    checkState(pdp != null, "PDPModel is required.");
     pdp.getEventAPI().addListener(new Listener() {
       @Override
       public void handleEvent(Event e) {
@@ -90,9 +96,9 @@ public class TimeLinePanel implements ModelReceiver, PanelRenderer,
         timelineBar.update(timeline.getWidth());
         e.gc.drawImage(timelineBar.contents, origin.x, 0);
         e.gc.setForeground(e.display.getSystemColor(SWT.COLOR_RED));
-        e.gc.drawLine(origin.x + (int) (currentTime / timeline.timePerPixel), 10, origin.x
-            + (int) (currentTime / timeline.timePerPixel), barCanvas
-            .getClientArea().height);
+        e.gc.drawLine(origin.x + (int) (currentTime / timeline.timePerPixel),
+            10, origin.x + (int) (currentTime / timeline.timePerPixel),
+            barCanvas.getClientArea().height);
       }
     });
     canvas = new Canvas(parent, SWT.DOUBLE_BUFFERED | SWT.NONE | SWT.V_SCROLL
@@ -107,14 +113,16 @@ public class TimeLinePanel implements ModelReceiver, PanelRenderer,
         e.gc.drawImage(timeline.contents, origin.x, origin.y);
 
         e.gc.setForeground(e.display.getSystemColor(SWT.COLOR_RED));
-        e.gc.drawLine(origin.x + (int) (currentTime / timeline.timePerPixel), 0, origin.x
-            + (int) (currentTime / timeline.timePerPixel), canvas
-            .getClientArea().height);
+        e.gc.drawLine(origin.x + (int) (currentTime / timeline.timePerPixel),
+            0, origin.x + (int) (currentTime / timeline.timePerPixel),
+            canvas.getClientArea().height);
 
         hBar.setMaximum(timeline.getWidth() == 0 ? 1 : timeline.getWidth() + 20);
         vBar.setMaximum(timeline.getHeight() + 5);
-        hBar.setThumb(Math.min(timeline.getWidth() + 20, canvas.getClientArea().width));
-        vBar.setThumb(Math.min(timeline.getHeight() + 5, canvas.getClientArea().height));
+        hBar.setThumb(Math.min(timeline.getWidth() + 20,
+            canvas.getClientArea().width));
+        vBar.setThumb(Math.min(timeline.getHeight() + 5,
+            canvas.getClientArea().height));
       }
     });
 
@@ -126,10 +134,11 @@ public class TimeLinePanel implements ModelReceiver, PanelRenderer,
       public void handleEvent(org.eclipse.swt.widgets.Event e) {
         final int hSelection = hBar.getSelection();
         final int destX = -hSelection - origin.x;
-        canvas.scroll(destX, 0, 0, 0, timeline.getWidth(), timeline.getHeight(), false);
-        barCanvas
-            .scroll(destX, 0, 0, 0, timelineBar.contents.getBounds().width, timelineBar.contents
-                .getBounds().height, false);
+        canvas.scroll(destX, 0, 0, 0, timeline.getWidth(),
+            timeline.getHeight(), false);
+        barCanvas.scroll(destX, 0, 0, 0,
+            timelineBar.contents.getBounds().width,
+            timelineBar.contents.getBounds().height, false);
         origin.x = -hSelection;
       }
     });
@@ -138,10 +147,11 @@ public class TimeLinePanel implements ModelReceiver, PanelRenderer,
     vBar.setPageIncrement(20);
     vBar.addListener(SWT.Selection, new org.eclipse.swt.widgets.Listener() {
       @Override
-      public void handleEvent(org.eclipse.swt.widgets.Event e) {
+      public void handleEvent(@Nullable org.eclipse.swt.widgets.Event e) {
         final int vSelection = vBar.getSelection();
         final int destY = -vSelection - origin.y;
-        canvas.scroll(0, destY, 0, 0, timeline.getWidth(), timeline.getHeight(), false);
+        canvas.scroll(0, destY, 0, 0, timeline.getWidth(),
+            timeline.getHeight(), false);
         origin.y = -vSelection;
       }
     });
@@ -184,7 +194,7 @@ public class TimeLinePanel implements ModelReceiver, PanelRenderer,
     });
   }
 
-  protected static Image createNewTransparentImg(Display d, int w, int h) {
+  static Image createNewTransparentImg(Display d, int w, int h) {
     final Color white = d.getSystemColor(SWT.COLOR_WHITE);
     final Color black = d.getSystemColor(SWT.COLOR_BLACK);
     final PaletteData palette = new PaletteData(new RGB[] { white.getRGB(),
@@ -195,10 +205,10 @@ public class TimeLinePanel implements ModelReceiver, PanelRenderer,
   }
 
   class ParcelInfo {
-    public final long eventTime;
-    public final Parcel parcel;
+    final long eventTime;
+    final Parcel parcel;
 
-    public ParcelInfo(long time, Parcel p) {
+    ParcelInfo(long time, Parcel p) {
       eventTime = time;
       parcel = p;
     }
@@ -209,14 +219,14 @@ public class TimeLinePanel implements ModelReceiver, PanelRenderer,
     protected Image contents;
     protected Font font;
 
-    public TimelineBar(Display d) {
+    TimelineBar(Display d) {
       display = d;
       contents = createNewTransparentImg(display, 700, 20);
       font = new Font(display, "arial", 10, SWT.NORMAL);
       drawTimeline();
     }
 
-    public void update(int width) {
+    void update(int width) {
       if (contents.getBounds().width < width) {
         contents.dispose();
         contents = createNewTransparentImg(display, width + 30, 20);
@@ -224,7 +234,7 @@ public class TimeLinePanel implements ModelReceiver, PanelRenderer,
       }
     }
 
-    protected void drawTimeline() {
+    void drawTimeline() {
       final GC gc = new GC(contents);
       gc.setAdvanced(true);
       // gc.setAntialias(SWT.ON);
@@ -252,21 +262,21 @@ public class TimeLinePanel implements ModelReceiver, PanelRenderer,
   }
 
   class Timeline {
-    protected Display display;
-    protected Image contents;
-    protected List<ParcelInfo> parcels;
-    protected List<ParcelInfo> newParcels;
-    protected long timePerPixel = 15000;
+    Display display;
+    Image contents;
+    List<ParcelInfo> parcels;
+    List<ParcelInfo> newParcels;
+    long timePerPixel = 15000;
 
-    protected int rowHeight = 15;
-    protected int height;
-    protected int width;
+    int rowHeight = 15;
+    int height;
+    int width;
 
-    protected Color lineColor;
-    protected Color pickupColor;
-    protected Color deliveryColor;
+    Color lineColor;
+    Color pickupColor;
+    Color deliveryColor;
 
-    public Timeline(Display d) {
+    Timeline(Display d) {
       display = d;
       parcels = newArrayList();
       newParcels = newArrayList();
@@ -275,7 +285,7 @@ public class TimeLinePanel implements ModelReceiver, PanelRenderer,
       deliveryColor = d.getSystemColor(SWT.COLOR_DARK_RED);
     }
 
-    protected void ensureImg() {
+    void ensureImg() {
       if (contents == null) {
         contents = createNewTransparentImg(display, 700, 100);
       } else {
@@ -287,7 +297,8 @@ public class TimeLinePanel implements ModelReceiver, PanelRenderer,
           final int newHeight = contents.getBounds().height
               + (heightViolation ? 10 * rowHeight : 0);
 
-          final Image newContents = createNewTransparentImg(display, newWidth, newHeight);
+          final Image newContents = createNewTransparentImg(display, newWidth,
+              newHeight);
           // copy previous image to new image
           final GC gc = new GC(newContents);
           gc.drawImage(contents, 0, 0);
@@ -298,14 +309,14 @@ public class TimeLinePanel implements ModelReceiver, PanelRenderer,
       }
     }
 
-    public void addParcel(final ParcelInfo p) {
+    void addParcel(final ParcelInfo p) {
       newParcels.add(p);
 
-      width = Math
-          .max(width, (int) (p.parcel.getDeliveryTimeWindow().end / timePerPixel));
+      width = Math.max(width,
+          (int) (p.parcel.getDeliveryTimeWindow().end / timePerPixel));
     }
 
-    public void update() {
+    void update() {
       if (display == null) {
         return;
       }
@@ -319,7 +330,7 @@ public class TimeLinePanel implements ModelReceiver, PanelRenderer,
       newParcels.clear();
     }
 
-    protected void drawParcel(ParcelInfo p, int y) {
+    void drawParcel(ParcelInfo p, int y) {
       final int startX = (int) (p.eventTime / timePerPixel);
       final int startPickX = (int) (p.parcel.getPickupTimeWindow().begin / timePerPixel);
       final int endPickX = (int) (p.parcel.getPickupTimeWindow().end / timePerPixel);
@@ -344,17 +355,16 @@ public class TimeLinePanel implements ModelReceiver, PanelRenderer,
       gc.dispose();
     }
 
-    public int getHeight() {
+    int getHeight() {
       return height;
     }
 
-    public int getWidth() {
+    int getWidth() {
       return width;
     }
 
-    public void dispose() {
+    void dispose() {
       contents.dispose();
     }
-
   }
 }

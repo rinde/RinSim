@@ -20,24 +20,27 @@ import rinde.sim.pdptw.common.StatsTracker.StatisticsEvent;
 import rinde.sim.pdptw.common.StatsTracker.StatisticsEventType;
 import rinde.sim.ui.renderers.PanelRenderer;
 
+import com.google.common.base.Optional;
+
 /**
  * A UI panel that gives a live view of the current statistics of a simulation.
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
  */
-public final class StatsPanel implements PanelRenderer, TickListener {
+final class StatsPanel implements PanelRenderer, TickListener {
 
   private static final int PREFERRED_SIZE = 300;
 
+  Optional<Table> statsTable;
   private final StatsTracker statsTracker;
-  Table statsTable;
 
   /**
    * Create a new instance using the specified {@link StatsTracker} which
    * supplies the statistics.
    * @param stats The tracker to use.
    */
-  public StatsPanel(StatsTracker stats) {
+  StatsPanel(StatsTracker stats) {
     statsTracker = stats;
+    statsTable = Optional.absent();
   }
 
   @Override
@@ -48,19 +51,20 @@ public final class StatsPanel implements PanelRenderer, TickListener {
     layout.type = SWT.VERTICAL;
     parent.setLayout(layout);
 
-    statsTable = new Table(parent, SWT.MULTI | SWT.FULL_SELECTION
+    final Table table = new Table(parent, SWT.MULTI | SWT.FULL_SELECTION
         | SWT.V_SCROLL | SWT.H_SCROLL);
-    statsTable.setHeaderVisible(true);
-    statsTable.setLinesVisible(true);
+    statsTable = Optional.of(table);
+    table.setHeaderVisible(true);
+    table.setLinesVisible(true);
     final String[] statsTitles = new String[] { "Variable", "Value" };
     for (int i = 0; i < statsTitles.length; i++) {
-      final TableColumn column = new TableColumn(statsTable, SWT.NONE);
+      final TableColumn column = new TableColumn(table, SWT.NONE);
       column.setText(statsTitles[i]);
     }
     final StatisticsDTO stats = statsTracker.getStatsDTO();
     final Field[] fields = stats.getClass().getFields();
     for (final Field f : fields) {
-      final TableItem ti = new TableItem(statsTable, 0);
+      final TableItem ti = new TableItem(table, 0);
       ti.setText(0, f.getName());
       try {
         ti.setText(1, f.get(stats).toString());
@@ -69,7 +73,7 @@ public final class StatsPanel implements PanelRenderer, TickListener {
       }
     }
     for (int i = 0; i < statsTitles.length; i++) {
-      statsTable.getColumn(i).pack();
+      table.getColumn(i).pack();
     }
 
     final Table eventList = new Table(parent, SWT.MULTI | SWT.FULL_SELECTION
@@ -125,20 +129,21 @@ public final class StatsPanel implements PanelRenderer, TickListener {
     final StatisticsDTO stats = statsTracker.getStatsDTO();
 
     final Field[] fields = stats.getClass().getFields();
-    if (statsTable.isDisposed()) {
+    if (statsTable.get().isDisposed()) {
       return;
     }
-    statsTable.getDisplay().syncExec(new Runnable() {
+    statsTable.get().getDisplay().syncExec(new Runnable() {
       @Override
       public void run() {
-        if (statsTable.isDisposed()) {
+        if (statsTable.get().isDisposed()) {
           return;
         }
         for (int i = 0; i < fields.length; i++) {
           try {
-            statsTable.getItem(i).setText(1, fields[i].get(stats).toString());
+            statsTable.get().getItem(i)
+                .setText(1, fields[i].get(stats).toString());
           } catch (final Exception e) {
-            statsTable.getItem(i).setText(1, e.getMessage());
+            statsTable.get().getItem(i).setText(1, e.getMessage());
           }
         }
       }
