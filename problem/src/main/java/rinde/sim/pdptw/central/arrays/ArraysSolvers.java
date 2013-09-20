@@ -25,6 +25,7 @@ import javax.measure.unit.Unit;
 import rinde.sim.core.graph.Point;
 import rinde.sim.pdptw.central.GlobalStateObject;
 import rinde.sim.pdptw.central.GlobalStateObject.VehicleStateObject;
+import rinde.sim.pdptw.central.Solvers;
 import rinde.sim.pdptw.common.ParcelDTO;
 import rinde.sim.util.TimeWindow;
 
@@ -48,7 +49,7 @@ public final class ArraysSolvers {
 
   /**
    * Converts the list of points on a plane into a travel time matrix. For
-   * distance between two points the euclidean distance is used, i.e. no
+   * distance between two points the Euclidean distance is used, i.e. no
    * obstacles or graph structure are considered. See
    * {@link #toTravelTimeMatrix(List, Unit, Measure, Unit, RoundingMode)} for
    * more options.
@@ -96,7 +97,7 @@ public final class ArraysSolvers {
           final Measure<Double, Length> dist = Measure.valueOf(
               Point.distance(points.get(i), points.get(j)), distUnit);
           // calculate duration in desired unit
-          final double duration = computeTravelTime(speed, dist, outputTimeUnit);
+          final double duration = Solvers.computeTravelTime(speed, dist, outputTimeUnit);
           // round duration
           final int tt = DoubleMath.roundToInt(duration, rm);
           matrix[i][j] = tt;
@@ -433,7 +434,7 @@ public final class ArraysSolvers {
   static int computeRoundedTravelTime(Measure<Double, Velocity> speed,
       Measure<Double, Length> dist, Unit<Duration> outputTimeUnit) {
     return DoubleMath.roundToInt(
-        computeTravelTime(speed, dist, outputTimeUnit), RoundingMode.CEILING);
+        Solvers.computeTravelTime(speed, dist, outputTimeUnit), RoundingMode.CEILING);
   }
 
   static int[][] toInventoriesArray(GlobalStateObject state, ArraysObject sva) {
@@ -478,29 +479,6 @@ public final class ArraysSolvers {
               .doubleValue(outputTimeUnit), RoundingMode.CEILING);
     }
     return remainingServiceTimes;
-  }
-
-  /**
-   * Computes the duration which is required to travel the specified distance
-   * with the given velocity. Note: although time is normally a long, we use
-   * double here instead. Converting it to long in this method would introduce
-   * rounding in a too early stage.
-   * @param speed The travel speed.
-   * @param distance The distance to travel.
-   * @param outputTimeUnit The time unit to use for the output.
-   * @return The time it takes to travel the specified distance with the
-   *         specified speed.
-   */
-  public static double computeTravelTime(Measure<Double, Velocity> speed,
-      Measure<Double, Length> distance, Unit<Duration> outputTimeUnit) {
-    // meters
-    return Measure.valueOf(distance.doubleValue(SI.METER)
-    // divided by m/s
-        / speed.doubleValue(SI.METERS_PER_SECOND),
-    // gives seconds
-        SI.SECOND)
-    // convert to desired unit
-        .doubleValue(outputTimeUnit);
   }
 
   /**

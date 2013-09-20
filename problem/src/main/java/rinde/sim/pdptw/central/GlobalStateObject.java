@@ -89,7 +89,8 @@ public class GlobalStateObject {
     public final Point location;
 
     /**
-     * The contents of the vehicle.
+     * The contents of the vehicle. This excludes parcels which are currently
+     * being picked up and includes parcels which are currently being delivered.
      */
     public final ImmutableSet<ParcelDTO> contents;
 
@@ -122,7 +123,9 @@ public class GlobalStateObject {
      * <li>In case the vehicle is servicing a parcel. In this case the
      * {@link ParcelDTO} as specified by this field is the one being serviced.
      * In this case servicing <b>must</b> first complete before the vehicle can
-     * do something else.</li>
+     * do something else. When this {@link ParcelDTO} also occurs in
+     * {@link #contents} this parcel is currently being delivered, otherwise it
+     * is being picked up.</li>
      * </ol>
      */
     @Nullable

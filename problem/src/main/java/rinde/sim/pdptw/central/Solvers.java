@@ -6,9 +6,11 @@ package rinde.sim.pdptw.central;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Lists.newLinkedList;
+import static com.google.common.collect.Sets.newHashSet;
 import static com.google.common.collect.Sets.newLinkedHashSet;
 import static java.util.Arrays.asList;
 
+import java.math.RoundingMode;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
@@ -19,9 +21,14 @@ import java.util.Set;
 import javax.annotation.Nullable;
 import javax.measure.Measure;
 import javax.measure.quantity.Duration;
+import javax.measure.quantity.Length;
+import javax.measure.quantity.Velocity;
+import javax.measure.unit.SI;
+import javax.measure.unit.Unit;
 
 import rinde.sim.core.Simulator;
 import rinde.sim.core.SimulatorAPI;
+import rinde.sim.core.graph.Point;
 import rinde.sim.core.model.ModelProvider;
 import rinde.sim.core.model.pdp.PDPModel;
 import rinde.sim.core.model.pdp.PDPModel.ParcelState;
@@ -32,10 +39,13 @@ import rinde.sim.pdptw.common.DefaultParcel;
 import rinde.sim.pdptw.common.DefaultVehicle;
 import rinde.sim.pdptw.common.PDPRoadModel;
 import rinde.sim.pdptw.common.ParcelDTO;
+import rinde.sim.pdptw.common.StatisticsDTO;
 import rinde.sim.pdptw.common.VehicleDTO;
 
+import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.math.DoubleMath;
 
 /**
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
@@ -86,6 +96,134 @@ public final class Solvers {
   public static SVSolverHandle singleVehicleSolver(Solver s, PDPRoadModel rm,
       PDPModel pm, SimulatorAPI sim, DefaultVehicle v) {
     return new SingleVehicleSolverHandle(s, rm, pm, sim, v);
+  }
+
+  /**
+   * Computes the duration which is required to travel the specified distance
+   * with the given velocity. Note: although time is normally a long, we use
+   * double here instead. Converting it to long in this method would introduce
+   * rounding in a too early stage.
+   * @param speed The travel speed.
+   * @param distance The distance to travel.
+   * @param outputTimeUnit The time unit to use for the output.
+   * @return The time it takes to travel the specified distance with the
+   *         specified speed.
+   */
+  public static double computeTravelTime(Measure<Double, Velocity> speed,
+      Measure<Double, Length> distance, Unit<Duration> outputTimeUnit) {
+    // meters
+    return Measure.valueOf(distance.doubleValue(SI.METER)
+    // divided by m/s
+        / speed.doubleValue(SI.METERS_PER_SECOND),
+    // gives seconds
+        SI.SECOND)
+    // convert to desired unit
+        .doubleValue(outputTimeUnit);
+  }
+
+  public static StatisticsDTO computeStats(StateContext context,
+      @Nullable ImmutableList<ImmutableList<DefaultParcel>> routes) {
+
+    final Optional<ImmutableList<ImmutableList<DefaultParcel>>> r = Optional
+        .fromNullable(routes);
+
+    if (r.isPresent()) {
+      checkArgument(context.state.vehicles.size() == r.get().size());
+    }
+
+    double totalDistance = 0;
+    int totalDeliveries = 0;
+    int totalPickups = 0;
+    long pickupTardiness = 0;
+    long deliveryTardiness = 0;
+    long overTime = 0;
+    final long startTime = context.state.time;
+    long maxTime = 0;
+    int movedVehicles = 0;
+    final Set<ParcelDTO> parcels = newHashSet();
+
+    for (int i = 0; i < context.state.vehicles.size(); i++) {
+      final VehicleStateObject vso = context.state.vehicles.get(i);
+      checkArgument(r.isPresent() || vso.route.isPresent());
+
+      ImmutableList<ParcelDTO> route;
+      if (r.isPresent()) {
+        route = toDtoList(r.get().get(i));
+      } else {
+        route = vso.route.get();
+      }
+      parcels.addAll(route);
+
+      long time = context.state.time;
+      Point vehicleLocation = vso.location;
+      for (int j = 0; j < route.size(); j++) {
+        final ParcelDTO cur = route.get(j);
+        final boolean inCargo = vso.contents.contains(cur);
+        if (vso.destination != null) {
+          checkArgument(vso.destination == cur);
+        }
+
+        if (j == 0 && vso.remainingServiceTime > 0) {
+          // we are already at the service location
+          time += vso.remainingServiceTime;
+        } else {
+          // vehicle is not there yet, go there first, then service
+          final Point nextLoc = inCargo ? cur.destinationLocation
+              : cur.pickupLocation;
+          final Measure<Double, Length> distance = Measure.valueOf(
+              Point.distance(vehicleLocation, nextLoc), context.state.distUnit);
+          totalDistance += distance.getValue();
+          vehicleLocation = nextLoc;
+          final long tt = DoubleMath.roundToLong(
+              computeTravelTime(
+                  Measure.valueOf(vso.speed, context.state.speedUnit),
+                  distance, context.state.timeUnit), RoundingMode.CEILING);
+          time += tt;
+          time += inCargo ? cur.deliveryDuration : cur.pickupDuration;
+        }
+        if (inCargo) {
+          // delivering
+          if (cur.deliveryTimeWindow.isAfterEnd(time)) {
+            deliveryTardiness += time - cur.deliveryTimeWindow.end;
+          }
+          totalDeliveries++;
+        } else {
+          // picking up
+          if (cur.pickupTimeWindow.isAfterEnd(time)) {
+            pickupTardiness += time - cur.pickupTimeWindow.end;
+          }
+          totalPickups++;
+        }
+      }
+      // go to depot
+      final Measure<Double, Length> distance = Measure.valueOf(
+          Point.distance(vehicleLocation, vso.startPosition),
+          context.state.distUnit);
+      final long tt = DoubleMath.roundToLong(
+          computeTravelTime(
+              Measure.valueOf(vso.speed, context.state.speedUnit), distance,
+              context.state.timeUnit), RoundingMode.CEILING);
+      time += tt;
+      // check overtime
+      if (vso.availabilityTimeWindow.isAfterEnd(time)) {
+        overTime += time - vso.availabilityTimeWindow.end;
+      }
+      maxTime = Math.max(maxTime, time);
+
+      if (time > startTime) {
+        // time has progressed -> the vehicle has moved
+        movedVehicles++;
+      }
+    }
+
+    final int totalParcels = parcels.size();
+    final int totalVehicles = context.state.vehicles.size();
+    final long simulationTime = maxTime - startTime;
+
+    return new StatisticsDTO(totalDistance, totalPickups, totalDeliveries,
+        totalParcels, totalParcels, pickupTardiness, deliveryTardiness, 0,
+        simulationTime, true, totalVehicles, overTime, totalVehicles,
+        movedVehicles);
   }
 
   // converts the routes received from Solver.solve(..) into a format which is
@@ -186,14 +324,13 @@ public final class Solvers {
     @Nullable
     ImmutableList<ParcelDTO> r = null;
     if (route != null) {
-      r = toDtoList(route, pm);
+      r = toDtoList(route);
     }
     return new VehicleStateObject(vehicle.getDTO(), rm.getPosition(vehicle),
         contents.keySet(), remainingServiceTime, destination, r);
   }
 
-  static ImmutableList<ParcelDTO> toDtoList(Collection<DefaultParcel> parcels,
-      PDPModel pm) {
+  static ImmutableList<ParcelDTO> toDtoList(Collection<DefaultParcel> parcels) {
     final ImmutableList.Builder<ParcelDTO> builder = ImmutableList.builder();
     for (final DefaultParcel dp : parcels) {
       builder.add(dp.dto);
@@ -252,7 +389,7 @@ public final class Solvers {
      * solver internally.
      * @param parcels
      * @param currentRoute
-     * @return The {@link StateContext} containig the simulation state.
+     * @return The {@link StateContext} containing the simulation state.
      */
     StateContext convert(Collection<DefaultParcel> parcels,
         @Nullable ImmutableList<DefaultParcel> currentRoute);
