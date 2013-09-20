@@ -22,11 +22,14 @@ import rinde.sim.core.model.pdp.PDPModel;
 import rinde.sim.core.model.pdp.twpolicy.TardyAllowedPolicy;
 import rinde.sim.core.model.road.PlaneRoadModel;
 import rinde.sim.core.model.road.RoadModel;
+import rinde.sim.pdptw.common.DynamicPDPTWProblem.SimulationInfo;
 import rinde.sim.pdptw.common.DynamicPDPTWProblem.StopCondition;
 import rinde.sim.pdptw.common.DynamicPDPTWScenario;
 import rinde.sim.pdptw.common.PDPRoadModel;
 import rinde.sim.scenario.TimedEvent;
 import rinde.sim.util.TimeWindow;
+import rinde.sim.util.spec.Specification;
+import rinde.sim.util.spec.Specification.ISpecification;
 
 /**
  * 
@@ -80,9 +83,9 @@ public final class Gendreau06Scenario extends DynamicPDPTWScenario {
   }
 
   @Override
-  public StopCondition getStopCondition() {
-    return StopCondition.VEHICLES_BACK_AT_DEPOT
-        .and(StopCondition.TIME_OUT_EVENT);
+  public ISpecification<SimulationInfo> getStopCondition() {
+    return Specification.of(StopCondition.VEHICLES_BACK_AT_DEPOT)
+        .and(StopCondition.TIME_OUT_EVENT).build();
   }
 
   @Override

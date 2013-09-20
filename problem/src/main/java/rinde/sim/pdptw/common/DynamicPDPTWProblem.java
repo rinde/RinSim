@@ -35,8 +35,9 @@ import rinde.sim.ui.renderers.PlaneRoadModelRenderer;
 import rinde.sim.ui.renderers.Renderer;
 import rinde.sim.ui.renderers.RoadUserRenderer;
 import rinde.sim.ui.renderers.UiSchema;
-import rinde.sim.util.spec.CompositeSpecification;
-import rinde.sim.util.spec.ISpecification;
+import rinde.sim.util.spec.Specification;
+import rinde.sim.util.spec.Specification.ISpecification;
+import rinde.sim.util.spec.SpecificationTest.Spec;
 
 import com.google.common.collect.ImmutableMap;
 
@@ -113,7 +114,7 @@ public class DynamicPDPTWProblem {
    * The {@link StopCondition} which is used as the condition when the
    * simulation has to stop.
    */
-  protected StopCondition stopCondition;
+  protected ISpecification<SimulationInfo> stopCondition;
 
   /**
    * Create a new problem instance using the specified scenario.
@@ -206,8 +207,8 @@ public class DynamicPDPTWProblem {
    * same way.
    * @param condition The stop condition to add.
    */
-  public void addStopCondition(StopCondition condition) {
-    stopCondition = stopCondition.or(condition);
+  public void addStopCondition(ISpecification<SimulationInfo> condition) {
+    stopCondition = Specification.of(stopCondition).or(condition).build();
   }
 
   /**
@@ -275,16 +276,15 @@ public class DynamicPDPTWProblem {
      * @param event The {@link TimedEvent} instance that contains the event
      *          details.
      * @return <code>true</code> if the creation and adding of the object was
-     *         succesfully, <code>false</code> otherwise.
+     *         successful, <code>false</code> otherwise.
      */
     boolean create(Simulator sim, T event);
   }
 
   /**
    * This class contains default stop conditions which can be used in the
-   * problem. The class itself is an alias of {@link CompositeSpecification}. If
-   * you want to create your own stop condition you can do it in the following
-   * way:
+   * problem. If you want to create your own stop condition you can do it in the
+   * following way:
    * 
    * <pre>
    * StopCondition sc = new StopCondition() {
@@ -295,15 +295,13 @@ public class DynamicPDPTWProblem {
    * };
    * </pre>
    * 
-   * StopConditions can be composited into more complex conditions by using the
-   * {@link CompositeSpecification#and(ISpecification)},
-   * {@link CompositeSpecification#or(ISpecification)} and
-   * {@link CompositeSpecification#not()} methods.
-   * 
+   * StopConditions can be combined into more complex conditions by using
+   * {@link Specification#of(Spec)}.
    * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
    */
-  public abstract static class StopCondition extends
-      CompositeSpecification<SimulationInfo, StopCondition> {
+  public abstract static class StopCondition implements
+      ISpecification<SimulationInfo> {
+
     /**
      * The simulation is terminated once the
      * {@link rinde.sim.core.model.pdp.PDPScenarioEvent#TIME_OUT} event is
@@ -340,24 +338,6 @@ public class DynamicPDPTWProblem {
             || context.stats.deliveryTardiness > 0;
       }
     };
-
-    /**
-     * This method wraps any spec into a stop condition, as to make sure that
-     * all products of the <code>and, or</code> and <code>not</code> operations
-     * are always a StopCondition.
-     * @param spec The spec to wrap.
-     * @return The wrapped stop condition.
-     */
-    @Override
-    protected StopCondition wrap(
-        final ISpecification<SimulationInfo, StopCondition> spec) {
-      return new StopCondition() {
-        @Override
-        public boolean isSatisfiedBy(SimulationInfo context) {
-          return spec.isSatisfiedBy(context);
-        }
-      };
-    }
   }
 
   /**
