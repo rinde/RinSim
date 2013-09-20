@@ -10,6 +10,7 @@ import org.joda.time.format.PeriodFormatterBuilder;
  * nice string representatation: (D) HH:MM:SS.
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
  */
+@Deprecated
 public final class TimeFormatter {
 
   private static PeriodFormatter formatter = new PeriodFormatterBuilder()

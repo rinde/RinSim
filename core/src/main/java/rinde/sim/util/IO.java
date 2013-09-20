@@ -20,6 +20,7 @@ import java.util.zip.GZIPOutputStream;
  * @author Rinde van Lon (rinde.vanlon@cs.kuleuven.be)
  * 
  */
+@Deprecated
 public class IO {
 
   public static void serialize(final Serializable o, final String file) {

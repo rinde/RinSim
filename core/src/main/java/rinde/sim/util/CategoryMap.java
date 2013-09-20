@@ -29,10 +29,13 @@ import com.google.common.collect.Multiset;
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
  * 
  */
+// TODO better name: MultiBiMap ?
 public class CategoryMap<C, V> implements Multimap<C, V> {
 
   // TODO use Guava test tools
   // TODO do a benchmark to compare performance with ordinary multimap
+
+  // TODO use ForwardingMultimap<K, V>
 
   final Multimap<C, V> categoryValueMultiMap;
   final Map<V, C> valueCategoryMap;

@@ -31,16 +31,17 @@ import com.google.common.collect.Sets;
  * @author Rinde van Lon (rinde.vanlon@cs.kuleuven.be)
  * 
  */
+@Deprecated
 public class MapPreprocessor {
 
   private static <E extends ConnectionData> Graph<E> hack(Graph<E> graph) {
-    Graph<E> newGraph = new MultimapGraph<E>();
+    final Graph<E> newGraph = new MultimapGraph<E>();
     newGraph.merge(graph);
 
-    HashSet<Point> connected = new HashSet<Point>();
-    HashSet<Point> neighbors = new HashSet<Point>();
+    final HashSet<Point> connected = new HashSet<Point>();
+    final HashSet<Point> neighbors = new HashSet<Point>();
 
-    Point root = graph.getNodes().iterator().next();
+    final Point root = graph.getNodes().iterator().next();
     connected.add(root);
     neighbors.addAll(graph.getOutgoingConnections(root));
 
@@ -49,13 +50,13 @@ public class MapPreprocessor {
   }
 
   public static <E extends ConnectionData> Graph<E> connect2(Graph<E> graph) {
-    Graph<E> newGraph = new MultimapGraph<E>();
+    final Graph<E> newGraph = new MultimapGraph<E>();
     newGraph.merge(graph);
 
-    HashSet<Point> connected = new HashSet<Point>();
-    HashSet<Point> neighbors = new HashSet<Point>();
+    final HashSet<Point> connected = new HashSet<Point>();
+    final HashSet<Point> neighbors = new HashSet<Point>();
 
-    Point root = graph.getNodes().iterator().next();
+    final Point root = graph.getNodes().iterator().next();
     connected.add(root);
     neighbors.addAll(graph.getOutgoingConnections(root));
     fixCluster(newGraph, connected, neighbors, new HashSet<Point>());
@@ -63,13 +64,13 @@ public class MapPreprocessor {
     Set<Point> unconnected;
     while (!(unconnected = Sets.difference(newGraph.getNodes(), connected))
         .isEmpty()) {
-      Point p = unconnected.iterator().next();
+      final Point p = unconnected.iterator().next();
       System.out.println("unconnected: " + unconnected.size());
-      HashSet<Point> cluster = new HashSet<Point>(asList(p));
-      fixCluster(newGraph, cluster, new HashSet<Point>(
-          newGraph.getOutgoingConnections(p)), connected);
+      final HashSet<Point> cluster = new HashSet<Point>(asList(p));
+      fixCluster(newGraph, cluster,
+          new HashSet<Point>(newGraph.getOutgoingConnections(p)), connected);
       // System.out.println("cluster: " + cluster);
-      Tuple<Point, Point> pair = findClosestPair(cluster, connected);
+      final Tuple<Point, Point> pair = findClosestPair(cluster, connected);
 
       if (!isConnected(newGraph, cluster, connected)) {
         // System.out.println("not connection from cluster -> main");
@@ -103,14 +104,14 @@ public class MapPreprocessor {
       HashSet<Point> otherClusters) {
     // System.out.println(">> fixCluster");
     while (!neighbors.isEmpty()) {
-      Point n = neighbors.iterator().next();
+      final Point n = neighbors.iterator().next();
       assert n != null;
       // System.out.println(n);
       neighbors.remove(n);
       // if this point is also in a other cluster, we don't have to check
       // its neighbors
       if (!otherClusters.contains(n)) {
-        for (Point b : newGraph.getOutgoingConnections(n)) {
+        for (final Point b : newGraph.getOutgoingConnections(n)) {
           if (b != null && !connected.contains(b) && !neighbors.contains(b)) {
 
             neighbors.add(b);
@@ -135,9 +136,9 @@ public class MapPreprocessor {
   private static Point findClosest(Point n, Set<Point> set) {
     double minDist = Double.POSITIVE_INFINITY;
     Point closest = null;
-    for (Point p : set) {
+    for (final Point p : set) {
       assert p != null;
-      double dist = Point.distance(p, n);
+      final double dist = Point.distance(p, n);
       if (dist < minDist) {
         minDist = dist;
         closest = p;
@@ -151,9 +152,9 @@ public class MapPreprocessor {
       Set<Point> set2) {
     double minDist = Double.POSITIVE_INFINITY;
     Tuple<Point, Point> closestPair = null;
-    for (Point p : set1) {
-      Point c = findClosest(p, set2);
-      double dist = Point.distance(p, c);
+    for (final Point p : set1) {
+      final Point c = findClosest(p, set2);
+      final double dist = Point.distance(p, c);
       if (dist < minDist) {
         minDist = dist;
         closestPair = new Tuple<Point, Point>(p, c);
@@ -164,14 +165,14 @@ public class MapPreprocessor {
 
   private static <E extends ConnectionData> boolean isConnected(Graph<E> graph,
       Set<Point> set1, Set<Point> set2) {
-    HashSet<Point> visited = new HashSet<Point>();
-    HashSet<Point> queue = new HashSet<Point>();
+    final HashSet<Point> visited = new HashSet<Point>();
+    final HashSet<Point> queue = new HashSet<Point>();
     queue.addAll(set1);
     while (!queue.isEmpty()) {
-      Point b = queue.iterator().next();
+      final Point b = queue.iterator().next();
       queue.remove(b);
-      Collection<Point> neighbours = graph.getOutgoingConnections(b);
-      for (Point n : neighbours) {
+      final Collection<Point> neighbours = graph.getOutgoingConnections(b);
+      for (final Point n : neighbours) {
         if (set2.contains(n)) {
           return true;
         }
@@ -198,10 +199,10 @@ public class MapPreprocessor {
 
   public static <E extends ConnectionData> Graph<E> removeUnconnectedSubGraphs(
       Graph<E> graph, E empty) {
-    Graph<E> currentGraph = new TableGraph<E>(empty);
+    final Graph<E> currentGraph = new TableGraph<E>(empty);
     currentGraph.merge(graph);
 
-    List<Set<Point>> result = findNotFullyConnectedNodes(currentGraph);
+    final List<Set<Point>> result = findNotFullyConnectedNodes(currentGraph);
     int totalSize = 0;
     int biggestIndex = -1;
     int biggestSize = -1;
@@ -216,7 +217,7 @@ public class MapPreprocessor {
     for (int i = 0; i < result.size(); i++) {
       if (i != biggestIndex) {
         System.out.println("removing: " + i + " " + result.size());
-        for (Point p : result.get(i)) {
+        for (final Point p : result.get(i)) {
           currentGraph.removeNode(p);
         }
       }
@@ -234,7 +235,7 @@ public class MapPreprocessor {
   }
 
   public static <E extends ConnectionData> Graph<E> connect(Graph<E> graph) {
-    Graph<E> currentGraph = new MultimapGraph<E>();
+    final Graph<E> currentGraph = new MultimapGraph<E>();
     currentGraph.merge(graph);
 
     List<Set<Point>> result = findNotFullyConnectedNodes(currentGraph);
@@ -242,14 +243,14 @@ public class MapPreprocessor {
     boolean isFullyConnected = false;
     while (!isFullyConnected) {
 
-      Set<Point> unconnected = result.get(0);
-      Set<Point> connected = result.get(1);
+      final Set<Point> unconnected = result.get(0);
+      final Set<Point> connected = result.get(1);
 
       double minDist = Double.POSITIVE_INFINITY;
       Tuple<Point, Point> connection = null;
-      for (Point u : unconnected) {
-        for (Point c : connected) {
-          double dist = Point.distance(u, c);
+      for (final Point u : unconnected) {
+        for (final Point c : connected) {
+          final double dist = Point.distance(u, c);
           if (dist < minDist) {
             minDist = dist;
             connection = new Tuple<Point, Point>(u, c);
@@ -257,12 +258,12 @@ public class MapPreprocessor {
         }
       }
 
-      if (!currentGraph.hasConnection(connection.getKey(), connection
-          .getValue())) {
+      if (!currentGraph.hasConnection(connection.getKey(),
+          connection.getValue())) {
         currentGraph.addConnection(connection.getKey(), connection.getValue());
       }
-      if (!currentGraph.hasConnection(connection.getValue(), connection
-          .getKey())) {
+      if (!currentGraph.hasConnection(connection.getValue(),
+          connection.getKey())) {
         currentGraph.addConnection(connection.getValue(), connection.getKey());
       }
       result = findNotFullyConnectedNodes(currentGraph);
@@ -276,8 +277,8 @@ public class MapPreprocessor {
 
   private static <E extends ConnectionData> Set<Point> unseenNeighbours(
       Graph<E> g, Set<Point> seen, Set<Point> current) {
-    HashSet<Point> set = new HashSet<Point>();
-    for (Point p : current) {
+    final HashSet<Point> set = new HashSet<Point>();
+    for (final Point p : current) {
       set.addAll(g.getIncomingConnections(p));
       set.addAll(g.getOutgoingConnections(p));
     }
@@ -289,11 +290,11 @@ public class MapPreprocessor {
       Point from, Point to, Set<Point> subgraph) {
 
     Point cur = from;
-    Set<Point> seen = new HashSet<Point>();
+    final Set<Point> seen = new HashSet<Point>();
 
     while (true) {
       seen.add(cur);
-      Set<Point> ns = new HashSet<Point>(g.getOutgoingConnections(cur));
+      final Set<Point> ns = new HashSet<Point>(g.getOutgoingConnections(cur));
 
       ns.retainAll(subgraph);
       ns.removeAll(seen);
@@ -314,7 +315,7 @@ public class MapPreprocessor {
 
   public static <E extends ConnectionData> double getLength(Graph<E> g,
       Point from, Point to) {
-    E connectionData = g.connectionData(from, to);
+    final E connectionData = g.connectionData(from, to);
     if (connectionData == null || Double.isNaN(connectionData.getLength())) {
       return Point.distance(from, to);
     } else {
@@ -323,7 +324,7 @@ public class MapPreprocessor {
   }
 
   public static <E extends ConnectionData> Graph<E> simplify(Graph<E> g, E empty) {
-    TableGraph<E> newGraph = new TableGraph<E>(empty);
+    final TableGraph<E> newGraph = new TableGraph<E>(empty);
     newGraph.merge(g);
     boolean working = true;
 
@@ -334,44 +335,48 @@ public class MapPreprocessor {
       boolean edit = false;
       // System.out.println(newGraph.getConnections());
 
-      HashSet<Connection<E>> connections = new HashSet<Connection<E>>(
+      final HashSet<Connection<E>> connections = new HashSet<Connection<E>>(
           newGraph.getConnections());
-      HashSet<Connection<E>> removeList = new HashSet<Connection<E>>();
-      for (Connection<E> connection : connections) {
+      final HashSet<Connection<E>> removeList = new HashSet<Connection<E>>();
+      for (final Connection<E> connection : connections) {
         if (removeList.contains(connection)) {
           continue;
         }
-        Point left = connection.from;
-        Point right = connection.to;
+        final Point left = connection.from;
+        final Point right = connection.to;
 
-        ContractType type = isContractable(newGraph, left, right);
+        final ContractType type = isContractable(newGraph, left, right);
         // System.out.println(type + " " + left + " " + right);
         if (type == ContractType.NO) {
           continue;
         } else {
           // double length = getLength(newGraph, left, right);
 
-          E removeEdgeData = newGraph.connectionData(left, right);
-          double removeLength = newGraph.connectionLength(left, right);
+          final E removeEdgeData = newGraph.connectionData(left, right);
+          final double removeLength = newGraph.connectionLength(left, right);
           removeList.add(newGraph.getConnection(left, right));
           newGraph.removeConnection(left, right);
 
-          Point removeNode = (type == ContractType.RIGHT) ? right : left;
-          Point mergeNode = (type == ContractType.RIGHT) ? left : right;
+          final Point removeNode = (type == ContractType.RIGHT) ? right : left;
+          final Point mergeNode = (type == ContractType.RIGHT) ? left : right;
 
           // System.out.println("remove: " + removeNode);
           // System.out.println("merge into: " + mergeNode);
-          for (Point outgoing : newGraph.getOutgoingConnections(removeNode)) {
+          for (final Point outgoing : newGraph
+              .getOutgoingConnections(removeNode)) {
             if (!outgoing.equals(mergeNode)) {
-              E edgeData = newGraph.connectionData(removeNode, outgoing);
-              double edgeLength = newGraph
-                  .connectionLength(removeNode, outgoing);
+              final E edgeData = newGraph.connectionData(removeNode, outgoing);
+              final double edgeLength = newGraph.connectionLength(removeNode,
+                  outgoing);
               // double newLength = length + getLength(newGraph,
               // removeNode, outgoing);
 
               if (!newGraph.hasConnection(mergeNode, outgoing)) {
-                newGraph
-                    .addConnection(mergeNode, outgoing, mergeEdgeData(empty, removeEdgeData, removeLength, edgeData, edgeLength));
+                newGraph.addConnection(
+                    mergeNode,
+                    outgoing,
+                    mergeEdgeData(empty, removeEdgeData, removeLength,
+                        edgeData, edgeLength));
               }
               // if (clazz.equals(LengthEdgeData.class)) {
               // newGraph.addConnection(mergeNode, outgoing, (E)
@@ -395,17 +400,21 @@ public class MapPreprocessor {
               // }
             }
           }
-          for (Point incoming : newGraph.getIncomingConnections(removeNode)) {
+          for (final Point incoming : newGraph
+              .getIncomingConnections(removeNode)) {
             if (!incoming.equals(mergeNode)) {
-              E edgeData = newGraph.connectionData(incoming, removeNode);
-              double edgeLength = newGraph
-                  .connectionLength(incoming, removeNode);
+              final E edgeData = newGraph.connectionData(incoming, removeNode);
+              final double edgeLength = newGraph.connectionLength(incoming,
+                  removeNode);
 
               // double newLength = length + getLength(newGraph,
               // incoming, removeNode);
               if (!newGraph.hasConnection(incoming, mergeNode)) {
-                newGraph
-                    .addConnection(incoming, mergeNode, mergeEdgeData(empty, edgeData, edgeLength, removeEdgeData, removeLength));
+                newGraph.addConnection(
+                    incoming,
+                    mergeNode,
+                    mergeEdgeData(empty, edgeData, edgeLength, removeEdgeData,
+                        removeLength));
               }
               // if (clazz.equals(LengthEdgeData.class)) {
               //
@@ -418,12 +427,14 @@ public class MapPreprocessor {
             }
           }
 
-          Collection<Point> in = newGraph.getIncomingConnections(removeNode);
-          for (Point p : in) {
+          final Collection<Point> in = newGraph
+              .getIncomingConnections(removeNode);
+          for (final Point p : in) {
             removeList.add(newGraph.getConnection(p, removeNode));
           }
-          Collection<Point> out = newGraph.getOutgoingConnections(removeNode);
-          for (Point p : out) {
+          final Collection<Point> out = newGraph
+              .getOutgoingConnections(removeNode);
+          for (final Point p : out) {
             removeList.add(newGraph.getConnection(removeNode, p));
           }
 
@@ -459,48 +470,52 @@ public class MapPreprocessor {
   // TODO fix this method to also take the EdgeData into account
   static ContractType isContractable(Graph<? extends ConnectionData> g,
       Point node1, Point node2) {
-    boolean n12 = g.getOutgoingConnections(node1).contains(node2);
-    boolean n21 = g.getOutgoingConnections(node2).contains(node1);
+    final boolean n12 = g.getOutgoingConnections(node1).contains(node2);
+    final boolean n21 = g.getOutgoingConnections(node2).contains(node1);
 
     if (!(n12 || n21)) {
       throw new IllegalArgumentException(
           "There is no connection between the nodes.");
     }
-    boolean bidi1 = n12 && n21;
+    final boolean bidi1 = n12 && n21;
     boolean bidi0 = false, bidi2 = false;
 
-    Set<Point> outgoing1 = new HashSet<Point>(g.getOutgoingConnections(node1));
-    Set<Point> incoming1 = new HashSet<Point>(g.getIncomingConnections(node1));
+    final Set<Point> outgoing1 = new HashSet<Point>(
+        g.getOutgoingConnections(node1));
+    final Set<Point> incoming1 = new HashSet<Point>(
+        g.getIncomingConnections(node1));
     outgoing1.remove(node2);
     incoming1.remove(node2);
 
-    Set<Point> outgoing2 = new HashSet<Point>(g.getOutgoingConnections(node2));
-    Set<Point> incoming2 = new HashSet<Point>(g.getIncomingConnections(node2));
+    final Set<Point> outgoing2 = new HashSet<Point>(
+        g.getOutgoingConnections(node2));
+    final Set<Point> incoming2 = new HashSet<Point>(
+        g.getIncomingConnections(node2));
     outgoing2.remove(node1);
     incoming2.remove(node1);
 
-    Set<Point> neighbors1 = new HashSet<Point>();
+    final Set<Point> neighbors1 = new HashSet<Point>();
     neighbors1.addAll(outgoing1);
     neighbors1.addAll(incoming1);
 
     if (neighbors1.size() == 1) {
-      Point node0 = neighbors1.iterator().next();
+      final Point node0 = neighbors1.iterator().next();
       bidi0 = outgoing1.contains(node0) && incoming1.contains(node0);
     }
 
-    Set<Point> neighbors2 = new HashSet<Point>();
+    final Set<Point> neighbors2 = new HashSet<Point>();
     neighbors2.addAll(outgoing2);
     neighbors2.addAll(incoming2);
 
     if (neighbors2.size() == 1) {
-      Point node3 = neighbors2.iterator().next();
+      final Point node3 = neighbors2.iterator().next();
       bidi2 = outgoing2.contains(node3) && incoming2.contains(node3);
     }
 
     if (neighbors1.size() != 1 && neighbors2.size() != 1) {
       return ContractType.NO;
     } else if (neighbors1.size() == 1 && neighbors2.size() == 1) {
-      boolean sameneigh = neighbors1.iterator().next()
+      final boolean sameneigh = neighbors1.iterator().next()
           .equals(neighbors2.iterator().next());
 
       if (sameneigh) {
@@ -535,41 +550,41 @@ public class MapPreprocessor {
           "Graph may not be null and must contain at least one node.");
     }
     // just get a 'random' starting point
-    return findNotFullyConnectedNodes(graph, new ArrayList<Point>(
-        graph.getNodes()).get(0));
+    return findNotFullyConnectedNodes(graph,
+        new ArrayList<Point>(graph.getNodes()).get(0));
   }
 
   public static <E extends ConnectionData> List<Set<Point>> findNotFullyConnectedNodes(
       Graph<E> graph, Point root) {
 
-    HashSet<Point> fullyConnectedSet = new HashSet<Point>();
-    HashSet<Point> neighbours = new HashSet<Point>();
-    HashSet<Point> notConnectedSet = new HashSet<Point>();
+    final HashSet<Point> fullyConnectedSet = new HashSet<Point>();
+    final HashSet<Point> neighbours = new HashSet<Point>();
+    final HashSet<Point> notConnectedSet = new HashSet<Point>();
 
     fullyConnectedSet.add(root);
     neighbours.addAll(graph.getOutgoingConnections(root));
 
     while (!neighbours.isEmpty()) {
       List<Point> path = null;
-      Point current = neighbours.iterator().next();
+      final Point current = neighbours.iterator().next();
       neighbours.remove(current);
       if (graph.containsNode(current)) {
         try {
           path = Graphs.shortestPathEuclideanDistance(graph, current, root);
-        } catch (PathNotFoundException e) {/*
-                                            * this is intentionally empty
-                                            */}
+        } catch (final PathNotFoundException e) {/*
+                                                  * this is intentionally empty
+                                                  */}
       }
 
       if (path == null) {
         notConnectedSet.add(current);
       } else {
-        for (Point p : path) {
+        for (final Point p : path) {
           fullyConnectedSet.add(p);
           if (neighbours.contains(p)) {
             neighbours.remove(p);
           }
-          for (Point q : graph.getOutgoingConnections(p)) {
+          for (final Point q : graph.getOutgoingConnections(p)) {
             if (!fullyConnectedSet.contains(q)) {
               neighbours.add(q);
             }
@@ -577,7 +592,7 @@ public class MapPreprocessor {
         }
       }
     }
-    for (Point p : graph.getNodes()) {
+    for (final Point p : graph.getNodes()) {
       if (!fullyConnectedSet.contains(p)) {
         notConnectedSet.add(p);
       }
@@ -594,18 +609,18 @@ public class MapPreprocessor {
   // osm-files. All .dot output is written in dot-files.
   public static void main(String[] args) throws FileNotFoundException,
       IOException {
-    DotGraphSerializer<MultiAttributeData> serializer = DotGraphSerializer
+    final DotGraphSerializer<MultiAttributeData> serializer = DotGraphSerializer
         .getMultiAttributeGraphSerializer();
 
-    String name = args[0];// "wroclaw";
+    final String name = args[0];// "wroclaw";
 
     System.out.println(name);
-    Graph<MultiAttributeData> g = OSM.parse("osm-files/" + name + ".osm");
+    final Graph<MultiAttributeData> g = OSM.parse("osm-files/" + name + ".osm");
     serializer.write(g, "dot-files/" + name + "-raw.dot");
     System.out.println(g);
 
-    long startRead = System.currentTimeMillis();
-    Graph<MultiAttributeData> g2 = serializer.read("dot-files/" + name
+    final long startRead = System.currentTimeMillis();
+    final Graph<MultiAttributeData> g2 = serializer.read("dot-files/" + name
         + "-raw.dot");
     System.out.println("loading took: "
         + (System.currentTimeMillis() - startRead));
@@ -615,14 +630,14 @@ public class MapPreprocessor {
     System.out.println("(V,E) = (" + graph.getNumberOfNodes() + ","
         + graph.getNumberOfConnections() + ")");
 
-    long startSimplify = System.currentTimeMillis();
+    final long startSimplify = System.currentTimeMillis();
     graph = MapPreprocessor.simplify(graph, MultiAttributeData.EMPTY);
     System.out.println("simplifying took: "
         + (System.currentTimeMillis() - startSimplify));
 
-    long startFix = System.currentTimeMillis();
-    graph = MapPreprocessor
-        .removeUnconnectedSubGraphs(graph, MultiAttributeData.EMPTY);
+    final long startFix = System.currentTimeMillis();
+    graph = MapPreprocessor.removeUnconnectedSubGraphs(graph,
+        MultiAttributeData.EMPTY);
     System.out.println("fixing took: "
         + (System.currentTimeMillis() - startFix));
     serializer.write(graph, "dot-files/" + name + "-simple.dot");

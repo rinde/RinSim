@@ -23,6 +23,7 @@ import rinde.sim.core.graph.TableGraph;
  * @author Rinde van Lon (rinde.vanlon@cs.kuleuven.be)
  * 
  */
+@Deprecated
 public class DotUtils {
 
   public static <E extends ConnectionData> void saveToDot(Graph<E> mp,

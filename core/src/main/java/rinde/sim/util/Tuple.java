@@ -5,6 +5,7 @@ import java.util.Map.Entry;
 /**
  * @author Rinde van Lon (rinde.vanlon@cs.kuleuven.be)
  */
+@Deprecated
 public class Tuple<K, V> implements Entry<K, V> {
   protected K key;
   protected V value;

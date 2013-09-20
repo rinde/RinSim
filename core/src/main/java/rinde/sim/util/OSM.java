@@ -27,6 +27,7 @@ import rinde.sim.core.graph.TableGraph;
  * @author Rinde van Lon (rinde.vanlon@cs.kuleuven.be)
  * 
  */
+@Deprecated
 public class OSM {
 
   static HashSet<String> highwayNames = new HashSet<String>();
@@ -199,8 +200,13 @@ public class OSM {
   static class WayParser extends DefaultHandler {
 
     protected final HashSet<String> highwayTypes = new HashSet<String>(
-        Arrays
-            .asList("motorway", "motorway_link", "trunk", "trunk_link", "primary", "primary_link", "motorway_junction", "secondary", "secondary_link", "tertiary", "road", "living_street", "residental", "residential", "residential;unclassified", "crossing", "ditch", "unclassified", "raceway", "path", "turning_circle", "track", "trunk_link", "trunk", "platform", "minor"));
+        Arrays.asList("motorway", "motorway_link", "trunk", "trunk_link",
+            "primary", "primary_link", "motorway_junction", "secondary",
+            "secondary_link", "tertiary", "road", "living_street",
+            "residental", "residential", "residential;unclassified",
+            "crossing", "ditch", "unclassified", "raceway", "path",
+            "turning_circle", "track", "trunk_link", "trunk", "platform",
+            "minor"));
     // what about 'unclassified'?
 
     protected final HashSet<String> junctionTypes = new HashSet<String>(
