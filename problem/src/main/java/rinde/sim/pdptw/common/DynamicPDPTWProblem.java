@@ -37,7 +37,6 @@ import rinde.sim.ui.renderers.RoadUserRenderer;
 import rinde.sim.ui.renderers.UiSchema;
 import rinde.sim.util.spec.Specification;
 import rinde.sim.util.spec.Specification.ISpecification;
-import rinde.sim.util.spec.SpecificationTest.Spec;
 
 import com.google.common.collect.ImmutableMap;
 
