@@ -166,6 +166,16 @@ public class SolversTest {
     }
   }
 
+  @Test
+  public void test() {
+
+    // new GlobalStateObject(availableParcels, vehicles, time, timeUnit,
+    // speedUnit, distUnit)
+
+    // Solvers.computeStats(context, routes)
+
+  }
+
   static Set<ParcelDTO> toParcelDTOs(Collection<? extends Parcel> ps) {
     final ImmutableSet.Builder<ParcelDTO> builder = ImmutableSet.builder();
     for (final Parcel p : ps) {
