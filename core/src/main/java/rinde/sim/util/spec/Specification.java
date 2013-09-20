@@ -41,6 +41,7 @@ public final class Specification {
    * Start creating a new {@link ISpecification} instance using the specified
    * instance as a base.
    * @param base The {@link ISpecification} to use as base.
+   * @param <T> The type of specification.
    * @return A reference to a builder for creating {@link ISpecification}
    *         instances.
    */
@@ -145,7 +146,7 @@ public final class Specification {
     }
   }
 
-  final static class AndSpecification<T> implements ISpecification<T> {
+  static final class AndSpecification<T> implements ISpecification<T> {
     private final ISpecification<T> spec1;
     private final ISpecification<T> spec2;
 
@@ -160,7 +161,7 @@ public final class Specification {
     }
   }
 
-  final static class OrSpecification<T> implements ISpecification<T> {
+  static final class OrSpecification<T> implements ISpecification<T> {
     private final ISpecification<T> spec1;
     private final ISpecification<T> spec2;
 
@@ -175,7 +176,7 @@ public final class Specification {
     }
   }
 
-  final static class NotSpecification<T> implements ISpecification<T> {
+  static final class NotSpecification<T> implements ISpecification<T> {
     private final ISpecification<T> spec;
 
     NotSpecification(ISpecification<T> specification) {
@@ -188,7 +189,7 @@ public final class Specification {
     }
   }
 
-  final static class XorSpecification<T> implements ISpecification<T> {
+  static final class XorSpecification<T> implements ISpecification<T> {
     private final ISpecification<T> spec1;
     private final ISpecification<T> spec2;
 
@@ -202,5 +203,4 @@ public final class Specification {
       return spec1.isSatisfiedBy(context) != spec2.isSatisfiedBy(context);
     }
   }
-
 }
