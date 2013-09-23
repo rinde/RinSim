@@ -52,6 +52,7 @@ final class StatsTracker {
   final EventDispatcher eventDispatcher;
   final TheListener theListener;
   final Simulator simulator;
+  final RoadModel roadModel;
 
   enum StatisticsEventType {
     PICKUP_TARDINESS, DELIVERY_TARDINESS, ALL_VEHICLES_AT_DEPOT;
@@ -64,9 +65,9 @@ final class StatsTracker {
     scenContr.getEventAPI().addListener(theListener, SCENARIO_STARTED,
         SCENARIO_FINISHED, ADD_DEPOT, ADD_PARCEL, ADD_VEHICLE, TIME_OUT);
     simulator.getEventAPI().addListener(theListener, STARTED, STOPPED);
-    Optional
-        .fromNullable(simulator.getModelProvider().getModel(RoadModel.class))
-        .get().getEventAPI().addListener(theListener, MOVE);
+    roadModel = Optional.fromNullable(
+        simulator.getModelProvider().getModel(RoadModel.class)).get();
+    roadModel.getEventAPI().addListener(theListener, MOVE);
     Optional
         .fromNullable(simulator.getModelProvider().getModel(PDPModel.class))
         .get()
@@ -103,7 +104,9 @@ final class StatsTracker {
         theListener.totalParcels, theListener.acceptedParcels,
         theListener.pickupTardiness, theListener.deliveryTardiness, compTime,
         simulator.getCurrentTime(), theListener.simFinish, vehicleBack,
-        overTime, theListener.totalVehicles, theListener.distanceMap.size());
+        overTime, theListener.totalVehicles, theListener.distanceMap.size(),
+        simulator.getTimeUnit(), roadModel.getDistanceUnit(),
+        roadModel.getSpeedUnit());
   }
 
   class TheListener implements Listener {

@@ -3,6 +3,10 @@ package rinde.sim.pdptw.common;
 import java.io.Serializable;
 
 import javax.annotation.Nullable;
+import javax.measure.quantity.Duration;
+import javax.measure.quantity.Length;
+import javax.measure.quantity.Velocity;
+import javax.measure.unit.Unit;
 
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
@@ -20,6 +24,25 @@ import com.google.common.base.Objects;
  */
 public class StatisticsDTO implements Serializable {
   private static final long serialVersionUID = 1968951252238291733L;
+
+  /**
+   * The time unit that is used in the simulation that generated this statistics
+   * object.
+   */
+  public final Unit<Duration> timeUnit;
+
+  /**
+   * The distance unit that is used in the simulation that generated this
+   * statistics object.
+   */
+  public final Unit<Length> distanceUnit;
+
+  /**
+   * The speed unit that is used in the simulation that generated this
+   * statistics object.
+   */
+  public final Unit<Velocity> speedUnit;
+
   /**
    * The cumulative distance all vehicle have traveled.
    */
@@ -94,10 +117,14 @@ public class StatisticsDTO implements Serializable {
    * @param overT {@link #overTime}.
    * @param total {@link #totalVehicles}.
    * @param moved {@link #movedVehicles}.
+   * @param time {@link #timeUnit}.
+   * @param distUnit {@link #distanceUnit}.
+   * @param speed {@link #speedUnit}.
    */
   public StatisticsDTO(double dist, int pick, int del, int parc, int accP,
       long pickTar, long delTar, long compT, long simT, boolean finish,
-      int atDepot, long overT, int total, int moved) {
+      int atDepot, long overT, int total, int moved, Unit<Duration> time,
+      Unit<Length> distUnit, Unit<Velocity> speed) {
     totalDistance = dist;
     totalPickups = pick;
     totalDeliveries = del;
@@ -112,6 +139,9 @@ public class StatisticsDTO implements Serializable {
     overTime = overT;
     totalVehicles = total;
     movedVehicles = moved;
+    timeUnit = time;
+    distanceUnit = distUnit;
+    speedUnit = speed;
   }
 
   @Override
