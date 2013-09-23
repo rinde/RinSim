@@ -47,8 +47,8 @@ public class RandomWalkExample {
     final String MAP_DIR = "../core/files/maps/";
     // create a new simulator, load map of Leuven
     final RandomGenerator rand = new MersenneTwister(123);
-    final Simulator simulator = new Simulator(rand, Measure.valueOf(1000L, SI
-        .MILLI(SI.SECOND)));
+    final Simulator simulator = new Simulator(rand, Measure.valueOf(1000L,
+        SI.MILLI(SI.SECOND)));
     final Graph<MultiAttributeData> graph = DotGraphSerializer
         .getMultiAttributeGraphSerializer(new SelfCycleFilter())
         // .read("/Users/rindevanlon/Downloads/dot-files/brussels.dot");
@@ -84,8 +84,8 @@ public class RandomWalkExample {
     // schema.add(Package.class, new RGB(0x0, 0x0, 0xFF));
 
     // View.setTestingMode(true);
-    View.startGui(simulator, 5, new GraphRoadModelRenderer(20), new FancyRenderer(), new RoadUserRenderer(
-        schema, false));
+    View.startGui(simulator, 5, new GraphRoadModelRenderer(20, false),
+        new FancyRenderer(), new RoadUserRenderer(schema, false));
   }
 
   static class FancyRenderer implements ModelRenderer {
@@ -130,8 +130,8 @@ public class RandomWalkExample {
           final int x = vp.toCoordX(entry.getValue().x);
           final int y = vp.toCoordY(entry.getValue().y);
 
-          final List<RandomWalkAgent> list = RoadModels
-              .findClosestObjects(entry.getValue(), rm, RandomWalkAgent.class, 3);
+          final List<RandomWalkAgent> list = RoadModels.findClosestObjects(
+              entry.getValue(), rm, RandomWalkAgent.class, 3);
 
           for (final RandomWalkAgent rwa : list) {
             final Point p = rm.getPosition(rwa);

@@ -8,29 +8,36 @@ import java.util.Collection;
 import rinde.sim.core.TimeLapse;
 import rinde.sim.core.graph.Point;
 import rinde.sim.core.model.pdp.PDPModel;
+import rinde.sim.core.model.pdp.PDPModel.ParcelState;
 import rinde.sim.core.model.pdp.Parcel;
 import rinde.sim.core.model.pdp.Vehicle;
 import rinde.sim.core.model.road.RoadModel;
+
+import com.google.common.base.Optional;
 
 /**
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
  * 
  */
-public class ExampleTruck extends Vehicle {
+class ExampleTruck extends Vehicle {
 
-  protected RoadModel roadModel;
-  protected PDPModel pdpModel;
+  private static final double SPEED = 1000d;
 
-  protected Parcel curr;
+  private Optional<RoadModel> roadModel;
+  private Optional<PDPModel> pdpModel;
+  private Optional<Parcel> curr;
 
-  public ExampleTruck(Point startPosition, double capacity) {
+  ExampleTruck(Point startPosition, double capacity) {
     setStartPosition(startPosition);
     setCapacity(capacity);
+    roadModel = Optional.absent();
+    pdpModel = Optional.absent();
+    curr = Optional.absent();
   }
 
   @Override
   public double getSpeed() {
-    return 1000;
+    return SPEED;
   }
 
   @Override
@@ -38,41 +45,41 @@ public class ExampleTruck extends Vehicle {
 
   @Override
   protected void tickImpl(TimeLapse time) {
-    final Collection<Parcel> parcels = pdpModel.getAvailableParcels();
-
-    if (pdpModel.getContents(this).isEmpty()) {
-      if (!parcels.isEmpty() && curr == null) {
+    if (pdpModel.get().getContents(this).isEmpty()) {
+      final Collection<Parcel> parcels = pdpModel.get().getParcels(
+          ParcelState.AVAILABLE);
+      if (!parcels.isEmpty() && !curr.isPresent()) {
         double dist = Double.POSITIVE_INFINITY;
         for (final Parcel p : parcels) {
-          final double d = Point
-              .distance(roadModel.getPosition(this), roadModel.getPosition(p));
+          final double d = Point.distance(roadModel.get().getPosition(this),
+              roadModel.get().getPosition(p));
           if (d < dist) {
             dist = d;
-            curr = p;
+            curr = Optional.of(p);
           }
         }
       }
 
-      if (curr != null && roadModel.containsObject(curr)) {
-        roadModel.moveTo(this, curr, time);
+      if (curr.isPresent() && roadModel.get().containsObject(curr.get())) {
+        roadModel.get().moveTo(this, curr.get(), time);
 
-        if (roadModel.equalPosition(this, curr)) {
-          pdpModel.pickup(this, curr, time);
+        if (roadModel.get().equalPosition(this, curr.get())) {
+          pdpModel.get().pickup(this, curr.get(), time);
         }
       } else {
-        curr = null;
+        curr = Optional.absent();
       }
     } else {
-      roadModel.moveTo(this, curr.getDestination(), time);
-      if (roadModel.getPosition(this).equals(curr.getDestination())) {
-        pdpModel.deliver(this, curr, time);
+      roadModel.get().moveTo(this, curr.get().getDestination(), time);
+      if (roadModel.get().getPosition(this).equals(curr.get().getDestination())) {
+        pdpModel.get().deliver(this, curr.get(), time);
       }
     }
   }
 
   @Override
   public void initRoadPDP(RoadModel pRoadModel, PDPModel pPdpModel) {
-    roadModel = pRoadModel;
-    pdpModel = pPdpModel;
+    roadModel = Optional.of(pRoadModel);
+    pdpModel = Optional.of(pPdpModel);
   }
 }
