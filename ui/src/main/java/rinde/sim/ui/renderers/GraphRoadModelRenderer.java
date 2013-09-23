@@ -16,26 +16,47 @@ import rinde.sim.core.graph.Point;
 import rinde.sim.core.model.ModelProvider;
 import rinde.sim.core.model.road.GraphRoadModel;
 
+import com.google.common.base.Optional;
+
 /**
  * 
  * @author Rinde van Lon (rinde.vanlon@cs.kuleuven.be)
  * 
  */
-public class GraphRoadModelRenderer implements ModelRenderer {
-  protected GraphRoadModel grm;
-  protected final int margin;
+public final class GraphRoadModelRenderer implements ModelRenderer {
 
-  public GraphRoadModelRenderer(int pMargin) {
+  private static final int NODE_RADIUS = 2;
+  private static final Point RELATIVE_TEXT_POSITION = new Point(4, -14);
+
+  private GraphRoadModel grm;
+  private final int margin;
+  private final boolean showNodes;
+
+  public GraphRoadModelRenderer(int pMargin, boolean pShowNodes) {
     margin = pMargin;
+    showNodes = pShowNodes;
   }
 
   public GraphRoadModelRenderer() {
-    this(20);
+    this(20, false);
   }
 
   @Override
   public void renderStatic(GC gc, ViewPort vp) {
     final Graph<? extends ConnectionData> graph = grm.getGraph();
+
+    if (showNodes) {
+      for (final Point node : graph.getNodes()) {
+        final int x1 = vp.toCoordX(node.x) - NODE_RADIUS;
+        final int y1 = vp.toCoordY(node.y) - NODE_RADIUS;
+        final int size = NODE_RADIUS * 2;
+        gc.setBackground(gc.getDevice().getSystemColor(SWT.COLOR_RED));
+        gc.fillOval(x1, y1, size, size);
+        gc.setForeground(gc.getDevice().getSystemColor(SWT.COLOR_BLACK));
+        gc.drawString(node.toString(), x1 + (int) RELATIVE_TEXT_POSITION.x, y1
+            + (int) RELATIVE_TEXT_POSITION.y, true);
+      }
+    }
     for (final Connection<? extends ConnectionData> e : graph.getConnections()) {
       final int x1 = vp.toCoordX(e.from.x);
       final int y1 = vp.toCoordY(e.from.y);
@@ -74,7 +95,6 @@ public class GraphRoadModelRenderer implements ModelRenderer {
 
   @Override
   public void registerModelProvider(ModelProvider mp) {
-    grm = mp.getModel(GraphRoadModel.class);
+    grm = Optional.fromNullable(mp.getModel(GraphRoadModel.class)).get();
   }
-
 }
