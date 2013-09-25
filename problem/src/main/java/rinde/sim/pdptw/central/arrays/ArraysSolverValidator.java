@@ -572,10 +572,8 @@ public final class ArraysSolverValidator {
        */
       checkArgument(sol.arrivalTimes.length == sol.route.length,
           "Number of arrival times should equal number of locations.");
-      checkArgument(
-          sol.arrivalTimes[0] == 0 /* remainingServiceTimes[v] */,
-          "The first arrival time should be the remaining service time for this vehicle, expected %s, was %s.",
-          remainingServiceTimes[v], sol.arrivalTimes[0]);
+      checkArgument(sol.arrivalTimes[0] == 0,
+          "The first arrival time should be 0, was %s.", sol.arrivalTimes[0]);
 
       // check feasibility
       final int[] minArrivalTimes = ArraysSolvers.computeArrivalTimes(
