@@ -10,23 +10,16 @@ import static org.junit.Assert.assertTrue;
 import java.io.IOException;
 
 import javax.measure.converter.UnitConverter;
-import javax.measure.quantity.Duration;
 import javax.measure.unit.NonSI;
-import javax.measure.unit.Unit;
 
 import org.apache.commons.math3.random.MersenneTwister;
 import org.apache.commons.math3.random.RandomGenerator;
 import org.junit.Test;
 
-import rinde.sim.pdptw.central.Central.SolverCreator;
 import rinde.sim.pdptw.central.Solvers.ExtendedStats;
-import rinde.sim.pdptw.central.arrays.ArraysSolverDebugger;
 import rinde.sim.pdptw.central.arrays.ArraysSolverDebugger.MVASDebugger;
-import rinde.sim.pdptw.central.arrays.ArraysSolverValidator;
 import rinde.sim.pdptw.central.arrays.ArraysSolvers;
 import rinde.sim.pdptw.central.arrays.ArraysSolvers.MVArraysObject;
-import rinde.sim.pdptw.central.arrays.MultiVehicleSolverAdapter;
-import rinde.sim.pdptw.central.arrays.RandomMVArraysSolver;
 import rinde.sim.pdptw.central.arrays.SolutionObject;
 import rinde.sim.pdptw.common.DynamicPDPTWScenario;
 import rinde.sim.pdptw.common.ParcelDTO;
@@ -60,8 +53,8 @@ public class SolverSimTest {
     final RandomGenerator rng = new MersenneTwister(123);
     for (int i = 0; i < 50; i++) {
       final long seed = rng.nextLong();
-      final DebugSolverCreator dsc = new DebugSolverCreator(
-          scenario.getTimeUnit(), seed);
+      final DebugSolverCreator dsc = new DebugSolverCreator(seed,
+          scenario.getTimeUnit());
       final Gendreau06ObjectiveFunction obj = new Gendreau06ObjectiveFunction();
       final ExperimentResults results = Experiment.build(obj)
           .addConfigurator(Central.solverConfigurator(dsc))
@@ -108,8 +101,8 @@ public class SolverSimTest {
     final DynamicPDPTWScenario scenario = Gendreau06Parser.parse(
         "files/test/gendreau06/req_rapide_1_240_24", 10);
 
-    final DebugSolverCreator dsc = new DebugSolverCreator(
-        scenario.getTimeUnit(), 123);
+    final DebugSolverCreator dsc = new DebugSolverCreator(123,
+        scenario.getTimeUnit());
 
     final Gendreau06ObjectiveFunction obj = new Gendreau06ObjectiveFunction();
     Experiment.build(obj).addConfigurator(Central.solverConfigurator(dsc))
@@ -203,22 +196,5 @@ public class SolverSimTest {
       }
     }
     return overTime;
-  }
-
-  static class DebugSolverCreator implements SolverCreator {
-    final MVASDebugger arraysSolver;
-    final SolverDebugger solver;
-
-    public DebugSolverCreator(Unit<Duration> timeUnit, long seed) {
-      arraysSolver = ArraysSolverDebugger.wrap(ArraysSolverValidator
-          .wrap(new RandomMVArraysSolver(new MersenneTwister(seed))), false);
-      solver = SolverDebugger.wrap(SolverValidator
-          .wrap(new MultiVehicleSolverAdapter(arraysSolver, timeUnit)), false);
-    }
-
-    @Override
-    public Solver create(long seed) {
-      return solver;
-    }
   }
 }
