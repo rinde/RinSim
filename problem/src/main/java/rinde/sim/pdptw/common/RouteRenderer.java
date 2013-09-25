@@ -21,6 +21,7 @@ import rinde.sim.ui.renderers.ViewPort;
 import rinde.sim.ui.renderers.ViewRect;
 
 import com.google.common.base.Optional;
+import com.google.common.collect.ImmutableList;
 
 /**
  * A renderer that draws the route for any {@link RouteFollowingVehicle}s that
@@ -54,7 +55,7 @@ public class RouteRenderer implements CanvasRenderer, ModelReceiver {
       int prevX = vp.toCoordX(from.x);
       int prevY = vp.toCoordY(from.y);
 
-      for (final DefaultParcel parcel : v.getRoute()) {
+      for (final DefaultParcel parcel : ImmutableList.copyOf(v.getRoute())) {
         Point to;
         if (pm.get().getParcelState(parcel).isPickedUp()
             || seen.contains(parcel)) {
