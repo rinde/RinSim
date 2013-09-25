@@ -188,7 +188,10 @@ public final class Solvers {
             || seen.contains(cur);
         seen.add(cur);
         if (vso.destination != null && j == 0) {
-          checkArgument(vso.destination == cur);
+          checkArgument(
+              vso.destination == cur,
+              "If a vehicle has a destination, the first position in the route must equal this. Expected %s, is %s.",
+              vso.destination, cur);
         }
 
         boolean firstAndServicing = false;
@@ -277,20 +280,37 @@ public final class Solvers {
         arrivalTimesBuilder.build());
   }
 
-  // only used for testing
-  static class ExtendedStats extends StatisticsDTO {
-    private static final long serialVersionUID = 3682772955122186862L;
-    final ImmutableList<ImmutableList<Long>> arrivalTimes;
-
-    ExtendedStats(double dist, int pick, int del, int parc, int accP,
-        long pickTar, long delTar, long compT, long simT, boolean finish,
-        int atDepot, long overT, int total, int moved, Unit<Duration> time,
-        Unit<Length> distUnit, Unit<Velocity> speed,
-        ImmutableList<ImmutableList<Long>> arrivalTimes) {
-      super(dist, pick, del, parc, accP, pickTar, delTar, compT, simT, finish,
-          atDepot, overT, total, moved, time, distUnit, speed);
-      this.arrivalTimes = arrivalTimes;
+  /**
+   * Converts the specified collection containing {@link DefaultParcel}s into an
+   * {@link ImmutableList} of {@link ParcelDTO}s.
+   * @param parcels The parcels to convert.
+   * @return A list of {@link ParcelDTO}s in the same order as in the provided
+   *         collection.
+   */
+  public static ImmutableList<ParcelDTO> toDtoList(
+      Collection<DefaultParcel> parcels) {
+    final ImmutableList.Builder<ParcelDTO> builder = ImmutableList.builder();
+    for (final DefaultParcel dp : parcels) {
+      builder.add(dp.dto);
     }
+    return builder.build();
+  }
+
+  /**
+   * Converts the specified collection of collections containing
+   * {@link DefaultParcel}s into a list of lists containing {@link ParcelDTO}s.
+   * @param routes The collection of collections of parcels to convert.
+   * @return A list of lists of {@link ParcelDTO}s in the same order as the
+   *         provided lists.
+   */
+  public static ImmutableList<ImmutableList<ParcelDTO>> toDtoLists(
+      Collection<? extends Collection<DefaultParcel>> routes) {
+    final ImmutableList.Builder<ImmutableList<ParcelDTO>> newRoutes = ImmutableList
+        .builder();
+    for (final Collection<DefaultParcel> route : routes) {
+      newRoutes.add(toDtoList(route));
+    }
+    return newRoutes.build();
   }
 
   // converts the routes received from Solver.solve(..) into a format which is
@@ -395,24 +415,6 @@ public final class Solvers {
     }
     return new VehicleStateObject(vehicle.getDTO(), rm.getPosition(vehicle),
         contents.keySet(), remainingServiceTime, destination, r);
-  }
-
-  static ImmutableList<ParcelDTO> toDtoList(Collection<DefaultParcel> parcels) {
-    final ImmutableList.Builder<ParcelDTO> builder = ImmutableList.builder();
-    for (final DefaultParcel dp : parcels) {
-      builder.add(dp.dto);
-    }
-    return builder.build();
-  }
-
-  static ImmutableList<ImmutableList<ParcelDTO>> toDtoLists(
-      Collection<? extends Collection<DefaultParcel>> routes) {
-    final ImmutableList.Builder<ImmutableList<ParcelDTO>> newRoutes = ImmutableList
-        .builder();
-    for (final Collection<DefaultParcel> route : routes) {
-      newRoutes.add(toDtoList(route));
-    }
-    return newRoutes.build();
   }
 
   static ImmutableMap<ParcelDTO, DefaultParcel> toMap(
@@ -600,6 +602,22 @@ public final class Solvers {
       this.state = state;
       this.vehicleMap = vehicleMap;
       this.parcelMap = parcelMap;
+    }
+  }
+
+  // only used for testing
+  static class ExtendedStats extends StatisticsDTO {
+    private static final long serialVersionUID = 3682772955122186862L;
+    final ImmutableList<ImmutableList<Long>> arrivalTimes;
+
+    ExtendedStats(double dist, int pick, int del, int parc, int accP,
+        long pickTar, long delTar, long compT, long simT, boolean finish,
+        int atDepot, long overT, int total, int moved, Unit<Duration> time,
+        Unit<Length> distUnit, Unit<Velocity> speed,
+        ImmutableList<ImmutableList<Long>> arrivalTimes) {
+      super(dist, pick, del, parc, accP, pickTar, delTar, compT, simT, finish,
+          atDepot, overT, total, moved, time, distUnit, speed);
+      this.arrivalTimes = arrivalTimes;
     }
   }
 }
