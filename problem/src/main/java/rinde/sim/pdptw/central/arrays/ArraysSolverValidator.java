@@ -125,7 +125,8 @@ public final class ArraysSolverValidator {
 
     checkArgument(releaseDates[0] == 0 && dueDates[0] == 0,
         "Start location should have release date and due date 0");
-    checkArgument(releaseDates[n - 1] == 0, "Depot should have release date 0");
+    // checkArgument(releaseDates[n - 1] == 0,
+    // "Depot should have release date 0");
 
     // check that every pair consists of valid ids and that a location is in
     // only one pair

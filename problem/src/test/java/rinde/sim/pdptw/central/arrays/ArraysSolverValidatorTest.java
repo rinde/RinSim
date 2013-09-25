@@ -81,12 +81,6 @@ public class ArraysSolverValidatorTest {
         new int[][] {}, new int[3]);
   }
 
-  @Test(expected = IllegalArgumentException.class)
-  public void validateInputsInvalidTWdepot() {
-    validateInputs(new int[3][3], new int[] { 0, 2, 1 },
-        new int[] { 0, 3, 23 }, new int[][] {}, new int[3]);
-  }
-
   @Test
   public void validateInputsValidEmpty() {
     validateInputs(new int[3][3], new int[3], new int[3], new int[][] {},

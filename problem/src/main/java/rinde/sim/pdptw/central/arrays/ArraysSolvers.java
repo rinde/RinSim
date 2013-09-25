@@ -211,6 +211,8 @@ public final class ArraysSolvers {
     dueDates[index] = fixTWend(v.availabilityTimeWindow.end, state.time,
         timeConverter);
 
+    releaseDates[index] = Math.min(0, dueDates[index]);
+
     final Measure<Double, Velocity> speed = Measure.valueOf(v.speed,
         state.speedUnit);
 
@@ -581,6 +583,7 @@ public final class ArraysSolvers {
       // if this happens, we know this is the result of rounding behavior:
       // release is rounded up, due is rounded down. We also know that the
       // difference is only 1. Therefore we flip the values.
+      checkArgument(Math.abs(dueDate - releaseDate) == 1);
       return new int[] { dueDate, releaseDate };
     }
     return new int[] { releaseDate, dueDate };
