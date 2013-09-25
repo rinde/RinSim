@@ -10,6 +10,7 @@ import javax.measure.quantity.Velocity;
 import javax.measure.unit.Unit;
 
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
+import org.apache.commons.lang3.builder.ToStringStyle;
 
 import rinde.sim.core.graph.Point;
 import rinde.sim.pdptw.common.ParcelDTO;
@@ -73,7 +74,8 @@ public class GlobalStateObject {
 
   @Override
   public String toString() {
-    return new ReflectionToStringBuilder(this).toString();
+    return new ReflectionToStringBuilder(this, ToStringStyle.MULTI_LINE_STYLE)
+        .toString();
   }
 
   /**

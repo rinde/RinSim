@@ -107,7 +107,12 @@ public final class ArraysSolverValidator {
         "serviceTimes has incorrect length (%s) should be %s",
         serviceTimes.length, n);
     for (int i = 0; i < n; i++) {
-      checkArgument(serviceTimes[i] >= 0, "serviceTimes should be >= 0");
+      if (i == 0 || i == n - 1) {
+        checkArgument(serviceTimes[i] == 0,
+            "first and last index in serviceTimes should be 0");
+      } else {
+        checkArgument(serviceTimes[i] >= 0, "serviceTimes should be >= 0");
+      }
     }
 
     // check time windows validity
@@ -321,10 +326,17 @@ public final class ArraysSolverValidator {
       for (int i = 0; i < currentSolutions.length; i++) {
         final List<Integer> route = ImmutableList.copyOf(Ints
             .asList(currentSolutions[i].route));
+
+        checkArgument(route.get(0) == 0,
+            "First item in route should always be 0, it is %s.", route.get(0));
+        checkArgument(route.get(route.size() - 1) == n - 1,
+            "Last item in route should always be depot (%s), it is %s.", n - 1,
+            route.get(route.size() - 1));
+
         if (currentDestinations[i] > 0) {
           // there is a current destination
           checkArgument(
-              currentDestinations[i] == route.get(0),
+              currentDestinations[i] == route.get(1),
               "The vehicle has a current destination (%s) but it is not the first item in its route: %s.",
               currentDestinations[i], route);
         }
@@ -334,7 +346,8 @@ public final class ArraysSolverValidator {
             "The route should contain all locations in its inventory. Vehicle %s, route: %s, inventory: %s.",
             i, route, inventory);
 
-        for (final Integer item : route) {
+        for (int j = 1; j < route.size() - 1; j++) {
+          final Integer item = route.get(j);
           final int freq = Collections.frequency(route, item);
           checkArgument(
               freq == 1,
@@ -343,9 +356,12 @@ public final class ArraysSolverValidator {
           if (!inventoriesMap.containsEntry(i, item)) {
             // not in cargo, so the pair should appear in the route
             if (servicePairsMap.containsKey(item)) {
-              checkArgument(route.contains(servicePairsMap.get(item)));
+              checkArgument(route.contains(servicePairsMap.get(item)),
+                  "Couldn't find %s in regular mapping.", item);
             } else {
-              checkArgument(route.contains(servicePairsMap.inverse().get(item)));
+              checkArgument(
+                  route.contains(servicePairsMap.inverse().get(item)),
+                  "Couldn't find %s in inverse mapping.", item);
             }
           }
         }
@@ -557,7 +573,7 @@ public final class ArraysSolverValidator {
       checkArgument(sol.arrivalTimes.length == sol.route.length,
           "Number of arrival times should equal number of locations.");
       checkArgument(
-          sol.arrivalTimes[0] == remainingServiceTimes[v],
+          sol.arrivalTimes[0] == 0 /* remainingServiceTimes[v] */,
           "The first arrival time should be the remaining service time for this vehicle, expected %s, was %s.",
           remainingServiceTimes[v], sol.arrivalTimes[0]);
 
@@ -581,8 +597,8 @@ public final class ArraysSolverValidator {
           sol.route, travelTime, vehicleTravelTimes[v]);
 
       // sum tardiness
-      final int tardiness = ArraysSolvers.computeSumTardiness(sol.route,
-          sol.arrivalTimes, serviceTimes, dueDates);
+      final int tardiness = ArraysSolvers.computeRouteTardiness(sol.route,
+          sol.arrivalTimes, serviceTimes, dueDates, remainingServiceTimes[v]);
 
       checkArgument(
           sol.objectiveValue == totalTravelTime + tardiness,

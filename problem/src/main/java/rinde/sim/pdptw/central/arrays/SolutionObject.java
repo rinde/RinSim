@@ -17,10 +17,11 @@ public class SolutionObject {
   public final int[] route;
 
   /**
-   * Array of times at which every location servicing starts. The number at
-   * <code>arrivalTimes[i]</code> indicates the arrival time at location
-   * <code>route[i]</code>. Always starts with the specified remaining service
-   * time for this vehicle. Should have the same length as {@link #route}.
+   * Array of times at which every location servicing <i>starts</i>. The number
+   * at <code>arrivalTimes[i]</code> indicates the arrival time at location
+   * <code>route[i]</code>. Index 0 always contains the specified remaining
+   * service time for this vehicle. Should have the same length as
+   * {@link #route}.
    */
   public final int[] arrivalTimes;
 

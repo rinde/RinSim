@@ -103,8 +103,8 @@ public class RandomMVArraysSolver implements MultiVehicleArraysSolver {
           serviceTimes, releaseDates);
       final int totalTravelTime = ArraysSolvers.computeTotalTravelTime(route,
           travelTime, vehicleTravelTimes[i]);
-      final int tardiness = ArraysSolvers.computeSumTardiness(route,
-          arrivalTimes, serviceTimes, dueDates);
+      final int tardiness = ArraysSolvers.computeRouteTardiness(route,
+          arrivalTimes, serviceTimes, dueDates, remainingServiceTimes[i]);
       sols[i] = new SolutionObject(route, arrivalTimes, totalTravelTime
           + tardiness);
     }

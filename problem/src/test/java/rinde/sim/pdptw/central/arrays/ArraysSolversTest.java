@@ -40,10 +40,11 @@ public class ArraysSolversTest {
     final Point p3 = new Point(0, 10);
 
     // input in kilometers, output in minutes (rounded up), speed 40 km/h
-    final Measure<Double, Velocity> speed1 = Measure
-        .valueOf(40d, KILOMETERS_PER_HOUR);
+    final Measure<Double, Velocity> speed1 = Measure.valueOf(40d,
+        KILOMETERS_PER_HOUR);
     final int[][] matrix1 = ArraysSolvers
-        .toTravelTimeMatrix(asList(p0, p1, p2, p3), KILOMETER, speed1, MINUTE, RoundingMode.CEILING);
+        .toTravelTimeMatrix(asList(p0, p1, p2, p3), KILOMETER, speed1, MINUTE,
+            RoundingMode.CEILING);
     assertArrayEquals(new int[] { 0, 15, 22, 15 }, matrix1[0]);
     assertArrayEquals(new int[] { 15, 0, 15, 22 }, matrix1[1]);
     assertArrayEquals(new int[] { 22, 15, 0, 15 }, matrix1[2]);
@@ -52,10 +53,11 @@ public class ArraysSolversTest {
     final Point p4 = new Point(11, 3);
     // input in meters, output in milliseconds (round down), speed .0699
     // m/ms
-    final Measure<Double, Velocity> speed2 = Measure
-        .valueOf(.0699, new ProductUnit<Velocity>(METER.divide(MILLI(SECOND))));
-    final int[][] matrix2 = ArraysSolvers
-        .toTravelTimeMatrix(asList(p0, p1, p2, p3, p4), METER, speed2, MILLI(SECOND), RoundingMode.FLOOR);
+    final Measure<Double, Velocity> speed2 = Measure.valueOf(.0699,
+        new ProductUnit<Velocity>(METER.divide(MILLI(SECOND))));
+    final int[][] matrix2 = ArraysSolvers.toTravelTimeMatrix(
+        asList(p0, p1, p2, p3, p4), METER, speed2, MILLI(SECOND),
+        RoundingMode.FLOOR);
     assertArrayEquals(new int[] { 0, 143, 202, 143, 163 }, matrix2[0]);
     assertArrayEquals(new int[] { 143, 0, 143, 202, 45 }, matrix2[1]);
     assertArrayEquals(new int[] { 202, 143, 0, 143, 101 }, matrix2[2]);
@@ -78,6 +80,21 @@ public class ArraysSolversTest {
     final int[] tw3 = convertTW(new TimeWindow(7300, 8800), 7300, timeConverter);
     assertEquals(0, tw3[0]);
     assertEquals(1, tw3[1]);
+  }
 
+  /**
+   * Checks correctness of tardiness computation. Also checks whether the
+   * arrival time at the current position is correctly ignored when calculating
+   * tardiness.
+   */
+  @Test
+  public void computeSumTardinessTest() {
+    final int[] route = new int[] { 0, 1, 2, 3 };
+    final int[] arrivalTimes = new int[] { 50, 70, 90, 100 };
+    final int[] serviceTimes = new int[] { 0, 5, 5, 0 };
+    final int[] dueDates = new int[] { 40, 70, 80, 110 };
+    final int tardiness = ArraysSolvers.computeRouteTardiness(route,
+        arrivalTimes, serviceTimes, dueDates, 0);
+    assertEquals(20, tardiness);
   }
 }

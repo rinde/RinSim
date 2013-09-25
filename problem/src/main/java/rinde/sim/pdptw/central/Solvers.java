@@ -53,8 +53,6 @@ import com.google.common.math.DoubleMath;
  */
 public final class Solvers {
 
-  // FIXME write tests for the conversion methods!
-
   private Solvers() {}
 
   /**
@@ -121,14 +119,32 @@ public final class Solvers {
         .doubleValue(outputTimeUnit);
   }
 
-  public static StatisticsDTO computeStats(StateContext context,
-      @Nullable ImmutableList<ImmutableList<DefaultParcel>> routes) {
-
-    final Optional<ImmutableList<ImmutableList<DefaultParcel>>> r = Optional
+  /**
+   * Computes a {@link StatisticsDTO} instance for the given
+   * {@link GlobalStateObject} and routes. For each vehicle in the state the
+   * specified route is used and it its arrival times, tardiness and travel
+   * times are computed. The resulting {@link StatisticsDTO} has the same
+   * properties as performing a simulation with the same state. However, since
+   * the current state may be half-way a simulation, it is possible that the
+   * returned statistics describe only a partial simulation. As a result
+   * {@link StatisticsDTO#totalDeliveries} does not necessarily equal
+   * {@link StatisticsDTO#totalPickups}.
+   * @param state The state which represents a simulation.
+   * @param routes Specifies the route the vehicles are currently following,
+   *          must be of same size as the number of vehicles (one route per
+   *          vehicle). If this is <code>null</code> the
+   *          {@link VehicleStateObject#route} field must be set instead for
+   *          <b>each</b> vehicle.
+   * @return The statistics that will be generated when executing this
+   *         simulation.
+   */
+  public static StatisticsDTO computeStats(GlobalStateObject state,
+      @Nullable ImmutableList<ImmutableList<ParcelDTO>> routes) {
+    final Optional<ImmutableList<ImmutableList<ParcelDTO>>> r = Optional
         .fromNullable(routes);
 
     if (r.isPresent()) {
-      checkArgument(context.state.vehicles.size() == r.get().size());
+      checkArgument(state.vehicles.size() == r.get().size());
     }
 
     double totalDistance = 0;
@@ -137,72 +153,104 @@ public final class Solvers {
     long pickupTardiness = 0;
     long deliveryTardiness = 0;
     long overTime = 0;
-    final long startTime = context.state.time;
+    final long startTime = state.time;
     long maxTime = 0;
     int movedVehicles = 0;
     final Set<ParcelDTO> parcels = newHashSet();
 
-    for (int i = 0; i < context.state.vehicles.size(); i++) {
-      final VehicleStateObject vso = context.state.vehicles.get(i);
+    final ImmutableList.Builder<ImmutableList<Long>> arrivalTimesBuilder = ImmutableList
+        .builder();
+
+    for (int i = 0; i < state.vehicles.size(); i++) {
+      final VehicleStateObject vso = state.vehicles.get(i);
       checkArgument(r.isPresent() || vso.route.isPresent());
+
+      final ImmutableList.Builder<Long> truckArrivalTimesBuilder = ImmutableList
+          .builder();
+      truckArrivalTimesBuilder.add(state.time);
 
       ImmutableList<ParcelDTO> route;
       if (r.isPresent()) {
-        route = toDtoList(r.get().get(i));
+        route = r.get().get(i);
       } else {
         route = vso.route.get();
       }
       parcels.addAll(route);
 
-      long time = context.state.time;
+      long time = state.time;
       Point vehicleLocation = vso.location;
+      final Measure<Double, Velocity> speed = Measure.valueOf(vso.speed,
+          state.speedUnit);
+      final Set<ParcelDTO> seen = newHashSet();
       for (int j = 0; j < route.size(); j++) {
         final ParcelDTO cur = route.get(j);
-        final boolean inCargo = vso.contents.contains(cur);
-        if (vso.destination != null) {
+        final boolean inCargo = vso.contents.contains(cur)
+            || seen.contains(cur);
+        seen.add(cur);
+        if (vso.destination != null && j == 0) {
           checkArgument(vso.destination == cur);
         }
 
+        boolean firstAndServicing = false;
         if (j == 0 && vso.remainingServiceTime > 0) {
           // we are already at the service location
+          firstAndServicing = true;
+          truckArrivalTimesBuilder.add(time);
           time += vso.remainingServiceTime;
         } else {
           // vehicle is not there yet, go there first, then service
           final Point nextLoc = inCargo ? cur.destinationLocation
               : cur.pickupLocation;
           final Measure<Double, Length> distance = Measure.valueOf(
-              Point.distance(vehicleLocation, nextLoc), context.state.distUnit);
+              Point.distance(vehicleLocation, nextLoc), state.distUnit);
           totalDistance += distance.getValue();
           vehicleLocation = nextLoc;
           final long tt = DoubleMath.roundToLong(
-              computeTravelTime(
-                  Measure.valueOf(vso.speed, context.state.speedUnit),
-                  distance, context.state.timeUnit), RoundingMode.CEILING);
+              computeTravelTime(speed, distance, state.timeUnit),
+              RoundingMode.CEILING);
           time += tt;
-          time += inCargo ? cur.deliveryDuration : cur.pickupDuration;
         }
         if (inCargo) {
+          // check if we are early
+          if (cur.deliveryTimeWindow.isBeforeStart(time)) {
+            time = cur.deliveryTimeWindow.begin;
+          }
+
+          if (!firstAndServicing) {
+            truckArrivalTimesBuilder.add(time);
+            time += cur.deliveryDuration;
+          }
           // delivering
           if (cur.deliveryTimeWindow.isAfterEnd(time)) {
-            deliveryTardiness += time - cur.deliveryTimeWindow.end;
+            final long tardiness = time - cur.deliveryTimeWindow.end;
+            deliveryTardiness += tardiness;
           }
           totalDeliveries++;
         } else {
+          // check if we are early
+          if (cur.pickupTimeWindow.isBeforeStart(time)) {
+            time = cur.pickupTimeWindow.begin;
+          }
+          if (!firstAndServicing) {
+            truckArrivalTimesBuilder.add(time);
+            time += cur.pickupDuration;
+          }
           // picking up
           if (cur.pickupTimeWindow.isAfterEnd(time)) {
-            pickupTardiness += time - cur.pickupTimeWindow.end;
+            final long tardiness = time - cur.pickupTimeWindow.end;
+            pickupTardiness += tardiness;
           }
           totalPickups++;
         }
       }
+
       // go to depot
       final Measure<Double, Length> distance = Measure.valueOf(
-          Point.distance(vehicleLocation, vso.startPosition),
-          context.state.distUnit);
+          Point.distance(vehicleLocation, vso.startPosition), state.distUnit);
+      totalDistance += distance.getValue();
       final long tt = DoubleMath.roundToLong(
-          computeTravelTime(
-              Measure.valueOf(vso.speed, context.state.speedUnit), distance,
-              context.state.timeUnit), RoundingMode.CEILING);
+          computeTravelTime(speed, distance, state.timeUnit),
+          RoundingMode.CEILING);
       time += tt;
       // check overtime
       if (vso.availabilityTimeWindow.isAfterEnd(time)) {
@@ -210,20 +258,39 @@ public final class Solvers {
       }
       maxTime = Math.max(maxTime, time);
 
+      truckArrivalTimesBuilder.add(time);
+      arrivalTimesBuilder.add(truckArrivalTimesBuilder.build());
+
       if (time > startTime) {
         // time has progressed -> the vehicle has moved
         movedVehicles++;
       }
     }
-
     final int totalParcels = parcels.size();
-    final int totalVehicles = context.state.vehicles.size();
+    final int totalVehicles = state.vehicles.size();
     final long simulationTime = maxTime - startTime;
 
-    return new StatisticsDTO(totalDistance, totalPickups, totalDeliveries,
+    return new ExtendedStats(totalDistance, totalPickups, totalDeliveries,
         totalParcels, totalParcels, pickupTardiness, deliveryTardiness, 0,
         simulationTime, true, totalVehicles, overTime, totalVehicles,
-        movedVehicles);
+        movedVehicles, state.timeUnit, state.distUnit, state.speedUnit,
+        arrivalTimesBuilder.build());
+  }
+
+  // only used for testing
+  static class ExtendedStats extends StatisticsDTO {
+    private static final long serialVersionUID = 3682772955122186862L;
+    final ImmutableList<ImmutableList<Long>> arrivalTimes;
+
+    ExtendedStats(double dist, int pick, int del, int parc, int accP,
+        long pickTar, long delTar, long compT, long simT, boolean finish,
+        int atDepot, long overT, int total, int moved, Unit<Duration> time,
+        Unit<Length> distUnit, Unit<Velocity> speed,
+        ImmutableList<ImmutableList<Long>> arrivalTimes) {
+      super(dist, pick, del, parc, accP, pickTar, delTar, compT, simT, finish,
+          atDepot, overT, total, moved, time, distUnit, speed);
+      this.arrivalTimes = arrivalTimes;
+    }
   }
 
   // converts the routes received from Solver.solve(..) into a format which is
@@ -336,6 +403,16 @@ public final class Solvers {
       builder.add(dp.dto);
     }
     return builder.build();
+  }
+
+  static ImmutableList<ImmutableList<ParcelDTO>> toDtoLists(
+      Collection<? extends Collection<DefaultParcel>> routes) {
+    final ImmutableList.Builder<ImmutableList<ParcelDTO>> newRoutes = ImmutableList
+        .builder();
+    for (final Collection<DefaultParcel> route : routes) {
+      newRoutes.add(toDtoList(route));
+    }
+    return newRoutes.build();
   }
 
   static ImmutableMap<ParcelDTO, DefaultParcel> toMap(

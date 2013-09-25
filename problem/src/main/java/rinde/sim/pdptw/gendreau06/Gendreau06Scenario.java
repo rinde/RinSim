@@ -84,7 +84,7 @@ public final class Gendreau06Scenario extends DynamicPDPTWScenario {
 
   @Override
   public ISpecification<SimulationInfo> getStopCondition() {
-    return Specification.of(StopCondition.VEHICLES_BACK_AT_DEPOT)
+    return Specification.of(StopCondition.VEHICLES_DONE_AND_BACK_AT_DEPOT)
         .and(StopCondition.TIME_OUT_EVENT).build();
   }
 

@@ -97,7 +97,8 @@ public final class ArraysSolvers {
           final Measure<Double, Length> dist = Measure.valueOf(
               Point.distance(points.get(i), points.get(j)), distUnit);
           // calculate duration in desired unit
-          final double duration = Solvers.computeTravelTime(speed, dist, outputTimeUnit);
+          final double duration = Solvers.computeTravelTime(speed, dist,
+              outputTimeUnit);
           // round duration
           final int tt = DoubleMath.roundToInt(duration, rm);
           matrix[i][j] = tt;
@@ -253,7 +254,7 @@ public final class ArraysSolvers {
       VehicleStateObject vso, Map<ParcelDTO, ParcelIndexObj> mapping,
       int[][] travelTime, int[] releaseDates, int[] dueDates,
       int[] serviceTimes, int[] vehicleTravelTimes, int remainingServiceTime) {
-    final int[] route = new int[vso.route.get().size()];
+    final int[] route = new int[vso.route.get().size() + 2];
 
     final Set<ParcelDTO> seen = newHashSet();
     for (int i = 0; i < vso.route.get().size(); i++) {
@@ -261,20 +262,21 @@ public final class ArraysSolvers {
 
       if (vso.contents.contains(dto) || seen.contains(dto)) {
         // it is in cargo
-        route[i] = mapping.get(dto).deliveryIndex;
+        route[i + 1] = mapping.get(dto).deliveryIndex;
       } else {
         checkArgument(state.availableParcels.contains(dto));
         // it is available
-        route[i] = mapping.get(dto).pickupIndex;
+        route[i + 1] = mapping.get(dto).pickupIndex;
       }
-      checkArgument(route[i] > 0);
+      checkArgument(route[i + 1] > 0);
       seen.add(dto);
     }
+    route[route.length - 1] = travelTime.length - 1;
     final int[] arrivalTimes = computeArrivalTimes(route, travelTime,
         remainingServiceTime, vehicleTravelTimes, serviceTimes, releaseDates);
 
-    final int tardiness = computeSumTardiness(route, arrivalTimes,
-        serviceTimes, dueDates);
+    final int tardiness = computeRouteTardiness(route, arrivalTimes,
+        serviceTimes, dueDates, remainingServiceTime);
     final int tt = computeTotalTravelTime(route, travelTime, vehicleTravelTimes);
     return new SolutionObject(route, arrivalTimes, tt + tardiness);
   }
@@ -283,9 +285,11 @@ public final class ArraysSolvers {
       int remainingServiceTime, int[] vehicleTravelTimes, int[] serviceTimes,
       int[] releaseDates) {
     final int[] arrivalTimes = new int[route.length];
-    if (route.length > 0) {
-      arrivalTimes[0] = remainingServiceTime;
-    }
+
+    checkArgument(route.length >= 2);
+    checkArgument(route[0] == 0);
+
+    arrivalTimes[0] = 0;
 
     for (int j = 1; j < route.length; j++) {
       final int prev = route[j - 1];
@@ -296,11 +300,18 @@ public final class ArraysSolvers {
       // location in the route.
       final int tt = j == 1 ? vehicleTravelTimes[cur] : travelTime[prev][cur];
 
+      if (j == 1 && remainingServiceTime > 0) {
+        checkArgument(tt == 0, "%s", tt);
+      }
+
+      // service time is different in case we were already halfway with the
+      // servicing (as defined by remainingServiceTime)
+      final int st = (j == 2 && remainingServiceTime > 0) ? remainingServiceTime
+          : serviceTimes[prev];
       // we compute the first possible arrival time for the vehicle to
       // arrive at location i, given that it first visited location
       // i-1
-      final int earliestArrivalTime = arrivalTimes[j - 1] + serviceTimes[prev]
-          + tt;
+      final int earliestArrivalTime = arrivalTimes[j - 1] + st + tt;
 
       // we also have to take into account the time window
       final int minArrivalTime = Math.max(earliestArrivalTime,
@@ -434,7 +445,8 @@ public final class ArraysSolvers {
   static int computeRoundedTravelTime(Measure<Double, Velocity> speed,
       Measure<Double, Length> dist, Unit<Duration> outputTimeUnit) {
     return DoubleMath.roundToInt(
-        Solvers.computeTravelTime(speed, dist, outputTimeUnit), RoundingMode.CEILING);
+        Solvers.computeTravelTime(speed, dist, outputTimeUnit),
+        RoundingMode.CEILING);
   }
 
   static int[][] toInventoriesArray(GlobalStateObject state, ArraysObject sva) {
@@ -505,20 +517,28 @@ public final class ArraysSolvers {
   /**
    * Computes the total tardiness of the specified route with the specified
    * arrivalTimes.
-   * @param route The route.
+   * @param route The route with length >= 2.
    * @param arrivalTimes The arrival times at every index of the route.
    * @param serviceTimes The full serviceTimes array containing all locations,
    *          using the original indices.
    * @param dueDates The full dueDates array containing all locations, using the
    *          original indices.
+   * @param remainingServiceTime The remaining service time for the position at
+   *          index 1, if any, 0 otherwise.
    * @return The sum tardiness.
    */
-  public static int computeSumTardiness(int[] route, int[] arrivalTimes,
-      int[] serviceTimes, int[] dueDates) {
+  public static int computeRouteTardiness(int[] route, int[] arrivalTimes,
+      int[] serviceTimes, int[] dueDates, int remainingServiceTime) {
     int tardiness = 0;
-    for (int i = 0; i < route.length; i++) {
-      final int lateness = (arrivalTimes[i] + serviceTimes[route[i]])
-          - dueDates[route[i]];
+    // start at index 1 since there can be no tardiness at start location
+    for (int i = 1; i < route.length; i++) {
+      int st;
+      if (i == 1 && remainingServiceTime > 0) {
+        st = remainingServiceTime;
+      } else {
+        st = serviceTimes[route[i]];
+      }
+      final int lateness = (arrivalTimes[i] + st) - dueDates[route[i]];
       if (lateness > 0) {
         tardiness += lateness;
       }
@@ -526,6 +546,11 @@ public final class ArraysSolvers {
     return tardiness;
   }
 
+  /**
+   * Sums the objective values of all provided {@link SolutionObject}s.
+   * @param sols The {@link SolutionObject}s.
+   * @return The sum objective value.
+   */
   public static int computeTotalObjectiveValue(SolutionObject[] sols) {
     int obj = 0;
     for (final SolutionObject sol : sols) {
@@ -534,6 +559,15 @@ public final class ArraysSolvers {
     return obj;
   }
 
+  /**
+   * Sums the objective values of all provided {@link SolutionObject}s. The
+   * input values are treated as instances of the <code>inputUnit</code> and are
+   * converted to the <code>outputUnit</code>.
+   * @param sols The {@link SolutionObject}s.
+   * @param inputUnit The time unit of the input values.
+   * @param outputUnit The time unit to convert the values to.
+   * @return The sum objective value in the <code>outputUnit</code>.
+   */
   public static int computeTotalObjectiveValue(SolutionObject[] sols,
       Unit<Duration> inputUnit, Unit<Duration> outputUnit) {
     return Measure.valueOf(computeTotalObjectiveValue(sols), inputUnit)
@@ -553,13 +587,13 @@ public final class ArraysSolvers {
   }
 
   static int fixTWstart(long start, long time, UnitConverter timeConverter) {
-    return Math.max(DoubleMath.roundToInt(timeConverter.convert(start - time),
-        RoundingMode.CEILING), 0);
+    return DoubleMath.roundToInt(timeConverter.convert(start - time),
+        RoundingMode.CEILING);
   }
 
   static int fixTWend(long end, long time, UnitConverter timeConverter) {
-    return Math.max(DoubleMath.roundToInt(timeConverter.convert(end - time),
-        RoundingMode.FLOOR), 0);
+    return DoubleMath.roundToInt(timeConverter.convert(end - time),
+        RoundingMode.FLOOR);
   }
 
   /**

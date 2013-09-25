@@ -319,11 +319,12 @@ public class DynamicPDPTWProblem {
      * {@link rinde.sim.core.model.pdp.PDPScenarioEvent#TIME_OUT} event is
      * dispatched.
      */
-    public static final StopCondition VEHICLES_BACK_AT_DEPOT = new StopCondition() {
+    public static final StopCondition VEHICLES_DONE_AND_BACK_AT_DEPOT = new StopCondition() {
       @Override
       public boolean isSatisfiedBy(SimulationInfo context) {
         return context.stats.totalVehicles == context.stats.vehiclesAtDepot
-            && context.stats.movedVehicles > 0;
+            && context.stats.movedVehicles > 0
+            && context.stats.totalParcels == context.stats.totalDeliveries;
       }
     };
 

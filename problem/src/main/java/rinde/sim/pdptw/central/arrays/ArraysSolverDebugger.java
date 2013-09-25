@@ -33,8 +33,8 @@ public final class ArraysSolverDebugger {
    * {@link SingleVehicleArraysSolver#solve(int[][], int[], int[], int[][], int[], SolutionObject)}
    * all inputs and outputs are printed to <code>System.out</code>, also all
    * inputs and outputs are stored (accessible via
-   * {@link SVASDebugger#getInputMemory()} and
-   * {@link SVASDebugger#getOutputMemory()}.
+   * {@link SVASDebugger#getInputs()} and
+   * {@link SVASDebugger#getOutputs()}.
    * @param s The {@link SingleVehicleArraysSolver} to wrap.
    * @return The wrapped solver.
    */
@@ -93,7 +93,7 @@ public final class ArraysSolverDebugger {
      * @return An unmodifiable list with an {@link ArraysObject} in invocation
      *         order for every invocation of <code>solve(..)</code>.
      */
-    public List<I> getInputMemory() {
+    public List<I> getInputs() {
       return Collections.unmodifiableList(inputMemory);
     }
 
@@ -101,7 +101,7 @@ public final class ArraysSolverDebugger {
      * @return An unmodifiable list with an {@link SolutionObject} in invocation
      *         order for every invocation of <code>solve(..)</code>.
      */
-    public List<O> getOutputMemory() {
+    public List<O> getOutputs() {
       return Collections.unmodifiableList(outputMemory);
     }
   }
