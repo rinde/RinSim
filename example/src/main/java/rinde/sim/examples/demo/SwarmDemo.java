@@ -69,7 +69,7 @@ public class SwarmDemo {
    */
   public static void main(String[] args) {
     final String string = "AgentWise";
-    final List<Point> points = measureString(string);
+    final List<Point> points = measureString(string, 30, 30, 0);
     final RandomGenerator rng = new MersenneTwister(123);
     final Simulator sim = new Simulator(rng, Measure.valueOf(1000L,
         SI.MILLI(SI.SECOND)));
@@ -83,7 +83,8 @@ public class SwarmDemo {
         new DemoPanel(string, rng));
   }
 
-  static List<Point> measureString(String string) {
+  public static ImmutableList<Point> measureString(String string, int fontSize,
+      double spacing, int vCorrection) {
     if (string.trim().isEmpty()) {
       return ImmutableList.of();
     }
@@ -100,7 +101,7 @@ public class SwarmDemo {
     final Font initialFont = measureGC.getFont();
     final FontData[] fontData = initialFont.getFontData();
     for (int i = 0; i < fontData.length; i++) {
-      fontData[i].setHeight(30);
+      fontData[i].setHeight(fontSize);
     }
     final Font newFont = new Font(display, fontData);
     measureGC.setFont(newFont);
@@ -118,16 +119,17 @@ public class SwarmDemo {
 
     final ImmutableList.Builder<Point> coordinateBuilder = ImmutableList
         .builder();
-    final int white = (int) Math.pow(2, 24) - 1;
+    final int white = (int) Math.pow(2, 24) / 2 - 1;
     for (int i = 0; i < image.getBounds().width; i++) {
-      for (int j = 0; j < image.getBounds().height; j++) {
+      for (int j = vCorrection; j < image.getBounds().height; j++) {
         final int color = image.getImageData().getPixel(i, j);
         if (color < white) {
-          coordinateBuilder.add(new Point(i * 30, j * 30));
+          coordinateBuilder.add(new Point(i * spacing, (j - vCorrection)
+              * spacing));
         }
       }
     }
-    final List<Point> points = coordinateBuilder.build();
+    final ImmutableList<Point> points = coordinateBuilder.build();
 
     image.dispose();
     if (haveToDispose) {
@@ -257,7 +259,7 @@ public class SwarmDemo {
     public void handleEvent(@Nullable Event event) {
       checkNotNull(event);
       final Iterator<Point> points = measureString(
-          ((Text) event.widget).getText()).iterator();
+          ((Text) event.widget).getText(), 30, 30d, 0).iterator();
       final List<Vehicle> vs = newArrayList(vehicles);
       if (event.type == SWT.DefaultSelection) {
         Collections.shuffle(vs, new RandomAdaptor(rng));

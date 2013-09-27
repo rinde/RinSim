@@ -36,7 +36,7 @@ import rinde.sim.util.TimeWindow;
 public class PDPExample {
 
   private static final int NUM_DEPOTS = 5;
-  private static final int NUM_TRUCKS = 10;
+  private static final int NUM_TRUCKS = 50;
   private static final int NUM_PARCELS = 30;
 
   // time in ms
@@ -45,7 +45,9 @@ public class PDPExample {
   private static final int TRUCK_CAPACITY = 10;
   private static final int DEPOT_CAPACITY = 100;
 
-  private static final String MAP_FILE = "../core/files/maps/leuven-simple.dot";
+  // private static final String MAP_FILE =
+  // "../core/files/maps/leuven-simple.dot";
+  private static final String MAP_FILE = "/Users/rindevanlon/Downloads/brussels-simple.dot";
 
   private PDPExample() {}
 
