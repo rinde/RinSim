@@ -170,7 +170,7 @@ public class Simulator implements SimulatorAPI {
   /**
    * Register a model to the simulator.
    * @param model The {@link Model} instance to register.
-   * @return true if succesful, false otherwise
+   * @return true if successful, false otherwise
    */
   public boolean register(Model<?> model) {
     if (configured) {
@@ -395,12 +395,7 @@ public class Simulator implements SimulatorAPI {
     return timeLapse.getTimeUnit();
   }
 
-  /**
-   * Reference to the {@link EventAPI} of the Simulator. Can be used to add
-   * listeners to events dispatched by the simulator. Simulator events are
-   * defined in {@link SimulatorEventType}.
-   * @return {@link EventAPI}
-   */
+  @Override
   public EventAPI getEventAPI() {
     return dispatcher.getPublicEventAPI();
   }

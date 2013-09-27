@@ -5,6 +5,9 @@ import javax.measure.unit.Unit;
 
 import org.apache.commons.math3.random.RandomGenerator;
 
+import rinde.sim.core.Simulator.SimulatorEventType;
+import rinde.sim.event.EventAPI;
+
 /**
  * Limited simulator API that provides an API for simulation elements (e.g.,
  * agents).
@@ -55,4 +58,12 @@ public interface SimulatorAPI {
    * @return The unit of time that is used for generating ticks.
    */
   Unit<Duration> getTimeUnit();
+
+  /**
+   * Reference to the {@link EventAPI} of the Simulator. Can be used to add
+   * listeners to events dispatched by the simulator. Simulator events are
+   * defined in {@link SimulatorEventType}.
+   * @return {@link EventAPI}
+   */
+  EventAPI getEventAPI();
 }
