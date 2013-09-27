@@ -62,6 +62,10 @@ public class Point implements Serializable {
     return new Point(p1.x - p2.x, p1.y - p2.y);
   }
 
+  public static Point divide(Point p, double d) {
+    return new Point(p.x / d, p.y / d);
+  }
+
   /**
    * Parses the specified string to a point. Example inputs:
    * <ul>
