@@ -38,6 +38,7 @@ import rinde.sim.core.model.pdp.PDPModel.VehicleState;
 import rinde.sim.core.model.pdp.Parcel;
 import rinde.sim.core.model.pdp.twpolicy.TardyAllowedPolicy;
 import rinde.sim.core.model.road.PlaneRoadModel;
+import rinde.sim.event.EventAPI;
 import rinde.sim.pdptw.central.GlobalStateObject.VehicleStateObject;
 import rinde.sim.pdptw.central.Solvers.SolverHandle;
 import rinde.sim.pdptw.central.Solvers.StateContext;
@@ -246,6 +247,11 @@ public class SolversTest {
 
     public void setTime(long t) {
       time = t;
+    }
+
+    @Override
+    public EventAPI getEventAPI() {
+      throw new UnsupportedOperationException();
     }
   }
 }
