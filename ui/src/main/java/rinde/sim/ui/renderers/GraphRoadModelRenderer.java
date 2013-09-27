@@ -31,32 +31,47 @@ public final class GraphRoadModelRenderer implements ModelRenderer {
   private GraphRoadModel grm;
   private final int margin;
   private final boolean showNodes;
+  private final boolean showNodeLabels;
+  private final boolean drawDirectionArrows;
 
-  public GraphRoadModelRenderer(int pMargin, boolean pShowNodes) {
+  public GraphRoadModelRenderer(int pMargin, boolean pShowNodes,
+      boolean pShowNodeLabels, boolean pDrawDirectionArrows) {
     margin = pMargin;
     showNodes = pShowNodes;
+    showNodeLabels = pShowNodeLabels;
+    drawDirectionArrows = pDrawDirectionArrows;
   }
 
+  /**
+   * Creates a {@link GraphRoadModelRenderer} instance with a margin of
+   * <code>20<code> and not displaying nodes or direction arrows.
+   */
   public GraphRoadModelRenderer() {
-    this(20, false);
+    this(20, false, false, false);
   }
 
   @Override
   public void renderStatic(GC gc, ViewPort vp) {
     final Graph<? extends ConnectionData> graph = grm.getGraph();
 
-    if (showNodes) {
+    if (showNodes || showNodeLabels) {
       for (final Point node : graph.getNodes()) {
         final int x1 = vp.toCoordX(node.x) - NODE_RADIUS;
         final int y1 = vp.toCoordY(node.y) - NODE_RADIUS;
-        final int size = NODE_RADIUS * 2;
-        gc.setBackground(gc.getDevice().getSystemColor(SWT.COLOR_RED));
-        gc.fillOval(x1, y1, size, size);
-        gc.setForeground(gc.getDevice().getSystemColor(SWT.COLOR_BLACK));
-        gc.drawString(node.toString(), x1 + (int) RELATIVE_TEXT_POSITION.x, y1
-            + (int) RELATIVE_TEXT_POSITION.y, true);
+
+        if (showNodes) {
+          final int size = NODE_RADIUS * 2;
+          gc.setBackground(gc.getDevice().getSystemColor(SWT.COLOR_RED));
+          gc.fillOval(x1, y1, size, size);
+        }
+        if (showNodeLabels) {
+          gc.setForeground(gc.getDevice().getSystemColor(SWT.COLOR_BLACK));
+          gc.drawString(node.toString(), x1 + (int) RELATIVE_TEXT_POSITION.x,
+              y1 + (int) RELATIVE_TEXT_POSITION.y, true);
+        }
       }
     }
+
     for (final Connection<? extends ConnectionData> e : graph.getConnections()) {
       final int x1 = vp.toCoordX(e.from.x);
       final int y1 = vp.toCoordY(e.from.y);
@@ -65,6 +80,31 @@ public final class GraphRoadModelRenderer implements ModelRenderer {
       final int y2 = vp.toCoordY(e.to.y);
       gc.setForeground(gc.getDevice().getSystemColor(SWT.COLOR_BLACK));
       gc.drawLine(x1, y1, x2, y2);
+
+      if (drawDirectionArrows) {
+        final double dist = Point
+            .distance(new Point(x1, y1), new Point(x2, y2));
+        final double r = 14d / dist;
+        final double r2 = 4d / dist;
+        final Point unit = Point.divide(
+            Point.diff(new Point(x1, y1), new Point(x2, y2)), dist);
+
+        // get two points on the line
+        final int x3 = (int) (r * x1 + (1 - r) * x2);
+        final int y3 = (int) (r * y1 + (1 - r) * y2);
+        final int x6 = (int) (r2 * x1 + (1 - r2) * x2);
+        final int y6 = (int) (r2 * y1 + (1 - r2) * y2);
+
+        // get two points perpendicular to the line next to point 3
+        final int x4 = (int) (x3 + 5 * unit.y);
+        final int y4 = (int) (y3 + 5 * unit.x);
+        final int x5 = (int) (x3 - 5 * unit.y);
+        final int y5 = (int) (y3 - 5 * unit.x);
+
+        // draw the arrow
+        gc.setBackground(gc.getDevice().getSystemColor(SWT.COLOR_BLACK));
+        gc.fillPolygon(new int[] { x4, y4, x5, y5, x6, y6 });
+      }
     }
   }
 

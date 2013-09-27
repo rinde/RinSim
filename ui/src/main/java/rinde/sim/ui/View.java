@@ -61,7 +61,7 @@ public final class View {
 
     final Shell shell = new Shell(display, SWT.TITLE | SWT.CLOSE | SWT.RESIZE);
     shell.setText("RinSim - Simulator");
-    shell.setSize(new org.eclipse.swt.graphics.Point(800, 600));
+    shell.setSize(new org.eclipse.swt.graphics.Point(1024, 768));
 
     if (autoClose) {
       simulator.getEventAPI().addListener(new Listener() {
