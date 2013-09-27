@@ -170,7 +170,8 @@ public class GraphRoadModel extends AbstractRoadModel<Loc> {
       // check if next destination is a MidPoint
       checkArgument(
           nextHop instanceof Loc,
-          "Illegal path for this object, from a position on an edge we can not jump to another edge or go back.");
+          "Illegal path for this object, from a position on an edge we can not jump to another edge or go back. From %s, to %s.",
+          objLoc, nextHop);
       final Loc dest = (Loc) nextHop;
       // check for same edge
       checkArgument(
