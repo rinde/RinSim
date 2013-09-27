@@ -636,10 +636,24 @@ public class PDPModel implements Model<PDPObject>, TickListener, ModelReceiver {
     }
   }
 
-  @Deprecated
   @Override
   public boolean unregister(PDPObject element) {
-    throw new UnsupportedOperationException();
+    if (element instanceof Container) {
+      containerCapacities.remove(element);
+      containerContentsSize.remove(element);
+      containerContents.removeAll(element);
+    }
+
+    if (element instanceof Parcel) {
+      parcelState.remove(element, parcelState.getKeys((Parcel) element));
+    }
+
+    if (element instanceof Vehicle) {
+      vehicleState.remove(element);
+      pendingVehicleActions.remove(element);
+    }
+
+    return true;
   }
 
   @Override
