@@ -344,8 +344,7 @@ public class PDPModel implements Model<PDPObject>, TickListener, ModelReceiver {
    */
   public void pickup(Vehicle vehicle, Parcel parcel, TimeLapse time) {
     synchronized (this) {
-      /* 1 */checkArgument(roadModel.get().containsObject(vehicle),
-          "vehicle does not exist in RoadModel");
+      /* 1 */checkVehicleInRoadModel(vehicle);
       /* 2 */checkArgument(roadModel.get().containsObject(parcel),
           "parcel does not exist in RoadModel");
       final ParcelState ps = parcelState.getKeys(parcel);
@@ -393,6 +392,15 @@ public class PDPModel implements Model<PDPObject>, TickListener, ModelReceiver {
         doPickup(vehicle, parcel, time.getTime());
       }
     }
+  }
+
+  /**
+   * Checks whether the vehicle exists in the RoadModel.
+   * @param vehicle The vehicle to check.
+   */
+  protected final void checkVehicleInRoadModel(Vehicle vehicle) {
+    checkArgument(roadModel.get().containsObject(vehicle),
+        "vehicle does not exist in RoadModel");
   }
 
   /**
@@ -445,8 +453,7 @@ public class PDPModel implements Model<PDPObject>, TickListener, ModelReceiver {
    */
   public void deliver(Vehicle vehicle, Parcel parcel, TimeLapse time) {
     synchronized (this) {
-      /* 1 */checkArgument(roadModel.get().containsObject(vehicle),
-          "vehicle does not exist in RoadModel");
+      /* 1 */checkVehicleInRoadModel(vehicle);
       /* 2 */checkArgument(vehicleState.get(vehicle).equals(VehicleState.IDLE),
           "vehicle must be idle but is: %s ", vehicleState.get(vehicle));
       /* 3 */checkArgument(containerContents.get(vehicle).contains(parcel),

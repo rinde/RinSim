@@ -7,6 +7,8 @@ import static com.google.common.base.Preconditions.checkState;
 import rinde.sim.core.graph.Point;
 import rinde.sim.core.model.road.RoadModel;
 
+import com.google.common.base.Optional;
+
 /**
  * Default implementation of {@link PDPObject}.
  * 
@@ -14,10 +16,16 @@ import rinde.sim.core.model.road.RoadModel;
  */
 public abstract class PDPObjectImpl implements PDPObject {
 
-  private PDPModel pdpModel;
-  private RoadModel roadModel;
-  private Point startPosition;
+  private Optional<PDPModel> pdpModel;
+  private Optional<RoadModel> roadModel;
+  private Optional<Point> startPosition;
   private boolean isRegistered;
+
+  PDPObjectImpl() {
+    pdpModel = Optional.absent();
+    roadModel = Optional.absent();
+    startPosition = Optional.absent();
+  }
 
   // TODO should this be mandatory (abstract) implemented?? may be remove
   // abstract keyword to make it optional. pros/cons?
@@ -31,25 +39,25 @@ public abstract class PDPObjectImpl implements PDPObject {
 
   @Override
   public final void initPDPObject(PDPModel model) {
-    checkState(pdpModel == null, "PDPModel can not be registered twice!");
-    pdpModel = model;
+    checkState(!pdpModel.isPresent(), "PDPModel can not be registered twice!");
+    pdpModel = Optional.of(model);
 
-    if (roadModel != null) {
+    if (roadModel.isPresent()) {
       isRegistered = true;
-      initRoadPDP(roadModel, pdpModel);
+      initRoadPDP(roadModel.get(), pdpModel.get());
     }
   }
 
   @Override
   public final void initRoadUser(RoadModel model) {
-    checkState(roadModel == null, "RoadModel can not be registered twice!");
-    roadModel = model;
-    if (startPosition != null) {
-      model.addObjectAt(this, startPosition);
+    checkState(!roadModel.isPresent(), "RoadModel can not be registered twice!");
+    roadModel = Optional.of(model);
+    if (startPosition.isPresent()) {
+      model.addObjectAt(this, startPosition.get());
     }
-    if (pdpModel != null) {
+    if (pdpModel.isPresent()) {
       isRegistered = true;
-      initRoadPDP(roadModel, pdpModel);
+      initRoadPDP(roadModel.get(), pdpModel.get());
     }
   }
 
@@ -67,28 +75,29 @@ public abstract class PDPObjectImpl implements PDPObject {
    * @param p The start position.
    */
   protected final void setStartPosition(Point p) {
-    checkState(!isRegistered, "this should be called before this object is registered, preferably in the constructor");
-    startPosition = p;
+    checkState(
+        !isRegistered,
+        "this should be called before this object is registered, preferably in the constructor");
+    startPosition = Optional.of(p);
   }
 
   /**
    * When this object is registered {@link #isRegistered()}, this method returns
    * the reference to the {@link PDPModel} on which this object lives.
-   * @return The @{link PDPModel} reference if this object is registered,
-   *         <code> null</code> otherwise.
+   * @return The @{link PDPModel} reference if this object is registered.
+   * @throws IllegalStateException if this object is not registered.
    */
   protected PDPModel getPDPModel() {
-    return pdpModel;
+    return pdpModel.get();
   }
 
   /**
    * When this object is registered {@link #isRegistered()}, this method returns
    * the reference to the {@link RoadModel} associated to this object.
-   * @return The {@link RoadModel} reference if this object is registered,
-   *         <code>null</code> otherwise.
+   * @return The {@link RoadModel} reference if this object is registered.
+   * @throws IllegalStateException if this object is not registered.
    */
   protected RoadModel getRoadModel() {
-    return roadModel;
+    return roadModel.get();
   }
-
 }
