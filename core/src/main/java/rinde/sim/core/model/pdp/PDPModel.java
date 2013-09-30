@@ -638,21 +638,22 @@ public class PDPModel implements Model<PDPObject>, TickListener, ModelReceiver {
 
   @Override
   public boolean unregister(PDPObject element) {
-    if (element instanceof Container) {
-      containerCapacities.remove(element);
-      containerContentsSize.remove(element);
-      containerContents.removeAll(element);
-    }
+    synchronized (this) {
+      if (element instanceof Container) {
+        containerCapacities.remove(element);
+        containerContentsSize.remove(element);
+        containerContents.removeAll(element);
+      }
 
-    if (element instanceof Parcel) {
-      parcelState.removeValue((Parcel) element);
-    }
+      if (element instanceof Parcel) {
+        parcelState.removeValue((Parcel) element);
+      }
 
-    if (element instanceof Vehicle) {
-      vehicleState.remove(element);
-      pendingVehicleActions.remove(element);
+      if (element instanceof Vehicle) {
+        vehicleState.remove(element);
+        pendingVehicleActions.remove(element);
+      }
     }
-
     return true;
   }
 
@@ -743,6 +744,22 @@ public class PDPModel implements Model<PDPObject>, TickListener, ModelReceiver {
     roadModel = Optional.fromNullable(mp.getModel(RoadModel.class));
   }
 
+  /**
+   * Performs either a {@link #pickup(Vehicle, Parcel, TimeLapse)} or a
+   * {@link #deliver(Vehicle, Parcel, TimeLapse)} operation depending on the
+   * state of the vehicle and parcel.
+   * @param vehicle The vehicle to perform the operation with.
+   * @param parcel The parcel to perform the operation on.
+   * @param time The time to spend on this operation.
+   */
+  public void service(Vehicle vehicle, Parcel parcel, TimeLapse time) {
+    if (getContents(vehicle).contains(parcel)) {
+      deliver(vehicle, parcel, time);
+    } else {
+      pickup(vehicle, parcel, time);
+    }
+  }
+
   public class PDPModelEvent extends Event {
 
     public final PDPModel pdpModel;
@@ -750,7 +767,7 @@ public class PDPModel implements Model<PDPObject>, TickListener, ModelReceiver {
     public final Parcel parcel;
     public final Vehicle vehicle;
 
-    public PDPModelEvent(PDPModelEventType type, PDPModel model, long t,
+    PDPModelEvent(PDPModelEventType type, PDPModel model, long t,
         @Nullable Parcel p, @Nullable Vehicle v) {
       super(type, model);
       pdpModel = model;
@@ -794,8 +811,7 @@ public class PDPModel implements Model<PDPObject>, TickListener, ModelReceiver {
     protected final Parcel parcel;
     protected long timeNeeded;
 
-    public VehicleParcelAction(PDPModel model, Vehicle v, Parcel p,
-        long pTimeNeeded) {
+    VehicleParcelAction(PDPModel model, Vehicle v, Parcel p, long pTimeNeeded) {
       modelRef = model;
       vehicle = v;
       parcel = p;
@@ -816,7 +832,7 @@ public class PDPModel implements Model<PDPObject>, TickListener, ModelReceiver {
       }
     }
 
-    abstract protected void finish(TimeLapse time);
+    protected abstract void finish(TimeLapse time);
 
     @Override
     public boolean isDone() {
@@ -841,7 +857,7 @@ public class PDPModel implements Model<PDPObject>, TickListener, ModelReceiver {
 
   class PickupAction extends VehicleParcelAction {
 
-    public PickupAction(PDPModel model, Vehicle v, Parcel p, long pTimeNeeded) {
+    PickupAction(PDPModel model, Vehicle v, Parcel p, long pTimeNeeded) {
       super(model, v, p, pTimeNeeded);
     }
 
@@ -854,7 +870,7 @@ public class PDPModel implements Model<PDPObject>, TickListener, ModelReceiver {
 
   class DeliverAction extends VehicleParcelAction {
 
-    public DeliverAction(PDPModel model, Vehicle v, Parcel p, long pTimeNeeded) {
+    DeliverAction(PDPModel model, Vehicle v, Parcel p, long pTimeNeeded) {
       super(model, v, p, pTimeNeeded);
     }
 
@@ -862,22 +878,6 @@ public class PDPModel implements Model<PDPObject>, TickListener, ModelReceiver {
     public void finish(TimeLapse time) {
       modelRef.vehicleState.put(vehicle, VehicleState.IDLE);
       modelRef.doDeliver(vehicle, parcel, time.getTime());
-    }
-  }
-
-  /**
-   * Performs either a {@link #pickup(Vehicle, Parcel, TimeLapse)} or a
-   * {@link #deliver(Vehicle, Parcel, TimeLapse)} operation depending on the
-   * state of the vehicle and parcel.
-   * @param vehicle The vehicle to perform the operation with.
-   * @param parcel The parcel to perform the operation on.
-   * @param time The time to spend on this operation.
-   */
-  public void service(Vehicle vehicle, Parcel parcel, TimeLapse time) {
-    if (getContents(vehicle).contains(parcel)) {
-      deliver(vehicle, parcel, time);
-    } else {
-      pickup(vehicle, parcel, time);
     }
   }
 }
