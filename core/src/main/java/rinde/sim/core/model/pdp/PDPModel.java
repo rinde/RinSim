@@ -645,7 +645,7 @@ public class PDPModel implements Model<PDPObject>, TickListener, ModelReceiver {
     }
 
     if (element instanceof Parcel) {
-      parcelState.remove(element, parcelState.getKeys((Parcel) element));
+      parcelState.removeValue((Parcel) element);
     }
 
     if (element instanceof Vehicle) {

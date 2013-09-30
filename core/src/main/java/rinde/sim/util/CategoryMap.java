@@ -11,6 +11,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import javax.annotation.Nullable;
+
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Multiset;
@@ -85,6 +87,11 @@ public class CategoryMap<C, V> implements Multimap<C, V> {
         && valueCategoryMap.remove(value) != null;
   }
 
+  public boolean removeValue(V value) {
+    final C category = valueCategoryMap.remove(value);
+    return categoryValueMultiMap.remove(category, value);
+  }
+
   @Override
   public void clear() {
     categoryValueMultiMap.clear();
@@ -92,18 +99,21 @@ public class CategoryMap<C, V> implements Multimap<C, V> {
   }
 
   // TODO
+  @Deprecated
   @Override
   public boolean putAll(C key, Iterable<? extends V> values) {
     throw new UnsupportedOperationException();
   }
 
   // TODO
+  @Deprecated
   @Override
   public boolean putAll(Multimap<? extends C, ? extends V> multimap) {
     throw new UnsupportedOperationException();
   }
 
   // TODO
+  @Deprecated
   @Override
   public Collection<V> replaceValues(C key, Iterable<? extends V> values) {
     throw new UnsupportedOperationException();
@@ -143,10 +153,13 @@ public class CategoryMap<C, V> implements Multimap<C, V> {
     return categoryValueMultiMap.put(key, value);
   }
 
-  // TODO
   @Override
-  public Collection<V> removeAll(Object key) {
-    throw new UnsupportedOperationException();
+  public Collection<V> removeAll(@Nullable Object key) {
+    final Collection<V> values = categoryValueMultiMap.removeAll(key);
+    for (final V v : values) {
+      valueCategoryMap.remove(v);
+    }
+    return values;
   }
 
   @Override
