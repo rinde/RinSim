@@ -137,7 +137,7 @@ class BoxRenderer implements ModelRenderer {
           offsetY = (int) IN_CARGO_OFFSET.y + y - image.getBounds().height / 2;
         }
 
-        if (!ps.isDelivered()) {
+        if (ps != null && !ps.isDelivered()) {
           if (rotation == 0f) {
             gc.drawImage(image, offsetX, offsetY);
           } else {
@@ -154,6 +154,7 @@ class BoxRenderer implements ModelRenderer {
             gc.drawImage(image, offsetX, offsetY);
             gc.setTransform(oldTransform);
             transform.dispose();
+            oldTransform.dispose();
           }
         }
       }
