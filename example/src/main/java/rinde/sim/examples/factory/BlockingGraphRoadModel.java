@@ -3,6 +3,7 @@
  */
 package rinde.sim.examples.factory;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Lists.newLinkedList;
 import static com.google.common.collect.Sets.newLinkedHashSet;
@@ -17,6 +18,7 @@ import javax.measure.quantity.Velocity;
 import javax.measure.unit.Unit;
 
 import rinde.sim.core.TimeLapse;
+import rinde.sim.core.graph.Connection;
 import rinde.sim.core.graph.ConnectionData;
 import rinde.sim.core.graph.Graph;
 import rinde.sim.core.graph.Point;
@@ -72,8 +74,10 @@ public class BlockingGraphRoadModel extends GraphRoadModel {
     }
     final Loc newLoc = objLocs.get(object);
     if (newLoc.isOnConnection()) {
-      blockedNodes.add(newLoc.conn.to);
-      vehicleBlocks.put(object, newLoc.conn.to);
+      final Connection<?> conn = newLoc.conn;
+      checkNotNull(conn);
+      blockedNodes.add(conn.to);
+      vehicleBlocks.put(object, conn.to);
     } else {
       blockedNodes.add(getPosition(object));
       vehicleBlocks.put(object, getPosition(object));

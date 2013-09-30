@@ -35,12 +35,13 @@ import com.google.common.math.DoubleMath;
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
  * 
  */
-public class FactoryExample {
+public final class FactoryExample {
 
   static final double POINT_DISTANCE = 5d;
   static final long SERVICE_DURATION = 120000;
   static final int NUM_VECHICLES = 20;
   static final double AGV_SPEED = 10;
+  static final int CANVAS_MARGIN = 30;
 
   static final int FONT_SIZE = 14;
   // spacing between text pixels
@@ -76,8 +77,8 @@ public class FactoryExample {
 
     int width = DoubleMath.roundToInt(xMax / SPACING, RoundingMode.CEILING);
     width += VERTICAL_LINE_SPACING - width % VERTICAL_LINE_SPACING;
-    width += (DoubleMath.roundToInt(width / VERTICAL_LINE_SPACING,
-        RoundingMode.UNNECESSARY) % 2) == 0 ? VERTICAL_LINE_SPACING : 0;
+    width += ((width / VERTICAL_LINE_SPACING) % 2) == 0 ? VERTICAL_LINE_SPACING
+        : 0;
 
     int height = DoubleMath.roundToInt(yMax / SPACING, RoundingMode.CEILING) + 2;
     height += height % 2;
@@ -98,8 +99,9 @@ public class FactoryExample {
 
     final UiSchema uis = new UiSchema(false);
     uis.add(AGV.class, "/graphics/flat/forklift2.png");
-    View.startGui(simulator, 1, new GraphRoadModelRenderer(30, false, false,
-        false), new BoxRenderer(), new RoadUserRenderer(uis, false));
+    View.startGui(simulator, 1, new GraphRoadModelRenderer(CANVAS_MARGIN,
+        false, false, false), new BoxRenderer(), new RoadUserRenderer(uis,
+        false));
   }
 
   static void addPath(Graph<?> graph, Point... points) {

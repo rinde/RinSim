@@ -7,6 +7,8 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 
+import javax.annotation.Nullable;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
@@ -30,6 +32,12 @@ import com.google.common.base.Optional;
 
 class BoxRenderer implements ModelRenderer {
 
+  static final Point AT_SITE_OFFSET = new Point(-12, -13);
+  static final float AT_SITE_ROTATION = 0f;
+  static final Point IN_CARGO_OFFSET = new Point(-21, -1);
+  static final float IN_CARGO_ROTATION = 20f;
+  static final Point LABEL_OFFSET = new Point(-15, -40);
+
   Optional<RoadModel> roadModel;
   Optional<PDPModel> pdpModel;
   final UiSchema uiSchema;
@@ -49,13 +57,6 @@ class BoxRenderer implements ModelRenderer {
 
   @Override
   public void renderStatic(GC gc, ViewPort vp) {}
-
-  static final Point AT_SITE_OFFSET = new Point(-12, -13);
-  static final float AT_SITE_ROTATION = 0f;
-  static final Point IN_CARGO_OFFSET = new Point(-21, -1);
-  static final float IN_CARGO_ROTATION = 20f;
-
-  static final Point LABEL_OFFSET = new Point(-15, -40);
 
   @Override
   public void renderDynamic(GC gc, ViewPort vp, long time) {
@@ -84,6 +85,7 @@ class BoxRenderer implements ModelRenderer {
         float rotation = AT_SITE_ROTATION;
         int offsetX = 0;
         int offsetY = 0;
+        @Nullable
         final ParcelState ps = pdpModel.get().getParcelState(p);
         if (ps == ParcelState.AVAILABLE) {
           final Point pos = roadModel.get().getPosition(p);
@@ -99,8 +101,8 @@ class BoxRenderer implements ModelRenderer {
           final Point pos = roadModel.get().getPosition(v);
           final int x = vp.toCoordX(pos.x);
           final int y = vp.toCoordY(pos.y);
-          final double percentage = (1d - vpai.timeNeeded()
-              / (double) p.getPickupDuration());
+          final double percentage = 1d - vpai.timeNeeded()
+              / (double) p.getPickupDuration();
           final String text = ((int) (percentage * 100d)) + "%";
 
           final float rotFac = (float) (ps == ParcelState.PICKING_UP ? percentage
@@ -109,14 +111,13 @@ class BoxRenderer implements ModelRenderer {
 
           final int textWidth = gc.textExtent(text).x;
           gc.setBackground(gc.getDevice().getSystemColor(SWT.COLOR_BLUE));
-          // gc.setForeground(gc.getDevice().getSystemColor(SWT.COLOR_WHITE));
           gc.drawText(text, (int) LABEL_OFFSET.x + x - textWidth / 2,
               (int) LABEL_OFFSET.y + y, true);
 
           Point from = new Point(AT_SITE_OFFSET.x + x - image.getBounds().width
-              / 2, AT_SITE_OFFSET.y + y - image.getBounds().height / 2);
+              / 2d, AT_SITE_OFFSET.y + y - image.getBounds().height / 2d);
           Point to = new Point(IN_CARGO_OFFSET.x + x - image.getBounds().width
-              / 2, IN_CARGO_OFFSET.y + y - image.getBounds().height / 2);
+              / 2d, IN_CARGO_OFFSET.y + y - image.getBounds().height / 2d);
 
           if (ps == ParcelState.DELIVERING) {
             final Point temp = from;
