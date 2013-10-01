@@ -109,7 +109,7 @@
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<sonar.language>java</sonar.language>
-		<swt.version>3.8</swt.version> <!--  SHOULD BE SAME AS IN packaging/pom.xml -->
+		<swt.version>4.3</swt.version> <!--  SHOULD BE SAME AS IN packaging/pom.xml -->
 		<!-- by default there are no arguments passed to tests -->
 		<test.arg />
 	</properties>

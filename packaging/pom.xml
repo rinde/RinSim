@@ -15,7 +15,7 @@
 
 
 	<properties>
-		<swt.version>3.8</swt.version> <!-- SHOULD BE SAME AS IN ui/pom.xml -->
+		<swt.version>4.3</swt.version> <!-- SHOULD BE SAME AS IN ui/pom.xml -->
 	</properties>
 
 	<!-- NOTE: These dependency declarations are only required to sort this 
