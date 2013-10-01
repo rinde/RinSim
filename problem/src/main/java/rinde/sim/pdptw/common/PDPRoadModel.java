@@ -223,6 +223,7 @@ public class PDPRoadModel extends ForwardingRoadModel implements ModelReceiver {
     return null;
   }
 
+  @Deprecated
   @Override
   public MoveProgress moveTo(MovingRoadUser object, Point destination,
       TimeLapse time) {
@@ -230,6 +231,7 @@ public class PDPRoadModel extends ForwardingRoadModel implements ModelReceiver {
         "This road model only supports the moveTo(MovingRoadUser,RoadUser,TimeLapse) method.");
   }
 
+  @Deprecated
   @Override
   public final MoveProgress followPath(MovingRoadUser object,
       Queue<Point> path, TimeLapse time) {
