@@ -767,11 +767,35 @@ public class PDPModel implements Model<PDPObject>, TickListener, ModelReceiver {
     }
   }
 
-  public class PDPModelEvent extends Event {
+  /**
+   * Event object that is dispatched by the {@link PDPModel}.
+   * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+   */
+  public static class PDPModelEvent extends Event {
+    private static final long serialVersionUID = 7008138533321063591L;
 
+    /**
+     * The {@link PDPModel} that dispatched this event.
+     */
     public final PDPModel pdpModel;
+
+    /**
+     * The time at which the event was dispatched.
+     */
     public final long time;
+
+    /**
+     * The {@link Parcel} that was involved in the event, or <code>null</code>
+     * if there was no {@link Parcel} involved in the event.
+     */
+    @Nullable
     public final Parcel parcel;
+
+    /**
+     * The {@link Vehicle} that was involved in the event, or <code>null</code>
+     * if there was no {@link Vehicle} involved in the event.
+     */
+    @Nullable
     public final Vehicle vehicle;
 
     PDPModelEvent(PDPModelEventType type, PDPModel model, long t,
@@ -804,11 +828,26 @@ public class PDPModel implements Model<PDPObject>, TickListener, ModelReceiver {
     boolean isDone();
   }
 
+  /**
+   * Value object containing information about either a pickup or a delivery
+   * operation.
+   * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+   */
   public interface VehicleParcelActionInfo {
+
+    /**
+     * @return The time needed to complete this action.
+     */
     long timeNeeded();
 
+    /**
+     * @return The vehicle performing the action.
+     */
     Vehicle getVehicle();
 
+    /**
+     * @return The parcel that is participating in the action.
+     */
     Parcel getParcel();
   }
 
