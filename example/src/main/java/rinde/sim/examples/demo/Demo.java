@@ -16,7 +16,7 @@ import rinde.sim.examples.pdp.PDPExample;
 public class Demo {
 
   public static void main(String[] args) throws FileNotFoundException,
-      IOException {
+      IOException, InterruptedException {
 
     final long time = 6 * 60 * 60 * 1000L;
 

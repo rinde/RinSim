@@ -14,6 +14,8 @@ import javax.measure.unit.SI;
 
 import org.apache.commons.math3.random.MersenneTwister;
 import org.apache.commons.math3.random.RandomGenerator;
+import org.eclipse.swt.graphics.Rectangle;
+import org.eclipse.swt.widgets.Display;
 
 import rinde.sim.core.Simulator;
 import rinde.sim.core.TickListener;
@@ -78,7 +80,9 @@ public final class PDPExample {
     final String graphFile = args != null && args.length >= 2 ? args[1]
         : MAP_FILE;
 
-    System.out.println(graphFile);
+    final Display d = new Display();
+    final Rectangle rect = d.getPrimaryMonitor().getBounds();
+    d.dispose();
 
     Graph<?> g;
     if (GRAPH_CACHE.containsKey(graphFile)) {
@@ -131,8 +135,8 @@ public final class PDPExample {
     uis.add(ExampleParcel.class, "/graphics/flat/person-red-32.png");
     View.create(simulator)
         .with(new GraphRoadModelRenderer(), new RoadUserRenderer(uis, false))
-        .enableAutoClose().enableAutoPlay().setFullScreen().setSpeedUp(4)
-        .show();
+        .enableAutoClose().enableAutoPlay()
+        .setResolution(rect.width, rect.height).setSpeedUp(4).show();
   }
 
   static class ExampleDepot extends Depot {

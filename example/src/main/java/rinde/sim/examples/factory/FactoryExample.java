@@ -43,17 +43,11 @@ public final class FactoryExample {
 
   static final double POINT_DISTANCE = 5d;
   static final long SERVICE_DURATION = 120000;
-  static final int NUM_VECHICLES = 20;
   static final double AGV_SPEED = 10;
   static final int CANVAS_MARGIN = 30;
 
-  static final int FONT_SIZE = 14;
   // spacing between text pixels
   static final double SPACING = 30d;
-  // spacing between vertical lines in line units
-  static final int VERTICAL_LINE_SPACING = 8;
-
-  // static final List<String> WORDS = asList("Agent\nWise", "Distri\nNet");
 
   private FactoryExample() {}
 
@@ -64,20 +58,23 @@ public final class FactoryExample {
 
     final Display d = new Display();
     final Rectangle rect = d.getPrimaryMonitor().getBounds();
+    d.dispose();
 
     List<String> WORDS = asList("Agent\nWise", "Distri\nNet");;
     int FONT_SIZE = 14;
+    // spacing between vertical lines in line units
     int VERTICAL_LINE_SPACING = 8;
+    int NUM_VECHICLES = 20;
     // screen
     if (rect.width == 1920) {
       // WORDS = asList("AgentWise\nKU Leuven", "iMinds\nDistriNet");
       WORDS = asList("  Agent \n  Wise ", "  Distri \n  Net  ");
       FONT_SIZE = 19;
       VERTICAL_LINE_SPACING = 8;
+      NUM_VECHICLES = 40;
     }
     // projector
     else {}
-    d.dispose();
 
     final RandomGenerator rng = new MersenneTwister(123);
     final Simulator simulator = new Simulator(rng, Measure.valueOf(1000L,
@@ -141,7 +138,8 @@ public final class FactoryExample {
     View.create(simulator)
         .with(new GraphRoadModelRenderer(CANVAS_MARGIN, false, false, false),
             new BoxRenderer(), new RoadUserRenderer(uis, false))
-        .setTitleAppendix("Factory Demo").setFullScreen().enableAutoPlay()
+        .setTitleAppendix("Factory Demo")
+        .setResolution(rect.width, rect.height).enableAutoPlay()
         .enableAutoClose().setSpeedUp(4).show();
   }
 

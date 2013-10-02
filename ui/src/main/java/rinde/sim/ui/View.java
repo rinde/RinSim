@@ -127,6 +127,7 @@ public final class View {
       shell.setText("RinSim - " + title);
       if (fullScreen) {
         shell.setFullScreen(true);
+        shell.setMaximized(true);
       } else {
         shell.setSize(screenSize);
       }
