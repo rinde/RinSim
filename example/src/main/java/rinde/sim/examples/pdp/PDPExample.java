@@ -3,8 +3,11 @@
  */
 package rinde.sim.examples.pdp;
 
+import static com.google.common.collect.Maps.newHashMap;
+
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.Map;
 
 import javax.measure.Measure;
 import javax.measure.unit.SI;
@@ -47,16 +50,13 @@ public final class PDPExample {
   private static final int TRUCK_CAPACITY = 10;
   private static final int DEPOT_CAPACITY = 100;
 
-  // private static final String MAP_FILE =
-  // "../core/files/maps/leuven-simple.dot";
-  private static final String MAP_FILE = "../core/dot-files/leuven-simple.dot";// /Users/rindevanlon/Downloads/brussels-simple.dot";
+  private static final String MAP_FILE = "../core/files/maps/leuven-simple.dot";
+  private static final Map<String, Graph<?>> GRAPH_CACHE = newHashMap();
 
-  static final Graph<MultiAttributeData> graph = load();
-
-  static Graph<MultiAttributeData> load() {
+  static Graph<MultiAttributeData> load(String name) {
     try {
       return DotGraphSerializer.getMultiAttributeGraphSerializer(
-          new SelfCycleFilter()).read(MAP_FILE);
+          new SelfCycleFilter()).read(name);
     } catch (final FileNotFoundException e) {
       throw new RuntimeException(e);
     } catch (final IOException e) {
@@ -69,21 +69,31 @@ public final class PDPExample {
   /**
    * Starts the {@link PDPExample}.
    * @param args
-   * @throws FileNotFoundException
-   * @throws IOException
    */
-  public static void main(String[] args) throws FileNotFoundException,
-      IOException {
+  public static void main(String[] args) {
 
     final long endTime = args != null && args.length >= 1 ? Long
         .parseLong(args[0]) : Long.MAX_VALUE;
+
+    final String graphFile = args != null && args.length >= 2 ? args[1]
+        : MAP_FILE;
+
+    System.out.println(graphFile);
+
+    Graph<?> g;
+    if (GRAPH_CACHE.containsKey(graphFile)) {
+      g = GRAPH_CACHE.get(graphFile);
+    } else {
+      g = load(graphFile);
+      GRAPH_CACHE.put(graphFile, g);
+    }
 
     // create a new simulator, load map of Leuven
     final RandomGenerator rng = new MersenneTwister(123);
     final Simulator simulator = new Simulator(rng, Measure.valueOf(1000L,
         SI.MILLI(SI.SECOND)));
 
-    final RoadModel roadModel = new GraphRoadModel(graph);
+    final RoadModel roadModel = new GraphRoadModel(g);
     final PDPModel pdpModel = new PDPModel();
     simulator.register(roadModel);
     simulator.register(pdpModel);
@@ -121,7 +131,8 @@ public final class PDPExample {
     uis.add(ExampleParcel.class, "/graphics/flat/person-red-32.png");
     View.create(simulator)
         .with(new GraphRoadModelRenderer(), new RoadUserRenderer(uis, false))
-        .enableAutoClose().enableAutoPlay().setFullScreen().show();
+        .enableAutoClose().enableAutoPlay().setFullScreen().setSpeedUp(4)
+        .show();
   }
 
   static class ExampleDepot extends Depot {

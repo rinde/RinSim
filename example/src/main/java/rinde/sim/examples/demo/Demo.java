@@ -22,7 +22,8 @@ public class Demo {
 
     while (true) {
       FactoryExample.main(new String[] { time + "" });
-      PDPExample.main(new String[] { time + "" });
+      PDPExample.main(new String[] { time + "",
+          "../core/dot-files/leuven-simple.dot" });
     }
   }
 
