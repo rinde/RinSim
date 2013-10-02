@@ -17,14 +17,14 @@ import com.google.common.base.Optional;
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
  * 
  */
-class ExampleTruck extends Vehicle {
+class Taxi extends Vehicle {
 
   private static final double SPEED = 1000d;
   private Optional<RoadModel> roadModel;
   private Optional<PDPModel> pdpModel;
   private Optional<Parcel> curr;
 
-  ExampleTruck(Point startPosition, double capacity) {
+  Taxi(Point startPosition, double capacity) {
     setStartPosition(startPosition);
     setCapacity(capacity);
     roadModel = Optional.absent();

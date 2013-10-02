@@ -43,8 +43,8 @@ import rinde.sim.util.TimeWindow;
 public final class PDPExample {
 
   private static final int NUM_DEPOTS = 0;
-  private static final int NUM_TRUCKS = 10;
-  private static final int NUM_PARCELS = 60;
+  private static final int NUM_TRUCKS = 20;
+  private static final int NUM_PARCELS = 30;
 
   // time in ms
   private static final long SERVICE_DURATION = 60000;
@@ -99,6 +99,7 @@ public final class PDPExample {
 
     final RoadModel roadModel = new GraphRoadModel(g);
     final PDPModel pdpModel = new PDPModel();
+
     simulator.register(roadModel);
     simulator.register(pdpModel);
     simulator.configure();
@@ -108,13 +109,13 @@ public final class PDPExample {
           DEPOT_CAPACITY));
     }
     for (int i = 0; i < NUM_TRUCKS; i++) {
-      simulator.register(new ExampleTruck(roadModel.getRandomPosition(rng),
+      simulator.register(new Taxi(roadModel.getRandomPosition(rng),
           TRUCK_CAPACITY));
     }
     for (int i = 0; i < NUM_PARCELS; i++) {
       simulator.register(new ExampleParcel(roadModel.getRandomPosition(rng),
           roadModel.getRandomPosition(rng), SERVICE_DURATION, SERVICE_DURATION,
-          PARCEL_MAGNITUDE));
+          1 + rng.nextInt(3)));
     }
 
     simulator.addTickListener(new TickListener() {
@@ -122,6 +123,11 @@ public final class PDPExample {
       public void tick(TimeLapse time) {
         if (time.getStartTime() > endTime) {
           simulator.stop();
+        } else if (rng.nextDouble() < .007) {
+          simulator.register(new ExampleParcel(
+              roadModel.getRandomPosition(rng), roadModel
+                  .getRandomPosition(rng), SERVICE_DURATION, SERVICE_DURATION,
+              1 + rng.nextInt(3)));
         }
       }
 
@@ -131,12 +137,13 @@ public final class PDPExample {
 
     final UiSchema uis = new UiSchema();
     uis.add(ExampleDepot.class, "/graphics/perspective/tall-building-64.png");
-    uis.add(ExampleTruck.class, "/graphics/flat/taxi-32.png");
+    uis.add(Taxi.class, "/graphics/flat/taxi-32.png");
     uis.add(ExampleParcel.class, "/graphics/flat/person-red-32.png");
-    View.create(simulator)
-        .with(new GraphRoadModelRenderer(), new RoadUserRenderer(uis, false))
+    View.create(simulator).with(new GraphRoadModelRenderer())
+        .with(new RoadUserRenderer(uis, false)).with(new TaxiRenderer())
         .enableAutoClose().enableAutoPlay()
-        .setResolution(rect.width, rect.height).setSpeedUp(4).show();
+        .setResolution(rect.width, rect.height).setSpeedUp(4)
+        .setTitleAppendix("Taxi Demo").show();
   }
 
   static class ExampleDepot extends Depot {
