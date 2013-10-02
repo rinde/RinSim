@@ -32,9 +32,9 @@ public class GradientFieldExample {
 
   public static void main(String[] args) throws IOException,
       ConfigurationException {
-    final FabriRechtScenario scenario = FabriRechtParser
-        .fromJson(new FileReader(
-            "../problem/data/test/fabri-recht/lc101.scenario"), 10, 4);
+    final FabriRechtScenario scenario = FabriRechtParser.fromJson(
+        new FileReader("../problem/data/test/fabri-recht/lc101.scenario"), 10,
+        4);
 
     // instantiate the problem and adding our custom model
     final DynamicPDPTWProblem problem = new DynamicPDPTWProblem(scenario, 123,
@@ -65,8 +65,10 @@ public class GradientFieldExample {
         schema.add(Truck.class, "/graphics/perspective/bus-44.png");
         schema.add(DefaultDepot.class, "/graphics/flat/warehouse-32.png");
         schema.add(DefaultParcel.class, "/graphics/flat/hailing-cab-32.png");
-        View.startGui(sim, 1, new PlaneRoadModelRenderer(0.05), new RoadUserRenderer(
-            schema, false), new PDPModelRenderer(), new GradientFieldRenderer());
+        View.create(sim)
+            .with(new PlaneRoadModelRenderer(0.05),
+                new RoadUserRenderer(schema, false), new PDPModelRenderer(),
+                new GradientFieldRenderer()).show();
 
       }
     });

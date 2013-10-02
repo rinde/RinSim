@@ -13,8 +13,12 @@ import javax.measure.unit.SI;
 
 import org.apache.commons.math3.random.MersenneTwister;
 import org.apache.commons.math3.random.RandomGenerator;
+import org.eclipse.swt.graphics.Rectangle;
+import org.eclipse.swt.widgets.Display;
 
 import rinde.sim.core.Simulator;
+import rinde.sim.core.TickListener;
+import rinde.sim.core.TimeLapse;
 import rinde.sim.core.graph.Graph;
 import rinde.sim.core.graph.Graphs;
 import rinde.sim.core.graph.LengthData;
@@ -48,11 +52,33 @@ public final class FactoryExample {
   static final double SPACING = 30d;
   // spacing between vertical lines in line units
   static final int VERTICAL_LINE_SPACING = 8;
-  static final List<String> WORDS = asList("Agent\nWise", "Distri\nNet");
+
+  // static final List<String> WORDS = asList("Agent\nWise", "Distri\nNet");
 
   private FactoryExample() {}
 
   public static void main(String[] args) {
+
+    final long endTime = args != null && args.length >= 1 ? Long
+        .parseLong(args[0]) : Long.MAX_VALUE;
+
+    final Display d = new Display();
+    final Rectangle rect = d.getPrimaryMonitor().getBounds();
+
+    List<String> WORDS = asList("Agent\nWise", "Distri\nNet");;
+    int FONT_SIZE = 14;
+    int VERTICAL_LINE_SPACING = 8;
+    // screen
+    if (rect.width == 1920) {
+      // WORDS = asList("AgentWise\nKU Leuven", "iMinds\nDistriNet");
+      WORDS = asList("  Agent \n  Wise ", "  Distri \n  Net  ");
+      FONT_SIZE = 19;
+      VERTICAL_LINE_SPACING = 8;
+    }
+    // projector
+    else {}
+    d.dispose();
+
     final RandomGenerator rng = new MersenneTwister(123);
     final Simulator simulator = new Simulator(rng, Measure.valueOf(1000L,
         SI.MILLI(SI.SECOND)));
@@ -97,11 +123,26 @@ public final class FactoryExample {
       simulator.register(new AGV(rng));
     }
 
+    simulator.addTickListener(new TickListener() {
+      @Override
+      public void tick(TimeLapse time) {
+        if (time.getStartTime() > endTime) {
+          simulator.stop();
+        }
+      }
+
+      @Override
+      public void afterTick(TimeLapse timeLapse) {}
+    });
+
     final UiSchema uis = new UiSchema(false);
     uis.add(AGV.class, "/graphics/flat/forklift2.png");
-    View.startGui(simulator, 1, new GraphRoadModelRenderer(CANVAS_MARGIN,
-        false, false, false), new BoxRenderer(), new RoadUserRenderer(uis,
-        false));
+
+    View.create(simulator)
+        .with(new GraphRoadModelRenderer(CANVAS_MARGIN, false, false, false),
+            new BoxRenderer(), new RoadUserRenderer(uis, false))
+        .setTitleAppendix("Factory Demo").setFullScreen().enableAutoPlay()
+        .enableAutoClose().setSpeedUp(4).show();
   }
 
   static void addPath(Graph<?> graph, Point... points) {

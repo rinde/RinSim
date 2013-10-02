@@ -612,10 +612,12 @@ public class MapPreprocessor {
     final DotGraphSerializer<MultiAttributeData> serializer = DotGraphSerializer
         .getMultiAttributeGraphSerializer();
 
-    final String name = args[0];// "wroclaw";
+    final String name = "leuven";// args[0];// "wroclaw";
+    final String file = "/Users/rindevanlon/Downloads/temp.osm";
 
     System.out.println(name);
-    final Graph<MultiAttributeData> g = OSM.parse("osm-files/" + name + ".osm");
+    final Graph<MultiAttributeData> g = OSM.parse(file);// "osm-files/" + name +
+                                                        // ".osm");
     serializer.write(g, "dot-files/" + name + "-raw.dot");
     System.out.println(g);
 
@@ -630,10 +632,10 @@ public class MapPreprocessor {
     System.out.println("(V,E) = (" + graph.getNumberOfNodes() + ","
         + graph.getNumberOfConnections() + ")");
 
-    final long startSimplify = System.currentTimeMillis();
-    graph = MapPreprocessor.simplify(graph, MultiAttributeData.EMPTY);
-    System.out.println("simplifying took: "
-        + (System.currentTimeMillis() - startSimplify));
+    // final long startSimplify = System.currentTimeMillis();
+    // graph = MapPreprocessor.simplify(graph, MultiAttributeData.EMPTY);
+    // System.out.println("simplifying took: "
+    // + (System.currentTimeMillis() - startSimplify));
 
     final long startFix = System.currentTimeMillis();
     graph = MapPreprocessor.removeUnconnectedSubGraphs(graph,

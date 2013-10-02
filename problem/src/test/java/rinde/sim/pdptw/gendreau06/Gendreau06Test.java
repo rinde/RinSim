@@ -18,8 +18,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -40,12 +38,10 @@ import rinde.sim.pdptw.common.DefaultDepot;
 import rinde.sim.pdptw.common.DefaultVehicle;
 import rinde.sim.pdptw.common.DynamicPDPTWProblem;
 import rinde.sim.pdptw.common.DynamicPDPTWProblem.Creator;
-import rinde.sim.pdptw.common.DynamicPDPTWProblem.DefaultUICreator;
 import rinde.sim.pdptw.common.ParcelDTO;
 import rinde.sim.pdptw.common.StatisticsDTO;
 import rinde.sim.pdptw.common.VehicleDTO;
 import rinde.sim.scenario.TimedEvent;
-import rinde.sim.ui.View;
 import rinde.sim.util.TimeWindow;
 
 /**
@@ -61,18 +57,6 @@ public class Gendreau06Test {
 
   public Gendreau06Test(boolean gui) {
     useGui = gui;
-  }
-
-  @BeforeClass
-  public static void setUpClass() {
-    View.setAutoClose(true);
-    View.setAutoPlay(true);
-  }
-
-  @AfterClass
-  public static void tearDownClass() {
-    View.setAutoClose(false);
-    View.setAutoPlay(false);
   }
 
   @Parameters
@@ -174,7 +158,7 @@ public class Gendreau06Test {
   static StatisticsDTO runProblem(Gendreau06Scenario s, boolean useGui) {
     final DynamicPDPTWProblem problem = new DynamicPDPTWProblem(s, 123);
     if (useGui) {
-      problem.enableUI(new DefaultUICreator(problem, 10));
+      problem.enableUI(new TestUICreator(problem, 10));
     }
     problem.addCreator(AddVehicleEvent.class, new Creator<AddVehicleEvent>() {
       @Override

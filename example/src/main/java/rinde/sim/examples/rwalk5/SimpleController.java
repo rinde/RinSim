@@ -47,8 +47,8 @@ public class SimpleController {
       throws ConfigurationException {
     Graph<MultiAttributeData> graph;
     try {
-      graph = DotGraphSerializer
-          .getMultiAttributeGraphSerializer(new SelfCycleFilter()).read(map);
+      graph = DotGraphSerializer.getMultiAttributeGraphSerializer(
+          new SelfCycleFilter()).read(map);
     } catch (final Exception e) {
       // not the smartest error handling
       throw new ConfigurationException("e:", e);
@@ -73,8 +73,8 @@ public class SimpleController {
               + (maxSpeed - minSpeed) * rand.nextDouble(), radius,
               0.01 + rand.nextDouble() / 2);
           simulator.register(agent);
-          agent.getEventAPI()
-              .addListener(statistics, RandomWalkAgent.Type.FINISHED_SERVICE);
+          agent.getEventAPI().addListener(statistics,
+              RandomWalkAgent.Type.FINISHED_SERVICE);
           // it is important to inform controller that this event was
           // handled
           // to avoid runtime exceptions
@@ -101,8 +101,10 @@ public class SimpleController {
         schema2.add(RandomWalkAgent.C_BLACK, new RGB(0, 0, 0));
         schema2.add(RandomWalkAgent.C_YELLOW, new RGB(0xff, 0, 0));
         schema2.add(RandomWalkAgent.C_GREEN, new RGB(0x0, 0x80, 0));
-        View.startGui(sim, 4, new GraphRoadModelRenderer(), new RoadUserRenderer(
-            schema, false), new MessagingLayerRenderer(schema2));
+        View.create(sim)
+            .with(new GraphRoadModelRenderer(),
+                new RoadUserRenderer(schema, false),
+                new MessagingLayerRenderer(schema2)).setSpeedUp(4).show();
       }
     });
 

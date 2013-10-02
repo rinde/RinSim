@@ -79,8 +79,9 @@ public class SwarmDemo {
     for (final Point p : points) {
       sim.register(new Vehicle(p, rng));
     }
-    View.startGui(sim, 1, new PlaneRoadModelRenderer(), new VehicleRenderer(),
-        new DemoPanel(string, rng));
+    View.create(sim)
+        .with(new PlaneRoadModelRenderer(), new VehicleRenderer(),
+            new DemoPanel(string, rng)).show();
   }
 
   public static ImmutableList<Point> measureString(String string, int fontSize,

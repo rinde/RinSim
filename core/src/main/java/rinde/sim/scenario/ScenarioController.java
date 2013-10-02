@@ -251,6 +251,7 @@ public class ScenarioController implements TickListener {
    * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
    */
   public interface UICreator {
+    // TODO convert to use View.Builder ?
     /**
      * Should instantiate the UI.
      * @param sim The {@link Simulator} instance for which the UI should be

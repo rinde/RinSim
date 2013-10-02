@@ -442,7 +442,8 @@ public class DynamicPDPTWProblem {
     @Override
     public void createUI(Simulator sim) {
       initRenderers();
-      View.startGui(sim, speedup, renderers.toArray(new Renderer[] {}));
+      View.create(sim).with(renderers.toArray(new Renderer[] {}))
+          .setSpeedUp(speedup).show();
     }
 
     /**

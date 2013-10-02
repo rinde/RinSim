@@ -39,9 +39,6 @@ class AgvModel implements TickListener, ModelReceiver, Model<AGV>,
   ImmutableList<ImmutableList<Point>> points;
   int currentBox;
 
-  double xMax = 0;
-  double yMax = 0;
-
   List<BoxHandle> boxes;
   final List<Point> border;
 
@@ -182,7 +179,7 @@ class AgvModel implements TickListener, ModelReceiver, Model<AGV>,
     return b;
   }
 
-  class BoxHandle {
+  static class BoxHandle {
     int wordIndex;
     final int index;
     Box box;

@@ -358,8 +358,11 @@ public class PDPModel implements Model<PDPObject>, TickListener, ModelReceiver {
           "vehicle must be at the same location as the parcel it wishes to pickup");
       final double newSize = containerContentsSize.get(vehicle)
           + parcel.getMagnitude();
-      /* 6 */checkArgument(newSize <= containerCapacities.get(vehicle),
-          "parcel does not fit in vehicle");
+      /* 6 */checkArgument(
+          newSize <= containerCapacities.get(vehicle),
+          "parcel does not fit in vehicle. Parcel size: %s, current contents size: %s, capacity: %s.",
+          parcel.getMagnitude(), containerContentsSize.get(vehicle),
+          containerCapacities.get(vehicle));
 
       checkArgument(
           timeWindowPolicy.canPickup(parcel.getPickupTimeWindow(),

@@ -84,8 +84,9 @@ public class RandomWalkExample {
     // schema.add(Package.class, new RGB(0x0, 0x0, 0xFF));
 
     // View.setTestingMode(true);
-    View.startGui(simulator, 5, new GraphRoadModelRenderer(),
-        new FancyRenderer(), new RoadUserRenderer(schema, false));
+    View.create(simulator)
+        .with(new GraphRoadModelRenderer(), new FancyRenderer(),
+            new RoadUserRenderer(schema, false)).setSpeedUp(5).show();
   }
 
   static class FancyRenderer implements ModelRenderer {

@@ -61,7 +61,8 @@ public class SimpleExample {
     // for the drivers. By default the road model is rendererd as a square
     // (indicating its boundaries), and the drivers are rendererd as red
     // dots.
-    View.startGui(sim, 1, new PlaneRoadModelRenderer(), new RoadUserRenderer());
+    View.create(sim).with(new PlaneRoadModelRenderer(), new RoadUserRenderer())
+        .show();
     // in case a GUI is not desired, the simulation can simply be run by
     // calling: sim.start();
   }

@@ -22,6 +22,7 @@ import rinde.sim.pdptw.common.DynamicPDPTWProblem.DefaultUICreator;
 import rinde.sim.pdptw.common.VehicleDTO;
 import rinde.sim.scenario.ConfigurationException;
 import rinde.sim.ui.View;
+import rinde.sim.ui.renderers.Renderer;
 
 import com.google.common.base.Predicate;
 
@@ -35,10 +36,9 @@ public class RepetitiousGUITest {
 
   public static void main(String[] args) throws IOException,
       ConfigurationException {
-    System.out.println();
     for (int i = 0; i < 100; i++) {
-      final FabriRechtScenario scenario = FabriRechtParser
-          .fromJson(new FileReader("files/test/fabri-recht/lc101.scenario"), 8, 20);
+      final FabriRechtScenario scenario = FabriRechtParser.fromJson(
+          new FileReader("files/test/fabri-recht/lc101.scenario"), 8, 20);
 
       final DynamicPDPTWProblem problem = new DynamicPDPTWProblem(scenario, 123);
       problem.addCreator(AddVehicleEvent.class, new Creator<AddVehicleEvent>() {
@@ -49,13 +49,13 @@ public class RepetitiousGUITest {
       });
       final int iteration = i;
 
-      View.setAutoPlay(true);
-      View.setAutoClose(true);
       problem.enableUI(new DefaultUICreator(problem, 15) {
         @Override
         public void createUI(Simulator sim) {
           try {
-            super.createUI(sim);
+            initRenderers();
+            View.create(sim).with(renderers.toArray(new Renderer[] {}))
+                .setSpeedUp(speedup).enableAutoClose().enableAutoPlay().show();
           } catch (final Throwable e) {
             System.err.println("Crash occured at iteration " + iteration);
             e.printStackTrace();
@@ -64,11 +64,6 @@ public class RepetitiousGUITest {
         }
       });
       problem.simulate();
-      if (i % 5 == 0) {
-        System.out.print(i);
-      } else {
-        System.out.print(".");
-      }
     }
   }
 }
@@ -89,8 +84,8 @@ class Truck extends DefaultVehicle {
     final RoadModel rm = roadModel.get();
     final PDPModel pm = pdpModel.get();
     // we always go to the closest available parcel
-    final DefaultParcel closest = (DefaultParcel) RoadModels
-        .findClosestObject(rm.getPosition(this), rm, new Predicate<RoadUser>() {
+    final DefaultParcel closest = (DefaultParcel) RoadModels.findClosestObject(
+        rm.getPosition(this), rm, new Predicate<RoadUser>() {
           @Override
           public boolean apply(RoadUser input) {
             return input instanceof DefaultParcel
@@ -101,9 +96,8 @@ class Truck extends DefaultVehicle {
     if (closest != null) {
       rm.moveTo(this, closest, time);
       if (rm.equalPosition(closest, this)
-          && pm
-              .getTimeWindowPolicy()
-              .canPickup(closest.getPickupTimeWindow(), time.getTime(), closest.getPickupDuration())) {
+          && pm.getTimeWindowPolicy().canPickup(closest.getPickupTimeWindow(),
+              time.getTime(), closest.getPickupDuration())) {
         pm.pickup(this, closest, time);
       }
     }
