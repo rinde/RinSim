@@ -92,7 +92,7 @@ public class SimulationViewer extends Composite implements TickListener,
   Label timeLabel;
 
   SimulationViewer(Shell shell, final Simulator sim, int pSpeedUp,
-      boolean pAutoPlay, Renderer... pRenderers) {
+      boolean pAutoPlay, List<Renderer> pRenderers) {
     super(shell, SWT.NONE);
 
     autoPlay = pAutoPlay;
@@ -237,7 +237,7 @@ public class SimulationViewer extends Composite implements TickListener,
   /**
    * Configure shell.
    */
-  Canvas createContent(Composite parent) {
+  void createContent(Composite parent) {
     canvas = new Canvas(parent, SWT.DOUBLE_BUFFERED | SWT.NONE
         | SWT.NO_REDRAW_RESIZE | SWT.V_SCROLL | SWT.H_SCROLL);
     canvas.setBackground(display.getSystemColor(SWT.COLOR_WIDGET_BACKGROUND));
@@ -259,8 +259,6 @@ public class SimulationViewer extends Composite implements TickListener,
     hBar.addSelectionListener(this);
     vBar = canvas.getVerticalBar();
     vBar.addSelectionListener(this);
-
-    return canvas;
   }
 
   @SuppressWarnings("unused")
@@ -422,7 +420,7 @@ public class SimulationViewer extends Composite implements TickListener,
     }
   }
 
-  Image drawRoads() {
+  Image renderStatic() {
     size = new org.eclipse.swt.graphics.Point((int) (m * viewRect.width),
         (int) (m * viewRect.height));
     final Image img = new Image(getDisplay(), size.x, size.y);
@@ -448,7 +446,7 @@ public class SimulationViewer extends Composite implements TickListener,
     }
 
     if (image == null) {
-      image = drawRoads();
+      image = renderStatic();
       updateScrollbars(false);
     }
 
@@ -543,6 +541,10 @@ public class SimulationViewer extends Composite implements TickListener,
     }
     zoomRatio = 1;
 
+    final double width = (viewRect.width * m) - area.width;
+    final double height = (viewRect.height * m) - area.height;
+    origin.x = (int) (width / -2);
+    origin.y = (int) (height / -2);
   }
 
   @Override
@@ -585,7 +587,7 @@ public class SimulationViewer extends Composite implements TickListener,
   public void tick(TimeLapse timeLapse) {}
 
   @Override
-  public void afterTick(TimeLapse timeLapse) {
+  public void afterTick(final TimeLapse timeLapse) {
     if (simulator.isPlaying()
         && lastRefresh + timeLapse.getTimeStep() * speedUp > timeLapse
             .getStartTime()) {

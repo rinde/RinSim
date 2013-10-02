@@ -25,57 +25,62 @@ import rinde.sim.ui.renderers.RoadUserRenderer;
  */
 public final class PanelTest {
 
-	private PanelTest() {}
+  private PanelTest() {}
 
-	public static void main(String[] args) {
+  public static void main(String[] args) {
 
-		final Simulator sim = new Simulator(new MersenneTwister(123), Measure.valueOf(1000L, SI.MILLI(SI.SECOND)));
-		sim.register(new PlaneRoadModel(new Point(0, 0), new Point(10, 10), 10));
-		sim.configure();
+    final Simulator sim = new Simulator(new MersenneTwister(123),
+        Measure.valueOf(1000L, SI.MILLI(SI.SECOND)));
+    sim.register(new PlaneRoadModel(new Point(0, 0), new Point(10, 10), 10));
+    sim.configure();
 
-		View.startGui(sim, 1, new RoadUserRenderer(), new PlaneRoadModelRenderer(), new TestPanelRenderer("LEFT",
-				SWT.LEFT, 200), new TestPanelRenderer("RIHGT BOEEE YEAH", SWT.RIGHT, 300), new TestPanelRenderer(
-				"RIHGT BOEEE YEAH", SWT.TOP, 100), new TestPanelRenderer("TOP2", SWT.TOP, 100), new TestPanelRenderer(
-				"LEFT2", SWT.LEFT, 100), new TestPanelRenderer("LEFT3", SWT.LEFT, 150));
+    View.create(sim)
+        .with(new RoadUserRenderer(), new PlaneRoadModelRenderer(),
+            new TestPanelRenderer("LEFT", SWT.LEFT, 200),
+            new TestPanelRenderer("RIHGT BOEEE YEAH", SWT.RIGHT, 300),
+            new TestPanelRenderer("RIHGT BOEEE YEAH", SWT.TOP, 100),
+            new TestPanelRenderer("TOP2", SWT.TOP, 100),
+            new TestPanelRenderer("LEFT2", SWT.LEFT, 100),
+            new TestPanelRenderer("LEFT3", SWT.LEFT, 150)).show();
 
-	}
+  }
 
-	static class TestPanelRenderer implements PanelRenderer {
+  static class TestPanelRenderer implements PanelRenderer {
 
-		protected final String name;
-		protected final int position;
-		protected final int size;
+    protected final String name;
+    protected final int position;
+    protected final int size;
 
-		public TestPanelRenderer(String n, int pos, int s) {
-			name = n;
-			position = pos;
-			size = s;
-		}
+    public TestPanelRenderer(String n, int pos, int s) {
+      name = n;
+      position = pos;
+      size = s;
+    }
 
-		@Override
-		public void initializePanel(Composite c) {
-			c.setLayout(new FillLayout());
-			final Button b = new Button(c, SWT.PUSH);
+    @Override
+    public void initializePanel(Composite c) {
+      c.setLayout(new FillLayout());
+      final Button b = new Button(c, SWT.PUSH);
 
-			b.setText("push me " + name);
-			// TODO Auto-generated method stub
+      b.setText("push me " + name);
+      // TODO Auto-generated method stub
 
-		}
+    }
 
-		@Override
-		public int getPreferredPosition() {
-			return position;
-		}
+    @Override
+    public int getPreferredPosition() {
+      return position;
+    }
 
-		@Override
-		public String getName() {
-			return name;
-		}
+    @Override
+    public String getName() {
+      return name;
+    }
 
-		@Override
-		public int preferredSize() {
-			return size;
-		}
+    @Override
+    public int preferredSize() {
+      return size;
+    }
 
-	}
+  }
 }

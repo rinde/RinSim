@@ -65,7 +65,7 @@ public final class GraphRoadModelRenderer implements ModelRenderer {
           gc.fillOval(x1, y1, size, size);
         }
         if (showNodeLabels) {
-          gc.setForeground(gc.getDevice().getSystemColor(SWT.COLOR_BLACK));
+          gc.setForeground(gc.getDevice().getSystemColor(SWT.COLOR_GRAY));
           gc.drawString(node.toString(), x1 + (int) RELATIVE_TEXT_POSITION.x,
               y1 + (int) RELATIVE_TEXT_POSITION.y, true);
         }
@@ -78,7 +78,7 @@ public final class GraphRoadModelRenderer implements ModelRenderer {
 
       final int x2 = vp.toCoordX(e.to.x);
       final int y2 = vp.toCoordY(e.to.y);
-      gc.setForeground(gc.getDevice().getSystemColor(SWT.COLOR_BLACK));
+      gc.setForeground(gc.getDevice().getSystemColor(SWT.COLOR_GRAY));
       gc.drawLine(x1, y1, x2, y2);
 
       if (drawDirectionArrows) {
@@ -102,7 +102,7 @@ public final class GraphRoadModelRenderer implements ModelRenderer {
         final int y5 = (int) (y3 - 5 * unit.x);
 
         // draw the arrow
-        gc.setBackground(gc.getDevice().getSystemColor(SWT.COLOR_BLACK));
+        gc.setBackground(gc.getDevice().getSystemColor(SWT.COLOR_GRAY));
         gc.fillPolygon(new int[] { x4, y4, x5, y5, x6, y6 });
       }
     }
