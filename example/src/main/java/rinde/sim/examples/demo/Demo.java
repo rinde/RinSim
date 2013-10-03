@@ -50,11 +50,15 @@ public class Demo {
 
     final List<DemoRunner> demoRunners = newArrayList();
 
-    final Shell shell = new Shell(d, SWT.TITLE | SWT.CLOSE);
+    final Shell shell = new Shell(d, SWT.TITLE | SWT.CLOSE | SWT.RESIZE);
     shell.setText("AgentWise Demo Control");
     shell.setLayout(new RowLayout(SWT.VERTICAL));
 
-    shell.setSize(d.getClientArea().width, d.getClientArea().height);
+    final Monitor primary = d.getPrimaryMonitor();
+
+    shell.setLocation(primary.getClientArea().x, primary.getClientArea().y);
+    shell
+        .setSize(primary.getClientArea().width, primary.getClientArea().height);
 
     final Button runButton = new Button(shell, SWT.TOGGLE);
     runButton.setSize(300, 100);
