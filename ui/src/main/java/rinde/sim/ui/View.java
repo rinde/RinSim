@@ -161,7 +161,7 @@ public final class View {
       if (allowResize) {
         shellArgs = shellArgs | SWT.RESIZE;
       }
-      final Shell shell = new Shell(display, shellArgs);
+      final Shell shell = new Shell(disp, shellArgs);
       if (monitor != null) {
         shell.setLocation(monitor.getBounds().x, monitor.getBounds().y);
       }
@@ -207,9 +207,8 @@ public final class View {
             // wait until simulator acutally stops (it finishes its
             // current tick first).
           }
-          if (isDisplayOwner && !display.isDisposed()) {
-            System.out.println("dispose display");
-            display.dispose();
+          if (isDisplayOwner && !disp.isDisposed()) {
+            disp.dispose();
           } else if (!isDisplayOwner && !shell.isDisposed()) {
             shell.dispose();
           }
@@ -221,8 +220,8 @@ public final class View {
       shell.open();
       if (!async) {
         while (!shell.isDisposed()) {
-          if (!display.readAndDispatch()) {
-            display.sleep();
+          if (!disp.readAndDispatch()) {
+            disp.sleep();
           }
         }
         if (shell.isDisposed()) {
