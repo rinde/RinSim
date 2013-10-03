@@ -58,9 +58,9 @@ public class TaxiRenderer implements ModelRenderer {
         String text = null;
         final int size = (int) pm.get().getContentsSize(t);
         if (vs == VehicleState.DELIVERING) {
-          text = "UNLOADING";
+          text = "UITSTAPPEN";
         } else if (vs == VehicleState.PICKING_UP) {
-          text = "LOADING";
+          text = "INSTAPPEN";
         } else if (size > 0) {
           text = size + "";
         }

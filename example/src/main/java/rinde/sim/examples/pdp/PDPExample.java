@@ -84,8 +84,8 @@ public final class PDPExample {
     run(endTime, graphFile, new Display(), null, null);
   }
 
-  public static void run(final long endTime, String graphFile, Display display,
-      @Nullable Monitor m, @Nullable Listener list) {
+  public static Simulator run(final long endTime, String graphFile,
+      Display display, @Nullable Monitor m, @Nullable Listener list) {
 
     final Display d = Display.getDefault();
     final Rectangle rect;
@@ -160,10 +160,11 @@ public final class PDPExample {
     if (m != null && list != null) {
       view.displayOnMonitor(m)
           .setResolution(m.getClientArea().width, m.getClientArea().height)
-          .setDisplay(display).setCallback(list);
+          .setDisplay(display).setCallback(list).setAsync();
     }
 
     view.show();
+    return simulator;
   }
 
   static class ExampleDepot extends Depot {

@@ -181,19 +181,17 @@ public final class View {
         simulator.getEventAPI().addListener(new Listener() {
           @Override
           public void handleEvent(final Event arg0) {
+            if (!shell.isDisposed()) {
+              disp.asyncExec(new Runnable() {
+                @Override
+                public void run() {
+                  shell.close();
+                }
+              });
+            }
             if (list != null) {
               list.handleEvent(arg0);
             }
-
-            if (shell.isDisposed()) {
-              return;
-            }
-            disp.asyncExec(new Runnable() {
-              @Override
-              public void run() {
-                shell.close();
-              }
-            });
           }
         }, Simulator.SimulatorEventType.STOPPED);
       }

@@ -14,16 +14,22 @@ import javax.annotation.Nullable;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
+import org.eclipse.swt.graphics.Font;
+import org.eclipse.swt.graphics.FontData;
+import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.RowData;
 import org.eclipse.swt.layout.RowLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.Group;
+import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Monitor;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 
+import rinde.sim.core.Simulator;
 import rinde.sim.examples.factory.FactoryExample;
 import rinde.sim.examples.pdp.PDPExample;
 
@@ -47,22 +53,20 @@ public class Demo {
     final Shell shell = new Shell(d, SWT.TITLE | SWT.CLOSE);
     shell.setText("AgentWise Demo Control");
     shell.setLayout(new RowLayout(SWT.VERTICAL));
-    final Button runButton = new Button(shell, SWT.CHECK);
+
+    shell.setSize(d.getClientArea().width, d.getClientArea().height);
+
+    final Button runButton = new Button(shell, SWT.TOGGLE);
+    runButton.setSize(300, 100);
     runButton.setText("Run demo");
 
-    final Button fullScreenButton = new Button(shell, SWT.CHECK);
-    fullScreenButton.setText("Full screen");
-    fullScreenButton.addSelectionListener(new SelectionListener() {
-      @Override
-      public void widgetSelected(SelectionEvent e) {
-        for (final DemoRunner dr : demoRunners) {
-          dr.setFullScreen(((Button) e.widget).getSelection());
-        }
-      }
-
-      @Override
-      public void widgetDefaultSelected(SelectionEvent e) {}
-    });
+    final Font f = runButton.getFont();
+    final FontData[] fontData = f.getFontData();
+    for (int i = 0; i < fontData.length; i++) {
+      fontData[i].setHeight(60);
+    }
+    final Font newFont = new Font(d, fontData);
+    runButton.setFont(newFont);
 
     final Text timeText = new Text(shell, SWT.NONE);
     timeText.setText("6");
@@ -98,6 +102,7 @@ public class Demo {
       monitorCheckBoxes.add(b);
     }
 
+    final List<DemoRunnerControlPanel> panels = newArrayList();
     runButton.addSelectionListener(new SelectionListener() {
       @Override
       public void widgetSelected(SelectionEvent e) {
@@ -113,15 +118,31 @@ public class Demo {
           }
         }
 
+        for (final DemoRunnerControlPanel panel : panels) {
+          panel.remove();
+        }
+        panels.clear();
+        if (((Button) e.widget).getSelection()) {
+          runButton.setText("Stop demo");
+        } else {
+          runButton.setText("Run demo");
+        }
+        boolean alternate = false;
         if (((Button) e.widget).getSelection()) {
           for (final Button b : monitorCheckBoxes) {
             if (b.getSelection()) {
-              final DemoRunner dr = new DemoRunner(d);
-              dr.setMonitor((Monitor) b.getData());
+              final Monitor m = (Monitor) b.getData();
+              final DemoRunner dr = new DemoRunner(d, alternate);
+              alternate = !alternate;
+
+              panels.add(new DemoRunnerControlPanel(shell, m, dr));
+
+              dr.setMonitor(m);
               demoRunners.add(dr);
               // d.asyncExec(dr);
             }
           }
+          shell.layout();
 
           // d.asyncExec(new MasterRunner(demoRunners, d));
           new MasterRunner(demoRunners, d).start();
@@ -142,14 +163,12 @@ public class Demo {
       }
     });
 
-    shell.pack();
     shell.open();
     while (!shell.isDisposed()) {
       if (!d.readAndDispatch()) {
         d.sleep();
       }
     }
-
   }
 
   static class MasterRunner extends Thread {
@@ -170,18 +189,97 @@ public class Demo {
     }
   }
 
+  static class DemoRunnerControlPanel {
+
+    final Group group;
+    final Label label;
+    final DemoRunner runner;
+    final Monitor monitor;
+
+    public DemoRunnerControlPanel(Shell s, Monitor m, DemoRunner dr) {
+      group = new Group(s, SWT.NONE);
+      runner = dr;
+      monitor = m;
+
+      dr.addListener(this);
+
+      group.setLayout(new FillLayout());
+      label = new Label(group, SWT.NONE);
+
+      final Font f = label.getFont();
+      final FontData[] fontData = f.getFontData();
+      for (int i = 0; i < fontData.length; i++) {
+        fontData[i].setHeight(40);
+      }
+      final Font newFont = new Font(s.getDisplay(), fontData);
+      label.setFont(newFont);
+
+      final Button next = new Button(group, SWT.PUSH);
+      next.setText("next");
+      next.addSelectionListener(new SelectionListener() {
+        @Override
+        public void widgetSelected(SelectionEvent e) {
+          runner.next();
+        }
+
+        @Override
+        public void widgetDefaultSelected(SelectionEvent e) {}
+      });
+      next.setFont(newFont);
+      newFont.dispose();
+      // g.setText(m.getBounds().toString());
+      group.setLayoutData(new RowData(m.getBounds().width / 3,
+          m.getBounds().height / 3));
+
+      update();
+    }
+
+    /**
+     * 
+     */
+    public void remove() {
+      group.dispose();
+    }
+
+    public void update() {
+      label.getDisplay().asyncExec(new Runnable() {
+        @Override
+        public void run() {
+          label.setText(monitor.getBounds().width + "x"
+              + monitor.getBounds().height + "\n" + runner.state);
+        }
+      });
+    }
+  }
+
   static class DemoRunner implements Runnable, rinde.sim.event.Listener {
+
+    static final String FACTORY = "factory";
+    static final String TAXI = "taxi";
 
     boolean running;
     long time;
-    boolean fullScreen;
     Monitor monitor;
     Display display;
 
-    DemoRunner(Display d) {
+    String state;
+
+    DemoRunnerControlPanel listener;
+
+    DemoRunner(Display d, boolean alt) {
       display = d;
       time = 6 * 60 * 60 * 1000L;
-      alternate = true;
+      alternate = alt;
+      state = alt ? FACTORY : TAXI;
+      sims = newArrayList();
+    }
+
+    /**
+     * @param demoRunnerControlPanel
+     */
+    public void addListener(DemoRunnerControlPanel demoRunnerControlPanel) {
+      listener = demoRunnerControlPanel;
+
     }
 
     void setTime(long t) {
@@ -192,15 +290,12 @@ public class Demo {
       running = r;
     }
 
-    void setFullScreen(boolean fs) {
-      fullScreen = fs;
-    }
-
     void setMonitor(Monitor m) {
       monitor = m;
     }
 
     boolean alternate;
+    final List<Simulator> sims;
 
     @Override
     public void run() {
@@ -209,32 +304,45 @@ public class Demo {
     }
 
     public void next() {
+      if (!sims.isEmpty()) {
+        for (final Simulator s : sims) {
+          s.stop();
+        }
+        sims.clear();
+        return;
+      }
+
+      alternate = !alternate;
+      state = alternate ? FACTORY : TAXI;
+
       if (running) {
         final rinde.sim.event.Listener l = this;
         if (alternate) {
+          listener.update();
           display.syncExec(new Runnable() {
             @Override
             public void run() {
-              FactoryExample.run(time, display, monitor, l);
+              sims.add(FactoryExample.run(time, display, monitor, l));
             }
           });
         } else {
+          listener.update();
           display.syncExec(new Runnable() {
             @Override
             public void run() {
               // "../core/dot-files/leuven-simple.dot",
-              PDPExample.run(time, "leuven-simple.dot", display, monitor, l);
+              sims.add(PDPExample.run(time, "leuven-simple.dot", display,
+                  monitor, l));
             }
           });
         }
-        alternate = !alternate;
       }
     }
 
     @Override
     public void handleEvent(rinde.sim.event.Event e) {
+      sims.clear();
       next();
     }
   }
-
 }

@@ -60,7 +60,7 @@ public final class FactoryExample {
     run(endTime, new Display(), null, null);
   }
 
-  public static void run(final long endTime, Display display,
+  public static Simulator run(final long endTime, Display display,
       @Nullable Monitor m, Listener list) {
 
     final Rectangle rect;
@@ -159,6 +159,7 @@ public final class FactoryExample {
     }
 
     view.show();
+    return simulator;
   }
 
   static void addPath(Graph<?> graph, Point... points) {
