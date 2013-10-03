@@ -7,6 +7,7 @@ import java.math.RoundingMode;
 import java.util.List;
 import java.util.Set;
 
+import javax.annotation.Nullable;
 import javax.measure.Measure;
 import javax.measure.unit.NonSI;
 import javax.measure.unit.SI;
@@ -15,6 +16,7 @@ import org.apache.commons.math3.random.MersenneTwister;
 import org.apache.commons.math3.random.RandomGenerator;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Monitor;
 
 import rinde.sim.core.Simulator;
 import rinde.sim.core.TickListener;
@@ -26,6 +28,7 @@ import rinde.sim.core.graph.MultimapGraph;
 import rinde.sim.core.graph.Point;
 import rinde.sim.core.model.pdp.PDPModel;
 import rinde.sim.core.model.road.RoadModel;
+import rinde.sim.event.Listener;
 import rinde.sim.examples.demo.SwarmDemo;
 import rinde.sim.ui.View;
 import rinde.sim.ui.renderers.GraphRoadModelRenderer;
@@ -52,13 +55,20 @@ public final class FactoryExample {
   private FactoryExample() {}
 
   public static void main(String[] args) {
-
     final long endTime = args != null && args.length >= 1 ? Long
         .parseLong(args[0]) : Long.MAX_VALUE;
+    run(endTime, new Display(), null, null);
+  }
 
-    final Display d = new Display();
-    final Rectangle rect = d.getPrimaryMonitor().getBounds();
-    d.dispose();
+  public static void run(final long endTime, Display display,
+      @Nullable Monitor m, Listener list) {
+
+    final Rectangle rect;
+    if (m != null) {
+      rect = m.getClientArea();
+    } else {
+      rect = display.getPrimaryMonitor().getClientArea();
+    }
 
     List<String> WORDS = asList("Agent\nWise", "Distri\nNet");;
     int FONT_SIZE = 14;
@@ -135,12 +145,20 @@ public final class FactoryExample {
     final UiSchema uis = new UiSchema(false);
     uis.add(AGV.class, "/graphics/flat/forklift2.png");
 
-    View.create(simulator)
+    final View.Builder view = View
+        .create(simulator)
         .with(new GraphRoadModelRenderer(CANVAS_MARGIN, false, false, false),
             new BoxRenderer(), new RoadUserRenderer(uis, false))
-        .setTitleAppendix("Factory Demo")
-        .setResolution(rect.width, rect.height).enableAutoPlay()
-        .enableAutoClose().setSpeedUp(4).show();
+        .setTitleAppendix("Factory Demo").enableAutoPlay().enableAutoClose()
+        .setSpeedUp(4);
+
+    if (m != null) {
+      view.displayOnMonitor(m)
+          .setResolution(m.getClientArea().width, m.getClientArea().height)
+          .setDisplay(display).setCallback(list).setAsync();
+    }
+
+    view.show();
   }
 
   static void addPath(Graph<?> graph, Point... points) {

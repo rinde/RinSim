@@ -10,9 +10,12 @@ import static java.util.Arrays.asList;
 
 import java.util.List;
 
+import javax.annotation.Nullable;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Monitor;
 import org.eclipse.swt.widgets.Shell;
 
 import rinde.sim.core.Simulator;
@@ -42,11 +45,18 @@ public final class View {
     boolean autoClose;
     boolean allowResize;
     boolean fullScreen;
+    boolean async;
     int speedUp;
     long sleep;
+    @Nullable
+    Display display;
     String title;
     Point screenSize;
+    @Nullable
+    Monitor monitor;
     final List<Renderer> rendererList;
+
+    Listener callback;
 
     Builder(Simulator s) {
       simulator = s;
@@ -80,8 +90,23 @@ public final class View {
       return this;
     }
 
+    public Builder setCallback(Listener l) {
+      callback = l;
+      return this;
+    }
+
     public Builder setSleep(long ms) {
       sleep = ms;
+      return this;
+    }
+
+    public Builder setDisplay(Display d) {
+      display = d;
+      return this;
+    }
+
+    public Builder setAsync() {
+      async = true;
       return this;
     }
 
@@ -112,18 +137,35 @@ public final class View {
       return this;
     }
 
+    /**
+     * @param monitor
+     */
+    public Builder displayOnMonitor(Monitor m) {
+      monitor = m;
+      return this;
+    }
+
     public void show() {
       checkState(
           simulator.isConfigured(),
           "Simulator needs to be configured before it can be visualized, see Simulator.configure()");
+
+      // if( )
       Display.setAppName("RinSim");
-      final Display display = new Display();
+      final Display d = display != null ? display : Display.getCurrent();
+      final boolean isDisplayOwner = d == null;
+      final Display disp = isDisplayOwner ? new Display() : Display
+          .getCurrent();
 
       int shellArgs = SWT.TITLE | SWT.CLOSE;
       if (allowResize) {
         shellArgs = shellArgs | SWT.RESIZE;
       }
       final Shell shell = new Shell(display, shellArgs);
+      if (monitor != null) {
+        shell.setLocation(monitor.getBounds().x, monitor.getBounds().y);
+      }
+
       shell.setText("RinSim - " + title);
       if (fullScreen) {
         shell.setFullScreen(true);
@@ -133,13 +175,20 @@ public final class View {
       }
 
       if (autoClose) {
+
+        final Listener list = callback;
+
         simulator.getEventAPI().addListener(new Listener() {
           @Override
           public void handleEvent(final Event arg0) {
-            if (display.isDisposed()) {
+            if (list != null) {
+              list.handleEvent(arg0);
+            }
+
+            if (shell.isDisposed()) {
               return;
             }
-            display.asyncExec(new Runnable() {
+            disp.asyncExec(new Runnable() {
               @Override
               public void run() {
                 shell.close();
@@ -149,17 +198,38 @@ public final class View {
         }, Simulator.SimulatorEventType.STOPPED);
       }
 
+      shell.addListener(SWT.Close, new org.eclipse.swt.widgets.Listener() {
+        @SuppressWarnings("synthetic-access")
+        @Override
+        public void handleEvent(@Nullable org.eclipse.swt.widgets.Event event) {
+          simulator.stop();
+          while (simulator.isPlaying()) {
+            // wait until simulator acutally stops (it finishes its
+            // current tick first).
+          }
+          if (isDisplayOwner && !display.isDisposed()) {
+            System.out.println("dispose display");
+            display.dispose();
+          } else if (!isDisplayOwner && !shell.isDisposed()) {
+            shell.dispose();
+          }
+        }
+      });
+
       // simulator viewer is run in here
       new SimulationViewer(shell, simulator, speedUp, autoPlay, rendererList);
       shell.open();
-      while (!shell.isDisposed()) {
-        if (!display.readAndDispatch()) {
-          display.sleep();
+      if (!async) {
+        while (!shell.isDisposed()) {
+          if (!display.readAndDispatch()) {
+            display.sleep();
+          }
         }
-      }
-      if (shell.isDisposed()) {
-        simulator.stop();
+        if (shell.isDisposed()) {
+          simulator.stop();
+        }
       }
     }
   }
+
 }

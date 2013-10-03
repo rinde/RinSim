@@ -9,6 +9,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Map;
 
+import javax.annotation.Nullable;
 import javax.measure.Measure;
 import javax.measure.unit.SI;
 
@@ -16,6 +17,7 @@ import org.apache.commons.math3.random.MersenneTwister;
 import org.apache.commons.math3.random.RandomGenerator;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Monitor;
 
 import rinde.sim.core.Simulator;
 import rinde.sim.core.TickListener;
@@ -28,6 +30,7 @@ import rinde.sim.core.model.pdp.PDPModel;
 import rinde.sim.core.model.pdp.Parcel;
 import rinde.sim.core.model.road.GraphRoadModel;
 import rinde.sim.core.model.road.RoadModel;
+import rinde.sim.event.Listener;
 import rinde.sim.serializers.DotGraphSerializer;
 import rinde.sim.serializers.SelfCycleFilter;
 import rinde.sim.ui.View;
@@ -73,16 +76,24 @@ public final class PDPExample {
    * @param args
    */
   public static void main(String[] args) {
-
     final long endTime = args != null && args.length >= 1 ? Long
         .parseLong(args[0]) : Long.MAX_VALUE;
 
     final String graphFile = args != null && args.length >= 2 ? args[1]
         : MAP_FILE;
+    run(endTime, graphFile, new Display(), null, null);
+  }
 
-    final Display d = new Display();
-    final Rectangle rect = d.getPrimaryMonitor().getBounds();
-    d.dispose();
+  public static void run(final long endTime, String graphFile, Display display,
+      @Nullable Monitor m, @Nullable Listener list) {
+
+    final Display d = Display.getDefault();
+    final Rectangle rect;
+    if (m != null) {
+      rect = m.getClientArea();
+    } else {
+      rect = d.getPrimaryMonitor().getClientArea();
+    }
 
     Graph<?> g;
     if (GRAPH_CACHE.containsKey(graphFile)) {
@@ -139,11 +150,20 @@ public final class PDPExample {
     uis.add(ExampleDepot.class, "/graphics/perspective/tall-building-64.png");
     uis.add(Taxi.class, "/graphics/flat/taxi-32.png");
     uis.add(ExampleParcel.class, "/graphics/flat/person-red-32.png");
-    View.create(simulator).with(new GraphRoadModelRenderer())
+    final View.Builder view = View.create(simulator)
+        .with(new GraphRoadModelRenderer())
         .with(new RoadUserRenderer(uis, false)).with(new TaxiRenderer())
         .enableAutoClose().enableAutoPlay()
         .setResolution(rect.width, rect.height).setSpeedUp(4)
-        .setTitleAppendix("Taxi Demo").show();
+        .setTitleAppendix("Taxi Demo");
+
+    if (m != null && list != null) {
+      view.displayOnMonitor(m)
+          .setResolution(m.getClientArea().width, m.getClientArea().height)
+          .setDisplay(display).setCallback(list);
+    }
+
+    view.show();
   }
 
   static class ExampleDepot extends Depot {

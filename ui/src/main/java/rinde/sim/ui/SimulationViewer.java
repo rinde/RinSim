@@ -132,24 +132,8 @@ public class SimulationViewer extends Composite implements TickListener,
     setLayout(new FillLayout());
 
     createMenu(shell);
-    shell.addListener(SWT.Close, new Listener() {
-      @SuppressWarnings("synthetic-access")
-      @Override
-      public void handleEvent(@Nullable Event event) {
-        simulator.stop();
-        while (simulator.isPlaying()) {
-          // wait until simulator acutally stops (it finishes its
-          // current tick first).
-        }
-
-        if (!display.isDisposed()) {
-          display.dispose();
-        }
-      }
-    });
 
     if (panels.isEmpty()) {
-
       createContent(this);
     } else {
 
