@@ -7,6 +7,7 @@ import static com.google.common.collect.Lists.newArrayList;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.math.RoundingMode;
 import java.util.List;
 
 import javax.annotation.Nullable;
@@ -16,10 +17,13 @@ import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.FontData;
+import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.RowData;
 import org.eclipse.swt.layout.RowLayout;
 import org.eclipse.swt.widgets.Button;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Group;
@@ -34,6 +38,7 @@ import rinde.sim.examples.factory.FactoryExample;
 import rinde.sim.examples.pdp.PDPExample;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.math.DoubleMath;
 
 /**
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
@@ -51,7 +56,7 @@ public class Demo {
     final List<DemoRunner> demoRunners = newArrayList();
 
     final Shell shell = new Shell(d, SWT.TITLE | SWT.CLOSE | SWT.RESIZE);
-    shell.setText("AgentWise Demo Control");
+    shell.setText("AgentWise Demo Control Center™");
     shell.setLayout(new RowLayout(SWT.VERTICAL));
 
     final Monitor primary = d.getPrimaryMonitor();
@@ -60,20 +65,14 @@ public class Demo {
     shell
         .setSize(primary.getClientArea().width, primary.getClientArea().height);
 
-    final Button runButton = new Button(shell, SWT.TOGGLE);
-    runButton.setSize(300, 100);
-    runButton.setText("Run demo");
+    final Composite controlsComposite = new Composite(shell, SWT.NONE);
+    controlsComposite.setLayout(new RowLayout(SWT.HORIZONTAL));
 
-    final Font f = runButton.getFont();
-    final FontData[] fontData = f.getFontData();
-    for (int i = 0; i < fontData.length; i++) {
-      fontData[i].setHeight(60);
-    }
-    final Font newFont = new Font(d, fontData);
-    runButton.setFont(newFont);
+    final Label timeLabel = new Label(controlsComposite, SWT.NONE);
+    timeLabel.setText("End simulation time (in hours): ");
 
-    final Text timeText = new Text(shell, SWT.NONE);
-    timeText.setText("6");
+    final Text timeText = new Text(controlsComposite, SWT.NONE);
+    timeText.setText("6.0");
     timeText.setLayoutData(new RowData(40, SWT.DEFAULT));
 
     timeText.addListener(SWT.Verify, new Listener() {
@@ -83,21 +82,20 @@ public class Demo {
         final char[] chars = new char[string.length()];
         string.getChars(0, chars.length, chars, 0);
         for (int i = 0; i < chars.length; i++) {
-          if (!('0' <= chars[i] && chars[i] <= '9')) {
+          if (!('0' <= chars[i] && chars[i] <= '9') && chars[i] != '.') {
             e.doit = false;
             return;
           }
         }
         for (final DemoRunner dr : demoRunners) {
-          dr.setTime(Long.parseLong(e.text) * 60 * 60 * 1000L);
+          dr.setTime(Double.parseDouble(e.text));
         }
       }
     });
-
     final List<Button> monitorCheckBoxes = newArrayList();
     for (int i = 0; i < d.getMonitors().length; i++) {
       final Monitor m = d.getMonitors()[i];
-      final Button b = new Button(shell, SWT.CHECK);
+      final Button b = new Button(controlsComposite, SWT.CHECK);
       b.setData(m);
       final boolean isPrimary = (m.equals(d.getPrimaryMonitor()));
       b.setText(i + " " + m.getBounds().width + "x" + m.getBounds().height
@@ -105,6 +103,21 @@ public class Demo {
       b.setSelection(!isPrimary);
       monitorCheckBoxes.add(b);
     }
+
+    final Button runButton = new Button(shell, SWT.TOGGLE);
+    runButton.setSize(300, 100);
+    runButton.setText("Start demo");
+
+    final Font f = runButton.getFont();
+    final FontData[] fontData = f.getFontData();
+    for (int i = 0; i < fontData.length; i++) {
+      fontData[i].setHeight(60);
+    }
+    final Font newFont = new Font(d, fontData);
+    runButton.setFont(newFont);
+
+    final Composite panelComposite = new Composite(shell, SWT.NONE);
+    // panelComposite.setLayout(new RowLayout(SWT.HORIZONTAL));
 
     final List<DemoRunnerControlPanel> panels = newArrayList();
     runButton.addSelectionListener(new SelectionListener() {
@@ -126,26 +139,36 @@ public class Demo {
           panel.remove();
         }
         panels.clear();
+
+        controlsComposite.setEnabled(!((Button) e.widget).getSelection());
+        for (final Control c : controlsComposite.getChildren()) {
+
+          c.setEnabled(!((Button) e.widget).getSelection());
+        }
+
         if (((Button) e.widget).getSelection()) {
           runButton.setText("Stop demo");
         } else {
-          runButton.setText("Run demo");
+          runButton.setText("Start demo");
         }
         boolean alternate = false;
         if (((Button) e.widget).getSelection()) {
+
           for (final Button b : monitorCheckBoxes) {
             if (b.getSelection()) {
               final Monitor m = (Monitor) b.getData();
               final DemoRunner dr = new DemoRunner(d, alternate);
+              dr.setTime(Double.parseDouble(timeText.getText()));
               alternate = !alternate;
 
-              panels.add(new DemoRunnerControlPanel(shell, m, dr));
+              panels.add(new DemoRunnerControlPanel(panelComposite, m, dr));
 
               dr.setMonitor(m);
               demoRunners.add(dr);
               // d.asyncExec(dr);
             }
           }
+          panelComposite.layout();
           shell.layout();
 
           // d.asyncExec(new MasterRunner(demoRunners, d));
@@ -200,14 +223,34 @@ public class Demo {
     final DemoRunner runner;
     final Monitor monitor;
 
-    public DemoRunnerControlPanel(Shell s, Monitor m, DemoRunner dr) {
-      group = new Group(s, SWT.NONE);
+    public DemoRunnerControlPanel(Composite parent, Monitor m, DemoRunner dr) {
+      group = new Group(parent, SWT.NONE);
       runner = dr;
       monitor = m;
 
       dr.addListener(this);
 
-      group.setLayout(new FillLayout());
+      final Rectangle displayBounds = parent.getDisplay().getBounds();
+
+      final double maxDimension = Math.max(displayBounds.width,
+          displayBounds.height);
+
+      final double wRatio = m.getBounds().width / maxDimension;
+      final double hRatio = m.getBounds().height / maxDimension;
+
+      final double xRatio = (m.getBounds().x - displayBounds.x) / maxDimension;
+      final double yRatio = (m.getBounds().y - displayBounds.y) / maxDimension;
+
+      final double displayWidth = parent.getShell().getBounds().width - 100;
+
+      group.setSize((int) (wRatio * displayWidth),
+          (int) (hRatio * displayWidth));
+
+      final int xLoc = 50 + (int) (xRatio * displayWidth);
+      final int yLoc = 50 + (int) (yRatio * displayWidth);
+
+      group.setLocation(xLoc, yLoc);
+      group.setLayout(new FillLayout(SWT.VERTICAL));
       label = new Label(group, SWT.NONE);
 
       final Font f = label.getFont();
@@ -215,7 +258,7 @@ public class Demo {
       for (int i = 0; i < fontData.length; i++) {
         fontData[i].setHeight(40);
       }
-      final Font newFont = new Font(s.getDisplay(), fontData);
+      final Font newFont = new Font(parent.getDisplay(), fontData);
       label.setFont(newFont);
 
       final Button next = new Button(group, SWT.PUSH);
@@ -231,10 +274,7 @@ public class Demo {
       });
       next.setFont(newFont);
       newFont.dispose();
-      // g.setText(m.getBounds().toString());
-      group.setLayoutData(new RowData(m.getBounds().width / 3,
-          m.getBounds().height / 3));
-
+      group.layout();
       update();
     }
 
@@ -286,8 +326,9 @@ public class Demo {
 
     }
 
-    void setTime(long t) {
-      time = t;
+    void setTime(double t) {
+      time = DoubleMath.roundToLong(t * 60d * 60d * 1000d,
+          RoundingMode.HALF_DOWN);
     }
 
     void setRunning(boolean r) {
@@ -323,7 +364,7 @@ public class Demo {
         final rinde.sim.event.Listener l = this;
         if (alternate) {
           listener.update();
-          display.syncExec(new Runnable() {
+          display.asyncExec(new Runnable() {
             @Override
             public void run() {
               sims.add(FactoryExample.run(time, display, monitor, l));
@@ -331,7 +372,7 @@ public class Demo {
           });
         } else {
           listener.update();
-          display.syncExec(new Runnable() {
+          display.asyncExec(new Runnable() {
             @Override
             public void run() {
               // "../core/dot-files/leuven-simple.dot",
