@@ -15,6 +15,7 @@ import com.google.common.base.Objects;
  * @author Rinde van Lon (rinde.vanlon@cs.kuleuven.be)
  */
 public class Point implements Serializable {
+  private static final String NUM_SEPARATOR = ",";
 
   private static final long serialVersionUID = -7501053764573661924L;
   /**
@@ -62,6 +63,12 @@ public class Point implements Serializable {
     return new Point(p1.x - p2.x, p1.y - p2.y);
   }
 
+  /**
+   * Divides the point, the result is returned as a new point.
+   * @param p The point to divide.
+   * @param d The divisor.
+   * @return A new point containing the result.
+   */
   public static Point divide(Point p, double d) {
     return new Point(p.x / d, p.y / d);
   }
@@ -77,7 +84,8 @@ public class Point implements Serializable {
    * @return A point.
    */
   public static Point parsePoint(String pointString) {
-    final String[] parts = pointString.replaceAll("\\(|\\)", "").split(",");
+    final String[] parts = pointString.replaceAll("\\(|\\)", "").split(
+        NUM_SEPARATOR);
     return new Point(Double.parseDouble(parts[0]), Double.parseDouble(parts[1]));
   }
 
@@ -113,7 +121,7 @@ public class Point implements Serializable {
 
   @Override
   public String toString() {
-    return new StringBuilder().append("(").append(x).append(",").append(y)
-        .append(")").toString();
+    return new StringBuilder().append("(").append(x).append(NUM_SEPARATOR)
+        .append(y).append(")").toString();
   }
 }

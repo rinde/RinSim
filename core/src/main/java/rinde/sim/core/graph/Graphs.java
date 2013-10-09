@@ -115,6 +115,7 @@ public final class Graphs {
    * @return <code>true</code> if the provided graphs are equal,
    *         <code>false</code> otherwise.
    */
+  @SuppressWarnings("null")
   public static <E extends ConnectionData> boolean equals(
       Graph<? extends E> g1, Graph<? extends E> g2) {
     if (g1.getNumberOfNodes() != g2.getNumberOfNodes()) {
@@ -142,7 +143,7 @@ public final class Graphs {
   }
 
   /**
-   * Computes the shortest path based on the euclidean distance.
+   * Computes the shortest path based on the Euclidean distance.
    * @param graph The {@link Graph} on which the shortest path is searched.
    * @param from The start point of the path.
    * @param to The destination of the path.
@@ -354,10 +355,10 @@ public final class Graphs {
 
   static class ObjectWithDistance<T> implements
       Comparable<ObjectWithDistance<T>> {
-    public final double dist;
-    public final T obj;
+    final double dist;
+    final T obj;
 
-    public ObjectWithDistance(T pObj, double pDist) {
+    ObjectWithDistance(T pObj, double pDist) {
       obj = pObj;
       dist = pDist;
     }
@@ -366,6 +367,18 @@ public final class Graphs {
     public int compareTo(ObjectWithDistance<T> o) {
       return Double.compare(dist, o.dist);
     }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public boolean equals(@Nullable Object o) {
+      if (o == null) {
+        return false;
+      }
+      if (o.getClass() == ObjectWithDistance.class) {
+        return compareTo((ObjectWithDistance<T>) o) == 0;
+      }
+      return false;
+    }
   }
 
   private static class UnmodifiableMultiAttributeEdgeData extends
@@ -373,7 +386,7 @@ public final class Graphs {
 
     private final MultiAttributeData original;
 
-    public UnmodifiableMultiAttributeEdgeData(MultiAttributeData pOriginal) {
+    UnmodifiableMultiAttributeEdgeData(MultiAttributeData pOriginal) {
       super(-1);
       original = pOriginal;
     }
@@ -393,6 +406,7 @@ public final class Graphs {
       return original.getAttributes();
     }
 
+    @Nullable
     @Override
     public <E> E get(String key, Class<E> type) {
       return original.get(key, type);
@@ -424,7 +438,7 @@ public final class Graphs {
       extends Connection<E> {
     private final Connection<E> original;
 
-    public UnmodifiableConnection(Connection<E> c) {
+    UnmodifiableConnection(Connection<E> c) {
       super(c.from, c.to, null);
       original = c;
     }
@@ -464,7 +478,7 @@ public final class Graphs {
       Graph<E> {
     final Graph<E> delegate;
 
-    public UnmodifiableGraph(Graph<E> pDelegate) {
+    UnmodifiableGraph(Graph<E> pDelegate) {
       delegate = pDelegate;
     }
 

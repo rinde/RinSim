@@ -30,6 +30,7 @@ public abstract class AbstractGraph<E extends ConnectionData> implements
     super();
   }
 
+  @SuppressWarnings("null")
   @Override
   public double connectionLength(Point from, Point to) {
     checkArgument(hasConnection(from, to),
@@ -43,7 +44,7 @@ public abstract class AbstractGraph<E extends ConnectionData> implements
   /**
    * Determines whether a connection data is 'empty'. Default only
    * <code>null</code> is considered as an empty connection data. This can be
-   * overriden to include a specific instance of connection data to be the
+   * overridden to include a specific instance of connection data to be the
    * 'empty' instance.
    * @param connData The connection data to check.
    * @return <code>true</code> if the specified connection data is considered
@@ -85,7 +86,7 @@ public abstract class AbstractGraph<E extends ConnectionData> implements
   }
 
   /**
-   * Must be overriden by implementors. It should add a connection between from
+   * Must be overridden by implementors. It should add a connection between from
    * and to. It can be assumed that the connection does not yet exist and that
    * it is not circular.
    * @param from Starting point of the connection.

@@ -5,7 +5,6 @@ import javax.measure.unit.Unit;
 
 import org.apache.commons.math3.random.RandomGenerator;
 
-import rinde.sim.core.Simulator.SimulatorEventType;
 import rinde.sim.event.EventAPI;
 
 /**
@@ -39,7 +38,7 @@ public interface SimulatorAPI {
 
   /**
    * Get access to the main random generator used in the simulator.
-   * @return the random generator of the simulatsor
+   * @return the random generator of the simulator
    */
   RandomGenerator getRandomGenerator();
 
@@ -62,7 +61,7 @@ public interface SimulatorAPI {
   /**
    * Reference to the {@link EventAPI} of the Simulator. Can be used to add
    * listeners to events dispatched by the simulator. Simulator events are
-   * defined in {@link SimulatorEventType}.
+   * defined in {@link rinde.sim.core.Simulator.SimulatorEventType}.
    * @return {@link EventAPI}
    */
   EventAPI getEventAPI();

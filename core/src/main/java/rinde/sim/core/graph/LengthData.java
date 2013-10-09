@@ -45,7 +45,7 @@ public class LengthData implements ConnectionData {
 
   @Override
   public String toString() {
-    return length + "";
+    return Double.toString(length);
   }
 
 }

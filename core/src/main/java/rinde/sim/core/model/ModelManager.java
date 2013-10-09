@@ -39,13 +39,14 @@ public class ModelManager implements ModelProvider {
   /**
    * Adds a model to the manager. Note: a model can be added only once.
    * @param model The model to be added.
-   * @return true when the addition was sucessful, false otherwise.
+   * @return true when the addition was successful, false otherwise.
    * @throws IllegalStateException when method called after calling configure
    */
   public boolean add(Model<?> model) {
     checkState(!configured, "model can not be registered after configure()");
     final Class<?> supportedType = model.getSupportedType();
-    checkArgument(supportedType != null, "model must implement getSupportedType() and return a non-null");
+    checkArgument(supportedType != null,
+        "model must implement getSupportedType() and return a non-null");
     models.add(model);
     final boolean result = registry.put(supportedType, model);
     if (!result) {
@@ -80,7 +81,8 @@ public class ModelManager implements ModelProvider {
       checkState(!configured, "model can not be registered after configure()");
       return add((Model<?>) object);
     }
-    checkState(configured, "can not register an object if configure() has not been called");
+    checkState(configured,
+        "can not register an object if configure() has not been called");
 
     boolean result = false;
     final Set<Class<?>> modelSupportedTypes = registry.keySet();
@@ -108,7 +110,8 @@ public class ModelManager implements ModelProvider {
   @SuppressWarnings("unchecked")
   public <T> boolean unregister(T object) {
     checkArgument(!(object instanceof Model), "can not unregister a model");
-    checkState(configured, "can not unregister when not configured, call configure() first");
+    checkState(configured,
+        "can not unregister when not configured, call configure() first");
 
     boolean result = false;
     final Set<Class<?>> modelSupportedTypes = registry.keySet();
