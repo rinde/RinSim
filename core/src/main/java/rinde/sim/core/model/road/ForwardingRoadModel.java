@@ -9,6 +9,7 @@ import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
 
+import javax.annotation.Nullable;
 import javax.measure.quantity.Length;
 import javax.measure.quantity.Velocity;
 import javax.measure.unit.Unit;
@@ -117,6 +118,7 @@ public abstract class ForwardingRoadModel implements RoadModel {
     return delegate().getPosition(roadUser);
   }
 
+  @Nullable
   @Override
   public Point getDestination(MovingRoadUser roadUser) {
     return delegate().getDestination(roadUser);
