@@ -19,7 +19,6 @@ import javax.measure.unit.SI;
 import javax.measure.unit.Unit;
 
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -52,17 +51,6 @@ public class SpeedLimitsTest {
 
   private final double speed;
   private double pathLength;
-
-  @BeforeClass
-  public static void assertionCheck() {
-    boolean assertionsAreOn = false;
-    try {
-      assert false;
-    } catch (final AssertionError ae) {
-      assertionsAreOn = true;
-    }
-    assertTrue(assertionsAreOn);
-  }
 
   public SpeedLimitsTest(Class<? extends Graph<MultiAttributeData>> pGraphType,
       Class<? extends GraphRoadModel> pRoadModelType, double pSpeed) {
@@ -138,10 +126,10 @@ public class SpeedLimitsTest {
 
   @Test
   public void followPathAllAtOnce() {
-    final int timeNeeded = DoubleMath
-        .roundToInt((pathLength / speed) * 1.5, RoundingMode.CEILING);
-    final TimeLapse timeLapse = TimeLapseFactory
-        .create(NonSI.HOUR, 0, timeNeeded);
+    final int timeNeeded = DoubleMath.roundToInt((pathLength / speed) * 1.5,
+        RoundingMode.CEILING);
+    final TimeLapse timeLapse = TimeLapseFactory.create(NonSI.HOUR, 0,
+        timeNeeded);
 
     final SpeedyRoadUser agent = new SpeedyRoadUser(speed);
     model.addObjectAt(agent, new Point(0, 0));
@@ -151,7 +139,8 @@ public class SpeedLimitsTest {
     final MoveProgress travelled = model.followPath(agent, path, timeLapse);
     assertTrue(timeLapse.hasTimeLeft());
     assertEquals(pathLength, travelled.distance.getValue(), DELTA);
-    assertTrue("time spend < timeNeeded", timeNeeded > travelled.time.getValue());
+    assertTrue("time spend < timeNeeded",
+        timeNeeded > travelled.time.getValue());
     assertEquals(0, path.size());
     assertEquals(new Point(5, 15), model.getPosition(agent));
   }
@@ -170,8 +159,8 @@ public class SpeedLimitsTest {
     assertEquals(5, path.size());
 
     // MOVE 1: travelling on edge A -> B (length 10), with no speed limit
-    MoveProgress progress = model.followPath(agent, path, AbstractRoadModelTest
-        .hour(2));
+    MoveProgress progress = model.followPath(agent, path,
+        AbstractRoadModelTest.hour(2));
     assertEquals(2 * speed, progress.distance.getValue(), DELTA);
     assertEquals(new Point(0, 2 * speed), model.getPosition(agent));
 
@@ -199,7 +188,8 @@ public class SpeedLimitsTest {
     // follow path for 2 x time
     progress = model.followPath(agent, path, AbstractRoadModelTest.hour(time));
     assertEquals(10d, progress.distance.getValue(), DELTA);
-    assertEquals(Measure.valueOf(time, NonSI.HOUR).to(SI.MILLI(SI.SECOND)), progress.time);
+    assertEquals(Measure.valueOf(time, NonSI.HOUR).to(SI.MILLI(SI.SECOND)),
+        progress.time);
     assertEquals(1, path.size());
     assertEquals(D, model.getPosition(agent));
 
@@ -208,7 +198,8 @@ public class SpeedLimitsTest {
 
     progress = model.followPath(agent, path, AbstractRoadModelTest.hour(3));
     assertEquals(RoadTestUtil.km(5), progress.distance);
-    assertEquals(Measure.valueOf(time, NonSI.HOUR).to(SI.MILLI(SI.SECOND)), progress.time);
+    assertEquals(Measure.valueOf(time, NonSI.HOUR).to(SI.MILLI(SI.SECOND)),
+        progress.time);
     assertEquals(0, path.size());
     assertEquals(E, model.getPosition(agent));
 
@@ -223,11 +214,13 @@ public class SpeedLimitsTest {
 
     final SpeedyRoadUser agent = new SpeedyRoadUser(speed);
     assertEquals(s, model.getMaxSpeed(agent, A, B), DELTA);
-    assertEquals(speed > 2.5 ? speedConverter.convert(2.5) : s, model.getMaxSpeed(agent, B, C), DELTA);
+    assertEquals(speed > 2.5 ? speedConverter.convert(2.5) : s,
+        model.getMaxSpeed(agent, B, C), DELTA);
     assertEquals(s, model.getMaxSpeed(agent, C, B), DELTA);
     assertEquals(s, model.getMaxSpeed(agent, B, D), DELTA);
     assertEquals(s, model.getMaxSpeed(agent, C, D), DELTA);
-    assertEquals(speedConverter.convert(1), model.getMaxSpeed(agent, D, C), DELTA);
+    assertEquals(speedConverter.convert(1), model.getMaxSpeed(agent, D, C),
+        DELTA);
     assertEquals(s, model.getMaxSpeed(agent, D, E), DELTA);
   }
 
@@ -238,8 +231,8 @@ public class SpeedLimitsTest {
     assertEquals(new Point(0, 0), model.getPosition(agent));
     assertEquals(5, path.size());
 
-    final MoveProgress progress = model
-        .followPath(agent, path, AbstractRoadModelTest.hour());
+    final MoveProgress progress = model.followPath(agent, path,
+        AbstractRoadModelTest.hour());
     assertEquals(speed, progress.distance.getValue(), DELTA);
     assertEquals(4, path.size());
   }

@@ -31,6 +31,7 @@ public final class RoadModels {
    * @param rm The {@link RoadModel} which is searched.
    * @param objects The {@link Collection} which is searched, each object must
    *          exist in <code>rm</code>.
+   * @param <T> The type of the returned object.
    * @return The closest object in <code>rm</code> to <code>pos</code> which
    *         satisfies the <code>predicate</code>.
    * @see Graphs#findClosestObject(Point, Collection, Function)
@@ -38,9 +39,8 @@ public final class RoadModels {
   @Nullable
   public static <T extends RoadUser> T findClosestObject(Point pos,
       RoadModel rm, Collection<T> objects) {
-    return Graphs
-        .findClosestObject(pos, objects, new RoadModels.RoadUserToPositionFunction<T>(
-            rm));
+    return Graphs.findClosestObject(pos, objects,
+        new RoadModels.RoadUserToPositionFunction<T>(rm));
   }
 
   /**
@@ -56,8 +56,8 @@ public final class RoadModels {
   @Nullable
   public static RoadUser findClosestObject(Point pos, RoadModel rm,
       Predicate<RoadUser> predicate) {
-    final Collection<RoadUser> filtered = Collections2
-        .filter(rm.getObjects(), predicate);
+    final Collection<RoadUser> filtered = Collections2.filter(rm.getObjects(),
+        predicate);
     return findClosestObject(pos, rm, filtered);
   }
 
@@ -66,6 +66,7 @@ public final class RoadModels {
    * @param pos The {@link Point} which is used as reference.
    * @param rm The {@link RoadModel} which is searched.
    * @param type The type of object that is searched.
+   * @param <T> The type of the returned object.
    * @return The closest object in <code>rm</code> to <code>pos</code> of type
    *         <code>type</code>.
    * @see Graphs#findClosestObject
@@ -99,8 +100,8 @@ public final class RoadModels {
    *         is returned when <code>objects</code> is empty.
    */
   public static List<RoadUser> findClosestObjects(Point pos, RoadModel rm) {
-    return RoadModels
-        .findClosestObjects(pos, rm, RoadUser.class, Integer.MAX_VALUE);
+    return RoadModels.findClosestObjects(pos, rm, RoadUser.class,
+        Integer.MAX_VALUE);
   }
 
   /**
@@ -133,8 +134,8 @@ public final class RoadModels {
    */
   public static List<RoadUser> findClosestObjects(Point pos, RoadModel rm,
       Predicate<RoadUser> predicate, int n) {
-    final Collection<RoadUser> filtered = Collections2
-        .filter(rm.getObjects(), predicate);
+    final Collection<RoadUser> filtered = Collections2.filter(rm.getObjects(),
+        predicate);
     return RoadModels.findClosestObjects(pos, rm, filtered, n);
   }
 
@@ -146,6 +147,7 @@ public final class RoadModels {
    *          searched.
    * @param type The type of objects which are included in the search.
    * @param n The maximum number of objects to return where n must be >= 0.
+   * @param <T> The type of the objects in the returned collection.
    * @return A list of objects that are closest to <code>pos</code>. The list is
    *         ordered such that the closest object appears first. An empty list
    *         is returned when <code>objects</code> is empty.
@@ -163,15 +165,15 @@ public final class RoadModels {
    *          positions of the objects in <code>objects</code>.
    * @param objects The list of objects which is searched.
    * @param n The maximum number of objects to return where n must be >= 0.
+   * @param <T> The type of the objects in the returned collection.
    * @return A list of objects that are closest to <code>pos</code>. The list is
    *         ordered such that the closest object appears first. An empty list
    *         is returned when <code>objects</code> is empty.
    */
   public static <T extends RoadUser> List<T> findClosestObjects(Point pos,
       RoadModel rm, Collection<T> objects, int n) {
-    return Graphs
-        .findClosestObjects(pos, objects, new RoadModels.RoadUserToPositionFunction<T>(
-            rm), n);
+    return Graphs.findClosestObjects(pos, objects,
+        new RoadModels.RoadUserToPositionFunction<T>(rm), n);
   }
 
   /**
@@ -186,8 +188,8 @@ public final class RoadModels {
    */
   public static Collection<RoadUser> findObjectsWithinRadius(
       final Point position, final RoadModel model, final double radius) {
-    return RoadModels.findObjectsWithinRadius(position, model, radius, model
-        .getObjects());
+    return RoadModels.findObjectsWithinRadius(position, model, radius,
+        model.getObjects());
   }
 
   /**
@@ -199,13 +201,14 @@ public final class RoadModels {
    * @param radius Objects with a distance smaller than <code>radius</code> to
    *          <code>position</code> are included.
    * @param type The {@link Class} of the required type.
+   * @param <T> The type of the objects in the returned collection.
    * @return A collection of type <code>type</code>.
    */
   public static <T extends RoadUser> Collection<T> findObjectsWithinRadius(
       final Point position, final RoadModel model, final double radius,
       final Class<T> type) {
-    return RoadModels.findObjectsWithinRadius(position, model, radius, model
-        .getObjectsOfType(type));
+    return RoadModels.findObjectsWithinRadius(position, model, radius,
+        model.getObjectsOfType(type));
   }
 
   /**
@@ -218,6 +221,7 @@ public final class RoadModels {
    *          <code>position</code> are included.
    * @param objects The collection of objects which is searched through, note:
    *          all objects <b>must</b> exist in the {@link RoadModel}.
+   * @param <T> The type of the objects in the returned collection.
    * @return A collection of {@link RoadUser}s.
    */
   public static <T extends RoadUser> Collection<T> findObjectsWithinRadius(
@@ -231,7 +235,7 @@ public final class RoadModels {
       Function<T, Point> {
     private final RoadModel rm;
 
-    public RoadUserToPositionFunction(RoadModel roadModel) {
+    RoadUserToPositionFunction(RoadModel roadModel) {
       rm = roadModel;
     }
 
@@ -246,7 +250,7 @@ public final class RoadModels {
     private final RoadModel model;
     private final double radius;
 
-    public DistancePredicate(final Point p, final RoadModel m, final double r) {
+    DistancePredicate(final Point p, final RoadModel m, final double r) {
       position = p;
       model = m;
       radius = r;
@@ -257,5 +261,4 @@ public final class RoadModels {
       return Point.distance(model.getPosition(input), position) < radius;
     }
   }
-
 }

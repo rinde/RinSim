@@ -28,7 +28,6 @@ import javax.measure.quantity.Length;
 import javax.measure.unit.SI;
 
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
 import rinde.sim.core.TimeLapse;
@@ -100,17 +99,6 @@ public abstract class AbstractRoadModelTest<T extends RoadModel> {
   }
 
   public abstract void setUp() throws Exception;
-
-  @BeforeClass
-  public static void assertionCheck() {
-    boolean assertionsAreOn = false;
-    try {
-      assert false;
-    } catch (final AssertionError ae) {
-      assertionsAreOn = true;
-    }
-    assertTrue(assertionsAreOn);
-  }
 
   public static Queue<Point> asPath(Point... points) {
     return new LinkedList<Point>(Arrays.asList(points));

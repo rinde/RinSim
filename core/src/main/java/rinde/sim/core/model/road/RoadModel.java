@@ -267,6 +267,7 @@ public interface RoadModel extends Model<RoadUser> {
    * given {@link RoadUser}.
    * @param roadUser The object which location is checked for other objects.
    * @param type The type of the objects to be returned.
+   * @param <Y> The type of the objects in the returned set.
    * @return A set of objects of type <code>type</code>.
    */
   <Y extends RoadUser> Set<Y> getObjectsAt(RoadUser roadUser, Class<Y> type);
@@ -276,6 +277,7 @@ public interface RoadModel extends Model<RoadUser> {
    * model and are instances of the specified {@link Class}. The returned set is
    * not a live view on the set, but a new created copy.
    * @param type The type of returned objects.
+   * @param <Y> The type of the objects in the returned set.
    * @return A set of {@link RoadUser} objects.
    */
   <Y extends RoadUser> Set<Y> getObjectsOfType(final Class<Y> type);
@@ -299,7 +301,7 @@ public interface RoadModel extends Model<RoadUser> {
   /**
    * Finds the shortest between <code>from</code> and <code>to</code>. The
    * definition of a <i>shortest</i> path is defined by the specific
-   * implementation, possiblities include the shortest travel time and the
+   * implementation, possibilities include the shortest travel time and the
    * shortest distance.
    * @param from The start point of the path.
    * @param to The end point of the path.
