@@ -20,6 +20,7 @@ public class ParcelDTO implements Serializable {
    * The location at which this parcel can be picked up.
    */
   public final Point pickupLocation;
+
   /**
    * The location at which this parcel has to be delivered.
    */
