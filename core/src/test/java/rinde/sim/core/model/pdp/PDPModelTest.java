@@ -285,12 +285,12 @@ public class PDPModelTest {
     assertTrue(rm.equalPosition(truck, pack1));
     assertEquals(ParcelState.AVAILABLE, model.getParcelState(pack1));
     assertEquals(VehicleState.IDLE, model.getVehicleState(truck));
-    assertEquals(newHashSet(pack1), model.getAvailableParcels());
+    assertEquals(newHashSet(pack1), model.getParcels(ParcelState.AVAILABLE));
 
     model.pickup(truck, pack1, TimeLapseFactory.create(0, 100));
     assertEquals(ParcelState.IN_CARGO, model.getParcelState(pack1));
     assertEquals(VehicleState.IDLE, model.getVehicleState(truck));
-    assertTrue(model.getAvailableParcels().isEmpty());
+    assertTrue(model.getParcels(ParcelState.AVAILABLE).isEmpty());
 
     rm.moveTo(truck, pack1.getDestination(),
         TimeLapseFactory.create(0, 3600000 * 3));
@@ -312,12 +312,12 @@ public class PDPModelTest {
     rm.addObjectAtSamePosition(pack2, truck);
     assertEquals(ParcelState.AVAILABLE, model.getParcelState(pack2));
     assertEquals(VehicleState.IDLE, model.getVehicleState(truck));
-    assertEquals(newHashSet(pack2), model.getAvailableParcels());
+    assertEquals(newHashSet(pack2), model.getParcels(ParcelState.AVAILABLE));
 
     model.pickup(truck, pack2, TimeLapseFactory.create(0, 10));
     assertEquals(ParcelState.IN_CARGO, model.getParcelState(pack2));
     assertEquals(VehicleState.IDLE, model.getVehicleState(truck));
-    assertTrue(model.getAvailableParcels().isEmpty());
+    assertTrue(model.getParcels(ParcelState.AVAILABLE).isEmpty());
 
     model.deliver(truck, pack2, TimeLapseFactory.create(0, 10));
     assertEquals(ParcelState.DELIVERED, model.getParcelState(pack2));
@@ -377,7 +377,7 @@ public class PDPModelTest {
 
   @Test
   public void addPackageIn() {
-    assertTrue(model.getAvailableParcels().isEmpty());
+    assertTrue(model.getParcels(ParcelState.AVAILABLE).isEmpty());
     final Depot d = new TestDepot(10);
     final Parcel p1 = new TestParcel(new Point(0, 0), 0, 0, 1);
     model.register(d);

@@ -543,31 +543,30 @@ public class PDPModel implements Model<PDPObject>, TickListener, ModelReceiver {
   }
 
   /**
-   * @return An unmodifiable view on the the parcels which are in
-   *         <code>AVAILABLE</code> state. Note that parcels which are available
-   *         are not neccesarily already at a position.
+   * @param state The state of the returned parcels.
+   * @return All {@link Parcel}s which are in the specified state, or an empty
+   *         collection if there are no parcels in the specified state.
    */
-  // TODO convert to more generic version with state as argument
-  @Deprecated
-  public Collection<Parcel> getAvailableParcels() {
-    synchronized (this) {
-      return parcelState.get(ParcelState.AVAILABLE);
-    }
-  }
-
   public Collection<Parcel> getParcels(ParcelState state) {
     synchronized (this) {
       return parcelState.get(state);
     }
   }
 
+  /**
+   * @param states All returned parcels have one of the specified states.
+   * @return All {@link Parcel}s which are in the specified state, or an empty
+   *         collection if there are no parcels in the specified state.
+   */
   public Collection<Parcel> getParcels(ParcelState... states) {
     synchronized (this) {
       return parcelState.getMultiple(states);
     }
   }
 
-  @SuppressWarnings("unchecked")
+  /**
+   * @return The set of known vehicles.
+   */
   public Set<Vehicle> getVehicles() {
     synchronized (this) {
       return unmodifiableSet(vehicleState.keySet());
@@ -597,7 +596,14 @@ public class PDPModel implements Model<PDPObject>, TickListener, ModelReceiver {
   }
 
   // TODO create a similar method but with a parcel as key
-
+  /**
+   * @param vehicle The vehicle for which a {@link VehicleParcelActionInfo} is
+   *          retrieved.
+   * @return Information about either a pickup or a delivery process.
+   * @throws IllegalArgumentException if the specified vehicle is not in
+   *           {@link VehicleState#DELIVERING} or in
+   *           {@link VehicleState#PICKING_UP}.
+   */
   public VehicleParcelActionInfo getVehicleActionInfo(Vehicle vehicle) {
     synchronized (this) {
       final VehicleState state = vehicleState.get(vehicle);
