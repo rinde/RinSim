@@ -60,7 +60,7 @@ public class GraphRoadModel extends AbstractRoadModel<Loc> {
 
   /**
    * Creates a new instance using the specified {@link Graph} as road structure.
-   * @param pGraph The graph which will be used as road strucutre.
+   * @param pGraph The graph which will be used as road structure.
    */
   public GraphRoadModel(Graph<? extends ConnectionData> pGraph,
       Unit<Length> distanceUnit, Unit<Velocity> speedUnit) {
@@ -325,12 +325,6 @@ public class GraphRoadModel extends AbstractRoadModel<Loc> {
 
   @Override
   public List<Point> getShortestPathTo(Point from, Point to) {
-    if (from == null) {
-      throw new IllegalArgumentException("from can not be null");
-    }
-    if (to == null) {
-      throw new IllegalArgumentException("to can not be null");
-    }
     final List<Point> path = new ArrayList<Point>();
     Point start = from;
     if (isOnConnection(from)) {
@@ -406,9 +400,6 @@ public class GraphRoadModel extends AbstractRoadModel<Loc> {
    */
   protected static Loc newLoc(Connection<? extends ConnectionData> conn,
       double relativePos) {
-    if (conn == null) {
-      throw new IllegalArgumentException("conn can not be null");
-    }
     final Point diff = Point.diff(conn.to, conn.from);
     final double roadLength = getConnectionLength(conn);
 
@@ -490,11 +481,6 @@ public class GraphRoadModel extends AbstractRoadModel<Loc> {
     @Override
     public String toString() {
       return super.toString() + "{" + conn + "}";
-    }
-
-    @Override
-    public boolean equals(@Nullable Object other) {
-      return super.equals(other);
     }
   }
 

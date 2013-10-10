@@ -70,8 +70,10 @@ public class EventDispatcher implements EventAPI {
    *          be dispatched.
    */
   public void dispatchEvent(Event e) {
-    checkArgument(supportedTypes.contains(e.getEventType()), "Cannot dispatch an event of type %s since it was not registered at this dispatcher.", e
-        .getEventType());
+    checkArgument(
+        supportedTypes.contains(e.getEventType()),
+        "Cannot dispatch an event of type %s since it was not registered at this dispatcher.",
+        e.getEventType());
     for (final Listener l : listeners.get(e.getEventType())) {
       l.handleEvent(e);
     }
@@ -110,8 +112,9 @@ public class EventDispatcher implements EventAPI {
       boolean all) {
     final Set<Enum<?>> theTypes = all ? supportedTypes : eventTypes;
     for (final Enum<?> eventType : theTypes) {
-      checkArgument(eventType != null, "event type can not be null");
-      checkArgument(supportedTypes.contains(eventType), "A listener for type %s is not allowed.", eventType);
+      checkArgument(eventType != null, "event type to add can not be null");
+      checkArgument(supportedTypes.contains(eventType),
+          "A listener for type %s is not allowed.", eventType);
       listeners.put(eventType, listener);
     }
   }
@@ -130,8 +133,8 @@ public class EventDispatcher implements EventAPI {
   @Override
   public void removeListener(Listener listener, Set<Enum<?>> eventTypes) {
     if (eventTypes.isEmpty()) {
-      // remove all
-      // store keys in intermediate set to avoid concurrent modifications
+      // remove all store keys in intermediate set to avoid concurrent
+      // modifications
       final Set<Enum<?>> keys = new HashSet<Enum<?>>(listeners.keySet());
       for (final Enum<?> eventType : keys) {
         if (listeners.containsEntry(eventType, listener)) {
@@ -140,8 +143,11 @@ public class EventDispatcher implements EventAPI {
       }
     } else {
       for (final Enum<?> eventType : eventTypes) {
-        checkArgument(eventType != null, "event type can not be null");
-        checkArgument(containsListener(listener, eventType), "The listener %s for the type %s cannot be removed because it does not exist.", listener, eventType);
+        checkArgument(eventType != null, "event type to remove can not be null");
+        checkArgument(
+            containsListener(listener, eventType),
+            "The listener %s for the type %s cannot be removed because it does not exist.",
+            listener, eventType);
         listeners.remove(eventType, listener);
       }
     }
@@ -169,10 +175,9 @@ public class EventDispatcher implements EventAPI {
   }
 
   static class PublicEventAPI implements EventAPI {
-
     private final EventDispatcher ref;
 
-    public PublicEventAPI(EventDispatcher ed) {
+    PublicEventAPI(EventDispatcher ed) {
       ref = ed;
     }
 
