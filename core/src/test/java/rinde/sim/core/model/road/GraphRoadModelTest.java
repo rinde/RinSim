@@ -144,8 +144,8 @@ public class GraphRoadModelTest extends AbstractRoadModelTest<GraphRoadModel> {
     assertEquals(B, model.getConnection(bc).from);
     assertEquals(C, model.getConnection(bc).to);
 
-    final Queue<Point> path = asPath(SW, SE, NE, A, model.getPosition(ab), B, model
-        .getPosition(bc), C);
+    final Queue<Point> path = asPath(SW, SE, NE, A, model.getPosition(ab), B,
+        model.getPosition(bc), C);
     assertEquals(8, path.size());
 
     final TestRoadUser driver1 = new TestRoadUser();
@@ -244,7 +244,8 @@ public class GraphRoadModelTest extends AbstractRoadModelTest<GraphRoadModel> {
                                                        // time
     // == 15
     assertEquals(5, progress.distance.getValue(), EPSILON);
-    assertEquals(Measure.valueOf(1L, NonSI.HOUR).to(SI.MILLI(SI.SECOND)), progress.time);
+    assertEquals(Measure.valueOf(1L, NonSI.HOUR).to(SI.MILLI(SI.SECOND)),
+        progress.time);
     assertEquals(0, path.size());
     assertEquals(new Point(10, 10), model.getPosition(agent));
   }
@@ -263,23 +264,23 @@ public class GraphRoadModelTest extends AbstractRoadModelTest<GraphRoadModel> {
     model.addObjectAt(agent2, SW);
     assertEquals(new Point(0, 0), model.getPosition(agent2));
 
-    final Queue<Point> path1 = new LinkedList<Point>(
-        model.getShortestPathTo(agent2, agent1));
+    final Queue<Point> path1 = new LinkedList<Point>(model.getShortestPathTo(
+        agent2, agent1));
     assertEquals(asList(SW, new Point(5, 0)), path1);
 
     model.followPath(agent2, path1, hour(10));
     assertEquals(new Point(5, 0), model.getPosition(agent2));
 
-    final Queue<Point> path2 = new LinkedList<Point>(
-        model.getShortestPathTo(agent2, NE));
+    final Queue<Point> path2 = new LinkedList<Point>(model.getShortestPathTo(
+        agent2, NE));
     assertEquals(asList(new Point(5, 0), SE, NE), path2);
     model.followPath(agent2, path2, hour(10));
     assertEquals(new Point(10, 5), model.getPosition(agent2));
     assertTrue(connectionEquals(model.getConnection(agent2), SE, NE));
 
     // coming from the front side, we have to turn around at p1
-    final Queue<Point> path3 = new LinkedList<Point>(
-        model.getShortestPathTo(agent2, agent1));
+    final Queue<Point> path3 = new LinkedList<Point>(model.getShortestPathTo(
+        agent2, agent1));
     assertEquals(asList(new Point(10, 5), NE, SE, SW, new Point(5, 0)), path3);
     model.followPath(agent2, path3, hour(100));
 
@@ -288,17 +289,19 @@ public class GraphRoadModelTest extends AbstractRoadModelTest<GraphRoadModel> {
 
     graph.addConnection(SW, NW);
     graph.addConnection(NW, SW);
-    model
-        .followPath(agent2, new LinkedList<Point>(asList(SE, SW, NW)), hour(25));
+    model.followPath(agent2, new LinkedList<Point>(asList(SE, SW, NW)),
+        hour(25));
     assertEquals(new Point(0, 10), model.getPosition(agent2));
 
     // coming from the back side, no turning around is required
-    final Queue<Point> path4 = new LinkedList<Point>(
-        model.getShortestPathTo(agent2, agent1));
+    final Queue<Point> path4 = new LinkedList<Point>(model.getShortestPathTo(
+        agent2, agent1));
     assertEquals(asList(NW, SW, new Point(5, 0)), path4);
-    assertEquals(10, model.followPath(agent2, path4, hour(10)).distance.getValue(), EPSILON);
+    assertEquals(10,
+        model.followPath(agent2, path4, hour(10)).distance.getValue(), EPSILON);
     assertEquals(new Point(0, 0), model.getPosition(agent2));
-    assertEquals(5, model.followPath(agent2, path4, hour(20)).distance.getValue(), EPSILON);
+    assertEquals(5,
+        model.followPath(agent2, path4, hour(20)).distance.getValue(), EPSILON);
     assertEquals(new Point(5, 0), model.getPosition(agent2));
   }
 
@@ -336,8 +339,8 @@ public class GraphRoadModelTest extends AbstractRoadModelTest<GraphRoadModel> {
     final TestRoadUser testRoadUser = new TestRoadUser();
     model.addObjectAt(testRoadUser, SW);
     final Queue<Point> p = new LinkedList<Point>(Arrays.asList(SW, SE));
-    final MoveProgress progress = model
-        .followPath(testRoadUser, p, timeLength(3600000));
+    final MoveProgress progress = model.followPath(testRoadUser, p,
+        timeLength(3600000));
     assertEquals(1.0, progress.distance.getValue(), EPSILON);
     assertEquals(asList(SE), p);
     assertEquals(3600000, progress.time.getValue().longValue());
@@ -357,8 +360,8 @@ public class GraphRoadModelTest extends AbstractRoadModelTest<GraphRoadModel> {
     final TestRoadUser testRoadUser2 = new TestRoadUser();
     model.addObjectAt(testRoadUser2, SW);
     model.followPath(testRoadUser2, asPath(SW, SE), hour(2));
-    model
-        .followPath(testRoadUser2, asPath(model.getPosition(testRoadUser1)), hour(2));
+    model.followPath(testRoadUser2, asPath(model.getPosition(testRoadUser1)),
+        hour(2));
   }
 
   /**
@@ -373,8 +376,8 @@ public class GraphRoadModelTest extends AbstractRoadModelTest<GraphRoadModel> {
 
     final TestRoadUser tru2 = new TestRoadUser();
     model.addObjectAt(tru2, SW);
-    final MoveProgress pp = model.followPath(tru2, asPath(SW, SE, model
-        .getPosition(tru1)), hour(11));
+    final MoveProgress pp = model.followPath(tru2,
+        asPath(SW, SE, model.getPosition(tru1)), hour(11));
     assertEquals(11, pp.distance.getValue(), EPSILON);
 
     final Point p1 = model.getPosition(tru1);
@@ -414,8 +417,8 @@ public class GraphRoadModelTest extends AbstractRoadModelTest<GraphRoadModel> {
     model.followPath(tru2, asPath(SW, SE), hour(2));
 
     // now the road users are in the above described positions
-    final Point difference = Point.diff(model.getPosition(tru1), model
-        .getPosition(tru2));
+    final Point difference = Point.diff(model.getPosition(tru1),
+        model.getPosition(tru2));
     assertTrue(difference.x < 0 && difference.y == 0);
 
     model.followPath(tru2, asPath(model.getPosition(tru1)), hour(2));
@@ -617,10 +620,10 @@ public class GraphRoadModelTest extends AbstractRoadModelTest<GraphRoadModel> {
   @SuppressWarnings("unchecked")
   @Test
   public void locationIsOnSameEdge() {
-    ((Graph<MultiAttributeData>) graph)
-        .addConnection(SE, SW, new MultiAttributeData(300));
-    ((Graph<MultiAttributeData>) graph)
-        .addConnection(NE, SW, new MultiAttributeData(Double.NaN));
+    ((Graph<MultiAttributeData>) graph).addConnection(SE, SW,
+        new MultiAttributeData(300));
+    ((Graph<MultiAttributeData>) graph).addConnection(NE, SW,
+        new MultiAttributeData(Double.NaN));
 
     final Loc loc1 = GraphRoadModel.newLoc(new Connection<ConnectionData>(SW,
         SE, null), 3);
@@ -652,12 +655,6 @@ public class GraphRoadModelTest extends AbstractRoadModelTest<GraphRoadModel> {
   }
 
   @Test(expected = IllegalArgumentException.class)
-  public void newLocationFail2() {
-    @SuppressWarnings({ "null", "unused" })
-    final Loc l = GraphRoadModel.newLoc(null, 0);
-  }
-
-  @Test(expected = IllegalArgumentException.class)
   public void checkLocationFail1() {
     final Loc l = GraphRoadModel.newLoc(new Point(-10, -10));
     model.checkLocation(l);
@@ -672,8 +669,9 @@ public class GraphRoadModelTest extends AbstractRoadModelTest<GraphRoadModel> {
 
   @Test
   public void getConnectionLength() {
-    assertEquals(10, GraphRoadModel.getConnectionLength(new Connection<ConnectionData>(
-        NE, NW, null)), EPSILON);
+    assertEquals(10,
+        GraphRoadModel.getConnectionLength(new Connection<ConnectionData>(NE,
+            NW, null)), EPSILON);
     final Connection<MultiAttributeData> conn = new Connection<MultiAttributeData>(
         NE, NW, new MultiAttributeData(12, 0d));
     assertEquals(12, GraphRoadModel.getConnectionLength(conn), EPSILON);
@@ -700,15 +698,18 @@ public class GraphRoadModelTest extends AbstractRoadModelTest<GraphRoadModel> {
     final UnitConverter conv = NonSI.KILOMETERS_PER_HOUR
         .getConverterTo(AbstractRoadModel.internalSpeedUnit);
 
-    assertEquals(conv.convert(10), rm.getMaxSpeed(new SpeedyRoadUser(10), A, B), EPSILON);
+    assertEquals(conv.convert(10),
+        rm.getMaxSpeed(new SpeedyRoadUser(10), A, B), EPSILON);
 
-    ((Graph<MultiAttributeData>) graph)
-        .addConnection(SE, SW, new MultiAttributeData(3, 5d));
-    assertEquals(conv.convert(5), model.getMaxSpeed(new SpeedyRoadUser(10), SE, SW), EPSILON);
+    ((Graph<MultiAttributeData>) graph).addConnection(SE, SW,
+        new MultiAttributeData(3, 5d));
+    assertEquals(conv.convert(5),
+        model.getMaxSpeed(new SpeedyRoadUser(10), SE, SW), EPSILON);
 
-    ((Graph<MultiAttributeData>) graph)
-        .addConnection(NE, SE, new MultiAttributeData(3, Double.NaN));
-    assertEquals(conv.convert(10), model.getMaxSpeed(new SpeedyRoadUser(10), NE, SE), EPSILON);
+    ((Graph<MultiAttributeData>) graph).addConnection(NE, SE,
+        new MultiAttributeData(3, Double.NaN));
+    assertEquals(conv.convert(10),
+        model.getMaxSpeed(new SpeedyRoadUser(10), NE, SE), EPSILON);
   }
 
   @SuppressWarnings("null")
@@ -725,10 +726,11 @@ public class GraphRoadModelTest extends AbstractRoadModelTest<GraphRoadModel> {
   @SuppressWarnings("unchecked")
   @Test
   public void computeConnectionLength() {
-    assertEquals(0, model.computeConnectionLength(new Point(1, 2), new Point(1,
-        2)), EPSILON);
-    ((Graph<MultiAttributeData>) graph)
-        .addConnection(SE, SW, new MultiAttributeData(5, 5d));
+    assertEquals(0,
+        model.computeConnectionLength(new Point(1, 2), new Point(1, 2)),
+        EPSILON);
+    ((Graph<MultiAttributeData>) graph).addConnection(SE, SW,
+        new MultiAttributeData(5, 5d));
 
     final TestRoadUser agent1 = new TestRoadUser();
     model.addObjectAt(agent1, SE);
@@ -743,11 +745,15 @@ public class GraphRoadModelTest extends AbstractRoadModelTest<GraphRoadModel> {
     assertEquals(2, pp2.distance.getValue(), EPSILON);
     assertEquals(hour(2).getTimeStep(), pp2.time.getValue().longValue());
 
-    assertEquals(1, model.computeConnectionLength(model.getPosition(agent1), model
-        .getPosition(agent2)), EPSILON);
+    assertEquals(
+        1,
+        model.computeConnectionLength(model.getPosition(agent1),
+            model.getPosition(agent2)), EPSILON);
 
-    assertEquals(4, model.computeConnectionLength(model.getPosition(agent1), SW), EPSILON);
-    assertEquals(1, model.computeConnectionLength(SE, model.getPosition(agent1)), EPSILON);
+    assertEquals(4,
+        model.computeConnectionLength(model.getPosition(agent1), SW), EPSILON);
+    assertEquals(1,
+        model.computeConnectionLength(SE, model.getPosition(agent1)), EPSILON);
   }
 
   @Test
