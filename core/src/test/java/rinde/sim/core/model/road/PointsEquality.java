@@ -19,7 +19,6 @@ import rinde.sim.core.graph.LengthData;
 import rinde.sim.core.graph.Point;
 import rinde.sim.core.graph.TestMultimapGraph;
 import rinde.sim.core.graph.TestTableGraph;
-import rinde.sim.core.model.road.GraphRoadModel; 
 
 /**
  * Test whether points are value objects

@@ -125,11 +125,6 @@ public abstract class AbstractRoadModelTest<T extends RoadModel> {
     model.getPosition(new TestRoadUser());
   }
 
-  @Test(expected = IllegalArgumentException.class)
-  public void registerNull() {
-    model.register(null);
-  }
-
   @Test
   public void register() {
     final TestRoadUser driver = new TestRoadUser();
@@ -137,11 +132,6 @@ public abstract class AbstractRoadModelTest<T extends RoadModel> {
     // this is important for checking whether a decorated RoadModel actually
     // sends its decorated reference to RoadUsers
     assertEquals(model, driver.getRoadModel());
-  }
-
-  @Test(expected = IllegalArgumentException.class)
-  public void unregisterNull() {
-    model.unregister(null);
   }
 
   @Test
@@ -269,24 +259,6 @@ public abstract class AbstractRoadModelTest<T extends RoadModel> {
     assertTrue(Sets.difference(asSet(agent2, agent4),
         model.getObjectsAt(agent2, TestRoadUser.class)).isEmpty());
     assertTrue(model.getObjectsAt(agent2, SpeedyRoadUser.class).isEmpty());
-  }
-
-  @SuppressWarnings("null")
-  @Test(expected = IllegalArgumentException.class)
-  public void getObjectsOfTypeFail() {
-    model.getObjectsOfType(null);
-  }
-
-  @SuppressWarnings("null")
-  @Test(expected = IllegalArgumentException.class)
-  public void getObjectsAtFail1() {
-    model.getObjectsAt(null, null);
-  }
-
-  @SuppressWarnings("null")
-  @Test(expected = IllegalArgumentException.class)
-  public void getObjectsAtFail2() {
-    model.getObjectsAt(new TestRoadUser(), null);
   }
 
   @Test(expected = IllegalArgumentException.class)

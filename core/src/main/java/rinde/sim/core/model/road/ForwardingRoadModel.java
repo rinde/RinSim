@@ -24,13 +24,16 @@ import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableList;
 
 /**
+ * A {@link RoadModel} which forwards all its method calls to another
+ * {@link RoadModel}. Subclasses should override one or more methods to modify
+ * the behavior of the backing model as desired per the <a
+ * href="http://en.wikipedia.org/wiki/Decorator_pattern">decorator pattern</a>.
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
- * 
  */
 public abstract class ForwardingRoadModel implements RoadModel {
 
   /**
-   * Needs to be overriden by subclasses.
+   * Needs to be overridden by subclasses.
    */
   protected ForwardingRoadModel() {}
 

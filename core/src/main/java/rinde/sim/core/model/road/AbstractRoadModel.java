@@ -140,14 +140,6 @@ public abstract class AbstractRoadModel<T> extends AbstractModel<RoadUser>
    */
   protected abstract T point2LocObj(Point point);
 
-  // // returns travel distance in used unit
-  // protected double computeTravelDistance(double metersPerSecond,
-  // Measure<Long, Duration> time) {
-  // final double seconds = time.doubleValue(internalTimeUnit);
-  // final double meters = seconds / metersPerSecond;
-  // return toExternalDistConv.convert(meters);
-  // }
-
   @Override
   public MoveProgress followPath(MovingRoadUser object, Queue<Point> path,
       TimeLapse time) {
@@ -158,7 +150,8 @@ public abstract class AbstractRoadModel<T> extends AbstractModel<RoadUser>
       Queue<Point> path, TimeLapse time) {
     checkArgument(objLocs.containsKey(object), "object must have a location");
     checkArgument(path.peek() != null, "path can not be empty");
-    checkArgument(time.hasTimeLeft(), "can not follow path when to time is left");
+    checkArgument(time.hasTimeLeft(),
+        "can not follow path when to time is left");
     final Point dest = newArrayList(path).get(path.size() - 1);
     objDestinations.put(object, new DestinationPath(dest, path));
     final MoveProgress mp = doFollowPath(object, path, time);
@@ -172,6 +165,16 @@ public abstract class AbstractRoadModel<T> extends AbstractModel<RoadUser>
     return moveTo(this, object, destination, time);
   }
 
+  /**
+   * Move to method with a parameterized {@link RoadModel}. This can be used by
+   * decorators to insert themselves in outgoing events.
+   * @param self The (wrapped) {@link RoadModel} to use when dispatching
+   *          {@link MoveEvent}s.
+   * @param object The object to move.
+   * @param destination The destination to move to.
+   * @param time The time to use for moving.
+   * @return A {@link MoveProgress} instance.
+   */
   protected MoveProgress moveTo(RoadModel self, MovingRoadUser object,
       Point destination, TimeLapse time) {
     Queue<Point> path;
@@ -195,7 +198,7 @@ public abstract class AbstractRoadModel<T> extends AbstractModel<RoadUser>
   }
 
   /**
-   * Should be overriden by subclasses to define actual
+   * Should be overridden by subclasses to define actual
    * {@link RoadModel#followPath(MovingRoadUser, Queue, TimeLapse)} behavior.
    * @param object The object that is moved.
    * @param path The path that is followed.
@@ -217,21 +220,25 @@ public abstract class AbstractRoadModel<T> extends AbstractModel<RoadUser>
 
   @Override
   public void addObjectAt(RoadUser newObj, Point pos) {
-    checkArgument(!objLocs.containsKey(newObj), "Object is already added: %s.", newObj);
+    checkArgument(!objLocs.containsKey(newObj), "Object is already added: %s.",
+        newObj);
     objLocs.put(newObj, point2LocObj(pos));
   }
 
   @Override
   public void addObjectAtSamePosition(RoadUser newObj, RoadUser existingObj) {
-    checkArgument(!objLocs.containsKey(newObj), "Object %s is already added.", newObj);
-    checkArgument(objLocs.containsKey(existingObj), "Object %s does not exist.", existingObj);
+    checkArgument(!objLocs.containsKey(newObj), "Object %s is already added.",
+        newObj);
+    checkArgument(objLocs.containsKey(existingObj),
+        "Object %s does not exist.", existingObj);
     objLocs.put(newObj, objLocs.get(existingObj));
   }
 
   @Override
   public void removeObject(RoadUser roadUser) {
     checkArgument(roadUser != null, "RoadUser can not be null");
-    checkArgument(objLocs.containsKey(roadUser), "RoadUser: %s does not exist.", roadUser);
+    checkArgument(objLocs.containsKey(roadUser),
+        "RoadUser: %s does not exist.", roadUser);
     objLocs.remove(roadUser);
     objDestinations.remove(roadUser);
   }
@@ -280,8 +287,8 @@ public abstract class AbstractRoadModel<T> extends AbstractModel<RoadUser>
 
   @Override
   public Point getPosition(RoadUser roadUser) {
-    // checkArgument(roadUser != null, "object can not be null");
-    checkArgument(containsObject(roadUser), "RoadUser does not exist: %s ", roadUser);
+    checkArgument(containsObject(roadUser), "RoadUser does not exist: %s ",
+        roadUser);
     return locObj2point(objLocs.get(roadUser));
   }
 
@@ -307,8 +314,6 @@ public abstract class AbstractRoadModel<T> extends AbstractModel<RoadUser>
   @SuppressWarnings("unchecked")
   <Y extends RoadUser> Set<Y> getObjectsAt(RoadModel self, RoadUser roadUser,
       Class<Y> type) {
-    checkArgument(roadUser != null, "roadUser can not be null");
-    checkArgument(type != null, "type can not be null");
     final Set<Y> result = new HashSet<Y>();
     for (final RoadUser ru : getObjects(new SameLocationPredicate(roadUser,
         type, self))) {
@@ -326,9 +331,6 @@ public abstract class AbstractRoadModel<T> extends AbstractModel<RoadUser>
   @Override
   @SuppressWarnings("unchecked")
   public <Y extends RoadUser> Set<Y> getObjectsOfType(final Class<Y> type) {
-    if (type == null) {
-      throw new IllegalArgumentException("type can not be null");
-    }
     return (Set<Y>) getObjects(new Predicate<RoadUser>() {
       @Override
       public boolean apply(RoadUser input) {
@@ -340,14 +342,15 @@ public abstract class AbstractRoadModel<T> extends AbstractModel<RoadUser>
   @Override
   public List<Point> getShortestPathTo(RoadUser fromObj, RoadUser toObj) {
     checkArgument(fromObj != null, "fromObj can not be null");
-    checkArgument(objLocs.containsKey(toObj), " to object should be in RoadModel. %s", toObj);
+    checkArgument(objLocs.containsKey(toObj),
+        " to object should be in RoadModel. %s", toObj);
     return getShortestPathTo(fromObj, getPosition(toObj));
   }
 
   @Override
   public List<Point> getShortestPathTo(RoadUser fromObj, Point to) {
-    checkArgument(fromObj != null, "fromObj can not be null");
-    checkArgument(objLocs.containsKey(fromObj), " from object should be in RoadModel. %s", fromObj);
+    checkArgument(objLocs.containsKey(fromObj),
+        " from object should be in RoadModel. %s", fromObj);
     return getShortestPathTo(getPosition(fromObj), to);
   }
 
@@ -357,16 +360,12 @@ public abstract class AbstractRoadModel<T> extends AbstractModel<RoadUser>
   }
 
   protected boolean register(RoadModel self, RoadUser roadUser) {
-    if (roadUser == null) {
-      throw new IllegalArgumentException("roadUser can not be null");
-    }
     roadUser.initRoadUser(self);
     return true;
   }
 
   @Override
   public boolean unregister(RoadUser roadUser) {
-    checkArgument(roadUser != null, "RoadUser can not be null");
     if (containsObject(roadUser)) {
       removeObject(roadUser);
       return true;
@@ -394,8 +393,8 @@ public abstract class AbstractRoadModel<T> extends AbstractModel<RoadUser>
     private final RoadModel model;
     private final Class<?> type;
 
-    public SameLocationPredicate(final RoadUser pReference,
-        final Class<?> pType, final RoadModel pModel) {
+    SameLocationPredicate(final RoadUser pReference, final Class<?> pType,
+        final RoadModel pModel) {
       reference = pReference;
       type = pType;
       model = pModel;
@@ -421,12 +420,7 @@ public abstract class AbstractRoadModel<T> extends AbstractModel<RoadUser>
      */
     public final Queue<Point> path;
 
-    /**
-     * Initializes a new instance.
-     * @param dest {@link #destination}
-     * @param p {@link #path}
-     */
-    public DestinationPath(Point dest, Queue<Point> p) {
+    DestinationPath(Point dest, Queue<Point> p) {
       destination = dest;
       path = p;
     }
