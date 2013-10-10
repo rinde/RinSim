@@ -96,9 +96,9 @@ public final class DefaultPDPModel extends PDPModel {
   protected volatile CategoryMap<ParcelState, Parcel> parcelState;
 
   /**
-   * Map that stores any pending {@link Action}s of {@link Vehicle}s.
+   * The current time.
    */
-  final Map<Vehicle, Action> pendingVehicleActions;
+  protected long currentTime;
 
   /**
    * The {@link TimeWindowPolicy} that is used.
@@ -106,9 +106,9 @@ public final class DefaultPDPModel extends PDPModel {
   protected final TimeWindowPolicy timeWindowPolicy;
 
   /**
-   * The current time.
+   * Map that stores any pending {@link Action}s of {@link Vehicle}s.
    */
-  protected long currentTime;
+  final Map<Vehicle, Action> pendingVehicleActions;
 
   /**
    * Initializes the model using a {@link LiberalPolicy} as
@@ -217,7 +217,7 @@ public final class DefaultPDPModel extends PDPModel {
    * Checks whether the vehicle exists in the RoadModel.
    * @param vehicle The vehicle to check.
    */
-  protected final void checkVehicleInRoadModel(Vehicle vehicle) {
+  protected void checkVehicleInRoadModel(Vehicle vehicle) {
     checkArgument(roadModel.get().containsObject(vehicle),
         "vehicle does not exist in RoadModel");
   }

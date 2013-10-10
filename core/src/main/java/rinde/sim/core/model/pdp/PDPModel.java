@@ -10,8 +10,6 @@ import rinde.sim.core.TimeLapse;
 import rinde.sim.core.model.Model;
 import rinde.sim.core.model.ModelReceiver;
 import rinde.sim.core.model.pdp.twpolicy.TimeWindowPolicy;
-import rinde.sim.core.model.road.RoadModel;
-import rinde.sim.event.Event;
 import rinde.sim.event.EventAPI;
 
 import com.google.common.collect.ImmutableSet;
@@ -24,6 +22,223 @@ import com.google.common.collect.ImmutableSet;
  */
 public abstract class PDPModel implements Model<PDPObject>, TickListener,
     ModelReceiver {
+
+  /**
+   * Reference to the outermost decorator of this {@link PDPModel} instance.
+   */
+  protected PDPModel self = this;
+  private boolean initialized = false;
+
+  /**
+   * Method which should by called by a decorator of this instance.
+   * @param pm The decorator.
+   */
+  protected void setSelf(PDPModel pm) {
+    checkState(!initialized,
+        "This PDPModel is already initialized, it is too late to decorate it.");
+    self = pm;
+  }
+
+  @Override
+  public final boolean register(PDPObject object) {
+    initialized = true;
+    return doRegister(object);
+  }
+
+  /**
+   * This method should be called by {@link Vehicle}s that need to finish a
+   * previously started operation. By calling this method before executing other
+   * actions, time consistency is enforced since any pending actions will
+   * consume time first. It is possible that after this call is completed, there
+   * is no time left for other actions. When the specified {@link Vehicle} has
+   * no pending operation nothing will happen.
+   * @param vehicle {@link Vehicle}
+   * @param time {@link TimeLapse} that is available for performing the actions.
+   */
+  protected abstract void continuePreviousActions(Vehicle vehicle,
+      TimeLapse time);
+
+  /**
+   * Actual implementation of {@link #register(PDPObject)}.
+   * @param object The object to register.
+   * @return <code>true</code> when registration succeeded, <code>false</code>
+   *         otherwise.
+   */
+  protected abstract boolean doRegister(PDPObject object);
+
+  /**
+   * Returns an unmodifiable view on the contents of the specified container.
+   * @param container The container to inspect.
+   * @return An unmodifiable collection.
+   */
+  public abstract ImmutableSet<Parcel> getContents(Container container);
+
+  /**
+   * Returns the size of the contents of the specified container, this is the
+   * sum of the contents magnitudes.
+   * @param container The container to inspect.
+   * @return A <code>double</code> indicating the size of the contents.
+   */
+  public abstract double getContentsSize(Container container);
+
+  /**
+   * @param container The container to check.
+   * @return The maximum capacity of the specified container.
+   */
+  public abstract double getContainerCapacity(Container container);
+
+  /**
+   * Attempts to pickup the specified {@link Parcel} into the specified
+   * {@link Vehicle}. Preconditions:
+   * <ul>
+   * <li>{@link Vehicle} must be on {@link rinde.sim.core.model.road.RoadModel}.
+   * </li>
+   * <li>{@link Vehicle} must be registered in {@link DefaultPDPModel}.</li>
+   * <li>{@link Vehicle} must be in {@link VehicleState#IDLE} state.</li>
+   * <li>{@link Parcel} must be on {@link rinde.sim.core.model.road.RoadModel}.</li>
+   * <li>{@link Parcel} must be registered in {@link DefaultPDPModel}.</li>
+   * <li>{@link Parcel} must be in {@link ParcelState#ANNOUNCED} or
+   * {@link ParcelState#AVAILABLE} state.</li>
+   * <li>{@link Vehicle} and {@link Parcel} must be at same position in
+   * {@link rinde.sim.core.model.road.RoadModel}.</li>
+   * <li>{@link Parcel} must fit in {@link Vehicle}.</li>
+   * </ul>
+   * If any of the preconditions is not met this method throws an
+   * {@link IllegalArgumentException}.
+   * <p>
+   * When all preconditions are met, the pickup action is started indicated by
+   * the dispatching of an {@link rinde.sim.event.Event} with type
+   * {@link PDPModelEventType#START_PICKUP}. In case the specified
+   * {@link TimeLapse} is not big enough to complete the pickup immediately the
+   * action will be continued next tick. Note that this method does not, and in
+   * fact, should not be called again in the next tick to continue the pickup.
+   * The continued pickup is handled automatically, the effect is that the
+   * {@link Vehicle} will receive less time (or no time at all) in its next
+   * tick. When the pickup action is completed an {@link rinde.sim.event.Event}
+   * with type {@link PDPModelEventType#END_PICKUP} is dispatched. When done,
+   * the {@link Parcel} will be contained by the {@link Vehicle}.
+   * @param vehicle The {@link Vehicle} involved in pickup.
+   * @param parcel The {@link Parcel} to pick up.
+   * @param time The {@link TimeLapse} that is available for the action.
+   */
+  public abstract void pickup(Vehicle vehicle, Parcel parcel, TimeLapse time);
+
+  /**
+   * The specified {@link Vehicle} attempts to deliver the {@link Parcel} at its
+   * current location. Preconditions:
+   * <ul>
+   * <li>{@link Vehicle} must exist in
+   * {@link rinde.sim.core.model.road.RoadModel}.</li>
+   * <li>{@link Vehicle} must be in {@link VehicleState#IDLE} state.</li>
+   * <li>{@link Vehicle} must contain the specified {@link Parcel}.</li>
+   * <li>{@link Vehicle} must be at the position indicated by
+   * {@link Parcel#getDestination()}.</li>
+   * </ul>
+   * If any of the preconditions is not met this method throws an
+   * {@link IllegalArgumentException}.
+   * <p>
+   * When all preconditions are met the actual delivery is started, this is
+   * indicated by the dispatching of an {@link rinde.sim.event.Event} with
+   * {@link PDPModelEventType#START_DELIVERY} type. If there is not enough time
+   * in the specified {@link TimeLapse} to complete the delivery at once, the
+   * action will be completed in the next tick. Note that this method does not,
+   * and in fact, should not be called again in the next tick to continue the
+   * delivery. The continued delivery is handled automatically, the effect is
+   * that the {@link Vehicle} will receive less time (or no time at all) in its
+   * next tick. When the delivery is completed an {@link rinde.sim.event.Event}
+   * with type {@link PDPModelEventType#END_DELIVERY} is dispatched. As a result
+   * the {@link Vehicle} no longer contains the {@link Parcel} and the
+   * {@link Parcel} is NOT added to the
+   * {@link rinde.sim.core.model.road.RoadModel} again.
+   * @param vehicle The {@link Vehicle} that wishes to deliver a {@link Parcel}.
+   * @param parcel The {@link Parcel} that is to be delivered.
+   * @param time The {@link TimeLapse} that is available for delivery.
+   */
+  public abstract void deliver(Vehicle vehicle, Parcel parcel, TimeLapse time);
+
+  /**
+   * This method is intended for {@link Parcel}s that wish to add themselves to
+   * either a {@link Vehicle} or a {@link Depot}.
+   * @param container The {@link Container} to which the specified
+   *          {@link Parcel} is added.
+   * @param parcel The {@link Parcel} that is added.
+   */
+  public abstract void addParcelIn(Container container, Parcel parcel);
+
+  /**
+   * @param state The state of the returned parcels.
+   * @return All {@link Parcel}s which are in the specified state, or an empty
+   *         collection if there are no parcels in the specified state.
+   */
+  public abstract Collection<Parcel> getParcels(ParcelState state);
+
+  /**
+   * @param states All returned parcels have one of the specified states.
+   * @return All {@link Parcel}s which are in the specified state, or an empty
+   *         collection if there are no parcels in the specified state.
+   */
+  public abstract Collection<Parcel> getParcels(ParcelState... states);
+
+  /**
+   * @return The set of known vehicles.
+   */
+  public abstract Set<Vehicle> getVehicles();
+
+  /**
+   * @param parcel The {@link Parcel} for which the state is checked.
+   * @return The {@link ParcelState} of the specified {@link Parcel}.
+   */
+  public abstract ParcelState getParcelState(Parcel parcel);
+
+  /**
+   * @param vehicle The {@link Vehicle} for which the state is checked.
+   * @return The {@link VehicleState} of the specified {@link Vehicle}.
+   */
+  public abstract VehicleState getVehicleState(Vehicle vehicle);
+
+  // TODO create a similar method but with a parcel as key
+  /**
+   * @param vehicle The vehicle for which a
+   *          {@link PDPModel.VehicleParcelActionInfo} is retrieved.
+   * @return Information about either a pickup or a delivery process.
+   * @throws IllegalArgumentException if the specified vehicle is not in
+   *           {@link VehicleState#DELIVERING} or in
+   *           {@link VehicleState#PICKING_UP}.
+   */
+  public abstract PDPModel.VehicleParcelActionInfo getVehicleActionInfo(
+      Vehicle vehicle);
+
+  /**
+   * @return The {@link EventAPI} used by this model. Events that are dispatched
+   *         are instances of {@link PDPModelEvent}, the possible event types
+   *         are listed in {@link PDPModelEventType}.
+   */
+  public abstract EventAPI getEventAPI();
+
+  /**
+   * Inspects the contents of the specified {@link Container} for existence of
+   * the specified {@link Parcel} object.
+   * @param container The container which is inspected.
+   * @param parcel The parcel which we are checking.
+   * @return <code>true</code> if the {@link Parcel} is contained in the
+   *         {@link Container}, <code>false</code> otherwise.
+   */
+  public abstract boolean containerContains(Container container, Parcel parcel);
+
+  /**
+   * @return The {@link TimeWindowPolicy} that is used.
+   */
+  public abstract TimeWindowPolicy getTimeWindowPolicy();
+
+  /**
+   * Performs either a {@link #pickup(Vehicle, Parcel, TimeLapse)} or a
+   * {@link #deliver(Vehicle, Parcel, TimeLapse)} operation depending on the
+   * state of the vehicle and parcel.
+   * @param vehicle The vehicle to perform the operation with.
+   * @param parcel The parcel to perform the operation on.
+   * @param time The time to spend on this operation.
+   */
+  public abstract void service(Vehicle vehicle, Parcel parcel, TimeLapse time);
 
   /**
    * The possible states a {@link Parcel} can be in.
@@ -119,8 +334,8 @@ public abstract class PDPModel implements Model<PDPObject>, TickListener,
   }
 
   /**
-   * The possible {@link Event} types that the {@link DefaultPDPModel}
-   * dispatches.
+   * The possible {@link rinde.sim.event.Event} types that the
+   * {@link DefaultPDPModel} dispatches.
    * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
    */
   public enum PDPModelEventType {
@@ -181,218 +396,4 @@ public abstract class PDPModel implements Model<PDPObject>, TickListener,
      */
     Parcel getParcel();
   }
-
-  /**
-   * Reference to the outermost decorator of this {@link PDPModel} instance.
-   */
-  protected PDPModel self = this;
-  private boolean initialized = false;
-
-  /**
-   * Method which should by called by a decorator of this instance.
-   * @param pm The decorator.
-   */
-  protected void setSelf(PDPModel pm) {
-    checkState(!initialized,
-        "This PDPModel is already initialized, it is too late to decorate it.");
-    self = pm;
-  }
-
-  @Override
-  public final boolean register(PDPObject object) {
-    initialized = true;
-    return doRegister(object);
-  }
-
-  /**
-   * This method should be called by {@link Vehicle}s that need to finish a
-   * previously started operation. By calling this method before executing other
-   * actions, time consistency is enforced since any pending actions will
-   * consume time first. It is possible that after this call is completed, there
-   * is no time left for other actions. When the specified {@link Vehicle} has
-   * no pending operation nothing will happen.
-   * @param vehicle {@link Vehicle}
-   * @param time {@link TimeLapse} that is available for performing the actions.
-   */
-  protected abstract void continuePreviousActions(Vehicle vehicle,
-      TimeLapse time);
-
-  /**
-   * Actual implementation of {@link #register(PDPObject)}.
-   * @param object The object to register.
-   * @return <code>true</code> when registration succeeded, <code>false</code>
-   *         otherwise.
-   */
-  protected abstract boolean doRegister(PDPObject object);
-
-  /**
-   * Returns an unmodifiable view on the contents of the specified container.
-   * @param container The container to inspect.
-   * @return An unmodifiable collection.
-   */
-  public abstract ImmutableSet<Parcel> getContents(Container container);
-
-  /**
-   * Returns the size of the contents of the specified container, this is the
-   * sum of the contents magnitudes.
-   * @param container The container to inspect.
-   * @return A <code>double</code> indicating the size of the contents.
-   */
-  public abstract double getContentsSize(Container container);
-
-  /**
-   * @param container The container to check.
-   * @return The maximum capacity of the specified container.
-   */
-  public abstract double getContainerCapacity(Container container);
-
-  /**
-   * Attempts to pickup the specified {@link Parcel} into the specified
-   * {@link Vehicle}. Preconditions:
-   * <ul>
-   * <li>{@link Vehicle} must be on {@link RoadModel}.</li>
-   * <li>{@link Vehicle} must be registered in {@link DefaultPDPModel}.</li>
-   * <li>{@link Vehicle} must be in {@link VehicleState#IDLE} state.</li>
-   * <li>{@link Parcel} must be on {@link RoadModel}.</li>
-   * <li>{@link Parcel} must be registered in {@link DefaultPDPModel}.</li>
-   * <li>{@link Parcel} must be in {@link ParcelState#ANNOUNCED} or
-   * {@link ParcelState#AVAILABLE} state.</li>
-   * <li>{@link Vehicle} and {@link Parcel} must be at same position in
-   * {@link RoadModel}.</li>
-   * <li>{@link Parcel} must fit in {@link Vehicle}.</li>
-   * </ul>
-   * If any of the preconditions is not met this method throws an
-   * {@link IllegalArgumentException}.
-   * <p>
-   * When all preconditions are met, the pickup action is started indicated by
-   * the dispatching of an {@link Event} with type
-   * {@link PDPModelEventType#START_PICKUP}. In case the specified
-   * {@link TimeLapse} is not big enough to complete the pickup immediately the
-   * action will be continued next tick. Note that this method does not, and in
-   * fact, should not be called again in the next tick to continue the pickup.
-   * The continued pickup is handled automatically, the effect is that the
-   * {@link Vehicle} will receive less time (or no time at all) in its next
-   * tick. When the pickup action is completed an {@link Event} with type
-   * {@link PDPModelEventType#END_PICKUP} is dispatched. When done, the
-   * {@link Parcel} will be contained by the {@link Vehicle}.
-   * @param vehicle The {@link Vehicle} involved in pickup.
-   * @param parcel The {@link Parcel} to pick up.
-   * @param time The {@link TimeLapse} that is available for the action.
-   */
-  public abstract void pickup(Vehicle vehicle, Parcel parcel, TimeLapse time);
-
-  /**
-   * The specified {@link Vehicle} attempts to deliver the {@link Parcel} at its
-   * current location. Preconditions:
-   * <ul>
-   * <li>{@link Vehicle} must exist in {@link RoadModel}.</li>
-   * <li>{@link Vehicle} must be in {@link VehicleState#IDLE} state.</li>
-   * <li>{@link Vehicle} must contain the specified {@link Parcel}.</li>
-   * <li>{@link Vehicle} must be at the position indicated by
-   * {@link Parcel#getDestination()}.</li>
-   * </ul>
-   * If any of the preconditions is not met this method throws an
-   * {@link IllegalArgumentException}.
-   * <p>
-   * When all preconditions are met the actual delivery is started, this is
-   * indicated by the dispatching of an {@link Event} with
-   * {@link PDPModelEventType#START_DELIVERY} type. If there is not enough time
-   * in the specified {@link TimeLapse} to complete the delivery at once, the
-   * action will be completed in the next tick. Note that this method does not,
-   * and in fact, should not be called again in the next tick to continue the
-   * delivery. The continued delivery is handled automatically, the effect is
-   * that the {@link Vehicle} will receive less time (or no time at all) in its
-   * next tick. When the delivery is completed an {@link Event} with type
-   * {@link PDPModelEventType#END_DELIVERY} is dispatched. As a result the
-   * {@link Vehicle} no longer contains the {@link Parcel} and the
-   * {@link Parcel} is NOT added to the {@link RoadModel} again.
-   * @param vehicle The {@link Vehicle} that wishes to deliver a {@link Parcel}.
-   * @param parcel The {@link Parcel} that is to be delivered.
-   * @param time The {@link TimeLapse} that is available for delivery.
-   */
-  public abstract void deliver(Vehicle vehicle, Parcel parcel, TimeLapse time);
-
-  /**
-   * This method is intended for {@link Parcel}s that wish to add themselves to
-   * either a {@link Vehicle} or a {@link Depot}.
-   * @param container The {@link Container} to which the specified
-   *          {@link Parcel} is added.
-   * @param parcel The {@link Parcel} that is added.
-   */
-  public abstract void addParcelIn(Container container, Parcel parcel);
-
-  /**
-   * @param state The state of the returned parcels.
-   * @return All {@link Parcel}s which are in the specified state, or an empty
-   *         collection if there are no parcels in the specified state.
-   */
-  public abstract Collection<Parcel> getParcels(ParcelState state);
-
-  /**
-   * @param states All returned parcels have one of the specified states.
-   * @return All {@link Parcel}s which are in the specified state, or an empty
-   *         collection if there are no parcels in the specified state.
-   */
-  public abstract Collection<Parcel> getParcels(ParcelState... states);
-
-  /**
-   * @return The set of known vehicles.
-   */
-  public abstract Set<Vehicle> getVehicles();
-
-  /**
-   * @param parcel The {@link Parcel} for which the state is checked.
-   * @return The {@link ParcelState} of the specified {@link Parcel}.
-   */
-  public abstract ParcelState getParcelState(Parcel parcel);
-
-  /**
-   * @param vehicle The {@link Vehicle} for which the state is checked.
-   * @return The {@link VehicleState} of the specified {@link Vehicle}.
-   */
-  public abstract VehicleState getVehicleState(Vehicle vehicle);
-
-  // TODO create a similar method but with a parcel as key
-  /**
-   * @param vehicle The vehicle for which a
-   *          {@link PDPModel.VehicleParcelActionInfo} is retrieved.
-   * @return Information about either a pickup or a delivery process.
-   * @throws IllegalArgumentException if the specified vehicle is not in
-   *           {@link VehicleState#DELIVERING} or in
-   *           {@link VehicleState#PICKING_UP}.
-   */
-  public abstract PDPModel.VehicleParcelActionInfo getVehicleActionInfo(
-      Vehicle vehicle);
-
-  /**
-   * @return The {@link EventAPI} used by this model. Events that are dispatched
-   *         are instances of {@link PDPModelEvent}, the possible event types
-   *         are listed in {@link PDPModelEventType}.
-   */
-  public abstract EventAPI getEventAPI();
-
-  /**
-   * Inspects the contents of the specified {@link Container} for existence of
-   * the specified {@link Parcel} object.
-   * @param container The container which is inspected.
-   * @param parcel The parcel which we are checking.
-   * @return <code>true</code> if the {@link Parcel} is contained in the
-   *         {@link Container}, <code>false</code> otherwise.
-   */
-  public abstract boolean containerContains(Container container, Parcel parcel);
-
-  /**
-   * @return The {@link TimeWindowPolicy} that is used.
-   */
-  public abstract TimeWindowPolicy getTimeWindowPolicy();
-
-  /**
-   * Performs either a {@link #pickup(Vehicle, Parcel, TimeLapse)} or a
-   * {@link #deliver(Vehicle, Parcel, TimeLapse)} operation depending on the
-   * state of the vehicle and parcel.
-   * @param vehicle The vehicle to perform the operation with.
-   * @param parcel The parcel to perform the operation on.
-   * @param time The time to spend on this operation.
-   */
-  public abstract void service(Vehicle vehicle, Parcel parcel, TimeLapse time);
 }
