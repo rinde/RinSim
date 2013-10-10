@@ -16,7 +16,7 @@ import com.google.common.base.Optional;
  */
 public abstract class PDPObjectImpl implements PDPObject {
 
-  private Optional<PDPModel> pdpModel;
+  Optional<PDPModel> pdpModel;
   private Optional<RoadModel> roadModel;
   private Optional<Point> startPosition;
   private boolean isRegistered;
@@ -63,7 +63,7 @@ public abstract class PDPObjectImpl implements PDPObject {
 
   /**
    * @return <code>true</code> when this object has been registered in both the
-   *         {@link RoadModel} and the {@link PDPModel}.
+   *         {@link RoadModel} and the {@link DefaultPDPModel}.
    */
   protected final boolean isRegistered() {
     return isRegistered;
@@ -83,7 +83,7 @@ public abstract class PDPObjectImpl implements PDPObject {
 
   /**
    * When this object is registered {@link #isRegistered()}, this method returns
-   * the reference to the {@link PDPModel} on which this object lives.
+   * the reference to the {@link DefaultPDPModel} on which this object lives.
    * @return The @{link PDPModel} reference if this object is registered.
    * @throws IllegalStateException if this object is not registered.
    */

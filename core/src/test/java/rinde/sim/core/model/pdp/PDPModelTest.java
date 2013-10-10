@@ -6,34 +6,45 @@ package rinde.sim.core.model.pdp;
 import static com.google.common.collect.Lists.newLinkedList;
 import static com.google.common.collect.Sets.newHashSet;
 import static java.util.Arrays.asList;
+import static junit.framework.Assert.assertSame;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+
+import java.util.Arrays;
+import java.util.Collection;
 
 import javax.measure.Measure;
 import javax.measure.unit.SI;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
+import org.junit.runners.Parameterized.Parameters;
 
 import rinde.sim.core.TimeLapse;
 import rinde.sim.core.TimeLapseFactory;
 import rinde.sim.core.graph.Point;
 import rinde.sim.core.model.Model;
 import rinde.sim.core.model.ModelProvider;
+import rinde.sim.core.model.pdp.DefaultPDPModel.PickupAction;
 import rinde.sim.core.model.pdp.PDPModel.PDPModelEventType;
 import rinde.sim.core.model.pdp.PDPModel.ParcelState;
-import rinde.sim.core.model.pdp.PDPModel.PickupAction;
 import rinde.sim.core.model.pdp.PDPModel.VehicleState;
 import rinde.sim.core.model.road.PlaneRoadModel;
 import rinde.sim.core.model.road.RoadModel;
+import rinde.sim.event.Event;
+import rinde.sim.event.Listener;
 import rinde.sim.util.TimeWindow;
+
+import com.google.common.base.Supplier;
 
 /**
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
  * 
  */
-@SuppressWarnings("javadoc")
+@RunWith(Parameterized.class)
 public class PDPModelTest {
 
   static final double EPSILON = 0.0000001;
@@ -41,11 +52,40 @@ public class PDPModelTest {
   PDPModel model;
   RoadModel rm;
 
+  Supplier<PDPModel> modelSupplier;
+
+  public PDPModelTest(Supplier<PDPModel> supplier) {
+    modelSupplier = supplier;
+  }
+
+  @Parameters
+  public static Collection<Object[]> configs() {
+    return Arrays.asList(new Object[][] //
+        { { new Supplier<PDPModel>() {
+          @Override
+          public PDPModel get() {
+            return new DefaultPDPModel();
+          }
+        } }, { new Supplier<PDPModel>() {
+          @Override
+          public PDPModel get() {
+            return new ForwardingPDPModel(new DefaultPDPModel());
+          }
+        } }, { new Supplier<PDPModel>() {
+          @Override
+          public PDPModel get() {
+            return new ForwardingPDPModel(new ForwardingPDPModel(
+                new ForwardingPDPModel(new ForwardingPDPModel(
+                    new DefaultPDPModel()))));
+          }
+        } } });
+  }
+
   @Before
   public void setUp() {
     rm = new PlaneRoadModel(new Point(0, 0), new Point(10, 10), SI.METER,
         Measure.valueOf(Double.POSITIVE_INFINITY, SI.METERS_PER_SECOND));
-    model = new PDPModel();
+    model = modelSupplier.get();
     model.registerModelProvider(new ModelProvider() {
       @SuppressWarnings("unchecked")
       @Override
@@ -53,6 +93,15 @@ public class PDPModelTest {
         return (T) rm;
       }
     });
+
+    // checks whether the events contain the decorated instance
+    final PDPModel modelRef = model;
+    model.getEventAPI().addListener(new Listener() {
+      @Override
+      public void handleEvent(Event event) {
+        assertSame(event.toString(), modelRef, event.getIssuer());
+      }
+    }, PDPModelEventType.values());
 
     /*
      * Added to remove noise in coverage tool.
@@ -110,8 +159,8 @@ public class PDPModelTest {
     assertEquals(VehicleState.IDLE, model.getVehicleState(truck));
     model.pickup(truck, pack2, TimeLapseFactory.create(0, 40));
     assertFalse(rm.containsObject(pack2));
-    final PickupAction action = (PickupAction) model.pendingVehicleActions
-        .get(truck);
+    final PickupAction action = (PickupAction) model
+        .getVehicleActionInfo(truck);
     assertFalse(action.isDone());
     assertEquals(60, action.timeNeeded());
     assertEquals(ParcelState.PICKING_UP, model.getParcelState(pack2));
@@ -261,16 +310,17 @@ public class PDPModelTest {
     assertEquals(model.getContents(truck).size(), 9);
     assertEquals(model.getContentsSize(truck), 9.0, EPSILON);
 
-    final Parcel packTooMuch = new TestParcel(new Point(2, 2), 0, 0, 1.0);
+    final Parcel packTooMuch = new TestParcel(new Point(2, 2), 0, 0, 1.1);
     rm.register(packTooMuch);
     model.register(packTooMuch);
     rm.addObjectAtSamePosition(packTooMuch, truck);
+    boolean fail = false;
     try {
       model.pickup(truck, packTooMuch, TimeLapseFactory.create(0, 1));
     } catch (final IllegalArgumentException e) {
-      assertTrue(true);
+      fail = true;
     }
-
+    assertTrue(fail);
   }
 
   @Test
@@ -385,7 +435,7 @@ public class PDPModelTest {
     rm.addObjectAt(d, new Point(0, 0));
     model.addParcelIn(d, p1);
 
-    assertTrue(model.getContents(d).size() == 1);
+    assertEquals(1, model.getContents(d).size());
     assertTrue(model.getContents(d).contains(p1));
   }
 
@@ -431,6 +481,27 @@ public class PDPModelTest {
     model.addParcelIn(d, p1);
   }
 
+  /**
+   * Tests that the register call back injects the possibly decorated instance.
+   */
+  @Test
+  public void register() {
+    final TestParcel p = new TestParcel(new Point(0, 0), 0, 0, 1.0);
+    model.register(p);
+    assertSame(model, p.pdpModel.get());
+
+    final TestDepot d = new TestDepot(10);
+    model.register(d);
+    assertSame(model, d.pdpModel.get());
+
+    final TestVehicle v = new TestVehicle(new Point(0d, 0d), 1d, 30d);
+    model.register(v);
+    assertSame(model, v.pdpModel.get());
+  }
+
+  /**
+   * Cannot register the same parcel twice.
+   */
   @Test(expected = IllegalArgumentException.class)
   public void registerFail1() {
     final Parcel p = new TestParcel(new Point(0, 0), 0, 0, 1.0);
@@ -438,11 +509,24 @@ public class PDPModelTest {
     model.register(p);
   }
 
+  /**
+   * Cannot register the same depot twice.
+   */
   @Test(expected = IllegalArgumentException.class)
   public void registerFail2() {
     final Depot d = new TestDepot(10);
     model.register(d);
     model.register(d);
+  }
+
+  /**
+   * Cannot register the same depot twice.
+   */
+  @Test(expected = IllegalArgumentException.class)
+  public void registerFail3() {
+    final TestVehicle v = new TestVehicle(new Point(0d, 0d), 1d, 30d);
+    model.register(v);
+    model.register(v);
   }
 
   @Test
@@ -484,7 +568,7 @@ public class PDPModelTest {
     d.initRoadUser(rm);
   }
 
-  class TestParcel extends Parcel {
+  static class TestParcel extends Parcel {
 
     public TestParcel(Point pDestination, int pLoadingDuration,
         int pUnloadingDuration, double pMagnitude) {
@@ -492,30 +576,21 @@ public class PDPModelTest {
           pUnloadingDuration, TimeWindow.ALWAYS, pMagnitude);
     }
 
-    /**
-     * @param pLoadingDuration
-     * @param pUnloadingDuration
-     */
-    public TestParcel(Point pDestination, int pLoadingDuration,
-        TimeWindow pickupTW, int pUnloadingDuration, TimeWindow deliverTW,
-        double pMagnitude) {
+    TestParcel(Point pDestination, int pLoadingDuration, TimeWindow pickupTW,
+        int pUnloadingDuration, TimeWindow deliverTW, double pMagnitude) {
       super(pDestination, pLoadingDuration, pickupTW, pUnloadingDuration,
           deliverTW, pMagnitude);
     }
 
     @Override
     public void initRoadPDP(RoadModel pRoadModel, PDPModel pPdpModel) {}
-
   }
 
-  class TestVehicle extends Vehicle {
+  static class TestVehicle extends Vehicle {
 
     private final double speed;
 
-    /**
-     * @param startPos
-     */
-    public TestVehicle(Point startPos, double pCapacity, double pSpeed) {
+    TestVehicle(Point startPos, double pCapacity, double pSpeed) {
       setStartPosition(startPos);
       setCapacity(pCapacity);
       speed = pSpeed;
@@ -536,9 +611,8 @@ public class PDPModelTest {
     public void initRoadPDP(RoadModel pRoadModel, PDPModel pPdpModel) {}
   }
 
-  class TestDepot extends Depot {
-
-    public TestDepot(int pCapacity) {
+  static class TestDepot extends Depot {
+    TestDepot(int pCapacity) {
       setCapacity(pCapacity);
     }
 
