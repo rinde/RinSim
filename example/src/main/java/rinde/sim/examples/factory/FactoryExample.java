@@ -26,6 +26,7 @@ import rinde.sim.core.graph.Graphs;
 import rinde.sim.core.graph.LengthData;
 import rinde.sim.core.graph.MultimapGraph;
 import rinde.sim.core.graph.Point;
+import rinde.sim.core.model.pdp.DefaultPDPModel;
 import rinde.sim.core.model.pdp.PDPModel;
 import rinde.sim.core.model.road.RoadModel;
 import rinde.sim.event.Listener;
@@ -120,7 +121,7 @@ public final class FactoryExample {
 
     final RoadModel roadModel = new BlockingGraphRoadModel(g, SI.METER,
         NonSI.KILOMETERS_PER_HOUR);
-    final PDPModel pdpModel = new PDPModel();
+    final PDPModel pdpModel = new DefaultPDPModel();
     simulator.register(roadModel);
     simulator.register(pdpModel);
     simulator.register(new AgvModel(rng, points, getBorderNodes(g)));

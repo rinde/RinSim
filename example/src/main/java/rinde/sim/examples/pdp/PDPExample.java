@@ -25,6 +25,7 @@ import rinde.sim.core.TimeLapse;
 import rinde.sim.core.graph.Graph;
 import rinde.sim.core.graph.MultiAttributeData;
 import rinde.sim.core.graph.Point;
+import rinde.sim.core.model.pdp.DefaultPDPModel;
 import rinde.sim.core.model.pdp.Depot;
 import rinde.sim.core.model.pdp.PDPModel;
 import rinde.sim.core.model.pdp.Parcel;
@@ -109,7 +110,7 @@ public final class PDPExample {
         SI.MILLI(SI.SECOND)));
 
     final RoadModel roadModel = new GraphRoadModel(g);
-    final PDPModel pdpModel = new PDPModel();
+    final DefaultPDPModel pdpModel = new DefaultPDPModel();
 
     simulator.register(roadModel);
     simulator.register(pdpModel);

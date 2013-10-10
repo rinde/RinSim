@@ -18,6 +18,7 @@ import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 
 import rinde.sim.core.graph.Point;
+import rinde.sim.core.model.pdp.DefaultPDPModel;
 import rinde.sim.core.model.pdp.PDPModel;
 import rinde.sim.core.model.pdp.twpolicy.TardyAllowedPolicy;
 import rinde.sim.core.model.road.PlaneRoadModel;
@@ -96,7 +97,7 @@ public final class Gendreau06Scenario extends DynamicPDPTWScenario {
 
   @Override
   public PDPModel createPDPModel() {
-    return new PDPModel(new TardyAllowedPolicy());
+    return new DefaultPDPModel(new TardyAllowedPolicy());
   }
 
   @Override
@@ -128,6 +129,6 @@ public final class Gendreau06Scenario extends DynamicPDPTWScenario {
 
   @Override
   public String getProblemInstanceId() {
-    return "" + instanceNumber;
+    return Integer.toString(instanceNumber);
   }
 }

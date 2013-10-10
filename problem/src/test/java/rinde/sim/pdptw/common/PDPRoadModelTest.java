@@ -22,6 +22,7 @@ import rinde.sim.core.TimeLapseFactory;
 import rinde.sim.core.graph.Point;
 import rinde.sim.core.model.ModelProvider;
 import rinde.sim.core.model.TestModelProvider;
+import rinde.sim.core.model.pdp.DefaultPDPModel;
 import rinde.sim.core.model.pdp.PDPModel;
 import rinde.sim.core.model.pdp.PDPModel.ParcelState;
 import rinde.sim.core.model.pdp.Parcel;
@@ -56,7 +57,7 @@ public class PDPRoadModelTest {
     rm = new PDPRoadModel(new PlaneRoadModel(new Point(0, 0),
         new Point(10, 10), SI.KILOMETER, Measure.valueOf(0.1,
             NonSI.KILOMETERS_PER_HOUR)), false);
-    pm = new PDPModel(new TardyAllowedPolicy());
+    pm = new DefaultPDPModel(new TardyAllowedPolicy());
     final ModelProvider mp = new TestModelProvider(asList(pm, rm));
     rm.registerModelProvider(mp);
     pm.registerModelProvider(mp);

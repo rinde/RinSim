@@ -13,6 +13,7 @@ import javax.measure.quantity.Velocity;
 import javax.measure.unit.Unit;
 
 import rinde.sim.core.graph.Point;
+import rinde.sim.core.model.pdp.DefaultPDPModel;
 import rinde.sim.core.model.pdp.PDPModel;
 import rinde.sim.core.model.pdp.twpolicy.TardyAllowedPolicy;
 import rinde.sim.core.model.road.PlaneRoadModel;
@@ -81,7 +82,7 @@ public class FabriRechtScenario extends DynamicPDPTWScenario {
 
   @Override
   public PDPModel createPDPModel() {
-    return new PDPModel(new TardyAllowedPolicy());
+    return new DefaultPDPModel(new TardyAllowedPolicy());
   }
 
   @Override

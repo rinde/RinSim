@@ -33,6 +33,7 @@ import rinde.sim.core.graph.Point;
 import rinde.sim.core.model.Model;
 import rinde.sim.core.model.ModelProvider;
 import rinde.sim.core.model.TestModelProvider;
+import rinde.sim.core.model.pdp.DefaultPDPModel;
 import rinde.sim.core.model.pdp.PDPModel;
 import rinde.sim.core.model.pdp.PDPModel.VehicleState;
 import rinde.sim.core.model.pdp.Parcel;
@@ -82,7 +83,7 @@ public class SolversTest {
     rm = new PDPRoadModel(new PlaneRoadModel(new Point(0, 0),
         new Point(10, 10), SI.KILOMETER, Measure.valueOf(300d,
             NonSI.KILOMETERS_PER_HOUR)), false);
-    pm = new PDPModel(new TardyAllowedPolicy());
+    pm = new DefaultPDPModel(new TardyAllowedPolicy());
     mp = new TestModelProvider(new ArrayList<Model<?>>(
         Arrays.<Model<?>> asList(rm, pm)));
     rm.registerModelProvider(mp);

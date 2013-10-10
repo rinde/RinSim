@@ -29,11 +29,12 @@ import rinde.sim.core.graph.Point;
 import rinde.sim.core.model.Model;
 import rinde.sim.core.model.ModelProvider;
 import rinde.sim.core.model.TestModelProvider;
+import rinde.sim.core.model.pdp.DefaultPDPModel;
 import rinde.sim.core.model.pdp.PDPModel;
-import rinde.sim.core.model.pdp.PDPModel.PDPModelEvent;
 import rinde.sim.core.model.pdp.PDPModel.PDPModelEventType;
 import rinde.sim.core.model.pdp.PDPModel.ParcelState;
 import rinde.sim.core.model.pdp.PDPModel.VehicleState;
+import rinde.sim.core.model.pdp.PDPModelEvent;
 import rinde.sim.core.model.pdp.twpolicy.TardyAllowedPolicy;
 import rinde.sim.core.model.road.PlaneRoadModel;
 import rinde.sim.event.Event;
@@ -101,7 +102,7 @@ public class RouteFollowingVehicleTest {
     rm = new PDPRoadModel(new PlaneRoadModel(new Point(0, 0),
         new Point(10, 10), 30d), diversionIsAllowed);
 
-    pm = new PDPModel(new TardyAllowedPolicy());
+    pm = new DefaultPDPModel(new TardyAllowedPolicy());
     @SuppressWarnings("unchecked")
     final ModelProvider mp = new TestModelProvider(new ArrayList<Model<?>>(
         asList(rm, pm)));

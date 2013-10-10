@@ -23,6 +23,7 @@ import org.junit.Test;
 
 import rinde.sim.core.Simulator;
 import rinde.sim.core.graph.Point;
+import rinde.sim.core.model.pdp.DefaultPDPModel;
 import rinde.sim.core.model.pdp.PDPModel;
 import rinde.sim.core.model.pdp.twpolicy.TardyAllowedPolicy;
 import rinde.sim.core.model.road.PlaneRoadModel;
@@ -94,7 +95,7 @@ public class CentralTest {
     rm = new PDPRoadModel(new PlaneRoadModel(new Point(0, 0),
         new Point(10, 10), SI.KILOMETER, Measure.valueOf(300d,
             NonSI.KILOMETERS_PER_HOUR)), false);
-    pm = new PDPModel(new TardyAllowedPolicy());
+    pm = new DefaultPDPModel(new TardyAllowedPolicy());
 
     depot = new DefaultDepot(new Point(5, 5));
     sim.register(rm);

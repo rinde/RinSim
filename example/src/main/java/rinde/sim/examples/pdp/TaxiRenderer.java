@@ -12,7 +12,7 @@ import org.eclipse.swt.graphics.GC;
 
 import rinde.sim.core.graph.Point;
 import rinde.sim.core.model.ModelProvider;
-import rinde.sim.core.model.pdp.PDPModel;
+import rinde.sim.core.model.pdp.DefaultPDPModel;
 import rinde.sim.core.model.pdp.PDPModel.VehicleState;
 import rinde.sim.core.model.road.RoadModel;
 import rinde.sim.ui.renderers.ModelRenderer;
@@ -28,7 +28,7 @@ import com.google.common.base.Optional;
 public class TaxiRenderer implements ModelRenderer {
 
   Optional<RoadModel> rm;
-  Optional<PDPModel> pm;
+  Optional<DefaultPDPModel> pm;
 
   TaxiRenderer() {
     rm = Optional.absent();
@@ -38,7 +38,7 @@ public class TaxiRenderer implements ModelRenderer {
   @Override
   public void registerModelProvider(ModelProvider mp) {
     rm = Optional.fromNullable(mp.getModel(RoadModel.class));
-    pm = Optional.fromNullable(mp.getModel(PDPModel.class));
+    pm = Optional.fromNullable(mp.getModel(DefaultPDPModel.class));
   }
 
   @Override

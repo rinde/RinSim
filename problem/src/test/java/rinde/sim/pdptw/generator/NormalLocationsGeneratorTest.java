@@ -16,7 +16,6 @@ import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 
 import rinde.sim.core.graph.Point;
-import rinde.sim.pdptw.generator.NormalLocationsGenerator;
 
 import com.google.common.base.Charsets;
 import com.google.common.io.Files;

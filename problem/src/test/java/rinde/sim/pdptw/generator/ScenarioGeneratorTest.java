@@ -11,8 +11,6 @@ import org.apache.commons.math3.random.MersenneTwister;
 import org.apache.commons.math3.random.RandomGenerator;
 import org.junit.Test;
 
-import rinde.sim.pdptw.generator.Metrics;
-import rinde.sim.pdptw.generator.ScenarioGenerator;
 import rinde.sim.scenario.Scenario;
 
 import com.google.common.base.Charsets;

@@ -20,6 +20,7 @@ import org.junit.Test;
 
 import rinde.sim.core.Simulator;
 import rinde.sim.core.graph.Point;
+import rinde.sim.core.model.pdp.DefaultPDPModel;
 import rinde.sim.core.model.pdp.PDPModel;
 import rinde.sim.core.model.pdp.PDPScenarioEvent;
 import rinde.sim.core.model.pdp.twpolicy.TardyAllowedPolicy;
@@ -110,7 +111,7 @@ public class TestDynamicPDPTWProblem {
 
     @Override
     public PDPModel createPDPModel() {
-      return new PDPModel(new TardyAllowedPolicy());
+      return new DefaultPDPModel(new TardyAllowedPolicy());
     }
 
     @Override

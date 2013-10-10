@@ -18,7 +18,6 @@ import rinde.sim.core.graph.Point;
 import rinde.sim.core.model.ModelProvider;
 import rinde.sim.core.model.pdp.PDPModel;
 import rinde.sim.core.model.pdp.PDPModel.ParcelState;
-import rinde.sim.core.model.pdp.PDPModel.VehicleParcelActionInfo;
 import rinde.sim.core.model.pdp.PDPModel.VehicleState;
 import rinde.sim.core.model.pdp.Parcel;
 import rinde.sim.core.model.pdp.Vehicle;
@@ -75,7 +74,7 @@ class BoxRenderer implements ModelRenderer {
           mapping.put(p, v);
         }
         if (pdpModel.get().getVehicleState(v) != VehicleState.IDLE) {
-          final VehicleParcelActionInfo vpai = pdpModel.get()
+          final PDPModel.VehicleParcelActionInfo vpai = pdpModel.get()
               .getVehicleActionInfo(v);
           mapping.put(vpai.getParcel(), vpai.getVehicle());
         }
@@ -96,7 +95,7 @@ class BoxRenderer implements ModelRenderer {
         } else if (ps == ParcelState.PICKING_UP || ps == ParcelState.DELIVERING) {
 
           final Vehicle v = mapping.get(p);
-          final VehicleParcelActionInfo vpai = pdpModel.get()
+          final PDPModel.VehicleParcelActionInfo vpai = pdpModel.get()
               .getVehicleActionInfo(v);
           final Point pos = roadModel.get().getPosition(v);
           final int x = vp.toCoordX(pos.x);
