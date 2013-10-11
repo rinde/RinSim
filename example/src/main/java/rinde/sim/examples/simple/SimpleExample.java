@@ -4,6 +4,7 @@
 package rinde.sim.examples.simple;
 
 import javax.measure.Measure;
+import javax.measure.unit.NonSI;
 import javax.measure.unit.SI;
 
 import org.apache.commons.math3.random.MersenneTwister;
@@ -25,25 +26,36 @@ import rinde.sim.ui.renderers.RoadUserRenderer;
  * simulation is set up. It is heavily documented to provide a sort of
  * 'walk-through' experience for new users of the simulator.<br/>
  * 
- * If this class is run on MacOS it might be neccessary to use
+ * If this class is run on MacOS it might be necessary to use
  * -XstartOnFirstThread as a VM argument.
  * 
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
  */
 public class SimpleExample {
 
+  // speed in km/h
+  static final double VEHICLE_SPEED = 50d;
+
+  private SimpleExample() {}
+
+  /**
+   * Starts the example.
+   * @param args This is ignored.
+   */
   public static void main(String[] args) {
     // initialize a random generator which we use throughout this
     // 'experiment'
     final RandomGenerator rnd = new MersenneTwister(123);
 
     // initialize a new Simulator instance
-    final Simulator sim = new Simulator(rnd, Measure.valueOf(1000L, SI.SECOND));
+    final Simulator sim = new Simulator(rnd, Measure.valueOf(1000L,
+        SI.MILLI(SI.SECOND)));
 
     // register a PlaneRoadModel, a model which facilitates the moving of
     // RoadUsers on a plane. The plane is bounded by two corner points:
     // (0,0) and (10,10)
-    sim.register(new PlaneRoadModel(new Point(0, 0), new Point(10, 10), 10d));
+    sim.register(new PlaneRoadModel(new Point(0, 0), new Point(10, 10),
+        SI.KILOMETER, Measure.valueOf(VEHICLE_SPEED, NonSI.KILOMETERS_PER_HOUR)));
     // configure the simulator, once configured we can no longer change the
     // configuration (i.e. add new models) but we can start adding objects
     sim.configure();
@@ -57,14 +69,14 @@ public class SimpleExample {
       // interface.
       sim.register(new Driver(rnd));
     }
-    // initialize the gui. We use separate renderers for the road model and
+    // initialize the GUI. We use separate renderers for the road model and
     // for the drivers. By default the road model is rendererd as a square
     // (indicating its boundaries), and the drivers are rendererd as red
     // dots.
     View.create(sim).with(new PlaneRoadModelRenderer(), new RoadUserRenderer())
         .show();
     // in case a GUI is not desired, the simulation can simply be run by
-    // calling: sim.start();
+    // calling the start method of the simulator.
   }
 
   static class Driver implements MovingRoadUser, TickListener {
@@ -75,7 +87,7 @@ public class SimpleExample {
     protected RoadModel roadModel;
     protected final RandomGenerator rnd;
 
-    public Driver(RandomGenerator r) {
+    Driver(RandomGenerator r) {
       // we store the reference to the random generator
       rnd = r;
     }
@@ -105,8 +117,7 @@ public class SimpleExample {
     @Override
     public double getSpeed() {
       // the drivers speed
-      return .03;
+      return VEHICLE_SPEED;
     }
-
   }
 }
