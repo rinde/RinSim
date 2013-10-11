@@ -78,7 +78,6 @@ public class ModelManager implements ModelProvider {
   @SuppressWarnings("unchecked")
   public <T> boolean register(T object) {
     if (object instanceof Model) {
-      checkState(!configured, "model can not be registered after configure()");
       return add((Model<?>) object);
     }
     checkState(configured,

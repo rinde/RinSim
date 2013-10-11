@@ -22,22 +22,30 @@ import rinde.sim.core.graph.TestMultimapGraph;
  * 
  */
 @RunWith(Parameterized.class)
-public class ForwardingRoadModelTest extends AbstractRoadModelTest<RoadModel> {
+public class ForwardingRoadModelTest extends
+    AbstractRoadModelTest<GenericRoadModel> {
   @Parameters
   public static Collection<Object[]> configs() {
     return Arrays.asList(new Object[][] //
         { { new Creator() {
           @Override
-          public RoadModel create(ForwardingRoadModelTest testClass) {
-            return new TestForwardingRoadModel(new PlaneRoadModel(new Point(0,
-                0), new Point(10, 10), SI.METER, Measure
-                .valueOf(10d, SI.METERS_PER_SECOND)));
+          public GenericRoadModel create(ForwardingRoadModelTest testClass) {
+            return new ForwardingRoadModel(new PlaneRoadModel(new Point(0, 0),
+                new Point(10, 10), SI.METER, Measure.valueOf(10d,
+                    SI.METERS_PER_SECOND)));
           }
         } }, { new Creator() {
           @Override
-          public RoadModel create(ForwardingRoadModelTest testClass) {
-            return new TestForwardingRoadModel(new GraphRoadModel(testClass
+          public GenericRoadModel create(ForwardingRoadModelTest testClass) {
+            return new ForwardingRoadModel(new GraphRoadModel(testClass
                 .createGraph(), SI.METER, SI.METERS_PER_SECOND));
+          }
+        } }, { new Creator() {
+          @Override
+          public GenericRoadModel create(ForwardingRoadModelTest testClass) {
+            return new ForwardingRoadModel(new ForwardingRoadModel(
+                new ForwardingRoadModel(new GraphRoadModel(testClass
+                    .createGraph(), SI.METER, SI.METERS_PER_SECOND))));
           }
         } } });
   }
@@ -51,7 +59,7 @@ public class ForwardingRoadModelTest extends AbstractRoadModelTest<RoadModel> {
   }
 
   interface Creator {
-    RoadModel create(ForwardingRoadModelTest testClass);
+    GenericRoadModel create(ForwardingRoadModelTest testClass);
   }
 
   final Creator creator;
@@ -63,20 +71,5 @@ public class ForwardingRoadModelTest extends AbstractRoadModelTest<RoadModel> {
   @Override
   public void setUp() throws Exception {
     model = creator.create(this);
-  }
-
-  static class TestForwardingRoadModel extends ForwardingRoadModel {
-
-    private final AbstractRoadModel<?> delegate;
-
-    public TestForwardingRoadModel(AbstractRoadModel<?> deleg) {
-      delegate = deleg;
-    }
-
-    @Override
-    protected AbstractRoadModel<?> delegate() {
-      return delegate;
-    }
-
   }
 }

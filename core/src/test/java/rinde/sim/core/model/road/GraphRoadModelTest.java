@@ -696,7 +696,7 @@ public class GraphRoadModelTest extends AbstractRoadModelTest<GraphRoadModel> {
     g.addConnection(A, B, new LengthData(3));
 
     final UnitConverter conv = NonSI.KILOMETERS_PER_HOUR
-        .getConverterTo(AbstractRoadModel.internalSpeedUnit);
+        .getConverterTo(AbstractRoadModel.INTERNAL_SPEED_UNIT);
 
     assertEquals(conv.convert(10),
         rm.getMaxSpeed(new SpeedyRoadUser(10), A, B), EPSILON);

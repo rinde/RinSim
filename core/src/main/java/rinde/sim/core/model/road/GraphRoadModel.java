@@ -90,8 +90,8 @@ public class GraphRoadModel extends AbstractRoadModel<Loc> {
     double traveled = 0;
 
     final UnitConverter toInternalTimeConv = time.getTimeUnit().getConverterTo(
-        internalTimeUnit);
-    final UnitConverter toExternalTimeConv = internalTimeUnit
+        INTERNAL_TIME_UNIT);
+    final UnitConverter toExternalTimeConv = INTERNAL_TIME_UNIT
         .getConverterTo(time.getTimeUnit());
 
     Loc tempLoc = objLoc;

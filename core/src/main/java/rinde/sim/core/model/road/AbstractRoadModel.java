@@ -29,7 +29,6 @@ import javax.measure.unit.Unit;
 
 import rinde.sim.core.TimeLapse;
 import rinde.sim.core.graph.Point;
-import rinde.sim.core.model.AbstractModel;
 import rinde.sim.event.EventAPI;
 import rinde.sim.event.EventDispatcher;
 
@@ -46,35 +45,71 @@ import com.google.common.collect.Sets;
  * 
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
  */
-public abstract class AbstractRoadModel<T> extends AbstractModel<RoadUser>
-    implements RoadModel {
-
-  // TODO event dispatching has to be tested
-  protected final EventDispatcher eventDispatcher;
-
-  protected final Unit<Length> externalDistanceUnit;
-  protected final Unit<Velocity> externalSpeedUnit;
-
-  protected static final Unit<Duration> internalTimeUnit = SI.SECOND;
-  protected static final Unit<Length> internalDistUnit = SI.METER;
-  protected static final Unit<Velocity> internalSpeedUnit = SI.METERS_PER_SECOND;
+public abstract class AbstractRoadModel<T> extends GenericRoadModel {
 
   /**
-   * Converter that converts distances in meters (which are used internally) to
+   * The unit that is used to represent time internally.
+   */
+  protected static final Unit<Duration> INTERNAL_TIME_UNIT = SI.SECOND;
+
+  /**
+   * The unit that is used to represent distance internally.
+   */
+  protected static final Unit<Length> INTERNAL_DIST_UNIT = SI.METER;
+
+  /**
+   * The unit that is used to represent speed internally.
+   */
+  protected static final Unit<Velocity> INTERNAL_SPEED_UNIT = SI.METERS_PER_SECOND;
+
+  // TODO event dispatching has to be tested
+  /**
+   * The {@link EventDispatcher} that dispatches all event for this model.
+   */
+  protected final EventDispatcher eventDispatcher;
+
+  /**
+   * The unit that is used to represent distance externally.
+   */
+  protected final Unit<Length> externalDistanceUnit;
+
+  /**
+   * The unit that is used to represent speed externally.
+   */
+  protected final Unit<Velocity> externalSpeedUnit;
+
+  /**
+   * Converter that converts distances in {@link #INTERNAL_DIST_UNIT} to
    * distances in {@link #externalDistanceUnit}.
    */
   protected final UnitConverter toExternalDistConv;
 
   /**
    * Converter that converts distances in {@link #externalDistanceUnit} to
-   * meters.
+   * {@link #INTERNAL_DIST_UNIT}.
    */
   protected final UnitConverter toInternalDistConv;
 
+  /**
+   * Converter that converts speed in {@link #INTERNAL_SPEED_UNIT} to speed in
+   * {@link #externalSpeedUnit}.
+   */
   protected final UnitConverter toExternalSpeedConv;
+
+  /**
+   * Converter that converts speed in {@link #externalSpeedUnit} to speed in
+   * {@link #INTERNAL_SPEED_UNIT}.
+   */
   protected final UnitConverter toInternalSpeedConv;
 
+  /**
+   * The types of events this model can dispatch.
+   * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+   */
   public enum RoadEventType {
+    /**
+     * Indicates that a {@link MovingRoadUser} has moved.
+     */
     MOVE
   }
 
@@ -88,40 +123,31 @@ public abstract class AbstractRoadModel<T> extends AbstractModel<RoadUser>
    */
   protected Map<MovingRoadUser, DestinationPath> objDestinations;
 
-  public AbstractRoadModel() {
+  /**
+   * Create model using {@link SI#KILOMETER} and
+   * {@link NonSI#KILOMETERS_PER_HOUR}.
+   */
+  protected AbstractRoadModel() {
     this(SI.KILOMETER, NonSI.KILOMETERS_PER_HOUR);
   }
 
   /**
    * Create a new instance.
    */
-  public AbstractRoadModel(Unit<Length> distanceUnit, Unit<Velocity> speedUnit) {
-    super(RoadUser.class);
+  protected AbstractRoadModel(Unit<Length> distanceUnit,
+      Unit<Velocity> speedUnit) {
     externalDistanceUnit = distanceUnit;
     externalSpeedUnit = speedUnit;
-    toExternalDistConv = internalDistUnit.getConverterTo(externalDistanceUnit);
-    toInternalDistConv = externalDistanceUnit.getConverterTo(internalDistUnit);
-    toExternalSpeedConv = internalSpeedUnit.getConverterTo(externalSpeedUnit);
-    toInternalSpeedConv = externalSpeedUnit.getConverterTo(internalSpeedUnit);
+    toExternalDistConv = INTERNAL_DIST_UNIT
+        .getConverterTo(externalDistanceUnit);
+    toInternalDistConv = externalDistanceUnit
+        .getConverterTo(INTERNAL_DIST_UNIT);
+    toExternalSpeedConv = INTERNAL_SPEED_UNIT.getConverterTo(externalSpeedUnit);
+    toInternalSpeedConv = externalSpeedUnit.getConverterTo(INTERNAL_SPEED_UNIT);
 
-    objLocs = createObjectToLocationMap();
+    objLocs = Collections.synchronizedMap(new LinkedHashMap<RoadUser, T>());
     objDestinations = newLinkedHashMap();
-    eventDispatcher = createEventDispatcher();
-  }
-
-  // factory method for creating event dispatcher, can be overridden by
-  // subclasses to add more event types.
-  protected EventDispatcher createEventDispatcher() {
-    return new EventDispatcher(RoadEventType.MOVE);
-  }
-
-  /**
-   * Defines the specific {@link Map} instance used for storing object
-   * locations.
-   * @return The map instance.
-   */
-  protected Map<RoadUser, T> createObjectToLocationMap() {
-    return Collections.synchronizedMap(new LinkedHashMap<RoadUser, T>());
+    eventDispatcher = new EventDispatcher(RoadEventType.MOVE);
   }
 
   /**
@@ -143,11 +169,6 @@ public abstract class AbstractRoadModel<T> extends AbstractModel<RoadUser>
   @Override
   public MoveProgress followPath(MovingRoadUser object, Queue<Point> path,
       TimeLapse time) {
-    return followPath(this, object, path, time);
-  }
-
-  public MoveProgress followPath(RoadModel self, MovingRoadUser object,
-      Queue<Point> path, TimeLapse time) {
     checkArgument(objLocs.containsKey(object), "object must have a location");
     checkArgument(path.peek() != null, "path can not be empty");
     checkArgument(time.hasTimeLeft(),
@@ -162,21 +183,6 @@ public abstract class AbstractRoadModel<T> extends AbstractModel<RoadUser>
   @Override
   public MoveProgress moveTo(MovingRoadUser object, Point destination,
       TimeLapse time) {
-    return moveTo(this, object, destination, time);
-  }
-
-  /**
-   * Move to method with a parameterized {@link RoadModel}. This can be used by
-   * decorators to insert themselves in outgoing events.
-   * @param self The (wrapped) {@link RoadModel} to use when dispatching
-   *          {@link MoveEvent}s.
-   * @param object The object to move.
-   * @param destination The destination to move to.
-   * @param time The time to use for moving.
-   * @return A {@link MoveProgress} instance.
-   */
-  protected MoveProgress moveTo(RoadModel self, MovingRoadUser object,
-      Point destination, TimeLapse time) {
     Queue<Point> path;
     if (objDestinations.containsKey(object)
         && objDestinations.get(object).destination.equals(destination)) {
@@ -312,7 +318,8 @@ public abstract class AbstractRoadModel<T> extends AbstractModel<RoadUser>
   }
 
   @SuppressWarnings("unchecked")
-  <Y extends RoadUser> Set<Y> getObjectsAt(RoadModel self, RoadUser roadUser,
+  @Override
+  public <Y extends RoadUser> Set<Y> getObjectsAt(RoadUser roadUser,
       Class<Y> type) {
     final Set<Y> result = new HashSet<Y>();
     for (final RoadUser ru : getObjects(new SameLocationPredicate(roadUser,
@@ -320,12 +327,6 @@ public abstract class AbstractRoadModel<T> extends AbstractModel<RoadUser>
       result.add((Y) ru);
     }
     return result;
-  }
-
-  @Override
-  public <Y extends RoadUser> Set<Y> getObjectsAt(RoadUser roadUser,
-      Class<Y> type) {
-    return getObjectsAt(this, roadUser, type);
   }
 
   @Override
@@ -355,11 +356,7 @@ public abstract class AbstractRoadModel<T> extends AbstractModel<RoadUser>
   }
 
   @Override
-  public boolean register(RoadUser roadUser) {
-    return register(this, roadUser);
-  }
-
-  protected boolean register(RoadModel self, RoadUser roadUser) {
+  public boolean doRegister(RoadUser roadUser) {
     roadUser.initRoadUser(self);
     return true;
   }

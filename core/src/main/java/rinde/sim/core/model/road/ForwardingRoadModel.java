@@ -30,166 +30,171 @@ import com.google.common.collect.ImmutableList;
  * href="http://en.wikipedia.org/wiki/Decorator_pattern">decorator pattern</a>.
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
  */
-public abstract class ForwardingRoadModel implements RoadModel {
+public class ForwardingRoadModel extends GenericRoadModel {
+  /**
+   * The {@link AbstractRoadModel} (or subclass) to which all calls are
+   * delegated.
+   */
+  protected final GenericRoadModel delegate;
 
   /**
-   * Needs to be overridden by subclasses.
+   * Initializes a new instance that delegates all calls to the specified
+   * {@link GenericRoadModel}.
+   * @param deleg The instance to which all calls are delegated.
    */
-  protected ForwardingRoadModel() {}
-
-  /**
-   * @return The {@link AbstractRoadModel} (or subclass) to which all calls are
-   *         delegated.
-   */
-  protected abstract AbstractRoadModel<?> delegate();
+  protected ForwardingRoadModel(GenericRoadModel deleg) {
+    delegate = deleg;
+    delegate.setSelf(this);
+  }
 
   @Override
-  public boolean register(RoadUser element) {
-    return delegate().register(this, element);
+  protected final void setSelf(GenericRoadModel rm) {
+    super.setSelf(rm);
+    delegate.setSelf(rm);
+  }
+
+  @Override
+  public boolean doRegister(RoadUser element) {
+    return delegate.register(element);
   }
 
   @Override
   public boolean unregister(RoadUser element) {
-    return delegate().unregister(element);
-  }
-
-  @Override
-  public Class<RoadUser> getSupportedType() {
-    return delegate().getSupportedType();
+    return delegate.unregister(element);
   }
 
   @Override
   public MoveProgress moveTo(MovingRoadUser object, Point destination,
       TimeLapse time) {
-    return delegate().moveTo(this, object, destination, time);
+    return delegate.moveTo(object, destination, time);
   }
 
   @Override
   public MoveProgress moveTo(MovingRoadUser object, RoadUser destination,
       TimeLapse time) {
-    return delegate().moveTo(object, destination, time);
+    return delegate.moveTo(object, destination, time);
   }
 
   @Override
   public MoveProgress followPath(MovingRoadUser object, Queue<Point> path,
       TimeLapse time) {
-    return delegate().followPath(this, object, path, time);
+    return delegate.followPath(object, path, time);
   }
 
   @Override
   public void addObjectAt(RoadUser newObj, Point pos) {
-    delegate().addObjectAt(newObj, pos);
+    delegate.addObjectAt(newObj, pos);
   }
 
   @Override
   public void addObjectAtSamePosition(RoadUser newObj, RoadUser existingObj) {
-    delegate().addObjectAtSamePosition(newObj, existingObj);
+    delegate.addObjectAtSamePosition(newObj, existingObj);
   }
 
   @Override
   public void removeObject(RoadUser roadUser) {
-    delegate().removeObject(roadUser);
+    delegate.removeObject(roadUser);
   }
 
   @Override
   public void clear() {
-    delegate().clear();
+    delegate.clear();
   }
 
   @Override
   public boolean containsObject(RoadUser obj) {
-    return delegate().containsObject(obj);
+    return delegate.containsObject(obj);
   }
 
   @Override
   public boolean containsObjectAt(RoadUser obj, Point p) {
-    return delegate().containsObjectAt(obj, p);
+    return delegate.containsObjectAt(obj, p);
   }
 
   @Override
   public boolean equalPosition(RoadUser obj1, RoadUser obj2) {
-    return delegate().equalPosition(obj1, obj2);
+    return delegate.equalPosition(obj1, obj2);
   }
 
   @Override
   public Map<RoadUser, Point> getObjectsAndPositions() {
-    return delegate().getObjectsAndPositions();
+    return delegate.getObjectsAndPositions();
   }
 
   @Override
   public Point getPosition(RoadUser roadUser) {
-    return delegate().getPosition(roadUser);
+    return delegate.getPosition(roadUser);
   }
 
   @Nullable
   @Override
   public Point getDestination(MovingRoadUser roadUser) {
-    return delegate().getDestination(roadUser);
+    return delegate.getDestination(roadUser);
   }
 
   @Override
   public Point getRandomPosition(RandomGenerator rnd) {
-    return delegate().getRandomPosition(rnd);
+    return delegate.getRandomPosition(rnd);
   }
 
   @Override
   public Collection<Point> getObjectPositions() {
-    return delegate().getObjectPositions();
+    return delegate.getObjectPositions();
   }
 
   @Override
   public Set<RoadUser> getObjects() {
-    return delegate().getObjects();
+    return delegate.getObjects();
   }
 
   @Override
   public Set<RoadUser> getObjects(Predicate<RoadUser> predicate) {
-    return delegate().getObjects(predicate);
+    return delegate.getObjects(predicate);
   }
 
   @Override
   public <Y extends RoadUser> Set<Y> getObjectsAt(RoadUser roadUser,
       Class<Y> type) {
-    return delegate().getObjectsAt(roadUser, type);
+    return delegate.getObjectsAt(roadUser, type);
   }
 
   @Override
   public <Y extends RoadUser> Set<Y> getObjectsOfType(Class<Y> type) {
-    return delegate().getObjectsOfType(type);
+    return delegate.getObjectsOfType(type);
   }
 
   @Override
   public List<Point> getShortestPathTo(RoadUser fromObj, RoadUser toObj) {
-    return delegate().getShortestPathTo(fromObj, toObj);
+    return delegate.getShortestPathTo(fromObj, toObj);
   }
 
   @Override
   public List<Point> getShortestPathTo(RoadUser fromObj, Point to) {
-    return delegate().getShortestPathTo(fromObj, to);
+    return delegate.getShortestPathTo(fromObj, to);
   }
 
   @Override
   public List<Point> getShortestPathTo(Point from, Point to) {
-    return delegate().getShortestPathTo(from, to);
+    return delegate.getShortestPathTo(from, to);
   }
 
   @Override
   public EventAPI getEventAPI() {
-    return delegate().getEventAPI();
+    return delegate.getEventAPI();
   }
 
   @Override
   public ImmutableList<Point> getBounds() {
-    return delegate().getBounds();
+    return delegate.getBounds();
   }
 
   @Override
   public Unit<Length> getDistanceUnit() {
-    return delegate().getDistanceUnit();
+    return delegate.getDistanceUnit();
   }
 
   @Override
   public Unit<Velocity> getSpeedUnit() {
-    return delegate().getSpeedUnit();
+    return delegate.getSpeedUnit();
   }
 }

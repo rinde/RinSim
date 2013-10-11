@@ -7,7 +7,7 @@ import java.util.Set;
 
 import rinde.sim.core.TickListener;
 import rinde.sim.core.TimeLapse;
-import rinde.sim.core.model.Model;
+import rinde.sim.core.model.AbstractModel;
 import rinde.sim.core.model.ModelReceiver;
 import rinde.sim.core.model.pdp.twpolicy.TimeWindowPolicy;
 import rinde.sim.event.EventAPI;
@@ -20,8 +20,8 @@ import com.google.common.collect.ImmutableSet;
  * i.e. it is not responsible for movement.
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
  */
-public abstract class PDPModel implements Model<PDPObject>, TickListener,
-    ModelReceiver {
+public abstract class PDPModel extends AbstractModel<PDPObject> implements
+    TickListener, ModelReceiver {
 
   /**
    * Reference to the outermost decorator of this {@link PDPModel} instance.

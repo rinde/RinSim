@@ -5,11 +5,11 @@ package rinde.sim.core.model.road;
 
 import static com.google.common.collect.Lists.newLinkedList;
 import static java.util.Arrays.asList;
+import static junit.framework.Assert.assertTrue;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -47,7 +47,7 @@ import com.google.common.collect.Table;
  * @param <T> the type of RoadModel to test
  * 
  */
-public abstract class AbstractRoadModelTest<T extends RoadModel> {
+public abstract class AbstractRoadModelTest<T extends GenericRoadModel> {
 
   // TODO add a special class for equivalence testing between roadmodels. The
   // models should behave exactly the same when traveling over routes which
@@ -513,6 +513,48 @@ public abstract class AbstractRoadModelTest<T extends RoadModel> {
       j++;
     }
 
+  }
+
+  /**
+   * Tests whether decoration works correctly.
+   */
+  @Test
+  public void decoration() {
+    assertSame(model, model.self);
+    final GenericRoadModel a = new ForwardingRoadModel(model);
+    assertSame(a, model.self);
+    assertSame(a, a.self);
+
+    final GenericRoadModel b = new ForwardingRoadModel(a);
+    assertSame(b, model.self);
+    assertSame(b, a.self);
+    assertSame(b, b.self);
+
+    final GenericRoadModel c = new ForwardingRoadModel(b);
+    assertSame(c, model.self);
+    assertSame(c, a.self);
+    assertSame(c, b.self);
+    assertSame(c, c.self);
+  }
+
+  /**
+   * Tests whether decoration fails when already initialized.
+   */
+  @SuppressWarnings("unused")
+  @Test
+  public void decorationFail() {
+    model.register(new RoadUser() {
+      @Override
+      public void initRoadUser(RoadModel m) {}
+    });
+
+    boolean fail = false;
+    try {
+      new ForwardingRoadModel(model);
+    } catch (final IllegalStateException e) {
+      fail = true;
+    }
+    assertTrue(fail);
   }
 
 }

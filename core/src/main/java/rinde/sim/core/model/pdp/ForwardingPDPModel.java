@@ -55,11 +55,6 @@ public class ForwardingPDPModel extends PDPModel {
   }
 
   @Override
-  public Class<PDPObject> getSupportedType() {
-    return delegate.getSupportedType();
-  }
-
-  @Override
   public ImmutableSet<Parcel> getContents(Container container) {
     return delegate.getContents(container);
   }

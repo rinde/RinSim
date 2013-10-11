@@ -37,7 +37,6 @@ public class PDPRoadModel extends ForwardingRoadModel implements ModelReceiver {
 
   protected final Map<MovingRoadUser, DestinationObject> destinations;
   protected final Multimap<MovingRoadUser, DestinationObject> destinationHistory;
-  protected final AbstractRoadModel<?> delegate;
   protected final boolean allowDiversion;
 
   protected Optional<PDPModel> pdpModel;
@@ -48,8 +47,8 @@ public class PDPRoadModel extends ForwardingRoadModel implements ModelReceiver {
    * @param allowVehicleDiversion
    */
   public PDPRoadModel(AbstractRoadModel<?> rm, boolean allowVehicleDiversion) {
+    super(rm);
     allowDiversion = allowVehicleDiversion;
-    delegate = rm;
     destinations = newHashMap();
     // does not allow duplicates: WE NEED THIS
     destinationHistory = LinkedHashMultimap.create();
@@ -58,11 +57,6 @@ public class PDPRoadModel extends ForwardingRoadModel implements ModelReceiver {
 
   public boolean isVehicleDiversionAllowed() {
     return allowDiversion;
-  }
-
-  @Override
-  protected AbstractRoadModel<?> delegate() {
-    return delegate;
   }
 
   private void checkType(RoadUser ru) {

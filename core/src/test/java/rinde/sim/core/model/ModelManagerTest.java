@@ -316,7 +316,7 @@ class BrokenRoadModel extends GraphRoadModel {
   }
 
   @Override
-  public boolean register(RoadUser obj) {
+  public boolean doRegister(RoadUser obj) {
     throw new RuntimeException("intended failure");
   }
 
@@ -354,9 +354,7 @@ class OtherFooModel implements Model<Foo> {
 class BarModel extends AbstractModel<Bar> {
   int calledRegister;
 
-  protected BarModel() {
-    super(Bar.class);
-  }
+  protected BarModel() {}
 
   @Override
   public boolean register(Bar element) {

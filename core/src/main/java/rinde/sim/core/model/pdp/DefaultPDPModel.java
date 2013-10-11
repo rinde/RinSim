@@ -434,11 +434,6 @@ public final class DefaultPDPModel extends PDPModel {
   }
 
   @Override
-  public Class<PDPObject> getSupportedType() {
-    return PDPObject.class;
-  }
-
-  @Override
   public EventAPI getEventAPI() {
     return eventDispatcher.getPublicEventAPI();
   }

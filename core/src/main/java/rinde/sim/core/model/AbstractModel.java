@@ -1,5 +1,7 @@
 package rinde.sim.core.model;
 
+import com.google.common.reflect.TypeToken;
+
 /**
  * Basic implementation that provides a getSupportedType method implementation.
  * @author Bartosz Michalik <bartosz.michalik@cs.kuleuven.be>
@@ -12,10 +14,10 @@ public abstract class AbstractModel<T> implements Model<T> {
 
   /**
    * Create a new model.
-   * @param pClazz The class that represents the supported type of this model.
    */
-  protected AbstractModel(Class<T> pClazz) {
-    this.clazz = pClazz;
+  @SuppressWarnings({ "serial", "unchecked" })
+  protected AbstractModel() {
+    this.clazz = (Class<T>) new TypeToken<T>(getClass()) {}.getRawType();
   }
 
   @Override

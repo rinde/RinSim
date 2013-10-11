@@ -208,7 +208,7 @@ public class SpeedLimitsTest {
   @Test
   public void maxSpeedTest() {
     final UnitConverter speedConverter = NonSI.KILOMETERS_PER_HOUR
-        .getConverterTo(AbstractRoadModel.internalSpeedUnit);
+        .getConverterTo(AbstractRoadModel.INTERNAL_SPEED_UNIT);
 
     final double s = speedConverter.convert(speed);
 

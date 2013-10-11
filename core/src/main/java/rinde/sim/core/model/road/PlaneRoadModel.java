@@ -84,7 +84,7 @@ public class PlaneRoadModel extends AbstractRoadModel<Point> {
     max = pMax;
     width = max.x - min.x;
     height = max.y - min.y;
-    maxSpeed = pMaxSpeed.doubleValue(internalSpeedUnit);
+    maxSpeed = pMaxSpeed.doubleValue(INTERNAL_SPEED_UNIT);
   }
 
   public PlaneRoadModel(Point pMin, Point pMax, double speedLimitInKmh) {
@@ -114,8 +114,8 @@ public class PlaneRoadModel extends AbstractRoadModel<Point> {
     Point loc = objLocs.get(object);
 
     final UnitConverter toInternalTimeConv = time.getTimeUnit().getConverterTo(
-        internalTimeUnit);
-    final UnitConverter toExternalTimeConv = internalTimeUnit
+        INTERNAL_TIME_UNIT);
+    final UnitConverter toExternalTimeConv = INTERNAL_TIME_UNIT
         .getConverterTo(time.getTimeUnit());
 
     double traveled = 0;
