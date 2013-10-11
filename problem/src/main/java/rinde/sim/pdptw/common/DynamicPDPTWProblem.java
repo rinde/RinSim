@@ -426,7 +426,7 @@ public class DynamicPDPTWProblem {
      * @return The default pdp model renderer.
      */
     protected Renderer pdpModelRenderer() {
-      return new PDPModelRenderer();
+      return new PDPModelRenderer(false);
     }
 
     /**

@@ -44,8 +44,15 @@ public final class PDPModelRenderer implements ModelRenderer {
   private RoadModel roadModel;
 
   private boolean isInitialized;
+  private final boolean drawDestLines;
 
-  public PDPModelRenderer() {}
+  public PDPModelRenderer() {
+    this(true);
+  }
+
+  public PDPModelRenderer(boolean drawDestinationLines) {
+    drawDestLines = drawDestinationLines;
+  }
 
   // TODO dispose colors on exit!
   private void initialize(GC gc) {
@@ -87,21 +94,23 @@ public final class PDPModelRenderer implements ModelRenderer {
           final int x = vp.toCoordX(p.x);
           final int y = vp.toCoordY(p.y);
 
-          gc.setForeground(black);
-          for (final Parcel parcel : contents) {
-            final Point po = parcel.getDestination();
-            final int xd = vp.toCoordX(po.x);
-            final int yd = vp.toCoordY(po.y);
-            if (parcel.getDeliveryTimeWindow().isBeforeStart(time)) {
-              gc.setBackground(darkGreen);
-            } else if (parcel.getDeliveryTimeWindow().isBeforeEnd(time)) {
-              gc.setBackground(green);
-            } else {
-              gc.setBackground(orange);
+          if (drawDestLines) {
+            gc.setForeground(black);
+            for (final Parcel parcel : contents) {
+              final Point po = parcel.getDestination();
+              final int xd = vp.toCoordX(po.x);
+              final int yd = vp.toCoordY(po.y);
+              if (parcel.getDeliveryTimeWindow().isBeforeStart(time)) {
+                gc.setBackground(darkGreen);
+              } else if (parcel.getDeliveryTimeWindow().isBeforeEnd(time)) {
+                gc.setBackground(green);
+              } else {
+                gc.setBackground(orange);
+              }
+              gc.drawLine(x, y, xd, yd);
+              gc.fillOval(xd - 5, yd - 5, 10, 10);
+              gc.drawOval(xd - 5, yd - 5, 10, 10);
             }
-            gc.drawLine(x, y, xd, yd);
-            gc.fillOval(xd - 5, yd - 5, 10, 10);
-            gc.drawOval(xd - 5, yd - 5, 10, 10);
           }
           gc.setBackground(backgroundInfo);
           gc.setForeground(foregroundInfo);
