@@ -23,7 +23,7 @@ import rinde.sim.pdptw.common.PDPRoadModel;
 import rinde.sim.pdptw.common.RouteFollowingVehicle;
 import rinde.sim.pdptw.experiment.DefaultMASConfiguration;
 import rinde.sim.pdptw.experiment.MASConfiguration;
-import rinde.sim.pdptw.experiment.MASConfigurator;
+import rinde.sim.util.SupplierRng;
 
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
@@ -42,19 +42,20 @@ public final class Central {
   private Central() {}
 
   /**
-   * Provides a {@link MASConfigurator} instance that creates
+   * Provides a {@link SupplierRng} instance that creates
    * {@link MASConfiguration}s that are controlled centrally by a {@link Solver}
    * .
    * @param solverCreator The solver creator to use for instantiating solvers.
    * @return A new configurator.
    */
-  public static MASConfigurator solverConfigurator(SolverCreator solverCreator) {
+  public static SupplierRng<MASConfiguration> solverConfigurator(
+      SolverCreator solverCreator) {
     return new CentralConfigurator(solverCreator,
         CentralConfigurator.class.getSimpleName());
   }
 
   /**
-   * Provides a {@link MASConfigurator} instance that creates
+   * Provides a {@link SupplierRng} instance that creates
    * {@link MASConfiguration}s that are controlled centrally by a {@link Solver}
    * .
    * @param solverCreator The solver creator to use for instantiating solvers.
@@ -62,8 +63,8 @@ public final class Central {
    *          configurator.
    * @return A new configurator.
    */
-  public static MASConfigurator solverConfigurator(SolverCreator solverCreator,
-      String nameSuffix) {
+  public static SupplierRng<MASConfiguration> solverConfigurator(
+      SolverCreator solverCreator, String nameSuffix) {
     return new CentralConfigurator(solverCreator, nameSuffix);
   }
 
@@ -81,7 +82,8 @@ public final class Central {
     Solver create(long seed);
   }
 
-  private static final class CentralConfigurator implements MASConfigurator {
+  private static final class CentralConfigurator implements
+      SupplierRng<MASConfiguration> {
     final SolverCreator solverCreator;
     private final String nameSuffix;
 
@@ -96,19 +98,25 @@ public final class Central {
     }
 
     @Override
-    public MASConfiguration configure(final long seed) {
-      return new DefaultMASConfiguration() {
+    public MASConfiguration get(final long seed) {
+      return new CentralConfiguration(seed);
+    }
 
-        @Override
-        public Creator<AddVehicleEvent> getVehicleCreator() {
-          return new VehicleCreator();
-        }
+    private final class CentralConfiguration extends DefaultMASConfiguration {
+      CentralConfiguration(long seed) {
+        super(seed);
+      }
 
-        @Override
-        public ImmutableList<? extends Model<?>> getModels() {
-          return ImmutableList.of(new CentralModel(solverCreator.create(seed)));
-        }
-      };
+      @Override
+      public Creator<AddVehicleEvent> getVehicleCreator() {
+        return new VehicleCreator();
+      }
+
+      @Override
+      public ImmutableList<? extends Model<?>> getModels() {
+        return ImmutableList.of(new CentralModel(solverCreator
+            .create(randomSeed)));
+      }
     }
 
     private static final class VehicleCreator implements

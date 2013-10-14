@@ -1,6 +1,7 @@
 /**
  * 
  */
+
 package rinde.sim.pdptw.experiment;
 
 import static com.google.common.base.Preconditions.checkArgument;
@@ -27,6 +28,7 @@ import rinde.sim.pdptw.common.ObjectiveFunction;
 import rinde.sim.pdptw.common.RouteRenderer;
 import rinde.sim.pdptw.common.ScenarioParser;
 import rinde.sim.pdptw.common.StatisticsDTO;
+import rinde.sim.util.SupplierRng;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Objects;
@@ -34,9 +36,9 @@ import com.google.common.collect.ImmutableList;
 
 /**
  * Utility for defining and performing experiments. An experiment is composed of
- * a set of {@link DynamicPDPTWScenario}s and a set of {@link MASConfigurator}s.
- * For <b>each</b> combination of these a user configurable number of
- * simulations is performed.
+ * a set of {@link DynamicPDPTWScenario}s and a set of {@link SupplierRng}s that
+ * supply {@link MASConfiguration}s. For <b>each</b> combination of these a user
+ * configurable number of simulations is performed.
  * <p>
  * <b>Example</b> Consider an experiment with three scenarios and two
  * configurators, and each simulation needs to be repeated twice. The code
@@ -81,7 +83,7 @@ public final class Experiment {
 
   /**
    * Create an experiment with the specified {@link ObjectiveFunction}.
-   * @param objectiveFunction The objective function which is used to evalute
+   * @param objectiveFunction The objective function which is used to evaluate
    *          all simulation runs.
    * @return An {@link Builder} instance as per the builder pattern.
    */
@@ -95,7 +97,7 @@ public final class Experiment {
    */
   public static final class Builder {
     final ObjectiveFunction objectiveFunction;
-    final ImmutableList.Builder<MASConfigurator> configuratorsBuilder;
+    final ImmutableList.Builder<SupplierRng<MASConfiguration>> configuratorsBuilder;
     final ImmutableList.Builder<DynamicPDPTWScenario> scenariosBuilder;
     boolean showGui;
     int repetitions;
@@ -136,24 +138,24 @@ public final class Experiment {
 
     /**
      * Add a configurator to the experiment. For each simulation
-     * {@link MASConfigurator#configure(long)} is called and the resulting
+     * {@link SupplierRng#get(long)} is called and the resulting
      * {@link MASConfiguration} is used for a <i>single</i> simulation.
      * @param config The configurator to add.
      * @return This, as per the builder pattern.
      */
-    public Builder addConfigurator(MASConfigurator config) {
+    public Builder addConfigurator(SupplierRng<MASConfiguration> config) {
       configuratorsBuilder.add(config);
       return this;
     }
 
     /**
      * Adds all configurators to the experiment. For each simulation
-     * {@link MASConfigurator#configure(long)} is called and the resulting
+     * {@link SupplierRng#get(long)} is called and the resulting
      * {@link MASConfiguration} is used for a <i>single</i> simulation.
      * @param configs The configurators to add.
      * @return This, as per the builder pattern.
      */
-    public Builder addConfigurators(List<MASConfigurator> configs) {
+    public Builder addConfigurators(List<SupplierRng<MASConfiguration>> configs) {
       configuratorsBuilder.addAll(configs);
       return this;
     }
@@ -239,7 +241,8 @@ public final class Experiment {
       checkArgument(numThreads == 1 || !showGui,
           "The GUI can not be shown when using more than one thread.");
       final ImmutableList<DynamicPDPTWScenario> scen = scenariosBuilder.build();
-      final ImmutableList<MASConfigurator> conf = configuratorsBuilder.build();
+      final ImmutableList<SupplierRng<MASConfiguration>> conf = configuratorsBuilder
+          .build();
 
       checkArgument(!scen.isEmpty(), "At least one scenario is required.");
       checkArgument(!conf.isEmpty(), "At least one configurator is required.");
@@ -251,7 +254,7 @@ public final class Experiment {
       // gather all runners
       final ImmutableList.Builder<ExperimentRunner> runnerBuilder = ImmutableList
           .builder();
-      for (final MASConfigurator configurator : conf) {
+      for (final SupplierRng<MASConfiguration> configurator : conf) {
         for (final DynamicPDPTWScenario scenario : scen) {
           for (int i = 0; i < repetitions; i++) {
             final long seed = seeds.get(i);
@@ -299,7 +302,7 @@ public final class Experiment {
   private static class ExperimentRunner implements Runnable {
 
     private final DynamicPDPTWScenario scenario;
-    private final MASConfigurator configurator;
+    private final SupplierRng<MASConfiguration> configurator;
     private final long seed;
     private final ObjectiveFunction objectiveFunction;
     private final boolean showGui;
@@ -308,7 +311,7 @@ public final class Experiment {
     private SimulationResult result;
 
     ExperimentRunner(DynamicPDPTWScenario scenario,
-        MASConfigurator configurator, long seed,
+        SupplierRng<MASConfiguration> configurator, long seed,
         ObjectiveFunction objectiveFunction, boolean showGui) {
       this.scenario = scenario;
       this.configurator = configurator;
@@ -321,7 +324,7 @@ public final class Experiment {
     public void run() {
       MASConfiguration masConfig = null;
       try {
-        masConfig = configurator.configure(seed);
+        masConfig = configurator.get(seed);
         final StatisticsDTO stats = performSingleRun(scenario, masConfig,
             objectiveFunction, showGui);
         result = new SimulationResult(stats, scenario, configurator, seed);
@@ -363,15 +366,15 @@ public final class Experiment {
     /**
      * The configurator which was used to configure the MAS.
      */
-    public final MASConfigurator masConfigurator;
+    public final SupplierRng<MASConfiguration> masConfigurator;
 
     /**
-     * The seed that was supplied to {@link MASConfigurator#configure(long)}.
+     * The seed that was supplied to {@link SupplierRng#get(long)}.
      */
     public final long seed;
 
     SimulationResult(StatisticsDTO stats, DynamicPDPTWScenario scenario,
-        MASConfigurator masConfigurator, long seed) {
+        SupplierRng<MASConfiguration> masConfigurator, long seed) {
       this.stats = stats;
       this.scenario = scenario;
       this.masConfigurator = masConfigurator;
@@ -412,7 +415,7 @@ public final class Experiment {
   }
 
   /**
-   * Value object containig all the result of a single experiment as performed
+   * Value object containing all the result of a single experiment as performed
    * by {@link Builder#perform()}.
    * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
    */
@@ -425,7 +428,7 @@ public final class Experiment {
     /**
      * The configurators that were used in this experiment.
      */
-    public final ImmutableList<MASConfigurator> configurators;
+    public final ImmutableList<SupplierRng<MASConfiguration>> configurators;
 
     /**
      * The scenarios that were used in this experiment.
