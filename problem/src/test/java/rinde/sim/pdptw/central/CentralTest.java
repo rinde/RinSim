@@ -27,7 +27,6 @@ import rinde.sim.core.model.pdp.DefaultPDPModel;
 import rinde.sim.core.model.pdp.PDPModel;
 import rinde.sim.core.model.pdp.twpolicy.TardyAllowedPolicy;
 import rinde.sim.core.model.road.PlaneRoadModel;
-import rinde.sim.pdptw.central.Central.SolverCreator;
 import rinde.sim.pdptw.central.Solvers.SolverHandle;
 import rinde.sim.pdptw.central.Solvers.StateContext;
 import rinde.sim.pdptw.central.arrays.ArraysSolverValidator;
@@ -45,6 +44,7 @@ import rinde.sim.pdptw.experiment.Experiment.ExperimentResults;
 import rinde.sim.pdptw.gendreau06.Gendreau06ObjectiveFunction;
 import rinde.sim.pdptw.gendreau06.Gendreau06Parser;
 import rinde.sim.pdptw.gendreau06.Gendreau06Scenario;
+import rinde.sim.util.SupplierRng;
 import rinde.sim.util.TimeWindow;
 import rinde.sim.util.fsm.State;
 
@@ -62,9 +62,9 @@ public class CentralTest {
     final Gendreau06Scenario scenario = Gendreau06Parser.parse(
         "files/test/gendreau06/req_rapide_1_240_24", 10);
 
-    final SolverCreator s = new SolverCreator() {
+    final SupplierRng<Solver> s = new SupplierRng<Solver>() {
       @Override
-      public Solver create(long seed) {
+      public Solver get(long seed) {
         return SolverValidator.wrap(new MultiVehicleSolverAdapter(
             ArraysSolverValidator.wrap(new RandomMVArraysSolver(
                 new MersenneTwister(seed))), scenario.getTimeUnit()));
@@ -73,7 +73,7 @@ public class CentralTest {
     final Experiment.Builder builder = Experiment
         .build(new Gendreau06ObjectiveFunction()) //
         .addScenario(scenario) //
-        .addConfigurator(Central.solverConfigurator(s)) //
+        .addConfiguration(Central.solverConfiguration(s)) //
         .withRandomSeed(123);
 
     final ExperimentResults res1 = builder.perform();

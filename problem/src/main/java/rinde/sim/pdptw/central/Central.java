@@ -42,92 +42,78 @@ public final class Central {
   private Central() {}
 
   /**
-   * Provides a {@link SupplierRng} instance that creates
-   * {@link MASConfiguration}s that are controlled centrally by a {@link Solver}
-   * .
+   * Provides a {@link MASConfiguration} that configures a MAS that is
+   * controlled centrally by a {@link Solver}.
    * @param solverCreator The solver creator to use for instantiating solvers.
-   * @return A new configurator.
+   * @return A new configuration.
    */
-  public static SupplierRng<MASConfiguration> solverConfigurator(
-      SolverCreator solverCreator) {
-    return new CentralConfigurator(solverCreator,
-        CentralConfigurator.class.getSimpleName());
+  public static MASConfiguration solverConfiguration(
+      SupplierRng<? extends Solver> solverCreator) {
+    return new CentralConfiguration(solverCreator,
+        CentralConfiguration.class.getSimpleName());
   }
 
   /**
-   * Provides a {@link SupplierRng} instance that creates
-   * {@link MASConfiguration}s that are controlled centrally by a {@link Solver}
-   * .
+   * Provides a {@link MASConfiguration} that configures a MAS that is
+   * controlled centrally by a {@link Solver}.
    * @param solverCreator The solver creator to use for instantiating solvers.
    * @param nameSuffix A string which is append to the toString() for the
-   *          configurator.
-   * @return A new configurator.
+   *          configuration.
+   * @return A new configuration.
    */
-  public static SupplierRng<MASConfiguration> solverConfigurator(
-      SolverCreator solverCreator, String nameSuffix) {
-    return new CentralConfigurator(solverCreator, nameSuffix);
+  public static MASConfiguration solverConfiguration(
+      SupplierRng<? extends Solver> solverCreator, String nameSuffix) {
+    return new CentralConfiguration(solverCreator, nameSuffix);
   }
 
-  /**
-   * Implementations should create new {@link Solver} instances.
-   * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
-   */
-  public interface SolverCreator {
+  private static final class CentralConfiguration extends
+      DefaultMASConfiguration {
 
-    /**
-     * Each time this method is called a new instance should be created.
-     * @param seed The seed which to use for creating the instance.
-     * @return A new {@link Solver} instance.
-     */
-    Solver create(long seed);
-  }
-
-  private static final class CentralConfigurator implements
-      SupplierRng<MASConfiguration> {
-    final SolverCreator solverCreator;
+    final SupplierRng<? extends Solver> solverCreator;
     private final String nameSuffix;
 
-    CentralConfigurator(SolverCreator solverCreator, String name) {
+    CentralConfiguration(SupplierRng<? extends Solver> solverCreator,
+        String name) {
       this.solverCreator = solverCreator;
       nameSuffix = name;
+    }
+
+    @Override
+    public Creator<AddVehicleEvent> getVehicleCreator() {
+      return new VehicleCreator();
+    }
+
+    @Override
+    public ImmutableList<? extends SupplierRng<? extends Model<?>>> getModels() {
+      return ImmutableList.of(new CentralModelSupplier(solverCreator));
     }
 
     @Override
     public String toString() {
       return "Central-" + solverCreator.toString() + nameSuffix;
     }
+  }
+
+  private static final class VehicleCreator implements Creator<AddVehicleEvent> {
+    VehicleCreator() {}
 
     @Override
-    public MASConfiguration get(final long seed) {
-      return new CentralConfiguration(seed);
+    public boolean create(Simulator sim, AddVehicleEvent event) {
+      return sim.register(new RouteFollowingVehicle(event.vehicleDTO, false));
+    }
+  }
+
+  private static class CentralModelSupplier implements
+      SupplierRng<CentralModel> {
+    private final SupplierRng<? extends Solver> solverSupplier;
+
+    CentralModelSupplier(SupplierRng<? extends Solver> solverSupplier) {
+      this.solverSupplier = solverSupplier;
     }
 
-    private final class CentralConfiguration extends DefaultMASConfiguration {
-      CentralConfiguration(long seed) {
-        super(seed);
-      }
-
-      @Override
-      public Creator<AddVehicleEvent> getVehicleCreator() {
-        return new VehicleCreator();
-      }
-
-      @Override
-      public ImmutableList<? extends Model<?>> getModels() {
-        return ImmutableList.of(new CentralModel(solverCreator
-            .create(randomSeed)));
-      }
-    }
-
-    private static final class VehicleCreator implements
-        Creator<AddVehicleEvent> {
-
-      VehicleCreator() {}
-
-      @Override
-      public boolean create(Simulator sim, AddVehicleEvent event) {
-        return sim.register(new RouteFollowingVehicle(event.vehicleDTO, false));
-      }
+    @Override
+    public CentralModel get(long seed) {
+      return new CentralModel(solverSupplier.get(seed));
     }
   }
 

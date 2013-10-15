@@ -5,19 +5,19 @@ import javax.measure.unit.Unit;
 
 import org.apache.commons.math3.random.MersenneTwister;
 
-import rinde.sim.pdptw.central.Central.SolverCreator;
 import rinde.sim.pdptw.central.arrays.ArraysSolverDebugger;
 import rinde.sim.pdptw.central.arrays.ArraysSolverDebugger.MVASDebugger;
 import rinde.sim.pdptw.central.arrays.ArraysSolverValidator;
 import rinde.sim.pdptw.central.arrays.MultiVehicleArraysSolver;
 import rinde.sim.pdptw.central.arrays.MultiVehicleSolverAdapter;
 import rinde.sim.pdptw.central.arrays.RandomMVArraysSolver;
+import rinde.sim.util.SupplierRng;
 
 /**
  * A solver creator useful for debugging.
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
  */
-public class DebugSolverCreator implements SolverCreator {
+public class DebugSolverCreator implements SupplierRng<Solver> {
   /**
    * The arrays solver that is used to compute solutions.
    */
@@ -54,7 +54,7 @@ public class DebugSolverCreator implements SolverCreator {
   }
 
   @Override
-  public Solver create(long seed) {
+  public Solver get(long seed) {
     return solver;
   }
 }

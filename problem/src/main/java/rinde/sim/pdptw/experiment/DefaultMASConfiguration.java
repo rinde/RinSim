@@ -3,13 +3,11 @@
  */
 package rinde.sim.pdptw.experiment;
 
-import org.apache.commons.math3.random.MersenneTwister;
-import org.apache.commons.math3.random.RandomGenerator;
-
 import rinde.sim.core.model.Model;
 import rinde.sim.pdptw.common.AddDepotEvent;
 import rinde.sim.pdptw.common.AddParcelEvent;
 import rinde.sim.pdptw.common.DynamicPDPTWProblem.Creator;
+import rinde.sim.util.SupplierRng;
 
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
@@ -20,16 +18,8 @@ import com.google.common.collect.ImmutableList;
  */
 public abstract class DefaultMASConfiguration implements MASConfiguration {
 
-  protected final long randomSeed;
-  protected final RandomGenerator rng;
-
-  protected DefaultMASConfiguration(long seed) {
-    randomSeed = seed;
-    rng = new MersenneTwister(randomSeed);
-  }
-
   @Override
-  public ImmutableList<? extends Model<?>> getModels() {
+  public ImmutableList<? extends SupplierRng<? extends Model<?>>> getModels() {
     return ImmutableList.of();
   }
 
@@ -45,6 +35,6 @@ public abstract class DefaultMASConfiguration implements MASConfiguration {
 
   @Override
   public String toString() {
-    return getClass().getSimpleName() + "-" + randomSeed;
+    return getClass().getSimpleName();
   }
 }

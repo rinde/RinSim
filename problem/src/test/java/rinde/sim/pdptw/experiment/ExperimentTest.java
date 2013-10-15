@@ -15,12 +15,12 @@ import rinde.sim.pdptw.common.StatisticsDTO;
 public class ExperimentTest {
 
   public static StatisticsDTO singleRun(DynamicPDPTWScenario scenario,
-      MASConfiguration c, ObjectiveFunction objFunc, boolean showGui) {
-    return Experiment.performSingleRun(scenario, c, objFunc, showGui);
+      MASConfiguration c, long seed, ObjectiveFunction objFunc, boolean showGui) {
+    return Experiment.performSingleRun(scenario, c, seed, objFunc, showGui);
   }
 
   public static DynamicPDPTWProblem init(DynamicPDPTWScenario scenario,
-      MASConfiguration config, boolean showGui) {
-    return Experiment.init(scenario, config, showGui);
+      MASConfiguration config, long seed, boolean showGui) {
+    return Experiment.init(scenario, config, seed, showGui);
   }
 }

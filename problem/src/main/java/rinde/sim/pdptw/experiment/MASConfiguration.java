@@ -8,6 +8,7 @@ import rinde.sim.pdptw.common.AddDepotEvent;
 import rinde.sim.pdptw.common.AddParcelEvent;
 import rinde.sim.pdptw.common.AddVehicleEvent;
 import rinde.sim.pdptw.common.DynamicPDPTWProblem.Creator;
+import rinde.sim.util.SupplierRng;
 
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
@@ -26,7 +27,7 @@ public interface MASConfiguration {
    * May be empty.
    * @return
    */
-  ImmutableList<? extends Model<?>> getModels();
+  ImmutableList<? extends SupplierRng<? extends Model<?>>> getModels();
 
   Creator<AddVehicleEvent> getVehicleCreator();
 

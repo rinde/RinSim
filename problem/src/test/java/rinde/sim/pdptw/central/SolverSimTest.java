@@ -57,7 +57,7 @@ public class SolverSimTest {
           scenario.getTimeUnit());
       final Gendreau06ObjectiveFunction obj = new Gendreau06ObjectiveFunction();
       final ExperimentResults results = Experiment.build(obj)
-          .addConfigurator(Central.solverConfigurator(dsc))
+          .addConfiguration(Central.solverConfiguration(dsc))
           .addScenario(scenario).perform();
       assertEquals(1, results.results.size());
       assertEquals(1, dsc.arraysSolver.getInputs().size());
@@ -105,7 +105,7 @@ public class SolverSimTest {
         scenario.getTimeUnit());
 
     final Gendreau06ObjectiveFunction obj = new Gendreau06ObjectiveFunction();
-    Experiment.build(obj).addConfigurator(Central.solverConfigurator(dsc))
+    Experiment.build(obj).addConfiguration(Central.solverConfiguration(dsc))
         .addScenario(scenario).repeat(10).perform();
 
     final MVASDebugger arraysSolver = dsc.arraysSolver;
