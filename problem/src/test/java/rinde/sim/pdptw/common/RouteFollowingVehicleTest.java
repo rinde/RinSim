@@ -68,7 +68,6 @@ public class RouteFollowingVehicleTest {
    * @param allowDiversion Is vehicle diversion allowed.
    * @param allowDelayedRouteChange Are delayed route changes allowed.
    */
-  @SuppressWarnings("null")
   public RouteFollowingVehicleTest(boolean allowDiversion,
       boolean allowDelayedRouteChange) {
     diversionIsAllowed = allowDiversion;
@@ -155,7 +154,7 @@ public class RouteFollowingVehicleTest {
    */
   @Test
   public void testIsTooEarly() {
-    // travelling 1km at 30km/h should take 2 minutes
+    // traveling 1km at 30km/h should take 2 minutes
     assertEquals(minute(2),
         d.computeTravelTimeTo(new Point(1, 2), SI.MILLI(SI.SECOND)));
 
@@ -454,7 +453,7 @@ public class RouteFollowingVehicleTest {
   }
 
   /**
-   * Checks wheter delayed route changing is rejected if neccessary.
+   * Checks whether delayed route changing is rejected if necessary.
    */
   @Test
   public void setRouteTest4() {
@@ -470,7 +469,7 @@ public class RouteFollowingVehicleTest {
     } catch (final IllegalArgumentException e) {
       exception = true;
     }
-    assertTrue(exception != allowDelayedRouteChanges);
+    assertNotSame(exception, allowDelayedRouteChanges);
   }
 
   /**

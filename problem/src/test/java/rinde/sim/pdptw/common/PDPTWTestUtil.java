@@ -15,27 +15,23 @@ import rinde.sim.core.model.road.RoadModel;
 public class PDPTWTestUtil {
 
   /**
-   * Registers the objects to the models.
-   * @param rm
-   * @param pm
-   * @param objs
+   * Registers the objects to the two supplied models.
+   * @param rm The road model.
+   * @param pm The pdp model.
+   * @param objs The objects to register.
    */
   public static void register(RoadModel rm, PDPModel pm, PDPObject... objs) {
     for (final PDPObject obj : objs) {
       rm.register(obj);
       pm.register(obj);
-      // if (obj instanceof DefaultVehicle) {
-      // final DefaultVehicle dv = (DefaultVehicle) obj;
-      // // rm.addObjectAt(dv, dv.getDTO().startPosition);
-      // pm.register(dv);
-      // } else {
-      // final DefaultParcel dp = (DefaultParcel) obj;
-      // // rm.addObjectAt(dp, dp.dto.pickupLocation);
-      // pm.register(dp);
-      // }
     }
   }
 
+  /**
+   * Shorthand for registering objects in the simulator.
+   * @param sim Sim instance.
+   * @param objs The objects to register.
+   */
   public static void register(Simulator sim, Object... objs) {
     for (final Object o : objs) {
       sim.register(o);

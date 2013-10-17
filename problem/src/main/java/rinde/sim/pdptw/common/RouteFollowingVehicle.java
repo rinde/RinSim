@@ -133,6 +133,7 @@ public class RouteFollowingVehicle extends DefaultVehicle {
     stateMachine.getEventAPI().addListener(new Listener() {
       @Override
       public void handleEvent(Event e) {
+        @SuppressWarnings("unchecked")
         final StateTransitionEvent<StateEvent, RouteFollowingVehicle> event = (StateTransitionEvent<RouteFollowingVehicle.StateEvent, RouteFollowingVehicle>) e;
         LOGGER.trace("{} - {} + {} -> {}", v, event.previousState, event.event,
             event.newState);

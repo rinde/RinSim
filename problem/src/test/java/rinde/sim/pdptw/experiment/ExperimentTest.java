@@ -16,7 +16,7 @@ public class ExperimentTest {
 
   public static StatisticsDTO singleRun(DynamicPDPTWScenario scenario,
       MASConfiguration c, long seed, ObjectiveFunction objFunc, boolean showGui) {
-    return Experiment.performSingleRun(scenario, c, seed, objFunc, showGui);
+    return Experiment.singleRun(scenario, c, seed, objFunc, showGui).stats;
   }
 
   public static DynamicPDPTWProblem init(DynamicPDPTWScenario scenario,

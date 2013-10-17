@@ -5,7 +5,6 @@
 package rinde.sim.pdptw.experiment;
 
 import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
 
 import java.util.List;
@@ -39,7 +38,8 @@ import com.google.common.collect.ImmutableList;
  * Utility for defining and performing experiments. An experiment is composed of
  * a set of {@link DynamicPDPTWScenario}s and a set of {@link MASConfiguration}
  * s. For <b>each</b> combination of these a user configurable number of
- * simulations is performed.
+ * simulations is performed. The number of used threads in the experiment can be
+ * set via {@link Builder#withThreads(int)}.
  * <p>
  * <b>Example</b> Consider an experiment with three scenarios and two
  * configurations, and each simulation needs to be repeated twice. The code
@@ -300,49 +300,62 @@ public final class Experiment {
     }
   }
 
-  private static class ExperimentRunner implements Runnable {
+  /**
+   * Can be used to run a single simulation run.
+   * @param scenario The scenario to run on.
+   * @param configuration The configuration to use.
+   * @param seed The seed of the run.
+   * @param objFunc The {@link ObjectiveFunction} to use.
+   * @param showGui If <code>true</code> enables the gui.
+   * @return The {@link SimulationResult} generated in the run.
+   */
+  public static SimulationResult singleRun(DynamicPDPTWScenario scenario,
+      MASConfiguration configuration, long seed, ObjectiveFunction objFunc,
+      boolean showGui) {
 
-    private final DynamicPDPTWScenario scenario;
-    private final MASConfiguration configuration;
-    private final long seed;
-    private final ObjectiveFunction objectiveFunction;
-    private final boolean showGui;
+    final ExperimentRunner er = new ExperimentRunner(scenario, configuration,
+        seed, objFunc, showGui);
+    er.run();
+    final SimulationResult res = er.getResult();
+    checkState(res != null);
+    return res;
+  }
 
-    @Nullable
-    private SimulationResult result;
+  /**
+   * Initialize a {@link DynamicPDPTWProblem} instance.
+   * @param scenario The scenario to use.
+   * @param config The configuration to use.
+   * @param showGui Whether to show the gui.
+   * @return The {@link DynamicPDPTWProblem} instance.
+   */
+  @VisibleForTesting
+  static DynamicPDPTWProblem init(DynamicPDPTWScenario scenario,
+      MASConfiguration config, long seed, boolean showGui) {
 
-    ExperimentRunner(DynamicPDPTWScenario scenario,
-        MASConfiguration configuration, long seed,
-        ObjectiveFunction objectiveFunction, boolean showGui) {
-      this.scenario = scenario;
-      this.configuration = configuration;
-      this.seed = seed;
-      this.objectiveFunction = objectiveFunction;
-      this.showGui = showGui;
+    final RandomGenerator rng = new MersenneTwister(seed);
+    final long simSeed = rng.nextLong();
+
+    final ImmutableList<? extends SupplierRng<? extends Model<?>>> modelSuppliers = config
+        .getModels();
+    final Model<?>[] models = new Model<?>[modelSuppliers.size()];
+    for (int i = 0; i < modelSuppliers.size(); i++) {
+      models[i] = modelSuppliers.get(i).get(rng.nextLong());
     }
 
-    @Override
-    public void run() {
-      try {
-        final StatisticsDTO stats = performSingleRun(scenario, configuration,
-            seed, objectiveFunction, showGui);
-        result = new SimulationResult(stats, scenario, configuration, seed);
-      } catch (final RuntimeException e) {
-        final StringBuilder sb = new StringBuilder().append("[Scenario= ")
-            .append(scenario).append(",").append(scenario.getProblemClass())
-            .append(",").append(scenario.getProblemInstanceId()).append("]")
-            .append(",seed=").append(seed).append(",config=")
-            .append(configuration);
-        throw new RuntimeException(sb.toString(), e);
-      }
-      // FIXME this should be changed into a more decent progress indicator
-      System.out.print(".");
+    final DynamicPDPTWProblem problem = new DynamicPDPTWProblem(scenario,
+        simSeed, models);
+    problem.addCreator(AddVehicleEvent.class, config.getVehicleCreator());
+    if (config.getDepotCreator().isPresent()) {
+      problem.addCreator(AddDepotEvent.class, config.getDepotCreator().get());
     }
-
-    @Nullable
-    SimulationResult getResult() {
-      return result;
+    if (config.getParcelCreator().isPresent()) {
+      problem.addCreator(AddParcelEvent.class, config.getParcelCreator().get());
     }
+    if (showGui) {
+      problem.addRendererToUI(new RouteRenderer());
+      problem.enableUI();
+    }
+    return problem;
   }
 
   /**
@@ -465,71 +478,50 @@ public final class Experiment {
     }
   }
 
-  /**
-   * Can be used to run a single simulation run.
-   * @param scenario The scenario to run on.
-   * @param configuration The configuration to use.
-   * @param seed The seed of the run.
-   * @param objFunc The {@link ObjectiveFunction} to use.
-   * @param showGui If <code>true</code> enables the gui.
-   * @return The statistics generated in the run.
-   */
-  public static StatisticsDTO performSingleRun(DynamicPDPTWScenario scenario,
-      MASConfiguration configuration, long seed, ObjectiveFunction objFunc,
-      boolean showGui) {
-    final StatisticsDTO stats = init(scenario, configuration, seed, showGui)
-        .simulate();
-    checkState(objFunc.isValidResult(stats),
-        "The simulation did not result in a valid result: %s.", stats);
-    return stats;
-  }
+  private static class ExperimentRunner implements Runnable {
+    private final DynamicPDPTWScenario scenario;
+    private final MASConfiguration configuration;
+    private final long seed;
+    private final ObjectiveFunction objectiveFunction;
+    private final boolean showGui;
 
-  public static SimulationResult singleRun(DynamicPDPTWScenario scenario,
-      MASConfiguration configuration, long seed, ObjectiveFunction objFunc,
-      boolean showGui) {
+    @Nullable
+    private SimulationResult result;
 
-    final ExperimentRunner er = new ExperimentRunner(scenario, configuration,
-        seed, objFunc, showGui);
-    er.run();
-    final SimulationResult res = er.getResult();
-    checkNotNull(res);
-    return res;
-  }
-
-  /**
-   * Initialize a {@link DynamicPDPTWProblem} instance.
-   * @param scenario The scenario to use.
-   * @param config The configuration to use.
-   * @param showGui Whether to show the gui.
-   * @return The {@link DynamicPDPTWProblem} instance.
-   */
-  @VisibleForTesting
-  static DynamicPDPTWProblem init(DynamicPDPTWScenario scenario,
-      MASConfiguration config, long seed, boolean showGui) {
-
-    final RandomGenerator rng = new MersenneTwister(seed);
-    final long simSeed = rng.nextLong();
-
-    final ImmutableList<? extends SupplierRng<? extends Model<?>>> modelSuppliers = config
-        .getModels();
-    final Model<?>[] models = new Model<?>[modelSuppliers.size()];
-    for (int i = 0; i < modelSuppliers.size(); i++) {
-      models[i] = modelSuppliers.get(i).get(rng.nextLong());
+    ExperimentRunner(DynamicPDPTWScenario scenario,
+        MASConfiguration configuration, long seed,
+        ObjectiveFunction objectiveFunction, boolean showGui) {
+      this.scenario = scenario;
+      this.configuration = configuration;
+      this.seed = seed;
+      this.objectiveFunction = objectiveFunction;
+      this.showGui = showGui;
     }
 
-    final DynamicPDPTWProblem problem = new DynamicPDPTWProblem(scenario,
-        simSeed, models);
-    problem.addCreator(AddVehicleEvent.class, config.getVehicleCreator());
-    if (config.getDepotCreator().isPresent()) {
-      problem.addCreator(AddDepotEvent.class, config.getDepotCreator().get());
+    @Override
+    public void run() {
+      try {
+        final StatisticsDTO stats = init(scenario, configuration, seed, showGui)
+            .simulate();
+        checkState(objectiveFunction.isValidResult(stats),
+            "The simulation did not result in a valid result: %s.", stats);
+
+        result = new SimulationResult(stats, scenario, configuration, seed);
+      } catch (final RuntimeException e) {
+        final StringBuilder sb = new StringBuilder().append("[Scenario= ")
+            .append(scenario).append(",").append(scenario.getProblemClass())
+            .append(",").append(scenario.getProblemInstanceId()).append("]")
+            .append(",seed=").append(seed).append(",config=")
+            .append(configuration);
+        throw new RuntimeException(sb.toString(), e);
+      }
+      // FIXME this should be changed into a more decent progress indicator
+      System.out.print(".");
     }
-    if (config.getParcelCreator().isPresent()) {
-      problem.addCreator(AddParcelEvent.class, config.getParcelCreator().get());
+
+    @Nullable
+    SimulationResult getResult() {
+      return result;
     }
-    if (showGui) {
-      problem.addRendererToUI(new RouteRenderer());
-      problem.enableUI();
-    }
-    return problem;
   }
 }

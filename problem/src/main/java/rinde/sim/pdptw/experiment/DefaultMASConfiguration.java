@@ -13,8 +13,9 @@ import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 
 /**
+ * Implementation of {@link MASConfiguration} which implements most method using
+ * default values.
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
- * 
  */
 public abstract class DefaultMASConfiguration implements MASConfiguration {
 

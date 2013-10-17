@@ -14,25 +14,29 @@ import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 
 /**
- * This represents the 'solution'/approach to solving the problem.
- * 
- * A configuration should be used for only one simulation, a single experiment!
- * 
+ * This represents a configuration of a multi-agent system in a simulation.
+ * Implementations should always be immutable.
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
- * 
  */
 public interface MASConfiguration {
 
   /**
-   * May be empty.
-   * @return
+   * @return A possibly empty list of model suppliers.
    */
   ImmutableList<? extends SupplierRng<? extends Model<?>>> getModels();
 
+  /**
+   * @return A creator that creates vehicle agents.
+   */
   Creator<AddVehicleEvent> getVehicleCreator();
 
+  /**
+   * @return A creator that creates depot agents.
+   */
   Optional<? extends Creator<AddDepotEvent>> getDepotCreator();
 
+  /**
+   * @return A creator that creates parcel agents.
+   */
   Optional<? extends Creator<AddParcelEvent>> getParcelCreator();
-
 }
