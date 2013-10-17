@@ -5,6 +5,9 @@ import static com.google.common.base.Preconditions.checkState;
 import java.util.Collection;
 import java.util.Set;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import rinde.sim.core.TickListener;
 import rinde.sim.core.TimeLapse;
 import rinde.sim.core.model.AbstractModel;
@@ -24,6 +27,12 @@ public abstract class PDPModel extends AbstractModel<PDPObject> implements
     TickListener, ModelReceiver {
 
   /**
+   * The logger of the model.
+   */
+  protected static final Logger LOGGER = LoggerFactory
+      .getLogger(PDPModel.class);
+
+  /**
    * Reference to the outermost decorator of this {@link PDPModel} instance.
    */
   protected PDPModel self = this;
@@ -34,6 +43,7 @@ public abstract class PDPModel extends AbstractModel<PDPObject> implements
    * @param pm The decorator.
    */
   protected void setSelf(PDPModel pm) {
+    LOGGER.info("setSelf {}", pm);
     checkState(!initialized,
         "This PDPModel is already initialized, it is too late to decorate it.");
     self = pm;

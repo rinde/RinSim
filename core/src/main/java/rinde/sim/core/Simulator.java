@@ -130,6 +130,7 @@ public class Simulator implements SimulatorAPI {
    *          programmer prefers.
    */
   public Simulator(RandomGenerator r, Measure<Long, Duration> step) {
+    LOGGER.info("Simulator constructor, time step {}", step);
     checkArgument(step.getValue() > 0L, "Step must be a positive number.");
     timeStep = step.getValue();
     tickListeners = Collections
@@ -195,6 +196,7 @@ public class Simulator implements SimulatorAPI {
       throw new IllegalStateException(
           "can not add object before calling configure()");
     }
+    LOGGER.info("{} - register({})", time, obj);
     injectDependencies(obj);
     if (obj instanceof TickListener) {
       addTickListener((TickListener) obj);
@@ -311,25 +313,19 @@ public class Simulator implements SimulatorAPI {
     // effectively executed after a 'tick'
 
     final List<TickListener> localCopy = new ArrayList<TickListener>();
-    long timeS = System.currentTimeMillis();
     localCopy.addAll(tickListeners);
 
+    final long end = time + timeStep;
+    LOGGER.trace("{} ->----> tick ->----> {}", time, end);
     for (final TickListener t : localCopy) {
-      timeLapse.initialize(time, time + timeStep);
+      timeLapse.initialize(time, end);
       t.tick(timeLapse);
     }
-    if (LOGGER.isDebugEnabled()) {
-      LOGGER.debug("tick(): " + (System.currentTimeMillis() - timeS));
-      timeS = System.currentTimeMillis();
-    }
-    timeLapse.initialize(time, time + timeStep);
+    timeLapse.initialize(time, end);
     // in the after tick the TimeLapse can no longer be consumed
     timeLapse.consumeAll();
     for (final TickListener t : localCopy) {
       t.afterTick(timeLapse);
-    }
-    if (LOGGER.isDebugEnabled()) {
-      LOGGER.debug("aftertick(): " + (System.currentTimeMillis() - timeS));
     }
     time += timeStep;
 

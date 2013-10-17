@@ -236,6 +236,7 @@ public final class DefaultPDPModel extends PDPModel {
           + parcel.getMagnitude());
 
       parcelState.put(ParcelState.IN_CARGO, parcel);
+      LOGGER.info("{} end pickup of {} by {}", time, parcel, vehicle);
       eventDispatcher.dispatchEvent(new PDPModelEvent(
           PDPModelEventType.END_PICKUP, self, time, parcel, vehicle));
     }
@@ -292,6 +293,7 @@ public final class DefaultPDPModel extends PDPModel {
           - parcel.getMagnitude());
 
       parcelState.put(ParcelState.DELIVERED, parcel);
+      LOGGER.info("{} end delivery of {} by {}", time, parcel, vehicle);
       eventDispatcher.dispatchEvent(new PDPModelEvent(
           PDPModelEventType.END_DELIVERY, self, time, parcel, vehicle));
     }
@@ -378,6 +380,7 @@ public final class DefaultPDPModel extends PDPModel {
   @Override
   protected boolean doRegister(PDPObject element) {
     synchronized (this) {
+      LOGGER.info("{} register {}", currentTime, element);
       if (element.getType() == PDPType.PARCEL) {
         checkArgument(!parcelState.containsValue(element));
         final Parcel p = (Parcel) element;
@@ -415,6 +418,7 @@ public final class DefaultPDPModel extends PDPModel {
   @Override
   public boolean unregister(PDPObject element) {
     synchronized (this) {
+      LOGGER.info("unregister {}", element);
       if (element instanceof Container) {
         containerCapacities.remove(element);
         containerContentsSize.remove(element);

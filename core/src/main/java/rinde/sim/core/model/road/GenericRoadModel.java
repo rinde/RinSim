@@ -1,6 +1,10 @@
 package rinde.sim.core.model.road;
 
 import static com.google.common.base.Preconditions.checkState;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import rinde.sim.core.model.AbstractModel;
 
 /**
@@ -9,6 +13,12 @@ import rinde.sim.core.model.AbstractModel;
  */
 public abstract class GenericRoadModel extends AbstractModel<RoadUser>
     implements RoadModel {
+
+  /**
+   * The logger of the model.
+   */
+  protected static final Logger LOGGER = LoggerFactory
+      .getLogger(GenericRoadModel.class);
 
   /**
    * Reference to the outermost decorator of this road model, or to
@@ -22,6 +32,7 @@ public abstract class GenericRoadModel extends AbstractModel<RoadUser>
    * @param rm The decorator to set as 'self'.
    */
   protected void setSelf(GenericRoadModel rm) {
+    LOGGER.info("setSelf {}", rm);
     checkState(
         !initialized,
         "This road model is already initialized, it can only be decorated before objects are registered.");

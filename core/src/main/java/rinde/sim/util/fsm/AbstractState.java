@@ -3,6 +3,8 @@
  */
 package rinde.sim.util.fsm;
 
+import javax.annotation.Nullable;
+
 /**
  * Default empty implementation of state. Subclasses only need to implement the
  * {@link AbstractState#handle(Object, Object)} method.
@@ -17,8 +19,9 @@ public abstract class AbstractState<E, C> implements State<E, C> {
     return getClass().getName();
   }
 
+  @Nullable
   @Override
-  public abstract E handle(E event, C context);
+  public abstract E handle(@Nullable E event, C context);
 
   @Override
   public void onEntry(E event, C context) {}

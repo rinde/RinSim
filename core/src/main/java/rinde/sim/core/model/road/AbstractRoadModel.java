@@ -133,6 +133,9 @@ public abstract class AbstractRoadModel<T> extends GenericRoadModel {
 
   /**
    * Create a new instance.
+   * @param distanceUnit The distance unit used to interpret all supplied
+   *          distances.
+   * @param speedUnit The speed unit used to interpret all supplied speeds.
    */
   protected AbstractRoadModel(Unit<Length> distanceUnit,
       Unit<Velocity> speedUnit) {
@@ -357,13 +360,16 @@ public abstract class AbstractRoadModel<T> extends GenericRoadModel {
 
   @Override
   public boolean doRegister(RoadUser roadUser) {
+    LOGGER.info("register {}", roadUser);
     roadUser.initRoadUser(self);
     return true;
   }
 
   @Override
   public boolean unregister(RoadUser roadUser) {
-    if (containsObject(roadUser)) {
+    final boolean contains = containsObject(roadUser);
+    LOGGER.info("unregister {} succes: {}", roadUser, contains);
+    if (contains) {
       removeObject(roadUser);
       return true;
     }
