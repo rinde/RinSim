@@ -5,6 +5,7 @@
 package rinde.sim.pdptw.experiment;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
 
 import java.util.List;
@@ -330,9 +331,8 @@ public final class Experiment {
         final StringBuilder sb = new StringBuilder().append("[Scenario= ")
             .append(scenario).append(",").append(scenario.getProblemClass())
             .append(",").append(scenario.getProblemInstanceId()).append("]")
-            .append(",seed=").append(seed).append(",[Configuration=")
-            .append(configuration).append(",config=").append(configuration)
-            .append("]");
+            .append(",seed=").append(seed).append(",config=")
+            .append(configuration);
         throw new RuntimeException(sb.toString(), e);
       }
       // FIXME this should be changed into a more decent progress indicator
@@ -482,6 +482,18 @@ public final class Experiment {
     checkState(objFunc.isValidResult(stats),
         "The simulation did not result in a valid result: %s.", stats);
     return stats;
+  }
+
+  public static SimulationResult singleRun(DynamicPDPTWScenario scenario,
+      MASConfiguration configuration, long seed, ObjectiveFunction objFunc,
+      boolean showGui) {
+
+    final ExperimentRunner er = new ExperimentRunner(scenario, configuration,
+        seed, objFunc, showGui);
+    er.run();
+    final SimulationResult res = er.getResult();
+    checkNotNull(res);
+    return res;
   }
 
   /**
