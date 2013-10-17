@@ -14,8 +14,15 @@ import java.util.Map;
 import java.util.Set;
 
 import javax.annotation.Nullable;
+import javax.measure.unit.NonSI;
 
+import org.apache.commons.math3.random.MersenneTwister;
 import org.apache.commons.math3.random.RandomGenerator;
+
+import rinde.sim.pdptw.central.Solver;
+import rinde.sim.pdptw.central.SolverValidator;
+import rinde.sim.util.SupplierRng;
+import rinde.sim.util.SupplierRng.DefaultSupplierRng;
 
 import com.google.common.primitives.Ints;
 
@@ -116,4 +123,26 @@ public class RandomMVArraysSolver implements MultiVehicleArraysSolver {
       l.remove(new Integer(i));
     }
   }
+
+  public static SupplierRng<MultiVehicleArraysSolver> supplier() {
+    return new DefaultSupplierRng<MultiVehicleArraysSolver>() {
+      @Override
+      public MultiVehicleArraysSolver get(long seed) {
+        return ArraysSolverValidator.wrap(new RandomMVArraysSolver(
+            new MersenneTwister(seed)));
+      }
+    };
+  }
+
+  public static SupplierRng<Solver> solverSupplier() {
+    return new DefaultSupplierRng<Solver>() {
+      @Override
+      public Solver get(long seed) {
+        return SolverValidator.wrap(new MultiVehicleSolverAdapter(
+            ArraysSolverValidator.wrap(new RandomMVArraysSolver(
+                new MersenneTwister(seed))), NonSI.MINUTE));
+      }
+    };
+  }
+
 }
