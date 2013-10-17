@@ -6,6 +6,7 @@ package rinde.sim.pdptw.common;
 import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Sets.newHashSet;
 import static java.util.Arrays.asList;
+import static junit.framework.Assert.assertNotSame;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertSame;
@@ -183,6 +184,16 @@ public class RouteFollowingVehicleTest {
     d.tick(tl);
     assertSame(tl, d.getCurrentTime());
     assertFalse(tl.hasTimeLeft());
+
+    // tests whether internal states of vehicle match the state of the pdp model
+    // at all times
+    if (pm.getVehicleState(d) == VehicleState.DELIVERING
+        || pm.getVehicleState(d) == VehicleState.PICKING_UP) {
+      assertSame(d.serviceState, d.stateMachine.getCurrentState());
+    } else {
+      assertNotSame(d.serviceState, d.stateMachine.getCurrentState());
+    }
+
   }
 
   void tick(long beginMinute, long endMinute) {
@@ -407,7 +418,7 @@ public class RouteFollowingVehicleTest {
   }
 
   /**
-   * Tests whether setRoute correctly rejects too many occurences of a parcel.
+   * Tests whether setRoute correctly rejects too many occurrences of a parcel.
    */
   @Test
   public void setRouteTest3() {
@@ -652,12 +663,12 @@ public class RouteFollowingVehicleTest {
     } catch (final IllegalArgumentException e) {
       excep = true;
     }
-    assertTrue(excep != allowDelayedRouteChanges);
+    assertNotSame(excep, allowDelayedRouteChanges);
 
     tick(6, 7);
     assertEquals(d.serviceState, d.stateMachine.getCurrentState());
     tick(7, 8);
-    assertEquals(d.serviceState, d.stateMachine.getCurrentState());
+    assertEquals(d.waitState, d.stateMachine.getCurrentState());
     assertEquals(asList(p1), pm.getContents(d).asList());
 
     // it is still too early to go to p2, but the route should be updated

@@ -18,6 +18,9 @@ import javax.measure.quantity.Length;
 import javax.measure.quantity.Velocity;
 import javax.measure.unit.Unit;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import rinde.sim.core.TimeLapse;
 import rinde.sim.core.graph.Point;
 import rinde.sim.core.model.pdp.PDPModel;
@@ -25,9 +28,13 @@ import rinde.sim.core.model.pdp.PDPModel.ParcelState;
 import rinde.sim.core.model.pdp.PDPModel.VehicleState;
 import rinde.sim.core.model.pdp.Parcel;
 import rinde.sim.core.model.road.RoadModel;
+import rinde.sim.event.Event;
+import rinde.sim.event.Listener;
 import rinde.sim.pdptw.central.Solvers;
 import rinde.sim.util.fsm.AbstractState;
 import rinde.sim.util.fsm.StateMachine;
+import rinde.sim.util.fsm.StateMachine.StateMachineEvent;
+import rinde.sim.util.fsm.StateMachine.StateTransitionEvent;
 
 import com.google.common.base.Optional;
 import com.google.common.math.DoubleMath;
@@ -40,7 +47,7 @@ import com.google.common.math.DoubleMath;
  * underlying {@link PDPRoadModel} allows it, otherwise it will change its route
  * at the next possible instant.
  * <p>
- * This vehicle uses a strategy that postpones travelling towards a parcel such
+ * This vehicle uses a strategy that postpones traveling towards a parcel such
  * that any waiting time <i>at the parcel's site is minimized</i>.
  * <p>
  * If it is the end of the day (as defined by {@link #isEndOfDay(TimeLapse)})
@@ -48,6 +55,12 @@ import com.google.common.math.DoubleMath;
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
  */
 public class RouteFollowingVehicle extends DefaultVehicle {
+
+  /**
+   * The logger of the vehicle.
+   */
+  protected static final Logger LOGGER = LoggerFactory
+      .getLogger(RouteFollowingVehicle.class);
 
   /**
    * The state machine that defines the states and the allowed transitions
@@ -115,6 +128,16 @@ public class RouteFollowingVehicle extends DefaultVehicle {
         .addTransition(waitForServiceState, StateEvent.READY_TO_SERVICE,
             serviceState)
         .addTransition(serviceState, StateEvent.DONE, waitState).build();
+
+    final String v = Integer.toHexString(hashCode());
+    stateMachine.getEventAPI().addListener(new Listener() {
+      @Override
+      public void handleEvent(Event e) {
+        final StateTransitionEvent<StateEvent, RouteFollowingVehicle> event = (StateTransitionEvent<RouteFollowingVehicle.StateEvent, RouteFollowingVehicle>) e;
+        LOGGER.trace("{} - {} + {} -> {}", v, event.previousState, event.event,
+            event.newState);
+      }
+    }, StateMachineEvent.STATE_TRANSITION);
   }
 
   /**
@@ -401,7 +424,8 @@ public class RouteFollowingVehicle extends DefaultVehicle {
 
     @Nullable
     @Override
-    public StateEvent handle(StateEvent event, RouteFollowingVehicle context) {
+    public StateEvent handle(@Nullable StateEvent event,
+        RouteFollowingVehicle context) {
       if (!route.isEmpty()) {
         checkCurrentParcelOwnership();
         if (!isTooEarly(route.peek(), currentTime.get())) {
@@ -439,7 +463,8 @@ public class RouteFollowingVehicle extends DefaultVehicle {
 
     @Nullable
     @Override
-    public StateEvent handle(StateEvent event, RouteFollowingVehicle context) {
+    public StateEvent handle(@Nullable StateEvent event,
+        RouteFollowingVehicle context) {
       if (route.isEmpty()) {
         return StateEvent.NOGO;
       }
@@ -468,7 +493,8 @@ public class RouteFollowingVehicle extends DefaultVehicle {
 
     @Nullable
     @Override
-    public StateEvent handle(StateEvent event, RouteFollowingVehicle context) {
+    public StateEvent handle(@Nullable StateEvent event,
+        RouteFollowingVehicle context) {
       checkCurrentParcelOwnership();
       final PDPModel pm = pdpModel.get();
       final TimeLapse time = currentTime.get();
@@ -516,8 +542,9 @@ public class RouteFollowingVehicle extends DefaultVehicle {
 
     @Nullable
     @Override
-    public StateEvent handle(StateEvent event, RouteFollowingVehicle context) {
-      if (currentTime.get().hasTimeLeft()) {
+    public StateEvent handle(@Nullable StateEvent event,
+        RouteFollowingVehicle context) {
+      if (pdpModel.get().getVehicleState(context) == VehicleState.IDLE) {
         route.remove();
         return StateEvent.DONE;
       }

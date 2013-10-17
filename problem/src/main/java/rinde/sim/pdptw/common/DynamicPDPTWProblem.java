@@ -244,7 +244,7 @@ public class DynamicPDPTWProblem {
   /**
    * Using this method a {@link Creator} instance can be associated with a
    * certain event. The creator will be called when the event is issued, it is
-   * the responsibility of the {@link Creator} the create the apropriate
+   * the responsibility of the {@link Creator} the create the appropriate
    * response. This method will override a previously existing creator for the
    * specified event type if applicable.
    * @param eventType The event type to which the creator will be associated.

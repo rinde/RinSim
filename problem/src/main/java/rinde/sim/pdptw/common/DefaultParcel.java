@@ -35,6 +35,6 @@ public class DefaultParcel extends Parcel {
 
   @Override
   public String toString() {
-    return "[DefaultParcel " + dto + " ]";
+    return "[DefaultParcel " + dto + "]";
   }
 }
