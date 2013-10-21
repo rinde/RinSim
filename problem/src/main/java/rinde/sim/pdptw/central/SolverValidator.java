@@ -106,6 +106,12 @@ public final class SolverValidator {
     return state;
   }
 
+  /**
+   * Validate the route of a vehicle.
+   * @param vs The vehicle to check.
+   * @param i The index of the vehicle, only used to generate nice error
+   *          messages.
+   */
   public static void checkRoute(VehicleStateObject vs, int i) {
     checkArgument(vs.route.isPresent());
     checkArgument(

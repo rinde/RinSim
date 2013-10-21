@@ -63,6 +63,18 @@ import com.google.common.collect.ImmutableMap;
 public class DynamicPDPTWProblem {
 
   // TODO create a builder for configuration of problems
+  // TODO a scenario should be an event list AND a pre-configured set of models
+  // describing the complete problem
+
+  // TODO a StopCondition should be a first class simulator entity
+
+  // TODO perhaps a UI config should also be bundled easily?
+
+  // TODO stats system should be more modular (per model?) and hook directly in
+  // the simulator
+
+  // TODO if there can be some generic way to hook custom agents into the
+  // simulator/scenario, this class can probably be removed
 
   /**
    * A map which contains the default {@link Creator}s.
@@ -136,6 +148,7 @@ public class DynamicPDPTWProblem {
     eventCreatorMap = newHashMap();
 
     final TimedEventHandler handler = new TimedEventHandler() {
+      @SuppressWarnings("unchecked")
       @Override
       public boolean handleTimedEvent(TimedEvent event) {
         if (eventCreatorMap.containsKey(event.getClass())) {

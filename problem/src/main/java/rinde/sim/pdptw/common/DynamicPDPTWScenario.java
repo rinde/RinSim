@@ -24,36 +24,66 @@ import rinde.sim.util.TimeWindow;
 import rinde.sim.util.spec.Specification.ISpecification;
 
 /**
+ * A {@link Scenario} that defines a <i>dynamic pickup-and-delivery problem with
+ * time windows</i>. It contains all information needed to instantiate an entire
+ * simulation.
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
- * 
  */
 public abstract class DynamicPDPTWScenario extends Scenario {
 
   private static final long serialVersionUID = 7258024865764689371L;
 
-  public DynamicPDPTWScenario() {
+  /**
+   * New empty instance.
+   */
+  protected DynamicPDPTWScenario() {
     super();
   }
 
-  public DynamicPDPTWScenario(Collection<? extends TimedEvent> events,
+  protected DynamicPDPTWScenario(Collection<? extends TimedEvent> events,
       Set<Enum<?>> supportedTypes) {
     super(events, supportedTypes);
   }
 
+  /**
+   * @return A {@link RoadModel} instance that should be used in this scenario.
+   */
   public abstract RoadModel createRoadModel();
 
+  /**
+   * @return A {@link PDPModel} instance that should be used in this scenario.
+   */
   public abstract PDPModel createPDPModel();
 
+  /**
+   * @return The {@link TimeWindow} of the scenario indicates the start and end
+   *         of scenario.
+   */
   public abstract TimeWindow getTimeWindow();
 
+  /**
+   * @return The size of a tick.
+   */
   public abstract long getTickSize();
 
+  /**
+   * @return The stop condition indicating when a simulation should end.
+   */
   public abstract ISpecification<SimulationInfo> getStopCondition();
 
+  /**
+   * @return The time unit used in the simulator.
+   */
   public abstract Unit<Duration> getTimeUnit();
 
+  /**
+   * @return The speed unit used in the {@link RoadModel}.
+   */
   public abstract Unit<Velocity> getSpeedUnit();
 
+  /**
+   * @return The distance unit used in the {@link RoadModel}.
+   */
   public abstract Unit<Length> getDistanceUnit();
 
   public abstract ProblemClass getProblemClass();
