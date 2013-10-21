@@ -466,8 +466,8 @@ public final class Solvers {
     /**
      * Converts the simulation state into a value object which is used by the
      * solver internally.
-     * @param parcels
-     * @param currentRoute
+     * @param parcels The parcels for which a route is searched for.
+     * @param currentRoute The current route.
      * @return The {@link StateContext} containing the simulation state.
      */
     StateContext convert(Collection<DefaultParcel> parcels,

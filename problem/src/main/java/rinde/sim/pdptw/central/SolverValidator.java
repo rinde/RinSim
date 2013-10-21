@@ -100,35 +100,39 @@ public final class SolverValidator {
       }
 
       if (vs.route.isPresent()) {
-        checkArgument(
-            vs.route.get().containsAll(vs.contents),
-            "Vehicle %s's route doesn't contain all locations it has in cargo. Route: %s, cargo: %s.",
-            i, vs.route.get(), vs.contents);
-        if (vs.destination != null) {
-          checkArgument(
-              !vs.route.get().isEmpty()
-                  && vs.route.get().get(0) == vs.destination,
-              "First location in route must equal destination (%s), route is: %s.",
-              vs.destination, vs.route.get());
-        }
-
-        for (final ParcelDTO dp : vs.route.get()) {
-          final int freq = Collections.frequency(vs.route.get(), dp);
-          if (vs.contents.contains(dp)) {
-            checkArgument(
-                freq == 1,
-                "A parcel already in cargo should occur once in the route, found %s instance(s). Parcel: %s, route: %s.",
-                freq, dp, vs.route.get());
-          } else {
-            checkArgument(
-                freq == 2,
-                "A parcel that is still available should occur twice in the route, found %s instance(s). Parcel: %s, route: %s.",
-                freq, dp, vs.route.get(), vs.remainingServiceTime);
-          }
-        }
+        checkRoute(vs, i);
       }
     }
     return state;
+  }
+
+  public static void checkRoute(VehicleStateObject vs, int i) {
+    checkArgument(vs.route.isPresent());
+    checkArgument(
+        vs.route.get().containsAll(vs.contents),
+        "Vehicle %s's route doesn't contain all locations it has in cargo. Route: %s, cargo: %s.",
+        i, vs.route.get(), vs.contents);
+    if (vs.destination != null) {
+      checkArgument(!vs.route.get().isEmpty()
+          && vs.route.get().get(0) == vs.destination,
+          "First location in route must equal destination (%s), route is: %s.",
+          vs.destination, vs.route.get());
+    }
+
+    for (final ParcelDTO dp : vs.route.get()) {
+      final int freq = Collections.frequency(vs.route.get(), dp);
+      if (vs.contents.contains(dp)) {
+        checkArgument(
+            freq == 1,
+            "A parcel already in cargo should occur once in the route, found %s instance(s). Parcel: %s, route: %s.",
+            freq, dp, vs.route.get());
+      } else {
+        checkArgument(
+            freq == 2,
+            "A parcel that is still available should occur twice in the route, found %s instance(s). Parcel: %s, route: %s.",
+            freq, dp, vs.route.get(), vs.remainingServiceTime);
+      }
+    }
   }
 
   /**
