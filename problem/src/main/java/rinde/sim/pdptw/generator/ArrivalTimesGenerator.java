@@ -8,7 +8,8 @@ public interface ArrivalTimesGenerator {
   /**
    * 
    * @param rng
-   * @return An immutable list in ascending order, may contain duplicates.
+   * @return An immutable list of arrival times in ascending order, may contain
+   *         duplicates.
    */
   ImmutableList<Long> generate(RandomGenerator rng);
 }

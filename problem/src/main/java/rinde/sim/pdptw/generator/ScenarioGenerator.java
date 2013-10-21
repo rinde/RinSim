@@ -97,7 +97,7 @@ public class ScenarioGenerator {
     private double ordersPerAnnouncement = -1;
     private long scenarioLength = -1;
 
-    private Builder() {}
+    Builder() {}
 
     public Builder setAnnouncementIntensityPerKm2(double intensity) {
       checkArgument(intensity > 0d, "Intensity must be a positive number.");
