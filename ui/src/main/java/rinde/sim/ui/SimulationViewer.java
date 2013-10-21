@@ -578,6 +578,7 @@ public class SimulationViewer extends Composite implements TickListener,
       return;
     }
     lastRefresh = timeLapse.getStartTime();
+    // TODO sleep should be relative to speedUp as well?
     try {
       Thread.sleep(30);
     } catch (final InterruptedException e) {
