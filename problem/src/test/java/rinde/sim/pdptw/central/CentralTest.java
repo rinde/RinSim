@@ -27,7 +27,8 @@ import rinde.sim.core.model.pdp.DefaultPDPModel;
 import rinde.sim.core.model.pdp.PDPModel;
 import rinde.sim.core.model.pdp.twpolicy.TardyAllowedPolicy;
 import rinde.sim.core.model.road.PlaneRoadModel;
-import rinde.sim.pdptw.central.Solvers.SolverHandle;
+import rinde.sim.pdptw.central.Solvers.SimulationConverter;
+import rinde.sim.pdptw.central.Solvers.SolveArgs;
 import rinde.sim.pdptw.central.Solvers.StateContext;
 import rinde.sim.pdptw.central.arrays.ArraysSolverValidator;
 import rinde.sim.pdptw.central.arrays.MultiVehicleSolverAdapter;
@@ -114,9 +115,10 @@ public class CentralTest {
     final TestVehicle v2 = new TestVehicle(new Point(0, 1));
     PDPTWTestUtil.register(sim, p1, p2, p3, v1, v2);
 
-    final SolverHandle s = (SolverHandle) Solvers.solver(null, sim);
+    final SimulationConverter s = Solvers.converterBuilder().with(sim).build();
 
-    StateContext res = s.convert(null);
+    StateContext res = s.convert(SolveArgs.create().useAllParcels()
+        .noCurrentRoutes());
     assertEquals(2, res.state.vehicles.size());
     assertTrue(res.state.vehicles.get(0).contents.isEmpty());
     assertNull(res.state.vehicles.get(0).destination);
@@ -131,7 +133,8 @@ public class CentralTest {
 
     while (v1.getState() == v1.getGotoState()) {
       assertFalse(new Point(0, 1).equals(rm.getPosition(v1)));
-      res = s.convert(null);
+      res = s.convert(SolveArgs.create().useAllParcels()
+          .noCurrentRoutes());
       assertEquals(2, res.state.vehicles.size());
       assertTrue(res.state.vehicles.get(0).contents.isEmpty());
       assertEquals(p1.dto, res.state.vehicles.get(0).destination);
@@ -142,7 +145,7 @@ public class CentralTest {
     // arrived at parcel1: waitForService
     assertEquals(new Point(3, 0), rm.getPosition(v1));
     assertEquals(v1.getWaitForServiceState(), v1.getState());
-    res = s.convert(null);
+    res = s.convert(SolveArgs.create().useAllParcels().noCurrentRoutes());
     assertEquals(2, res.state.vehicles.size());
     assertTrue(res.state.vehicles.get(0).contents.isEmpty());
     assertEquals(p1.dto, res.state.vehicles.get(0).destination);
@@ -151,7 +154,7 @@ public class CentralTest {
     // start servicing: service
     sim.tick();
     assertEquals(v1.getServiceState(), v1.getState());
-    res = s.convert(null);
+    res = s.convert(SolveArgs.create().useAllParcels().noCurrentRoutes());
     assertSame(p1.dto, res.state.vehicles.get(0).destination);
     assertEquals(v1.getServiceState(), v1.getState());
   }

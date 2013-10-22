@@ -8,7 +8,6 @@ import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Lists.newLinkedList;
 import static com.google.common.collect.Sets.newHashSet;
 import static com.google.common.collect.Sets.newLinkedHashSet;
-import static java.util.Arrays.asList;
 
 import java.math.RoundingMode;
 import java.util.Collection;
@@ -56,44 +55,20 @@ public final class Solvers {
   private Solvers() {}
 
   /**
-   * Create a {@link MVSolverHandle} which can be used to repeatedly solve multi
-   * vehicle routing problem instances using the same {@link Solver} and
-   * {@link Simulator} instance.
-   * @param sol The {@link Solver} to use.
-   * @param sim The {@link Simulator} to use.
-   * @return The handle.
+   * Creates a builder for creating {@link SimulationSolver} instances.
+   * @param sol The solver to use internally.
+   * @return The builder.
    */
-  public static MVSolverHandle solver(Solver sol, Simulator sim) {
-    return new SolverHandle(sol, sim.getModelProvider(), sim);
+  public static AdapterBuilder<SimulationSolver> solverBuilder(Solver sol) {
+    return new AdapterBuilder<SimulationSolver>(sol);
   }
 
   /**
-   * Create a {@link MVSolverHandle} which can be used to repeatedly solve multi
-   * vehicle routing problem instances using the same {@link Solver},
-   * {@link ModelProvider} and {@link SimulatorAPI} instance.
-   * @param sol The {@link Solver} to use.
-   * @param mp The {@link ModelProvider} to use.
-   * @param simulator The {@link Simulator} to use.
-   * @return The handle.
+   * Creates a builder for creating {@link SimulationConverter} instances.
+   * @return The builder.
    */
-  public static MVSolverHandle solver(Solver sol, ModelProvider mp,
-      SimulatorAPI simulator) {
-    return new SolverHandle(sol, mp, simulator);
-  }
-
-  /**
-   * Create a {@link SVSolverHandle} which can be used to repeatedly solve
-   * single vehicle routing problem instances.
-   * @param s The {@link Solver} to use.
-   * @param rm The {@link PDPRoadModel} to use.
-   * @param pm The {@link PDPModel} to use.
-   * @param sim The {@link SimulatorAPI} of the simulator.
-   * @param v The {@link DefaultVehicle} to solve the problem for.
-   * @return A {@link SVSolverHandle}.
-   */
-  public static SVSolverHandle singleVehicleSolver(Solver s, PDPRoadModel rm,
-      PDPModel pm, SimulatorAPI sim, DefaultVehicle v) {
-    return new SingleVehicleSolverHandle(s, rm, pm, sim, v);
+  public static AdapterBuilder<SimulationConverter> converterBuilder() {
+    return new AdapterBuilder<SimulationConverter>(null);
   }
 
   /**
@@ -341,7 +316,7 @@ public final class Solvers {
   static StateContext convert(PDPRoadModel rm, PDPModel pm,
       Collection<DefaultVehicle> vehicles,
       Collection<DefaultParcel> availableParcels, Measure<Long, Duration> time,
-      @Nullable ImmutableList<ImmutableList<DefaultParcel>> currentRoutes) {
+      Optional<ImmutableList<ImmutableList<DefaultParcel>>> currentRoutes) {
 
     final ImmutableMap<ParcelDTO, DefaultParcel> parcelMap = toMap(availableParcels);
     final ImmutableMap<VehicleDTO, DefaultVehicle> vehicleMap = toVehicleMap(vehicles);
@@ -353,11 +328,11 @@ public final class Solvers {
 
     @Nullable
     Iterator<ImmutableList<DefaultParcel>> routeIterator = null;
-    if (currentRoutes != null) {
-      checkArgument(currentRoutes.size() == vehicles.size(),
+    if (currentRoutes.isPresent()) {
+      checkArgument(currentRoutes.get().size() == vehicles.size(),
           "The number of routes (%s) must equal the number of vehicles (%s).",
-          currentRoutes.size(), vehicles.size());
-      routeIterator = currentRoutes.iterator();
+          currentRoutes.get().size(), vehicles.size());
+      routeIterator = currentRoutes.get().iterator();
     }
 
     for (final DefaultVehicle v : vehicles) {
@@ -438,148 +413,306 @@ public final class Solvers {
   }
 
   /**
-   * A handle for solving single vehicle routing problems.
+   * Converter that converts simulations into {@link StateContext} instances
+   * which are needed to call {@link Solver#solve(GlobalStateObject)}.
    * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
    */
-  public interface SVSolverHandle {
+  public interface SimulationConverter {
     /**
-     * Solve the single vehicle problem instance using the provided collection
-     * of {@link DefaultParcel}s.
-     * @param parcels The parcels for which a route is searched for.
-     * @return A route containing all specified parcels and the parcels which
-     *         are currently in the cargo of the vehicle.
+     * Converts the simulation into a {@link StateContext} object.
+     * @param args {@link SolveArgs}.
+     * @return {@link StateContext}.
      */
-    Queue<DefaultParcel> solve(Collection<DefaultParcel> parcels);
-
-    /**
-     * Solve the single vehicle problem instance using the provided collection
-     * of {@link DefaultParcel}s. And additionally a list containing the route
-     * the vehicle is currently following.
-     * @param parcels The parcels for which a route is searched for.
-     * @param currentRoute The current route.
-     * @return A route containing all specified parcels and the parcels which
-     *         are currently in the cargo of the vehicle.
-     */
-    Queue<DefaultParcel> solve(Collection<DefaultParcel> parcels,
-        @Nullable ImmutableList<DefaultParcel> currentRoute);
-
-    /**
-     * Converts the simulation state into a value object which is used by the
-     * solver internally.
-     * @param parcels The parcels for which a route is searched for.
-     * @param currentRoute The current route.
-     * @return The {@link StateContext} containing the simulation state.
-     */
-    StateContext convert(Collection<DefaultParcel> parcels,
-        @Nullable ImmutableList<DefaultParcel> currentRoute);
+    StateContext convert(SolveArgs args);
   }
 
   /**
-   * A handle for solving multi vehicle routing problems.
+   * Builder for specifying parameters used in {@link SimulationSolver} and
+   * {@link SimulationConverter}.
    * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
    */
-  public interface MVSolverHandle {
-    /**
-     * Solve the multi vehicle problem instance as represented by this handle's
-     * simulator instance.
-     * @return A list of routes, one for every vehicle in the simulation.
-     */
-    List<Queue<DefaultParcel>> solve();
+  public static class SolveArgs {
+    Optional<Collection<DefaultParcel>> parcels;
+    Optional<ImmutableList<ImmutableList<DefaultParcel>>> currentRoutes;
+
+    private SolveArgs() {
+      parcels = Optional.absent();
+      currentRoutes = Optional.absent();
+    }
 
     /**
-     * Solve the multi vehicle problem instance as represented by this handle's
-     * simulator instance.
-     * @param currentRoutes A list of current routes the vehicles are following.
-     * @return A list of routes, one for every vehicle in the simulation.
+     * @return {@link SolveArgs} builder.
      */
-    List<Queue<DefaultParcel>> solve(
-        @Nullable ImmutableList<ImmutableList<DefaultParcel>> currentRoutes);
+    public static SolveArgs create() {
+      return new SolveArgs();
+    }
+
+    /**
+     * Indicates that receivers of this object should use all parcels it knows.
+     * @return This, as per the builder pattern.
+     */
+    public SolveArgs useAllParcels() {
+      parcels = Optional.absent();
+      return this;
+    }
+
+    /**
+     * Indicates that receivers of this object should use only the parcels that
+     * are specified.
+     * @param ps The parcels to use.
+     * @return This, as per the builder pattern.
+     */
+    public SolveArgs useParcels(Collection<DefaultParcel> ps) {
+      parcels = Optional.of(ps);
+      return this;
+    }
+
+    /**
+     * Indicates that receivers of this object should use no current routes for
+     * the vehicles it knows about.
+     * @return This, as per the builder pattern.
+     */
+    public SolveArgs noCurrentRoutes() {
+      currentRoutes = Optional.absent();
+      return this;
+    }
+
+    /**
+     * Indicates that receivers of this object should use the specified current
+     * routes for the vehicles it knows about. The number of specified route
+     * needs to match the number of known vehicles.
+     * @param cr The current routes to use.
+     * @return This, as per the builder pattern.
+     */
+    public SolveArgs useCurrentRoutes(
+        ImmutableList<ImmutableList<DefaultParcel>> cr) {
+      currentRoutes = Optional.of(cr);
+      return this;
+    }
   }
 
-  static class SingleVehicleSolverHandle extends SolverHandle implements
-      SVSolverHandle {
-
-    private final DefaultVehicle vehicle;
-
-    SingleVehicleSolverHandle(Solver s, PDPRoadModel rm, PDPModel pm,
-        SimulatorAPI sim, DefaultVehicle v) {
-      super(s, rm, pm, sim);
-      vehicle = v;
-    }
-
-    @Override
-    public Queue<DefaultParcel> solve(Collection<DefaultParcel> parcels) {
-      return solve(parcels, null);
-    }
-
-    @Override
-    public Queue<DefaultParcel> solve(Collection<DefaultParcel> parcels,
-        @Nullable ImmutableList<DefaultParcel> currentRoute) {
-      final StateContext state = convert(parcels, currentRoute);
-      return Solvers.convertRoutes(state, solver.solve(state.state)).get(0);
-    }
-
-    @Override
-    public StateContext convert(Collection<DefaultParcel> parcels,
-        @Nullable ImmutableList<DefaultParcel> currentRoute) {
-      return Solvers.convert(rm, pm, asList(vehicle), parcels, time(),
-          currentRoute == null ? null : ImmutableList.of(currentRoute));
-    }
-  }
-
-  static class SolverHandle implements MVSolverHandle {
-    final Solver solver;
+  /**
+   * Adapter for {@link Solver}s.
+   * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+   */
+  public static class SimulationSolver implements SimulationConverter {
+    final Optional<Solver> solver;
     final SimulatorAPI simulator;
-    final PDPRoadModel rm;
-    final PDPModel pm;
+    final PDPRoadModel roadModel;
+    final PDPModel pdpModel;
+    final List<DefaultVehicle> vehicles;
 
-    SolverHandle(Solver s, ModelProvider mp, SimulatorAPI sim) {
+    SimulationSolver(Optional<Solver> s, PDPRoadModel rm, PDPModel pm,
+        SimulatorAPI sim, List<DefaultVehicle> vs) {
       solver = s;
       simulator = sim;
-      final PDPRoadModel r = mp.getModel(PDPRoadModel.class);
-      checkArgument(r != null);
-      rm = r;
-      final PDPModel p = mp.getModel(PDPModel.class);
-      checkArgument(p != null);
-      pm = p;
+      roadModel = rm;
+      pdpModel = pm;
+      vehicles = vs;
     }
 
-    SolverHandle(Solver s, PDPRoadModel rm, PDPModel pm, SimulatorAPI sim) {
-      solver = s;
-      simulator = sim;
-      this.rm = rm;
-      this.pm = pm;
+    /**
+     * Calls the {@link Solver} to solve the problem as defined by the current
+     * simulation state.
+     * @param args {@link SolveArgs} specifying what information to include.
+     * @return A list containing routes for each vehicle known to this solver.
+     */
+    public List<Queue<DefaultParcel>> solve(SolveArgs args) {
+      return solve(convert(args));
+    }
+
+    /**
+     * Calls the {@link Solver} to solve the problem as defined by the current
+     * simulation state.
+     * @param state The {@link StateContext} that specifies the current
+     *          simulation state.
+     * @return A list of routes, one for each vehicle.
+     */
+    public List<Queue<DefaultParcel>> solve(StateContext state) {
+      return Solvers.convertRoutes(state, solver.get().solve(state.state));
     }
 
     @Override
-    public List<Queue<DefaultParcel>> solve() {
-      return solve(null);
-    }
-
-    @Override
-    public List<Queue<DefaultParcel>> solve(
-        @Nullable ImmutableList<ImmutableList<DefaultParcel>> currentRoutes) {
-      final StateContext state = convert(currentRoutes);
-      return Solvers.convertRoutes(state, solver.solve(state.state));
+    public StateContext convert(SolveArgs args) {
+      final Collection<DefaultVehicle> vs = vehicles.isEmpty() ? roadModel
+          .getObjectsOfType(DefaultVehicle.class) : vehicles;
+      final Collection<DefaultParcel> ps = args.parcels.isPresent() ? args.parcels
+          .get() : conv(pdpModel.getParcels(ParcelState.ANNOUNCED,
+          ParcelState.AVAILABLE, ParcelState.PICKING_UP));
+      return Solvers.convert(roadModel, pdpModel, vs, ps, time(),
+          args.currentRoutes);
     }
 
     Measure<Long, Duration> time() {
       return Measure.valueOf(simulator.getCurrentTime(),
           simulator.getTimeUnit());
     }
-
-    StateContext convert(
-        @Nullable ImmutableList<ImmutableList<DefaultParcel>> currentRoutes) {
-      return Solvers.convert(rm, pm, rm.getObjectsOfType(DefaultVehicle.class),
-          conv(pm.getParcels(ParcelState.ANNOUNCED, ParcelState.AVAILABLE,
-              ParcelState.PICKING_UP)), time(), currentRoutes);
-    }
-
   }
 
   /**
-   * Value object containing information a {@link GlobalStateObject} and two
-   * maps with references to the original vehicles and parcels.
+   * Builder for creating adapters for {@link Solver}s that need to solve
+   * simulation instances. For creating an adapter four different pieces of
+   * information are required, each can be supplied to this builder via a
+   * variety of methods which are listed below.
+   * <ul>
+   * <li>{@link PDPRoadModel} - can be supplied directly, via a
+   * {@link ModelProvider} or via {@link Simulator} instance</li>
+   * <li>{@link PDPModel} - can be supplied directly, via a
+   * {@link ModelProvider} or via {@link Simulator} instance</li>
+   * <li>{@link SimulatorAPI} - can be supplied directly or via a
+   * {@link Simulator} instance.</li>
+   * <li>A number of {@link DefaultVehicle}s - can be supplied directly or if
+   * not supplied all vehicles available in the {@link PDPRoadModel} instance
+   * will be used.</li>
+   * </ul>
+   * 
+   * @param <T> The type of adapter to produce.
+   * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+   */
+  public static class AdapterBuilder<T extends SimulationConverter> {
+    Simulator simulator;
+    SimulatorAPI simulatorApi;
+    ModelProvider modelProvider;
+    PDPRoadModel roadModel;
+    PDPModel pdpModel;
+    final List<DefaultVehicle> vehicles;
+    final Optional<Solver> solver;
+
+    AdapterBuilder(@Nullable Solver s) {
+      solver = Optional.fromNullable(s);
+      vehicles = newArrayList();
+    }
+
+    /**
+     * @param sim The {@link Simulator} to provide to the adapter.
+     * @return This, as per the builder pattern.
+     */
+    public AdapterBuilder<T> with(Simulator sim) {
+      simulator = sim;
+      return this;
+    }
+
+    /**
+     * @param mp The {@link ModelProvider} to use for extracting the models.
+     *          Calls to this method take precedence over
+     *          {@link #with(Simulator)}.
+     * @return This, as per the builder pattern.
+     */
+    public AdapterBuilder<T> with(ModelProvider mp) {
+      modelProvider = mp;
+      return this;
+    }
+
+    /**
+     * @param rm The {@link PDPRoadModel} to use in the adapter. Calls to this
+     *          method take precedence over {@link #with(ModelProvider)} and
+     *          {@link #with(Simulator)}.
+     * @return This, as per the builder pattern.
+     */
+    public AdapterBuilder<T> with(PDPRoadModel rm) {
+      roadModel = rm;
+      return this;
+    }
+
+    /**
+     * @param pm The {@link PDPModel} to use in the adapter. Calls to this
+     *          method take precedence over {@link #with(ModelProvider)} and
+     *          {@link #with(Simulator)}.
+     * @return This, as per the builder pattern.
+     */
+    public AdapterBuilder<T> with(PDPModel pm) {
+      pdpModel = pm;
+      return this;
+    }
+
+    /**
+     * @param sim The {@link SimulatorAPI} to use in the adapter. Calls to this
+     *          method take precedence over {@link #with(Simulator)}.
+     * @return This, as per the builder pattern.
+     */
+    public AdapterBuilder<T> with(SimulatorAPI sim) {
+      simulatorApi = sim;
+      return this;
+    }
+
+    /**
+     * Adds the specified vehicle to the resulting adapter, the vehicle will be
+     * included in the resulting adapter. When no vehicles are supplied, the
+     * adapter will use all vehicles in {@link PDPRoadModel}.
+     * @param dv The {@link DefaultVehicle} to add.
+     * @return This, as per the builder pattern.
+     */
+    public AdapterBuilder<T> with(DefaultVehicle dv) {
+      vehicles.add(dv);
+      return this;
+    }
+
+    /**
+     * Adds the specified vehicles to the resulting adapter, the vehicles will
+     * be included in the resulting adapter. When no vehicles are supplied, the
+     * adapter will use all vehicles in {@link PDPRoadModel}.
+     * @param dv The {@link DefaultVehicle}s to include.
+     * @return This, as per the builder pattern.
+     */
+    public AdapterBuilder<T> with(List<DefaultVehicle> dv) {
+      vehicles.addAll(dv);
+      return this;
+    }
+
+    /**
+     * Builds the adapter.
+     * @return The newly created adapter.
+     */
+    @SuppressWarnings("unchecked")
+    public T build() {
+      PDPRoadModel rm = roadModel;
+      PDPModel pm = pdpModel;
+      if (rm == null || pm == null) {
+        // in this case we need a model provider
+        ModelProvider mp = modelProvider;
+        if (mp == null) {
+          checkArgument(
+              simulator != null,
+              "Attempt to find a model provider failed. Either provide the models directly, provide a model provider or a simulator.");
+          mp = simulator.getModelProvider();
+        }
+
+        if (rm == null) {
+          rm = mp.getModel(PDPRoadModel.class);
+        }
+        if (pm == null) {
+          pm = mp.getModel(PDPModel.class);
+        }
+      }
+
+      SimulatorAPI sapi = simulatorApi;
+      if (sapi == null) {
+        sapi = simulator;
+      }
+      if (sapi != null && rm != null && pm != null) {
+        return (T) new SimulationSolver(solver, rm, pm, sapi, vehicles);
+      } else {
+        throw new IllegalArgumentException(
+            "Not all required components could be found, PDPRoadModel: " + rm
+                + ", PDPModel: " + pm + ", SimulatorAPI: " + sapi);
+      }
+    }
+
+    /**
+     * Builds an adapter which can deal with only one vehicle.
+     * @return A new created adapter.
+     */
+    public T buildSingle() {
+      checkArgument(vehicles.size() == 1);
+      return build();
+    }
+  }
+
+  /**
+   * Value object containing representing the state of a simulation. It contains
+   * a {@link GlobalStateObject} (the actual state) and two maps with references
+   * to the original vehicles and parcels. Using these maps the state object can
+   * be translated back to the original simulation objects.
    * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
    */
   public static class StateContext {

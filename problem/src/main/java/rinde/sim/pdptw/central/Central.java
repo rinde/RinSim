@@ -15,7 +15,8 @@ import rinde.sim.core.TimeLapse;
 import rinde.sim.core.model.Model;
 import rinde.sim.core.model.ModelProvider;
 import rinde.sim.core.model.ModelReceiver;
-import rinde.sim.pdptw.central.Solvers.MVSolverHandle;
+import rinde.sim.pdptw.central.Solvers.SimulationSolver;
+import rinde.sim.pdptw.central.Solvers.SolveArgs;
 import rinde.sim.pdptw.common.AddVehicleEvent;
 import rinde.sim.pdptw.common.DefaultParcel;
 import rinde.sim.pdptw.common.DynamicPDPTWProblem.Creator;
@@ -122,14 +123,14 @@ public final class Central {
     private boolean hasChanged;
     private Optional<ModelProvider> modelProvider;
     private Optional<PDPRoadModel> roadModel;
-    private Optional<MVSolverHandle> solverHandle;
+    private Optional<SimulationSolver> solverAdapter;
     private final Solver solver;
     private Optional<SimulatorAPI> simulatorAPI;
 
     CentralModel(Solver solver) {
       modelProvider = Optional.absent();
       roadModel = Optional.absent();
-      solverHandle = Optional.absent();
+      solverAdapter = Optional.absent();
       simulatorAPI = Optional.absent();
       this.solver = solver;
     }
@@ -172,8 +173,11 @@ public final class Central {
           currentRouteBuilder.add(l);
         }
 
-        final Iterator<Queue<DefaultParcel>> routes = solverHandle.get()
-            .solve(currentRouteBuilder.build()).iterator();
+        final Iterator<Queue<DefaultParcel>> routes = solverAdapter
+            .get()
+            .solve(
+                SolveArgs.create().useAllParcels()
+                    .useCurrentRoutes(currentRouteBuilder.build())).iterator();
 
         for (final RouteFollowingVehicle vehicle : vehicles) {
           vehicle.setRoute(routes.next());
@@ -199,8 +203,9 @@ public final class Central {
 
     void initSolver() {
       if (modelProvider.isPresent() && simulatorAPI.isPresent()) {
-        solverHandle = Optional.of(Solvers.solver(solver, modelProvider.get(),
-            simulatorAPI.get()));
+
+        solverAdapter = Optional.of(Solvers.solverBuilder(solver)
+            .with(modelProvider.get()).with(simulatorAPI.get()).build());
       }
     }
   }

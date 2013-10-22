@@ -41,7 +41,8 @@ import rinde.sim.core.model.pdp.twpolicy.TardyAllowedPolicy;
 import rinde.sim.core.model.road.PlaneRoadModel;
 import rinde.sim.event.EventAPI;
 import rinde.sim.pdptw.central.GlobalStateObject.VehicleStateObject;
-import rinde.sim.pdptw.central.Solvers.SolverHandle;
+import rinde.sim.pdptw.central.Solvers.SimulationConverter;
+import rinde.sim.pdptw.central.Solvers.SolveArgs;
 import rinde.sim.pdptw.central.Solvers.StateContext;
 import rinde.sim.pdptw.common.DefaultParcel;
 import rinde.sim.pdptw.common.DefaultVehicle;
@@ -104,9 +105,11 @@ public class SolversTest {
     PDPTWTestUtil.register(rm, pm, v1, p1);
 
     final TestSimAPI simAPI = new TestSimAPI(0, 1, NonSI.MINUTE);
-    final SolverHandle handle = (SolverHandle) Solvers.solver(null, mp, simAPI);
+    final SimulationConverter handle = Solvers.converterBuilder().with(mp)
+        .with(simAPI).build();
 
-    final StateContext sc = handle.convert(null);
+    final StateContext sc = handle.convert(SolveArgs.create().useAllParcels()
+        .noCurrentRoutes());
     assertEquals(ImmutableMap.of(v1.dto, v1), sc.vehicleMap);
     assertEquals(ImmutableMap.of(p1.dto, p1), sc.parcelMap);
 
@@ -115,14 +118,17 @@ public class SolversTest {
 
     rm.moveTo(v1, p1, create(NonSI.HOUR, 0L, 1L));
 
-    checkVehicles(asList(v1), handle.convert(null).state.vehicles);
+    checkVehicles(
+        asList(v1),
+        handle.convert(SolveArgs.create().useAllParcels().noCurrentRoutes()).state.vehicles);
 
     rm.moveTo(v1, p1, create(NonSI.HOUR, 0, 40));
     assertTrue(rm.equalPosition(v1, p1));
     pm.service(v1, p1, create(NonSI.HOUR, 0, 1));
 
     assertEquals(VehicleState.PICKING_UP, pm.getVehicleState(v1));
-    final StateContext sc2 = handle.convert(null);
+    final StateContext sc2 = handle.convert(SolveArgs.create().useAllParcels()
+        .noCurrentRoutes());
 
     assertTrue(sc2.state.availableParcels.contains(p1.dto));
     assertFalse(sc2.state.vehicles.get(0).contents.contains(p1.dto));
@@ -170,12 +176,9 @@ public class SolversTest {
 
   @Test
   public void test() {
-
-    // new GlobalStateObject(availableParcels, vehicles, time, timeUnit,
-    // speedUnit, distUnit)
-
-    // Solvers.computeStats(context, routes)
-
+    // TODO implement tests for the builder
+    // Solvers.solverBuilder(RandomMVArraysSolver.solverSupplier().get(123))
+    // .build();
   }
 
   static Set<ParcelDTO> toParcelDTOs(Collection<? extends Parcel> ps) {
