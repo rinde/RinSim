@@ -6,9 +6,11 @@ package rinde.sim.ui;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.collect.Lists.newArrayList;
+import static com.google.common.collect.Maps.newHashMap;
 import static java.util.Arrays.asList;
 
 import java.util.List;
+import java.util.Map;
 
 import javax.annotation.Nullable;
 
@@ -50,9 +52,9 @@ public final class View {
    */
   public static class Builder {
     /**
-     * The default screen size: 800x600.
+     * The default window size: 800x600.
      */
-    public static final Point DEFAULT_SCREEN_SIZE = new Point(800, 600);
+    public static final Point DEFAULT_WINDOW_SIZE = new Point(800, 600);
 
     Simulator simulator;
     boolean autoPlay;
@@ -69,6 +71,7 @@ public final class View {
     @Nullable
     Monitor monitor;
     final List<Renderer> rendererList;
+    Map<MenuItems, Integer> accelerators;
 
     Listener callback;
 
@@ -80,8 +83,10 @@ public final class View {
       fullScreen = false;
       title = "Simulator";
       speedUp = 1;
-      screenSize = DEFAULT_SCREEN_SIZE;
+      screenSize = DEFAULT_WINDOW_SIZE;
       rendererList = newArrayList();
+      accelerators = newHashMap();
+      accelerators.putAll(MenuItems.QWERTY_ACCELERATORS);
     }
 
     /**
@@ -168,7 +173,7 @@ public final class View {
 
     /**
      * Change the resolution of the window. Default resolution:
-     * {@link #DEFAULT_SCREEN_SIZE}.
+     * {@link #DEFAULT_WINDOW_SIZE}.
      * @param width The new width to use.
      * @param height The new height to use.
      * @return This, as per the builder pattern.
@@ -190,6 +195,19 @@ public final class View {
      */
     public Builder displayOnMonitor(Monitor m) {
       monitor = m;
+      return this;
+    }
+
+    /**
+     * Allows to change the accelerators (aka shortcuts) of the menu items. Each
+     * accelerator is set to its respective menu item via
+     * {@link org.eclipse.swt.widgets.MenuItem#setAccelerator(int)}. By default
+     * the {@link MenuItems#QWERTY_ACCELERATORS} are used.
+     * @param acc The accelerators to set.
+     * @return This, as per the builder pattern.
+     */
+    public Builder setAccelerators(Map<MenuItems, Integer> acc) {
+      accelerators.putAll(acc);
       return this;
     }
 
@@ -282,7 +300,8 @@ public final class View {
       });
 
       // simulator viewer is run in here
-      new SimulationViewer(shell, simulator, speedUp, autoPlay, rendererList);
+      new SimulationViewer(shell, simulator, speedUp, autoPlay, rendererList,
+          accelerators);
       shell.open();
       if (!async) {
         while (!shell.isDisposed()) {

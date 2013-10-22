@@ -6,6 +6,7 @@ import static com.google.common.collect.Sets.newLinkedHashSet;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import javax.annotation.Nullable;
@@ -60,6 +61,13 @@ import com.google.common.collect.Multimap;
 public class SimulationViewer extends Composite implements TickListener,
     ControlListener, PaintListener, SelectionListener {
 
+  boolean firstTime = true;
+  final Simulator simulator;
+  @Nullable
+  ViewRect viewRect;
+  @Nullable
+  Label timeLabel;
+
   private Canvas canvas;
   private org.eclipse.swt.graphics.Point origin;
   private org.eclipse.swt.graphics.Point size;
@@ -83,18 +91,13 @@ public class SimulationViewer extends Composite implements TickListener,
 
   private int zoomRatio;
   private final Display display;
-
-  boolean firstTime = true;
-  final Simulator simulator;
-  @Nullable
-  ViewRect viewRect;
-  @Nullable
-  Label timeLabel;
+  private final Map<MenuItems, Integer> accelerators;
 
   SimulationViewer(Shell shell, final Simulator sim, int pSpeedUp,
-      boolean pAutoPlay, List<Renderer> pRenderers) {
+      boolean pAutoPlay, List<Renderer> pRenderers, Map<MenuItems, Integer> acc) {
     super(shell, SWT.NONE);
 
+    accelerators = acc;
     autoPlay = pAutoPlay;
 
     final Multimap<Integer, PanelRenderer> panels = LinkedHashMultimap.create();
@@ -259,7 +262,7 @@ public class SimulationViewer extends Composite implements TickListener,
     // play switch
     playPauseMenuItem = new MenuItem(submenu, SWT.PUSH);
     playPauseMenuItem.setText("&Play\tCtrl+P");
-    playPauseMenuItem.setAccelerator(SWT.MOD1 + 'P');
+    playPauseMenuItem.setAccelerator(accelerators.get(MenuItems.PLAY));
     playPauseMenuItem.addListener(SWT.Selection, new Listener() {
 
       @Override
@@ -273,7 +276,7 @@ public class SimulationViewer extends Composite implements TickListener,
     // step execution switch
     final MenuItem nextItem = new MenuItem(submenu, SWT.PUSH);
     nextItem.setText("Next tick\tCtrl+Shift+]");
-    nextItem.setAccelerator(SWT.MOD1 + SWT.SHIFT + ']');
+    nextItem.setAccelerator(accelerators.get(MenuItems.NEXT_TICK));
     nextItem.addListener(SWT.Selection, new Listener() {
       @Override
       public void handleEvent(@Nullable Event e) {
@@ -293,13 +296,13 @@ public class SimulationViewer extends Composite implements TickListener,
     // zooming
     final MenuItem zoomInItem = new MenuItem(viewMenu, SWT.PUSH);
     zoomInItem.setText("Zoom &in\tCtrl++");
-    zoomInItem.setAccelerator(SWT.MOD1 + '+');
-    zoomInItem.setData("in");
+    zoomInItem.setAccelerator(accelerators.get(MenuItems.ZOOM_IN));
+    zoomInItem.setData(MenuItems.ZOOM_IN);
 
     final MenuItem zoomOutItem = new MenuItem(viewMenu, SWT.PUSH);
     zoomOutItem.setText("Zoom &out\tCtrl+-");
-    zoomOutItem.setAccelerator(SWT.MOD1 + '-');
-    zoomOutItem.setData("out");
+    zoomOutItem.setAccelerator(accelerators.get(MenuItems.ZOOM_OUT));
+    zoomOutItem.setData(MenuItems.ZOOM_OUT);
 
     final Listener zoomingListener = new Listener() {
       @Override
@@ -323,15 +326,16 @@ public class SimulationViewer extends Composite implements TickListener,
     };
 
     final MenuItem increaseSpeedItem = new MenuItem(submenu, SWT.PUSH);
-    increaseSpeedItem.setAccelerator(SWT.MOD1 + ']');
+    increaseSpeedItem
+        .setAccelerator(accelerators.get(MenuItems.INCREASE_SPEED));
     increaseSpeedItem.setText("Speed &up\tCtrl+]");
-    increaseSpeedItem.setData(">");
+    increaseSpeedItem.setData(MenuItems.INCREASE_SPEED);
     increaseSpeedItem.addListener(SWT.Selection, speedUpListener);
     //
     final MenuItem decreaseSpeed = new MenuItem(submenu, SWT.PUSH);
-    decreaseSpeed.setAccelerator(SWT.MOD1 + '[');
+    decreaseSpeed.setAccelerator(accelerators.get(MenuItems.DECREASE_SPEED));
     decreaseSpeed.setText("Slow &down\tCtrl+[");
-    decreaseSpeed.setData("<");
+    decreaseSpeed.setData(MenuItems.DECREASE_SPEED);
     decreaseSpeed.addListener(SWT.Selection, speedUpListener);
 
   }
@@ -370,7 +374,7 @@ public class SimulationViewer extends Composite implements TickListener,
   }
 
   void onZooming(MenuItem source) {
-    if ("in".equals(source.getData())) {
+    if (source.getData() == MenuItems.ZOOM_IN) {
       if (zoomRatio == 16) {
         return;
       }
@@ -390,12 +394,13 @@ public class SimulationViewer extends Composite implements TickListener,
     if (image != null) {
       image.dispose();
     }
-    image = null; // this forces a redraw
+    // this forces a redraw
+    image = null;
     canvas.redraw();
   }
 
   void onSpeedChange(MenuItem source) {
-    if (">".equals(source.getData())) {
+    if (source.getData() == MenuItems.INCREASE_SPEED) {
       speedUp <<= 1;
     } else {
       if (speedUp > 1) {
