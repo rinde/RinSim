@@ -431,7 +431,7 @@ public final class Solvers {
    * {@link SimulationConverter}.
    * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
    */
-  public static class SolveArgs {
+  public static final class SolveArgs {
     Optional<Collection<DefaultParcel>> parcels;
     Optional<ImmutableList<ImmutableList<DefaultParcel>>> currentRoutes;
 

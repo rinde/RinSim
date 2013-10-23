@@ -174,13 +174,6 @@ public class SolversTest {
     }
   }
 
-  @Test
-  public void test() {
-    // TODO implement tests for the builder
-    // Solvers.solverBuilder(RandomMVArraysSolver.solverSupplier().get(123))
-    // .build();
-  }
-
   static Set<ParcelDTO> toParcelDTOs(Collection<? extends Parcel> ps) {
     final ImmutableSet.Builder<ParcelDTO> builder = ImmutableSet.builder();
     for (final Parcel p : ps) {
