@@ -111,6 +111,7 @@ public final class SolverValidator {
    * @param vs The vehicle to check.
    * @param i The index of the vehicle, only used to generate nice error
    *          messages.
+   * @throws IllegalArgumentException if the route is not correct.
    */
   public static void checkRoute(VehicleStateObject vs, int i) {
     checkArgument(vs.route.isPresent());
