@@ -654,7 +654,7 @@ public final class Solvers {
      * @param dv The {@link DefaultVehicle}s to include.
      * @return This, as per the builder pattern.
      */
-    public AdapterBuilder<T> with(List<DefaultVehicle> dv) {
+    public AdapterBuilder<T> with(List<? extends DefaultVehicle> dv) {
       vehicles.addAll(dv);
       return this;
     }
