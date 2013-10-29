@@ -93,6 +93,9 @@ final class StatsPanel implements PanelRenderer, TickListener {
       @Override
       public void handleEvent(Event e) {
         final StatisticsEvent se = (StatisticsEvent) e;
+        if (eventList.getDisplay().isDisposed()) {
+          return;
+        }
         eventList.getDisplay().asyncExec(new Runnable() {
           @Override
           public void run() {
