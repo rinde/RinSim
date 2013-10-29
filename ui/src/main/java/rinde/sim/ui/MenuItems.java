@@ -48,4 +48,14 @@ public enum MenuItems {
       .put(INCREASE_SPEED, SWT.MOD1 + ']').put(DECREASE_SPEED, SWT.MOD1 + '[')
       .put(ZOOM_IN, SWT.MOD1 + '+').put(ZOOM_OUT, SWT.MOD1 + '-').build();
 
+  /**
+   * Accelerators designed for keyboards with a AZERTY layout.
+   */
+  public final static ImmutableMap<MenuItems, Integer> AZERTY_ACCELERATORS = ImmutableMap
+      .<MenuItems, Integer> builder().put(MenuItems.PLAY, SWT.MOD1 + 'P')
+      .put(MenuItems.NEXT_TICK, SWT.MOD1 + SWT.SHIFT + '$')
+      .put(MenuItems.INCREASE_SPEED, SWT.MOD1 + '$')
+      .put(MenuItems.DECREASE_SPEED, SWT.MOD1 + '^')
+      .put(MenuItems.ZOOM_IN, SWT.MOD1 + '+')
+      .put(MenuItems.ZOOM_OUT, SWT.MOD1 + '-').build();
 }
