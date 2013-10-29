@@ -3,7 +3,6 @@
  */
 package rinde.sim.pdptw.gendreau06;
 
-import java.io.IOException;
 import java.util.List;
 
 import rinde.sim.pdptw.common.DynamicPDPTWScenario;
@@ -41,16 +40,11 @@ public class Gendreau06Scenarios implements ScenarioProvider {
       final List<String> files = ExperimentUtil.getFilesFromDir(dir,
           claz.fileId);
       for (final String file : files) {
-        try {
-          Gendreau06Scenario scen = Gendreau06Parser.parse(file, claz.vehicles);
-          if (!online) {
-            scen = DynamicPDPTWScenario.convertToOffline(scen);
-          }
-          scenarios.add(scen);
-        } catch (final IOException e) {
-          throw new IllegalArgumentException(
-              "Failed loading scenario: " + file, e);
+        Gendreau06Scenario scen = Gendreau06Parser.parse(file, claz.vehicles);
+        if (!online) {
+          scen = DynamicPDPTWScenario.convertToOffline(scen);
         }
+        scenarios.add(scen);
       }
     }
     return scenarios.build();
