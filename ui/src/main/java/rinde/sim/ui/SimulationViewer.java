@@ -61,6 +61,9 @@ import com.google.common.collect.Multimap;
 public class SimulationViewer extends Composite implements TickListener,
     ControlListener, PaintListener, SelectionListener {
 
+  private static final int MIN_SPEED_UP = 1;
+  private static final int MAX_SPEED_UP = 512;
+
   boolean firstTime = true;
   final Simulator simulator;
   @Nullable
@@ -401,9 +404,11 @@ public class SimulationViewer extends Composite implements TickListener,
 
   void onSpeedChange(MenuItem source) {
     if (source.getData() == MenuItems.INCREASE_SPEED) {
-      speedUp <<= 1;
+      if (speedUp < MAX_SPEED_UP) {
+        speedUp <<= 1;
+      }
     } else {
-      if (speedUp > 1) {
+      if (speedUp > MIN_SPEED_UP) {
         speedUp >>= 1;
       }
     }
