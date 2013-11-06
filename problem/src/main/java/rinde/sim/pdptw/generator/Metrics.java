@@ -4,18 +4,20 @@
 package rinde.sim.pdptw.generator;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Sets.newHashSet;
-import static com.google.common.primitives.Ints.checkedCast;
-import static java.util.Collections.nCopies;
+import static com.google.common.collect.Sets.newLinkedHashSet;
 
 import java.math.RoundingMode;
 import java.util.List;
+import java.util.Set;
 
 import rinde.sim.core.graph.Point;
 import rinde.sim.pdptw.common.AddParcelEvent;
 import rinde.sim.pdptw.common.AddVehicleEvent;
 import rinde.sim.scenario.Scenario;
 import rinde.sim.scenario.TimedEvent;
+import rinde.sim.util.TimeWindow;
 
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
@@ -39,6 +41,10 @@ public final class Metrics {
    *         assumed to have load <code>0</code>.
    */
   public static ImmutableList<Double> measureLoad(Scenario s) {
+
+    // FIXME should be possible to set the granularity of time. e.g. compute
+    // load for every 1 second/minute/5minutes/hour/etc
+
     final double vehicleSpeed = getVehicleSpeed(s);
     final ImmutableList.Builder<LoadPart> loadParts = ImmutableList.builder();
     for (final TimedEvent te : s.asList()) {
@@ -46,7 +52,7 @@ public final class Metrics {
         loadParts.addAll(measureLoad((AddParcelEvent) te, vehicleSpeed));
       }
     }
-    return sum(0, loadParts.build()).load;
+    return sum(0, loadParts.build());
   }
 
   public static ImmutableList<LoadPart> measureLoad(AddParcelEvent event,
@@ -66,8 +72,7 @@ public final class Metrics {
         + event.parcelDTO.pickupDuration;
     final double pickupLoad = event.parcelDTO.pickupDuration
         / (double) (pickupUb - pickupLb);
-    final LoadPart pickupPart = new LoadPart(pickupLb, nCopies(
-        checkedCast(pickupUb - pickupLb), pickupLoad));
+    final LoadPart pickupPart = new LoadPart(pickupLb, pickupUb, pickupLoad);
 
     final long expectedTravelTime = travelTime(event.parcelDTO.pickupLocation,
         event.parcelDTO.destinationLocation, vehicleSpeed);
@@ -78,12 +83,11 @@ public final class Metrics {
         travelLb + expectedTravelTime);
 
     // checkArgument(travelUb - travelLb >= expectedTravelTime,
-    // "The time windows should allow travelling from pickup to delivery.");
+    // "The time windows should allow traveling from pickup to delivery.");
 
     final double travelLoad = expectedTravelTime
         / (double) (travelUb - travelLb);
-    final LoadPart travelPart = new LoadPart(travelLb, nCopies(
-        checkedCast(travelUb - travelLb), travelLoad));
+    final LoadPart travelPart = new LoadPart(travelLb, travelUb, travelLoad);
 
     // delivery lower bound: the first possible time the delivery can start,
     // normally uses the start of the delivery TW, in case this is not
@@ -95,41 +99,41 @@ public final class Metrics {
         deliveryLb) + event.parcelDTO.deliveryDuration;
     final double deliveryLoad = event.parcelDTO.deliveryDuration
         / (double) (deliveryUb - deliveryLb);
-    final LoadPart deliveryPart = new LoadPart(deliveryLb, nCopies(
-        checkedCast(deliveryUb - deliveryLb), deliveryLoad));
+    final LoadPart deliveryPart = new LoadPart(deliveryLb, deliveryUb,
+        deliveryLoad);
 
     return ImmutableList.of(pickupPart, travelPart, deliveryPart);
   }
 
-  static LoadPart sum(long st, List<LoadPart> parts) {
+  static ImmutableList<Double> sum(long st, List<LoadPart> parts) {
     final ImmutableList.Builder<Double> builder = ImmutableList.builder();
     long i = st;
-    boolean withinBounds = true;
-    while (withinBounds) {
+    final Set<LoadPart> partSet = newLinkedHashSet(parts);
+    while (!partSet.isEmpty()) {
       double currentLoadVal = 0d;
-      withinBounds = false;
-      for (final LoadPart lp : parts) {
-        final long relativeTime = i - lp.startTime;
-        if (relativeTime >= 0 && relativeTime < lp.load.size()) {
-          currentLoadVal += lp.load.get((int) relativeTime);
+      final List<LoadPart> toRemove = newArrayList();
+      for (final LoadPart lp : partSet) {
+        if (lp.isIn(i)) {
+          currentLoadVal += lp.get(i);
         }
-        if (relativeTime < lp.load.size()) {
-          // as long as one of the LoadParts is still within bounds,
-          // we continue
-          withinBounds = true;
+        if (!lp.isBeforeEnd(i)) {
+          toRemove.add(lp);
         }
       }
-      if (withinBounds) {
+      partSet.removeAll(toRemove);
+
+      if (!partSet.isEmpty()) {
         builder.add(currentLoadVal);
         i++;
       }
     }
-    return new LoadPart(st, builder.build());
+    return builder.build();
   }
 
   /**
    * Checks whether the vehicles defined for the specified scenario have the
-   * same speed.
+   * same speed. If the speed is the same it is returned, otherwise an exception
+   * is thrown.
    * @param s The {@link Scenario} to get the speed from.
    * @return The vehicle speed if all vehicles have the same speed.
    * @throws IllegalArgumentException if either: not all vehicles have the same
@@ -185,24 +189,6 @@ public final class Metrics {
         event.parcelDTO.pickupTimeWindow.end);
   }
 
-  // to use for parts of the timeline to avoid excessively long list with
-  // mostly 0s.
-  static class LoadPart {
-    final long startTime;
-    final ImmutableList<Double> load;
-
-    public LoadPart(long st, List<Double> loadList) {
-      startTime = st;
-      load = ImmutableList.copyOf(loadList);
-    }
-
-    @Override
-    public String toString() {
-      return Objects.toStringHelper("LoadPart").add("startTime", startTime)
-          .add("load", load).toString();
-    }
-  }
-
   // TODO
   public static void computeStress() {}
 
@@ -234,4 +220,27 @@ public final class Metrics {
         RoundingMode.CEILING);
   }
 
+  // to use for parts of the timeline to avoid excessively long list with
+  // mostly 0s.
+  static class LoadPart extends TimeWindow {
+    private final double load;
+
+    public LoadPart(long st, long end, double value) {
+      super(st, end);
+      load = value;
+    }
+
+    public double get(long i) {
+      if (isIn(i)) {
+        return load;
+      }
+      return 0d;
+    }
+
+    @Override
+    public String toString() {
+      return Objects.toStringHelper("LoadPart").add("begin", begin)
+          .add("end", end).add("load", load).toString();
+    }
+  }
 }

@@ -4,7 +4,6 @@
 package rinde.sim.pdptw.generator;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 import static rinde.sim.pdptw.generator.Metrics.measureLoad;
 import static rinde.sim.pdptw.generator.Metrics.sum;
 import static rinde.sim.pdptw.generator.Metrics.travelTime;
@@ -36,25 +35,22 @@ public class MetricsTest {
 
     final List<LoadPart> parts = measureLoad(new AddParcelEvent(dto), 30);
     assertEquals(3, parts.size());
-    for (final LoadPart lp : parts) {
-      assertTrue(areAllValuesTheSame(lp.load));
-    }
 
     // pickup load in [0,15), duration is 5 minutes, so load is 5/15 = 1/3
-    assertEquals(0, parts.get(0).startTime);
-    assertEquals(1 / 3d, parts.get(0).load.get(0).doubleValue(), EPSILON);
-    assertEquals(15, parts.get(0).load.size());
+    assertEquals(0, parts.get(0).begin);
+    assertEquals(1 / 3d, parts.get(0).get(0), EPSILON);
+    assertEquals(15, parts.get(0).length());
 
-    // travel load in [5,20), duration is 2 mintues, so load is 2/15
-    assertEquals(5, parts.get(1).startTime);
-    assertEquals(2 / 15d, parts.get(1).load.get(0).doubleValue(), EPSILON);
-    assertEquals(15, parts.get(1).load.size());
+    // travel load in [5,20), duration is 2 minutes, so load is 2/15
+    assertEquals(5, parts.get(1).begin);
+    assertEquals(2 / 15d, parts.get(1).get(5), EPSILON);
+    assertEquals(15, parts.get(1).length());
 
     // delivery load in [10,25), duration is 5 minutes, so load is 5/15 =
     // 1/3
-    assertEquals(10, parts.get(2).startTime);
-    assertEquals(1 / 3d, parts.get(2).load.get(0).doubleValue(), EPSILON);
-    assertEquals(15, parts.get(2).load.size());
+    assertEquals(10, parts.get(2).begin);
+    assertEquals(1 / 3d, parts.get(2).get(10), EPSILON);
+    assertEquals(15, parts.get(2).length());
 
     // summing results:
     // [0,5) - 5/15
@@ -63,7 +59,7 @@ public class MetricsTest {
     // [15,20) - 7/15
     // [20,25) - 5/15
 
-    final List<Double> load = sum(0, parts).load;
+    final List<Double> load = sum(0, parts);
     checkRange(load, 0, 5, 5 / 15d);
     checkRange(load, 5, 10, 7 / 15d);
     checkRange(load, 10, 15, 12 / 15d);
@@ -80,30 +76,28 @@ public class MetricsTest {
 
     final List<LoadPart> parts = measureLoad(new AddParcelEvent(dto), 30);
     assertEquals(3, parts.size());
-    for (final LoadPart lp : parts) {
-      assertTrue(areAllValuesTheSame(lp.load));
-    }
 
     // pickup load in [15,20), duration is 5 minutes, so load is 5/5 = 1
-    assertEquals(15, parts.get(0).startTime);
-    assertEquals(1, parts.get(0).load.get(0).doubleValue(), EPSILON);
-    assertEquals(5, parts.get(0).load.size());
+    assertEquals(15, parts.get(0).begin);
+    assertEquals(1d, parts.get(0).get(15), EPSILON);
+    assertEquals(0d, parts.get(0).get(20), EPSILON);
+    assertEquals(5, parts.get(0).length());
 
-    // travel load in [20,40), duration is 20 mintues, so load is 20/20 = 1
-    assertEquals(20, parts.get(1).startTime);
-    assertEquals(1, parts.get(1).load.get(0).doubleValue(), EPSILON);
-    assertEquals(20, parts.get(1).load.size());
+    // travel load in [20,40), duration is 20 minutes, so load is 20/20 = 1
+    assertEquals(20, parts.get(1).begin);
+    assertEquals(1, parts.get(1).get(20), EPSILON);
+    assertEquals(20, parts.get(1).length());
 
     // delivery load in [40,45), duration is 5 minutes, so load is 5/5 = 1
-    assertEquals(40, parts.get(2).startTime);
-    assertEquals(1, parts.get(2).load.get(0).doubleValue(), EPSILON);
-    assertEquals(5, parts.get(2).load.size());
+    assertEquals(40, parts.get(2).begin);
+    assertEquals(1, parts.get(2).get(40), EPSILON);
+    assertEquals(5, parts.get(2).length());
 
     // summing results:
     // [0,15) - 0
     // [15,45) - 1
 
-    final List<Double> load = sum(0, parts).load;
+    final List<Double> load = sum(0, parts);
     checkRange(load, 0, 15, 0);
     checkRange(load, 15, 45, 1);
     assertEquals(45, load.size());
@@ -117,24 +111,21 @@ public class MetricsTest {
 
     final List<LoadPart> parts = measureLoad(new AddParcelEvent(dto), 30);
     assertEquals(3, parts.size());
-    for (final LoadPart lp : parts) {
-      assertTrue(areAllValuesTheSame(lp.load));
-    }
 
     // pickup load in [10,35), duration is 5 minutes, so load is 5/25 = 6/30
-    assertEquals(10, parts.get(0).startTime);
-    assertEquals(6 / 30d, parts.get(0).load.get(0).doubleValue(), EPSILON);
-    assertEquals(25, parts.get(0).load.size());
+    assertEquals(10, parts.get(0).begin);
+    assertEquals(6 / 30d, parts.get(0).get(10), EPSILON);
+    assertEquals(25, parts.get(0).length());
 
     // travel load in [15,75), duration is 6 minutes, so load is 6/60 = 3/30
-    assertEquals(15, parts.get(1).startTime);
-    assertEquals(3 / 30d, parts.get(1).load.get(0).doubleValue(), EPSILON);
-    assertEquals(60, parts.get(1).load.size());
+    assertEquals(15, parts.get(1).begin);
+    assertEquals(3 / 30d, parts.get(1).get(15), EPSILON);
+    assertEquals(60, parts.get(1).length());
 
     // delivery load in [50,80), duration is 5 minutes, so load is 5/30
-    assertEquals(50, parts.get(2).startTime);
-    assertEquals(5 / 30d, parts.get(2).load.get(0).doubleValue(), EPSILON);
-    assertEquals(30, parts.get(2).load.size());
+    assertEquals(50, parts.get(2).begin);
+    assertEquals(5 / 30d, parts.get(2).get(50), EPSILON);
+    assertEquals(30, parts.get(2).length());
 
     // summing results:
     // [00,10) - 0/30
@@ -144,7 +135,7 @@ public class MetricsTest {
     // [50,75) - 8/30
     // [75,80) - 5/30
 
-    final List<Double> load = sum(0, parts).load;
+    final List<Double> load = sum(0, parts);
     checkRange(load, 0, 10, 0d);
     checkRange(load, 10, 15, 6 / 30d);
     checkRange(load, 15, 35, 9 / 30d);
