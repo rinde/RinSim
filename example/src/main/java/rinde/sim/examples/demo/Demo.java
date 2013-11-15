@@ -5,7 +5,6 @@ package rinde.sim.examples.demo;
 
 import static com.google.common.collect.Lists.newArrayList;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.math.RoundingMode;
 import java.util.List;
@@ -46,8 +45,10 @@ import com.google.common.math.DoubleMath;
  */
 public class Demo {
 
-  public static void main(String[] args) throws FileNotFoundException,
-      IOException, InterruptedException {
+  private Demo() {}
+
+  public static void main(String[] args) throws IOException,
+      InterruptedException {
 
     final long time = 6 * 60 * 60 * 1000L;
     Display.setAppName("RinSim");
@@ -60,7 +61,6 @@ public class Demo {
     shell.setLayout(new RowLayout(SWT.VERTICAL));
 
     final Monitor primary = d.getPrimaryMonitor();
-
     shell.setLocation(primary.getClientArea().x, primary.getClientArea().y);
     shell
         .setSize(primary.getClientArea().width, primary.getClientArea().height);
@@ -102,6 +102,15 @@ public class Demo {
           + (isPrimary ? " PRIMARY" : ""));
       b.setSelection(!isPrimary);
       monitorCheckBoxes.add(b);
+    }
+
+    final List<Button> demoCheckBoxes = newArrayList();
+    for (final DemoType dt : DemoType.values()) {
+      final Button b = new Button(controlsComposite, SWT.CHECK);
+      demoCheckBoxes.add(b);
+      b.setText(dt.name());
+      b.setData(dt);
+      b.setSelection(true);
     }
 
     final Button runButton = new Button(shell, SWT.TOGGLE);
@@ -151,27 +160,32 @@ public class Demo {
         } else {
           runButton.setText("Start demo");
         }
-        boolean alternate = false;
-        if (((Button) e.widget).getSelection()) {
 
+        if (((Button) e.widget).getSelection()) {
+          int index = 0;
+          final List<DemoType> types = newArrayList();
+          for (final Button b : demoCheckBoxes) {
+            if (b.getSelection()) {
+              types.add((DemoType) b.getData());
+            }
+          }
+          final ImmutableList<DemoType> demoTypes = ImmutableList.copyOf(types);
           for (final Button b : monitorCheckBoxes) {
             if (b.getSelection()) {
               final Monitor m = (Monitor) b.getData();
-              final DemoRunner dr = new DemoRunner(d, alternate);
+              final DemoRunner dr = new DemoRunner(d, demoTypes, index);
+              index++;
+
               dr.setTime(Double.parseDouble(timeText.getText()));
-              alternate = !alternate;
 
               panels.add(new DemoRunnerControlPanel(panelComposite, m, dr));
 
               dr.setMonitor(m);
               demoRunners.add(dr);
-              // d.asyncExec(dr);
             }
           }
           panelComposite.layout();
           shell.layout();
-
-          // d.asyncExec(new MasterRunner(demoRunners, d));
           new MasterRunner(demoRunners, d).start();
         }
       }
@@ -290,31 +304,34 @@ public class Demo {
         @Override
         public void run() {
           label.setText(monitor.getBounds().width + "x"
-              + monitor.getBounds().height + "\n" + runner.state);
+              + monitor.getBounds().height + "\n" + runner.getState());
         }
       });
     }
   }
 
-  static class DemoRunner implements Runnable, rinde.sim.event.Listener {
+  enum DemoType {
+    FACTORY, TAXI;
+  }
 
-    static final String FACTORY = "factory";
-    static final String TAXI = "taxi";
+  static class DemoRunner implements Runnable, rinde.sim.event.Listener {
+    static final long DEFAULT_DURATION = 6 * 60 * 60 * 1000L;
 
     boolean running;
     long time;
     Monitor monitor;
     Display display;
 
-    String state;
-
+    ImmutableList<DemoType> demoTypes;
+    int demoIndex;
     DemoRunnerControlPanel listener;
+    final List<Simulator> sims;
 
-    DemoRunner(Display d, boolean alt) {
+    DemoRunner(Display d, ImmutableList<DemoType> dt, int startIndex) {
       display = d;
-      time = 6 * 60 * 60 * 1000L;
-      alternate = alt;
-      state = alt ? FACTORY : TAXI;
+      time = DEFAULT_DURATION;
+      demoTypes = dt;
+      demoIndex = startIndex;
       sims = newArrayList();
     }
 
@@ -339,13 +356,14 @@ public class Demo {
       monitor = m;
     }
 
-    boolean alternate;
-    final List<Simulator> sims;
-
     @Override
     public void run() {
       running = true;
       next();
+    }
+
+    public DemoType getState() {
+      return demoTypes.get(demoIndex);
     }
 
     public void next() {
@@ -357,12 +375,12 @@ public class Demo {
         return;
       }
 
-      alternate = !alternate;
-      state = alternate ? FACTORY : TAXI;
+      demoIndex++;
+      demoIndex = demoIndex % demoTypes.size();
 
       if (running) {
         final rinde.sim.event.Listener l = this;
-        if (alternate) {
+        if (getState() == DemoType.FACTORY) {
           listener.update();
           display.asyncExec(new Runnable() {
             @Override
