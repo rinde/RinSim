@@ -17,10 +17,10 @@ import com.google.common.collect.ImmutableTable;
 import com.google.common.collect.Table.Cell;
 
 /**
- * A simple state machine. The state machine is represented by a transitition
+ * A simple state machine. The state machine is represented by a transition
  * table. A transition has the form <code>current state + event </code> &rarr;
  * <code>new state</code>. A transition can be recurrent, meaning that an event
- * will <i>not</i> initate a transition. Events can be initiated from within a
+ * will <i>not</i> initiate a transition. Events can be initiated from within a
  * state by means of the {@link State#handle(Object, Object)} method or from
  * outside the state machine by means of the {@link #handle(Object, Object)}. An
  * attempt to perform a transition not present in the transition table result in
@@ -255,6 +255,17 @@ public class StateMachine<E, C> {
     public StateMachineBuilder<E, C> addTransition(State<E, C> from, E event,
         State<E, C> to) {
       tableBuilder.put(from, event, to);
+      return this;
+    }
+
+    /**
+     * Adds all transitions in the specified {@link StateMachine} to this
+     * builder. Duplicates are not allowed.
+     * @param sm The {@link StateMachine} from which the transitions are copied.
+     * @return The builder reference.
+     */
+    public StateMachineBuilder<E, C> addTransitionsFrom(StateMachine<E, C> sm) {
+      tableBuilder.putAll(sm.transitionTable);
       return this;
     }
 
