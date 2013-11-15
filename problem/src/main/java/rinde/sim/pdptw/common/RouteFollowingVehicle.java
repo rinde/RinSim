@@ -33,6 +33,7 @@ import rinde.sim.event.Listener;
 import rinde.sim.pdptw.central.Solvers;
 import rinde.sim.util.fsm.AbstractState;
 import rinde.sim.util.fsm.StateMachine;
+import rinde.sim.util.fsm.StateMachine.StateMachineBuilder;
 import rinde.sim.util.fsm.StateMachine.StateMachineEvent;
 import rinde.sim.util.fsm.StateMachine.StateTransitionEvent;
 
@@ -105,6 +106,20 @@ public class RouteFollowingVehicle extends DefaultVehicle {
    */
   public RouteFollowingVehicle(VehicleDTO pDto,
       boolean allowDelayedRouteChanging) {
+    this(pDto, allowDelayedRouteChanging, null);
+  }
+
+  /**
+   * Initializes the vehicle.
+   * @param pDto The {@link VehicleDTO} that defines this vehicle.
+   * @param allowDelayedRouteChanging This boolean changes the behavior of the
+   *          {@link #setRoute(Collection)} method.
+   * @param sm If defined all transitions in the provided {@link StateMachine}
+   *          will be added to the {@link StateMachine} of the vehicle.
+   */
+  protected RouteFollowingVehicle(VehicleDTO pDto,
+      boolean allowDelayedRouteChanging,
+      @Nullable StateMachine<StateEvent, RouteFollowingVehicle> sm) {
     super(pDto);
     depot = Optional.absent();
     speed = Optional.absent();
@@ -119,7 +134,7 @@ public class RouteFollowingVehicle extends DefaultVehicle {
     gotoState = new Goto();
     waitForServiceState = new WaitAtService();
     serviceState = new Service();
-    stateMachine = StateMachine
+    final StateMachineBuilder<StateEvent, RouteFollowingVehicle> smBuilder = StateMachine
         .create(waitState)
         .addTransition(waitState, StateEvent.GOTO, gotoState)
         .addTransition(gotoState, StateEvent.NOGO, waitState)
@@ -127,7 +142,11 @@ public class RouteFollowingVehicle extends DefaultVehicle {
         .addTransition(waitForServiceState, StateEvent.REROUTE, gotoState)
         .addTransition(waitForServiceState, StateEvent.READY_TO_SERVICE,
             serviceState)
-        .addTransition(serviceState, StateEvent.DONE, waitState).build();
+        .addTransition(serviceState, StateEvent.DONE, waitState);
+    if (sm != null) {
+      smBuilder.addTransitionsFrom(sm);
+    }
+    stateMachine = smBuilder.build();
 
     final String v = Integer.toHexString(hashCode());
     stateMachine.getEventAPI().addListener(new Listener() {
@@ -389,7 +408,12 @@ public class RouteFollowingVehicle extends DefaultVehicle {
     DONE;
   }
 
-  abstract class AbstractTruckState extends
+  /**
+   * Base state class, can be subclassed to define custom states.
+   * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+   * 
+   */
+  protected abstract class AbstractTruckState extends
       AbstractState<StateEvent, RouteFollowingVehicle> {
     @Override
     public String toString() {

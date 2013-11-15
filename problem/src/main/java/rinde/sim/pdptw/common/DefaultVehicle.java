@@ -3,6 +3,7 @@
  */
 package rinde.sim.pdptw.common;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import rinde.sim.core.model.pdp.PDPModel;
 import rinde.sim.core.model.pdp.Vehicle;
 import rinde.sim.core.model.road.RoadModel;
@@ -34,6 +35,8 @@ public abstract class DefaultVehicle extends Vehicle {
    */
   protected Optional<PDPModel> pdpModel;
 
+  private double speed;
+
   /**
    * Instantiate a new vehicle using the specified properties.
    * @param pDto {@link #dto}
@@ -41,6 +44,7 @@ public abstract class DefaultVehicle extends Vehicle {
   public DefaultVehicle(VehicleDTO pDto) {
     setStartPosition(pDto.startPosition);
     setCapacity(pDto.capacity);
+    setSpeed(pDto.speed);
     dto = pDto;
     roadModel = Optional.absent();
     pdpModel = Optional.absent();
@@ -48,7 +52,16 @@ public abstract class DefaultVehicle extends Vehicle {
 
   @Override
   public final double getSpeed() {
-    return dto.speed;
+    return speed;
+  }
+
+  /**
+   * Changes the speed of the vehicle.
+   * @param newSpeed The new speed.
+   */
+  protected final void setSpeed(double newSpeed) {
+    checkArgument(newSpeed >= 0, "Speed may not be negative.");
+    speed = newSpeed;
   }
 
   @Override
@@ -63,5 +76,4 @@ public abstract class DefaultVehicle extends Vehicle {
   public VehicleDTO getDTO() {
     return dto;
   }
-
 }
