@@ -3,6 +3,7 @@
  */
 package rinde.sim.pdptw.common;
 
+import rinde.sim.core.graph.Point;
 import rinde.sim.core.model.pdp.PDPModel;
 import rinde.sim.core.model.pdp.Parcel;
 import rinde.sim.core.model.road.RoadModel;
@@ -36,5 +37,12 @@ public class DefaultParcel extends Parcel {
   @Override
   public String toString() {
     return "[DefaultParcel " + dto + "]";
+  }
+
+  /**
+   * @return The pickup location of this parcel.
+   */
+  public Point getPickupLocation() {
+    return dto.pickupLocation;
   }
 }
