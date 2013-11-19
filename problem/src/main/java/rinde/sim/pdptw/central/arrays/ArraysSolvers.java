@@ -266,8 +266,8 @@ public final class ArraysSolvers {
         // it is in cargo
         route[i + 1] = mapping.get(dto).deliveryIndex;
       } else {
-        // TODO add error message that explains what is going on
-        checkArgument(state.availableParcels.contains(dto));
+        checkArgument(state.availableParcels.contains(dto),
+            "This parcel should be available but is not: %s.", dto);
         // it is available
         route[i + 1] = mapping.get(dto).pickupIndex;
       }
