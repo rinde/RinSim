@@ -133,8 +133,7 @@ public class CentralTest {
 
     while (v1.getState() == v1.getGotoState()) {
       assertFalse(new Point(0, 1).equals(rm.getPosition(v1)));
-      res = s.convert(SolveArgs.create().useAllParcels()
-          .noCurrentRoutes());
+      res = s.convert(SolveArgs.create().useAllParcels().noCurrentRoutes());
       assertEquals(2, res.state.vehicles.size());
       assertTrue(res.state.vehicles.get(0).contents.isEmpty());
       assertEquals(p1.dto, res.state.vehicles.get(0).destination);

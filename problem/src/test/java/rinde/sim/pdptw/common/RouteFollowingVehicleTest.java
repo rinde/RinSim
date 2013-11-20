@@ -40,7 +40,8 @@ import rinde.sim.core.model.pdp.twpolicy.TardyAllowedPolicy;
 import rinde.sim.core.model.road.PlaneRoadModel;
 import rinde.sim.event.Event;
 import rinde.sim.event.Listener;
-import rinde.sim.pdptw.common.RouteFollowingVehicle.StateEvent;
+import rinde.sim.pdptw.common.RouteFollowingVehicle.DefaultEvent;
+import rinde.sim.pdptw.common.SubVehicle.ExtraEvent;
 import rinde.sim.util.TimeWindow;
 
 import com.google.common.base.Optional;
@@ -72,8 +73,8 @@ public class RouteFollowingVehicleTest {
       boolean allowDelayedRouteChange) {
     diversionIsAllowed = allowDiversion;
     allowDelayedRouteChanges = allowDelayedRouteChange;
-    StateEvent.values();
-    StateEvent.valueOf("GOTO");
+    DefaultEvent.values();
+    DefaultEvent.valueOf("GOTO");
   }
 
   /**
@@ -942,6 +943,23 @@ public class RouteFollowingVehicleTest {
 
   }
 
+  @Test
+  public void test() {
+    final VehicleDTO v = new VehicleDTO(new Point(1, 1), 30, 1, new TimeWindow(
+        0, minute(30)));
+    final SubVehicle vehicle = new SubVehicle(v, allowDelayedRouteChanges);
+    d = vehicle;
+
+    PDPTWTestUtil.register(rm, pm, vehicle);
+    tick(0, 1);
+
+    assertEquals(vehicle.waitState, vehicle.stateMachine.getCurrentState());
+    vehicle.stateMachine.handle(ExtraEvent.TEST_EVENT, vehicle);
+    assertEquals(vehicle.extraState, vehicle.stateMachine.getCurrentState());
+    tick(1, 2);
+    assertEquals(vehicle.waitState, vehicle.stateMachine.getCurrentState());
+  }
+
   static long minute(long minutes) {
     return minutes * 60000;
   }
@@ -949,4 +967,5 @@ public class RouteFollowingVehicleTest {
   static long second(long sec) {
     return sec * 1000;
   }
+
 }

@@ -33,7 +33,6 @@ import rinde.sim.event.Listener;
 import rinde.sim.pdptw.central.Solvers;
 import rinde.sim.util.fsm.AbstractState;
 import rinde.sim.util.fsm.StateMachine;
-import rinde.sim.util.fsm.StateMachine.StateMachineBuilder;
 import rinde.sim.util.fsm.StateMachine.StateMachineEvent;
 import rinde.sim.util.fsm.StateMachine.StateTransitionEvent;
 
@@ -53,6 +52,10 @@ import com.google.common.math.DoubleMath;
  * <p>
  * If it is the end of the day (as defined by {@link #isEndOfDay(TimeLapse)})
  * and the route is empty, the vehicle will automatically return to the depot.
+ * <p>
+ * <b>Extension</b> The behavior of this vehicle can be altered by modifying the
+ * state machine that is used internally. This can be done by overriding
+ * {@link #createStateMachine()}.
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
  */
 public class RouteFollowingVehicle extends DefaultVehicle {
@@ -106,20 +109,6 @@ public class RouteFollowingVehicle extends DefaultVehicle {
    */
   public RouteFollowingVehicle(VehicleDTO pDto,
       boolean allowDelayedRouteChanging) {
-    this(pDto, allowDelayedRouteChanging, null);
-  }
-
-  /**
-   * Initializes the vehicle.
-   * @param pDto The {@link VehicleDTO} that defines this vehicle.
-   * @param allowDelayedRouteChanging This boolean changes the behavior of the
-   *          {@link #setRoute(Collection)} method.
-   * @param sm If defined all transitions in the provided {@link StateMachine}
-   *          will be added to the {@link StateMachine} of the vehicle.
-   */
-  protected RouteFollowingVehicle(VehicleDTO pDto,
-      boolean allowDelayedRouteChanging,
-      @Nullable StateMachine<StateEvent, RouteFollowingVehicle> sm) {
     super(pDto);
     depot = Optional.absent();
     speed = Optional.absent();
@@ -128,32 +117,18 @@ public class RouteFollowingVehicle extends DefaultVehicle {
     currentTime = Optional.absent();
     allowDelayedRouteChanges = allowDelayedRouteChanging;
 
-    // TODO split up the Wait state into a GoHome or GotoDepot state.
-
-    waitState = new Wait();
-    gotoState = new Goto();
-    waitForServiceState = new WaitAtService();
-    serviceState = new Service();
-    final StateMachineBuilder<StateEvent, RouteFollowingVehicle> smBuilder = StateMachine
-        .create(waitState)
-        .addTransition(waitState, StateEvent.GOTO, gotoState)
-        .addTransition(gotoState, StateEvent.NOGO, waitState)
-        .addTransition(gotoState, StateEvent.ARRIVED, waitForServiceState)
-        .addTransition(waitForServiceState, StateEvent.REROUTE, gotoState)
-        .addTransition(waitForServiceState, StateEvent.READY_TO_SERVICE,
-            serviceState)
-        .addTransition(serviceState, StateEvent.DONE, waitState);
-    if (sm != null) {
-      smBuilder.addTransitionsFrom(sm);
-    }
-    stateMachine = smBuilder.build();
+    stateMachine = createStateMachine();
+    waitState = stateMachine.getStateOfType(Wait.class);
+    gotoState = stateMachine.getStateOfType(Goto.class);
+    waitForServiceState = stateMachine.getStateOfType(WaitAtService.class);
+    serviceState = stateMachine.getStateOfType(Service.class);
 
     final String v = Integer.toHexString(hashCode());
     stateMachine.getEventAPI().addListener(new Listener() {
       @Override
       public void handleEvent(Event e) {
         @SuppressWarnings("unchecked")
-        final StateTransitionEvent<StateEvent, RouteFollowingVehicle> event = (StateTransitionEvent<RouteFollowingVehicle.StateEvent, RouteFollowingVehicle>) e;
+        final StateTransitionEvent<DefaultEvent, RouteFollowingVehicle> event = (StateTransitionEvent<RouteFollowingVehicle.DefaultEvent, RouteFollowingVehicle>) e;
         LOGGER.trace("{} - {} + {} -> {}", v, event.previousState, event.event,
             event.newState);
       }
@@ -368,6 +343,36 @@ public class RouteFollowingVehicle extends DefaultVehicle {
     return currentTime.get();
   }
 
+  /**
+   * Creates the {@link StateMachine} that is used in this vehicle. This method
+   * is (and should) called only once during the life time of a vehicle.
+   * <p>
+   * <b>Extension</b>This method can optionally be overridden to change the
+   * behavior of the vehicle. When overriding make sure that:
+   * <ul>
+   * <li>The resulting state machine contains at least four states of the
+   * following types: {@link Wait}, {@link Goto}, {@link WaitAtService} and
+   * {@link Service}. Subclasses are allowed, multiple instances of the same
+   * type may result in unexpected behavior.</li>
+   * <li>This method does not have any side effects. It should not call any
+   * instance methods or set any global variables.</li>
+   * </ul>
+   * @return A newly created {@link StateMachine} that controls this vehicle.
+   */
+  protected StateMachine<StateEvent, RouteFollowingVehicle> createStateMachine() {
+    final Wait wait = new Wait();
+    final Goto gotos = new Goto();
+    final WaitAtService waitAtService = new WaitAtService();
+    final Service service = new Service();
+    return StateMachine.create(wait)
+        .addTransition(wait, DefaultEvent.GOTO, gotos)
+        .addTransition(gotos, DefaultEvent.NOGO, wait)
+        .addTransition(gotos, DefaultEvent.ARRIVED, waitAtService)
+        .addTransition(waitAtService, DefaultEvent.REROUTE, gotos)
+        .addTransition(waitAtService, DefaultEvent.READY_TO_SERVICE, service)
+        .addTransition(service, DefaultEvent.DONE, wait).build();
+  }
+
   void checkCurrentParcelOwnership() {
     checkState(
         !pdpModel.get().getParcelState(route.peek()).isTransitionState(),
@@ -376,10 +381,17 @@ public class RouteFollowingVehicle extends DefaultVehicle {
   }
 
   /**
-   * The event types of the state machine.
+   * Marker interface for events. When defining new events simply implement this
+   * interface.
    * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
    */
-  protected enum StateEvent {
+  protected interface StateEvent {}
+
+  /**
+   * The default event types of the state machine.
+   * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+   */
+  protected enum DefaultEvent implements StateEvent {
     /**
      * Indicates that waiting is over, the vehicle is going to a parcel.
      */
@@ -411,7 +423,6 @@ public class RouteFollowingVehicle extends DefaultVehicle {
   /**
    * Base state class, can be subclassed to define custom states.
    * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
-   * 
    */
   protected abstract class AbstractTruckState extends
       AbstractState<StateEvent, RouteFollowingVehicle> {
@@ -439,7 +450,7 @@ public class RouteFollowingVehicle extends DefaultVehicle {
           pdpModel.get().getVehicleState(context) == VehicleState.IDLE,
           "We can only be in Wait state when the vehicle is idle, vehicle is %s.",
           pdpModel.get().getVehicleState(context));
-      if (event == StateEvent.NOGO) {
+      if (event == DefaultEvent.NOGO) {
         checkArgument(isDiversionAllowed);
       }
       if (context.newRoute.isPresent()) {
@@ -449,12 +460,12 @@ public class RouteFollowingVehicle extends DefaultVehicle {
 
     @Nullable
     @Override
-    public StateEvent handle(@Nullable StateEvent event,
+    public DefaultEvent handle(@Nullable StateEvent event,
         RouteFollowingVehicle context) {
       if (!route.isEmpty()) {
         checkCurrentParcelOwnership();
         if (!isTooEarly(route.peek(), currentTime.get())) {
-          return StateEvent.GOTO;
+          return DefaultEvent.GOTO;
         }
         // else it is too early, and we do nothing
       }
@@ -480,7 +491,7 @@ public class RouteFollowingVehicle extends DefaultVehicle {
 
     @Override
     public void onEntry(StateEvent event, RouteFollowingVehicle context) {
-      if (event == StateEvent.REROUTE) {
+      if (event == DefaultEvent.REROUTE) {
         checkArgument(isDiversionAllowed);
       }
       checkCurrentParcelOwnership();
@@ -488,19 +499,19 @@ public class RouteFollowingVehicle extends DefaultVehicle {
 
     @Nullable
     @Override
-    public StateEvent handle(@Nullable StateEvent event,
+    public DefaultEvent handle(@Nullable StateEvent event,
         RouteFollowingVehicle context) {
       if (route.isEmpty()) {
-        return StateEvent.NOGO;
+        return DefaultEvent.NOGO;
       }
       final DefaultParcel cur = route.element();
       if (roadModel.get().equalPosition(context, cur)) {
-        return StateEvent.ARRIVED;
+        return DefaultEvent.ARRIVED;
       }
       roadModel.get().moveTo(context, cur, currentTime.get());
       if (roadModel.get().equalPosition(context, cur)
           && currentTime.get().hasTimeLeft()) {
-        return StateEvent.ARRIVED;
+        return DefaultEvent.ARRIVED;
       }
       return null;
     }
@@ -518,7 +529,7 @@ public class RouteFollowingVehicle extends DefaultVehicle {
 
     @Nullable
     @Override
-    public StateEvent handle(@Nullable StateEvent event,
+    public DefaultEvent handle(@Nullable StateEvent event,
         RouteFollowingVehicle context) {
       checkCurrentParcelOwnership();
       final PDPModel pm = pdpModel.get();
@@ -527,7 +538,7 @@ public class RouteFollowingVehicle extends DefaultVehicle {
       // we are not at the parcel's position, this means the next parcel has
       // changed in the mean time, so we have to reroute.
       if (!roadModel.get().equalPosition(context, cur)) {
-        return StateEvent.REROUTE;
+        return DefaultEvent.REROUTE;
       }
       // if parcel is not ready yet, wait
       final boolean pickup = !pm.getContents(context).contains(cur);
@@ -543,7 +554,7 @@ public class RouteFollowingVehicle extends DefaultVehicle {
         }
       }
       if (time.hasTimeLeft()) {
-        return StateEvent.READY_TO_SERVICE;
+        return DefaultEvent.READY_TO_SERVICE;
       } else {
         return null;
       }
@@ -567,13 +578,14 @@ public class RouteFollowingVehicle extends DefaultVehicle {
 
     @Nullable
     @Override
-    public StateEvent handle(@Nullable StateEvent event,
+    public DefaultEvent handle(@Nullable StateEvent event,
         RouteFollowingVehicle context) {
       if (pdpModel.get().getVehicleState(context) == VehicleState.IDLE) {
         route.remove();
-        return StateEvent.DONE;
+        return DefaultEvent.DONE;
       }
       return null;
     }
   }
+
 }
