@@ -943,8 +943,11 @@ public class RouteFollowingVehicleTest {
 
   }
 
+  /**
+   * Tests a subclass that changes the state machine.
+   */
   @Test
-  public void test() {
+  public void testExtension() {
     final VehicleDTO v = new VehicleDTO(new Point(1, 1), 30, 1, new TimeWindow(
         0, minute(30)));
     final SubVehicle vehicle = new SubVehicle(v, allowDelayedRouteChanges);
