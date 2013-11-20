@@ -14,6 +14,9 @@ import static rinde.sim.util.fsm.StateMachineTest.States.STOPPED;
 
 import java.util.List;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+
 import org.junit.Before;
 import org.junit.Test;
 
@@ -27,182 +30,243 @@ import rinde.sim.util.fsm.StateMachine.StateTransitionEvent;
  */
 public class StateMachineTest {
 
-    enum Events {
-        START, STOP, PAUSE, SPEZIAL
+  enum Events {
+    START, STOP, PAUSE, SPEZIAL
+  }
+
+  class DefaultState implements State<Events, Context> {
+    protected List<Events> history;
+
+    protected DefaultState() {
+      history = newArrayList();
     }
 
-    enum States implements State<Events, Context> {
+    @Override
+    public String name() {
+      return getClass().getSimpleName();
+    }
 
-        STARTED {},
-        STOPPED {},
-        PAUSED {},
-        SPECIAL {
-            @Override
-            public Events handle(Events event, Context context) {
-                super.handle(event, context);
-                if (context != null) {
-                    return Events.START;
-                }
-                return null;
-            }
-        };
+    @Override
+    @Nullable
+    public Events handle(@Nullable Events event, Context context) {
+      history.add(event);
+      return null;
+    }
 
-        protected List<Events> history;
+    @Override
+    public void onEntry(Events event, Context context) {}
 
-        private States() {
-            history = newArrayList();
+    @Override
+    public void onExit(Events event, Context context) {}
+  }
+
+  class StateA extends DefaultState {}
+
+  class StateB extends DefaultState {}
+
+  class StateC extends DefaultState {}
+
+  enum States implements State<Events, Context> {
+
+    STARTED {},
+    STOPPED {},
+    PAUSED {},
+    SPECIAL {
+      @Nullable
+      @Override
+      public Events handle(@Nullable Events event, Context context) {
+        super.handle(event, context);
+        if (context != null) {
+          return Events.START;
         }
+        return null;
+      }
+    };
 
-        @Override
-        public void onEntry(Events event, Context context) {}
+    protected List<Events> history;
 
-        @Override
-        public void onExit(Events event, Context context) {}
-
-        @Override
-        public Events handle(Events event, Context context) {
-            history.add(event);
-            return null;
-        }
-
+    private States() {
+      history = newArrayList();
     }
 
-    class Context {}
+    @Override
+    public void onEntry(Events event, Context context) {}
 
-    /**
-     * The state machine under test.
-     */
-    protected StateMachine<Events, Context> fsm;
+    @Override
+    public void onExit(Events event, Context context) {}
 
-    /**
-     * Setup the state machine used in the tests.
-     */
-    @SuppressWarnings("unchecked")
-    @Before
-    public void setUp() {
-        fsm = StateMachine.create(STOPPED)
-                .addTransition(STARTED, Events.STOP, STOPPED)
-                .addTransition(STARTED, Events.SPEZIAL, SPECIAL)
-                .addTransition(SPECIAL, Events.START, STARTED)
-                .addTransition(SPECIAL, Events.STOP, SPECIAL)
-                .addTransition(STOPPED, Events.START, STARTED)
-                .addTransition(STOPPED, Events.STOP, STOPPED)
-                .addTransition(STARTED, Events.PAUSE, PAUSED)
-                .addTransition(PAUSED, Events.STOP, STOPPED)
-                .addTransition(PAUSED, Events.START, STARTED).build();
-
-        assertTrue(fsm.stateIsOneOf(States.values()));
-        assertFalse(fsm.stateIsOneOf(STARTED, SPECIAL));
-
-        fsm.toDot();
-        StateMachineEvent.valueOf("STATE_TRANSITION");
+    @Nullable
+    @Override
+    public Events handle(@Nullable Events event, Context context) {
+      history.add(event);
+      return null;
     }
+  }
 
-    /**
-     * Tests transitions.
-     */
-    @SuppressWarnings({ "rawtypes", "unchecked" })
-    @Test
-    public void testTransition() {
-        final ListenerEventHistory history = new ListenerEventHistory();
-        fsm.getEventAPI()
-                .addListener(history, StateMachine.StateMachineEvent.values());
+  class Context {}
 
-        // start in STOPPED state
-        assertEquals(STOPPED, fsm.getCurrentState());
-        fsm.handle(Events.START, null);
-        assertEquals(STARTED, fsm.getCurrentState());
-        // history.getHistory()
+  /**
+   * The state machine under test.
+   */
+  protected StateMachine<Events, Context> fsm;
 
-        // nothing should happen
-        fsm.handle(null);
-        assertEquals(STARTED, fsm.getCurrentState());
+  /**
+   * Setup the state machine used in the tests.
+   */
+  @SuppressWarnings("unchecked")
+  @Before
+  public void setUp() {
+    fsm = StateMachine.create(STOPPED)
+        .addTransition(STARTED, Events.STOP, STOPPED)
+        .addTransition(STARTED, Events.SPEZIAL, SPECIAL)
+        .addTransition(SPECIAL, Events.START, STARTED)
+        .addTransition(SPECIAL, Events.STOP, SPECIAL)
+        .addTransition(STOPPED, Events.START, STARTED)
+        .addTransition(STOPPED, Events.STOP, STOPPED)
+        .addTransition(STARTED, Events.PAUSE, PAUSED)
+        .addTransition(PAUSED, Events.STOP, STOPPED)
+        .addTransition(PAUSED, Events.START, STARTED).build();
 
-        // should go to SPECIAL and back to STARTED immediately
-        history.clear();
-        fsm.handle(Events.SPEZIAL, new Context());
-        assertEquals(STARTED, fsm.getCurrentState());
-        assertEquals(2, history.getHistory().size());
-        assertTrue(((StateTransitionEvent) history.getHistory().get(0))
-                .equalTo(STARTED, Events.SPEZIAL, SPECIAL));
-        assertTrue(((StateTransitionEvent) history.getHistory().get(1))
-                .equalTo(SPECIAL, Events.START, STARTED));
+    assertTrue(fsm.stateIsOneOf(States.values()));
+    assertFalse(fsm.stateIsOneOf(STARTED, SPECIAL));
 
-        // testing the equalTo method
-        assertFalse(((StateTransitionEvent) history.getHistory().get(1))
-                .equalTo(STARTED, Events.START, STARTED));
-        assertFalse(((StateTransitionEvent) history.getHistory().get(1))
-                .equalTo(SPECIAL, Events.PAUSE, STARTED));
-        assertFalse(((StateTransitionEvent) history.getHistory().get(1))
-                .equalTo(SPECIAL, Events.START, SPECIAL));
+    fsm.toDot();
+    StateMachineEvent.valueOf("STATE_TRANSITION");
+  }
 
-        // go to SPECIAL
-        fsm.handle(Events.SPEZIAL, null);
-        assertEquals(SPECIAL, fsm.getCurrentState());
-        // should remain in SPECIAL
-        fsm.handle(Events.STOP, null);
-        assertEquals(SPECIAL, fsm.getCurrentState());
+  /**
+   * Tests the query by class method.
+   */
+  @Test
+  public void testGetStateOfType() {
+    final StateA a = new StateA();
+    final StateB b = new StateB();
+    final StateC c = new StateC();
+    fsm = StateMachine.create(a)
+        .addTransition(a, Events.START, b)
+        .addTransition(b, Events.START, c)
+        .addTransition(c, Events.START, a)
+        .build();
 
-        fsm.handle(Events.START, null);
-        assertEquals(STARTED, fsm.getCurrentState());
+    final State<Events, Context> first = fsm.getStates().iterator().next();
+    assertEquals(first, fsm.getStateOfType(Object.class));
+    assertEquals(b, fsm.getStateOfType(StateB.class));
+    assertEquals(c, fsm.getStateOfType(StateC.class));
 
+    boolean fail = false;
+    try {
+      fsm.getStateOfType(Enum.class);
+    } catch (final IllegalArgumentException e) {
+      fail = true;
     }
+    assertTrue(fail);
+  }
 
-    /**
-     * Test transition that is not allowed.
-     */
-    @Test(expected = IllegalArgumentException.class)
-    public void impossibleTransition() {
-        fsm.handle(Events.START, null);
-        fsm.handle(Events.START, null);
-    }
+  /**
+   * Tests transitions.
+   */
+  @SuppressWarnings({ "rawtypes", "unchecked" })
+  @Test
+  public void testTransition() {
+    final ListenerEventHistory history = new ListenerEventHistory();
+    fsm.getEventAPI()
+        .addListener(history, StateMachine.StateMachineEvent.values());
 
-    /**
-     * Tests correct behavior for events which are not equal.
-     */
-    @Test
-    public void eventNotEqualBehavior() {
+    // start in STOPPED state
+    assertEquals(STOPPED, fsm.getCurrentState());
+    fsm.handle(Events.START, null);
+    assertEquals(STARTED, fsm.getCurrentState());
+    // history.getHistory()
 
-        final TestState state1 = new TestState("state1");
-        state1.name();
-        final TestState state2 = new TestState("state2");
-        final Object event1 = "event1";
-        final Object event2 = new Object();
+    // nothing should happen
+    fsm.handle(null);
+    assertEquals(STARTED, fsm.getCurrentState());
 
-        final StateMachine<Object, Object> sm = StateMachine.create(state1)/* */
+    // should go to SPECIAL and back to STARTED immediately
+    history.clear();
+    fsm.handle(Events.SPEZIAL, new Context());
+    assertEquals(STARTED, fsm.getCurrentState());
+    assertEquals(2, history.getHistory().size());
+    assertTrue(((StateTransitionEvent) history.getHistory().get(0))
+        .equalTo(STARTED, Events.SPEZIAL, SPECIAL));
+    assertTrue(((StateTransitionEvent) history.getHistory().get(1))
+        .equalTo(SPECIAL, Events.START, STARTED));
+
+    // testing the equalTo method
+    assertFalse(((StateTransitionEvent) history.getHistory().get(1))
+        .equalTo(STARTED, Events.START, STARTED));
+    assertFalse(((StateTransitionEvent) history.getHistory().get(1))
+        .equalTo(SPECIAL, Events.PAUSE, STARTED));
+    assertFalse(((StateTransitionEvent) history.getHistory().get(1))
+        .equalTo(SPECIAL, Events.START, SPECIAL));
+
+    // go to SPECIAL
+    fsm.handle(Events.SPEZIAL, null);
+    assertEquals(SPECIAL, fsm.getCurrentState());
+    // should remain in SPECIAL
+    fsm.handle(Events.STOP, null);
+    assertEquals(SPECIAL, fsm.getCurrentState());
+
+    fsm.handle(Events.START, null);
+    assertEquals(STARTED, fsm.getCurrentState());
+
+  }
+
+  /**
+   * Test transition that is not allowed.
+   */
+  @Test(expected = IllegalArgumentException.class)
+  public void impossibleTransition() {
+    fsm.handle(Events.START, null);
+    fsm.handle(Events.START, null);
+  }
+
+  /**
+   * Tests correct behavior for events which are not equal.
+   */
+  @Test
+  public void eventNotEqualBehavior() {
+
+    final TestState state1 = new TestState("state1");
+    state1.name();
+    final TestState state2 = new TestState("state2");
+    final Object event1 = "event1";
+    final Object event2 = new Object();
+
+    final StateMachine<Object, Object> sm = StateMachine.create(state1)/* */
         .addTransition(state1, event1, state2)/* */
         .addTransition(state2, event2, state1)/* */
         .build();
 
-        assertTrue(sm.isSupported(event1));
-        assertTrue(sm.isSupported("event1"));
-        assertTrue(sm.isSupported(new StringBuilder("event").append(1)
-                .toString()));
+    assertTrue(sm.isSupported(event1));
+    assertTrue(sm.isSupported("event1"));
+    assertTrue(sm.isSupported(new StringBuilder("event").append(1)
+        .toString()));
 
-        assertFalse(sm.isSupported(event2));
+    assertFalse(sm.isSupported(event2));
 
-        sm.handle("event1", null);
-        assertTrue(sm.stateIs(state2));
+    sm.handle("event1", null);
+    assertTrue(sm.stateIs(state2));
 
-        assertTrue(sm.isSupported(event2));
-        assertFalse(sm.isSupported(new Object()));
+    assertTrue(sm.isSupported(event2));
+    assertFalse(sm.isSupported(new Object()));
+  }
+
+  static class TestState extends AbstractState<Object, Object> {
+    private final String name;
+
+    public TestState(String pName) {
+      name = pName;
     }
 
-    static class TestState extends AbstractState<Object, Object> {
-        private final String name;
-
-        public TestState(String pName) {
-            name = pName;
-        }
-
-        @Override
-        public String name() {
-            return super.name() + name;
-        }
-
-        @Override
-        public Object handle(Object event, Object context) {
-            return null;
-        }
+    @Override
+    public String name() {
+      return super.name() + name;
     }
+
+    @Override
+    public Object handle(@Nonnull Object event, Object context) {
+      return null;
+    }
+  }
 }

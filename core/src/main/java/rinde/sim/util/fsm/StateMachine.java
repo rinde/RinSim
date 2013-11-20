@@ -13,6 +13,7 @@ import rinde.sim.event.Event;
 import rinde.sim.event.EventAPI;
 import rinde.sim.event.EventDispatcher;
 
+import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableTable;
 import com.google.common.collect.Table.Cell;
 
@@ -166,9 +167,34 @@ public class StateMachine<E, C> {
   }
 
   /**
+   * @return An {@link ImmutableCollection} of all states in this state machine.
+   */
+  public ImmutableCollection<State<E, C>> getStates() {
+    return transitionTable.values();
+  }
+
+  /**
+   * Looks up a state of the specified (sub)type if it exists. If there exist
+   * multiple the first encountered is returned.
+   * @param type The (sub)type to look for.
+   * @return The state of the specified type.
+   * @throws IllegalArgumentException if there is no state of the specified
+   *           type.
+   */
+  public <T> T getStateOfType(Class<T> type) {
+    for (final State<E, C> state : getStates()) {
+      if (type.isInstance(state)) {
+        return type.cast(state);
+      }
+    }
+    throw new IllegalArgumentException("There is no instance of " + type
+        + " in this state machine.");
+  }
+
+  /**
    * Returns true if the current state supports the event.
    * @param event The event to check.
-   * @return <code>true</code> whent the specified event is supported by the
+   * @return <code>true</code> when the specified event is supported by the
    *         current state, <code>false</code> otherwise.
    */
   public boolean isSupported(E event) {
