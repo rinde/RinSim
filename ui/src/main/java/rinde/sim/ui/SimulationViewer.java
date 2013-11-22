@@ -63,6 +63,7 @@ public class SimulationViewer extends Composite implements TickListener,
 
   private static final int MIN_SPEED_UP = 1;
   private static final int MAX_SPEED_UP = 512;
+  private static final int MAX_ZOOM_LEVEL = 16;
 
   boolean firstTime = true;
   final Simulator simulator;
@@ -184,7 +185,6 @@ public class SimulationViewer extends Composite implements TickListener,
       checkState(panels.isEmpty(),
           "Invalid preferred position set for panels: %s", panels.values());
     }
-
   }
 
   static int[] varargs(int... ints) {
@@ -378,20 +378,20 @@ public class SimulationViewer extends Composite implements TickListener,
 
   void onZooming(MenuItem source) {
     if (source.getData() == MenuItems.ZOOM_IN) {
-      if (zoomRatio == 16) {
+      if (zoomRatio == MAX_ZOOM_LEVEL) {
         return;
       }
-      origin.x -= m * viewRect.width / 2;
-      origin.y -= m * viewRect.height / 2;
       m *= 2;
+      origin.x *= 2;
+      origin.y *= 2;
       zoomRatio <<= 1;
     } else {
       if (zoomRatio < 2) {
         return;
       }
       m /= 2;
-      origin.x += m * viewRect.width / 2;
-      origin.y += m * viewRect.height / 2;
+      origin.x /= 2;
+      origin.y /= 2;
       zoomRatio >>= 1;
     }
     if (image != null) {
@@ -444,23 +444,20 @@ public class SimulationViewer extends Composite implements TickListener,
       updateScrollbars(false);
     }
 
-    gc.drawImage(image, origin.x, origin.y);
+    final org.eclipse.swt.graphics.Point center = getCenteredOrigin();
 
-    final Rectangle rect = image.getBounds();
-    final Rectangle client = canvas.getClientArea();
-    final int marginWidth = client.width - rect.width;
-    if (marginWidth > 0) {
-      gc.fillRectangle(rect.width, 0, marginWidth, client.height);
-    }
-    final int marginHeight = client.height - rect.height;
-    if (marginHeight > 0) {
-      gc.fillRectangle(0, rect.height, client.width, marginHeight);
-    }
-
+    gc.drawImage(image, center.x, center.y);
     for (final CanvasRenderer renderer : renderers) {
-      renderer.renderDynamic(gc, new ViewPort(new Point(origin.x, origin.y),
+      renderer.renderDynamic(gc, new ViewPort(new Point(center.x,
+          center.y),
           viewRect, m), simulator.getCurrentTime());
     }
+
+    final Rectangle content = image.getBounds();
+    final Rectangle client = canvas.getClientArea();
+
+    hBar.setVisible(content.width > client.width);
+    vBar.setVisible(content.height > client.height);
 
     // auto play sim if required
     if (wasFirstTime && autoPlay) {
@@ -468,33 +465,27 @@ public class SimulationViewer extends Composite implements TickListener,
     }
   }
 
+  org.eclipse.swt.graphics.Point getCenteredOrigin() {
+    final Rectangle rect = image.getBounds();
+    final Rectangle client = canvas.getClientArea();
+    final int zeroX = client.x + client.width / 2 - rect.width / 2;
+    final int zeroY = client.y + client.height / 2 - rect.height / 2;
+    return new org.eclipse.swt.graphics.Point(origin.x + zeroX, origin.y
+        + zeroY);
+  }
+
   void updateScrollbars(boolean adaptToScrollbar) {
     final Rectangle rect = image.getBounds();
     final Rectangle client = canvas.getClientArea();
+
     hBar.setMaximum(rect.width);
     vBar.setMaximum(rect.height);
     hBar.setThumb(Math.min(rect.width, client.width));
     vBar.setThumb(Math.min(rect.height, client.height));
-    final int hPage = rect.width - client.width;
-    final int vPage = rect.height - client.height;
-    int hSelection = hBar.getSelection();
-    int vSelection = vBar.getSelection();
-    if (adaptToScrollbar) {
-      if (hSelection >= hPage) {
-        if (hPage <= 0) {
-          hSelection = 0;
-        }
-        origin.x = -hSelection;
-      }
-      if (vSelection >= vPage) {
-        if (vPage <= 0) {
-          vSelection = 0;
-        }
-        origin.y = -vSelection;
-      }
-    } else {
-      hBar.setSelection(-origin.x);
-      vBar.setSelection(-origin.y);
+    if (!adaptToScrollbar) {
+      final org.eclipse.swt.graphics.Point center = getCenteredOrigin();
+      hBar.setSelection(-center.x);
+      vBar.setSelection(-center.y);
     }
   }
 
@@ -534,22 +525,17 @@ public class SimulationViewer extends Composite implements TickListener,
       m = area.height / viewRect.height;
     }
     zoomRatio = 1;
-
-    final double width = (viewRect.width * m) - area.width;
-    final double height = (viewRect.height * m) - area.height;
-    origin.x = (int) (width / -2);
-    origin.y = (int) (height / -2);
   }
 
   @Override
-  public void controlMoved(ControlEvent e) {
-    // not needed
-  }
+  public void controlMoved(ControlEvent e) {}
 
   @Override
   public void controlResized(ControlEvent e) {
     if (image != null) {
       updateScrollbars(true);
+      scrollHorizontal();
+      scrollVertical();
       canvas.redraw();
     }
   }
@@ -557,25 +543,46 @@ public class SimulationViewer extends Composite implements TickListener,
   @Override
   public void widgetSelected(SelectionEvent e) {
     if (e.widget == vBar) {
-      final int vSelection = vBar.getSelection();
-      final int destY = -vSelection - origin.y;
-      final Rectangle rect = image.getBounds();
-      canvas.scroll(0, destY, 0, 0, rect.width, rect.height, false);
-      origin.y = -vSelection;
+      scrollVertical();
     } else {
+      scrollHorizontal();
+    }
+  }
+
+  void scrollVertical() {
+    final org.eclipse.swt.graphics.Point center = getCenteredOrigin();
+    final Rectangle content = image.getBounds();
+    final Rectangle client = canvas.getClientArea();
+    if (client.height > content.height) {
+      origin.y = 0;
+    }
+    else {
+      final int vSelection = vBar.getSelection();
+      final int destY = -vSelection - center.y;
+      canvas.scroll(center.x, destY, center.x, center.y, content.width,
+          content.height, false);
+      origin.y = -vSelection + (origin.y - center.y);
+    }
+  }
+
+  void scrollHorizontal() {
+    final org.eclipse.swt.graphics.Point center = getCenteredOrigin();
+    final Rectangle content = image.getBounds();
+    final Rectangle client = canvas.getClientArea();
+    if (client.width > content.width) {
+      origin.x = 0;
+    }
+    else {
       final int hSelection = hBar.getSelection();
-      final int destX = -hSelection - origin.x;
-      final Rectangle rect = image.getBounds();
-      canvas.scroll(destX, 0, 0, 0, rect.width, rect.height, false);
-      origin.x = -hSelection;
+      final int destX = -hSelection - center.x;
+      canvas.scroll(destX, center.y, center.x, center.y, content.width,
+          content.height, false);
+      origin.x = -hSelection + (origin.x - center.x);
     }
   }
 
   @Override
-  public void widgetDefaultSelected(SelectionEvent e) {
-    // not needed
-
-  }
+  public void widgetDefaultSelected(SelectionEvent e) {}
 
   @Override
   public void tick(TimeLapse timeLapse) {}
