@@ -58,7 +58,19 @@ public final class FactoryExample {
   public static void main(String[] args) {
     final long endTime = args != null && args.length >= 1 ? Long
         .parseLong(args[0]) : Long.MAX_VALUE;
-    run(endTime, new Display(), null, null);
+
+    final Display d = new Display();
+    @Nullable
+    Monitor sec = null;
+    for (final Monitor m : d.getMonitors()) {
+      if (d.getPrimaryMonitor() != m) {
+        sec = m;
+        break;
+      }
+    }
+    System.out.println(sec);
+
+    run(endTime, d, sec, null);
   }
 
   public static Simulator run(final long endTime, Display display,
@@ -66,7 +78,12 @@ public final class FactoryExample {
 
     final Rectangle rect;
     if (m != null) {
-      rect = m.getClientArea();
+      if (list != null) {
+        rect = m.getClientArea();
+      }
+      else {// full screen
+        rect = m.getBounds();
+      }
     } else {
       rect = display.getPrimaryMonitor().getClientArea();
     }
@@ -79,8 +96,9 @@ public final class FactoryExample {
     // screen
     if (rect.width == 1920) {
       // WORDS = asList("AgentWise\nKU Leuven", "iMinds\nDistriNet");
-      WORDS = asList("  Agent \n  Wise ", "  Distri \n  Net  ");
-      FONT_SIZE = 19;
+      // WORDS = asList("  Agent \n  Wise ", "  Distri \n  Net  ");
+      WORDS = asList(" iMinds \nDistriNet");
+      FONT_SIZE = 13;
       VERTICAL_LINE_SPACING = 8;
       NUM_VECHICLES = 40;
     }
@@ -97,6 +115,7 @@ public final class FactoryExample {
     for (final String word : WORDS) {
       pointBuilder.add(SwarmDemo.measureString(word, FONT_SIZE, SPACING, 2));
     }
+
     final ImmutableList<ImmutableList<Point>> points = pointBuilder.build();
     int max = 0;
     double xMax = 0;
@@ -124,7 +143,10 @@ public final class FactoryExample {
     final PDPModel pdpModel = new DefaultPDPModel();
     simulator.register(roadModel);
     simulator.register(pdpModel);
-    simulator.register(new AgvModel(rng, points, getBorderNodes(g)));
+
+    simulator.register(new AgvModel(rng, ImmutableList
+        .<ImmutableList<Point>> builder().addAll(points).add(getBorderNodes(g))
+        .build(), getBorderNodes(g)));
     simulator.configure();
 
     for (int i = 0; i < NUM_VECHICLES; i++) {
@@ -150,13 +172,23 @@ public final class FactoryExample {
         .create(simulator)
         .with(new GraphRoadModelRenderer(CANVAS_MARGIN, false, false, false),
             new BoxRenderer(), new RoadUserRenderer(uis, false))
-        .setTitleAppendix("Factory Demo").enableAutoPlay().enableAutoClose()
+        .setTitleAppendix("Factory Demo")
+        .enableAutoPlay()
+        .enableAutoClose()
         .setSpeedUp(4);
 
     if (m != null) {
       view.displayOnMonitor(m)
           .setResolution(m.getClientArea().width, m.getClientArea().height)
-          .setDisplay(display).setCallback(list).setAsync();
+          .setDisplay(display);
+
+      if (list != null) {
+        view.setCallback(list)
+            .setAsync();
+      }
+      else {
+        view.setFullScreen();
+      }
     }
 
     view.show();
