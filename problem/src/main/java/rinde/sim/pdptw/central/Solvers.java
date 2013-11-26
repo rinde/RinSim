@@ -55,7 +55,8 @@ public final class Solvers {
   private Solvers() {}
 
   /**
-   * Creates a builder for creating {@link SimulationSolver} instances.
+   * Creates a builder for creating {@link SimulationSolver} instances. For more
+   * information see {@link AdapterBuilder}.
    * @param sol The solver to use internally.
    * @return The builder.
    */
@@ -86,11 +87,11 @@ public final class Solvers {
       Measure<Double, Length> distance, Unit<Duration> outputTimeUnit) {
     // meters
     return Measure.valueOf(distance.doubleValue(SI.METER)
-    // divided by m/s
+        // divided by m/s
         / speed.doubleValue(SI.METERS_PER_SECOND),
-    // gives seconds
+        // gives seconds
         SI.SECOND)
-    // convert to desired unit
+        // convert to desired unit
         .doubleValue(outputTimeUnit);
   }
 
@@ -537,8 +538,9 @@ public final class Solvers {
       final Collection<DefaultVehicle> vs = vehicles.isEmpty() ? roadModel
           .getObjectsOfType(DefaultVehicle.class) : vehicles;
       final Collection<DefaultParcel> ps = args.parcels.isPresent() ? args.parcels
-          .get() : conv(pdpModel.getParcels(ParcelState.ANNOUNCED,
-          ParcelState.AVAILABLE, ParcelState.PICKING_UP));
+          .get()
+          : conv(pdpModel.getParcels(ParcelState.ANNOUNCED,
+              ParcelState.AVAILABLE, ParcelState.PICKING_UP));
       return Solvers.convert(roadModel, pdpModel, vs, ps, time(),
           args.currentRoutes);
     }

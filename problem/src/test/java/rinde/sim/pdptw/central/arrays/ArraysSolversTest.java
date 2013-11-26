@@ -20,10 +20,27 @@ import javax.measure.Measure;
 import javax.measure.converter.UnitConverter;
 import javax.measure.quantity.Velocity;
 import javax.measure.unit.ProductUnit;
+import javax.measure.unit.SI;
 
+import org.apache.commons.math3.random.MersenneTwister;
 import org.junit.Test;
 
+import rinde.sim.core.Simulator;
 import rinde.sim.core.graph.Point;
+import rinde.sim.core.model.pdp.DefaultPDPModel;
+import rinde.sim.core.model.pdp.Depot;
+import rinde.sim.core.model.road.PlaneRoadModel;
+import rinde.sim.pdptw.central.Solvers;
+import rinde.sim.pdptw.central.Solvers.SimulationConverter;
+import rinde.sim.pdptw.central.Solvers.SolveArgs;
+import rinde.sim.pdptw.central.Solvers.StateContext;
+import rinde.sim.pdptw.central.arrays.ArraysSolvers.ArraysObject;
+import rinde.sim.pdptw.common.DefaultDepot;
+import rinde.sim.pdptw.common.DefaultParcel;
+import rinde.sim.pdptw.common.PDPRoadModel;
+import rinde.sim.pdptw.common.ParcelDTO;
+import rinde.sim.pdptw.common.RouteFollowingVehicle;
+import rinde.sim.pdptw.common.VehicleDTO;
 import rinde.sim.util.TimeWindow;
 
 /**
@@ -96,5 +113,57 @@ public class ArraysSolversTest {
     final int tardiness = ArraysSolvers.computeRouteTardiness(route,
         arrivalTimes, serviceTimes, dueDates, 0);
     assertEquals(20, tardiness);
+  }
+
+  /**
+   * Tests whether parcel that have the same location as origin and destinations
+   * are treated correctly by the conversion script.
+   */
+  @Test
+  public void testToInventoriesArrayWithDuplicatePositions() {
+
+    final Simulator sim = new Simulator(new MersenneTwister(123),
+        Measure.valueOf(1000L, SI.MILLI(SI.SECOND)));
+
+    sim.register(new DefaultPDPModel());
+    sim.register(new PDPRoadModel(new PlaneRoadModel(new Point(0, 0),
+        new Point(10, 10), 50), false));
+    sim.configure();
+
+    final RouteFollowingVehicle rfv = new RouteFollowingVehicle(new VehicleDTO(
+        new Point(1, 1), 50, 10, new TimeWindow(0, 1000000)), false);
+    final Depot depot = new DefaultDepot(new Point(5, 5));
+
+    final DefaultParcel dp1 = new DefaultParcel(new ParcelDTO(new Point(2, 2),
+        new Point(3, 3), new TimeWindow(0, 1000), new TimeWindow(0, 1000), 0,
+        0L, 5L, 5L));
+    final DefaultParcel dp2 = new DefaultParcel(new ParcelDTO(new Point(2, 2),
+        new Point(3, 3), new TimeWindow(0, 1000), new TimeWindow(0, 1000), 0,
+        0L, 5L, 5L));
+
+    sim.register(depot);
+    sim.register(rfv);
+    sim.register(dp1);
+    sim.register(dp2);
+
+    rfv.setRoute(asList(dp1, dp2));
+
+    while (rfv.getRoute().size() > 0) {
+      sim.tick();
+    }
+
+    final SimulationConverter simConv = Solvers.converterBuilder().with(sim)
+        .build();
+    final StateContext sc = simConv.convert(SolveArgs.create()
+        .noCurrentRoutes().useAllParcels());
+
+    final ArraysObject singleVehicleArrays = ArraysSolvers
+        .toSingleVehicleArrays(sc.state,
+            SI.MILLI(SI.SECOND));
+
+    final int[][] inventories = ArraysSolvers.toInventoriesArray(sc.state,
+        singleVehicleArrays);
+
+    assertArrayEquals(new int[][] { { 0, 1 }, { 0, 2 } }, inventories);
   }
 }

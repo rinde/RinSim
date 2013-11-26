@@ -454,13 +454,6 @@ public final class ArraysSolvers {
   }
 
   static int[][] toInventoriesArray(GlobalStateObject state, ArraysObject sva) {
-    final ImmutableMap.Builder<Point, Integer> point2indexBuilder = ImmutableMap
-        .builder();
-    // we ignore the first location (depot) to avoid duplicates
-    for (int i = 1; i < sva.location2index.size(); i++) {
-      point2indexBuilder.put(sva.location2index.get(i), i);
-    }
-    final Map<Point, Integer> point2index = point2indexBuilder.build();
     final UnmodifiableIterator<VehicleStateObject> iterator = state.vehicles
         .iterator();
 
@@ -470,7 +463,7 @@ public final class ArraysSolvers {
       final VehicleStateObject cur = iterator.next();
       for (final ParcelDTO dp : cur.contents) {
         invPairBuilder.add(ImmutableList.of(i,
-            point2index.get(dp.destinationLocation)));
+            sva.parcel2index.get(dp).deliveryIndex));
       }
     }
     final ImmutableList<ImmutableList<Integer>> inventoryPairs = invPairBuilder
