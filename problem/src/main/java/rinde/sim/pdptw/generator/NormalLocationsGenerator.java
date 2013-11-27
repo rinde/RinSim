@@ -60,13 +60,14 @@ public class NormalLocationsGenerator implements LocationsGenerator {
    *          generated. Note that for each order two locations are generated:
    *          the pickup location and the delivery location.
    */
+  @Override
   public ImmutableList<Point> generate(int numOrders, RandomGenerator rng) {
     final ImmutableList.Builder<Point> b = ImmutableList.builder();
     for (int i = 0; i < numOrders * 2; i++) {
       final double x = sample(rng);
       final double y = sample(rng);
-      checkState(x >= 0 && x < size, "%s, %s", i, x);
-      checkState(y >= 0 && y < size, "%s, %s", i, y);
+      checkState(x >= 0 && x < size, "Invalid x value %s, %s", i, x);
+      checkState(y >= 0 && y < size, "Invalid y value %s, %s", i, y);
       b.add(new Point(x, y));
     }
     return b.build();

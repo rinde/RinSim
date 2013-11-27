@@ -36,18 +36,18 @@ public class NormalLocationsGeneratorTest {
   @Parameters
   public static Collection<Object[]> data() {
     return Arrays.asList(new Object[][] { /* */
-    { new NormalLocationsGenerator(10, .15, .05) }, /* */
-    { new NormalLocationsGenerator(10, .18, .05) }, /* */
-    { new NormalLocationsGenerator(5, .15, .05) }, /* */
-    { new NormalLocationsGenerator(5, .16, .05) }, /* */
-    { new NormalLocationsGenerator(5, .17, .05) }, /* */
-    { new NormalLocationsGenerator(5, .18, .05) }, /* */
-    { new NormalLocationsGenerator(5, .19, .05) }, /* */
-    { new NormalLocationsGenerator(5, .20, .05) }, /* */
-    { new NormalLocationsGenerator(5, .15, 1.0) }, /* */
-    { new NormalLocationsGenerator(5, .2, .1) }, /* */
-    { new NormalLocationsGenerator(5.1, .2, .1) }, /* */
-    { new NormalLocationsGenerator(3, .2, 1) } /* */
+        { new NormalLocationsGenerator(10, .15, .05) }, /* */
+        { new NormalLocationsGenerator(10, .18, .05) }, /* */
+        { new NormalLocationsGenerator(5, .15, .05) }, /* */
+        { new NormalLocationsGenerator(5, .16, .05) }, /* */
+        { new NormalLocationsGenerator(5, .17, .05) }, /* */
+        { new NormalLocationsGenerator(5, .18, .05) }, /* */
+        { new NormalLocationsGenerator(5, .19, .05) }, /* */
+        { new NormalLocationsGenerator(5, .20, .05) }, /* */
+        { new NormalLocationsGenerator(5, .15, 1.0) }, /* */
+        { new NormalLocationsGenerator(5, .2, .1) }, /* */
+        { new NormalLocationsGenerator(5.1, .2, .1) }, /* */
+        { new NormalLocationsGenerator(3, .2, 1) } /* */
 
     });
   }
@@ -68,7 +68,7 @@ public class NormalLocationsGeneratorTest {
     final String histogramFileName = new StringBuilder(WORK_DIR)
         .append("hist-").append(fileName).append(".data").toString();
 
-    writeLocationList(locations, new File(locationListFileName));
+    Analysis.writeLocationList(locations, new File(locationListFileName));
     writeGeneratorHistogram(lg, new File(histogramFileName));
 
   }
@@ -80,19 +80,6 @@ public class NormalLocationsGeneratorTest {
     for (int i = 0; i < histogram.length; i++) {
       sb.append(histogram[i][0]).append(" ").append(histogram[i][1])
           .append("\n");
-    }
-    try {
-      Files.createParentDirs(f);
-      Files.write(sb.toString(), f, Charsets.UTF_8);
-    } catch (final IOException e) {
-      throw new RuntimeException(e);
-    }
-  }
-
-  static void writeLocationList(List<Point> locations, File f) {
-    final StringBuilder sb = new StringBuilder();
-    for (final Point p : locations) {
-      sb.append(p.x).append(" ").append(p.y).append("\n");
     }
     try {
       Files.createParentDirs(f);

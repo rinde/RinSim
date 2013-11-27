@@ -220,6 +220,24 @@ public final class Metrics {
         RoundingMode.CEILING);
   }
 
+  /**
+   * Returns an {@link ImmutableList} containing all service points of
+   * {@link Scenario}. The scenario must contain {@link AddParcelEvent}s.
+   * @param s The scenario to extract the points from.
+   * @return A list containing all service points in order of occurrence in the
+   *         scenario event list.
+   */
+  public static ImmutableList<Point> getServicePoints(Scenario s) {
+    final ImmutableList.Builder<Point> builder = ImmutableList.builder();
+    for (final TimedEvent se : s.asList()) {
+      if (se instanceof AddParcelEvent) {
+        builder.add(((AddParcelEvent) se).parcelDTO.pickupLocation);
+        builder.add(((AddParcelEvent) se).parcelDTO.destinationLocation);
+      }
+    }
+    return builder.build();
+  }
+
   // to use for parts of the timeline to avoid excessively long list with
   // mostly 0s.
   static class LoadPart extends TimeWindow {
