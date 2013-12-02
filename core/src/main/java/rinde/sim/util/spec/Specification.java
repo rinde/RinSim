@@ -33,6 +33,7 @@ package rinde.sim.util.spec;
  * object.
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
  */
+// FIXME replace with Predicates?
 public final class Specification {
 
   private Specification() {}
