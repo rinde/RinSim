@@ -14,8 +14,6 @@ import javax.annotation.Nullable;
 
 import org.apache.commons.math3.random.MersenneTwister;
 import org.apache.commons.math3.random.RandomGenerator;
-import org.apache.commons.math3.stat.StatUtils;
-import org.apache.commons.math3.stat.inference.ChiSquareTest;
 import org.junit.Test;
 
 import rinde.sim.core.graph.Point;
@@ -26,7 +24,6 @@ import com.google.common.base.Function;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.io.Files;
-import com.google.common.primitives.Doubles;
 
 /**
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
@@ -61,11 +58,52 @@ public class ScenarioGeneratorTest {
 
   @Test
   public void test2() {
-    final ScenarioGenerator sg = ScenarioGenerator.builder()
-        .setAnnouncementIntensityPerKm2(1.3d).setOrdersPerAnnouncement(1.3) //
+    final ScenarioGenerator.Builder sg = ScenarioGenerator.builder()
+        .setAnnouncementIntensityPerKm2(0.3d).setOrdersPerAnnouncement(1.3) //
         .setScale(.1, 5) //
-        .setScenarioLength(480) //
-        .build();
+        .setScenarioLength(480);
+
+    final RandomGenerator rng = new MersenneTwister(123);
+
+    final List<List<Double>> allLoads = newArrayList();
+    for (int i = 0; i < 10; i++) {
+      final Scenario s = sg.build().generate(rng);
+      Metrics.checkTimeWindowStrictness(s);
+      final List<Double> loads = Metrics.measureLoad(s);
+      allLoads.add(loads);
+    }
+
+    final ImmutableList<Double> mean = ImmutableList.copyOf(Lists.transform(
+        mean(allLoads),
+        new Function<Double, Double>() {
+          @Override
+          @Nullable
+          public Double apply(@Nullable Double input) {
+            if (input.equals(0d)) {
+              return Double.MIN_VALUE;
+            }
+            return input;
+          }
+        }));
+
+    final ScenarioGenerator dsg = sg.addRequirement(
+        new LoadRequirement(mean, 4, 6)).build();
+
+    final List<Scenario> scenarios = dsg.generate(rng, 2).scenarios;
+
+    for (int i = 0; i < scenarios.size(); i++) {
+      final List<Point> points = Metrics.getServicePoints(scenarios.get(i));
+      final List<Double> loads = newArrayList(Metrics.measureLoad(scenarios
+          .get(i)));
+
+      final String name = "files/generator/good/scenario-";
+      Analysis.writeLocationList(points, new File(
+          name + i + ".points"));
+
+      writeLoads(loads, new File(
+          name + i + ".load"));
+
+    }
 
     // sg.generate(rng,10,ScenarioRequirements
     // .withOrdersMin(30)
@@ -81,83 +119,41 @@ public class ScenarioGeneratorTest {
     // .numScenarios(10)
     // and scenario requirements
 
-    final RandomGenerator rng = new MersenneTwister(123);
-
-    final List<List<Double>> allLoads = newArrayList();
-    for (int i = 0; i < 1000; i++) {
-      final Scenario s = sg.generate(rng);
-      Metrics.checkTimeWindowStrictness(s);
-      final List<Double> loads = Metrics.measureLoad(s);
-      allLoads.add(loads);
-    }
-
-    final ChiSquareTest tester = new ChiSquareTest();
-
-    final List<Double> mean = Lists.transform(mean(allLoads),
-        new Function<Double, Double>() {
-          @Override
-          @Nullable
-          public Double apply(@Nullable Double input) {
-            if (input.equals(0d)) {
-              return Double.MIN_VALUE;
-            }
-            return input;
-          }
-        });
-
-    int good = 0;
-    for (int i = 0; i < 1000; i++) {
-      final Scenario s = sg.generate(rng);
-      Metrics.checkTimeWindowStrictness(s);
-      final List<Double> loads = newArrayList(Metrics.measureLoad(s));
-      final int toAdd = mean.size() - loads.size();
-      for (int j = 0; j < toAdd; j++) {
-        loads.add(0d);
-      }
-
-      // final Collection<Long> convertedLoads = Collections2.transform(loads,
-      // new Function<Double, Long>() {
-      // @Override
-      // @Nullable
-      // public Long apply(@Nullable Double input) {
-      // return DoubleMath.roundToLong(input * 1000000d,
-      // RoundingMode.HALF_DOWN);
-      // }
-      // });
-
-      // System.out.println(StatUtils.meanDifference(Doubles.toArray(loads),
-      // Doubles.toArray(mean)));
-      //
-      // System.out.println(StatUtils.sumDifference(Doubles.toArray(loads),
-      // Doubles.toArray(mean)));
-
-      final double[] deviations = abs(subtract(Doubles.toArray(mean),
-          Doubles.toArray(loads)));
-      final double m = StatUtils.mean(deviations);
-      final double min = Doubles.min(deviations);
-      final double max = Doubles.max(deviations);
-
-      System.out.println(s.asList().size());
-      if (m < .3 && max < 2) {
-
-        System.out.println("-");
-        System.out.println("mean: " + m);
-        System.out.println("min: " + min);
-        System.out.println("max: " + max);
-
-        final List<Point> points = Metrics.getServicePoints(s);
-
-        final String name = "files/generator/good/scenario-";
-        Analysis.writeLocationList(points, new File(
-            name + good + ".points"));
-
-        writeLoads(loads, new File(
-            name + good + ".load"));
-        good++;
-      }
-      // System.out.println(tester.chiSquareTest(Doubles.toArray(mean),
-      // Longs.toArray(convertedLoads), 0.9d));
-    }
+    // int good = 0;
+    // for (int i = 0; i < 1000; i++) {
+    // final Scenario s = sg.generate(rng);
+    // Metrics.checkTimeWindowStrictness(s);
+    // final List<Double> loads = newArrayList(Metrics.measureLoad(s));
+    // final int toAdd = mean.size() - loads.size();
+    // for (int j = 0; j < toAdd; j++) {
+    // loads.add(0d);
+    // }
+    //
+    // final double[] deviations = abs(subtract(Doubles.toArray(mean),
+    // Doubles.toArray(loads)));
+    // final double m = StatUtils.mean(deviations);
+    // final double min = Doubles.min(deviations);
+    // final double max = Doubles.max(deviations);
+    //
+    // System.out.println(s.asList().size());
+    // if (m < .3 && max < 2) {
+    //
+    // System.out.println("-");
+    // System.out.println("mean: " + m);
+    // System.out.println("min: " + min);
+    // System.out.println("max: " + max);
+    //
+    // final List<Point> points = Metrics.getServicePoints(s);
+    //
+    // final String name = "files/generator/good/scenario-";
+    // Analysis.writeLocationList(points, new File(
+    // name + good + ".points"));
+    //
+    // writeLoads(loads, new File(
+    // name + good + ".load"));
+    // good++;
+    // }
+    // }
 
     writeLoads(mean, new File(
         "files/generator/load/scenarios-mean.load"));

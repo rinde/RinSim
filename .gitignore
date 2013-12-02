@@ -4,5 +4,6 @@ example/src/main/java/rinde/sim/playground/
 target/
 problem/files/generator/*
 problem/files/test/gendreau06/req_rapide_*
+problem/files/dataset/*
 org.sonar.ide.eclipse.core.prefs
 *.log
