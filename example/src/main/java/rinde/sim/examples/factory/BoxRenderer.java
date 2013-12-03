@@ -31,21 +31,44 @@ import com.google.common.base.Optional;
 
 class BoxRenderer implements ModelRenderer {
 
-  static final Point AT_SITE_OFFSET = new Point(-12, -13);
+  // static final Point AT_SITE_OFFSET = new Point(-12, -13);
   static final float AT_SITE_ROTATION = 0f;
-  static final Point IN_CARGO_OFFSET = new Point(-21, -1);
+  // static final Point IN_CARGO_OFFSET = new Point(-21, -1);
   static final float IN_CARGO_ROTATION = 20f;
   static final Point LABEL_OFFSET = new Point(-15, -40);
+
+  ImageType img;
+
+  enum ImageType {
+
+    SMALL("/graphics/perspective/deliverypackage2.png", new Point(-12, -13),
+        new Point(-21, -1)),
+
+    LARGE("/graphics/perspective/deliverypackage3.png", new Point(-20, -21),
+        new Point(-23, -8));
+
+    final String file;
+    final Point atSiteOffset;
+    final Point inCargoOffset;
+
+    ImageType(String f, Point atSite, Point inCargo) {
+      file = f;
+      atSiteOffset = atSite;
+      inCargoOffset = inCargo;
+    }
+
+  }
 
   Optional<RoadModel> roadModel;
   Optional<PDPModel> pdpModel;
   final UiSchema uiSchema;
 
   BoxRenderer() {
+    img = ImageType.LARGE;
     roadModel = Optional.absent();
     pdpModel = Optional.absent();
     uiSchema = new UiSchema(false);
-    uiSchema.add(Box.class, "/graphics/perspective/deliverypackage2.png");
+    uiSchema.add(Box.class, img.file);
   }
 
   @Override
@@ -90,8 +113,8 @@ class BoxRenderer implements ModelRenderer {
           final Point pos = roadModel.get().getPosition(p);
           final int x = vp.toCoordX(pos.x);
           final int y = vp.toCoordY(pos.y);
-          offsetX = (int) AT_SITE_OFFSET.x + x - image.getBounds().width / 2;
-          offsetY = (int) AT_SITE_OFFSET.y + y - image.getBounds().height / 2;
+          offsetX = (int) img.atSiteOffset.x + x - image.getBounds().width / 2;
+          offsetY = (int) img.atSiteOffset.y + y - image.getBounds().height / 2;
         } else if (ps == ParcelState.PICKING_UP || ps == ParcelState.DELIVERING) {
 
           final Vehicle v = mapping.get(p);
@@ -113,10 +136,12 @@ class BoxRenderer implements ModelRenderer {
           gc.drawText(text, (int) LABEL_OFFSET.x + x - textWidth / 2,
               (int) LABEL_OFFSET.y + y, true);
 
-          Point from = new Point(AT_SITE_OFFSET.x + x - image.getBounds().width
-              / 2d, AT_SITE_OFFSET.y + y - image.getBounds().height / 2d);
-          Point to = new Point(IN_CARGO_OFFSET.x + x - image.getBounds().width
-              / 2d, IN_CARGO_OFFSET.y + y - image.getBounds().height / 2d);
+          Point from = new Point(img.atSiteOffset.x + x
+              - image.getBounds().width
+              / 2d, img.atSiteOffset.y + y - image.getBounds().height / 2d);
+          Point to = new Point(img.inCargoOffset.x + x
+              - image.getBounds().width
+              / 2d, img.inCargoOffset.y + y - image.getBounds().height / 2d);
 
           if (ps == ParcelState.DELIVERING) {
             final Point temp = from;
@@ -133,8 +158,9 @@ class BoxRenderer implements ModelRenderer {
           final Point pos = roadModel.get().getPosition(mapping.get(p));
           final int x = vp.toCoordX(pos.x);
           final int y = vp.toCoordY(pos.y);
-          offsetX = (int) IN_CARGO_OFFSET.x + x - image.getBounds().width / 2;
-          offsetY = (int) IN_CARGO_OFFSET.y + y - image.getBounds().height / 2;
+          offsetX = (int) img.inCargoOffset.x + x - image.getBounds().width / 2;
+          offsetY = (int) img.inCargoOffset.y + y - image.getBounds().height
+              / 2;
         }
 
         if (ps != null && !ps.isDelivered()) {

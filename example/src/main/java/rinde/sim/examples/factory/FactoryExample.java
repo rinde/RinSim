@@ -4,7 +4,9 @@ import static com.google.common.collect.Lists.newArrayList;
 import static java.util.Arrays.asList;
 
 import java.math.RoundingMode;
+import java.util.Collections;
 import java.util.List;
+import java.util.Random;
 import java.util.Set;
 
 import javax.annotation.Nullable;
@@ -98,9 +100,9 @@ public final class FactoryExample {
       // WORDS = asList("AgentWise\nKU Leuven", "iMinds\nDistriNet");
       // WORDS = asList("  Agent \n  Wise ", "  Distri \n  Net  ");
       WORDS = asList(" iMinds \nDistriNet");
-      FONT_SIZE = 13;
-      VERTICAL_LINE_SPACING = 8;
-      NUM_VECHICLES = 40;
+      FONT_SIZE = 10;
+      VERTICAL_LINE_SPACING = 6;
+      NUM_VECHICLES = 12;
     }
     // projector
     else {}
@@ -144,8 +146,12 @@ public final class FactoryExample {
     simulator.register(roadModel);
     simulator.register(pdpModel);
 
+    final List<Point> borderNodes = newArrayList(getBorderNodes(g));
+    Collections.shuffle(borderNodes, new Random(123));
+
     simulator.register(new AgvModel(rng, ImmutableList
-        .<ImmutableList<Point>> builder().addAll(points).add(getBorderNodes(g))
+        .<ImmutableList<Point>> builder().addAll(points)
+        .add(ImmutableList.copyOf(borderNodes))
         .build(), getBorderNodes(g)));
     simulator.configure();
 
