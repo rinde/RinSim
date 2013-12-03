@@ -117,7 +117,11 @@ public class PDPModelTest {
 
     assertTrue(model.getSupportedType().equals(PDPObject.class));
   }
-
+  @Test 
+  public void testDrop(){
+	  
+  }
+  
   @Test
   public void testPickup() {
     final Parcel pack1 = new TestParcel(new Point(2, 2), 0, 0, 2);

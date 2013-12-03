@@ -5,6 +5,8 @@ import java.util.Set;
 
 import rinde.sim.core.TimeLapse;
 import rinde.sim.core.model.ModelProvider;
+import rinde.sim.core.model.pdp.Parcel;
+import rinde.sim.core.model.pdp.Vehicle;
 import rinde.sim.core.model.pdp.twpolicy.TimeWindowPolicy;
 import rinde.sim.event.EventAPI;
 
@@ -147,5 +149,10 @@ public class ForwardingPDPModel extends PDPModel {
   @Override
   public void registerModelProvider(ModelProvider mp) {
     delegate.registerModelProvider(mp);
+  }
+  @Override
+  public void drop(Vehicle vehicle, Parcel parcel, TimeLapse time) {
+  	delegate.drop(vehicle, parcel, time);
+  	
   }
 }
