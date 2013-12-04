@@ -20,17 +20,20 @@ public class LoadRequirement implements Predicate<Scenario> {
 
   private final double maxMean;
   private final double maxMax;
+  private final boolean relative;
 
   public LoadRequirement(ImmutableList<Double> desiredLoad,
-      double maxMeanDeviation, double maxMaxDeviation) {
+      double maxMeanDeviation, double maxMaxDeviation, boolean relativeLoad) {
     desiredLoadList = desiredLoad;
     maxMean = maxMeanDeviation;
     maxMax = maxMaxDeviation;
+    relative = relativeLoad;
   }
 
   @Override
   public boolean apply(@Nullable Scenario scenario) {
-    final List<Double> loads = newArrayList(Metrics.measureLoad(scenario));
+    final List<Double> loads = newArrayList(relative ? Metrics
+        .measureRelativeLoad(scenario) : Metrics.measureLoad(scenario));
     final int toAdd = desiredLoadList.size() - loads.size();
     for (int j = 0; j < toAdd; j++) {
       loads.add(0d);

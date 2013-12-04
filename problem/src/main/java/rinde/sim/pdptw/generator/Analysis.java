@@ -39,4 +39,19 @@ public class Analysis {
     }
   }
 
+  public static void writeLoads(List<Double> loads, File f) {
+    final StringBuilder sb = new StringBuilder();
+    int i = 0;
+    for (; i < loads.size(); i++) {
+      sb.append(i).append(" ").append(loads.get(i)).append("\n");
+    }
+    sb.append(i).append(" ").append(0).append("\n");
+    try {
+      Files.createParentDirs(f);
+      Files.write(sb.toString(), f, Charsets.UTF_8);
+    } catch (final IOException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
 }

@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Set;
 
 import rinde.sim.core.graph.Point;
+import rinde.sim.core.model.pdp.PDPScenarioEvent;
 import rinde.sim.pdptw.common.AddParcelEvent;
 import rinde.sim.pdptw.common.AddVehicleEvent;
 import rinde.sim.scenario.Scenario;
@@ -21,6 +22,7 @@ import rinde.sim.util.TimeWindow;
 
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMultiset;
 import com.google.common.math.DoubleMath;
 
 /**
@@ -41,6 +43,10 @@ public final class Metrics {
    *         assumed to have load <code>0</code>.
    */
   public static ImmutableList<Double> measureLoad(Scenario s) {
+    return measureLoad(s, 1);
+  }
+
+  static ImmutableList<Double> measureLoad(Scenario s, int numVehicles) {
 
     // FIXME should be possible to set the granularity of time. e.g. compute
     // load for every 1 second/minute/5minutes/hour/etc
@@ -52,7 +58,13 @@ public final class Metrics {
         loadParts.addAll(measureLoad((AddParcelEvent) te, vehicleSpeed));
       }
     }
-    return sum(0, loadParts.build());
+    return sum(0, loadParts.build(), numVehicles);
+  }
+
+  public static ImmutableList<Double> measureRelativeLoad(Scenario s) {
+    final int numVehicles = getEventTypeCounts(s).count(
+        PDPScenarioEvent.ADD_VEHICLE);
+    return measureLoad(s, numVehicles);
   }
 
   public static ImmutableList<LoadPart> measureLoad(AddParcelEvent event,
@@ -105,7 +117,8 @@ public final class Metrics {
     return ImmutableList.of(pickupPart, travelPart, deliveryPart);
   }
 
-  static ImmutableList<Double> sum(long st, List<LoadPart> parts) {
+  static ImmutableList<Double> sum(long st, List<LoadPart> parts, int num) {
+    checkArgument(num >= 1);
     final ImmutableList.Builder<Double> builder = ImmutableList.builder();
     long i = st;
     final Set<LoadPart> partSet = newLinkedHashSet(parts);
@@ -123,6 +136,9 @@ public final class Metrics {
       partSet.removeAll(toRemove);
 
       if (!partSet.isEmpty()) {
+        if (num > 1) {
+          currentLoadVal /= num;
+        }
         builder.add(currentLoadVal);
         i++;
       }
@@ -154,6 +170,15 @@ public final class Metrics {
     }
     checkArgument(vehicleSpeed > 0, "There are no vehicles in the scenario.");
     return vehicleSpeed;
+  }
+
+  public static ImmutableMultiset<Enum<?>> getEventTypeCounts(Scenario s) {
+    final ImmutableMultiset.Builder<Enum<?>> occurences = ImmutableMultiset
+        .builder();
+    for (final TimedEvent te : s.asList()) {
+      occurences.add(te.getEventType());
+    }
+    return occurences.build();
   }
 
   public static void checkTimeWindowStrictness(Scenario s) {
@@ -205,6 +230,7 @@ public final class Metrics {
 
   public static double measureDynamism(List<Long> arrivalTimes) {
     // announcements are distinct arrival times
+    // this indicates the number of changes of the problem
     final int announcements = newHashSet(arrivalTimes).size();
     final int orders = arrivalTimes.size();
     return announcements / (double) orders;

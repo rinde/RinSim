@@ -51,8 +51,8 @@ public class ScenarioGenerator<T extends Scenario> {
   private final Point max;
   private final long tickSize;
   private final long serviceTime;
-  private final @Nullable
-  ScenarioFactory<T> scenarioCreator;
+  @Nullable
+  private final ScenarioFactory<T> scenarioCreator;
   private final Predicate<Scenario> requirements;
 
   ScenarioGenerator(
@@ -177,27 +177,27 @@ public class ScenarioGenerator<T extends Scenario> {
     private static final long DEFAULT_TICK_SIZE = 1000L;
 
     @Nullable
-    private final ScenarioFactory<T> scenarioFactory;
+    final ScenarioFactory<T> scenarioFactory;
 
-    private int vehicles;
-    private double size;
-    private double announcementIntensity;
-    private double ordersPerAnnouncement;
-    private long scenarioLength;
-    private long minimumResponseTime;
-    private double vehicleSpeed;
-    private Predicate<Scenario> baseRequirement;
-    private final long tickSize;
-    private final long serviceTime;
+    int vehicles;
+    double size;
+    double announcementIntensity;
+    double ordersPerAnnouncement;
+    long scenarioLength;
+    long minimumResponseTime;
+    double vehicleSpeed;
+    Predicate<Scenario> baseRequirement;
+    final long tickSize;
+    final long serviceTime;
 
-    private Point depotLocation;
-    private Point min;
-    private Point max;
+    Point depotLocation;
+    Point min;
+    Point max;
 
-    private ArrivalTimesGenerator arrivalTimesGenerator;
-    private LocationsGenerator locationsGenerator;
-    private TimeWindowGenerator timeWindowGenerator;
-    private VehicleGenerator vehicleGenerator;
+    ArrivalTimesGenerator arrivalTimesGenerator;
+    LocationsGenerator locationsGenerator;
+    TimeWindowGenerator timeWindowGenerator;
+    VehicleGenerator vehicleGenerator;
 
     Builder(@Nullable ScenarioFactory<T> sf) {
       scenarioFactory = sf;

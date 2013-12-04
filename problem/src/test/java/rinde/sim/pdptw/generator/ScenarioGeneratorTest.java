@@ -7,7 +7,6 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.collect.Lists.newArrayList;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.List;
 
 import javax.annotation.Nullable;
@@ -19,11 +18,9 @@ import org.junit.Test;
 import rinde.sim.core.graph.Point;
 import rinde.sim.scenario.Scenario;
 
-import com.google.common.base.Charsets;
 import com.google.common.base.Function;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
-import com.google.common.io.Files;
 
 /**
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
@@ -46,7 +43,8 @@ public class ScenarioGeneratorTest {
       Metrics.checkTimeWindowStrictness(s);
 
       final List<Double> loads = Metrics.measureLoad(s);
-      writeLoads(loads, new File("files/generator/load/scenario" + i + ".load"));
+      Analysis.writeLoads(loads, new File("files/generator/load/scenario" + i
+          + ".load"));
 
       // measure dynamism
       // measure load
@@ -87,7 +85,7 @@ public class ScenarioGeneratorTest {
         }));
 
     final ScenarioGenerator dsg = sg.addRequirement(
-        new LoadRequirement(mean, 4, 6)).build();
+        new LoadRequirement(mean, 4, 6, false)).build();
 
     final List<Scenario> scenarios = dsg.generate(rng, 2).scenarios;
 
@@ -100,7 +98,7 @@ public class ScenarioGeneratorTest {
       Analysis.writeLocationList(points, new File(
           name + i + ".points"));
 
-      writeLoads(loads, new File(
+      Analysis.writeLoads(loads, new File(
           name + i + ".load"));
 
     }
@@ -155,7 +153,7 @@ public class ScenarioGeneratorTest {
     // }
     // }
 
-    writeLoads(mean, new File(
+    Analysis.writeLoads(mean, new File(
         "files/generator/load/scenarios-mean.load"));
   }
 
@@ -194,20 +192,5 @@ public class ScenarioGeneratorTest {
       i++;
     }
     return builder.build();
-  }
-
-  static void writeLoads(List<Double> loads, File f) {
-    final StringBuilder sb = new StringBuilder();
-    int i = 0;
-    for (; i < loads.size(); i++) {
-      sb.append(i).append(" ").append(loads.get(i)).append("\n");
-    }
-    sb.append(i).append(" ").append(0).append("\n");
-    try {
-      Files.createParentDirs(f);
-      Files.write(sb.toString(), f, Charsets.UTF_8);
-    } catch (final IOException e) {
-      throw new RuntimeException(e);
-    }
   }
 }

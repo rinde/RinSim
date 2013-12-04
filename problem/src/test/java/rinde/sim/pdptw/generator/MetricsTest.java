@@ -59,7 +59,7 @@ public class MetricsTest {
     // [15,20) - 7/15
     // [20,25) - 5/15
 
-    final List<Double> load = sum(0, parts);
+    final List<Double> load = sum(0, parts, 1);
     checkRange(load, 0, 5, 5 / 15d);
     checkRange(load, 5, 10, 7 / 15d);
     checkRange(load, 10, 15, 12 / 15d);
@@ -97,7 +97,7 @@ public class MetricsTest {
     // [0,15) - 0
     // [15,45) - 1
 
-    final List<Double> load = sum(0, parts);
+    final List<Double> load = sum(0, parts, 1);
     checkRange(load, 0, 15, 0);
     checkRange(load, 15, 45, 1);
     assertEquals(45, load.size());
@@ -135,7 +135,7 @@ public class MetricsTest {
     // [50,75) - 8/30
     // [75,80) - 5/30
 
-    final List<Double> load = sum(0, parts);
+    final List<Double> load = sum(0, parts, 1);
     checkRange(load, 0, 10, 0d);
     checkRange(load, 10, 15, 6 / 30d);
     checkRange(load, 15, 35, 9 / 30d);
