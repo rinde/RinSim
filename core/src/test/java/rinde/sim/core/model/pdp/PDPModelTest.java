@@ -28,10 +28,14 @@ import rinde.sim.core.TimeLapseFactory;
 import rinde.sim.core.graph.Point;
 import rinde.sim.core.model.Model;
 import rinde.sim.core.model.ModelProvider;
+import rinde.sim.core.model.pdp.Parcel;
+import rinde.sim.core.model.pdp.Vehicle;
 import rinde.sim.core.model.pdp.DefaultPDPModel.PickupAction;
 import rinde.sim.core.model.pdp.PDPModel.PDPModelEventType;
 import rinde.sim.core.model.pdp.PDPModel.ParcelState;
 import rinde.sim.core.model.pdp.PDPModel.VehicleState;
+import rinde.sim.core.model.pdp.PDPModelTest.TestParcel;
+import rinde.sim.core.model.pdp.PDPModelTest.TestVehicle;
 import rinde.sim.core.model.road.PlaneRoadModel;
 import rinde.sim.core.model.road.RoadModel;
 import rinde.sim.event.Event;
@@ -119,77 +123,81 @@ public class PDPModelTest {
   }
   @Test 
   public void testDrop(){
-	    final Vehicle truck = new TestVehicle(new Point(1, 1), 10.0, 1.0);
-	    model.register(truck);
-	    rm.register(truck);
+      final Vehicle truck = new TestVehicle(new Point(1, 1), 10.0, 1.0);
+      model.register(truck);
+      rm.register(truck);
 
-	    final Parcel pack = new TestParcel(new Point(2, 2), 100, 100, 2);
-	    model.register(pack);
-	    rm.register(pack);
-	    rm.addObjectAt(pack, new Point(1, 2));
+      final Parcel pack = new TestParcel(new Point(2, 2), 100, 100, 2);
+      model.register(pack);
+      rm.register(pack);
+      rm.addObjectAt(pack, new Point(1, 2));
 
-	    rm.followPath(truck, newLinkedList(asList(new Point(1, 2))),
-	        TimeLapseFactory.create(0, 3600000));
-	    model.pickup(truck, pack, TimeLapseFactory.create(0, 40));
-	    model.continuePreviousActions(truck, TimeLapseFactory.create(0, 40));
+      rm.followPath(truck, newLinkedList(asList(new Point(1, 2))),
+          TimeLapseFactory.create(0, 3600000));
+      model.pickup(truck, pack, TimeLapseFactory.create(0, 40));
+      model.continuePreviousActions(truck, TimeLapseFactory.create(0, 40));
 
-	    final TimeLapse tl = TimeLapseFactory.create(0, 40);
-	    model.continuePreviousActions(truck, tl);
-	    assertFalse(model.getContents(truck).isEmpty());
-	    assertEquals(ParcelState.IN_CARGO, model.getParcelState(pack));
-	    assertEquals(VehicleState.IDLE, model.getVehicleState(truck));
-	    
-	    //riding to other spot to drop
-	    rm.followPath(truck, newLinkedList(asList(new Point(2, 2))),
-		        TimeLapseFactory.create(0, 3600000));
-	    
-	    model.drop(truck, pack, TimeLapseFactory.create(0, 100));
-	    assertEquals(0,model.getContentsSize(truck),EPSILON);
-	    assertTrue(model.getContents(truck).isEmpty());
-	    assertEquals(ParcelState.AVAILABLE, model.getParcelState(pack));
-	    assertEquals(VehicleState.IDLE, model.getVehicleState(truck));
-	    	    
+      final TimeLapse tl = TimeLapseFactory.create(0, 40);
+      model.continuePreviousActions(truck, tl);
+      assertFalse(model.getContents(truck).isEmpty());
+      assertEquals(ParcelState.IN_CARGO, model.getParcelState(pack));
+      assertEquals(VehicleState.IDLE, model.getVehicleState(truck));
+      
+      //riding to other spot to drop
+      rm.followPath(truck, newLinkedList(asList(new Point(2, 2))),
+            TimeLapseFactory.create(0, 3600000));
+      model.drop(truck, pack, TimeLapseFactory.create(0, 50));
+      //not enough time for dropping
+      assertFalse(model.getContents(truck).isEmpty());
+      assertEquals(VehicleState.DELIVERING, model.getVehicleState(truck));
+      assertEquals(ParcelState.DELIVERING, model.getParcelState(pack));
+      model.continuePreviousActions(truck, TimeLapseFactory.create(0, 50));
+      assertEquals(0,model.getContentsSize(truck),EPSILON);
+      assertTrue(model.getContents(truck).isEmpty());
+      assertEquals(ParcelState.AVAILABLE, model.getParcelState(pack));
+      assertEquals(VehicleState.IDLE, model.getVehicleState(truck));
+            
   }
   @Test
   public void testPickupAfterDrop(){
-	    final Vehicle truck = new TestVehicle(new Point(1, 1), 10.0, 1.0);
-	    model.register(truck);
-	    rm.register(truck);
+      final Vehicle truck = new TestVehicle(new Point(1, 1), 10.0, 1.0);
+      model.register(truck);
+      rm.register(truck);
 
-	    final Parcel pack2 = new TestParcel(new Point(2, 2), 100, 100, 2);
-	    model.register(pack2);
-	    rm.register(pack2);
-	    rm.addObjectAt(pack2, new Point(1, 2));
+      final Parcel pack2 = new TestParcel(new Point(2, 2), 100, 100, 2);
+      model.register(pack2);
+      rm.register(pack2);
+      rm.addObjectAt(pack2, new Point(1, 2));
 
-	    rm.followPath(truck, newLinkedList(asList(new Point(1, 2))),
-	        TimeLapseFactory.create(0, 3600000));
-	    model.pickup(truck, pack2, TimeLapseFactory.create(0, 40));
-	    model.continuePreviousActions(truck, TimeLapseFactory.create(0, 40));
+      rm.followPath(truck, newLinkedList(asList(new Point(1, 2))),
+          TimeLapseFactory.create(0, 3600000));
+      model.pickup(truck, pack2, TimeLapseFactory.create(0, 40));
+      model.continuePreviousActions(truck, TimeLapseFactory.create(0, 40));
 
-	    final TimeLapse tl = TimeLapseFactory.create(0, 40);
-	    model.continuePreviousActions(truck, tl);
-	    assertFalse(model.getContents(truck).isEmpty());
-	    assertEquals(ParcelState.IN_CARGO, model.getParcelState(pack2));
-	    assertEquals(VehicleState.IDLE, model.getVehicleState(truck));
-	    
-	    //riding to other spot to drop
-	    rm.followPath(truck, newLinkedList(asList(new Point(2, 2))),
-		        TimeLapseFactory.create(0, 3600000));
-	    
-	    model.drop(truck, pack2, TimeLapseFactory.create(0, 100));
-	    
-	    final Vehicle truck2 = new TestVehicle(new Point(2, 2), 10.0, 1.0);
-	    model.register(truck2);
-	    rm.register(truck2);
-	    
-	    model.pickup(truck2, pack2, TimeLapseFactory.create(0, 40));
-	    model.continuePreviousActions(truck2, TimeLapseFactory.create(0, 40));
+      final TimeLapse tl = TimeLapseFactory.create(0, 40);
+      model.continuePreviousActions(truck, tl);
+      assertFalse(model.getContents(truck).isEmpty());
+      assertEquals(ParcelState.IN_CARGO, model.getParcelState(pack2));
+      assertEquals(VehicleState.IDLE, model.getVehicleState(truck));
+      
+      //riding to other spot to drop
+      rm.followPath(truck, newLinkedList(asList(new Point(2, 2))),
+            TimeLapseFactory.create(0, 3600000));
+      
+      model.drop(truck, pack2, TimeLapseFactory.create(0, 100));
+      
+      final Vehicle truck2 = new TestVehicle(new Point(2, 2), 10.0, 1.0);
+      model.register(truck2);
+      rm.register(truck2);
+      
+      model.pickup(truck2, pack2, TimeLapseFactory.create(0, 40));
+      model.continuePreviousActions(truck2, TimeLapseFactory.create(0, 40));
 
-	    final TimeLapse tl2 = TimeLapseFactory.create(0, 40);
-	    model.continuePreviousActions(truck2, tl2);
-	    assertFalse(model.getContents(truck2).isEmpty());
-	    assertEquals(ParcelState.IN_CARGO, model.getParcelState(pack2));
-	    assertEquals(VehicleState.IDLE, model.getVehicleState(truck));
+      final TimeLapse tl2 = TimeLapseFactory.create(0, 40);
+      model.continuePreviousActions(truck2, tl2);
+      assertFalse(model.getContents(truck2).isEmpty());
+      assertEquals(ParcelState.IN_CARGO, model.getParcelState(pack2));
+      assertEquals(VehicleState.IDLE, model.getVehicleState(truck));
 }
   
   @Test

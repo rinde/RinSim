@@ -16,10 +16,13 @@ import java.util.Set;
 
 import rinde.sim.core.TimeLapse;
 import rinde.sim.core.model.ModelProvider;
+import rinde.sim.core.model.pdp.DefaultPDPModel;
 import rinde.sim.core.model.pdp.PDPModelEvent;
 import rinde.sim.core.model.pdp.Parcel;
 import rinde.sim.core.model.pdp.Vehicle;
 import rinde.sim.core.model.pdp.DefaultPDPModel.DeliverAction;
+import rinde.sim.core.model.pdp.DefaultPDPModel.DropAction;
+import rinde.sim.core.model.pdp.DefaultPDPModel.VehicleParcelAction;
 import rinde.sim.core.model.pdp.PDPModel.PDPModelEventType;
 import rinde.sim.core.model.pdp.PDPModel.ParcelState;
 import rinde.sim.core.model.pdp.PDPModel.VehicleState;
@@ -305,49 +308,50 @@ public final class DefaultPDPModel extends PDPModel {
 					PDPModelEventType.END_DELIVERY, self, time, parcel, vehicle));
 		}
 	}
-	@Override
-	public void drop(Vehicle vehicle, Parcel parcel, TimeLapse time){
-		synchronized (this) {
-			/* 1 */checkVehicleInRoadModel(vehicle);
-			/* 2 */checkArgument(vehicleState.get(vehicle).equals(VehicleState.IDLE),
-					"vehicle must be idle but is: %s ", vehicleState.get(vehicle));
-			/* 3 */checkArgument(containerContents.get(vehicle).contains(parcel),
-					"vehicle does not contain parcel");
+  @Override
+  public void drop(Vehicle vehicle, Parcel parcel, TimeLapse time){
+    synchronized (this) {
+      /* 1 */checkVehicleInRoadModel(vehicle);
+      /* 2 */checkArgument(vehicleState.get(vehicle).equals(VehicleState.IDLE),
+          "vehicle must be idle but is: %s ", vehicleState.get(vehicle));
+      /* 3 */checkArgument(containerContents.get(vehicle).contains(parcel),
+          "vehicle does not contain parcel");
 
-			eventDispatcher.dispatchEvent(new PDPModelEvent(
-					PDPModelEventType.START_DELIVERY, self, time.getTime(), parcel,
-					vehicle));
-			if (time.getTimeLeft() < parcel.getDeliveryDuration()) {
-				vehicleState.put(vehicle, VehicleState.DELIVERING);
-				parcelState.put(ParcelState.DELIVERING, parcel);
-				pendingVehicleActions.put(vehicle, new DeliverAction(this, vehicle,
-						parcel, parcel.getDeliveryDuration() - time.getTimeLeft()));
-				time.consumeAll();
-			} else {
-				time.consume(parcel.getDeliveryDuration());
-				doDrop(vehicle, parcel, time.getTime());
-			}
-		}
-	}
-	/**
-	 * The actual delivery of the specified {@link Parcel} by the specified
-	 * {@link Vehicle}.
-	 * @param vehicle The {@link Vehicle} that performs the dropping.
-	 * @param parcel The {@link Parcel} that is dropped.
-	 * @param time The current time.
-	 */
-	protected void doDrop(Vehicle vehicle, Parcel parcel, long time) {
-		synchronized (this) {
-			containerContents.remove(vehicle, parcel);
-			containerContentsSize.put(vehicle, containerContentsSize.get(vehicle)
-					- parcel.getMagnitude());
-			roadModel.get().addObjectAtSamePosition(parcel,vehicle);
-			parcelState.put(ParcelState.AVAILABLE, parcel);
-			LOGGER.info("{} dropped {} by {}", time, parcel, vehicle);
-			eventDispatcher.dispatchEvent(new PDPModelEvent(
-					PDPModelEventType.PARCEL_AVAILABLE, self, time, parcel, null));
-		}
-	}
+      eventDispatcher.dispatchEvent(new PDPModelEvent(
+          PDPModelEventType.START_DELIVERY, self, time.getTime(), parcel,
+          vehicle));
+      if (time.getTimeLeft() < parcel.getDeliveryDuration()) {
+        vehicleState.put(vehicle, VehicleState.DELIVERING);
+        parcelState.put(ParcelState.DELIVERING, parcel);
+        pendingVehicleActions.put(vehicle, new DropAction(this, vehicle,
+            parcel, parcel.getDeliveryDuration() - time.getTimeLeft()));
+        time.consumeAll();
+      } else {
+        time.consume(parcel.getDeliveryDuration());
+        doDrop(vehicle, parcel, time.getTime());
+      }
+    }
+  }
+  /**
+   * The actual delivery of the specified {@link Parcel} by the specified
+   * {@link Vehicle}.
+   * @param vehicle The {@link Vehicle} that performs the dropping.
+   * @param parcel The {@link Parcel} that is dropped.
+   * @param time The current time.
+   */
+  protected void doDrop(Vehicle vehicle, Parcel parcel, long time) {
+    synchronized (this) {
+      containerContents.remove(vehicle, parcel);
+      containerContentsSize.put(vehicle, containerContentsSize.get(vehicle)
+          - parcel.getMagnitude());
+      roadModel.get().addObjectAtSamePosition(parcel,vehicle);
+      parcelState.put(ParcelState.AVAILABLE, parcel);
+      LOGGER.info("{} dropped {} by {}", time, parcel, vehicle);
+      eventDispatcher.dispatchEvent(new PDPModelEvent(
+          PDPModelEventType.PARCEL_AVAILABLE, self, time, parcel, null));
+    }
+  }
+
 
 	@Override
 	public void addParcelIn(Container container, Parcel parcel) {
@@ -641,7 +645,17 @@ public final class DefaultPDPModel extends PDPModel {
 			modelRef.doPickup(vehicle, parcel, time.getTime());
 		}
 	}
-
+  static class DropAction extends VehicleParcelAction{
+    DropAction(DefaultPDPModel model, Vehicle v, Parcel p, long pTimeNeeded) {
+      super(model,v,p,pTimeNeeded);
+    }
+    @Override
+    protected void finish(TimeLapse time) {
+      modelRef.vehicleState.put(vehicle, VehicleState.IDLE);
+      modelRef.doDrop(vehicle, parcel, time.getTime());
+    }
+    
+  }
 	static class DeliverAction extends VehicleParcelAction {
 		DeliverAction(DefaultPDPModel model, Vehicle v, Parcel p, long pTimeNeeded) {
 			super(model, v, p, pTimeNeeded);
