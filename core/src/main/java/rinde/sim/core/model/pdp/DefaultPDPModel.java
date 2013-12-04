@@ -142,6 +142,7 @@ public final class DefaultPDPModel extends PDPModel {
     eventDispatcher = new EventDispatcher(PDPModelEventType.values());
     roadModel = Optional.absent();
   }
+  
   @Override
   public ImmutableSet<Parcel> getContents(Container container) {
     synchronized (this) {
@@ -149,18 +150,21 @@ public final class DefaultPDPModel extends PDPModel {
       return ImmutableSet.copyOf(containerContents.get(container));
     }
   }
+  
   @Override
   public double getContentsSize(Container container) {
     synchronized (this) {
       return containerContentsSize.get(container);
     }
   }
+  
   @Override
   public double getContainerCapacity(Container container) {
     synchronized (this) {
       return containerCapacities.get(container);
     }
   }
+  
   @Override
   public void pickup(Vehicle vehicle, Parcel parcel, TimeLapse time) {
     synchronized (this) {
@@ -219,8 +223,7 @@ public final class DefaultPDPModel extends PDPModel {
   /**
    * Checks whether the vehicle exists in the RoadModel.
    * 
-   * @param vehicle
-   *          The vehicle to check.
+   * @param vehicle The vehicle to check.
    */
   protected void checkVehicleInRoadModel(Vehicle vehicle) {
     checkArgument(roadModel.get().containsObject(vehicle),
@@ -230,12 +233,9 @@ public final class DefaultPDPModel extends PDPModel {
   /**
    * Actual pickup, updates the {@link Vehicle} contents.
    * 
-   * @param vehicle
-   *          The {@link Vehicle} that performs the pickup.
-   * @param parcel
-   *          The {@link Parcel} that is picked up.
-   * @param time
-   *          The current time.
+   * @param vehicle The {@link Vehicle} that performs the pickup.
+   * @param parcel The {@link Parcel} that is picked up.
+   * @param time The current time.
    * @see #pickup(Vehicle, Parcel, TimeLapse)
    */
   protected void doPickup(Vehicle vehicle, Parcel parcel, long time) {
@@ -250,6 +250,7 @@ public final class DefaultPDPModel extends PDPModel {
           PDPModelEventType.END_PICKUP, self, time, parcel, vehicle));
     }
   }
+  
   @Override
   public void deliver(Vehicle vehicle, Parcel parcel, TimeLapse time) {
     synchronized (this) {
@@ -385,30 +386,35 @@ public final class DefaultPDPModel extends PDPModel {
       parcelState.put(ParcelState.IN_CARGO, parcel);
     }
   }
+  
   @Override
   public Collection<Parcel> getParcels(ParcelState state) {
     synchronized (this) {
       return parcelState.get(state);
     }
   }
+  
   @Override
   public Collection<Parcel> getParcels(ParcelState... states) {
     synchronized (this) {
       return parcelState.getMultiple(states);
     }
   }
+  
   @Override
   public Set<Vehicle> getVehicles() {
     synchronized (this) {
       return unmodifiableSet(vehicleState.keySet());
     }
   }
+  
   @Override
   public ParcelState getParcelState(Parcel parcel) {
     synchronized (this) {
       return parcelState.getKeys(parcel);
     }
   }
+  
   @Override
   public VehicleState getVehicleState(Vehicle vehicle) {
     synchronized (this) {
@@ -431,6 +437,7 @@ public final class DefaultPDPModel extends PDPModel {
           .get(vehicle);
     }
   }
+  
   @Override
   protected boolean doRegister(PDPObject element) {
     synchronized (this) {
@@ -468,6 +475,7 @@ public final class DefaultPDPModel extends PDPModel {
       return true;
     }
   }
+  
   @Override  
   public boolean unregister(PDPObject element) {
     synchronized (this) {
@@ -489,16 +497,19 @@ public final class DefaultPDPModel extends PDPModel {
     }
     return true;
   }
+  
   @Override
   public EventAPI getEventAPI() {
     return eventDispatcher.getPublicEventAPI();
   }
+  
   @Override
   public boolean containerContains(Container container, Parcel parcel) {
     synchronized (this) {
       return containerContents.containsEntry(container, parcel);
     }
   }
+  
   @Override
   protected void continuePreviousActions(Vehicle vehicle, TimeLapse time) {
     synchronized (this) {
@@ -513,6 +524,7 @@ public final class DefaultPDPModel extends PDPModel {
       }
     }
   }
+  
   @Override
   public void tick(TimeLapse timeLapse) {
     synchronized (this) {
@@ -532,13 +544,15 @@ public final class DefaultPDPModel extends PDPModel {
       }
     }
   }
+  
   @Override
-  public void afterTick(TimeLapse timeLapse) {
-  }
+  public void afterTick(TimeLapse timeLapse) {}
+  
   @Override
   public TimeWindowPolicy getTimeWindowPolicy() {
     return timeWindowPolicy;
   }
+  
   @Override
   public void registerModelProvider(ModelProvider mp) {
     synchronized (this) {
@@ -565,8 +579,7 @@ public final class DefaultPDPModel extends PDPModel {
     /**
      * Performs the action using the specified amount of time.
      * 
-     * @param time
-     *          The time to use.
+     * @param time The time to use.
      */
     void perform(TimeLapse time);
 
@@ -591,6 +604,7 @@ public final class DefaultPDPModel extends PDPModel {
       parcel = p;
       timeNeeded = pTimeNeeded;
     }
+    
     @Override
     public void perform(TimeLapse time) {
       // there is enough time to finish action
@@ -606,18 +620,22 @@ public final class DefaultPDPModel extends PDPModel {
     }
 
     protected abstract void finish(TimeLapse time);
+    
     @Override
     public boolean isDone() {
       return timeNeeded == 0;
     }
+    
     @Override
     public long timeNeeded() {
       return timeNeeded;
     }
+    
     @Override
     public Parcel getParcel() {
       return parcel;
     }
+    
     @Override
     public Vehicle getVehicle() {
       return vehicle;
@@ -628,6 +646,7 @@ public final class DefaultPDPModel extends PDPModel {
     PickupAction(DefaultPDPModel model, Vehicle v, Parcel p, long pTimeNeeded) {
       super(model, v, p, pTimeNeeded);
     }
+    
     @Override
     public void finish(TimeLapse time) {
       modelRef.vehicleState.put(vehicle, VehicleState.IDLE);
@@ -652,6 +671,7 @@ public final class DefaultPDPModel extends PDPModel {
     DeliverAction(DefaultPDPModel model, Vehicle v, Parcel p, long pTimeNeeded) {
       super(model, v, p, pTimeNeeded);
     }
+    
     @Override
     public void finish(TimeLapse time) {
       modelRef.vehicleState.put(vehicle, VehicleState.IDLE);
