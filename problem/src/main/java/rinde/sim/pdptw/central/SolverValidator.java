@@ -95,8 +95,9 @@ public final class SolverValidator {
         final boolean isInCargo = vs.contents.contains(vs.destination);
         checkArgument(
             isAvailable != isInCargo,
-            "Destination must be either available (%s) or in the current vehicle's cargo (%s), but not both (i.e. XOR).",
-            isAvailable, isInCargo, vs.destination, vs.remainingServiceTime);
+            "Destination must be either available (%s) or in the current vehicle's cargo (%s), but not both (i.e. XOR). Destination: %s, vehicle: %s (out of %s), remaining service time: %s.",
+            isAvailable, isInCargo, vs.destination, i, state.vehicles.size(),
+            vs.remainingServiceTime);
       }
 
       if (vs.route.isPresent()) {
