@@ -16,11 +16,6 @@ import java.util.Set;
 
 import rinde.sim.core.TimeLapse;
 import rinde.sim.core.model.ModelProvider;
-import rinde.sim.core.model.pdp.PDPModelEvent;
-import rinde.sim.core.model.pdp.Parcel;
-import rinde.sim.core.model.pdp.Vehicle;
-import rinde.sim.core.model.pdp.PDPModel.PDPModelEventType;
-import rinde.sim.core.model.pdp.PDPModel.ParcelState;
 import rinde.sim.core.model.pdp.twpolicy.LiberalPolicy;
 import rinde.sim.core.model.pdp.twpolicy.TimeWindowPolicy;
 import rinde.sim.core.model.road.RoadModel;
@@ -352,6 +347,7 @@ public final class DefaultPDPModel extends PDPModel {
           PDPModelEventType.PARCEL_AVAILABLE, self, time, parcel, null));
     }
   }
+
   @Override
   public void addParcelIn(Container container, Parcel parcel) {
     synchronized (this) {
@@ -468,7 +464,7 @@ public final class DefaultPDPModel extends PDPModel {
     }
   }
 
-  @Override  
+  @Override
   public boolean unregister(PDPObject element) {
     synchronized (this) {
       LOGGER.info("unregister {}", element);
