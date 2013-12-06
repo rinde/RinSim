@@ -90,11 +90,11 @@ public final class FactoryExample {
       rect = display.getPrimaryMonitor().getClientArea();
     }
 
-    List<String> WORDS = asList("Agent\nWise", "Distri\nNet");;
-    int FONT_SIZE = 14;
+    List<String> WORDS = asList((" BioCo3 \nDistriNet"));
+    int FONT_SIZE = 10;
     // spacing between vertical lines in line units
-    int VERTICAL_LINE_SPACING = 8;
-    int NUM_VECHICLES = 20;
+    int VERTICAL_LINE_SPACING = 6;
+    int NUM_VECHICLES = 12;
     // screen
     if (rect.width == 1920) {
       // WORDS = asList("AgentWise\nKU Leuven", "iMinds\nDistriNet");
