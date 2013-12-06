@@ -12,6 +12,10 @@ import rinde.sim.core.TickListener;
 import rinde.sim.core.TimeLapse;
 import rinde.sim.core.model.AbstractModel;
 import rinde.sim.core.model.ModelReceiver;
+import rinde.sim.core.model.pdp.Parcel;
+import rinde.sim.core.model.pdp.Vehicle;
+import rinde.sim.core.model.pdp.PDPModel.PDPModelEventType;
+import rinde.sim.core.model.pdp.PDPModel.VehicleState;
 import rinde.sim.core.model.pdp.twpolicy.TimeWindowPolicy;
 import rinde.sim.event.EventAPI;
 
@@ -133,6 +137,38 @@ public abstract class PDPModel extends AbstractModel<PDPObject> implements
    */
   public abstract void pickup(Vehicle vehicle, Parcel parcel, TimeLapse time);
 
+  /**
+   * Attempts to drop the specified {@link Parcel} into the specified
+   * {@link Vehicle}. Preconditions:
+   * <ul>
+   * <li>{@link Vehicle} must exist in
+   * {@link rinde.sim.core.model.road.RoadModel}.</li>
+   * <li>{@link Vehicle} must be in {@link VehicleState#IDLE} state.</li>
+   * <li>{@link Vehicle} must contain the specified {@link Parcel}.</li>
+   * </ul>
+   * If any of the preconditions is not met this method throws an
+   * {@link IllegalArgumentException}.
+   * <p>
+   * When all preconditions are met, the drop action is started indicated by
+   * the dispatching of an {@link rinde.sim.event.Event} with type
+   * {@link PDPModelEventType#START_DELIVERY}. If there is not enough time
+   * in the specified {@link TimeLapse} to complete the dropping at once, the
+   * action will be completed in the next tick. Note that this method does not,
+   * and in fact, should not be called again in the next tick to continue the
+   * dropping. The continued dropping is handled automatically, the effect is
+   * that the {@link Vehicle} will receive less time (or no time at all) in its
+   * next tick. When the dropping is completed an {@link rinde.sim.event.Event}
+   * with type {@link PDPModelEventType#END_DELIVERY} is dispatched. As a result
+   * the {@link Vehicle} no longer contains the {@link Parcel} and the
+   * {@link Parcel} is added to the
+   * {@link rinde.sim.core.model.road.RoadModel} again.
+   * @param vehicle The {@link Vehicle} that wishes to deliver a {@link Parcel}.
+   * @param parcel The {@link Parcel} that is to be delivered.
+   * @param time The {@link TimeLapse} that is available for delivery.
+   */
+  public abstract void drop(Vehicle vehicle, Parcel parcel, TimeLapse time);
+  
+  
   /**
    * The specified {@link Vehicle} attempts to deliver the {@link Parcel} at its
    * current location. Preconditions:

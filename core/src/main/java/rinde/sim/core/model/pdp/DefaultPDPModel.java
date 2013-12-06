@@ -16,6 +16,11 @@ import java.util.Set;
 
 import rinde.sim.core.TimeLapse;
 import rinde.sim.core.model.ModelProvider;
+import rinde.sim.core.model.pdp.PDPModelEvent;
+import rinde.sim.core.model.pdp.Parcel;
+import rinde.sim.core.model.pdp.Vehicle;
+import rinde.sim.core.model.pdp.PDPModel.PDPModelEventType;
+import rinde.sim.core.model.pdp.PDPModel.ParcelState;
 import rinde.sim.core.model.pdp.twpolicy.LiberalPolicy;
 import rinde.sim.core.model.pdp.twpolicy.TimeWindowPolicy;
 import rinde.sim.core.model.road.RoadModel;
@@ -215,6 +220,7 @@ public final class DefaultPDPModel extends PDPModel {
 
   /**
    * Checks whether the vehicle exists in the RoadModel.
+   * 
    * @param vehicle The vehicle to check.
    */
   protected void checkVehicleInRoadModel(Vehicle vehicle) {
@@ -224,6 +230,7 @@ public final class DefaultPDPModel extends PDPModel {
 
   /**
    * Actual pickup, updates the {@link Vehicle} contents.
+   * 
    * @param vehicle The {@link Vehicle} that performs the pickup.
    * @param parcel The {@link Parcel} that is picked up.
    * @param time The current time.
@@ -282,6 +289,7 @@ public final class DefaultPDPModel extends PDPModel {
   /**
    * The actual delivery of the specified {@link Parcel} by the specified
    * {@link Vehicle}.
+   * 
    * @param vehicle The {@link Vehicle} that performs the delivery.
    * @param parcel The {@link Parcel} that is delivered.
    * @param time The current time.
@@ -299,6 +307,51 @@ public final class DefaultPDPModel extends PDPModel {
     }
   }
 
+  @Override
+  public void drop(Vehicle vehicle, Parcel parcel, TimeLapse time) {
+    synchronized (this) {
+      /* 1 */checkVehicleInRoadModel(vehicle);
+      /* 2 */checkArgument(vehicleState.get(vehicle).equals(VehicleState.IDLE),
+          "vehicle must be idle but is: %s ", vehicleState.get(vehicle));
+      /* 3 */checkArgument(containerContents.get(vehicle).contains(parcel),
+          "vehicle does not contain parcel");
+
+      eventDispatcher.dispatchEvent(new PDPModelEvent(
+          PDPModelEventType.START_DELIVERY, self, time.getTime(), parcel,
+          vehicle));
+      if (time.getTimeLeft() < parcel.getDeliveryDuration()) {
+        vehicleState.put(vehicle, VehicleState.DELIVERING);
+        parcelState.put(ParcelState.DELIVERING, parcel);
+        pendingVehicleActions.put(vehicle, new DropAction(this, vehicle,
+            parcel, parcel.getDeliveryDuration() - time.getTimeLeft()));
+        time.consumeAll();
+      } else {
+        time.consume(parcel.getDeliveryDuration());
+        doDrop(vehicle, parcel, time.getTime());
+      }
+    }
+  }
+
+  /**
+   * The actual dropping of the specified {@link Parcel} by the specified
+   * {@link Vehicle}.
+   * 
+   * @param vehicle The {@link Vehicle} that performs the dropping.
+   * @param parcel The {@link Parcel} that is dropped.
+   * @param time The current time.
+   */
+  protected void doDrop(Vehicle vehicle, Parcel parcel, long time) {
+    synchronized (this) {
+      containerContents.remove(vehicle, parcel);
+      containerContentsSize.put(vehicle, containerContentsSize.get(vehicle)
+          - parcel.getMagnitude());
+      roadModel.get().addObjectAtSamePosition(parcel, vehicle);
+      parcelState.put(ParcelState.AVAILABLE, parcel);
+      LOGGER.info("{} dropped {} by {}", time, parcel, vehicle);
+      eventDispatcher.dispatchEvent(new PDPModelEvent(
+          PDPModelEventType.PARCEL_AVAILABLE, self, time, parcel, null));
+    }
+  }
   @Override
   public void addParcelIn(Container container, Parcel parcel) {
     synchronized (this) {
@@ -415,7 +468,7 @@ public final class DefaultPDPModel extends PDPModel {
     }
   }
 
-  @Override
+  @Override  
   public boolean unregister(PDPObject element) {
     synchronized (this) {
       LOGGER.info("unregister {}", element);
@@ -512,11 +565,13 @@ public final class DefaultPDPModel extends PDPModel {
    * Represents an action that takes time. This is used for actions that can not
    * be done at once (since there is not enough time available), using this
    * interface actions can be performed in steps.
+   * 
    * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
    */
   interface Action {
     /**
      * Performs the action using the specified amount of time.
+     * 
      * @param time The time to use.
      */
     void perform(TimeLapse time);
@@ -590,6 +645,19 @@ public final class DefaultPDPModel extends PDPModel {
       modelRef.vehicleState.put(vehicle, VehicleState.IDLE);
       modelRef.doPickup(vehicle, parcel, time.getTime());
     }
+  }
+
+  static class DropAction extends VehicleParcelAction {
+    DropAction(DefaultPDPModel model, Vehicle v, Parcel p, long pTimeNeeded) {
+      super(model, v, p, pTimeNeeded);
+    }
+
+    @Override
+    protected void finish(TimeLapse time) {
+      modelRef.vehicleState.put(vehicle, VehicleState.IDLE);
+      modelRef.doDrop(vehicle, parcel, time.getTime());
+    }
+
   }
 
   static class DeliverAction extends VehicleParcelAction {
