@@ -36,8 +36,10 @@ public class PoissonProcessArrivalTimes implements ArrivalTimesGenerator {
     length = scenarioLength;
     gai = globalAnnouncementIntensity;
     opa = ordersPerAnnouncement;
+    System.out.println("gai " + gai + " opa " + opa);
   }
 
+  @Override
   public ImmutableList<Long> generate(RandomGenerator rng) {
     // we model the announcements as a Poisson process, which means that
     // the interarrival times are exponentially distributed.
@@ -64,6 +66,9 @@ public class PoissonProcessArrivalTimes implements ArrivalTimesGenerator {
         } else {
           break;
         }
+      }
+      else {
+        // System.out.println("reject");
       }
     }
     // now we know the real number of announcements.

@@ -15,6 +15,7 @@ import org.joda.time.format.DateTimeFormatter;
 import org.joda.time.format.ISODateTimeFormat;
 
 import rinde.sim.core.graph.Point;
+import rinde.sim.core.model.pdp.PDPScenarioEvent;
 import rinde.sim.pdptw.common.DynamicPDPTWScenario.ProblemClass;
 import rinde.sim.pdptw.common.ScenarioIO;
 import rinde.sim.pdptw.generator.Analysis;
@@ -111,73 +112,133 @@ public class VanLon14 {
     }
   }
 
-  public static void generateDataSet() {
+  static ImmutableList<Double> generateMeanLoadGraph(
+      ScenarioGenerator<?> generator, RandomGenerator rng, int numSamples) {
+    final List<List<Double>> allLoads = newArrayList();
+    for (int i = 0; i < numSamples; i++) {
+      final Scenario s = generator.generate(rng);
+      Metrics.checkTimeWindowStrictness(s);
+      final List<Double> loads = Metrics.measureRelativeLoad(s);
+      allLoads.add(loads);
+    }
+    final ImmutableList<Double> meanLoadGraph = ImmutableList.copyOf(Lists
+        .transform(
+            mean(allLoads),
+            new Function<Double, Double>() {
+              @Override
+              @Nullable
+              public Double apply(@Nullable Double input) {
+                if (input == null || input.equals(0d)) {
+                  return Double.MIN_VALUE;
+                }
+                return input;
+              }
+            }));
+    return meanLoadGraph;
+  }
+
+  public static void generateDataSet(File parentDir) {
+
+    final File dataSetDir = new File(parentDir, "vanlon14/");
+
+    try {
+      Files.createParentDirs(dataSetDir);
+    } catch (final IOException e) {
+      throw new IllegalStateException(e);
+    }
+    checkState(dataSetDir.exists() || dataSetDir.mkdir());
 
     final DateTimeFormatter formatter = ISODateTimeFormat
         .dateHourMinuteSecondMillis();
     final RandomGenerator rng = new MersenneTwister(123);
 
+    // 480 minutes or 8 hours
+    final long dayLength = 480L;
+    // 0.1 vehicle per km2
+    final double vehicleDensity = .1d;
+    // number of orders per km2 per hour
+    final double orderIntensity = .20d;
+
+    // number of samples drawn from each problem class for generating mean load
+    // graph
+    final int numSamples = 50;
+    // number of scenarios to generate for each problem class
+    final int numScenarios = 5;
+
+    // deviation of the load graph
+    final double maxMeanDeviation = .2;
+    final double maxMaxDeviation = .5;
+
+    final List<List<Double>> allLoads = newArrayList();
     for (final ExperimentClass ec : ExperimentClass.values()) {
-
-      final double scale = ec.getScale().getValue();
-      final long dayLength = 480L;
-      final VanLon14ScenarioFactory scenarioCreator = new VanLon14ScenarioFactory(
-          ec);
-
-      final double area = scale * scale;
-      final ScenarioGenerator.Builder<VanLon14Scenario> builder =
+      final ScenarioGenerator<VanLon14Scenario> generator =
           ScenarioGenerator
-              .builder(scenarioCreator)
-              .setAnnouncementIntensityPerKm2(
-                  .15d * ec.getDynamism().getValue())
-              .setOrdersPerAnnouncement(1d / ec.getDynamism().getValue())
-              .setScale(.1d, scale)
+              .builder(new VanLon14ScenarioFactory(
+                  ec))
+              .setOrderIntensityAndDynamism(orderIntensity,
+                  ec.getDynamism().getValue())
+              .setScale(vehicleDensity, ec.getScale().getValue())
               .setScenarioLength(dayLength)
-      // .addRequirement(
-      // new OrderCountRequirement(
-      // DoubleMath.roundToInt(1.0 * area,
-      // RoundingMode.UNNECESSARY)))
-      ;
+              .build();
+      final List<Double> meanLoads = generateMeanLoadGraph(generator, rng,
+          numSamples);
 
-      final ScenarioGenerator<VanLon14Scenario> generator = builder.build();
-
-      // draw 1000 samples and compute mean load graph
-      final List<List<Double>> allLoads = newArrayList();
-      for (int i = 0; i < 10; i++) {
-        final Scenario s = generator.generate(rng);
-        Metrics.checkTimeWindowStrictness(s);
-        final List<Double> loads = Metrics.measureRelativeLoad(s);
-        allLoads.add(loads);
-      }
-
-      final ImmutableList<Double> meanLoadGraph = ImmutableList.copyOf(Lists
-          .transform(
-              mean(allLoads),
-              new Function<Double, Double>() {
-                @Override
-                @Nullable
-                public Double apply(@Nullable Double input) {
-                  if (input == null || input.equals(0d)) {
-                    return Double.MIN_VALUE;
-                  }
-                  return input;
+      Analysis.writeLoads(meanLoads, new File(dataSetDir, "mean"
+          + ec.name().toLowerCase() + ".load"));
+      allLoads.add(meanLoads);
+    }
+    final ImmutableList<Double> meanLoadGraph = ImmutableList.copyOf(Lists
+        .transform(
+            mean(allLoads),
+            new Function<Double, Double>() {
+              @Override
+              @Nullable
+              public Double apply(@Nullable Double input) {
+                if (input == null || input.equals(0d)) {
+                  return Double.MIN_VALUE;
                 }
-              }));
+                return input;
+              }
+            }));
 
-      final ScenarioGenerator<VanLon14Scenario> filteredGenerator = builder
-          .addRequirement(new LoadRequirement(meanLoadGraph, .1, .5, true))
-          .build();
+    Analysis.writeLoads(meanLoadGraph, new File(dataSetDir, "global.load"));
 
-      final List<VanLon14Scenario> scenarios = filteredGenerator.generate(rng,
-          5).scenarios;
+    // generation of scenarios starts here
+
+    for (final ExperimentClass ec : ExperimentClass.values()) {
+      final double scaledOrderIntensity = orderIntensity;
+      // if (ec.getScale() == Scale.MEDIUM) {
+      // scaledOrderIntensity = .22d;
+      // }
+      // else if (ec.getScale() == Scale.LARGE) {
+      // scaledOrderIntensity = .4d;
+      // }
+      System.out.println(ec);
+      // System.out.println("order intensity: " + scaledOrderIntensity
+      // );
+      final ScenarioGenerator<VanLon14Scenario> generator =
+          ScenarioGenerator
+              .builder(new VanLon14ScenarioFactory(
+                  ec))
+              .setOrderIntensityAndDynamism(
+                  scaledOrderIntensity,
+                  ec.getDynamism().getValue())
+              .setScale(vehicleDensity,
+                  ec.getScale().getValue())
+              .setScenarioLength(dayLength)
+              .addRequirement(
+                  new LoadRequirement(meanLoadGraph, maxMeanDeviation,
+                      maxMaxDeviation, true))
+              .build();
+
+      final List<VanLon14Scenario> scenarios = generator.generate(rng,
+          numScenarios).scenarios;
 
       final File dir = new File("files/dataset/vanlon14/"
           + ec.name().toLowerCase() + "/");
       try {
         Files.createParentDirs(dir);
         checkState(dir.exists() || dir.mkdir(), "Could not create dir %s.", dir);
-        Analysis.writeLoads(meanLoadGraph, new File(dir, ec.name()
-            .toLowerCase() + "-mean.load"));
 
         for (int i = 0; i < scenarios.size(); i++) {
           final Scenario s = scenarios.get(i);
@@ -206,12 +267,19 @@ public class VanLon14 {
           for (final Multiset.Entry<Enum<?>> en : eventTypes.entrySet()) {
             properties.put(en.getElement().name(), en.getCount());
           }
+          final double parcelToVehicleRatio = (double) eventTypes
+              .count(PDPScenarioEvent.ADD_PARCEL)
+              / eventTypes.count(PDPScenarioEvent.ADD_VEHICLE);
+          properties.put("parcel_to_vehicle_ratio", parcelToVehicleRatio);
+
+          System.out.println(parcelToVehicleRatio + " " + eventTypes
+              .count(PDPScenarioEvent.ADD_PARCEL) + " "
+              + eventTypes.count(PDPScenarioEvent.ADD_VEHICLE));
 
           Files.write(
               Joiner.on("\n").withKeyValueSeparator(" = ")
                   .join(properties.build()),
               new File(dir, scenarioName + ".properties"), Charsets.UTF_8);
-
         }
       } catch (final IOException e) {
         throw new IllegalStateException(e);
