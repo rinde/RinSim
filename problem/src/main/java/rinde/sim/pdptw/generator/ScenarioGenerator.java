@@ -214,6 +214,25 @@ public class ScenarioGenerator<T extends Scenario> {
     }
 
     /**
+     * Sets the global intensity of orders and sets the dynamism which defines
+     * the ratio between orders and announcements. This method overrides any
+     * previous calls to {@link #setAnnouncementIntensityPerKm2(double)} and
+     * {@link #setOrdersPerAnnouncement(double)}.
+     * @param intensity The average number of orders per km2 per hour.
+     * @param dynamism Dynamism in a scenario is defined as the number of
+     *          changes in a problem relative to the number of tasks. More
+     *          formally: <code>dynamism = announcements / orders</code>.
+     * @return This, as per the builder pattern.
+     */
+    public Builder<T> setOrderIntensityAndDynamism(double intensity,
+        double dynamism) {
+      checkArgument(dynamism > 0d && dynamism <= 1d,
+          "Dynamism %s must be in (0,1]");
+      return setAnnouncementIntensityPerKm2(intensity * dynamism).
+          setOrdersPerAnnouncement(1d / dynamism);
+    }
+
+    /**
      * Sets number of announcements per square kilometer for generated
      * scenarios. An announcement is a call from a customer, an announcement can
      * be comprised of one or more orders (a pickup-and-delivery request). The
