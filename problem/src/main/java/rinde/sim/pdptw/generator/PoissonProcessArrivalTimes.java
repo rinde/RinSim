@@ -36,7 +36,7 @@ public class PoissonProcessArrivalTimes implements ArrivalTimesGenerator {
     length = scenarioLength;
     gai = globalAnnouncementIntensity;
     opa = ordersPerAnnouncement;
-    System.out.println("gai " + gai + " opa " + opa);
+    // System.out.println("gai " + gai + " opa " + opa);
   }
 
   @Override

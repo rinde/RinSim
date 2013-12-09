@@ -213,7 +213,7 @@ public class VanLon14 {
       // else if (ec.getScale() == Scale.LARGE) {
       // scaledOrderIntensity = .4d;
       // }
-      System.out.println(ec);
+      // System.out.println(ec);
       // System.out.println("order intensity: " + scaledOrderIntensity
       // );
       final ScenarioGenerator<VanLon14Scenario> generator =
@@ -272,9 +272,9 @@ public class VanLon14 {
               / eventTypes.count(PDPScenarioEvent.ADD_VEHICLE);
           properties.put("parcel_to_vehicle_ratio", parcelToVehicleRatio);
 
-          System.out.println(parcelToVehicleRatio + " " + eventTypes
-              .count(PDPScenarioEvent.ADD_PARCEL) + " "
-              + eventTypes.count(PDPScenarioEvent.ADD_VEHICLE));
+          // System.out.println(parcelToVehicleRatio + " " + eventTypes
+          // .count(PDPScenarioEvent.ADD_PARCEL) + " "
+          // + eventTypes.count(PDPScenarioEvent.ADD_VEHICLE));
 
           Files.write(
               Joiner.on("\n").withKeyValueSeparator(" = ")
