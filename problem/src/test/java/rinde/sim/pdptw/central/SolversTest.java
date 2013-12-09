@@ -23,18 +23,21 @@ import javax.measure.unit.NonSI;
 import javax.measure.unit.SI;
 import javax.measure.unit.Unit;
 
+import org.apache.commons.math3.random.MersenneTwister;
 import org.apache.commons.math3.random.RandomGenerator;
 import org.junit.Before;
 import org.junit.Test;
 
 import rinde.sim.core.SimulatorAPI;
 import rinde.sim.core.TimeLapse;
+import rinde.sim.core.TimeLapseFactory;
 import rinde.sim.core.graph.Point;
 import rinde.sim.core.model.Model;
 import rinde.sim.core.model.ModelProvider;
 import rinde.sim.core.model.TestModelProvider;
 import rinde.sim.core.model.pdp.DefaultPDPModel;
 import rinde.sim.core.model.pdp.PDPModel;
+import rinde.sim.core.model.pdp.PDPModel.ParcelState;
 import rinde.sim.core.model.pdp.PDPModel.VehicleState;
 import rinde.sim.core.model.pdp.Parcel;
 import rinde.sim.core.model.pdp.twpolicy.TardyAllowedPolicy;
@@ -44,6 +47,8 @@ import rinde.sim.pdptw.central.GlobalStateObject.VehicleStateObject;
 import rinde.sim.pdptw.central.Solvers.SimulationConverter;
 import rinde.sim.pdptw.central.Solvers.SolveArgs;
 import rinde.sim.pdptw.central.Solvers.StateContext;
+import rinde.sim.pdptw.central.arrays.MultiVehicleSolverAdapter;
+import rinde.sim.pdptw.central.arrays.RandomMVArraysSolver;
 import rinde.sim.pdptw.common.DefaultParcel;
 import rinde.sim.pdptw.common.DefaultVehicle;
 import rinde.sim.pdptw.common.PDPRoadModel;
@@ -137,6 +142,91 @@ public class SolversTest {
     assertFalse(sc2.state.vehicles.get(0).route.isPresent());
 
     // checkVehicles(asList(v1), sc2.state.vehicles);
+  }
+
+  /**
+   * Checks whether conversion performs correctly in case a parcel is not
+   * indicated as being available but is still listed as a destination (and is
+   * available).
+   */
+  @Test
+  public void convertWithAbsentDestination() {
+    PDPTWTestUtil.register(rm, pm, v1, p1);
+    final TestSimAPI simAPI = new TestSimAPI(0, 1, NonSI.MINUTE);
+
+    final DefaultParcel destination = rm.getObjectsOfType(DefaultParcel.class)
+        .iterator().next();
+    rm.moveTo(v1, destination, TimeLapseFactory.create(0, 1000));
+    assertEquals(destination, rm.getDestinationToParcel(v1));
+    assertEquals(ParcelState.AVAILABLE, pm.getParcelState(p1));
+
+    final SimulationConverter handle = Solvers.converterBuilder().with(mp)
+        .with(simAPI).build();
+
+    final StateContext sc = handle.convert(SolveArgs.create()
+        .useParcels(ImmutableSet.<DefaultParcel> of())
+        .noCurrentRoutes());
+    assertEquals(1, sc.state.availableParcels.size());
+    assertEquals(0, sc.state.vehicles.get(0).contents.size());
+    final Solver solver = SolverValidator.wrap(new MultiVehicleSolverAdapter(
+        new RandomMVArraysSolver(new MersenneTwister(123)), NonSI.MINUTE));
+    Solvers.solverBuilder(solver).with(mp).with(simAPI).build().solve(sc);
+
+    // give enough time to reach destination
+    rm.moveTo(v1, destination, TimeLapseFactory.create(0, 1000000000));
+    assertEquals(rm.getPosition(destination), rm.getPosition(v1));
+
+    pm.pickup(v1, destination, TimeLapseFactory.create(0, 1));
+    assertEquals(VehicleState.PICKING_UP, pm.getVehicleState(v1));
+
+    final StateContext sc2 = handle.convert(SolveArgs.create()
+        .useParcels(ImmutableSet.<DefaultParcel> of())
+        .noCurrentRoutes());
+    assertEquals(1, sc2.state.availableParcels.size());
+    assertEquals(0, sc2.state.vehicles.get(0).contents.size());
+
+    // finish pickup operation
+    v1.tick(TimeLapseFactory.create(0, 1000000000));
+    assertEquals(VehicleState.IDLE, pm.getVehicleState(v1));
+
+    final StateContext sc3 = handle.convert(SolveArgs.create()
+        .useParcels(ImmutableSet.<DefaultParcel> of())
+        .noCurrentRoutes());
+    assertTrue(sc3.state.availableParcels.isEmpty());
+    assertEquals(1, sc3.state.vehicles.get(0).contents.size());
+
+    // move to delivery location
+    rm.moveTo(v1, destination, TimeLapseFactory.create(0, 1000));
+    assertEquals(destination, rm.getDestinationToParcel(v1));
+    assertEquals(ParcelState.IN_CARGO, pm.getParcelState(p1));
+
+    final StateContext sc4 = handle.convert(SolveArgs.create()
+        .useParcels(ImmutableSet.<DefaultParcel> of())
+        .noCurrentRoutes());
+    assertEquals(1, sc4.state.vehicles.get(0).contents.size());
+    assertTrue(sc4.state.availableParcels.isEmpty());
+
+    // service delivery
+    rm.moveTo(v1, destination, TimeLapseFactory.create(0, 1000000000));
+    assertEquals(destination.dto.destinationLocation, rm.getPosition(v1));
+    pm.deliver(v1, p1, TimeLapseFactory.create(0, 1));
+    assertNull(rm.getDestinationToParcel(v1));
+    assertEquals(VehicleState.DELIVERING, pm.getVehicleState(v1));
+    final StateContext sc5 = handle.convert(SolveArgs.create()
+        .useParcels(ImmutableSet.<DefaultParcel> of())
+        .noCurrentRoutes());
+    assertEquals(1, sc5.state.vehicles.get(0).contents.size());
+    assertTrue(sc5.state.availableParcels.isEmpty());
+
+    // finish delivery operation
+    v1.tick(TimeLapseFactory.create(0, 1000000000));
+    assertEquals(VehicleState.IDLE, pm.getVehicleState(v1));
+
+    final StateContext sc6 = handle.convert(SolveArgs.create()
+        .useParcels(ImmutableSet.<DefaultParcel> of())
+        .noCurrentRoutes());
+    assertTrue(sc6.state.vehicles.get(0).contents.isEmpty());
+    assertTrue(sc6.state.availableParcels.isEmpty());
   }
 
   // doesn't check the contents!

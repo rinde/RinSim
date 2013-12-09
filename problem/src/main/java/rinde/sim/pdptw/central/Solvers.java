@@ -14,6 +14,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
 
@@ -44,6 +45,8 @@ import rinde.sim.pdptw.common.VehicleDTO;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Maps;
 import com.google.common.math.DoubleMath;
 
 /**
@@ -319,13 +322,11 @@ public final class Solvers {
       Collection<DefaultParcel> availableParcels, Measure<Long, Duration> time,
       Optional<ImmutableList<ImmutableList<DefaultParcel>>> currentRoutes) {
 
-    final ImmutableMap<ParcelDTO, DefaultParcel> parcelMap = toMap(availableParcels);
     final ImmutableMap<VehicleDTO, DefaultVehicle> vehicleMap = toVehicleMap(vehicles);
     final ImmutableList.Builder<VehicleStateObject> vbuilder = ImmutableList
         .builder();
     final ImmutableMap.Builder<ParcelDTO, DefaultParcel> allParcels = ImmutableMap
         .builder();
-    allParcels.putAll(parcelMap);
 
     @Nullable
     Iterator<ImmutableList<DefaultParcel>> routeIterator = null;
@@ -336,6 +337,8 @@ public final class Solvers {
       routeIterator = currentRoutes.get().iterator();
     }
 
+    final ImmutableMap.Builder<ParcelDTO, DefaultParcel> availableDestParcels = ImmutableMap
+        .builder();
     for (final DefaultVehicle v : vehicles) {
       final ImmutableMap<ParcelDTO, DefaultParcel> contentsMap = contentsToMap(
           pm, v);
@@ -345,10 +348,26 @@ public final class Solvers {
       if (routeIterator != null) {
         route = routeIterator.next();
       }
-      vbuilder.add(convertToVehicleState(rm, pm, v, contentsMap, route));
+      vbuilder.add(convertToVehicleState(rm, pm, v, contentsMap, route,
+          availableDestParcels));
       allParcels.putAll(contentsMap);
     }
-    return new StateContext(new GlobalStateObject(parcelMap.keySet(),
+
+    final ImmutableMap<ParcelDTO, DefaultParcel> availableMap = toMap(availableParcels);
+    final ImmutableMap<ParcelDTO, DefaultParcel> availableDestMap = availableDestParcels
+        .build();
+
+    final Map<ParcelDTO, DefaultParcel> toAdd = Maps.difference(availableMap,
+        availableDestMap).entriesOnlyOnRight();
+    allParcels.putAll(availableMap);
+    allParcels.putAll(toAdd);
+
+    final ImmutableSet<ParcelDTO> availableParcelsKeys = ImmutableSet
+        .<ParcelDTO> builder()
+        .addAll(availableMap.keySet())
+        .addAll(toAdd.keySet()).build();
+
+    return new StateContext(new GlobalStateObject(availableParcelsKeys,
         vbuilder.build(), time.getValue().longValue(), time.getUnit(),
         rm.getSpeedUnit(), rm.getDistanceUnit()), vehicleMap,
         allParcels.build());
@@ -366,22 +385,25 @@ public final class Solvers {
   // TODO check for bugs
   static VehicleStateObject convertToVehicleState(PDPRoadModel rm, PDPModel pm,
       DefaultVehicle vehicle, ImmutableMap<ParcelDTO, DefaultParcel> contents,
-      @Nullable ImmutableList<DefaultParcel> route) {
+      @Nullable ImmutableList<DefaultParcel> route,
+      ImmutableMap.Builder<ParcelDTO, DefaultParcel> availableDestBuilder) {
     final boolean isIdle = pm.getVehicleState(vehicle) == PDPModel.VehicleState.IDLE;
 
     long remainingServiceTime = 0;
     @Nullable
-    ParcelDTO destination = null;
+    DefaultParcel destination = null;
     if (!isIdle) {
       final VehicleParcelActionInfo vpai = pm.getVehicleActionInfo(vehicle);
-      destination = ((DefaultParcel) vpai.getParcel()).dto;
+      destination = ((DefaultParcel) vpai.getParcel());
       remainingServiceTime = vpai.timeNeeded();
     } else if (!rm.isVehicleDiversionAllowed()) {
       // check whether the vehicle is already underway to parcel
-      final DefaultParcel p = rm.getDestinationToParcel(vehicle);
-      if (p != null) {
-        destination = p.dto;
-      }
+      destination = rm.getDestinationToParcel(vehicle);
+    }
+
+    // destinations which are not yet picked up should be put in the builder
+    if (destination != null && !pm.getParcelState(destination).isPickedUp()) {
+      availableDestBuilder.put(destination.dto, destination);
     }
 
     @Nullable
@@ -390,7 +412,8 @@ public final class Solvers {
       r = toDtoList(route);
     }
     return new VehicleStateObject(vehicle.getDTO(), rm.getPosition(vehicle),
-        contents.keySet(), remainingServiceTime, destination, r);
+        contents.keySet(), remainingServiceTime, destination == null ? null
+            : destination.dto, r);
   }
 
   static ImmutableMap<ParcelDTO, DefaultParcel> toMap(
