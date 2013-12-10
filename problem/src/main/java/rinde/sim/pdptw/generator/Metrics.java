@@ -16,6 +16,7 @@ import rinde.sim.core.graph.Point;
 import rinde.sim.core.model.pdp.PDPScenarioEvent;
 import rinde.sim.pdptw.common.AddParcelEvent;
 import rinde.sim.pdptw.common.AddVehicleEvent;
+import rinde.sim.pdptw.common.DynamicPDPTWScenario;
 import rinde.sim.scenario.Scenario;
 import rinde.sim.scenario.TimedEvent;
 import rinde.sim.util.TimeWindow;
@@ -23,6 +24,7 @@ import rinde.sim.util.TimeWindow;
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMultiset;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.math.DoubleMath;
 
 /**
@@ -214,10 +216,53 @@ public final class Metrics {
         event.parcelDTO.pickupTimeWindow.end);
   }
 
-  // TODO
-  public static void computeStress() {}
+  public static double measureDynamism(DynamicPDPTWScenario s, long granularity) {
+    checkArgument(s.getTimeWindow().begin == 0);
+    final ImmutableSet.Builder<Long> builder = ImmutableSet.builder();
+    for (final TimedEvent te : s.asList()) {
+      if (te instanceof AddParcelEvent) {
+        builder.add(te.time);
+      }
+    }
+    final Set<Long> uniqueTimes = builder.build();
+    return measureDynamism(uniqueTimes, s.getTimeWindow().end, granularity);
+  }
 
-  public static double measureDynamism(Scenario s) {
+  // [0,lengthOfDay)
+  /**
+   * Measure degree of dynamism using the specified times. Degree of dynamism is
+   * defined as the ratio of the number of intervals with changes to the total
+   * number intervals.
+   * @param arrivalTimes The arrival times for which to complete dynamism.
+   * @param lengthOfDay Length of the scenario.
+   * @param granularity Length of an interval.
+   * @return The dynamism.
+   */
+  public static double measureDynamism(Iterable<Long> arrivalTimes,
+      long lengthOfDay, long granularity) {
+    checkArgument(lengthOfDay > 0, "Length of day must be positive.");
+    checkArgument(granularity <= lengthOfDay,
+        "Granularity must be <= lengthOfDay.");
+    checkArgument(
+        lengthOfDay % granularity == 0,
+        "lengthOfDay (%s) % granularity (%s) must equal 0.",
+        lengthOfDay, granularity);
+
+    final Set<Long> intervals = newHashSet();
+    for (final long time : arrivalTimes) {
+      checkArgument(time >= 0 && time < lengthOfDay,
+          "all specified times should be >= 0 and < %s. Found %s.",
+          lengthOfDay, time);
+      intervals.add(DoubleMath.roundToLong(time / (double) granularity,
+          RoundingMode.FLOOR));
+    }
+    final int totalIntervals = DoubleMath.roundToInt(lengthOfDay
+        / (double) granularity, RoundingMode.UNNECESSARY);
+    return intervals.size() / (double) totalIntervals;
+  }
+
+  @Deprecated
+  public static double measureDynamismOld(Scenario s) {
     final List<TimedEvent> list = s.asList();
     final ImmutableList.Builder<Long> times = ImmutableList.builder();
     for (final TimedEvent te : list) {
@@ -225,10 +270,11 @@ public final class Metrics {
         times.add(te.time);
       }
     }
-    return measureDynamism(times.build());
+    return measureDynamismOld(times.build());
   }
 
-  public static double measureDynamism(List<Long> arrivalTimes) {
+  @Deprecated
+  public static double measureDynamismOld(List<Long> arrivalTimes) {
     // announcements are distinct arrival times
     // this indicates the number of changes of the problem
     final int announcements = newHashSet(arrivalTimes).size();

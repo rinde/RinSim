@@ -3,11 +3,14 @@
  */
 package rinde.sim.pdptw.generator;
 
+import static java.util.Arrays.asList;
 import static org.junit.Assert.assertEquals;
+import static rinde.sim.pdptw.generator.Metrics.measureDynamism;
 import static rinde.sim.pdptw.generator.Metrics.measureLoad;
 import static rinde.sim.pdptw.generator.Metrics.sum;
 import static rinde.sim.pdptw.generator.Metrics.travelTime;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -167,11 +170,96 @@ public class MetricsTest {
     // TODO check the rounding behavior
   }
 
+  /**
+   * Test for the dynamism function.
+   */
+  @Test
+  public void dynamismTest() {
+    assertEquals(.5, measureDynamism(asList(1L, 2L, 3L, 4L, 5L), 10,
+        1), EPSILON);
+    // duplicates should be ignored
+    assertEquals(.5, measureDynamism(asList(1L, 2L, 2L, 3L, 4L, 5L), 10,
+        1), EPSILON);
+
+    // granularity equals length of day
+    assertEquals(1d, measureDynamism(asList(1L, 2L, 2L, 3L, 4L, 5L), 10,
+        10), EPSILON);
+
+    // check valid border values of times
+    assertEquals(.6, measureDynamism(asList(0L, 2L, 2L, 3L, 4L, 8L, 9L), 10,
+        1), EPSILON);
+
+    assertEquals(.1, measureDynamism(asList(0L, 2L, 2L, 3L, 4L, 8L, 9L), 100,
+        5), EPSILON);
+
+    assertEquals(2 / 7d,
+        measureDynamism(asList(0L, 2L, 2L, 3L, 4L, 8L, 9L), 49,
+            7), EPSILON);
+
+    // both intervals
+    assertEquals(1d,
+        measureDynamism(asList(0L, 2L, 2L, 3L, 4L, 8L, 9L), 10,
+            5), EPSILON);
+
+    // no time
+    assertEquals(0d,
+        measureDynamism(Arrays.<Long> asList(), 10,
+            5), EPSILON);
+
+    // check interval borders
+    assertEquals(0.5d,
+        measureDynamism(asList(1000L, 1999L), 2000,
+            1000), EPSILON);
+    assertEquals(2 / 3d,
+        measureDynamism(asList(1000L, 2000L), 3000,
+            1000), EPSILON);
+
+  }
+
+  /**
+   * Length of day must be positive.
+   */
+  @Test(expected = IllegalArgumentException.class)
+  public void dynamismIllegalArgument1() {
+    measureDynamism(asList(1L), 0, 7);
+  }
+
+  /**
+   * Granularity must be <= length of day.
+   */
+  @Test(expected = IllegalArgumentException.class)
+  public void dynamismIllegalArgument2() {
+    measureDynamism(asList(1L), 1, 7);
+  }
+
+  /**
+   * Granularity needs to fit an exact number of times in length of day.
+   */
+  @Test(expected = IllegalArgumentException.class)
+  public void dynamismIllegalArgument3() {
+    measureDynamism(asList(1L, 2L), 10, 7);
+  }
+
+  /**
+   * Times can not be >= lengthOfDay.
+   */
+  @Test(expected = IllegalArgumentException.class)
+  public void dynamismIllegalArgument4a() {
+    measureDynamism(asList(1L, 2L, 10L), 10, 1);
+  }
+
+  /**
+   * Times can not be < 0.
+   */
+  @Test(expected = IllegalArgumentException.class)
+  public void dynamismIllegalArgument4b() {
+    measureDynamism(asList(1L, 2L, -1L), 10, 1);
+  }
+
   static <T> boolean areAllValuesTheSame(List<T> list) {
     if (list.isEmpty()) {
       return true;
     }
     return Collections.frequency(list, list.get(0)) == list.size();
   }
-
 }
