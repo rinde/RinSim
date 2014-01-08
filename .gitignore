@@ -5,5 +5,6 @@ target/
 problem/files/generator/*
 problem/files/test/gendreau06/req_rapide_*
 problem/files/dataset/*
+problem/files/test/times/*
 org.sonar.ide.eclipse.core.prefs
 *.log
