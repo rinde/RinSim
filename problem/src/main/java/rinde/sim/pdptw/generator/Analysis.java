@@ -39,7 +39,7 @@ public class Analysis {
     }
   }
 
-  public static void writeLoads(List<Double> loads, File f) {
+  public static void writeLoads(List<? extends Number> loads, File f) {
     final StringBuilder sb = new StringBuilder();
     int i = 0;
     for (; i < loads.size(); i++) {

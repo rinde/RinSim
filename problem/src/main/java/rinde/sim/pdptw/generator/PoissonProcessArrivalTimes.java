@@ -53,23 +53,23 @@ public class PoissonProcessArrivalTimes implements ArrivalTimesGenerator {
 
       // ignore values which are smaller than the time unit (one
       // minute), unless its the first value.
-      if (nt > 0 || arrivalTimes.isEmpty()) {
-        sum += nt;
-        if (sum < length) {
-          arrivalTimes.add(sum);
-        } else if (arrivalTimes.isEmpty()) {
-          // there is a small probability where the first
-          // generated arrival time is greater than length. This
-          // case is undesirable, when it happens, we just try
-          // again by resetting sum.
-          sum = 0;
-        } else {
-          break;
-        }
+      // if (/*nt > 0 ||*/ arrivalTimes.isEmpty()) {
+      sum += nt;
+      if (sum < length) {
+        arrivalTimes.add(sum);
+      } else if (arrivalTimes.isEmpty()) {
+        // there is a small probability where the first
+        // generated arrival time is greater than length. This
+        // case is undesirable, when it happens, we just try
+        // again by resetting sum.
+        sum = 0;
+      } else {
+        break;
       }
-      else {
-        // System.out.println("reject");
-      }
+      // }
+      // else {
+      // // System.out.println("reject");
+      // }
     }
     // now we know the real number of announcements.
 

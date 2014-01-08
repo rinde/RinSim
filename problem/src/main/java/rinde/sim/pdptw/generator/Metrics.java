@@ -9,6 +9,7 @@ import static com.google.common.collect.Sets.newHashSet;
 import static com.google.common.collect.Sets.newLinkedHashSet;
 
 import java.math.RoundingMode;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -24,7 +25,7 @@ import rinde.sim.util.TimeWindow;
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMultiset;
-import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ImmutableSortedMultiset;
 import com.google.common.math.DoubleMath;
 
 /**
@@ -218,14 +219,297 @@ public final class Metrics {
 
   public static double measureDynamism(DynamicPDPTWScenario s, long granularity) {
     checkArgument(s.getTimeWindow().begin == 0);
-    final ImmutableSet.Builder<Long> builder = ImmutableSet.builder();
+    return measureDynamism(getArrivalTimes(s), s.getTimeWindow().end,
+        granularity);
+  }
+
+  public static ImmutableList<Long> getArrivalTimes(DynamicPDPTWScenario s) {
+    final ImmutableList.Builder<Long> builder = ImmutableList.builder();
     for (final TimedEvent te : s.asList()) {
       if (te instanceof AddParcelEvent) {
         builder.add(te.time);
       }
     }
-    final Set<Long> uniqueTimes = builder.build();
-    return measureDynamism(uniqueTimes, s.getTimeWindow().end, granularity);
+    return builder.build();
+  }
+
+  /**
+   * Computes a histogram for the inputs. The result is a multiset with an entry
+   * for each bin in ascending order, the count of each entry indicates the size
+   * of the bin. A bin is indicated by its leftmost value, for example if the
+   * <code>binSize</code> is <code>2</code> and the result contains
+   * <code>4</code> with count <code>3</code> this means that there are
+   * <code>3</code> values in range <code>2 &le; x &lt; 4</code>.
+   * @param input The values to compute the histogram of.
+   * @param binSize The size of the bins.
+   * @return An {@link ImmutableSortedMultiset} representing the histogram.
+   */
+  public static ImmutableSortedMultiset<Double> computeHistogram(
+      Iterable<Double> input, double binSize) {
+    final ImmutableSortedMultiset.Builder<Double> builder = ImmutableSortedMultiset
+        .naturalOrder();
+    for (final double d : input) {
+      checkArgument(!Double.isInfinite(d) && !Double.isNaN(d),
+          "Only finite numbers are accepted, found %s.", d);
+      builder.add(Math.floor(d / binSize) * binSize);
+    }
+    return builder.build();
+  }
+
+  public static double measureDynamismDistr3(Iterable<Long> arrivalTimes,
+      long lengthOfDay) {
+
+    final List<Long> ts = newArrayList(arrivalTimes);
+    Collections.sort(ts);
+
+    final List<Long> input = ImmutableList.<Long> builder()
+        // .add(0L)
+        .addAll(ts)
+        // .add(lengthOfDay)
+        .build();
+
+    final int intervals = input.size();
+    // interarrival time for the 100% dynamism case
+    final double period = lengthOfDay / (double) intervals;
+
+    final List<Double> squaredDiffs = newArrayList();
+    for (int i = 0; i < intervals - 1; i++) {
+      final double interArrivalTime = (double) input.get(i + 1) - input.get(i);
+      // if (interArrivalTime - period < 0) {
+      squaredDiffs.add(Math.pow(interArrivalTime - period, 2d));
+      // }
+    }
+    // System.out.println("period: " + period);
+    // System.out.println(squaredDiffs);
+    final double var = squaredDiffs.isEmpty() ? 0 : DoubleMath
+        .mean(squaredDiffs);
+
+    final double range = input.get(input.size() - 1) - input.get(0);
+
+    // var for 100% dynamism is 0
+    // var for 0% dynamism is:
+    final double staticVar = Math.max(period * period, range * range);
+    // System.out.printf("var: %1.3f static var: %1.3f\n", var, staticVar);
+
+    // normalise
+    return 1d - (var / staticVar);
+  }
+
+  public static double measureDynamismDistr2(Iterable<Long> arrivalTimes,
+      long lengthOfDay) {
+
+    final List<Long> ts = newArrayList(arrivalTimes);
+    Collections.sort(ts);
+
+    final List<Long> input = ImmutableList.<Long> builder()
+        // .add(0L)
+        .addAll(ts)
+        // .add(lengthOfDay)
+        .build();
+
+    final int intervals = input.size();
+    final double period = lengthOfDay / (double) intervals;
+
+    double sumDeviation = 0;
+    double maxDeviation = 0;
+    for (int i = 0; i < intervals; i++) {
+      final double left = i * period;
+      final double right = Math.abs((left + period) - lengthOfDay) < .0000001 ? lengthOfDay
+          : left + period;
+      final double cur = input.get(i);
+
+      checkArgument(left >= 0 && right <= lengthOfDay, "[%s,%s)", left, right,
+          lengthOfDay);
+      maxDeviation += left;
+
+      if (cur < left) {
+        sumDeviation += Math.abs(left - cur);
+      } else if (cur > right) {
+        sumDeviation += Math.abs(right - cur);
+      }
+      // System.out.println(sumDeviation / i);
+    }
+
+    // maxDeviation /= input.size() - 1;
+    // System.out.printf("sum %1.3f max %1.3f \n", sumDeviation, maxDeviation);
+    return 1d - (sumDeviation / maxDeviation);
+  }
+
+  public static List<Long> cumulativeInformationGraph(List<Long> times,
+      long lengthOfDay) {
+    final List<Long> list = newArrayList();
+    int index = 0;
+    for (int i = 0; i < lengthOfDay; i++) {
+      while (index < times.size() && times.get(index) == i) {
+        index++;
+      }
+      list.add((long) index);
+    }
+    return list;
+  }
+
+  public static double measureDynamism2ndDerivative(
+      Iterable<Long> arrivalTimes, long lengthOfDay) {
+    System.out.println("=======================");
+    System.out.println(arrivalTimes);
+    final List<Long> ts = newArrayList(arrivalTimes);
+    checkArgument(!ts.isEmpty());
+    Collections.sort(ts);
+
+    final double expectedIncrease = ts.size() / (double) lengthOfDay;
+    // System.out.println("expected increase: " + expectedIncrease);
+
+    final List<Long> cumulInfo = cumulativeInformationGraph(ts, lengthOfDay);
+    // System.out.println(cumulInfo);
+    // final List<Long> times = ImmutableList.<Long> builder()
+    // .add(0L)
+    // .addAll(ts)
+    // .add(lengthOfDay)
+    // .build();
+
+    // TODO add a tolerance?
+
+    double error = 0;
+    final double minError = 0;
+    int numVals = 0;
+    for (int i = 0; i < cumulInfo.size() - 1; i++) {
+      final double expectedEvents = (i + 1) * expectedIncrease;
+      final double observedEvents = cumulInfo.get(i);
+
+      // final double curError = observedEvents - expectedEvents;
+      // final double curMaxError = curError > 0 ? ts.size() - expectedEvents
+      // : expectedEvents;
+      // final double curMinError = Math.abs(expectedEvents
+      // - (curError > 0 ? Math.ceil(expectedEvents) : Math
+      // .floor(expectedEvents)));
+
+      final double max;
+      final double min;
+      if (observedEvents > expectedEvents) {
+        min = Math.ceil(expectedEvents) - expectedEvents;
+        max = ts.size() - expectedEvents;
+      }
+      else if (observedEvents < expectedEvents) {
+        min = expectedEvents - Math.floor(expectedEvents);
+        max = expectedEvents;
+      }
+      else {
+        min = 0d;
+        max = 0d;
+      }
+
+      final double cur;
+      boolean ignore = false;
+      if ((max - min) > 0d) {
+        cur = (Math.abs(expectedEvents - observedEvents) - min) / (max - min);
+        if (cur == 0d) {
+          ignore = true;
+        }
+      }
+      else {
+        ignore = true;
+        cur = 0d;
+      }
+
+      // System.out
+      // .printf("min error %1.3f max %1.3f\n", curMinError, curMaxError);
+      // final double relError = (Math.abs(curError) - minError)
+      // / (curMaxError - curMinError);
+
+      // System.out
+      // .printf(
+      // "%d expected: %1.2f observed: %1.2f error: %1.3f min: %1.3f max: %1.3f\n",
+      // i, expectedEvents, observedEvents, cur, min, max);
+      if (!ignore) {
+        numVals++;
+        error += cur;// Math.abs(relError);
+      }
+      // System.out.printf("error %1.2f\n", error);
+
+      // minError += Math.abs(expectedEvents - Math.round(expectedEvents));
+
+    }
+
+    if (numVals > 0) {
+      error /= numVals;
+    }
+
+    // final double maxError = (((double) ts.size() * (lengthOfDay - 1)) / 2d);
+    // System.out
+    // .printf("error: %1.3f min: %1.3f max: %1.3f\n", error, minError,
+    // maxError);
+    return 1d - error;// ((error - minError) / (maxError - minError));
+
+    // final List<Long> firstDerivative = derivative(cumulInfo);
+    // final List<Long> secondDerivative = derivative(firstDerivative);
+    //
+    // System.out.println("  " + firstDerivative);
+    // System.out.println("   " + secondDerivative);
+    //
+    // long sumDeviation = 0;
+    // for (final Long l : secondDerivative) {
+    // sumDeviation += Math.abs(l);
+    // }
+    // System.out.println("deviation: " + sumDeviation);
+    // return 1d - (sumDeviation / (double) lengthOfDay);
+  }
+
+  static ImmutableList<Long> derivative(List<Long> list) {
+    final ImmutableList.Builder<Long> builder = ImmutableList.builder();
+    for (int i = 0; i < list.size() - 1; i++) {
+      builder.add(list.get(i + 1) - list.get(i));
+    }
+    return builder.build();
+  }
+
+  // This is the FINAL version as established on December 20th, 2013.
+  public static double measureDynamismDistr(Iterable<Long> arrivalTimes,
+      long lengthOfDay) {
+    final List<Long> ts = newArrayList(arrivalTimes);
+    checkArgument(!ts.isEmpty());
+    Collections.sort(ts);
+    // TODO sort?
+    final List<Long> times = ImmutableList.<Long> builder()
+        // .add(0L)
+        .addAll(ts)
+        // .add(lengthOfDay)
+        .build();
+
+    // final double length = times.get(times.size() - 1) - times.get(0);
+
+    final int intervals = times.size();
+    final double range = times.get(times.size() - 1) - times.get(0);
+
+    // this is the expected interarrival time
+    final double expectedInterArrivalTime = (double) lengthOfDay
+        / (double) intervals;
+    // tolerance
+    final double half = expectedInterArrivalTime / intervals;
+    final double left = expectedInterArrivalTime - half;
+    final double right = expectedInterArrivalTime + half;
+
+    // deviation to expectedInterArrivalTime
+    double sumDeviation = 0;
+    for (int i = 0; i < intervals - 1; i++) {
+      // compute interarrival time
+      final long delta = times.get(i + 1) - times.get(i);
+      if (delta < left) {
+        sumDeviation += Math.abs(left - delta);
+        // } else if (delta > right) {
+        // sumDeviation += Math.abs(right - delta);
+      }
+    }
+    final double maxDeviation =
+        // Math.max(0, range
+        // - (expectedInterArrivalTime + half)) +
+        (intervals - 1) * left;
+
+    // System.out.printf(
+    // "expectedInterArrivalTime: %1.3f intervals: %1d left: %1.3f\n",
+    // expectedInterArrivalTime, (intervals - 1), left);
+    // System.out.printf("sum %1.3f max %1.3f range %1.3f\n", sumDeviation,
+    // maxDeviation, range);
+    return 1d - (sumDeviation / maxDeviation);
   }
 
   // [0,lengthOfDay)
@@ -249,16 +533,19 @@ public final class Metrics {
         lengthOfDay, granularity);
 
     final Set<Long> intervals = newHashSet();
+    int size = 0;
     for (final long time : arrivalTimes) {
       checkArgument(time >= 0 && time < lengthOfDay,
           "all specified times should be >= 0 and < %s. Found %s.",
           lengthOfDay, time);
       intervals.add(DoubleMath.roundToLong(time / (double) granularity,
           RoundingMode.FLOOR));
+      size++;
     }
     final int totalIntervals = DoubleMath.roundToInt(lengthOfDay
         / (double) granularity, RoundingMode.UNNECESSARY);
-    return intervals.size() / (double) totalIntervals;
+    return intervals.size()
+        / (double) Math.min(totalIntervals, size);
   }
 
   @Deprecated
