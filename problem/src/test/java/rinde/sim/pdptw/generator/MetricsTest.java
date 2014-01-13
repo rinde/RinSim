@@ -3,14 +3,15 @@
  */
 package rinde.sim.pdptw.generator;
 
+import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.collect.Lists.newArrayList;
 import static java.util.Arrays.asList;
 import static junit.framework.Assert.assertEquals;
+import static rinde.sim.pdptw.generator.Metrics.chi;
+import static rinde.sim.pdptw.generator.Metrics.measureDynDeviationCount;
 import static rinde.sim.pdptw.generator.Metrics.measureDynamism;
 import static rinde.sim.pdptw.generator.Metrics.measureDynamism2ndDerivative;
 import static rinde.sim.pdptw.generator.Metrics.measureDynamismDistr;
-import static rinde.sim.pdptw.generator.Metrics.measureDynamismDistr2;
-import static rinde.sim.pdptw.generator.Metrics.measureDynamismDistr3;
 import static rinde.sim.pdptw.generator.Metrics.measureLoad;
 import static rinde.sim.pdptw.generator.Metrics.sum;
 import static rinde.sim.pdptw.generator.Metrics.travelTime;
@@ -43,7 +44,6 @@ import com.google.common.collect.ImmutableSortedMultiset;
 import com.google.common.collect.Range;
 import com.google.common.io.Files;
 import com.google.common.math.DoubleMath;
-import com.google.common.primitives.Doubles;
 
 /**
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
@@ -239,7 +239,7 @@ public class MetricsTest {
 
   }
 
-  static List<Long> generateTimes(RandomGenerator rng, double intensity) {
+  static Times generateTimes(RandomGenerator rng, double intensity) {
     final ExponentialDistribution ed = new ExponentialDistribution(
         1000d / intensity);
     ed.reseedRandomGenerator(rng.nextLong());
@@ -252,7 +252,7 @@ public class MetricsTest {
         times.add(sum);
       }
     }
-    return times;
+    return asTimes(1000, times);
   }
 
   @Test
@@ -280,48 +280,73 @@ public class MetricsTest {
 
   }
 
+  static class Times {
+    public final int length;
+    public final ImmutableList<Long> list;
+
+    public Times(int l, List<Long> li) {
+      length = l;
+      list = ImmutableList.copyOf(li);
+    }
+  }
+
+  static Times asTimes(int length, List<Long> li) {
+    return new Times(length, li);
+  }
+
+  static Times asTimes(int length, Long... longs) {
+    return new Times(length, asList(longs));
+  }
+
   @Test
   public void dynamismTest2() {
 
-    int length = 1000;
-    final int granularity = 100;
     final double[] ordersPerHour = { 15d };// , 20d, 50d, 100d, 1000d };
 
     final StandardDeviation sd = new StandardDeviation();
 
     final RandomGenerator rng = new MersenneTwister(123L);
 
-    final List<List<Long>> times = newArrayList();
+    final List<Times> times = newArrayList();
     // for (int i = 0; i < 10; i++) {
     // times.add(generateTimes(rng));
     // }
-    times.add(asList(250L, 500L, 750L));
-    times.add(asList(100L, 500L, 750L));
-    times.add(asList(100L, 200L, 300L, 400L, 500L, 600L, 700L, 800L, 900L));
-    times.add(asList(100L, 200L, 300L, 399L, 500L, 600L, 700L, 800L, 900L));
+    times.add(asTimes(1000, 250L, 500L, 750L));
+    times.add(asTimes(1000, 100L, 500L, 750L));
+    times.add(asTimes(1000, 100L, 200L, 300L, 400L, 500L, 600L, 700L, 800L,
+        900L));
+    times.add(asTimes(1000, 100L, 200L, 300L, 399L, 500L, 600L, 700L, 800L,
+        900L));
     times
-        .add(asList(50L, 150L, 250L, 350L, 450L, 550L, 650L, 750L, 850L, 950L));
+        .add(asTimes(1000, 10L, 150L, 250L, 350L, 450L, 550L, 650L, 750L, 850L,
+            950L));
     times
-        .add(asList(50L, 150L, 250L, 350L, 450L, 551L, 650L, 750L, 850L, 950L));
-    times.add(asList(250L, 500L, 750L));
-    times.add(asList(0L, 50L, 55L, 57L, 59L, 60L, 100L, 150L, 750L));
-    times.add(asList(5L, 5L, 5L, 5L));
-    times.add(asList(4L, 5L, 5L, 5L, 5L, 5L, 5L, 5L, 5L, 5L, 5L, 5L, 5L, 5L,
+        .add(asTimes(1000, 50L, 150L, 250L, 350L, 450L, 551L, 650L, 750L, 850L,
+            950L));
+    times.add(asTimes(1000, 250L, 500L, 750L));
+    times.add(asTimes(1000, 0L, 50L, 55L, 57L, 59L, 60L, 100L, 150L, 750L));
+    times.add(asTimes(1000, 5L, 5L, 5L, 5L));
+    times.add(asTimes(1000, 4L, 5L, 5L, 5L, 5L, 5L, 5L, 5L, 5L, 5L, 5L, 5L, 5L,
+        5L,
         5L, 5L, 5L, 5L, 5L, 5L, 5L, 5L, 5L, 5L, 5L, 5L, 5L, 5L, 5L, 5L, 5L));
-    times.add(asList(5L, 5L, 5L, 5L, 5L, 5L, 5L, 5L, 5L, 5L, 5L, 5L, 5L, 5L,
+    times.add(asTimes(1000, 5L, 5L, 5L, 5L, 5L, 5L, 5L, 5L, 5L, 5L, 5L, 5L, 5L,
+        5L,
         5L, 5L, 5L, 5L, 5L, 5L, 5L, 5L, 5L, 5L, 5L, 5L, 5L, 5L, 5L, 5L, 5L));
-    times.add(asList(0L, 5L, 5L, 5L, 5L, 5L, 5L, 5L, 5L, 5L, 5L, 5L, 5L, 5L,
+    times.add(asTimes(1000, 0L, 5L, 5L, 5L, 5L, 5L, 5L, 5L, 5L, 5L, 5L, 5L, 5L,
+        5L,
         5L, 5L, 5L, 5L, 5L, 5L, 5L, 5L, 5L, 5L, 5L, 5L, 5L, 5L, 5L, 5L, 5L, 5L,
         999L));
-    times.add(asList(500L, 500L, 500L, 500L));
-    times.add(asList(5L, 5L, 5L, 5L, 400L, 410L, 430L, 440L, 800L, 810L, 820L,
+    times.add(asTimes(1000, 500L, 500L, 500L, 500L));
+    times.add(asTimes(1000, 5L, 5L, 5L, 5L, 400L, 410L, 430L, 440L, 800L, 810L,
+        820L,
         830L));
-    times.add(asList(0L, 0L, 0L));
-    times.add(asList(1L, 1L, 1L));
-    times.add(asList(999L, 999L, 999L));
-    times.add(asList(0L, 0L, 500L, 500L, 999L, 999L));
-    times.add(asList(250L, 250L, 500L, 500L, 750L, 750L));
-    times.add(asList(250L, 250L, 250L, 500L, 500L, 500L, 750L, 750L, 750L));
+    times.add(asTimes(1000, 0L, 0L, 0L));
+    times.add(asTimes(1000, 1L, 1L, 1L));
+    times.add(asTimes(1000, 999L, 999L, 999L));
+    times.add(asTimes(1000, 0L, 0L, 500L, 500L, 999L, 999L));
+    times.add(asTimes(1000, 250L, 250L, 500L, 500L, 750L, 750L));
+    times.add(asTimes(1000, 250L, 250L, 250L, 500L, 500L, 500L, 750L, 750L,
+        750L));
 
     for (int i = 0; i < 10; i++) {
       times.add(generateTimes(rng, 10d));
@@ -332,7 +357,7 @@ public class MetricsTest {
     }
     for (int i = 0; i < 5; i++) {
 
-      final List<Long> ts = generateTimes(rng, 50d);
+      final List<Long> ts = generateTimes(rng, 50d).list;
 
       final List<Long> newTs = newArrayList();
       for (final long l : ts) {
@@ -341,12 +366,12 @@ public class MetricsTest {
             + DoubleMath.roundToLong((rng.nextDouble() * 6d) - 3d,
                 RoundingMode.HALF_EVEN))));
       }
-      times.add(newTs);
+      times.add(asTimes(1000, newTs));
     }
 
     for (int i = 0; i < 5; i++) {
 
-      final List<Long> ts = generateTimes(rng, 100d);
+      final List<Long> ts = generateTimes(rng, 100d).list;
 
       final List<Long> newTs = newArrayList();
       System.out.println("num events: " + ts.size());
@@ -360,7 +385,17 @@ public class MetricsTest {
             + DoubleMath.roundToLong((rng.nextDouble() * 2d) - 1d,
                 RoundingMode.HALF_EVEN))));
       }
-      times.add(newTs);
+      times.add(asTimes(1000, newTs));
+    }
+
+    final List<Long> t2 = asList(10L, 30L, 50L, 70L, 90L);
+    for (int i = 0; i < 5; i++) {
+      final List<Long> c = newArrayList();
+      for (int j = 0; j < i + 1; j++) {
+        c.addAll(t2);
+      }
+      Collections.sort(c);
+      times.add(asTimes(100, c));
     }
 
     final List<Long> t = asList(100L, 300L, 500L, 700L, 900L);
@@ -371,8 +406,19 @@ public class MetricsTest {
         c.addAll(t);
       }
       Collections.sort(c);
-      times.add(c);
+      times.add(asTimes(1000, c));
     }
+
+    final List<Long> variant = newArrayList();
+    variant.addAll(t);
+    for (int i = 0; i < 70; i++) {
+      variant.add(100L);
+    }
+    Collections.sort(variant);
+    times.add(asTimes(1000, variant));
+    checkState(variant.size() == 75);
+    checkState(times.get(times.size() - 2).list.size() == 75, "",
+        times.get(times.size() - 2).list.size());
 
     for (int i = 0; i < 10; i++) {
       times.add(generateTimes(rng, (i + 1) * 100d));
@@ -382,7 +428,7 @@ public class MetricsTest {
         Range.closedOpen(0L, 1000L),
         DiscreteDomain.longs()).asList();
 
-    times.add(all);
+    times.add(asTimes(1000, all));
 
     final List<Long> more = newArrayList(all);
     for (final long l : all) {
@@ -391,7 +437,7 @@ public class MetricsTest {
       }
     }
     Collections.sort(more);
-    times.add(more);
+    times.add(asTimes(1000, more));
 
     final List<Long> more2 = newArrayList(all);
     for (int i = 0; i < 200; i++) {
@@ -406,11 +452,11 @@ public class MetricsTest {
     for (int i = 0; i < more2.size(); i++) {
       newMore.add(more2.get(i) * 10L);
     }
-    times.add(more2);
-    times.add(newMore);
+    times.add(asTimes(1000, more2));
+    times.add(asTimes(10000, newMore));
 
     for (int k = 0; k < 5; k++) {
-      final List<Long> ts = generateTimes(rng, 20);
+      final List<Long> ts = newArrayList(generateTimes(rng, 20).list);
       final List<Long> additions = newArrayList();
       for (int i = 0; i < ts.size(); i++) {
 
@@ -424,73 +470,74 @@ public class MetricsTest {
       }
       ts.addAll(additions);
       Collections.sort(ts);
-      times.add(ts);
+      times.add(asTimes(1000, ts));
     }
 
+    final Times regular = asTimes(10, 0L, 1L, 2L, 5L, 6L, 7L, 8L, 9L);
+
+    for (int i = 1; i < 4; i++) {
+      final List<Long> newList = newArrayList();
+      for (final Long l : regular.list) {
+        newList.add((long) (l * Math.pow(10, i)));
+      }
+      times.add(asTimes((int) (regular.length * Math.pow(10, i)), newList));
+    }
+
+    times.add(asTimes(1000, 250L, 250L, 250L, 500L, 500L, 500L, 750L,
+        750L, 750L));
+
+    times.add(asTimes(1000, 250L, 500L, 500L, 500L, 500L, 500L, 500L,
+        500L, 750L));
+
     for (int j = 0; j < ordersPerHour.length; j++) {
-      final List<Double> dodValues = newArrayList();
-      final List<Double> dodValues2 = newArrayList();
-      final List<Double> dodValues3 = newArrayList();
-      final List<Integer> numOrders = newArrayList();
       System.out.println("=========" + ordersPerHour[j] + "=========");
       for (int i = 0; i < times.size(); i++) {
 
         System.out.println("----- " + i + " -----");
-        // System.out.println(times.get(i));
-
-        // final ArrivalTimesGenerator atg = new PoissonProcessArrivalTimes(
-        // length,
-        // ordersPerHour[j] / 60d, 1);
-        // final List<Long> times = atg.generate(rng);
-        if (i == 78) {
-          length *= 10;
-        }
-        final double dod = measureDynamism(times.get(i), length, granularity);
-
-        final double dod2 = measureDynamismDistr(times.get(i), length);
-        final double dod3 = measureDynamismDistr2(times.get(i), length);
-        final double dod4 = measureDynamismDistr3(times.get(i), length);
-        final double dod5 = measureDynamism2ndDerivative(times.get(i), length);
+        final double dod2 = measureDynamismDistr(times.get(i).list,
+            times.get(i).length);
+        final double dod5 = measureDynamism2ndDerivative(times.get(i).list,
+            times.get(i).length);
+        final double dod6 = measureDynDeviationCount(times.get(i).list,
+            times.get(i).length);
+        final double dod7 = chi(times.get(i).list,
+            times.get(i).length);
         // System.out.println(dod);
         System.out.printf("%1.3f%%\n", dod2 * 100d);
         System.out.printf("%1.3f%%\n", dod5 * 100d);
-        // System.out.printf("%1.3f%%\n", dod4 * 100d);
-        // System.out.println(dod3);
-        numOrders.add(times.get(i).size());
-        dodValues.add(dod);
-        dodValues2.add(dod2);
-        dodValues3.add(dod3);
-
-        // Analysis.writeLoads(times, new File("files/generator/times/orders"
-        // ));
+        System.out.printf("%1.3f%%\n", dod6 * 100d);
+        System.out.printf("%1.3f%%\n", dod7);
 
         try {
           final File dest = new File(
               "files/generator/times/orders" + i
                   + ".times");
           Files.createParentDirs(dest);
-          Files.write(Joiner.on("\n").join(times.get(i)), dest, Charsets.UTF_8);
+          Files.write(
+              times.get(i).length + "\n"
+                  + Joiner.on("\n").join(times.get(i).list) + "\n", dest,
+              Charsets.UTF_8);
         } catch (final IOException e) {
           throw new IllegalArgumentException();
         }
 
       }
 
-      System.out.printf(
-          "dod: \t%1.3f \t+- %1.3f\n",
-          DoubleMath.mean(dodValues) * 100d,
-          sd.evaluate(Doubles.toArray(dodValues)) * 100d);
-      System.out.printf(
-          "dod2: \t%1.3f \t+- %1.3f\n",
-          DoubleMath.mean(dodValues2),
-          sd.evaluate(Doubles.toArray(dodValues2)));
-      System.out.printf(
-          "dod2: \t%1.3f \t+- %1.3f\n",
-          DoubleMath.mean(dodValues3),
-          sd.evaluate(Doubles.toArray(dodValues3)));
-      System.out.printf("size: \t%1.3f \t+- %1.3f\n",
-          DoubleMath.mean(numOrders),
-          sd.evaluate(Doubles.toArray(numOrders)));
+      // System.out.printf(
+      // "dod: \t%1.3f \t+- %1.3f\n",
+      // DoubleMath.mean(dodValues) * 100d,
+      // sd.evaluate(Doubles.toArray(dodValues)) * 100d);
+      // System.out.printf(
+      // "dod2: \t%1.3f \t+- %1.3f\n",
+      // DoubleMath.mean(dodValues2),
+      // sd.evaluate(Doubles.toArray(dodValues2)));
+      // System.out.printf(
+      // "dod2: \t%1.3f \t+- %1.3f\n",
+      // DoubleMath.mean(dodValues3),
+      // sd.evaluate(Doubles.toArray(dodValues3)));
+      // System.out.printf("size: \t%1.3f \t+- %1.3f\n",
+      // DoubleMath.mean(numOrders),
+      // sd.evaluate(Doubles.toArray(numOrders)));
     }
 
   }

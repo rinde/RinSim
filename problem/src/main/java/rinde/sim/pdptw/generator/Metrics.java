@@ -4,6 +4,7 @@
 package rinde.sim.pdptw.generator;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Sets.newHashSet;
 import static com.google.common.collect.Sets.newLinkedHashSet;
@@ -12,6 +13,8 @@ import java.math.RoundingMode;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
+
+import org.apache.commons.math3.stat.inference.TestUtils;
 
 import rinde.sim.core.graph.Point;
 import rinde.sim.core.model.pdp.PDPScenarioEvent;
@@ -27,6 +30,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMultiset;
 import com.google.common.collect.ImmutableSortedMultiset;
 import com.google.common.math.DoubleMath;
+import com.google.common.primitives.Longs;
 
 /**
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
@@ -351,7 +355,7 @@ public final class Metrics {
   public static double measureDynamism2ndDerivative(
       Iterable<Long> arrivalTimes, long lengthOfDay) {
     System.out.println("=======================");
-    System.out.println(arrivalTimes);
+    System.out.println(lengthOfDay + " " + arrivalTimes);
     final List<Long> ts = newArrayList(arrivalTimes);
     checkArgument(!ts.isEmpty());
     Collections.sort(ts);
@@ -401,12 +405,12 @@ public final class Metrics {
       final double cur;
       boolean ignore = false;
       if ((max - min) > 0d) {
-        cur = (Math.abs(expectedEvents - observedEvents) - min) / (max - min);
+        cur = (Math.abs(expectedEvents - observedEvents) - min)
+            / (max - min);
         if (cur == 0d) {
           ignore = true;
         }
-      }
-      else {
+      } else {
         ignore = true;
         cur = 0d;
       }
@@ -454,12 +458,145 @@ public final class Metrics {
     // return 1d - (sumDeviation / (double) lengthOfDay);
   }
 
+  public static double measureDynamism2ndDerivative2(
+      Iterable<Long> arrivalTimes, long lengthOfDay) {
+    // System.out.println("=======================");
+    // System.out.println(lengthOfDay + " " + arrivalTimes);
+    final List<Long> ts = newArrayList(arrivalTimes);
+    checkArgument(!ts.isEmpty());
+    Collections.sort(ts);
+
+    final double expectedIncrease = ts.size() / (double) lengthOfDay;
+    final List<Long> cumulInfo = cumulativeInformationGraph(ts, lengthOfDay);
+
+    double error = 0;
+    int numVals = 0;
+    for (final long i : ts) {
+      checkArgument(i < lengthOfDay);
+      final double expectedEvents = (i + 1) * expectedIncrease;
+      final double observedEvents = cumulInfo.get((int) i);
+
+      final double max;
+      final double min;
+      if (observedEvents > expectedEvents) {
+        min = Math.ceil(expectedEvents) - expectedEvents;
+        max = ts.size() - expectedEvents;
+      }
+      else if (observedEvents < expectedEvents) {
+        min = expectedEvents - Math.floor(expectedEvents);
+        max = expectedEvents;
+      }
+      else {
+        min = 0d;
+        max = 0d;
+      }
+
+      final double cur;
+      boolean ignore = false;
+      if ((max - min) > 0d) {
+        cur = Math.sqrt(Math.abs(expectedEvents - observedEvents) - min)
+            / Math.sqrt((max - min));
+        if (cur == 0d) {
+          ignore = true;
+        }
+      } else {
+        ignore = true;
+        cur = 0d;
+      }
+
+      if (!ignore) {
+        numVals++;
+        error += cur;// Math.abs(relError);
+      }
+    }
+
+    if (numVals > 0) {
+      error /= numVals;
+    }
+    return 1d - error;// ((error - minError) / (maxError - minError));
+  }
+
   static ImmutableList<Long> derivative(List<Long> list) {
     final ImmutableList.Builder<Long> builder = ImmutableList.builder();
     for (int i = 0; i < list.size() - 1; i++) {
       builder.add(list.get(i + 1) - list.get(i));
     }
     return builder.build();
+  }
+
+  public static double chi(Iterable<Long> arrivalTimes, long lengthOfDay) {
+    final List<Long> ts = newArrayList(arrivalTimes);
+    checkArgument(!ts.isEmpty());
+    Collections.sort(ts);
+    final List<Long> cumulInfo = cumulativeInformationGraph(ts, lengthOfDay);
+    final long[] observed = Longs.toArray(cumulInfo);
+
+    final double[] expected = new double[cumulInfo.size()];
+    final double expectedIncrease = ts.size() / (double) lengthOfDay;
+    for (int i = 0; i < cumulInfo.size(); i++) {
+      expected[i] = (i + 1d) * expectedIncrease;
+      checkState(expected[i] > 0d);
+    }
+
+    return TestUtils.chiSquareTest(expected, observed);
+  }
+
+  public static double measureDynDeviationCount(Iterable<Long> arrivalTimes,
+      long lengthOfDay) {
+
+    final List<Long> ts = newArrayList(arrivalTimes);
+    checkArgument(!ts.isEmpty());
+    Collections.sort(ts);
+
+    final double expectedIncrease = ts.size() / (double) lengthOfDay;
+
+    final List<Long> cumulInfo = cumulativeInformationGraph(ts, lengthOfDay);
+
+    int relevantMoments = 0;
+    int nonDeviations = 0;
+    for (int i = 0; i < cumulInfo.size() - 1; i++) {
+      final double expectedEvents = (i + 1) * expectedIncrease;
+      final double observedEvents = cumulInfo.get(i);
+
+      final double max;
+      final double min;
+      if (observedEvents > expectedEvents) {
+        min = Math.ceil(expectedEvents) - expectedEvents;
+        max = ts.size() - expectedEvents;
+      }
+      else if (observedEvents < expectedEvents) {
+        min = expectedEvents - Math.floor(expectedEvents);
+        max = expectedEvents;
+      }
+      else {
+        min = 0d;
+        max = 0d;
+      }
+
+      final double cur;
+      boolean ignore = false;
+      if ((max - min) > 0d) {
+        cur = (Math.abs(expectedEvents - observedEvents) - min)
+            / (max - min);
+        if (cur == 0d) {
+          // ignore = true;
+          nonDeviations++;
+        }
+      } else {
+        ignore = true;
+        cur = 0d;
+      }
+
+      if (!ignore) {
+        relevantMoments++;
+      }
+    }
+
+    final double score = (relevantMoments - nonDeviations)
+        / (double) relevantMoments;
+
+    return 1d - (score);
+
   }
 
   // This is the FINAL version as established on December 20th, 2013.
