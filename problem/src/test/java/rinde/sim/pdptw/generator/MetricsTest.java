@@ -7,11 +7,10 @@ import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.collect.Lists.newArrayList;
 import static java.util.Arrays.asList;
 import static junit.framework.Assert.assertEquals;
-import static rinde.sim.pdptw.generator.Metrics.chi;
-import static rinde.sim.pdptw.generator.Metrics.measureDynDeviationCount;
 import static rinde.sim.pdptw.generator.Metrics.measureDynamism;
 import static rinde.sim.pdptw.generator.Metrics.measureDynamism2ndDerivative;
 import static rinde.sim.pdptw.generator.Metrics.measureDynamismDistr;
+import static rinde.sim.pdptw.generator.Metrics.measureDynamismDistrNEW;
 import static rinde.sim.pdptw.generator.Metrics.measureLoad;
 import static rinde.sim.pdptw.generator.Metrics.sum;
 import static rinde.sim.pdptw.generator.Metrics.travelTime;
@@ -27,6 +26,7 @@ import org.apache.commons.math3.distribution.ExponentialDistribution;
 import org.apache.commons.math3.random.MersenneTwister;
 import org.apache.commons.math3.random.RandomGenerator;
 import org.apache.commons.math3.stat.descriptive.moment.StandardDeviation;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import rinde.sim.core.graph.Point;
@@ -37,6 +37,7 @@ import rinde.sim.util.TimeWindow;
 
 import com.google.common.base.Charsets;
 import com.google.common.base.Joiner;
+import com.google.common.base.Strings;
 import com.google.common.collect.ContiguousSet;
 import com.google.common.collect.DiscreteDomain;
 import com.google.common.collect.ImmutableList;
@@ -197,6 +198,7 @@ public class MetricsTest {
    * Test for the dynamism function.
    */
   @Test
+  @Ignore
   public void dynamismTest() {
     assertEquals(.5, measureDynamism(asList(1L, 2L, 3L, 4L, 5L), 10,
         1), EPSILON);
@@ -489,29 +491,48 @@ public class MetricsTest {
     times.add(asTimes(1000, 250L, 500L, 500L, 500L, 500L, 500L, 500L,
         500L, 750L));
 
+    times.add(asTimes(1000, 100L, 100L, 200L, 200L, 300L, 300L, 400L, 400L,
+        500L,
+        500L, 600L, 600L, 700L, 700L, 800L, 800L, 900L, 900L));
+    times.add(asTimes(1000, 100L, 200L, 200L, 200L, 200L, 200L, 200L, 200L,
+        200L,
+        200L, 200L, 300L, 400L, 500L, 600L, 700L, 800L, 900L));
+    times.add(asTimes(1000, 100L, 200L, 300L, 400L, 500L, 600L, 700L, 800L,
+        800L,
+        800L, 800L, 800L, 800L, 800L, 800L, 800L, 800L, 900L));
+
     for (int j = 0; j < ordersPerHour.length; j++) {
       System.out.println("=========" + ordersPerHour[j] + "=========");
       for (int i = 0; i < times.size(); i++) {
 
         System.out.println("----- " + i + " -----");
+        System.out.println(times.get(i).length + " " + times.get(i).list);
         final double dod2 = measureDynamismDistr(times.get(i).list,
             times.get(i).length);
-        final double dod5 = measureDynamism2ndDerivative(times.get(i).list,
+
+        final double dod8 = measureDynamismDistrNEW(times.get(i).list,
             times.get(i).length);
-        final double dod6 = measureDynDeviationCount(times.get(i).list,
-            times.get(i).length);
-        final double dod7 = chi(times.get(i).list,
-            times.get(i).length);
+
+        // final double dod5 = measureDynamism2ndDerivative(times.get(i).list,
+        // times.get(i).length);
+        // final double dod6 = measureDynDeviationCount(times.get(i).list,
+        // times.get(i).length);
+        // final double dod7 = chi(times.get(i).list,
+        // times.get(i).length);
         // System.out.println(dod);
         System.out.printf("%1.3f%%\n", dod2 * 100d);
-        System.out.printf("%1.3f%%\n", dod5 * 100d);
-        System.out.printf("%1.3f%%\n", dod6 * 100d);
-        System.out.printf("%1.3f%%\n", dod7);
+        System.out.printf("%1.3f%%\n", dod8 * 100d);
+        // System.out.printf("%1.3f%%\n", dod5 * 100d);
+        // System.out.printf("%1.3f%%\n", dod6 * 100d);
+        // System.out.printf("%1.3f%%\n", dod7);
+
+        final double name = Math.round(dod8 * 100000d) / 1000d;
 
         try {
           final File dest = new File(
-              "files/generator/times/orders" + i
-                  + ".times");
+              "files/generator/times/orders"
+                  + Strings.padStart(Integer.toString(i), 3, '0')
+                  + "-" + name + ".times");
           Files.createParentDirs(dest);
           Files.write(
               times.get(i).length + "\n"
@@ -540,6 +561,156 @@ public class MetricsTest {
       // sd.evaluate(Doubles.toArray(numOrders)));
     }
 
+  }
+
+  /**
+   * The metric should be insensitive to the number of events.
+   */
+  @Test
+  public void scaleInvariant100() {
+    final double expectedDynamism = 1d;
+    final List<Integer> numEvents = asList(7, 30, 50, 70, 100, 157, 234,
+        748, 998);
+    final int scenarioLength = 1000;
+    for (final int num : numEvents) {
+      final double dist = scenarioLength / (double) num;
+      final List<Long> scenario = newArrayList();
+      for (int i = 0; i < num; i++) {
+        scenario.add(DoubleMath.roundToLong((dist / 2d) + i * dist,
+            RoundingMode.HALF_DOWN));
+      }
+      final double dyn = measureDynamismDistrNEW(scenario, scenarioLength);
+      assertEquals(expectedDynamism, dyn, 0.0001);
+    }
+  }
+
+  @Test
+  public void scaleInvariant0() {
+    final double expectedDynamism = 0d;
+    final List<Integer> numEvents = asList(7, 30, 50, 70, 100, 157, 234,
+        748, 998);
+    final int scenarioLength = 1000;
+    for (final int num : numEvents) {
+      final List<Long> scenario = newArrayList();
+      for (int i = 0; i < num; i++) {
+        scenario.add(300L);
+      }
+      final double dyn = measureDynamismDistrNEW(scenario, scenarioLength);
+      assertEquals(expectedDynamism, dyn, 0.0001);
+    }
+  }
+
+  @Test
+  public void scaleInvariant50() {
+    final double expectedDynamism = 0.5d;
+    final List<Integer> numEvents = asList(30, 50, 70, 100, 158, 234, 426,
+        748, 998);
+    final int scenarioLength = 1000;
+    for (final int num : numEvents) {
+      final List<Long> scenario = newArrayList();
+
+      final int unique = num / 2;
+      final double dist = scenarioLength / unique;
+
+      for (int i = 0; i < num / 2; i++) {
+        scenario.add(DoubleMath.roundToLong((dist / 2d) + i * dist,
+            RoundingMode.HALF_DOWN));
+        scenario.add(DoubleMath.roundToLong((dist / 2d) + i * dist,
+            RoundingMode.HALF_DOWN));
+      }
+      final double dyn = measureDynamismDistrNEW(scenario, scenarioLength);
+      assertEquals(expectedDynamism, dyn, 0.02);
+    }
+  }
+
+  /**
+   * The metric should be time scale invariant, meaning that when the length of
+   * the day is scaled together with all event times the metric should give the
+   * same value. For example:
+   * <ul>
+   * <li>10 - 2 3 6 7 9</li>
+   * <li>100 - 20 30 60 70 90</li>
+   * </ul>
+   * <br/>
+   * should give the same values.
+   */
+  @Test
+  public void timeScaleInvariant() {
+    final RandomGenerator rng = new MersenneTwister(123);
+    final List<Integer> numEvents = asList(200, 300, 400, 500, 600, 700, 800);
+    final List<Integer> lengthsOfDay = asList(1000, 1300, 2000, 4500, 7600,
+        15000,
+        60000,
+        10000, 100000);
+    for (final int events : numEvents) {
+      // repetitions
+      for (int j = 0; j < 3; j++) {
+        final List<Long> scenario = newArrayList();
+        for (int i = 0; i < events; i++) {
+          scenario.add((long) rng.nextInt(1000));
+        }
+        Collections.sort(scenario);
+        double dod = -1;
+        for (final int dayLength : lengthsOfDay) {
+          final List<Long> cur = newArrayList();
+          for (final Long i : scenario) {
+            cur.add(DoubleMath.roundToLong(i * (dayLength / 100d),
+                RoundingMode.HALF_UP));
+          }
+
+          final double curDod = measureDynamismDistrNEW(cur, dayLength);
+          if (dod >= 0d) {
+            assertEquals(dod, curDod, 0.001);
+          }
+          dod = curDod;
+        }
+      }
+    }
+  }
+
+  /**
+   * The metric should be insensitive to shifting all events left or right.
+   */
+  @Test
+  public void shiftInvariant() {
+    final RandomGenerator rng = new MersenneTwister(123);
+    final int lengthOfDay = 1000;
+    final int repetitions = 10;
+    final List<Integer> numEvents = asList(20, 50, 120, 200, 300, 500, 670,
+        800);
+
+    for (final int num : numEvents) {
+      for (int j = 0; j < repetitions; j++) {
+        final List<Long> scenario = newArrayList();
+        for (int i = 0; i < num; i++) {
+          scenario.add((long) rng.nextInt(lengthOfDay));
+        }
+        Collections.sort(scenario);
+
+        final double curDod = measureDynamismDistrNEW(scenario, lengthOfDay);
+
+        // shift left
+        final List<Long> leftShiftedScenario = newArrayList();
+        final long leftMost = scenario.get(0);
+        for (int i = 0; i < num; i++) {
+          leftShiftedScenario.add(scenario.get(i) - leftMost);
+        }
+        final double leftDod = measureDynamismDistrNEW(leftShiftedScenario,
+            lengthOfDay);
+
+        // shift right
+        final List<Long> rightShiftedScenario = newArrayList();
+        final long rightMost = lengthOfDay - scenario.get(scenario.size() - 1);
+        for (int i = 0; i < num; i++) {
+          rightShiftedScenario.add(scenario.get(i) + rightMost);
+        }
+        final double rightDod = measureDynamismDistrNEW(rightShiftedScenario,
+            lengthOfDay);
+
+        assertEquals(curDod, leftDod, 0.0001);
+        assertEquals(curDod, rightDod, 0.0001);
+      }
+    }
   }
 
   /**
