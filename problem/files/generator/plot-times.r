@@ -9,9 +9,14 @@ registerDoMC(detectCores())
 str(paste("Detected",detectCores(), "cores."))
 
 plotArrivalTimes <- function(file){  
-  str(file)
+ # str(file)
   #filepath<-"/Users/rindevanlon/Desktop/test.txt"
   myData<-read.table(file=file,quote="")  
+  
+  # get dynamism from file name
+  parts <- strsplit(file,"-")
+  subparts <-strsplit(parts[[1]][2],"\\.")
+  num <- paste(subparts[[1]][1], subparts[[1]][2],sep=".")
   
   len <- myData[1,]
   times <- data.frame(V1=myData[-1,])
@@ -23,15 +28,24 @@ plotArrivalTimes <- function(file){
 
   # can be tikz or pdf
   pdf(paste(file,".pdf",sep=""),height=6,width=15)    
-  grid.arrange(c, e, ncol = 1, main = "Event arrival times")
+  grid.arrange(c, e, ncol = 1, main = paste(file,"Event arrival times",num,sep=" "))
   dev.off()    
 }
 
 files <- list.files(path=".",pattern="*\\.times$",recursive=T)
 
 
-#plotArrivalTimes(files[1])
+plotArrivalTimes(files[1])
 
 foreach( i=1:length(files)) %dopar%{
   plotArrivalTimes(files[i])
 }
+
+pdfs <- list.files(path="workspace/RinSim/problem/files/generator/times/",pattern="*\\.times.pdf$",recursive=T)
+
+str(paste(pdfs,collapse=" "))
+str("merge pdfs")
+cmdStr <- paste("cd workspace/RinSim/problem/files/generator/times/; pdftk",paste(pdfs,collapse=" "),"cat output all.pdf", sep=" ")
+system(cmdStr)
+
+
