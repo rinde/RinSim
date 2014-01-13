@@ -649,19 +649,17 @@ public final class Metrics {
     return 1d - (sumDeviation / maxDeviation);
   }
 
+  // Best version as of January 13th, 2014
   public static double measureDynamismDistrNEW(Iterable<Long> arrivalTimes,
       long lengthOfDay) {
     final List<Long> ts = newArrayList(arrivalTimes);
-    checkArgument(!ts.isEmpty());
-    Collections.sort(ts);
-    // TODO sort?
-    final List<Long> times = ImmutableList.<Long> builder()
-        // .add(0L)
-        .addAll(ts)
-        // .add(lengthOfDay)
-        .build();
+    checkArgument(ts.size() >= 2,
+        "At least two arrival times are required, found %s time(s).", ts.size());
 
-    // final double length = times.get(times.size() - 1) - times.get(0);
+    Collections.sort(ts);
+    final List<Long> times = ImmutableList.<Long> builder()
+        .addAll(ts)
+        .build();
 
     final int intervals = times.size();
 
@@ -670,22 +668,16 @@ public final class Metrics {
         / (double) intervals;
     // tolerance
     final double half = expectedInterArrivalTime / intervals;
-    final double left = expectedInterArrivalTime - half;
+    final double left = Math.floor(expectedInterArrivalTime - half);
+    checkArgument(left >= 1d, "Num events %s, length of day %s, value %s.",
+        ts.size(), lengthOfDay, left);
 
     // deviation to expectedInterArrivalTime
     double sumDeviation = 0;
     double maxDeviation = 0;
     for (int i = 0; i < intervals - 1; i++) {
-
-      final double curExp = ((double) lengthOfDay - times.get(i))
-          / (intervals - i);
-      final double curHalf = curExp / (intervals - i);
-      final double curLeft = curExp - curHalf;
-      final double maxx = Math.max(left, curLeft);
-
       // compute interarrival time
       final long delta = times.get(i + 1) - times.get(i);
-      // System.out.println(delta + " " + left + " " + curLeft);
       if (delta < left) {
         sumDeviation += Math.abs(left - delta);
         maxDeviation += left;
@@ -698,19 +690,7 @@ public final class Metrics {
       else {
         maxDeviation += left;
       }
-
     }
-    // System.out.println("max " + maxDeviation);
-    // final double maxDeviation =
-    // // Math.max(0, range
-    // // - (expectedInterArrivalTime + half)) +
-    // (intervals - 1) * left;
-
-    // System.out.printf(
-    // "expectedInterArrivalTime: %1.3f intervals: %1d left: %1.3f\n",
-    // expectedInterArrivalTime, (intervals - 1), left);
-    // System.out.printf("sum %1.3f max %1.3f range %1.3f\n", sumDeviation,
-    // maxDeviation, range);
     return 1d - (sumDeviation / maxDeviation);
   }
 
