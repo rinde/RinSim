@@ -7,7 +7,7 @@ import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.collect.Lists.newArrayList;
 import static java.util.Arrays.asList;
 import static junit.framework.Assert.assertEquals;
-import static rinde.sim.pdptw.generator.Metrics.measureDynamismDistrNEW;
+import static rinde.sim.pdptw.generator.Metrics.measureDynamism;
 import static rinde.sim.pdptw.generator.Metrics.measureLoad;
 import static rinde.sim.pdptw.generator.Metrics.sum;
 import static rinde.sim.pdptw.generator.Metrics.travelTime;
@@ -440,7 +440,7 @@ public class MetricsTest {
         // final double dod2 = measureDynamismDistr(times.get(i).list,
         // times.get(i).length);
 
-        final double dod8 = measureDynamismDistrNEW(times.get(i).list,
+        final double dod8 = measureDynamism(times.get(i).list,
             times.get(i).length);
 
         // final double dod5 = measureDynamism2ndDerivative(times.get(i).list,
@@ -471,26 +471,43 @@ public class MetricsTest {
         } catch (final IOException e) {
           throw new IllegalArgumentException();
         }
-
       }
-
-      // System.out.printf(
-      // "dod: \t%1.3f \t+- %1.3f\n",
-      // DoubleMath.mean(dodValues) * 100d,
-      // sd.evaluate(Doubles.toArray(dodValues)) * 100d);
-      // System.out.printf(
-      // "dod2: \t%1.3f \t+- %1.3f\n",
-      // DoubleMath.mean(dodValues2),
-      // sd.evaluate(Doubles.toArray(dodValues2)));
-      // System.out.printf(
-      // "dod2: \t%1.3f \t+- %1.3f\n",
-      // DoubleMath.mean(dodValues3),
-      // sd.evaluate(Doubles.toArray(dodValues3)));
-      // System.out.printf("size: \t%1.3f \t+- %1.3f\n",
-      // DoubleMath.mean(numOrders),
-      // sd.evaluate(Doubles.toArray(numOrders)));
     }
+  }
 
+  @Test
+  public void scaleInvariant0() {
+    final double expectedDynamism = 0d;
+    final List<Integer> numEvents = asList(7, 30, 50, 70, 100, 157, 234,
+        748, 998, 10000, 100000);
+    final int scenarioLength = 1000;
+    for (final int num : numEvents) {
+      final List<Double> scenario = newArrayList();
+      for (int i = 0; i < num; i++) {
+        scenario.add(300d);
+      }
+      final double dyn = measureDynamism(scenario, scenarioLength);
+      assertEquals(expectedDynamism, dyn, 0.0001);
+    }
+  }
+
+  @Test
+  public void scaleInvariant50() {
+    final double expectedDynamism = 0.5d;
+    final List<Integer> numEvents = asList(30, 50, 70, 100, 158, 234, 426,
+        748, 998, 10000, 100000);
+    final int scenarioLength = 1000;
+    for (final int num : numEvents) {
+      final List<Double> scenario = newArrayList();
+      final int unique = num / 2;
+      final double dist = scenarioLength / (double) unique;
+      for (int i = 0; i < num / 2; i++) {
+        scenario.add((dist / 2d) + i * dist);
+        scenario.add((dist / 2d) + i * dist);
+      }
+      final double dyn = measureDynamism(scenario, scenarioLength);
+      assertEquals(expectedDynamism, dyn, 0.02);
+    }
   }
 
   /**
@@ -500,7 +517,7 @@ public class MetricsTest {
   public void scaleInvariant100() {
     final double expectedDynamism = 1d;
     final List<Integer> numEvents = asList(7, 30, 50, 70, 100, 157, 234,
-        748, 998);
+        748, 998, 10000, 100000);
     final int scenarioLength = 1000;
     for (final int num : numEvents) {
       final double dist = scenarioLength / (double) num;
@@ -508,46 +525,19 @@ public class MetricsTest {
       for (int i = 0; i < num; i++) {
         scenario.add((dist / 2d) + i * dist);
       }
-      final double dyn = measureDynamismDistrNEW(scenario, scenarioLength);
+      final double dyn = measureDynamism(scenario, scenarioLength);
       assertEquals(expectedDynamism, dyn, 0.0001);
     }
   }
 
-  @Test
-  public void scaleInvariant0() {
-    final double expectedDynamism = 0d;
-    final List<Integer> numEvents = asList(7, 30, 50, 70, 100, 157, 234,
-        748, 998);
-    final int scenarioLength = 1000;
-    for (final int num : numEvents) {
-      final List<Double> scenario = newArrayList();
-      for (int i = 0; i < num; i++) {
-        scenario.add(300d);
-      }
-      final double dyn = measureDynamismDistrNEW(scenario, scenarioLength);
-      assertEquals(expectedDynamism, dyn, 0.0001);
+  List<Double> generateUniformScenario(RandomGenerator rng, int numEvents,
+      double scenarioLength) {
+    final List<Double> events = newArrayList();
+    for (int i = 0; i < numEvents; i++) {
+      events.add(rng.nextDouble() * scenarioLength);
     }
-  }
-
-  @Test
-  public void scaleInvariant50() {
-    final double expectedDynamism = 0.5d;
-    final List<Integer> numEvents = asList(30, 50, 70, 100, 158, 234, 426,
-        748, 998);
-    final int scenarioLength = 1000;
-    for (final int num : numEvents) {
-      final List<Double> scenario = newArrayList();
-
-      final int unique = num / 2;
-      final double dist = scenarioLength / unique;
-
-      for (int i = 0; i < num / 2; i++) {
-        scenario.add((dist / 2d) + i * dist);
-        scenario.add((dist / 2d) + i * dist);
-      }
-      final double dyn = measureDynamismDistrNEW(scenario, scenarioLength);
-      assertEquals(expectedDynamism, dyn, 0.02);
-    }
+    Collections.sort(events);
+    return events;
   }
 
   /**
@@ -583,7 +573,7 @@ public class MetricsTest {
           for (final double i : scenario) {
             cur.add(i * (dayLength / startLengthOfDay));
           }
-          final double curDod = measureDynamismDistrNEW(cur, dayLength);
+          final double curDod = measureDynamism(cur, dayLength);
           if (dod >= 0d) {
             assertEquals(dod, curDod, 0.001);
           }
@@ -612,7 +602,7 @@ public class MetricsTest {
         }
         Collections.sort(scenario);
 
-        final double curDod = measureDynamismDistrNEW(scenario, lengthOfDay);
+        final double curDod = measureDynamism(scenario, lengthOfDay);
 
         // shift left
         final List<Double> leftShiftedScenario = newArrayList();
@@ -620,7 +610,7 @@ public class MetricsTest {
         for (int i = 0; i < num; i++) {
           leftShiftedScenario.add(scenario.get(i) - leftMost);
         }
-        final double leftDod = measureDynamismDistrNEW(leftShiftedScenario,
+        final double leftDod = measureDynamism(leftShiftedScenario,
             lengthOfDay);
 
         // shift right
@@ -630,7 +620,7 @@ public class MetricsTest {
         for (int i = 0; i < num; i++) {
           rightShiftedScenario.add(scenario.get(i) + rightMost);
         }
-        final double rightDod = measureDynamismDistrNEW(rightShiftedScenario,
+        final double rightDod = measureDynamism(rightShiftedScenario,
             lengthOfDay);
 
         assertEquals(curDod, leftDod, 0.0001);

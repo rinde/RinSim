@@ -55,8 +55,9 @@ public class NHPoissonProcessTest {
     for (int i = 0; i < 3; i++) {
       final List<Long> times = atg.generate(rng);
 
-      System.out.printf("%d %1.3f\n", i,
-          Metrics.measureDynamismDistr(times, 1000L) * 100d);
+      // FIXME
+      // System.out.printf("%d %1.3f\n", i,
+      // Metrics.measureDynamismDistr(times, 1000L) * 100d);
 
       try {
         final File dest = new File(

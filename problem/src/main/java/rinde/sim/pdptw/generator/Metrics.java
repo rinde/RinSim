@@ -250,13 +250,12 @@ public final class Metrics {
   }
 
   // Best version as of January 13th, 2014
-  public static double measureDynamismDistrNEW(Iterable<Double> arrivalTimes,
+  public static double measureDynamism(Iterable<Double> arrivalTimes,
       double lengthOfDay) {
     final List<Double> times = newArrayList(arrivalTimes);
     checkArgument(times.size() >= 2,
         "At least two arrival times are required, found %s time(s).",
         times.size());
-
     for (final double time : times) {
       checkArgument(time >= 0 && time < lengthOfDay,
           "all specified times should be >= 0 and < %s. Found %s.",
@@ -264,34 +263,34 @@ public final class Metrics {
     }
     Collections.sort(times);
 
-    final int intervals = times.size();
+    final int numEvents = times.size();
 
     // this is the expected interarrival time
     final double expectedInterArrivalTime = lengthOfDay
-        / intervals;
+        / numEvents;
     // tolerance
-    final double half = expectedInterArrivalTime / intervals;
+    final double half = expectedInterArrivalTime / numEvents;
     final double left = expectedInterArrivalTime - half;
-    checkArgument(left >= 1d, "Num events %s, length of day %s, value %s.",
-        times.size(), lengthOfDay, left);
 
     // deviation to expectedInterArrivalTime
     double sumDeviation = 0;
-    double maxDeviation = 0;
-    for (int i = 0; i < intervals - 1; i++) {
+    double maxDeviation = (numEvents - 1) * left;
+    double prevDeviation = 0;
+    for (int i = 0; i < numEvents - 1; i++) {
       // compute interarrival time
       final double delta = times.get(i + 1) - times.get(i);
       if (delta < left) {
-        sumDeviation += Math.abs(left - delta);
-        maxDeviation += left;
+        final double curDeviation = left - delta;
+        sumDeviation += curDeviation;
         // check for previous deviation
-        if (i > 0 && times.get(i) - times.get(i - 1) < left) {
-          sumDeviation += Math.abs(left - (times.get(i) - times.get(i - 1)));
+        if (prevDeviation > 0) {
+          sumDeviation += prevDeviation;
           maxDeviation += left;
         }
+        prevDeviation = curDeviation;
       }
       else {
-        maxDeviation += left;
+        prevDeviation = 0;
       }
     }
     return 1d - (sumDeviation / maxDeviation);
