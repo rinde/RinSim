@@ -2,6 +2,7 @@ package rinde.sim.pdptw.vanlon14;
 
 import static junit.framework.Assert.assertEquals;
 
+import java.io.File;
 import java.util.List;
 import java.util.Set;
 
@@ -26,12 +27,11 @@ public class VanLon14ScenarioTest {
   @Test
   public void test() {
     // FIXME should work
-    // VanLon14.generateDataSet(new File("files/dataset/"));
+    VanLon14.generateDataSet(new File("files/dataset/"));
   }
 
   @Test
   public void testIO() {
-
     final ScenarioBuilder sb = new ScenarioBuilder(PDPScenarioEvent.ADD_DEPOT,
         PDPScenarioEvent.ADD_PARCEL, PDPScenarioEvent.ADD_VEHICLE,
         PDPScenarioEvent.TIME_OUT);
@@ -51,11 +51,9 @@ public class VanLon14ScenarioTest {
           @Override
           public VanLon14Scenario create(List<TimedEvent> eventList,
               Set<Enum<?>> eventTypes) {
-            return
-            new VanLon14Scenario(eventList, new TimeWindow(0, 10), new Point(0,
-                0),
-                new Point(10, 10), 1000L, VanLon14.ExperimentClass.HIGH_LARGE,
-                0);
+            return new VanLon14Scenario(eventList, new TimeWindow(0, 10),
+                new Point(0, 0), new Point(10, 10), 1000L,
+                VanLon14.ExperimentClass.HIGH_LARGE, 0);
           }
         });
 
@@ -63,7 +61,6 @@ public class VanLon14ScenarioTest {
     final VanLon14Scenario converted = ScenarioIO.read(output,
         VanLon14Scenario.class);
     assertEquals(s, converted);
-
   }
 
   enum PC implements ProblemClass {

@@ -1,5 +1,7 @@
 package rinde.sim.pdptw.vanlon14;
 
+import static com.google.common.base.Preconditions.checkArgument;
+
 import java.util.Collection;
 import java.util.Set;
 
@@ -50,6 +52,10 @@ public class VanLon14Scenario extends DynamicPDPTWScenario {
       TimeWindow tw, Point mi, Point ma, long ts, ProblemClass pc,
       int instanceNum) {
     super(events, SUPPORTED_TYPES);
+    checkArgument(tw.begin == 0);
+    checkArgument(tw.end > 0);
+    checkArgument(ts > 0);
+
     min = mi;
     max = ma;
     timeWindow = tw;

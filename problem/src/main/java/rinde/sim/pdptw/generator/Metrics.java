@@ -324,6 +324,16 @@ public final class Metrics {
     return builder.build();
   }
 
+  public static ImmutableList<Long> getOrderArrivalTimes(Scenario s) {
+    final ImmutableList.Builder<Long> builder = ImmutableList.builder();
+    for (final TimedEvent se : s.asList()) {
+      if (se instanceof AddParcelEvent) {
+        builder.add(((AddParcelEvent) se).parcelDTO.orderArrivalTime);
+      }
+    }
+    return builder.build();
+  }
+
   // to use for parts of the timeline to avoid excessively long list with
   // mostly 0s.
   static class LoadPart extends TimeWindow {

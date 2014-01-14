@@ -241,7 +241,7 @@ public class VanLon14 {
         checkState(dir.exists() || dir.mkdir(), "Could not create dir %s.", dir);
 
         for (int i = 0; i < scenarios.size(); i++) {
-          final Scenario s = scenarios.get(i);
+          final VanLon14Scenario s = scenarios.get(i);
           final String scenarioName = ec
               .name()
               .toLowerCase() + "-" + i;
@@ -252,6 +252,10 @@ public class VanLon14 {
               scenarioName + ".load"));
           Analysis.writeLocationList(Metrics.getServicePoints(s), new File(dir,
               scenarioName + ".points"));
+
+          Analysis.writeTimes(s.getTimeWindow().end,
+              Metrics.getArrivalTimes(s), new File(dir,
+                  scenarioName + ".times"));
 
           Metrics.checkTimeWindowStrictness(s);
 

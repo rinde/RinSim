@@ -7,6 +7,7 @@ import java.util.List;
 import rinde.sim.core.graph.Point;
 
 import com.google.common.base.Charsets;
+import com.google.common.base.Joiner;
 import com.google.common.io.Files;
 
 public class Analysis {
@@ -54,4 +55,32 @@ public class Analysis {
     }
   }
 
+  /**
+   * Writes the provided list of times to a file. The output format is as
+   * follows:
+   * 
+   * <pre>
+   * {@code length}
+   * {@code time 1}
+   * {@code time 2}
+   * ..
+   * {@code time n}
+   * </pre>
+   * @param length The length of the scenario: [0,length)
+   * @param times The arrival times of events, for each time it holds that 0
+   *          &#8804; time &lt; length.
+   * @param f The file to write to.
+   */
+  public static void writeTimes(double length, List<? extends Number> times,
+      File f) {
+    try {
+      Files.createParentDirs(f);
+      Files.write(
+          new StringBuilder().append(length).append("\n")
+              .append(Joiner.on("\n").join(times)).append("\n"), f,
+          Charsets.UTF_8);
+    } catch (final IOException e) {
+      throw new IllegalArgumentException(e);
+    }
+  }
 }
