@@ -7,8 +7,6 @@ import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.collect.Lists.newArrayList;
 import static java.util.Arrays.asList;
 import static junit.framework.Assert.assertEquals;
-import static rinde.sim.pdptw.generator.Metrics.measureDynamism;
-import static rinde.sim.pdptw.generator.Metrics.measureDynamism2ndDerivative;
 import static rinde.sim.pdptw.generator.Metrics.measureDynamismDistrNEW;
 import static rinde.sim.pdptw.generator.Metrics.measureLoad;
 import static rinde.sim.pdptw.generator.Metrics.sum;
@@ -25,7 +23,6 @@ import org.apache.commons.math3.distribution.ExponentialDistribution;
 import org.apache.commons.math3.random.MersenneTwister;
 import org.apache.commons.math3.random.RandomGenerator;
 import org.apache.commons.math3.stat.descriptive.moment.StandardDeviation;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import rinde.sim.core.graph.Point;
@@ -193,53 +190,6 @@ public class MetricsTest {
     // TODO check the rounding behavior
   }
 
-  /**
-   * Test for the dynamism function.
-   */
-  @Test
-  @Ignore
-  public void dynamismTest() {
-    assertEquals(.5, measureDynamism(asList(1L, 2L, 3L, 4L, 5L), 10,
-        1), EPSILON);
-    // duplicates should be ignored
-    assertEquals(.5, measureDynamism(asList(1L, 2L, 2L, 3L, 4L, 5L), 10,
-        1), EPSILON);
-
-    // granularity equals length of day
-    assertEquals(1d, measureDynamism(asList(1L, 2L, 2L, 3L, 4L, 5L), 10,
-        10), EPSILON);
-
-    // check valid border values of times
-    assertEquals(.6, measureDynamism(asList(0L, 2L, 2L, 3L, 4L, 8L, 9L), 10,
-        1), EPSILON);
-
-    assertEquals(.1, measureDynamism(asList(0L, 2L, 2L, 3L, 4L, 8L, 9L), 100,
-        5), EPSILON);
-
-    assertEquals(2 / 7d,
-        measureDynamism(asList(0L, 2L, 2L, 3L, 4L, 8L, 9L), 49,
-            7), EPSILON);
-
-    // both intervals
-    assertEquals(1d,
-        measureDynamism(asList(0L, 2L, 2L, 3L, 4L, 8L, 9L), 10,
-            5), EPSILON);
-
-    // no time
-    assertEquals(0d,
-        measureDynamism(Arrays.<Long> asList(), 10,
-            5), EPSILON);
-
-    // check interval borders
-    assertEquals(0.5d,
-        measureDynamism(asList(1000L, 1999L), 2000,
-            1000), EPSILON);
-    assertEquals(2 / 3d,
-        measureDynamism(asList(1000L, 2000L), 3000,
-            1000), EPSILON);
-
-  }
-
   static Times generateTimes(RandomGenerator rng, double intensity) {
     final ExponentialDistribution ed = new ExponentialDistribution(
         1000d / intensity);
@@ -254,31 +204,6 @@ public class MetricsTest {
       }
     }
     return asTimes(1000, times);
-  }
-
-  @Test
-  public void dynamismTest601() {
-
-    System.out.println(measureDynamism2ndDerivative(
-        asList(0L, 1L, 1L, 2L, 2L, 3L, 3L, 4L, 4L, 5L, 5L, 6L, 6L, 7L, 7L, 8L,
-            9L), 10L));
-
-    System.out.println(measureDynamism2ndDerivative(
-        asList(1L, 4L, 8L), 10L));
-    System.out.println(measureDynamism2ndDerivative(
-        asList(1L, 2L, 3L), 10L));
-
-    System.out.println(measureDynamism2ndDerivative(
-        asList(0L, 0L, 0L, 0L, 0L), 5L));
-    System.out.println(measureDynamism2ndDerivative(
-        asList(1L, 1L, 1L, 1L, 1L), 5L));
-    System.out.println(measureDynamism2ndDerivative(
-        asList(2L, 2L, 2L, 2L, 2L), 5L));
-    System.out.println(measureDynamism2ndDerivative(
-        asList(3L, 3L, 3L, 3L, 3L), 5L));
-    System.out.println(measureDynamism2ndDerivative(
-        asList(4L, 4L, 4L, 4L, 4L), 100L));
-
   }
 
   static class Times {
@@ -712,46 +637,6 @@ public class MetricsTest {
         assertEquals(curDod, rightDod, 0.0001);
       }
     }
-  }
-
-  /**
-   * Length of day must be positive.
-   */
-  @Test(expected = IllegalArgumentException.class)
-  public void dynamismIllegalArgument1() {
-    measureDynamism(asList(1L), 0, 7);
-  }
-
-  /**
-   * Granularity must be <= length of day.
-   */
-  @Test(expected = IllegalArgumentException.class)
-  public void dynamismIllegalArgument2() {
-    measureDynamism(asList(1L), 1, 7);
-  }
-
-  /**
-   * Granularity needs to fit an exact number of times in length of day.
-   */
-  @Test(expected = IllegalArgumentException.class)
-  public void dynamismIllegalArgument3() {
-    measureDynamism(asList(1L, 2L), 10, 7);
-  }
-
-  /**
-   * Times can not be >= lengthOfDay.
-   */
-  @Test(expected = IllegalArgumentException.class)
-  public void dynamismIllegalArgument4a() {
-    measureDynamism(asList(1L, 2L, 10L), 10, 1);
-  }
-
-  /**
-   * Times can not be < 0.
-   */
-  @Test(expected = IllegalArgumentException.class)
-  public void dynamismIllegalArgument4b() {
-    measureDynamism(asList(1L, 2L, -1L), 10, 1);
   }
 
   /**
