@@ -259,7 +259,8 @@ public class VanLon14 {
               .<String, Object> builder()
               .put("generation_date",
                   formatter.print(System.currentTimeMillis()))
-              .put("dynamism", Metrics.measureDynamismOld(s))
+              // FIXME
+              // .put("dynamism", Metrics.measureDynamismOld(s))
               .put("vehicle_speed_kmh", Metrics.getVehicleSpeed(s));
 
           final ImmutableMultiset<Enum<?>> eventTypes = Metrics

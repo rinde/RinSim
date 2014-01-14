@@ -650,34 +650,37 @@ public final class Metrics {
   }
 
   // Best version as of January 13th, 2014
-  public static double measureDynamismDistrNEW(Iterable<Long> arrivalTimes,
-      long lengthOfDay) {
-    final List<Long> ts = newArrayList(arrivalTimes);
-    checkArgument(ts.size() >= 2,
-        "At least two arrival times are required, found %s time(s).", ts.size());
+  public static double measureDynamismDistrNEW(Iterable<Double> arrivalTimes,
+      double lengthOfDay) {
+    final List<Double> times = newArrayList(arrivalTimes);
+    checkArgument(times.size() >= 2,
+        "At least two arrival times are required, found %s time(s).",
+        times.size());
 
-    Collections.sort(ts);
-    final List<Long> times = ImmutableList.<Long> builder()
-        .addAll(ts)
-        .build();
+    for (final double time : times) {
+      checkArgument(time >= 0 && time < lengthOfDay,
+          "all specified times should be >= 0 and < %s. Found %s.",
+          lengthOfDay, time);
+    }
+    Collections.sort(times);
 
     final int intervals = times.size();
 
     // this is the expected interarrival time
-    final double expectedInterArrivalTime = (double) lengthOfDay
-        / (double) intervals;
+    final double expectedInterArrivalTime = lengthOfDay
+        / intervals;
     // tolerance
     final double half = expectedInterArrivalTime / intervals;
-    final double left = Math.floor(expectedInterArrivalTime - half);
+    final double left = expectedInterArrivalTime - half;
     checkArgument(left >= 1d, "Num events %s, length of day %s, value %s.",
-        ts.size(), lengthOfDay, left);
+        times.size(), lengthOfDay, left);
 
     // deviation to expectedInterArrivalTime
     double sumDeviation = 0;
     double maxDeviation = 0;
     for (int i = 0; i < intervals - 1; i++) {
       // compute interarrival time
-      final long delta = times.get(i + 1) - times.get(i);
+      final double delta = times.get(i + 1) - times.get(i);
       if (delta < left) {
         sumDeviation += Math.abs(left - delta);
         maxDeviation += left;
@@ -728,27 +731,6 @@ public final class Metrics {
         / (double) granularity, RoundingMode.UNNECESSARY);
     return intervals.size()
         / (double) Math.min(totalIntervals, size);
-  }
-
-  @Deprecated
-  public static double measureDynamismOld(Scenario s) {
-    final List<TimedEvent> list = s.asList();
-    final ImmutableList.Builder<Long> times = ImmutableList.builder();
-    for (final TimedEvent te : list) {
-      if (te instanceof AddParcelEvent) {
-        times.add(te.time);
-      }
-    }
-    return measureDynamismOld(times.build());
-  }
-
-  @Deprecated
-  public static double measureDynamismOld(List<Long> arrivalTimes) {
-    // announcements are distinct arrival times
-    // this indicates the number of changes of the problem
-    final int announcements = newHashSet(arrivalTimes).size();
-    final int orders = arrivalTimes.size();
-    return announcements / (double) orders;
   }
 
   // FIXME move this method to common? and make sure everybody uses the same

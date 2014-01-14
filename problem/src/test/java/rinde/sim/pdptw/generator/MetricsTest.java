@@ -9,7 +9,6 @@ import static java.util.Arrays.asList;
 import static junit.framework.Assert.assertEquals;
 import static rinde.sim.pdptw.generator.Metrics.measureDynamism;
 import static rinde.sim.pdptw.generator.Metrics.measureDynamism2ndDerivative;
-import static rinde.sim.pdptw.generator.Metrics.measureDynamismDistr;
 import static rinde.sim.pdptw.generator.Metrics.measureDynamismDistrNEW;
 import static rinde.sim.pdptw.generator.Metrics.measureLoad;
 import static rinde.sim.pdptw.generator.Metrics.sum;
@@ -284,20 +283,28 @@ public class MetricsTest {
 
   static class Times {
     public final int length;
-    public final ImmutableList<Long> list;
+    public final ImmutableList<Double> list;
 
-    public Times(int l, List<Long> li) {
+    public Times(int l, List<Double> li) {
       length = l;
       list = ImmutableList.copyOf(li);
     }
   }
 
-  static Times asTimes(int length, List<Long> li) {
+  static Times asTimesDouble(int length, List<Double> li) {
     return new Times(length, li);
   }
 
+  static Times asTimes(int length, List<Long> li) {
+    final List<Double> newLi = newArrayList();
+    for (final long l : li) {
+      newLi.add((double) l);
+    }
+    return new Times(length, newLi);
+  }
+
   static Times asTimes(int length, Long... longs) {
-    return new Times(length, asList(longs));
+    return asTimes(length, asList(longs));
   }
 
   @Test
@@ -359,26 +366,25 @@ public class MetricsTest {
     }
     for (int i = 0; i < 5; i++) {
 
-      final List<Long> ts = generateTimes(rng, 50d).list;
+      final List<Double> ts = generateTimes(rng, 50d).list;
 
-      final List<Long> newTs = newArrayList();
-      for (final long l : ts) {
+      final List<Double> newTs = newArrayList();
+      for (final double l : ts) {
         newTs.add(l);
         newTs.add(Math.min(999, Math.max(0, l
             + DoubleMath.roundToLong((rng.nextDouble() * 6d) - 3d,
                 RoundingMode.HALF_EVEN))));
       }
-      times.add(asTimes(1000, newTs));
+      times.add(asTimesDouble(1000, newTs));
     }
 
     for (int i = 0; i < 5; i++) {
 
-      final List<Long> ts = generateTimes(rng, 100d).list;
+      final List<Double> ts = generateTimes(rng, 100d).list;
 
-      final List<Long> newTs = newArrayList();
+      final List<Double> newTs = newArrayList();
       System.out.println("num events: " + ts.size());
-      for (final long l : ts) {
-
+      for (final double l : ts) {
         newTs.add(l);
         newTs.add(Math.min(999, Math.max(0, l
             + DoubleMath.roundToLong((rng.nextDouble() * 2d) - 1d,
@@ -387,7 +393,7 @@ public class MetricsTest {
             + DoubleMath.roundToLong((rng.nextDouble() * 2d) - 1d,
                 RoundingMode.HALF_EVEN))));
       }
-      times.add(asTimes(1000, newTs));
+      times.add(asTimesDouble(1000, newTs));
     }
 
     final List<Long> t2 = asList(10L, 30L, 50L, 70L, 90L);
@@ -458,31 +464,30 @@ public class MetricsTest {
     times.add(asTimes(10000, newMore));
 
     for (int k = 0; k < 5; k++) {
-      final List<Long> ts = newArrayList(generateTimes(rng, 20).list);
-      final List<Long> additions = newArrayList();
+      final List<Double> ts = newArrayList(generateTimes(rng, 20).list);
+      final List<Double> additions = newArrayList();
       for (int i = 0; i < ts.size(); i++) {
 
         if (i % 3 == 0) {
           for (int j = 0; j < k; j++) {
-            additions.add(
-                DoubleMath.roundToLong(ts.get(i) + (rng.nextDouble() * 10),
-                    RoundingMode.HALF_DOWN));
+            additions.add(ts.get(i) + (rng.nextDouble() * 10));
           }
         }
       }
       ts.addAll(additions);
       Collections.sort(ts);
-      times.add(asTimes(1000, ts));
+      times.add(asTimesDouble(1000, ts));
     }
 
     final Times regular = asTimes(10, 0L, 1L, 2L, 5L, 6L, 7L, 8L, 9L);
 
     for (int i = 1; i < 4; i++) {
-      final List<Long> newList = newArrayList();
-      for (final Long l : regular.list) {
-        newList.add((long) (l * Math.pow(10, i)));
+      final List<Double> newList = newArrayList();
+      for (final double l : regular.list) {
+        newList.add((l * Math.pow(10, i)));
       }
-      times.add(asTimes((int) (regular.length * Math.pow(10, i)), newList));
+      times
+          .add(asTimesDouble((int) (regular.length * Math.pow(10, i)), newList));
     }
 
     times.add(asTimes(1000, 250L, 250L, 250L, 500L, 500L, 500L, 750L,
@@ -507,8 +512,8 @@ public class MetricsTest {
 
         System.out.println("----- " + i + " -----");
         System.out.println(times.get(i).length + " " + times.get(i).list);
-        final double dod2 = measureDynamismDistr(times.get(i).list,
-            times.get(i).length);
+        // final double dod2 = measureDynamismDistr(times.get(i).list,
+        // times.get(i).length);
 
         final double dod8 = measureDynamismDistrNEW(times.get(i).list,
             times.get(i).length);
@@ -520,7 +525,7 @@ public class MetricsTest {
         // final double dod7 = chi(times.get(i).list,
         // times.get(i).length);
         // System.out.println(dod);
-        System.out.printf("%1.3f%%\n", dod2 * 100d);
+        // System.out.printf("%1.3f%%\n", dod2 * 100d);
         System.out.printf("%1.3f%%\n", dod8 * 100d);
         // System.out.printf("%1.3f%%\n", dod5 * 100d);
         // System.out.printf("%1.3f%%\n", dod6 * 100d);
@@ -574,10 +579,9 @@ public class MetricsTest {
     final int scenarioLength = 1000;
     for (final int num : numEvents) {
       final double dist = scenarioLength / (double) num;
-      final List<Long> scenario = newArrayList();
+      final List<Double> scenario = newArrayList();
       for (int i = 0; i < num; i++) {
-        scenario.add(DoubleMath.roundToLong((dist / 2d) + i * dist,
-            RoundingMode.HALF_DOWN));
+        scenario.add((dist / 2d) + i * dist);
       }
       final double dyn = measureDynamismDistrNEW(scenario, scenarioLength);
       assertEquals(expectedDynamism, dyn, 0.0001);
@@ -591,9 +595,9 @@ public class MetricsTest {
         748, 998);
     final int scenarioLength = 1000;
     for (final int num : numEvents) {
-      final List<Long> scenario = newArrayList();
+      final List<Double> scenario = newArrayList();
       for (int i = 0; i < num; i++) {
-        scenario.add(300L);
+        scenario.add(300d);
       }
       final double dyn = measureDynamismDistrNEW(scenario, scenarioLength);
       assertEquals(expectedDynamism, dyn, 0.0001);
@@ -607,16 +611,14 @@ public class MetricsTest {
         748, 998);
     final int scenarioLength = 1000;
     for (final int num : numEvents) {
-      final List<Long> scenario = newArrayList();
+      final List<Double> scenario = newArrayList();
 
       final int unique = num / 2;
       final double dist = scenarioLength / unique;
 
       for (int i = 0; i < num / 2; i++) {
-        scenario.add(DoubleMath.roundToLong((dist / 2d) + i * dist,
-            RoundingMode.HALF_DOWN));
-        scenario.add(DoubleMath.roundToLong((dist / 2d) + i * dist,
-            RoundingMode.HALF_DOWN));
+        scenario.add((dist / 2d) + i * dist);
+        scenario.add((dist / 2d) + i * dist);
       }
       final double dyn = measureDynamismDistrNEW(scenario, scenarioLength);
       assertEquals(expectedDynamism, dyn, 0.02);
@@ -637,27 +639,25 @@ public class MetricsTest {
   @Test
   public void timeScaleInvariant() {
     final RandomGenerator rng = new MersenneTwister(123);
+    final double startLengthOfDay = 1000;
+    final int repetitions = 3;
     final List<Integer> numEvents = asList(200, 300, 400, 500, 600, 700, 800);
-    final List<Integer> lengthsOfDay = asList(1000, 1300, 2000, 4500, 7600,
-        15000,
-        60000,
-        10000, 100000);
+    final List<Double> lengthsOfDay = asList(startLengthOfDay, 1300d, 2000d,
+        4500d, 7600d, 15000d, 60000d, 10000d, 100000d);
     for (final int events : numEvents) {
       // repetitions
-      for (int j = 0; j < 3; j++) {
-        final List<Long> scenario = newArrayList();
+      for (int j = 0; j < repetitions; j++) {
+        final List<Double> scenario = newArrayList();
         for (int i = 0; i < events; i++) {
-          scenario.add((long) rng.nextInt(1000));
+          scenario.add(rng.nextDouble() * startLengthOfDay);
         }
         Collections.sort(scenario);
         double dod = -1;
-        for (final int dayLength : lengthsOfDay) {
-          final List<Long> cur = newArrayList();
-          for (final Long i : scenario) {
-            cur.add(DoubleMath.roundToLong(i * (dayLength / 100d),
-                RoundingMode.HALF_UP));
+        for (final double dayLength : lengthsOfDay) {
+          final List<Double> cur = newArrayList();
+          for (final double i : scenario) {
+            cur.add(i * (dayLength / startLengthOfDay));
           }
-
           final double curDod = measureDynamismDistrNEW(cur, dayLength);
           if (dod >= 0d) {
             assertEquals(dod, curDod, 0.001);
@@ -674,24 +674,24 @@ public class MetricsTest {
   @Test
   public void shiftInvariant() {
     final RandomGenerator rng = new MersenneTwister(123);
-    final int lengthOfDay = 1000;
+    final double lengthOfDay = 1000;
     final int repetitions = 10;
     final List<Integer> numEvents = asList(20, 50, 120, 200, 300, 500, 670,
         800);
 
     for (final int num : numEvents) {
       for (int j = 0; j < repetitions; j++) {
-        final List<Long> scenario = newArrayList();
+        final List<Double> scenario = newArrayList();
         for (int i = 0; i < num; i++) {
-          scenario.add((long) rng.nextInt(lengthOfDay));
+          scenario.add(rng.nextDouble() * lengthOfDay);
         }
         Collections.sort(scenario);
 
         final double curDod = measureDynamismDistrNEW(scenario, lengthOfDay);
 
         // shift left
-        final List<Long> leftShiftedScenario = newArrayList();
-        final long leftMost = scenario.get(0);
+        final List<Double> leftShiftedScenario = newArrayList();
+        final double leftMost = scenario.get(0);
         for (int i = 0; i < num; i++) {
           leftShiftedScenario.add(scenario.get(i) - leftMost);
         }
@@ -699,8 +699,9 @@ public class MetricsTest {
             lengthOfDay);
 
         // shift right
-        final List<Long> rightShiftedScenario = newArrayList();
-        final long rightMost = lengthOfDay - scenario.get(scenario.size() - 1);
+        final List<Double> rightShiftedScenario = newArrayList();
+        final double rightMost = (lengthOfDay
+            - scenario.get(scenario.size() - 1)) - 0.00000001;
         for (int i = 0; i < num; i++) {
           rightShiftedScenario.add(scenario.get(i) + rightMost);
         }
