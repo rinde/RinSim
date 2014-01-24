@@ -11,5 +11,5 @@ public interface ArrivalTimesGenerator {
    * @return An immutable list of arrival times in ascending order, may contain
    *         duplicates.
    */
-  ImmutableList<Long> generate(RandomGenerator rng);
+  ImmutableList<Double> generate(RandomGenerator rng);
 }

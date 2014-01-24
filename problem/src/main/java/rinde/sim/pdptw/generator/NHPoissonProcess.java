@@ -1,15 +1,13 @@
 package rinde.sim.pdptw.generator;
 
-import java.math.RoundingMode;
-
 import javax.annotation.Nullable;
 
+import org.apache.commons.math3.analysis.UnivariateFunction;
 import org.apache.commons.math3.distribution.ExponentialDistribution;
 import org.apache.commons.math3.random.RandomGenerator;
 
 import com.google.common.base.Function;
 import com.google.common.collect.ImmutableList;
-import com.google.common.math.DoubleMath;
 
 /**
  * Implementation of a non-homogenous Poisson process based on [1].
@@ -34,16 +32,15 @@ public class NHPoissonProcess implements ArrivalTimesGenerator {
   }
 
   @Override
-  public ImmutableList<Long> generate(RandomGenerator rng) {
+  public ImmutableList<Double> generate(RandomGenerator rng) {
     final ExponentialDistribution ed = new ExponentialDistribution(rng,
         1d / lambdaMax,
         ExponentialDistribution.DEFAULT_INVERSE_ABSOLUTE_ACCURACY);
-    long sum = 0;
+    double sum = 0d;
 
-    final ImmutableList.Builder<Long> builder = ImmutableList.builder();
+    final ImmutableList.Builder<Double> builder = ImmutableList.builder();
     while (sum < length) {
-      sum += DoubleMath
-          .roundToLong(ed.sample(), RoundingMode.HALF_DOWN);
+      sum += ed.sample();
       if (sum < length && rng.nextDouble() <= (lambd.apply(sum) / lambdaMax)) {
         builder.add(sum);
       }
@@ -51,38 +48,56 @@ public class NHPoissonProcess implements ArrivalTimesGenerator {
     return builder.build();
   }
 
-  public interface IntensityFunction extends Function<Long, Double> {
+  public interface IntensityFunction extends Function<Double, Double> {
 
     double getMax();
 
     // overridden to remove @Nullable at return argument
     @Override
-    Double apply(@Nullable Long input);
+    Double apply(@Nullable Double input);
+  }
+
+  public static class IntensityFunctionWrapper implements UnivariateFunction {
+    IntensityFunction function;
+
+    public IntensityFunctionWrapper(IntensityFunction func) {
+      function = func;
+    }
+
+    @Override
+    public double value(double x) {
+      return function.apply(x);
+    }
+
   }
 
   public static class SineIntensity implements IntensityFunction {
 
-    private final double ampl;
-    private final double freq;
+    public final double ampl;
+    public final double freq;
+    public final double height;
 
-    public SineIntensity(double amplitude, double frequency) {
+    public SineIntensity(double amplitude, double frequency, double relHeight,
+        double absHeight) {
       ampl = amplitude;
       freq = frequency;
+      height = (relHeight * amplitude) + absHeight;
+      // System.out.println(amplitude + " " + frequency + "  " + relHeight);
     }
 
     @Override
     public double getMax() {
-      return ampl;// * 2;
+      return ampl + height;// * 2;
     }
 
     @Override
-    public Double apply(@Nullable Long input) {
+    public Double apply(@Nullable Double input) {
       if (input == null) {
         throw new IllegalArgumentException();
       }
-      return ampl
-          * (Math.sin((input * freq * Math.PI * 2d) - (.5 * Math.PI)) + 0d);
-    }
 
+      return Math.max(0, (ampl
+          * Math.sin(input * freq * Math.PI * 2d)) + height);
+    }
   }
 }

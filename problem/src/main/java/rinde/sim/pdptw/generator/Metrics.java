@@ -293,6 +293,7 @@ public final class Metrics {
         prevDeviation = 0;
       }
     }
+    // TODO investigate whether both terms should be squared?
     return 1d - (sumDeviation / maxDeviation);
   }
 

@@ -105,7 +105,8 @@ public class ScenarioGenerator<T extends Scenario> {
   }
 
   T doGenerate(RandomGenerator rng, int num) {
-    final ImmutableList<Long> times = arrivalTimesGenerator.generate(rng);
+    final ImmutableList<Long> times = convert(arrivalTimesGenerator
+        .generate(rng));
     final ImmutableList<Point> locations = locationsGenerator.generate(
         times.size(), rng);
     int index = 0;
@@ -131,6 +132,14 @@ public class ScenarioGenerator<T extends Scenario> {
     else {
       return (T) sb.build();
     }
+  }
+
+  public static ImmutableList<Long> convert(List<Double> in) {
+    final ImmutableList.Builder<Long> builder = ImmutableList.builder();
+    for (final double d : in) {
+      builder.add(DoubleMath.roundToLong(d, RoundingMode.HALF_UP));
+    }
+    return builder.build();
   }
 
   public long getScenarioLength() {

@@ -39,22 +39,24 @@ public class PoissonProcessArrivalTimes implements ArrivalTimesGenerator {
     // System.out.println("gai " + gai + " opa " + opa);
   }
 
+  // deprecated: dynamism stuff is no longer valid
   @Override
-  public ImmutableList<Long> generate(RandomGenerator rng) {
+  @Deprecated
+  public ImmutableList<Double> generate(RandomGenerator rng) {
     // we model the announcements as a Poisson process, which means that
     // the interarrival times are exponentially distributed.
     final ExponentialDistribution ed = new ExponentialDistribution(1d / gai);
     ed.reseedRandomGenerator(rng.nextLong());
-    long sum = 0;
-    final List<Long> arrivalTimes = newArrayList();
+    double sum = 0;
+    final List<Double> arrivalTimes = newArrayList();
     while (sum < length) {
-      final long nt = DoubleMath
-          .roundToLong(ed.sample() * 60d, RoundingMode.HALF_DOWN);
+      // final long nt = DoubleMath
+      // .roundToLong(ed.sample() * 60d, RoundingMode.HALF_DOWN);
 
       // ignore values which are smaller than the time unit (one
       // minute), unless its the first value.
       // if (/*nt > 0 ||*/ arrivalTimes.isEmpty()) {
-      sum += nt;
+      sum += ed.sample() * 60d;
       if (sum < length) {
         arrivalTimes.add(sum);
       } else if (arrivalTimes.isEmpty()) {
@@ -76,8 +78,8 @@ public class PoissonProcessArrivalTimes implements ArrivalTimesGenerator {
     if (DoubleMath.isMathematicalInteger(opa)) {
       // if ordersPerAnnouncement is an integer, we can just use a
       // double for loop for setting the arrival times.
-      final ImmutableList.Builder<Long> lb = ImmutableList.builder();
-      for (final long arrivalTime : arrivalTimes) {
+      final ImmutableList.Builder<Double> lb = ImmutableList.builder();
+      for (final double arrivalTime : arrivalTimes) {
         for (int i = 0; i < opa; i++) {
           lb.add(arrivalTime);
         }
@@ -108,7 +110,7 @@ public class PoissonProcessArrivalTimes implements ArrivalTimesGenerator {
     orderCountList.addAll(nCopies(ceilTimes, ceiling));
     Collections.shuffle(orderCountList, new RandomAdaptor(rng));
 
-    final ImmutableList.Builder<Long> lb = ImmutableList.builder();
+    final ImmutableList.Builder<Double> lb = ImmutableList.builder();
     for (int i = 0; i < arrivalTimes.size(); i++) {
       for (int j = 0; j < orderCountList.get(i); j++) {
         lb.add(arrivalTimes.get(i));
