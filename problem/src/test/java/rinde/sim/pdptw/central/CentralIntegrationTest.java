@@ -24,4 +24,22 @@ public class CentralIntegrationTest {
         .repeat(10).perform();
 
   }
+
+  /**
+   * Test of {@link RandomSolver} on a scenario.
+   */
+  @Test
+  public void testRandomSolver() {
+    Experiment
+        .build(new Gendreau06ObjectiveFunction())
+        .addScenario(
+            Gendreau06Parser.parse("files/test/gendreau06/req_rapide_1_240_24",
+                10))
+        .addConfiguration(
+
+            Central.solverConfiguration(SolverValidator.wrap(RandomSolver
+                .supplier())))
+        .repeat(20)
+        .perform();
+  }
 }

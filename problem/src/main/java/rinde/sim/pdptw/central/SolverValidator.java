@@ -12,6 +12,8 @@ import java.util.Set;
 
 import rinde.sim.pdptw.central.GlobalStateObject.VehicleStateObject;
 import rinde.sim.pdptw.common.ParcelDTO;
+import rinde.sim.util.SupplierRng;
+import rinde.sim.util.SupplierRng.DefaultSupplierRng;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
@@ -37,6 +39,24 @@ public final class SolverValidator {
    */
   public static Solver wrap(Solver delegate) {
     return new SolverValidator.Validator(delegate);
+  }
+
+  public static SupplierRng<Solver> wrap(SupplierRng<? extends Solver> sup) {
+    return new SolverValidatorSupplier(sup);
+  }
+
+  private static final class SolverValidatorSupplier extends
+      DefaultSupplierRng<Solver> {
+    private final SupplierRng<? extends Solver> supplier;
+
+    SolverValidatorSupplier(SupplierRng<? extends Solver> sup) {
+      supplier = sup;
+    }
+
+    @Override
+    public Solver get(long seed) {
+      return SolverValidator.wrap(supplier.get(seed));
+    }
   }
 
   /**
