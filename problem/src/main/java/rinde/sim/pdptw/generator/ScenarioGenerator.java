@@ -203,9 +203,13 @@ public class ScenarioGenerator<T extends Scenario> {
     Point min;
     Point max;
 
+    @Nullable
     ArrivalTimesGenerator arrivalTimesGenerator;
+    @Nullable
     LocationsGenerator locationsGenerator;
+    @Nullable
     TimeWindowGenerator timeWindowGenerator;
+    @Nullable
     VehicleGenerator vehicleGenerator;
 
     Builder(@Nullable ScenarioFactory<T> sf) {
@@ -233,6 +237,7 @@ public class ScenarioGenerator<T extends Scenario> {
      *          formally: <code>dynamism = announcements / orders</code>.
      * @return This, as per the builder pattern.
      */
+    @Deprecated
     public Builder<T> setOrderIntensityAndDynamism(double intensity,
         double dynamism) {
       checkArgument(dynamism > 0d && dynamism <= 1d,
@@ -377,21 +382,31 @@ public class ScenarioGenerator<T extends Scenario> {
       return this;
     }
 
+    public Builder<T> setArrivalTimesGenerator(ArrivalTimesGenerator atg) {
+      arrivalTimesGenerator = atg;
+      return this;
+    }
+
+    public Builder<T> setTimeWindowGenerator(TimeWindowGenerator twg) {
+      timeWindowGenerator = twg;
+      return this;
+    }
+
     /**
      * @return A newly created {@link ScenarioGenerator} instance.
      */
     public ScenarioGenerator<T> build() {
       checkArgument(vehicles > 0 && size > 0,
           "Cannot build generator, scale needs to be set via setScale(double,double).");
-      checkArgument(
-          ordersPerAnnouncement > 0,
-          "Cannot build generator, orders need to be set via setOrdersPerAnnouncement(double).");
+      // checkArgument(
+      // ordersPerAnnouncement > 0,
+      // "Cannot build generator, orders need to be set via setOrdersPerAnnouncement(double).");
       checkArgument(
           scenarioLength > 0,
           "Cannot build generator, scenario length needs to be set via setScenarioLength(long).");
-      checkArgument(
-          announcementIntensity > 0,
-          "Cannot build generator, announcement intensity needs to be set via setAnnouncementIntensityPerKm2(double).");
+      // checkArgument(
+      // announcementIntensity > 0,
+      // "Cannot build generator, announcement intensity needs to be set via setAnnouncementIntensityPerKm2(double).");
 
       final double area = size * size;
       final double globalAnnouncementIntensity = area * announcementIntensity;
@@ -423,14 +438,19 @@ public class ScenarioGenerator<T extends Scenario> {
           vehicleSpeed,
           VEHICLE_CAPACITY, new TimeWindow(0, scenarioLength));
 
-      arrivalTimesGenerator = new PoissonProcessArrivalTimes(
-          latestOrderAnnounceTime,
-          globalAnnouncementIntensity, ordersPerAnnouncement);
+      if (arrivalTimesGenerator == null) {
+        arrivalTimesGenerator = new PoissonProcessArrivalTimes(
+            latestOrderAnnounceTime,
+            globalAnnouncementIntensity, ordersPerAnnouncement);
+      }
       locationsGenerator =
           new NormalLocationsGenerator(size, .15, .05);
-      timeWindowGenerator =
-          new ProportionateUniformTWGenerator(depotLocation, scenarioLength,
-              serviceTime, minimumResponseTime, vehicleSpeed);
+      if (timeWindowGenerator == null) {
+        timeWindowGenerator =
+            new ProportionateUniformTWGenerator(depotLocation,
+                scenarioLength,
+                serviceTime * 60000, minimumResponseTime * 60000, vehicleSpeed);
+      }
       vehicleGenerator = new HomogenousVehicleGenerator(vehicles, vehicleDto);
 
       return new ScenarioGenerator<T>(this);

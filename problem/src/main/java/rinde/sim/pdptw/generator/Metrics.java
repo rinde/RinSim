@@ -249,6 +249,33 @@ public final class Metrics {
     return builder.build();
   }
 
+  public static double measureUrgency(DynamicPDPTWScenario s) {
+
+    long reactionTime = 0;
+    int count = 0;
+    for (final TimedEvent ev : s.asList()) {
+      if (ev instanceof AddParcelEvent) {
+        final AddParcelEvent ape = (AddParcelEvent) ev;
+        reactionTime += ape.parcelDTO.pickupTimeWindow.end - ape.time;
+        count++;
+      }
+    }
+    return reactionTime / (double) count;
+  }
+
+  public static double measureDynamism(DynamicPDPTWScenario s) {
+    return measureDynamism(convert(getOrderArrivalTimes(s)),
+        s.getTimeWindow().end);
+  }
+
+  static ImmutableList<Double> convert(List<Long> in) {
+    final ImmutableList.Builder<Double> builder = ImmutableList.builder();
+    for (final Long l : in) {
+      builder.add(new Double(l));
+    }
+    return builder.build();
+  }
+
   // Best version as of January 13th, 2014
   public static double measureDynamism(Iterable<Double> arrivalTimes,
       double lengthOfDay) {

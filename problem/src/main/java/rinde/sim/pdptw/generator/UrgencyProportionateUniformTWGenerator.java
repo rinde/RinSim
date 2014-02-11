@@ -20,12 +20,14 @@ import com.google.common.math.DoubleMath;
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
  * 
  */
-public class ProportionateUniformTWGenerator implements TimeWindowGenerator {
+public class UrgencyProportionateUniformTWGenerator implements
+    TimeWindowGenerator {
 
   private final Point depotLocation;
   private final long endTime;
   private final long serviceTime;
   private final long minResponseTime;
+  private final long maxResponseTime;
   private final double vehicleSpeed; // km/h
 
   /**
@@ -35,12 +37,16 @@ public class ProportionateUniformTWGenerator implements TimeWindowGenerator {
    * @param minResponseTime
    * @param vehicleSpeed
    */
-  public ProportionateUniformTWGenerator(Point depotLocation, long endTime,
-      long serviceTime, long minResponseTime, double vehicleSpeed) {
+  public UrgencyProportionateUniformTWGenerator(Point depotLocation,
+      long endTime,
+      long serviceTime, long minResponseTime, long maxResponseTime,
+      double vehicleSpeed) {
+    checkArgument(maxResponseTime >= minResponseTime + serviceTime);
     this.depotLocation = depotLocation;
     this.endTime = endTime;
     this.serviceTime = serviceTime;
     this.minResponseTime = minResponseTime;
+    this.maxResponseTime = maxResponseTime;
     this.vehicleSpeed = vehicleSpeed;
   }
 
@@ -62,8 +68,8 @@ public class ProportionateUniformTWGenerator implements TimeWindowGenerator {
     final long earliestPickupStartTime = orderAnnounceTime + minResponseTime;
     final long latestDeliveryEndTime = endTime
         - (travelTime(delivery, depotLocation, vehicleSpeed) + serviceTime);
-    final long latestPickupEndTime = latestDeliveryEndTime
-        - (intertt + serviceTime);
+    final long latestPickupEndTime = orderAnnounceTime + maxResponseTime;
+    // latestDeliveryEndTime - (intertt + serviceTime);
 
     /*
      * PICKUP
@@ -85,12 +91,14 @@ public class ProportionateUniformTWGenerator implements TimeWindowGenerator {
           + DoubleMath.roundToLong((latestPickupEndTime - middlePickup)
               * rng.nextDouble(), RoundingMode.HALF_EVEN);
     }
-    final long pickupRemainingTime = latestPickupEndTime - pickLeft;
-    final double deltaPickup = uniform(.1, .8, rng);
-    long pickRight = pickLeft
-        + DoubleMath
-            .roundToLong(deltaPickup * pickupRemainingTime,
-                RoundingMode.HALF_EVEN);
+    // final long pickupRemainingTime = latestPickupEndTime - pickLeft;
+    // final double deltaPickup = uniform(.1, .8, rng);
+
+    pickLeft = orderAnnounceTime;
+    long pickRight = latestPickupEndTime;
+    // + DoubleMath
+    // .roundToLong(deltaPickup * pickupRemainingTime,
+    // RoundingMode.HALF_EVEN);
 
     /*
      * DELIVERY
@@ -132,6 +140,7 @@ public class ProportionateUniformTWGenerator implements TimeWindowGenerator {
     // System.out.println(deliverLeft);
     // }
 
+    // System.out.println(pickRight - pickLeft);
     return ImmutableList
         .of(new TimeWindow(pickLeft, pickRight), new TimeWindow(deliverLeft,
             deliverRight));

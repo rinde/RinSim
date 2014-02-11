@@ -176,7 +176,7 @@ public final class Experiment {
      * @param scenarios The scenarios to add.
      * @return This, as per the builder pattern.
      */
-    public Builder addScenarios(List<DynamicPDPTWScenario> scenarios) {
+    public Builder addScenarios(List<? extends DynamicPDPTWScenario> scenarios) {
       scenariosBuilder.addAll(scenarios);
       return this;
     }

@@ -293,7 +293,7 @@ public class VanLon14 {
 
   }
 
-  static class VanLon14ScenarioFactory implements
+  public static class VanLon14ScenarioFactory implements
       ScenarioFactory<VanLon14Scenario> {
     private final ProblemClass pc;
 
@@ -315,6 +315,8 @@ public class VanLon14 {
     }
   }
 
+  // use DoubleMath.mean(..) instead
+  @Deprecated
   static List<Double> mean(List<List<Double>> lists) {
     final ImmutableList.Builder<Double> builder = ImmutableList.builder();
     boolean running = true;

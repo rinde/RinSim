@@ -29,7 +29,7 @@ public class ExperimentUtil {
 
   public static List<String> getFilesFromDir(String dir, final String suffix) {
     final File directory = new File(dir);
-    checkArgument(directory.isDirectory());
+    checkArgument(directory.isDirectory(), "Dir is not a valid directory.");
     final String[] names = directory.list(new FilenameFilter() {
       @Override
       public boolean accept(File d, String name) {
