@@ -7,7 +7,7 @@
 	<packaging>pom</packaging>
 
 	<name>RinSim</name>
-	<description>RinSim is a multi-agent system simulator written in Java. It supports problems in the fields of transportation and logistics, most notably pickup-and-delivery problems (PDP).</description>
+	<description>RinSim is a multi-agent system simulator written in Java. It supports problems in the fields of transportation and logistics, most notably dynamic pickup-and-delivery problems (PDP).</description>
 	<url>http://github.com/rinde/RinSim</url>
 	<inceptionYear>2011</inceptionYear>
 
@@ -165,12 +165,12 @@
 						<format>html</format>
 						<format>xml</format>
 					</formats>
-					<instrumentation>
+					<!-- <instrumentation>
 						<excludes>
 							<exclude>rinde/sim/example*/**/*.class</exclude>
 							<exclude>rinde/sim/lab/**/*.class</exclude>
 						</excludes>
-					</instrumentation>
+					</instrumentation>-->
 				</configuration>
 				<executions>
 					<execution>
