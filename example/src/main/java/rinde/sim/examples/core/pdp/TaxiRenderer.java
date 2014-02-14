@@ -1,7 +1,7 @@
 /**
  * 
  */
-package rinde.sim.examples.pdp;
+package rinde.sim.examples.core.pdp;
 
 import java.util.Set;
 
@@ -27,10 +27,24 @@ import com.google.common.base.Optional;
  */
 public class TaxiRenderer implements ModelRenderer {
 
+  enum Language {
+    DUTCH("INSTAPPEN", "UITSTAPPEN"), ENGLISH("EMBARK", "DISEMBARK");
+
+    public final String embark;
+    public final String disembark;
+
+    Language(String s1, String s2) {
+      embark = s1;
+      disembark = s2;
+    }
+  }
+
   Optional<RoadModel> rm;
   Optional<DefaultPDPModel> pm;
+  Language lang;
 
-  TaxiRenderer() {
+  TaxiRenderer(Language l) {
+    lang = l;
     rm = Optional.absent();
     pm = Optional.absent();
   }
@@ -58,9 +72,9 @@ public class TaxiRenderer implements ModelRenderer {
         String text = null;
         final int size = (int) pm.get().getContentsSize(t);
         if (vs == VehicleState.DELIVERING) {
-          text = "UITSTAPPEN";
+          text = lang.disembark;
         } else if (vs == VehicleState.PICKING_UP) {
-          text = "INSTAPPEN";
+          text = lang.embark;
         } else if (size > 0) {
           text = size + "";
         }

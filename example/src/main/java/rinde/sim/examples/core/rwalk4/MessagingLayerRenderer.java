@@ -1,4 +1,4 @@
-package rinde.sim.examples.rwalk5;
+package rinde.sim.examples.core.rwalk4;
 
 import java.util.Set;
 
@@ -6,21 +6,20 @@ import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.GC;
 
 import rinde.sim.core.graph.Point;
-import rinde.sim.core.model.ModelProvider;
-import rinde.sim.core.model.ModelReceiver;
 import rinde.sim.core.model.road.RoadModel;
 import rinde.sim.ui.renderers.CanvasRenderer;
 import rinde.sim.ui.renderers.UiSchema;
 import rinde.sim.ui.renderers.ViewPort;
 import rinde.sim.ui.renderers.ViewRect;
 
-public class MessagingLayerRenderer implements CanvasRenderer, ModelReceiver {
+public class MessagingLayerRenderer implements CanvasRenderer {
 
-  protected RoadModel roadModel;
+  protected RoadModel rs;
   protected boolean useEncirclement;
   private final UiSchema uiSchema;
 
-  public MessagingLayerRenderer(UiSchema uiSchema) {
+  public MessagingLayerRenderer(RoadModel rs, UiSchema uiSchema) {
+    this.rs = rs;
     this.uiSchema = uiSchema;
   }
 
@@ -29,7 +28,7 @@ public class MessagingLayerRenderer implements CanvasRenderer, ModelReceiver {
     final int size = 4;
     uiSchema.initialize(gc.getDevice());
 
-    final Set<RandomWalkAgent> objects = roadModel
+    final Set<RandomWalkAgent> objects = rs
         .getObjectsOfType(RandomWalkAgent.class);
 
     synchronized (objects) {
@@ -80,11 +79,6 @@ public class MessagingLayerRenderer implements CanvasRenderer, ModelReceiver {
   @Override
   public ViewRect getViewRect() {
     return null;
-  }
-
-  @Override
-  public void registerModelProvider(ModelProvider mp) {
-    roadModel = mp.getModel(RoadModel.class);
   }
 
 }

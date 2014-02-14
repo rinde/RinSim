@@ -1,7 +1,7 @@
 /**
  * 
  */
-package rinde.sim.examples.rwalk4;
+package rinde.sim.examples.core.rwalk4;
 
 import java.util.Random;
 
@@ -79,8 +79,8 @@ public class RandomWalkExample {
     schema2.add(RandomWalkAgent.C_GREEN, new RGB(0x0, 0x80, 0));
 
     View.create(simulator)
-        .with(new GraphRoadModelRenderer(),
-            new RoadUserRenderer(schema, false),
-            new MessagingLayerRenderer(roadModel, schema2)).setSpeedUp(4);
+        .with(new GraphRoadModelRenderer())
+        .with(new RoadUserRenderer(schema, false))
+        .with(new MessagingLayerRenderer(roadModel, schema2)).setSpeedUp(4);
   }
 }

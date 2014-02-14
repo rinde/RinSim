@@ -1,7 +1,7 @@
 /**
  * 
  */
-package rinde.sim.examples.rwalk3;
+package rinde.sim.examples.core.rwalk3;
 
 import java.util.List;
 import java.util.Map;
@@ -52,7 +52,7 @@ public class RandomWalkExample {
     final Graph<MultiAttributeData> graph = DotGraphSerializer
         .getMultiAttributeGraphSerializer(new SelfCycleFilter())
         // .read("/Users/rindevanlon/Downloads/dot-files/brussels.dot");
-        .read(MAP_DIR + "leuven-simple.dot");
+        .read(RandomWalkExample.class.getResourceAsStream("/leuven-simple.dot"));
     // roadModel.addGraph(DotGraphSerializer.getLengthGraphSerializer(new
     // SelfCycleFilter()).read("files/brussels.dot"));
     final RoadModel roadModel = new GraphRoadModel(graph);

@@ -1,4 +1,4 @@
-package rinde.sim.examples.rwalk5;
+package rinde.sim.examples.core.rwalk5;
 
 import java.util.Formatter;
 

@@ -1,4 +1,4 @@
-package rinde.sim.examples.rwalk3;
+package rinde.sim.examples.core.rwalk3;
 
 import java.util.LinkedList;
 import java.util.Queue;

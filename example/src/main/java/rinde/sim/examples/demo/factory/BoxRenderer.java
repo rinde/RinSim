@@ -1,4 +1,4 @@
-package rinde.sim.examples.factory;
+package rinde.sim.examples.demo.factory;
 
 import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.collect.Maps.newLinkedHashMap;

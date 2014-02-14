@@ -1,4 +1,4 @@
-package rinde.sim.examples.rwalk4;
+package rinde.sim.examples.core.rwalk4;
 
 import java.util.HashMap;
 import java.util.HashSet;

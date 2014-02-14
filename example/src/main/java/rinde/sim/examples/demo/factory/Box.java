@@ -1,10 +1,10 @@
-package rinde.sim.examples.factory;
+package rinde.sim.examples.demo.factory;
 
 import rinde.sim.core.graph.Point;
 import rinde.sim.core.model.pdp.PDPModel;
 import rinde.sim.core.model.pdp.Parcel;
 import rinde.sim.core.model.road.RoadModel;
-import rinde.sim.examples.factory.AgvModel.BoxHandle;
+import rinde.sim.examples.demo.factory.AgvModel.BoxHandle;
 import rinde.sim.util.TimeWindow;
 
 class Box extends Parcel {

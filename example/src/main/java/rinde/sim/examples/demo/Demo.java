@@ -33,8 +33,8 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 
 import rinde.sim.core.Simulator;
-import rinde.sim.examples.factory.FactoryExample;
-import rinde.sim.examples.pdp.PDPExample;
+import rinde.sim.examples.core.pdp.PDPExample;
+import rinde.sim.examples.demo.factory.FactoryExample;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.math.DoubleMath;

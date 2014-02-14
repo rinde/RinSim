@@ -1,7 +1,7 @@
 /**
  * 
  */
-package rinde.sim.examples.pdp;
+package rinde.sim.examples.core.pdp;
 
 import static com.google.common.collect.Maps.newHashMap;
 
@@ -32,6 +32,7 @@ import rinde.sim.core.model.pdp.Parcel;
 import rinde.sim.core.model.road.GraphRoadModel;
 import rinde.sim.core.model.road.RoadModel;
 import rinde.sim.event.Listener;
+import rinde.sim.examples.core.pdp.TaxiRenderer.Language;
 import rinde.sim.serializers.DotGraphSerializer;
 import rinde.sim.serializers.SelfCycleFilter;
 import rinde.sim.ui.View;
@@ -46,23 +47,23 @@ import rinde.sim.util.TimeWindow;
  */
 public final class PDPExample {
 
-  private static final int NUM_DEPOTS = 0;
-  private static final int NUM_TRUCKS = 20;
-  private static final int NUM_PARCELS = 30;
+  private static final int NUM_DEPOTS = 1;
+  private static final int NUM_TAXIS = 20;
+  private static final int NUM_CUSTOMERS = 30;
 
   // time in ms
   private static final long SERVICE_DURATION = 60000;
-  private static final double PARCEL_MAGNITUDE = 1d;
-  private static final int TRUCK_CAPACITY = 10;
+  private static final int TAXI_CAPACITY = 10;
   private static final int DEPOT_CAPACITY = 100;
 
-  private static final String MAP_FILE = "../core/files/maps/leuven-simple.dot";
+  private static final String MAP_FILE = "/leuven-simple.dot";
   private static final Map<String, Graph<?>> GRAPH_CACHE = newHashMap();
 
   static Graph<MultiAttributeData> load(String name) {
     try {
       return DotGraphSerializer.getMultiAttributeGraphSerializer(
-          new SelfCycleFilter()).read(name);
+          new SelfCycleFilter()).read(
+          PDPExample.class.getResourceAsStream(name));
     } catch (final FileNotFoundException e) {
       throw new RuntimeException(e);
     } catch (final IOException e) {
@@ -82,7 +83,8 @@ public final class PDPExample {
 
     final String graphFile = args != null && args.length >= 2 ? args[1]
         : MAP_FILE;
-    run(endTime, graphFile, new Display(), null, null);
+    run(endTime, graphFile, null /* new Display() */, null, null);
+    System.exit(0);
   }
 
   public static Simulator run(final long endTime, String graphFile,
@@ -104,28 +106,31 @@ public final class PDPExample {
       GRAPH_CACHE.put(graphFile, g);
     }
 
-    // create a new simulator, load map of Leuven
+    // create a new simulator
     final RandomGenerator rng = new MersenneTwister(123);
     final Simulator simulator = new Simulator(rng, Measure.valueOf(1000L,
         SI.MILLI(SI.SECOND)));
 
+    // use map of leuven
     final RoadModel roadModel = new GraphRoadModel(g);
     final DefaultPDPModel pdpModel = new DefaultPDPModel();
 
+    // configure simulator with models
     simulator.register(roadModel);
     simulator.register(pdpModel);
     simulator.configure();
 
+    // add depots, taxis and parcels to simulator
     for (int i = 0; i < NUM_DEPOTS; i++) {
-      simulator.register(new ExampleDepot(roadModel.getRandomPosition(rng),
+      simulator.register(new TaxiBase(roadModel.getRandomPosition(rng),
           DEPOT_CAPACITY));
     }
-    for (int i = 0; i < NUM_TRUCKS; i++) {
+    for (int i = 0; i < NUM_TAXIS; i++) {
       simulator.register(new Taxi(roadModel.getRandomPosition(rng),
-          TRUCK_CAPACITY));
+          TAXI_CAPACITY));
     }
-    for (int i = 0; i < NUM_PARCELS; i++) {
-      simulator.register(new ExampleParcel(roadModel.getRandomPosition(rng),
+    for (int i = 0; i < NUM_CUSTOMERS; i++) {
+      simulator.register(new Customer(roadModel.getRandomPosition(rng),
           roadModel.getRandomPosition(rng), SERVICE_DURATION, SERVICE_DURATION,
           1 + rng.nextInt(3)));
     }
@@ -136,7 +141,7 @@ public final class PDPExample {
         if (time.getStartTime() > endTime) {
           simulator.stop();
         } else if (rng.nextDouble() < .007) {
-          simulator.register(new ExampleParcel(
+          simulator.register(new Customer(
               roadModel.getRandomPosition(rng), roadModel
                   .getRandomPosition(rng), SERVICE_DURATION, SERVICE_DURATION,
               1 + rng.nextInt(3)));
@@ -148,42 +153,50 @@ public final class PDPExample {
     });
 
     final UiSchema uis = new UiSchema();
-    uis.add(ExampleDepot.class, "/graphics/perspective/tall-building-64.png");
+    uis.add(TaxiBase.class, "/graphics/perspective/tall-building-64.png");
     uis.add(Taxi.class, "/graphics/flat/taxi-32.png");
-    uis.add(ExampleParcel.class, "/graphics/flat/person-red-32.png");
+    uis.add(Customer.class, "/graphics/flat/person-red-32.png");
     final View.Builder view = View.create(simulator)
         .with(new GraphRoadModelRenderer())
-        .with(new RoadUserRenderer(uis, false)).with(new TaxiRenderer())
-        .enableAutoClose().enableAutoPlay()
-        .setResolution(rect.width, rect.height).setSpeedUp(4)
+        .with(new RoadUserRenderer(uis, false))
+        .with(new TaxiRenderer(Language.ENGLISH))
         .setTitleAppendix("Taxi Demo");
 
     if (m != null && list != null) {
       view.displayOnMonitor(m)
+          .setSpeedUp(4)
           .setResolution(m.getClientArea().width, m.getClientArea().height)
-          .setDisplay(display).setCallback(list).setAsync();
+          .setDisplay(display)
+          .setCallback(list)
+          .setAsync()
+          .enableAutoPlay()
+          .enableAutoClose();
     }
 
     view.show();
     return simulator;
   }
 
-  static class ExampleDepot extends Depot {
-    ExampleDepot(Point position, double capacity) {
-      setStartPosition(position);
-      setCapacity(capacity);
+  /**
+   * A customer with very permissive time windows.
+   */
+  static class Customer extends Parcel {
+    Customer(Point startPosition, Point pDestination,
+        long pLoadingDuration, long pUnloadingDuration, double pMagnitude) {
+      super(pDestination, pLoadingDuration, TimeWindow.ALWAYS,
+          pUnloadingDuration, TimeWindow.ALWAYS, pMagnitude);
+      setStartPosition(startPosition);
     }
 
     @Override
     public void initRoadPDP(RoadModel pRoadModel, PDPModel pPdpModel) {}
   }
 
-  static class ExampleParcel extends Parcel {
-    ExampleParcel(Point startPosition, Point pDestination,
-        long pLoadingDuration, long pUnloadingDuration, double pMagnitude) {
-      super(pDestination, pLoadingDuration, TimeWindow.ALWAYS,
-          pUnloadingDuration, TimeWindow.ALWAYS, pMagnitude);
-      setStartPosition(startPosition);
+  // currently has no function
+  static class TaxiBase extends Depot {
+    TaxiBase(Point position, double capacity) {
+      setStartPosition(position);
+      setCapacity(capacity);
     }
 
     @Override

@@ -1,7 +1,7 @@
 /**
  * 
  */
-package rinde.sim.examples.rwalk5;
+package rinde.sim.examples.core.rwalk5;
 
 /**
  * @author Bartosz Michalik <bartosz.michalik@cs.kuleuven.be>

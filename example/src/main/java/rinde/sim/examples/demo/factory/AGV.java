@@ -1,4 +1,4 @@
-package rinde.sim.examples.factory;
+package rinde.sim.examples.demo.factory;
 
 import org.apache.commons.math3.random.RandomGenerator;
 

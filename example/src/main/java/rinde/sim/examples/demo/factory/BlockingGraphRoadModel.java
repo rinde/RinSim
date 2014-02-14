@@ -1,7 +1,7 @@
 /**
  * 
  */
-package rinde.sim.examples.factory;
+package rinde.sim.examples.demo.factory;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.Lists.newArrayList;

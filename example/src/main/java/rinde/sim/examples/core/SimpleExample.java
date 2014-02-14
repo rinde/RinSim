@@ -1,7 +1,7 @@
 /**
  * 
  */
-package rinde.sim.examples.simple;
+package rinde.sim.examples.core;
 
 import javax.measure.Measure;
 import javax.measure.unit.NonSI;
