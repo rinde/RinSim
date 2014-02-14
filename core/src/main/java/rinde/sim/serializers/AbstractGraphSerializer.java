@@ -8,6 +8,8 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.Reader;
 import java.io.Writer;
 
@@ -26,9 +28,16 @@ public abstract class AbstractGraphSerializer<E extends ConnectionData> {
       throws IOException;
 
   public Graph<E> read(File file) throws FileNotFoundException, IOException {
-    FileReader reader = new FileReader(file);
-    Graph<E> graph = read(reader);
-    reader.close();
+    return readReader(new FileReader(file));
+  }
+
+  public Graph<E> read(InputStream stream) throws IOException {
+    return readReader(new InputStreamReader(stream));
+  }
+
+  Graph<E> readReader(Reader r) throws IOException {
+    final Graph<E> graph = read(r);
+    r.close();
     return graph;
   }
 
@@ -38,7 +47,7 @@ public abstract class AbstractGraphSerializer<E extends ConnectionData> {
   }
 
   public void write(Graph<? extends E> graph, File file) throws IOException {
-    FileWriter writer = new FileWriter(file);
+    final FileWriter writer = new FileWriter(file);
     write(graph, writer);
     writer.close();
   }
