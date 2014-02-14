@@ -33,7 +33,7 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 
 import rinde.sim.core.Simulator;
-import rinde.sim.examples.core.pdp.PDPExample;
+import rinde.sim.examples.core.taxi.TaxiExample;
 import rinde.sim.examples.demo.factory.FactoryExample;
 
 import com.google.common.collect.ImmutableList;
@@ -394,7 +394,7 @@ public class Demo {
             @Override
             public void run() {
               // "../core/dot-files/leuven-simple.dot",
-              sims.add(PDPExample.run(time, "leuven-simple.dot", display,
+              sims.add(TaxiExample.run(time, "leuven-simple.dot", display,
                   monitor, l));
             }
           });

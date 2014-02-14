@@ -68,7 +68,7 @@ public class ViewTest {
       @Override
       public void tick(TimeLapse timeLapse) {
         if (timeLapse.getTime() >= 10000) {
-          final Display disp = findDisplay();
+          final Display disp = UITestTools.findDisplay();
           disp.syncExec(
               new Runnable() {
                 @Override
@@ -82,25 +82,17 @@ public class ViewTest {
       @Override
       public void afterTick(TimeLapse timeLapse) {}
     });
+
+    UITestTools.delayedSelectPlayPauseMenuItem(200);
+
     sim.register(new TestDepot());
     final UiSchema uis = new UiSchema();
     uis.add(TestDepot.class, "/graphics/perspective/tall-building-64.png");
     View.create(sim)
         .setTitleAppendix("ViewTest")
-        .enableAutoPlay()
         .with(new PlaneRoadModelRenderer())
         .with(new RoadUserRenderer(uis, false))
         .show();
-  }
-
-  static Display findDisplay() {
-    for (final Thread t : Thread.getAllStackTraces().keySet()) {
-      final Display disp = Display.findDisplay(t);
-      if (disp != null) {
-        return disp;
-      }
-    }
-    throw new IllegalStateException("There is no display");
   }
 
   /**

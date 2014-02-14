@@ -1,4 +1,4 @@
-package rinde.sim.examples.core.rwalk4;
+package rinde.sim.examples.core.comm;
 
 import java.util.Set;
 

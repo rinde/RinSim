@@ -1,7 +1,7 @@
 /**
  * 
  */
-package rinde.sim.examples.core.pdp;
+package rinde.sim.examples.core.taxi;
 
 import static com.google.common.collect.Maps.newHashMap;
 
@@ -32,7 +32,7 @@ import rinde.sim.core.model.pdp.Parcel;
 import rinde.sim.core.model.road.GraphRoadModel;
 import rinde.sim.core.model.road.RoadModel;
 import rinde.sim.event.Listener;
-import rinde.sim.examples.core.pdp.TaxiRenderer.Language;
+import rinde.sim.examples.core.taxi.TaxiRenderer.Language;
 import rinde.sim.serializers.DotGraphSerializer;
 import rinde.sim.serializers.SelfCycleFilter;
 import rinde.sim.ui.View;
@@ -42,10 +42,11 @@ import rinde.sim.ui.renderers.UiSchema;
 import rinde.sim.util.TimeWindow;
 
 /**
+ * Example showing a fleet of taxis that have to pickup and transport customers
+ * around the city of Leuven.
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
- * 
  */
-public final class PDPExample {
+public final class TaxiExample {
 
   private static final int NUM_DEPOTS = 1;
   private static final int NUM_TAXIS = 20;
@@ -63,7 +64,7 @@ public final class PDPExample {
     try {
       return DotGraphSerializer.getMultiAttributeGraphSerializer(
           new SelfCycleFilter()).read(
-          PDPExample.class.getResourceAsStream(name));
+          TaxiExample.class.getResourceAsStream(name));
     } catch (final FileNotFoundException e) {
       throw new RuntimeException(e);
     } catch (final IOException e) {
@@ -71,10 +72,10 @@ public final class PDPExample {
     }
   }
 
-  private PDPExample() {}
+  private TaxiExample() {}
 
   /**
-   * Starts the {@link PDPExample}.
+   * Starts the {@link TaxiExample}.
    * @param args
    */
   public static void main(String[] args) {
@@ -84,7 +85,7 @@ public final class PDPExample {
     final String graphFile = args != null && args.length >= 2 ? args[1]
         : MAP_FILE;
     run(endTime, graphFile, null /* new Display() */, null, null);
-    System.exit(0);
+    // System.exit(0);
   }
 
   public static Simulator run(final long endTime, String graphFile,

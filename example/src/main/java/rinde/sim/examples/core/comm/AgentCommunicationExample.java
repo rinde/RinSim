@@ -1,7 +1,7 @@
 /**
  * 
  */
-package rinde.sim.examples.core.rwalk4;
+package rinde.sim.examples.core.comm;
 
 import java.util.Random;
 
@@ -28,7 +28,7 @@ import rinde.sim.ui.renderers.UiSchema;
  * @author Bartosz Michalik <bartosz.michalik@cs.kuleuven.be>
  * @since 2.0
  */
-public class RandomWalkExample {
+public class AgentCommunicationExample {
 
   public static void main(String[] args) throws Exception {
 
@@ -81,6 +81,7 @@ public class RandomWalkExample {
     View.create(simulator)
         .with(new GraphRoadModelRenderer())
         .with(new RoadUserRenderer(schema, false))
-        .with(new MessagingLayerRenderer(roadModel, schema2)).setSpeedUp(4);
+        .with(new MessagingLayerRenderer(roadModel, schema2)).setSpeedUp(4)
+        .show();
   }
 }

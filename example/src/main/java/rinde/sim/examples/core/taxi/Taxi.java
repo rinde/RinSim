@@ -1,7 +1,7 @@
 /**
  * 
  */
-package rinde.sim.examples.core.pdp;
+package rinde.sim.examples.core.taxi;
 
 import rinde.sim.core.TimeLapse;
 import rinde.sim.core.graph.Point;

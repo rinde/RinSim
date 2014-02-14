@@ -1,4 +1,4 @@
-package rinde.sim.examples.core.rwalk5;
+package rinde.sim.examples.core.comm;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -22,9 +22,6 @@ import rinde.sim.core.model.communication.Message;
 import rinde.sim.core.model.road.MovingRoadUser;
 import rinde.sim.core.model.road.RoadModel;
 import rinde.sim.core.model.road.RoadUser;
-import rinde.sim.event.Event;
-import rinde.sim.event.EventAPI;
-import rinde.sim.event.EventDispatcher;
 import rinde.sim.examples.common.Package;
 
 /**
@@ -34,17 +31,11 @@ import rinde.sim.examples.common.Package;
 class RandomWalkAgent implements TickListener, MovingRoadUser, SimulatorUser,
     CommunicationUser {
 
-  enum Type {
-    START_SERVICE, FINISHED_SERVICE;
-  }
-
-  private final EventDispatcher disp;
-
   public static final String C_BLACK = "color.black";
   public static final String C_YELLOW = "color.yellow";
   public static final String C_GREEN = "color.green";
 
-  private static final int MAX_MSGs = 100;
+  private static final int MAX_MSGs = 20;
   private static final int COMMUNICATION_PERIOD = 10000; // 10s
   protected RoadModel rs;
   protected RoadUser currentPackage;
@@ -59,6 +50,7 @@ class RandomWalkAgent implements TickListener, MovingRoadUser, SimulatorUser,
 
   private Set<RandomWalkAgent> communicatedWith;
   private final Mailbox mailbox;
+  private final int maxSize;
 
   private final ReentrantLock lock;
 
@@ -67,44 +59,37 @@ class RandomWalkAgent implements TickListener, MovingRoadUser, SimulatorUser,
   private long lastCommunication;
   private final double reliability;
 
-  private int pickedUp;
-
   /**
    * Create simple agent.
    * @param speed default speed of object in graph units per millisecond
    * @param radius in which it can communicate
    */
   public RandomWalkAgent(double speed, int radius, double reliability) {
-    disp = new EventDispatcher(Type.values());
-    communicatedWith = new HashSet<RandomWalkAgent>();
-    lastCommunicationTime = new HashMap<RandomWalkAgent, Long>();
-    lock = new ReentrantLock();
-    mailbox = new Mailbox();
-    communications = 0;
-    pickedUp = 0;
     this.speed = speed;
     this.radius = radius;
+    communicatedWith = new HashSet<RandomWalkAgent>();
+    lastCommunicationTime = new HashMap<RandomWalkAgent, Long>();
+    mailbox = new Mailbox();
+    maxSize = 1;
+    lock = new ReentrantLock();
+    communications = 0;
     this.reliability = reliability;
-
   }
 
   @Override
   public void tick(TimeLapse timeLapse) {
-    checkMsgs(timeLapse.getStartTime());
-    refreshList(timeLapse.getStartTime());
+    checkMsgs(timeLapse.getTime());
+    refreshList(timeLapse.getTime());
 
     if (path == null || path.isEmpty()) {
       if (currentPackage != null && rs.containsObject(currentPackage)) {
         simulator.unregister(currentPackage);
-
-        pickedUp++;
       }
-      if (communications > MAX_MSGs || pickedUp > MAX_MSGs) {
+      if (communications > MAX_MSGs) {
         simulator.unregister(this);
-        disp.dispatchEvent(new ServiceEndEvent(pickedUp, communications, this));
         return;
       }
-      final Point destination = rs.getRandomPosition(rnd);
+      Point destination = rs.getRandomPosition(rnd);
       currentPackage = new Package("dummy package", destination);
       simulator.register(currentPackage);
       path = new LinkedList<Point>(rs.getShortestPathTo(this, destination));
@@ -119,8 +104,7 @@ class RandomWalkAgent implements TickListener, MovingRoadUser, SimulatorUser,
     if (lastCommunication + COMMUNICATION_PERIOD < currentTime) {
       lock.lock();
       communicatedWith = new HashSet<RandomWalkAgent>();
-      for (final Entry<RandomWalkAgent, Long> e : lastCommunicationTime
-          .entrySet()) {
+      for (Entry<RandomWalkAgent, Long> e : lastCommunicationTime.entrySet()) {
         if (e.getValue() + COMMUNICATION_PERIOD * 100 >= currentTime) {
           communicatedWith.add(e.getKey());
         }
@@ -139,9 +123,9 @@ class RandomWalkAgent implements TickListener, MovingRoadUser, SimulatorUser,
   }
 
   private void checkMsgs(long currentTime) {
-    final Queue<Message> messages = mailbox.getMessages();
+    Queue<Message> messages = mailbox.getMessages();
 
-    for (final Message m : messages) {
+    for (Message m : messages) {
       lastCommunicationTime.put((RandomWalkAgent) m.getSender(), currentTime);
       communications++;
     }
@@ -149,7 +133,7 @@ class RandomWalkAgent implements TickListener, MovingRoadUser, SimulatorUser,
 
   public Set<RandomWalkAgent> getCommunicatedWith() {
     lock.lock();
-    final HashSet<RandomWalkAgent> result = new HashSet<RandomWalkAgent>(
+    HashSet<RandomWalkAgent> result = new HashSet<RandomWalkAgent>(
         communicatedWith);
     lock.unlock();
     return result;
@@ -158,10 +142,8 @@ class RandomWalkAgent implements TickListener, MovingRoadUser, SimulatorUser,
   @Override
   public void initRoadUser(RoadModel model) {
     rs = model;
-    final Point pos = rs.getRandomPosition(rnd);
+    Point pos = rs.getRandomPosition(rnd);
     rs.addObjectAt(this, pos);
-
-    disp.dispatchEvent(new Event(Type.START_SERVICE, this));
   }
 
   @Override
@@ -209,7 +191,4 @@ class RandomWalkAgent implements TickListener, MovingRoadUser, SimulatorUser,
     return communications;
   }
 
-  public EventAPI getEventAPI() {
-    return disp.getPublicEventAPI();
-  }
 }
