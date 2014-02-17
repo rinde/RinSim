@@ -1,8 +1,12 @@
 package rinde.sim.ui;
 
+import static com.google.common.base.Preconditions.checkState;
+
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+
+import javax.annotation.Nullable;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Display;
@@ -11,6 +15,11 @@ import org.eclipse.swt.widgets.MenuItem;
 
 public class UITestTools {
 
+  /**
+   * @return The {@link Display} object if it exists, <code>null</code>
+   *         otherwise.
+   */
+  @Nullable
   public static Display findDisplay() {
     for (final Thread t : Thread.getAllStackTraces().keySet()) {
       final Display disp = Display.findDisplay(t);
@@ -18,34 +27,50 @@ public class UITestTools {
         return disp;
       }
     }
-    throw new IllegalStateException("There is no display");
+    return null;
   }
 
-  public static void delayedSelectPlayPauseMenuItem(long msToWait) {
-    final ScheduledExecutorService scheduler = Executors
-        .newScheduledThreadPool(1);
-    scheduler.schedule(new Runnable() {
-      @Override
-      public void run() {
-        UITestTools.selectPlayPauseMenuItem();
-      }
-    }, msToWait, TimeUnit.MILLISECONDS);
-  }
-
+  /**
+   * Select the play/pause menu item as soon as it is created. This method
+   * spawns a new thread which monitors the creation of a display object.
+   */
   public static void selectPlayPauseMenuItem() {
-    final Display d = findDisplay();
-    d.asyncExec(new Runnable() {
+    Executors.newSingleThreadExecutor().submit(new Runnable() {
       @Override
       public void run() {
-        for (final MenuItem menu : d.getActiveShell().getMenuBar().getItems()) {
-          if (menu.getText().contains("Control")) {
-            for (final MenuItem m : menu.getMenu().getItems()) {
-              if (m.getText().contains("Play")) {
-                m.notifyListeners(SWT.Selection, new Event());
+        Display disp = findDisplay();
+        while (disp == null) {
+          try {
+            Thread.sleep(100);
+          } catch (final InterruptedException e) {
+            throw new IllegalStateException();
+          }
+          disp = findDisplay();
+        }
+
+        final Display d = disp;
+        d.asyncExec(new Runnable() {
+          @Override
+          public void run() {
+            while (d.getActiveShell() == null) {
+              try {
+                Thread.sleep(100);
+              } catch (final InterruptedException e) {
+                throw new IllegalStateException();
+              }
+            }
+            for (final MenuItem menu : d.getActiveShell().getMenuBar()
+                .getItems()) {
+              if (menu.getText().contains("Control")) {
+                for (final MenuItem m : menu.getMenu().getItems()) {
+                  if (m.getText().contains("Play")) {
+                    m.notifyListeners(SWT.Selection, new Event());
+                  }
+                }
               }
             }
           }
-        }
+        });
       }
     });
   }
@@ -63,6 +88,7 @@ public class UITestTools {
 
   public static void closeActiveShell() {
     final Display disp = findDisplay();
+    checkState(disp != null);
     disp.syncExec(
         new Runnable() {
           @Override

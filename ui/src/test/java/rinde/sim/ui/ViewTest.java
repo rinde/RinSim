@@ -83,7 +83,7 @@ public class ViewTest {
       public void afterTick(TimeLapse timeLapse) {}
     });
 
-    UITestTools.delayedSelectPlayPauseMenuItem(200);
+    UITestTools.selectPlayPauseMenuItem();
 
     sim.register(new TestDepot());
     final UiSchema uis = new UiSchema();

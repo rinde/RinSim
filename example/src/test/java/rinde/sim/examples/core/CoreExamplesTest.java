@@ -11,7 +11,7 @@ public class CoreExamplesTest {
 
   @Before
   public void setUp() {
-    UITestTools.delayedSelectPlayPauseMenuItem(500);
+    UITestTools.selectPlayPauseMenuItem();
     UITestTools.closeActiveShell(5000);
   }
 
