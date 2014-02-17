@@ -55,14 +55,15 @@ public class UITestTools {
         d.syncExec(new Runnable() {
           @Override
           public void run() {
-            while (d.getActiveShell() == null) {
+
+            while (d.getShells().length == 0) {
               try {
                 Thread.sleep(100);
               } catch (final InterruptedException e) {
                 throw new IllegalStateException();
               }
             }
-            for (final MenuItem menu : d.getActiveShell().getMenuBar()
+            for (final MenuItem menu : d.getShells()[0].getMenuBar()
                 .getItems()) {
               if (menu.getText().contains("Control")) {
                 for (final MenuItem m : menu.getMenu().getItems()) {
@@ -86,7 +87,7 @@ public class UITestTools {
               new Runnable() {
                 @Override
                 public void run() {
-                  d.getActiveShell().close();
+                  d.getShells()[0].close();
                 }
               });
         }
@@ -112,7 +113,7 @@ public class UITestTools {
         new Runnable() {
           @Override
           public void run() {
-            disp.getActiveShell().close();
+            disp.getShells()[0].close();
           }
         });
   }
