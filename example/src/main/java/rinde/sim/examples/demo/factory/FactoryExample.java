@@ -76,7 +76,7 @@ public final class FactoryExample {
   }
 
   public static Simulator run(final long endTime, Display display,
-      @Nullable Monitor m, Listener list) {
+      @Nullable Monitor m, @Nullable Listener list) {
 
     final Rectangle rect;
     if (m != null) {

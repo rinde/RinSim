@@ -89,7 +89,7 @@ public final class TaxiExample {
   }
 
   public static Simulator run(final long endTime, String graphFile,
-      Display display, @Nullable Monitor m, @Nullable Listener list) {
+      @Nullable Display display, @Nullable Monitor m, @Nullable Listener list) {
 
     final Display d = Display.getDefault();
     final Rectangle rect;

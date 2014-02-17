@@ -1,4 +1,4 @@
-package rinde.sim.examples.fabrirecht.gradientField;
+package rinde.sim.examples.fabrirecht.gradientfield;
 
 import rinde.sim.core.graph.Point;
 import rinde.sim.core.model.pdp.PDPModel.ParcelState;

@@ -3,4 +3,4 @@
  * 
  */
 @javax.annotation.ParametersAreNonnullByDefault
-package rinde.sim.examples.fabrirecht.gradientField;
+package rinde.sim.examples.fabrirecht.gradientfield;
