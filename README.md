@@ -44,7 +44,7 @@ Once the simulator is installed, you are ready to explore the simulator. It is r
 <!-- The JavaDocs are also available online on [this page](http://people.cs.kuleuven.be/~rinde.vanlon/rinsim/javadoc/). -->
 
 ## About
-RinSim is being developed at [AgentWise](http://distrinet.cs.kuleuven.be/research/taskforces/showTaskforce.do?taskforceID=agentwise) in the [DistriNet group](http://distrinet.cs.kuleuven.be/) at the [Department of Computer Science, KU Leuven, Belgium](http://www.cs.kuleuven.be/). The lead developer is [Rinde van Lon](http://distrinet.cs.kuleuven.be/people/rinde). Valuable contributions were made by Bartosz Michalik and Robrecht Haesevoets.
+RinSim is being developed at [AgentWise](http://distrinet.cs.kuleuven.be/research/taskforces/agentwise) in the [DistriNet group](http://distrinet.cs.kuleuven.be/) at the [Department of Computer Science, KU Leuven, Belgium](http://www.cs.kuleuven.be/). The lead developer is [Rinde van Lon](http://distrinet.cs.kuleuven.be/people/rinde). Valuable contributions were made by Bartosz Michalik and Robrecht Haesevoets.
 
 RinSim is being used in both research and education. It is used in several publications on multi-agent systems and it is used in a MAS course as a testbed for students.
 
