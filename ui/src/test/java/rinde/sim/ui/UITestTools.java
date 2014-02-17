@@ -31,10 +31,13 @@ public class UITestTools {
   }
 
   /**
-   * Select the play/pause menu item as soon as it is created. This method
+   * Select the play/pause menu item as soon as it is created. Then wait for the
+   * specified number of milliseconds and close the active shell. This method
    * spawns a new thread which monitors the creation of a display object.
+   * @param delay The time (ms) to wait before the shell is closed. When delay
+   *          is negative, the shell is not closed.
    */
-  public static void selectPlayPauseMenuItem() {
+  public static void startAndClose(final long delay) {
     Executors.newSingleThreadExecutor().submit(new Runnable() {
       @Override
       public void run() {
@@ -49,7 +52,7 @@ public class UITestTools {
         }
 
         final Display d = disp;
-        d.asyncExec(new Runnable() {
+        d.syncExec(new Runnable() {
           @Override
           public void run() {
             while (d.getActiveShell() == null) {
@@ -71,6 +74,22 @@ public class UITestTools {
             }
           }
         });
+
+        if (delay > 0) {
+          try {
+            Thread.sleep(delay);
+          } catch (final InterruptedException e) {
+            throw new IllegalStateException();
+          }
+
+          d.syncExec(
+              new Runnable() {
+                @Override
+                public void run() {
+                  d.getActiveShell().close();
+                }
+              });
+        }
       }
     });
   }
