@@ -12,7 +12,7 @@ public class CoreExamplesTest {
   @Before
   public void setUp() {
     UITestTools.selectPlayPauseMenuItem();
-    UITestTools.closeActiveShell(5000);
+    UITestTools.closeActiveShell(10000);
   }
 
   @Test
