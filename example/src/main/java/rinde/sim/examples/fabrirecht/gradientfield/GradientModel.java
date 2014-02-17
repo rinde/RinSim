@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 import rinde.sim.core.graph.Point;
 import rinde.sim.core.model.Model;
@@ -19,12 +20,20 @@ import rinde.sim.core.model.pdp.Parcel;
  */
 public class GradientModel implements Model<FieldEmitter>, ModelReceiver {
 
-  private final List<FieldEmitter> emitters = new ArrayList<FieldEmitter>();
+  private final List<FieldEmitter> emitters;
   private final int minX;
   private final int maxX;
   private final int minY;
   private final int maxY;
   private PDPModel pdpModel;
+
+  public GradientModel(int minX, int maxX, int minY, int maxY) {
+    this.minX = minX;
+    this.maxX = maxX;
+    this.minY = minY;
+    this.maxY = maxY;
+    emitters = new CopyOnWriteArrayList<FieldEmitter>();
+  }
 
   public List<FieldEmitter> getEmitters() {
     return emitters;
@@ -40,13 +49,6 @@ public class GradientModel implements Model<FieldEmitter>, ModelReceiver {
     }
 
     return trucks;
-  }
-
-  public GradientModel(int minX, int maxX, int minY, int maxY) {
-    this.minX = minX;
-    this.maxX = maxX;
-    this.minY = minY;
-    this.maxY = maxY;
   }
 
   /**

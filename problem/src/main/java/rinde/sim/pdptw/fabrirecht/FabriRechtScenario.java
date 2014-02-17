@@ -10,6 +10,8 @@ import javax.measure.Measure;
 import javax.measure.quantity.Duration;
 import javax.measure.quantity.Length;
 import javax.measure.quantity.Velocity;
+import javax.measure.unit.NonSI;
+import javax.measure.unit.SI;
 import javax.measure.unit.Unit;
 
 import rinde.sim.core.graph.Point;
@@ -76,8 +78,8 @@ public class FabriRechtScenario extends DynamicPDPTWScenario {
 
   @Override
   public RoadModel createRoadModel() {
-    return new PlaneRoadModel(min, max, Unit.ONE.asType(Length.class),
-        Measure.valueOf(1d, Unit.ONE.asType(Velocity.class)));
+    return new PlaneRoadModel(min, max, getDistanceUnit(),
+        Measure.valueOf(100d, getSpeedUnit()));
   }
 
   @Override
@@ -87,27 +89,27 @@ public class FabriRechtScenario extends DynamicPDPTWScenario {
 
   @Override
   public Unit<Duration> getTimeUnit() {
-    throw new UnsupportedOperationException("Not implemented.");
+    return NonSI.MINUTE;
   }
 
   @Override
   public Unit<Velocity> getSpeedUnit() {
-    throw new UnsupportedOperationException("Not implemented.");
+    return SI.KILOMETRE.divide(NonSI.MINUTE).asType(Velocity.class);
   }
 
   @Override
   public Unit<Length> getDistanceUnit() {
-    throw new UnsupportedOperationException("Not implemented.");
+    return SI.KILOMETER;
   }
 
   @Override
   public ProblemClass getProblemClass() {
-    throw new UnsupportedOperationException("Not implemented.");
+    return FabriRechtProblemClass.SINGLETON;
   }
 
   @Override
   public String getProblemInstanceId() {
-    throw new UnsupportedOperationException("Not implemented.");
+    return "1";
   }
 
   @Override
@@ -115,5 +117,14 @@ public class FabriRechtScenario extends DynamicPDPTWScenario {
       Collection<? extends TimedEvent> events) {
     return new FabriRechtScenario(events, getPossibleEventTypes(), min, max,
         timeWindow, defaultVehicle);
+  }
+
+  public enum FabriRechtProblemClass implements ProblemClass {
+    SINGLETON;
+
+    @Override
+    public String getId() {
+      return "fabrirecht";
+    }
   }
 }

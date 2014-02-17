@@ -32,8 +32,9 @@ public class GradientFieldExample {
 
   public static void main(String[] args) throws IOException,
       ConfigurationException {
+
     final FabriRechtScenario scenario = FabriRechtParser.fromJson(
-        new FileReader("../problem/data/test/fabri-recht/lc101.scenario"), 10,
+        new FileReader("../problem/files/test/fabri-recht/lc101.scenario"), 10,
         4);
 
     // instantiate the problem and adding our custom model
