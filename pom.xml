@@ -59,6 +59,7 @@
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<sonar.language>java</sonar.language>
+		<sonar.dynamicAnalysis>true</sonar.dynamicAnalysis>
 	</properties>
 
 	<build>
