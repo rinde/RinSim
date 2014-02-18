@@ -71,6 +71,11 @@ public final class Gendreau06Parser {
   }
 
   public static Gendreau06Scenario parse(String file, int numVehicles) {
+    return parse(file, numVehicles, false);
+  }
+
+  public static Gendreau06Scenario parse(String file, int numVehicles,
+      boolean allowDiversion) {
     FileReader reader;
     try {
       reader = new FileReader(file);
@@ -78,12 +83,17 @@ public final class Gendreau06Parser {
       throw new IllegalArgumentException("File not found: " + e.getMessage());
     }
     return parse(new BufferedReader(reader), new File(file).getName(),
-        numVehicles);
+        numVehicles, 1000L, allowDiversion);
   }
 
   public static Gendreau06Scenario parse(BufferedReader reader,
       String fileName, int numVehicles) {
     return parse(reader, fileName, numVehicles, 1000L);
+  }
+
+  public static Gendreau06Scenario parse(BufferedReader reader,
+      String fileName, int numVehicles, final long tickSize) {
+    return parse(reader, fileName, numVehicles, tickSize, false);
   }
 
   /**
@@ -92,6 +102,9 @@ public final class Gendreau06Parser {
    * @param fileName
    * @param numVehicles
    * @param tickSize > 0
+   * 
+   * @param allowDiversion Indicates whether vehicle diversion should be
+   *          allowed. By default this is <code>false</code>.
    * @throws IllegalArgumentException in the following cases:
    *           <ul>
    *           <li><code>numVehicles == 0 || numVehicles <= -2 </code></li>
@@ -101,7 +114,8 @@ public final class Gendreau06Parser {
    * @return A newly created scenario.
    */
   public static Gendreau06Scenario parse(BufferedReader reader,
-      String fileName, int numVehicles, final long tickSize) {
+      String fileName, int numVehicles, final long tickSize,
+      final boolean allowDiversion) {
     checkArgument(
         numVehicles > 0 || numVehicles == -1,
         "at least one vehicle is necessary in the scenario, or choose -1 to pick the default number of vehicles for this scenario.");
@@ -183,7 +197,7 @@ public final class Gendreau06Parser {
       public Gendreau06Scenario create(List<TimedEvent> eventList,
           Set<Enum<?>> eventTypes) {
         return new Gendreau06Scenario(eventList, eventTypes, tickSize,
-            problemClass, instanceNumber);
+            problemClass, instanceNumber, allowDiversion);
       }
     });
   }

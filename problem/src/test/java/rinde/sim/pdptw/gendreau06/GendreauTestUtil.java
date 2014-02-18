@@ -23,7 +23,7 @@ public class GendreauTestUtil {
       Collection<? extends TimedEvent> pEvents, Set<Enum<?>> pSupportedTypes,
       long ts) {
     return new Gendreau06Scenario(pEvents, pSupportedTypes, ts,
-        GendreauProblemClass.SHORT_LOW_FREQ, 1);
+        GendreauProblemClass.SHORT_LOW_FREQ, 1, false);
   }
 
   public static Gendreau06Scenario create(Collection<TimedEvent> parcels) {

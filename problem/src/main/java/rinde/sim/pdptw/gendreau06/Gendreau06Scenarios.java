@@ -21,6 +21,7 @@ public class Gendreau06Scenarios implements ScenarioProvider {
   private final List<GendreauProblemClass> classes;
   private final boolean online;
 
+  // TODO create fluent api for this
   public Gendreau06Scenarios(String dir, boolean online,
       GendreauProblemClass... classes) {
     this.dir = dir;

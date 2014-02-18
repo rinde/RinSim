@@ -57,14 +57,16 @@ public final class Gendreau06Scenario extends DynamicPDPTWScenario {
   private final long tickSize;
   private final GendreauProblemClass problemClass;
   private final int instanceNumber;
+  private final boolean allowDiversion;
 
   Gendreau06Scenario(Collection<? extends TimedEvent> pEvents,
       Set<Enum<?>> pSupportedTypes, long ts, GendreauProblemClass problemClass,
-      int instanceNumber) {
+      int instanceNumber, boolean diversion) {
     super(pEvents, pSupportedTypes);
     tickSize = ts;
     this.problemClass = problemClass;
     this.instanceNumber = instanceNumber;
+    allowDiversion = diversion;
   }
 
   @Override
@@ -92,7 +94,7 @@ public final class Gendreau06Scenario extends DynamicPDPTWScenario {
   @Override
   public RoadModel createRoadModel() {
     return new PDPRoadModel(new PlaneRoadModel(MIN, MAX, getDistanceUnit(),
-        MAX_SPEED), false);
+        MAX_SPEED), allowDiversion);
   }
 
   @Override
@@ -119,7 +121,7 @@ public final class Gendreau06Scenario extends DynamicPDPTWScenario {
   protected Gendreau06Scenario newInstance(
       Collection<? extends TimedEvent> events) {
     return new Gendreau06Scenario(events, getPossibleEventTypes(), tickSize,
-        problemClass, instanceNumber);
+        problemClass, instanceNumber, allowDiversion);
   }
 
   @Override
