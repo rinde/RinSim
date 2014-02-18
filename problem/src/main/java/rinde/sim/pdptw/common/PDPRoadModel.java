@@ -30,21 +30,42 @@ import com.google.common.collect.Multimap;
 
 /**
  * A decorator for {@link AbstractRoadModel} which provides a more convenient
- * API for PDP problems. TODO explain what!
+ * API for PDP problems and it can control whether vehicles are allowed to
+ * divert.
+ * <p>
+ * <b>Pickup and delivery problem convenience API</b><br/>
+ * This model allows the following: {@code
+ *  moveTo(v1,p1,..)
+ *  pickup(v1,p1,..)
+ *  moveTo(v1,p1,..)
+ *  deliver(v1,p1,..)
+ * } This means that you only need the reference to the parcel which you are
+ * interested in, depending on its state the vehicle will automatically move to
+ * the pickup location or the delivery location.
+ * <p>
+ * <b>Diversion</b><br/>
+ * This model can optionally disallow vehicle diversion. Vehicle diversion is
+ * defined as a vehicle changing its destination service location before it has
+ * completed servicing that service location. More concretely if a vehicle
+ * <code>v1</code> is moving to the pickup location of parcel <code>p1</code>
+ * but then changes its destination to the pickup location of parcel
+ * <code>p2</code> we say that vehicle <code>v1</code> has diverted.
+ * 
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
  */
 public class PDPRoadModel extends ForwardingRoadModel implements ModelReceiver {
 
-  protected final Map<MovingRoadUser, DestinationObject> destinations;
-  protected final Multimap<MovingRoadUser, DestinationObject> destinationHistory;
-  protected final boolean allowDiversion;
-
-  protected Optional<PDPModel> pdpModel;
+  final Map<MovingRoadUser, DestinationObject> destinations;
+  final Multimap<MovingRoadUser, DestinationObject> destinationHistory;
+  final boolean allowDiversion;
+  Optional<PDPModel> pdpModel;
 
   /**
    * Decorates the {@link AbstractRoadModel}
-   * @param rm
-   * @param allowVehicleDiversion
+   * @param rm The road model that is being decorated by this model.
+   * @param allowVehicleDiversion Should the model allow vehicle diversion or
+   *          not. See {@link PDPRoadModel} for more information about
+   *          diversion.
    */
   public PDPRoadModel(AbstractRoadModel<?> rm, boolean allowVehicleDiversion) {
     super(rm);
@@ -55,6 +76,11 @@ public class PDPRoadModel extends ForwardingRoadModel implements ModelReceiver {
     pdpModel = Optional.absent();
   }
 
+  /**
+   * @return <code>true</code> when diversion is allowed, <code>false</code>
+   *         otherwise. See {@link PDPRoadModel} for more information about
+   *         diversion.
+   */
   public boolean isVehicleDiversionAllowed() {
     return allowDiversion;
   }
@@ -217,26 +243,40 @@ public class PDPRoadModel extends ForwardingRoadModel implements ModelReceiver {
     return null;
   }
 
-  @Deprecated
+  /**
+   * {@inheritDoc}
+   * @throws UnsupportedOperationException when diversion is not allowed.
+   */
   @Override
   public MoveProgress moveTo(MovingRoadUser object, Point destination,
       TimeLapse time) {
-    throw new UnsupportedOperationException(
-        "This road model only supports the moveTo(MovingRoadUser,RoadUser,TimeLapse) method.");
+    if (allowDiversion) {
+      return delegate.moveTo(object, destination, time);
+    } else {
+      throw new UnsupportedOperationException(
+          "This road model doesn't allow diversion and therefore only supports the moveTo(MovingRoadUser,RoadUser,TimeLapse) method.");
+    }
   }
 
-  @Deprecated
+  /**
+   * {@inheritDoc}
+   * @throws UnsupportedOperationException when diversion is not allowed.
+   */
   @Override
   public final MoveProgress followPath(MovingRoadUser object,
       Queue<Point> path, TimeLapse time) {
-    throw new UnsupportedOperationException(
-        "This road model only supports the moveTo(MovingRoadUser,RoadUser,TimeLapse) method.");
+    if (allowDiversion) {
+      return delegate.followPath(object, path, time);
+    } else {
+      throw new UnsupportedOperationException(
+          "This road model doesn't allow diversion and therefore only supports the moveTo(MovingRoadUser,RoadUser,TimeLapse) method.");
+    }
   }
 
   private static final class DestinationObject {
-    public final DestType type;
-    public final Point dest;
-    public final RoadUser roadUser;
+    final DestType type;
+    final Point dest;
+    final RoadUser roadUser;
     private final int hashCode;
 
     DestinationObject(DestType type, Point dest, RoadUser obj) {
