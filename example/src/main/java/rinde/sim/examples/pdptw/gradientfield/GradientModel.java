@@ -1,4 +1,4 @@
-package rinde.sim.examples.fabrirecht.gradientfield;
+package rinde.sim.examples.pdptw.gradientfield;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -6,12 +6,17 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
 
+import javax.annotation.Nullable;
+
 import rinde.sim.core.graph.Point;
 import rinde.sim.core.model.Model;
 import rinde.sim.core.model.ModelProvider;
 import rinde.sim.core.model.ModelReceiver;
 import rinde.sim.core.model.pdp.PDPModel;
 import rinde.sim.core.model.pdp.Parcel;
+import rinde.sim.core.model.road.RoadModel;
+
+import com.google.common.collect.ImmutableList;
 
 /**
  * 
@@ -21,17 +26,15 @@ import rinde.sim.core.model.pdp.Parcel;
 public class GradientModel implements Model<FieldEmitter>, ModelReceiver {
 
   private final List<FieldEmitter> emitters;
-  private final int minX;
-  private final int maxX;
-  private final int minY;
-  private final int maxY;
+  private double minX;
+  private double maxX;
+  private double minY;
+  private double maxY;
   private PDPModel pdpModel;
+  ImmutableList<Point> bounds;
 
-  public GradientModel(int minX, int maxX, int minY, int maxY) {
-    this.minX = minX;
-    this.maxX = maxX;
-    this.minY = minY;
-    this.maxY = maxY;
+  public GradientModel() {
+
     emitters = new CopyOnWriteArrayList<FieldEmitter>();
   }
 
@@ -57,6 +60,7 @@ public class GradientModel implements Model<FieldEmitter>, ModelReceiver {
   private final int[] x = { -1, 0, 1, 1, 1, 0, -1, -1 };
   private final int[] y = { 1, 1, 1, 0, -1, -1, -1, 0 };
 
+  @Nullable
   public Point getTargetFor(Truck element) {
     float maxField = Float.NEGATIVE_INFINITY;
     Point maxFieldPoint = null;
@@ -138,6 +142,12 @@ public class GradientModel implements Model<FieldEmitter>, ModelReceiver {
   @Override
   public void registerModelProvider(ModelProvider mp) {
     pdpModel = mp.getModel(PDPModel.class);
+    final ImmutableList<Point> bounds = mp.getModel(RoadModel.class)
+        .getBounds();
 
+    minX = bounds.get(0).x;
+    maxX = bounds.get(1).x;
+    minY = bounds.get(0).y;
+    maxY = bounds.get(1).y;
   }
 }

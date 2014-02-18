@@ -1,6 +1,8 @@
-package rinde.sim.examples.fabrirecht.gradientfield;
+package rinde.sim.examples.pdptw.gradientfield;
 
 import java.util.Map;
+
+import javax.annotation.Nullable;
 
 import rinde.sim.core.TimeLapse;
 import rinde.sim.core.graph.Point;
@@ -70,7 +72,11 @@ class Truck extends DefaultVehicle implements FieldEmitter {
     }
 
     // If none of the above, let the gradient field guide us!
-    rm.moveTo(this, gradientModel.getTargetFor(this), time);
+    @Nullable
+    final Point p = gradientModel.getTargetFor(this);
+    if (p != null) {
+      rm.moveTo(this, p, time);
+    }
   }
 
   public Parcel getDelivery(TimeLapse time, int distance) {

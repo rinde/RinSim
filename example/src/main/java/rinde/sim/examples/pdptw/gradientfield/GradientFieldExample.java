@@ -1,9 +1,8 @@
 /**
  * 
  */
-package rinde.sim.examples.fabrirecht.gradientfield;
+package rinde.sim.examples.pdptw.gradientfield;
 
-import java.io.FileReader;
 import java.io.IOException;
 
 import rinde.sim.core.Simulator;
@@ -13,8 +12,8 @@ import rinde.sim.pdptw.common.DefaultDepot;
 import rinde.sim.pdptw.common.DefaultParcel;
 import rinde.sim.pdptw.common.DynamicPDPTWProblem;
 import rinde.sim.pdptw.common.DynamicPDPTWProblem.Creator;
-import rinde.sim.pdptw.fabrirecht.FabriRechtParser;
-import rinde.sim.pdptw.fabrirecht.FabriRechtScenario;
+import rinde.sim.pdptw.gendreau06.Gendreau06Parser;
+import rinde.sim.pdptw.gendreau06.Gendreau06Scenario;
 import rinde.sim.scenario.ConfigurationException;
 import rinde.sim.scenario.ScenarioController.UICreator;
 import rinde.sim.ui.View;
@@ -33,13 +32,16 @@ public class GradientFieldExample {
   public static void main(String[] args) throws IOException,
       ConfigurationException {
 
-    final FabriRechtScenario scenario = FabriRechtParser.fromJson(
-        new FileReader("../problem/files/test/fabri-recht/lc101.scenario"), 10,
-        4);
+    // final FabriRechtScenario scenario = FabriRechtParser.fromJson(
+    // new FileReader("../problem/files/test/fabri-recht/lc101.scenario"), 10,
+    // 4);
+
+    final Gendreau06Scenario scenario = Gendreau06Parser
+        .parse("../problem/files/test/gendreau06/req_rapide_1_240_24", 10, true);
 
     // instantiate the problem and adding our custom model
     final DynamicPDPTWProblem problem = new DynamicPDPTWProblem(scenario, 123,
-        new GradientModel(0, 95, 5, 85));
+        new GradientModel());
 
     // plugging our own vehicle in
     problem.addCreator(AddVehicleEvent.class, new Creator<AddVehicleEvent>() {
@@ -77,5 +79,4 @@ public class GradientFieldExample {
     problem.simulate();
     System.out.println(problem.getStatistics());
   }
-
 }

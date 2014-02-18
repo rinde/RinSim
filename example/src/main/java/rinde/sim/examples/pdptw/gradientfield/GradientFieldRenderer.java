@@ -1,4 +1,4 @@
-package rinde.sim.examples.fabrirecht.gradientfield;
+package rinde.sim.examples.pdptw.gradientfield;
 
 import java.util.List;
 import java.util.Map;
