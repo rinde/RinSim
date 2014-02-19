@@ -16,11 +16,13 @@ public class ExperimentTest {
 
   public static StatisticsDTO singleRun(DynamicPDPTWScenario scenario,
       MASConfiguration c, long seed, ObjectiveFunction objFunc, boolean showGui) {
-    return Experiment.singleRun(scenario, c, seed, objFunc, showGui).stats;
+    return Experiment.singleRun(scenario, c, seed, objFunc, showGui,
+        null).stats;
   }
 
   public static DynamicPDPTWProblem init(DynamicPDPTWScenario scenario,
       MASConfiguration config, long seed, boolean showGui) {
-    return Experiment.init(scenario, config, seed, showGui);
+    return Experiment.init(scenario, config, seed, showGui,
+        null);
   }
 }

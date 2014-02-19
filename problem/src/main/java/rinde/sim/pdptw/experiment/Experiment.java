@@ -28,6 +28,7 @@ import rinde.sim.pdptw.common.ObjectiveFunction;
 import rinde.sim.pdptw.common.RouteRenderer;
 import rinde.sim.pdptw.common.ScenarioParser;
 import rinde.sim.pdptw.common.StatisticsDTO;
+import rinde.sim.scenario.ScenarioController.UICreator;
 import rinde.sim.util.SupplierRng;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -100,6 +101,7 @@ public final class Experiment {
     final ObjectiveFunction objectiveFunction;
     final ImmutableList.Builder<MASConfiguration> configurationsBuilder;
     final ImmutableList.Builder<DynamicPDPTWScenario> scenariosBuilder;
+    UICreator uiCreator;
     boolean showGui;
     int repetitions;
     long masterSeed;
@@ -135,6 +137,19 @@ public final class Experiment {
     public Builder showGui() {
       showGui = true;
       return this;
+    }
+
+    /**
+     * Enable the GUI using the specified creator for each simulation. When a
+     * large number of simulations is performed this may slow down the
+     * experiment significantly. The GUI can not be shown when more than one
+     * thread is used.
+     * @param uic The {@link UICreator} to use for creating the GUI.
+     * @return This, as per the builder pattern.
+     */
+    public Builder showGui(UICreator uic) {
+      uiCreator = uic;
+      return showGui();
     }
 
     /**
@@ -260,7 +275,7 @@ public final class Experiment {
           for (int i = 0; i < repetitions; i++) {
             final long seed = seeds.get(i);
             runnerBuilder.add(new ExperimentRunner(scenario, configuration,
-                seed, objectiveFunction, showGui));
+                seed, objectiveFunction, showGui, uiCreator));
           }
         }
       }
@@ -307,14 +322,15 @@ public final class Experiment {
    * @param seed The seed of the run.
    * @param objFunc The {@link ObjectiveFunction} to use.
    * @param showGui If <code>true</code> enables the gui.
+   * @param uic The UICreator to use.
    * @return The {@link SimulationResult} generated in the run.
    */
   public static SimulationResult singleRun(DynamicPDPTWScenario scenario,
       MASConfiguration configuration, long seed, ObjectiveFunction objFunc,
-      boolean showGui) {
+      boolean showGui, @Nullable UICreator uic) {
 
     final ExperimentRunner er = new ExperimentRunner(scenario, configuration,
-        seed, objFunc, showGui);
+        seed, objFunc, showGui, uic);
     er.run();
     final SimulationResult res = er.getResult();
     checkState(res != null);
@@ -330,7 +346,8 @@ public final class Experiment {
    */
   @VisibleForTesting
   static DynamicPDPTWProblem init(DynamicPDPTWScenario scenario,
-      MASConfiguration config, long seed, boolean showGui) {
+      MASConfiguration config, long seed, boolean showGui,
+      @Nullable UICreator uic) {
 
     final RandomGenerator rng = new MersenneTwister(seed);
     final long simSeed = rng.nextLong();
@@ -352,8 +369,13 @@ public final class Experiment {
       problem.addCreator(AddParcelEvent.class, config.getParcelCreator().get());
     }
     if (showGui) {
-      problem.addRendererToUI(new RouteRenderer());
-      problem.enableUI();
+      if (uic == null) {
+        problem.addRendererToUI(new RouteRenderer());
+        problem.enableUI();
+      }
+      else {
+        problem.enableUI(uic);
+      }
     }
     return problem;
   }
@@ -484,24 +506,28 @@ public final class Experiment {
     private final long seed;
     private final ObjectiveFunction objectiveFunction;
     private final boolean showGui;
+    private final UICreator uiCreator;
 
     @Nullable
     private SimulationResult result;
 
     ExperimentRunner(DynamicPDPTWScenario scenario,
         MASConfiguration configuration, long seed,
-        ObjectiveFunction objectiveFunction, boolean showGui) {
+        ObjectiveFunction objectiveFunction, boolean showGui,
+        @Nullable UICreator uic) {
       this.scenario = scenario;
       this.configuration = configuration;
       this.seed = seed;
       this.objectiveFunction = objectiveFunction;
       this.showGui = showGui;
+      uiCreator = uic;
     }
 
     @Override
     public void run() {
       try {
-        final StatisticsDTO stats = init(scenario, configuration, seed, showGui)
+        final StatisticsDTO stats = init(scenario, configuration, seed,
+            showGui, uiCreator)
             .simulate();
         checkState(objectiveFunction.isValidResult(stats),
             "The simulation did not result in a valid result: %s.", stats);
