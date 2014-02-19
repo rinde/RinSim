@@ -67,7 +67,7 @@ The _Simulator_ class is the heart of RinSim. Its main concern is to simulate ti
 
 Of course time on its own is not so useful, so we can register objects in the simulator, such as objects implementing the _TickListener_ interface. These objects will listen to the internal clock of the simulator. You can also register other objects, as we will see in a moment.
 
-Once started, the simulator will start to tick, and with each tick it will call all registered tickListeners, in turn, to perform some actions within the length of the time step (as illustrated [here](http://people.cs.kuleuven.be/~robrecht.haesevoets/mascourse/docs/tickListeners.png)). Time consistency is enforced by the _TimeLapse_ objects. Each _TickListener_ receives a single _TimeLapse_ object every tick, the time in this object can be 'spent' on actions. This spending can be done only once, as such an agent can not violate the time consistency in the simulator. For example, calling _RoadModel#moveTo(..)_ several times will have no effect.
+Once started, the simulator will start to tick, and with each tick it will call all registered tickListeners, in turn, to perform some actions within the length of the time step. Time consistency is enforced by the _TimeLapse_ objects. Each _TickListener_ receives a single _TimeLapse_ object every tick, the time in this object can be 'spent' on actions. This spending can be done only once, as such an agent can not violate the time consistency in the simulator. For example, calling _RoadModel#moveTo(..)_ several times will have no effect.
 
 As you can see there is also an _afterTick_, but we'll ignore this for now.
 
@@ -86,7 +86,7 @@ Out of the box, RinSim comes with three basic models: _RoadModel_, _Communicatio
 * __CommunicationModel__: simulates simple message-based communication between objects implementing the _CommunicationUser_ interface.
 It supports both direct messaging and broadcasting.
 It can also take distance, communication radius, and communication reliability into account.
-Messages between agents are send asynchronously (as illustrated [here](http://people.cs.kuleuven.be/~robrecht.haesevoets/mascourse/docs/communication.png)).
+Messages between agents are send asynchronously.
 
 ![RoadModel](docs/RoadModel.png) ![PDPModel](docs/PDPModel.png) ![CommunicationModel](docs/CommunicationModel.png)
 
