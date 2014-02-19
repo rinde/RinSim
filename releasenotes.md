@@ -3,13 +3,27 @@
 ## v2.3.0
 
 * Core module
+	* drop parcel method in PDPModel
+	* RoadModel and PDPModel can now be decorated. Includes two Forwarding*Models
 
 * UI module
+	* The GUI can now be constructed via a fluent API (builder).
+	* Accelerators are now user configurable
+	* Improved tests
+	* Fixed GUI bugs.
+	* Improved documentation
 
 * Problem module
-	* rinde.sim.pdptw.generator package
-	* rinde.sim.pdptw.central package
+	* new _rinde.sim.pdptw.experiment_ package that supports configuring and running experiments.
+	* new _rinde.sim.pdptw.central_ package This package allows a centralized algorithm to target problems defined in the simulator.
+	* new _rinde.sim.pdptw.generator_ package [beta] Will provide extensive support for generating scenarios using specific properties.
 
+* Example module
+	* improved and restructured examples
+
+* Dependencies
+	* Guava 15.0
+	* SWT 4.3
 
 ## v2.2.0
 
