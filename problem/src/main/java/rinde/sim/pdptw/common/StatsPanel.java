@@ -132,7 +132,8 @@ final class StatsPanel implements PanelRenderer, TickListener {
     final StatisticsDTO stats = statsTracker.getStatsDTO();
 
     final Field[] fields = stats.getClass().getFields();
-    if (statsTable.get().isDisposed()) {
+    if (statsTable.get().isDisposed()
+        || statsTable.get().getDisplay().isDisposed()) {
       return;
     }
     statsTable.get().getDisplay().syncExec(new Runnable() {
