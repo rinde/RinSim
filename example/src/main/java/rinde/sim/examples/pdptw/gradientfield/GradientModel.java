@@ -15,6 +15,8 @@ import rinde.sim.core.model.ModelReceiver;
 import rinde.sim.core.model.pdp.PDPModel;
 import rinde.sim.core.model.pdp.Parcel;
 import rinde.sim.core.model.road.RoadModel;
+import rinde.sim.util.SupplierRng;
+import rinde.sim.util.SupplierRng.DefaultSupplierRng;
 
 import com.google.common.collect.ImmutableList;
 
@@ -149,5 +151,14 @@ public class GradientModel implements Model<FieldEmitter>, ModelReceiver {
     maxX = bounds.get(1).x;
     minY = bounds.get(0).y;
     maxY = bounds.get(1).y;
+  }
+
+  public static SupplierRng<GradientModel> supplier() {
+    return new DefaultSupplierRng<GradientModel>() {
+      @Override
+      public GradientModel get(long seed) {
+        return new GradientModel();
+      }
+    };
   }
 }

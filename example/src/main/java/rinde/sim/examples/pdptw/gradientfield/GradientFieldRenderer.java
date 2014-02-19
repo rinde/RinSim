@@ -3,6 +3,8 @@ package rinde.sim.examples.pdptw.gradientfield;
 import java.util.List;
 import java.util.Map;
 
+import javax.annotation.Nullable;
+
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.RGB;
@@ -29,24 +31,21 @@ public class GradientFieldRenderer implements ModelRenderer {
 
     synchronized (trucks) {
       for (final Truck t : trucks) {
-
-        Point tp = t.getPosition();
-
+        final Point tp = t.getPosition();
         final Map<Point, Float> fields = t.getFields();
 
         float max = Float.NEGATIVE_INFINITY;
         float min = Float.POSITIVE_INFINITY;
 
-        for (Point p : fields.keySet()) {
+        for (final Point p : fields.keySet()) {
           max = Math.max(max, fields.get(p));
           min = Math.min(min, fields.get(p));
         }
-
         int dia;
         RGB color = null;
-        for (Point p : fields.keySet()) {
-          final int x = vp.toCoordX(tp.x + 6 * p.x);
-          final int y = vp.toCoordY(tp.y + 6 * p.y);
+        for (final Point p : fields.keySet()) {
+          final int x = vp.toCoordX(tp.x + p.x / 6d);
+          final int y = vp.toCoordY(tp.y + p.y / 6d);
           final float field = fields.get(p);
 
           if (field < 0) {
@@ -56,15 +55,14 @@ public class GradientFieldRenderer implements ModelRenderer {
             dia = (int) (field / max * 6);
             color = GREEN;
           }
-
           gc.setBackground(new Color(gc.getDevice(), color));
           gc.fillOval(x, y, dia, dia);
         }
       }
     }
-
   }
 
+  @Nullable
   @Override
   public ViewRect getViewRect() {
     return null;

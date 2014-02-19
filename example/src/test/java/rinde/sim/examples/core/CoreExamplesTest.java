@@ -1,10 +1,13 @@
 package rinde.sim.examples.core;
 
+import static org.junit.Assert.assertTrue;
+
 import org.junit.Before;
 import org.junit.Test;
 
 import rinde.sim.examples.core.comm.AgentCommunicationExample;
 import rinde.sim.examples.core.taxi.TaxiExample;
+import rinde.sim.examples.pdptw.gradientfield.GradientFieldExample;
 import rinde.sim.ui.UITestTools;
 
 public class CoreExamplesTest {
@@ -21,7 +24,7 @@ public class CoreExamplesTest {
 
   @Test
   public void simpleExample() {
-    SimpleExample.main(null);
+    SimpleExample.main(new String[] {});
   }
 
   @Test
@@ -29,4 +32,14 @@ public class CoreExamplesTest {
     AgentCommunicationExample.main(new String[] {});
   }
 
+  @Test
+  public void gradientFieldExample() {
+    try {
+      GradientFieldExample.main(new String[] {});
+    } catch (final RuntimeException e) {
+      assertTrue(e.getCause() instanceof IllegalStateException);
+      assertTrue(e.getCause().getMessage().contains(
+          "The simulation did not result in a valid result"));
+    }
+  }
 }

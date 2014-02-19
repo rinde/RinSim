@@ -3,18 +3,13 @@
  */
 package rinde.sim.examples.pdptw.gradientfield;
 
-import java.io.IOException;
-
 import rinde.sim.core.Simulator;
-import rinde.sim.pdptw.common.AddParcelEvent;
-import rinde.sim.pdptw.common.AddVehicleEvent;
 import rinde.sim.pdptw.common.DefaultDepot;
-import rinde.sim.pdptw.common.DefaultParcel;
-import rinde.sim.pdptw.common.DynamicPDPTWProblem;
-import rinde.sim.pdptw.common.DynamicPDPTWProblem.Creator;
+import rinde.sim.pdptw.common.RouteRenderer;
+import rinde.sim.pdptw.experiment.Experiment;
+import rinde.sim.pdptw.gendreau06.Gendreau06ObjectiveFunction;
 import rinde.sim.pdptw.gendreau06.Gendreau06Parser;
 import rinde.sim.pdptw.gendreau06.Gendreau06Scenario;
-import rinde.sim.scenario.ConfigurationException;
 import rinde.sim.scenario.ScenarioController.UICreator;
 import rinde.sim.ui.View;
 import rinde.sim.ui.renderers.PDPModelRenderer;
@@ -29,54 +24,38 @@ import rinde.sim.ui.renderers.UiSchema;
  */
 public class GradientFieldExample {
 
-  public static void main(String[] args) throws IOException,
-      ConfigurationException {
+  public static void main(String[] args) {
 
-    // final FabriRechtScenario scenario = FabriRechtParser.fromJson(
-    // new FileReader("../problem/files/test/fabri-recht/lc101.scenario"), 10,
-    // 4);
+    final Gendreau06ObjectiveFunction objFunc = new Gendreau06ObjectiveFunction();
 
     final Gendreau06Scenario scenario = Gendreau06Parser
         .parse("../problem/files/test/gendreau06/req_rapide_1_240_24", 10, true);
 
-    // instantiate the problem and adding our custom model
-    final DynamicPDPTWProblem problem = new DynamicPDPTWProblem(scenario, 123,
-        new GradientModel());
-
-    // plugging our own vehicle in
-    problem.addCreator(AddVehicleEvent.class, new Creator<AddVehicleEvent>() {
-      @Override
-      public boolean create(Simulator sim, AddVehicleEvent event) {
-        return sim.register(new Truck(event.vehicleDTO));
-      }
-    });
-    // pluggin our custom parcel in
-    problem.addCreator(AddParcelEvent.class, new Creator<AddParcelEvent>() {
-      @Override
-      public boolean create(Simulator sim, AddParcelEvent event) {
-        // all parcels are accepted by default
-        return sim.register(new GFParcel(event.parcelDTO));
-      }
-    });
-
-    // enabling UI using our custom viz
-    problem.enableUI(new UICreator() {
-
+    final UICreator uic = new UICreator() {
       @Override
       public void createUI(Simulator sim) {
         final UiSchema schema = new UiSchema(false);
         schema.add(Truck.class, "/graphics/perspective/bus-44.png");
         schema.add(DefaultDepot.class, "/graphics/flat/warehouse-32.png");
-        schema.add(DefaultParcel.class, "/graphics/flat/hailing-cab-32.png");
+        schema.add(GFParcel.class, "/graphics/flat/hailing-cab-32.png");
         View.create(sim)
-            .with(new PlaneRoadModelRenderer(0.05),
-                new RoadUserRenderer(schema, false), new PDPModelRenderer(),
-                new GradientFieldRenderer()).show();
-
+            .with(
+                new PlaneRoadModelRenderer(),
+                new RoadUserRenderer(schema, false),
+                new RouteRenderer(),
+                new GradientFieldRenderer(),
+                new PDPModelRenderer(false)
+            ).show();
       }
-    });
+    };
 
-    problem.simulate();
-    System.out.println(problem.getStatistics());
+    Experiment
+        .build(objFunc)
+        .withRandomSeed(123)
+        .addConfiguration(new GradientFieldConfiguration())
+        .addScenario(scenario)
+        .showGui(uic)
+        .repeat(1)
+        .perform();
   }
 }

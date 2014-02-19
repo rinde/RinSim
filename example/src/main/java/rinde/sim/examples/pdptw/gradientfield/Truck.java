@@ -71,6 +71,11 @@ class Truck extends DefaultVehicle implements FieldEmitter {
       return;
     }
 
+    if (rm.getObjectsOfType(Parcel.class).isEmpty()) {
+      rm.moveTo(this, dto.startPosition, time);
+      return;
+    }
+
     // If none of the above, let the gradient field guide us!
     @Nullable
     final Point p = gradientModel.getTargetFor(this);
@@ -79,6 +84,7 @@ class Truck extends DefaultVehicle implements FieldEmitter {
     }
   }
 
+  @Nullable
   public Parcel getDelivery(TimeLapse time, int distance) {
     Parcel target = null;
     double closest = distance;
