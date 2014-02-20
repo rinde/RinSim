@@ -57,7 +57,7 @@ public final class TaxiExample {
   private static final int TAXI_CAPACITY = 10;
   private static final int DEPOT_CAPACITY = 100;
 
-  private static final String MAP_FILE = "/leuven-simple.dot";
+  private static final String MAP_FILE = "/data/maps/leuven-simple.dot";
   private static final Map<String, Graph<?>> GRAPH_CACHE = newHashMap();
 
   static Graph<MultiAttributeData> load(String name) {
@@ -66,9 +66,9 @@ public final class TaxiExample {
           new SelfCycleFilter()).read(
           TaxiExample.class.getResourceAsStream(name));
     } catch (final FileNotFoundException e) {
-      throw new RuntimeException(e);
+      throw new IllegalStateException(e);
     } catch (final IOException e) {
-      throw new RuntimeException(e);
+      throw new IllegalStateException(e);
     }
   }
 

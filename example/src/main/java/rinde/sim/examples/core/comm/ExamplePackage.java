@@ -1,14 +1,14 @@
-package rinde.sim.examples.common;
+package rinde.sim.examples.core.comm;
 
 import rinde.sim.core.graph.Point;
 import rinde.sim.core.model.road.RoadModel;
 import rinde.sim.core.model.road.RoadUser;
 
-public class Package implements RoadUser {
+public class ExamplePackage implements RoadUser {
   public final String name;
   private Point location;
 
-  public Package(String name, Point location) {
+  public ExamplePackage(String name, Point location) {
     this.name = name;
     this.location = location;
   }

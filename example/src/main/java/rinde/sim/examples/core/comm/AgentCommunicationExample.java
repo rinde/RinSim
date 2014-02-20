@@ -3,8 +3,6 @@
  */
 package rinde.sim.examples.core.comm;
 
-import java.util.Random;
-
 import javax.measure.Measure;
 import javax.measure.unit.SI;
 
@@ -25,53 +23,76 @@ import rinde.sim.ui.renderers.RoadUserRenderer;
 import rinde.sim.ui.renderers.UiSchema;
 
 /**
+ * This example shows a possible use case of the {@link CommunicationModel}. It
+ * is shown how this model can be used to let agents define several
+ * communication properties:
+ * <ul>
+ * <li>Agent communication range</li>
+ * <li>Agent communication reliability</li>
+ * </ul>
+ * Only agents which are both in each others range can communicate. When
+ * communication is established a line will show between two agents. The
+ * semi-transparent circle indicates the range, the color indicates the
+ * reliability. The number under an agent indicates the number of messages that
+ * have been received. Note that the messages that are sent contain no
+ * information or purpose other than in this example.
+ * 
  * @author Bartosz Michalik <bartosz.michalik@cs.kuleuven.be>
+ * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
  * @since 2.0
  */
 public class AgentCommunicationExample {
 
-  public static void main(String[] args) throws Exception {
+  private static final String MAP_DIR = "/data/maps/leuven-simple.dot";
+  private static final int NUM_AGENTS = 50;
 
-    final String MAP_DIR = "../core/files/maps/";
-    // create a new simulator, load map of Leuven
+  // vehicle speed
+  private static final double MIN_SPEED = 50d;
+  private static final double MAX_SPEED = 100d;
+
+  // communication range
+  private static final int MIN_RADIUS = 3000;
+  private static final int MAX_RADIUS = 12000;
+
+  // communication reliability
+  private static final double MIN_RELIABILITY = .01;
+  private static final double MAX_RELIABILITY = .6;
+
+  private AgentCommunicationExample() {}
+
+  public static void main(String[] args) throws Exception {
     final MersenneTwister rand = new MersenneTwister(123);
     final Simulator simulator = new Simulator(rand, Measure.valueOf(1000L,
         SI.MILLI(SI.SECOND)));
     final Graph<LengthData> graph = DotGraphSerializer
         .getLengthGraphSerializer(new SelfCycleFilter()).read(
-            MAP_DIR + "leuven-simple.dot");
-    // Graph<LengthEdgeData> graph =
-    // DotGraphSerializer.getLengthGraphSerializer(new
-    // SelfCycleFilter()).read("files/brussels.dot");
-    final RoadModel roadModel = new GraphRoadModel(graph);
+            AgentCommunicationExample.class.getResourceAsStream(MAP_DIR));
 
-    // XXX [bm] to be decided either Communication model have RG as a
-    // constructor parameter or implements Simulator user interface
+    // create models
+    final RoadModel roadModel = new GraphRoadModel(graph);
     final CommunicationModel communicationModel = new CommunicationModel(rand,
         false);
     simulator.register(roadModel);
     simulator.register(communicationModel);
-
     simulator.configure();
 
-    final Random r = new Random(1317);
-    for (int i = 0; i < 100; i++) {
-      final int radius = r.nextInt(300) + 200;
-      final double minSpeed = 50;
-      final double maxSpeed = 100;
+    // add agents
+    for (int i = 0; i < NUM_AGENTS; i++) {
+      final int radius = MIN_RADIUS + rand.nextInt(MAX_RADIUS - MIN_RADIUS);
+      final double speed = MIN_SPEED + (MAX_SPEED - MIN_SPEED)
+          * rand.nextDouble();
+      final double reliability = MIN_RELIABILITY
+          + (rand.nextDouble() * (MAX_RELIABILITY - MIN_RELIABILITY));
 
-      final RandomWalkAgent agent = new RandomWalkAgent(minSpeed
-          + (maxSpeed - minSpeed) * r.nextDouble(), radius,
-          0.01 + r.nextDouble() / 2);
+      final RandomWalkAgent agent = new RandomWalkAgent(speed, radius,
+          reliability);
       simulator.register(agent);
     }
 
-    // // GUI stuff: agents are red, packages are blue or have ico
-    // represenation
+    // create GUI
     final UiSchema schema = new UiSchema(false);
-    // schema.add(RandomWalkAgent.class, new RGB(255,0,0));
     schema
-        .add(rinde.sim.examples.common.Package.class, new RGB(0x0, 0x0, 0xFF));
+        .add(ExamplePackage.class, "/graphics/perspective/deliverypackage2.png");
 
     final UiSchema schema2 = new UiSchema();
     schema2.add(RandomWalkAgent.C_BLACK, new RGB(0, 0, 0));
@@ -81,7 +102,8 @@ public class AgentCommunicationExample {
     View.create(simulator)
         .with(new GraphRoadModelRenderer())
         .with(new RoadUserRenderer(schema, false))
-        .with(new MessagingLayerRenderer(roadModel, schema2)).setSpeedUp(4)
+        .with(new MessagingLayerRenderer(roadModel, schema2))
+        .setSpeedUp(4)
         .show();
   }
 }

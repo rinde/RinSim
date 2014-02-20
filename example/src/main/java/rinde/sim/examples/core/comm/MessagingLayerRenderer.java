@@ -2,6 +2,8 @@ package rinde.sim.examples.core.comm;
 
 import java.util.Set;
 
+import javax.annotation.Nullable;
+
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.GC;
 
@@ -54,6 +56,10 @@ public class MessagingLayerRenderer implements CanvasRenderer {
         gc.setForeground(c);
         gc.setBackground(c);
 
+        gc.setAlpha(50);
+        gc.fillOval(x - radius, y - radius, 2 * radius, 2 * radius);
+        gc.setAlpha(255);
+
         gc.fillOval(x - size, y - size, size * 2, size * 2);
 
         gc.drawOval(x - radius, y - radius, radius * 2, radius * 2);
@@ -76,6 +82,7 @@ public class MessagingLayerRenderer implements CanvasRenderer {
   @Override
   public void renderStatic(GC gc, ViewPort vp) {}
 
+  @Nullable
   @Override
   public ViewRect getViewRect() {
     return null;
