@@ -33,7 +33,7 @@ import com.google.common.base.Predicate;
  */
 public class FabriRechtExample {
 
-  public static void main(String[] args) throws IOException,
+  public static void main2(String[] args) throws IOException,
       ConfigurationException {
     // we load a problem instance from disk, we instantiate it with 8
     // trucks, each with a capacity of 20 units
@@ -94,7 +94,8 @@ class Truck extends DefaultVehicle {
       if (rm.equalPosition(closest, this)
           && pm
               .getTimeWindowPolicy()
-              .canPickup(closest.getPickupTimeWindow(), time.getTime(), closest.getPickupDuration())) {
+              .canPickup(closest.getPickupTimeWindow(), time.getTime(),
+                  closest.getPickupDuration())) {
         pm.pickup(this, closest, time);
       }
     }

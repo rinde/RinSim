@@ -21,9 +21,12 @@ import rinde.sim.ui.renderers.RoadUserRenderer;
 import rinde.sim.ui.renderers.UiSchema;
 
 /**
+ * Example of a gradient field MAS for the Gendreau et al. (2006) dataset.
+ * <p>
+ * If this class is run on MacOS it might be necessary to use
+ * -XstartOnFirstThread as a VM argument.
  * @author David Merckx
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
- * 
  */
 public class GradientFieldExample {
 

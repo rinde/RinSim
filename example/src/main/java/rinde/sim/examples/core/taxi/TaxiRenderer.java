@@ -30,8 +30,8 @@ public class TaxiRenderer implements ModelRenderer {
   enum Language {
     DUTCH("INSTAPPEN", "UITSTAPPEN"), ENGLISH("EMBARK", "DISEMBARK");
 
-    public final String embark;
-    public final String disembark;
+    final String embark;
+    final String disembark;
 
     Language(String s1, String s2) {
       embark = s1;
@@ -99,5 +99,4 @@ public class TaxiRenderer implements ModelRenderer {
   public ViewRect getViewRect() {
     return null;
   }
-
 }

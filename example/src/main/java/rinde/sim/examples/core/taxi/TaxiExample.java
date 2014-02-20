@@ -15,7 +15,6 @@ import javax.measure.unit.SI;
 
 import org.apache.commons.math3.random.MersenneTwister;
 import org.apache.commons.math3.random.RandomGenerator;
-import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Monitor;
 
@@ -44,6 +43,9 @@ import rinde.sim.util.TimeWindow;
 /**
  * Example showing a fleet of taxis that have to pickup and transport customers
  * around the city of Leuven.
+ * <p>
+ * If this class is run on MacOS it might be necessary to use
+ * -XstartOnFirstThread as a VM argument.
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
  */
 public final class TaxiExample {
@@ -58,19 +60,7 @@ public final class TaxiExample {
   private static final int DEPOT_CAPACITY = 100;
 
   private static final String MAP_FILE = "/data/maps/leuven-simple.dot";
-  private static final Map<String, Graph<?>> GRAPH_CACHE = newHashMap();
-
-  static Graph<MultiAttributeData> load(String name) {
-    try {
-      return DotGraphSerializer.getMultiAttributeGraphSerializer(
-          new SelfCycleFilter()).read(
-          TaxiExample.class.getResourceAsStream(name));
-    } catch (final FileNotFoundException e) {
-      throw new IllegalStateException(e);
-    } catch (final IOException e) {
-      throw new IllegalStateException(e);
-    }
-  }
+  private static final Map<String, Graph<MultiAttributeData>> GRAPH_CACHE = newHashMap();
 
   private TaxiExample() {}
 
@@ -78,34 +68,26 @@ public final class TaxiExample {
    * Starts the {@link TaxiExample}.
    * @param args
    */
-  public static void main(String[] args) {
+  public static void main(@Nullable String[] args) {
     final long endTime = args != null && args.length >= 1 ? Long
         .parseLong(args[0]) : Long.MAX_VALUE;
 
     final String graphFile = args != null && args.length >= 2 ? args[1]
         : MAP_FILE;
     run(endTime, graphFile, null /* new Display() */, null, null);
-    // System.exit(0);
   }
 
+  /**
+   * Starts the example.
+   * @param endTime
+   * @param graphFile
+   * @param display
+   * @param m
+   * @param list
+   * @return
+   */
   public static Simulator run(final long endTime, String graphFile,
       @Nullable Display display, @Nullable Monitor m, @Nullable Listener list) {
-
-    final Display d = Display.getDefault();
-    final Rectangle rect;
-    if (m != null) {
-      rect = m.getClientArea();
-    } else {
-      rect = d.getPrimaryMonitor().getClientArea();
-    }
-
-    Graph<?> g;
-    if (GRAPH_CACHE.containsKey(graphFile)) {
-      g = GRAPH_CACHE.get(graphFile);
-    } else {
-      g = load(graphFile);
-      GRAPH_CACHE.put(graphFile, g);
-    }
 
     // create a new simulator
     final RandomGenerator rng = new MersenneTwister(123);
@@ -113,7 +95,7 @@ public final class TaxiExample {
         SI.MILLI(SI.SECOND)));
 
     // use map of leuven
-    final RoadModel roadModel = new GraphRoadModel(g);
+    final RoadModel roadModel = new GraphRoadModel(loadGraph(graphFile));
     final DefaultPDPModel pdpModel = new DefaultPDPModel();
 
     // configure simulator with models
@@ -202,5 +184,25 @@ public final class TaxiExample {
 
     @Override
     public void initRoadPDP(RoadModel pRoadModel, PDPModel pPdpModel) {}
+  }
+
+  // load the graph file
+  static Graph<MultiAttributeData> loadGraph(String name) {
+    try {
+      if (GRAPH_CACHE.containsKey(name)) {
+        return GRAPH_CACHE.get(name);
+      }
+      final Graph<MultiAttributeData> g = DotGraphSerializer
+          .getMultiAttributeGraphSerializer(
+              new SelfCycleFilter()).read(
+              TaxiExample.class.getResourceAsStream(name));
+
+      GRAPH_CACHE.put(name, g);
+      return g;
+    } catch (final FileNotFoundException e) {
+      throw new IllegalStateException(e);
+    } catch (final IOException e) {
+      throw new IllegalStateException(e);
+    }
   }
 }

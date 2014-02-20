@@ -36,6 +36,9 @@ import rinde.sim.ui.renderers.UiSchema;
  * reliability. The number under an agent indicates the number of messages that
  * have been received. Note that the messages that are sent contain no
  * information or purpose other than in this example.
+ * <p>
+ * If this class is run on MacOS it might be necessary to use
+ * -XstartOnFirstThread as a VM argument.
  * 
  * @author Bartosz Michalik <bartosz.michalik@cs.kuleuven.be>
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
