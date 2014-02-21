@@ -7,6 +7,7 @@ import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
+import java.io.File;
 import java.io.IOException;
 
 import javax.measure.converter.UnitConverter;
@@ -21,13 +22,13 @@ import rinde.sim.pdptw.central.arrays.ArraysSolverDebugger.MVASDebugger;
 import rinde.sim.pdptw.central.arrays.ArraysSolvers;
 import rinde.sim.pdptw.central.arrays.ArraysSolvers.MVArraysObject;
 import rinde.sim.pdptw.central.arrays.SolutionObject;
-import rinde.sim.pdptw.common.DynamicPDPTWScenario;
 import rinde.sim.pdptw.common.ParcelDTO;
 import rinde.sim.pdptw.common.StatisticsDTO;
 import rinde.sim.pdptw.experiment.Experiment;
 import rinde.sim.pdptw.experiment.Experiment.ExperimentResults;
 import rinde.sim.pdptw.gendreau06.Gendreau06ObjectiveFunction;
 import rinde.sim.pdptw.gendreau06.Gendreau06Parser;
+import rinde.sim.pdptw.gendreau06.Gendreau06Scenario;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.primitives.Longs;
@@ -46,9 +47,11 @@ public class SolverSimTest {
    */
   @Test
   public void testOffline() throws IOException {
-    final DynamicPDPTWScenario scenario = DynamicPDPTWScenario
-        .convertToOffline(Gendreau06Parser.parse(
-            "files/test/gendreau06/req_rapide_1_240_24", 10));
+    final Gendreau06Scenario scenario = Gendreau06Parser.parser()
+        .addFile("files/test/gendreau06/req_rapide_1_240_24")
+        .offline()
+        .parse()
+        .get(0);
 
     final RandomGenerator rng = new MersenneTwister(123);
     for (int i = 0; i < 50; i++) {
@@ -98,8 +101,8 @@ public class SolverSimTest {
   @Test
   public void testOnline() throws IOException {
 
-    final DynamicPDPTWScenario scenario = Gendreau06Parser.parse(
-        "files/test/gendreau06/req_rapide_1_240_24", 10);
+    final Gendreau06Scenario scenario = Gendreau06Parser
+        .parse(new File("files/test/gendreau06/req_rapide_1_240_24"));
 
     final DebugSolverCreator dsc = new DebugSolverCreator(123,
         scenario.getTimeUnit());

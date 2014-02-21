@@ -1,5 +1,6 @@
 package rinde.sim.pdptw.central;
 
+import java.io.File;
 import java.io.IOException;
 
 import org.junit.Test;
@@ -17,8 +18,9 @@ public class CentralIntegrationTest {
     Experiment
         .build(new Gendreau06ObjectiveFunction())
         .addScenario(
-            Gendreau06Parser.parse("files/test/gendreau06/req_rapide_1_240_24",
-                3))
+            Gendreau06Parser.parser()
+                .addFile("files/test/gendreau06/req_rapide_1_240_24")
+                .setNumVehicles(3).parse().get(0))
         .addConfiguration(
             Central.solverConfiguration(RandomMVArraysSolver.solverSupplier()))
         .repeat(10).perform();
@@ -33,8 +35,8 @@ public class CentralIntegrationTest {
     Experiment
         .build(new Gendreau06ObjectiveFunction())
         .addScenario(
-            Gendreau06Parser.parse("files/test/gendreau06/req_rapide_1_240_24",
-                10))
+            Gendreau06Parser.parse(new File(
+                "files/test/gendreau06/req_rapide_1_240_24")))
         .addConfiguration(
 
             Central.solverConfiguration(SolverValidator.wrap(RandomSolver

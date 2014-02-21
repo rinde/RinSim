@@ -3,8 +3,7 @@
  */
 package rinde.sim.pdptw.gendreau06;
 
-import java.io.BufferedReader;
-import java.io.StringReader;
+import java.io.ByteArrayInputStream;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
@@ -32,8 +31,12 @@ public class GendreauTestUtil {
 
   public static Gendreau06Scenario create(Collection<TimedEvent> parcels,
       int numTrucks) {
-    final Gendreau06Scenario gs = Gendreau06Parser.parse(new BufferedReader(
-        new StringReader("")), "req_rapide_1_240_24", numTrucks, 1000L);
+
+    final Gendreau06Scenario gs = Gendreau06Parser
+        .parser()
+        .addFile(new ByteArrayInputStream("".getBytes()), "req_rapide_1_240_24")
+        .setNumVehicles(numTrucks)
+        .parse().get(0);
     final ScenarioBuilder sb = new ScenarioBuilder(gs.getPossibleEventTypes());
     sb.addEvents(gs.asList());
     sb.addEvents(parcels);

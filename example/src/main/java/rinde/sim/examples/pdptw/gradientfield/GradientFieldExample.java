@@ -3,9 +3,6 @@
  */
 package rinde.sim.examples.pdptw.gradientfield;
 
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-
 import rinde.sim.core.Simulator;
 import rinde.sim.pdptw.common.DefaultDepot;
 import rinde.sim.pdptw.common.RouteRenderer;
@@ -51,10 +48,11 @@ public class GradientFieldExample {
     };
 
     final Gendreau06Scenario scenario = Gendreau06Parser
-        .parse(new BufferedReader(new InputStreamReader(
-            GradientFieldExample.class
-                .getResourceAsStream("/data/gendreau06/req_rapide_1_240_24"))),
-            "req_rapide_1_240_24", 10, 1000, true);
+        .parser().addFile(GradientFieldExample.class
+            .getResourceAsStream("/data/gendreau06/req_rapide_1_240_24"),
+            "req_rapide_1_240_24")
+        .allowDiversion()
+        .parse().get(0);
 
     final Gendreau06ObjectiveFunction objFunc = new Gendreau06ObjectiveFunction();
     Experiment

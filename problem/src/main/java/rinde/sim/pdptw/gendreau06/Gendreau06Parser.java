@@ -4,6 +4,7 @@
 package rinde.sim.pdptw.gendreau06;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
 import static rinde.sim.core.model.pdp.PDPScenarioEvent.ADD_DEPOT;
 import static rinde.sim.core.model.pdp.PDPScenarioEvent.ADD_PARCEL;
 import static rinde.sim.core.model.pdp.PDPScenarioEvent.ADD_VEHICLE;
@@ -11,19 +12,26 @@ import static rinde.sim.core.model.pdp.PDPScenarioEvent.TIME_OUT;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileFilter;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.math.RoundingMode;
 import java.util.List;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import javax.annotation.Nullable;
 
 import rinde.sim.core.graph.Point;
 import rinde.sim.pdptw.common.AddDepotEvent;
 import rinde.sim.pdptw.common.AddParcelEvent;
 import rinde.sim.pdptw.common.AddVehicleEvent;
+import rinde.sim.pdptw.common.DynamicPDPTWScenario.ProblemClass;
 import rinde.sim.pdptw.common.ParcelDTO;
 import rinde.sim.pdptw.common.VehicleDTO;
 import rinde.sim.scenario.ScenarioBuilder;
@@ -31,17 +39,14 @@ import rinde.sim.scenario.ScenarioBuilder.ScenarioCreator;
 import rinde.sim.scenario.TimedEvent;
 import rinde.sim.util.TimeWindow;
 
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.math.DoubleMath;
 
 /**
- * Expects files from the Gendreau06 dataset [1]. <br/>
- * 
- * <ul>
- * <li>[1]. Gendreau, M., Guertin, F., Potvin, J.-Y., and Séguin, R.
- * Neighborhood search heuristics for a dynamic vehicle dispatching problem with
- * pick-ups and deliveries. Transportation Research Part C: Emerging
- * Technologies 14, 3 (2006), 157–174.</li>
- * </ul>
+ * Parser for files from the Gendreau et al. (2006) data set. The parser allows
+ * to customize some of the properties of the scenarios.
+ * <p>
  * <b>Format specification: (columns)</b>
  * <ul>
  * <li>1: request arrival time</li>
@@ -52,9 +57,15 @@ import com.google.common.math.DoubleMath;
  * <li>8 and 9:x and y position for the delivery</li>
  * <li>10 and 11: service window time of the delivery</li>
  * </ul>
- * 
  * All times are expressed in seconds.
- * 
+ * <p>
+ * <b>References</b>
+ * <ul>
+ * <li>[1]. Gendreau, M., Guertin, F., Potvin, J.-Y., and Séguin, R.
+ * Neighborhood search heuristics for a dynamic vehicle dispatching problem with
+ * pick-ups and deliveries. Transportation Research Part C: Emerging
+ * Technologies 14, 3 (2006), 157–174.</li>
+ * </ul>
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
  */
 public final class Gendreau06Parser {
@@ -64,64 +75,243 @@ public final class Gendreau06Parser {
   private static final int TIME_MULTIPLIER_INTEGER = 1000;
   private static final int PARCEL_MAGNITUDE = 0;
 
-  private Gendreau06Parser() {}
+  private int numVehicles;
+  private boolean allowDiversion;
+  private boolean online;
+  private long tickSize;
+  private final ImmutableMap.Builder<String, InputStream> streams;
+  @Nullable
+  private ImmutableList<ProblemClass> problemClasses;
 
-  public static Gendreau06Scenario parse(String file) {
-    return parse(file, -1);
-  }
-
-  public static Gendreau06Scenario parse(String file, int numVehicles) {
-    return parse(file, numVehicles, false);
-  }
-
-  public static Gendreau06Scenario parse(String file, int numVehicles,
-      boolean allowDiversion) {
-    FileReader reader;
-    try {
-      reader = new FileReader(file);
-    } catch (final FileNotFoundException e) {
-      throw new IllegalArgumentException("File not found: " + e.getMessage());
-    }
-    return parse(new BufferedReader(reader), new File(file).getName(),
-        numVehicles, 1000L, allowDiversion);
-  }
-
-  public static Gendreau06Scenario parse(BufferedReader reader,
-      String fileName, int numVehicles) {
-    return parse(reader, fileName, numVehicles, 1000L);
-  }
-
-  public static Gendreau06Scenario parse(BufferedReader reader,
-      String fileName, int numVehicles, final long tickSize) {
-    return parse(reader, fileName, numVehicles, tickSize, false);
+  private Gendreau06Parser() {
+    allowDiversion = false;
+    online = true;
+    numVehicles = -1;
+    tickSize = 1000L;
+    streams = ImmutableMap.builder();
   }
 
   /**
-   * 
-   * @param reader
-   * @param fileName
-   * @param numVehicles
-   * @param tickSize > 0
-   * 
-   * @param allowDiversion Indicates whether vehicle diversion should be
-   *          allowed. By default this is <code>false</code>.
-   * @throws IllegalArgumentException in the following cases:
-   *           <ul>
-   *           <li><code>numVehicles == 0 || numVehicles <= -2 </code></li>
-   *           <li><code>tickSize <= 0</code></li>
-   *           <li>The file could not be loaded.</li>
-   *           </ul>
-   * @return A newly created scenario.
+   * @return A {@link Gendreau06Parser}.
    */
-  public static Gendreau06Scenario parse(BufferedReader reader,
+  public static Gendreau06Parser parser() {
+    return new Gendreau06Parser();
+  }
+
+  /**
+   * Convenience method for parsing a single file.
+   * @param file The file to parse.
+   * @return The scenario as described by the file.
+   */
+  public static Gendreau06Scenario parse(File file) {
+    return parser().addFile(file).parse().get(0);
+  }
+
+  /**
+   * Add the specified file to the parser.
+   * @param file The file to add.
+   * @return This, as per the builder pattern.
+   */
+  public Gendreau06Parser addFile(File file) {
+    checkValidFileName(file.getName());
+    try {
+      streams.put(file.getName(), new FileInputStream(file));
+    } catch (final FileNotFoundException e) {
+      throw new IllegalArgumentException(e);
+    }
+    return this;
+  }
+
+  /**
+   * Add the specified file to the parser.
+   * @param file The file to add.
+   * @return This, as per the builder pattern.
+   */
+  public Gendreau06Parser addFile(String file) {
+    return addFile(new File(file));
+  }
+
+  /**
+   * Add the specified stream to the parser. A file name needs to be specified
+   * for identification of this particular scenario.
+   * @param stream The stream to use for the parsing of the scenario.
+   * @param fileName The file name that identifies the scenario's class and
+   *          instance.
+   * @return This, as per the builder pattern.
+   */
+  public Gendreau06Parser addFile(InputStream stream, String fileName) {
+    checkValidFileName(fileName);
+    streams.put(fileName, stream);
+    return this;
+  }
+
+  /**
+   * Adds all Gendreau scenario files in the specified directory.
+   * @param dir The directory to search.
+   * @return This, as per the builder pattern.
+   */
+  public Gendreau06Parser addDirectory(String dir) {
+    return addDirectory(new File(dir));
+  }
+
+  /**
+   * Adds all Gendreau scenario files in the specified directory.
+   * @param dir The directory to search.
+   * @return This, as per the builder pattern.
+   */
+  public Gendreau06Parser addDirectory(File dir) {
+    final File[] files = dir.listFiles(
+        new FileFilter() {
+          @Override
+          public boolean accept(@Nullable File file) {
+            checkNotNull(file);
+            return isValidFileName(file.getName());
+          }
+        });
+    for (final File f : files) {
+      addFile(f);
+    }
+    return this;
+  }
+
+  /**
+   * When this method is called all scenarios generated by this parser will
+   * allow vehicle diversion. For more information about the vehicle diversion
+   * concept please consult the class documentation of
+   * {@link rinde.sim.pdptw.common.PDPRoadModel}.
+   * @return This, as per the builder pattern.
+   */
+  public Gendreau06Parser allowDiversion() {
+    allowDiversion = true;
+    return this;
+  }
+
+  /**
+   * When this method is called, all scenarios generated by this parser will be
+   * offline scenarios. This means that all parcel events will arrive at time
+   * <code>-1</code>, which means that everything is known beforehand. By
+   * default the parser uses the original event arrival times as defined by the
+   * scenario file.
+   * @return This, as per the builder pattern.
+   */
+  public Gendreau06Parser offline() {
+    online = false;
+    return this;
+  }
+
+  /**
+   * This method allows to override the number of vehicles in the scenarios. For
+   * the default values see {@link GendreauProblemClass}.
+   * @param num The number of vehicles that should be used in the parsed
+   *          scenarios. Must be positive.
+   * @return This, as per the builder pattern.
+   */
+  public Gendreau06Parser setNumVehicles(int num) {
+    checkArgument(num > 0, "The number of vehicles must be positive.");
+    numVehicles = num;
+    return this;
+  }
+
+  /**
+   * Change the default tick size of <code>1000 ms</code> into something else.
+   * @param tick Must be positive.
+   * @return This, as per the builder pattern.
+   */
+  public Gendreau06Parser setTickSize(long tick) {
+    checkArgument(tick > 0L, "Tick size must be positive.");
+    tickSize = tick;
+    return this;
+  }
+
+  /**
+   * Filters out any files that are added to this parser which are <i>not</i> of
+   * one of the specified problem classes.
+   * @param classes The problem classes which should be parsed.
+   * @return This, as per the builder pattern.
+   */
+  public Gendreau06Parser filter(GendreauProblemClass... classes) {
+    problemClasses = ImmutableList.<ProblemClass> copyOf(classes);
+    return this;
+  }
+
+  /**
+   * Parses the files which are added to this parser. In case
+   * {@link #filter(GendreauProblemClass...)} has been called, only files in one
+   * of these problem classes will be parsed.
+   * @return A list of scenarios in order of adding them to the parser.
+   */
+  public ImmutableList<Gendreau06Scenario> parse() {
+    final ImmutableList.Builder<Gendreau06Scenario> scenarios = ImmutableList
+        .builder();
+    for (final Entry<String, InputStream> entry : streams.build().entrySet()) {
+      boolean include = false;
+      if (problemClasses == null) {
+        include = true;
+      } else {
+        for (final ProblemClass pc : problemClasses) {
+          if (entry.getKey().endsWith(pc.getId())) {
+            include = true;
+            break;
+          }
+        }
+      }
+      if (include) {
+        scenarios.add(parse(entry.getValue(), entry.getKey(), numVehicles,
+            tickSize, allowDiversion, online));
+      }
+    }
+    return scenarios.build();
+  }
+
+  // public static Gendreau06Scenario parse(String file) {
+  // return parse(file, -1);
+  // }
+  //
+  // public static Gendreau06Scenario parse(String file, int numVehicles) {
+  // return parse(file, numVehicles, false);
+  // }
+  //
+  // public static Gendreau06Scenario parse(String file, int numVehicles,
+  // boolean allowDiversion) {
+  // FileReader reader;
+  // try {
+  // reader = new FileReader(file);
+  // } catch (final FileNotFoundException e) {
+  // throw new IllegalArgumentException("File not found: " + e.getMessage());
+  // }
+  // return parse(new BufferedReader(reader), new File(file).getName(),
+  // numVehicles, 1000L, allowDiversion);
+  // }
+  //
+  // public static Gendreau06Scenario parse(BufferedReader reader,
+  // String fileName, int numVehicles) {
+  // return parse(reader, fileName, numVehicles, 1000L);
+  // }
+  //
+  // public static Gendreau06Scenario parse(BufferedReader reader,
+  // String fileName, int numVehicles, final long tickSize) {
+  // return parse(reader, fileName, numVehicles, tickSize, false);
+  // }
+
+  static boolean isValidFileName(String name) {
+    return Pattern.compile(REGEX).matcher(name).matches();
+  }
+
+  static void checkValidFileName(String name) {
+    checkArgument(isValidFileName(name),
+        "The filename must conform to the following regex: %s input was: %s",
+        REGEX, name);
+  }
+
+  private static Gendreau06Scenario parse(InputStream inputStream,
       String fileName, int numVehicles, final long tickSize,
-      final boolean allowDiversion) {
-    checkArgument(
-        numVehicles > 0 || numVehicles == -1,
-        "at least one vehicle is necessary in the scenario, or choose -1 to pick the default number of vehicles for this scenario.");
-    checkArgument(tickSize > 0);
+      final boolean allowDiversion, boolean online) {
+
     final ScenarioBuilder sb = new ScenarioBuilder(ADD_PARCEL, ADD_DEPOT,
         ADD_VEHICLE, TIME_OUT);
+
+    final BufferedReader reader = new BufferedReader(new InputStreamReader(
+        inputStream));
 
     final Matcher m = Pattern.compile(REGEX).matcher(fileName);
     checkArgument(m.matches(),
@@ -177,11 +367,14 @@ public final class Gendreau06Parser {
               Double.parseDouble(parts[10]) * TIME_MULTIPLIER,
               RoundingMode.HALF_EVEN);
 
+          // when an offline scenario is desired, all times are set to -1
+          final long arrTime = online ? requestArrivalTime : -1;
+
           final ParcelDTO dto = new ParcelDTO(new Point(pickupX, pickupY),
               new Point(deliveryX, deliveryY), new TimeWindow(
                   pickupTimeWindowBegin, pickupTimeWindowEnd), new TimeWindow(
                   deliveryTimeWindowBegin, deliveryTimeWindowEnd),
-              PARCEL_MAGNITUDE, requestArrivalTime, pickupServiceTime,
+              PARCEL_MAGNITUDE, arrTime, pickupServiceTime,
               deliveryServiceTime);
           sb.addEvent(new AddParcelEvent(dto));
         }
@@ -189,7 +382,7 @@ public final class Gendreau06Parser {
       sb.addEvent(new TimedEvent(TIME_OUT, totalTime));
       reader.close();
     } catch (final IOException e) {
-      throw new IllegalArgumentException(e.getMessage());
+      throw new IllegalArgumentException(e);
     }
 
     return sb.build(new ScenarioCreator<Gendreau06Scenario>() {

@@ -11,6 +11,7 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 
+import java.io.File;
 import java.io.IOException;
 
 import javax.measure.Measure;
@@ -61,7 +62,7 @@ public class CentralTest {
   @Test
   public void testConfigurator() throws IOException {
     final Gendreau06Scenario scenario = Gendreau06Parser.parse(
-        "files/test/gendreau06/req_rapide_1_240_24", 10);
+        new File("files/test/gendreau06/req_rapide_1_240_24"));
 
     final SupplierRng<Solver> s = new SupplierRng<Solver>() {
       @Override
