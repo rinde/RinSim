@@ -1,6 +1,6 @@
 # RinSim Examples
 
-RinSim comes with a number of examples, each example listed here can be run directly from the jar file.
+RinSim comes with a number of examples, each example listed here can be run directly from the jar file. Instructions on how to run them can be found [here](../docs/howtorun.md).
 
 ## Core examples
 These are examples showcasing functionality from the `RinSim-core` project.
