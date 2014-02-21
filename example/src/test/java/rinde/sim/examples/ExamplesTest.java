@@ -2,41 +2,34 @@ package rinde.sim.examples;
 
 import static org.junit.Assert.assertTrue;
 
-import org.junit.Before;
 import org.junit.Test;
 
 import rinde.sim.examples.core.SimpleExample;
 import rinde.sim.examples.core.comm.AgentCommunicationExample;
 import rinde.sim.examples.core.taxi.TaxiExample;
 import rinde.sim.examples.pdptw.gradientfield.GradientFieldExample;
-import rinde.sim.ui.UITestTools;
 
 public class ExamplesTest {
 
-  @Before
-  public void setUp() {
-    UITestTools.startAndClose(10000);
-  }
-
   @Test
   public void taxiExample() {
-    TaxiExample.main(new String[] {});
+    TaxiExample.run(true);
   }
 
   @Test
   public void simpleExample() {
-    SimpleExample.main(new String[] {});
+    SimpleExample.run(true);
   }
 
   @Test
   public void communicationExample() throws Exception {
-    AgentCommunicationExample.main(new String[] {});
+    AgentCommunicationExample.run(true);
   }
 
   @Test
   public void gradientFieldExample() {
     try {
-      GradientFieldExample.main(new String[] {});
+      GradientFieldExample.run(true);
     } catch (final RuntimeException e) {
       assertTrue(e.getCause() instanceof IllegalStateException);
       assertTrue(e.getCause().getMessage().contains(

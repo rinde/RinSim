@@ -27,8 +27,13 @@ import rinde.sim.ui.renderers.UiSchema;
  */
 public class GradientFieldExample {
 
-  public static void main(String[] args) {
+  private GradientFieldExample() {}
 
+  public static void main(String[] args) {
+    run(false);
+  }
+
+  public static void run(final boolean testing) {
     final UICreator uic = new UICreator() {
       @Override
       public void createUI(Simulator sim) {
@@ -36,14 +41,19 @@ public class GradientFieldExample {
         schema.add(Truck.class, "/graphics/perspective/bus-44.png");
         schema.add(DefaultDepot.class, "/graphics/flat/warehouse-32.png");
         schema.add(GFParcel.class, "/graphics/flat/hailing-cab-32.png");
-        View.create(sim)
+        final View.Builder viewBuilder = View.create(sim)
             .with(
                 new PlaneRoadModelRenderer(),
                 new RoadUserRenderer(schema, false),
                 new RouteRenderer(),
                 new GradientFieldRenderer(),
                 new PDPModelRenderer(false)
-            ).show();
+            );
+        if (testing) {
+          viewBuilder.enableAutoClose().enableAutoPlay().setSpeedUp(64)
+              .stopSimulatorAtTime(60 * 60 * 1000);
+        }
+        viewBuilder.show();
       }
     };
 

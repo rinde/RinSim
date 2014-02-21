@@ -394,8 +394,8 @@ public class Demo {
             @Override
             public void run() {
               // "../core/dot-files/leuven-simple.dot",
-              sims.add(TaxiExample.run(time, "leuven-simple.dot", display,
-                  monitor, l));
+              sims.add(TaxiExample.run(false, time, "leuven-simple.dot",
+                  display, monitor, l));
             }
           });
         }

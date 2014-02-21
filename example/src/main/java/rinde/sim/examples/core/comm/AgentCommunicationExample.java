@@ -3,6 +3,8 @@
  */
 package rinde.sim.examples.core.comm;
 
+import java.io.IOException;
+
 import javax.measure.Measure;
 import javax.measure.unit.SI;
 
@@ -63,7 +65,11 @@ public class AgentCommunicationExample {
 
   private AgentCommunicationExample() {}
 
-  public static void main(String[] args) throws Exception {
+  public static void main(String[] args) throws IOException {
+    run(false);
+  }
+
+  public static void run(boolean testing) throws IOException {
     final MersenneTwister rand = new MersenneTwister(123);
     final Simulator simulator = new Simulator(rand, Measure.valueOf(1000L,
         SI.MILLI(SI.SECOND)));
@@ -102,11 +108,19 @@ public class AgentCommunicationExample {
     schema2.add(RandomWalkAgent.C_YELLOW, new RGB(0xff, 0, 0));
     schema2.add(RandomWalkAgent.C_GREEN, new RGB(0x0, 0x80, 0));
 
-    View.create(simulator)
+    final View.Builder viewBuilder = View.create(simulator)
         .with(new GraphRoadModelRenderer())
         .with(new RoadUserRenderer(schema, false))
         .with(new MessagingLayerRenderer(roadModel, schema2))
-        .setSpeedUp(4)
-        .show();
+        .setSpeedUp(4);
+
+    if (testing) {
+      viewBuilder.enableAutoPlay()
+          .enableAutoClose()
+          .setSpeedUp(64)
+          .stopSimulatorAtTime(60 * 60 * 1000);
+    }
+
+    viewBuilder.show();
   }
 }
