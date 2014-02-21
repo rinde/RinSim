@@ -15,7 +15,7 @@ The RinSim simulator uses [Maven](http://maven.apache.org/) for managing its dep
 	</dependency>
 ```	
 Other modules can be added similarly:
-
+```xml
 	<dependency>
 		<groupId>com.github.rinde</groupId>
 		<artifactId>rinsim-ui</artifactId>
@@ -26,7 +26,7 @@ Other modules can be added similarly:
 		<artifactId>rinsim-problem</artifactId>
 		<version>2.x.y</version>
 	</dependency>
-	
+```		
 For release notes of the latest release click [here](releasenotes.md).
 
 

@@ -43,7 +43,7 @@ Click ``Finish``<br/>
     </dependencies> 
     ``` 
 
-Replace ``x.y.z`` with the current latest version (the latest version is shown [here](https://github.com/rinde/RinSim/)). The pom file should now look similar to this: <br/>
+8. Replace ``x.y.z`` with the current latest version (the latest version is shown [here](https://github.com/rinde/RinSim/)). The pom file should now look similar to this: <br/>
 ![New](tutorial/4b.png)
 <br/><br/>
 
