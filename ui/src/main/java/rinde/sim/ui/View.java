@@ -21,6 +21,8 @@ import org.eclipse.swt.widgets.Monitor;
 import org.eclipse.swt.widgets.Shell;
 
 import rinde.sim.core.Simulator;
+import rinde.sim.core.TickListener;
+import rinde.sim.core.TimeLapse;
 import rinde.sim.event.Event;
 import rinde.sim.event.Listener;
 import rinde.sim.ui.renderers.Renderer;
@@ -63,6 +65,7 @@ public final class View {
     boolean fullScreen;
     boolean async;
     int speedUp;
+    long stopTime;
     long sleep;
     @Nullable
     Display display;
@@ -83,6 +86,7 @@ public final class View {
       fullScreen = false;
       title = "Simulator";
       speedUp = 1;
+      stopTime = -1;
       screenSize = DEFAULT_WINDOW_SIZE;
       rendererList = newArrayList();
       accelerators = newHashMap();
@@ -116,6 +120,17 @@ public final class View {
      */
     public Builder enableAutoClose() {
       autoClose = true;
+      return this;
+    }
+
+    /**
+     * Stops the simulator at the specified time.
+     * @param simulationTime The time to stop, must be positive.
+     * @return This as per the builder pattern.
+     */
+    public Builder stopSimulatorAtTime(long simulationTime) {
+      checkArgument(simulationTime > 0);
+      stopTime = simulationTime;
       return this;
     }
 
@@ -258,6 +273,20 @@ public final class View {
         shell.setMaximized(true);
       } else {
         shell.setSize(screenSize);
+      }
+
+      if (stopTime > 0) {
+        simulator.addTickListener(new TickListener() {
+          @Override
+          public void tick(TimeLapse time) {}
+
+          @Override
+          public void afterTick(TimeLapse time) {
+            if (time.getTime() >= stopTime) {
+              simulator.stop();
+            }
+          }
+        });
       }
 
       if (autoClose) {
