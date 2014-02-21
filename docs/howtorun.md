@@ -1,5 +1,6 @@
 # How to run RinSim examples
 
+Are you having trouble with running RinSim? See the [troubleshooting tips](#troubleshooting).
 ##Prerequisites: 
 
 - __installed__ [Eclipse 4.2 or later](http://www.eclipse.org/)
@@ -64,3 +65,13 @@ Congratualations, Your setup is complete, you can start working with RinSim!
 Click ``Control`` -> ``Play`` to start the simulation. For more information about the other available examples, click [here](../example/README.md)
 
 ## Troubleshooting
+
+- When Maven is complaining and you are sure you followed all instructions, force the Maven plugin to update. Right click on your project -> ``Maven`` -> ``Update Project..``.
+
+- When Maven says it cannot find one of your dependencies and you are sure that you have configured your pom file correctly you can inspect your local Maven repository. The local maven repository is stored in your user folder: ``~/.m2/``. You can choose to delete the entire repository or only the dependencies that cause trouble. As soon as Maven detects that some dependencies are gone it will attempt to redownload them.
+
+- When you have copied some RinSim code to your own project and you see a compile error such as 'the method/constructor is undefined' make sure that you didn't accidently use the 'organize imports' feature of Eclipse and selected the wrong class. E.g. choose ``rinde.sim.core.graph.Point`` over ``java.awt.Point``.
+
+- When the compiler complains about ``@Override`` annotations in code that you have copied from RinSim, make sure that your Java version of your project is 1.6 or later.
+
+- If you can not run the UI on Mac OS X make sure that you add ``-XstartOnFirstThread`` as a VM argument.

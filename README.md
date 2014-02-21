@@ -27,7 +27,7 @@ Other modules can be added similarly:
 	<version>2.x.y</version>
 </dependency>
 ```		
-For more detailed instructions on how to do this see the [instructions](docs/howtorun.md). For release notes of the latest release click [here](releasenotes.md).
+For more detailed instructions on how create a Maven project in Eclipse and add RinSim as a dependency see the [instructions](docs/howtorun.md). For release notes of the latest release click [here](releasenotes.md).
 
 
 <!-- 
