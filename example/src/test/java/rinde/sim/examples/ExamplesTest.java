@@ -1,20 +1,21 @@
-package rinde.sim.examples.core;
+package rinde.sim.examples;
 
 import static org.junit.Assert.assertTrue;
 
 import org.junit.Before;
 import org.junit.Test;
 
+import rinde.sim.examples.core.SimpleExample;
 import rinde.sim.examples.core.comm.AgentCommunicationExample;
 import rinde.sim.examples.core.taxi.TaxiExample;
 import rinde.sim.examples.pdptw.gradientfield.GradientFieldExample;
 import rinde.sim.ui.UITestTools;
 
-public class CoreExamplesTest {
+public class ExamplesTest {
 
   @Before
   public void setUp() {
-    UITestTools.startAndClose(5000);
+    UITestTools.startAndClose(10000);
   }
 
   @Test
