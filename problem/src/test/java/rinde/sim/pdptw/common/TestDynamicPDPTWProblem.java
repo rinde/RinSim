@@ -6,7 +6,6 @@ package rinde.sim.pdptw.common;
 import static com.google.common.collect.Sets.newHashSet;
 import static org.junit.Assert.assertEquals;
 
-import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -126,12 +125,6 @@ public class TestDynamicPDPTWProblem {
 
     @Override
     public Unit<Length> getDistanceUnit() {
-      throw new UnsupportedOperationException("Not implemented.");
-    }
-
-    @Override
-    protected DynamicPDPTWScenario newInstance(
-        Collection<? extends TimedEvent> events) {
       throw new UnsupportedOperationException("Not implemented.");
     }
 

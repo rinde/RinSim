@@ -116,11 +116,4 @@ public class VanLon14Scenario extends DynamicPDPTWScenario {
   public String getProblemInstanceId() {
     return Integer.toString(instanceNumber);
   }
-
-  @Override
-  protected DynamicPDPTWScenario newInstance(
-      Collection<? extends TimedEvent> events) {
-    return new VanLon14Scenario(events, timeWindow, min, max, tickSize,
-        problemClass, instanceNumber);
-  }
 }

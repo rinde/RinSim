@@ -118,13 +118,6 @@ public final class Gendreau06Scenario extends DynamicPDPTWScenario {
   }
 
   @Override
-  protected Gendreau06Scenario newInstance(
-      Collection<? extends TimedEvent> events) {
-    return new Gendreau06Scenario(events, getPossibleEventTypes(), tickSize,
-        problemClass, instanceNumber, allowDiversion);
-  }
-
-  @Override
   public ProblemClass getProblemClass() {
     return problemClass;
   }

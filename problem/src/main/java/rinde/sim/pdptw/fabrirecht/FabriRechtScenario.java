@@ -112,13 +112,6 @@ public class FabriRechtScenario extends DynamicPDPTWScenario {
     return "1";
   }
 
-  @Override
-  protected FabriRechtScenario newInstance(
-      Collection<? extends TimedEvent> events) {
-    return new FabriRechtScenario(events, getPossibleEventTypes(), min, max,
-        timeWindow, defaultVehicle);
-  }
-
   public enum FabriRechtProblemClass implements ProblemClass {
     SINGLETON;
 

@@ -134,10 +134,5 @@ public class ScenarioIOTest {
       throw new UnsupportedOperationException();
     }
 
-    @Override
-    protected DynamicPDPTWScenario newInstance(
-        Collection<? extends TimedEvent> events) {
-      throw new UnsupportedOperationException();
-    }
   }
 }
