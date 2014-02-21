@@ -3,17 +3,17 @@
 RinSim is an extensible multi-agent system (MAS) simulator. The simulator focusses on __simplicity__ and __consistency__ which makes it ideal for performing scientific simulations. Further, there is huge focus on software quality which results in an ever improving test suite and JavaDoc comments. RinSim supports pluggable models which allow to extend the scope of the simulator. Out of the box, RinSim currently focusses on MAS for PDP (Pickup and Delivery Problems). You can easily extend RinSim by introducing your own custom models.
 
 <!-- ![PDPModel](docs/topbar.png) -->
-![PDPModel](docs/taxi-demo.gif)
+![Taxi Demo](docs/taxi-demo.gif)
 
 ## Installation
 The RinSim simulator uses [Maven](http://maven.apache.org/) for managing its dependencies. We recommend the [Maven plugin for Eclipse](http://www.eclipse.org/m2e/). Once this is installed and a new Maven project is created, RinSim can be added by including the following in your pom file, where x and y represents the preferred version number.
-
+```xml
 	<dependency>
 		<groupId>com.github.rinde</groupId>
 		<artifactId>rinsim-core</artifactId>
 		<version>2.x.y</version>
 	</dependency>
-	
+```	
 Other modules can be added similarly:
 
 	<dependency>
