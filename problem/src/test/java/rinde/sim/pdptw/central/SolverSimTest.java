@@ -54,7 +54,7 @@ public class SolverSimTest {
         .get(0);
 
     final RandomGenerator rng = new MersenneTwister(123);
-    for (int i = 0; i < 50; i++) {
+    for (int i = 0; i < 5; i++) {
       final long seed = rng.nextLong();
       final DebugSolverCreator dsc = new DebugSolverCreator(seed,
           scenario.getTimeUnit());

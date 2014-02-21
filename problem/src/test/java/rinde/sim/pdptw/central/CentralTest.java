@@ -12,7 +12,6 @@ import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 
 import java.io.File;
-import java.io.IOException;
 
 import javax.measure.Measure;
 import javax.measure.unit.NonSI;
@@ -57,10 +56,9 @@ import rinde.sim.util.fsm.State;
 public class CentralTest {
   /**
    * Tests whether the SolverConfigurator works.
-   * @throws IOException When something goes wrong with loading the file.
    */
   @Test
-  public void testConfigurator() throws IOException {
+  public void testConfigurator() {
     final Gendreau06Scenario scenario = Gendreau06Parser.parse(
         new File("files/test/gendreau06/req_rapide_1_240_24"));
 
