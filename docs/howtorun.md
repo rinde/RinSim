@@ -25,14 +25,13 @@ Click ``Finish``<br/>
 
 5. In your ``Package Explorer`` you should see the following: <br/>
 ![New](tutorial/3.png)
-<br/><br/>
+
 
 6. Open the ``pom.xml`` file with the ``Maven POM Editor``. Choose the ``pom.xml`` tab in the bottom. <br/>
 ![New](tutorial/4a.png)
-<br/><br/>
+<br/>
 
 7. You will see an XML view of the file. Paste the following XML between the ``project`` tags.
-
     ```xml
     <dependencies>
         <dependency>

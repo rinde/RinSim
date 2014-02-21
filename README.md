@@ -8,24 +8,24 @@ RinSim is an extensible multi-agent system (MAS) simulator. The simulator focuss
 ## Installation
 The RinSim simulator uses [Maven](http://maven.apache.org/) for managing its dependencies. We recommend the [Maven plugin for Eclipse](http://www.eclipse.org/m2e/). Once this is installed and a new Maven project is created, RinSim can be added by including the following in your pom file, where x and y represents the preferred version number.
 ```xml
-	<dependency>
-		<groupId>com.github.rinde</groupId>
-		<artifactId>rinsim-core</artifactId>
-		<version>2.x.y</version>
-	</dependency>
+<dependency>
+	<groupId>com.github.rinde</groupId>
+	<artifactId>rinsim-core</artifactId>
+	<version>2.x.y</version>
+</dependency>
 ```	
 Other modules can be added similarly:
 ```xml
-	<dependency>
-		<groupId>com.github.rinde</groupId>
-		<artifactId>rinsim-ui</artifactId>
-		<version>2.x.y</version>
-	</dependency>
-	<dependency>
-		<groupId>com.github.rinde</groupId>
-		<artifactId>rinsim-problem</artifactId>
-		<version>2.x.y</version>
-	</dependency>
+<dependency>
+	<groupId>com.github.rinde</groupId>
+	<artifactId>rinsim-ui</artifactId>
+	<version>2.x.y</version>
+</dependency>
+<dependency>
+	<groupId>com.github.rinde</groupId>
+	<artifactId>rinsim-problem</artifactId>
+	<version>2.x.y</version>
+</dependency>
 ```		
 For release notes of the latest release click [here](releasenotes.md).
 
