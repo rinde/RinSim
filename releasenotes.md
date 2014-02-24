@@ -1,5 +1,7 @@
 # Release notes
 
+## v2.3.1
+
 * Problem 
 	* Gendreau06Parser is rewritten using a fluent API. Adds support for allowing diversion and offline scenarios
 
