@@ -40,7 +40,21 @@ Click ``Finish``<br/>
             <artifactId>rinsim-example</artifactId>
             <version>x.y.z</version>
         </dependency>
-    </dependencies> 
+    </dependencies>
+
+    <build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>2.1</version>
+				<configuration>
+					<source>1.6</source>
+					<target>1.6</target>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build> 
     ``` 
 
 8. Replace ``x.y.z`` with the current latest version (the latest version is shown [here](https://github.com/rinde/RinSim/)). The pom file should now look similar to this: <br/>
@@ -63,6 +77,8 @@ Click ``Finish``<br/>
 ![New](tutorial/5e.png)<br/>
 Congratualations, Your setup is complete, you can start working with RinSim!
 Click ``Control`` -> ``Play`` to start the simulation. For more information about the other available examples, click [here](../example/README.md)
+
+Protip: you can download the sources of RinSim and all other dependencies by right clicking your project -> ``Maven`` -> ``Download Sources``
 
 ## Troubleshooting
 
