@@ -78,6 +78,8 @@ Click ``Finish``<br/>
 Congratualations, Your setup is complete, you can start working with RinSim!
 Click ``Control`` -> ``Play`` to start the simulation. For more information about the other available examples, click [here](../example/README.md)
 
+Protip: you can download the sources of RinSim and all other dependencies by right clicking your project -> ``Maven`` -> ``Download Sources``
+
 ## Troubleshooting
 
 - When Maven is complaining and you are sure you followed all instructions, force the Maven plugin to update. Right click on your project -> ``Maven`` -> ``Update Project..``.
