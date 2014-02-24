@@ -78,7 +78,7 @@ Click ``Finish``<br/>
 Congratualations, Your setup is complete, you can start working with RinSim!
 Click ``Control`` -> ``Play`` to start the simulation. For more information about the other available examples, click [here](../example/README.md)
 
-Protip: you can download the sources of RinSim and all other dependencies by right clicking your project -> ``Maven`` -> ``Download Sources``
+__Protip__: you can download the sources of RinSim and all other dependencies by right clicking your project -> ``Maven`` -> ``Download Sources``
 
 ## Troubleshooting
 
@@ -88,6 +88,6 @@ Protip: you can download the sources of RinSim and all other dependencies by rig
 
 - When you have copied some RinSim code to your own project and you see a compile error such as 'the method/constructor is undefined' make sure that you didn't accidently use the 'organize imports' feature of Eclipse and selected the wrong class. E.g. choose ``rinde.sim.core.graph.Point`` over ``java.awt.Point``.
 
-- When the compiler complains about ``@Override`` annotations in code that you have copied from RinSim, make sure that your Java version of your project is 1.6 or later.
+- When the compiler complains about ``@Override`` annotations in code that you have copied from RinSim, make sure that Maven targets Java version 1.6 or later (see step 7 in the instructions above for the XML code to do this).
 
 - If you can not run the UI on Mac OS X make sure that you add ``-XstartOnFirstThread`` as a VM argument.
