@@ -74,7 +74,11 @@ public final class TaxiExample {
 
     final String graphFile = args != null && args.length >= 2 ? args[1]
         : MAP_FILE;
-    run(endTime, graphFile, null /* new Display() */, null, null);
+    run(false, endTime, graphFile, null /* new Display() */, null, null);
+  }
+
+  public static void run(boolean testing) {
+    run(testing, Long.MAX_VALUE, MAP_FILE, null, null, null);
   }
 
   /**
@@ -86,7 +90,8 @@ public final class TaxiExample {
    * @param list
    * @return
    */
-  public static Simulator run(final long endTime, String graphFile,
+  public static Simulator run(boolean testing, final long endTime,
+      String graphFile,
       @Nullable Display display, @Nullable Monitor m, @Nullable Listener list) {
 
     // create a new simulator
@@ -145,7 +150,14 @@ public final class TaxiExample {
         .with(new TaxiRenderer(Language.ENGLISH))
         .setTitleAppendix("Taxi Demo");
 
-    if (m != null && list != null) {
+    if (testing) {
+      System.out.println("TESTING");
+      view.enableAutoClose()
+          .enableAutoPlay()
+          .stopSimulatorAtTime(60 * 60 * 1000)
+          .setSpeedUp(64);
+    }
+    else if (m != null && list != null) {
       view.displayOnMonitor(m)
           .setSpeedUp(4)
           .setResolution(m.getClientArea().width, m.getClientArea().height)

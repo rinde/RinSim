@@ -43,6 +43,10 @@ public class SimpleExample {
    * @param args This is ignored.
    */
   public static void main(String[] args) {
+    run(false);
+  }
+
+  public static void run(boolean testing) {
     // initialize a random generator which we use throughout this
     // 'experiment'
     final RandomGenerator rnd = new MersenneTwister(123);
@@ -73,8 +77,17 @@ public class SimpleExample {
     // for the drivers. By default the road model is rendererd as a square
     // (indicating its boundaries), and the drivers are rendererd as red
     // dots.
-    View.create(sim).with(new PlaneRoadModelRenderer(), new RoadUserRenderer())
-        .show();
+    final View.Builder viewBuilder = View.create(sim).with(
+        new PlaneRoadModelRenderer(), new RoadUserRenderer());
+
+    if (testing) {
+      viewBuilder.setSpeedUp(16)
+          .enableAutoClose()
+          .enableAutoPlay()
+          .stopSimulatorAtTime(10 * 60 * 1000);
+    }
+
+    viewBuilder.show();
     // in case a GUI is not desired, the simulation can simply be run by
     // calling the start method of the simulator.
   }
