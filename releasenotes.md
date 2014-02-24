@@ -1,5 +1,15 @@
 # Release notes
 
+* Problem 
+	* Gendreau06Parser is rewritten using a fluent API. Adds support for allowing diversion and offline scenarios
+
+* Overall
+	* Reduced runtime of tests
+
+* Web
+	* Added tutorial and troubleshooting tips
+	* Added animated gif to homepage
+
 ## v2.3.0
 
 * Core module
