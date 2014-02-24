@@ -6,7 +6,8 @@ RinSim is an extensible multi-agent system (MAS) simulator. The simulator focuss
 ![Taxi Demo](docs/taxi-demo.gif)
 
 ## Installation
-The RinSim simulator uses [Maven](http://maven.apache.org/) for managing its dependencies. We recommend the [Maven plugin for Eclipse](http://www.eclipse.org/m2e/). Once this is installed and a new Maven project is created, RinSim can be added by including the following in your pom file, where x and y represents the preferred version number.
+
+The RinSim simulator uses [Maven](http://maven.apache.org/) for managing its dependencies. We recommend the [Maven plugin for Eclipse](http://www.eclipse.org/m2e/). Once this is installed and a new Maven project is created, RinSim can be added by including the following in your pom file, where x and y represents the preferred version number. More __[detailed instructions](docs/howtorun.md)__ are available.
 ```xml
 <dependency>
 	<groupId>com.github.rinde</groupId>
