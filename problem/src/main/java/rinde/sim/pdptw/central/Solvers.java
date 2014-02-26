@@ -123,7 +123,10 @@ public final class Solvers {
         .fromNullable(routes);
 
     if (r.isPresent()) {
-      checkArgument(state.vehicles.size() == r.get().size());
+      checkArgument(
+          state.vehicles.size() == r.get().size(),
+          "Exactly one route should be supplied for every vehicle in state. %s vehicle(s) in state, received %s route(s).",
+          state.vehicles.size(), r.get().size());
     }
 
     double totalDistance = 0;
