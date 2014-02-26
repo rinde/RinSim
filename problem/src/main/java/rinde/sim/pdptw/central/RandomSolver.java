@@ -77,9 +77,6 @@ public class RandomSolver implements Solver {
       }
       builder.add(ImmutableList.copyOf(assigned));
     }
-    // System.out.println("---------");
-    // System.out.println(Joiner.on("\n").join(builder.build()));
-
     return builder.build();
   }
 
