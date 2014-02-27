@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.math.RoundingMode;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -168,9 +169,11 @@ public final class Gendreau06Parser {
             return isValidFileName(file.getName());
           }
         });
+    Arrays.sort(files);
     for (final File f : files) {
       addFile(f);
     }
+
     return this;
   }
 
@@ -260,6 +263,7 @@ public final class Gendreau06Parser {
             tickSize, allowDiversion, online));
       }
     }
+    // TODO sort list first by ProblemClass then by Id
     return scenarios.build();
   }
 
