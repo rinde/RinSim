@@ -14,7 +14,6 @@ import java.util.concurrent.TimeUnit;
 
 import javax.annotation.Nullable;
 
-import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.math3.random.MersenneTwister;
 import org.apache.commons.math3.random.RandomGenerator;
 
@@ -101,11 +100,15 @@ public final class Experiment {
     final ObjectiveFunction objectiveFunction;
     final ImmutableList.Builder<MASConfiguration> configurationsBuilder;
     final ImmutableList.Builder<DynamicPDPTWScenario> scenariosBuilder;
+    @Nullable
     UICreator uiCreator;
     boolean showGui;
     int repetitions;
     long masterSeed;
     private int numThreads;
+
+    @Nullable
+    PostProcessor<?> finalizer;
 
     Builder(ObjectiveFunction objectiveFunction) {
       this.objectiveFunction = objectiveFunction;
@@ -235,6 +238,11 @@ public final class Experiment {
       return this;
     }
 
+    public Builder usePostProcessor(PostProcessor<?> fina) {
+      finalizer = fina;
+      return this;
+    }
+
     /**
      * Perform the experiment. For every scenario every configuration is used
      * <code>n</code> times. Where <code>n</code> is the number of repetitions
@@ -264,7 +272,7 @@ public final class Experiment {
           for (int i = 0; i < repetitions; i++) {
             final long seed = seeds.get(i);
             runnerBuilder.add(new ExperimentRunner(scenario, configuration,
-                seed, objectiveFunction, showGui, uiCreator));
+                seed, objectiveFunction, showGui, finalizer, uiCreator));
           }
         }
       }
@@ -316,10 +324,11 @@ public final class Experiment {
    */
   public static SimulationResult singleRun(DynamicPDPTWScenario scenario,
       MASConfiguration configuration, long seed, ObjectiveFunction objFunc,
-      boolean showGui, @Nullable UICreator uic) {
+      boolean showGui, @Nullable PostProcessor<?> finalizer,
+      @Nullable UICreator uic) {
 
     final ExperimentRunner er = new ExperimentRunner(scenario, configuration,
-        seed, objFunc, showGui, uic);
+        seed, objFunc, showGui, finalizer, uic);
     er.run();
     final SimulationResult res = er.getResult();
     checkState(res != null);
@@ -395,12 +404,16 @@ public final class Experiment {
      */
     public final long seed;
 
+    @Nullable
+    public Object simulationData;
+
     SimulationResult(StatisticsDTO stats, DynamicPDPTWScenario scenario,
-        MASConfiguration masConfiguration, long seed) {
+        MASConfiguration masConfiguration, long seed, @Nullable Object simData) {
       this.stats = stats;
       this.scenario = scenario;
       this.masConfiguration = masConfiguration;
       this.seed = seed;
+      simulationData = simData;
     }
 
     @Override
@@ -408,31 +421,32 @@ public final class Experiment {
       if (obj == null) {
         return false;
       }
-      if (obj == this) {
-        return true;
-      }
       if (obj.getClass() != getClass()) {
         return false;
       }
       final SimulationResult other = (SimulationResult) obj;
-      return new EqualsBuilder().append(stats, other.stats)
-          .append(scenario, other.scenario)
-          .append(masConfiguration, other.masConfiguration)
-          .append(seed, other.seed).isEquals();
+      return Objects.equal(stats, other.stats)
+          && Objects.equal(scenario, other.scenario)
+          && Objects.equal(masConfiguration, other.masConfiguration)
+          && Objects.equal(seed, other.seed)
+          && Objects.equal(simulationData, other.simulationData);
     }
 
     @Override
     public int hashCode() {
-      return Objects.hashCode(stats, scenario, masConfiguration, seed);
+      return Objects.hashCode(stats, scenario, masConfiguration, seed,
+          simulationData);
     }
 
     @Override
     public String toString() {
-      return Objects.toStringHelper(this) //
-          .add("stats", stats) //
-          .add("scenario", scenario) //
-          .add("masConfiguration", masConfiguration) //
-          .add("seed", seed).toString();
+      return Objects.toStringHelper(this)
+          .add("stats", stats)
+          .add("scenario", scenario)
+          .add("masConfiguration", masConfiguration)
+          .add("seed", seed)
+          .add("simulationData", simulationData)
+          .toString();
     }
   }
 
@@ -487,6 +501,43 @@ public final class Experiment {
       masterSeed = exp.masterSeed;
       results = res;
     }
+
+    @Override
+    public int hashCode() {
+      return Objects.hashCode(objectiveFunction, configurations, scenarios,
+          showGui, repetitions, masterSeed, results);
+    }
+
+    @Override
+    public boolean equals(@Nullable Object other) {
+      if (other == null) {
+        return false;
+      }
+      if (other.getClass() != getClass()) {
+        return false;
+      }
+      final ExperimentResults er = (ExperimentResults) other;
+      return Objects.equal(objectiveFunction, er.objectiveFunction)
+          && Objects.equal(configurations, er.configurations)
+          && Objects.equal(scenarios, er.scenarios)
+          && Objects.equal(showGui, er.showGui)
+          && Objects.equal(repetitions, er.repetitions)
+          && Objects.equal(masterSeed, er.masterSeed)
+          && Objects.equal(results, er.results);
+    }
+
+    @Override
+    public String toString() {
+      return Objects.toStringHelper(this)
+          .add("objectiveFunction", objectiveFunction)
+          .add("configurations", configurations)
+          .add("scenarios", scenarios)
+          .add("showGui", showGui)
+          .add("repetitions", repetitions)
+          .add("masterSeed", masterSeed)
+          .add("results", results)
+          .toString();
+    }
   }
 
   private static class ExperimentRunner implements Runnable {
@@ -495,33 +546,46 @@ public final class Experiment {
     private final long seed;
     private final ObjectiveFunction objectiveFunction;
     private final boolean showGui;
+    @Nullable
     private final UICreator uiCreator;
-
+    @Nullable
+    private final PostProcessor<?> finalizer;
     @Nullable
     private SimulationResult result;
 
     ExperimentRunner(DynamicPDPTWScenario scenario,
         MASConfiguration configuration, long seed,
         ObjectiveFunction objectiveFunction, boolean showGui,
+        @Nullable PostProcessor<?> fina,
         @Nullable UICreator uic) {
       this.scenario = scenario;
       this.configuration = configuration;
       this.seed = seed;
       this.objectiveFunction = objectiveFunction;
       this.showGui = showGui;
+      finalizer = fina;
       uiCreator = uic;
     }
 
     @Override
     public void run() {
       try {
-        final StatisticsDTO stats = init(scenario, configuration, seed,
-            showGui, uiCreator)
-            .simulate();
+
+        final DynamicPDPTWProblem prob = init(scenario, configuration, seed,
+            showGui, uiCreator);
+        final StatisticsDTO stats = prob.simulate();
+
+        @Nullable
+        Object data = null;
+        if (finalizer != null) {
+          data = finalizer.collectResults(prob.getSimulator());
+        }
+
         checkState(objectiveFunction.isValidResult(stats),
             "The simulation did not result in a valid result: %s.", stats);
 
-        result = new SimulationResult(stats, scenario, configuration, seed);
+        result = new SimulationResult(stats, scenario, configuration, seed,
+            data);
       } catch (final RuntimeException e) {
         final StringBuilder sb = new StringBuilder().append("[Scenario= ")
             .append(scenario).append(",").append(scenario.getProblemClass())
