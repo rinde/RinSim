@@ -16,6 +16,7 @@ import static rinde.sim.core.TimeLapseFactory.time;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 
 import javax.measure.unit.SI;
 
@@ -702,6 +703,53 @@ public class RouteFollowingVehicleTest {
     d.setRoute(asList(p2, p2, p1, p1));
     assertEquals(Optional.absent(), d.newRoute);
     assertEquals(asList(p2, p2, p1, p1), d.route);
+  }
+
+  /**
+   * Tests agent behavior when diversion is attempted in the wait at service
+   * state.
+   */
+  @Test
+  public void diversionTestInWaitAtServiceState() {
+    d.setRoute(asList(p1));
+    assertEquals(Optional.absent(), d.newRoute);
+
+    // too early
+    tick(2, 3);
+    assertEquals(d.waitState, d.stateMachine.getCurrentState());
+
+    // start moving towards
+    tick(3, 4);
+    assertEquals(d.gotoState, d.stateMachine.getCurrentState());
+
+    tick(3, 4);
+    assertEquals(d.gotoState, d.stateMachine.getCurrentState());
+
+    tick(3, 4);
+    assertEquals(d.waitForServiceState, d.stateMachine.getCurrentState());
+
+    boolean fails = false;
+    try {
+      d.setRoute(Collections.<DefaultParcel> emptyList());
+      if (!allowDelayedRouteChanges && !diversionIsAllowed) {
+        assertTrue(d.getRoute().isEmpty());
+      }
+    } catch (final IllegalArgumentException e) {
+      fails = true;
+    }
+    assertNotSame(allowDelayedRouteChanges || diversionIsAllowed, fails);
+
+    if (allowDelayedRouteChanges && !diversionIsAllowed) {
+      assertEquals(1, d.getRoute().size());
+    }
+
+    tick(4, 5);
+    if (diversionIsAllowed) {
+      assertEquals(d.waitState, d.stateMachine.getCurrentState());
+    }
+    else {
+      assertEquals(d.waitForServiceState, d.stateMachine.getCurrentState());
+    }
   }
 
   /**

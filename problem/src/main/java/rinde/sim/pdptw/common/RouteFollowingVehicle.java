@@ -369,6 +369,7 @@ public class RouteFollowingVehicle extends DefaultVehicle {
         .addTransition(gotos, DefaultEvent.NOGO, wait)
         .addTransition(gotos, DefaultEvent.ARRIVED, waitAtService)
         .addTransition(waitAtService, DefaultEvent.REROUTE, gotos)
+        .addTransition(waitAtService, DefaultEvent.NOGO, wait)
         .addTransition(waitAtService, DefaultEvent.READY_TO_SERVICE, service)
         .addTransition(service, DefaultEvent.DONE, wait).build();
   }
@@ -531,6 +532,10 @@ public class RouteFollowingVehicle extends DefaultVehicle {
     @Override
     public DefaultEvent handle(@Nullable StateEvent event,
         RouteFollowingVehicle context) {
+      // the route has changed (there is no destination anymore)
+      if (route.isEmpty()) {
+        return DefaultEvent.NOGO;
+      }
       checkCurrentParcelOwnership();
       final PDPModel pm = pdpModel.get();
       final TimeLapse time = currentTime.get();
