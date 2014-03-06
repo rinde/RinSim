@@ -276,7 +276,7 @@ public final class Metrics {
     return builder.build();
   }
 
-  // Best version as of January 13th, 2014
+  // Best version as of March 6th, 2014
   public static double measureDynamism(Iterable<Double> arrivalTimes,
       double lengthOfDay) {
     final List<Double> times = newArrayList(arrivalTimes);
@@ -295,32 +295,26 @@ public final class Metrics {
     // this is the expected interarrival time
     final double expectedInterArrivalTime = lengthOfDay
         / numEvents;
-    // tolerance
-    final double half = expectedInterArrivalTime / numEvents;
-    final double left = expectedInterArrivalTime - half;
 
     // deviation to expectedInterArrivalTime
     double sumDeviation = 0;
-    double maxDeviation = (numEvents - 1) * left;
+    double maxDeviation = (numEvents - 1) * expectedInterArrivalTime;
     double prevDeviation = 0;
     for (int i = 0; i < numEvents - 1; i++) {
       // compute interarrival time
       final double delta = times.get(i + 1) - times.get(i);
-      if (delta < left) {
-        final double curDeviation = left - delta;
-        sumDeviation += curDeviation;
-        // check for previous deviation
-        if (prevDeviation > 0) {
-          sumDeviation += prevDeviation;
-          maxDeviation += left;
-        }
-        prevDeviation = curDeviation;
-      }
-      else {
+      if (delta < expectedInterArrivalTime) {
+        final double diff = expectedInterArrivalTime - delta;
+        final double scaledPrev = (diff / expectedInterArrivalTime)
+            * prevDeviation;
+        final double cur = diff + scaledPrev;
+        sumDeviation += cur;
+        maxDeviation += scaledPrev;
+        prevDeviation = cur;
+      } else {
         prevDeviation = 0;
       }
     }
-    // TODO investigate whether both terms should be squared?
     return 1d - (sumDeviation / maxDeviation);
   }
 

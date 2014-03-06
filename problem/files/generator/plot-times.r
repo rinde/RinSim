@@ -22,7 +22,7 @@ plotArrivalTimes <- function(file){
   times <- data.frame(V1=myData[-1,])
   
   .e <- environment()
-  c <- ggplot(times, aes(V1,width=len),environment = .e) + geom_bar(fill="red",binwidth=100)  + labs(x="time", y="event count") + xlim(0,len)+ theme_bw()
+  c <- ggplot(times, aes(V1,width=len),environment = .e) + geom_bar(fill="red",binwidth=1)  + labs(x="time", y="event count") + xlim(0,len)+ theme_bw()
   
   e <- ggplot(times,aes(V1,width=len),environment = .e, main="Event arrival times")  + geom_abline(slope=1/len, color="grey", linetype=1,size=1) + xlim(0,len) + theme_bw()+ stat_ecdf()  + labs(x="time", y="perc. of known events")
 
@@ -33,7 +33,7 @@ plotArrivalTimes <- function(file){
 }
 
 
-files <- list.files(path="~/workspace/RinSim/problem/files/test/times/",pattern="*\\.times$",recursive=T,full.names=T)
+files <- list.files(path="~/workspace/RinSim/problem/files/generator/times/",pattern="*\\.times$",recursive=T,full.names=T)
 
 #str(paste(files,collapse=" "))
 #plotArrivalTimes(files[1])
@@ -42,10 +42,10 @@ foreach( i=1:length(files)) %dopar%{
   plotArrivalTimes(files[i])
 }
 
-#pdfs <- list.files(path="workspace/RinSim/problem/files/generator/times/",pattern="*\\.times.pdf$",recursive=T)
-#str(paste(pdfs,collapse=" "))
-#str("merge pdfs")
-#cmdStr <- paste("cd workspace/RinSim/problem/files/generator/times/; pdftk",paste(pdfs,collapse=" "),"cat #output all.pdf", sep=" ")
-#system(cmdStr)
+pdfs <- list.files(path="workspace/RinSim/problem/files/generator/times/",pattern="*\\.times.pdf$",recursive=T)
+str(paste(pdfs,collapse=" "))
+str("merge pdfs")
+cmdStr <- paste("cd workspace/RinSim/problem/files/generator/times/; pdftk",paste(pdfs,collapse=" "),"cat output all.pdf", sep=" ")
+system(cmdStr)
 
 

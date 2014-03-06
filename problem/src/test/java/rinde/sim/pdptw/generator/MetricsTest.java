@@ -431,12 +431,14 @@ public class MetricsTest {
         800L,
         800L, 800L, 800L, 800L, 800L, 800L, 800L, 800L, 900L));
 
+    // times.subList(1, times.size()).clear();
+
     for (int j = 0; j < ordersPerHour.length; j++) {
       System.out.println("=========" + ordersPerHour[j] + "=========");
       for (int i = 0; i < times.size(); i++) {
 
         System.out.println("----- " + i + " -----");
-        System.out.println(times.get(i).length + " " + times.get(i).list);
+        // System.out.println(times.get(i).length + " " + times.get(i).list);
         // final double dod2 = measureDynamismDistr(times.get(i).list,
         // times.get(i).length);
 
