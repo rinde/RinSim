@@ -136,6 +136,13 @@ public class RouteFollowingVehicle extends DefaultVehicle {
   }
 
   /**
+   * @return <code>true</code> if this vehicle is allowed to divert.
+   */
+  public boolean isDiversionAllowed() {
+    return isDiversionAllowed;
+  }
+
+  /**
    * Change the route this vehicle is following. The route must adhere to the
    * following requirements:
    * <ul>
@@ -227,7 +234,7 @@ public class RouteFollowingVehicle extends DefaultVehicle {
     return unmodifiableCollection(route);
   }
 
-  boolean firstEqualsFirstInRoute(Collection<DefaultParcel> r) {
+  protected final boolean firstEqualsFirstInRoute(Collection<DefaultParcel> r) {
     return !r.isEmpty() && !route.isEmpty()
         && r.iterator().next().equals(route.element());
   }
