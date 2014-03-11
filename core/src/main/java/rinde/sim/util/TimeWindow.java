@@ -1,21 +1,27 @@
 package rinde.sim.util;
 
+import static com.google.common.base.Objects.equal;
+import static com.google.common.base.Objects.toStringHelper;
 import static com.google.common.base.Preconditions.checkArgument;
 
 import java.io.Serializable;
+
+import javax.annotation.Nullable;
+
+import com.google.common.base.Objects;
 
 /**
  * A time window is an interval in time. It is defined as a half open interval:
  * [begin, end).
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
  */
-public class TimeWindow implements Serializable {
+public final class TimeWindow implements Serializable {
   private static final long serialVersionUID = 7548761538022038612L;
 
   /**
    * A time window which represents 'always'.
    */
-  public static TimeWindow ALWAYS = new TimeWindow(0, Long.MAX_VALUE);
+  public final static TimeWindow ALWAYS = new TimeWindow(0, Long.MAX_VALUE);
 
   /**
    * Begin of the time window (inclusive). Must be a non-negative value.
@@ -94,11 +100,28 @@ public class TimeWindow implements Serializable {
 
   @Override
   public String toString() {
-    final StringBuilder sb = new StringBuilder("TimeWindow{");
-    sb.append(begin);
-    sb.append(",");
-    sb.append(end);
-    sb.append("}");
-    return sb.toString();
+    return toStringHelper(this).add("begin", begin).add("end", end)
+        .toString();
+  }
+
+  @Override
+  public boolean equals(@Nullable Object other) {
+    if (other == null) {
+      return false;
+    }
+    if (this == other) {
+      return true;
+    }
+    if (!(other instanceof TimeWindow)) {
+      return false;
+    }
+    final TimeWindow otherTW = (TimeWindow) other;
+    return equal(begin, otherTW.begin)
+        && equal(end, otherTW.end);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hashCode(begin, end);
   }
 }

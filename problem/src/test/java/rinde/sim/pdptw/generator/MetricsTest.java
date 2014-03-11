@@ -60,18 +60,18 @@ public class MetricsTest {
     assertEquals(3, parts.size());
 
     // pickup load in [0,15), duration is 5 minutes, so load is 5/15 = 1/3
-    assertEquals(0, parts.get(0).begin);
+    assertEquals(0, parts.get(0).begin());
     assertEquals(1 / 3d, parts.get(0).get(0), EPSILON);
     assertEquals(15, parts.get(0).length());
 
     // travel load in [5,20), duration is 2 minutes, so load is 2/15
-    assertEquals(5, parts.get(1).begin);
+    assertEquals(5, parts.get(1).begin());
     assertEquals(2 / 15d, parts.get(1).get(5), EPSILON);
     assertEquals(15, parts.get(1).length());
 
     // delivery load in [10,25), duration is 5 minutes, so load is 5/15 =
     // 1/3
-    assertEquals(10, parts.get(2).begin);
+    assertEquals(10, parts.get(2).begin());
     assertEquals(1 / 3d, parts.get(2).get(10), EPSILON);
     assertEquals(15, parts.get(2).length());
 
@@ -101,18 +101,18 @@ public class MetricsTest {
     assertEquals(3, parts.size());
 
     // pickup load in [15,20), duration is 5 minutes, so load is 5/5 = 1
-    assertEquals(15, parts.get(0).begin);
+    assertEquals(15, parts.get(0).begin());
     assertEquals(1d, parts.get(0).get(15), EPSILON);
     assertEquals(0d, parts.get(0).get(20), EPSILON);
     assertEquals(5, parts.get(0).length());
 
     // travel load in [20,40), duration is 20 minutes, so load is 20/20 = 1
-    assertEquals(20, parts.get(1).begin);
+    assertEquals(20, parts.get(1).begin());
     assertEquals(1, parts.get(1).get(20), EPSILON);
     assertEquals(20, parts.get(1).length());
 
     // delivery load in [40,45), duration is 5 minutes, so load is 5/5 = 1
-    assertEquals(40, parts.get(2).begin);
+    assertEquals(40, parts.get(2).begin());
     assertEquals(1, parts.get(2).get(40), EPSILON);
     assertEquals(5, parts.get(2).length());
 
@@ -136,17 +136,17 @@ public class MetricsTest {
     assertEquals(3, parts.size());
 
     // pickup load in [10,35), duration is 5 minutes, so load is 5/25 = 6/30
-    assertEquals(10, parts.get(0).begin);
+    assertEquals(10, parts.get(0).begin());
     assertEquals(6 / 30d, parts.get(0).get(10), EPSILON);
     assertEquals(25, parts.get(0).length());
 
     // travel load in [15,75), duration is 6 minutes, so load is 6/60 = 3/30
-    assertEquals(15, parts.get(1).begin);
+    assertEquals(15, parts.get(1).begin());
     assertEquals(3 / 30d, parts.get(1).get(15), EPSILON);
     assertEquals(60, parts.get(1).length());
 
     // delivery load in [50,80), duration is 5 minutes, so load is 5/30
-    assertEquals(50, parts.get(2).begin);
+    assertEquals(50, parts.get(2).begin());
     assertEquals(5 / 30d, parts.get(2).get(50), EPSILON);
     assertEquals(30, parts.get(2).length());
 

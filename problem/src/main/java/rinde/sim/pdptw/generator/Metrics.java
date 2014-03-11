@@ -358,16 +358,37 @@ public final class Metrics {
 
   // to use for parts of the timeline to avoid excessively long list with
   // mostly 0s.
-  static class LoadPart extends TimeWindow {
+  static class LoadPart {
     private final double load;
+    private final TimeWindow tw;
 
-    public LoadPart(long st, long end, double value) {
-      super(st, end);
+    LoadPart(long st, long end, double value) {
+      tw = new TimeWindow(st, end);
       load = value;
     }
 
-    public double get(long i) {
-      if (isIn(i)) {
+    public boolean isBeforeEnd(long i) {
+      return tw.isBeforeEnd(i);
+    }
+
+    public boolean isIn(long i) {
+      return tw.isIn(i);
+    }
+
+    long begin() {
+      return tw.begin;
+    }
+
+    long end() {
+      return tw.end;
+    }
+
+    long length() {
+      return tw.length();
+    }
+
+    double get(long i) {
+      if (tw.isIn(i)) {
         return load;
       }
       return 0d;
@@ -375,8 +396,8 @@ public final class Metrics {
 
     @Override
     public String toString() {
-      return Objects.toStringHelper("LoadPart").add("begin", begin)
-          .add("end", end).add("load", load).toString();
+      return Objects.toStringHelper("LoadPart").add("begin", tw.begin)
+          .add("end", tw.end).add("load", load).toString();
     }
   }
 }
