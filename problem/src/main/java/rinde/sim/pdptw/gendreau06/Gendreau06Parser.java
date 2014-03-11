@@ -377,12 +377,17 @@ public final class Gendreau06Parser {
           // when an offline scenario is desired, all times are set to -1
           final long arrTime = online ? requestArrivalTime : -1;
 
-          final ParcelDTO dto = new ParcelDTO(new Point(pickupX, pickupY),
-              new Point(deliveryX, deliveryY), new TimeWindow(
-                  pickupTimeWindowBegin, pickupTimeWindowEnd), new TimeWindow(
-                  deliveryTimeWindowBegin, deliveryTimeWindowEnd),
-              PARCEL_MAGNITUDE, arrTime, pickupServiceTime,
-              deliveryServiceTime);
+          final ParcelDTO dto = ParcelDTO.builder(new Point(pickupX, pickupY),
+              new Point(deliveryX, deliveryY)).
+              pickupTimeWindow(new TimeWindow(
+                  pickupTimeWindowBegin, pickupTimeWindowEnd))
+              .deliveryTimeWindow(new TimeWindow(
+                  deliveryTimeWindowBegin, deliveryTimeWindowEnd))
+              .neededCapacity(PARCEL_MAGNITUDE)
+              .arrivalTime(arrTime)
+              .pickupDuration(pickupServiceTime)
+              .deliveryDuration(deliveryServiceTime)
+              .build();
           listBuilder.add(new AddParcelEvent(dto));
         }
       }
