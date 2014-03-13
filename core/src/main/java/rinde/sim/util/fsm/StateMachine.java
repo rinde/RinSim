@@ -13,6 +13,7 @@ import rinde.sim.event.Event;
 import rinde.sim.event.EventAPI;
 import rinde.sim.event.EventDispatcher;
 
+import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableTable;
 import com.google.common.collect.Table.Cell;
@@ -40,6 +41,8 @@ import com.google.common.collect.Table.Cell;
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
  */
 public class StateMachine<E, C> {
+  // TODO events *inside* the state machine should be renamed to triggers (for
+  // example) to avoid confusion with the event package.
   private static final String NL = System.getProperty("line.separator");
   private static final String NODE = "node";
   private static final String NODE_DEFINITION = "[label=\"\",shape=point]" + NL;
@@ -69,7 +72,7 @@ public class StateMachine<E, C> {
   /**
    * The transition table which defines the allowed transitions.
    */
-  protected ImmutableTable<State<E, C>, E, State<E, C>> transitionTable;
+  protected final ImmutableTable<State<E, C>, E, State<E, C>> transitionTable;
   /**
    * The current state.
    */
@@ -79,12 +82,22 @@ public class StateMachine<E, C> {
    */
   protected final State<E, C> startState;
 
+  /**
+   * This indicates whether recursive transitions should be handled explicitly.
+   * If true a recursive transition will be handled just like a normal
+   * transition, {@link State#onExit(Object, Object)} and
+   * {@link State#onEntry(Object, Object)} methods are called.
+   */
+  protected final boolean explicitRecursiveTransitions;
+
   StateMachine(State<E, C> start,
-      ImmutableTable<State<E, C>, E, State<E, C>> table) {
+      ImmutableTable<State<E, C>, E, State<E, C>> table,
+      boolean explRecurTrns) {
     eventDispatcher = new EventDispatcher(StateMachineEvent.values());
     startState = start;
     currentState = start;
     transitionTable = table;
+    explicitRecursiveTransitions = explRecurTrns;
   }
 
   /**
@@ -122,7 +135,7 @@ public class StateMachine<E, C> {
     checkArgument(transitionTable.contains(currentState, event),
         "The event %s is not supported when in state %s.", event, currentState);
     final State<E, C> newState = transitionTable.get(currentState, event);
-    if (!newState.equals(currentState)) {
+    if (!newState.equals(currentState) || explicitRecursiveTransitions) {
       currentState.onExit(event, context);
       final State<E, C> oldState = currentState;
       currentState = newState;
@@ -177,6 +190,7 @@ public class StateMachine<E, C> {
    * Looks up a state of the specified (sub)type if it exists. If there exist
    * multiple the first encountered is returned.
    * @param type The (sub)type to look for.
+   * @param <T> The type.
    * @return The state of the specified type.
    * @throws IllegalArgumentException if there is no state of the specified
    *           type.
@@ -207,6 +221,42 @@ public class StateMachine<E, C> {
    */
   public EventAPI getEventAPI() {
     return eventDispatcher.getPublicEventAPI();
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hashCode(startState, transitionTable, currentState,
+        explicitRecursiveTransitions);
+  }
+
+  @Override
+  public boolean equals(@Nullable Object other) {
+    if (other == null) {
+      return false;
+    }
+    if (this == other) {
+      return true;
+    }
+    if (!(other instanceof StateMachine)) {
+      return false;
+    }
+    @SuppressWarnings("unchecked")
+    final StateMachine<E, C> fsm = (StateMachine<E, C>) other;
+    return Objects.equal(startState, fsm.startState)
+        && Objects.equal(transitionTable, fsm.transitionTable)
+        && Objects.equal(currentState, fsm.currentState)
+        && Objects.equal(explicitRecursiveTransitions,
+            fsm.explicitRecursiveTransitions);
+  }
+
+  @Override
+  public String toString() {
+    return Objects.toStringHelper(this)
+        .add("startState", startState)
+        .add("transitionTable", transitionTable)
+        .add("currentState", currentState)
+        .add("explicitRecursiveTransitions", explicitRecursiveTransitions)
+        .toString();
   }
 
   /**
@@ -265,10 +315,12 @@ public class StateMachine<E, C> {
   public static final class StateMachineBuilder<E, C> {
     private final ImmutableTable.Builder<State<E, C>, E, State<E, C>> tableBuilder;
     private final State<E, C> start;
+    private boolean explicitRecursiveTransitions;
 
     StateMachineBuilder(State<E, C> initialState) {
       tableBuilder = ImmutableTable.builder();
       start = initialState;
+      explicitRecursiveTransitions = false;
     }
 
     /**
@@ -296,12 +348,26 @@ public class StateMachine<E, C> {
     }
 
     /**
+     * Enables explicit recursive transitions, this means that when an recursive
+     * transition is attempted the {@link State#onExit(Object, Object)} and
+     * {@link State#onEntry(Object, Object)} are called on that state and a
+     * {@link StateMachine.StateTransitionEvent} is dispatched. By default
+     * recursive transitions are ignored.
+     * @return The builder reference.
+     */
+    public StateMachineBuilder<E, C> explicitRecursiveTransitions() {
+      explicitRecursiveTransitions = true;
+      return this;
+    }
+
+    /**
      * Builds the {@link StateMachine} as configured by this
      * {@link rinde.sim.util.fsm.StateMachine.StateMachineBuilder}.
      * @return The {@link StateMachine}.
      */
     public StateMachine<E, C> build() {
-      return new StateMachine<E, C>(start, tableBuilder.build());
+      return new StateMachine<E, C>(start, tableBuilder.build(),
+          explicitRecursiveTransitions);
     }
   }
 
@@ -361,6 +427,31 @@ public class StateMachine<E, C> {
       return new StringBuilder("[Event ").append(getEventType()).append(" ")
           .append(previousState).append(" + ").append(event).append(CONN)
           .append(newState).append("]").toString();
+    }
+
+    @Override
+    public int hashCode() {
+      return Objects.hashCode(previousState, event, newState);
+    }
+
+    @Override
+    public boolean equals(@Nullable Object other) {
+      if (other == null) {
+        return false;
+      }
+      if (this == other) {
+        return true;
+      }
+      if (!(other instanceof StateTransitionEvent<?, ?>)) {
+        return false;
+      }
+      @SuppressWarnings("unchecked")
+      final StateTransitionEvent<E, C> ev = (StateTransitionEvent<E, C>) other;
+      return Objects.equal(previousState, ev.previousState) &&
+          Objects.equal(newState, ev.newState) &&
+          Objects.equal(event, ev.event) &&
+          Objects.equal(eventType, ev.eventType) &&
+          Objects.equal(getIssuer(), ev.getIssuer());
     }
   }
 }
