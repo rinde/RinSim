@@ -7,6 +7,10 @@ import org.junit.Test;
 import rinde.sim.core.graph.Point;
 import rinde.sim.util.TimeWindow;
 
+/**
+ * Test for the {@link ParcelDTO#builder(Point, Point)}.
+ * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+ */
 public class ParcelDTOTest {
 
   /**
