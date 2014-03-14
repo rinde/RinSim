@@ -643,6 +643,8 @@ public class RouteFollowingVehicleTest {
     d.stateMachine.getEventAPI().addListener(leh,
         StateMachineEvent.STATE_TRANSITION);
     assertEquals(0, leh.getHistory().size());
+    assertFalse(d.gotoState.destination.isPresent());
+    assertFalse(d.gotoState.prevDestination.isPresent());
 
     d.setRoute(asList(p1));
     assertEquals(diversionIsAllowed, d.isDiversionAllowed());
@@ -650,6 +652,8 @@ public class RouteFollowingVehicleTest {
     tick(5, 6);
     assertEquals(d.gotoState, d.stateMachine.getCurrentState());
     assertEquals(1, leh.getHistory().size());
+    assertEquals(p1, d.gotoState.getDestination());
+    assertFalse(d.gotoState.prevDestination.isPresent());
 
     @SuppressWarnings("unchecked")
     final StateTransitionEvent<StateEvent, RouteFollowingVehicle> ev1 = ((StateTransitionEvent<StateEvent, RouteFollowingVehicle>) leh
@@ -680,9 +684,14 @@ public class RouteFollowingVehicleTest {
       assertEquals(DefaultEvent.REROUTE, ev2.event);
       assertEquals(d.gotoState, ev2.previousState);
       assertEquals(d.gotoState, ev2.newState);
+
+      assertEquals(p2, d.gotoState.getDestination());
+      assertEquals(p1, d.gotoState.getPreviousDestination());
     }
     else {
       assertEquals(1, leh.getHistory().size());
+      assertEquals(p1, d.gotoState.getDestination());
+      assertFalse(d.gotoState.prevDestination.isPresent());
     }
   }
 
@@ -744,7 +753,6 @@ public class RouteFollowingVehicleTest {
       assertEquals(asList(p2), d.route);
       assertEquals(Optional.absent(), d.newRoute);
     }
-
   }
 
   /**
@@ -1077,6 +1085,22 @@ public class RouteFollowingVehicleTest {
     assertEquals(vehicle.extraState, vehicle.stateMachine.getCurrentState());
     tick(1, 2);
     assertEquals(vehicle.waitState, vehicle.stateMachine.getCurrentState());
+  }
+
+  /**
+   * Tests correct exception when calling destination at wrong time.
+   */
+  @Test(expected = IllegalStateException.class)
+  public void getDestinationFail() {
+    d.gotoState.getDestination();
+  }
+
+  /**
+   * Tests correct exception when calling prev destination at wrong time.
+   */
+  @Test(expected = IllegalStateException.class)
+  public void getpreviousDestinationFail() {
+    d.gotoState.getPreviousDestination();
   }
 
   static long minute(long minutes) {

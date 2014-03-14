@@ -517,13 +517,19 @@ public class RouteFollowingVehicle extends DefaultVehicle {
     /**
      * Field for storing the destination.
      */
-    @Nullable
-    protected DefaultParcel destination;
+    protected Optional<DefaultParcel> destination;
+    /**
+     * Field for storing the previous destination.
+     */
+    protected Optional<DefaultParcel> prevDestination;
 
     /**
      * New instance.
      */
-    protected Goto() {}
+    protected Goto() {
+      destination = Optional.absent();
+      prevDestination = Optional.absent();
+    }
 
     @Override
     public void onEntry(StateEvent event, RouteFollowingVehicle context) {
@@ -531,7 +537,7 @@ public class RouteFollowingVehicle extends DefaultVehicle {
         checkArgument(isDiversionAllowed);
       }
       checkCurrentParcelOwnership();
-      destination = route.element();
+      destination = Optional.of(route.element());
     }
 
     @Nullable
@@ -540,7 +546,7 @@ public class RouteFollowingVehicle extends DefaultVehicle {
         RouteFollowingVehicle context) {
       if (route.isEmpty()) {
         return DefaultEvent.NOGO;
-      } else if (destination != route.element()) {
+      } else if (destination.get() != route.element()) {
         return DefaultEvent.REROUTE;
       }
 
@@ -554,6 +560,28 @@ public class RouteFollowingVehicle extends DefaultVehicle {
         return DefaultEvent.ARRIVED;
       }
       return null;
+    }
+
+    @Override
+    public void onExit(StateEvent event, RouteFollowingVehicle context) {
+      prevDestination = destination;
+      destination = Optional.absent();
+    }
+
+    /**
+     * @return The destination of the vehicle.
+     * @throws IllegalStateException if there is no destination.
+     */
+    public DefaultParcel getDestination() {
+      return destination.get();
+    }
+
+    /**
+     * @return The previous destination of the vehicle.
+     * @throws IllegalStateException if there is no previous destination.
+     */
+    public DefaultParcel getPreviousDestination() {
+      return prevDestination.get();
     }
   }
 
@@ -631,5 +659,4 @@ public class RouteFollowingVehicle extends DefaultVehicle {
       return null;
     }
   }
-
 }
