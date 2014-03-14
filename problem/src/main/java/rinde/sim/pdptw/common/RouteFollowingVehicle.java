@@ -215,14 +215,19 @@ public class RouteFollowingVehicle extends DefaultVehicle {
       }
     }
 
+    final boolean firstEqualsFirst = firstEqualsFirstInRoute(r);
+    final boolean divertable = isDiversionAllowed
+        && !stateMachine.stateIs(serviceState);
+
     if (stateMachine.stateIs(waitState) || route.isEmpty()
-        || (isDiversionAllowed && !stateMachine.stateIs(serviceState))
-        || firstEqualsFirstInRoute(r)) {
+        || divertable || firstEqualsFirst) {
       route = newLinkedList(r);
       newRoute = Optional.absent();
     } else {
-      checkArgument(allowDelayedRouteChanges,
-          "Delayed route changes are not allowed, rejected route: %s.", r);
+      checkArgument(
+          allowDelayedRouteChanges,
+          "Diversion is not allowed and delayed route changes are also not allowed, rejected route: %s.",
+          r);
       newRoute = Optional.of(newLinkedList(r));
     }
   }
@@ -234,6 +239,16 @@ public class RouteFollowingVehicle extends DefaultVehicle {
     return unmodifiableCollection(route);
   }
 
+  /**
+   * Helper method for checking whether the first parcels in two routes are
+   * equal.
+   * @param r The route to compare with the current route in
+   *          {@link RouteFollowingVehicle#getRoute()}.
+   * @return <code>true</code> if the first item in <code>r</code> equals the
+   *         first item in {@link RouteFollowingVehicle#getRoute()}. If not
+   *         equal or if either of the routes are empty <code>false</code> is
+   *         returned.
+   */
   protected final boolean firstEqualsFirstInRoute(Collection<DefaultParcel> r) {
     return !r.isEmpty() && !route.isEmpty()
         && r.iterator().next().equals(route.element());
@@ -372,9 +387,11 @@ public class RouteFollowingVehicle extends DefaultVehicle {
     final WaitAtService waitAtService = new WaitAtService();
     final Service service = new Service();
     return StateMachine.create(wait)
+        .explicitRecursiveTransitions()
         .addTransition(wait, DefaultEvent.GOTO, gotos)
         .addTransition(gotos, DefaultEvent.NOGO, wait)
         .addTransition(gotos, DefaultEvent.ARRIVED, waitAtService)
+        .addTransition(gotos, DefaultEvent.REROUTE, gotos)
         .addTransition(waitAtService, DefaultEvent.REROUTE, gotos)
         .addTransition(waitAtService, DefaultEvent.NOGO, wait)
         .addTransition(waitAtService, DefaultEvent.READY_TO_SERVICE, service)
@@ -404,24 +421,29 @@ public class RouteFollowingVehicle extends DefaultVehicle {
      * Indicates that waiting is over, the vehicle is going to a parcel.
      */
     GOTO,
+
     /**
      * Indicates that the vehicle no longer has a destination.
      */
     NOGO,
+
     /**
      * Indicates that the vehicle has arrived at a service location.
      */
     ARRIVED,
+
     /**
      * Indicates that the vehicle is at a service location and that the vehicle
      * and the parcel are both ready to start the servicing.
      */
     READY_TO_SERVICE,
+
     /**
-     * Indicates that the vehicle has been waiting at a service point until it
-     * became available but is now going to a new location.
+     * Indicates that the vehicle is going to a new destination. This event only
+     * occurs when the vehicle was previously waiting at a service point.
      */
     REROUTE,
+
     /**
      * Indicates that servicing is finished.
      */
@@ -493,6 +515,12 @@ public class RouteFollowingVehicle extends DefaultVehicle {
    */
   protected class Goto extends AbstractTruckState {
     /**
+     * Field for storing the destination.
+     */
+    @Nullable
+    protected DefaultParcel destination;
+
+    /**
      * New instance.
      */
     protected Goto() {}
@@ -503,6 +531,7 @@ public class RouteFollowingVehicle extends DefaultVehicle {
         checkArgument(isDiversionAllowed);
       }
       checkCurrentParcelOwnership();
+      destination = route.element();
     }
 
     @Nullable
@@ -511,7 +540,10 @@ public class RouteFollowingVehicle extends DefaultVehicle {
         RouteFollowingVehicle context) {
       if (route.isEmpty()) {
         return DefaultEvent.NOGO;
+      } else if (destination != route.element()) {
+        return DefaultEvent.REROUTE;
       }
+
       final DefaultParcel cur = route.element();
       if (roadModel.get().equalPosition(context, cur)) {
         return DefaultEvent.ARRIVED;

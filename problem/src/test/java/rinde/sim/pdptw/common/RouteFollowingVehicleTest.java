@@ -41,9 +41,13 @@ import rinde.sim.core.model.pdp.twpolicy.TardyAllowedPolicy;
 import rinde.sim.core.model.road.PlaneRoadModel;
 import rinde.sim.event.Event;
 import rinde.sim.event.Listener;
+import rinde.sim.event.ListenerEventHistory;
 import rinde.sim.pdptw.common.RouteFollowingVehicle.DefaultEvent;
+import rinde.sim.pdptw.common.RouteFollowingVehicle.StateEvent;
 import rinde.sim.pdptw.common.SubVehicle.ExtraEvent;
 import rinde.sim.util.TimeWindow;
+import rinde.sim.util.fsm.StateMachine.StateMachineEvent;
+import rinde.sim.util.fsm.StateMachine.StateTransitionEvent;
 
 import com.google.common.base.Optional;
 
@@ -70,6 +74,7 @@ public class RouteFollowingVehicleTest {
    * @param allowDiversion Is vehicle diversion allowed.
    * @param allowDelayedRouteChange Are delayed route changes allowed.
    */
+  @SuppressWarnings("null")
   public RouteFollowingVehicleTest(boolean allowDiversion,
       boolean allowDelayedRouteChange) {
     diversionIsAllowed = allowDiversion;
@@ -116,30 +121,35 @@ public class RouteFollowingVehicleTest {
     d = new RouteFollowingVehicle(v, allowDelayedRouteChanges);
     d2 = new RouteFollowingVehicle(v, allowDelayedRouteChanges);
 
-    p1 = new DefaultParcel(new ParcelDTO(new Point(1, 2), new Point(1, 4), //
-        new TimeWindow(minute(5), minute(15)), // pickup tw
-        new TimeWindow(minute(16), minute(30)),// delivery tw
-        0, 0, minute(3), minute(1)));
+    p1 = new DefaultParcel(ParcelDTO
+        .builder(new Point(1, 2), new Point(1, 4))
+        .pickupTimeWindow(new TimeWindow(minute(5), minute(15)))
+        .deliveryTimeWindow(new TimeWindow(minute(16), minute(30)))
+        .pickupDuration(minute(3))
+        .deliveryDuration(minute(1))
+        .build());
 
-    p2 = new DefaultParcel(new ParcelDTO(new Point(1, 3), new Point(1, 5), //
-        new TimeWindow(minute(15) + 10, minute(25)), // pickup tw
-        new TimeWindow(minute(22) + 10, minute(30)),// delivery tw
-        0, 0, minute(0), minute(3)));
+    p2 = new DefaultParcel(ParcelDTO
+        .builder(new Point(1, 3), new Point(1, 5))
+        .pickupTimeWindow(new TimeWindow(minute(15) + 10, minute(25)))
+        .deliveryTimeWindow(new TimeWindow(minute(22) + 10, minute(30)))
+        .deliveryDuration(minute(3))
+        .build());
 
-    p3 = new DefaultParcel(new ParcelDTO(new Point(1, 3), new Point(1, 5), //
-        new TimeWindow(minute(15) + 10, minute(25)), // pickup tw
-        new TimeWindow(minute(22) + 10, minute(30)),// delivery tw
-        0, 0, minute(3), minute(3)));
+    p3 = new DefaultParcel(ParcelDTO
+        .builder(new Point(1, 3), new Point(1, 5))
+        .pickupTimeWindow(new TimeWindow(minute(15) + 10, minute(25)))
+        .deliveryTimeWindow(new TimeWindow(minute(22) + 10, minute(30)))
+        .serviceDuration(minute(3))
+        .build());
 
     depot = new DefaultDepot(new Point(3, 5));
-
     if (register) {
       PDPTWTestUtil.register(rm, pm, depot, d, d2, p1, p2, p3);
       assertEquals(depot, d.getDepot());
     }
 
     d.waitState.toString();
-
   }
 
   /**
@@ -625,6 +635,58 @@ public class RouteFollowingVehicleTest {
   }
 
   /**
+   * Test diversion with REROUTE events.
+   */
+  @Test
+  public void diversionTestInGotoState2() {
+    final ListenerEventHistory leh = new ListenerEventHistory();
+    d.stateMachine.getEventAPI().addListener(leh,
+        StateMachineEvent.STATE_TRANSITION);
+    assertEquals(0, leh.getHistory().size());
+
+    d.setRoute(asList(p1));
+    assertEquals(diversionIsAllowed, d.isDiversionAllowed());
+    assertEquals(Optional.absent(), d.newRoute);
+    tick(5, 6);
+    assertEquals(d.gotoState, d.stateMachine.getCurrentState());
+    assertEquals(1, leh.getHistory().size());
+
+    @SuppressWarnings("unchecked")
+    final StateTransitionEvent<StateEvent, RouteFollowingVehicle> ev1 = ((StateTransitionEvent<StateEvent, RouteFollowingVehicle>) leh
+        .getHistory().get(0));
+    assertEquals(DefaultEvent.GOTO, ev1.event);
+    assertEquals(d.waitState, ev1.previousState);
+    assertEquals(d.gotoState, ev1.newState);
+
+    assertEquals(d.gotoState, d.stateMachine.getCurrentState());
+    assertEquals(p1, d.getRoute().iterator().next());
+
+    boolean fail = false;
+    try {
+      d.setRoute(asList(p2));
+    } catch (final IllegalArgumentException e) {
+      fail = true;
+    }
+    assertEquals(!diversionIsAllowed && !allowDelayedRouteChanges, fail);
+
+    tick(4, 5);
+    assertEquals(d.gotoState, d.stateMachine.getCurrentState());
+
+    if (diversionIsAllowed) {
+      assertEquals(2, leh.getHistory().size());
+      @SuppressWarnings("unchecked")
+      final StateTransitionEvent<StateEvent, RouteFollowingVehicle> ev2 = ((StateTransitionEvent<StateEvent, RouteFollowingVehicle>) leh
+          .getHistory().get(1));
+      assertEquals(DefaultEvent.REROUTE, ev2.event);
+      assertEquals(d.gotoState, ev2.previousState);
+      assertEquals(d.gotoState, ev2.newState);
+    }
+    else {
+      assertEquals(1, leh.getHistory().size());
+    }
+  }
+
+  /**
    * Tests agent behavior when diversion is attempted in the service state.
    */
   @Test
@@ -860,11 +922,13 @@ public class RouteFollowingVehicleTest {
    */
   @Test
   public void tooEarlyTest1() {
-    final DefaultParcel p4 = new DefaultParcel(new ParcelDTO(new Point(1, 2),
-        new Point(1, 4), //
-        new TimeWindow(minute(5) + second(30), minute(15)), // pickup tw
-        new TimeWindow(minute(16), minute(30)),// delivery tw
-        0, 0, minute(3), minute(1)));
+    final DefaultParcel p4 = new DefaultParcel(ParcelDTO
+        .builder(new Point(1, 2), new Point(1, 4))
+        .pickupTimeWindow(new TimeWindow(minute(5) + second(30), minute(15)))
+        .deliveryTimeWindow(new TimeWindow(minute(16), minute(30)))
+        .pickupDuration(minute(3))
+        .deliveryDuration(minute(1))
+        .build());
 
     PDPTWTestUtil.register(rm, pm, p4);
 
@@ -905,11 +969,13 @@ public class RouteFollowingVehicleTest {
    */
   @Test
   public void tooEarlyTest2() {
-    final DefaultParcel p4 = new DefaultParcel(new ParcelDTO(new Point(1, 2.2),
-        new Point(1, 4), //
-        new TimeWindow(minute(5) + second(30), minute(15)), // pickup tw
-        new TimeWindow(minute(16), minute(30)),// delivery tw
-        0, 0, minute(3), minute(1)));
+    final DefaultParcel p4 = new DefaultParcel(ParcelDTO
+        .builder(new Point(1, 2.2), new Point(1, 4))
+        .pickupTimeWindow(new TimeWindow(minute(5) + second(30), minute(15)))
+        .deliveryTimeWindow(new TimeWindow(minute(16), minute(30)))
+        .pickupDuration(minute(3))
+        .deliveryDuration(minute(1))
+        .build());
 
     PDPTWTestUtil.register(rm, pm, p4);
 
@@ -949,11 +1015,13 @@ public class RouteFollowingVehicleTest {
    */
   @Test
   public void tooEarlyTest3() {
-    final DefaultParcel p4 = new DefaultParcel(new ParcelDTO(
-        new Point(1, 1.99), new Point(1, 4), //
-        new TimeWindow(minute(5) + second(30), minute(15)), // pickup tw
-        new TimeWindow(minute(16), minute(30)),// delivery tw
-        0, 0, minute(3), minute(1)));
+    final DefaultParcel p4 = new DefaultParcel(ParcelDTO
+        .builder(new Point(1, 1.99), new Point(1, 4))
+        .pickupTimeWindow(new TimeWindow(minute(5) + second(30), minute(15)))
+        .deliveryTimeWindow(new TimeWindow(minute(16), minute(30)))
+        .pickupDuration(minute(3))
+        .deliveryDuration(minute(1))
+        .build());
 
     PDPTWTestUtil.register(rm, pm, p4);
 
