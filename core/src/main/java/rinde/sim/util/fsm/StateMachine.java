@@ -116,14 +116,13 @@ public class StateMachine<E, C> {
    * @param context Reference to the context.
    */
   public void handle(@Nullable E event, C context) {
-    if (event != null) {
-      changeState(event, context);
-    }
-    @Nullable
-    final E newEvent = currentState.handle(event, context);
-    if (newEvent != null) {
-      handle(newEvent, context);
-    }
+    E ev = event;
+    do {
+      if (ev != null) {
+        changeState(ev, context);
+      }
+      ev = currentState.handle(event, context);
+    } while (ev != null);
   }
 
   /**
