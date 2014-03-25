@@ -129,8 +129,8 @@ public class RouteFollowingVehicle extends DefaultVehicle {
       public void handleEvent(Event e) {
         @SuppressWarnings("unchecked")
         final StateTransitionEvent<DefaultEvent, RouteFollowingVehicle> event = (StateTransitionEvent<RouteFollowingVehicle.DefaultEvent, RouteFollowingVehicle>) e;
-        LOGGER.trace("{} - {} + {} -> {}", v, event.previousState, event.event,
-            event.newState);
+        LOGGER.trace("vehicle({}) - {} + {} -> {}", v, event.previousState,
+            event.event, event.newState);
       }
     }, StateMachineEvent.STATE_TRANSITION);
   }
@@ -205,8 +205,8 @@ public class RouteFollowingVehicle extends DefaultVehicle {
             "A parcel that is in cargo state must be in cargo of this vehicle.");
         checkArgument(
             frequency <= 1,
-            "A parcel that is in cargo may not occur more than once in a route, found %s instance(s).",
-            frequency);
+            "A parcel that is in cargo may not occur more than once in a route, found %s instance(s) of %s.",
+            frequency, dp, state);
       } else {
         checkArgument(
             frequency <= 2,
