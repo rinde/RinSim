@@ -1,7 +1,7 @@
 /**
  * 
  */
-package rinde.sim.pdptw.generator;
+package rinde.sim.pdptw.generator.loc;
 
 import org.apache.commons.math3.random.RandomGenerator;
 

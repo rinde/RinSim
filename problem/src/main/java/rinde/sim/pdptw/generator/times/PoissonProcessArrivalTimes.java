@@ -1,4 +1,4 @@
-package rinde.sim.pdptw.generator;
+package rinde.sim.pdptw.generator.times;
 
 import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.collect.Lists.newArrayList;

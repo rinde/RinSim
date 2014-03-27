@@ -9,8 +9,10 @@ import org.apache.commons.math3.random.MersenneTwister;
 import org.apache.commons.math3.random.RandomGenerator;
 import org.junit.Test;
 
-import rinde.sim.pdptw.generator.NHPoissonProcess.IntensityFunctionWrapper;
-import rinde.sim.pdptw.generator.NHPoissonProcess.SineIntensity;
+import rinde.sim.pdptw.generator.times.ArrivalTimesGenerator;
+import rinde.sim.pdptw.generator.times.NHPoissonProcess;
+import rinde.sim.pdptw.generator.times.NHPoissonProcess.IntensityFunctionWrapper;
+import rinde.sim.pdptw.generator.times.NHPoissonProcess.SineIntensity;
 
 import com.google.common.collect.ImmutableList;
 

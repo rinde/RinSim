@@ -29,14 +29,13 @@ import com.google.common.collect.Lists;
  */
 public class ScenarioGeneratorTest {
 
-  // FIXME re-enable these tests
   @Test
-  @Ignore
   public void test() {
     final ScenarioGenerator sg = ScenarioGenerator.builder()
-        .setAnnouncementIntensityPerKm2(1.3d).setOrdersPerAnnouncement(1.3) //
-        .setScale(.1, 5) //
-        .setScenarioLength(240) //
+        .setAnnouncementIntensityPerKm2(1.3d)
+        .setOrdersPerAnnouncement(1.3)
+        .setScale(.1, 5)
+        .setScenarioLength(240)
         .build();
     final RandomGenerator rng = new MersenneTwister(123);
 

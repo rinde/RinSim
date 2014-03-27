@@ -14,6 +14,7 @@ import org.apache.commons.math3.random.RandomGenerator;
 import org.junit.Test;
 
 import rinde.sim.core.graph.Point;
+import rinde.sim.pdptw.generator.tw.ProportionateUniformTWGenerator;
 import rinde.sim.util.TimeWindow;
 
 import com.google.common.math.DoubleMath;

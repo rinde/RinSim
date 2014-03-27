@@ -24,6 +24,8 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 
+import rinde.sim.pdptw.generator.times.PoissonProcessArrivalTimes;
+
 /**
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
  * 
