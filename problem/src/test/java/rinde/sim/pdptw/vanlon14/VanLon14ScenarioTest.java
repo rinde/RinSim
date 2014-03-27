@@ -43,9 +43,15 @@ public class VanLon14ScenarioTest {
     sb.addEvent(new AddDepotEvent(76, new Point(3, 3)));
     sb.addEvent(new AddVehicleEvent(125, new VehicleDTO(new Point(6, 9), 3d, 1,
         new TimeWindow(500, 10000L))));
-    sb.addEvent(new AddParcelEvent(new ParcelDTO(new Point(0, 0), new Point(1,
-        1), new TimeWindow(2500, 10000), new TimeWindow(5000, 10000), 0, 2400,
-        200, 800)));
+    sb.addEvent(new AddParcelEvent(ParcelDTO
+        .builder(new Point(0, 0), new Point(1, 1))
+        .pickupTimeWindow(new TimeWindow(2500, 10000))
+        .deliveryTimeWindow(new TimeWindow(5000, 10000))
+        .neededCapacity(0)
+        .arrivalTime(2400)
+        .pickupDuration(200)
+        .deliveryDuration(800)
+        .build()));
     sb.addEvent(new TimedEvent(PDPScenarioEvent.TIME_OUT, 200000));
 
     final VanLon14Scenario s = sb
@@ -70,8 +76,7 @@ public class VanLon14ScenarioTest {
 
     @Override
     public String getId() {
-      // TODO Auto-generated method stub
-      return null;
+      return "TEST";
     }
   }
 }
