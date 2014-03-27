@@ -77,8 +77,10 @@ public final class ParcelDTO implements Serializable {
     this(builder(pPickupLocation, pDestinationLocation)
         .pickupTimeWindow(pPickupTimeWindow)
         .deliveryTimeWindow(pDeliveryTimeWindow)
-        .neededCapacity(pNeededCapacity).arrivalTime(pOrderArrivalTime)
-        .pickupDuration(pPickupDuration).deliveryDuration(pDeliveryDuration));
+        .neededCapacity(pNeededCapacity)
+        .arrivalTime(pOrderArrivalTime)
+        .pickupDuration(pPickupDuration)
+        .deliveryDuration(pDeliveryDuration));
   }
 
   ParcelDTO(Builder b) {

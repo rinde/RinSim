@@ -53,8 +53,13 @@ public class MetricsTest {
   @Test
   public void testLoad1() {
     // distance is 1 km which is traveled in 2 minutes with 30km/h
-    final ParcelDTO dto = new ParcelDTO(new Point(0, 0), new Point(0, 1),
-        new TimeWindow(0, 10), new TimeWindow(10, 20), 0, 0, 5, 5);
+    final ParcelDTO dto = ParcelDTO.builder(new Point(0, 0), new Point(0, 1))
+        .pickupTimeWindow(new TimeWindow(0, 10))
+        .deliveryTimeWindow(new TimeWindow(10, 20))
+        .neededCapacity(0)
+        .arrivalTime(0)
+        .serviceDuration(5)
+        .build();
 
     final List<LoadPart> parts = measureLoad(new AddParcelEvent(dto), 30);
     assertEquals(3, parts.size());
@@ -94,8 +99,13 @@ public class MetricsTest {
   @Test
   public void testLoad2() {
     // distance is 10km which is travelled in 20 minutes with 30km/h
-    final ParcelDTO dto = new ParcelDTO(new Point(0, 0), new Point(0, 10),
-        new TimeWindow(15, 15), new TimeWindow(15, 15), 0, 0, 5, 5);
+    final ParcelDTO dto = ParcelDTO.builder(new Point(0, 0), new Point(0, 10))
+        .pickupTimeWindow(new TimeWindow(15, 15))
+        .deliveryTimeWindow(new TimeWindow(15, 15))
+        .neededCapacity(0)
+        .arrivalTime(0)
+        .serviceDuration(5)
+        .build();
 
     final List<LoadPart> parts = measureLoad(new AddParcelEvent(dto), 30);
     assertEquals(3, parts.size());
