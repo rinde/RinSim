@@ -304,6 +304,8 @@ public final class Solvers {
     for (final List<ParcelDTO> route : routes) {
       final Queue<DefaultParcel> newRoute = newLinkedList();
       for (final ParcelDTO dto : route) {
+        checkArgument(cont.parcelMap.containsKey(dto),
+            "Parcel %s is not known in the context.", dto);
         newRoute.add(cont.parcelMap.get(dto));
       }
       routesBuilder.add(newRoute);

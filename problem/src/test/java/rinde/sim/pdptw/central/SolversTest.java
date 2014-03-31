@@ -9,7 +9,9 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.mock;
 import static rinde.sim.core.TimeLapseFactory.create;
+import static rinde.sim.pdptw.central.Solvers.convertRoutes;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -243,33 +245,33 @@ public class SolversTest {
         new Point(5, 5), 30, 0,
         new TimeWindow(100L, 100000L));
 
-    final ParcelDTO a = new ParcelDTO(
-        new Point(0, 0),
-        new Point(10, 10),
-        new TimeWindow(0, 30),
-        new TimeWindow(70, 80),
-        0, 0, 5000L, 10000L);
+    final ParcelDTO a = ParcelDTO.builder(new Point(0, 0), new Point(10, 10))
+        .pickupTimeWindow(new TimeWindow(0, 30))
+        .deliveryTimeWindow(new TimeWindow(70, 80))
+        .pickupDuration(5000L)
+        .deliveryDuration(10000L)
+        .build();
 
-    final ParcelDTO b = new ParcelDTO(
-        new Point(5, 0),
-        new Point(10, 7),
-        new TimeWindow(0, 30),
-        new TimeWindow(70, 80),
-        0, 0, 5000L, 10000L);
+    final ParcelDTO b = ParcelDTO.builder(new Point(5, 0), new Point(10, 7))
+        .pickupTimeWindow(new TimeWindow(0, 30))
+        .deliveryTimeWindow(new TimeWindow(70, 80))
+        .pickupDuration(5000L)
+        .deliveryDuration(10000L)
+        .build();
 
-    final ParcelDTO c = new ParcelDTO(
-        new Point(3, 0),
-        new Point(6, 7),
-        new TimeWindow(0, 30),
-        new TimeWindow(70, 80),
-        0, 0, 5000L, 10000L);
+    final ParcelDTO c = ParcelDTO.builder(new Point(3, 0), new Point(6, 7))
+        .pickupTimeWindow(new TimeWindow(0, 30))
+        .deliveryTimeWindow(new TimeWindow(70, 80))
+        .pickupDuration(5000L)
+        .deliveryDuration(10000L)
+        .build();
 
-    final ParcelDTO d = new ParcelDTO(
-        new Point(3, 0),
-        new Point(6, 2),
-        new TimeWindow(0, 30),
-        new TimeWindow(70, 80),
-        0, 0, 5000L, 10000L);
+    final ParcelDTO d = ParcelDTO.builder(new Point(3, 0), new Point(6, 2))
+        .pickupTimeWindow(new TimeWindow(0, 30))
+        .deliveryTimeWindow(new TimeWindow(70, 80))
+        .pickupDuration(5000L)
+        .deliveryDuration(10000L)
+        .build();
 
     final ImmutableSet<ParcelDTO> availableParcels = ImmutableSet
         .<ParcelDTO> builder()
@@ -318,6 +320,33 @@ public class SolversTest {
     assertEquals(cost, cost0 + cost1, 0.001);
   }
 
+  /**
+   * Tests whether a mismatch in arguments supplied to convertRoutes is handled
+   * correctly.
+   */
+  @Test
+  public void convertRoutesFail() {
+    final DefaultParcel a = new DefaultParcel(ParcelDTO.builder(
+        new Point(0, 0), new Point(1, 1)).build());
+    final DefaultParcel b = new DefaultParcel(ParcelDTO.builder(
+        new Point(0, 1), new Point(1, 1)).build());
+
+    final DefaultVehicle vehicle = new TestVehicle(new Point(1, 1));
+    final GlobalStateObject gso = mock(GlobalStateObject.class);
+
+    final StateContext sc = new StateContext(gso,
+        ImmutableMap.of(vehicle.getDTO(), vehicle),
+        ImmutableMap.of(a.dto, a));
+
+    boolean fail = false;
+    try {
+      convertRoutes(sc, ImmutableList.of(ImmutableList.of(a.dto, b.dto)));
+    } catch (final IllegalArgumentException e) {
+      fail = true;
+    }
+    assertTrue(fail);
+  }
+
   // doesn't check the contents!
   void checkVehicles(List<? extends TestVehicle> expected,
       ImmutableList<VehicleStateObject> states) {
@@ -364,7 +393,11 @@ public class SolversTest {
   static final TimeWindow TW = new TimeWindow(0, 1000);
 
   static DefaultParcel createParcel(Point origin, Point dest) {
-    return new DefaultParcel(new ParcelDTO(origin, dest, TW, TW, 0, 0, 30, 30));
+    return new DefaultParcel(ParcelDTO.builder(origin, dest)
+        .pickupTimeWindow(TW)
+        .deliveryTimeWindow(TW)
+        .serviceDuration(30)
+        .build());
   }
 
   static class TestVehicle extends DefaultVehicle {
