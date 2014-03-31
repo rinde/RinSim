@@ -30,6 +30,7 @@ import com.google.common.collect.Lists;
 public class ScenarioGeneratorTest {
 
   @Test
+  @Ignore
   public void test() {
     final ScenarioGenerator sg = ScenarioGenerator.builder()
         .setAnnouncementIntensityPerKm2(1.3d)
