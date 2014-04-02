@@ -93,6 +93,73 @@ public final class Experiment {
   }
 
   /**
+   * Can be used to run a single simulation run.
+   * @param scenario The scenario to run on.
+   * @param configuration The configuration to use.
+   * @param seed The seed of the run.
+   * @param objFunc The {@link ObjectiveFunction} to use.
+   * @param showGui If <code>true</code> enables the gui.
+   * @param postProcessor The post processor to use for this run.
+   * @param uic The UICreator to use.
+   * @return The {@link SimulationResult} generated in the run.
+   */
+  public static SimulationResult singleRun(DynamicPDPTWScenario scenario,
+      MASConfiguration configuration, long seed, ObjectiveFunction objFunc,
+      boolean showGui, @Nullable PostProcessor<?> postProcessor,
+      @Nullable UICreator uic) {
+
+    final ExperimentRunner er = new ExperimentRunner(scenario, configuration,
+        seed, objFunc, showGui, postProcessor, uic);
+    er.run();
+    final SimulationResult res = er.getResult();
+    checkState(res != null);
+    return res;
+  }
+
+  /**
+   * Initialize a {@link DynamicPDPTWProblem} instance.
+   * @param scenario The scenario to use.
+   * @param config The configuration to use.
+   * @param showGui Whether to show the gui.
+   * @return The {@link DynamicPDPTWProblem} instance.
+   */
+  @VisibleForTesting
+  static DynamicPDPTWProblem init(DynamicPDPTWScenario scenario,
+      MASConfiguration config, long seed, boolean showGui,
+      @Nullable UICreator uic) {
+
+    final RandomGenerator rng = new MersenneTwister(seed);
+    final long simSeed = rng.nextLong();
+
+    final ImmutableList<? extends SupplierRng<? extends Model<?>>> modelSuppliers = config
+        .getModels();
+    final Model<?>[] models = new Model<?>[modelSuppliers.size()];
+    for (int i = 0; i < modelSuppliers.size(); i++) {
+      models[i] = modelSuppliers.get(i).get(rng.nextLong());
+    }
+
+    final DynamicPDPTWProblem problem = new DynamicPDPTWProblem(scenario,
+        simSeed, models);
+    problem.addCreator(AddVehicleEvent.class, config.getVehicleCreator());
+    if (config.getDepotCreator().isPresent()) {
+      problem.addCreator(AddDepotEvent.class, config.getDepotCreator().get());
+    }
+    if (config.getParcelCreator().isPresent()) {
+      problem.addCreator(AddParcelEvent.class, config.getParcelCreator().get());
+    }
+    if (showGui) {
+      if (uic == null) {
+        problem.addRendererToUI(new RouteRenderer());
+        problem.enableUI();
+      }
+      else {
+        problem.enableUI(uic);
+      }
+    }
+    return problem;
+  }
+
+  /**
    * Builder for configuring experiments.
    * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
    */
@@ -102,13 +169,12 @@ public final class Experiment {
     final ImmutableList.Builder<DynamicPDPTWScenario> scenariosBuilder;
     @Nullable
     UICreator uiCreator;
+    @Nullable
+    PostProcessor<?> postProc;
     boolean showGui;
     int repetitions;
     long masterSeed;
     private int numThreads;
-
-    @Nullable
-    PostProcessor<?> postProc;
 
     Builder(ObjectiveFunction objectiveFunction) {
       this.objectiveFunction = objectiveFunction;
@@ -261,23 +327,31 @@ public final class Experiment {
     public ExperimentResults perform() {
       checkArgument(numThreads == 1 || !showGui,
           "The GUI can not be shown when using more than one thread.");
+      final List<Long> seeds = generateSeeds();
+
+      // run Forrest run!
+      final ImmutableList<ExperimentRunner> runners = gatherAllRunners(seeds);
+      runAllRunners(runners);
+      return gatherResults(runners);
+    }
+
+    private ImmutableList<Long> generateSeeds() {
+      if (repetitions > 1) {
+        final RandomGenerator rng = new MersenneTwister(masterSeed);
+        return ExperimentUtil
+            .generateDistinct(rng, repetitions);
+      } else {
+        return ImmutableList.of(masterSeed);
+      }
+    }
+
+    private ImmutableList<ExperimentRunner> gatherAllRunners(List<Long> seeds) {
       final ImmutableList<DynamicPDPTWScenario> scen = scenariosBuilder.build();
       final ImmutableList<MASConfiguration> conf = configurationsBuilder
           .build();
 
       checkArgument(!scen.isEmpty(), "At least one scenario is required.");
       checkArgument(!conf.isEmpty(), "At least one configuration is required.");
-
-      final RandomGenerator rng = new MersenneTwister(masterSeed);
-      final List<Long> seeds;
-      if (repetitions > 1) {
-        seeds = ExperimentUtil
-            .generateDistinct(rng, repetitions);
-      } else {
-        seeds = ImmutableList.of(masterSeed);
-      }
-
-      // gather all runners
       final ImmutableList.Builder<ExperimentRunner> runnerBuilder = ImmutableList
           .builder();
       for (final MASConfiguration configuration : conf) {
@@ -289,8 +363,10 @@ public final class Experiment {
           }
         }
       }
-      final List<ExperimentRunner> runners = runnerBuilder.build();
+      return runnerBuilder.build();
+    }
 
+    private void runAllRunners(ImmutableList<ExperimentRunner> runners) {
       final int threads = Math.min(numThreads, runners.size());
       if (threads > 1) {
         final ExecutorService executor = Executors.newFixedThreadPool(threads);
@@ -308,7 +384,10 @@ public final class Experiment {
           er.run();
         }
       }
+    }
 
+    private ExperimentResults gatherResults(
+        ImmutableList<ExperimentRunner> runners) {
       final ImmutableList.Builder<SimulationResult> resultBuilder = ImmutableList
           .builder();
       for (final ExperimentRunner er : runners) {
@@ -323,73 +402,6 @@ public final class Experiment {
       }
       return new ExperimentResults(this, resultBuilder.build());
     }
-  }
-
-  /**
-   * Can be used to run a single simulation run.
-   * @param scenario The scenario to run on.
-   * @param configuration The configuration to use.
-   * @param seed The seed of the run.
-   * @param objFunc The {@link ObjectiveFunction} to use.
-   * @param showGui If <code>true</code> enables the gui.
-   * @param postProcessor The post processor to use for this run.
-   * @param uic The UICreator to use.
-   * @return The {@link SimulationResult} generated in the run.
-   */
-  public static SimulationResult singleRun(DynamicPDPTWScenario scenario,
-      MASConfiguration configuration, long seed, ObjectiveFunction objFunc,
-      boolean showGui, @Nullable PostProcessor<?> postProcessor,
-      @Nullable UICreator uic) {
-
-    final ExperimentRunner er = new ExperimentRunner(scenario, configuration,
-        seed, objFunc, showGui, postProcessor, uic);
-    er.run();
-    final SimulationResult res = er.getResult();
-    checkState(res != null);
-    return res;
-  }
-
-  /**
-   * Initialize a {@link DynamicPDPTWProblem} instance.
-   * @param scenario The scenario to use.
-   * @param config The configuration to use.
-   * @param showGui Whether to show the gui.
-   * @return The {@link DynamicPDPTWProblem} instance.
-   */
-  @VisibleForTesting
-  static DynamicPDPTWProblem init(DynamicPDPTWScenario scenario,
-      MASConfiguration config, long seed, boolean showGui,
-      @Nullable UICreator uic) {
-
-    final RandomGenerator rng = new MersenneTwister(seed);
-    final long simSeed = rng.nextLong();
-
-    final ImmutableList<? extends SupplierRng<? extends Model<?>>> modelSuppliers = config
-        .getModels();
-    final Model<?>[] models = new Model<?>[modelSuppliers.size()];
-    for (int i = 0; i < modelSuppliers.size(); i++) {
-      models[i] = modelSuppliers.get(i).get(rng.nextLong());
-    }
-
-    final DynamicPDPTWProblem problem = new DynamicPDPTWProblem(scenario,
-        simSeed, models);
-    problem.addCreator(AddVehicleEvent.class, config.getVehicleCreator());
-    if (config.getDepotCreator().isPresent()) {
-      problem.addCreator(AddDepotEvent.class, config.getDepotCreator().get());
-    }
-    if (config.getParcelCreator().isPresent()) {
-      problem.addCreator(AddParcelEvent.class, config.getParcelCreator().get());
-    }
-    if (showGui) {
-      if (uic == null) {
-        problem.addRendererToUI(new RouteRenderer());
-        problem.enableUI();
-      }
-      else {
-        problem.enableUI(uic);
-      }
-    }
-    return problem;
   }
 
   /**
