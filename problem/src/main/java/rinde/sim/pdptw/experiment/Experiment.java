@@ -108,7 +108,7 @@ public final class Experiment {
     private int numThreads;
 
     @Nullable
-    PostProcessor<?> finalizer;
+    PostProcessor<?> postProc;
 
     Builder(ObjectiveFunction objectiveFunction) {
       this.objectiveFunction = objectiveFunction;
@@ -238,8 +238,16 @@ public final class Experiment {
       return this;
     }
 
-    public Builder usePostProcessor(PostProcessor<?> fina) {
-      finalizer = fina;
+    /**
+     * Specify a {@link PostProcessor} which is used to gather additional
+     * results from a simulation. The data gathered by the post-processor ends
+     * up in {@link SimulationResult#simulationData}.
+     * @param postProcessor The post-processor to use, by default there is no
+     *          post-processor.
+     * @return This, as per the builder pattern.
+     */
+    public Builder usePostProcessor(PostProcessor<?> postProcessor) {
+      postProc = postProcessor;
       return this;
     }
 
@@ -277,7 +285,7 @@ public final class Experiment {
           for (int i = 0; i < repetitions; i++) {
             final long seed = seeds.get(i);
             runnerBuilder.add(new ExperimentRunner(scenario, configuration,
-                seed, objectiveFunction, showGui, finalizer, uiCreator));
+                seed, objectiveFunction, showGui, postProc, uiCreator));
           }
         }
       }
@@ -324,16 +332,17 @@ public final class Experiment {
    * @param seed The seed of the run.
    * @param objFunc The {@link ObjectiveFunction} to use.
    * @param showGui If <code>true</code> enables the gui.
+   * @param postProcessor The post processor to use for this run.
    * @param uic The UICreator to use.
    * @return The {@link SimulationResult} generated in the run.
    */
   public static SimulationResult singleRun(DynamicPDPTWScenario scenario,
       MASConfiguration configuration, long seed, ObjectiveFunction objFunc,
-      boolean showGui, @Nullable PostProcessor<?> finalizer,
+      boolean showGui, @Nullable PostProcessor<?> postProcessor,
       @Nullable UICreator uic) {
 
     final ExperimentRunner er = new ExperimentRunner(scenario, configuration,
-        seed, objFunc, showGui, finalizer, uic);
+        seed, objFunc, showGui, postProcessor, uic);
     er.run();
     final SimulationResult res = er.getResult();
     checkState(res != null);
@@ -409,6 +418,10 @@ public final class Experiment {
      */
     public final long seed;
 
+    /**
+     * Additional simulation data as gathered by a {@link PostProcessor}, or if
+     * no post-processor was used this object defaults to <code>null</code>.
+     */
     @Nullable
     public Object simulationData;
 
@@ -554,21 +567,21 @@ public final class Experiment {
     @Nullable
     private final UICreator uiCreator;
     @Nullable
-    private final PostProcessor<?> finalizer;
+    private final PostProcessor<?> postProcessor;
     @Nullable
     private SimulationResult result;
 
     ExperimentRunner(DynamicPDPTWScenario scenario,
         MASConfiguration configuration, long seed,
         ObjectiveFunction objectiveFunction, boolean showGui,
-        @Nullable PostProcessor<?> fina,
+        @Nullable PostProcessor<?> postProc,
         @Nullable UICreator uic) {
       this.scenario = scenario;
       this.configuration = configuration;
       this.seed = seed;
       this.objectiveFunction = objectiveFunction;
       this.showGui = showGui;
-      finalizer = fina;
+      postProcessor = postProc;
       uiCreator = uic;
     }
 
@@ -581,8 +594,8 @@ public final class Experiment {
 
         @Nullable
         Object data = null;
-        if (finalizer != null) {
-          data = finalizer.collectResults(prob.getSimulator());
+        if (postProcessor != null) {
+          data = postProcessor.collectResults(prob.getSimulator());
         }
 
         checkState(objectiveFunction.isValidResult(stats),
