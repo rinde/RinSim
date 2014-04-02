@@ -261,8 +261,13 @@ public final class Experiment {
       checkArgument(!conf.isEmpty(), "At least one configuration is required.");
 
       final RandomGenerator rng = new MersenneTwister(masterSeed);
-      final List<Long> seeds = ExperimentUtil
-          .generateDistinct(rng, repetitions);
+      final List<Long> seeds;
+      if (repetitions > 1) {
+        seeds = ExperimentUtil
+            .generateDistinct(rng, repetitions);
+      } else {
+        seeds = ImmutableList.of(masterSeed);
+      }
 
       // gather all runners
       final ImmutableList.Builder<ExperimentRunner> runnerBuilder = ImmutableList
@@ -570,7 +575,6 @@ public final class Experiment {
     @Override
     public void run() {
       try {
-
         final DynamicPDPTWProblem prob = init(scenario, configuration, seed,
             showGui, uiCreator);
         final StatisticsDTO stats = prob.simulate();

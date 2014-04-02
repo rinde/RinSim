@@ -67,6 +67,9 @@ public class ExperimentTest {
 
     final ExperimentResults er = builder.perform();
 
+    assertEquals(123, er.masterSeed);
+    assertEquals(123, er.results.get(0).seed);
+
     @SuppressWarnings("unchecked")
     final List<Point> positions = (List<Point>) er.results.get(0).simulationData;
     assertEquals(11, positions.size());
