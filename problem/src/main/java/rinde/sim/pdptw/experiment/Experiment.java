@@ -8,9 +8,9 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
 
 import java.util.List;
-import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 
 import javax.annotation.Nullable;
 
@@ -33,6 +33,10 @@ import rinde.sim.util.SupplierRng;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.ListeningExecutorService;
+import com.google.common.util.concurrent.MoreExecutors;
 
 /**
  * Utility for defining and performing experiments. An experiment is composed of
@@ -110,8 +114,7 @@ public final class Experiment {
 
     final ExperimentRunner er = new ExperimentRunner(scenario, configuration,
         seed, objFunc, showGui, postProcessor, uic);
-    er.run();
-    final SimulationResult res = er.getResult();
+    final SimulationResult res = er.call();
     checkState(res != null);
     return res;
   }
@@ -331,8 +334,7 @@ public final class Experiment {
 
       // run Forrest run!
       final ImmutableList<ExperimentRunner> runners = gatherAllRunners(seeds);
-      runAllRunners(runners);
-      return gatherResults(runners);
+      return runAllRunners(runners);
     }
 
     private ImmutableList<Long> generateSeeds() {
@@ -366,41 +368,33 @@ public final class Experiment {
       return runnerBuilder.build();
     }
 
-    private void runAllRunners(ImmutableList<ExperimentRunner> runners) {
-      final int threads = Math.min(numThreads, runners.size());
-      if (threads > 1) {
-        final ExecutorService executor = Executors.newFixedThreadPool(threads);
-        for (final ExperimentRunner er : runners) {
-          executor.execute(er);
-        }
-        executor.shutdown();
-        try {
-          executor.awaitTermination(10, TimeUnit.DAYS);
-        } catch (final InterruptedException e) {
-          throw new IllegalStateException(e);
-        }
-      } else {
-        for (final ExperimentRunner er : runners) {
-          er.run();
-        }
-      }
-    }
-
-    private ExperimentResults gatherResults(
+    private ExperimentResults runAllRunners(
         ImmutableList<ExperimentRunner> runners) {
-      final ImmutableList.Builder<SimulationResult> resultBuilder = ImmutableList
-          .builder();
-      for (final ExperimentRunner er : runners) {
-        final SimulationResult sr = er.getResult();
-        if (sr != null) {
-          resultBuilder.add(sr);
-        } else {
-          // FIXME need some way to gracefully handle this error. All data
-          // should be saved to reproduce this simulation.
-          System.err.println("Found a null result");
-        }
+      final int threads = Math.min(numThreads, runners.size());
+      final ListeningExecutorService executor;
+      if (threads > 1) {
+        executor = MoreExecutors
+            .listeningDecorator(Executors.newFixedThreadPool(threads));
+      } else {
+        executor = MoreExecutors.sameThreadExecutor();
       }
-      return new ExperimentResults(this, resultBuilder.build());
+      final List<SimulationResult> results;
+      try {
+        // safe cast according to javadoc
+        @SuppressWarnings({ "unchecked", "rawtypes" })
+        final List<ListenableFuture<SimulationResult>> futures = (List) executor
+            .invokeAll(runners);
+        results = Futures.allAsList(futures).get();
+      } catch (final InterruptedException e) {
+        throw new IllegalStateException(e);
+      } catch (final ExecutionException e) {
+        // FIXME need some way to gracefully handle this error. All data
+        // should be saved to reproduce this simulation.
+        throw new IllegalStateException(e);
+      }
+      executor.shutdown();
+
+      return new ExperimentResults(this, ImmutableList.copyOf(results));
     }
   }
 
@@ -570,7 +564,7 @@ public final class Experiment {
     }
   }
 
-  private static class ExperimentRunner implements Runnable {
+  private static class ExperimentRunner implements Callable<SimulationResult> {
     private final DynamicPDPTWScenario scenario;
     private final MASConfiguration configuration;
     private final long seed;
@@ -580,8 +574,6 @@ public final class Experiment {
     private final UICreator uiCreator;
     @Nullable
     private final PostProcessor<?> postProcessor;
-    @Nullable
-    private SimulationResult result;
 
     ExperimentRunner(DynamicPDPTWScenario scenario,
         MASConfiguration configuration, long seed,
@@ -598,7 +590,7 @@ public final class Experiment {
     }
 
     @Override
-    public void run() {
+    public SimulationResult call() {
       try {
         final DynamicPDPTWProblem prob = init(scenario, configuration, seed,
             showGui, uiCreator);
@@ -609,12 +601,14 @@ public final class Experiment {
         if (postProcessor != null) {
           data = postProcessor.collectResults(prob.getSimulator());
         }
-
         checkState(objectiveFunction.isValidResult(stats),
             "The simulation did not result in a valid result: %s.", stats);
+        final SimulationResult result = new SimulationResult(stats, scenario,
+            configuration, seed, data);
 
-        result = new SimulationResult(stats, scenario, configuration, seed,
-            data);
+        // FIXME this should be changed into a more decent progress indicator
+        System.out.print(".");
+        return result;
       } catch (final RuntimeException e) {
         final StringBuilder sb = new StringBuilder().append("[Scenario= ")
             .append(scenario).append(",").append(scenario.getProblemClass())
@@ -623,13 +617,7 @@ public final class Experiment {
             .append(configuration);
         throw new RuntimeException(sb.toString(), e);
       }
-      // FIXME this should be changed into a more decent progress indicator
-      System.out.print(".");
-    }
 
-    @Nullable
-    SimulationResult getResult() {
-      return result;
     }
   }
 }

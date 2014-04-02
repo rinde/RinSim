@@ -4,11 +4,11 @@
 package rinde.sim.pdptw.experiment;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import java.io.File;
 import java.util.List;
 
-import org.apache.commons.math3.random.MersenneTwister;
 import org.junit.Test;
 
 import rinde.sim.core.Simulator;
@@ -16,7 +16,6 @@ import rinde.sim.core.graph.Point;
 import rinde.sim.core.model.road.RoadModel;
 import rinde.sim.pdptw.central.Central;
 import rinde.sim.pdptw.central.RandomSolver;
-import rinde.sim.pdptw.central.Solver;
 import rinde.sim.pdptw.common.DynamicPDPTWProblem;
 import rinde.sim.pdptw.common.DynamicPDPTWScenario;
 import rinde.sim.pdptw.common.ObjectiveFunction;
@@ -25,7 +24,6 @@ import rinde.sim.pdptw.experiment.Experiment.ExperimentResults;
 import rinde.sim.pdptw.gendreau06.Gendreau06ObjectiveFunction;
 import rinde.sim.pdptw.gendreau06.Gendreau06Parser;
 import rinde.sim.pdptw.gendreau06.Gendreau06Scenario;
-import rinde.sim.util.SupplierRng;
 
 import com.google.common.collect.ImmutableList;
 
@@ -52,16 +50,10 @@ public class ExperimentTest {
     final Gendreau06Scenario scenario = Gendreau06Parser.parse(
         new File("files/test/gendreau06/req_rapide_1_240_24"));
 
-    final SupplierRng<Solver> s = new SupplierRng<Solver>() {
-      @Override
-      public Solver get(long seed) {
-        return new RandomSolver(new MersenneTwister(seed));
-      }
-    };
     final Experiment.Builder builder = Experiment
         .build(new Gendreau06ObjectiveFunction())
         .addScenario(scenario)
-        .addConfiguration(Central.solverConfiguration(s))
+        .addConfiguration(Central.solverConfiguration(RandomSolver.supplier()))
         .usePostProcessor(new TestPostProcessor())
         .withRandomSeed(123);
 
@@ -76,6 +68,35 @@ public class ExperimentTest {
     for (final Point p : positions) {
       assertEquals(new Point(2, 2.5), p);
     }
+  }
+
+  /**
+   * Checks whether the ordering of results is as expected.
+   */
+  @Test
+  public void multiThreadedOrder() {
+    final Gendreau06Scenario scenario = Gendreau06Parser.parse(
+        new File("files/test/gendreau06/req_rapide_1_240_24"));
+
+    final Experiment.Builder builder = Experiment
+        .build(new Gendreau06ObjectiveFunction())
+        .addScenario(scenario)
+        .addConfiguration(
+            Central.solverConfiguration(RandomSolver.supplier(), "A"))
+        .addConfiguration(
+            Central.solverConfiguration(RandomSolver.supplier(), "B"))
+        .addConfiguration(
+            Central.solverConfiguration(RandomSolver.supplier(), "C"))
+        .addConfiguration(
+            Central.solverConfiguration(RandomSolver.supplier(), "D"))
+        .withThreads(4)
+        .withRandomSeed(456);
+
+    final ExperimentResults er = builder.perform();
+    assertTrue(er.results.get(0).masConfiguration.toString().endsWith("A"));
+    assertTrue(er.results.get(1).masConfiguration.toString().endsWith("B"));
+    assertTrue(er.results.get(2).masConfiguration.toString().endsWith("C"));
+    assertTrue(er.results.get(3).masConfiguration.toString().endsWith("D"));
   }
 
   static class TestPostProcessor implements
