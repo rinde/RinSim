@@ -1,5 +1,16 @@
 # Release notes
 
+## v2.3.2
+* Core module
+	* StateMachine now optionally allows explicit recursive transitions.
+
+* Problem module
+	* Added PostProcessor option to Experiment class, this allows for customs statistics gathering of a simulation.
+	* Gendreau06Parser now sorts files by filename
+
+* Dependencies
+	* Guava 16.0.1
+
 ## v2.3.1
 
 * Problem 
