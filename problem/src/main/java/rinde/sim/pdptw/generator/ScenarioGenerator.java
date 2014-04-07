@@ -20,6 +20,12 @@ import rinde.sim.pdptw.common.AddDepotEvent;
 import rinde.sim.pdptw.common.AddParcelEvent;
 import rinde.sim.pdptw.common.ParcelDTO;
 import rinde.sim.pdptw.common.VehicleDTO;
+import rinde.sim.pdptw.generator.loc.LocationsGenerator;
+import rinde.sim.pdptw.generator.loc.NormalLocationsGenerator;
+import rinde.sim.pdptw.generator.times.ArrivalTimesGenerator;
+import rinde.sim.pdptw.generator.times.PoissonProcessArrivalTimes;
+import rinde.sim.pdptw.generator.tw.ProportionateUniformTWGenerator;
+import rinde.sim.pdptw.generator.tw.TimeWindowGenerator;
 import rinde.sim.scenario.Scenario;
 import rinde.sim.scenario.ScenarioBuilder;
 import rinde.sim.scenario.ScenarioBuilder.ScenarioCreator;
@@ -122,8 +128,14 @@ public class ScenarioGenerator<T extends Scenario> {
       final Point delivery = locations.get(index++);
       final ImmutableList<TimeWindow> tws = timeWindowGenerator.generate(time,
           pickup, delivery, rng);
-      sb.addEvent(new AddParcelEvent(new ParcelDTO(pickup, delivery,
-          tws.get(0), tws.get(1), 0, time, serviceTime, serviceTime)));
+      sb.addEvent(new AddParcelEvent(
+          ParcelDTO.builder(pickup, delivery)
+              .pickupTimeWindow(tws.get(0))
+              .deliveryTimeWindow(tws.get(1))
+              .neededCapacity(0)
+              .arrivalTime(time)
+              .serviceDuration(serviceTime)
+              .build()));
     }
     sb.addEvent(new TimedEvent(PDPScenarioEvent.TIME_OUT, length));
     if (scenarioCreator != null) {
@@ -178,7 +190,7 @@ public class ScenarioGenerator<T extends Scenario> {
     /**
      * The default vehicle speed in kilometer per hour.
      */
-    public static final double DEFAULT_VEHICLE_SPEED = 30;
+    public static final double DEFAULT_VEHICLE_SPEED = 30d;
 
     // this is actually irrelevant since parcels are weightless
     private static final int VEHICLE_CAPACITY = 1;

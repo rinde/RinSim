@@ -42,14 +42,12 @@ import rinde.sim.event.EventDispatcher;
  * <li>start simulation by calling {@link #start()}</li>
  * </ol>
  * Note that objects can not be registered <b>before</b> calling
- * {@link #configure()} and {@link Model}s can not be registed <b>after</b>
+ * {@link #configure()} and {@link Model}s can not be registered <b>after</b>
  * configuring.
- * 
  * 
  * @author Rinde van Lon (rinde.vanlon@cs.kuleuven.be)
  * @author Bartosz Michalik <bartosz.michalik@cs.kuleuven.be> - simulator API
  *         changes
- * 
  */
 public class Simulator implements SimulatorAPI {
 
@@ -157,7 +155,7 @@ public class Simulator implements SimulatorAPI {
   public void configure() {
     for (final Model<?> m : modelManager.getModels()) {
       if (m instanceof TickListener) {
-        LOGGER.info("adding " + m.getClass().getName() + " as a tick listener");
+        LOGGER.info("adding {} as a tick listener", m.getClass().getName());
         addTickListener((TickListener) m);
       }
     }
@@ -181,8 +179,8 @@ public class Simulator implements SimulatorAPI {
     injectDependencies(model);
     final boolean result = modelManager.add(model);
     if (result) {
-      LOGGER.info("registering model :" + model.getClass().getName()
-          + " for type:" + model.getSupportedType().getName());
+      LOGGER.info("registering model {} for type {}.", model.getClass()
+          .getName(), model.getSupportedType().getName());
     }
     return result;
   }

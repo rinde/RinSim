@@ -1,4 +1,4 @@
-package rinde.sim.pdptw.generator;
+package rinde.sim.pdptw.generator.loc;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;

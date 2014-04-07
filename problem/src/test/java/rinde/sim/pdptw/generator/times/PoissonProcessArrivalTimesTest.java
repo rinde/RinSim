@@ -1,7 +1,7 @@
 /**
  * 
  */
-package rinde.sim.pdptw.generator;
+package rinde.sim.pdptw.generator.times;
 
 import static com.google.common.collect.Sets.newHashSet;
 import static org.junit.Assert.assertEquals;
@@ -23,6 +23,9 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
+
+import rinde.sim.pdptw.generator.ScenarioGenerator;
+import rinde.sim.pdptw.generator.times.PoissonProcessArrivalTimes;
 
 /**
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>

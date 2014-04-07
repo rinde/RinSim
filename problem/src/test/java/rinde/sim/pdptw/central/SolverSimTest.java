@@ -22,6 +22,7 @@ import rinde.sim.pdptw.central.arrays.ArraysSolverDebugger.MVASDebugger;
 import rinde.sim.pdptw.central.arrays.ArraysSolvers;
 import rinde.sim.pdptw.central.arrays.ArraysSolvers.MVArraysObject;
 import rinde.sim.pdptw.central.arrays.SolutionObject;
+import rinde.sim.pdptw.common.ObjectiveFunction;
 import rinde.sim.pdptw.common.ParcelDTO;
 import rinde.sim.pdptw.common.StatisticsDTO;
 import rinde.sim.pdptw.experiment.Experiment;
@@ -89,8 +90,9 @@ public class SolverSimTest {
           solverOutput);
       assertTrue(stats.toString(), obj.isValidResult(stats));
       assertEquals(objValInMinutes, obj.computeCost(stats), 0.1);
+      assertEquals(objValInMinutes,
+          decomposedCost(solverInput, solverOutput, obj), 0.01);
     }
-
   }
 
   /**
@@ -154,7 +156,19 @@ public class SolverSimTest {
       assertEquals(arrTravelTime, travelTime, 0.01);
       assertEquals(arrTardiness, tardiness, 0.001);
       assertEquals(arrObjVal, obj.computeCost(stats), 0.01);
+      assertEquals(arrObjVal,
+          decomposedCost(solverInput, solverOutput, obj), 0.01);
     }
+  }
+
+  static double decomposedCost(GlobalStateObject gso,
+      ImmutableList<ImmutableList<ParcelDTO>> routes, ObjectiveFunction objFunc) {
+    double sum = 0d;
+    for (int i = 0; i < gso.vehicles.size(); i++) {
+      sum += objFunc.computeCost(Solvers.computeStats(gso.withSingleVehicle(i),
+          ImmutableList.of(routes.get(i))));
+    }
+    return sum;
   }
 
   // increment & convert to long[]

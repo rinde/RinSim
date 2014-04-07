@@ -607,7 +607,7 @@ public class MapPreprocessor {
   // 2. dot-files/
   // when calling main("brussels") a file named brussels.osm is expected in
   // osm-files. All .dot output is written in dot-files.
-  public static void main(String[] args) throws FileNotFoundException,
+  public static void main2(String[] args) throws FileNotFoundException,
       IOException {
     final DotGraphSerializer<MultiAttributeData> serializer = DotGraphSerializer
         .getMultiAttributeGraphSerializer();

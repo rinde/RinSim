@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.math.RoundingMode;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -79,7 +80,7 @@ public final class Gendreau06Parser {
   private boolean allowDiversion;
   private boolean online;
   private long tickSize;
-  private final ImmutableMap.Builder<String, InputStream> streams;
+  private final ImmutableMap.Builder<String, ParcelsSupplier> parcelsSuppliers;
   @Nullable
   private ImmutableList<ProblemClass> problemClasses;
 
@@ -88,7 +89,7 @@ public final class Gendreau06Parser {
     online = true;
     numVehicles = -1;
     tickSize = 1000L;
-    streams = ImmutableMap.builder();
+    parcelsSuppliers = ImmutableMap.builder();
   }
 
   /**
@@ -115,7 +116,9 @@ public final class Gendreau06Parser {
   public Gendreau06Parser addFile(File file) {
     checkValidFileName(file.getName());
     try {
-      streams.put(file.getName(), new FileInputStream(file));
+      parcelsSuppliers.put(file.getName(), new InputStreamToParcels(
+          new FileInputStream(
+              file)));
     } catch (final FileNotFoundException e) {
       throw new IllegalArgumentException(e);
     }
@@ -141,7 +144,21 @@ public final class Gendreau06Parser {
    */
   public Gendreau06Parser addFile(InputStream stream, String fileName) {
     checkValidFileName(fileName);
-    streams.put(fileName, stream);
+    parcelsSuppliers.put(fileName, new InputStreamToParcels(stream));
+    return this;
+  }
+
+  /**
+   * Add a scenario that is composed using the specified {@link AddParcelEvent}
+   * s.
+   * @param events The events to include.
+   * @param fileName The filename of the scenario.
+   * @return This, as per the builder pattern.
+   */
+  public Gendreau06Parser addFile(ImmutableList<AddParcelEvent> events,
+      String fileName) {
+    checkValidFileName(fileName);
+    parcelsSuppliers.put(fileName, new Parcels(events));
     return this;
   }
 
@@ -168,9 +185,11 @@ public final class Gendreau06Parser {
             return isValidFileName(file.getName());
           }
         });
+    Arrays.sort(files);
     for (final File f : files) {
       addFile(f);
     }
+
     return this;
   }
 
@@ -243,7 +262,8 @@ public final class Gendreau06Parser {
   public ImmutableList<Gendreau06Scenario> parse() {
     final ImmutableList.Builder<Gendreau06Scenario> scenarios = ImmutableList
         .builder();
-    for (final Entry<String, InputStream> entry : streams.build().entrySet()) {
+    for (final Entry<String, ParcelsSupplier> entry : parcelsSuppliers.build()
+        .entrySet()) {
       boolean include = false;
       if (problemClasses == null) {
         include = true;
@@ -260,38 +280,9 @@ public final class Gendreau06Parser {
             tickSize, allowDiversion, online));
       }
     }
+    // TODO sort list first by ProblemClass then by Id
     return scenarios.build();
   }
-
-  // public static Gendreau06Scenario parse(String file) {
-  // return parse(file, -1);
-  // }
-  //
-  // public static Gendreau06Scenario parse(String file, int numVehicles) {
-  // return parse(file, numVehicles, false);
-  // }
-  //
-  // public static Gendreau06Scenario parse(String file, int numVehicles,
-  // boolean allowDiversion) {
-  // FileReader reader;
-  // try {
-  // reader = new FileReader(file);
-  // } catch (final FileNotFoundException e) {
-  // throw new IllegalArgumentException("File not found: " + e.getMessage());
-  // }
-  // return parse(new BufferedReader(reader), new File(file).getName(),
-  // numVehicles, 1000L, allowDiversion);
-  // }
-  //
-  // public static Gendreau06Scenario parse(BufferedReader reader,
-  // String fileName, int numVehicles) {
-  // return parse(reader, fileName, numVehicles, 1000L);
-  // }
-  //
-  // public static Gendreau06Scenario parse(BufferedReader reader,
-  // String fileName, int numVehicles, final long tickSize) {
-  // return parse(reader, fileName, numVehicles, tickSize, false);
-  // }
 
   static boolean isValidFileName(String name) {
     return Pattern.compile(REGEX).matcher(name).matches();
@@ -303,15 +294,12 @@ public final class Gendreau06Parser {
         REGEX, name);
   }
 
-  private static Gendreau06Scenario parse(InputStream inputStream,
+  private static Gendreau06Scenario parse(
+      ParcelsSupplier parcels,
       String fileName, int numVehicles, final long tickSize,
       final boolean allowDiversion, boolean online) {
-
     final ScenarioBuilder sb = new ScenarioBuilder(ADD_PARCEL, ADD_DEPOT,
         ADD_VEHICLE, TIME_OUT);
-
-    final BufferedReader reader = new BufferedReader(new InputStreamReader(
-        inputStream));
 
     final Matcher m = Pattern.compile(REGEX).matcher(fileName);
     checkArgument(m.matches(),
@@ -336,6 +324,25 @@ public final class Gendreau06Parser {
       sb.addEvent(new AddVehicleEvent(-1, new VehicleDTO(depotPosition,
           truckSpeed, 0, new TimeWindow(0, totalTime))));
     }
+    sb.addEvents(parcels.get(online));
+    sb.addEvent(new TimedEvent(TIME_OUT, totalTime));
+
+    return sb.build(new ScenarioCreator<Gendreau06Scenario>() {
+      @Override
+      public Gendreau06Scenario create(List<TimedEvent> eventList,
+          Set<Enum<?>> eventTypes) {
+        return new Gendreau06Scenario(eventList, eventTypes, tickSize,
+            problemClass, instanceNumber, allowDiversion);
+      }
+    });
+  }
+
+  static ImmutableList<AddParcelEvent> parseParcels(InputStream inputStream,
+      boolean online) {
+    final ImmutableList.Builder<AddParcelEvent> listBuilder = ImmutableList
+        .builder();
+    final BufferedReader reader = new BufferedReader(new InputStreamReader(
+        inputStream));
     String line;
     try {
       while ((line = reader.readLine()) != null) {
@@ -370,28 +377,54 @@ public final class Gendreau06Parser {
           // when an offline scenario is desired, all times are set to -1
           final long arrTime = online ? requestArrivalTime : -1;
 
-          final ParcelDTO dto = new ParcelDTO(new Point(pickupX, pickupY),
-              new Point(deliveryX, deliveryY), new TimeWindow(
-                  pickupTimeWindowBegin, pickupTimeWindowEnd), new TimeWindow(
-                  deliveryTimeWindowBegin, deliveryTimeWindowEnd),
-              PARCEL_MAGNITUDE, arrTime, pickupServiceTime,
-              deliveryServiceTime);
-          sb.addEvent(new AddParcelEvent(dto));
+          final ParcelDTO dto = ParcelDTO.builder(new Point(pickupX, pickupY),
+              new Point(deliveryX, deliveryY)).
+              pickupTimeWindow(new TimeWindow(
+                  pickupTimeWindowBegin, pickupTimeWindowEnd))
+              .deliveryTimeWindow(new TimeWindow(
+                  deliveryTimeWindowBegin, deliveryTimeWindowEnd))
+              .neededCapacity(PARCEL_MAGNITUDE)
+              .arrivalTime(arrTime)
+              .pickupDuration(pickupServiceTime)
+              .deliveryDuration(deliveryServiceTime)
+              .build();
+          listBuilder.add(new AddParcelEvent(dto));
         }
       }
-      sb.addEvent(new TimedEvent(TIME_OUT, totalTime));
       reader.close();
     } catch (final IOException e) {
       throw new IllegalArgumentException(e);
     }
+    return listBuilder.build();
+  }
 
-    return sb.build(new ScenarioCreator<Gendreau06Scenario>() {
-      @Override
-      public Gendreau06Scenario create(List<TimedEvent> eventList,
-          Set<Enum<?>> eventTypes) {
-        return new Gendreau06Scenario(eventList, eventTypes, tickSize,
-            problemClass, instanceNumber, allowDiversion);
-      }
-    });
+  interface ParcelsSupplier {
+    ImmutableList<AddParcelEvent> get(boolean online);
+  }
+
+  static class InputStreamToParcels implements ParcelsSupplier {
+    final InputStream inputStream;
+
+    InputStreamToParcels(InputStream is) {
+      inputStream = is;
+    }
+
+    @Override
+    public ImmutableList<AddParcelEvent> get(boolean online) {
+      return parseParcels(inputStream, online);
+    }
+  }
+
+  static class Parcels implements ParcelsSupplier {
+    final ImmutableList<AddParcelEvent> parcels;
+
+    Parcels(ImmutableList<AddParcelEvent> ps) {
+      parcels = ps;
+    }
+
+    @Override
+    public ImmutableList<AddParcelEvent> get(boolean online) {
+      return parcels;
+    }
   }
 }

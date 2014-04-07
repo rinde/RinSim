@@ -1,7 +1,7 @@
 /**
  * 
  */
-package rinde.sim.pdptw.generator;
+package rinde.sim.pdptw.generator.tw;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static rinde.sim.pdptw.generator.Metrics.travelTime;

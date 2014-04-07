@@ -1,4 +1,4 @@
-package rinde.sim.pdptw.generator;
+package rinde.sim.pdptw.generator.times;
 
 import javax.annotation.Nullable;
 

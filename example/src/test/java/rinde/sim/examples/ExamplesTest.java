@@ -26,13 +26,23 @@ public class ExamplesTest {
     AgentCommunicationExample.run(true);
   }
 
+  /**
+   * Run the gradient field example class.
+   */
   @Test
   public void gradientFieldExample() {
     try {
       GradientFieldExample.run(true);
     } catch (final RuntimeException e) {
-      assertTrue(e.getCause() instanceof IllegalStateException);
-      assertTrue(e.getCause().getMessage().contains(
+      // find the root cause of the exception
+      Throwable cur = e;
+      while (cur.getCause() != null) {
+        cur = cur.getCause();
+      }
+      // verify that the exception was caused by the early termination of the
+      // simulation
+      assertTrue(cur instanceof IllegalStateException);
+      assertTrue(cur.getMessage().contains(
           "The simulation did not result in a valid result"));
     }
   }

@@ -9,7 +9,9 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.mock;
 import static rinde.sim.core.TimeLapseFactory.create;
+import static rinde.sim.pdptw.central.Solvers.convertRoutes;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -51,10 +53,13 @@ import rinde.sim.pdptw.central.arrays.MultiVehicleSolverAdapter;
 import rinde.sim.pdptw.central.arrays.RandomMVArraysSolver;
 import rinde.sim.pdptw.common.DefaultParcel;
 import rinde.sim.pdptw.common.DefaultVehicle;
+import rinde.sim.pdptw.common.ObjectiveFunction;
 import rinde.sim.pdptw.common.PDPRoadModel;
 import rinde.sim.pdptw.common.PDPTWTestUtil;
 import rinde.sim.pdptw.common.ParcelDTO;
+import rinde.sim.pdptw.common.StatisticsDTO;
 import rinde.sim.pdptw.common.VehicleDTO;
+import rinde.sim.pdptw.gendreau06.Gendreau06ObjectiveFunction;
 import rinde.sim.util.TimeWindow;
 
 import com.google.common.collect.ImmutableList;
@@ -229,6 +234,119 @@ public class SolversTest {
     assertTrue(sc6.state.availableParcels.isEmpty());
   }
 
+  /**
+   * Tests whether the
+   * {@link Solvers#computeStats(GlobalStateObject, ImmutableList)} method
+   * produces the same result when providing decomposed state objects.
+   */
+  @Test
+  public void convertDecompositionTest() {
+    final VehicleDTO vd1 = new VehicleDTO(
+        new Point(5, 5), 30, 0,
+        new TimeWindow(100L, 100000L));
+
+    final ParcelDTO a = ParcelDTO.builder(new Point(0, 0), new Point(10, 10))
+        .pickupTimeWindow(new TimeWindow(0, 30))
+        .deliveryTimeWindow(new TimeWindow(70, 80))
+        .pickupDuration(5000L)
+        .deliveryDuration(10000L)
+        .build();
+
+    final ParcelDTO b = ParcelDTO.builder(new Point(5, 0), new Point(10, 7))
+        .pickupTimeWindow(new TimeWindow(0, 30))
+        .deliveryTimeWindow(new TimeWindow(70, 80))
+        .pickupDuration(5000L)
+        .deliveryDuration(10000L)
+        .build();
+
+    final ParcelDTO c = ParcelDTO.builder(new Point(3, 0), new Point(6, 7))
+        .pickupTimeWindow(new TimeWindow(0, 30))
+        .deliveryTimeWindow(new TimeWindow(70, 80))
+        .pickupDuration(5000L)
+        .deliveryDuration(10000L)
+        .build();
+
+    final ParcelDTO d = ParcelDTO.builder(new Point(3, 0), new Point(6, 2))
+        .pickupTimeWindow(new TimeWindow(0, 30))
+        .deliveryTimeWindow(new TimeWindow(70, 80))
+        .pickupDuration(5000L)
+        .deliveryDuration(10000L)
+        .build();
+
+    final ImmutableSet<ParcelDTO> availableParcels = ImmutableSet
+        .<ParcelDTO> builder()
+        .add(b).add(c)
+        .build();
+
+    final ImmutableList<VehicleStateObject> vehicles = ImmutableList
+        .<VehicleStateObject> builder()
+        .add(
+            new VehicleStateObject(
+                vd1,
+                new Point(7, 9),
+                ImmutableSet.<ParcelDTO> of(a),
+                0L,
+                null,
+                null))
+        .add(new VehicleStateObject(
+            vd1,
+            new Point(3, 2),
+            ImmutableSet.<ParcelDTO> of(d),
+            0L,
+            null,
+            null))
+        .build();
+
+    final GlobalStateObject state = new GlobalStateObject(availableParcels,
+        vehicles, 0L, SI.MILLI(SI.SECOND), NonSI.KILOMETERS_PER_HOUR,
+        SI.KILOMETER);
+
+    final ImmutableList<ImmutableList<ParcelDTO>> routes = ImmutableList
+        .<ImmutableList<ParcelDTO>> builder()
+        .add(ImmutableList.<ParcelDTO> of(a, b, c, c, b))
+        .add(ImmutableList.<ParcelDTO> of(d, d))
+        .build();
+
+    final StatisticsDTO stats = Solvers.computeStats(state, routes);
+    final ObjectiveFunction objFunc = new Gendreau06ObjectiveFunction();
+    final double cost = objFunc.computeCost(stats);
+
+    final double cost0 = objFunc.computeCost(Solvers.computeStats(
+        state.withSingleVehicle(0),
+        ImmutableList.of(routes.get(0))));
+    final double cost1 = objFunc.computeCost(Solvers.computeStats(
+        state.withSingleVehicle(1),
+        ImmutableList.of(routes.get(1))));
+    assertEquals(cost, cost0 + cost1, 0.001);
+  }
+
+  /**
+   * Tests whether a mismatch in arguments supplied to convertRoutes is handled
+   * correctly.
+   */
+  @Test
+  public void convertRoutesFail() {
+    final DefaultParcel a = new DefaultParcel(ParcelDTO.builder(
+        new Point(0, 0), new Point(1, 1)).build());
+    final DefaultParcel b = new DefaultParcel(ParcelDTO.builder(
+        new Point(0, 1), new Point(1, 1)).build());
+
+    final DefaultVehicle vehicle = new TestVehicle(new Point(1, 1));
+    final GlobalStateObject gso = mock(GlobalStateObject.class);
+
+    final StateContext sc = new StateContext(gso,
+        ImmutableMap.of(vehicle.getDTO(), vehicle),
+        ImmutableMap.of(a.dto, a));
+
+    boolean fail = false;
+    try {
+      convertRoutes(sc, ImmutableList.of(ImmutableList.of(a.dto, b.dto)));
+    } catch (final IllegalArgumentException e) {
+      fail = true;
+    }
+    assertTrue(fail);
+  }
+
   // doesn't check the contents!
   void checkVehicles(List<? extends TestVehicle> expected,
       ImmutableList<VehicleStateObject> states) {
@@ -275,7 +393,11 @@ public class SolversTest {
   static final TimeWindow TW = new TimeWindow(0, 1000);
 
   static DefaultParcel createParcel(Point origin, Point dest) {
-    return new DefaultParcel(new ParcelDTO(origin, dest, TW, TW, 0, 0, 30, 30));
+    return new DefaultParcel(ParcelDTO.builder(origin, dest)
+        .pickupTimeWindow(TW)
+        .deliveryTimeWindow(TW)
+        .serviceDuration(30)
+        .build());
   }
 
   static class TestVehicle extends DefaultVehicle {

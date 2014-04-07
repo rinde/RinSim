@@ -4,23 +4,25 @@
 package rinde.sim.util.fsm;
 
 import static com.google.common.collect.Lists.newArrayList;
+import static java.util.Collections.unmodifiableList;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
-import static rinde.sim.util.fsm.StateMachineTest.States.PAUSED;
-import static rinde.sim.util.fsm.StateMachineTest.States.SPECIAL;
-import static rinde.sim.util.fsm.StateMachineTest.States.STARTED;
-import static rinde.sim.util.fsm.StateMachineTest.States.STOPPED;
 
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 
-import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
+import org.junit.runners.Parameterized.Parameters;
 
 import rinde.sim.event.ListenerEventHistory;
+import rinde.sim.util.fsm.StateMachine.StateMachineBuilder;
 import rinde.sim.util.fsm.StateMachine.StateMachineEvent;
 import rinde.sim.util.fsm.StateMachine.StateTransitionEvent;
 
@@ -28,87 +30,33 @@ import rinde.sim.util.fsm.StateMachine.StateTransitionEvent;
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
  * 
  */
+@RunWith(value = Parameterized.class)
 public class StateMachineTest {
-
-  enum Events {
-    START, STOP, PAUSE, SPEZIAL
-  }
-
-  class DefaultState implements State<Events, Context> {
-    protected List<Events> history;
-
-    protected DefaultState() {
-      history = newArrayList();
-    }
-
-    @Override
-    public String name() {
-      return getClass().getSimpleName();
-    }
-
-    @Override
-    @Nullable
-    public Events handle(@Nullable Events event, Context context) {
-      history.add(event);
-      return null;
-    }
-
-    @Override
-    public void onEntry(Events event, Context context) {}
-
-    @Override
-    public void onExit(Events event, Context context) {}
-  }
-
-  class StateA extends DefaultState {}
-
-  class StateB extends DefaultState {}
-
-  class StateC extends DefaultState {}
-
-  enum States implements State<Events, Context> {
-
-    STARTED {},
-    STOPPED {},
-    PAUSED {},
-    SPECIAL {
-      @Nullable
-      @Override
-      public Events handle(@Nullable Events event, Context context) {
-        super.handle(event, context);
-        if (context != null) {
-          return Events.START;
-        }
-        return null;
-      }
-    };
-
-    protected List<Events> history;
-
-    private States() {
-      history = newArrayList();
-    }
-
-    @Override
-    public void onEntry(Events event, Context context) {}
-
-    @Override
-    public void onExit(Events event, Context context) {}
-
-    @Nullable
-    @Override
-    public Events handle(@Nullable Events event, Context context) {
-      history.add(event);
-      return null;
-    }
-  }
-
-  class Context {}
-
+  final static Context CONTEXT = new Context();
+  final static Context SPECIAL_CONTEXT = new Context();
   /**
    * The state machine under test.
    */
   protected StateMachine<Events, Context> fsm;
+  final boolean explicitRecursiveTransitions;
+  DefaultState startState, stopState, pauseState, specialState;
+
+  /**
+   * @param ert Indicates whether to create a state machine that enables
+   *          explicit recursive transitions.
+   */
+  @SuppressWarnings("null")
+  public StateMachineTest(boolean ert) {
+    explicitRecursiveTransitions = ert;
+  }
+
+  /**
+   * @return The parameters for the tests.
+   */
+  @Parameters
+  public static Collection<Object[]> data() {
+    return Arrays.asList(new Object[][] { { true }, { false } });
+  }
 
   /**
    * Setup the state machine used in the tests.
@@ -116,19 +64,36 @@ public class StateMachineTest {
   @SuppressWarnings("unchecked")
   @Before
   public void setUp() {
-    fsm = StateMachine.create(STOPPED)
-        .addTransition(STARTED, Events.STOP, STOPPED)
-        .addTransition(STARTED, Events.SPEZIAL, SPECIAL)
-        .addTransition(SPECIAL, Events.START, STARTED)
-        .addTransition(SPECIAL, Events.STOP, SPECIAL)
-        .addTransition(STOPPED, Events.START, STARTED)
-        .addTransition(STOPPED, Events.STOP, STOPPED)
-        .addTransition(STARTED, Events.PAUSE, PAUSED)
-        .addTransition(PAUSED, Events.STOP, STOPPED)
-        .addTransition(PAUSED, Events.START, STARTED).build();
+    startState = new StartState();
+    stopState = new StopState();
+    pauseState = new PauseState();
+    specialState = new SpecialState();
 
-    assertTrue(fsm.stateIsOneOf(States.values()));
-    assertFalse(fsm.stateIsOneOf(STARTED, SPECIAL));
+    final StateMachineBuilder<Events, Context> smb = StateMachine
+        .create(stopState)
+        .addTransition(startState, Events.STOP, stopState)
+        .addTransition(startState, Events.SPEZIAL, specialState)
+        .addTransition(specialState, Events.START, startState)
+        .addTransition(specialState, Events.STOP, specialState)
+        .addTransition(stopState, Events.START, startState)
+        .addTransition(stopState, Events.STOP, stopState)
+        .addTransition(startState, Events.PAUSE, pauseState)
+        .addTransition(pauseState, Events.STOP, stopState)
+        .addTransition(pauseState, Events.START, startState)
+        .addTransition(startState, Events.RECURSIVE, startState)
+        .addTransition(pauseState, Events.RECURSIVE, pauseState)
+        .addTransition(stopState, Events.RECURSIVE, stopState)
+        .addTransition(specialState, Events.RECURSIVE, specialState);
+
+    if (explicitRecursiveTransitions) {
+      smb.explicitRecursiveTransitions();
+    }
+
+    fsm = smb.build();
+
+    assertTrue(fsm
+        .stateIsOneOf(startState, specialState, stopState, pauseState));
+    assertFalse(fsm.stateIsOneOf(startState, specialState));
 
     fsm.toDot();
     StateMachineEvent.valueOf("STATE_TRANSITION");
@@ -142,11 +107,15 @@ public class StateMachineTest {
     final StateA a = new StateA();
     final StateB b = new StateB();
     final StateC c = new StateC();
-    fsm = StateMachine.create(a)
+    final StateMachineBuilder<Events, Context> smb = StateMachine.create(a)
         .addTransition(a, Events.START, b)
         .addTransition(b, Events.START, c)
-        .addTransition(c, Events.START, a)
-        .build();
+        .addTransition(c, Events.START, a);
+
+    if (explicitRecursiveTransitions) {
+      smb.explicitRecursiveTransitions();
+    }
+    fsm = smb.build();
 
     final State<Events, Context> first = fsm.getStates().iterator().next();
     assertEquals(first, fsm.getStateOfType(Object.class));
@@ -173,43 +142,78 @@ public class StateMachineTest {
         .addListener(history, StateMachine.StateMachineEvent.values());
 
     // start in STOPPED state
-    assertEquals(STOPPED, fsm.getCurrentState());
-    fsm.handle(Events.START, null);
-    assertEquals(STARTED, fsm.getCurrentState());
+    assertEquals(stopState, fsm.getCurrentState());
+    fsm.handle(Events.START, CONTEXT);
+    assertEquals(startState, fsm.getCurrentState());
     // history.getHistory()
 
     // nothing should happen
-    fsm.handle(null);
-    assertEquals(STARTED, fsm.getCurrentState());
+    fsm.handle(CONTEXT);
+    assertEquals(startState, fsm.getCurrentState());
 
     // should go to SPECIAL and back to STARTED immediately
     history.clear();
-    fsm.handle(Events.SPEZIAL, new Context());
-    assertEquals(STARTED, fsm.getCurrentState());
+    fsm.handle(Events.SPEZIAL, SPECIAL_CONTEXT);
+    assertEquals(startState, fsm.getCurrentState());
     assertEquals(2, history.getHistory().size());
     assertTrue(((StateTransitionEvent) history.getHistory().get(0))
-        .equalTo(STARTED, Events.SPEZIAL, SPECIAL));
+        .equalTo(startState, Events.SPEZIAL, specialState));
     assertTrue(((StateTransitionEvent) history.getHistory().get(1))
-        .equalTo(SPECIAL, Events.START, STARTED));
+        .equalTo(specialState, Events.START, startState));
 
     // testing the equalTo method
     assertFalse(((StateTransitionEvent) history.getHistory().get(1))
-        .equalTo(STARTED, Events.START, STARTED));
+        .equalTo(startState, Events.START, startState));
     assertFalse(((StateTransitionEvent) history.getHistory().get(1))
-        .equalTo(SPECIAL, Events.PAUSE, STARTED));
+        .equalTo(specialState, Events.PAUSE, startState));
     assertFalse(((StateTransitionEvent) history.getHistory().get(1))
-        .equalTo(SPECIAL, Events.START, SPECIAL));
+        .equalTo(specialState, Events.START, specialState));
 
     // go to SPECIAL
-    fsm.handle(Events.SPEZIAL, null);
-    assertEquals(SPECIAL, fsm.getCurrentState());
+    fsm.handle(Events.SPEZIAL, CONTEXT);
+    assertEquals(specialState, fsm.getCurrentState());
     // should remain in SPECIAL
-    fsm.handle(Events.STOP, null);
-    assertEquals(SPECIAL, fsm.getCurrentState());
+    fsm.handle(Events.STOP, CONTEXT);
+    assertEquals(specialState, fsm.getCurrentState());
 
-    fsm.handle(Events.START, null);
-    assertEquals(STARTED, fsm.getCurrentState());
+    fsm.handle(Events.START, CONTEXT);
+    assertEquals(startState, fsm.getCurrentState());
+  }
 
+  /**
+   * Tests recursive transitions.
+   */
+  @Test
+  public void testRecursiveTransitions() {
+    final ListenerEventHistory history = new ListenerEventHistory();
+    fsm.getEventAPI()
+        .addListener(history, StateMachine.StateMachineEvent.values());
+
+    // stopped recursive
+    assertEquals(stopState, fsm.getCurrentState());
+    assertTrue(stopState.handleHistory().isEmpty());
+    assertTrue(stopState.onEntryHistory().isEmpty());
+    assertTrue(stopState.onExitHistory().isEmpty());
+    assertTrue(history.getHistory().isEmpty());
+
+    fsm.handle(Events.RECURSIVE, CONTEXT);
+    assertEquals(stopState, fsm.getCurrentState());
+
+    assertEquals(1, stopState.handleHistory().size());
+    if (explicitRecursiveTransitions) {
+      assertEquals(1, stopState.onEntryHistory().size());
+      assertEquals(1, stopState.onExitHistory().size());
+      assertEquals(1, history.getHistory().size());
+      assertEquals(
+          new StateTransitionEvent<Events, Context>(fsm, stopState,
+              Events.RECURSIVE, stopState),
+          history.getHistory().get(0));
+    }
+    else {
+      assertTrue(stopState.onEntryHistory().isEmpty());
+      assertTrue(stopState.onExitHistory().isEmpty());
+      assertTrue(history.getHistory().isEmpty());
+    }
   }
 
   /**
@@ -217,8 +221,8 @@ public class StateMachineTest {
    */
   @Test(expected = IllegalArgumentException.class)
   public void impossibleTransition() {
-    fsm.handle(Events.START, null);
-    fsm.handle(Events.START, null);
+    fsm.handle(Events.START, CONTEXT);
+    fsm.handle(Events.START, CONTEXT);
   }
 
   /**
@@ -245,7 +249,7 @@ public class StateMachineTest {
 
     assertFalse(sm.isSupported(event2));
 
-    sm.handle("event1", null);
+    sm.handle("event1", CONTEXT);
     assertTrue(sm.stateIs(state2));
 
     assertTrue(sm.isSupported(event2));
@@ -264,9 +268,86 @@ public class StateMachineTest {
       return super.name() + name;
     }
 
+    @Nullable
     @Override
-    public Object handle(@Nonnull Object event, Object context) {
+    public Object handle(Object event, Object context) {
       return null;
     }
   }
+
+  enum Events {
+    START, STOP, PAUSE, SPEZIAL, RECURSIVE
+  }
+
+  static class DefaultState implements State<Events, Context> {
+    private final List<Events> history;
+    private final List<Events> onEntryHistory;
+    private final List<Events> onExitHistory;
+
+    DefaultState() {
+      history = newArrayList();
+      onEntryHistory = newArrayList();
+      onExitHistory = newArrayList();
+    }
+
+    @Override
+    public String name() {
+      return getClass().getSimpleName();
+    }
+
+    @Override
+    @Nullable
+    public Events handle(@Nullable Events event, Context context) {
+      history.add(event);
+      return null;
+    }
+
+    @Override
+    public void onEntry(Events event, Context context) {
+      onEntryHistory.add(event);
+    }
+
+    @Override
+    public void onExit(Events event, Context context) {
+      onExitHistory.add(event);
+    }
+
+    List<Events> handleHistory() {
+      return unmodifiableList(history);
+    }
+
+    List<Events> onEntryHistory() {
+      return unmodifiableList(onEntryHistory);
+    }
+
+    List<Events> onExitHistory() {
+      return unmodifiableList(onExitHistory);
+    }
+  }
+
+  class StateA extends DefaultState {}
+
+  class StateB extends DefaultState {}
+
+  class StateC extends DefaultState {}
+
+  static class StartState extends DefaultState {}
+
+  static class StopState extends DefaultState {}
+
+  static class PauseState extends DefaultState {}
+
+  static class SpecialState extends DefaultState {
+    @Nullable
+    @Override
+    public Events handle(@Nullable Events event, Context context) {
+      super.handle(event, context);
+      if (context == SPECIAL_CONTEXT) {
+        return Events.START;
+      }
+      return null;
+    }
+  }
+
+  static class Context {}
 }

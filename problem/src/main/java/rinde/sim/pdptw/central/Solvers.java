@@ -101,11 +101,11 @@ public final class Solvers {
   /**
    * Computes a {@link StatisticsDTO} instance for the given
    * {@link GlobalStateObject} and routes. For each vehicle in the state the
-   * specified route is used and it its arrival times, tardiness and travel
-   * times are computed. The resulting {@link StatisticsDTO} has the same
-   * properties as performing a simulation with the same state. However, since
-   * the current state may be half-way a simulation, it is possible that the
-   * returned statistics describe only a partial simulation. As a result
+   * specified route is used and its arrival times, tardiness and travel times
+   * are computed. The resulting {@link StatisticsDTO} has the same properties
+   * as performing a simulation with the same state. However, since the current
+   * state may be half-way a simulation, it is possible that the returned
+   * statistics describe only a partial simulation. As a result
    * {@link StatisticsDTO#totalDeliveries} does not necessarily equal
    * {@link StatisticsDTO#totalPickups}.
    * @param state The state which represents a simulation.
@@ -123,7 +123,10 @@ public final class Solvers {
         .fromNullable(routes);
 
     if (r.isPresent()) {
-      checkArgument(state.vehicles.size() == r.get().size());
+      checkArgument(
+          state.vehicles.size() == r.get().size(),
+          "Exactly one route should be supplied for every vehicle in state. %s vehicle(s) in state, received %s route(s).",
+          state.vehicles.size(), r.get().size());
     }
 
     double totalDistance = 0;
@@ -301,6 +304,8 @@ public final class Solvers {
     for (final List<ParcelDTO> route : routes) {
       final Queue<DefaultParcel> newRoute = newLinkedList();
       for (final ParcelDTO dto : route) {
+        checkArgument(cont.parcelMap.containsKey(dto),
+            "Parcel %s is not known in the context.", dto);
         newRoute.add(cont.parcelMap.get(dto));
       }
       routesBuilder.add(newRoute);

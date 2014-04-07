@@ -3,6 +3,8 @@
  */
 package rinde.sim.pdptw.central;
 
+import static com.google.common.base.Preconditions.checkArgument;
+
 import javax.annotation.Nullable;
 import javax.measure.quantity.Duration;
 import javax.measure.quantity.Length;
@@ -70,6 +72,21 @@ public class GlobalStateObject {
     this.timeUnit = timeUnit;
     this.speedUnit = speedUnit;
     this.distUnit = distUnit;
+  }
+
+  /**
+   * Constructs a new {@link GlobalStateObject} with only the selected vehicle.
+   * The current instance remains unchanged.
+   * @param index The index of the vehicle to select.
+   * @return A new object containing only the selected vehicle, all other values
+   *         are copied from this instance.
+   */
+  public GlobalStateObject withSingleVehicle(int index) {
+    checkArgument(index >= 0 && index < vehicles.size(),
+        "Invalid vehicle index (%s) must be >= 0 and < %s.", index,
+        vehicles.size());
+    return new GlobalStateObject(availableParcels, ImmutableList.of(vehicles
+        .get(index)), time, timeUnit, speedUnit, distUnit);
   }
 
   @Override

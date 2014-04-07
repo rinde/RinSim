@@ -2,7 +2,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.github.rinde</groupId>
 	<artifactId>rinsim-main</artifactId>
-	<version>2.3.1</version>
+	<version>2.3.2</version>
 
 	<packaging>pom</packaging>
 
@@ -29,8 +29,8 @@
 		<connection>scm:git:git@github.com:rinde/RinSim.git</connection>
 		<developerConnection>scm:git:git@github.com:rinde/RinSim.git</developerConnection>
 		<url>http://github.com/rinde/RinSim</url>
-	  <tag>HEAD</tag>
-  </scm>
+		<tag>HEAD</tag>
+	</scm>
 
 	<developers>
 		<developer>
@@ -147,6 +147,11 @@
 						<goals>
 							<goal>test-jar</goal>
 						</goals>
+						<configuration>
+							<excludes>
+								<excludes>logback-test.xml</excludes>
+							</excludes>
+						</configuration>
 					</execution>
 				</executions>
 			</plugin>
@@ -154,9 +159,6 @@
 				<artifactId>maven-assembly-plugin</artifactId>
 				<version>2.3</version>
 			</plugin>
-
-
-
 
 			<plugin>
 				<groupId>org.codehaus.mojo</groupId>
@@ -167,12 +169,8 @@
 						<format>html</format>
 						<format>xml</format>
 					</formats>
-					<!-- <instrumentation>
-						<excludes>
-							<exclude>rinde/sim/example*/**/*.class</exclude>
-							<exclude>rinde/sim/lab/**/*.class</exclude>
-						</excludes>
-					</instrumentation>-->
+					<!-- <instrumentation> <excludes> <exclude>rinde/sim/example*/**/*.class</exclude> 
+						<exclude>rinde/sim/lab/**/*.class</exclude> </excludes> </instrumentation> -->
 				</configuration>
 				<executions>
 					<execution>
@@ -244,7 +242,7 @@
 			<dependency>
 				<groupId>com.google.guava</groupId>
 				<artifactId>guava</artifactId>
-				<version>15.0</version>
+				<version>16.0.1</version>
 			</dependency>
 			<dependency>
 				<groupId>org.slf4j</groupId>
