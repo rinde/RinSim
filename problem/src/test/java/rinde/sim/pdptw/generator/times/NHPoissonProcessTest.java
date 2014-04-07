@@ -13,6 +13,7 @@ import org.apache.commons.math3.analysis.integration.UnivariateIntegrator;
 import org.apache.commons.math3.random.MersenneTwister;
 import org.apache.commons.math3.random.RandomGenerator;
 import org.apache.commons.math3.stat.descriptive.moment.StandardDeviation;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import rinde.sim.core.graph.Point;
@@ -33,7 +34,7 @@ import com.google.common.collect.Range;
 import com.google.common.io.Files;
 
 public class NHPoissonProcessTest {
-
+  @Ignore
   @Test
   public void test() throws IOException {
     final int numSamples = 1000;
