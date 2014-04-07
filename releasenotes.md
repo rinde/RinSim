@@ -9,7 +9,7 @@
 	* Gendreau06Parser now sorts files by filename
 
 * Dependencies
-	* Guava 16.0.1
+	* updated Guava to 16.0.1
 
 ## v2.3.1
 

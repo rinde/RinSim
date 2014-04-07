@@ -1,4 +1,4 @@
-# RinSim 2.3.2-SNAPSHOT
+# RinSim 2.3.2
 
 RinSim is an extensible multi-agent system (MAS) simulator. The simulator focusses on __simplicity__ and __consistency__ which makes it ideal for performing scientific simulations. Further, there is huge focus on software quality which results in an ever improving test suite and JavaDoc comments. RinSim supports pluggable models which allow to extend the scope of the simulator. Out of the box, RinSim currently focusses on MAS for PDP (Pickup and Delivery Problems). You can easily extend RinSim by introducing your own custom models.
 
@@ -29,17 +29,10 @@ Other modules can be added similarly:
 </dependency>
 ```		
 For more detailed instructions on how create a Maven project in Eclipse and add RinSim as a dependency see the [instructions](docs/howtorun.md). For release notes of the latest release click [here](releasenotes.md).
-
-
-<!-- 
-* Use the latest builds available on [this page](http://people.cs.kuleuven.be/~rinde.vanlon/rinsim/binaries/). The zip file contains all the jars, dependencies and JavaDocs of the simulator. All Jars have to be added manually to your classpath.
-* Use Git and Maven, see the section on [Git & Maven](https://github.com/rinde/RinSim#git-and-maven). Currently this is the preferred option since it allows one to easily follow changes in the code by updating the repository.
--->
  
 ## Getting Started 
 
 Once the simulator is installed, you are ready to explore the simulator. It is recommended to start by running and studying the [examples](example/README.md). Note, that when using Maven in Eclipse, the RinSim JavaDocs are automatically made available which makes exploration of the code much easier.  The remainder of this page gives a high level overview of the simulator. If you have questions or like to stay up to date about RinSim you can subscribe to the mailing list at [this page](https://groups.google.com/forum/?fromgroups=#!forum/rinsim).
-<!-- The JavaDocs are also available online on [this page](http://people.cs.kuleuven.be/~rinde.vanlon/rinsim/javadoc/). -->
 
 ## About
 RinSim is being developed at [AgentWise](http://distrinet.cs.kuleuven.be/research/taskforces/agentwise) in the [DistriNet group](http://distrinet.cs.kuleuven.be/) at the [Department of Computer Science, KU Leuven, Belgium](http://www.cs.kuleuven.be/). The lead developer is [Rinde van Lon](http://distrinet.cs.kuleuven.be/people/rinde). Valuable contributions were made by Bartosz Michalik and Robrecht Haesevoets.
@@ -56,8 +49,6 @@ In RinSim terminology, the parts of the simulation that define the problem and e
 ![PDPModel](docs/DesignOverview.png)
 
 Actions that agents can take are considered to be part of the problem not the solution, e.g. a vehicle that can pickup things or can communicate with other vehicles. Actions define the problem space in which a good solution has to be found.
-
-<!--A simplified class diagram of the key elements can be found [here](http://people.cs.kuleuven.be/~robrecht.haesevoets/mascourse/docs/classDiagram.png). -->
 
 ### Simulator
 
