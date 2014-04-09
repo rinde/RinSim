@@ -23,7 +23,6 @@ import rinde.sim.pdptw.common.VehicleDTO;
 import rinde.sim.pdptw.generator.loc.LocationsGenerator;
 import rinde.sim.pdptw.generator.loc.NormalLocationsGenerator;
 import rinde.sim.pdptw.generator.times.ArrivalTimesGenerator;
-import rinde.sim.pdptw.generator.times.PoissonProcessArrivalTimes;
 import rinde.sim.pdptw.generator.tw.ProportionateUniformTWGenerator;
 import rinde.sim.pdptw.generator.tw.TimeWindowGenerator;
 import rinde.sim.scenario.Scenario;
@@ -451,9 +450,10 @@ public class ScenarioGenerator<T extends Scenario> {
           VEHICLE_CAPACITY, new TimeWindow(0, scenarioLength));
 
       if (arrivalTimesGenerator == null) {
-        arrivalTimesGenerator = new PoissonProcessArrivalTimes(
-            latestOrderAnnounceTime,
-            globalAnnouncementIntensity, ordersPerAnnouncement);
+        throw new UnsupportedOperationException("not yet implemented");
+        // arrivalTimesGenerator = new PoissonProcessArrivalTimes(
+        // latestOrderAnnounceTime,
+        // globalAnnouncementIntensity, ordersPerAnnouncement);
       }
       locationsGenerator =
           new NormalLocationsGenerator(size, .15, .05);
