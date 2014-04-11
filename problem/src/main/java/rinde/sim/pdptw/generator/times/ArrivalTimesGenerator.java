@@ -10,8 +10,8 @@ import com.google.common.collect.ImmutableList;
  */
 public interface ArrivalTimesGenerator {
   /**
-   * 
-   * @param rng
+   * Should generate a list of arrival times.
+   * @param rng The random generator to use.
    * @return An immutable list of arrival times in ascending order, may contain
    *         duplicates.
    */

@@ -8,7 +8,7 @@ import org.apache.commons.math3.analysis.integration.UnivariateIntegrator;
  * Utilities for {@link IntensityFunction} instances.
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
  */
-public class IntensityFunctions {
+public final class IntensityFunctions {
   private IntensityFunctions() {}
 
   /**

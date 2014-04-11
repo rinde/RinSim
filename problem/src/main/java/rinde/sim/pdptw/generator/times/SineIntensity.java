@@ -14,7 +14,7 @@ import com.google.common.primitives.Doubles;
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
  */
 public class SineIntensity implements IntensityFunction {
-  // tau
+  private static final double HALF_PI = .5 * Math.PI;
   private static final double TWO_PI = 2d * Math.PI;
 
   private final double amplitude;
@@ -120,8 +120,8 @@ public class SineIntensity implements IntensityFunction {
     final double[] roots = roots();
     final double d = roots[0];
     final double e = roots[1];
-    return a * Math.sin(Math.PI * c * (d - e)) * Math.sin(80143857d
-        / 51021164d - Math.PI * c * (d + e))
+    return a * Math.sin(Math.PI * c * (d - e))
+        * Math.sin(HALF_PI - Math.PI * c * (d + e))
         / (Math.PI * c) + b * (e - d);
   }
 
