@@ -7,11 +7,12 @@ public interface SupplierRng<T> {
   T get(long seed);
 
   public static abstract class DefaultSupplierRng<T> implements SupplierRng<T> {
-
+    @SuppressWarnings("serial")
     @Override
     public String toString() {
       return new TypeToken<T>(getClass()) {}.getRawType().getSimpleName();
     }
 
   }
+
 }
