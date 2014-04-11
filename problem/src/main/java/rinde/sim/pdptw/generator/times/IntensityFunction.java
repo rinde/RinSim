@@ -2,29 +2,21 @@ package rinde.sim.pdptw.generator.times;
 
 import javax.annotation.Nullable;
 
-import org.apache.commons.math3.analysis.UnivariateFunction;
-
 import com.google.common.base.Function;
 
+/**
+ * Represents a function <code>f(x)</code> that returns the intensity at time
+ * <code>x</code>.
+ * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+ */
 public interface IntensityFunction extends Function<Double, Double> {
 
+  /**
+   * @return The global maximum intensity.
+   */
   double getMax();
 
   // overridden to remove @Nullable at return argument
   @Override
   Double apply(@Nullable Double input);
-
-  public static class IntensityFunctionWrapper implements UnivariateFunction {
-    IntensityFunction function;
-
-    public IntensityFunctionWrapper(IntensityFunction func) {
-      function = func;
-    }
-
-    @Override
-    public double value(double x) {
-      return function.apply(x);
-    }
-  }
-
 }
