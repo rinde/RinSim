@@ -6,7 +6,8 @@ import com.google.common.base.Function;
 
 /**
  * Represents a function <code>f(x)</code> that returns the intensity at time
- * <code>x</code>.
+ * <code>x</code>. This function can be used to characterize an
+ * {@link ArrivalTimesGenerator}.
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
  */
 public interface IntensityFunction extends Function<Double, Double> {

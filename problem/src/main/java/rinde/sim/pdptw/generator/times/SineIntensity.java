@@ -10,11 +10,12 @@ import com.google.common.primitives.Doubles;
 /**
  * An intensity function characterized by:
  * <code>f(x) = amplitude * sin(x * frequency * 2pi - pi * phaseShift) + height</code>
- * . Instances can be created using {@link #builder()}.
+ * . Instances are immutable and can be created using {@link #builder()}.
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
  */
 public class SineIntensity implements IntensityFunction {
-  private static final double TWO_PI = 2d * Math.PI; // tau
+  // tau
+  private static final double TWO_PI = 2d * Math.PI;
 
   private final double amplitude;
   private final double frequency;

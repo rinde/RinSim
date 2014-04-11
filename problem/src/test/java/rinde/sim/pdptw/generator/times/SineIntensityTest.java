@@ -29,24 +29,27 @@ public class SineIntensityTest {
         .height(.1)
         .build();
     assertEquals(.369903, sine.area(), 0.000001);
-    assertEquals(.369903,
-        IntensityFunctions.areaByIntegration(sine, 1d / sine.getFrequency()),
+    assertEquals(
+        .369903,
+        IntensityFunctions.areaByIntegration(sine, 0, 1d / sine.getFrequency()),
         0.000001);
 
     // integral (0)..(1) max(((1 sin( (2pi x 1) - (.5pi))) + 0),0)
     // = 0.31831
     sine = SineIntensity.builder().build();
     assertEquals(.31831, sine.area(), 0.00001);
-    assertEquals(.31831,
-        IntensityFunctions.areaByIntegration(sine, 1d / sine.getFrequency()),
+    assertEquals(
+        .31831,
+        IntensityFunctions.areaByIntegration(sine, 0, 1d / sine.getFrequency()),
         0.00001);
 
     // integral (0)..(1) max(((1 sin( (2pi x 1) - (.5pi))) + -.1),0)
     // = 0.269903
     sine = SineIntensity.builder().height(-.1).build();
     assertEquals(.269903, sine.area(), 0.000001);
-    assertEquals(.269903,
-        IntensityFunctions.areaByIntegration(sine, 1d / sine.getFrequency()),
+    assertEquals(
+        .269903,
+        IntensityFunctions.areaByIntegration(sine, 0, 1d / sine.getFrequency()),
         0.000001);
 
     // integral (0)..(3600) max(((5 sin( (2pi x 1/3600) - (.5pi))) + 10),0)
@@ -57,8 +60,9 @@ public class SineIntensityTest {
         .height(10)
         .build();
     assertEquals(36000, sine.area(), 0.00001);
-    assertEquals(36000,
-        IntensityFunctions.areaByIntegration(sine, 1d / sine.getFrequency()),
+    assertEquals(
+        36000,
+        IntensityFunctions.areaByIntegration(sine, 0, 1d / sine.getFrequency()),
         0.00001);
 
     // according to Wolfram Alpha:
@@ -70,8 +74,9 @@ public class SineIntensityTest {
         .height(2)
         .build();
     assertEquals(27.2065, sine.area(), 0.0001);
-    assertEquals(27.2065,
-        IntensityFunctions.areaByIntegration(sine, 1d / sine.getFrequency()),
+    assertEquals(
+        27.2065,
+        IntensityFunctions.areaByIntegration(sine, 0, 1d / sine.getFrequency()),
         0.0001);
   }
 

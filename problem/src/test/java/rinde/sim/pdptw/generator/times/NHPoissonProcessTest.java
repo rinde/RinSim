@@ -24,14 +24,6 @@ import com.google.common.io.Files;
 
 public class NHPoissonProcessTest {
 
-  // TODO write test for non-homogenous poisson process. generate many
-  // scenarios, see if it conforms to expected sine function.
-
-  // TODO see if we can shift the sine function in time (perhaps randomly as
-  // well?).
-
-  // TODO try a different custom intensity function as well
-
   @Ignore
   @Test
   public void test() throws IOException {
@@ -45,10 +37,10 @@ public class NHPoissonProcessTest {
 
     final List<Double> relHeights = newArrayList();
     for (int i = 0; i < 10; i++) {
-      relHeights.add(-.999 + (i * .001));
+      relHeights.add(-.999 + i * .001);
     }
     for (int i = 0; i < 100; i++) {
-      relHeights.add(-.99 + (i * .05));
+      relHeights.add(-.99 + i * .05);
     }
     // for (int i = 0; i < 50; i++) {
     // relHeights.add(3.99 + (i * .5));
@@ -136,7 +128,7 @@ public class NHPoissonProcessTest {
         }
         System.out.printf(" > dyn %1.3f+-%1.3f%n",
             +(sum / numSamples), sd.getResult());
-        dataPoints.add(new Point(relHeight, (sum / numSamples)));
+        dataPoints.add(new Point(relHeight, sum / numSamples));
       }
     }
     writer.close();
@@ -203,12 +195,13 @@ public class NHPoissonProcessTest {
   // return finalIntensity;
   // }
 
-  private enum Conversion implements Function<Long, Double> {
+  enum Conversion implements Function<Long, Double> {
     LONG_TO_DOUBLE {
       @Override
       public Double apply(Long input) {
         return new Double(input);
       }
-    }
+    },
+
   }
 }

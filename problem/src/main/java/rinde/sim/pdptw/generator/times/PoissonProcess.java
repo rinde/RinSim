@@ -13,7 +13,8 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterators;
 
 /**
- * Implementation of a Poisson process. Two different flavors exist:
+ * Implementation of a Poisson process. Instances are immutable and can be
+ * created by:
  * <ul>
  * <li>{@link #homogenous(double, int)} A homogenous Poisson process
  * characterized by a constant intensity value.</li>
@@ -42,14 +43,14 @@ public class PoissonProcess implements ArrivalTimesGenerator {
 
   /**
    * All times will be in the interval [0,length)
-   * @return
+   * @return The upper bound of the interval.
    */
   public double getLength() {
     return length;
   }
 
   // internal use only!
-  protected Iterator<Double> iterator(RandomGenerator rng) {
+  Iterator<Double> iterator(RandomGenerator rng) {
     return new PoissonIterator(rng, intensity, length);
   }
 
@@ -58,13 +59,29 @@ public class PoissonProcess implements ArrivalTimesGenerator {
     return ImmutableList.copyOf(iterator(rng));
   }
 
+  /**
+   * Creates a homogenous Poisson process of the specified length. The intensity
+   * is calculated as <code>numEvents / length</code>.
+   * @param length The length of Poisson process, all generated times will be in
+   *          the interval [0,length).
+   * @param numEvents The number of events that will be generated (on average).
+   * @return A newly constructed {@link PoissonProcess}.
+   */
+  public static PoissonProcess homogenous(double length, int numEvents) {
+    return new PoissonProcess(length, numEvents / length);
+  }
+
+  /**
+   * Creates a non-homogenous Poisson process of the specified length. The
+   * intensity is specified by the {@link IntensityFunction}.
+   * @param length The length of Poisson process, all generated times will be in
+   *          the interval [0,length).
+   * @param function The intensity function.
+   * @return A newly constructed {@link PoissonProcess}.
+   */
   public static PoissonProcess nonHomogenous(double length,
       IntensityFunction function) {
     return new NonHomogenous(length, function);
-  }
-
-  public static PoissonProcess homogenous(double length, int numEvents) {
-    return new PoissonProcess(length, numEvents / length);
   }
 
   static class NonHomogenous extends PoissonProcess {
@@ -126,9 +143,7 @@ public class PoissonProcess implements ArrivalTimesGenerator {
 
     @Override
     public boolean apply(Double input) {
-      // System.out.println(input + " " + lambda.apply(input) + "/" + lambdaMax
-      // + "=" + (lambda.apply(input) / lambdaMax));
-      return rng.nextDouble() <= (lambda.apply(input) / lambdaMax);
+      return rng.nextDouble() <= lambda.apply(input) / lambdaMax;
     }
   }
 }

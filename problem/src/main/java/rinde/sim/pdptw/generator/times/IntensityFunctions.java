@@ -26,13 +26,15 @@ public class IntensityFunctions {
    * range for which the area is computed is defined by a lower bound of
    * <code>0</code> and an upper bound of <code>length</code>.
    * @param s The intensity function to integrate.
-   * @param length The upper bound of the range.
+   * @param lb The lower bound of the range.
+   * @param ub The upper bound of the range.
    * @return The area.
    */
-  public static double areaByIntegration(IntensityFunction s, double length) {
+  public static double areaByIntegration(IntensityFunction s, double lb,
+      double ub) {
     final UnivariateIntegrator ri = new RombergIntegrator(16, 32);
     final double val = ri.integrate(10000000,
-        asUnivariateFunction(s), 0, length);
+        asUnivariateFunction(s), lb, ub);
     return val;
   }
 
