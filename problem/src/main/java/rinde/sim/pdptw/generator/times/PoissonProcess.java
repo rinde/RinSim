@@ -48,7 +48,8 @@ public class PoissonProcess implements ArrivalTimesGenerator {
     return length;
   }
 
-  public Iterator<Double> iterator(RandomGenerator rng) {
+  // internal use only!
+  protected Iterator<Double> iterator(RandomGenerator rng) {
     return new PoissonIterator(rng, intensity, length);
   }
 
@@ -66,8 +67,8 @@ public class PoissonProcess implements ArrivalTimesGenerator {
     return new PoissonProcess(length, numEvents / length);
   }
 
-  private static class NonHomogenous extends PoissonProcess {
-    private final IntensityFunction lambd;
+  static class NonHomogenous extends PoissonProcess {
+    final IntensityFunction lambd;
 
     NonHomogenous(double l, IntensityFunction func) {
       super(l, func.getMax());
@@ -80,7 +81,7 @@ public class PoissonProcess implements ArrivalTimesGenerator {
     }
   }
 
-  private static class PoissonIterator extends
+  static class PoissonIterator extends
       AbstractSequentialIterator<Double> {
     private final ExponentialDistribution ed;
     private final double length;
@@ -112,18 +113,21 @@ public class PoissonProcess implements ArrivalTimesGenerator {
     }
   }
 
-  private static class NHPredicate implements Predicate<Double> {
-    RandomGenerator rng;
-    IntensityFunction lambda;
-    double lambdaMax;
+  static class NHPredicate implements Predicate<Double> {
+    private final RandomGenerator rng;
+    private final IntensityFunction lambda;
+    private final double lambdaMax;
 
     NHPredicate(RandomGenerator r, IntensityFunction l) {
       rng = r;
       lambda = l;
+      lambdaMax = lambda.getMax();
     }
 
     @Override
     public boolean apply(Double input) {
+      // System.out.println(input + " " + lambda.apply(input) + "/" + lambdaMax
+      // + "=" + (lambda.apply(input) / lambdaMax));
       return rng.nextDouble() <= (lambda.apply(input) / lambdaMax);
     }
   }
