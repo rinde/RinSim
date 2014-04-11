@@ -8,7 +8,7 @@ import com.google.common.collect.ImmutableList;
  * Generator of event arrival times.
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
  */
-public interface ArrivalTimesGenerator {
+public interface ArrivalTimeGenerator {
   /**
    * Should generate a list of arrival times.
    * @param rng The random generator to use.

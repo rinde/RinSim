@@ -32,7 +32,7 @@ import com.google.common.collect.Iterators;
  * </ol>
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
  */
-public class PoissonProcess implements ArrivalTimesGenerator {
+public class PoissonProcess implements ArrivalTimeGenerator {
   final double length;
   final double intensity;
 

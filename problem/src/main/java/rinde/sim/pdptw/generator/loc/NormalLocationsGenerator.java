@@ -5,6 +5,9 @@ import static com.google.common.base.Preconditions.checkState;
 
 import java.math.RoundingMode;
 
+import javax.measure.quantity.Length;
+import javax.measure.unit.Unit;
+
 import org.apache.commons.math3.distribution.NormalDistribution;
 import org.apache.commons.math3.random.RandomGenerator;
 
@@ -14,7 +17,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.math.DoubleMath;
 
-public class NormalLocationsGenerator implements LocationsGenerator {
+public class NormalLocationsGenerator implements LocationGenerator {
 
   private final double size;
   private final double bin;
@@ -106,5 +109,10 @@ public class NormalLocationsGenerator implements LocationsGenerator {
         .nextDouble()));
     final double lb = index * bin;
     return lb + rng.nextDouble() * bin;
+  }
+
+  @Override
+  public Unit<Length> getDistanceUnit() {
+    throw new UnsupportedOperationException();
   }
 }

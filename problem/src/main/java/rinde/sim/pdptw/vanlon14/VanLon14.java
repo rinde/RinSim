@@ -21,8 +21,8 @@ import rinde.sim.pdptw.common.ScenarioIO;
 import rinde.sim.pdptw.generator.Analysis;
 import rinde.sim.pdptw.generator.LoadRequirement;
 import rinde.sim.pdptw.generator.Metrics;
-import rinde.sim.pdptw.generator.ScenarioGenerator;
-import rinde.sim.pdptw.generator.ScenarioGenerator.ScenarioFactory;
+import rinde.sim.pdptw.generator.ScenarioGeneratorOld;
+import rinde.sim.pdptw.generator.ScenarioGeneratorOld.ScenarioFactory;
 import rinde.sim.scenario.Scenario;
 import rinde.sim.scenario.TimedEvent;
 import rinde.sim.util.TimeWindow;
@@ -113,7 +113,7 @@ public class VanLon14 {
   }
 
   static ImmutableList<Double> generateMeanLoadGraph(
-      ScenarioGenerator<?> generator, RandomGenerator rng, int numSamples) {
+      ScenarioGeneratorOld<?> generator, RandomGenerator rng, int numSamples) {
     final List<List<Double>> allLoads = newArrayList();
     for (int i = 0; i < numSamples; i++) {
       final Scenario s = generator.generate(rng);
@@ -171,8 +171,8 @@ public class VanLon14 {
 
     final List<List<Double>> allLoads = newArrayList();
     for (final ExperimentClass ec : ExperimentClass.values()) {
-      final ScenarioGenerator<VanLon14Scenario> generator =
-          ScenarioGenerator
+      final ScenarioGeneratorOld<VanLon14Scenario> generator =
+          ScenarioGeneratorOld
               .builder(new VanLon14ScenarioFactory(
                   ec))
               .setOrderIntensityAndDynamism(orderIntensity,
@@ -216,8 +216,8 @@ public class VanLon14 {
       // System.out.println(ec);
       // System.out.println("order intensity: " + scaledOrderIntensity
       // );
-      final ScenarioGenerator<VanLon14Scenario> generator =
-          ScenarioGenerator
+      final ScenarioGeneratorOld<VanLon14Scenario> generator =
+          ScenarioGeneratorOld
               .builder(new VanLon14ScenarioFactory(
                   ec))
               .setOrderIntensityAndDynamism(
@@ -304,7 +304,7 @@ public class VanLon14 {
 
     @Override
     public VanLon14Scenario create(List<TimedEvent> events,
-        ScenarioGenerator<VanLon14Scenario> generator, int instanceNumber) {
+        ScenarioGeneratorOld<VanLon14Scenario> generator, int instanceNumber) {
 
       final TimeWindow tw = new TimeWindow(0, generator.getScenarioLength());
       final Point min = generator.getMinPoint();

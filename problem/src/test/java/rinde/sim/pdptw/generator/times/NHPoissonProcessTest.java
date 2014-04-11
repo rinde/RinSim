@@ -81,7 +81,7 @@ public class NHPoissonProcessTest {
         // + Strings.padStart(Integer.toString(i), 2, '0')
         // + ".intens"));
 
-        final ArrivalTimesGenerator generator = PoissonProcess.nonHomogenous(
+        final ArrivalTimeGenerator generator = PoissonProcess.nonHomogenous(
             lengthOfScenario, intensity);
 
         double max = 0;

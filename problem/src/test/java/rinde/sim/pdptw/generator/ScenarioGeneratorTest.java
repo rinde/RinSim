@@ -32,7 +32,7 @@ public class ScenarioGeneratorTest {
   @Test
   @Ignore
   public void test() {
-    final ScenarioGenerator sg = ScenarioGenerator.builder()
+    final ScenarioGeneratorOld sg = ScenarioGeneratorOld.builder()
         .setAnnouncementIntensityPerKm2(1.3d)
         .setOrdersPerAnnouncement(1.3)
         .setScale(.1, 5)
@@ -60,7 +60,7 @@ public class ScenarioGeneratorTest {
   @Test
   @Ignore
   public void test2() {
-    final ScenarioGenerator.Builder sg = ScenarioGenerator.builder()
+    final ScenarioGeneratorOld.Builder sg = ScenarioGeneratorOld.builder()
         .setAnnouncementIntensityPerKm2(0.3d).setOrdersPerAnnouncement(1.3) //
         .setScale(.1, 5) //
         .setScenarioLength(480);
@@ -88,7 +88,7 @@ public class ScenarioGeneratorTest {
           }
         }));
 
-    final ScenarioGenerator dsg = sg.addRequirement(
+    final ScenarioGeneratorOld dsg = sg.addRequirement(
         new LoadRequirement(mean, 4, 6, false)).build();
 
     final List<Scenario> scenarios = dsg.generate(rng, 2).scenarios;

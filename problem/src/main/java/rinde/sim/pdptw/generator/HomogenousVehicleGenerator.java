@@ -5,6 +5,9 @@ package rinde.sim.pdptw.generator;
 
 import static java.util.Collections.nCopies;
 
+import javax.measure.quantity.Velocity;
+import javax.measure.unit.Unit;
+
 import org.apache.commons.math3.random.RandomGenerator;
 
 import rinde.sim.pdptw.common.AddVehicleEvent;
@@ -26,8 +29,14 @@ public class HomogenousVehicleGenerator implements VehicleGenerator {
     n = numberOfVehicles;
   }
 
+  @Override
   public ImmutableList<AddVehicleEvent> generate(RandomGenerator rng) {
     return ImmutableList
         .copyOf(nCopies(n, new AddVehicleEvent(-1, vehicleDto)));
+  }
+
+  @Override
+  public Unit<Velocity> getSpeedUnit() {
+    throw new UnsupportedOperationException();
   }
 }

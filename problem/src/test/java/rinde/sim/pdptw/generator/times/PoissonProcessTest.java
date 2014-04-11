@@ -22,7 +22,7 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 
-import rinde.sim.pdptw.generator.ScenarioGenerator;
+import rinde.sim.pdptw.generator.ScenarioGeneratorOld;
 import rinde.sim.pdptw.generator.times.PoissonProcess.NonHomogenous;
 
 /**
@@ -74,7 +74,7 @@ public class PoissonProcessTest {
 
     final RandomGenerator rng = new MersenneTwister(0);
     for (int i = 0; i < 1000; i++) {
-      final List<Long> list = ScenarioGenerator.convert(poisson
+      final List<Long> list = ScenarioGeneratorOld.convert(poisson
           .generate(rng));
       ascendingOrderTest(list);
       // add the number of announcements
