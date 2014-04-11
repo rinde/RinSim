@@ -2,15 +2,20 @@ package rinde.sim.pdptw.generator.times;
 
 import static java.util.Arrays.asList;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import java.util.List;
 
-import org.apache.commons.math3.analysis.integration.RombergIntegrator;
-import org.apache.commons.math3.analysis.integration.UnivariateIntegrator;
 import org.junit.Test;
 
-import rinde.sim.pdptw.generator.times.IntensityFunction.IntensityFunctionWrapper;
+import com.google.common.collect.ImmutableRangeSet;
+import com.google.common.collect.Range;
+import com.google.common.collect.RangeSet;
 
+/**
+ * Tests for {@link SineIntensity}.
+ * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+ */
 public class SineIntensityTest {
 
   /**
@@ -24,19 +29,25 @@ public class SineIntensityTest {
         .height(.1)
         .build();
     assertEquals(.369903, sine.area(), 0.000001);
-    assertEquals(.369903, area(sine), 0.000001);
+    assertEquals(.369903,
+        IntensityFunctions.areaByIntegration(sine, 1d / sine.getFrequency()),
+        0.000001);
 
     // integral (0)..(1) max(((1 sin( (2pi x 1) - (.5pi))) + 0),0)
     // = 0.31831
     sine = SineIntensity.builder().build();
     assertEquals(.31831, sine.area(), 0.00001);
-    assertEquals(.31831, area(sine), 0.00001);
+    assertEquals(.31831,
+        IntensityFunctions.areaByIntegration(sine, 1d / sine.getFrequency()),
+        0.00001);
 
     // integral (0)..(1) max(((1 sin( (2pi x 1) - (.5pi))) + -.1),0)
     // = 0.269903
     sine = SineIntensity.builder().height(-.1).build();
     assertEquals(.269903, sine.area(), 0.000001);
-    assertEquals(.269903, area(sine), 0.000001);
+    assertEquals(.269903,
+        IntensityFunctions.areaByIntegration(sine, 1d / sine.getFrequency()),
+        0.000001);
 
     // integral (0)..(3600) max(((5 sin( (2pi x 1/3600) - (.5pi))) + 10),0)
     // = 36000
@@ -46,7 +57,9 @@ public class SineIntensityTest {
         .height(10)
         .build();
     assertEquals(36000, sine.area(), 0.00001);
-    assertEquals(36000, area(sine), 0.00001);
+    assertEquals(36000,
+        IntensityFunctions.areaByIntegration(sine, 1d / sine.getFrequency()),
+        0.00001);
 
     // according to Wolfram Alpha:
     // integral (1.84)..(8.15) ((5 sin( (2pi x .1) - (.5pi))) + 2)
@@ -57,7 +70,9 @@ public class SineIntensityTest {
         .height(2)
         .build();
     assertEquals(27.2065, sine.area(), 0.0001);
-    assertEquals(27.2065, area(sine), 0.0001);
+    assertEquals(27.2065,
+        IntensityFunctions.areaByIntegration(sine, 1d / sine.getFrequency()),
+        0.0001);
   }
 
   /**
@@ -103,12 +118,51 @@ public class SineIntensityTest {
     }
   }
 
-  static double area(SineIntensity s) {
-    final UnivariateIntegrator ri = new RombergIntegrator(16, 32);
-    final double len = 1d / s.getFrequency();
-    final double val = ri.integrate(10000000, new IntensityFunctionWrapper(
-        s), 0, len);
+  /**
+   * Tests whether phase shifts are correctly implemented.
+   */
+  // varargs
+  @SuppressWarnings("unchecked")
+  @Test
+  public void testPhaseShift() {
+    SineIntensity si = SineIntensity.builder().phaseShift(0).build();
+    nonZeroCheck(Range.closed(0d, 1d), si, Range.open(0d, .5));
 
-    return val;
+    si = SineIntensity.builder().phaseShift(.5).build();
+    nonZeroCheck(Range.closed(0d, 1d), si, Range.open(.25, .75));
+    // check default
+    assertEquals(SineIntensity.builder().build(), si);
+
+    si = SineIntensity.builder().phaseShift(1).build();
+    nonZeroCheck(Range.closed(0d, 1d), si, Range.open(.5, 1d));
+
+    si = SineIntensity.builder().phaseShift(1.5).build();
+    nonZeroCheck(Range.closed(0d, 1d), si, Range.closedOpen(0d, .25),
+        Range.openClosed(.75, 1d));
+
+    si = SineIntensity.builder().phaseShift(2).build();
+    nonZeroCheck(Range.closed(0d, 1d), si, Range.open(0d, .5));
+  }
+
+  private static <C extends Comparable<?>> ImmutableRangeSet<C> asSet(
+      Range<C>... ranges) {
+    final ImmutableRangeSet.Builder<C> b = ImmutableRangeSet.builder();
+    for (final Range<C> r : ranges) {
+      b.add(r);
+    }
+    return b.build();
+  }
+
+  private static void nonZeroCheck(Range<Double> globalRange,
+      IntensityFunction intFunc, Range<Double>... nonZeroRanges) {
+    final RangeSet<Double> nonZeroRangeSet = asSet(nonZeroRanges);
+    for (double d = globalRange.lowerEndpoint(); d <= globalRange
+        .upperEndpoint(); d = Math.round((d + .01) * 100d) / 100d) {
+      if (nonZeroRangeSet.contains(d)) {
+        assertTrue(intFunc.apply(d) > 0);
+      } else {
+        assertEquals(0d, intFunc.apply(d), 0.000001);
+      }
+    }
   }
 }
