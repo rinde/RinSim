@@ -11,10 +11,13 @@ import org.apache.commons.math3.distribution.UniformIntegerDistribution;
 import org.apache.commons.math3.distribution.UniformRealDistribution;
 import org.apache.commons.math3.random.MersenneTwister;
 
-import rinde.sim.util.SupplierRng.DefaultSupplierRng;
-
 import com.google.common.math.DoubleMath;
+import com.google.common.reflect.TypeToken;
 
+/**
+ * Utility class for {@link SupplierRng}.
+ * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+ */
 public final class SupplierRngs {
 
   private SupplierRngs() {}
@@ -27,8 +30,31 @@ public final class SupplierRngs {
     return new Builder();
   }
 
-  enum OutOfBoundStrategy {
-    ROUND, REDRAW
+  public static SupplierRng<Double> uniformDouble(double lower, double upper) {
+    return new DoubleDistributionSupplierRng(new UniformRealDistribution(
+        new MersenneTwister(), lower, upper));
+  }
+
+  public static SupplierRng<Integer> uniformInt(int lower, int upper) {
+    return new IntegerDistributionSupplierRng(new UniformIntegerDistribution(
+        new MersenneTwister(), lower, upper));
+  }
+
+  public static SupplierRng<Long> uniformLong(int lower, int upper) {
+    return intToLong(uniformInt(lower, upper));
+  }
+
+  public static SupplierRng<Long> intToLong(SupplierRng<Integer> supplier) {
+    return new IntToLongAdapter(supplier);
+  }
+
+  public static SupplierRng<Integer> roundDoubleToInt(
+      SupplierRng<Double> supplier) {
+    return new DoubleToIntAdapter(supplier);
+  }
+
+  public static SupplierRng<Long> roundDoubleToLong(SupplierRng<Double> supplier) {
+    return new DoubleToLongAdapter(supplier);
   }
 
   public static class Builder {
@@ -117,34 +143,26 @@ public final class SupplierRngs {
     }
   }
 
-  public static SupplierRng<Double> uniformDouble(double lower, double upper) {
-    return new DoubleDistributionSupplierRng(new UniformRealDistribution(
-        new MersenneTwister(), lower, upper));
+  /**
+   * Abstract implementation providing a default {@link #toString()}
+   * implementation.
+   * @param <T> The type of objects that this supplier creates.
+   * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+   */
+  public static abstract class AbstractSupplierRng<T> implements SupplierRng<T> {
+    @SuppressWarnings("serial")
+    @Override
+    public String toString() {
+      return new TypeToken<T>(getClass()) {}.getRawType().getSimpleName();
+    }
   }
 
-  public static SupplierRng<Integer> uniformInt(int lower, int upper) {
-    return new IntegerDistributionSupplierRng(new UniformIntegerDistribution(
-        new MersenneTwister(), lower, upper));
+  enum OutOfBoundStrategy {
+    ROUND, REDRAW
   }
 
-  public static SupplierRng<Long> uniformLong(int lower, int upper) {
-    return intToLong(uniformInt(lower, upper));
-  }
-
-  public static SupplierRng<Long> intToLong(SupplierRng<Integer> supplier) {
-    return new IntToLongAdapter(supplier);
-  }
-
-  public static SupplierRng<Integer> roundDoubleToInt(
-      SupplierRng<Double> supplier) {
-    return new DoubleToIntAdapter(supplier);
-  }
-
-  public static SupplierRng<Long> roundDoubleToLong(SupplierRng<Double> supplier) {
-    return new DoubleToLongAdapter(supplier);
-  }
-
-  private static class IntToLongAdapter extends DefaultSupplierRng<Long> {
+  private static class IntToLongAdapter extends
+      AbstractSupplierRng<Long> {
     private final SupplierRng<Integer> supplier;
 
     IntToLongAdapter(SupplierRng<Integer> supp) {
@@ -157,7 +175,8 @@ public final class SupplierRngs {
     }
   }
 
-  private static class DoubleToIntAdapter extends DefaultSupplierRng<Integer> {
+  private static class DoubleToIntAdapter extends
+      AbstractSupplierRng<Integer> {
     private final SupplierRng<Double> supplier;
 
     DoubleToIntAdapter(SupplierRng<Double> supp) {
@@ -170,7 +189,8 @@ public final class SupplierRngs {
     }
   }
 
-  private static class DoubleToLongAdapter extends DefaultSupplierRng<Long> {
+  private static class DoubleToLongAdapter extends
+      AbstractSupplierRng<Long> {
     private final SupplierRng<Double> supplier;
 
     DoubleToLongAdapter(SupplierRng<Double> supp) {
@@ -184,7 +204,7 @@ public final class SupplierRngs {
   }
 
   private static class IntegerDistributionSupplierRng extends
-      DefaultSupplierRng<Integer> {
+      AbstractSupplierRng<Integer> {
     private final IntegerDistribution distribution;
 
     public IntegerDistributionSupplierRng(IntegerDistribution id) {
@@ -199,7 +219,7 @@ public final class SupplierRngs {
   }
 
   private static class BoundedDoubleDistSupplierRng extends
-      DefaultSupplierRng<Double> {
+      AbstractSupplierRng<Double> {
     private final RealDistribution distribution;
     private final double lowerBound;
     private final double upperBound;
@@ -235,7 +255,7 @@ public final class SupplierRngs {
   }
 
   private static class DoubleDistributionSupplierRng extends
-      DefaultSupplierRng<Double> {
+      AbstractSupplierRng<Double> {
     private final RealDistribution distribution;
 
     public DoubleDistributionSupplierRng(RealDistribution rd) {
@@ -249,7 +269,7 @@ public final class SupplierRngs {
     }
   }
 
-  private static class ConstantSupplierRng<T> extends DefaultSupplierRng<T> {
+  private static class ConstantSupplierRng<T> extends AbstractSupplierRng<T> {
     private final T value;
 
     ConstantSupplierRng(T v) {

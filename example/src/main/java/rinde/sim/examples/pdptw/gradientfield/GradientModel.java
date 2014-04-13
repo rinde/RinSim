@@ -16,7 +16,8 @@ import rinde.sim.core.model.pdp.PDPModel;
 import rinde.sim.core.model.pdp.Parcel;
 import rinde.sim.core.model.road.RoadModel;
 import rinde.sim.util.SupplierRng;
-import rinde.sim.util.SupplierRng.DefaultSupplierRng;
+import rinde.sim.util.SupplierRngs;
+import rinde.sim.util.SupplierRngs.AbstractSupplierRng;
 
 import com.google.common.collect.ImmutableList;
 
@@ -154,7 +155,7 @@ public class GradientModel implements Model<FieldEmitter>, ModelReceiver {
   }
 
   public static SupplierRng<GradientModel> supplier() {
-    return new DefaultSupplierRng<GradientModel>() {
+    return new SupplierRngs.AbstractSupplierRng<GradientModel>() {
       @Override
       public GradientModel get(long seed) {
         return new GradientModel();

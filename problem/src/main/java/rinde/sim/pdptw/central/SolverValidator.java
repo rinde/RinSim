@@ -13,7 +13,8 @@ import java.util.Set;
 import rinde.sim.pdptw.central.GlobalStateObject.VehicleStateObject;
 import rinde.sim.pdptw.common.ParcelDTO;
 import rinde.sim.util.SupplierRng;
-import rinde.sim.util.SupplierRng.DefaultSupplierRng;
+import rinde.sim.util.SupplierRngs;
+import rinde.sim.util.SupplierRngs.AbstractSupplierRng;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
@@ -46,7 +47,7 @@ public final class SolverValidator {
   }
 
   private static final class SolverValidatorSupplier extends
-      DefaultSupplierRng<Solver> {
+      SupplierRngs.AbstractSupplierRng<Solver> {
     private final SupplierRng<? extends Solver> supplier;
 
     SolverValidatorSupplier(SupplierRng<? extends Solver> sup) {
