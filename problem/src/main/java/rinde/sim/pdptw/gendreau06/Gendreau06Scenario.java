@@ -29,8 +29,9 @@ import rinde.sim.pdptw.common.DynamicPDPTWScenario;
 import rinde.sim.pdptw.common.PDPRoadModel;
 import rinde.sim.scenario.TimedEvent;
 import rinde.sim.util.TimeWindow;
-import rinde.sim.util.spec.Specification;
-import rinde.sim.util.spec.Specification.ISpecification;
+
+import com.google.common.base.Predicate;
+import com.google.common.base.Predicates;
 
 /**
  * 
@@ -86,9 +87,9 @@ public final class Gendreau06Scenario extends DynamicPDPTWScenario {
   }
 
   @Override
-  public ISpecification<SimulationInfo> getStopCondition() {
-    return Specification.of(StopCondition.VEHICLES_DONE_AND_BACK_AT_DEPOT)
-        .and(StopCondition.TIME_OUT_EVENT).build();
+  public Predicate<SimulationInfo> getStopCondition() {
+    return Predicates.and(StopCondition.VEHICLES_DONE_AND_BACK_AT_DEPOT,
+        StopCondition.TIME_OUT_EVENT);
   }
 
   @Override

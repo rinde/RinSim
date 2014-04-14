@@ -28,8 +28,8 @@ import rinde.sim.scenario.TimedEvent;
 import rinde.sim.util.SupplierRng;
 import rinde.sim.util.SupplierRngs;
 import rinde.sim.util.TimeWindow;
-import rinde.sim.util.spec.Specification.ISpecification;
 
+import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.math.DoubleMath;
@@ -249,7 +249,7 @@ public final class ScenarioGenerator {
     }
 
     @Override
-    public ISpecification<SimulationInfo> getStopCondition() {
+    public Predicate<SimulationInfo> getStopCondition() {
       // TODO Auto-generated method stub
       return null;
     }

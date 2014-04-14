@@ -24,8 +24,8 @@ import rinde.sim.scenario.ScenarioBuilder;
 import rinde.sim.scenario.ScenarioBuilder.ScenarioCreator;
 import rinde.sim.scenario.TimedEvent;
 import rinde.sim.util.TimeWindow;
-import rinde.sim.util.spec.Specification.ISpecification;
 
+import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableSet;
 
 public class ScenarioIOTest {
@@ -105,7 +105,7 @@ public class ScenarioIOTest {
     }
 
     @Override
-    public ISpecification<SimulationInfo> getStopCondition() {
+    public Predicate<SimulationInfo> getStopCondition() {
       throw new UnsupportedOperationException();
     }
 

@@ -76,7 +76,7 @@ public class TestDynamicPDPTWProblem {
     }
 
     @Override
-    public boolean isSatisfiedBy(SimulationInfo context) {
+    public boolean apply(SimulationInfo context) {
       return context.stats.simulationTime == time;
     }
   }

@@ -17,7 +17,8 @@ import rinde.sim.pdptw.common.DynamicPDPTWProblem.SimulationInfo;
 import rinde.sim.scenario.Scenario;
 import rinde.sim.scenario.TimedEvent;
 import rinde.sim.util.TimeWindow;
-import rinde.sim.util.spec.Specification.ISpecification;
+
+import com.google.common.base.Predicate;
 
 /**
  * A {@link Scenario} that defines a <i>dynamic pickup-and-delivery problem with
@@ -65,7 +66,7 @@ public abstract class DynamicPDPTWScenario extends Scenario {
   /**
    * @return The stop condition indicating when a simulation should end.
    */
-  public abstract ISpecification<SimulationInfo> getStopCondition();
+  public abstract Predicate<SimulationInfo> getStopCondition();
 
   /**
    * @return The time unit used in the simulator.

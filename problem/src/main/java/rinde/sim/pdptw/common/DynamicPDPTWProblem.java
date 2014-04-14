@@ -35,9 +35,9 @@ import rinde.sim.ui.renderers.PlaneRoadModelRenderer;
 import rinde.sim.ui.renderers.Renderer;
 import rinde.sim.ui.renderers.RoadUserRenderer;
 import rinde.sim.ui.renderers.UiSchema;
-import rinde.sim.util.spec.Specification;
-import rinde.sim.util.spec.Specification.ISpecification;
 
+import com.google.common.base.Predicate;
+import com.google.common.base.Predicates;
 import com.google.common.collect.ImmutableMap;
 
 // TODO rename to ProblemInstance? or to Problem?
@@ -125,7 +125,7 @@ public class DynamicPDPTWProblem {
    * The {@link StopCondition} which is used as the condition when the
    * simulation has to stop.
    */
-  protected ISpecification<SimulationInfo> stopCondition;
+  protected Predicate<SimulationInfo> stopCondition;
 
   /**
    * Create a new problem instance using the specified scenario.
@@ -177,7 +177,7 @@ public class DynamicPDPTWProblem {
 
       @Override
       public void afterTick(TimeLapse timeLapse) {
-        if (stopCondition.isSatisfiedBy(new SimulationInfo(statsTracker
+        if (stopCondition.apply(new SimulationInfo(statsTracker
             .getStatsDTO(), scen))) {
           simulator.stop();
         }
@@ -219,8 +219,8 @@ public class DynamicPDPTWProblem {
    * same way.
    * @param condition The stop condition to add.
    */
-  public void addStopCondition(ISpecification<SimulationInfo> condition) {
-    stopCondition = Specification.of(stopCondition).or(condition).build();
+  public void addStopCondition(Predicate<SimulationInfo> condition) {
+    stopCondition = Predicates.or(stopCondition, condition);
   }
 
   /**
@@ -312,7 +312,7 @@ public class DynamicPDPTWProblem {
    * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
    */
   public abstract static class StopCondition implements
-      ISpecification<SimulationInfo> {
+      Predicate<SimulationInfo> {
 
     /**
      * The simulation is terminated once the
@@ -321,7 +321,7 @@ public class DynamicPDPTWProblem {
      */
     public static final StopCondition TIME_OUT_EVENT = new StopCondition() {
       @Override
-      public boolean isSatisfiedBy(SimulationInfo context) {
+      public boolean apply(SimulationInfo context) {
         return context.stats.simFinish;
       }
     };
@@ -334,7 +334,7 @@ public class DynamicPDPTWProblem {
      */
     public static final StopCondition VEHICLES_DONE_AND_BACK_AT_DEPOT = new StopCondition() {
       @Override
-      public boolean isSatisfiedBy(SimulationInfo context) {
+      public boolean apply(SimulationInfo context) {
         return context.stats.totalVehicles == context.stats.vehiclesAtDepot
             && context.stats.movedVehicles > 0
             && context.stats.totalParcels == context.stats.totalDeliveries;
@@ -346,7 +346,7 @@ public class DynamicPDPTWProblem {
      */
     public static final StopCondition ANY_TARDINESS = new StopCondition() {
       @Override
-      public boolean isSatisfiedBy(SimulationInfo context) {
+      public boolean apply(SimulationInfo context) {
         return context.stats.pickupTardiness > 0
             || context.stats.deliveryTardiness > 0;
       }
