@@ -95,7 +95,7 @@ public class StateMachineTest {
         .stateIsOneOf(startState, specialState, stopState, pauseState));
     assertFalse(fsm.stateIsOneOf(startState, specialState));
 
-    fsm.toDot();
+    StateMachines.toDot(fsm);
     StateMachineEvent.valueOf("STATE_TRANSITION");
   }
 
