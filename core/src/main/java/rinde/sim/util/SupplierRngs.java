@@ -12,6 +12,7 @@ import org.apache.commons.math3.distribution.UniformRealDistribution;
 import org.apache.commons.math3.random.MersenneTwister;
 
 import com.google.common.math.DoubleMath;
+import com.google.common.primitives.Doubles;
 import com.google.common.reflect.TypeToken;
 
 /**
@@ -117,7 +118,7 @@ public final class SupplierRngs {
       checkArgument(mean + std >= lowerBound);
       checkArgument(mean + std <= upperBound);
       final RealDistribution distribution = new NormalDistribution(mean, std);
-      if (Double.isFinite(lowerBound) || Double.isFinite(upperBound)) {
+      if (Doubles.isFinite(lowerBound) || Doubles.isFinite(upperBound)) {
         return new BoundedDoubleDistSupplierRng(distribution, upperBound,
             lowerBound, outOfBoundStrategy);
       } else {
