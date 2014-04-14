@@ -130,7 +130,7 @@ public class RouteFollowingVehicle extends DefaultVehicle {
         @SuppressWarnings("unchecked")
         final StateTransitionEvent<DefaultEvent, RouteFollowingVehicle> event = (StateTransitionEvent<RouteFollowingVehicle.DefaultEvent, RouteFollowingVehicle>) e;
         LOGGER.trace("vehicle({}) - {} + {} -> {}", v, event.previousState,
-            event.event, event.newState);
+            event.trigger, event.newState);
       }
     }, StateMachineEvent.STATE_TRANSITION);
   }

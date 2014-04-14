@@ -20,17 +20,17 @@ import com.google.common.collect.Table.Cell;
 
 /**
  * A simple state machine. The state machine is represented by a transition
- * table. A transition has the form <code>current state + event </code> &rarr;
- * <code>new state</code>. A transition can be recurrent, meaning that an event
- * will <i>not</i> initiate a transition. Events can be initiated from within a
- * state by means of the {@link State#handle(Object, Object)} method or from
+ * table. A transition has the form <code>current state + trigger </code> &rarr;
+ * <code>new state</code>. A transition can be recurrent, meaning that a trigger
+ * will <i>not</i> initiate a transition. Triggers can be initiated from within
+ * a state by means of the {@link State#handle(Object, Object)} method or from
  * outside the state machine by means of the {@link #handle(Object, Object)}. An
- * attempt to perform a transition not present in the transition table result in
- * a {@link RuntimeException}. Note that the transition table is immutable.
+ * attempt to perform a transition not present in the transition table results
+ * in a {@link RuntimeException}. Note that the transition table is immutable.
  * StateMachine instances can only be created using its builder via the
  * {@link #create(State)} method.
  * 
- * @param <E> The event type. Concrete event objects that describe the same
+ * @param <T> The trigger type. Concrete trigger objects that describe the same
  *          event should be <i>equal</i> (according to {@link #equals(Object)} )
  *          and their {@link #hashCode()} implementation should return the same
  *          value. If the events do not need to contain additional meta data,
@@ -40,9 +40,7 @@ import com.google.common.collect.Table.Cell;
  *          object.
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
  */
-public class StateMachine<E, C> {
-  // TODO events *inside* the state machine should be renamed to triggers (for
-  // example) to avoid confusion with the event package.
+public class StateMachine<T, C> {
   private static final String NL = System.getProperty("line.separator");
   private static final String NODE = "node";
   private static final String NODE_DEFINITION = "[label=\"\",shape=point]" + NL;
@@ -72,15 +70,15 @@ public class StateMachine<E, C> {
   /**
    * The transition table which defines the allowed transitions.
    */
-  protected final ImmutableTable<State<E, C>, E, State<E, C>> transitionTable;
+  protected final ImmutableTable<State<T, C>, T, State<T, C>> transitionTable;
   /**
    * The current state.
    */
-  protected State<E, C> currentState;
+  protected State<T, C> currentState;
   /**
    * The initial state.
    */
-  protected final State<E, C> startState;
+  protected final State<T, C> startState;
 
   /**
    * This indicates whether recursive transitions should be handled explicitly.
@@ -90,8 +88,8 @@ public class StateMachine<E, C> {
    */
   protected final boolean explicitRecursiveTransitions;
 
-  StateMachine(State<E, C> start,
-      ImmutableTable<State<E, C>, E, State<E, C>> table,
+  StateMachine(State<T, C> start,
+      ImmutableTable<State<T, C>, T, State<T, C>> table,
       boolean explRecurTrns) {
     eventDispatcher = new EventDispatcher(StateMachineEvent.values());
     startState = start;
@@ -109,45 +107,46 @@ public class StateMachine<E, C> {
   }
 
   /**
-   * Handle the specified event.
-   * @param event The event that needs to be handled by the state machine. If
-   *          this results in an attempt to perform a transition which is not
+   * Handle the specified trigger.
+   * @param trigger The trigger that needs to be handled by the state machine.
+   *          If this results in an attempt to perform a transition which is not
    *          allowed an {@link IllegalArgumentException} is thrown.
    * @param context Reference to the context.
    */
-  public void handle(@Nullable E event, C context) {
-    E ev = event;
+  public void handle(@Nullable T trigger, C context) {
+    T ev = trigger;
     do {
       if (ev != null) {
         changeState(ev, context);
       }
-      ev = currentState.handle(event, context);
+      ev = currentState.handle(trigger, context);
     } while (ev != null);
   }
 
   /**
    * Perform a state change if possible.
-   * @param event The event that may initiate a state change.
+   * @param trigger The trigger that may initiate a state change.
    * @param context Reference to the context.
    */
-  protected void changeState(E event, C context) {
-    checkArgument(transitionTable.contains(currentState, event),
-        "The event %s is not supported when in state %s.", event, currentState);
-    final State<E, C> newState = transitionTable.get(currentState, event);
+  protected void changeState(T trigger, C context) {
+    checkArgument(transitionTable.contains(currentState, trigger),
+        "The trigger %s is not supported when in state %s.", trigger,
+        currentState);
+    final State<T, C> newState = transitionTable.get(currentState, trigger);
     if (!newState.equals(currentState) || explicitRecursiveTransitions) {
-      currentState.onExit(event, context);
-      final State<E, C> oldState = currentState;
+      currentState.onExit(trigger, context);
+      final State<T, C> oldState = currentState;
       currentState = newState;
-      currentState.onEntry(event, context);
-      eventDispatcher.dispatchEvent(new StateTransitionEvent<E, C>(this,
-          oldState, event, newState));
+      currentState.onEntry(trigger, context);
+      eventDispatcher.dispatchEvent(new StateTransitionEvent<T, C>(this,
+          oldState, trigger, newState));
     }
   }
 
   /**
    * @return A reference to the current state of this {@link StateMachine}.
    */
-  public State<E, C> getCurrentState() {
+  public State<T, C> getCurrentState() {
     return currentState;
   }
 
@@ -158,7 +157,7 @@ public class StateMachine<E, C> {
    * @return <code>true</code> when the states are the same object,
    *         <code>false</code> otherwise.
    */
-  public boolean stateIs(State<E, C> s) {
+  public boolean stateIs(State<T, C> s) {
     return currentState.equals(s);
   }
 
@@ -169,8 +168,8 @@ public class StateMachine<E, C> {
    * @return <code>true</code> when the current state is one of the specified
    *         states, <code>false</code> otherwise.
    */
-  public boolean stateIsOneOf(State<E, C>... states) {
-    for (final State<E, C> s : states) {
+  public boolean stateIsOneOf(State<T, C>... states) {
+    for (final State<T, C> s : states) {
       if (stateIs(s)) {
         return true;
       }
@@ -181,7 +180,7 @@ public class StateMachine<E, C> {
   /**
    * @return An {@link ImmutableCollection} of all states in this state machine.
    */
-  public ImmutableCollection<State<E, C>> getStates() {
+  public ImmutableCollection<State<T, C>> getStates() {
     return transitionTable.values();
   }
 
@@ -189,13 +188,13 @@ public class StateMachine<E, C> {
    * Looks up a state of the specified (sub)type if it exists. If there exist
    * multiple the first encountered is returned.
    * @param type The (sub)type to look for.
-   * @param <T> The type.
+   * @param <U> The type.
    * @return The state of the specified type.
    * @throws IllegalArgumentException if there is no state of the specified
    *           type.
    */
-  public <T> T getStateOfType(Class<T> type) {
-    for (final State<E, C> state : getStates()) {
+  public <U> U getStateOfType(Class<U> type) {
+    for (final State<T, C> state : getStates()) {
       if (type.isInstance(state)) {
         return type.cast(state);
       }
@@ -205,13 +204,13 @@ public class StateMachine<E, C> {
   }
 
   /**
-   * Returns true if the current state supports the event.
-   * @param event The event to check.
-   * @return <code>true</code> when the specified event is supported by the
+   * Returns true if the current state supports the trigger.
+   * @param trigger The trigger to check.
+   * @return <code>true</code> when the specified trigger is supported by the
    *         current state, <code>false</code> otherwise.
    */
-  public boolean isSupported(E event) {
-    return transitionTable.contains(currentState, event);
+  public boolean isSupported(T trigger) {
+    return transitionTable.contains(currentState, trigger);
   }
 
   /**
@@ -240,7 +239,7 @@ public class StateMachine<E, C> {
       return false;
     }
     @SuppressWarnings("unchecked")
-    final StateMachine<E, C> fsm = (StateMachine<E, C>) other;
+    final StateMachine<T, C> fsm = (StateMachine<T, C>) other;
     return Objects.equal(startState, fsm.startState)
         && Objects.equal(transitionTable, fsm.transitionTable)
         && Objects.equal(currentState, fsm.currentState)
@@ -266,11 +265,11 @@ public class StateMachine<E, C> {
     int id = 0;
     final StringBuilder builder = new StringBuilder();
     builder.append(FILE_OPEN);
-    final Set<State<E, C>> allStates = newHashSet();
+    final Set<State<T, C>> allStates = newHashSet();
     allStates.addAll(transitionTable.rowKeySet());
     allStates.addAll(transitionTable.values());
-    final Map<State<E, C>, Integer> idMap = newHashMap();
-    for (final State<E, C> s : allStates) {
+    final Map<State<T, C>, Integer> idMap = newHashMap();
+    for (final State<T, C> s : allStates) {
       builder.append(NODE).append(id).append(LABEL_OPEN).append(s.name())
           .append(LABEL_CLOSE);
       idMap.put(s, id);
@@ -280,7 +279,7 @@ public class StateMachine<E, C> {
     builder.append(NODE).append(id).append(CONN).append(NODE)
         .append(idMap.get(startState)).append(NL);
 
-    for (final Cell<State<E, C>, E, State<E, C>> cell : transitionTable
+    for (final Cell<State<T, C>, T, State<T, C>> cell : transitionTable
         .cellSet()) {
       final int id1 = idMap.get(cell.getRowKey());
       final int id2 = idMap.get(cell.getValue());
@@ -296,42 +295,42 @@ public class StateMachine<E, C> {
    * state. This method returns a reference to the {@link StateMachineBuilder}
    * which allows for adding of transitions to the state machine.
    * @param initialState The start state of the state machine.
-   * @param <E> The event type.
+   * @param <T> The trigger type.
    * @param <C> The context type.
    * @return A reference to the {@link StateMachineBuilder} which is used for
    *         creating the {@link StateMachine}.
    */
-  public static <E, C> StateMachineBuilder<E, C> create(State<E, C> initialState) {
-    return new StateMachineBuilder<E, C>(initialState);
+  public static <T, C> StateMachineBuilder<T, C> create(State<T, C> initialState) {
+    return new StateMachineBuilder<T, C>(initialState);
   }
 
   /**
    * Facilitates the creation of a {@link StateMachine}.
-   * @param <E> Event parameter of {@link StateMachine}.
+   * @param <T> Trigger parameter of {@link StateMachine}.
    * @param <C> Context parameter of {@link StateMachine}.
    * @see StateMachine
    */
-  public static final class StateMachineBuilder<E, C> {
-    private final ImmutableTable.Builder<State<E, C>, E, State<E, C>> tableBuilder;
-    private final State<E, C> start;
+  public static final class StateMachineBuilder<T, C> {
+    private final ImmutableTable.Builder<State<T, C>, T, State<T, C>> tableBuilder;
+    private final State<T, C> start;
     private boolean explicitRecursiveTransitions;
 
-    StateMachineBuilder(State<E, C> initialState) {
+    StateMachineBuilder(State<T, C> initialState) {
       tableBuilder = ImmutableTable.builder();
       start = initialState;
       explicitRecursiveTransitions = false;
     }
 
     /**
-     * Add a transition: <code>state + event &rarr; new state</code>.
+     * Add a transition: <code>state + trigger &rarr; new state</code>.
      * @param from The from state.
-     * @param event The event which triggers the transition.
+     * @param trigger The trigger which triggers the transition.
      * @param to The destination of the transition, the new state.
      * @return A reference to this for method chaining.
      */
-    public StateMachineBuilder<E, C> addTransition(State<E, C> from, E event,
-        State<E, C> to) {
-      tableBuilder.put(from, event, to);
+    public StateMachineBuilder<T, C> addTransition(State<T, C> from, T trigger,
+        State<T, C> to) {
+      tableBuilder.put(from, trigger, to);
       return this;
     }
 
@@ -341,7 +340,7 @@ public class StateMachine<E, C> {
      * @param sm The {@link StateMachine} from which the transitions are copied.
      * @return The builder reference.
      */
-    public StateMachineBuilder<E, C> addTransitionsFrom(StateMachine<E, C> sm) {
+    public StateMachineBuilder<T, C> addTransitionsFrom(StateMachine<T, C> sm) {
       tableBuilder.putAll(sm.transitionTable);
       return this;
     }
@@ -354,7 +353,7 @@ public class StateMachine<E, C> {
      * recursive transitions are ignored.
      * @return The builder reference.
      */
-    public StateMachineBuilder<E, C> explicitRecursiveTransitions() {
+    public StateMachineBuilder<T, C> explicitRecursiveTransitions() {
       explicitRecursiveTransitions = true;
       return this;
     }
@@ -364,46 +363,46 @@ public class StateMachine<E, C> {
      * {@link rinde.sim.util.fsm.StateMachine.StateMachineBuilder}.
      * @return The {@link StateMachine}.
      */
-    public StateMachine<E, C> build() {
-      return new StateMachine<E, C>(start, tableBuilder.build(),
+    public StateMachine<T, C> build() {
+      return new StateMachine<T, C>(start, tableBuilder.build(),
           explicitRecursiveTransitions);
     }
   }
 
   /**
    * Event class used by {@link StateMachine}.
-   * @param <E> Event parameter of {@link StateMachine}.
+   * @param <T> Trigger parameter of {@link StateMachine}.
    * @param <C> Context parameter of {@link StateMachine}.
    * @see StateMachine
    * @see StateMachineEvent
    */
-  public static class StateTransitionEvent<E, C> extends Event {
+  public static class StateTransitionEvent<T, C> extends Event {
     private static final long serialVersionUID = -1478171329851890047L;
     /**
      * The previous state of the state machine prior to the current state.
      */
-    public final State<E, C> previousState;
+    public final State<T, C> previousState;
     /**
      * The new state which was activated just before this event was issued.
      */
-    public final State<E, C> newState;
+    public final State<T, C> newState;
     /**
-     * The event which trigger the event transition.
+     * The trigger that caused the event transition.
      */
-    public final E event;
+    public final T trigger;
 
     /**
      * Create new event instance.
      * @param issuer Issuer of the event.
      * @param prev {@link #previousState}.
-     * @param e {@link #event}.
+     * @param trig {@link #trigger}.
      * @param next {@link #newState}.
      */
-    protected StateTransitionEvent(StateMachine<E, C> issuer, State<E, C> prev,
-        E e, State<E, C> next) {
+    protected StateTransitionEvent(StateMachine<T, C> issuer, State<T, C> prev,
+        T trig, State<T, C> next) {
       super(StateMachineEvent.STATE_TRANSITION, issuer);
       previousState = prev;
-      event = e;
+      trigger = trig;
       newState = next;
     }
 
@@ -411,26 +410,26 @@ public class StateMachine<E, C> {
      * Convenience method for checking whether this event equals a transition as
      * specified by the parameters.
      * @param prev Previous state.
-     * @param ev Trigger event.
+     * @param trig Trigger.
      * @param next New state.
      * @return <code>true</code> when all parameters are equal to the properties
      *         of this event, <code>false</code> otherwise.
      */
-    public boolean equalTo(State<E, C> prev, E ev, State<E, C> next) {
-      return previousState.equals(prev) && event.equals(ev)
+    public boolean equalTo(State<T, C> prev, T trig, State<T, C> next) {
+      return previousState.equals(prev) && trigger.equals(trig)
           && newState.equals(next);
     }
 
     @Override
     public String toString() {
       return new StringBuilder("[Event ").append(getEventType()).append(" ")
-          .append(previousState).append(" + ").append(event).append(CONN)
+          .append(previousState).append(" + ").append(trigger).append(CONN)
           .append(newState).append("]").toString();
     }
 
     @Override
     public int hashCode() {
-      return Objects.hashCode(previousState, event, newState);
+      return Objects.hashCode(previousState, trigger, newState);
     }
 
     @Override
@@ -445,10 +444,10 @@ public class StateMachine<E, C> {
         return false;
       }
       @SuppressWarnings("unchecked")
-      final StateTransitionEvent<E, C> ev = (StateTransitionEvent<E, C>) other;
+      final StateTransitionEvent<T, C> ev = (StateTransitionEvent<T, C>) other;
       return Objects.equal(previousState, ev.previousState) &&
           Objects.equal(newState, ev.newState) &&
-          Objects.equal(event, ev.event) &&
+          Objects.equal(trigger, ev.trigger) &&
           Objects.equal(eventType, ev.eventType) &&
           Objects.equal(getIssuer(), ev.getIssuer());
     }

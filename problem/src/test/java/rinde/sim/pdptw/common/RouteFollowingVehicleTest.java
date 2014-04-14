@@ -658,7 +658,7 @@ public class RouteFollowingVehicleTest {
     @SuppressWarnings("unchecked")
     final StateTransitionEvent<StateEvent, RouteFollowingVehicle> ev1 = ((StateTransitionEvent<StateEvent, RouteFollowingVehicle>) leh
         .getHistory().get(0));
-    assertEquals(DefaultEvent.GOTO, ev1.event);
+    assertEquals(DefaultEvent.GOTO, ev1.trigger);
     assertEquals(d.waitState, ev1.previousState);
     assertEquals(d.gotoState, ev1.newState);
 
@@ -681,7 +681,7 @@ public class RouteFollowingVehicleTest {
       @SuppressWarnings("unchecked")
       final StateTransitionEvent<StateEvent, RouteFollowingVehicle> ev2 = ((StateTransitionEvent<StateEvent, RouteFollowingVehicle>) leh
           .getHistory().get(1));
-      assertEquals(DefaultEvent.REROUTE, ev2.event);
+      assertEquals(DefaultEvent.REROUTE, ev2.trigger);
       assertEquals(d.gotoState, ev2.previousState);
       assertEquals(d.gotoState, ev2.newState);
 
