@@ -192,6 +192,25 @@ public final class ScenarioGenerator {
       timeWindow = new TimeWindow(0, length);
       return this;
     }
+
+    public Builder pickupDurations(SupplierRng<Long> durations) {
+      pickupDurationGenerator = durations;
+      return this;
+    }
+
+    public Builder deliveryDurations(SupplierRng<Long> durations) {
+      deliveryDurationGenerator = durations;
+      return this;
+    }
+
+    public Builder serviceDurations(SupplierRng<Long> durations) {
+      return pickupDurations(durations).deliveryDurations(durations);
+    }
+
+    public Builder neededCapacities(SupplierRng<Integer> capacities) {
+      neededCapacityGenerator = capacities;
+      return this;
+    }
   }
 
   private static final class GeneratedScenario extends DynamicPDPTWScenario {
