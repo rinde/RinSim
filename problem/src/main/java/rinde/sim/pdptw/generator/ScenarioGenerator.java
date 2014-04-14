@@ -24,6 +24,7 @@ import rinde.sim.pdptw.common.ParcelDTO;
 import rinde.sim.pdptw.generator.loc.LocationGenerator;
 import rinde.sim.pdptw.generator.times.ArrivalTimeGenerator;
 import rinde.sim.pdptw.generator.tw.TimeWindowGenerator;
+import rinde.sim.pdptw.generator.vehicles.VehicleGenerator;
 import rinde.sim.scenario.TimedEvent;
 import rinde.sim.util.SupplierRng;
 import rinde.sim.util.SupplierRngs;

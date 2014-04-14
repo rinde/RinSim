@@ -25,6 +25,8 @@ import rinde.sim.pdptw.generator.loc.NormalLocationsGenerator;
 import rinde.sim.pdptw.generator.times.ArrivalTimeGenerator;
 import rinde.sim.pdptw.generator.tw.ProportionateUniformTWGenerator;
 import rinde.sim.pdptw.generator.tw.TimeWindowGenerator;
+import rinde.sim.pdptw.generator.vehicles.HomogenousVehicleGenerator;
+import rinde.sim.pdptw.generator.vehicles.VehicleGenerator;
 import rinde.sim.scenario.Scenario;
 import rinde.sim.scenario.ScenarioBuilder;
 import rinde.sim.scenario.ScenarioBuilder.ScenarioCreator;

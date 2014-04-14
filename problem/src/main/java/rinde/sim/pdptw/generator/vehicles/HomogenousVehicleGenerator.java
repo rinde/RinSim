@@ -1,7 +1,7 @@
 /**
  * 
  */
-package rinde.sim.pdptw.generator;
+package rinde.sim.pdptw.generator.vehicles;
 
 import static java.util.Collections.nCopies;
 
