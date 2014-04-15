@@ -3,9 +3,6 @@
  */
 package rinde.sim.pdptw.generator.loc;
 
-import javax.measure.quantity.Length;
-import javax.measure.unit.Unit;
-
 import org.apache.commons.math3.random.RandomGenerator;
 
 import rinde.sim.core.graph.Point;
@@ -28,6 +25,4 @@ public interface LocationGenerator {
    * @return A list of locations for the orders.
    */
   ImmutableList<Point> generate(int numOrders, RandomGenerator rng);
-
-  Unit<Length> getDistanceUnit();
 }
