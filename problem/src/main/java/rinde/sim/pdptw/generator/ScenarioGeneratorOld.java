@@ -21,7 +21,6 @@ import rinde.sim.pdptw.common.AddParcelEvent;
 import rinde.sim.pdptw.common.ParcelDTO;
 import rinde.sim.pdptw.common.VehicleDTO;
 import rinde.sim.pdptw.generator.loc.LocationGenerator;
-import rinde.sim.pdptw.generator.loc.NormalLocationsGenerator;
 import rinde.sim.pdptw.generator.times.ArrivalTimeGenerator;
 import rinde.sim.pdptw.generator.tw.ProportionateUniformTWGenerator;
 import rinde.sim.pdptw.generator.tw.TimeWindowGenerator;
@@ -456,8 +455,8 @@ public class ScenarioGeneratorOld<T extends Scenario> {
         // latestOrderAnnounceTime,
         // globalAnnouncementIntensity, ordersPerAnnouncement);
       }
-      locationsGenerator =
-          new NormalLocationsGenerator(size, .15, .05);
+      // locationsGenerator =
+      // new NormalLocationsGenerator(size, .15, .05);
       if (timeWindowGenerator == null) {
         timeWindowGenerator =
             new ProportionateUniformTWGenerator(depotLocation,

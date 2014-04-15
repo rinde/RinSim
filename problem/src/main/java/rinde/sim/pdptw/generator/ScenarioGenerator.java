@@ -8,6 +8,7 @@ import java.util.Set;
 import javax.measure.quantity.Duration;
 import javax.measure.quantity.Length;
 import javax.measure.quantity.Velocity;
+import javax.measure.unit.NonSI;
 import javax.measure.unit.SI;
 import javax.measure.unit.Unit;
 
@@ -62,8 +63,8 @@ public final class ScenarioGenerator {
     timeWindowGenerator = b.timeWindowGenerator;
     vehicleGenerator = b.vehicleGenerator;
 
-    speedUnit = vehicleGenerator.getSpeedUnit();
-    distanceUnit = locationGenerator.getDistanceUnit();
+    speedUnit = b.speedUnit;
+    distanceUnit = b.distanceUnit;
 
     pickupDurationGenerator = b.pickupDurationGenerator;
     deliveryDurationGenerator = b.deliveryDurationGenerator;
@@ -116,6 +117,8 @@ public final class ScenarioGenerator {
   }
 
   public static class Builder {
+    static final Unit<Length> DEFAULT_DISTANCE_UNIT = SI.KILOMETER;
+    static final Unit<Velocity> DEFAULT_SPEED_UNIT = NonSI.KILOMETERS_PER_HOUR;
     static final Unit<Duration> DEFAULT_TIME_UNIT = SI.MILLI(SI.SECOND);
     static final long DEFAULT_TICK_SIZE = 1000L;
     static final TimeWindow DEFAULT_TIME_WINDOW = new TimeWindow(0,
@@ -126,17 +129,15 @@ public final class ScenarioGenerator {
     static final SupplierRng<Integer> DEFAULT_CAPACITY = SupplierRngs
         .constant(0);
 
+    Unit<Length> distanceUnit;
+    Unit<Velocity> speedUnit;
     Unit<Duration> timeUnit;
     long tickSize;
     TimeWindow timeWindow;
 
     ArrivalTimeGenerator arrivalTimeGenerator;
     TimeWindowGenerator timeWindowGenerator;
-
-    // distance unit
     LocationGenerator locationGenerator;
-
-    // speed unit
     VehicleGenerator vehicleGenerator;
 
     SupplierRng<Long> pickupDurationGenerator;
@@ -149,6 +150,8 @@ public final class ScenarioGenerator {
     // models
 
     Builder() {
+      distanceUnit = DEFAULT_DISTANCE_UNIT;
+      speedUnit = DEFAULT_SPEED_UNIT;
       timeUnit = DEFAULT_TIME_UNIT;
       tickSize = DEFAULT_TICK_SIZE;
       timeWindow = DEFAULT_TIME_WINDOW;
@@ -156,7 +159,31 @@ public final class ScenarioGenerator {
       pickupDurationGenerator = DEFAULT_SERVICE_DURATION;
       deliveryDurationGenerator = DEFAULT_SERVICE_DURATION;
       neededCapacityGenerator = DEFAULT_CAPACITY;
+    }
 
+    public Builder timeUnit(Unit<Duration> tu) {
+      timeUnit = tu;
+      return this;
+    }
+
+    public Builder tickSize(long ts) {
+      tickSize = ts;
+      return this;
+    }
+
+    public Builder speedUnit(Unit<Velocity> su) {
+      speedUnit = su;
+      return this;
+    }
+
+    public Builder distanceUnit(Unit<Length> du) {
+      distanceUnit = du;
+      return this;
+    }
+
+    public Builder scenarioLength(long length) {
+      timeWindow = new TimeWindow(0, length);
+      return this;
     }
 
     public Builder arrivalTimes(ArrivalTimeGenerator atg) {
@@ -176,21 +203,6 @@ public final class ScenarioGenerator {
 
     public Builder vehicles(VehicleGenerator vg) {
       vehicleGenerator = vg;
-      return this;
-    }
-
-    public Builder timeUnit(Unit<Duration> tu) {
-      timeUnit = tu;
-      return this;
-    }
-
-    public Builder tickSize(long ts) {
-      tickSize = ts;
-      return this;
-    }
-
-    public Builder scenarioLength(long length) {
-      timeWindow = new TimeWindow(0, length);
       return this;
     }
 
