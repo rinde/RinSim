@@ -25,7 +25,6 @@ import rinde.sim.pdptw.generator.loc.NormalLocationsGenerator;
 import rinde.sim.pdptw.generator.times.ArrivalTimeGenerator;
 import rinde.sim.pdptw.generator.tw.ProportionateUniformTWGenerator;
 import rinde.sim.pdptw.generator.tw.TimeWindowGenerator;
-import rinde.sim.pdptw.generator.vehicles.HomogenousVehicleGenerator;
 import rinde.sim.pdptw.generator.vehicles.VehicleGenerator;
 import rinde.sim.scenario.Scenario;
 import rinde.sim.scenario.ScenarioBuilder;
@@ -435,7 +434,7 @@ public class ScenarioGeneratorOld<T extends Scenario> {
       // service an order. In this context, theoretical means: given
       // enough resources (vehicles).
       final long maxRequiredTime = minimumResponseTime + travelTime
-          + (2 * serviceTime);
+          + 2 * serviceTime;
       final long latestOrderAnnounceTime = scenarioLength - maxRequiredTime;
 
       // TODO this can be improved by allowing orders which are closer to
@@ -465,7 +464,8 @@ public class ScenarioGeneratorOld<T extends Scenario> {
                 scenarioLength,
                 serviceTime * 60000, minimumResponseTime * 60000, vehicleSpeed);
       }
-      vehicleGenerator = new HomogenousVehicleGenerator(vehicles, vehicleDto);
+      // vehicleGenerator = new HomogenousVehicleGenerator(vehicles,
+      // vehicleDto);
 
       return new ScenarioGeneratorOld<T>(this);
     }
