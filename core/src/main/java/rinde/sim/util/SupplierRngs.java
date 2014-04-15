@@ -150,7 +150,7 @@ public final class SupplierRngs {
    * @param <T> The type of objects that this supplier creates.
    * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
    */
-  public static abstract class AbstractSupplierRng<T> implements SupplierRng<T> {
+  public abstract static class AbstractSupplierRng<T> implements SupplierRng<T> {
     @SuppressWarnings("serial")
     @Override
     public String toString() {
@@ -172,7 +172,7 @@ public final class SupplierRngs {
 
     @Override
     public Long get(long seed) {
-      return new Long(supplier.get(seed));
+      return Long.valueOf(supplier.get(seed));
     }
   }
 
@@ -208,7 +208,7 @@ public final class SupplierRngs {
       AbstractSupplierRng<Integer> {
     private final IntegerDistribution distribution;
 
-    public IntegerDistributionSupplierRng(IntegerDistribution id) {
+    IntegerDistributionSupplierRng(IntegerDistribution id) {
       distribution = id;
     }
 
@@ -226,8 +226,10 @@ public final class SupplierRngs {
     private final double upperBound;
     private final OutOfBoundStrategy outOfBoundStrategy;
 
-    public BoundedDoubleDistSupplierRng(RealDistribution rd, double upper,
+    BoundedDoubleDistSupplierRng(RealDistribution rd, double upper,
         double lower, OutOfBoundStrategy strategy) {
+      checkArgument(strategy == OutOfBoundStrategy.REDRAW
+          || strategy == OutOfBoundStrategy.ROUND);
       distribution = rd;
       lowerBound = lower;
       upperBound = upper;
@@ -259,7 +261,7 @@ public final class SupplierRngs {
       AbstractSupplierRng<Double> {
     private final RealDistribution distribution;
 
-    public DoubleDistributionSupplierRng(RealDistribution rd) {
+    DoubleDistributionSupplierRng(RealDistribution rd) {
       distribution = rd;
     }
 
