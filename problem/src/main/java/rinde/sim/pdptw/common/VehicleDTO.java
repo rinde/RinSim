@@ -42,13 +42,22 @@ public class VehicleDTO implements Serializable {
    * @param pSpeed {@link #speed}.
    * @param pCapacity {@link #capacity}.
    * @param pAvailabilityTimeWindow {@link #availabilityTimeWindow}.
+   * @deprecated Use {@link #builder()} instead.
    */
+  @Deprecated
   public VehicleDTO(Point pStartPosition, double pSpeed, int pCapacity,
       TimeWindow pAvailabilityTimeWindow) {
     startPosition = pStartPosition;
     speed = pSpeed;
     capacity = pCapacity;
     availabilityTimeWindow = pAvailabilityTimeWindow;
+  }
+
+  VehicleDTO(Builder b) {
+    startPosition = b.startPosition;
+    speed = b.speed;
+    capacity = b.capacity;
+    availabilityTimeWindow = b.availabilityTimeWindow;
   }
 
   @Override
@@ -63,5 +72,47 @@ public class VehicleDTO implements Serializable {
     sb.append(availabilityTimeWindow);
     sb.append("}");
     return sb.toString();
+  }
+
+  public static Builder builder() {
+    return new Builder();
+  }
+
+  public static class Builder {
+    Point startPosition;
+    double speed;
+    int capacity;
+    TimeWindow availabilityTimeWindow;
+
+    Builder() {
+      startPosition = new Point(0, 0);
+      speed = 50;
+      capacity = 1;
+      availabilityTimeWindow = TimeWindow.ALWAYS;
+    }
+
+    public Builder startPosition(Point point) {
+      startPosition = point;
+      return this;
+    }
+
+    public Builder speed(double s) {
+      speed = s;
+      return this;
+    }
+
+    public Builder capacity(int c) {
+      capacity = c;
+      return this;
+    }
+
+    public Builder availabilityTimeWindow(TimeWindow tw) {
+      availabilityTimeWindow = tw;
+      return this;
+    }
+
+    public VehicleDTO build() {
+      return new VehicleDTO(this);
+    }
   }
 }
