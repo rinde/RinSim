@@ -24,11 +24,10 @@ import rinde.sim.pdptw.common.DynamicPDPTWScenario;
 import rinde.sim.pdptw.common.ParcelDTO;
 import rinde.sim.pdptw.common.VehicleDTO;
 import rinde.sim.pdptw.generator.Depots.DepotGenerator;
+import rinde.sim.pdptw.generator.Vehicles.VehicleGenerator;
 import rinde.sim.pdptw.generator.loc.LocationGenerator;
 import rinde.sim.pdptw.generator.times.ArrivalTimeGenerator;
 import rinde.sim.pdptw.generator.tw.TimeWindowGenerator;
-import rinde.sim.pdptw.generator.vehicles.VehicleGenerator;
-import rinde.sim.pdptw.generator.vehicles.VehicleGenerators;
 import rinde.sim.scenario.TimedEvent;
 import rinde.sim.util.SupplierRng;
 import rinde.sim.util.SupplierRngs;
@@ -145,7 +144,7 @@ public final class ScenarioGenerator {
     static final SupplierRng<Integer> DEFAULT_CAPACITY = SupplierRngs
         .constant(0);
 
-    static final VehicleGenerator DEFAULT_VEHICLE_GENERATOR = VehicleGenerators
+    static final VehicleGenerator DEFAULT_VEHICLE_GENERATOR = Vehicles
         .homogenous(VehicleDTO.builder()
             .build()).numberOfVehicles(10).build();
     static final DepotGenerator DEFAULT_DEPOT_GENERATOR = Depots

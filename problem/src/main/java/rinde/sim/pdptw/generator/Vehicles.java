@@ -1,4 +1,4 @@
-package rinde.sim.pdptw.generator.vehicles;
+package rinde.sim.pdptw.generator;
 
 import static java.util.Collections.nCopies;
 import static rinde.sim.util.SupplierRngs.constant;
@@ -15,14 +15,14 @@ import rinde.sim.util.TimeWindow;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 
-public final class VehicleGenerators {
+public final class Vehicles {
   static final int DEFAULT_NUM_OF_VEHICLES = 10;
   static final SupplierRng<Integer> DEFAULT_NUMBER_OF_VEHICLES = constant(DEFAULT_NUM_OF_VEHICLES);
   static final SupplierRng<Double> DEFAULT_SPEED = constant(50d);
   static final SupplierRng<Integer> DEFAULT_CAPACITY = constant(1);
   static final SupplierRng<Long> DEFAULT_TIME = constant(-1L);
 
-  private VehicleGenerators() {}
+  private Vehicles() {}
 
   public static HomogenousBuilder homogenous(VehicleDTO dto) {
     return new HomogenousBuilder(dto);
@@ -49,6 +49,11 @@ public final class VehicleGenerators {
 
   public static Builder builder() {
     return new Builder();
+  }
+
+  public interface VehicleGenerator {
+    ImmutableList<AddVehicleEvent> generate(long seed, Point center,
+        long scenarioLength);
   }
 
   public static class Builder {
