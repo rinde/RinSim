@@ -3,6 +3,7 @@
  */
 package rinde.sim.pdptw.generator.vehicles;
 
+import rinde.sim.core.graph.Point;
 import rinde.sim.pdptw.common.AddVehicleEvent;
 
 import com.google.common.collect.ImmutableList;
@@ -14,6 +15,7 @@ public interface VehicleGenerator {
 
   // supply default vehicle time window: scenario length
 
-  ImmutableList<AddVehicleEvent> generate(long seed);
+  ImmutableList<AddVehicleEvent> generate(long seed, Point center,
+      long scenarioLength);
 
 }

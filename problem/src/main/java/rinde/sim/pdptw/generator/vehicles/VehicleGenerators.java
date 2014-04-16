@@ -3,10 +3,6 @@ package rinde.sim.pdptw.generator.vehicles;
 import static java.util.Collections.nCopies;
 import static rinde.sim.util.SupplierRngs.constant;
 
-import javax.measure.quantity.Velocity;
-import javax.measure.unit.NonSI;
-import javax.measure.unit.Unit;
-
 import org.apache.commons.math3.random.MersenneTwister;
 import org.apache.commons.math3.random.RandomGenerator;
 
@@ -16,16 +12,14 @@ import rinde.sim.pdptw.common.VehicleDTO;
 import rinde.sim.util.SupplierRng;
 import rinde.sim.util.TimeWindow;
 
+import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 
 public final class VehicleGenerators {
-  static final SupplierRng<Integer> DEFAULT_NUMBER_OF_VEHICLES = constant(10);
-  static final SupplierRng<Point> DEFAULT_START_POSITION = constant(new Point(
-      0, 0));
+  static final int DEFAULT_NUM_OF_VEHICLES = 10;
+  static final SupplierRng<Integer> DEFAULT_NUMBER_OF_VEHICLES = constant(DEFAULT_NUM_OF_VEHICLES);
   static final SupplierRng<Double> DEFAULT_SPEED = constant(50d);
-  static final Unit<Velocity> DEFAULT_SPEED_UNIT = NonSI.KILOMETERS_PER_HOUR;
   static final SupplierRng<Integer> DEFAULT_CAPACITY = constant(1);
-  static final SupplierRng<TimeWindow> DEFAULT_TIME_WINDOW = constant(TimeWindow.ALWAYS);
   static final SupplierRng<Long> DEFAULT_TIME = constant(-1L);
 
   private VehicleGenerators() {}
@@ -40,7 +34,7 @@ public final class VehicleGenerators {
 
     HomogenousBuilder(VehicleDTO d) {
       dto = d;
-      numberOfVehicles = 10;
+      numberOfVehicles = DEFAULT_NUM_OF_VEHICLES;
     }
 
     public HomogenousBuilder numberOfVehicles(int num) {
@@ -59,23 +53,112 @@ public final class VehicleGenerators {
 
   public static class Builder {
     SupplierRng<Integer> numberOfVehicles;
-    SupplierRng<Point> startPositionGenerator;
+    Optional<SupplierRng<Point>> startPositionGenerator;
     SupplierRng<Double> speedGenerator;
-    Unit<Velocity> speedUnit;
     SupplierRng<Integer> capacityGenerator;
-    SupplierRng<TimeWindow> timeWindowGenerator;
+    Optional<SupplierRng<TimeWindow>> timeWindowGenerator;
     SupplierRng<Long> creationTimeGenerator;
 
     Builder() {
       numberOfVehicles = DEFAULT_NUMBER_OF_VEHICLES;
-      startPositionGenerator = DEFAULT_START_POSITION;
+      startPositionGenerator = Optional.absent();
       speedGenerator = DEFAULT_SPEED;
-      speedUnit = DEFAULT_SPEED_UNIT;
       capacityGenerator = DEFAULT_CAPACITY;
-
-      // FIXME use scenario length? time unit?
-      timeWindowGenerator = DEFAULT_TIME_WINDOW;
+      timeWindowGenerator = Optional.absent();
       creationTimeGenerator = DEFAULT_TIME;
+    }
+
+    public Builder numberOfVehicles(SupplierRng<Integer> num) {
+      numberOfVehicles = num;
+      return this;
+    }
+
+    public Builder startPositions(SupplierRng<Point> pos) {
+      startPositionGenerator = Optional.of(pos);
+      return this;
+    }
+
+    public Builder centeredStartPositions() {
+      startPositionGenerator = Optional.absent();
+      return this;
+    }
+
+    public Builder timeWindows(SupplierRng<TimeWindow> tw) {
+      timeWindowGenerator = Optional.of(tw);
+      return this;
+    }
+
+    public Builder timeWindowsAsScenario() {
+      timeWindowGenerator = Optional.absent();
+      return this;
+    }
+
+    public Builder speeds(SupplierRng<Double> sp) {
+      speedGenerator = sp;
+      return this;
+    }
+
+    public Builder capacities(SupplierRng<Integer> cap) {
+      capacityGenerator = cap;
+      return this;
+    }
+
+    public Builder creationTimes(SupplierRng<Long> times) {
+      creationTimeGenerator = times;
+      return this;
+    }
+
+    public VehicleGenerator build() {
+      return new DefaultVehicleGenerator(this);
+    }
+  }
+
+  private static class DefaultVehicleGenerator implements VehicleGenerator {
+    private final SupplierRng<Integer> numberOfVehicles;
+    private final Optional<SupplierRng<Point>> startPositionGenerator;
+    private final SupplierRng<Double> speedGenerator;
+    private final SupplierRng<Integer> capacityGenerator;
+    private final Optional<SupplierRng<TimeWindow>> timeWindowGenerator;
+    private final SupplierRng<Long> creationTimeGenerator;
+    private final RandomGenerator rng;
+
+    DefaultVehicleGenerator(Builder b) {
+      numberOfVehicles = b.numberOfVehicles;
+      startPositionGenerator = b.startPositionGenerator;
+      speedGenerator = b.speedGenerator;
+      capacityGenerator = b.capacityGenerator;
+      timeWindowGenerator = b.timeWindowGenerator;
+      creationTimeGenerator = b.creationTimeGenerator;
+      rng = new MersenneTwister();
+    }
+
+    @Override
+    public ImmutableList<AddVehicleEvent> generate(long seed, Point center,
+        long scenarioLength) {
+      rng.setSeed(seed);
+
+      final ImmutableList.Builder<AddVehicleEvent> builder = ImmutableList
+          .builder();
+      final int num = numberOfVehicles.get(rng.nextLong());
+      for (int i = 0; i < num; i++) {
+        final Point pos = startPositionGenerator.isPresent()
+            ? startPositionGenerator.get().get(rng.nextLong())
+            : center;
+        final double speed = speedGenerator.get(rng.nextLong());
+        final int capacity = capacityGenerator.get(rng.nextLong());
+        final TimeWindow tw = timeWindowGenerator.isPresent()
+            ? timeWindowGenerator.get().get(rng.nextLong())
+            : new TimeWindow(0L, scenarioLength);
+        final long time = creationTimeGenerator.get(rng.nextLong());
+        final VehicleDTO dto = VehicleDTO.builder()
+            .startPosition(pos)
+            .speed(speed)
+            .capacity(capacity)
+            .availabilityTimeWindow(tw)
+            .build();
+        builder.add(new AddVehicleEvent(time, dto));
+      }
+      return builder.build();
     }
   }
 
@@ -91,7 +174,8 @@ public final class VehicleGenerators {
     }
 
     @Override
-    public ImmutableList<AddVehicleEvent> generate(long seed) {
+    public ImmutableList<AddVehicleEvent> generate(long seed, Point center,
+        long scenarioLength) {
       rng.setSeed(seed);
       return ImmutableList
           .copyOf(nCopies(n, new AddVehicleEvent(-1, vehicleDto)));

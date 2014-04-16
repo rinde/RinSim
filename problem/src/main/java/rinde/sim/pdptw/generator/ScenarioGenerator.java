@@ -39,11 +39,11 @@ import com.google.common.math.DoubleMath;
 public final class ScenarioGenerator {
 
   // global properties
-  private final Unit<Velocity> speedUnit;
-  private final Unit<Length> distanceUnit;
-  private final Unit<Duration> timeUnit;
-  private final TimeWindow timeWindow;
-  private final long tickSize;
+  final Unit<Velocity> speedUnit;
+  final Unit<Length> distanceUnit;
+  final Unit<Duration> timeUnit;
+  final TimeWindow timeWindow;
+  final long tickSize;
 
   // parcel properties -> move to separate generator?
   private final ArrivalTimeGenerator arrivalTimeGenerator;
