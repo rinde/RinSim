@@ -14,6 +14,7 @@ import javax.measure.unit.SI;
 import javax.measure.unit.Unit;
 
 import rinde.sim.core.graph.Point;
+import rinde.sim.core.model.Model;
 import rinde.sim.core.model.pdp.DefaultPDPModel;
 import rinde.sim.core.model.pdp.PDPModel;
 import rinde.sim.core.model.pdp.PDPScenarioEvent;
@@ -29,6 +30,7 @@ import rinde.sim.util.TimeWindow;
 
 import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 
 public class VanLon14Scenario extends DynamicPDPTWScenario {
@@ -65,13 +67,16 @@ public class VanLon14Scenario extends DynamicPDPTWScenario {
   }
 
   @Override
-  public RoadModel createRoadModel() {
+  public ImmutableList<Model<?>> createModels() {
+    return ImmutableList.<Model<?>> of(createRoadModel(), createPDPModel());
+  }
+
+  RoadModel createRoadModel() {
     return new PDPRoadModel(new PlaneRoadModel(min, max, getDistanceUnit(),
         MAX_SPEED), false);
   }
 
-  @Override
-  public PDPModel createPDPModel() {
+  PDPModel createPDPModel() {
     return new DefaultPDPModel(new TardyAllowedPolicy());
   }
 

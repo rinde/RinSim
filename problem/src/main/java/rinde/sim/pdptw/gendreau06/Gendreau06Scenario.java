@@ -18,6 +18,7 @@ import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 
 import rinde.sim.core.graph.Point;
+import rinde.sim.core.model.Model;
 import rinde.sim.core.model.pdp.DefaultPDPModel;
 import rinde.sim.core.model.pdp.PDPModel;
 import rinde.sim.core.model.pdp.twpolicy.TardyAllowedPolicy;
@@ -32,6 +33,7 @@ import rinde.sim.util.TimeWindow;
 
 import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
+import com.google.common.collect.ImmutableList;
 
 /**
  * 
@@ -93,13 +95,16 @@ public final class Gendreau06Scenario extends DynamicPDPTWScenario {
   }
 
   @Override
-  public RoadModel createRoadModel() {
+  public ImmutableList<Model<?>> createModels() {
+    return ImmutableList.<Model<?>> of(createRoadModel(), createPDPModel());
+  }
+
+  RoadModel createRoadModel() {
     return new PDPRoadModel(new PlaneRoadModel(MIN, MAX, getDistanceUnit(),
         MAX_SPEED), allowDiversion);
   }
 
-  @Override
-  public PDPModel createPDPModel() {
+  PDPModel createPDPModel() {
     return new DefaultPDPModel(new TardyAllowedPolicy());
   }
 

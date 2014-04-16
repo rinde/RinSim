@@ -19,6 +19,7 @@ import org.junit.Test;
 
 import rinde.sim.core.Simulator;
 import rinde.sim.core.graph.Point;
+import rinde.sim.core.model.Model;
 import rinde.sim.core.model.pdp.DefaultPDPModel;
 import rinde.sim.core.model.pdp.PDPModel;
 import rinde.sim.core.model.pdp.PDPScenarioEvent;
@@ -30,6 +31,8 @@ import rinde.sim.pdptw.common.DynamicPDPTWProblem.SimulationInfo;
 import rinde.sim.pdptw.common.DynamicPDPTWProblem.StopCondition;
 import rinde.sim.scenario.TimedEvent;
 import rinde.sim.util.TimeWindow;
+
+import com.google.common.collect.ImmutableList;
 
 /**
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
@@ -104,12 +107,15 @@ public class TestDynamicPDPTWProblem {
     }
 
     @Override
-    public RoadModel createRoadModel() {
+    public ImmutableList<Model<?>> createModels() {
+      return ImmutableList.<Model<?>> of(createRoadModel(), createPDPModel());
+    }
+
+    RoadModel createRoadModel() {
       return new PlaneRoadModel(new Point(0, 0), new Point(10, 10), 1d);
     }
 
-    @Override
-    public PDPModel createPDPModel() {
+    PDPModel createPDPModel() {
       return new DefaultPDPModel(new TardyAllowedPolicy());
     }
 

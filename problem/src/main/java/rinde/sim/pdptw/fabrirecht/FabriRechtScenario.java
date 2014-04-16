@@ -15,6 +15,7 @@ import javax.measure.unit.SI;
 import javax.measure.unit.Unit;
 
 import rinde.sim.core.graph.Point;
+import rinde.sim.core.model.Model;
 import rinde.sim.core.model.pdp.DefaultPDPModel;
 import rinde.sim.core.model.pdp.PDPModel;
 import rinde.sim.core.model.pdp.twpolicy.TardyAllowedPolicy;
@@ -25,6 +26,8 @@ import rinde.sim.pdptw.common.DynamicPDPTWScenario;
 import rinde.sim.pdptw.common.VehicleDTO;
 import rinde.sim.scenario.TimedEvent;
 import rinde.sim.util.TimeWindow;
+
+import com.google.common.collect.ImmutableList;
 
 /**
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
@@ -77,13 +80,16 @@ public class FabriRechtScenario extends DynamicPDPTWScenario {
   }
 
   @Override
-  public RoadModel createRoadModel() {
+  public ImmutableList<Model<?>> createModels() {
+    return ImmutableList.<Model<?>> of(createRoadModel(), createPDPModel());
+  }
+
+  RoadModel createRoadModel() {
     return new PlaneRoadModel(min, max, getDistanceUnit(),
         Measure.valueOf(100d, getSpeedUnit()));
   }
 
-  @Override
-  public PDPModel createPDPModel() {
+  PDPModel createPDPModel() {
     return new DefaultPDPModel(new TardyAllowedPolicy());
   }
 

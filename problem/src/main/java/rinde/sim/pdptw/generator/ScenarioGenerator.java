@@ -1,10 +1,13 @@
 package rinde.sim.pdptw.generator;
 
+import static com.google.common.collect.Lists.newLinkedList;
+
 import java.math.RoundingMode;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
+import javax.measure.Measure;
 import javax.measure.quantity.Duration;
 import javax.measure.quantity.Length;
 import javax.measure.quantity.Velocity;
@@ -15,14 +18,16 @@ import javax.measure.unit.Unit;
 import org.apache.commons.math3.random.RandomGenerator;
 
 import rinde.sim.core.graph.Point;
-import rinde.sim.core.model.pdp.PDPModel;
+import rinde.sim.core.model.Model;
 import rinde.sim.core.model.pdp.PDPScenarioEvent;
+import rinde.sim.core.model.road.PlaneRoadModel;
 import rinde.sim.core.model.road.RoadModel;
 import rinde.sim.pdptw.common.AddParcelEvent;
 import rinde.sim.pdptw.common.DynamicPDPTWProblem.SimulationInfo;
+import rinde.sim.pdptw.common.DynamicPDPTWProblem.StopCondition;
 import rinde.sim.pdptw.common.DynamicPDPTWScenario;
+import rinde.sim.pdptw.common.PDPRoadModel;
 import rinde.sim.pdptw.common.ParcelDTO;
-import rinde.sim.pdptw.common.VehicleDTO;
 import rinde.sim.pdptw.generator.Depots.DepotGenerator;
 import rinde.sim.pdptw.generator.Locations.LocationGenerator;
 import rinde.sim.pdptw.generator.Vehicles.VehicleGenerator;
@@ -34,16 +39,12 @@ import rinde.sim.util.SupplierRngs;
 import rinde.sim.util.TimeWindow;
 
 import com.google.common.base.Predicate;
+import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.math.DoubleMath;
 
 public final class ScenarioGenerator {
-
-  // TODO
-  // add depot
-  // stop conditions
-  // add requirements, i.e. based on measurements?
 
   // global properties
   final Unit<Velocity> speedUnit;
@@ -51,6 +52,8 @@ public final class ScenarioGenerator {
   final Unit<Duration> timeUnit;
   final TimeWindow timeWindow;
   final long tickSize;
+  final Predicate<SimulationInfo> stopCondition;
+  final ImmutableList<Supplier<? extends Model<?>>> modelSuppliers;
 
   // parcel properties -> move to separate generator?
   private final ArrivalTimeGenerator arrivalTimeGenerator;
@@ -60,7 +63,7 @@ public final class ScenarioGenerator {
   private final SupplierRng<Long> deliveryDurationGenerator;
   private final SupplierRng<Integer> neededCapacityGenerator;
 
-  // vehicle properties
+  // vehicles and depots
   private final VehicleGenerator vehicleGenerator;
   private final DepotGenerator depotGenerator;
 
@@ -70,6 +73,7 @@ public final class ScenarioGenerator {
     timeUnit = b.timeUnit;
     timeWindow = b.timeWindow;
     tickSize = b.tickSize;
+    stopCondition = b.stopCondition;
 
     arrivalTimeGenerator = b.arrivalTimeGenerator;
     locationGenerator = b.locationGenerator;
@@ -80,6 +84,13 @@ public final class ScenarioGenerator {
 
     vehicleGenerator = b.vehicleGenerator;
     depotGenerator = b.depotGenerator;
+
+    final ImmutableList.Builder<Supplier<? extends Model<?>>> builder = ImmutableList
+        .builder();
+    for (final ModelSupplier<?> sup : b.modelSuppliers) {
+      builder.add(sup.get(this));
+    }
+    modelSuppliers = builder.build();
   }
 
   public DynamicPDPTWScenario generate(RandomGenerator rng) {
@@ -145,16 +156,18 @@ public final class ScenarioGenerator {
         .constant(0);
 
     static final VehicleGenerator DEFAULT_VEHICLE_GENERATOR = Vehicles
-        .homogenous(VehicleDTO.builder()
-            .build()).numberOfVehicles(10).build();
+        .builder().build();
     static final DepotGenerator DEFAULT_DEPOT_GENERATOR = Depots
         .singleCenteredDepot();
+
+    static final Predicate<SimulationInfo> DEFAULT_STOP_CONDITION = StopCondition.TIME_OUT_EVENT;
 
     Unit<Length> distanceUnit;
     Unit<Velocity> speedUnit;
     Unit<Duration> timeUnit;
     long tickSize;
     TimeWindow timeWindow;
+    Predicate<SimulationInfo> stopCondition;
 
     ArrivalTimeGenerator arrivalTimeGenerator;
     TimeWindowGenerator timeWindowGenerator;
@@ -165,10 +178,10 @@ public final class ScenarioGenerator {
 
     VehicleGenerator vehicleGenerator;
     DepotGenerator depotGenerator;
+    final List<ModelSupplier<?>> modelSuppliers;
 
     // problem class
     // problem instance id
-    // stop conditions
     // models
 
     Builder() {
@@ -184,6 +197,8 @@ public final class ScenarioGenerator {
 
       vehicleGenerator = DEFAULT_VEHICLE_GENERATOR;
       depotGenerator = DEFAULT_DEPOT_GENERATOR;
+
+      modelSuppliers = newLinkedList();
     }
 
     public Builder timeUnit(Unit<Duration> tu) {
@@ -250,10 +265,53 @@ public final class ScenarioGenerator {
       return this;
     }
 
+    public Builder stopCondition(Predicate<SimulationInfo> condition) {
+      stopCondition = condition;
+      return this;
+    }
+
+    public Builder addModel(ModelSupplier<Model<?>> ms) {
+      modelSuppliers.add(ms);
+      return this;
+    }
+
     public ScenarioGenerator build() {
       return new ScenarioGenerator(this);
     }
 
+  }
+
+  private static class DefaultRoadModelSupplier implements
+      ModelSupplier<RoadModel> {
+    final double speed;
+    final boolean diversion;
+
+    DefaultRoadModelSupplier(double maxSpeed, boolean allowDiversion) {
+      speed = maxSpeed;
+      diversion = allowDiversion;
+    }
+
+    @Override
+    public Supplier<RoadModel> get(final ScenarioGenerator scenario) {
+      final Point min = scenario.locationGenerator.getMin();
+      final Point max = scenario.locationGenerator.getMax();
+
+      return new Supplier<RoadModel>() {
+        @Override
+        public RoadModel get() {
+          return new PDPRoadModel(new PlaneRoadModel(
+              min,
+              max,
+              scenario.distanceUnit,
+              Measure.valueOf(speed, scenario.speedUnit)),
+              diversion);
+        }
+      };
+    }
+  }
+
+  interface ModelSupplier<T extends Model<?>> {
+    Supplier<T> get(ScenarioGenerator sg);
   }
 
   private static final class GeneratedScenario extends DynamicPDPTWScenario {
@@ -262,6 +320,8 @@ public final class ScenarioGenerator {
     private final Unit<Duration> timeUnit;
     private final TimeWindow timeWindow;
     private final long tickSize;
+    private final Predicate<SimulationInfo> stopCondition;
+    private final ImmutableList<Supplier<? extends Model<?>>> modelSuppliers;
 
     GeneratedScenario(ScenarioGenerator sg, List<? extends TimedEvent> events,
         Set<Enum<?>> supportedTypes) {
@@ -271,6 +331,8 @@ public final class ScenarioGenerator {
       tickSize = sg.tickSize;
       speedUnit = sg.speedUnit;
       distanceUnit = sg.distanceUnit;
+      stopCondition = sg.stopCondition;
+      modelSuppliers = sg.modelSuppliers;
     }
 
     @Override
@@ -299,21 +361,17 @@ public final class ScenarioGenerator {
     }
 
     @Override
-    public RoadModel createRoadModel() {
-      // TODO Auto-generated method stub
-      return null;
-    }
-
-    @Override
-    public PDPModel createPDPModel() {
-      // TODO Auto-generated method stub
-      return null;
-    }
-
-    @Override
     public Predicate<SimulationInfo> getStopCondition() {
-      // TODO Auto-generated method stub
-      return null;
+      return stopCondition;
+    }
+
+    @Override
+    public ImmutableList<? extends Model<?>> createModels() {
+      final ImmutableList.Builder<Model<?>> builder = ImmutableList.builder();
+      for (final Supplier<? extends Model<?>> sup : modelSuppliers) {
+        builder.add(sup.get());
+      }
+      return builder.build();
     }
 
     // FIXME create one interface for ProblemInstance

@@ -140,8 +140,10 @@ public class DynamicPDPTWProblem {
       Model<?>... models) {
     simulator = new Simulator(new MersenneTwister(randomSeed), Measure.valueOf(
         scen.getTickSize(), scen.getTimeUnit()));
-    simulator.register(scen.createRoadModel());
-    simulator.register(scen.createPDPModel());
+    final List<? extends Model<?>> scenarioModels = scen.createModels();
+    for (final Model<?> m : scenarioModels) {
+      simulator.register(m);
+    }
     for (final Model<?> m : models) {
       simulator.register(m);
     }

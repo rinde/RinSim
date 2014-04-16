@@ -11,7 +11,7 @@ import javax.measure.quantity.Length;
 import javax.measure.quantity.Velocity;
 import javax.measure.unit.Unit;
 
-import rinde.sim.core.model.pdp.PDPModel;
+import rinde.sim.core.model.Model;
 import rinde.sim.core.model.road.RoadModel;
 import rinde.sim.pdptw.common.DynamicPDPTWProblem.SimulationInfo;
 import rinde.sim.scenario.Scenario;
@@ -19,6 +19,7 @@ import rinde.sim.scenario.TimedEvent;
 import rinde.sim.util.TimeWindow;
 
 import com.google.common.base.Predicate;
+import com.google.common.collect.ImmutableList;
 
 /**
  * A {@link Scenario} that defines a <i>dynamic pickup-and-delivery problem with
@@ -42,15 +43,18 @@ public abstract class DynamicPDPTWScenario extends Scenario {
     super(events, supportedTypes);
   }
 
-  /**
-   * @return A {@link RoadModel} instance that should be used in this scenario.
-   */
-  public abstract RoadModel createRoadModel();
+  public abstract ImmutableList<? extends Model<?>> createModels();
 
-  /**
-   * @return A {@link PDPModel} instance that should be used in this scenario.
-   */
-  public abstract PDPModel createPDPModel();
+  // /**
+  // * @return A {@link RoadModel} instance that should be used in this
+  // scenario.
+  // */
+  // public abstract RoadModel createRoadModel();
+  //
+  // /**
+  // * @return A {@link PDPModel} instance that should be used in this scenario.
+  // */
+  // public abstract PDPModel createPDPModel();
 
   /**
    * @return The {@link TimeWindow} of the scenario indicates the start and end

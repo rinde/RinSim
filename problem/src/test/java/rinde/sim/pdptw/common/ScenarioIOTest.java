@@ -15,6 +15,7 @@ import javax.measure.unit.Unit;
 import org.junit.Test;
 
 import rinde.sim.core.graph.Point;
+import rinde.sim.core.model.Model;
 import rinde.sim.core.model.pdp.PDPModel;
 import rinde.sim.core.model.pdp.PDPScenarioEvent;
 import rinde.sim.core.model.road.RoadModel;
@@ -26,6 +27,7 @@ import rinde.sim.scenario.TimedEvent;
 import rinde.sim.util.TimeWindow;
 
 import com.google.common.base.Predicate;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 
 public class ScenarioIOTest {
@@ -85,12 +87,15 @@ public class ScenarioIOTest {
     }
 
     @Override
-    public RoadModel createRoadModel() {
+    public ImmutableList<Model<?>> createModels() {
+      return ImmutableList.<Model<?>> of(createRoadModel(), createPDPModel());
+    }
+
+    RoadModel createRoadModel() {
       throw new UnsupportedOperationException();
     }
 
-    @Override
-    public PDPModel createPDPModel() {
+    PDPModel createPDPModel() {
       throw new UnsupportedOperationException();
     }
 
