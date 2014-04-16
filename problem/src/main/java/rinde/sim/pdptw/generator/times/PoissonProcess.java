@@ -5,6 +5,7 @@ import java.util.Iterator;
 import javax.annotation.Nullable;
 
 import org.apache.commons.math3.distribution.ExponentialDistribution;
+import org.apache.commons.math3.random.MersenneTwister;
 import org.apache.commons.math3.random.RandomGenerator;
 
 import com.google.common.base.Predicate;
@@ -35,10 +36,15 @@ import com.google.common.collect.Iterators;
 public class PoissonProcess implements ArrivalTimeGenerator {
   final double length;
   final double intensity;
+  /**
+   * Random generator used for drawing random numbers.
+   */
+  protected final RandomGenerator rng;
 
   PoissonProcess(double len, double intens) {
     length = len;
     intensity = intens;
+    rng = new MersenneTwister();
   }
 
   /**
@@ -50,13 +56,14 @@ public class PoissonProcess implements ArrivalTimeGenerator {
   }
 
   // internal use only!
-  Iterator<Double> iterator(RandomGenerator rng) {
+  Iterator<Double> iterator() {
     return new PoissonIterator(rng, intensity, length);
   }
 
   @Override
-  public ImmutableList<Double> generate(RandomGenerator rng) {
-    return ImmutableList.copyOf(iterator(rng));
+  public ImmutableList<Double> generate(long seed) {
+    rng.setSeed(seed);
+    return ImmutableList.copyOf(iterator());
   }
 
   /**
@@ -93,8 +100,8 @@ public class PoissonProcess implements ArrivalTimeGenerator {
     }
 
     @Override
-    public Iterator<Double> iterator(RandomGenerator rng) {
-      return Iterators.filter(super.iterator(rng), new NHPredicate(rng, lambd));
+    public Iterator<Double> iterator() {
+      return Iterators.filter(super.iterator(), new NHPredicate(rng, lambd));
     }
   }
 

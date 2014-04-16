@@ -3,8 +3,6 @@
  */
 package rinde.sim.pdptw.generator.loc;
 
-import org.apache.commons.math3.random.RandomGenerator;
-
 import rinde.sim.core.graph.Point;
 
 import com.google.common.collect.ImmutableList;
@@ -19,10 +17,9 @@ public interface LocationGenerator {
    * There should be enough locations for each order. Typically this is
    * predefined as a ratio, e.g. <code>1:2</code> in case origin and destination
    * is required for each order.
+   * @param seed The random seed.
    * @param numOrders The number of orders for which a location is required.
-   * @param rng The {@link RandomGenerator} which should be used for drawing
-   *          random numbers.
    * @return A list of locations for the orders.
    */
-  ImmutableList<Point> generate(int numOrders, RandomGenerator rng);
+  ImmutableList<Point> generate(long seed, int numOrders);
 }

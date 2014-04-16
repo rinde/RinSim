@@ -38,22 +38,27 @@ import com.google.common.math.DoubleMath;
 
 public final class ScenarioGenerator {
 
-  final Unit<Velocity> speedUnit;
-  final Unit<Length> distanceUnit;
-  final Unit<Duration> timeUnit;
-  final TimeWindow timeWindow;
-  final long tickSize;
+  // global properties
+  private final Unit<Velocity> speedUnit;
+  private final Unit<Length> distanceUnit;
+  private final Unit<Duration> timeUnit;
+  private final TimeWindow timeWindow;
+  private final long tickSize;
 
+  // parcel properties -> move to separate generator?
   private final ArrivalTimeGenerator arrivalTimeGenerator;
   private final LocationGenerator locationGenerator;
   private final TimeWindowGenerator timeWindowGenerator;
-  private final VehicleGenerator vehicleGenerator;
-
   private final SupplierRng<Long> pickupDurationGenerator;
   private final SupplierRng<Long> deliveryDurationGenerator;
   private final SupplierRng<Integer> neededCapacityGenerator;
 
+  // vehicle properties
+  private final VehicleGenerator vehicleGenerator;
+
   ScenarioGenerator(Builder b) {
+    speedUnit = b.speedUnit;
+    distanceUnit = b.distanceUnit;
     timeUnit = b.timeUnit;
     timeWindow = b.timeWindow;
     tickSize = b.tickSize;
@@ -61,23 +66,20 @@ public final class ScenarioGenerator {
     arrivalTimeGenerator = b.arrivalTimeGenerator;
     locationGenerator = b.locationGenerator;
     timeWindowGenerator = b.timeWindowGenerator;
-    vehicleGenerator = b.vehicleGenerator;
-
-    speedUnit = b.speedUnit;
-    distanceUnit = b.distanceUnit;
-
     pickupDurationGenerator = b.pickupDurationGenerator;
     deliveryDurationGenerator = b.deliveryDurationGenerator;
     neededCapacityGenerator = b.neededCapacityGenerator;
+
+    vehicleGenerator = b.vehicleGenerator;
   }
 
   public DynamicPDPTWScenario generate(RandomGenerator rng) {
     final ImmutableList.Builder<TimedEvent> b = ImmutableList.builder();
-    b.addAll(vehicleGenerator.generate(rng));
+    b.addAll(vehicleGenerator.generate(rng.nextLong()));
 
-    final List<Double> times = arrivalTimeGenerator.generate(rng);
-    final Iterator<Point> locs = locationGenerator.generate(times.size() * 2,
-        rng).iterator();
+    final List<Double> times = arrivalTimeGenerator.generate(rng.nextLong());
+    final Iterator<Point> locs = locationGenerator.generate(rng.nextLong(),
+        times.size() * 2).iterator();
 
     for (final double time : times) {
       final long arrivalTime = DoubleMath.roundToLong(time,
@@ -85,8 +87,8 @@ public final class ScenarioGenerator {
       final Point origin = locs.next();
       final Point destination = locs.next();
 
-      final List<TimeWindow> tws = timeWindowGenerator.generate(arrivalTime,
-          origin, destination, rng);
+      final List<TimeWindow> tws = timeWindowGenerator.generate(rng.nextLong(),
+          arrivalTime, origin, destination);
 
       final TimeWindow pickupTW = tws.get(0);
       final TimeWindow deliveryTW = tws.get(1);

@@ -1,7 +1,5 @@
 package rinde.sim.pdptw.generator.times;
 
-import org.apache.commons.math3.random.RandomGenerator;
-
 import com.google.common.collect.ImmutableList;
 
 /**
@@ -11,9 +9,9 @@ import com.google.common.collect.ImmutableList;
 public interface ArrivalTimeGenerator {
   /**
    * Should generate a list of arrival times.
-   * @param rng The random generator to use.
+   * @param seed The random seed to use.
    * @return An immutable list of arrival times in ascending order, may contain
    *         duplicates.
    */
-  ImmutableList<Double> generate(RandomGenerator rng);
+  ImmutableList<Double> generate(long seed);
 }

@@ -7,6 +7,7 @@ import javax.measure.quantity.Velocity;
 import javax.measure.unit.NonSI;
 import javax.measure.unit.Unit;
 
+import org.apache.commons.math3.random.MersenneTwister;
 import org.apache.commons.math3.random.RandomGenerator;
 
 import rinde.sim.core.graph.Point;
@@ -71,6 +72,8 @@ public final class VehicleGenerators {
       speedGenerator = DEFAULT_SPEED;
       speedUnit = DEFAULT_SPEED_UNIT;
       capacityGenerator = DEFAULT_CAPACITY;
+
+      // FIXME use scenario length? time unit?
       timeWindowGenerator = DEFAULT_TIME_WINDOW;
       creationTimeGenerator = DEFAULT_TIME;
     }
@@ -79,14 +82,17 @@ public final class VehicleGenerators {
   private static class HomogenousVehicleGenerator implements VehicleGenerator {
     private final VehicleDTO vehicleDto;
     private final int n;
+    private final RandomGenerator rng;
 
     HomogenousVehicleGenerator(int numberOfVehicles, VehicleDTO dto) {
       vehicleDto = dto;
       n = numberOfVehicles;
+      rng = new MersenneTwister();
     }
 
     @Override
-    public ImmutableList<AddVehicleEvent> generate(RandomGenerator rng) {
+    public ImmutableList<AddVehicleEvent> generate(long seed) {
+      rng.setSeed(seed);
       return ImmutableList
           .copyOf(nCopies(n, new AddVehicleEvent(-1, vehicleDto)));
     }

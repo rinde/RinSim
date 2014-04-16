@@ -91,9 +91,9 @@ public class NHPoissonProcessTest {
         final List<Double> dynamismValues = newArrayList();
         for (int j = 0; j < numSamples; j++) {
 
-          List<Double> times = generator.generate(rng);
+          List<Double> times = generator.generate(rng.nextLong());
           while (times.size() < 2) {
-            times = generator.generate(rng);
+            times = generator.generate(rng.nextLong());
           }
 
           final double dyn = Metrics.measureDynamism(times, lengthOfScenario);

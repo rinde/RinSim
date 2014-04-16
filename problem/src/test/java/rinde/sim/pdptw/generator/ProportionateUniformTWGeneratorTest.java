@@ -37,12 +37,14 @@ public class ProportionateUniformTWGeneratorTest {
     for (int i = 0; i < 10000; i++) {
       final Point p1 = new Point(6, 6);
       final Point p2 = new Point(4, 4);
-      final List<TimeWindow> tws = twg.generate(DoubleMath.roundToLong(rng
-          .nextDouble() * 120, RoundingMode.HALF_DOWN), p1, p2, rng);
+      final List<TimeWindow> tws = twg.generate(rng.nextLong(), DoubleMath
+          .roundToLong(rng.nextDouble() * 120, RoundingMode.HALF_DOWN), p1, p2);
       assertTrue(tws.toString(), tws.get(0).end <= tws.get(1).end
           + travelTime(p1, p2, vehicleSpeed) + serviceTime);
-      assertTrue(tws.toString() + " tt: " + travelTime(p1, p2, vehicleSpeed), tws.get(0).begin
-          + travelTime(p1, p2, vehicleSpeed) + serviceTime <= tws.get(1).begin);
+      assertTrue(
+          tws.toString() + " tt: " + travelTime(p1, p2, vehicleSpeed),
+          tws.get(0).begin
+              + travelTime(p1, p2, vehicleSpeed) + serviceTime <= tws.get(1).begin);
       assertTrue(tws.get(1).end <= endTime
           - (travelTime(p2, depotLocation, vehicleSpeed) + serviceTime));
 

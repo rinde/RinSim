@@ -111,22 +111,23 @@ public class ScenarioGeneratorOld<T extends Scenario> {
 
   T doGenerate(RandomGenerator rng, int num) {
     final ImmutableList<Long> times = convert(arrivalTimesGenerator
-        .generate(rng));
+        .generate(rng.nextLong()));
     final ImmutableList<Point> locations = locationsGenerator.generate(
-        times.size(), rng);
+        rng.nextLong(),
+        times.size());
     int index = 0;
 
     final ScenarioBuilder sb = new ScenarioBuilder(PDPScenarioEvent.ADD_DEPOT,
         PDPScenarioEvent.ADD_PARCEL, PDPScenarioEvent.ADD_VEHICLE,
         PDPScenarioEvent.TIME_OUT);
     sb.addEvent(new AddDepotEvent(-1, depotLocation));
-    sb.addEvents(vehicleGenerator.generate(rng));
+    sb.addEvents(vehicleGenerator.generate(rng.nextLong()));
 
     for (final long time : times) {
       final Point pickup = locations.get(index++);
       final Point delivery = locations.get(index++);
-      final ImmutableList<TimeWindow> tws = timeWindowGenerator.generate(time,
-          pickup, delivery, rng);
+      final ImmutableList<TimeWindow> tws = timeWindowGenerator.generate(
+          rng.nextLong(), time, pickup, delivery);
       sb.addEvent(new AddParcelEvent(
           ParcelDTO.builder(pickup, delivery)
               .pickupTimeWindow(tws.get(0))

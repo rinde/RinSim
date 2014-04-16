@@ -8,6 +8,7 @@ import static rinde.sim.pdptw.generator.Metrics.travelTime;
 
 import java.math.RoundingMode;
 
+import org.apache.commons.math3.random.MersenneTwister;
 import org.apache.commons.math3.random.RandomGenerator;
 
 import rinde.sim.core.graph.Point;
@@ -29,6 +30,7 @@ public class UrgencyProportionateUniformTWGenerator implements
   private final long minResponseTime;
   private final long maxResponseTime;
   private final double vehicleSpeed; // km/h
+  private final RandomGenerator rng;
 
   /**
    * @param depotLocation The location of the depot.
@@ -48,15 +50,17 @@ public class UrgencyProportionateUniformTWGenerator implements
     this.minResponseTime = minResponseTime;
     this.maxResponseTime = maxResponseTime;
     this.vehicleSpeed = vehicleSpeed;
+    rng = new MersenneTwister();
   }
 
   @Override
-  public ImmutableList<TimeWindow> generate(long orderAnnounceTime,
-      Point pickup, Point delivery, RandomGenerator rng) {
+  public ImmutableList<TimeWindow> generate(long seed, long orderAnnounceTime,
+      Point pickup, Point delivery) {
+    rng.setSeed(seed);
     checkArgument(
         orderAnnounceTime <= endTime
             - (minResponseTime + travelTime(pickup, delivery, vehicleSpeed)
-                + (2 * serviceTime) + travelTime(delivery, depotLocation,
+                + 2 * serviceTime + travelTime(delivery, depotLocation,
                   vehicleSpeed)), "The orderAnnounceTime is infeasible.");
 
     // largely inspired on Gendreau et al. method, but changed to ensure

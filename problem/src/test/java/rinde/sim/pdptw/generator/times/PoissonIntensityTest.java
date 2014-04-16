@@ -92,7 +92,7 @@ public class PoissonIntensityTest {
     final Multiset<Double> ms = TreeMultiset.create();
     final int repetitions = 10000;
     for (int i = 0; i < repetitions; i++) {
-      final List<Double> times = pp.generate(rng);
+      final List<Double> times = pp.generate(rng.nextLong());
       for (final Double d : times) {
         ms.add(new Double(Math.ceil(d)));
       }

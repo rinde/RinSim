@@ -75,7 +75,7 @@ public class PoissonProcessTest {
     final RandomGenerator rng = new MersenneTwister(0);
     for (int i = 0; i < 1000; i++) {
       final List<Long> list = ScenarioGeneratorOld.convert(poisson
-          .generate(rng));
+          .generate(rng.nextLong()));
       ascendingOrderTest(list);
       // add the number of announcements
       f.addValue(list.size());
@@ -110,10 +110,10 @@ public class PoissonProcessTest {
     for (int i = 0; i < 100; i++) {
       final long seed = outer.nextLong();
       final RandomGenerator inner = new MersenneTwister(seed);
-      final List<Double> list1 = poisson.generate(inner);
+      final List<Double> list1 = poisson.generate(inner.nextLong());
       for (int j = 0; j < 100; j++) {
         inner.setSeed(seed);
-        final List<Double> list2 = poisson.generate(inner);
+        final List<Double> list2 = poisson.generate(inner.nextLong());
         assertEquals(list1, list2);
       }
     }

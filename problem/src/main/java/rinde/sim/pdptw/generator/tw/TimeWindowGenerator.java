@@ -3,8 +3,6 @@
  */
 package rinde.sim.pdptw.generator.tw;
 
-import org.apache.commons.math3.random.RandomGenerator;
-
 import rinde.sim.core.graph.Point;
 import rinde.sim.util.TimeWindow;
 
@@ -20,15 +18,14 @@ public interface TimeWindowGenerator {
    * time window. These time windows should be theoretically feasible, meaning
    * that they should be serviceable such that there is enough time for a
    * vehicle to return to the depot.
+   * @param seed Random seed.
    * @param orderAnnounceTime The time at which the order is announced.
    * @param pickup Position of pickup.
    * @param delivery Position of delivery.
-   * @param rng The {@link RandomGenerator} which should be used for drawing
-   *          random numbers.
    * @return A list containing exactly two {@link TimeWindow}s. The first
    *         indicates the <i>pickup time window</i> the second indicates the
    *         <i>delivery time window</i>.
    */
-  ImmutableList<TimeWindow> generate(long orderAnnounceTime, Point pickup,
-      Point delivery, RandomGenerator rng);
+  ImmutableList<TimeWindow> generate(long seed, long orderAnnounceTime,
+      Point pickup, Point delivery);
 }

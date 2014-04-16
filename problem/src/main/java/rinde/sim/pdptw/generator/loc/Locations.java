@@ -3,6 +3,7 @@ package rinde.sim.pdptw.generator.loc;
 import static com.google.common.base.Preconditions.checkArgument;
 import static rinde.sim.util.SupplierRngs.uniformDouble;
 
+import org.apache.commons.math3.random.MersenneTwister;
 import org.apache.commons.math3.random.RandomGenerator;
 
 import rinde.sim.core.graph.Point;
@@ -170,14 +171,17 @@ public class Locations {
   private static class SupplierLocGen implements LocationGenerator {
     private final SupplierRng<Double> xSupplier;
     private final SupplierRng<Double> ySupplier;
+    private final RandomGenerator rng;
 
     SupplierLocGen(SupplierRng<Double> xSup, SupplierRng<Double> ySup) {
       xSupplier = xSup;
       ySupplier = ySup;
+      rng = new MersenneTwister();
     }
 
     @Override
-    public ImmutableList<Point> generate(int numOrders, RandomGenerator rng) {
+    public ImmutableList<Point> generate(long seed, int numOrders) {
+      rng.setSeed(seed);
       final ImmutableList.Builder<Point> locs = ImmutableList.builder();
       for (int i = 0; i < numOrders; i++) {
         locs.add(new Point(
