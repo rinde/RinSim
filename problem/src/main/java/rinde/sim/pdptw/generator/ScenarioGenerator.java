@@ -7,7 +7,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
-import javax.measure.Measure;
 import javax.measure.quantity.Duration;
 import javax.measure.quantity.Length;
 import javax.measure.quantity.Velocity;
@@ -20,16 +19,14 @@ import org.apache.commons.math3.random.RandomGenerator;
 import rinde.sim.core.graph.Point;
 import rinde.sim.core.model.Model;
 import rinde.sim.core.model.pdp.PDPScenarioEvent;
-import rinde.sim.core.model.road.PlaneRoadModel;
-import rinde.sim.core.model.road.RoadModel;
 import rinde.sim.pdptw.common.AddParcelEvent;
 import rinde.sim.pdptw.common.DynamicPDPTWProblem.SimulationInfo;
 import rinde.sim.pdptw.common.DynamicPDPTWProblem.StopCondition;
 import rinde.sim.pdptw.common.DynamicPDPTWScenario;
-import rinde.sim.pdptw.common.PDPRoadModel;
 import rinde.sim.pdptw.common.ParcelDTO;
 import rinde.sim.pdptw.generator.Depots.DepotGenerator;
 import rinde.sim.pdptw.generator.Locations.LocationGenerator;
+import rinde.sim.pdptw.generator.Models.ModelSupplierSupplier;
 import rinde.sim.pdptw.generator.Vehicles.VehicleGenerator;
 import rinde.sim.pdptw.generator.times.ArrivalTimeGenerator;
 import rinde.sim.pdptw.generator.tw.TimeWindowGenerator;
@@ -47,13 +44,13 @@ import com.google.common.math.DoubleMath;
 public final class ScenarioGenerator {
 
   // global properties
-  final Unit<Velocity> speedUnit;
-  final Unit<Length> distanceUnit;
-  final Unit<Duration> timeUnit;
-  final TimeWindow timeWindow;
-  final long tickSize;
   final Predicate<SimulationInfo> stopCondition;
   final ImmutableList<Supplier<? extends Model<?>>> modelSuppliers;
+  private final Unit<Velocity> speedUnit;
+  private final Unit<Length> distanceUnit;
+  private final Unit<Duration> timeUnit;
+  private final TimeWindow timeWindow;
+  private final long tickSize;
 
   // parcel properties -> move to separate generator?
   private final ArrivalTimeGenerator arrivalTimeGenerator;
@@ -87,10 +84,38 @@ public final class ScenarioGenerator {
 
     final ImmutableList.Builder<Supplier<? extends Model<?>>> builder = ImmutableList
         .builder();
-    for (final ModelSupplier<?> sup : b.modelSuppliers) {
+    for (final ModelSupplierSupplier<?> sup : b.modelSuppliers) {
       builder.add(sup.get(this));
     }
     modelSuppliers = builder.build();
+  }
+
+  public Unit<Velocity> getSpeedUnit() {
+    return speedUnit;
+  }
+
+  public Unit<Length> getDistanceUnit() {
+    return distanceUnit;
+  }
+
+  public Unit<Duration> getTimeUnit() {
+    return timeUnit;
+  }
+
+  public TimeWindow getTimeWindow() {
+    return timeWindow;
+  }
+
+  public long getTickSize() {
+    return tickSize;
+  }
+
+  public Point getMin() {
+    return locationGenerator.getMin();
+  }
+
+  public Point getMax() {
+    return locationGenerator.getMax();
   }
 
   public DynamicPDPTWScenario generate(RandomGenerator rng) {
@@ -178,7 +203,7 @@ public final class ScenarioGenerator {
 
     VehicleGenerator vehicleGenerator;
     DepotGenerator depotGenerator;
-    final List<ModelSupplier<?>> modelSuppliers;
+    final List<ModelSupplierSupplier<?>> modelSuppliers;
 
     // problem class
     // problem instance id
@@ -270,8 +295,13 @@ public final class ScenarioGenerator {
       return this;
     }
 
-    public Builder addModel(ModelSupplier<Model<?>> ms) {
-      modelSuppliers.add(ms);
+    public Builder addModel(ModelSupplierSupplier<? extends Model<?>> model) {
+      modelSuppliers.add(model);
+      return this;
+    }
+
+    public Builder addModel(Supplier<? extends Model<?>> model) {
+      modelSuppliers.add(Models.adapt(model));
       return this;
     }
 
@@ -279,39 +309,6 @@ public final class ScenarioGenerator {
       return new ScenarioGenerator(this);
     }
 
-  }
-
-  private static class DefaultRoadModelSupplier implements
-      ModelSupplier<RoadModel> {
-    final double speed;
-    final boolean diversion;
-
-    DefaultRoadModelSupplier(double maxSpeed, boolean allowDiversion) {
-      speed = maxSpeed;
-      diversion = allowDiversion;
-    }
-
-    @Override
-    public Supplier<RoadModel> get(final ScenarioGenerator scenario) {
-      final Point min = scenario.locationGenerator.getMin();
-      final Point max = scenario.locationGenerator.getMax();
-
-      return new Supplier<RoadModel>() {
-        @Override
-        public RoadModel get() {
-          return new PDPRoadModel(new PlaneRoadModel(
-              min,
-              max,
-              scenario.distanceUnit,
-              Measure.valueOf(speed, scenario.speedUnit)),
-              diversion);
-        }
-      };
-    }
-  }
-
-  interface ModelSupplier<T extends Model<?>> {
-    Supplier<T> get(ScenarioGenerator sg);
   }
 
   private static final class GeneratedScenario extends DynamicPDPTWScenario {
@@ -326,11 +323,11 @@ public final class ScenarioGenerator {
     GeneratedScenario(ScenarioGenerator sg, List<? extends TimedEvent> events,
         Set<Enum<?>> supportedTypes) {
       super(events, supportedTypes);
-      timeUnit = sg.timeUnit;
-      timeWindow = sg.timeWindow;
-      tickSize = sg.tickSize;
-      speedUnit = sg.speedUnit;
-      distanceUnit = sg.distanceUnit;
+      timeUnit = sg.getTimeUnit();
+      timeWindow = sg.getTimeWindow();
+      tickSize = sg.getTickSize();
+      speedUnit = sg.getSpeedUnit();
+      distanceUnit = sg.getDistanceUnit();
       stopCondition = sg.stopCondition;
       modelSuppliers = sg.modelSuppliers;
     }
