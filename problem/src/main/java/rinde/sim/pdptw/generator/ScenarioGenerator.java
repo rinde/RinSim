@@ -22,10 +22,13 @@ import rinde.sim.pdptw.common.AddParcelEvent;
 import rinde.sim.pdptw.common.DynamicPDPTWProblem.SimulationInfo;
 import rinde.sim.pdptw.common.DynamicPDPTWScenario;
 import rinde.sim.pdptw.common.ParcelDTO;
+import rinde.sim.pdptw.common.VehicleDTO;
+import rinde.sim.pdptw.generator.Depots.DepotGenerator;
 import rinde.sim.pdptw.generator.loc.LocationGenerator;
 import rinde.sim.pdptw.generator.times.ArrivalTimeGenerator;
 import rinde.sim.pdptw.generator.tw.TimeWindowGenerator;
 import rinde.sim.pdptw.generator.vehicles.VehicleGenerator;
+import rinde.sim.pdptw.generator.vehicles.VehicleGenerators;
 import rinde.sim.scenario.TimedEvent;
 import rinde.sim.util.SupplierRng;
 import rinde.sim.util.SupplierRngs;
@@ -40,6 +43,7 @@ public final class ScenarioGenerator {
 
   // TODO
   // add depot
+  // stop conditions
   // add requirements, i.e. based on measurements?
 
   // global properties
@@ -59,6 +63,7 @@ public final class ScenarioGenerator {
 
   // vehicle properties
   private final VehicleGenerator vehicleGenerator;
+  private final DepotGenerator depotGenerator;
 
   ScenarioGenerator(Builder b) {
     speedUnit = b.speedUnit;
@@ -75,10 +80,14 @@ public final class ScenarioGenerator {
     neededCapacityGenerator = b.neededCapacityGenerator;
 
     vehicleGenerator = b.vehicleGenerator;
+    depotGenerator = b.depotGenerator;
   }
 
   public DynamicPDPTWScenario generate(RandomGenerator rng) {
     final ImmutableList.Builder<TimedEvent> b = ImmutableList.builder();
+    b.addAll(depotGenerator.generate(rng.nextLong(),
+        locationGenerator.getCenter()));
+
     b.addAll(vehicleGenerator.generate(rng.nextLong(),
         locationGenerator.getCenter(), timeWindow.end));
 
@@ -136,6 +145,12 @@ public final class ScenarioGenerator {
     static final SupplierRng<Integer> DEFAULT_CAPACITY = SupplierRngs
         .constant(0);
 
+    static final VehicleGenerator DEFAULT_VEHICLE_GENERATOR = VehicleGenerators
+        .homogenous(VehicleDTO.builder()
+            .build()).numberOfVehicles(10).build();
+    static final DepotGenerator DEFAULT_DEPOT_GENERATOR = Depots
+        .singleCenteredDepot();
+
     Unit<Length> distanceUnit;
     Unit<Velocity> speedUnit;
     Unit<Duration> timeUnit;
@@ -145,11 +160,12 @@ public final class ScenarioGenerator {
     ArrivalTimeGenerator arrivalTimeGenerator;
     TimeWindowGenerator timeWindowGenerator;
     LocationGenerator locationGenerator;
-    VehicleGenerator vehicleGenerator;
-
     SupplierRng<Long> pickupDurationGenerator;
     SupplierRng<Long> deliveryDurationGenerator;
     SupplierRng<Integer> neededCapacityGenerator;
+
+    VehicleGenerator vehicleGenerator;
+    DepotGenerator depotGenerator;
 
     // problem class
     // problem instance id
@@ -166,6 +182,9 @@ public final class ScenarioGenerator {
       pickupDurationGenerator = DEFAULT_SERVICE_DURATION;
       deliveryDurationGenerator = DEFAULT_SERVICE_DURATION;
       neededCapacityGenerator = DEFAULT_CAPACITY;
+
+      vehicleGenerator = DEFAULT_VEHICLE_GENERATOR;
+      depotGenerator = DEFAULT_DEPOT_GENERATOR;
     }
 
     public Builder timeUnit(Unit<Duration> tu) {
@@ -231,6 +250,11 @@ public final class ScenarioGenerator {
       neededCapacityGenerator = capacities;
       return this;
     }
+
+    public ScenarioGenerator build() {
+      return new ScenarioGenerator(this);
+    }
+
   }
 
   private static final class GeneratedScenario extends DynamicPDPTWScenario {
