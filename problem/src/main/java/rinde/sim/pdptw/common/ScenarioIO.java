@@ -5,10 +5,12 @@ import static com.google.common.collect.Sets.newLinkedHashSet;
 
 import java.io.IOException;
 import java.lang.reflect.Type;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
 import javax.annotation.Nullable;
+import javax.measure.Measure;
 import javax.measure.unit.Unit;
 
 import rinde.sim.core.graph.Point;
@@ -18,13 +20,16 @@ import rinde.sim.scenario.Scenario;
 import rinde.sim.scenario.TimedEvent;
 import rinde.sim.util.TimeWindow;
 
+import com.google.common.collect.ImmutableList;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonArray;
 import com.google.gson.JsonDeserializationContext;
 import com.google.gson.JsonDeserializer;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
+import com.google.gson.JsonPrimitive;
 import com.google.gson.JsonSerializationContext;
 import com.google.gson.JsonSerializer;
 import com.google.gson.TypeAdapter;
@@ -49,7 +54,10 @@ public class ScenarioIO {
         .registerTypeHierarchyAdapter(TimedEvent.class,
             new TimedEventDeserializer())
         .registerTypeAdapter(collectionType, new EnumSetDeserializer())
-        .registerTypeAdapter(Unit.class, new UnitSerializer());
+        .registerTypeAdapter(Unit.class, new UnitSerializer())
+        .registerTypeAdapter(Measure.class, new MeasureSerializer())
+        .registerTypeAdapter(ImmutableList.class, new ImmutableListSerializer());
+
     return builder.create();
   }
 
@@ -182,6 +190,68 @@ public class ScenarioIO {
         @Nullable Type typeOfSrc,
         @Nullable JsonSerializationContext context) {
       return context.serialize(src.toString());
+    }
+  }
+
+  static class MeasureSerializer implements
+      JsonSerializer<Measure<?, ?>>,
+      JsonDeserializer<Measure<?, ?>> {
+
+    @Override
+    public Measure<?, ?> deserialize(JsonElement json, Type typeOfT,
+        JsonDeserializationContext context) throws JsonParseException {
+      // TODO Auto-generated method stub
+      return null;
+    }
+
+    @Override
+    public JsonElement serialize(Measure<?, ?> src, Type typeOfSrc,
+        JsonSerializationContext context) {
+      final JsonObject obj = new JsonObject();
+      obj.add("unit", context.serialize(src.getUnit(), Unit.class));
+      obj.add("value", context.serialize(src.getValue()));
+      return obj;
+    }
+
+  }
+
+  static class ImmutableListSerializer implements
+      JsonSerializer<ImmutableList<?>>,
+      JsonDeserializer<ImmutableList<?>> {
+
+    @Override
+    public ImmutableList<?> deserialize(@Nullable JsonElement json,
+        @Nullable Type typeOfT, @Nullable JsonDeserializationContext context)
+        throws JsonParseException {
+      final ImmutableList.Builder<Object> builder = ImmutableList.builder();
+      final Iterator<JsonElement> it = json.getAsJsonArray().iterator();
+      while (it.hasNext()) {
+        final JsonObject obj = it.next().getAsJsonObject();
+        final String clazz = obj.get("class").getAsString();
+        Class<?> clz;
+        try {
+          clz = Class.forName(clazz);
+        } catch (final ClassNotFoundException e) {
+          // TODO Auto-generated catch block
+          e.printStackTrace();
+          throw new IllegalArgumentException();
+        }
+        builder.add(context.deserialize(obj.get("value"), clz));
+      }
+      return builder.build();
+    }
+
+    @Override
+    public JsonElement serialize(ImmutableList<?> src, Type typeOfSrc,
+        JsonSerializationContext context) {
+      final JsonArray arr = new JsonArray();
+      for (final Object item : src) {
+        final JsonObject obj = new JsonObject();
+        obj.add("class", new JsonPrimitive(item.getClass().getName()));
+        obj.add("value", context.serialize(item, item.getClass()));
+        arr.add(obj);
+      }
+      return arr;
     }
 
   }
