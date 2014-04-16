@@ -38,6 +38,10 @@ import com.google.common.math.DoubleMath;
 
 public final class ScenarioGenerator {
 
+  // TODO
+  // add depot
+  // add requirements, i.e. based on measurements?
+
   // global properties
   final Unit<Velocity> speedUnit;
   final Unit<Length> distanceUnit;
@@ -75,7 +79,8 @@ public final class ScenarioGenerator {
 
   public DynamicPDPTWScenario generate(RandomGenerator rng) {
     final ImmutableList.Builder<TimedEvent> b = ImmutableList.builder();
-    b.addAll(vehicleGenerator.generate(rng.nextLong()));
+    b.addAll(vehicleGenerator.generate(rng.nextLong(),
+        locationGenerator.getCenter(), timeWindow.end));
 
     final List<Double> times = arrivalTimeGenerator.generate(rng.nextLong());
     final Iterator<Point> locs = locationGenerator.generate(rng.nextLong(),

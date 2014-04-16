@@ -22,4 +22,10 @@ public interface LocationGenerator {
    * @return A list of locations for the orders.
    */
   ImmutableList<Point> generate(long seed, int numOrders);
+
+  Point getMin();
+
+  Point getMax();
+
+  Point getCenter();
 }

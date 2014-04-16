@@ -120,27 +120,48 @@ public class Locations {
 
     // min/max takes precedence over mean/sd
     public LocationGenerator uniform() {
-      final SupplierRng<Double> x = uniformVar(xMin, xMax, xMean, xSd);
-      final SupplierRng<Double> y = uniformVar(yMin, yMax, yMean, ySd);
-      return new SupplierLocGen(x, y);
+      final Point xMinMax = getUniformMinMax(xMin, xMax, xMean, xSd);
+      final Point yMinMax = getUniformMinMax(yMin, yMax, yMean, ySd);
+      final Point min = new Point(xMinMax.x, yMinMax.x);
+      final Point max = new Point(xMinMax.y, yMinMax.y);
+      final double xCenter = getUniformCenter(xMean, min.x, max.x);
+      final double yCenter = getUniformCenter(yMean, min.y, max.y);
+
+      return new SupplierLocGen(
+          min, max, new Point(xCenter, yCenter),
+          uniformDouble(min.x, max.x),
+          uniformDouble(min.y, max.y));
     }
 
     public LocationGenerator normal() {
+      final SupplierRng<Double> xSup = normalVar(xMin, xMax, xMean, xSd, redraw);
+      final SupplierRng<Double> ySup = normalVar(yMin, yMax, yMean, ySd, redraw);
       return new SupplierLocGen(
-          normalVar(xMin, xMax, xMean, xSd, redraw),
-          normalVar(yMin, yMax, yMean, ySd, redraw));
+          new Point(xMin.get(), yMin.get()),
+          new Point(xMax.get(), yMax.get()),
+          new Point(xMean.get(), yMean.get()),
+          xSup, ySup);
     }
 
-    private static SupplierRng<Double> uniformVar(Optional<Double> min,
+    private static double getUniformCenter(Optional<Double> mean, double min,
+        double max) {
+      if (mean.isPresent()) {
+        return mean.get();
+      } else {
+        return (max - min) / 2d;
+      }
+    }
+
+    private static Point getUniformMinMax(Optional<Double> min,
         Optional<Double> max, Optional<Double> mean, Optional<Double> std) {
       if (min.isPresent() && max.isPresent()) {
         checkArgument(min.get() < max.get());
-        return uniformDouble(min.get(), max.get());
+        return new Point(min.get(), max.get());
       } else if (mean.isPresent() && std.isPresent()) {
         final double length = Math.sqrt(12) * std.get();
         final double minn = mean.get() - length;
         final double maxx = mean.get() + length;
-        return uniformDouble(minn, maxx);
+        return new Point(minn, maxx);
       } else {
         throw new IllegalArgumentException();
       }
@@ -169,11 +190,18 @@ public class Locations {
   }
 
   private static class SupplierLocGen implements LocationGenerator {
+    private final Point min;
+    private final Point max;
+    private final Point center;
     private final SupplierRng<Double> xSupplier;
     private final SupplierRng<Double> ySupplier;
     private final RandomGenerator rng;
 
-    SupplierLocGen(SupplierRng<Double> xSup, SupplierRng<Double> ySup) {
+    SupplierLocGen(Point mi, Point ma, Point ce, SupplierRng<Double> xSup,
+        SupplierRng<Double> ySup) {
+      min = mi;
+      max = ma;
+      center = ce;
       xSupplier = xSup;
       ySupplier = ySup;
       rng = new MersenneTwister();
@@ -189,6 +217,21 @@ public class Locations {
             ySupplier.get(rng.nextLong())));
       }
       return locs.build();
+    }
+
+    @Override
+    public Point getMin() {
+      return min;
+    }
+
+    @Override
+    public Point getMax() {
+      return max;
+    }
+
+    @Override
+    public Point getCenter() {
+      return center;
     }
   }
 }

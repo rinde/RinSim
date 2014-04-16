@@ -3,10 +3,12 @@
  */
 package rinde.sim.pdptw.generator.times;
 
+import static com.google.common.collect.Lists.newArrayList;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+import java.math.RoundingMode;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
@@ -22,8 +24,9 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 
-import rinde.sim.pdptw.generator.ScenarioGeneratorOld;
 import rinde.sim.pdptw.generator.times.PoissonProcess.NonHomogenous;
+
+import com.google.common.math.DoubleMath;
 
 /**
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
@@ -74,8 +77,12 @@ public class PoissonProcessTest {
 
     final RandomGenerator rng = new MersenneTwister(0);
     for (int i = 0; i < 1000; i++) {
-      final List<Long> list = ScenarioGeneratorOld.convert(poisson
-          .generate(rng.nextLong()));
+
+      final List<Double> doubles = poisson.generate(rng.nextLong());
+      final List<Long> list = newArrayList();
+      for (final double d : doubles) {
+        list.add(DoubleMath.roundToLong(d, RoundingMode.HALF_UP));
+      }
       ascendingOrderTest(list);
       // add the number of announcements
       f.addValue(list.size());
