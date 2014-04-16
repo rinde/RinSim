@@ -6,6 +6,7 @@ import com.google.common.collect.ImmutableList;
  * Generator of event arrival times.
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
  */
+// TODO rename to TimeSeriesGenerator?
 public interface ArrivalTimeGenerator {
   /**
    * Should generate a list of arrival times.
