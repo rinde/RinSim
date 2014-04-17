@@ -311,7 +311,7 @@ public final class ScenarioGenerator {
 
   }
 
-  private static final class GeneratedScenario extends DynamicPDPTWScenario {
+  public static final class GeneratedScenario extends DynamicPDPTWScenario {
     private final Unit<Velocity> speedUnit;
     private final Unit<Length> distanceUnit;
     private final Unit<Duration> timeUnit;
