@@ -20,7 +20,9 @@ import rinde.sim.core.model.pdp.PDPModel;
 import rinde.sim.core.model.pdp.PDPScenarioEvent;
 import rinde.sim.core.model.road.RoadModel;
 import rinde.sim.pdptw.common.DynamicPDPTWProblem.SimulationInfo;
-import rinde.sim.pdptw.common.DynamicPDPTWScenario.ProblemClass;
+import rinde.sim.pdptw.scenario.PDPScenario;
+import rinde.sim.pdptw.scenario.ScenarioIO;
+import rinde.sim.pdptw.scenario.PDPScenario.ProblemClass;
 import rinde.sim.scenario.ScenarioBuilder;
 import rinde.sim.scenario.ScenarioBuilder.ScenarioCreator;
 import rinde.sim.scenario.TimedEvent;
@@ -70,7 +72,7 @@ public class ScenarioIOTest {
     }
   }
 
-  static class TestScenario extends DynamicPDPTWScenario {
+  static class TestScenario extends PDPScenario {
     private static final long serialVersionUID = -3313653909815120873L;
     final TimeWindow timeWindow;
     final long tickSize;

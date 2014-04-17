@@ -29,6 +29,7 @@ import rinde.sim.core.model.road.RoadModel;
 import rinde.sim.pdptw.common.DynamicPDPTWProblem.Creator;
 import rinde.sim.pdptw.common.DynamicPDPTWProblem.SimulationInfo;
 import rinde.sim.pdptw.common.DynamicPDPTWProblem.StopCondition;
+import rinde.sim.pdptw.scenario.PDPScenario;
 import rinde.sim.scenario.TimedEvent;
 import rinde.sim.util.TimeWindow;
 
@@ -84,7 +85,7 @@ public class TestDynamicPDPTWProblem {
     }
   }
 
-  class DummyScenario extends DynamicPDPTWScenario {
+  class DummyScenario extends PDPScenario {
 
     public DummyScenario(Set<TimedEvent> events) {
       super(events, new HashSet<Enum<?>>(

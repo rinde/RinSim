@@ -33,7 +33,7 @@ import com.google.common.collect.ImmutableList;
 /**
  * A facade for RinSim which provides a centralized interface such that
  * {@link Solver} instances can solve
- * {@link rinde.sim.pdptw.common.DynamicPDPTWScenario}s.
+ * {@link rinde.sim.pdptw.scenario.PDPScenario}s.
  * <p>
  * TODO update this comment
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>

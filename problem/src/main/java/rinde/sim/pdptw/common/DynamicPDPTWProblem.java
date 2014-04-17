@@ -24,6 +24,7 @@ import rinde.sim.core.model.Model;
 import rinde.sim.core.model.pdp.Depot;
 import rinde.sim.core.model.pdp.Parcel;
 import rinde.sim.core.model.pdp.Vehicle;
+import rinde.sim.pdptw.scenario.PDPScenario;
 import rinde.sim.scenario.ScenarioController;
 import rinde.sim.scenario.ScenarioController.UICreator;
 import rinde.sim.scenario.TimedEvent;
@@ -129,14 +130,14 @@ public class DynamicPDPTWProblem {
 
   /**
    * Create a new problem instance using the specified scenario.
-   * @param scen The the {@link DynamicPDPTWScenario} which is used in this
+   * @param scen The the {@link PDPScenario} which is used in this
    *          problem.
    * @param randomSeed The random seed which will be passed into the random
    *          number generator in the simulator.
    * @param models An optional list of models which can be added, with this
    *          option custom models for specific solutions can be added.
    */
-  public DynamicPDPTWProblem(final DynamicPDPTWScenario scen, long randomSeed,
+  public DynamicPDPTWProblem(final PDPScenario scen, long randomSeed,
       Model<?>... models) {
     simulator = new Simulator(new MersenneTwister(randomSeed), Measure.valueOf(
         scen.getTickSize(), scen.getTimeUnit()));
@@ -369,14 +370,14 @@ public class DynamicPDPTWProblem {
     /**
      * The scenario which is playing.
      */
-    public final DynamicPDPTWScenario scenario;
+    public final PDPScenario scenario;
 
     /**
      * Instantiate a new instance using statistics and scenario.
      * @param st Statistics.
      * @param scen Scenario.
      */
-    protected SimulationInfo(StatisticsDTO st, DynamicPDPTWScenario scen) {
+    protected SimulationInfo(StatisticsDTO st, PDPScenario scen) {
       stats = st;
       scenario = scen;
     }

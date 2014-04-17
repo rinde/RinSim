@@ -1,6 +1,6 @@
 package rinde.sim.pdptw.vanlon14;
 
-import rinde.sim.pdptw.common.DynamicPDPTWScenario.ProblemClass;
+import rinde.sim.pdptw.scenario.PDPScenario.ProblemClass;
 
 public class VanLon14 {
 

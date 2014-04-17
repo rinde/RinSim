@@ -1,6 +1,6 @@
 package rinde.sim.pdptw.gendreau06;
 
-import rinde.sim.pdptw.common.DynamicPDPTWScenario.ProblemClass;
+import rinde.sim.pdptw.scenario.PDPScenario.ProblemClass;
 
 /**
  * This is an enum containing the three problem classes used in the Gendreau06

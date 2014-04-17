@@ -26,8 +26,8 @@ import rinde.sim.core.model.road.PlaneRoadModel;
 import rinde.sim.core.model.road.RoadModel;
 import rinde.sim.pdptw.common.DynamicPDPTWProblem.SimulationInfo;
 import rinde.sim.pdptw.common.DynamicPDPTWProblem.StopCondition;
-import rinde.sim.pdptw.common.DynamicPDPTWScenario;
 import rinde.sim.pdptw.common.PDPRoadModel;
+import rinde.sim.pdptw.scenario.PDPScenario;
 import rinde.sim.scenario.TimedEvent;
 import rinde.sim.util.TimeWindow;
 
@@ -49,7 +49,7 @@ import com.google.common.collect.ImmutableList;
  * speed is expressed as km/h.
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
  */
-public final class Gendreau06Scenario extends DynamicPDPTWScenario {
+public final class Gendreau06Scenario extends PDPScenario {
   private static final long serialVersionUID = 1386559671732721432L;
 
   private static final Point MIN = new Point(0, 0);

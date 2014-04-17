@@ -22,11 +22,11 @@ import rinde.sim.pdptw.common.AddDepotEvent;
 import rinde.sim.pdptw.common.AddParcelEvent;
 import rinde.sim.pdptw.common.AddVehicleEvent;
 import rinde.sim.pdptw.common.DynamicPDPTWProblem;
-import rinde.sim.pdptw.common.DynamicPDPTWScenario;
 import rinde.sim.pdptw.common.ObjectiveFunction;
 import rinde.sim.pdptw.common.RouteRenderer;
-import rinde.sim.pdptw.common.ScenarioParser;
 import rinde.sim.pdptw.common.StatisticsDTO;
+import rinde.sim.pdptw.scenario.PDPScenario;
+import rinde.sim.pdptw.scenario.ScenarioParser;
 import rinde.sim.scenario.ScenarioController.UICreator;
 import rinde.sim.util.SupplierRng;
 
@@ -40,7 +40,7 @@ import com.google.common.util.concurrent.MoreExecutors;
 
 /**
  * Utility for defining and performing experiments. An experiment is composed of
- * a set of {@link DynamicPDPTWScenario}s and a set of {@link MASConfiguration}
+ * a set of {@link PDPScenario}s and a set of {@link MASConfiguration}
  * s. For <b>each</b> combination of these a user configurable number of
  * simulations is performed. The number of used threads in the experiment can be
  * set via {@link Builder#withThreads(int)}.
@@ -107,7 +107,7 @@ public final class Experiment {
    * @param uic The UICreator to use.
    * @return The {@link SimulationResult} generated in the run.
    */
-  public static SimulationResult singleRun(DynamicPDPTWScenario scenario,
+  public static SimulationResult singleRun(PDPScenario scenario,
       MASConfiguration configuration, long seed, ObjectiveFunction objFunc,
       boolean showGui, @Nullable PostProcessor<?> postProcessor,
       @Nullable UICreator uic) {
@@ -127,7 +127,7 @@ public final class Experiment {
    * @return The {@link DynamicPDPTWProblem} instance.
    */
   @VisibleForTesting
-  static DynamicPDPTWProblem init(DynamicPDPTWScenario scenario,
+  static DynamicPDPTWProblem init(PDPScenario scenario,
       MASConfiguration config, long seed, boolean showGui,
       @Nullable UICreator uic) {
 
@@ -169,7 +169,7 @@ public final class Experiment {
   public static final class Builder {
     final ObjectiveFunction objectiveFunction;
     final ImmutableList.Builder<MASConfiguration> configurationsBuilder;
-    final ImmutableList.Builder<DynamicPDPTWScenario> scenariosBuilder;
+    final ImmutableList.Builder<PDPScenario> scenariosBuilder;
     @Nullable
     UICreator uiCreator;
     @Nullable
@@ -253,7 +253,7 @@ public final class Experiment {
      * @param scenario The scenario to add.
      * @return This, as per the builder pattern.
      */
-    public Builder addScenario(DynamicPDPTWScenario scenario) {
+    public Builder addScenario(PDPScenario scenario) {
       scenariosBuilder.add(scenario);
       return this;
     }
@@ -263,7 +263,7 @@ public final class Experiment {
      * @param scenarios The scenarios to add.
      * @return This, as per the builder pattern.
      */
-    public Builder addScenarios(List<? extends DynamicPDPTWScenario> scenarios) {
+    public Builder addScenarios(List<? extends PDPScenario> scenarios) {
       scenariosBuilder.addAll(scenarios);
       return this;
     }
@@ -276,7 +276,7 @@ public final class Experiment {
      * @return This, as per the builder pattern.
      */
     public Builder addScenarios(
-        ScenarioParser<? extends DynamicPDPTWScenario> parser,
+        ScenarioParser<? extends PDPScenario> parser,
         List<String> files) {
       for (final String file : files) {
         scenariosBuilder.add(parser.parse(file));
@@ -348,7 +348,7 @@ public final class Experiment {
     }
 
     private ImmutableList<ExperimentRunner> gatherAllRunners(List<Long> seeds) {
-      final ImmutableList<DynamicPDPTWScenario> scen = scenariosBuilder.build();
+      final ImmutableList<PDPScenario> scen = scenariosBuilder.build();
       final ImmutableList<MASConfiguration> conf = configurationsBuilder
           .build();
 
@@ -357,7 +357,7 @@ public final class Experiment {
       final ImmutableList.Builder<ExperimentRunner> runnerBuilder = ImmutableList
           .builder();
       for (final MASConfiguration configuration : conf) {
-        for (final DynamicPDPTWScenario scenario : scen) {
+        for (final PDPScenario scenario : scen) {
           for (int i = 0; i < repetitions; i++) {
             final long seed = seeds.get(i);
             runnerBuilder.add(new ExperimentRunner(scenario, configuration,
@@ -412,7 +412,7 @@ public final class Experiment {
     /**
      * The scenario on which the simulation was run.
      */
-    public final DynamicPDPTWScenario scenario;
+    public final PDPScenario scenario;
 
     /**
      * The configuration which was used to configure the MAS.
@@ -431,7 +431,7 @@ public final class Experiment {
     @Nullable
     public Object simulationData;
 
-    SimulationResult(StatisticsDTO stats, DynamicPDPTWScenario scenario,
+    SimulationResult(StatisticsDTO stats, PDPScenario scenario,
         MASConfiguration masConfiguration, long seed, @Nullable Object simData) {
       this.stats = stats;
       this.scenario = scenario;
@@ -493,7 +493,7 @@ public final class Experiment {
     /**
      * The scenarios that were used in this experiment.
      */
-    public final ImmutableList<DynamicPDPTWScenario> scenarios;
+    public final ImmutableList<PDPScenario> scenarios;
 
     /**
      * Indicates whether the experiment was executed with or without the
@@ -565,7 +565,7 @@ public final class Experiment {
   }
 
   private static class ExperimentRunner implements Callable<SimulationResult> {
-    private final DynamicPDPTWScenario scenario;
+    private final PDPScenario scenario;
     private final MASConfiguration configuration;
     private final long seed;
     private final ObjectiveFunction objectiveFunction;
@@ -575,7 +575,7 @@ public final class Experiment {
     @Nullable
     private final PostProcessor<?> postProcessor;
 
-    ExperimentRunner(DynamicPDPTWScenario scenario,
+    ExperimentRunner(PDPScenario scenario,
         MASConfiguration configuration, long seed,
         ObjectiveFunction objectiveFunction, boolean showGui,
         @Nullable PostProcessor<?> postProc,
