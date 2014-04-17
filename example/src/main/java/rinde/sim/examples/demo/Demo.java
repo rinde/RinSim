@@ -97,7 +97,7 @@ public class Demo {
       final Monitor m = d.getMonitors()[i];
       final Button b = new Button(controlsComposite, SWT.CHECK);
       b.setData(m);
-      final boolean isPrimary = (m.equals(d.getPrimaryMonitor()));
+      final boolean isPrimary = m.equals(d.getPrimaryMonitor());
       b.setText(i + " " + m.getBounds().width + "x" + m.getBounds().height
           + (isPrimary ? " PRIMARY" : ""));
       b.setSelection(!isPrimary);
@@ -374,7 +374,6 @@ public class Demo {
         sims.clear();
         return;
       }
-
       demoIndex++;
       demoIndex = demoIndex % demoTypes.size();
 
@@ -393,8 +392,8 @@ public class Demo {
           display.asyncExec(new Runnable() {
             @Override
             public void run() {
-              // "../core/dot-files/leuven-simple.dot",
-              sims.add(TaxiExample.run(false, time, "leuven-simple.dot",
+              sims.add(TaxiExample.run(false, time,
+                  "/data/maps/leuven-simple.dot",
                   display, monitor, l));
             }
           });
