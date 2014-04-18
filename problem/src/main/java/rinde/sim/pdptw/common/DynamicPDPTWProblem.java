@@ -130,8 +130,7 @@ public class DynamicPDPTWProblem {
 
   /**
    * Create a new problem instance using the specified scenario.
-   * @param scen The the {@link PDPScenario} which is used in this
-   *          problem.
+   * @param scen The the {@link PDPScenario} which is used in this problem.
    * @param randomSeed The random seed which will be passed into the random
    *          number generator in the simulator.
    * @param models An optional list of models which can be added, with this
@@ -304,14 +303,16 @@ public class DynamicPDPTWProblem {
    * <pre>
    * StopCondition sc = new StopCondition() {
    *   &#064;Override
-   *   public boolean isSatisfiedBy(SimulationInfo context) {
+   *   public boolean apply(SimulationInfo context) {
    *     return true; // &lt;- insert your own condition here
    *   }
    * };
    * </pre>
    * 
    * StopConditions can be combined into more complex conditions by using
-   * {@link Specification#of(Spec)}.
+   * {@link Predicates#and(Predicate, Predicate)},
+   * {@link Predicates#or(Predicate, Predicate)} and
+   * {@link Predicates#not(Predicate)}.
    * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
    */
   public abstract static class StopCondition implements

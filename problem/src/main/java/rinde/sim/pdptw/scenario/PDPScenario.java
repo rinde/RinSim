@@ -19,7 +19,6 @@ import javax.measure.unit.Unit;
 
 import rinde.sim.core.model.Model;
 import rinde.sim.core.model.road.RoadModel;
-import rinde.sim.pdptw.common.DynamicPDPTWProblem;
 import rinde.sim.pdptw.common.DynamicPDPTWProblem.SimulationInfo;
 import rinde.sim.pdptw.common.DynamicPDPTWProblem.StopCondition;
 import rinde.sim.scenario.Scenario;
@@ -92,6 +91,12 @@ public abstract class PDPScenario extends Scenario {
   public abstract String getProblemInstanceId();
 
   public interface ProblemClass {
+
+    // creation date?
+    // author?
+    // class
+    // instance
+
     String getId();
   }
 
@@ -104,17 +109,16 @@ public abstract class PDPScenario extends Scenario {
     private final Predicate<SimulationInfo> stopCondition;
     private final ImmutableList<? extends Supplier<? extends Model<?>>> modelSuppliers;
 
-    public DefaultScenario(PrototypeBuilder sg,
-        List<? extends TimedEvent> events,
+    DefaultScenario(AbstractBuilder<?> b, List<? extends TimedEvent> events,
         Set<Enum<?>> supportedTypes) {
       super(events, supportedTypes);
-      timeUnit = sg.timeUnit;
-      timeWindow = sg.timeWindow;
-      tickSize = sg.tickSize;
-      speedUnit = sg.speedUnit;
-      distanceUnit = sg.distanceUnit;
-      stopCondition = sg.stopCondition;
-      modelSuppliers = ImmutableList.copyOf(sg.modelSuppliers);
+      timeUnit = b.timeUnit;
+      timeWindow = b.timeWindow;
+      tickSize = b.tickSize;
+      speedUnit = b.speedUnit;
+      distanceUnit = b.distanceUnit;
+      stopCondition = b.stopCondition;
+      modelSuppliers = ImmutableList.copyOf(b.modelSuppliers);
     }
 
     @Override
@@ -170,8 +174,7 @@ public abstract class PDPScenario extends Scenario {
 
   }
 
-  public static class Builder extends PrototypeBuilder<Builder> {
-
+  public static class Builder extends AbstractBuilder<Builder> {
     final ImmutableList.Builder<TimedEvent> eventBuilder;
     final ImmutableSet.Builder<Enum<?>> eventTypeBuilder;
 
@@ -205,7 +208,7 @@ public abstract class PDPScenario extends Scenario {
     }
   }
 
-  public static abstract class PrototypeBuilder<T extends PrototypeBuilder<T>> {
+  static abstract class AbstractBuilder<T extends AbstractBuilder<T>> {
     static final Unit<Length> DEFAULT_DISTANCE_UNIT = SI.KILOMETER;
     static final Unit<Velocity> DEFAULT_SPEED_UNIT = NonSI.KILOMETERS_PER_HOUR;
     static final Unit<Duration> DEFAULT_TIME_UNIT = SI.MILLI(SI.SECOND);
@@ -222,7 +225,7 @@ public abstract class PDPScenario extends Scenario {
     Predicate<SimulationInfo> stopCondition;
     final List<Supplier<? extends Model<?>>> modelSuppliers;
 
-    protected PrototypeBuilder() {
+    AbstractBuilder() {
       distanceUnit = DEFAULT_DISTANCE_UNIT;
       speedUnit = DEFAULT_SPEED_UNIT;
       timeUnit = DEFAULT_TIME_UNIT;
@@ -232,7 +235,7 @@ public abstract class PDPScenario extends Scenario {
       modelSuppliers = newLinkedList();
     }
 
-    protected PrototypeBuilder(PrototypeBuilder copy) {
+    AbstractBuilder(AbstractBuilder<?> copy) {
       distanceUnit = copy.distanceUnit;
       speedUnit = copy.speedUnit;
       timeUnit = copy.timeUnit;

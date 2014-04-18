@@ -21,10 +21,10 @@ import rinde.sim.core.model.pdp.PDPScenarioEvent;
 import rinde.sim.pdptw.common.AddParcelEvent;
 import rinde.sim.pdptw.common.ParcelDTO;
 import rinde.sim.pdptw.scenario.Depots.DepotGenerator;
-import rinde.sim.pdptw.scenario.PDPScenario.DefaultScenario;
-import rinde.sim.pdptw.scenario.PDPScenario.PrototypeBuilder;
 import rinde.sim.pdptw.scenario.Locations.LocationGenerator;
 import rinde.sim.pdptw.scenario.Models.ModelSupplierSupplier;
+import rinde.sim.pdptw.scenario.PDPScenario.AbstractBuilder;
+import rinde.sim.pdptw.scenario.PDPScenario.DefaultScenario;
 import rinde.sim.pdptw.scenario.Vehicles.VehicleGenerator;
 import rinde.sim.pdptw.scenario.times.ArrivalTimeGenerator;
 import rinde.sim.pdptw.scenario.tw.TimeWindowGenerator;
@@ -153,25 +153,7 @@ public final class ScenarioGenerator {
     return new Builder();
   }
 
-  // public static class GlobalPropertiesBuilder extends
-  // PrototypeBuilder<GlobalPropertiesBuilder> {
-  // private final Builder parent;
-  //
-  // GlobalPropertiesBuilder(Builder p) {
-  // parent = p;
-  // }
-  //
-  // @Override
-  // protected GlobalPropertiesBuilder self() {
-  // return this;
-  // }
-  //
-  // public Builder done() {
-  // return parent;
-  // }
-  // }
-
-  public static class Builder extends PrototypeBuilder<Builder> {
+  public static class Builder extends AbstractBuilder<Builder> {
     static final SupplierRng<Long> DEFAULT_SERVICE_DURATION = SupplierRngs
         .constant(5 * 60 * 1000L);
     static final SupplierRng<Integer> DEFAULT_CAPACITY = SupplierRngs
@@ -193,19 +175,13 @@ public final class ScenarioGenerator {
     DepotGenerator depotGenerator;
     final List<ModelSupplierSupplier<?>> modelSuppliers;
 
-    // problem class
-    // problem instance id
-    // models
-
     Builder() {
       super();
       pickupDurationGenerator = DEFAULT_SERVICE_DURATION;
       deliveryDurationGenerator = DEFAULT_SERVICE_DURATION;
       neededCapacityGenerator = DEFAULT_CAPACITY;
-
       vehicleGenerator = DEFAULT_VEHICLE_GENERATOR;
       depotGenerator = DEFAULT_DEPOT_GENERATOR;
-
       modelSuppliers = newLinkedList();
     }
 
@@ -227,10 +203,6 @@ public final class ScenarioGenerator {
     protected Builder self() {
       return this;
     }
-
-    // public GlobalPropertiesBuilder globalProperties() {
-    // return globalPropertiesBuilder;
-    // }
 
     public Builder arrivalTimes(ArrivalTimeGenerator atg) {
       arrivalTimeGenerator = atg;
@@ -287,82 +259,4 @@ public final class ScenarioGenerator {
     }
 
   }
-
-  // public static final class GeneratedScenario extends DynamicPDPTWScenario {
-  // private final Unit<Velocity> speedUnit;
-  // private final Unit<Length> distanceUnit;
-  // private final Unit<Duration> timeUnit;
-  // private final TimeWindow timeWindow;
-  // private final long tickSize;
-  // private final Predicate<SimulationInfo> stopCondition;
-  // private final ImmutableList<Supplier<? extends Model<?>>> modelSuppliers;
-  //
-  // GeneratedScenario(ScenarioGenerator sg, List<? extends TimedEvent> events,
-  // Set<Enum<?>> supportedTypes) {
-  // super(events, supportedTypes);
-  // timeUnit = sg.getTimeUnit();
-  // timeWindow = sg.getTimeWindow();
-  // tickSize = sg.getTickSize();
-  // speedUnit = sg.getSpeedUnit();
-  // distanceUnit = sg.getDistanceUnit();
-  // stopCondition = sg.stopCondition;
-  // modelSuppliers = sg.modelSuppliers;
-  // }
-  //
-  // @Override
-  // public Unit<Duration> getTimeUnit() {
-  // return timeUnit;
-  // }
-  //
-  // @Override
-  // public TimeWindow getTimeWindow() {
-  // return timeWindow;
-  // }
-  //
-  // @Override
-  // public long getTickSize() {
-  // return tickSize;
-  // }
-  //
-  // @Override
-  // public Unit<Velocity> getSpeedUnit() {
-  // return speedUnit;
-  // }
-  //
-  // @Override
-  // public Unit<Length> getDistanceUnit() {
-  // return distanceUnit;
-  // }
-  //
-  // @Override
-  // public Predicate<SimulationInfo> getStopCondition() {
-  // return stopCondition;
-  // }
-  //
-  // @Override
-  // public ImmutableList<? extends Model<?>> createModels() {
-  // final ImmutableList.Builder<Model<?>> builder = ImmutableList.builder();
-  // for (final Supplier<? extends Model<?>> sup : modelSuppliers) {
-  // builder.add(sup.get());
-  // }
-  // return builder.build();
-  // }
-  //
-  // // FIXME create one interface for ProblemInstance
-  // // with:
-  // // getInstanceId()
-  // // getProblemClass()
-  //
-  // @Override
-  // public ProblemClass getProblemClass() {
-  // // TODO Auto-generated method stub
-  // return null;
-  // }
-  //
-  // @Override
-  // public String getProblemInstanceId() {
-  // // TODO Auto-generated method stub
-  // return null;
-  // }
-  // }
 }
