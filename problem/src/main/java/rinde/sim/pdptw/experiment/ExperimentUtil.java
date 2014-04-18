@@ -70,6 +70,7 @@ public class ExperimentUtil {
   }
 
   // TODO can be replaced with Files.readLines ?
+  @Deprecated
   public static String textFileToString(String file) throws IOException {
     final StringBuilder sb = new StringBuilder();
     final BufferedReader bf = new BufferedReader(new FileReader(file));

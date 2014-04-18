@@ -26,7 +26,6 @@ import rinde.sim.pdptw.common.ObjectiveFunction;
 import rinde.sim.pdptw.common.RouteRenderer;
 import rinde.sim.pdptw.common.StatisticsDTO;
 import rinde.sim.pdptw.scenario.PDPScenario;
-import rinde.sim.pdptw.scenario.ScenarioParser;
 import rinde.sim.scenario.ScenarioController.UICreator;
 import rinde.sim.util.SupplierRng;
 
@@ -40,10 +39,10 @@ import com.google.common.util.concurrent.MoreExecutors;
 
 /**
  * Utility for defining and performing experiments. An experiment is composed of
- * a set of {@link PDPScenario}s and a set of {@link MASConfiguration}
- * s. For <b>each</b> combination of these a user configurable number of
- * simulations is performed. The number of used threads in the experiment can be
- * set via {@link Builder#withThreads(int)}.
+ * a set of {@link PDPScenario}s and a set of {@link MASConfiguration} s. For
+ * <b>each</b> combination of these a user configurable number of simulations is
+ * performed. The number of used threads in the experiment can be set via
+ * {@link Builder#withThreads(int)}.
  * <p>
  * <b>Example</b> Consider an experiment with three scenarios and two
  * configurations, and each simulation needs to be repeated twice. The code
@@ -265,22 +264,6 @@ public final class Experiment {
      */
     public Builder addScenarios(List<? extends PDPScenario> scenarios) {
       scenariosBuilder.addAll(scenarios);
-      return this;
-    }
-
-    /**
-     * Parse all scenarios with the given file names and parse them using the
-     * given parser.
-     * @param parser The parser to use for parsing.
-     * @param files The files to parse.
-     * @return This, as per the builder pattern.
-     */
-    public Builder addScenarios(
-        ScenarioParser<? extends PDPScenario> parser,
-        List<String> files) {
-      for (final String file : files) {
-        scenariosBuilder.add(parser.parse(file));
-      }
       return this;
     }
 
