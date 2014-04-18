@@ -315,20 +315,19 @@ public class DynamicPDPTWProblem {
    * {@link Predicates#not(Predicate)}.
    * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
    */
-  public abstract static class StopCondition implements
-      Predicate<SimulationInfo> {
+  public enum StopCondition implements Predicate<SimulationInfo> {
 
     /**
      * The simulation is terminated once the
      * {@link rinde.sim.core.model.pdp.PDPScenarioEvent#TIME_OUT} event is
      * dispatched.
      */
-    public static final StopCondition TIME_OUT_EVENT = new StopCondition() {
+    TIME_OUT_EVENT {
       @Override
       public boolean apply(SimulationInfo context) {
         return context.stats.simFinish;
       }
-    };
+    },
 
     /**
      * The simulation is terminated as soon as all the vehicles are back at the
@@ -336,19 +335,19 @@ public class DynamicPDPTWProblem {
      * {@link rinde.sim.core.model.pdp.PDPScenarioEvent#TIME_OUT} event is
      * dispatched.
      */
-    public static final StopCondition VEHICLES_DONE_AND_BACK_AT_DEPOT = new StopCondition() {
+    VEHICLES_DONE_AND_BACK_AT_DEPOT {
       @Override
       public boolean apply(SimulationInfo context) {
         return context.stats.totalVehicles == context.stats.vehiclesAtDepot
             && context.stats.movedVehicles > 0
             && context.stats.totalParcels == context.stats.totalDeliveries;
       }
-    };
+    },
 
     /**
      * The simulation is terminated as soon as any tardiness occurs.
      */
-    public static final StopCondition ANY_TARDINESS = new StopCondition() {
+    ANY_TARDINESS {
       @Override
       public boolean apply(SimulationInfo context) {
         return context.stats.pickupTardiness > 0

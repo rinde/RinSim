@@ -33,6 +33,7 @@ import rinde.sim.pdptw.scenario.PDPScenario;
 import rinde.sim.scenario.TimedEvent;
 import rinde.sim.util.TimeWindow;
 
+import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableList;
 
 /**
@@ -72,7 +73,7 @@ public class TestDynamicPDPTWProblem {
     assertEquals(5, stats.simulationTime);
   }
 
-  class TimeStopCondition extends StopCondition {
+  class TimeStopCondition implements Predicate<SimulationInfo> {
     protected final long time;
 
     public TimeStopCondition(long t) {
