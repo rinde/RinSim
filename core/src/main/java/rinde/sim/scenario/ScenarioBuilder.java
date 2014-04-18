@@ -4,13 +4,13 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Lists.newLinkedList;
 
-import java.io.Serializable;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
+
+import rinde.sim.scenario.TimedEvent.TimeComparator;
 
 import com.google.common.base.Function;
 import com.google.common.collect.ImmutableSet;
@@ -78,8 +78,11 @@ public class ScenarioBuilder {
    * @return this
    */
   public ScenarioBuilder addEvent(TimedEvent event) {
-    checkArgument(supportedTypes.contains(event.getEventType()), "%s is not a supported event type of this ScenarioBuilder, it should be added in its constructor.", event
-        .getEventType());
+    checkArgument(
+        supportedTypes.contains(event.getEventType()),
+        "%s is not a supported event type of this ScenarioBuilder, it should be added in its constructor.",
+        event
+            .getEventType());
     events.add(event);
     return this;
   }
@@ -177,12 +180,13 @@ public class ScenarioBuilder {
     for (final EventGenerator<? extends TimedEvent> g : generators) {
       final Collection<? extends TimedEvent> collection = g.generate();
       for (final TimedEvent te : collection) {
-        checkArgument(supportedTypes.contains(te.getEventType()), "%s is not supported by this ScenarioBuilder", te
-            .getEventType());
+        checkArgument(supportedTypes.contains(te.getEventType()),
+            "%s is not supported by this ScenarioBuilder", te
+                .getEventType());
         es.add(te);
       }
     }
-    Collections.sort(es, new TimeComparator());
+    Collections.sort(es, TimeComparator.INSTANCE);
     return es;
   }
 
@@ -217,7 +221,7 @@ public class ScenarioBuilder {
    */
   public static boolean isTimeOrderingConsistent(Scenario scen) {
     final List<TimedEvent> es = newArrayList(scen.asList());
-    Collections.sort(es, new TimeComparator());
+    Collections.sort(es, TimeComparator.INSTANCE);
     return scen.asList().equals(es);
   }
 
@@ -369,24 +373,5 @@ public class ScenarioBuilder {
       return new TimedEvent(typeEvent, input);
     }
 
-  }
-
-  /**
-   * Comparator for comparing {@link TimedEvent}s on their time.
-   * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
-   */
-  public static class TimeComparator implements Comparator<TimedEvent>,
-      Serializable {
-    private static final long serialVersionUID = -2711991793346719648L;
-
-    /**
-     * Instantiate.
-     */
-    public TimeComparator() {}
-
-    @Override
-    public int compare(TimedEvent o1, TimedEvent o2) {
-      return (int) (o1.time - o2.time);
-    }
   }
 }

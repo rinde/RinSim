@@ -1,5 +1,7 @@
 package rinde.sim.scenario;
 
+import java.util.Comparator;
+
 import javax.annotation.Nullable;
 
 import rinde.sim.event.Event;
@@ -56,5 +58,21 @@ public class TimedEvent extends Event {
   public String toString() {
     return new StringBuilder().append(eventType).append("|").append(time)
         .toString();
+  }
+
+  /**
+   * Comparator for comparing {@link TimedEvent}s on their time.
+   * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+   */
+  public enum TimeComparator implements Comparator<TimedEvent> {
+    /**
+     * Comparator for comparing {@link TimedEvent}s on their time.
+     */
+    INSTANCE;
+
+    @Override
+    public int compare(TimedEvent o1, TimedEvent o2) {
+      return (int) (o1.time - o2.time);
+    }
   }
 }
