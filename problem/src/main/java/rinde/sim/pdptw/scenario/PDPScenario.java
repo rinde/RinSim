@@ -3,9 +3,6 @@
  */
 package rinde.sim.pdptw.scenario;
 
-import static com.google.common.collect.Lists.newArrayList;
-import static com.google.common.collect.Lists.newLinkedList;
-
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
@@ -100,6 +97,14 @@ public abstract class PDPScenario extends Scenario {
     String getId();
   }
 
+  public static Builder builder() {
+    return new Builder();
+  }
+
+  static Builder builder(AbstractBuilder<?> base) {
+    return new Builder(base);
+  }
+
   public static class DefaultScenario extends PDPScenario {
     private final Unit<Velocity> speedUnit;
     private final Unit<Length> distanceUnit;
@@ -109,7 +114,7 @@ public abstract class PDPScenario extends Scenario {
     private final Predicate<SimulationInfo> stopCondition;
     private final ImmutableList<? extends Supplier<? extends Model<?>>> modelSuppliers;
 
-    DefaultScenario(AbstractBuilder<?> b, List<? extends TimedEvent> events,
+    DefaultScenario(Builder b, List<? extends TimedEvent> events,
         Set<Enum<?>> supportedTypes) {
       super(events, supportedTypes);
       timeUnit = b.timeUnit;
@@ -118,7 +123,7 @@ public abstract class PDPScenario extends Scenario {
       speedUnit = b.speedUnit;
       distanceUnit = b.distanceUnit;
       stopCondition = b.stopCondition;
-      modelSuppliers = ImmutableList.copyOf(b.modelSuppliers);
+      modelSuppliers = b.getModelSuppliers();
     }
 
     @Override
@@ -177,24 +182,44 @@ public abstract class PDPScenario extends Scenario {
   public static class Builder extends AbstractBuilder<Builder> {
     final ImmutableList.Builder<TimedEvent> eventBuilder;
     final ImmutableSet.Builder<Enum<?>> eventTypeBuilder;
+    final ImmutableList.Builder<Supplier<? extends Model<?>>> modelSuppliers;
 
     Builder() {
       super();
       eventBuilder = ImmutableList.builder();
       eventTypeBuilder = ImmutableSet.builder();
+      modelSuppliers = ImmutableList.builder();
+    }
+
+    Builder(AbstractBuilder<?> base) {
+      super(base);
+      eventBuilder = ImmutableList.builder();
+      eventTypeBuilder = ImmutableSet.builder();
+      modelSuppliers = ImmutableList.builder();
     }
 
     public Builder addEvent(TimedEvent event) {
       eventBuilder.add(event);
       eventTypeBuilder.add(event.getEventType());
-      return this;
+      return self();
     }
 
     public Builder addEvents(Iterable<? extends TimedEvent> events) {
       for (final TimedEvent te : events) {
         addEvent(te);
       }
-      return this;
+      return self();
+    }
+
+    public Builder addModel(Supplier<? extends Model<?>> model) {
+      modelSuppliers.add(model);
+      return self();
+    }
+
+    public Builder addModels(
+        Iterable<? extends Supplier<? extends Model<?>>> models) {
+      modelSuppliers.addAll(models);
+      return self();
     }
 
     public DefaultScenario build() {
@@ -205,6 +230,10 @@ public abstract class PDPScenario extends Scenario {
     @Override
     protected Builder self() {
       return this;
+    }
+
+    ImmutableList<Supplier<? extends Model<?>>> getModelSuppliers() {
+      return modelSuppliers.build();
     }
   }
 
@@ -223,7 +252,6 @@ public abstract class PDPScenario extends Scenario {
     long tickSize;
     TimeWindow timeWindow;
     Predicate<SimulationInfo> stopCondition;
-    final List<Supplier<? extends Model<?>>> modelSuppliers;
 
     AbstractBuilder() {
       distanceUnit = DEFAULT_DISTANCE_UNIT;
@@ -232,7 +260,6 @@ public abstract class PDPScenario extends Scenario {
       tickSize = DEFAULT_TICK_SIZE;
       timeWindow = DEFAULT_TIME_WINDOW;
       stopCondition = DEFAULT_STOP_CONDITION;
-      modelSuppliers = newLinkedList();
     }
 
     AbstractBuilder(AbstractBuilder<?> copy) {
@@ -242,7 +269,6 @@ public abstract class PDPScenario extends Scenario {
       tickSize = copy.tickSize;
       timeWindow = copy.timeWindow;
       stopCondition = copy.stopCondition;
-      modelSuppliers = newArrayList(copy.modelSuppliers);
     }
 
     protected abstract T self();
@@ -274,11 +300,6 @@ public abstract class PDPScenario extends Scenario {
 
     public T stopCondition(Predicate<SimulationInfo> condition) {
       stopCondition = condition;
-      return self();
-    }
-
-    public T addModel(Supplier<? extends Model<?>> model) {
-      modelSuppliers.add(model);
       return self();
     }
   }

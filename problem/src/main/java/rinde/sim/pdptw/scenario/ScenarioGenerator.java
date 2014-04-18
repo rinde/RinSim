@@ -6,7 +6,6 @@ import static com.google.common.collect.Lists.newLinkedList;
 import java.math.RoundingMode;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Set;
 
 import javax.measure.quantity.Duration;
 import javax.measure.quantity.Length;
@@ -24,7 +23,6 @@ import rinde.sim.pdptw.scenario.Depots.DepotGenerator;
 import rinde.sim.pdptw.scenario.Locations.LocationGenerator;
 import rinde.sim.pdptw.scenario.Models.ModelSupplierSupplier;
 import rinde.sim.pdptw.scenario.PDPScenario.AbstractBuilder;
-import rinde.sim.pdptw.scenario.PDPScenario.DefaultScenario;
 import rinde.sim.pdptw.scenario.Vehicles.VehicleGenerator;
 import rinde.sim.pdptw.scenario.times.ArrivalTimeGenerator;
 import rinde.sim.pdptw.scenario.tw.TimeWindowGenerator;
@@ -35,7 +33,6 @@ import rinde.sim.util.TimeWindow;
 
 import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
 import com.google.common.math.DoubleMath;
 
 public final class ScenarioGenerator {
@@ -68,12 +65,12 @@ public final class ScenarioGenerator {
     vehicleGenerator = b.vehicleGenerator;
     depotGenerator = b.depotGenerator;
 
-    final ImmutableList.Builder<Supplier<? extends Model<?>>> builder = ImmutableList
+    final ImmutableList.Builder<Supplier<? extends Model<?>>> modelsBuilder = ImmutableList
         .builder();
-    for (final ModelSupplierSupplier<?> sup : b.modelSuppliers) {
-      builder.add(sup.get(this));
+    for (final ModelSupplierSupplier<?> sup : builder.modelSuppliers) {
+      modelsBuilder.add(sup.get(this));
     }
-    modelSuppliers = builder.build();
+    modelSuppliers = modelsBuilder.build();
   }
 
   public Unit<Velocity> getSpeedUnit() {
@@ -140,13 +137,10 @@ public final class ScenarioGenerator {
       b.add(new AddParcelEvent(dto));
     }
     b.add(new TimedEvent(PDPScenarioEvent.TIME_OUT, builder.timeWindow.end));
-    final Set<Enum<?>> eventTypes = ImmutableSet.<Enum<?>> of(
-        PDPScenarioEvent.TIME_OUT,
-        PDPScenarioEvent.ADD_DEPOT,
-        PDPScenarioEvent.ADD_VEHICLE,
-        PDPScenarioEvent.ADD_PARCEL);
-
-    return new DefaultScenario(builder, b.build(), eventTypes);
+    return PDPScenario.builder(builder)
+        .addModels(modelSuppliers)
+        .addEvents(b.build())
+        .build();
   }
 
   public static Builder builder() {
@@ -248,7 +242,6 @@ public final class ScenarioGenerator {
       return this;
     }
 
-    @Override
     public Builder addModel(Supplier<? extends Model<?>> model) {
       modelSuppliers.add(Models.adapt(model));
       return this;
@@ -257,6 +250,5 @@ public final class ScenarioGenerator {
     public ScenarioGenerator build() {
       return new ScenarioGenerator(new Builder(this));
     }
-
   }
 }

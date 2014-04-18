@@ -1,9 +1,16 @@
 package rinde.sim.pdptw.scenario;
 
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Sets.newLinkedHashSet;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
 import java.lang.reflect.Type;
 import java.util.Iterator;
 import java.util.List;
@@ -12,6 +19,7 @@ import java.util.Set;
 import javax.annotation.Nullable;
 import javax.measure.Measure;
 import javax.measure.unit.Unit;
+import javax.xml.bind.DatatypeConverter;
 
 import rinde.sim.core.graph.Point;
 import rinde.sim.core.model.pdp.PDPScenarioEvent;
@@ -25,6 +33,7 @@ import rinde.sim.scenario.Scenario;
 import rinde.sim.scenario.TimedEvent;
 import rinde.sim.util.TimeWindow;
 
+import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableList;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -61,6 +70,8 @@ public class ScenarioIO {
         .registerTypeAdapter(collectionType, new EnumSetDeserializer())
         .registerTypeAdapter(Unit.class, new UnitSerializer())
         .registerTypeAdapter(Measure.class, new MeasureSerializer())
+        .registerTypeAdapter(Enum.class, new EnumSerializer())
+        .registerTypeAdapter(Predicate.class, new PredicateSerializer())
         .registerTypeAdapter(ImmutableList.class, new ImmutableListSerializer());
 
     return builder.create();
@@ -132,11 +143,15 @@ public class ScenarioIO {
         @Nullable Type typeOfT,
         @Nullable JsonDeserializationContext context) throws JsonParseException {
       final long time = json.getAsJsonObject().get("time").getAsLong();
-      final PDPScenarioEvent type = PDPScenarioEvent.valueOf(json
-          .getAsJsonObject().get("eventType").getAsJsonObject().get("name")
-          .getAsString());
+      final Enum<?> type = context.deserialize(
+          json.getAsJsonObject().get("eventType"), Enum.class);
+      // Enum.valueOf(json
+      // .getAsJsonObject().get("eventType").getAsJsonObject().get("value")
+      // .getAsString());
 
-      switch (type) {
+      checkArgument(type instanceof PDPScenarioEvent);
+      final PDPScenarioEvent scenEvent = (PDPScenarioEvent) type;
+      switch (scenEvent) {
       case ADD_DEPOT:
         return new AddDepotEvent(time, (Point) context.deserialize(json
             .getAsJsonObject().get("position"), Point.class));
@@ -203,8 +218,9 @@ public class ScenarioIO {
       JsonDeserializer<Measure<?, ?>> {
 
     @Override
-    public Measure<?, ?> deserialize(JsonElement json, Type typeOfT,
-        JsonDeserializationContext context) throws JsonParseException {
+    public Measure<?, ?> deserialize(@Nullable JsonElement json,
+        @Nullable Type typeOfT,
+        @Nullable JsonDeserializationContext context) throws JsonParseException {
       // TODO Auto-generated method stub
       return null;
     }
@@ -218,6 +234,102 @@ public class ScenarioIO {
       return obj;
     }
 
+  }
+
+  // static class PredicateSerialize
+
+  static class EnumSerializer implements
+      JsonSerializer<Enum<?>>,
+      JsonDeserializer<Enum<?>> {
+
+    @Override
+    public JsonElement serialize(Enum<?> src, Type typeOfSrc,
+        JsonSerializationContext context) {
+      final String className = src.getClass().getName();
+      final String valueName = src.name();
+
+      final JsonObject obj = new JsonObject();
+      obj.addProperty("class", className);
+      obj.addProperty("value", valueName);
+      return obj;
+    }
+
+    @Override
+    public Enum<?> deserialize(@Nullable JsonElement json,
+        @Nullable Type typeOfT, @Nullable JsonDeserializationContext context)
+        throws JsonParseException {
+      checkNotNull(json);
+      final JsonObject obj = json.getAsJsonObject();
+
+      try {
+        @SuppressWarnings("rawtypes")
+        final Class clazz = Class.forName(obj.get("class").getAsString());
+        @SuppressWarnings("unchecked")
+        final Enum<?> en = Enum.valueOf(clazz, obj.get("value").getAsString());
+        return en;
+      } catch (final ClassNotFoundException e) {
+        throw new IllegalArgumentException(e);
+      }
+    }
+
+  }
+
+  static String serializeObject(Object obj) throws IOException {
+    final ByteArrayOutputStream bo = new ByteArrayOutputStream();
+    final ObjectOutputStream oos = new ObjectOutputStream(bo);
+    oos.writeObject(obj);
+    oos.flush();
+    oos.close();
+    return DatatypeConverter.printBase64Binary(bo.toByteArray());
+  }
+
+  static Object deserializeObject(String serialForm) throws IOException,
+      ClassNotFoundException {
+    final byte[] bytes = DatatypeConverter.parseBase64Binary(serialForm);
+    final ByteArrayInputStream is = new ByteArrayInputStream(bytes);
+    final ObjectInputStream ois = new ObjectInputStream(is);
+    final Object predicate = ois.readObject();
+    ois.close();
+    return predicate;
+  }
+
+  static class PredicateSerializer implements
+      JsonSerializer<Predicate<?>>,
+      JsonDeserializer<Predicate<?>> {
+
+    @Override
+    public Predicate<?> deserialize(@Nullable JsonElement json,
+        @Nullable Type typeOfT,
+        @Nullable JsonDeserializationContext context) throws JsonParseException {
+      checkNotNull(json);
+      checkArgument(json.isJsonPrimitive());
+
+      try {
+        final Predicate<?> obj = (Predicate<?>) deserializeObject(json
+            .getAsString());
+        return obj;
+      } catch (final IOException e) {
+        throw new IllegalArgumentException(e);
+      } catch (final ClassNotFoundException e) {
+        throw new IllegalArgumentException(e);
+      }
+
+    }
+
+    @Override
+    public JsonElement serialize(Predicate<?> src, Type typeOfSrc,
+        JsonSerializationContext context) {
+      if (src instanceof Serializable) {
+        try {
+          return new JsonPrimitive(serializeObject(src));
+        } catch (final IOException e) {
+          throw new IllegalArgumentException(e);
+        }
+      }
+      throw new IllegalArgumentException(
+          "All predicates must be serializable, found: "
+              + src.getClass().getName());
+    }
   }
 
   static class ImmutableListSerializer implements
@@ -239,7 +351,7 @@ public class ScenarioIO {
         } catch (final ClassNotFoundException e) {
           // TODO Auto-generated catch block
           e.printStackTrace();
-          throw new IllegalArgumentException();
+          throw new IllegalArgumentException(e);
         }
         builder.add(context.deserialize(obj.get("value"), clz));
       }
