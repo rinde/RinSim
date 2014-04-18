@@ -301,7 +301,7 @@ public class DynamicPDPTWProblem {
    * following way:
    * 
    * <pre>
-   * StopCondition sc = new StopCondition() {
+   * Predicate&lt;SimulationInfo&gt; sc = new Predicate&lt;SimulationInfo&gt;() {
    *   &#064;Override
    *   public boolean apply(SimulationInfo context) {
    *     return true; // &lt;- insert your own condition here
@@ -357,8 +357,7 @@ public class DynamicPDPTWProblem {
   }
 
   /**
-   * This is an immutable state object which is exposed to {@link StopCondition}
-   * s.
+   * This is an immutable state object which is exposed to stopconditions.
    * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
    */
   public static class SimulationInfo {
