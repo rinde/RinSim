@@ -142,9 +142,10 @@ public final class ScenarioGenerator {
       b.add(new AddParcelEvent(dto));
     }
     b.add(new TimedEvent(PDPScenarioEvent.TIME_OUT, builder.timeWindow.end));
-    return PDPScenario.builder(builder, builder.problemClass, id)
+    return PDPScenario.builder(builder, builder.problemClass)
         .addModels(modelSuppliers)
         .addEvents(b.build())
+        .instanceId(id)
         .build();
   }
 
