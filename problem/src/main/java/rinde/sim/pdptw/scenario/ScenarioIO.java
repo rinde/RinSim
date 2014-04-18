@@ -7,6 +7,7 @@ import static com.google.common.collect.Sets.newLinkedHashSet;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -23,18 +24,22 @@ import javax.xml.bind.DatatypeConverter;
 
 import rinde.sim.core.graph.Point;
 import rinde.sim.core.model.pdp.PDPScenarioEvent;
+import rinde.sim.core.model.pdp.TimeWindowPolicy;
 import rinde.sim.pdptw.common.AddDepotEvent;
 import rinde.sim.pdptw.common.AddParcelEvent;
 import rinde.sim.pdptw.common.AddVehicleEvent;
 import rinde.sim.pdptw.common.ParcelDTO;
 import rinde.sim.pdptw.common.VehicleDTO;
+import rinde.sim.pdptw.scenario.PDPScenario.DefaultScenario;
 import rinde.sim.pdptw.scenario.PDPScenario.ProblemClass;
 import rinde.sim.scenario.Scenario;
 import rinde.sim.scenario.TimedEvent;
 import rinde.sim.util.TimeWindow;
 
+import com.google.common.base.Charsets;
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableList;
+import com.google.common.io.Files;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
@@ -52,12 +57,16 @@ import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonToken;
 import com.google.gson.stream.JsonWriter;
 
+/**
+ * Provides utilities for reading and writing scenario files.
+ * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+ */
 public class ScenarioIO {
 
   private final static Gson gson = initialize();
 
   private final static Gson initialize() {
-    final Type collectionType = new TypeToken<Set<Enum<?>>>() {}.getType();
+    final Type enumSetType = new TypeToken<Set<Enum<?>>>() {}.getType();
 
     final GsonBuilder builder = new GsonBuilder();
     builder
@@ -66,10 +75,12 @@ public class ScenarioIO {
         .registerTypeAdapter(Point.class, new PointAdapter())
         .registerTypeAdapter(TimeWindow.class, new TimeWindowAdapter())
         .registerTypeHierarchyAdapter(TimedEvent.class,
-            new TimedEventDeserializer())
-        .registerTypeAdapter(collectionType, new EnumSetDeserializer())
+            new TimedEventSerializer())
+        .registerTypeAdapter(enumSetType, new EnumSetSerializer())
         .registerTypeAdapter(Unit.class, new UnitSerializer())
         .registerTypeAdapter(Measure.class, new MeasureSerializer())
+        .registerTypeHierarchyAdapter(TimeWindowPolicy.class,
+            new TimeWindowPolicySerializer())
         .registerTypeAdapter(Enum.class, new EnumSerializer())
         .registerTypeAdapter(Predicate.class, new PredicateSerializer())
         .registerTypeAdapter(ImmutableList.class, new ImmutableListSerializer());
@@ -77,17 +88,35 @@ public class ScenarioIO {
     return builder.create();
   }
 
-  public static String write(Scenario s) {
+  public static void write(Scenario s, File to) throws IOException {
+    Files.write(write(s), to, Charsets.UTF_8);
+  }
+
+  public static PDPScenario read(File file) throws IOException {
+    return read(file, DefaultScenario.class);
+  }
+
+  public static <T> T read(File file, Class<T> type) throws IOException {
+    return read(Files.toString(file, Charsets.UTF_8), type);
+  }
+
+  static String write(Scenario s) {
     return gson.toJson(s);
   }
 
-  public static <T> T read(String s, Class<T> type) {
+  static PDPScenario read(String s) {
+    return read(s, DefaultScenario.class);
+  }
+
+  static <T> T read(String s, Class<T> type) {
     return gson.fromJson(s, type);
   }
 
   static class PointAdapter extends TypeAdapter<Point> {
+    @Nullable
     @Override
     public Point read(@Nullable JsonReader reader) throws IOException {
+      checkNotNull(reader);
       if (reader.peek() == JsonToken.NULL) {
         reader.nextNull();
         return null;
@@ -102,6 +131,7 @@ public class ScenarioIO {
     @Override
     public void write(@Nullable JsonWriter writer, @Nullable Point value)
         throws IOException {
+      checkNotNull(writer);
       if (value == null) {
         writer.nullValue();
         return;
@@ -112,8 +142,10 @@ public class ScenarioIO {
   }
 
   static class TimeWindowAdapter extends TypeAdapter<TimeWindow> {
+    @Nullable
     @Override
     public TimeWindow read(@Nullable JsonReader reader) throws IOException {
+      checkNotNull(reader);
       if (reader.peek() == JsonToken.NULL) {
         reader.nextNull();
         return null;
@@ -128,6 +160,7 @@ public class ScenarioIO {
     @Override
     public void write(@Nullable JsonWriter writer, @Nullable TimeWindow value)
         throws IOException {
+      checkNotNull(writer);
       if (value == null) {
         writer.nullValue();
         return;
@@ -137,43 +170,53 @@ public class ScenarioIO {
     }
   }
 
-  static class TimedEventDeserializer implements JsonDeserializer<TimedEvent> {
+  static class TimedEventSerializer implements JsonDeserializer<TimedEvent> {
     @Override
     public TimedEvent deserialize(@Nullable JsonElement json,
         @Nullable Type typeOfT,
         @Nullable JsonDeserializationContext context) throws JsonParseException {
-      final long time = json.getAsJsonObject().get("time").getAsLong();
-      final Enum<?> type = context.deserialize(
-          json.getAsJsonObject().get("eventType"), Enum.class);
-      // Enum.valueOf(json
-      // .getAsJsonObject().get("eventType").getAsJsonObject().get("value")
-      // .getAsString());
+      checkNotNull(json);
+      checkNotNull(context);
+
+      final JsonObject obj = json.getAsJsonObject();
+
+      final long time = obj.get("time").getAsLong();
+      final Enum<?> type = context
+          .deserialize(obj.get("eventType"), Enum.class);
 
       checkArgument(type instanceof PDPScenarioEvent);
       final PDPScenarioEvent scenEvent = (PDPScenarioEvent) type;
       switch (scenEvent) {
       case ADD_DEPOT:
-        return new AddDepotEvent(time, (Point) context.deserialize(json
-            .getAsJsonObject().get("position"), Point.class));
+        return new AddDepotEvent(time, (Point) context.deserialize(
+            obj.get("position"), Point.class));
       case ADD_VEHICLE:
-        return new AddVehicleEvent(time, (VehicleDTO) context.deserialize(json
-            .getAsJsonObject().get("vehicleDTO"), VehicleDTO.class));
+        return new AddVehicleEvent(time, (VehicleDTO) context.deserialize(
+            obj.get("vehicleDTO"), VehicleDTO.class));
       case ADD_PARCEL:
-        return new AddParcelEvent((ParcelDTO) context.deserialize(json
-            .getAsJsonObject().get("parcelDTO"), ParcelDTO.class));
+        return new AddParcelEvent((ParcelDTO) context.deserialize(
+            obj.get("parcelDTO"), ParcelDTO.class));
       case TIME_OUT:
         return new TimedEvent(type, time);
+      case REMOVE_DEPOT:
+        // fall through
+      case REMOVE_PARCEL:
+        // fall through
+      case REMOVE_VEHICLE:
+        // fall through
+      default:
+        throw new IllegalArgumentException("Event not supported: " + scenEvent);
       }
-      throw new IllegalStateException();
     }
   }
 
-  static class EnumSetDeserializer implements JsonDeserializer<Set<Enum<?>>>,
+  static class EnumSetSerializer implements JsonDeserializer<Set<Enum<?>>>,
       JsonSerializer<Set<Enum<?>>> {
     @Override
     public Set<Enum<?>> deserialize(@Nullable JsonElement json,
         @Nullable Type typeOfT,
         @Nullable JsonDeserializationContext context) throws JsonParseException {
+      checkNotNull(context);
       final Set<Enum<?>> eventTypes = newLinkedHashSet();
       final List<String> list = context
           .deserialize(json, new TypeToken<List<String>>() {}.getType());
@@ -187,6 +230,9 @@ public class ScenarioIO {
     public JsonElement serialize(@Nullable Set<Enum<?>> src,
         @Nullable Type typeOfSrc,
         @Nullable JsonSerializationContext context) {
+      checkNotNull(src);
+      checkNotNull(context);
+
       final List<String> list = newArrayList();
       for (final Enum<?> e : src) {
         list.add(e.name());
@@ -202,6 +248,7 @@ public class ScenarioIO {
     public Unit<?> deserialize(@Nullable JsonElement json,
         @Nullable Type typeOfT,
         @Nullable JsonDeserializationContext context) throws JsonParseException {
+      checkNotNull(json);
       return Unit.valueOf(json.getAsString());
     }
 
@@ -209,6 +256,8 @@ public class ScenarioIO {
     public JsonElement serialize(@Nullable Unit<?> src,
         @Nullable Type typeOfSrc,
         @Nullable JsonSerializationContext context) {
+      checkNotNull(src);
+      checkNotNull(context);
       return context.serialize(src.toString());
     }
   }
@@ -217,26 +266,48 @@ public class ScenarioIO {
       JsonSerializer<Measure<?, ?>>,
       JsonDeserializer<Measure<?, ?>> {
 
+    private static final String UNIT = "unit";
+    private static final String VALUE = "value";
+    private static final String VALUE_TYPE = "value-type";
+
     @Override
     public Measure<?, ?> deserialize(@Nullable JsonElement json,
         @Nullable Type typeOfT,
         @Nullable JsonDeserializationContext context) throws JsonParseException {
-      // TODO Auto-generated method stub
-      return null;
+      checkNotNull(json);
+      checkNotNull(context);
+      checkArgument(json.isJsonObject());
+      final JsonObject obj = json.getAsJsonObject();
+      final Unit<?> unit = context.deserialize(obj.get(UNIT), Unit.class);
+
+      try {
+        final Class<?> type = Class.forName(obj.get(VALUE_TYPE).getAsString());
+        final Number value = context.deserialize(obj.get(VALUE), type);
+
+        if (type.equals(Double.TYPE) || type.equals(Double.class)) {
+          return Measure.valueOf(value.doubleValue(), unit);
+        } else if (type.equals(Integer.TYPE) || type.equals(Integer.class)) {
+          return Measure.valueOf(value.intValue(), unit);
+        } else if (type.equals(Long.TYPE) || type.equals(Long.class)) {
+          return Measure.valueOf(value.longValue(), unit);
+        }
+        throw new IllegalArgumentException(type + " is not supported");
+      } catch (final ClassNotFoundException e) {
+        throw new IllegalArgumentException(e);
+      }
     }
 
     @Override
     public JsonElement serialize(Measure<?, ?> src, Type typeOfSrc,
         JsonSerializationContext context) {
       final JsonObject obj = new JsonObject();
-      obj.add("unit", context.serialize(src.getUnit(), Unit.class));
-      obj.add("value", context.serialize(src.getValue()));
+      obj.add(UNIT, context.serialize(src.getUnit(), Unit.class));
+      obj.add(VALUE, context.serialize(src.getValue()));
+      obj.addProperty(VALUE_TYPE, src.getValue().getClass().getName());
       return obj;
     }
 
   }
-
-  // static class PredicateSerialize
 
   static class EnumSerializer implements
       JsonSerializer<Enum<?>>,
@@ -245,7 +316,7 @@ public class ScenarioIO {
     @Override
     public JsonElement serialize(Enum<?> src, Type typeOfSrc,
         JsonSerializationContext context) {
-      final String className = src.getClass().getName();
+      final String className = src.getDeclaringClass().getName();
       final String valueName = src.name();
 
       final JsonObject obj = new JsonObject();
@@ -270,6 +341,30 @@ public class ScenarioIO {
       } catch (final ClassNotFoundException e) {
         throw new IllegalArgumentException(e);
       }
+    }
+  }
+
+  static class TimeWindowPolicySerializer implements
+      JsonSerializer<TimeWindowPolicy>,
+      JsonDeserializer<TimeWindowPolicy> {
+
+    @Override
+    public TimeWindowPolicy deserialize(@Nullable JsonElement json,
+        @Nullable Type typeOfT,
+        @Nullable JsonDeserializationContext context) throws JsonParseException {
+      checkNotNull(json);
+      checkNotNull(context);
+      return context.deserialize(json, Enum.class);
+    }
+
+    @Override
+    public JsonElement serialize(TimeWindowPolicy src, Type typeOfSrc,
+        JsonSerializationContext context) {
+      if (src instanceof Enum<?>) {
+        return context.serialize(src, Enum.class);
+      }
+      throw new IllegalArgumentException(
+          "Only Enum implementations of the TimeWindowPolicy interface are allowed.");
     }
 
   }
@@ -340,6 +435,8 @@ public class ScenarioIO {
     public ImmutableList<?> deserialize(@Nullable JsonElement json,
         @Nullable Type typeOfT, @Nullable JsonDeserializationContext context)
         throws JsonParseException {
+      checkNotNull(json);
+      checkNotNull(context);
       final ImmutableList.Builder<Object> builder = ImmutableList.builder();
       final Iterator<JsonElement> it = json.getAsJsonArray().iterator();
       while (it.hasNext()) {
@@ -349,8 +446,6 @@ public class ScenarioIO {
         try {
           clz = Class.forName(clazz);
         } catch (final ClassNotFoundException e) {
-          // TODO Auto-generated catch block
-          e.printStackTrace();
           throw new IllegalArgumentException(e);
         }
         builder.add(context.deserialize(obj.get("value"), clz));
@@ -377,44 +472,27 @@ public class ScenarioIO {
       JsonSerializer<ProblemClass>,
       JsonDeserializer<ProblemClass> {
 
-    @SuppressWarnings("unchecked")
     @Override
     public ProblemClass deserialize(@Nullable JsonElement json,
         @Nullable Type typeOfT,
         @Nullable JsonDeserializationContext context) throws JsonParseException {
-      Class<?> type;
-      try {
-        type = Class.forName(json.getAsJsonObject().get("type")
-            .getAsString());
-      } catch (final ClassNotFoundException e) {
-        throw new IllegalArgumentException();
-      }
-      if (type.isEnum()) {
-        return (ProblemClass) Enum.valueOf(type.asSubclass(Enum.class), json
-            .getAsJsonObject()
-            .get("value").getAsJsonObject()
-            .get("name").getAsString());
-      }
-      else {
-        throw new IllegalArgumentException("Non-enum type is not supported: "
-            + type);
-      }
+      checkNotNull(json);
+      checkNotNull(context);
+      return context.deserialize(json, Enum.class);
     }
 
     @Override
     public JsonElement serialize(@Nullable ProblemClass src,
         @Nullable Type typeOfSrc,
         @Nullable JsonSerializationContext context) {
-      final JsonObject obj = new JsonObject();
-      obj.addProperty("type", src.getClass().getName());
-
+      checkNotNull(context);
+      checkNotNull(src);
       if (src instanceof Enum<?>) {
-        obj.add("value", context.serialize(src, Enum.class));
-        return obj;
-      }
-      else {
+        return context.serialize(src, Enum.class);
+      } else {
         throw new IllegalArgumentException(
-            "Currently only enums are supported as ProblemClass instances.");
+            "Currently only enums are supported as ProblemClass instances, found: "
+                + src.getClass());
       }
     }
   }

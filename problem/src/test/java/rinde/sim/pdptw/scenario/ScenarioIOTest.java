@@ -1,4 +1,4 @@
-package rinde.sim.pdptw.common;
+package rinde.sim.pdptw.scenario;
 
 import static org.junit.Assert.assertEquals;
 
@@ -19,6 +19,12 @@ import rinde.sim.core.model.Model;
 import rinde.sim.core.model.pdp.PDPModel;
 import rinde.sim.core.model.pdp.PDPScenarioEvent;
 import rinde.sim.core.model.road.RoadModel;
+import rinde.sim.pdptw.common.AddDepotEvent;
+import rinde.sim.pdptw.common.AddParcelEvent;
+import rinde.sim.pdptw.common.AddVehicleEvent;
+import rinde.sim.pdptw.common.DynamicPDPTWProblem;
+import rinde.sim.pdptw.common.ParcelDTO;
+import rinde.sim.pdptw.common.VehicleDTO;
 import rinde.sim.pdptw.common.DynamicPDPTWProblem.SimulationInfo;
 import rinde.sim.pdptw.scenario.PDPScenario;
 import rinde.sim.pdptw.scenario.ScenarioIO;

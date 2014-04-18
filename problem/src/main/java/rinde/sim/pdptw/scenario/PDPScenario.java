@@ -7,6 +7,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
+import javax.annotation.Nullable;
 import javax.measure.quantity.Duration;
 import javax.measure.quantity.Length;
 import javax.measure.quantity.Velocity;
@@ -22,6 +23,8 @@ import rinde.sim.scenario.Scenario;
 import rinde.sim.scenario.TimedEvent;
 import rinde.sim.util.TimeWindow;
 
+import com.google.common.base.Objects;
+import com.google.common.base.Optional;
 import com.google.common.base.Predicate;
 import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableList;
@@ -89,41 +92,42 @@ public abstract class PDPScenario extends Scenario {
 
   public interface ProblemClass {
 
-    // creation date?
-    // author?
-    // class
-    // instance
-
     String getId();
   }
 
-  public static Builder builder() {
-    return new Builder();
+  public static Builder builder(ProblemClass problemClass, String instanceId) {
+    return new Builder(problemClass, instanceId);
   }
 
-  static Builder builder(AbstractBuilder<?> base) {
-    return new Builder(base);
+  static Builder builder(AbstractBuilder<?> base, ProblemClass problemClass,
+      String instanceId) {
+    return new Builder(Optional.<AbstractBuilder<?>> of(base), problemClass,
+        instanceId);
   }
 
   public static class DefaultScenario extends PDPScenario {
+    final ImmutableList<? extends Supplier<? extends Model<?>>> modelSuppliers;
     private final Unit<Velocity> speedUnit;
     private final Unit<Length> distanceUnit;
     private final Unit<Duration> timeUnit;
     private final TimeWindow timeWindow;
     private final long tickSize;
     private final Predicate<SimulationInfo> stopCondition;
-    private final ImmutableList<? extends Supplier<? extends Model<?>>> modelSuppliers;
+    private final ProblemClass problemClass;
+    private final String instanceId;
 
     DefaultScenario(Builder b, List<? extends TimedEvent> events,
         Set<Enum<?>> supportedTypes) {
       super(events, supportedTypes);
+      modelSuppliers = b.getModelSuppliers();
+      speedUnit = b.speedUnit;
+      distanceUnit = b.distanceUnit;
       timeUnit = b.timeUnit;
       timeWindow = b.timeWindow;
       tickSize = b.tickSize;
-      speedUnit = b.speedUnit;
-      distanceUnit = b.distanceUnit;
       stopCondition = b.stopCondition;
-      modelSuppliers = b.getModelSuppliers();
+      problemClass = b.problemClass;
+      instanceId = b.instanceId;
     }
 
     @Override
@@ -167,32 +171,51 @@ public abstract class PDPScenario extends Scenario {
 
     @Override
     public ProblemClass getProblemClass() {
-      // TODO Auto-generated method stub
-      return null;
+      return problemClass;
     }
 
     @Override
     public String getProblemInstanceId() {
-      // TODO Auto-generated method stub
-      return null;
+      return instanceId;
     }
 
+    @Override
+    public boolean equals(@Nullable Object other) {
+      if (this == other) {
+        return true;
+      }
+      if (!(other instanceof DefaultScenario)) {
+        return false;
+      }
+      final DefaultScenario o = (DefaultScenario) other;
+      return super.equals(o)
+          && Objects.equal(o.modelSuppliers, modelSuppliers)
+          && Objects.equal(o.speedUnit, speedUnit)
+          && Objects.equal(o.distanceUnit, distanceUnit)
+          && Objects.equal(o.timeUnit, timeUnit)
+          && Objects.equal(o.timeWindow, timeWindow)
+          && Objects.equal(o.tickSize, tickSize)
+          && Objects.equal(o.stopCondition, stopCondition)
+          && Objects.equal(o.problemClass, problemClass)
+          && Objects.equal(o.instanceId, instanceId);
+    }
   }
 
   public static class Builder extends AbstractBuilder<Builder> {
     final ImmutableList.Builder<TimedEvent> eventBuilder;
     final ImmutableSet.Builder<Enum<?>> eventTypeBuilder;
     final ImmutableList.Builder<Supplier<? extends Model<?>>> modelSuppliers;
+    final ProblemClass problemClass;
+    final String instanceId;
 
-    Builder() {
-      super();
-      eventBuilder = ImmutableList.builder();
-      eventTypeBuilder = ImmutableSet.builder();
-      modelSuppliers = ImmutableList.builder();
+    Builder(ProblemClass pc, String id) {
+      this(Optional.<AbstractBuilder<?>> absent(), pc, id);
     }
 
-    Builder(AbstractBuilder<?> base) {
+    Builder(Optional<AbstractBuilder<?>> base, ProblemClass pc, String id) {
       super(base);
+      problemClass = pc;
+      instanceId = id;
       eventBuilder = ImmutableList.builder();
       eventTypeBuilder = ImmutableSet.builder();
       modelSuppliers = ImmutableList.builder();
@@ -254,21 +277,30 @@ public abstract class PDPScenario extends Scenario {
     Predicate<SimulationInfo> stopCondition;
 
     AbstractBuilder() {
-      distanceUnit = DEFAULT_DISTANCE_UNIT;
-      speedUnit = DEFAULT_SPEED_UNIT;
-      timeUnit = DEFAULT_TIME_UNIT;
-      tickSize = DEFAULT_TICK_SIZE;
-      timeWindow = DEFAULT_TIME_WINDOW;
-      stopCondition = DEFAULT_STOP_CONDITION;
+      this(Optional.<AbstractBuilder<?>> absent());
     }
 
     AbstractBuilder(AbstractBuilder<?> copy) {
-      distanceUnit = copy.distanceUnit;
-      speedUnit = copy.speedUnit;
-      timeUnit = copy.timeUnit;
-      tickSize = copy.tickSize;
-      timeWindow = copy.timeWindow;
-      stopCondition = copy.stopCondition;
+      this(Optional.<AbstractBuilder<?>> of(copy));
+    }
+
+    AbstractBuilder(Optional<AbstractBuilder<?>> copy) {
+      if (copy.isPresent()) {
+        distanceUnit = copy.get().distanceUnit;
+        speedUnit = copy.get().speedUnit;
+        timeUnit = copy.get().timeUnit;
+        tickSize = copy.get().tickSize;
+        timeWindow = copy.get().timeWindow;
+        stopCondition = copy.get().stopCondition;
+      }
+      else {
+        distanceUnit = DEFAULT_DISTANCE_UNIT;
+        speedUnit = DEFAULT_SPEED_UNIT;
+        timeUnit = DEFAULT_TIME_UNIT;
+        tickSize = DEFAULT_TICK_SIZE;
+        timeWindow = DEFAULT_TIME_WINDOW;
+        stopCondition = DEFAULT_STOP_CONDITION;
+      }
     }
 
     protected abstract T self();

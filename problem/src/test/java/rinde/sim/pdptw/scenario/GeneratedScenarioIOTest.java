@@ -12,9 +12,10 @@ import org.apache.commons.math3.random.MersenneTwister;
 import org.junit.Test;
 
 import rinde.sim.core.graph.Point;
-import rinde.sim.core.model.pdp.twpolicy.TardyAllowedPolicy;
+import rinde.sim.core.model.pdp.TimeWindowPolicy.TimeWindowPolicies;
 import rinde.sim.pdptw.common.DynamicPDPTWProblem.StopCondition;
 import rinde.sim.pdptw.scenario.PDPScenario.DefaultScenario;
+import rinde.sim.pdptw.scenario.PDPScenario.ProblemClass;
 import rinde.sim.pdptw.scenario.times.PoissonProcess;
 import rinde.sim.pdptw.scenario.tw.ProportionateUniformTWGenerator;
 
@@ -24,11 +25,20 @@ import com.google.common.io.Files;
 
 public class GeneratedScenarioIOTest {
 
+  enum TestPC implements ProblemClass {
+    CLASS_A;
+
+    @Override
+    public String getId() {
+      return name();
+    }
+  }
+
   @Test
   public void testIO() throws IOException {
 
     final ScenarioGenerator generator = ScenarioGenerator
-        .builder()
+        .builder(TestPC.CLASS_A)
         .timeUnit(SI.MILLI(SI.SECOND))
         .distanceUnit(SI.KILOMETER)
         .speedUnit(NonSI.KILOMETERS_PER_HOUR)
@@ -45,11 +55,11 @@ public class GeneratedScenarioIOTest {
                 4 * 60 * 60 * 1000L, 0L, 0L, 50d))
         // .deliveryDurations(constant(10L))
         .addModel(Models.roadModel(50d, true))
-        .addModel(Models.pdpModel(new TardyAllowedPolicy()))
+        .addModel(Models.pdpModel(TimeWindowPolicies.TARDY_ALLOWED))
         .build();
 
     final PDPScenario scenario = generator
-        .generate(new MersenneTwister(123));
+        .generate(new MersenneTwister(123), "id123");
 
     final String output = ScenarioIO.write(scenario);
 
@@ -57,7 +67,5 @@ public class GeneratedScenarioIOTest {
     final DefaultScenario converted = ScenarioIO.read(output,
         DefaultScenario.class);
     assertEquals(scenario, converted);
-    System.out.println(scenario.createModels());
-    System.out.println(converted.createModels());
   }
 }

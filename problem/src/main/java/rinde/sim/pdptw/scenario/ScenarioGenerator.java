@@ -23,6 +23,7 @@ import rinde.sim.pdptw.scenario.Depots.DepotGenerator;
 import rinde.sim.pdptw.scenario.Locations.LocationGenerator;
 import rinde.sim.pdptw.scenario.Models.ModelSupplierSupplier;
 import rinde.sim.pdptw.scenario.PDPScenario.AbstractBuilder;
+import rinde.sim.pdptw.scenario.PDPScenario.ProblemClass;
 import rinde.sim.pdptw.scenario.Vehicles.VehicleGenerator;
 import rinde.sim.pdptw.scenario.times.ArrivalTimeGenerator;
 import rinde.sim.pdptw.scenario.tw.TimeWindowGenerator;
@@ -101,7 +102,11 @@ public final class ScenarioGenerator {
     return locationGenerator.getMax();
   }
 
-  public PDPScenario generate(RandomGenerator rng) {
+  public ProblemClass getProblemClass() {
+    return builder.problemClass;
+  }
+
+  public PDPScenario generate(RandomGenerator rng, String id) {
     final ImmutableList.Builder<TimedEvent> b = ImmutableList.builder();
     b.addAll(depotGenerator.generate(rng.nextLong(),
         locationGenerator.getCenter()));
@@ -137,14 +142,14 @@ public final class ScenarioGenerator {
       b.add(new AddParcelEvent(dto));
     }
     b.add(new TimedEvent(PDPScenarioEvent.TIME_OUT, builder.timeWindow.end));
-    return PDPScenario.builder(builder)
+    return PDPScenario.builder(builder, builder.problemClass, id)
         .addModels(modelSuppliers)
         .addEvents(b.build())
         .build();
   }
 
-  public static Builder builder() {
-    return new Builder();
+  public static Builder builder(ProblemClass problemClass) {
+    return new Builder(problemClass);
   }
 
   public static class Builder extends AbstractBuilder<Builder> {
@@ -168,9 +173,11 @@ public final class ScenarioGenerator {
     VehicleGenerator vehicleGenerator;
     DepotGenerator depotGenerator;
     final List<ModelSupplierSupplier<?>> modelSuppliers;
+    final ProblemClass problemClass;
 
-    Builder() {
+    Builder(ProblemClass pc) {
       super();
+      problemClass = pc;
       pickupDurationGenerator = DEFAULT_SERVICE_DURATION;
       deliveryDurationGenerator = DEFAULT_SERVICE_DURATION;
       neededCapacityGenerator = DEFAULT_CAPACITY;
@@ -182,6 +189,7 @@ public final class ScenarioGenerator {
     // copying constructor
     Builder(Builder b) {
       super(b);
+      problemClass = b.problemClass;
       arrivalTimeGenerator = b.arrivalTimeGenerator;
       timeWindowGenerator = b.timeWindowGenerator;
       locationGenerator = b.locationGenerator;
