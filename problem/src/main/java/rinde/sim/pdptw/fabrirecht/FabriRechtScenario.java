@@ -18,7 +18,7 @@ import rinde.sim.core.graph.Point;
 import rinde.sim.core.model.Model;
 import rinde.sim.core.model.pdp.DefaultPDPModel;
 import rinde.sim.core.model.pdp.PDPModel;
-import rinde.sim.core.model.pdp.twpolicy.TardyAllowedPolicy;
+import rinde.sim.core.model.pdp.TimeWindowPolicy.TimeWindowPolicies;
 import rinde.sim.core.model.road.PlaneRoadModel;
 import rinde.sim.core.model.road.RoadModel;
 import rinde.sim.pdptw.common.DynamicPDPTWProblem.StopCondition;
@@ -90,7 +90,7 @@ public class FabriRechtScenario extends PDPScenario {
   }
 
   PDPModel createPDPModel() {
-    return new DefaultPDPModel(new TardyAllowedPolicy());
+    return new DefaultPDPModel(TimeWindowPolicies.TARDY_ALLOWED);
   }
 
   @Override

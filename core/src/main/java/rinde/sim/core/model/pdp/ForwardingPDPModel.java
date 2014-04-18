@@ -7,7 +7,6 @@ import rinde.sim.core.TimeLapse;
 import rinde.sim.core.model.ModelProvider;
 import rinde.sim.core.model.pdp.Parcel;
 import rinde.sim.core.model.pdp.Vehicle;
-import rinde.sim.core.model.pdp.twpolicy.TimeWindowPolicy;
 import rinde.sim.event.EventAPI;
 
 import com.google.common.collect.ImmutableSet;

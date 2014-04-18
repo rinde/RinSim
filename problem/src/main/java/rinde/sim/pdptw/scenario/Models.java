@@ -10,7 +10,7 @@ import rinde.sim.core.graph.Point;
 import rinde.sim.core.model.Model;
 import rinde.sim.core.model.pdp.DefaultPDPModel;
 import rinde.sim.core.model.pdp.PDPModel;
-import rinde.sim.core.model.pdp.twpolicy.TimeWindowPolicy;
+import rinde.sim.core.model.pdp.TimeWindowPolicy;
 import rinde.sim.core.model.road.PlaneRoadModel;
 import rinde.sim.core.model.road.RoadModel;
 import rinde.sim.pdptw.common.PDPRoadModel;

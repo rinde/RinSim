@@ -36,8 +36,8 @@ import rinde.sim.core.model.pdp.PDPModel;
 import rinde.sim.core.model.pdp.PDPModel.PDPModelEventType;
 import rinde.sim.core.model.pdp.PDPModel.ParcelState;
 import rinde.sim.core.model.pdp.PDPModel.VehicleState;
+import rinde.sim.core.model.pdp.TimeWindowPolicy.TimeWindowPolicies;
 import rinde.sim.core.model.pdp.PDPModelEvent;
-import rinde.sim.core.model.pdp.twpolicy.TardyAllowedPolicy;
 import rinde.sim.core.model.road.PlaneRoadModel;
 import rinde.sim.event.Event;
 import rinde.sim.event.Listener;
@@ -109,7 +109,7 @@ public class RouteFollowingVehicleTest {
     rm = new PDPRoadModel(new PlaneRoadModel(new Point(0, 0),
         new Point(10, 10), 30d), diversionIsAllowed);
 
-    pm = new DefaultPDPModel(new TardyAllowedPolicy());
+    pm = new DefaultPDPModel(TimeWindowPolicies.TARDY_ALLOWED);
     @SuppressWarnings("unchecked")
     final ModelProvider mp = new TestModelProvider(new ArrayList<Model<?>>(
         asList(rm, pm)));
@@ -656,8 +656,8 @@ public class RouteFollowingVehicleTest {
     assertFalse(d.gotoState.prevDestination.isPresent());
 
     @SuppressWarnings("unchecked")
-    final StateTransitionEvent<StateEvent, RouteFollowingVehicle> ev1 = ((StateTransitionEvent<StateEvent, RouteFollowingVehicle>) leh
-        .getHistory().get(0));
+    final StateTransitionEvent<StateEvent, RouteFollowingVehicle> ev1 = (StateTransitionEvent<StateEvent, RouteFollowingVehicle>) leh
+        .getHistory().get(0);
     assertEquals(DefaultEvent.GOTO, ev1.trigger);
     assertEquals(d.waitState, ev1.previousState);
     assertEquals(d.gotoState, ev1.newState);
@@ -679,8 +679,8 @@ public class RouteFollowingVehicleTest {
     if (diversionIsAllowed) {
       assertEquals(2, leh.getHistory().size());
       @SuppressWarnings("unchecked")
-      final StateTransitionEvent<StateEvent, RouteFollowingVehicle> ev2 = ((StateTransitionEvent<StateEvent, RouteFollowingVehicle>) leh
-          .getHistory().get(1));
+      final StateTransitionEvent<StateEvent, RouteFollowingVehicle> ev2 = (StateTransitionEvent<StateEvent, RouteFollowingVehicle>) leh
+          .getHistory().get(1);
       assertEquals(DefaultEvent.REROUTE, ev2.trigger);
       assertEquals(d.gotoState, ev2.previousState);
       assertEquals(d.gotoState, ev2.newState);

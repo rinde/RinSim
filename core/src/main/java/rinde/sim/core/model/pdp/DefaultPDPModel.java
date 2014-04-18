@@ -16,8 +16,7 @@ import java.util.Set;
 
 import rinde.sim.core.TimeLapse;
 import rinde.sim.core.model.ModelProvider;
-import rinde.sim.core.model.pdp.twpolicy.LiberalPolicy;
-import rinde.sim.core.model.pdp.twpolicy.TimeWindowPolicy;
+import rinde.sim.core.model.pdp.TimeWindowPolicy.TimeWindowPolicies;
 import rinde.sim.core.model.road.RoadModel;
 import rinde.sim.event.EventAPI;
 import rinde.sim.event.EventDispatcher;
@@ -111,11 +110,11 @@ public final class DefaultPDPModel extends PDPModel {
   final Map<Vehicle, Action> pendingVehicleActions;
 
   /**
-   * Initializes the model using a {@link LiberalPolicy} as
+   * Initializes the model using a {@link TimeWindowPolicies#LIBERAL} as
    * {@link TimeWindowPolicy}.
    */
   public DefaultPDPModel() {
-    this(new LiberalPolicy());
+    this(TimeWindowPolicies.LIBERAL);
   }
 
   /**

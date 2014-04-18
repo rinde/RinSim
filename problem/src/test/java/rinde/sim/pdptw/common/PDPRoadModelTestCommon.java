@@ -22,8 +22,8 @@ import rinde.sim.core.model.TestModelProvider;
 import rinde.sim.core.model.pdp.DefaultPDPModel;
 import rinde.sim.core.model.pdp.PDPModel;
 import rinde.sim.core.model.pdp.PDPModel.ParcelState;
+import rinde.sim.core.model.pdp.TimeWindowPolicy.TimeWindowPolicies;
 import rinde.sim.core.model.pdp.Parcel;
-import rinde.sim.core.model.pdp.twpolicy.TardyAllowedPolicy;
 import rinde.sim.core.model.road.PlaneRoadModel;
 import rinde.sim.core.model.road.RoadModel;
 import rinde.sim.util.TimeWindow;
@@ -57,7 +57,7 @@ public abstract class PDPRoadModelTestCommon {
     rm = new PDPRoadModel(new PlaneRoadModel(new Point(0, 0),
         new Point(10, 10), SI.KILOMETER, Measure.valueOf(0.1,
             NonSI.KILOMETERS_PER_HOUR)), allowDiversion);
-    pm = new DefaultPDPModel(new TardyAllowedPolicy());
+    pm = new DefaultPDPModel(TimeWindowPolicies.TARDY_ALLOWED);
     final ModelProvider mp = new TestModelProvider(asList(pm, rm));
     rm.registerModelProvider(mp);
     pm.registerModelProvider(mp);
