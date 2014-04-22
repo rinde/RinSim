@@ -276,33 +276,75 @@ public abstract class PDPScenario extends Scenario {
       }
     }
 
+    /**
+     * Should return 'this', the builder.
+     * @return 'this'.
+     */
     protected abstract T self();
 
+    /**
+     * Set the time unit to use. Possible values include: {@link SI#SECOND},
+     * {@link NonSI#HOUR}, etc.
+     * @param tu The time unit.
+     * @return This, as per the builder pattern.
+     */
     public T timeUnit(Unit<Duration> tu) {
       timeUnit = tu;
       return self();
     }
 
+    /**
+     * Set the tick size.
+     * @param ts The tick size, expressed in the time unit as set by
+     *          {@link #timeUnit(Unit)}.
+     * @return This, as per the builder pattern.
+     */
     public T tickSize(long ts) {
       tickSize = ts;
       return self();
     }
 
+    /**
+     * Set the speed unit. Possible values include: {@link SI#METERS_PER_SECOND}
+     * , {@link NonSI#KILOMETERS_PER_HOUR}.
+     * @param su The speed unit.
+     * @return This, as per the builder pattern.
+     */
     public T speedUnit(Unit<Velocity> su) {
       speedUnit = su;
       return self();
     }
 
+    /**
+     * Set the distance unit. Possible values include: {@link SI#METER},
+     * {@link NonSI#MILE}.
+     * @param du The distance unit.
+     * @return This, as per the builder pattern.
+     */
     public T distanceUnit(Unit<Length> du) {
       distanceUnit = du;
       return self();
     }
 
+    /**
+     * Set the length (duration) of the scenario. Note that the time at which
+     * the simulation is stopped is defined by {@link #stopCondition(Predicate)}
+     * .
+     * @param length The length of the scenario, expressed in the time unit as
+     *          set by {@link #timeUnit(Unit)}.
+     * @return This, as per the builder pattern.
+     */
     public T scenarioLength(long length) {
       timeWindow = new TimeWindow(0, length);
       return self();
     }
 
+    /**
+     * Set the condition when the scenario should stop. Some defaults are
+     * supplied in {@link StopCondition}.
+     * @param condition The stop condition to set.
+     * @return This, as per the builder pattern.
+     */
     public T stopCondition(Predicate<SimulationInfo> condition) {
       stopCondition = condition;
       return self();
