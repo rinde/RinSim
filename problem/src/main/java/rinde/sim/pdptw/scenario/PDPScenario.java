@@ -19,7 +19,6 @@ import javax.measure.unit.SI;
 import javax.measure.unit.Unit;
 
 import rinde.sim.core.model.Model;
-import rinde.sim.core.model.road.RoadModel;
 import rinde.sim.pdptw.common.DynamicPDPTWProblem.SimulationInfo;
 import rinde.sim.pdptw.common.DynamicPDPTWProblem.StopCondition;
 import rinde.sim.scenario.Scenario;
@@ -87,12 +86,14 @@ public abstract class PDPScenario extends Scenario {
   public abstract Unit<Duration> getTimeUnit();
 
   /**
-   * @return The speed unit used in the {@link RoadModel}.
+   * @return The speed unit used in the
+   *         {@link rinde.sim.core.model.road.RoadModel}.
    */
   public abstract Unit<Velocity> getSpeedUnit();
 
   /**
-   * @return The distance unit used in the {@link RoadModel}.
+   * @return The distance unit used in the
+   *         {@link rinde.sim.core.model.road.RoadModel}.
    */
   public abstract Unit<Length> getDistanceUnit();
 
@@ -446,6 +447,13 @@ public abstract class PDPScenario extends Scenario {
           && Objects.equal(o.stopCondition, stopCondition)
           && Objects.equal(o.problemClass, problemClass)
           && Objects.equal(o.instanceId, instanceId);
+    }
+
+    @Override
+    public int hashCode() {
+      return Objects.hashCode(super.hashCode(), modelSuppliers, speedUnit,
+          distanceUnit, timeUnit, timeWindow, tickSize, stopCondition,
+          problemClass, instanceId);
     }
   }
 }
