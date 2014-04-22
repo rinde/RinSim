@@ -47,12 +47,15 @@ public class GeneratedScenarioIOTest {
         .stopCondition(
             Predicates.and(StopCondition.ANY_TARDINESS,
                 StopCondition.TIME_OUT_EVENT))
+        .parcels(Parcels.builder()
+            .arrivalTimes(PoissonProcess.homogenous(4 * 60 * 60 * 1000L, 10))
+            .locations(Locations.builder().square(5).uniform())
+            .timeWindows(
+                new ProportionateUniformTWGenerator(new Point(0, 0),
+                    4 * 60 * 60 * 1000L, 0L, 0L, 50d))
+            .build()
 
-        .arrivalTimes(PoissonProcess.homogenous(4 * 60 * 60 * 1000L, 10))
-        .locations(Locations.builder().square(5).uniform())
-        .timeWindows(
-            new ProportionateUniformTWGenerator(new Point(0, 0),
-                4 * 60 * 60 * 1000L, 0L, 0L, 50d))
+        )
         // .deliveryDurations(constant(10L))
         .addModel(Models.roadModel(50d, true))
         .addModel(Models.pdpModel(TimeWindowPolicies.TARDY_ALLOWED))
