@@ -11,7 +11,7 @@ import rinde.sim.core.graph.Point;
 import rinde.sim.pdptw.common.AddParcelEvent;
 import rinde.sim.pdptw.common.ParcelDTO;
 import rinde.sim.pdptw.scenario.Locations.LocationGenerator;
-import rinde.sim.pdptw.scenario.times.ArrivalTimeGenerator;
+import rinde.sim.pdptw.scenario.TimeSeries.TimeSeriesGenerator;
 import rinde.sim.pdptw.scenario.tw.TimeWindowGenerator;
 import rinde.sim.util.SupplierRng;
 import rinde.sim.util.SupplierRngs;
@@ -21,6 +21,10 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.math.DoubleMath;
 
 public class Parcels {
+
+  public static Builder builder() {
+    return new Builder();
+  }
 
   public interface ParcelGenerator {
     ImmutableList<AddParcelEvent> generate(long seed);
@@ -33,13 +37,9 @@ public class Parcels {
     Point getMax();
   }
 
-  public static Builder builder() {
-    return new Builder();
-  }
-
-  public static class DefaultParcelGenerator implements ParcelGenerator {
+  static class DefaultParcelGenerator implements ParcelGenerator {
     private final RandomGenerator rng;
-    private final ArrivalTimeGenerator arrivalTimeGenerator;
+    private final TimeSeriesGenerator arrivalTimeGenerator;
     private final LocationGenerator locationGenerator;
     private final TimeWindowGenerator timeWindowGenerator;
     private final SupplierRng<Long> pickupDurationGenerator;
@@ -105,7 +105,6 @@ public class Parcels {
     public Point getMax() {
       return locationGenerator.getMax();
     }
-
   }
 
   public static class Builder {
@@ -114,7 +113,7 @@ public class Parcels {
     static final SupplierRng<Integer> DEFAULT_CAPACITY = SupplierRngs
         .constant(0);
 
-    ArrivalTimeGenerator arrivalTimeGenerator;
+    TimeSeriesGenerator arrivalTimeGenerator;
     TimeWindowGenerator timeWindowGenerator;
     LocationGenerator locationGenerator;
     SupplierRng<Long> pickupDurationGenerator;
@@ -122,13 +121,16 @@ public class Parcels {
     SupplierRng<Integer> neededCapacityGenerator;
 
     Builder() {
+      arrivalTimeGenerator = TimeSeries.homogenousPoisson(4 * 60 * 60 * 1000,
+          20);
+      locationGenerator = Locations.builder().square(5d).uniform();
       pickupDurationGenerator = DEFAULT_SERVICE_DURATION;
       deliveryDurationGenerator = DEFAULT_SERVICE_DURATION;
       neededCapacityGenerator = DEFAULT_CAPACITY;
 
     }
 
-    public Builder arrivalTimes(ArrivalTimeGenerator atg) {
+    public Builder arrivalTimes(TimeSeriesGenerator atg) {
       arrivalTimeGenerator = atg;
       return this;
     }
@@ -165,7 +167,5 @@ public class Parcels {
     public ParcelGenerator build() {
       return new DefaultParcelGenerator(this);
     }
-
   }
-
 }

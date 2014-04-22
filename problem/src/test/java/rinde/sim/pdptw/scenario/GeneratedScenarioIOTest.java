@@ -16,7 +16,6 @@ import rinde.sim.core.model.pdp.TimeWindowPolicy.TimeWindowPolicies;
 import rinde.sim.pdptw.common.DynamicPDPTWProblem.StopCondition;
 import rinde.sim.pdptw.scenario.PDPScenario.DefaultScenario;
 import rinde.sim.pdptw.scenario.PDPScenario.ProblemClass;
-import rinde.sim.pdptw.scenario.times.PoissonProcess;
 import rinde.sim.pdptw.scenario.tw.ProportionateUniformTWGenerator;
 
 import com.google.common.base.Charsets;
@@ -47,13 +46,16 @@ public class GeneratedScenarioIOTest {
         .stopCondition(
             Predicates.and(StopCondition.ANY_TARDINESS,
                 StopCondition.TIME_OUT_EVENT))
-        .parcels(Parcels.builder()
-            .arrivalTimes(PoissonProcess.homogenous(4 * 60 * 60 * 1000L, 10))
-            .locations(Locations.builder().square(5).uniform())
-            .timeWindows(
-                new ProportionateUniformTWGenerator(new Point(0, 0),
-                    4 * 60 * 60 * 1000L, 0L, 0L, 50d))
-            .build()
+        .parcels(
+            Parcels
+                .builder()
+                .arrivalTimes(
+                    TimeSeries.homogenousPoisson(4 * 60 * 60 * 1000L, 10))
+                .locations(Locations.builder().square(5).uniform())
+                .timeWindows(
+                    new ProportionateUniformTWGenerator(new Point(0, 0),
+                        4 * 60 * 60 * 1000L, 0L, 0L, 50d))
+                .build()
 
         )
         // .deliveryDurations(constant(10L))

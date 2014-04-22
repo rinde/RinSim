@@ -1,4 +1,4 @@
-package rinde.sim.pdptw.scenario.times;
+package rinde.sim.pdptw.scenario;
 
 import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.collect.Lists.newArrayList;
@@ -16,9 +16,10 @@ import org.junit.Test;
 
 import rinde.sim.core.graph.Point;
 import rinde.sim.pdptw.measure.Metrics;
-import rinde.sim.pdptw.scenario.times.ArrivalTimeGenerator;
-import rinde.sim.pdptw.scenario.times.PoissonProcess;
-import rinde.sim.pdptw.scenario.times.SineIntensity;
+import rinde.sim.pdptw.scenario.IntensityFunctions;
+import rinde.sim.pdptw.scenario.TimeSeries;
+import rinde.sim.pdptw.scenario.IntensityFunctions.IntensityFunction;
+import rinde.sim.pdptw.scenario.TimeSeries.TimeSeriesGenerator;
 
 import com.google.common.base.Charsets;
 import com.google.common.base.Function;
@@ -59,7 +60,7 @@ public class NHPoissonProcessTest {
         // final double period = 3600d;
         final double ordersPerPeriod = orders[k] / (lengthOfScenario / period);
 
-        final SineIntensity intensity = SineIntensity.builder()
+        final IntensityFunction intensity = IntensityFunctions.sineIntensity()
             .height(d)
             .period(period)
             .area(ordersPerPeriod)
@@ -84,7 +85,7 @@ public class NHPoissonProcessTest {
         // + Strings.padStart(Integer.toString(i), 2, '0')
         // + ".intens"));
 
-        final ArrivalTimeGenerator generator = PoissonProcess.nonHomogenous(
+        final TimeSeriesGenerator generator = TimeSeries.nonHomogenousPoisson(
             lengthOfScenario, intensity);
 
         double max = 0;

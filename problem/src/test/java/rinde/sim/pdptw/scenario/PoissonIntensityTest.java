@@ -1,4 +1,4 @@
-package rinde.sim.pdptw.scenario.times;
+package rinde.sim.pdptw.scenario;
 
 import static org.junit.Assert.assertEquals;
 
@@ -13,11 +13,12 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 
-import rinde.sim.pdptw.scenario.times.IntensityFunction;
-import rinde.sim.pdptw.scenario.times.IntensityFunctions;
-import rinde.sim.pdptw.scenario.times.PoissonProcess;
-import rinde.sim.pdptw.scenario.times.SineIntensity;
-import rinde.sim.pdptw.scenario.times.PoissonProcess.NHPredicate;
+import rinde.sim.pdptw.scenario.IntensityFunctions;
+import rinde.sim.pdptw.scenario.TimeSeries;
+import rinde.sim.pdptw.scenario.IntensityFunctions.IntensityFunction;
+import rinde.sim.pdptw.scenario.TimeSeries.NHPredicate;
+import rinde.sim.pdptw.scenario.TimeSeries.PoissonProcess;
+import rinde.sim.pdptw.scenario.TimeSeries.TimeSeriesGenerator;
 
 import com.google.common.base.Predicate;
 import com.google.common.collect.Collections2;
@@ -46,13 +47,18 @@ public class PoissonIntensityTest {
    */
   @Parameters
   public static Collection<Object[]> data() {
-    return Arrays.asList(new Object[][] {
-        { SineIntensity.builder().area(10).period(20).build() },
-        { SineIntensity.builder().area(10).height(.5).period(20).build() },
-        { SineIntensity.builder().area(10).height(-.5).period(20).build() },
-        { SineIntensity.builder().area(10).phaseShift(0).period(20).build() },
-        { SineIntensity.builder().area(10).height(1).period(20).build() }
-    });
+    return Arrays
+        .asList(new Object[][] {
+            { IntensityFunctions.sineIntensity().area(10).period(20).build() },
+            { IntensityFunctions.sineIntensity().area(10).height(.5).period(20)
+                .build() },
+            { IntensityFunctions.sineIntensity().area(10).height(-.5).period(20)
+                .build() },
+            { IntensityFunctions.sineIntensity().area(10).phaseShift(0).period(20)
+                .build() },
+            { IntensityFunctions.sineIntensity().area(10).height(1).period(20)
+                .build() }
+        });
   }
 
   /**
@@ -90,7 +96,7 @@ public class PoissonIntensityTest {
   public void intensityApproximationPoissonProcessTest() {
     final RandomGenerator rng = new MersenneTwister(123);
 
-    final PoissonProcess pp = PoissonProcess.nonHomogenous(100d,
+    final TimeSeriesGenerator pp = TimeSeries.nonHomogenousPoisson(100d,
         intensityFunction);
 
     final Multiset<Double> ms = TreeMultiset.create();

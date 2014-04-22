@@ -1,7 +1,7 @@
 /**
  * 
  */
-package rinde.sim.pdptw.scenario.times;
+package rinde.sim.pdptw.scenario;
 
 import static com.google.common.collect.Lists.newArrayList;
 import static org.junit.Assert.assertEquals;
@@ -24,9 +24,11 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 
-import rinde.sim.pdptw.scenario.times.PoissonProcess;
-import rinde.sim.pdptw.scenario.times.SineIntensity;
-import rinde.sim.pdptw.scenario.times.PoissonProcess.NonHomogenous;
+import rinde.sim.pdptw.scenario.IntensityFunctions;
+import rinde.sim.pdptw.scenario.TimeSeries;
+import rinde.sim.pdptw.scenario.IntensityFunctions.SineIntensity;
+import rinde.sim.pdptw.scenario.TimeSeries.NonHomogenous;
+import rinde.sim.pdptw.scenario.TimeSeries.PoissonProcess;
 
 import com.google.common.math.DoubleMath;
 
@@ -52,19 +54,19 @@ public class PoissonProcessTest {
   @Parameters
   public static Collection<Object[]> data() {
     return Arrays.asList(new Object[][] {
-        { PoissonProcess.homogenous(60d, 10) },
-        { PoissonProcess.homogenous(60d, 100) },
-        { PoissonProcess.homogenous(180d, 10) },
-        { PoissonProcess.homogenous(180d, 100) },
-        { PoissonProcess.nonHomogenous(60d, SineIntensity.builder().period(60)
-            .area(10).build()) },
-        { PoissonProcess.nonHomogenous(60d, SineIntensity.builder().period(60)
-            .area(10).phaseShift(2).build()) },
-        { PoissonProcess.nonHomogenous(60d, SineIntensity.builder().period(60)
-            .area(10).height(1).build()) },
-        { PoissonProcess.nonHomogenous(300d, SineIntensity.builder().period(60)
-            .area(10).height(1).build()) },
-        { PoissonProcess.nonHomogenous(600d, SineIntensity.builder()
+        { TimeSeries.homogenousPoisson(60d, 10) },
+        { TimeSeries.homogenousPoisson(60d, 100) },
+        { TimeSeries.homogenousPoisson(180d, 10) },
+        { TimeSeries.homogenousPoisson(180d, 100) },
+        { TimeSeries.nonHomogenousPoisson(60d, IntensityFunctions.sineIntensity()
+            .period(60).area(10).build()) },
+        { TimeSeries.nonHomogenousPoisson(60d, IntensityFunctions.sineIntensity()
+            .period(60).area(10).phaseShift(2).build()) },
+        { TimeSeries.nonHomogenousPoisson(60d, IntensityFunctions.sineIntensity()
+            .period(60).area(10).height(1).build()) },
+        { TimeSeries.nonHomogenousPoisson(300d, IntensityFunctions.sineIntensity()
+            .period(60).area(10).height(1).build()) },
+        { TimeSeries.nonHomogenousPoisson(600d, IntensityFunctions.sineIntensity()
             .period(600).area(200).height(1).build()) }
     });
   }
