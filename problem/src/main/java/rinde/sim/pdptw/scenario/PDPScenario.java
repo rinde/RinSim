@@ -234,7 +234,7 @@ public abstract class PDPScenario extends Scenario {
     }
   }
 
-  static abstract class AbstractBuilder<T extends AbstractBuilder<T>> {
+  abstract static class AbstractBuilder<T extends AbstractBuilder<T>> {
     static final Unit<Length> DEFAULT_DISTANCE_UNIT = SI.KILOMETER;
     static final Unit<Velocity> DEFAULT_SPEED_UNIT = NonSI.KILOMETERS_PER_HOUR;
     static final Unit<Duration> DEFAULT_TIME_UNIT = SI.MILLI(SI.SECOND);

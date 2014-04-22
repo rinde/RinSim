@@ -16,10 +16,10 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterators;
 
 /**
- * 
+ * Utilities for generating time series.
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
  */
-public class TimeSeries {
+public final class TimeSeries {
   private TimeSeries() {}
 
   /**
@@ -46,6 +46,7 @@ public class TimeSeries {
    * <li>Lewis, P.A.W. and Shedler, G.S. Simulation of nonhomogenous Poisson
    * processes by thinning. Naval Research Logistic Quarterly 26, (1979),
    * 403–414.</li>
+   * </ol>
    * @param length The length of Poisson process, all generated times will be in
    *          the interval [0,length).
    * @param function The intensity function.
@@ -72,12 +73,14 @@ public class TimeSeries {
   }
 
   static class PoissonProcess implements TimeSeriesGenerator {
-    final double length;
-    final double intensity;
+
     /**
      * Random generator used for drawing random numbers.
      */
     protected final RandomGenerator rng;
+
+    final double length;
+    final double intensity;
 
     PoissonProcess(double len, double intens) {
       length = len;
