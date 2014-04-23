@@ -23,7 +23,6 @@ import javax.measure.Measure;
 import javax.measure.quantity.Duration;
 import javax.measure.quantity.Length;
 import javax.measure.quantity.Velocity;
-import javax.measure.unit.SI;
 import javax.measure.unit.Unit;
 
 import rinde.sim.core.Simulator;
@@ -34,6 +33,7 @@ import rinde.sim.core.model.pdp.PDPModel;
 import rinde.sim.core.model.pdp.PDPModel.ParcelState;
 import rinde.sim.core.model.pdp.PDPModel.VehicleParcelActionInfo;
 import rinde.sim.core.model.pdp.Parcel;
+import rinde.sim.core.model.road.RoadModels;
 import rinde.sim.pdptw.central.GlobalStateObject.VehicleStateObject;
 import rinde.sim.pdptw.common.DefaultParcel;
 import rinde.sim.pdptw.common.DefaultVehicle;
@@ -73,29 +73,6 @@ public final class Solvers {
    */
   public static AdapterBuilder<SimulationConverter> converterBuilder() {
     return new AdapterBuilder<SimulationConverter>(null);
-  }
-
-  /**
-   * Computes the duration which is required to travel the specified distance
-   * with the given velocity. Note: although time is normally a long, we use
-   * double here instead. Converting it to long in this method would introduce
-   * rounding in a too early stage.
-   * @param speed The travel speed.
-   * @param distance The distance to travel.
-   * @param outputTimeUnit The time unit to use for the output.
-   * @return The time it takes to travel the specified distance with the
-   *         specified speed.
-   */
-  public static double computeTravelTime(Measure<Double, Velocity> speed,
-      Measure<Double, Length> distance, Unit<Duration> outputTimeUnit) {
-    // meters
-    return Measure.valueOf(distance.doubleValue(SI.METER)
-        // divided by m/s
-        / speed.doubleValue(SI.METERS_PER_SECOND),
-        // gives seconds
-        SI.SECOND)
-        // convert to desired unit
-        .doubleValue(outputTimeUnit);
   }
 
   /**
@@ -191,7 +168,7 @@ public final class Solvers {
           totalDistance += distance.getValue();
           vehicleLocation = nextLoc;
           final long tt = DoubleMath.roundToLong(
-              computeTravelTime(speed, distance, state.timeUnit),
+              RoadModels.computeTravelTime(speed, distance, state.timeUnit),
               RoundingMode.CEILING);
           time += tt;
         }
@@ -234,7 +211,7 @@ public final class Solvers {
           Point.distance(vehicleLocation, vso.startPosition), state.distUnit);
       totalDistance += distance.getValue();
       final long tt = DoubleMath.roundToLong(
-          computeTravelTime(speed, distance, state.timeUnit),
+          RoadModels.computeTravelTime(speed, distance, state.timeUnit),
           RoundingMode.CEILING);
       time += tt;
       // check overtime

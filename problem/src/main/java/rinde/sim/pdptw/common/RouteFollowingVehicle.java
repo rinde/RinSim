@@ -28,9 +28,9 @@ import rinde.sim.core.model.pdp.PDPModel.ParcelState;
 import rinde.sim.core.model.pdp.PDPModel.VehicleState;
 import rinde.sim.core.model.pdp.Parcel;
 import rinde.sim.core.model.road.RoadModel;
+import rinde.sim.core.model.road.RoadModels;
 import rinde.sim.event.Event;
 import rinde.sim.event.Listener;
-import rinde.sim.pdptw.central.Solvers;
 import rinde.sim.util.fsm.AbstractState;
 import rinde.sim.util.fsm.StateMachine;
 import rinde.sim.util.fsm.StateMachine.StateMachineEvent;
@@ -334,7 +334,7 @@ public class RouteFollowingVehicle extends DefaultVehicle {
         .getDistanceUnit());
 
     return DoubleMath.roundToLong(
-        Solvers.computeTravelTime(speed.get(), distance, timeUnit),
+        RoadModels.computeTravelTime(speed.get(), distance, timeUnit),
         RoundingMode.CEILING);
   }
 

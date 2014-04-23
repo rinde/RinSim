@@ -23,9 +23,9 @@ import javax.measure.unit.SI;
 import javax.measure.unit.Unit;
 
 import rinde.sim.core.graph.Point;
+import rinde.sim.core.model.road.RoadModels;
 import rinde.sim.pdptw.central.GlobalStateObject;
 import rinde.sim.pdptw.central.GlobalStateObject.VehicleStateObject;
-import rinde.sim.pdptw.central.Solvers;
 import rinde.sim.pdptw.common.ParcelDTO;
 import rinde.sim.util.TimeWindow;
 
@@ -97,7 +97,7 @@ public final class ArraysSolvers {
           final Measure<Double, Length> dist = Measure.valueOf(
               Point.distance(points.get(i), points.get(j)), distUnit);
           // calculate duration in desired unit
-          final double duration = Solvers.computeTravelTime(speed, dist,
+          final double duration = RoadModels.computeTravelTime(speed, dist,
               outputTimeUnit);
           // round duration
           final int tt = DoubleMath.roundToInt(duration, rm);
@@ -449,7 +449,7 @@ public final class ArraysSolvers {
   static int computeRoundedTravelTime(Measure<Double, Velocity> speed,
       Measure<Double, Length> dist, Unit<Duration> outputTimeUnit) {
     return DoubleMath.roundToInt(
-        Solvers.computeTravelTime(speed, dist, outputTimeUnit),
+        RoadModels.computeTravelTime(speed, dist, outputTimeUnit),
         RoundingMode.CEILING);
   }
 
