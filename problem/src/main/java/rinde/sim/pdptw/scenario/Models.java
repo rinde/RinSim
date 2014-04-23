@@ -18,30 +18,70 @@ import rinde.sim.pdptw.common.PDPRoadModel;
 import com.google.common.base.Objects;
 import com.google.common.base.Supplier;
 
+/**
+ * Utility class for creating {@link Supplier}s that create {@link Model}s which
+ * can be used in a {@link ScenarioGenerator}.
+ * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+ */
 public final class Models {
 
   private Models() {}
 
-  public static ModelSupplierSupplier<RoadModel> roadModel(double maxSpeed,
+  /**
+   * Creates a new supplier for creating a {@link PlaneRoadModel} wrapped in a
+   * {@link PDPRoadModel}. All constructor parameters except
+   * <code>maxSpeed</code> and <code>allowDiversion</code> are supplied by the
+   * {@link ScenarioGenerator}. The bounds of the plane, the speed unit and the
+   * distance unit are supplied by the {@link ScenarioGenerator}.
+   * @param maxSpeed The maximum speed to use. See the {@link PlaneRoadModel}
+   *          constructor for more information. The unit of the speed is defined
+   *          by the {@link ScenarioGenerator} instance.
+   * @param allowDiversion Whether to allow diversion. See the
+   *          {@link PDPRoadModel} constructor for more information.
+   * @return A supplier which can be used in a {@link ScenarioGenerator}. See
+   *         {@link ScenarioGenerator.Builder#addModel(ModelSupplierScenGen)}.
+   */
+  public static ModelSupplierScenGen<RoadModel> roadModel(double maxSpeed,
       boolean allowDiversion) {
     return new DefaultRoadModelSupplier(maxSpeed, allowDiversion);
   }
 
+  /**
+   * Creates a new supplier for creating a {@link PDPModel}.
+   * @param twp The {@link TimeWindowPolicy} to use.
+   * @return A supplier for {@link PDPModel}.
+   */
   public static Supplier<PDPModel> pdpModel(TimeWindowPolicy twp) {
     return new PDPModelSupplier(twp);
   }
 
-  public static <T extends Model<?>> ModelSupplierSupplier<T> adapt(
+  /**
+   * Wraps the specified supplier in a {@link ModelSupplierScenGen}.
+   * @param sup The supplier.
+   * @return The wrapped supplier.
+   */
+  public static <T extends Model<?>> ModelSupplierScenGen<T> adapt(
       Supplier<T> sup) {
     return new Adapter<T>(sup);
   }
 
-  public interface ModelSupplierSupplier<T extends Model<?>> {
+  /**
+   * A supplier which can be used to construct a {@link Model} based on a
+   * {@link ScenarioGenerator}.
+   * @param <T> The type of model the supplier returns.
+   * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+   */
+  public interface ModelSupplierScenGen<T extends Model<?>> {
+    /**
+     * @param sg The {@link ScenarioGenerator} that can be used in the supplier.
+     * @return An instance of <code>T</code>. This <b>must</b> be a newly
+     *         constructed instance.
+     */
     Supplier<T> get(ScenarioGenerator sg);
   }
 
   private static class Adapter<T extends Model<?>> implements
-      ModelSupplierSupplier<T> {
+      ModelSupplierScenGen<T> {
     private final Supplier<T> supplier;
 
     Adapter(Supplier<T> sup) {
@@ -92,11 +132,10 @@ public final class Models {
       final PDPModelSupplier o = (PDPModelSupplier) other;
       return Objects.equal(o.timeWindowPolicy, timeWindowPolicy);
     }
-
   }
 
   private static class DefaultRoadModelSupplier implements
-      ModelSupplierSupplier<RoadModel> {
+      ModelSupplierScenGen<RoadModel> {
     final double speed;
     final boolean diversion;
 

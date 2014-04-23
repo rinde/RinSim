@@ -1,8 +1,8 @@
 package rinde.sim.pdptw.scenario;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.Lists.newArrayList;
-import static com.google.common.collect.Lists.newLinkedList;
 
 import java.util.Iterator;
 import java.util.List;
@@ -23,7 +23,7 @@ import rinde.sim.core.model.road.RoadModels;
 import rinde.sim.pdptw.common.AddDepotEvent;
 import rinde.sim.pdptw.common.AddVehicleEvent;
 import rinde.sim.pdptw.scenario.Depots.DepotGenerator;
-import rinde.sim.pdptw.scenario.Models.ModelSupplierSupplier;
+import rinde.sim.pdptw.scenario.Models.ModelSupplierScenGen;
 import rinde.sim.pdptw.scenario.PDPScenario.AbstractBuilder;
 import rinde.sim.pdptw.scenario.PDPScenario.ProblemClass;
 import rinde.sim.pdptw.scenario.Parcels.ParcelGenerator;
@@ -50,12 +50,20 @@ public final class ScenarioGenerator {
     vehicleGenerator = b.vehicleGenerator;
     depotGenerator = b.depotGenerator;
 
+    boolean containsRoadModelSupplier = false;
     final ImmutableList.Builder<Supplier<? extends Model<?>>> modelsBuilder = ImmutableList
         .builder();
-    for (final ModelSupplierSupplier<?> sup : builder.modelSuppliers) {
-      modelsBuilder.add(sup.get(this));
+    for (final ModelSupplierScenGen<?> sup : builder.modelSuppliers) {
+      final Supplier<? extends Model<?>> modelSupplier = sup.get(this);
+      if (modelSupplier.get() instanceof RoadModel) {
+        containsRoadModelSupplier = true;
+      }
+      modelsBuilder.add(modelSupplier);
     }
     modelSuppliers = modelsBuilder.build();
+    checkArgument(containsRoadModelSupplier,
+        "A supplier of a RoadModel is mandatory. Found suppliers: %s.",
+        modelSuppliers);
   }
 
   public Unit<Velocity> getSpeedUnit() {
@@ -133,7 +141,13 @@ public final class ScenarioGenerator {
     return new Builder(problemClass);
   }
 
+  /**
+   * Builder for creating {@link ScenarioGenerator} instances.
+   * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+   */
   public static class Builder extends AbstractBuilder<Builder> {
+    static final ParcelGenerator DEFAULT_PARCEL_GENERATOR = Parcels.builder()
+        .build();
     static final VehicleGenerator DEFAULT_VEHICLE_GENERATOR = Vehicles
         .builder().build();
     static final DepotGenerator DEFAULT_DEPOT_GENERATOR = Depots
@@ -142,15 +156,16 @@ public final class ScenarioGenerator {
     ParcelGenerator parcelGenerator;
     VehicleGenerator vehicleGenerator;
     DepotGenerator depotGenerator;
-    final List<ModelSupplierSupplier<?>> modelSuppliers;
+    final List<ModelSupplierScenGen<?>> modelSuppliers;
     final ProblemClass problemClass;
 
     Builder(ProblemClass pc) {
       super();
       problemClass = pc;
+      parcelGenerator = DEFAULT_PARCEL_GENERATOR;
       vehicleGenerator = DEFAULT_VEHICLE_GENERATOR;
       depotGenerator = DEFAULT_DEPOT_GENERATOR;
-      modelSuppliers = newLinkedList();
+      modelSuppliers = newArrayList();
     }
 
     // copying constructor
@@ -168,31 +183,65 @@ public final class ScenarioGenerator {
       return this;
     }
 
+    /**
+     * Set the {@link VehicleGenerator} to use for adding vehicles to the
+     * scenario.
+     * @param vg The vehicle generator.
+     * @return This, as per the builder pattern.
+     */
     public Builder vehicles(VehicleGenerator vg) {
       vehicleGenerator = vg;
       return this;
     }
 
+    /**
+     * Set the {@link ParcelGenerator} to use for adding parcels to the
+     * scenario.
+     * @param pg The parcel generator.
+     * @return This, as per the builder pattern.
+     */
     public Builder parcels(ParcelGenerator pg) {
       parcelGenerator = pg;
       return this;
     }
 
+    /**
+     * Set the {@link DepotGenerator} to use for adding depots to the scenario.
+     * @param ds The depot generator.
+     * @return This, as per the builder pattern.
+     */
     public Builder depots(DepotGenerator ds) {
       depotGenerator = ds;
       return this;
     }
 
-    public Builder addModel(ModelSupplierSupplier<? extends Model<?>> model) {
-      modelSuppliers.add(model);
+    /**
+     * Add a supplier of a {@link Model}. The provided supplier will use default
+     * values provided by the {@link ScenarioGenerator} instance which is
+     * currently being constructed. For most models implementations are
+     * available in {@link Models}.
+     * @param modelSup The supplier to add.
+     * @return This, as per the builder pattern.
+     */
+    public Builder addModel(ModelSupplierScenGen<?> modelSup) {
+      modelSuppliers.add(modelSup);
       return this;
     }
 
-    public Builder addModel(Supplier<? extends Model<?>> model) {
-      modelSuppliers.add(Models.adapt(model));
+    /**
+     * Add a supplier of a {@link Model}.
+     * @param modelSup The supplier to add.
+     * @return This, as per the builder pattern.
+     */
+    public Builder addModel(Supplier<? extends Model<?>> modelSup) {
+      modelSuppliers.add(Models.adapt(modelSup));
       return this;
     }
 
+    /**
+     * @return Constructs a new {@link ScenarioGenerator} instance based on this
+     *         builder.
+     */
     public ScenarioGenerator build() {
       return new ScenarioGenerator(new Builder(this));
     }
@@ -223,7 +272,6 @@ public final class ScenarioGenerator {
   }
 
   static class DefaultTravelModel implements TravelTimes {
-
     private final RoadModel roadModel;
     private final Measure<Double, Velocity> vehicleSpeed;
     private final Unit<Duration> timeUnit;
@@ -284,6 +332,5 @@ public final class ScenarioGenerator {
       }
       return nearestDepot;
     }
-
   }
 }
