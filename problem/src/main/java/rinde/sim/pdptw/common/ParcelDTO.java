@@ -64,7 +64,7 @@ public final class ParcelDTO implements Serializable {
    * @param pPickupTimeWindow {@link #pickupTimeWindow}.
    * @param pDeliveryTimeWindow {@link #deliveryTimeWindow}.
    * @param pNeededCapacity {@link #neededCapacity}.
-   * @param pOrderArrivalTime {@link #orderAnnounceTime}.
+   * @param pOrderAnnounceTime {@link #orderAnnounceTime}.
    * @param pPickupDuration {@link #pickupDuration}.
    * @param pDeliveryDuration {@link #deliveryDuration}.
    * @deprecated Use {@link #builder(Point, Point)} instead.
@@ -72,13 +72,13 @@ public final class ParcelDTO implements Serializable {
   @Deprecated
   public ParcelDTO(Point pPickupLocation, Point pDestinationLocation,
       TimeWindow pPickupTimeWindow, TimeWindow pDeliveryTimeWindow,
-      int pNeededCapacity, long pOrderArrivalTime, long pPickupDuration,
+      int pNeededCapacity, long pOrderAnnounceTime, long pPickupDuration,
       long pDeliveryDuration) {
     this(builder(pPickupLocation, pDestinationLocation)
         .pickupTimeWindow(pPickupTimeWindow)
         .deliveryTimeWindow(pDeliveryTimeWindow)
         .neededCapacity(pNeededCapacity)
-        .arrivalTime(pOrderArrivalTime)
+        .arrivalTime(pOrderAnnounceTime)
         .pickupDuration(pPickupDuration)
         .deliveryDuration(pDeliveryDuration));
   }
