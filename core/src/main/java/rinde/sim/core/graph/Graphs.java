@@ -129,21 +129,11 @@ public final class Graphs {
         return false;
       }
       final E g2connEdgeData = g2.connectionData(g1conn.from, g1conn.to);
-
       if (!Objects.equal(g1conn.getData(), g2connEdgeData)) {
         return false;
       }
-      //
-      // final boolean null1 = g1conn.getData() == null;
-      // final boolean null2 = g2connEdgeData == null;
-      // final int nullCount = (null1 ? 1 : 0) + (null2 ? 1 : 0);
-      // if (nullCount == 0 && !g1conn.getData().equals(g2connEdgeData)
-      // || nullCount == 1) {
-      // return false;
-      // }
     }
     return true;
-
   }
 
   /**
@@ -357,6 +347,7 @@ public final class Graphs {
     double calculateCost(Point from, Point to);
   }
 
+  // Equals is not consistent with compareTo!
   private static final class ObjectWithDistance<T> implements
       Comparable<ObjectWithDistance<T>> {
     final double dist;
@@ -370,6 +361,27 @@ public final class Graphs {
     @Override
     public int compareTo(ObjectWithDistance<T> o) {
       return Double.compare(dist, o.dist);
+    }
+
+    @Override
+    public boolean equals(@Nullable Object other) {
+      if (other == null) {
+        return false;
+      }
+      if (other == this) {
+        return true;
+      }
+      if (getClass() != other.getClass()) {
+        return false;
+      }
+      @SuppressWarnings("unchecked")
+      final ObjectWithDistance<T> o = (ObjectWithDistance<T>) other;
+      return Objects.equal(dist, o.dist) && Objects.equal(obj, o.obj);
+    }
+
+    @Override
+    public int hashCode() {
+      return Objects.hashCode(dist, obj);
     }
   }
 
