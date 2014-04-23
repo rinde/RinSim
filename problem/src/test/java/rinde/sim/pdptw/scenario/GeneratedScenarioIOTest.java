@@ -47,7 +47,7 @@ public class GeneratedScenarioIOTest {
         .parcels(
             Parcels
                 .builder()
-                .arrivalTimes(
+                .announceTimes(
                     TimeSeries.homogenousPoisson(4 * 60 * 60 * 1000L, 10))
                 .locations(Locations.builder().square(5).uniform())
                 .timeWindows(TimeWindows.builder().build())

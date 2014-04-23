@@ -68,7 +68,7 @@ public final class Parcels {
 
   static class DefaultParcelGenerator implements ParcelGenerator {
     private final RandomGenerator rng;
-    private final TimeSeriesGenerator arrivalTimeGenerator;
+    private final TimeSeriesGenerator announceTimeGenerator;
     private final LocationGenerator locationGenerator;
     private final TimeWindowGenerator timeWindowGenerator;
     private final SupplierRng<Long> pickupDurationGenerator;
@@ -77,7 +77,7 @@ public final class Parcels {
 
     DefaultParcelGenerator(Builder b) {
       rng = new MersenneTwister();
-      arrivalTimeGenerator = b.arrivalTimeGenerator;
+      announceTimeGenerator = b.announceTimeGenerator;
       locationGenerator = b.locationGenerator;
       timeWindowGenerator = b.timeWindowGenerator;
       pickupDurationGenerator = b.pickupDurationGenerator;
@@ -91,7 +91,7 @@ public final class Parcels {
       rng.setSeed(seed);
       final ImmutableList.Builder<AddParcelEvent> eventList = ImmutableList
           .builder();
-      final List<Double> times = arrivalTimeGenerator.generate(rng.nextLong());
+      final List<Double> times = announceTimeGenerator.generate(rng.nextLong());
       final Iterator<Point> locs = locationGenerator.generate(rng.nextLong(),
           times.size() * 2).iterator();
 
@@ -137,7 +137,7 @@ public final class Parcels {
    * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
    */
   public static class Builder {
-    static final TimeSeriesGenerator DEFAULT_ARRIVAL_TIMES = TimeSeries
+    static final TimeSeriesGenerator DEFAULT_ANNOUNCE_TIMES = TimeSeries
         .homogenousPoisson(4 * 60 * 60 * 1000, 20);
     static final LocationGenerator DEFAULT_LOCATIONS = Locations.builder()
         .square(5d).uniform();
@@ -148,7 +148,7 @@ public final class Parcels {
     static final SupplierRng<Integer> DEFAULT_CAPACITY = SupplierRngs
         .constant(0);
 
-    TimeSeriesGenerator arrivalTimeGenerator;
+    TimeSeriesGenerator announceTimeGenerator;
     TimeWindowGenerator timeWindowGenerator;
     LocationGenerator locationGenerator;
     SupplierRng<Long> pickupDurationGenerator;
@@ -156,7 +156,7 @@ public final class Parcels {
     SupplierRng<Integer> neededCapacityGenerator;
 
     Builder() {
-      arrivalTimeGenerator = DEFAULT_ARRIVAL_TIMES;
+      announceTimeGenerator = DEFAULT_ANNOUNCE_TIMES;
       timeWindowGenerator = DEFAULT_TIME_WINDOW_GENERATOR;
       locationGenerator = DEFAULT_LOCATIONS;
       pickupDurationGenerator = DEFAULT_SERVICE_DURATION;
@@ -164,8 +164,8 @@ public final class Parcels {
       neededCapacityGenerator = DEFAULT_CAPACITY;
     }
 
-    public Builder arrivalTimes(TimeSeriesGenerator atg) {
-      arrivalTimeGenerator = atg;
+    public Builder announceTimes(TimeSeriesGenerator atg) {
+      announceTimeGenerator = atg;
       return this;
     }
 

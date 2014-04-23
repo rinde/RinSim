@@ -36,12 +36,12 @@ public final class TimeWindows {
      *          and
      *          {@link rinde.sim.pdptw.common.ParcelDTO.Builder#deliveryTimeWindow(TimeWindow)}
      *          methods.
-     * @param distances An object that provides information about the travel
+     * @param travelTimes An object that provides information about the travel
      *          times in the scenario.
      * @param endTime The end time of the scenario.
      */
     void generate(long seed, ParcelDTO.Builder parcelBuilder,
-        TravelTimes distances, long endTime);
+        TravelTimes travelTimes, long endTime);
   }
 
   static class DefaultTimeWindowGenerator implements TimeWindowGenerator {

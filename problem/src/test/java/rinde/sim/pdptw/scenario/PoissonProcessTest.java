@@ -24,11 +24,10 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 
-import rinde.sim.pdptw.scenario.IntensityFunctions;
-import rinde.sim.pdptw.scenario.TimeSeries;
 import rinde.sim.pdptw.scenario.IntensityFunctions.SineIntensity;
 import rinde.sim.pdptw.scenario.TimeSeries.NonHomogenous;
 import rinde.sim.pdptw.scenario.TimeSeries.PoissonProcess;
+import rinde.sim.util.TestUtil;
 
 import com.google.common.math.DoubleMath;
 
@@ -46,6 +45,7 @@ public class PoissonProcessTest {
    */
   public PoissonProcessTest(PoissonProcess atg) {
     poisson = atg;
+    TestUtil.testPrivateConstructor(TimeSeries.class);
   }
 
   /**
@@ -58,15 +58,20 @@ public class PoissonProcessTest {
         { TimeSeries.homogenousPoisson(60d, 100) },
         { TimeSeries.homogenousPoisson(180d, 10) },
         { TimeSeries.homogenousPoisson(180d, 100) },
-        { TimeSeries.nonHomogenousPoisson(60d, IntensityFunctions.sineIntensity()
+        { TimeSeries.nonHomogenousPoisson(60d, IntensityFunctions
+            .sineIntensity()
             .period(60).area(10).build()) },
-        { TimeSeries.nonHomogenousPoisson(60d, IntensityFunctions.sineIntensity()
+        { TimeSeries.nonHomogenousPoisson(60d, IntensityFunctions
+            .sineIntensity()
             .period(60).area(10).phaseShift(2).build()) },
-        { TimeSeries.nonHomogenousPoisson(60d, IntensityFunctions.sineIntensity()
+        { TimeSeries.nonHomogenousPoisson(60d, IntensityFunctions
+            .sineIntensity()
             .period(60).area(10).height(1).build()) },
-        { TimeSeries.nonHomogenousPoisson(300d, IntensityFunctions.sineIntensity()
+        { TimeSeries.nonHomogenousPoisson(300d, IntensityFunctions
+            .sineIntensity()
             .period(60).area(10).height(1).build()) },
-        { TimeSeries.nonHomogenousPoisson(600d, IntensityFunctions.sineIntensity()
+        { TimeSeries.nonHomogenousPoisson(600d, IntensityFunctions
+            .sineIntensity()
             .period(600).area(200).height(1).build()) }
     });
   }
