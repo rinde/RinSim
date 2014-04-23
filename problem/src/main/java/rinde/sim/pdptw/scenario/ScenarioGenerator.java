@@ -4,8 +4,10 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Lists.newLinkedList;
 
+import java.util.Iterator;
 import java.util.List;
 
+import javax.measure.Measure;
 import javax.measure.quantity.Duration;
 import javax.measure.quantity.Length;
 import javax.measure.quantity.Velocity;
@@ -17,6 +19,7 @@ import rinde.sim.core.graph.Point;
 import rinde.sim.core.model.Model;
 import rinde.sim.core.model.pdp.PDPScenarioEvent;
 import rinde.sim.core.model.road.RoadModel;
+import rinde.sim.core.model.road.RoadModels;
 import rinde.sim.pdptw.common.AddDepotEvent;
 import rinde.sim.pdptw.common.AddVehicleEvent;
 import rinde.sim.pdptw.scenario.Depots.DepotGenerator;
@@ -24,8 +27,6 @@ import rinde.sim.pdptw.scenario.Models.ModelSupplierSupplier;
 import rinde.sim.pdptw.scenario.PDPScenario.AbstractBuilder;
 import rinde.sim.pdptw.scenario.PDPScenario.ProblemClass;
 import rinde.sim.pdptw.scenario.Parcels.ParcelGenerator;
-import rinde.sim.pdptw.scenario.TimeWindows.DefaultTravelModel;
-import rinde.sim.pdptw.scenario.TimeWindows.TravelModel;
 import rinde.sim.pdptw.scenario.Vehicles.VehicleGenerator;
 import rinde.sim.scenario.TimedEvent;
 import rinde.sim.util.TimeWindow;
@@ -95,19 +96,11 @@ public final class ScenarioGenerator {
     final Iterable<? extends AddDepotEvent> depots = depotGenerator.generate(
         rng.nextLong(), parcelGenerator.getCenter());
     b.addAll(depots);
-    final ImmutableList.Builder<Point> depotLocations = ImmutableList.builder();
-    for (final AddDepotEvent ade : depots) {
-      depotLocations.add(ade.position);
-    }
 
     // vehicles
     final ImmutableList<AddVehicleEvent> vehicles = vehicleGenerator.generate(
         rng.nextLong(), parcelGenerator.getCenter(), builder.timeWindow.end);
     b.addAll(vehicles);
-    final ImmutableList.Builder<Double> vehicleSpeeds = ImmutableList.builder();
-    for (final AddVehicleEvent ave : vehicles) {
-      vehicleSpeeds.add(ave.vehicleDTO.speed);
-    }
 
     RoadModel rm = null;
     for (final Supplier<?> sup : modelSuppliers) {
@@ -118,7 +111,8 @@ public final class ScenarioGenerator {
       }
     }
     checkNotNull(rm);
-    final TravelModel tm = new DefaultTravelModel(rm);
+    final TravelTimes tm = new DefaultTravelModel(rm, getTimeUnit(), depots,
+        vehicles);
 
     // parcels
     b.addAll(parcelGenerator.generate(rng.nextLong(), tm,
@@ -202,5 +196,94 @@ public final class ScenarioGenerator {
     public ScenarioGenerator build() {
       return new ScenarioGenerator(new Builder(this));
     }
+  }
+
+  /**
+   * Implementations should provide information about travel times in a
+   * scenario. The travel times are usually extracted from a {@link RoadModel}.
+   * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+   */
+  public interface TravelTimes {
+    /**
+     * Computes the travel time between <code>from</code> and <code>to</code>
+     * using the fastest available vehicle.
+     * @param from The origin position.
+     * @param to The destination position.
+     * @return The expected travel time between the two positions.
+     */
+    long getShortestTravelTime(Point from, Point to);
+
+    /**
+     * Computes the travel time between <code>from</code> and the nearest depot
+     * using the fastest available vehicle.
+     * @param from The origin position.
+     * @return The expected travel time between the two positions.
+     */
+    long getTravelTimeToNearestDepot(Point from);
+  }
+
+  static class DefaultTravelModel implements TravelTimes {
+
+    private final RoadModel roadModel;
+    private final Measure<Double, Velocity> vehicleSpeed;
+    private final Unit<Duration> timeUnit;
+    private final ImmutableList<Point> depotLocations;
+
+    DefaultTravelModel(RoadModel rm, Unit<Duration> tu,
+        Iterable<? extends AddDepotEvent> depots,
+        Iterable<? extends AddVehicleEvent> vehicles) {
+      roadModel = rm;
+
+      double max = 0;
+      for (final AddVehicleEvent ave : vehicles) {
+        max = Math.max(max, ave.vehicleDTO.speed);
+      }
+      vehicleSpeed = Measure.valueOf(max, roadModel.getSpeedUnit());
+
+      final ImmutableList.Builder<Point> depotBuilder = ImmutableList.builder();
+      for (final AddDepotEvent ade : depots) {
+        depotBuilder.add(ade.position);
+      }
+      depotLocations = depotBuilder.build();
+
+      timeUnit = tu;
+    }
+
+    @Override
+    public long getShortestTravelTime(Point from, Point to) {
+      final Iterator<Point> path = roadModel.getShortestPathTo(from, to)
+          .iterator();
+
+      long travelTime = 0L;
+      final Point prev = path.next();
+      while (path.hasNext()) {
+        final Point cur = path.next();
+        final Measure<Double, Length> distance = Measure.valueOf(
+            Point.distance(prev, cur), roadModel.getDistanceUnit());
+        travelTime += RoadModels.computeTravelTime(vehicleSpeed, distance,
+            timeUnit);
+      }
+      return travelTime;
+    }
+
+    @Override
+    public long getTravelTimeToNearestDepot(Point from) {
+      return getShortestTravelTime(from, findNearestDepot(from));
+    }
+
+    private Point findNearestDepot(Point from) {
+      final Iterator<Point> it = depotLocations.iterator();
+      Point nearestDepot = it.next();
+      final double dist = Point.distance(from, nearestDepot);
+      while (it.hasNext()) {
+        final Point cur = it.next();
+        final double d = Point.distance(from, cur);
+        if (d < dist) {
+          nearestDepot = cur;
+        }
+      }
+      return nearestDepot;
+    }
+
   }
 }

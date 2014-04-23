@@ -11,9 +11,9 @@ import rinde.sim.core.graph.Point;
 import rinde.sim.pdptw.common.AddParcelEvent;
 import rinde.sim.pdptw.common.ParcelDTO;
 import rinde.sim.pdptw.scenario.Locations.LocationGenerator;
+import rinde.sim.pdptw.scenario.ScenarioGenerator.TravelTimes;
 import rinde.sim.pdptw.scenario.TimeSeries.TimeSeriesGenerator;
 import rinde.sim.pdptw.scenario.TimeWindows.TimeWindowGenerator;
-import rinde.sim.pdptw.scenario.TimeWindows.TravelModel;
 import rinde.sim.util.SupplierRng;
 import rinde.sim.util.SupplierRngs;
 
@@ -28,7 +28,7 @@ public final class Parcels {
 
   public interface ParcelGenerator {
     ImmutableList<AddParcelEvent> generate(long seed,
-        TravelModel travelModel, long endTime);
+        TravelTimes travelModel, long endTime);
 
     // TODO should these location methods be here?
     Point getCenter();
@@ -59,7 +59,7 @@ public final class Parcels {
 
     @Override
     public ImmutableList<AddParcelEvent> generate(long seed,
-        TravelModel travelModel, long endTime) {
+        TravelTimes travelModel, long endTime) {
       rng.setSeed(seed);
       final ImmutableList.Builder<AddParcelEvent> eventList = ImmutableList
           .builder();

@@ -2,14 +2,12 @@ package rinde.sim.pdptw.scenario;
 
 import static rinde.sim.util.SupplierRngs.constant;
 
-import java.util.List;
-
 import org.apache.commons.math3.random.MersenneTwister;
 import org.apache.commons.math3.random.RandomGenerator;
 
 import rinde.sim.core.graph.Point;
-import rinde.sim.core.model.road.RoadModel;
 import rinde.sim.pdptw.common.ParcelDTO;
+import rinde.sim.pdptw.scenario.ScenarioGenerator.TravelTimes;
 import rinde.sim.util.SupplierRng;
 import rinde.sim.util.TimeWindow;
 
@@ -26,20 +24,24 @@ public final class TimeWindows {
    */
   public interface TimeWindowGenerator {
     /**
-     * Should return two {@link TimeWindow}s, a pickup time window and a
+     * Should create two {@link TimeWindow}s, a pickup time window and a
      * delivery time window. These time windows should be theoretically
      * feasible, meaning that they should be serviceable such that there is
      * enough time for a vehicle to return to the depot.
      * @param seed Random seed.
-     * @param orderAnnounceTime The time at which the order is announced.
-     * @param pickup Position of pickup.
-     * @param delivery Position of delivery.
-     * @return A list containing exactly two {@link TimeWindow}s. The first
-     *         indicates the <i>pickup time window</i> the second indicates the
-     *         <i>delivery time window</i>.
+     * @param parcelBuilder The {@link rinde.sim.pdptw.common.ParcelDTO.Builder}
+     *          that is being used for creating a {@link ParcelDTO}. The time
+     *          windows should be added to this builder via the
+     *          {@link rinde.sim.pdptw.common.ParcelDTO.Builder#pickupTimeWindow(TimeWindow)}
+     *          and
+     *          {@link rinde.sim.pdptw.common.ParcelDTO.Builder#deliveryTimeWindow(TimeWindow)}
+     *          methods.
+     * @param distances An object that provides information about the travel
+     *          times in the scenario.
+     * @param endTime The end time of the scenario.
      */
     void generate(long seed, ParcelDTO.Builder parcelBuilder,
-        TravelModel travelModel, long endTime);
+        TravelTimes distances, long endTime);
   }
 
   static class DefaultTimeWindowGenerator implements TimeWindowGenerator {
@@ -50,7 +52,7 @@ public final class TimeWindows {
     private final SupplierRng<Long> pickupTWLength;
     private final SupplierRng<Long> deliveryTWLength;
 
-    public DefaultTimeWindowGenerator(Builder b) {
+    DefaultTimeWindowGenerator(Builder b) {
       rng = new MersenneTwister();
       pickupUrgency = b.pickupUrgency;
       deliveryUrgency = b.deliveryUrgency;
@@ -60,7 +62,7 @@ public final class TimeWindows {
 
     @Override
     public void generate(long seed, ParcelDTO.Builder parcelBuilder,
-        TravelModel travelModel, long endTime) {
+        TravelTimes travelModel, long endTime) {
       rng.setSeed(seed);
       final long orderAnnounceTime = parcelBuilder.getOrderArrivalTime();
       final Point pickup = parcelBuilder.getPickupLocation();
@@ -154,39 +156,4 @@ public final class TimeWindows {
       return new DefaultTimeWindowGenerator(this);
     }
   }
-
-  interface TravelModel {
-
-    // should use RoadModel internally
-
-    // using fastest truck
-    long getShortestTravelTime(Point from, Point to);
-
-    // using nearest depot
-    long getTravelTimeToNearestDepot(Point from);
-  }
-
-  static class DefaultTravelModel implements TravelModel {
-
-    private final RoadModel roadModel;
-
-    DefaultTravelModel(RoadModel rm) {
-      roadModel = rm;
-    }
-
-    @Override
-    public long getShortestTravelTime(Point from, Point to) {
-      final List<Point> path = roadModel.getShortestPathTo(from, to);
-
-      return 0L;
-    }
-
-    @Override
-    public long getTravelTimeToNearestDepot(Point from) {
-      // TODO Auto-generated method stub
-      return 0;
-    }
-
-  }
-
 }
