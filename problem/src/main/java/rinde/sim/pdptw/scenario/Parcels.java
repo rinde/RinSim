@@ -20,21 +20,49 @@ import rinde.sim.util.SupplierRngs;
 import com.google.common.collect.ImmutableList;
 import com.google.common.math.DoubleMath;
 
+/**
+ * Utility class for creating {@link ParcelGenerator}s.
+ * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+ */
 public final class Parcels {
 
+  /**
+   * @return A new {@link Builder} for creating {@link ParcelGenerator}s.
+   */
   public static Builder builder() {
     return new Builder();
   }
 
+  /**
+   * A generator of {@link AddParcelEvent}s.
+   * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+   */
   public interface ParcelGenerator {
-    ImmutableList<AddParcelEvent> generate(long seed,
-        TravelTimes travelModel, long endTime);
 
-    // TODO should these location methods be here?
+    /**
+     * Should generate a list of {@link AddParcelEvent}s.
+     * @param seed The random seed.
+     * @param travelTimes The {@link TravelTimes} provides information about the
+     *          expected vehicle travel time.
+     * @param endTime The end time of the scenario.
+     * @return A list of events.
+     */
+    ImmutableList<AddParcelEvent> generate(long seed,
+        TravelTimes travelTimes, long endTime);
+
+    /**
+     * @return The expected center of all generated locations.
+     */
     Point getCenter();
 
+    /**
+     * @return A position representing the lowest possible coordinates.
+     */
     Point getMin();
 
+    /**
+     * @return A position representing the highest possible coordinates.
+     */
     Point getMax();
   }
 
@@ -104,12 +132,17 @@ public final class Parcels {
     }
   }
 
+  /**
+   * A builder for creating {@link ParcelGenerator}s.
+   * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+   */
   public static class Builder {
     static final TimeSeriesGenerator DEFAULT_ARRIVAL_TIMES = TimeSeries
         .homogenousPoisson(4 * 60 * 60 * 1000, 20);
     static final LocationGenerator DEFAULT_LOCATIONS = Locations.builder()
         .square(5d).uniform();
-
+    static final TimeWindowGenerator DEFAULT_TIME_WINDOW_GENERATOR = TimeWindows
+        .builder().build();
     static final SupplierRng<Long> DEFAULT_SERVICE_DURATION = SupplierRngs
         .constant(5 * 60 * 1000L);
     static final SupplierRng<Integer> DEFAULT_CAPACITY = SupplierRngs
@@ -124,11 +157,11 @@ public final class Parcels {
 
     Builder() {
       arrivalTimeGenerator = DEFAULT_ARRIVAL_TIMES;
+      timeWindowGenerator = DEFAULT_TIME_WINDOW_GENERATOR;
       locationGenerator = DEFAULT_LOCATIONS;
       pickupDurationGenerator = DEFAULT_SERVICE_DURATION;
       deliveryDurationGenerator = DEFAULT_SERVICE_DURATION;
       neededCapacityGenerator = DEFAULT_CAPACITY;
-
     }
 
     public Builder arrivalTimes(TimeSeriesGenerator atg) {
