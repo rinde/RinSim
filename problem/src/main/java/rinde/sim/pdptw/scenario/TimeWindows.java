@@ -64,9 +64,9 @@ public final class TimeWindows {
     public void generate(long seed, ParcelDTO.Builder parcelBuilder,
         TravelTimes travelModel, long endTime) {
       rng.setSeed(seed);
-      final long orderAnnounceTime = parcelBuilder.getOrderArrivalTime();
+      final long orderAnnounceTime = parcelBuilder.getOrderAnnounceTime();
       final Point pickup = parcelBuilder.getPickupLocation();
-      final Point delivery = parcelBuilder.getDestinationLocation();
+      final Point delivery = parcelBuilder.getDeliveryLocation();
 
       final long pickupToDeliveryTT = travelModel.getShortestTravelTime(pickup,
           delivery);

@@ -24,7 +24,7 @@ public final class ParcelDTO implements Serializable {
   /**
    * The location at which this parcel has to be delivered.
    */
-  public final Point destinationLocation;
+  public final Point deliveryLocation;
 
   /**
    * The {@link TimeWindow} in which this parcel has to be picked up.
@@ -45,7 +45,7 @@ public final class ParcelDTO implements Serializable {
    * The time at which this parcel is announced, i.e. the time at which the
    * customer calls with this request.
    */
-  public final long orderArrivalTime;
+  public final long orderAnnounceTime;
 
   /**
    * The time the pickup operation takes.
@@ -60,11 +60,11 @@ public final class ParcelDTO implements Serializable {
   /**
    * Create a new parcel value object.
    * @param pPickupLocation {@link #pickupLocation}.
-   * @param pDestinationLocation {@link #destinationLocation}.
+   * @param pDestinationLocation {@link #deliveryLocation}.
    * @param pPickupTimeWindow {@link #pickupTimeWindow}.
    * @param pDeliveryTimeWindow {@link #deliveryTimeWindow}.
    * @param pNeededCapacity {@link #neededCapacity}.
-   * @param pOrderArrivalTime {@link #orderArrivalTime}.
+   * @param pOrderArrivalTime {@link #orderAnnounceTime}.
    * @param pPickupDuration {@link #pickupDuration}.
    * @param pDeliveryDuration {@link #deliveryDuration}.
    * @deprecated Use {@link #builder(Point, Point)} instead.
@@ -84,14 +84,14 @@ public final class ParcelDTO implements Serializable {
   }
 
   ParcelDTO(Builder b) {
-    checkArgument(b.orderArrivalTime <= b.pickupTimeWindow.begin,
+    checkArgument(b.orderAnnounceTime <= b.pickupTimeWindow.begin,
         "Order arrival time may not be after the pickup TW has already opened.");
     pickupLocation = b.pickupLocation;
-    destinationLocation = b.destinationLocation;
+    deliveryLocation = b.deliveryLocation;
     pickupTimeWindow = b.pickupTimeWindow;
     deliveryTimeWindow = b.deliveryTimeWindow;
     neededCapacity = b.neededCapacity;
-    orderArrivalTime = b.orderArrivalTime;
+    orderAnnounceTime = b.orderAnnounceTime;
     pickupDuration = b.pickupDuration;
     deliveryDuration = b.deliveryDuration;
   }
@@ -129,21 +129,21 @@ public final class ParcelDTO implements Serializable {
    */
   public static final class Builder {
     final Point pickupLocation;
-    final Point destinationLocation;
+    final Point deliveryLocation;
     TimeWindow pickupTimeWindow;
     TimeWindow deliveryTimeWindow;
     int neededCapacity;
-    long orderArrivalTime;
+    long orderAnnounceTime;
     long pickupDuration;
     long deliveryDuration;
 
     Builder(Point from, Point to) {
       pickupLocation = from;
-      destinationLocation = to;
+      deliveryLocation = to;
       pickupTimeWindow = TimeWindow.ALWAYS;
       deliveryTimeWindow = TimeWindow.ALWAYS;
       neededCapacity = 0;
-      orderArrivalTime = 0L;
+      orderAnnounceTime = 0L;
       pickupDuration = 0L;
       deliveryDuration = 0L;
     }
@@ -204,7 +204,7 @@ public final class ParcelDTO implements Serializable {
      * @return This, as per the builder pattern.
      */
     public Builder arrivalTime(long time) {
-      orderArrivalTime = time;
+      orderAnnounceTime = time;
       return this;
     }
 
@@ -242,36 +242,36 @@ public final class ParcelDTO implements Serializable {
       return this;
     }
 
-    public Point getPickupLocation() {
-      return pickupLocation;
+    public long getOrderAnnounceTime() {
+      return orderAnnounceTime;
     }
 
-    public Point getDestinationLocation() {
-      return destinationLocation;
+    public Point getPickupLocation() {
+      return pickupLocation;
     }
 
     public TimeWindow getPickupTimeWindow() {
       return pickupTimeWindow;
     }
 
-    public TimeWindow getDeliveryTimeWindow() {
-      return deliveryTimeWindow;
-    }
-
-    public int getNeededCapacity() {
-      return neededCapacity;
-    }
-
-    public long getOrderArrivalTime() {
-      return orderArrivalTime;
-    }
-
     public long getPickupDuration() {
       return pickupDuration;
     }
 
+    public Point getDeliveryLocation() {
+      return deliveryLocation;
+    }
+
+    public TimeWindow getDeliveryTimeWindow() {
+      return deliveryTimeWindow;
+    }
+
     public long getDeliveryDuration() {
       return deliveryDuration;
+    }
+
+    public int getNeededCapacity() {
+      return neededCapacity;
     }
   }
 }

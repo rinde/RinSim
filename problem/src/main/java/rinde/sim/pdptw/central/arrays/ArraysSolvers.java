@@ -187,7 +187,7 @@ public final class ArraysSolvers {
       serviceTimes[index] = DoubleMath.roundToInt(
           timeConverter.convert(p.deliveryDuration), RoundingMode.CEILING);
 
-      points.add(p.destinationLocation);
+      points.add(p.deliveryLocation);
       if (inCargo.contains(p)) {
         final ParcelIndexObj pio = new ParcelIndexObj(p, -1, index);
         parcel2indexBuilder.put(p, pio);

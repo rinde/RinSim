@@ -22,8 +22,8 @@ public class ParcelDTOTest {
         new Point(2, 2)).build();
 
     assertEquals(new Point(0, 0), defaults.pickupLocation);
-    assertEquals(new Point(2, 2), defaults.destinationLocation);
-    assertEquals(0, defaults.orderArrivalTime);
+    assertEquals(new Point(2, 2), defaults.deliveryLocation);
+    assertEquals(0, defaults.orderAnnounceTime);
     assertEquals(0, defaults.neededCapacity);
     assertEquals(TimeWindow.ALWAYS, defaults.pickupTimeWindow);
     assertEquals(TimeWindow.ALWAYS, defaults.deliveryTimeWindow);

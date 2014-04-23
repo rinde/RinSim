@@ -25,7 +25,7 @@ public class DefaultParcel extends Parcel {
    * @param pDto {@link #dto}
    */
   public DefaultParcel(ParcelDTO pDto) {
-    super(pDto.destinationLocation, pDto.pickupDuration, pDto.pickupTimeWindow,
+    super(pDto.deliveryLocation, pDto.pickupDuration, pDto.pickupTimeWindow,
         pDto.deliveryDuration, pDto.deliveryTimeWindow, pDto.neededCapacity);
     setStartPosition(pDto.pickupLocation);
     dto = pDto;

@@ -89,7 +89,7 @@ public final class Metrics {
     final LoadPart pickupPart = new LoadPart(pickupLb, pickupUb, pickupLoad);
 
     final long expectedTravelTime = travelTime(event.parcelDTO.pickupLocation,
-        event.parcelDTO.destinationLocation, vehicleSpeed);
+        event.parcelDTO.deliveryLocation, vehicleSpeed);
     // first possible departure time from pickup location
     final long travelLb = pickupLb + event.parcelDTO.pickupDuration;
     // latest possible arrival time at delivery location
@@ -205,7 +205,7 @@ public final class Metrics {
         + event.parcelDTO.pickupDuration;
 
     final long travelTime = travelTime(event.parcelDTO.pickupLocation,
-        event.parcelDTO.destinationLocation, vehicleSpeed);
+        event.parcelDTO.deliveryLocation, vehicleSpeed);
 
     checkArgument(
         event.parcelDTO.deliveryTimeWindow.begin >= firstDepartureTime
@@ -340,7 +340,7 @@ public final class Metrics {
     for (final TimedEvent se : s.asList()) {
       if (se instanceof AddParcelEvent) {
         builder.add(((AddParcelEvent) se).parcelDTO.pickupLocation);
-        builder.add(((AddParcelEvent) se).parcelDTO.destinationLocation);
+        builder.add(((AddParcelEvent) se).parcelDTO.deliveryLocation);
       }
     }
     return builder.build();
@@ -350,7 +350,7 @@ public final class Metrics {
     final ImmutableList.Builder<Long> builder = ImmutableList.builder();
     for (final TimedEvent se : s.asList()) {
       if (se instanceof AddParcelEvent) {
-        builder.add(((AddParcelEvent) se).parcelDTO.orderArrivalTime);
+        builder.add(((AddParcelEvent) se).parcelDTO.orderAnnounceTime);
       }
     }
     return builder.build();

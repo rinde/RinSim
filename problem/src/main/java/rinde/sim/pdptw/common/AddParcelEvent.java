@@ -20,7 +20,7 @@ public class AddParcelEvent extends TimedEvent {
    * @param dto {@link #parcelDTO}
    */
   public AddParcelEvent(ParcelDTO dto) {
-    super(PDPScenarioEvent.ADD_PARCEL, dto.orderArrivalTime);
+    super(PDPScenarioEvent.ADD_PARCEL, dto.orderAnnounceTime);
     parcelDTO = dto;
   }
 }

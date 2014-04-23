@@ -59,7 +59,7 @@ public class RouteRenderer implements CanvasRenderer, ModelReceiver {
         Point to;
         if (pm.get().getParcelState(parcel).isPickedUp()
             || seen.contains(parcel)) {
-          to = parcel.dto.destinationLocation;
+          to = parcel.dto.deliveryLocation;
         } else {
           to = parcel.dto.pickupLocation;
         }

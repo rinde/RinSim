@@ -161,7 +161,7 @@ public final class Solvers {
           time += vso.remainingServiceTime;
         } else {
           // vehicle is not there yet, go there first, then service
-          final Point nextLoc = inCargo ? cur.destinationLocation
+          final Point nextLoc = inCargo ? cur.deliveryLocation
               : cur.pickupLocation;
           final Measure<Double, Length> distance = Measure.valueOf(
               Point.distance(vehicleLocation, nextLoc), state.distUnit);
