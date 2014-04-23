@@ -58,6 +58,7 @@ public final class Models {
   /**
    * Wraps the specified supplier in a {@link ModelSupplierScenGen}.
    * @param sup The supplier.
+   * @param <T> The model type.
    * @return The wrapped supplier.
    */
   public static <T extends Model<?>> ModelSupplierScenGen<T> adapt(
