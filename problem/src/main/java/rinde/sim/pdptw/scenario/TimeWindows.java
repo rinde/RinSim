@@ -107,8 +107,18 @@ public final class TimeWindows {
     }
   }
 
+  /**
+   * A builder for creating {@link TimeWindow} instance using urgency. Urgency
+   * is defined as follows:
+   * <ul>
+   * <li><code>pickup_urgency = pickupTW.R - orderAnnounceTime</code></li>
+   * <li>
+   * <code>delivery_urgency = deliveryTW.R - earliest possible arrival time at delivery site</code>
+   * </li>
+   * </ul>
+   * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+   */
   public static class Builder {
-
     private static final SupplierRng<Long> DEFAULT_URGENCY = constant(30 * 60 * 1000L);
     private static final SupplierRng<Long> DEFAULT_LENGTH = constant(10 * 60 * 1000L);
 
