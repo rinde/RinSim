@@ -5,6 +5,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -137,8 +138,8 @@ public class GraphsTest {
 
     final List<Connection<LengthData>> connections = graph.getConnections();
     for (int i = 1; i < points.size(); i++) {
-      assertTrue(connections.get(i - 1).from == points.get(i - 1));
-      assertTrue(connections.get(i - 1).to == points.get(i));
+      assertSame(connections.get(i - 1).from, points.get(i - 1));
+      assertSame(connections.get(i - 1).to, points.get(i));
     }
   }
 
@@ -160,7 +161,7 @@ public class GraphsTest {
     final List<Point> incomingConn = new ArrayList<Point>(
         graph.getIncomingConnections(incoming));
     for (int i = 0; i < incomingConn.size(); i++) {
-      assertTrue(incomingConn.get(i) == points.get(i));
+      assertSame(incomingConn.get(i), points.get(i));
     }
   }
 
@@ -182,7 +183,7 @@ public class GraphsTest {
     final List<Point> outgoingConn = new ArrayList<Point>(
         graph.getOutgoingConnections(outgoing));
     for (int i = 0; i < outgoingConn.size(); i++) {
-      assertTrue(outgoingConn.get(i) == points.get(i));
+      assertSame(outgoingConn.get(i), points.get(i));
     }
   }
 
@@ -238,7 +239,7 @@ public class GraphsTest {
   @Test
   public void equalsTest() {
     assertFalse(graph.equals(new Object()));
-    assertTrue(graph.equals(graph));
+    assertEquals(graph, graph);
 
     final Point N = new Point(0, 5);
     final Point E = new Point(5, 0);
@@ -246,7 +247,7 @@ public class GraphsTest {
     final Point W = new Point(-5, 0);
 
     Graphs.addBiPath(graph, N, E, S, W, N);
-    assertTrue(graph.equals(graph));
+    assertEquals(graph, graph);
 
     final Graph<LengthData> g1 = new TableGraph<LengthData>(LengthData.EMPTY);
     g1.merge(graph);
@@ -476,17 +477,17 @@ public class GraphsTest {
     Graphs.addBiPath(graph, N, E, S, W, N);
     final Graph<LengthData> unmod = Graphs.unmodifiableGraph(graph);
     assertEquals(graph, unmod);
-    assertTrue(graph.getNodes().size() == 4);
-    assertTrue(graph.getConnections().size() == 8);
+    assertEquals(4, graph.getNodes().size());
+    assertEquals(8, graph.getConnections().size());
     graph.removeNode(N);
     assertEquals(graph, unmod);
-    assertTrue(graph.getNodes().size() == 3);
-    assertTrue(graph.getConnections().size() == 4);
+    assertEquals(3, graph.getNodes().size());
+    assertEquals(4, graph.getConnections().size());
   }
 
   @Test
   public void isEmptyConnectionData() {
-    final AbstractGraph<?> g = ((AbstractGraph<?>) graph);
+    final AbstractGraph<?> g = (AbstractGraph<?>) graph;
     assertTrue(g.isEmptyConnectionData(null));
 
     final TableGraph<MultiAttributeData> tg = new TableGraph<MultiAttributeData>(

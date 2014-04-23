@@ -24,6 +24,7 @@ import javax.annotation.Nullable;
 import org.apache.commons.math3.random.RandomGenerator;
 
 import com.google.common.base.Function;
+import com.google.common.base.Objects;
 
 /**
  * Utility class containing many methods for working with graphs.
@@ -115,7 +116,6 @@ public final class Graphs {
    * @return <code>true</code> if the provided graphs are equal,
    *         <code>false</code> otherwise.
    */
-  @SuppressWarnings("null")
   public static <E extends ConnectionData> boolean equals(
       Graph<? extends E> g1, Graph<? extends E> g2) {
     if (g1.getNumberOfNodes() != g2.getNumberOfNodes()) {
@@ -130,13 +130,17 @@ public final class Graphs {
       }
       final E g2connEdgeData = g2.connectionData(g1conn.from, g1conn.to);
 
-      final boolean null1 = g1conn.getData() == null;
-      final boolean null2 = g2connEdgeData == null;
-      final int nullCount = (null1 ? 1 : 0) + (null2 ? 1 : 0);
-      if ((nullCount == 0 && !g1conn.getData().equals(g2connEdgeData))
-          || nullCount == 1) {
+      if (!Objects.equal(g1conn.getData(), g2connEdgeData)) {
         return false;
       }
+      //
+      // final boolean null1 = g1conn.getData() == null;
+      // final boolean null2 = g2connEdgeData == null;
+      // final int nullCount = (null1 ? 1 : 0) + (null2 ? 1 : 0);
+      // if (nullCount == 0 && !g1conn.getData().equals(g2connEdgeData)
+      // || nullCount == 1) {
+      // return false;
+      // }
     }
     return true;
 
@@ -353,7 +357,7 @@ public final class Graphs {
     double calculateCost(Point from, Point to);
   }
 
-  static class ObjectWithDistance<T> implements
+  private static final class ObjectWithDistance<T> implements
       Comparable<ObjectWithDistance<T>> {
     final double dist;
     final T obj;
@@ -366,18 +370,6 @@ public final class Graphs {
     @Override
     public int compareTo(ObjectWithDistance<T> o) {
       return Double.compare(dist, o.dist);
-    }
-
-    @SuppressWarnings("unchecked")
-    @Override
-    public boolean equals(@Nullable Object o) {
-      if (o == null) {
-        return false;
-      }
-      if (o.getClass() == ObjectWithDistance.class) {
-        return compareTo((ObjectWithDistance<T>) o) == 0;
-      }
-      return false;
     }
   }
 
