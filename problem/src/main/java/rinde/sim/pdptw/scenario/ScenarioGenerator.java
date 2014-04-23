@@ -1,5 +1,6 @@
 package rinde.sim.pdptw.scenario;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Lists.newLinkedList;
 
@@ -15,11 +16,16 @@ import org.apache.commons.math3.random.RandomGenerator;
 import rinde.sim.core.graph.Point;
 import rinde.sim.core.model.Model;
 import rinde.sim.core.model.pdp.PDPScenarioEvent;
+import rinde.sim.core.model.road.RoadModel;
+import rinde.sim.pdptw.common.AddDepotEvent;
+import rinde.sim.pdptw.common.AddVehicleEvent;
 import rinde.sim.pdptw.scenario.Depots.DepotGenerator;
 import rinde.sim.pdptw.scenario.Models.ModelSupplierSupplier;
 import rinde.sim.pdptw.scenario.PDPScenario.AbstractBuilder;
 import rinde.sim.pdptw.scenario.PDPScenario.ProblemClass;
 import rinde.sim.pdptw.scenario.Parcels.ParcelGenerator;
+import rinde.sim.pdptw.scenario.TimeWindows.DefaultTravelModel;
+import rinde.sim.pdptw.scenario.TimeWindows.TravelModel;
 import rinde.sim.pdptw.scenario.Vehicles.VehicleGenerator;
 import rinde.sim.scenario.TimedEvent;
 import rinde.sim.util.TimeWindow;
@@ -85,15 +91,43 @@ public final class ScenarioGenerator {
 
   public PDPScenario generate(RandomGenerator rng, String id) {
     final ImmutableList.Builder<TimedEvent> b = ImmutableList.builder();
-    b.addAll(depotGenerator.generate(rng.nextLong(),
-        parcelGenerator.getCenter()));
+    // depots
+    final Iterable<? extends AddDepotEvent> depots = depotGenerator.generate(
+        rng.nextLong(), parcelGenerator.getCenter());
+    b.addAll(depots);
+    final ImmutableList.Builder<Point> depotLocations = ImmutableList.builder();
+    for (final AddDepotEvent ade : depots) {
+      depotLocations.add(ade.position);
+    }
 
-    b.addAll(vehicleGenerator.generate(rng.nextLong(),
-        parcelGenerator.getCenter(), builder.timeWindow.end));
+    // vehicles
+    final ImmutableList<AddVehicleEvent> vehicles = vehicleGenerator.generate(
+        rng.nextLong(), parcelGenerator.getCenter(), builder.timeWindow.end);
+    b.addAll(vehicles);
+    final ImmutableList.Builder<Double> vehicleSpeeds = ImmutableList.builder();
+    for (final AddVehicleEvent ave : vehicles) {
+      vehicleSpeeds.add(ave.vehicleDTO.speed);
+    }
 
-    b.addAll(parcelGenerator.generate(rng.nextLong()));
+    RoadModel rm = null;
+    for (final Supplier<?> sup : modelSuppliers) {
+      final Object v = sup.get();
+      if (v instanceof RoadModel) {
+        rm = (RoadModel) v;
+        break;
+      }
+    }
+    checkNotNull(rm);
+    final TravelModel tm = new DefaultTravelModel(rm);
 
+    // parcels
+    b.addAll(parcelGenerator.generate(rng.nextLong(), tm,
+        builder.timeWindow.end));
+
+    // time out
     b.add(new TimedEvent(PDPScenarioEvent.TIME_OUT, builder.timeWindow.end));
+
+    // create
     return PDPScenario.builder(builder, builder.problemClass)
         .addModels(modelSuppliers)
         .addEvents(b.build())
@@ -147,6 +181,11 @@ public final class ScenarioGenerator {
 
     public Builder parcels(ParcelGenerator pg) {
       parcelGenerator = pg;
+      return this;
+    }
+
+    public Builder depots(DepotGenerator ds) {
+      depotGenerator = ds;
       return this;
     }
 

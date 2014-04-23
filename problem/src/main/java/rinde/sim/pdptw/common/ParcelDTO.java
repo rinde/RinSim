@@ -241,5 +241,37 @@ public final class ParcelDTO implements Serializable {
       deliveryDuration = duration;
       return this;
     }
+
+    public Point getPickupLocation() {
+      return pickupLocation;
+    }
+
+    public Point getDestinationLocation() {
+      return destinationLocation;
+    }
+
+    public TimeWindow getPickupTimeWindow() {
+      return pickupTimeWindow;
+    }
+
+    public TimeWindow getDeliveryTimeWindow() {
+      return deliveryTimeWindow;
+    }
+
+    public int getNeededCapacity() {
+      return neededCapacity;
+    }
+
+    public long getOrderArrivalTime() {
+      return orderArrivalTime;
+    }
+
+    public long getPickupDuration() {
+      return pickupDuration;
+    }
+
+    public long getDeliveryDuration() {
+      return deliveryDuration;
+    }
   }
 }

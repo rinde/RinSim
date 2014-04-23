@@ -12,22 +12,23 @@ import rinde.sim.pdptw.common.AddParcelEvent;
 import rinde.sim.pdptw.common.ParcelDTO;
 import rinde.sim.pdptw.scenario.Locations.LocationGenerator;
 import rinde.sim.pdptw.scenario.TimeSeries.TimeSeriesGenerator;
-import rinde.sim.pdptw.scenario.tw.TimeWindowGenerator;
+import rinde.sim.pdptw.scenario.TimeWindows.TimeWindowGenerator;
+import rinde.sim.pdptw.scenario.TimeWindows.TravelModel;
 import rinde.sim.util.SupplierRng;
 import rinde.sim.util.SupplierRngs;
-import rinde.sim.util.TimeWindow;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.math.DoubleMath;
 
-public class Parcels {
+public final class Parcels {
 
   public static Builder builder() {
     return new Builder();
   }
 
   public interface ParcelGenerator {
-    ImmutableList<AddParcelEvent> generate(long seed);
+    ImmutableList<AddParcelEvent> generate(long seed,
+        TravelModel travelModel, long endTime);
 
     // TODO should these location methods be here?
     Point getCenter();
@@ -57,7 +58,8 @@ public class Parcels {
     }
 
     @Override
-    public ImmutableList<AddParcelEvent> generate(long seed) {
+    public ImmutableList<AddParcelEvent> generate(long seed,
+        TravelModel travelModel, long endTime) {
       rng.setSeed(seed);
       final ImmutableList.Builder<AddParcelEvent> eventList = ImmutableList
           .builder();
@@ -71,22 +73,17 @@ public class Parcels {
         final Point origin = locs.next();
         final Point destination = locs.next();
 
-        final List<TimeWindow> tws = timeWindowGenerator.generate(
-            rng.nextLong(),
-            arrivalTime, origin, destination);
-        final TimeWindow pickupTW = tws.get(0);
-        final TimeWindow deliveryTW = tws.get(1);
-
-        final ParcelDTO dto = ParcelDTO.builder(origin, destination)
+        final ParcelDTO.Builder parcelBuilder = ParcelDTO
+            .builder(origin, destination)
             .arrivalTime(arrivalTime)
-            .pickupTimeWindow(pickupTW)
-            .deliveryTimeWindow(deliveryTW)
             .pickupDuration(pickupDurationGenerator.get(rng.nextLong()))
             .deliveryDuration(deliveryDurationGenerator.get(rng.nextLong()))
-            .neededCapacity(neededCapacityGenerator.get(rng.nextLong()))
-            .build();
+            .neededCapacity(neededCapacityGenerator.get(rng.nextLong()));
 
-        eventList.add(new AddParcelEvent(dto));
+        timeWindowGenerator.generate(rng.nextLong(), parcelBuilder,
+            travelModel, endTime);
+
+        eventList.add(new AddParcelEvent(parcelBuilder.build()));
       }
       return eventList.build();
     }
@@ -108,6 +105,11 @@ public class Parcels {
   }
 
   public static class Builder {
+    static final TimeSeriesGenerator DEFAULT_ARRIVAL_TIMES = TimeSeries
+        .homogenousPoisson(4 * 60 * 60 * 1000, 20);
+    static final LocationGenerator DEFAULT_LOCATIONS = Locations.builder()
+        .square(5d).uniform();
+
     static final SupplierRng<Long> DEFAULT_SERVICE_DURATION = SupplierRngs
         .constant(5 * 60 * 1000L);
     static final SupplierRng<Integer> DEFAULT_CAPACITY = SupplierRngs
@@ -121,9 +123,8 @@ public class Parcels {
     SupplierRng<Integer> neededCapacityGenerator;
 
     Builder() {
-      arrivalTimeGenerator = TimeSeries.homogenousPoisson(4 * 60 * 60 * 1000,
-          20);
-      locationGenerator = Locations.builder().square(5d).uniform();
+      arrivalTimeGenerator = DEFAULT_ARRIVAL_TIMES;
+      locationGenerator = DEFAULT_LOCATIONS;
       pickupDurationGenerator = DEFAULT_SERVICE_DURATION;
       deliveryDurationGenerator = DEFAULT_SERVICE_DURATION;
       neededCapacityGenerator = DEFAULT_CAPACITY;

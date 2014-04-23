@@ -11,12 +11,10 @@ import javax.measure.unit.SI;
 import org.apache.commons.math3.random.MersenneTwister;
 import org.junit.Test;
 
-import rinde.sim.core.graph.Point;
 import rinde.sim.core.model.pdp.TimeWindowPolicy.TimeWindowPolicies;
 import rinde.sim.pdptw.common.DynamicPDPTWProblem.StopCondition;
 import rinde.sim.pdptw.scenario.PDPScenario.DefaultScenario;
 import rinde.sim.pdptw.scenario.PDPScenario.ProblemClass;
-import rinde.sim.pdptw.scenario.tw.ProportionateUniformTWGenerator;
 
 import com.google.common.base.Charsets;
 import com.google.common.base.Predicates;
@@ -52,9 +50,7 @@ public class GeneratedScenarioIOTest {
                 .arrivalTimes(
                     TimeSeries.homogenousPoisson(4 * 60 * 60 * 1000L, 10))
                 .locations(Locations.builder().square(5).uniform())
-                .timeWindows(
-                    new ProportionateUniformTWGenerator(new Point(0, 0),
-                        4 * 60 * 60 * 1000L, 0L, 0L, 50d))
+                .timeWindows(TimeWindows.builder().build())
                 .build()
 
         )
