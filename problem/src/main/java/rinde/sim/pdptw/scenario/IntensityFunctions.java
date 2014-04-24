@@ -8,8 +8,6 @@ import org.apache.commons.math3.analysis.UnivariateFunction;
 import org.apache.commons.math3.analysis.integration.RombergIntegrator;
 import org.apache.commons.math3.analysis.integration.UnivariateIntegrator;
 
-import rinde.sim.pdptw.scenario.TimeSeries.TimeSeriesGenerator;
-
 import com.google.common.base.Function;
 import com.google.common.base.Objects;
 import com.google.common.primitives.Doubles;
@@ -49,9 +47,17 @@ public final class IntensityFunctions {
   }
 
   /**
+   * @return A new builder for creating sine {@link IntensityFunction}
+   *         instances.
+   */
+  public static SineIntensityBuilder sineIntensity() {
+    return new SineIntensityBuilder();
+  }
+
+  /**
    * Represents a function <code>f(x)</code> that returns the intensity at time
    * <code>x</code>. This function can be used to characterize an
-   * {@link TimeSeriesGenerator}.
+   * {@link rinde.sim.pdptw.scenario.TimeSeries.TimeSeriesGenerator}.
    * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
    */
   public interface IntensityFunction extends Function<Double, Double> {
@@ -203,14 +209,6 @@ public final class IntensityFunctions {
         return new double[] { rootA, rootB };
       }
     }
-  }
-
-  /**
-   * @return A new builder for creating sine {@link IntensityFunction}
-   *         instances.
-   */
-  public static SineIntensityBuilder sineIntensity() {
-    return new SineIntensityBuilder();
   }
 
   /**

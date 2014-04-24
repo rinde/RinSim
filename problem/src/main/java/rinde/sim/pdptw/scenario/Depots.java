@@ -10,7 +10,13 @@ import rinde.sim.util.SupplierRngs;
 
 import com.google.common.collect.ImmutableList;
 
-public class Depots {
+/**
+ * Utility class for creating {@link DepotGenerator}s.
+ * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+ */
+public final class Depots {
+  private Depots() {}
+
   private static final DepotGenerator SINGLE_CENTERED_DEPOT_GENERATOR = new DepotGenerator() {
     @Override
     public Iterable<? extends AddDepotEvent> generate(long seed, Point center) {
@@ -18,18 +24,42 @@ public class Depots {
     }
   };
 
+  /**
+   * @return A {@link DepotGenerator} that creates a single
+   *         {@link AddDepotEvent} that places the depot at the center of the
+   *         area.
+   */
   public static DepotGenerator singleCenteredDepot() {
     return SINGLE_CENTERED_DEPOT_GENERATOR;
   }
 
+  /**
+   * @return A new builder for creating arbitrarily complex
+   *         {@link DepotGenerator}s.
+   */
   public static Builder builder() {
     return new Builder();
   }
 
+  /**
+   * Generator of {@link AddDepotEvent}s.
+   * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+   */
   public interface DepotGenerator {
+    /**
+     * Should create a {@link AddDepotEvent} for each required depot.
+     * @param seed The random seed to use for generating the depots.
+     * @param center The center of the area as defined by the context (usually a
+     *          scenario generator).
+     * @return The list of events.
+     */
     Iterable<? extends AddDepotEvent> generate(long seed, Point center);
   }
 
+  /**
+   * Builder for creating {@link DepotGenerator}s.
+   * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+   */
   public static class Builder {
     SupplierRng<Point> positions;
     SupplierRng<Integer> numberOfDepots;
@@ -41,21 +71,41 @@ public class Depots {
       times = SupplierRngs.constant(-1L);
     }
 
+    /**
+     * Set where the positions of the depots should be coming from.
+     * @param ps The supplier to use for points.
+     * @return This, as per the builder pattern.
+     */
     public Builder positions(SupplierRng<Point> ps) {
       positions = ps;
       return this;
     }
 
+    /**
+     * Sets the number of depots that the {@link DepotGenerator} should
+     * generate. This number is {@link SupplierRng} itself meaning that it can
+     * be drawn from a random distribution.
+     * @param nd The number of depots.
+     * @return This, as per the builder pattern.
+     */
     public Builder numerOfDepots(SupplierRng<Integer> nd) {
       numberOfDepots = nd;
       return this;
     }
 
+    /**
+     * Sets the event times that will be used for the creation of the depots.
+     * @param ts The event times.
+     * @return This, as per the builder pattern.
+     */
     public Builder times(SupplierRng<Long> ts) {
       times = ts;
       return this;
     }
 
+    /**
+     * @return Creates a new {@link DepotGenerator} based on this builder.
+     */
     public DepotGenerator build() {
       return new MultiDepotGenerator(this);
     }

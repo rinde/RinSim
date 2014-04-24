@@ -61,7 +61,8 @@ import com.google.gson.stream.JsonWriter;
  * Provides utilities for reading and writing scenario files.
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
  */
-public class ScenarioIO {
+public final class ScenarioIO {
+  private ScenarioIO() {}
 
   private final static Gson gson = initialize();
 

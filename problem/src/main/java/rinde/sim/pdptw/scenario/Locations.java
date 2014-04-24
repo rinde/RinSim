@@ -13,7 +13,8 @@ import rinde.sim.util.SupplierRngs;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 
-public class Locations {
+public final class Locations {
+  private Locations() {}
 
   public static Builder builder() {
     return new Builder();

@@ -25,6 +25,7 @@ import com.google.common.math.DoubleMath;
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
  */
 public final class Parcels {
+  private Parcels() {}
 
   /**
    * @return A new {@link Builder} for creating {@link ParcelGenerator}s.
