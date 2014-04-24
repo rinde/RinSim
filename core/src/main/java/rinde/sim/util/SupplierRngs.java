@@ -23,41 +23,94 @@ public final class SupplierRngs {
 
   private SupplierRngs() {}
 
+  /**
+   * Create a {@link SupplierRng} that will always return the specified value.
+   * @param value The value which the supplier will return.
+   * @return A supplier that always returns the specified value.
+   */
   public static <T> SupplierRng<T> constant(T value) {
     return new ConstantSupplierRng<T>(value);
   }
 
+  /**
+   * @return Builder for constructing {@link SupplierRng}s that produce normal
+   *         (Gaussian) distributed numbers.
+   */
   public static Builder normal() {
     return new Builder();
   }
 
+  /**
+   * Creates a {@link SupplierRng} that produces uniformly distributed
+   * {@link Double}s.
+   * @param lower The lower bound of the uniform distribution.
+   * @param upper The upper bound of the uniform distribution.
+   * @return The supplier.
+   */
   public static SupplierRng<Double> uniformDouble(double lower, double upper) {
     return new DoubleDistributionSupplierRng(new UniformRealDistribution(
         new MersenneTwister(), lower, upper));
   }
 
+  /**
+   * Creates a {@link SupplierRng} that produces uniformly distributed
+   * {@link Integer}s.
+   * @param lower The lower bound of the uniform distribution.
+   * @param upper The upper bound of the uniform distribution.
+   * @return The supplier.
+   */
   public static SupplierRng<Integer> uniformInt(int lower, int upper) {
     return new IntegerDistributionSupplierRng(new UniformIntegerDistribution(
         new MersenneTwister(), lower, upper));
   }
 
+  /**
+   * Creates a {@link SupplierRng} that produces uniformly distributed
+   * {@link Long}s.
+   * @param lower The lower bound of the uniform distribution.
+   * @param upper The upper bound of the uniform distribution.
+   * @return The supplier.
+   */
   public static SupplierRng<Long> uniformLong(int lower, int upper) {
     return intToLong(uniformInt(lower, upper));
   }
 
+  /**
+   * Convert a {@link SupplierRng} of {@link Integer} to a supplier of
+   * {@link Long}.
+   * @param supplier The supplier to convert.
+   * @return The converted supplier.
+   */
   public static SupplierRng<Long> intToLong(SupplierRng<Integer> supplier) {
     return new IntToLongAdapter(supplier);
   }
 
+  /**
+   * Convert a {@link SupplierRng} of {@link Double} to a supplier of
+   * {@link Integer}.
+   * @param supplier The supplier to convert.
+   * @return The converted supplier.
+   */
   public static SupplierRng<Integer> roundDoubleToInt(
       SupplierRng<Double> supplier) {
     return new DoubleToIntAdapter(supplier);
   }
 
+  /**
+   * Convert a {@link SupplierRng} of {@link Double} to a supplier of
+   * {@link Long}.
+   * @param supplier The supplier to convert.
+   * @return The converted supplier.
+   */
   public static SupplierRng<Long> roundDoubleToLong(SupplierRng<Double> supplier) {
     return new DoubleToLongAdapter(supplier);
   }
 
+  /**
+   * Builder for creating {@link SupplierRng}s that return a number with a
+   * normal distribution.
+   * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+   */
   public static class Builder {
     private double mean;
     private double std;
@@ -73,48 +126,107 @@ public final class SupplierRngs {
       outOfBoundStrategy = OutOfBoundStrategy.REDRAW;
     }
 
+    /**
+     * Set the mean of the normal distribution.
+     * @param m The mean. Default value: <code>0</code>.
+     * @return This, as per the builder pattern.
+     */
     public Builder mean(double m) {
       mean = m;
       return this;
     }
 
-    public Builder std(double s) {
-      std = s;
+    /**
+     * 
+     * @param sd The standard deviation. Default value: <code>1</code>.
+     * @return This, as per the builder pattern.
+     */
+    public Builder std(double sd) {
+      std = sd;
       return this;
     }
 
-    public Builder variance(double v) {
-      std = Math.sqrt(v);
+    /**
+     * 
+     * @param var The variance. Default value: <code>1</code>.
+     * @return This, as per the builder pattern.
+     */
+    public Builder variance(double var) {
+      std = Math.sqrt(var);
       return this;
     }
 
+    /**
+     * Sets the lower and upper bounds of the normal distribution. In case a
+     * number is drawn outside the bounds: <code> x < lower || x > upper</code>
+     * the out of bound strategy defines what will happen. See
+     * {@link #redrawWhenOutOfBounds()} and {@link #roundWhenOutOfBounds()} for
+     * the options.
+     * @param lower The lower bound. Default value:
+     *          {@link Double#NEGATIVE_INFINITY}.
+     * @param upper The upper bound. Default value:
+     *          {@link Double#POSITIVE_INFINITY}.
+     * @return This, as per the builder pattern.
+     */
     public Builder bounds(double lower, double upper) {
       lowerBound = lower;
       upperBound = upper;
       return this;
     }
 
-    public Builder lowerBound(double l) {
-      lowerBound = l;
+    /**
+     * Sets the lower bound, see {@link #bounds(double, double)} for more
+     * information.
+     * @param lower The lower bound.
+     * @return This, as per the builder pattern.
+     */
+    public Builder lowerBound(double lower) {
+      lowerBound = lower;
       return this;
     }
 
-    public Builder upperBound(double u) {
-      upperBound = u;
+    /**
+     * Sets the upper bound, see {@link #bounds(double, double)} for more
+     * information.
+     * @param upper The upper bound.
+     * @return This, as per the builder pattern.
+     */
+    public Builder upperBound(double upper) {
+      upperBound = upper;
       return this;
     }
 
+    /**
+     * Calling this method will set the out of bounds strategy to redraw. This
+     * means that when a number is drawn from the distribution that is out of
+     * bounds a new number will be drawn. This will continue until a value is
+     * found within bounds. Note that when the bounds are small relative to the
+     * distribution this may result in a large number of attempts. By default
+     * this strategy is enabled.
+     * @return This, as per the builder pattern.
+     */
     public Builder redrawWhenOutOfBounds() {
       outOfBoundStrategy = OutOfBoundStrategy.REDRAW;
       return this;
     }
 
+    /**
+     * Calling this method will set the out of bounds strategy to redraw. This
+     * means that when a number is drawn from the distribution that is out of
+     * bounds the number will be rounded to the nearest bound. By default this
+     * strategy is disabled.
+     * @return This, as per the builder pattern.
+     */
     public Builder roundWhenOutOfBounds() {
       outOfBoundStrategy = OutOfBoundStrategy.ROUND;
       return this;
     }
 
-    public SupplierRng<Double> doubleSupplier() {
+    /**
+     * @return A {@link SupplierRng} that draws double values from a normal
+     *         distribution.
+     */
+    public SupplierRng<Double> buildDouble() {
       checkArgument(mean + std >= lowerBound);
       checkArgument(mean + std <= upperBound);
       final RealDistribution distribution = new NormalDistribution(mean, std);
@@ -126,21 +238,29 @@ public final class SupplierRngs {
       }
     }
 
+    /**
+     * @return A {@link SupplierRng} that draws integer values from a normal
+     *         distribution.
+     */
+    public SupplierRng<Integer> buildInteger() {
+      integerChecks();
+      return roundDoubleToInt(buildDouble());
+    }
+
+    /**
+     * @return A {@link SupplierRng} that draws long values from a normal
+     *         distribution.
+     */
+    public SupplierRng<Long> buildLong() {
+      integerChecks();
+      return roundDoubleToLong(buildDouble());
+    }
+
     void integerChecks() {
       checkArgument(Double.isInfinite(lowerBound)
           || DoubleMath.isMathematicalInteger(lowerBound));
       checkArgument(Double.isInfinite(upperBound)
           || DoubleMath.isMathematicalInteger(upperBound));
-    }
-
-    public SupplierRng<Integer> integerSupplier() {
-      integerChecks();
-      return roundDoubleToInt(doubleSupplier());
-    }
-
-    public SupplierRng<Long> longSupplier() {
-      integerChecks();
-      return roundDoubleToLong(doubleSupplier());
     }
   }
 

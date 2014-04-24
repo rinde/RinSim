@@ -51,7 +51,7 @@ public class TimeWindowsTest {
         builder()
             .urgency(uniformLong(0, 10))
             .timeWindowLength(
-                normal().bounds(0, 10).mean(5).std(3).longSupplier())
+                normal().bounds(0, 10).mean(5).std(3).buildLong())
             .build(),
         builder()
             .urgency(constant(0L))

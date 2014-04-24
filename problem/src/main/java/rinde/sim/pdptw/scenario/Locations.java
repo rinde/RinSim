@@ -208,7 +208,7 @@ public class Locations {
       } else {
         builder.roundWhenOutOfBounds();
       }
-      return builder.doubleSupplier();
+      return builder.buildDouble();
     }
   }
 

@@ -31,9 +31,9 @@ public class SupplierRngDeterminismTest {
         { uniformLong(-100, 100) },
         { constant(new Object()) },
         { constant(100L) },
-        { normal().doubleSupplier() },
-        { normal().bounds(-1, 1).integerSupplier() },
-        { normal().mean(100).std(50).longSupplier() }
+        { normal().buildDouble() },
+        { normal().bounds(-1, 1).buildInteger() },
+        { normal().mean(100).std(50).buildLong() }
     });
   }
 
