@@ -15,7 +15,6 @@ import rinde.sim.pdptw.central.GlobalStateObject.VehicleStateObject;
 import rinde.sim.pdptw.common.ParcelDTO;
 import rinde.sim.util.SupplierRng;
 import rinde.sim.util.SupplierRngs;
-import rinde.sim.util.SupplierRngs.AbstractSupplierRng;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.LinkedListMultimap;

@@ -376,7 +376,7 @@ public final class Solvers {
     DefaultParcel destination = null;
     if (!isIdle) {
       final VehicleParcelActionInfo vpai = pm.getVehicleActionInfo(vehicle);
-      destination = ((DefaultParcel) vpai.getParcel());
+      destination = (DefaultParcel) vpai.getParcel();
       remainingServiceTime = vpai.timeNeeded();
     } else if (!rm.isVehicleDiversionAllowed()) {
       // check whether the vehicle is already underway to parcel
@@ -577,10 +577,15 @@ public final class Solvers {
    * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
    */
   public static class AdapterBuilder<T extends SimulationConverter> {
+    @Nullable
     Simulator simulator;
+    @Nullable
     SimulatorAPI simulatorApi;
+    @Nullable
     ModelProvider modelProvider;
+    @Nullable
     PDPRoadModel roadModel;
+    @Nullable
     PDPModel pdpModel;
     final List<DefaultVehicle> vehicles;
     final Optional<Solver> solver;
@@ -676,6 +681,7 @@ public final class Solvers {
       PDPModel pm = pdpModel;
       if (rm == null || pm == null) {
         // in this case we need a model provider
+        @Nullable
         ModelProvider mp = modelProvider;
         if (mp == null) {
           checkArgument(

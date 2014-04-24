@@ -14,7 +14,6 @@ import rinde.sim.pdptw.central.GlobalStateObject.VehicleStateObject;
 import rinde.sim.pdptw.common.ParcelDTO;
 import rinde.sim.util.SupplierRng;
 import rinde.sim.util.SupplierRngs;
-import rinde.sim.util.SupplierRngs.AbstractSupplierRng;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
@@ -39,25 +38,17 @@ public final class SolverValidator {
    * @return The wrapped solver.
    */
   public static Solver wrap(Solver delegate) {
-    return new SolverValidator.Validator(delegate);
+    return new SolverValidator.ValidatedSolver(delegate);
   }
 
+  /**
+   * Decorates the original {@link SupplierRng} such that all generated
+   * {@link Solver} instances are wrapped using {@link #wrap(Solver)}.
+   * @param sup The supplier to wrap.
+   * @return The wrapper supplier.
+   */
   public static SupplierRng<Solver> wrap(SupplierRng<? extends Solver> sup) {
-    return new SolverValidatorSupplier(sup);
-  }
-
-  private static final class SolverValidatorSupplier extends
-      SupplierRngs.AbstractSupplierRng<Solver> {
-    private final SupplierRng<? extends Solver> supplier;
-
-    SolverValidatorSupplier(SupplierRng<? extends Solver> sup) {
-      supplier = sup;
-    }
-
-    @Override
-    public Solver get(long seed) {
-      return SolverValidator.wrap(supplier.get(seed));
-    }
+    return new ValidatedSupplier(sup);
   }
 
   /**
@@ -228,16 +219,30 @@ public final class SolverValidator {
     return routes;
   }
 
-  private static class Validator implements Solver {
+  private static class ValidatedSolver implements Solver {
     private final Solver delegateSolver;
 
-    Validator(Solver delegate) {
+    ValidatedSolver(Solver delegate) {
       delegateSolver = delegate;
     }
 
     @Override
     public ImmutableList<ImmutableList<ParcelDTO>> solve(GlobalStateObject state) {
       return validateOutputs(delegateSolver.solve(validateInputs(state)), state);
+    }
+  }
+
+  private static final class ValidatedSupplier extends
+      SupplierRngs.AbstractSupplierRng<Solver> {
+    private final SupplierRng<? extends Solver> supplier;
+
+    ValidatedSupplier(SupplierRng<? extends Solver> sup) {
+      supplier = sup;
+    }
+
+    @Override
+    public Solver get(long seed) {
+      return SolverValidator.wrap(supplier.get(seed));
     }
   }
 }
