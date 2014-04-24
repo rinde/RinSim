@@ -4,12 +4,14 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertTrue;
 import static rinde.sim.pdptw.scenario.TimeWindows.builder;
+import static rinde.sim.util.SupplierRngs.constant;
+import static rinde.sim.util.SupplierRngs.normal;
+import static rinde.sim.util.SupplierRngs.uniformLong;
 
 import java.util.List;
 
 import org.apache.commons.math3.random.MersenneTwister;
 import org.apache.commons.math3.random.RandomGenerator;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -19,7 +21,6 @@ import rinde.sim.core.graph.Point;
 import rinde.sim.pdptw.common.ParcelDTO;
 import rinde.sim.pdptw.scenario.ScenarioGenerator.TravelTimes;
 import rinde.sim.pdptw.scenario.TimeWindows.TimeWindowGenerator;
-import rinde.sim.util.SupplierRngs;
 import rinde.sim.util.TestUtil;
 import rinde.sim.util.TimeWindow;
 
@@ -36,16 +37,39 @@ public class TimeWindowsTest {
 
   @Parameters
   public static List<Object[]> parameters() {
+
+    final ImmutableList<TimeWindowGenerator> generators = ImmutableList.of(
+        builder()
+            .build(),
+        builder()
+            .pickupUrgency(uniformLong(0, 10))
+            .build(),
+        builder()
+            .urgency(uniformLong(0, 10))
+            .timeWindowLength(
+                normal().bounds(0, 10).mean(5).std(3).longSupplier())
+            .build(),
+        builder()
+            .urgency(constant(0L))
+            .timeWindowLength(constant(0L))
+            .build());
+
     return ImmutableList.of(
         new Object[] { builder().build() },
         new Object[] { builder()
-            .pickupUrgency(SupplierRngs.uniformLong(0, 10))
+            .pickupUrgency(uniformLong(0, 10))
             .build() },
         new Object[] { builder()
-            .urgency(SupplierRngs.uniformLong(0, 10))
+            .urgency(uniformLong(0, 10))
             .timeWindowLength(
-                SupplierRngs.normal().bounds(0, 10).longSupplier())
-            .build() }
+                normal().bounds(0, 10).mean(5).std(3).longSupplier())
+            .build() },
+        new Object[] { builder()
+            .urgency(constant(0L))
+            .timeWindowLength(constant(0L))
+            .build()
+
+        }
 
         );
   }
@@ -75,13 +99,11 @@ public class TimeWindowsTest {
   }
 
   // FIXME fix this test
-  @Ignore
   @Test
   public void overlapTest() {
     final RandomGenerator rng = new MersenneTwister(123L);
     final long endTime = 100;
     for (final TravelTimes tt : FakeTravelTimes.values()) {
-
       // TODO use different:
       // pickup durations
       // delivery durations
@@ -98,9 +120,12 @@ public class TimeWindowsTest {
         final long pickDelTT = tt.getShortestTravelTime(p1, p2);
         final long delDepTT = tt.getTravelTimeToNearestDepot(p2);
 
-        assertTrue(builder.getPickupTimeWindow().end <= builder
-            .getDeliveryTimeWindow().end + pickDelTT
-            + builder.getPickupDuration());
+        final TimeWindow pickTW = builder.getPickupTimeWindow();
+        final TimeWindow delTW = builder.getDeliveryTimeWindow();
+
+        assertTrue(i + " " + tt + " " + pickTW + " " + delTW,
+            pickTW.end <= delTW.end
+                + pickDelTT + builder.getPickupDuration());
 
         assertTrue(builder.getPickupTimeWindow().begin
             + pickDelTT + builder.getPickupDuration() <= builder

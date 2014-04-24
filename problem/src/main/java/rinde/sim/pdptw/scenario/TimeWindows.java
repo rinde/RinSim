@@ -75,30 +75,36 @@ public final class TimeWindows {
 
       // PICKUP
       final long earliestPickupOpening = orderAnnounceTime;
+      final long earliestPickupClosing = earliestPickupOpening;
       final long latestPickupClosing = endTime - deliveryToDepotTT
           - pickupToDeliveryTT - parcelBuilder.getPickupDuration()
           - parcelBuilder.getDeliveryDuration();
       final TimeWindow pickupTW = urgencyTimeWindow(earliestPickupOpening,
-          latestPickupClosing, pickupUrgency, pickupTWLength);
+          earliestPickupClosing, latestPickupClosing, pickupUrgency,
+          pickupTWLength);
 
       // DELIVERY
       final long earliestDeliveryOpening = pickupTW.begin + pickupToDeliveryTT
           + parcelBuilder.getPickupDuration();
+      final long earliestDeliveryClosing = pickupTW.end + pickupToDeliveryTT
+          + parcelBuilder.getPickupDuration();
       final long latestDeliveryClosing = endTime - deliveryToDepotTT
           + parcelBuilder.getDeliveryDuration();
+
       final TimeWindow deliveryTW = urgencyTimeWindow(earliestDeliveryOpening,
-          latestDeliveryClosing, deliveryUrgency, deliveryTWLength);
+          earliestDeliveryClosing, latestDeliveryClosing, deliveryUrgency,
+          deliveryTWLength);
 
       parcelBuilder.pickupTimeWindow(pickupTW);
       parcelBuilder.deliveryTimeWindow(deliveryTW);
     }
 
-    TimeWindow urgencyTimeWindow(long earliestOpening,
+    TimeWindow urgencyTimeWindow(long earliestOpening, long earliestClosing,
         long latestClosing, SupplierRng<Long> urgency, SupplierRng<Long> length) {
 
-      final long closing = earliestOpening + urgency.get(rng.nextLong());
+      final long closing = earliestClosing + urgency.get(rng.nextLong());
       final long roundedClosing =
-          Math.max(earliestOpening, Math.min(closing, latestClosing));
+          Math.max(earliestClosing, Math.min(closing, latestClosing));
 
       final long opening = roundedClosing - length.get(rng.nextLong());
       final long roundedOpening =
