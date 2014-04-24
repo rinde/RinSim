@@ -9,6 +9,7 @@ import javax.annotation.Nullable;
 
 import org.apache.commons.math3.stat.StatUtils;
 
+import rinde.sim.pdptw.scenario.Metrics;
 import rinde.sim.scenario.Scenario;
 
 import com.google.common.base.Predicate;

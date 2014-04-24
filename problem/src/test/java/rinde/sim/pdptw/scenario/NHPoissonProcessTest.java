@@ -15,7 +15,6 @@ import org.junit.Ignore;
 import org.junit.Test;
 
 import rinde.sim.core.graph.Point;
-import rinde.sim.pdptw.measure.Metrics;
 import rinde.sim.pdptw.scenario.IntensityFunctions;
 import rinde.sim.pdptw.scenario.TimeSeries;
 import rinde.sim.pdptw.scenario.IntensityFunctions.IntensityFunction;

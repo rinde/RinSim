@@ -1,7 +1,6 @@
 package rinde.sim.pdptw.scenario;
 
 import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.Lists.newArrayList;
 
 import java.util.Iterator;
@@ -32,6 +31,7 @@ import rinde.sim.scenario.TimedEvent;
 import rinde.sim.util.TimeWindow;
 
 import com.google.common.base.Supplier;
+import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 
 public final class ScenarioGenerator {
@@ -110,17 +110,8 @@ public final class ScenarioGenerator {
         rng.nextLong(), parcelGenerator.getCenter(), builder.timeWindow.end);
     b.addAll(vehicles);
 
-    RoadModel rm = null;
-    for (final Supplier<?> sup : modelSuppliers) {
-      final Object v = sup.get();
-      if (v instanceof RoadModel) {
-        rm = (RoadModel) v;
-        break;
-      }
-    }
-    checkNotNull(rm);
-    final TravelTimes tm = new DefaultTravelModel(rm, getTimeUnit(), depots,
-        vehicles);
+    final TravelTimes tm = createTravelTimes(modelSuppliers, getTimeUnit(),
+        depots, vehicles);
 
     // parcels
     b.addAll(parcelGenerator.generate(rng.nextLong(), tm,
@@ -139,6 +130,40 @@ public final class ScenarioGenerator {
 
   public static Builder builder(ProblemClass problemClass) {
     return new Builder(problemClass);
+  }
+
+  static TravelTimes createTravelTimes(PDPScenario s) {
+    final Iterable<AddDepotEvent> depots = FluentIterable.from(s.asList())
+        .filter(AddDepotEvent.class);
+    final Iterable<AddVehicleEvent> vehicles = FluentIterable.from(s.asList())
+        .filter(AddVehicleEvent.class);
+    final FluentIterable<RoadModel> roadModels = FluentIterable.from(
+        s.createModels()).filter(RoadModel.class);
+    checkArgument(roadModels.size() == 1);
+
+    return new DefaultTravelTimes(roadModels.first().get(), s.getTimeUnit(),
+        depots, vehicles);
+  }
+
+  static TravelTimes createTravelTimes(
+      Iterable<? extends Supplier<? extends Model<?>>> modelSuppliers,
+      Unit<Duration> tu,
+      Iterable<? extends AddDepotEvent> depots,
+      Iterable<? extends AddVehicleEvent> vehicles) {
+    final RoadModel rm = getRm(modelSuppliers);
+    return new DefaultTravelTimes(rm, tu, depots, vehicles);
+  }
+
+  static RoadModel getRm(
+      Iterable<? extends Supplier<? extends Model<?>>> modelSuppliers) {
+    for (final Supplier<?> sup : modelSuppliers) {
+      final Object v = sup.get();
+      if (v instanceof RoadModel) {
+        return (RoadModel) v;
+      }
+    }
+    throw new IllegalArgumentException("There is no RoadModel supplier in "
+        + modelSuppliers + ".");
   }
 
   /**
@@ -271,13 +296,13 @@ public final class ScenarioGenerator {
     long getTravelTimeToNearestDepot(Point from);
   }
 
-  static class DefaultTravelModel implements TravelTimes {
+  static class DefaultTravelTimes implements TravelTimes {
     private final RoadModel roadModel;
     private final Measure<Double, Velocity> vehicleSpeed;
     private final Unit<Duration> timeUnit;
     private final ImmutableList<Point> depotLocations;
 
-    DefaultTravelModel(RoadModel rm, Unit<Duration> tu,
+    DefaultTravelTimes(RoadModel rm, Unit<Duration> tu,
         Iterable<? extends AddDepotEvent> depots,
         Iterable<? extends AddVehicleEvent> vehicles) {
       roadModel = rm;

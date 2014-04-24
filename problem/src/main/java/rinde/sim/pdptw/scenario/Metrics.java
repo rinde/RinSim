@@ -1,7 +1,7 @@
 /**
  * 
  */
-package rinde.sim.pdptw.measure;
+package rinde.sim.pdptw.scenario;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.collect.Lists.newArrayList;
@@ -14,9 +14,10 @@ import java.util.Set;
 
 import rinde.sim.core.graph.Point;
 import rinde.sim.core.model.pdp.PDPScenarioEvent;
+import rinde.sim.core.model.road.RoadModels;
 import rinde.sim.pdptw.common.AddParcelEvent;
 import rinde.sim.pdptw.common.AddVehicleEvent;
-import rinde.sim.pdptw.scenario.PDPScenario;
+import rinde.sim.pdptw.scenario.ScenarioGenerator.TravelTimes;
 import rinde.sim.scenario.Scenario;
 import rinde.sim.scenario.TimedEvent;
 import rinde.sim.util.TimeWindow;
@@ -183,11 +184,11 @@ public final class Metrics {
     return occurences.build();
   }
 
-  public static void checkTimeWindowStrictness(Scenario s) {
-    final double speed = getVehicleSpeed(s);
+  public static void checkTimeWindowStrictness(PDPScenario s) {
+    final TravelTimes tt = ScenarioGenerator.createTravelTimes(s);
     for (final TimedEvent te : s.asList()) {
       if (te instanceof AddParcelEvent) {
-        Metrics.checkParcelTWStrictness((AddParcelEvent) te, speed);
+        checkParcelTWStrictness((AddParcelEvent) te, tt);
       }
     }
   }
@@ -195,17 +196,17 @@ public final class Metrics {
   /**
    * Checks whether the TWs are not unnecessarily big.
    * @param event
-   * @param vehicleSpeed
+   * @param travelTimes
    */
   public static void checkParcelTWStrictness(AddParcelEvent event,
-      double vehicleSpeed) {
+      TravelTimes travelTimes) {
     final long firstDepartureTime = event.parcelDTO.pickupTimeWindow.begin
         + event.parcelDTO.pickupDuration;
     final long latestDepartureTime = event.parcelDTO.pickupTimeWindow.end
         + event.parcelDTO.pickupDuration;
 
-    final long travelTime = travelTime(event.parcelDTO.pickupLocation,
-        event.parcelDTO.deliveryLocation, vehicleSpeed);
+    final double travelTime = travelTimes.getShortestTravelTime(
+        event.parcelDTO.pickupLocation, event.parcelDTO.deliveryLocation);
 
     checkArgument(
         event.parcelDTO.deliveryTimeWindow.begin >= firstDepartureTime
@@ -305,7 +306,7 @@ public final class Metrics {
       final double delta = times.get(i + 1) - times.get(i);
       if (delta < expectedInterArrivalTime) {
         final double diff = expectedInterArrivalTime - delta;
-        final double scaledPrev = (diff / expectedInterArrivalTime)
+        final double scaledPrev = diff / expectedInterArrivalTime
             * prevDeviation;
         final double cur = diff + scaledPrev;
         sumDeviation += cur;
@@ -315,7 +316,7 @@ public final class Metrics {
         prevDeviation = 0;
       }
     }
-    return 1d - (sumDeviation / maxDeviation);
+    return 1d - sumDeviation / maxDeviation;
   }
 
   // FIXME move this method to common? and make sure everybody uses the same
@@ -323,8 +324,14 @@ public final class Metrics {
   // speed = km/h
   // points in km
   // return time in minutes
+  /**
+   * @deprecated use
+   *             {@link RoadModels#computeTravelTime(javax.measure.Measure, javax.measure.Measure, javax.measure.unit.Unit)}
+   *             instead.
+   */
+  @Deprecated
   public static long travelTime(Point p1, Point p2, double speed) {
-    return DoubleMath.roundToLong((Point.distance(p1, p2) / speed) * 60d,
+    return DoubleMath.roundToLong(Point.distance(p1, p2) / speed * 60d,
         RoundingMode.CEILING);
   }
 

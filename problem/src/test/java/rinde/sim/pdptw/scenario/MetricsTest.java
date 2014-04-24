@@ -1,16 +1,16 @@
 /**
  * 
  */
-package rinde.sim.pdptw.measure;
+package rinde.sim.pdptw.scenario;
 
 import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.collect.Lists.newArrayList;
 import static java.util.Arrays.asList;
 import static junit.framework.Assert.assertEquals;
-import static rinde.sim.pdptw.measure.Metrics.measureDynamism;
-import static rinde.sim.pdptw.measure.Metrics.measureLoad;
-import static rinde.sim.pdptw.measure.Metrics.sum;
-import static rinde.sim.pdptw.measure.Metrics.travelTime;
+import static rinde.sim.pdptw.scenario.Metrics.measureDynamism;
+import static rinde.sim.pdptw.scenario.Metrics.measureLoad;
+import static rinde.sim.pdptw.scenario.Metrics.sum;
+import static rinde.sim.pdptw.scenario.Metrics.travelTime;
 
 import java.io.File;
 import java.io.IOException;
@@ -28,8 +28,8 @@ import org.junit.Test;
 import rinde.sim.core.graph.Point;
 import rinde.sim.pdptw.common.AddParcelEvent;
 import rinde.sim.pdptw.common.ParcelDTO;
-import rinde.sim.pdptw.measure.Metrics;
-import rinde.sim.pdptw.measure.Metrics.LoadPart;
+import rinde.sim.pdptw.scenario.Metrics;
+import rinde.sim.pdptw.scenario.Metrics.LoadPart;
 import rinde.sim.util.TimeWindow;
 
 import com.google.common.base.Charsets;
