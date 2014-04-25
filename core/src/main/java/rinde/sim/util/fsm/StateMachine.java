@@ -330,7 +330,6 @@ public class StateMachine<T, C> {
    * @see StateMachineEvent
    */
   public static class StateTransitionEvent<T, C> extends Event {
-    private static final long serialVersionUID = -1478171329851890047L;
     /**
      * The previous state of the state machine prior to the current state.
      */

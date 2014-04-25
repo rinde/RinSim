@@ -3,8 +3,6 @@
  */
 package rinde.sim.event;
 
-import java.io.Serializable;
-
 import javax.annotation.Nullable;
 
 import com.google.common.base.Optional;
@@ -14,8 +12,7 @@ import com.google.common.base.Optional;
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
  * @author Bartosz Michalik <bartosz.michalik@cs.kuleuven.be>
  */
-public class Event implements Serializable {
-  private static final long serialVersionUID = -390528892294335442L;
+public class Event {
 
   /**
    * The type of event.
