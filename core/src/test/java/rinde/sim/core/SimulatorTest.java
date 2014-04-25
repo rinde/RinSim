@@ -124,13 +124,13 @@ public class SimulatorTest {
     final LimitingTickListener ltl = new LimitingTickListener(simulator, 3);
     simulator.addTickListener(ltl);
     simulator.start();
-    assertTrue(simulator.getCurrentTime() == 3 * timeStep.getValue());
+    assertEquals(3 * timeStep.getValue(), simulator.getCurrentTime());
 
     simulator.unregister(new Object());
     simulator.togglePlayPause();
-    assertTrue(simulator.getCurrentTime() == 6 * timeStep.getValue());
+    assertEquals(6 * timeStep.getValue(), simulator.getCurrentTime());
     simulator.resetTime();
-    assertTrue(simulator.getCurrentTime() == 0);
+    assertEquals(0, simulator.getCurrentTime());
   }
 
   @Test
