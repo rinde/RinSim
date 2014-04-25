@@ -164,7 +164,7 @@ public class SimulationViewer extends Composite implements TickListener,
       final int bottomHeight = configurePanels(vertical,
           panels.removeAll(SWT.BOTTOM));
 
-      final int canvasHeight = (size.y - topHeight) - bottomHeight;
+      final int canvasHeight = size.y - topHeight - bottomHeight;
       if (topHeight > 0 && bottomHeight > 0) {
         vertical.setWeights(varargs(topHeight, canvasHeight, bottomHeight));
       } else if (topHeight > 0) {
@@ -173,7 +173,7 @@ public class SimulationViewer extends Composite implements TickListener,
         vertical.setWeights(varargs(canvasHeight, bottomHeight));
       }
 
-      final int canvasWidth = (size.x - leftWidth) - rightWidth;
+      final int canvasWidth = size.x - leftWidth - rightWidth;
       if (leftWidth > 0 && rightWidth > 0) {
         horizontal.setWeights(varargs(leftWidth, canvasWidth, rightWidth));
       } else if (leftWidth > 0) {
@@ -561,7 +561,7 @@ public class SimulationViewer extends Composite implements TickListener,
       final int destY = -vSelection - center.y;
       canvas.scroll(center.x, destY, center.x, center.y, content.width,
           content.height, false);
-      origin.y = -vSelection + (origin.y - center.y);
+      origin.y = -vSelection + origin.y - center.y;
     }
   }
 
@@ -577,7 +577,7 @@ public class SimulationViewer extends Composite implements TickListener,
       final int destX = -hSelection - center.x;
       canvas.scroll(destX, center.y, center.x, center.y, content.width,
           content.height, false);
-      origin.x = -hSelection + (origin.x - center.x);
+      origin.x = -hSelection + origin.x - center.x;
     }
   }
 
