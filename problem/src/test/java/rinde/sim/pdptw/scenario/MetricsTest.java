@@ -58,7 +58,7 @@ public class MetricsTest {
         .pickupTimeWindow(new TimeWindow(0, 10))
         .deliveryTimeWindow(new TimeWindow(10, 20))
         .neededCapacity(0)
-        .arrivalTime(0)
+        .orderAnnounceTime(0)
         .serviceDuration(5)
         .build();
 
@@ -104,7 +104,7 @@ public class MetricsTest {
         .pickupTimeWindow(new TimeWindow(15, 15))
         .deliveryTimeWindow(new TimeWindow(15, 15))
         .neededCapacity(0)
-        .arrivalTime(0)
+        .orderAnnounceTime(0)
         .serviceDuration(5)
         .build();
 

@@ -384,7 +384,7 @@ public final class Gendreau06Parser {
               .deliveryTimeWindow(new TimeWindow(
                   deliveryTimeWindowBegin, deliveryTimeWindowEnd))
               .neededCapacity(PARCEL_MAGNITUDE)
-              .arrivalTime(arrTime)
+              .orderAnnounceTime(arrTime)
               .pickupDuration(pickupServiceTime)
               .deliveryDuration(deliveryServiceTime)
               .build();

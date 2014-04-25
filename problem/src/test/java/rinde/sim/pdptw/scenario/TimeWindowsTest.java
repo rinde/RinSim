@@ -32,34 +32,57 @@ import com.google.common.collect.Iterators;
 
 @RunWith(Parameterized.class)
 public class TimeWindowsTest {
+  private static final long END_TIME = 100;
   private final TimeWindowGenerator timeWindowGenerator;
+  private final double meanPickupUrgency;
+  private final double meanDeliveryUrgency;
 
-  public TimeWindowsTest(TimeWindowGenerator twg) {
+  public TimeWindowsTest(TimeWindowGenerator twg, double mpu, double mdu) {
     timeWindowGenerator = twg;
+    meanPickupUrgency = mpu;
+    meanDeliveryUrgency = mdu;
     TestUtil.testPrivateConstructor(TimeWindows.class);
   }
 
   @Parameters
   public static Iterable<Object[]> parameters() {
 
-    return c(ImmutableList.<Object> of(
-        builder()
-            .build(),
-        builder()
-            .pickupUrgency(uniformLong(0, 10))
-            .build(),
-        builder()
-            .urgency(uniformLong(0, 10))
-            .timeWindowLength(
-                normal().bounds(0, 10).mean(5).std(3).buildLong())
-            .build(),
-        builder()
-            .urgency(constant(0L))
-            .timeWindowLength(constant(0L))
-            .build()));
+    return ImmutableList.of(
+        new Object[] {
+            builder()
+                .urgency(constant(1L))
+                .timeWindowLength(constant(0L))
+                .build(),
+            1d,
+            1d
+        },
+        new Object[] {
+            builder()
+                .pickupUrgency(uniformLong(0, 10))
+                .build(),
+            5d,
+            1d,
+        },
+        new Object[] {
+            builder()
+                .urgency(uniformLong(0, 10))
+                .timeWindowLength(
+                    normal().bounds(0, 10).mean(5).std(3).buildLong())
+                .build(),
+            5d,
+            5d,
+        },
+        new Object[] {
+            builder()
+                .urgency(constant(0L))
+                .timeWindowLength(constant(0L))
+                .build(),
+            0d,
+            0d
+        });
   }
 
-  static Iterable<Object[]> c(Iterable<Object> in) {
+  static Iterable<Object[]> c(Iterable<?> in) {
     final List<Object[]> list = newArrayList();
     for (final Object o : in) {
       list.add(new Object[] { o });
@@ -86,13 +109,16 @@ public class TimeWindowsTest {
     for (int i = 0; i < 50; i++) {
       builders.add(
           ParcelDTO.builder(locations.next(), locations.next())
-              .arrivalTime(arrivalTimes.next())
+              .orderAnnounceTime(arrivalTimes.next())
               .pickupDuration(serviceDurations.next())
               .deliveryDuration(serviceDurations.next()));
     }
     return builders;
   }
 
+  /**
+   * Test whether calling generate with the same seed yields equal results.
+   */
   @Test
   public void determinismTest() {
     final RandomGenerator rng = new MersenneTwister(123L);
@@ -100,11 +126,11 @@ public class TimeWindowsTest {
       for (final ParcelDTO.Builder parcelBuilder : parcelBuilders()) {
         for (int i = 0; i < 10; i++) {
           final long seed = rng.nextLong();
-          timeWindowGenerator.generate(seed, parcelBuilder, tt, 100);
+          timeWindowGenerator.generate(seed, parcelBuilder, tt, END_TIME);
           final TimeWindow p1 = parcelBuilder.getPickupTimeWindow();
           final TimeWindow d1 = parcelBuilder.getDeliveryTimeWindow();
 
-          timeWindowGenerator.generate(seed, parcelBuilder, tt, 100);
+          timeWindowGenerator.generate(seed, parcelBuilder, tt, END_TIME);
           final TimeWindow p2 = parcelBuilder.getPickupTimeWindow();
           final TimeWindow d2 = parcelBuilder.getDeliveryTimeWindow();
           assertNotSame(p1, p2);
@@ -126,12 +152,12 @@ public class TimeWindowsTest {
   @Test
   public void overlapTest() {
     final RandomGenerator rng = new MersenneTwister(123L);
-    final long endTime = 100;
+
     for (final TravelTimes tt : FakeTravelTimes.values()) {
       for (final ParcelDTO.Builder parcelBuilder : parcelBuilders()) {
         for (int i = 0; i < 10; i++) {
           timeWindowGenerator
-              .generate(rng.nextLong(), parcelBuilder, tt, endTime);
+              .generate(rng.nextLong(), parcelBuilder, tt, END_TIME);
 
           final long pickDelTT = tt.getShortestTravelTime(
               parcelBuilder.getPickupLocation(),
@@ -150,6 +176,29 @@ public class TimeWindowsTest {
               + pickDelTT + " " + pickDur,
               delTW.begin >= pickTW.begin + pickDelTT + pickDur);
         }
+      }
+    }
+  }
+
+  @Test
+  public void urgencyTest() {
+    final RandomGenerator rng = new MersenneTwister(123L);
+    for (final TravelTimes tt : FakeTravelTimes.values()) {
+      for (final ParcelDTO.Builder parcelBuilder : parcelBuilders()) {
+        // in this case urgency can no longer be guaranteed
+        if (parcelBuilder.getOrderAnnounceTime() >= 85) {
+          continue;
+        }
+        double pmean = 0;
+        final double repetitions = 10;
+        for (int i = 0; i < repetitions; i++) {
+          timeWindowGenerator
+              .generate(rng.nextLong(), parcelBuilder, tt, END_TIME);
+          final ParcelDTO dto = parcelBuilder.build();
+          pmean += Metrics.pickupUrgency(dto);
+        }
+        pmean /= repetitions;
+        assertEquals(meanPickupUrgency, pmean, 0.01);
       }
     }
   }

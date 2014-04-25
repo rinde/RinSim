@@ -104,7 +104,7 @@ public final class Parcels {
 
         final ParcelDTO.Builder parcelBuilder = ParcelDTO
             .builder(origin, destination)
-            .arrivalTime(arrivalTime)
+            .orderAnnounceTime(arrivalTime)
             .pickupDuration(pickupDurationGenerator.get(rng.nextLong()))
             .deliveryDuration(deliveryDurationGenerator.get(rng.nextLong()))
             .neededCapacity(neededCapacityGenerator.get(rng.nextLong()));

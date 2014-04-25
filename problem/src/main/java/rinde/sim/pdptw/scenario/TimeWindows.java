@@ -99,27 +99,28 @@ public final class TimeWindows {
       parcelBuilder.deliveryTimeWindow(deliveryTW);
     }
 
+    static long boundValue(long value, long lowerBound, long upperBound) {
+      return Math.max(lowerBound, Math.min(value, upperBound));
+    }
+
     TimeWindow urgencyTimeWindow(long earliestOpening, long earliestClosing,
         long latestClosing, SupplierRng<Long> urgency, SupplierRng<Long> length) {
-
-      final long closing = earliestClosing + urgency.get(rng.nextLong());
-      final long roundedClosing =
-          Math.max(earliestClosing, Math.min(closing, latestClosing));
-
-      final long opening = roundedClosing - length.get(rng.nextLong());
-      final long roundedOpening =
-          Math.max(earliestOpening, Math.min(opening, roundedClosing));
-      return new TimeWindow(roundedOpening, roundedClosing);
+      final long closing = boundValue(
+          earliestClosing + urgency.get(rng.nextLong()), earliestClosing,
+          latestClosing);
+      final long opening = boundValue(closing - length.get(rng.nextLong()),
+          earliestOpening, closing);
+      return new TimeWindow(opening, closing);
     }
   }
 
   /**
-   * A builder for creating {@link TimeWindow} instance using urgency. Urgency
+   * A builder for creating {@link TimeWindow} instances using urgency. Urgency
    * is defined as follows:
    * <ul>
    * <li><code>pickup_urgency = pickupTW.R - orderAnnounceTime</code></li>
    * <li>
-   * <code>delivery_urgency = deliveryTW.R - earliest possible arrival time at delivery site</code>
+   * <code>delivery_urgency = deliveryTW.R - earliest possible leave time from pickup site</code>
    * </li>
    * </ul>
    * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>

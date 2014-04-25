@@ -34,6 +34,7 @@ import com.google.common.base.Supplier;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 
+// TODO rename to PDPScenarios?
 public final class ScenarioGenerator {
 
   // global properties

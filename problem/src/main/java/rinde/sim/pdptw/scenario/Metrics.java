@@ -17,6 +17,7 @@ import rinde.sim.core.model.pdp.PDPScenarioEvent;
 import rinde.sim.core.model.road.RoadModels;
 import rinde.sim.pdptw.common.AddParcelEvent;
 import rinde.sim.pdptw.common.AddVehicleEvent;
+import rinde.sim.pdptw.common.ParcelDTO;
 import rinde.sim.pdptw.scenario.ScenarioGenerator.TravelTimes;
 import rinde.sim.scenario.Scenario;
 import rinde.sim.scenario.TimedEvent;
@@ -198,7 +199,7 @@ public final class Metrics {
    * @param event
    * @param travelTimes
    */
-  public static void checkParcelTWStrictness(AddParcelEvent event,
+  static void checkParcelTWStrictness(AddParcelEvent event,
       TravelTimes travelTimes) {
     final long firstDepartureTime = event.parcelDTO.pickupTimeWindow.begin
         + event.parcelDTO.pickupDuration;
@@ -248,6 +249,14 @@ public final class Metrics {
       builder.add(Math.floor(d / binSize) * binSize);
     }
     return builder.build();
+  }
+
+  static long pickupUrgency(AddParcelEvent event) {
+    return pickupUrgency(event.parcelDTO);
+  }
+
+  static long pickupUrgency(ParcelDTO dto) {
+    return dto.pickupTimeWindow.end - dto.orderAnnounceTime;
   }
 
   public static double measureUrgency(PDPScenario s) {
