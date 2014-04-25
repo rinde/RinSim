@@ -1,6 +1,9 @@
 package rinde.sim.examples.core.comm;
 
-import java.util.HashMap;
+import static com.google.common.collect.Lists.newLinkedList;
+import static com.google.common.collect.Maps.newLinkedHashMap;
+import static com.google.common.collect.Sets.newLinkedHashSet;
+
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Map;
@@ -26,34 +29,27 @@ import rinde.sim.core.model.road.MovingRoadUser;
 import rinde.sim.core.model.road.RoadModel;
 import rinde.sim.core.model.road.RoadUser;
 
+import com.google.common.base.Optional;
+
 /**
  * Example of the simple random agent with the use of simulation facilities.
  * @author Bartosz Michalik <bartosz.michalik@cs.kuleuven.be>
  */
 class RandomWalkAgent implements TickListener, MovingRoadUser, SimulatorUser,
     CommunicationUser {
-
-  public static final String C_BLACK = "color.black";
-  public static final String C_YELLOW = "color.yellow";
-  public static final String C_GREEN = "color.green";
-
-  private static final int MAX_MSGs = 2000;
+  private static final int MAX_MSG = 2000;
   // 10s
   private static final int COMMUNICATION_PERIOD = 10000;
-  @Nullable
-  protected RoadModel rs;
-  @Nullable
-  protected RoadUser currentPackage;
-  @Nullable
+  protected RoadModel roadModel;
+  protected Optional<RoadUser> currentPackage;
   protected Queue<Point> path;
   protected RandomGenerator rnd;
-  @Nullable
   private SimulatorAPI simulator;
   private final double speed;
   private CommunicationAPI cm;
   private final int radius;
 
-  Map<RandomWalkAgent, Long> lastCommunicationTime;
+  private final Map<RandomWalkAgent, Long> lastCommunicationTime;
 
   private Set<RandomWalkAgent> communicatedWith;
   private final Mailbox mailbox;
@@ -67,19 +63,23 @@ class RandomWalkAgent implements TickListener, MovingRoadUser, SimulatorUser,
 
   /**
    * Create simple agent.
-   * @param speed default speed of object in graph units per millisecond
-   * @param radius in which it can communicate
-   * @param reliability of communication
+   * @param sp default speed of object in graph units per millisecond
+   * @param rad in which it can communicate
+   * @param rel of communication
    */
-  public RandomWalkAgent(double speed, int radius, double reliability) {
-    this.speed = speed;
-    this.radius = radius;
-    communicatedWith = new HashSet<RandomWalkAgent>();
-    lastCommunicationTime = new HashMap<RandomWalkAgent, Long>();
+  @SuppressWarnings("null")
+  public RandomWalkAgent(double sp, int rad, double rel) {
+    speed = sp;
+    radius = rad;
+    reliability = rel;
+    communicatedWith = newLinkedHashSet();
+    lastCommunicationTime = newLinkedHashMap();
     mailbox = new Mailbox();
     lock = new ReentrantLock();
     communications = 0;
-    this.reliability = reliability;
+    path = newLinkedList();
+
+    currentPackage = Optional.absent();
   }
 
   @Override
@@ -87,20 +87,23 @@ class RandomWalkAgent implements TickListener, MovingRoadUser, SimulatorUser,
     checkMsgs(timeLapse.getTime());
     refreshList(timeLapse.getTime());
 
-    if (path == null || path.isEmpty()) {
-      if (currentPackage != null && rs.containsObject(currentPackage)) {
-        simulator.unregister(currentPackage);
+    if (path.isEmpty()) {
+      if (currentPackage.isPresent()
+          && roadModel.containsObject(currentPackage.get())) {
+        simulator.unregister(currentPackage.get());
       }
-      if (communications > MAX_MSGs) {
+      if (communications > MAX_MSG) {
         simulator.unregister(this);
         return;
       }
-      final Point destination = rs.getRandomPosition(rnd);
-      currentPackage = new ExamplePackage("dummy package", destination);
+      final Point destination = roadModel.getRandomPosition(rnd);
+      currentPackage = Optional.<RoadUser> of(new ExamplePackage(
+          "dummy package", destination));
       simulator.register(currentPackage);
-      path = new LinkedList<Point>(rs.getShortestPathTo(this, destination));
+      path = new LinkedList<Point>(roadModel.getShortestPathTo(this,
+          destination));
     } else {
-      rs.followPath(this, path, timeLapse);
+      roadModel.followPath(this, path, timeLapse);
     }
 
     sendMsgs(timeLapse.getStartTime());
@@ -123,9 +126,7 @@ class RandomWalkAgent implements TickListener, MovingRoadUser, SimulatorUser,
   private void sendMsgs(long currentTime) {
     if (lastCommunication + COMMUNICATION_PERIOD < currentTime) {
       lastCommunication = currentTime;
-      if (cm != null) {
-        cm.broadcast(new Message(this) {});
-      }
+      cm.broadcast(new Message(this) {});
     }
   }
 
@@ -147,37 +148,17 @@ class RandomWalkAgent implements TickListener, MovingRoadUser, SimulatorUser,
   }
 
   @Override
-  public void initRoadUser(RoadModel model) {
-    rs = model;
-    final Point pos = rs.getRandomPosition(rnd);
-    rs.addObjectAt(this, pos);
-  }
-
-  @Override
-  public void setSimulator(SimulatorAPI api) {
-    simulator = api;
-    rnd = api.getRandomGenerator();
-  }
-
-  @Override
   public double getSpeed() {
     return speed;
   }
 
   @Override
-  public void afterTick(TimeLapse timeLapse) {
-    // empty by default
-  }
-
-  @Override
-  public void setCommunicationAPI(CommunicationAPI api) {
-    cm = api;
-  }
+  public void afterTick(TimeLapse timeLapse) {}
 
   @Nullable
   @Override
   public Point getPosition() {
-    return rs.containsObject(this) ? rs.getPosition(this) : null;
+    return roadModel.containsObject(this) ? roadModel.getPosition(this) : null;
   }
 
   @Override
@@ -197,6 +178,24 @@ class RandomWalkAgent implements TickListener, MovingRoadUser, SimulatorUser,
 
   public int getNoReceived() {
     return communications;
+  }
+
+  @Override
+  public void setCommunicationAPI(CommunicationAPI commAPI) {
+    cm = commAPI;
+  }
+
+  @Override
+  public void initRoadUser(RoadModel model) {
+    roadModel = model;
+    final Point pos = roadModel.getRandomPosition(rnd);
+    roadModel.addObjectAt(this, pos);
+  }
+
+  @Override
+  public void setSimulator(SimulatorAPI api) {
+    simulator = api;
+    rnd = api.getRandomGenerator();
   }
 
 }

@@ -65,17 +65,30 @@ public class AgentCommunicationExample {
 
   private AgentCommunicationExample() {}
 
-  public static void main(String[] args) throws IOException {
+  /**
+   * Run the example.
+   * @param args This is ignored.
+   */
+  public static void main(String[] args) {
     run(false);
   }
 
-  public static void run(boolean testing) throws IOException {
+  /**
+   * Run the example.
+   * @param testing if <code>true</code> turns on testing mode.
+   */
+  public static void run(boolean testing) {
     final MersenneTwister rand = new MersenneTwister(123);
     final Simulator simulator = new Simulator(rand, Measure.valueOf(1000L,
         SI.MILLI(SI.SECOND)));
-    final Graph<LengthData> graph = DotGraphSerializer
-        .getLengthGraphSerializer(new SelfCycleFilter()).read(
-            AgentCommunicationExample.class.getResourceAsStream(MAP_DIR));
+    Graph<LengthData> graph;
+    try {
+      graph = DotGraphSerializer
+          .getLengthGraphSerializer(new SelfCycleFilter()).read(
+              AgentCommunicationExample.class.getResourceAsStream(MAP_DIR));
+    } catch (final IOException e) {
+      throw new IllegalStateException(e);
+    }
 
     // create models
     final RoadModel roadModel = new GraphRoadModel(graph);
@@ -91,7 +104,7 @@ public class AgentCommunicationExample {
       final double speed = MIN_SPEED + (MAX_SPEED - MIN_SPEED)
           * rand.nextDouble();
       final double reliability = MIN_RELIABILITY
-          + (rand.nextDouble() * (MAX_RELIABILITY - MIN_RELIABILITY));
+          + rand.nextDouble() * (MAX_RELIABILITY - MIN_RELIABILITY);
 
       final RandomWalkAgent agent = new RandomWalkAgent(speed, radius,
           reliability);
@@ -104,9 +117,9 @@ public class AgentCommunicationExample {
         .add(ExamplePackage.class, "/graphics/perspective/deliverypackage2.png");
 
     final UiSchema schema2 = new UiSchema();
-    schema2.add(RandomWalkAgent.C_BLACK, new RGB(0, 0, 0));
-    schema2.add(RandomWalkAgent.C_YELLOW, new RGB(0xff, 0, 0));
-    schema2.add(RandomWalkAgent.C_GREEN, new RGB(0x0, 0x80, 0));
+    schema2.add(Colors.BLACK.name(), Colors.BLACK.color());
+    schema2.add(Colors.RED.name(), Colors.RED.color());
+    schema2.add(Colors.GREEN.name(), Colors.GREEN.color());
 
     final View.Builder viewBuilder = View.create(simulator)
         .with(new GraphRoadModelRenderer())
@@ -122,5 +135,21 @@ public class AgentCommunicationExample {
     }
 
     viewBuilder.show();
+  }
+
+  enum Colors {
+    BLACK(new RGB(0x0, 0x0, 0x0)),
+    RED(new RGB(0xFF, 0x0, 0x0)),
+    GREEN(new RGB(0x0, 0x80, 0x0));
+
+    private final RGB color;
+
+    Colors(RGB c) {
+      color = c;
+    }
+
+    public RGB color() {
+      return color;
+    }
   }
 }

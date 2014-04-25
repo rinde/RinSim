@@ -66,7 +66,8 @@ public final class TaxiExample {
 
   /**
    * Starts the {@link TaxiExample}.
-   * @param args
+   * @param args The first option may optionally indicate the end time of the
+   *          simulation.
    */
   public static void main(@Nullable String[] args) {
     final long endTime = args != null && args.length >= 1 ? Long
@@ -77,6 +78,10 @@ public final class TaxiExample {
     run(false, endTime, graphFile, null /* new Display() */, null, null);
   }
 
+  /**
+   * Run the example.
+   * @param testing If <code>true</code> enables the test mode.
+   */
   public static void run(boolean testing) {
     run(testing, Long.MAX_VALUE, MAP_FILE, null, null, null);
   }
@@ -151,7 +156,6 @@ public final class TaxiExample {
         .setTitleAppendix("Taxi Demo");
 
     if (testing) {
-      System.out.println("TESTING");
       view.enableAutoClose()
           .enableAutoPlay()
           .stopSimulatorAtTime(60 * 60 * 1000)

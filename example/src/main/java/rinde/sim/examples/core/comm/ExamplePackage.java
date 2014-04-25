@@ -4,13 +4,13 @@ import rinde.sim.core.graph.Point;
 import rinde.sim.core.model.road.RoadModel;
 import rinde.sim.core.model.road.RoadUser;
 
-public class ExamplePackage implements RoadUser {
-  public final String name;
-  private Point location;
+class ExamplePackage implements RoadUser {
+  private final String name;
+  private final Point location;
 
-  public ExamplePackage(String name, Point location) {
-    this.name = name;
-    this.location = location;
+  ExamplePackage(String pName, Point pLocation) {
+    name = pName;
+    location = pLocation;
   }
 
   @Override
@@ -23,7 +23,11 @@ public class ExamplePackage implements RoadUser {
     model.addObjectAt(this, location);
   }
 
-  public Point getLocation() {
+  Point getLocation() {
     return location;
+  }
+
+  String getName() {
+    return name;
   }
 }

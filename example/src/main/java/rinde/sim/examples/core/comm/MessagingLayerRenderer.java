@@ -9,20 +9,20 @@ import org.eclipse.swt.graphics.GC;
 
 import rinde.sim.core.graph.Point;
 import rinde.sim.core.model.road.RoadModel;
+import rinde.sim.examples.core.comm.AgentCommunicationExample.Colors;
 import rinde.sim.ui.renderers.CanvasRenderer;
 import rinde.sim.ui.renderers.UiSchema;
 import rinde.sim.ui.renderers.ViewPort;
 import rinde.sim.ui.renderers.ViewRect;
 
-public class MessagingLayerRenderer implements CanvasRenderer {
+class MessagingLayerRenderer implements CanvasRenderer {
 
-  protected RoadModel rs;
-  protected boolean useEncirclement;
+  private final RoadModel roadModel;
   private final UiSchema uiSchema;
 
-  public MessagingLayerRenderer(RoadModel rs, UiSchema uiSchema) {
-    this.rs = rs;
-    this.uiSchema = uiSchema;
+  MessagingLayerRenderer(RoadModel rm, UiSchema uis) {
+    roadModel = rm;
+    uiSchema = uis;
   }
 
   @Override
@@ -30,7 +30,7 @@ public class MessagingLayerRenderer implements CanvasRenderer {
     final int size = 4;
     uiSchema.initialize(gc.getDevice());
 
-    final Set<RandomWalkAgent> objects = rs
+    final Set<RandomWalkAgent> objects = roadModel
         .getObjectsOfType(RandomWalkAgent.class);
 
     synchronized (objects) {
@@ -46,11 +46,11 @@ public class MessagingLayerRenderer implements CanvasRenderer {
 
         Color c = null;
         if (a.getReliability() < 0.15) {
-          c = uiSchema.getColor(RandomWalkAgent.C_BLACK);
+          c = uiSchema.getColor(Colors.BLACK.name());
         } else if (a.getReliability() >= 0.15 && a.getReliability() < 0.3) {
-          c = uiSchema.getColor(RandomWalkAgent.C_YELLOW);
+          c = uiSchema.getColor(Colors.RED.name());
         } else {
-          c = uiSchema.getColor(RandomWalkAgent.C_GREEN);
+          c = uiSchema.getColor(Colors.GREEN.name());
         }
 
         gc.setForeground(c);
@@ -87,5 +87,4 @@ public class MessagingLayerRenderer implements CanvasRenderer {
   public ViewRect getViewRect() {
     return null;
   }
-
 }

@@ -31,10 +31,12 @@ import rinde.sim.ui.renderers.RoadUserRenderer;
  * 
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
  */
-public class SimpleExample {
+public final class SimpleExample {
 
   // speed in km/h
   static final double VEHICLE_SPEED = 50d;
+  static final Point MIN_POINT = new Point(0, 0);
+  static final Point MAX_POINT = new Point(10, 10);
 
   private SimpleExample() {}
 
@@ -46,6 +48,10 @@ public class SimpleExample {
     run(false);
   }
 
+  /**
+   * Run the example.
+   * @param testing if <code>true</code> turns on testing mode.
+   */
   public static void run(boolean testing) {
     // initialize a random generator which we use throughout this
     // 'experiment'
@@ -58,8 +64,8 @@ public class SimpleExample {
     // register a PlaneRoadModel, a model which facilitates the moving of
     // RoadUsers on a plane. The plane is bounded by two corner points:
     // (0,0) and (10,10)
-    sim.register(new PlaneRoadModel(new Point(0, 0), new Point(10, 10),
-        SI.KILOMETER, Measure.valueOf(VEHICLE_SPEED, NonSI.KILOMETERS_PER_HOUR)));
+    sim.register(new PlaneRoadModel(MIN_POINT, MAX_POINT, SI.KILOMETER, Measure
+        .valueOf(VEHICLE_SPEED, NonSI.KILOMETERS_PER_HOUR)));
     // configure the simulator, once configured we can no longer change the
     // configuration (i.e. add new models) but we can start adding objects
     sim.configure();
@@ -77,14 +83,18 @@ public class SimpleExample {
     // for the drivers. By default the road model is rendererd as a square
     // (indicating its boundaries), and the drivers are rendererd as red
     // dots.
-    final View.Builder viewBuilder = View.create(sim).with(
-        new PlaneRoadModelRenderer(), new RoadUserRenderer());
+    final View.Builder viewBuilder = View.create(sim)
+        .with(new PlaneRoadModelRenderer())
+        .with(new RoadUserRenderer());
 
     if (testing) {
-      viewBuilder.setSpeedUp(16)
+      final int speedUp = 16;
+      final long simulatorStopTime = 10 * 60 * 1000;
+      viewBuilder
+          .setSpeedUp(speedUp)
           .enableAutoClose()
           .enableAutoPlay()
-          .stopSimulatorAtTime(10 * 60 * 1000);
+          .stopSimulatorAtTime(simulatorStopTime);
     }
 
     viewBuilder.show();
@@ -100,6 +110,7 @@ public class SimpleExample {
     protected RoadModel roadModel;
     protected final RandomGenerator rnd;
 
+    @SuppressWarnings("null")
     Driver(RandomGenerator r) {
       // we store the reference to the random generator
       rnd = r;
