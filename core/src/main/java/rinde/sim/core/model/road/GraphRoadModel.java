@@ -49,6 +49,9 @@ public class GraphRoadModel extends AbstractRoadModel<Loc> {
   // FIXME precision stuff should be defined in the interface, implemented in
   // abstract class and thoroughly tested
   // TODO what about precision?
+  /**
+   * Precision.
+   */
   protected static final double DELTA = 0.000001;
 
   /**
@@ -56,11 +59,11 @@ public class GraphRoadModel extends AbstractRoadModel<Loc> {
    */
   protected final Graph<? extends ConnectionData> graph;
 
-  // TODO can null checks be removed now?
-
   /**
    * Creates a new instance using the specified {@link Graph} as road structure.
    * @param pGraph The graph which will be used as road structure.
+   * @param distanceUnit The distance unit used in the graph.
+   * @param speedUnit The speed unit for {@link MovingRoadUser}s in this model.
    */
   public GraphRoadModel(Graph<? extends ConnectionData> pGraph,
       Unit<Length> distanceUnit, Unit<Velocity> speedUnit) {
@@ -68,6 +71,11 @@ public class GraphRoadModel extends AbstractRoadModel<Loc> {
     graph = pGraph;
   }
 
+  /**
+   * Creates a new instance using the specified {@link Graph} as road structure.
+   * The default units are used as defined by {@link AbstractRoadModel}.
+   * @param pGraph The graph which will be used as road structure.
+   */
   public GraphRoadModel(Graph<? extends ConnectionData> pGraph) {
     super();
     graph = pGraph;
@@ -130,7 +138,8 @@ public class GraphRoadModel extends AbstractRoadModel<Loc> {
           tempLoc = checkLocation(newLoc(tempPos));
         }
 
-      } else { // distanceLeft < connLength
+      } else {
+        // distanceLeft < connLength
         newDis = travelDistance;
         time.consumeAll();
         traveled += travelDistance;
@@ -236,7 +245,8 @@ public class GraphRoadModel extends AbstractRoadModel<Loc> {
    */
   protected static double getConnectionLength(Connection<?> conn) {
     return conn.getData() == null || Double.isNaN(conn.getData().getLength()) ? Point
-        .distance(conn.from, conn.to) : conn.getData().getLength();
+        .distance(conn.from, conn.to)
+        : conn.getData().getLength();
   }
 
   /**
@@ -303,21 +313,21 @@ public class GraphRoadModel extends AbstractRoadModel<Loc> {
       final Loc start = (Loc) from;
       if (toIsOnConn) {
         checkArgument(start.isOnSameConnection((Loc) to),
-            "the specified points must be part of the same connection");
+            "The specified points must be part of the same connection.");
       } else {
         checkArgument(start.conn.to.equals(to),
-            "the specified points must be part of the same connection");
+            "The specified points must be part of the same connection.");
       }
       conn = start.conn;
 
     } else if (toIsOnConn) {
       final Loc end = (Loc) to;
       checkArgument(end.conn.from.equals(from),
-          "the specified points must be part of the same connection");
+          "The specified points must be part of the same connection.");
       conn = end.conn;
     } else {
       checkArgument(graph.hasConnection(from, to),
-          "the specified points must be part of an existing connection in the graph");
+          "The specified points must be part of an existing connection in the graph.");
       conn = graph.getConnection(from, to);
     }
     return conn;
@@ -426,6 +436,12 @@ public class GraphRoadModel extends AbstractRoadModel<Loc> {
     return graph.getRandomNode(rnd);
   }
 
+  @Deprecated
+  @Override
+  public ImmutableList<Point> getBounds() {
+    throw new UnsupportedOperationException("Not yet implemented.");
+  }
+
   /**
    * Location representation in a {@link Graph} for the {@link GraphRoadModel} .
    * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
@@ -483,10 +499,4 @@ public class GraphRoadModel extends AbstractRoadModel<Loc> {
       return super.toString() + "{" + conn + "}";
     }
   }
-
-  @Override
-  public ImmutableList<Point> getBounds() {
-    throw new UnsupportedOperationException("Not yet implemented.");
-  }
-
 }

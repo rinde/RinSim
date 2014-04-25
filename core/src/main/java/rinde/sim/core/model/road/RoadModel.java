@@ -226,6 +226,13 @@ public interface RoadModel extends Model<RoadUser> {
    */
   Point getPosition(RoadUser roadUser);
 
+  /**
+   * Finds the destination of the road user if any. TODO explain when there is a
+   * destination.
+   * @param roadUser The road user to look up.
+   * @return The destination of the specified road user or <code>null</code> if
+   *         the road user has no destination.
+   */
   @Nullable
   Point getDestination(MovingRoadUser roadUser);
 
@@ -309,15 +316,25 @@ public interface RoadModel extends Model<RoadUser> {
    */
   List<Point> getShortestPathTo(Point from, Point to);
 
+  /**
+   * @return The {@link EventAPI} for this road model.
+   */
   EventAPI getEventAPI();
 
-  // should return exactly two points. the first point contains the min x and
-  // min y value, the second point contains the max x and max y value. this
-  // can be used to draw a rectangle around all reachable positions
+  /**
+   * @return Should return exactly two points. The first point contains the
+   *         minimum x and y value, the second point contains the maximum x and
+   *         y value.
+   */
   ImmutableList<Point> getBounds();
 
+  /**
+   * @return The distance unit as used in this model to represent distances.
+   */
   Unit<Length> getDistanceUnit();
 
+  /**
+   * @return The speed unit as used in this model to represent speeds.
+   */
   Unit<Velocity> getSpeedUnit();
-
 }

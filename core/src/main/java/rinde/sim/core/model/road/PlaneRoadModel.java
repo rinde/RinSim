@@ -87,6 +87,15 @@ public class PlaneRoadModel extends AbstractRoadModel<Point> {
     maxSpeed = pMaxSpeed.doubleValue(INTERNAL_SPEED_UNIT);
   }
 
+  /**
+   * Create a new plane road model using the specified boundaries and max speed.
+   * It uses {@link SI#KILOMETER} for distances and
+   * {@link NonSI#KILOMETERS_PER_HOUR} for speeds.
+   * @param pMin The minimum x and y of the plane.
+   * @param pMax The maximum x and y of the plane.
+   * @param speedLimitInKmh The maximum speed that objects can travel on the
+   *          plane.
+   */
   public PlaneRoadModel(Point pMin, Point pMax, double speedLimitInKmh) {
     this(pMin, pMax, SI.KILOMETER, Measure.valueOf(speedLimitInKmh,
         NonSI.KILOMETERS_PER_HOUR));
@@ -94,8 +103,8 @@ public class PlaneRoadModel extends AbstractRoadModel<Point> {
 
   @Override
   public Point getRandomPosition(RandomGenerator rnd) {
-    return new Point(min.x + (rnd.nextDouble() * width), min.y
-        + (rnd.nextDouble() * height));
+    return new Point(min.x + rnd.nextDouble() * width, min.y
+        + rnd.nextDouble() * height);
   }
 
   @Override
@@ -153,7 +162,7 @@ public class PlaneRoadModel extends AbstractRoadModel<Point> {
       } else {
         final Point diff = Point.diff(path.peek(), loc);
 
-        if (stepLength - travelDistance < DELTA) { // 0.00000001) {
+        if (stepLength - travelDistance < DELTA) {
           loc = path.peek();
           traveled += stepLength;
         } else {

@@ -13,7 +13,6 @@ import rinde.sim.event.Event;
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
  */
 public class MoveEvent extends Event {
-  private static final long serialVersionUID = 5118819834474109451L;
 
   /**
    * The {@link RoadModel} that dispatched this event.

@@ -40,6 +40,8 @@ public class CachedGraphRoadModel extends GraphRoadModel {
   /**
    * Create a new instance using the specified {@link Graph}.
    * @param pGraph The graph to use.
+   * @param distanceUnit The distance unit used in the graph.
+   * @param speedUnit The speed unit for {@link MovingRoadUser}s in this model.
    */
   public CachedGraphRoadModel(Graph<?> pGraph, Unit<Length> distanceUnit,
       Unit<Velocity> speedUnit) {
