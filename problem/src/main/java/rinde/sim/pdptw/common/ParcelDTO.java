@@ -78,7 +78,7 @@ public final class ParcelDTO implements Serializable {
         .pickupTimeWindow(pPickupTimeWindow)
         .deliveryTimeWindow(pDeliveryTimeWindow)
         .neededCapacity(pNeededCapacity)
-        .arrivalTime(pOrderAnnounceTime)
+        .orderAnnounceTime(pOrderAnnounceTime)
         .pickupDuration(pPickupDuration)
         .deliveryDuration(pDeliveryDuration));
   }
@@ -199,11 +199,11 @@ public final class ParcelDTO implements Serializable {
     }
 
     /**
-     * Sets the arrival time of the order.
-     * @param time The time of arrival.
+     * Sets the order announce time.
+     * @param time The announce time.
      * @return This, as per the builder pattern.
      */
-    public Builder arrivalTime(long time) {
+    public Builder orderAnnounceTime(long time) {
       orderAnnounceTime = time;
       return this;
     }
@@ -242,34 +242,58 @@ public final class ParcelDTO implements Serializable {
       return this;
     }
 
+    /**
+     * @return The announce time of this parcel order.
+     */
     public long getOrderAnnounceTime() {
       return orderAnnounceTime;
     }
 
+    /**
+     * @return The pickup location of the parcel.
+     */
     public Point getPickupLocation() {
       return pickupLocation;
     }
 
+    /**
+     * @return The pickup time window of the parcel.
+     */
     public TimeWindow getPickupTimeWindow() {
       return pickupTimeWindow;
     }
 
+    /**
+     * @return The duration of the pickup.
+     */
     public long getPickupDuration() {
       return pickupDuration;
     }
 
+    /**
+     * @return The delivery location.
+     */
     public Point getDeliveryLocation() {
       return deliveryLocation;
     }
 
+    /**
+     * @return The delivery time window.
+     */
     public TimeWindow getDeliveryTimeWindow() {
       return deliveryTimeWindow;
     }
 
+    /**
+     * @return The duration of the delivery.
+     */
     public long getDeliveryDuration() {
       return deliveryDuration;
     }
 
+    /**
+     * @return The needed capacity.
+     */
     public int getNeededCapacity() {
       return neededCapacity;
     }
