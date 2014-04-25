@@ -1,6 +1,7 @@
 package rinde.sim.scenario;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Lists.newLinkedList;
 
@@ -116,6 +117,7 @@ public class ScenarioBuilder {
    * @param time The time at which the {@link TimedEvent} will be added.
    * @param amount The amount of events to add.
    * @param eventCreator The {@link EventCreator} that instantiates the events.
+   * @param <T> The type of event that is created.
    * @return this
    */
   public <T extends TimedEvent> ScenarioBuilder addMultipleEvents(long time,
@@ -145,6 +147,7 @@ public class ScenarioBuilder {
    * @param endTime The end time of the series.
    * @param timeStep The interval between events.
    * @param eventCreator The {@link EventCreator} that creates events.
+   * @param <T> The type of event that is created.
    * @return this
    */
   public <T extends TimedEvent> ScenarioBuilder addTimeSeriesOfEvents(
@@ -163,6 +166,7 @@ public class ScenarioBuilder {
    * @param endTime The end time of the series.
    * @param timeStep The interval between events.
    * @param type The type of event to add.
+   * @param <T> The type of event that is created.
    * @return this
    */
   public <T extends TimedEvent> ScenarioBuilder addTimeSeriesOfEvents(
@@ -206,6 +210,7 @@ public class ScenarioBuilder {
   /**
    * Build the scenario using the specified {@link ScenarioCreator}.
    * @param sc ScenarioCreator which instantiates the scenario.
+   * @param <T> The type of scenario that is created.
    * @return A scenario.
    */
   public <T extends Scenario> T build(ScenarioCreator<T> sc) {
@@ -233,9 +238,9 @@ public class ScenarioBuilder {
    */
   public interface ScenarioCreator<T extends Scenario> {
     /**
-     * @param eventList
-     * @param eventTypes
-     * @return The scenario
+     * @param eventList The list of events.
+     * @param eventTypes The event types.
+     * @return The newly created scenario.
      */
     T create(List<TimedEvent> eventList, Set<Enum<?>> eventTypes);
   }
@@ -279,7 +284,7 @@ public class ScenarioBuilder {
         EventCreator<T> pEventCreator) {
       checkArgument(pTime >= 0, "time can not be negative");
       checkArgument(pAmount >= 1, "amount must be at least 1");
-      checkArgument(pEventCreator != null, "event creator can not be null");
+      checkNotNull(pEventCreator);
       time = pTime;
       amount = pAmount;
       eventCreator = pEventCreator;
@@ -324,7 +329,7 @@ public class ScenarioBuilder {
       checkArgument(pStartTime < pEndTime, "start time must be before end time");
       checkArgument(pEndTime > 0, "end time must be greater than 0");
       checkArgument(pTimeStep >= 1, "time step must be >= than 1");
-      checkArgument(pEventCreator != null, "event creator can not be null");
+      checkNotNull(pEventCreator);
       start = pStartTime;
       end = pEndTime;
       step = pTimeStep;
@@ -346,7 +351,7 @@ public class ScenarioBuilder {
    * @param <T> The subtype of {@link TimedEvent} to create.
    * @author Rinde van Lon (rinde.vanlon@cs.kuleuven.be)
    */
-  public static abstract class EventCreator<T extends TimedEvent> implements
+  public abstract static class EventCreator<T extends TimedEvent> implements
       Function<Long, T> {}
 
   /**
