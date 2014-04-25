@@ -21,7 +21,6 @@ import rinde.sim.pdptw.common.DynamicPDPTWProblem.Creator;
 import rinde.sim.pdptw.common.VehicleDTO;
 import rinde.sim.pdptw.fabrirecht.FabriRechtParser;
 import rinde.sim.pdptw.fabrirecht.FabriRechtScenario;
-import rinde.sim.scenario.ConfigurationException;
 
 import com.google.common.base.Predicate;
 
@@ -33,8 +32,7 @@ import com.google.common.base.Predicate;
  */
 public class FabriRechtExample {
 
-  public static void main2(String[] args) throws IOException,
-      ConfigurationException {
+  public static void main2(String[] args) throws IOException {
     // we load a problem instance from disk, we instantiate it with 8
     // trucks, each with a capacity of 20 units
     final FabriRechtScenario scenario = FabriRechtParser
@@ -85,7 +83,7 @@ class Truck extends DefaultVehicle {
           @Override
           public boolean apply(RoadUser input) {
             return input instanceof DefaultParcel
-                && pm.getParcelState(((DefaultParcel) input)) == ParcelState.AVAILABLE;
+                && pm.getParcelState((DefaultParcel) input) == ParcelState.AVAILABLE;
           }
         });
 

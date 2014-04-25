@@ -61,7 +61,7 @@ public class ScenarioControllerTest {
   }
 
   @Test(expected = IllegalStateException.class)
-  public void testEmptyController() throws ConfigurationException {
+  public void testEmptyController() {
     controller = new ScenarioController(scenario, simulator, new TestHandler(),
         3);
     controller.tick(TimeLapseFactory.create(0, 1));
@@ -106,8 +106,7 @@ public class ScenarioControllerTest {
   }
 
   @Test
-  public void finiteSimulation() throws ConfigurationException,
-      InterruptedException {
+  public void finiteSimulation() throws InterruptedException {
     final ScenarioController sc = new ScenarioController(scenario, simulator,
         new TestHandler(TestEvents.values()), 101);
 
@@ -115,8 +114,10 @@ public class ScenarioControllerTest {
     sc.getEventAPI().addListener(leh);
     assertFalse(sc.isScenarioFinished());
     sc.start();
-    assertEquals(asList(SCENARIO_STARTED, EVENT_A, EVENT_B, EVENT_B, EVENT_A, EVENT_C, EVENT_C, SCENARIO_FINISHED), leh
-        .getEventTypeHistory());
+    assertEquals(
+        asList(SCENARIO_STARTED, EVENT_A, EVENT_B, EVENT_B, EVENT_A, EVENT_C,
+            EVENT_C, SCENARIO_FINISHED), leh
+            .getEventTypeHistory());
 
     assertTrue(sc.isScenarioFinished());
     sc.stop();
@@ -130,7 +131,7 @@ public class ScenarioControllerTest {
   }
 
   @Test
-  public void fakeUImode() throws ConfigurationException {
+  public void fakeUImode() {
     final ScenarioController sc = new ScenarioController(scenario, simulator,
         new TestHandler(TestEvents.values()), 3);
     sc.enableUI(new UICreator() {
@@ -171,10 +172,9 @@ public class ScenarioControllerTest {
   /**
    * check whether the start event was generated. following scenario is
    * interrupted after 3rd step so there are some events left
-   * @throws ConfigurationException yes
    */
   @Test
-  public void testStartEventGenerated() throws ConfigurationException {
+  public void testStartEventGenerated() {
     controller = new ScenarioController(scenario, simulator, new TestHandler(
         EVENT_A, EVENT_B), 3);
 
@@ -215,8 +215,7 @@ public class ScenarioControllerTest {
   }
 
   @Test
-  public void runningWholeScenario() throws ConfigurationException,
-      InterruptedException {
+  public void runningWholeScenario() throws InterruptedException {
     controller = new ScenarioController(scenario, simulator, new TestHandler(
         EVENT_A, EVENT_B, EVENT_C), -1);
 

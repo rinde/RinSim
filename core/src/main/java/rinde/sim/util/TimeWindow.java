@@ -21,7 +21,7 @@ public final class TimeWindow implements Serializable {
   /**
    * A time window which represents 'always'.
    */
-  public final static TimeWindow ALWAYS = new TimeWindow(0, Long.MAX_VALUE);
+  public static final TimeWindow ALWAYS = new TimeWindow(0, Long.MAX_VALUE);
 
   /**
    * Begin of the time window (inclusive). Must be a non-negative value.

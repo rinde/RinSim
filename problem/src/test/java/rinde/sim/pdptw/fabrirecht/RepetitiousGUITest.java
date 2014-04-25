@@ -20,7 +20,6 @@ import rinde.sim.pdptw.common.DynamicPDPTWProblem;
 import rinde.sim.pdptw.common.DynamicPDPTWProblem.Creator;
 import rinde.sim.pdptw.common.DynamicPDPTWProblem.DefaultUICreator;
 import rinde.sim.pdptw.common.VehicleDTO;
-import rinde.sim.scenario.ConfigurationException;
 import rinde.sim.ui.View;
 import rinde.sim.ui.renderers.Renderer;
 
@@ -34,8 +33,7 @@ import com.google.common.base.Predicate;
  */
 public class RepetitiousGUITest {
 
-  public static void main(String[] args) throws IOException,
-      ConfigurationException {
+  public static void main(String[] args) throws IOException {
     for (int i = 0; i < 100; i++) {
       final FabriRechtScenario scenario = FabriRechtParser.fromJson(
           new FileReader("files/test/fabri-recht/lc101.scenario"), 8, 20);
@@ -89,7 +87,7 @@ class Truck extends DefaultVehicle {
           @Override
           public boolean apply(RoadUser input) {
             return input instanceof DefaultParcel
-                && pm.getParcelState(((DefaultParcel) input)) == ParcelState.AVAILABLE;
+                && pm.getParcelState((DefaultParcel) input) == ParcelState.AVAILABLE;
           }
         });
 

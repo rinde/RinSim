@@ -26,6 +26,7 @@ public final class SupplierRngs {
   /**
    * Create a {@link SupplierRng} that will always return the specified value.
    * @param value The value which the supplier will return.
+   * @param <T> Type of constant.
    * @return A supplier that always returns the specified value.
    */
   public static <T> SupplierRng<T> constant(T value) {

@@ -14,7 +14,6 @@ import com.google.common.base.Objects;
  * @since 2.0
  */
 public class TimedEvent extends Event {
-  private static final long serialVersionUID = 6832559417793517102L;
 
   /**
    * The time at which the event is to be dispatched.

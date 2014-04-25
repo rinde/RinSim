@@ -21,6 +21,8 @@ import rinde.sim.event.EventAPI;
 import rinde.sim.event.EventDispatcher;
 import rinde.sim.event.Listener;
 
+import com.google.common.base.Optional;
+
 /**
  * A scenario controller represents a single simulation run using a
  * {@link Scenario}. The scenario controller makes sure that all events in the
@@ -78,8 +80,7 @@ public class ScenarioController implements TickListener {
    * A reference to the {@link UICreator} that is responsible for creating the
    * UI.
    */
-  @Nullable
-  protected UICreator uiCreator;
+  protected Optional<UICreator> uiCreator;
 
   /**
    * A handler for the TimedEvents.
@@ -89,7 +90,6 @@ public class ScenarioController implements TickListener {
   private int ticks;
   @Nullable
   private EventType status;
-  private boolean uiMode;
 
   // TODO ScenarioController should be added to Simulator not other way
   // around.
@@ -112,6 +112,7 @@ public class ScenarioController implements TickListener {
     simulator = sim;
     timedEventHandler = eventHandler;
     ticks = numberOfTicks;
+    uiCreator = Optional.absent();
 
     scenarioQueue = scenario.asQueue();
 
@@ -143,8 +144,7 @@ public class ScenarioController implements TickListener {
    * @param creator The creator of the UI.
    */
   public void enableUI(UICreator creator) {
-    uiMode = true;
-    uiCreator = creator;
+    uiCreator = Optional.of(creator);
   }
 
   /**
@@ -161,7 +161,7 @@ public class ScenarioController implements TickListener {
    * Stop the simulation.
    */
   public void stop() {
-    if (!uiMode) {
+    if (!uiCreator.isPresent()) {
       simulator.stop();
     }
   }
@@ -173,10 +173,10 @@ public class ScenarioController implements TickListener {
    */
   public void start() {
     if (ticks != 0) {
-      if (!uiMode) {
-        simulator.start();
+      if (uiCreator.isPresent()) {
+        uiCreator.get().createUI(simulator);
       } else {
-        uiCreator.createUI(simulator);
+        simulator.start();
       }
     }
   }
@@ -189,7 +189,6 @@ public class ScenarioController implements TickListener {
    * (globally) tick.
    */
   protected void dispatchSetupEvents() {
-
     TimedEvent e = null;
     while ((e = scenarioQueue.peek()) != null && e.time < 0) {
       scenarioQueue.poll();
@@ -207,7 +206,7 @@ public class ScenarioController implements TickListener {
 
   @Override
   public final void tick(TimeLapse timeLapse) {
-    if (!uiMode && ticks == 0) {
+    if (!uiCreator.isPresent() && ticks == 0) {
       LOGGER.info("scenario finished at virtual time:" + timeLapse.getTime()
           + "[stopping simulation]");
       simulator.stop();
