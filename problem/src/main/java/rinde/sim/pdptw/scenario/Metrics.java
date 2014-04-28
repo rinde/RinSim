@@ -23,6 +23,7 @@ import rinde.sim.scenario.Scenario;
 import rinde.sim.scenario.TimedEvent;
 import rinde.sim.util.TimeWindow;
 
+import com.google.common.base.Function;
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMultiset;
@@ -259,19 +260,23 @@ public final class Metrics {
     return dto.pickupTimeWindow.end - dto.orderAnnounceTime;
   }
 
-  public static double measureUrgency(PDPScenario s) {
-
-    long reactionTime = 0;
-    int count = 0;
-    for (final TimedEvent ev : s.asList()) {
-      if (ev instanceof AddParcelEvent) {
-        final AddParcelEvent ape = (AddParcelEvent) ev;
-        reactionTime += ape.parcelDTO.pickupTimeWindow.end - ape.time;
-        count++;
+  enum Urgency implements Function<AddParcelEvent, Long> {
+    PICKUP {
+      @Override
+      public Long apply(AddParcelEvent input) {
+        return pickupUrgency(input);
       }
     }
-    return reactionTime / (double) count;
   }
+
+  // public static double measureUrgency(PDPScenario s) {
+  // final List<Long> urgencyValues = FluentIterable.from(s.asList())
+  // .filter(AddParcelEvent.class)
+  // .transform(Urgency.PICKUP)
+  // .toList();
+  //
+  // return reactionTime / (double) count;
+  // }
 
   public static double measureDynamism(PDPScenario s) {
     return measureDynamism(convert(getOrderArrivalTimes(s)),

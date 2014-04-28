@@ -30,6 +30,10 @@ import rinde.sim.util.TimeWindow;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterators;
 
+/**
+ * Tests for {@link TimeWindows}.
+ * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+ */
 @RunWith(Parameterized.class)
 public class TimeWindowsTest {
   private static final long END_TIME = 100;
@@ -46,7 +50,6 @@ public class TimeWindowsTest {
 
   @Parameters
   public static Iterable<Object[]> parameters() {
-
     return ImmutableList.of(
         new Object[] {
             builder()
@@ -79,6 +82,14 @@ public class TimeWindowsTest {
                 .build(),
             0d,
             0d
+        },
+        new Object[] {
+            builder()
+                .urgency(normal().bounds(2, 12).mean(6).std(2).buildLong())
+                .timeWindowLength(constant(0L))
+                .build(),
+            6d,
+            6d
         });
   }
 
@@ -180,6 +191,9 @@ public class TimeWindowsTest {
     }
   }
 
+  /**
+   * Tests whether the actual urgency matches the expected urgency.
+   */
   @Test
   public void urgencyTest() {
     final RandomGenerator rng = new MersenneTwister(123L);
@@ -190,7 +204,7 @@ public class TimeWindowsTest {
           continue;
         }
         double pmean = 0;
-        final double repetitions = 10;
+        final double repetitions = 300;
         for (int i = 0; i < repetitions; i++) {
           timeWindowGenerator
               .generate(rng.nextLong(), parcelBuilder, tt, END_TIME);
@@ -198,7 +212,7 @@ public class TimeWindowsTest {
           pmean += Metrics.pickupUrgency(dto);
         }
         pmean /= repetitions;
-        assertEquals(meanPickupUrgency, pmean, 0.01);
+        assertEquals(meanPickupUrgency, pmean, 0.6);
       }
     }
   }
