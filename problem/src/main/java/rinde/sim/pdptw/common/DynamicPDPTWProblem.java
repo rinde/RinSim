@@ -123,7 +123,7 @@ public class DynamicPDPTWProblem {
   protected final StatsTracker statsTracker;
 
   /**
-   * The {@link StopCondition} which is used as the condition when the
+   * The {@link StopConditions} which is used as the condition when the
    * simulation has to stop.
    */
   protected Predicate<SimulationInfo> stopCondition;
@@ -213,7 +213,7 @@ public class DynamicPDPTWProblem {
   }
 
   /**
-   * Adds a {@link StopCondition} which indicates when the simulation has to
+   * Adds a {@link StopConditions} which indicates when the simulation has to
    * stop. The condition is added in an OR fashion to the predefined stop
    * condition of the scenario. So after this method is called the simulation
    * stops if the scenario stop condition is true OR new condition is true.
@@ -315,7 +315,7 @@ public class DynamicPDPTWProblem {
    * {@link Predicates#not(Predicate)}.
    * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
    */
-  public enum StopCondition implements Predicate<SimulationInfo> {
+  public enum StopConditions implements Predicate<SimulationInfo> {
 
     /**
      * The simulation is terminated once the

@@ -12,7 +12,7 @@ import org.apache.commons.math3.random.MersenneTwister;
 import org.junit.Test;
 
 import rinde.sim.core.model.pdp.TimeWindowPolicy.TimeWindowPolicies;
-import rinde.sim.pdptw.common.DynamicPDPTWProblem.StopCondition;
+import rinde.sim.pdptw.common.DynamicPDPTWProblem.StopConditions;
 import rinde.sim.pdptw.scenario.PDPScenario.DefaultScenario;
 import rinde.sim.pdptw.scenario.PDPScenario.ProblemClass;
 
@@ -42,8 +42,8 @@ public class GeneratedScenarioIOTest {
         .tickSize(1000L)
         .scenarioLength(4 * 60 * 60 * 1000L)
         .stopCondition(
-            Predicates.and(StopCondition.ANY_TARDINESS,
-                StopCondition.TIME_OUT_EVENT))
+            Predicates.and(StopConditions.ANY_TARDINESS,
+                StopConditions.TIME_OUT_EVENT))
         .parcels(
             Parcels
                 .builder()

@@ -25,7 +25,7 @@ import rinde.sim.core.model.pdp.TimeWindowPolicy.TimeWindowPolicies;
 import rinde.sim.core.model.road.PlaneRoadModel;
 import rinde.sim.core.model.road.RoadModel;
 import rinde.sim.pdptw.common.DynamicPDPTWProblem.SimulationInfo;
-import rinde.sim.pdptw.common.DynamicPDPTWProblem.StopCondition;
+import rinde.sim.pdptw.common.DynamicPDPTWProblem.StopConditions;
 import rinde.sim.pdptw.common.PDPRoadModel;
 import rinde.sim.pdptw.scenario.PDPScenario;
 import rinde.sim.scenario.TimedEvent;
@@ -90,8 +90,8 @@ public final class Gendreau06Scenario extends PDPScenario {
 
   @Override
   public Predicate<SimulationInfo> getStopCondition() {
-    return Predicates.and(StopCondition.VEHICLES_DONE_AND_BACK_AT_DEPOT,
-        StopCondition.TIME_OUT_EVENT);
+    return Predicates.and(StopConditions.VEHICLES_DONE_AND_BACK_AT_DEPOT,
+        StopConditions.TIME_OUT_EVENT);
   }
 
   @Override

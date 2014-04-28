@@ -28,7 +28,7 @@ import rinde.sim.core.model.road.PlaneRoadModel;
 import rinde.sim.core.model.road.RoadModel;
 import rinde.sim.pdptw.common.DynamicPDPTWProblem.Creator;
 import rinde.sim.pdptw.common.DynamicPDPTWProblem.SimulationInfo;
-import rinde.sim.pdptw.common.DynamicPDPTWProblem.StopCondition;
+import rinde.sim.pdptw.common.DynamicPDPTWProblem.StopConditions;
 import rinde.sim.pdptw.scenario.PDPScenario;
 import rinde.sim.scenario.TimedEvent;
 import rinde.sim.util.TimeWindow;
@@ -104,8 +104,8 @@ public class TestDynamicPDPTWProblem {
     }
 
     @Override
-    public StopCondition getStopCondition() {
-      return StopCondition.TIME_OUT_EVENT;
+    public StopConditions getStopCondition() {
+      return StopConditions.TIME_OUT_EVENT;
     }
 
     @Override

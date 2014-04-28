@@ -20,7 +20,7 @@ import javax.measure.unit.Unit;
 
 import rinde.sim.core.model.Model;
 import rinde.sim.pdptw.common.DynamicPDPTWProblem.SimulationInfo;
-import rinde.sim.pdptw.common.DynamicPDPTWProblem.StopCondition;
+import rinde.sim.pdptw.common.DynamicPDPTWProblem.StopConditions;
 import rinde.sim.scenario.Scenario;
 import rinde.sim.scenario.TimedEvent;
 import rinde.sim.scenario.TimedEvent.TimeComparator;
@@ -241,7 +241,7 @@ public abstract class PDPScenario extends Scenario {
     static final long DEFAULT_TICK_SIZE = 1000L;
     static final TimeWindow DEFAULT_TIME_WINDOW = new TimeWindow(0,
         8 * 60 * 60 * 1000);
-    static final Predicate<SimulationInfo> DEFAULT_STOP_CONDITION = StopCondition.TIME_OUT_EVENT;
+    static final Predicate<SimulationInfo> DEFAULT_STOP_CONDITION = StopConditions.TIME_OUT_EVENT;
 
     Unit<Length> distanceUnit;
     Unit<Velocity> speedUnit;
@@ -342,7 +342,7 @@ public abstract class PDPScenario extends Scenario {
 
     /**
      * Set the condition when the scenario should stop. Some defaults are
-     * supplied in {@link StopCondition}.
+     * supplied in {@link StopConditions}.
      * @param condition The stop condition to set.
      * @return This, as per the builder pattern.
      */

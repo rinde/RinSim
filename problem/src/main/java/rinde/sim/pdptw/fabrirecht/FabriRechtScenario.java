@@ -21,7 +21,7 @@ import rinde.sim.core.model.pdp.PDPModel;
 import rinde.sim.core.model.pdp.TimeWindowPolicy.TimeWindowPolicies;
 import rinde.sim.core.model.road.PlaneRoadModel;
 import rinde.sim.core.model.road.RoadModel;
-import rinde.sim.pdptw.common.DynamicPDPTWProblem.StopCondition;
+import rinde.sim.pdptw.common.DynamicPDPTWProblem.StopConditions;
 import rinde.sim.pdptw.common.VehicleDTO;
 import rinde.sim.pdptw.scenario.PDPScenario;
 import rinde.sim.scenario.TimedEvent;
@@ -75,8 +75,8 @@ public class FabriRechtScenario extends PDPScenario {
   }
 
   @Override
-  public StopCondition getStopCondition() {
-    return StopCondition.TIME_OUT_EVENT;
+  public StopConditions getStopCondition() {
+    return StopConditions.TIME_OUT_EVENT;
   }
 
   @Override
