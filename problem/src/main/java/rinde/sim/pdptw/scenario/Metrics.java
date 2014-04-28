@@ -12,6 +12,9 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
+import org.apache.commons.math3.stat.descriptive.StatisticalSummary;
+import org.apache.commons.math3.stat.descriptive.SummaryStatistics;
+
 import rinde.sim.core.graph.Point;
 import rinde.sim.core.model.pdp.PDPScenarioEvent;
 import rinde.sim.core.model.road.RoadModels;
@@ -25,6 +28,7 @@ import rinde.sim.util.TimeWindow;
 
 import com.google.common.base.Function;
 import com.google.common.base.Objects;
+import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMultiset;
 import com.google.common.collect.ImmutableSortedMultiset;
@@ -269,14 +273,29 @@ public final class Metrics {
     }
   }
 
-  // public static double measureUrgency(PDPScenario s) {
-  // final List<Long> urgencyValues = FluentIterable.from(s.asList())
-  // .filter(AddParcelEvent.class)
-  // .transform(Urgency.PICKUP)
-  // .toList();
-  //
-  // return reactionTime / (double) count;
-  // }
+  static StatisticalSummary toStatisticalSummary(
+      Iterable<? extends Number> values) {
+    final SummaryStatistics ss = new SummaryStatistics();
+    for (final Number n : values) {
+      ss.addValue(n.doubleValue());
+    }
+    return ss.getSummary();
+  }
+
+  /**
+   * Computes a {@link StatisticalSummary} object for all urgency values of a
+   * {@link PDPScenario}.
+   * @param s The scenario to measure.
+   * @return A statistical summary of the urgency values in the specified
+   *         scenario.
+   */
+  public static StatisticalSummary measureUrgency(PDPScenario s) {
+    final List<Long> urgencyValues = FluentIterable.from(s.asList())
+        .filter(AddParcelEvent.class)
+        .transform(Urgency.PICKUP)
+        .toList();
+    return toStatisticalSummary(urgencyValues);
+  }
 
   public static double measureDynamism(PDPScenario s) {
     return measureDynamism(convert(getOrderArrivalTimes(s)),
