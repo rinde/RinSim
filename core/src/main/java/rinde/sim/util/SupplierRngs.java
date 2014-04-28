@@ -44,8 +44,8 @@ public final class SupplierRngs {
   /**
    * Creates a {@link SupplierRng} that produces uniformly distributed
    * {@link Double}s.
-   * @param lower The lower bound of the uniform distribution.
-   * @param upper The upper bound of the uniform distribution.
+   * @param lower The (inclusive) lower bound of the uniform distribution.
+   * @param upper The (inclusive) upper bound of the uniform distribution.
    * @return The supplier.
    */
   public static SupplierRng<Double> uniformDouble(double lower, double upper) {
@@ -56,8 +56,8 @@ public final class SupplierRngs {
   /**
    * Creates a {@link SupplierRng} that produces uniformly distributed
    * {@link Integer}s.
-   * @param lower The lower bound of the uniform distribution.
-   * @param upper The upper bound of the uniform distribution.
+   * @param lower The (inclusive) lower bound of the uniform distribution.
+   * @param upper The (inclusive) upper bound of the uniform distribution.
    * @return The supplier.
    */
   public static SupplierRng<Integer> uniformInt(int lower, int upper) {
@@ -68,8 +68,8 @@ public final class SupplierRngs {
   /**
    * Creates a {@link SupplierRng} that produces uniformly distributed
    * {@link Long}s.
-   * @param lower The lower bound of the uniform distribution.
-   * @param upper The upper bound of the uniform distribution.
+   * @param lower The (inclusive) lower bound of the uniform distribution.
+   * @param upper The (inclusive) upper bound of the uniform distribution.
    * @return The supplier.
    */
   public static SupplierRng<Long> uniformLong(int lower, int upper) {
