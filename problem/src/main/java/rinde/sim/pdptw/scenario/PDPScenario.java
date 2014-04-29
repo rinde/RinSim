@@ -134,6 +134,27 @@ public abstract class PDPScenario extends Scenario {
   }
 
   /**
+   * String based implementation of {@link ProblemClass}.
+   * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+   */
+  public static class SimpleProblemClass implements ProblemClass {
+    private final String id;
+
+    /**
+     * Create a new instance.
+     * @param name The name to use as id.
+     */
+    public SimpleProblemClass(String name) {
+      id = name;
+    }
+
+    @Override
+    public String getId() {
+      return id;
+    }
+  }
+
+  /**
    * A builder for constructing {@link PDPScenario} instances.
    * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
    */

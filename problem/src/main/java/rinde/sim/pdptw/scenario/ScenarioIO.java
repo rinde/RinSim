@@ -32,6 +32,7 @@ import rinde.sim.pdptw.common.ParcelDTO;
 import rinde.sim.pdptw.common.VehicleDTO;
 import rinde.sim.pdptw.scenario.PDPScenario.DefaultScenario;
 import rinde.sim.pdptw.scenario.PDPScenario.ProblemClass;
+import rinde.sim.pdptw.scenario.PDPScenario.SimpleProblemClass;
 import rinde.sim.scenario.Scenario;
 import rinde.sim.scenario.TimedEvent;
 import rinde.sim.util.TimeWindow;
@@ -89,6 +90,13 @@ public final class ScenarioIO {
     return builder.create();
   }
 
+  /**
+   * Writes the specified {@link Scenario} to disk in the JSON format.
+   * @param s The scenario.
+   * @param to The file to write to.
+   * @throws IOException In case anything went wrong during writing the
+   *           scenario.
+   */
   public static void write(Scenario s, File to) throws IOException {
     Files.write(write(s), to, Charsets.UTF_8);
   }
@@ -479,6 +487,9 @@ public final class ScenarioIO {
         @Nullable JsonDeserializationContext context) throws JsonParseException {
       checkNotNull(json);
       checkNotNull(context);
+      if (json.isJsonPrimitive() && json.getAsJsonPrimitive().isString()) {
+        return new SimpleProblemClass(json.getAsJsonPrimitive().getAsString());
+      }
       return context.deserialize(json, Enum.class);
     }
 
@@ -490,9 +501,11 @@ public final class ScenarioIO {
       checkNotNull(src);
       if (src instanceof Enum<?>) {
         return context.serialize(src, Enum.class);
+      } else if (src instanceof SimpleProblemClass) {
+        return context.serialize(src.getId(), String.class);
       } else {
         throw new IllegalArgumentException(
-            "Currently only enums are supported as ProblemClass instances, found: "
+            "Currently only enums and SimpleProblemClass are supported as ProblemClass instances, found: "
                 + src.getClass());
       }
     }
