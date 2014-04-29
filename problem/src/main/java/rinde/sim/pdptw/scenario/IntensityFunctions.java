@@ -273,7 +273,10 @@ public final class IntensityFunctions {
 
     /**
      * Sets the height of the {@link IntensityFunction} that will be created by
-     * this builder. Default value: 0.
+     * this builder. Default value: 0. Typical values range between
+     * <code>-1</code> and <code>1</code>. If the height is close to
+     * <code>-1</code> almost the entire function will be negative. If the
+     * height is <code>1</code> or higher the entire function will be positive.
      * @param h Must be <code> > -1</code>.
      * @return This, as per the builder pattern.
      */
