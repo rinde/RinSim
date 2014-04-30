@@ -1,5 +1,9 @@
 # Release notes
 
+## v2.3.3
+* Example module
+	* Fixed problem of non-existing file in demo.
+
 ## v2.3.2
 * Core module
 	* StateMachine now optionally allows explicit recursive transitions.
