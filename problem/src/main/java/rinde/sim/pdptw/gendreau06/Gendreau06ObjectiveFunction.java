@@ -12,6 +12,7 @@ import rinde.sim.pdptw.common.StatisticsDTO;
  */
 public final class Gendreau06ObjectiveFunction implements ObjectiveFunction {
   private static final Gendreau06ObjectiveFunction INSTANCE = new Gendreau06ObjectiveFunction();
+  private static final double MS_TO_MINUTES = 60000d;
   private static final double ALPHA = 1d;
   private static final double BETA = 1d;
 
@@ -77,7 +78,7 @@ public final class Gendreau06ObjectiveFunction implements ObjectiveFunction {
    * @return The tardiness in minutes.
    */
   public double tardiness(StatisticsDTO stats) {
-    return (stats.pickupTardiness + stats.deliveryTardiness) / 60000d;
+    return (stats.pickupTardiness + stats.deliveryTardiness) / MS_TO_MINUTES;
   }
 
   /**
@@ -86,7 +87,7 @@ public final class Gendreau06ObjectiveFunction implements ObjectiveFunction {
    * @return The over time in minutes.
    */
   public double overTime(StatisticsDTO stats) {
-    return stats.overTime / 60000d;
+    return stats.overTime / MS_TO_MINUTES;
   }
 
   /**

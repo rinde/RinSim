@@ -48,7 +48,7 @@ public enum GendreauProblemClass implements ProblemClass {
     duration = d;
     frequency = f;
     vehicles = v;
-    fileId = "_" + duration + "_" + frequency;
+    fileId = String.format("_%d_%d", duration, frequency);
   }
 
   @Override
