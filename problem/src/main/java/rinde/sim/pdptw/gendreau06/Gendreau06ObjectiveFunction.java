@@ -10,15 +10,12 @@ import rinde.sim.pdptw.common.StatisticsDTO;
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
  * 
  */
-public class Gendreau06ObjectiveFunction implements ObjectiveFunction {
+public final class Gendreau06ObjectiveFunction implements ObjectiveFunction {
+  private static final Gendreau06ObjectiveFunction INSTANCE = new Gendreau06ObjectiveFunction();
+  private static final double ALPHA = 1d;
+  private static final double BETA = 1d;
 
-  protected final double alpha;
-  protected final double beta;
-
-  public Gendreau06ObjectiveFunction() {
-    alpha = 1d;
-    beta = 1d;
-  }
+  private Gendreau06ObjectiveFunction() {}
 
   /**
    * All parcels need to be delivered, all vehicles need to be back at the
@@ -50,7 +47,7 @@ public class Gendreau06ObjectiveFunction implements ObjectiveFunction {
     final double totalTravelTime = travelTime(stats);
     final double sumTardiness = tardiness(stats);
     final double overTime = overTime(stats);
-    return totalTravelTime + (alpha * sumTardiness) + (beta * overTime);
+    return totalTravelTime + ALPHA * sumTardiness + BETA * overTime;
   }
 
   @Override
@@ -63,19 +60,39 @@ public class Gendreau06ObjectiveFunction implements ObjectiveFunction {
 
   }
 
-  // time in minutes
+  /**
+   * Computes the travel time based on the {@link StatisticsDTO}.
+   * @param stats The statistics.
+   * @return The travel time in minutes.
+   */
   public double travelTime(StatisticsDTO stats) {
     // avg speed is 30 km/h
     // = (dist / 30.0) * 60.0
     return stats.totalDistance * 2d;
   }
 
+  /**
+   * Computes the tardiness based on the {@link StatisticsDTO}.
+   * @param stats The statistics.
+   * @return The tardiness in minutes.
+   */
   public double tardiness(StatisticsDTO stats) {
     return (stats.pickupTardiness + stats.deliveryTardiness) / 60000d;
   }
 
+  /**
+   * Computes the over time based on the {@link StatisticsDTO}.
+   * @param stats The statistics.
+   * @return The over time in minutes.
+   */
   public double overTime(StatisticsDTO stats) {
     return stats.overTime / 60000d;
   }
 
+  /**
+   * @return The instance.
+   */
+  public static Gendreau06ObjectiveFunction instance() {
+    return INSTANCE;
+  }
 }

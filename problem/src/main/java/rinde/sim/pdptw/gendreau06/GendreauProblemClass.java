@@ -58,9 +58,10 @@ public enum GendreauProblemClass implements ProblemClass {
 
   /**
    * Look up the problem class instance based on the two identifying parameters.
-   * @param minutes
-   * @param frequency
-   * @return
+   * @param minutes The length of the scenario in minutes.
+   * @param frequency The order frequency.
+   * @return The problem class if it exists, throws a
+   *         {@link IllegalArgumentException} otherwise.
    */
   public static GendreauProblemClass with(long minutes, long frequency) {
     for (final GendreauProblemClass gpc : values()) {

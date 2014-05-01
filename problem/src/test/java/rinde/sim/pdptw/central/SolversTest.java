@@ -41,8 +41,8 @@ import rinde.sim.core.model.pdp.DefaultPDPModel;
 import rinde.sim.core.model.pdp.PDPModel;
 import rinde.sim.core.model.pdp.PDPModel.ParcelState;
 import rinde.sim.core.model.pdp.PDPModel.VehicleState;
-import rinde.sim.core.model.pdp.TimeWindowPolicy.TimeWindowPolicies;
 import rinde.sim.core.model.pdp.Parcel;
+import rinde.sim.core.model.pdp.TimeWindowPolicy.TimeWindowPolicies;
 import rinde.sim.core.model.road.PlaneRoadModel;
 import rinde.sim.event.EventAPI;
 import rinde.sim.pdptw.central.GlobalStateObject.VehicleStateObject;
@@ -308,7 +308,7 @@ public class SolversTest {
         .build();
 
     final StatisticsDTO stats = Solvers.computeStats(state, routes);
-    final ObjectiveFunction objFunc = new Gendreau06ObjectiveFunction();
+    final ObjectiveFunction objFunc = Gendreau06ObjectiveFunction.instance();
     final double cost = objFunc.computeCost(stats);
 
     final double cost0 = objFunc.computeCost(Solvers.computeStats(

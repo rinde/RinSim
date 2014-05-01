@@ -51,7 +51,7 @@ public class ExperimentTest {
         new File("files/test/gendreau06/req_rapide_1_240_24"));
 
     final Experiment.Builder builder = Experiment
-        .build(new Gendreau06ObjectiveFunction())
+        .build(Gendreau06ObjectiveFunction.instance())
         .addScenario(scenario)
         .addConfiguration(Central.solverConfiguration(RandomSolver.supplier()))
         .usePostProcessor(new TestPostProcessor())
@@ -79,7 +79,7 @@ public class ExperimentTest {
         new File("files/test/gendreau06/req_rapide_1_240_24"));
 
     final Experiment.Builder builder = Experiment
-        .build(new Gendreau06ObjectiveFunction())
+        .build(Gendreau06ObjectiveFunction.instance())
         .addScenario(scenario)
         .addConfiguration(
             Central.solverConfiguration(RandomSolver.supplier(), "A"))

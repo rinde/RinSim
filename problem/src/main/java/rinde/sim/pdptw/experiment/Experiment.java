@@ -6,8 +6,10 @@ package rinde.sim.pdptw.experiment;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
+import static com.google.common.collect.Sets.newLinkedHashSet;
 
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
@@ -323,8 +325,7 @@ public final class Experiment {
     private ImmutableList<Long> generateSeeds() {
       if (repetitions > 1) {
         final RandomGenerator rng = new MersenneTwister(masterSeed);
-        return ExperimentUtil
-            .generateDistinct(rng, repetitions);
+        return generateDistinct(rng, repetitions);
       } else {
         return ImmutableList.of(masterSeed);
       }
@@ -379,6 +380,14 @@ public final class Experiment {
 
       return new ExperimentResults(this, ImmutableList.copyOf(results));
     }
+  }
+
+  static ImmutableList<Long> generateDistinct(RandomGenerator rng, int size) {
+    final Set<Long> numbers = newLinkedHashSet();
+    while (numbers.size() < size) {
+      numbers.add(rng.nextLong());
+    }
+    return ImmutableList.copyOf(numbers);
   }
 
   /**

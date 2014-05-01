@@ -71,7 +71,7 @@ public class CentralTest {
       }
     };
     final Experiment.Builder builder = Experiment
-        .build(new Gendreau06ObjectiveFunction()) //
+        .build(Gendreau06ObjectiveFunction.instance()) //
         .addScenario(scenario) //
         .addConfiguration(Central.solverConfiguration(s)) //
         .withRandomSeed(123);

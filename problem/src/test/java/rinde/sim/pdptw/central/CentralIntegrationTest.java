@@ -58,7 +58,7 @@ public class CentralIntegrationTest {
   @Test
   public void test() {
     Experiment
-        .build(new Gendreau06ObjectiveFunction())
+        .build(Gendreau06ObjectiveFunction.instance())
         .addScenario(
             scenario)
         .addConfiguration(
@@ -74,7 +74,7 @@ public class CentralIntegrationTest {
   @Test
   public void testRandomSolver() {
     Experiment
-        .build(new Gendreau06ObjectiveFunction())
+        .build(Gendreau06ObjectiveFunction.instance())
         .addScenario(scenario)
         .addConfiguration(
             Central.solverConfiguration(SolverValidator.wrap(RandomSolver

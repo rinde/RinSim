@@ -387,6 +387,8 @@ public class DynamicPDPTWProblem {
    * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
    */
   public static class DefaultUICreator implements UICreator {
+    private static final double DEFAULT_RENDER_MARGIN = .05;
+
     /**
      * A list of renderers.
      */
@@ -423,7 +425,7 @@ public class DynamicPDPTWProblem {
      * @return The default road model renderer.
      */
     protected Renderer planeRoadModelRenderer() {
-      return new PlaneRoadModelRenderer(0.05);
+      return new PlaneRoadModelRenderer(DEFAULT_RENDER_MARGIN);
     }
 
     /**

@@ -61,7 +61,7 @@ public class PDPRoadModel extends ForwardingRoadModel implements ModelReceiver {
   Optional<PDPModel> pdpModel;
 
   /**
-   * Decorates the {@link AbstractRoadModel}
+   * Decorates the {@link AbstractRoadModel}.
    * @param rm The road model that is being decorated by this model.
    * @param allowVehicleDiversion Should the model allow vehicle diversion or
    *          not. See {@link PDPRoadModel} for more information about
@@ -233,10 +233,12 @@ public class PDPRoadModel extends ForwardingRoadModel implements ModelReceiver {
       final ParcelState parcelState = pdpModel.get().getParcelState(
           (Parcel) destinations.get(obj).roadUser);
       // if it is a pickup destination it must still be available
-      if ((destinations.get(obj).type == DestType.PICKUP
-          && parcelState == ParcelState.AVAILABLE || parcelState == ParcelState.ANNOUNCED)
+      if (destinations.get(obj).type == DestType.PICKUP
+          && parcelState == ParcelState.AVAILABLE
+          || parcelState == ParcelState.ANNOUNCED
           // if it is a delivery destination it must still be in cargo
-          || (destinations.get(obj).type == DestType.DELIVERY && parcelState == ParcelState.IN_CARGO)) {
+          || destinations.get(obj).type == DestType.DELIVERY
+          && parcelState == ParcelState.IN_CARGO) {
         return (DefaultParcel) destinations.get(obj).roadUser;
       }
     }
@@ -253,8 +255,7 @@ public class PDPRoadModel extends ForwardingRoadModel implements ModelReceiver {
     if (allowDiversion) {
       return delegate.moveTo(object, destination, time);
     } else {
-      throw new UnsupportedOperationException(
-          "This road model doesn't allow diversion and therefore only supports the moveTo(MovingRoadUser,RoadUser,TimeLapse) method.");
+      return unsupported();
     }
   }
 
@@ -268,9 +269,18 @@ public class PDPRoadModel extends ForwardingRoadModel implements ModelReceiver {
     if (allowDiversion) {
       return delegate.followPath(object, path, time);
     } else {
-      throw new UnsupportedOperationException(
-          "This road model doesn't allow diversion and therefore only supports the moveTo(MovingRoadUser,RoadUser,TimeLapse) method.");
+      return unsupported();
     }
+  }
+
+  private MoveProgress unsupported() {
+    throw new UnsupportedOperationException(
+        "This road model doesn't allow diversion and therefore only supports the moveTo(MovingRoadUser,RoadUser,TimeLapse) method.");
+  }
+
+  @Override
+  public void registerModelProvider(ModelProvider mp) {
+    pdpModel = Optional.fromNullable(mp.getModel(PDPModel.class));
   }
 
   private static final class DestinationObject {
@@ -293,11 +303,14 @@ public class PDPRoadModel extends ForwardingRoadModel implements ModelReceiver {
 
     @Override
     public boolean equals(@Nullable Object obj) {
-      if (obj == null || getClass() != this.getClass()) {
+      if (obj == null) {
         return false;
       }
       if (obj == this) {
         return true;
+      }
+      if (getClass() != obj.getClass()) {
+        return false;
       }
       final DestinationObject other = (DestinationObject) obj;
       return new EqualsBuilder().append(type, other.type)
@@ -313,10 +326,5 @@ public class PDPRoadModel extends ForwardingRoadModel implements ModelReceiver {
 
   enum DestType {
     PICKUP, DELIVERY, DEPOT;
-  }
-
-  @Override
-  public void registerModelProvider(ModelProvider mp) {
-    pdpModel = Optional.fromNullable(mp.getModel(PDPModel.class));
   }
 }

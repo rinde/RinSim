@@ -40,6 +40,8 @@ import rinde.sim.scenario.ScenarioBuilder.ScenarioCreator;
 import rinde.sim.scenario.TimedEvent;
 import rinde.sim.util.TimeWindow;
 
+import com.google.common.base.Charsets;
+import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.math.DoubleMath;
@@ -70,26 +72,26 @@ import com.google.common.math.DoubleMath;
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
  */
 public final class Gendreau06Parser {
-
   private static final String REGEX = ".*req_rapide_(1|2|3|4|5)_(450|240)_(24|33)";
   private static final double TIME_MULTIPLIER = 1000d;
   private static final int TIME_MULTIPLIER_INTEGER = 1000;
   private static final int PARCEL_MAGNITUDE = 0;
+  private static final long DEFAULT_TICK_SIZE = 1000L;
 
   private int numVehicles;
   private boolean allowDiversion;
   private boolean online;
   private long tickSize;
   private final ImmutableMap.Builder<String, ParcelsSupplier> parcelsSuppliers;
-  @Nullable
-  private ImmutableList<ProblemClass> problemClasses;
+  private Optional<ImmutableList<ProblemClass>> problemClasses;
 
   private Gendreau06Parser() {
     allowDiversion = false;
     online = true;
     numVehicles = -1;
-    tickSize = 1000L;
+    tickSize = DEFAULT_TICK_SIZE;
     parcelsSuppliers = ImmutableMap.builder();
+    problemClasses = Optional.absent();
   }
 
   /**
@@ -249,7 +251,7 @@ public final class Gendreau06Parser {
    * @return This, as per the builder pattern.
    */
   public Gendreau06Parser filter(GendreauProblemClass... classes) {
-    problemClasses = ImmutableList.<ProblemClass> copyOf(classes);
+    problemClasses = Optional.of(ImmutableList.<ProblemClass> copyOf(classes));
     return this;
   }
 
@@ -265,10 +267,10 @@ public final class Gendreau06Parser {
     for (final Entry<String, ParcelsSupplier> entry : parcelsSuppliers.build()
         .entrySet()) {
       boolean include = false;
-      if (problemClasses == null) {
+      if (!problemClasses.isPresent()) {
         include = true;
       } else {
-        for (final ProblemClass pc : problemClasses) {
+        for (final ProblemClass pc : problemClasses.get()) {
           if (entry.getKey().endsWith(pc.getId())) {
             include = true;
             break;
@@ -284,14 +286,22 @@ public final class Gendreau06Parser {
     return scenarios.build();
   }
 
+  static Matcher matcher(String fileName) {
+    return Pattern.compile(REGEX).matcher(fileName);
+  }
+
   static boolean isValidFileName(String name) {
     return Pattern.compile(REGEX).matcher(name).matches();
   }
 
-  static void checkValidFileName(String name) {
-    checkArgument(isValidFileName(name),
+  static void checkValidFileName(Matcher m, String name) {
+    checkArgument(m.matches(),
         "The filename must conform to the following regex: %s input was: %s",
         REGEX, name);
+  }
+
+  static void checkValidFileName(String name) {
+    checkValidFileName(matcher(name), name);
   }
 
   private static Gendreau06Scenario parse(
@@ -301,10 +311,8 @@ public final class Gendreau06Parser {
     final ScenarioBuilder sb = new ScenarioBuilder(ADD_PARCEL, ADD_DEPOT,
         ADD_VEHICLE, TIME_OUT);
 
-    final Matcher m = Pattern.compile(REGEX).matcher(fileName);
-    checkArgument(m.matches(),
-        "The filename must conform to the following regex: %s input was: %s",
-        REGEX, fileName);
+    final Matcher m = matcher(fileName);
+    checkValidFileName(m, fileName);
 
     final int instanceNumber = Integer.parseInt(m.group(1));
     final long minutes = Long.parseLong(m.group(2));
@@ -321,8 +329,13 @@ public final class Gendreau06Parser {
     final double truckSpeed = 30;
     sb.addEvent(new AddDepotEvent(-1, depotPosition));
     for (int i = 0; i < vehicles; i++) {
-      sb.addEvent(new AddVehicleEvent(-1, new VehicleDTO(depotPosition,
-          truckSpeed, 0, new TimeWindow(0, totalTime))));
+      sb.addEvent(new AddVehicleEvent(-1,
+          VehicleDTO.builder()
+              .startPosition(depotPosition)
+              .speed(truckSpeed)
+              .capacity(0)
+              .availabilityTimeWindow(new TimeWindow(0, totalTime))
+              .build()));
     }
     sb.addEvents(parcels.get(online));
     sb.addEvent(new TimedEvent(TIME_OUT, totalTime));
@@ -342,7 +355,7 @@ public final class Gendreau06Parser {
     final ImmutableList.Builder<AddParcelEvent> listBuilder = ImmutableList
         .builder();
     final BufferedReader reader = new BufferedReader(new InputStreamReader(
-        inputStream));
+        inputStream, Charsets.UTF_8));
     String line;
     try {
       while ((line = reader.readLine()) != null) {

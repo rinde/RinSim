@@ -59,7 +59,8 @@ public class SolverSimTest {
       final long seed = rng.nextLong();
       final DebugSolverCreator dsc = new DebugSolverCreator(seed,
           scenario.getTimeUnit());
-      final Gendreau06ObjectiveFunction obj = new Gendreau06ObjectiveFunction();
+      final Gendreau06ObjectiveFunction obj = Gendreau06ObjectiveFunction
+          .instance();
       final ExperimentResults results = Experiment.build(obj)
           .addConfiguration(Central.solverConfiguration(dsc))
           .addScenario(scenario).perform();
@@ -109,7 +110,8 @@ public class SolverSimTest {
     final DebugSolverCreator dsc = new DebugSolverCreator(123,
         scenario.getTimeUnit());
 
-    final Gendreau06ObjectiveFunction obj = new Gendreau06ObjectiveFunction();
+    final Gendreau06ObjectiveFunction obj = Gendreau06ObjectiveFunction
+        .instance();
     Experiment.build(obj).addConfiguration(Central.solverConfiguration(dsc))
         .addScenario(scenario).repeat(10).perform();
 
@@ -206,7 +208,8 @@ public class SolverSimTest {
       final SolutionObject sol = sols[i];
       final int index = sol.route.length - 1;
       assertEquals(0, arr.serviceTimes[sol.route[index]]);
-      final int lateness = (sol.arrivalTimes[index] + arr.serviceTimes[sol.route[index]])
+      final int lateness = sol.arrivalTimes[index]
+          + arr.serviceTimes[sol.route[index]]
           - arr.dueDates[sol.route[index]];
       if (lateness > 0) {
         overTime += lateness;

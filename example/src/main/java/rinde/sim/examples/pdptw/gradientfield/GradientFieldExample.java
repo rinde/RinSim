@@ -64,7 +64,8 @@ public class GradientFieldExample {
         .allowDiversion()
         .parse().get(0);
 
-    final Gendreau06ObjectiveFunction objFunc = new Gendreau06ObjectiveFunction();
+    final Gendreau06ObjectiveFunction objFunc = Gendreau06ObjectiveFunction
+        .instance();
     Experiment
         .build(objFunc)
         .withRandomSeed(123)

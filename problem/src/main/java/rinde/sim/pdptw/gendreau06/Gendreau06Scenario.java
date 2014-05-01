@@ -50,8 +50,6 @@ import com.google.common.collect.ImmutableList;
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
  */
 public final class Gendreau06Scenario extends PDPScenario {
-  private static final long serialVersionUID = 1386559671732721432L;
-
   private static final Point MIN = new Point(0, 0);
   private static final Point MAX = new Point(5, 5);
   private static final Measure<Double, Velocity> MAX_SPEED = Measure.valueOf(
