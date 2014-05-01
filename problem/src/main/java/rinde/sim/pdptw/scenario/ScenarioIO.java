@@ -65,9 +65,9 @@ import com.google.gson.stream.JsonWriter;
 public final class ScenarioIO {
   private ScenarioIO() {}
 
-  private final static Gson gson = initialize();
+  private static final Gson gson = initialize();
 
-  private final static Gson initialize() {
+  private static Gson initialize() {
     final Type enumSetType = new TypeToken<Set<Enum<?>>>() {}.getType();
 
     final GsonBuilder builder = new GsonBuilder();
@@ -101,10 +101,24 @@ public final class ScenarioIO {
     Files.write(write(s), to, Charsets.UTF_8);
   }
 
+  /**
+   * Reads a {@link PDPScenario} from disk.
+   * @param file The file to read from.
+   * @return A {@link PDPScenario} instance.
+   * @throws IOException When reading fails.
+   */
   public static PDPScenario read(File file) throws IOException {
     return read(file, DefaultScenario.class);
   }
 
+  /**
+   * Reads a scenario from disk.
+   * @param file The file to read from.
+   * @param type The type of scenario to read.
+   * @param <T> The scenario type.
+   * @return A scenario of type T.
+   * @throws IOException When reading fails.
+   */
   public static <T> T read(File file, Class<T> type) throws IOException {
     return read(Files.toString(file, Charsets.UTF_8), type);
   }
@@ -183,9 +197,9 @@ public final class ScenarioIO {
     @Override
     public TimedEvent deserialize(@Nullable JsonElement json,
         @Nullable Type typeOfT,
-        @Nullable JsonDeserializationContext context) throws JsonParseException {
-      checkNotNull(json);
-      checkNotNull(context);
+        @Nullable JsonDeserializationContext context) {
+      checkArgument(json != null);
+      checkArgument(context != null);
 
       final JsonObject obj = json.getAsJsonObject();
 
@@ -224,8 +238,9 @@ public final class ScenarioIO {
     @Override
     public Set<Enum<?>> deserialize(@Nullable JsonElement json,
         @Nullable Type typeOfT,
-        @Nullable JsonDeserializationContext context) throws JsonParseException {
-      checkNotNull(context);
+        @Nullable JsonDeserializationContext context) {
+      checkArgument(json != null);
+      checkArgument(context != null);
       final Set<Enum<?>> eventTypes = newLinkedHashSet();
       final List<String> list = context
           .deserialize(json, new TypeToken<List<String>>() {}.getType());
@@ -236,9 +251,8 @@ public final class ScenarioIO {
     }
 
     @Override
-    public JsonElement serialize(@Nullable Set<Enum<?>> src,
-        @Nullable Type typeOfSrc,
-        @Nullable JsonSerializationContext context) {
+    public JsonElement serialize(Set<Enum<?>> src, Type typeOfSrc,
+        JsonSerializationContext context) {
       checkNotNull(src);
       checkNotNull(context);
 
@@ -256,15 +270,14 @@ public final class ScenarioIO {
     @Override
     public Unit<?> deserialize(@Nullable JsonElement json,
         @Nullable Type typeOfT,
-        @Nullable JsonDeserializationContext context) throws JsonParseException {
+        @Nullable JsonDeserializationContext context) {
       checkNotNull(json);
       return Unit.valueOf(json.getAsString());
     }
 
     @Override
-    public JsonElement serialize(@Nullable Unit<?> src,
-        @Nullable Type typeOfSrc,
-        @Nullable JsonSerializationContext context) {
+    public JsonElement serialize(Unit<?> src, Type typeOfSrc,
+        JsonSerializationContext context) {
       checkNotNull(src);
       checkNotNull(context);
       return context.serialize(src.toString());
@@ -282,9 +295,9 @@ public final class ScenarioIO {
     @Override
     public Measure<?, ?> deserialize(@Nullable JsonElement json,
         @Nullable Type typeOfT,
-        @Nullable JsonDeserializationContext context) throws JsonParseException {
-      checkNotNull(json);
-      checkNotNull(context);
+        @Nullable JsonDeserializationContext context) {
+      checkArgument(json != null);
+      checkArgument(context != null);
       checkArgument(json.isJsonObject());
       final JsonObject obj = json.getAsJsonObject();
       final Unit<?> unit = context.deserialize(obj.get(UNIT), Unit.class);
@@ -360,7 +373,7 @@ public final class ScenarioIO {
     @Override
     public TimeWindowPolicy deserialize(@Nullable JsonElement json,
         @Nullable Type typeOfT,
-        @Nullable JsonDeserializationContext context) throws JsonParseException {
+        @Nullable JsonDeserializationContext context) {
       checkNotNull(json);
       checkNotNull(context);
       return context.deserialize(json, Enum.class);
@@ -404,7 +417,7 @@ public final class ScenarioIO {
     @Override
     public Predicate<?> deserialize(@Nullable JsonElement json,
         @Nullable Type typeOfT,
-        @Nullable JsonDeserializationContext context) throws JsonParseException {
+        @Nullable JsonDeserializationContext context) {
       checkNotNull(json);
       checkArgument(json.isJsonPrimitive());
 
@@ -484,9 +497,9 @@ public final class ScenarioIO {
     @Override
     public ProblemClass deserialize(@Nullable JsonElement json,
         @Nullable Type typeOfT,
-        @Nullable JsonDeserializationContext context) throws JsonParseException {
-      checkNotNull(json);
-      checkNotNull(context);
+        @Nullable JsonDeserializationContext context) {
+      checkArgument(json != null);
+      checkArgument(context != null);
       if (json.isJsonPrimitive() && json.getAsJsonPrimitive().isString()) {
         return new SimpleProblemClass(json.getAsJsonPrimitive().getAsString());
       }
@@ -494,9 +507,8 @@ public final class ScenarioIO {
     }
 
     @Override
-    public JsonElement serialize(@Nullable ProblemClass src,
-        @Nullable Type typeOfSrc,
-        @Nullable JsonSerializationContext context) {
+    public JsonElement serialize(ProblemClass src, Type typeOfSrc,
+        JsonSerializationContext context) {
       checkNotNull(context);
       checkNotNull(src);
       if (src instanceof Enum<?>) {
