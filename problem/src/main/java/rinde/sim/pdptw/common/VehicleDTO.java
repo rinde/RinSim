@@ -3,8 +3,7 @@
  */
 package rinde.sim.pdptw.common;
 
-import java.io.Serializable;
-
+import static com.google.common.base.Preconditions.checkArgument;
 import rinde.sim.core.graph.Point;
 import rinde.sim.util.TimeWindow;
 
@@ -13,9 +12,7 @@ import rinde.sim.util.TimeWindow;
  * problem.
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
  */
-public class VehicleDTO implements Serializable {
-  private static final long serialVersionUID = -631074532620454156L;
-
+public class VehicleDTO {
   /**
    * The start position of the vehicle.
    */
@@ -74,11 +71,20 @@ public class VehicleDTO implements Serializable {
     return sb.toString();
   }
 
+  /**
+   * @return A new builder for constructing {@link VehicleDTO}s.
+   */
   public static Builder builder() {
     return new Builder();
   }
 
+  /**
+   * A builder for constructing {@link VehicleDTO}s.
+   * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+   */
   public static class Builder {
+    private static final double DEFAULT_SPEED = 50d;
+
     Point startPosition;
     double speed;
     int capacity;
@@ -86,31 +92,58 @@ public class VehicleDTO implements Serializable {
 
     Builder() {
       startPosition = new Point(0, 0);
-      speed = 50;
+      speed = DEFAULT_SPEED;
       capacity = 1;
       availabilityTimeWindow = TimeWindow.ALWAYS;
     }
 
+    /**
+     * Sets the start position of the vehicle. Default value: (0,0).
+     * @param point The position.
+     * @return This, as per the builder pattern.
+     */
     public Builder startPosition(Point point) {
       startPosition = point;
       return this;
     }
 
+    /**
+     * Sets the speed of the vehicle. Default value: 50 (using the speed unit of
+     * the scenario/simulator where it is used).
+     * @param s The speed, must be <code> > 0</code>.
+     * @return This, as per the builder pattern.
+     */
     public Builder speed(double s) {
+      checkArgument(s > 0, "Speed must be positive, found %s.", s);
       speed = s;
       return this;
     }
 
+    /**
+     * Sets the capacity of the vehicle. Default value: 1.
+     * @param c The capacity, must be <code> >= 0</code>.
+     * @return This, as per the builder pattern.
+     */
     public Builder capacity(int c) {
+      checkArgument(c >= 0, "Capacity may not be negative, found %s.", c);
       capacity = c;
       return this;
     }
 
+    /**
+     * Sets the availability {@link TimeWindow} of the vehicle. Default value:
+     * {@link TimeWindow#ALWAYS}.
+     * @param tw The time window.
+     * @return This, as per the builder pattern.
+     */
     public Builder availabilityTimeWindow(TimeWindow tw) {
       availabilityTimeWindow = tw;
       return this;
     }
 
+    /**
+     * @return A new {@link VehicleDTO} instance.
+     */
     public VehicleDTO build() {
       return new VehicleDTO(this);
     }
