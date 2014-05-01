@@ -97,6 +97,11 @@ public class VehicleDTO {
       availabilityTimeWindow = TimeWindow.ALWAYS;
     }
 
+    /**
+     * Copy the value of the specified vehicle into this builder.
+     * @param dto The dto to copy values from.
+     * @return This, as per the builder pattern.
+     */
     public Builder use(VehicleDTO dto) {
       return startPosition(dto.startPosition)
           .availabilityTimeWindow(dto.availabilityTimeWindow)
