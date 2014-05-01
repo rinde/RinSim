@@ -12,7 +12,6 @@ import rinde.sim.scenario.TimedEvent;
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
  */
 public class AddDepotEvent extends TimedEvent {
-  private static final long serialVersionUID = -7517322583609266323L;
 
   /**
    * The position where the depot is to be added.

@@ -11,7 +11,6 @@ import rinde.sim.scenario.TimedEvent;
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
  */
 public class AddVehicleEvent extends TimedEvent {
-  private static final long serialVersionUID = 4424003258869579149L;
 
   /**
    * Data which describes the vehicle that should be added.

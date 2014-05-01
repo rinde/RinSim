@@ -8,7 +8,6 @@ import rinde.sim.scenario.TimedEvent;
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
  */
 public class AddParcelEvent extends TimedEvent {
-  private static final long serialVersionUID = -5053179165237737817L;
 
   /**
    * The data which should be used to instantiate a new parcel.
