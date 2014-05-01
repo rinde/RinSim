@@ -10,7 +10,6 @@ import static com.google.common.collect.Sets.newLinkedHashSet;
 import static java.util.Collections.unmodifiableList;
 import static java.util.Collections.unmodifiableSet;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashSet;
@@ -30,9 +29,7 @@ import com.google.common.base.Objects;
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
  * @author Bartosz Michalik <bartosz.michalik@cs.kuleuven.be>
  */
-public class Scenario implements Serializable {
-  private static final long serialVersionUID = 1839693038677831786L;
-
+public class Scenario {
   private final List<TimedEvent> events;
   private final Set<Enum<?>> supportedTypes;
 
