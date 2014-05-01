@@ -15,14 +15,14 @@ import com.google.common.collect.ImmutableList;
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
  */
 public final class Depots {
-  private Depots() {}
-
   private static final DepotGenerator SINGLE_CENTERED_DEPOT_GENERATOR = new DepotGenerator() {
     @Override
     public Iterable<? extends AddDepotEvent> generate(long seed, Point center) {
       return ImmutableList.of(new AddDepotEvent(-1, center));
     }
   };
+
+  private Depots() {}
 
   /**
    * @return A {@link DepotGenerator} that creates a single
