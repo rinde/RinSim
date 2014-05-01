@@ -97,6 +97,13 @@ public class VehicleDTO {
       availabilityTimeWindow = TimeWindow.ALWAYS;
     }
 
+    public Builder use(VehicleDTO dto) {
+      return startPosition(dto.startPosition)
+          .availabilityTimeWindow(dto.availabilityTimeWindow)
+          .speed(dto.speed)
+          .capacity(dto.capacity);
+    }
+
     /**
      * Sets the start position of the vehicle. Default value: (0,0).
      * @param point The position.
