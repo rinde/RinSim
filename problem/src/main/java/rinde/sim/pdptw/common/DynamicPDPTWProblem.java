@@ -118,7 +118,7 @@ public class DynamicPDPTWProblem {
   protected final DefaultUICreator defaultUICreator;
 
   /**
-   * The {@link StatsTracker} which is used internally for gathering statistics.
+   * The StatsTracker which is used internally for gathering statistics.
    */
   protected final StatsTracker statsTracker;
 
