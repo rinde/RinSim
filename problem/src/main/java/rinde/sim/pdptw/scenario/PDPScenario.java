@@ -40,7 +40,6 @@ import com.google.common.collect.ImmutableSet;
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
  */
 public abstract class PDPScenario extends Scenario {
-  private static final long serialVersionUID = 7258024865764689371L;
 
   /**
    * New empty instance.
@@ -374,8 +373,6 @@ public abstract class PDPScenario extends Scenario {
   }
 
   static class DefaultScenario extends PDPScenario {
-    private static final long serialVersionUID = -4662516689920279959L;
-
     final ImmutableList<? extends Supplier<? extends Model<?>>> modelSuppliers;
     private final Unit<Velocity> speedUnit;
     private final Unit<Length> distanceUnit;

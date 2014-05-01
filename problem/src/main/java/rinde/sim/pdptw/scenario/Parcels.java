@@ -140,8 +140,9 @@ public final class Parcels {
   public static class Builder {
     static final TimeSeriesGenerator DEFAULT_ANNOUNCE_TIMES = TimeSeries
         .homogenousPoisson(4 * 60 * 60 * 1000, 20);
+    static final double DEFAULT_AREA_SIZE = 5d;
     static final LocationGenerator DEFAULT_LOCATIONS = Locations.builder()
-        .square(5d).uniform();
+        .square(DEFAULT_AREA_SIZE).uniform();
     static final TimeWindowGenerator DEFAULT_TIME_WINDOW_GENERATOR = TimeWindows
         .builder().build();
     static final SupplierRng<Long> DEFAULT_SERVICE_DURATION = SupplierRngs
@@ -165,40 +166,81 @@ public final class Parcels {
       neededCapacityGenerator = DEFAULT_CAPACITY;
     }
 
+    /**
+     * Sets a {@link TimeSeriesGenerator} which will be used for generating
+     * parcel announce times.
+     * @param atg The time series generator to use.
+     * @return This, as per the builder pattern.
+     */
     public Builder announceTimes(TimeSeriesGenerator atg) {
       announceTimeGenerator = atg;
       return this;
     }
 
+    /**
+     * Sets a {@link TimeWindowGenerator} to use for generating parcel pickup
+     * and delivery time windows.
+     * @param twg The time window generator to use.
+     * @return This, as per the builder pattern.
+     */
     public Builder timeWindows(TimeWindowGenerator twg) {
       timeWindowGenerator = twg;
       return this;
     }
 
+    /**
+     * Sets a {@link LocationGenerator} to use for generating parcel pickup and
+     * delivery locations.
+     * @param lg The location generator to use.
+     * @return This, as per the builder pattern.
+     */
     public Builder locations(LocationGenerator lg) {
       locationGenerator = lg;
       return this;
     }
 
+    /**
+     * Sets the durations of the parcel pickup operations.
+     * @param durations The supplier to draw the durations from.
+     * @return This, as per the builder pattern.
+     */
     public Builder pickupDurations(SupplierRng<Long> durations) {
       pickupDurationGenerator = durations;
       return this;
     }
 
+    /**
+     * Sets the durations of the parcel delivery operations.
+     * @param durations The supplier to draw the durations from.
+     * @return This, as per the builder pattern.
+     */
     public Builder deliveryDurations(SupplierRng<Long> durations) {
       deliveryDurationGenerator = durations;
       return this;
     }
 
+    /**
+     * Sets the durations of the parcel pickup and delivery operations.
+     * @param durations The supplier to draw the durations from.
+     * @return This, as per the builder pattern.
+     */
     public Builder serviceDurations(SupplierRng<Long> durations) {
       return pickupDurations(durations).deliveryDurations(durations);
     }
 
+    /**
+     * Sets the capacities that are needed to carry the generated parcels.
+     * @param capacities The supplier to draw the capacities from.
+     * @return This, as per the builder pattern.
+     */
     public Builder neededCapacities(SupplierRng<Integer> capacities) {
       neededCapacityGenerator = capacities;
       return this;
     }
 
+    /**
+     * @return A new {@link ParcelGenerator} instance.
+     */
     public ParcelGenerator build() {
       return new DefaultParcelGenerator(this);
     }
