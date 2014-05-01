@@ -10,7 +10,6 @@ import rinde.sim.event.Event;
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
  */
 public class PDPModelEvent extends Event {
-  private static final long serialVersionUID = 7008138533321063591L;
 
   /**
    * The {@link DefaultPDPModel} that dispatched this event.
@@ -23,15 +22,15 @@ public class PDPModelEvent extends Event {
   public final long time;
 
   /**
-   * The {@link Parcel} that was involved in the event, or <code>null</code>
-   * if there was no {@link Parcel} involved in the event.
+   * The {@link Parcel} that was involved in the event, or <code>null</code> if
+   * there was no {@link Parcel} involved in the event.
    */
   @Nullable
   public final Parcel parcel;
 
   /**
-   * The {@link Vehicle} that was involved in the event, or <code>null</code>
-   * if there was no {@link Vehicle} involved in the event.
+   * The {@link Vehicle} that was involved in the event, or <code>null</code> if
+   * there was no {@link Vehicle} involved in the event.
    */
   @Nullable
   public final Vehicle vehicle;
