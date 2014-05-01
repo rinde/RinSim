@@ -75,7 +75,7 @@ public final class View {
     Monitor monitor;
     final List<Renderer> rendererList;
     Map<MenuItems, Integer> accelerators;
-
+    @Nullable
     Listener callback;
 
     Builder(Simulator s) {
@@ -236,11 +236,6 @@ public final class View {
       return this;
     }
 
-    public Builder setSleep(long ms) {
-      sleep = ms;
-      throw new UnsupportedOperationException("not yet implemented");
-    }
-
     /**
      * Show the view.
      */
@@ -312,7 +307,6 @@ public final class View {
       }
 
       shell.addListener(SWT.Close, new org.eclipse.swt.widgets.Listener() {
-        @SuppressWarnings("synthetic-access")
         @Override
         public void handleEvent(@Nullable org.eclipse.swt.widgets.Event event) {
           simulator.stop();

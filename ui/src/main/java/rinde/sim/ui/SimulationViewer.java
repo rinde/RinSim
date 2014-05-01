@@ -58,8 +58,15 @@ import com.google.common.collect.Multimap;
  * @author Bartosz Michalik <bartosz.michalik@cs.kuleuven.be>
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
  */
-public class SimulationViewer extends Composite implements TickListener,
+final class SimulationViewer extends Composite implements TickListener,
     ControlListener, PaintListener, SelectionListener {
+
+  // TODO need to refactor this class in separate logical parts:
+  // Time stuff: receives ticks and decides when gui should be updated.
+  // > show fps?
+  // Time display: move into separate TimeRenderer
+  // Canvas stuff: zooming, scrolling, renderers
+  // Menu stuff: accelerators/names
 
   private static final int MIN_SPEED_UP = 1;
   private static final int MAX_SPEED_UP = 512;
@@ -82,7 +89,8 @@ public class SimulationViewer extends Composite implements TickListener,
   private final Set<ModelReceiver> modelRenderers;
   private final boolean autoPlay;
   private MenuItem playPauseMenuItem;
-  private double m; // multiplier
+  // multiplier
+  private double m;
 
   @Nullable
   private ScrollBar hBar;
@@ -139,7 +147,10 @@ public class SimulationViewer extends Composite implements TickListener,
     setLayout(new FillLayout());
 
     createMenu(shell);
+    panelsLayout(panels);
+  }
 
+  void panelsLayout(Multimap<Integer, PanelRenderer> panels) {
     if (panels.isEmpty()) {
       createContent(this);
     } else {

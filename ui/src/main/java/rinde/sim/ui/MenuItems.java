@@ -42,7 +42,7 @@ public enum MenuItems {
   /**
    * The default accelerators, designed for keyboards with a QWERTY layout.
    */
-  public static final ImmutableMap<MenuItems, Integer> QWERTY_ACCELERATORS = ImmutableMap
+  public final static ImmutableMap<MenuItems, Integer> QWERTY_ACCELERATORS = ImmutableMap
       .<MenuItems, Integer> builder().put(PLAY, SWT.MOD1 + 'P')
       .put(NEXT_TICK, SWT.MOD1 + SWT.SHIFT + ']')
       .put(INCREASE_SPEED, SWT.MOD1 + ']').put(DECREASE_SPEED, SWT.MOD1 + '[')
