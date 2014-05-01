@@ -30,18 +30,28 @@ import rinde.sim.util.TimeWindow;
 import com.google.common.collect.ImmutableList;
 
 /**
+ * A scenario for Fabri & Recht problems.
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
- * 
  */
 public class FabriRechtScenario extends PDPScenario {
-  private static final long serialVersionUID = 8654500529284785728L;
+  /**
+   * Minimum position.
+   */
   public final Point min;
+  /**
+   * Maximum position.
+   */
   public final Point max;
+  /**
+   * Time window of the scenario.
+   */
   public final TimeWindow timeWindow;
+  /**
+   * The default vehicle.
+   */
   public final VehicleDTO defaultVehicle;
 
-  // empty scenario
-  public FabriRechtScenario(Point pMin, Point pMax, TimeWindow pTimeWindow,
+  FabriRechtScenario(Point pMin, Point pMax, TimeWindow pTimeWindow,
       VehicleDTO pDefaultVehicle) {
     super();
     min = pMin;
@@ -51,8 +61,13 @@ public class FabriRechtScenario extends PDPScenario {
   }
 
   /**
-   * @param pEvents
-   * @param pSupportedTypes
+   * Create a new scenario.
+   * @param pEvents The event list.
+   * @param pSupportedTypes The event types.
+   * @param pMin {@link #min}.
+   * @param pMax {@link #max}.
+   * @param pTimeWindow {@link #timeWindow}.
+   * @param pDefaultVehicle {@link #defaultVehicle}.
    */
   public FabriRechtScenario(Collection<? extends TimedEvent> pEvents,
       Set<Enum<?>> pSupportedTypes, Point pMin, Point pMax,
@@ -118,7 +133,7 @@ public class FabriRechtScenario extends PDPScenario {
     return "1";
   }
 
-  public enum FabriRechtProblemClass implements ProblemClass {
+  enum FabriRechtProblemClass implements ProblemClass {
     SINGLETON;
 
     @Override

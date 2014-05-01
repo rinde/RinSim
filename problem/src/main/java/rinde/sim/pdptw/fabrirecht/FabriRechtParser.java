@@ -3,6 +3,7 @@
  */
 package rinde.sim.pdptw.fabrirecht;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Sets.newLinkedHashSet;
 
@@ -32,7 +33,6 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonDeserializationContext;
 import com.google.gson.JsonDeserializer;
 import com.google.gson.JsonElement;
-import com.google.gson.JsonParseException;
 import com.google.gson.JsonSerializationContext;
 import com.google.gson.JsonSerializer;
 import com.google.gson.TypeAdapter;
@@ -42,13 +42,23 @@ import com.google.gson.stream.JsonToken;
 import com.google.gson.stream.JsonWriter;
 
 /**
+ * Parser for {@link FabriRechtScenario}s.
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
- * 
  */
-public class FabriRechtParser {
+public final class FabriRechtParser {
+  private static final Gson GSON = initialize();
+  private static final String LINE_SEPARATOR = ";";
+  private static final String VALUE_SEPARATOR = ",";
 
-  private final static Gson gson = initialize();
+  private FabriRechtParser() {}
 
+  /**
+   * Parse Fabri & Recht scenario.
+   * @param coordinateFile The coordinate file.
+   * @param ordersFile The orders file.
+   * @return The scenario.
+   * @throws IOException When parsing fails.
+   */
   public static FabriRechtScenario parse(String coordinateFile,
       String ordersFile) throws IOException {
     final ScenarioBuilder sb = new ScenarioBuilder(PDPScenarioEvent.ADD_DEPOT,
@@ -68,8 +78,10 @@ public class FabriRechtParser {
     int maxX = Integer.MIN_VALUE;
     int maxY = Integer.MIN_VALUE;
     while ((line = coordinateFileReader.readLine()) != null) {
-      final String[] parts = line.split(";");
+      final String[] parts = line.split(LINE_SEPARATOR);
       if (Integer.parseInt(parts[0]) != coordinateCounter) {
+        coordinateFileReader.close();
+        ordersFileReader.close();
         throw new IllegalArgumentException(
             "The coordinate file seems to be in an unrecognized format.");
       }
@@ -92,42 +104,46 @@ public class FabriRechtParser {
     final Point min = new Point(minX, minY);
     final Point max = new Point(maxX, maxY);
 
-    //
-    // sb.addMultipleEvents(0, 10, PDPScenarioEvent.ADD_DEPOT);
-
     // Anzahl der Fahrzeuge; Kapazität; untere Zeitfenstergrenze; obere
     // Zeitfenstergrenze
-    final String[] firstLine = ordersFileReader.readLine().split(";");
-    final int numVehicles = Integer.parseInt(firstLine[0]);
+    final String firstLineString = ordersFileReader.readLine();
+    checkArgument(firstLineString != null);
+    final String[] firstLine = firstLineString.split(LINE_SEPARATOR);
+    // line 0 contains number of vehicles, but this is not needed
     final int capacity = Integer.parseInt(firstLine[1]);
     final long startTime = Long.parseLong(firstLine[2]);
     final long endTime = Long.parseLong(firstLine[3]);
     final TimeWindow timeWindow = new TimeWindow(startTime, endTime);
 
     sb.addEvent(new TimedEvent(PDPScenarioEvent.TIME_OUT, endTime));
-
-    // for (int i = 0; i < numVehicles; i++) {
-    // sb.addEvent(new AddVehicleEvent(0, new VehicleDTO(coordinates.get(0),
-    // 1.0, capacity, timeWindow)));
-    // }
-    final VehicleDTO defaultVehicle = new VehicleDTO(coordinates.get(0), 1.0,
-        capacity, timeWindow);
+    final VehicleDTO defaultVehicle = VehicleDTO.builder()
+        .startPosition(coordinates.get(0))
+        .speed(1d)
+        .capacity(capacity)
+        .availabilityTimeWindow(timeWindow)
+        .build();
 
     // Nr. des Pickup-Orts; Nr. des Delivery-Orts; untere Zeitfenstergrenze
     // Pickup; obere Zeitfenstergrenze Pickup; untere Zeitfenstergrenze
     // Delivery; obere Zeitfenstergrenze Delivery; benötigte Kapazität;
     // Anrufzeit; Servicezeit Pickup; Servicezeit Delivery
     while ((line = ordersFileReader.readLine()) != null) {
-      final String[] parts = line.split(";");
+      final String[] parts = line.split(LINE_SEPARATOR);
 
-      final int neededCapacity = 1; // Integer.parseInt(parts[6]);
+      final int neededCapacity = 1;
 
-      final ParcelDTO o = new ParcelDTO(coordinates.get(Integer
-          .parseInt(parts[0])), coordinates.get(Integer.parseInt(parts[1])),
-          new TimeWindow(Long.parseLong(parts[2]), Long.parseLong(parts[3])),
-          new TimeWindow(Long.parseLong(parts[4]), Long.parseLong(parts[5])),
-          neededCapacity, Long.parseLong(parts[7]), Long.parseLong(parts[8]),
-          Long.parseLong(parts[9]));
+      final ParcelDTO o = ParcelDTO
+          .builder(coordinates.get(Integer
+              .parseInt(parts[0])), coordinates.get(Integer.parseInt(parts[1])))
+          .pickupTimeWindow(
+              new TimeWindow(Long.parseLong(parts[2]), Long.parseLong(parts[3])))
+          .deliveryTimeWindow(
+              new TimeWindow(Long.parseLong(parts[4]), Long.parseLong(parts[5])))
+          .neededCapacity(neededCapacity)
+          .orderAnnounceTime(Long.parseLong(parts[7]))
+          .pickupDuration(Long.parseLong(parts[8]))
+          .deliveryDuration(Long.parseLong(parts[9]))
+          .build();
 
       sb.addEvent(new AddParcelEvent(o));
     }
@@ -143,46 +159,73 @@ public class FabriRechtParser {
     });
   }
 
-  public static String toJson(FabriRechtScenario scenario) {
-    return gson.toJson(scenario);
+  static String toJson(FabriRechtScenario scenario) {
+    return GSON.toJson(scenario);
   }
 
+  /**
+   * Write the scenario to disk in JSON format.
+   * @param scenario The scenario to write.
+   * @param writer The writer to use.
+   * @throws IOException When writing fails.
+   */
   public static void toJson(FabriRechtScenario scenario, Writer writer)
       throws IOException {
-    gson.toJson(scenario, FabriRechtScenario.class, writer);
+    GSON.toJson(scenario, FabriRechtScenario.class, writer);
     writer.close();
   }
 
-  public static FabriRechtScenario fromJson(String json) {
-    return gson.fromJson(json, FabriRechtScenario.class);
+  static FabriRechtScenario fromJson(String json) {
+    return GSON.fromJson(json, FabriRechtScenario.class);
   }
 
+  /**
+   * Read a scenario from JSON string.
+   * @param json The JSON string.
+   * @param numVehicles The number of vehicles in the resulting scenario.
+   * @param vehicleCapacity The vehicle capacity of the vehicles in the
+   *          resulting scenario.
+   * @return The scenario.
+   */
   public static FabriRechtScenario fromJson(String json, int numVehicles,
       int vehicleCapacity) {
     final FabriRechtScenario scen = fromJson(json);
-    final List<TimedEvent> events = newArrayList();
-    for (int i = 0; i < numVehicles; i++) {
-      events.add(new AddVehicleEvent(0, new VehicleDTO(
-          scen.defaultVehicle.startPosition, scen.defaultVehicle.speed,
-          vehicleCapacity, scen.defaultVehicle.availabilityTimeWindow)));
-    }
-    events.addAll(scen.asList());
-    return new FabriRechtScenario(events, scen.getPossibleEventTypes(),
-        scen.min, scen.max, scen.timeWindow, scen.defaultVehicle);
+    return change(scen, numVehicles, vehicleCapacity);
   }
 
-  public static FabriRechtScenario fromJson(Reader reader) {
-    return gson.fromJson(reader, FabriRechtScenario.class);
-  }
-
+  /**
+   * Read a scenario from JSON reader.
+   * @param reader The JSON reader.
+   * @param numVehicles The number of vehicles in the resulting scenario.
+   * @param vehicleCapacity The vehicle capacity of the vehicles in the
+   *          resulting scenario.
+   * @return The scenario.
+   */
   public static FabriRechtScenario fromJson(Reader reader, int numVehicles,
       int vehicleCapacity) {
     final FabriRechtScenario scen = fromJson(reader);
+    return change(scen, numVehicles, vehicleCapacity);
+  }
+
+  /**
+   * Read a scenario from JSON reader.
+   * @param reader The JSON reader.
+   * @return The scenario.
+   */
+  public static FabriRechtScenario fromJson(Reader reader) {
+    return GSON.fromJson(reader, FabriRechtScenario.class);
+  }
+
+  static FabriRechtScenario change(FabriRechtScenario scen, int numVehicles,
+      int vehicleCapacity) {
     final List<TimedEvent> events = newArrayList();
     for (int i = 0; i < numVehicles; i++) {
-      events.add(new AddVehicleEvent(0, new VehicleDTO(
-          scen.defaultVehicle.startPosition, scen.defaultVehicle.speed,
-          vehicleCapacity, scen.defaultVehicle.availabilityTimeWindow)));
+      events.add(new AddVehicleEvent(0,
+          VehicleDTO.builder()
+              .use(scen.defaultVehicle)
+              .capacity(vehicleCapacity)
+              .build()
+          ));
     }
     events.addAll(scen.asList());
     return new FabriRechtScenario(events, scen.getPossibleEventTypes(),
@@ -193,7 +236,7 @@ public class FabriRechtParser {
       JsonSerializer<Set<Enum<?>>> {
     @Override
     public Set<Enum<?>> deserialize(JsonElement json, Type typeOfT,
-        JsonDeserializationContext context) throws JsonParseException {
+        JsonDeserializationContext context) {
       final Set<Enum<?>> eventTypes = newLinkedHashSet();
       final List<String> list = context
           .deserialize(json, new TypeToken<List<String>>() {}.getType());
@@ -222,7 +265,7 @@ public class FabriRechtParser {
         return null;
       }
       final String xy = reader.nextString();
-      final String[] parts = xy.split(",");
+      final String[] parts = xy.split(VALUE_SEPARATOR);
       final double x = Double.parseDouble(parts[0]);
       final double y = Double.parseDouble(parts[1]);
       return new Point(x, y);
@@ -234,7 +277,7 @@ public class FabriRechtParser {
         writer.nullValue();
         return;
       }
-      final String xy = value.x + "," + value.y;
+      final String xy = value.x + VALUE_SEPARATOR + value.y;
       writer.value(xy);
     }
   }
@@ -247,7 +290,7 @@ public class FabriRechtParser {
         return null;
       }
       final String xy = reader.nextString();
-      final String[] parts = xy.split(",");
+      final String[] parts = xy.split(VALUE_SEPARATOR);
       final long x = Long.parseLong(parts[0]);
       final long y = Long.parseLong(parts[1]);
       return new TimeWindow(x, y);
@@ -259,7 +302,7 @@ public class FabriRechtParser {
         writer.nullValue();
         return;
       }
-      final String xy = value.begin + "," + value.end;
+      final String xy = value.begin + VALUE_SEPARATOR + value.end;
       writer.value(xy);
     }
   }
@@ -267,7 +310,7 @@ public class FabriRechtParser {
   static class TimedEventDeserializer implements JsonDeserializer<TimedEvent> {
     @Override
     public TimedEvent deserialize(JsonElement json, Type typeOfT,
-        JsonDeserializationContext context) throws JsonParseException {
+        JsonDeserializationContext context) {
 
       final long time = json.getAsJsonObject().get("time").getAsLong();
       final PDPScenarioEvent type = PDPScenarioEvent.valueOf(json
@@ -286,20 +329,26 @@ public class FabriRechtParser {
             .getAsJsonObject().get("parcelDTO"), ParcelDTO.class));
       case TIME_OUT:
         return new TimedEvent(type, time);
+      case REMOVE_DEPOT:
+        // FALL THROUGH
+      case REMOVE_PARCEL:
+        // FALL THROUGH
+      case REMOVE_VEHICLE:
+        // FALL THROUGH
+      default:
+        throw new UnsupportedOperationException();
       }
-      throw new IllegalStateException();
     }
   }
 
-  private final static Gson initialize() {
+  private static Gson initialize() {
     final Type collectionType = new TypeToken<Set<Enum<?>>>() {}.getType();
-
     final GsonBuilder builder = new GsonBuilder();
-    // builder.setPrettyPrinting();
     builder
         .registerTypeAdapter(Point.class, new PointAdapter())
         .registerTypeAdapter(TimeWindow.class, new TimeWindowAdapter())
-        .registerTypeHierarchyAdapter(TimedEvent.class, new TimedEventDeserializer())
+        .registerTypeHierarchyAdapter(TimedEvent.class,
+            new TimedEventDeserializer())
         .registerTypeAdapter(collectionType, new EnumDeserializer());
     return builder.create();
   }
