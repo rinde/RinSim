@@ -27,8 +27,6 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import javax.annotation.Nullable;
-
 import rinde.sim.core.graph.Point;
 import rinde.sim.pdptw.common.AddDepotEvent;
 import rinde.sim.pdptw.common.AddParcelEvent;
@@ -183,8 +181,9 @@ public final class Gendreau06Parser {
   public Gendreau06Parser addDirectory(File dir) {
     final File[] files = dir.listFiles(
         new FileFilter() {
+          @SuppressWarnings("null")
           @Override
-          public boolean accept(@Nullable File file) {
+          public boolean accept(File file) {
             checkNotNull(file);
             return isValidFileName(file.getName());
           }
