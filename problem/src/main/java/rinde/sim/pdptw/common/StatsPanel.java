@@ -129,6 +129,11 @@ final class StatsPanel implements PanelRenderer, TickListener {
 
   @Override
   public void afterTick(TimeLapse timeLapse) {
+
+  }
+
+  @Override
+  public void render() {
     final StatisticsDTO stats = statsTracker.getStatsDTO();
 
     final Field[] fields = stats.getClass().getFields();
@@ -152,5 +157,6 @@ final class StatsPanel implements PanelRenderer, TickListener {
         }
       }
     });
+
   }
 }

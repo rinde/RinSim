@@ -82,5 +82,8 @@ public final class PanelTest {
       return size;
     }
 
+    @Override
+    public void render() {}
+
   }
 }

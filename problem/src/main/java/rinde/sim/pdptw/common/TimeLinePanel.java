@@ -180,6 +180,10 @@ public final class TimeLinePanel implements ModelReceiver, PanelRenderer,
   @Override
   public void afterTick(TimeLapse timeLapse) {
     currentTime = timeLapse.getStartTime();
+  }
+
+  @Override
+  public void render() {
     if (canvas.isDisposed()) {
       return;
     }
@@ -240,7 +244,7 @@ public final class TimeLinePanel implements ModelReceiver, PanelRenderer,
       // gc.setAntialias(SWT.ON);
       gc.setTextAntialias(SWT.OFF);
 
-      final int large = (600000 / 15000);
+      final int large = 600000 / 15000;
       final int small = large / 5;
 
       for (int i = 0; i < contents.getBounds().width; i += small) {
@@ -251,7 +255,7 @@ public final class TimeLinePanel implements ModelReceiver, PanelRenderer,
           time = time.substring(0, time.length() - 3);
           gc.setFont(font);
           final Point size = gc.textExtent(time);
-          gc.drawText(time, i - (size.x / 2), 0);
+          gc.drawText(time, i - size.x / 2, 0);
         }
 
         gc.drawLine(i, 20 - height, i, 20);
@@ -293,7 +297,7 @@ public final class TimeLinePanel implements ModelReceiver, PanelRenderer,
         final boolean heightViolation = height > contents.getBounds().height;
         if (widthViolation || heightViolation) {
           final int newWidth = Math.max(width, contents.getBounds().width)
-              + (widthViolation ? (int) ((60 * 60000) / timePerPixel) : 0);
+              + (widthViolation ? (int) (60 * 60000 / timePerPixel) : 0);
           final int newHeight = contents.getBounds().height
               + (heightViolation ? 10 * rowHeight : 0);
 
@@ -325,7 +329,7 @@ public final class TimeLinePanel implements ModelReceiver, PanelRenderer,
       height = parcels.size() * rowHeight;
       ensureImg();
       for (int i = 0; i < newParcels.size(); i++) {
-        drawParcel(newParcels.get(i), oldHeight + (i * rowHeight));
+        drawParcel(newParcels.get(i), oldHeight + i * rowHeight);
       }
       newParcels.clear();
     }
@@ -367,4 +371,5 @@ public final class TimeLinePanel implements ModelReceiver, PanelRenderer,
       contents.dispose();
     }
   }
+
 }

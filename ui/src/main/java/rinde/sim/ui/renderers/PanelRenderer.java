@@ -47,4 +47,9 @@ public interface PanelRenderer extends Renderer {
    */
   String getName();
 
+  /**
+   * Signals that the panel can updates its contents.
+   */
+  void render();
+
 }

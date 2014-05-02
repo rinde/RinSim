@@ -49,6 +49,7 @@ import rinde.sim.ui.renderers.ViewPort;
 import rinde.sim.ui.renderers.ViewRect;
 import rinde.sim.util.TimeFormatter;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Multimap;
 
@@ -85,6 +86,7 @@ final class SimulationViewer extends Composite implements TickListener,
 
   @Nullable
   private Image image;
+  private final ImmutableList<PanelRenderer> panelRenderers;
   private final List<CanvasRenderer> renderers;
   private final Set<ModelReceiver> modelRenderers;
   private final boolean autoPlay;
@@ -136,8 +138,9 @@ final class SimulationViewer extends Composite implements TickListener,
       if (r instanceof TickListener) {
         sim.addTickListener((TickListener) r);
       }
-
     }
+    panelRenderers = ImmutableList.copyOf(panels.values());
+
     simulator = sim;
     simulator.addTickListener(this);
 
@@ -462,6 +465,9 @@ final class SimulationViewer extends Composite implements TickListener,
       renderer.renderDynamic(gc, new ViewPort(new Point(center.x,
           center.y),
           viewRect, m), simulator.getCurrentTime());
+    }
+    for (final PanelRenderer renderer : panelRenderers) {
+      renderer.render();
     }
 
     final Rectangle content = image.getBounds();
