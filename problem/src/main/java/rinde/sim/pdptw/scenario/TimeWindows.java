@@ -1,6 +1,9 @@
 package rinde.sim.pdptw.scenario;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static rinde.sim.util.SupplierRngs.constant;
+
+import java.math.RoundingMode;
 
 import org.apache.commons.math3.random.MersenneTwister;
 import org.apache.commons.math3.random.RandomGenerator;
@@ -11,9 +14,19 @@ import rinde.sim.pdptw.scenario.ScenarioGenerator.TravelTimes;
 import rinde.sim.util.SupplierRng;
 import rinde.sim.util.TimeWindow;
 
+import com.google.common.math.DoubleMath;
+
+/**
+ * Utility class for creating {@link TimeWindowGenerator}s.
+ * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+ */
 public final class TimeWindows {
   private TimeWindows() {}
 
+  /**
+   * @return A new {@link Builder} instance for creating
+   *         {@link TimeWindowGenerator}s.
+   */
   public static Builder builder() {
     return new Builder();
   }
@@ -44,20 +57,87 @@ public final class TimeWindows {
         TravelTimes travelTimes, long endTime);
   }
 
-  static class DefaultTimeWindowGenerator implements TimeWindowGenerator {
+  /**
+   * A builder for creating {@link TimeWindow} instances using urgency. Urgency
+   * is defined as follows:
+   * <ul>
+   * <li><code>pickup_urgency = pickupTW.R - orderAnnounceTime</code></li>
+   * <li>
+   * <code>delivery_urgency = deliveryTW.R - earliest possible leave time from pickup site</code>
+   * </li>
+   * </ul>
+   * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+   */
+  public static class Builder {
+    private static final SupplierRng<Long> DEFAULT_URGENCY = constant(30 * 60 * 1000L);
+    private static final SupplierRng<Long> DEFAULT_PICKUP_LENGTH = constant(10 * 60 * 1000L);
+    private static final SupplierRng<Long> DEFAULT_DELIVERY_OPENING = constant(0L);
+    private static final SupplierRng<Double> DEFAULT_DELIVERY_LENGTH_FACTOR = constant(2d);
 
+    SupplierRng<Long> pickupUrgency;
+    SupplierRng<Long> pickupTWLength;
+    SupplierRng<Long> deliveryOpening;
+    SupplierRng<Double> deliveryLengthFactor;
+
+    Builder() {
+      pickupUrgency = DEFAULT_URGENCY;
+      pickupTWLength = DEFAULT_PICKUP_LENGTH;
+      deliveryOpening = DEFAULT_DELIVERY_OPENING;
+      deliveryLengthFactor = DEFAULT_DELIVERY_LENGTH_FACTOR;
+    }
+
+    public Builder pickupUrgency(SupplierRng<Long> urgency) {
+      pickupUrgency = urgency;
+      return this;
+    }
+
+    public Builder pickupTimeWindowLength(SupplierRng<Long> length) {
+      pickupTWLength = length;
+      return this;
+    }
+
+    /**
+     * Sets the opening of the delivery time window. The value is interpreted as
+     * the time relative to the earliest feasible delivery opening time:
+     * <code>pickup opening + pickup duration + travel time from pickup to delivery</code>
+     * .
+     * @param opening May only return values which are <code>>= 0</code>.
+     * @return This, as per the builder pattern.
+     */
+    public Builder deliveryOpening(SupplierRng<Long> opening) {
+      deliveryOpening = opening;
+      return this;
+    }
+
+    /**
+     * 
+     * @param factor May only return values which are <code>> 0</code>.
+     * @return
+     */
+    // length of delivery TW as a ratio to length of pickup TW
+    public Builder deliveryLengthFactor(SupplierRng<Double> factor) {
+      deliveryLengthFactor = factor;
+      return this;
+    }
+
+    public TimeWindowGenerator build() {
+      return new DefaultTimeWindowGenerator(this);
+    }
+  }
+
+  static class DefaultTimeWindowGenerator implements TimeWindowGenerator {
     private final RandomGenerator rng;
     private final SupplierRng<Long> pickupUrgency;
-    private final SupplierRng<Long> deliveryUrgency;
     private final SupplierRng<Long> pickupTWLength;
-    private final SupplierRng<Long> deliveryTWLength;
+    private final SupplierRng<Long> deliveryOpening;
+    private final SupplierRng<Double> deliveryLengthFactor;
 
     DefaultTimeWindowGenerator(Builder b) {
       rng = new MersenneTwister();
       pickupUrgency = b.pickupUrgency;
-      deliveryUrgency = b.deliveryUrgency;
       pickupTWLength = b.pickupTWLength;
-      deliveryTWLength = b.deliveryTWLength;
+      deliveryOpening = b.deliveryOpening;
+      deliveryLengthFactor = b.deliveryLengthFactor;
     }
 
     @Override
@@ -86,14 +166,28 @@ public final class TimeWindows {
       // DELIVERY
       final long earliestDeliveryOpening = pickupTW.begin + pickupToDeliveryTT
           + parcelBuilder.getPickupDuration();
+      final long latestDeliveryOpening = endTime - deliveryToDepotTT;
+
+      final long delOpen = deliveryOpening.get(rng.nextLong());
+      checkArgument(delOpen >= 0);
+      final long delOpening = Math.min(earliestDeliveryOpening + delOpen,
+          latestDeliveryOpening);
+
       final long earliestDeliveryClosing = pickupTW.end + pickupToDeliveryTT
           + parcelBuilder.getPickupDuration();
       final long latestDeliveryClosing = endTime - deliveryToDepotTT
-          + parcelBuilder.getDeliveryDuration();
+          - parcelBuilder.getDeliveryDuration();
 
-      final TimeWindow deliveryTW = urgencyTimeWindow(earliestDeliveryOpening,
-          earliestDeliveryClosing, latestDeliveryClosing, deliveryUrgency,
-          deliveryTWLength);
+      final double delFactor = deliveryLengthFactor.get(rng.nextLong());
+      checkArgument(delFactor > 0d);
+      final long deliveryClosing = DoubleMath.roundToLong(pickupTW.length()
+          * delFactor, RoundingMode.CEILING);
+
+      final long boundedDelClose = boundValue(deliveryClosing,
+          earliestDeliveryClosing, latestDeliveryClosing);
+
+      final TimeWindow deliveryTW = new TimeWindow(delOpening,
+          boundedDelClose);
 
       parcelBuilder.pickupTimeWindow(pickupTW);
       parcelBuilder.deliveryTimeWindow(deliveryTW);
@@ -111,66 +205,6 @@ public final class TimeWindows {
       final long opening = boundValue(closing - length.get(rng.nextLong()),
           earliestOpening, closing);
       return new TimeWindow(opening, closing);
-    }
-  }
-
-  /**
-   * A builder for creating {@link TimeWindow} instances using urgency. Urgency
-   * is defined as follows:
-   * <ul>
-   * <li><code>pickup_urgency = pickupTW.R - orderAnnounceTime</code></li>
-   * <li>
-   * <code>delivery_urgency = deliveryTW.R - earliest possible leave time from pickup site</code>
-   * </li>
-   * </ul>
-   * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
-   */
-  public static class Builder {
-    private static final SupplierRng<Long> DEFAULT_URGENCY = constant(30 * 60 * 1000L);
-    private static final SupplierRng<Long> DEFAULT_LENGTH = constant(10 * 60 * 1000L);
-
-    SupplierRng<Long> pickupUrgency;
-    SupplierRng<Long> deliveryUrgency;
-    SupplierRng<Long> pickupTWLength;
-    SupplierRng<Long> deliveryTWLength;
-
-    Builder() {
-      pickupUrgency = DEFAULT_URGENCY;
-      deliveryUrgency = DEFAULT_URGENCY;
-      pickupTWLength = DEFAULT_LENGTH;
-      deliveryTWLength = DEFAULT_LENGTH;
-    }
-
-    public Builder pickupUrgency(SupplierRng<Long> urgency) {
-      pickupUrgency = urgency;
-      return this;
-    }
-
-    public Builder deliveryUrgency(SupplierRng<Long> urgency) {
-      deliveryUrgency = urgency;
-      return this;
-    }
-
-    public Builder urgency(SupplierRng<Long> urgency) {
-      return pickupUrgency(urgency).deliveryUrgency(urgency);
-    }
-
-    public Builder pickupTimeWindowLength(SupplierRng<Long> length) {
-      pickupTWLength = length;
-      return this;
-    }
-
-    public Builder deliveryTimeWindowLength(SupplierRng<Long> length) {
-      deliveryTWLength = length;
-      return this;
-    }
-
-    public Builder timeWindowLength(SupplierRng<Long> length) {
-      return pickupTimeWindowLength(length).deliveryTimeWindowLength(length);
-    }
-
-    public TimeWindowGenerator build() {
-      return new DefaultTimeWindowGenerator(this);
     }
   }
 }
