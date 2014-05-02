@@ -30,6 +30,8 @@ import com.google.common.base.Predicate;
 public class CommunicationModel implements Model<CommunicationUser>,
     TickListener, CommunicationAPI {
 
+  // TODO remove try-catch blocks
+
   protected static final Logger LOGGER = LoggerFactory
       .getLogger(CommunicationModel.class);
 
@@ -72,14 +74,14 @@ public class CommunicationModel implements Model<CommunicationUser>,
     if (element == null) {
       throw new IllegalArgumentException("element can not be null");
     }
-    boolean result = users.add(element);
+    final boolean result = users.add(element);
     if (!result) {
       return false;
     }
     // callback
     try {
       element.setCommunicationAPI(this);
-    } catch (Exception e) {
+    } catch (final Exception e) {
       // if you miss-behave you don't deserve to use our infrastructure :D
       LOGGER
           .warn("callback for the communication user failed. Unregistering", e);
@@ -94,8 +96,8 @@ public class CommunicationModel implements Model<CommunicationUser>,
     if (element == null) {
       return false;
     }
-    List<Entry<CommunicationUser, Message>> toRemove = new LinkedList<Entry<CommunicationUser, Message>>();
-    for (Entry<CommunicationUser, Message> e : sendQueue) {
+    final List<Entry<CommunicationUser, Message>> toRemove = new LinkedList<Entry<CommunicationUser, Message>>();
+    for (final Entry<CommunicationUser, Message> e : sendQueue) {
       if (element.equals(e.getKey())
           || element.equals(e.getValue().getSender())) {
         toRemove.add(e);
@@ -119,18 +121,18 @@ public class CommunicationModel implements Model<CommunicationUser>,
   @Override
   public void afterTick(TimeLapse tl) {
     long timeMillis = System.currentTimeMillis();
-    List<Entry<CommunicationUser, Message>> cache = sendQueue;
+    final List<Entry<CommunicationUser, Message>> cache = sendQueue;
     sendQueue = new LinkedList<Entry<CommunicationUser, Message>>();
-    for (Entry<CommunicationUser, Message> e : cache) {
+    for (final Entry<CommunicationUser, Message> e : cache) {
       try {
         e.getKey().receive(e.getValue());
         // TODO [bm] add msg delivered event
-      } catch (Exception e1) {
+      } catch (final Exception e1) {
         LOGGER.warn("unexpected exception while passing message", e1);
       }
     }
     if (LOGGER.isDebugEnabled()) {
-      timeMillis = (System.currentTimeMillis() - timeMillis);
+      timeMillis = System.currentTimeMillis() - timeMillis;
       LOGGER.debug("broadcast lasted for:" + timeMillis);
     }
   }
@@ -166,19 +168,19 @@ public class CommunicationModel implements Model<CommunicationUser>,
     if (!users.contains(message.sender)) {
       return;
     }
-    HashSet<CommunicationUser> uSet = new HashSet<CommunicationUser>(
+    final HashSet<CommunicationUser> uSet = new HashSet<CommunicationUser>(
         users.size() / 2);
 
-    for (CommunicationUser u : users) {
+    for (final CommunicationUser u : users) {
       if (predicate.apply(u)) {
         uSet.add(u);
       }
     }
 
-    for (CommunicationUser u : uSet) {
+    for (final CommunicationUser u : uSet) {
       try {
         sendQueue.add(SimpleEntry.entry(u, message.clone()));
-      } catch (CloneNotSupportedException e) {
+      } catch (final CloneNotSupportedException e) {
         LOGGER.error("clonning exception for message", e);
       }
     }
@@ -224,10 +226,10 @@ public class CommunicationModel implements Model<CommunicationUser>,
       if (!ignoreDistances && !rec.contains(iPos)) {
         return false;
       }
-      double prob = input.getReliability() * sender.getReliability();
-      double minRadius = Math.min(input.getRadius(), sender.getRadius());
-      double rand = generator.nextDouble();
-      Point sPos = sender.getPosition();
+      final double prob = input.getReliability() * sender.getReliability();
+      final double minRadius = Math.min(input.getRadius(), sender.getRadius());
+      final double rand = generator.nextDouble();
+      final Point sPos = sender.getPosition();
       return prob > rand
           && (ignoreDistances ? true : Point.distance(sPos, iPos) <= minRadius);
     }
