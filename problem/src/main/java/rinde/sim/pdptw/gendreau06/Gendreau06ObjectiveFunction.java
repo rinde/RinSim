@@ -7,8 +7,8 @@ import rinde.sim.pdptw.common.ObjectiveFunction;
 import rinde.sim.pdptw.common.StatisticsDTO;
 
 /**
+ * Objective function for Gendreau et al. (2006) problem instances.
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
- * 
  */
 public final class Gendreau06ObjectiveFunction implements ObjectiveFunction {
   private static final Gendreau06ObjectiveFunction INSTANCE = new Gendreau06ObjectiveFunction();
@@ -21,6 +21,9 @@ public final class Gendreau06ObjectiveFunction implements ObjectiveFunction {
   /**
    * All parcels need to be delivered, all vehicles need to be back at the
    * depot.
+   * @param stats The statistics object to check for validity.
+   * @return <code>true</code> when the statistics object represents a valid
+   *         simulation run, <code>false</code> otherwise.
    */
   @Override
   public boolean isValidResult(StatisticsDTO stats) {
@@ -41,7 +44,8 @@ public final class Gendreau06ObjectiveFunction implements ObjectiveFunction {
    * weighting parameters which were set to 1 in the paper. The definition of
    * lateness: <code>max(0,lateness)</code> is commonly referred to as
    * <i>tardiness</i>. All times are expressed in minutes.
-   * 
+   * @param stats The statistics object to compute the cost for.
+   * @return The cost.
    */
   @Override
   public double computeCost(StatisticsDTO stats) {

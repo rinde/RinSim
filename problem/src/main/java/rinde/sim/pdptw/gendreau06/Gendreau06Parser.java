@@ -20,6 +20,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.math.RoundingMode;
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -44,6 +45,7 @@ import com.google.common.base.Charsets;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Iterators;
 import com.google.common.math.DoubleMath;
 
 /**
@@ -359,32 +361,32 @@ public final class Gendreau06Parser {
     String line;
     try {
       while ((line = reader.readLine()) != null) {
-        final String[] parts = line.split(" ");
+        final Iterator<String> parts = Iterators.forArray(line.split(" "));
         final long requestArrivalTime = DoubleMath.roundToLong(
-            Double.parseDouble(parts[0]) * TIME_MULTIPLIER,
+            Double.parseDouble(parts.next()) * TIME_MULTIPLIER,
             RoundingMode.HALF_EVEN);
         // FIXME currently filtering out first and last lines of file. Is
         // this ok?
         if (requestArrivalTime >= 0) {
-          final long pickupServiceTime = Long.parseLong(parts[1])
+          final long pickupServiceTime = Long.parseLong(parts.next())
               * TIME_MULTIPLIER_INTEGER;
-          final double pickupX = Double.parseDouble(parts[2]);
-          final double pickupY = Double.parseDouble(parts[3]);
+          final double pickupX = Double.parseDouble(parts.next());
+          final double pickupY = Double.parseDouble(parts.next());
           final long pickupTimeWindowBegin = DoubleMath.roundToLong(
-              Double.parseDouble(parts[4]) * TIME_MULTIPLIER,
+              Double.parseDouble(parts.next()) * TIME_MULTIPLIER,
               RoundingMode.HALF_EVEN);
           final long pickupTimeWindowEnd = DoubleMath.roundToLong(
-              Double.parseDouble(parts[5]) * TIME_MULTIPLIER,
+              Double.parseDouble(parts.next()) * TIME_MULTIPLIER,
               RoundingMode.HALF_EVEN);
-          final long deliveryServiceTime = Long.parseLong(parts[6])
+          final long deliveryServiceTime = Long.parseLong(parts.next())
               * TIME_MULTIPLIER_INTEGER;
-          final double deliveryX = Double.parseDouble(parts[7]);
-          final double deliveryY = Double.parseDouble(parts[8]);
+          final double deliveryX = Double.parseDouble(parts.next());
+          final double deliveryY = Double.parseDouble(parts.next());
           final long deliveryTimeWindowBegin = DoubleMath.roundToLong(
-              Double.parseDouble(parts[9]) * TIME_MULTIPLIER,
+              Double.parseDouble(parts.next()) * TIME_MULTIPLIER,
               RoundingMode.HALF_EVEN);
           final long deliveryTimeWindowEnd = DoubleMath.roundToLong(
-              Double.parseDouble(parts[10]) * TIME_MULTIPLIER,
+              Double.parseDouble(parts.next()) * TIME_MULTIPLIER,
               RoundingMode.HALF_EVEN);
 
           // when an offline scenario is desired, all times are set to -1
@@ -412,6 +414,11 @@ public final class Gendreau06Parser {
   }
 
   interface ParcelsSupplier {
+    /**
+     * Should return an event list.
+     * @param online If false, all events except time-out should have time -1.
+     * @return The list of events.
+     */
     ImmutableList<AddParcelEvent> get(boolean online);
   }
 
