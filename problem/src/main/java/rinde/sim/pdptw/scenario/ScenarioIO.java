@@ -280,7 +280,7 @@ public final class ScenarioIO {
         return null;
       }
       final String xy = reader.nextString();
-      final String[] parts = xy.split(",");
+      final String[] parts = xy.split(VALUE_SEPARATOR);
       final double x = Double.parseDouble(parts[0]);
       final double y = Double.parseDouble(parts[1]);
       return new Point(x, y);
@@ -430,14 +430,14 @@ public final class ScenarioIO {
       final JsonObject obj = json.getAsJsonObject();
       return getEnum(obj.get(CLAZZ).getAsString(), obj.get(VALUE).getAsString());
     }
-  }
 
-  @SuppressWarnings("unchecked")
-  static <T extends Enum<T>> Enum<?> getEnum(String enumName, String value) {
-    try {
-      return Enum.valueOf((Class<T>) Class.forName(enumName), value);
-    } catch (final ClassNotFoundException e) {
-      throw new IllegalArgumentException(e);
+    @SuppressWarnings("unchecked")
+    static <T extends Enum<T>> Enum<?> getEnum(String enumName, String value) {
+      try {
+        return Enum.valueOf((Class<T>) Class.forName(enumName), value);
+      } catch (final ClassNotFoundException e) {
+        throw new IllegalArgumentException(e);
+      }
     }
   }
 
