@@ -63,13 +63,16 @@ import com.google.common.collect.ImmutableList;
  */
 public class SwarmDemo {
 
+  private static final int FONT_SIZE = 12;
+
   /**
    * Starts the demo.
    * @param args No args.
    */
   public static void main(String[] args) {
     final String string = "AgentWise";
-    final List<Point> points = measureString(string, 30, 30, 0);
+    final List<Point> points = measureString(string, FONT_SIZE, 30, 0);
+
     final RandomGenerator rng = new MersenneTwister(123);
     final Simulator sim = new Simulator(rng, Measure.valueOf(1000L,
         SI.MILLI(SI.SECOND)));
@@ -81,7 +84,9 @@ public class SwarmDemo {
     }
     View.create(sim)
         .with(new PlaneRoadModelRenderer(), new VehicleRenderer(),
-            new DemoPanel(string, rng)).show();
+            new DemoPanel(string, rng))
+        .setSpeedUp(8)
+        .show();
   }
 
   public static ImmutableList<Point> measureString(String string, int fontSize,
@@ -260,7 +265,7 @@ public class SwarmDemo {
     public void handleEvent(@Nullable Event event) {
       checkNotNull(event);
       final Iterator<Point> points = measureString(
-          ((Text) event.widget).getText(), 30, 30d, 0).iterator();
+          ((Text) event.widget).getText(), FONT_SIZE, 30d, 0).iterator();
       final List<Vehicle> vs = newArrayList(vehicles);
       if (event.type == SWT.DefaultSelection) {
         Collections.shuffle(vs, new RandomAdaptor(rng));
@@ -279,6 +284,9 @@ public class SwarmDemo {
       rm = Optional.fromNullable(mp.getModel(RoadModel.class));
       vehicles = rm.get().getObjectsOfType(Vehicle.class);
     }
+
+    @Override
+    public void render() {}
   }
 
   static final class VehicleRenderer implements ModelRenderer {
