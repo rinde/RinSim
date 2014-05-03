@@ -164,6 +164,26 @@ public class Gendreau06ParserTest {
   }
 
   /**
+   * Invalid file name (no instance number).
+   */
+  @Test(expected = IllegalArgumentException.class)
+  public void invalidFileNameTest3() {
+    parser().addFile("req_rapide__241_24");
+  }
+
+  /**
+   * Tests several file names.
+   */
+  @Test
+  public void validFileNameTest() {
+    Gendreau06Parser.checkValidFileName("req_rapide_01_240_24");
+    Gendreau06Parser.checkValidFileName("req_rapide_00001_240_24");
+    Gendreau06Parser.checkValidFileName("req_rapide_6_240_24");
+    Gendreau06Parser.checkValidFileName("req_rapide_6_240_33");
+    Gendreau06Parser.checkValidFileName("req_rapide_6_450_24");
+  }
+
+  /**
    * Test whether invalid tickSizes are prevented correctly.
    */
   @Test(expected = IllegalArgumentException.class)

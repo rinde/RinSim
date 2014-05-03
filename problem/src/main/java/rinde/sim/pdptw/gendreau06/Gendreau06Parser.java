@@ -72,7 +72,7 @@ import com.google.common.math.DoubleMath;
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
  */
 public final class Gendreau06Parser {
-  private static final String REGEX = ".*req_rapide_(1|2|3|4|5)_(450|240)_(24|33)";
+  private static final String REGEX = ".*req_rapide_(\\d+)_(450|240)_(24|33)";
   private static final double TIME_MULTIPLIER = 1000d;
   private static final int TIME_MULTIPLIER_INTEGER = 1000;
   private static final int PARCEL_MAGNITUDE = 0;
