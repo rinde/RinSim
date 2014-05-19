@@ -348,14 +348,14 @@ public final class TimeLinePanel implements ModelReceiver, PanelRenderer,
       gc.drawLine(startX, y + 8, startPickX, y + 8);
 
       gc.setBackground(pickupColor);
-      gc.fillRectangle(startPickX, y + 2, endPickX - startPickX, 6);
-      gc.drawRectangle(startPickX, y + 2, endPickX - startPickX, 6);
+      gc.fillRectangle(startPickX, y + 2, Math.max(endPickX - startPickX, 1), 6);
+      gc.drawRectangle(startPickX, y + 2, Math.max(endPickX - startPickX, 1), 6);
 
       gc.drawLine(endPickX, y + 8, startDelX, y + 8);
 
       gc.setBackground(deliveryColor);
-      gc.fillRectangle(startDelX, y + 8, endDelX - startDelX, 6);
-      gc.drawRectangle(startDelX, y + 8, endDelX - startDelX, 6);
+      gc.fillRectangle(startDelX, y + 8, Math.max(endDelX - startDelX, 1), 6);
+      gc.drawRectangle(startDelX, y + 8, Math.max(endDelX - startDelX, 1), 6);
 
       gc.dispose();
     }
