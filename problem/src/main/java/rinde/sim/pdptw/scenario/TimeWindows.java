@@ -14,6 +14,7 @@ import rinde.sim.pdptw.scenario.ScenarioGenerator.TravelTimes;
 import rinde.sim.util.SupplierRng;
 import rinde.sim.util.TimeWindow;
 
+import com.google.common.base.Optional;
 import com.google.common.math.DoubleMath;
 
 /**
@@ -78,12 +79,14 @@ public final class TimeWindows {
     SupplierRng<Long> pickupTWLength;
     SupplierRng<Long> deliveryOpening;
     SupplierRng<Double> deliveryLengthFactor;
+    Optional<SupplierRng<Long>> minDeliveryLength;
 
     Builder() {
       pickupUrgency = DEFAULT_URGENCY;
       pickupTWLength = DEFAULT_PICKUP_LENGTH;
       deliveryOpening = DEFAULT_DELIVERY_OPENING;
       deliveryLengthFactor = DEFAULT_DELIVERY_LENGTH_FACTOR;
+      minDeliveryLength = Optional.absent();
     }
 
     public Builder pickupUrgency(SupplierRng<Long> urgency) {
@@ -120,6 +123,11 @@ public final class TimeWindows {
       return this;
     }
 
+    public Builder minDeliveryLength(SupplierRng<Long> del) {
+      minDeliveryLength = Optional.of(del);
+      return this;
+    }
+
     public TimeWindowGenerator build() {
       return new DefaultTimeWindowGenerator(this);
     }
@@ -131,6 +139,7 @@ public final class TimeWindows {
     private final SupplierRng<Long> pickupTWLength;
     private final SupplierRng<Long> deliveryOpening;
     private final SupplierRng<Double> deliveryLengthFactor;
+    private final Optional<SupplierRng<Long>> minDeliveryLength;
 
     DefaultTimeWindowGenerator(Builder b) {
       rng = new MersenneTwister();
@@ -138,6 +147,7 @@ public final class TimeWindows {
       pickupTWLength = b.pickupTWLength;
       deliveryOpening = b.deliveryOpening;
       deliveryLengthFactor = b.deliveryLengthFactor;
+      minDeliveryLength = b.minDeliveryLength;
     }
 
     @Override
@@ -156,6 +166,7 @@ public final class TimeWindows {
       // PICKUP
       final long earliestPickupOpening = orderAnnounceTime;
       final long earliestPickupClosing = earliestPickupOpening;
+
       final long latestPickupClosing = endTime - deliveryToDepotTT
           - pickupToDeliveryTT - parcelBuilder.getPickupDuration()
           - parcelBuilder.getDeliveryDuration();
@@ -170,8 +181,9 @@ public final class TimeWindows {
 
       final long delOpen = deliveryOpening.get(rng.nextLong());
       checkArgument(delOpen >= 0);
-      final long delOpening = Math.min(earliestDeliveryOpening + delOpen,
+      long delOpening = Math.min(earliestDeliveryOpening + delOpen,
           latestDeliveryOpening);
+      delOpening = Math.max(delOpening, earliestDeliveryOpening);
 
       final long earliestDeliveryClosing = pickupTW.end + pickupToDeliveryTT
           + parcelBuilder.getPickupDuration();
@@ -180,8 +192,14 @@ public final class TimeWindows {
 
       final double delFactor = deliveryLengthFactor.get(rng.nextLong());
       checkArgument(delFactor > 0d);
-      final long deliveryClosing = DoubleMath.roundToLong(pickupTW.length()
+      long deliveryClosing = DoubleMath.roundToLong(pickupTW.length()
           * delFactor, RoundingMode.CEILING);
+
+      if (minDeliveryLength.isPresent()) {
+        deliveryClosing = Math.max(
+            delOpening + minDeliveryLength.get().get(rng.nextLong()),
+            deliveryClosing);
+      }
 
       final long boundedDelClose = boundValue(deliveryClosing,
           earliestDeliveryClosing, latestDeliveryClosing);
