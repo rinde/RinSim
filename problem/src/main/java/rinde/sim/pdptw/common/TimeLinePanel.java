@@ -199,12 +199,9 @@ public final class TimeLinePanel implements ModelReceiver, PanelRenderer,
   }
 
   static Image createNewTransparentImg(Display d, int w, int h) {
-    final Color white = d.getSystemColor(SWT.COLOR_WHITE);
-    final Color black = d.getSystemColor(SWT.COLOR_BLACK);
-    final PaletteData palette = new PaletteData(new RGB[] { white.getRGB(),
-        black.getRGB() });
+    final Color bg = d.getSystemColor(SWT.COLOR_WIDGET_BACKGROUND);
+    final PaletteData palette = new PaletteData(new RGB[] { bg.getRGB() });
     final ImageData sourceData = new ImageData(w, h, 1, palette);
-    sourceData.transparentPixel = 0;
     return new Image(d, sourceData);
   }
 
@@ -241,25 +238,20 @@ public final class TimeLinePanel implements ModelReceiver, PanelRenderer,
     void drawTimeline() {
       final GC gc = new GC(contents);
       gc.setAdvanced(true);
-      // gc.setAntialias(SWT.ON);
       gc.setTextAntialias(SWT.OFF);
 
       final int large = 600000 / 15000;
       final int small = large / 5;
-
       for (int i = 0; i < contents.getBounds().width; i += small) {
-
         final int height = i % large == 0 ? 10 : 5;
         if (i % large == 0) {
           String time = TimeFormatter.format(15000 * i);
           time = time.substring(0, time.length() - 3);
           gc.setFont(font);
           final Point size = gc.textExtent(time);
-          gc.drawText(time, i - size.x / 2, 0);
+          gc.drawText(time, i - size.x / 2, 0, true);
         }
-
         gc.drawLine(i, 20 - height, i, 20);
-
       }
       gc.dispose();
     }
