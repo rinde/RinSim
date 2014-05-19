@@ -198,10 +198,19 @@ public final class TimeLinePanel implements ModelReceiver, PanelRenderer,
     });
   }
 
+  private static final boolean IS_MAC_OR_WINDOWS;
+  static {
+    final String name = System.getProperty("os.name").toLowerCase();
+    IS_MAC_OR_WINDOWS = name.contains("win") || name.contains("mac");
+  }
+
   static Image createNewTransparentImg(Display d, int w, int h) {
     final Color bg = d.getSystemColor(SWT.COLOR_WIDGET_BACKGROUND);
     final PaletteData palette = new PaletteData(new RGB[] { bg.getRGB() });
     final ImageData sourceData = new ImageData(w, h, 1, palette);
+    if (IS_MAC_OR_WINDOWS) {
+      sourceData.transparentPixel = 0;
+    }
     return new Image(d, sourceData);
   }
 
