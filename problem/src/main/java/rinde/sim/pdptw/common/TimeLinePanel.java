@@ -348,15 +348,18 @@ public final class TimeLinePanel implements ModelReceiver, PanelRenderer,
       final int oldHeight = height;
 
       // make copy to avoid concurrency problems
-      final List<ParcelInfo> copyNewParcels = newArrayList(newParcels);
-      newParcels.clear();
+      final List<ParcelInfo> copyNewParcels;
+      synchronized (newParcels) {
+        copyNewParcels = newArrayList(newParcels);
+        newParcels.clear();
+      }
 
       parcels.addAll(copyNewParcels);
-      height = rowHeight + parcels.size() * rowHeight;
+      height = parcels.size() * rowHeight;
       width = Math.max(width, timeX);
       ensureImg();
       for (int i = 0; i < copyNewParcels.size(); i++) {
-        drawParcel(copyNewParcels.get(i), -rowHeight + oldHeight + i
+        drawParcel(copyNewParcels.get(i), oldHeight + i
             * rowHeight);
       }
     }
