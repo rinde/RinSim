@@ -6,6 +6,7 @@ package rinde.sim.pdptw.common;
 import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.collect.Lists.newArrayList;
 
+import java.math.RoundingMode;
 import java.util.List;
 
 import javax.annotation.Nullable;
@@ -41,6 +42,8 @@ import rinde.sim.event.Listener;
 import rinde.sim.ui.renderers.PanelRenderer;
 import rinde.sim.util.TimeFormatter;
 
+import com.google.common.math.DoubleMath;
+
 /**
  * Time line panel is an UI element that shows a real time visualization of
  * parcels and their time windows in a simulation.
@@ -48,6 +51,12 @@ import rinde.sim.util.TimeFormatter;
  */
 public final class TimeLinePanel implements ModelReceiver, PanelRenderer,
     TickListener {
+
+  private static final boolean IS_MAC_OR_WINDOWS;
+  static {
+    final String name = System.getProperty("os.name").toLowerCase();
+    IS_MAC_OR_WINDOWS = name.contains("win") || name.contains("mac");
+  }
 
   Canvas canvas;
   Canvas barCanvas;
@@ -108,13 +117,13 @@ public final class TimeLinePanel implements ModelReceiver, PanelRenderer,
 
       @Override
       public void paintControl(PaintEvent e) {
-        timeline.update();
+        final int timeX = origin.x + DoubleMath.roundToInt(currentTime
+            / timeline.timePerPixel, RoundingMode.HALF_UP);
+        timeline.update(timeX);
 
         e.gc.drawImage(timeline.contents, origin.x, origin.y);
-
         e.gc.setForeground(e.display.getSystemColor(SWT.COLOR_RED));
-        e.gc.drawLine(origin.x + (int) (currentTime / timeline.timePerPixel),
-            0, origin.x + (int) (currentTime / timeline.timePerPixel),
+        e.gc.drawLine(timeX, 0, timeX,
             canvas.getClientArea().height);
 
         hBar.setMaximum(timeline.getWidth() == 0 ? 1 : timeline.getWidth() + 20);
@@ -198,12 +207,6 @@ public final class TimeLinePanel implements ModelReceiver, PanelRenderer,
     });
   }
 
-  private static final boolean IS_MAC_OR_WINDOWS;
-  static {
-    final String name = System.getProperty("os.name").toLowerCase();
-    IS_MAC_OR_WINDOWS = name.contains("win") || name.contains("mac");
-  }
-
   static Image createNewTransparentImg(Display d, int w, int h) {
     final Color bg = d.getSystemColor(SWT.COLOR_WIDGET_BACKGROUND);
     final PaletteData palette = new PaletteData(new RGB[] { bg.getRGB() });
@@ -267,19 +270,22 @@ public final class TimeLinePanel implements ModelReceiver, PanelRenderer,
   }
 
   class Timeline {
+    @Nullable
     Display display;
+    @Nullable
     Image contents;
     List<ParcelInfo> parcels;
     List<ParcelInfo> newParcels;
     long timePerPixel = 15000;
 
     int rowHeight = 15;
-    int height;
+    private int height;
     int width;
 
     Color lineColor;
     Color pickupColor;
     Color deliveryColor;
+    Color gridColor;
 
     Timeline(Display d) {
       display = d;
@@ -288,11 +294,15 @@ public final class TimeLinePanel implements ModelReceiver, PanelRenderer,
       lineColor = d.getSystemColor(SWT.COLOR_WIDGET_BORDER);
       pickupColor = d.getSystemColor(SWT.COLOR_BLUE);
       deliveryColor = d.getSystemColor(SWT.COLOR_DARK_RED);
+      gridColor = d.getSystemColor(SWT.COLOR_GRAY);
     }
 
     void ensureImg() {
       if (contents == null) {
         contents = createNewTransparentImg(display, 700, 100);
+        final GC gc = new GC(contents);
+        drawGrid(gc, 700, 100);
+        gc.dispose();
       } else {
         final boolean widthViolation = width > contents.getBounds().width;
         final boolean heightViolation = height > contents.getBounds().height;
@@ -306,11 +316,21 @@ public final class TimeLinePanel implements ModelReceiver, PanelRenderer,
               newHeight);
           // copy previous image to new image
           final GC gc = new GC(newContents);
+          // draw vertical grid lines
+          drawGrid(gc, newWidth, newHeight);
           gc.drawImage(contents, 0, 0);
+
           gc.dispose();
           contents.dispose();
           contents = newContents;
         }
+      }
+    }
+
+    void drawGrid(GC gc, int w, int h) {
+      for (int i = 0; i < w; i += 40) {
+        gc.setForeground(gridColor);
+        gc.drawLine(i, 0, i, h);
       }
     }
 
@@ -321,18 +341,24 @@ public final class TimeLinePanel implements ModelReceiver, PanelRenderer,
           (int) (p.parcel.getDeliveryTimeWindow().end / timePerPixel));
     }
 
-    void update() {
+    void update(int timeX) {
       if (display == null) {
         return;
       }
       final int oldHeight = height;
-      parcels.addAll(newParcels);
-      height = parcels.size() * rowHeight;
-      ensureImg();
-      for (int i = 0; i < newParcels.size(); i++) {
-        drawParcel(newParcels.get(i), oldHeight + i * rowHeight);
-      }
+
+      // make copy to avoid concurrency problems
+      final List<ParcelInfo> copyNewParcels = newArrayList(newParcels);
       newParcels.clear();
+
+      parcels.addAll(copyNewParcels);
+      height = rowHeight + parcels.size() * rowHeight;
+      width = Math.max(width, timeX);
+      ensureImg();
+      for (int i = 0; i < copyNewParcels.size(); i++) {
+        drawParcel(copyNewParcels.get(i), -rowHeight + oldHeight + i
+            * rowHeight);
+      }
     }
 
     void drawParcel(ParcelInfo p, int y) {
