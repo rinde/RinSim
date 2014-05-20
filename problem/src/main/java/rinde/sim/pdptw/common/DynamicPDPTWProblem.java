@@ -68,6 +68,7 @@ public class DynamicPDPTWProblem {
   // describing the complete problem
 
   // TODO a StopCondition should be a first class simulator entity
+  // TODO same with ScenarioController, StatsTracker
 
   // TODO perhaps a UI config should also be bundled easily?
 
