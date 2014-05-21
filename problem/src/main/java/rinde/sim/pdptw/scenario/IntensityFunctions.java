@@ -1,15 +1,25 @@
 package rinde.sim.pdptw.scenario;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static rinde.sim.util.SupplierRngs.checked;
+import static rinde.sim.util.SupplierRngs.constant;
+import static rinde.sim.util.SupplierRngs.isConstant;
 
 import javax.annotation.Nullable;
 
 import org.apache.commons.math3.analysis.UnivariateFunction;
 import org.apache.commons.math3.analysis.integration.RombergIntegrator;
 import org.apache.commons.math3.analysis.integration.UnivariateIntegrator;
+import org.apache.commons.math3.random.MersenneTwister;
+import org.apache.commons.math3.random.RandomGenerator;
+
+import rinde.sim.util.SupplierRng;
 
 import com.google.common.base.Function;
 import com.google.common.base.Objects;
+import com.google.common.base.Optional;
+import com.google.common.base.Predicate;
+import com.google.common.collect.Range;
 import com.google.common.primitives.Doubles;
 
 /**
@@ -55,6 +65,13 @@ public final class IntensityFunctions {
   }
 
   /**
+   * @return A new builder for creating sine {@link IntensityFunction} instances
+   */
+  // public static Sup suppliedSineIntensity(){
+  //
+  // }
+
+  /**
    * Represents a function <code>f(x)</code> that returns the intensity at time
    * <code>x</code>. This function can be used to characterize an
    * {@link rinde.sim.pdptw.scenario.TimeSeries.TimeSeriesGenerator}.
@@ -84,16 +101,17 @@ public final class IntensityFunctions {
     private static final double TWO_PI = 2d * Math.PI;
     private static final double ONE_FOURTH = .25d;
 
-    private final double amplitude;
+    final double amplitude;
+    final double height;
     private final double frequency;
-    private final double height;
     private final double phaseShift;
 
-    SineIntensity(SineIntensityBuilder b) {
-      amplitude = b.amplitude;
-      frequency = b.frequency;
-      height = b.height;
-      phaseShift = b.phaseShift;
+    SineIntensity(SineIntensityBuilder b, long seed) {
+      final RandomGenerator rng = new MersenneTwister(seed);
+      amplitude = b.amplitudeSup.get(rng.nextLong());
+      frequency = b.frequencySup.get(rng.nextLong());
+      height = b.heightSup.get(rng.nextLong());
+      phaseShift = b.phaseShiftSup.get(rng.nextLong());
     }
 
     @Override
@@ -216,20 +234,37 @@ public final class IntensityFunctions {
    * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
    */
   public static class SineIntensityBuilder {
+    private static final double DEFAULT_AMPLITUDE = 1d;
+    private static final double DEFAULT_FREQUENCY = 1d;
+    private static final double DEFAULT_HEIGHT = 0d;
     private static final double DEFAULT_PHASE_SHIFT = .5d;
+    private static final Predicate<Double> POSITIVE = Range.open(0d,
+        Double.MAX_VALUE);
+    private static final Predicate<Double> GREATER_THAN_MINUS_ONE = Range
+        .openClosed(-1d, Double.MAX_VALUE);
+    private static final Predicate<Double> FINITE = Range.closed(
+        Double.MIN_VALUE, Double.MAX_VALUE);
 
-    double amplitude;
-    double frequency;
-    double height;
-    double area;
-    double phaseShift;
+    SupplierRng<Double> amplitudeSup;
+    SupplierRng<Double> frequencySup;
+    SupplierRng<Double> heightSup;
+    Optional<Double> area;
+    SupplierRng<Double> phaseShiftSup;
 
     SineIntensityBuilder() {
-      amplitude = 1d;
-      frequency = 1d;
-      height = 0d;
-      area = -1;
-      phaseShift = DEFAULT_PHASE_SHIFT;
+      amplitudeSup = constant(DEFAULT_AMPLITUDE);
+      frequencySup = constant(DEFAULT_FREQUENCY);
+      heightSup = constant(DEFAULT_HEIGHT);
+      area = Optional.absent();
+      phaseShiftSup = constant(DEFAULT_PHASE_SHIFT);
+    }
+
+    SineIntensityBuilder(SineIntensityBuilder b) {
+      amplitudeSup = b.amplitudeSup;
+      frequencySup = b.frequencySup;
+      heightSup = b.heightSup;
+      area = b.area;
+      phaseShiftSup = b.phaseShiftSup;
     }
 
     /**
@@ -241,7 +276,19 @@ public final class IntensityFunctions {
     public SineIntensityBuilder amplitude(double a) {
       checkArgument(a > 0d);
       checkArgument(Doubles.isFinite(a));
-      amplitude = a;
+      amplitudeSup = constant(a);
+      return this;
+    }
+
+    /**
+     * Sets the {@link SupplierRng} that will be used to generate the amplitude
+     * of the {@link IntensityFunction} that will be created by this builder.
+     * Default value: 1.
+     * @param a Must be positive.
+     * @return This, as per the builder pattern.
+     */
+    public SineIntensityBuilder amplitude(SupplierRng<Double> a) {
+      amplitudeSup = checked(a, POSITIVE);
       return this;
     }
 
@@ -254,7 +301,19 @@ public final class IntensityFunctions {
     public SineIntensityBuilder frequency(double f) {
       checkArgument(f > 0d);
       checkArgument(Doubles.isFinite(f));
-      frequency = f;
+      frequencySup = constant(f);
+      return this;
+    }
+
+    /**
+     * Sets the {@link SupplierRng} that will be used to generate the frequency
+     * of the {@link IntensityFunction} that will be created by this builder.
+     * Default value: 1.
+     * @param f Must be positive.
+     * @return This, as per the builder pattern.
+     */
+    public SineIntensityBuilder frequency(SupplierRng<Double> f) {
+      frequencySup = checked(f, POSITIVE);
       return this;
     }
 
@@ -267,7 +326,7 @@ public final class IntensityFunctions {
     public SineIntensityBuilder period(double p) {
       checkArgument(p > 0d);
       checkArgument(Doubles.isFinite(p));
-      frequency = 1d / p;
+      frequencySup = constant(1d / p);
       return this;
     }
 
@@ -283,7 +342,22 @@ public final class IntensityFunctions {
     public SineIntensityBuilder height(double h) {
       checkArgument(h > -1d);
       checkArgument(Doubles.isFinite(h));
-      height = h;
+      heightSup = constant(h);
+      return this;
+    }
+
+    /**
+     * Sets the {@link SupplierRng} that will be used to generate the height of
+     * the {@link IntensityFunction} that will be created by this builder.
+     * Default value: 0. Typical values range between <code>-1</code> and
+     * <code>1</code>. If the height is close to <code>-1</code> almost the
+     * entire function will be negative. If the height is <code>1</code> or
+     * higher the entire function will be positive.
+     * @param h Must be <code> > -1</code>.
+     * @return This, as per the builder pattern.
+     */
+    public SineIntensityBuilder height(SupplierRng<Double> h) {
+      heightSup = checked(h, GREATER_THAN_MINUS_ONE);
       return this;
     }
 
@@ -300,7 +374,7 @@ public final class IntensityFunctions {
     public SineIntensityBuilder area(double a) {
       checkArgument(a > 0d);
       checkArgument(Doubles.isFinite(a));
-      area = a;
+      area = Optional.of(a);
       return this;
     }
 
@@ -312,24 +386,77 @@ public final class IntensityFunctions {
      */
     public SineIntensityBuilder phaseShift(double s) {
       checkArgument(Doubles.isFinite(s));
-      phaseShift = s;
+      phaseShiftSup = constant(s);
       return this;
     }
 
     /**
+     * Sets the {@link SupplierRng} that will be used to generate the phaseShift
+     * of the {@link IntensityFunction} that will be created by this builder.
+     * Default value: 1/2.
+     * @param s The phase shift.
+     * @return This, as per the builder pattern.
+     */
+    public SineIntensityBuilder phaseShift(SupplierRng<Double> s) {
+      phaseShiftSup = checked(s, FINITE);
+      return this;
+    }
+
+    /**
+     * Creates a new instance of a sine {@link IntensityFunction}. This method
+     * assumes constant values.
      * @return A new instance.
      */
-    public SineIntensity build() {
-      if (area > 0) {
+    public IntensityFunction build() {
+      checkArgument(isConstant(amplitudeSup),
+          "Amplitude should be a constant (not a supplier).");
+      checkArgument(isConstant(frequencySup),
+          "Frequency should be a constant (not a supplier).");
+      checkArgument(isConstant(heightSup),
+          "Height should be a constant (not a supplier).");
+      checkArgument(isConstant(phaseShiftSup),
+          "PhaseShift should be a constant (not a supplier).");
+      return build(0L);
+    }
+
+    /**
+     * @return A {@link SupplierRng} that creates sine {@link IntensityFunction}
+     *         instances.
+     */
+    public SupplierRng<IntensityFunction> supplierRng() {
+      return new SineIntensityFunctionSupplier(this);
+    }
+
+    IntensityFunction build(long seed) {
+      if (area.isPresent()) {
+        final SineIntensity ins = new SineIntensity(this, seed);
         // first compute current area
-        final double a = new SineIntensity(this).area();
+        final double a = ins.area();
         // compute factor to adapt amplitude and height
-        final double factor = area / a;
-        amplitude *= factor;
-        height *= factor;
-        return new SineIntensity(this);
+        final double factor = area.get() / a;
+        amplitudeSup = constant(ins.amplitude * factor);
+        heightSup = constant(ins.height * factor);
+        return new SineIntensity(this, seed);
       }
-      return new SineIntensity(this);
+      return new SineIntensity(this, seed);
+    }
+
+    SineIntensityBuilder copy() {
+      return new SineIntensityBuilder(this);
+    }
+  }
+
+  private static class SineIntensityFunctionSupplier implements
+      SupplierRng<IntensityFunction> {
+    private final SineIntensityBuilder builder;
+
+    SineIntensityFunctionSupplier(SineIntensityBuilder b) {
+      builder = b.copy();
+    }
+
+    @Override
+    public IntensityFunction get(long seed) {
+      return builder.build(seed);
     }
   }
 
