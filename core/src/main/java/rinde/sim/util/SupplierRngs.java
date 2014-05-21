@@ -37,6 +37,18 @@ public final class SupplierRngs {
   }
 
   /**
+   * Checks whether the provided supplier is a constant created by
+   * {@link #constant(Object)}.
+   * @param supplier The supplier to check.
+   * @param <T> The type this supplier generates.
+   * @return <code>true</code> if the provided supplier is created by
+   *         {@link #constant(Object)}, <code>false</code> otherwise.
+   */
+  public static <T> boolean isConstant(SupplierRng<T> supplier) {
+    return supplier.getClass() == ConstantSupplierRng.class;
+  }
+
+  /**
    * Decorates the specified {@link SupplierRng} such that when it produces
    * values which are not allowed by the specified predicate an
    * {@link IllegalArgumentException} is thrown.
@@ -450,7 +462,8 @@ public final class SupplierRngs {
     }
   }
 
-  private static class ConstantSupplierRng<T> extends AbstractSupplierRng<T> {
+  private static final class ConstantSupplierRng<T> extends
+      AbstractSupplierRng<T> {
     private final T value;
 
     ConstantSupplierRng(T v) {
