@@ -12,6 +12,7 @@ import org.apache.commons.math3.distribution.UniformIntegerDistribution;
 import org.apache.commons.math3.distribution.UniformRealDistribution;
 import org.apache.commons.math3.random.MersenneTwister;
 
+import com.google.common.base.Predicate;
 import com.google.common.base.Supplier;
 import com.google.common.math.DoubleMath;
 import com.google.common.primitives.Doubles;
@@ -36,10 +37,27 @@ public final class SupplierRngs {
   }
 
   /**
+   * Decorates the specified {@link SupplierRng} such that when it produces
+   * values which are not allowed by the specified predicate an
+   * {@link IllegalArgumentException} is thrown.
+   * @param supplier The supplier to be decorated.
+   * @param predicate The predicate which specifies the contract to which the
+   *          supplier should adhere.
+   * @param <T> The type this supplier generates.
+   * @return A supplier that is guaranteed to return values which match the
+   *         given predicate or throw an {@link IllegalArgumentException}.
+   */
+  public static <T> SupplierRng<T> checked(SupplierRng<T> supplier,
+      Predicate<T> predicate) {
+    return new CheckedSupplier<T>(supplier, predicate);
+  }
+
+  /**
    * Create a {@link SupplierRng} based on an {@link Iterable}. It will return
    * the values in the order as defined by the iterable. The resulting supplier
    * will throw an {@link IllegalArgumentException} when the iterable is empty.
    * @param iter The iterable from which the values will be used.
+   * @param <T> The type this supplier generates.
    * @return A supplier based on an iterable.
    */
   public static <T> SupplierRng<T> fromIterable(Iterable<T> iter) {
@@ -49,6 +67,7 @@ public final class SupplierRngs {
   /**
    * Create a {@link SupplierRng} based on a {@link Supplier}.
    * @param supplier The supplier to adapt.
+   * @param <T> The type this supplier generates.
    * @return The adapted supplier.
    */
   public static <T> SupplierRng<T> fromSupplier(Supplier<T> supplier) {
@@ -454,6 +473,24 @@ public final class SupplierRngs {
     @Override
     public T get(long seed) {
       return supplier.get();
+    }
+  }
+
+  private static class CheckedSupplier<T> implements SupplierRng<T> {
+    private final SupplierRng<T> supplier;
+    private final Predicate<T> predicate;
+
+    CheckedSupplier(SupplierRng<T> sup, Predicate<T> pred) {
+      supplier = sup;
+      predicate = pred;
+    }
+
+    @Override
+    public T get(long seed) {
+      final T value = supplier.get(seed);
+      checkArgument(predicate.apply(value),
+          "The supplier generated an invalid value: %s.", value);
+      return value;
     }
   }
 }
