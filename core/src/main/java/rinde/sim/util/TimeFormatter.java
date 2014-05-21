@@ -9,6 +9,9 @@ import org.joda.time.format.PeriodFormatterBuilder;
  * Provides methods for converting time expressed as a <code>long</code> to a
  * nice string representatation: (D) HH:MM:SS.
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+ * @deprecated Use
+ *             {@link org.joda.time.format.ISODateTimeFormat#hourMinuteSecond()}
+ *             instead.
  */
 @Deprecated
 public final class TimeFormatter {
