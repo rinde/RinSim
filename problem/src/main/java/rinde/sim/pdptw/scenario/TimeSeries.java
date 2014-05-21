@@ -9,6 +9,7 @@ import org.apache.commons.math3.random.MersenneTwister;
 import org.apache.commons.math3.random.RandomGenerator;
 
 import rinde.sim.pdptw.scenario.IntensityFunctions.IntensityFunction;
+import rinde.sim.util.SupplierRng;
 
 import com.google.common.base.Predicate;
 import com.google.common.collect.AbstractSequentialIterator;
@@ -56,6 +57,31 @@ public final class TimeSeries {
   public static TimeSeriesGenerator nonHomogenousPoisson(double length,
       IntensityFunction function) {
     return new NonHomogenous(length, function);
+  }
+
+  /**
+   * Creates a non-homogenous Poisson process of the specified length. The
+   * intensity is specified by the {@link SupplierRng}. Each time
+   * {@link TimeSeriesGenerator#generate(long)} is called, a new
+   * {@link IntensityFunction} is requested from the {@link SupplierRng}. The
+   * non-homogenous Poisson process is implemented using the thinning method as
+   * described in [1].
+   * <p>
+   * <b>References</b>
+   * <ol>
+   * <li>Lewis, P.A.W. and Shedler, G.S. Simulation of nonhomogenous Poisson
+   * processes by thinning. Naval Research Logistic Quarterly 26, (1979),
+   * 403–414.</li>
+   * </ol>
+   * @param length The length of Poisson process, all generated times will be in
+   *          the interval [0,length).
+   * @param functionSupplier The intensity function supplier.
+   * @return A newly constructed non-homogenous Poisson process
+   *         {@link TimeSeriesGenerator}.
+   */
+  public static TimeSeriesGenerator nonHomogenousPoisson(double length,
+      SupplierRng<IntensityFunction> functionSupplier) {
+    return new SuppliedNonHomogenous(length, functionSupplier);
   }
 
   /**
@@ -119,6 +145,26 @@ public final class TimeSeries {
     @Override
     public Iterator<Double> iterator() {
       return Iterators.filter(super.iterator(), new NHPredicate(rng, lambd));
+    }
+  }
+
+  static class SuppliedNonHomogenous implements TimeSeriesGenerator {
+    final double length;
+    final SupplierRng<IntensityFunction> lambdSup;
+    final RandomGenerator rng;
+
+    SuppliedNonHomogenous(double l, SupplierRng<IntensityFunction> funcSup) {
+      length = l;
+      lambdSup = funcSup;
+      rng = new MersenneTwister();
+    }
+
+    @Override
+    public ImmutableList<Double> generate(long seed) {
+      rng.setSeed(seed);
+      final TimeSeriesGenerator tsg = new NonHomogenous(length,
+          lambdSup.get(rng.nextLong()));
+      return tsg.generate(rng.nextLong());
     }
   }
 

@@ -2,6 +2,7 @@ package rinde.sim.pdptw.scenario;
 
 import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.collect.Lists.newArrayList;
+import static org.junit.Assert.assertTrue;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -15,14 +16,15 @@ import org.junit.Ignore;
 import org.junit.Test;
 
 import rinde.sim.core.graph.Point;
-import rinde.sim.pdptw.scenario.IntensityFunctions;
-import rinde.sim.pdptw.scenario.TimeSeries;
 import rinde.sim.pdptw.scenario.IntensityFunctions.IntensityFunction;
 import rinde.sim.pdptw.scenario.TimeSeries.TimeSeriesGenerator;
+import rinde.sim.util.SupplierRng;
+import rinde.sim.util.SupplierRngs;
 
 import com.google.common.base.Charsets;
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
+import com.google.common.collect.Iterables;
 import com.google.common.io.Files;
 
 public class NHPoissonProcessTest {
@@ -162,6 +164,39 @@ public class NHPoissonProcessTest {
   // .toArray(dynVals)));
   //
   // }
+
+  /**
+   * Check whether the
+   * {@link TimeSeries#nonHomogenousPoisson(double, SupplierRng)} function
+   * behaves as expected.
+   */
+  @Test
+  public void test2() {
+
+    final IntensityFunction func1 = IntensityFunctions.sineIntensity()
+        .period(60)
+        .height(-.5)
+        .build();
+    final IntensityFunction func2 = IntensityFunctions.sineIntensity()
+        .period(30)
+        .height(1.5)
+        .build();
+
+    final SupplierRng<IntensityFunction> funcSup = SupplierRngs
+        .fromIterable(Iterables.cycle(func1, func2));
+
+    final TimeSeriesGenerator tsg = TimeSeries.nonHomogenousPoisson(120,
+        funcSup);
+
+    // note that these tests will not work for all results of the
+    // TimeSeriesGenerator, it is possible (but less likely) that the produced
+    // dynamism values are different from the expectations as expressed in the
+    // tests below.
+    for (int i = 0; i < 20; i++) {
+      assertTrue(Metrics.measureDynamism(tsg.generate(i), 120) < .25);
+      assertTrue(Metrics.measureDynamism(tsg.generate(i), 120) > .40);
+    }
+  }
 
   private static class DynamismModel {
     private static double X_MIN = -.99;
