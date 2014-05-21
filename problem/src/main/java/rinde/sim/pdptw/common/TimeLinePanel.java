@@ -28,6 +28,9 @@ import org.eclipse.swt.widgets.Canvas;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.ScrollBar;
+import org.joda.time.Period;
+import org.joda.time.format.PeriodFormatter;
+import org.joda.time.format.PeriodFormatterBuilder;
 
 import rinde.sim.core.TickListener;
 import rinde.sim.core.TimeLapse;
@@ -40,7 +43,6 @@ import rinde.sim.core.model.pdp.Parcel;
 import rinde.sim.event.Event;
 import rinde.sim.event.Listener;
 import rinde.sim.ui.renderers.PanelRenderer;
-import rinde.sim.util.TimeFormatter;
 
 import com.google.common.math.DoubleMath;
 
@@ -51,6 +53,14 @@ import com.google.common.math.DoubleMath;
  */
 public final class TimeLinePanel implements ModelReceiver, PanelRenderer,
     TickListener {
+
+  static final PeriodFormatter FORMATTER = new PeriodFormatterBuilder()
+      .minimumPrintedDigits(2)
+      .printZeroAlways()
+      .appendHours()
+      .appendLiteral(":")
+      .appendMinutes()
+      .toFormatter();
 
   private static final boolean IS_MAC_OR_WINDOWS;
   static {
@@ -257,8 +267,8 @@ public final class TimeLinePanel implements ModelReceiver, PanelRenderer,
       for (int i = 0; i < contents.getBounds().width; i += small) {
         final int height = i % large == 0 ? 10 : 5;
         if (i % large == 0) {
-          String time = TimeFormatter.format(15000 * i);
-          time = time.substring(0, time.length() - 3);
+
+          final String time = FORMATTER.print(new Period(0, 15000 * i));
           gc.setFont(font);
           final Point size = gc.textExtent(time);
           gc.drawText(time, i - size.x / 2, 0, true);

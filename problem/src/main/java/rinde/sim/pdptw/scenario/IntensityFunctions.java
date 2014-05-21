@@ -404,7 +404,8 @@ public final class IntensityFunctions {
 
     /**
      * Creates a new instance of a sine {@link IntensityFunction}. This method
-     * assumes constant values.
+     * requires constant values to be set. For using supplied values see
+     * {@link #supplierRng()}.
      * @return A new instance.
      */
     public IntensityFunction build() {

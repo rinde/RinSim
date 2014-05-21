@@ -36,6 +36,9 @@ import org.eclipse.swt.widgets.ScrollBar;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.TabFolder;
 import org.eclipse.swt.widgets.TabItem;
+import org.joda.time.Period;
+import org.joda.time.format.PeriodFormatter;
+import org.joda.time.format.PeriodFormatterBuilder;
 
 import rinde.sim.core.Simulator;
 import rinde.sim.core.TickListener;
@@ -47,7 +50,6 @@ import rinde.sim.ui.renderers.PanelRenderer;
 import rinde.sim.ui.renderers.Renderer;
 import rinde.sim.ui.renderers.ViewPort;
 import rinde.sim.ui.renderers.ViewRect;
-import rinde.sim.util.TimeFormatter;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.LinkedHashMultimap;
@@ -61,6 +63,18 @@ import com.google.common.collect.Multimap;
  */
 final class SimulationViewer extends Composite implements TickListener,
     ControlListener, PaintListener, SelectionListener {
+
+  static final PeriodFormatter FORMATTER = new PeriodFormatterBuilder()
+      .appendDays()
+      .appendSeparator(" ")
+      .minimumPrintedDigits(2)
+      .printZeroAlways()
+      .appendHours()
+      .appendLiteral(":")
+      .appendMinutes()
+      .appendLiteral(":")
+      .appendSeconds()
+      .toFormatter();
 
   // TODO need to refactor this class in separate logical parts:
   // Time stuff: receives ticks and decides when gui should be updated.
@@ -626,7 +640,10 @@ final class SimulationViewer extends Composite implements TickListener,
       public void run() {
         if (!canvas.isDisposed()) {
           if (simulator.getTimeStep() > 500) {
-            timeLabel.setText(TimeFormatter.format(simulator.getCurrentTime()));
+            final String formatted = FORMATTER
+                .print(
+                new Period(0, simulator.getCurrentTime()));
+            timeLabel.setText(formatted);
           } else {
             timeLabel.setText("" + simulator.getCurrentTime());
           }
