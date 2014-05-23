@@ -65,13 +65,6 @@ public final class IntensityFunctions {
   }
 
   /**
-   * @return A new builder for creating sine {@link IntensityFunction} instances
-   */
-  // public static Sup suppliedSineIntensity(){
-  //
-  // }
-
-  /**
    * Represents a function <code>f(x)</code> that returns the intensity at time
    * <code>x</code>. This function can be used to characterize an
    * {@link rinde.sim.pdptw.scenario.TimeSeries.TimeSeriesGenerator}.
