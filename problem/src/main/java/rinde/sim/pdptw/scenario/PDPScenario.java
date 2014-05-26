@@ -40,6 +40,11 @@ import com.google.common.collect.ImmutableSet;
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
  */
 public abstract class PDPScenario extends Scenario {
+  /**
+   * The default {@link ProblemClass}.
+   */
+  public static final ProblemClass DEFAULT_PROBLEM_CLASS = new SimpleProblemClass(
+      "DEFAULT");
 
   /**
    * New empty instance.
@@ -161,7 +166,7 @@ public abstract class PDPScenario extends Scenario {
     final List<TimedEvent> eventList;
     final ImmutableSet.Builder<Enum<?>> eventTypeBuilder;
     final ImmutableList.Builder<Supplier<? extends Model<?>>> modelSuppliers;
-    final ProblemClass problemClass;
+    ProblemClass problemClass;
     String instanceId;
 
     Builder(ProblemClass pc) {
@@ -207,6 +212,16 @@ public abstract class PDPScenario extends Scenario {
      */
     public Builder instanceId(String id) {
       instanceId = id;
+      return self();
+    }
+
+    /**
+     * The {@link ProblemClass} to use for the next scenario that is created.
+     * @param pc The problem class to use.
+     * @return This, as per the builder pattern.
+     */
+    public Builder problemClass(ProblemClass pc) {
+      problemClass = pc;
       return self();
     }
 
