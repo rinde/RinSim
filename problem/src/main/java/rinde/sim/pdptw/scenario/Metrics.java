@@ -300,8 +300,12 @@ public final class Metrics {
   }
 
   public static double measureDynamism(PDPScenario s) {
+    return measureDynamism(s, s.getTimeWindow().end);
+  }
+
+  public static double measureDynamism(PDPScenario s, long lengthOfDay) {
     return measureDynamism(convert(getOrderArrivalTimes(s)),
-        s.getTimeWindow().end);
+        lengthOfDay);
   }
 
   static ImmutableList<Double> convert(List<Long> in) {
