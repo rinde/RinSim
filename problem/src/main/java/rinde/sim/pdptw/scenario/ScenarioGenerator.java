@@ -174,6 +174,14 @@ public final class ScenarioGenerator {
     return new Builder(problemClass);
   }
 
+  /**
+   * Create a {@link Builder} for constructing {@link ScenarioGenerator}s.
+   * @return The builder.
+   */
+  public static Builder builder() {
+    return new Builder(PDPScenario.DEFAULT_PROBLEM_CLASS);
+  }
+
   static TravelTimes createTravelTimes(PDPScenario s) {
     final Iterable<AddDepotEvent> depots = FluentIterable.from(s.asList())
         .filter(AddDepotEvent.class);
