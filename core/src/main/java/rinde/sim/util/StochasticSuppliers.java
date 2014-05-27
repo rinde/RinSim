@@ -324,7 +324,7 @@ public final class StochasticSuppliers {
    * @param <T> The type of objects that this supplier creates.
    * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
    */
-  public abstract static class AbstractSupplierRng<T> implements StochasticSupplier<T> {
+  public abstract static class AbstractStochasticSupplier<T> implements StochasticSupplier<T> {
     @SuppressWarnings("serial")
     @Override
     public String toString() {
@@ -337,7 +337,7 @@ public final class StochasticSuppliers {
   }
 
   private static class IntToLongAdapter extends
-      AbstractSupplierRng<Long> {
+      AbstractStochasticSupplier<Long> {
     private final StochasticSupplier<Integer> supplier;
 
     IntToLongAdapter(StochasticSupplier<Integer> supp) {
@@ -351,7 +351,7 @@ public final class StochasticSuppliers {
   }
 
   private static class DoubleToIntAdapter extends
-      AbstractSupplierRng<Integer> {
+      AbstractStochasticSupplier<Integer> {
     private final StochasticSupplier<Double> supplier;
 
     DoubleToIntAdapter(StochasticSupplier<Double> supp) {
@@ -365,7 +365,7 @@ public final class StochasticSuppliers {
   }
 
   private static class DoubleToLongAdapter extends
-      AbstractSupplierRng<Long> {
+      AbstractStochasticSupplier<Long> {
     private final StochasticSupplier<Double> supplier;
 
     DoubleToLongAdapter(StochasticSupplier<Double> supp) {
@@ -379,7 +379,7 @@ public final class StochasticSuppliers {
   }
 
   private static class IntegerDistributionSupplierRng extends
-      AbstractSupplierRng<Integer> {
+      AbstractStochasticSupplier<Integer> {
     private final IntegerDistribution distribution;
 
     IntegerDistributionSupplierRng(IntegerDistribution id) {
@@ -394,7 +394,7 @@ public final class StochasticSuppliers {
   }
 
   private static class BoundedDoubleDistSupplierRng extends
-      AbstractSupplierRng<Double> {
+      AbstractStochasticSupplier<Double> {
     private final RealDistribution distribution;
     private final double lowerBound;
     private final double upperBound;
@@ -432,7 +432,7 @@ public final class StochasticSuppliers {
   }
 
   private static class DoubleDistributionSupplierRng extends
-      AbstractSupplierRng<Double> {
+      AbstractStochasticSupplier<Double> {
     private final RealDistribution distribution;
 
     DoubleDistributionSupplierRng(RealDistribution rd) {
@@ -446,7 +446,7 @@ public final class StochasticSuppliers {
     }
   }
 
-  private static class IteratorSupplierRng<T> extends AbstractSupplierRng<T> {
+  private static class IteratorSupplierRng<T> extends AbstractStochasticSupplier<T> {
     private final Iterator<T> iterator;
 
     IteratorSupplierRng(Iterator<T> it) {
@@ -463,7 +463,7 @@ public final class StochasticSuppliers {
   }
 
   private static final class ConstantSupplierRng<T> extends
-      AbstractSupplierRng<T> {
+      AbstractStochasticSupplier<T> {
     private final T value;
 
     ConstantSupplierRng(T v) {
@@ -476,7 +476,7 @@ public final class StochasticSuppliers {
     }
   }
 
-  private static class SupplierAdapter<T> extends AbstractSupplierRng<T> {
+  private static class SupplierAdapter<T> extends AbstractStochasticSupplier<T> {
     private final Supplier<T> supplier;
 
     SupplierAdapter(Supplier<T> sup) {

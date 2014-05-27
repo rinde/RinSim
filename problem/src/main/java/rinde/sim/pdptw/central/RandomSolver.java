@@ -84,7 +84,7 @@ public class RandomSolver implements Solver {
    * @return A {@link StochasticSupplier} for {@link RandomSolver} instances.
    */
   public static StochasticSupplier<Solver> supplier() {
-    return new StochasticSuppliers.AbstractSupplierRng<Solver>() {
+    return new StochasticSuppliers.AbstractStochasticSupplier<Solver>() {
       @Override
       public Solver get(long seed) {
         return new RandomSolver(new MersenneTwister(seed));

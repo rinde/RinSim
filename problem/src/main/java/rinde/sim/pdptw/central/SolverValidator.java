@@ -233,7 +233,7 @@ public final class SolverValidator {
   }
 
   private static final class ValidatedSupplier extends
-      StochasticSuppliers.AbstractSupplierRng<Solver> {
+      StochasticSuppliers.AbstractStochasticSupplier<Solver> {
     private final StochasticSupplier<? extends Solver> supplier;
 
     ValidatedSupplier(StochasticSupplier<? extends Solver> sup) {

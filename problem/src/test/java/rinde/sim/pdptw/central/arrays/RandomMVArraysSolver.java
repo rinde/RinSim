@@ -23,7 +23,7 @@ import rinde.sim.pdptw.central.Solver;
 import rinde.sim.pdptw.central.SolverValidator;
 import rinde.sim.util.StochasticSupplier;
 import rinde.sim.util.StochasticSuppliers;
-import rinde.sim.util.StochasticSuppliers.AbstractSupplierRng;
+import rinde.sim.util.StochasticSuppliers.AbstractStochasticSupplier;
 
 import com.google.common.primitives.Ints;
 
@@ -126,7 +126,7 @@ public class RandomMVArraysSolver implements MultiVehicleArraysSolver {
   }
 
   public static StochasticSupplier<MultiVehicleArraysSolver> supplier() {
-    return new StochasticSuppliers.AbstractSupplierRng<MultiVehicleArraysSolver>() {
+    return new StochasticSuppliers.AbstractStochasticSupplier<MultiVehicleArraysSolver>() {
       @Override
       public MultiVehicleArraysSolver get(long seed) {
         return ArraysSolverValidator.wrap(new RandomMVArraysSolver(
@@ -136,7 +136,7 @@ public class RandomMVArraysSolver implements MultiVehicleArraysSolver {
   }
 
   public static StochasticSupplier<Solver> solverSupplier() {
-    return new StochasticSuppliers.AbstractSupplierRng<Solver>() {
+    return new StochasticSuppliers.AbstractStochasticSupplier<Solver>() {
       @Override
       public Solver get(long seed) {
         return SolverValidator.wrap(new MultiVehicleSolverAdapter(
