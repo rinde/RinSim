@@ -15,6 +15,7 @@ import java.util.List;
 
 import org.apache.commons.math3.random.MersenneTwister;
 import org.apache.commons.math3.random.RandomGenerator;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -36,7 +37,7 @@ import com.google.common.collect.Iterators;
  */
 @RunWith(Parameterized.class)
 public class TimeWindowsTest {
-  private static final long END_TIME = 100;
+  private static final long END_TIME = 10000;
   private final TimeWindowGenerator timeWindowGenerator;
   private final double meanPickupUrgency;
   private final double meanDeliveryUrgency;
@@ -53,27 +54,27 @@ public class TimeWindowsTest {
     return ImmutableList.of(
         new Object[] {
             builder()
-                .pickupUrgency(constant(1L))
+                .pickupUrgency(constant(100L))
                 .pickupTimeWindowLength(constant(0L))
                 .build(),
-            1d,
-            1d
+            100d,
+            100d
         },
         new Object[] {
             builder()
-                .pickupUrgency(uniformLong(0, 10))
+                .pickupUrgency(uniformLong(0, 1000))
                 .build(),
-            5d,
-            1d,
+            500d,
+            100d,
         },
         new Object[] {
             builder()
-                .pickupUrgency(uniformLong(0, 10))
+                .pickupUrgency(uniformLong(0, 1000))
                 .pickupTimeWindowLength(
-                    normal().bounds(0, 10).mean(5).std(3).buildLong())
+                    normal().bounds(0, 1000).mean(500).std(300).buildLong())
                 .build(),
-            5d,
-            5d,
+            500d,
+            500d,
         },
         new Object[] {
             builder()
@@ -86,11 +87,11 @@ public class TimeWindowsTest {
         new Object[] {
             builder()
                 .pickupUrgency(
-                    normal().bounds(2, 12).mean(6).std(2).buildLong())
+                    normal().bounds(200, 1200).mean(600).std(200).buildLong())
                 .pickupTimeWindowLength(constant(0L))
                 .build(),
-            6d,
-            6d
+            600d,
+            600d
         });
   }
 
@@ -199,17 +200,18 @@ public class TimeWindowsTest {
   /**
    * Tests whether the actual urgency matches the expected urgency.
    */
+  @Ignore
   @Test
   public void urgencyTest() {
     final RandomGenerator rng = new MersenneTwister(123L);
     for (final TravelTimes tt : FakeTravelTimes.values()) {
       for (final ParcelDTO.Builder parcelBuilder : parcelBuilders()) {
         // in this case urgency can no longer be guaranteed
-        if (parcelBuilder.getOrderAnnounceTime() >= 85) {
+        if (parcelBuilder.getOrderAnnounceTime() >= 9000) {
           continue;
         }
         double pmean = 0;
-        final double repetitions = 300;
+        final double repetitions = 200;
         for (int i = 0; i < repetitions; i++) {
           timeWindowGenerator
               .generate(rng.nextLong(), parcelBuilder, tt, END_TIME);
@@ -217,7 +219,7 @@ public class TimeWindowsTest {
           pmean += Metrics.pickupUrgency(dto);
         }
         pmean /= repetitions;
-        assertEquals(meanPickupUrgency, pmean, 0.6);
+        assertEquals(meanPickupUrgency, pmean, 20);
       }
     }
   }
