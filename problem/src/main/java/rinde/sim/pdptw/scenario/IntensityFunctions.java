@@ -357,15 +357,17 @@ public final class IntensityFunctions {
     /**
      * Set the area of the sine function. This is defined as the area under the
      * sine function and above y=0 in the range [0,period). Where period is
-     * defined as <code>1/frequency</code>. When calling this method, the
-     * amplitude and height of the created {@link IntensityFunction} will be
-     * adjusted such that it has the specified area. When this method is not
-     * called no adjustments will be made.
+     * defined as <code>1/frequency</code>. If the area is set to <code>n</code>
+     * the expected number of events in a single period is <code>n</code>.
+     * <p>
+     * When calling this method, the amplitude and height of the created
+     * {@link IntensityFunction} will be adjusted such that it has the specified
+     * area. When this method is not called no adjustments will be made.
      * @param a The area. Must be positive.
      * @return This, as per the builder pattern.
      */
     public SineIntensityBuilder area(double a) {
-      checkArgument(a > 0d);
+      checkArgument(a > 0d, "Area must be positive, is %s.", a);
       checkArgument(Doubles.isFinite(a));
       area = Optional.of(a);
       return this;
@@ -428,9 +430,20 @@ public final class IntensityFunctions {
         final double a = ins.area();
         // compute factor to adapt amplitude and height
         final double factor = area.get() / a;
+
+        // store values
+        final SupplierRng<Double> ampl = amplitudeSup;
+        final SupplierRng<Double> hei = heightSup;
+
+        // temporarily overwrite values
         amplitudeSup = constant(ins.amplitude * factor);
         heightSup = constant(ins.height * factor);
-        return new SineIntensity(this, seed);
+        final SineIntensity si = new SineIntensity(this, seed);
+
+        // restore values
+        amplitudeSup = ampl;
+        heightSup = hei;
+        return si;
       }
       return new SineIntensity(this, seed);
     }
