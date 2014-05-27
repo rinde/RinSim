@@ -1,7 +1,7 @@
 package rinde.sim.pdptw.scenario;
 
 import static com.google.common.base.Preconditions.checkArgument;
-import static rinde.sim.util.SupplierRngs.constant;
+import static rinde.sim.util.StochasticSuppliers.constant;
 
 import java.math.RoundingMode;
 
@@ -11,7 +11,7 @@ import org.apache.commons.math3.random.RandomGenerator;
 import rinde.sim.core.graph.Point;
 import rinde.sim.pdptw.common.ParcelDTO;
 import rinde.sim.pdptw.scenario.ScenarioGenerator.TravelTimes;
-import rinde.sim.util.SupplierRng;
+import rinde.sim.util.StochasticSupplier;
 import rinde.sim.util.TimeWindow;
 
 import com.google.common.base.Optional;
@@ -70,16 +70,16 @@ public final class TimeWindows {
    * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
    */
   public static class Builder {
-    private static final SupplierRng<Long> DEFAULT_URGENCY = constant(30 * 60 * 1000L);
-    private static final SupplierRng<Long> DEFAULT_PICKUP_LENGTH = constant(10 * 60 * 1000L);
-    private static final SupplierRng<Long> DEFAULT_DELIVERY_OPENING = constant(0L);
-    private static final SupplierRng<Double> DEFAULT_DELIVERY_LENGTH_FACTOR = constant(2d);
+    private static final StochasticSupplier<Long> DEFAULT_URGENCY = constant(30 * 60 * 1000L);
+    private static final StochasticSupplier<Long> DEFAULT_PICKUP_LENGTH = constant(10 * 60 * 1000L);
+    private static final StochasticSupplier<Long> DEFAULT_DELIVERY_OPENING = constant(0L);
+    private static final StochasticSupplier<Double> DEFAULT_DELIVERY_LENGTH_FACTOR = constant(2d);
 
-    SupplierRng<Long> pickupUrgency;
-    SupplierRng<Long> pickupTWLength;
-    SupplierRng<Long> deliveryOpening;
-    SupplierRng<Double> deliveryLengthFactor;
-    Optional<SupplierRng<Long>> minDeliveryLength;
+    StochasticSupplier<Long> pickupUrgency;
+    StochasticSupplier<Long> pickupTWLength;
+    StochasticSupplier<Long> deliveryOpening;
+    StochasticSupplier<Double> deliveryLengthFactor;
+    Optional<StochasticSupplier<Long>> minDeliveryLength;
 
     Builder() {
       pickupUrgency = DEFAULT_URGENCY;
@@ -89,12 +89,12 @@ public final class TimeWindows {
       minDeliveryLength = Optional.absent();
     }
 
-    public Builder pickupUrgency(SupplierRng<Long> urgency) {
+    public Builder pickupUrgency(StochasticSupplier<Long> urgency) {
       pickupUrgency = urgency;
       return this;
     }
 
-    public Builder pickupTimeWindowLength(SupplierRng<Long> length) {
+    public Builder pickupTimeWindowLength(StochasticSupplier<Long> length) {
       pickupTWLength = length;
       return this;
     }
@@ -107,7 +107,7 @@ public final class TimeWindows {
      * @param opening May only return values which are <code>>= 0</code>.
      * @return This, as per the builder pattern.
      */
-    public Builder deliveryOpening(SupplierRng<Long> opening) {
+    public Builder deliveryOpening(StochasticSupplier<Long> opening) {
       deliveryOpening = opening;
       return this;
     }
@@ -118,12 +118,12 @@ public final class TimeWindows {
      * @return
      */
     // length of delivery TW as a ratio to length of pickup TW
-    public Builder deliveryLengthFactor(SupplierRng<Double> factor) {
+    public Builder deliveryLengthFactor(StochasticSupplier<Double> factor) {
       deliveryLengthFactor = factor;
       return this;
     }
 
-    public Builder minDeliveryLength(SupplierRng<Long> del) {
+    public Builder minDeliveryLength(StochasticSupplier<Long> del) {
       minDeliveryLength = Optional.of(del);
       return this;
     }
@@ -135,11 +135,11 @@ public final class TimeWindows {
 
   static class DefaultTimeWindowGenerator implements TimeWindowGenerator {
     private final RandomGenerator rng;
-    private final SupplierRng<Long> pickupUrgency;
-    private final SupplierRng<Long> pickupTWLength;
-    private final SupplierRng<Long> deliveryOpening;
-    private final SupplierRng<Double> deliveryLengthFactor;
-    private final Optional<SupplierRng<Long>> minDeliveryLength;
+    private final StochasticSupplier<Long> pickupUrgency;
+    private final StochasticSupplier<Long> pickupTWLength;
+    private final StochasticSupplier<Long> deliveryOpening;
+    private final StochasticSupplier<Double> deliveryLengthFactor;
+    private final Optional<StochasticSupplier<Long>> minDeliveryLength;
 
     DefaultTimeWindowGenerator(Builder b) {
       rng = new MersenneTwister();
@@ -216,7 +216,7 @@ public final class TimeWindows {
     }
 
     TimeWindow urgencyTimeWindow(long earliestOpening, long earliestClosing,
-        long latestClosing, SupplierRng<Long> urgency, SupplierRng<Long> length) {
+        long latestClosing, StochasticSupplier<Long> urgency, StochasticSupplier<Long> length) {
       final long closing = boundValue(
           earliestClosing + urgency.get(rng.nextLong()), earliestClosing,
           latestClosing);

@@ -29,7 +29,7 @@ import rinde.sim.pdptw.common.RouteRenderer;
 import rinde.sim.pdptw.common.StatisticsDTO;
 import rinde.sim.pdptw.scenario.PDPScenario;
 import rinde.sim.scenario.ScenarioController.UICreator;
-import rinde.sim.util.SupplierRng;
+import rinde.sim.util.StochasticSupplier;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Objects;
@@ -135,7 +135,7 @@ public final class Experiment {
     final RandomGenerator rng = new MersenneTwister(seed);
     final long simSeed = rng.nextLong();
 
-    final ImmutableList<? extends SupplierRng<? extends Model<?>>> modelSuppliers = config
+    final ImmutableList<? extends StochasticSupplier<? extends Model<?>>> modelSuppliers = config
         .getModels();
     final Model<?>[] models = new Model<?>[modelSuppliers.size()];
     for (int i = 0; i < modelSuppliers.size(); i++) {
@@ -227,7 +227,7 @@ public final class Experiment {
 
     /**
      * Add a configuration to the experiment. For each simulation
-     * {@link SupplierRng#get(long)} is called and the resulting
+     * {@link StochasticSupplier#get(long)} is called and the resulting
      * {@link MASConfiguration} is used for a <i>single</i> simulation.
      * @param config The configuration to add.
      * @return This, as per the builder pattern.
@@ -239,7 +239,7 @@ public final class Experiment {
 
     /**
      * Adds all configurations to the experiment. For each simulation
-     * {@link SupplierRng#get(long)} is called and the resulting
+     * {@link StochasticSupplier#get(long)} is called and the resulting
      * {@link MASConfiguration} is used for a <i>single</i> simulation.
      * @param configs The configurations to add.
      * @return This, as per the builder pattern.
@@ -412,7 +412,7 @@ public final class Experiment {
     public final MASConfiguration masConfiguration;
 
     /**
-     * The seed that was supplied to {@link SupplierRng#get(long)}.
+     * The seed that was supplied to {@link StochasticSupplier#get(long)}.
      */
     public final long seed;
 

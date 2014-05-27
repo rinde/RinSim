@@ -7,7 +7,7 @@ import rinde.sim.core.model.Model;
 import rinde.sim.pdptw.common.AddDepotEvent;
 import rinde.sim.pdptw.common.AddParcelEvent;
 import rinde.sim.pdptw.common.DynamicPDPTWProblem.Creator;
-import rinde.sim.util.SupplierRng;
+import rinde.sim.util.StochasticSupplier;
 
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
@@ -20,7 +20,7 @@ import com.google.common.collect.ImmutableList;
 public abstract class DefaultMASConfiguration implements MASConfiguration {
 
   @Override
-  public ImmutableList<? extends SupplierRng<? extends Model<?>>> getModels() {
+  public ImmutableList<? extends StochasticSupplier<? extends Model<?>>> getModels() {
     return ImmutableList.of();
   }
 

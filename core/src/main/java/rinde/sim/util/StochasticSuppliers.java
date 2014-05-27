@@ -19,20 +19,20 @@ import com.google.common.primitives.Doubles;
 import com.google.common.reflect.TypeToken;
 
 /**
- * Utility class for {@link SupplierRng}.
+ * Utility class for {@link StochasticSupplier}.
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
  */
-public final class SupplierRngs {
+public final class StochasticSuppliers {
 
-  private SupplierRngs() {}
+  private StochasticSuppliers() {}
 
   /**
-   * Create a {@link SupplierRng} that will always return the specified value.
+   * Create a {@link StochasticSupplier} that will always return the specified value.
    * @param value The value which the supplier will return.
    * @param <T> Type of constant.
    * @return A supplier that always returns the specified value.
    */
-  public static <T> SupplierRng<T> constant(T value) {
+  public static <T> StochasticSupplier<T> constant(T value) {
     return new ConstantSupplierRng<T>(value);
   }
 
@@ -44,12 +44,12 @@ public final class SupplierRngs {
    * @return <code>true</code> if the provided supplier is created by
    *         {@link #constant(Object)}, <code>false</code> otherwise.
    */
-  public static <T> boolean isConstant(SupplierRng<T> supplier) {
+  public static <T> boolean isConstant(StochasticSupplier<T> supplier) {
     return supplier.getClass() == ConstantSupplierRng.class;
   }
 
   /**
-   * Decorates the specified {@link SupplierRng} such that when it produces
+   * Decorates the specified {@link StochasticSupplier} such that when it produces
    * values which are not allowed by the specified predicate an
    * {@link IllegalArgumentException} is thrown.
    * @param supplier The supplier to be decorated.
@@ -59,35 +59,35 @@ public final class SupplierRngs {
    * @return A supplier that is guaranteed to return values which match the
    *         given predicate or throw an {@link IllegalArgumentException}.
    */
-  public static <T> SupplierRng<T> checked(SupplierRng<T> supplier,
+  public static <T> StochasticSupplier<T> checked(StochasticSupplier<T> supplier,
       Predicate<T> predicate) {
     return new CheckedSupplier<T>(supplier, predicate);
   }
 
   /**
-   * Create a {@link SupplierRng} based on an {@link Iterable}. It will return
+   * Create a {@link StochasticSupplier} based on an {@link Iterable}. It will return
    * the values in the order as defined by the iterable. The resulting supplier
    * will throw an {@link IllegalArgumentException} when the iterable is empty.
    * @param iter The iterable from which the values will be used.
    * @param <T> The type this supplier generates.
    * @return A supplier based on an iterable.
    */
-  public static <T> SupplierRng<T> fromIterable(Iterable<T> iter) {
+  public static <T> StochasticSupplier<T> fromIterable(Iterable<T> iter) {
     return new IteratorSupplierRng<T>(iter.iterator());
   }
 
   /**
-   * Create a {@link SupplierRng} based on a {@link Supplier}.
+   * Create a {@link StochasticSupplier} based on a {@link Supplier}.
    * @param supplier The supplier to adapt.
    * @param <T> The type this supplier generates.
    * @return The adapted supplier.
    */
-  public static <T> SupplierRng<T> fromSupplier(Supplier<T> supplier) {
+  public static <T> StochasticSupplier<T> fromSupplier(Supplier<T> supplier) {
     return new SupplierAdapter<T>(supplier);
   }
 
   /**
-   * @return Builder for constructing {@link SupplierRng}s that produce normal
+   * @return Builder for constructing {@link StochasticSupplier}s that produce normal
    *         (Gaussian) distributed numbers.
    */
   public static Builder normal() {
@@ -95,73 +95,73 @@ public final class SupplierRngs {
   }
 
   /**
-   * Creates a {@link SupplierRng} that produces uniformly distributed
+   * Creates a {@link StochasticSupplier} that produces uniformly distributed
    * {@link Double}s.
    * @param lower The (inclusive) lower bound of the uniform distribution.
    * @param upper The (inclusive) upper bound of the uniform distribution.
    * @return The supplier.
    */
-  public static SupplierRng<Double> uniformDouble(double lower, double upper) {
+  public static StochasticSupplier<Double> uniformDouble(double lower, double upper) {
     return new DoubleDistributionSupplierRng(new UniformRealDistribution(
         new MersenneTwister(), lower, upper));
   }
 
   /**
-   * Creates a {@link SupplierRng} that produces uniformly distributed
+   * Creates a {@link StochasticSupplier} that produces uniformly distributed
    * {@link Integer}s.
    * @param lower The (inclusive) lower bound of the uniform distribution.
    * @param upper The (inclusive) upper bound of the uniform distribution.
    * @return The supplier.
    */
-  public static SupplierRng<Integer> uniformInt(int lower, int upper) {
+  public static StochasticSupplier<Integer> uniformInt(int lower, int upper) {
     return new IntegerDistributionSupplierRng(new UniformIntegerDistribution(
         new MersenneTwister(), lower, upper));
   }
 
   /**
-   * Creates a {@link SupplierRng} that produces uniformly distributed
+   * Creates a {@link StochasticSupplier} that produces uniformly distributed
    * {@link Long}s.
    * @param lower The (inclusive) lower bound of the uniform distribution.
    * @param upper The (inclusive) upper bound of the uniform distribution.
    * @return The supplier.
    */
-  public static SupplierRng<Long> uniformLong(int lower, int upper) {
+  public static StochasticSupplier<Long> uniformLong(int lower, int upper) {
     return intToLong(uniformInt(lower, upper));
   }
 
   /**
-   * Convert a {@link SupplierRng} of {@link Integer} to a supplier of
+   * Convert a {@link StochasticSupplier} of {@link Integer} to a supplier of
    * {@link Long}.
    * @param supplier The supplier to convert.
    * @return The converted supplier.
    */
-  public static SupplierRng<Long> intToLong(SupplierRng<Integer> supplier) {
+  public static StochasticSupplier<Long> intToLong(StochasticSupplier<Integer> supplier) {
     return new IntToLongAdapter(supplier);
   }
 
   /**
-   * Convert a {@link SupplierRng} of {@link Double} to a supplier of
+   * Convert a {@link StochasticSupplier} of {@link Double} to a supplier of
    * {@link Integer}.
    * @param supplier The supplier to convert.
    * @return The converted supplier.
    */
-  public static SupplierRng<Integer> roundDoubleToInt(
-      SupplierRng<Double> supplier) {
+  public static StochasticSupplier<Integer> roundDoubleToInt(
+      StochasticSupplier<Double> supplier) {
     return new DoubleToIntAdapter(supplier);
   }
 
   /**
-   * Convert a {@link SupplierRng} of {@link Double} to a supplier of
+   * Convert a {@link StochasticSupplier} of {@link Double} to a supplier of
    * {@link Long}.
    * @param supplier The supplier to convert.
    * @return The converted supplier.
    */
-  public static SupplierRng<Long> roundDoubleToLong(SupplierRng<Double> supplier) {
+  public static StochasticSupplier<Long> roundDoubleToLong(StochasticSupplier<Double> supplier) {
     return new DoubleToLongAdapter(supplier);
   }
 
   /**
-   * Builder for creating {@link SupplierRng}s that return a number with a
+   * Builder for creating {@link StochasticSupplier}s that return a number with a
    * normal distribution.
    * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
    */
@@ -277,10 +277,10 @@ public final class SupplierRngs {
     }
 
     /**
-     * @return A {@link SupplierRng} that draws double values from a normal
+     * @return A {@link StochasticSupplier} that draws double values from a normal
      *         distribution.
      */
-    public SupplierRng<Double> buildDouble() {
+    public StochasticSupplier<Double> buildDouble() {
       checkArgument(mean + std >= lowerBound);
       checkArgument(mean + std <= upperBound);
       final RealDistribution distribution = new NormalDistribution(mean, std);
@@ -293,19 +293,19 @@ public final class SupplierRngs {
     }
 
     /**
-     * @return A {@link SupplierRng} that draws integer values from a normal
+     * @return A {@link StochasticSupplier} that draws integer values from a normal
      *         distribution.
      */
-    public SupplierRng<Integer> buildInteger() {
+    public StochasticSupplier<Integer> buildInteger() {
       integerChecks();
       return roundDoubleToInt(buildDouble());
     }
 
     /**
-     * @return A {@link SupplierRng} that draws long values from a normal
+     * @return A {@link StochasticSupplier} that draws long values from a normal
      *         distribution.
      */
-    public SupplierRng<Long> buildLong() {
+    public StochasticSupplier<Long> buildLong() {
       integerChecks();
       return roundDoubleToLong(buildDouble());
     }
@@ -324,7 +324,7 @@ public final class SupplierRngs {
    * @param <T> The type of objects that this supplier creates.
    * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
    */
-  public abstract static class AbstractSupplierRng<T> implements SupplierRng<T> {
+  public abstract static class AbstractSupplierRng<T> implements StochasticSupplier<T> {
     @SuppressWarnings("serial")
     @Override
     public String toString() {
@@ -338,9 +338,9 @@ public final class SupplierRngs {
 
   private static class IntToLongAdapter extends
       AbstractSupplierRng<Long> {
-    private final SupplierRng<Integer> supplier;
+    private final StochasticSupplier<Integer> supplier;
 
-    IntToLongAdapter(SupplierRng<Integer> supp) {
+    IntToLongAdapter(StochasticSupplier<Integer> supp) {
       supplier = supp;
     }
 
@@ -352,9 +352,9 @@ public final class SupplierRngs {
 
   private static class DoubleToIntAdapter extends
       AbstractSupplierRng<Integer> {
-    private final SupplierRng<Double> supplier;
+    private final StochasticSupplier<Double> supplier;
 
-    DoubleToIntAdapter(SupplierRng<Double> supp) {
+    DoubleToIntAdapter(StochasticSupplier<Double> supp) {
       supplier = supp;
     }
 
@@ -366,9 +366,9 @@ public final class SupplierRngs {
 
   private static class DoubleToLongAdapter extends
       AbstractSupplierRng<Long> {
-    private final SupplierRng<Double> supplier;
+    private final StochasticSupplier<Double> supplier;
 
-    DoubleToLongAdapter(SupplierRng<Double> supp) {
+    DoubleToLongAdapter(StochasticSupplier<Double> supp) {
       supplier = supp;
     }
 
@@ -489,11 +489,11 @@ public final class SupplierRngs {
     }
   }
 
-  private static class CheckedSupplier<T> implements SupplierRng<T> {
-    private final SupplierRng<T> supplier;
+  private static class CheckedSupplier<T> implements StochasticSupplier<T> {
+    private final StochasticSupplier<T> supplier;
     private final Predicate<T> predicate;
 
-    CheckedSupplier(SupplierRng<T> sup, Predicate<T> pred) {
+    CheckedSupplier(StochasticSupplier<T> sup, Predicate<T> pred) {
       supplier = sup;
       predicate = pred;
     }

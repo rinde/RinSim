@@ -2,9 +2,9 @@ package rinde.sim.util;
 
 import static com.google.common.collect.Lists.newArrayList;
 import static org.junit.Assert.assertTrue;
-import static rinde.sim.util.SupplierRngs.checked;
-import static rinde.sim.util.SupplierRngs.constant;
-import static rinde.sim.util.SupplierRngs.uniformInt;
+import static rinde.sim.util.StochasticSuppliers.checked;
+import static rinde.sim.util.StochasticSuppliers.constant;
+import static rinde.sim.util.StochasticSuppliers.uniformInt;
 
 import java.util.List;
 
@@ -22,12 +22,12 @@ import com.google.common.collect.TreeMultiset;
 import com.google.common.primitives.Doubles;
 import com.google.common.primitives.Longs;
 
-public class SupplierRngTest {
+public class StochasticSuppliersTest {
 
   @Test
   public void testUniform() {
     final RandomGenerator rng = new MersenneTwister(123L);
-    final SupplierRng<Integer> sup = uniformInt(2, 10);
+    final StochasticSupplier<Integer> sup = uniformInt(2, 10);
     final IntegerDistribution id = new UniformIntegerDistribution(2, 10);
 
     final Multiset<Integer> ms = TreeMultiset.create();
@@ -51,7 +51,7 @@ public class SupplierRngTest {
   }
 
   /**
-   * Tests for {@link SupplierRngs#checked(SupplierRng, Predicate)}.
+   * Tests for {@link StochasticSuppliers#checked(StochasticSupplier, Predicate)}.
    */
   @Test
   public void testCheckedSupplier() {

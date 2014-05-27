@@ -12,8 +12,8 @@ import java.util.Set;
 
 import rinde.sim.pdptw.central.GlobalStateObject.VehicleStateObject;
 import rinde.sim.pdptw.common.ParcelDTO;
-import rinde.sim.util.SupplierRng;
-import rinde.sim.util.SupplierRngs;
+import rinde.sim.util.StochasticSupplier;
+import rinde.sim.util.StochasticSuppliers;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
@@ -42,12 +42,12 @@ public final class SolverValidator {
   }
 
   /**
-   * Decorates the original {@link SupplierRng} such that all generated
+   * Decorates the original {@link StochasticSupplier} such that all generated
    * {@link Solver} instances are wrapped using {@link #wrap(Solver)}.
    * @param sup The supplier to wrap.
    * @return The wrapper supplier.
    */
-  public static SupplierRng<Solver> wrap(SupplierRng<? extends Solver> sup) {
+  public static StochasticSupplier<Solver> wrap(StochasticSupplier<? extends Solver> sup) {
     return new ValidatedSupplier(sup);
   }
 
@@ -233,10 +233,10 @@ public final class SolverValidator {
   }
 
   private static final class ValidatedSupplier extends
-      SupplierRngs.AbstractSupplierRng<Solver> {
-    private final SupplierRng<? extends Solver> supplier;
+      StochasticSuppliers.AbstractSupplierRng<Solver> {
+    private final StochasticSupplier<? extends Solver> supplier;
 
-    ValidatedSupplier(SupplierRng<? extends Solver> sup) {
+    ValidatedSupplier(StochasticSupplier<? extends Solver> sup) {
       supplier = sup;
     }
 

@@ -8,7 +8,7 @@ import rinde.sim.pdptw.common.AddDepotEvent;
 import rinde.sim.pdptw.common.AddParcelEvent;
 import rinde.sim.pdptw.common.AddVehicleEvent;
 import rinde.sim.pdptw.common.DynamicPDPTWProblem.Creator;
-import rinde.sim.util.SupplierRng;
+import rinde.sim.util.StochasticSupplier;
 
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
@@ -23,7 +23,7 @@ public interface MASConfiguration {
   /**
    * @return A possibly empty list of model suppliers.
    */
-  ImmutableList<? extends SupplierRng<? extends Model<?>>> getModels();
+  ImmutableList<? extends StochasticSupplier<? extends Model<?>>> getModels();
 
   /**
    * @return A creator that creates vehicle agents.

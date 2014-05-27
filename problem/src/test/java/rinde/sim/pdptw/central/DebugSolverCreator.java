@@ -11,13 +11,13 @@ import rinde.sim.pdptw.central.arrays.ArraysSolverValidator;
 import rinde.sim.pdptw.central.arrays.MultiVehicleArraysSolver;
 import rinde.sim.pdptw.central.arrays.MultiVehicleSolverAdapter;
 import rinde.sim.pdptw.central.arrays.RandomMVArraysSolver;
-import rinde.sim.util.SupplierRng;
+import rinde.sim.util.StochasticSupplier;
 
 /**
  * A solver creator useful for debugging.
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
  */
-public class DebugSolverCreator implements SupplierRng<Solver> {
+public class DebugSolverCreator implements StochasticSupplier<Solver> {
   /**
    * The arrays solver that is used to compute solutions.
    */

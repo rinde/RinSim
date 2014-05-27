@@ -1,14 +1,14 @@
 package rinde.sim.pdptw.scenario;
 
 import static com.google.common.base.Preconditions.checkArgument;
-import static rinde.sim.util.SupplierRngs.uniformDouble;
+import static rinde.sim.util.StochasticSuppliers.uniformDouble;
 
 import org.apache.commons.math3.random.MersenneTwister;
 import org.apache.commons.math3.random.RandomGenerator;
 
 import rinde.sim.core.graph.Point;
-import rinde.sim.util.SupplierRng;
-import rinde.sim.util.SupplierRngs;
+import rinde.sim.util.StochasticSupplier;
+import rinde.sim.util.StochasticSuppliers;
 
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
@@ -310,8 +310,8 @@ public final class Locations {
      * @return A normal distributed generator.
      */
     public LocationGenerator normal() {
-      final SupplierRng<Double> xSup = normalVar(xMin, xMax, xMean, xSd, redraw);
-      final SupplierRng<Double> ySup = normalVar(yMin, yMax, yMean, ySd, redraw);
+      final StochasticSupplier<Double> xSup = normalVar(xMin, xMax, xMean, xSd, redraw);
+      final StochasticSupplier<Double> ySup = normalVar(yMin, yMax, yMean, ySd, redraw);
       return new SupplierLocGen(
           new Point(xMin.get(), yMin.get()),
           new Point(xMax.get(), yMax.get()),
@@ -343,7 +343,7 @@ public final class Locations {
       }
     }
 
-    private static SupplierRng<Double> normalVar(Optional<Double> min,
+    private static StochasticSupplier<Double> normalVar(Optional<Double> min,
         Optional<Double> max, Optional<Double> mean, Optional<Double> std,
         Optional<Boolean> redraw) {
       checkArgument(min.isPresent());
@@ -351,7 +351,7 @@ public final class Locations {
       checkArgument(mean.isPresent());
       checkArgument(std.isPresent());
       checkArgument(redraw.isPresent());
-      final SupplierRngs.Builder builder = SupplierRngs.normal()
+      final StochasticSuppliers.Builder builder = StochasticSuppliers.normal()
           .mean(mean.get())
           .std(std.get())
           .lowerBound(min.get())
@@ -369,12 +369,12 @@ public final class Locations {
     private final Point min;
     private final Point max;
     private final Point center;
-    private final SupplierRng<Double> xSupplier;
-    private final SupplierRng<Double> ySupplier;
+    private final StochasticSupplier<Double> xSupplier;
+    private final StochasticSupplier<Double> ySupplier;
     private final RandomGenerator rng;
 
-    SupplierLocGen(Point mi, Point ma, Point ce, SupplierRng<Double> xSup,
-        SupplierRng<Double> ySup) {
+    SupplierLocGen(Point mi, Point ma, Point ce, StochasticSupplier<Double> xSup,
+        StochasticSupplier<Double> ySup) {
       min = mi;
       max = ma;
       center = ce;

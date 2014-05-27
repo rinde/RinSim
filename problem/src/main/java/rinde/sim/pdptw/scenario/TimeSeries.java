@@ -9,7 +9,7 @@ import org.apache.commons.math3.random.MersenneTwister;
 import org.apache.commons.math3.random.RandomGenerator;
 
 import rinde.sim.pdptw.scenario.IntensityFunctions.IntensityFunction;
-import rinde.sim.util.SupplierRng;
+import rinde.sim.util.StochasticSupplier;
 
 import com.google.common.base.Predicate;
 import com.google.common.collect.AbstractSequentialIterator;
@@ -61,9 +61,9 @@ public final class TimeSeries {
 
   /**
    * Creates a non-homogenous Poisson process of the specified length. The
-   * intensity is specified by the {@link SupplierRng}. Each time
+   * intensity is specified by the {@link StochasticSupplier}. Each time
    * {@link TimeSeriesGenerator#generate(long)} is called, a new
-   * {@link IntensityFunction} is requested from the {@link SupplierRng}. The
+   * {@link IntensityFunction} is requested from the {@link StochasticSupplier}. The
    * non-homogenous Poisson process is implemented using the thinning method as
    * described in [1].
    * <p>
@@ -80,7 +80,7 @@ public final class TimeSeries {
    *         {@link TimeSeriesGenerator}.
    */
   public static TimeSeriesGenerator nonHomogenousPoisson(double length,
-      SupplierRng<IntensityFunction> functionSupplier) {
+      StochasticSupplier<IntensityFunction> functionSupplier) {
     return new SuppliedNonHomogenous(length, functionSupplier);
   }
 
@@ -150,10 +150,10 @@ public final class TimeSeries {
 
   static class SuppliedNonHomogenous implements TimeSeriesGenerator {
     final double length;
-    final SupplierRng<IntensityFunction> lambdSup;
+    final StochasticSupplier<IntensityFunction> lambdSup;
     final RandomGenerator rng;
 
-    SuppliedNonHomogenous(double l, SupplierRng<IntensityFunction> funcSup) {
+    SuppliedNonHomogenous(double l, StochasticSupplier<IntensityFunction> funcSup) {
       length = l;
       lambdSup = funcSup;
       rng = new MersenneTwister();

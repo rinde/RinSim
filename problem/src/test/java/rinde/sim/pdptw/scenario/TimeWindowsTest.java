@@ -6,9 +6,9 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertTrue;
 import static rinde.sim.pdptw.scenario.TimeWindows.builder;
-import static rinde.sim.util.SupplierRngs.constant;
-import static rinde.sim.util.SupplierRngs.normal;
-import static rinde.sim.util.SupplierRngs.uniformLong;
+import static rinde.sim.util.StochasticSuppliers.constant;
+import static rinde.sim.util.StochasticSuppliers.normal;
+import static rinde.sim.util.StochasticSuppliers.uniformLong;
 
 import java.util.Iterator;
 import java.util.List;

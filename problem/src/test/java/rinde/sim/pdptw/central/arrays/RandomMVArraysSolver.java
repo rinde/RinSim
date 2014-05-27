@@ -21,9 +21,9 @@ import org.apache.commons.math3.random.RandomGenerator;
 
 import rinde.sim.pdptw.central.Solver;
 import rinde.sim.pdptw.central.SolverValidator;
-import rinde.sim.util.SupplierRng;
-import rinde.sim.util.SupplierRngs;
-import rinde.sim.util.SupplierRngs.AbstractSupplierRng;
+import rinde.sim.util.StochasticSupplier;
+import rinde.sim.util.StochasticSuppliers;
+import rinde.sim.util.StochasticSuppliers.AbstractSupplierRng;
 
 import com.google.common.primitives.Ints;
 
@@ -125,8 +125,8 @@ public class RandomMVArraysSolver implements MultiVehicleArraysSolver {
     }
   }
 
-  public static SupplierRng<MultiVehicleArraysSolver> supplier() {
-    return new SupplierRngs.AbstractSupplierRng<MultiVehicleArraysSolver>() {
+  public static StochasticSupplier<MultiVehicleArraysSolver> supplier() {
+    return new StochasticSuppliers.AbstractSupplierRng<MultiVehicleArraysSolver>() {
       @Override
       public MultiVehicleArraysSolver get(long seed) {
         return ArraysSolverValidator.wrap(new RandomMVArraysSolver(
@@ -135,8 +135,8 @@ public class RandomMVArraysSolver implements MultiVehicleArraysSolver {
     };
   }
 
-  public static SupplierRng<Solver> solverSupplier() {
-    return new SupplierRngs.AbstractSupplierRng<Solver>() {
+  public static StochasticSupplier<Solver> solverSupplier() {
+    return new StochasticSuppliers.AbstractSupplierRng<Solver>() {
       @Override
       public Solver get(long seed) {
         return SolverValidator.wrap(new MultiVehicleSolverAdapter(

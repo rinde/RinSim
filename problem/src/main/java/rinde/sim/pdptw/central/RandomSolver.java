@@ -13,8 +13,8 @@ import org.apache.commons.math3.random.RandomGenerator;
 
 import rinde.sim.pdptw.central.GlobalStateObject.VehicleStateObject;
 import rinde.sim.pdptw.common.ParcelDTO;
-import rinde.sim.util.SupplierRng;
-import rinde.sim.util.SupplierRngs;
+import rinde.sim.util.StochasticSupplier;
+import rinde.sim.util.StochasticSuppliers;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.LinkedListMultimap;
@@ -81,10 +81,10 @@ public class RandomSolver implements Solver {
   }
 
   /**
-   * @return A {@link SupplierRng} for {@link RandomSolver} instances.
+   * @return A {@link StochasticSupplier} for {@link RandomSolver} instances.
    */
-  public static SupplierRng<Solver> supplier() {
-    return new SupplierRngs.AbstractSupplierRng<Solver>() {
+  public static StochasticSupplier<Solver> supplier() {
+    return new StochasticSuppliers.AbstractSupplierRng<Solver>() {
       @Override
       public Solver get(long seed) {
         return new RandomSolver(new MersenneTwister(seed));

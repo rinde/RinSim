@@ -1,9 +1,9 @@
 package rinde.sim.pdptw.scenario;
 
 import static com.google.common.base.Preconditions.checkArgument;
-import static rinde.sim.util.SupplierRngs.checked;
-import static rinde.sim.util.SupplierRngs.constant;
-import static rinde.sim.util.SupplierRngs.isConstant;
+import static rinde.sim.util.StochasticSuppliers.checked;
+import static rinde.sim.util.StochasticSuppliers.constant;
+import static rinde.sim.util.StochasticSuppliers.isConstant;
 
 import javax.annotation.Nullable;
 
@@ -13,7 +13,7 @@ import org.apache.commons.math3.analysis.integration.UnivariateIntegrator;
 import org.apache.commons.math3.random.MersenneTwister;
 import org.apache.commons.math3.random.RandomGenerator;
 
-import rinde.sim.util.SupplierRng;
+import rinde.sim.util.StochasticSupplier;
 
 import com.google.common.base.Function;
 import com.google.common.base.Objects;
@@ -238,11 +238,11 @@ public final class IntensityFunctions {
     private static final Predicate<Double> FINITE = Range.closed(
         Double.MIN_VALUE, Double.MAX_VALUE);
 
-    SupplierRng<Double> amplitudeSup;
-    SupplierRng<Double> frequencySup;
-    SupplierRng<Double> heightSup;
+    StochasticSupplier<Double> amplitudeSup;
+    StochasticSupplier<Double> frequencySup;
+    StochasticSupplier<Double> heightSup;
     Optional<Double> area;
-    SupplierRng<Double> phaseShiftSup;
+    StochasticSupplier<Double> phaseShiftSup;
 
     SineIntensityBuilder() {
       amplitudeSup = constant(DEFAULT_AMPLITUDE);
@@ -274,13 +274,13 @@ public final class IntensityFunctions {
     }
 
     /**
-     * Sets the {@link SupplierRng} that will be used to generate the amplitude
+     * Sets the {@link StochasticSupplier} that will be used to generate the amplitude
      * of the {@link IntensityFunction} that will be created by this builder.
      * Default value: 1.
      * @param a Must be positive.
      * @return This, as per the builder pattern.
      */
-    public SineIntensityBuilder amplitude(SupplierRng<Double> a) {
+    public SineIntensityBuilder amplitude(StochasticSupplier<Double> a) {
       amplitudeSup = checked(a, POSITIVE);
       return this;
     }
@@ -299,13 +299,13 @@ public final class IntensityFunctions {
     }
 
     /**
-     * Sets the {@link SupplierRng} that will be used to generate the frequency
+     * Sets the {@link StochasticSupplier} that will be used to generate the frequency
      * of the {@link IntensityFunction} that will be created by this builder.
      * Default value: 1.
      * @param f Must be positive.
      * @return This, as per the builder pattern.
      */
-    public SineIntensityBuilder frequency(SupplierRng<Double> f) {
+    public SineIntensityBuilder frequency(StochasticSupplier<Double> f) {
       frequencySup = checked(f, POSITIVE);
       return this;
     }
@@ -340,7 +340,7 @@ public final class IntensityFunctions {
     }
 
     /**
-     * Sets the {@link SupplierRng} that will be used to generate the height of
+     * Sets the {@link StochasticSupplier} that will be used to generate the height of
      * the {@link IntensityFunction} that will be created by this builder.
      * Default value: 0. Typical values range between <code>-1</code> and
      * <code>1</code>. If the height is close to <code>-1</code> almost the
@@ -349,7 +349,7 @@ public final class IntensityFunctions {
      * @param h Must be <code> > -1</code>.
      * @return This, as per the builder pattern.
      */
-    public SineIntensityBuilder height(SupplierRng<Double> h) {
+    public SineIntensityBuilder height(StochasticSupplier<Double> h) {
       heightSup = checked(h, GREATER_THAN_MINUS_ONE);
       return this;
     }
@@ -386,13 +386,13 @@ public final class IntensityFunctions {
     }
 
     /**
-     * Sets the {@link SupplierRng} that will be used to generate the phaseShift
+     * Sets the {@link StochasticSupplier} that will be used to generate the phaseShift
      * of the {@link IntensityFunction} that will be created by this builder.
      * Default value: 1/2.
      * @param s The phase shift.
      * @return This, as per the builder pattern.
      */
-    public SineIntensityBuilder phaseShift(SupplierRng<Double> s) {
+    public SineIntensityBuilder phaseShift(StochasticSupplier<Double> s) {
       phaseShiftSup = checked(s, FINITE);
       return this;
     }
@@ -416,10 +416,10 @@ public final class IntensityFunctions {
     }
 
     /**
-     * @return A {@link SupplierRng} that creates sine {@link IntensityFunction}
+     * @return A {@link StochasticSupplier} that creates sine {@link IntensityFunction}
      *         instances.
      */
-    public SupplierRng<IntensityFunction> supplierRng() {
+    public StochasticSupplier<IntensityFunction> supplierRng() {
       return new SineIntensityFunctionSupplier(this);
     }
 
@@ -432,8 +432,8 @@ public final class IntensityFunctions {
         final double factor = area.get() / a;
 
         // store values
-        final SupplierRng<Double> ampl = amplitudeSup;
-        final SupplierRng<Double> hei = heightSup;
+        final StochasticSupplier<Double> ampl = amplitudeSup;
+        final StochasticSupplier<Double> hei = heightSup;
 
         // temporarily overwrite values
         amplitudeSup = constant(ins.amplitude * factor);
@@ -454,7 +454,7 @@ public final class IntensityFunctions {
   }
 
   private static class SineIntensityFunctionSupplier implements
-      SupplierRng<IntensityFunction> {
+      StochasticSupplier<IntensityFunction> {
     private final SineIntensityBuilder builder;
 
     SineIntensityFunctionSupplier(SineIntensityBuilder b) {

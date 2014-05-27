@@ -5,8 +5,8 @@ import org.apache.commons.math3.random.RandomGenerator;
 
 import rinde.sim.core.graph.Point;
 import rinde.sim.pdptw.common.AddDepotEvent;
-import rinde.sim.util.SupplierRng;
-import rinde.sim.util.SupplierRngs;
+import rinde.sim.util.StochasticSupplier;
+import rinde.sim.util.StochasticSuppliers;
 
 import com.google.common.collect.ImmutableList;
 
@@ -61,14 +61,14 @@ public final class Depots {
    * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
    */
   public static class Builder {
-    SupplierRng<Point> positions;
-    SupplierRng<Integer> numberOfDepots;
-    SupplierRng<Long> times;
+    StochasticSupplier<Point> positions;
+    StochasticSupplier<Integer> numberOfDepots;
+    StochasticSupplier<Long> times;
 
     Builder() {
-      positions = SupplierRngs.constant(new Point(0d, 0d));
-      numberOfDepots = SupplierRngs.constant(1);
-      times = SupplierRngs.constant(-1L);
+      positions = StochasticSuppliers.constant(new Point(0d, 0d));
+      numberOfDepots = StochasticSuppliers.constant(1);
+      times = StochasticSuppliers.constant(-1L);
     }
 
     /**
@@ -76,19 +76,19 @@ public final class Depots {
      * @param ps The supplier to use for points.
      * @return This, as per the builder pattern.
      */
-    public Builder positions(SupplierRng<Point> ps) {
+    public Builder positions(StochasticSupplier<Point> ps) {
       positions = ps;
       return this;
     }
 
     /**
      * Sets the number of depots that the {@link DepotGenerator} should
-     * generate. This number is {@link SupplierRng} itself meaning that it can
+     * generate. This number is {@link StochasticSupplier} itself meaning that it can
      * be drawn from a random distribution.
      * @param nd The number of depots.
      * @return This, as per the builder pattern.
      */
-    public Builder numerOfDepots(SupplierRng<Integer> nd) {
+    public Builder numerOfDepots(StochasticSupplier<Integer> nd) {
       numberOfDepots = nd;
       return this;
     }
@@ -98,7 +98,7 @@ public final class Depots {
      * @param ts The event times.
      * @return This, as per the builder pattern.
      */
-    public Builder times(SupplierRng<Long> ts) {
+    public Builder times(StochasticSupplier<Long> ts) {
       times = ts;
       return this;
     }
@@ -112,9 +112,9 @@ public final class Depots {
   }
 
   private static class MultiDepotGenerator implements DepotGenerator {
-    private final SupplierRng<Point> positions;
-    private final SupplierRng<Integer> numberOfDepots;
-    private final SupplierRng<Long> times;
+    private final StochasticSupplier<Point> positions;
+    private final StochasticSupplier<Integer> numberOfDepots;
+    private final StochasticSupplier<Long> times;
     private final RandomGenerator rng;
 
     MultiDepotGenerator(Builder b) {

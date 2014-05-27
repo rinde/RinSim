@@ -2,11 +2,11 @@ package rinde.sim.util;
 
 import static java.util.Arrays.asList;
 import static org.junit.Assert.assertEquals;
-import static rinde.sim.util.SupplierRngs.constant;
-import static rinde.sim.util.SupplierRngs.normal;
-import static rinde.sim.util.SupplierRngs.uniformDouble;
-import static rinde.sim.util.SupplierRngs.uniformInt;
-import static rinde.sim.util.SupplierRngs.uniformLong;
+import static rinde.sim.util.StochasticSuppliers.constant;
+import static rinde.sim.util.StochasticSuppliers.normal;
+import static rinde.sim.util.StochasticSuppliers.uniformDouble;
+import static rinde.sim.util.StochasticSuppliers.uniformInt;
+import static rinde.sim.util.StochasticSuppliers.uniformLong;
 
 import java.util.List;
 
@@ -16,10 +16,10 @@ import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 
 @RunWith(Parameterized.class)
-public class SupplierRngDeterminismTest {
-  private final SupplierRng<?> supplier;
+public class StochasticSuppliersDeterminismTest {
+  private final StochasticSupplier<?> supplier;
 
-  public SupplierRngDeterminismTest(SupplierRng<?> supp) {
+  public StochasticSuppliersDeterminismTest(StochasticSupplier<?> supp) {
     supplier = supp;
   }
 

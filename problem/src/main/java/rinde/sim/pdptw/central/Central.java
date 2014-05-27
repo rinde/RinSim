@@ -24,7 +24,7 @@ import rinde.sim.pdptw.common.PDPRoadModel;
 import rinde.sim.pdptw.common.RouteFollowingVehicle;
 import rinde.sim.pdptw.experiment.DefaultMASConfiguration;
 import rinde.sim.pdptw.experiment.MASConfiguration;
-import rinde.sim.util.SupplierRng;
+import rinde.sim.util.StochasticSupplier;
 
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
@@ -49,7 +49,7 @@ public final class Central {
    * @return A new configuration.
    */
   public static MASConfiguration solverConfiguration(
-      SupplierRng<? extends Solver> solverCreator) {
+      StochasticSupplier<? extends Solver> solverCreator) {
     return new CentralConfiguration(solverCreator,
         CentralConfiguration.class.getSimpleName());
   }
@@ -63,17 +63,17 @@ public final class Central {
    * @return A new configuration.
    */
   public static MASConfiguration solverConfiguration(
-      SupplierRng<? extends Solver> solverCreator, String nameSuffix) {
+      StochasticSupplier<? extends Solver> solverCreator, String nameSuffix) {
     return new CentralConfiguration(solverCreator, nameSuffix);
   }
 
   private static final class CentralConfiguration extends
       DefaultMASConfiguration {
 
-    final SupplierRng<? extends Solver> solverCreator;
+    final StochasticSupplier<? extends Solver> solverCreator;
     private final String nameSuffix;
 
-    CentralConfiguration(SupplierRng<? extends Solver> solverCreator,
+    CentralConfiguration(StochasticSupplier<? extends Solver> solverCreator,
         String name) {
       this.solverCreator = solverCreator;
       nameSuffix = name;
@@ -85,7 +85,7 @@ public final class Central {
     }
 
     @Override
-    public ImmutableList<? extends SupplierRng<? extends Model<?>>> getModels() {
+    public ImmutableList<? extends StochasticSupplier<? extends Model<?>>> getModels() {
       return ImmutableList.of(new CentralModelSupplier(solverCreator));
     }
 
@@ -105,10 +105,10 @@ public final class Central {
   }
 
   private static class CentralModelSupplier implements
-      SupplierRng<CentralModel> {
-    private final SupplierRng<? extends Solver> solverSupplier;
+      StochasticSupplier<CentralModel> {
+    private final StochasticSupplier<? extends Solver> solverSupplier;
 
-    CentralModelSupplier(SupplierRng<? extends Solver> solverSupplier) {
+    CentralModelSupplier(StochasticSupplier<? extends Solver> solverSupplier) {
       this.solverSupplier = solverSupplier;
     }
 

@@ -5,7 +5,7 @@ package rinde.sim.util;
  * @param <T> The type of objects to supply.
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
  */
-public interface SupplierRng<T> {
+public interface StochasticSupplier<T> {
 
   /**
    * This method may or may not create new instances.

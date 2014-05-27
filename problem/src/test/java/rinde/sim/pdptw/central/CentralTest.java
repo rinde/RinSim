@@ -45,7 +45,7 @@ import rinde.sim.pdptw.experiment.Experiment.ExperimentResults;
 import rinde.sim.pdptw.gendreau06.Gendreau06ObjectiveFunction;
 import rinde.sim.pdptw.gendreau06.Gendreau06Parser;
 import rinde.sim.pdptw.gendreau06.Gendreau06Scenario;
-import rinde.sim.util.SupplierRng;
+import rinde.sim.util.StochasticSupplier;
 import rinde.sim.util.TimeWindow;
 import rinde.sim.util.fsm.State;
 
@@ -62,7 +62,7 @@ public class CentralTest {
     final Gendreau06Scenario scenario = Gendreau06Parser.parse(
         new File("files/test/gendreau06/req_rapide_1_240_24"));
 
-    final SupplierRng<Solver> s = new SupplierRng<Solver>() {
+    final StochasticSupplier<Solver> s = new StochasticSupplier<Solver>() {
       @Override
       public Solver get(long seed) {
         return SolverValidator.wrap(new MultiVehicleSolverAdapter(

@@ -6,7 +6,7 @@ import rinde.sim.pdptw.common.AddParcelEvent;
 import rinde.sim.pdptw.common.AddVehicleEvent;
 import rinde.sim.pdptw.common.DynamicPDPTWProblem.Creator;
 import rinde.sim.pdptw.experiment.DefaultMASConfiguration;
-import rinde.sim.util.SupplierRng;
+import rinde.sim.util.StochasticSupplier;
 
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
@@ -18,7 +18,7 @@ import com.google.common.collect.ImmutableList;
 public class GradientFieldConfiguration extends DefaultMASConfiguration {
 
   @Override
-  public ImmutableList<? extends SupplierRng<? extends Model<?>>> getModels() {
+  public ImmutableList<? extends StochasticSupplier<? extends Model<?>>> getModels() {
     return ImmutableList.of(GradientModel.supplier());
   }
 

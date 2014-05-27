@@ -2,7 +2,7 @@ package rinde.sim.pdptw.scenario;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static java.util.Collections.nCopies;
-import static rinde.sim.util.SupplierRngs.constant;
+import static rinde.sim.util.StochasticSuppliers.constant;
 
 import org.apache.commons.math3.random.MersenneTwister;
 import org.apache.commons.math3.random.RandomGenerator;
@@ -10,7 +10,7 @@ import org.apache.commons.math3.random.RandomGenerator;
 import rinde.sim.core.graph.Point;
 import rinde.sim.pdptw.common.AddVehicleEvent;
 import rinde.sim.pdptw.common.VehicleDTO;
-import rinde.sim.util.SupplierRng;
+import rinde.sim.util.StochasticSupplier;
 import rinde.sim.util.TimeWindow;
 
 import com.google.common.base.Optional;
@@ -22,10 +22,10 @@ import com.google.common.collect.ImmutableList;
  */
 public final class Vehicles {
   static final int DEFAULT_NUM_OF_VEHICLES = 10;
-  static final SupplierRng<Integer> DEFAULT_NUMBER_OF_VEHICLES = constant(DEFAULT_NUM_OF_VEHICLES);
-  static final SupplierRng<Double> DEFAULT_SPEED = constant(50d);
-  static final SupplierRng<Integer> DEFAULT_CAPACITY = constant(1);
-  static final SupplierRng<Long> DEFAULT_TIME = constant(-1L);
+  static final StochasticSupplier<Integer> DEFAULT_NUMBER_OF_VEHICLES = constant(DEFAULT_NUM_OF_VEHICLES);
+  static final StochasticSupplier<Double> DEFAULT_SPEED = constant(50d);
+  static final StochasticSupplier<Integer> DEFAULT_CAPACITY = constant(1);
+  static final StochasticSupplier<Long> DEFAULT_TIME = constant(-1L);
 
   private Vehicles() {}
 
@@ -81,12 +81,12 @@ public final class Vehicles {
    * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
    */
   public static class Builder {
-    SupplierRng<Integer> numberOfVehicles;
-    Optional<SupplierRng<Point>> startPositionsSupplier;
-    SupplierRng<Double> speedsSupplier;
-    SupplierRng<Integer> capacitiesSupplier;
-    Optional<SupplierRng<TimeWindow>> timeWindowsSupplier;
-    SupplierRng<Long> creationTimesSupplier;
+    StochasticSupplier<Integer> numberOfVehicles;
+    Optional<StochasticSupplier<Point>> startPositionsSupplier;
+    StochasticSupplier<Double> speedsSupplier;
+    StochasticSupplier<Integer> capacitiesSupplier;
+    Optional<StochasticSupplier<TimeWindow>> timeWindowsSupplier;
+    StochasticSupplier<Long> creationTimesSupplier;
 
     Builder() {
       numberOfVehicles = DEFAULT_NUMBER_OF_VEHICLES;
@@ -99,12 +99,12 @@ public final class Vehicles {
 
     /**
      * Sets the number of vehicles that are to be created by the generator.
-     * Default value: 10. All values returned by the {@link SupplierRng} must be
+     * Default value: 10. All values returned by the {@link StochasticSupplier} must be
      * greater than <code>0</code>.
      * @param num The supplier to draw numbers from.
      * @return This, as per the builder pattern.
      */
-    public Builder numberOfVehicles(SupplierRng<Integer> num) {
+    public Builder numberOfVehicles(StochasticSupplier<Integer> num) {
       numberOfVehicles = num;
       return this;
     }
@@ -116,7 +116,7 @@ public final class Vehicles {
      * @param pos The supplier to draw positions from.
      * @return This, as per the builder pattern.
      */
-    public Builder startPositions(SupplierRng<Point> pos) {
+    public Builder startPositions(StochasticSupplier<Point> pos) {
       startPositionsSupplier = Optional.of(pos);
       return this;
     }
@@ -138,7 +138,7 @@ public final class Vehicles {
      * @param tw The supplier to draw time windows from.
      * @return This, as per the builder pattern.
      */
-    public Builder timeWindows(SupplierRng<TimeWindow> tw) {
+    public Builder timeWindows(StochasticSupplier<TimeWindow> tw) {
       timeWindowsSupplier = Optional.of(tw);
       return this;
     }
@@ -159,7 +159,7 @@ public final class Vehicles {
      * @param sp The supplier from which to draw speed values.
      * @return This, as per the builder pattern.
      */
-    public Builder speeds(SupplierRng<Double> sp) {
+    public Builder speeds(StochasticSupplier<Double> sp) {
       speedsSupplier = sp;
       return this;
     }
@@ -170,7 +170,7 @@ public final class Vehicles {
      * @param cap The supplier from which to draw capacity values.
      * @return This, as per the builder pattern.
      */
-    public Builder capacities(SupplierRng<Integer> cap) {
+    public Builder capacities(StochasticSupplier<Integer> cap) {
       capacitiesSupplier = cap;
       return this;
     }
@@ -182,7 +182,7 @@ public final class Vehicles {
      * @param times The supplier from which to draw times.
      * @return This, as per the builder pattern.
      */
-    public Builder creationTimes(SupplierRng<Long> times) {
+    public Builder creationTimes(StochasticSupplier<Long> times) {
       creationTimesSupplier = times;
       return this;
     }
@@ -197,12 +197,12 @@ public final class Vehicles {
   }
 
   private static class DefaultVehicleGenerator implements VehicleGenerator {
-    private final SupplierRng<Integer> numberOfVehicles;
-    private final Optional<SupplierRng<Point>> startPositionGenerator;
-    private final SupplierRng<Double> speedGenerator;
-    private final SupplierRng<Integer> capacityGenerator;
-    private final Optional<SupplierRng<TimeWindow>> timeWindowGenerator;
-    private final SupplierRng<Long> creationTimeGenerator;
+    private final StochasticSupplier<Integer> numberOfVehicles;
+    private final Optional<StochasticSupplier<Point>> startPositionGenerator;
+    private final StochasticSupplier<Double> speedGenerator;
+    private final StochasticSupplier<Integer> capacityGenerator;
+    private final Optional<StochasticSupplier<TimeWindow>> timeWindowGenerator;
+    private final StochasticSupplier<Long> creationTimeGenerator;
     private final RandomGenerator rng;
 
     DefaultVehicleGenerator(Builder b) {

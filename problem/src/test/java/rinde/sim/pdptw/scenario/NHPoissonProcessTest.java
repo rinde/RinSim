@@ -18,8 +18,8 @@ import org.junit.Test;
 import rinde.sim.core.graph.Point;
 import rinde.sim.pdptw.scenario.IntensityFunctions.IntensityFunction;
 import rinde.sim.pdptw.scenario.TimeSeries.TimeSeriesGenerator;
-import rinde.sim.util.SupplierRng;
-import rinde.sim.util.SupplierRngs;
+import rinde.sim.util.StochasticSupplier;
+import rinde.sim.util.StochasticSuppliers;
 
 import com.google.common.base.Charsets;
 import com.google.common.base.Function;
@@ -167,7 +167,7 @@ public class NHPoissonProcessTest {
 
   /**
    * Check whether the
-   * {@link TimeSeries#nonHomogenousPoisson(double, SupplierRng)} function
+   * {@link TimeSeries#nonHomogenousPoisson(double, StochasticSupplier)} function
    * behaves as expected.
    */
   @Test
@@ -182,7 +182,7 @@ public class NHPoissonProcessTest {
         .height(1.5)
         .build();
 
-    final SupplierRng<IntensityFunction> funcSup = SupplierRngs
+    final StochasticSupplier<IntensityFunction> funcSup = StochasticSuppliers
         .fromIterable(Iterables.cycle(func1, func2));
 
     final TimeSeriesGenerator tsg = TimeSeries.nonHomogenousPoisson(120,

@@ -16,8 +16,8 @@ import rinde.sim.pdptw.scenario.Locations.LocationGenerator;
 import rinde.sim.pdptw.scenario.ScenarioGenerator.TravelTimes;
 import rinde.sim.pdptw.scenario.TimeSeries.TimeSeriesGenerator;
 import rinde.sim.pdptw.scenario.TimeWindows.TimeWindowGenerator;
-import rinde.sim.util.SupplierRng;
-import rinde.sim.util.SupplierRngs;
+import rinde.sim.util.StochasticSupplier;
+import rinde.sim.util.StochasticSuppliers;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.math.DoubleMath;
@@ -74,9 +74,9 @@ public final class Parcels {
     private final TimeSeriesGenerator announceTimeGenerator;
     private final LocationGenerator locationGenerator;
     private final TimeWindowGenerator timeWindowGenerator;
-    private final SupplierRng<Long> pickupDurationGenerator;
-    private final SupplierRng<Long> deliveryDurationGenerator;
-    private final SupplierRng<Integer> neededCapacityGenerator;
+    private final StochasticSupplier<Long> pickupDurationGenerator;
+    private final StochasticSupplier<Long> deliveryDurationGenerator;
+    private final StochasticSupplier<Integer> neededCapacityGenerator;
 
     DefaultParcelGenerator(Builder b) {
       rng = new MersenneTwister();
@@ -152,17 +152,17 @@ public final class Parcels {
         .square(DEFAULT_AREA_SIZE).uniform();
     static final TimeWindowGenerator DEFAULT_TIME_WINDOW_GENERATOR = TimeWindows
         .builder().build();
-    static final SupplierRng<Long> DEFAULT_SERVICE_DURATION = SupplierRngs
+    static final StochasticSupplier<Long> DEFAULT_SERVICE_DURATION = StochasticSuppliers
         .constant(5 * 60 * 1000L);
-    static final SupplierRng<Integer> DEFAULT_CAPACITY = SupplierRngs
+    static final StochasticSupplier<Integer> DEFAULT_CAPACITY = StochasticSuppliers
         .constant(0);
 
     TimeSeriesGenerator announceTimeGenerator;
     TimeWindowGenerator timeWindowGenerator;
     LocationGenerator locationGenerator;
-    SupplierRng<Long> pickupDurationGenerator;
-    SupplierRng<Long> deliveryDurationGenerator;
-    SupplierRng<Integer> neededCapacityGenerator;
+    StochasticSupplier<Long> pickupDurationGenerator;
+    StochasticSupplier<Long> deliveryDurationGenerator;
+    StochasticSupplier<Integer> neededCapacityGenerator;
 
     Builder() {
       announceTimeGenerator = DEFAULT_ANNOUNCE_TIMES;
@@ -213,7 +213,7 @@ public final class Parcels {
      * @param durations The supplier to draw the durations from.
      * @return This, as per the builder pattern.
      */
-    public Builder pickupDurations(SupplierRng<Long> durations) {
+    public Builder pickupDurations(StochasticSupplier<Long> durations) {
       pickupDurationGenerator = durations;
       return this;
     }
@@ -223,7 +223,7 @@ public final class Parcels {
      * @param durations The supplier to draw the durations from.
      * @return This, as per the builder pattern.
      */
-    public Builder deliveryDurations(SupplierRng<Long> durations) {
+    public Builder deliveryDurations(StochasticSupplier<Long> durations) {
       deliveryDurationGenerator = durations;
       return this;
     }
@@ -233,7 +233,7 @@ public final class Parcels {
      * @param durations The supplier to draw the durations from.
      * @return This, as per the builder pattern.
      */
-    public Builder serviceDurations(SupplierRng<Long> durations) {
+    public Builder serviceDurations(StochasticSupplier<Long> durations) {
       return pickupDurations(durations).deliveryDurations(durations);
     }
 
@@ -242,7 +242,7 @@ public final class Parcels {
      * @param capacities The supplier to draw the capacities from.
      * @return This, as per the builder pattern.
      */
-    public Builder neededCapacities(SupplierRng<Integer> capacities) {
+    public Builder neededCapacities(StochasticSupplier<Integer> capacities) {
       neededCapacityGenerator = capacities;
       return this;
     }
