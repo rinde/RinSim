@@ -400,7 +400,7 @@ public final class IntensityFunctions {
     /**
      * Creates a new instance of a sine {@link IntensityFunction}. This method
      * requires constant values to be set. For using supplied values see
-     * {@link #supplierRng()}.
+     * {@link #buildStochasticSupplier()}.
      * @return A new instance.
      */
     public IntensityFunction build() {
@@ -419,7 +419,7 @@ public final class IntensityFunctions {
      * @return A {@link StochasticSupplier} that creates sine {@link IntensityFunction}
      *         instances.
      */
-    public StochasticSupplier<IntensityFunction> supplierRng() {
+    public StochasticSupplier<IntensityFunction> buildStochasticSupplier() {
       return new SineIntensityFunctionSupplier(this);
     }
 

@@ -27,13 +27,14 @@ public final class StochasticSuppliers {
   private StochasticSuppliers() {}
 
   /**
-   * Create a {@link StochasticSupplier} that will always return the specified value.
+   * Create a {@link StochasticSupplier} that will always return the specified
+   * value.
    * @param value The value which the supplier will return.
    * @param <T> Type of constant.
    * @return A supplier that always returns the specified value.
    */
   public static <T> StochasticSupplier<T> constant(T value) {
-    return new ConstantSupplierRng<T>(value);
+    return new ConstantSupplier<T>(value);
   }
 
   /**
@@ -45,12 +46,12 @@ public final class StochasticSuppliers {
    *         {@link #constant(Object)}, <code>false</code> otherwise.
    */
   public static <T> boolean isConstant(StochasticSupplier<T> supplier) {
-    return supplier.getClass() == ConstantSupplierRng.class;
+    return supplier.getClass() == ConstantSupplier.class;
   }
 
   /**
-   * Decorates the specified {@link StochasticSupplier} such that when it produces
-   * values which are not allowed by the specified predicate an
+   * Decorates the specified {@link StochasticSupplier} such that when it
+   * produces values which are not allowed by the specified predicate an
    * {@link IllegalArgumentException} is thrown.
    * @param supplier The supplier to be decorated.
    * @param predicate The predicate which specifies the contract to which the
@@ -59,21 +60,23 @@ public final class StochasticSuppliers {
    * @return A supplier that is guaranteed to return values which match the
    *         given predicate or throw an {@link IllegalArgumentException}.
    */
-  public static <T> StochasticSupplier<T> checked(StochasticSupplier<T> supplier,
+  public static <T> StochasticSupplier<T> checked(
+      StochasticSupplier<T> supplier,
       Predicate<T> predicate) {
     return new CheckedSupplier<T>(supplier, predicate);
   }
 
   /**
-   * Create a {@link StochasticSupplier} based on an {@link Iterable}. It will return
-   * the values in the order as defined by the iterable. The resulting supplier
-   * will throw an {@link IllegalArgumentException} when the iterable is empty.
+   * Create a {@link StochasticSupplier} based on an {@link Iterable}. It will
+   * return the values in the order as defined by the iterable. The resulting
+   * supplier will throw an {@link IllegalArgumentException} when the iterable
+   * is empty.
    * @param iter The iterable from which the values will be used.
    * @param <T> The type this supplier generates.
    * @return A supplier based on an iterable.
    */
   public static <T> StochasticSupplier<T> fromIterable(Iterable<T> iter) {
-    return new IteratorSupplierRng<T>(iter.iterator());
+    return new IteratorSS<T>(iter.iterator());
   }
 
   /**
@@ -87,8 +90,8 @@ public final class StochasticSuppliers {
   }
 
   /**
-   * @return Builder for constructing {@link StochasticSupplier}s that produce normal
-   *         (Gaussian) distributed numbers.
+   * @return Builder for constructing {@link StochasticSupplier}s that produce
+   *         normal (Gaussian) distributed numbers.
    */
   public static Builder normal() {
     return new Builder();
@@ -101,8 +104,9 @@ public final class StochasticSuppliers {
    * @param upper The (inclusive) upper bound of the uniform distribution.
    * @return The supplier.
    */
-  public static StochasticSupplier<Double> uniformDouble(double lower, double upper) {
-    return new DoubleDistributionSupplierRng(new UniformRealDistribution(
+  public static StochasticSupplier<Double> uniformDouble(double lower,
+      double upper) {
+    return new DoubleDistributionSS(new UniformRealDistribution(
         new MersenneTwister(), lower, upper));
   }
 
@@ -114,7 +118,7 @@ public final class StochasticSuppliers {
    * @return The supplier.
    */
   public static StochasticSupplier<Integer> uniformInt(int lower, int upper) {
-    return new IntegerDistributionSupplierRng(new UniformIntegerDistribution(
+    return new IntegerDistributionSS(new UniformIntegerDistribution(
         new MersenneTwister(), lower, upper));
   }
 
@@ -135,7 +139,8 @@ public final class StochasticSuppliers {
    * @param supplier The supplier to convert.
    * @return The converted supplier.
    */
-  public static StochasticSupplier<Long> intToLong(StochasticSupplier<Integer> supplier) {
+  public static StochasticSupplier<Long> intToLong(
+      StochasticSupplier<Integer> supplier) {
     return new IntToLongAdapter(supplier);
   }
 
@@ -156,13 +161,14 @@ public final class StochasticSuppliers {
    * @param supplier The supplier to convert.
    * @return The converted supplier.
    */
-  public static StochasticSupplier<Long> roundDoubleToLong(StochasticSupplier<Double> supplier) {
+  public static StochasticSupplier<Long> roundDoubleToLong(
+      StochasticSupplier<Double> supplier) {
     return new DoubleToLongAdapter(supplier);
   }
 
   /**
-   * Builder for creating {@link StochasticSupplier}s that return a number with a
-   * normal distribution.
+   * Builder for creating {@link StochasticSupplier}s that return a number with
+   * a normal distribution.
    * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
    */
   public static class Builder {
@@ -277,24 +283,24 @@ public final class StochasticSuppliers {
     }
 
     /**
-     * @return A {@link StochasticSupplier} that draws double values from a normal
-     *         distribution.
+     * @return A {@link StochasticSupplier} that draws double values from a
+     *         normal distribution.
      */
     public StochasticSupplier<Double> buildDouble() {
       checkArgument(mean + std >= lowerBound);
       checkArgument(mean + std <= upperBound);
       final RealDistribution distribution = new NormalDistribution(mean, std);
       if (Doubles.isFinite(lowerBound) || Doubles.isFinite(upperBound)) {
-        return new BoundedDoubleDistSupplierRng(distribution, upperBound,
+        return new BoundedDoubleDistSS(distribution, upperBound,
             lowerBound, outOfBoundStrategy);
       } else {
-        return new DoubleDistributionSupplierRng(distribution);
+        return new DoubleDistributionSS(distribution);
       }
     }
 
     /**
-     * @return A {@link StochasticSupplier} that draws integer values from a normal
-     *         distribution.
+     * @return A {@link StochasticSupplier} that draws integer values from a
+     *         normal distribution.
      */
     public StochasticSupplier<Integer> buildInteger() {
       integerChecks();
@@ -324,7 +330,8 @@ public final class StochasticSuppliers {
    * @param <T> The type of objects that this supplier creates.
    * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
    */
-  public abstract static class AbstractStochasticSupplier<T> implements StochasticSupplier<T> {
+  public abstract static class AbstractStochasticSupplier<T> implements
+      StochasticSupplier<T> {
     @SuppressWarnings("serial")
     @Override
     public String toString() {
@@ -378,11 +385,11 @@ public final class StochasticSuppliers {
     }
   }
 
-  private static class IntegerDistributionSupplierRng extends
+  private static class IntegerDistributionSS extends
       AbstractStochasticSupplier<Integer> {
     private final IntegerDistribution distribution;
 
-    IntegerDistributionSupplierRng(IntegerDistribution id) {
+    IntegerDistributionSS(IntegerDistribution id) {
       distribution = id;
     }
 
@@ -393,14 +400,14 @@ public final class StochasticSuppliers {
     }
   }
 
-  private static class BoundedDoubleDistSupplierRng extends
+  private static class BoundedDoubleDistSS extends
       AbstractStochasticSupplier<Double> {
     private final RealDistribution distribution;
     private final double lowerBound;
     private final double upperBound;
     private final OutOfBoundStrategy outOfBoundStrategy;
 
-    BoundedDoubleDistSupplierRng(RealDistribution rd, double upper,
+    BoundedDoubleDistSS(RealDistribution rd, double upper,
         double lower, OutOfBoundStrategy strategy) {
       checkArgument(strategy == OutOfBoundStrategy.REDRAW
           || strategy == OutOfBoundStrategy.ROUND);
@@ -431,11 +438,11 @@ public final class StochasticSuppliers {
     }
   }
 
-  private static class DoubleDistributionSupplierRng extends
+  private static class DoubleDistributionSS extends
       AbstractStochasticSupplier<Double> {
     private final RealDistribution distribution;
 
-    DoubleDistributionSupplierRng(RealDistribution rd) {
+    DoubleDistributionSS(RealDistribution rd) {
       distribution = rd;
     }
 
@@ -446,10 +453,11 @@ public final class StochasticSuppliers {
     }
   }
 
-  private static class IteratorSupplierRng<T> extends AbstractStochasticSupplier<T> {
+  private static class IteratorSS<T> extends
+      AbstractStochasticSupplier<T> {
     private final Iterator<T> iterator;
 
-    IteratorSupplierRng(Iterator<T> it) {
+    IteratorSS(Iterator<T> it) {
       iterator = it;
     }
 
@@ -462,11 +470,11 @@ public final class StochasticSuppliers {
     }
   }
 
-  private static final class ConstantSupplierRng<T> extends
+  private static final class ConstantSupplier<T> extends
       AbstractStochasticSupplier<T> {
     private final T value;
 
-    ConstantSupplierRng(T v) {
+    ConstantSupplier(T v) {
       value = v;
     }
 
