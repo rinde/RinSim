@@ -17,9 +17,7 @@ import org.junit.Test;
 
 import rinde.sim.core.graph.Point;
 import rinde.sim.core.model.Model;
-import rinde.sim.core.model.pdp.PDPModel;
 import rinde.sim.core.model.pdp.PDPScenarioEvent;
-import rinde.sim.core.model.road.RoadModel;
 import rinde.sim.pdptw.common.AddDepotEvent;
 import rinde.sim.pdptw.common.AddParcelEvent;
 import rinde.sim.pdptw.common.AddVehicleEvent;
@@ -34,6 +32,7 @@ import rinde.sim.scenario.TimedEvent;
 import rinde.sim.util.TimeWindow;
 
 import com.google.common.base.Predicate;
+import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 
@@ -106,7 +105,6 @@ public class ScenarioIOTest {
   }
 
   static class TestScenario extends PDPScenario {
-    private static final long serialVersionUID = -3313653909815120873L;
     final TimeWindow timeWindow;
     final long tickSize;
     final Unit<Duration> timeUnit;
@@ -122,15 +120,7 @@ public class ScenarioIOTest {
     }
 
     @Override
-    public ImmutableList<Model<?>> createModels() {
-      return ImmutableList.<Model<?>> of(createRoadModel(), createPDPModel());
-    }
-
-    RoadModel createRoadModel() {
-      throw new UnsupportedOperationException();
-    }
-
-    PDPModel createPDPModel() {
+    public ImmutableList<? extends Supplier<? extends Model<?>>> getModelSuppliers() {
       throw new UnsupportedOperationException();
     }
 

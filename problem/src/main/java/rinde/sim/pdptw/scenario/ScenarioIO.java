@@ -428,13 +428,14 @@ public final class ScenarioIO {
     public Enum<?> doDeserialize(JsonElement json, Type typeOfT,
         JsonDeserializationContext context) {
       final JsonObject obj = json.getAsJsonObject();
-      return getEnum(obj.get(CLAZZ).getAsString(), obj.get(VALUE).getAsString());
+      return getEnum(obj.get(CLAZZ).getAsString(), obj
+          .get(VALUE).getAsString());
     }
 
-    @SuppressWarnings("unchecked")
-    static <T extends Enum<T>> Enum<?> getEnum(String enumName, String value) {
+    @SuppressWarnings({ "unchecked", "rawtypes" })
+    static Enum<?> getEnum(String enumName, String value) {
       try {
-        return Enum.valueOf((Class<T>) Class.forName(enumName), value);
+        return Enum.valueOf((Class<Enum>) Class.forName(enumName), value);
       } catch (final ClassNotFoundException e) {
         throw new IllegalArgumentException(e);
       }
