@@ -187,11 +187,16 @@ public final class ScenarioGenerator {
         .filter(AddDepotEvent.class);
     final Iterable<AddVehicleEvent> vehicles = FluentIterable.from(s.asList())
         .filter(AddVehicleEvent.class);
-    final FluentIterable<RoadModel> roadModels = FluentIterable.from(
-        s.getModelSuppliers()).filter(RoadModel.class);
-    checkArgument(roadModels.size() == 1);
 
-    return new DefaultTravelTimes(roadModels.first().get(), s.getTimeUnit(),
+    final List<RoadModel> roadModels = newArrayList();
+    for (final Supplier<? extends Model<?>> sup : s.getModelSuppliers()) {
+      final Model<?> m = sup.get();
+      if (m instanceof RoadModel) {
+        roadModels.add((RoadModel) m);
+      }
+    }
+    checkArgument(roadModels.size() == 1);
+    return new DefaultTravelTimes(roadModels.get(0), s.getTimeUnit(),
         depots, vehicles);
   }
 
