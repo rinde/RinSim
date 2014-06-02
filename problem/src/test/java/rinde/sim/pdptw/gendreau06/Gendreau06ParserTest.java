@@ -225,6 +225,7 @@ public class Gendreau06ParserTest {
   }
 
   static boolean isDiversionAllowed(Gendreau06Scenario scen) {
-    return ((PDPRoadModel) scen.createRoadModel()).isVehicleDiversionAllowed();
+    return ((PDPRoadModel) scen.getModelSuppliers().get(0).get())
+        .isVehicleDiversionAllowed();
   }
 }

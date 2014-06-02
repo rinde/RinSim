@@ -26,6 +26,7 @@ import org.apache.commons.math3.random.RandomGenerator;
 import rinde.sim.core.TimeLapse;
 import rinde.sim.core.graph.Point;
 
+import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableList;
 import com.google.common.math.DoubleMath;
 
@@ -222,6 +223,18 @@ public class PlaneRoadModel extends AbstractRoadModel<Point> {
   @Override
   public ImmutableList<Point> getBounds() {
     return ImmutableList.of(min, max);
+  }
+
+  public static Supplier<PlaneRoadModel> supplier(final Point pMin,
+      final Point pMax,
+      final Unit<Length> distanceUnit,
+      final Measure<Double, Velocity> pMaxSpeed) {
+    return new Supplier<PlaneRoadModel>() {
+      @Override
+      public PlaneRoadModel get() {
+        return new PlaneRoadModel(pMin, pMax, distanceUnit, pMaxSpeed);
+      }
+    };
   }
 
 }

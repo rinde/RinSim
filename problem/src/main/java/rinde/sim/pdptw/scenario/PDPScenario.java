@@ -66,7 +66,7 @@ public abstract class PDPScenario extends Scenario {
    * @return Should return a list of newly created {@link Model}s which will be
    *         used for simulating this scenario.
    */
-  public abstract ImmutableList<? extends Model<?>> createModels();
+  public abstract ImmutableList<? extends Supplier<? extends Model<?>>> getModelSuppliers();
 
   /**
    * @return The {@link TimeWindow} of the scenario indicates the start and end
@@ -226,8 +226,8 @@ public abstract class PDPScenario extends Scenario {
     }
 
     /**
-     * Adds the model supplier. The supplier will be used to create
-     * {@link Model}s in the {@link PDPScenario#createModels()} method.
+     * Adds the model supplier. The suppliers will be used to instantiate
+     * {@link Model}s needed for the scenario.
      * @param modelSupplier The model supplier to add.
      * @return This, as per the builder pattern.
      */
@@ -237,8 +237,8 @@ public abstract class PDPScenario extends Scenario {
     }
 
     /**
-     * Adds the model suppliers. The suppliers will be used to create
-     * {@link Model}s in the {@link PDPScenario#createModels()} method.
+     * Adds the model suppliers. The suppliers will be used to instantiate
+     * {@link Model}s needed for the scenario.
      * @param suppliers The model suppliers to add.
      * @return This, as per the builder pattern.
      */
@@ -246,6 +246,15 @@ public abstract class PDPScenario extends Scenario {
         Iterable<? extends Supplier<? extends Model<?>>> suppliers) {
       modelSuppliers.addAll(suppliers);
       return self();
+    }
+
+    @Override
+    public Builder copyProperties(PDPScenario scenario) {
+      return super.copyProperties(scenario)
+          .addEvents(scenario.asList())
+          .problemClass(scenario.getProblemClass())
+          .instanceId(scenario.getProblemInstanceId())
+          .addModels(scenario.getModelSuppliers());
     }
 
     /**
@@ -385,6 +394,21 @@ public abstract class PDPScenario extends Scenario {
       stopCondition = condition;
       return self();
     }
+
+    /**
+     * Copies properties of the specified scenario into this builder.
+     * @param scenario The scenario to copy the properties from.
+     * @return This, as per the builder pattern.
+     */
+    protected T copyProperties(PDPScenario scenario) {
+      distanceUnit = scenario.getDistanceUnit();
+      speedUnit = scenario.getSpeedUnit();
+      timeUnit = scenario.getTimeUnit();
+      tickSize = scenario.getTickSize();
+      timeWindow = scenario.getTimeWindow();
+      stopCondition = scenario.getStopCondition();
+      return self();
+    }
   }
 
   static class DefaultScenario extends PDPScenario {
@@ -443,12 +467,8 @@ public abstract class PDPScenario extends Scenario {
     }
 
     @Override
-    public ImmutableList<? extends Model<?>> createModels() {
-      final ImmutableList.Builder<Model<?>> builder = ImmutableList.builder();
-      for (final Supplier<? extends Model<?>> sup : modelSuppliers) {
-        builder.add(sup.get());
-      }
-      return builder.build();
+    public ImmutableList<? extends Supplier<? extends Model<?>>> getModelSuppliers() {
+      return modelSuppliers;
     }
 
     @Override

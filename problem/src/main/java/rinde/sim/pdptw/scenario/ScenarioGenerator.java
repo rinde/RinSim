@@ -188,7 +188,7 @@ public final class ScenarioGenerator {
     final Iterable<AddVehicleEvent> vehicles = FluentIterable.from(s.asList())
         .filter(AddVehicleEvent.class);
     final FluentIterable<RoadModel> roadModels = FluentIterable.from(
-        s.createModels()).filter(RoadModel.class);
+        s.getModelSuppliers()).filter(RoadModel.class);
     checkArgument(roadModels.size() == 1);
 
     return new DefaultTravelTimes(roadModels.first().get(), s.getTimeUnit(),

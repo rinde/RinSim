@@ -5,11 +5,14 @@ import java.util.Iterator;
 import javax.annotation.Nullable;
 
 import org.apache.commons.math3.distribution.ExponentialDistribution;
+import org.apache.commons.math3.distribution.RealDistribution;
+import org.apache.commons.math3.distribution.UniformRealDistribution;
 import org.apache.commons.math3.random.MersenneTwister;
 import org.apache.commons.math3.random.RandomGenerator;
 
 import rinde.sim.pdptw.scenario.IntensityFunctions.IntensityFunction;
 import rinde.sim.util.StochasticSupplier;
+import rinde.sim.util.StochasticSuppliers;
 
 import com.google.common.base.Predicate;
 import com.google.common.collect.AbstractSequentialIterator;
@@ -63,9 +66,9 @@ public final class TimeSeries {
    * Creates a non-homogenous Poisson process of the specified length. The
    * intensity is specified by the {@link StochasticSupplier}. Each time
    * {@link TimeSeriesGenerator#generate(long)} is called, a new
-   * {@link IntensityFunction} is requested from the {@link StochasticSupplier}. The
-   * non-homogenous Poisson process is implemented using the thinning method as
-   * described in [1].
+   * {@link IntensityFunction} is requested from the {@link StochasticSupplier}.
+   * The non-homogenous Poisson process is implemented using the thinning method
+   * as described in [1].
    * <p>
    * <b>References</b>
    * <ol>
@@ -82,6 +85,19 @@ public final class TimeSeries {
   public static TimeSeriesGenerator nonHomogenousPoisson(double length,
       StochasticSupplier<IntensityFunction> functionSupplier) {
     return new SuppliedNonHomogenous(length, functionSupplier);
+  }
+
+  public static TimeSeriesGenerator uniform(double length, int numEvents,
+      double maxDeviation) {
+    final double average = length / numEvents;
+    return new UniformTimeSeries(length, average,
+        StochasticSuppliers.constant(maxDeviation));
+  }
+
+  public static TimeSeriesGenerator uniform(double length, int numEvents,
+      StochasticSupplier<Double> maxDeviation) {
+    final double average = length / numEvents;
+    return new UniformTimeSeries(length, average, maxDeviation);
   }
 
   /**
@@ -124,7 +140,10 @@ public final class TimeSeries {
 
     // internal use only!
     Iterator<Double> iterator() {
-      return new PoissonIterator(rng, intensity, length);
+      return new TimeSeriesIterator(new ExponentialDistribution(rng,
+          1d / intensity,
+          ExponentialDistribution.DEFAULT_INVERSE_ABSOLUTE_ACCURACY),
+          length);
     }
 
     @Override
@@ -153,7 +172,8 @@ public final class TimeSeries {
     final StochasticSupplier<IntensityFunction> lambdSup;
     final RandomGenerator rng;
 
-    SuppliedNonHomogenous(double l, StochasticSupplier<IntensityFunction> funcSup) {
+    SuppliedNonHomogenous(double l,
+        StochasticSupplier<IntensityFunction> funcSup) {
       length = l;
       lambdSup = funcSup;
       rng = new MersenneTwister();
@@ -168,20 +188,71 @@ public final class TimeSeries {
     }
   }
 
-  static class PoissonIterator extends
+  static class UniformTimeSeries implements TimeSeriesGenerator {
+    private final RandomGenerator rng;
+    private final double length;
+    private final double average;
+    private final StochasticSupplier<Double> deviationSupplier;
+
+    UniformTimeSeries(double len, double avg, StochasticSupplier<Double> dev) {
+      rng = new MersenneTwister();
+      length = len;
+      average = avg;
+      deviationSupplier = dev;
+    }
+
+    @Override
+    public ImmutableList<Double> generate(long seed) {
+      rng.setSeed(seed);
+
+      double deviation = deviationSupplier.get(rng.nextLong());
+      deviation = Math.min(average, deviation);
+      final double lowerBound = average - deviation;
+      final double upperBound = average + deviation;
+
+      if (deviation < .0000001) {
+        return ImmutableList.copyOf(new FixedTimeSeriesIterator(rng, length,
+            average));
+      }
+      return ImmutableList.copyOf(new TimeSeriesIterator(
+          new UniformRealDistribution(rng, lowerBound, upperBound), length));
+    }
+
+  }
+
+  static class FixedTimeSeriesIterator extends
       AbstractSequentialIterator<Double> {
-    private final ExponentialDistribution ed;
+
+    private final double length;
+    private final double average;
+
+    protected FixedTimeSeriesIterator(RandomGenerator rng, double len,
+        double avg) {
+      super(rng.nextDouble() * avg);
+      length = len;
+      average = avg;
+    }
+
+    @Nullable
+    @Override
+    protected Double computeNext(Double prev) {
+      final double nextVal = prev + average;
+      if (nextVal < length) {
+        return nextVal;
+      }
+      return null;
+    }
+  }
+
+  static class TimeSeriesIterator extends
+      AbstractSequentialIterator<Double> {
+    private final RealDistribution ed;
     private final double length;
 
-    PoissonIterator(ExponentialDistribution distr, double len) {
+    TimeSeriesIterator(RealDistribution distr, double len) {
       super(next(0d, len, distr));
       length = len;
       ed = distr;
-    }
-
-    PoissonIterator(RandomGenerator rng, double intensity, double len) {
-      this(new ExponentialDistribution(rng, 1d / intensity,
-          ExponentialDistribution.DEFAULT_INVERSE_ABSOLUTE_ACCURACY), len);
     }
 
     @Nullable
@@ -191,7 +262,7 @@ public final class TimeSeries {
     }
 
     @Nullable
-    static Double next(Double prev, double len, ExponentialDistribution ed) {
+    static Double next(Double prev, double len, RealDistribution ed) {
       final double nextVal = prev + ed.sample();
       if (nextVal < len) {
         return nextVal;

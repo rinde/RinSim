@@ -23,16 +23,17 @@ import rinde.sim.core.model.pdp.DefaultPDPModel;
 import rinde.sim.core.model.pdp.PDPModel;
 import rinde.sim.core.model.pdp.TimeWindowPolicy.TimeWindowPolicies;
 import rinde.sim.core.model.road.PlaneRoadModel;
-import rinde.sim.core.model.road.RoadModel;
 import rinde.sim.pdptw.common.DynamicPDPTWProblem.SimulationInfo;
 import rinde.sim.pdptw.common.DynamicPDPTWProblem.StopConditions;
 import rinde.sim.pdptw.common.PDPRoadModel;
+import rinde.sim.pdptw.scenario.Models;
 import rinde.sim.pdptw.scenario.PDPScenario;
 import rinde.sim.scenario.TimedEvent;
 import rinde.sim.util.TimeWindow;
 
 import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
+import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableList;
 
 /**
@@ -50,9 +51,9 @@ import com.google.common.collect.ImmutableList;
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
  */
 public final class Gendreau06Scenario extends PDPScenario {
-  private static final Point MIN = new Point(0, 0);
-  private static final Point MAX = new Point(5, 5);
-  private static final Measure<Double, Velocity> MAX_SPEED = Measure.valueOf(
+  static final Point MIN = new Point(0, 0);
+  static final Point MAX = new Point(5, 5);
+  static final Measure<Double, Velocity> MAX_SPEED = Measure.valueOf(
       30d, NonSI.KILOMETERS_PER_HOUR);
 
   private final long tickSize;
@@ -93,13 +94,11 @@ public final class Gendreau06Scenario extends PDPScenario {
   }
 
   @Override
-  public ImmutableList<Model<?>> createModels() {
-    return ImmutableList.<Model<?>> of(createRoadModel(), createPDPModel());
-  }
-
-  RoadModel createRoadModel() {
-    return new PDPRoadModel(new PlaneRoadModel(MIN, MAX, getDistanceUnit(),
-        MAX_SPEED), allowDiversion);
+  public ImmutableList<? extends Supplier<? extends Model<?>>> getModelSuppliers() {
+    return ImmutableList.<Supplier<? extends Model<?>>> builder()
+        .add(new RoadModelSupplier(getDistanceUnit(), allowDiversion))
+        .add(Models.pdpModel(TimeWindowPolicies.TARDY_ALLOWED))
+        .build();
   }
 
   PDPModel createPDPModel() {
@@ -129,5 +128,21 @@ public final class Gendreau06Scenario extends PDPScenario {
   @Override
   public String getProblemInstanceId() {
     return Integer.toString(instanceNumber);
+  }
+
+  static class RoadModelSupplier implements Supplier<PDPRoadModel> {
+    private final Unit<Length> distanceUnit;
+    private final boolean allowDiversion;
+
+    RoadModelSupplier(Unit<Length> du, boolean ad) {
+      distanceUnit = du;
+      allowDiversion = ad;
+    }
+
+    @Override
+    public PDPRoadModel get() {
+      return new PDPRoadModel(new PlaneRoadModel(MIN, MAX, distanceUnit,
+          MAX_SPEED), allowDiversion);
+    }
   }
 }

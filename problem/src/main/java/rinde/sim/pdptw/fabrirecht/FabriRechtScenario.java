@@ -16,17 +16,16 @@ import javax.measure.unit.Unit;
 
 import rinde.sim.core.graph.Point;
 import rinde.sim.core.model.Model;
-import rinde.sim.core.model.pdp.DefaultPDPModel;
-import rinde.sim.core.model.pdp.PDPModel;
 import rinde.sim.core.model.pdp.TimeWindowPolicy.TimeWindowPolicies;
 import rinde.sim.core.model.road.PlaneRoadModel;
-import rinde.sim.core.model.road.RoadModel;
 import rinde.sim.pdptw.common.DynamicPDPTWProblem.StopConditions;
 import rinde.sim.pdptw.common.VehicleDTO;
+import rinde.sim.pdptw.scenario.Models;
 import rinde.sim.pdptw.scenario.PDPScenario;
 import rinde.sim.scenario.TimedEvent;
 import rinde.sim.util.TimeWindow;
 
+import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableList;
 
 /**
@@ -95,17 +94,12 @@ public class FabriRechtScenario extends PDPScenario {
   }
 
   @Override
-  public ImmutableList<Model<?>> createModels() {
-    return ImmutableList.<Model<?>> of(createRoadModel(), createPDPModel());
-  }
-
-  RoadModel createRoadModel() {
-    return new PlaneRoadModel(min, max, getDistanceUnit(),
-        Measure.valueOf(100d, getSpeedUnit()));
-  }
-
-  PDPModel createPDPModel() {
-    return new DefaultPDPModel(TimeWindowPolicies.TARDY_ALLOWED);
+  public ImmutableList<? extends Supplier<? extends Model<?>>> getModelSuppliers() {
+    return ImmutableList.<Supplier<? extends Model<?>>> builder()
+        .add(PlaneRoadModel.supplier(min, max, getDistanceUnit(),
+            Measure.valueOf(100d, getSpeedUnit())))
+        .add(Models.pdpModel(TimeWindowPolicies.TARDY_ALLOWED))
+        .build();
   }
 
   @Override

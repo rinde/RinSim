@@ -9,9 +9,11 @@ import static org.junit.Assert.assertEquals;
 import java.util.HashSet;
 import java.util.Set;
 
+import javax.measure.Measure;
 import javax.measure.quantity.Duration;
 import javax.measure.quantity.Length;
 import javax.measure.quantity.Velocity;
+import javax.measure.unit.NonSI;
 import javax.measure.unit.SI;
 import javax.measure.unit.Unit;
 
@@ -20,20 +22,19 @@ import org.junit.Test;
 import rinde.sim.core.Simulator;
 import rinde.sim.core.graph.Point;
 import rinde.sim.core.model.Model;
-import rinde.sim.core.model.pdp.DefaultPDPModel;
-import rinde.sim.core.model.pdp.PDPModel;
 import rinde.sim.core.model.pdp.PDPScenarioEvent;
 import rinde.sim.core.model.pdp.TimeWindowPolicy.TimeWindowPolicies;
 import rinde.sim.core.model.road.PlaneRoadModel;
-import rinde.sim.core.model.road.RoadModel;
 import rinde.sim.pdptw.common.DynamicPDPTWProblem.Creator;
 import rinde.sim.pdptw.common.DynamicPDPTWProblem.SimulationInfo;
 import rinde.sim.pdptw.common.DynamicPDPTWProblem.StopConditions;
+import rinde.sim.pdptw.scenario.Models;
 import rinde.sim.pdptw.scenario.PDPScenario;
 import rinde.sim.scenario.TimedEvent;
 import rinde.sim.util.TimeWindow;
 
 import com.google.common.base.Predicate;
+import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableList;
 
 /**
@@ -109,16 +110,12 @@ public class TestDynamicPDPTWProblem {
     }
 
     @Override
-    public ImmutableList<Model<?>> createModels() {
-      return ImmutableList.<Model<?>> of(createRoadModel(), createPDPModel());
-    }
-
-    RoadModel createRoadModel() {
-      return new PlaneRoadModel(new Point(0, 0), new Point(10, 10), 1d);
-    }
-
-    PDPModel createPDPModel() {
-      return new DefaultPDPModel(TimeWindowPolicies.TARDY_ALLOWED);
+    public ImmutableList<? extends Supplier<? extends Model<?>>> getModelSuppliers() {
+      return ImmutableList.<Supplier<? extends Model<?>>> builder()
+          .add(PlaneRoadModel.supplier(new Point(0, 0), new Point(10, 10),
+              SI.KILOMETER, Measure.valueOf(1d, NonSI.KILOMETERS_PER_HOUR)))
+          .add(Models.pdpModel(TimeWindowPolicies.TARDY_ALLOWED))
+          .build();
     }
 
     @Override

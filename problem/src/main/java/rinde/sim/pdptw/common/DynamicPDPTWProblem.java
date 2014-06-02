@@ -39,6 +39,7 @@ import rinde.sim.ui.renderers.UiSchema;
 
 import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
+import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableMap;
 
 // TODO rename to ProblemInstance? or to Problem?
@@ -141,9 +142,10 @@ public class DynamicPDPTWProblem {
       Model<?>... models) {
     simulator = new Simulator(new MersenneTwister(randomSeed), Measure.valueOf(
         scen.getTickSize(), scen.getTimeUnit()));
-    final List<? extends Model<?>> scenarioModels = scen.createModels();
-    for (final Model<?> m : scenarioModels) {
-      simulator.register(m);
+    final List<? extends Supplier<? extends Model<?>>> modelSuppliers = scen
+        .getModelSuppliers();
+    for (final Supplier<? extends Model<?>> supplier : modelSuppliers) {
+      simulator.register(supplier.get());
     }
     for (final Model<?> m : models) {
       simulator.register(m);
