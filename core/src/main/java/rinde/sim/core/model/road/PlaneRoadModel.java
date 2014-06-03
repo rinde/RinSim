@@ -225,16 +225,25 @@ public class PlaneRoadModel extends AbstractRoadModel<Point> {
     return ImmutableList.of(min, max);
   }
 
-  public static Supplier<PlaneRoadModel> supplier(final Point pMin,
-      final Point pMax,
+  /**
+   * Create a {@link Supplier} for {@link PlaneRoadModel}s.
+   * @param min The minimum x and y of the plane.
+   * @param max The maximum x and y of the plane.
+   * @param distanceUnit This is the unit in which all input distances and
+   *          locations (i.e. {@link Point}s) should be specified.
+   * @param maxSpeed The maximum speed that objects can travel on the plane.
+   * @return A newly created supplier.
+   */
+  public static Supplier<PlaneRoadModel> supplier(
+      final Point min,
+      final Point max,
       final Unit<Length> distanceUnit,
-      final Measure<Double, Velocity> pMaxSpeed) {
+      final Measure<Double, Velocity> maxSpeed) {
     return new Supplier<PlaneRoadModel>() {
       @Override
       public PlaneRoadModel get() {
-        return new PlaneRoadModel(pMin, pMax, distanceUnit, pMaxSpeed);
+        return new PlaneRoadModel(min, max, distanceUnit, maxSpeed);
       }
     };
   }
-
 }
