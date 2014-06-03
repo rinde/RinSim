@@ -23,7 +23,10 @@ public class TestUICreator extends DefaultUICreator {
   public void createUI(Simulator sim) {
     initRenderers();
     View.create(sim).with(renderers.toArray(new Renderer[] {}))
-        .setSpeedUp(speedup).enableAutoClose().enableAutoPlay().show();
+        .setSpeedUp(speedup)
+        .enableAutoClose()
+        .enableAutoPlay()
+        .show();
   }
 
 }

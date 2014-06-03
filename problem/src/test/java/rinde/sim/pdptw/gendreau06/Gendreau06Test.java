@@ -77,7 +77,7 @@ public class Gendreau06Test {
     // first truck will pickup the parcel.
     final double distInOneTick = 30.0 / 3600.0;
     assertTrue(dto.simFinish);
-    assertEquals(9 - (2.0 * distInOneTick), dto.totalDistance, EPSILON);
+    assertEquals(9 - 2.0 * distInOneTick, dto.totalDistance, EPSILON);
     assertEquals(1, dto.totalParcels);
     assertEquals(0, dto.overTime);
     assertEquals(0, dto.pickupTardiness);
@@ -158,7 +158,7 @@ public class Gendreau06Test {
   static StatisticsDTO runProblem(Gendreau06Scenario s, boolean useGui) {
     final DynamicPDPTWProblem problem = new DynamicPDPTWProblem(s, 123);
     if (useGui) {
-      problem.enableUI(new TestUICreator(problem, 10));
+      problem.enableUI(new TestUICreator(problem, 50));
     }
     problem.addCreator(AddVehicleEvent.class, new Creator<AddVehicleEvent>() {
       @Override
