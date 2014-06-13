@@ -5,6 +5,7 @@ import java.util.Iterator;
 import javax.annotation.Nullable;
 
 import org.apache.commons.math3.distribution.ExponentialDistribution;
+import org.apache.commons.math3.distribution.NormalDistribution;
 import org.apache.commons.math3.distribution.RealDistribution;
 import org.apache.commons.math3.distribution.UniformRealDistribution;
 import org.apache.commons.math3.random.MersenneTwister;
@@ -98,6 +99,12 @@ public final class TimeSeries {
       StochasticSupplier<Double> maxDeviation) {
     final double average = length / numEvents;
     return new UniformTimeSeries(length, average, maxDeviation);
+  }
+
+  public static TimeSeriesGenerator normal(double length, int numEvents,
+      double sd) {
+    final double average = length / numEvents;
+    return new NormalTimeSeries(length, average, sd);
   }
 
   /**
@@ -217,6 +224,24 @@ public final class TimeSeries {
       return ImmutableList.copyOf(new TimeSeriesIterator(
           new UniformRealDistribution(rng, lowerBound, upperBound), length));
     }
+  }
+
+  static class NormalTimeSeries implements TimeSeriesGenerator {
+    private final double length;
+    private final RealDistribution distribution;
+
+    NormalTimeSeries(double len, double avg, double sd) {
+      length = len;
+      distribution = new NormalDistribution(avg, sd);
+    }
+
+    @Override
+    public ImmutableList<Double> generate(long seed) {
+      distribution.reseedRandomGenerator(seed);
+      return ImmutableList.copyOf(new TimeSeriesIterator(
+          distribution, length));
+
+    }
 
   }
 
@@ -263,11 +288,20 @@ public final class TimeSeries {
 
     @Nullable
     static Double next(Double prev, double len, RealDistribution ed) {
-      final double nextVal = prev + ed.sample();
+
+      final double nextVal = prev + getFirstPositive(ed);
       if (nextVal < len) {
         return nextVal;
       }
       return null;
+    }
+
+    static double getFirstPositive(RealDistribution ed) {
+      double sample = ed.sample();
+      while (sample < 0) {
+        sample = ed.sample();
+      }
+      return sample;
     }
   }
 
