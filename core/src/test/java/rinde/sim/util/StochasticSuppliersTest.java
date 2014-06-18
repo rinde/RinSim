@@ -104,7 +104,7 @@ public class StochasticSuppliersTest {
       for (int j = 0; j < 10000; j++) {
         stats.addValue(ss.get(rng.nextLong()));
       }
-      // 1 % deviation from mean is acceptible
+      // 1 % deviation from mean is acceptable
       final double allowedDeviation = 0.01 * means[i];
       assertEquals(means[i], stats.getMean(), allowedDeviation);
     }
