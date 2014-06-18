@@ -1,6 +1,7 @@
 package rinde.sim.util;
 
 import static com.google.common.collect.Lists.newArrayList;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static rinde.sim.util.StochasticSuppliers.checked;
 import static rinde.sim.util.StochasticSuppliers.constant;
@@ -12,6 +13,7 @@ import org.apache.commons.math3.distribution.IntegerDistribution;
 import org.apache.commons.math3.distribution.UniformIntegerDistribution;
 import org.apache.commons.math3.random.MersenneTwister;
 import org.apache.commons.math3.random.RandomGenerator;
+import org.apache.commons.math3.stat.descriptive.SummaryStatistics;
 import org.apache.commons.math3.stat.inference.TestUtils;
 import org.junit.Test;
 
@@ -51,7 +53,8 @@ public class StochasticSuppliersTest {
   }
 
   /**
-   * Tests for {@link StochasticSuppliers#checked(StochasticSupplier, Predicate)}.
+   * Tests for
+   * {@link StochasticSuppliers#checked(StochasticSupplier, Predicate)}.
    */
   @Test
   public void testCheckedSupplier() {
@@ -76,5 +79,35 @@ public class StochasticSuppliersTest {
       fail = true;
     }
     assertTrue(fail);
+  }
+
+  /**
+   * Tests whether the rescaling of the mean of a truncated normal distribution
+   * is implemented correctly.
+   */
+  @Test
+  public void testNormalScaleMean() {
+    final double[] means = new double[] { 1d, 2d, 3d, 10d, 100d };
+    final double[] sds = new double[] { 1d, 1d, 3d, 5d, 100d };
+
+    for (int i = 0; i < means.length; i++) {
+      final StochasticSupplier<Double> ss = StochasticSuppliers.normal()
+          .mean(means[i])
+          .std(sds[i])
+          .lowerBound(0)
+          .scaleMean()
+          .redrawWhenOutOfBounds()
+          .buildDouble();
+
+      final RandomGenerator rng = new MersenneTwister(123);
+      final SummaryStatistics stats = new SummaryStatistics();
+      for (int j = 0; j < 10000; j++) {
+        stats.addValue(ss.get(rng.nextLong()));
+      }
+      // 1 % deviation from mean is acceptible
+      final double allowedDeviation = 0.01 * means[i];
+      assertEquals(means[i], stats.getMean(), allowedDeviation);
+    }
+
   }
 }

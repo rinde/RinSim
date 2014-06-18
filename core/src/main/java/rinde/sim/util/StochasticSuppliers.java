@@ -172,6 +172,7 @@ public final class StochasticSuppliers {
    * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
    */
   public static class Builder {
+    static final double SMALLEST_DOUBLE = 0.000000000000001;
     private double mean;
     private double std;
     private double lowerBound;
@@ -217,11 +218,14 @@ public final class StochasticSuppliers {
     }
 
     /**
-     * Sets the lower and upper bounds of the normal distribution. In case a
-     * number is drawn outside the bounds: <code> x < lower || x > upper</code>
-     * the out of bound strategy defines what will happen. See
-     * {@link #redrawWhenOutOfBounds()} and {@link #roundWhenOutOfBounds()} for
-     * the options.
+     * Truncates the normal distribution using the lower and upper bounds. In
+     * case a number is drawn outside the bounds:
+     * <code> x < lower || x > upper</code> the out of bound strategy defines
+     * what will happen. See {@link #redrawWhenOutOfBounds()} and
+     * {@link #roundWhenOutOfBounds()} for the options. Note that calling this
+     * method may change the effective mean and standard deviation of the normal
+     * distribution. If this is undesired you can choose to scale the mean of
+     * the distribution, see {@link #scaleMean()} for more details.
      * @param lower The lower bound. Default value:
      *          {@link Double#NEGATIVE_INFINITY}.
      * @param upper The upper bound. Default value:
@@ -280,6 +284,77 @@ public final class StochasticSuppliers {
     public Builder roundWhenOutOfBounds() {
       outOfBoundStrategy = OutOfBoundStrategy.ROUND;
       return this;
+    }
+
+    /**
+     * Scale the normal distribution such that the effective mean is as given by
+     * {@link #mean(double)} in case a lower bound was set. This method can only
+     * be called if the following requirements are met:
+     * <ul>
+     * <li>Lower bound must be set</li>
+     * <li>Out of bound strategy: {@link #redrawWhenOutOfBounds()}.</li>
+     * </ul>
+     * Note that this method overwrites any previous (but not subsequent) calls
+     * to {@link #mean(double)}. If after calling this method the bounds and/or
+     * out of bound strategy are changed this may yield unexpected results.
+     * Also, using an upper bound is currently not supported.
+     * <p>
+     * For more information about how the effective mean of the truncated normal
+     * distribution is calculated, see this <a href=
+     * "https://en.wikipedia.org/wiki/Truncated_normal_distribution#Moments"
+     * >Wikipedia article</a>.
+     * @return This, as per the builder pattern.
+     */
+    public Builder scaleMean() {
+      checkArgument(!Double.isInfinite(lowerBound),
+          "A lower bound must be set in order to scale the mean.");
+      checkArgument(Double.isInfinite(upperBound),
+          "Scaling the mean with an upper bound is currently not supported.");
+      checkArgument(OutOfBoundStrategy.REDRAW == outOfBoundStrategy);
+
+      double stepSize = 1;
+      double curMean = mean;
+      double dir = 0;
+      double effectiveMean;
+      do {
+        effectiveMean = computeEffectiveMean(curMean, std, lowerBound);
+        // save direction
+        final double oldDir = dir;
+        if (effectiveMean > mean) {
+          dir = 1d;
+        } else {
+          dir = -1d;
+        }
+        // if direction changed decrease step size
+        if (dir != oldDir && oldDir != 0) {
+          stepSize /= 10d;
+        }
+        // apply step
+        if (effectiveMean > mean) {
+          curMean -= stepSize;
+        } else {
+          curMean += stepSize;
+        }
+      } while (Math.abs(effectiveMean - mean) > SMALLEST_DOUBLE);
+      mean = curMean;
+      return this;
+    }
+
+    /**
+     * Computes effective mean using
+     * https://en.wikipedia.org/wiki/Truncated_normal_distribution#Moments
+     * @param m
+     * @param s
+     * @param lb
+     * @return
+     */
+    private static double computeEffectiveMean(double m, double s, double lb) {
+      final NormalDistribution normal = new NormalDistribution();
+      final double alpha = (lb - m) / s;
+      final double pdf = normal.density(alpha);
+      final double cdf = normal.cumulativeProbability(alpha);
+      final double lambda = pdf / (1 - cdf);
+      return m + s * lambda;
     }
 
     /**
