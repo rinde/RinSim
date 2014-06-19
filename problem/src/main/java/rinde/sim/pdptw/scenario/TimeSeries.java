@@ -1,5 +1,7 @@
 package rinde.sim.pdptw.scenario;
 
+import static com.google.common.base.Preconditions.checkArgument;
+
 import java.util.Iterator;
 
 import javax.annotation.Nullable;
@@ -19,6 +21,7 @@ import com.google.common.base.Predicate;
 import com.google.common.collect.AbstractSequentialIterator;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterators;
+import com.google.common.collect.Range;
 
 /**
  * Utilities for generating time series.
@@ -37,6 +40,8 @@ public final class TimeSeries {
    */
   public static TimeSeriesGenerator homogenousPoisson(double length,
       int numEvents) {
+    checkArgument(length > 0d);
+    checkArgument(numEvents > 0);
     return new PoissonProcess(length, numEvents / length);
   }
 
@@ -60,6 +65,8 @@ public final class TimeSeries {
    */
   public static TimeSeriesGenerator nonHomogenousPoisson(double length,
       IntensityFunction function) {
+    checkArgument(length > 0d);
+    checkArgument(function.getMax() > 0d);
     return new NonHomogenous(length, function);
   }
 
@@ -85,26 +92,96 @@ public final class TimeSeries {
    */
   public static TimeSeriesGenerator nonHomogenousPoisson(double length,
       StochasticSupplier<IntensityFunction> functionSupplier) {
+    checkArgument(length > 0d);
     return new SuppliedNonHomogenous(length, functionSupplier);
   }
 
+  /**
+   * Creates a {@link TimeSeriesGenerator} using a uniform distribution for the
+   * inter arrival times of events.
+   * @param length The length of the time series, all generated times will be in
+   *          the interval [0,length).
+   * @param numEvents The total number of events in the time series (on
+   *          average).
+   * @param maxDeviation The maximum deviation from the mean for the uniform
+   *          distribution.
+   * @return A {@link TimeSeriesGenerator} based on a uniform distribution.
+   */
   public static TimeSeriesGenerator uniform(double length, int numEvents,
       double maxDeviation) {
+    checkArgument(length > 0d);
+    checkArgument(numEvents > 0);
+    checkArgument(maxDeviation > 0d);
     final double average = length / numEvents;
     return new UniformTimeSeries(length, average,
         StochasticSuppliers.constant(maxDeviation));
   }
 
+  /**
+   * Creates a {@link TimeSeriesGenerator} using a uniform distribution for the
+   * inter arrival times of events. The spread of the uniform distribution is
+   * defined by the <code>maxDeviation</code> {@link StochasticSupplier}, this
+   * means that each time a time series is generated a different max deviation
+   * settings is used.
+   * @param length The length of the time series, all generated times will be in
+   *          the interval [0,length).
+   * @param numEvents The total number of events in the time series (on
+   *          average).
+   * @param maxDeviation A supplier that is used for max deviation values.
+   * @return A {@link TimeSeriesGenerator} based on a uniform distribution, each
+   *         time series that is generated has a different max deviation drawn
+   *         from the supplier.
+   */
   public static TimeSeriesGenerator uniform(double length, int numEvents,
       StochasticSupplier<Double> maxDeviation) {
+    checkArgument(length > 0d);
+    checkArgument(numEvents > 0);
     final double average = length / numEvents;
-    return new UniformTimeSeries(length, average, maxDeviation);
+    return new UniformTimeSeries(length, average, StochasticSuppliers.checked(
+        maxDeviation, Range.atLeast(0d)));
   }
 
+  /**
+   * Creates a {@link TimeSeriesGenerator} that uses a truncated normal
+   * distribution for the inter arrival times of events. The normal distribution
+   * is truncated at a lower bound of <code>0</code> since it is not allowed (it
+   * makes no sense) to have negative inter arrival times. For more information
+   * about the normal distribution see {@link StochasticSuppliers#normal()}.
+   * @param length The length of the time series, all generated times will be in
+   *          the interval [0,length).
+   * @param numEvents The total number of events in the time series (on
+   *          average).
+   * @param sd The standard deviation of the normal distribution.
+   * @return A {@link TimeSeriesGenerator} based on a normal distribution.
+   */
   public static TimeSeriesGenerator normal(double length, int numEvents,
       double sd) {
+    checkArgument(length > 0d);
+    checkArgument(numEvents > 0);
     final double average = length / numEvents;
-    return new NormalTimeSeries(length, average, sd);
+    return toTimeSeries(length, StochasticSuppliers.normal()
+        .mean(average)
+        .std(sd)
+        .lowerBound(0d)
+        .redrawWhenOutOfBounds()
+        .scaleMean()
+        .buildDouble());
+  }
+
+  /**
+   * Converts a {@link StochasticSupplier} of {@link Double}s into a
+   * {@link TimeSeriesGenerator}. Each time in the time series is created by
+   * <code>t[n] = t[n-1] + ss.get(..)</code>, here <code>ss</code> is the
+   * {@link Double} supplier.
+   * @param length The length of the time series, all generated times will be in
+   *          the interval [0,length).
+   * @param interArrivalTimesSupplier The supplier to use for computing event
+   *          inter arrival times.
+   * @return A new {@link TimeSeriesGenerator} based on the supplier.
+   */
+  public static TimeSeriesGenerator toTimeSeries(double length,
+      StochasticSupplier<Double> interArrivalTimesSupplier) {
+    return new SupplierTimeSeries(length, interArrivalTimesSupplier);
   }
 
   /**
@@ -195,7 +272,64 @@ public final class TimeSeries {
     }
   }
 
+  static class SupplierTimeSeries implements TimeSeriesGenerator {
+    private final double length;
+    private final StochasticSupplier<Double> supplier;
+
+    SupplierTimeSeries(double len, StochasticSupplier<Double> sup) {
+      length = len;
+      supplier = sup;
+    }
+
+    @Override
+    public ImmutableList<Double> generate(long seed) {
+      return ImmutableList.copyOf(new SupplierIterator(length, supplier,
+          new MersenneTwister(seed)));
+    }
+
+  }
+
+  static class SupplierIterator extends AbstractSequentialIterator<Double> {
+    private final double length;
+    private final StochasticSupplier<Double> supplier;
+    private final RandomGenerator randomNumberGenerator;
+
+    SupplierIterator(double len, StochasticSupplier<Double> sup,
+        RandomGenerator rng) {
+      super(next(0d, len, sup, rng));
+      length = len;
+      supplier = sup;
+      randomNumberGenerator = rng;
+    }
+
+    @Nullable
+    @Override
+    protected Double computeNext(Double previous) {
+      return next(previous, length, supplier, randomNumberGenerator);
+    }
+
+    @Nullable
+    static Double next(Double prev, double len,
+        StochasticSupplier<Double> supplier, RandomGenerator rng) {
+      final double nextVal = prev + getValue(supplier, rng);
+      if (nextVal < len) {
+        return nextVal;
+      }
+      return null;
+    }
+
+    static double getValue(StochasticSupplier<Double> ed, RandomGenerator rng) {
+      final double sample = ed.get(rng.nextLong());
+      checkArgument(
+          sample >= 0d,
+          "A StochasticSupplier used in a TimeSeries may not return negative values, was: %s.",
+          sample);
+      return sample;
+    }
+  }
+
   static class UniformTimeSeries implements TimeSeriesGenerator {
+    static final double SMALLEST_DEVIATION = .0000001;
     private final RandomGenerator rng;
     private final double length;
     private final double average;
@@ -217,7 +351,7 @@ public final class TimeSeries {
       final double lowerBound = average - deviation;
       final double upperBound = average + deviation;
 
-      if (deviation < .0000001) {
+      if (deviation < SMALLEST_DEVIATION) {
         return ImmutableList.copyOf(new FixedTimeSeriesIterator(rng, length,
             average));
       }
@@ -240,9 +374,7 @@ public final class TimeSeries {
       distribution.reseedRandomGenerator(seed);
       return ImmutableList.copyOf(new TimeSeriesIterator(
           distribution, length));
-
     }
-
   }
 
   static class FixedTimeSeriesIterator extends
@@ -269,8 +401,7 @@ public final class TimeSeries {
     }
   }
 
-  static class TimeSeriesIterator extends
-      AbstractSequentialIterator<Double> {
+  static class TimeSeriesIterator extends AbstractSequentialIterator<Double> {
     private final RealDistribution ed;
     private final double length;
 
@@ -288,7 +419,6 @@ public final class TimeSeries {
 
     @Nullable
     static Double next(Double prev, double len, RealDistribution ed) {
-
       final double nextVal = prev + getFirstPositive(ed);
       if (nextVal < len) {
         return nextVal;
