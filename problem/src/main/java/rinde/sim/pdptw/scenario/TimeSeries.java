@@ -191,7 +191,8 @@ public final class TimeSeries {
    * generates time series which conform to the specified {@link Predicate}.
    * Note that when an impossible {@link Predicate} is specified, such as
    * {@link Predicates#alwaysFalse()} the resulting {@link TimeSeriesGenerator}
-   * will enter an infinite loop.
+   * will enter an infinite loop. Predicates can be combined by using the
+   * methods provided by {@link Predicates}.
    * @param tsg The {@link TimeSeriesGenerator} to filter.
    * @param predicate All returned {@link TimeSeriesGenerator}s will conform to
    *          this predicate.
