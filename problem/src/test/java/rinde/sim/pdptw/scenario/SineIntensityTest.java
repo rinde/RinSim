@@ -16,7 +16,7 @@ import com.google.common.collect.Range;
 import com.google.common.collect.RangeSet;
 
 /**
- * Tests for {@link SineIntensity}.
+ * Tests for {@link IntensityFunctions#sineIntensity()}.
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
  */
 public class SineIntensityTest {
