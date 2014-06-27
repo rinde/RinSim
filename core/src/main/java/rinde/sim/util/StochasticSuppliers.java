@@ -1,6 +1,7 @@
 package rinde.sim.util;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkState;
 
 import java.math.RoundingMode;
 import java.util.Iterator;
@@ -173,6 +174,7 @@ public final class StochasticSuppliers {
    */
   public static class Builder {
     static final double SMALLEST_DOUBLE = 0.000000000000001;
+    static final int MAX_ITERATIONS = 1000000;
     private double mean;
     private double std;
     private double lowerBound;
@@ -316,6 +318,7 @@ public final class StochasticSuppliers {
       double curMean = mean;
       double dir = 0;
       double effectiveMean;
+      int iterations = 0;
       do {
         effectiveMean = computeEffectiveMean(curMean, std, lowerBound);
         // save direction
@@ -327,7 +330,7 @@ public final class StochasticSuppliers {
         }
         // if direction changed decrease step size
         if (dir != oldDir && oldDir != 0) {
-          stepSize /= 10d;
+          stepSize /= 1.5d;
         }
         // apply step
         if (effectiveMean > mean) {
@@ -335,6 +338,10 @@ public final class StochasticSuppliers {
         } else {
           curMean += stepSize;
         }
+        iterations++;
+        checkState(iterations < MAX_ITERATIONS,
+            "Could not converge. Target mean: %s, effective mean: %s.", mean,
+            effectiveMean);
       } while (Math.abs(effectiveMean - mean) > SMALLEST_DOUBLE);
       mean = curMean;
       return this;
