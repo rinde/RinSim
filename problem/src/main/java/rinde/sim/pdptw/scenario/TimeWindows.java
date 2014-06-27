@@ -152,15 +152,15 @@ public final class TimeWindows {
 
     @Override
     public void generate(long seed, ParcelDTO.Builder parcelBuilder,
-        TravelTimes travelModel, long endTime) {
+        TravelTimes travelTimes, long endTime) {
       rng.setSeed(seed);
       final long orderAnnounceTime = parcelBuilder.getOrderAnnounceTime();
       final Point pickup = parcelBuilder.getPickupLocation();
       final Point delivery = parcelBuilder.getDeliveryLocation();
 
-      final long pickupToDeliveryTT = travelModel.getShortestTravelTime(pickup,
+      final long pickupToDeliveryTT = travelTimes.getShortestTravelTime(pickup,
           delivery);
-      final long deliveryToDepotTT = travelModel
+      final long deliveryToDepotTT = travelTimes
           .getTravelTimeToNearestDepot(delivery);
 
       // PICKUP
@@ -216,7 +216,8 @@ public final class TimeWindows {
     }
 
     TimeWindow urgencyTimeWindow(long earliestOpening, long earliestClosing,
-        long latestClosing, StochasticSupplier<Long> urgency, StochasticSupplier<Long> length) {
+        long latestClosing, StochasticSupplier<Long> urgency,
+        StochasticSupplier<Long> length) {
       final long closing = boundValue(
           earliestClosing + urgency.get(rng.nextLong()), earliestClosing,
           latestClosing);
