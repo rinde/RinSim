@@ -217,11 +217,11 @@ public final class Metrics {
     checkArgument(
         event.parcelDTO.deliveryTimeWindow.begin >= firstDepartureTime
             + travelTime,
-        "The begin of the delivery time window (%s) is too early.",
-        event.parcelDTO.deliveryTimeWindow);
+        "The begin of the delivery time window (%s) is too early, should be >= %s.",
+        event.parcelDTO.deliveryTimeWindow, firstDepartureTime + travelTime);
     checkArgument(
         latestDepartureTime + travelTime <= event.parcelDTO.deliveryTimeWindow.end,
-        "The end of the pickup time window %s is too late.",
+        "The end of the pickup time window %s is too late, or end of delivery is too early.",
         event.parcelDTO.pickupTimeWindow.end);
   }
 
