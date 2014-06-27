@@ -34,7 +34,7 @@ import com.google.common.base.Optional;
  * @since 2.0
  */
 public class ScenarioController implements TickListener {
-
+  // rename to event scheduler?
   /**
    * Logger for this class.
    */
