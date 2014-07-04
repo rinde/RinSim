@@ -100,7 +100,6 @@ public class GlobalStateObject {
    * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
    */
   public static class VehicleStateObject extends VehicleDTO {
-    private static final long serialVersionUID = -9021013328998791086L;
 
     /**
      * Location of the vehicle.
