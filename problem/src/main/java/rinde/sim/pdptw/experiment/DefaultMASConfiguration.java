@@ -3,6 +3,8 @@
  */
 package rinde.sim.pdptw.experiment;
 
+import java.io.Serializable;
+
 import rinde.sim.core.model.Model;
 import rinde.sim.pdptw.common.AddDepotEvent;
 import rinde.sim.pdptw.common.AddParcelEvent;
@@ -17,7 +19,9 @@ import com.google.common.collect.ImmutableList;
  * default values.
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
  */
-public abstract class DefaultMASConfiguration implements MASConfiguration {
+public abstract class DefaultMASConfiguration implements MASConfiguration,
+    Serializable {
+  private static final long serialVersionUID = 4815504615843930209L;
 
   @Override
   public ImmutableList<? extends StochasticSupplier<? extends Model<?>>> getModels() {

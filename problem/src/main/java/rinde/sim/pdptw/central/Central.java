@@ -69,7 +69,7 @@ public final class Central {
 
   private static final class CentralConfiguration extends
       DefaultMASConfiguration {
-
+    private static final long serialVersionUID = 8906291887010954854L;
     final StochasticSupplier<? extends Solver> solverCreator;
     private final String nameSuffix;
 

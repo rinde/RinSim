@@ -3,6 +3,8 @@
  */
 package rinde.sim.pdptw.gendreau06;
 
+import java.io.Serializable;
+
 import rinde.sim.pdptw.common.ObjectiveFunction;
 import rinde.sim.pdptw.common.StatisticsDTO;
 
@@ -10,7 +12,9 @@ import rinde.sim.pdptw.common.StatisticsDTO;
  * Objective function for Gendreau et al. (2006) problem instances.
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
  */
-public final class Gendreau06ObjectiveFunction implements ObjectiveFunction {
+public final class Gendreau06ObjectiveFunction implements ObjectiveFunction,
+    Serializable {
+  private static final long serialVersionUID = 6069190376442772396L;
   private static final Gendreau06ObjectiveFunction INSTANCE = new Gendreau06ObjectiveFunction();
   private static final double MS_TO_MINUTES = 60000d;
   private static final double ALPHA = 1d;

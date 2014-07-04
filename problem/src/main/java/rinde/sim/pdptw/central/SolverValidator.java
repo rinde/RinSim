@@ -47,7 +47,8 @@ public final class SolverValidator {
    * @param sup The supplier to wrap.
    * @return The wrapper supplier.
    */
-  public static StochasticSupplier<Solver> wrap(StochasticSupplier<? extends Solver> sup) {
+  public static StochasticSupplier<Solver> wrap(
+      StochasticSupplier<? extends Solver> sup) {
     return new ValidatedSupplier(sup);
   }
 
@@ -234,6 +235,7 @@ public final class SolverValidator {
 
   private static final class ValidatedSupplier extends
       StochasticSuppliers.AbstractStochasticSupplier<Solver> {
+    private static final long serialVersionUID = -2408333654270668182L;
     private final StochasticSupplier<? extends Solver> supplier;
 
     ValidatedSupplier(StochasticSupplier<? extends Solver> sup) {

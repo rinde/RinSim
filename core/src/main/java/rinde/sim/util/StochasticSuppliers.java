@@ -3,6 +3,7 @@ package rinde.sim.util;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
 
+import java.io.Serializable;
 import java.math.RoundingMode;
 import java.util.Iterator;
 
@@ -413,11 +414,14 @@ public final class StochasticSuppliers {
    * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
    */
   public abstract static class AbstractStochasticSupplier<T> implements
-      StochasticSupplier<T> {
-    @SuppressWarnings("serial")
+      StochasticSupplier<T>, Serializable {
+    private static final long serialVersionUID = 992219257352250656L;
+
     @Override
     public String toString() {
-      return new TypeToken<T>(getClass()) {}.getRawType().getSimpleName();
+      return new TypeToken<T>(getClass()) {
+        private static final long serialVersionUID = 4641163444574558674L;
+      }.getRawType().getSimpleName();
     }
   }
 
@@ -427,6 +431,7 @@ public final class StochasticSuppliers {
 
   private static class IntToLongAdapter extends
       AbstractStochasticSupplier<Long> {
+    private static final long serialVersionUID = 3638307177262422449L;
     private final StochasticSupplier<Integer> supplier;
 
     IntToLongAdapter(StochasticSupplier<Integer> supp) {
@@ -441,6 +446,7 @@ public final class StochasticSuppliers {
 
   private static class DoubleToIntAdapter extends
       AbstractStochasticSupplier<Integer> {
+    private static final long serialVersionUID = 3086452659883375531L;
     private final StochasticSupplier<Double> supplier;
 
     DoubleToIntAdapter(StochasticSupplier<Double> supp) {
@@ -455,6 +461,7 @@ public final class StochasticSuppliers {
 
   private static class DoubleToLongAdapter extends
       AbstractStochasticSupplier<Long> {
+    private static final long serialVersionUID = -8846720318135533333L;
     private final StochasticSupplier<Double> supplier;
 
     DoubleToLongAdapter(StochasticSupplier<Double> supp) {
@@ -469,6 +476,7 @@ public final class StochasticSuppliers {
 
   private static class IntegerDistributionSS extends
       AbstractStochasticSupplier<Integer> {
+    private static final long serialVersionUID = -7967542154741162460L;
     private final IntegerDistribution distribution;
 
     IntegerDistributionSS(IntegerDistribution id) {
@@ -484,6 +492,7 @@ public final class StochasticSuppliers {
 
   private static class BoundedDoubleDistSS extends
       AbstractStochasticSupplier<Double> {
+    private static final long serialVersionUID = -6738290534532097051L;
     private final RealDistribution distribution;
     private final double lowerBound;
     private final double upperBound;
@@ -522,6 +531,7 @@ public final class StochasticSuppliers {
 
   private static class DoubleDistributionSS extends
       AbstractStochasticSupplier<Double> {
+    private static final long serialVersionUID = -5853417575632121095L;
     private final RealDistribution distribution;
 
     DoubleDistributionSS(RealDistribution rd) {
@@ -537,6 +547,7 @@ public final class StochasticSuppliers {
 
   private static class IteratorSS<T> extends
       AbstractStochasticSupplier<T> {
+    private static final long serialVersionUID = 3151363361183354655L;
     private final Iterator<T> iterator;
 
     IteratorSS(Iterator<T> it) {
@@ -554,6 +565,7 @@ public final class StochasticSuppliers {
 
   private static final class ConstantSupplier<T> extends
       AbstractStochasticSupplier<T> {
+    private static final long serialVersionUID = -5017806121674846656L;
     private final T value;
 
     ConstantSupplier(T v) {
@@ -567,6 +579,7 @@ public final class StochasticSuppliers {
   }
 
   private static class SupplierAdapter<T> extends AbstractStochasticSupplier<T> {
+    private static final long serialVersionUID = 1388067842132493130L;
     private final Supplier<T> supplier;
 
     SupplierAdapter(Supplier<T> sup) {

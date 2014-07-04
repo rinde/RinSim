@@ -42,6 +42,23 @@
 			<type>test-jar</type>
 			<scope>test</scope>
 		</dependency>
+		<dependency>
+			<groupId>org.jppf</groupId>
+			<artifactId>jppf-client</artifactId>
+			<version>4.1.2</version>
+		</dependency>
+		<dependency>
+			<groupId>org.jppf</groupId>
+			<artifactId>jppf-server</artifactId>
+			<version>4.1.2</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.jppf</groupId>
+			<artifactId>jppf-common-node</artifactId>
+			<version>4.1.2</version>
+			<scope>test</scope>
+		</dependency>
 	</dependencies>
 
 	<properties>

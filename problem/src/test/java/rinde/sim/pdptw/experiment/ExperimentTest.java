@@ -7,6 +7,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import java.io.File;
+import java.io.Serializable;
 import java.util.List;
 
 import org.junit.Test;
@@ -19,7 +20,6 @@ import rinde.sim.pdptw.central.RandomSolver;
 import rinde.sim.pdptw.common.DynamicPDPTWProblem;
 import rinde.sim.pdptw.common.ObjectiveFunction;
 import rinde.sim.pdptw.common.StatisticsDTO;
-import rinde.sim.pdptw.experiment.Experiment.ExperimentResults;
 import rinde.sim.pdptw.gendreau06.Gendreau06ObjectiveFunction;
 import rinde.sim.pdptw.gendreau06.Gendreau06Parser;
 import rinde.sim.pdptw.gendreau06.Gendreau06Scenario;
@@ -100,7 +100,8 @@ public class ExperimentTest {
   }
 
   static class TestPostProcessor implements
-      PostProcessor<ImmutableList<Point>> {
+      PostProcessor<ImmutableList<Point>>, Serializable {
+    private static final long serialVersionUID = -2166760289557525263L;
 
     @Override
     public ImmutableList<Point> collectResults(Simulator sim) {

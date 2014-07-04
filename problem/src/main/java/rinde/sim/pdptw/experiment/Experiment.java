@@ -8,11 +8,9 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.collect.Sets.newLinkedHashSet;
 
+import java.io.Serializable;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Executors;
 
 import javax.annotation.Nullable;
 
@@ -27,17 +25,17 @@ import rinde.sim.pdptw.common.DynamicPDPTWProblem;
 import rinde.sim.pdptw.common.ObjectiveFunction;
 import rinde.sim.pdptw.common.RouteRenderer;
 import rinde.sim.pdptw.common.StatisticsDTO;
+import rinde.sim.pdptw.experiment.Experiment.Builder.SimArgs;
+import rinde.sim.pdptw.experiment.LocalComputer.ExperimentRunner;
 import rinde.sim.pdptw.scenario.PDPScenario;
 import rinde.sim.scenario.ScenarioController.UICreator;
 import rinde.sim.util.StochasticSupplier;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Objects;
+import com.google.common.base.Optional;
+import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableList;
-import com.google.common.util.concurrent.Futures;
-import com.google.common.util.concurrent.ListenableFuture;
-import com.google.common.util.concurrent.ListeningExecutorService;
-import com.google.common.util.concurrent.MoreExecutors;
 
 /**
  * Utility for defining and performing experiments. An experiment is composed of
@@ -85,6 +83,21 @@ public final class Experiment {
   // TODO add strict mode which checks whether there are not too many
   // vehicles/parcels/depots?
 
+  enum ComputerType implements Supplier<Computer> {
+    LOCAL {
+      @Override
+      public Computer get() {
+        return new LocalComputer();
+      }
+    },
+    DISTRIBUTED {
+      @Override
+      public Computer get() {
+        return new JppfComputer();
+      }
+    };
+  }
+
   private Experiment() {}
 
   /**
@@ -113,8 +126,8 @@ public final class Experiment {
       boolean showGui, @Nullable PostProcessor<?> postProcessor,
       @Nullable UICreator uic) {
 
-    final ExperimentRunner er = new ExperimentRunner(scenario, configuration,
-        seed, objFunc, showGui, postProcessor, uic);
+    final ExperimentRunner er = new ExperimentRunner(new SimArgs(scenario,
+        configuration, seed, objFunc, showGui, postProcessor, uic));
     final SimulationResult res = er.call();
     checkState(res != null);
     return res;
@@ -130,7 +143,7 @@ public final class Experiment {
   @VisibleForTesting
   static DynamicPDPTWProblem init(PDPScenario scenario,
       MASConfiguration config, long seed, boolean showGui,
-      @Nullable UICreator uic) {
+      Optional<UICreator> uiCreator) {
 
     final RandomGenerator rng = new MersenneTwister(seed);
     final long simSeed = rng.nextLong();
@@ -152,12 +165,12 @@ public final class Experiment {
       problem.addCreator(AddParcelEvent.class, config.getParcelCreator().get());
     }
     if (showGui) {
-      if (uic == null) {
-        problem.addRendererToUI(new RouteRenderer());
-        problem.enableUI();
+      if (uiCreator.isPresent()) {
+        problem.enableUI(uiCreator.get());
       }
       else {
-        problem.enableUI(uic);
+        problem.addRendererToUI(new RouteRenderer());
+        problem.enableUI();
       }
     }
     return problem;
@@ -178,7 +191,9 @@ public final class Experiment {
     boolean showGui;
     int repetitions;
     long masterSeed;
-    private int numThreads;
+    int numThreads;
+
+    private ComputerType computerType;
 
     Builder(ObjectiveFunction objectiveFunction) {
       this.objectiveFunction = objectiveFunction;
@@ -188,6 +203,7 @@ public final class Experiment {
       repetitions = 1;
       masterSeed = 0L;
       numThreads = 1;
+      computerType = ComputerType.LOCAL;
     }
 
     /**
@@ -306,6 +322,41 @@ public final class Experiment {
     }
 
     /**
+     * When this method is called the experiment will be performed in a
+     * distributed fashion using the <a href="http://www.jppf.org/">JPPF</a>
+     * framework. By default JPPF will attempt to connect to a driver on
+     * <code>localhost</code>. For changing the JPPF settings, please consult
+     * the JPPF documentation.
+     * <p>
+     * <b>Requirements:</b> {@link ObjectiveFunction}, {@link MASConfiguration}
+     * and {@link PostProcessor} (if used) must implement {@link Serializable}.
+     * <p>
+     * <b>Incompatible settings</b><br/>
+     * The following settings will be ignored when computing is done in a
+     * distributed fashion:
+     * <ul>
+     * <li>{@link #withThreads(int)}</li>
+     * <li>{@link #showGui()}</li>
+     * <li>{@link #showGui(UICreator)}</li>
+     * </ul>
+     * 
+     * @return This, as per the builder pattern.
+     */
+    public Builder computeDistributed() {
+      computerType = ComputerType.DISTRIBUTED;
+      return this;
+    }
+
+    /**
+     * This setting will perform the experiment locally.
+     * @return This, as per the builder pattern.
+     */
+    public Builder computeLocal() {
+      computerType = ComputerType.LOCAL;
+      return this;
+    }
+
+    /**
      * Perform the experiment. For every scenario every configuration is used
      * <code>n</code> times. Where <code>n</code> is the number of repetitions
      * as specified.
@@ -318,8 +369,8 @@ public final class Experiment {
       final List<Long> seeds = generateSeeds();
 
       // run Forrest run!
-      final ImmutableList<ExperimentRunner> runners = gatherAllRunners(seeds);
-      return runAllRunners(runners);
+      final ImmutableList<SimArgs> runners = createFactorialSetup(seeds);
+      return computerType.get().compute(this, runners);
     }
 
     private ImmutableList<Long> generateSeeds() {
@@ -331,20 +382,20 @@ public final class Experiment {
       }
     }
 
-    private ImmutableList<ExperimentRunner> gatherAllRunners(List<Long> seeds) {
+    private ImmutableList<SimArgs> createFactorialSetup(List<Long> seeds) {
       final ImmutableList<PDPScenario> scen = scenariosBuilder.build();
       final ImmutableList<MASConfiguration> conf = configurationsBuilder
           .build();
 
       checkArgument(!scen.isEmpty(), "At least one scenario is required.");
       checkArgument(!conf.isEmpty(), "At least one configuration is required.");
-      final ImmutableList.Builder<ExperimentRunner> runnerBuilder = ImmutableList
+      final ImmutableList.Builder<SimArgs> runnerBuilder = ImmutableList
           .builder();
       for (final MASConfiguration configuration : conf) {
         for (final PDPScenario scenario : scen) {
           for (int i = 0; i < repetitions; i++) {
             final long seed = seeds.get(i);
-            runnerBuilder.add(new ExperimentRunner(scenario, configuration,
+            runnerBuilder.add(new SimArgs(scenario, configuration,
                 seed, objectiveFunction, showGui, postProc, uiCreator));
           }
         }
@@ -352,33 +403,27 @@ public final class Experiment {
       return runnerBuilder.build();
     }
 
-    private ExperimentResults runAllRunners(
-        ImmutableList<ExperimentRunner> runners) {
-      final int threads = Math.min(numThreads, runners.size());
-      final ListeningExecutorService executor;
-      if (threads > 1) {
-        executor = MoreExecutors
-            .listeningDecorator(Executors.newFixedThreadPool(threads));
-      } else {
-        executor = MoreExecutors.sameThreadExecutor();
-      }
-      final List<SimulationResult> results;
-      try {
-        // safe cast according to javadoc
-        @SuppressWarnings({ "unchecked", "rawtypes" })
-        final List<ListenableFuture<SimulationResult>> futures = (List) executor
-            .invokeAll(runners);
-        results = Futures.allAsList(futures).get();
-      } catch (final InterruptedException e) {
-        throw new IllegalStateException(e);
-      } catch (final ExecutionException e) {
-        // FIXME need some way to gracefully handle this error. All data
-        // should be saved to reproduce this simulation.
-        throw new IllegalStateException(e);
-      }
-      executor.shutdown();
+    static class SimArgs {
+      final PDPScenario scenario;
+      final MASConfiguration masConfig;
+      final long randomSeed;
+      final ObjectiveFunction objectiveFunction;
+      final boolean showGui;
+      final Optional<? extends PostProcessor<?>> postProcessor;
+      final Optional<UICreator> uiCreator;
 
-      return new ExperimentResults(this, ImmutableList.copyOf(results));
+      SimArgs(PDPScenario s, MASConfiguration m, long seed,
+          ObjectiveFunction obj, boolean gui, @Nullable PostProcessor<?> pp,
+          @Nullable UICreator uic) {
+        scenario = s;
+        masConfig = m;
+        randomSeed = seed;
+        objectiveFunction = obj;
+        showGui = gui;
+        postProcessor = Optional.fromNullable(pp);
+        uiCreator = Optional.fromNullable(uic);
+      }
+
     }
   }
 
@@ -418,13 +463,13 @@ public final class Experiment {
 
     /**
      * Additional simulation data as gathered by a {@link PostProcessor}, or if
-     * no post-processor was used this object defaults to <code>null</code>.
+     * no post-processor was used this object defaults to
+     * <code>Optional#absent()</code>.
      */
-    @Nullable
-    public Object simulationData;
+    public Optional<?> simulationData;
 
     SimulationResult(StatisticsDTO stats, PDPScenario scenario,
-        MASConfiguration masConfiguration, long seed, @Nullable Object simData) {
+        MASConfiguration masConfiguration, long seed, Optional<?> simData) {
       this.stats = stats;
       this.scenario = scenario;
       this.masConfiguration = masConfiguration;
@@ -466,150 +511,4 @@ public final class Experiment {
     }
   }
 
-  /**
-   * Value object containing all the results of a single experiment as performed
-   * by {@link Builder#perform()}.
-   * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
-   */
-  public static final class ExperimentResults {
-    /**
-     * The {@link ObjectiveFunction} that was used for this experiment.
-     */
-    public final ObjectiveFunction objectiveFunction;
-
-    /**
-     * The configurations that were used in this experiment.
-     */
-    public final ImmutableList<MASConfiguration> configurations;
-
-    /**
-     * The scenarios that were used in this experiment.
-     */
-    public final ImmutableList<PDPScenario> scenarios;
-
-    /**
-     * Indicates whether the experiment was executed with or without the
-     * graphical user interface.
-     */
-    public final boolean showGui;
-
-    /**
-     * The number of repetitions for each run (with a different seed).
-     */
-    public final int repetitions;
-
-    /**
-     * The seed of the master random generator.
-     */
-    public final long masterSeed;
-
-    /**
-     * The list of individual simulation results.
-     */
-    public final ImmutableList<SimulationResult> results;
-
-    ExperimentResults(Builder exp, ImmutableList<SimulationResult> res) {
-      objectiveFunction = exp.objectiveFunction;
-      configurations = exp.configurationsBuilder.build();
-      scenarios = exp.scenariosBuilder.build();
-      showGui = exp.showGui;
-      repetitions = exp.repetitions;
-      masterSeed = exp.masterSeed;
-      results = res;
-    }
-
-    @Override
-    public int hashCode() {
-      return Objects.hashCode(objectiveFunction, configurations, scenarios,
-          showGui, repetitions, masterSeed, results);
-    }
-
-    @Override
-    public boolean equals(@Nullable Object other) {
-      if (other == null) {
-        return false;
-      }
-      if (other.getClass() != getClass()) {
-        return false;
-      }
-      final ExperimentResults er = (ExperimentResults) other;
-      return Objects.equal(objectiveFunction, er.objectiveFunction)
-          && Objects.equal(configurations, er.configurations)
-          && Objects.equal(scenarios, er.scenarios)
-          && Objects.equal(showGui, er.showGui)
-          && Objects.equal(repetitions, er.repetitions)
-          && Objects.equal(masterSeed, er.masterSeed)
-          && Objects.equal(results, er.results);
-    }
-
-    @Override
-    public String toString() {
-      return Objects.toStringHelper(this)
-          .add("objectiveFunction", objectiveFunction)
-          .add("configurations", configurations)
-          .add("scenarios", scenarios)
-          .add("showGui", showGui)
-          .add("repetitions", repetitions)
-          .add("masterSeed", masterSeed)
-          .add("results", results)
-          .toString();
-    }
-  }
-
-  private static class ExperimentRunner implements Callable<SimulationResult> {
-    private final PDPScenario scenario;
-    private final MASConfiguration configuration;
-    private final long seed;
-    private final ObjectiveFunction objectiveFunction;
-    private final boolean showGui;
-    @Nullable
-    private final UICreator uiCreator;
-    @Nullable
-    private final PostProcessor<?> postProcessor;
-
-    ExperimentRunner(PDPScenario scenario,
-        MASConfiguration configuration, long seed,
-        ObjectiveFunction objectiveFunction, boolean showGui,
-        @Nullable PostProcessor<?> postProc,
-        @Nullable UICreator uic) {
-      this.scenario = scenario;
-      this.configuration = configuration;
-      this.seed = seed;
-      this.objectiveFunction = objectiveFunction;
-      this.showGui = showGui;
-      postProcessor = postProc;
-      uiCreator = uic;
-    }
-
-    @Override
-    public SimulationResult call() {
-      try {
-        final DynamicPDPTWProblem prob = init(scenario, configuration, seed,
-            showGui, uiCreator);
-        final StatisticsDTO stats = prob.simulate();
-
-        @Nullable
-        Object data = null;
-        if (postProcessor != null) {
-          data = postProcessor.collectResults(prob.getSimulator());
-        }
-        checkState(objectiveFunction.isValidResult(stats),
-            "The simulation did not result in a valid result: %s.", stats);
-        final SimulationResult result = new SimulationResult(stats, scenario,
-            configuration, seed, data);
-
-        // FIXME this should be changed into a more decent progress indicator
-        System.out.print(".");
-        return result;
-      } catch (final RuntimeException e) {
-        final StringBuilder sb = new StringBuilder().append("[Scenario= ")
-            .append(scenario).append(",").append(scenario.getProblemClass())
-            .append(",").append(scenario.getProblemInstanceId()).append("]")
-            .append(",seed=").append(seed).append(",config=")
-            .append(configuration);
-        throw new RuntimeException(sb.toString(), e);
-      }
-
-    }
-  }
 }
