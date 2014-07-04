@@ -1,7 +1,7 @@
 package rinde.sim.pdptw.central;
 
 import static com.google.common.collect.Lists.newArrayList;
-import static com.google.common.collect.Sets.newHashSet;
+import static com.google.common.collect.Sets.newLinkedHashSet;
 
 import java.util.Collections;
 import java.util.List;
@@ -43,8 +43,8 @@ public class RandomSolver implements Solver {
     final LinkedListMultimap<VehicleStateObject, ParcelDTO> map = LinkedListMultimap
         .create();
 
-    final Set<ParcelDTO> available = newHashSet(state.availableParcels);
-    final Set<ParcelDTO> destinations = newHashSet();
+    final Set<ParcelDTO> available = newLinkedHashSet(state.availableParcels);
+    final Set<ParcelDTO> destinations = newLinkedHashSet();
     for (final VehicleStateObject vso : state.vehicles) {
       if (vso.destination != null) {
         destinations.add(vso.destination);
@@ -85,6 +85,8 @@ public class RandomSolver implements Solver {
    */
   public static StochasticSupplier<Solver> supplier() {
     return new StochasticSuppliers.AbstractStochasticSupplier<Solver>() {
+      private static final long serialVersionUID = 992219257352250656L;
+
       @Override
       public Solver get(long seed) {
         return new RandomSolver(new MersenneTwister(seed));
