@@ -126,15 +126,32 @@ public final class ScenarioIO {
     return read(Files.toString(file, Charsets.UTF_8), type);
   }
 
-  static String write(Scenario s) {
+  /**
+   * Writes the specified {@link Scenario} in JSON format.
+   * @param s The scenario.
+   * @return The scenario as JSON.
+   */
+  public static String write(Scenario s) {
     return GSON.toJson(s);
   }
 
-  static PDPScenario read(String s) {
+  /**
+   * Reads a {@link PDPScenario} from string.
+   * @param s The string to read.
+   * @return A {@link PDPScenario} instance.
+   */
+  public static PDPScenario read(String s) {
     return read(s, DefaultScenario.class);
   }
 
-  static <T> T read(String s, Class<T> type) {
+  /**
+   * Reads a {@link PDPScenario} from string.
+   * @param s The string to read.
+   * @param type The type of scenario to convert to.
+   * @param <T> The scenario type.
+   * @return A {@link PDPScenario} instance.
+   */
+  public static <T> T read(String s, Class<T> type) {
     return GSON.fromJson(s, type);
   }
 
