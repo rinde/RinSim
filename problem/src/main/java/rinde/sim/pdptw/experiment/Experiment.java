@@ -6,6 +6,7 @@ package rinde.sim.pdptw.experiment;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
+import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Sets.newLinkedHashSet;
 
 import java.io.Serializable;
@@ -36,6 +37,7 @@ import com.google.common.base.Objects;
 import com.google.common.base.Optional;
 import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 
 /**
  * Utility for defining and performing experiments. An experiment is composed of
@@ -182,8 +184,9 @@ public final class Experiment {
    */
   public static final class Builder {
     final ObjectiveFunction objectiveFunction;
-    final ImmutableList.Builder<MASConfiguration> configurationsBuilder;
-    final ImmutableList.Builder<PDPScenario> scenariosBuilder;
+    final ImmutableSet.Builder<MASConfiguration> configurationsBuilder;
+    final ImmutableSet.Builder<PDPScenario> scenariosBuilder;
+    final List<ResultListener> resultListeners;
     @Nullable
     UICreator uiCreator;
     @Nullable
@@ -192,17 +195,20 @@ public final class Experiment {
     int repetitions;
     long masterSeed;
     int numThreads;
+    int numBatches;
 
     private ComputerType computerType;
 
     Builder(ObjectiveFunction objectiveFunction) {
       this.objectiveFunction = objectiveFunction;
-      configurationsBuilder = ImmutableList.builder();
-      scenariosBuilder = ImmutableList.builder();
+      configurationsBuilder = ImmutableSet.builder();
+      scenariosBuilder = ImmutableSet.builder();
+      resultListeners = newArrayList();
       showGui = false;
       repetitions = 1;
       masterSeed = 0L;
       numThreads = 1;
+      numBatches = 1;
       computerType = ComputerType.LOCAL;
     }
 
@@ -321,12 +327,17 @@ public final class Experiment {
       return this;
     }
 
+    public Builder numBatches(int num) {
+      numBatches = num;
+      return this;
+    }
+
     /**
      * When this method is called the experiment will be performed in a
      * distributed fashion using the <a href="http://www.jppf.org/">JPPF</a>
      * framework. By default JPPF will attempt to connect to a driver on
      * <code>localhost</code>. For changing the JPPF settings, please consult
-     * the JPPF documentation.
+     * the <a href="http://www.jppf.org/doc/">JPPF documentation</a>.
      * <p>
      * <b>Requirements:</b> {@link ObjectiveFunction}, {@link MASConfiguration}
      * and {@link PostProcessor} (if used) must implement {@link Serializable}.
@@ -348,11 +359,23 @@ public final class Experiment {
     }
 
     /**
-     * This setting will perform the experiment locally.
+     * This setting will perform the experiment locally (this is the default).
      * @return This, as per the builder pattern.
      */
     public Builder computeLocal() {
       computerType = ComputerType.LOCAL;
+      return this;
+    }
+
+    /**
+     * Adds the specified {@link ResultListener} to the experiment. This
+     * listener will be called each time a simulation is done. <b>Currently only
+     * works for distributed computation</b>.
+     * @param listener The listener to add.
+     * @return This, as per the builder pattern.
+     */
+    public Builder addResultListener(ResultListener listener) {
+      resultListeners.add(listener);
       return this;
     }
 
@@ -369,7 +392,7 @@ public final class Experiment {
       final List<Long> seeds = generateSeeds();
 
       // run Forrest run!
-      final ImmutableList<SimArgs> runners = createFactorialSetup(seeds);
+      final ImmutableSet<SimArgs> runners = createFactorialSetup(seeds);
       return computerType.get().compute(this, runners);
     }
 
@@ -382,14 +405,14 @@ public final class Experiment {
       }
     }
 
-    private ImmutableList<SimArgs> createFactorialSetup(List<Long> seeds) {
-      final ImmutableList<PDPScenario> scen = scenariosBuilder.build();
-      final ImmutableList<MASConfiguration> conf = configurationsBuilder
+    private ImmutableSet<SimArgs> createFactorialSetup(List<Long> seeds) {
+      final ImmutableSet<PDPScenario> scen = scenariosBuilder.build();
+      final ImmutableSet<MASConfiguration> conf = configurationsBuilder
           .build();
 
       checkArgument(!scen.isEmpty(), "At least one scenario is required.");
       checkArgument(!conf.isEmpty(), "At least one configuration is required.");
-      final ImmutableList.Builder<SimArgs> runnerBuilder = ImmutableList
+      final ImmutableSet.Builder<SimArgs> runnerBuilder = ImmutableSet
           .builder();
       for (final MASConfiguration configuration : conf) {
         for (final PDPScenario scenario : scen) {
@@ -423,7 +446,6 @@ public final class Experiment {
         postProcessor = Optional.fromNullable(pp);
         uiCreator = Optional.fromNullable(uic);
       }
-
     }
   }
 

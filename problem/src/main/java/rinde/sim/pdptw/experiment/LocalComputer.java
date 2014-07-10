@@ -3,6 +3,7 @@ package rinde.sim.pdptw.experiment;
 import static com.google.common.base.Preconditions.checkState;
 
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
@@ -15,6 +16,7 @@ import rinde.sim.pdptw.experiment.Experiment.SimulationResult;
 
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ListeningExecutorService;
@@ -23,8 +25,7 @@ import com.google.common.util.concurrent.MoreExecutors;
 final class LocalComputer implements Computer {
 
   @Override
-  public ExperimentResults compute(Builder builder,
-      Iterable<Builder.SimArgs> inputs) {
+  public ExperimentResults compute(Builder builder, Set<SimArgs> inputs) {
     final ImmutableList.Builder<ExperimentRunner> runnerBuilder = ImmutableList
         .builder();
     for (final Builder.SimArgs args : inputs) {
@@ -57,7 +58,7 @@ final class LocalComputer implements Computer {
     executor.shutdown();
 
     return new ExperimentResults(builder,
-        ImmutableList.copyOf(results));
+        ImmutableSet.copyOf(results));
   }
 
   static class ExperimentRunner implements Callable<SimulationResult> {

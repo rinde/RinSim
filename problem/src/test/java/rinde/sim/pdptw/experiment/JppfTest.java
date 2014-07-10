@@ -1,10 +1,13 @@
 package rinde.sim.pdptw.experiment;
 
+import static com.google.common.collect.Lists.newArrayList;
+import static java.util.Arrays.asList;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import java.io.File;
 import java.io.Serializable;
+import java.util.List;
 
 import org.apache.commons.math3.random.MersenneTwister;
 import org.apache.commons.math3.random.RandomGenerator;
@@ -67,24 +70,32 @@ public class JppfTest {
    */
   @Test
   public void determinismJppfVsJppf() {
+    final List<Integer> ints = asList(1, 2, 5, 10);
+    final List<ExperimentResults> allResults = newArrayList();
+
     final Experiment.Builder experimentBuilder = Experiment
         .build(Gendreau06ObjectiveFunction.instance())
         .computeDistributed()
         .addScenario(gendreauScenario)
         .withRandomSeed(123)
-        .repeat(5)
+        .repeat(50)
+        .addResultListener(new ExperimentProgressBar())
         .addConfiguration(
             Central.solverConfiguration(
                 SolverValidator.wrap(RandomSolver.supplier()), "A"));
-
-    final ExperimentResults results1 = experimentBuilder.perform();
-    final ExperimentResults results2 = experimentBuilder.perform();
-    assertEquals(results1, results2);
+    for (final int i : ints) {
+      allResults.add(
+          experimentBuilder.numBatches(i)
+              .perform());
+    }
+    for (int i = 0; i < allResults.size() - 1; i++) {
+      assertEquals(allResults.get(i), allResults.get(i + 1));
+    }
   }
 
   /**
    * Checks determinism of a local experiment and a JPPF experiment, both with
-   * identical settings. Using a gendreau scenario.
+   * identical settings. Using a Gendreau scenario.
    */
   @Test
   public void determinismLocalVsJppf() {
@@ -103,7 +114,7 @@ public class JppfTest {
     experimentBuilder.computeLocal();
     final ExperimentResults results4 = experimentBuilder.perform();
     assertEquals(results3, results4);
-    assertTrue(results3.results.get(0).simulationData.isPresent());
+    assertTrue(results3.results.asList().get(0).simulationData.isPresent());
   }
 
   /**
@@ -137,7 +148,8 @@ public class JppfTest {
   }
 
   /**
-   * Tests a post processor that returns objects which are not serializable.
+   * Tests a post processor that returns objects that do not implement
+   * {@link Serializable}.
    */
   @Test(expected = IllegalArgumentException.class)
   public void testFaultyPostProcessor() {

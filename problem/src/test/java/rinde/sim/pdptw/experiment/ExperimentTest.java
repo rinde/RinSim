@@ -60,10 +60,10 @@ public class ExperimentTest {
     final ExperimentResults er = builder.perform();
 
     assertEquals(123, er.masterSeed);
-    assertEquals(123, er.results.get(0).seed);
+    assertEquals(123, er.results.asList().get(0).seed);
 
     @SuppressWarnings("unchecked")
-    final List<Point> positions = (List<Point>) er.results.get(0).simulationData
+    final List<Point> positions = (List<Point>) er.results.asList().get(0).simulationData
         .get();
     assertEquals(11, positions.size());
     for (final Point p : positions) {
@@ -74,6 +74,8 @@ public class ExperimentTest {
   /**
    * Checks whether the ordering of results is as expected.
    */
+  // FIXME is this test still applicable now that we use sets for the results?
+  // i.e. ordering is no longer important
   @Test
   public void multiThreadedOrder() {
     final Gendreau06Scenario scenario = Gendreau06Parser.parse(
@@ -94,10 +96,14 @@ public class ExperimentTest {
         .withRandomSeed(456);
 
     final ExperimentResults er = builder.perform();
-    assertTrue(er.results.get(0).masConfiguration.toString().endsWith("A"));
-    assertTrue(er.results.get(1).masConfiguration.toString().endsWith("B"));
-    assertTrue(er.results.get(2).masConfiguration.toString().endsWith("C"));
-    assertTrue(er.results.get(3).masConfiguration.toString().endsWith("D"));
+    assertTrue(er.results.asList().get(0).masConfiguration.toString().endsWith(
+        "A"));
+    assertTrue(er.results.asList().get(1).masConfiguration.toString().endsWith(
+        "B"));
+    assertTrue(er.results.asList().get(2).masConfiguration.toString().endsWith(
+        "C"));
+    assertTrue(er.results.asList().get(3).masConfiguration.toString().endsWith(
+        "D"));
   }
 
   static class TestPostProcessor implements

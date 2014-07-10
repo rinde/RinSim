@@ -8,7 +8,7 @@ import rinde.sim.pdptw.experiment.Experiment.SimulationResult;
 import rinde.sim.pdptw.scenario.PDPScenario;
 
 import com.google.common.base.Objects;
-import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 
 /**
  * Value object containing all the results of a single experiment as performed
@@ -24,16 +24,16 @@ public final class ExperimentResults {
   /**
    * The configurations that were used in this experiment.
    */
-  public final ImmutableList<MASConfiguration> configurations;
+  public final ImmutableSet<MASConfiguration> configurations;
 
   /**
    * The scenarios that were used in this experiment.
    */
-  public final ImmutableList<PDPScenario> scenarios;
+  public final ImmutableSet<PDPScenario> scenarios;
 
   /**
-   * Indicates whether the experiment was executed with or without the
-   * graphical user interface.
+   * Indicates whether the experiment was executed with or without the graphical
+   * user interface.
    */
   public final boolean showGui;
 
@@ -50,9 +50,9 @@ public final class ExperimentResults {
   /**
    * The list of individual simulation results.
    */
-  public final ImmutableList<SimulationResult> results;
+  public final ImmutableSet<SimulationResult> results;
 
-  ExperimentResults(Builder exp, ImmutableList<SimulationResult> res) {
+  ExperimentResults(Builder exp, ImmutableSet<SimulationResult> res) {
     objectiveFunction = exp.objectiveFunction;
     configurations = exp.configurationsBuilder.build();
     scenarios = exp.scenariosBuilder.build();
