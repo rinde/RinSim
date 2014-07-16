@@ -50,8 +50,7 @@ public final class Central {
    */
   public static MASConfiguration solverConfiguration(
       StochasticSupplier<? extends Solver> solverCreator) {
-    return new CentralConfiguration(solverCreator,
-        CentralConfiguration.class.getSimpleName());
+    return new CentralConfiguration(solverCreator, "");
   }
 
   /**
