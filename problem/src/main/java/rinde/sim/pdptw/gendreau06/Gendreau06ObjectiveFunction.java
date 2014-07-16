@@ -98,6 +98,11 @@ public final class Gendreau06ObjectiveFunction implements ObjectiveFunction,
     return stats.overTime / MS_TO_MINUTES;
   }
 
+  @Override
+  public String toString() {
+    return this.getClass().getName();
+  }
+
   /**
    * @return The instance.
    */
