@@ -54,7 +54,7 @@ public final class ExperimentResults {
 
   ExperimentResults(Builder exp, ImmutableSet<SimulationResult> res) {
     objectiveFunction = exp.objectiveFunction;
-    configurations = exp.configurationsBuilder.build();
+    configurations = ImmutableSet.copyOf(exp.configurationsSet);
     scenarios = exp.scenariosBuilder.build();
     showGui = exp.showGui;
     repetitions = exp.repetitions;

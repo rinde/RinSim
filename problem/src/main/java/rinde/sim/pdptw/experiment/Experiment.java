@@ -33,11 +33,13 @@ import rinde.sim.scenario.ScenarioController.UICreator;
 import rinde.sim.util.StochasticSupplier;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Joiner;
 import com.google.common.base.Objects;
 import com.google.common.base.Optional;
 import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Sets;
 
 /**
  * Utility for defining and performing experiments. An experiment is composed of
@@ -85,7 +87,7 @@ public final class Experiment {
   // TODO add strict mode which checks whether there are not too many
   // vehicles/parcels/depots?
 
-  enum ComputerType implements Supplier<Computer> {
+  enum Computers implements Supplier<Computer> {
     LOCAL {
       @Override
       public Computer get() {
@@ -184,7 +186,7 @@ public final class Experiment {
    */
   public static final class Builder {
     final ObjectiveFunction objectiveFunction;
-    final ImmutableSet.Builder<MASConfiguration> configurationsBuilder;
+    final Set<MASConfiguration> configurationsSet;
     final ImmutableSet.Builder<PDPScenario> scenariosBuilder;
     final List<ResultListener> resultListeners;
     @Nullable
@@ -197,11 +199,11 @@ public final class Experiment {
     int numThreads;
     int numBatches;
 
-    private ComputerType computerType;
+    private Supplier<Computer> computerType;
 
     Builder(ObjectiveFunction objectiveFunction) {
       this.objectiveFunction = objectiveFunction;
-      configurationsBuilder = ImmutableSet.builder();
+      configurationsSet = newLinkedHashSet();
       scenariosBuilder = ImmutableSet.builder();
       resultListeners = newArrayList();
       showGui = false;
@@ -209,7 +211,7 @@ public final class Experiment {
       masterSeed = 0L;
       numThreads = 1;
       numBatches = 1;
-      computerType = ComputerType.LOCAL;
+      computerType = Computers.LOCAL;
     }
 
     /**
@@ -218,7 +220,8 @@ public final class Experiment {
      * @return This, as per the builder pattern.
      */
     public Builder repeat(int times) {
-      checkArgument(times > 0);
+      checkArgument(times > 0,
+          "The number of repetitions must be strictly positive, was %s.", times);
       repetitions = times;
       return this;
     }
@@ -255,7 +258,8 @@ public final class Experiment {
      * @return This, as per the builder pattern.
      */
     public Builder addConfiguration(MASConfiguration config) {
-      configurationsBuilder.add(config);
+      checkArgument(!configurationsSet.contains(config));
+      configurationsSet.add(config);
       return this;
     }
 
@@ -266,8 +270,11 @@ public final class Experiment {
      * @param configs The configurations to add.
      * @return This, as per the builder pattern.
      */
-    public Builder addConfigurations(List<MASConfiguration> configs) {
-      configurationsBuilder.addAll(configs);
+    public Builder addConfigurations(Iterable<MASConfiguration> configs) {
+      final Set<MASConfiguration> newConfigs = ImmutableSet.copyOf(configs);
+      checkArgument(Sets.intersection(configurationsSet, newConfigs)
+          .isEmpty());
+      configurationsSet.addAll(newConfigs);
       return this;
     }
 
@@ -327,7 +334,15 @@ public final class Experiment {
       return this;
     }
 
+    /**
+     * Sets the number of batches that should be used when using the
+     * {@link #computeDistributed()} setting.
+     * @param num The number of batches to use.
+     * @return This, as per the builder pattern.
+     */
     public Builder numBatches(int num) {
+      checkArgument(num > 0,
+          "The number of batches must be strictly positive, was %s.", num);
       numBatches = num;
       return this;
     }
@@ -354,7 +369,7 @@ public final class Experiment {
      * @return This, as per the builder pattern.
      */
     public Builder computeDistributed() {
-      computerType = ComputerType.DISTRIBUTED;
+      computerType = Computers.DISTRIBUTED;
       return this;
     }
 
@@ -363,7 +378,25 @@ public final class Experiment {
      * @return This, as per the builder pattern.
      */
     public Builder computeLocal() {
-      computerType = ComputerType.LOCAL;
+      computerType = Computers.LOCAL;
+      return this;
+    }
+
+    /**
+     * This setting will perform a 'dry-run' experiment. No computations will be
+     * done. Note that this must be called <i>after</i> any calls to
+     * {@link #computeDistributed()} or {@link #computeLocal()}, otherwise it
+     * has no effect.
+     * @return This, as per the builder pattern.
+     */
+    public Builder dryRun(final boolean verbose) {
+      final Supplier<Computer> originalComputerType = computerType;
+      computerType = new Supplier<Computer>() {
+        @Override
+        public Computer get() {
+          return new DryRunComputer(originalComputerType, verbose);
+        }
+      };
       return this;
     }
 
@@ -396,6 +429,20 @@ public final class Experiment {
       return computerType.get().compute(this, runners);
     }
 
+    /**
+     * Parses the command line arguments. Performs the experiment using
+     * {@link #perform()} if the arguments allow it.
+     * @param args The arguments to parse.
+     * @return {@link Optional} containing {@link ExperimentResults} if the
+     *         experiment was performed, {@link Optional#absent()} otherwise.
+     */
+    public Optional<ExperimentResults> perform(String[] args) {
+      if (ExperimentCli.safeExecute(this, args)) {
+        return Optional.of(perform());
+      }
+      return Optional.absent();
+    }
+
     private ImmutableList<Long> generateSeeds() {
       if (repetitions > 1) {
         final RandomGenerator rng = new MersenneTwister(masterSeed);
@@ -405,10 +452,14 @@ public final class Experiment {
       }
     }
 
+    Supplier<Computer> getComputer() {
+      return computerType;
+    }
+
     private ImmutableSet<SimArgs> createFactorialSetup(List<Long> seeds) {
       final ImmutableSet<PDPScenario> scen = scenariosBuilder.build();
-      final ImmutableSet<MASConfiguration> conf = configurationsBuilder
-          .build();
+      final ImmutableSet<MASConfiguration> conf = ImmutableSet
+          .copyOf(configurationsSet);
 
       checkArgument(!scen.isEmpty(), "At least one scenario is required.");
       checkArgument(!conf.isEmpty(), "At least one configuration is required.");
@@ -445,6 +496,14 @@ public final class Experiment {
         showGui = gui;
         postProcessor = Optional.fromNullable(pp);
         uiCreator = Optional.fromNullable(uic);
+      }
+
+      @Override
+      public String toString() {
+        return Joiner.on(",").join(scenario.getClass().getName(),
+            scenario.getProblemClass(),
+            scenario.getProblemInstanceId(), masConfig, randomSeed,
+            objectiveFunction, showGui, postProcessor, uiCreator);
       }
     }
   }
