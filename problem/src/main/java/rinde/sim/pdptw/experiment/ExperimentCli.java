@@ -1,14 +1,11 @@
 package rinde.sim.pdptw.experiment;
 
 import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Maps.newLinkedHashMap;
 
 import java.util.List;
 import java.util.Map;
-
-import javax.annotation.Nullable;
 
 import org.apache.commons.cli.AlreadySelectedException;
 import org.apache.commons.cli.BasicParser;
@@ -20,10 +17,14 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.OptionGroup;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
-import org.apache.commons.cli.PatternOptionBuilder;
 
 import rinde.sim.pdptw.experiment.Experiment.Builder;
 import rinde.sim.pdptw.experiment.Experiment.Computers;
+import rinde.sim.util.io.AbstractMenuOption;
+import rinde.sim.util.io.CliException;
+import rinde.sim.util.io.MenuOption;
+import rinde.sim.util.io.OptionBuilder;
+import rinde.sim.util.io.Value;
 
 import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
@@ -46,30 +47,31 @@ class ExperimentCli {
   static class CliMenu {
     final Options options;
     final Map<String, MASConfiguration> configMap;
-    Map<String, MenuOption> optionMap;
+    Map<String, MenuOption<Builder>> optionMap;
 
     CliMenu(Experiment.Builder builder) {
       configMap = createConfigMap(builder);
       options = new Options();
 
       // define options and groups
-      final List<MenuOption> nonConflicting = ImmutableList.<MenuOption> of(
-          MenuOptions.DRY_RUN,
-          MenuOptions.HELP,
-          MenuOptions.REPETITIONS,
-          MenuOptions.SEED,
-          MenuOptions.GUI);
-      final List<ImmutableList<? extends MenuOption>> groups = ImmutableList
+      final List<MenuOption<Builder>> nonConflicting = ImmutableList
+          .<MenuOption<Builder>> of(
+              MenuOptions.DRY_RUN,
+              MenuOptions.HELP,
+              MenuOptions.REPETITIONS,
+              MenuOptions.SEED,
+              MenuOptions.GUI);
+      final List<ImmutableList<? extends MenuOption<Builder>>> groups = ImmutableList
           .of(ImmutableList.of(MenuOptions.BATCHES, MenuOptions.THREADS),
               ImmutableList.of(new Include(configMap), new Exclude(configMap)),
               ImmutableList.of(MenuOptions.LOCAL, MenuOptions.JPPF)
           );
-      final Map<String, MenuOption> optMap = newLinkedHashMap();
+      final Map<String, MenuOption<Builder>> optMap = newLinkedHashMap();
       // NOTE it is important that LOCAL and JPPF end up *before* DRY_RUN in the
       // optionMap
-      for (final List<? extends MenuOption> group : groups) {
+      for (final List<? extends MenuOption<Builder>> group : groups) {
         final OptionGroup g = new OptionGroup();
-        for (final MenuOption mo : group) {
+        for (final MenuOption<Builder> mo : group) {
           g.addOption(mo.createOption(builder));
           optMap.put(mo.getShortName(), mo);
         }
@@ -149,68 +151,11 @@ class ExperimentCli {
     }
   }
 
-  static class Value {
-    private final CommandLine commandLine;
-    private final MenuOption option;
-
-    Value(CommandLine cla, MenuOption opt) {
-      checkNotNull(cla);
-      checkNotNull(opt);
-      commandLine = cla;
-      option = opt;
-    }
-
-    Optional<Long> longValue() {
-      try {
-        final Long i = (Long) commandLine
-            .getParsedOptionValue(option.getShortName());
-        return Optional.of(i);
-      } catch (final ParseException e) {
-        return Optional.absent();
-      }
-    }
-
-    String optionUsed() {
-      if (commandLine.hasOption(option.getShortName())) {
-        return "-" + option.getShortName();
-      } else if (commandLine.hasOption(option.getLongName())) {
-        return "--" + option.getLongName();
-      } else {
-        throw new IllegalArgumentException();
-      }
-    }
-
-    boolean hasValue() {
-      return commandLine.getOptionValue(option.getShortName()) != null;
-    }
-
-    String stringValue() {
-      return Joiner.on(",").join(
-          commandLine.getOptionValues(option.getShortName()));
-    }
-
-    List<String> asList() {
-      return ImmutableList.copyOf(commandLine.getOptionValues(option
-          .getShortName()));
-    }
-  }
-
-  interface MenuOption {
-
-    String getShortName();
-
-    String getLongName();
-
-    Option createOption(Experiment.Builder builder);
-
-    boolean execute(Experiment.Builder builder, Value value);
-  }
-
-  enum MenuOptions implements MenuOption {
+  enum MenuOptions implements MenuOption<Builder> {
     SEED("s", "seed") {
       @Override
       public Option createOption(Experiment.Builder builder) {
-        return optionBuilder(this)
+        return OptionBuilder.optionBuilder(this)
             .description(
                 "Sets the master random seed, default: ", builder.masterSeed,
                 ".")
@@ -232,7 +177,8 @@ class ExperimentCli {
     HELP("h", "help") {
       @Override
       public Option createOption(Experiment.Builder builder) {
-        return optionBuilder(this).description("Print this message.").build();
+        return OptionBuilder.optionBuilder(this)
+            .description("Print this message.").build();
       }
 
       @Override
@@ -243,7 +189,7 @@ class ExperimentCli {
     REPETITIONS("r", "repetitions") {
       @Override
       public Option createOption(Builder builder) {
-        return optionBuilder(this)
+        return OptionBuilder.optionBuilder(this)
             .description(
                 "Sets the number of repetitions of each setting, default: "
                 , builder.repetitions)
@@ -265,7 +211,8 @@ class ExperimentCli {
     BATCHES("b", "batches") {
       @Override
       public Option createOption(Builder builder) {
-        return optionBuilder(this)
+        return OptionBuilder
+            .optionBuilder(this)
             .description(
                 "Sets the number of batches to use in case of distributed computation, default: ",
                 builder.numBatches,
@@ -288,7 +235,8 @@ class ExperimentCli {
     THREADS("t", "threads") {
       @Override
       public Option createOption(Builder builder) {
-        return optionBuilder(this)
+        return OptionBuilder
+            .optionBuilder(this)
             .description(
                 "Sets the number of threads to use in case of local computation, default: ",
                 builder.numThreads,
@@ -310,7 +258,7 @@ class ExperimentCli {
     DRY_RUN("dr", "dry-run") {
       @Override
       public Option createOption(Builder builder) {
-        return optionBuilder(this)
+        return OptionBuilder.optionBuilder(this)
             .description(
                 "Will perform a 'dry run' of the experiment without doing any"
                     + " actual simulations. A detailed description of the "
@@ -339,7 +287,8 @@ class ExperimentCli {
     JPPF("j", "jppf") {
       @Override
       public Option createOption(Builder builder) {
-        return optionBuilder(this)
+        return OptionBuilder
+            .optionBuilder(this)
             .description(
                 "Compute the experiment using the JPPF framework",
                 builder.getComputer() == Computers.DISTRIBUTED ? " (default)"
@@ -357,7 +306,8 @@ class ExperimentCli {
     LOCAL("l", "local") {
       @Override
       public Option createOption(Builder builder) {
-        return optionBuilder(this)
+        return OptionBuilder
+            .optionBuilder(this)
             .description(
                 "Compute the experiment locally",
                 builder.getComputer() == Computers.LOCAL ? " (default)" : "",
@@ -375,7 +325,8 @@ class ExperimentCli {
     GUI("g", "show-gui") {
       @Override
       public Option createOption(Builder builder) {
-        return optionBuilder(this)
+        return OptionBuilder
+            .optionBuilder(this)
             .description(
                 "Starts the gui for each simulation when 'true' is supplied, hides it when 'false' is supplied. By default the gui is ",
                 builder.showGui ? "" : "not",
@@ -416,28 +367,7 @@ class ExperimentCli {
     }
   }
 
-  static abstract class AbstractMenuOption implements MenuOption {
-
-    private final String shortName;
-    private final String longName;
-
-    protected AbstractMenuOption(String sn, String ln) {
-      shortName = sn;
-      longName = ln;
-    }
-
-    @Override
-    public String getShortName() {
-      return shortName;
-    }
-
-    @Override
-    public String getLongName() {
-      return longName;
-    }
-  }
-
-  static class Include extends AbstractMenuOption {
+  static class Include extends AbstractMenuOption<Builder> {
     private final Map<String, MASConfiguration> configMap;
 
     Include(Map<String, MASConfiguration> map) {
@@ -454,7 +384,7 @@ class ExperimentCli {
       Joiner.on("\n").withKeyValueSeparator(" = ").appendTo(sb, configMap);
       sb.append("\nThe options should be given as a comma ',' separated list. This option "
           + "can not be used together with --exclude.");
-      return optionBuilder(this)
+      return OptionBuilder.optionBuilder(this)
           .description(sb.toString())
           .numberArgList()
           .build();
@@ -478,7 +408,7 @@ class ExperimentCli {
     }
   }
 
-  static class Exclude extends AbstractMenuOption {
+  static class Exclude extends AbstractMenuOption<Builder> {
     private final Map<String, MASConfiguration> configMap;
 
     protected Exclude(Map<String, MASConfiguration> map) {
@@ -495,7 +425,7 @@ class ExperimentCli {
       Joiner.on("\n").withKeyValueSeparator(" = ").appendTo(sb, configMap);
       sb.append("\nThe options should be given as a comma ',' separated list. This option "
           + "can not be used together with --include.");
-      return optionBuilder(this)
+      return OptionBuilder.optionBuilder(this)
           .description(sb.toString())
           .stringArgList()
           .build();
@@ -516,98 +446,6 @@ class ExperimentCli {
       }
       builder.configurationsSet.removeAll(configs);
       return true;
-    }
-  }
-
-  static OptionBuilder optionBuilder(MenuOption im) {
-    return new OptionBuilder(im);
-  }
-
-  static class OptionBuilder {
-    private static final int NUM_ARGS_IN_LIST = 100;
-    private static final String ARG_LIST_NAME = "list";
-    private static final char ARG_LIST_SEPARATOR = ',';
-
-    private static final String NUM_NAME = "num";
-    private static final String STRING_NAME = "string";
-    private final Option option;
-
-    OptionBuilder(MenuOption im) {
-      this(im.getShortName(), im.getLongName());
-    }
-
-    OptionBuilder(String sn, String ln) {
-      option = new Option(sn, "");
-      option.setLongOpt(ln);
-    }
-
-    public OptionBuilder numberArgList() {
-      option.setArgs(NUM_ARGS_IN_LIST);
-      option.setArgName(ARG_LIST_NAME);
-      option.setType(PatternOptionBuilder.NUMBER_VALUE);
-      option.setValueSeparator(ARG_LIST_SEPARATOR);
-      return this;
-    }
-
-    public OptionBuilder numberArg() {
-      option.setArgs(1);
-      option.setArgName(NUM_NAME);
-      option.setType(PatternOptionBuilder.NUMBER_VALUE);
-      return this;
-    }
-
-    public OptionBuilder stringArgList() {
-      option.setArgs(NUM_ARGS_IN_LIST);
-      option.setArgName(ARG_LIST_NAME);
-      option.setType(PatternOptionBuilder.STRING_VALUE);
-      option.setValueSeparator(ARG_LIST_SEPARATOR);
-      return this;
-    }
-
-    public OptionBuilder stringArg() {
-      option.setArgs(1);
-      option.setArgName(STRING_NAME);
-      option.setType(PatternOptionBuilder.NUMBER_VALUE);
-      return this;
-    }
-
-    public OptionBuilder optionalArg() {
-      option.setOptionalArg(true);
-      return this;
-    }
-
-    public OptionBuilder description(Object... desc) {
-      option.setDescription(Joiner.on("").join(desc));
-      return this;
-    }
-
-    public Option build() {
-      return option;
-    }
-  }
-
-  static class CliException extends RuntimeException {
-    private static final long serialVersionUID = -7434606684541234080L;
-    private final Optional<MenuOption> menuOption;
-
-    CliException(String msg, Throwable cause) {
-      this(msg, cause, null);
-    }
-
-    CliException(String msg, Throwable cause, @Nullable MenuOption opt) {
-      super(msg, cause);
-      menuOption = Optional.fromNullable(opt);
-    }
-
-    /**
-     * @return The {@link MenuOption} where the exception occurred.
-     */
-    public MenuOption getMenuOption() {
-      return menuOption.get();
-    }
-
-    public boolean hasMenuOption() {
-      return menuOption.isPresent();
     }
   }
 

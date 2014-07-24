@@ -14,13 +14,13 @@ import org.junit.Test;
 import rinde.sim.pdptw.central.Central;
 import rinde.sim.pdptw.central.RandomSolver;
 import rinde.sim.pdptw.experiment.Experiment.Builder;
-import rinde.sim.pdptw.experiment.ExperimentCli.CliException;
 import rinde.sim.pdptw.experiment.ExperimentCli.Exclude;
 import rinde.sim.pdptw.experiment.ExperimentCli.Include;
-import rinde.sim.pdptw.experiment.ExperimentCli.MenuOption;
 import rinde.sim.pdptw.experiment.ExperimentCli.MenuOptions;
 import rinde.sim.pdptw.gendreau06.Gendreau06ObjectiveFunction;
 import rinde.sim.pdptw.gendreau06.Gendreau06Parser;
+import rinde.sim.util.io.CliException;
+import rinde.sim.util.io.MenuOption;
 
 /**
  * Test for commandline interface of experiment.
