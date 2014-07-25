@@ -1,5 +1,6 @@
 package rinde.sim.util.io;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Sets.newLinkedHashSet;
 
@@ -16,6 +17,7 @@ import java.util.Set;
 
 import com.google.common.base.Function;
 import com.google.common.base.Functions;
+import com.google.common.base.Optional;
 import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
 import com.google.common.base.Supplier;
@@ -47,18 +49,23 @@ public class FileProvider<T> implements Supplier<ImmutableSet<T>> {
     }
   }
 
+  public static Builder builder() {
+    return new Builder();
+  }
+
   public static class Builder {
-    private final List<Predicate<Path>> pathPredicates;
-    private final List<Path> paths;
+    Predicate<Path> pathPredicate;
+    final List<Path> paths;
 
     Builder() {
-      pathPredicates = newArrayList();
+      pathPredicate = Predicates.alwaysTrue();
       paths = newArrayList();
     }
 
     // accepts files and directories
     // each file will be included at maximum once
     public Builder add(Path path) {
+      checkArgument(Files.exists(path), "Invalid path: '%s'.", path);
       paths.add(path);
       return this;
     }
@@ -71,19 +78,23 @@ public class FileProvider<T> implements Supplier<ImmutableSet<T>> {
     }
 
     public Builder filter(String syntaxAndPattern) {
-      pathPredicates.add(new PredicateAdapter(FileSystems.getDefault()
-          .getPathMatcher(syntaxAndPattern)));
+      pathPredicate = new PredicateAdapter(syntaxAndPattern,
+          FileSystems.getDefault().getPathMatcher(syntaxAndPattern));
       return this;
     }
 
     public Builder filter(PathMatcher matcher) {
-      pathPredicates.add(new PredicateAdapter(matcher));
+      pathPredicate = new PredicateAdapter(matcher);
       return this;
     }
 
     public Builder filter(Predicate<Path> predicate) {
-      pathPredicates.add(predicate);
+      pathPredicate = predicate;
       return this;
+    }
+
+    int getNumberOfFiles() {
+      return build().get().size();
     }
 
     public Builder cli(String[] args) {
@@ -96,8 +107,8 @@ public class FileProvider<T> implements Supplier<ImmutableSet<T>> {
     }
 
     public <T> FileProvider<T> build(Function<Path, T> converter) {
-      return new FileProvider<T>(ImmutableList.copyOf(paths),
-          Predicates.or(pathPredicates), converter);
+      return new FileProvider<T>(ImmutableList.copyOf(paths), pathPredicate,
+          converter);
     }
   }
 
@@ -128,14 +139,29 @@ public class FileProvider<T> implements Supplier<ImmutableSet<T>> {
 
   static class PredicateAdapter implements Predicate<Path> {
     private final PathMatcher delegate;
+    private final Optional<String> name;
+
+    PredicateAdapter(String nm, PathMatcher matcher) {
+      name = Optional.of(nm);
+      delegate = matcher;
+    }
 
     PredicateAdapter(PathMatcher matcher) {
+      name = Optional.absent();
       delegate = matcher;
     }
 
     @Override
     public boolean apply(Path input) {
       return delegate.matches(input);
+    }
+
+    @Override
+    public String toString() {
+      if (name.isPresent()) {
+        return name.get();
+      }
+      return delegate.toString();
     }
   }
 }

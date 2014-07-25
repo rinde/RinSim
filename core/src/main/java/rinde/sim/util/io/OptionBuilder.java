@@ -70,4 +70,21 @@ public class OptionBuilder {
   public static OptionBuilder optionBuilder(MenuOption im) {
     return new OptionBuilder(im);
   }
+
+  /**
+   * Sets all variables from the specified {@link Option} except the short and
+   * long name.
+   * @param opt
+   * @return
+   */
+  public OptionBuilder set(Option opt) {
+    option.setArgs(opt.getArgs());
+    option.setArgName(opt.getArgName());
+    option.setDescription(opt.getDescription());
+    option.setOptionalArg(opt.hasOptionalArg());
+    option.setType(opt.getType());
+    option.setValueSeparator(opt.getValueSeparator());
+    option.setRequired(opt.isRequired());
+    return this;
+  }
 }
