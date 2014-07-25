@@ -39,7 +39,7 @@ public class FileProviderCli {
     return cliBuilder;
   }
 
-  enum MenuOptions implements MenuOption<Builder> {
+  enum MenuOptions implements MenuOption<FileProvider.Builder> {
     HELP("h", "help") {
       @Override
       public Option createOption(Builder builder) {
