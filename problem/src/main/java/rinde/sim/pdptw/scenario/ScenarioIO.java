@@ -7,12 +7,13 @@ import static com.google.common.collect.Sets.newLinkedHashSet;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.File;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.lang.reflect.Type;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
@@ -38,9 +39,12 @@ import rinde.sim.scenario.TimedEvent;
 import rinde.sim.util.TimeWindow;
 
 import com.google.common.base.Charsets;
+import com.google.common.base.Function;
+import com.google.common.base.Joiner;
+import com.google.common.base.Optional;
 import com.google.common.base.Predicate;
+import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
-import com.google.common.io.Files;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
@@ -100,8 +104,8 @@ public final class ScenarioIO {
    * @throws IOException In case anything went wrong during writing the
    *           scenario.
    */
-  public static void write(Scenario s, File to) throws IOException {
-    Files.write(write(s), to, Charsets.UTF_8);
+  public static void write(Scenario s, Path to) throws IOException {
+    Files.write(to, Splitter.on("\n").split(write(s)), Charsets.UTF_8);
   }
 
   /**
@@ -110,7 +114,7 @@ public final class ScenarioIO {
    * @return A {@link PDPScenario} instance.
    * @throws IOException When reading fails.
    */
-  public static PDPScenario read(File file) throws IOException {
+  public static PDPScenario read(Path file) throws IOException {
     return read(file, DefaultScenario.class);
   }
 
@@ -122,8 +126,9 @@ public final class ScenarioIO {
    * @return A scenario of type T.
    * @throws IOException When reading fails.
    */
-  public static <T> T read(File file, Class<T> type) throws IOException {
-    return read(Files.toString(file, Charsets.UTF_8), type);
+  public static <T> T read(Path file, Class<T> type) throws IOException {
+    return read(Joiner.on("\n").join(Files.readAllLines(file, Charsets.UTF_8)),
+        type);
   }
 
   /**
@@ -155,6 +160,14 @@ public final class ScenarioIO {
     return GSON.fromJson(s, type);
   }
 
+  public static Function<Path, PDPScenario> reader() {
+    return new DefaultScenarioReader<>();
+  }
+
+  public static <T extends PDPScenario> Function<Path, T> reader(Class<T> clz) {
+    return new DefaultScenarioReader<T>(clz);
+  }
+
   static String serializeObject(Object obj) throws IOException {
     final ByteArrayOutputStream bo = new ByteArrayOutputStream();
     final ObjectOutputStream oos = new ObjectOutputStream(bo);
@@ -172,6 +185,32 @@ public final class ScenarioIO {
     final Object predicate = ois.readObject();
     ois.close();
     return predicate;
+  }
+
+  private static final class DefaultScenarioReader<T extends PDPScenario>
+      implements Function<Path, T> {
+    final Optional<Class<T>> clazz;
+
+    DefaultScenarioReader() {
+      clazz = Optional.absent();
+    }
+
+    DefaultScenarioReader(Class<T> clz) {
+      clazz = Optional.of(clz);
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public T apply(Path input) {
+      try {
+        if (clazz.isPresent()) {
+          return read(input, clazz.get());
+        }
+        return (T) read(input);
+      } catch (final IOException e) {
+        throw new IllegalStateException(e);
+      }
+    }
   }
 
   abstract static class SafeNullIO<T> implements JsonSerializer<T>,

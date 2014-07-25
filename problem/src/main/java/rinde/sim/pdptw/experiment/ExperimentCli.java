@@ -2,26 +2,18 @@ package rinde.sim.pdptw.experiment;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.collect.Lists.newArrayList;
-import static com.google.common.collect.Maps.newLinkedHashMap;
 
 import java.util.List;
 import java.util.Map;
 
-import org.apache.commons.cli.AlreadySelectedException;
-import org.apache.commons.cli.BasicParser;
-import org.apache.commons.cli.CommandLine;
-import org.apache.commons.cli.CommandLineParser;
-import org.apache.commons.cli.HelpFormatter;
-import org.apache.commons.cli.MissingArgumentException;
 import org.apache.commons.cli.Option;
-import org.apache.commons.cli.OptionGroup;
-import org.apache.commons.cli.Options;
-import org.apache.commons.cli.ParseException;
 
 import rinde.sim.pdptw.experiment.Experiment.Builder;
 import rinde.sim.pdptw.experiment.Experiment.Computers;
 import rinde.sim.util.io.AbstractMenuOption;
 import rinde.sim.util.io.CliException;
+import rinde.sim.util.io.CliMenu;
+import rinde.sim.util.io.FileProviderCli;
 import rinde.sim.util.io.MenuOption;
 import rinde.sim.util.io.OptionBuilder;
 import rinde.sim.util.io.Value;
@@ -34,121 +26,53 @@ import com.google.common.collect.ImmutableMap;
 class ExperimentCli {
 
   static boolean safeExecute(Experiment.Builder builder, String[] args) {
-    final CliMenu menu = new CliMenu(builder);
-    return menu.safeExecute(builder, args);
+    return createMenu(builder).safeExecute(args);
   }
 
   static boolean execute(Experiment.Builder builder, String[] args)
       throws CliException {
-    final CliMenu menu = new CliMenu(builder);
-    return menu.execute(builder, args);
+    return createMenu(builder).execute(args);
   }
 
-  static class CliMenu {
-    final Options options;
-    final Map<String, MASConfiguration> configMap;
-    Map<String, MenuOption<Builder>> optionMap;
+  static CliMenu<Experiment.Builder> createMenu(Experiment.Builder expBuilder) {
 
-    CliMenu(Experiment.Builder builder) {
-      configMap = createConfigMap(builder);
-      options = new Options();
+    final Map<String, MASConfiguration> configMap = createConfigMap(expBuilder);
 
-      // define options and groups
-      final List<MenuOption<Builder>> nonConflicting = ImmutableList
-          .<MenuOption<Builder>> of(
-              MenuOptions.DRY_RUN,
-              MenuOptions.HELP,
-              MenuOptions.REPETITIONS,
-              MenuOptions.SEED,
-              MenuOptions.GUI);
-      final List<ImmutableList<? extends MenuOption<Builder>>> groups = ImmutableList
-          .of(ImmutableList.of(MenuOptions.BATCHES, MenuOptions.THREADS),
-              ImmutableList.of(new Include(configMap), new Exclude(configMap)),
-              ImmutableList.of(MenuOptions.LOCAL, MenuOptions.JPPF)
-          );
-      final Map<String, MenuOption<Builder>> optMap = newLinkedHashMap();
-      // NOTE it is important that LOCAL and JPPF end up *before* DRY_RUN in the
-      // optionMap
-      for (final List<? extends MenuOption<Builder>> group : groups) {
-        final OptionGroup g = new OptionGroup();
-        for (final MenuOption<Builder> mo : group) {
-          g.addOption(mo.createOption(builder));
-          optMap.put(mo.getShortName(), mo);
-        }
-        options.addOptionGroup(g);
-      }
-      for (final MenuOption mo : nonConflicting) {
-        options.addOption(mo.createOption(builder));
-        optMap.put(mo.getShortName(), mo);
-      }
-      optionMap = ImmutableMap.copyOf(optMap);
+    final CliMenu.Builder<Experiment.Builder> menuBuilder = CliMenu
+        .builder(expBuilder);
+    menuBuilder
+        .commandLineSyntax("java -jar jarname.jar")
+        .header("RinSim Experiment command line interface.")
+        .footer("For more information see http://github.com/rinde/RinSim")
+        .addGroup(MenuOptions.BATCHES, MenuOptions.THREADS)
+        .addGroup(new Include(configMap), new Exclude(configMap))
+        .addGroup(MenuOptions.LOCAL, MenuOptions.JPPF)
+        .add(MenuOptions.DRY_RUN,
+            MenuOptions.HELP,
+            MenuOptions.REPETITIONS,
+            MenuOptions.SEED,
+            MenuOptions.GUI);
+
+    if (expBuilder.scenarioProviderBuilder.isPresent()) {
+      menuBuilder.addSubMenu("s", "scenarios.",
+          FileProviderCli
+              .createDefaultMenuBuilder(expBuilder.scenarioProviderBuilder
+                  .get()));
     }
 
-    boolean safeExecute(Experiment.Builder builder, String[] args) {
-      try {
-        return execute(builder, args);
-      } catch (final CliException e) {
-        System.err.println(e.getMessage());
-        printHelp();
-        return false;
-      }
-    }
+    return menuBuilder.build();
+  }
 
-    boolean execute(Experiment.Builder builder, String[] args)
-        throws CliException {
-      final CommandLineParser parser = new BasicParser();
-      final CommandLine line;
-      try {
-        line = parser.parse(options, args);
-      } catch (final MissingArgumentException e) {
-        throw new CliException(e.getMessage(), e, optionMap.get(e
-            .getOption().getOpt()));
-      } catch (final AlreadySelectedException e) {
-        throw new CliException(e.getMessage(), e, optionMap.get(e
-            .getOption().getOpt()));
-      } catch (final ParseException e) {
-        throw new CliException("Parsing failed. Reason: " + e.getMessage(), e);
-      }
-
-      for (final MenuOption option : optionMap.values()) {
-        if (line.hasOption(option.getShortName())
-            || line.hasOption(option.getLongName())) {
-          final Value v = new Value(line, option);
-          try {
-            if (!option.execute(builder, v)) {
-              printHelp();
-              return false;
-            }
-          } catch (final IllegalArgumentException | IllegalStateException e) {
-            throw new CliException("Problem with " + v.optionUsed()
-                + " option: " + e.getMessage(), e, option);
-          }
-        }
-      }
-      return true;
+  static Map<String, MASConfiguration> createConfigMap(
+      Experiment.Builder builder) {
+    final List<MASConfiguration> configs = ImmutableList
+        .copyOf(builder.configurationsSet);
+    final ImmutableMap.Builder<String, MASConfiguration> mapBuilder = ImmutableMap
+        .builder();
+    for (int i = 0; i < configs.size(); i++) {
+      mapBuilder.put("c" + i, configs.get(i));
     }
-
-    public void printHelp() {
-      final HelpFormatter formatter = new HelpFormatter();
-      formatter
-          .printHelp(
-              "java -jar jarname.jar",
-              "RinSim Experiment command line interface.",
-              options,
-              "For more information see http://github.com/rinde/RinSim");
-    }
-
-    static Map<String, MASConfiguration> createConfigMap(
-        Experiment.Builder builder) {
-      final List<MASConfiguration> configs = ImmutableList
-          .copyOf(builder.configurationsSet);
-      final ImmutableMap.Builder<String, MASConfiguration> mapBuilder = ImmutableMap
-          .builder();
-      for (int i = 0; i < configs.size(); i++) {
-        mapBuilder.put("c" + i, configs.get(i));
-      }
-      return mapBuilder.build();
-    }
+    return mapBuilder.build();
   }
 
   enum MenuOptions implements MenuOption<Builder> {

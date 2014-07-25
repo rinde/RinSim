@@ -42,7 +42,7 @@ class DryRunComputer implements Computer {
         .println("     # configurations = " + builder.configurationsSet.size());
     System.out
         .println("          # scenarios = "
-            + builder.scenariosBuilder.build().size());
+            + builder.getNumScenarios());
     System.out.println("        # repetitions = " + builder.repetitions);
     System.out.println("------------------------------------ x");
     System.out.println("  total # simulations = " + inputs.size());

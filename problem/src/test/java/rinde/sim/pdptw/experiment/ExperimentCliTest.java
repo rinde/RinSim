@@ -5,6 +5,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
 import java.io.File;
+import java.nio.file.Paths;
 
 import org.apache.commons.cli.AlreadySelectedException;
 import org.apache.commons.cli.MissingArgumentException;
@@ -20,6 +21,7 @@ import rinde.sim.pdptw.experiment.ExperimentCli.MenuOptions;
 import rinde.sim.pdptw.gendreau06.Gendreau06ObjectiveFunction;
 import rinde.sim.pdptw.gendreau06.Gendreau06Parser;
 import rinde.sim.util.io.CliException;
+import rinde.sim.util.io.FileProvider;
 import rinde.sim.util.io.MenuOption;
 
 /**
@@ -45,7 +47,12 @@ public class ExperimentCliTest {
                 "files/test/gendreau06/req_rapide_1_240_24")))
         .addConfiguration(configA)
         .addConfiguration(configB)
-        .addConfiguration(configC);
+        .addConfiguration(configC)
+        .addScenarios(
+            FileProvider.builder().add(
+                Paths.get("files/test/gendreau06/"))
+        )
+        .setScenarioReader(Gendreau06Parser.reader());
   }
 
   void testFail(MenuOption failingOption, Class<?> causeType, String args) {
@@ -222,7 +229,6 @@ public class ExperimentCliTest {
 
   @Test
   public void dryRun() {
-
     builder.perform(new String[] { "-dr" });
   }
 }

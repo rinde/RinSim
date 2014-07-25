@@ -10,6 +10,7 @@ import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Sets.newLinkedHashSet;
 
 import java.io.Serializable;
+import java.nio.file.Path;
 import java.util.List;
 import java.util.Set;
 
@@ -29,10 +30,13 @@ import rinde.sim.pdptw.common.StatisticsDTO;
 import rinde.sim.pdptw.experiment.Experiment.Builder.SimArgs;
 import rinde.sim.pdptw.experiment.LocalComputer.ExperimentRunner;
 import rinde.sim.pdptw.scenario.PDPScenario;
+import rinde.sim.pdptw.scenario.ScenarioIO;
 import rinde.sim.scenario.ScenarioController.UICreator;
 import rinde.sim.util.StochasticSupplier;
+import rinde.sim.util.io.FileProvider;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.base.Objects;
 import com.google.common.base.Optional;
@@ -188,6 +192,9 @@ public final class Experiment {
     final ObjectiveFunction objectiveFunction;
     final Set<MASConfiguration> configurationsSet;
     final ImmutableSet.Builder<PDPScenario> scenariosBuilder;
+    Optional<FileProvider.Builder> scenarioProviderBuilder;
+    Function<Path, ? extends PDPScenario> fileReader;
+
     final List<ResultListener> resultListeners;
     @Nullable
     UICreator uiCreator;
@@ -205,6 +212,8 @@ public final class Experiment {
       this.objectiveFunction = objectiveFunction;
       configurationsSet = newLinkedHashSet();
       scenariosBuilder = ImmutableSet.builder();
+      scenarioProviderBuilder = Optional.absent();
+      fileReader = ScenarioIO.reader();
       resultListeners = newArrayList();
       showGui = false;
       repetitions = 1;
@@ -295,6 +304,17 @@ public final class Experiment {
      */
     public Builder addScenarios(List<? extends PDPScenario> scenarios) {
       scenariosBuilder.addAll(scenarios);
+      return this;
+    }
+
+    public Builder addScenarios(FileProvider.Builder providerBuilder) {
+      scenarioProviderBuilder = Optional.of(providerBuilder);
+      return this;
+    }
+
+    public Builder setScenarioReader(
+        Function<Path, ? extends PDPScenario> reader) {
+      fileReader = reader;
       return this;
     }
 
@@ -456,17 +476,36 @@ public final class Experiment {
       return computerType;
     }
 
+    ImmutableSet<PDPScenario> getAllScenarios() {
+      final Set<PDPScenario> scenarios = newLinkedHashSet(scenariosBuilder
+          .build());
+      if (scenarioProviderBuilder.isPresent()) {
+        scenarios.addAll(scenarioProviderBuilder.get().build(fileReader).get());
+      }
+      return ImmutableSet.copyOf(scenarios);
+    }
+
+    int getNumScenarios() {
+      final Set<PDPScenario> scenarios = scenariosBuilder.build();
+      if (scenarioProviderBuilder.isPresent()) {
+        return scenarios.size()
+            + scenarioProviderBuilder.get().build().get().size();
+      }
+      return scenarios.size();
+    }
+
     private ImmutableSet<SimArgs> createFactorialSetup(List<Long> seeds) {
-      final ImmutableSet<PDPScenario> scen = scenariosBuilder.build();
+      final Set<PDPScenario> scenarios = getAllScenarios();
+
       final ImmutableSet<MASConfiguration> conf = ImmutableSet
           .copyOf(configurationsSet);
 
-      checkArgument(!scen.isEmpty(), "At least one scenario is required.");
+      checkArgument(!scenarios.isEmpty(), "At least one scenario is required.");
       checkArgument(!conf.isEmpty(), "At least one configuration is required.");
       final ImmutableSet.Builder<SimArgs> runnerBuilder = ImmutableSet
           .builder();
       for (final MASConfiguration configuration : conf) {
-        for (final PDPScenario scenario : scen) {
+        for (final PDPScenario scenario : scenarios) {
           for (int i = 0; i < repetitions; i++) {
             final long seed = seeds.get(i);
             runnerBuilder.add(new SimArgs(scenario, configuration,

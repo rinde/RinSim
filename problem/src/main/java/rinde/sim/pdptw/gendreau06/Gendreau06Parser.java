@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.math.RoundingMode;
+import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
@@ -40,6 +41,7 @@ import rinde.sim.scenario.TimedEvent;
 import rinde.sim.util.TimeWindow;
 
 import com.google.common.base.Charsets;
+import com.google.common.base.Function;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -410,6 +412,17 @@ public final class Gendreau06Parser {
       throw new IllegalArgumentException(e);
     }
     return listBuilder.build();
+  }
+
+  public static Function<Path, Gendreau06Scenario> reader() {
+    return new Gendreau06Reader();
+  }
+
+  static class Gendreau06Reader implements Function<Path, Gendreau06Scenario> {
+    @Override
+    public Gendreau06Scenario apply(Path input) {
+      return Gendreau06Parser.parse(input.toFile());
+    }
   }
 
   interface ParcelsSupplier {
