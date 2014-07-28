@@ -7,7 +7,7 @@ import org.junit.Test;
 public class FileProviderCliTest {
 
   @Test
-  public void test() {
+  public void testHelp() {
 
     FileProviderCli.execute(
         FileProvider.builder()
@@ -17,4 +17,12 @@ public class FileProviderCliTest {
         new String[] { "--help" });
 
   }
+
+  @Test
+  public void test() {
+    FileProvider.builder()
+        .cli(new String[] { "-f", "glob:**.java" })
+        .build();
+  }
+
 }

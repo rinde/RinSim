@@ -1,6 +1,7 @@
 package rinde.sim.util.io;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Sets.newLinkedHashSet;
 
@@ -78,27 +79,34 @@ public class FileProvider<T> implements Supplier<ImmutableSet<T>> {
     }
 
     public Builder filter(String syntaxAndPattern) {
+      checkNotNull(syntaxAndPattern);
       pathPredicate = new PredicateAdapter(syntaxAndPattern,
           FileSystems.getDefault().getPathMatcher(syntaxAndPattern));
       return this;
     }
 
     public Builder filter(PathMatcher matcher) {
+      checkNotNull(matcher);
       pathPredicate = new PredicateAdapter(matcher);
       return this;
     }
 
     public Builder filter(Predicate<Path> predicate) {
+      checkNotNull(predicate);
       pathPredicate = predicate;
       return this;
     }
 
     int getNumberOfFiles() {
-      return build().get().size();
+      try {
+        return build().get().size();
+      } catch (final IllegalArgumentException e) {
+        return 0;
+      }
     }
 
     public Builder cli(String[] args) {
-      // do CLI stuff
+      FileProviderCli.execute(this, args);
       return this;
     }
 
@@ -107,6 +115,8 @@ public class FileProvider<T> implements Supplier<ImmutableSet<T>> {
     }
 
     public <T> FileProvider<T> build(Function<Path, T> converter) {
+      checkNotNull(converter);
+      checkArgument(!paths.isEmpty(), "No paths are specified.");
       return new FileProvider<T>(ImmutableList.copyOf(paths), pathPredicate,
           converter);
     }

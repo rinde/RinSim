@@ -81,12 +81,13 @@ public class FileProviderCli {
             .description(
                 "Sets a filter of which paths to include. The filter is a string "
                     + "of the form 'syntax:pattern', where 'syntax' is either 'glob' "
-                    + "or 'regex'. For more information about the supported syntax "
-                    + "please review the documentation of the "
-                    + "java.nio.file.FileSystem.getPathMatcher(String) method. The "
-                    + "current filter is '" + builder.pathPredicate
-                    + "', there are " + builder.getNumberOfFiles()
-                    + " files that satisfy this filter.")
+                    + "or 'regex'.  The current filter is '"
+                    + builder.pathPredicate
+                    + "', there are "
+                    + builder.getNumberOfFiles()
+                    + " files that satisfy this filter. For more information about"
+                    + " the supported syntax please review the documentation of the "
+                    + "java.nio.file.FileSystem.getPathMatcher(String) method.")
             .stringArg()
             .build();
       }
