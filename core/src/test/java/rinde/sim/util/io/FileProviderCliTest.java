@@ -18,7 +18,7 @@ public class FileProviderCliTest {
 
   }
 
-  @Test
+  @Test(expected = IllegalArgumentException.class)
   public void test() {
     FileProvider.builder()
         .cli(new String[] { "-f", "glob:**.java" })
