@@ -2,6 +2,7 @@ package rinde.sim.pdptw.experiment;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import java.lang.Thread.State;
 import java.math.RoundingMode;
 
 import javax.annotation.Nullable;
@@ -44,7 +45,10 @@ public class ExperimentProgressBar implements ResultListener {
 
   @Override
   public void receive(SimulationResult result) {
-    while (!guiRunner.isInitialized()) {
+    // should wait while runner is not yet initialized and thread state is
+    // runnable. When an error is thrown in the thread, the waiting will stop to
+    // avoid infinite waiting.
+    while (!guiRunner.isInitialized() && t.getState() == State.RUNNABLE) {
       try {
         Thread.sleep(100);
       } catch (final InterruptedException e) {
