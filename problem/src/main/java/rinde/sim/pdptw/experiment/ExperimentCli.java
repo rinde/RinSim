@@ -35,7 +35,6 @@ class ExperimentCli {
   }
 
   static CliMenu<Experiment.Builder> createMenu(Experiment.Builder expBuilder) {
-
     final Map<String, MASConfiguration> configMap = createConfigMap(expBuilder);
 
     final CliMenu.Builder<Experiment.Builder> menuBuilder = CliMenu
