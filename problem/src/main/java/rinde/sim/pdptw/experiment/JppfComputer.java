@@ -152,9 +152,7 @@ final class JppfComputer implements Computer {
     } catch (final Exception e) {
       throw new IllegalStateException(e);
     }
-
     res.awaitResults();
-
     for (final ResultListener l : listeners) {
       l.doneComputing();
     }

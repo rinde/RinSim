@@ -2,7 +2,7 @@ package rinde.sim.pdptw.experiment;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import java.lang.Thread.State;
+import java.lang.Thread.UncaughtExceptionHandler;
 import java.math.RoundingMode;
 
 import javax.annotation.Nullable;
@@ -25,14 +25,17 @@ import rinde.sim.pdptw.experiment.Experiment.SimulationResult;
 import com.google.common.base.Optional;
 import com.google.common.math.DoubleMath;
 
-public class ExperimentProgressBar implements ResultListener {
+public class ExperimentProgressBar implements ResultListener,
+    UncaughtExceptionHandler {
 
   GuiRunner guiRunner;
   Thread t;
   int counter;
+  Optional<Throwable> error;
 
   public ExperimentProgressBar() {
     counter = 0;
+    error = Optional.absent();
   }
 
   @Override
@@ -40,6 +43,7 @@ public class ExperimentProgressBar implements ResultListener {
     counter = 0;
     guiRunner = new GuiRunner(numberOfSimulations);
     t = new Thread(guiRunner);
+    t.setUncaughtExceptionHandler(this);
     t.start();
   }
 
@@ -48,19 +52,28 @@ public class ExperimentProgressBar implements ResultListener {
     // should wait while runner is not yet initialized and thread state is
     // runnable. When an error is thrown in the thread, the waiting will stop to
     // avoid infinite waiting.
-    while (!guiRunner.isInitialized() && t.getState() == State.RUNNABLE) {
+    while (!guiRunner.isInitialized() && !error.isPresent()) {
       try {
         Thread.sleep(100);
       } catch (final InterruptedException e) {
         e.printStackTrace();
       }
     }
-    guiRunner.getGui().update(++counter);
+    if (error.isPresent()) {
+      throw new IllegalStateException(error.get());
+    } else {
+      guiRunner.getGui().update(++counter);
+    }
   }
 
   @Override
   public void doneComputing() {
     guiRunner.getGui().stop();
+  }
+
+  @Override
+  public void uncaughtException(@Nullable Thread thread, @Nullable Throwable e) {
+    error = Optional.fromNullable(e);
   }
 
   static class Gui {
@@ -188,5 +201,4 @@ public class ExperimentProgressBar implements ResultListener {
       return gui.get();
     }
   }
-
 }

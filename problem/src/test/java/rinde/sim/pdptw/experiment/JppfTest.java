@@ -194,7 +194,6 @@ public class JppfTest {
   }
 
   static class NotSerializableObjFunc implements ObjectiveFunction {
-
     @Override
     public boolean isValidResult(StatisticsDTO stats) {
       return true;
@@ -209,7 +208,6 @@ public class JppfTest {
     public String printHumanReadableFormat(StatisticsDTO stats) {
       return "NotSerializableObjFunc";
     }
-
   }
 
   static class NotSerializable {}
