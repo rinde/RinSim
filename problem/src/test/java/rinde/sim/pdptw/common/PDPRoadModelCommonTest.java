@@ -28,7 +28,7 @@ import rinde.sim.core.model.road.PlaneRoadModel;
 import rinde.sim.core.model.road.RoadModel;
 import rinde.sim.util.TimeWindow;
 
-public abstract class PDPRoadModelTestCommon {
+public abstract class PDPRoadModelCommonTest {
   static final TimeLapse TIME = TimeLapseFactory.create(0, 1);
   static final TimeWindow DEFAULT_TW = new TimeWindow(0, 100);
 
@@ -45,7 +45,7 @@ public abstract class PDPRoadModelTestCommon {
 
   protected final boolean allowDiversion;
 
-  public PDPRoadModelTestCommon(boolean diversion) {
+  public PDPRoadModelCommonTest(boolean diversion) {
     allowDiversion = diversion;
   }
 

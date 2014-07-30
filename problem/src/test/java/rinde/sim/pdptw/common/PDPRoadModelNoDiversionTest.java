@@ -8,9 +8,9 @@ package rinde.sim.pdptw.common;
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
  * 
  */
-public class PDPRoadModelTestNoDiversion extends PDPRoadModelTestCommon {
+public class PDPRoadModelNoDiversionTest extends PDPRoadModelCommonTest {
 
-  public PDPRoadModelTestNoDiversion() {
+  public PDPRoadModelNoDiversionTest() {
     super(false);
   }
 

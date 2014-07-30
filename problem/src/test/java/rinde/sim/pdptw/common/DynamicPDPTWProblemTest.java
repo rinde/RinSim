@@ -41,7 +41,7 @@ import com.google.common.collect.ImmutableList;
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
  * 
  */
-public class TestDynamicPDPTWProblem {
+public class DynamicPDPTWProblemTest {
 
   protected static final Creator<AddVehicleEvent> DUMMY_ADD_VEHICLE_EVENT_CREATOR = new Creator<AddVehicleEvent>() {
     @Override

@@ -27,7 +27,7 @@ import rinde.sim.core.graph.TestTableGraph;
  */
 
 @RunWith(Parameterized.class)
-public class PointsEquality {
+public class PointsEqualityTest {
 
 	@Parameters
 	public static Collection<Object[]> configs() {
@@ -36,7 +36,7 @@ public class PointsEquality {
 
 	private final Graph<LengthData> graph;
 
-	public PointsEquality(Graph<LengthData> g) {
+	public PointsEqualityTest(Graph<LengthData> g) {
 		graph = g;
 	}
 

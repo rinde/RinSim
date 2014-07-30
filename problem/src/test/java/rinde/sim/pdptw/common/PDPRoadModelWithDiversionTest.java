@@ -5,9 +5,9 @@ import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 
-public class PDPRoadModelTestWithDiversion extends PDPRoadModelTestCommon {
+public class PDPRoadModelWithDiversionTest extends PDPRoadModelCommonTest {
 
-  public PDPRoadModelTestWithDiversion() {
+  public PDPRoadModelWithDiversionTest() {
     super(true);
   }
 
