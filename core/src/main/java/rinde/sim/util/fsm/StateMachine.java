@@ -154,7 +154,8 @@ public class StateMachine<T, C> {
    * @return <code>true</code> when the current state is one of the specified
    *         states, <code>false</code> otherwise.
    */
-  public boolean stateIsOneOf(State<T, C>... states) {
+  @SafeVarargs
+  public final boolean stateIsOneOf(State<T, C>... states) {
     for (final State<T, C> s : states) {
       if (stateIs(s)) {
         return true;
