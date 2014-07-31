@@ -78,7 +78,7 @@ public class JppfTest {
         .computeDistributed()
         .addScenario(gendreauScenario)
         .withRandomSeed(123)
-        .repeat(50)
+        .repeat(10)
         .addResultListener(new ExperimentProgressBar())
         .addConfiguration(
             Central.solverConfiguration(
