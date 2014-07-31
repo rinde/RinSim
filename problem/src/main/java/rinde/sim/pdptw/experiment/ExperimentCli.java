@@ -10,13 +10,13 @@ import org.apache.commons.cli.Option;
 
 import rinde.sim.pdptw.experiment.Experiment.Builder;
 import rinde.sim.pdptw.experiment.Experiment.Computers;
-import rinde.sim.util.io.AbstractMenuOption;
-import rinde.sim.util.io.CliException;
-import rinde.sim.util.io.CliMenu;
+import rinde.sim.util.cli.AbstractMenuOption;
+import rinde.sim.util.cli.CliException;
+import rinde.sim.util.cli.CliMenu;
+import rinde.sim.util.cli.MenuOption;
+import rinde.sim.util.cli.OptionBuilder;
+import rinde.sim.util.cli.Value;
 import rinde.sim.util.io.FileProviderCli;
-import rinde.sim.util.io.MenuOption;
-import rinde.sim.util.io.OptionBuilder;
-import rinde.sim.util.io.Value;
 
 import com.google.common.base.Joiner;
 import com.google.common.base.Optional;

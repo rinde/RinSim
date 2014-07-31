@@ -20,9 +20,9 @@ import rinde.sim.pdptw.experiment.ExperimentCli.Include;
 import rinde.sim.pdptw.experiment.ExperimentCli.MenuOptions;
 import rinde.sim.pdptw.gendreau06.Gendreau06ObjectiveFunction;
 import rinde.sim.pdptw.gendreau06.Gendreau06Parser;
-import rinde.sim.util.io.CliException;
+import rinde.sim.util.cli.CliException;
+import rinde.sim.util.cli.MenuOption;
 import rinde.sim.util.io.FileProvider;
-import rinde.sim.util.io.MenuOption;
 
 /**
  * Test for commandline interface of experiment.
