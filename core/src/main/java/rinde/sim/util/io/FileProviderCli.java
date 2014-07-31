@@ -14,17 +14,35 @@ import java.util.Map;
 
 import org.apache.commons.cli.Option;
 
+import rinde.sim.util.cli.AbstractMenuOption;
+import rinde.sim.util.cli.CliMenu;
+import rinde.sim.util.cli.MenuOption;
+import rinde.sim.util.cli.OptionBuilder;
+import rinde.sim.util.cli.Value;
 import rinde.sim.util.io.FileProvider.Builder;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableMap;
 
-public class FileProviderCli {
+/**
+ * Defines a command-line interface for the {@link FileProvider}.
+ * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+ */
+public final class FileProviderCli {
+
+  private FileProviderCli() {}
 
   static void execute(FileProvider.Builder builder, String[] args) {
     createDefaultMenuBuilder(builder).build().execute(args);
   }
 
+  /**
+   * Creates the default {@link CliMenu.Builder} for creating the
+   * {@link CliMenu} instances.
+   * @param builder The {@link FileProvider.Builder} that should be controlled
+   *          via CLI.
+   * @return The new menu builder.
+   */
   public static CliMenu.Builder<Builder> createDefaultMenuBuilder(
       FileProvider.Builder builder) {
     final Map<String, Path> pathMap = createPathMap(builder);

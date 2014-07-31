@@ -1,4 +1,5 @@
-package rinde.sim.util.io;
+package rinde.sim.util.cli;
+
 
 public abstract class AbstractMenuOption<T> implements MenuOption<T> {
 

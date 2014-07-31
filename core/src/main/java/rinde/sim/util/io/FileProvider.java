@@ -6,6 +6,7 @@ import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Sets.newLinkedHashSet;
 
 import java.io.IOException;
+import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
@@ -25,12 +26,20 @@ import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 
-public class FileProvider<T> implements Supplier<ImmutableSet<T>> {
+/**
+ * Configurable supplier of files.
+ * @param <T> The type of object that this file provider provides. See
+ *          {@link Builder#build()} and {@link Builder#build(Function)} for more
+ *          details.
+ * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+ */
+public final class FileProvider<T> implements Supplier<ImmutableSet<T>> {
   final ImmutableList<Path> roots;
   final Predicate<Path> pathPredicate;
   final Function<Path, T> pathReader;
 
-  FileProvider(ImmutableList<Path> rootPaths, Predicate<Path> predicate,
+  FileProvider(ImmutableList<Path> rootPaths,
+      Predicate<Path> predicate,
       Function<Path, T> reader) {
     roots = rootPaths;
     pathPredicate = predicate;
@@ -50,10 +59,19 @@ public class FileProvider<T> implements Supplier<ImmutableSet<T>> {
     }
   }
 
+  /**
+   * @return A new {@link Builder} for creating a {@link FileProvider} instance.
+   */
   public static Builder builder() {
     return new Builder();
   }
 
+  /**
+   * A builder for creating {@link FileProvider} instances. Via this builder
+   * files and directories can be added and filtered. The resulting
+   * {@link FileProvider} will provide all specified files.
+   * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+   */
   public static class Builder {
     Predicate<Path> pathPredicate;
     final List<Path> paths;
@@ -63,14 +81,26 @@ public class FileProvider<T> implements Supplier<ImmutableSet<T>> {
       paths = newArrayList();
     }
 
-    // accepts files and directories
-    // each file will be included at maximum once
+    /**
+     * Add the file or directory that is represented by this {@link Path}
+     * instance. If it is a directory it will be added recursively. Each added
+     * file will be included at maximum once.
+     * @param path The file or directory to add.
+     * @return This, as per the builder pattern.
+     */
     public Builder add(Path path) {
       checkArgument(Files.exists(path), "Invalid path: '%s'.", path);
       paths.add(path);
       return this;
     }
 
+    /**
+     * Adds all files or directories that are represented by the specified
+     * {@link Path}s. Directories will be added recursively. Each added file
+     * will be included at maximum once.
+     * @param ps The files and/or directories to add.
+     * @return This, as per the builder pattern.
+     */
     public Builder add(Iterable<Path> ps) {
       for (final Path p : ps) {
         add(p);
@@ -78,6 +108,13 @@ public class FileProvider<T> implements Supplier<ImmutableSet<T>> {
       return this;
     }
 
+    /**
+     * Apply a filter to all added and to be added paths. The expected syntax is
+     * the same as for the {@link FileSystem#getPathMatcher(String)} method.
+     * Only one filter can be applied at one time.
+     * @param syntaxAndPattern The syntax and pattern.
+     * @return This, as per the builder pattern.
+     */
     public Builder filter(String syntaxAndPattern) {
       checkNotNull(syntaxAndPattern);
       pathPredicate = new PredicateAdapter(syntaxAndPattern,
@@ -85,16 +122,67 @@ public class FileProvider<T> implements Supplier<ImmutableSet<T>> {
       return this;
     }
 
+    /**
+     * Apply the specified {@link PathMatcher} as a filter. Only files that
+     * satisfy the filter will be included.Only one filter can be applied at one
+     * time.
+     * @param matcher The matcher to use as filter.
+     * @return This, as per the builder pattern.
+     */
     public Builder filter(PathMatcher matcher) {
       checkNotNull(matcher);
       pathPredicate = new PredicateAdapter(matcher);
       return this;
     }
 
+    /**
+     * Apply the specified {@link Predicate} as a filter. Only files that
+     * satisfy the filter will be included. Only one filter can be applied at
+     * one time.
+     * @param predicate The predicate to use as filter.
+     * @return This, as per the builder pattern.
+     */
     public Builder filter(Predicate<Path> predicate) {
       checkNotNull(predicate);
       pathPredicate = predicate;
       return this;
+    }
+
+    /**
+     * Activates the command-line interface for this builder. If an invalid
+     * option is given the help will be printed automatically to
+     * {@link System#out}.
+     * @param args The command-line arguments.
+     * @return This, as per the builder pattern.
+     */
+    public Builder cli(String... args) {
+      FileProviderCli.execute(this, args);
+      return this;
+    }
+
+    /**
+     * Create a new {@link FileProvider} which will provide the {@link Path}s as
+     * specified by this builder.
+     * @return The new {@link FileProvider} instance.
+     */
+    public FileProvider<Path> build() {
+      return build(Functions.<Path> identity());
+    }
+
+    /**
+     * Create a new {@link FileProvider} which will provide the converted
+     * {@link Path}s as specified by this builder. Each path will be converted
+     * to type <code>T</code> using the specified <code>converter</code>.
+     * @param converter A {@link Function} that converts {@link Path}s.
+     * @param <T> The type to which {@link Path}s are converted and which will
+     *          be provided by the {@link FileProvider}.
+     * @return The new {@link FileProvider} instance.
+     */
+    public <T> FileProvider<T> build(Function<Path, T> converter) {
+      checkNotNull(converter);
+      checkArgument(!paths.isEmpty(), "No paths are specified.");
+      return new FileProvider<T>(ImmutableList.copyOf(paths), pathPredicate,
+          converter);
     }
 
     int getNumberOfFiles() {
@@ -103,22 +191,6 @@ public class FileProvider<T> implements Supplier<ImmutableSet<T>> {
       } catch (final IllegalArgumentException e) {
         return 0;
       }
-    }
-
-    public Builder cli(String[] args) {
-      FileProviderCli.execute(this, args);
-      return this;
-    }
-
-    public FileProvider<Path> build() {
-      return build(Functions.<Path> identity());
-    }
-
-    public <T> FileProvider<T> build(Function<Path, T> converter) {
-      checkNotNull(converter);
-      checkArgument(!paths.isEmpty(), "No paths are specified.");
-      return new FileProvider<T>(ImmutableList.copyOf(paths), pathPredicate,
-          converter);
     }
   }
 

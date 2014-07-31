@@ -1,4 +1,4 @@
-package rinde.sim.util.io;
+package rinde.sim.util.cli;
 
 import javax.annotation.Nullable;
 
