@@ -31,8 +31,11 @@ import com.google.common.base.Predicate;
  */
 public class FileProviderTest {
 
+  /**
+   * Removes test coverage artifacts.
+   */
   @Test
-  public void artifacts() {
+  public void removeTestArtifacts() {
     TestUtil.testPrivateConstructor(FileProviderCli.class);
     MenuOptions.valueOf("ADD");
   }
