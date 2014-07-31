@@ -16,7 +16,6 @@ import org.apache.commons.cli.Option;
 
 import rinde.sim.util.cli.AbstractMenuOption;
 import rinde.sim.util.cli.CliMenu;
-import rinde.sim.util.cli.MenuOption;
 import rinde.sim.util.cli.OptionBuilder;
 import rinde.sim.util.cli.Value;
 import rinde.sim.util.io.FileProvider.Builder;
@@ -57,7 +56,8 @@ public final class FileProviderCli {
     return cliBuilder;
   }
 
-  enum MenuOptions implements MenuOption<FileProvider.Builder> {
+  enum MenuOptions implements
+      rinde.sim.util.cli.MenuOption<FileProvider.Builder> {
     HELP("h", "help") {
       @Override
       public Option createOption(Builder builder) {
@@ -181,7 +181,6 @@ public final class FileProviderCli {
       builder.paths.retainAll(paths);
       return true;
     }
-
   }
 
   static class Exclude extends AbstractMenuOption<Builder> {
@@ -223,5 +222,4 @@ public final class FileProviderCli {
       return true;
     }
   }
-
 }
