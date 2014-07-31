@@ -37,8 +37,8 @@ public final class FileProviderCli {
   }
 
   /**
-   * Creates the default {@link CliMenu.Builder} for creating the
-   * {@link CliMenu} instances.
+   * Creates the default {@link rinde.sim.util.cli.CliMenu.Builder} for creating
+   * the {@link CliMenu} instances.
    * @param builder The {@link FileProvider.Builder} that should be controlled
    *          via CLI.
    * @return The new menu builder.
