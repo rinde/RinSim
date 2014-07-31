@@ -19,9 +19,7 @@ import org.junit.Test;
 import rinde.sim.util.TestUtil;
 import rinde.sim.util.cli.CliException;
 import rinde.sim.util.io.FileProvider.Builder;
-import rinde.sim.util.io.FileProviderCli.Exclude;
-import rinde.sim.util.io.FileProviderCli.Include;
-import rinde.sim.util.io.FileProviderCli.MenuOptions;
+import rinde.sim.util.io.FileProviderCli.Handlers;
 
 import com.google.common.base.Predicate;
 
@@ -37,7 +35,7 @@ public class FileProviderTest {
   @Test
   public void removeTestArtifacts() {
     TestUtil.testPrivateConstructor(FileProviderCli.class);
-    MenuOptions.valueOf("ADD");
+    Handlers.valueOf("ADD");
   }
 
   /**
@@ -184,7 +182,7 @@ public class FileProviderTest {
           .cli("-i", "p1,p0,p3");
     } catch (final CliException e) {
       error = true;
-      assertTrue(e.getMenuOption() instanceof Include);
+      assertEquals("include", e.getMenuOption().getLongName());
     }
     assertTrue(error);
   }
@@ -199,7 +197,7 @@ public class FileProviderTest {
       FileProvider.builder().add(asList(Paths.get("src/main"))).cli("-i", "p1");
     } catch (final CliException e) {
       error = true;
-      assertTrue(e.getMenuOption() instanceof Include);
+      assertEquals("include", e.getMenuOption().getLongName());
     }
     assertTrue(error);
   }
@@ -231,7 +229,7 @@ public class FileProviderTest {
           .cli("-e", "p1,p0,p3");
     } catch (final CliException e) {
       error = true;
-      assertTrue(e.getMenuOption() instanceof Exclude);
+      assertEquals("exclude", e.getMenuOption().getLongName());
     }
     assertTrue(error);
   }
@@ -246,7 +244,7 @@ public class FileProviderTest {
       FileProvider.builder().add(asList(Paths.get("src/main"))).cli("-e", "p1");
     } catch (final CliException e) {
       error = true;
-      assertTrue(e.getMenuOption() instanceof Exclude);
+      assertEquals("exclude", e.getMenuOption().getLongName());
     }
     assertTrue(error);
   }

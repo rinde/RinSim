@@ -23,13 +23,17 @@ import org.apache.commons.cli.ParseException;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 
-public class CliMenu<T> {
-
+/**
+ * 
+ * @param <T>
+ * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+ */
+public final class CliMenu<T> {
   final String header;
   final String footer;
   final String cmdLineSyntax;
   final Options options;
-  final Map<String, MenuOption<T>> optionMap;
+  final Map<String, ICliOption<T>> optionMap;
   final T subject;
 
   CliMenu(Options op, Builder<T> b) {
@@ -67,7 +71,7 @@ public class CliMenu<T> {
       throw new CliException("Parsing failed. Reason: " + e.getMessage(), e);
     }
 
-    for (final MenuOption<T> option : optionMap.values()) {
+    for (final ICliOption<T> option : optionMap.values()) {
       if (line.hasOption(option.getShortName())
           || line.hasOption(option.getLongName())) {
         final Value v = new Value(line, option);
@@ -98,8 +102,8 @@ public class CliMenu<T> {
     String header;
     String footer;
     String cmdLineSyntax;
-    Map<String, MenuOption<T>> optionMap;
-    List<Set<MenuOption<T>>> groups;
+    Map<String, ICliOption<T>> optionMap;
+    List<Set<ICliOption<T>>> groups;
     final T subject;
 
     Builder(T t) {
@@ -111,8 +115,8 @@ public class CliMenu<T> {
       groups = newArrayList();
     }
 
-    public Builder<T> add(Iterable<MenuOption<T>> options) {
-      for (final MenuOption<T> mo : options) {
+    public Builder<T> add(Iterable<ICliOption<T>> options) {
+      for (final ICliOption<T> mo : options) {
         checkArgument(!optionMap.containsKey(mo.getShortName()),
             "An option with %s already exists.", mo.getShortName());
         optionMap.put(mo.getShortName(), mo);
@@ -121,18 +125,18 @@ public class CliMenu<T> {
     }
 
     @SafeVarargs
-    public final Builder<T> add(MenuOption<T>... options) {
+    public final Builder<T> add(ICliOption<T>... options) {
       return add(asList(options));
     }
 
-    public Builder<T> addGroup(Iterable<MenuOption<T>> options) {
+    public Builder<T> addGroup(Iterable<ICliOption<T>> options) {
       groups.add(ImmutableSet.copyOf(options));
       add(options);
       return this;
     }
 
     @SafeVarargs
-    public final Builder<T> addGroup(MenuOption<T>... options) {
+    public final Builder<T> addGroup(ICliOption<T>... options) {
       return addGroup(asList(options));
     }
 
@@ -156,15 +160,15 @@ public class CliMenu<T> {
         CliMenu.Builder<U> subMenuBuilder) {
       checkArgument(!subMenuShortPrefix.trim().isEmpty());
       checkArgument(!subMenuLongPrefix.trim().isEmpty());
-      for (final Set<MenuOption<U>> group : subMenuBuilder.groups) {
-        final List<MenuOption<T>> adaptedOptions = newArrayList();
-        for (final MenuOption<U> mo : group) {
+      for (final Set<ICliOption<U>> group : subMenuBuilder.groups) {
+        final List<ICliOption<T>> adaptedOptions = newArrayList();
+        for (final ICliOption<U> mo : group) {
           adaptedOptions.add(new MenuOptionAdapter<T, U>(subMenuShortPrefix,
               subMenuLongPrefix, mo, subMenuBuilder.subject));
         }
         addGroup(adaptedOptions);
       }
-      for (final MenuOption<U> mo : subMenuBuilder.optionMap.values()) {
+      for (final ICliOption<U> mo : subMenuBuilder.optionMap.values()) {
         if (!optionMap.containsKey(mo.getShortName())) {
           add(new MenuOptionAdapter<T, U>(subMenuShortPrefix,
               subMenuLongPrefix, mo, subMenuBuilder.subject));
@@ -175,17 +179,17 @@ public class CliMenu<T> {
 
     public CliMenu<T> build() {
       final Options op = new Options();
-      for (final Set<MenuOption<T>> g : groups) {
+      for (final Set<ICliOption<T>> g : groups) {
         final OptionGroup og = new OptionGroup();
-        for (final MenuOption<T> mo : g) {
-          og.addOption(mo.createOption(subject));
+        for (final ICliOption<T> mo : g) {
+          og.addOption(mo.create());
         }
         op.addOptionGroup(og);
       }
 
-      for (final MenuOption<T> mo : optionMap.values()) {
+      for (final ICliOption<T> mo : optionMap.values()) {
         if (!op.hasOption(mo.getShortName())) {
-          op.addOption(mo.createOption(subject));
+          op.addOption(mo.create());
         }
       }
 
@@ -193,28 +197,40 @@ public class CliMenu<T> {
     }
   }
 
-  static class MenuOptionAdapter<T, U> extends AbstractMenuOption<T> {
-    private final MenuOption<U> delegate;
+  static class MenuOptionAdapter<T, U> implements ICliOption<T> {
+    private final ICliOption<U> delegate;
     private final U subject;
 
+    private final String shortName;
+    private final String longName;
+
     public MenuOptionAdapter(String shortNamePrefix, String longNamePrefix,
-        MenuOption<U> deleg, U subj) {
-      super(shortNamePrefix + deleg.getShortName(), longNamePrefix
-          + deleg.getLongName());
+        ICliOption<U> deleg, U subj) {
+      shortName = shortNamePrefix + deleg.getShortName();
+      longName = longNamePrefix + deleg.getLongName();
       delegate = deleg;
       subject = subj;
     }
 
     @Override
-    public Option createOption(T builder) {
-      return OptionBuilder.optionBuilder(this)
-          .set(delegate.createOption(subject))
-          .build();
+    public boolean execute(T ref, Value value) {
+      return delegate.execute(subject, value);
     }
 
     @Override
-    public boolean execute(T builder, Value value) {
-      return delegate.execute(subject, value);
+    public String getShortName() {
+      return shortName;
+    }
+
+    @Override
+    public String getLongName() {
+      return longName;
+    }
+
+    @Override
+    public Option create() {
+      return new CliOption.Builder(getShortName()).setLongName(getLongName())
+          .set(delegate.create()).option;
     }
   }
 }

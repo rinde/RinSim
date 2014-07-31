@@ -15,13 +15,9 @@ import org.junit.Test;
 import rinde.sim.pdptw.central.Central;
 import rinde.sim.pdptw.central.RandomSolver;
 import rinde.sim.pdptw.experiment.Experiment.Builder;
-import rinde.sim.pdptw.experiment.ExperimentCli.Exclude;
-import rinde.sim.pdptw.experiment.ExperimentCli.Include;
-import rinde.sim.pdptw.experiment.ExperimentCli.MenuOptions;
 import rinde.sim.pdptw.gendreau06.Gendreau06ObjectiveFunction;
 import rinde.sim.pdptw.gendreau06.Gendreau06Parser;
 import rinde.sim.util.cli.CliException;
-import rinde.sim.util.cli.MenuOption;
 import rinde.sim.util.io.FileProvider;
 
 /**
@@ -55,27 +51,29 @@ public class ExperimentCliTest {
         .setScenarioReader(Gendreau06Parser.reader());
   }
 
-  void testFail(MenuOption failingOption, Class<?> causeType, String args) {
+  void testFail(String failingOptionName, Class<?> causeType,
+      String args) {
     try {
       ExperimentCli.execute(builder, args.split(" "));
     } catch (final CliException e) {
-      assertEquals(failingOption, e.getMenuOption());
+      assertEquals(failingOptionName, e.getMenuOption().getLongName());
       assertEquals(causeType, e.getCause().getClass());
       return;
     }
     fail();
   }
 
-  void testFail(Class<?> classOfFailingOption, Class<?> causeType, String args) {
-    try {
-      ExperimentCli.execute(builder, args.split(" "));
-    } catch (final CliException e) {
-      assertEquals(classOfFailingOption, e.getMenuOption().getClass());
-      assertEquals(causeType, e.getCause().getClass());
-      return;
-    }
-    fail();
-  }
+  // void testFail(Class<?> classOfFailingOption, Class<?> causeType, String
+  // args) {
+  // try {
+  // ExperimentCli.execute(builder, args.split(" "));
+  // } catch (final CliException e) {
+  // assertEquals(classOfFailingOption, e.getMenuOption().getClass());
+  // assertEquals(causeType, e.getCause().getClass());
+  // return;
+  // }
+  // fail();
+  // }
 
   Builder testSuccess(String args) {
     ExperimentCli.execute(builder, args.split(" "));
@@ -87,8 +85,8 @@ public class ExperimentCliTest {
    */
   @Test
   public void testSeed() {
-    testFail(MenuOptions.SEED, MissingArgumentException.class, "-s");
-    testFail(MenuOptions.SEED, IllegalArgumentException.class, "-b 10 -s x");
+    testFail("seed", MissingArgumentException.class, "-s");
+    testFail("seed", IllegalArgumentException.class, "-b 10 -s x");
     assertEquals(10, testSuccess("-s 10").masterSeed);
   }
 
@@ -97,9 +95,9 @@ public class ExperimentCliTest {
    */
   @Test
   public void testBatches() {
-    testFail(MenuOptions.BATCHES, MissingArgumentException.class, "--batches");
-    testFail(MenuOptions.BATCHES, IllegalArgumentException.class, "-b x -s 1");
-    testFail(MenuOptions.BATCHES, IllegalArgumentException.class, "-b 0 -s 1");
+    testFail("batches", MissingArgumentException.class, "--batches");
+    testFail("batches", IllegalArgumentException.class, "-b x -s 1");
+    testFail("batches", IllegalArgumentException.class, "-b 0 -s 1");
     assertEquals(1, testSuccess("-b 1").numBatches);
     assertEquals(10, testSuccess("-b 10").numBatches);
   }
@@ -109,9 +107,9 @@ public class ExperimentCliTest {
    */
   @Test
   public void testThreads() {
-    testFail(MenuOptions.THREADS, MissingArgumentException.class, "--threads");
-    testFail(MenuOptions.THREADS, IllegalArgumentException.class, "-t x -s 1");
-    testFail(MenuOptions.THREADS, IllegalArgumentException.class, "-t 0 -s 1");
+    testFail("threads", MissingArgumentException.class, "--threads");
+    testFail("threads", IllegalArgumentException.class, "-t x -s 1");
+    testFail("threads", IllegalArgumentException.class, "-t 0 -s 1");
     assertEquals(1, testSuccess("-t 1").numThreads);
     assertEquals(10, testSuccess("-t 10").numThreads);
   }
@@ -121,11 +119,11 @@ public class ExperimentCliTest {
    */
   @Test
   public void testRepetitions() {
-    testFail(MenuOptions.REPETITIONS, MissingArgumentException.class,
+    testFail("repetitions", MissingArgumentException.class,
         "--repetitions");
-    testFail(MenuOptions.REPETITIONS, IllegalArgumentException.class,
+    testFail("repetitions", IllegalArgumentException.class,
         "-r x -s 1");
-    testFail(MenuOptions.REPETITIONS, IllegalArgumentException.class,
+    testFail("repetitions", IllegalArgumentException.class,
         "-r 0 -s 1");
     assertEquals(1, testSuccess("-r 1").repetitions);
     assertEquals(10, testSuccess("-r 10").repetitions);
@@ -136,10 +134,13 @@ public class ExperimentCliTest {
    */
   @Test
   public void testInclude() {
-    testFail(Include.class, MissingArgumentException.class, "--include");
-    testFail(Include.class, IllegalArgumentException.class, "--include x2");
-    testFail(Include.class, IllegalArgumentException.class, "--include c1,,c2");
-    testFail(Include.class, IllegalArgumentException.class, "--i c1,c1,c1,c1");
+    testFail("include", MissingArgumentException.class, "--include");
+    testFail("include", IllegalArgumentException.class,
+        "--include x2");
+    testFail("include", IllegalArgumentException.class,
+        "--include c1,,c2");
+    testFail("include", IllegalArgumentException.class,
+        "--i c1,c1,c1,c1");
     setUp();
 
     assertEquals(newHashSet(configB, configC),
@@ -163,11 +164,15 @@ public class ExperimentCliTest {
    */
   @Test
   public void testExclude() {
-    testFail(Exclude.class, MissingArgumentException.class, "--exclude");
-    testFail(Exclude.class, IllegalArgumentException.class, "--exclude x2");
-    testFail(Exclude.class, IllegalArgumentException.class, "--exclude c1,,c2");
-    testFail(Exclude.class, IllegalArgumentException.class, "--e c1,c1,c1,c1");
-    testFail(Exclude.class, IllegalArgumentException.class, "--e c0,c1,c");
+    testFail("exclude", MissingArgumentException.class, "--exclude");
+    testFail("exclude", IllegalArgumentException.class,
+        "--exclude x2");
+    testFail("exclude", IllegalArgumentException.class,
+        "--exclude c1,,c2");
+    testFail("exclude", IllegalArgumentException.class,
+        "--e c1,c1,c1,c1");
+    testFail("exclude", IllegalArgumentException.class,
+        "--e c0,c1,c");
     setUp();
 
     assertEquals(newHashSet(configA),
@@ -191,9 +196,9 @@ public class ExperimentCliTest {
    */
   @Test
   public void batchesThreadsFail() {
-    testFail(MenuOptions.THREADS, AlreadySelectedException.class,
+    testFail("threads", AlreadySelectedException.class,
         "--batches 2 -t 4");
-    testFail(MenuOptions.BATCHES, AlreadySelectedException.class,
+    testFail("batches", AlreadySelectedException.class,
         "--threads 4 --b 2 ");
   }
 
@@ -202,9 +207,9 @@ public class ExperimentCliTest {
    */
   @Test
   public void excludesIncludesFail() {
-    testFail(Include.class, AlreadySelectedException.class,
+    testFail("include", AlreadySelectedException.class,
         "-e c1 -i c1");
-    testFail(Exclude.class, AlreadySelectedException.class,
+    testFail("exclude", AlreadySelectedException.class,
         "-i c1 -e c1 ");
   }
 
@@ -213,9 +218,9 @@ public class ExperimentCliTest {
    */
   @Test
   public void localJppfFail() {
-    testFail(MenuOptions.JPPF, AlreadySelectedException.class,
+    testFail("jppf", AlreadySelectedException.class,
         "--local --jppf");
-    testFail(MenuOptions.LOCAL, AlreadySelectedException.class,
+    testFail("local", AlreadySelectedException.class,
         "--jppf --local ");
   }
 

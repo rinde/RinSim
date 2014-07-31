@@ -11,9 +11,9 @@ import com.google.common.collect.ImmutableList;
 
 public class Value {
   private final CommandLine commandLine;
-  private final MenuOption option;
+  private final ICliOption option;
 
-  public Value(CommandLine cla, MenuOption opt) {
+  public Value(CommandLine cla, ICliOption opt) {
     checkNotNull(cla);
     checkNotNull(opt);
     commandLine = cla;
