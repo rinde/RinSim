@@ -13,10 +13,10 @@ import rinde.sim.util.cli.CliMenu;
 import rinde.sim.util.cli.CliOption;
 import rinde.sim.util.cli.CliOption.OptionArgType;
 import rinde.sim.util.cli.OptionHandler;
-import rinde.sim.util.cli.Value;
 import rinde.sim.util.io.FileProvider.Builder;
 
 import com.google.common.base.Joiner;
+import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableMap;
 
 /**
@@ -132,8 +132,8 @@ public final class FileProviderCli {
     }
 
     @Override
-    public boolean execute(Builder ref, Value<List<String>> value) {
-      final List<String> keys = value.asValue();
+    public void execute(Builder ref, Optional<List<String>> value) {
+      final List<String> keys = value.get();
       final List<Path> paths = newArrayList();
       checkArgument(
           keys.size() <= pathMap.size(),
@@ -145,7 +145,6 @@ public final class FileProviderCli {
         paths.add(pathMap.get(k));
       }
       ref.paths.retainAll(paths);
-      return true;
     }
   }
 
@@ -157,8 +156,8 @@ public final class FileProviderCli {
     }
 
     @Override
-    public boolean execute(Builder ref, Value<List<String>> value) {
-      final List<String> keys = value.asValue();
+    public void execute(Builder ref, Optional<List<String>> value) {
+      final List<String> keys = value.get();
       final List<Path> paths = newArrayList();
       checkArgument(
           keys.size() < pathMap.size(),
@@ -170,26 +169,23 @@ public final class FileProviderCli {
         paths.add(pathMap.get(k));
       }
       ref.paths.removeAll(paths);
-      return true;
     }
   }
 
   private static final OptionHandler<FileProvider.Builder, List<String>> ADD = new OptionHandler<FileProvider.Builder, List<String>>() {
     @Override
-    public boolean execute(FileProvider.Builder ref, Value<List<String>> value) {
-      final List<String> paths = value.asValue();
+    public void execute(FileProvider.Builder ref, Optional<List<String>> value) {
+      final List<String> paths = value.get();
       for (final String p : paths) {
         ref.add(Paths.get(p));
       }
-      return true;
     }
   };
 
   private static final OptionHandler<FileProvider.Builder, String> FILTER = new OptionHandler<FileProvider.Builder, String>() {
     @Override
-    public boolean execute(FileProvider.Builder ref, Value<String> value) {
-      ref.filter(value.asValue());
-      return true;
+    public void execute(FileProvider.Builder ref, Optional<String> value) {
+      ref.filter(value.get());
     }
   };
 

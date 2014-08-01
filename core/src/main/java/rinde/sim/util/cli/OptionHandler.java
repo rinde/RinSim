@@ -1,6 +1,8 @@
 package rinde.sim.util.cli;
 
+import com.google.common.base.Optional;
+
 public interface OptionHandler<T, U> {
 
-  boolean execute(T ref, Value<U> value);
+  void execute(T ref, Optional<U> value);
 }

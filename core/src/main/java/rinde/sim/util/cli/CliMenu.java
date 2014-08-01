@@ -23,12 +23,18 @@ import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 
 import rinde.sim.util.cli.CliException.CauseType;
+import rinde.sim.util.cli.CliOption.OptionArgType;
 
+import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 
 /**
+ * Requires a subject which forms the API of the system that you want to create
+ * command-line interface for. This API is typically a builder class, but it is
+ * not restricted.
+ * 
  * 
  * @param <T>
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
@@ -66,8 +72,11 @@ public final class CliMenu<T> {
     try {
       line = parser.parse(options, args);
     } catch (final MissingArgumentException e) {
-      throw new CliException(e.getMessage(), CauseType.MISSING_ARG,
-          optionMap.get(e.getOption().getOpt()));
+      final CliOption option = optionMap.get(e.getOption().getOpt());
+      throw new CliException("The option " + option + " requires a "
+          + option.argumentType.name() + " as argument.",
+          CauseType.MISSING_ARG,
+          option);
     } catch (final AlreadySelectedException e) {
       throw new CliException(e.getMessage(), CauseType.ALREADY_SELECTED,
           optionMap.get(e.getOption().getOpt()));
@@ -86,17 +95,39 @@ public final class CliMenu<T> {
   }
 
   Optional<String> exec(final CliOption option, CommandLine commandLine) {
-    final Value<?> value = option.argumentType.parseValue(option, commandLine);
+    final Optional<?> value;
+    final Optional<String> rawValue = asString(option, commandLine);
+    if (rawValue.isPresent()) {
+      value = Optional
+          .of(option.argumentType.parseValue(option, rawValue.get()));
+    } else {
+      value = Optional.absent();
+    }
+
     try {
-      // TODO change return type of execute?
-      final boolean noError = option.execute(subject, value);
-      if (!noError) {
+      if (option.isHelpOption()) {
         return Optional.of(printHelp());
       }
+      option.execute(subject, value);
       return Optional.absent();
     } catch (IllegalArgumentException | IllegalStateException e) {
-      throw new CliException(e.getMessage(), CauseType.INVALID, option);
+      throw new CliException(e.getMessage(), e, CauseType.INVALID, option);
     }
+  }
+
+  static Optional<String> asString(CliOption option, CommandLine commandLine) {
+    final String[] vals = commandLine.getOptionValues(option.getShortName());
+
+    if (vals == null) {
+      if (option.isArgOptional || option.argumentType == OptionArgType.NO_ARG) {
+        return Optional.absent();
+      }
+      throw new CliException("The option " + option + " requires a "
+          + option.argumentType.name() + " argument.", CauseType.MISSING_ARG,
+          option);
+    }
+
+    return Optional.of(Joiner.on(CliOption.ARG_LIST_SEPARATOR).join(vals));
   }
 
   public String printHelp() {
@@ -247,8 +278,8 @@ public final class CliMenu<T> {
     }
 
     @Override
-    public boolean execute(T ref, Value<X> value) {
-      return delegate.execute(subject, value);
+    public void execute(T ref, Optional<X> value) {
+      delegate.execute(subject, value);
     }
   }
 }

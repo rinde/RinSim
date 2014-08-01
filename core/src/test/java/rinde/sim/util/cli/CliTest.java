@@ -15,6 +15,8 @@ import org.junit.Test;
 import rinde.sim.util.cli.CliException.CauseType;
 import rinde.sim.util.cli.CliOption.OptionArgType;
 
+import com.google.common.base.Optional;
+
 /**
  * Tests the CLI system.
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
@@ -22,9 +24,9 @@ import rinde.sim.util.cli.CliOption.OptionArgType;
 public class CliTest {
 
   @SuppressWarnings("null")
-  List<Long> list;
+  List<Object> list;
   @SuppressWarnings("null")
-  CliMenu<List<Long>> menu;
+  CliMenu<List<Object>> menu;
 
   /**
    * Sets up the subject (a list in this case) and creates the menu.
@@ -32,25 +34,47 @@ public class CliTest {
   @Before
   public void setUp() {
     list = newArrayList();
-    menu = CliMenu.builder(list)
+    menu = CliMenu
+        .builder(list)
         .add(
             CliOption.builder("a", OptionArgType.LONG)
                 .build(new OptionHandler<List<Long>, Long>() {
                   @Override
-                  public boolean execute(List<Long> ref, Value<Long> value) {
-                    ref.add(value.asValue());
-                    return true;
+                  public void execute(List<Long> ref, Optional<Long> value) {
+                    ref.add(value.get());
                   }
                 })
         )
         .add(
             CliOption.builder("aa", OptionArgType.LONG_LIST)
                 .longName("add-all")
+                .description("Add all longs.")
+                .argOptional()
                 .build(new OptionHandler<List<Long>, List<Long>>() {
                   @Override
-                  public boolean execute(List<Long> ref, Value<List<Long>> value) {
-                    ref.addAll(value.asValue());
-                    return true;
+                  public void execute(List<Long> ref, Optional<List<Long>> value) {
+                    if (value.isPresent()) {
+                      ref.addAll(value.get());
+                    }
+                  }
+                }))
+        .add(
+            CliOption.builder("asl", OptionArgType.STRING_LIST).build(
+                new OptionHandler<List<String>, List<String>>() {
+                  @Override
+                  public void execute(List<String> ref,
+                      Optional<List<String>> value) {
+                    ref.addAll(value.get());
+                  }
+                })
+        )
+        .add(
+            CliOption.builder("as", OptionArgType.STRING).build(
+                new OptionHandler<List<String>, String>() {
+                  @Override
+                  public void execute(List<String> ref,
+                      Optional<String> value) {
+                    ref.addAll(value.asSet());
                   }
                 })
         )
@@ -74,6 +98,8 @@ public class CliTest {
   @Test
   public void testMissingArg() {
     testFail("a", CauseType.MISSING_ARG, "-a");
+    // -aa has an optional argument, so this is valid
+    assertFalse(menu.execute("-aa").isPresent());
   }
 
   @Test
@@ -94,12 +120,25 @@ public class CliTest {
 
   @Test
   public void testNotLongArgType() {
-    testFail("a", CauseType.NOT_A_LONG, "-a", "sfd");
+    testFail("a", CauseType.INVALID_NUMBER_FORMAT, "-a", "sfd");
   }
 
   @Test
   public void testNotLongArgType2() {
-    testFail("a", CauseType.NOT_A_LONG, "-a", "6.4");
+    testFail("a", CauseType.INVALID_NUMBER_FORMAT, "-a", "6.4");
+    testFail("aa", CauseType.INVALID_NUMBER_FORMAT, "-aa", "6.4");
+  }
+
+  @Test
+  public void testStringArgType() {
+    assertTrue(list.isEmpty());
+    assertFalse(menu.execute("-asl", "hello world", "bye").isPresent());
+    assertEquals(asList("hello world", "bye"), list);
+    testFail("asl", CauseType.MISSING_ARG, "-asl");
+    assertEquals(asList("hello world", "bye"), list);
+    assertFalse(menu.execute("-as", "hello again").isPresent());
+    assertEquals(asList("hello world", "bye", "hello again"), list);
+    testFail("as", CauseType.MISSING_ARG, "-as");
   }
 
   void testFail(String failingOptionName, CauseType causeType,

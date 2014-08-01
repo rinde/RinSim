@@ -21,7 +21,11 @@ public class CliException extends RuntimeException {
    * @param cause The cause.
    */
   public CliException(String msg, CauseType cause) {
-    this(msg, cause, null);
+    this(msg, null, cause, null);
+  }
+
+  public CliException(String msg, CauseType type, @Nullable CliOption opt) {
+    this(msg, null, type, opt);
   }
 
   /**
@@ -30,10 +34,11 @@ public class CliException extends RuntimeException {
    * @param cause The cause.
    * @param opt The menu option.
    */
-  public CliException(String msg, CauseType cause, @Nullable CliOption opt) {
-    super(msg);
+  public CliException(String msg, @Nullable Throwable cause, CauseType type,
+      @Nullable CliOption opt) {
+    super(msg, cause);
     menuOption = Optional.<CliOption> fromNullable(opt);
-    causeType = cause;
+    causeType = type;
   }
 
   /**
@@ -62,7 +67,7 @@ public class CliException extends RuntimeException {
 
   public enum CauseType {
 
-    MISSING_ARG, ALREADY_SELECTED, PARSE_EXCEPTION, NOT_A_LONG, INVALID;
+    MISSING_ARG, ALREADY_SELECTED, PARSE_EXCEPTION, INVALID_NUMBER_FORMAT, INVALID;
 
   }
 }

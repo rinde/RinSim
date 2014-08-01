@@ -1,35 +1,39 @@
 package rinde.sim.util.cli;
 
-import static java.util.Arrays.asList;
-
 import java.util.List;
 
-import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.PatternOptionBuilder;
 
 import rinde.sim.util.cli.CliException.CauseType;
 
 import com.google.common.base.Joiner;
+import com.google.common.base.Optional;
+import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
+import com.google.common.collect.Iterables;
 import com.google.common.primitives.Longs;
 
 public final class CliOption {
   private static final int NUM_ARGS_IN_LIST = 100;
   private static final String ARG_LIST_NAME = "list";
-  private static final char ARG_LIST_SEPARATOR = ',';
+  static final char ARG_LIST_SEPARATOR = ',';
   private static final String NUM_NAME = "num";
   private static final String STRING_NAME = "string";
 
+  private static final OptionHandler<Object, Object> HELP_HANDLER = new OptionHandler<Object, Object>() {
+    @Override
+    public void execute(Object ref, Optional<Object> value) {}
+  };
+
   final String shortName;
-  final String longName;
+  final Optional<String> longName;
   final String description;
   final OptionArgType<?> argumentType;
   final boolean isArgOptional;
   final OptionHandler<?, ?> handler;
 
-  CliOption(Builder b, OptionHandler<?, ?> h) {
+  CliOption(Builder<?> b, OptionHandler<?, ?> h) {
     shortName = b.shortName;
     longName = b.longName;
     description = b.description;
@@ -38,15 +42,15 @@ public final class CliOption {
     handler = h;
   }
 
-  public <T, U> boolean execute(T ref, Value<U> value) {
-    return ((OptionHandler<T, U>) handler).execute(ref, value);
+  <T, U> void execute(T ref, Optional<U> value) {
+    ((OptionHandler<T, U>) handler).execute(ref, value);
   }
 
   public String getShortName() {
     return shortName;
   }
 
-  public String getLongName() {
+  public Optional<String> getLongName() {
     return longName;
   }
 
@@ -58,9 +62,23 @@ public final class CliOption {
     return isArgOptional;
   }
 
+  @Override
+  public String toString() {
+    if (longName.isPresent()) {
+      return Joiner.on("").join("-", shortName, "(", longName.get(), ")");
+    }
+    return "-" + shortName;
+  }
+
+  boolean isHelpOption() {
+    return handler == HELP_HANDLER;
+  }
+
   Option create() {
     final Option option = new Option(shortName, description);
-    option.setLongOpt(longName);
+    if (longName.isPresent()) {
+      option.setLongOpt(longName.get());
+    }
     argumentType.apply(option);
     option.setOptionalArg(isArgOptional);
     return option;
@@ -88,9 +106,13 @@ public final class CliOption {
       void apply(Option o) {}
 
       @Override
-      Value<String> parseValue(CliOption option,
-          CommandLine commandLine) {
-        return new Value<>("", optionUsed(option, commandLine), "");
+      String parseValue(CliOption option, String value) {
+        throw new UnsupportedOperationException();
+      }
+
+      @Override
+      String name() {
+        return "no arg";
       }
     };
 
@@ -104,16 +126,31 @@ public final class CliOption {
       }
 
       @Override
-      Value<List<Long>> parseValue(CliOption option, CommandLine commandLine) {
-        final String opt = optionUsed(option, commandLine);
-        final String str = asString(option, commandLine);
-        final List<String> strings = asList(commandLine.getOptionValues(option
-            .getShortName()));
-        final List<Long> longs = ImmutableList.copyOf(Lists.transform(
-            strings, Longs.stringConverter()));
-        return new Value<>(str, opt, longs);
+      List<Long> parseValue(CliOption option, String value) {
+        final Iterable<String> strings = Splitter.on(ARG_LIST_SEPARATOR).split(
+            value);
+        try {
+          final List<Long> longs = ImmutableList.copyOf(Iterables.transform(
+              strings, Longs.stringConverter()));
+          return longs;
+        } catch (final NumberFormatException e) {
+          throw convertNFE(option, e, value, name());
+        }
+      }
+
+      @Override
+      String name() {
+        return "long list";
       }
     };
+
+    static CliException convertNFE(CliOption option, NumberFormatException e,
+        String value, String argName) {
+      return new CliException(String.format(
+          "The option %s expects a %s, found '%s'.", option, argName,
+          value), e, CauseType.INVALID_NUMBER_FORMAT, option);
+    }
+
     public static final OptionArgType<Long> LONG = new OptionArgType<Long>() {
       @Override
       void apply(Option o) {
@@ -123,17 +160,17 @@ public final class CliOption {
       }
 
       @Override
-      Value<Long> parseValue(CliOption option, CommandLine commandLine) {
-        final String optionUsed = optionUsed(option, commandLine);
-        final String str = asString(option, commandLine);
+      Long parseValue(CliOption option, String value) {
         try {
-          final Long i = Long.parseLong(str);
-          return new Value<>(str, optionUsed, i);
+          return Long.parseLong(value);
         } catch (final NumberFormatException e) {
-          throw new CliException("The option " + optionUsed
-              + " expects a long, found " + str,
-              CauseType.NOT_A_LONG, option);
+          throw convertNFE(option, e, value, name());
         }
+      }
+
+      @Override
+      String name() {
+        return "long";
       }
     };
 
@@ -147,12 +184,13 @@ public final class CliOption {
       }
 
       @Override
-      Value<List<String>> parseValue(CliOption option, CommandLine cmd) {
-        return new Value<List<String>>(
-            asString(option, cmd),
-            optionUsed(option, cmd),
-            ImmutableList.copyOf(cmd.getOptionValues(option
-                .getShortName())));
+      List<String> parseValue(CliOption option, String value) {
+        return Splitter.on(ARG_LIST_SEPARATOR).splitToList(value);
+      }
+
+      @Override
+      String name() {
+        return "string list";
       }
     };
 
@@ -165,36 +203,26 @@ public final class CliOption {
       }
 
       @Override
-      Value<String> parseValue(CliOption option,
-          CommandLine commandLine) {
-        final String str = asString(option, commandLine);
-        return new Value<>(str, optionUsed(option, commandLine), str);
+      String parseValue(CliOption option, String value) {
+        return value;
+      }
+
+      @Override
+      String name() {
+        return "string";
       }
     };
 
-    static String optionUsed(CliOption option, CommandLine commandLine) {
-      if (commandLine.hasOption(option.getShortName())) {
-        return "-" + option.getShortName();
-      } else if (commandLine.hasOption(option.getLongName())) {
-        return "--" + option.getLongName();
-      } else {
-        throw new IllegalArgumentException();
-      }
-    }
-
-    static String asString(CliOption option, CommandLine commandLine) {
-      return Joiner.on(",").join(
-          commandLine.getOptionValues(option.getShortName()));
-    }
-
     abstract void apply(Option o);
 
-    abstract Value<T> parseValue(CliOption option, CommandLine commandLine);
+    abstract T parseValue(CliOption option, String value);
+
+    abstract String name();
   }
 
   public static class Builder<T> {
     String shortName;
-    String longName;
+    Optional<String> longName;
     String description;
     OptionArgType<?> argumentType;
     boolean isArgOptional;
@@ -205,7 +233,7 @@ public final class CliOption {
 
     Builder(String sn, OptionArgType<?> argType) {
       shortName = sn;
-      longName = "";
+      longName = Optional.absent();
       description = "";
       argumentType = argType;
       isArgOptional = false;
@@ -225,7 +253,7 @@ public final class CliOption {
     }
 
     public Builder<T> longName(String ln) {
-      longName = ln;
+      longName = Optional.of(ln);
       return this;
     }
 
@@ -244,14 +272,8 @@ public final class CliOption {
     }
 
     public <U> CliOption buildHelpOption() {
-      return build(new HelpHandler<U, T>());
+      return build((OptionHandler<U, T>) HELP_HANDLER);
     }
   }
 
-  static class HelpHandler<T, U> implements OptionHandler<T, U> {
-    @Override
-    public boolean execute(T ref, Value<U> value) {
-      return false;
-    }
-  }
 }
