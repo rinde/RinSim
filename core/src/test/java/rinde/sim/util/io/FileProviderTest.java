@@ -19,7 +19,6 @@ import org.junit.Test;
 import rinde.sim.util.TestUtil;
 import rinde.sim.util.cli.CliException;
 import rinde.sim.util.io.FileProvider.Builder;
-import rinde.sim.util.io.FileProviderCli.Handlers;
 
 import com.google.common.base.Predicate;
 
@@ -35,7 +34,6 @@ public class FileProviderTest {
   @Test
   public void removeTestArtifacts() {
     TestUtil.testPrivateConstructor(FileProviderCli.class);
-    Handlers.valueOf("ADD");
   }
 
   /**

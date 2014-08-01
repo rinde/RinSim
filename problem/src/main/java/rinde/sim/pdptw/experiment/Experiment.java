@@ -9,6 +9,7 @@ import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Sets.newLinkedHashSet;
 
+import java.io.PrintStream;
 import java.io.Serializable;
 import java.nio.file.Path;
 import java.util.List;
@@ -453,14 +454,17 @@ public final class Experiment {
      * Parses the command line arguments. Performs the experiment using
      * {@link #perform()} if the arguments allow it.
      * @param args The arguments to parse.
+     * @param out The print stream to write the feedback from the cli system to.
      * @return {@link Optional} containing {@link ExperimentResults} if the
      *         experiment was performed, {@link Optional#absent()} otherwise.
      */
-    public Optional<ExperimentResults> perform(String[] args) {
-      if (ExperimentCli.safeExecute(this, args)) {
-        return Optional.of(perform());
+    public Optional<ExperimentResults> perform(String[] args, PrintStream out) {
+      final Optional<String> error = ExperimentCli.safeExecute(this, args);
+      if (error.isPresent()) {
+        out.println(error.get());
+        return Optional.absent();
       }
-      return Optional.absent();
+      return Optional.of(perform());
     }
 
     private ImmutableList<Long> generateSeeds() {

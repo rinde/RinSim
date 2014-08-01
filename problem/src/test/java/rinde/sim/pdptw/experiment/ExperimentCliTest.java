@@ -234,6 +234,6 @@ public class ExperimentCliTest {
 
   @Test
   public void dryRun() {
-    builder.perform(new String[] { "-dr" });
+    builder.perform(new String[] { "-dr" }, System.out);
   }
 }

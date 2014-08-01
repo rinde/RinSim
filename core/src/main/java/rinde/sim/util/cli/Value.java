@@ -1,56 +1,61 @@
 package rinde.sim.util.cli;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+public final class Value<T> {
 
-import org.apache.commons.cli.CommandLine;
-import org.apache.commons.cli.ParseException;
+  final String stringValue;
+  final String usedOption;
+  final T value;
 
-import com.google.common.base.Joiner;
-import com.google.common.base.Optional;
-import com.google.common.collect.ImmutableList;
-
-public class Value {
-  private final CommandLine commandLine;
-  private final ICliOption option;
-
-  public Value(CommandLine cla, ICliOption opt) {
-    checkNotNull(cla);
-    checkNotNull(opt);
-    commandLine = cla;
-    option = opt;
+  Value(String str, String opt, T val) {
+    stringValue = str;
+    usedOption = opt;
+    value = val;
   }
 
-  public Optional<Long> longValue() {
-    try {
-      final Long i = (Long) commandLine
-          .getParsedOptionValue(option.getShortName());
-      return Optional.of(i);
-    } catch (final ParseException e) {
-      return Optional.absent();
-    }
+  public String asString() {
+    return stringValue;
   }
 
-  public String optionUsed() {
-    if (commandLine.hasOption(option.getShortName())) {
-      return "-" + option.getShortName();
-    } else if (commandLine.hasOption(option.getLongName())) {
-      return "--" + option.getLongName();
-    } else {
-      throw new IllegalArgumentException();
-    }
+  public String usedOption() {
+    return usedOption;
   }
 
-  public boolean hasValue() {
-    return commandLine.getOptionValue(option.getShortName()) != null;
+  public T asValue() {
+    return value;
   }
 
-  public String stringValue() {
-    return Joiner.on(",").join(
-        commandLine.getOptionValues(option.getShortName()));
-  }
+  // public Optional<Long> longValue() {
+  // try {
+  // final Long i = (Long) commandLine
+  // .getParsedOptionValue(option.getShortName());
+  // return Optional.of(i);
+  // } catch (final ParseException e) {
+  // return Optional.absent();
+  // }
+  // }
+  //
+  // public String optionUsed() {
+  // if (commandLine.hasOption(option.getShortName())) {
+  // return "-" + option.getShortName();
+  // } else if (commandLine.hasOption(option.getLongName())) {
+  // return "--" + option.getLongName();
+  // } else {
+  // throw new IllegalArgumentException();
+  // }
+  // }
+  //
+  // public boolean hasValue() {
+  // return commandLine.getOptionValue(option.getShortName()) != null;
+  // }
+  //
+  // public String stringValue() {
+  // return Joiner.on(",").join(
+  // commandLine.getOptionValues(option.getShortName()));
+  // }
+  //
+  // public ImmutableList<String> asList() {
+  // return ImmutableList.copyOf(commandLine.getOptionValues(option
+  // .getShortName()));
+  // }
 
-  public ImmutableList<String> asList() {
-    return ImmutableList.copyOf(commandLine.getOptionValues(option
-        .getShortName()));
-  }
 }

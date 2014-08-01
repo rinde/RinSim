@@ -11,6 +11,7 @@ import java.util.Map;
 
 import rinde.sim.util.cli.CliMenu;
 import rinde.sim.util.cli.CliOption;
+import rinde.sim.util.cli.CliOption.OptionArgType;
 import rinde.sim.util.cli.OptionHandler;
 import rinde.sim.util.cli.Value;
 import rinde.sim.util.io.FileProvider.Builder;
@@ -60,21 +61,22 @@ public final class FileProviderCli {
     return ImmutableMap.copyOf(pathMap);
   }
 
-  static CliOption<Builder> createIncludeOption(Map<String, Path> pathMap,
+  static CliOption createIncludeOption(
+      Map<String, Path> pathMap,
       Builder builder) {
     final StringBuilder sb = new StringBuilder();
     sb.append("The following paths can be included. If this option is not used all paths are automatically included. The current paths:\n");
     Joiner.on("\n").withKeyValueSeparator(" = ").appendTo(sb, pathMap);
     sb.append("\nThe options should be given as a comma ',' separated list. This option "
         + "can not be used together with --exclude.");
-    return CliOption.builder("i")
-        .setLongName("include")
+    return CliOption
+        .builder("i", OptionArgType.STRING_LIST)
+        .longName("include")
         .description(sb.toString())
-        .argStringList()
         .build(new IncludeHandler(pathMap));
   }
 
-  static CliOption<Builder> createExcludeOption(Map<String, Path> pathMap,
+  static CliOption createExcludeOption(Map<String, Path> pathMap,
       Builder builder) {
     final StringBuilder sb = new StringBuilder();
     sb.append("The following paths can be excluded. If this option is not used all paths are automatically "
@@ -82,35 +84,33 @@ public final class FileProviderCli {
     Joiner.on("\n").withKeyValueSeparator(" = ").appendTo(sb, pathMap);
     sb.append("\nThe options should be given as a comma ',' separated list. This option "
         + "can not be used together with --include.");
-    return CliOption.builder("e")
-        .setLongName("exclude")
+    return CliOption.builder("e", OptionArgType.STRING_LIST)
+        .longName("exclude")
         .description(sb.toString())
-        .argStringList()
         .build(new ExcludeHandler(pathMap));
   }
 
-  static CliOption<Builder> createHelpOption() {
+  static CliOption createHelpOption() {
     return CliOption.builder("h")
-        .setLongName("help")
+        .longName("help")
         .description("Print this message.")
         .buildHelpOption();
   }
 
-  static CliOption<Builder> createAddOption() {
+  static CliOption createAddOption() {
     return CliOption
-        .builder("a")
-        .setLongName("add")
+        .builder("a", OptionArgType.STRING_LIST)
+        .longName("add")
         .description(
             "Adds the specified paths. A path may be a file or a directory. "
                 + "If it is a directory it will be searched recursively.")
-        .argStringList()
-        .build(Handlers.ADD);
+        .build(ADD);
   }
 
-  static CliOption<Builder> createFilterOption(Builder ref) {
+  static CliOption createFilterOption(Builder ref) {
     return CliOption
-        .builder("f")
-        .setLongName("filter")
+        .builder("f", OptionArgType.STRING)
+        .longName("filter")
         .description(
             "Sets a filter of which paths to include. The filter is a string "
                 + "of the form 'syntax:pattern', where 'syntax' is either 'glob' "
@@ -121,11 +121,10 @@ public final class FileProviderCli {
                 + " files that satisfy this filter. For more information about"
                 + " the supported syntax please review the documentation of the "
                 + "java.nio.file.FileSystem.getPathMatcher(String) method.")
-        .argString()
-        .build(Handlers.FILTER);
+        .build(FILTER);
   }
 
-  static class IncludeHandler implements OptionHandler<Builder> {
+  static class IncludeHandler implements OptionHandler<Builder, List<String>> {
     final Map<String, Path> pathMap;
 
     IncludeHandler(Map<String, Path> map) {
@@ -133,8 +132,8 @@ public final class FileProviderCli {
     }
 
     @Override
-    public boolean execute(Builder ref, Value value) {
-      final List<String> keys = value.asList();
+    public boolean execute(Builder ref, Value<List<String>> value) {
+      final List<String> keys = value.asValue();
       final List<Path> paths = newArrayList();
       checkArgument(
           keys.size() <= pathMap.size(),
@@ -150,7 +149,7 @@ public final class FileProviderCli {
     }
   }
 
-  static class ExcludeHandler implements OptionHandler<Builder> {
+  static class ExcludeHandler implements OptionHandler<Builder, List<String>> {
     final Map<String, Path> pathMap;
 
     ExcludeHandler(Map<String, Path> map) {
@@ -158,8 +157,8 @@ public final class FileProviderCli {
     }
 
     @Override
-    public boolean execute(Builder ref, Value value) {
-      final List<String> keys = value.asList();
+    public boolean execute(Builder ref, Value<List<String>> value) {
+      final List<String> keys = value.asValue();
       final List<Path> paths = newArrayList();
       checkArgument(
           keys.size() < pathMap.size(),
@@ -175,24 +174,23 @@ public final class FileProviderCli {
     }
   }
 
-  public enum Handlers implements OptionHandler<FileProvider.Builder> {
-    ADD {
-      @Override
-      public boolean execute(FileProvider.Builder ref, Value value) {
-        final List<String> paths = value.asList();
-        for (final String p : paths) {
-          ref.add(Paths.get(p));
-        }
-        return true;
+  private static final OptionHandler<FileProvider.Builder, List<String>> ADD = new OptionHandler<FileProvider.Builder, List<String>>() {
+    @Override
+    public boolean execute(FileProvider.Builder ref, Value<List<String>> value) {
+      final List<String> paths = value.asValue();
+      for (final String p : paths) {
+        ref.add(Paths.get(p));
       }
-    },
-    FILTER {
-      @Override
-      public boolean execute(FileProvider.Builder ref, Value value) {
-        ref.filter(value.stringValue());
-        return true;
-      }
+      return true;
     }
-  }
+  };
+
+  private static final OptionHandler<FileProvider.Builder, String> FILTER = new OptionHandler<FileProvider.Builder, String>() {
+    @Override
+    public boolean execute(FileProvider.Builder ref, Value<String> value) {
+      ref.filter(value.asValue());
+      return true;
+    }
+  };
 
 }

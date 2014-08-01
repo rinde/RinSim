@@ -11,7 +11,6 @@ import rinde.sim.pdptw.experiment.Experiment.Computers;
 import rinde.sim.util.cli.CliException;
 import rinde.sim.util.cli.CliMenu;
 import rinde.sim.util.cli.CliOption;
-import rinde.sim.util.cli.ICliOption;
 import rinde.sim.util.cli.OptionHandler;
 import rinde.sim.util.cli.Value;
 import rinde.sim.util.io.FileProviderCli;
@@ -25,11 +24,11 @@ class ExperimentCli {
 
   private ExperimentCli() {}
 
-  static boolean safeExecute(Experiment.Builder builder, String[] args) {
+  static Optional<String> safeExecute(Experiment.Builder builder, String[] args) {
     return createMenu(builder).safeExecute(args);
   }
 
-  static boolean execute(Experiment.Builder builder, String[] args)
+  static Optional<String> execute(Experiment.Builder builder, String[] args)
       throws CliException {
     return createMenu(builder).execute(args);
   }
@@ -40,7 +39,7 @@ class ExperimentCli {
     final CliMenu.Builder<Experiment.Builder> menuBuilder = CliMenu
         .builder(expBuilder);
     menuBuilder
-        .commandLineSyntax("java -jar jarname.jar")
+        .commandLineSyntax("java -jar jarname.jar <options>")
         .header("RinSim Experiment command line interface.")
         .footer("For more information see http://github.com/rinde/RinSim")
         .addGroup(
@@ -84,9 +83,9 @@ class ExperimentCli {
   enum Handlers implements OptionHandler<Builder> {
     SEED {
       @Override
-      public ICliOption<Builder> createOption(Experiment.Builder builder) {
+      public CliOption<Builder> createOption(Experiment.Builder builder) {
         return CliOption.builder("s")
-            .setLongName("seed")
+            .longName("seed")
             .description(
                 "Sets the master random seed, default: ", builder.masterSeed,
                 ".")
@@ -107,9 +106,9 @@ class ExperimentCli {
     },
     HELP {
       @Override
-      public ICliOption<Builder> createOption(Experiment.Builder builder) {
+      public CliOption<Builder> createOption(Experiment.Builder builder) {
         return CliOption.builder("h")
-            .setLongName("help")
+            .longName("help")
             .description("Print this message.")
             .build(this);
       }
@@ -121,9 +120,9 @@ class ExperimentCli {
     },
     REPETITIONS {
       @Override
-      public ICliOption<Builder> createOption(Builder builder) {
+      public CliOption<Builder> createOption(Builder builder) {
         return CliOption.builder("r")
-            .setLongName("repetitions")
+            .longName("repetitions")
             .description(
                 "Sets the number of repetitions of each setting, default: "
                 , builder.repetitions)
@@ -144,10 +143,10 @@ class ExperimentCli {
     },
     BATCHES {
       @Override
-      public ICliOption<Builder> createOption(Builder builder) {
+      public CliOption<Builder> createOption(Builder builder) {
         return CliOption
             .builder("b")
-            .setLongName("batches")
+            .longName("batches")
             .description(
                 "Sets the number of batches to use in case of distributed computation, default: ",
                 builder.numBatches,
@@ -169,10 +168,10 @@ class ExperimentCli {
     },
     THREADS {
       @Override
-      public ICliOption<Builder> createOption(Builder builder) {
+      public CliOption<Builder> createOption(Builder builder) {
         return CliOption
             .builder("t")
-            .setLongName("threads")
+            .longName("threads")
             .description(
                 "Sets the number of threads to use in case of local computation, default: ",
                 builder.numThreads,
@@ -193,9 +192,9 @@ class ExperimentCli {
     },
     DRY_RUN {
       @Override
-      public ICliOption<Builder> createOption(Builder builder) {
+      public CliOption<Builder> createOption(Builder builder) {
         return CliOption.builder("dr")
-            .setLongName("dry-run")
+            .longName("dry-run")
             .description(
                 "Will perform a 'dry run' of the experiment without doing any"
                     + " actual simulations. A detailed description of the "
@@ -223,10 +222,10 @@ class ExperimentCli {
     },
     JPPF {
       @Override
-      public ICliOption<Builder> createOption(Builder builder) {
+      public CliOption<Builder> createOption(Builder builder) {
         return CliOption
             .builder("j")
-            .setLongName("jppf")
+            .longName("jppf")
             .description(
                 "Compute the experiment using the JPPF framework",
                 builder.getComputer() == Computers.DISTRIBUTED ? " (default)"
@@ -243,10 +242,10 @@ class ExperimentCli {
     },
     LOCAL {
       @Override
-      public ICliOption<Builder> createOption(Builder builder) {
+      public CliOption<Builder> createOption(Builder builder) {
         return CliOption
             .builder("l")
-            .setLongName("local")
+            .longName("local")
             .description(
                 "Compute the experiment locally",
                 builder.getComputer() == Computers.LOCAL ? " (default)" : "",
@@ -263,10 +262,10 @@ class ExperimentCli {
     },
     GUI {
       @Override
-      public ICliOption<Builder> createOption(Builder builder) {
+      public CliOption<Builder> createOption(Builder builder) {
         return CliOption
             .builder("g")
-            .setLongName("show-gui")
+            .longName("show-gui")
             .description(
                 "Starts the gui for each simulation when 'true' is supplied, hides it when 'false' is supplied. By default the gui is ",
                 builder.showGui ? "" : "not",
@@ -288,11 +287,11 @@ class ExperimentCli {
 
     };
 
-    public abstract ICliOption<Builder> createOption(Experiment.Builder builder);
+    public abstract CliOption<Builder> createOption(Experiment.Builder builder);
 
   }
 
-  static ICliOption<Builder> createIncludeOption(
+  static CliOption<Builder> createIncludeOption(
       Map<String, MASConfiguration> configMap) {
     final StringBuilder sb = new StringBuilder();
     sb.append("The following configurations can be included in the experiment"
@@ -302,7 +301,7 @@ class ExperimentCli {
     sb.append("\nThe options should be given as a comma ',' separated list. This option "
         + "can not be used together with --exclude.");
     return CliOption.builder("i")
-        .setLongName("include")
+        .longName("include")
         .description(sb.toString())
         .argNumberList()
         .build(new IncludeHandler(configMap));
@@ -333,7 +332,7 @@ class ExperimentCli {
     }
   }
 
-  static ICliOption<Builder> createExcludeOption(
+  static CliOption<Builder> createExcludeOption(
       Map<String, MASConfiguration> configMap) {
     final StringBuilder sb = new StringBuilder();
     sb.append("The following configurations can be excluded from the experiment"
@@ -343,7 +342,7 @@ class ExperimentCli {
     sb.append("\nThe options should be given as a comma ',' separated list. This option "
         + "can not be used together with --include.");
     return CliOption.builder("e")
-        .setLongName("exclude")
+        .longName("exclude")
         .description(sb.toString())
         .argStringList()
         .build(new ExcludeHandler(configMap));

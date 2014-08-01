@@ -1,6 +1,6 @@
 package rinde.sim.util.cli;
 
-public interface OptionHandler<T> {
+public interface OptionHandler<T, U> {
 
-  boolean execute(T ref, Value value);
+  boolean execute(T ref, Value<U> value);
 }
