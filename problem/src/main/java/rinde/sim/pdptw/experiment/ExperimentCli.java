@@ -2,15 +2,6 @@ package rinde.sim.pdptw.experiment;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.collect.Lists.newArrayList;
-import static rinde.sim.pdptw.experiment.ExperimentCli.Handlers.BATCHES;
-import static rinde.sim.pdptw.experiment.ExperimentCli.Handlers.DRY_RUN;
-import static rinde.sim.pdptw.experiment.ExperimentCli.Handlers.GUI;
-import static rinde.sim.pdptw.experiment.ExperimentCli.Handlers.HELP;
-import static rinde.sim.pdptw.experiment.ExperimentCli.Handlers.JPPF;
-import static rinde.sim.pdptw.experiment.ExperimentCli.Handlers.LOCAL;
-import static rinde.sim.pdptw.experiment.ExperimentCli.Handlers.REPETITIONS;
-import static rinde.sim.pdptw.experiment.ExperimentCli.Handlers.SEED;
-import static rinde.sim.pdptw.experiment.ExperimentCli.Handlers.THREADS;
 
 import java.util.List;
 import java.util.Map;
@@ -53,20 +44,20 @@ class ExperimentCli {
         .header("RinSim Experiment command line interface.")
         .footer("For more information see http://github.com/rinde/RinSim")
         .addGroup(
-            BATCHES.createOption(expBuilder),
-            THREADS.createOption(expBuilder))
+            Handlers.BATCHES.createOption(expBuilder),
+            Handlers.THREADS.createOption(expBuilder))
         .addGroup(
             createIncludeOption(configMap),
             createExcludeOption(configMap))
         .addGroup(
-            LOCAL.createOption(expBuilder),
-            JPPF.createOption(expBuilder))
+            Handlers.LOCAL.createOption(expBuilder),
+            Handlers.JPPF.createOption(expBuilder))
         .add(
-            DRY_RUN.createOption(expBuilder),
-            HELP.createOption(expBuilder),
-            REPETITIONS.createOption(expBuilder),
-            SEED.createOption(expBuilder),
-            GUI.createOption(expBuilder));
+            Handlers.DRY_RUN.createOption(expBuilder),
+            Handlers.HELP.createOption(expBuilder),
+            Handlers.REPETITIONS.createOption(expBuilder),
+            Handlers.SEED.createOption(expBuilder),
+            Handlers.GUI.createOption(expBuilder));
 
     if (expBuilder.scenarioProviderBuilder.isPresent()) {
       menuBuilder.addSubMenu("s", "scenarios.",

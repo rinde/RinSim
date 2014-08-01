@@ -3,8 +3,6 @@ package rinde.sim.util.io;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Maps.newLinkedHashMap;
-import static rinde.sim.util.io.FileProviderCli.Handlers.ADD;
-import static rinde.sim.util.io.FileProviderCli.Handlers.FILTER;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -106,7 +104,7 @@ public final class FileProviderCli {
             "Adds the specified paths. A path may be a file or a directory. "
                 + "If it is a directory it will be searched recursively.")
         .argStringList()
-        .build(ADD);
+        .build(Handlers.ADD);
   }
 
   static CliOption<Builder> createFilterOption(Builder ref) {
@@ -124,7 +122,7 @@ public final class FileProviderCli {
                 + " the supported syntax please review the documentation of the "
                 + "java.nio.file.FileSystem.getPathMatcher(String) method.")
         .argString()
-        .build(FILTER);
+        .build(Handlers.FILTER);
   }
 
   static class IncludeHandler implements OptionHandler<Builder> {
@@ -175,13 +173,12 @@ public final class FileProviderCli {
       ref.paths.removeAll(paths);
       return true;
     }
-
   }
 
-  enum Handlers implements OptionHandler<Builder> {
+  public enum Handlers implements OptionHandler<FileProvider.Builder> {
     ADD {
       @Override
-      public boolean execute(Builder ref, Value value) {
+      public boolean execute(FileProvider.Builder ref, Value value) {
         final List<String> paths = value.asList();
         for (final String p : paths) {
           ref.add(Paths.get(p));
@@ -191,7 +188,7 @@ public final class FileProviderCli {
     },
     FILTER {
       @Override
-      public boolean execute(Builder ref, Value value) {
+      public boolean execute(FileProvider.Builder ref, Value value) {
         ref.filter(value.stringValue());
         return true;
       }
