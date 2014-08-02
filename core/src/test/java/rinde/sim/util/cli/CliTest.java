@@ -26,7 +26,7 @@ public class CliTest {
   @SuppressWarnings("null")
   List<Object> list;
   @SuppressWarnings("null")
-  CliMenu<List<Object>> menu;
+  CliMenu menu;
 
   /**
    * Sets up the subject (a list in this case) and creates the menu.
@@ -35,53 +35,84 @@ public class CliTest {
   public void setUp() {
     list = newArrayList();
     menu = CliMenu
-        .builder(list)
+        .builder()
         .add(
-            CliOption.builder("a", OptionArgType.LONG)
-                .build(new OptionHandler<List<Long>, Long>() {
-                  @Override
-                  public void execute(List<Long> ref, Optional<Long> value) {
-                    ref.add(value.get());
-                  }
-                })
+            CliOption.builder("a", OptionArgType.LONG).build(),
+            list,
+            new ArgHandler<List<Object>, Long>() {
+              @Override
+              public void execute(List<Object> ref, Optional<Long> value) {
+                ref.add(value.get());
+              }
+            }
         )
         .add(
             CliOption.builder("aa", OptionArgType.LONG_LIST)
                 .longName("add-all")
                 .description("Add all longs.")
                 .argOptional()
-                .build(new OptionHandler<List<Long>, List<Long>>() {
-                  @Override
-                  public void execute(List<Long> ref, Optional<List<Long>> value) {
-                    if (value.isPresent()) {
-                      ref.addAll(value.get());
-                    }
-                  }
-                }))
+                .build(),
+            list,
+            new ArgHandler<List<Object>, List<Long>>() {
+              @Override
+              public void execute(List<Object> ref, Optional<List<Long>> value) {
+                if (value.isPresent()) {
+                  ref.addAll(value.get());
+                }
+              }
+            })
         .add(
-            CliOption.builder("asl", OptionArgType.STRING_LIST).build(
-                new OptionHandler<List<String>, List<String>>() {
-                  @Override
-                  public void execute(List<String> ref,
-                      Optional<List<String>> value) {
-                    ref.addAll(value.get());
-                  }
-                })
+            CliOption.builder("asl", OptionArgType.STRING_LIST).build(),
+            list,
+            new ArgHandler<List<Object>, List<String>>() {
+              @Override
+              public void execute(List<Object> ref, Optional<List<String>> value) {
+                ref.addAll(value.get());
+              }
+            }
         )
         .add(
-            CliOption.builder("as", OptionArgType.STRING).build(
-                new OptionHandler<List<String>, String>() {
-                  @Override
-                  public void execute(List<String> ref,
-                      Optional<String> value) {
-                    ref.addAll(value.asSet());
-                  }
-                })
+            CliOption.builder("as", OptionArgType.STRING).build(),
+            list,
+            new ArgHandler<List<Object>, String>() {
+              @Override
+              public void execute(List<Object> ref, Optional<String> value) {
+                ref.addAll(value.asSet());
+              }
+            }
         )
-        .add(CliOption.builder("h")
-            .longName("help")
-            .<List<Long>> buildHelpOption())
+        .addHelpOption("h", "help", "Print this message")
         .build();
+  }
+
+  static <S> NoArgHandler<S> dummyHandler() {
+    return new NoArgHandler<S>() {
+      @Override
+      public void execute(S subject) {}
+    };
+  }
+
+  static <S, V> ArgHandler<S, V> dummyArgHandler() {
+    return new ArgHandler<S, V>() {
+      @Override
+      public void execute(S subject, Optional<V> value) {}
+    };
+  }
+
+  @Test(expected = IllegalArgumentException.class)
+  public void duplicateOptions() {
+    final Object subject = new Object();
+    CliMenu.builder()
+        .add(
+            CliOption.builder("a").build(),
+            subject,
+            dummyHandler())
+        .add(
+            CliOption.builder("aa", OptionArgType.STRING)
+                .longName("a")
+                .build(),
+            subject,
+            CliTest.<Object, String> dummyArgHandler());
   }
 
   @Test
@@ -146,7 +177,7 @@ public class CliTest {
     try {
       menu.execute(args);
     } catch (final CliException e) {
-      assertEquals(failingOptionName, e.getMenuOption().getShortName());
+      assertEquals(failingOptionName, e.getMenuOption().get().getShortName());
       assertEquals(causeType, e.getCauseType());
       return;
     }

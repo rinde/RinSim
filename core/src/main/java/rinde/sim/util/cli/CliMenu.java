@@ -1,9 +1,10 @@
 package rinde.sim.util.cli;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Maps.newLinkedHashMap;
-import static java.util.Arrays.asList;
+import static com.google.common.collect.Sets.newHashSet;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -23,12 +24,13 @@ import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 
 import rinde.sim.util.cli.CliException.CauseType;
-import rinde.sim.util.cli.CliOption.OptionArgType;
+import rinde.sim.util.cli.CliOption.CliOptionArg;
+import rinde.sim.util.cli.CliOption.CliOptionNoArg;
 
 import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Sets;
 
 /**
  * Requires a subject which forms the API of the system that you want to create
@@ -39,97 +41,103 @@ import com.google.common.collect.ImmutableSet;
  * @param <T>
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
  */
-public final class CliMenu<T> {
+public final class CliMenu {
   final String header;
   final String footer;
   final String cmdLineSyntax;
   final Options options;
-  final Map<String, CliOption> optionMap;
-  final T subject;
+  final Map<String, Executor> optionMap;
 
-  CliMenu(Options op, Builder<T> b) {
+  CliMenu(Options op, Builder b) {
     header = b.header;
     footer = b.footer;
     cmdLineSyntax = b.cmdLineSyntax;
     options = op;
     optionMap = ImmutableMap.copyOf(b.optionMap);
-    subject = b.subject;
   }
 
+  /**
+   * Same as {@link #execute(String...)} but catches all thrown
+   * {@link CliException}s. If an exception is thrown it's message will be added
+   * to the returned error message.
+   * @param args The arguments to parse.
+   * @return A string containing an error message or {@link Optional#absent()}
+   *         if no error occurred.
+   */
   public Optional<String> safeExecute(String[] args) {
     try {
       return execute(args);
     } catch (final CliException e) {
-      System.err.println(e.getMessage());
-      printHelp();
-      return Optional.of("");
+      return Optional.of(Joiner.on("\n").join(e.getMessage(), printHelp()));
     }
   }
 
+  /**
+   * Parses and executes the provided command-line arguments.
+   * @param args The arguments to parse.
+   * @return A string containing the help message, or {@link Optional#absent()}
+   *         if no help was requested.
+   * @throws CliException If anything in the parsing or execution went wrong.
+   */
   public Optional<String> execute(String... args) throws CliException {
     final CommandLineParser parser = new BasicParser();
     final CommandLine line;
     try {
       line = parser.parse(options, args);
     } catch (final MissingArgumentException e) {
-      final CliOption option = optionMap.get(e.getOption().getOpt());
+      final CliOptionArg option = (CliOptionArg) optionMap.get(e.getOption()
+          .getOpt()).getOption();
       throw new CliException("The option " + option + " requires a "
           + option.argumentType.name() + " as argument.",
           CauseType.MISSING_ARG,
           option);
     } catch (final AlreadySelectedException e) {
       throw new CliException(e.getMessage(), CauseType.ALREADY_SELECTED,
-          optionMap.get(e.getOption().getOpt()));
+          optionMap.get(e.getOption().getOpt()).getOption());
     } catch (final ParseException e) {
       throw new CliException("Parsing failed. Reason: " + e.getMessage(),
           CauseType.PARSE_EXCEPTION);
     }
 
     for (final Option option : line.getOptions()) {
-      final Optional<String> error = exec(optionMap.get(option.getOpt()), line);
-      if (error.isPresent()) {
-        return error;
+      final Executor ex = optionMap.get(option.getOpt());
+      if (ex.getOption().isHelpOption()) {
+        return Optional.of(printHelp());
+      }
+      try {
+        ex.execute(line);
+      } catch (IllegalArgumentException | IllegalStateException e) {
+        throw new CliException(e.getMessage(), e, CauseType.INVALID,
+            ex.getOption());
       }
     }
     return Optional.absent();
   }
 
-  Optional<String> exec(final CliOption option, CommandLine commandLine) {
-    final Optional<?> value;
-    final Optional<String> rawValue = asString(option, commandLine);
-    if (rawValue.isPresent()) {
-      value = Optional
-          .of(option.argumentType.parseValue(option, rawValue.get()));
-    } else {
-      value = Optional.absent();
-    }
+  // Optional<String> exec(final CliOption option, CommandLine commandLine) {
+  // final Optional<?> value;
+  // final Optional<String> rawValue = asString(option, commandLine);
+  // if (rawValue.isPresent()) {
+  // value = Optional
+  // .of(option.argumentType.get().parseValue(option, rawValue.get()));
+  // } else {
+  // value = Optional.absent();
+  // }
+  //
+  // try {
+  // if (option.isHelpOption()) {
+  // return Optional.of(printHelp());
+  // }
+  // option.execute(subject, value);
+  // return Optional.absent();
+  // } catch (IllegalArgumentException | IllegalStateException e) {
+  // throw new CliException(e.getMessage(), e, CauseType.INVALID, option);
+  // }
+  // }
 
-    try {
-      if (option.isHelpOption()) {
-        return Optional.of(printHelp());
-      }
-      option.execute(subject, value);
-      return Optional.absent();
-    } catch (IllegalArgumentException | IllegalStateException e) {
-      throw new CliException(e.getMessage(), e, CauseType.INVALID, option);
-    }
-  }
-
-  static Optional<String> asString(CliOption option, CommandLine commandLine) {
-    final String[] vals = commandLine.getOptionValues(option.getShortName());
-
-    if (vals == null) {
-      if (option.isArgOptional || option.argumentType == OptionArgType.NO_ARG) {
-        return Optional.absent();
-      }
-      throw new CliException("The option " + option + " requires a "
-          + option.argumentType.name() + " argument.", CauseType.MISSING_ARG,
-          option);
-    }
-
-    return Optional.of(Joiner.on(CliOption.ARG_LIST_SEPARATOR).join(vals));
-  }
-
+  /**
+   * @return The help message as defined by this menu.
+   */
   public String printHelp() {
     final HelpFormatter formatter = new HelpFormatter();
     final StringWriter sw = new StringWriter();
@@ -139,98 +147,161 @@ public final class CliMenu<T> {
     return sw.toString();
   }
 
-  public static <T> Builder<T> builder(T subject) {
-    return new Builder<>(subject);
+  /**
+   * Construct a new builder for creating a command-line interface menu.
+   * @return A new builder instance.
+   */
+  public static Builder builder() {
+    return new Builder();
   }
 
-  public static final class Builder<T> {
+  public static final class Builder {
     String header;
     String footer;
     String cmdLineSyntax;
-    Map<String, CliOption> optionMap;
+    Map<String, Executor> optionMap;
     List<Set<CliOption>> groups;
-    final T subject;
+    boolean buildingGroup;
+    Set<String> optionNames;
 
-    Builder(T t) {
-      subject = t;
+    Builder() {
       header = "";
       footer = "";
       cmdLineSyntax = "java -jar jarname <options>";
       optionMap = newLinkedHashMap();
       groups = newArrayList();
+      buildingGroup = false;
+      optionNames = newHashSet();
     }
 
-    public Builder<T> add(Iterable<CliOption> options) {
-      for (final CliOption mo : options) {
-        checkArgument(!optionMap.containsKey(mo.getShortName()),
-            "An option with %s already exists.", mo.getShortName());
-        optionMap.put(mo.getShortName(), mo);
+    public <V, S> Builder add(CliOptionArg<V> option, S subject,
+        ArgHandler<S, V> handler) {
+      add(new ArgExecutor<>(option, subject, handler));
+      return this;
+    }
+
+    public <S> Builder add(CliOptionNoArg option, S subject,
+        NoArgHandler<S> handler) {
+      add(new NoArgExecutor<>(option, subject, handler));
+      return this;
+    }
+
+    void checkDuplicateOption(String name) {
+      checkArgument(!optionNames.contains(name),
+          "Duplicate options are not allowed, found duplicate: '%s'.", name);
+    }
+
+    void add(Executor e) {
+      final CliOption option = e.getOption();
+      final String sn = option.getShortName();
+
+      checkDuplicateOption(sn);
+      optionNames.add(sn);
+      optionMap.put(sn, e);
+      if (option.getLongName().isPresent()) {
+        final String ln = option.getLongName().get();
+        checkDuplicateOption(ln);
+        optionNames.add(ln);
+        optionMap.put(ln, e);
+      }
+
+      if (buildingGroup) {
+        groups.get(groups.size() - 1).add(option);
+      }
+    }
+
+    public Builder addHelpOption(String sn, String ln, String desc) {
+      final CliOptionNoArg option = CliOption.builder(sn)
+          .longName(ln)
+          .description(desc)
+          .buildHelpOption();
+      add(new HelpExecutor(option));
+      return this;
+    }
+
+    public Builder openGroup() {
+      if (buildingGroup) {
+        closeGroup();
+      }
+      buildingGroup = true;
+      groups.add(Sets.<CliOption> newLinkedHashSet());
+      return this;
+    }
+
+    public Builder closeGroup() {
+      buildingGroup = false;
+      if (groups.get(groups.size() - 1).isEmpty()) {
+        throw new IllegalArgumentException(
+            "No options were added to the group.");
       }
       return this;
     }
 
-    @SafeVarargs
-    public final Builder<T> add(CliOption... options) {
-      return add(asList(options));
-    }
-
-    public Builder<T> addGroup(Iterable<CliOption> options) {
-      groups.add(ImmutableSet.copyOf(options));
-      add(options);
-      return this;
-    }
-
-    @SafeVarargs
-    public final Builder<T> addGroup(CliOption... options) {
-      return addGroup(asList(options));
-    }
-
-    public Builder<T> header(String string) {
+    public Builder header(String string) {
       header = string;
       return this;
     }
 
-    public Builder<T> footer(String string) {
+    public Builder footer(String string) {
       footer = string;
       return this;
     }
 
-    public Builder<T> commandLineSyntax(String string) {
+    public Builder commandLineSyntax(String string) {
       cmdLineSyntax = string;
       return this;
     }
 
-    public <U> Builder<T> addSubMenu(
-        String subMenuShortPrefix,
-        String subMenuLongPrefix,
-        CliMenu.Builder<U> subMenuBuilder) {
-      checkArgument(!subMenuShortPrefix.trim().isEmpty());
-      checkArgument(!subMenuLongPrefix.trim().isEmpty());
+    public Builder addSubMenu(String shortPrefix, String longPrefix,
+        Builder subMenuBuilder) {
+      checkArgument(!shortPrefix.trim().isEmpty());
+      checkArgument(!longPrefix.trim().isEmpty());
+      checkState(!buildingGroup);
       for (final Set<CliOption> group : subMenuBuilder.groups) {
-        final List<CliOption> adaptedOptions = newArrayList();
+        openGroup();
         for (final CliOption option : group) {
-          adaptedOptions.add(
-              CliMenu.<T, U> adapt1(
-                  subMenuShortPrefix,
-                  subMenuLongPrefix,
-                  option,
-                  subMenuBuilder.subject));
+          final Executor exec = subMenuBuilder.optionMap.get(option
+              .getShortName());
+          if (!exec.getOption().isHelpOption()) {
+            add(adapt(exec, shortPrefix, longPrefix));
+          }
         }
-        addGroup(adaptedOptions);
+        closeGroup();
       }
-      for (final CliOption option : subMenuBuilder.optionMap.values()) {
-        if (!optionMap.containsKey(option.getShortName())) {
-          add(CliMenu.<T, U> adapt1(
-              subMenuShortPrefix,
-              subMenuLongPrefix,
-              option,
-              subMenuBuilder.subject));
+      for (final Executor exec : subMenuBuilder.optionMap.values()) {
+        if (!optionMap.containsKey(exec.getOption().getShortName())
+            && !exec.getOption().isHelpOption()) {
+          add(adapt(exec,
+              shortPrefix,
+              longPrefix));
         }
       }
       return this;
     }
 
-    public CliMenu<T> build() {
+    @SuppressWarnings({ "unchecked", "rawtypes" })
+    static Executor adapt(Executor exec, String subMenuShortPrefix,
+        String subMenuLongPrefix) {
+      final CliOption opt = exec.getOption();
+      if (opt instanceof CliOptionArg<?>) {
+        final CliOptionArg<?> adapted = CliOption
+            .builder((CliOptionArg<?>) opt)
+            .shortName(subMenuShortPrefix + opt.getShortName())
+            .longName(subMenuLongPrefix + opt.getLongName())
+            .build();
+        return ((ArgExecutor) exec).newInstance(adapted);
+      } else if (exec.getOption() instanceof CliOptionNoArg) {
+        final CliOptionNoArg adapted = CliOption
+            .builder((CliOptionNoArg) opt)
+            .shortName(subMenuShortPrefix + opt.getShortName())
+            .longName(subMenuLongPrefix + opt.getLongName())
+            .build();
+        return ((NoArgExecutor<?>) exec).newInstance(adapted);
+      }
+      throw new IllegalStateException();
+    }
+
+    public CliMenu build() {
       final Options options = new Options();
       for (final Set<CliOption> g : groups) {
         final OptionGroup og = new OptionGroup();
@@ -239,40 +310,134 @@ public final class CliMenu<T> {
         }
         options.addOptionGroup(og);
       }
-      for (final CliOption option : optionMap.values()) {
-        if (!options.hasOption(option.getShortName())) {
-          options.addOption(option.create());
+      for (final Executor exec : optionMap.values()) {
+        if (!options.hasOption(exec.getOption().getShortName())) {
+          options.addOption(exec.getOption().create());
         }
       }
-      return new CliMenu<T>(options, this);
+      return new CliMenu(options, this);
     }
+
+    // <U, X> CliOption<T> adapt1(String shortPrefix,
+    // String longPrefix,
+    // CliOption<U> option, U subj) {
+    // // FIXME clean this mess
+    // return ((ArgBuilder<T>) CliOption
+    // .<U> builder(option)
+    // .shortName(shortPrefix + option.getShortName())
+    // .longName(longPrefix + option.getLongName())).build(
+    // new OptionHandlerAdapter<T, U, X>(
+    // (OptionHandler<U, X>) option.handler, subj));
+    // }
   }
 
-  static <T, U> CliOption adapt1(String shortPrefix,
-      String longPrefix,
-      CliOption option, U subj) {
+  interface Executor {
 
-    return adapt(shortPrefix, longPrefix, option, subj);
+    CliOption getOption();
+
+    void execute(CommandLine commandLine);
   }
 
-  static <T, U, X> CliOption adapt(
-      String shortPrefix,
-      String longPrefix,
-      CliOption option, U subj) {
-    return CliOption
-        .builder(option)
-        .shortName(shortPrefix + option.getShortName())
-        .longName(longPrefix + option.getLongName())
-        .build(
-            new OptionHandlerAdapter<T, U, X>(
-                (OptionHandler<U, X>) option.handler, subj));
+  static class HelpExecutor implements Executor {
+    final CliOption option;
+
+    HelpExecutor(CliOption opt) {
+      option = opt;
+    }
+
+    @Override
+    public CliOption getOption() {
+      return option;
+    }
+
+    @Override
+    public void execute(CommandLine commandLine) {}
   }
 
-  static class OptionHandlerAdapter<T, U, X> implements OptionHandler<T, X> {
-    private final OptionHandler<U, X> delegate;
+  static class NoArgExecutor<S> implements Executor {
+    private final CliOptionNoArg option;
+    private final S subject;
+    private final NoArgHandler<S> handler;
+
+    NoArgExecutor(CliOptionNoArg o, S s, NoArgHandler<S> h) {
+      option = o;
+      subject = s;
+      handler = h;
+    }
+
+    @Override
+    public void execute(CommandLine commandLine) {
+      handler.execute(subject);
+    }
+
+    @Override
+    public CliOption getOption() {
+      return option;
+    }
+
+    Executor newInstance(CliOptionNoArg o) {
+      return new NoArgExecutor<S>(o, subject, handler);
+    }
+
+  }
+
+  static class ArgExecutor<S, V> implements Executor {
+    private final CliOptionArg<V> option;
+    private final S subject;
+    private final ArgHandler<S, V> handler;
+
+    ArgExecutor(CliOptionArg<V> o, S s, ArgHandler<S, V> h) {
+      option = o;
+      subject = s;
+      handler = h;
+    }
+
+    @Override
+    public void execute(CommandLine commandLine) {
+      final Optional<String> rawValue = asString(option, commandLine);
+      Optional<V> value;
+      if (rawValue.isPresent()) {
+        value = Optional
+            .of(option.argumentType.parseValue(option, rawValue.get()));
+      } else {
+        value = Optional.absent();
+      }
+      handler.execute(subject, value);
+    }
+
+    static Optional<String> asString(CliOptionArg<?> option,
+        CommandLine commandLine) {
+      final String[] vals = commandLine.getOptionValues(option.getShortName());
+
+      if (vals == null) {
+        if (option.isArgOptional) {
+          return Optional.absent();
+        }
+        throw new CliException("The option " + option + " requires a "
+            + option.argumentType.name() + " argument.",
+            CauseType.MISSING_ARG,
+            option);
+      }
+
+      return Optional.of(Joiner.on(CliOption.ARG_LIST_SEPARATOR).join(vals));
+    }
+
+    @Override
+    public CliOption getOption() {
+      return option;
+    }
+
+    Executor newInstance(CliOptionArg<V> o) {
+      return new ArgExecutor<S, V>(o, subject, handler);
+    }
+
+  }
+
+  static class OptionHandlerAdapter<T, U, X> implements ArgHandler<T, X> {
+    private final ArgHandler<U, X> delegate;
     private final U subject;
 
-    OptionHandlerAdapter(OptionHandler<U, X> deleg, U subj) {
+    OptionHandlerAdapter(ArgHandler<U, X> deleg, U subj) {
       delegate = deleg;
       subject = subj;
     }

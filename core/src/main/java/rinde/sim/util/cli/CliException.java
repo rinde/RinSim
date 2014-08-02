@@ -15,26 +15,15 @@ public class CliException extends RuntimeException {
   private final Optional<CliOption> menuOption;
   private final CauseType causeType;
 
-  /**
-   * Construct a new exception.
-   * @param msg The message.
-   * @param cause The cause.
-   */
-  public CliException(String msg, CauseType cause) {
+  CliException(String msg, CauseType cause) {
     this(msg, null, cause, null);
   }
 
-  public CliException(String msg, CauseType type, @Nullable CliOption opt) {
+  CliException(String msg, CauseType type, @Nullable CliOption opt) {
     this(msg, null, type, opt);
   }
 
-  /**
-   * Construct a new exception with a {@link ICliOption}.
-   * @param msg The message.
-   * @param cause The cause.
-   * @param opt The menu option.
-   */
-  public CliException(String msg, @Nullable Throwable cause, CauseType type,
+  CliException(String msg, @Nullable Throwable cause, CauseType type,
       @Nullable CliOption opt) {
     super(msg, cause);
     menuOption = Optional.<CliOption> fromNullable(opt);
@@ -42,32 +31,51 @@ public class CliException extends RuntimeException {
   }
 
   /**
-   * @return The {@link ICliOption} where the exception occurred.
-   * @throws IllegalStateException If there is no {@link ICliOption} responsible
-   *           for this exception.
-   * @see #hasMenuOption()
+   * @return The {@link CliOption} where the exception occurred, or
+   *         {@link Optional#absent()} if there is no {@link CliOption}
+   *         responsible for this exception.
    */
-  public CliOption getMenuOption() throws IllegalStateException {
+  public Optional<CliOption> getMenuOption() {
     checkState(menuOption.isPresent(), "'%s' has no reference to an option.",
         toString());
-    return menuOption.get();
+    return menuOption;
   }
 
   /**
-   * @return <code>true</code> in case there is a {@link ICliOption} responsible
-   *         for this exception, <code>false</code> otherwise.
+   * @return The {@link CauseType} of this exception.
    */
-  public boolean hasMenuOption() {
-    return menuOption.isPresent();
-  }
-
   public CauseType getCauseType() {
     return causeType;
   }
 
+  /**
+   * Collection of causes of command-line interface exceptions.
+   * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+   */
   public enum CauseType {
+    /**
+     * An argument of an option is missing which should have been defined.
+     */
+    MISSING_ARG,
 
-    MISSING_ARG, ALREADY_SELECTED, PARSE_EXCEPTION, INVALID_NUMBER_FORMAT, INVALID;
+    /**
+     * This option has already been selected.
+     */
+    ALREADY_SELECTED,
 
+    /**
+     * Something went wrong during parsing.
+     */
+    PARSE_EXCEPTION,
+
+    /**
+     * The number format is invalid.
+     */
+    INVALID_NUMBER_FORMAT,
+
+    /**
+     * An error has occurred during execution of the {@link OptionHandler}.
+     */
+    INVALID;
   }
 }

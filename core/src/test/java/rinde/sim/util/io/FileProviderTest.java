@@ -180,7 +180,7 @@ public class FileProviderTest {
           .cli("-i", "p1,p0,p3");
     } catch (final CliException e) {
       error = true;
-      assertEquals("include", e.getMenuOption().getLongName().get());
+      assertEquals("include", e.getMenuOption().get().getLongName().get());
     }
     assertTrue(error);
   }
@@ -195,7 +195,7 @@ public class FileProviderTest {
       FileProvider.builder().add(asList(Paths.get("src/main"))).cli("-i", "p1");
     } catch (final CliException e) {
       error = true;
-      assertEquals("include", e.getMenuOption().getLongName().get());
+      assertEquals("include", e.getMenuOption().get().getLongName().get());
     }
     assertTrue(error);
   }
@@ -227,7 +227,7 @@ public class FileProviderTest {
           .cli("-e", "p1,p0,p3");
     } catch (final CliException e) {
       error = true;
-      assertEquals("exclude", e.getMenuOption().getLongName().get());
+      assertEquals("exclude", e.getMenuOption().get().getLongName().get());
     }
     assertTrue(error);
   }
@@ -242,7 +242,7 @@ public class FileProviderTest {
       FileProvider.builder().add(asList(Paths.get("src/main"))).cli("-e", "p1");
     } catch (final CliException e) {
       error = true;
-      assertEquals("exclude", e.getMenuOption().getLongName().get());
+      assertEquals("exclude", e.getMenuOption().get().getLongName().get());
     }
     assertTrue(error);
   }

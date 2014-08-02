@@ -9,10 +9,11 @@ import java.nio.file.Paths;
 import java.util.List;
 import java.util.Map;
 
+import rinde.sim.util.cli.ArgHandler;
 import rinde.sim.util.cli.CliMenu;
 import rinde.sim.util.cli.CliOption;
+import rinde.sim.util.cli.CliOption.CliOptionArg;
 import rinde.sim.util.cli.CliOption.OptionArgType;
-import rinde.sim.util.cli.OptionHandler;
 import rinde.sim.util.io.FileProvider.Builder;
 
 import com.google.common.base.Joiner;
@@ -38,17 +39,22 @@ public final class FileProviderCli {
    *          via CLI.
    * @return The new menu builder.
    */
-  public static CliMenu.Builder<Builder> createDefaultMenuBuilder(
+  public static CliMenu.Builder createDefaultMenuBuilder(
       FileProvider.Builder builder) {
     final Map<String, Path> pathMap = createPathMap(builder);
-    final CliMenu.Builder<Builder> cliBuilder = CliMenu.builder(builder)
-        .add(createHelpOption())
-        .add(createAddOption())
-        .add(createFilterOption(builder));
+    final CliMenu.Builder cliBuilder = CliMenu.builder()
+        .addHelpOption("h", "help", "Print this message")
+        .add(createAddOption(), builder, ADD)
+        .add(createFilterOption(builder), builder, FILTER);
 
     if (!pathMap.isEmpty()) {
-      cliBuilder.addGroup(createIncludeOption(pathMap, builder),
-          createExcludeOption(pathMap, builder));
+      cliBuilder
+          .openGroup()
+          .add(createIncludeOption(pathMap, builder), builder,
+              new IncludeHandler(pathMap))
+          .add(createExcludeOption(pathMap, builder), builder,
+              new ExcludeHandler(pathMap))
+          .closeGroup();
     }
     return cliBuilder;
   }
@@ -61,7 +67,7 @@ public final class FileProviderCli {
     return ImmutableMap.copyOf(pathMap);
   }
 
-  static CliOption createIncludeOption(
+  static CliOptionArg<List<String>> createIncludeOption(
       Map<String, Path> pathMap,
       Builder builder) {
     final StringBuilder sb = new StringBuilder();
@@ -73,11 +79,11 @@ public final class FileProviderCli {
         .builder("i", OptionArgType.STRING_LIST)
         .longName("include")
         .description(sb.toString())
-        .build(new IncludeHandler(pathMap));
+        .build();
   }
 
-  static CliOption createExcludeOption(Map<String, Path> pathMap,
-      Builder builder) {
+  static CliOptionArg<List<String>> createExcludeOption(
+      Map<String, Path> pathMap, Builder builder) {
     final StringBuilder sb = new StringBuilder();
     sb.append("The following paths can be excluded. If this option is not used all paths are automatically "
         + "included. The current paths:\n");
@@ -87,27 +93,27 @@ public final class FileProviderCli {
     return CliOption.builder("e", OptionArgType.STRING_LIST)
         .longName("exclude")
         .description(sb.toString())
-        .build(new ExcludeHandler(pathMap));
+        .build();
   }
 
-  static CliOption createHelpOption() {
-    return CliOption.builder("h")
-        .longName("help")
-        .description("Print this message.")
-        .buildHelpOption();
-  }
+  // static CliOption createHelpOption() {
+  // return CliOption.builder("h")
+  // .longName("help")
+  // .description("Print this message.")
+  // .buildHelpOption();
+  // }
 
-  static CliOption createAddOption() {
+  static CliOptionArg<List<String>> createAddOption() {
     return CliOption
         .builder("a", OptionArgType.STRING_LIST)
         .longName("add")
         .description(
             "Adds the specified paths. A path may be a file or a directory. "
                 + "If it is a directory it will be searched recursively.")
-        .build(ADD);
+        .build();
   }
 
-  static CliOption createFilterOption(Builder ref) {
+  static CliOptionArg<String> createFilterOption(Builder ref) {
     return CliOption
         .builder("f", OptionArgType.STRING)
         .longName("filter")
@@ -121,10 +127,10 @@ public final class FileProviderCli {
                 + " files that satisfy this filter. For more information about"
                 + " the supported syntax please review the documentation of the "
                 + "java.nio.file.FileSystem.getPathMatcher(String) method.")
-        .build(FILTER);
+        .build();
   }
 
-  static class IncludeHandler implements OptionHandler<Builder, List<String>> {
+  static class IncludeHandler implements ArgHandler<Builder, List<String>> {
     final Map<String, Path> pathMap;
 
     IncludeHandler(Map<String, Path> map) {
@@ -148,7 +154,7 @@ public final class FileProviderCli {
     }
   }
 
-  static class ExcludeHandler implements OptionHandler<Builder, List<String>> {
+  static class ExcludeHandler implements ArgHandler<Builder, List<String>> {
     final Map<String, Path> pathMap;
 
     ExcludeHandler(Map<String, Path> map) {
@@ -172,7 +178,7 @@ public final class FileProviderCli {
     }
   }
 
-  private static final OptionHandler<FileProvider.Builder, List<String>> ADD = new OptionHandler<FileProvider.Builder, List<String>>() {
+  private static final ArgHandler<FileProvider.Builder, List<String>> ADD = new ArgHandler<FileProvider.Builder, List<String>>() {
     @Override
     public void execute(FileProvider.Builder ref, Optional<List<String>> value) {
       final List<String> paths = value.get();
@@ -182,7 +188,7 @@ public final class FileProviderCli {
     }
   };
 
-  private static final OptionHandler<FileProvider.Builder, String> FILTER = new OptionHandler<FileProvider.Builder, String>() {
+  private static final ArgHandler<FileProvider.Builder, String> FILTER = new ArgHandler<FileProvider.Builder, String>() {
     @Override
     public void execute(FileProvider.Builder ref, Optional<String> value) {
       ref.filter(value.get());

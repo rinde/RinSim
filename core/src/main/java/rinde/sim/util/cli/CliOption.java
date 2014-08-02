@@ -14,37 +14,63 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.google.common.primitives.Longs;
 
-public final class CliOption {
+/**
+ * 
+ * @author rinde
+ * 
+ * @param <S> The type of the subject
+ */
+public abstract class CliOption {
   private static final int NUM_ARGS_IN_LIST = 100;
   private static final String ARG_LIST_NAME = "list";
   static final char ARG_LIST_SEPARATOR = ',';
   private static final String NUM_NAME = "num";
   private static final String STRING_NAME = "string";
 
-  private static final OptionHandler<Object, Object> HELP_HANDLER = new OptionHandler<Object, Object>() {
+  public static class CliOptionArg<T> extends CliOption {
+    final OptionArgType<T> argumentType;
+
+    CliOptionArg(ArgBuilder<T> b, boolean help) {
+      super(b, help);
+      argumentType = b.argumentType;
+    }
+
     @Override
-    public void execute(Object ref, Optional<Object> value) {}
-  };
+    Option create() {
+      final Option option = super.create();
+      argumentType.apply(option);
+      return option;
+    }
+  }
+
+  public static class CliOptionNoArg extends CliOption {
+    CliOptionNoArg(NoArgBuilder b, boolean help) {
+      super(b, help);
+    }
+  }
 
   final String shortName;
   final Optional<String> longName;
   final String description;
-  final OptionArgType<?> argumentType;
   final boolean isArgOptional;
-  final OptionHandler<?, ?> handler;
+  final boolean isHelpOption;
 
-  CliOption(Builder<?> b, OptionHandler<?, ?> h) {
+  CliOption(Builder<?> b, boolean help) {
     shortName = b.shortName;
     longName = b.longName;
     description = b.description;
-    argumentType = b.argumentType;
     isArgOptional = b.isArgOptional;
-    handler = h;
+    isHelpOption = help;
   }
 
-  <T, U> void execute(T ref, Optional<U> value) {
-    ((OptionHandler<T, U>) handler).execute(ref, value);
-  }
+  // CliOption(ArgBuilder<?> b, OptionHandler<S, ?> handler2,
+  // Optional<OptionArgType<V>> of) {
+  // // TODO Auto-generated constructor stub
+  // }
+
+  // <U> void execute(S ref, Optional<U> value) {
+  // ((OptionHandler<S, U>) handler).execute(ref, value);
+  // }
 
   public String getShortName() {
     return shortName;
@@ -71,7 +97,7 @@ public final class CliOption {
   }
 
   boolean isHelpOption() {
-    return handler == HELP_HANDLER;
+    return isHelpOption;
   }
 
   Option create() {
@@ -79,42 +105,53 @@ public final class CliOption {
     if (longName.isPresent()) {
       option.setLongOpt(longName.get());
     }
-    argumentType.apply(option);
+
     option.setOptionalArg(isArgOptional);
     return option;
   }
 
   // no arg builder
-  public static Builder<String> builder(String shortName) {
-    return new Builder<>(shortName);
+  public static NoArgBuilder builder(String shortName) {
+    return new NoArgBuilder(shortName);
+  }
+
+  static NoArgBuilder builder(CliOptionNoArg opt) {
+    return new NoArgBuilder(opt);
   }
 
   // arg builder
-  public static <T> Builder<T> builder(String shortName,
+  public static <T> ArgBuilder<T> builder(String shortName,
       OptionArgType<T> optionArgType) {
-    return new Builder<>(shortName, optionArgType);
+    return new ArgBuilder<>(shortName, optionArgType);
   }
 
-  static Builder builder(CliOption opt) {
-    return new Builder(opt);
+  static <T> ArgBuilder<T> builder(CliOptionArg<T> opt) {
+    return new ArgBuilder<>(opt);
   }
 
-  public static abstract class OptionArgType<T> {
+  // static <T> Builder<?> builder(CliOption<T> opt) {
+  // if (opt.argumentType.isPresent()) {
+  // return new ArgBuilder<>(opt);
+  // }
+  // return new NoArgBuilder(opt);
+  // }
 
-    static final OptionArgType<String> NO_ARG = new OptionArgType<String>() {
-      @Override
-      void apply(Option o) {}
+  public static abstract class OptionArgType<V> {
 
-      @Override
-      String parseValue(CliOption option, String value) {
-        throw new UnsupportedOperationException();
-      }
-
-      @Override
-      String name() {
-        return "no arg";
-      }
-    };
+    // static final OptionArgType<?> NO_ARG = new OptionArgType<Object>() {
+    // @Override
+    // void apply(Option o) {}
+    //
+    // @Override
+    // Object parseValue(CliOption<?> option, String value) {
+    // throw new UnsupportedOperationException();
+    // }
+    //
+    // @Override
+    // String name() {
+    // return "no arg";
+    // }
+    // };
 
     public static final OptionArgType<List<Long>> LONG_LIST = new OptionArgType<List<Long>>() {
       @Override
@@ -126,7 +163,7 @@ public final class CliOption {
       }
 
       @Override
-      List<Long> parseValue(CliOption option, String value) {
+      List<Long> parseValue(CliOptionArg<List<Long>> option, String value) {
         final Iterable<String> strings = Splitter.on(ARG_LIST_SEPARATOR).split(
             value);
         try {
@@ -160,7 +197,7 @@ public final class CliOption {
       }
 
       @Override
-      Long parseValue(CliOption option, String value) {
+      Long parseValue(CliOptionArg<Long> option, String value) {
         try {
           return Long.parseLong(value);
         } catch (final NumberFormatException e) {
@@ -184,7 +221,7 @@ public final class CliOption {
       }
 
       @Override
-      List<String> parseValue(CliOption option, String value) {
+      List<String> parseValue(CliOptionArg<List<String>> option, String value) {
         return Splitter.on(ARG_LIST_SEPARATOR).splitToList(value);
       }
 
@@ -203,7 +240,7 @@ public final class CliOption {
       }
 
       @Override
-      String parseValue(CliOption option, String value) {
+      String parseValue(CliOptionArg<String> option, String value) {
         return value;
       }
 
@@ -215,27 +252,74 @@ public final class CliOption {
 
     abstract void apply(Option o);
 
-    abstract T parseValue(CliOption option, String value);
+    abstract V parseValue(CliOptionArg<V> option, String value);
 
     abstract String name();
   }
 
-  public static class Builder<T> {
+  public static class NoArgBuilder extends Builder<NoArgBuilder> {
+    NoArgBuilder(String sn) {
+      super(sn);
+    }
+
+    NoArgBuilder(CliOptionNoArg opt) {
+      super(opt);
+    }
+
+    public CliOptionNoArg build() {
+      return new CliOptionNoArg(this, false);
+    }
+
+    CliOptionNoArg buildHelpOption() {
+      return new CliOptionNoArg(this, true);
+    }
+
+    @Override
+    protected NoArgBuilder self() {
+      return this;
+    }
+
+  }
+
+  public static class ArgBuilder<V> extends Builder<ArgBuilder<V>> {
+    OptionArgType<V> argumentType;
+
+    ArgBuilder(String sn, OptionArgType<V> argType) {
+      super(sn);
+      argumentType = argType;
+    }
+
+    ArgBuilder(CliOptionArg<V> opt) {
+      super(opt);
+      argumentType = opt.argumentType;
+    }
+
+    public CliOptionArg<V> build() {
+      return new CliOptionArg<V>(this, false);
+    }
+
+    @Override
+    protected ArgBuilder<V> self() {
+      return this;
+    }
+  }
+
+  /**
+   * 
+   * @author rinde
+   * 
+   * @param <V> Value type
+   */
+  abstract static class Builder<T extends Builder<T>> {
     String shortName;
     Optional<String> longName;
     String description;
-    OptionArgType<?> argumentType;
     boolean isArgOptional;
 
     Builder(String sn) {
-      this(sn, OptionArgType.NO_ARG);
-    }
-
-    Builder(String sn, OptionArgType<?> argType) {
       shortName = sn;
       longName = Optional.absent();
       description = "";
-      argumentType = argType;
       isArgOptional = false;
     }
 
@@ -243,37 +327,39 @@ public final class CliOption {
       shortName = opt.shortName;
       longName = opt.longName;
       description = opt.description;
-      argumentType = opt.argumentType;
       isArgOptional = opt.isArgOptional;
     }
 
-    public Builder<T> shortName(String sn) {
+    /**
+     * Should return 'this', the builder.
+     * @return 'this'.
+     */
+    protected abstract T self();
+
+    public T shortName(String sn) {
       shortName = sn;
-      return this;
+      return self();
     }
 
-    public Builder<T> longName(String ln) {
+    public T longName(String ln) {
       longName = Optional.of(ln);
-      return this;
+      return self();
     }
 
-    public Builder<T> description(Object... desc) {
+    public T description(Object... desc) {
       description = Joiner.on("").join(desc);
-      return this;
+      return self();
     }
 
-    public Builder<T> argOptional() {
+    public T argOptional() {
       isArgOptional = true;
-      return this;
+      return self();
     }
 
-    public <U> CliOption build(OptionHandler<U, T> handler) {
-      return new CliOption(this, handler);
-    }
-
-    public <U> CliOption buildHelpOption() {
-      return build((OptionHandler<U, T>) HELP_HANDLER);
-    }
+    // public <U> CliOption buildHelpOption() {
+    // return new CliOption<V>(this, handler, Optional.of(argumentType));
+    // return build((OptionHandler) HELP_HANDLER);
+    // }
   }
 
 }

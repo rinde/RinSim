@@ -11,7 +11,7 @@ import rinde.sim.pdptw.experiment.Experiment.Computers;
 import rinde.sim.util.cli.CliException;
 import rinde.sim.util.cli.CliMenu;
 import rinde.sim.util.cli.CliOption;
-import rinde.sim.util.cli.OptionHandler;
+import rinde.sim.util.cli.ArgHandler;
 import rinde.sim.util.cli.Value;
 import rinde.sim.util.io.FileProviderCli;
 
@@ -80,7 +80,7 @@ class ExperimentCli {
     return mapBuilder.build();
   }
 
-  enum Handlers implements OptionHandler<Builder> {
+  enum Handlers implements ArgHandler<Builder> {
     SEED {
       @Override
       public CliOption<Builder> createOption(Experiment.Builder builder) {
@@ -307,7 +307,7 @@ class ExperimentCli {
         .build(new IncludeHandler(configMap));
   }
 
-  static class IncludeHandler implements OptionHandler<Builder> {
+  static class IncludeHandler implements ArgHandler<Builder> {
     private final Map<String, MASConfiguration> configMap;
 
     IncludeHandler(Map<String, MASConfiguration> map) {
@@ -348,7 +348,7 @@ class ExperimentCli {
         .build(new ExcludeHandler(configMap));
   }
 
-  static class ExcludeHandler implements OptionHandler<Builder> {
+  static class ExcludeHandler implements ArgHandler<Builder> {
     private final Map<String, MASConfiguration> configMap;
 
     protected ExcludeHandler(Map<String, MASConfiguration> map) {
