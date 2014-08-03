@@ -29,7 +29,7 @@ public final class FileProviderCli {
   private FileProviderCli() {}
 
   static Optional<String> execute(FileProvider.Builder builder, String[] args) {
-    return createDefaultMenuBuilder(builder).build().execute(args);
+    return createDefaultMenu(builder).execute(args);
   }
 
   /**
@@ -39,7 +39,7 @@ public final class FileProviderCli {
    *          via CLI.
    * @return The new menu builder.
    */
-  public static CliMenu.Builder createDefaultMenuBuilder(
+  public static CliMenu createDefaultMenu(
       FileProvider.Builder builder) {
     final Map<String, Path> pathMap = createPathMap(builder);
     final CliMenu.Builder cliBuilder = CliMenu.builder()
@@ -56,7 +56,7 @@ public final class FileProviderCli {
               new ExcludeHandler(pathMap))
           .closeGroup();
     }
-    return cliBuilder;
+    return cliBuilder.build();
   }
 
   private static ImmutableMap<String, Path> createPathMap(Builder b) {

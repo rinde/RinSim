@@ -76,7 +76,7 @@ public class CliException extends RuntimeException {
     /**
      * The number format is invalid.
      */
-    INVALID_NUMBER_FORMAT,
+    INVALID_ARG_FORMAT,
 
     /**
      * An error has occurred during execution of the {@link OptionHandler}.

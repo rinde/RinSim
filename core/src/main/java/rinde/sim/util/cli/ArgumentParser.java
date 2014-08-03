@@ -5,82 +5,121 @@ import java.util.List;
 import rinde.sim.util.cli.CliException.CauseType;
 import rinde.sim.util.cli.CliOption.CliOptionArg;
 
+import com.google.common.base.Converter;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
+import com.google.common.primitives.Doubles;
+import com.google.common.primitives.Ints;
 import com.google.common.primitives.Longs;
 
 public abstract class ArgumentParser<V> {
-  static final char ARG_LIST_SEPARATOR = ',';
 
-  public static final ArgumentParser<List<Long>> LONG_LIST = new ArgumentParser<List<Long>>() {
+  public static final ArgumentParser<Boolean> BOOLEAN = new ArgumentParser<Boolean>(
+      "boolean") {
     @Override
-    List<Long> parseValue(CliOptionArg<List<Long>> option, String value) {
-      final Iterable<String> strings = Splitter.on(ARG_LIST_SEPARATOR).split(
-          value);
-      try {
-        final List<Long> longs = ImmutableList.copyOf(Iterables.transform(
-            strings, Longs.stringConverter()));
-        return longs;
-      } catch (final NumberFormatException e) {
-        throw convertNFE(option, e, value, name());
+    Boolean parse(CliOptionArg<Boolean> option, String arg) {
+      if ("T".equalsIgnoreCase(arg) || "true".equalsIgnoreCase(arg)
+          || "1".equals(arg)) {
+        return true;
+      } else if ("F".equalsIgnoreCase(arg) || "false".equalsIgnoreCase(arg)
+          || "0".equals(arg)) {
+        return false;
       }
-    }
-
-    @Override
-    String name() {
-      return "long list";
+      throw new CliException("Expected a boolean but found: '" + arg + "'.",
+          CauseType.INVALID_ARG_FORMAT, option);
     }
   };
+
+  public static final ArgumentParser<Long> LONG = new NumberParser<>(
+      "long", Longs.stringConverter());
+
+  public static final ArgumentParser<List<Long>> LONG_LIST = new NumberListParser<>(
+      "long list", Longs.stringConverter());
+
+  public static final ArgumentParser<Integer> INTEGER = new NumberParser<>(
+      "int", Ints.stringConverter());
+
+  public static final ArgumentParser<List<Integer>> INTEGER_LIST = new NumberListParser<>(
+      "int list", Ints.stringConverter());
+
+  public static final ArgumentParser<Double> DOUBLE = new NumberParser<>(
+      "double", Doubles.stringConverter());
+
+  public static final ArgumentParser<List<Double>> DOUBLE_LIST = new NumberListParser<>(
+      "double list", Doubles.stringConverter());
+
+  public static final ArgumentParser<List<String>> STRING_LIST = new ArgumentParser<List<String>>(
+      "string list") {
+    @Override
+    List<String> parse(CliOptionArg<List<String>> option, String value) {
+      return Splitter.on(ARG_LIST_SEPARATOR).splitToList(value);
+    }
+  };
+
+  public static final ArgumentParser<String> STRING = new ArgumentParser<String>(
+      "string") {
+    @Override
+    String parse(CliOptionArg<String> option, String value) {
+      return value;
+    }
+  };
+
+  static final char ARG_LIST_SEPARATOR = ',';
+  private final String name;
+
+  ArgumentParser(String nm) {
+    name = nm;
+  }
+
+  abstract V parse(CliOptionArg<V> option, String arg);
+
+  String name() {
+    return name;
+  }
 
   static CliException convertNFE(CliOption option, NumberFormatException e,
       String value, String argName) {
     return new CliException(String.format(
         "The option %s expects a %s, found '%s'.", option, argName,
-        value), e, CauseType.INVALID_NUMBER_FORMAT, option);
+        value), e, CauseType.INVALID_ARG_FORMAT, option);
   }
 
-  public static final ArgumentParser<Long> LONG = new ArgumentParser<Long>() {
+  static class NumberParser<T> extends ArgumentParser<T> {
+    private final Converter<String, T> converter;
+
+    NumberParser(String nm, Converter<String, T> conv) {
+      super(nm);
+      converter = conv;
+    }
+
     @Override
-    Long parseValue(CliOptionArg<Long> option, String value) {
+    T parse(CliOptionArg<T> option, String arg) {
       try {
-        return Long.parseLong(value);
+        return converter.convert(arg);
+      } catch (final NumberFormatException e) {
+        throw convertNFE(option, e, arg, name());
+      }
+    }
+  }
+
+  static class NumberListParser<T> extends ArgumentParser<List<T>> {
+    private final Converter<String, T> converter;
+
+    NumberListParser(String nm, Converter<String, T> conv) {
+      super(nm);
+      converter = conv;
+    }
+
+    @Override
+    List<T> parse(CliOptionArg<List<T>> option, String value) {
+      final Iterable<String> strings = Splitter.on(ARG_LIST_SEPARATOR).split(
+          value);
+      try {
+        return ImmutableList.copyOf(Iterables.transform(strings, converter));
       } catch (final NumberFormatException e) {
         throw convertNFE(option, e, value, name());
       }
     }
-
-    @Override
-    String name() {
-      return "long";
-    }
-  };
-
-  public static final ArgumentParser<List<String>> STRING_LIST = new ArgumentParser<List<String>>() {
-    @Override
-    List<String> parseValue(CliOptionArg<List<String>> option, String value) {
-      return Splitter.on(ARG_LIST_SEPARATOR).splitToList(value);
-    }
-
-    @Override
-    String name() {
-      return "string list";
-    }
-  };
-
-  public static final ArgumentParser<String> STRING = new ArgumentParser<String>() {
-    @Override
-    String parseValue(CliOptionArg<String> option, String value) {
-      return value;
-    }
-
-    @Override
-    String name() {
-      return "string";
-    }
-  };
-
-  abstract V parseValue(CliOptionArg<V> option, String value);
-
-  abstract String name();
+  }
 }

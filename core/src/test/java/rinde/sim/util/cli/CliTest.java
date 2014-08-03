@@ -150,13 +150,13 @@ public class CliTest {
 
   @Test
   public void testNotLongArgType() {
-    testFail("a", CauseType.INVALID_NUMBER_FORMAT, "-a", "sfd");
+    testFail("a", CauseType.INVALID_ARG_FORMAT, "-a", "sfd");
   }
 
   @Test
   public void testNotLongArgType2() {
-    testFail("a", CauseType.INVALID_NUMBER_FORMAT, "-a", "6.4");
-    testFail("aa", CauseType.INVALID_NUMBER_FORMAT, "-aa", "6.4");
+    testFail("a", CauseType.INVALID_ARG_FORMAT, "-a", "6.4");
+    testFail("aa", CauseType.INVALID_ARG_FORMAT, "-aa", "6.4");
   }
 
   @Test
@@ -222,13 +222,26 @@ public class CliTest {
     testFail(menu, failingOptionName, causeType, args);
   }
 
-  static void testFail(CliMenu m, String failingOptionName,
+  public static void testFail(CliMenu m, String failingOptionName,
       CauseType causeType, String... args) {
     try {
       m.execute(args);
     } catch (final CliException e) {
       assertEquals(failingOptionName, e.getMenuOption().get().getShortName());
       assertEquals(causeType, e.getCauseType());
+      return;
+    }
+    fail();
+  }
+
+  public static void testFail(CliMenu m, String failingOptionName,
+      CauseType causeType, Class<? extends Throwable> rootCause, String... args) {
+    try {
+      m.execute(args);
+    } catch (final CliException e) {
+      assertEquals(failingOptionName, e.getMenuOption().get().getShortName());
+      assertEquals(causeType, e.getCauseType());
+      assertEquals(rootCause, e.getCause().getClass());
       return;
     }
     fail();

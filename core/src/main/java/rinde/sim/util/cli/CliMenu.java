@@ -581,7 +581,7 @@ public final class CliMenu {
       Optional<V> value;
       if (!arguments.isEmpty()) {
         value = Optional
-            .of(option.argumentType.parseValue(option,
+            .of(option.argumentType.parse(option,
                 Joiner.on(ArgumentParser.ARG_LIST_SEPARATOR).join(arguments)));
       } else if (!option.isArgOptional()) {
         throw new CliException("The option " + option + " requires a "
