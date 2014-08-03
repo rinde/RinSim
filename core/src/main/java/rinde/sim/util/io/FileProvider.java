@@ -156,7 +156,10 @@ public final class FileProvider<T> implements Supplier<ImmutableSet<T>> {
      * @return This, as per the builder pattern.
      */
     public Builder cli(String... args) {
-      FileProviderCli.execute(this, args);
+      final Optional<String> error = FileProviderCli.execute(this, args);
+      if (error.isPresent()) {
+        System.out.println(error.get());
+      }
       return this;
     }
 

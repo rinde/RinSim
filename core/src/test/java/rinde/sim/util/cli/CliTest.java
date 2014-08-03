@@ -13,7 +13,6 @@ import org.junit.Before;
 import org.junit.Test;
 
 import rinde.sim.util.cli.CliException.CauseType;
-import rinde.sim.util.cli.CliOption.OptionArgType;
 
 import com.google.common.base.Optional;
 
@@ -37,7 +36,7 @@ public class CliTest {
     menu = CliMenu
         .builder()
         .add(
-            CliOption.builder("a", OptionArgType.LONG).build(),
+            CliOption.builder("a", ArgumentParser.LONG).build(),
             list,
             new ArgHandler<List<Object>, Long>() {
               @Override
@@ -47,9 +46,11 @@ public class CliTest {
             }
         )
         .add(
-            CliOption.builder("aa", OptionArgType.LONG_LIST)
+            CliOption
+                .builder("aa", ArgumentParser.LONG_LIST)
                 .longName("add-all")
-                .description("Add all longs.")
+                .description(
+                    "Add all longs, and then some. Please note that using this option may alter the universe beyond recognition. Use at your own risk.")
                 .argOptional()
                 .build(),
             list,
@@ -62,7 +63,7 @@ public class CliTest {
               }
             })
         .add(
-            CliOption.builder("asl", OptionArgType.STRING_LIST).build(),
+            CliOption.builder("asl", ArgumentParser.STRING_LIST).build(),
             list,
             new ArgHandler<List<Object>, List<String>>() {
               @Override
@@ -71,8 +72,13 @@ public class CliTest {
               }
             }
         )
+        .openGroup()
+        .add(CliOption.builder("x").build(), list, dummyHandler())
+        .add(CliOption.builder("y").build(), list, dummyHandler())
+        .add(CliOption.builder("z").build(), list, dummyHandler())
+        .closeGroup()
         .add(
-            CliOption.builder("as", OptionArgType.STRING).build(),
+            CliOption.builder("as", ArgumentParser.STRING).build(),
             list,
             new ArgHandler<List<Object>, String>() {
               @Override
@@ -82,23 +88,14 @@ public class CliTest {
             }
         )
         .addHelpOption("h", "help", "Print this message")
+        .footer("This is the bottom")
+        .header("This is the header")
         .build();
   }
 
-  static <S> NoArgHandler<S> dummyHandler() {
-    return new NoArgHandler<S>() {
-      @Override
-      public void execute(S subject) {}
-    };
-  }
-
-  static <S, V> ArgHandler<S, V> dummyArgHandler() {
-    return new ArgHandler<S, V>() {
-      @Override
-      public void execute(S subject, Optional<V> value) {}
-    };
-  }
-
+  /**
+   * Test for checking whether duplicate options are detected.
+   */
   @Test(expected = IllegalArgumentException.class)
   public void duplicateOptions() {
     final Object subject = new Object();
@@ -108,13 +105,16 @@ public class CliTest {
             subject,
             dummyHandler())
         .add(
-            CliOption.builder("aa", OptionArgType.STRING)
+            CliOption.builder("aa", ArgumentParser.STRING)
                 .longName("a")
                 .build(),
             subject,
             CliTest.<Object, String> dummyArgHandler());
   }
 
+  /**
+   * Test help.
+   */
   @Test
   public void testHelp() {
     assertTrue(menu.execute("--help").isPresent());
@@ -140,7 +140,6 @@ public class CliTest {
     assertEquals(asList(234L), list);
     assertFalse(menu.execute("-a", "-1").isPresent());
     assertEquals(asList(234L, -1L), list);
-
     assertFalse(menu.execute("--add-all", "10,100", "-a", "-10").isPresent());
     assertEquals(asList(234L, -1L, 10L, 100L, -10L), list);
 
@@ -172,15 +171,80 @@ public class CliTest {
     testFail("as", CauseType.MISSING_ARG, "-as");
   }
 
+  /**
+   * Empty short name is not allowed.
+   */
+  @Test(expected = IllegalArgumentException.class)
+  public void testAddSubMenuInvalidShortName() {
+    CliMenu.builder().addSubMenu("", "long", menu);
+  }
+
+  /**
+   * Empty long name is not allowed.
+   */
+  @Test(expected = IllegalArgumentException.class)
+  public void testAddSubMenuInvalidLongName() {
+    CliMenu.builder().addSubMenu("short", "", menu);
+  }
+
+  /**
+   * Check for group building.
+   */
+  @Test(expected = IllegalStateException.class)
+  public void testAddSubMenuInvalidGroup() {
+    CliMenu.builder().openGroup().addSubMenu("short", "long", menu);
+  }
+
+  /**
+   * Test for adding an entire sub menu.
+   */
+  @Test
+  public void testAddSubMenu() {
+    final CliMenu m = CliMenu.builder().addSubMenu("l", "list.", menu).build();
+    // help options are not copied
+    assertFalse(m.containsOption("h"));
+    assertFalse(m.containsOption("lh"));
+    assertEquals(m.getOptionNames().size(), menu.getOptionNames().size() - 2);
+  }
+
+  @Test
+  public void testGroup() {
+    testFail("y", CauseType.ALREADY_SELECTED, "-x", "-y");
+    testFail("z", CauseType.ALREADY_SELECTED, "-z", "-z");
+    testFail("x", CauseType.ALREADY_SELECTED, "-z", "-x");
+
+    final CliMenu m = CliMenu.builder().addSubMenu("l", "list.", menu).build();
+
+  }
+
   void testFail(String failingOptionName, CauseType causeType,
       String... args) {
+    testFail(menu, failingOptionName, causeType, args);
+  }
+
+  static void testFail(CliMenu m, String failingOptionName,
+      CauseType causeType, String... args) {
     try {
-      menu.execute(args);
+      m.execute(args);
     } catch (final CliException e) {
       assertEquals(failingOptionName, e.getMenuOption().get().getShortName());
       assertEquals(causeType, e.getCauseType());
       return;
     }
     fail();
+  }
+
+  static <S> NoArgHandler<S> dummyHandler() {
+    return new NoArgHandler<S>() {
+      @Override
+      public void execute(S subject) {}
+    };
+  }
+
+  static <S, V> ArgHandler<S, V> dummyArgHandler() {
+    return new ArgHandler<S, V>() {
+      @Override
+      public void execute(S subject, Optional<V> value) {}
+    };
   }
 }

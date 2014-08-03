@@ -10,10 +10,10 @@ import java.util.List;
 import java.util.Map;
 
 import rinde.sim.util.cli.ArgHandler;
+import rinde.sim.util.cli.ArgumentParser;
 import rinde.sim.util.cli.CliMenu;
 import rinde.sim.util.cli.CliOption;
 import rinde.sim.util.cli.CliOption.CliOptionArg;
-import rinde.sim.util.cli.CliOption.OptionArgType;
 import rinde.sim.util.io.FileProvider.Builder;
 
 import com.google.common.base.Joiner;
@@ -28,8 +28,8 @@ public final class FileProviderCli {
 
   private FileProviderCli() {}
 
-  static void execute(FileProvider.Builder builder, String[] args) {
-    createDefaultMenuBuilder(builder).build().execute(args);
+  static Optional<String> execute(FileProvider.Builder builder, String[] args) {
+    return createDefaultMenuBuilder(builder).build().execute(args);
   }
 
   /**
@@ -76,7 +76,7 @@ public final class FileProviderCli {
     sb.append("\nThe options should be given as a comma ',' separated list. This option "
         + "can not be used together with --exclude.");
     return CliOption
-        .builder("i", OptionArgType.STRING_LIST)
+        .builder("i", ArgumentParser.STRING_LIST)
         .longName("include")
         .description(sb.toString())
         .build();
@@ -90,7 +90,7 @@ public final class FileProviderCli {
     Joiner.on("\n").withKeyValueSeparator(" = ").appendTo(sb, pathMap);
     sb.append("\nThe options should be given as a comma ',' separated list. This option "
         + "can not be used together with --include.");
-    return CliOption.builder("e", OptionArgType.STRING_LIST)
+    return CliOption.builder("e", ArgumentParser.STRING_LIST)
         .longName("exclude")
         .description(sb.toString())
         .build();
@@ -105,7 +105,7 @@ public final class FileProviderCli {
 
   static CliOptionArg<List<String>> createAddOption() {
     return CliOption
-        .builder("a", OptionArgType.STRING_LIST)
+        .builder("a", ArgumentParser.STRING_LIST)
         .longName("add")
         .description(
             "Adds the specified paths. A path may be a file or a directory. "
@@ -115,7 +115,7 @@ public final class FileProviderCli {
 
   static CliOptionArg<String> createFilterOption(Builder ref) {
     return CliOption
-        .builder("f", OptionArgType.STRING)
+        .builder("f", ArgumentParser.STRING)
         .longName("filter")
         .description(
             "Sets a filter of which paths to include. The filter is a string "

@@ -30,7 +30,7 @@ class ExperimentCli {
 
   static Optional<String> execute(Experiment.Builder builder, String[] args)
       throws CliException {
-    return createMenu(builder).execute(args);
+    return createMenu(builder).parse(args);
   }
 
   static CliMenu<Experiment.Builder> createMenu(Experiment.Builder expBuilder) {

@@ -59,6 +59,11 @@ public class CliException extends RuntimeException {
     MISSING_ARG,
 
     /**
+     * An argument of an option was found where none was expected.
+     */
+    UNEXPECTED_ARG,
+
+    /**
      * This option has already been selected.
      */
     ALREADY_SELECTED,
