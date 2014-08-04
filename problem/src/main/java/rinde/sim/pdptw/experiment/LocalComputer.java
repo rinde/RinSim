@@ -95,14 +95,14 @@ final class LocalComputer implements Computer {
             .append(arguments.scenario)
             .append(",")
             .append(arguments.scenario.getProblemClass())
-            .append(",")
+            .append("-")
             .append(arguments.scenario.getProblemInstanceId())
             .append("]")
             .append(",seed=")
             .append(arguments.randomSeed)
             .append(",config=")
             .append(arguments.masConfig);
-        throw new RuntimeException(sb.toString(), e);
+        throw new IllegalStateException(sb.toString(), e);
       }
     }
   }
