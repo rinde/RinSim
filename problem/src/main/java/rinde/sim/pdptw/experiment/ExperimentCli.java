@@ -45,7 +45,7 @@ public final class ExperimentCli {
             "only accepts 'v', 'verbose' or no argument, not '%s'.",
             value.get());
       }
-      builder.dryRun(value.isPresent());
+      builder.dryRun(value.isPresent(), System.out, System.err);
     }
   };
 
@@ -178,12 +178,9 @@ public final class ExperimentCli {
         .builder("e", ArgumentParser.STRING_LIST)
         .longName("exclude")
         .description(
-            "The following configurations can be excluded from the experiment",
-            " setup. If this option is not used all configurations are automatically ",
-            "included. The configurations:\n",
-            Joiner.on("\n").withKeyValueSeparator(" = ").join(configMap),
-            "\nThe options should be given as a comma ',' separated list. This option ",
-            "can not be used together with --include.")
+            "The following configurations can be excluded from the experiment setup:",
+            createConfigString(configMap),
+            "This option can not be used together with --include.")
         .build();
   }
 
@@ -204,13 +201,22 @@ public final class ExperimentCli {
         .builder("i", ArgumentParser.STRING_LIST)
         .longName("include")
         .description(
-            "The following configurations can be included in the experiment",
-            " setup. If this option is not used all configurations are automatically ",
-            "included. The configurations:\n",
-            Joiner.on("\n").withKeyValueSeparator(" = ").join(configMap),
-            "\nThe options should be given as a comma ',' separated list. This option ",
-            "can not be used together with --exclude.")
+            "The following configurations can be included in the experiment setup:",
+            createConfigString(configMap),
+            "This option can not be used together with --exclude.")
         .build();
+  }
+
+  static String createConfigString(Map<String, MASConfiguration> configMap) {
+    final StringBuilder sb = new StringBuilder("\n");
+    Joiner
+        .on("\n")
+        .withKeyValueSeparator(" = ")
+        .appendTo(sb, configMap)
+        .append("\nThe options should be given as a comma ',' separated list. ")
+        .append(
+            "If this option is not used all configurations are automatically included. ");
+    return sb.toString();
   }
 
   static OptionNoArg createJppfOpt(Builder builder) {
@@ -272,51 +278,69 @@ public final class ExperimentCli {
     return createMenu(builder).safeExecute(args);
   }
 
-  static class ExcludeHandler implements ArgHandler<Builder, List<String>> {
-    private final Map<String, MASConfiguration> configMap;
-
+  static class ExcludeHandler extends ConfigHandler {
     protected ExcludeHandler(Map<String, MASConfiguration> map) {
-      configMap = map;
+      super(map);
     }
 
     @Override
-    public void execute(Builder builder, Optional<List<String>> value) {
-      final List<String> keys = value.get();
-      final List<MASConfiguration> configs = newArrayList();
+    void checkNumArgs(List<String> args) {
       checkArgument(
-          keys.size() < configMap.size(),
+          args.size() < configMap.size(),
           "Too many configurations, at most %s configurations can be excluded.",
           configMap.size() - 1);
-      for (final String k : keys) {
-        checkArgument(configMap.containsKey(k),
-            "The key '%s' is not valid. Valid keys: %s.", k, configMap.keySet());
-        configs.add(configMap.get(k));
-      }
-      builder.configurationsSet.removeAll(configs);
+
+    }
+
+    @Override
+    void doExecute(Builder builder, List<MASConfiguration> selectedConfigs) {
+      builder.configurationsSet.removeAll(selectedConfigs);
     }
   }
 
-  static class IncludeHandler implements ArgHandler<Builder, List<String>> {
-    private final Map<String, MASConfiguration> configMap;
-
+  static class IncludeHandler extends ConfigHandler {
     IncludeHandler(Map<String, MASConfiguration> map) {
+      super(map);
+    }
+
+    @Override
+    void checkNumArgs(List<String> args) {
+      checkArgument(
+          args.size() <= configMap.size(),
+          "Too many configurations, at most %s configurations can be included.",
+          configMap.size());
+    }
+
+    @Override
+    void doExecute(Builder builder, List<MASConfiguration> selectedConfigs) {
+      builder.configurationsSet.retainAll(selectedConfigs);
+    }
+  }
+
+  static abstract class ConfigHandler implements
+      ArgHandler<Builder, List<String>> {
+    final Map<String, MASConfiguration> configMap;
+
+    ConfigHandler(Map<String, MASConfiguration> map) {
       configMap = map;
     }
 
     @Override
-    public void execute(Builder builder, Optional<List<String>> value) {
-      final List<String> keys = value.get();
-      final List<MASConfiguration> configs = newArrayList();
-      checkArgument(
-          keys.size() <= configMap.size(),
-          "Too many configurations, at most %s configurations can be included.",
-          configMap.size());
-      for (final String k : keys) {
+    public final void execute(Builder builder, Optional<List<String>> argument) {
+      final List<String> args = argument.get();
+      final List<MASConfiguration> selectedConfigs = newArrayList();
+      checkNumArgs(args);
+      for (final String k : args) {
         checkArgument(configMap.containsKey(k),
             "The key '%s' is not valid. Valid keys: %s.", k, configMap.keySet());
-        configs.add(configMap.get(k));
+        selectedConfigs.add(configMap.get(k));
       }
-      builder.configurationsSet.retainAll(configs);
+      doExecute(builder, selectedConfigs);
     }
+
+    abstract void checkNumArgs(List<String> args);
+
+    abstract void doExecute(Builder builder,
+        List<MASConfiguration> selectedConfigs);
   }
 }

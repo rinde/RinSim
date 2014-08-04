@@ -29,7 +29,7 @@ import rinde.sim.pdptw.common.DynamicPDPTWProblem;
 import rinde.sim.pdptw.common.ObjectiveFunction;
 import rinde.sim.pdptw.common.StatisticsDTO;
 import rinde.sim.pdptw.experiment.Experiment.Builder;
-import rinde.sim.pdptw.experiment.Experiment.Builder.SimArgs;
+import rinde.sim.pdptw.experiment.Experiment.SimArgs;
 import rinde.sim.pdptw.experiment.Experiment.SimulationResult;
 import rinde.sim.pdptw.scenario.PDPScenario;
 import rinde.sim.pdptw.scenario.ScenarioIO;
@@ -48,14 +48,15 @@ import com.google.common.math.DoubleMath;
 import com.google.common.primitives.Ints;
 
 final class JppfComputer implements Computer {
-  private static Optional<JPPFClient> CLIENT = Optional.absent();
+  private static Optional<JPPFClient> client = Optional.absent();
   private static final String JOB_NAME = "RinSim - Experiment";
+  private static final long THREAD_SLEEP_MS = 1000L;
 
   static JPPFClient getJPPFClient() {
-    if (!CLIENT.isPresent()) {
-      CLIENT = Optional.of(new JPPFClient());
+    if (!client.isPresent()) {
+      client = Optional.of(new JPPFClient());
     }
-    return CLIENT.get();
+    return client.get();
   }
 
   @Override
@@ -156,7 +157,6 @@ final class JppfComputer implements Computer {
     for (final ResultListener l : listeners) {
       l.doneComputing();
     }
-    // getJPPFClient().close();
     return new ExperimentResults(builder, res.buildResults());
   }
 
@@ -197,8 +197,7 @@ final class JppfComputer implements Computer {
     }
 
     @Override
-    public void resultsReceived(@Nullable TaskResultEvent event) {
-      checkNotNull(event);
+    public void resultsReceived(@SuppressWarnings("null") TaskResultEvent event) {
       for (final Task<?> t : event.getTasks()) {
         final SimulationTask simTask = (SimulationTask) t;
         try {
@@ -215,10 +214,10 @@ final class JppfComputer implements Computer {
       receivedNumResults += event.getTasks().size();
     }
 
-    public void awaitResults() {
+    void awaitResults() {
       while (!isComplete() && !exception.isPresent()) {
         try {
-          Thread.sleep(1000);
+          Thread.sleep(THREAD_SLEEP_MS);
         } catch (final InterruptedException e) {
           throw new IllegalStateException(e);
         }
@@ -232,16 +231,16 @@ final class JppfComputer implements Computer {
       return receivedNumResults == expectedNumResults;
     }
 
-    public ImmutableSet<SimulationResult> buildResults() {
+    ImmutableSet<SimulationResult> buildResults() {
       return results.build();
     }
   }
 
-  static class SimResultWrapper implements Comparable<SimResultWrapper> {
-    public final SimulationResult result;
-    public final int index;
+  static final class SimResultWrapper implements Comparable<SimResultWrapper> {
+    final SimulationResult result;
+    final int index;
 
-    public SimResultWrapper(SimulationResult r, int i) {
+    SimResultWrapper(SimulationResult r, int i) {
       result = r;
       index = i;
     }
@@ -249,6 +248,21 @@ final class JppfComputer implements Computer {
     @Override
     public int compareTo(SimResultWrapper o) {
       return Ints.compare(index, o.index);
+    }
+
+    @Override
+    public boolean equals(@Nullable Object o) {
+      if (o == null || o.getClass() != getClass()) {
+        return false;
+      }
+      final SimResultWrapper srw = (SimResultWrapper) o;
+      return Objects.equal(srw.result, result)
+          && Objects.equal(srw.index, index);
+    }
+
+    @Override
+    public int hashCode() {
+      return Objects.hashCode(result, index);
     }
   }
 
@@ -265,7 +279,7 @@ final class JppfComputer implements Computer {
       prefix = idPrefix;
     }
 
-    public String storeAndGenerateId(T value) {
+    String storeAndGenerateId(T value) {
       checkArgument(
           value instanceof Serializable,
           "When using JPPF, instances of %s must implement Serializable, found: %s.",
@@ -281,11 +295,11 @@ final class JppfComputer implements Computer {
       return id;
     }
 
-    public T getValue(String id) {
+    T getValue(String id) {
       return configMap.inverse().get(id);
     }
 
-    public String getKey(T value) {
+    String getKey(T value) {
       return configMap.get(value);
     }
   }
@@ -472,7 +486,7 @@ final class JppfComputer implements Computer {
     private final StatisticsDTO stats;
     private final Optional<?> data;
 
-    public SimTaskResult(StatisticsDTO stat, Optional<?> d) {
+    SimTaskResult(StatisticsDTO stat, Optional<?> d) {
       stats = stat;
       data = d;
     }

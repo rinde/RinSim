@@ -1,15 +1,30 @@
 package rinde.sim.pdptw.experiment;
 
+import java.io.PrintStream;
+
 import rinde.sim.pdptw.experiment.Experiment.SimulationResult;
 
+/**
+ * A {@link ResultListener} that writes simple progress reports to a
+ * {@link PrintStream}.
+ * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+ */
 public class CommandLineProgress implements ResultListener {
+  private final PrintStream printStream;
+  private int total;
+  private int received;
 
-  int total;
-  int received;
+  /**
+   * Create a new instance.
+   * @param stream The stream to write the progress reports to.
+   */
+  public CommandLineProgress(PrintStream stream) {
+    printStream = stream;
+  }
 
   @Override
   public void startComputing(int numberOfSimulations) {
-    System.out.println("Start computing: " + numberOfSimulations);
+    printStream.println("Start computing: " + numberOfSimulations);
     total = numberOfSimulations;
     received = 0;
   }
@@ -17,12 +32,11 @@ public class CommandLineProgress implements ResultListener {
   @Override
   public void receive(SimulationResult result) {
     received++;
-    System.out.println(received + "/" + total);
+    printStream.println(received + "/" + total);
   }
 
   @Override
   public void doneComputing() {
-    System.out.println("Computing done.");
+    printStream.println("Computing done.");
   }
-
 }

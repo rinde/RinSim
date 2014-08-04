@@ -8,6 +8,7 @@ import java.math.RoundingMode;
 import javax.annotation.Nullable;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
@@ -25,14 +26,27 @@ import rinde.sim.pdptw.experiment.Experiment.SimulationResult;
 import com.google.common.base.Optional;
 import com.google.common.math.DoubleMath;
 
+/**
+ * Displays a progress bar for a running {@link Experiment}.
+ * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+ */
 public class ExperimentProgressBar implements ResultListener,
     UncaughtExceptionHandler {
+
+  private static final long THREAD_SLEEP_MS = 100;
+  private static final String APP_NAME = "RinSim - Experiment";
+  private static final Point SHELL_SIZE = new Point(400, 150);
+  private static final int BAR_WIDTH = 380;
 
   GuiRunner guiRunner;
   Thread t;
   int counter;
   Optional<Throwable> error;
 
+  /**
+   * Create a new instance.
+   */
+  @SuppressWarnings("null")
   public ExperimentProgressBar() {
     counter = 0;
     error = Optional.absent();
@@ -54,9 +68,9 @@ public class ExperimentProgressBar implements ResultListener,
     // avoid infinite waiting.
     while (!guiRunner.isInitialized() && !error.isPresent()) {
       try {
-        Thread.sleep(100);
+        Thread.sleep(THREAD_SLEEP_MS);
       } catch (final InterruptedException e) {
-        e.printStackTrace();
+        throw new IllegalStateException(e);
       }
     }
     if (error.isPresent()) {
@@ -87,13 +101,13 @@ public class ExperimentProgressBar implements ResultListener,
       max = m;
       display = new Display();
       shell = new Shell(display, SWT.TITLE | SWT.BORDER);
-      shell.setSize(400, 150);
-      shell.setText("RinSim - Experiment");
-      Display.setAppName("RinSim - Experiment");
+      shell.setSize(SHELL_SIZE);
+      shell.setText(APP_NAME);
+      Display.setAppName(APP_NAME);
 
       shell.addListener(SWT.Close, new Listener() {
         @Override
-        public void handleEvent(@Nullable Event event) {
+        public void handleEvent(@SuppressWarnings("null") Event event) {
           final int style = SWT.APPLICATION_MODAL | SWT.YES | SWT.NO;
           final MessageBox messageBox = new MessageBox(shell, style);
           messageBox.setText("Information");
@@ -120,7 +134,7 @@ public class ExperimentProgressBar implements ResultListener,
       final GridData gd = new GridData(SWT.CENTER, SWT.CENTER, true, false);
       gd.horizontalSpan = 2;
       gd.grabExcessHorizontalSpace = true;
-      gd.minimumWidth = 380;
+      gd.minimumWidth = BAR_WIDTH;
       bar.setLayoutData(gd);
 
       final Label lab = new Label(shell, SWT.NONE);
@@ -129,7 +143,7 @@ public class ExperimentProgressBar implements ResultListener,
       numberLabel = new Label(shell, SWT.NONE);
     }
 
-    public void start() {
+    void start() {
       shell.layout();
       shell.open();
       while (!shell.isDisposed()) {
@@ -140,7 +154,7 @@ public class ExperimentProgressBar implements ResultListener,
       display.dispose();
     }
 
-    public void update(final int progress) {
+    void update(final int progress) {
       if (display.isDisposed()) {
         return;
       }
@@ -151,9 +165,10 @@ public class ExperimentProgressBar implements ResultListener,
             return;
           }
           bar.setSelection(progress);
+          final double maxPerc = 100d;
           shell.setText("RinSim - Experiment "
               + DoubleMath.roundToInt(
-                  100d * (progress / (double) bar.getMaximum()),
+                  maxPerc * (progress / (double) bar.getMaximum()),
                   RoundingMode.HALF_UP) + "%");
           numberLabel.setText(progress + "/" + bar.getMaximum());
           shell.layout();
@@ -161,7 +176,7 @@ public class ExperimentProgressBar implements ResultListener,
       });
     }
 
-    public void stop() {
+    void stop() {
       if (display.isDisposed()) {
         return;
       }
@@ -182,7 +197,7 @@ public class ExperimentProgressBar implements ResultListener,
     int max;
     Optional<Gui> gui;
 
-    public GuiRunner(int m) {
+    GuiRunner(int m) {
       max = m;
       gui = Optional.absent();
     }

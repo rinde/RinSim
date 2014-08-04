@@ -11,7 +11,7 @@ import java.util.concurrent.Executors;
 import rinde.sim.pdptw.common.DynamicPDPTWProblem;
 import rinde.sim.pdptw.common.StatisticsDTO;
 import rinde.sim.pdptw.experiment.Experiment.Builder;
-import rinde.sim.pdptw.experiment.Experiment.Builder.SimArgs;
+import rinde.sim.pdptw.experiment.Experiment.SimArgs;
 import rinde.sim.pdptw.experiment.Experiment.SimulationResult;
 
 import com.google.common.base.Optional;
@@ -28,7 +28,7 @@ final class LocalComputer implements Computer {
   public ExperimentResults compute(Builder builder, Set<SimArgs> inputs) {
     final ImmutableList.Builder<ExperimentRunner> runnerBuilder = ImmutableList
         .builder();
-    for (final Builder.SimArgs args : inputs) {
+    for (final SimArgs args : inputs) {
       runnerBuilder.add(new ExperimentRunner(args));
     }
     final List<ExperimentRunner> runners = runnerBuilder.build();

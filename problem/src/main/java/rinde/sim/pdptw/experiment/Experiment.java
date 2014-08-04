@@ -10,7 +10,6 @@ import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Sets.newLinkedHashSet;
 
 import java.io.PrintStream;
-import java.io.Serializable;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Set;
@@ -28,7 +27,6 @@ import rinde.sim.pdptw.common.DynamicPDPTWProblem;
 import rinde.sim.pdptw.common.ObjectiveFunction;
 import rinde.sim.pdptw.common.RouteRenderer;
 import rinde.sim.pdptw.common.StatisticsDTO;
-import rinde.sim.pdptw.experiment.Experiment.Builder.SimArgs;
 import rinde.sim.pdptw.experiment.LocalComputer.ExperimentRunner;
 import rinde.sim.pdptw.scenario.PDPScenario;
 import rinde.sim.pdptw.scenario.ScenarioIO;
@@ -308,11 +306,25 @@ public final class Experiment {
       return this;
     }
 
+    /**
+     * Adds a {@link rinde.sim.util.io.FileProvider.Builder} to the experiment.
+     * @param providerBuilder This builder will be used create a
+     *          {@link FileProvider} instance to load scenarios.
+     * @return This, as per the builder pattern.
+     * @see #setScenarioReader(Function)
+     */
     public Builder addScenarios(FileProvider.Builder providerBuilder) {
       scenarioProviderBuilder = Optional.of(providerBuilder);
       return this;
     }
 
+    /**
+     * Change the scenario reader which defines how {@link Path} instances are
+     * converted to {@link PDPScenario} instances. By default
+     * {@link ScenarioIO#reader()} is used as a scenario reader.
+     * @param reader The reader to use.
+     * @return This, as per the builder pattern.
+     */
     public Builder setScenarioReader(
         Function<Path, ? extends PDPScenario> reader) {
       fileReader = reader;
@@ -376,7 +388,8 @@ public final class Experiment {
      * the <a href="http://www.jppf.org/doc/">JPPF documentation</a>.
      * <p>
      * <b>Requirements:</b> {@link ObjectiveFunction}, {@link MASConfiguration}
-     * and {@link PostProcessor} (if used) must implement {@link Serializable}.
+     * and {@link PostProcessor} (if used) must implement
+     * {@link java.io.Serializable}.
      * <p>
      * <b>Incompatible settings</b><br/>
      * The following settings will be ignored when computing is done in a
@@ -408,14 +421,19 @@ public final class Experiment {
      * done. Note that this must be called <i>after</i> any calls to
      * {@link #computeDistributed()} or {@link #computeLocal()}, otherwise it
      * has no effect.
+     * @param verbose If <code>true</code> additional information is printed.
+     * @param stream The stream to write to.
+     * @param error The error stream to write to.
      * @return This, as per the builder pattern.
      */
-    public Builder dryRun(final boolean verbose) {
+    public Builder dryRun(final boolean verbose, final PrintStream stream,
+        final PrintStream error) {
       final Supplier<Computer> originalComputerType = computerType;
       computerType = new Supplier<Computer>() {
         @Override
         public Computer get() {
-          return new DryRunComputer(originalComputerType, verbose);
+          return new DryRunComputer(originalComputerType, verbose, stream,
+              error);
         }
       };
       return this;
@@ -453,12 +471,12 @@ public final class Experiment {
     /**
      * Parses the command line arguments. Performs the experiment using
      * {@link #perform()} if the arguments allow it.
-     * @param args The arguments to parse.
      * @param out The print stream to write the feedback from the cli system to.
+     * @param args The arguments to parse.
      * @return {@link Optional} containing {@link ExperimentResults} if the
      *         experiment was performed, {@link Optional#absent()} otherwise.
      */
-    public Optional<ExperimentResults> perform(String[] args, PrintStream out) {
+    public Optional<ExperimentResults> perform(PrintStream out, String... args) {
       final Optional<String> error = ExperimentCli.safeExecute(this, args);
       if (error.isPresent()) {
         out.println(error.get());
@@ -520,43 +538,43 @@ public final class Experiment {
       return runnerBuilder.build();
     }
 
-    static class SimArgs {
-      final PDPScenario scenario;
-      final MASConfiguration masConfig;
-      final long randomSeed;
-      final ObjectiveFunction objectiveFunction;
-      final boolean showGui;
-      final Optional<? extends PostProcessor<?>> postProcessor;
-      final Optional<UICreator> uiCreator;
-
-      SimArgs(PDPScenario s, MASConfiguration m, long seed,
-          ObjectiveFunction obj, boolean gui, @Nullable PostProcessor<?> pp,
-          @Nullable UICreator uic) {
-        scenario = s;
-        masConfig = m;
-        randomSeed = seed;
-        objectiveFunction = obj;
-        showGui = gui;
-        postProcessor = Optional.fromNullable(pp);
-        uiCreator = Optional.fromNullable(uic);
+    static ImmutableList<Long> generateDistinct(RandomGenerator rng, int size) {
+      final Set<Long> numbers = newLinkedHashSet();
+      while (numbers.size() < size) {
+        numbers.add(rng.nextLong());
       }
-
-      @Override
-      public String toString() {
-        return Joiner.on(",").join(scenario.getClass().getName(),
-            scenario.getProblemClass(),
-            scenario.getProblemInstanceId(), masConfig, randomSeed,
-            objectiveFunction, showGui, postProcessor, uiCreator);
-      }
+      return ImmutableList.copyOf(numbers);
     }
   }
 
-  static ImmutableList<Long> generateDistinct(RandomGenerator rng, int size) {
-    final Set<Long> numbers = newLinkedHashSet();
-    while (numbers.size() < size) {
-      numbers.add(rng.nextLong());
+  static class SimArgs {
+    final PDPScenario scenario;
+    final MASConfiguration masConfig;
+    final long randomSeed;
+    final ObjectiveFunction objectiveFunction;
+    final boolean showGui;
+    final Optional<? extends PostProcessor<?>> postProcessor;
+    final Optional<UICreator> uiCreator;
+
+    SimArgs(PDPScenario s, MASConfiguration m, long seed,
+        ObjectiveFunction obj, boolean gui, @Nullable PostProcessor<?> pp,
+        @Nullable UICreator uic) {
+      scenario = s;
+      masConfig = m;
+      randomSeed = seed;
+      objectiveFunction = obj;
+      showGui = gui;
+      postProcessor = Optional.fromNullable(pp);
+      uiCreator = Optional.fromNullable(uic);
     }
-    return ImmutableList.copyOf(numbers);
+
+    @Override
+    public String toString() {
+      return Joiner.on(",").join(scenario.getClass().getName(),
+          scenario.getProblemClass(),
+          scenario.getProblemInstanceId(), masConfig, randomSeed,
+          objectiveFunction, showGui, postProcessor, uiCreator);
+    }
   }
 
   /**
