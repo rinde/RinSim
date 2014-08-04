@@ -25,7 +25,7 @@ public class CliTest {
   @SuppressWarnings("null")
   List<Object> list;
   @SuppressWarnings("null")
-  CliMenu menu;
+  Menu menu;
 
   /**
    * Sets up the subject (a list in this case) and creates the menu.
@@ -33,10 +33,10 @@ public class CliTest {
   @Before
   public void setUp() {
     list = newArrayList();
-    menu = CliMenu
+    menu = Menu
         .builder()
         .add(
-            CliOption.builder("a", ArgumentParser.LONG).build(),
+            Option.builder("a", ArgumentParser.LONG).build(),
             list,
             new ArgHandler<List<Object>, Long>() {
               @Override
@@ -46,12 +46,12 @@ public class CliTest {
             }
         )
         .add(
-            CliOption
+            Option
                 .builder("aa", ArgumentParser.LONG_LIST)
                 .longName("add-all")
                 .description(
                     "Add all longs, and then some. Please note that using this option may alter the universe beyond recognition. Use at your own risk.")
-                .argOptional()
+                .setOptionalArgument()
                 .build(),
             list,
             new ArgHandler<List<Object>, List<Long>>() {
@@ -63,7 +63,7 @@ public class CliTest {
               }
             })
         .add(
-            CliOption.builder("asl", ArgumentParser.STRING_LIST).build(),
+            Option.builder("asl", ArgumentParser.STRING_LIST).build(),
             list,
             new ArgHandler<List<Object>, List<String>>() {
               @Override
@@ -73,12 +73,12 @@ public class CliTest {
             }
         )
         .openGroup()
-        .add(CliOption.builder("x").build(), list, dummyHandler())
-        .add(CliOption.builder("y").build(), list, dummyHandler())
-        .add(CliOption.builder("z").build(), list, dummyHandler())
+        .add(Option.builder("x").build(), list, dummyHandler())
+        .add(Option.builder("y").build(), list, dummyHandler())
+        .add(Option.builder("z").build(), list, dummyHandler())
         .closeGroup()
         .add(
-            CliOption.builder("as", ArgumentParser.STRING).build(),
+            Option.builder("as", ArgumentParser.STRING).build(),
             list,
             new ArgHandler<List<Object>, String>() {
               @Override
@@ -99,13 +99,13 @@ public class CliTest {
   @Test(expected = IllegalArgumentException.class)
   public void duplicateOptions() {
     final Object subject = new Object();
-    CliMenu.builder()
+    Menu.builder()
         .add(
-            CliOption.builder("a").build(),
+            Option.builder("a").build(),
             subject,
             dummyHandler())
         .add(
-            CliOption.builder("aa", ArgumentParser.STRING)
+            Option.builder("aa", ArgumentParser.STRING)
                 .longName("a")
                 .build(),
             subject,
@@ -176,7 +176,7 @@ public class CliTest {
    */
   @Test(expected = IllegalArgumentException.class)
   public void testAddSubMenuInvalidShortName() {
-    CliMenu.builder().addSubMenu("", "long", menu);
+    Menu.builder().addSubMenu("", "long", menu);
   }
 
   /**
@@ -184,7 +184,7 @@ public class CliTest {
    */
   @Test(expected = IllegalArgumentException.class)
   public void testAddSubMenuInvalidLongName() {
-    CliMenu.builder().addSubMenu("short", "", menu);
+    Menu.builder().addSubMenu("short", "", menu);
   }
 
   /**
@@ -192,7 +192,7 @@ public class CliTest {
    */
   @Test(expected = IllegalStateException.class)
   public void testAddSubMenuInvalidGroup() {
-    CliMenu.builder().openGroup().addSubMenu("short", "long", menu);
+    Menu.builder().openGroup().addSubMenu("short", "long", menu);
   }
 
   /**
@@ -200,7 +200,7 @@ public class CliTest {
    */
   @Test
   public void testAddSubMenu() {
-    final CliMenu m = CliMenu.builder().addSubMenu("l", "list.", menu).build();
+    final Menu m = Menu.builder().addSubMenu("l", "list.", menu).build();
     // help options are not copied
     assertFalse(m.containsOption("h"));
     assertFalse(m.containsOption("lh"));
@@ -213,8 +213,45 @@ public class CliTest {
     testFail("z", CauseType.ALREADY_SELECTED, "-z", "-z");
     testFail("x", CauseType.ALREADY_SELECTED, "-z", "-x");
 
-    final CliMenu m = CliMenu.builder().addSubMenu("l", "list.", menu).build();
+    final Menu m = Menu.builder().addSubMenu("l", "list.", menu).build();
 
+  }
+
+  /**
+   * Test the regular expression for the different option names.
+   */
+  @Test
+  public void testOptionNames() {
+    boolean error1 = false;
+    try {
+      Option.builder("-invalid");
+    } catch (final IllegalArgumentException e) {
+      error1 = true;
+    }
+    assertTrue(error1);
+
+    boolean error2 = false;
+    try {
+      Option.builder(".invalid");
+    } catch (final IllegalArgumentException e) {
+      error2 = true;
+    }
+    assertTrue(error2);
+
+    boolean error3 = false;
+    try {
+      Option.builder("valid").shortName("a.inva lid");
+    } catch (final IllegalArgumentException e) {
+      error3 = true;
+    }
+    assertTrue(error3);
+
+    assertEquals("a.b.c-d", Option.builder("a.b.c-d").build().getShortName());
+    assertEquals("A", Option.builder("A").build().getShortName());
+    assertFalse(Option.builder("A").build().getLongName().isPresent());
+    final Option o = Option.builder("A-T").longName("APPLE-TREE").build();
+    assertEquals("A-T", o.getShortName());
+    assertEquals("APPLE-TREE", o.getLongName().get());
   }
 
   void testFail(String failingOptionName, CauseType causeType,
@@ -222,7 +259,7 @@ public class CliTest {
     testFail(menu, failingOptionName, causeType, args);
   }
 
-  public static void testFail(CliMenu m, String failingOptionName,
+  public static void testFail(Menu m, String failingOptionName,
       CauseType causeType, String... args) {
     try {
       m.execute(args);
@@ -234,7 +271,7 @@ public class CliTest {
     fail();
   }
 
-  public static void testFail(CliMenu m, String failingOptionName,
+  public static void testFail(Menu m, String failingOptionName,
       CauseType causeType, Class<? extends Throwable> rootCause, String... args) {
     try {
       m.execute(args);

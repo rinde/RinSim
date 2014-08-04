@@ -3,7 +3,7 @@ package rinde.sim.util.cli;
 import java.util.List;
 
 import rinde.sim.util.cli.CliException.CauseType;
-import rinde.sim.util.cli.CliOption.CliOptionArg;
+import rinde.sim.util.cli.Option.OptionArg;
 
 import com.google.common.base.Converter;
 import com.google.common.base.Splitter;
@@ -18,7 +18,7 @@ public abstract class ArgumentParser<V> {
   public static final ArgumentParser<Boolean> BOOLEAN = new ArgumentParser<Boolean>(
       "boolean") {
     @Override
-    Boolean parse(CliOptionArg<Boolean> option, String arg) {
+    Boolean parse(OptionArg<Boolean> option, String arg) {
       if ("T".equalsIgnoreCase(arg) || "true".equalsIgnoreCase(arg)
           || "1".equals(arg)) {
         return true;
@@ -52,7 +52,7 @@ public abstract class ArgumentParser<V> {
   public static final ArgumentParser<List<String>> STRING_LIST = new ArgumentParser<List<String>>(
       "string list") {
     @Override
-    List<String> parse(CliOptionArg<List<String>> option, String value) {
+    List<String> parse(OptionArg<List<String>> option, String value) {
       return Splitter.on(ARG_LIST_SEPARATOR).splitToList(value);
     }
   };
@@ -60,7 +60,7 @@ public abstract class ArgumentParser<V> {
   public static final ArgumentParser<String> STRING = new ArgumentParser<String>(
       "string") {
     @Override
-    String parse(CliOptionArg<String> option, String value) {
+    String parse(OptionArg<String> option, String value) {
       return value;
     }
   };
@@ -72,13 +72,13 @@ public abstract class ArgumentParser<V> {
     name = nm;
   }
 
-  abstract V parse(CliOptionArg<V> option, String arg);
+  abstract V parse(OptionArg<V> option, String arg);
 
   String name() {
     return name;
   }
 
-  static CliException convertNFE(CliOption option, NumberFormatException e,
+  static CliException convertNFE(Option option, NumberFormatException e,
       String value, String argName) {
     return new CliException(String.format(
         "The option %s expects a %s, found '%s'.", option, argName,
@@ -94,7 +94,7 @@ public abstract class ArgumentParser<V> {
     }
 
     @Override
-    T parse(CliOptionArg<T> option, String arg) {
+    T parse(OptionArg<T> option, String arg) {
       try {
         return converter.convert(arg);
       } catch (final NumberFormatException e) {
@@ -112,7 +112,7 @@ public abstract class ArgumentParser<V> {
     }
 
     @Override
-    List<T> parse(CliOptionArg<List<T>> option, String value) {
+    List<T> parse(OptionArg<List<T>> option, String value) {
       final Iterable<String> strings = Splitter.on(ARG_LIST_SEPARATOR).split(
           value);
       try {

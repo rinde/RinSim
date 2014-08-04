@@ -11,10 +11,10 @@ import rinde.sim.pdptw.experiment.Experiment.Computers;
 import rinde.sim.util.cli.ArgHandler;
 import rinde.sim.util.cli.ArgumentParser;
 import rinde.sim.util.cli.CliException;
-import rinde.sim.util.cli.CliMenu;
-import rinde.sim.util.cli.CliOption;
-import rinde.sim.util.cli.CliOption.CliOptionArg;
-import rinde.sim.util.cli.CliOption.CliOptionNoArg;
+import rinde.sim.util.cli.Menu;
+import rinde.sim.util.cli.Option;
+import rinde.sim.util.cli.Option.OptionArg;
+import rinde.sim.util.cli.Option.OptionNoArg;
 import rinde.sim.util.cli.NoArgHandler;
 import rinde.sim.util.io.FileProviderCli;
 
@@ -36,10 +36,10 @@ class ExperimentCli {
     return createMenu(builder).execute(args);
   }
 
-  static CliMenu createMenu(Experiment.Builder builder) {
+  static Menu createMenu(Experiment.Builder builder) {
     final Map<String, MASConfiguration> cfgMap = createConfigMap(builder);
 
-    final CliMenu.Builder menuBuilder = CliMenu.builder();
+    final Menu.Builder menuBuilder = Menu.builder();
     menuBuilder
         .commandLineSyntax("java -jar jarname.jar <options>")
         .header("RinSim Experiment command line interface.")
@@ -70,8 +70,8 @@ class ExperimentCli {
     return menuBuilder.build();
   }
 
-  static CliOptionArg<Integer> createBatchesOpt(Builder expBuilder) {
-    return CliOption
+  static OptionArg<Integer> createBatchesOpt(Builder expBuilder) {
+    return Option
         .builder("b", ArgumentParser.INTEGER)
         .longName("batches")
         .description(
@@ -93,8 +93,8 @@ class ExperimentCli {
     return mapBuilder.build();
   }
 
-  static CliOptionArg<Integer> createThreadsOpt(Experiment.Builder builder) {
-    return CliOption
+  static OptionArg<Integer> createThreadsOpt(Experiment.Builder builder) {
+    return Option
         .builder("t", ArgumentParser.INTEGER)
         .longName("threads")
         .description(
@@ -104,8 +104,8 @@ class ExperimentCli {
         .build();
   }
 
-  static CliOptionArg<Long> createSeedOption(Experiment.Builder builder) {
-    return CliOption.builder("s", ArgumentParser.LONG)
+  static OptionArg<Long> createSeedOption(Experiment.Builder builder) {
+    return Option.builder("s", ArgumentParser.LONG)
         .longName("seed")
         .description(
             "Sets the master random seed, default: ", builder.masterSeed, ".")
@@ -133,8 +133,8 @@ class ExperimentCli {
     }
   };
 
-  static CliOptionArg<Integer> createRepetitionsOpt(Builder builder) {
-    return CliOption
+  static OptionArg<Integer> createRepetitionsOpt(Builder builder) {
+    return Option
         .builder("r", ArgumentParser.INTEGER)
         .longName("repetitions")
         .description(
@@ -150,8 +150,8 @@ class ExperimentCli {
     }
   };
 
-  static CliOptionArg<String> createDryRunOpt(Builder builder) {
-    return CliOption.builder("dr", ArgumentParser.STRING)
+  static OptionArg<String> createDryRunOpt(Builder builder) {
+    return Option.builder("dr", ArgumentParser.STRING)
         .longName("dry-run")
         .description(
             "Will perform a 'dry run' of the experiment without doing any"
@@ -159,7 +159,7 @@ class ExperimentCli {
                 + "experiment setup will be printed. If an additional "
                 + "argument 'v' or 'verbose' is supplied, more details of"
                 + " the experiment will be printed.")
-        .argOptional()
+        .setOptionalArgument()
         .build();
   }
 
@@ -177,8 +177,8 @@ class ExperimentCli {
     }
   };
 
-  static CliOptionNoArg createJppfOpt(Builder builder) {
-    return CliOption
+  static OptionNoArg createJppfOpt(Builder builder) {
+    return Option
         .builder("j")
         .longName("jppf")
         .description(
@@ -196,8 +196,8 @@ class ExperimentCli {
     }
   };
 
-  static CliOptionNoArg createLocalOpt(Builder builder) {
-    return CliOption.builder("l")
+  static OptionNoArg createLocalOpt(Builder builder) {
+    return Option.builder("l")
         .longName("local")
         .description(
             "Compute the experiment locally",
@@ -213,8 +213,8 @@ class ExperimentCli {
     }
   };
 
-  static CliOptionArg<Boolean> createGuiOpt(Builder builder) {
-    return CliOption
+  static OptionArg<Boolean> createGuiOpt(Builder builder) {
+    return Option
         .builder("g", ArgumentParser.BOOLEAN)
         .longName("show-gui")
         .description(
@@ -235,9 +235,9 @@ class ExperimentCli {
     }
   };
 
-  static CliOptionArg<List<String>> createIncludeOpt(
+  static OptionArg<List<String>> createIncludeOpt(
       Map<String, MASConfiguration> configMap) {
-    return CliOption
+    return Option
         .builder("i", ArgumentParser.STRING_LIST)
         .longName("include")
         .description(
@@ -274,9 +274,9 @@ class ExperimentCli {
     }
   }
 
-  static CliOptionArg<List<String>> createExcludeOpt(
+  static OptionArg<List<String>> createExcludeOpt(
       Map<String, MASConfiguration> configMap) {
-    return CliOption
+    return Option
         .builder("e", ArgumentParser.STRING_LIST)
         .longName("exclude")
         .description(

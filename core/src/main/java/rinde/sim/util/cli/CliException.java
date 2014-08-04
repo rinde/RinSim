@@ -12,30 +12,30 @@ import com.google.common.base.Optional;
  */
 public class CliException extends RuntimeException {
   private static final long serialVersionUID = -7434606684541234080L;
-  private final Optional<CliOption> menuOption;
+  private final Optional<Option> menuOption;
   private final CauseType causeType;
 
   CliException(String msg, CauseType cause) {
     this(msg, null, cause, null);
   }
 
-  CliException(String msg, CauseType type, @Nullable CliOption opt) {
+  CliException(String msg, CauseType type, @Nullable Option opt) {
     this(msg, null, type, opt);
   }
 
   CliException(String msg, @Nullable Throwable cause, CauseType type,
-      @Nullable CliOption opt) {
+      @Nullable Option opt) {
     super(msg, cause);
-    menuOption = Optional.<CliOption> fromNullable(opt);
+    menuOption = Optional.<Option> fromNullable(opt);
     causeType = type;
   }
 
   /**
-   * @return The {@link CliOption} where the exception occurred, or
-   *         {@link Optional#absent()} if there is no {@link CliOption}
-   *         responsible for this exception.
+   * @return The {@link Option} where the exception occurred, or
+   *         {@link Optional#absent()} if there is no {@link Option} responsible
+   *         for this exception.
    */
-  public Optional<CliOption> getMenuOption() {
+  public Optional<Option> getMenuOption() {
     checkState(menuOption.isPresent(), "'%s' has no reference to an option.",
         toString());
     return menuOption;
@@ -79,7 +79,7 @@ public class CliException extends RuntimeException {
     INVALID_ARG_FORMAT,
 
     /**
-     * An error has occurred during execution of the {@link OptionHandler}.
+     * An error has occurred during execution of the {@link ArgHandler}.
      */
     INVALID;
   }

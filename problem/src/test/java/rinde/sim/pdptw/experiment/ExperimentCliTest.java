@@ -16,7 +16,7 @@ import rinde.sim.pdptw.experiment.Experiment.Builder;
 import rinde.sim.pdptw.gendreau06.Gendreau06ObjectiveFunction;
 import rinde.sim.pdptw.gendreau06.Gendreau06Parser;
 import rinde.sim.util.cli.CliException.CauseType;
-import rinde.sim.util.cli.CliMenu;
+import rinde.sim.util.cli.Menu;
 import rinde.sim.util.io.FileProvider;
 
 /**
@@ -34,7 +34,7 @@ public class ExperimentCliTest {
   @SuppressWarnings("null")
   Builder builder;
   @SuppressWarnings("null")
-  CliMenu menu;
+  Menu menu;
 
   /**
    * Set up the experiment builder and create the CLI menu.
