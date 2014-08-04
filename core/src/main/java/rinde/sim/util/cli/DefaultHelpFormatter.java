@@ -13,6 +13,9 @@ import com.google.common.base.Strings;
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
  */
 public class DefaultHelpFormatter implements HelpFormatter {
+  private static final int HELP_WIDTH = 80;
+  private static final int NAME_DESC_PADDING = 3;
+
   @Override
   public String format(Menu menu) {
     final List<Option> options = menu.getOptions();
@@ -30,8 +33,8 @@ public class DefaultHelpFormatter implements HelpFormatter {
       optionNames.add(sb.toString());
       maxLength = Math.max(sb.length(), maxLength);
     }
-    final int total = 80;
-    final int nameLength = maxLength + 3;
+    final int total = HELP_WIDTH;
+    final int nameLength = maxLength + NAME_DESC_PADDING;
     final int descLength = total - nameLength;
 
     final StringBuilder sb = new StringBuilder();

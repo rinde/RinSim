@@ -133,6 +133,9 @@ public class CliTest {
     assertFalse(menu.execute("-aa").isPresent());
   }
 
+  /**
+   * Tests the whether parsing of longs is correct.
+   */
   @Test
   public void testLongArgType() {
     assertTrue(list.isEmpty());
@@ -148,17 +151,19 @@ public class CliTest {
     assertEquals(asList(-10L, 10L, 100L), list);
   }
 
+  /**
+   * Tests whether parser correctly fails.
+   */
   @Test
   public void testNotLongArgType() {
     testFail("a", CauseType.INVALID_ARG_FORMAT, "-a", "sfd");
-  }
-
-  @Test
-  public void testNotLongArgType2() {
     testFail("a", CauseType.INVALID_ARG_FORMAT, "-a", "6.4");
     testFail("aa", CauseType.INVALID_ARG_FORMAT, "-aa", "6.4");
   }
 
+  /**
+   * Tests whether string parsing is correct.
+   */
   @Test
   public void testStringArgType() {
     assertTrue(list.isEmpty());
@@ -200,21 +205,77 @@ public class CliTest {
    */
   @Test
   public void testAddSubMenu() {
-    final Menu m = Menu.builder().addSubMenu("l", "list.", menu).build();
+    final Menu m = Menu.builder()
+        .addSubMenu("l", "list.", menu)
+        .addHelpOption("d", "delp", "Help")
+        .build();
     // help options are not copied
     assertFalse(m.containsOption("h"));
     assertFalse(m.containsOption("lh"));
-    assertEquals(m.getOptionNames().size(), menu.getOptionNames().size() - 2);
+    assertEquals(m.getOptionNames().size(), menu.getOptionNames().size());
   }
 
+  /**
+   * Tests whether multiple selection in a group is detected.
+   */
   @Test
   public void testGroup() {
     testFail("y", CauseType.ALREADY_SELECTED, "-x", "-y");
     testFail("z", CauseType.ALREADY_SELECTED, "-z", "-z");
     testFail("x", CauseType.ALREADY_SELECTED, "-z", "-x");
+  }
 
-    final Menu m = Menu.builder().addSubMenu("l", "list.", menu).build();
+  /**
+   * Constructs a menu wilt multiple groups and tests the behavior.
+   */
+  @Test
+  public void multipleGroups() {
+    final Menu m = Menu.builder()
+        .openGroup()
+        .add(Option.builder("a").build(), list, dummyHandler())
+        .add(Option.builder("b").build(), list, dummyHandler())
+        .openGroup()
+        .add(Option.builder("c").build(), list, dummyHandler())
+        .add(Option.builder("d").build(), list, dummyHandler())
+        .add(Option.builder("e").build(), list, dummyHandler())
+        .closeGroup()
+        .addHelpOption("h", "help", "Print me")
+        .build();
 
+    assertFalse(m.execute("-a", "-c").isPresent());
+    assertFalse(m.execute("-b", "-d").isPresent());
+    testFail(m, "a", CauseType.ALREADY_SELECTED, "-b", "-a");
+    testFail(m, "b", CauseType.ALREADY_SELECTED, "-d", "-a", "-b");
+    testFail(m, "c", CauseType.ALREADY_SELECTED, "-d", "-a", "-c");
+  }
+
+  /**
+   * Closing an empty group is not allowed.
+   */
+  @Test(expected = IllegalArgumentException.class)
+  public void failGroup1() {
+    Menu.builder().openGroup().closeGroup();
+  }
+
+  /**
+   * Closing a group with just one option is not allowed.
+   */
+  @Test(expected = IllegalArgumentException.class)
+  public void failGroup2() {
+    Menu.builder()
+        .openGroup()
+        .add(Option.builder("v").build(), list, dummyHandler())
+        .closeGroup();
+  }
+
+  /**
+   * Help option in group is not allowed.
+   */
+  @Test(expected = IllegalStateException.class)
+  public void failHelpOption() {
+    Menu.builder()
+        .openGroup()
+        .addHelpOption("h", "help", "Hello");
   }
 
   /**
@@ -259,6 +320,13 @@ public class CliTest {
     testFail(menu, failingOptionName, causeType, args);
   }
 
+  /**
+   * Tests whether the specified args will fail.
+   * @param m The menu to use.
+   * @param failingOptionName The name of the failing option.
+   * @param causeType The cause of the error.
+   * @param args The options to execute.
+   */
   public static void testFail(Menu m, String failingOptionName,
       CauseType causeType, String... args) {
     try {
@@ -271,6 +339,15 @@ public class CliTest {
     fail();
   }
 
+  /**
+   * Tests whether the specified args will fail.
+   * @param m The menu to use.
+   * @param failingOptionName The name of the failing option.
+   * @param causeType The cause of the error.
+   * @param rootCause The type of the throwable which is the root cause of the
+   *          failure.
+   * @param args The options to execute.
+   */
   public static void testFail(Menu m, String failingOptionName,
       CauseType causeType, Class<? extends Throwable> rootCause, String... args) {
     try {

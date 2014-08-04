@@ -99,7 +99,7 @@ public final class Menu {
       final Optional<OptionParser> optParser = parseOption(arg);
       if (optParser.isPresent()) {
         checkAlreadySelected(
-            selectedOptions.contains(optParser.get().getOption()),
+            !selectedOptions.contains(optParser.get().getOption()),
             optParser.get().getOption(),
             "Option is already selected: %s.", optParser.get().getOption());
 
@@ -113,7 +113,7 @@ public final class Menu {
               intersect.isEmpty(),
               optParser.get().getOption(),
               "An option from the same group as '%s' has already been selected: '%s'.",
-              optParser.get().getOption(), intersect.iterator().next());
+              optParser.get().getOption(), intersect);
         }
 
         selectedOptions.add(optParser.get().getOption());
@@ -306,7 +306,7 @@ public final class Menu {
      * @return This, as per the builder pattern.
      */
     public Builder addHelpOption(String sn, String ln, String desc) {
-      checkState(!buildingGroup);
+      checkState(!buildingGroup, "A help option can not be added to a group.");
       final OptionNoArg option = Option.builder(sn)
           .longName(ln)
           .description(desc)
@@ -431,9 +431,9 @@ public final class Menu {
      */
     public Builder addSubMenu(String shortPrefix, String longPrefix,
         Menu menu) {
-      checkArgument(!shortPrefix.trim().isEmpty(),
+      checkArgument(shortPrefix.matches(Option.NAME_REGEX),
           "The short prefix may not be an empty string.");
-      checkArgument(!longPrefix.trim().isEmpty(),
+      checkArgument(longPrefix.matches(Option.NAME_REGEX),
           "The long prefix may not be an empty string.");
       checkState(
           !buildingGroup,
