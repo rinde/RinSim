@@ -42,11 +42,18 @@ public class CliException extends RuntimeException {
   }
 
   static void checkAlreadySelected(boolean notSelected, Option opt,
-      String format,
-      Object... args) {
+      String format, Object... args) {
     if (!notSelected) {
       throw new CliException(String.format(format, args),
           CauseType.ALREADY_SELECTED, opt);
+    }
+  }
+
+  static void checkCommand(boolean recognized, String format,
+      Object... args) {
+    if (!recognized) {
+      throw new CliException(String.format(format, args),
+          CauseType.UNRECOGNIZED_COMMAND);
     }
   }
 
@@ -78,18 +85,18 @@ public class CliException extends RuntimeException {
     ALREADY_SELECTED,
 
     /**
-     * Something went wrong during parsing.
+     * An unrecognized command is found.
      */
-    PARSE_EXCEPTION,
+    UNRECOGNIZED_COMMAND,
 
     /**
-     * The number format is invalid.
+     * The argument format is invalid.
      */
     INVALID_ARG_FORMAT,
 
     /**
      * An error has occurred during execution of the {@link ArgHandler}.
      */
-    INVALID;
+    HANDLER_FAILURE;
   }
 }

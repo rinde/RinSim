@@ -12,7 +12,7 @@ import com.google.common.base.Strings;
  * Default implementation of {@link HelpFormatter}.
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
  */
-public class DefaultHelpFormatter implements HelpFormatter {
+public final class DefaultHelpFormatter implements HelpFormatter {
   private static final int HELP_WIDTH = 80;
   private static final int NAME_DESC_PADDING = 3;
 

@@ -83,7 +83,7 @@ public class ExperimentCliTest {
   public void testBatches() {
     testFail(menu, "b", CauseType.MISSING_ARG, "--batches");
     testFail(menu, "b", CauseType.INVALID_ARG_FORMAT, "-b", "x", "-s", "1");
-    testFail(menu, "b", CauseType.INVALID, IllegalArgumentException.class,
+    testFail(menu, "b", CauseType.HANDLER_FAILURE, IllegalArgumentException.class,
         "-b", "0", "-s", "1");
     assertEquals(1, testSuccess("-b 1").numBatches);
     assertEquals(10, testSuccess("-b 10").numBatches);
@@ -96,7 +96,7 @@ public class ExperimentCliTest {
   public void testThreads() {
     testFail(menu, "t", CauseType.MISSING_ARG, "--threads");
     testFail(menu, "t", CauseType.INVALID_ARG_FORMAT, "-t", "x", "-s", "1");
-    testFail(menu, "t", CauseType.INVALID, IllegalArgumentException.class,
+    testFail(menu, "t", CauseType.HANDLER_FAILURE, IllegalArgumentException.class,
         "-t", "0", "-s", "1");
     assertEquals(1, testSuccess("-t 1").numThreads);
     assertEquals(10, testSuccess("-t 10").numThreads);
@@ -109,7 +109,7 @@ public class ExperimentCliTest {
   public void testRepetitions() {
     testFail(menu, "r", CauseType.MISSING_ARG, "--repetitions");
     testFail(menu, "r", CauseType.INVALID_ARG_FORMAT, "-r", "x", "-s", "1");
-    testFail(menu, "r", CauseType.INVALID, IllegalArgumentException.class,
+    testFail(menu, "r", CauseType.HANDLER_FAILURE, IllegalArgumentException.class,
         "-r", "0", "-s", "1");
     assertEquals(1, testSuccess("-r 1").repetitions);
     assertEquals(10, testSuccess("-r 10").repetitions);
@@ -121,11 +121,11 @@ public class ExperimentCliTest {
   @Test
   public void testInclude() {
     testFail(menu, "i", CauseType.MISSING_ARG, "--include");
-    testFail(menu, "i", CauseType.INVALID, IllegalArgumentException.class,
+    testFail(menu, "i", CauseType.HANDLER_FAILURE, IllegalArgumentException.class,
         "--include", "x2");
-    testFail(menu, "i", CauseType.INVALID, IllegalArgumentException.class,
+    testFail(menu, "i", CauseType.HANDLER_FAILURE, IllegalArgumentException.class,
         "--include", "c1,,c2");
-    testFail(menu, "i", CauseType.INVALID, IllegalArgumentException.class,
+    testFail(menu, "i", CauseType.HANDLER_FAILURE, IllegalArgumentException.class,
         "--i", "c1,c1,c1,c1");
     setUp();
 
@@ -151,13 +151,13 @@ public class ExperimentCliTest {
   @Test
   public void testExclude() {
     testFail(menu, "e", CauseType.MISSING_ARG, "--exclude");
-    testFail(menu, "e", CauseType.INVALID, IllegalArgumentException.class,
+    testFail(menu, "e", CauseType.HANDLER_FAILURE, IllegalArgumentException.class,
         "--exclude", "x2");
-    testFail(menu, "e", CauseType.INVALID, IllegalArgumentException.class,
+    testFail(menu, "e", CauseType.HANDLER_FAILURE, IllegalArgumentException.class,
         "--exclude", "c1,,c2");
-    testFail(menu, "e", CauseType.INVALID, IllegalArgumentException.class,
+    testFail(menu, "e", CauseType.HANDLER_FAILURE, IllegalArgumentException.class,
         "--e", "c1,c1,c1,c1");
-    testFail(menu, "e", CauseType.INVALID, IllegalArgumentException.class,
+    testFail(menu, "e", CauseType.HANDLER_FAILURE, IllegalArgumentException.class,
         "--e", "c0,c1,c");
     setUp();
 

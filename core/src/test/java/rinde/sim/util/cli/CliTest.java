@@ -4,6 +4,7 @@ import static com.google.common.collect.Lists.newArrayList;
 import static java.util.Arrays.asList;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -32,6 +33,7 @@ public class CliTest {
    */
   @Before
   public void setUp() {
+    CauseType.valueOf("MISSING_ARG");
     list = newArrayList();
     menu = Menu
         .builder()
@@ -50,7 +52,7 @@ public class CliTest {
                 .builder("aa", ArgumentParser.LONG_LIST)
                 .longName("add-all")
                 .description(
-                    "Add all longs, and then some. Please note that using this option may alter the universe beyond recognition. Use at your own risk.")
+                    "Add all longs, and then some. Please note that using this option may alter the universe beyond recognition. Use at your own risk.\n\nFooter of the message.")
                 .setOptionalArgument()
                 .build(),
             list,
@@ -88,8 +90,27 @@ public class CliTest {
             }
         )
         .addHelpOption("h", "help", "Print this message")
+        .add(Option.builder("failure", ArgumentParser.BOOLEAN).build(), list,
+            new ArgHandler<List<Object>, Boolean>() {
+              @Override
+              public void execute(List<Object> subject, Optional<Boolean> b) {
+                if (b.get()) {
+                  throw new IllegalArgumentException();
+                } else {
+                  throw new IllegalStateException();
+                }
+              }
+            })
+        .add(Option.builder("happy", ArgumentParser.BOOLEAN).build(), list,
+            new ArgHandler<List<Object>, Boolean>() {
+              @Override
+              public void execute(List<Object> subject, Optional<Boolean> b) {
+                subject.add(b.get());
+              }
+            })
         .footer("This is the bottom")
         .header("This is the header")
+        .commandLineSyntax("ctrl-alt-del")
         .build();
   }
 
@@ -120,7 +141,7 @@ public class CliTest {
     assertTrue(menu.execute("--help").isPresent());
     assertTrue(menu.execute("-help").isPresent());
     assertTrue(menu.execute("--h").isPresent());
-    assertTrue(menu.execute("-h").isPresent());
+    assertTrue(menu.safeExecute("-h").isPresent());
   }
 
   /**
@@ -129,8 +150,35 @@ public class CliTest {
   @Test
   public void testMissingArg() {
     testFail("a", CauseType.MISSING_ARG, "-a");
+    assertTrue(menu.safeExecute("-a").isPresent());
     // -aa has an optional argument, so this is valid
     assertFalse(menu.execute("-aa").isPresent());
+
+  }
+
+  /**
+   * Test for unrecognized command.
+   */
+  @Test
+  public void testUnrecognizedCommand() {
+    testFail(menu, CauseType.UNRECOGNIZED_COMMAND, "---a");
+  }
+
+  /**
+   * Test for handle failure.
+   */
+  @Test
+  public void testHandleFailure() {
+    testFail(menu, "failure", CauseType.HANDLER_FAILURE, "-failure", "T");
+    testFail(menu, "failure", CauseType.HANDLER_FAILURE, "-failure", "F");
+  }
+
+  /**
+   * Test for unexpected argument.
+   */
+  @Test
+  public void testUnexpectedArgument() {
+    testFail(menu, "x", CauseType.UNEXPECTED_ARG, "-x", "T");
   }
 
   /**
@@ -174,6 +222,23 @@ public class CliTest {
     assertFalse(menu.execute("-as", "hello again").isPresent());
     assertEquals(asList("hello world", "bye", "hello again"), list);
     testFail("as", CauseType.MISSING_ARG, "-as");
+  }
+
+  /**
+   * Tests for boolean arguments.
+   */
+  @Test
+  public void testBooleanArgType() {
+    menu.execute("-happy", "T");
+    menu.execute("-happy", "f");
+    menu.execute("-happy", "1");
+    menu.execute("-happy", "0");
+    menu.execute("-happy", "True");
+    menu.execute("-happy", "fAlse");
+    assertEquals(asList(true, false, true, false, true, false), list);
+
+    testFail(menu, "happy", CauseType.INVALID_ARG_FORMAT, "-happy", "FF");
+    testFail(menu, "happy", CauseType.INVALID_ARG_FORMAT, "-happy", "truth");
   }
 
   /**
@@ -279,6 +344,25 @@ public class CliTest {
   }
 
   /**
+   * Test for setting a custom help formatter.
+   */
+  @Test
+  public void testCustomHelpFormatter() {
+    final HelpFormatter defaultFormatter = new DefaultHelpFormatter();
+    final HelpFormatter customFormatter = new DummyHelpFormatter();
+    final Menu m = Menu.builder()
+        .addHelpOption("h", "help", "help")
+        .commandLineSyntax("")
+        .helpFormatter(customFormatter)
+        .build();
+
+    assertEquals(" -h,--help   help\n", defaultFormatter.format(m));
+    assertEquals("[h, help]", customFormatter.format(m));
+    assertNotEquals(defaultFormatter.format(m), m.printHelp());
+    assertEquals(customFormatter.format(m), m.printHelp());
+  }
+
+  /**
    * Test the regular expression for the different option names.
    */
   @Test
@@ -336,7 +420,23 @@ public class CliTest {
       assertEquals(causeType, e.getCauseType());
       return;
     }
-    fail();
+    fail("No exception occured.");
+  }
+
+  /**
+   * Tests whether the specified args will fail.
+   * @param m The menu to use.
+   * @param causeType The cause of the error.
+   * @param args The options to execute.
+   */
+  public static void testFail(Menu m, CauseType causeType, String... args) {
+    try {
+      m.execute(args);
+    } catch (final CliException e) {
+      assertEquals(causeType, e.getCauseType());
+      return;
+    }
+    fail("No exception occured.");
   }
 
   /**
@@ -373,5 +473,12 @@ public class CliTest {
       @Override
       public void execute(S subject, Optional<V> value) {}
     };
+  }
+
+  static class DummyHelpFormatter implements HelpFormatter {
+    @Override
+    public String format(Menu menu) {
+      return menu.getOptionNames().toString();
+    }
   }
 }

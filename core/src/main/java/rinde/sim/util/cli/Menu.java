@@ -6,6 +6,7 @@ import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Maps.newLinkedHashMap;
 import static com.google.common.collect.Sets.newLinkedHashSet;
 import static rinde.sim.util.cli.CliException.checkAlreadySelected;
+import static rinde.sim.util.cli.CliException.checkCommand;
 
 import java.util.Collections;
 import java.util.Comparator;
@@ -75,7 +76,7 @@ public final class Menu {
    * @return A string containing an error message or {@link Optional#absent()}
    *         if no error occurred.
    */
-  public Optional<String> safeExecute(String[] args) {
+  public Optional<String> safeExecute(String... args) {
     try {
       return execute(args);
     } catch (final CliException e) {
@@ -97,43 +98,42 @@ public final class Menu {
     while (it.hasNext()) {
       final String arg = it.next();
       final Optional<OptionParser> optParser = parseOption(arg);
-      if (optParser.isPresent()) {
+
+      checkCommand(optParser.isPresent(), "Found unrecognized command: '%s'.",
+          arg);
+      checkAlreadySelected(
+          !selectedOptions.contains(optParser.get().getOption()),
+          optParser.get().getOption(),
+          "Option is already selected: %s.", optParser.get().getOption());
+
+      if (groupMap.containsKey(optParser.get().getOption())) {
+        // this option is part of a option group
+        final SetView<Option> intersect = Sets.intersection(
+            selectedOptions,
+            newLinkedHashSet(groupMap.get(optParser.get().getOption())));
+
         checkAlreadySelected(
-            !selectedOptions.contains(optParser.get().getOption()),
+            intersect.isEmpty(),
             optParser.get().getOption(),
-            "Option is already selected: %s.", optParser.get().getOption());
+            "An option from the same group as '%s' has already been selected: '%s'.",
+            optParser.get().getOption(), intersect);
+      }
 
-        if (groupMap.containsKey(optParser.get().getOption())) {
-          // this option is part of a option group
-          final SetView<Option> intersect = Sets.intersection(
-              selectedOptions,
-              newLinkedHashSet(groupMap.get(optParser.get().getOption())));
-
-          checkAlreadySelected(
-              intersect.isEmpty(),
-              optParser.get().getOption(),
-              "An option from the same group as '%s' has already been selected: '%s'.",
-              optParser.get().getOption(), intersect);
-        }
-
-        selectedOptions.add(optParser.get().getOption());
-        if (optParser.get().getOption().isHelpOption()) {
-          return Optional.of(printHelp());
-        }
-        final List<String> arguments = newArrayList();
-        // if a non-option string is following the current option, it must be
-        // the argument of the current option.
-        while (it.hasNext() && !parseOption(it.peek()).isPresent()) {
-          arguments.add(it.next());
-        }
-        try {
-          optParser.get().parse(arguments);
-        } catch (IllegalArgumentException | IllegalStateException e) {
-          throw new CliException(e.getMessage(), e, CauseType.INVALID,
-              optParser.get().getOption());
-        }
-      } else {
-        throwUnexpectedArtifact(arg);
+      selectedOptions.add(optParser.get().getOption());
+      if (optParser.get().getOption().isHelpOption()) {
+        return Optional.of(printHelp());
+      }
+      final List<String> arguments = newArrayList();
+      // if a non-option string is following the current option, it must be
+      // the argument of the current option.
+      while (it.hasNext() && !parseOption(it.peek()).isPresent()) {
+        arguments.add(it.next());
+      }
+      try {
+        optParser.get().parse(arguments);
+      } catch (IllegalArgumentException | IllegalStateException e) {
+        throw new CliException(e.getMessage(), e, CauseType.HANDLER_FAILURE,
+            optParser.get().getOption());
       }
     }
     return Optional.absent();
@@ -173,11 +173,6 @@ public final class Menu {
       }
     }
     return Optional.absent();
-  }
-
-  static void throwUnexpectedArtifact(String artifact) {
-    throw new CliException(String.format("Found unexpected artifact: '%s'.",
-        artifact), CauseType.PARSE_EXCEPTION);
   }
 
   /**
@@ -528,7 +523,6 @@ public final class Menu {
   }
 
   interface OptionParser {
-
     /**
      * @return The option of this parser.
      */
@@ -541,21 +535,10 @@ public final class Menu {
     void parse(List<String> arguments);
   }
 
-  static class HelpParser implements OptionParser {
-    final Option option;
-
-    HelpParser(Option opt) {
-      option = opt;
-    }
-
-    @Override
-    public Option getOption() {
-      return option;
-    }
-
-    @Override
-    public void parse(List<String> arguments) {
-      unexpectedArgument(arguments, option);
+  static class HelpParser extends NoArgParser<Object> {
+    @SuppressWarnings("null")
+    HelpParser(OptionNoArg opt) {
+      super(opt, null, null);
     }
   }
 
