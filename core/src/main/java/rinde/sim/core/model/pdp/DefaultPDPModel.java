@@ -243,14 +243,22 @@ public final class DefaultPDPModel extends PDPModel {
     }
   }
 
+  void checkVehicleIdle(Vehicle vehicle) {
+    checkArgument(vehicleState.get(vehicle).equals(VehicleState.IDLE),
+        "Vehicle must be idle but is: %s ", vehicleState.get(vehicle));
+  }
+
+  void checkVehicleDoesNotContainParcel(Vehicle vehicle, Parcel parcel) {
+    checkArgument(containerContents.get(vehicle).contains(parcel),
+        "vehicle does not contain parcel");
+  }
+
   @Override
   public void deliver(Vehicle vehicle, Parcel parcel, TimeLapse time) {
     synchronized (this) {
       /* 1 */checkVehicleInRoadModel(vehicle);
-      /* 2 */checkArgument(vehicleState.get(vehicle).equals(VehicleState.IDLE),
-          "vehicle must be idle but is: %s ", vehicleState.get(vehicle));
-      /* 3 */checkArgument(containerContents.get(vehicle).contains(parcel),
-          "vehicle does not contain parcel");
+      /* 2 */checkVehicleIdle(vehicle);
+      /* 3 */checkVehicleDoesNotContainParcel(vehicle, parcel);
       /* 4 */checkArgument(
           parcel.getDestination().equals(roadModel.get().getPosition(vehicle)),
           "parcel must be delivered at its destination, vehicle should move there first");
@@ -305,10 +313,8 @@ public final class DefaultPDPModel extends PDPModel {
   public void drop(Vehicle vehicle, Parcel parcel, TimeLapse time) {
     synchronized (this) {
       /* 1 */checkVehicleInRoadModel(vehicle);
-      /* 2 */checkArgument(vehicleState.get(vehicle).equals(VehicleState.IDLE),
-          "vehicle must be idle but is: %s ", vehicleState.get(vehicle));
-      /* 3 */checkArgument(containerContents.get(vehicle).contains(parcel),
-          "vehicle does not contain parcel");
+      /* 2 */checkVehicleIdle(vehicle);
+      /* 3 */checkVehicleDoesNotContainParcel(vehicle, parcel);
 
       eventDispatcher.dispatchEvent(new PDPModelEvent(
           PDPModelEventType.START_DELIVERY, self, time.getTime(), parcel,
