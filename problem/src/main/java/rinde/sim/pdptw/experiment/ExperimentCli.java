@@ -208,9 +208,9 @@ public final class ExperimentCli {
   }
 
   static String createConfigString(Map<String, MASConfiguration> configMap) {
-    final StringBuilder sb = new StringBuilder("\n");
+    final StringBuilder sb = new StringBuilder(System.lineSeparator());
     Joiner
-        .on("\n")
+        .on(System.lineSeparator())
         .withKeyValueSeparator(" = ")
         .appendTo(sb, configMap)
         .append("\nThe options should be given as a comma ',' separated list. ")
@@ -317,7 +317,7 @@ public final class ExperimentCli {
     }
   }
 
-  static abstract class ConfigHandler implements
+  abstract static class ConfigHandler implements
       ArgHandler<Builder, List<String>> {
     final Map<String, MASConfiguration> configMap;
 

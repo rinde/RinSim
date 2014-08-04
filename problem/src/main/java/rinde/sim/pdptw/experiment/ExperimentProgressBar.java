@@ -33,10 +33,10 @@ import com.google.common.math.DoubleMath;
 public class ExperimentProgressBar implements ResultListener,
     UncaughtExceptionHandler {
 
-  private static final long THREAD_SLEEP_MS = 100;
-  private static final String APP_NAME = "RinSim - Experiment";
-  private static final Point SHELL_SIZE = new Point(400, 150);
-  private static final int BAR_WIDTH = 380;
+  static final long THREAD_SLEEP_MS = 100;
+  static final String APP_NAME = "RinSim - Experiment";
+  static final Point SHELL_SIZE = new Point(400, 150);
+  static final int BAR_WIDTH = 380;
 
   GuiRunner guiRunner;
   Thread t;
