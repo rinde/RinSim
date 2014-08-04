@@ -5,6 +5,7 @@ import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Maps.newLinkedHashMap;
 import static com.google.common.collect.Sets.newLinkedHashSet;
+import static rinde.sim.util.cli.CliException.checkAlreadySelected;
 
 import java.util.Collections;
 import java.util.Comparator;
@@ -95,33 +96,28 @@ public final class Menu {
     final Set<Option> selectedOptions = newLinkedHashSet();
     while (it.hasNext()) {
       final String arg = it.next();
-      final Optional<OptionParser> exec = parseOption(arg);
-      if (exec.isPresent()) {
-        if (selectedOptions.contains(exec.get().getOption())) {
-          throw new CliException("Option is already selected: "
-              + exec.get().getOption() + ".", CauseType.ALREADY_SELECTED, exec
-              .get().getOption());
-        }
-        if (groupMap.containsKey(exec.get().getOption())) {
+      final Optional<OptionParser> optParser = parseOption(arg);
+      if (optParser.isPresent()) {
+        checkAlreadySelected(
+            selectedOptions.contains(optParser.get().getOption()),
+            optParser.get().getOption(),
+            "Option is already selected: %s.", optParser.get().getOption());
+
+        if (groupMap.containsKey(optParser.get().getOption())) {
           // this option is part of a option group
           final SetView<Option> intersect = Sets.intersection(
               selectedOptions,
-              newLinkedHashSet(groupMap.get(exec.get().getOption())));
-          if (!intersect.isEmpty()) {
-            final String msg = new StringBuilder()
-                .append("An option from the same group as '")
-                .append(exec.get().getOption())
-                .append("'has already been selected: '")
-                .append(intersect.iterator().next())
-                .append("'.")
-                .toString();
-            throw new CliException(msg, CauseType.ALREADY_SELECTED, exec.get()
-                .getOption());
-          }
+              newLinkedHashSet(groupMap.get(optParser.get().getOption())));
+
+          checkAlreadySelected(
+              intersect.isEmpty(),
+              optParser.get().getOption(),
+              "An option from the same group as '%s' has already been selected: '%s'.",
+              optParser.get().getOption(), intersect.iterator().next());
         }
 
-        selectedOptions.add(exec.get().getOption());
-        if (exec.get().getOption().isHelpOption()) {
+        selectedOptions.add(optParser.get().getOption());
+        if (optParser.get().getOption().isHelpOption()) {
           return Optional.of(printHelp());
         }
         final List<String> arguments = newArrayList();
@@ -131,10 +127,10 @@ public final class Menu {
           arguments.add(it.next());
         }
         try {
-          exec.get().parse(arguments);
+          optParser.get().parse(arguments);
         } catch (IllegalArgumentException | IllegalStateException e) {
           throw new CliException(e.getMessage(), e, CauseType.INVALID,
-              exec.get().getOption());
+              optParser.get().getOption());
         }
       } else {
         throwUnexpectedArtifact(arg);
@@ -255,6 +251,7 @@ public final class Menu {
     List<Set<Option>> groups;
     boolean buildingGroup;
     Set<String> optionNames;
+    boolean addedHelpOption;
 
     Builder() {
       header = "";
@@ -263,52 +260,51 @@ public final class Menu {
       optionMap = newLinkedHashMap();
       groups = newArrayList();
       buildingGroup = false;
+      addedHelpOption = false;
       optionNames = newLinkedHashSet();
       helpFormatter = new DefaultHelpFormatter();
     }
 
+    /**
+     * Add an command-line option that expects an argument.
+     * @param option The option instance.
+     * @param subject The subject which will be passed to the handler.
+     * @param handler The handler which will be called when this option is
+     *          activated in the menu. The handler will receive all parsed
+     *          arguments belonging to this option.
+     * @param <V> The type of argument.
+     * @param <S> The type of the subject.
+     * @return This, as per the builder pattern.
+     */
     public <V, S> Builder add(OptionArg<V> option, S subject,
         ArgHandler<S, V> handler) {
       add(new ArgParser<>(option, subject, handler));
       return this;
     }
 
+    /**
+     * Add an command-line option that does not expect an argument.
+     * @param option The option instance.
+     * @param subject The subject which will be passed to the handler.
+     * @param handler The handler which will be called when this option is
+     *          activated in the menu.
+     * @param <S> The type of the subject.
+     * @return This, as per the builder pattern.
+     */
     public <S> Builder add(OptionNoArg option, S subject,
         NoArgHandler<S> handler) {
       add(new NoArgParser<>(option, subject, handler));
       return this;
     }
 
-    public Builder helpFormatter(HelpFormatter formatter) {
-      helpFormatter = formatter;
-      return this;
-    }
-
-    void checkDuplicateOption(String name) {
-      checkArgument(!optionNames.contains(name),
-          "Duplicate options are not allowed, found duplicate: '%s'.", name,
-          optionNames);
-    }
-
-    void add(OptionParser e) {
-      final Option option = e.getOption();
-      final String sn = option.getShortName();
-
-      checkDuplicateOption(sn);
-      optionNames.add(sn);
-      optionMap.put(sn, e);
-      if (option.getLongName().isPresent()) {
-        final String ln = option.getLongName().get();
-        checkDuplicateOption(ln);
-        optionNames.add(ln);
-        optionMap.put(ln, e);
-      }
-
-      if (buildingGroup) {
-        groups.get(groups.size() - 1).add(option);
-      }
-    }
-
+    /**
+     * Add a help option. A help option is a special option that will trigger
+     * the display of the help menu. A help option may not be added to a group.
+     * @param sn The short name of the help option.
+     * @param ln The long name of the help option.
+     * @param desc The description of the help option.
+     * @return This, as per the builder pattern.
+     */
     public Builder addHelpOption(String sn, String ln, String desc) {
       checkState(!buildingGroup);
       final OptionNoArg option = Option.builder(sn)
@@ -316,9 +312,49 @@ public final class Menu {
           .description(desc)
           .buildHelpOption();
       add(new HelpParser(option));
+      addedHelpOption = true;
       return this;
     }
 
+    /**
+     * Sets a {@link HelpFormatter}. If this method is not called the
+     * {@link DefaultHelpFormatter} will be used.
+     * @param formatter The formatter to use.
+     * @return This, as per the builder pattern.
+     */
+    public Builder helpFormatter(HelpFormatter formatter) {
+      helpFormatter = formatter;
+      return this;
+    }
+
+    /**
+     * Flags the start of the creation of a new group. A group is a set of
+     * options which may not be selected at the same time. All options that are
+     * added after this method is called and before a call to
+     * {@link #closeGroup()} are part of this group. A group must contain at
+     * least 2 options, any attempt to create a group with less than 2 options
+     * will throw an {@link IllegalArgumentException}. If a group has previously
+     * been under construction this method will automatically call
+     * {@link #closeGroup()} to close the previous group and start a new group.
+     * <p>
+     * <b>Example:</b><br/>
+     * This code will construct two groups, one containing two options and one
+     * containing three options.
+     * 
+     * <pre>
+     * {@code
+     * Builder b = Menu.builder();
+     * 
+     * b.openGroup()
+     * .add(..).add(..)
+     * .openGroup()
+     * .add(..).add(..).add(..)
+     * .closeGroup();
+     * }
+     * </pre>
+     * 
+     * @return This, as per the builder pattern.
+     */
     public Builder openGroup() {
       if (buildingGroup) {
         closeGroup();
@@ -328,25 +364,49 @@ public final class Menu {
       return this;
     }
 
+    /**
+     * Flags the end of the creation of a group which was previously started
+     * with {@link #openGroup()}.
+     * @return This, as per the builder pattern.
+     */
     public Builder closeGroup() {
       buildingGroup = false;
-      if (groups.get(groups.size() - 1).isEmpty()) {
-        throw new IllegalArgumentException(
-            "No options were added to the group.");
-      }
+      final int groupOptions = groups.get(groups.size() - 1).size();
+      checkArgument(
+          groupOptions >= 2,
+          "At least two options need to be added to a group, found %s option(s).",
+          groupOptions);
       return this;
     }
 
+    /**
+     * Sets the header which may be displayed in the help menu. How it is shown
+     * depends on the {@link HelpFormatter} that is used.
+     * @param string The string to use as header.
+     * @return This, as per the builder pattern.
+     */
     public Builder header(String string) {
       header = string;
       return this;
     }
 
+    /**
+     * Sets the footer which may be displayed in the help menu. How it is shown
+     * depends on the {@link HelpFormatter} that is used.
+     * @param string The string to use as footer.
+     * @return This, as per the builder pattern.
+     */
     public Builder footer(String string) {
       footer = string;
       return this;
     }
 
+    /**
+     * Sets the command-line syntax, this can be displayed in the help menu. How
+     * it is shown depends on the {@link HelpFormatter} that is used.
+     * @param string The string that shows the command-line syntax.
+     * @return This, as per the builder pattern.
+     */
     public Builder commandLineSyntax(String string) {
       cmdLineSyntax = string;
       return this;
@@ -401,6 +461,31 @@ public final class Menu {
       return this;
     }
 
+    void checkDuplicateOption(String name) {
+      checkArgument(!optionNames.contains(name),
+          "Duplicate options are not allowed, found duplicate: '%s'.", name,
+          optionNames);
+    }
+
+    void add(OptionParser e) {
+      final Option option = e.getOption();
+      final String sn = option.getShortName();
+
+      checkDuplicateOption(sn);
+      optionNames.add(sn);
+      optionMap.put(sn, e);
+      if (option.getLongName().isPresent()) {
+        final String ln = option.getLongName().get();
+        checkDuplicateOption(ln);
+        optionNames.add(ln);
+        optionMap.put(ln, e);
+      }
+
+      if (buildingGroup) {
+        groups.get(groups.size() - 1).add(option);
+      }
+    }
+
     static <T extends Option.Builder<?>> T adaptNames(T b, String sn,
         String ln) {
       b.shortName(sn + b.shortName);
@@ -436,14 +521,23 @@ public final class Menu {
      * @return A new instance containing the options as defined by this builder.
      */
     public Menu build() {
+      checkArgument(addedHelpOption,
+          "At least one help option is required for creating a menu.");
       return new Menu(this);
     }
   }
 
   interface OptionParser {
 
+    /**
+     * @return The option of this parser.
+     */
     Option getOption();
 
+    /**
+     * Parse the arguments.
+     * @param arguments The arguments to parse.
+     */
     void parse(List<String> arguments);
   }
 

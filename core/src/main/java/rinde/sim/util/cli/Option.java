@@ -17,6 +17,16 @@ public abstract class Option {
    */
   public static final String NAME_REGEX = "[a-zA-Z][a-zA-Z\\-\\.]*";
 
+  /**
+   * The short option prefix: '-'.
+   */
+  public static final String SHORT_PREFIX = "-";
+
+  /**
+   * The long option prefix: '--'.
+   */
+  public static final String LONG_PREFIX = "--";
+
   final String shortName;
   final Optional<String> longName;
   final String description;
@@ -73,9 +83,10 @@ public abstract class Option {
   @Override
   public String toString() {
     if (longName.isPresent()) {
-      return Joiner.on("").join("-", shortName, "(", longName.get(), ")");
+      return Joiner.on("").join(SHORT_PREFIX, shortName, ",", LONG_PREFIX,
+          longName.get());
     }
-    return "-" + shortName;
+    return SHORT_PREFIX + shortName;
   }
 
   boolean isHelpOption() {
@@ -102,6 +113,8 @@ public abstract class Option {
    *          expression: {@link #NAME_REGEX}.
    * @param argumentParser The {@link ArgumentParser} defines the type of
    *          argument that the resulting option expects.
+   * @param <T> The type of argument that the resulting {@link OptionArg} will
+   *          expect.
    * @return A new builder instance.
    */
   public static <T> ArgBuilder<T> builder(String shortName,

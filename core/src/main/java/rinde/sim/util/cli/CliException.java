@@ -41,6 +41,15 @@ public class CliException extends RuntimeException {
     return menuOption;
   }
 
+  static void checkAlreadySelected(boolean notSelected, Option opt,
+      String format,
+      Object... args) {
+    if (!notSelected) {
+      throw new CliException(String.format(format, args),
+          CauseType.ALREADY_SELECTED, opt);
+    }
+  }
+
   /**
    * @return The {@link CauseType} of this exception.
    */

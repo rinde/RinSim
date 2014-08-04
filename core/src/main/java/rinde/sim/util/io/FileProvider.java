@@ -6,7 +6,7 @@ import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Sets.newLinkedHashSet;
 
 import java.io.IOException;
-import java.nio.file.FileSystem;
+import java.io.PrintStream;
 import java.nio.file.FileSystems;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
@@ -110,8 +110,9 @@ public final class FileProvider<T> implements Supplier<ImmutableSet<T>> {
 
     /**
      * Apply a filter to all added and to be added paths. The expected syntax is
-     * the same as for the {@link FileSystem#getPathMatcher(String)} method.
-     * Only one filter can be applied at one time.
+     * the same as for the
+     * {@link java.nio.file.FileSystem#getPathMatcher(String)} method. Only one
+     * filter can be applied at one time.
      * @param syntaxAndPattern The syntax and pattern.
      * @return This, as per the builder pattern.
      */
@@ -152,13 +153,14 @@ public final class FileProvider<T> implements Supplier<ImmutableSet<T>> {
      * Activates the command-line interface for this builder. If an invalid
      * option is given the help will be printed automatically to
      * {@link System#out}.
+     * @param stream The stream to write error messages to if any.
      * @param args The command-line arguments.
      * @return This, as per the builder pattern.
      */
-    public Builder cli(String... args) {
+    public Builder cli(PrintStream stream, String... args) {
       final Optional<String> error = FileProviderCli.execute(this, args);
       if (error.isPresent()) {
-        System.out.println(error.get());
+        stream.println(error.get());
       }
       return this;
     }

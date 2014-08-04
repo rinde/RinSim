@@ -13,8 +13,22 @@ import com.google.common.primitives.Doubles;
 import com.google.common.primitives.Ints;
 import com.google.common.primitives.Longs;
 
+/**
+ * An argument parser is responsible for converting strings into the expected
+ * type. If the parsing fails, a {@link CliException} is thrown. This class
+ * contains a number of {@link ArgumentParser}s for common types.
+ * @param <V> The argument type.
+ * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+ */
 public abstract class ArgumentParser<V> {
+  /**
+   * Separator of argument lists.
+   */
+  public static final char ARG_LIST_SEPARATOR = ',';
 
+  /**
+   * {@link Boolean} parser.
+   */
   public static final ArgumentParser<Boolean> BOOLEAN = new ArgumentParser<Boolean>(
       "boolean") {
     @Override
@@ -31,32 +45,45 @@ public abstract class ArgumentParser<V> {
     }
   };
 
+  /**
+   * {@link Long} parser.
+   */
   public static final ArgumentParser<Long> LONG = new NumberParser<>(
       "long", Longs.stringConverter());
 
+  /**
+   * List of {@link Long}s parser.
+   */
   public static final ArgumentParser<List<Long>> LONG_LIST = new NumberListParser<>(
       "long list", Longs.stringConverter());
 
+  /**
+   * {@link Integer} parser.
+   */
   public static final ArgumentParser<Integer> INTEGER = new NumberParser<>(
       "int", Ints.stringConverter());
 
+  /**
+   * List of {@link Integer}s parser.
+   */
   public static final ArgumentParser<List<Integer>> INTEGER_LIST = new NumberListParser<>(
       "int list", Ints.stringConverter());
 
+  /**
+   * {@link Double} parser.
+   */
   public static final ArgumentParser<Double> DOUBLE = new NumberParser<>(
       "double", Doubles.stringConverter());
 
+  /**
+   * List of {@link Double}s parser.
+   */
   public static final ArgumentParser<List<Double>> DOUBLE_LIST = new NumberListParser<>(
       "double list", Doubles.stringConverter());
 
-  public static final ArgumentParser<List<String>> STRING_LIST = new ArgumentParser<List<String>>(
-      "string list") {
-    @Override
-    List<String> parse(OptionArg<List<String>> option, String value) {
-      return Splitter.on(ARG_LIST_SEPARATOR).splitToList(value);
-    }
-  };
-
+  /**
+   * {@link String} parser.
+   */
   public static final ArgumentParser<String> STRING = new ArgumentParser<String>(
       "string") {
     @Override
@@ -65,7 +92,17 @@ public abstract class ArgumentParser<V> {
     }
   };
 
-  static final char ARG_LIST_SEPARATOR = ',';
+  /**
+   * List of {@link String}s parser.
+   */
+  public static final ArgumentParser<List<String>> STRING_LIST = new ArgumentParser<List<String>>(
+      "string list") {
+    @Override
+    List<String> parse(OptionArg<List<String>> option, String value) {
+      return Splitter.on(ARG_LIST_SEPARATOR).splitToList(value);
+    }
+  };
+
   private final String name;
 
   ArgumentParser(String nm) {
@@ -85,14 +122,26 @@ public abstract class ArgumentParser<V> {
         value), e, CauseType.INVALID_ARG_FORMAT, option);
   }
 
-  static class NumberParser<T> extends ArgumentParser<T> {
+  /**
+   * A parser for numbers.
+   * @param <T> The type of number.
+   * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+   */
+  public static class NumberParser<T> extends ArgumentParser<T> {
     private final Converter<String, T> converter;
 
-    NumberParser(String nm, Converter<String, T> conv) {
+    /**
+     * Construct a new parser.
+     * @param nm The name of the argument, shown in the help menu. name.
+     * @param conv The {@link Converter} to use to convert strings to type
+     *          <code>T</code>.
+     */
+    public NumberParser(String nm, Converter<String, T> conv) {
       super(nm);
       converter = conv;
     }
 
+    @SuppressWarnings("null")
     @Override
     T parse(OptionArg<T> option, String arg) {
       try {
@@ -103,10 +152,21 @@ public abstract class ArgumentParser<V> {
     }
   }
 
-  static class NumberListParser<T> extends ArgumentParser<List<T>> {
+  /**
+   * A parser for lists of numbers.
+   * @param <T> The type of number.
+   * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+   */
+  public static class NumberListParser<T> extends ArgumentParser<List<T>> {
     private final Converter<String, T> converter;
 
-    NumberListParser(String nm, Converter<String, T> conv) {
+    /**
+     * Construct a new list parser.
+     * @param nm The name of the argument, shown in the help menu.
+     * @param conv The {@link Converter} to use to convert strings to type
+     *          <code>T</code>.
+     */
+    public NumberListParser(String nm, Converter<String, T> conv) {
       super(nm);
       converter = conv;
     }

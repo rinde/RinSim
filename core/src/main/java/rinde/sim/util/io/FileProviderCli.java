@@ -143,14 +143,12 @@ public final class FileProviderCli {
         .build();
   }
 
-  static abstract class PathSelectorHandler implements
+  abstract static class PathSelectorHandler implements
       ArgHandler<Builder, List<String>> {
     final Map<String, Path> pathMap;
-    String verb;
 
-    PathSelectorHandler(Map<String, Path> map, String v) {
+    PathSelectorHandler(Map<String, Path> map) {
       pathMap = map;
-      verb = v;
     }
 
     @Override
@@ -159,8 +157,8 @@ public final class FileProviderCli {
       final List<Path> paths = newArrayList();
       checkArgument(
           keys.size() <= pathMap.size(),
-          "Too many paths, at most %s paths can be %sd.",
-          pathMap.size(), verb);
+          "Too many paths, at most %s paths can be selected.",
+          pathMap.size());
       for (final String k : keys) {
         checkArgument(pathMap.containsKey(k),
             "The key '%s' is not valid. Valid keys: %s.", k, pathMap.keySet());
@@ -174,7 +172,7 @@ public final class FileProviderCli {
 
   static class IncludeHandler extends PathSelectorHandler {
     IncludeHandler(Map<String, Path> map) {
-      super(map, "include");
+      super(map);
     }
 
     @Override
@@ -185,7 +183,7 @@ public final class FileProviderCli {
 
   static class ExcludeHandler extends PathSelectorHandler {
     ExcludeHandler(Map<String, Path> map) {
-      super(map, "exclude");
+      super(map);
     }
 
     @Override

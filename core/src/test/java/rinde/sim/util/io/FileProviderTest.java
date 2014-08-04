@@ -58,7 +58,7 @@ public class FileProviderTest {
       assertTrue(p.startsWith("src/test/"));
     }
     assertEquals(paths, builder
-        .cli("-f", "glob:src/test/**").build().get());
+        .cli(System.out, "-f", "glob:src/test/**").build().get());
 
     builder.filter(new Predicate<Path>() {
       @Override
@@ -71,7 +71,7 @@ public class FileProviderTest {
       assertTrue(p.toString().endsWith("Model.java"));
     }
     assertEquals(paths2, builder
-        .cli("-f", "glob:**Model.java").build().get());
+        .cli(System.out, "-f", "glob:**Model.java").build().get());
 
     builder.filter(new PathMatcher() {
       @Override
@@ -85,7 +85,7 @@ public class FileProviderTest {
       assertTrue(p.endsWith("package-info.java"));
     }
     assertEquals(paths3, builder
-        .cli("-f", "glob:**package-info.java").build().get());
+        .cli(System.out, "-f", "glob:**package-info.java").build().get());
   }
 
   /**
@@ -94,7 +94,7 @@ public class FileProviderTest {
   @Test
   public void testAdd() {
     final Set<Path> paths = FileProvider.builder()
-        .cli("--add", "src/test,src/main")
+        .cli(System.out, "--add", "src/test,src/main")
         .build().get();
 
     final Set<Path> paths2 = FileProvider.builder()
@@ -150,7 +150,7 @@ public class FileProviderTest {
         .add(Paths.get("src/main/"))
         .add(Paths.get("src/test/"))
         .filter("glob:**.java")
-        .cli("--help");
+        .cli(System.out, "--help");
   }
 
   /**
@@ -162,7 +162,7 @@ public class FileProviderTest {
     final Path p1 = Paths.get("src/test/");
     assertEquals(FileProvider.builder()
         .add(asList(p0, p1))
-        .cli("-i", "p1")
+        .cli(System.out, "-i", "p1")
         .paths, asList(p1));
   }
 
@@ -177,7 +177,7 @@ public class FileProviderTest {
     try {
       FileProvider.builder()
           .add(asList(p0, p1))
-          .cli("-i", "p1,p0,p3");
+          .cli(System.out, "-i", "p1,p0,p3");
     } catch (final CliException e) {
       error = true;
       assertEquals("include", e.getMenuOption().get().getLongName().get());
@@ -192,7 +192,8 @@ public class FileProviderTest {
   public void testIncludeInvalidKey() {
     boolean error = false;
     try {
-      FileProvider.builder().add(asList(Paths.get("src/main"))).cli("-i", "p1");
+      FileProvider.builder().add(asList(Paths.get("src/main")))
+          .cli(System.out, "-i", "p1");
     } catch (final CliException e) {
       error = true;
       assertEquals("include", e.getMenuOption().get().getLongName().get());
@@ -209,7 +210,7 @@ public class FileProviderTest {
     final Path p1 = Paths.get("src/test/");
     assertEquals(FileProvider.builder()
         .add(asList(p0, p1))
-        .cli("-e", "p1")
+        .cli(System.out, "-e", "p1")
         .paths, asList(p0));
   }
 
@@ -224,7 +225,7 @@ public class FileProviderTest {
     try {
       FileProvider.builder()
           .add(asList(p0, p1))
-          .cli("-e", "p1,p0,p3");
+          .cli(System.out, "-e", "p1,p0,p3");
     } catch (final CliException e) {
       error = true;
       assertEquals("exclude", e.getMenuOption().get().getLongName().get());
@@ -239,7 +240,8 @@ public class FileProviderTest {
   public void testExcludeInvalidKey() {
     boolean error = false;
     try {
-      FileProvider.builder().add(asList(Paths.get("src/main"))).cli("-e", "p1");
+      FileProvider.builder().add(asList(Paths.get("src/main")))
+          .cli(System.out, "-e", "p1");
     } catch (final CliException e) {
       error = true;
       assertEquals("exclude", e.getMenuOption().get().getLongName().get());
