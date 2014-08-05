@@ -156,6 +156,11 @@ public abstract class PDPScenario extends Scenario {
     public String getId() {
       return id;
     }
+
+    @Override
+    public String toString() {
+      return String.format("SimpleProblemClass(%s)", id);
+    }
   }
 
   /**
