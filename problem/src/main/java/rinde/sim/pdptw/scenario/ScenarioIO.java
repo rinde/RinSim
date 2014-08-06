@@ -105,7 +105,8 @@ public final class ScenarioIO {
    *           scenario.
    */
   public static void write(Scenario s, Path to) throws IOException {
-    Files.write(to, Splitter.on("\n").split(write(s)), Charsets.UTF_8);
+    Files.write(to, Splitter.on(System.lineSeparator()).split(write(s)),
+        Charsets.UTF_8);
   }
 
   /**
@@ -127,8 +128,9 @@ public final class ScenarioIO {
    * @throws IOException When reading fails.
    */
   public static <T> T read(Path file, Class<T> type) throws IOException {
-    return read(Joiner.on("\n").join(Files.readAllLines(file, Charsets.UTF_8)),
-        type);
+    return read(
+        Joiner.on(System.lineSeparator()).join(
+            Files.readAllLines(file, Charsets.UTF_8)), type);
   }
 
   /**
@@ -160,10 +162,21 @@ public final class ScenarioIO {
     return GSON.fromJson(s, type);
   }
 
+  /**
+   * @return A {@link Function} that converts (reads) {@link Path}s into
+   *         {@link PDPScenario} instances.
+   */
   public static Function<Path, PDPScenario> reader() {
     return new DefaultScenarioReader<>();
   }
 
+  /**
+   * Creates a {@link Function} that converts {@link Path}s into the specified
+   * subclass of {@link PDPScenario}.
+   * @param clz The class instance to indicate the type scenario.
+   * @param <T> The type of scenario.
+   * @return A new reader instance.
+   */
   public static <T extends PDPScenario> Function<Path, T> reader(Class<T> clz) {
     return new DefaultScenarioReader<T>(clz);
   }
@@ -201,7 +214,8 @@ public final class ScenarioIO {
 
     @SuppressWarnings("unchecked")
     @Override
-    public T apply(Path input) {
+    public T apply(@Nullable Path input) {
+      checkNotNull(input);
       try {
         if (clazz.isPresent()) {
           return read(input, clazz.get());
@@ -300,18 +314,23 @@ public final class ScenarioIO {
 
       checkArgument(type instanceof PDPScenarioEvent);
       final PDPScenarioEvent scenEvent = (PDPScenarioEvent) type;
+      TimedEvent event;
       switch (scenEvent) {
       case ADD_DEPOT:
-        return new AddDepotEvent(time, (Point) context.deserialize(
+        event = new AddDepotEvent(time, (Point) context.deserialize(
             obj.get("position"), Point.class));
+        break;
       case ADD_VEHICLE:
-        return new AddVehicleEvent(time, (VehicleDTO) context.deserialize(
+        event = new AddVehicleEvent(time, (VehicleDTO) context.deserialize(
             obj.get("vehicleDTO"), VehicleDTO.class));
+        break;
       case ADD_PARCEL:
-        return new AddParcelEvent((ParcelDTO) context.deserialize(
+        event = new AddParcelEvent((ParcelDTO) context.deserialize(
             obj.get("parcelDTO"), ParcelDTO.class));
+        break;
       case TIME_OUT:
-        return new TimedEvent(type, time);
+        event = new TimedEvent(type, time);
+        break;
       case REMOVE_DEPOT:
         // fall through
       case REMOVE_PARCEL:
@@ -321,6 +340,7 @@ public final class ScenarioIO {
       default:
         throw new IllegalArgumentException("Event not supported: " + scenEvent);
       }
+      return event;
     }
   }
 
