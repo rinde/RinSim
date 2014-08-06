@@ -90,7 +90,7 @@ public final class FactoryExample {
       rect = display.getPrimaryMonitor().getClientArea();
     }
 
-    List<String> WORDS = asList((" BioCo3 \nDistriNet"));
+    List<String> WORDS = asList(" BioCo3 \nDistriNet");
     int FONT_SIZE = 10;
     // spacing between vertical lines in line units
     int VERTICAL_LINE_SPACING = 6;
@@ -132,7 +132,7 @@ public final class FactoryExample {
 
     int width = DoubleMath.roundToInt(xMax / SPACING, RoundingMode.CEILING);
     width += VERTICAL_LINE_SPACING - width % VERTICAL_LINE_SPACING;
-    width += ((width / VERTICAL_LINE_SPACING) % 2) == 0 ? VERTICAL_LINE_SPACING
+    width += width / VERTICAL_LINE_SPACING % 2 == 0 ? VERTICAL_LINE_SPACING
         : 0;
 
     int height = DoubleMath.roundToInt(yMax / SPACING, RoundingMode.CEILING) + 2;
@@ -279,37 +279,6 @@ public final class FactoryExample {
       }
       y++;
     }
-    return graph;
-  }
-
-  static Graph<LengthData> createGraph() {
-    final Graph<LengthData> graph = new MultimapGraph<LengthData>();
-    addPath(graph, new Point(10, 10), new Point(10, 50), new Point(10, 80),
-        new Point(10, 100), new Point(50, 100), new Point(100, 100), new Point(
-            100, 80), new Point(100, 10), new Point(50, 10), new Point(15, 10),
-        new Point(10, 10));
-
-    addPath(graph, new Point(100, 10), new Point(100, 5));
-
-    addPath(graph, new Point(10, 50), new Point(15, 50), new Point(15, 15),
-        new Point(50, 15), new Point(55, 15), new Point(55, 60), new Point(50,
-            60));
-
-    addPath(graph, new Point(15, 15), new Point(15, 10), new Point(15, 5),
-        new Point(50, 5));
-
-    addPath(graph, new Point(50, 100), new Point(50, 60), new Point(40, 60),
-        new Point(40, 80), new Point(50, 80));
-
-    addPath(graph, new Point(50, 60), new Point(50, 15), new Point(50, 10),
-        new Point(50, 5), new Point(100, 5), new Point(120, 5), new Point(120,
-            10), new Point(120, 20), new Point(115, 20), new Point(115, 40),
-        new Point(120, 40), new Point(120, 80), new Point(100, 80), new Point(
-            50, 80));
-
-    addPath(graph, new Point(100, 10), new Point(120, 10));
-    addPath(graph, new Point(120, 20), new Point(120, 40));
-    addPath(graph, new Point(40, 80), new Point(10, 80));
     return graph;
   }
 }
