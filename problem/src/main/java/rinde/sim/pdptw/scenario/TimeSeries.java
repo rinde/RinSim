@@ -19,7 +19,6 @@ import rinde.sim.util.StochasticSupplier;
 import rinde.sim.util.StochasticSuppliers;
 
 import com.google.common.base.Predicate;
-import com.google.common.base.Predicates;
 import com.google.common.collect.AbstractSequentialIterator;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterators;
@@ -190,9 +189,10 @@ public final class TimeSeries {
    * Decorates the specified {@link TimeSeriesGenerator} such that it only
    * generates time series which conform to the specified {@link Predicate}.
    * Note that when an impossible {@link Predicate} is specified, such as
-   * {@link Predicates#alwaysFalse()} the resulting {@link TimeSeriesGenerator}
-   * will enter an infinite loop. Predicates can be combined by using the
-   * methods provided by {@link Predicates}.
+   * {@link com.google.common.base.Predicates#alwaysFalse()} the resulting
+   * {@link TimeSeriesGenerator} will enter an infinite loop. Predicates can be
+   * combined by using the methods provided by
+   * {@link com.google.common.base.Predicates}.
    * @param tsg The {@link TimeSeriesGenerator} to filter.
    * @param predicate All returned {@link TimeSeriesGenerator}s will conform to
    *          this predicate.
@@ -211,7 +211,8 @@ public final class TimeSeries {
   public static Predicate<List<Double>> numEvents(final int num) {
     return new Predicate<List<Double>>() {
       @Override
-      public boolean apply(List<Double> input) {
+      public boolean apply(@Nullable List<Double> input) {
+        checkArgument(input != null);
         return input.size() == num;
       }
     };

@@ -124,10 +124,7 @@ public final class Models {
       if (this == other) {
         return true;
       }
-      if (null == other) {
-        return false;
-      }
-      if (getClass() != other.getClass()) {
+      if (null == other || getClass() != other.getClass()) {
         return false;
       }
       final PDPModelSupplier o = (PDPModelSupplier) other;

@@ -457,21 +457,17 @@ public final class ScenarioIO {
         JsonDeserializationContext context) {
       final JsonObject obj = json.getAsJsonObject();
       final Unit<?> unit = context.deserialize(obj.get(UNIT), Unit.class);
-
       try {
         final Class<?> type = Class.forName(obj.get(VALUE_TYPE).getAsString());
         final Number value = context.deserialize(obj.get(VALUE), type);
-        final Measure<?, ?> measure;
         if (type.equals(Double.TYPE) || type.equals(Double.class)) {
-          measure = Measure.valueOf(value.doubleValue(), unit);
+          return Measure.valueOf(value.doubleValue(), unit);
         } else if (type.equals(Integer.TYPE) || type.equals(Integer.class)) {
-          measure = Measure.valueOf(value.intValue(), unit);
+          return Measure.valueOf(value.intValue(), unit);
         } else if (type.equals(Long.TYPE) || type.equals(Long.class)) {
-          measure = Measure.valueOf(value.longValue(), unit);
-        } else {
-          throw new IllegalArgumentException(type + " is not supported");
+          return Measure.valueOf(value.longValue(), unit);
         }
-        return measure;
+        throw new IllegalArgumentException(type + " is not supported");
       } catch (final ClassNotFoundException e) {
         throw new IllegalArgumentException(e);
       }

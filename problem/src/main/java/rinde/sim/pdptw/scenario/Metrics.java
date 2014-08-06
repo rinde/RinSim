@@ -17,7 +17,6 @@ import org.apache.commons.math3.stat.descriptive.SummaryStatistics;
 
 import rinde.sim.core.graph.Point;
 import rinde.sim.core.model.pdp.PDPScenarioEvent;
-import rinde.sim.core.model.road.RoadModels;
 import rinde.sim.pdptw.common.AddParcelEvent;
 import rinde.sim.pdptw.common.AddVehicleEvent;
 import rinde.sim.pdptw.common.ParcelDTO;
@@ -365,7 +364,7 @@ public final class Metrics {
   // return time in minutes
   /**
    * @deprecated use
-   *             {@link RoadModels#computeTravelTime(javax.measure.Measure, javax.measure.Measure, javax.measure.unit.Unit)}
+   *             {@link rinde.sim.core.model.road.RoadModels#computeTravelTime(javax.measure.Measure, javax.measure.Measure, javax.measure.unit.Unit)}
    *             instead.
    */
   @Deprecated
@@ -413,11 +412,11 @@ public final class Metrics {
       load = value;
     }
 
-    public boolean isBeforeEnd(long i) {
+    boolean isBeforeEnd(long i) {
       return tw.isBeforeEnd(i);
     }
 
-    public boolean isIn(long i) {
+    boolean isIn(long i) {
       return tw.isIn(i);
     }
 

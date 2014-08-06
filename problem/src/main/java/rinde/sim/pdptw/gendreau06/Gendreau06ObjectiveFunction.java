@@ -33,7 +33,8 @@ public final class Gendreau06ObjectiveFunction implements ObjectiveFunction,
   public boolean isValidResult(StatisticsDTO stats) {
     return stats.totalParcels == stats.acceptedParcels
         && stats.totalParcels == stats.totalPickups
-        && stats.totalParcels == stats.totalDeliveries && stats.simFinish
+        && stats.totalParcels == stats.totalDeliveries
+        && stats.simFinish
         && stats.totalVehicles == stats.vehiclesAtDepot;
   }
 
