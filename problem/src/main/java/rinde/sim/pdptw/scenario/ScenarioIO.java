@@ -215,7 +215,7 @@ public final class ScenarioIO {
     @SuppressWarnings("unchecked")
     @Override
     public T apply(@Nullable Path input) {
-      checkNotNull(input);
+      checkArgument(input != null);
       try {
         if (clazz.isPresent()) {
           return read(input, clazz.get());
@@ -314,7 +314,7 @@ public final class ScenarioIO {
 
       checkArgument(type instanceof PDPScenarioEvent);
       final PDPScenarioEvent scenEvent = (PDPScenarioEvent) type;
-      TimedEvent event;
+      final TimedEvent event;
       switch (scenEvent) {
       case ADD_DEPOT:
         event = new AddDepotEvent(time, (Point) context.deserialize(
@@ -461,15 +461,17 @@ public final class ScenarioIO {
       try {
         final Class<?> type = Class.forName(obj.get(VALUE_TYPE).getAsString());
         final Number value = context.deserialize(obj.get(VALUE), type);
-
+        final Measure<?, ?> measure;
         if (type.equals(Double.TYPE) || type.equals(Double.class)) {
-          return Measure.valueOf(value.doubleValue(), unit);
+          measure = Measure.valueOf(value.doubleValue(), unit);
         } else if (type.equals(Integer.TYPE) || type.equals(Integer.class)) {
-          return Measure.valueOf(value.intValue(), unit);
+          measure = Measure.valueOf(value.intValue(), unit);
         } else if (type.equals(Long.TYPE) || type.equals(Long.class)) {
-          return Measure.valueOf(value.longValue(), unit);
+          measure = Measure.valueOf(value.longValue(), unit);
+        } else {
+          throw new IllegalArgumentException(type + " is not supported");
         }
-        throw new IllegalArgumentException(type + " is not supported");
+        return measure;
       } catch (final ClassNotFoundException e) {
         throw new IllegalArgumentException(e);
       }
