@@ -30,6 +30,7 @@ import rinde.sim.pdptw.scenario.Vehicles.VehicleGenerator;
 import rinde.sim.scenario.TimedEvent;
 import rinde.sim.util.TimeWindow;
 
+import com.google.common.base.Optional;
 import com.google.common.base.Supplier;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
@@ -240,7 +241,7 @@ public final class ScenarioGenerator {
     final ProblemClass problemClass;
 
     Builder(ProblemClass pc) {
-      super();
+      super(Optional.<AbstractBuilder<?>> absent());
       problemClass = pc;
       parcelGenerator = DEFAULT_PARCEL_GENERATOR;
       vehicleGenerator = DEFAULT_VEHICLE_GENERATOR;
@@ -250,7 +251,7 @@ public final class ScenarioGenerator {
 
     // copying constructor
     Builder(Builder b) {
-      super(b);
+      super(Optional.<AbstractBuilder<?>> of(b));
       problemClass = b.problemClass;
       parcelGenerator = b.parcelGenerator;
       vehicleGenerator = b.vehicleGenerator;

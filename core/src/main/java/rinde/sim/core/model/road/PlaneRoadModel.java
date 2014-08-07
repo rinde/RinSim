@@ -239,11 +239,26 @@ public class PlaneRoadModel extends AbstractRoadModel<Point> {
       final Point max,
       final Unit<Length> distanceUnit,
       final Measure<Double, Velocity> maxSpeed) {
-    return new Supplier<PlaneRoadModel>() {
-      @Override
-      public PlaneRoadModel get() {
-        return new PlaneRoadModel(min, max, distanceUnit, maxSpeed);
-      }
-    };
+    return new DefaultSupplier(min, max, distanceUnit, maxSpeed);
+  }
+
+  private static class DefaultSupplier implements Supplier<PlaneRoadModel> {
+    final Point min;
+    final Point max;
+    final Unit<Length> distanceUnit;
+    final Measure<Double, Velocity> maxSpeed;
+
+    DefaultSupplier(Point mi, Point ma, Unit<Length> du,
+        Measure<Double, Velocity> ms) {
+      min = mi;
+      max = ma;
+      distanceUnit = du;
+      maxSpeed = ms;
+    }
+
+    @Override
+    public PlaneRoadModel get() {
+      return new PlaneRoadModel(min, max, distanceUnit, maxSpeed);
+    }
   }
 }

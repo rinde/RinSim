@@ -3,7 +3,10 @@
  */
 package rinde.sim.pdptw.scenario;
 
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.collect.Lists.newArrayList;
+import static com.google.common.collect.Sets.newLinkedHashSet;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -30,6 +33,8 @@ import com.google.common.base.Objects;
 import com.google.common.base.Optional;
 import com.google.common.base.Predicate;
 import com.google.common.base.Supplier;
+import com.google.common.collect.Collections2;
+import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 
@@ -169,7 +174,7 @@ public abstract class PDPScenario extends Scenario {
    */
   public static class Builder extends AbstractBuilder<Builder> {
     final List<TimedEvent> eventList;
-    final ImmutableSet.Builder<Enum<?>> eventTypeBuilder;
+    final Set<Enum<?>> eventTypeSet;
     final ImmutableList.Builder<Supplier<? extends Model<?>>> modelSuppliers;
     ProblemClass problemClass;
     String instanceId;
@@ -183,29 +188,50 @@ public abstract class PDPScenario extends Scenario {
       problemClass = pc;
       instanceId = "";
       eventList = newArrayList();
-      eventTypeBuilder = ImmutableSet.builder();
+      eventTypeSet = newLinkedHashSet();
       modelSuppliers = ImmutableList.builder();
     }
 
     /**
-     * Add the specified {@link TimedEvent} to the scenario.
+     * Add the specified {@link TimedEvent} to the builder.
      * @param event The event to add.
      * @return This, as per the builder pattern.
      */
     public Builder addEvent(TimedEvent event) {
       eventList.add(event);
-      eventTypeBuilder.add(event.getEventType());
       return self();
     }
 
     /**
-     * Add the specified {@link TimedEvent}s to the scenario.
+     * Add the specified {@link TimedEvent}s to the builder.
      * @param events The events to add.
      * @return This, as per the builder pattern.
      */
     public Builder addEvents(Iterable<? extends TimedEvent> events) {
       for (final TimedEvent te : events) {
         addEvent(te);
+      }
+      return self();
+    }
+
+    /**
+     * Adds an event type to the builder.
+     * @param eventType The event type to add.
+     * @return This, as per the builder pattern.
+     */
+    public Builder addEventType(Enum<?> eventType) {
+      eventTypeSet.add(eventType);
+      return self();
+    }
+
+    /**
+     * Adds all specified event types to the builder.
+     * @param eventTypes The event types to add.
+     * @return This, as per the builder pattern.
+     */
+    public Builder addEventTypes(Iterable<? extends Enum<?>> eventTypes) {
+      for (final Enum<?> e : eventTypes) {
+        addEventType(e);
       }
       return self();
     }
@@ -257,9 +283,86 @@ public abstract class PDPScenario extends Scenario {
     public Builder copyProperties(PDPScenario scenario) {
       return super.copyProperties(scenario)
           .addEvents(scenario.asList())
+          .addEventTypes(scenario.getPossibleEventTypes())
           .problemClass(scenario.getProblemClass())
           .instanceId(scenario.getProblemInstanceId())
           .addModels(scenario.getModelSuppliers());
+    }
+
+    /**
+     * Removes all events that do not satisfy <code>filter</code>.
+     * @param filter The {@link Predicate} that specifies which
+     *          {@link TimedEvent}s will be retained.
+     * @return This, as per the builder pattern.
+     */
+    public Builder filterEvents(Predicate<? super TimedEvent> filter) {
+      eventList.retainAll(Collections2.filter(eventList, filter));
+      return self();
+    }
+
+    /**
+     * Limits or grows the number of {@link TimedEvent}s that satisfy the
+     * specified {@link Predicate} to such that the number of occurrences is
+     * equal to <code>frequency</code>. If the number of events that satisfy the
+     * <code>filter</code> already equals the specified <code>frequency</code>,
+     * nothing happens.
+     * <p>
+     * <b>Preconditions:</b>
+     * <ul>
+     * <li>Frequency may not be negative</li>
+     * <li>This {@link Builder} must contain at least one event.</li>
+     * <li>The specified {@link Predicate} must match at least one event in this
+     * {@link Builder}.</li>
+     * <li>All events that satisfy the {@link Predicate} must be equal.</li>
+     * </ul>
+     * <p>
+     * <b>Postconditions:</b>
+     * <ul>
+     * <li>The number of events that match the {@link Predicate} is equal to
+     * <code>frequency</code>.</li>
+     * </ul>
+     * @param filter The filter that determines for which events the frequency
+     *          will be ensured.
+     * @param frequency The target frequency, may not be negative.
+     * @return This, as per the builder pattern.
+     */
+    public Builder ensureFrequency(Predicate<? super TimedEvent> filter,
+        int frequency) {
+      checkArgument(frequency >= 0, "Frequency must be >= 0.");
+      checkState(!eventList.isEmpty(), "Event list is empty.");
+      final FluentIterable<TimedEvent> filtered = FluentIterable
+          .from(eventList)
+          .filter(filter);
+      checkArgument(
+          !filtered.isEmpty(),
+          "The specified filter did not match any event in the event list (size %s), filter: %s.",
+          eventList.size(), filter);
+      final Set<TimedEvent> set = filtered.toSet();
+      checkArgument(
+          set.size() == 1,
+          "The specified filter matches multiple non-equal events, all matches must be equal. Events: %s. Filter: %s.",
+          set, filter);
+
+      if (filtered.size() > frequency) {
+        // limit
+        final List<TimedEvent> toAddBack = filtered.limit(frequency).toList();
+        eventList.removeAll(set);
+        eventList.addAll(toAddBack);
+      } else if (filtered.size() < frequency) {
+        // grow
+        eventList.addAll(Collections.nCopies(frequency - filtered.size(), set
+            .iterator().next()));
+      }
+      return self();
+    }
+
+    /**
+     * Removes all events.
+     * @return This, as per the builder pattern.
+     */
+    public Builder clearEvents() {
+      eventList.clear();
+      return self();
     }
 
     /**
@@ -270,7 +373,7 @@ public abstract class PDPScenario extends Scenario {
       final List<TimedEvent> list = newArrayList(eventList);
       Collections.sort(list, TimeComparator.INSTANCE);
       return new DefaultScenario(this, ImmutableList.copyOf(list),
-          eventTypeBuilder.build());
+          ImmutableSet.copyOf(eventTypeSet));
     }
 
     @Override
@@ -298,14 +401,6 @@ public abstract class PDPScenario extends Scenario {
     long tickSize;
     TimeWindow timeWindow;
     Predicate<SimulationInfo> stopCondition;
-
-    AbstractBuilder() {
-      this(Optional.<AbstractBuilder<?>> absent());
-    }
-
-    AbstractBuilder(AbstractBuilder<?> copy) {
-      this(Optional.<AbstractBuilder<?>> of(copy));
-    }
 
     AbstractBuilder(Optional<AbstractBuilder<?>> copy) {
       if (copy.isPresent()) {
@@ -428,8 +523,9 @@ public abstract class PDPScenario extends Scenario {
     private final String instanceId;
 
     DefaultScenario(Builder b, List<? extends TimedEvent> events,
-        Set<Enum<?>> supportedTypes) {
-      super(events, supportedTypes);
+        Set<Enum<?>> eventTypes) {
+      super(events, eventTypes.isEmpty() ? collectEventTypes(events)
+          : eventTypes);
       modelSuppliers = b.getModelSuppliers();
       speedUnit = b.speedUnit;
       distanceUnit = b.distanceUnit;
