@@ -244,9 +244,12 @@ public class SolversTest {
    */
   @Test
   public void convertDecompositionTest() {
-    final VehicleDTO vd1 = new VehicleDTO(
-        new Point(5, 5), 30, 0,
-        new TimeWindow(100L, 100000L));
+    final VehicleDTO vd1 = VehicleDTO.builder()
+        .startPosition(new Point(5, 5))
+        .speed(30d)
+        .capacity(0)
+        .availabilityTimeWindow(new TimeWindow(100L, 100000L))
+        .build();
 
     final ParcelDTO a = ParcelDTO.builder(new Point(0, 0), new Point(10, 10))
         .pickupTimeWindow(new TimeWindow(0, 30))
@@ -409,7 +412,12 @@ public class SolversTest {
     public final VehicleDTO dto;
 
     TestVehicle(Point start) {
-      super(new VehicleDTO(start, .1, 1, TW));
+      super(VehicleDTO.builder()
+          .startPosition(start)
+          .speed(.1)
+          .capacity(1)
+          .availabilityTimeWindow(TW)
+          .build());
       dto = getDTO();
     }
 

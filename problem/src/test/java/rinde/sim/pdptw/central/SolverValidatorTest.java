@@ -50,7 +50,7 @@ public class SolverValidatorTest {
   @Test(expected = IllegalArgumentException.class)
   @SuppressWarnings("null")
   public void validateZeroSpeed() {
-    final VehicleDTO dto1 = new VehicleDTO(null, 0, 1, null);
+    final VehicleDTO dto1 = VehicleDTO.builder().speed(0d).build();
     final VehicleStateObject vs1 = new VehicleStateObject(dto1, null, null, 0,
         null, null);
     final GlobalStateObject state = new GlobalStateObject(null,
@@ -447,7 +447,12 @@ public class SolverValidatorTest {
   }
 
   static VehicleDTO vdto() {
-    return new VehicleDTO(new Point(0, 0), 1, 1, TimeWindow.ALWAYS);
+    return VehicleDTO.builder()
+        .startPosition(new Point(0, 0))
+        .speed(1d)
+        .capacity(1)
+        .availabilityTimeWindow(TimeWindow.ALWAYS)
+        .build();
   }
 
   class FakeSolver implements Solver {

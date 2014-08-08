@@ -179,8 +179,12 @@ public class Gendreau06Test {
     final double truckSpeed = 30;
     events.add(new AddDepotEvent(-1, depotPosition));
     for (int i = 0; i < numVehicles; i++) {
-      events.add(new AddVehicleEvent(-1, new VehicleDTO(depotPosition,
-          truckSpeed, 0, TimeWindow.ALWAYS)));
+      events.add(new AddVehicleEvent(-1, VehicleDTO.builder()
+          .startPosition(depotPosition)
+          .speed(truckSpeed)
+          .capacity(0)
+          .availabilityTimeWindow(TimeWindow.ALWAYS)
+          .build()));
     }
 
     events.addAll(asList(parcelEvents));

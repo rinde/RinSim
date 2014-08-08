@@ -130,8 +130,14 @@ public class ArraysSolversTest {
         new Point(10, 10), 50), false));
     sim.configure();
 
-    final RouteFollowingVehicle rfv = new RouteFollowingVehicle(new VehicleDTO(
-        new Point(1, 1), 50, 10, new TimeWindow(0, 1000000)), false);
+    final RouteFollowingVehicle rfv = new RouteFollowingVehicle(VehicleDTO
+        .builder()
+        .startPosition(new Point(1, 1))
+        .speed(50d)
+        .capacity(10)
+        .availabilityTimeWindow(new TimeWindow(0, 1000000))
+        .build(),
+        false);
     final Depot depot = new DefaultDepot(new Point(5, 5));
 
     final DefaultParcel dp1 = new DefaultParcel(new ParcelDTO(new Point(2, 2),

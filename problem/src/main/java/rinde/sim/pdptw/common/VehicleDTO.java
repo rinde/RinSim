@@ -14,7 +14,7 @@ import rinde.sim.util.TimeWindow;
 
 /**
  * An immutable value object representing a vehicle in a pickup-and-delivery
- * problem.
+ * problem. Instances can be created via {@link #builder()}.
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
  */
 public final class VehicleDTO {
@@ -37,23 +37,6 @@ public final class VehicleDTO {
    * The time window in which this vehicle is available.
    */
   public final TimeWindow availabilityTimeWindow;
-
-  /**
-   * Create a new vehicle value object.
-   * @param pStartPosition {@link #startPosition}.
-   * @param pSpeed {@link #speed}.
-   * @param pCapacity {@link #capacity}.
-   * @param pAvailabilityTimeWindow {@link #availabilityTimeWindow}.
-   * @deprecated Use {@link #builder()} instead.
-   */
-  @Deprecated
-  public VehicleDTO(Point pStartPosition, double pSpeed, int pCapacity,
-      TimeWindow pAvailabilityTimeWindow) {
-    startPosition = pStartPosition;
-    speed = pSpeed;
-    capacity = pCapacity;
-    availabilityTimeWindow = pAvailabilityTimeWindow;
-  }
 
   VehicleDTO(Builder b) {
     startPosition = b.startPosition;

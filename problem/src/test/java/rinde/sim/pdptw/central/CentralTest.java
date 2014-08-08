@@ -171,7 +171,13 @@ public class CentralTest {
   static class TestVehicle extends RouteFollowingVehicle {
 
     TestVehicle(Point start) {
-      super(new VehicleDTO(start, 30, 1, new TimeWindow(0, 1000)), false);
+      super(VehicleDTO.builder()
+          .startPosition(start)
+          .speed(30d)
+          .capacity(1)
+          .availabilityTimeWindow(new TimeWindow(0, 1000))
+          .build(),
+          false);
     }
 
     public State<StateEvent, RouteFollowingVehicle> getState() {

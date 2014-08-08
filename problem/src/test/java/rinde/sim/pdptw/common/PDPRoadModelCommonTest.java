@@ -22,8 +22,8 @@ import rinde.sim.core.model.TestModelProvider;
 import rinde.sim.core.model.pdp.DefaultPDPModel;
 import rinde.sim.core.model.pdp.PDPModel;
 import rinde.sim.core.model.pdp.PDPModel.ParcelState;
-import rinde.sim.core.model.pdp.TimeWindowPolicy.TimeWindowPolicies;
 import rinde.sim.core.model.pdp.Parcel;
+import rinde.sim.core.model.pdp.TimeWindowPolicy.TimeWindowPolicies;
 import rinde.sim.core.model.road.PlaneRoadModel;
 import rinde.sim.core.model.road.RoadModel;
 import rinde.sim.util.TimeWindow;
@@ -318,7 +318,12 @@ public abstract class PDPRoadModelCommonTest {
 
   static class TestVehicle extends DefaultVehicle {
     public TestVehicle(Point start) {
-      super(new VehicleDTO(start, 10, 0, DEFAULT_TW));
+      super(VehicleDTO.builder()
+          .startPosition(start)
+          .speed(10d)
+          .capacity(0)
+          .availabilityTimeWindow(DEFAULT_TW)
+          .build());
     }
 
     @Override

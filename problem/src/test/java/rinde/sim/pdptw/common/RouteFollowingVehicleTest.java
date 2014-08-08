@@ -36,8 +36,8 @@ import rinde.sim.core.model.pdp.PDPModel;
 import rinde.sim.core.model.pdp.PDPModel.PDPModelEventType;
 import rinde.sim.core.model.pdp.PDPModel.ParcelState;
 import rinde.sim.core.model.pdp.PDPModel.VehicleState;
-import rinde.sim.core.model.pdp.TimeWindowPolicy.TimeWindowPolicies;
 import rinde.sim.core.model.pdp.PDPModelEvent;
+import rinde.sim.core.model.pdp.TimeWindowPolicy.TimeWindowPolicies;
 import rinde.sim.core.model.road.PlaneRoadModel;
 import rinde.sim.event.Event;
 import rinde.sim.event.Listener;
@@ -116,8 +116,12 @@ public class RouteFollowingVehicleTest {
     rm.registerModelProvider(mp);
     pm.registerModelProvider(mp);
 
-    final VehicleDTO v = new VehicleDTO(new Point(1, 1), 30, 1, new TimeWindow(
-        0, minute(30)));
+    final VehicleDTO v = VehicleDTO.builder()
+        .startPosition(new Point(1, 1))
+        .speed(30d)
+        .capacity(1)
+        .availabilityTimeWindow(new TimeWindow(0, minute(30)))
+        .build();
     d = new RouteFollowingVehicle(v, allowDelayedRouteChanges);
     d2 = new RouteFollowingVehicle(v, allowDelayedRouteChanges);
 
@@ -1072,8 +1076,12 @@ public class RouteFollowingVehicleTest {
    */
   @Test
   public void testExtension() {
-    final VehicleDTO v = new VehicleDTO(new Point(1, 1), 30, 1, new TimeWindow(
-        0, minute(30)));
+    final VehicleDTO v = VehicleDTO.builder()
+        .startPosition(new Point(1, 1))
+        .speed(30d)
+        .capacity(1)
+        .availabilityTimeWindow(new TimeWindow(0, minute(30)))
+        .build();
     final SubVehicle vehicle = new SubVehicle(v, allowDelayedRouteChanges);
     d = vehicle;
 
