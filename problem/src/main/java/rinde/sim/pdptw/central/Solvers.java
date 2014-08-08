@@ -138,8 +138,8 @@ public final class Solvers {
 
       long time = state.time;
       Point vehicleLocation = vso.location;
-      final Measure<Double, Velocity> speed = Measure.valueOf(vso.speed,
-          state.speedUnit);
+      final Measure<Double, Velocity> speed = Measure.valueOf(
+          vso.getDto().speed, state.speedUnit);
       final Set<ParcelDTO> seen = newHashSet();
       for (int j = 0; j < route.size(); j++) {
         final ParcelDTO cur = route.get(j);
@@ -208,15 +208,16 @@ public final class Solvers {
 
       // go to depot
       final Measure<Double, Length> distance = Measure.valueOf(
-          Point.distance(vehicleLocation, vso.startPosition), state.distUnit);
+          Point.distance(vehicleLocation, vso.getDto().startPosition),
+          state.distUnit);
       totalDistance += distance.getValue();
       final long tt = DoubleMath.roundToLong(
           RoadModels.computeTravelTime(speed, distance, state.timeUnit),
           RoundingMode.CEILING);
       time += tt;
       // check overtime
-      if (vso.availabilityTimeWindow.isAfterEnd(time)) {
-        overTime += time - vso.availabilityTimeWindow.end;
+      if (vso.getDto().availabilityTimeWindow.isAfterEnd(time)) {
+        overTime += time - vso.getDto().availabilityTimeWindow.end;
       }
       maxTime = Math.max(maxTime, time);
 
@@ -304,8 +305,9 @@ public final class Solvers {
       Collection<DefaultParcel> availableParcels, Measure<Long, Duration> time,
       Optional<ImmutableList<ImmutableList<DefaultParcel>>> currentRoutes) {
 
-    final ImmutableMap<VehicleDTO, DefaultVehicle> vehicleMap = toVehicleMap(vehicles);
-    final ImmutableList.Builder<VehicleStateObject> vbuilder = ImmutableList
+    // final ImmutableList.Builder<VehicleStateObject> vbuilder = ImmutableList
+    // .builder();
+    final ImmutableMap.Builder<VehicleStateObject, DefaultVehicle> vbuilder = ImmutableMap
         .builder();
     final ImmutableMap.Builder<ParcelDTO, DefaultParcel> allParcels = ImmutableMap
         .builder();
@@ -330,8 +332,11 @@ public final class Solvers {
       if (routeIterator != null) {
         route = routeIterator.next();
       }
-      vbuilder.add(convertToVehicleState(rm, pm, v, contentsMap, route,
-          availableDestParcels));
+
+      final VehicleStateObject vehicleState = convertToVehicleState(rm, pm, v,
+          contentsMap, route, availableDestParcels);
+
+      vbuilder.put(vehicleState, v);
       allParcels.putAll(contentsMap);
     }
 
@@ -349,9 +354,12 @@ public final class Solvers {
         .addAll(availableMap.keySet())
         .addAll(toAdd.keySet()).build();
 
+    final ImmutableMap<VehicleStateObject, DefaultVehicle> vehicleMap = vbuilder
+        .build();
+
     return new StateContext(new GlobalStateObject(availableParcelsKeys,
-        vbuilder.build(), time.getValue().longValue(), time.getUnit(),
-        rm.getSpeedUnit(), rm.getDistanceUnit()), vehicleMap,
+        vehicleMap.keySet().asList(), time.getValue().longValue(),
+        time.getUnit(), rm.getSpeedUnit(), rm.getDistanceUnit()), vehicleMap,
         allParcels.build());
   }
 
@@ -406,16 +414,6 @@ public final class Solvers {
       parcelMapBuilder.put(dp.dto, dp);
     }
     return parcelMapBuilder.build();
-  }
-
-  static ImmutableMap<VehicleDTO, DefaultVehicle> toVehicleMap(
-      Collection<DefaultVehicle> vehicles) {
-    final ImmutableMap.Builder<VehicleDTO, DefaultVehicle> vehicleMapBuilder = ImmutableMap
-        .builder();
-    for (final DefaultVehicle dp : vehicles) {
-      vehicleMapBuilder.put(dp.getDTO(), dp);
-    }
-    return vehicleMapBuilder.build();
   }
 
   /**
@@ -736,14 +734,14 @@ public final class Solvers {
     /**
      * A mapping of {@link VehicleDTO} to {@link DefaultVehicle}.
      */
-    public final ImmutableMap<VehicleDTO, DefaultVehicle> vehicleMap;
+    public final ImmutableMap<VehicleStateObject, DefaultVehicle> vehicleMap;
     /**
      * A mapping of {@link ParcelDTO} to {@link DefaultParcel}.
      */
     public final ImmutableMap<ParcelDTO, DefaultParcel> parcelMap;
 
     StateContext(GlobalStateObject state,
-        ImmutableMap<VehicleDTO, DefaultVehicle> vehicleMap,
+        ImmutableMap<VehicleStateObject, DefaultVehicle> vehicleMap,
         ImmutableMap<ParcelDTO, DefaultParcel> parcelMap) {
       this.state = state;
       this.vehicleMap = vehicleMap;

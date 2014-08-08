@@ -120,7 +120,10 @@ public class SolversTest {
 
     final StateContext sc = handle.convert(SolveArgs.create().useAllParcels()
         .noCurrentRoutes());
-    assertEquals(ImmutableMap.of(v1.dto, v1), sc.vehicleMap);
+
+    assertEquals(1, sc.vehicleMap.size());
+    assertEquals(v1.dto, sc.vehicleMap.keySet().iterator().next().getDto());
+    assertTrue(sc.vehicleMap.containsValue(v1));
     assertEquals(ImmutableMap.of(p1.dto, p1), sc.parcelMap);
 
     assertEquals(ImmutableSet.of(p1.dto), sc.state.availableParcels);
@@ -333,9 +336,10 @@ public class SolversTest {
 
     final DefaultVehicle vehicle = new TestVehicle(new Point(1, 1));
     final GlobalStateObject gso = mock(GlobalStateObject.class);
+    final VehicleStateObject vso = mock(VehicleStateObject.class);
 
     final StateContext sc = new StateContext(gso,
-        ImmutableMap.of(vehicle.getDTO(), vehicle),
+        ImmutableMap.of(vso, vehicle),
         ImmutableMap.of(a.dto, a));
 
     boolean fail = false;
@@ -359,10 +363,11 @@ public class SolversTest {
       final VehicleDTO dto = vehicle.dto;
       final VehicleStateObject vs = states.get(i);
 
-      assertEquals(dto.availabilityTimeWindow, vs.availabilityTimeWindow);
-      assertEquals(dto.capacity, vs.capacity);
-      assertEquals(dto.speed, vs.speed, 0);
-      assertEquals(dto.startPosition, vs.startPosition);
+      assertEquals(dto.availabilityTimeWindow,
+          vs.getDto().availabilityTimeWindow);
+      assertEquals(dto.capacity, vs.getDto().capacity);
+      assertEquals(dto.speed, vs.getDto().speed, 0);
+      assertEquals(dto.startPosition, vs.getDto().startPosition);
 
       assertEquals(rm.getPosition(expected.get(i)), vs.location);
 

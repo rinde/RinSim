@@ -99,7 +99,7 @@ public class GlobalStateObject {
    * Immutable state object of a vehicle.
    * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
    */
-  public static class VehicleStateObject extends VehicleDTO {
+  public static class VehicleStateObject {
 
     /**
      * Location of the vehicle.
@@ -123,6 +123,8 @@ public class GlobalStateObject {
      * following.
      */
     public final Optional<ImmutableList<ParcelDTO>> route;
+
+    private final VehicleDTO dto;
 
     /**
      * This field is not <code>null</code> in two situations:
@@ -153,13 +155,18 @@ public class GlobalStateObject {
         ImmutableSet<ParcelDTO> contents, long remainingServiceTime,
         @Nullable ParcelDTO destination,
         @Nullable ImmutableList<ParcelDTO> route) {
-      super(dto.startPosition, dto.speed, dto.capacity,
-          dto.availabilityTimeWindow);
+      this.dto = dto;
+      // super(dto.startPosition, dto.speed, dto.capacity,
+      // dto.availabilityTimeWindow);
       this.location = location;
       this.contents = contents;
       this.remainingServiceTime = remainingServiceTime;
       this.destination = destination;
       this.route = Optional.fromNullable(route);
+    }
+
+    public VehicleDTO getDto() {
+      return dto;
     }
 
     @Override

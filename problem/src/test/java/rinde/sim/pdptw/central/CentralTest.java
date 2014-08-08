@@ -54,38 +54,16 @@ import rinde.sim.util.fsm.State;
  * 
  */
 public class CentralTest {
-  /**
-   * Tests whether the SolverConfigurator works.
-   */
-  @Test
-  public void testConfigurator() {
-    final Gendreau06Scenario scenario = Gendreau06Parser.parse(
-        new File("files/test/gendreau06/req_rapide_1_240_24"));
 
-    final StochasticSupplier<Solver> s = new StochasticSupplier<Solver>() {
-      @Override
-      public Solver get(long seed) {
-        return SolverValidator.wrap(new MultiVehicleSolverAdapter(
-            ArraysSolverValidator.wrap(new RandomMVArraysSolver(
-                new MersenneTwister(seed))), scenario.getTimeUnit()));
-      }
-    };
-    final Experiment.Builder builder = Experiment
-        .build(Gendreau06ObjectiveFunction.instance()) //
-        .addScenario(scenario) //
-        .addConfiguration(Central.solverConfiguration(s)) //
-        .withRandomSeed(123);
-
-    final ExperimentResults res1 = builder.perform();
-    final ExperimentResults res2 = builder.perform();
-
-    assertEquals(res1.results, res2.results);
-  }
-
+  @SuppressWarnings("null")
   Simulator sim;
+  @SuppressWarnings("null")
   PDPRoadModel rm;
+  @SuppressWarnings("null")
   PDPModel pm;
+  @SuppressWarnings("null")
   DefaultDepot depot;
+  @SuppressWarnings("null")
   DefaultParcel p1, p2, p3;
 
   @Before
@@ -106,6 +84,34 @@ public class CentralTest {
     p1 = createParcel(new Point(3, 0), new Point(0, 3));
     p2 = createParcel(new Point(6, 9), new Point(2, 9));
     p3 = createParcel(new Point(2, 8), new Point(8, 2));
+  }
+
+  /**
+   * Tests whether the SolverConfigurator works.
+   */
+  @Test
+  public void testConfigurator() {
+    final Gendreau06Scenario scenario = Gendreau06Parser.parse(
+        new File("files/test/gendreau06/req_rapide_1_240_24"));
+
+    final StochasticSupplier<Solver> s = new StochasticSupplier<Solver>() {
+      @Override
+      public Solver get(long seed) {
+        return SolverValidator.wrap(new MultiVehicleSolverAdapter(
+            ArraysSolverValidator.wrap(new RandomMVArraysSolver(
+                new MersenneTwister(seed))), scenario.getTimeUnit()));
+      }
+    };
+    final Experiment.Builder builder = Experiment
+        .build(Gendreau06ObjectiveFunction.instance())
+        .addScenario(scenario)
+        .addConfiguration(Central.solverConfiguration(s))
+        .withRandomSeed(123);
+
+    final ExperimentResults res1 = builder.perform();
+    final ExperimentResults res2 = builder.perform();
+
+    assertEquals(res1.results, res2.results);
   }
 
   @Test

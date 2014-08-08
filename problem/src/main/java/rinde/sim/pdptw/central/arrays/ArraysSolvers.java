@@ -134,7 +134,7 @@ public final class ArraysSolvers {
 
     // there are always two locations: the current vehicle location and
     // the depot
-    final int numLocations = 2 + (state.availableParcels.size() * 2)
+    final int numLocations = 2 + state.availableParcels.size() * 2
         + inCargo.size();
 
     final int[] releaseDates = new int[numLocations];
@@ -205,15 +205,16 @@ public final class ArraysSolvers {
     checkState(index == numLocations - 1);
 
     // the start position of the truck points to the depot location
-    points.add(v.startPosition);
+    points.add(v.getDto().startPosition);
 
     // end of the day
-    dueDates[index] = fixTWend(v.availabilityTimeWindow.end, state.time,
+    dueDates[index] = fixTWend(v.getDto().availabilityTimeWindow.end,
+        state.time,
         timeConverter);
 
     releaseDates[index] = Math.min(0, dueDates[index]);
 
-    final Measure<Double, Velocity> speed = Measure.valueOf(v.speed,
+    final Measure<Double, Velocity> speed = Measure.valueOf(v.getDto().speed,
         state.speedUnit);
 
     final ImmutableList<Point> pointList = points.build();
@@ -310,7 +311,7 @@ public final class ArraysSolvers {
 
       // service time is different in case we were already halfway with the
       // servicing (as defined by remainingServiceTime)
-      final int st = (j == 2 && remainingServiceTime > 0) ? remainingServiceTime
+      final int st = j == 2 && remainingServiceTime > 0 ? remainingServiceTime
           : serviceTimes[prev];
       // we compute the first possible arrival time for the vehicle to
       // arrive at location i, given that it first visited location
@@ -414,7 +415,8 @@ public final class ArraysSolvers {
 
     for (int i = 0; i < v; i++) {
       final VehicleStateObject cur = iterator.next();
-      final Measure<Double, Velocity> speed = Measure.valueOf(cur.speed,
+      final Measure<Double, Velocity> speed = Measure.valueOf(
+          cur.getDto().speed,
           state.speedUnit);
 
       final ParcelDTO dest = cur.destination;
@@ -535,7 +537,7 @@ public final class ArraysSolvers {
       } else {
         st = serviceTimes[route[i]];
       }
-      final int lateness = (arrivalTimes[i] + st) - dueDates[route[i]];
+      final int lateness = arrivalTimes[i] + st - dueDates[route[i]];
       if (lateness > 0) {
         tardiness += lateness;
       }

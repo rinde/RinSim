@@ -4,6 +4,11 @@
 package rinde.sim.pdptw.common;
 
 import static com.google.common.base.Preconditions.checkArgument;
+
+import java.util.Objects;
+
+import javax.annotation.Nullable;
+
 import rinde.sim.core.graph.Point;
 import rinde.sim.util.TimeWindow;
 
@@ -12,7 +17,7 @@ import rinde.sim.util.TimeWindow;
  * problem.
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
  */
-public class VehicleDTO {
+public final class VehicleDTO {
   /**
    * The start position of the vehicle.
    */
@@ -69,6 +74,29 @@ public class VehicleDTO {
     sb.append(availabilityTimeWindow);
     sb.append("}");
     return sb.toString();
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(startPosition, speed, capacity, availabilityTimeWindow);
+  }
+
+  @Override
+  public boolean equals(@Nullable Object o) {
+    if (null == o) {
+      return false;
+    }
+    if (this == o) {
+      return true;
+    }
+    if (o.getClass() != getClass()) {
+      return false;
+    }
+    final VehicleDTO v = (VehicleDTO) o;
+    return Objects.equals(v.startPosition, startPosition)
+        && Objects.equals(v.speed, speed)
+        && Objects.equals(v.capacity, capacity)
+        && Objects.equals(v.availabilityTimeWindow, availabilityTimeWindow);
   }
 
   /**
