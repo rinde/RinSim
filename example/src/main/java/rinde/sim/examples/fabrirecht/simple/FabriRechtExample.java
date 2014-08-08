@@ -3,7 +3,7 @@
  */
 package rinde.sim.examples.fabrirecht.simple;
 
-import java.io.FileReader;
+import java.io.File;
 import java.io.IOException;
 
 import rinde.sim.core.Simulator;
@@ -13,16 +13,18 @@ import rinde.sim.core.model.pdp.PDPModel.ParcelState;
 import rinde.sim.core.model.road.RoadModel;
 import rinde.sim.core.model.road.RoadModels;
 import rinde.sim.core.model.road.RoadUser;
-import rinde.sim.pdptw.common.AddVehicleEvent;
+import rinde.sim.core.pdptw.AddVehicleEvent;
+import rinde.sim.core.pdptw.VehicleDTO;
 import rinde.sim.pdptw.common.DefaultParcel;
 import rinde.sim.pdptw.common.DefaultVehicle;
 import rinde.sim.pdptw.common.DynamicPDPTWProblem;
 import rinde.sim.pdptw.common.DynamicPDPTWProblem.Creator;
-import rinde.sim.pdptw.common.VehicleDTO;
 import rinde.sim.pdptw.fabrirecht.FabriRechtParser;
 import rinde.sim.pdptw.fabrirecht.FabriRechtScenario;
 
+import com.google.common.base.Charsets;
 import com.google.common.base.Predicate;
+import com.google.common.io.Files;
 
 /**
  * Simplest example showing how the Fabri & Recht problem can be configured
@@ -36,8 +38,9 @@ public class FabriRechtExample {
     // we load a problem instance from disk, we instantiate it with 8
     // trucks, each with a capacity of 20 units
     final FabriRechtScenario scenario = FabriRechtParser
-        .fromJson(new FileReader(
-            "../problem/data/test/fabri-recht/lc101.scenario"), 8, 20);
+        .fromJson(Files.toString(
+            new File("../problem/data/test/fabri-recht/lc101.scenario"),
+            Charsets.UTF_8), 8, 20);
 
     // instantiate the problem using the scenario and a random seed (which
     // will not be used in this example)

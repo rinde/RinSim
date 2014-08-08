@@ -132,7 +132,6 @@ public class ScenarioController implements TickListener {
       }
     }, SimulatorEventType.STARTED);
     simulator.addTickListener(this);
-    simulator.configure();
 
   }
 

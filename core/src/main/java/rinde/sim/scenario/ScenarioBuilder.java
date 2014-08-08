@@ -25,7 +25,11 @@ import com.google.common.collect.ImmutableSet;
  * 
  * @author Bartosz Michalik <bartosz.michalik@cs.kuleuven.be>
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+ * @deprecated Use
+ *             {@link PDPScenario#builder(rinde.sim.scenario.PDPScenario.ProblemClass)}
+ *             instead.
  */
+@Deprecated
 public class ScenarioBuilder {
 
   final Set<Enum<?>> supportedTypes;
@@ -199,12 +203,14 @@ public class ScenarioBuilder {
    * @return The new scenario.
    */
   public Scenario build() {
-    return build(new ScenarioCreator<Scenario>() {
-      @Override
-      public Scenario create(List<TimedEvent> eventList, Set<Enum<?>> eventTypes) {
-        return new Scenario(eventList, supportedTypes);
-      }
-    });
+    throw new UnsupportedOperationException();
+    // return build(new ScenarioCreator<Scenario>() {
+    // @Override
+    // public Scenario create(List<TimedEvent> eventList, Set<Enum<?>>
+    // eventTypes) {
+    // return new Scenario(eventList, supportedTypes);
+    // }
+    // });
   }
 
   /**

@@ -31,9 +31,9 @@ import rinde.sim.pdptw.common.StatisticsDTO;
 import rinde.sim.pdptw.experiment.Experiment.Builder;
 import rinde.sim.pdptw.experiment.Experiment.SimArgs;
 import rinde.sim.pdptw.experiment.Experiment.SimulationResult;
-import rinde.sim.pdptw.scenario.PDPScenario;
-import rinde.sim.pdptw.scenario.ScenarioIO;
+import rinde.sim.scenario.Scenario;
 import rinde.sim.scenario.ScenarioController.UICreator;
+import rinde.sim.scenario.ScenarioIO;
 
 import com.google.common.base.Joiner;
 import com.google.common.base.Objects;
@@ -72,7 +72,7 @@ final class JppfComputer implements Computer {
 
     @SuppressWarnings("rawtypes")
     final IdMap<PostProcessor> ppMap = new IdMap<>("p", PostProcessor.class);
-    final Map<String, PDPScenario> scenariosMap = newLinkedHashMap();
+    final Map<String, Scenario> scenariosMap = newLinkedHashMap();
 
     // create tasks
     final List<SimulationTask> tasks = newArrayList();
@@ -161,14 +161,14 @@ final class JppfComputer implements Computer {
   }
 
   static SimulationResult processResult(SimulationTask simTask,
-      final Map<String, PDPScenario> scenariosMap,
+      final Map<String, Scenario> scenariosMap,
       final Map<Task<?>, JPPFJob> jobMap) {
     checkNotNull(simTask);
     if (simTask.getThrowable() != null) {
       throw new IllegalArgumentException(simTask.getThrowable());
     }
     final SimTaskResult result = simTask.getResult();
-    final PDPScenario scen = scenariosMap.get(simTask.getScenarioId());
+    final Scenario scen = scenariosMap.get(simTask.getScenarioId());
     final MASConfiguration conf = jobMap.get(simTask).getDataProvider()
         .getParameter(simTask.getConfigurationId());
     return new SimulationResult(result.getStats(), scen, conf, simTask
@@ -177,7 +177,7 @@ final class JppfComputer implements Computer {
 
   static class ResultsCollector implements TaskResultListener {
     private final ImmutableSet.Builder<SimulationResult> results;
-    private final Map<String, PDPScenario> scenariosMap;
+    private final Map<String, Scenario> scenariosMap;
     private final Map<Task<?>, JPPFJob> taskJobMap;
     private final List<ResultListener> listeners;
     private final int expectedNumResults;
@@ -185,7 +185,7 @@ final class JppfComputer implements Computer {
     private Optional<IllegalArgumentException> exception;
 
     ResultsCollector(int expectedNumberOfResults,
-        final Map<String, PDPScenario> scenMap,
+        final Map<String, Scenario> scenMap,
         final Map<Task<?>, JPPFJob> tjMap, List<ResultListener> list) {
       results = ImmutableSet.builder();
       scenariosMap = scenMap;
@@ -305,19 +305,19 @@ final class JppfComputer implements Computer {
   }
 
   /**
-   * This class provides instances of {@link PDPScenario}. This class equals
+   * This class provides instances of {@link Scenario}. This class equals
    * another if the provided scenarios are equal.
    * 
    * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
    */
-  static final class ScenarioProvider implements Supplier<PDPScenario>,
+  static final class ScenarioProvider implements Supplier<Scenario>,
       Serializable {
     private static final long serialVersionUID = 1738175155810322872L;
 
     private final String serializedScenario;
     private final Class<?> scenarioClass;
     @Nullable
-    private transient PDPScenario localCache;
+    private transient Scenario localCache;
 
     ScenarioProvider(String serialScen, Class<?> clz) {
       serializedScenario = serialScen;
@@ -327,9 +327,9 @@ final class JppfComputer implements Computer {
 
     @SuppressWarnings("null")
     @Override
-    public PDPScenario get() {
+    public Scenario get() {
       if (localCache == null) {
-        localCache = (PDPScenario) ScenarioIO.read(
+        localCache = (Scenario) ScenarioIO.read(
             serializedScenario, scenarioClass);
       }
       return localCache;
@@ -389,7 +389,7 @@ final class JppfComputer implements Computer {
           dataProvider,
           "Probable problem: your MASConfiguration/ObjectiveFunction/PostProcessor is not fully serializable.");
 
-      final Supplier<PDPScenario> scenario = getDataProvider().getParameter(
+      final Supplier<Scenario> scenario = getDataProvider().getParameter(
           scenarioId);
       final MASConfiguration configuration = getDataProvider().getParameter(
           configurationId);

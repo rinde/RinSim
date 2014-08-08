@@ -10,8 +10,8 @@ import org.apache.commons.math3.random.MersenneTwister;
 import org.apache.commons.math3.random.RandomGenerator;
 
 import rinde.sim.core.graph.Point;
-import rinde.sim.pdptw.common.AddParcelEvent;
-import rinde.sim.pdptw.common.ParcelDTO;
+import rinde.sim.core.pdptw.AddParcelEvent;
+import rinde.sim.core.pdptw.ParcelDTO;
 import rinde.sim.pdptw.scenario.Locations.LocationGenerator;
 import rinde.sim.pdptw.scenario.ScenarioGenerator.TravelTimes;
 import rinde.sim.pdptw.scenario.TimeSeries.TimeSeriesGenerator;

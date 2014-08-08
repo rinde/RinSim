@@ -3,11 +3,11 @@
  */
 package rinde.sim.pdptw.common;
 
-import static com.google.common.collect.Sets.newHashSet;
+import static java.util.Arrays.asList;
 import static org.junit.Assert.assertEquals;
 
 import java.util.HashSet;
-import java.util.Set;
+import java.util.List;
 
 import javax.measure.Measure;
 import javax.measure.quantity.Duration;
@@ -25,11 +25,11 @@ import rinde.sim.core.model.Model;
 import rinde.sim.core.model.pdp.PDPScenarioEvent;
 import rinde.sim.core.model.pdp.TimeWindowPolicy.TimeWindowPolicies;
 import rinde.sim.core.model.road.PlaneRoadModel;
+import rinde.sim.core.pdptw.AddVehicleEvent;
 import rinde.sim.pdptw.common.DynamicPDPTWProblem.Creator;
-import rinde.sim.pdptw.common.DynamicPDPTWProblem.SimulationInfo;
 import rinde.sim.pdptw.common.DynamicPDPTWProblem.StopConditions;
 import rinde.sim.pdptw.scenario.Models;
-import rinde.sim.pdptw.scenario.PDPScenario;
+import rinde.sim.scenario.Scenario;
 import rinde.sim.scenario.TimedEvent;
 import rinde.sim.util.TimeWindow;
 
@@ -55,14 +55,14 @@ public class DynamicPDPTWProblemTest {
    */
   @Test(expected = IllegalStateException.class)
   public void noVehicleCreator() {
-    final Set<TimedEvent> events = newHashSet(new TimedEvent(
+    final List<TimedEvent> events = asList(new TimedEvent(
         PDPScenarioEvent.ADD_DEPOT, 10));
     new DynamicPDPTWProblem(new DummyScenario(events), 123).simulate();
   }
 
   @Test
   public void testStopCondition() {
-    final Set<TimedEvent> events = newHashSet(new TimedEvent(
+    final List<TimedEvent> events = asList(new TimedEvent(
         PDPScenarioEvent.ADD_DEPOT, 10));
     final DynamicPDPTWProblem prob = new DynamicPDPTWProblem(new DummyScenario(
         events), 123);
@@ -74,7 +74,7 @@ public class DynamicPDPTWProblemTest {
     assertEquals(5, stats.simulationTime);
   }
 
-  class TimeStopCondition implements Predicate<SimulationInfo> {
+  class TimeStopCondition implements Predicate<Simulator> {
     protected final long time;
 
     public TimeStopCondition(long t) {
@@ -82,14 +82,14 @@ public class DynamicPDPTWProblemTest {
     }
 
     @Override
-    public boolean apply(SimulationInfo context) {
-      return context.stats.simulationTime == time;
+    public boolean apply(Simulator context) {
+      return DynamicPDPTWProblem.getStats(context).simulationTime == time;
     }
   }
 
-  class DummyScenario extends PDPScenario {
+  class DummyScenario extends Scenario {
 
-    public DummyScenario(Set<TimedEvent> events) {
+    public DummyScenario(List<TimedEvent> events) {
       super(events, new HashSet<Enum<?>>(
           java.util.Arrays.asList(PDPScenarioEvent.values())));
     }

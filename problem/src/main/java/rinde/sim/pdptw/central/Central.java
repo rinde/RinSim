@@ -15,9 +15,9 @@ import rinde.sim.core.TimeLapse;
 import rinde.sim.core.model.Model;
 import rinde.sim.core.model.ModelProvider;
 import rinde.sim.core.model.ModelReceiver;
+import rinde.sim.core.pdptw.AddVehicleEvent;
 import rinde.sim.pdptw.central.Solvers.SimulationSolver;
 import rinde.sim.pdptw.central.Solvers.SolveArgs;
-import rinde.sim.pdptw.common.AddVehicleEvent;
 import rinde.sim.pdptw.common.DefaultParcel;
 import rinde.sim.pdptw.common.DynamicPDPTWProblem.Creator;
 import rinde.sim.pdptw.common.PDPRoadModel;
@@ -33,7 +33,7 @@ import com.google.common.collect.ImmutableList;
 /**
  * A facade for RinSim which provides a centralized interface such that
  * {@link Solver} instances can solve
- * {@link rinde.sim.pdptw.scenario.PDPScenario}s.
+ * {@link rinde.sim.scenario.PDPScenario}s.
  * <p>
  * TODO update this comment
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>

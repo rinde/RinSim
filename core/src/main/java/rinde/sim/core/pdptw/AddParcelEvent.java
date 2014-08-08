@@ -1,4 +1,4 @@
-package rinde.sim.pdptw.common;
+package rinde.sim.core.pdptw;
 
 import rinde.sim.core.model.pdp.PDPScenarioEvent;
 import rinde.sim.scenario.TimedEvent;

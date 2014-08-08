@@ -5,6 +5,7 @@ import static org.junit.Assert.assertEquals;
 import org.junit.Test;
 
 import rinde.sim.core.graph.Point;
+import rinde.sim.core.pdptw.ParcelDTO;
 import rinde.sim.util.TimeWindow;
 
 /**

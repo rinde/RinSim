@@ -26,9 +26,8 @@ import org.apache.commons.math3.stat.descriptive.moment.StandardDeviation;
 import org.junit.Test;
 
 import rinde.sim.core.graph.Point;
-import rinde.sim.pdptw.common.AddParcelEvent;
-import rinde.sim.pdptw.common.ParcelDTO;
-import rinde.sim.pdptw.scenario.Metrics;
+import rinde.sim.core.pdptw.AddParcelEvent;
+import rinde.sim.core.pdptw.ParcelDTO;
 import rinde.sim.pdptw.scenario.Metrics.LoadPart;
 import rinde.sim.util.TimeWindow;
 

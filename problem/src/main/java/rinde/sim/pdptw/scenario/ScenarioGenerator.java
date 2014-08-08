@@ -19,14 +19,15 @@ import rinde.sim.core.model.Model;
 import rinde.sim.core.model.pdp.PDPScenarioEvent;
 import rinde.sim.core.model.road.RoadModel;
 import rinde.sim.core.model.road.RoadModels;
-import rinde.sim.pdptw.common.AddDepotEvent;
-import rinde.sim.pdptw.common.AddVehicleEvent;
+import rinde.sim.core.pdptw.AddDepotEvent;
+import rinde.sim.core.pdptw.AddVehicleEvent;
 import rinde.sim.pdptw.scenario.Depots.DepotGenerator;
 import rinde.sim.pdptw.scenario.Models.ModelSupplierScenGen;
-import rinde.sim.pdptw.scenario.PDPScenario.AbstractBuilder;
-import rinde.sim.pdptw.scenario.PDPScenario.ProblemClass;
 import rinde.sim.pdptw.scenario.Parcels.ParcelGenerator;
 import rinde.sim.pdptw.scenario.Vehicles.VehicleGenerator;
+import rinde.sim.scenario.Scenario;
+import rinde.sim.scenario.Scenario.AbstractBuilder;
+import rinde.sim.scenario.Scenario.ProblemClass;
 import rinde.sim.scenario.TimedEvent;
 import rinde.sim.util.TimeWindow;
 
@@ -76,35 +77,35 @@ public final class ScenarioGenerator {
    * @return The speed unit used in generated scenarios.
    */
   public Unit<Velocity> getSpeedUnit() {
-    return builder.speedUnit;
+    return builder.getSpeedUnit();
   }
 
   /**
    * @return The distance unit used in generated scenarios.
    */
   public Unit<Length> getDistanceUnit() {
-    return builder.distanceUnit;
+    return builder.getDistanceUnit();
   }
 
   /**
    * @return The time unit used in generated scenarios.
    */
   public Unit<Duration> getTimeUnit() {
-    return builder.timeUnit;
+    return builder.getTimeUnit();
   }
 
   /**
    * @return The time window of generated scenarios.
    */
   public TimeWindow getTimeWindow() {
-    return builder.timeWindow;
+    return builder.getTimeWindow();
   }
 
   /**
    * @return The tick size of generated scenarios.
    */
   public long getTickSize() {
-    return builder.tickSize;
+    return builder.getTickSize();
   }
 
   /**
@@ -129,13 +130,13 @@ public final class ScenarioGenerator {
   }
 
   /**
-   * Generates a new {@link PDPScenario} instance.
+   * Generates a new {@link Scenario} instance.
    * @param rng The random number generator used for drawing random numbers.
    * @param id The id of this specific scenario.
    * @return A new instance.
    */
   // TODO change rng to seed?
-  public PDPScenario generate(RandomGenerator rng, String id) {
+  public Scenario generate(RandomGenerator rng, String id) {
     final ImmutableList.Builder<TimedEvent> b = ImmutableList.builder();
     // depots
     final Iterable<? extends AddDepotEvent> depots = depotGenerator.generate(
@@ -144,7 +145,8 @@ public final class ScenarioGenerator {
 
     // vehicles
     final ImmutableList<AddVehicleEvent> vehicles = vehicleGenerator.generate(
-        rng.nextLong(), parcelGenerator.getCenter(), builder.timeWindow.end);
+        rng.nextLong(), parcelGenerator.getCenter(),
+        builder.getTimeWindow().end);
     b.addAll(vehicles);
 
     final TravelTimes tm = createTravelTimes(modelSuppliers, getTimeUnit(),
@@ -152,13 +154,13 @@ public final class ScenarioGenerator {
 
     // parcels
     b.addAll(parcelGenerator.generate(rng.nextLong(), tm,
-        builder.timeWindow.end));
+        builder.getTimeWindow().end));
 
     // time out
-    b.add(new TimedEvent(PDPScenarioEvent.TIME_OUT, builder.timeWindow.end));
+    b.add(new TimedEvent(PDPScenarioEvent.TIME_OUT, builder.getTimeWindow().end));
 
     // create
-    return PDPScenario.builder(builder, builder.problemClass)
+    return Scenario.builder(builder, builder.problemClass)
         .addModels(modelSuppliers)
         .addEvents(b.build())
         .instanceId(id)
@@ -180,10 +182,10 @@ public final class ScenarioGenerator {
    * @return The builder.
    */
   public static Builder builder() {
-    return new Builder(PDPScenario.DEFAULT_PROBLEM_CLASS);
+    return new Builder(Scenario.DEFAULT_PROBLEM_CLASS);
   }
 
-  static TravelTimes createTravelTimes(PDPScenario s) {
+  static TravelTimes createTravelTimes(Scenario s) {
     final Iterable<AddDepotEvent> depots = FluentIterable.from(s.asList())
         .filter(AddDepotEvent.class);
     final Iterable<AddVehicleEvent> vehicles = FluentIterable.from(s.asList())

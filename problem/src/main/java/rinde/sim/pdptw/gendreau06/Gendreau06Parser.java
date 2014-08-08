@@ -5,6 +5,7 @@ package rinde.sim.pdptw.gendreau06;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.collect.Lists.newArrayList;
 import static rinde.sim.core.model.pdp.PDPScenarioEvent.ADD_DEPOT;
 import static rinde.sim.core.model.pdp.PDPScenarioEvent.ADD_PARCEL;
 import static rinde.sim.core.model.pdp.PDPScenarioEvent.ADD_VEHICLE;
@@ -21,6 +22,7 @@ import java.io.InputStreamReader;
 import java.math.RoundingMode;
 import java.nio.file.Path;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
@@ -29,15 +31,14 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import rinde.sim.core.graph.Point;
-import rinde.sim.pdptw.common.AddDepotEvent;
-import rinde.sim.pdptw.common.AddParcelEvent;
-import rinde.sim.pdptw.common.AddVehicleEvent;
-import rinde.sim.pdptw.common.ParcelDTO;
-import rinde.sim.pdptw.common.VehicleDTO;
-import rinde.sim.pdptw.scenario.PDPScenario.ProblemClass;
-import rinde.sim.scenario.ScenarioBuilder;
-import rinde.sim.scenario.ScenarioBuilder.ScenarioCreator;
+import rinde.sim.core.pdptw.AddDepotEvent;
+import rinde.sim.core.pdptw.AddParcelEvent;
+import rinde.sim.core.pdptw.AddVehicleEvent;
+import rinde.sim.core.pdptw.ParcelDTO;
+import rinde.sim.core.pdptw.VehicleDTO;
+import rinde.sim.scenario.Scenario.ProblemClass;
 import rinde.sim.scenario.TimedEvent;
+import rinde.sim.scenario.TimedEvent.TimeComparator;
 import rinde.sim.util.TimeWindow;
 
 import com.google.common.base.Charsets;
@@ -45,6 +46,7 @@ import com.google.common.base.Function;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterators;
 import com.google.common.math.DoubleMath;
 
@@ -311,8 +313,9 @@ public final class Gendreau06Parser {
       ParcelsSupplier parcels,
       String fileName, int numVehicles, final long tickSize,
       final boolean allowDiversion, boolean online) {
-    final ScenarioBuilder sb = new ScenarioBuilder(ADD_PARCEL, ADD_DEPOT,
-        ADD_VEHICLE, TIME_OUT);
+
+    final Set<Enum<?>> evTypes = ImmutableSet.<Enum<?>> of(ADD_PARCEL,
+        ADD_DEPOT, ADD_VEHICLE, TIME_OUT);
 
     final Matcher m = matcher(fileName);
     checkValidFileName(m, fileName);
@@ -330,9 +333,11 @@ public final class Gendreau06Parser {
 
     final Point depotPosition = new Point(2.0, 2.5);
     final double truckSpeed = 30;
-    sb.addEvent(new AddDepotEvent(-1, depotPosition));
+
+    final List<TimedEvent> events = newArrayList();
+    events.add(new AddDepotEvent(-1, depotPosition));
     for (int i = 0; i < vehicles; i++) {
-      sb.addEvent(new AddVehicleEvent(-1,
+      events.add(new AddVehicleEvent(-1,
           VehicleDTO.builder()
               .startPosition(depotPosition)
               .speed(truckSpeed)
@@ -340,17 +345,12 @@ public final class Gendreau06Parser {
               .availabilityTimeWindow(new TimeWindow(0, totalTime))
               .build()));
     }
-    sb.addEvents(parcels.get(online));
-    sb.addEvent(new TimedEvent(TIME_OUT, totalTime));
+    events.addAll(parcels.get(online));
+    events.add(new TimedEvent(TIME_OUT, totalTime));
+    Collections.sort(events, TimeComparator.INSTANCE);
 
-    return sb.build(new ScenarioCreator<Gendreau06Scenario>() {
-      @Override
-      public Gendreau06Scenario create(List<TimedEvent> eventList,
-          Set<Enum<?>> eventTypes) {
-        return new Gendreau06Scenario(eventList, eventTypes, tickSize,
-            problemClass, instanceNumber, allowDiversion);
-      }
-    });
+    return new Gendreau06Scenario(events, evTypes, tickSize,
+        problemClass, instanceNumber, allowDiversion);
   }
 
   static ImmutableList<AddParcelEvent> parseParcels(InputStream inputStream,

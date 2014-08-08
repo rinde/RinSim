@@ -24,7 +24,10 @@ import rinde.sim.core.model.Model;
 import rinde.sim.core.model.pdp.Depot;
 import rinde.sim.core.model.pdp.Parcel;
 import rinde.sim.core.model.pdp.Vehicle;
-import rinde.sim.pdptw.scenario.PDPScenario;
+import rinde.sim.core.pdptw.AddDepotEvent;
+import rinde.sim.core.pdptw.AddParcelEvent;
+import rinde.sim.core.pdptw.AddVehicleEvent;
+import rinde.sim.scenario.Scenario;
 import rinde.sim.scenario.ScenarioController;
 import rinde.sim.scenario.ScenarioController.UICreator;
 import rinde.sim.scenario.TimedEvent;
@@ -128,17 +131,17 @@ public class DynamicPDPTWProblem {
    * The {@link StopConditions} which is used as the condition when the
    * simulation has to stop.
    */
-  protected Predicate<SimulationInfo> stopCondition;
+  protected Predicate<Simulator> stopCondition;
 
   /**
    * Create a new problem instance using the specified scenario.
-   * @param scen The the {@link PDPScenario} which is used in this problem.
+   * @param scen The the {@link Scenario} which is used in this problem.
    * @param randomSeed The random seed which will be passed into the random
    *          number generator in the simulator.
    * @param models An optional list of models which can be added, with this
    *          option custom models for specific solutions can be added.
    */
-  public DynamicPDPTWProblem(final PDPScenario scen, long randomSeed,
+  public DynamicPDPTWProblem(final Scenario scen, long randomSeed,
       Model<?>... models) {
     simulator = new Simulator(new MersenneTwister(randomSeed), Measure.valueOf(
         scen.getTickSize(), scen.getTimeUnit()));
@@ -173,6 +176,8 @@ public class DynamicPDPTWProblem {
     controller = new ScenarioController(scen, simulator, handler, ticks);
     statsTracker = new StatsTracker(controller, simulator);
 
+    simulator.register(statsTracker);
+    simulator.configure();
     stopCondition = scen.getStopCondition();
 
     simulator.addTickListener(new TickListener() {
@@ -182,8 +187,7 @@ public class DynamicPDPTWProblem {
 
       @Override
       public void afterTick(TimeLapse timeLapse) {
-        if (stopCondition.apply(new SimulationInfo(statsTracker
-            .getStatsDTO(), scen))) {
+        if (stopCondition.apply(simulator)) {
           simulator.stop();
         }
       }
@@ -224,7 +228,7 @@ public class DynamicPDPTWProblem {
    * same way.
    * @param condition The stop condition to add.
    */
-  public void addStopCondition(Predicate<SimulationInfo> condition) {
+  public void addStopCondition(Predicate<Simulator> condition) {
     stopCondition = Predicates.or(stopCondition, condition);
   }
 
@@ -278,6 +282,14 @@ public class DynamicPDPTWProblem {
     eventCreatorMap.put(eventType, creator);
   }
 
+  public static StatisticsDTO getStats(Simulator sim) {
+    final StatsTracker t = sim.getModelProvider().getModel(StatsTracker.class);
+    if (t == null) {
+      throw new IllegalStateException("No stats tracker found!");
+    }
+    return t.getStatsDTO();
+  }
+
   /**
    * Factory for handling a certain type {@link TimedEvent}s. It is the
    * responsible of this instance to create the appropriate object when an event
@@ -318,7 +330,7 @@ public class DynamicPDPTWProblem {
    * {@link Predicates#not(Predicate)}.
    * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
    */
-  public enum StopConditions implements Predicate<SimulationInfo> {
+  public enum StopConditions implements Predicate<Simulator> {
 
     /**
      * The simulation is terminated once the
@@ -327,8 +339,8 @@ public class DynamicPDPTWProblem {
      */
     TIME_OUT_EVENT {
       @Override
-      public boolean apply(SimulationInfo context) {
-        return context.stats.simFinish;
+      public boolean apply(Simulator context) {
+        return getStats(context).simFinish;
       }
     },
 
@@ -340,10 +352,12 @@ public class DynamicPDPTWProblem {
      */
     VEHICLES_DONE_AND_BACK_AT_DEPOT {
       @Override
-      public boolean apply(SimulationInfo context) {
-        return context.stats.totalVehicles == context.stats.vehiclesAtDepot
-            && context.stats.movedVehicles > 0
-            && context.stats.totalParcels == context.stats.totalDeliveries;
+      public boolean apply(Simulator context) {
+        final StatisticsDTO stats = getStats(context);
+
+        return stats.totalVehicles == stats.vehiclesAtDepot
+            && stats.movedVehicles > 0
+            && stats.totalParcels == stats.totalDeliveries;
       }
     },
 
@@ -352,9 +366,10 @@ public class DynamicPDPTWProblem {
      */
     ANY_TARDINESS {
       @Override
-      public boolean apply(SimulationInfo context) {
-        return context.stats.pickupTardiness > 0
-            || context.stats.deliveryTardiness > 0;
+      public boolean apply(Simulator context) {
+        final StatisticsDTO stats = getStats(context);
+        return stats.pickupTardiness > 0
+            || stats.deliveryTardiness > 0;
       }
     };
   }
@@ -372,14 +387,14 @@ public class DynamicPDPTWProblem {
     /**
      * The scenario which is playing.
      */
-    public final PDPScenario scenario;
+    public final Scenario scenario;
 
     /**
      * Instantiate a new instance using statistics and scenario.
      * @param st Statistics.
      * @param scen Scenario.
      */
-    protected SimulationInfo(StatisticsDTO st, PDPScenario scen) {
+    protected SimulationInfo(StatisticsDTO st, Scenario scen) {
       stats = st;
       scenario = scen;
     }

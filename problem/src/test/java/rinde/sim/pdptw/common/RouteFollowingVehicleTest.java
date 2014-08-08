@@ -39,6 +39,8 @@ import rinde.sim.core.model.pdp.PDPModel.VehicleState;
 import rinde.sim.core.model.pdp.PDPModelEvent;
 import rinde.sim.core.model.pdp.TimeWindowPolicy.TimeWindowPolicies;
 import rinde.sim.core.model.road.PlaneRoadModel;
+import rinde.sim.core.pdptw.ParcelDTO;
+import rinde.sim.core.pdptw.VehicleDTO;
 import rinde.sim.event.Event;
 import rinde.sim.event.Listener;
 import rinde.sim.event.ListenerEventHistory;

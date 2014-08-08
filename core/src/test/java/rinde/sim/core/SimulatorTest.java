@@ -61,7 +61,7 @@ public class SimulatorTest {
     assertTrue(normal.getExecTime() < normal.getAfterExecTime());
   }
 
-  @Test(expected = IllegalStateException.class)
+  @Test(expected = IllegalArgumentException.class)
   public void testRegisterTooEarly() {
     simulator.register(new DummyObject());
   }
@@ -113,9 +113,12 @@ public class SimulatorTest {
     simulator.unregister(new Object());
   }
 
-  @Test(expected = IllegalStateException.class)
+  @Test
   public void testStartWithoutConfiguring() {
+    final LimitingTickListener ltl = new LimitingTickListener(simulator, 3);
+    simulator.addTickListener(ltl);
     simulator.start();
+    assertEquals(3 * timeStep.getValue(), simulator.getCurrentTime());
   }
 
   @Test

@@ -10,8 +10,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
+import rinde.sim.core.pdptw.ParcelDTO;
 import rinde.sim.pdptw.central.GlobalStateObject.VehicleStateObject;
-import rinde.sim.pdptw.common.ParcelDTO;
 import rinde.sim.util.StochasticSupplier;
 import rinde.sim.util.StochasticSuppliers;
 

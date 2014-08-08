@@ -17,13 +17,13 @@ import org.apache.commons.math3.random.MersenneTwister;
 import org.apache.commons.math3.random.RandomGenerator;
 import org.junit.Test;
 
+import rinde.sim.core.pdptw.ParcelDTO;
 import rinde.sim.pdptw.central.Solvers.ExtendedStats;
 import rinde.sim.pdptw.central.arrays.ArraysSolverDebugger.MVASDebugger;
 import rinde.sim.pdptw.central.arrays.ArraysSolvers;
 import rinde.sim.pdptw.central.arrays.ArraysSolvers.MVArraysObject;
 import rinde.sim.pdptw.central.arrays.SolutionObject;
 import rinde.sim.pdptw.common.ObjectiveFunction;
-import rinde.sim.pdptw.common.ParcelDTO;
 import rinde.sim.pdptw.common.StatisticsDTO;
 import rinde.sim.pdptw.experiment.Experiment;
 import rinde.sim.pdptw.experiment.ExperimentResults;

@@ -24,9 +24,9 @@ import javax.measure.unit.Unit;
 
 import rinde.sim.core.graph.Point;
 import rinde.sim.core.model.road.RoadModels;
+import rinde.sim.core.pdptw.ParcelDTO;
 import rinde.sim.pdptw.central.GlobalStateObject;
 import rinde.sim.pdptw.central.GlobalStateObject.VehicleStateObject;
-import rinde.sim.pdptw.common.ParcelDTO;
 import rinde.sim.util.TimeWindow;
 
 import com.google.common.collect.ImmutableList;

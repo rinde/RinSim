@@ -44,6 +44,8 @@ import rinde.sim.core.model.pdp.PDPModel.VehicleState;
 import rinde.sim.core.model.pdp.Parcel;
 import rinde.sim.core.model.pdp.TimeWindowPolicy.TimeWindowPolicies;
 import rinde.sim.core.model.road.PlaneRoadModel;
+import rinde.sim.core.pdptw.ParcelDTO;
+import rinde.sim.core.pdptw.VehicleDTO;
 import rinde.sim.event.EventAPI;
 import rinde.sim.pdptw.central.GlobalStateObject.VehicleStateObject;
 import rinde.sim.pdptw.central.Solvers.SimulationConverter;
@@ -56,9 +58,7 @@ import rinde.sim.pdptw.common.DefaultVehicle;
 import rinde.sim.pdptw.common.ObjectiveFunction;
 import rinde.sim.pdptw.common.PDPRoadModel;
 import rinde.sim.pdptw.common.PDPTWTestUtil;
-import rinde.sim.pdptw.common.ParcelDTO;
 import rinde.sim.pdptw.common.StatisticsDTO;
-import rinde.sim.pdptw.common.VehicleDTO;
 import rinde.sim.pdptw.gendreau06.Gendreau06ObjectiveFunction;
 import rinde.sim.util.TimeWindow;
 

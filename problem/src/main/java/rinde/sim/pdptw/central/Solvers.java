@@ -34,13 +34,13 @@ import rinde.sim.core.model.pdp.PDPModel.ParcelState;
 import rinde.sim.core.model.pdp.PDPModel.VehicleParcelActionInfo;
 import rinde.sim.core.model.pdp.Parcel;
 import rinde.sim.core.model.road.RoadModels;
+import rinde.sim.core.pdptw.ParcelDTO;
+import rinde.sim.core.pdptw.VehicleDTO;
 import rinde.sim.pdptw.central.GlobalStateObject.VehicleStateObject;
 import rinde.sim.pdptw.common.DefaultParcel;
 import rinde.sim.pdptw.common.DefaultVehicle;
 import rinde.sim.pdptw.common.PDPRoadModel;
-import rinde.sim.pdptw.common.ParcelDTO;
 import rinde.sim.pdptw.common.StatisticsDTO;
-import rinde.sim.pdptw.common.VehicleDTO;
 
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;

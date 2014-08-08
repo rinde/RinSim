@@ -22,7 +22,7 @@ import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 
 import rinde.sim.core.graph.Point;
-import rinde.sim.pdptw.common.ParcelDTO;
+import rinde.sim.core.pdptw.ParcelDTO;
 import rinde.sim.pdptw.scenario.ScenarioGenerator.TravelTimes;
 import rinde.sim.pdptw.scenario.TimeWindows.TimeWindowGenerator;
 import rinde.sim.util.TestUtil;

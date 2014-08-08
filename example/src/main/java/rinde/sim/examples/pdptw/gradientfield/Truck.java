@@ -13,9 +13,9 @@ import rinde.sim.core.model.pdp.Parcel;
 import rinde.sim.core.model.road.RoadModel;
 import rinde.sim.core.model.road.RoadModels;
 import rinde.sim.core.model.road.RoadUser;
+import rinde.sim.core.pdptw.VehicleDTO;
 import rinde.sim.pdptw.common.DefaultParcel;
 import rinde.sim.pdptw.common.DefaultVehicle;
-import rinde.sim.pdptw.common.VehicleDTO;
 
 import com.google.common.base.Predicate;
 

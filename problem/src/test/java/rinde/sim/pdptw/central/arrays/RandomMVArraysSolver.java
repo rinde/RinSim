@@ -23,7 +23,6 @@ import rinde.sim.pdptw.central.Solver;
 import rinde.sim.pdptw.central.SolverValidator;
 import rinde.sim.util.StochasticSupplier;
 import rinde.sim.util.StochasticSuppliers;
-import rinde.sim.util.StochasticSuppliers.AbstractStochasticSupplier;
 
 import com.google.common.primitives.Ints;
 

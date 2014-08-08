@@ -26,6 +26,8 @@ import rinde.sim.core.model.pdp.Parcel;
 import rinde.sim.core.model.pdp.TimeWindowPolicy.TimeWindowPolicies;
 import rinde.sim.core.model.road.PlaneRoadModel;
 import rinde.sim.core.model.road.RoadModel;
+import rinde.sim.core.pdptw.ParcelDTO;
+import rinde.sim.core.pdptw.VehicleDTO;
 import rinde.sim.util.TimeWindow;
 
 public abstract class PDPRoadModelCommonTest {

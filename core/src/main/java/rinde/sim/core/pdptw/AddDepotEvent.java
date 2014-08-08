@@ -1,7 +1,7 @@
 /**
  * 
  */
-package rinde.sim.pdptw.common;
+package rinde.sim.core.pdptw;
 
 import rinde.sim.core.graph.Point;
 import rinde.sim.core.model.pdp.PDPScenarioEvent;

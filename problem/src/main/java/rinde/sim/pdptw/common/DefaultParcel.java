@@ -7,6 +7,7 @@ import rinde.sim.core.graph.Point;
 import rinde.sim.core.model.pdp.PDPModel;
 import rinde.sim.core.model.pdp.Parcel;
 import rinde.sim.core.model.road.RoadModel;
+import rinde.sim.core.pdptw.ParcelDTO;
 
 /**
  * Default {@link Parcel} implementation. It is instantiated using a

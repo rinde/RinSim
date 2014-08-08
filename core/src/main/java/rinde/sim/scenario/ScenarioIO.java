@@ -1,4 +1,4 @@
-package rinde.sim.pdptw.scenario;
+package rinde.sim.scenario;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -26,16 +26,14 @@ import javax.xml.bind.DatatypeConverter;
 import rinde.sim.core.graph.Point;
 import rinde.sim.core.model.pdp.PDPScenarioEvent;
 import rinde.sim.core.model.pdp.TimeWindowPolicy;
-import rinde.sim.pdptw.common.AddDepotEvent;
-import rinde.sim.pdptw.common.AddParcelEvent;
-import rinde.sim.pdptw.common.AddVehicleEvent;
-import rinde.sim.pdptw.common.ParcelDTO;
-import rinde.sim.pdptw.common.VehicleDTO;
-import rinde.sim.pdptw.scenario.PDPScenario.DefaultScenario;
-import rinde.sim.pdptw.scenario.PDPScenario.ProblemClass;
-import rinde.sim.pdptw.scenario.PDPScenario.SimpleProblemClass;
-import rinde.sim.scenario.Scenario;
-import rinde.sim.scenario.TimedEvent;
+import rinde.sim.core.pdptw.AddDepotEvent;
+import rinde.sim.core.pdptw.AddParcelEvent;
+import rinde.sim.core.pdptw.AddVehicleEvent;
+import rinde.sim.core.pdptw.ParcelDTO;
+import rinde.sim.core.pdptw.VehicleDTO;
+import rinde.sim.scenario.Scenario.DefaultScenario;
+import rinde.sim.scenario.Scenario.ProblemClass;
+import rinde.sim.scenario.Scenario.SimpleProblemClass;
 import rinde.sim.util.TimeWindow;
 
 import com.google.common.base.Charsets;
@@ -45,6 +43,7 @@ import com.google.common.base.Optional;
 import com.google.common.base.Predicate;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
@@ -92,7 +91,8 @@ public final class ScenarioIO {
         .registerTypeAdapter(Measure.class, new MeasureIO())
         .registerTypeAdapter(Enum.class, new EnumIO())
         .registerTypeAdapter(Predicate.class, new PredicateIO())
-        .registerTypeAdapter(ImmutableList.class, new ImmutableListIO());
+        .registerTypeAdapter(ImmutableList.class, new ImmutableListIO())
+        .registerTypeAdapter(ImmutableSet.class, new ImmutableSetIO());
 
     return builder.create();
   }
@@ -110,12 +110,12 @@ public final class ScenarioIO {
   }
 
   /**
-   * Reads a {@link PDPScenario} from disk.
+   * Reads a {@link Scenario} from disk.
    * @param file The file to read from.
-   * @return A {@link PDPScenario} instance.
+   * @return A {@link Scenario} instance.
    * @throws IOException When reading fails.
    */
-  public static PDPScenario read(Path file) throws IOException {
+  public static Scenario read(Path file) throws IOException {
     return read(file, DefaultScenario.class);
   }
 
@@ -143,20 +143,20 @@ public final class ScenarioIO {
   }
 
   /**
-   * Reads a {@link PDPScenario} from string.
+   * Reads a {@link Scenario} from string.
    * @param s The string to read.
-   * @return A {@link PDPScenario} instance.
+   * @return A {@link Scenario} instance.
    */
-  public static PDPScenario read(String s) {
+  public static Scenario read(String s) {
     return read(s, DefaultScenario.class);
   }
 
   /**
-   * Reads a {@link PDPScenario} from string.
+   * Reads a {@link Scenario} from string.
    * @param s The string to read.
    * @param type The type of scenario to convert to.
    * @param <T> The scenario type.
-   * @return A {@link PDPScenario} instance.
+   * @return A {@link Scenario} instance.
    */
   public static <T> T read(String s, Class<T> type) {
     return GSON.fromJson(s, type);
@@ -164,20 +164,20 @@ public final class ScenarioIO {
 
   /**
    * @return A {@link Function} that converts (reads) {@link Path}s into
-   *         {@link PDPScenario} instances.
+   *         {@link Scenario} instances.
    */
-  public static Function<Path, PDPScenario> reader() {
+  public static Function<Path, Scenario> reader() {
     return new DefaultScenarioReader<>();
   }
 
   /**
    * Creates a {@link Function} that converts {@link Path}s into the specified
-   * subclass of {@link PDPScenario}.
+   * subclass of {@link Scenario}.
    * @param clz The class instance to indicate the type scenario.
    * @param <T> The type of scenario.
    * @return A new reader instance.
    */
-  public static <T extends PDPScenario> Function<Path, T> reader(Class<T> clz) {
+  public static <T extends Scenario> Function<Path, T> reader(Class<T> clz) {
     return new DefaultScenarioReader<T>(clz);
   }
 
@@ -200,7 +200,7 @@ public final class ScenarioIO {
     return predicate;
   }
 
-  private static final class DefaultScenarioReader<T extends PDPScenario>
+  private static final class DefaultScenarioReader<T extends Scenario>
       implements Function<Path, T> {
     final Optional<Class<T>> clazz;
 
@@ -570,6 +570,40 @@ public final class ScenarioIO {
 
     @Override
     public JsonElement doSerialize(ImmutableList<?> src, Type typeOfSrc,
+        JsonSerializationContext context) {
+      final JsonArray arr = new JsonArray();
+      for (final Object item : src) {
+        final JsonObject obj = new JsonObject();
+        obj.add(CLAZZ, new JsonPrimitive(item.getClass().getName()));
+        obj.add(VALUE, context.serialize(item, item.getClass()));
+        arr.add(obj);
+      }
+      return arr;
+    }
+  }
+
+  static class ImmutableSetIO extends SafeNullIO<ImmutableSet<?>> {
+    @Override
+    public ImmutableSet<?> doDeserialize(JsonElement json, Type typeOfT,
+        JsonDeserializationContext context) {
+      final ImmutableSet.Builder<Object> builder = ImmutableSet.builder();
+      final Iterator<JsonElement> it = json.getAsJsonArray().iterator();
+      while (it.hasNext()) {
+        final JsonObject obj = it.next().getAsJsonObject();
+        final String clazz = obj.get(CLAZZ).getAsString();
+        Class<?> clz;
+        try {
+          clz = Class.forName(clazz);
+        } catch (final ClassNotFoundException e) {
+          throw new IllegalArgumentException(e);
+        }
+        builder.add(context.deserialize(obj.get(VALUE), clz));
+      }
+      return builder.build();
+    }
+
+    @Override
+    public JsonElement doSerialize(ImmutableSet<?> src, Type typeOfSrc,
         JsonSerializationContext context) {
       final JsonArray arr = new JsonArray();
       for (final Object item : src) {

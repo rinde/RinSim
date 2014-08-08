@@ -2,6 +2,7 @@ package rinde.sim.pdptw.common;
 
 import javax.annotation.Nullable;
 
+import rinde.sim.core.pdptw.VehicleDTO;
 import rinde.sim.util.fsm.StateMachine;
 
 class SubVehicle extends RouteFollowingVehicle {

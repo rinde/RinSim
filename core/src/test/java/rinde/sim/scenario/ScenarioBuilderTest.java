@@ -10,6 +10,7 @@ import static rinde.sim.scenario.ScenarioBuilderTest.TestEvents.EVENT_A;
 import static rinde.sim.scenario.ScenarioBuilderTest.TestEvents.EVENT_B;
 
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import rinde.sim.scenario.ScenarioBuilder.EventCreator;
@@ -18,6 +19,7 @@ import rinde.sim.scenario.ScenarioBuilder.EventTypeFunction;
 /**
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
  */
+@Ignore
 public class ScenarioBuilderTest {
 
   protected ScenarioBuilder scenarioBuilder;

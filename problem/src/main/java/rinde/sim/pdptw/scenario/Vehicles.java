@@ -8,8 +8,8 @@ import org.apache.commons.math3.random.MersenneTwister;
 import org.apache.commons.math3.random.RandomGenerator;
 
 import rinde.sim.core.graph.Point;
-import rinde.sim.pdptw.common.AddVehicleEvent;
-import rinde.sim.pdptw.common.VehicleDTO;
+import rinde.sim.core.pdptw.AddVehicleEvent;
+import rinde.sim.core.pdptw.VehicleDTO;
 import rinde.sim.util.StochasticSupplier;
 import rinde.sim.util.TimeWindow;
 

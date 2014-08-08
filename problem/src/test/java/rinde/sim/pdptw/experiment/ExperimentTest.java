@@ -23,7 +23,7 @@ import rinde.sim.pdptw.common.StatisticsDTO;
 import rinde.sim.pdptw.gendreau06.Gendreau06ObjectiveFunction;
 import rinde.sim.pdptw.gendreau06.Gendreau06Parser;
 import rinde.sim.pdptw.gendreau06.Gendreau06Scenario;
-import rinde.sim.pdptw.scenario.PDPScenario;
+import rinde.sim.scenario.Scenario;
 
 import com.google.common.collect.ImmutableList;
 
@@ -33,13 +33,13 @@ import com.google.common.collect.ImmutableList;
  */
 public class ExperimentTest {
 
-  public static StatisticsDTO singleRun(PDPScenario scenario,
+  public static StatisticsDTO singleRun(Scenario scenario,
       MASConfiguration c, long seed, ObjectiveFunction objFunc, boolean showGui) {
     return Experiment.singleRun(scenario, c, seed, objFunc, showGui, null,
         null).stats;
   }
 
-  public static DynamicPDPTWProblem init(PDPScenario scenario,
+  public static DynamicPDPTWProblem init(Scenario scenario,
       MASConfiguration config, long seed, boolean showGui) {
     return Experiment.init(scenario, config, seed, showGui,
         null);

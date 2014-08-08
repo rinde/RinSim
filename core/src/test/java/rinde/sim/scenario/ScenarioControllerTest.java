@@ -45,15 +45,15 @@ public class ScenarioControllerTest {
 
   @Before
   public void setUp() throws Exception {
-    final ScenarioBuilder sb = new ScenarioBuilder(EVENT_A, EVENT_B, EVENT_C,
-        EVENT_D);
-    sb.addEvent(new TimedEvent(EVENT_A, 0))
+    scenario = Scenario.builder()
+        .addEventTypes(asList(EVENT_A, EVENT_B, EVENT_C, EVENT_D))
+        .addEvent(new TimedEvent(EVENT_A, 0))
         .addEvent(new TimedEvent(EVENT_B, 0))
         .addEvent(new TimedEvent(EVENT_B, 0))
         .addEvent(new TimedEvent(EVENT_A, 1))
         .addEvent(new TimedEvent(EVENT_C, 5))
-        .addEvent(new TimedEvent(EVENT_C, 100));
-    scenario = sb.build();
+        .addEvent(new TimedEvent(EVENT_C, 100))
+        .build();
     assertNotNull(scenario);
     ScenarioController.EventType.valueOf("SCENARIO_STARTED");
     simulator = new Simulator(new MersenneTwister(123),
@@ -152,15 +152,15 @@ public class ScenarioControllerTest {
 
   @Test
   public void testSetupEvents() {
-    final ScenarioBuilder sb = new ScenarioBuilder(EVENT_A, EVENT_B, EVENT_C,
-        EVENT_D);
-    sb.addEvent(new TimedEvent(EVENT_A, 0))
+    final Scenario s = Scenario.builder()
+        .addEventTypes(asList(EVENT_A, EVENT_B, EVENT_C, EVENT_D))
+        .addEvent(new TimedEvent(EVENT_A, 0))
         .addEvent(new TimedEvent(EVENT_B, -1))
         .addEvent(new TimedEvent(EVENT_B, 2))
         .addEvent(new TimedEvent(EVENT_A, 2))
         .addEvent(new TimedEvent(EVENT_C, -1))
-        .addEvent(new TimedEvent(EVENT_C, 100));
-    final Scenario s = sb.build();
+        .addEvent(new TimedEvent(EVENT_C, 100))
+        .build();
 
     final EventHistory th = new EventHistory();
     final ScenarioController sc = new ScenarioController(s, simulator, th, 1);

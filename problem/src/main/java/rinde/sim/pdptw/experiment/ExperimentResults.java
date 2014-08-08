@@ -5,7 +5,7 @@ import javax.annotation.Nullable;
 import rinde.sim.pdptw.common.ObjectiveFunction;
 import rinde.sim.pdptw.experiment.Experiment.Builder;
 import rinde.sim.pdptw.experiment.Experiment.SimulationResult;
-import rinde.sim.pdptw.scenario.PDPScenario;
+import rinde.sim.scenario.Scenario;
 
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableSet;
@@ -29,7 +29,7 @@ public final class ExperimentResults {
   /**
    * The scenarios that were used in this experiment.
    */
-  public final ImmutableSet<PDPScenario> scenarios;
+  public final ImmutableSet<Scenario> scenarios;
 
   /**
    * Indicates whether the experiment was executed with or without the graphical

@@ -4,9 +4,9 @@
 package rinde.sim.pdptw.experiment;
 
 import rinde.sim.core.model.Model;
-import rinde.sim.pdptw.common.AddDepotEvent;
-import rinde.sim.pdptw.common.AddParcelEvent;
-import rinde.sim.pdptw.common.AddVehicleEvent;
+import rinde.sim.core.pdptw.AddDepotEvent;
+import rinde.sim.core.pdptw.AddParcelEvent;
+import rinde.sim.core.pdptw.AddVehicleEvent;
 import rinde.sim.pdptw.common.DynamicPDPTWProblem.Creator;
 import rinde.sim.util.StochasticSupplier;
 

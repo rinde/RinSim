@@ -7,6 +7,7 @@ import static com.google.common.base.Preconditions.checkArgument;
 import rinde.sim.core.model.pdp.PDPModel;
 import rinde.sim.core.model.pdp.Vehicle;
 import rinde.sim.core.model.road.RoadModel;
+import rinde.sim.core.pdptw.VehicleDTO;
 
 import com.google.common.base.Optional;
 

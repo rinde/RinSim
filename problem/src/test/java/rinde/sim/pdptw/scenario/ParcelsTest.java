@@ -6,7 +6,7 @@ import java.util.List;
 
 import org.junit.Test;
 
-import rinde.sim.pdptw.common.AddParcelEvent;
+import rinde.sim.core.pdptw.AddParcelEvent;
 import rinde.sim.pdptw.scenario.Parcels.ParcelGenerator;
 import rinde.sim.pdptw.scenario.TimeWindowsTest.FakeTravelTimes;
 

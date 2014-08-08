@@ -30,6 +30,8 @@ import rinde.sim.core.graph.Point;
 import rinde.sim.core.model.pdp.DefaultPDPModel;
 import rinde.sim.core.model.pdp.Depot;
 import rinde.sim.core.model.road.PlaneRoadModel;
+import rinde.sim.core.pdptw.ParcelDTO;
+import rinde.sim.core.pdptw.VehicleDTO;
 import rinde.sim.pdptw.central.Solvers;
 import rinde.sim.pdptw.central.Solvers.SimulationConverter;
 import rinde.sim.pdptw.central.Solvers.SolveArgs;
@@ -38,9 +40,7 @@ import rinde.sim.pdptw.central.arrays.ArraysSolvers.ArraysObject;
 import rinde.sim.pdptw.common.DefaultDepot;
 import rinde.sim.pdptw.common.DefaultParcel;
 import rinde.sim.pdptw.common.PDPRoadModel;
-import rinde.sim.pdptw.common.ParcelDTO;
 import rinde.sim.pdptw.common.RouteFollowingVehicle;
-import rinde.sim.pdptw.common.VehicleDTO;
 import rinde.sim.util.TimeWindow;
 
 /**

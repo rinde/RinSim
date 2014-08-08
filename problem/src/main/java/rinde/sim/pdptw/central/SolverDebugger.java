@@ -8,7 +8,7 @@ import static java.util.Collections.unmodifiableList;
 
 import java.util.List;
 
-import rinde.sim.pdptw.common.ParcelDTO;
+import rinde.sim.core.pdptw.ParcelDTO;
 
 import com.google.common.collect.ImmutableList;
 

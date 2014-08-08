@@ -191,9 +191,9 @@ public class Simulator implements SimulatorAPI {
       return register((Model<?>) obj);
     }
     if (!configured) {
-      throw new IllegalStateException(
-          "can not add object before calling configure()");
+      configure();
     }
+    checkArgument(!modelManager.getModels().isEmpty(), "No models are added.");
     LOGGER.info("{} - register({})", time, obj);
     injectDependencies(obj);
     if (obj instanceof TickListener) {
@@ -279,8 +279,7 @@ public class Simulator implements SimulatorAPI {
    */
   public void start() {
     if (!configured) {
-      throw new IllegalStateException(
-          "Simulator can not be started when it is not configured.");
+      configure();
     }
     if (!isPlaying) {
       dispatcher.dispatchEvent(new Event(SimulatorEventType.STARTED, this));

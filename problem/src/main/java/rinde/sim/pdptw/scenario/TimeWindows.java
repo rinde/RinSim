@@ -9,7 +9,7 @@ import org.apache.commons.math3.random.MersenneTwister;
 import org.apache.commons.math3.random.RandomGenerator;
 
 import rinde.sim.core.graph.Point;
-import rinde.sim.pdptw.common.ParcelDTO;
+import rinde.sim.core.pdptw.ParcelDTO;
 import rinde.sim.pdptw.scenario.ScenarioGenerator.TravelTimes;
 import rinde.sim.util.StochasticSupplier;
 import rinde.sim.util.TimeWindow;
@@ -43,12 +43,12 @@ public final class TimeWindows {
      * feasible, meaning that they should be serviceable such that there is
      * enough time for a vehicle to return to the depot.
      * @param seed Random seed.
-     * @param parcelBuilder The {@link rinde.sim.pdptw.common.ParcelDTO.Builder}
+     * @param parcelBuilder The {@link rinde.sim.core.pdptw.ParcelDTO.Builder}
      *          that is being used for creating a {@link ParcelDTO}. The time
      *          windows should be added to this builder via the
-     *          {@link rinde.sim.pdptw.common.ParcelDTO.Builder#pickupTimeWindow(TimeWindow)}
+     *          {@link rinde.sim.core.pdptw.ParcelDTO.Builder#pickupTimeWindow(TimeWindow)}
      *          and
-     *          {@link rinde.sim.pdptw.common.ParcelDTO.Builder#deliveryTimeWindow(TimeWindow)}
+     *          {@link rinde.sim.core.pdptw.ParcelDTO.Builder#deliveryTimeWindow(TimeWindow)}
      *          methods.
      * @param travelTimes An object that provides information about the travel
      *          times in the scenario.

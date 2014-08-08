@@ -7,19 +7,16 @@ import static com.google.common.collect.Lists.newArrayList;
 import static java.util.Arrays.asList;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertTrue;
 import static rinde.sim.scenario.ScenarioTest.TestEvents.EVENT_A;
 import static rinde.sim.scenario.ScenarioTest.TestEvents.EVENT_B;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 
-import org.apache.commons.math3.random.MersenneTwister;
 import org.apache.commons.math3.random.RandomGenerator;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import rinde.sim.core.graph.Point;
@@ -34,37 +31,8 @@ public class ScenarioTest {
     EVENT_A, EVENT_B;
   }
 
-  @Ignore
   @Test
-  public void testReadWrite() {
-    final List<Point> points = new ArrayList<Point>();
-    for (int i = 0; i < 1000; i++) {
-      points.add(new Point(Math.random(), Math.random()));
-    }
-
-    final Scenario original = randomScenario(new MersenneTwister(123), 10,
-        points);
-
-    assertEquals(10, original.size());
-
-    // IO.serialize(original, "files/original.scen");
-    // final Scenario copied = IO
-    // .deserialize("files/original.scen", Scenario.class);
-
-    // assertEquals(10, copied.size());
-
-    // assertEquals(original, copied);
-
-    // IO.serialize(copied, "files/copied.scen");
-    // assertEquals(IO.deserialize("files/original.scen", Scenario.class),
-    // IO.deserialize("files/copied.scen", Scenario.class));
-
-    new File("files/original.scen").delete();
-    new File("files/copied.scen").delete();
-  }
-
-  @Test
-  public void equals() {
+  public void testEquals() {
     final List<TimedEvent> events1 = newArrayList(new TimedEvent(EVENT_A, 0));
     final List<TimedEvent> events2 = newArrayList(new TimedEvent(EVENT_A, 0));
     final List<TimedEvent> events3 = newArrayList(new TimedEvent(EVENT_A, 1));
@@ -72,10 +40,15 @@ public class ScenarioTest {
         new TimedEvent(
             EVENT_A, 2));
 
-    assertFalse(new Scenario(events1).equals(new Object()));
-    assertTrue(new Scenario(events1).equals(new Scenario(events2)));
-    assertFalse(new Scenario(events1).equals(new Scenario(events3)));
-    assertFalse(new Scenario(events1).equals(new Scenario(events4)));
+    final Scenario s1 = Scenario.builder().addEvents(events1).build();
+    final Scenario s2 = Scenario.builder().addEvents(events2).build();
+    final Scenario s3 = Scenario.builder().addEvents(events3).build();
+    final Scenario s4 = Scenario.builder().addEvents(events4).build();
+
+    assertNotEquals(s1, new Object());
+    assertEquals(s1, s2);
+    assertNotEquals(s1, s3);
+    assertNotEquals(s1, s4);
   }
 
   @Test
@@ -92,11 +65,8 @@ public class ScenarioTest {
     events.addAll(asList(A1, A2, B, C, D1, D2, E, F));
     Collections.reverse(events);
 
-    final ScenarioBuilder builder = new ScenarioBuilder(A1.getEventType());
-    builder.addEvents(events);
-
-    final Scenario s = builder.build();
-    final List<TimedEvent> res = s.asList();
+    final Scenario s = Scenario.builder().addEvents(events).build();
+    final List<TimedEvent> res = newArrayList(s.asList());
 
     assertEquals(asList(A2, A1, B, C, D2, D1, E, F), res);
     assertFalse(res.equals(events));
@@ -105,37 +75,39 @@ public class ScenarioTest {
     assertEquals(res, events);
   }
 
-  @SuppressWarnings("unused")
-  @Test(expected = IllegalArgumentException.class)
-  public void constructorFail1() {
-    final List<TimedEvent> events = newArrayList();
-    new Scenario(events, new HashSet<Enum<?>>());
-  }
-
-  @SuppressWarnings("unused")
-  @Test(expected = IllegalArgumentException.class)
-  public void constructorFail2() {
-    new Scenario(asList(new TimedEvent(EVENT_A, 1L)),
-        new HashSet<Enum<?>>());
-  }
-
-  @SuppressWarnings("unused")
-  @Test(expected = IllegalArgumentException.class)
-  public void constructorFail3() {
-    new Scenario(new ArrayList<TimedEvent>());
-  }
+  // @SuppressWarnings("unused")
+  // @Test(expected = IllegalArgumentException.class)
+  // public void constructorFail1() {
+  // final List<TimedEvent> events = newArrayList();
+  // new Scenario(events, new HashSet<Enum<?>>());
+  // }
+  //
+  // @SuppressWarnings("unused")
+  // @Test(expected = IllegalArgumentException.class)
+  // public void constructorFail2() {
+  // new Scenario(asList(new TimedEvent(EVENT_A, 1L)),
+  // new HashSet<Enum<?>>());
+  // }
+  //
+  // @SuppressWarnings("unused")
+  // @Test(expected = IllegalArgumentException.class)
+  // public void constructorFail3() {
+  // new Scenario(new ArrayList<TimedEvent>());
+  // }
 
   @Test
   public void testCreateScenarioByCopying() {
 
-    final Scenario s = new ScenarioBuilder(EVENT_A)
+    final Scenario s = Scenario.builder()
+        .addEventType(EVENT_A)
         .addEvent(new AddObjectEvent(100, new Point(0, 0)))
         .addEvent(new AddObjectEvent(200, new Point(0, 0)))
-        .addEvent(new AddObjectEvent(300, new Point(0, 0))).build();
+        .addEvent(new AddObjectEvent(300, new Point(0, 0)))
+        .build();
 
     assertEquals(3, s.asList().size());
 
-    final Scenario s2 = new Scenario(s);
+    final Scenario s2 = Scenario.builder(s).build();
 
     assertEquals(3, s.asList().size());
     assertEquals(3, s2.asList().size());

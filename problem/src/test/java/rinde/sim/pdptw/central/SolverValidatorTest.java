@@ -8,9 +8,9 @@ import javax.measure.unit.SI;
 import org.junit.Test;
 
 import rinde.sim.core.graph.Point;
+import rinde.sim.core.pdptw.ParcelDTO;
+import rinde.sim.core.pdptw.VehicleDTO;
 import rinde.sim.pdptw.central.GlobalStateObject.VehicleStateObject;
-import rinde.sim.pdptw.common.ParcelDTO;
-import rinde.sim.pdptw.common.VehicleDTO;
 import rinde.sim.util.TestUtil;
 import rinde.sim.util.TimeWindow;
 

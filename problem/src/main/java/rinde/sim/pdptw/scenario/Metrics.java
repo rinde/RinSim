@@ -17,9 +17,9 @@ import org.apache.commons.math3.stat.descriptive.SummaryStatistics;
 
 import rinde.sim.core.graph.Point;
 import rinde.sim.core.model.pdp.PDPScenarioEvent;
-import rinde.sim.pdptw.common.AddParcelEvent;
-import rinde.sim.pdptw.common.AddVehicleEvent;
-import rinde.sim.pdptw.common.ParcelDTO;
+import rinde.sim.core.pdptw.AddParcelEvent;
+import rinde.sim.core.pdptw.AddVehicleEvent;
+import rinde.sim.core.pdptw.ParcelDTO;
 import rinde.sim.pdptw.scenario.ScenarioGenerator.TravelTimes;
 import rinde.sim.scenario.Scenario;
 import rinde.sim.scenario.TimedEvent;
@@ -189,7 +189,7 @@ public final class Metrics {
     return occurences.build();
   }
 
-  public static void checkTimeWindowStrictness(PDPScenario s) {
+  public static void checkTimeWindowStrictness(Scenario s) {
     final TravelTimes tt = ScenarioGenerator.createTravelTimes(s);
     for (final TimedEvent te : s.asList()) {
       if (te instanceof AddParcelEvent) {
@@ -224,7 +224,7 @@ public final class Metrics {
         event.parcelDTO.pickupTimeWindow.end);
   }
 
-  public static ImmutableList<Long> getArrivalTimes(PDPScenario s) {
+  public static ImmutableList<Long> getArrivalTimes(Scenario s) {
     final ImmutableList.Builder<Long> builder = ImmutableList.builder();
     for (final TimedEvent te : s.asList()) {
       if (te instanceof AddParcelEvent) {
@@ -285,12 +285,12 @@ public final class Metrics {
 
   /**
    * Computes a {@link StatisticalSummary} object for all urgency values of a
-   * {@link PDPScenario}.
+   * {@link Scenario}.
    * @param s The scenario to measure.
    * @return A statistical summary of the urgency values in the specified
    *         scenario.
    */
-  public static StatisticalSummary measureUrgency(PDPScenario s) {
+  public static StatisticalSummary measureUrgency(Scenario s) {
     final List<Long> urgencyValues = FluentIterable.from(s.asList())
         .filter(AddParcelEvent.class)
         .transform(Urgency.PICKUP)
@@ -298,11 +298,11 @@ public final class Metrics {
     return toStatisticalSummary(urgencyValues);
   }
 
-  public static double measureDynamism(PDPScenario s) {
+  public static double measureDynamism(Scenario s) {
     return measureDynamism(s, s.getTimeWindow().end);
   }
 
-  public static double measureDynamism(PDPScenario s, long lengthOfDay) {
+  public static double measureDynamism(Scenario s, long lengthOfDay) {
     return measureDynamism(convert(getOrderArrivalTimes(s)),
         lengthOfDay);
   }

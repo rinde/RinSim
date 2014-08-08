@@ -13,8 +13,6 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 
-import rinde.sim.pdptw.scenario.IntensityFunctions;
-import rinde.sim.pdptw.scenario.TimeSeries;
 import rinde.sim.pdptw.scenario.IntensityFunctions.IntensityFunction;
 import rinde.sim.pdptw.scenario.TimeSeries.NHPredicate;
 import rinde.sim.pdptw.scenario.TimeSeries.PoissonProcess;

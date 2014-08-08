@@ -6,7 +6,7 @@ import java.util.Collections;
 
 import javax.annotation.Nullable;
 
-import rinde.sim.pdptw.common.AddParcelEvent;
+import rinde.sim.core.pdptw.AddParcelEvent;
 import rinde.sim.scenario.Scenario;
 
 import com.google.common.base.Function;

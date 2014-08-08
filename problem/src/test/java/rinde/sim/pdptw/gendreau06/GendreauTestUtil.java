@@ -3,14 +3,16 @@
  */
 package rinde.sim.pdptw.gendreau06;
 
+import static com.google.common.collect.Lists.newArrayList;
+
 import java.io.ByteArrayInputStream;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
-import rinde.sim.scenario.ScenarioBuilder;
-import rinde.sim.scenario.ScenarioBuilder.ScenarioCreator;
 import rinde.sim.scenario.TimedEvent;
+import rinde.sim.scenario.TimedEvent.TimeComparator;
 
 /**
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
@@ -19,9 +21,10 @@ import rinde.sim.scenario.TimedEvent;
 public class GendreauTestUtil {
 
   public static Gendreau06Scenario create(
-      Collection<? extends TimedEvent> pEvents, Set<Enum<?>> pSupportedTypes,
+      List<? extends TimedEvent> events, Set<Enum<?>> eventTypes,
       long ts) {
-    return new Gendreau06Scenario(pEvents, pSupportedTypes, ts,
+    Collections.sort(events, TimeComparator.INSTANCE);
+    return new Gendreau06Scenario(events, eventTypes, ts,
         GendreauProblemClass.SHORT_LOW_FREQ, 1, false);
   }
 
@@ -37,16 +40,11 @@ public class GendreauTestUtil {
         .addFile(new ByteArrayInputStream("".getBytes()), "req_rapide_1_240_24")
         .setNumVehicles(numTrucks)
         .parse().get(0);
-    final ScenarioBuilder sb = new ScenarioBuilder(gs.getPossibleEventTypes());
-    sb.addEvents(gs.asList());
-    sb.addEvents(parcels);
-    return sb.build(new ScenarioCreator<Gendreau06Scenario>() {
-      @Override
-      public Gendreau06Scenario create(List<TimedEvent> eventList,
-          Set<Enum<?>> eventTypes) {
-        return GendreauTestUtil.create(eventList, eventTypes, 1000);
-      }
-    });
+
+    final List<TimedEvent> events = newArrayList();
+    events.addAll(gs.asList());
+    events.addAll(parcels);
+    return create(events, gs.getPossibleEventTypes(), 1000);
   }
 
 }

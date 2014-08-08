@@ -1,4 +1,4 @@
-package rinde.sim.pdptw.scenario;
+package rinde.sim.scenario;
 
 import static com.google.common.collect.Sets.newHashSet;
 import static java.util.Arrays.asList;
@@ -19,15 +19,13 @@ import javax.measure.unit.Unit;
 
 import org.junit.Test;
 
+import rinde.sim.core.Simulator;
 import rinde.sim.core.graph.Point;
 import rinde.sim.core.model.Model;
 import rinde.sim.core.model.pdp.PDPScenarioEvent;
 import rinde.sim.core.model.road.PlaneRoadModel;
-import rinde.sim.pdptw.common.DynamicPDPTWProblem.SimulationInfo;
-import rinde.sim.pdptw.common.DynamicPDPTWProblem.StopConditions;
-import rinde.sim.pdptw.scenario.PDPScenario.ProblemClass;
-import rinde.sim.pdptw.scenario.PDPScenario.SimpleProblemClass;
-import rinde.sim.scenario.TimedEvent;
+import rinde.sim.scenario.Scenario.ProblemClass;
+import rinde.sim.scenario.Scenario.SimpleProblemClass;
 import rinde.sim.util.TimeWindow;
 
 import com.google.common.base.Predicate;
@@ -36,7 +34,7 @@ import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableList;
 
 /**
- * Tests for {@link PDPScenario} and its builder.
+ * Tests for {@link Scenario} and its builder.
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
  */
 public class PDPScenarioTest {
@@ -46,18 +44,18 @@ public class PDPScenarioTest {
    */
   @Test
   public void testDefaults() {
-    final PDPScenario scenario = PDPScenario
-        .builder(PDPScenario.DEFAULT_PROBLEM_CLASS)
+    final Scenario scenario = Scenario
+        .builder(Scenario.DEFAULT_PROBLEM_CLASS)
         .addEventType(FakeEventType.A)
         .build();
 
     assertEquals(SI.KILOMETER, scenario.getDistanceUnit());
     assertTrue(scenario.getModelSuppliers().isEmpty());
     assertEquals(newHashSet(FakeEventType.A), scenario.getPossibleEventTypes());
-    assertSame(PDPScenario.DEFAULT_PROBLEM_CLASS, scenario.getProblemClass());
+    assertSame(Scenario.DEFAULT_PROBLEM_CLASS, scenario.getProblemClass());
     assertEquals("", scenario.getProblemInstanceId());
     assertEquals(NonSI.KILOMETERS_PER_HOUR, scenario.getSpeedUnit());
-    assertEquals(StopConditions.TIME_OUT_EVENT, scenario.getStopCondition());
+    assertEquals(Predicates.alwaysFalse(), scenario.getStopCondition());
     assertEquals(1000L, scenario.getTickSize());
     assertEquals(SI.MILLI(SI.SECOND), scenario.getTimeUnit());
     assertEquals(new TimeWindow(0, 8 * 60 * 60 * 1000),
@@ -73,8 +71,8 @@ public class PDPScenarioTest {
     final TimedEvent ev1 = new TimedEvent(FakeEventType.B, 205);
     final TimedEvent ev2 = new TimedEvent(FakeEventType.B, 7);
     final TimedEvent ev3 = new TimedEvent(FakeEventType.B, 203);
-    final PDPScenario scenario = PDPScenario
-        .builder(PDPScenario.DEFAULT_PROBLEM_CLASS)
+    final Scenario scenario = Scenario
+        .builder(Scenario.DEFAULT_PROBLEM_CLASS)
         .addEvent(ev0)
         .addEvent(ev1)
         .addEvents(asList(ev2, ev3))
@@ -92,7 +90,7 @@ public class PDPScenarioTest {
   @Test
   public void testCustomProperties() {
     final ProblemClass problemClass = new FakeProblemClass();
-    final PDPScenario scenario = PDPScenario
+    final Scenario scenario = Scenario
         .builder(problemClass)
         .distanceUnit(SI.PICO(SI.METER))
         .speedUnit(NonSI.MACH)
@@ -101,7 +99,7 @@ public class PDPScenarioTest {
         .scenarioLength(7L)
         .tickSize(1)
         .addEventType(PDPScenarioEvent.TIME_OUT)
-        .stopCondition(Predicates.<SimulationInfo> alwaysTrue())
+        .stopCondition(Predicates.<Simulator> alwaysTrue())
         .addModel(PlaneRoadModel.supplier(new Point(6, 6), new Point(1034,
             32), SI.METER, Measure.valueOf(1d, SI.METERS_PER_SECOND)))
         .build();
@@ -118,15 +116,15 @@ public class PDPScenarioTest {
     assertEquals(1, scenario.getModelSuppliers().size());
     assertTrue(scenario.getModelSuppliers().get(0).get() instanceof PlaneRoadModel);
 
-    final PDPScenario.Builder builder = PDPScenario
-        .builder(PDPScenario.DEFAULT_PROBLEM_CLASS)
+    final Scenario.Builder builder = Scenario
+        .builder(Scenario.DEFAULT_PROBLEM_CLASS)
         .copyProperties(scenario);
 
-    final PDPScenario copiedScen = builder.build();
+    final Scenario copiedScen = builder.build();
     assertEquals(scenario, copiedScen);
 
-    final PDPScenario builderCopyScen = PDPScenario.builder(builder,
-        PDPScenario.DEFAULT_PROBLEM_CLASS)
+    final Scenario builderCopyScen = Scenario.builder(builder,
+        Scenario.DEFAULT_PROBLEM_CLASS)
         .addEventType(PDPScenarioEvent.TIME_OUT)
         .build();
 
@@ -138,13 +136,13 @@ public class PDPScenarioTest {
    */
   @Test
   public void testNoArgConstructor() {
-    final PDPScenario scenario = new EmptyScenario();
+    final Scenario scenario = new EmptyScenario();
     assertTrue(scenario.asList().isEmpty());
   }
 
   /**
    * Test for correct behavior of
-   * {@link PDPScenario.Builder#ensureFrequency(Predicate, int)}.
+   * {@link Scenario.Builder#ensureFrequency(Predicate, int)}.
    */
   @Test
   public void testModifyEventsMethods() {
@@ -156,8 +154,8 @@ public class PDPScenarioTest {
     final TimedEvent ev5 = new CustomEvent(FakeEventType.B, 367);
     final List<TimedEvent> events = asList(ev1, ev2, ev3, ev3b, ev4, ev5);
 
-    final PDPScenario.Builder b = PDPScenario
-        .builder(PDPScenario.DEFAULT_PROBLEM_CLASS)
+    final Scenario.Builder b = Scenario
+        .builder(Scenario.DEFAULT_PROBLEM_CLASS)
         .addEvents(events)
         .clearEvents();
     assertTrue(b.eventList.isEmpty());
@@ -184,7 +182,7 @@ public class PDPScenarioTest {
    */
   @Test(expected = IllegalArgumentException.class)
   public void testEnsureFrequencyFailFrequency() {
-    PDPScenario.builder(PDPScenario.DEFAULT_PROBLEM_CLASS)
+    Scenario.builder(Scenario.DEFAULT_PROBLEM_CLASS)
         .ensureFrequency(Predicates.<TimedEvent> alwaysTrue(), -1);
   }
 
@@ -193,7 +191,7 @@ public class PDPScenarioTest {
    */
   @Test(expected = IllegalStateException.class)
   public void testEnsureFrequencyFailEmptyEventsList() {
-    PDPScenario.builder(PDPScenario.DEFAULT_PROBLEM_CLASS)
+    Scenario.builder(Scenario.DEFAULT_PROBLEM_CLASS)
         .ensureFrequency(Predicates.<TimedEvent> alwaysTrue(), 1);
   }
 
@@ -202,7 +200,7 @@ public class PDPScenarioTest {
    */
   @Test(expected = IllegalArgumentException.class)
   public void testEnsureFrequencyFailFilter1() {
-    PDPScenario.builder(PDPScenario.DEFAULT_PROBLEM_CLASS)
+    Scenario.builder(Scenario.DEFAULT_PROBLEM_CLASS)
         .addEvent(new CustomEvent(FakeEventType.A, 0))
         .ensureFrequency(Predicates.<TimedEvent> alwaysFalse(), 1);
   }
@@ -212,8 +210,8 @@ public class PDPScenarioTest {
    */
   @Test(expected = IllegalArgumentException.class)
   public void testEnsureFrequencyFailFilter2() {
-    PDPScenario
-        .builder(PDPScenario.DEFAULT_PROBLEM_CLASS)
+    Scenario
+        .builder(Scenario.DEFAULT_PROBLEM_CLASS)
         .addEvent(new CustomEvent(FakeEventType.A, 0))
         .addEvent(new CustomEvent(FakeEventType.A, 1))
         .ensureFrequency(Predicates.instanceOf(CustomEvent.class), 1);
@@ -235,7 +233,7 @@ public class PDPScenarioTest {
     }
   }
 
-  static class EmptyScenario extends PDPScenario {
+  static class EmptyScenario extends Scenario {
 
     @Override
     public ImmutableList<? extends Supplier<? extends Model<?>>> getModelSuppliers() {
@@ -253,7 +251,7 @@ public class PDPScenarioTest {
     }
 
     @Override
-    public Predicate<SimulationInfo> getStopCondition() {
+    public Predicate<Simulator> getStopCondition() {
       throw new UnsupportedOperationException();
     }
 

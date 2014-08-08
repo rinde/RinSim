@@ -1,6 +1,6 @@
 package rinde.sim.pdptw.scenario;
 
-import static junit.framework.Assert.assertEquals;
+import static org.junit.Assert.assertEquals;
 
 import java.io.File;
 import java.io.IOException;
@@ -13,13 +13,18 @@ import org.junit.Test;
 
 import rinde.sim.core.model.pdp.TimeWindowPolicy.TimeWindowPolicies;
 import rinde.sim.pdptw.common.DynamicPDPTWProblem.StopConditions;
-import rinde.sim.pdptw.scenario.PDPScenario.DefaultScenario;
-import rinde.sim.pdptw.scenario.PDPScenario.ProblemClass;
+import rinde.sim.scenario.Scenario;
+import rinde.sim.scenario.Scenario.ProblemClass;
+import rinde.sim.scenario.ScenarioIO;
 
 import com.google.common.base.Charsets;
 import com.google.common.base.Predicates;
 import com.google.common.io.Files;
 
+/**
+ * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+ * 
+ */
 public class GeneratedScenarioIOTest {
 
   enum TestPC implements ProblemClass {
@@ -31,6 +36,10 @@ public class GeneratedScenarioIOTest {
     }
   }
 
+  /**
+   * Test reading and writing a generated scenario.
+   * @throws IOException when something IO related went wrong.
+   */
   @Test
   public void testIO() throws IOException {
 
@@ -59,14 +68,13 @@ public class GeneratedScenarioIOTest {
         .addModel(Models.pdpModel(TimeWindowPolicies.TARDY_ALLOWED))
         .build();
 
-    final PDPScenario scenario = generator
+    final Scenario scenario = generator
         .generate(new MersenneTwister(123), "id123");
 
     final String output = ScenarioIO.write(scenario);
 
     Files.write(output, new File("files/scen.json"), Charsets.UTF_8);
-    final DefaultScenario converted = ScenarioIO.read(output,
-        DefaultScenario.class);
+    final Scenario converted = ScenarioIO.read(output);
     assertEquals(scenario, converted);
   }
 }

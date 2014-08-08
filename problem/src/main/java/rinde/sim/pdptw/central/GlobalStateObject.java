@@ -15,8 +15,8 @@ import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 
 import rinde.sim.core.graph.Point;
-import rinde.sim.pdptw.common.ParcelDTO;
-import rinde.sim.pdptw.common.VehicleDTO;
+import rinde.sim.core.pdptw.ParcelDTO;
+import rinde.sim.core.pdptw.VehicleDTO;
 
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;

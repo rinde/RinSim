@@ -3,7 +3,7 @@
  */
 package rinde.sim.pdptw.central;
 
-import rinde.sim.pdptw.common.ParcelDTO;
+import rinde.sim.core.pdptw.ParcelDTO;
 
 import com.google.common.collect.ImmutableList;
 

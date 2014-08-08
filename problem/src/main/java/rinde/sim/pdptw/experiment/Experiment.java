@@ -20,17 +20,17 @@ import org.apache.commons.math3.random.MersenneTwister;
 import org.apache.commons.math3.random.RandomGenerator;
 
 import rinde.sim.core.model.Model;
-import rinde.sim.pdptw.common.AddDepotEvent;
-import rinde.sim.pdptw.common.AddParcelEvent;
-import rinde.sim.pdptw.common.AddVehicleEvent;
+import rinde.sim.core.pdptw.AddDepotEvent;
+import rinde.sim.core.pdptw.AddParcelEvent;
+import rinde.sim.core.pdptw.AddVehicleEvent;
 import rinde.sim.pdptw.common.DynamicPDPTWProblem;
 import rinde.sim.pdptw.common.ObjectiveFunction;
 import rinde.sim.pdptw.common.RouteRenderer;
 import rinde.sim.pdptw.common.StatisticsDTO;
 import rinde.sim.pdptw.experiment.LocalComputer.ExperimentRunner;
-import rinde.sim.pdptw.scenario.PDPScenario;
-import rinde.sim.pdptw.scenario.ScenarioIO;
+import rinde.sim.scenario.Scenario;
 import rinde.sim.scenario.ScenarioController.UICreator;
+import rinde.sim.scenario.ScenarioIO;
 import rinde.sim.util.StochasticSupplier;
 import rinde.sim.util.io.FileProvider;
 
@@ -46,7 +46,7 @@ import com.google.common.collect.Sets;
 
 /**
  * Utility for defining and performing experiments. An experiment is composed of
- * a set of {@link PDPScenario}s and a set of {@link MASConfiguration} s. For
+ * a set of {@link Scenario}s and a set of {@link MASConfiguration} s. For
  * <b>each</b> combination of these a user configurable number of simulations is
  * performed. The number of used threads in the experiment can be set via
  * {@link Builder#withThreads(int)}.
@@ -128,7 +128,7 @@ public final class Experiment {
    * @param uic The UICreator to use.
    * @return The {@link SimulationResult} generated in the run.
    */
-  public static SimulationResult singleRun(PDPScenario scenario,
+  public static SimulationResult singleRun(Scenario scenario,
       MASConfiguration configuration, long seed, ObjectiveFunction objFunc,
       boolean showGui, @Nullable PostProcessor<?> postProcessor,
       @Nullable UICreator uic) {
@@ -148,7 +148,7 @@ public final class Experiment {
    * @return The {@link DynamicPDPTWProblem} instance.
    */
   @VisibleForTesting
-  static DynamicPDPTWProblem init(PDPScenario scenario,
+  static DynamicPDPTWProblem init(Scenario scenario,
       MASConfiguration config, long seed, boolean showGui,
       Optional<UICreator> uiCreator) {
 
@@ -190,9 +190,9 @@ public final class Experiment {
   public static final class Builder {
     final ObjectiveFunction objectiveFunction;
     final Set<MASConfiguration> configurationsSet;
-    final ImmutableSet.Builder<PDPScenario> scenariosBuilder;
+    final ImmutableSet.Builder<Scenario> scenariosBuilder;
     Optional<FileProvider.Builder> scenarioProviderBuilder;
-    Function<Path, ? extends PDPScenario> fileReader;
+    Function<Path, ? extends Scenario> fileReader;
 
     final List<ResultListener> resultListeners;
     @Nullable
@@ -291,7 +291,7 @@ public final class Experiment {
      * @param scenario The scenario to add.
      * @return This, as per the builder pattern.
      */
-    public Builder addScenario(PDPScenario scenario) {
+    public Builder addScenario(Scenario scenario) {
       scenariosBuilder.add(scenario);
       return this;
     }
@@ -301,7 +301,7 @@ public final class Experiment {
      * @param scenarios The scenarios to add.
      * @return This, as per the builder pattern.
      */
-    public Builder addScenarios(List<? extends PDPScenario> scenarios) {
+    public Builder addScenarios(List<? extends Scenario> scenarios) {
       scenariosBuilder.addAll(scenarios);
       return this;
     }
@@ -320,13 +320,13 @@ public final class Experiment {
 
     /**
      * Change the scenario reader which defines how {@link Path} instances are
-     * converted to {@link PDPScenario} instances. By default
+     * converted to {@link Scenario} instances. By default
      * {@link ScenarioIO#reader()} is used as a scenario reader.
      * @param reader The reader to use.
      * @return This, as per the builder pattern.
      */
     public Builder setScenarioReader(
-        Function<Path, ? extends PDPScenario> reader) {
+        Function<Path, ? extends Scenario> reader) {
       fileReader = reader;
       return this;
     }
@@ -498,8 +498,8 @@ public final class Experiment {
       return computerType;
     }
 
-    ImmutableSet<PDPScenario> getAllScenarios() {
-      final Set<PDPScenario> scenarios = newLinkedHashSet(scenariosBuilder
+    ImmutableSet<Scenario> getAllScenarios() {
+      final Set<Scenario> scenarios = newLinkedHashSet(scenariosBuilder
           .build());
       if (scenarioProviderBuilder.isPresent()) {
         scenarios.addAll(scenarioProviderBuilder.get().build(fileReader).get());
@@ -508,7 +508,7 @@ public final class Experiment {
     }
 
     int getNumScenarios() {
-      final Set<PDPScenario> scenarios = scenariosBuilder.build();
+      final Set<Scenario> scenarios = scenariosBuilder.build();
       if (scenarioProviderBuilder.isPresent()) {
         return scenarios.size()
             + scenarioProviderBuilder.get().build().get().size();
@@ -517,7 +517,7 @@ public final class Experiment {
     }
 
     private ImmutableSet<SimArgs> createFactorialSetup(List<Long> seeds) {
-      final Set<PDPScenario> scenarios = getAllScenarios();
+      final Set<Scenario> scenarios = getAllScenarios();
 
       final ImmutableSet<MASConfiguration> conf = ImmutableSet
           .copyOf(configurationsSet);
@@ -527,7 +527,7 @@ public final class Experiment {
       final ImmutableSet.Builder<SimArgs> runnerBuilder = ImmutableSet
           .builder();
       for (final MASConfiguration configuration : conf) {
-        for (final PDPScenario scenario : scenarios) {
+        for (final Scenario scenario : scenarios) {
           for (int i = 0; i < repetitions; i++) {
             final long seed = seeds.get(i);
             runnerBuilder.add(new SimArgs(scenario, configuration,
@@ -548,7 +548,7 @@ public final class Experiment {
   }
 
   static class SimArgs {
-    final PDPScenario scenario;
+    final Scenario scenario;
     final MASConfiguration masConfig;
     final long randomSeed;
     final ObjectiveFunction objectiveFunction;
@@ -556,7 +556,7 @@ public final class Experiment {
     final Optional<? extends PostProcessor<?>> postProcessor;
     final Optional<UICreator> uiCreator;
 
-    SimArgs(PDPScenario s, MASConfiguration m, long seed,
+    SimArgs(Scenario s, MASConfiguration m, long seed,
         ObjectiveFunction obj, boolean gui, @Nullable PostProcessor<?> pp,
         @Nullable UICreator uic) {
       scenario = s;
@@ -591,7 +591,7 @@ public final class Experiment {
     /**
      * The scenario on which the simulation was run.
      */
-    public final PDPScenario scenario;
+    public final Scenario scenario;
 
     /**
      * The configuration which was used to configure the MAS.
@@ -610,7 +610,7 @@ public final class Experiment {
      */
     public Optional<?> simulationData;
 
-    SimulationResult(StatisticsDTO stats, PDPScenario scenario,
+    SimulationResult(StatisticsDTO stats, Scenario scenario,
         MASConfiguration masConfiguration, long seed, Optional<?> simData) {
       this.stats = stats;
       this.scenario = scenario;

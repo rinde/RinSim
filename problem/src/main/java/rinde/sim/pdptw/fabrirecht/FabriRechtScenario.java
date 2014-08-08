@@ -3,7 +3,7 @@
  */
 package rinde.sim.pdptw.fabrirecht;
 
-import java.util.Collection;
+import java.util.List;
 import java.util.Set;
 
 import javax.measure.Measure;
@@ -18,10 +18,10 @@ import rinde.sim.core.graph.Point;
 import rinde.sim.core.model.Model;
 import rinde.sim.core.model.pdp.TimeWindowPolicy.TimeWindowPolicies;
 import rinde.sim.core.model.road.PlaneRoadModel;
+import rinde.sim.core.pdptw.VehicleDTO;
 import rinde.sim.pdptw.common.DynamicPDPTWProblem.StopConditions;
-import rinde.sim.pdptw.common.VehicleDTO;
 import rinde.sim.pdptw.scenario.Models;
-import rinde.sim.pdptw.scenario.PDPScenario;
+import rinde.sim.scenario.Scenario;
 import rinde.sim.scenario.TimedEvent;
 import rinde.sim.util.TimeWindow;
 
@@ -32,7 +32,7 @@ import com.google.common.collect.ImmutableList;
  * A scenario for Fabri & Recht problems.
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
  */
-public class FabriRechtScenario extends PDPScenario {
+public class FabriRechtScenario extends Scenario {
   /**
    * Minimum position.
    */
@@ -68,7 +68,7 @@ public class FabriRechtScenario extends PDPScenario {
    * @param pTimeWindow {@link #timeWindow}.
    * @param pDefaultVehicle {@link #defaultVehicle}.
    */
-  public FabriRechtScenario(Collection<? extends TimedEvent> pEvents,
+  public FabriRechtScenario(List<? extends TimedEvent> pEvents,
       Set<Enum<?>> pSupportedTypes, Point pMin, Point pMax,
       TimeWindow pTimeWindow, VehicleDTO pDefaultVehicle) {
     super(pEvents, pSupportedTypes);

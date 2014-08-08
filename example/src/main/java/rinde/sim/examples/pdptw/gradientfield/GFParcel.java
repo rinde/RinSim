@@ -2,8 +2,8 @@ package rinde.sim.examples.pdptw.gradientfield;
 
 import rinde.sim.core.graph.Point;
 import rinde.sim.core.model.pdp.PDPModel.ParcelState;
+import rinde.sim.core.pdptw.ParcelDTO;
 import rinde.sim.pdptw.common.DefaultParcel;
-import rinde.sim.pdptw.common.ParcelDTO;
 
 public class GFParcel extends DefaultParcel implements FieldEmitter {
   private Point pos;

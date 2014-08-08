@@ -3,7 +3,7 @@
  */
 package rinde.sim.pdptw.gendreau06;
 
-import java.util.Collection;
+import java.util.List;
 import java.util.Set;
 
 import javax.measure.Measure;
@@ -17,17 +17,17 @@ import javax.measure.unit.Unit;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 
+import rinde.sim.core.Simulator;
 import rinde.sim.core.graph.Point;
 import rinde.sim.core.model.Model;
 import rinde.sim.core.model.pdp.DefaultPDPModel;
 import rinde.sim.core.model.pdp.PDPModel;
 import rinde.sim.core.model.pdp.TimeWindowPolicy.TimeWindowPolicies;
 import rinde.sim.core.model.road.PlaneRoadModel;
-import rinde.sim.pdptw.common.DynamicPDPTWProblem.SimulationInfo;
 import rinde.sim.pdptw.common.DynamicPDPTWProblem.StopConditions;
 import rinde.sim.pdptw.common.PDPRoadModel;
 import rinde.sim.pdptw.scenario.Models;
-import rinde.sim.pdptw.scenario.PDPScenario;
+import rinde.sim.scenario.Scenario;
 import rinde.sim.scenario.TimedEvent;
 import rinde.sim.util.TimeWindow;
 
@@ -50,7 +50,7 @@ import com.google.common.collect.ImmutableList;
  * speed is expressed as km/h.
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
  */
-public final class Gendreau06Scenario extends PDPScenario {
+public final class Gendreau06Scenario extends Scenario {
   static final Point MIN = new Point(0, 0);
   static final Point MAX = new Point(5, 5);
   static final Measure<Double, Velocity> MAX_SPEED = Measure.valueOf(
@@ -61,7 +61,7 @@ public final class Gendreau06Scenario extends PDPScenario {
   private final int instanceNumber;
   private final boolean allowDiversion;
 
-  Gendreau06Scenario(Collection<? extends TimedEvent> pEvents,
+  Gendreau06Scenario(List<? extends TimedEvent> pEvents,
       Set<Enum<?>> pSupportedTypes, long ts, GendreauProblemClass problemClass,
       int instanceNumber, boolean diversion) {
     super(pEvents, pSupportedTypes);
@@ -88,7 +88,7 @@ public final class Gendreau06Scenario extends PDPScenario {
   }
 
   @Override
-  public Predicate<SimulationInfo> getStopCondition() {
+  public Predicate<Simulator> getStopCondition() {
     return Predicates.and(StopConditions.VEHICLES_DONE_AND_BACK_AT_DEPOT,
         StopConditions.TIME_OUT_EVENT);
   }

@@ -30,8 +30,8 @@ import rinde.sim.pdptw.gendreau06.Gendreau06ObjectiveFunction;
 import rinde.sim.pdptw.gendreau06.Gendreau06Parser;
 import rinde.sim.pdptw.gendreau06.Gendreau06Scenario;
 import rinde.sim.pdptw.scenario.Models;
-import rinde.sim.pdptw.scenario.PDPScenario;
 import rinde.sim.pdptw.scenario.ScenarioGenerator;
+import rinde.sim.scenario.Scenario;
 
 /**
  * Test for JPPF computation.
@@ -124,7 +124,7 @@ public class JppfTest {
   @Test
   public void determinismGeneratedScenarioLocalVsJppf() {
     final RandomGenerator rng = new MersenneTwister(123L);
-    final PDPScenario generatedScenario = ScenarioGenerator.builder()
+    final Scenario generatedScenario = ScenarioGenerator.builder()
         .addModel(Models.roadModel(20, true))
         .addModel(Models.pdpModel(TimeWindowPolicies.LIBERAL))
         .stopCondition(StopConditions.VEHICLES_DONE_AND_BACK_AT_DEPOT)

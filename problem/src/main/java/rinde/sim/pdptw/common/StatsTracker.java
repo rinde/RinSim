@@ -25,6 +25,7 @@ import java.util.Map;
 import rinde.sim.core.Simulator;
 import rinde.sim.core.Simulator.SimulatorEventType;
 import rinde.sim.core.graph.Point;
+import rinde.sim.core.model.Model;
 import rinde.sim.core.model.pdp.PDPModel;
 import rinde.sim.core.model.pdp.PDPModel.PDPModelEventType;
 import rinde.sim.core.model.pdp.PDPModelEvent;
@@ -47,7 +48,7 @@ import com.google.common.base.Optional;
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
  * 
  */
-final class StatsTracker {
+final class StatsTracker implements Model<Object> {
 
   final EventDispatcher eventDispatcher;
   final TheListener theListener;
@@ -239,9 +240,22 @@ final class StatsTracker {
     }
   }
 
-  static class StatisticsEvent extends Event {
-    private static final long serialVersionUID = 3941445489579790997L;
+  @Override
+  public boolean register(Object element) {
+    return true;
+  }
 
+  @Override
+  public boolean unregister(Object element) {
+    return true;
+  }
+
+  @Override
+  public Class<Object> getSupportedType() {
+    return Object.class;
+  }
+
+  static class StatisticsEvent extends Event {
     final Parcel parcel;
     final Vehicle vehicle;
     final long tardiness;
@@ -255,7 +269,5 @@ final class StatsTracker {
       tardiness = tar;
       time = tim;
     }
-
   }
-
 }
