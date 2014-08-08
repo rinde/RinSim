@@ -102,7 +102,19 @@ public final class ExperimentCli {
    * @param builder The instance to create a {@link Menu} for.
    * @return A newly constructed {@link Menu}.
    */
+
   public static Menu createMenu(Experiment.Builder builder) {
+    return createMenuBuilder(builder).build();
+  }
+
+  /**
+   * Creates a {@link rinde.sim.util.cli.Menu.Builder} for a
+   * {@link Experiment.Builder} instance. Via this instance the command-line
+   * interface menu can be extended.
+   * @param builder The experiment builder to create a menu builder for.
+   * @return A newly constructed menu builder.
+   */
+  public static Menu.Builder createMenuBuilder(Experiment.Builder builder) {
     final Map<String, MASConfiguration> cfgMap = createConfigMap(builder);
 
     final Menu.Builder menuBuilder = Menu.builder();
@@ -132,8 +144,7 @@ public final class ExperimentCli {
               .createDefaultMenu(builder.scenarioProviderBuilder
                   .get()));
     }
-
-    return menuBuilder.build();
+    return menuBuilder;
   }
 
   static OptionArg<Integer> createBatchesOpt(Builder expBuilder) {
