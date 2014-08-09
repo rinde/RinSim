@@ -17,10 +17,10 @@ import org.apache.commons.math3.stat.descriptive.SummaryStatistics;
 
 import rinde.sim.core.graph.Point;
 import rinde.sim.core.model.pdp.PDPScenarioEvent;
-import rinde.sim.core.pdptw.AddParcelEvent;
-import rinde.sim.core.pdptw.AddVehicleEvent;
 import rinde.sim.core.pdptw.ParcelDTO;
 import rinde.sim.pdptw.scenario.ScenarioGenerator.TravelTimes;
+import rinde.sim.scenario.AddParcelEvent;
+import rinde.sim.scenario.AddVehicleEvent;
 import rinde.sim.scenario.Scenario;
 import rinde.sim.scenario.TimedEvent;
 import rinde.sim.util.TimeWindow;

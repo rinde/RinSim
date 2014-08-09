@@ -40,7 +40,8 @@ import com.google.common.collect.ImmutableSet;
 
 /**
  * Scenario is an unmodifiable list of events sorted by the time stamp. To
- * obtain an instance use {@link #builder(ProblemClass)}.
+ * obtain an instance there are a number of builder methods available such as
+ * {@link #builder()}.
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
  * @author Bartosz Michalik <bartosz.michalik@cs.kuleuven.be>
  */
@@ -53,13 +54,24 @@ public abstract class Scenario {
   private final ImmutableList<TimedEvent> events;
   private final ImmutableSet<Enum<?>> supportedTypes;
 
+  /**
+   * Creates a new empty instance with no events or event types.
+   */
   protected Scenario() {
     events = ImmutableList.of();
     supportedTypes = ImmutableSet.of();
   }
 
+  /**
+   * Creates a new instance using a copy of the specified events and event
+   * types.
+   * @param evs A list of event sorted by time. It is the caller's
+   *          responsibility to ensure that the events are sorted, this is not
+   *          checked.
+   * @param ts A set of event types, it must contain at least all event types of
+   *          the events.
+   */
   protected Scenario(List<? extends TimedEvent> evs, Set<Enum<?>> ts) {
-    checkArgument(!ts.isEmpty(), "supported types must be a non-empty set");
     supportedTypes = ImmutableSet.copyOf(ts);
     events = ImmutableList.copyOf(evs);
   }
@@ -177,16 +189,25 @@ public abstract class Scenario {
     return ImmutableSet.copyOf(types);
   }
 
+  /**
+   * @return A new {@link Builder} instance with {@link #DEFAULT_PROBLEM_CLASS}.
+   */
   public static Builder builder() {
     return builder(DEFAULT_PROBLEM_CLASS);
   }
 
+  /**
+   * Copying builder. Creates a new builder that builds instances with the same
+   * properties as the specified scenario.
+   * @param scenario The scenario from which properties will be copied.
+   * @return A new {@link Builder} instance.
+   */
   public static Builder builder(Scenario scenario) {
     return builder(scenario.getProblemClass()).copyProperties(scenario);
   }
 
   /**
-   * Create a {@link Builder} to construct {@link PDPScenario} instances.
+   * Create a {@link Builder} to construct {@link Scenario} instances.
    * @param problemClass The problem class of the instance to construct.
    * @return A new {@link Builder} instance.
    */
@@ -194,6 +215,13 @@ public abstract class Scenario {
     return new Builder(problemClass);
   }
 
+  /**
+   * Creates a new {@link Builder} based on an existing builder. All properties
+   * will be copied from the specified builder into the newly created builder.
+   * @param base The builder to copy properties from.
+   * @param problemClass The {@link ProblemClass} the new builder should have.
+   * @return The newly constructed {@link Builder}.
+   */
   public static Builder builder(AbstractBuilder<?> base,
       ProblemClass problemClass) {
     return new Builder(Optional.<AbstractBuilder<?>> of(base), problemClass);
@@ -250,7 +278,7 @@ public abstract class Scenario {
   }
 
   /**
-   * A builder for constructing {@link PDPScenario} instances.
+   * A builder for constructing {@link Scenario} instances.
    * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
    */
   public static class Builder extends AbstractBuilder<Builder> {
@@ -467,6 +495,13 @@ public abstract class Scenario {
     }
   }
 
+  /**
+   * Abstract builder of {@link Scenario} instances. Provides methods for
+   * setting the basic properties of a scenario.
+   * 
+   * @param <T> The type of concrete builder.
+   * @author Rinde van Lon
+   */
   public abstract static class AbstractBuilder<T extends AbstractBuilder<T>> {
     static final Unit<Length> DEFAULT_DISTANCE_UNIT = SI.KILOMETER;
     static final Unit<Velocity> DEFAULT_SPEED_UNIT = NonSI.KILOMETERS_PER_HOUR;
@@ -474,18 +509,45 @@ public abstract class Scenario {
     static final long DEFAULT_TICK_SIZE = 1000L;
     static final TimeWindow DEFAULT_TIME_WINDOW = new TimeWindow(0,
         8 * 60 * 60 * 1000);
-    // FIXME null
     static final Predicate<Simulator> DEFAULT_STOP_CONDITION = Predicates
-        .alwaysFalse();// StopConditions.TIME_OUT_EVENT;
+        .alwaysFalse();
 
+    /**
+     * Defines {@link Scenario#getDistanceUnit()}.
+     */
     protected Unit<Length> distanceUnit;
+
+    /**
+     * Defines {@link Scenario#getSpeedUnit()}.
+     */
     protected Unit<Velocity> speedUnit;
+
+    /**
+     * Defines {@link Scenario#getTimeUnit()}.
+     */
     protected Unit<Duration> timeUnit;
+
+    /**
+     * Defines {@link Scenario#getTickSize()}.
+     */
     protected long tickSize;
+
+    /**
+     * Defines {@link Scenario#getTimeWindow()}.
+     */
     protected TimeWindow timeWindow;
+
+    /**
+     * Defines {@link Scenario#getStopCondition()}.
+     */
     protected Predicate<Simulator> stopCondition;
 
-    public AbstractBuilder(Optional<AbstractBuilder<?>> copy) {
+    /**
+     * Copying constructor. Copies all settings from the specified builder into
+     * this instance. If no builder is specified default values will be used.
+     * @param copy An existing builder or {@link Optional#absent()}.
+     */
+    protected AbstractBuilder(Optional<AbstractBuilder<?>> copy) {
       if (copy.isPresent()) {
         distanceUnit = copy.get().distanceUnit;
         speedUnit = copy.get().speedUnit;
@@ -568,8 +630,8 @@ public abstract class Scenario {
     }
 
     /**
-     * Set the condition when the scenario should stop. Some defaults are
-     * supplied in {@link StopConditions}.
+     * Set the condition when the scenario should stop. The default is to
+     * continue indefinitely via {@link Predicates#alwaysFalse()}.
      * @param condition The stop condition to set.
      * @return This, as per the builder pattern.
      */
@@ -593,33 +655,50 @@ public abstract class Scenario {
       return self();
     }
 
+    /**
+     * @return {@link Scenario#getDistanceUnit()}.
+     */
     public Unit<Length> getDistanceUnit() {
       return distanceUnit;
     }
 
+    /**
+     * @return {@link Scenario#getSpeedUnit()}.
+     */
     public Unit<Velocity> getSpeedUnit() {
       return speedUnit;
     }
 
+    /**
+     * @return {@link Scenario#getTimeUnit()}.
+     */
     public Unit<Duration> getTimeUnit() {
       return timeUnit;
     }
 
+    /**
+     * @return {@link Scenario#getTickSize()}.
+     */
     public long getTickSize() {
       return tickSize;
     }
 
+    /**
+     * @return {@link Scenario#getTimeWindow()}.
+     */
     public TimeWindow getTimeWindow() {
       return timeWindow;
     }
 
+    /**
+     * @return {@link Scenario#getStopCondition()}.
+     */
     public Predicate<Simulator> getStopCondition() {
       return stopCondition;
     }
-
   }
 
-  protected static class DefaultScenario extends Scenario {
+  static class DefaultScenario extends Scenario {
     final ImmutableList<? extends Supplier<? extends Model<?>>> modelSuppliers;
     private final Unit<Velocity> speedUnit;
     private final Unit<Length> distanceUnit;

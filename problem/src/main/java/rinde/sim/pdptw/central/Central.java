@@ -15,7 +15,6 @@ import rinde.sim.core.TimeLapse;
 import rinde.sim.core.model.Model;
 import rinde.sim.core.model.ModelProvider;
 import rinde.sim.core.model.ModelReceiver;
-import rinde.sim.core.pdptw.AddVehicleEvent;
 import rinde.sim.pdptw.central.Solvers.SimulationSolver;
 import rinde.sim.pdptw.central.Solvers.SolveArgs;
 import rinde.sim.pdptw.common.DefaultParcel;
@@ -24,6 +23,7 @@ import rinde.sim.pdptw.common.PDPRoadModel;
 import rinde.sim.pdptw.common.RouteFollowingVehicle;
 import rinde.sim.pdptw.experiment.DefaultMASConfiguration;
 import rinde.sim.pdptw.experiment.MASConfiguration;
+import rinde.sim.scenario.AddVehicleEvent;
 import rinde.sim.util.StochasticSupplier;
 
 import com.google.common.base.Optional;

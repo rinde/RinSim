@@ -9,9 +9,6 @@ import org.junit.Test;
 
 import rinde.sim.core.graph.Point;
 import rinde.sim.core.model.pdp.PDPScenarioEvent;
-import rinde.sim.core.pdptw.AddDepotEvent;
-import rinde.sim.core.pdptw.AddParcelEvent;
-import rinde.sim.core.pdptw.AddVehicleEvent;
 import rinde.sim.core.pdptw.ParcelDTO;
 import rinde.sim.core.pdptw.VehicleDTO;
 import rinde.sim.scenario.Scenario.ProblemClass;
@@ -32,9 +29,6 @@ public class ScenarioIOTest {
   public void test() {
     final Scenario.Builder sb = Scenario
         .builder(Scenario.DEFAULT_PROBLEM_CLASS);
-    // (PDPScenarioEvent.ADD_DEPOT,
-    // PDPScenarioEvent.ADD_PARCEL, PDPScenarioEvent.ADD_VEHICLE,
-    // PDPScenarioEvent.TIME_OUT);
 
     sb.addEvent(new AddVehicleEvent(100, VehicleDTO.builder()
         .startPosition(new Point(7, 7))
@@ -65,16 +59,7 @@ public class ScenarioIOTest {
     final List<ProblemClass> pcs = asList(TestProblemClass.TEST,
         new SimpleProblemClass("hello"));
     for (final ProblemClass pc : pcs) {
-      final Scenario s = sb.build();
-      // new ScenarioCreator<TestScenario>() {
-      // @Override
-      // public TestScenario create(List<TimedEvent> eventList,
-      // Set<Enum<?>> eventTypes) {
-      // return new TestScenario(eventList, new TimeWindow(0, 1000), 1000L, SI
-      // .MILLI(SI.SECOND), pc);
-      // }
-      // });
-
+      final Scenario s = sb.problemClass(pc).build();
       final String res = ScenarioIO.write(s);
       assertEquals(s, ScenarioIO.read(res));
     }
@@ -88,66 +73,4 @@ public class ScenarioIOTest {
       return name();
     }
   }
-
-  // static class TestScenario extends PDPScenario {
-  // final TimeWindow timeWindow;
-  // final long tickSize;
-  // final Unit<Duration> timeUnit;
-  // final ProblemClass problemClass;
-  //
-  // public TestScenario(Collection<? extends TimedEvent> events, TimeWindow tw,
-  // long ts, Unit<Duration> tu, ProblemClass pc) {
-  // super(events, ImmutableSet.<Enum<?>> copyOf(PDPScenarioEvent.values()));
-  // timeWindow = tw;
-  // tickSize = ts;
-  // timeUnit = tu;
-  // problemClass = pc;
-  // }
-  //
-  // @Override
-  // public ImmutableList<? extends Supplier<? extends Model<?>>>
-  // getModelSuppliers() {
-  // throw new UnsupportedOperationException();
-  // }
-  //
-  // @Override
-  // public TimeWindow getTimeWindow() {
-  // return timeWindow;
-  // }
-  //
-  // @Override
-  // public long getTickSize() {
-  // return tickSize;
-  // }
-  //
-  // @Override
-  // public Predicate<Simulator> getStopCondition() {
-  // throw new UnsupportedOperationException();
-  // }
-  //
-  // @Override
-  // public Unit<Duration> getTimeUnit() {
-  // return timeUnit;
-  // }
-  //
-  // @Override
-  // public Unit<Velocity> getSpeedUnit() {
-  // throw new UnsupportedOperationException();
-  // }
-  //
-  // @Override
-  // public Unit<Length> getDistanceUnit() {
-  // throw new UnsupportedOperationException();
-  // }
-  //
-  // @Override
-  // public ProblemClass getProblemClass() {
-  // return problemClass;
-  // }
-  //
-  // @Override
-  // public String getProblemInstanceId() {
-  // throw new UnsupportedOperationException();
-  // }
-  // }
 }

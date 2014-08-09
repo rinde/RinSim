@@ -4,7 +4,7 @@ import org.apache.commons.math3.random.MersenneTwister;
 import org.apache.commons.math3.random.RandomGenerator;
 
 import rinde.sim.core.graph.Point;
-import rinde.sim.core.pdptw.AddDepotEvent;
+import rinde.sim.scenario.AddDepotEvent;
 import rinde.sim.util.StochasticSupplier;
 import rinde.sim.util.StochasticSuppliers;
 

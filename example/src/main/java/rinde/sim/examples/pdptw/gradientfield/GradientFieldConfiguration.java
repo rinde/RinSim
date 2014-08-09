@@ -2,10 +2,10 @@ package rinde.sim.examples.pdptw.gradientfield;
 
 import rinde.sim.core.Simulator;
 import rinde.sim.core.model.Model;
-import rinde.sim.core.pdptw.AddParcelEvent;
-import rinde.sim.core.pdptw.AddVehicleEvent;
 import rinde.sim.pdptw.common.DynamicPDPTWProblem.Creator;
 import rinde.sim.pdptw.experiment.DefaultMASConfiguration;
+import rinde.sim.scenario.AddParcelEvent;
+import rinde.sim.scenario.AddVehicleEvent;
 import rinde.sim.util.StochasticSupplier;
 
 import com.google.common.base.Optional;

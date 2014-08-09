@@ -1,7 +1,7 @@
-package rinde.sim.core.pdptw;
+package rinde.sim.scenario;
 
 import rinde.sim.core.model.pdp.PDPScenarioEvent;
-import rinde.sim.scenario.TimedEvent;
+import rinde.sim.core.pdptw.ParcelDTO;
 
 /**
  * Event indicating that a parcel can be created.

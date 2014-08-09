@@ -13,13 +13,13 @@ import rinde.sim.core.model.pdp.PDPModel.ParcelState;
 import rinde.sim.core.model.road.RoadModel;
 import rinde.sim.core.model.road.RoadModels;
 import rinde.sim.core.model.road.RoadUser;
-import rinde.sim.core.pdptw.AddVehicleEvent;
 import rinde.sim.core.pdptw.VehicleDTO;
 import rinde.sim.pdptw.common.DefaultParcel;
 import rinde.sim.pdptw.common.DefaultVehicle;
 import rinde.sim.pdptw.common.DynamicPDPTWProblem;
 import rinde.sim.pdptw.common.DynamicPDPTWProblem.Creator;
 import rinde.sim.pdptw.common.DynamicPDPTWProblem.DefaultUICreator;
+import rinde.sim.scenario.AddVehicleEvent;
 import rinde.sim.ui.View;
 import rinde.sim.ui.renderers.Renderer;
 

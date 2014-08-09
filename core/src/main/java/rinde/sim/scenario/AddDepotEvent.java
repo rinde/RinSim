@@ -1,11 +1,10 @@
 /**
  * 
  */
-package rinde.sim.core.pdptw;
+package rinde.sim.scenario;
 
 import rinde.sim.core.graph.Point;
 import rinde.sim.core.model.pdp.PDPScenarioEvent;
-import rinde.sim.scenario.TimedEvent;
 
 /**
  * Event indicating that a depot can be created.
@@ -20,11 +19,11 @@ public class AddDepotEvent extends TimedEvent {
 
   /**
    * Create a new instance.
-   * @param time The time at which the event is to be dispatched.
+   * @param t The time at which the event is to be dispatched.
    * @param pPosition {@link #position}
    */
-  public AddDepotEvent(long time, Point pPosition) {
-    super(PDPScenarioEvent.ADD_DEPOT, time);
+  public AddDepotEvent(long t, Point pPosition) {
+    super(PDPScenarioEvent.ADD_DEPOT, t);
     position = pPosition;
   }
 

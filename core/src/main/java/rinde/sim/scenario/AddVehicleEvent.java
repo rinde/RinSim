@@ -1,10 +1,10 @@
 /**
  * 
  */
-package rinde.sim.core.pdptw;
+package rinde.sim.scenario;
 
 import rinde.sim.core.model.pdp.PDPScenarioEvent;
-import rinde.sim.scenario.TimedEvent;
+import rinde.sim.core.pdptw.VehicleDTO;
 
 /**
  * Event indicating that a vehicle can be created.
@@ -19,12 +19,11 @@ public class AddVehicleEvent extends TimedEvent {
 
   /**
    * New instance.
-   * @param time {@link TimedEvent#time}
+   * @param t {@link TimedEvent#time}
    * @param dto {@link #vehicleDTO}
    */
-  public AddVehicleEvent(long time, VehicleDTO dto) {
-    super(PDPScenarioEvent.ADD_VEHICLE, time);
+  public AddVehicleEvent(long t, VehicleDTO dto) {
+    super(PDPScenarioEvent.ADD_VEHICLE, t);
     vehicleDTO = dto;
   }
-
 }

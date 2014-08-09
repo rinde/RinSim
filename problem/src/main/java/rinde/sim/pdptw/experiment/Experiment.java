@@ -20,14 +20,14 @@ import org.apache.commons.math3.random.MersenneTwister;
 import org.apache.commons.math3.random.RandomGenerator;
 
 import rinde.sim.core.model.Model;
-import rinde.sim.core.pdptw.AddDepotEvent;
-import rinde.sim.core.pdptw.AddParcelEvent;
-import rinde.sim.core.pdptw.AddVehicleEvent;
 import rinde.sim.pdptw.common.DynamicPDPTWProblem;
 import rinde.sim.pdptw.common.ObjectiveFunction;
 import rinde.sim.pdptw.common.RouteRenderer;
 import rinde.sim.pdptw.common.StatisticsDTO;
 import rinde.sim.pdptw.experiment.LocalComputer.ExperimentRunner;
+import rinde.sim.scenario.AddDepotEvent;
+import rinde.sim.scenario.AddParcelEvent;
+import rinde.sim.scenario.AddVehicleEvent;
 import rinde.sim.scenario.Scenario;
 import rinde.sim.scenario.ScenarioController.UICreator;
 import rinde.sim.scenario.ScenarioIO;

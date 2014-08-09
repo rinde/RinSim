@@ -10,12 +10,12 @@ import org.apache.commons.math3.random.MersenneTwister;
 import org.apache.commons.math3.random.RandomGenerator;
 
 import rinde.sim.core.graph.Point;
-import rinde.sim.core.pdptw.AddParcelEvent;
 import rinde.sim.core.pdptw.ParcelDTO;
 import rinde.sim.pdptw.scenario.Locations.LocationGenerator;
 import rinde.sim.pdptw.scenario.ScenarioGenerator.TravelTimes;
 import rinde.sim.pdptw.scenario.TimeSeries.TimeSeriesGenerator;
 import rinde.sim.pdptw.scenario.TimeWindows.TimeWindowGenerator;
+import rinde.sim.scenario.AddParcelEvent;
 import rinde.sim.util.StochasticSupplier;
 import rinde.sim.util.StochasticSuppliers;
 

@@ -31,12 +31,12 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import rinde.sim.core.graph.Point;
-import rinde.sim.core.pdptw.AddDepotEvent;
-import rinde.sim.core.pdptw.AddParcelEvent;
-import rinde.sim.core.pdptw.AddVehicleEvent;
 import rinde.sim.core.pdptw.ParcelDTO;
 import rinde.sim.core.pdptw.VehicleDTO;
 import rinde.sim.scenario.Scenario.ProblemClass;
+import rinde.sim.scenario.AddDepotEvent;
+import rinde.sim.scenario.AddParcelEvent;
+import rinde.sim.scenario.AddVehicleEvent;
 import rinde.sim.scenario.TimedEvent;
 import rinde.sim.scenario.TimedEvent.TimeComparator;
 import rinde.sim.util.TimeWindow;

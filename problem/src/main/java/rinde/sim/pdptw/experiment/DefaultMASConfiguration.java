@@ -6,9 +6,9 @@ package rinde.sim.pdptw.experiment;
 import java.io.Serializable;
 
 import rinde.sim.core.model.Model;
-import rinde.sim.core.pdptw.AddDepotEvent;
-import rinde.sim.core.pdptw.AddParcelEvent;
 import rinde.sim.pdptw.common.DynamicPDPTWProblem.Creator;
+import rinde.sim.scenario.AddDepotEvent;
+import rinde.sim.scenario.AddParcelEvent;
 import rinde.sim.util.StochasticSupplier;
 
 import com.google.common.base.Optional;
