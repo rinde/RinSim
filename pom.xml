@@ -332,8 +332,20 @@
 			</dependency>
 			<dependency>
 				<groupId>com.github.rinde</groupId>
+				<artifactId>rinsim-event</artifactId>
+				<version>${project.version}</version>
+				<type>test-jar</type>
+			</dependency>
+			<dependency>
+				<groupId>com.github.rinde</groupId>
 				<artifactId>rinsim-cli</artifactId>
 				<version>${project.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>com.github.rinde</groupId>
+				<artifactId>rinsim-cli</artifactId>
+				<version>${project.version}</version>
+				<type>test-jar</type>
 			</dependency>
 			<dependency>
 				<groupId>com.github.rinde</groupId>
@@ -350,7 +362,6 @@
 				<artifactId>rinsim-core</artifactId>
 				<version>${project.version}</version>
 				<type>test-jar</type>
-				<scope>test</scope>
 			</dependency>
 			<dependency>
 				<groupId>com.github.rinde</groupId>
@@ -362,7 +373,6 @@
 				<artifactId>rinsim-ui</artifactId>
 				<version>${project.version}</version>
 				<type>test-jar</type>
-				<scope>test</scope>
 			</dependency>
 			<dependency>
 				<groupId>com.github.rinde</groupId>
@@ -372,6 +382,12 @@
 			<dependency>
 				<groupId>com.github.rinde</groupId>
 				<artifactId>rinsim-geom</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>com.github.rinde</groupId>
+				<artifactId>rinsim-geom</artifactId>
+				<type>test-jar</type>
 				<version>${project.version}</version>
 			</dependency>
 			<dependency>

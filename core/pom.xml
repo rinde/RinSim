@@ -61,6 +61,12 @@
 		<dependency>
 			<groupId>com.github.rinde</groupId>
 			<artifactId>rinsim-event</artifactId>
+			<type>test-jar</type>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.github.rinde</groupId>
+			<artifactId>rinsim-event</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>com.github.rinde</groupId>
@@ -69,6 +75,12 @@
 		<dependency>
 			<groupId>com.github.rinde</groupId>
 			<artifactId>rinsim-geom</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>com.github.rinde</groupId>
+			<artifactId>rinsim-geom</artifactId>
+			<type>test-jar</type>
+			<scope>test</scope>
 		</dependency>
 	</dependencies>
 </project>
