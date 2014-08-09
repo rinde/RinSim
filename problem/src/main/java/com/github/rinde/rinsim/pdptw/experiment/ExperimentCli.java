@@ -6,16 +6,16 @@ import static com.google.common.collect.Lists.newArrayList;
 import java.util.List;
 import java.util.Map;
 
+import com.github.rinde.rinsim.cli.ArgHandler;
+import com.github.rinde.rinsim.cli.ArgumentParser;
+import com.github.rinde.rinsim.cli.Menu;
+import com.github.rinde.rinsim.cli.NoArgHandler;
+import com.github.rinde.rinsim.cli.Option;
+import com.github.rinde.rinsim.cli.Option.OptionArg;
+import com.github.rinde.rinsim.cli.Option.OptionNoArg;
+import com.github.rinde.rinsim.io.FileProviderCli;
 import com.github.rinde.rinsim.pdptw.experiment.Experiment.Builder;
 import com.github.rinde.rinsim.pdptw.experiment.Experiment.Computers;
-import com.github.rinde.rinsim.util.cli.ArgHandler;
-import com.github.rinde.rinsim.util.cli.ArgumentParser;
-import com.github.rinde.rinsim.util.cli.Menu;
-import com.github.rinde.rinsim.util.cli.NoArgHandler;
-import com.github.rinde.rinsim.util.cli.Option;
-import com.github.rinde.rinsim.util.cli.Option.OptionArg;
-import com.github.rinde.rinsim.util.cli.Option.OptionNoArg;
-import com.github.rinde.rinsim.util.io.FileProviderCli;
 import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
@@ -107,7 +107,7 @@ public final class ExperimentCli {
   }
 
   /**
-   * Creates a {@link com.github.rinde.rinsim.util.cli.Menu.Builder} for a
+   * Creates a {@link com.github.rinde.rinsim.cli.Menu.Builder} for a
    * {@link Experiment.Builder} instance. Via this instance the command-line
    * interface menu can be extended.
    * @param builder The experiment builder to create a menu builder for.

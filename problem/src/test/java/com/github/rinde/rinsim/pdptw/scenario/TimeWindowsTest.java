@@ -21,8 +21,8 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 
-import com.github.rinde.rinsim.core.graph.Point;
 import com.github.rinde.rinsim.core.pdptw.ParcelDTO;
+import com.github.rinde.rinsim.geom.Point;
 import com.github.rinde.rinsim.pdptw.scenario.Metrics;
 import com.github.rinde.rinsim.pdptw.scenario.TimeWindows;
 import com.github.rinde.rinsim.pdptw.scenario.ScenarioGenerator.TravelTimes;

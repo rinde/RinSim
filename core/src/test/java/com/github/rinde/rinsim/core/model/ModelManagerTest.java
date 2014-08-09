@@ -17,16 +17,16 @@ import javax.measure.unit.SI;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.github.rinde.rinsim.core.graph.ConnectionData;
-import com.github.rinde.rinsim.core.graph.Graph;
-import com.github.rinde.rinsim.core.graph.LengthData;
-import com.github.rinde.rinsim.core.graph.MultimapGraph;
 import com.github.rinde.rinsim.core.model.AbstractModel;
 import com.github.rinde.rinsim.core.model.Model;
 import com.github.rinde.rinsim.core.model.ModelManager;
 import com.github.rinde.rinsim.core.model.road.GraphRoadModel;
 import com.github.rinde.rinsim.core.model.road.RoadModel;
 import com.github.rinde.rinsim.core.model.road.RoadUser;
+import com.github.rinde.rinsim.geom.ConnectionData;
+import com.github.rinde.rinsim.geom.Graph;
+import com.github.rinde.rinsim.geom.LengthData;
+import com.github.rinde.rinsim.geom.MultimapGraph;
 
 public class ModelManagerTest {
 

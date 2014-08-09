@@ -3,10 +3,10 @@
  */
 package com.github.rinde.rinsim.pdptw.common;
 
-import com.github.rinde.rinsim.core.graph.Point;
 import com.github.rinde.rinsim.core.model.pdp.Depot;
 import com.github.rinde.rinsim.core.model.pdp.PDPModel;
 import com.github.rinde.rinsim.core.model.road.RoadModel;
+import com.github.rinde.rinsim.geom.Point;
 
 /**
  * A default {@link Depot} implementation, it does nothing.

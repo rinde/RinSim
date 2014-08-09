@@ -9,8 +9,8 @@ import java.util.List;
 import org.apache.commons.math3.random.MersenneTwister;
 import org.apache.commons.math3.random.RandomGenerator;
 
-import com.github.rinde.rinsim.core.graph.Point;
 import com.github.rinde.rinsim.core.pdptw.ParcelDTO;
+import com.github.rinde.rinsim.geom.Point;
 import com.github.rinde.rinsim.pdptw.scenario.Locations.LocationGenerator;
 import com.github.rinde.rinsim.pdptw.scenario.ScenarioGenerator.TravelTimes;
 import com.github.rinde.rinsim.pdptw.scenario.TimeSeries.TimeSeriesGenerator;

@@ -12,14 +12,14 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 
-import com.github.rinde.rinsim.core.graph.Connection;
-import com.github.rinde.rinsim.core.graph.ConnectionData;
-import com.github.rinde.rinsim.core.graph.Graph;
-import com.github.rinde.rinsim.core.graph.LengthData;
-import com.github.rinde.rinsim.core.graph.Point;
-import com.github.rinde.rinsim.core.graph.TestMultimapGraph;
-import com.github.rinde.rinsim.core.graph.TestTableGraph;
 import com.github.rinde.rinsim.core.model.road.GraphRoadModel;
+import com.github.rinde.rinsim.geom.Connection;
+import com.github.rinde.rinsim.geom.ConnectionData;
+import com.github.rinde.rinsim.geom.Graph;
+import com.github.rinde.rinsim.geom.LengthData;
+import com.github.rinde.rinsim.geom.Point;
+import com.github.rinde.rinsim.geom.TestMultimapGraph;
+import com.github.rinde.rinsim.geom.TestTableGraph;
 
 /**
  * Test whether points are value objects

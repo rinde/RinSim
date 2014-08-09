@@ -25,8 +25,8 @@ import org.apache.commons.math3.random.RandomGenerator;
 import org.apache.commons.math3.stat.descriptive.moment.StandardDeviation;
 import org.junit.Test;
 
-import com.github.rinde.rinsim.core.graph.Point;
 import com.github.rinde.rinsim.core.pdptw.ParcelDTO;
+import com.github.rinde.rinsim.geom.Point;
 import com.github.rinde.rinsim.pdptw.scenario.Metrics;
 import com.github.rinde.rinsim.pdptw.scenario.Metrics.LoadPart;
 import com.github.rinde.rinsim.scenario.AddParcelEvent;

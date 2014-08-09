@@ -22,13 +22,14 @@ import org.junit.Before;
 import org.junit.Test;
 
 import com.github.rinde.rinsim.core.Simulator;
-import com.github.rinde.rinsim.core.graph.Point;
 import com.github.rinde.rinsim.core.model.pdp.DefaultPDPModel;
 import com.github.rinde.rinsim.core.model.pdp.PDPModel;
 import com.github.rinde.rinsim.core.model.pdp.TimeWindowPolicy.TimeWindowPolicies;
 import com.github.rinde.rinsim.core.model.road.PlaneRoadModel;
 import com.github.rinde.rinsim.core.pdptw.ParcelDTO;
 import com.github.rinde.rinsim.core.pdptw.VehicleDTO;
+import com.github.rinde.rinsim.fsm.State;
+import com.github.rinde.rinsim.geom.Point;
 import com.github.rinde.rinsim.pdptw.central.Central;
 import com.github.rinde.rinsim.pdptw.central.Solver;
 import com.github.rinde.rinsim.pdptw.central.SolverValidator;
@@ -51,7 +52,6 @@ import com.github.rinde.rinsim.pdptw.gendreau06.Gendreau06Parser;
 import com.github.rinde.rinsim.pdptw.gendreau06.Gendreau06Scenario;
 import com.github.rinde.rinsim.util.StochasticSupplier;
 import com.github.rinde.rinsim.util.TimeWindow;
-import com.github.rinde.rinsim.util.fsm.State;
 
 /**
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>

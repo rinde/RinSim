@@ -13,8 +13,8 @@ import java.util.List;
 import org.junit.Test;
 
 import com.github.rinde.rinsim.core.Simulator;
-import com.github.rinde.rinsim.core.graph.Point;
 import com.github.rinde.rinsim.core.model.road.RoadModel;
+import com.github.rinde.rinsim.geom.Point;
 import com.github.rinde.rinsim.pdptw.central.Central;
 import com.github.rinde.rinsim.pdptw.central.RandomSolver;
 import com.github.rinde.rinsim.pdptw.common.DynamicPDPTWProblem;

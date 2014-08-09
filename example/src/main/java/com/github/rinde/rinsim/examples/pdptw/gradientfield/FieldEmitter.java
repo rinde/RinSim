@@ -1,6 +1,6 @@
 package com.github.rinde.rinsim.examples.pdptw.gradientfield;
 
-import com.github.rinde.rinsim.core.graph.Point;
+import com.github.rinde.rinsim.geom.Point;
 
 public interface FieldEmitter {
 

@@ -7,13 +7,13 @@ import java.io.Reader;
 import java.io.Writer;
 import java.util.HashMap;
 
-import com.github.rinde.rinsim.core.graph.Connection;
-import com.github.rinde.rinsim.core.graph.ConnectionData;
-import com.github.rinde.rinsim.core.graph.Graph;
-import com.github.rinde.rinsim.core.graph.LengthData;
-import com.github.rinde.rinsim.core.graph.MultiAttributeData;
-import com.github.rinde.rinsim.core.graph.MultimapGraph;
-import com.github.rinde.rinsim.core.graph.Point;
+import com.github.rinde.rinsim.geom.Connection;
+import com.github.rinde.rinsim.geom.ConnectionData;
+import com.github.rinde.rinsim.geom.Graph;
+import com.github.rinde.rinsim.geom.LengthData;
+import com.github.rinde.rinsim.geom.MultiAttributeData;
+import com.github.rinde.rinsim.geom.MultimapGraph;
+import com.github.rinde.rinsim.geom.Point;
 
 /**
  * Dot format serializer for a road model graph. Allows for reading storing maps

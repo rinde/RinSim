@@ -16,7 +16,6 @@ import org.junit.Test;
 
 import com.github.rinde.rinsim.core.TimeLapse;
 import com.github.rinde.rinsim.core.TimeLapseFactory;
-import com.github.rinde.rinsim.core.graph.Point;
 import com.github.rinde.rinsim.core.model.ModelProvider;
 import com.github.rinde.rinsim.core.model.TestModelProvider;
 import com.github.rinde.rinsim.core.model.pdp.DefaultPDPModel;
@@ -28,6 +27,7 @@ import com.github.rinde.rinsim.core.model.road.PlaneRoadModel;
 import com.github.rinde.rinsim.core.model.road.RoadModel;
 import com.github.rinde.rinsim.core.pdptw.ParcelDTO;
 import com.github.rinde.rinsim.core.pdptw.VehicleDTO;
+import com.github.rinde.rinsim.geom.Point;
 import com.github.rinde.rinsim.pdptw.common.DefaultDepot;
 import com.github.rinde.rinsim.pdptw.common.DefaultParcel;
 import com.github.rinde.rinsim.pdptw.common.DefaultVehicle;

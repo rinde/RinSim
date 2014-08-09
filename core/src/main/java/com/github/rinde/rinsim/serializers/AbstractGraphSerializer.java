@@ -13,8 +13,8 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.io.Writer;
 
-import com.github.rinde.rinsim.core.graph.ConnectionData;
-import com.github.rinde.rinsim.core.graph.Graph;
+import com.github.rinde.rinsim.geom.ConnectionData;
+import com.github.rinde.rinsim.geom.Graph;
 
 /**
  * Common interface for graph serialization deserialization

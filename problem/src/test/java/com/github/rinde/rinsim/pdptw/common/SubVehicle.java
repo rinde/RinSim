@@ -3,8 +3,8 @@ package com.github.rinde.rinsim.pdptw.common;
 import javax.annotation.Nullable;
 
 import com.github.rinde.rinsim.core.pdptw.VehicleDTO;
+import com.github.rinde.rinsim.fsm.StateMachine;
 import com.github.rinde.rinsim.pdptw.common.RouteFollowingVehicle;
-import com.github.rinde.rinsim.util.fsm.StateMachine;
 
 class SubVehicle extends RouteFollowingVehicle {
   final ExtraState extraState;

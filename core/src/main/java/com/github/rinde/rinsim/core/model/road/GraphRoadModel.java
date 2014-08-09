@@ -3,8 +3,8 @@
  */
 package com.github.rinde.rinsim.core.model.road;
 
-import static com.github.rinde.rinsim.core.graph.Graphs.shortestPathEuclideanDistance;
-import static com.github.rinde.rinsim.core.graph.Graphs.unmodifiableGraph;
+import static com.github.rinde.rinsim.geom.Graphs.shortestPathEuclideanDistance;
+import static com.github.rinde.rinsim.geom.Graphs.unmodifiableGraph;
 import static com.google.common.base.Preconditions.checkArgument;
 
 import java.math.RoundingMode;
@@ -23,12 +23,12 @@ import javax.measure.unit.Unit;
 import org.apache.commons.math3.random.RandomGenerator;
 
 import com.github.rinde.rinsim.core.TimeLapse;
-import com.github.rinde.rinsim.core.graph.Connection;
-import com.github.rinde.rinsim.core.graph.ConnectionData;
-import com.github.rinde.rinsim.core.graph.Graph;
-import com.github.rinde.rinsim.core.graph.MultiAttributeData;
-import com.github.rinde.rinsim.core.graph.Point;
 import com.github.rinde.rinsim.core.model.road.GraphRoadModel.Loc;
+import com.github.rinde.rinsim.geom.Connection;
+import com.github.rinde.rinsim.geom.ConnectionData;
+import com.github.rinde.rinsim.geom.Graph;
+import com.github.rinde.rinsim.geom.MultiAttributeData;
+import com.github.rinde.rinsim.geom.Point;
 import com.google.common.collect.ImmutableList;
 import com.google.common.math.DoubleMath;
 
@@ -354,7 +354,7 @@ public class GraphRoadModel extends AbstractRoadModel<Loc> {
 
   /**
    * Uses the A* algorithm:
-   * {@link com.github.rinde.rinsim.core.graph.Graphs#shortestPathEuclideanDistance}. This
+   * {@link com.github.rinde.rinsim.geom.Graphs#shortestPathEuclideanDistance}. This
    * method can optionally be overridden by subclasses to define another
    * shortest path algorithm.
    * @param from The start point of the path.

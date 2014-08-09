@@ -13,8 +13,8 @@ import javax.measure.quantity.Length;
 import javax.measure.quantity.Velocity;
 import javax.measure.unit.Unit;
 
-import com.github.rinde.rinsim.core.graph.Graph;
-import com.github.rinde.rinsim.core.graph.Point;
+import com.github.rinde.rinsim.geom.Graph;
+import com.github.rinde.rinsim.geom.Point;
 import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Multimap;

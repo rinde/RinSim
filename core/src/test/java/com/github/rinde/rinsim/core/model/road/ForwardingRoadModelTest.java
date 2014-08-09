@@ -13,13 +13,13 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 
-import com.github.rinde.rinsim.core.graph.Graph;
-import com.github.rinde.rinsim.core.graph.Point;
-import com.github.rinde.rinsim.core.graph.TestMultimapGraph;
 import com.github.rinde.rinsim.core.model.road.ForwardingRoadModel;
 import com.github.rinde.rinsim.core.model.road.GenericRoadModel;
 import com.github.rinde.rinsim.core.model.road.GraphRoadModel;
 import com.github.rinde.rinsim.core.model.road.PlaneRoadModel;
+import com.github.rinde.rinsim.geom.Graph;
+import com.github.rinde.rinsim.geom.Point;
+import com.github.rinde.rinsim.geom.TestMultimapGraph;
 
 /**
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>

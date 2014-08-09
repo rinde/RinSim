@@ -22,7 +22,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.github.rinde.rinsim.core.TimeLapse;
-import com.github.rinde.rinsim.core.graph.Point;
 import com.github.rinde.rinsim.core.model.pdp.PDPModel;
 import com.github.rinde.rinsim.core.model.pdp.Parcel;
 import com.github.rinde.rinsim.core.model.pdp.PDPModel.ParcelState;
@@ -32,10 +31,11 @@ import com.github.rinde.rinsim.core.model.road.RoadModels;
 import com.github.rinde.rinsim.core.pdptw.VehicleDTO;
 import com.github.rinde.rinsim.event.Event;
 import com.github.rinde.rinsim.event.Listener;
-import com.github.rinde.rinsim.util.fsm.AbstractState;
-import com.github.rinde.rinsim.util.fsm.StateMachine;
-import com.github.rinde.rinsim.util.fsm.StateMachine.StateMachineEvent;
-import com.github.rinde.rinsim.util.fsm.StateMachine.StateTransitionEvent;
+import com.github.rinde.rinsim.fsm.AbstractState;
+import com.github.rinde.rinsim.fsm.StateMachine;
+import com.github.rinde.rinsim.fsm.StateMachine.StateMachineEvent;
+import com.github.rinde.rinsim.fsm.StateMachine.StateTransitionEvent;
+import com.github.rinde.rinsim.geom.Point;
 import com.google.common.base.Optional;
 import com.google.common.math.DoubleMath;
 

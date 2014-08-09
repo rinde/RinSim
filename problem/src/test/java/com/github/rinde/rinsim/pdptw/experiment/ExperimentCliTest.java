@@ -1,6 +1,6 @@
 package com.github.rinde.rinsim.pdptw.experiment;
 
-import static com.github.rinde.rinsim.util.cli.CliTest.testFail;
+import static com.github.rinde.rinsim.cli.CliTest.testFail;
 import static com.google.common.collect.Sets.newHashSet;
 import static org.junit.Assert.assertEquals;
 
@@ -10,6 +10,9 @@ import java.nio.file.Paths;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.github.rinde.rinsim.cli.Menu;
+import com.github.rinde.rinsim.cli.CliException.CauseType;
+import com.github.rinde.rinsim.io.FileProvider;
 import com.github.rinde.rinsim.pdptw.central.Central;
 import com.github.rinde.rinsim.pdptw.central.RandomSolver;
 import com.github.rinde.rinsim.pdptw.experiment.Experiment;
@@ -18,9 +21,6 @@ import com.github.rinde.rinsim.pdptw.experiment.MASConfiguration;
 import com.github.rinde.rinsim.pdptw.experiment.Experiment.Builder;
 import com.github.rinde.rinsim.pdptw.gendreau06.Gendreau06ObjectiveFunction;
 import com.github.rinde.rinsim.pdptw.gendreau06.Gendreau06Parser;
-import com.github.rinde.rinsim.util.cli.Menu;
-import com.github.rinde.rinsim.util.cli.CliException.CauseType;
-import com.github.rinde.rinsim.util.io.FileProvider;
 
 /**
  * Test for commandline interface of experiment.

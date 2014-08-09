@@ -20,7 +20,6 @@ import com.github.rinde.rinsim.core.SimulatorAPI;
 import com.github.rinde.rinsim.core.SimulatorUser;
 import com.github.rinde.rinsim.core.TickListener;
 import com.github.rinde.rinsim.core.TimeLapse;
-import com.github.rinde.rinsim.core.graph.Point;
 import com.github.rinde.rinsim.core.model.communication.CommunicationAPI;
 import com.github.rinde.rinsim.core.model.communication.CommunicationUser;
 import com.github.rinde.rinsim.core.model.communication.Mailbox;
@@ -28,6 +27,7 @@ import com.github.rinde.rinsim.core.model.communication.Message;
 import com.github.rinde.rinsim.core.model.road.MovingRoadUser;
 import com.github.rinde.rinsim.core.model.road.RoadModel;
 import com.github.rinde.rinsim.core.model.road.RoadUser;
+import com.github.rinde.rinsim.geom.Point;
 import com.google.common.base.Optional;
 
 /**

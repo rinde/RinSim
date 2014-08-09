@@ -15,7 +15,10 @@
 		<dependency>
 			<groupId>com.github.rinde</groupId>
 			<artifactId>rinsim-core</artifactId>
-			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.github.rinde</groupId>
+			<artifactId>rinsim-geom</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>org.eclipse.swt</groupId>

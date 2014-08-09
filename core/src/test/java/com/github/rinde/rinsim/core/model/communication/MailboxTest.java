@@ -8,11 +8,11 @@ import java.util.Queue;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.github.rinde.rinsim.core.graph.Point;
 import com.github.rinde.rinsim.core.model.communication.CommunicationAPI;
 import com.github.rinde.rinsim.core.model.communication.CommunicationUser;
 import com.github.rinde.rinsim.core.model.communication.Mailbox;
 import com.github.rinde.rinsim.core.model.communication.Message;
+import com.github.rinde.rinsim.geom.Point;
 
 public class MailboxTest {
 

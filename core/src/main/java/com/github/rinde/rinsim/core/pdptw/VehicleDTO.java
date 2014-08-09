@@ -9,7 +9,7 @@ import java.util.Objects;
 
 import javax.annotation.Nullable;
 
-import com.github.rinde.rinsim.core.graph.Point;
+import com.github.rinde.rinsim.geom.Point;
 import com.github.rinde.rinsim.util.TimeWindow;
 
 /**

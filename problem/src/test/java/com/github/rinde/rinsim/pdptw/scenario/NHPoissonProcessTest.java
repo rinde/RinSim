@@ -15,7 +15,7 @@ import org.apache.commons.math3.stat.descriptive.moment.StandardDeviation;
 import org.junit.Ignore;
 import org.junit.Test;
 
-import com.github.rinde.rinsim.core.graph.Point;
+import com.github.rinde.rinsim.geom.Point;
 import com.github.rinde.rinsim.pdptw.scenario.IntensityFunctions;
 import com.github.rinde.rinsim.pdptw.scenario.Metrics;
 import com.github.rinde.rinsim.pdptw.scenario.TimeSeries;

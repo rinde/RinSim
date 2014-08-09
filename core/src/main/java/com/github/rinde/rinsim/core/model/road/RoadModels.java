@@ -14,8 +14,8 @@ import javax.measure.quantity.Velocity;
 import javax.measure.unit.SI;
 import javax.measure.unit.Unit;
 
-import com.github.rinde.rinsim.core.graph.Graphs;
-import com.github.rinde.rinsim.core.graph.Point;
+import com.github.rinde.rinsim.geom.Graphs;
+import com.github.rinde.rinsim.geom.Point;
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Collections2;

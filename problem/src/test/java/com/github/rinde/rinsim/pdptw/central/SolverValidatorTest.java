@@ -7,9 +7,9 @@ import javax.measure.unit.SI;
 
 import org.junit.Test;
 
-import com.github.rinde.rinsim.core.graph.Point;
 import com.github.rinde.rinsim.core.pdptw.ParcelDTO;
 import com.github.rinde.rinsim.core.pdptw.VehicleDTO;
+import com.github.rinde.rinsim.geom.Point;
 import com.github.rinde.rinsim.pdptw.central.GlobalStateObject;
 import com.github.rinde.rinsim.pdptw.central.Solver;
 import com.github.rinde.rinsim.pdptw.central.SolverValidator;

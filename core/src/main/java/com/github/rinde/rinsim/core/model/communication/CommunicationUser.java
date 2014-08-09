@@ -2,7 +2,7 @@ package com.github.rinde.rinsim.core.model.communication;
 
 import javax.annotation.Nullable;
 
-import com.github.rinde.rinsim.core.graph.Point;
+import com.github.rinde.rinsim.geom.Point;
 
 /**
  * Defines the interface of the agent that wants to communicate.

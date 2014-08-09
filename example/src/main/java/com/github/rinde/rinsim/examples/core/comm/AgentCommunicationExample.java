@@ -12,11 +12,11 @@ import org.apache.commons.math3.random.MersenneTwister;
 import org.eclipse.swt.graphics.RGB;
 
 import com.github.rinde.rinsim.core.Simulator;
-import com.github.rinde.rinsim.core.graph.Graph;
-import com.github.rinde.rinsim.core.graph.LengthData;
 import com.github.rinde.rinsim.core.model.communication.CommunicationModel;
 import com.github.rinde.rinsim.core.model.road.GraphRoadModel;
 import com.github.rinde.rinsim.core.model.road.RoadModel;
+import com.github.rinde.rinsim.geom.Graph;
+import com.github.rinde.rinsim.geom.LengthData;
 import com.github.rinde.rinsim.serializers.DotGraphSerializer;
 import com.github.rinde.rinsim.serializers.SelfCycleFilter;
 import com.github.rinde.rinsim.ui.View;

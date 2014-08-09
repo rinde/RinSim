@@ -20,6 +20,7 @@ import org.apache.commons.math3.random.MersenneTwister;
 import org.apache.commons.math3.random.RandomGenerator;
 
 import com.github.rinde.rinsim.core.model.Model;
+import com.github.rinde.rinsim.io.FileProvider;
 import com.github.rinde.rinsim.pdptw.common.DynamicPDPTWProblem;
 import com.github.rinde.rinsim.pdptw.common.ObjectiveFunction;
 import com.github.rinde.rinsim.pdptw.common.RouteRenderer;
@@ -32,7 +33,6 @@ import com.github.rinde.rinsim.scenario.Scenario;
 import com.github.rinde.rinsim.scenario.ScenarioIO;
 import com.github.rinde.rinsim.scenario.ScenarioController.UICreator;
 import com.github.rinde.rinsim.util.StochasticSupplier;
-import com.github.rinde.rinsim.util.io.FileProvider;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
@@ -306,7 +306,7 @@ public final class Experiment {
     }
 
     /**
-     * Adds a {@link com.github.rinde.rinsim.util.io.FileProvider.Builder} to the experiment.
+     * Adds a {@link com.github.rinde.rinsim.io.FileProvider.Builder} to the experiment.
      * @param providerBuilder This builder will be used create a
      *          {@link FileProvider} instance to load scenarios.
      * @return This, as per the builder pattern.

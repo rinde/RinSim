@@ -32,7 +32,6 @@ import org.junit.Test;
 
 import com.github.rinde.rinsim.core.TimeLapse;
 import com.github.rinde.rinsim.core.TimeLapseFactory;
-import com.github.rinde.rinsim.core.graph.Point;
 import com.github.rinde.rinsim.core.model.road.CachedGraphRoadModel;
 import com.github.rinde.rinsim.core.model.road.ForwardingRoadModel;
 import com.github.rinde.rinsim.core.model.road.GenericRoadModel;
@@ -42,6 +41,7 @@ import com.github.rinde.rinsim.core.model.road.RoadModel;
 import com.github.rinde.rinsim.core.model.road.RoadUser;
 import com.github.rinde.rinsim.core.model.road.AbstractRoadModel.RoadEventType;
 import com.github.rinde.rinsim.event.ListenerEventHistory;
+import com.github.rinde.rinsim.geom.Point;
 import com.github.rinde.rinsim.util.TrivialRoadUser;
 import com.google.common.base.Predicate;
 import com.google.common.collect.HashBasedTable;

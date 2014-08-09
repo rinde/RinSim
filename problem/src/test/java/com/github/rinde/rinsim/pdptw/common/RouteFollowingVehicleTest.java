@@ -27,7 +27,6 @@ import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 
 import com.github.rinde.rinsim.core.TimeLapse;
-import com.github.rinde.rinsim.core.graph.Point;
 import com.github.rinde.rinsim.core.model.Model;
 import com.github.rinde.rinsim.core.model.ModelProvider;
 import com.github.rinde.rinsim.core.model.TestModelProvider;
@@ -44,6 +43,9 @@ import com.github.rinde.rinsim.core.pdptw.VehicleDTO;
 import com.github.rinde.rinsim.event.Event;
 import com.github.rinde.rinsim.event.Listener;
 import com.github.rinde.rinsim.event.ListenerEventHistory;
+import com.github.rinde.rinsim.fsm.StateMachine.StateMachineEvent;
+import com.github.rinde.rinsim.fsm.StateMachine.StateTransitionEvent;
+import com.github.rinde.rinsim.geom.Point;
 import com.github.rinde.rinsim.pdptw.common.DefaultDepot;
 import com.github.rinde.rinsim.pdptw.common.DefaultParcel;
 import com.github.rinde.rinsim.pdptw.common.PDPRoadModel;
@@ -52,8 +54,6 @@ import com.github.rinde.rinsim.pdptw.common.RouteFollowingVehicle.DefaultEvent;
 import com.github.rinde.rinsim.pdptw.common.RouteFollowingVehicle.StateEvent;
 import com.github.rinde.rinsim.pdptw.common.SubVehicle.ExtraEvent;
 import com.github.rinde.rinsim.util.TimeWindow;
-import com.github.rinde.rinsim.util.fsm.StateMachine.StateMachineEvent;
-import com.github.rinde.rinsim.util.fsm.StateMachine.StateTransitionEvent;
 import com.google.common.base.Optional;
 
 /**

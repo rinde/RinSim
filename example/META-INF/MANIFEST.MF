@@ -1,7 +1,7 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Example
-Bundle-SymbolicName: rinsim.example
+Bundle-SymbolicName: rinsim-example
 Bundle-Version: 1.0.0.qualifier
 Require-Bundle: org.eclipse.swt;bundle-version="3.5.0",
  org.eclipse.jface;bundle-version="3.5.0"

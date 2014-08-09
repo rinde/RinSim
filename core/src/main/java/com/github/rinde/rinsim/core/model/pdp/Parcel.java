@@ -3,7 +3,7 @@
  */
 package com.github.rinde.rinsim.core.model.pdp;
 
-import com.github.rinde.rinsim.core.graph.Point;
+import com.github.rinde.rinsim.geom.Point;
 import com.github.rinde.rinsim.util.TimeWindow;
 
 /**

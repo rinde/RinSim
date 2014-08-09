@@ -16,12 +16,12 @@ import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 
 import com.github.rinde.rinsim.core.TimeLapseFactory;
-import com.github.rinde.rinsim.core.graph.Point;
 import com.github.rinde.rinsim.core.model.communication.CommunicationAPI;
 import com.github.rinde.rinsim.core.model.communication.CommunicationModel;
 import com.github.rinde.rinsim.core.model.communication.CommunicationModel2;
 import com.github.rinde.rinsim.core.model.communication.CommunicationUser;
 import com.github.rinde.rinsim.core.model.communication.Message;
+import com.github.rinde.rinsim.geom.Point;
 
 @RunWith(Parameterized.class)
 public class CommunicationModelTest {

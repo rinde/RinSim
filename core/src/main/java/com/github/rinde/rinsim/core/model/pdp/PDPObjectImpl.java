@@ -5,8 +5,8 @@ package com.github.rinde.rinsim.core.model.pdp;
 
 import static com.google.common.base.Preconditions.checkState;
 
-import com.github.rinde.rinsim.core.graph.Point;
 import com.github.rinde.rinsim.core.model.road.RoadModel;
+import com.github.rinde.rinsim.geom.Point;
 import com.google.common.base.Optional;
 
 /**

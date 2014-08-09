@@ -14,11 +14,11 @@ import javax.measure.unit.Unit;
 
 import org.apache.commons.math3.random.RandomGenerator;
 
-import com.github.rinde.rinsim.core.graph.Point;
 import com.github.rinde.rinsim.core.model.Model;
 import com.github.rinde.rinsim.core.model.pdp.PDPScenarioEvent;
 import com.github.rinde.rinsim.core.model.road.RoadModel;
 import com.github.rinde.rinsim.core.model.road.RoadModels;
+import com.github.rinde.rinsim.geom.Point;
 import com.github.rinde.rinsim.pdptw.scenario.Depots.DepotGenerator;
 import com.github.rinde.rinsim.pdptw.scenario.Models.ModelSupplierScenGen;
 import com.github.rinde.rinsim.pdptw.scenario.Parcels.ParcelGenerator;

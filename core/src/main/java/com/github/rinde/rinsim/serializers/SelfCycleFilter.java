@@ -1,6 +1,6 @@
 package com.github.rinde.rinsim.serializers;
 
-import com.github.rinde.rinsim.core.graph.Point;
+import com.github.rinde.rinsim.geom.Point;
 
 /**
  * Filters out self-cycles

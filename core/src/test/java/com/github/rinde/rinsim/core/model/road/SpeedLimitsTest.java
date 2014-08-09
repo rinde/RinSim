@@ -26,17 +26,17 @@ import org.junit.runners.Parameterized.Parameters;
 
 import com.github.rinde.rinsim.core.TimeLapse;
 import com.github.rinde.rinsim.core.TimeLapseFactory;
-import com.github.rinde.rinsim.core.graph.Graph;
-import com.github.rinde.rinsim.core.graph.MultiAttributeData;
-import com.github.rinde.rinsim.core.graph.Point;
-import com.github.rinde.rinsim.core.graph.TestMultimapGraph;
-import com.github.rinde.rinsim.core.graph.TestTableGraph;
 import com.github.rinde.rinsim.core.model.road.AbstractRoadModel;
 import com.github.rinde.rinsim.core.model.road.CachedGraphRoadModel;
 import com.github.rinde.rinsim.core.model.road.GraphRoadModel;
 import com.github.rinde.rinsim.core.model.road.MoveProgress;
 import com.github.rinde.rinsim.core.model.road.MovingRoadUser;
 import com.github.rinde.rinsim.core.model.road.RoadModel;
+import com.github.rinde.rinsim.geom.Graph;
+import com.github.rinde.rinsim.geom.MultiAttributeData;
+import com.github.rinde.rinsim.geom.Point;
+import com.github.rinde.rinsim.geom.TestMultimapGraph;
+import com.github.rinde.rinsim.geom.TestTableGraph;
 import com.google.common.math.DoubleMath;
 
 /**

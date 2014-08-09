@@ -3,7 +3,7 @@
  */
 package com.github.rinde.rinsim.ui.renderers;
 
-import com.github.rinde.rinsim.core.graph.Point;
+import com.github.rinde.rinsim.geom.Point;
 
 /**
  * Value object containing information about the region of the screen which is

@@ -26,12 +26,12 @@ import org.apache.commons.math3.random.MersenneTwister;
 import org.junit.Test;
 
 import com.github.rinde.rinsim.core.Simulator;
-import com.github.rinde.rinsim.core.graph.Point;
 import com.github.rinde.rinsim.core.model.pdp.DefaultPDPModel;
 import com.github.rinde.rinsim.core.model.pdp.Depot;
 import com.github.rinde.rinsim.core.model.road.PlaneRoadModel;
 import com.github.rinde.rinsim.core.pdptw.ParcelDTO;
 import com.github.rinde.rinsim.core.pdptw.VehicleDTO;
+import com.github.rinde.rinsim.geom.Point;
 import com.github.rinde.rinsim.pdptw.central.Solvers;
 import com.github.rinde.rinsim.pdptw.central.Solvers.SimulationConverter;
 import com.github.rinde.rinsim.pdptw.central.Solvers.SolveArgs;
