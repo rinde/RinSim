@@ -60,7 +60,6 @@
 		<module>geom</module>
 		<module>io</module>
 		<module>scenario</module>
-		<module>experiment</module>
 	</modules>
 
 
@@ -383,11 +382,6 @@
 			<dependency>
 				<groupId>com.github.rinde</groupId>
 				<artifactId>rinsim-scenario</artifactId>
-				<version>${project.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>com.github.rinde</groupId>
-				<artifactId>rinsim-experiment</artifactId>
 				<version>${project.version}</version>
 			</dependency>
 		</dependencies>
