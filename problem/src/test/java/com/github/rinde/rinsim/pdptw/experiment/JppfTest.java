@@ -74,13 +74,13 @@ public class JppfTest {
         .addScenario(scenario)
         .withRandomSeed(123)
         .repeat(10)
-        .addResultListener(new ExperimentProgressBar())
         .addConfiguration(TestMASConfiguration.create("A"));
     for (final int i : ints) {
       allResults.add(
           experimentBuilder.numBatches(i)
               .perform());
     }
+    assertEquals(4, allResults.size());
     for (int i = 0; i < allResults.size() - 1; i++) {
       assertEquals(allResults.get(i), allResults.get(i + 1));
     }
@@ -115,14 +115,15 @@ public class JppfTest {
   @Test
   public void determinismGeneratedScenarioLocalVsJppf() {
     final RandomGenerator rng = new MersenneTwister(123L);
-    final Scenario generatedScenario = ScenarioGenerator.builder()
+    final Scenario generatedScenario = ScenarioGenerator
+        .builder()
         .addModel(Models.roadModel(20, true))
         .addModel(Models.pdpModel(TimeWindowPolicies.LIBERAL))
-        .stopCondition(StopConditions.VEHICLES_DONE_AND_BACK_AT_DEPOT)
+        .stopCondition(StopConditions.TIME_OUT_EVENT)
         .build().generate(rng, "hoi");
 
     final Experiment.Builder experimentBuilder = Experiment
-        .build(TestObjectiveFunction.INSTANCE)
+        .build(Gendreau06ObjectiveFunction.instance())
         .computeDistributed()
         .addScenario(generatedScenario)
         .withRandomSeed(123)
@@ -131,7 +132,8 @@ public class JppfTest {
         .addConfiguration(TestMASConfiguration.create("A"));
 
     final ExperimentResults resultsDistributed = experimentBuilder.perform();
-    final ExperimentResults resultsLocal = experimentBuilder.computeLocal()
+    final ExperimentResults resultsLocal = experimentBuilder
+        .computeLocal()
         .perform();
     assertEquals(resultsLocal, resultsDistributed);
   }

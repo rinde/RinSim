@@ -3,6 +3,7 @@ package com.github.rinde.rinsim.core.pdptw;
 import static com.google.common.collect.Lists.newArrayList;
 
 import java.util.Collection;
+import java.util.Set;
 
 import org.apache.commons.math3.random.MersenneTwister;
 import org.apache.commons.math3.random.RandomGenerator;
@@ -54,6 +55,12 @@ public class RandomVehicle extends DefaultVehicle {
         } else {
           rm.get().moveTo(this, target.get(), time);
         }
+      }
+    } else {
+      final Set<DefaultDepot> depots = rm.get().getObjectsOfType(
+          DefaultDepot.class);
+      if (!depots.isEmpty()) {
+        rm.get().moveTo(this, depots.iterator().next(), time);
       }
     }
   }

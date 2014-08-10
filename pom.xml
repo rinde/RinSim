@@ -60,6 +60,7 @@
 		<module>geom</module>
 		<module>io</module>
 		<module>scenario</module>
+		<module>central</module>
 	</modules>
 
 
@@ -378,6 +379,12 @@
 				<groupId>com.github.rinde</groupId>
 				<artifactId>rinsim-problem</artifactId>
 				<version>${project.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>com.github.rinde</groupId>
+				<artifactId>rinsim-problem</artifactId>
+				<version>${project.version}</version>
+				<type>test-jar</type>
 			</dependency>
 			<dependency>
 				<groupId>com.github.rinde</groupId>

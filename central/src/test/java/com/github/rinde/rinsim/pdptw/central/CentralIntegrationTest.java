@@ -45,7 +45,7 @@ public class CentralIntegrationTest {
   @Before
   public void setUp() {
     final Gendreau06Parser parser = Gendreau06Parser.parser().addFile(
-        "files/test/gendreau06/req_rapide_1_240_24");
+        "../problem/files/test/gendreau06/req_rapide_1_240_24");
     if (allowDiversion) {
       parser.allowDiversion();
     }

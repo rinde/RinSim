@@ -96,7 +96,7 @@ public class CentralTest {
   @Test
   public void testConfigurator() {
     final Gendreau06Scenario scenario = Gendreau06Parser.parse(
-        new File("files/test/gendreau06/req_rapide_1_240_24"));
+        new File("../problem/files/test/gendreau06/req_rapide_1_240_24"));
 
     final StochasticSupplier<Solver> s = new StochasticSupplier<Solver>() {
       @Override

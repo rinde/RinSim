@@ -52,7 +52,7 @@ public class SolverSimTest {
   @Test
   public void testOffline() throws IOException {
     final Gendreau06Scenario scenario = Gendreau06Parser.parser()
-        .addFile("files/test/gendreau06/req_rapide_1_240_24")
+        .addFile("../problem/files/test/gendreau06/req_rapide_1_240_24")
         .offline()
         .parse()
         .get(0);
@@ -108,7 +108,7 @@ public class SolverSimTest {
   public void testOnline() throws IOException {
 
     final Gendreau06Scenario scenario = Gendreau06Parser
-        .parse(new File("files/test/gendreau06/req_rapide_1_240_24"));
+        .parse(new File("../problem/files/test/gendreau06/req_rapide_1_240_24"));
 
     final DebugSolverCreator dsc = new DebugSolverCreator(123,
         scenario.getTimeUnit());
