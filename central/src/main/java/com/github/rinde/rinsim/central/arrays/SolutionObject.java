@@ -1,4 +1,4 @@
-package com.github.rinde.rinsim.pdptw.central.arrays;
+package com.github.rinde.rinsim.central.arrays;
 
 import java.util.Arrays;
 

@@ -1,7 +1,7 @@
 /**
  * 
  */
-package com.github.rinde.rinsim.pdptw.central.arrays;
+package com.github.rinde.rinsim.central.arrays;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
@@ -22,11 +22,11 @@ import javax.measure.quantity.Velocity;
 import javax.measure.unit.SI;
 import javax.measure.unit.Unit;
 
+import com.github.rinde.rinsim.central.GlobalStateObject;
+import com.github.rinde.rinsim.central.GlobalStateObject.VehicleStateObject;
 import com.github.rinde.rinsim.core.model.road.RoadModels;
 import com.github.rinde.rinsim.core.pdptw.ParcelDTO;
 import com.github.rinde.rinsim.geom.Point;
-import com.github.rinde.rinsim.pdptw.central.GlobalStateObject;
-import com.github.rinde.rinsim.pdptw.central.GlobalStateObject.VehicleStateObject;
 import com.github.rinde.rinsim.util.TimeWindow;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;

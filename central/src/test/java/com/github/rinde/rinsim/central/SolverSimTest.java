@@ -1,7 +1,7 @@
 /**
  * 
  */
-package com.github.rinde.rinsim.pdptw.central;
+package com.github.rinde.rinsim.central;
 
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
@@ -17,16 +17,16 @@ import org.apache.commons.math3.random.MersenneTwister;
 import org.apache.commons.math3.random.RandomGenerator;
 import org.junit.Test;
 
+import com.github.rinde.rinsim.central.Central;
+import com.github.rinde.rinsim.central.GlobalStateObject;
+import com.github.rinde.rinsim.central.SolverDebugger;
+import com.github.rinde.rinsim.central.Solvers;
+import com.github.rinde.rinsim.central.Solvers.ExtendedStats;
+import com.github.rinde.rinsim.central.arrays.ArraysSolvers;
+import com.github.rinde.rinsim.central.arrays.SolutionObject;
+import com.github.rinde.rinsim.central.arrays.ArraysSolverDebugger.MVASDebugger;
+import com.github.rinde.rinsim.central.arrays.ArraysSolvers.MVArraysObject;
 import com.github.rinde.rinsim.core.pdptw.ParcelDTO;
-import com.github.rinde.rinsim.pdptw.central.Central;
-import com.github.rinde.rinsim.pdptw.central.GlobalStateObject;
-import com.github.rinde.rinsim.pdptw.central.SolverDebugger;
-import com.github.rinde.rinsim.pdptw.central.Solvers;
-import com.github.rinde.rinsim.pdptw.central.Solvers.ExtendedStats;
-import com.github.rinde.rinsim.pdptw.central.arrays.ArraysSolvers;
-import com.github.rinde.rinsim.pdptw.central.arrays.SolutionObject;
-import com.github.rinde.rinsim.pdptw.central.arrays.ArraysSolverDebugger.MVASDebugger;
-import com.github.rinde.rinsim.pdptw.central.arrays.ArraysSolvers.MVArraysObject;
 import com.github.rinde.rinsim.pdptw.common.ObjectiveFunction;
 import com.github.rinde.rinsim.pdptw.common.StatisticsDTO;
 import com.github.rinde.rinsim.pdptw.experiment.Experiment;

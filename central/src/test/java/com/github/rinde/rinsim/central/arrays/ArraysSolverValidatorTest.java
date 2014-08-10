@@ -1,11 +1,11 @@
 /**
  * 
  */
-package com.github.rinde.rinsim.pdptw.central.arrays;
+package com.github.rinde.rinsim.central.arrays;
 
-import static com.github.rinde.rinsim.pdptw.central.arrays.ArraysSolverValidator.validateInputs;
-import static com.github.rinde.rinsim.pdptw.central.arrays.ArraysSolverValidator.validateOutputs;
-import static com.github.rinde.rinsim.pdptw.central.arrays.ArraysSolverValidator.wrap;
+import static com.github.rinde.rinsim.central.arrays.ArraysSolverValidator.validateInputs;
+import static com.github.rinde.rinsim.central.arrays.ArraysSolverValidator.validateOutputs;
+import static com.github.rinde.rinsim.central.arrays.ArraysSolverValidator.wrap;
 import static com.google.common.base.Preconditions.checkArgument;
 
 import java.util.Arrays;
@@ -14,10 +14,10 @@ import javax.annotation.Nullable;
 
 import org.junit.Test;
 
-import com.github.rinde.rinsim.pdptw.central.arrays.ArraysSolverValidator;
-import com.github.rinde.rinsim.pdptw.central.arrays.MultiVehicleArraysSolver;
-import com.github.rinde.rinsim.pdptw.central.arrays.SingleVehicleArraysSolver;
-import com.github.rinde.rinsim.pdptw.central.arrays.SolutionObject;
+import com.github.rinde.rinsim.central.arrays.ArraysSolverValidator;
+import com.github.rinde.rinsim.central.arrays.MultiVehicleArraysSolver;
+import com.github.rinde.rinsim.central.arrays.SingleVehicleArraysSolver;
+import com.github.rinde.rinsim.central.arrays.SolutionObject;
 import com.github.rinde.rinsim.util.TestUtil;
 
 /**

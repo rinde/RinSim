@@ -1,19 +1,19 @@
 /**
  * 
  */
-package com.github.rinde.rinsim.pdptw.central;
+package com.github.rinde.rinsim.central;
 
 import javax.measure.unit.SI;
 
 import org.junit.Test;
 
+import com.github.rinde.rinsim.central.GlobalStateObject;
+import com.github.rinde.rinsim.central.Solver;
+import com.github.rinde.rinsim.central.SolverValidator;
+import com.github.rinde.rinsim.central.GlobalStateObject.VehicleStateObject;
 import com.github.rinde.rinsim.core.pdptw.ParcelDTO;
 import com.github.rinde.rinsim.core.pdptw.VehicleDTO;
 import com.github.rinde.rinsim.geom.Point;
-import com.github.rinde.rinsim.pdptw.central.GlobalStateObject;
-import com.github.rinde.rinsim.pdptw.central.Solver;
-import com.github.rinde.rinsim.pdptw.central.SolverValidator;
-import com.github.rinde.rinsim.pdptw.central.GlobalStateObject.VehicleStateObject;
 import com.github.rinde.rinsim.util.TestUtil;
 import com.github.rinde.rinsim.util.TimeWindow;
 import com.google.common.collect.ImmutableList;

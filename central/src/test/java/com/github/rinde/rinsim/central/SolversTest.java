@@ -1,10 +1,10 @@
 /**
  * 
  */
-package com.github.rinde.rinsim.pdptw.central;
+package com.github.rinde.rinsim.central;
 
+import static com.github.rinde.rinsim.central.Solvers.convertRoutes;
 import static com.github.rinde.rinsim.core.TimeLapseFactory.create;
-import static com.github.rinde.rinsim.pdptw.central.Solvers.convertRoutes;
 import static java.util.Arrays.asList;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -30,6 +30,16 @@ import org.apache.commons.math3.random.RandomGenerator;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.github.rinde.rinsim.central.GlobalStateObject;
+import com.github.rinde.rinsim.central.Solver;
+import com.github.rinde.rinsim.central.SolverValidator;
+import com.github.rinde.rinsim.central.Solvers;
+import com.github.rinde.rinsim.central.GlobalStateObject.VehicleStateObject;
+import com.github.rinde.rinsim.central.Solvers.SimulationConverter;
+import com.github.rinde.rinsim.central.Solvers.SolveArgs;
+import com.github.rinde.rinsim.central.Solvers.StateContext;
+import com.github.rinde.rinsim.central.arrays.MultiVehicleSolverAdapter;
+import com.github.rinde.rinsim.central.arrays.RandomMVArraysSolver;
 import com.github.rinde.rinsim.core.SimulatorAPI;
 import com.github.rinde.rinsim.core.TimeLapse;
 import com.github.rinde.rinsim.core.TimeLapseFactory;
@@ -49,16 +59,6 @@ import com.github.rinde.rinsim.core.pdptw.ParcelDTO;
 import com.github.rinde.rinsim.core.pdptw.VehicleDTO;
 import com.github.rinde.rinsim.event.EventAPI;
 import com.github.rinde.rinsim.geom.Point;
-import com.github.rinde.rinsim.pdptw.central.GlobalStateObject;
-import com.github.rinde.rinsim.pdptw.central.Solver;
-import com.github.rinde.rinsim.pdptw.central.SolverValidator;
-import com.github.rinde.rinsim.pdptw.central.Solvers;
-import com.github.rinde.rinsim.pdptw.central.GlobalStateObject.VehicleStateObject;
-import com.github.rinde.rinsim.pdptw.central.Solvers.SimulationConverter;
-import com.github.rinde.rinsim.pdptw.central.Solvers.SolveArgs;
-import com.github.rinde.rinsim.pdptw.central.Solvers.StateContext;
-import com.github.rinde.rinsim.pdptw.central.arrays.MultiVehicleSolverAdapter;
-import com.github.rinde.rinsim.pdptw.central.arrays.RandomMVArraysSolver;
 import com.github.rinde.rinsim.pdptw.common.ObjectiveFunction;
 import com.github.rinde.rinsim.pdptw.common.PDPRoadModel;
 import com.github.rinde.rinsim.pdptw.common.PDPTWTestUtil;

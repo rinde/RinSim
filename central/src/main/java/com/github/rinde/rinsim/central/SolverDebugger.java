@@ -1,7 +1,7 @@
 /**
  * 
  */
-package com.github.rinde.rinsim.pdptw.central;
+package com.github.rinde.rinsim.central;
 
 import static com.google.common.collect.Lists.newArrayList;
 import static java.util.Collections.unmodifiableList;

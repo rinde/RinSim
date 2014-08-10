@@ -1,15 +1,15 @@
 /**
  * 
  */
-package com.github.rinde.rinsim.pdptw.central.arrays;
+package com.github.rinde.rinsim.central.arrays;
 
 import javax.measure.quantity.Duration;
 import javax.measure.unit.Unit;
 
+import com.github.rinde.rinsim.central.GlobalStateObject;
+import com.github.rinde.rinsim.central.Solver;
+import com.github.rinde.rinsim.central.arrays.ArraysSolvers.MVArraysObject;
 import com.github.rinde.rinsim.core.pdptw.ParcelDTO;
-import com.github.rinde.rinsim.pdptw.central.GlobalStateObject;
-import com.github.rinde.rinsim.pdptw.central.Solver;
-import com.github.rinde.rinsim.pdptw.central.arrays.ArraysSolvers.MVArraysObject;
 import com.google.common.collect.ImmutableList;
 
 /**

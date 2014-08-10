@@ -1,9 +1,9 @@
 /**
  * 
  */
-package com.github.rinde.rinsim.pdptw.central.arrays;
+package com.github.rinde.rinsim.central.arrays;
 
-import static com.github.rinde.rinsim.pdptw.central.arrays.ArraysSolvers.convertTW;
+import static com.github.rinde.rinsim.central.arrays.ArraysSolvers.convertTW;
 import static java.util.Arrays.asList;
 import static javax.measure.unit.NonSI.KILOMETERS_PER_HOUR;
 import static javax.measure.unit.NonSI.MINUTE;
@@ -25,6 +25,12 @@ import javax.measure.unit.SI;
 import org.apache.commons.math3.random.MersenneTwister;
 import org.junit.Test;
 
+import com.github.rinde.rinsim.central.Solvers;
+import com.github.rinde.rinsim.central.Solvers.SimulationConverter;
+import com.github.rinde.rinsim.central.Solvers.SolveArgs;
+import com.github.rinde.rinsim.central.Solvers.StateContext;
+import com.github.rinde.rinsim.central.arrays.ArraysSolvers;
+import com.github.rinde.rinsim.central.arrays.ArraysSolvers.ArraysObject;
 import com.github.rinde.rinsim.core.Simulator;
 import com.github.rinde.rinsim.core.model.pdp.DefaultPDPModel;
 import com.github.rinde.rinsim.core.model.pdp.Depot;
@@ -34,12 +40,6 @@ import com.github.rinde.rinsim.core.pdptw.DefaultParcel;
 import com.github.rinde.rinsim.core.pdptw.ParcelDTO;
 import com.github.rinde.rinsim.core.pdptw.VehicleDTO;
 import com.github.rinde.rinsim.geom.Point;
-import com.github.rinde.rinsim.pdptw.central.Solvers;
-import com.github.rinde.rinsim.pdptw.central.Solvers.SimulationConverter;
-import com.github.rinde.rinsim.pdptw.central.Solvers.SolveArgs;
-import com.github.rinde.rinsim.pdptw.central.Solvers.StateContext;
-import com.github.rinde.rinsim.pdptw.central.arrays.ArraysSolvers;
-import com.github.rinde.rinsim.pdptw.central.arrays.ArraysSolvers.ArraysObject;
 import com.github.rinde.rinsim.pdptw.common.PDPRoadModel;
 import com.github.rinde.rinsim.pdptw.common.RouteFollowingVehicle;
 import com.github.rinde.rinsim.util.TimeWindow;

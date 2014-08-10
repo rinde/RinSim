@@ -1,7 +1,7 @@
 /**
  * 
  */
-package com.github.rinde.rinsim.pdptw.central;
+package com.github.rinde.rinsim.central;
 
 import static com.google.common.collect.Lists.newArrayList;
 import static java.util.Arrays.asList;
@@ -21,6 +21,16 @@ import org.apache.commons.math3.random.MersenneTwister;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.github.rinde.rinsim.central.Central;
+import com.github.rinde.rinsim.central.Solver;
+import com.github.rinde.rinsim.central.SolverValidator;
+import com.github.rinde.rinsim.central.Solvers;
+import com.github.rinde.rinsim.central.Solvers.SimulationConverter;
+import com.github.rinde.rinsim.central.Solvers.SolveArgs;
+import com.github.rinde.rinsim.central.Solvers.StateContext;
+import com.github.rinde.rinsim.central.arrays.ArraysSolverValidator;
+import com.github.rinde.rinsim.central.arrays.MultiVehicleSolverAdapter;
+import com.github.rinde.rinsim.central.arrays.RandomMVArraysSolver;
 import com.github.rinde.rinsim.core.Simulator;
 import com.github.rinde.rinsim.core.model.pdp.DefaultPDPModel;
 import com.github.rinde.rinsim.core.model.pdp.PDPModel;
@@ -32,16 +42,6 @@ import com.github.rinde.rinsim.core.pdptw.ParcelDTO;
 import com.github.rinde.rinsim.core.pdptw.VehicleDTO;
 import com.github.rinde.rinsim.fsm.State;
 import com.github.rinde.rinsim.geom.Point;
-import com.github.rinde.rinsim.pdptw.central.Central;
-import com.github.rinde.rinsim.pdptw.central.Solver;
-import com.github.rinde.rinsim.pdptw.central.SolverValidator;
-import com.github.rinde.rinsim.pdptw.central.Solvers;
-import com.github.rinde.rinsim.pdptw.central.Solvers.SimulationConverter;
-import com.github.rinde.rinsim.pdptw.central.Solvers.SolveArgs;
-import com.github.rinde.rinsim.pdptw.central.Solvers.StateContext;
-import com.github.rinde.rinsim.pdptw.central.arrays.ArraysSolverValidator;
-import com.github.rinde.rinsim.pdptw.central.arrays.MultiVehicleSolverAdapter;
-import com.github.rinde.rinsim.pdptw.central.arrays.RandomMVArraysSolver;
 import com.github.rinde.rinsim.pdptw.common.PDPRoadModel;
 import com.github.rinde.rinsim.pdptw.common.PDPTWTestUtil;
 import com.github.rinde.rinsim.pdptw.common.RouteFollowingVehicle;

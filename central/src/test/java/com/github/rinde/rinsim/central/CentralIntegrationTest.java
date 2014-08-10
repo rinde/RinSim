@@ -1,4 +1,4 @@
-package com.github.rinde.rinsim.pdptw.central;
+package com.github.rinde.rinsim.central;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -9,11 +9,11 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 
-import com.github.rinde.rinsim.pdptw.central.Central;
-import com.github.rinde.rinsim.pdptw.central.RandomSolver;
-import com.github.rinde.rinsim.pdptw.central.Solver;
-import com.github.rinde.rinsim.pdptw.central.SolverValidator;
-import com.github.rinde.rinsim.pdptw.central.arrays.RandomMVArraysSolver;
+import com.github.rinde.rinsim.central.Central;
+import com.github.rinde.rinsim.central.RandomSolver;
+import com.github.rinde.rinsim.central.Solver;
+import com.github.rinde.rinsim.central.SolverValidator;
+import com.github.rinde.rinsim.central.arrays.RandomMVArraysSolver;
 import com.github.rinde.rinsim.pdptw.experiment.Experiment;
 import com.github.rinde.rinsim.pdptw.gendreau06.Gendreau06ObjectiveFunction;
 import com.github.rinde.rinsim.pdptw.gendreau06.Gendreau06Parser;
@@ -57,7 +57,7 @@ public class CentralIntegrationTest {
 
   /**
    * Test of {@link RandomMVArraysSolver} using the
-   * {@link com.github.rinde.rinsim.pdptw.central.arrays.MultiVehicleArraysSolver} interface.
+   * {@link com.github.rinde.rinsim.central.arrays.MultiVehicleArraysSolver} interface.
    */
   @Test
   public void test() {

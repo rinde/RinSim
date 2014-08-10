@@ -1,7 +1,7 @@
 /**
  * 
  */
-package com.github.rinde.rinsim.pdptw.central.arrays;
+package com.github.rinde.rinsim.central.arrays;
 
 import static com.google.common.collect.Lists.newArrayList;
 import static java.lang.System.out;
@@ -14,8 +14,8 @@ import java.util.List;
 
 import javax.annotation.Nullable;
 
-import com.github.rinde.rinsim.pdptw.central.arrays.ArraysSolvers.ArraysObject;
-import com.github.rinde.rinsim.pdptw.central.arrays.ArraysSolvers.MVArraysObject;
+import com.github.rinde.rinsim.central.arrays.ArraysSolvers.ArraysObject;
+import com.github.rinde.rinsim.central.arrays.ArraysSolvers.MVArraysObject;
 
 /**
  * A {@link SingleVehicleArraysSolver} wrapper that adds debugging facilities. A

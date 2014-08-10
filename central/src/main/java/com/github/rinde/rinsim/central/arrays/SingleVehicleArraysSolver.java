@@ -1,4 +1,4 @@
-package com.github.rinde.rinsim.pdptw.central.arrays;
+package com.github.rinde.rinsim.central.arrays;
 
 import javax.annotation.Nullable;
 
@@ -8,7 +8,7 @@ import javax.annotation.Nullable;
  * specification of the inputs and outputs.
  * <p>
  * <b>Note that usage of this interface is not recommended.</b> The
- * {@link com.github.rinde.rinsim.pdptw.central.Solver} interface provides exactly the same
+ * {@link com.github.rinde.rinsim.central.Solver} interface provides exactly the same
  * functionality but in a type safe manner.
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
  */

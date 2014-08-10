@@ -1,7 +1,7 @@
 /**
  * 
  */
-package com.github.rinde.rinsim.pdptw.central;
+package com.github.rinde.rinsim.central;
 
 import com.github.rinde.rinsim.core.pdptw.ParcelDTO;
 import com.google.common.collect.ImmutableList;
