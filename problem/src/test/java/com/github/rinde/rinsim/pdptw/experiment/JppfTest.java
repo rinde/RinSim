@@ -5,7 +5,6 @@ import static java.util.Arrays.asList;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-import java.io.File;
 import java.io.Serializable;
 import java.util.List;
 
@@ -19,23 +18,16 @@ import org.junit.Test;
 
 import com.github.rinde.rinsim.core.Simulator;
 import com.github.rinde.rinsim.core.model.pdp.TimeWindowPolicy.TimeWindowPolicies;
-import com.github.rinde.rinsim.pdptw.central.Central;
-import com.github.rinde.rinsim.pdptw.central.RandomSolver;
-import com.github.rinde.rinsim.pdptw.central.SolverValidator;
+import com.github.rinde.rinsim.pdptw.common.DynamicPDPTWProblem.StopConditions;
 import com.github.rinde.rinsim.pdptw.common.ObjectiveFunction;
 import com.github.rinde.rinsim.pdptw.common.StatisticsDTO;
-import com.github.rinde.rinsim.pdptw.common.DynamicPDPTWProblem.StopConditions;
-import com.github.rinde.rinsim.pdptw.experiment.Experiment;
-import com.github.rinde.rinsim.pdptw.experiment.ExperimentProgressBar;
-import com.github.rinde.rinsim.pdptw.experiment.ExperimentResults;
-import com.github.rinde.rinsim.pdptw.experiment.PostProcessor;
+import com.github.rinde.rinsim.pdptw.common.TestObjectiveFunction;
 import com.github.rinde.rinsim.pdptw.experiment.ExperimentTest.TestPostProcessor;
 import com.github.rinde.rinsim.pdptw.gendreau06.Gendreau06ObjectiveFunction;
-import com.github.rinde.rinsim.pdptw.gendreau06.Gendreau06Parser;
-import com.github.rinde.rinsim.pdptw.gendreau06.Gendreau06Scenario;
 import com.github.rinde.rinsim.pdptw.scenario.Models;
 import com.github.rinde.rinsim.pdptw.scenario.ScenarioGenerator;
 import com.github.rinde.rinsim.scenario.Scenario;
+import com.github.rinde.rinsim.scenario.ScenarioTestUtil;
 
 /**
  * Test for JPPF computation.
@@ -45,7 +37,7 @@ public class JppfTest {
   @SuppressWarnings("null")
   static JPPFDriver driver;
   @SuppressWarnings("null")
-  static Gendreau06Scenario gendreauScenario;
+  static Scenario scenario;
 
   /**
    * Starts the JPPF driver.
@@ -57,8 +49,7 @@ public class JppfTest {
     JPPFDriver.main(new String[] { "noLauncher" });
     driver = JPPFDriver.getInstance();
 
-    gendreauScenario = Gendreau06Parser.parse(new File(
-        "files/test/gendreau06/req_rapide_1_240_24"));
+    scenario = ScenarioTestUtil.create(123L);
   }
 
   /**
@@ -78,15 +69,13 @@ public class JppfTest {
     final List<ExperimentResults> allResults = newArrayList();
 
     final Experiment.Builder experimentBuilder = Experiment
-        .build(Gendreau06ObjectiveFunction.instance())
+        .build(TestObjectiveFunction.INSTANCE)
         .computeDistributed()
-        .addScenario(gendreauScenario)
+        .addScenario(scenario)
         .withRandomSeed(123)
         .repeat(10)
         .addResultListener(new ExperimentProgressBar())
-        .addConfiguration(
-            Central.solverConfiguration(
-                SolverValidator.wrap(RandomSolver.supplier()), "A"));
+        .addConfiguration(TestMASConfiguration.create("A"));
     for (final int i : ints) {
       allResults.add(
           experimentBuilder.numBatches(i)
@@ -104,15 +93,13 @@ public class JppfTest {
   @Test
   public void determinismLocalVsJppf() {
     final Experiment.Builder experimentBuilder = Experiment
-        .build(Gendreau06ObjectiveFunction.instance())
+        .build(TestObjectiveFunction.INSTANCE)
         .computeDistributed()
-        .addScenario(gendreauScenario)
+        .addScenario(scenario)
         .withRandomSeed(123)
         .repeat(1)
         .usePostProcessor(new TestPostProcessor())
-        .addConfiguration(
-            Central.solverConfiguration(
-                SolverValidator.wrap(RandomSolver.supplier()), "A"));
+        .addConfiguration(TestMASConfiguration.create("A"));
 
     final ExperimentResults results3 = experimentBuilder.perform();
     experimentBuilder.computeLocal();
@@ -135,15 +122,13 @@ public class JppfTest {
         .build().generate(rng, "hoi");
 
     final Experiment.Builder experimentBuilder = Experiment
-        .build(Gendreau06ObjectiveFunction.instance())
+        .build(TestObjectiveFunction.INSTANCE)
         .computeDistributed()
         .addScenario(generatedScenario)
         .withRandomSeed(123)
         .repeat(1)
         .usePostProcessor(new TestPostProcessor())
-        .addConfiguration(
-            Central.solverConfiguration(
-                SolverValidator.wrap(RandomSolver.supplier()), "A"));
+        .addConfiguration(TestMASConfiguration.create("A"));
 
     final ExperimentResults resultsDistributed = experimentBuilder.perform();
     final ExperimentResults resultsLocal = experimentBuilder.computeLocal()
@@ -152,20 +137,18 @@ public class JppfTest {
   }
 
   /**
-   * Tests a post processor that returns objects that do not implement
+   * Tests a post processor that returns objects that does not implement
    * {@link Serializable}.
    */
   @Test(expected = IllegalArgumentException.class)
   public void testFaultyPostProcessor() {
     Experiment.build(Gendreau06ObjectiveFunction.instance())
         .computeDistributed()
-        .addScenario(gendreauScenario)
+        .addScenario(scenario)
         .withRandomSeed(123)
         .repeat(1)
         .usePostProcessor(new TestFaultyPostProcessor())
-        .addConfiguration(
-            Central.solverConfiguration(
-                SolverValidator.wrap(RandomSolver.supplier()), "A"))
+        .addConfiguration(TestMASConfiguration.create("A"))
         .perform();
 
   }
@@ -178,12 +161,10 @@ public class JppfTest {
     Experiment
         .build(new NotSerializableObjFunc())
         .computeDistributed()
-        .addScenario(gendreauScenario)
+        .addScenario(scenario)
         .withRandomSeed(123)
         .repeat(1)
-        .addConfiguration(
-            Central.solverConfiguration(
-                SolverValidator.wrap(RandomSolver.supplier()), "A"))
+        .addConfiguration(TestMASConfiguration.create("A"))
         .perform();
   }
 

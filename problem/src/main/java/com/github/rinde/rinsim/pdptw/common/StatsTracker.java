@@ -26,14 +26,15 @@ import com.github.rinde.rinsim.core.Simulator;
 import com.github.rinde.rinsim.core.Simulator.SimulatorEventType;
 import com.github.rinde.rinsim.core.model.Model;
 import com.github.rinde.rinsim.core.model.pdp.PDPModel;
+import com.github.rinde.rinsim.core.model.pdp.PDPModel.PDPModelEventType;
 import com.github.rinde.rinsim.core.model.pdp.PDPModelEvent;
 import com.github.rinde.rinsim.core.model.pdp.Parcel;
 import com.github.rinde.rinsim.core.model.pdp.Vehicle;
-import com.github.rinde.rinsim.core.model.pdp.PDPModel.PDPModelEventType;
+import com.github.rinde.rinsim.core.model.road.AbstractRoadModel.RoadEventType;
 import com.github.rinde.rinsim.core.model.road.MoveEvent;
 import com.github.rinde.rinsim.core.model.road.MovingRoadUser;
 import com.github.rinde.rinsim.core.model.road.RoadModel;
-import com.github.rinde.rinsim.core.model.road.AbstractRoadModel.RoadEventType;
+import com.github.rinde.rinsim.core.pdptw.DefaultVehicle;
 import com.github.rinde.rinsim.event.Event;
 import com.github.rinde.rinsim.event.EventAPI;
 import com.github.rinde.rinsim.event.EventDispatcher;
@@ -171,7 +172,7 @@ final class StatsTracker implements Model<Object> {
         // if we are closer than 10 cm to the depot, we say we are 'at'
         // the depot
         if (Point.distance(me.roadModel.getPosition(me.roadUser),
-            ((DefaultVehicle) me.roadUser).dto.startPosition) < MOVE_THRESHOLD) {
+            ((DefaultVehicle) me.roadUser).getDTO().startPosition) < MOVE_THRESHOLD) {
           // only override time if the vehicle did actually move
           if (me.pathProgress.distance.getValue().doubleValue() > MOVE_THRESHOLD) {
             lastArrivalTimeAtDepot.put(me.roadUser, simulator.getCurrentTime());

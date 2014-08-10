@@ -1,7 +1,7 @@
 /**
  * 
  */
-package com.github.rinde.rinsim.pdptw.common;
+package com.github.rinde.rinsim.core.pdptw;
 
 import com.github.rinde.rinsim.core.model.pdp.Depot;
 import com.github.rinde.rinsim.core.model.pdp.PDPModel;

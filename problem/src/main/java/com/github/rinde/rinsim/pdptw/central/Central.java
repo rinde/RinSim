@@ -15,12 +15,12 @@ import com.github.rinde.rinsim.core.TimeLapse;
 import com.github.rinde.rinsim.core.model.Model;
 import com.github.rinde.rinsim.core.model.ModelProvider;
 import com.github.rinde.rinsim.core.model.ModelReceiver;
+import com.github.rinde.rinsim.core.pdptw.DefaultParcel;
 import com.github.rinde.rinsim.pdptw.central.Solvers.SimulationSolver;
 import com.github.rinde.rinsim.pdptw.central.Solvers.SolveArgs;
-import com.github.rinde.rinsim.pdptw.common.DefaultParcel;
+import com.github.rinde.rinsim.pdptw.common.DynamicPDPTWProblem.Creator;
 import com.github.rinde.rinsim.pdptw.common.PDPRoadModel;
 import com.github.rinde.rinsim.pdptw.common.RouteFollowingVehicle;
-import com.github.rinde.rinsim.pdptw.common.DynamicPDPTWProblem.Creator;
 import com.github.rinde.rinsim.pdptw.experiment.DefaultMASConfiguration;
 import com.github.rinde.rinsim.pdptw.experiment.MASConfiguration;
 import com.github.rinde.rinsim.scenario.AddVehicleEvent;
@@ -32,7 +32,7 @@ import com.google.common.collect.ImmutableList;
 /**
  * A facade for RinSim which provides a centralized interface such that
  * {@link Solver} instances can solve
- * {@link rinde.sim.scenario.PDPScenario}s.
+ * {@link com.github.rinde.rinsim.scenario.Scenario}s.
  * <p>
  * TODO update this comment
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>

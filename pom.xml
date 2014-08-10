@@ -400,6 +400,12 @@
 				<artifactId>rinsim-scenario</artifactId>
 				<version>${project.version}</version>
 			</dependency>
+			<dependency>
+				<groupId>com.github.rinde</groupId>
+				<artifactId>rinsim-scenario</artifactId>
+				<version>${project.version}</version>
+				<type>test-jar</type>
+			</dependency>
 		</dependencies>
 	</dependencyManagement>
 </project>

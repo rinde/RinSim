@@ -1,9 +1,9 @@
 package com.github.rinde.rinsim.examples.pdptw.gradientfield;
 
 import com.github.rinde.rinsim.core.model.pdp.PDPModel.ParcelState;
+import com.github.rinde.rinsim.core.pdptw.DefaultParcel;
 import com.github.rinde.rinsim.core.pdptw.ParcelDTO;
 import com.github.rinde.rinsim.geom.Point;
-import com.github.rinde.rinsim.pdptw.common.DefaultParcel;
 
 public class GFParcel extends DefaultParcel implements FieldEmitter {
   private Point pos;

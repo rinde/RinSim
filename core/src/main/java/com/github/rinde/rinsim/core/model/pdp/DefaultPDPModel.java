@@ -22,6 +22,7 @@ import com.github.rinde.rinsim.event.EventAPI;
 import com.github.rinde.rinsim.event.EventDispatcher;
 import com.github.rinde.rinsim.util.CategoryMap;
 import com.google.common.base.Optional;
+import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Multimap;
@@ -632,6 +633,30 @@ public final class DefaultPDPModel extends PDPModel {
     @Override
     public Vehicle getVehicle() {
       return vehicle;
+    }
+  }
+
+  /**
+   * Create a {@link Supplier} for {@link DefaultPDPModel}s.
+   * @param timeWindowPolicy The {@link TimeWindowPolicy} to instantiate the
+   *          model with.
+   * @return A new supplier instance.
+   */
+  public static Supplier<DefaultPDPModel> supplier(
+      TimeWindowPolicy timeWindowPolicy) {
+    return new DefaultSupplier(timeWindowPolicy);
+  }
+
+  private static class DefaultSupplier implements Supplier<DefaultPDPModel> {
+    final TimeWindowPolicy timeWindowPolicy;
+
+    DefaultSupplier(TimeWindowPolicy twp) {
+      timeWindowPolicy = twp;
+    }
+
+    @Override
+    public DefaultPDPModel get() {
+      return new DefaultPDPModel(timeWindowPolicy);
     }
   }
 

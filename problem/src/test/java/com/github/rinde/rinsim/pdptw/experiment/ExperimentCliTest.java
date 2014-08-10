@@ -4,23 +4,15 @@ import static com.github.rinde.rinsim.cli.CliTest.testFail;
 import static com.google.common.collect.Sets.newHashSet;
 import static org.junit.Assert.assertEquals;
 
-import java.io.File;
-import java.nio.file.Paths;
-
 import org.junit.Before;
 import org.junit.Test;
 
-import com.github.rinde.rinsim.cli.Menu;
 import com.github.rinde.rinsim.cli.CliException.CauseType;
-import com.github.rinde.rinsim.io.FileProvider;
-import com.github.rinde.rinsim.pdptw.central.Central;
-import com.github.rinde.rinsim.pdptw.central.RandomSolver;
-import com.github.rinde.rinsim.pdptw.experiment.Experiment;
-import com.github.rinde.rinsim.pdptw.experiment.ExperimentCli;
-import com.github.rinde.rinsim.pdptw.experiment.MASConfiguration;
+import com.github.rinde.rinsim.cli.Menu;
+import com.github.rinde.rinsim.pdptw.common.TestObjectiveFunction;
 import com.github.rinde.rinsim.pdptw.experiment.Experiment.Builder;
-import com.github.rinde.rinsim.pdptw.gendreau06.Gendreau06ObjectiveFunction;
-import com.github.rinde.rinsim.pdptw.gendreau06.Gendreau06Parser;
+import com.github.rinde.rinsim.scenario.ScenarioIO;
+import com.github.rinde.rinsim.scenario.ScenarioTestUtil;
 
 /**
  * Test for commandline interface of experiment.
@@ -44,22 +36,16 @@ public class ExperimentCliTest {
    */
   @Before
   public void setUp() {
-    configA = Central.solverConfiguration(RandomSolver.supplier(), "A");
-    configB = Central.solverConfiguration(RandomSolver.supplier(), "B");
-    configC = Central.solverConfiguration(RandomSolver.supplier(), "C");
+    configA = TestMASConfiguration.create("A");
+    configB = TestMASConfiguration.create("B");
+    configC = TestMASConfiguration.create("C");
     builder = Experiment
-        .build(Gendreau06ObjectiveFunction.instance())
-        .addScenario(
-            Gendreau06Parser.parse(new File(
-                "files/test/gendreau06/req_rapide_1_240_24")))
+        .build(TestObjectiveFunction.INSTANCE)
+        .addScenario(ScenarioTestUtil.create(1655L))
         .addConfiguration(configA)
         .addConfiguration(configB)
         .addConfiguration(configC)
-        .addScenarios(
-            FileProvider.builder().add(
-                Paths.get("files/test/gendreau06/"))
-        )
-        .setScenarioReader(Gendreau06Parser.reader());
+        .setScenarioReader(ScenarioIO.reader());
 
     menu = ExperimentCli.createMenu(builder);
   }

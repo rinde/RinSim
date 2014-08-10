@@ -480,6 +480,7 @@ public abstract class Scenario {
     public Scenario build() {
       final List<TimedEvent> list = newArrayList(eventList);
       Collections.sort(list, TimeComparator.INSTANCE);
+      eventTypeSet.addAll(collectEventTypes(list));
       return new DefaultScenario(this, ImmutableList.copyOf(list),
           ImmutableSet.copyOf(eventTypeSet));
     }

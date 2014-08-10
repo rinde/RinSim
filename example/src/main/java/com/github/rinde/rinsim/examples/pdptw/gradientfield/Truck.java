@@ -12,10 +12,10 @@ import com.github.rinde.rinsim.core.model.pdp.PDPModel.VehicleState;
 import com.github.rinde.rinsim.core.model.road.RoadModel;
 import com.github.rinde.rinsim.core.model.road.RoadModels;
 import com.github.rinde.rinsim.core.model.road.RoadUser;
+import com.github.rinde.rinsim.core.pdptw.DefaultParcel;
+import com.github.rinde.rinsim.core.pdptw.DefaultVehicle;
 import com.github.rinde.rinsim.core.pdptw.VehicleDTO;
 import com.github.rinde.rinsim.geom.Point;
-import com.github.rinde.rinsim.pdptw.common.DefaultParcel;
-import com.github.rinde.rinsim.pdptw.common.DefaultVehicle;
 import com.google.common.base.Predicate;
 
 class Truck extends DefaultVehicle implements FieldEmitter {

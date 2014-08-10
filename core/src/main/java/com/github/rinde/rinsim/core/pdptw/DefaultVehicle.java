@@ -1,14 +1,13 @@
 /**
  * 
  */
-package com.github.rinde.rinsim.pdptw.common;
+package com.github.rinde.rinsim.core.pdptw;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
 import com.github.rinde.rinsim.core.model.pdp.PDPModel;
 import com.github.rinde.rinsim.core.model.pdp.Vehicle;
 import com.github.rinde.rinsim.core.model.road.RoadModel;
-import com.github.rinde.rinsim.core.pdptw.VehicleDTO;
 import com.google.common.base.Optional;
 
 /**

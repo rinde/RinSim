@@ -36,7 +36,7 @@ import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 
 /**
- * A generator of {@link PDPScenario}s.
+ * A generator of {@link Scenario}s.
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
  */
 // TODO rename to PDPScenarios?

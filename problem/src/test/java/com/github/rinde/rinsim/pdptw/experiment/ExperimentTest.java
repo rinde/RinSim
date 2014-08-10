@@ -6,7 +6,6 @@ package com.github.rinde.rinsim.pdptw.experiment;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-import java.io.File;
 import java.io.Serializable;
 import java.util.List;
 
@@ -15,19 +14,12 @@ import org.junit.Test;
 import com.github.rinde.rinsim.core.Simulator;
 import com.github.rinde.rinsim.core.model.road.RoadModel;
 import com.github.rinde.rinsim.geom.Point;
-import com.github.rinde.rinsim.pdptw.central.Central;
-import com.github.rinde.rinsim.pdptw.central.RandomSolver;
 import com.github.rinde.rinsim.pdptw.common.DynamicPDPTWProblem;
 import com.github.rinde.rinsim.pdptw.common.ObjectiveFunction;
 import com.github.rinde.rinsim.pdptw.common.StatisticsDTO;
-import com.github.rinde.rinsim.pdptw.experiment.Experiment;
-import com.github.rinde.rinsim.pdptw.experiment.ExperimentResults;
-import com.github.rinde.rinsim.pdptw.experiment.MASConfiguration;
-import com.github.rinde.rinsim.pdptw.experiment.PostProcessor;
-import com.github.rinde.rinsim.pdptw.gendreau06.Gendreau06ObjectiveFunction;
-import com.github.rinde.rinsim.pdptw.gendreau06.Gendreau06Parser;
-import com.github.rinde.rinsim.pdptw.gendreau06.Gendreau06Scenario;
+import com.github.rinde.rinsim.pdptw.common.TestObjectiveFunction;
 import com.github.rinde.rinsim.scenario.Scenario;
+import com.github.rinde.rinsim.scenario.ScenarioTestUtil;
 import com.google.common.collect.ImmutableList;
 
 /**
@@ -49,29 +41,23 @@ public class ExperimentTest {
   }
 
   @Test
-  public void test() {
-    final Gendreau06Scenario scenario = Gendreau06Parser.parse(
-        new File("files/test/gendreau06/req_rapide_1_240_24"));
-
+  public void testPostProcessor() {
+    final Scenario scenario = ScenarioTestUtil.create(123L);
     final Experiment.Builder builder = Experiment
-        .build(Gendreau06ObjectiveFunction.instance())
+        .build(TestObjectiveFunction.INSTANCE)
         .addScenario(scenario)
-        .addConfiguration(Central.solverConfiguration(RandomSolver.supplier()))
+        .addConfiguration(TestMASConfiguration.create("test"))
         .usePostProcessor(new TestPostProcessor())
         .withRandomSeed(123);
 
     final ExperimentResults er = builder.perform();
-
     assertEquals(123, er.masterSeed);
     assertEquals(123, er.results.asList().get(0).seed);
 
     @SuppressWarnings("unchecked")
     final List<Point> positions = (List<Point>) er.results.asList().get(0).simulationData
         .get();
-    assertEquals(11, positions.size());
-    for (final Point p : positions) {
-      assertEquals(new Point(2, 2.5), p);
-    }
+    assertEquals(10, positions.size());
   }
 
   /**
@@ -81,20 +67,17 @@ public class ExperimentTest {
   // i.e. ordering is no longer important
   @Test
   public void multiThreadedOrder() {
-    final Gendreau06Scenario scenario = Gendreau06Parser.parse(
-        new File("files/test/gendreau06/req_rapide_1_240_24"));
-
     final Experiment.Builder builder = Experiment
-        .build(Gendreau06ObjectiveFunction.instance())
-        .addScenario(scenario)
+        .build(TestObjectiveFunction.INSTANCE)
+        .addScenario(ScenarioTestUtil.create(456L))
         .addConfiguration(
-            Central.solverConfiguration(RandomSolver.supplier(), "A"))
+            TestMASConfiguration.create("A"))
         .addConfiguration(
-            Central.solverConfiguration(RandomSolver.supplier(), "B"))
+            TestMASConfiguration.create("B"))
         .addConfiguration(
-            Central.solverConfiguration(RandomSolver.supplier(), "C"))
+            TestMASConfiguration.create("C"))
         .addConfiguration(
-            Central.solverConfiguration(RandomSolver.supplier(), "D"))
+            TestMASConfiguration.create("D"))
         .withThreads(4)
         .withRandomSeed(456);
 

@@ -32,8 +32,8 @@ import com.github.rinde.rinsim.pdptw.experiment.Experiment.Builder;
 import com.github.rinde.rinsim.pdptw.experiment.Experiment.SimArgs;
 import com.github.rinde.rinsim.pdptw.experiment.Experiment.SimulationResult;
 import com.github.rinde.rinsim.scenario.Scenario;
-import com.github.rinde.rinsim.scenario.ScenarioIO;
 import com.github.rinde.rinsim.scenario.ScenarioController.UICreator;
+import com.github.rinde.rinsim.scenario.ScenarioIO;
 import com.google.common.base.Joiner;
 import com.google.common.base.Objects;
 import com.google.common.base.Optional;
@@ -281,9 +281,8 @@ final class JppfComputer implements Computer {
     String storeAndGenerateId(T value) {
       checkArgument(
           value instanceof Serializable,
-          "When using JPPF, instances of %s must implement Serializable, found: %s.",
-          clazz,
-          value);
+          "When using JPPF, instances of %s must implement Serializable, found: '%s' of class: %s.",
+          clazz, value, value.getClass());
       final String id;
       if (configMap.containsKey(value)) {
         id = configMap.get(value);
