@@ -28,6 +28,7 @@ import com.google.common.collect.ImmutableSet;
 
 /**
  * Configurable supplier of files.
+ * 
  * @param <T> The type of object that this file provider provides. See
  *          {@link Builder#build()} and {@link Builder#build(Function)} for more
  *          details.
@@ -38,8 +39,7 @@ public final class FileProvider<T> implements Supplier<ImmutableSet<T>> {
   final Predicate<Path> pathPredicate;
   final Function<Path, T> pathReader;
 
-  FileProvider(ImmutableList<Path> rootPaths,
-      Predicate<Path> predicate,
+  FileProvider(ImmutableList<Path> rootPaths, Predicate<Path> predicate,
       Function<Path, T> reader) {
     roots = rootPaths;
     pathPredicate = predicate;
@@ -49,7 +49,8 @@ public final class FileProvider<T> implements Supplier<ImmutableSet<T>> {
   @Override
   public ImmutableSet<T> get() {
     try {
-      final PathCollector<T> pc = new PathCollector<>(pathPredicate, pathReader);
+      final PathCollector<T> pc = new PathCollector<>(pathPredicate,
+          pathReader);
       for (final Path path : roots) {
         Files.walkFileTree(path, pc);
       }
@@ -70,6 +71,7 @@ public final class FileProvider<T> implements Supplier<ImmutableSet<T>> {
    * A builder for creating {@link FileProvider} instances. Via this builder
    * files and directories can be added and filtered. The resulting
    * {@link FileProvider} will provide all specified files.
+   * 
    * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
    */
   public static class Builder {
@@ -85,6 +87,7 @@ public final class FileProvider<T> implements Supplier<ImmutableSet<T>> {
      * Add the file or directory that is represented by this {@link Path}
      * instance. If it is a directory it will be added recursively. Each added
      * file will be included at maximum once.
+     * 
      * @param path The file or directory to add.
      * @return This, as per the builder pattern.
      */
@@ -98,6 +101,7 @@ public final class FileProvider<T> implements Supplier<ImmutableSet<T>> {
      * Adds all files or directories that are represented by the specified
      * {@link Path}s. Directories will be added recursively. Each added file
      * will be included at maximum once.
+     * 
      * @param ps The files and/or directories to add.
      * @return This, as per the builder pattern.
      */
@@ -113,13 +117,14 @@ public final class FileProvider<T> implements Supplier<ImmutableSet<T>> {
      * the same as for the
      * {@link java.nio.file.FileSystem#getPathMatcher(String)} method. Only one
      * filter can be applied at one time.
+     * 
      * @param syntaxAndPattern The syntax and pattern.
      * @return This, as per the builder pattern.
      */
     public Builder filter(String syntaxAndPattern) {
       checkNotNull(syntaxAndPattern);
-      pathPredicate = new PredicateAdapter(syntaxAndPattern,
-          FileSystems.getDefault().getPathMatcher(syntaxAndPattern));
+      pathPredicate = new PredicateAdapter(syntaxAndPattern, FileSystems
+          .getDefault().getPathMatcher(syntaxAndPattern));
       return this;
     }
 
@@ -127,6 +132,7 @@ public final class FileProvider<T> implements Supplier<ImmutableSet<T>> {
      * Apply the specified {@link PathMatcher} as a filter. Only files that
      * satisfy the filter will be included.Only one filter can be applied at one
      * time.
+     * 
      * @param matcher The matcher to use as filter.
      * @return This, as per the builder pattern.
      */
@@ -140,6 +146,7 @@ public final class FileProvider<T> implements Supplier<ImmutableSet<T>> {
      * Apply the specified {@link Predicate} as a filter. Only files that
      * satisfy the filter will be included. Only one filter can be applied at
      * one time.
+     * 
      * @param predicate The predicate to use as filter.
      * @return This, as per the builder pattern.
      */
@@ -153,6 +160,7 @@ public final class FileProvider<T> implements Supplier<ImmutableSet<T>> {
      * Activates the command-line interface for this builder. If an invalid
      * option is given the help will be printed automatically to
      * {@link System#out}.
+     * 
      * @param stream The stream to write error messages to if any.
      * @param args The command-line arguments.
      * @return This, as per the builder pattern.
@@ -166,8 +174,9 @@ public final class FileProvider<T> implements Supplier<ImmutableSet<T>> {
     }
 
     /**
-     * Create a new {@link FileProvider} which will provide the {@link Path}s as
-     * specified by this builder.
+     * Create a new {@link FileProvider} which will provide the {@link Path} s
+     * as specified by this builder.
+     * 
      * @return The new {@link FileProvider} instance.
      */
     public FileProvider<Path> build() {
@@ -178,6 +187,7 @@ public final class FileProvider<T> implements Supplier<ImmutableSet<T>> {
      * Create a new {@link FileProvider} which will provide the converted
      * {@link Path}s as specified by this builder. Each path will be converted
      * to type <code>T</code> using the specified <code>converter</code>.
+     * 
      * @param converter A {@link Function} that converts {@link Path}s.
      * @param <T> The type to which {@link Path}s are converted and which will
      *          be provided by the {@link FileProvider}.
@@ -186,16 +196,15 @@ public final class FileProvider<T> implements Supplier<ImmutableSet<T>> {
     public <T> FileProvider<T> build(Function<Path, T> converter) {
       checkNotNull(converter);
       checkArgument(!paths.isEmpty(), "No paths are specified.");
-      return new FileProvider<T>(ImmutableList.copyOf(paths), pathPredicate,
-          converter);
+      return new FileProvider<T>(ImmutableList.copyOf(paths),
+          pathPredicate, converter);
     }
 
     int getNumberOfFiles() {
-      try {
-        return build().get().size();
-      } catch (final IllegalArgumentException e) {
+      if (paths.isEmpty()) {
         return 0;
       }
+      return build().get().size();
     }
   }
 
