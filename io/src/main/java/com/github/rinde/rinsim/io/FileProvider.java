@@ -196,7 +196,7 @@ public final class FileProvider<T> implements Supplier<ImmutableSet<T>> {
     public <T> FileProvider<T> build(Function<Path, T> converter) {
       checkNotNull(converter);
       checkArgument(!paths.isEmpty(), "No paths are specified.");
-      return new FileProvider<T>(ImmutableList.copyOf(paths),
+      return new FileProvider<>(ImmutableList.copyOf(paths),
           pathPredicate, converter);
     }
 
