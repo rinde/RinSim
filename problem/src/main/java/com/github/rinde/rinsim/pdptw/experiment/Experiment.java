@@ -30,8 +30,8 @@ import com.github.rinde.rinsim.scenario.AddDepotEvent;
 import com.github.rinde.rinsim.scenario.AddParcelEvent;
 import com.github.rinde.rinsim.scenario.AddVehicleEvent;
 import com.github.rinde.rinsim.scenario.Scenario;
-import com.github.rinde.rinsim.scenario.ScenarioIO;
 import com.github.rinde.rinsim.scenario.ScenarioController.UICreator;
+import com.github.rinde.rinsim.scenario.ScenarioIO;
 import com.github.rinde.rinsim.util.StochasticSupplier;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Function;
@@ -39,6 +39,7 @@ import com.google.common.base.Joiner;
 import com.google.common.base.Objects;
 import com.google.common.base.Optional;
 import com.google.common.base.Supplier;
+import com.google.common.collect.ComparisonChain;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
@@ -216,7 +217,7 @@ public final class Experiment {
       showGui = false;
       repetitions = 1;
       masterSeed = 0L;
-      numThreads = 1;
+      numThreads = Runtime.getRuntime().availableProcessors();
       numBatches = 1;
       computerType = Computers.LOCAL;
     }
@@ -306,7 +307,8 @@ public final class Experiment {
     }
 
     /**
-     * Adds a {@link com.github.rinde.rinsim.io.FileProvider.Builder} to the experiment.
+     * Adds a {@link com.github.rinde.rinsim.io.FileProvider.Builder} to the
+     * experiment.
      * @param providerBuilder This builder will be used create a
      *          {@link FileProvider} instance to load scenarios.
      * @return This, as per the builder pattern.
@@ -581,7 +583,8 @@ public final class Experiment {
    * statistics as well as the inputs used to obtain this result.
    * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
    */
-  public static final class SimulationResult {
+  public static final class SimulationResult implements
+      Comparable<SimulationResult> {
     /**
      * The simulation statistics.
      */
@@ -650,6 +653,16 @@ public final class Experiment {
           .add("simulationData", simulationData)
           .toString();
     }
-  }
 
+    @Override
+    public int compareTo(SimulationResult o) {
+      return ComparisonChain
+          .start()
+          .compare(scenario.getProblemClass().getId(),
+              o.scenario.getProblemClass().getId())
+          .compare(scenario.getProblemInstanceId(),
+              o.scenario.getProblemInstanceId())
+          .result();
+    }
+  }
 }

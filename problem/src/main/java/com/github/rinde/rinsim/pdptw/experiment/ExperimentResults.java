@@ -8,6 +8,7 @@ import com.github.rinde.rinsim.pdptw.experiment.Experiment.SimulationResult;
 import com.github.rinde.rinsim.scenario.Scenario;
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ImmutableSortedSet;
 
 /**
  * Value object containing all the results of a single experiment as performed
@@ -47,7 +48,7 @@ public final class ExperimentResults {
   public final long masterSeed;
 
   /**
-   * The list of individual simulation results.
+   * The set of individual simulation results.
    */
   public final ImmutableSet<SimulationResult> results;
 
@@ -59,6 +60,14 @@ public final class ExperimentResults {
     repetitions = exp.repetitions;
     masterSeed = exp.masterSeed;
     results = res;
+  }
+
+  /**
+   * @return An {@link ImmutableSet} containing the results sorted by its
+   *         comparator.
+   */
+  public ImmutableSet<SimulationResult> sortedResults() {
+    return ImmutableSortedSet.copyOf(results);
   }
 
   @Override
