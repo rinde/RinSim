@@ -29,6 +29,14 @@
 		</dependency>
 		<dependency>
 			<groupId>com.github.rinde</groupId>
+			<artifactId>rinsim-scenario</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>com.github.rinde</groupId>
+			<artifactId>rinsim-experiment</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>com.github.rinde</groupId>
 			<artifactId>rinsim-ui</artifactId>
 		</dependency>
 		<dependency>

@@ -69,6 +69,7 @@ public class GradientFieldExample {
     Experiment
         .build(objFunc)
         .withRandomSeed(123)
+        .withThreads(1)
         .addConfiguration(new GradientFieldConfiguration())
         .addScenario(scenario)
         .showGui(uic)

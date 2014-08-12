@@ -8,8 +8,8 @@
 		<relativePath>..</relativePath>
 	</parent>
 
-	<artifactId>rinsim-central</artifactId>
-	<name>RinSim Central</name>
+	<artifactId>rinsim-experiment</artifactId>
+	<name>RinSim Experiment</name>
 	<packaging>jar</packaging>
 
 	<properties>
@@ -28,15 +28,23 @@
 		</dependency>
 		<dependency>
 			<groupId>com.github.rinde</groupId>
+			<artifactId>rinsim-problem</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>com.github.rinde</groupId>
 			<artifactId>rinsim-scenario</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>com.github.rinde</groupId>
-			<artifactId>rinsim-experiment</artifactId>
+			<artifactId>rinsim-ui</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>com.github.rinde</groupId>
-			<artifactId>rinsim-problem</artifactId>
+			<artifactId>rinsim-io</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>com.github.rinde</groupId>
+			<artifactId>rinsim-cli</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>com.github.rinde</groupId>
@@ -52,12 +60,26 @@
 		</dependency>
 		<dependency>
 			<groupId>com.github.rinde</groupId>
-			<artifactId>rinsim-fsm</artifactId>
+			<artifactId>rinsim-scenario</artifactId>
+			<type>test-jar</type>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
-			<groupId>org.mockito</groupId>
-			<artifactId>mockito-core</artifactId>
+			<groupId>com.github.rinde</groupId>
+			<artifactId>rinsim-cli</artifactId>
+			<type>test-jar</type>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.jppf</groupId>
+			<artifactId>jppf-client</artifactId>
+			<version>4.1.2</version>
+		</dependency>
+		
+		<dependency>
+			<groupId>org.jppf</groupId>
+			<artifactId>jppf-server</artifactId>
+			<version>4.1.2</version>
 			<scope>test</scope>
 		</dependency>
 	</dependencies>

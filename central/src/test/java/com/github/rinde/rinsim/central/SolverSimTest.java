@@ -115,7 +115,7 @@ public class SolverSimTest {
 
     final Gendreau06ObjectiveFunction obj = Gendreau06ObjectiveFunction
         .instance();
-    Experiment.build(obj).addConfiguration(Central.solverConfiguration(dsc))
+    Experiment.build(obj).withThreads(1).addConfiguration(Central.solverConfiguration(dsc))
         .addScenario(scenario).repeat(10).perform();
 
     final MVASDebugger arraysSolver = dsc.arraysSolver;

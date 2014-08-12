@@ -41,7 +41,7 @@ public class ExamplesTest {
       }
       // verify that the exception was caused by the early termination of the
       // simulation
-      assertTrue(cur instanceof IllegalStateException);
+      assertTrue(cur.toString(), cur instanceof IllegalStateException);
       assertTrue(cur.getMessage().contains(
           "The simulation did not result in a valid result"));
     }
