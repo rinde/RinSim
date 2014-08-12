@@ -48,7 +48,9 @@ public final class ExperimentResults {
   public final long masterSeed;
 
   /**
-   * The set of individual simulation results.
+   * The set of individual simulation results. Note that this set has an
+   * undefined iteration order, if you want a sorted view on the results use
+   * {@link #sortedResults()}.
    */
   public final ImmutableSet<SimulationResult> results;
 
