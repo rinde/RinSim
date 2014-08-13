@@ -1,5 +1,10 @@
 package com.github.rinde.rinsim.pdptw.experiment;
 
+import static com.google.common.collect.Lists.newArrayList;
+
+import java.util.Collections;
+import java.util.List;
+
 import javax.annotation.Nullable;
 
 import com.github.rinde.rinsim.pdptw.common.ObjectiveFunction;
@@ -8,7 +13,6 @@ import com.github.rinde.rinsim.pdptw.experiment.Experiment.SimulationResult;
 import com.github.rinde.rinsim.scenario.Scenario;
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.ImmutableSortedSet;
 
 /**
  * Value object containing all the results of a single experiment as performed
@@ -65,11 +69,13 @@ public final class ExperimentResults {
   }
 
   /**
-   * @return An {@link ImmutableSet} containing the results sorted by its
+   * @return A unmodifiable {@link List} containing the results sorted by its
    *         comparator.
    */
-  public ImmutableSet<SimulationResult> sortedResults() {
-    return ImmutableSortedSet.copyOf(results);
+  public List<SimulationResult> sortedResults() {
+    List<SimulationResult> list = newArrayList(results);
+    Collections.sort(list);
+    return Collections.unmodifiableList(list);
   }
 
   @Override
