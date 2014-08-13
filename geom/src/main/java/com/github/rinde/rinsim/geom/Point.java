@@ -4,10 +4,13 @@
 package com.github.rinde.rinsim.geom;
 
 import java.io.Serializable;
+import java.util.Comparator;
 
 import javax.annotation.Nullable;
 
+import com.google.common.base.Function;
 import com.google.common.base.Objects;
+import com.google.common.collect.ComparisonChain;
 
 /**
  * Point represents a position in euclidean space, it is defined as a simple
@@ -123,5 +126,71 @@ public class Point implements Serializable {
   public String toString() {
     return new StringBuilder().append("(").append(x).append(NUM_SEPARATOR)
         .append(y).append(")").toString();
+  }
+
+  /**
+   * Provides default comparators for comparing {@link Point}s.
+   * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+   */
+  public enum Comparators implements Comparator<Point> {
+    /**
+     * {@link Comparator} that compares {@link Point}s on their <code>x</code>
+     * value.
+     */
+    X {
+      @Override
+      public int compare(Point o1, Point o2) {
+        return Double.compare(o1.x, o2.x);
+      }
+    },
+    /**
+     * {@link Comparator} that compares {@link Point}s on their <code>y</code>
+     * value.
+     */
+    Y {
+      @Override
+      public int compare(Point o1, Point o2) {
+        return Double.compare(o1.y, o2.y);
+      }
+    },
+    /**
+     * {@link Comparator} that compares {@link Point}s first on their
+     * <code>x</code> value followed by their <code>y</code> value..
+     */
+    XY {
+      @Override
+      public int compare(Point o1, Point o2) {
+        return ComparisonChain.start()
+            .compare(o1.x, o2.x)
+            .compare(o1.y, o2.y)
+            .result();
+      }
+    };
+  }
+
+  /**
+   * Provides default {@link Function}s for transforming {@link Point}s to
+   * doubles.
+   * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+   */
+  public enum Transformers implements Function<Point, Double> {
+    /**
+     * Transforms {@link Point} to its x value.
+     */
+    X {
+      @Override
+      public Double apply(Point input) {
+        return input.x;
+      }
+    },
+    /**
+     * Transforms {@link Point} to its y value.
+     */
+    Y {
+      @Override
+      public Double apply(Point input) {
+        return input.y;
+      }
+    };
   }
 }
