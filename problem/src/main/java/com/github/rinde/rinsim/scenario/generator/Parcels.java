@@ -148,7 +148,7 @@ public final class Parcels {
         .homogenousPoisson(4 * 60 * 60 * 1000, 20);
     static final double DEFAULT_AREA_SIZE = 5d;
     static final LocationGenerator DEFAULT_LOCATIONS = Locations.builder()
-        .square(DEFAULT_AREA_SIZE).uniform();
+        .square(DEFAULT_AREA_SIZE).buildUniform();
     static final TimeWindowGenerator DEFAULT_TIME_WINDOW_GENERATOR = TimeWindows
         .builder().build();
     static final StochasticSupplier<Long> DEFAULT_SERVICE_DURATION = StochasticSuppliers

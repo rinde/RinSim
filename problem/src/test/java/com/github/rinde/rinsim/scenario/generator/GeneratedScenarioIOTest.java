@@ -63,7 +63,7 @@ public class GeneratedScenarioIOTest {
                 .builder()
                 .announceTimes(
                     TimeSeries.homogenousPoisson(4 * 60 * 60 * 1000L, 10))
-                .locations(Locations.builder().square(5).uniform())
+                .locations(Locations.builder().square(5).buildUniform())
                 .timeWindows(TimeWindows.builder().build())
                 .build()
 

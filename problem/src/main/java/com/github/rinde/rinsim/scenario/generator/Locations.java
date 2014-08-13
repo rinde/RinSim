@@ -3,6 +3,8 @@ package com.github.rinde.rinsim.scenario.generator;
 import static com.github.rinde.rinsim.util.StochasticSuppliers.uniformDouble;
 import static com.google.common.base.Preconditions.checkArgument;
 
+import java.util.Collections;
+
 import org.apache.commons.math3.random.MersenneTwister;
 import org.apache.commons.math3.random.RandomGenerator;
 
@@ -10,7 +12,9 @@ import com.github.rinde.rinsim.geom.Point;
 import com.github.rinde.rinsim.util.StochasticSupplier;
 import com.github.rinde.rinsim.util.StochasticSuppliers;
 import com.google.common.base.Optional;
+import com.google.common.collect.Collections2;
 import com.google.common.collect.ImmutableList;
+import com.google.common.math.DoubleMath;
 
 /**
  * Utility class for creating {@link LocationGenerator}s.
@@ -290,7 +294,7 @@ public final class Locations {
      * {@link LocationGenerator#getCenter()} method.
      * @return A uniform distributed generator.
      */
-    public LocationGenerator uniform() {
+    public LocationGenerator buildUniform() {
       final Point xMinMax = getUniformMinMax(xMin, xMax, xMean, xSd);
       final Point yMinMax = getUniformMinMax(yMin, yMax, yMean, ySd);
       final Point min = new Point(xMinMax.x, yMinMax.x);
@@ -308,14 +312,56 @@ public final class Locations {
      * Create a normal distributed {@link LocationGenerator}.
      * @return A normal distributed generator.
      */
-    public LocationGenerator normal() {
-      final StochasticSupplier<Double> xSup = normalVar(xMin, xMax, xMean, xSd, redraw);
-      final StochasticSupplier<Double> ySup = normalVar(yMin, yMax, yMean, ySd, redraw);
+    public LocationGenerator buildNormal() {
+      final StochasticSupplier<Double> xSup = normalVar(xMin, xMax, xMean, xSd,
+          redraw);
+      final StochasticSupplier<Double> ySup = normalVar(yMin, yMax, yMean, ySd,
+          redraw);
       return new SupplierLocGen(
           new Point(xMin.get(), yMin.get()),
           new Point(xMax.get(), yMax.get()),
           new Point(xMean.get(), yMean.get()),
           xSup, ySup);
+    }
+
+    /**
+     * Creates a fixed {@link LocationGenerator} that will always return the
+     * same list of locations. Note that if the number of requested locations is
+     * different from the number of locations in this list, the
+     * {@link LocationGenerator} will throw an {@link IllegalArgumentException}.
+     * If no previous min, max or center values were supplied these will be
+     * computed from the specified locations.
+     * @param locations The locations that will always be returned by the
+     *          {@link LocationGenerator}.
+     * @return A new fixed {@link LocationGenerator}.
+     */
+    public LocationGenerator buildFixed(Iterable<Point> locations) {
+      final ImmutableList<Point> locs = ImmutableList.copyOf(locations);
+      if (!xMin.isPresent()) {
+        xMin = Optional.of(Collections.min(locs, Point.Comparators.X).x);
+      }
+      if (!yMin.isPresent()) {
+        yMin = Optional.of(Collections.min(locs, Point.Comparators.Y).y);
+      }
+      if (!xMax.isPresent()) {
+        xMax = Optional.of(Collections.max(locs, Point.Comparators.X).x);
+      }
+      if (!yMax.isPresent()) {
+        yMax = Optional.of(Collections.max(locs, Point.Comparators.Y).y);
+      }
+      if (!xMean.isPresent()) {
+        xMean = Optional.of(DoubleMath.mean(
+            Collections2.transform(locs, Point.Transformers.X)));
+      }
+      if (!yMean.isPresent()) {
+        yMean = Optional.of(DoubleMath.mean(
+            Collections2.transform(locs, Point.Transformers.Y)));
+      }
+
+      return new FixedLocGen(new Point(xMin.get(), yMin.get()),
+          new Point(xMax.get(), yMax.get()),
+          new Point(xMean.get(), yMean.get()),
+          locs);
     }
 
     private static double getUniformCenter(Optional<Double> mean, double min,
@@ -364,19 +410,42 @@ public final class Locations {
     }
   }
 
-  private static class SupplierLocGen implements LocationGenerator {
-    private final Point min;
-    private final Point max;
-    private final Point center;
+  private static abstract class AbstractLocGen implements LocationGenerator {
+    final Point min;
+    final Point max;
+    final Point center;
+
+    AbstractLocGen(Point mi, Point ma, Point ce) {
+      min = mi;
+      max = ma;
+      center = ce;
+    }
+
+    @Override
+    public Point getMin() {
+      return min;
+    }
+
+    @Override
+    public Point getMax() {
+      return max;
+    }
+
+    @Override
+    public Point getCenter() {
+      return center;
+    }
+  }
+
+  private static class SupplierLocGen extends AbstractLocGen {
     private final StochasticSupplier<Double> xSupplier;
     private final StochasticSupplier<Double> ySupplier;
     private final RandomGenerator rng;
 
-    SupplierLocGen(Point mi, Point ma, Point ce, StochasticSupplier<Double> xSup,
+    SupplierLocGen(Point mi, Point ma, Point ce,
+        StochasticSupplier<Double> xSup,
         StochasticSupplier<Double> ySup) {
-      min = mi;
-      max = ma;
-      center = ce;
+      super(mi, ma, ce);
       xSupplier = xSup;
       ySupplier = ySup;
       rng = new MersenneTwister();
@@ -393,20 +462,23 @@ public final class Locations {
       }
       return locs.build();
     }
+  }
 
-    @Override
-    public Point getMin() {
-      return min;
+  private static class FixedLocGen extends AbstractLocGen {
+    private final ImmutableList<Point> fixedPoints;
+
+    FixedLocGen(Point mi, Point ma, Point ce, Iterable<Point> points) {
+      super(mi, ma, ce);
+      fixedPoints = ImmutableList.copyOf(points);
     }
 
     @Override
-    public Point getMax() {
-      return max;
-    }
-
-    @Override
-    public Point getCenter() {
-      return center;
+    public ImmutableList<Point> generate(long seed, int numOrders) {
+      checkArgument(
+          fixedPoints.size() == numOrders,
+          "This fixed LocationGenerator can only output %s locations while %s locations were requested.",
+          fixedPoints.size(), numOrders);
+      return fixedPoints;
     }
   }
 }

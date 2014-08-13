@@ -187,11 +187,11 @@ public final class TimeSeries {
   /**
    * Decorates the specified {@link TimeSeriesGenerator} such that it only
    * generates time series which conform to the specified {@link Predicate}.
-   * Note that when an impossible {@link Predicate} is specified, such as
+   * Predicates can be combined by using the methods provided by
+   * {@link com.google.common.base.Predicates}. Note that when an impossible
+   * {@link Predicate} is specified, such as
    * {@link com.google.common.base.Predicates#alwaysFalse()} the resulting
-   * {@link TimeSeriesGenerator} will enter an infinite loop. Predicates can be
-   * combined by using the methods provided by
-   * {@link com.google.common.base.Predicates}.
+   * {@link TimeSeriesGenerator} will enter an infinite loop.
    * @param tsg The {@link TimeSeriesGenerator} to filter.
    * @param predicate All returned {@link TimeSeriesGenerator}s will conform to
    *          this predicate.
@@ -203,11 +203,12 @@ public final class TimeSeries {
   }
 
   /**
-   * Creates a {@link Predicate} for a specified number of events.
+   * Creates a {@link Predicate} for a specified number of events. This
+   * predicate only accepts time series with exactly <code>num</code> events.
    * @param num The number of events a time series should have.
    * @return A newly created predicate.
    */
-  public static Predicate<List<Double>> numEvents(final int num) {
+  public static Predicate<List<Double>> numEventsPredicate(final int num) {
     return new Predicate<List<Double>>() {
       @Override
       public boolean apply(@Nullable List<Double> input) {
