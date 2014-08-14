@@ -4,6 +4,7 @@ import static org.junit.Assert.assertEquals;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Paths;
 
 import javax.measure.unit.NonSI;
 import javax.measure.unit.SI;
@@ -15,12 +16,6 @@ import com.github.rinde.rinsim.core.model.pdp.TimeWindowPolicy.TimeWindowPolicie
 import com.github.rinde.rinsim.pdptw.common.DynamicPDPTWProblem.StopConditions;
 import com.github.rinde.rinsim.scenario.Scenario;
 import com.github.rinde.rinsim.scenario.Scenario.ProblemClass;
-import com.github.rinde.rinsim.scenario.generator.Locations;
-import com.github.rinde.rinsim.scenario.generator.Models;
-import com.github.rinde.rinsim.scenario.generator.Parcels;
-import com.github.rinde.rinsim.scenario.generator.ScenarioGenerator;
-import com.github.rinde.rinsim.scenario.generator.TimeSeries;
-import com.github.rinde.rinsim.scenario.generator.TimeWindows;
 import com.github.rinde.rinsim.scenario.ScenarioIO;
 import com.google.common.base.Charsets;
 import com.google.common.base.Predicates;
@@ -47,7 +42,6 @@ public class GeneratedScenarioIOTest {
    */
   @Test
   public void testIO() throws IOException {
-
     final ScenarioGenerator generator = ScenarioGenerator
         .builder(TestPC.CLASS_A)
         .timeUnit(SI.MILLI(SI.SECOND))
@@ -66,7 +60,6 @@ public class GeneratedScenarioIOTest {
                 .locations(Locations.builder().square(5).buildUniform())
                 .timeWindows(TimeWindows.builder().build())
                 .build()
-
         )
         // .deliveryDurations(constant(10L))
         .addModel(Models.roadModel(50d, true))
@@ -76,8 +69,13 @@ public class GeneratedScenarioIOTest {
     final Scenario scenario = generator
         .generate(new MersenneTwister(123), "id123");
 
-    final String output = ScenarioIO.write(scenario);
+    // if this call fails, something has changed in the scenario format.
+    final Scenario originalScenario = ScenarioIO.read(Paths
+        .get("files/scen.json"));
+    assertEquals("Change in scenario format detected.", originalScenario,
+        scenario);
 
+    final String output = ScenarioIO.write(scenario);
     Files.write(output, new File("files/scen.json"), Charsets.UTF_8);
     final Scenario converted = ScenarioIO.read(output);
     assertEquals(scenario, converted);
