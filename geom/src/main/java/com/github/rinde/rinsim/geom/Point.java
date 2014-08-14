@@ -130,7 +130,7 @@ public class Point implements Serializable {
 
   /**
    * Provides default comparators for comparing {@link Point}s.
-   * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+   * @author Rinde van Lon 
    */
   public enum Comparators implements Comparator<Point> {
     /**
@@ -171,7 +171,7 @@ public class Point implements Serializable {
   /**
    * Provides default {@link Function}s for transforming {@link Point}s to
    * doubles.
-   * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+   * @author Rinde van Lon 
    */
   public enum Transformers implements Function<Point, Double> {
     /**

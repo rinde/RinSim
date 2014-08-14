@@ -19,7 +19,7 @@ import com.github.rinde.rinsim.geom.Point;
 
 /**
  * @author Rinde van Lon (rinde.vanlon@cs.kuleuven.be)
- * @author Bartosz Michalik <bartosz.michalik@cs.kuleuven.be> changes in
+ * @author Bartosz Michalik  changes in
  *         handling colors
  * 
  */

@@ -18,7 +18,7 @@ import com.google.common.collect.Multimap;
  * Basic event dispatcher for easily dispatching {@link Event}s to
  * {@link Listener}s. It provides methods for dispatching events and removing
  * and adding of listeners.
- * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+ * @author Rinde van Lon 
  */
 public class EventDispatcher implements EventAPI {
 

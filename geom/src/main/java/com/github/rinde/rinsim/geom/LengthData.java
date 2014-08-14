@@ -5,8 +5,8 @@ import javax.annotation.Nullable;
 /**
  * Simple implementation of {@link ConnectionData}, allowing to specify the
  * length of a connection.
- * @author Bartosz Michalik <bartosz.michalik@cs.kuleuven.be>
- * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+ * @author Bartosz Michalik 
+ * @author Rinde van Lon 
  */
 public class LengthData implements ConnectionData {
 

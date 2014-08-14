@@ -130,7 +130,7 @@ public abstract class Option {
    * An {@link Option} that optionally requires an argument of type
    * <code>T</code>.
    * @param <T> The type of the argument.
-   * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+   * @author Rinde van Lon 
    */
   public static class OptionArg<T> extends Option {
     final ArgumentParser<T> argumentType;
@@ -148,7 +148,7 @@ public abstract class Option {
 
   /**
    * An {@link Option} that does not support any arguments.
-   * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+   * @author Rinde van Lon 
    */
   public static class OptionNoArg extends Option {
     OptionNoArg(NoArgBuilder b, boolean help) {
@@ -158,7 +158,7 @@ public abstract class Option {
 
   /**
    * A builder for creating {@link OptionNoArg} instances.
-   * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+   * @author Rinde van Lon 
    */
   public static class NoArgBuilder extends Builder<NoArgBuilder> {
     NoArgBuilder(String sn) {
@@ -190,7 +190,7 @@ public abstract class Option {
    * A builder for creating {@link OptionArg} instances.
    * @param <V> The type of the argument that options that are created by this
    *          builder require.
-   * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+   * @author Rinde van Lon 
    */
   public static class ArgBuilder<V> extends Builder<ArgBuilder<V>> {
     ArgumentParser<V> argumentType;
@@ -218,7 +218,7 @@ public abstract class Option {
      * @return A new {@link OptionArg} instance.
      */
     public OptionArg<V> build() {
-      return new OptionArg<V>(this, false);
+      return new OptionArg<>(this, false);
     }
 
     @Override
@@ -229,7 +229,7 @@ public abstract class Option {
 
   /**
    * Builder of {@link Option} instances.
-   * @param <V> Value type
+   * @param <T> Value type
    * @author Rinde van Lon
    */
   abstract static class Builder<T extends Builder<T>> {

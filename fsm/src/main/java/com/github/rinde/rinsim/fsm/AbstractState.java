@@ -10,7 +10,7 @@ import javax.annotation.Nullable;
  * {@link AbstractState#handle(Object, Object)} method.
  * @param <E> The event type, see {@link StateMachine} for more information.
  * @param <C> The context type, see {@link StateMachine} for more information.
- * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+ * @author Rinde van Lon 
  */
 public abstract class AbstractState<E, C> implements State<E, C> {
 

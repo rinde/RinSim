@@ -13,7 +13,7 @@ import com.google.common.collect.ImmutableList;
 
 /**
  * Allows keeping track of the inputs and outputs of a {@link Solver}.
- * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+ * @author Rinde van Lon 
  */
 public final class SolverDebugger implements Solver {
   private final List<GlobalStateObject> inputs;

@@ -39,7 +39,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.math.DoubleMath;
 
 /**
- * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+ * @author Rinde van Lon 
  * 
  */
 public class Demo {

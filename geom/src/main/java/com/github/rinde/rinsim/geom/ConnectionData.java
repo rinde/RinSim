@@ -3,8 +3,8 @@ package com.github.rinde.rinsim.geom;
 /**
  * Simple interface to represent data associated to a {@link Connection} in a
  * {@link Graph}.
- * @author Bartosz Michalik <bartosz.michalik@cs.kuleuven.be>
- * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+ * @author Bartosz Michalik 
+ * @author Rinde van Lon 
  * @since 2.0
  */
 public interface ConnectionData {

@@ -15,7 +15,7 @@ import com.github.rinde.rinsim.util.TimeWindow;
 /**
  * An immutable value object representing a vehicle in a pickup-and-delivery
  * problem. Instances can be created via {@link #builder()}.
- * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+ * @author Rinde van Lon
  */
 public final class VehicleDTO {
   /**
@@ -91,7 +91,7 @@ public final class VehicleDTO {
 
   /**
    * A builder for constructing {@link VehicleDTO}s.
-   * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+   * @author Rinde van Lon
    */
   public static class Builder {
     private static final double DEFAULT_SPEED = 50d;
@@ -133,7 +133,7 @@ public final class VehicleDTO {
     /**
      * Sets the speed of the vehicle. Default value: 50 (using the speed unit of
      * the scenario/simulator where it is used).
-     * @param s The speed, must be <code> > 0</code>.
+     * @param s The speed, must be <code> &gt; 0</code>.
      * @return This, as per the builder pattern.
      */
     public Builder speed(double s) {
@@ -144,7 +144,7 @@ public final class VehicleDTO {
 
     /**
      * Sets the capacity of the vehicle. Default value: 1.
-     * @param c The capacity, must be <code> >= 0</code>.
+     * @param c The capacity, must be <code> &gt;= 0</code>.
      * @return This, as per the builder pattern.
      */
     public Builder capacity(int c) {

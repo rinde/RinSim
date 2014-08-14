@@ -84,7 +84,7 @@ import com.google.common.collect.Sets;
  * </ol>
  * For each simulation a {@link SimulationResult} returned.
  * 
- * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+ * @author Rinde van Lon 
  */
 public final class Experiment {
   // TODO add strict mode which checks whether there are not too many
@@ -185,7 +185,7 @@ public final class Experiment {
 
   /**
    * Builder for configuring experiments.
-   * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+   * @author Rinde van Lon 
    */
   public static final class Builder {
     final ObjectiveFunction objectiveFunction;
@@ -392,7 +392,7 @@ public final class Experiment {
      * and {@link PostProcessor} (if used) must implement
      * {@link java.io.Serializable}.
      * <p>
-     * <b>Incompatible settings</b><br/>
+     * <b>Incompatible settings</b><br>
      * The following settings will be ignored when computing is done in a
      * distributed fashion:
      * <ul>
@@ -581,7 +581,7 @@ public final class Experiment {
   /**
    * The result of a single simulation. It contains both the resulting
    * statistics as well as the inputs used to obtain this result.
-   * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+   * @author Rinde van Lon 
    */
   public static final class SimulationResult implements
       Comparable<SimulationResult> {

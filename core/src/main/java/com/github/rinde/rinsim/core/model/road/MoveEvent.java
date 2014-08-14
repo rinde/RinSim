@@ -10,7 +10,7 @@ import com.github.rinde.rinsim.event.Event;
 
 /**
  * Event representing a move of a {@link MovingRoadUser}.
- * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+ * @author Rinde van Lon 
  */
 public class MoveEvent extends Event {
 

@@ -9,7 +9,7 @@ import com.google.common.base.Objects;
 
 /**
  * Simplest time event. The object is a value object.
- * @author Bartosz Michalik <bartosz.michalik@cs.kuleuven.be>
+ * @author Bartosz Michalik 
  * @since 2.0
  */
 public class TimedEvent extends Event {
@@ -60,7 +60,7 @@ public class TimedEvent extends Event {
 
   /**
    * Comparator for comparing {@link TimedEvent}s on their time.
-   * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+   * @author Rinde van Lon 
    */
   public enum TimeComparator implements Comparator<TimedEvent> {
     /**

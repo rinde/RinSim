@@ -31,7 +31,7 @@ import com.google.common.collect.ImmutableTable;
  * @param <C> The context type. This is typically the object that contains the
  *          {@link StateMachine}, a {@link State} represents a state of this
  *          object.
- * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+ * @author Rinde van Lon 
  */
 public class StateMachine<T, C> {
 

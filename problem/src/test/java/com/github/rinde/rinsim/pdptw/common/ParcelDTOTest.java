@@ -10,7 +10,7 @@ import com.github.rinde.rinsim.util.TimeWindow;
 
 /**
  * Test for the {@link ParcelDTO#builder(Point, Point)}.
- * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+ * @author Rinde van Lon 
  */
 public class ParcelDTOTest {
 

@@ -13,7 +13,7 @@ import com.google.common.base.Optional;
 /**
  * Default implementation of {@link Vehicle}, it initializes the vehicle based
  * on a {@link VehicleDTO} but it does not move.
- * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+ * @author Rinde van Lon 
  */
 public abstract class DefaultVehicle extends Vehicle {
 

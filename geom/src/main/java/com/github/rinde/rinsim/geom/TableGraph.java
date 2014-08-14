@@ -26,8 +26,8 @@ import com.google.common.collect.Tables;
 /**
  * Table-based implementation of a graph. Since this graph is backed by a table
  * look ups for both incoming and outgoing connections from nodes is fast.
- * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
- * @author Bartosz Michalik <bartosz.michalik@cs.kuleuven.be> - change to the
+ * @author Rinde van Lon 
+ * @author Bartosz Michalik  - change to the
  *         parametric version
  * @param <E> The type of {@link ConnectionData} that is used in the edges.
  */

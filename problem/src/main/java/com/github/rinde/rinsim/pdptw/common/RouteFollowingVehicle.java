@@ -59,7 +59,7 @@ import com.google.common.math.DoubleMath;
  * <b>Extension</b> The behavior of this vehicle can be altered by modifying the
  * state machine that is used internally. This can be done by overriding
  * {@link #createStateMachine()}.
- * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+ * @author Rinde van Lon 
  */
 public class RouteFollowingVehicle extends DefaultVehicle {
 
@@ -411,13 +411,13 @@ public class RouteFollowingVehicle extends DefaultVehicle {
   /**
    * Marker interface for events. When defining new events simply implement this
    * interface.
-   * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+   * @author Rinde van Lon 
    */
   protected interface StateEvent {}
 
   /**
    * The default event types of the state machine.
-   * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+   * @author Rinde van Lon 
    */
   protected enum DefaultEvent implements StateEvent {
     /**
@@ -455,7 +455,7 @@ public class RouteFollowingVehicle extends DefaultVehicle {
 
   /**
    * Base state class, can be subclassed to define custom states.
-   * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+   * @author Rinde van Lon 
    */
   protected abstract class AbstractTruckState extends
       AbstractState<StateEvent, RouteFollowingVehicle> {
@@ -468,7 +468,7 @@ public class RouteFollowingVehicle extends DefaultVehicle {
   /**
    * Implementation of waiting state, is also responsible for driving back to
    * the depot.
-   * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+   * @author Rinde van Lon 
    */
   protected class Wait extends AbstractTruckState {
 
@@ -514,7 +514,7 @@ public class RouteFollowingVehicle extends DefaultVehicle {
 
   /**
    * State responsible for moving to a service location.
-   * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+   * @author Rinde van Lon 
    */
   protected class Goto extends AbstractTruckState {
     /**
@@ -590,7 +590,7 @@ public class RouteFollowingVehicle extends DefaultVehicle {
 
   /**
    * State responsible for waiting at a service location to become available.
-   * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+   * @author Rinde van Lon 
    */
   protected class WaitAtService extends AbstractTruckState {
     /**
@@ -638,7 +638,7 @@ public class RouteFollowingVehicle extends DefaultVehicle {
 
   /**
    * State responsible for servicing a parcel.
-   * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+   * @author Rinde van Lon 
    */
   protected class Service extends AbstractTruckState {
     /**

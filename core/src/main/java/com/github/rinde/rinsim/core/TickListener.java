@@ -8,7 +8,7 @@ package com.github.rinde.rinsim.core;
  * simulator.
  * 
  * @author Rinde van Lon (rinde.vanlon@cs.kuleuven.be)
- * @author Bartosz Michalik <bartosz.michalik@cs.kuleuven.be>
+ * @author Bartosz Michalik 
  */
 public interface TickListener {
 
@@ -18,8 +18,8 @@ public interface TickListener {
    * time. Further, an implementor can 'use' the provided time to perform
    * actions. Actions are methods that specify an operation (usually on a model)
    * that takes time. The {@link TimeLapse} reference that is received throug
-   * this method can be used to spent on these time consuming actions. <br/>
-   * <br/>
+   * this method can be used to spent on these time consuming actions. <br>
+   * <br>
    * Note:<b> a reference to the {@link TimeLapse} object should never be
    * kept</b>. The time lapse object will be consumed by default after the this
    * method is finished.

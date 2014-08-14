@@ -14,7 +14,7 @@ import com.github.rinde.rinsim.core.model.road.RoadUser;
  * <li>{@link Depot}</li>
  * </ul>
  * 
- * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+ * @author Rinde van Lon 
  */
 public interface PDPObject extends RoadUser {
 

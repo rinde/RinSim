@@ -8,7 +8,7 @@ import com.github.rinde.rinsim.core.pdptw.VehicleDTO;
 
 /**
  * Event indicating that a vehicle can be created.
- * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+ * @author Rinde van Lon 
  */
 public class AddVehicleEvent extends TimedEvent {
 

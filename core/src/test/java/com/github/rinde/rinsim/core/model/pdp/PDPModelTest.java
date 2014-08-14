@@ -48,7 +48,7 @@ import com.github.rinde.rinsim.util.TimeWindow;
 import com.google.common.base.Supplier;
 
 /**
- * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+ * @author Rinde van Lon 
  * 
  */
 @RunWith(Parameterized.class)

@@ -33,7 +33,7 @@ import com.google.common.collect.ImmutableSortedMultiset;
 import com.google.common.math.DoubleMath;
 
 /**
- * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+ * @author Rinde van Lon
  * 
  */
 public final class Metrics {
@@ -46,8 +46,8 @@ public final class Metrics {
    * @param s The {@link Scenario} to measure.
    * @return A list of load values. The value at index <code>i</code> indicates
    *         the load at time <code>i</code>. All values are always
-   *         <code> >= 0</code>. All time instances not included in the list are
-   *         assumed to have load <code>0</code>.
+   *         <code> &ge; 0</code>. All time instances not included in the list
+   *         are assumed to have load <code>0</code>.
    */
   public static ImmutableList<Double> measureLoad(Scenario s) {
     return measureLoad(s, 1);

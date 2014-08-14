@@ -23,7 +23,7 @@ import com.google.common.base.Optional;
 
 /**
  * A UI panel that gives a live view of the current statistics of a simulation.
- * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+ * @author Rinde van Lon 
  */
 final class StatsPanel implements PanelRenderer, TickListener {
 

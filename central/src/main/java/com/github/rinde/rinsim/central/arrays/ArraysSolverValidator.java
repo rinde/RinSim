@@ -32,7 +32,7 @@ import com.google.common.primitives.Ints;
  * provides <code>wrap(..)</code> methods which decorates any solver such that
  * both inputs and outputs are validated every time <code>solve(..)</code> is
  * called.
- * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+ * @author Rinde van Lon 
  */
 public final class ArraysSolverValidator {
 

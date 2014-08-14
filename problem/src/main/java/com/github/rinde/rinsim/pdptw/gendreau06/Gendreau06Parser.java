@@ -72,7 +72,7 @@ import com.google.common.math.DoubleMath;
  * pick-ups and deliveries. Transportation Research Part C: Emerging
  * Technologies 14, 3 (2006), 157–174.</li>
  * </ul>
- * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+ * @author Rinde van Lon 
  */
 public final class Gendreau06Parser {
   private static final String REGEX = ".*req_rapide_(\\d+)_(450|240)_(24|33)";

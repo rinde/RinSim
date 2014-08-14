@@ -57,8 +57,8 @@ import com.google.common.collect.Multimap;
 /**
  * Simulation viewer.
  * 
- * @author Bartosz Michalik <bartosz.michalik@cs.kuleuven.be>
- * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+ * @author Bartosz Michalik 
+ * @author Rinde van Lon 
  */
 final class SimulationViewer extends Composite implements TickListener,
     ControlListener, PaintListener, SelectionListener {

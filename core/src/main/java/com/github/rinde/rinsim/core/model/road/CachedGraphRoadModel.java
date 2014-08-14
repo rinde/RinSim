@@ -27,7 +27,7 @@ import com.google.common.collect.Tables;
  * of all {@link RoadUser}s and their types, such that
  * {@link #getObjectsOfType(Class)} is now O(1).
  * 
- * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+ * @author Rinde van Lon 
  */
 public class CachedGraphRoadModel extends GraphRoadModel {
 

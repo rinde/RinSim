@@ -7,7 +7,7 @@ import javax.annotation.Nullable;
  * 
  * @param <E> Event type, see {@link StateMachine} for details.
  * @param <C> Context type, see {@link StateMachine} for details.
- * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+ * @author Rinde van Lon 
  */
 public interface State<E, C> {
 

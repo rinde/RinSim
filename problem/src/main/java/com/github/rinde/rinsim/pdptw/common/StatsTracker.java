@@ -45,7 +45,7 @@ import com.github.rinde.rinsim.scenario.TimedEvent;
 import com.google.common.base.Optional;
 
 /**
- * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+ * @author Rinde van Lon 
  * 
  */
 final class StatsTracker implements Model<Object> {

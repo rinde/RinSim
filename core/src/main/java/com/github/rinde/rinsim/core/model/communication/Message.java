@@ -1,7 +1,7 @@
 package com.github.rinde.rinsim.core.model.communication;
 
 /**
- * @author Bartosz Michalik <bartosz.michalik@cs.kuleuven.be>
+ * @author Bartosz Michalik 
  * 
  */
 public abstract class Message implements Cloneable {

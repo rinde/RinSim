@@ -22,7 +22,7 @@ import com.google.common.reflect.TypeToken;
 
 /**
  * Utility class for {@link StochasticSupplier}.
- * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+ * @author Rinde van Lon
  */
 public final class StochasticSuppliers {
 
@@ -171,7 +171,7 @@ public final class StochasticSuppliers {
   /**
    * Builder for creating {@link StochasticSupplier}s that return a number with
    * a normal distribution.
-   * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+   * @author Rinde van Lon
    */
   public static class Builder {
     static final double SMALLEST_DOUBLE = 0.000000000000001;
@@ -223,8 +223,8 @@ public final class StochasticSuppliers {
     /**
      * Truncates the normal distribution using the lower and upper bounds. In
      * case a number is drawn outside the bounds:
-     * <code> x < lower || x > upper</code> the out of bound strategy defines
-     * what will happen. See {@link #redrawWhenOutOfBounds()} and
+     * <code> x &lt; lower || x &gt; upper</code> the out of bound strategy
+     * defines what will happen. See {@link #redrawWhenOutOfBounds()} and
      * {@link #roundWhenOutOfBounds()} for the options. Note that calling this
      * method may change the effective mean and standard deviation of the normal
      * distribution. If this is undesired you can choose to scale the mean of
@@ -411,7 +411,7 @@ public final class StochasticSuppliers {
    * Abstract implementation providing a default {@link #toString()}
    * implementation.
    * @param <T> The type of objects that this supplier creates.
-   * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+   * @author Rinde van Lon
    */
   public abstract static class AbstractStochasticSupplier<T> implements
       StochasticSupplier<T>, Serializable {

@@ -22,8 +22,8 @@ import com.google.common.base.Predicate;
 
 /**
  * The communication model. Messages are send at the end of a current tick.
- * @author Bartosz Michalik <bartosz.michalik@cs.kuleuven.be>
- * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+ * @author Bartosz Michalik 
+ * @author Rinde van Lon 
  * @since 2.0
  */
 public class CommunicationModel implements Model<CommunicationUser>,
@@ -188,7 +188,7 @@ public class CommunicationModel implements Model<CommunicationUser>,
   /**
    * Check if an message from a given sender can be deliver to recipient
    * @see CanCommunicate#apply(CommunicationUser)
-   * @author Bartosz Michalik <bartosz.michalik@cs.kuleuven.be>
+   * @author Bartosz Michalik 
    * @since 2.0
    */
   class CanCommunicate implements Predicate<CommunicationUser> {

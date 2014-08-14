@@ -13,7 +13,7 @@ import javax.annotation.Nullable;
  * <b>Note that usage of this interface is not recommended.</b> The
  * {@link com.github.rinde.rinsim.central.Solver} interface provides exactly the same
  * functionality but in a type safe manner.
- * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+ * @author Rinde van Lon 
  */
 public interface MultiVehicleArraysSolver {
 
@@ -58,7 +58,7 @@ public interface MultiVehicleArraysSolver {
    *          the inventory.
    * @param remainingServiceTimes contains the remaining service time for every
    *          vehicle. The length of this array equals the number of vehicles.
-   *          When <code>remainingServiceTimes[i] > 0</code> vehicle
+   *          When <code>remainingServiceTimes[i] &gt; 0</code> vehicle
    *          <code>i</code> will be servicing for the specified amount of time.
    *          The location it is currently servicing is defined by
    *          <code>currentDestinations[i]</code>. The length of this array
@@ -69,7 +69,7 @@ public interface MultiVehicleArraysSolver {
    *          that the vehicle has no destination or service location. In case a
    *          vehicle has a destination, <b>the vehicle is obliged to continue
    *          traveling towards this destination and/or finish servicing it</b>.
-   *          In case <code>remainingServiceTimes[i] > 0</code> the value at
+   *          In case <code>remainingServiceTimes[i] &gt; 0</code> the value at
    *          <code>currentDestinations[i]</code> points to the current service
    *          location. The length of this array equals the number of vehicles.
    * @param currentSolutions If defined it contains a list of

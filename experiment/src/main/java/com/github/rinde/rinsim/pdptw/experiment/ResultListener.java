@@ -4,7 +4,7 @@ import com.github.rinde.rinsim.pdptw.experiment.Experiment.SimulationResult;
 
 /**
  * Implementors get notified of the progress of an {@link Experiment}.
- * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+ * @author Rinde van Lon 
  */
 public interface ResultListener {
   /**

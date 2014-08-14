@@ -49,7 +49,7 @@ import com.google.common.collect.Maps;
 import com.google.common.math.DoubleMath;
 
 /**
- * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+ * @author Rinde van Lon 
  * 
  */
 public final class Solvers {
@@ -418,7 +418,7 @@ public final class Solvers {
   /**
    * Converter that converts simulations into {@link StateContext} instances
    * which are needed to call {@link Solver#solve(GlobalStateObject)}.
-   * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+   * @author Rinde van Lon 
    */
   public interface SimulationConverter {
     /**
@@ -432,7 +432,7 @@ public final class Solvers {
   /**
    * Builder for specifying parameters used in {@link SimulationSolver} and
    * {@link SimulationConverter}.
-   * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+   * @author Rinde van Lon 
    */
   public static final class SolveArgs {
     Optional<Collection<DefaultParcel>> parcels;
@@ -496,7 +496,7 @@ public final class Solvers {
 
   /**
    * Adapter for {@link Solver}s.
-   * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+   * @author Rinde van Lon 
    */
   public static class SimulationSolver implements SimulationConverter {
     final Optional<Solver> solver;
@@ -571,7 +571,7 @@ public final class Solvers {
    * </ul>
    * 
    * @param <T> The type of adapter to produce.
-   * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+   * @author Rinde van Lon 
    */
   public static class AdapterBuilder<T extends SimulationConverter> {
     @Nullable
@@ -723,7 +723,7 @@ public final class Solvers {
    * a {@link GlobalStateObject} (the actual state) and two maps with references
    * to the original vehicles and parcels. Using these maps the state object can
    * be translated back to the original simulation objects.
-   * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+   * @author Rinde van Lon 
    */
   public static class StateContext {
     /**

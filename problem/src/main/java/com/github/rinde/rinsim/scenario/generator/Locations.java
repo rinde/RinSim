@@ -18,7 +18,7 @@ import com.google.common.math.DoubleMath;
 
 /**
  * Utility class for creating {@link LocationGenerator}s.
- * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+ * @author Rinde van Lon 
  */
 public final class Locations {
   private Locations() {}
@@ -32,7 +32,7 @@ public final class Locations {
 
   /**
    * A location generator generates locations for orders (aka tasks).
-   * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+   * @author Rinde van Lon 
    */
   public interface LocationGenerator {
     /**
@@ -65,7 +65,7 @@ public final class Locations {
 
   /**
    * A builder for creating {@link LocationGenerator}s.
-   * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+   * @author Rinde van Lon 
    */
   public static class Builder {
     Optional<Double> xMin;

@@ -23,7 +23,7 @@ import com.google.common.collect.ImmutableList;
 /**
  * 
  * @author David Merckx
- * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+ * @author Rinde van Lon 
  */
 public class GradientModel implements Model<FieldEmitter>, ModelReceiver {
 

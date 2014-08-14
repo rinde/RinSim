@@ -8,7 +8,7 @@ import static org.junit.Assert.fail;
 import java.lang.reflect.Constructor;
 
 /**
- * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+ * @author Rinde van Lon 
  * 
  */
 public class TestUtil {

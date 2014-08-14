@@ -19,7 +19,7 @@ import com.google.common.collect.ImmutableSet;
  * Defines the public interface for a model for pickup-and-delivery problems.
  * This models is only responsible for the picking up and delivery operations,
  * i.e. it is not responsible for movement.
- * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+ * @author Rinde van Lon 
  */
 public abstract class PDPModel extends AbstractModel<PDPObject> implements
     TickListener, ModelReceiver {
@@ -281,7 +281,7 @@ public abstract class PDPModel extends AbstractModel<PDPObject> implements
 
   /**
    * The possible states a {@link Parcel} can be in.
-   * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+   * @author Rinde van Lon 
    */
   public enum ParcelState {
 
@@ -352,7 +352,7 @@ public abstract class PDPModel extends AbstractModel<PDPObject> implements
 
   /**
    * The possible states a {@link Vehicle} can be in.
-   * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+   * @author Rinde van Lon 
    */
   public enum VehicleState {
     /**
@@ -375,7 +375,7 @@ public abstract class PDPModel extends AbstractModel<PDPObject> implements
   /**
    * The possible {@link com.github.rinde.rinsim.event.Event} types that the
    * {@link DefaultPDPModel} dispatches.
-   * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+   * @author Rinde van Lon 
    */
   public enum PDPModelEventType {
     /**
@@ -416,7 +416,7 @@ public abstract class PDPModel extends AbstractModel<PDPObject> implements
   /**
    * Value object containing information about either a pickup or a delivery
    * operation.
-   * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+   * @author Rinde van Lon 
    */
   public interface VehicleParcelActionInfo {
 

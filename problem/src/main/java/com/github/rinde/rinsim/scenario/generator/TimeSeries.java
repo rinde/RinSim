@@ -25,7 +25,7 @@ import com.google.common.collect.Range;
 
 /**
  * Utilities for generating time series.
- * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+ * @author Rinde van Lon 
  */
 public final class TimeSeries {
   private TimeSeries() {}
@@ -220,7 +220,7 @@ public final class TimeSeries {
 
   /**
    * Generator of a time series.
-   * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+   * @author Rinde van Lon 
    */
   public interface TimeSeriesGenerator {
     /**

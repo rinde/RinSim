@@ -5,14 +5,12 @@ package com.github.rinde.rinsim.core.model.road;
 
 /**
  * A RoadUser is an object living on the {@link RoadModel}.
- * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+ * @author Rinde van Lon
  */
 public interface RoadUser {
   /**
-   * This is called by {@link RoadModel#register(RoadUser)}.
+   * This is called when an road user can initialize itself.
    * @param model The model on which this RoadUser is registered.
-   * @see RoadModel#register(RoadUser)
-   * @see RoadModel#unregister(RoadUser)
    */
   void initRoadUser(RoadModel model);
 }

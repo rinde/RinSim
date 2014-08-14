@@ -8,7 +8,7 @@ import javax.annotation.Nullable;
 /**
  * Implementations of this interface may provide access to any {@link Model}s it
  * knows.
- * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+ * @author Rinde van Lon 
  */
 public interface ModelProvider {
 

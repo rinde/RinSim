@@ -20,7 +20,7 @@ import com.google.common.base.Objects;
  * <p>
  * Two statistics objects are equal when all fields, EXCEPT computation time,
  * are equal.
- * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+ * @author Rinde van Lon 
  */
 public class StatisticsDTO implements Serializable {
   private static final long serialVersionUID = 1968951252238291733L;

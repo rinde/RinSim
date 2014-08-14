@@ -41,7 +41,7 @@ import com.google.common.math.DoubleMath;
 
 /**
  * Test for graph with speed limits
- * @author Bartosz Michalik <bartosz.michalik@cs.kuleuven.be>
+ * @author Bartosz Michalik 
  * 
  */
 @RunWith(Parameterized.class)

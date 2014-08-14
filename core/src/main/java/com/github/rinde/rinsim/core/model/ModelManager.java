@@ -19,8 +19,8 @@ import com.google.common.collect.Multimap;
  * Models manager keeps track of all models used in the simulator. It is
  * responsible for adding a simulation object to the appropriate models
  * 
- * @author Bartosz Michalik <bartosz.michalik@cs.kuleuven.be>
- * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+ * @author Bartosz Michalik 
+ * @author Rinde van Lon 
  */
 public class ModelManager implements ModelProvider {
 

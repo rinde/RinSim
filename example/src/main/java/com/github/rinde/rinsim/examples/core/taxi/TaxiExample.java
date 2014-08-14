@@ -46,7 +46,7 @@ import com.github.rinde.rinsim.util.TimeWindow;
  * <p>
  * If this class is run on MacOS it might be necessary to use
  * -XstartOnFirstThread as a VM argument.
- * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+ * @author Rinde van Lon 
  */
 public final class TaxiExample {
 

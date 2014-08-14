@@ -9,8 +9,8 @@ import com.google.common.base.Objects;
  * @param <E> Type of {@link ConnectionData} that is used. This data object can
  *          be used to add additional information to the connection.
  * @since 2.0
- * @author Bartosz Michalik <bartosz.michalik@cs.kuleuven.be>
- * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+ * @author Bartosz Michalik 
+ * @author Rinde van Lon 
  */
 public class Connection<E extends ConnectionData> {
   /**

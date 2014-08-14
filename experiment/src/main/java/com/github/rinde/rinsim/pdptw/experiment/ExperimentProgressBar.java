@@ -27,7 +27,7 @@ import com.google.common.math.DoubleMath;
 
 /**
  * Displays a progress bar for a running {@link Experiment}.
- * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+ * @author Rinde van Lon 
  */
 public class ExperimentProgressBar implements ResultListener,
     UncaughtExceptionHandler {

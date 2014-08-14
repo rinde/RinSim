@@ -4,7 +4,7 @@ import com.google.common.reflect.TypeToken;
 
 /**
  * Basic implementation that provides a getSupportedType method implementation.
- * @author Bartosz Michalik <bartosz.michalik@cs.kuleuven.be>
+ * @author Bartosz Michalik 
  * 
  * @param <T> The type that is supported by this model.
  */

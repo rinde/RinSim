@@ -28,8 +28,8 @@ import com.google.common.base.Optional;
  * scenario are dispatched at their respective time and it checks whether they
  * are handled.
  * 
- * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
- * @author Bartosz Michalik <bartosz.michalik@cs.kuleuven.be>
+ * @author Rinde van Lon 
+ * @author Bartosz Michalik 
  * @since 2.0
  */
 public class ScenarioController implements TickListener {
@@ -42,7 +42,7 @@ public class ScenarioController implements TickListener {
 
   /**
    * The {@link Event} types which can be dispatched by this class.
-   * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+   * @author Rinde van Lon 
    */
   public enum EventType {
     /**
@@ -181,7 +181,7 @@ public class ScenarioController implements TickListener {
 
   /**
    * Dispatch all setup events (the ones that define initial settings). For
-   * example, a vehicle that is added during setup (at time < 0) will receive
+   * example, a vehicle that is added during setup (at time &lt; 0) will receive
    * its first tick at time 0. If the vehicle is added at the beginning of the
    * simulation (time 0) the first tick it will receive will be the second
    * (globally) tick.
@@ -245,7 +245,7 @@ public class ScenarioController implements TickListener {
   /**
    * A UICreator can be used to dynamically create a UI for the simulation run.
    * It can be used with any kind of GUI imaginable.
-   * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+   * @author Rinde van Lon 
    */
   public interface UICreator {
     // TODO convert to use View.Builder ?

@@ -17,7 +17,7 @@ import com.google.common.collect.Multimap;
 /**
  * A version optimized for broadcasting
  * 
- * @author Bartosz Michalik <bartosz.michalik@cs.kuleuven.be>
+ * @author Bartosz Michalik 
  * @since 2.0
  */
 public class CommunicationModel2 extends CommunicationModel {
@@ -179,7 +179,7 @@ public class CommunicationModel2 extends CommunicationModel {
    * Check if an message from a given sender can be deliver to recipient
    * 
    * @see CanCommunicate#apply(CommunicationUser)
-   * @author Bartosz Michalik <bartosz.michalik@cs.kuleuven.be>
+   * @author Bartosz Michalik 
    * @since 2.0
    */
   class CanCommunicate implements Predicate<CommunicationUser> {

@@ -26,10 +26,10 @@ import com.google.common.base.Predicate;
 import com.google.common.io.Files;
 
 /**
- * Simplest example showing how the Fabri & Recht problem can be configured
- * using a custom vehicle.
+ * Simplest example showing how the Fabri {@literal &} Recht problem can be
+ * configured using a custom vehicle.
  * 
- * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+ * @author Rinde van Lon
  */
 public class FabriRechtExample {
 
@@ -67,7 +67,7 @@ public class FabriRechtExample {
 /**
  * This truck implementation only picks parcels up, it does not deliver them.
  * 
- * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+ * @author Rinde van Lon
  */
 class Truck extends DefaultVehicle {
 

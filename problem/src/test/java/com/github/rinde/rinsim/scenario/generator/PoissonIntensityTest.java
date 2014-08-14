@@ -27,7 +27,7 @@ import com.google.common.collect.TreeMultiset;
 
 /**
  * Tests the the predicate part of the {@link PoissonProcess}.
- * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+ * @author Rinde van Lon 
  */
 @RunWith(Parameterized.class)
 public class PoissonIntensityTest {

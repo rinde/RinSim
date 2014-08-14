@@ -21,7 +21,7 @@ import com.github.rinde.rinsim.pdptw.gendreau06.Gendreau06Scenario;
 
 /**
  * Integration tests for the centralized facade.
- * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+ * @author Rinde van Lon 
  */
 @RunWith(Parameterized.class)
 public class CentralIntegrationTest {

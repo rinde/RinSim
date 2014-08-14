@@ -35,7 +35,7 @@ import com.google.common.collect.UnmodifiableIterator;
 import com.google.common.math.DoubleMath;
 
 /**
- * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+ * @author Rinde van Lon 
  * 
  */
 public final class ArraysSolvers {
@@ -515,7 +515,7 @@ public final class ArraysSolvers {
   /**
    * Computes the total tardiness of the specified route with the specified
    * arrivalTimes.
-   * @param route The route with length >= 2.
+   * @param route The route with length &ge; 2.
    * @param arrivalTimes The arrival times at every index of the route.
    * @param serviceTimes The full serviceTimes array containing all locations,
    *          using the original indices.
@@ -600,7 +600,7 @@ public final class ArraysSolvers {
    * {@link SingleVehicleArraysSolver#solve(int[][], int[], int[], int[][], int[], SolutionObject)}
    * . Also includes additional information which is required to interpret the
    * resulting {@link SolutionObject}.
-   * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+   * @author Rinde van Lon 
    */
   public static class ArraysObject {
     /**
@@ -693,7 +693,7 @@ public final class ArraysSolvers {
    * {@link MultiVehicleArraysSolver#solve(int[][], int[], int[], int[][], int[], int[][], int[][], int[], int[], SolutionObject[])}
    * . Also includes additional information which is required to interpret the
    * resulting {@link SolutionObject}.
-   * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+   * @author Rinde van Lon 
    */
   public static class MVArraysObject extends ArraysObject {
     /**

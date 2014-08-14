@@ -18,7 +18,7 @@ import com.github.rinde.rinsim.geom.Graph;
 
 /**
  * Common interface for graph serialization deserialization
- * @author Bartosz Michalik <bartosz.michalik@cs.kuleuven.be>
+ * @author Bartosz Michalik 
  * 
  */
 public abstract class AbstractGraphSerializer<E extends ConnectionData> {

@@ -41,8 +41,8 @@ import com.google.common.collect.ImmutableSet;
  * Scenario is an unmodifiable list of events sorted by the time stamp. To
  * obtain an instance there are a number of builder methods available such as
  * {@link #builder()}.
- * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
- * @author Bartosz Michalik <bartosz.michalik@cs.kuleuven.be>
+ * @author Rinde van Lon 
+ * @author Bartosz Michalik 
  */
 public abstract class Scenario {
   /**
@@ -228,7 +228,7 @@ public abstract class Scenario {
 
   /**
    * Represents a class of scenarios.
-   * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+   * @author Rinde van Lon 
    */
   public interface ProblemClass {
     /**
@@ -239,7 +239,7 @@ public abstract class Scenario {
 
   /**
    * String based implementation of {@link ProblemClass}.
-   * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+   * @author Rinde van Lon 
    */
   public static final class SimpleProblemClass implements ProblemClass {
     private final String id;
@@ -278,7 +278,7 @@ public abstract class Scenario {
 
   /**
    * A builder for constructing {@link Scenario} instances.
-   * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+   * @author Rinde van Lon 
    */
   public static class Builder extends AbstractBuilder<Builder> {
     final List<TimedEvent> eventList;

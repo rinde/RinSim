@@ -33,7 +33,7 @@ import com.google.common.collect.Sets.SetView;
  * options and via the {@link #execute(String...)} method the command-line
  * arguments are parsed and handled. Instances can be constructed via the
  * {@link #builder()} method.
- * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+ * @author Rinde van Lon 
  */
 public final class Menu {
   final String header;
@@ -234,7 +234,7 @@ public final class Menu {
 
   /**
    * Builder for creating {@link Menu} instances.
-   * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+   * @author Rinde van Lon 
    */
   public static final class Builder {
     HelpFormatter helpFormatter;
@@ -331,7 +331,7 @@ public final class Menu {
      * been under construction this method will automatically call
      * {@link #closeGroup()} to close the previous group and start a new group.
      * <p>
-     * <b>Example:</b><br/>
+     * <b>Example:</b><br>
      * This code will construct two groups, one containing two options and one
      * containing three options.
      * 
@@ -412,7 +412,7 @@ public final class Menu {
      * added to this builder with the specified prefixes. Help options are
      * ignored and will not be added to the new menu.
      * <p>
-     * <b>Example:</b><br/>
+     * <b>Example:</b><br>
      * If a menu with options <code>(a, add), (b), (c, construct)</code> is
      * added with <code>shortPrefix = 's', longPrefix = 'sub.'</code>, the
      * resulting menu will be

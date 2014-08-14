@@ -306,7 +306,7 @@ final class JppfComputer implements Computer {
    * This class provides instances of {@link Scenario}. This class equals
    * another if the provided scenarios are equal.
    * 
-   * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+   * @author Rinde van Lon 
    */
   static final class ScenarioProvider implements Supplier<Scenario>,
       Serializable {

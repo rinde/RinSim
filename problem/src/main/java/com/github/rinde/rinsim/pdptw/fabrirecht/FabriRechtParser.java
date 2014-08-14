@@ -28,7 +28,7 @@ import com.google.common.collect.ImmutableSet;
 
 /**
  * Parser for {@link FabriRechtScenario}s.
- * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+ * @author Rinde van Lon
  */
 public final class FabriRechtParser {
   private static final String LINE_SEPARATOR = ";";
@@ -37,7 +37,7 @@ public final class FabriRechtParser {
   private FabriRechtParser() {}
 
   /**
-   * Parse Fabri & Recht scenario.
+   * Parse Fabri {@literal &} Recht scenario.
    * @param coordinateFile The coordinate file.
    * @param ordersFile The orders file.
    * @return The scenario.

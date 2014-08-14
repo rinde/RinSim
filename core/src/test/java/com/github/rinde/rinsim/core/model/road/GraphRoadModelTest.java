@@ -337,7 +337,7 @@ public class GraphRoadModelTest extends AbstractRoadModelTest<GraphRoadModel> {
   }
 
   /**
-   * Situation: <code>SW ->- tru1 ->- SE </code><br/>
+   * Situation: <code>SW ->- tru1 ->- SE </code><br>
    * tru1 wants to move directly to SW, which should throw an exception since
    * moving backward over an directed edge is not allowed.
    */
@@ -372,7 +372,7 @@ public class GraphRoadModelTest extends AbstractRoadModelTest<GraphRoadModel> {
   }
 
   /**
-   * Situation: <code>SW(tru2) ->- SE ->- tru1 ->- NE </code><br/>
+   * Situation: <code>SW(tru2) ->- SE ->- tru1 ->- NE </code><br>
    * tru2 moves towards tru1, it should end up between SE and tru1.
    */
   @Test
@@ -395,7 +395,7 @@ public class GraphRoadModelTest extends AbstractRoadModelTest<GraphRoadModel> {
   }
 
   /**
-   * Situation: <code>SW ->- tru1 ->- SE </code><br/>
+   * Situation: <code>SW ->- tru1 ->- SE </code><br>
    * tru1 wants to move directly to SW, which should throw an exception since
    * moving backward over an directed edge is not allowed.
    */
@@ -408,7 +408,7 @@ public class GraphRoadModelTest extends AbstractRoadModelTest<GraphRoadModel> {
   }
 
   /**
-   * Situation: <code>SW ->- tru1 ->- tru2 ->- SE </code><br/>
+   * Situation: <code>SW ->- tru1 ->- tru2 ->- SE </code><br>
    * tru2 wants to move directly to tru1, which should throw an exception since
    * moving backward over an directed edge is not allowed.
    */
@@ -432,7 +432,7 @@ public class GraphRoadModelTest extends AbstractRoadModelTest<GraphRoadModel> {
   }
 
   /**
-   * Situation: <code>SW ->- tru1 ->- SE -<- tru2 -<- NE </code><br/>
+   * Situation: <code>SW ->- tru1 ->- SE -<- tru2 -<- NE </code><br>
    * tru2 wants to move directly to tru1, which should throw an exception since
    * they are on different edges.
    */
@@ -453,7 +453,7 @@ public class GraphRoadModelTest extends AbstractRoadModelTest<GraphRoadModel> {
   }
 
   /**
-   * Situation: <code>SW(tru1) ->- SE -<- tru2 -<- NE </code><br/>
+   * Situation: <code>SW(tru1) ->- SE -<- tru2 -<- NE </code><br>
    * tru2 wants to move directly to tru1, which should throw an exception since
    * they are on different edges.
    */
@@ -473,7 +473,7 @@ public class GraphRoadModelTest extends AbstractRoadModelTest<GraphRoadModel> {
   }
 
   /**
-   * Situation: <code>SW(tru1) ->- SE -<- tru2 -<- NE </code><br/>
+   * Situation: <code>SW(tru1) ->- SE -<- tru2 -<- NE </code><br>
    * tru2 wants to move directly to tru1, which should throw an exception since
    * they are on different edges.
    */
@@ -493,7 +493,7 @@ public class GraphRoadModelTest extends AbstractRoadModelTest<GraphRoadModel> {
   }
 
   /**
-   * Situation: <code>SW ->- tru1 ->- tru2 ->- SE</code><br/>
+   * Situation: <code>SW ->- tru1 ->- tru2 ->- SE</code><br>
    * tru1 wants to move directly to tru2, which should be allowed.
    */
   @Test
@@ -512,7 +512,7 @@ public class GraphRoadModelTest extends AbstractRoadModelTest<GraphRoadModel> {
   }
 
   /**
-   * Situation: <code>SW(tru1) ->- tru2 ->- SE</code><br/>
+   * Situation: <code>SW(tru1) ->- tru2 ->- SE</code><br>
    * tru1 wants to move directly to tru2, which should be allowed.
    */
   @Test

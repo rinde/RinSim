@@ -11,7 +11,7 @@ import com.google.common.collect.ImmutableList;
 
 /**
  * Utility class for creating {@link DepotGenerator}s.
- * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+ * @author Rinde van Lon 
  */
 public final class Depots {
   private static final DepotGenerator SINGLE_CENTERED_DEPOT_GENERATOR = new DepotGenerator() {
@@ -42,7 +42,7 @@ public final class Depots {
 
   /**
    * Generator of {@link AddDepotEvent}s.
-   * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+   * @author Rinde van Lon 
    */
   public interface DepotGenerator {
     /**
@@ -57,7 +57,7 @@ public final class Depots {
 
   /**
    * Builder for creating {@link DepotGenerator}s.
-   * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+   * @author Rinde van Lon 
    */
   public static class Builder {
     StochasticSupplier<Point> positions;

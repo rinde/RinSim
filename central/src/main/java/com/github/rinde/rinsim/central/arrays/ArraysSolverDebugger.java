@@ -21,7 +21,7 @@ import com.github.rinde.rinsim.central.arrays.ArraysSolvers.MVArraysObject;
  * A {@link SingleVehicleArraysSolver} wrapper that adds debugging facilities. A
  * history is kept of all inputs and outputs and all inputs can optionally be
  * printed to sys.out.
- * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+ * @author Rinde van Lon 
  */
 public final class ArraysSolverDebugger {
 
@@ -108,7 +108,7 @@ public final class ArraysSolverDebugger {
 
   /**
    * Debugger for {@link SingleVehicleArraysSolver}s.
-   * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+   * @author Rinde van Lon 
    */
   public static final class SVASDebugger extends
       Debugger<ArraysObject, SolutionObject> implements
@@ -164,7 +164,7 @@ public final class ArraysSolverDebugger {
 
   /**
    * Debugger for {@link MultiVehicleArraysSolver}s.
-   * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+   * @author Rinde van Lon 
    */
   public static final class MVASDebugger extends
       Debugger<MVArraysObject, SolutionObject[]> implements

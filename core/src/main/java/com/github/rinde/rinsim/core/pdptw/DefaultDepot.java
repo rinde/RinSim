@@ -10,7 +10,7 @@ import com.github.rinde.rinsim.geom.Point;
 
 /**
  * A default {@link Depot} implementation, it does nothing.
- * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+ * @author Rinde van Lon 
  */
 public class DefaultDepot extends Depot {
 

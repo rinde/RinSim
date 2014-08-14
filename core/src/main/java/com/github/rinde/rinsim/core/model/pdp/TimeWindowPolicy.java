@@ -8,7 +8,7 @@ import com.github.rinde.rinsim.util.TimeWindow;
 /**
  * Implementations of this interface can define a policy that says when pickups
  * and deliveries are allowed based on the specified time windows.
- * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+ * @author Rinde van Lon 
  */
 public interface TimeWindowPolicy {
 
@@ -34,7 +34,7 @@ public interface TimeWindowPolicy {
 
   /**
    * Defines several default time window policies.
-   * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+   * @author Rinde van Lon 
    */
   public enum TimeWindowPolicies implements TimeWindowPolicy {
     /**

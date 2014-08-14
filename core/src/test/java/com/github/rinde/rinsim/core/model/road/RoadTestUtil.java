@@ -10,7 +10,7 @@ import javax.measure.unit.NonSI;
 import javax.measure.unit.SI;
 
 /**
- * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+ * @author Rinde van Lon 
  * 
  */
 public class RoadTestUtil {

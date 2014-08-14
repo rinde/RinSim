@@ -4,7 +4,7 @@ import com.github.rinde.rinsim.geom.Point;
 
 /**
  * Filters out self-cycles
- * @author Bartosz Michalik <bartosz.michalik@cs.kuleuven.be>
+ * @author Bartosz Michalik 
  * 
  */
 public class SelfCycleFilter implements SerializerFilter<Double> {

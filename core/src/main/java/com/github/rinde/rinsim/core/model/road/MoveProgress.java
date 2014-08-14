@@ -14,8 +14,8 @@ import com.github.rinde.rinsim.geom.Point;
  * Represents the distance traveled and time spend in
  * {@link RoadModel#followPath(MovingRoadUser, java.util.Queue, com.github.rinde.rinsim.core.TimeLapse)}
  * .
- * @author Bartosz Michalik <bartosz.michalik@cs.kuleuven.be>
- * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+ * @author Bartosz Michalik 
+ * @author Rinde van Lon 
  * @since 2.0
  */
 public final class MoveProgress {

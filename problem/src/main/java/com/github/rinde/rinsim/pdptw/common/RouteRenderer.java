@@ -27,7 +27,7 @@ import com.google.common.collect.ImmutableList;
  * A renderer that draws the route for any {@link RouteFollowingVehicle}s that
  * exist in the {@link RoadModel}.
  * 
- * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+ * @author Rinde van Lon 
  */
 public class RouteRenderer implements CanvasRenderer, ModelReceiver {
 

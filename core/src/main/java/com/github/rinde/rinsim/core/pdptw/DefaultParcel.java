@@ -11,7 +11,7 @@ import com.github.rinde.rinsim.geom.Point;
 /**
  * Default {@link Parcel} implementation. It is instantiated using a
  * {@link ParcelDTO}.
- * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+ * @author Rinde van Lon 
  */
 public class DefaultParcel extends Parcel {
 

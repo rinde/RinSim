@@ -3,7 +3,7 @@ package com.github.rinde.rinsim.core;
 /**
  * An interface that declares that a given simulation entity (e.g. agent)
  * requires the ability to get access to Simulator API
- * @author Bartosz Michalik <bartosz.michalik@cs.kuleuven.be>
+ * @author Bartosz Michalik 
  * 
  */
 public interface SimulatorUser {

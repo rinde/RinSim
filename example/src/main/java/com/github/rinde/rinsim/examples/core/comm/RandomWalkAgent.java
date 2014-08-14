@@ -32,7 +32,7 @@ import com.google.common.base.Optional;
 
 /**
  * Example of the simple random agent with the use of simulation facilities.
- * @author Bartosz Michalik <bartosz.michalik@cs.kuleuven.be>
+ * @author Bartosz Michalik 
  */
 class RandomWalkAgent implements TickListener, MovingRoadUser, SimulatorUser,
     CommunicationUser {

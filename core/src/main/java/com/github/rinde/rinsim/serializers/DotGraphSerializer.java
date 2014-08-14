@@ -21,7 +21,7 @@ import com.github.rinde.rinsim.geom.Point;
  * edge length information can be obtained via calling
  * {@link DotGraphSerializer#getLengthGraphSerializer(SerializerFilter...)}
  * 
- * @author Bartosz Michalik <bartosz.michalik@cs.kuleuven.be>
+ * @author Bartosz Michalik
  * 
  */
 public class DotGraphSerializer<E extends ConnectionData> extends
@@ -118,9 +118,8 @@ public class DotGraphSerializer<E extends ConnectionData> extends
 
   /**
    * Used to serialize graphs
-   * @author Bartosz Michalik <bartosz.michalik@cs.kuleuven.be>
+   * @author Bartosz Michalik
    * 
-   * @param <E>
    * @since 2.0
    */
   public static abstract class ConnectionSerializer<E extends ConnectionData> {
@@ -189,8 +188,6 @@ public class DotGraphSerializer<E extends ConnectionData> extends
   /**
    * Get instance of the serializer that can read write graph with the edges
    * length information
-   * @param filters
-   * @return
    */
   public static DotGraphSerializer<LengthData> getLengthGraphSerializer(
       SerializerFilter<?>... filters) {

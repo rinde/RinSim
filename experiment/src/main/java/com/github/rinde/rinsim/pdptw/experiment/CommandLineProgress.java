@@ -7,7 +7,7 @@ import com.github.rinde.rinsim.pdptw.experiment.Experiment.SimulationResult;
 /**
  * A {@link ResultListener} that writes simple progress reports to a
  * {@link PrintStream}.
- * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+ * @author Rinde van Lon 
  */
 public class CommandLineProgress implements ResultListener {
   private final PrintStream printStream;

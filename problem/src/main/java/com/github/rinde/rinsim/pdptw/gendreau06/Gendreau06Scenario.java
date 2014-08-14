@@ -47,7 +47,7 @@ import com.google.common.collect.ImmutableList;
  * Distance is expressed in km, time is expressed in ms (the original format is
  * in seconds, however it allows fractions as such it was translated to ms),
  * speed is expressed as km/h.
- * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+ * @author Rinde van Lon 
  */
 public final class Gendreau06Scenario extends Scenario {
   static final Point MIN = new Point(0, 0);

@@ -23,7 +23,7 @@ import com.google.common.collect.ImmutableMap;
 
 /**
  * Defines a command-line interface for {@link Experiment.Builder}.
- * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+ * @author Rinde van Lon 
  */
 public final class ExperimentCli {
 

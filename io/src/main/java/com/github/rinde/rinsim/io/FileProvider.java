@@ -32,7 +32,7 @@ import com.google.common.collect.ImmutableSet;
  * @param <T> The type of object that this file provider provides. See
  *          {@link Builder#build()} and {@link Builder#build(Function)} for more
  *          details.
- * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+ * @author Rinde van Lon 
  */
 public final class FileProvider<T> implements Supplier<ImmutableSet<T>> {
   final ImmutableList<Path> roots;
@@ -72,7 +72,7 @@ public final class FileProvider<T> implements Supplier<ImmutableSet<T>> {
    * files and directories can be added and filtered. The resulting
    * {@link FileProvider} will provide all specified files.
    * 
-   * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+   * @author Rinde van Lon 
    */
   public static class Builder {
     Predicate<Path> pathPredicate;

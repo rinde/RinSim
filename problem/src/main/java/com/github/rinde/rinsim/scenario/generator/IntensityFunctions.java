@@ -23,7 +23,7 @@ import com.google.common.primitives.Doubles;
 
 /**
  * Utilities for {@link IntensityFunction} instances.
- * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+ * @author Rinde van Lon
  */
 public final class IntensityFunctions {
   private IntensityFunctions() {}
@@ -66,8 +66,9 @@ public final class IntensityFunctions {
   /**
    * Represents a function <code>f(x)</code> that returns the intensity at time
    * <code>x</code>. This function can be used to characterize an
-   * {@link com.github.rinde.rinsim.scenario.generator.TimeSeries.TimeSeriesGenerator}.
-   * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+   * {@link com.github.rinde.rinsim.scenario.generator.TimeSeries.TimeSeriesGenerator}
+   * .
+   * @author Rinde van Lon
    */
   public interface IntensityFunction extends Function<Double, Double> {
 
@@ -86,7 +87,7 @@ public final class IntensityFunctions {
    * <code>f(x) = amplitude * sin(x * frequency * 2pi - pi * phaseShift) + height</code>
    * . Instances are immutable and can be created using {@link #sineIntensity()}
    * .
-   * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+   * @author Rinde van Lon
    */
   static class SineIntensity implements IntensityFunction {
     private static final double HALF_PI = .5 * Math.PI;
@@ -223,7 +224,7 @@ public final class IntensityFunctions {
 
   /**
    * A builder for creating sine {@link IntensityFunction} instances.
-   * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+   * @author Rinde van Lon
    */
   public static class SineIntensityBuilder {
     private static final double DEFAULT_AMPLITUDE = 1d;
@@ -273,9 +274,9 @@ public final class IntensityFunctions {
     }
 
     /**
-     * Sets the {@link StochasticSupplier} that will be used to generate the amplitude
-     * of the {@link IntensityFunction} that will be created by this builder.
-     * Default value: 1.
+     * Sets the {@link StochasticSupplier} that will be used to generate the
+     * amplitude of the {@link IntensityFunction} that will be created by this
+     * builder. Default value: 1.
      * @param a Must be positive.
      * @return This, as per the builder pattern.
      */
@@ -298,9 +299,9 @@ public final class IntensityFunctions {
     }
 
     /**
-     * Sets the {@link StochasticSupplier} that will be used to generate the frequency
-     * of the {@link IntensityFunction} that will be created by this builder.
-     * Default value: 1.
+     * Sets the {@link StochasticSupplier} that will be used to generate the
+     * frequency of the {@link IntensityFunction} that will be created by this
+     * builder. Default value: 1.
      * @param f Must be positive.
      * @return This, as per the builder pattern.
      */
@@ -328,7 +329,7 @@ public final class IntensityFunctions {
      * <code>-1</code> and <code>1</code>. If the height is close to
      * <code>-1</code> almost the entire function will be negative. If the
      * height is <code>1</code> or higher the entire function will be positive.
-     * @param h Must be <code> > -1</code>.
+     * @param h Must be <code> &gt; -1</code>.
      * @return This, as per the builder pattern.
      */
     public SineIntensityBuilder height(double h) {
@@ -339,13 +340,13 @@ public final class IntensityFunctions {
     }
 
     /**
-     * Sets the {@link StochasticSupplier} that will be used to generate the height of
-     * the {@link IntensityFunction} that will be created by this builder.
-     * Default value: 0. Typical values range between <code>-1</code> and
-     * <code>1</code>. If the height is close to <code>-1</code> almost the
+     * Sets the {@link StochasticSupplier} that will be used to generate the
+     * height of the {@link IntensityFunction} that will be created by this
+     * builder. Default value: 0. Typical values range between <code>-1</code>
+     * and <code>1</code>. If the height is close to <code>-1</code> almost the
      * entire function will be negative. If the height is <code>1</code> or
      * higher the entire function will be positive.
-     * @param h Must be <code> > -1</code>.
+     * @param h Must be <code> &gt; -1</code>.
      * @return This, as per the builder pattern.
      */
     public SineIntensityBuilder height(StochasticSupplier<Double> h) {
@@ -385,9 +386,9 @@ public final class IntensityFunctions {
     }
 
     /**
-     * Sets the {@link StochasticSupplier} that will be used to generate the phaseShift
-     * of the {@link IntensityFunction} that will be created by this builder.
-     * Default value: 1/2.
+     * Sets the {@link StochasticSupplier} that will be used to generate the
+     * phaseShift of the {@link IntensityFunction} that will be created by this
+     * builder. Default value: 1/2.
      * @param s The phase shift.
      * @return This, as per the builder pattern.
      */
@@ -415,8 +416,8 @@ public final class IntensityFunctions {
     }
 
     /**
-     * @return A {@link StochasticSupplier} that creates sine {@link IntensityFunction}
-     *         instances.
+     * @return A {@link StochasticSupplier} that creates sine
+     *         {@link IntensityFunction} instances.
      */
     public StochasticSupplier<IntensityFunction> buildStochasticSupplier() {
       return new SineIntensityFunctionSupplier(this);

@@ -16,8 +16,8 @@ import org.eclipse.swt.graphics.RGB;
 
 /**
  * Used to configure a graphical representation of the model elements.
- * @author Bartosz Michalik <bartosz.michalik@cs.kuleuven.be>
- * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+ * @author Bartosz Michalik 
+ * @author Rinde van Lon 
  */
 public class UiSchema {
   /**
@@ -54,11 +54,11 @@ public class UiSchema {
 
   /**
    * Associate a {@link RGB} to a {@link Class}. Note that this color
-   * association works through super classes as well. An example: <br/>
-   * consider the following class hierarcy<br/>
-   * <code>class A{}</code><br/>
-   * <code>class AA extends A{}</code><br/>
-   * <code>class AAA extends AA{}</code><br/>
+   * association works through super classes as well. An example: <br>
+   * consider the following class hierarcy<br>
+   * <code>class A{}</code><br>
+   * <code>class AA extends A{}</code><br>
+   * <code>class AAA extends AA{}</code><br>
    * When adding a color named <code>C1</code> to <code>AA</code>,
    * {@link #getColor(Class)} will return the following values: for
    * <code>A: null</code>, for <code>AA: C1</code>, for <code>AAA: C1</code>.

@@ -10,7 +10,7 @@ import javax.annotation.Nullable;
  * <b>Note that usage of this interface is not recommended.</b> The
  * {@link com.github.rinde.rinsim.central.Solver} interface provides exactly the same
  * functionality but in a type safe manner.
- * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+ * @author Rinde van Lon 
  */
 public interface SingleVehicleArraysSolver {
 

@@ -11,7 +11,7 @@ import com.github.rinde.rinsim.util.TimeWindow;
  * This is an immutable value object representing a parcel in a
  * pickup-and-delivery problem. It defines pickup location, destination
  * location, capacity and related time windows and service durations.
- * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+ * @author Rinde van Lon
  */
 public final class ParcelDTO implements Serializable {
   private static final long serialVersionUID = -6128057042614968652L;
@@ -125,7 +125,7 @@ public final class ParcelDTO implements Serializable {
    * <li><code>deliveryDuration = 0L</code></li>
    * </ul>
    * 
-   * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+   * @author Rinde van Lon
    */
   public static final class Builder {
     final Point pickupLocation;
@@ -210,7 +210,7 @@ public final class ParcelDTO implements Serializable {
 
     /**
      * Sets the duration of both the pickup and delivery process, must be
-     * <code>>= 0</code>.
+     * <code>&gt;= 0</code>.
      * @param duration The duration of the service process.
      * @return This, as per the builder pattern.
      */
@@ -219,7 +219,7 @@ public final class ParcelDTO implements Serializable {
     }
 
     /**
-     * Sets the duration of the pickup, must be <code>>=0</code>.
+     * Sets the duration of the pickup, must be <code>&gt;=0</code>.
      * @param duration The duration of the pickup.
      * @return This, as per the builder pattern.
      */
@@ -231,7 +231,7 @@ public final class ParcelDTO implements Serializable {
     }
 
     /**
-     * Sets the duration of the delivery, must be <code>>=0</code>.
+     * Sets the duration of the delivery, must be <code>&gt;=0</code>.
      * @param duration The duration of the delivery.
      * @return This, as per the builder pattern.
      */

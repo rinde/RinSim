@@ -10,7 +10,7 @@ import com.google.common.base.Strings;
 
 /**
  * Default implementation of {@link HelpFormatter}.
- * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+ * @author Rinde van Lon 
  */
 public final class DefaultHelpFormatter implements HelpFormatter {
   private static final int HELP_WIDTH = 80;

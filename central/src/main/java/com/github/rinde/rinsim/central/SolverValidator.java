@@ -22,7 +22,7 @@ import com.google.common.collect.Sets;
  * Provides methods for validating input to and output from {@link Solver}s.
  * Also provides {@link #wrap(Solver)} method which decorates any solver such
  * that both inputs and outputs are validated every time it is is called.
- * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+ * @author Rinde van Lon 
  */
 public final class SolverValidator {
 

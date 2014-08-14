@@ -23,7 +23,7 @@ import com.github.rinde.rinsim.util.TimeWindow;
 
 /**
  * Scenario IO test.
- * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+ * @author Rinde van Lon 
  */
 public class ScenarioIOTest {
 

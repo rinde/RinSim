@@ -23,7 +23,7 @@ import com.github.rinde.rinsim.util.TestUtil;
 /**
  * You could see this class as the validator of the validator, so now you might
  * be thinking, who validates the validator of the validators? Well, that's YOU!
- * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+ * @author Rinde van Lon 
  */
 public class ArraysSolverValidatorTest {
 

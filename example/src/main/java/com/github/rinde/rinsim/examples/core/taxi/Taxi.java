@@ -16,7 +16,7 @@ import com.google.common.base.Optional;
  * Implementation of a very simple taxi agent. It moves to the closest customer,
  * picks it up, then delivers it, repeat.
  * 
- * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+ * @author Rinde van Lon 
  */
 class Taxi extends Vehicle {
 

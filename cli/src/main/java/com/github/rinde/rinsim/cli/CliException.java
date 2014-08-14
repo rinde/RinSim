@@ -8,7 +8,7 @@ import com.google.common.base.Optional;
 
 /**
  * Exception indicating a problem with the command-line interface.
- * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+ * @author Rinde van Lon 
  */
 public class CliException extends RuntimeException {
   private static final long serialVersionUID = -7434606684541234080L;
@@ -66,7 +66,7 @@ public class CliException extends RuntimeException {
 
   /**
    * Collection of causes of command-line interface exceptions.
-   * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+   * @author Rinde van Lon 
    */
   public enum CauseType {
     /**

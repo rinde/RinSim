@@ -19,9 +19,8 @@ import org.apache.commons.math3.random.RandomGenerator;
  * TODO should be split up in an ImmutableGraph and Graph. Graphs should be
  * created using the builder pattern?
  * 
- * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
- * @author Bartosz Michalik <bartosz.michalik@cs.kuleuven.be> - added edge data
- *         handling
+ * @author Rinde van Lon
+ * @author Bartosz Michalik - added edge data handling
  * @param <E> The type of {@link ConnectionData} that is used in the edges.
  * @since 1.0
  */
@@ -131,7 +130,7 @@ public interface Graph<E extends ConnectionData> {
   void addConnection(Connection<E> connection);
 
   /**
-   * Set connection data. Precondition: connection from -> to exists.
+   * Set connection data. Precondition: connection from -&gt; to exists.
    * @param from Start point of connection
    * @param to End point of connection
    * @param edgeData The edge data used for the connection

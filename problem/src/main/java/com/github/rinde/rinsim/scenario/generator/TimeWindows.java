@@ -18,7 +18,7 @@ import com.google.common.math.DoubleMath;
 
 /**
  * Utility class for creating {@link TimeWindowGenerator}s.
- * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+ * @author Rinde van Lon
  */
 public final class TimeWindows {
   private TimeWindows() {}
@@ -33,7 +33,7 @@ public final class TimeWindows {
 
   /**
    * Generator of {@link TimeWindow}s for pickup and delivery problems.
-   * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+   * @author Rinde van Lon
    */
   public interface TimeWindowGenerator {
     /**
@@ -42,7 +42,8 @@ public final class TimeWindows {
      * feasible, meaning that they should be serviceable such that there is
      * enough time for a vehicle to return to the depot.
      * @param seed Random seed.
-     * @param parcelBuilder The {@link com.github.rinde.rinsim.core.pdptw.ParcelDTO.Builder}
+     * @param parcelBuilder The
+     *          {@link com.github.rinde.rinsim.core.pdptw.ParcelDTO.Builder}
      *          that is being used for creating a {@link ParcelDTO}. The time
      *          windows should be added to this builder via the
      *          {@link com.github.rinde.rinsim.core.pdptw.ParcelDTO.Builder#pickupTimeWindow(TimeWindow)}
@@ -66,7 +67,7 @@ public final class TimeWindows {
    * <code>delivery_urgency = deliveryTW.R - earliest possible leave time from pickup site</code>
    * </li>
    * </ul>
-   * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+   * @author Rinde van Lon
    */
   public static class Builder {
     private static final StochasticSupplier<Long> DEFAULT_URGENCY = constant(30 * 60 * 1000L);
@@ -103,7 +104,7 @@ public final class TimeWindows {
      * the time relative to the earliest feasible delivery opening time:
      * <code>pickup opening + pickup duration + travel time from pickup to delivery</code>
      * .
-     * @param opening May only return values which are <code>>= 0</code>.
+     * @param opening May only return values which are <code>&ge; 0</code>.
      * @return This, as per the builder pattern.
      */
     public Builder deliveryOpening(StochasticSupplier<Long> opening) {
@@ -113,7 +114,7 @@ public final class TimeWindows {
 
     /**
      * 
-     * @param factor May only return values which are <code>> 0</code>.
+     * @param factor May only return values which are <code>&gt; 0</code>.
      * @return
      */
     // length of delivery TW as a ratio to length of pickup TW

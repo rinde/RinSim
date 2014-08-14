@@ -9,7 +9,7 @@ import com.github.rinde.rinsim.core.model.road.MovingRoadUser;
 
 /**
  * Abstract base class for vehicle concept: moving {@link Container}.
- * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+ * @author Rinde van Lon 
  */
 public abstract class Vehicle extends ContainerImpl implements MovingRoadUser,
     TickListener {

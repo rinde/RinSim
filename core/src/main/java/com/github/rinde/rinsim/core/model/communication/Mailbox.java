@@ -10,7 +10,7 @@ import java.util.Set;
  * Simple mailbox with infinite capacity that can be used to serve
  * {@link CommunicationUser#receive(Message)} method.
  * 
- * @author Bartosz Michalik <bartosz.michalik@cs.kuleuven.be>
+ * @author Bartosz Michalik 
  * @since 2.0
  */
 public class Mailbox {

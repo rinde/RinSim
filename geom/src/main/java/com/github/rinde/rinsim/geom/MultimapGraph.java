@@ -24,8 +24,8 @@ import com.google.common.collect.Multimaps;
 
 /**
  * Multimap-based implementation of a graph.
- * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
- * @author Bartosz Michalik <bartosz.michalik@cs.kuleuven.be> - added edge data
+ * @author Rinde van Lon 
+ * @author Bartosz Michalik  - added edge data
  *         + and dead end nodes
  * @param <E> The type of {@link ConnectionData} that is used in the edges.
  */

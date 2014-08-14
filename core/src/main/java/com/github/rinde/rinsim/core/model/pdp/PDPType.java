@@ -4,7 +4,7 @@
 package com.github.rinde.rinsim.core.model.pdp;
 
 /**
- * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+ * @author Rinde van Lon 
  * 
  *         Only intended for use within this package.
  */

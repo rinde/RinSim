@@ -34,7 +34,7 @@ import com.google.common.collect.Iterators;
 
 /**
  * Tests for {@link TimeWindows}.
- * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+ * @author Rinde van Lon 
  */
 @RunWith(Parameterized.class)
 public class TimeWindowsTest {

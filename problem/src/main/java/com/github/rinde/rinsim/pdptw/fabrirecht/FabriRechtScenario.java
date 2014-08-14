@@ -28,8 +28,8 @@ import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableList;
 
 /**
- * A scenario for Fabri & Recht problems.
- * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+ * A scenario for Fabri {@literal &} Recht problems.
+ * @author Rinde van Lon
  */
 public class FabriRechtScenario extends Scenario {
   /**

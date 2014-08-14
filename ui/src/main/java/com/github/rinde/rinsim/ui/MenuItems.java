@@ -6,7 +6,7 @@ import com.google.common.collect.ImmutableMap;
 
 /**
  * The set of menu items used in the GUI.
- * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+ * @author Rinde van Lon 
  */
 public enum MenuItems {
   /**

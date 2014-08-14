@@ -5,7 +5,7 @@ package com.github.rinde.rinsim.core.model.pdp;
 
 /**
  * PDP specific event type that may occur in a scenario.
- * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+ * @author Rinde van Lon 
  */
 public enum PDPScenarioEvent {
 

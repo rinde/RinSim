@@ -20,7 +20,7 @@ import com.google.common.base.Supplier;
 /**
  * Utility class for creating {@link Supplier}s that create {@link Model}s which
  * can be used in a {@link ScenarioGenerator}.
- * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+ * @author Rinde van Lon 
  */
 public final class Models {
 
@@ -69,7 +69,7 @@ public final class Models {
    * A supplier which can be used to construct a {@link Model} based on a
    * {@link ScenarioGenerator}.
    * @param <T> The type of model the supplier returns.
-   * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+   * @author Rinde van Lon 
    */
   public interface ModelSupplierScenGen<T extends Model<?>> {
     /**

@@ -15,7 +15,7 @@ import com.google.common.collect.ImmutableList;
 /**
  * This represents a configuration of a multi-agent system in a simulation.
  * Implementations should always be immutable.
- * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+ * @author Rinde van Lon 
  */
 public interface MASConfiguration {
 

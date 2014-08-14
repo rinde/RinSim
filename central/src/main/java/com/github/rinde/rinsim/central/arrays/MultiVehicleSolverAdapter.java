@@ -15,7 +15,7 @@ import com.google.common.collect.ImmutableList;
 /**
  * Adapter for {@link MultiVehicleArraysSolver} to conform to the {@link Solver}
  * interface.
- * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+ * @author Rinde van Lon 
  */
 public class MultiVehicleSolverAdapter implements Solver {
 

@@ -13,7 +13,7 @@ import com.google.common.base.Objects;
 /**
  * A time window is an interval in time. It is defined as a half open interval:
  * [begin, end).
- * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+ * @author Rinde van Lon
  */
 public final class TimeWindow implements Serializable {
   private static final long serialVersionUID = 7548761538022038612L;
@@ -56,7 +56,7 @@ public final class TimeWindow implements Serializable {
 
   /**
    * @param time The time to check.
-   * @return <code>true</code> when <code>time >= {@link #begin}</code>,
+   * @return <code>true</code> when <code>time &gt;= {@link #begin}</code>,
    *         <code>false</code> otherwise.
    */
   public boolean isAfterStart(long time) {
@@ -65,7 +65,7 @@ public final class TimeWindow implements Serializable {
 
   /**
    * @param time The time to check.
-   * @return <code>true</code> when <code>time < {@link #end}</code>,
+   * @return <code>true</code> when <code>time &lt; {@link #end}</code>,
    *         <code>false</code> otherwise.
    */
   public boolean isBeforeEnd(long time) {
@@ -74,7 +74,7 @@ public final class TimeWindow implements Serializable {
 
   /**
    * @param time The time to check.
-   * @return <code>true</code> when <code>time < {@link #begin}</code>,
+   * @return <code>true</code> when <code>time &lt; {@link #begin}</code>,
    *         <code>false</code> otherwise.
    */
   public boolean isBeforeStart(long time) {
@@ -83,7 +83,7 @@ public final class TimeWindow implements Serializable {
 
   /**
    * @param time The time to check.
-   * @return <code>true</code> when <code>time >= {@link #end}</code>,
+   * @return <code>true</code> when <code>time &gt;= {@link #end}</code>,
    *         <code>false</code> otherwise.
    */
   public boolean isAfterEnd(long time) {

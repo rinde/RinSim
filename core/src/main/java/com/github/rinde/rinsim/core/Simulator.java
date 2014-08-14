@@ -46,7 +46,7 @@ import com.github.rinde.rinsim.event.EventDispatcher;
  * configuring.
  * 
  * @author Rinde van Lon (rinde.vanlon@cs.kuleuven.be)
- * @author Bartosz Michalik <bartosz.michalik@cs.kuleuven.be> - simulator API
+ * @author Bartosz Michalik  - simulator API
  *         changes
  */
 public class Simulator implements SimulatorAPI {

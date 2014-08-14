@@ -28,7 +28,7 @@ import com.google.common.collect.Multiset;
  * <li>all values in a category</li>
  * </ul>
  * 
- * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+ * @author Rinde van Lon 
  * 
  */
 // TODO better name: MultiBiMap ?

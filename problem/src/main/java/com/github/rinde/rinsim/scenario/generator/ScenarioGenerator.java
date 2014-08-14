@@ -37,7 +37,7 @@ import com.google.common.collect.ImmutableList;
 
 /**
  * A generator of {@link Scenario}s.
- * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+ * @author Rinde van Lon 
  */
 // TODO rename to PDPScenarios?
 public final class ScenarioGenerator {
@@ -225,7 +225,7 @@ public final class ScenarioGenerator {
 
   /**
    * Builder for creating {@link ScenarioGenerator} instances.
-   * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+   * @author Rinde van Lon 
    */
   public static class Builder extends AbstractBuilder<Builder> {
     static final ParcelGenerator DEFAULT_PARCEL_GENERATOR = Parcels.builder()
@@ -332,7 +332,7 @@ public final class ScenarioGenerator {
   /**
    * Implementations should provide information about travel times in a
    * scenario. The travel times are usually extracted from a {@link RoadModel}.
-   * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+   * @author Rinde van Lon 
    */
   public interface TravelTimes {
     /**

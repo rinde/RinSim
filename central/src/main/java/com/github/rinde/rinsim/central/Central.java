@@ -35,7 +35,7 @@ import com.google.common.collect.ImmutableList;
  * {@link com.github.rinde.rinsim.scenario.Scenario}s.
  * <p>
  * TODO update this comment
- * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+ * @author Rinde van Lon 
  */
 public final class Central {
 

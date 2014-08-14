@@ -9,7 +9,7 @@ import org.eclipse.swt.widgets.Composite;
  * Using {@link PanelRenderer} a user interface panel can be defined. This panel
  * can be positioned alongside the canvas (which is the main view of the
  * simulation) to show additional information.
- * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+ * @author Rinde van Lon 
  */
 public interface PanelRenderer extends Renderer {
 

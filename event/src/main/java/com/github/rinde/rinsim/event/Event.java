@@ -9,8 +9,8 @@ import com.google.common.base.Optional;
 
 /**
  * The base event class. It is immutable.
- * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
- * @author Bartosz Michalik <bartosz.michalik@cs.kuleuven.be>
+ * @author Rinde van Lon 
+ * @author Bartosz Michalik 
  */
 public class Event {
 

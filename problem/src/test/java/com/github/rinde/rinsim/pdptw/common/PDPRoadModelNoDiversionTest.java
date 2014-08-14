@@ -5,7 +5,7 @@ package com.github.rinde.rinsim.pdptw.common;
 
 
 /**
- * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+ * @author Rinde van Lon 
  * 
  */
 public class PDPRoadModelNoDiversionTest extends PDPRoadModelCommonTest {

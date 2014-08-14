@@ -14,7 +14,7 @@ import com.github.rinde.rinsim.scenario.generator.TimeWindowsTest.FakeTravelTime
 
 /**
  * Test for {@link Parcels}.
- * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+ * @author Rinde van Lon 
  */
 public class ParcelsTest {
 

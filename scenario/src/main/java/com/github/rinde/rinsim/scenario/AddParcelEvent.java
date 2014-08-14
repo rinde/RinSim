@@ -5,7 +5,7 @@ import com.github.rinde.rinsim.core.pdptw.ParcelDTO;
 
 /**
  * Event indicating that a parcel can be created.
- * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+ * @author Rinde van Lon 
  */
 public class AddParcelEvent extends TimedEvent {
 

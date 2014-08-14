@@ -15,14 +15,6 @@ public interface CanvasRenderer extends Renderer {
 
   // FIXME documentation!
 
-  /**
-   * @param gc
-   * @param origin
-   * @param minX
-   * @param minY
-   * @param scale
-   */
-
   void renderStatic(GC gc, ViewPort vp);
 
   void renderDynamic(GC gc, ViewPort vp, long time);

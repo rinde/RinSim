@@ -39,8 +39,8 @@ import com.google.common.math.DoubleMath;
  * passing it to the model may break this model. The graph can define
  * {@link Connection} specific speed limits using {@link MultiAttributeData}.
  * 
- * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
- * @author Bartosz Michalik <bartosz.michalik@cs.kuleuven.be> changes wrt.
+ * @author Rinde van Lon 
+ * @author Bartosz Michalik  changes wrt.
  *         models infrastructure
  */
 public class GraphRoadModel extends AbstractRoadModel<Loc> {
@@ -443,7 +443,7 @@ public class GraphRoadModel extends AbstractRoadModel<Loc> {
 
   /**
    * Location representation in a {@link Graph} for the {@link GraphRoadModel} .
-   * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+   * @author Rinde van Lon 
    */
   protected static final class Loc extends Point {
     private static final long serialVersionUID = 7070585967590832300L;

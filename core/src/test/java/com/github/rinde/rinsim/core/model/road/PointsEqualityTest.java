@@ -23,7 +23,7 @@ import com.github.rinde.rinsim.geom.TestTableGraph;
 
 /**
  * Test whether points are value objects
- * @author Bartosz Michalik <bartosz.michalik@cs.kuleuven.be>
+ * @author Bartosz Michalik 
  * 
  */
 

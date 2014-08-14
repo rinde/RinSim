@@ -13,7 +13,7 @@ import com.google.common.collect.ImmutableSet;
  * {@link PDPModel}. Subclasses should override one or more methods to modify
  * the behavior of the backing model as desired per the <a
  * href="http://en.wikipedia.org/wiki/Decorator_pattern">decorator pattern</a>.
- * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+ * @author Rinde van Lon 
  */
 public class ForwardingPDPModel extends PDPModel {
   /**

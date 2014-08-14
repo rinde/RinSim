@@ -58,7 +58,7 @@ import com.google.common.base.Optional;
 
 /**
  * Tests for {@link RouteFollowingVehicle}.
- * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+ * @author Rinde van Lon 
  */
 @RunWith(value = Parameterized.class)
 public class RouteFollowingVehicleTest {

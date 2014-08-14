@@ -42,7 +42,7 @@ import com.google.common.collect.Sets;
  *          object locations. This location representation should only be used
  *          internally in the model.
  * 
- * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+ * @author Rinde van Lon 
  */
 public abstract class AbstractRoadModel<T> extends GenericRoadModel {
 
@@ -103,7 +103,7 @@ public abstract class AbstractRoadModel<T> extends GenericRoadModel {
 
   /**
    * The types of events this model can dispatch.
-   * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+   * @author Rinde van Lon 
    */
   public enum RoadEventType {
     /**
@@ -410,7 +410,7 @@ public abstract class AbstractRoadModel<T> extends GenericRoadModel {
 
   /**
    * Simple class for storing destinations and paths leading to them.
-   * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+   * @author Rinde van Lon 
    */
   protected class DestinationPath {
     /**

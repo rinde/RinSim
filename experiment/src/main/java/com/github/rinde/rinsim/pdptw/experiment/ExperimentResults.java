@@ -17,7 +17,7 @@ import com.google.common.collect.ImmutableSet;
 /**
  * Value object containing all the results of a single experiment as performed
  * by {@link Builder#perform()}.
- * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+ * @author Rinde van Lon 
  */
 public final class ExperimentResults {
   /**

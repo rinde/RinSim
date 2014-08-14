@@ -43,7 +43,7 @@ public final class GraphRoadModelRenderer implements ModelRenderer {
 
   /**
    * Creates a {@link GraphRoadModelRenderer} instance with a margin of
-   * <code>20<code> and not displaying nodes or direction arrows.
+   * <code>20</code> and not displaying nodes or direction arrows.
    */
   public GraphRoadModelRenderer() {
     this(20, false, false, false);

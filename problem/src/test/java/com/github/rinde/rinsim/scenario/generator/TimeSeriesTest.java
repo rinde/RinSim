@@ -14,7 +14,7 @@ import com.github.rinde.rinsim.scenario.generator.TimeSeries.TimeSeriesGenerator
 
 /**
  * Tests for {@link TimeSeries}.
- * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+ * @author Rinde van Lon 
  */
 public class TimeSeriesTest {
 

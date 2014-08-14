@@ -34,7 +34,7 @@ import com.google.common.math.DoubleMath;
  * from every point in the plane it is possible to drive to every other point in
  * the plane. The plane has a boundary as defined by a rectangle.
  * 
- * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+ * @author Rinde van Lon 
  */
 public class PlaneRoadModel extends AbstractRoadModel<Point> {
 

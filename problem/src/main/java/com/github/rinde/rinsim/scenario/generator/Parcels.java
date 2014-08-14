@@ -23,7 +23,7 @@ import com.google.common.math.DoubleMath;
 
 /**
  * Utility class for creating {@link ParcelGenerator}s.
- * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+ * @author Rinde van Lon 
  */
 public final class Parcels {
   private Parcels() {}
@@ -37,7 +37,7 @@ public final class Parcels {
 
   /**
    * A generator of {@link AddParcelEvent}s.
-   * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+   * @author Rinde van Lon 
    */
   public interface ParcelGenerator {
 
@@ -141,7 +141,7 @@ public final class Parcels {
 
   /**
    * A builder for creating {@link ParcelGenerator}s.
-   * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+   * @author Rinde van Lon 
    */
   public static class Builder {
     static final TimeSeriesGenerator DEFAULT_ANNOUNCE_TIMES = TimeSeries

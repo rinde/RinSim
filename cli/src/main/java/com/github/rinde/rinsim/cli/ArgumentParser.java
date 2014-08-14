@@ -17,7 +17,7 @@ import com.google.common.primitives.Longs;
  * type. If the parsing fails, a {@link CliException} is thrown. This class
  * contains a number of {@link ArgumentParser}s for common types.
  * @param <V> The argument type.
- * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+ * @author Rinde van Lon 
  */
 public abstract class ArgumentParser<V> {
   /**
@@ -124,7 +124,7 @@ public abstract class ArgumentParser<V> {
   /**
    * A parser for numbers.
    * @param <T> The type of number.
-   * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+   * @author Rinde van Lon 
    */
   public static class NumberParser<T> extends ArgumentParser<T> {
     private final Converter<String, T> converter;
@@ -154,7 +154,7 @@ public abstract class ArgumentParser<V> {
   /**
    * A parser for lists of numbers.
    * @param <T> The type of number.
-   * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+   * @author Rinde van Lon 
    */
   public static class NumberListParser<T> extends ArgumentParser<List<T>> {
     private final Converter<String, T> converter;

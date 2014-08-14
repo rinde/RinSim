@@ -8,7 +8,7 @@ import com.github.rinde.rinsim.util.TimeWindow;
 
 /**
  * The parcel class represents goods that can be transported.
- * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+ * @author Rinde van Lon 
  */
 public abstract class Parcel extends PDPObjectImpl {
 

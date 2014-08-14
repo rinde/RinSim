@@ -40,7 +40,7 @@ import com.google.common.collect.ImmutableList;
 
 /**
  * Tests for {@link Scenario} and its builder.
- * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+ * @author Rinde van Lon 
  */
 public class ScenarioTest {
 

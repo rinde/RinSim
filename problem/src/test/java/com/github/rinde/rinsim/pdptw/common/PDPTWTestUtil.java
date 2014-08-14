@@ -9,7 +9,7 @@ import com.github.rinde.rinsim.core.model.pdp.PDPObject;
 import com.github.rinde.rinsim.core.model.road.RoadModel;
 
 /**
- * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+ * @author Rinde van Lon 
  * 
  */
 public class PDPTWTestUtil {

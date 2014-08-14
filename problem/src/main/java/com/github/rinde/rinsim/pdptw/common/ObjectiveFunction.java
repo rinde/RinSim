@@ -8,7 +8,7 @@ package com.github.rinde.rinsim.pdptw.common;
  * {@link StatisticsDTO} can be measured.
  * <p>
  * Implementations should not keep any internal state.
- * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+ * @author Rinde van Lon 
  */
 public interface ObjectiveFunction {
 

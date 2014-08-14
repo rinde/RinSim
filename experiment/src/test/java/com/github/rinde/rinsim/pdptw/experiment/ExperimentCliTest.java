@@ -16,7 +16,7 @@ import com.github.rinde.rinsim.scenario.ScenarioTestUtil;
 
 /**
  * Test for commandline interface of experiment.
- * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+ * @author Rinde van Lon 
  */
 public class ExperimentCliTest {
 

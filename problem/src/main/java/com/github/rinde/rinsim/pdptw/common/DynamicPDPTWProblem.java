@@ -31,9 +31,9 @@ import com.github.rinde.rinsim.scenario.AddParcelEvent;
 import com.github.rinde.rinsim.scenario.AddVehicleEvent;
 import com.github.rinde.rinsim.scenario.Scenario;
 import com.github.rinde.rinsim.scenario.ScenarioController;
+import com.github.rinde.rinsim.scenario.ScenarioController.UICreator;
 import com.github.rinde.rinsim.scenario.TimedEvent;
 import com.github.rinde.rinsim.scenario.TimedEventHandler;
-import com.github.rinde.rinsim.scenario.ScenarioController.UICreator;
 import com.github.rinde.rinsim.ui.View;
 import com.github.rinde.rinsim.ui.renderers.CanvasRenderer;
 import com.github.rinde.rinsim.ui.renderers.PDPModelRenderer;
@@ -61,10 +61,7 @@ import com.google.common.collect.ImmutableMap;
  * required to plug your own vehicle in by using
  * {@link #addCreator(Class, Creator)}. Optionally this method can also be used
  * to plug in custom parcels and depots.
- * <p>
- * Currently the Gendreau et al. (2006) benchmark is supported. In the future
- * this class will also support the Fabri & Recht and Pankratz benchmarks.
- * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+ * @author Rinde van Lon
  */
 public class DynamicPDPTWProblem {
 
@@ -329,14 +326,14 @@ public class DynamicPDPTWProblem {
    * {@link Predicates#and(Predicate, Predicate)},
    * {@link Predicates#or(Predicate, Predicate)} and
    * {@link Predicates#not(Predicate)}.
-   * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+   * @author Rinde van Lon
    */
   public enum StopConditions implements Predicate<Simulator> {
 
     /**
      * The simulation is terminated once the
-     * {@link rinde.sim.core.model.pdp.PDPScenarioEvent#TIME_OUT} event is
-     * dispatched.
+     * {@link com.github.rinde.rinsim.core.model.pdp.PDPScenarioEvent#TIME_OUT}
+     * event is dispatched.
      */
     TIME_OUT_EVENT {
       @Override
@@ -348,8 +345,8 @@ public class DynamicPDPTWProblem {
     /**
      * The simulation is terminated as soon as all the vehicles are back at the
      * depot, note that this can be before or after the
-     * {@link rinde.sim.core.model.pdp.PDPScenarioEvent#TIME_OUT} event is
-     * dispatched.
+     * {@link com.github.rinde.rinsim.core.model.pdp.PDPScenarioEvent#TIME_OUT}
+     * event is dispatched.
      */
     VEHICLES_DONE_AND_BACK_AT_DEPOT {
       @Override
@@ -377,7 +374,7 @@ public class DynamicPDPTWProblem {
 
   /**
    * This is an immutable state object which is exposed to stopconditions.
-   * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+   * @author Rinde van Lon
    */
   public static class SimulationInfo {
     /**
@@ -403,7 +400,7 @@ public class DynamicPDPTWProblem {
 
   /**
    * A default {@link UICreator} used for creating a UI for a problem.
-   * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+   * @author Rinde van Lon
    */
   public static class DefaultUICreator implements UICreator {
     private static final double DEFAULT_RENDER_MARGIN = .05;

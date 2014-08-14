@@ -1,7 +1,7 @@
 package com.github.rinde.rinsim.core.model;
 
 /**
- * @author Bartosz Michalik <bartosz.michalik@cs.kuleuven.be>
+ * @author Bartosz Michalik 
  * @param <T> basic type of element supported by model
  */
 public interface Model<T> {

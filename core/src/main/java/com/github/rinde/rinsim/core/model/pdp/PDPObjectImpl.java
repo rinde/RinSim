@@ -12,7 +12,7 @@ import com.google.common.base.Optional;
 /**
  * Default implementation of {@link PDPObject}.
  * 
- * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+ * @author Rinde van Lon 
  */
 public abstract class PDPObjectImpl implements PDPObject {
 

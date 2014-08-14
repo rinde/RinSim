@@ -37,7 +37,7 @@ import com.github.rinde.rinsim.geom.TableGraph;
 import com.google.common.base.Function;
 
 /**
- * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+ * @author Rinde van Lon 
  * 
  */
 @RunWith(Parameterized.class)

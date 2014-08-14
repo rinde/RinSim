@@ -2,7 +2,7 @@ package com.github.rinde.rinsim.core.model.communication;
 
 /**
  * Communication API exposed to agent to allow them for communication.
- * @author Bartosz Michalik <bartosz.michalik@cs.kuleuven.be>
+ * @author Bartosz Michalik 
  * @since 2.0
  */
 public interface CommunicationAPI {

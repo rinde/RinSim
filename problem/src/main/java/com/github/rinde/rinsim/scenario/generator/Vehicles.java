@@ -17,7 +17,7 @@ import com.google.common.collect.ImmutableList;
 
 /**
  * Utility class for creating {@link VehicleGenerator}s.
- * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+ * @author Rinde van Lon 
  */
 public final class Vehicles {
   static final int DEFAULT_NUM_OF_VEHICLES = 10;
@@ -59,7 +59,7 @@ public final class Vehicles {
 
   /**
    * Generator of {@link AddVehicleEvent}s.
-   * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+   * @author Rinde van Lon 
    */
   public interface VehicleGenerator {
     /**
@@ -77,7 +77,7 @@ public final class Vehicles {
 
   /**
    * A builder for constructing {@link VehicleGenerator}s.
-   * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+   * @author Rinde van Lon 
    */
   public static class Builder {
     StochasticSupplier<Integer> numberOfVehicles;

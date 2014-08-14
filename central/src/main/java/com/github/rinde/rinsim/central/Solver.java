@@ -9,7 +9,7 @@ import com.google.common.collect.ImmutableList;
 /**
  * Interface for solvers of the pickup-and-delivery problem with time windows
  * (PDPTW).
- * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+ * @author Rinde van Lon 
  */
 public interface Solver {
 

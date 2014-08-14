@@ -31,7 +31,7 @@ import com.github.rinde.rinsim.scenario.generator.ScenarioGenerator;
 
 /**
  * Test for JPPF computation.
- * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+ * @author Rinde van Lon 
  */
 public class JppfTest {
   @SuppressWarnings("null")

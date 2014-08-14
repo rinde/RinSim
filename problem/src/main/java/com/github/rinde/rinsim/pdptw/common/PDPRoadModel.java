@@ -35,7 +35,7 @@ import com.google.common.collect.Multimap;
  * API for PDP problems and it can control whether vehicles are allowed to
  * divert.
  * <p>
- * <b>Pickup and delivery problem convenience API</b><br/>
+ * <b>Pickup and delivery problem convenience API</b><br>
  * This model allows the following: {@code
  *  moveTo(v1,p1,..)
  *  pickup(v1,p1,..)
@@ -45,7 +45,7 @@ import com.google.common.collect.Multimap;
  * interested in, depending on its state the vehicle will automatically move to
  * the pickup location or the delivery location.
  * <p>
- * <b>Diversion</b><br/>
+ * <b>Diversion</b><br>
  * This model can optionally disallow vehicle diversion. Vehicle diversion is
  * defined as a vehicle changing its destination service location before it has
  * completed servicing that service location. More concretely if a vehicle
@@ -53,7 +53,7 @@ import com.google.common.collect.Multimap;
  * but then changes its destination to the pickup location of parcel
  * <code>p2</code> we say that vehicle <code>v1</code> has diverted.
  * 
- * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+ * @author Rinde van Lon 
  */
 public class PDPRoadModel extends ForwardingRoadModel implements ModelReceiver {
 

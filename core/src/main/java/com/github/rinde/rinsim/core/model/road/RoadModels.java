@@ -23,7 +23,7 @@ import com.google.common.collect.Collections2;
 /**
  * Provides several queries for finding {@link RoadUser}s in {@link RoadModel}s.
  * 
- * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+ * @author Rinde van Lon
  */
 public final class RoadModels {
 
@@ -115,7 +115,7 @@ public final class RoadModels {
    * @param pos The {@link Point} which is used as a reference point.
    * @param rm The {@link RoadModel} instance in which the closest objects are
    *          searched.
-   * @param n The maximum number of objects to return where n must be >= 0.
+   * @param n The maximum number of objects to return where n must be &ge; 0.
    * @return A list of objects that are closest to <code>pos</code>. The list is
    *         ordered such that the closest object appears first. An empty list
    *         is returned when <code>objects</code> is empty.
@@ -132,7 +132,7 @@ public final class RoadModels {
    * @param rm The {@link RoadModel} instance in which the closest objects are
    *          searched.
    * @param predicate Only objects that satisfy this predicate will be returned.
-   * @param n The maximum number of objects to return where n must be >= 0.
+   * @param n The maximum number of objects to return where n must be &ge; 0.
    * @return A list of objects that are closest to <code>pos</code>. The list is
    *         ordered such that the closest object appears first. An empty list
    *         is returned when <code>objects</code> is empty.
@@ -151,7 +151,7 @@ public final class RoadModels {
    * @param rm The {@link RoadModel} instance in which the closest objects are
    *          searched.
    * @param type The type of objects which are included in the search.
-   * @param n The maximum number of objects to return where n must be >= 0.
+   * @param n The maximum number of objects to return where n must be &ge; 0.
    * @param <T> The type of the objects in the returned collection.
    * @return A list of objects that are closest to <code>pos</code>. The list is
    *         ordered such that the closest object appears first. An empty list
@@ -169,7 +169,7 @@ public final class RoadModels {
    * @param rm The {@link RoadModel} instance which is used to lookup the
    *          positions of the objects in <code>objects</code>.
    * @param objects The list of objects which is searched.
-   * @param n The maximum number of objects to return where n must be >= 0.
+   * @param n The maximum number of objects to return where n must be &ge; 0.
    * @param <T> The type of the objects in the returned collection.
    * @return A list of objects that are closest to <code>pos</code>. The list is
    *         ordered such that the closest object appears first. An empty list

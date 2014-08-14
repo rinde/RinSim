@@ -45,7 +45,7 @@ import com.google.common.collect.Multimap;
  * multiple simulation ticks, the {@link DefaultPDPModel} ensures time
  * consistency.
  * 
- * TODO write more about assumptions in model <br/>
+ * TODO write more about assumptions in model <br>
  * TODO write about extensibility
  * 
  * 
@@ -55,7 +55,7 @@ import com.google.common.collect.Multimap;
  * 
  * 
  * 
- * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+ * @author Rinde van Lon 
  */
 public final class DefaultPDPModel extends PDPModel {
 
@@ -567,7 +567,7 @@ public final class DefaultPDPModel extends PDPModel {
    * be done at once (since there is not enough time available), using this
    * interface actions can be performed in steps.
    * 
-   * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+   * @author Rinde van Lon 
    */
   interface Action {
     /**

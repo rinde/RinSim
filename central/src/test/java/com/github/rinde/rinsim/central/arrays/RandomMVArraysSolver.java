@@ -35,7 +35,7 @@ import com.google.common.primitives.Ints;
  * should be used for testing only. It is not perfectly random, it is a 'lazy'
  * implementation that creates feasible solutions but two solutions do not
  * necessary have an equal or non-zero probability.
- * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+ * @author Rinde van Lon 
  */
 public class RandomMVArraysSolver implements MultiVehicleArraysSolver {
 

@@ -28,9 +28,8 @@ import com.google.common.base.Objects;
 
 /**
  * Utility class containing many methods for working with graphs.
- * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
- * @author Bartosz Michalik <bartosz.michalik@cs.kuleuven.be> - change in the
- *         graphs model
+ * @author Rinde van Lon
+ * @author Bartosz Michalik - change in the graphs model
  */
 public final class Graphs {
 
@@ -39,8 +38,8 @@ public final class Graphs {
   /**
    * Create a path of connections on the specified {@link Graph} using the
    * specified {@link Point}s. If the points <code>A, B, C</code> are specified,
-   * the two connections: <code>A -> B</code> and <code>B -> C</code> will be
-   * added to the graph.
+   * the two connections: <code>A -&gt; B</code> and <code>B -&gt; C</code> will
+   * be added to the graph.
    * @param graph The graph to which the connections will be added.
    * @param path Points that will be treated as a path.
    * @param <E> The type of connection data.
@@ -55,8 +54,9 @@ public final class Graphs {
   /**
    * Create a path of bi-directional connections on the specified {@link Graph}
    * using the specified {@link Point}s. If the points <code>A, B, C</code> are
-   * specified, the four connections: <code>A -> B</code>, <code>B -> A</code>,
-   * <code>B -> C</code> and <code>C -> B</code> will be added to the graph.
+   * specified, the four connections: <code>A -&gt; B</code>,
+   * <code>B -&gt; A</code>, <code>B -&gt; C</code> and <code>C -&gt; B</code>
+   * will be added to the graph.
    * @param graph The graph to which the connections will be added.
    * @param path Points that will be treated as a path.
    * @param <E> The type of connection data.
@@ -151,8 +151,8 @@ public final class Graphs {
   }
 
   /**
-   * A standard implementation of the <a href="http
-   * ://en.wikipedia.org/wiki/A*_search_algorithm">A* algorithm</a>.
+   * A standard implementation of the <a
+   * href="http://en.wikipedia.org/wiki/A*_search_algorithm">A* algorithm</a>.
    * 
    * @param graph The {@link Graph} which contains <code>from</code> and
    *          <code>to</code>.
@@ -166,7 +166,7 @@ public final class Graphs {
    *           <code>from</code> and <code>to</code>.
    * 
    * @author Rutger Claes
-   * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+   * @author Rinde van Lon
    */
   public static <E extends ConnectionData> List<Point> shortestPath(
       Graph<E> graph, final Point from, final Point to, Graphs.Heuristic h) {
@@ -274,7 +274,7 @@ public final class Graphs {
    * @param objects The list of objects which is searched.
    * @param transformation A function that transforms objects from
    *          <code>objects</code> to a point.
-   * @param n The maximum number of objects to return where n must be >= 0.
+   * @param n The maximum number of objects to return where n must be &gt;= 0.
    * @param <T> The type of object.
    * @return A list of objects that are closest to <code>pos</code>. The list is
    *         ordered such that the closest object appears first. An empty list
@@ -327,7 +327,7 @@ public final class Graphs {
   /**
    * A heuristic can be used to direct the {@link #shortestPath} algorithm, it
    * determines the cost of traveling which should be minimized.
-   * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+   * @author Rinde van Lon
    */
   public interface Heuristic {
     /**

@@ -7,7 +7,7 @@ import static com.google.common.base.Preconditions.checkState;
 
 /**
  * Default implementation of the {@link Container} interface.
- * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+ * @author Rinde van Lon 
  */
 public abstract class ContainerImpl extends PDPObjectImpl implements Container {
 

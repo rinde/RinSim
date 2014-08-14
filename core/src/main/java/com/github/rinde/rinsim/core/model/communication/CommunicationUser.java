@@ -6,7 +6,7 @@ import com.github.rinde.rinsim.geom.Point;
 
 /**
  * Defines the interface of the agent that wants to communicate.
- * @author Bartosz Michalik <bartosz.michalik@cs.kuleuven.be>
+ * @author Bartosz Michalik 
  * 
  */
 public interface CommunicationUser {

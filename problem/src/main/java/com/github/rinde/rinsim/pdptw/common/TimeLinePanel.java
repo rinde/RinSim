@@ -48,7 +48,7 @@ import com.google.common.math.DoubleMath;
 /**
  * Time line panel is an UI element that shows a real time visualization of
  * parcels and their time windows in a simulation.
- * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+ * @author Rinde van Lon 
  */
 public final class TimeLinePanel implements ModelReceiver, PanelRenderer,
     TickListener {

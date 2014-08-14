@@ -15,7 +15,7 @@ import com.github.rinde.rinsim.pdptw.fabrirecht.FabriRechtParser;
 import com.github.rinde.rinsim.pdptw.fabrirecht.FabriRechtScenario;
 
 /**
- * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+ * @author Rinde van Lon 
  * 
  */
 public class ScenarioTest {

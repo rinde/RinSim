@@ -6,7 +6,7 @@ import com.github.rinde.rinsim.core.model.road.RoadModel;
 /**
  * 
  * Ignores the model registration.
- * @author Bartosz Michalik <bartosz.michalik@cs.kuleuven.be>
+ * @author Bartosz Michalik 
  * 
  */
 public class TrivialRoadUser implements MovingRoadUser {

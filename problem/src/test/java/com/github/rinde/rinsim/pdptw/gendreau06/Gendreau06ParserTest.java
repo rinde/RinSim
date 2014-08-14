@@ -25,7 +25,7 @@ import com.github.rinde.rinsim.pdptw.gendreau06.GendreauProblemClass;
 import com.github.rinde.rinsim.scenario.TimedEvent;
 
 /**
- * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+ * @author Rinde van Lon 
  * 
  */
 public class Gendreau06ParserTest {
