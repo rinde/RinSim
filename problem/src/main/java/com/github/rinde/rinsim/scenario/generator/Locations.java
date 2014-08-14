@@ -41,10 +41,11 @@ public final class Locations {
      * predefined as a ratio, e.g. <code>1:2</code> in case origin and
      * destination is required for each order.
      * @param seed The random seed.
-     * @param numOrders The number of orders for which a location is required.
-     * @return A list of locations for the orders.
+     * @param numLocations The number of locations that is required.
+     * @return A list of locations for the orders of size
+     *         <code>numLocations</code>.
      */
-    ImmutableList<Point> generate(long seed, int numOrders);
+    ImmutableList<Point> generate(long seed, int numLocations);
 
     /**
      * @return The expected center of all generated locations.
