@@ -19,6 +19,7 @@ import java.util.List;
 import java.util.Set;
 
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
@@ -26,9 +27,9 @@ import org.junit.runners.Parameterized.Parameters;
 import com.github.rinde.rinsim.core.Simulator;
 import com.github.rinde.rinsim.core.TimeLapse;
 import com.github.rinde.rinsim.core.model.pdp.PDPModel;
+import com.github.rinde.rinsim.core.model.pdp.PDPModel.ParcelState;
 import com.github.rinde.rinsim.core.model.pdp.PDPScenarioEvent;
 import com.github.rinde.rinsim.core.model.pdp.Parcel;
-import com.github.rinde.rinsim.core.model.pdp.PDPModel.ParcelState;
 import com.github.rinde.rinsim.core.model.road.RoadModel;
 import com.github.rinde.rinsim.core.pdptw.DefaultDepot;
 import com.github.rinde.rinsim.core.pdptw.DefaultVehicle;
@@ -36,21 +37,21 @@ import com.github.rinde.rinsim.core.pdptw.ParcelDTO;
 import com.github.rinde.rinsim.core.pdptw.VehicleDTO;
 import com.github.rinde.rinsim.geom.Point;
 import com.github.rinde.rinsim.pdptw.common.DynamicPDPTWProblem;
-import com.github.rinde.rinsim.pdptw.common.StatisticsDTO;
 import com.github.rinde.rinsim.pdptw.common.DynamicPDPTWProblem.Creator;
-import com.github.rinde.rinsim.pdptw.gendreau06.Gendreau06Scenario;
-import com.github.rinde.rinsim.pdptw.gendreau06.GendreauProblemClass;
+import com.github.rinde.rinsim.pdptw.common.StatisticsDTO;
 import com.github.rinde.rinsim.scenario.AddDepotEvent;
 import com.github.rinde.rinsim.scenario.AddParcelEvent;
 import com.github.rinde.rinsim.scenario.AddVehicleEvent;
 import com.github.rinde.rinsim.scenario.TimedEvent;
+import com.github.rinde.rinsim.testutil.GuiTests;
 import com.github.rinde.rinsim.util.TimeWindow;
 
 /**
- * @author Rinde van Lon 
+ * @author Rinde van Lon
  * 
  */
 @RunWith(value = Parameterized.class)
+@Category(GuiTests.class)
 public class Gendreau06Test {
 
   protected static final double EPSILON = 0.0001;

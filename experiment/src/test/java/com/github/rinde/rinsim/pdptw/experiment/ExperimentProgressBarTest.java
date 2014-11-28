@@ -1,9 +1,11 @@
 package com.github.rinde.rinsim.pdptw.experiment;
 
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 
-import com.github.rinde.rinsim.pdptw.experiment.ExperimentProgressBar;
+import com.github.rinde.rinsim.testutil.GuiTests;
 
+@Category(GuiTests.class)
 public class ExperimentProgressBarTest {
 
   @SuppressWarnings("null")

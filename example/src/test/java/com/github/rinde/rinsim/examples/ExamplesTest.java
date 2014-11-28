@@ -3,12 +3,15 @@ package com.github.rinde.rinsim.examples;
 import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 
 import com.github.rinde.rinsim.examples.core.SimpleExample;
 import com.github.rinde.rinsim.examples.core.comm.AgentCommunicationExample;
 import com.github.rinde.rinsim.examples.core.taxi.TaxiExample;
 import com.github.rinde.rinsim.examples.pdptw.gradientfield.GradientFieldExample;
+import com.github.rinde.rinsim.testutil.GuiTests;
 
+@Category(GuiTests.class)
 public class ExamplesTest {
 
   @Test

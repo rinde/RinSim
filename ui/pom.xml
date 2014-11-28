@@ -1,4 +1,5 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<parent>
 		<groupId>com.github.rinde</groupId>
@@ -10,7 +11,7 @@
 	<artifactId>rinsim-ui</artifactId>
 	<name>RinSim UI</name>
 	<packaging>jar</packaging>
-	
+
 	<dependencies>
 		<dependency>
 			<groupId>com.github.rinde</groupId>
@@ -24,6 +25,11 @@
 			<groupId>org.eclipse.swt</groupId>
 			<artifactId>org.eclipse.swt.${swt.variant}</artifactId>
 			<version>${swt.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.github.rinde</groupId>
+			<artifactId>rinsim-test-util</artifactId>
+			<type>test-jar</type>
 		</dependency>
 		<!-- <dependency> <groupId>org.eclipse.jface</groupId> <artifactId>org.eclipse.jface</artifactId> 
 			<version>${swt.version}</version> </dependency> -->
@@ -112,7 +118,7 @@
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<sonar.language>java</sonar.language>
-		<swt.version>4.3</swt.version> <!--  SHOULD BE SAME AS IN packaging/pom.xml -->
+		<swt.version>4.3</swt.version> <!-- SHOULD BE SAME AS IN packaging/pom.xml -->
 		<!-- by default there are no arguments passed to tests -->
 		<test.arg />
 	</properties>
@@ -121,10 +127,10 @@
 	<build>
 		<plugins>
 			<plugin>
-				<artifactId>maven-surefire-plugin</artifactId>
-				<version>2.7.1</version>
+				<artifactId>maven-surefire-plugin</artifactId>				
 				<configuration>
 					<argLine>${test.arg}</argLine>
+					<excludedGroups>${test.excludedGroups}</excludedGroups>
 				</configuration>
 				<executions>
 					<execution>

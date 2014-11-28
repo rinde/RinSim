@@ -8,8 +8,8 @@
 		<relativePath>..</relativePath>
 	</parent>
 
-	<artifactId>rinsim-event</artifactId>
-	<name>RinSim Event</name>
+	<artifactId>rinsim-test-util</artifactId>
+	<name>RinSim Test Utils</name>
 	<packaging>jar</packaging>
 
 	<properties>
@@ -17,19 +17,5 @@
 		<sonar.language>java</sonar.language>
 	</properties>
 
-	<dependencies>
-		<dependency>
-			<groupId>com.google.guava</groupId>
-			<artifactId>guava</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>com.google.code.findbugs</groupId>
-			<artifactId>jsr305</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>com.github.rinde</groupId>
-			<artifactId>rinsim-test-util</artifactId>
-			<type>test-jar</type>
-		</dependency>
-	</dependencies>
+	<dependencies></dependencies>
 </project>

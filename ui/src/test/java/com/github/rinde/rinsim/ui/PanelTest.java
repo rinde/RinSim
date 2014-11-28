@@ -11,19 +11,21 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
+import org.junit.experimental.categories.Category;
 
 import com.github.rinde.rinsim.core.Simulator;
 import com.github.rinde.rinsim.core.model.road.PlaneRoadModel;
 import com.github.rinde.rinsim.geom.Point;
-import com.github.rinde.rinsim.ui.View;
+import com.github.rinde.rinsim.testutil.GuiTests;
 import com.github.rinde.rinsim.ui.renderers.PanelRenderer;
 import com.github.rinde.rinsim.ui.renderers.PlaneRoadModelRenderer;
 import com.github.rinde.rinsim.ui.renderers.RoadUserRenderer;
 
 /**
- * @author Rinde van Lon 
+ * @author Rinde van Lon
  * 
  */
+@Category(GuiTests.class)
 public final class PanelTest {
 
   private PanelTest() {}
