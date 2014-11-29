@@ -12,7 +12,13 @@
 	<name>RinSim Packaging</name>
 	<packaging>pom</packaging>
 
-
+	<licenses>
+		<license>
+			<name>The Apache Software License, Version 2.0</name>
+			<url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+			<distribution>repo</distribution>
+		</license>
+	</licenses>
 
 	<properties>
 		<swt.version>4.3</swt.version> <!-- SHOULD BE SAME AS IN ui/pom.xml -->
