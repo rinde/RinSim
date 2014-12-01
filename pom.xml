@@ -141,6 +141,25 @@
 			</plugin>
 
 			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>license-maven-plugin</artifactId>
+				<version>1.7</version>
+				<configuration>
+					<organizationName>iMinds-DistriNet, KU Leuven</organizationName>
+					<licenseName>apache_v2</licenseName>
+				</configuration>
+				<executions>
+					<execution>
+						<id>first</id>
+						<goals>
+							<goal>update-file-header</goal>
+						</goals>
+						<phase>process-sources</phase>
+					</execution>
+				</executions>
+			</plugin>
+
+			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-release-plugin</artifactId>
 				<configuration>
@@ -159,10 +178,10 @@
 				</configuration>
 			</plugin>
 
-
-
-			<!-- <plugin> <artifactId>maven-assembly-plugin</artifactId> <version>2.3</version> 
-				</plugin> -->
+			<plugin>
+				<artifactId>maven-assembly-plugin</artifactId>
+				<version>2.3</version>
+			</plugin>
 
 			<plugin>
 				<groupId>org.codehaus.mojo</groupId>
