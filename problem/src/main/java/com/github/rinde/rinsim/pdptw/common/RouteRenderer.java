@@ -1,6 +1,3 @@
-/**
- * 
- */
 package com.github.rinde.rinsim.pdptw.common;
 
 import static com.google.common.collect.Sets.newHashSet;

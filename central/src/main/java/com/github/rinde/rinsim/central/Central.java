@@ -1,6 +1,3 @@
-/**
- * 
- */
 package com.github.rinde.rinsim.central;
 
 import java.util.Iterator;
@@ -35,7 +32,7 @@ import com.google.common.collect.ImmutableList;
  * {@link com.github.rinde.rinsim.scenario.Scenario}s.
  * <p>
  * TODO update this comment
- * @author Rinde van Lon 
+ * @author Rinde van Lon
  */
 public final class Central {
 

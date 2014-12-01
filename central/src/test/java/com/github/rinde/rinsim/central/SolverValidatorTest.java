@@ -1,6 +1,3 @@
-/**
- * 
- */
 package com.github.rinde.rinsim.central;
 
 import javax.measure.unit.SI;

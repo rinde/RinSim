@@ -1,6 +1,3 @@
-/**
- * 
- */
 package com.github.rinde.rinsim.pdptw.gendreau06;
 
 import static com.github.rinde.rinsim.pdptw.gendreau06.Gendreau06Parser.parse;

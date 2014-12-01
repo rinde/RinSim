@@ -1,6 +1,3 @@
-/**
- * 
- */
 package com.github.rinde.rinsim.pdptw.experiment;
 
 import com.github.rinde.rinsim.core.model.Model;

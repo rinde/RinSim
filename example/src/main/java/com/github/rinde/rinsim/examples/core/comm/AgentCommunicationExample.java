@@ -1,6 +1,3 @@
-/**
- * 
- */
 package com.github.rinde.rinsim.examples.core.comm;
 
 import java.io.IOException;

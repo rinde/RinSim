@@ -1,6 +1,3 @@
-/**
- * 
- */
 package com.github.rinde.rinsim.pdptw.common;
 
 import static com.github.rinde.rinsim.core.model.pdp.PDPScenarioEvent.TIME_OUT;

@@ -1,6 +1,3 @@
-/**
- * 
- */
 package com.github.rinde.rinsim.core.model.pdp;
 
 import com.github.rinde.rinsim.util.TimeWindow;

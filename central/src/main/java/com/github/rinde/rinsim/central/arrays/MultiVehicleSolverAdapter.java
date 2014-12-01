@@ -1,6 +1,3 @@
-/**
- * 
- */
 package com.github.rinde.rinsim.central.arrays;
 
 import javax.measure.quantity.Duration;

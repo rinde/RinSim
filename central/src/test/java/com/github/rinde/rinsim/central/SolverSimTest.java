@@ -1,6 +1,3 @@
-/**
- * 
- */
 package com.github.rinde.rinsim.central;
 
 import static org.junit.Assert.assertArrayEquals;

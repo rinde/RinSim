@@ -1,6 +1,3 @@
-/**
- * 
- */
 package com.github.rinde.rinsim.pdptw.common;
 
 import com.github.rinde.rinsim.core.Simulator;

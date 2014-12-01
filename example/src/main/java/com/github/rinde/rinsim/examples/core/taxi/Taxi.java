@@ -1,6 +1,3 @@
-/**
- * 
- */
 package com.github.rinde.rinsim.examples.core.taxi;
 
 import com.github.rinde.rinsim.core.TimeLapse;

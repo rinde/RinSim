@@ -1,6 +1,3 @@
-/**
- * 
- */
 package com.github.rinde.rinsim.core.model.pdp;
 
 import static com.google.common.base.Preconditions.checkState;

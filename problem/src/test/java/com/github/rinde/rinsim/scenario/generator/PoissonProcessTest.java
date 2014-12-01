@@ -1,6 +1,3 @@
-/**
- * 
- */
 package com.github.rinde.rinsim.scenario.generator;
 
 import static com.google.common.collect.Lists.newArrayList;

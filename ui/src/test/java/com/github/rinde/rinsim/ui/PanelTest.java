@@ -1,6 +1,3 @@
-/**
- * 
- */
 package com.github.rinde.rinsim.ui;
 
 import javax.measure.Measure;

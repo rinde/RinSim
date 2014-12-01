@@ -1,6 +1,3 @@
-/**
- * 
- */
 package com.github.rinde.rinsim.examples.pdptw.gradientfield;
 
 import com.github.rinde.rinsim.core.Simulator;

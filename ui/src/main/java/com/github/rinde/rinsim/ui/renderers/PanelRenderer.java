@@ -1,6 +1,3 @@
-/**
- * 
- */
 package com.github.rinde.rinsim.ui.renderers;
 
 import org.eclipse.swt.widgets.Composite;

@@ -1,6 +1,3 @@
-/**
- * 
- */
 package com.github.rinde.rinsim.ui.renderers;
 
 import javax.annotation.Nullable;

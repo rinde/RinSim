@@ -1,6 +1,3 @@
-/**
- * 
- */
 package com.github.rinde.rinsim.core.model.road;
 
 import org.apache.commons.lang3.builder.ToStringBuilder;

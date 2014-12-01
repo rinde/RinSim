@@ -1,6 +1,3 @@
-/**
- * 
- */
 package com.github.rinde.rinsim.event;
 
 import javax.annotation.Nullable;

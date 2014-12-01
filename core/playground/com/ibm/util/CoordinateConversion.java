@@ -1,7 +1,3 @@
-/*
- * Author: Sami Salkosuo, sami.salkosuo@fi.ibm.com
- * (c) Copyright IBM Corp. 2007
- */
 package com.ibm.util;
 
 import static java.lang.Math.cos;

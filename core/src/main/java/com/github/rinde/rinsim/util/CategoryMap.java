@@ -1,6 +1,3 @@
-/**
- * 
- */
 package com.github.rinde.rinsim.util;
 
 import static com.google.common.collect.Maps.newLinkedHashMap;

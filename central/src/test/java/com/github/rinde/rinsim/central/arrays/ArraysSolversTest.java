@@ -1,6 +1,3 @@
-/**
- * 
- */
 package com.github.rinde.rinsim.central.arrays;
 
 import static com.github.rinde.rinsim.central.arrays.ArraysSolvers.convertTW;

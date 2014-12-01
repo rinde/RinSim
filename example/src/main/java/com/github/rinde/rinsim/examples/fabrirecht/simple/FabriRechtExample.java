@@ -1,6 +1,3 @@
-/**
- * 
- */
 package com.github.rinde.rinsim.examples.fabrirecht.simple;
 
 import java.io.File;

@@ -1,6 +1,3 @@
-/**
- * 
- */
 package com.github.rinde.rinsim.geom;
 
 import static com.google.common.base.Preconditions.checkArgument;

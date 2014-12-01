@@ -1,6 +1,3 @@
-/**
- * 
- */
 package com.github.rinde.rinsim.examples.core.taxi;
 
 import static com.google.common.collect.Maps.newHashMap;

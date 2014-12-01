@@ -1,6 +1,3 @@
-/**
- * 
- */
 package com.github.rinde.rinsim.event;
 
 import static com.github.rinde.rinsim.event.EventDispatcherTest.EventTypes.EVENT1;

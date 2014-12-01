@@ -1,6 +1,3 @@
-/**
- * 
- */
 package com.github.rinde.rinsim.pdptw.experiment;
 
 import static org.junit.Assert.assertEquals;

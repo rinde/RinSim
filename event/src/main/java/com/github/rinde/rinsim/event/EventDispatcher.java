@@ -1,6 +1,3 @@
-/**
- * 
- */
 package com.github.rinde.rinsim.event;
 
 import static com.google.common.base.Preconditions.checkArgument;

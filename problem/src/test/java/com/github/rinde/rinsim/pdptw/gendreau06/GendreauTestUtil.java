@@ -1,6 +1,3 @@
-/**
- * 
- */
 package com.github.rinde.rinsim.pdptw.gendreau06;
 
 import static com.google.common.collect.Lists.newArrayList;

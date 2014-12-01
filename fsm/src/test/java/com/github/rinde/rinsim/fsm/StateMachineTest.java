@@ -1,6 +1,3 @@
-/**
- * 
- */
 package com.github.rinde.rinsim.fsm;
 
 import static com.google.common.collect.Lists.newArrayList;

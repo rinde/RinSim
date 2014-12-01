@@ -1,6 +1,3 @@
-/**
- * 
- */
 package com.github.rinde.rinsim.geom;
 
 import java.io.Serializable;

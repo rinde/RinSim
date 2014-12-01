@@ -1,6 +1,3 @@
-/**
- * 
- */
 package com.github.rinde.rinsim.serializers;
 
 import java.io.File;

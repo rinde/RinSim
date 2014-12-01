@@ -1,6 +1,3 @@
-/**
- * 
- */
 package com.github.rinde.rinsim.core;
 
 import static org.junit.Assert.assertEquals;

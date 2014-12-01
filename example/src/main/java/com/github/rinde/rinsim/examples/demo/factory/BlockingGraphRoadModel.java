@@ -1,6 +1,3 @@
-/**
- * 
- */
 package com.github.rinde.rinsim.examples.demo.factory;
 
 import static com.google.common.base.Preconditions.checkNotNull;
