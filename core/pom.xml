@@ -25,6 +25,15 @@
 		<sonar.language>java</sonar.language>
 	</properties>
 
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-jar-plugin</artifactId>
+			</plugin>
+		</plugins>
+	</build>
+
 	<dependencies>
 		<dependency>
 			<groupId>com.google.guava</groupId>
@@ -63,17 +72,6 @@
 			<artifactId>jscience</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>org.mockito</groupId>
-			<artifactId>mockito-core</artifactId>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>com.github.rinde</groupId>
-			<artifactId>rinsim-event</artifactId>
-			<type>test-jar</type>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
 			<groupId>com.github.rinde</groupId>
 			<artifactId>rinsim-event</artifactId>
 		</dependency>
@@ -84,6 +82,18 @@
 		<dependency>
 			<groupId>com.github.rinde</groupId>
 			<artifactId>rinsim-geom</artifactId>
+		</dependency>
+		<!-- test dependencies -->
+		<dependency>
+			<groupId>org.mockito</groupId>
+			<artifactId>mockito-core</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.github.rinde</groupId>
+			<artifactId>rinsim-event</artifactId>
+			<type>test-jar</type>
+			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>com.github.rinde</groupId>
