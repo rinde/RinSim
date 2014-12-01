@@ -151,11 +151,11 @@
 						<goals>
 							<goal>test-jar</goal>
 						</goals>
-						<configuration>
+						<!-- <configuration>
 							<excludes>
 								<excludes>logback-test.xml</excludes>
 							</excludes>
-						</configuration>
+						</configuration> -->
 					</execution>
 				</executions>
 			</plugin>
