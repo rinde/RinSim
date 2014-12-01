@@ -189,7 +189,7 @@ public final class ScenarioIO {
    * @return A new reader instance.
    */
   public static <T extends Scenario> Function<Path, T> reader(Class<T> clz) {
-    return new DefaultScenarioReader<T>(clz);
+    return new DefaultScenarioReader<>(clz);
   }
 
   static String serializeObject(Object obj) throws IOException {

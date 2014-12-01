@@ -36,9 +36,8 @@ import com.google.common.collect.Multimaps;
 
 /**
  * Multimap-based implementation of a graph.
- * @author Rinde van Lon 
- * @author Bartosz Michalik  - added edge data
- *         + and dead end nodes
+ * @author Rinde van Lon
+ * @author Bartosz Michalik - added edge data + and dead end nodes
  * @param <E> The type of {@link ConnectionData} that is used in the edges.
  */
 public class MultimapGraph<E extends ConnectionData> extends AbstractGraph<E> {
@@ -52,8 +51,8 @@ public class MultimapGraph<E extends ConnectionData> extends AbstractGraph<E> {
    */
   public MultimapGraph() {
     data = LinkedHashMultimap.create();
-    this.edgeData = new HashMap<Connection<E>, E>();
-    deadEndNodes = new LinkedHashSet<Point>();
+    this.edgeData = new HashMap<>();
+    deadEndNodes = new LinkedHashSet<>();
   }
 
   /**
@@ -62,8 +61,8 @@ public class MultimapGraph<E extends ConnectionData> extends AbstractGraph<E> {
    */
   public MultimapGraph(Multimap<Point, Point> map) {
     this.data = LinkedHashMultimap.create(map);
-    this.edgeData = new HashMap<Connection<E>, E>();
-    this.deadEndNodes = new HashSet<Point>();
+    this.edgeData = new HashMap<>();
+    this.deadEndNodes = new HashSet<>();
     deadEndNodes.addAll(data.values());
     deadEndNodes.removeAll(data.keySet());
   }
@@ -111,17 +110,17 @@ public class MultimapGraph<E extends ConnectionData> extends AbstractGraph<E> {
 
   @Override
   public Set<Point> getNodes() {
-    final Set<Point> nodes = new LinkedHashSet<Point>(data.keySet());
+    final Set<Point> nodes = new LinkedHashSet<>(data.keySet());
     nodes.addAll(deadEndNodes);
     return nodes;
   }
 
   @Override
   public List<Connection<E>> getConnections() {
-    final List<Connection<E>> res = new ArrayList<Connection<E>>(
+    final List<Connection<E>> res = new ArrayList<>(
         edgeData.size());
     for (final Entry<Point, Point> p : data.entries()) {
-      final Connection<E> connection = new Connection<E>(p.getKey(),
+      final Connection<E> connection = new Connection<>(p.getKey(),
           p.getValue(), null);
       final E eD = edgeData.get(connection);
       connection.setData(eD);
@@ -149,7 +148,7 @@ public class MultimapGraph<E extends ConnectionData> extends AbstractGraph<E> {
    */
   @Override
   public Collection<Point> getIncomingConnections(Point node) {
-    final Set<Point> set = new LinkedHashSet<Point>();
+    final Set<Point> set = new LinkedHashSet<>();
     for (final Entry<Point, Point> entry : data.entries()) {
       if (entry.getValue().equals(node)) {
         set.add(entry.getKey());
@@ -166,12 +165,12 @@ public class MultimapGraph<E extends ConnectionData> extends AbstractGraph<E> {
   @Override
   public void removeNode(Point node) {
     // copy data first to avoid concurrent modification exceptions
-    final List<Point> out = new ArrayList<Point>();
+    final List<Point> out = new ArrayList<>();
     out.addAll(getOutgoingConnections(node));
     for (final Point p : out) {
       removeConnection(node, p);
     }
-    final List<Point> in = new ArrayList<Point>();
+    final List<Point> in = new ArrayList<>();
     in.addAll(getIncomingConnections(node));
     for (final Point p : in) {
       removeConnection(p, node);
@@ -191,7 +190,7 @@ public class MultimapGraph<E extends ConnectionData> extends AbstractGraph<E> {
   }
 
   private void removeData(Point from, Point to) {
-    edgeData.remove(new Connection<ConnectionData>(from, to, null));
+    edgeData.remove(new Connection<>(from, to, null));
   }
 
   @Override

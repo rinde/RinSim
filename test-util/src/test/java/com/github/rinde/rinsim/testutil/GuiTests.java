@@ -15,6 +15,9 @@
  */
 package com.github.rinde.rinsim.testutil;
 
-public interface GuiTests {
-
-}
+/**
+ * Marker interface representing a category of unit tests that use a graphical
+ * user interface.
+ * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+ */
+public interface GuiTests {}

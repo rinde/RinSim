@@ -30,7 +30,7 @@ import org.apache.commons.math3.random.RandomGenerator;
  * graph functions.
  * @param <E> The type of {@link ConnectionData} that is used at the
  *          {@link Connection}s.
- * @author Rinde van Lon 
+ * @author Rinde van Lon
  */
 public abstract class AbstractGraph<E extends ConnectionData> implements
     Graph<E> {
@@ -136,7 +136,7 @@ public abstract class AbstractGraph<E extends ConnectionData> implements
   public Connection<E> getConnection(Point from, Point to) {
     checkArgument(hasConnection(from, to), "%s -> %s is not a connection.",
         from, to);
-    return new Connection<E>(from, to, connectionData(from, to));
+    return new Connection<>(from, to, connectionData(from, to));
   }
 
 }

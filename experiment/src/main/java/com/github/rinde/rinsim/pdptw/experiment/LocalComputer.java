@@ -53,7 +53,7 @@ final class LocalComputer implements Computer {
       executor = MoreExecutors
           .listeningDecorator(Executors.newFixedThreadPool(threads));
     } else {
-      executor = MoreExecutors.sameThreadExecutor();
+      executor = MoreExecutors.newDirectExecutorService();
     }
     final List<SimulationResult> results;
     try {

@@ -14,7 +14,11 @@
  * limitations under the License.
  */
 /**
+ * This package contains test related utilities used in the entire project. 
  * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
- *
  */
+@ParametersAreNonnullByDefault
 package com.github.rinde.rinsim.testutil;
+
+import javax.annotation.ParametersAreNonnullByDefault;
+

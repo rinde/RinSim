@@ -25,5 +25,10 @@
 		<sonar.language>java</sonar.language>
 	</properties>
 
-	<dependencies></dependencies>
+	<dependencies>
+		<dependency>
+			<groupId>com.google.code.findbugs</groupId>
+			<artifactId>jsr305</artifactId>
+		</dependency>
+	</dependencies>
 </project>

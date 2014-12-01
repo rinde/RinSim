@@ -38,9 +38,8 @@ import com.google.common.collect.Tables;
 /**
  * Table-based implementation of a graph. Since this graph is backed by a table
  * look ups for both incoming and outgoing connections from nodes is fast.
- * @author Rinde van Lon 
- * @author Bartosz Michalik  - change to the
- *         parametric version
+ * @author Rinde van Lon
+ * @author Bartosz Michalik - change to the parametric version
  * @param <E> The type of {@link ConnectionData} that is used in the edges.
  */
 public class TableGraph<E extends ConnectionData> extends AbstractGraph<E> {
@@ -61,7 +60,7 @@ public class TableGraph<E extends ConnectionData> extends AbstractGraph<E> {
 
   @Override
   public Set<Point> getNodes() {
-    final Set<Point> nodes = new LinkedHashSet<Point>(data.rowKeySet());
+    final Set<Point> nodes = new LinkedHashSet<>(data.rowKeySet());
     nodes.addAll(data.columnKeySet());
     return Collections.unmodifiableSet(nodes);
   }
@@ -115,13 +114,13 @@ public class TableGraph<E extends ConnectionData> extends AbstractGraph<E> {
 
   @Override
   public List<Connection<E>> getConnections() {
-    final List<Connection<E>> connections = new ArrayList<Connection<E>>();
+    final List<Connection<E>> connections = new ArrayList<>();
     for (final Cell<Point, Point, E> cell : data.cellSet()) {
       if (empty.equals(cell.getValue())) {
         connections.add(new Connection<E>(cell.getRowKey(),
             cell.getColumnKey(), null));
       } else {
-        connections.add(new Connection<E>(cell.getRowKey(),
+        connections.add(new Connection<>(cell.getRowKey(),
             cell.getColumnKey(), cell.getValue()));
       }
     }
@@ -142,7 +141,7 @@ public class TableGraph<E extends ConnectionData> extends AbstractGraph<E> {
   public Connection<E> getConnection(Point from, Point to) {
     checkArgument(hasConnection(from, to), "%s -> %s is not a connection",
         from, to);
-    return new Connection<E>(from, to, connectionData(from, to));
+    return new Connection<>(from, to, connectionData(from, to));
   }
 
   @Nullable

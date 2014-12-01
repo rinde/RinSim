@@ -42,7 +42,7 @@ import com.google.common.math.DoubleMath;
 
 /**
  * Displays a progress bar for a running {@link Experiment}.
- * @author Rinde van Lon 
+ * @author Rinde van Lon
  */
 public class ExperimentProgressBar implements ResultListener,
     UncaughtExceptionHandler {
@@ -89,9 +89,8 @@ public class ExperimentProgressBar implements ResultListener,
     }
     if (error.isPresent()) {
       throw new IllegalStateException(error.get());
-    } else {
-      guiRunner.getGui().update(++counter);
     }
+    guiRunner.getGui().update(++counter);
   }
 
   @Override

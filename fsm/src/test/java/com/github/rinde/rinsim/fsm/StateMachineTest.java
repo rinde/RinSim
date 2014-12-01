@@ -77,7 +77,6 @@ public class StateMachineTest {
   /**
    * Setup the state machine used in the tests.
    */
-  @SuppressWarnings("unchecked")
   @Before
   public void setUp() {
     startState = new StartState();
@@ -221,7 +220,7 @@ public class StateMachineTest {
       assertEquals(1, stopState.onExitHistory().size());
       assertEquals(1, history.getHistory().size());
       assertEquals(
-          new StateTransitionEvent<Events, Context>(fsm, stopState,
+          new StateTransitionEvent<>(fsm, stopState,
               Events.RECURSIVE, stopState),
           history.getHistory().get(0));
     }
@@ -244,9 +243,9 @@ public class StateMachineTest {
   /**
    * Tests correct behavior for events which are not equal.
    */
+  @SuppressWarnings("static-method")
   @Test
   public void eventNotEqualBehavior() {
-
     final TestState state1 = new TestState("state1");
     state1.name();
     final TestState state2 = new TestState("state2");

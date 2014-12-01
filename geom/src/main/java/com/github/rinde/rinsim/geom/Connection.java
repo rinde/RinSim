@@ -17,6 +17,7 @@ package com.github.rinde.rinsim.geom;
 
 import javax.annotation.Nullable;
 
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 
 /**
@@ -24,8 +25,8 @@ import com.google.common.base.Objects;
  * @param <E> Type of {@link ConnectionData} that is used. This data object can
  *          be used to add additional information to the connection.
  * @since 2.0
- * @author Bartosz Michalik 
- * @author Rinde van Lon 
+ * @author Bartosz Michalik
+ * @author Rinde van Lon
  */
 public class Connection<E extends ConnectionData> {
   /**
@@ -103,7 +104,7 @@ public class Connection<E extends ConnectionData> {
 
   @Override
   public String toString() {
-    return Objects.toStringHelper(this).add("from", from).add("to", to)
+    return MoreObjects.toStringHelper(this).add("from", from).add("to", to)
         .add("data", data).omitNullValues().toString();
   }
 }

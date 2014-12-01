@@ -89,7 +89,7 @@ public final class Graphs {
    */
   public static <E extends ConnectionData> Graph<E> unmodifiableGraph(
       Graph<E> graph) {
-    return new UnmodifiableGraph<E>(graph);
+    return new UnmodifiableGraph<>(graph);
   }
 
   /**
@@ -100,7 +100,7 @@ public final class Graphs {
    */
   public static <E extends ConnectionData> Connection<E> unmodifiableConnection(
       Connection<E> conn) {
-    return new UnmodifiableConnection<E>(conn);
+    return new UnmodifiableConnection<>(conn);
   }
 
   /**
@@ -187,27 +187,27 @@ public final class Graphs {
     }
 
     // The set of nodes already evaluated.
-    final Set<Point> closedSet = new LinkedHashSet<Point>();
+    final Set<Point> closedSet = new LinkedHashSet<>();
 
     // Distance from start along optimal path.
-    final Map<Point, Double> gScore = new LinkedHashMap<Point, Double>();
+    final Map<Point, Double> gScore = new LinkedHashMap<>();
     gScore.put(from, 0d);
 
     // heuristic estimates
-    final Map<Point, Double> hScore = new LinkedHashMap<Point, Double>();
+    final Map<Point, Double> hScore = new LinkedHashMap<>();
     hScore.put(from, h.estimateCost(Point.distance(from, to)));
 
     // Estimated total distance from start to goal through y
-    final SortedMap<Double, Point> fScore = new TreeMap<Double, Point>();
+    final SortedMap<Double, Point> fScore = new TreeMap<>();
     fScore.put(h.estimateCost(Point.distance(from, to)), from);
 
     // The map of navigated nodes.
-    final Map<Point, Point> cameFrom = new LinkedHashMap<Point, Point>();
+    final Map<Point, Point> cameFrom = new LinkedHashMap<>();
 
     while (!fScore.isEmpty()) {
       final Point current = fScore.remove(fScore.firstKey());
       if (current.equals(to)) {
-        final List<Point> result = new ArrayList<Point>();
+        final List<Point> result = new ArrayList<>();
         result.add(from);
         result.addAll(Graphs.reconstructPath(cameFrom, to));
         return result;
@@ -295,15 +295,15 @@ public final class Graphs {
   public static <T> List<T> findClosestObjects(Point pos,
       Collection<T> objects, Function<T, Point> transformation, int n) {
     checkArgument(n > 0, "n must be positive.");
-    final List<ObjectWithDistance<T>> objs = new ArrayList<ObjectWithDistance<T>>();
+    final List<ObjectWithDistance<T>> objs = new ArrayList<>();
     for (final T obj : objects) {
       @Nullable
       final Point objPos = transformation.apply(obj);
       checkNotNull(objPos);
-      objs.add(new ObjectWithDistance<T>(obj, Point.distance(pos, objPos)));
+      objs.add(new ObjectWithDistance<>(obj, Point.distance(pos, objPos)));
     }
     Collections.sort(objs);
-    final List<T> results = new ArrayList<T>();
+    final List<T> results = new ArrayList<>();
     for (final ObjectWithDistance<T> o : objs.subList(0,
         Math.min(n, objs.size()))) {
       results.add(o.obj);
@@ -333,7 +333,7 @@ public final class Graphs {
       return path;
     }
 
-    return new LinkedList<Point>();
+    return new LinkedList<>();
   }
 
   /**
@@ -528,7 +528,7 @@ public final class Graphs {
     @Override
     public List<Connection<E>> getConnections() {
       final List<Connection<E>> conn = delegate.getConnections();
-      final List<Connection<E>> unmodConn = new ArrayList<Connection<E>>();
+      final List<Connection<E>> unmodConn = new ArrayList<>();
       for (final Connection<E> c : conn) {
         unmodConn.add(unmodifiableConnection(c));
       }

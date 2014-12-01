@@ -26,8 +26,8 @@ import javax.annotation.Nullable;
  * attributes to a connection (through a {@link HashMap}). There are two
  * "default" supported properties defined: connection length, and maximum speed
  * on a connection.
- * @author Bartosz Michalik 
- * @author Rinde van Lon 
+ * @author Bartosz Michalik
+ * @author Rinde van Lon
  * @since 2.0
  */
 public class MultiAttributeData implements ConnectionData {
@@ -57,7 +57,7 @@ public class MultiAttributeData implements ConnectionData {
    * @param length The length to set.
    */
   public MultiAttributeData(double length) {
-    attributes = new HashMap<String, Object>();
+    attributes = new HashMap<>();
     attributes.put(KEY_LENGTH, length);
   }
 
@@ -67,7 +67,7 @@ public class MultiAttributeData implements ConnectionData {
    * @param maxSpeed The maximum speed for the connection.
    */
   public MultiAttributeData(double length, double maxSpeed) {
-    attributes = new HashMap<String, Object>();
+    attributes = new HashMap<>();
     attributes.put(KEY_LENGTH, length);
     attributes.put(KEY_MAX_SPEED, maxSpeed);
   }

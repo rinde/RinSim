@@ -29,8 +29,8 @@ import com.github.rinde.rinsim.core.TimeLapse;
 import com.github.rinde.rinsim.core.model.ModelProvider;
 import com.github.rinde.rinsim.core.model.ModelReceiver;
 import com.github.rinde.rinsim.core.model.pdp.PDPModel;
-import com.github.rinde.rinsim.core.model.pdp.Parcel;
 import com.github.rinde.rinsim.core.model.pdp.PDPModel.ParcelState;
+import com.github.rinde.rinsim.core.model.pdp.Parcel;
 import com.github.rinde.rinsim.core.model.road.AbstractRoadModel;
 import com.github.rinde.rinsim.core.model.road.ForwardingRoadModel;
 import com.github.rinde.rinsim.core.model.road.MoveProgress;
@@ -40,6 +40,7 @@ import com.github.rinde.rinsim.core.pdptw.DefaultDepot;
 import com.github.rinde.rinsim.core.pdptw.DefaultParcel;
 import com.github.rinde.rinsim.core.pdptw.DefaultVehicle;
 import com.github.rinde.rinsim.geom.Point;
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 import com.google.common.base.Optional;
 import com.google.common.collect.LinkedHashMultimap;
@@ -68,7 +69,7 @@ import com.google.common.collect.Multimap;
  * but then changes its destination to the pickup location of parcel
  * <code>p2</code> we say that vehicle <code>v1</code> has diverted.
  * 
- * @author Rinde van Lon 
+ * @author Rinde van Lon
  */
 public class PDPRoadModel extends ForwardingRoadModel implements ModelReceiver {
 
@@ -336,7 +337,8 @@ public class PDPRoadModel extends ForwardingRoadModel implements ModelReceiver {
 
     @Override
     public String toString() {
-      return Objects.toStringHelper(this).add("type", type).add("dest", dest)
+      return MoreObjects.toStringHelper(this).add("type", type)
+          .add("dest", dest)
           .add("roadUser", roadUser).toString();
     }
   }

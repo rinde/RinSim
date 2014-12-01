@@ -29,13 +29,14 @@ import com.github.rinde.rinsim.core.model.road.PlaneRoadModel;
 import com.github.rinde.rinsim.core.model.road.RoadModel;
 import com.github.rinde.rinsim.geom.Point;
 import com.github.rinde.rinsim.pdptw.common.PDPRoadModel;
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 import com.google.common.base.Supplier;
 
 /**
  * Utility class for creating {@link Supplier}s that create {@link Model}s which
  * can be used in a {@link ScenarioGenerator}.
- * @author Rinde van Lon 
+ * @author Rinde van Lon
  */
 public final class Models {
 
@@ -84,7 +85,7 @@ public final class Models {
    * A supplier which can be used to construct a {@link Model} based on a
    * {@link ScenarioGenerator}.
    * @param <T> The type of model the supplier returns.
-   * @author Rinde van Lon 
+   * @author Rinde van Lon
    */
   public interface ModelSupplierScenGen<T extends Model<?>> {
     /**
@@ -123,7 +124,7 @@ public final class Models {
 
     @Override
     public String toString() {
-      return Objects.toStringHelper(this)
+      return MoreObjects.toStringHelper(this)
           .add("timeWindowPolicy", timeWindowPolicy)
           .toString();
     }
@@ -190,7 +191,7 @@ public final class Models {
 
     @Override
     public String toString() {
-      return Objects.toStringHelper(this)
+      return MoreObjects.toStringHelper(this)
           .add("min", min)
           .add("max", max)
           .add("distanceUnit", distanceUnit)

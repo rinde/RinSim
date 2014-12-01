@@ -22,6 +22,7 @@ import javax.annotation.Nullable;
 import com.github.rinde.rinsim.event.Event;
 import com.github.rinde.rinsim.event.EventAPI;
 import com.github.rinde.rinsim.event.EventDispatcher;
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableTable;
@@ -138,7 +139,7 @@ public class StateMachine<T, C> {
       final State<T, C> oldState = currentState;
       currentState = newState;
       currentState.onEntry(trigger, context);
-      eventDispatcher.dispatchEvent(new StateTransitionEvent<T, C>(this,
+      eventDispatcher.dispatchEvent(new StateTransitionEvent<>(this,
           oldState, trigger, newState));
     }
   }
@@ -250,7 +251,7 @@ public class StateMachine<T, C> {
 
   @Override
   public String toString() {
-    return Objects.toStringHelper(this)
+    return MoreObjects.toStringHelper(this)
         .add("startState", startState)
         .add("transitionTable", transitionTable)
         .add("currentState", currentState)
@@ -269,7 +270,7 @@ public class StateMachine<T, C> {
    *         creating the {@link StateMachine}.
    */
   public static <T, C> StateMachineBuilder<T, C> create(State<T, C> initialState) {
-    return new StateMachineBuilder<T, C>(initialState);
+    return new StateMachineBuilder<>(initialState);
   }
 
   /**
@@ -332,7 +333,7 @@ public class StateMachine<T, C> {
      * @return The {@link StateMachine}.
      */
     public StateMachine<T, C> build() {
-      return new StateMachine<T, C>(start, tableBuilder.build(),
+      return new StateMachine<>(start, tableBuilder.build(),
           explicitRecursiveTransitions);
     }
   }

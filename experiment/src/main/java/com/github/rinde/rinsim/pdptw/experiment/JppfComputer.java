@@ -75,7 +75,7 @@ final class JppfComputer implements Computer {
 
   @Override
   public ExperimentResults compute(Builder builder, Set<SimArgs> inputs) {
-    final IdMap<MASConfiguration> configMap = new IdMap<MASConfiguration>("c",
+    final IdMap<MASConfiguration> configMap = new IdMap<>("c",
         MASConfiguration.class);
     final IdMap<ScenarioProvider> scenarioMap = new IdMap<>("s",
         ScenarioProvider.class);
@@ -321,7 +321,7 @@ final class JppfComputer implements Computer {
    * This class provides instances of {@link Scenario}. This class equals
    * another if the provided scenarios are equal.
    * 
-   * @author Rinde van Lon 
+   * @author Rinde van Lon
    */
   static final class ScenarioProvider implements Supplier<Scenario>,
       Serializable {

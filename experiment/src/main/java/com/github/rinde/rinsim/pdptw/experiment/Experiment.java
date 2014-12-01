@@ -48,6 +48,7 @@ import com.github.rinde.rinsim.util.StochasticSupplier;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 import com.google.common.base.Optional;
 import com.google.common.base.Supplier;
@@ -96,7 +97,7 @@ import com.google.common.collect.Sets;
  * </ol>
  * For each simulation a {@link SimulationResult} returned.
  * 
- * @author Rinde van Lon 
+ * @author Rinde van Lon
  */
 public final class Experiment {
   // TODO add strict mode which checks whether there are not too many
@@ -197,7 +198,7 @@ public final class Experiment {
 
   /**
    * Builder for configuring experiments.
-   * @author Rinde van Lon 
+   * @author Rinde van Lon
    */
   public static final class Builder {
     final ObjectiveFunction objectiveFunction;
@@ -502,9 +503,8 @@ public final class Experiment {
       if (repetitions > 1) {
         final RandomGenerator rng = new MersenneTwister(masterSeed);
         return generateDistinct(rng, repetitions);
-      } else {
-        return ImmutableList.of(masterSeed);
       }
+      return ImmutableList.of(masterSeed);
     }
 
     Supplier<Computer> getComputer() {
@@ -593,7 +593,7 @@ public final class Experiment {
   /**
    * The result of a single simulation. It contains both the resulting
    * statistics as well as the inputs used to obtain this result.
-   * @author Rinde van Lon 
+   * @author Rinde van Lon
    */
   public static final class SimulationResult implements
       Comparable<SimulationResult> {
@@ -657,7 +657,7 @@ public final class Experiment {
 
     @Override
     public String toString() {
-      return Objects.toStringHelper(this)
+      return MoreObjects.toStringHelper(this)
           .add("stats", stats)
           .add("scenario", scenario)
           .add("masConfiguration", masConfiguration)

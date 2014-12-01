@@ -26,12 +26,6 @@ import java.util.Map;
 
 import org.junit.Test;
 
-import com.github.rinde.rinsim.geom.Connection;
-import com.github.rinde.rinsim.geom.Graphs;
-import com.github.rinde.rinsim.geom.LengthData;
-import com.github.rinde.rinsim.geom.MultiAttributeData;
-import com.github.rinde.rinsim.geom.Point;
-
 /**
  * @author Rinde van Lon (rinde.vanlon@cs.kuleuven.be)
  * 
@@ -42,7 +36,7 @@ public class ConnectionTest {
 
   @Test
   public void unmodifiableConnection() {
-    final Connection<LengthData> original = new Connection<LengthData>(
+    final Connection<LengthData> original = new Connection<>(
         new Point(2, 2), new Point(3, 3), null);
     final Connection<LengthData> unmod = Graphs
         .unmodifiableConnection(original);
@@ -55,7 +49,8 @@ public class ConnectionTest {
 
     assertEquals(original.getData(), unmod.getData());
     assertEquals(original.getData().hashCode(), unmod.getData().hashCode());
-    assertEquals(original.getData().getLength(), unmod.getData().getLength(), DELTA);
+    assertEquals(original.getData().getLength(), unmod.getData().getLength(),
+        DELTA);
     assertEquals(original.hashCode(), unmod.hashCode());
     assertEquals(original.toString(), unmod.toString());
     assertEquals(unmod, original);
@@ -68,7 +63,7 @@ public class ConnectionTest {
 
   @Test
   public void unmodifiableMultiAttributeEdgeData() {
-    final Connection<MultiAttributeData> original = new Connection<MultiAttributeData>(
+    final Connection<MultiAttributeData> original = new Connection<>(
         new Point(2, 2), new Point(3, 3), null);
     final Connection<MultiAttributeData> unmod = Graphs
         .unmodifiableConnection(original);
@@ -89,7 +84,8 @@ public class ConnectionTest {
     assertNull(unmod.getData().get("test", Map.class));
     assertNull(unmod.getData().get("test2", Map.class));
 
-    assertEquals(original.getData().getLength(), unmod.getData().getLength(), DELTA);
+    assertEquals(original.getData().getLength(), unmod.getData().getLength(),
+        DELTA);
     // both are null
     assertEquals(original.getData().getMaxSpeed(), unmod.getData()
         .getMaxSpeed(), DELTA);

@@ -37,7 +37,7 @@ import com.github.rinde.rinsim.scenario.TimedEvent;
 import com.github.rinde.rinsim.scenario.generator.ScenarioGenerator.TravelTimes;
 import com.github.rinde.rinsim.util.TimeWindow;
 import com.google.common.base.Function;
-import com.google.common.base.Objects;
+import com.google.common.base.MoreObjects;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMultiset;
@@ -452,7 +452,7 @@ public final class Metrics {
 
     @Override
     public String toString() {
-      return Objects.toStringHelper("LoadPart").add("begin", tw.begin)
+      return MoreObjects.toStringHelper("LoadPart").add("begin", tw.begin)
           .add("end", tw.end).add("load", load).toString();
     }
   }

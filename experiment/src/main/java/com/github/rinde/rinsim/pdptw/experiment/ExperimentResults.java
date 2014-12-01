@@ -26,6 +26,7 @@ import com.github.rinde.rinsim.pdptw.common.ObjectiveFunction;
 import com.github.rinde.rinsim.pdptw.experiment.Experiment.Builder;
 import com.github.rinde.rinsim.pdptw.experiment.Experiment.SimulationResult;
 import com.github.rinde.rinsim.scenario.Scenario;
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableSet;
 
@@ -119,7 +120,7 @@ public final class ExperimentResults {
 
   @Override
   public String toString() {
-    return Objects.toStringHelper(this)
+    return MoreObjects.toStringHelper(this)
         .add("objectiveFunction", objectiveFunction)
         .add("configurations", configurations)
         .add("scenarios", scenarios)
