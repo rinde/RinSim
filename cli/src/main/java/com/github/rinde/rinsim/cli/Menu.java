@@ -1,17 +1,12 @@
 /*
- * Copyright (C) 2011-2014 Rinde van Lon, iMinds DistriNet, KU Leuven
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *         http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Copyright (C) 2011-2014 Rinde van Lon, iMinds DistriNet, KU Leuven Licensed
+ * under the Apache License, Version 2.0 (the "License"); you may not use this
+ * file except in compliance with the License. You may obtain a copy of the
+ * License at http://www.apache.org/licenses/LICENSE-2.0 Unless required by
+ * applicable law or agreed to in writing, software distributed under the
+ * License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS
+ * OF ANY KIND, either express or implied. See the License for the specific
+ * language governing permissions and limitations under the License.
  */
 package com.github.rinde.rinsim.cli;
 
@@ -48,7 +43,7 @@ import com.google.common.collect.Sets.SetView;
  * options and via the {@link #execute(String...)} method the command-line
  * arguments are parsed and handled. Instances can be constructed via the
  * {@link #builder()} method.
- * @author Rinde van Lon 
+ * @author Rinde van Lon
  */
 public final class Menu {
   final String header;
@@ -249,7 +244,7 @@ public final class Menu {
 
   /**
    * Builder for creating {@link Menu} instances.
-   * @author Rinde van Lon 
+   * @author Rinde van Lon
    */
   public static final class Builder {
     HelpFormatter helpFormatter;
@@ -515,14 +510,13 @@ public final class Menu {
                 shortPrefix, longPrefix)
                 .build();
         return ((ArgParser) exec).newInstance(adapted);
-      } else {
-        final OptionNoArg adapted =
-            adaptNames(
-                Option.builder((OptionNoArg) opt),
-                shortPrefix, longPrefix)
-                .build();
-        return ((NoArgParser<?>) exec).newInstance(adapted);
       }
+      final OptionNoArg adapted =
+          adaptNames(
+              Option.builder((OptionNoArg) opt),
+              shortPrefix, longPrefix)
+              .build();
+      return ((NoArgParser<?>) exec).newInstance(adapted);
     }
 
     /**
@@ -579,7 +573,7 @@ public final class Menu {
     }
 
     OptionParser newInstance(OptionNoArg o) {
-      return new NoArgParser<S>(o, subject, handler);
+      return new NoArgParser<>(o, subject, handler);
     }
   }
 
@@ -618,7 +612,7 @@ public final class Menu {
     }
 
     OptionParser newInstance(OptionArg<V> o) {
-      return new ArgParser<S, V>(o, subject, handler);
+      return new ArgParser<>(o, subject, handler);
     }
   }
 }

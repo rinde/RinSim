@@ -1,17 +1,12 @@
 /*
- * Copyright (C) 2011-2014 Rinde van Lon, iMinds DistriNet, KU Leuven
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *         http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Copyright (C) 2011-2014 Rinde van Lon, iMinds DistriNet, KU Leuven Licensed
+ * under the Apache License, Version 2.0 (the "License"); you may not use this
+ * file except in compliance with the License. You may obtain a copy of the
+ * License at http://www.apache.org/licenses/LICENSE-2.0 Unless required by
+ * applicable law or agreed to in writing, software distributed under the
+ * License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS
+ * OF ANY KIND, either express or implied. See the License for the specific
+ * language governing permissions and limitations under the License.
  */
 package com.github.rinde.rinsim.cli;
 
@@ -145,7 +140,7 @@ public abstract class Option {
    * An {@link Option} that optionally requires an argument of type
    * <code>T</code>.
    * @param <T> The type of the argument.
-   * @author Rinde van Lon 
+   * @author Rinde van Lon
    */
   public static class OptionArg<T> extends Option {
     final ArgumentParser<T> argumentType;
@@ -163,7 +158,7 @@ public abstract class Option {
 
   /**
    * An {@link Option} that does not support any arguments.
-   * @author Rinde van Lon 
+   * @author Rinde van Lon
    */
   public static class OptionNoArg extends Option {
     OptionNoArg(NoArgBuilder b, boolean help) {
@@ -173,7 +168,7 @@ public abstract class Option {
 
   /**
    * A builder for creating {@link OptionNoArg} instances.
-   * @author Rinde van Lon 
+   * @author Rinde van Lon
    */
   public static class NoArgBuilder extends Builder<NoArgBuilder> {
     NoArgBuilder(String sn) {
@@ -205,7 +200,7 @@ public abstract class Option {
    * A builder for creating {@link OptionArg} instances.
    * @param <V> The type of the argument that options that are created by this
    *          builder require.
-   * @author Rinde van Lon 
+   * @author Rinde van Lon
    */
   public static class ArgBuilder<V> extends Builder<ArgBuilder<V>> {
     ArgumentParser<V> argumentType;

@@ -72,7 +72,7 @@ public class EventDispatcher implements EventAPI {
    *          supports.
    */
   public EventDispatcher(Enum<?>... supportedEventTypes) {
-    this(new HashSet<Enum<?>>(asList(supportedEventTypes)));
+    this(new HashSet<>(asList(supportedEventTypes)));
   }
 
   /**
@@ -147,7 +147,7 @@ public class EventDispatcher implements EventAPI {
     if (eventTypes.isEmpty()) {
       // remove all store keys in intermediate set to avoid concurrent
       // modifications
-      final Set<Enum<?>> keys = new HashSet<Enum<?>>(listeners.keySet());
+      final Set<Enum<?>> keys = new HashSet<>(listeners.keySet());
       for (final Enum<?> eventType : keys) {
         if (listeners.containsEntry(eventType, listener)) {
           removeListener(listener, eventType);

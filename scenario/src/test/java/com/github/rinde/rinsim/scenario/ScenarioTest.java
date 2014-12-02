@@ -339,7 +339,7 @@ public class ScenarioTest {
    */
   @Test
   public void testSorting() {
-    final List<TimedEvent> events = new ArrayList<TimedEvent>(10);
+    final List<TimedEvent> events = new ArrayList<>(10);
     final AddObjectEvent A1 = new AddObjectEvent(0, new Point(1, 0));
     final AddObjectEvent A2 = new AddObjectEvent(0, new Point(2, 0));
     final AddObjectEvent B = new AddObjectEvent(1, new Point(1, 1));

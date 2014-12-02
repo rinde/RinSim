@@ -42,9 +42,9 @@ import com.github.rinde.rinsim.core.Simulator;
 import com.github.rinde.rinsim.core.SimulatorAPI;
 import com.github.rinde.rinsim.core.model.ModelProvider;
 import com.github.rinde.rinsim.core.model.pdp.PDPModel;
-import com.github.rinde.rinsim.core.model.pdp.Parcel;
 import com.github.rinde.rinsim.core.model.pdp.PDPModel.ParcelState;
 import com.github.rinde.rinsim.core.model.pdp.PDPModel.VehicleParcelActionInfo;
+import com.github.rinde.rinsim.core.model.pdp.Parcel;
 import com.github.rinde.rinsim.core.model.road.RoadModels;
 import com.github.rinde.rinsim.core.pdptw.DefaultParcel;
 import com.github.rinde.rinsim.core.pdptw.DefaultVehicle;
@@ -61,7 +61,7 @@ import com.google.common.collect.Maps;
 import com.google.common.math.DoubleMath;
 
 /**
- * @author Rinde van Lon 
+ * @author Rinde van Lon
  * 
  */
 public final class Solvers {
@@ -75,7 +75,7 @@ public final class Solvers {
    * @return The builder.
    */
   public static AdapterBuilder<SimulationSolver> solverBuilder(Solver sol) {
-    return new AdapterBuilder<SimulationSolver>(sol);
+    return new AdapterBuilder<>(sol);
   }
 
   /**
@@ -83,7 +83,7 @@ public final class Solvers {
    * @return The builder.
    */
   public static AdapterBuilder<SimulationConverter> converterBuilder() {
-    return new AdapterBuilder<SimulationConverter>(null);
+    return new AdapterBuilder<>(null);
   }
 
   /**
@@ -430,7 +430,7 @@ public final class Solvers {
   /**
    * Converter that converts simulations into {@link StateContext} instances
    * which are needed to call {@link Solver#solve(GlobalStateObject)}.
-   * @author Rinde van Lon 
+   * @author Rinde van Lon
    */
   public interface SimulationConverter {
     /**
@@ -444,7 +444,7 @@ public final class Solvers {
   /**
    * Builder for specifying parameters used in {@link SimulationSolver} and
    * {@link SimulationConverter}.
-   * @author Rinde van Lon 
+   * @author Rinde van Lon
    */
   public static final class SolveArgs {
     Optional<Collection<DefaultParcel>> parcels;
@@ -508,7 +508,7 @@ public final class Solvers {
 
   /**
    * Adapter for {@link Solver}s.
-   * @author Rinde van Lon 
+   * @author Rinde van Lon
    */
   public static class SimulationSolver implements SimulationConverter {
     final Optional<Solver> solver;
@@ -583,7 +583,7 @@ public final class Solvers {
    * </ul>
    * 
    * @param <T> The type of adapter to produce.
-   * @author Rinde van Lon 
+   * @author Rinde van Lon
    */
   public static class AdapterBuilder<T extends SimulationConverter> {
     @Nullable
@@ -713,11 +713,10 @@ public final class Solvers {
       }
       if (sapi != null && rm != null && pm != null) {
         return (T) new SimulationSolver(solver, rm, pm, sapi, vehicles);
-      } else {
-        throw new IllegalArgumentException(
-            "Not all required components could be found, PDPRoadModel: " + rm
-                + ", PDPModel: " + pm + ", SimulatorAPI: " + sapi);
       }
+      throw new IllegalArgumentException(
+          "Not all required components could be found, PDPRoadModel: " + rm
+              + ", PDPModel: " + pm + ", SimulatorAPI: " + sapi);
     }
 
     /**
@@ -735,7 +734,7 @@ public final class Solvers {
    * a {@link GlobalStateObject} (the actual state) and two maps with references
    * to the original vehicles and parcels. Using these maps the state object can
    * be translated back to the original simulation objects.
-   * @author Rinde van Lon 
+   * @author Rinde van Lon
    */
   public static class StateContext {
     /**

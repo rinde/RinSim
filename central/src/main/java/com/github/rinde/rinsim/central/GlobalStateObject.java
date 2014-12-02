@@ -37,7 +37,7 @@ import com.google.common.collect.ImmutableSet;
  * An immutable state object representing the state of an entire
  * {@link com.github.rinde.rinsim.core.Simulator} configured using
  * {@link com.github.rinde.rinsim.pdptw.common.DynamicPDPTWProblem}.
- * @author Rinde van Lon 
+ * @author Rinde van Lon
  */
 public class GlobalStateObject {
   // TODO add generic way for storing travel distances based on shortest path
@@ -108,7 +108,7 @@ public class GlobalStateObject {
 
   /**
    * Immutable state object of a vehicle.
-   * @author Rinde van Lon 
+   * @author Rinde van Lon
    */
   public static class VehicleStateObject {
 
@@ -176,6 +176,9 @@ public class GlobalStateObject {
       this.route = Optional.fromNullable(route);
     }
 
+    /**
+     * @return The {@link VehicleDTO}.
+     */
     public VehicleDTO getDto() {
       return dto;
     }
