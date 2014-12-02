@@ -14,7 +14,7 @@ The RinSim simulator uses [Maven](http://maven.apache.org/) for managing its dep
 <dependency>
 	<groupId>com.github.rinde</groupId>
 	<artifactId>rinsim-core</artifactId>
-	<version>2.x.y</version>
+	<version>3.x.y</version>
 </dependency>
 ```	
 Other modules can be added similarly:
@@ -22,12 +22,12 @@ Other modules can be added similarly:
 <dependency>
 	<groupId>com.github.rinde</groupId>
 	<artifactId>rinsim-ui</artifactId>
-	<version>2.x.y</version>
+	<version>3.x.y</version>
 </dependency>
 <dependency>
 	<groupId>com.github.rinde</groupId>
 	<artifactId>rinsim-problem</artifactId>
-	<version>2.x.y</version>
+	<version>3.x.y</version>
 </dependency>
 ```		
 For more detailed instructions on how create a Maven project in Eclipse and add RinSim as a dependency see the [instructions](docs/howtorun.md). For release notes of the latest release click [here](releasenotes.md).
@@ -39,10 +39,12 @@ Once the simulator is installed, you are ready to explore the simulator. It is r
 ## About
 RinSim is being developed at [AgentWise](http://distrinet.cs.kuleuven.be/research/taskforces/agentwise) in the [DistriNet group](http://distrinet.cs.kuleuven.be/) at the [Department of Computer Science, KU Leuven, Belgium](http://www.cs.kuleuven.be/). The lead developer is [Rinde van Lon](http://distrinet.cs.kuleuven.be/people/rinde). Valuable contributions were made by Bartosz Michalik and Robrecht Haesevoets.
 
-RinSim is being used in both research and education. It is used in several publications on multi-agent systems and it is used in a MAS course as a testbed for students.
+RinSim is being used in both research and education. It is used in several publications on multi-agent systems and it is used in a MAS course as a testbed for students. From version 3.0.0 RinSim uses [semantic versioning](http://semver.org/), this means that if you are using version X.Y.Z it should be safe to upgrade to any version greater than X.Y.Z but smaller than X+1.Y.Z.
 
 
 ## Design Overview
+
+__Warning: description below is outdated__
 
 This section gives a brief overview of the most important elements of the simulator. For a deeper understanding you can have a look at the examples, the source code, and the tests.
 
