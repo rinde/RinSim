@@ -33,11 +33,10 @@ Other modules can be added similarly:
 For more detailed instructions on how create a Maven project in Eclipse and add RinSim as a dependency see the [instructions](docs/howtorun.md). For release notes of the latest release click [here](releasenotes.md).
  
 ## Getting Started 
-
 Once the simulator is installed, you are ready to explore the simulator. It is recommended to start by running and studying the [examples](example/README.md). Note, that when using Maven in Eclipse, the RinSim JavaDocs are automatically made available which makes exploration of the code much easier.  The remainder of this page gives a high level overview of the simulator. If you have questions or like to stay up to date about RinSim you can subscribe to the mailing list at [this page](https://groups.google.com/forum/?fromgroups=#!forum/rinsim).
 
 ## About
-RinSim is being developed at [AgentWise](http://distrinet.cs.kuleuven.be/research/taskforces/agentwise) in the [DistriNet group](http://distrinet.cs.kuleuven.be/) at the [Department of Computer Science, KU Leuven, Belgium](http://www.cs.kuleuven.be/). The lead developer is [Rinde van Lon](http://distrinet.cs.kuleuven.be/people/rinde). Valuable contributions were made by Bartosz Michalik and Robrecht Haesevoets.
+RinSim is being developed at [AgentWise](http://distrinet.cs.kuleuven.be/research/taskforces/agentwise) in the [iMinds-DistriNet group](http://distrinet.cs.kuleuven.be/) at the [Department of Computer Science, KU Leuven, Belgium](http://www.cs.kuleuven.be/). The lead developer is [Rinde van Lon](http://distrinet.cs.kuleuven.be/people/rinde). Valuable contributions were made by Bartosz Michalik and Robrecht Haesevoets.
 
 RinSim is being used in both research and education. It is used in several publications on multi-agent systems and it is used in a MAS course as a testbed for students. 
 
