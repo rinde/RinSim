@@ -4,7 +4,7 @@
 	<parent>
 		<groupId>com.github.rinde</groupId>
 		<artifactId>rinsim-main</artifactId>
-		<version>2.3.4-SNAPSHOT</version>
+		<version>3.0.0-SNAPSHOT</version>
 		<relativePath>..</relativePath>
 	</parent>
 
@@ -19,75 +19,6 @@
 			<distribution>repo</distribution>
 		</license>
 	</licenses>
-
-	<dependencies>
-		<dependency>
-			<groupId>com.github.rinde</groupId>
-			<artifactId>rinsim-core</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>com.github.rinde</groupId>
-			<artifactId>rinsim-ui</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>com.github.rinde</groupId>
-			<artifactId>rinsim-fsm</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>com.github.rinde</groupId>
-			<artifactId>rinsim-geom</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>com.github.rinde</groupId>
-			<artifactId>rinsim-cli</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>com.github.rinde</groupId>
-			<artifactId>rinsim-io</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>com.github.rinde</groupId>
-			<artifactId>rinsim-scenario</artifactId>
-		</dependency>
-		
-		<!-- TEST DEPENDENCIES -->
-		
-		<dependency>
-			<groupId>ch.qos.logback</groupId>
-			<artifactId>logback-classic</artifactId>
-			<version>1.0.13</version>
-			<scope>provided</scope>
-		</dependency>
-		<dependency>
-			<groupId>com.github.rinde</groupId>
-			<artifactId>rinsim-core</artifactId>
-			<type>test-jar</type>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>com.github.rinde</groupId>
-			<artifactId>rinsim-cli</artifactId>
-			<type>test-jar</type>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>com.github.rinde</groupId>
-			<artifactId>rinsim-event</artifactId>
-			<type>test-jar</type>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>com.github.rinde</groupId>
-			<artifactId>rinsim-scenario</artifactId>
-			<type>test-jar</type>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.mockito</groupId>
-			<artifactId>mockito-core</artifactId>
-			<scope>test</scope>
-		</dependency>
-	</dependencies>
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -132,6 +63,80 @@
 					</execution>
 				</executions>
 			</plugin>
+
+			<plugin>
+				<groupId>com.googlecode.japi-checker</groupId>
+				<artifactId>japi-checker-maven-plugin</artifactId>
+			</plugin>
 		</plugins>
 	</build>
+
+	<dependencies>
+		<dependency>
+			<groupId>com.github.rinde</groupId>
+			<artifactId>rinsim-core</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>com.github.rinde</groupId>
+			<artifactId>rinsim-ui</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>com.github.rinde</groupId>
+			<artifactId>rinsim-fsm</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>com.github.rinde</groupId>
+			<artifactId>rinsim-geom</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>com.github.rinde</groupId>
+			<artifactId>rinsim-cli</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>com.github.rinde</groupId>
+			<artifactId>rinsim-io</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>com.github.rinde</groupId>
+			<artifactId>rinsim-scenario</artifactId>
+		</dependency>
+
+		<!-- TEST DEPENDENCIES -->
+
+		<dependency>
+			<groupId>ch.qos.logback</groupId>
+			<artifactId>logback-classic</artifactId>
+			<version>1.0.13</version>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.github.rinde</groupId>
+			<artifactId>rinsim-core</artifactId>
+			<type>test-jar</type>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.github.rinde</groupId>
+			<artifactId>rinsim-cli</artifactId>
+			<type>test-jar</type>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.github.rinde</groupId>
+			<artifactId>rinsim-event</artifactId>
+			<type>test-jar</type>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.github.rinde</groupId>
+			<artifactId>rinsim-scenario</artifactId>
+			<type>test-jar</type>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.mockito</groupId>
+			<artifactId>mockito-core</artifactId>
+			<scope>test</scope>
+		</dependency>
+	</dependencies>
 </project>

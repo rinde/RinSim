@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.github.rinde</groupId>
 	<artifactId>rinsim-main</artifactId>
-	<version>2.3.4-SNAPSHOT</version>
+	<version>3.0.0-SNAPSHOT</version>
 	<packaging>pom</packaging>
 
 	<name>RinSim</name>
@@ -69,8 +69,9 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<sonar.language>java</sonar.language>
 		<sonar.dynamicAnalysis>true</sonar.dynamicAnalysis>
-		<test.excludedGroups></test.excludedGroups>
+		<test.excludedGroups />
 		<skip.gui.tests>false</skip.gui.tests>
+		<reference.version>3.0.0-SNAPSHOT</reference.version>
 	</properties>
 
 	<build>
@@ -145,6 +146,32 @@
 							</pluginExecutions>
 						</lifecycleMappingMetadata>
 					</configuration>
+				</plugin>
+
+				<plugin>
+					<groupId>com.googlecode.japi-checker</groupId>
+					<artifactId>japi-checker-maven-plugin</artifactId>
+					<version>0.1.4</version>
+					<configuration>
+						<reference>
+							<!-- Replace here with the reference artifact of your project. -->
+							<groupId>com.github.rinde</groupId>
+							<artifactId>${project.artifactId}</artifactId>
+							<version>${reference.version}</version>
+						</reference>
+						<rules>
+							<rule>com.googlecode.japi.checker.rules.AllRules</rule>
+						</rules>
+					</configuration>
+					<executions>
+						<execution>
+							<id>check-bc</id>		<!-- this is used for inheritance merges -->
+							<phase>verify</phase> 	<!-- bind to the packaging phase -->
+							<goals>
+								<goal>check</goal>
+							</goals>
+						</execution>
+					</executions>
 				</plugin>
 			</plugins>
 		</pluginManagement>
