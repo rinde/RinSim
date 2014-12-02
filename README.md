@@ -39,7 +39,11 @@ Once the simulator is installed, you are ready to explore the simulator. It is r
 ## About
 RinSim is being developed at [AgentWise](http://distrinet.cs.kuleuven.be/research/taskforces/agentwise) in the [DistriNet group](http://distrinet.cs.kuleuven.be/) at the [Department of Computer Science, KU Leuven, Belgium](http://www.cs.kuleuven.be/). The lead developer is [Rinde van Lon](http://distrinet.cs.kuleuven.be/people/rinde). Valuable contributions were made by Bartosz Michalik and Robrecht Haesevoets.
 
-RinSim is being used in both research and education. It is used in several publications on multi-agent systems and it is used in a MAS course as a testbed for students. From version 3.0.0 RinSim uses [semantic versioning](http://semver.org/), this means that if you are using version X.Y.Z it should be safe to upgrade to any version greater than X.Y.Z but smaller than X+1.Y.Z.
+RinSim is being used in both research and education. It is used in several publications on multi-agent systems and it is used in a MAS course as a testbed for students. 
+
+## Open source
+RinSim is open source under the [Apache License Version 2.0](LICENSE).
+From version 3.0.0 RinSim uses [semantic versioning](http://semver.org/), this means that if you are using features introduced in version X.Y.Z it is safe to upgrade to any version greater than X.Y.Z but smaller than X+1.0.0.
 
 
 ## Design Overview
