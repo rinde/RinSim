@@ -1,4 +1,4 @@
-# RinSim 2.3.4-SNAPSHOT
+# RinSim 3.0.0-SNAPSHOT
 
 RinSim is an extensible multi-agent system (MAS) simulator. The simulator focusses on __simplicity__ and __consistency__ which makes it ideal for performing scientific simulations. Further, there is huge focus on software quality which results in an ever improving test suite and JavaDoc comments. RinSim supports pluggable models which allow to extend the scope of the simulator. Out of the box, RinSim currently focusses on MAS for PDP (Pickup and Delivery Problems). You can easily extend RinSim by introducing your own custom models.
 
