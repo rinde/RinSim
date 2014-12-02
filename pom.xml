@@ -120,7 +120,8 @@
 					</executions>
 				</plugin>
 
-				<!-- hides an annoying warning in all children pom files (maven-enforce-plugin blabla) -->
+				<!-- suppresses an annoying warning in all children pom files (maven-enforce-plugin 
+					blabla) -->
 				<plugin>
 					<groupId>org.eclipse.m2e</groupId>
 					<artifactId>lifecycle-mapping</artifactId>
