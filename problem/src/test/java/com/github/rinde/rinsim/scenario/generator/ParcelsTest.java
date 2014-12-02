@@ -22,14 +22,11 @@ import java.util.List;
 import org.junit.Test;
 
 import com.github.rinde.rinsim.scenario.AddParcelEvent;
-import com.github.rinde.rinsim.scenario.generator.Parcels;
-import com.github.rinde.rinsim.scenario.generator.TimeSeries;
 import com.github.rinde.rinsim.scenario.generator.Parcels.ParcelGenerator;
-import com.github.rinde.rinsim.scenario.generator.TimeWindowsTest.FakeTravelTimes;
 
 /**
  * Test for {@link Parcels}.
- * @author Rinde van Lon 
+ * @author Rinde van Lon
  */
 public class ParcelsTest {
 
@@ -44,7 +41,7 @@ public class ParcelsTest {
         .build();
 
     final List<AddParcelEvent> events = pg.generate(123,
-        FakeTravelTimes.DISTANCE, scenarioLength);
+        TravelTimesUtil.distance(), scenarioLength);
 
     for (final AddParcelEvent ape : events) {
       assertTrue(ape.time < scenarioLength);
@@ -63,7 +60,7 @@ public class ParcelsTest {
         .announceTimes(
             TimeSeries.homogenousPoisson(scenarioLength + 0.1, 100))
         .build();
-    pg2.generate(123, FakeTravelTimes.DISTANCE, scenarioLength);
+    pg2.generate(123, TravelTimesUtil.distance(), scenarioLength);
   }
 
 }

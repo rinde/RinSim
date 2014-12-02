@@ -66,7 +66,7 @@ import com.github.rinde.rinsim.util.StochasticSupplier;
 import com.github.rinde.rinsim.util.TimeWindow;
 
 /**
- * @author Rinde van Lon 
+ * @author Rinde van Lon
  * 
  */
 public class CentralTest {
@@ -180,8 +180,15 @@ public class CentralTest {
   }
 
   static DefaultParcel createParcel(Point origin, Point dest) {
-    return new DefaultParcel(new ParcelDTO(origin, dest, new TimeWindow(380001,
-        380002), new TimeWindow(0, 1000), 0, 0, 3000, 3000));
+    return new DefaultParcel(
+        ParcelDTO.builder(origin, dest)
+            .pickupTimeWindow(new TimeWindow(380001, 380002))
+            .deliveryTimeWindow(new TimeWindow(0, 1000))
+            .neededCapacity(0)
+            .orderAnnounceTime(0L)
+            .pickupDuration(3000L)
+            .deliveryDuration(3000L)
+            .build());
   }
 
   static class TestVehicle extends RouteFollowingVehicle {

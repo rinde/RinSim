@@ -19,9 +19,6 @@ import javax.measure.unit.SI;
 
 import org.junit.Test;
 
-import com.github.rinde.rinsim.central.GlobalStateObject;
-import com.github.rinde.rinsim.central.Solver;
-import com.github.rinde.rinsim.central.SolverValidator;
 import com.github.rinde.rinsim.central.GlobalStateObject.VehicleStateObject;
 import com.github.rinde.rinsim.core.pdptw.ParcelDTO;
 import com.github.rinde.rinsim.core.pdptw.VehicleDTO;
@@ -32,7 +29,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 
 /**
- * @author Rinde van Lon 
+ * @author Rinde van Lon
  * 
  */
 public class SolverValidatorTest {
@@ -456,8 +453,7 @@ public class SolverValidatorTest {
   }
 
   static ParcelDTO parcel() {
-    return new ParcelDTO(new Point(0, 0), new Point(0, 0), TimeWindow.ALWAYS,
-        TimeWindow.ALWAYS, 0, 0, 0, 0);
+    return ParcelDTO.builder(new Point(0, 0), new Point(0, 0)).build();
   }
 
   static VehicleDTO vdto() {

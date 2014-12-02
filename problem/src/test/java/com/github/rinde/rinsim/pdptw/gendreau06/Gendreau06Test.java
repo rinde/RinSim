@@ -83,8 +83,16 @@ public class Gendreau06Test {
   @Test
   public void simpleScenario() throws IOException {
     final Gendreau06Scenario scenario = create(2, minutes(15),
-        new AddParcelEvent(new ParcelDTO(new Point(2, 1), new Point(4, 1),
-            new TimeWindow(0, 720000), new TimeWindow(5, 720000), 0, 0, 0, 0)));
+        new AddParcelEvent(
+            ParcelDTO.builder(new Point(2, 1), new Point(4, 1))
+                .pickupTimeWindow(new TimeWindow(0, 720000))
+                .deliveryTimeWindow(new TimeWindow(5, 720000))
+                .neededCapacity(0)
+                .orderAnnounceTime(0L)
+                .pickupDuration(0L)
+                .deliveryDuration(0L)
+                .build()
+        ));
     final StatisticsDTO dto = runProblem(scenario, useGui);
 
     // the second truck will turn around just one tick distance before
@@ -107,9 +115,17 @@ public class Gendreau06Test {
   @Test
   public void overtimeScenario() {
     final Gendreau06Scenario scenario = create(1, minutes(6),
-        new AddParcelEvent(new ParcelDTO(new Point(2, 1), new Point(4, 1),
-            new TimeWindow(0, minutes(12)), new TimeWindow(5, minutes(12)), 0,
-            0, 0, 0)));
+        new AddParcelEvent(
+            ParcelDTO.builder(new Point(2, 1), new Point(4, 1))
+                .pickupTimeWindow(new TimeWindow(0, minutes(12)))
+                .deliveryTimeWindow(new TimeWindow(5, minutes(12)))
+                .neededCapacity(0)
+                .orderAnnounceTime(0L)
+                .pickupDuration(0L)
+                .deliveryDuration(0L)
+                .build()
+        ));
+
     final StatisticsDTO dto = runProblem(scenario, useGui);
 
     assertTrue(dto.simFinish);
@@ -165,9 +181,15 @@ public class Gendreau06Test {
 
   static AddParcelEvent parcelEvent(double x1, double y1, double x2, double y2,
       long tw1b, long tw1e, long tw2b, long tw2e) {
-    return new AddParcelEvent(new ParcelDTO(new Point(x1, y1),
-        new Point(x2, y2), new TimeWindow(tw1b, tw1e), new TimeWindow(tw2b,
-            tw2e), 0, 0, 0, 0));
+    return new AddParcelEvent(
+        ParcelDTO.builder(new Point(x1, y1), new Point(x2, y2))
+            .pickupTimeWindow(new TimeWindow(tw1b, tw1e))
+            .deliveryTimeWindow(new TimeWindow(tw2b, tw2e))
+            .neededCapacity(0)
+            .orderAnnounceTime(0L)
+            .pickupDuration(0L)
+            .deliveryDuration(0L)
+            .build());
   }
 
   static StatisticsDTO runProblem(Gendreau06Scenario s, boolean useGui) {

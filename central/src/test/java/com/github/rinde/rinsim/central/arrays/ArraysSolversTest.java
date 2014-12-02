@@ -41,7 +41,6 @@ import com.github.rinde.rinsim.central.Solvers;
 import com.github.rinde.rinsim.central.Solvers.SimulationConverter;
 import com.github.rinde.rinsim.central.Solvers.SolveArgs;
 import com.github.rinde.rinsim.central.Solvers.StateContext;
-import com.github.rinde.rinsim.central.arrays.ArraysSolvers;
 import com.github.rinde.rinsim.central.arrays.ArraysSolvers.ArraysObject;
 import com.github.rinde.rinsim.core.Simulator;
 import com.github.rinde.rinsim.core.model.pdp.DefaultPDPModel;
@@ -57,7 +56,7 @@ import com.github.rinde.rinsim.pdptw.common.RouteFollowingVehicle;
 import com.github.rinde.rinsim.util.TimeWindow;
 
 /**
- * @author Rinde van Lon 
+ * @author Rinde van Lon
  * 
  */
 public class ArraysSolversTest {
@@ -153,12 +152,25 @@ public class ArraysSolversTest {
         false);
     final Depot depot = new DefaultDepot(new Point(5, 5));
 
-    final DefaultParcel dp1 = new DefaultParcel(new ParcelDTO(new Point(2, 2),
-        new Point(3, 3), new TimeWindow(0, 1000), new TimeWindow(0, 1000), 0,
-        0L, 5L, 5L));
-    final DefaultParcel dp2 = new DefaultParcel(new ParcelDTO(new Point(2, 2),
-        new Point(3, 3), new TimeWindow(0, 1000), new TimeWindow(0, 1000), 0,
-        0L, 5L, 5L));
+    final DefaultParcel dp1 = new DefaultParcel(
+        ParcelDTO.builder(new Point(2, 2), new Point(3, 3))
+            .pickupTimeWindow(new TimeWindow(0, 1000))
+            .deliveryTimeWindow(new TimeWindow(0, 1000))
+            .neededCapacity(0)
+            .orderAnnounceTime(0L)
+            .pickupDuration(5L)
+            .deliveryDuration(5L)
+            .build());
+
+    final DefaultParcel dp2 = new DefaultParcel(
+        ParcelDTO.builder(new Point(2, 2), new Point(3, 3))
+            .pickupTimeWindow(new TimeWindow(0, 1000))
+            .deliveryTimeWindow(new TimeWindow(0, 1000))
+            .neededCapacity(0)
+            .orderAnnounceTime(0L)
+            .pickupDuration(5L)
+            .deliveryDuration(5L)
+            .build());
 
     sim.register(depot);
     sim.register(rfv);

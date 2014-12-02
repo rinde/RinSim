@@ -30,7 +30,6 @@ import java.util.List;
 
 import org.apache.commons.math3.random.MersenneTwister;
 import org.apache.commons.math3.random.RandomGenerator;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -38,10 +37,9 @@ import org.junit.runners.Parameterized.Parameters;
 
 import com.github.rinde.rinsim.core.pdptw.ParcelDTO;
 import com.github.rinde.rinsim.geom.Point;
-import com.github.rinde.rinsim.scenario.generator.Metrics;
-import com.github.rinde.rinsim.scenario.generator.TimeWindows;
 import com.github.rinde.rinsim.scenario.generator.ScenarioGenerator.TravelTimes;
 import com.github.rinde.rinsim.scenario.generator.TimeWindows.TimeWindowGenerator;
+import com.github.rinde.rinsim.scenario.generator.TravelTimesUtil.DistanceTT;
 import com.github.rinde.rinsim.util.TestUtil;
 import com.github.rinde.rinsim.util.TimeWindow;
 import com.google.common.collect.ImmutableList;
@@ -49,7 +47,7 @@ import com.google.common.collect.Iterators;
 
 /**
  * Tests for {@link TimeWindows}.
- * @author Rinde van Lon 
+ * @author Rinde van Lon
  */
 @RunWith(Parameterized.class)
 public class TimeWindowsTest {
@@ -151,7 +149,7 @@ public class TimeWindowsTest {
   @Test
   public void determinismTest() {
     final RandomGenerator rng = new MersenneTwister(123L);
-    for (final TravelTimes tt : FakeTravelTimes.values()) {
+    for (final TravelTimes tt : DistanceTT.values()) {
       for (final ParcelDTO.Builder parcelBuilder : parcelBuilders()) {
         for (int i = 0; i < 10; i++) {
           final long seed = rng.nextLong();
@@ -182,7 +180,7 @@ public class TimeWindowsTest {
   public void overlapTest() {
     final RandomGenerator rng = new MersenneTwister(123L);
 
-    for (final TravelTimes tt : FakeTravelTimes.values()) {
+    for (final TravelTimes tt : DistanceTT.values()) {
       for (final ParcelDTO.Builder parcelBuilder : parcelBuilders()) {
         for (int i = 0; i < 10; i++) {
           timeWindowGenerator
@@ -213,58 +211,4 @@ public class TimeWindowsTest {
     }
   }
 
-  /**
-   * Tests whether the actual urgency matches the expected urgency.
-   */
-  @Ignore
-  @Test
-  public void urgencyTest() {
-    final RandomGenerator rng = new MersenneTwister(123L);
-    for (final TravelTimes tt : FakeTravelTimes.values()) {
-      for (final ParcelDTO.Builder parcelBuilder : parcelBuilders()) {
-        // in this case urgency can no longer be guaranteed
-        if (parcelBuilder.getOrderAnnounceTime() >= 9000) {
-          continue;
-        }
-        double pmean = 0;
-        final double repetitions = 200;
-        for (int i = 0; i < repetitions; i++) {
-          timeWindowGenerator
-              .generate(rng.nextLong(), parcelBuilder, tt, END_TIME);
-          final ParcelDTO dto = parcelBuilder.build();
-          pmean += Metrics.pickupUrgency(dto);
-        }
-        pmean /= repetitions;
-        assertEquals(meanPickupUrgency, pmean, 20);
-      }
-    }
-  }
-
-  static enum FakeTravelTimes implements TravelTimes {
-    DISTANCE {
-      private final Point DEPOT_LOC = new Point(0, 0);
-
-      @Override
-      public long getShortestTravelTime(Point from, Point to) {
-        return (long) Point.distance(from, to);
-      }
-
-      @Override
-      public long getTravelTimeToNearestDepot(Point from) {
-        return (long) Point.distance(from, DEPOT_LOC);
-      }
-    },
-    ZEROS {
-      @Override
-      public long getShortestTravelTime(Point from, Point to) {
-        return 0;
-      }
-
-      @Override
-      public long getTravelTimeToNearestDepot(Point from) {
-        return 0;
-      }
-    }
-
-  }
 }

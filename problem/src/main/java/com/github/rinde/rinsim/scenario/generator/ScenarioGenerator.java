@@ -37,9 +37,9 @@ import com.github.rinde.rinsim.geom.Point;
 import com.github.rinde.rinsim.scenario.AddDepotEvent;
 import com.github.rinde.rinsim.scenario.AddVehicleEvent;
 import com.github.rinde.rinsim.scenario.Scenario;
-import com.github.rinde.rinsim.scenario.TimedEvent;
 import com.github.rinde.rinsim.scenario.Scenario.AbstractBuilder;
 import com.github.rinde.rinsim.scenario.Scenario.ProblemClass;
+import com.github.rinde.rinsim.scenario.TimedEvent;
 import com.github.rinde.rinsim.scenario.generator.Depots.DepotGenerator;
 import com.github.rinde.rinsim.scenario.generator.Models.ModelSupplierScenGen;
 import com.github.rinde.rinsim.scenario.generator.Parcels.ParcelGenerator;
@@ -52,7 +52,7 @@ import com.google.common.collect.ImmutableList;
 
 /**
  * A generator of {@link Scenario}s.
- * @author Rinde van Lon 
+ * @author Rinde van Lon
  */
 // TODO rename to PDPScenarios?
 public final class ScenarioGenerator {
@@ -199,7 +199,13 @@ public final class ScenarioGenerator {
     return new Builder(Scenario.DEFAULT_PROBLEM_CLASS);
   }
 
-  static TravelTimes createTravelTimes(Scenario s) {
+  /**
+   * Creates a {@link TravelTimes} instance based on the specified
+   * {@link Scenario}.
+   * @param s The scenario.
+   * @return The travel times.
+   */
+  public static TravelTimes createTravelTimes(Scenario s) {
     final Iterable<AddDepotEvent> depots = FluentIterable.from(s.asList())
         .filter(AddDepotEvent.class);
     final Iterable<AddVehicleEvent> vehicles = FluentIterable.from(s.asList())
@@ -240,7 +246,7 @@ public final class ScenarioGenerator {
 
   /**
    * Builder for creating {@link ScenarioGenerator} instances.
-   * @author Rinde van Lon 
+   * @author Rinde van Lon
    */
   public static class Builder extends AbstractBuilder<Builder> {
     static final ParcelGenerator DEFAULT_PARCEL_GENERATOR = Parcels.builder()
@@ -347,7 +353,7 @@ public final class ScenarioGenerator {
   /**
    * Implementations should provide information about travel times in a
    * scenario. The travel times are usually extracted from a {@link RoadModel}.
-   * @author Rinde van Lon 
+   * @author Rinde van Lon
    */
   public interface TravelTimes {
     /**

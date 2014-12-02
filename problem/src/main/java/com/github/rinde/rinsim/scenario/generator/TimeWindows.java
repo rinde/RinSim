@@ -104,11 +104,21 @@ public final class TimeWindows {
       minDeliveryLength = Optional.absent();
     }
 
+    /**
+     * Set the urgency of a pickup operation.
+     * @param urgency The urgency of the pickup.
+     * @return This, as per the builder pattern.
+     */
     public Builder pickupUrgency(StochasticSupplier<Long> urgency) {
       pickupUrgency = urgency;
       return this;
     }
 
+    /**
+     * Sets the pickup time window length.
+     * @param length The length to set.
+     * @return This, as per the builder pattern.
+     */
     public Builder pickupTimeWindowLength(StochasticSupplier<Long> length) {
       pickupTWLength = length;
       return this;
@@ -128,21 +138,28 @@ public final class TimeWindows {
     }
 
     /**
-     * 
+     * Sets the length of delivery TW as a ratio to length of pickup TW.
      * @param factor May only return values which are <code>&gt; 0</code>.
-     * @return
+     * @return This, as per the builder pattern.
      */
-    // length of delivery TW as a ratio to length of pickup TW
     public Builder deliveryLengthFactor(StochasticSupplier<Double> factor) {
       deliveryLengthFactor = factor;
       return this;
     }
 
+    /**
+     * The minimum length of the delivery time window.
+     * @param del The minimum length.
+     * @return This, as per the builder pattern.
+     */
     public Builder minDeliveryLength(StochasticSupplier<Long> del) {
       minDeliveryLength = Optional.of(del);
       return this;
     }
 
+    /**
+     * @return A new {@link TimeWindowGenerator} instance.
+     */
     public TimeWindowGenerator build() {
       return new DefaultTimeWindowGenerator(this);
     }

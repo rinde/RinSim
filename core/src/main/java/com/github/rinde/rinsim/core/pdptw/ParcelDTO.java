@@ -72,32 +72,6 @@ public final class ParcelDTO implements Serializable {
    */
   public final long deliveryDuration;
 
-  /**
-   * Create a new parcel value object.
-   * @param pPickupLocation {@link #pickupLocation}.
-   * @param pDestinationLocation {@link #deliveryLocation}.
-   * @param pPickupTimeWindow {@link #pickupTimeWindow}.
-   * @param pDeliveryTimeWindow {@link #deliveryTimeWindow}.
-   * @param pNeededCapacity {@link #neededCapacity}.
-   * @param pOrderAnnounceTime {@link #orderAnnounceTime}.
-   * @param pPickupDuration {@link #pickupDuration}.
-   * @param pDeliveryDuration {@link #deliveryDuration}.
-   * @deprecated Use {@link #builder(Point, Point)} instead.
-   */
-  @Deprecated
-  public ParcelDTO(Point pPickupLocation, Point pDestinationLocation,
-      TimeWindow pPickupTimeWindow, TimeWindow pDeliveryTimeWindow,
-      int pNeededCapacity, long pOrderAnnounceTime, long pPickupDuration,
-      long pDeliveryDuration) {
-    this(builder(pPickupLocation, pDestinationLocation)
-        .pickupTimeWindow(pPickupTimeWindow)
-        .deliveryTimeWindow(pDeliveryTimeWindow)
-        .neededCapacity(pNeededCapacity)
-        .orderAnnounceTime(pOrderAnnounceTime)
-        .pickupDuration(pPickupDuration)
-        .deliveryDuration(pDeliveryDuration));
-  }
-
   ParcelDTO(Builder b) {
     checkArgument(b.orderAnnounceTime <= b.pickupTimeWindow.begin,
         "Order arrival time may not be after the pickup TW has already opened.");

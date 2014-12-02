@@ -25,7 +25,6 @@ import javax.annotation.Nullable;
 import org.apache.commons.math3.stat.StatUtils;
 
 import com.github.rinde.rinsim.scenario.Scenario;
-import com.github.rinde.rinsim.scenario.generator.Metrics;
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableList;
 import com.google.common.primitives.Doubles;

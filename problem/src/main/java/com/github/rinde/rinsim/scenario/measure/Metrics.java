@@ -13,13 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.github.rinde.rinsim.scenario.generator;
+package com.github.rinde.rinsim.scenario.measure;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Sets.newLinkedHashSet;
 
-import java.math.RoundingMode;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -34,6 +33,7 @@ import com.github.rinde.rinsim.scenario.AddParcelEvent;
 import com.github.rinde.rinsim.scenario.AddVehicleEvent;
 import com.github.rinde.rinsim.scenario.Scenario;
 import com.github.rinde.rinsim.scenario.TimedEvent;
+import com.github.rinde.rinsim.scenario.generator.ScenarioGenerator;
 import com.github.rinde.rinsim.scenario.generator.ScenarioGenerator.TravelTimes;
 import com.github.rinde.rinsim.util.TimeWindow;
 import com.google.common.base.Function;
@@ -42,7 +42,6 @@ import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMultiset;
 import com.google.common.collect.ImmutableSortedMultiset;
-import com.google.common.math.DoubleMath;
 
 /**
  * @author Rinde van Lon
@@ -61,34 +60,29 @@ public final class Metrics {
    *         <code> &ge; 0</code>. All time instances not included in the list
    *         are assumed to have load <code>0</code>.
    */
-  public static ImmutableList<Double> measureLoad(Scenario s) {
+  static ImmutableList<Double> measureLoad(Scenario s) {
     return measureLoad(s, 1);
   }
 
   static ImmutableList<Double> measureLoad(Scenario s, int numVehicles) {
-
-    // FIXME should be possible to set the granularity of time. e.g. compute
-    // load for every 1 second/minute/5minutes/hour/etc
-
-    final double vehicleSpeed = getVehicleSpeed(s);
+    final TravelTimes tt = ScenarioGenerator.createTravelTimes(s);
     final ImmutableList.Builder<LoadPart> loadParts = ImmutableList.builder();
     for (final TimedEvent te : s.asList()) {
       if (te instanceof AddParcelEvent) {
-        loadParts.addAll(measureLoad((AddParcelEvent) te, vehicleSpeed));
+        loadParts.addAll(measureLoad((AddParcelEvent) te, tt));
       }
     }
     return sum(0, loadParts.build(), numVehicles);
   }
 
-  public static ImmutableList<Double> measureRelativeLoad(Scenario s) {
+  static ImmutableList<Double> measureRelativeLoad(Scenario s) {
     final int numVehicles = getEventTypeCounts(s).count(
         PDPScenarioEvent.ADD_VEHICLE);
     return measureLoad(s, numVehicles);
   }
 
-  public static ImmutableList<LoadPart> measureLoad(AddParcelEvent event,
-      double vehicleSpeed) {
-    checkArgument(vehicleSpeed > 0d);
+  static ImmutableList<LoadPart> measureLoad(AddParcelEvent event,
+      TravelTimes tt) {
     checkArgument(
         event.parcelDTO.pickupTimeWindow.begin <= event.parcelDTO.deliveryTimeWindow.begin,
         "Delivery TW begin may not be before pickup TW begin.");
@@ -105,8 +99,9 @@ public final class Metrics {
         / (double) (pickupUb - pickupLb);
     final LoadPart pickupPart = new LoadPart(pickupLb, pickupUb, pickupLoad);
 
-    final long expectedTravelTime = travelTime(event.parcelDTO.pickupLocation,
-        event.parcelDTO.deliveryLocation, vehicleSpeed);
+    final long expectedTravelTime = tt.getShortestTravelTime(
+        event.parcelDTO.pickupLocation,
+        event.parcelDTO.deliveryLocation);
     // first possible departure time from pickup location
     final long travelLb = pickupLb + event.parcelDTO.pickupDuration;
     // latest possible arrival time at delivery location
@@ -191,6 +186,12 @@ public final class Metrics {
     return vehicleSpeed;
   }
 
+  /**
+   * Computes the number of occurrences of each event type in the specifies
+   * {@link Scenario}.
+   * @param s The scenario to check.
+   * @return A {@link ImmutableMultiset} of event types.
+   */
   public static ImmutableMultiset<Enum<?>> getEventTypeCounts(Scenario s) {
     final ImmutableMultiset.Builder<Enum<?>> occurences = ImmutableMultiset
         .builder();
@@ -200,6 +201,24 @@ public final class Metrics {
     return occurences.build();
   }
 
+  /**
+   * Checks the time window strictness of the specified {@link Scenario}. A time
+   * window is strict if:
+   * <ul>
+   * <li><code>dtw.begin &ge; ptw.begin + pd + travelTime</code></li>
+   * <li><code>ptw.end + pd + travelTime &le; dtw.end</code></li>
+   * </ul>
+   * Where:
+   * <ul>
+   * <li><code>dtw</code> is {@link ParcelDTO#deliveryTimeWindow}</li>
+   * <li><code>ptw</code> is {@link ParcelDTO#pickupTimeWindow}</li>
+   * <li><code>pd</code> is {@link ParcelDTO#pickupDuration}</li>
+   * <li><code>travelTime</code> is the time to travel the shortest path from
+   * {@link ParcelDTO#pickupLocation} to {@link ParcelDTO#deliveryLocation}</li>
+   * </ul>
+   * 
+   * @param s The scenario to check.
+   */
   public static void checkTimeWindowStrictness(Scenario s) {
     final TravelTimes tt = ScenarioGenerator.createTravelTimes(s);
     for (final TimedEvent te : s.asList()) {
@@ -235,6 +254,11 @@ public final class Metrics {
         event.parcelDTO.pickupTimeWindow.end);
   }
 
+  /**
+   * Collects all event arrival times of the specified {@link Scenario}.
+   * @param s The scenario.
+   * @return {@link ImmutableList} containing event arrival times.
+   */
   public static ImmutableList<Long> getArrivalTimes(Scenario s) {
     final ImmutableList.Builder<Long> builder = ImmutableList.builder();
     for (final TimedEvent te : s.asList()) {
@@ -309,21 +333,25 @@ public final class Metrics {
     return toStatisticalSummary(urgencyValues);
   }
 
+  /**
+   * Measures the degree of dynamism of the specified scenario.
+   * @param s The scenario to measure.
+   * @return A double in range [0,1].
+   */
   public static double measureDynamism(Scenario s) {
     return measureDynamism(s, s.getTimeWindow().end);
   }
 
+  /**
+   * Measures the degree of dynamism of the specified scenario using the
+   * specified length of day.
+   * @param s The scenario to measure.
+   * @param lengthOfDay The length of the day.
+   * @return A double in range [0,1].
+   */
   public static double measureDynamism(Scenario s, long lengthOfDay) {
     return measureDynamism(convert(getOrderArrivalTimes(s)),
         lengthOfDay);
-  }
-
-  static ImmutableList<Double> convert(List<Long> in) {
-    final ImmutableList.Builder<Double> builder = ImmutableList.builder();
-    for (final Long l : in) {
-      builder.add(new Double(l));
-    }
-    return builder.build();
   }
 
   // Best version as of March 6th, 2014
@@ -368,22 +396,6 @@ public final class Metrics {
     return 1d - sumDeviation / maxDeviation;
   }
 
-  // FIXME move this method to common? and make sure everybody uses the same
-  // definition?
-  // speed = km/h
-  // points in km
-  // return time in minutes
-  /**
-   * @deprecated use
-   *             {@link com.github.rinde.rinsim.core.model.road.RoadModels#computeTravelTime(javax.measure.Measure, javax.measure.Measure, javax.measure.unit.Unit)}
-   *             instead.
-   */
-  @Deprecated
-  public static long travelTime(Point p1, Point p2, double speed) {
-    return DoubleMath.roundToLong(Point.distance(p1, p2) / speed * 60d,
-        RoundingMode.CEILING);
-  }
-
   /**
    * Returns an {@link ImmutableList} containing all service points of
    * {@link Scenario}. The scenario must contain {@link AddParcelEvent}s.
@@ -408,6 +420,14 @@ public final class Metrics {
       if (se instanceof AddParcelEvent) {
         builder.add(((AddParcelEvent) se).parcelDTO.orderAnnounceTime);
       }
+    }
+    return builder.build();
+  }
+
+  static ImmutableList<Double> convert(List<Long> in) {
+    final ImmutableList.Builder<Double> builder = ImmutableList.builder();
+    for (final Long l : in) {
+      builder.add(new Double(l));
     }
     return builder.build();
   }

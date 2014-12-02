@@ -13,16 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.github.rinde.rinsim.scenario.generator;
+package com.github.rinde.rinsim.scenario.measure;
 
-import static com.github.rinde.rinsim.scenario.generator.Metrics.measureDynamism;
-import static com.github.rinde.rinsim.scenario.generator.Metrics.measureLoad;
-import static com.github.rinde.rinsim.scenario.generator.Metrics.sum;
-import static com.github.rinde.rinsim.scenario.generator.Metrics.travelTime;
+import static com.github.rinde.rinsim.scenario.measure.Metrics.measureDynamism;
+import static com.github.rinde.rinsim.scenario.measure.Metrics.measureLoad;
+import static com.github.rinde.rinsim.scenario.measure.Metrics.sum;
 import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.collect.Lists.newArrayList;
 import static java.util.Arrays.asList;
-import static junit.framework.Assert.assertEquals;
+import static org.junit.Assert.assertEquals;
 
 import java.io.File;
 import java.io.IOException;
@@ -40,8 +39,8 @@ import org.junit.Test;
 import com.github.rinde.rinsim.core.pdptw.ParcelDTO;
 import com.github.rinde.rinsim.geom.Point;
 import com.github.rinde.rinsim.scenario.AddParcelEvent;
-import com.github.rinde.rinsim.scenario.generator.Metrics;
-import com.github.rinde.rinsim.scenario.generator.Metrics.LoadPart;
+import com.github.rinde.rinsim.scenario.generator.TravelTimesUtil;
+import com.github.rinde.rinsim.scenario.measure.Metrics.LoadPart;
 import com.github.rinde.rinsim.util.TimeWindow;
 import com.google.common.base.Charsets;
 import com.google.common.base.Joiner;
@@ -55,13 +54,15 @@ import com.google.common.io.Files;
 import com.google.common.math.DoubleMath;
 
 /**
- * @author Rinde van Lon 
+ * @author Rinde van Lon
  * 
  */
 public class MetricsTest {
-
   static final double EPSILON = 0.00001;
 
+  /**
+   * Test of load metric with specific settings.
+   */
   @Test
   public void testLoad1() {
     // distance is 1 km which is traveled in 2 minutes with 30km/h
@@ -73,7 +74,8 @@ public class MetricsTest {
         .serviceDuration(5)
         .build();
 
-    final List<LoadPart> parts = measureLoad(new AddParcelEvent(dto), 30);
+    final List<LoadPart> parts = measureLoad(new AddParcelEvent(dto),
+        TravelTimesUtil.constant(2L));
     assertEquals(3, parts.size());
 
     // pickup load in [0,15), duration is 5 minutes, so load is 5/15 = 1/3
@@ -108,9 +110,12 @@ public class MetricsTest {
     assertEquals(25, load.size());
   }
 
+  /**
+   * Test of load metric with specific settings.
+   */
   @Test
   public void testLoad2() {
-    // distance is 10km which is travelled in 20 minutes with 30km/h
+    // distance is 10km which is traveled in 20 minutes with 30km/h
     final ParcelDTO dto = ParcelDTO.builder(new Point(0, 0), new Point(0, 10))
         .pickupTimeWindow(new TimeWindow(15, 15))
         .deliveryTimeWindow(new TimeWindow(15, 15))
@@ -119,7 +124,8 @@ public class MetricsTest {
         .serviceDuration(5)
         .build();
 
-    final List<LoadPart> parts = measureLoad(new AddParcelEvent(dto), 30);
+    final List<LoadPart> parts = measureLoad(new AddParcelEvent(dto),
+        TravelTimesUtil.constant(20L));
     assertEquals(3, parts.size());
 
     // pickup load in [15,20), duration is 5 minutes, so load is 5/5 = 1
@@ -148,13 +154,24 @@ public class MetricsTest {
     assertEquals(45, load.size());
   }
 
+  /**
+   * Test of load metric with specific settings.
+   */
   @Test
   public void testLoad3() {
     // distance is 3 km which is traveled in 6 minutes with 30km/h
-    final ParcelDTO dto = new ParcelDTO(new Point(0, 0), new Point(0, 3),
-        new TimeWindow(10, 30), new TimeWindow(50, 75), 0, 0, 5, 5);
+    final ParcelDTO dto =
+        ParcelDTO.builder(new Point(0, 0), new Point(0, 3))
+            .pickupTimeWindow(new TimeWindow(10, 30))
+            .deliveryTimeWindow(new TimeWindow(50, 75))
+            .neededCapacity(0)
+            .orderAnnounceTime(0L)
+            .pickupDuration(5L)
+            .deliveryDuration(5L)
+            .build();
 
-    final List<LoadPart> parts = measureLoad(new AddParcelEvent(dto), 30);
+    final List<LoadPart> parts = measureLoad(new AddParcelEvent(dto),
+        TravelTimesUtil.constant(6L));
     assertEquals(3, parts.size());
 
     // pickup load in [10,35), duration is 5 minutes, so load is 5/25 = 6/30
@@ -195,21 +212,6 @@ public class MetricsTest {
     for (int i = from; i < to; i++) {
       assertEquals(val, list.get(i), EPSILON);
     }
-  }
-
-  @Test
-  public void testTravelTime() {
-    // driving 1 km with 30km/h should take exactly 2 minutes
-    assertEquals(2, travelTime(new Point(0, 0), new Point(1, 0), 30d));
-
-    // driving 1 km with 60km/h should take exactly 1 minutes
-    assertEquals(1, travelTime(new Point(0, 0), new Point(1, 0), 60d));
-
-    // driving 1 km with 90km/h should take .667 minutes, which should be
-    // rounded to 1 minute.
-    assertEquals(1, travelTime(new Point(0, 0), new Point(1, 0), 90d));
-
-    // TODO check the rounding behavior
   }
 
   static Times generateTimes(RandomGenerator rng, double intensity) {
@@ -319,7 +321,7 @@ public class MetricsTest {
       for (final double l : ts) {
         newTs.add(l);
         newTs.add(Math.min(999, Math.max(0, l
-            + DoubleMath.roundToLong((rng.nextDouble() * 6d) - 3d,
+            + DoubleMath.roundToLong(rng.nextDouble() * 6d - 3d,
                 RoundingMode.HALF_EVEN))));
       }
       times.add(asTimesDouble(1000, newTs));
@@ -334,10 +336,10 @@ public class MetricsTest {
       for (final double l : ts) {
         newTs.add(l);
         newTs.add(Math.min(999, Math.max(0, l
-            + DoubleMath.roundToLong((rng.nextDouble() * 2d) - 1d,
+            + DoubleMath.roundToLong(rng.nextDouble() * 2d - 1d,
                 RoundingMode.HALF_EVEN))));
         newTs.add(Math.min(999, Math.max(0, l
-            + DoubleMath.roundToLong((rng.nextDouble() * 2d) - 1d,
+            + DoubleMath.roundToLong(rng.nextDouble() * 2d - 1d,
                 RoundingMode.HALF_EVEN))));
       }
       times.add(asTimesDouble(1000, newTs));
@@ -417,7 +419,7 @@ public class MetricsTest {
 
         if (i % 3 == 0) {
           for (int j = 0; j < k; j++) {
-            additions.add(ts.get(i) + (rng.nextDouble() * 10));
+            additions.add(ts.get(i) + rng.nextDouble() * 10);
           }
         }
       }
@@ -431,7 +433,7 @@ public class MetricsTest {
     for (int i = 1; i < 4; i++) {
       final List<Double> newList = newArrayList();
       for (final double l : regular.list) {
-        newList.add((l * Math.pow(10, i)));
+        newList.add(l * Math.pow(10, i));
       }
       times
           .add(asTimesDouble((int) (regular.length * Math.pow(10, i)), newList));
@@ -500,7 +502,7 @@ public class MetricsTest {
   }
 
   @Test
-  public void scaleInvariant0() {
+  public void testDynamismScaleInvariant0() {
     final double expectedDynamism = 0d;
     final List<Integer> numEvents = asList(7, 30, 50, 70, 100, 157, 234,
         748, 998, 10000, 100000);
@@ -516,7 +518,7 @@ public class MetricsTest {
   }
 
   @Test
-  public void scaleInvariant50() {
+  public void testDynamismScaleInvariant50() {
     final double expectedDynamism = 0.5d;
     final List<Integer> numEvents = asList(30, 50, 70, 100, 158, 234, 426,
         748, 998, 10000, 100000);
@@ -526,8 +528,8 @@ public class MetricsTest {
       final int unique = num / 2;
       final double dist = scenarioLength / (double) unique;
       for (int i = 0; i < num / 2; i++) {
-        scenario.add((dist / 2d) + i * dist);
-        scenario.add((dist / 2d) + i * dist);
+        scenario.add(dist / 2d + i * dist);
+        scenario.add(dist / 2d + i * dist);
       }
       final double dyn = measureDynamism(scenario, scenarioLength);
       assertEquals(expectedDynamism, dyn, 0.02);
@@ -538,7 +540,7 @@ public class MetricsTest {
    * The metric should be insensitive to the number of events.
    */
   @Test
-  public void scaleInvariant100() {
+  public void testDynamismScaleInvariant100() {
     final double expectedDynamism = 1d;
     final List<Integer> numEvents = asList(7, 30, 50, 70, 100, 157, 234,
         748, 998, 10000, 100000);
@@ -547,7 +549,7 @@ public class MetricsTest {
       final double dist = scenarioLength / (double) num;
       final List<Double> scenario = newArrayList();
       for (int i = 0; i < num; i++) {
-        scenario.add((dist / 2d) + i * dist);
+        scenario.add(dist / 2d + i * dist);
       }
       final double dyn = measureDynamism(scenario, scenarioLength);
       assertEquals(expectedDynamism, dyn, 0.0001);
@@ -576,7 +578,7 @@ public class MetricsTest {
    * should give the same values.
    */
   @Test
-  public void timeScaleInvariant() {
+  public void testDynamismTimeScaleInvariant() {
     final RandomGenerator rng = new MersenneTwister(123);
     final double startLengthOfDay = 1000;
     final int repetitions = 3;
@@ -611,7 +613,7 @@ public class MetricsTest {
    * The metric should be insensitive to shifting all events left or right.
    */
   @Test
-  public void shiftInvariant() {
+  public void testDynamismShiftInvariant() {
     final RandomGenerator rng = new MersenneTwister(123);
     final double lengthOfDay = 1000;
     final int repetitions = 10;
@@ -639,8 +641,8 @@ public class MetricsTest {
 
         // shift right
         final List<Double> rightShiftedScenario = newArrayList();
-        final double rightMost = (lengthOfDay
-            - scenario.get(scenario.size() - 1)) - 0.00000001;
+        final double rightMost = lengthOfDay
+            - scenario.get(scenario.size() - 1) - 0.00000001;
         for (int i = 0; i < num; i++) {
           rightShiftedScenario.add(scenario.get(i) + rightMost);
         }

@@ -35,8 +35,8 @@ import com.github.rinde.rinsim.core.model.ModelProvider;
 import com.github.rinde.rinsim.core.model.TestModelProvider;
 import com.github.rinde.rinsim.core.model.pdp.DefaultPDPModel;
 import com.github.rinde.rinsim.core.model.pdp.PDPModel;
-import com.github.rinde.rinsim.core.model.pdp.Parcel;
 import com.github.rinde.rinsim.core.model.pdp.PDPModel.ParcelState;
+import com.github.rinde.rinsim.core.model.pdp.Parcel;
 import com.github.rinde.rinsim.core.model.pdp.TimeWindowPolicy.TimeWindowPolicies;
 import com.github.rinde.rinsim.core.model.road.PlaneRoadModel;
 import com.github.rinde.rinsim.core.model.road.RoadModel;
@@ -46,7 +46,6 @@ import com.github.rinde.rinsim.core.pdptw.DefaultVehicle;
 import com.github.rinde.rinsim.core.pdptw.ParcelDTO;
 import com.github.rinde.rinsim.core.pdptw.VehicleDTO;
 import com.github.rinde.rinsim.geom.Point;
-import com.github.rinde.rinsim.pdptw.common.PDPRoadModel;
 import com.github.rinde.rinsim.util.TimeWindow;
 
 public abstract class PDPRoadModelCommonTest {
@@ -163,8 +162,17 @@ public abstract class PDPRoadModelCommonTest {
 
   @Test
   public void test1() {
-    dp1 = new DefaultParcel(new ParcelDTO(new Point(1, 0), new Point(0, 7),
-        DEFAULT_TW, DEFAULT_TW, 0, 0, 2, 0));
+    dp1 = new DefaultParcel(
+        ParcelDTO.builder(new Point(1, 0), new Point(0, 7))
+            .pickupTimeWindow(DEFAULT_TW)
+            .deliveryTimeWindow(DEFAULT_TW)
+            .neededCapacity(0)
+            .orderAnnounceTime(0L)
+            .pickupDuration(2L)
+            .deliveryDuration(0L)
+            .build()
+        );
+
     rm.addObjectAt(dp1, dp1.dto.pickupLocation);
     pm.register(dp1);
 
@@ -370,7 +378,14 @@ public abstract class PDPRoadModelCommonTest {
   }
 
   static DefaultParcel create(Point p1, Point p2) {
-    return new DefaultParcel(new ParcelDTO(p1, p2, DEFAULT_TW, DEFAULT_TW, 0,
-        0, 0, 0));
+    return new DefaultParcel(
+        ParcelDTO.builder(p1, p2)
+            .pickupTimeWindow(DEFAULT_TW)
+            .deliveryTimeWindow(DEFAULT_TW)
+            .neededCapacity(0)
+            .orderAnnounceTime(0L)
+            .pickupDuration(0L)
+            .deliveryDuration(0L)
+            .build());
   }
 }
