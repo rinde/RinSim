@@ -54,7 +54,7 @@ import com.google.common.collect.ImmutableList;
  * A generator of {@link Scenario}s.
  * @author Rinde van Lon
  */
-// TODO rename to PDPScenarios?
+// TODO rename to Scenarios? or Generators?
 public final class ScenarioGenerator {
 
   // global properties

@@ -33,7 +33,7 @@ import com.google.common.math.DoubleMath;
 
 /**
  * Utility class for creating {@link LocationGenerator}s.
- * @author Rinde van Lon 
+ * @author Rinde van Lon
  */
 public final class Locations {
   private Locations() {}
@@ -47,7 +47,7 @@ public final class Locations {
 
   /**
    * A location generator generates locations for orders (aka tasks).
-   * @author Rinde van Lon 
+   * @author Rinde van Lon
    */
   public interface LocationGenerator {
     /**
@@ -80,7 +80,7 @@ public final class Locations {
 
   /**
    * A builder for creating {@link LocationGenerator}s.
-   * @author Rinde van Lon 
+   * @author Rinde van Lon
    */
   public static class Builder {
     Optional<Double> xMin;
@@ -384,9 +384,8 @@ public final class Locations {
         double max) {
       if (mean.isPresent()) {
         return mean.get();
-      } else {
-        return (max - min) / 2d;
       }
+      return (max - min) / 2d;
     }
 
     private static Point getUniformMinMax(Optional<Double> min,
@@ -426,7 +425,7 @@ public final class Locations {
     }
   }
 
-  private static abstract class AbstractLocGen implements LocationGenerator {
+  private abstract static class AbstractLocGen implements LocationGenerator {
     final Point min;
     final Point max;
     final Point center;
