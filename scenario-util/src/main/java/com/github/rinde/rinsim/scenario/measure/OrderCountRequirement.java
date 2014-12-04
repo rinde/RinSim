@@ -23,21 +23,40 @@ import javax.annotation.Nullable;
 
 import com.github.rinde.rinsim.scenario.AddParcelEvent;
 import com.github.rinde.rinsim.scenario.Scenario;
+import com.google.common.annotations.Beta;
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Collections2;
 
-public class OrderCountRequirement implements Predicate<Scenario> {
+/**
+ * A {@link Predicate} that evaluates to <code>true</code> if the input scenario
+ * has a number of orders in the range as specified by this instance. An order
+ * is specified by a {@link AddParcelEvent}.
+ * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+ */
+@Beta
+class OrderCountRequirement implements Predicate<Scenario> {
   private final int min;
   private final int max;
 
-  public OrderCountRequirement(int minNumOrders, int maxNumOrders) {
+  /**
+   * Range constructor, only accepts scenarios that have a number of orders that
+   * is in the range <code>[minNumOrders,maxNumOrders]</code>.
+   * @param minNumOrders Minimum number of orders.
+   * @param maxNumOrders Maximum number of orders.
+   */
+  OrderCountRequirement(int minNumOrders, int maxNumOrders) {
     checkArgument(minNumOrders <= maxNumOrders);
     min = minNumOrders;
     max = maxNumOrders;
   }
 
-  public OrderCountRequirement(int orders) {
+  /**
+   * Exact constructor, only accepts scenarios that have exactly the specified
+   * number of orders.
+   * @param orders The number of orders.
+   */
+  OrderCountRequirement(int orders) {
     this(orders, orders);
   }
 
@@ -49,11 +68,10 @@ public class OrderCountRequirement implements Predicate<Scenario> {
     final int numOrders = Collections.frequency(
         Collections2.transform(input.asList(),
             new ToClassFunction()), AddParcelEvent.class);
-    System.out.println(min + " " + max + " " + numOrders);
     return numOrders >= min && numOrders <= max;
   }
 
-  public static final class ToClassFunction implements
+  private static final class ToClassFunction implements
       Function<Object, Class<?>> {
     @Override
     @Nullable

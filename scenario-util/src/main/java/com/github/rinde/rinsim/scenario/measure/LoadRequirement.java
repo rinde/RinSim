@@ -25,18 +25,36 @@ import javax.annotation.Nullable;
 import org.apache.commons.math3.stat.StatUtils;
 
 import com.github.rinde.rinsim.scenario.Scenario;
+import com.google.common.annotations.Beta;
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableList;
 import com.google.common.primitives.Doubles;
 
-public class LoadRequirement implements Predicate<Scenario> {
+/**
+ * A {@link Predicate} that evaluates to <code>true</code> if the load graph of
+ * a scenario is within the range as described by this predicate.
+ * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+ */
+@Beta
+class LoadRequirement implements Predicate<Scenario> {
   private final ImmutableList<Double> desiredLoadList;
 
   private final double maxMean;
   private final double maxMax;
   private final boolean relative;
 
-  public LoadRequirement(ImmutableList<Double> desiredLoad,
+  /**
+   * Creates a new instance.
+   * @param desiredLoad The desired load graph.
+   * @param maxMeanDeviation The maximum mean deviation to the desired load
+   *          graph that is allowed for the input scenario.
+   * @param maxMaxDeviation The maximum max deviation to the desired load graph
+   *          that
+   * @param relativeLoad If <code>true</code>
+   *          {@link Metrics#measureRelativeLoad(Scenario)} is used, otherwise
+   *          {@link Metrics#measureLoad(Scenario)} is used.
+   */
+  LoadRequirement(ImmutableList<Double> desiredLoad,
       double maxMeanDeviation, double maxMaxDeviation, boolean relativeLoad) {
     desiredLoadList = desiredLoad;
     maxMean = maxMeanDeviation;
@@ -46,6 +64,7 @@ public class LoadRequirement implements Predicate<Scenario> {
 
   @Override
   public boolean apply(@Nullable Scenario scenario) {
+    checkArgument(scenario != null);
     final List<Double> loads = newArrayList(relative ? Metrics
         .measureRelativeLoad(scenario) : Metrics.measureLoad(scenario));
     final int toAdd = desiredLoadList.size() - loads.size();

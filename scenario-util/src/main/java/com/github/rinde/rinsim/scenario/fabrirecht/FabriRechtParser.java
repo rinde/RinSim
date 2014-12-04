@@ -44,7 +44,6 @@ import com.google.common.collect.ImmutableSet;
  */
 public final class FabriRechtParser {
   private static final String LINE_SEPARATOR = ";";
-  private static final String VALUE_SEPARATOR = ",";
 
   private FabriRechtParser() {}
 
@@ -153,9 +152,7 @@ public final class FabriRechtParser {
   }
 
   static String toJson(FabriRechtScenario scenario) {
-
     return ScenarioIO.write(scenario);
-    // return GSON.toJson(scenario);
   }
 
   /**

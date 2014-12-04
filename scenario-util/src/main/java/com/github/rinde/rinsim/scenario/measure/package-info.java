@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /**
- * 
+ * Package for measuring properties of scenarios.
  * @author Rinde van Lon 
  */
 @javax.annotation.ParametersAreNonnullByDefault

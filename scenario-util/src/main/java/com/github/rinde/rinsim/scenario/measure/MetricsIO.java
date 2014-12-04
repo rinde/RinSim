@@ -20,13 +20,19 @@ import java.io.IOException;
 import java.util.List;
 
 import com.github.rinde.rinsim.geom.Point;
+import com.google.common.annotations.Beta;
 import com.google.common.base.Charsets;
 import com.google.common.base.Joiner;
 import com.google.common.io.Files;
 
-public class Analysis {
+/**
+ * Provides some methods to write some common properties of scenarios to a file.
+ * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+ */
+@Beta
+public final class MetricsIO {
 
-  private Analysis() {}
+  private MetricsIO() {}
 
   /**
    * Writes the specified list of {@link Point}s to the specified file. Each
@@ -50,22 +56,38 @@ public class Analysis {
       Files.createParentDirs(f);
       Files.write(sb.toString(), f, Charsets.UTF_8);
     } catch (final IOException e) {
-      throw new RuntimeException(e);
+      throw new IllegalStateException(e);
     }
   }
 
-  public static void writeLoads(List<? extends Number> loads, File f) {
+  /**
+   * Writes the specified list of numbers to a file. The list is interpreted as
+   * the y-values of a graph, the indices of the list are used as the x-values
+   * of the graph. A <code>0</code> is always appended. For example, if the
+   * provided list is <code>[10, 20, 30, 40]</code>, the file will contain:
+   * 
+   * <pre>
+   * {@code 0 10}
+   * {@code 1 20}
+   * {@code 2 30}
+   * {@code 3 40}
+   * {@code 4 0}
+   * </pre>
+   * @param list The list of numbers to write to a file.
+   * @param file The file to write to.
+   */
+  public static void writeLoads(List<? extends Number> list, File file) {
     final StringBuilder sb = new StringBuilder();
     int i = 0;
-    for (; i < loads.size(); i++) {
-      sb.append(i).append(" ").append(loads.get(i)).append("\n");
+    for (; i < list.size(); i++) {
+      sb.append(i).append(" ").append(list.get(i)).append("\n");
     }
     sb.append(i).append(" ").append(0).append("\n");
     try {
-      Files.createParentDirs(f);
-      Files.write(sb.toString(), f, Charsets.UTF_8);
+      Files.createParentDirs(file);
+      Files.write(sb.toString(), file, Charsets.UTF_8);
     } catch (final IOException e) {
-      throw new RuntimeException(e);
+      throw new IllegalStateException(e);
     }
   }
 
@@ -94,7 +116,7 @@ public class Analysis {
               .append(Joiner.on("\n").join(times)).append("\n"), f,
           Charsets.UTF_8);
     } catch (final IOException e) {
-      throw new IllegalArgumentException(e);
+      throw new IllegalStateException(e);
     }
   }
 }

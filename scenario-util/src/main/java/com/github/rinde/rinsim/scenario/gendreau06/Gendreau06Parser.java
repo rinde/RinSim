@@ -124,6 +124,13 @@ public final class Gendreau06Parser {
   public static Gendreau06Scenario parse(File file) {
     return parser().addFile(file).parse().get(0);
   }
+  
+  /**
+   * @return The {@link Gendreau06Parser} as a {@link Function}.
+   */
+  public static Function<Path, Gendreau06Scenario> reader() {
+    return new Gendreau06Reader();
+  }
 
   /**
    * Add the specified file to the parser.
@@ -196,7 +203,6 @@ public final class Gendreau06Parser {
   public Gendreau06Parser addDirectory(File dir) {
     final File[] files = dir.listFiles(
         new FileFilter() {
-          @SuppressWarnings("null")
           @Override
           public boolean accept(File file) {
             checkNotNull(file);
@@ -298,7 +304,6 @@ public final class Gendreau06Parser {
             tickSize, allowDiversion, online));
       }
     }
-    // TODO sort list first by ProblemClass then by Id
     return scenarios.build();
   }
 
@@ -423,10 +428,6 @@ public final class Gendreau06Parser {
       throw new IllegalArgumentException(e);
     }
     return listBuilder.build();
-  }
-
-  public static Function<Path, Gendreau06Scenario> reader() {
-    return new Gendreau06Reader();
   }
 
   static class Gendreau06Reader implements Function<Path, Gendreau06Scenario> {

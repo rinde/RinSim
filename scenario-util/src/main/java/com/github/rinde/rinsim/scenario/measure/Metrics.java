@@ -108,9 +108,6 @@ public final class Metrics {
     final long travelUb = Math.max(event.parcelDTO.deliveryTimeWindow.end,
         travelLb + expectedTravelTime);
 
-    // checkArgument(travelUb - travelLb >= expectedTravelTime,
-    // "The time windows should allow traveling from pickup to delivery.");
-
     final double travelLoad = expectedTravelTime
         / (double) (travelUb - travelLb);
     final LoadPart travelPart = new LoadPart(travelLb, travelUb, travelLoad);
@@ -355,6 +352,13 @@ public final class Metrics {
   }
 
   // Best version as of March 6th, 2014
+  /**
+   * Computes degree of dynamism of the specified arrival times and length of
+   * day.
+   * @param arrivalTimes A list of event arrival times.
+   * @param lengthOfDay The length of the day.
+   * @return A number in range [0, 1].
+   */
   public static double measureDynamism(Iterable<Double> arrivalTimes,
       double lengthOfDay) {
     final List<Double> times = newArrayList(arrivalTimes);
@@ -414,7 +418,7 @@ public final class Metrics {
     return builder.build();
   }
 
-  public static ImmutableList<Long> getOrderArrivalTimes(Scenario s) {
+  static ImmutableList<Long> getOrderArrivalTimes(Scenario s) {
     final ImmutableList.Builder<Long> builder = ImmutableList.builder();
     for (final TimedEvent se : s.asList()) {
       if (se instanceof AddParcelEvent) {
