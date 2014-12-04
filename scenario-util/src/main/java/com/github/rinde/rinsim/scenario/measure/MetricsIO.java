@@ -27,7 +27,7 @@ import com.google.common.io.Files;
 
 /**
  * Provides some methods to write some common properties of scenarios to a file.
- * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+ * @author Rinde van Lon
  */
 @Beta
 public final class MetricsIO {
