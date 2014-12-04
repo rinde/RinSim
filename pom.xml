@@ -51,15 +51,15 @@
 	<modules>
 		<module>core</module>
 		<module>ui</module>
-		<module>problem</module>
+		<module>pdptw</module>
 		<module>example</module>
-		<module>packaging</module>
 		<module>event</module>
 		<module>cli</module>
 		<module>fsm</module>
 		<module>geom</module>
 		<module>io</module>
 		<module>scenario</module>
+		<module>scenario-util</module>
 		<module>central</module>
 		<module>experiment</module>
 		<module>test-util</module>
@@ -90,37 +90,6 @@
 					</configuration>
 				</plugin>
 
-				<!-- license -->
-				<plugin>
-					<groupId>com.mycila</groupId>
-					<artifactId>license-maven-plugin</artifactId>
-					<version>2.3</version>
-					<configuration>
-						<header>LICENSE_HEADER</header>
-						<properties>
-							<owner>Rinde van Lon, iMinds DistriNet, KU Leuven</owner>
-							<year>2014</year>
-						</properties>
-						<mapping>
-							<java>SLASHSTAR_STYLE</java>
-						</mapping>
-						<excludes>
-							<exclude>src/test/resources/**</exclude>
-							<exclude>src/main/resources/**</exclude>
-						</excludes>
-						<includes>
-							<include>**/*.java</include>
-						</includes>
-					</configuration>
-					<executions>
-						<execution>
-							<goals>
-								<goal>check</goal>
-							</goals>
-						</execution>
-					</executions>
-				</plugin>
-
 				<!-- suppresses an annoying warning in all children pom files (maven-enforce-plugin 
 					blabla) -->
 				<plugin>
@@ -141,6 +110,23 @@
 									</pluginExecutionFilter>
 									<action>
 										<ignore />
+									</action>
+								</pluginExecution>
+								<pluginExecution>
+									<pluginExecutionFilter>
+										<groupId>com.mycila</groupId>
+										<artifactId>
+											license-maven-plugin
+										</artifactId>
+										<versionRange>
+											[2.3,)
+										</versionRange>
+										<goals>
+											<goal>check</goal>
+										</goals>
+									</pluginExecutionFilter>
+									<action>
+										<ignore></ignore>
 									</action>
 								</pluginExecution>
 							</pluginExecutions>
@@ -173,10 +159,46 @@
 						</execution>
 					</executions>
 				</plugin>
+
+
 			</plugins>
 		</pluginManagement>
 
 		<plugins>
+
+			<!-- license -->
+			<plugin>
+				<groupId>com.mycila</groupId>
+				<artifactId>license-maven-plugin</artifactId>
+				<version>2.3</version>
+				<configuration>
+					<header>LICENSE_HEADER</header>
+					<properties>
+						<owner>Rinde van Lon, iMinds DistriNet, KU Leuven</owner>
+						<year>2014</year>
+					</properties>
+					<mapping>
+						<java>SLASHSTAR_STYLE</java>
+					</mapping>
+					<excludes>
+						<exclude>src/test/resources/**</exclude>
+						<exclude>src/main/resources/**</exclude>
+					</excludes>
+					<includes>
+						<include>**/*.java</include>
+					</includes>
+				</configuration>
+				<executions>
+					<execution>
+						<id>check-license</id>
+						<phase>validate</phase>
+						<goals>
+							<goal>check</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+
 			<!-- adds a source jar to every executable jar -->
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
@@ -484,12 +506,12 @@
 			</dependency>
 			<dependency>
 				<groupId>com.github.rinde</groupId>
-				<artifactId>rinsim-problem</artifactId>
+				<artifactId>rinsim-pdptw</artifactId>
 				<version>${project.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>com.github.rinde</groupId>
-				<artifactId>rinsim-problem</artifactId>
+				<artifactId>rinsim-pdptw</artifactId>
 				<version>${project.version}</version>
 				<type>test-jar</type>
 			</dependency>
@@ -523,6 +545,11 @@
 			<dependency>
 				<groupId>com.github.rinde</groupId>
 				<artifactId>rinsim-experiment</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>com.github.rinde</groupId>
+				<artifactId>rinsim-scenario-util</artifactId>
 				<version>${project.version}</version>
 			</dependency>
 			<dependency>

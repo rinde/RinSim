@@ -24,10 +24,6 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 
-import com.github.rinde.rinsim.central.Central;
-import com.github.rinde.rinsim.central.RandomSolver;
-import com.github.rinde.rinsim.central.Solver;
-import com.github.rinde.rinsim.central.SolverValidator;
 import com.github.rinde.rinsim.central.arrays.RandomMVArraysSolver;
 import com.github.rinde.rinsim.pdptw.experiment.Experiment;
 import com.github.rinde.rinsim.pdptw.gendreau06.Gendreau06ObjectiveFunction;
@@ -36,7 +32,7 @@ import com.github.rinde.rinsim.pdptw.gendreau06.Gendreau06Scenario;
 
 /**
  * Integration tests for the centralized facade.
- * @author Rinde van Lon 
+ * @author Rinde van Lon
  */
 @RunWith(Parameterized.class)
 public class CentralIntegrationTest {
@@ -60,7 +56,7 @@ public class CentralIntegrationTest {
   @Before
   public void setUp() {
     final Gendreau06Parser parser = Gendreau06Parser.parser().addFile(
-        "../problem/files/test/gendreau06/req_rapide_1_240_24");
+        ScenarioPaths.GENDREAU);
     if (allowDiversion) {
       parser.allowDiversion();
     }
@@ -72,7 +68,8 @@ public class CentralIntegrationTest {
 
   /**
    * Test of {@link RandomMVArraysSolver} using the
-   * {@link com.github.rinde.rinsim.central.arrays.MultiVehicleArraysSolver} interface.
+   * {@link com.github.rinde.rinsim.central.arrays.MultiVehicleArraysSolver}
+   * interface.
    */
   @Test
   public void test() {

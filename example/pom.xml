@@ -1,4 +1,5 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<parent>
 		<groupId>com.github.rinde</groupId>
@@ -10,7 +11,7 @@
 	<artifactId>rinsim-example</artifactId>
 	<name>RinSim Examples</name>
 	<packaging>jar</packaging>
-	
+
 	<licenses>
 		<license>
 			<name>The Apache Software License, Version 2.0</name>
@@ -18,14 +19,14 @@
 			<distribution>repo</distribution>
 		</license>
 	</licenses>
-	
+
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<sonar.language>java</sonar.language>
 		<!-- by default we do not need commandline arguments for running tests -->
 		<test.arg />
 	</properties>
-	
+
 	<dependencies>
 		<dependency>
 			<groupId>com.github.rinde</groupId>
@@ -38,6 +39,10 @@
 		<dependency>
 			<groupId>com.github.rinde</groupId>
 			<artifactId>rinsim-scenario</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>com.github.rinde</groupId>
+			<artifactId>rinsim-scenario-util</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>com.github.rinde</groupId>
@@ -55,21 +60,21 @@
 		</dependency>
 		<dependency>
 			<groupId>com.github.rinde</groupId>
-			<artifactId>rinsim-problem</artifactId>
+			<artifactId>rinsim-pdptw</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>ch.qos.logback</groupId>
 			<artifactId>logback-classic</artifactId>
 			<version>1.0.13</version>
 			<!-- <scope>test</scope> -->
-		</dependency> 
+		</dependency>
 		<dependency>
 			<groupId>com.github.rinde</groupId>
 			<artifactId>rinsim-test-util</artifactId>
 			<type>test-jar</type>
 		</dependency>
 	</dependencies>
-	
+
 	<profiles>
 		<profile>
 			<!-- on mac we need a special argument -->

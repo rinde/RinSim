@@ -35,7 +35,7 @@
 		</dependency>
 		<dependency>
 			<groupId>com.github.rinde</groupId>
-			<artifactId>rinsim-problem</artifactId>
+			<artifactId>rinsim-pdptw</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>com.github.rinde</groupId>
@@ -55,7 +55,7 @@
 		</dependency>
 		<dependency>
 			<groupId>com.github.rinde</groupId>
-			<artifactId>rinsim-problem</artifactId>
+			<artifactId>rinsim-pdptw</artifactId>
 			<type>test-jar</type>
 			<scope>test</scope>
 		</dependency>
@@ -73,6 +73,11 @@
 		</dependency>
 		<dependency>
 			<groupId>com.github.rinde</groupId>
+			<artifactId>rinsim-scenario-util</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.github.rinde</groupId>
 			<artifactId>rinsim-cli</artifactId>
 			<type>test-jar</type>
 			<scope>test</scope>
@@ -82,7 +87,6 @@
 			<artifactId>jppf-client</artifactId>
 			<version>4.1.2</version>
 		</dependency>
-		
 		<dependency>
 			<groupId>org.jppf</groupId>
 			<artifactId>jppf-server</artifactId>

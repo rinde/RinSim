@@ -29,15 +29,11 @@ import org.apache.commons.math3.random.MersenneTwister;
 import org.apache.commons.math3.random.RandomGenerator;
 import org.junit.Test;
 
-import com.github.rinde.rinsim.central.Central;
-import com.github.rinde.rinsim.central.GlobalStateObject;
-import com.github.rinde.rinsim.central.SolverDebugger;
-import com.github.rinde.rinsim.central.Solvers;
 import com.github.rinde.rinsim.central.Solvers.ExtendedStats;
-import com.github.rinde.rinsim.central.arrays.ArraysSolvers;
-import com.github.rinde.rinsim.central.arrays.SolutionObject;
 import com.github.rinde.rinsim.central.arrays.ArraysSolverDebugger.MVASDebugger;
+import com.github.rinde.rinsim.central.arrays.ArraysSolvers;
 import com.github.rinde.rinsim.central.arrays.ArraysSolvers.MVArraysObject;
+import com.github.rinde.rinsim.central.arrays.SolutionObject;
 import com.github.rinde.rinsim.core.pdptw.ParcelDTO;
 import com.github.rinde.rinsim.pdptw.common.ObjectiveFunction;
 import com.github.rinde.rinsim.pdptw.common.StatisticsDTO;
@@ -50,7 +46,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.primitives.Longs;
 
 /**
- * @author Rinde van Lon 
+ * @author Rinde van Lon
  */
 public class SolverSimTest {
 
@@ -64,7 +60,7 @@ public class SolverSimTest {
   @Test
   public void testOffline() throws IOException {
     final Gendreau06Scenario scenario = Gendreau06Parser.parser()
-        .addFile("../problem/files/test/gendreau06/req_rapide_1_240_24")
+        .addFile(ScenarioPaths.GENDREAU)
         .offline()
         .parse()
         .get(0);
@@ -120,14 +116,15 @@ public class SolverSimTest {
   public void testOnline() throws IOException {
 
     final Gendreau06Scenario scenario = Gendreau06Parser
-        .parse(new File("../problem/files/test/gendreau06/req_rapide_1_240_24"));
+        .parse(new File(ScenarioPaths.GENDREAU));
 
     final DebugSolverCreator dsc = new DebugSolverCreator(123,
         scenario.getTimeUnit());
 
     final Gendreau06ObjectiveFunction obj = Gendreau06ObjectiveFunction
         .instance();
-    Experiment.build(obj).withThreads(1).addConfiguration(Central.solverConfiguration(dsc))
+    Experiment.build(obj).withThreads(1)
+        .addConfiguration(Central.solverConfiguration(dsc))
         .addScenario(scenario).repeat(10).perform();
 
     final MVASDebugger arraysSolver = dsc.arraysSolver;

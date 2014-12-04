@@ -33,10 +33,6 @@ import org.apache.commons.math3.random.MersenneTwister;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.github.rinde.rinsim.central.Central;
-import com.github.rinde.rinsim.central.Solver;
-import com.github.rinde.rinsim.central.SolverValidator;
-import com.github.rinde.rinsim.central.Solvers;
 import com.github.rinde.rinsim.central.Solvers.SimulationConverter;
 import com.github.rinde.rinsim.central.Solvers.SolveArgs;
 import com.github.rinde.rinsim.central.Solvers.StateContext;
@@ -108,7 +104,7 @@ public class CentralTest {
   @Test
   public void testConfigurator() {
     final Gendreau06Scenario scenario = Gendreau06Parser.parse(
-        new File("../problem/files/test/gendreau06/req_rapide_1_240_24"));
+        new File(ScenarioPaths.GENDREAU));
 
     final StochasticSupplier<Solver> s = new StochasticSupplier<Solver>() {
       @Override

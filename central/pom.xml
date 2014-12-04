@@ -48,15 +48,20 @@
 		</dependency>
 		<dependency>
 			<groupId>com.github.rinde</groupId>
+			<artifactId>rinsim-scenario-util</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.github.rinde</groupId>
 			<artifactId>rinsim-experiment</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>com.github.rinde</groupId>
-			<artifactId>rinsim-problem</artifactId>
+			<artifactId>rinsim-pdptw</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>com.github.rinde</groupId>
-			<artifactId>rinsim-problem</artifactId>
+			<artifactId>rinsim-pdptw</artifactId>
 			<type>test-jar</type>
 			<scope>test</scope>
 		</dependency>

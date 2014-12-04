@@ -2,9 +2,9 @@ core/files/test/
 example/src/main/java/rinde/sim/playground/
 .DS_Store
 target/
-problem/files/generator/*
-problem/files/test/gendreau06/req_rapide_*
-problem/files/dataset/*
-problem/files/test/times/*
+scenario-util/files/generator/*
+scenario-util/files/test/gendreau06/req_rapide_*
+scenario-util/files/dataset/*
+scenario-util/files/test/times/*
 org.sonar.ide.eclipse.core.prefs
 *.log

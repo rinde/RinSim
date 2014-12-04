@@ -1,5 +1,28 @@
 # Release notes
 
+## v3.0.0
+RinSim is restructured in a total of 12 modules:
+ * Central
+ * CLI
+ * Core
+ * Event
+ * Examples
+ * Experiment
+ * FSM
+ * Geom
+ * IO
+ * Problem
+ * Scenario
+ * Test Utils
+
+Starting with this version RinSim uses [semantic versioning](http://semver.org), all minor releases will be continuously checked to make sure they are backwards compatible to the major release.
+
+Apache license?
+
+New features:
+	- Added an advanced scenario generator framework that allows easy generation of entire datasets, it uses sensible defaults but allows to override and customize all settings.
+
+
 ## v2.3.3
 * Example module
 	* Fixed problem of non-existing file in demo.
