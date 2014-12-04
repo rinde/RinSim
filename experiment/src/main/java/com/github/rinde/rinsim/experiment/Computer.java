@@ -13,22 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.github.rinde.rinsim.pdptw.experiment;
+package com.github.rinde.rinsim.experiment;
 
-import com.github.rinde.rinsim.core.Simulator;
+import java.util.Set;
 
-/**
- * A post-processor should collect results from a {@link Simulator}.
- * @param <T> The results object type.
- * 
- * @author Rinde van Lon 
- */
-public interface PostProcessor<T> {
+import com.github.rinde.rinsim.experiment.Experiment.Builder;
+import com.github.rinde.rinsim.experiment.Experiment.SimArgs;
+
+interface Computer {
 
   /**
-   * Collects results from the provided {@link Simulator}.
-   * @param sim The simulator.
-   * @return An object containing simulation results.
+   * Should compute all simulations as specified by the inputs.
+   * @param builder The builder.
+   * @param inputs The inputs which define which simulations to compute.
+   * @return An instance of {@link ExperimentResults} containing the results.
    */
-  T collectResults(Simulator sim);
+  ExperimentResults compute(Builder builder, Set<SimArgs> inputs);
+
 }

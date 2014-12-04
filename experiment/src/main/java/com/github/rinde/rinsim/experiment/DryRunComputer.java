@@ -13,14 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.github.rinde.rinsim.pdptw.experiment;
+package com.github.rinde.rinsim.experiment;
 
 import java.io.PrintStream;
 import java.util.Set;
 
-import com.github.rinde.rinsim.pdptw.experiment.Experiment.Builder;
-import com.github.rinde.rinsim.pdptw.experiment.Experiment.Computers;
-import com.github.rinde.rinsim.pdptw.experiment.Experiment.SimArgs;
+import com.github.rinde.rinsim.experiment.Experiment.Builder;
+import com.github.rinde.rinsim.experiment.Experiment.Computers;
+import com.github.rinde.rinsim.experiment.Experiment.SimArgs;
 import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableSet;
 

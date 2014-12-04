@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.github.rinde.rinsim.pdptw.experiment;
+package com.github.rinde.rinsim.experiment;
 
 import static com.google.common.base.Preconditions.checkState;
 
@@ -23,11 +23,11 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
 
+import com.github.rinde.rinsim.experiment.Experiment.Builder;
+import com.github.rinde.rinsim.experiment.Experiment.SimArgs;
+import com.github.rinde.rinsim.experiment.Experiment.SimulationResult;
 import com.github.rinde.rinsim.pdptw.common.DynamicPDPTWProblem;
 import com.github.rinde.rinsim.pdptw.common.StatisticsDTO;
-import com.github.rinde.rinsim.pdptw.experiment.Experiment.Builder;
-import com.github.rinde.rinsim.pdptw.experiment.Experiment.SimArgs;
-import com.github.rinde.rinsim.pdptw.experiment.Experiment.SimulationResult;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;

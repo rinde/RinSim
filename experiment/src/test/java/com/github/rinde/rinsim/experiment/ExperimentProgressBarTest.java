@@ -13,11 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.github.rinde.rinsim.pdptw.experiment;
+package com.github.rinde.rinsim.experiment;
 
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 
+import com.github.rinde.rinsim.experiment.ExperimentProgressBar;
 import com.github.rinde.rinsim.testutil.GuiTests;
 
 @Category(GuiTests.class)

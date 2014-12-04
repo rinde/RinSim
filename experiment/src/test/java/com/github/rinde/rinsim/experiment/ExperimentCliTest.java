@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.github.rinde.rinsim.pdptw.experiment;
+package com.github.rinde.rinsim.experiment;
 
 import static com.github.rinde.rinsim.cli.CliTest.testFail;
 import static com.google.common.collect.Sets.newHashSet;
@@ -24,8 +24,11 @@ import org.junit.Test;
 
 import com.github.rinde.rinsim.cli.CliException.CauseType;
 import com.github.rinde.rinsim.cli.Menu;
+import com.github.rinde.rinsim.experiment.Experiment;
+import com.github.rinde.rinsim.experiment.ExperimentCli;
+import com.github.rinde.rinsim.experiment.MASConfiguration;
+import com.github.rinde.rinsim.experiment.Experiment.Builder;
 import com.github.rinde.rinsim.pdptw.common.TestObjectiveFunction;
-import com.github.rinde.rinsim.pdptw.experiment.Experiment.Builder;
 import com.github.rinde.rinsim.scenario.ScenarioIO;
 import com.github.rinde.rinsim.scenario.ScenarioTestUtil;
 

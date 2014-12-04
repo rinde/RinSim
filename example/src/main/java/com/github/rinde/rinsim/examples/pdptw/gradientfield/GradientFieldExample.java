@@ -17,8 +17,8 @@ package com.github.rinde.rinsim.examples.pdptw.gradientfield;
 
 import com.github.rinde.rinsim.core.Simulator;
 import com.github.rinde.rinsim.core.pdptw.DefaultDepot;
+import com.github.rinde.rinsim.experiment.Experiment;
 import com.github.rinde.rinsim.pdptw.common.RouteRenderer;
-import com.github.rinde.rinsim.pdptw.experiment.Experiment;
 import com.github.rinde.rinsim.scenario.ScenarioController.UICreator;
 import com.github.rinde.rinsim.scenario.gendreau06.Gendreau06ObjectiveFunction;
 import com.github.rinde.rinsim.scenario.gendreau06.Gendreau06Parser;

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.github.rinde.rinsim.pdptw.experiment;
+package com.github.rinde.rinsim.experiment;
 
 import static com.google.common.collect.Lists.newArrayList;
 
@@ -22,9 +22,9 @@ import java.util.List;
 
 import javax.annotation.Nullable;
 
+import com.github.rinde.rinsim.experiment.Experiment.Builder;
+import com.github.rinde.rinsim.experiment.Experiment.SimulationResult;
 import com.github.rinde.rinsim.pdptw.common.ObjectiveFunction;
-import com.github.rinde.rinsim.pdptw.experiment.Experiment.Builder;
-import com.github.rinde.rinsim.pdptw.experiment.Experiment.SimulationResult;
 import com.github.rinde.rinsim.scenario.Scenario;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;

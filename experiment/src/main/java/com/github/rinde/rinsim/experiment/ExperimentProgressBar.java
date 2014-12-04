@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.github.rinde.rinsim.pdptw.experiment;
+package com.github.rinde.rinsim.experiment;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -36,7 +36,7 @@ import org.eclipse.swt.widgets.Monitor;
 import org.eclipse.swt.widgets.ProgressBar;
 import org.eclipse.swt.widgets.Shell;
 
-import com.github.rinde.rinsim.pdptw.experiment.Experiment.SimulationResult;
+import com.github.rinde.rinsim.experiment.Experiment.SimulationResult;
 import com.google.common.base.Optional;
 import com.google.common.math.DoubleMath;
 

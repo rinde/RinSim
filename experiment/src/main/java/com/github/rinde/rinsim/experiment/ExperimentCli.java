@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.github.rinde.rinsim.pdptw.experiment;
+package com.github.rinde.rinsim.experiment;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.collect.Lists.newArrayList;
@@ -28,9 +28,9 @@ import com.github.rinde.rinsim.cli.NoArgHandler;
 import com.github.rinde.rinsim.cli.Option;
 import com.github.rinde.rinsim.cli.Option.OptionArg;
 import com.github.rinde.rinsim.cli.Option.OptionNoArg;
+import com.github.rinde.rinsim.experiment.Experiment.Builder;
+import com.github.rinde.rinsim.experiment.Experiment.Computers;
 import com.github.rinde.rinsim.io.FileProviderCli;
-import com.github.rinde.rinsim.pdptw.experiment.Experiment.Builder;
-import com.github.rinde.rinsim.pdptw.experiment.Experiment.Computers;
 import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
