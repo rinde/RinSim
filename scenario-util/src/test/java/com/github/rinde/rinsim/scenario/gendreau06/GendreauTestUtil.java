@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.github.rinde.rinsim.pdptw.gendreau06;
+package com.github.rinde.rinsim.scenario.gendreau06;
 
 import static com.google.common.collect.Lists.newArrayList;
 
@@ -23,11 +23,11 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
-import com.github.rinde.rinsim.pdptw.gendreau06.Gendreau06Parser;
-import com.github.rinde.rinsim.pdptw.gendreau06.Gendreau06Scenario;
-import com.github.rinde.rinsim.pdptw.gendreau06.GendreauProblemClass;
 import com.github.rinde.rinsim.scenario.TimedEvent;
 import com.github.rinde.rinsim.scenario.TimedEvent.TimeComparator;
+import com.github.rinde.rinsim.scenario.gendreau06.Gendreau06Parser;
+import com.github.rinde.rinsim.scenario.gendreau06.Gendreau06Scenario;
+import com.github.rinde.rinsim.scenario.gendreau06.GendreauProblemClass;
 
 /**
  * @author Rinde van Lon 

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.github.rinde.rinsim.pdptw.fabrirecht;
+package com.github.rinde.rinsim.scenario.fabrirecht;
 
 import java.io.File;
 import java.io.IOException;
@@ -31,9 +31,9 @@ import com.github.rinde.rinsim.core.pdptw.VehicleDTO;
 import com.github.rinde.rinsim.pdptw.common.DynamicPDPTWProblem;
 import com.github.rinde.rinsim.pdptw.common.DynamicPDPTWProblem.Creator;
 import com.github.rinde.rinsim.pdptw.common.DynamicPDPTWProblem.DefaultUICreator;
-import com.github.rinde.rinsim.pdptw.fabrirecht.FabriRechtParser;
-import com.github.rinde.rinsim.pdptw.fabrirecht.FabriRechtScenario;
 import com.github.rinde.rinsim.scenario.AddVehicleEvent;
+import com.github.rinde.rinsim.scenario.fabrirecht.FabriRechtParser;
+import com.github.rinde.rinsim.scenario.fabrirecht.FabriRechtScenario;
 import com.github.rinde.rinsim.ui.View;
 import com.github.rinde.rinsim.ui.renderers.Renderer;
 import com.google.common.base.Charsets;

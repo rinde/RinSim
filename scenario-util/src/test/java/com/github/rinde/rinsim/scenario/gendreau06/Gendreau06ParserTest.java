@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.github.rinde.rinsim.pdptw.gendreau06;
+package com.github.rinde.rinsim.scenario.gendreau06;
 
-import static com.github.rinde.rinsim.pdptw.gendreau06.Gendreau06Parser.parse;
-import static com.github.rinde.rinsim.pdptw.gendreau06.Gendreau06Parser.parser;
+import static com.github.rinde.rinsim.scenario.gendreau06.Gendreau06Parser.parse;
+import static com.github.rinde.rinsim.scenario.gendreau06.Gendreau06Parser.parser;
 import static com.google.common.collect.Lists.newArrayList;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -31,10 +31,10 @@ import org.junit.Test;
 
 import com.github.rinde.rinsim.core.model.pdp.PDPScenarioEvent;
 import com.github.rinde.rinsim.pdptw.common.PDPRoadModel;
-import com.github.rinde.rinsim.pdptw.gendreau06.Gendreau06Parser;
-import com.github.rinde.rinsim.pdptw.gendreau06.Gendreau06Scenario;
-import com.github.rinde.rinsim.pdptw.gendreau06.GendreauProblemClass;
 import com.github.rinde.rinsim.scenario.TimedEvent;
+import com.github.rinde.rinsim.scenario.gendreau06.Gendreau06Parser;
+import com.github.rinde.rinsim.scenario.gendreau06.Gendreau06Scenario;
+import com.github.rinde.rinsim.scenario.gendreau06.GendreauProblemClass;
 
 /**
  * @author Rinde van Lon 

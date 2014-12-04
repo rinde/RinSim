@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.github.rinde.rinsim.pdptw.gendreau06;
+package com.github.rinde.rinsim.scenario.gendreau06;
 
 import com.github.rinde.rinsim.core.Simulator;
 import com.github.rinde.rinsim.pdptw.common.DynamicPDPTWProblem;

@@ -25,7 +25,7 @@
  * </ul>
  */
 @ParametersAreNonnullByDefault
-package com.github.rinde.rinsim.pdptw.gendreau06;
+package com.github.rinde.rinsim.scenario.gendreau06;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 
