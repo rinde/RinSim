@@ -58,7 +58,6 @@ import com.google.common.base.Predicates;
 import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableMap;
 
-// TODO rename to ProblemInstance? or to Problem?
 /**
  * A problem instance for the class of problems which is called dynamic
  * pickup-and-delivery problems with time windows, often abbreviated as dynamic
@@ -292,7 +291,7 @@ public class DynamicPDPTWProblem {
     eventCreatorMap.put(eventType, creator);
   }
 
-  public static StatisticsDTO getStats(Simulator sim) {
+  static StatisticsDTO getStats(Simulator sim) {
     final StatsTracker t = sim.getModelProvider().getModel(StatsTracker.class);
     if (t == null) {
       throw new IllegalStateException("No stats tracker found!");
