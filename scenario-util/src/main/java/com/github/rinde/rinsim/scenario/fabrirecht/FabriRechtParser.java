@@ -164,12 +164,15 @@ public final class FabriRechtParser {
   public static void toJson(FabriRechtScenario scenario, Writer writer)
       throws IOException {
     final String s = ScenarioIO.write(scenario);
-
     writer.append(s);
-    // GSON.toJson(scenario, FabriRechtScenario.class, writer);
     writer.close();
   }
 
+  /**
+   * Convert the specified JSON string to a {@link FabriRechtScenario}.
+   * @param json The JSON string to parse.
+   * @return A new instance of [@link {@link FabriRechtScenario}.
+   */
   public static FabriRechtScenario fromJson(String json) {
     return ScenarioIO.read(json, FabriRechtScenario.class);
   }

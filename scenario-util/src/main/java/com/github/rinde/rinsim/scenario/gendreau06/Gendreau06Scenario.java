@@ -112,7 +112,7 @@ public final class Gendreau06Scenario extends Scenario {
         .build();
   }
 
-  PDPModel createPDPModel() {
+  static PDPModel createPDPModel() {
     return new DefaultPDPModel(TimeWindowPolicies.TARDY_ALLOWED);
   }
 
