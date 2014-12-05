@@ -241,7 +241,7 @@ final class JppfComputer implements Computer {
       }
     }
 
-    public boolean isComplete() {
+    boolean isComplete() {
       return receivedNumResults == expectedNumResults;
     }
 
@@ -390,7 +390,7 @@ final class JppfComputer implements Computer {
           objectiveFunctionId, postProcessorId);
     }
 
-    public int getIndex() {
+    int getIndex() {
       return index;
     }
 
@@ -432,23 +432,23 @@ final class JppfComputer implements Computer {
       setResult(new SimTaskResult(stats, data));
     }
 
-    public long getSeed() {
+    long getSeed() {
       return seed;
     }
 
-    public String getScenarioId() {
+    String getScenarioId() {
       return scenarioId;
     }
 
-    public String getConfigurationId() {
+    String getConfigurationId() {
       return configurationId;
     }
 
-    public String getObjectiveFunctionId() {
+    String getObjectiveFunctionId() {
       return objectiveFunctionId;
     }
 
-    public Optional<String> getPostProcessorId() {
+    Optional<String> getPostProcessorId() {
       return postProcessorId;
     }
 
@@ -504,11 +504,11 @@ final class JppfComputer implements Computer {
       data = d;
     }
 
-    public StatisticsDTO getStats() {
+    StatisticsDTO getStats() {
       return stats;
     }
 
-    public Optional<?> getData() {
+    Optional<?> getData() {
       return data;
     }
   }

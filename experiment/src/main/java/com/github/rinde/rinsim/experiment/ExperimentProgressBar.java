@@ -221,11 +221,11 @@ public class ExperimentProgressBar implements ResultListener,
       gui.get().start();
     }
 
-    public boolean isInitialized() {
+    boolean isInitialized() {
       return gui.isPresent();
     }
 
-    public Gui getGui() {
+    Gui getGui() {
       return gui.get();
     }
   }
