@@ -17,10 +17,10 @@ RinSim is restructured in a total of 14 modules:
  * Test Utils
  * UI
 
-Starting with this version RinSim targets Java 7 and uses [semantic versioning](http://semver.org), all minor releases will be continuously checked to make sure they are backwards compatible to the major release. Also, RinSim is now officially released under the Apache License, Version 2.0, a license header is added to every source file.
+Starting with the current version RinSim targets Java 7 and uses [semantic versioning](http://semver.org), all minor releases will be continuously checked to make sure they are backwards compatible to the major release. Also, RinSim is now officially released under the Apache License, Version 2.0, a license header is added to every source file.
 
 ### New features
- - _Scenario Utils_: Added an advanced scenario generator framework that allows easy generation of entire datasets, it uses sensible defaults but allows to override and customize all settings.
+ - _Scenario Utils_: Added an advanced scenario generator framework that allows easy generation of entire datasets, it uses sensible defaults while allowing overriding and customizing all settings.
  - _CLI_: Created a command-line interface framework that allows to easily define a CLI that can be hooked to an existing API.
  - _Experiment_: The experiment API can now be used from the command-line.
  - _Experiment_: Added distributed computation support using JPPF library.
