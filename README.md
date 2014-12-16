@@ -1,9 +1,9 @@
 
-# RinSim 3.0.0-SNAPSHOT
+# RinSim 3.0.0
 
 RinSim is an extensible logistics simulator with support for (de)centralized algorithms for pickup and delivery problems. The simulator focuses on __simplicity__ and __consistency__ making it ideal for performing scientific simulations. Further, software quality is a priority resulting in an ever improving test suite and documentation.
 
-[![Build Status](https://travis-ci.org/rinde/RinSim.svg?branch=develop)](https://travis-ci.org/rinde/RinSim)
+[![Build Status](https://travis-ci.org/rinde/RinSim.svg?branch=master)](https://travis-ci.org/rinde/RinSim)
 
 <!-- ![PDPModel](docs/topbar.png) -->
 ![Taxi Demo](docs/taxi-demo.gif)

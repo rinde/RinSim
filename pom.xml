@@ -3,11 +3,11 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.github.rinde</groupId>
 	<artifactId>rinsim-main</artifactId>
-	<version>3.0.0-SNAPSHOT</version>
+	<version>3.0.0</version>
 	<packaging>pom</packaging>
 
 	<name>RinSim</name>
-	<description>RinSim is a multi-agent system simulator written in Java. It supports problems in the fields of transportation and logistics, most notably dynamic pickup-and-delivery problems (PDP).</description>
+	<description>RinSim is a logistics simulator written in Java. RinSim supports (de)centralized algorithms for dynamic pickup-and-delivery problems (PDP).</description>
 	<url>http://github.com/rinde/RinSim</url>
 	<inceptionYear>2011</inceptionYear>
 
@@ -71,7 +71,7 @@
 		<sonar.dynamicAnalysis>true</sonar.dynamicAnalysis>
 		<test.excludedGroups />
 		<skip.gui.tests>false</skip.gui.tests>
-		<reference.version>3.0.0-SNAPSHOT</reference.version>
+		<reference.version>3.0.0</reference.version>
 	</properties>
 
 	<distributionManagement>
