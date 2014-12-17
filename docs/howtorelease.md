@@ -27,7 +27,7 @@
  1. deploy
    1. 
         ```
-        mvn clean deploy
+        mvn clean deploy -DperformRelease=true
         ```
    1. Wait for success confirmation by email ("Nexus: Promotion Completed").
  1. goto github.com, draft a new release from master:
