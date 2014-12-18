@@ -9,6 +9,11 @@ install: mvn install -DskipTests=true
 script: 
   - mvn test -Dskip.gui.tests=true
 
+sudo:false
+cache:
+  directories:
+    - '$HOME/.m2/repository'
+
 env:
   global:
     secure: "BNmSL7eqM5T2U94LVDArWadTZxL9M5S9XZTDg5DA9pwZwZzH+7ZgTcAfhmBJ0ql9YdVm5usmHKCT1HXXMwL0EfUkYbDSZmfn+uoXSvjgWjNmlU9zV0P1La+lPle878bWjbUev3qgjwpd1zRF1RwADolGQwowj35D8jl+E8DPPSQ="
