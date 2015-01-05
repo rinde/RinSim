@@ -1,3 +1,18 @@
+/*
+ * Copyright (C) 2011-2014 Rinde van Lon, iMinds DistriNet, KU Leuven
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *         http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.github.rinde.rinsim.experiment.base;
 
 import static com.google.common.collect.Lists.newArrayList;
@@ -14,7 +29,7 @@ import com.google.common.collect.ImmutableSet;
 /**
  * Value object containing all the results of a single experiment as performed
  * by ...
- * @author Rinde van Lon 
+ * @author Rinde van Lon
  */
 public final class ExperimentResults {
   /**
@@ -55,7 +70,8 @@ public final class ExperimentResults {
    */
   public final ImmutableSet<SimulationResult> results;
 
-  ExperimentResults(AbstractExperimentBuilder exp, ImmutableSet<SimulationResult> res) {
+  ExperimentResults(AbstractExperimentBuilder exp,
+      ImmutableSet<SimulationResult> res) {
     objectiveFunction = exp.objectiveFunction;
     configurations = ImmutableSet.copyOf(exp.configurationsSet);
     scenarios = exp.scenariosBuilder.build();

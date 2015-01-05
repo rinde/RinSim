@@ -131,10 +131,10 @@ public abstract class AbstractExperimentBuilder<T extends AbstractExperimentBuil
   // return showGui();
   // }
 
-  /**
-   * Add a configuration to the experiment. For each simulation
-   * {@link StochasticSupplier#get(long)} is called and the resulting
-   * {@link MASConfiguration} is used for a <i>single</i> simulation.
+  /*
+   * Add a configuration to the experiment. For each simulation {@link
+   * StochasticSupplier#get(long)} is called and the resulting {@link
+   * MASConfiguration} is used for a <i>single</i> simulation.
    * @param config The configuration to add.
    * @return This, as per the builder pattern.
    */
@@ -144,10 +144,10 @@ public abstract class AbstractExperimentBuilder<T extends AbstractExperimentBuil
     return self();
   }
 
-  /**
-   * Adds all configurations to the experiment. For each simulation
-   * {@link StochasticSupplier#get(long)} is called and the resulting
-   * {@link MASConfiguration} is used for a <i>single</i> simulation.
+  /*
+   * Adds all configurations to the experiment. For each simulation {@link
+   * StochasticSupplier#get(long)} is called and the resulting {@link
+   * MASConfiguration} is used for a <i>single</i> simulation.
    * @param configs The configurations to add.
    * @return This, as per the builder pattern.
    */
@@ -228,12 +228,12 @@ public abstract class AbstractExperimentBuilder<T extends AbstractExperimentBuil
     return self();
   }
 
-  /**
+  /*
    * Specify a {@link PostProcessor} which is used to gather additional results
    * from a simulation. The data gathered by the post-processor ends up in
    * {@link SimulationResult#simulationData}.
    * @param postProcessor The post-processor to use, by default there is no
-   *          post-processor.
+   * post-processor.
    * @return This, as per the builder pattern.
    */
   public T usePostProcessor(PostProcessor<?, ?> postProcessor) {
@@ -254,25 +254,17 @@ public abstract class AbstractExperimentBuilder<T extends AbstractExperimentBuil
     return self();
   }
 
-  /**
+  /*
    * When this method is called the experiment will be performed in a
    * distributed fashion using the <a href="http://www.jppf.org/">JPPF</a>
    * framework. By default JPPF will attempt to connect to a driver on
    * <code>localhost</code>. For changing the JPPF settings, please consult the
-   * <a href="http://www.jppf.org/doc/">JPPF documentation</a>.
-   * <p>
+   * <a href="http://www.jppf.org/doc/">JPPF documentation</a>. <p>
    * <b>Requirements:</b> {@link ..}, {@link ..} and {@link PostProcessor} (if
-   * used) must implement {@link java.io.Serializable}.
-   * <p>
-   * <b>Incompatible settings</b><br>
-   * The following settings will be ignored when computing is done in a
-   * distributed fashion:
-   * <ul>
-   * <li>{@link #withThreads(int)}</li>
-   * <li>{@link #showGui()}</li>
-   * <li>{@link #showGui(UICreator)}</li>
-   * </ul>
-   *
+   * used) must implement {@link java.io.Serializable}. <p> <b>Incompatible
+   * settings</b><br> The following settings will be ignored when computing is
+   * done in a distributed fashion: <ul> <li>{@link #withThreads(int)}</li>
+   * <li>{@link #showGui()}</li> <li>{@link #showGui(UICreator)}</li> </ul>
    * @return This, as per the builder pattern.
    */
   public T computeDistributed() {
@@ -404,8 +396,8 @@ public abstract class AbstractExperimentBuilder<T extends AbstractExperimentBuil
         for (int i = 0; i < repetitions; i++) {
           final long seed = seeds.get(i);
           runnerBuilder
-          .add(new SimArgs(scenario, configuration,
-              seed, objectiveFunction, showGui, postProc));
+              .add(new SimArgs(scenario, configuration,
+                  seed, objectiveFunction, showGui, postProc));
         }
       }
     }
