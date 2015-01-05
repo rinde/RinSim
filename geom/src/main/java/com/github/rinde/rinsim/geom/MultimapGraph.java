@@ -93,8 +93,8 @@ public class MultimapGraph<E extends ConnectionData> extends AbstractGraph<E> {
   }
 
   @Override
+  @Nullable
   public E setConnectionData(Point from, Point to, @Nullable E connData) {
-
     if (!hasConnection(from, to)) {
       throw new IllegalArgumentException("the connection " + from + " -> " + to
           + "does not exist");
@@ -196,11 +196,6 @@ public class MultimapGraph<E extends ConnectionData> extends AbstractGraph<E> {
   @Override
   public int hashCode() {
     return Objects.hashCode(data, deadEndNodes, edgeData);
-  }
-
-  @Override
-  public boolean equals(@Nullable Object o) {
-    return super.equals(o);
   }
 
   @Override

@@ -127,8 +127,23 @@ public final class Graphs {
    * @param <E> The type of connection data.
    * @return <code>true</code> if the provided graphs are equal,
    *         <code>false</code> otherwise.
+   * @deprecated Use {@link #equal(Graph, Graph)} instead.
    */
+  @Deprecated
   public static <E extends ConnectionData> boolean equals(
+      Graph<? extends E> g1, Graph<? extends E> g2) {
+    return equal(g1, g2);
+  }
+
+  /**
+   * Basic equals method.
+   * @param g1 A graph.
+   * @param g2 Another graph.
+   * @param <E> The type of connection data.
+   * @return <code>true</code> if the provided graphs are equal,
+   *         <code>false</code> otherwise.
+   */
+  public static <E extends ConnectionData> boolean equal(
       Graph<? extends E> g1, Graph<? extends E> g2) {
     if (g1.getNumberOfNodes() != g2.getNumberOfNodes()) {
       return false;
@@ -371,8 +386,8 @@ public final class Graphs {
     }
 
     @Override
-    public int compareTo(ObjectWithDistance<T> o) {
-      return Double.compare(dist, o.dist);
+    public int compareTo(@Nullable ObjectWithDistance<T> o) {
+      return Double.compare(dist, checkNotNull(o).dist);
     }
 
     @Override
@@ -583,7 +598,7 @@ public final class Graphs {
     @SuppressWarnings({ "unchecked" })
     @Override
     public boolean equals(@Nullable Object other) {
-      return other instanceof Graph ? Graphs.equals(this, (Graph<E>) other)
+      return other instanceof Graph ? Graphs.equal(this, (Graph<E>) other)
           : false;
     }
 
@@ -599,7 +614,7 @@ public final class Graphs {
     }
 
     @Override
-    public void addConnection(Point from, Point to, E edgeData) {
+    public void addConnection(Point from, Point to, @Nullable E edgeData) {
       throw new UnsupportedOperationException();
     }
 
@@ -609,7 +624,8 @@ public final class Graphs {
     }
 
     @Override
-    public E setConnectionData(Point from, Point to, E edgeData) {
+    @Nullable
+    public E setConnectionData(Point from, Point to, @Nullable E edgeData) {
       throw new UnsupportedOperationException();
     }
 
@@ -622,7 +638,6 @@ public final class Graphs {
     public Connection<E> getConnection(Point from, Point to) {
       return unmodifiableConnection(delegate.getConnection(from, to));
     }
-
   }
 
   static class EuclidianDistance implements Graphs.Heuristic {

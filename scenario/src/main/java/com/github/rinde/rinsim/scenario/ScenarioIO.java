@@ -225,8 +225,8 @@ public final class ScenarioIO {
 
     @SuppressWarnings("unchecked")
     @Override
-    public T apply(@Nullable Path input) {
-      checkArgument(input != null);
+    public @Nullable T apply(@Nullable Path input) {
+      checkNotNull(input);
       try {
         if (clazz.isPresent()) {
           return read(input, clazz.get());
@@ -242,18 +242,17 @@ public final class ScenarioIO {
       JsonDeserializer<T> {
 
     @Override
-    public final JsonElement serialize(T src, Type typeOfSrc,
-        JsonSerializationContext context) {
+    public final JsonElement serialize(@Nullable T src, @Nullable Type typeOfSrc,
+        @Nullable JsonSerializationContext context) {
       checkNotNull(src);
       checkNotNull(typeOfSrc);
       checkNotNull(context);
       return doSerialize(src, typeOfSrc, context);
     }
 
-    @SuppressWarnings("null")
     @Override
-    public final T deserialize(JsonElement json, Type typeOfT,
-        JsonDeserializationContext context) {
+    public final T deserialize(@Nullable JsonElement json, @Nullable Type typeOfT,
+        @Nullable JsonDeserializationContext context) {
       checkNotNull(json);
       checkNotNull(typeOfT);
       checkNotNull(context);
@@ -311,10 +310,9 @@ public final class ScenarioIO {
   }
 
   static class TimedEventHierarchyIO implements JsonDeserializer<TimedEvent> {
-    @SuppressWarnings("null")
     @Override
-    public TimedEvent deserialize(JsonElement json, Type typeOfT,
-        JsonDeserializationContext context) {
+    public TimedEvent deserialize(@Nullable JsonElement json, @Nullable Type typeOfT,
+        @Nullable JsonDeserializationContext context) {
       checkNotNull(json);
       checkNotNull(typeOfT);
       checkNotNull(context);

@@ -211,7 +211,8 @@ final class JppfComputer implements Computer {
     }
 
     @Override
-    public void resultsReceived(@SuppressWarnings("null") TaskResultEvent event) {
+    public void resultsReceived(@Nullable TaskResultEvent event) {
+      checkNotNull(event);
       for (final Task<?> t : event.getTasks()) {
         final SimulationTask simTask = (SimulationTask) t;
         try {
@@ -260,8 +261,8 @@ final class JppfComputer implements Computer {
     }
 
     @Override
-    public int compareTo(SimResultWrapper o) {
-      return Ints.compare(index, o.index);
+    public int compareTo(@Nullable SimResultWrapper o) {
+      return Ints.compare(index, checkNotNull(o).index);
     }
 
     @Override
@@ -482,7 +483,8 @@ final class JppfComputer implements Computer {
     }
 
     @Override
-    public int compareTo(SimulationTask o) {
+    public int compareTo(@Nullable SimulationTask o) {
+      checkNotNull(o);
       return ComparisonChain.start()
           .compare(scenarioId, o.scenarioId)
           .compare(configurationId, o.configurationId)

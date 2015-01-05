@@ -78,7 +78,7 @@ public final class Models {
    */
   public static <T extends Model<?>> ModelSupplierScenGen<T> adapt(
       Supplier<T> sup) {
-    return new Adapter<T>(sup);
+    return new Adapter<>(sup);
   }
 
   /**
@@ -97,7 +97,7 @@ public final class Models {
   }
 
   private static class Adapter<T extends Model<?>> implements
-      ModelSupplierScenGen<T> {
+  ModelSupplierScenGen<T> {
     private final Supplier<T> supplier;
 
     Adapter(Supplier<T> sup) {
@@ -148,7 +148,7 @@ public final class Models {
   }
 
   private static class DefaultRoadModelSupplier implements
-      ModelSupplierScenGen<RoadModel> {
+  ModelSupplierScenGen<RoadModel> {
     final double speed;
     final boolean diversion;
 
@@ -186,7 +186,7 @@ public final class Models {
               max,
               distanceUnit,
               speedMeasure),
-          allowDiversion);
+              allowDiversion);
     }
 
     @Override

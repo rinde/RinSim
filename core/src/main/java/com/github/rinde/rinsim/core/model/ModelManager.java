@@ -24,15 +24,17 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
+import javax.annotation.Nullable;
+
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Multimap;
 
 /**
  * Models manager keeps track of all models used in the simulator. It is
  * responsible for adding a simulation object to the appropriate models
- * 
- * @author Bartosz Michalik 
- * @author Rinde van Lon 
+ *
+ * @author Bartosz Michalik
+ * @author Rinde van Lon
  */
 public class ModelManager implements ModelProvider {
 
@@ -147,6 +149,7 @@ public class ModelManager implements ModelProvider {
   }
 
   @SuppressWarnings("unchecked")
+  @Nullable
   @Override
   public <T extends Model<?>> T getModel(Class<T> clazz) {
     for (final Model<?> model : models) {

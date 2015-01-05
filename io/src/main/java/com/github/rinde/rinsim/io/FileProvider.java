@@ -32,6 +32,8 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.util.List;
 import java.util.Set;
 
+import javax.annotation.Nullable;
+
 import com.google.common.base.Function;
 import com.google.common.base.Functions;
 import com.google.common.base.Optional;
@@ -235,7 +237,7 @@ public final class FileProvider<T> implements Supplier<ImmutableSet<T>> {
     }
 
     @Override
-    public FileVisitResult visitFile(Path file, BasicFileAttributes attrs)
+    public FileVisitResult visitFile(@Nullable Path file, @Nullable BasicFileAttributes attrs)
         throws IOException {
       if (pathPredicate.apply(file)) {
         convertedPaths.add(pathReader.apply(file));
@@ -263,7 +265,7 @@ public final class FileProvider<T> implements Supplier<ImmutableSet<T>> {
     }
 
     @Override
-    public boolean apply(Path input) {
+    public boolean apply(@Nullable Path input) {
       return delegate.matches(input);
     }
 

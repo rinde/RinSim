@@ -111,7 +111,7 @@ public abstract class AbstractGraph<E extends ConnectionData> implements
   @Override
   @SuppressWarnings({ "unchecked" })
   public boolean equals(@Nullable Object other) {
-    return other instanceof Graph ? Graphs.equals(this, (Graph<E>) other)
+    return other instanceof Graph ? Graphs.equal(this, (Graph<E>) other)
         : false;
   }
 

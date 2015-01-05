@@ -15,6 +15,8 @@
  */
 package com.github.rinde.rinsim.scenario;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import java.util.Comparator;
 
 import javax.annotation.Nullable;
@@ -84,8 +86,8 @@ public class TimedEvent extends Event {
     INSTANCE;
 
     @Override
-    public int compare(TimedEvent o1, TimedEvent o2) {
-      return (int) (o1.time - o2.time);
+    public int compare(@Nullable TimedEvent o1, @Nullable TimedEvent o2) {
+      return (int) (checkNotNull(o1).time - checkNotNull(o2).time);
     }
   }
 }

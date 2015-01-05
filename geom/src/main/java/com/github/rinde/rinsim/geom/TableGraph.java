@@ -133,7 +133,7 @@ public class TableGraph<E extends ConnectionData> extends AbstractGraph<E> {
   }
 
   @Override
-  protected boolean isEmptyConnectionData(E connData) {
+  protected boolean isEmptyConnectionData(@Nullable E connData) {
     return super.isEmptyConnectionData(connData) || empty.equals(connData);
   }
 
@@ -188,13 +188,7 @@ public class TableGraph<E extends ConnectionData> extends AbstractGraph<E> {
     return Objects.hashCode(data, empty);
   }
 
-  @Override
-  public boolean equals(@Nullable Object o) {
-    return super.equals(o);
-  }
-
   private static final class Factory<E> implements Supplier<Map<Point, E>> {
-
     Factory() {}
 
     @Override

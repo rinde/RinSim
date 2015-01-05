@@ -207,7 +207,7 @@ public final class Gendreau06Parser {
     final File[] files = dir.listFiles(
         new FileFilter() {
           @Override
-          public boolean accept(File file) {
+          public boolean accept(@Nullable File file) {
             checkNotNull(file);
             return isValidFileName(file.getName());
           }
@@ -358,11 +358,11 @@ public final class Gendreau06Parser {
     for (int i = 0; i < vehicles; i++) {
       events.add(new AddVehicleEvent(-1,
           VehicleDTO.builder()
-              .startPosition(depotPosition)
-              .speed(truckSpeed)
-              .capacity(0)
-              .availabilityTimeWindow(new TimeWindow(0, totalTime))
-              .build()));
+          .startPosition(depotPosition)
+          .speed(truckSpeed)
+          .capacity(0)
+          .availabilityTimeWindow(new TimeWindow(0, totalTime))
+          .build()));
     }
     events.addAll(parcels.get(online));
     events.add(new TimedEvent(TIME_OUT, totalTime));
@@ -416,13 +416,13 @@ public final class Gendreau06Parser {
               new Point(deliveryX, deliveryY)).
               pickupTimeWindow(new TimeWindow(
                   pickupTimeWindowBegin, pickupTimeWindowEnd))
-              .deliveryTimeWindow(new TimeWindow(
-                  deliveryTimeWindowBegin, deliveryTimeWindowEnd))
-              .neededCapacity(PARCEL_MAGNITUDE)
-              .orderAnnounceTime(arrTime)
-              .pickupDuration(pickupServiceTime)
-              .deliveryDuration(deliveryServiceTime)
-              .build();
+                  .deliveryTimeWindow(new TimeWindow(
+                      deliveryTimeWindowBegin, deliveryTimeWindowEnd))
+                      .neededCapacity(PARCEL_MAGNITUDE)
+                      .orderAnnounceTime(arrTime)
+                      .pickupDuration(pickupServiceTime)
+                      .deliveryDuration(deliveryServiceTime)
+                      .build();
           listBuilder.add(new AddParcelEvent(dto));
         }
       }

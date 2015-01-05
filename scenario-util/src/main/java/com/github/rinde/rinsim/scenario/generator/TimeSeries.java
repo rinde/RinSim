@@ -228,8 +228,7 @@ public final class TimeSeries {
     return new Predicate<List<Double>>() {
       @Override
       public boolean apply(@Nullable List<Double> input) {
-        checkArgument(input != null);
-        return input.size() == num;
+        return checkNotNull(input).size() == num;
       }
     };
   }
@@ -452,7 +451,7 @@ public final class TimeSeries {
   }
 
   static class FixedTimeSeriesIterator extends
-  AbstractSequentialIterator<Double> {
+      AbstractSequentialIterator<Double> {
 
     private final double length;
     private final double average;
