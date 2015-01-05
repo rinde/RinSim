@@ -15,9 +15,12 @@
  */
 package com.github.rinde.rinsim.geom;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import java.io.Serializable;
 import java.util.Comparator;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import com.google.common.base.Function;
@@ -142,7 +145,7 @@ public class Point implements Serializable {
 
   /**
    * Provides default comparators for comparing {@link Point}s.
-   * @author Rinde van Lon 
+   * @author Rinde van Lon
    */
   public enum Comparators implements Comparator<Point> {
     /**
@@ -151,8 +154,8 @@ public class Point implements Serializable {
      */
     X {
       @Override
-      public int compare(Point o1, Point o2) {
-        return Double.compare(o1.x, o2.x);
+      public int compare(@Nullable Point o1, @Nullable Point o2) {
+        return Double.compare(checkNotNull(o1).x, checkNotNull(o2).x);
       }
     },
     /**
@@ -161,8 +164,8 @@ public class Point implements Serializable {
      */
     Y {
       @Override
-      public int compare(Point o1, Point o2) {
-        return Double.compare(o1.y, o2.y);
+      public int compare(@Nullable Point o1, @Nullable Point o2) {
+        return Double.compare(checkNotNull(o1).y, checkNotNull(o2).y);
       }
     },
     /**
@@ -171,10 +174,10 @@ public class Point implements Serializable {
      */
     XY {
       @Override
-      public int compare(Point o1, Point o2) {
+      public int compare(@Nullable Point o1, @Nullable Point o2) {
         return ComparisonChain.start()
-            .compare(o1.x, o2.x)
-            .compare(o1.y, o2.y)
+            .compare(checkNotNull(o1).x, checkNotNull(o2).x)
+            .compare(checkNotNull(o1).y, checkNotNull(o2).y)
             .result();
       }
     };
@@ -183,7 +186,7 @@ public class Point implements Serializable {
   /**
    * Provides default {@link Function}s for transforming {@link Point}s to
    * doubles.
-   * @author Rinde van Lon 
+   * @author Rinde van Lon
    */
   public enum Transformers implements Function<Point, Double> {
     /**
@@ -191,8 +194,9 @@ public class Point implements Serializable {
      */
     X {
       @Override
-      public Double apply(Point input) {
-        return input.x;
+      @Nonnull
+      public Double apply(@Nullable Point input) {
+        return checkNotNull(input).x;
       }
     },
     /**
@@ -200,8 +204,9 @@ public class Point implements Serializable {
      */
     Y {
       @Override
-      public Double apply(Point input) {
-        return input.y;
+      @Nonnull
+      public Double apply(@Nullable Point input) {
+        return checkNotNull(input).y;
       }
     };
   }
