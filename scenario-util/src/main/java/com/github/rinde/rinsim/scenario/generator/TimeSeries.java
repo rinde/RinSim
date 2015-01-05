@@ -16,6 +16,7 @@
 package com.github.rinde.rinsim.scenario.generator;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.Iterator;
 import java.util.List;
@@ -40,7 +41,7 @@ import com.google.common.collect.Range;
 
 /**
  * Utilities for generating time series.
- * @author Rinde van Lon 
+ * @author Rinde van Lon
  */
 public final class TimeSeries {
   private TimeSeries() {}
@@ -235,7 +236,7 @@ public final class TimeSeries {
 
   /**
    * Generator of a time series.
-   * @author Rinde van Lon 
+   * @author Rinde van Lon
    */
   public interface TimeSeriesGenerator {
     /**
@@ -451,7 +452,7 @@ public final class TimeSeries {
   }
 
   static class FixedTimeSeriesIterator extends
-      AbstractSequentialIterator<Double> {
+  AbstractSequentialIterator<Double> {
 
     private final double length;
     private final double average;
@@ -520,8 +521,8 @@ public final class TimeSeries {
     }
 
     @Override
-    public boolean apply(Double input) {
-      return rng.nextDouble() <= lambda.apply(input) / lambdaMax;
+    public boolean apply(@Nullable Double input) {
+      return rng.nextDouble() <= lambda.apply(checkNotNull(input)) / lambdaMax;
     }
   }
 

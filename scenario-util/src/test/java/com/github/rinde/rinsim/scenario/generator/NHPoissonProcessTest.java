@@ -15,6 +15,7 @@
  */
 package com.github.rinde.rinsim.scenario.generator;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.collect.Lists.newArrayList;
 import static org.junit.Assert.assertTrue;
@@ -24,6 +25,9 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+
 import org.apache.commons.math3.random.MersenneTwister;
 import org.apache.commons.math3.random.RandomGenerator;
 import org.apache.commons.math3.stat.descriptive.moment.StandardDeviation;
@@ -31,8 +35,6 @@ import org.junit.Ignore;
 import org.junit.Test;
 
 import com.github.rinde.rinsim.geom.Point;
-import com.github.rinde.rinsim.scenario.generator.IntensityFunctions;
-import com.github.rinde.rinsim.scenario.generator.TimeSeries;
 import com.github.rinde.rinsim.scenario.generator.IntensityFunctions.IntensityFunction;
 import com.github.rinde.rinsim.scenario.generator.TimeSeries.TimeSeriesGenerator;
 import com.github.rinde.rinsim.scenario.measure.Metrics;
@@ -184,8 +186,8 @@ public class NHPoissonProcessTest {
 
   /**
    * Check whether the
-   * {@link TimeSeries#nonHomogenousPoisson(double, StochasticSupplier)} function
-   * behaves as expected.
+   * {@link TimeSeries#nonHomogenousPoisson(double, StochasticSupplier)}
+   * function behaves as expected.
    */
   @Test
   public void test2() {
@@ -253,8 +255,9 @@ public class NHPoissonProcessTest {
   enum Conversion implements Function<Long, Double> {
     LONG_TO_DOUBLE {
       @Override
-      public Double apply(Long input) {
-        return new Double(input);
+      @Nonnull
+      public Double apply(@Nullable Long input) {
+        return new Double(checkNotNull(input));
       }
     },
 

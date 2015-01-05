@@ -15,10 +15,13 @@
  */
 package com.github.rinde.rinsim.scenario;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import java.io.Serializable;
 import java.math.RoundingMode;
 import java.util.Collections;
 
+import javax.annotation.Nullable;
 import javax.measure.Measure;
 import javax.measure.unit.NonSI;
 import javax.measure.unit.SI;
@@ -29,7 +32,6 @@ import org.apache.commons.math3.random.RandomGenerator;
 import com.github.rinde.rinsim.core.Simulator;
 import com.github.rinde.rinsim.core.model.pdp.DefaultPDPModel;
 import com.github.rinde.rinsim.core.model.pdp.PDPScenarioEvent;
-import com.github.rinde.rinsim.core.model.pdp.TimeWindowPolicy;
 import com.github.rinde.rinsim.core.model.pdp.TimeWindowPolicy.TimeWindowPolicies;
 import com.github.rinde.rinsim.core.model.road.PlaneRoadModel;
 import com.github.rinde.rinsim.core.pdptw.ParcelDTO;
@@ -61,7 +63,7 @@ public class ScenarioTestUtil {
 
 		RandomGenerator rng = new MersenneTwister(seed);
 		for (int i = 0; i < 20; i++) {
-			long announceTime = (long) rng.nextInt(DoubleMath.roundToInt(
+			long announceTime = rng.nextInt(DoubleMath.roundToInt(
 					endTime * .8, RoundingMode.FLOOR));
 			b.addEvent(new AddParcelEvent(ParcelDTO
 					.builder(
@@ -86,13 +88,16 @@ public class ScenarioTestUtil {
 
 	static class EndTimeStopCondition implements Predicate<Simulator>,
 			Serializable {
-		private final long endTime;
+    private static final long serialVersionUID = 7929691008595477071L;
+    
+    private final long endTime;
 		public EndTimeStopCondition(long time){
 			endTime  = time;
 		}
 		
 		@Override
-		public boolean apply(Simulator simulator) {
+		public boolean apply(@Nullable Simulator simulator) {
+		  checkNotNull(simulator);
 			return simulator.getCurrentTime() >= endTime;
 		}
 	}

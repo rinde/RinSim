@@ -42,14 +42,17 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+
 import com.github.rinde.rinsim.core.pdptw.ParcelDTO;
 import com.github.rinde.rinsim.core.pdptw.VehicleDTO;
 import com.github.rinde.rinsim.geom.Point;
 import com.github.rinde.rinsim.scenario.AddDepotEvent;
 import com.github.rinde.rinsim.scenario.AddParcelEvent;
 import com.github.rinde.rinsim.scenario.AddVehicleEvent;
-import com.github.rinde.rinsim.scenario.TimedEvent;
 import com.github.rinde.rinsim.scenario.Scenario.ProblemClass;
+import com.github.rinde.rinsim.scenario.TimedEvent;
 import com.github.rinde.rinsim.scenario.TimedEvent.TimeComparator;
 import com.github.rinde.rinsim.util.TimeWindow;
 import com.google.common.base.Charsets;
@@ -84,7 +87,7 @@ import com.google.common.math.DoubleMath;
  * pick-ups and deliveries. Transportation Research Part C: Emerging
  * Technologies 14, 3 (2006), 157–174.</li>
  * </ul>
- * @author Rinde van Lon 
+ * @author Rinde van Lon
  */
 public final class Gendreau06Parser {
   private static final String REGEX = ".*req_rapide_(\\d+)_(450|240)_(24|33)";
@@ -124,7 +127,7 @@ public final class Gendreau06Parser {
   public static Gendreau06Scenario parse(File file) {
     return parser().addFile(file).parse().get(0);
   }
-  
+
   /**
    * @return The {@link Gendreau06Parser} as a {@link Function}.
    */
@@ -432,8 +435,9 @@ public final class Gendreau06Parser {
 
   static class Gendreau06Reader implements Function<Path, Gendreau06Scenario> {
     @Override
-    public Gendreau06Scenario apply(Path input) {
-      return Gendreau06Parser.parse(input.toFile());
+    @Nonnull
+    public Gendreau06Scenario apply(@Nullable Path input) {
+      return Gendreau06Parser.parse(checkNotNull(input).toFile());
     }
   }
 

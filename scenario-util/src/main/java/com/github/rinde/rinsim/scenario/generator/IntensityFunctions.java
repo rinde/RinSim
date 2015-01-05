@@ -20,6 +20,7 @@ import static com.github.rinde.rinsim.util.StochasticSuppliers.constant;
 import static com.github.rinde.rinsim.util.StochasticSuppliers.isConstant;
 import static com.google.common.base.Preconditions.checkArgument;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import org.apache.commons.math3.analysis.UnivariateFunction;
@@ -94,6 +95,7 @@ public final class IntensityFunctions {
 
     // overridden to remove @Nullable at return argument
     @Override
+    @Nonnull
     Double apply(@Nullable Double input);
   }
 
@@ -231,9 +233,8 @@ public final class IntensityFunctions {
       final double rootB = ONE_FOURTH / c - common - n2 / c;
       if (rootA > rootB) {
         return new double[] { rootB, rootA };
-      } else {
-        return new double[] { rootA, rootB };
       }
+      return new double[] { rootA, rootB };
     }
   }
 

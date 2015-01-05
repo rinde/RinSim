@@ -68,8 +68,8 @@ public class FileProviderTest {
 
     builder.filter(new Predicate<Path>() {
       @Override
-      public boolean apply(Path input) {
-        return input.toString().endsWith("Model.java");
+      public boolean apply(@Nullable Path input) {
+        return checkNotNull(input).toString().endsWith("Model.java");
       }
     });
     final Set<Path> paths2 = builder.build().get();
