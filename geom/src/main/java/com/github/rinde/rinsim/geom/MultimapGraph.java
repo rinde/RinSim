@@ -199,6 +199,11 @@ public class MultimapGraph<E extends ConnectionData> extends AbstractGraph<E> {
   }
 
   @Override
+  public boolean equals(@Nullable Object o) {
+    return super.equals(o);
+  }
+
+  @Override
   protected void doAddConnection(Point from, Point to, @Nullable E connData) {
     data.put(from, to);
     deadEndNodes.remove(from);
