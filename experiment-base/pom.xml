@@ -1,4 +1,5 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<parent>
 		<groupId>com.github.rinde</groupId>
@@ -7,8 +8,8 @@
 		<relativePath>..</relativePath>
 	</parent>
 
-	<artifactId>rinsim-experiment</artifactId>
-	<name>RinSim Experiment</name>
+	<artifactId>rinsim-experiment-base</artifactId>
+	<name>RinSim Experiment Base</name>
 	<packaging>jar</packaging>
 
 	<licenses>
@@ -35,22 +36,6 @@
 		</dependency>
 		<dependency>
 			<groupId>com.github.rinde</groupId>
-			<artifactId>rinsim-experiment-base</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>com.github.rinde</groupId>
-			<artifactId>rinsim-pdptw</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>com.github.rinde</groupId>
-			<artifactId>rinsim-scenario</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>com.github.rinde</groupId>
-			<artifactId>rinsim-ui</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>com.github.rinde</groupId>
 			<artifactId>rinsim-io</artifactId>
 		</dependency>
 		<dependency>
@@ -58,38 +43,19 @@
 			<artifactId>rinsim-cli</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>com.github.rinde</groupId>
-			<artifactId>rinsim-pdptw</artifactId>
-			<type>test-jar</type>
-			<scope>test</scope>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-math3</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>com.github.rinde</groupId>
-			<artifactId>rinsim-core</artifactId>
-			<type>test-jar</type>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>com.github.rinde</groupId>
-			<artifactId>rinsim-scenario</artifactId>
-			<type>test-jar</type>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>com.github.rinde</groupId>
-			<artifactId>rinsim-scenario-util</artifactId>
-			<scope>test</scope>
+			<groupId>org.jppf</groupId>
+			<artifactId>jppf-client</artifactId>
+			<version>4.1.2</version>
 		</dependency>
 		<dependency>
 			<groupId>com.github.rinde</groupId>
 			<artifactId>rinsim-cli</artifactId>
 			<type>test-jar</type>
 			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.jppf</groupId>
-			<artifactId>jppf-client</artifactId>
-			<version>4.1.2</version>
 		</dependency>
 		<dependency>
 			<groupId>org.jppf</groupId>

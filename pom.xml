@@ -62,6 +62,7 @@
 		<module>scenario-util</module>
 		<module>central</module>
 		<module>experiment</module>
+		<module>experiment-base</module>
 		<module>test-util</module>
 	</modules>
 
@@ -561,6 +562,11 @@
 			<dependency>
 				<groupId>com.github.rinde</groupId>
 				<artifactId>rinsim-experiment</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>com.github.rinde</groupId>
+				<artifactId>rinsim-experiment-base</artifactId>
 				<version>${project.version}</version>
 			</dependency>
 			<dependency>
