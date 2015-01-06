@@ -15,6 +15,6 @@
  */
 package com.github.rinde.rinsim.experiment.base;
 
-public interface Configuration {
+public interface Configuration extends Comparable<Configuration> {
 
 }

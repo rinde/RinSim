@@ -16,8 +16,10 @@
 package com.github.rinde.rinsim.experiment.base;
 
 import static com.google.common.collect.Lists.newArrayList;
+import static java.util.Objects.requireNonNull;
 
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 
@@ -32,11 +34,6 @@ import com.google.common.collect.ImmutableSet;
  * @author Rinde van Lon
  */
 public final class ExperimentResults {
-  /**
-   * The .. that was used for this experiment.
-   */
-  public final Object objectiveFunction;
-
   /**
    * The configurations that were used in this experiment.
    */
@@ -68,11 +65,10 @@ public final class ExperimentResults {
    * undefined iteration order, if you want a sorted view on the results use
    * {@link #sortedResults()}.
    */
-  public final ImmutableSet<SimulationResult> results;
+  public final ImmutableSet<SimResult> results;
 
-  ExperimentResults(AbstractExperimentBuilder exp,
-      ImmutableSet<SimulationResult> res) {
-    objectiveFunction = exp.objectiveFunction;
+  ExperimentResults(ExperimentBuilder exp,
+      ImmutableSet<SimResult> res) {
     configurations = ImmutableSet.copyOf(exp.configurationsSet);
     scenarios = exp.scenariosBuilder.build();
     showGui = exp.showGui;
@@ -85,16 +81,27 @@ public final class ExperimentResults {
    * @return A unmodifiable {@link List} containing the results sorted by its
    *         comparator.
    */
-  public List<SimulationResult> sortedResults() {
-    List<SimulationResult> list = newArrayList(results);
-    Collections.sort(list);
+  public List<SimResult> sortedResults() {
+    List<SimResult> list = newArrayList(results);
+    Collections.sort(list, SimulationResultComparator.INSTANCE);
     return Collections.unmodifiableList(list);
+  }
+
+  enum SimulationResultComparator implements Comparator<SimResult> {
+    INSTANCE {
+      @Override
+      public int compare(@Nullable SimResult o1,
+          @Nullable SimResult o2) {
+        return requireNonNull(o1).getSimArgs().compareTo(
+            requireNonNull(o2).getSimArgs());
+      }
+    }
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(objectiveFunction, configurations, scenarios,
-        showGui, repetitions, masterSeed, results);
+    return Objects.hash(configurations, scenarios, showGui, repetitions,
+        masterSeed, results);
   }
 
   @Override
@@ -106,8 +113,7 @@ public final class ExperimentResults {
       return false;
     }
     final ExperimentResults er = (ExperimentResults) other;
-    return Objects.equals(objectiveFunction, er.objectiveFunction)
-        && Objects.equals(configurations, er.configurations)
+    return Objects.equals(configurations, er.configurations)
         && Objects.equals(scenarios, er.scenarios)
         && Objects.equals(showGui, er.showGui)
         && Objects.equals(repetitions, er.repetitions)
@@ -118,7 +124,6 @@ public final class ExperimentResults {
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(this)
-        .add("objectiveFunction", objectiveFunction)
         .add("configurations", configurations)
         .add("scenarios", scenarios)
         .add("showGui", showGui)

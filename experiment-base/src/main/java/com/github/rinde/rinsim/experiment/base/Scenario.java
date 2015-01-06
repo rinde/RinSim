@@ -15,6 +15,17 @@
  */
 package com.github.rinde.rinsim.experiment.base;
 
-public interface Scenario {
+
+public interface Scenario extends Comparable<Scenario> {
+
+  /**
+   * @return The 'class' to which this scenario belongs.
+   */
+  ProblemClass getProblemClass();
+
+  /**
+   * @return The instance id of this scenario.
+   */
+  String getProblemInstanceId();
 
 }

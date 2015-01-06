@@ -25,7 +25,7 @@ interface Computer {
    * @param inputs The inputs which define which simulations to compute.
    * @return An instance of {@link ExperimentResults} containing the results.
    */
-  ExperimentResults compute(AbstractExperimentBuilder<?> builder,
+  ExperimentResults compute(ExperimentBuilder<?> builder,
       Set<SimArgs> inputs);
 
 }

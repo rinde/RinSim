@@ -1,23 +1,19 @@
 /*
- * Copyright (C) 2011-2014 Rinde van Lon, iMinds DistriNet, KU Leuven
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *         http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Copyright (C) 2011-2014 Rinde van Lon, iMinds DistriNet, KU Leuven Licensed
+ * under the Apache License, Version 2.0 (the "License"); you may not use this
+ * file except in compliance with the License. You may obtain a copy of the
+ * License at http://www.apache.org/licenses/LICENSE-2.0 Unless required by
+ * applicable law or agreed to in writing, software distributed under the
+ * License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS
+ * OF ANY KIND, either express or implied. See the License for the specific
+ * language governing permissions and limitations under the License.
  */
 package com.github.rinde.rinsim.experiment.base;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Sets.newLinkedHashSet;
+import static java.util.Objects.requireNonNull;
 
 import java.io.PrintStream;
 import java.nio.file.Path;
@@ -37,7 +33,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 
-public abstract class AbstractExperimentBuilder<T extends AbstractExperimentBuilder<T>> {
+public abstract class ExperimentBuilder<T extends ExperimentBuilder<T>> {
   enum Computers implements Supplier<Computer> {
     LOCAL {
       @Override
@@ -54,11 +50,10 @@ public abstract class AbstractExperimentBuilder<T extends AbstractExperimentBuil
     };
   }
 
-  final Object objectiveFunction;
   final Set<Configuration> configurationsSet;
   final ImmutableSet.Builder<Scenario> scenariosBuilder;
   Optional<FileProvider.Builder> scenarioProviderBuilder;
-  Function<Path, ? extends Scenario> fileReader;
+  Optional<? extends Function<Path, ? extends Scenario>> fileReader;
 
   final List<ResultListener> resultListeners;
   // @Nullable
@@ -73,12 +68,14 @@ public abstract class AbstractExperimentBuilder<T extends AbstractExperimentBuil
 
   private Supplier<Computer> computerType;
 
-  AbstractExperimentBuilder(Object objectiveFunction) {
-    this.objectiveFunction = objectiveFunction;
+  Function<SimArgs, SimResult> computeFunction;
+
+  protected ExperimentBuilder(Function<SimArgs, SimResult> computeFunc) {
+    computeFunction = computeFunc;
     configurationsSet = newLinkedHashSet();
     scenariosBuilder = ImmutableSet.builder();
     scenarioProviderBuilder = Optional.absent();
-    fileReader = null;// ScenarioIO.reader();
+    fileReader = Optional.absent();
     resultListeners = newArrayList();
     showGui = false;
     repetitions = 1;
@@ -89,12 +86,24 @@ public abstract class AbstractExperimentBuilder<T extends AbstractExperimentBuil
   }
 
   /**
+   * Creates a default builder for defining experiments.
+   * 
+   * @param computeFunc A {@link Function} that converts {@link SimArgs} to
+   *          {@link SimResult}s.
+   * @return A new {@link ExperimentBuilder} instance.
+   */
+  public static DefaultExperimentBuilder defaultInstance(
+      Function<SimArgs, SimResult> computeFunc) {
+    return new DefaultExperimentBuilder(computeFunc);
+  }
+
+  /**
    * Should return 'this', the builder.
    * @return 'this'.
    */
   protected abstract T self();
 
-  abstract ExperimentRunner createRunner(SimArgs args);
+  // abstract SimTask createTask(SimArgs args);
 
   /**
    * Set the number of repetitions for each simulation.
@@ -131,10 +140,8 @@ public abstract class AbstractExperimentBuilder<T extends AbstractExperimentBuil
   // return showGui();
   // }
 
-  /*
-   * Add a configuration to the experiment. For each simulation {@link
-   * StochasticSupplier#get(long)} is called and the resulting {@link
-   * MASConfiguration} is used for a <i>single</i> simulation.
+  /**
+   * Add a configuration to the experiment.
    * @param config The configuration to add.
    * @return This, as per the builder pattern.
    */
@@ -144,10 +151,8 @@ public abstract class AbstractExperimentBuilder<T extends AbstractExperimentBuil
     return self();
   }
 
-  /*
-   * Adds all configurations to the experiment. For each simulation {@link
-   * StochasticSupplier#get(long)} is called and the resulting {@link
-   * MASConfiguration} is used for a <i>single</i> simulation.
+  /**
+   * Adds all configurations to the experiment.
    * @param configs The configurations to add.
    * @return This, as per the builder pattern.
    */
@@ -199,9 +204,8 @@ public abstract class AbstractExperimentBuilder<T extends AbstractExperimentBuil
    * @param reader The reader to use.
    * @return This, as per the builder pattern.
    */
-  public T setScenarioReader(
-      Function<Path, ? extends Scenario> reader) {
-    // fileReader = reader;
+  public T setScenarioReader(Function<Path, ? extends Scenario> reader) {
+    fileReader = Optional.of(reader);
     return self();
   }
 
@@ -306,8 +310,7 @@ public abstract class AbstractExperimentBuilder<T extends AbstractExperimentBuil
 
   /**
    * Adds the specified {@link ResultListener} to the experiment. This listener
-   * will be called each time a simulation is done. <b>Currently only works for
-   * distributed computation</b>.
+   * will be called each time a simulation is done.
    * @param listener The listener to add.
    * @return This, as per the builder pattern.
    */
@@ -367,7 +370,10 @@ public abstract class AbstractExperimentBuilder<T extends AbstractExperimentBuil
     final Set<Scenario> scenarios = newLinkedHashSet(scenariosBuilder
         .build());
     if (scenarioProviderBuilder.isPresent()) {
-      scenarios.addAll(scenarioProviderBuilder.get().build(fileReader).get());
+      checkArgument(fileReader.isPresent(),
+          "A scenario reader must be specified.");
+      scenarios.addAll(scenarioProviderBuilder.get().build(fileReader.get())
+          .get());
     }
     return ImmutableSet.copyOf(scenarios);
   }
@@ -396,8 +402,7 @@ public abstract class AbstractExperimentBuilder<T extends AbstractExperimentBuil
         for (int i = 0; i < repetitions; i++) {
           final long seed = seeds.get(i);
           runnerBuilder
-              .add(new SimArgs(scenario, configuration,
-                  seed, objectiveFunction, showGui, postProc));
+              .add(new SimArgs(scenario, configuration, seed, showGui, postProc));
         }
       }
     }
@@ -412,4 +417,36 @@ public abstract class AbstractExperimentBuilder<T extends AbstractExperimentBuil
     return ImmutableList.copyOf(numbers);
   }
 
+  public static class DefaultExperimentBuilder extends
+      ExperimentBuilder<DefaultExperimentBuilder> {
+
+    DefaultExperimentBuilder(Function<SimArgs, SimResult> computeFunc) {
+      super(computeFunc);
+    }
+
+    @Override
+    protected DefaultExperimentBuilder self() {
+      return this;
+    }
+
+    // @Override
+    // SimTask createTask(SimArgs args) {
+    // return new FunctionRunner(args, function);
+    // }
+  }
+
+  static class FunctionRunner implements SimTask {
+    private final SimArgs args;
+    private final Function<SimArgs, SimResult> executor;
+
+    FunctionRunner(SimArgs args, Function<SimArgs, SimResult> exec) {
+      this.args = args;
+      executor = exec;
+    }
+
+    @Override
+    public SimResult call() throws Exception {
+      return requireNonNull(executor.apply(args));
+    }
+  }
 }

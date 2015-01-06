@@ -15,9 +15,8 @@
  */
 package com.github.rinde.rinsim.experiment.base;
 
-import com.google.common.base.Function;
+import java.util.concurrent.Callable;
 
-public interface ExperimentRunnerFactory extends
-Function<SimArgs, ExperimentRunner> {
+public interface SimTask extends Callable<SimResult> {
 
 }

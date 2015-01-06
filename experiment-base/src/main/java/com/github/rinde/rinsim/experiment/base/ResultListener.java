@@ -15,11 +15,12 @@
  */
 package com.github.rinde.rinsim.experiment.base;
 
-/*
- * Implementors get notified of the progress of an {@link Experiment}.
+/**
+ * Implementors get notified of the progress of an experiment as specified by an
+ * {@link ExperimentBuilder}.
  * @author Rinde van Lon
  */
-public interface ResultListener<T> {
+public interface ResultListener {
   /**
    * This method is called to signal the start of an experiment.
    * @param numberOfSimulations The number of simulations that is going to be
@@ -29,10 +30,9 @@ public interface ResultListener<T> {
 
   /**
    * This method is called to signal the completion of a single experiment.
-   * @param result The {@link SimulationResult} of the simulation that is
-   *          finished.
+   * @param result The {@link SimResult} of the simulation that is finished.
    */
-  void receive(T result);
+  void receive(SimResult result);
 
   /**
    * This method is called to signal the end of the experiment.

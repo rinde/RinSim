@@ -18,7 +18,7 @@ package com.github.rinde.rinsim.experiment.base;
 import java.io.PrintStream;
 import java.util.Set;
 
-import com.github.rinde.rinsim.experiment.base.AbstractExperimentBuilder.Computers;
+import com.github.rinde.rinsim.experiment.base.ExperimentBuilder.Computers;
 import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableSet;
 
@@ -38,7 +38,7 @@ class DryRunComputer implements Computer {
   }
 
   @Override
-  public ExperimentResults compute(AbstractExperimentBuilder<?> builder,
+  public ExperimentResults compute(ExperimentBuilder<?> builder,
       Set<SimArgs> inputs) {
 
     printStream
@@ -77,7 +77,7 @@ class DryRunComputer implements Computer {
     printStream
     .println("===================== RinSim Experiment finished dry run =====================");
     return new ExperimentResults(builder,
-        ImmutableSet.<SimulationResult> of());
+        ImmutableSet.<SimResult> of());
   }
 
 }

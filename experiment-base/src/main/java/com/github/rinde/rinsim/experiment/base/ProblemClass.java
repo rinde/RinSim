@@ -15,8 +15,13 @@
  */
 package com.github.rinde.rinsim.experiment.base;
 
-import java.util.concurrent.Callable;
-
-public interface ExperimentRunner extends Callable<SimulationResult> {
-
+/**
+ * Represents a class of scenarios.
+ * @author Rinde van Lon
+ */
+public interface ProblemClass extends Comparable<ProblemClass> {
+  /**
+   * @return The id of this problem class.
+   */
+  String getId();
 }

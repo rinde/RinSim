@@ -15,6 +15,9 @@
  */
 package com.github.rinde.rinsim.experiment.base;
 
-public interface SimulationResult extends Comparable<SimulationResult> {
+import java.io.Serializable;
 
+public interface SimResult extends Serializable {
+
+  SimArgs getSimArgs();
 }
