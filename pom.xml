@@ -90,6 +90,7 @@
 					<artifactId>maven-surefire-plugin</artifactId>
 					<version>2.18</version>
 					<configuration>
+						<argLine>${argLine}</argLine>
 						<excludedGroups>${test.excludedGroups}</excludedGroups>
 						<systemPropertyVariables>
 							<jacoco-agent.destfile>target/jacoco.exec</jacoco-agent.destfile>
@@ -147,7 +148,6 @@
 					<version>0.1.4</version>
 					<configuration>
 						<reference>
-							<!-- Replace here with the reference artifact of your project. -->
 							<groupId>com.github.rinde</groupId>
 							<artifactId>${project.artifactId}</artifactId>
 							<version>${reference.version}</version>
@@ -158,8 +158,8 @@
 					</configuration>
 					<executions>
 						<execution>
-							<id>check-bc</id>		<!-- this is used for inheritance merges -->
-							<phase>verify</phase> 	<!-- bind to the packaging phase -->
+							<id>check-bc</id>
+							<phase>verify</phase>
 							<goals>
 								<goal>check</goal>
 							</goals>
