@@ -7,7 +7,7 @@ jdk:
 install: mvn install -DskipTests=true
 
 script: 
-  - mvn verify -Dskip.gui.tests=true jacoco:report coveralls:report
+  - mvn verify -Dskip.gui.tests=true
 
 sudo: false
 cache:
