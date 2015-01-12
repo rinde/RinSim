@@ -15,9 +15,7 @@
  */
 package com.github.rinde.rinsim.experiment.base;
 
-import java.io.Serializable;
+public interface SimResult {
 
-public interface SimResult extends Serializable {
-
-  SimArgs getSimArgs();
+  // SimArgs getSimArgs();
 }

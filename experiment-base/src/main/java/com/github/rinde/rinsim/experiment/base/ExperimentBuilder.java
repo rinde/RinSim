@@ -21,6 +21,7 @@ import static com.google.common.collect.Sets.newLinkedHashSet;
 import static java.util.Objects.requireNonNull;
 
 import java.io.PrintStream;
+import java.io.Serializable;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Set;
@@ -31,6 +32,7 @@ import org.apache.commons.math3.random.MersenneTwister;
 import org.apache.commons.math3.random.RandomGenerator;
 
 import com.github.rinde.rinsim.io.FileProvider;
+import com.google.common.base.Converter;
 import com.google.common.base.Function;
 import com.google.common.base.Optional;
 import com.google.common.base.Supplier;
@@ -49,14 +51,17 @@ public abstract class ExperimentBuilder<T extends ExperimentBuilder<T>> {
     DISTRIBUTED {
       @Override
       public Computer get() {
-        throw new UnsupportedOperationException();
-        // return new JppfComputer();
+        return new JppfComputer();
       }
     };
   }
 
   final Set<Configuration> configurationsSet;
   final ImmutableSet.Builder<Scenario> scenariosBuilder;
+
+  Converter<Configuration, Serializable> configurationConverter;
+  Converter<Scenario, Serializable> scenarioConverter;
+
   Optional<FileProvider.Builder> scenarioProviderBuilder;
   Optional<? extends Function<Path, ? extends Scenario>> fileReader;
 
@@ -75,7 +80,14 @@ public abstract class ExperimentBuilder<T extends ExperimentBuilder<T>> {
 
   Function<SimArgs, SimResult> computeFunction;
 
+  /**
+   * 
+   */
   protected ExperimentBuilder(Function<SimArgs, SimResult> computeFunc) {
+
+    configurationConverter = new DefaultConverter<>(Configuration.class);
+    scenarioConverter = new DefaultConverter<>(Scenario.class);
+
     computeFunction = computeFunc;
     configurationsSet = newLinkedHashSet();
     scenariosBuilder = ImmutableSet.builder();
@@ -216,7 +228,7 @@ public abstract class ExperimentBuilder<T extends ExperimentBuilder<T>> {
 
   /**
    * Specify the number of threads to use for computing the experiments, the
-   * default is <code>1</code>.
+   * default is defined by {@link Runtime#availableProcessors()}
    * @param threads The number of threads to use.
    * @return This, as per the builder pattern.
    */
@@ -450,8 +462,33 @@ public abstract class ExperimentBuilder<T extends ExperimentBuilder<T>> {
     }
 
     @Override
-    public SimResult call() throws Exception {
-      return requireNonNull(executor.apply(args));
+    public SimResultContainer call() throws Exception {
+      return SimResultContainer.create(args,
+          requireNonNull(executor.apply(args)));
+    }
+  }
+
+  static class DefaultConverter<T> extends Converter<T, Serializable> implements
+      Serializable {
+    private static final long serialVersionUID = -4846563464027810013L;
+    private final Class<?> clazz;
+
+    DefaultConverter(Class<?> clz) {
+      clazz = clz;
+    }
+
+    @Override
+    protected Serializable doForward(T value) {
+      checkArgument(
+          value instanceof Serializable,
+          "When using JPPF, instances of %s must implement Serializable or a Converter must be specified, found: '%s' of class: %s.",
+          clazz, value, value.getClass());
+      return (Serializable) value;
+    }
+
+    @Override
+    protected T doBackward(Serializable b) {
+      return (T) b;
     }
   }
 }

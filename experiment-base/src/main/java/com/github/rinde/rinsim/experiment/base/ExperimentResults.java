@@ -65,10 +65,10 @@ public final class ExperimentResults {
    * undefined iteration order, if you want a sorted view on the results use
    * {@link #sortedResults()}.
    */
-  public final ImmutableSet<SimResult> results;
+  public final ImmutableSet<SimResultContainer> results;
 
   ExperimentResults(ExperimentBuilder exp,
-      ImmutableSet<SimResult> res) {
+      ImmutableSet<SimResultContainer> res) {
     configurations = ImmutableSet.copyOf(exp.configurationsSet);
     scenarios = exp.scenariosBuilder.build();
     showGui = exp.showGui;
@@ -81,19 +81,19 @@ public final class ExperimentResults {
    * @return A unmodifiable {@link List} containing the results sorted by its
    *         comparator.
    */
-  public List<SimResult> sortedResults() {
-    List<SimResult> list = newArrayList(results);
+  public List<SimResultContainer> sortedResults() {
+    List<SimResultContainer> list = newArrayList(results);
     Collections.sort(list, SimulationResultComparator.INSTANCE);
     return Collections.unmodifiableList(list);
   }
 
-  enum SimulationResultComparator implements Comparator<SimResult> {
+  enum SimulationResultComparator implements Comparator<SimResultContainer> {
     INSTANCE {
       @Override
-      public int compare(@Nullable SimResult o1,
-          @Nullable SimResult o2) {
-        return requireNonNull(o1).getSimArgs().compareTo(
-            requireNonNull(o2).getSimArgs());
+      public int compare(@Nullable SimResultContainer o1,
+          @Nullable SimResultContainer o2) {
+        return requireNonNull(o1).arguments().compareTo(
+            requireNonNull(o2).arguments());
       }
     }
   }

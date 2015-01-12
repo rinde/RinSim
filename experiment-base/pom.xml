@@ -47,6 +47,11 @@
 			<artifactId>commons-math3</artifactId>
 		</dependency>
 		<dependency>
+			<groupId>com.google.auto.value</groupId>
+			<artifactId>auto-value</artifactId>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
 			<groupId>org.jppf</groupId>
 			<artifactId>jppf-client</artifactId>
 			<version>4.1.2</version>

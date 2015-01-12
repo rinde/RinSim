@@ -22,10 +22,16 @@ import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 
+import java.io.Serializable;
+
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
+import org.jppf.server.JPPFDriver;
+import org.jppf.utils.JPPFConfiguration;
+import org.junit.AfterClass;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
@@ -42,8 +48,30 @@ import com.google.common.base.Function;
 public class ExperimentTest {
 
   @SuppressWarnings("null")
+  static JPPFDriver driver;
+
+  @SuppressWarnings("null")
   @Captor
-  private ArgumentCaptor<SimResult> captor;
+  private ArgumentCaptor<SimResultContainer> captor;
+
+  /**
+   * Starts the JPPF driver.
+   */
+  @BeforeClass
+  public static void setUp() {
+    JPPFConfiguration.getProperties().setBoolean("jppf.local.node.enabled",
+        true);
+    JPPFDriver.main(new String[] { "noLauncher" });
+    driver = JPPFDriver.getInstance();
+  }
+
+  /**
+   * Stops the JPPF driver.
+   */
+  @AfterClass
+  public static void tearDown() {
+    driver.shutdown();
+  }
 
   /**
    * 
@@ -118,6 +146,18 @@ public class ExperimentTest {
     assertEquals(60, er.results.size());
   }
 
+  @Test
+  public void testJppf() {
+
+    ExperimentBuilder.defaultInstance(ComputeFunc.INSTANCE)
+        .addConfiguration(new TestConfig("config1"))
+        .addScenario(
+            new DefaultScenario(new StringProblemClass("class0"), "instance0"))
+        .repeat(10)
+        .computeDistributed()
+        .perform();
+  }
+
   enum ComputeFunc implements Function<SimArgs, SimResult> {
     INSTANCE {
       @Override
@@ -140,25 +180,21 @@ public class ExperimentTest {
 
   }
 
-  static class Result implements SimResult {
-    final SimArgs args;
+  static class Result implements SimResult, Serializable {
+    private static final long serialVersionUID = 8819637183171640895L;
+    final String args;
 
     Result(SimArgs args) {
-      this.args = args;
+      this.args = args.toString();
     }
 
     @Override
     public String toString() {
       return toStringHelper("Result").add("args", args).toString();
     }
-
-    @Override
-    public SimArgs getSimArgs() {
-      return args;
-    }
   }
 
-  static class TestConfig implements Configuration {
+  static class TestConfig implements Configuration, Serializable {
     private final String name;
 
     TestConfig(String name) {

@@ -62,18 +62,18 @@ final class LocalComputer implements Computer {
       executor = MoreExecutors.newDirectExecutorService();
     }
 
-    final List<SimResult> results;
+    final List<SimResultContainer> results;
     try {
       // safe cast according to javadoc
       @SuppressWarnings({ "unchecked", "rawtypes" })
-      final List<ListenableFuture<SimResult>> futures = (List) executor
+      final List<ListenableFuture<SimResultContainer>> futures = (List) executor
           .invokeAll(tasks);
 
       if (!listeners.isEmpty()) {
-        for (ListenableFuture<SimResult> fut : futures) {
-          Futures.addCallback(fut, new FutureCallback<SimResult>() {
+        for (ListenableFuture<SimResultContainer> fut : futures) {
+          Futures.addCallback(fut, new FutureCallback<SimResultContainer>() {
             @Override
-            public void onSuccess(@Nullable SimResult result) {
+            public void onSuccess(@Nullable SimResultContainer result) {
               requireNonNull(result);
               for (ResultListener list : listeners) {
                 list.receive(result);

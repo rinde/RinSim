@@ -15,8 +15,19 @@
  */
 package com.github.rinde.rinsim.experiment.base;
 
-import java.util.concurrent.Callable;
+import com.google.auto.value.AutoValue;
 
-public interface SimTask extends Callable<SimResultContainer> {
+@AutoValue
+public abstract class SimResultContainer {
+
+  SimResultContainer() {}
+
+  static SimResultContainer create(SimArgs arguments, SimResult result) {
+    return new AutoValue_SimResultContainer(arguments, result);
+  }
+
+  public abstract SimArgs arguments();
+
+  public abstract SimResult result();
 
 }

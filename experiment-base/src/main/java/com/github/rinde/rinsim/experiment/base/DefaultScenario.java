@@ -18,11 +18,14 @@ package com.github.rinde.rinsim.experiment.base;
 import static com.google.common.base.MoreObjects.toStringHelper;
 import static java.util.Objects.requireNonNull;
 
+import java.io.Serializable;
+
 import javax.annotation.Nullable;
 
 import com.google.common.collect.ComparisonChain;
 
-public class DefaultScenario implements Scenario {
+public class DefaultScenario implements Scenario, Serializable {
+  private static final long serialVersionUID = -4011447277780873140L;
 
   protected final ProblemClass problemClass;
   protected final String instanceId;

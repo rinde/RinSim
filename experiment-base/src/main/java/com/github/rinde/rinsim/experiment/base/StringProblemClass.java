@@ -17,13 +17,16 @@ package com.github.rinde.rinsim.experiment.base;
 
 import static java.util.Objects.requireNonNull;
 
+import java.io.Serializable;
+
 import javax.annotation.Nullable;
 
 /**
  * String based implementation of {@link ProblemClass}.
  * @author Rinde van Lon
  */
-public final class StringProblemClass implements ProblemClass {
+public final class StringProblemClass implements ProblemClass, Serializable {
+  private static final long serialVersionUID = -3929329408926817016L;
   private final String id;
 
   /**

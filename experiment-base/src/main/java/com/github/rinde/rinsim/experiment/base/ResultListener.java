@@ -32,7 +32,7 @@ public interface ResultListener {
    * This method is called to signal the completion of a single experiment.
    * @param result The {@link SimResult} of the simulation that is finished.
    */
-  void receive(SimResult result);
+  void receive(SimResultContainer result);
 
   /**
    * This method is called to signal the end of the experiment.

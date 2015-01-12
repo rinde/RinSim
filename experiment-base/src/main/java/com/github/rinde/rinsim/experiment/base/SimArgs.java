@@ -30,17 +30,13 @@ public final class SimArgs implements Comparable<SimArgs> {
   final boolean showGui;
   final Optional<? extends PostProcessor<?, ?>> postProcessor;
 
-  // final Optional<UICreator> uiCreator;
-
   SimArgs(Scenario s, Configuration m, long seed,
-      boolean gui, @Nullable PostProcessor<?, ?> pp
-  /* , @Nullable UICreator uic */) {
+      boolean gui, @Nullable PostProcessor<?, ?> pp) {
     scenario = s;
     configuration = m;
     randomSeed = seed;
     showGui = gui;
     postProcessor = Optional.fromNullable(pp);
-    // uiCreator = Optional.fromNullable(uic);
   }
 
   @Override
