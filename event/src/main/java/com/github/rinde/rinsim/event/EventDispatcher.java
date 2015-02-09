@@ -30,7 +30,7 @@ import com.google.common.collect.Multimap;
  * Basic event dispatcher for easily dispatching {@link Event}s to
  * {@link Listener}s. It provides methods for dispatching events and removing
  * and adding of listeners.
- * @author Rinde van Lon 
+ * @author Rinde van Lon
  */
 public class EventDispatcher implements EventAPI {
 
@@ -172,6 +172,16 @@ public class EventDispatcher implements EventAPI {
   @Override
   public boolean containsListener(Listener listener, Enum<?> eventType) {
     return listeners.containsEntry(eventType, listener);
+  }
+
+  /**
+   * Checks if the dispatcher has a listener for the specific event type.
+   * @param eventType The event type.
+   * @return <code>true</code> if there is a listener for the specific type,
+   *         <code>false</code> otherwise.
+   */
+  public boolean hasListenerFor(Enum<?> eventType) {
+    return listeners.containsKey(eventType);
   }
 
   /**

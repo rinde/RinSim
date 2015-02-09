@@ -70,11 +70,24 @@ public class EventDispatcherTest {
 
   @Test
   public void dispatchEvent() {
+    assertFalse(dispatcher.hasListenerFor(EVENT1));
+    assertFalse(dispatcher.hasListenerFor(EVENT2));
+    assertFalse(dispatcher.hasListenerFor(EVENT3));
+    assertFalse(dispatcher.hasListenerFor(OTHER_EVENT1));
+    
     dispatcher.addListener(l1, EVENT1);
-
+    assertTrue(dispatcher.hasListenerFor(EVENT1));
+    assertFalse(dispatcher.hasListenerFor(EVENT2));
+    assertFalse(dispatcher.hasListenerFor(EVENT3));
+    assertFalse(dispatcher.hasListenerFor(OTHER_EVENT1));
+    
     final Set<Enum<?>> set = new HashSet<Enum<?>>(asList(EVENT1, EVENT2));
     api.addListener(l2, set);
+    assertFalse(dispatcher.hasListenerFor(EVENT3));
+    
     dispatcher.addListener(l3, EVENT1, EVENT2, EVENT3);
+    assertTrue(dispatcher.hasListenerFor(EVENT1));
+    assertFalse(dispatcher.hasListenerFor(OTHER_EVENT1));
 
     dispatcher.dispatchEvent(new Event(EVENT2));
     assertEquals(asList(), l1.getEventTypeHistory());
