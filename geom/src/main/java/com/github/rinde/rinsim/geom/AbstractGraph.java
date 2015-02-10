@@ -18,6 +18,7 @@ package com.github.rinde.rinsim.geom;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
 
+import java.util.Collection;
 import java.util.Set;
 
 import javax.annotation.Nullable;
@@ -80,6 +81,11 @@ public abstract class AbstractGraph<E extends ConnectionData> implements
     for (final Connection<E> connection : connections) {
       addConnection(connection);
     }
+  }
+
+  @Override
+  public void addConnections(Collection<? extends Connection<E>> connections) {
+    addConnections((Iterable<? extends Connection<E>>) connections);
   }
 
   @Override

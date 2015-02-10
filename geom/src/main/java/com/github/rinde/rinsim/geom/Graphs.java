@@ -585,6 +585,12 @@ public final class Graphs {
       throw new UnsupportedOperationException();
     }
 
+    @Deprecated
+    @Override
+    public void addConnections(Collection<? extends Connection<E>> connections) {
+      throw new UnsupportedOperationException();
+    }
+
     @Override
     public void removeNode(Point node) {
       throw new UnsupportedOperationException();

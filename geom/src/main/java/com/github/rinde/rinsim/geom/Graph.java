@@ -161,6 +161,14 @@ public interface Graph<E extends ConnectionData> {
   void addConnections(Iterable<? extends Connection<E>> connections);
 
   /**
+   * Adds connections to the graph.
+   * @param connections The connections to add.
+   * @deprecated Use {@link #addConnections(Iterable)} instead.
+   */
+  @Deprecated
+  void addConnections(Collection<? extends Connection<E>> connections);
+
+  /**
    * Merges <code>other</code> into this graph.
    * @param other The graph to merge into this graph.
    */
