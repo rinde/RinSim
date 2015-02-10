@@ -160,7 +160,7 @@ public final class Graphs {
    */
   public static <E extends ConnectionData> List<Point> shortestPathEuclideanDistance(
       Graph<E> graph, final Point from, final Point to) {
-    return Graphs.shortestPath(graph, from, to, new Graphs.EuclidianDistance());
+    return Graphs.shortestPath(graph, from, to, GraphHeuristics.EUCLIDEAN);
   }
 
   /**
@@ -196,11 +196,11 @@ public final class Graphs {
 
     // heuristic estimates
     final Map<Point, Double> hScore = new LinkedHashMap<>();
-    hScore.put(from, h.estimateCost(Point.distance(from, to)));
+    hScore.put(from, h.estimateCost(graph, from, to));
 
     // Estimated total distance from start to goal through y
     final SortedMap<Double, Point> fScore = new TreeMap<>();
-    fScore.put(h.estimateCost(Point.distance(from, to)), from);
+    fScore.put(h.estimateCost(graph, from, to), from);
 
     // The map of navigated nodes.
     final Map<Point, Point> cameFrom = new LinkedHashMap<>();
@@ -221,12 +221,12 @@ public final class Graphs {
 
         // tentative_g_score := g_score[x] + dist_between(x,y)
         final double tgScore = gScore.get(current)
-            + h.calculateCost(current, outgoingPoint);
+            + h.calculateCost(graph, current, outgoingPoint);
         boolean tIsBetter = false;
 
         if (!fScore.values().contains(outgoingPoint)) {
           hScore.put(outgoingPoint,
-              h.estimateCost(Point.distance(outgoingPoint, to)));
+              h.estimateCost(graph, outgoingPoint, to));
           tIsBetter = true;
         } else if (tgScore < gScore.get(outgoingPoint)) {
           tIsBetter = true;
@@ -345,19 +345,22 @@ public final class Graphs {
   public interface Heuristic {
     /**
      * Can be used to estimate the cost of traveling a distance.
-     * @param distance A distance.
+     * @param graph The graph.
+     * @param from Start point of a connection.
+     * @param to End point of a connection.
      * @return The estimate of the cost.
      */
-    double estimateCost(double distance);
+    double estimateCost(Graph<?> graph, Point from, Point to);
 
     /**
      * Computes the cost of traveling over the connection as specified by the
      * provided points.
+     * @param graph The graph.
      * @param from Start point of a connection.
      * @param to End point of a connection.
      * @return The cost of traveling.
      */
-    double calculateCost(Point from, Point to);
+    double calculateCost(Graph<?> graph, Point from, Point to);
   }
 
   // Equals is not consistent with compareTo!
@@ -578,16 +581,25 @@ public final class Graphs {
     }
   }
 
-  static class EuclidianDistance implements Graphs.Heuristic {
+  /**
+   * Default {@link Graphs.Heuristic} implementation.
+   * @author Rinde van Lon
+   */
+  public enum GraphHeuristics implements Graphs.Heuristic {
+    /**
+     * Euclidean distance implementation.
+     */
+    EUCLIDEAN {
+      @Override
+      public double calculateCost(Graph<?> graph, Point from, Point to) {
+        return graph.connectionLength(from, to);
+      }
 
-    @Override
-    public double calculateCost(final Point from, Point to) {
-      return Point.distance(from, to);
-    }
-
-    @Override
-    public double estimateCost(final double distance) {
-      return distance;
+      @Override
+      public double estimateCost(Graph<?> graph, Point from, Point to) {
+        return Point.distance(from, to);
+      }
     }
   }
+
 }

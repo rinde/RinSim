@@ -15,6 +15,7 @@
  */
 package com.github.rinde.rinsim.geom;
 
+import static java.util.Arrays.asList;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -39,20 +40,10 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 
-import com.github.rinde.rinsim.geom.AbstractGraph;
-import com.github.rinde.rinsim.geom.Connection;
-import com.github.rinde.rinsim.geom.Graph;
-import com.github.rinde.rinsim.geom.Graphs;
-import com.github.rinde.rinsim.geom.LengthData;
-import com.github.rinde.rinsim.geom.MultiAttributeData;
-import com.github.rinde.rinsim.geom.MultimapGraph;
-import com.github.rinde.rinsim.geom.PathNotFoundException;
-import com.github.rinde.rinsim.geom.Point;
-import com.github.rinde.rinsim.geom.TableGraph;
 import com.google.common.base.Function;
 
 /**
- * @author Rinde van Lon 
+ * @author Rinde van Lon
  * 
  */
 @RunWith(Parameterized.class)
@@ -124,7 +115,26 @@ public class GraphsTest {
       assertEquals(prevPath, newPath);
       prevPath = newPath;
     }
+  }
 
+  /**
+   * The shortest path changes based on the connection data.
+   */
+  @Test
+  public void shortestPathConnData() {
+    Point a = new Point(0, 0);
+    Point b = new Point(10, 0);
+    Point c = new Point(5, 5);
+    Graphs.addBiPath(graph, a, b, c, a);
+
+    assertEquals(asList(a, b),
+        Graphs.shortestPathEuclideanDistance(graph, a, b));
+
+    graph.setConnectionData(a, c, new LengthData(1d));
+    graph.setConnectionData(c, b, new LengthData(1d));
+
+    assertEquals(asList(a, c, b),
+        Graphs.shortestPathEuclideanDistance(graph, a, b));
   }
 
   @Test(expected = IllegalArgumentException.class)
