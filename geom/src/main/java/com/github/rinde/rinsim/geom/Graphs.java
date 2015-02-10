@@ -33,8 +33,6 @@ import java.util.TreeMap;
 
 import javax.annotation.Nullable;
 
-import org.apache.commons.math3.random.RandomGenerator;
-
 import com.google.common.base.Function;
 import com.google.common.base.Objects;
 
@@ -123,39 +121,27 @@ public final class Graphs {
   /**
    * Basic equals method.
    * @param g1 A graph.
-   * @param g2 Another graph.
-   * @param <E> The type of connection data.
-   * @return <code>true</code> if the provided graphs are equal,
-   *         <code>false</code> otherwise.
-   * @deprecated Use {@link #equal(Graph, Graph)} instead.
-   */
-  @Deprecated
-  public static <E extends ConnectionData> boolean equals(
-      Graph<? extends E> g1, Graph<? extends E> g2) {
-    return equal(g1, g2);
-  }
-
-  /**
-   * Basic equals method.
-   * @param g1 A graph.
-   * @param g2 Another graph.
-   * @param <E> The type of connection data.
+   * @param other The object to compare for equality with g1.
    * @return <code>true</code> if the provided graphs are equal,
    *         <code>false</code> otherwise.
    */
-  public static <E extends ConnectionData> boolean equal(
-      Graph<? extends E> g1, Graph<? extends E> g2) {
+  public static boolean equal(Graph<?> g1, @Nullable Object other) {
+    if (!(other instanceof Graph<?>)) {
+      return false;
+    }
+    Graph<?> g2 = (Graph<?>) other;
     if (g1.getNumberOfNodes() != g2.getNumberOfNodes()) {
       return false;
     }
     if (g1.getNumberOfConnections() != g2.getNumberOfConnections()) {
       return false;
     }
-    for (final Connection<? extends E> g1conn : g1.getConnections()) {
+    for (final Connection<?> g1conn : g1.getConnections()) {
       if (!g2.hasConnection(g1conn.from, g1conn.to)) {
         return false;
       }
-      final E g2connEdgeData = g2.connectionData(g1conn.from, g1conn.to);
+      final ConnectionData g2connEdgeData = g2.connectionData(g1conn.from,
+          g1conn.to);
       if (!Objects.equal(g1conn.getData(), g2connEdgeData)) {
         return false;
       }
@@ -505,17 +491,11 @@ public final class Graphs {
     }
   }
 
-  private static class UnmodifiableGraph<E extends ConnectionData> implements
-      Graph<E> {
-    final Graph<E> delegate;
+  private static class UnmodifiableGraph<E extends ConnectionData> extends
+      ForwardingGraph<E> {
 
-    UnmodifiableGraph(Graph<E> pDelegate) {
-      delegate = pDelegate;
-    }
-
-    @Override
-    public boolean containsNode(Point node) {
-      return delegate.containsNode(node);
+    UnmodifiableGraph(Graph<E> delegate) {
+      super(delegate);
     }
 
     @Override
@@ -531,16 +511,6 @@ public final class Graphs {
     }
 
     @Override
-    public boolean hasConnection(Point from, Point to) {
-      return delegate.hasConnection(from, to);
-    }
-
-    @Override
-    public int getNumberOfConnections() {
-      return delegate.getNumberOfConnections();
-    }
-
-    @Override
     public List<Connection<E>> getConnections() {
       final List<Connection<E>> conn = delegate.getConnections();
       final List<Connection<E>> unmodConn = new ArrayList<>();
@@ -551,23 +521,8 @@ public final class Graphs {
     }
 
     @Override
-    public int getNumberOfNodes() {
-      return delegate.getNumberOfNodes();
-    }
-
-    @Override
     public Set<Point> getNodes() {
       return Collections.unmodifiableSet(delegate.getNodes());
-    }
-
-    @Override
-    public double connectionLength(Point from, Point to) {
-      return delegate.connectionLength(from, to);
-    }
-
-    @Override
-    public boolean isEmpty() {
-      return delegate.isEmpty();
     }
 
     @Override
@@ -585,12 +540,6 @@ public final class Graphs {
       throw new UnsupportedOperationException();
     }
 
-    @Deprecated
-    @Override
-    public void addConnections(Collection<? extends Connection<E>> connections) {
-      throw new UnsupportedOperationException();
-    }
-
     @Override
     public void removeNode(Point node) {
       throw new UnsupportedOperationException();
@@ -599,18 +548,6 @@ public final class Graphs {
     @Override
     public void removeConnection(Point from, Point to) {
       throw new UnsupportedOperationException();
-    }
-
-    @SuppressWarnings({ "unchecked" })
-    @Override
-    public boolean equals(@Nullable Object other) {
-      return other instanceof Graph ? Graphs.equal(this, (Graph<E>) other)
-          : false;
-    }
-
-    @Override
-    public int hashCode() {
-      return delegate.hashCode();
     }
 
     @Nullable
@@ -633,11 +570,6 @@ public final class Graphs {
     @Nullable
     public E setConnectionData(Point from, Point to, @Nullable E edgeData) {
       throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public Point getRandomNode(RandomGenerator generator) {
-      return delegate.getRandomNode(generator);
     }
 
     @Override

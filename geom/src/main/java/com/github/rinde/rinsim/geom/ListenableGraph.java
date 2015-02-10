@@ -18,7 +18,6 @@ package com.github.rinde.rinsim.geom;
 import static com.google.common.collect.Lists.newArrayList;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
@@ -130,12 +129,6 @@ public final class ListenableGraph<E extends ConnectionData> extends
     for (Connection<E> c : connections) {
       addConnection(c);
     }
-  }
-
-  @Deprecated
-  @Override
-  public void addConnections(Collection<? extends Connection<E>> connections) {
-    addConnections((Iterable<? extends Connection<E>>) connections);
   }
 
   @Override

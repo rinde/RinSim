@@ -129,12 +129,6 @@ public abstract class ForwardingGraph<E extends ConnectionData> implements
     delegate.addConnections(connections);
   }
 
-  @Deprecated
-  @Override
-  public void addConnections(Collection<? extends Connection<E>> connections) {
-    delegate.addConnections(connections);
-  }
-
   @Override
   public void merge(Graph<E> other) {
     delegate.merge(other);
@@ -158,5 +152,15 @@ public abstract class ForwardingGraph<E extends ConnectionData> implements
   @Override
   public Point getRandomNode(RandomGenerator generator) {
     return delegate.getRandomNode(generator);
+  }
+
+  @Override
+  public boolean equals(@Nullable Object other) {
+    return delegate.equals(other);
+  }
+
+  @Override
+  public int hashCode() {
+    return delegate.hashCode();
   }
 }

@@ -18,7 +18,6 @@ package com.github.rinde.rinsim.geom;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
 
-import java.util.Collection;
 import java.util.Set;
 
 import javax.annotation.Nullable;
@@ -84,11 +83,6 @@ public abstract class AbstractGraph<E extends ConnectionData> implements
   }
 
   @Override
-  public void addConnections(Collection<? extends Connection<E>> connections) {
-    addConnections((Iterable<? extends Connection<E>>) connections);
-  }
-
-  @Override
   public void merge(Graph<E> other) {
     addConnections(other.getConnections());
   }
@@ -114,10 +108,8 @@ public abstract class AbstractGraph<E extends ConnectionData> implements
       @Nullable E connData);
 
   @Override
-  @SuppressWarnings({ "unchecked" })
   public boolean equals(@Nullable Object other) {
-    return other instanceof Graph ? Graphs.equal(this, (Graph<E>) other)
-        : false;
+    return Graphs.equal(this, other);
   }
 
   @Override
