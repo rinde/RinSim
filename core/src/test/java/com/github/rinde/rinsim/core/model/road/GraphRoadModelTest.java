@@ -34,7 +34,6 @@ import javax.measure.Measure;
 import javax.measure.converter.UnitConverter;
 import javax.measure.unit.NonSI;
 import javax.measure.unit.SI;
-import javax.measure.unit.Unit;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -42,66 +41,85 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 
-import com.github.rinde.rinsim.core.model.road.AbstractRoadModel;
-import com.github.rinde.rinsim.core.model.road.CachedGraphRoadModel;
-import com.github.rinde.rinsim.core.model.road.GraphRoadModel;
-import com.github.rinde.rinsim.core.model.road.MoveProgress;
-import com.github.rinde.rinsim.core.model.road.MovingRoadUser;
-import com.github.rinde.rinsim.core.model.road.RoadModel;
-import com.github.rinde.rinsim.core.model.road.RoadUser;
 import com.github.rinde.rinsim.core.model.road.GraphRoadModel.Loc;
 import com.github.rinde.rinsim.geom.Connection;
 import com.github.rinde.rinsim.geom.ConnectionData;
 import com.github.rinde.rinsim.geom.Graph;
 import com.github.rinde.rinsim.geom.Graphs;
 import com.github.rinde.rinsim.geom.LengthData;
+import com.github.rinde.rinsim.geom.ListenableGraph;
 import com.github.rinde.rinsim.geom.MultiAttributeData;
 import com.github.rinde.rinsim.geom.MultimapGraph;
 import com.github.rinde.rinsim.geom.Point;
 import com.github.rinde.rinsim.geom.TestMultimapGraph;
 import com.github.rinde.rinsim.geom.TestTableGraph;
+import com.google.common.base.Supplier;
 
 /**
  * @author Rinde van Lon (rinde.vanlon@cs.kuleuven.be)
- * 
+ *
  */
 @RunWith(Parameterized.class)
 public class GraphRoadModelTest extends AbstractRoadModelTest<GraphRoadModel> {
 
-  protected Class<? extends Graph<?>> graphType;
   protected Graph<? extends ConnectionData> graph;
-  protected Class<? extends GraphRoadModel> roadModelType;
+  protected Supplier<GraphRoadModel> supplier;
 
   // TODO what about negative speeds? and what about negative speed limits?
 
-  static boolean connectionEquals(Connection<? extends ConnectionData> conn,
-      Point from, Point to) {
-    return conn.from.equals(from) && conn.to.equals(to);
-  }
-
-  public GraphRoadModelTest(Class<? extends Graph<?>> pGraphType,
-      Class<? extends GraphRoadModel> pRoadModelType) {
-    graphType = pGraphType;
-    roadModelType = pRoadModelType;
+  public GraphRoadModelTest(Supplier<GraphRoadModel> supplier) {
+    this.supplier = supplier;
   }
 
   @Parameters
   public static Collection<Object[]> configs() {
     return Arrays.asList(new Object[][] {
-        { TestMultimapGraph.class, GraphRoadModel.class },
-        { TestMultimapGraph.class, CachedGraphRoadModel.class },
-        { TestTableGraph.class, GraphRoadModel.class },
-        { TestTableGraph.class, CachedGraphRoadModel.class } });
+        { new Supplier<GraphRoadModel>() {
+          @Override
+          public GraphRoadModel get() {
+            return new GraphRoadModel(new TestMultimapGraph());
+          }
+        } },
+        { new Supplier<GraphRoadModel>() {
+          @Override
+          public GraphRoadModel get() {
+            return new CachedGraphRoadModel(new TestMultimapGraph(),
+                SI.KILOMETER, NonSI.KILOMETERS_PER_HOUR);
+          }
+        } },
+        { new Supplier<GraphRoadModel>() {
+          @Override
+          public GraphRoadModel get() {
+            return new GraphRoadModel(new TestTableGraph());
+          }
+        } },
+        { new Supplier<GraphRoadModel>() {
+          @Override
+          public GraphRoadModel get() {
+            return new CachedGraphRoadModel(new TestTableGraph(),
+                SI.KILOMETER, NonSI.KILOMETERS_PER_HOUR);
+          }
+        } },
+        { new Supplier<GraphRoadModel>() {
+          @Override
+          public GraphRoadModel get() {
+            return new DynamicGraphRoadModel(new ListenableGraph<>(
+                new TestTableGraph()));
+          }
+        } },
+    });
   }
 
   @Override
   @Before
   public void setUp() throws InstantiationException, IllegalAccessException,
-      IllegalArgumentException, SecurityException, InvocationTargetException,
-      NoSuchMethodException {
-    graph = (graphType.newInstance());
-    model = roadModelType.getConstructor(Graph.class, Unit.class, Unit.class)
-        .newInstance(graph, SI.KILOMETER, NonSI.KILOMETERS_PER_HOUR);
+  IllegalArgumentException, SecurityException, InvocationTargetException,
+  NoSuchMethodException {
+    model = supplier.get();
+    graph = model.graph;
+
+    // roadModelType.getConstructor(Graph.class, Unit.class, Unit.class)
+    // .newInstance(graph, SI.KILOMETER, NonSI.KILOMETERS_PER_HOUR);
 
     graph.addConnection(SW, SE);
     graph.addConnection(SE, NE);
@@ -115,14 +133,6 @@ public class GraphRoadModelTest extends AbstractRoadModelTest<GraphRoadModel> {
 
     assertEquals(3, graph.getNumberOfConnections());
     assertEquals(4, graph.getNumberOfNodes());
-  }
-
-  @Test(expected = InvocationTargetException.class)
-  public void constructorFail() throws IllegalArgumentException,
-      SecurityException, InstantiationException, IllegalAccessException,
-      InvocationTargetException, NoSuchMethodException {
-    roadModelType.getConstructor(Graph.class, Unit.class, Unit.class)
-        .newInstance((Graph<?>) null, (Unit<?>) null, (Unit<?>) null);
   }
 
   /**
@@ -252,15 +262,15 @@ public class GraphRoadModelTest extends AbstractRoadModelTest<GraphRoadModel> {
     assertEquals(new Point(5, 0), model.getPosition(agent));
 
     progress = model.followPath(agent, path, hour(2)); // follow path
-                                                       // for 2 x
-                                                       // time
+    // for 2 x
+    // time
     assertEquals(10, progress.distance.getValue(), EPSILON);
     assertEquals(1, path.size());
     assertEquals(new Point(10, 5), model.getPosition(agent));
 
     progress = model.followPath(agent, path, hour(3)); // follow path
-                                                       // for 3 x
-                                                       // time
+    // for 3 x
+    // time
     // == 15
     assertEquals(5, progress.distance.getValue(), EPSILON);
     assertEquals(Measure.valueOf(1L, NonSI.HOUR).to(SI.MILLI(SI.SECOND)),
@@ -794,7 +804,7 @@ public class GraphRoadModelTest extends AbstractRoadModelTest<GraphRoadModel> {
     final RoadUser agent2 = new TestRoadUser();
     model.addObjectAt(agent1, new Point(0, 0));
     model.addObjectAt(agent2, new Point(1, 0));// this location is not a
-                                               // crossroad
+    // crossroad
   }
 
   // @Test
@@ -842,4 +852,8 @@ public class GraphRoadModelTest extends AbstractRoadModelTest<GraphRoadModel> {
   // LinkedList<Point>(rs.getShortestPathTo(agent2, agent1)), 5);
   // }
 
+  static boolean connectionEquals(Connection<? extends ConnectionData> conn,
+      Point from, Point to) {
+    return conn.from.equals(from) && conn.to.equals(to);
+  }
 }

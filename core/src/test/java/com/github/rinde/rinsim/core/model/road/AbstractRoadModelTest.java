@@ -17,11 +17,11 @@ package com.github.rinde.rinsim.core.model.road;
 
 import static com.google.common.collect.Lists.newLinkedList;
 import static java.util.Arrays.asList;
-import static junit.framework.Assert.assertTrue;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -44,13 +44,6 @@ import org.junit.Test;
 
 import com.github.rinde.rinsim.core.TimeLapse;
 import com.github.rinde.rinsim.core.TimeLapseFactory;
-import com.github.rinde.rinsim.core.model.road.CachedGraphRoadModel;
-import com.github.rinde.rinsim.core.model.road.ForwardingRoadModel;
-import com.github.rinde.rinsim.core.model.road.GenericRoadModel;
-import com.github.rinde.rinsim.core.model.road.MoveProgress;
-import com.github.rinde.rinsim.core.model.road.MovingRoadUser;
-import com.github.rinde.rinsim.core.model.road.RoadModel;
-import com.github.rinde.rinsim.core.model.road.RoadUser;
 import com.github.rinde.rinsim.core.model.road.AbstractRoadModel.RoadEventType;
 import com.github.rinde.rinsim.event.ListenerEventHistory;
 import com.github.rinde.rinsim.geom.Point;
@@ -63,7 +56,7 @@ import com.google.common.collect.Table;
 /**
  * @author Rinde van Lon (rinde.vanlon@cs.kuleuven.be)
  * @param <T> the type of RoadModel to test
- * 
+ *
  */
 public abstract class AbstractRoadModelTest<T extends GenericRoadModel> {
 
@@ -369,8 +362,8 @@ public abstract class AbstractRoadModelTest<T extends GenericRoadModel> {
   }
 
   /**
-	 * 
-	 */
+   *
+   */
   public AbstractRoadModelTest() {
     super();
   }
