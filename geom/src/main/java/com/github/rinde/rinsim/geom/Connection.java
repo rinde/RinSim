@@ -65,7 +65,7 @@ public class Connection<E extends ConnectionData> {
    * Sets the data associated to this connection to the specified value.
    * @param pData The new data to be associated to this connection.
    */
-  public void setData(E pData) {
+  public void setData(@Nullable E pData) {
     this.data = pData;
   }
 

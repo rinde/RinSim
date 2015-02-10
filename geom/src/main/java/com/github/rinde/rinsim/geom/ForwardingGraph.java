@@ -28,13 +28,21 @@ import org.apache.commons.math3.random.RandomGenerator;
  * is a helper class for creating graph decorators, subclasses only need to
  * override the methods need to be changed.
  * @author Rinde van Lon
- * @param <E>
+ * @param <E> The type of {@link ConnectionData} that is used in the
+ *          {@link Connection}s.
  */
 public abstract class ForwardingGraph<E extends ConnectionData> implements
     Graph<E> {
 
+  /**
+   * The decorated graph.
+   */
   protected final Graph<E> delegate;
 
+  /**
+   * Instantiates a new instance.
+   * @param delegate The graph instance to decorate.
+   */
   protected ForwardingGraph(Graph<E> delegate) {
     this.delegate = delegate;
   }
@@ -117,7 +125,7 @@ public abstract class ForwardingGraph<E extends ConnectionData> implements
   }
 
   @Override
-  public void addConnections(Collection<Connection<E>> connections) {
+  public void addConnections(Iterable<? extends Connection<E>> connections) {
     delegate.addConnections(connections);
   }
 

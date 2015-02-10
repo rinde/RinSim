@@ -30,12 +30,16 @@ import com.github.rinde.rinsim.event.EventDispatcher;
 import com.google.common.base.MoreObjects;
 
 /**
- * A listenable decorator for {@link Graph} instances. This implementation
- * dispatches events for every graph modifying operation. Note that any
- * modifications made to the underlying graph are not observed, in order to get
- * notified of all modifications ensure that all modifications go exclusively
- * via the decorator instance. The list of supported event types is
- * {@link EventTypes} the event class is {@link GraphEvent}.
+ * An observable decorator for {@link Graph} instances. This implementation
+ * dispatches events for every graph modifying operation. Any modifications made
+ * directly to the underlying graph are not observed, in order to get notified
+ * of all modifications ensure that all modifications go exclusively via the
+ * decorator instance. To help prevent unauthorized modifications this decorator
+ * returns only unmodifiable {@link Connection} instances, the data of a
+ * connection can be changed via
+ * {@link #setConnectionData(Point, Point, ConnectionData)}. The list of
+ * supported event types is {@link EventTypes} the event class is
+ * {@link GraphEvent}.
  * 
  * @author Rinde van Lon
  * @param <E> The type of {@link ConnectionData} that is used in the edges.
@@ -68,8 +72,8 @@ public final class ListenableGraph<E extends ConnectionData> extends
   private final EventDispatcher eventDispatcher;
 
   /**
-   * Wraps the specified graph.
-   * @param delegate
+   * Decorates the specified graph such that all modifications are monitored.
+   * @param delegate The graph to decorate.
    */
   public ListenableGraph(Graph<E> delegate) {
     super(delegate);
@@ -118,6 +122,13 @@ public final class ListenableGraph<E extends ConnectionData> extends
     delegate.addConnection(connection);
     eventDispatcher.dispatchEvent(new GraphEvent(EventTypes.ADD_CONNECTION,
         this, connection.from, connection.to, connection.getData()));
+  }
+
+  @Override
+  public void addConnections(Iterable<? extends Connection<E>> connections) {
+    for (Connection<E> c : connections) {
+      addConnection(c);
+    }
   }
 
   @Override
@@ -202,6 +213,13 @@ public final class ListenableGraph<E extends ConnectionData> extends
      */
     public @Nullable Object getConnData() {
       return connData;
+    }
+
+    /**
+     * @return The {@link Graph} that was changed.
+     */
+    public Graph<?> getGraph() {
+      return (Graph<?>) getIssuer();
     }
 
     @Override

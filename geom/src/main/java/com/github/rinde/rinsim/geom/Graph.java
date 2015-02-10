@@ -158,7 +158,7 @@ public interface Graph<E extends ConnectionData> {
    * @param connections The connections to add.
    * @throws IllegalArgumentException if any of the connections already exists.
    */
-  void addConnections(Collection<Connection<E>> connections);
+  void addConnections(Iterable<? extends Connection<E>> connections);
 
   /**
    * Merges <code>other</code> into this graph.

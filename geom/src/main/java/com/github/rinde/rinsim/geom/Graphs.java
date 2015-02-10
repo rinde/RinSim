@@ -475,7 +475,7 @@ public final class Graphs {
     }
 
     @Override
-    public void setData(E data) {
+    public void setData(@Nullable E data) {
       throw new UnsupportedOperationException();
     }
 
@@ -581,7 +581,7 @@ public final class Graphs {
     }
 
     @Override
-    public void addConnections(Collection<Connection<E>> connections) {
+    public void addConnections(Iterable<? extends Connection<E>> connections) {
       throw new UnsupportedOperationException();
     }
 
