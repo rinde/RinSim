@@ -17,6 +17,7 @@ package com.github.rinde.rinsim.core.model.road;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 
 import javax.annotation.Nullable;
 import javax.measure.Measure;
@@ -34,7 +35,7 @@ import com.google.common.collect.Collections2;
 
 /**
  * Provides several queries for finding {@link RoadUser}s in {@link RoadModel}s.
- * 
+ *
  * @author Rinde van Lon
  */
 public final class RoadModels {
@@ -280,8 +281,8 @@ public final class RoadModels {
     }
 
     @Override
-    public Point apply(T input) {
-      return rm.getPosition(input);
+    public @Nullable Point apply(@Nullable T input) {
+      return rm.getPosition(Objects.requireNonNull(input));
     }
   }
 
@@ -297,8 +298,9 @@ public final class RoadModels {
     }
 
     @Override
-    public boolean apply(RoadUser input) {
-      return Point.distance(model.getPosition(input), position) < radius;
+    public boolean apply(@Nullable RoadUser input) {
+      return Point.distance(model.getPosition(Objects.requireNonNull(input)),
+          position) < radius;
     }
   }
 }

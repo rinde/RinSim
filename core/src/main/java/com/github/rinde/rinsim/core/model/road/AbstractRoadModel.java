@@ -27,6 +27,7 @@ import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Queue;
 import java.util.Set;
 
@@ -53,8 +54,8 @@ import com.google.common.collect.Sets;
  * @param <T> The type of the location representation that is used for storing
  *          object locations. This location representation should only be used
  *          internally in the model.
- * 
- * @author Rinde van Lon 
+ *
+ * @author Rinde van Lon
  */
 public abstract class AbstractRoadModel<T> extends GenericRoadModel {
 
@@ -115,7 +116,7 @@ public abstract class AbstractRoadModel<T> extends GenericRoadModel {
 
   /**
    * The types of events this model can dispatch.
-   * @author Rinde van Lon 
+   * @author Rinde van Lon
    */
   public enum RoadEventType {
     /**
@@ -348,7 +349,7 @@ public abstract class AbstractRoadModel<T> extends GenericRoadModel {
   public <Y extends RoadUser> Set<Y> getObjectsOfType(final Class<Y> type) {
     return (Set<Y>) getObjects(new Predicate<RoadUser>() {
       @Override
-      public boolean apply(RoadUser input) {
+      public boolean apply(@Nullable RoadUser input) {
         return type.isInstance(input);
       }
     });
@@ -415,14 +416,15 @@ public abstract class AbstractRoadModel<T> extends GenericRoadModel {
     }
 
     @Override
-    public boolean apply(RoadUser input) {
-      return type.isInstance(input) && model.equalPosition(input, reference);
+    public boolean apply(@Nullable RoadUser input) {
+      return type.isInstance(input)
+          && model.equalPosition(Objects.requireNonNull(input), reference);
     }
   }
 
   /**
    * Simple class for storing destinations and paths leading to them.
-   * @author Rinde van Lon 
+   * @author Rinde van Lon
    */
   protected class DestinationPath {
     /**
