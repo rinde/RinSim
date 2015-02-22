@@ -15,8 +15,10 @@
  */
 package com.github.rinde.rinsim.core.model.road;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
 
+import java.util.Objects;
 import java.util.Queue;
 
 import javax.measure.quantity.Length;
@@ -28,6 +30,7 @@ import javax.measure.unit.Unit;
 import com.github.rinde.rinsim.core.TimeLapse;
 import com.github.rinde.rinsim.event.Event;
 import com.github.rinde.rinsim.event.Listener;
+import com.github.rinde.rinsim.geom.Connection;
 import com.github.rinde.rinsim.geom.ConnectionData;
 import com.github.rinde.rinsim.geom.Graph;
 import com.github.rinde.rinsim.geom.ListenableGraph;
@@ -38,11 +41,34 @@ import com.google.auto.value.AutoValue;
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Multimap;
 
+/**
+ * {@link GraphRoadModel} that allows adding and removing connections and nodes
+ * in the road graph. The {@link Graph} needs to be supplied as a
+ * {@link ListenableGraph}. When the graph reports a change of its structure the
+ * model will check whether the modification is allowed. There are two
+ * situations in which a graph modification is not allowed:
+ * <ul>
+ * <li>Removal of a connection or changing a connection when a {@link RoadUser}
+ * is on that connection.</li>
+ * <li>Removal of the last connection to a node with a {@link RoadUser} on it.</li>
+ * </ul>
+ * An {@link IllegalStateException} will be thrown upon detection of an invalid
+ * modification. It is up to the user to prevent this from happening. The method
+ * {@link #isOccupied(Point, Point)} can be of help for this.
+ * @author Rinde van Lon
+ */
 public class DynamicGraphRoadModel extends GraphRoadModel {
   private final ListenableGraph<? extends ConnectionData> listenableGraph;
   final Multimap<Conn, RoadUser> connMap;
   final Multimap<Point, RoadUser> posMap;
 
+  /**
+   * Creates a new instance using the specified {@link ListenableGraph} as road
+   * structure.
+   * @param pGraph The graph which will be used as road structure.
+   * @param distanceUnit The distance unit used in the graph.
+   * @param speedUnit The speed unit for {@link MovingRoadUser}s in this model.
+   */
   public DynamicGraphRoadModel(
       ListenableGraph<? extends ConnectionData> pGraph,
       Unit<Length> distanceUnit, Unit<Velocity> speedUnit) {
@@ -54,6 +80,12 @@ public class DynamicGraphRoadModel extends GraphRoadModel {
     posMap = LinkedHashMultimap.create();
   }
 
+  /**
+   * Creates a new instance using the specified {@link ListenableGraph} as road
+   * structure. The default units are used as defined by
+   * {@link AbstractRoadModel}.
+   * @param pGraph The graph which will be used as road structure.
+   */
   public DynamicGraphRoadModel(ListenableGraph<? extends ConnectionData> pGraph) {
     this(pGraph, SI.KILOMETER, NonSI.KILOMETERS_PER_HOUR);
   }
@@ -69,9 +101,11 @@ public class DynamicGraphRoadModel extends GraphRoadModel {
     super.addObjectAtSamePosition(newObj, existingObj);
     final Loc loc = objLocs.get(newObj);
     if (loc.isOnConnection()) {
-      connMap.remove(Conn.create(loc.conn.from, loc.conn.to), newObj);
+      final Connection<? extends ConnectionData> conn = Objects
+          .requireNonNull(loc.conn);
+      connMap.put(Conn.create(conn.from, conn.to), newObj);
     } else {
-      posMap.remove(loc, newObj);
+      posMap.put(loc, newObj);
     }
   }
 
@@ -95,7 +129,9 @@ public class DynamicGraphRoadModel extends GraphRoadModel {
       TimeLapse time) {
     final Loc prevLoc = objLocs.get(object);
     if (prevLoc.isOnConnection()) {
-      connMap.remove(Conn.create(prevLoc.conn.from, prevLoc.conn.to), object);
+      final Connection<? extends ConnectionData> conn = Objects
+          .requireNonNull(prevLoc.conn);
+      connMap.remove(Conn.create(conn.from, conn.to), object);
     } else {
       posMap.remove(prevLoc, object);
     }
@@ -103,20 +139,44 @@ public class DynamicGraphRoadModel extends GraphRoadModel {
 
     final Loc newLoc = objLocs.get(object);
     if (newLoc.isOnConnection()) {
-      connMap.put(Conn.create(newLoc.conn.from, newLoc.conn.to), object);
+      final Connection<? extends ConnectionData> conn = Objects
+          .requireNonNull(newLoc.conn);
+      connMap.put(Conn.create(conn.from, conn.to), object);
     } else {
       posMap.put(newLoc, object);
     }
     return mp;
   }
 
+  /**
+   * Checks if a connection between <code>from</code> and <code>to</code>
+   * exists, if so it will check if it is occupied.
+   * @param from The start point of a connection.
+   * @param to The end point of a connection.
+   * @return <code>true</code> if a {@link RoadUser} occupies either
+   *         <code>from</code>, <code>to</code> or the connection from
+   *         <code>from</code> to <code>to</code>, <code>false</code> otherwise.
+   * @throws IllegalArgumentException if no connection exists between
+   *           <code>from</code> and <code>to</code>.
+   */
   public boolean isOccupied(Point from, Point to) {
+    checkArgument(graph.hasConnection(from, to));
     return connMap.containsKey(Conn.create(from, to))
         || posMap.containsKey(from) || posMap.containsKey(to);
   }
 
   @Override
   public void removeObject(RoadUser object) {
+    checkArgument(objLocs.containsKey(object),
+        "RoadUser: %s does not exist.", object);
+    final Loc prevLoc = objLocs.get(object);
+    if (prevLoc.isOnConnection()) {
+      final Connection<? extends ConnectionData> conn = Objects
+          .requireNonNull(prevLoc.conn);
+      connMap.remove(Conn.create(conn.from, conn.to), object);
+    } else {
+      posMap.remove(prevLoc, object);
+    }
     super.removeObject(object);
   }
 
@@ -129,11 +189,7 @@ public class DynamicGraphRoadModel extends GraphRoadModel {
 
     @Override
     public void handleEvent(Event e) {
-      if (!(e instanceof GraphEvent)) {
-        throw new IllegalStateException("Received an unknown event: " + e);
-      }
       final GraphEvent ge = (GraphEvent) e;
-
       if (ge.getEventType() == EventTypes.REMOVE_CONNECTION
           || ge.getEventType() == EventTypes.CHANGE_CONNECTION_DATA) {
 
