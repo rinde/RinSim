@@ -62,7 +62,6 @@
 		<module>scenario-util</module>
 		<module>central</module>
 		<module>experiment</module>
-		<module>experiment-base</module>
 		<module>test-util</module>
 	</modules>
 
@@ -481,12 +480,6 @@
 				<scope>test</scope>
 			</dependency>
 			<dependency>
-				<groupId>com.google.auto.value</groupId>
-				<artifactId>auto-value</artifactId>
-				<version>1.0</version>
-				<scope>provided</scope>
-			</dependency>
-			<dependency>
 				<groupId>com.github.rinde</groupId>
 				<artifactId>rinsim-event</artifactId>
 				<version>${project.version}</version>
@@ -576,11 +569,6 @@
 			<dependency>
 				<groupId>com.github.rinde</groupId>
 				<artifactId>rinsim-experiment</artifactId>
-				<version>${project.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>com.github.rinde</groupId>
-				<artifactId>rinsim-experiment-base</artifactId>
 				<version>${project.version}</version>
 			</dependency>
 			<dependency>

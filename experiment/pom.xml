@@ -35,10 +35,6 @@
 		</dependency>
 		<dependency>
 			<groupId>com.github.rinde</groupId>
-			<artifactId>rinsim-experiment-base</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>com.github.rinde</groupId>
 			<artifactId>rinsim-pdptw</artifactId>
 		</dependency>
 		<dependency>
