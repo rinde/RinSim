@@ -31,8 +31,8 @@ import com.github.rinde.rinsim.geom.Point;
 import com.github.rinde.rinsim.geom.TableGraph;
 
 /**
+ * Tests for {@link DynamicGraphRoadModel}.
  * @author Rinde van Lon
- *
  */
 public class DynamicGraphRoadModelTest {
   @SuppressWarnings("null")
