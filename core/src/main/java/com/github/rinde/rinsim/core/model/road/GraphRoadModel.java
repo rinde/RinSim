@@ -509,5 +509,19 @@ public class GraphRoadModel extends AbstractRoadModel<Loc> {
     public String toString() {
       return super.toString() + "{" + conn + "}";
     }
+
+    /*
+     * TODO equals and hashCode should be removed in next major release
+     */
+
+    @Override
+    public boolean equals(@Nullable Object o) {
+      return super.equals(o);
+    }
+
+    @Override
+    public int hashCode() {
+      return super.hashCode();
+    }
   }
 }
