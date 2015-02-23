@@ -273,7 +273,7 @@ public final class RoadModels {
   }
 
   static class RoadUserToPositionFunction<T extends RoadUser> implements
-      Function<T, Point> {
+  Function<T, Point> {
     private final RoadModel rm;
 
     RoadUserToPositionFunction(RoadModel roadModel) {
@@ -281,7 +281,8 @@ public final class RoadModels {
     }
 
     @Override
-    public @Nullable Point apply(@Nullable T input) {
+    @Nullable
+    public Point apply(@Nullable T input) {
       return rm.getPosition(Objects.requireNonNull(input));
     }
   }

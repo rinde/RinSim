@@ -220,7 +220,7 @@ public class DynamicGraphRoadModel extends GraphRoadModel {
   }
 
   @AutoValue
-  static abstract class Conn {
+  abstract static class Conn {
 
     abstract Point from();
 
