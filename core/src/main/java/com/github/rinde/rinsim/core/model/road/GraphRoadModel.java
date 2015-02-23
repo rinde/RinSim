@@ -50,10 +50,9 @@ import com.google.common.math.DoubleMath;
  * that the {@link Graph} does <b>not</b> change. Modifying the graph after
  * passing it to the model may break this model. The graph can define
  * {@link Connection} specific speed limits using {@link MultiAttributeData}.
- * 
- * @author Rinde van Lon 
- * @author Bartosz Michalik  changes wrt.
- *         models infrastructure
+ *
+ * @author Rinde van Lon
+ * @author Bartosz Michalik changes wrt. models infrastructure
  */
 public class GraphRoadModel extends AbstractRoadModel<Loc> {
 
@@ -119,7 +118,7 @@ public class GraphRoadModel extends AbstractRoadModel<Loc> {
     double newDis = Double.NaN;
 
     final List<Point> travelledNodes = new ArrayList<Point>();
-    while (time.hasTimeLeft() && path.size() > 0) {
+    while (time.hasTimeLeft() && !path.isEmpty()) {
       checkIsValidMove(tempLoc, path.peek());
 
       // speed in internal speed unit
@@ -366,8 +365,8 @@ public class GraphRoadModel extends AbstractRoadModel<Loc> {
 
   /**
    * Uses the A* algorithm:
-   * {@link com.github.rinde.rinsim.geom.Graphs#shortestPathEuclideanDistance}. This
-   * method can optionally be overridden by subclasses to define another
+   * {@link com.github.rinde.rinsim.geom.Graphs#shortestPathEuclideanDistance}.
+   * This method can optionally be overridden by subclasses to define another
    * shortest path algorithm.
    * @param from The start point of the path.
    * @param to The end point of the path.
@@ -455,7 +454,7 @@ public class GraphRoadModel extends AbstractRoadModel<Loc> {
 
   /**
    * Location representation in a {@link Graph} for the {@link GraphRoadModel} .
-   * @author Rinde van Lon 
+   * @author Rinde van Lon
    */
   protected static final class Loc extends Point {
     private static final long serialVersionUID = 7070585967590832300L;
@@ -498,6 +497,7 @@ public class GraphRoadModel extends AbstractRoadModel<Loc> {
      * @return <code>true</code> if both {@link Loc}s are on the same
      *         connection, <code>false</code> otherwise.
      */
+    @SuppressWarnings("null")
     public boolean isOnSameConnection(Loc l) {
       if (!isOnConnection() || !l.isOnConnection()) {
         return false;
@@ -508,16 +508,6 @@ public class GraphRoadModel extends AbstractRoadModel<Loc> {
     @Override
     public String toString() {
       return super.toString() + "{" + conn + "}";
-    }
-
-    @Override
-    public boolean equals(@Nullable Object o) {
-      return super.equals(o);
-    }
-
-    @Override
-    public int hashCode() {
-      return super.hashCode();
     }
   }
 }
