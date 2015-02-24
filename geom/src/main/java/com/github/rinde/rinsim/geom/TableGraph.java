@@ -18,7 +18,6 @@ package com.github.rinde.rinsim.geom;
 import static com.google.common.base.Preconditions.checkArgument;
 
 import java.util.Collection;
-import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -26,10 +25,10 @@ import java.util.Set;
 
 import javax.annotation.Nullable;
 
-import autovalue.shaded.com.google.common.common.collect.ImmutableList;
-
 import com.google.common.base.Objects;
 import com.google.common.base.Optional;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Table;
 import com.google.common.collect.Tables;
 
@@ -55,7 +54,10 @@ public class TableGraph<E extends ConnectionData> extends AbstractGraph<E> {
 
   @Override
   public Set<Point> getNodes() {
-    return Collections.unmodifiableSet(data.rowKeySet());
+    return ImmutableSet.<Point> builder()
+        .addAll(data.rowKeySet())
+        .addAll(data.columnKeySet())
+        .build();
   }
 
   @Override
