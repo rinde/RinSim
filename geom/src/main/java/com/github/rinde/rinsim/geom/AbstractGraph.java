@@ -24,6 +24,8 @@ import javax.annotation.Nullable;
 
 import org.apache.commons.math3.random.RandomGenerator;
 
+import com.google.common.base.Optional;
+
 /**
  * Abstract graph implementation providing basic implementations of several
  * graph functions.
@@ -41,38 +43,24 @@ public abstract class AbstractGraph<E extends ConnectionData> implements
     super();
   }
 
-  @SuppressWarnings("null")
   @Override
   public double connectionLength(Point from, Point to) {
     checkArgument(hasConnection(from, to),
         "Can not get connection length from a non-existing connection.");
-    @Nullable
-    final E connData = connectionData(from, to);
-    return !isEmptyConnectionData(connData) ? connData.getLength() : Point
-        .distance(from, to);
-  }
-
-  /**
-   * Determines whether a connection data is 'empty'. Default only
-   * <code>null</code> is considered as an empty connection data. This can be
-   * overridden to include a specific instance of connection data to be the
-   * 'empty' instance.
-   * @param connData The connection data to check.
-   * @return <code>true</code> if the specified connection data is considered
-   *         empty, <code>false</code> otherwise.
-   */
-  protected boolean isEmptyConnectionData(@Nullable E connData) {
-    return connData == null;
+    final Optional<E> connData = connectionData(from, to);
+    return connData.isPresent() && connData.get().getLength().isPresent()
+        ? connData.get().getLength().get()
+        : Point.distance(from, to);
   }
 
   @Override
   public void addConnection(Point from, Point to) {
-    addConnection(from, to, null);
+    addConnection(from, to, Optional.<E> absent());
   }
 
   @Override
   public void addConnection(Connection<E> c) {
-    addConnection(c.from, c.to, c.getData());
+    addConnection(c.from(), c.to(), c.data());
   }
 
   @Override
@@ -88,7 +76,17 @@ public abstract class AbstractGraph<E extends ConnectionData> implements
   }
 
   @Override
-  public void addConnection(Point from, Point to, @Nullable E connData) {
+  public void addConnection(Point from, Point to, E connData) {
+    addConnection(from, to, Optional.of(connData));
+  }
+
+  /**
+   * Adds a connection.
+   * @param from Start of the connection.
+   * @param to End of the connection.
+   * @param connData The connection data wrapped in an optional.
+   */
+  protected void addConnection(Point from, Point to, Optional<E> connData) {
     checkArgument(!from.equals(to),
         "A connection cannot be circular: %s -> %s ", from, to);
     checkArgument(!hasConnection(from, to),
@@ -105,7 +103,7 @@ public abstract class AbstractGraph<E extends ConnectionData> implements
    * @param connData The data to be associated to the connection.
    */
   protected abstract void doAddConnection(Point from, Point to,
-      @Nullable E connData);
+      Optional<E> connData);
 
   @Override
   public boolean equals(@Nullable Object other) {
@@ -133,7 +131,45 @@ public abstract class AbstractGraph<E extends ConnectionData> implements
   public Connection<E> getConnection(Point from, Point to) {
     checkArgument(hasConnection(from, to), "%s -> %s is not a connection.",
         from, to);
-    return new Connection<>(from, to, connectionData(from, to));
+    return Connection.create(from, to, connectionData(from, to));
   }
+
+  @Override
+  public Optional<E> setConnectionData(Point from, Point to, E connData) {
+    return changeConnectionData(from, to, Optional.of(connData));
+  }
+
+  @Override
+  public Optional<E> removeConnectionData(Point from, Point to) {
+    return changeConnectionData(from, to, Optional.<E> absent());
+  }
+
+  /**
+   * Change connection data. Precondition: connection from -&gt; to exists.
+   * @param from Start point of connection.
+   * @param to End point of connection.
+   * @param connData The edge data used for the connection.
+   * @return old edge data or {@link Optional#absent()} if there was no edge
+   *         data.
+   * @throws IllegalArgumentException if the connection between the nodes does
+   *           not exist.
+   */
+  protected Optional<E> changeConnectionData(Point from, Point to,
+      Optional<E> connData) {
+    checkArgument(hasConnection(from, to),
+        "The connection %s->%s does not exist.", from, to);
+    return doChangeConnectionData(from, to, connData);
+  }
+
+  /**
+   * Change connection data. It can be assumed that the connection exists.
+   * @param from Start point of connection.
+   * @param to End point of connection.
+   * @param connData The edge data used for the connection.
+   * @return old edge data or {@link Optional#absent()} if there was no edge
+   *         data.
+   */
+  protected abstract Optional<E> doChangeConnectionData(Point from, Point to,
+      Optional<E> connData);
 
 }

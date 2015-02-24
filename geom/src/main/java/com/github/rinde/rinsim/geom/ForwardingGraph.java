@@ -23,6 +23,8 @@ import javax.annotation.Nullable;
 
 import org.apache.commons.math3.random.RandomGenerator;
 
+import com.google.common.base.Optional;
+
 /**
  * {@link Graph} implementation that forwards all calls to another graph. This
  * is a helper class for creating graph decorators, subclasses only need to
@@ -72,9 +74,8 @@ public abstract class ForwardingGraph<E extends ConnectionData> implements
     return delegate.getConnection(from, to);
   }
 
-  @Nullable
   @Override
-  public E connectionData(Point from, Point to) {
+  public Optional<E> connectionData(Point from, Point to) {
     return delegate.connectionData(from, to);
   }
 
@@ -104,7 +105,7 @@ public abstract class ForwardingGraph<E extends ConnectionData> implements
   }
 
   @Override
-  public void addConnection(Point from, Point to, @Nullable E edgeData) {
+  public void addConnection(Point from, Point to, E edgeData) {
     delegate.addConnection(from, to, edgeData);
   }
 
@@ -118,10 +119,14 @@ public abstract class ForwardingGraph<E extends ConnectionData> implements
     delegate.addConnection(connection);
   }
 
-  @Nullable
   @Override
-  public E setConnectionData(Point from, Point to, @Nullable E edgeData) {
+  public Optional<E> setConnectionData(Point from, Point to, E edgeData) {
     return delegate.setConnectionData(from, to, edgeData);
+  }
+
+  @Override
+  public Optional<E> removeConnectionData(Point from, Point to) {
+    return delegate.removeConnectionData(from, to);
   }
 
   @Override

@@ -486,6 +486,12 @@
 				<scope>provided</scope>
 			</dependency>
 			<dependency>
+				<groupId>org.inferred</groupId>
+				<artifactId>freebuilder</artifactId>
+				<version>1.0-rc3</version>
+				<optional>true</optional>
+			</dependency>
+			<dependency>
 				<groupId>com.github.rinde</groupId>
 				<artifactId>rinsim-event</artifactId>
 				<version>${project.version}</version>

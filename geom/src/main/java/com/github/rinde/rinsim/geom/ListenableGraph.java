@@ -17,7 +17,6 @@ package com.github.rinde.rinsim.geom;
 
 import static com.google.common.collect.Lists.newArrayList;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
@@ -28,6 +27,7 @@ import com.github.rinde.rinsim.event.Event;
 import com.github.rinde.rinsim.event.EventAPI;
 import com.github.rinde.rinsim.event.EventDispatcher;
 import com.google.common.base.MoreObjects;
+import com.google.common.base.Optional;
 
 /**
  * An observable decorator for {@link Graph} instances. This implementation
@@ -90,38 +90,29 @@ public final class ListenableGraph<E extends ConnectionData> extends
   }
 
   @Override
-  public Connection<E> getConnection(Point from, Point to) {
-    return Graphs.unmodifiableConnection(delegate.getConnection(from, to));
-  }
-
-  @Override
   public List<Connection<E>> getConnections() {
-    List<Connection<E>> unmod = new ArrayList<>();
-    for (Connection<E> c : delegate.getConnections()) {
-      unmod.add(Graphs.unmodifiableConnection(c));
-    }
-    return Collections.unmodifiableList(unmod);
+    return Collections.unmodifiableList(delegate.getConnections());
   }
 
   @Override
-  public void addConnection(Point from, Point to, @Nullable E edgeData) {
-    delegate.addConnection(from, to, edgeData);
+  public void addConnection(Point from, Point to, E connData) {
+    delegate.addConnection(from, to, connData);
     eventDispatcher.dispatchEvent(new GraphEvent(EventTypes.ADD_CONNECTION,
-        this, from, to, edgeData));
+        this, from, to, Optional.fromNullable(connData)));
   }
 
   @Override
   public void addConnection(Point from, Point to) {
     delegate.addConnection(from, to);
     eventDispatcher.dispatchEvent(new GraphEvent(EventTypes.ADD_CONNECTION,
-        this, from, to, null));
+        this, from, to, Optional.<ConnectionData> absent()));
   }
 
   @Override
   public void addConnection(Connection<E> connection) {
     delegate.addConnection(connection);
     eventDispatcher.dispatchEvent(new GraphEvent(EventTypes.ADD_CONNECTION,
-        this, connection.from, connection.to, connection.getData()));
+        this, connection.from(), connection.to(), connection.data()));
   }
 
   @Override
@@ -132,11 +123,20 @@ public final class ListenableGraph<E extends ConnectionData> extends
   }
 
   @Override
-  @Nullable
-  public E setConnectionData(Point from, Point to, @Nullable E connectionData) {
-    E val = delegate.setConnectionData(from, to, connectionData);
+  public Optional<E> setConnectionData(Point from, Point to, E connectionData) {
+    Optional<E> val = delegate.setConnectionData(from, to, connectionData);
     eventDispatcher.dispatchEvent(new GraphEvent(
-        EventTypes.CHANGE_CONNECTION_DATA, this, from, to, connectionData));
+        EventTypes.CHANGE_CONNECTION_DATA, this, from, to, Optional
+            .of(connectionData)));
+    return val;
+  }
+
+  @Override
+  public Optional<E> removeConnectionData(Point from, Point to) {
+    Optional<E> val = delegate.removeConnectionData(from, to);
+    eventDispatcher.dispatchEvent(new GraphEvent(
+        EventTypes.CHANGE_CONNECTION_DATA, this, from, to, Optional
+            .<ConnectionData> absent()));
     return val;
   }
 
@@ -156,7 +156,7 @@ public final class ListenableGraph<E extends ConnectionData> extends
     // notify listeners
     for (Connection<?> c : removedConnections) {
       eventDispatcher.dispatchEvent(new GraphEvent(
-          EventTypes.REMOVE_CONNECTION, this, c.from, c.to, c.getData()));
+          EventTypes.REMOVE_CONNECTION, this, c.from(), c.to(), c.data()));
     }
   }
 
@@ -166,8 +166,8 @@ public final class ListenableGraph<E extends ConnectionData> extends
     delegate.removeConnection(from, to);
     eventDispatcher
         .dispatchEvent(new GraphEvent(
-            EventTypes.REMOVE_CONNECTION, this, conn.from, conn.to, conn
-                .getData()));
+            EventTypes.REMOVE_CONNECTION, this, conn.from(), conn.to(), conn
+                .data()));
   }
 
   @Override
@@ -184,10 +184,10 @@ public final class ListenableGraph<E extends ConnectionData> extends
   public static final class GraphEvent extends Event {
     private final Point from;
     private final Point to;
-    private final @Nullable Object connData;
+    private final Optional<? extends ConnectionData> connData;
 
     GraphEvent(Enum<?> type, ListenableGraph<?> issuer, Point from,
-        Point to, @Nullable Object connData) {
+        Point to, Optional<? extends ConnectionData> connData) {
       super(type, issuer);
       this.from = from;
       this.to = to;
@@ -211,7 +211,7 @@ public final class ListenableGraph<E extends ConnectionData> extends
     /**
      * @return The data of the connection that is changed.
      */
-    public @Nullable Object getConnData() {
+    public Optional<? extends ConnectionData> getConnData() {
       return connData;
     }
 

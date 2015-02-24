@@ -15,22 +15,17 @@
  */
 package com.github.rinde.rinsim.geom;
 
-import com.google.common.base.Optional;
+import static com.google.common.collect.Maps.newLinkedHashMap;
 
-/**
- * Simple interface to represent data associated to a {@link Connection} in a
- * {@link Graph}. All implementations <b>must</b> be immutable.
- * @author Bartosz Michalik
- * @author Rinde van Lon
- * @since 2.0
- */
-public interface ConnectionData {
+import java.util.Map;
 
-  /**
-   * This method can be implemented to override the default length (euclidean
-   * distance). If {@link Optional#absent()} is returned the default length of
-   * the connection will be used as specified by the used {@link Graph}.
-   * @return The length of the {@link Connection}.
-   */
-  Optional<Double> getLength();
+import com.google.common.base.Supplier;
+
+final class LinkedHashMapFactory<E> implements Supplier<Map<Point, E>> {
+  LinkedHashMapFactory() {}
+
+  @Override
+  public Map<Point, E> get() {
+    return newLinkedHashMap();
+  }
 }

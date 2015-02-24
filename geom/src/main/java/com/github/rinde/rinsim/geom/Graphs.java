@@ -35,6 +35,7 @@ import javax.annotation.Nullable;
 
 import com.google.common.base.Function;
 import com.google.common.base.Objects;
+import com.google.common.base.Optional;
 
 /**
  * Utility class containing many methods for working with graphs.
@@ -91,34 +92,6 @@ public final class Graphs {
   }
 
   /**
-   * Returns an unmodifiable view on the specified {@link Connection}.
-   * @param conn A connection.
-   * @param <E> The type of connection data.
-   * @return An unmodifiable view on the connection.
-   */
-  public static <E extends ConnectionData> Connection<E> unmodifiableConnection(
-      Connection<E> conn) {
-    return new UnmodifiableConnection<>(conn);
-  }
-
-  /**
-   * Returns an unmodifiable view on the specified {@link ConnectionData}.
-   * @param connData Connection data.
-   * @param <E> The type of connection data.
-   * @return An unmodifiable view on the connection data.
-   */
-  @SuppressWarnings("unchecked")
-  @Nullable
-  public static <E extends ConnectionData> E unmodifiableConnectionData(
-      @Nullable E connData) {
-    if (connData instanceof MultiAttributeData) {
-      return (E) new UnmodifiableMultiAttributeEdgeData(
-          (MultiAttributeData) connData);
-    }
-    return connData;
-  }
-
-  /**
    * Basic equals method.
    * @param g1 A graph.
    * @param other The object to compare for equality with g1.
@@ -130,23 +103,7 @@ public final class Graphs {
       return false;
     }
     Graph<?> g2 = (Graph<?>) other;
-    if (g1.getNumberOfNodes() != g2.getNumberOfNodes()) {
-      return false;
-    }
-    if (g1.getNumberOfConnections() != g2.getNumberOfConnections()) {
-      return false;
-    }
-    for (final Connection<?> g1conn : g1.getConnections()) {
-      if (!g2.hasConnection(g1conn.from, g1conn.to)) {
-        return false;
-      }
-      final ConnectionData g2connEdgeData = g2.connectionData(g1conn.from,
-          g1conn.to);
-      if (!Objects.equal(g1conn.getData(), g2connEdgeData)) {
-        return false;
-      }
-    }
-    return true;
+    return Objects.equal(g1.getConnections(), g2.getConnections());
   }
 
   /**
@@ -401,99 +358,6 @@ public final class Graphs {
     }
   }
 
-  private static class UnmodifiableMultiAttributeEdgeData extends
-      MultiAttributeData {
-
-    private final MultiAttributeData original;
-
-    UnmodifiableMultiAttributeEdgeData(MultiAttributeData pOriginal) {
-      super(-1);
-      original = pOriginal;
-    }
-
-    @Override
-    public double getLength() {
-      return original.getLength();
-    }
-
-    @Override
-    public double getMaxSpeed() {
-      return original.getMaxSpeed();
-    }
-
-    @Override
-    public Map<String, Object> getAttributes() {
-      return original.getAttributes();
-    }
-
-    @Nullable
-    @Override
-    public <E> E get(String key, Class<E> type) {
-      return original.get(key, type);
-    }
-
-    @Override
-    public double setMaxSpeed(double maxSpeed) {
-      throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public <E> void put(String key, E value) {
-      throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public boolean equals(@Nullable Object obj) {
-      return original.equals(obj);
-    }
-
-    @Override
-    public int hashCode() {
-      return original.hashCode();
-    }
-
-  }
-
-  private static final class UnmodifiableConnection<E extends ConnectionData>
-      extends Connection<E> {
-    private final Connection<E> original;
-
-    UnmodifiableConnection(Connection<E> c) {
-      super(c.from, c.to, null);
-      original = c;
-    }
-
-    @Override
-    public void setData(@Nullable E data) {
-      throw new UnsupportedOperationException();
-    }
-
-    @Override
-    @Nullable
-    public E getData() {
-      final E d = original.getData();
-      if (d == null) {
-        return null;
-      }
-      return Graphs.unmodifiableConnectionData(d);
-    }
-
-    @Override
-    public boolean equals(@Nullable Object obj) {
-      return original.equals(obj);
-    }
-
-    @Override
-    public int hashCode() {
-      return original.hashCode();
-    }
-
-    @Override
-    public String toString() {
-      return original.toString();
-    }
-  }
-
   private static class UnmodifiableGraph<E extends ConnectionData> extends
       ForwardingGraph<E> {
 
@@ -515,12 +379,7 @@ public final class Graphs {
 
     @Override
     public List<Connection<E>> getConnections() {
-      final List<Connection<E>> conn = delegate.getConnections();
-      final List<Connection<E>> unmodConn = new ArrayList<>();
-      for (final Connection<E> c : conn) {
-        unmodConn.add(unmodifiableConnection(c));
-      }
-      return Collections.unmodifiableList(unmodConn);
+      return Collections.unmodifiableList(delegate.getConnections());
     }
 
     @Override
@@ -553,12 +412,6 @@ public final class Graphs {
       throw new UnsupportedOperationException();
     }
 
-    @Nullable
-    @Override
-    public E connectionData(Point from, Point to) {
-      return unmodifiableConnectionData(delegate.connectionData(from, to));
-    }
-
     @Override
     public void addConnection(Point from, Point to, @Nullable E edgeData) {
       throw new UnsupportedOperationException();
@@ -570,14 +423,13 @@ public final class Graphs {
     }
 
     @Override
-    @Nullable
-    public E setConnectionData(Point from, Point to, @Nullable E edgeData) {
+    public Optional<E> setConnectionData(Point from, Point to, E edgeData) {
       throw new UnsupportedOperationException();
     }
 
     @Override
-    public Connection<E> getConnection(Point from, Point to) {
-      return unmodifiableConnection(delegate.getConnection(from, to));
+    public Optional<E> removeConnectionData(Point from, Point to) {
+      throw new UnsupportedOperationException();
     }
   }
 

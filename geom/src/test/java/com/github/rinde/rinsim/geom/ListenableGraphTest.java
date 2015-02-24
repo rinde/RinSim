@@ -32,6 +32,7 @@ import com.github.rinde.rinsim.event.Listener;
 import com.github.rinde.rinsim.event.ListenerEventHistory;
 import com.github.rinde.rinsim.geom.ListenableGraph.EventTypes;
 import com.github.rinde.rinsim.geom.ListenableGraph.GraphEvent;
+import com.google.common.base.Optional;
 
 /**
  * Tests for {@link ListenableGraph}.
@@ -59,13 +60,13 @@ public class ListenableGraphTest {
     graph.addConnection(a, b);
     assertEquals(asList(ADD_CONNECTION), history.getEventTypeHistory());
 
-    graph.addConnection(b, a, null);
+    graph.addConnection(b, a, LengthData.create(2));
     assertEquals(asList(ADD_CONNECTION, ADD_CONNECTION),
         history.getEventTypeHistory());
 
     graph.addConnections(Arrays.<Connection<LengthData>> asList(
-        new Connection<>(a, d, new LengthData(10d)),
-        new Connection<>(d, e, new LengthData(7d))));
+        Connection.create(a, d, LengthData.create(10d)),
+        Connection.create(d, e, LengthData.create(7d))));
     assertEquals(
         asList(ADD_CONNECTION, ADD_CONNECTION, ADD_CONNECTION, ADD_CONNECTION),
         history.getEventTypeHistory());
@@ -76,7 +77,7 @@ public class ListenableGraphTest {
             REMOVE_CONNECTION),
         history.getEventTypeHistory());
 
-    graph.setConnectionData(a, d, new LengthData(16d));
+    graph.setConnectionData(a, d, LengthData.create(16d));
     assertEquals(
         asList(ADD_CONNECTION, ADD_CONNECTION, ADD_CONNECTION, ADD_CONNECTION,
             REMOVE_CONNECTION, CHANGE_CONNECTION_DATA),
@@ -117,32 +118,14 @@ public class ListenableGraphTest {
         history.getEventTypeHistory());
 
     assertEquals(2, history.getHistory().size());
-    assertEquals(new GraphEvent(ADD_CONNECTION, graph1, a, c, null), history
-        .getHistory().get(0));
-    assertEquals(new GraphEvent(ADD_CONNECTION, graph1, c, a, null), history
-        .getHistory().get(1));
-  }
-
-  /**
-   * Tests that modifications can not be applied directly to a connection.
-   */
-  @Test(expected = UnsupportedOperationException.class)
-  public void testUnmodifiableConnection() {
-    ListenableGraph<LengthData> graph = new ListenableGraph<>(
-        new MultimapGraph<LengthData>());
-    graph.addConnection(a, b);
-    graph.getConnection(a, b).setData(null);
-  }
-
-  /**
-   * Tests that modifications can not be applied directly to a connection.
-   */
-  @Test(expected = UnsupportedOperationException.class)
-  public void testUnmodifiableConnections() {
-    ListenableGraph<LengthData> graph = new ListenableGraph<>(
-        new MultimapGraph<LengthData>());
-    graph.addConnection(a, b);
-    graph.getConnections().iterator().next().setData(null);
+    assertEquals(
+        new GraphEvent(ADD_CONNECTION, graph1, a, c,
+            Optional.<ConnectionData> absent()), history
+            .getHistory().get(0));
+    assertEquals(
+        new GraphEvent(ADD_CONNECTION, graph1, c, a,
+            Optional.<ConnectionData> absent()), history
+            .getHistory().get(1));
   }
 
   static class GraphModificationChecker implements Listener {
@@ -153,13 +136,13 @@ public class ListenableGraphTest {
       if (e.getEventType() == ADD_CONNECTION) {
         assertTrue(ge.getGraph().hasConnection(ge.getFrom(), ge.getTo()));
         assertEquals(ge.getConnData(),
-            ge.getGraph().getConnection(ge.getFrom(), ge.getTo()).getData());
+            ge.getGraph().getConnection(ge.getFrom(), ge.getTo()).data());
       } else if (e.getEventType() == REMOVE_CONNECTION) {
         assertFalse(ge.getGraph().hasConnection(ge.getFrom(), ge.getTo()));
       } else if (e.getEventType() == CHANGE_CONNECTION_DATA) {
         assertTrue(ge.getGraph().hasConnection(ge.getFrom(), ge.getTo()));
         assertEquals(ge.getConnData(),
-            ge.getGraph().getConnection(ge.getFrom(), ge.getTo()).getData());
+            ge.getGraph().getConnection(ge.getFrom(), ge.getTo()).data());
       }
 
     }

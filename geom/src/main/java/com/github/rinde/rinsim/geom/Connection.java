@@ -15,96 +15,74 @@
  */
 package com.github.rinde.rinsim.geom;
 
-import javax.annotation.Nullable;
-
-import com.google.common.base.MoreObjects;
-import com.google.common.base.Objects;
+import com.google.auto.value.AutoValue;
+import com.google.common.base.Optional;
 
 /**
- * Class representing a directed connection (link/edge) in a graph.
+ * Immutable value object representing a directed connection (link/edge) in a
+ * graph.
  * @param <E> Type of {@link ConnectionData} that is used. This data object can
  *          be used to add additional information to the connection.
  * @since 2.0
  * @author Bartosz Michalik
  * @author Rinde van Lon
  */
-public class Connection<E extends ConnectionData> {
-  /**
-   * The starting point of the connection.
-   */
-  public final Point from;
+@AutoValue
+public abstract class Connection<E extends ConnectionData> {
+
+  Connection() {}
 
   /**
-   * The end point of the connection.
+   * @return The starting point of the connection.
    */
-  public final Point to;
-
-  @Nullable
-  private E data;
-  private final int hashCode;
+  public abstract Point from();
 
   /**
-   * Instantiates a new connection.
-   * @param pFrom The starting point of the connection.
-   * @param pTo The end point of the connection.
-   * @param pData The data that is associated to this connection.
+   * @return The end point of the connection.
    */
-  public Connection(Point pFrom, Point pTo, @Nullable E pData) {
-    this.from = pFrom;
-    this.to = pTo;
-    this.data = pData;
+  public abstract Point to();
 
-    if (pData != null) {
-      hashCode = Objects.hashCode(from, to, data);
-    } else {
-      hashCode = Objects.hashCode(from, to);
-    }
+  /**
+   * @return The data associated to this connection wrapped in an
+   *         {@link Optional}.
+   */
+  public abstract Optional<E> data();
+
+  /**
+   * Create a new connection without any connection data associated to it.
+   * @param from The starting point of the connection.
+   * @param to The end point of the connection.
+   * @param <E> The type of {@link ConnectionData}.
+   * @return A new {@link Connection} instance.
+   */
+  public static <E extends ConnectionData> Connection<E> create(Point from,
+      Point to) {
+    return create(from, to, Optional.<E> absent());
   }
 
   /**
-   * Sets the data associated to this connection to the specified value.
-   * @param pData The new data to be associated to this connection.
+   * Create a new connection.
+   * @param from The starting point of the connection.
+   * @param to The end point of the connection.
+   * @param data The data associated to the connection.
+   * @param <E> The type of {@link ConnectionData}.
+   * @return A new {@link Connection} instance.
    */
-  public void setData(@Nullable E pData) {
-    this.data = pData;
+  public static <E extends ConnectionData> Connection<E> create(Point from,
+      Point to, E data) {
+    return create(from, to, Optional.of(data));
   }
 
   /**
-   * @return The data that is associated to this connection.
+   * Create a new connection.
+   * @param from The starting point of the connection.
+   * @param to The end point of the connection.
+   * @param data The data associated to the connection.
+   * @param <E> The type of {@link ConnectionData}.
+   * @return A new {@link Connection} instance.
    */
-  @Nullable
-  public E getData() {
-    return data;
-  }
-
-  @Override
-  public int hashCode() {
-    return hashCode;
-  }
-
-  @Override
-  public boolean equals(@Nullable Object obj) {
-    if (!(obj instanceof Connection)) {
-      return false;
-    }
-    @SuppressWarnings("rawtypes")
-    final Connection other = (Connection) obj;
-    if (!from.equals(other.from)) {
-      return false;
-    }
-    if (!to.equals(other.to)) {
-      return false;
-    }
-    final E d = data;
-    if (d == null) {
-      return other.data == null;
-    }
-    return d.equals(other.getData());
-  }
-
-  @Override
-  public String toString() {
-    return MoreObjects.toStringHelper(this).add("from", from).add("to", to)
-        .add("data", data).omitNullValues().toString();
+  public static <E extends ConnectionData> Connection<E> create(Point from,
+      Point to, Optional<E> data) {
+    return new AutoValue_Connection<>(from, to, data);
   }
 }

@@ -16,23 +16,21 @@
 package com.github.rinde.rinsim.geom;
 
 import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.collect.Maps.newLinkedHashMap;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import javax.annotation.Nullable;
 
+import autovalue.shaded.com.google.common.common.collect.ImmutableList;
+
 import com.google.common.base.Objects;
-import com.google.common.base.Supplier;
+import com.google.common.base.Optional;
 import com.google.common.collect.Table;
-import com.google.common.collect.Table.Cell;
 import com.google.common.collect.Tables;
 
 /**
@@ -44,25 +42,20 @@ import com.google.common.collect.Tables;
  */
 public class TableGraph<E extends ConnectionData> extends AbstractGraph<E> {
 
-  private final Table<Point, Point, E> data;
-  private final E empty;
+  private final Table<Point, Point, Connection<E>> data;
 
   /**
    * Create a new empty graph.
-   * @param emptyValue A special connection data instance that is used as the
-   *          'empty' instance.
    */
-  public TableGraph(E emptyValue) {
-    data = Tables.newCustomTable(new LinkedHashMap<Point, Map<Point, E>>(),
-        new Factory<E>());
-    empty = emptyValue;
+  public TableGraph() {
+    data = Tables.newCustomTable(
+        new LinkedHashMap<Point, Map<Point, Connection<E>>>(),
+        new LinkedHashMapFactory<Connection<E>>());
   }
 
   @Override
   public Set<Point> getNodes() {
-    final Set<Point> nodes = new LinkedHashSet<>(data.rowKeySet());
-    nodes.addAll(data.columnKeySet());
-    return Collections.unmodifiableSet(nodes);
+    return Collections.unmodifiableSet(data.rowKeySet());
   }
 
   @Override
@@ -109,22 +102,11 @@ public class TableGraph<E extends ConnectionData> extends AbstractGraph<E> {
       throw new IllegalArgumentException(
           "Can not remove non-existing connection: " + from + " -> " + to);
     }
-
   }
 
   @Override
   public List<Connection<E>> getConnections() {
-    final List<Connection<E>> connections = new ArrayList<>();
-    for (final Cell<Point, Point, E> cell : data.cellSet()) {
-      if (empty.equals(cell.getValue())) {
-        connections.add(new Connection<E>(cell.getRowKey(),
-            cell.getColumnKey(), null));
-      } else {
-        connections.add(new Connection<>(cell.getRowKey(),
-            cell.getColumnKey(), cell.getValue()));
-      }
-    }
-    return connections;
+    return ImmutableList.copyOf(data.values());
   }
 
   @Override
@@ -133,73 +115,38 @@ public class TableGraph<E extends ConnectionData> extends AbstractGraph<E> {
   }
 
   @Override
-  protected boolean isEmptyConnectionData(@Nullable E connData) {
-    return super.isEmptyConnectionData(connData) || empty.equals(connData);
-  }
-
-  @Override
   public Connection<E> getConnection(Point from, Point to) {
     checkArgument(hasConnection(from, to), "%s -> %s is not a connection",
         from, to);
-    return new Connection<>(from, to, connectionData(from, to));
-  }
-
-  @Nullable
-  @Override
-  public E connectionData(Point from, Point to) {
-    final E e = data.get(from, to);
-    if (empty.equals(e)) {
-      return null;
-    }
-    return e;
+    return data.get(from, to);
   }
 
   @Override
-  protected void doAddConnection(Point from, Point to, @Nullable E edgeData) {
-    if (edgeData == null) {
-      data.put(from, to, empty);
-    } else {
-      data.put(from, to, edgeData);
+  public Optional<E> connectionData(Point from, Point to) {
+    if (data.contains(from, to)) {
+      return data.get(from, to).data();
     }
+    return Optional.absent();
   }
 
-  @Nullable
   @Override
-  public E setConnectionData(Point from, Point to, @Nullable E edgeData) {
-    if (hasConnection(from, to)) {
-      E e;
-      if (edgeData == null) {
-        e = data.put(from, to, empty);
-      } else {
-        e = data.put(from, to, edgeData);
-      }
+  protected void doAddConnection(Point from, Point to, Optional<E> edgeData) {
+    data.put(from, to, Connection.create(from, to, edgeData));
+  }
 
-      if (empty.equals(e)) {
-        return null;
-      }
-      return e;
-    }
-    throw new IllegalArgumentException(
-        "Can not get connection length from a non-existing connection.");
+  @Override
+  protected Optional<E> doChangeConnectionData(Point from, Point to,
+      Optional<E> edgeData) {
+    return data.put(from, to, Connection.create(from, to, edgeData)).data();
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(data, empty);
+    return Objects.hashCode(data);
   }
 
   @Override
   public boolean equals(@Nullable Object o) {
     return super.equals(o);
   }
-
-  private static final class Factory<E> implements Supplier<Map<Point, E>> {
-    Factory() {}
-
-    @Override
-    public Map<Point, E> get() {
-      return newLinkedHashMap();
-    }
-  }
-
 }

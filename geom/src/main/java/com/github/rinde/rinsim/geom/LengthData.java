@@ -15,52 +15,56 @@
  */
 package com.github.rinde.rinsim.geom;
 
-import javax.annotation.Nullable;
+import static com.google.common.base.Preconditions.checkArgument;
+
+import com.google.auto.value.AutoValue;
+import com.google.common.base.Optional;
+import com.google.common.primitives.Doubles;
 
 /**
- * Simple implementation of {@link ConnectionData}, allowing to specify the
- * length of a connection.
- * @author Bartosz Michalik 
- * @author Rinde van Lon 
+ * Simple immutable implementation of {@link ConnectionData}, allowing to
+ * specify the length of a connection.
+ * @author Bartosz Michalik
+ * @author Rinde van Lon
  */
-public class LengthData implements ConnectionData {
+@AutoValue
+public abstract class LengthData implements ConnectionData {
+
+  private static final LengthData EMPTY_LENGTH_DATA = create(Optional
+      .<Double> absent());
+
+  LengthData() {}
+
+  @Override
+  public abstract Optional<Double> getLength();
 
   /**
-   * Represents an empty value for usage in a {@link TableGraph}.
+   * @return A {@link LengthData} instance that does not specify a length.
    */
-  public static final LengthData EMPTY = new LengthData(Double.NaN);
-
-  private final double length;
+  public static LengthData empty() {
+    return EMPTY_LENGTH_DATA;
+  }
 
   /**
-   * Instantiate a new instance using the specified length.
-   * @param pLength The length of the connection.
+   * Create a new {@link LengthData} instance using the specified length.
+   * @param length The length of the connection.
+   * @return A new instance.
    */
-  public LengthData(double pLength) {
-    length = pLength;
-  }
-
-  @Override
-  public double getLength() {
-    return length;
-  }
-
-  @Override
-  public int hashCode() {
-    return Double.valueOf(length).hashCode();
-  }
-
-  @Override
-  public boolean equals(@Nullable Object obj) {
-    if (obj instanceof LengthData) {
-      return Double.compare(length, ((LengthData) obj).length) == 0;
+  public static LengthData create(Optional<Double> length) {
+    if (length.isPresent()) {
+      checkArgument(length.get() >= 0d && Doubles.isFinite(length.get()),
+          "Only positive values are allowed for length, it is: %s.",
+          length.get());
     }
-    return false;
+    return new AutoValue_LengthData(length);
   }
 
-  @Override
-  public String toString() {
-    return Double.toString(length);
+  /**
+   * Create a new {@link LengthData} instance using the specified length.
+   * @param length The length of the connection.
+   * @return A new instance.
+   */
+  public static LengthData create(double length) {
+    return create(Optional.of(length));
   }
-
 }

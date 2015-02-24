@@ -19,21 +19,19 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
-import javax.annotation.Nullable;
-
 import org.apache.commons.math3.random.RandomGenerator;
+
+import com.google.common.base.Optional;
 
 /**
  * Common interface for graphs (V,E). Vertices are called <code>nodes</code>
- * which are represented as {@link Point}s and edges are represented by
+ * which are represented as {@link Point}s and connections are represented by
  * {@link Connection}s. Graphs are directed.
  * 
- * TODO should be split up in an ImmutableGraph and Graph. Graphs should be
- * created using the builder pattern?
- * 
  * @author Rinde van Lon
- * @author Bartosz Michalik - added edge data handling
- * @param <E> The type of {@link ConnectionData} that is used in the edges.
+ * @author Bartosz Michalik - added connection data handling
+ * @param <E> The type of {@link ConnectionData} that is used in the
+ *          connections.
  * @since 1.0
  */
 public interface Graph<E extends ConnectionData> {
@@ -81,11 +79,10 @@ public interface Graph<E extends ConnectionData> {
    * Get the data associated with connection.
    * @param from Start of connection
    * @param to End of connection
-   * @return connection data or <code>null</code> if there is no data or
+   * @return connection data or {@link Optional#absent()} if there is no data or
    *         connection does not exists.
    */
-  @Nullable
-  E connectionData(Point from, Point to);
+  Optional<E> connectionData(Point from, Point to);
 
   /**
    * Computes the length of the connection between <code>from</code> and
@@ -121,10 +118,10 @@ public interface Graph<E extends ConnectionData> {
    * Add connection to the graph.
    * @param from starting node
    * @param to end node
-   * @param edgeData data associated with the edge
+   * @param connectionData data associated with the connection
    * @throws IllegalArgumentException if the connection already exists.
    */
-  void addConnection(Point from, Point to, @Nullable E edgeData);
+  void addConnection(Point from, Point to, E connectionData);
 
   /**
    * Add a connection to the graph.
@@ -143,15 +140,26 @@ public interface Graph<E extends ConnectionData> {
 
   /**
    * Set connection data. Precondition: connection from -&gt; to exists.
-   * @param from Start point of connection
-   * @param to End point of connection
-   * @param edgeData The edge data used for the connection
-   * @return old edge data or <code>null</code> if there was no edge
+   * @param from Start point of connection.
+   * @param to End point of connection.
+   * @param connectionData The connection data used for the connection.
+   * @return old connection data or {@link Optional#absent()} if there was no
+   *         connection data.
    * @throws IllegalArgumentException when the connection between nodes do not
-   *           exists
+   *           exist.
    */
-  @Nullable
-  E setConnectionData(Point from, Point to, @Nullable E edgeData);
+  Optional<E> setConnectionData(Point from, Point to, E connectionData);
+
+  /**
+   * Remove connection data. Precondition: connection from -&gt; to exists.
+   * @param from Start point of connection.
+   * @param to End point of connection.
+   * @return old connection data or {@link Optional#absent()} if there was no
+   *         connection data.
+   * @throws IllegalArgumentException when the connection between nodes do not
+   *           exist.
+   */
+  Optional<E> removeConnectionData(Point from, Point to);
 
   /**
    * Adds connections to the graph.

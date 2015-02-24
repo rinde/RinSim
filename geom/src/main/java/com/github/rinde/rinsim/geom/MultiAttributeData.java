@@ -15,11 +15,15 @@
  */
 package com.github.rinde.rinsim.geom;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
+import static com.google.common.base.Preconditions.checkArgument;
 
-import javax.annotation.Nullable;
+import java.util.HashMap;
+
+import org.inferred.freebuilder.FreeBuilder;
+
+import com.google.common.base.Optional;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.primitives.Doubles;
 
 /**
  * {@link ConnectionData} implementation which allows to associate multiple
@@ -30,144 +34,53 @@ import javax.annotation.Nullable;
  * @author Rinde van Lon
  * @since 2.0
  */
-public class MultiAttributeData implements ConnectionData {
+@FreeBuilder
+public abstract class MultiAttributeData implements ConnectionData {
 
-  /**
-   * Represents an empty value for usage in {@link TableGraph}.
-   */
-  public static final MultiAttributeData EMPTY = new MultiAttributeData(0);
-  static {
-    EMPTY.attributes.clear();
-  }
+  MultiAttributeData() {}
 
-  /**
-   * Key for length of a connection.
-   */
-  public static final String KEY_LENGTH = "data.length";
-
-  /**
-   * Key for maximum speed of a connection.
-   */
-  public static final String KEY_MAX_SPEED = "data.max.speed";
-
-  private final Map<String, Object> attributes;
-
-  /**
-   * New instance only using a single attribute: length.
-   * @param length The length to set.
-   */
-  public MultiAttributeData(double length) {
-    attributes = new HashMap<>();
-    attributes.put(KEY_LENGTH, length);
-  }
-
-  /**
-   * New instance using both length and maximum speed attributes.
-   * @param length The length of the connection.
-   * @param maxSpeed The maximum speed for the connection.
-   */
-  public MultiAttributeData(double length, double maxSpeed) {
-    attributes = new HashMap<>();
-    attributes.put(KEY_LENGTH, length);
-    attributes.put(KEY_MAX_SPEED, maxSpeed);
-  }
-
-  /**
-   * 
-   * @return Length of the connection. If the length is not specified the
-   *         {@link Double#NaN} value is returned
-   * @see com.github.rinde.rinsim.geom.ConnectionData#getLength()
-   */
   @Override
-  public double getLength() {
-    final Object l = attributes.get(KEY_LENGTH);
-    if (l instanceof Double) {
-      return (Double) l;
-    }
-    return Double.NaN;
-  }
+  public abstract Optional<Double> getLength();
 
   /**
    * Returns max speed defined for a connection. If the max speed is not
-   * specified the {@link Double#NaN} value is returned
+   * specified {@link Optional#absent()} is returned.
    * @return The max speed.
-   * @see com.github.rinde.rinsim.geom.ConnectionData#getLength()
    */
-  public double getMaxSpeed() {
-    final Object l = attributes.get(KEY_MAX_SPEED);
-    if (l instanceof Double) {
-      return (Double) l;
-    }
-    return Double.NaN;
+  public abstract Optional<Double> getMaxSpeed();
+
+  /**
+   * @return All attributes that are defined in this object.
+   */
+  public abstract ImmutableMap<String, Object> getAttributes();
+
+  /**
+   * @return A new {@link Builder} instance for creating
+   *         {@link MultiAttributeData} instances.
+   */
+  public static Builder builder() {
+    return new Builder();
   }
 
   /**
-   * Set max speed.
-   * @param maxSpeed The new speed.
-   * @return old max speed or {@link Double#NaN}.
+   * A builder for creating {@link MultiAttributeData} instances.
+   * @author Rinde van Lon
    */
-  public double setMaxSpeed(double maxSpeed) {
-    final Object l = attributes.put(KEY_MAX_SPEED, maxSpeed);
-    if (l instanceof Double) {
-      return (Double) l;
-    }
-    return Double.NaN;
-  }
+  public static class Builder extends MultiAttributeData_Builder {
+    Builder() {}
 
-  /**
-   * Add an attribute. Note: this can override existing attributes.
-   * @param key A string used as key.
-   * @param value The value associated with <code>key</code>.
-   * @param <E> The type of value.
-   */
-  public <E> void put(String key, E value) {
-    attributes.put(key, value);
-  }
-
-  /**
-   * Retrieve an attribute.
-   * @param key The key to use.
-   * @param type The type of object that needs to be retrieved.
-   * @param <E> The type.
-   * @return An object associated to the key or <code>null</code> if it does not
-   *         exist.
-   */
-  @SuppressWarnings("unchecked")
-  @Nullable
-  public <E> E get(String key, Class<E> type) {
-    final Object r = attributes.get(key);
-    if (r != null && type.isAssignableFrom(r.getClass())) {
-      return (E) r;
-    }
-    return null;
-  }
-
-  /**
-   * @return Unmodifiable view on the attributes.
-   */
-  public Map<String, Object> getAttributes() {
-    return Collections.unmodifiableMap(attributes);
-  }
-
-  @Override
-  public int hashCode() {
-    return attributes.hashCode();
-  }
-
-  @Override
-  public boolean equals(@Nullable Object obj) {
-    if (this == obj) {
-      return true;
-    }
-    if (obj == null) {
-      return false;
-    }
-    if (!(obj instanceof MultiAttributeData)) {
-      return false;
+    @Override
+    public Builder setLength(double length) {
+      checkArgument(length >= 0d && Doubles.isFinite(length),
+          "Expected positive value for length but found %s.", length);
+      return super.setLength(length);
     }
 
-    final MultiAttributeData other = (MultiAttributeData) obj;
-    return attributes.equals(other.getAttributes());
+    @Override
+    public Builder setMaxSpeed(double speed) {
+      checkArgument(speed > 0d && Doubles.isFinite(speed),
+          "Expected positive value for maxSpeed but found %s.", speed);
+      return super.setMaxSpeed(speed);
+    }
   }
-
 }
