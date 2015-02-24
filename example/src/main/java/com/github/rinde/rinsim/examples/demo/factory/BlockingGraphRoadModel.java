@@ -15,7 +15,6 @@
  */
 package com.github.rinde.rinsim.examples.demo.factory;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Lists.newLinkedList;
 import static com.google.common.collect.Sets.newLinkedHashSet;
@@ -41,8 +40,8 @@ import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Multimap;
 
 /**
- * @author Rinde van Lon 
- * 
+ * @author Rinde van Lon
+ *
  */
 public class BlockingGraphRoadModel extends GraphRoadModel {
 
@@ -85,10 +84,9 @@ public class BlockingGraphRoadModel extends GraphRoadModel {
     }
     final Loc newLoc = objLocs.get(object);
     if (newLoc.isOnConnection()) {
-      final Connection<?> conn = newLoc.conn;
-      checkNotNull(conn);
-      blockedNodes.add(conn.to);
-      vehicleBlocks.put(object, conn.to);
+      final Connection<?> conn = newLoc.conn.get();
+      blockedNodes.add(conn.to());
+      vehicleBlocks.put(object, conn.to());
     } else {
       blockedNodes.add(getPosition(object));
       vehicleBlocks.put(object, getPosition(object));

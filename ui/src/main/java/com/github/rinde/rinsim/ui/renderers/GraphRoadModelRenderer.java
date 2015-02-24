@@ -33,9 +33,9 @@ import com.github.rinde.rinsim.geom.Point;
 import com.google.common.base.Optional;
 
 /**
- * 
+ *
  * @author Rinde van Lon (rinde.vanlon@cs.kuleuven.be)
- * 
+ *
  */
 public final class GraphRoadModelRenderer implements ModelRenderer {
 
@@ -87,11 +87,11 @@ public final class GraphRoadModelRenderer implements ModelRenderer {
     }
 
     for (final Connection<? extends ConnectionData> e : graph.getConnections()) {
-      final int x1 = vp.toCoordX(e.from.x);
-      final int y1 = vp.toCoordY(e.from.y);
+      final int x1 = vp.toCoordX(e.from().x);
+      final int y1 = vp.toCoordY(e.from().y);
 
-      final int x2 = vp.toCoordX(e.to.x);
-      final int y2 = vp.toCoordY(e.to.y);
+      final int x2 = vp.toCoordX(e.to().x);
+      final int y2 = vp.toCoordY(e.to().y);
       gc.setForeground(gc.getDevice().getSystemColor(SWT.COLOR_GRAY));
       gc.drawLine(x1, y1, x2, y2);
 
