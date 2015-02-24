@@ -49,6 +49,17 @@ public abstract class Connection<E extends ConnectionData> {
   public abstract Optional<E> data();
 
   /**
+   * @return The length of this connection as specified by the data or
+   *         alternatively by the euclidean distance between the two points.
+   */
+  public double getLength() {
+    if (data().isPresent() && data().get().getLength().isPresent()) {
+      return data().get().getLength().get();
+    }
+    return Point.distance(from(), to());
+  }
+
+  /**
    * Create a new connection without any connection data associated to it.
    * @param from The starting point of the connection.
    * @param to The end point of the connection.
