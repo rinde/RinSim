@@ -18,7 +18,6 @@ package com.github.rinde.rinsim.core.model.road;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
 
-import java.util.Objects;
 import java.util.Queue;
 
 import javax.measure.quantity.Length;
@@ -101,9 +100,8 @@ public class DynamicGraphRoadModel extends GraphRoadModel {
     super.addObjectAtSamePosition(newObj, existingObj);
     final Loc loc = objLocs.get(newObj);
     if (loc.isOnConnection()) {
-      final Connection<? extends ConnectionData> conn = Objects
-          .requireNonNull(loc.conn);
-      connMap.put(Conn.create(conn.from, conn.to), newObj);
+      final Connection<? extends ConnectionData> conn = loc.conn.get();
+      connMap.put(Conn.create(conn.from(), conn.to()), newObj);
     } else {
       posMap.put(loc, newObj);
     }
@@ -129,9 +127,8 @@ public class DynamicGraphRoadModel extends GraphRoadModel {
       TimeLapse time) {
     final Loc prevLoc = objLocs.get(object);
     if (prevLoc.isOnConnection()) {
-      final Connection<? extends ConnectionData> conn = Objects
-          .requireNonNull(prevLoc.conn);
-      connMap.remove(Conn.create(conn.from, conn.to), object);
+      final Connection<? extends ConnectionData> conn = prevLoc.conn.get();
+      connMap.remove(Conn.create(conn.from(), conn.to()), object);
     } else {
       posMap.remove(prevLoc, object);
     }
@@ -139,9 +136,8 @@ public class DynamicGraphRoadModel extends GraphRoadModel {
 
     final Loc newLoc = objLocs.get(object);
     if (newLoc.isOnConnection()) {
-      final Connection<? extends ConnectionData> conn = Objects
-          .requireNonNull(newLoc.conn);
-      connMap.put(Conn.create(conn.from, conn.to), object);
+      final Connection<? extends ConnectionData> conn = newLoc.conn.get();
+      connMap.put(Conn.create(conn.from(), conn.to()), object);
     } else {
       posMap.put(newLoc, object);
     }
@@ -171,9 +167,8 @@ public class DynamicGraphRoadModel extends GraphRoadModel {
         "RoadUser: %s does not exist.", object);
     final Loc prevLoc = objLocs.get(object);
     if (prevLoc.isOnConnection()) {
-      final Connection<? extends ConnectionData> conn = Objects
-          .requireNonNull(prevLoc.conn);
-      connMap.remove(Conn.create(conn.from, conn.to), object);
+      final Connection<? extends ConnectionData> conn = prevLoc.conn.get();
+      connMap.remove(Conn.create(conn.from(), conn.to()), object);
     } else {
       posMap.remove(prevLoc, object);
     }

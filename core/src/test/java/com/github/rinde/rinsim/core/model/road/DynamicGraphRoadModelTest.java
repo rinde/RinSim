@@ -47,7 +47,7 @@ public class DynamicGraphRoadModelTest {
    */
   @Before
   public void setUp() {
-    graph = new ListenableGraph<>(new TableGraph<LengthData>(LengthData.EMPTY));
+    graph = new ListenableGraph<>(new TableGraph<LengthData>());
     model = new DynamicGraphRoadModel(graph);
     SW = new Point(0, 0);
     SE = new Point(10, 0);
@@ -87,10 +87,10 @@ public class DynamicGraphRoadModelTest {
     // a new path is created, therefore the shortest path changes to: [cur -> SE
     // -> X -> SW]
     final Point X = new Point(5, 5);
-    graph.addConnection(SE, X, new LengthData(1d));
-    graph.addConnection(X, SE, new LengthData(1d));
-    graph.addConnection(X, SW, new LengthData(1d));
-    graph.addConnection(SW, X, new LengthData(1d));
+    graph.addConnection(SE, X, LengthData.create(1d));
+    graph.addConnection(X, SE, LengthData.create(1d));
+    graph.addConnection(X, SW, LengthData.create(1d));
+    graph.addConnection(SW, X, LengthData.create(1d));
 
     final MoveProgress mp2 = model.moveTo(tru, SW, hour(10));
 
@@ -104,7 +104,7 @@ public class DynamicGraphRoadModelTest {
     model.moveTo(tru, SE, hour(1));
     // right now, the shortest path to SE is: [cur -> SW -> X -> SE].
 
-    graph.setConnectionData(SW, X, new LengthData(10d));
+    graph.setConnectionData(SW, X, LengthData.create(10d));
     // connection length is changed so new path becomes: [cur -> SW -> SE].
     final MoveProgress mp3 = model.moveTo(tru, SE, hour(18));
 

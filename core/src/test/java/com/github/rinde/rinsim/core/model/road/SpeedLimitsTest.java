@@ -41,23 +41,17 @@ import org.junit.runners.Parameterized.Parameters;
 
 import com.github.rinde.rinsim.core.TimeLapse;
 import com.github.rinde.rinsim.core.TimeLapseFactory;
-import com.github.rinde.rinsim.core.model.road.AbstractRoadModel;
-import com.github.rinde.rinsim.core.model.road.CachedGraphRoadModel;
-import com.github.rinde.rinsim.core.model.road.GraphRoadModel;
-import com.github.rinde.rinsim.core.model.road.MoveProgress;
-import com.github.rinde.rinsim.core.model.road.MovingRoadUser;
-import com.github.rinde.rinsim.core.model.road.RoadModel;
 import com.github.rinde.rinsim.geom.Graph;
 import com.github.rinde.rinsim.geom.MultiAttributeData;
+import com.github.rinde.rinsim.geom.MultimapGraph;
 import com.github.rinde.rinsim.geom.Point;
-import com.github.rinde.rinsim.geom.TestMultimapGraph;
-import com.github.rinde.rinsim.geom.TestTableGraph;
+import com.github.rinde.rinsim.geom.TableGraph;
 import com.google.common.math.DoubleMath;
 
 /**
  * Test for graph with speed limits
- * @author Bartosz Michalik 
- * 
+ * @author Bartosz Michalik
+ *
  */
 @RunWith(Parameterized.class)
 public class SpeedLimitsTest {
@@ -85,14 +79,14 @@ public class SpeedLimitsTest {
     final double five = 5;
     final double twoAndHalf = 2.5;
     return Arrays.asList(new Object[][] {
-        { TestMultimapGraph.class, GraphRoadModel.class, five },
-        { TestMultimapGraph.class, CachedGraphRoadModel.class, five },
-        { TestMultimapGraph.class, GraphRoadModel.class, twoAndHalf },
-        { TestMultimapGraph.class, CachedGraphRoadModel.class, twoAndHalf },
-        { TestTableGraph.class, GraphRoadModel.class, five },
-        { TestTableGraph.class, CachedGraphRoadModel.class, five },
-        { TestTableGraph.class, GraphRoadModel.class, twoAndHalf },
-        { TestTableGraph.class, CachedGraphRoadModel.class, twoAndHalf } });
+        { MultimapGraph.class, GraphRoadModel.class, five },
+        { MultimapGraph.class, CachedGraphRoadModel.class, five },
+        { MultimapGraph.class, GraphRoadModel.class, twoAndHalf },
+        { MultimapGraph.class, CachedGraphRoadModel.class, twoAndHalf },
+        { TableGraph.class, GraphRoadModel.class, five },
+        { TableGraph.class, CachedGraphRoadModel.class, five },
+        { TableGraph.class, GraphRoadModel.class, twoAndHalf },
+        { TableGraph.class, CachedGraphRoadModel.class, twoAndHalf } });
   }
 
   @Before
@@ -115,17 +109,29 @@ public class SpeedLimitsTest {
     graph.addConnection(A, B);
 
     // length 10 speed 2.5
-    graph.addConnection(B, C, new MultiAttributeData(10d, 2.5));
+    graph.addConnection(B, C, MultiAttributeData.builder()
+        .setLength(10)
+        .setMaxSpeed(2.5)
+        .build());
     graph.addConnection(C, B); // length Math.sqr(10^2 + 10^2)
 
     // length 10 speed 10
-    graph.addConnection(B, D, new MultiAttributeData(10d, 10));
+    graph.addConnection(B, D, MultiAttributeData.builder()
+        .setLength(10d)
+        .setMaxSpeed(10)
+        .build());
 
     graph.addConnection(C, D); // length 10
 
     // length 12 speed 1
-    graph.addConnection(D, C, new MultiAttributeData(12, 1));
-    graph.addConnection(D, E, new MultiAttributeData(5, 7));
+    graph.addConnection(D, C, MultiAttributeData.builder()
+        .setLength(12)
+        .setMaxSpeed(1)
+        .build());
+    graph.addConnection(D, E, MultiAttributeData.builder()
+        .setLength(5)
+        .setMaxSpeed(7)
+        .build());
 
     final Set<Point> points = graph.getNodes();
     assertEquals(5, points.size());
@@ -146,7 +152,7 @@ public class SpeedLimitsTest {
 
   @Test
   public void followPathAllAtOnce() {
-    final int timeNeeded = DoubleMath.roundToInt((pathLength / speed) * 1.5,
+    final int timeNeeded = DoubleMath.roundToInt(pathLength / speed * 1.5,
         RoundingMode.CEILING);
     final TimeLapse timeLapse = TimeLapseFactory.create(NonSI.HOUR, 0,
         timeNeeded);

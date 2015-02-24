@@ -35,9 +35,9 @@ import com.github.rinde.rinsim.geom.Point;
  * in dot format. The default implementation of the serializer for graphs with
  * edge length information can be obtained via calling
  * {@link DotGraphSerializer#getLengthGraphSerializer(SerializerFilter...)}
- * 
+ *
  * @author Bartosz Michalik
- * 
+ *
  */
 public class DotGraphSerializer<E extends ConnectionData> extends
     AbstractGraphSerializer<E> {
@@ -122,8 +122,9 @@ public class DotGraphSerializer<E extends ConnectionData> extends
     }
 
     for (final Connection<? extends E> entry : graph.getConnections()) {
-      string.append(serializer.serializeConnection(idMap.get(entry.from), idMap
-          .get(entry.to), entry));
+      string.append(serializer.serializeConnection(idMap.get(entry.from()),
+          idMap
+              .get(entry.to()), entry));
     }
     string.append('}');
     out.append(string);
@@ -134,7 +135,7 @@ public class DotGraphSerializer<E extends ConnectionData> extends
   /**
    * Used to serialize graphs
    * @author Bartosz Michalik
-   * 
+   *
    * @since 2.0
    */
   public static abstract class ConnectionSerializer<E extends ConnectionData> {
@@ -156,14 +157,15 @@ public class DotGraphSerializer<E extends ConnectionData> extends
       buffer.append(NODE_PREFIX).append(idFrom).append(" -> ")
           .append(NODE_PREFIX).append(idTo);
       buffer.append('[').append(DISTANCE).append("=\"")
-          .append(Math.round(conn.getData().getLength()) / 10d).append("\"]\n");
+          .append(Math.round(conn.data().get().getLength().get()) / 10d)
+          .append("\"]\n");
       return buffer.toString();
     }
 
     @Override
     public LengthData deserialize(String connection) {
       final double distance = Double.parseDouble(connection.split("\"")[1]);
-      return new LengthData(distance);
+      return LengthData.create(distance);
     }
   }
 
@@ -178,11 +180,10 @@ public class DotGraphSerializer<E extends ConnectionData> extends
       buffer.append(NODE_PREFIX).append(idFrom).append(" -> ")
           .append(NODE_PREFIX).append(idTo);
       buffer.append('[').append(DISTANCE).append("=\"")
-          .append(Math.round(conn.getData().getLength()) / 10d);
-      if (!Double.isNaN(conn.getData().getMaxSpeed())
-          && conn.getData().getMaxSpeed() > 0) {
+          .append(Math.round(conn.data().get().getLength().get()) / 10d);
+      if (conn.data().get().getMaxSpeed().isPresent()) {
         buffer.append("\", ").append(MAX_SPEED).append("=\"")
-            .append(conn.getData().getMaxSpeed());
+            .append(conn.data().get().getMaxSpeed().get());
       }
       buffer.append("\"]\n");
       return buffer.toString();
@@ -193,9 +194,14 @@ public class DotGraphSerializer<E extends ConnectionData> extends
       final double distance = Double.parseDouble(connection.split("\"")[1]);
       try {
         final double maxSpeed = Double.parseDouble(connection.split("\"")[3]);
-        return new MultiAttributeData(distance, maxSpeed);
+        return MultiAttributeData.builder()
+            .setLength(distance)
+            .setMaxSpeed(maxSpeed)
+            .build();
       } catch (final Exception e) {
-        return new MultiAttributeData(distance);
+        return MultiAttributeData.builder()
+            .setLength(distance)
+            .build();
       }
     }
   }

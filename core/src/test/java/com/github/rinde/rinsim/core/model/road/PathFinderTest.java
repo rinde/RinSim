@@ -36,18 +36,12 @@ import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 
 import com.github.rinde.rinsim.core.TimeLapseFactory;
-import com.github.rinde.rinsim.core.model.road.GraphRoadModel;
-import com.github.rinde.rinsim.core.model.road.MoveProgress;
-import com.github.rinde.rinsim.core.model.road.MovingRoadUser;
-import com.github.rinde.rinsim.core.model.road.RoadModel;
-import com.github.rinde.rinsim.core.model.road.RoadModels;
-import com.github.rinde.rinsim.core.model.road.RoadUser;
 import com.github.rinde.rinsim.geom.Graph;
 import com.github.rinde.rinsim.geom.Graphs;
 import com.github.rinde.rinsim.geom.LengthData;
+import com.github.rinde.rinsim.geom.MultimapGraph;
 import com.github.rinde.rinsim.geom.Point;
-import com.github.rinde.rinsim.geom.TestMultimapGraph;
-import com.github.rinde.rinsim.geom.TestTableGraph;
+import com.github.rinde.rinsim.geom.TableGraph;
 import com.github.rinde.rinsim.util.TrivialRoadUser;
 import com.google.common.base.Predicate;
 import com.google.common.math.DoubleMath;
@@ -55,15 +49,15 @@ import com.google.common.math.DoubleMath;
 /**
  * TODO this class should only be testing Graph classes. RoadModel related stuff
  * should be splitted
- * @author Rinde van Lon 
+ * @author Rinde van Lon
  */
 @RunWith(Parameterized.class)
 public class PathFinderTest {
 
   @Parameters
   public static Collection<Object[]> configs() {
-    return Arrays.asList(new Object[][] { { TestMultimapGraph.class },
-        { TestTableGraph.class } });
+    return Arrays.asList(new Object[][] { { MultimapGraph.class },
+        { TableGraph.class } });
   }
 
   public PathFinderTest(Class<? extends Graph<LengthData>> clazz) {

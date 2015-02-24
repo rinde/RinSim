@@ -28,12 +28,11 @@ import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 
 import com.github.rinde.rinsim.geom.Connection;
-import com.github.rinde.rinsim.geom.ConnectionData;
 import com.github.rinde.rinsim.geom.Graph;
 import com.github.rinde.rinsim.geom.LengthData;
+import com.github.rinde.rinsim.geom.MultimapGraph;
 import com.github.rinde.rinsim.geom.Point;
-import com.github.rinde.rinsim.geom.TestMultimapGraph;
-import com.github.rinde.rinsim.geom.TestTableGraph;
+import com.github.rinde.rinsim.geom.TableGraph;
 
 /**
  * Test whether points are value objects
@@ -46,8 +45,8 @@ public class PointsEqualityTest {
 
   @Parameters
   public static Collection<Object[]> configs() {
-    return Arrays.asList(new Object[][] { { new TestMultimapGraph() },
-        { new TestTableGraph() } });
+    return Arrays.asList(new Object[][] { { new MultimapGraph() },
+        { new TableGraph() } });
   }
 
   private final Graph<LengthData> graph;
@@ -71,8 +70,9 @@ public class PointsEqualityTest {
   @Test
   public void midPointsEqual() {
     final GraphRoadModel.Loc p1 = GraphRoadModel.newLoc(new Point(0.2, 10000));
-    final Connection<?> conn = new Connection<ConnectionData>(new Point(0.2,
-        10000), new Point(0.2, 10000), null);
+    final Connection<?> conn = Connection.create(
+        new Point(0.2, 10000),
+        new Point(0.2, 10000));
     final GraphRoadModel.Loc p2 = GraphRoadModel.newLoc(conn, 10);
 
     assertEquals(p1, p1);

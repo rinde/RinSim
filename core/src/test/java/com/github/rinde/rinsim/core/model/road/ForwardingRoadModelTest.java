@@ -25,21 +25,20 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 
-import com.github.rinde.rinsim.core.model.road.ForwardingRoadModel;
-import com.github.rinde.rinsim.core.model.road.GenericRoadModel;
-import com.github.rinde.rinsim.core.model.road.GraphRoadModel;
-import com.github.rinde.rinsim.core.model.road.PlaneRoadModel;
 import com.github.rinde.rinsim.geom.Graph;
+import com.github.rinde.rinsim.geom.MultimapGraph;
 import com.github.rinde.rinsim.geom.Point;
-import com.github.rinde.rinsim.geom.TestMultimapGraph;
 
 /**
- * @author Rinde van Lon 
- * 
+ * @author Rinde van Lon
+ *
  */
 @RunWith(Parameterized.class)
 public class ForwardingRoadModelTest extends
     AbstractRoadModelTest<GenericRoadModel> {
+  /**
+   * @return The configs to test.
+   */
   @Parameters
   public static Collection<Object[]> configs() {
     return Arrays.asList(new Object[][] //
@@ -67,7 +66,7 @@ public class ForwardingRoadModelTest extends
   }
 
   Graph<?> createGraph() {
-    final Graph<?> g = new TestMultimapGraph();
+    final Graph<?> g = new MultimapGraph<>();
     g.addConnection(SW, SE);
     g.addConnection(SE, NE);
     g.addConnection(NE, NW);
