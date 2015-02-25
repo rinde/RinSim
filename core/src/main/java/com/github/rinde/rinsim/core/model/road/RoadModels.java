@@ -15,9 +15,10 @@
  */
 package com.github.rinde.rinsim.core.model.road;
 
+import static com.google.common.base.Verify.verifyNotNull;
+
 import java.util.Collection;
 import java.util.List;
-import java.util.Objects;
 
 import javax.annotation.Nullable;
 import javax.measure.Measure;
@@ -273,7 +274,7 @@ public final class RoadModels {
   }
 
   static class RoadUserToPositionFunction<T extends RoadUser> implements
-  Function<T, Point> {
+      Function<T, Point> {
     private final RoadModel rm;
 
     RoadUserToPositionFunction(RoadModel roadModel) {
@@ -283,7 +284,7 @@ public final class RoadModels {
     @Override
     @Nullable
     public Point apply(@Nullable T input) {
-      return rm.getPosition(Objects.requireNonNull(input));
+      return rm.getPosition(verifyNotNull(input));
     }
   }
 
@@ -300,7 +301,7 @@ public final class RoadModels {
 
     @Override
     public boolean apply(@Nullable RoadUser input) {
-      return Point.distance(model.getPosition(Objects.requireNonNull(input)),
+      return Point.distance(model.getPosition(verifyNotNull(input)),
           position) < radius;
     }
   }

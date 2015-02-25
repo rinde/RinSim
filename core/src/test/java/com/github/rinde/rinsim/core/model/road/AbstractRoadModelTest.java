@@ -403,13 +403,13 @@ public abstract class AbstractRoadModelTest<T extends GenericRoadModel> {
   @SuppressWarnings({ "unused", "null" })
   @Test(expected = IllegalArgumentException.class)
   public void pathProgressConstructorFail1() {
-    new MoveProgress(meter(-1), durationSecond(1), new ArrayList<Point>());
+    MoveProgress.create(meter(-1), durationSecond(1), new ArrayList<Point>());
   }
 
   @SuppressWarnings({ "unused", "null" })
   @Test(expected = IllegalArgumentException.class)
   public void pathProgressConstructorFail2() {
-    new MoveProgress(meter(1), durationSecond(-1), new ArrayList<Point>());
+    MoveProgress.create(meter(1), durationSecond(-1), new ArrayList<Point>());
   }
 
   @Test

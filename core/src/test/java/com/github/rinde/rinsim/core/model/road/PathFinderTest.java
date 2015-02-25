@@ -201,7 +201,7 @@ public class PathFinderTest {
         new LinkedList<Point>(t),
         TimeLapseFactory.create(NonSI.HOUR, 0,
             DoubleMath.roundToLong(len, RoundingMode.CEILING)));
-    assertEquals(len, progress.distance.getValue(), EPSILON);
+    assertEquals(len, progress.distance().getValue(), EPSILON);
   }
 
   @Test

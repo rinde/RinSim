@@ -16,6 +16,7 @@
 package com.github.rinde.rinsim.core.model.road;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Verify.verifyNotNull;
 import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Maps.newLinkedHashMap;
 
@@ -27,13 +28,10 @@ import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Queue;
 import java.util.Set;
 
 import javax.annotation.Nullable;
-import javax.measure.converter.UnitConverter;
-import javax.measure.quantity.Duration;
 import javax.measure.quantity.Length;
 import javax.measure.quantity.Velocity;
 import javax.measure.unit.NonSI;
@@ -60,61 +58,6 @@ import com.google.common.collect.Sets;
 public abstract class AbstractRoadModel<T> extends GenericRoadModel {
 
   /**
-   * The unit that is used to represent time internally.
-   */
-  protected static final Unit<Duration> INTERNAL_TIME_UNIT = SI.SECOND;
-
-  /**
-   * The unit that is used to represent distance internally.
-   */
-  protected static final Unit<Length> INTERNAL_DIST_UNIT = SI.METER;
-
-  /**
-   * The unit that is used to represent speed internally.
-   */
-  protected static final Unit<Velocity> INTERNAL_SPEED_UNIT = SI.METERS_PER_SECOND;
-
-  // TODO event dispatching has to be tested
-  /**
-   * The {@link EventDispatcher} that dispatches all event for this model.
-   */
-  protected final EventDispatcher eventDispatcher;
-
-  /**
-   * The unit that is used to represent distance externally.
-   */
-  protected final Unit<Length> externalDistanceUnit;
-
-  /**
-   * The unit that is used to represent speed externally.
-   */
-  protected final Unit<Velocity> externalSpeedUnit;
-
-  /**
-   * Converter that converts distances in {@link #INTERNAL_DIST_UNIT} to
-   * distances in {@link #externalDistanceUnit}.
-   */
-  protected final UnitConverter toExternalDistConv;
-
-  /**
-   * Converter that converts distances in {@link #externalDistanceUnit} to
-   * {@link #INTERNAL_DIST_UNIT}.
-   */
-  protected final UnitConverter toInternalDistConv;
-
-  /**
-   * Converter that converts speed in {@link #INTERNAL_SPEED_UNIT} to speed in
-   * {@link #externalSpeedUnit}.
-   */
-  protected final UnitConverter toExternalSpeedConv;
-
-  /**
-   * Converter that converts speed in {@link #externalSpeedUnit} to speed in
-   * {@link #INTERNAL_SPEED_UNIT}.
-   */
-  protected final UnitConverter toInternalSpeedConv;
-
-  /**
    * The types of events this model can dispatch.
    * @author Rinde van Lon
    */
@@ -135,6 +78,17 @@ public abstract class AbstractRoadModel<T> extends GenericRoadModel {
    */
   protected Map<MovingRoadUser, DestinationPath> objDestinations;
 
+  // TODO event dispatching has to be tested
+  /**
+   * The {@link EventDispatcher} that dispatches all event for this model.
+   */
+  protected final EventDispatcher eventDispatcher;
+
+  /**
+   * A reference to {@link RoadUnits}
+   */
+  protected final RoadUnits unitConversion;
+
   /**
    * Create model using {@link SI#KILOMETER} and
    * {@link NonSI#KILOMETERS_PER_HOUR}.
@@ -151,15 +105,7 @@ public abstract class AbstractRoadModel<T> extends GenericRoadModel {
    */
   protected AbstractRoadModel(Unit<Length> distanceUnit,
       Unit<Velocity> speedUnit) {
-    externalDistanceUnit = distanceUnit;
-    externalSpeedUnit = speedUnit;
-    toExternalDistConv = INTERNAL_DIST_UNIT
-        .getConverterTo(externalDistanceUnit);
-    toInternalDistConv = externalDistanceUnit
-        .getConverterTo(INTERNAL_DIST_UNIT);
-    toExternalSpeedConv = INTERNAL_SPEED_UNIT.getConverterTo(externalSpeedUnit);
-    toInternalSpeedConv = externalSpeedUnit.getConverterTo(INTERNAL_SPEED_UNIT);
-
+    unitConversion = new RoadUnits(distanceUnit, speedUnit);
     objLocs = Collections.synchronizedMap(new LinkedHashMap<RoadUser, T>());
     objDestinations = newLinkedHashMap();
     eventDispatcher = new EventDispatcher(RoadEventType.MOVE);
@@ -395,12 +341,12 @@ public abstract class AbstractRoadModel<T> extends GenericRoadModel {
 
   @Override
   public Unit<Length> getDistanceUnit() {
-    return externalDistanceUnit;
+    return unitConversion.getExDistUnit();
   }
 
   @Override
   public Unit<Velocity> getSpeedUnit() {
-    return externalSpeedUnit;
+    return unitConversion.getExSpeedUnit();
   }
 
   private static class SameLocationPredicate implements Predicate<RoadUser> {
@@ -418,7 +364,7 @@ public abstract class AbstractRoadModel<T> extends GenericRoadModel {
     @Override
     public boolean apply(@Nullable RoadUser input) {
       return type.isInstance(input)
-          && model.equalPosition(Objects.requireNonNull(input), reference);
+          && model.equalPosition(verifyNotNull(input), reference);
     }
   }
 

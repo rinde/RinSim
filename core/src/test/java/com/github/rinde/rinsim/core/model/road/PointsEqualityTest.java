@@ -69,7 +69,7 @@ public class PointsEqualityTest {
 
   @Test
   public void midPointsEqual() {
-    final GraphRoadModel.Loc p1 = GraphRoadModel.newLoc(new Point(0.2, 10000));
+    final GraphRoadModel.Loc p1 = GraphRoadModel.asLoc(new Point(0.2, 10000));
     final Connection<?> conn = Connection.create(
         new Point(0.2, 10000),
         new Point(0.2, 10000));
@@ -85,7 +85,7 @@ public class PointsEqualityTest {
   @Test
   public void mixedPointsEqual() {
     final Point p1 = new Point(5, 0.20101);
-    final GraphRoadModel.Loc p2 = GraphRoadModel.newLoc(new Point(5, 0.20101));
+    final GraphRoadModel.Loc p2 = GraphRoadModel.asLoc(new Point(5, 0.20101));
 
     assertEquals(p1, p1);
     assertEquals(p2, p2);
@@ -117,7 +117,7 @@ public class PointsEqualityTest {
     Aa = new Point(0, 0);
     Bb = Point.duplicate(B);
 
-    final GraphRoadModel.Loc Cc = GraphRoadModel.newLoc(new Point(13, 17));
+    final GraphRoadModel.Loc Cc = GraphRoadModel.asLoc(new Point(13, 17));
     final GraphRoadModel.Loc Dd = GraphRoadModel.newLoc(
         graph.getConnection(B, D), 100);
 

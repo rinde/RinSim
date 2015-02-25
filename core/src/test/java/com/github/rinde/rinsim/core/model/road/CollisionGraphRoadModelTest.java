@@ -63,9 +63,10 @@ public class CollisionGraphRoadModelTest {
   }
 
   /**
-   * {@link CollisionGraphRoadModel#addObjectAtSamePosition(RoadUser, RoadUser)}
-   * is not supported.
+   * Test that <code>addObjectAtSamePosition</code> throws an unsupported
+   * operation exception.
    */
+  @SuppressWarnings("deprecation")
   @Test
   public void testAddObjectAtSamePosition() {
     final MovingRoadUser agv1 = new TestRoadUser();
@@ -364,8 +365,8 @@ public class CollisionGraphRoadModelTest {
   }
 
   static void checkNoMovement(MoveProgress mp) {
-    assertTrue(mp.travelledNodes.isEmpty());
-    assertEquals(0L, mp.time.getValue().longValue());
-    assertEquals(0d, mp.distance.getValue().doubleValue(), 0);
+    assertTrue(mp.travelledNodes().isEmpty());
+    assertEquals(0L, mp.time().getValue().longValue());
+    assertEquals(0d, mp.distance().getValue().doubleValue(), 0);
   }
 }
