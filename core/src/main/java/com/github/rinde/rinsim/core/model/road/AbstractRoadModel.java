@@ -85,7 +85,7 @@ public abstract class AbstractRoadModel<T> extends GenericRoadModel {
   protected final EventDispatcher eventDispatcher;
 
   /**
-   * A reference to {@link RoadUnits}
+   * A reference to {@link RoadUnits}.
    */
   protected final RoadUnits unitConversion;
 
@@ -243,7 +243,8 @@ public abstract class AbstractRoadModel<T> extends GenericRoadModel {
     synchronized (objLocs) {
       copiedMap = new LinkedHashMap<RoadUser, T>();
       copiedMap.putAll(objLocs);
-    } // it is save to release the lock now
+      // it is save to release the lock now
+    }
 
     final Map<RoadUser, Point> theMap = new LinkedHashMap<RoadUser, Point>();
     for (final java.util.Map.Entry<RoadUser, T> entry : copiedMap.entrySet()) {

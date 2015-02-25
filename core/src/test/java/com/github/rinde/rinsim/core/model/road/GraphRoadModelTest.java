@@ -726,19 +726,19 @@ public class GraphRoadModelTest extends AbstractRoadModelTest<GraphRoadModel> {
   @SuppressWarnings("null")
   @Test(expected = IllegalArgumentException.class)
   public void computeConnectionLengthFail2() {
-    model.computePartialConnectionLength(new Point(1, 2), null);
+    model.computeDistanceOnConnection(new Point(1, 2), null);
   }
 
   @Test(expected = IllegalArgumentException.class)
   public void computeConnectionLengthFail3() {
-    model.computePartialConnectionLength(new Point(1, 2), new Point(2, 1));
+    model.computeDistanceOnConnection(new Point(1, 2), new Point(2, 1));
   }
 
   @SuppressWarnings("unchecked")
   @Test
   public void computeConnectionLength() {
     assertEquals(0,
-        model.computePartialConnectionLength(new Point(1, 2), new Point(1, 2)),
+        model.computeDistanceOnConnection(new Point(1, 2), new Point(1, 2)),
         EPSILON);
     ((Graph<MultiAttributeData>) graph).addConnection(SE, SW,
         MultiAttributeData.builder().setLength(5).setMaxSpeed(5d).build());
@@ -758,13 +758,13 @@ public class GraphRoadModelTest extends AbstractRoadModelTest<GraphRoadModel> {
 
     assertEquals(
         1,
-        model.computePartialConnectionLength(model.getPosition(agent1),
+        model.computeDistanceOnConnection(model.getPosition(agent1),
             model.getPosition(agent2)), EPSILON);
 
     assertEquals(4,
-        model.computePartialConnectionLength(model.getPosition(agent1), SW), EPSILON);
+        model.computeDistanceOnConnection(model.getPosition(agent1), SW), EPSILON);
     assertEquals(1,
-        model.computePartialConnectionLength(SE, model.getPosition(agent1)), EPSILON);
+        model.computeDistanceOnConnection(SE, model.getPosition(agent1)), EPSILON);
   }
 
   @Test

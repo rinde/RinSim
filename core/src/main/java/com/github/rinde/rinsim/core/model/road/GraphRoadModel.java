@@ -158,7 +158,7 @@ public class GraphRoadModel extends AbstractRoadModel<Loc> {
       final double travelableDistance = computeTravelableDistance(tempLoc,
           path.peek(), speed, time);
       final double connLength = unitConversion.toInDist(
-          computePartialConnectionLength(tempLoc, path.peek()));
+          computeDistanceOnConnection(tempLoc, path.peek()));
 
       double traveledDistance;
       if (travelableDistance >= connLength) {
@@ -225,38 +225,33 @@ public class GraphRoadModel extends AbstractRoadModel<Loc> {
   }
 
   /**
-   * Compute length of connection as defined by the two points. If points are
-   * equal the distance is 0. This method uses length stored in
-   * {@link ConnectionData} objects when available.
+   * Compute distance between the two specified points, both of which need to be
+   * on the same connection (or are equal). If points are equal the distance is
+   * 0. This method uses length stored in {@link ConnectionData} objects when
+   * available.
    * @param from Start of the connection.
    * @param to End of the connection.
    * @return the distance between two points
    * @throws IllegalArgumentException when two points are part of the graph but
    *           are not equal or there is no connection between them
    */
-  protected double computePartialConnectionLength(Point from, Point to) {
+  protected double computeDistanceOnConnection(Point from, Point to) {
     if (from.equals(to)) {
       return 0;
     }
+    final Connection<?> conn = getConnection(from, to);
     if (isOnConnection(from) && isOnConnection(to)) {
       final Loc start = (Loc) from;
       final Loc end = (Loc) to;
-      checkArgument(start.isOnSameConnection(end),
-          "the points are not on the same connection");
       return Math.abs(start.relativePos - end.relativePos);
     } else if (isOnConnection(from)) {
       final Loc start = (Loc) from;
-      checkArgument(start.conn.get().to().equals(to),
-          "from is not on a connection leading to 'to'");
       return start.connLength - start.relativePos;
     } else if (isOnConnection(to)) {
       final Loc end = (Loc) to;
-      checkArgument(end.conn.get().from().equals(from),
-          "to is not connected to from");
       return end.relativePos;
     } else {
-      checkArgument(graph.hasConnection(from, to), "connection does not exist");
-      return graph.getConnection(from, to).getLength();
+      return conn.getLength();
     }
   }
 
@@ -351,13 +346,13 @@ public class GraphRoadModel extends AbstractRoadModel<Loc> {
     final List<Point> path = new ArrayList<Point>();
     Point start = from;
     if (isOnConnection(from)) {
-      start = ((Loc) from).conn.get().to();
+      start = asLoc(from).conn.get().to();
       path.add(from);
     }
 
     Point end = to;
     if (isOnConnection(to)) {
-      end = ((Loc) to).conn.get().from();
+      end = asLoc(to).conn.get().from();
     }
     path.addAll(doGetShortestPathTo(start, end));
     if (isOnConnection(to)) {

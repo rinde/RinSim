@@ -17,6 +17,7 @@ package com.github.rinde.rinsim.core.model.road;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
+import static com.google.common.base.Verify.verify;
 
 import java.util.Queue;
 
@@ -184,6 +185,7 @@ public class DynamicGraphRoadModel extends GraphRoadModel {
 
     @Override
     public void handleEvent(Event e) {
+      verify(e instanceof GraphEvent);
       final GraphEvent ge = (GraphEvent) e;
       if (ge.getEventType() == EventTypes.REMOVE_CONNECTION
           || ge.getEventType() == EventTypes.CHANGE_CONNECTION_DATA) {

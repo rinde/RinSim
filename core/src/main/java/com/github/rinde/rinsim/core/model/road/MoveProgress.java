@@ -16,7 +16,7 @@
 package com.github.rinde.rinsim.core.model.road;
 
 import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.base.Verify.verify;
+import static com.google.common.base.Preconditions.checkState;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -88,16 +88,17 @@ public abstract class MoveProgress {
     private final RoadUnits unitConversion;
     private final List<Point> traveledNodes;
     private final TimeLapse time;
+    private final long startTimeConsumed;
 
     private double travelDistance;
-    private final long startTimeConsumed;
-    private final boolean used = false;
+    private boolean used;
 
     Builder(RoadUnits ru, TimeLapse timeLapse) {
       unitConversion = ru;
       time = timeLapse;
       startTimeConsumed = time.getTimeConsumed();
       travelDistance = 0;
+      used = false;
       traveledNodes = new ArrayList<>();
     }
 
@@ -133,7 +134,8 @@ public abstract class MoveProgress {
      * @return A new {@link MoveProgress} instance.
      */
     public MoveProgress build() {
-      verify(!used, "This method may be called only once.");
+      checkState(!used, "This method may be called only once.");
+      used = true;
       final Measure<Double, Length> distTraveled = unitConversion
           .toExDistMeasure(travelDistance);
       final Measure<Long, Duration> timeConsumed = Measure.valueOf(

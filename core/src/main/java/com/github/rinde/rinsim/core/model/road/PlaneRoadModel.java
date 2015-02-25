@@ -146,7 +146,7 @@ public class PlaneRoadModel extends AbstractRoadModel<Point> {
     }
 
     final List<Point> travelledNodes = new ArrayList<Point>();
-    while (time.hasTimeLeft() && path.size() > 0) {
+    while (time.hasTimeLeft() && !path.isEmpty()) {
       checkArgument(isPointInBoundary(path.peek()),
           "points in the path must be within the predefined boundary of the plane");
 
