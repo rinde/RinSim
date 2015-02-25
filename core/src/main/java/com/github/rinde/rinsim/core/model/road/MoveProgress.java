@@ -16,54 +16,129 @@
 package com.github.rinde.rinsim.core.model.road;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Verify.verify;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.measure.Measure;
 import javax.measure.quantity.Duration;
 import javax.measure.quantity.Length;
 
+import com.github.rinde.rinsim.core.TimeLapse;
+import com.github.rinde.rinsim.core.model.road.GraphRoadModel.Loc;
 import com.github.rinde.rinsim.geom.Point;
+import com.google.auto.value.AutoValue;
+import com.google.common.collect.ImmutableList;
 
 /**
- * Represents the distance traveled and time spend in
+ * Represents the distance traveled and time spent in
  * {@link RoadModel#followPath(MovingRoadUser, java.util.Queue, com.github.rinde.rinsim.core.TimeLapse)}
  * .
- * @author Bartosz Michalik 
- * @author Rinde van Lon 
+ * @author Bartosz Michalik
+ * @author Rinde van Lon
  * @since 2.0
  */
-public final class MoveProgress {
-  /**
-   * Distance traveled in the
-   * {@link RoadModel#followPath(MovingRoadUser, java.util.Queue, com.github.rinde.rinsim.core.TimeLapse)}
-   * .
-   */
-  public final Measure<Double, Length> distance;
-  /**
-   * Time spend on traveling the distance.
-   */
-  public final Measure<Long, Duration> time;
+@AutoValue
+public abstract class MoveProgress {
+
+  MoveProgress() {}
 
   /**
-   * The nodes which were traveled.
+   * @return the distance traveled.
    */
-  public final List<Point> travelledNodes;
+  public abstract Measure<Double, Length> distance();
 
-  MoveProgress(Measure<Double, Length> dist, Measure<Long, Duration> pTime,
-      List<Point> pTravelledNodes) {
-    checkArgument(dist.getValue() >= 0d, "distance must be greater than or equal to 0");
-    checkArgument(pTime.getValue() >= 0L, "time must be greather than or equal to 0");
-    distance = dist;
-    time = pTime;
-    travelledNodes = pTravelledNodes;
+  /**
+   * @return the time spend on traveling the distance.
+   */
+  public abstract Measure<Long, Duration> time();
+
+  /**
+   * @return the nodes that were traveled.
+   */
+  public abstract ImmutableList<Point> travelledNodes();
+
+  static MoveProgress create(Measure<Double, Length> dist,
+      Measure<Long, Duration> pTime, List<Point> pTravelledNodes) {
+    checkArgument(dist.getValue() >= 0d,
+        "Distance must be greater than or equal to 0.");
+    checkArgument(pTime.getValue() >= 0L,
+        "Time must be greather than or equal to 0.");
+    return new AutoValue_MoveProgress(dist, pTime,
+        ImmutableList.copyOf(pTravelledNodes));
   }
 
-  @Override
-  public String toString() {
-    return new StringBuilder().append("{PathProgress distance:")
-        .append(distance).append(" time:").append(time)
-        .append(" travelledNodes:").append(travelledNodes).append("}")
-        .toString();
+  /**
+   * Construct a new {@link Builder}.
+   * @param ru A reference to {@link RoadUnits}.
+   * @param timeLapse The time lapse to use to obtain time related information.
+   * @return A new instance.
+   */
+  public static Builder builder(RoadUnits ru, TimeLapse timeLapse) {
+    return new Builder(ru, timeLapse);
+  }
+
+  /**
+   * A {@link Builder} for constructing {@link MoveProgress} instances. Per
+   * builder instance only one {@link MoveProgress} instance can be created.
+   * @author Rinde van Lon
+   */
+  public static class Builder {
+    private final RoadUnits unitConversion;
+    private final List<Point> traveledNodes;
+    private final TimeLapse time;
+
+    private double travelDistance;
+    private final long startTimeConsumed;
+    private final boolean used = false;
+
+    Builder(RoadUnits ru, TimeLapse timeLapse) {
+      unitConversion = ru;
+      time = timeLapse;
+      startTimeConsumed = time.getTimeConsumed();
+      travelDistance = 0;
+      traveledNodes = new ArrayList<>();
+    }
+
+    /**
+     * Attempts to add the point to the list of traveled nodes. It is added only
+     * if it is a node in the graph, otherwise nothing happens.
+     * @param node The node to add.
+     * @return This, as per the builder pattern.
+     */
+    public Builder addNode(Point node) {
+      if (!(node instanceof Loc) || !((Loc) node).isOnConnection()) {
+        traveledNodes.add(node);
+      }
+      return this;
+    }
+
+    /**
+     * Adds the distance as traveled distance.
+     * @param dist The distance to add (must be positive).
+     * @return This, as per the builder pattern.
+     */
+    public Builder addDistance(double dist) {
+      checkArgument(dist >= 0d, "Only positive values are allowed, is %s.",
+          dist);
+      travelDistance += dist;
+      return this;
+    }
+
+    /**
+     * Constructs a new {@link MoveProgress} instance using all information that
+     * was added via this builder. This method may be called only once per
+     * builder.
+     * @return A new {@link MoveProgress} instance.
+     */
+    public MoveProgress build() {
+      verify(!used, "This method may be called only once.");
+      final Measure<Double, Length> distTraveled = unitConversion
+          .toExDistMeasure(travelDistance);
+      final Measure<Long, Duration> timeConsumed = Measure.valueOf(
+          time.getTimeConsumed() - startTimeConsumed, time.getTimeUnit());
+      return create(distTraveled, timeConsumed, traveledNodes);
+    }
   }
 }

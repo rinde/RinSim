@@ -25,7 +25,6 @@ import java.util.List;
 import java.util.Queue;
 
 import javax.measure.Measure;
-import javax.measure.converter.UnitConverter;
 import javax.measure.quantity.Duration;
 import javax.measure.quantity.Length;
 import javax.measure.quantity.Velocity;
@@ -45,8 +44,8 @@ import com.google.common.math.DoubleMath;
  * A {@link RoadModel} that uses a plane as road structure. This assumes that
  * from every point in the plane it is possible to drive to every other point in
  * the plane. The plane has a boundary as defined by a rectangle.
- * 
- * @author Rinde van Lon 
+ *
+ * @author Rinde van Lon
  */
 public class PlaneRoadModel extends AbstractRoadModel<Point> {
 
@@ -96,7 +95,7 @@ public class PlaneRoadModel extends AbstractRoadModel<Point> {
     max = pMax;
     width = max.x - min.x;
     height = max.y - min.y;
-    maxSpeed = pMaxSpeed.doubleValue(INTERNAL_SPEED_UNIT);
+    maxSpeed = unitConversion.toInSpeed(pMaxSpeed);
   }
 
   /**
@@ -134,21 +133,16 @@ public class PlaneRoadModel extends AbstractRoadModel<Point> {
     final long startTimeConsumed = time.getTimeConsumed();
     Point loc = objLocs.get(object);
 
-    final UnitConverter toInternalTimeConv = time.getTimeUnit().getConverterTo(
-        INTERNAL_TIME_UNIT);
-    final UnitConverter toExternalTimeConv = INTERNAL_TIME_UNIT
-        .getConverterTo(time.getTimeUnit());
-
     double traveled = 0;
-    final double speed = min(toInternalSpeedConv.convert(object.getSpeed()),
+    final double speed = min(unitConversion.toInSpeed(object.getSpeed()),
         maxSpeed);
     if (speed == 0d) {
       // FIXME add test for this case, also check GraphRoadModel
       final Measure<Double, Length> dist = Measure.valueOf(0d,
-          externalDistanceUnit);
+          getDistanceUnit());
       final Measure<Long, Duration> dur = Measure.valueOf(0L,
           time.getTimeUnit());
-      return new MoveProgress(dist, dur, new ArrayList<Point>());
+      return MoveProgress.create(dist, dur, new ArrayList<Point>());
     }
 
     final List<Point> travelledNodes = new ArrayList<Point>();
@@ -158,16 +152,18 @@ public class PlaneRoadModel extends AbstractRoadModel<Point> {
 
       // distance in internal time unit that can be traveled with timeleft
       final double travelDistance = speed
-          * toInternalTimeConv.convert(time.getTimeLeft());
-      final double stepLength = toInternalDistConv.convert(Point.distance(loc,
-          path.peek()));
+          * unitConversion.toInTime(time.getTimeLeft(),
+              time.getTimeUnit());
+      final double stepLength = unitConversion.toInDist(Point
+          .distance(loc, path.peek()));
 
       if (travelDistance >= stepLength) {
         loc = path.remove();
         travelledNodes.add(loc);
 
         final long timeSpent = DoubleMath.roundToLong(
-            toExternalTimeConv.convert(stepLength / speed),
+            unitConversion.toExTime(stepLength / speed,
+                time.getTimeUnit()),
             RoundingMode.HALF_DOWN);
         time.consume(timeSpent);
         traveled += stepLength;
@@ -189,11 +185,11 @@ public class PlaneRoadModel extends AbstractRoadModel<Point> {
     objLocs.put(object, loc);
 
     // convert to external units
-    final Measure<Double, Length> distTraveled = Measure.valueOf(
-        toExternalDistConv.convert(traveled), externalDistanceUnit);
+    final Measure<Double, Length> distTraveled = unitConversion
+        .toExDistMeasure(traveled);
     final Measure<Long, Duration> timeConsumed = Measure.valueOf(
         time.getTimeConsumed() - startTimeConsumed, time.getTimeUnit());
-    return new MoveProgress(distTraveled, timeConsumed, travelledNodes);
+    return MoveProgress.create(distTraveled, timeConsumed, travelledNodes);
   }
 
   @Override

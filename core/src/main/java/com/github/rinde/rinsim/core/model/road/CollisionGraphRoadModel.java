@@ -16,6 +16,8 @@
 package com.github.rinde.rinsim.core.model.road;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Verify.verify;
+import static com.google.common.base.Verify.verifyNotNull;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -37,6 +39,7 @@ import com.github.rinde.rinsim.geom.ListenableGraph;
 import com.github.rinde.rinsim.geom.ListenableGraph.GraphEvent;
 import com.github.rinde.rinsim.geom.Point;
 import com.google.common.base.Optional;
+import com.google.common.base.Verify;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 import com.google.common.primitives.Doubles;
@@ -83,8 +86,8 @@ public class CollisionGraphRoadModel extends DynamicGraphRoadModel {
   }
 
   @Override
-  protected void checkIsValidMove(Loc objLoc, Point nextHop) {
-    super.checkIsValidMove(objLoc, nextHop);
+  protected void checkMoveValidity(Loc objLoc, Point nextHop) {
+    super.checkMoveValidity(objLoc, nextHop);
 
     final Point from = objLoc.isOnConnection() ? objLoc.conn.get().from()
         : objLoc;
@@ -94,8 +97,6 @@ public class CollisionGraphRoadModel extends DynamicGraphRoadModel {
         "Deadlock detected: there is a vehicle driving in the opposite direction on the same connection.");
   }
 
-  // todo deadlock! -> move to checkIsValidMove ?
-  @Override
   protected boolean containsObstacle(Loc objLoc, Point nextHop) {
     if (occupiedNodes.containsKey(nextHop)) {
       return true;
@@ -104,15 +105,58 @@ public class CollisionGraphRoadModel extends DynamicGraphRoadModel {
     if (objLoc.isOnConnection()) {
       final Connection<?> conn = objLoc.conn.get();
       obstacles = connMap.get(Conn.create(conn.from(), conn.to()));
+      final double subjectRelPos = objLoc.relativePos;
+
+      // check if there is an obstacle in front of the current position
+      for (final RoadUser ru : obstacles) {
+        final Loc loc = objLocs.get(ru);
+        Verify.verify(loc.isOnConnection());
+        if (subjectRelPos < loc.relativePos) {
+          return true;
+        }
+      }
     }
     else {
       obstacles = connMap.get(Conn.create(objLoc, nextHop));
-      // check if there is an obstacle in front of the current position
-      for (final RoadUser ru : obstacles) {
-        // objLocs.get(ru)
-      }
     }
     return obstacles.isEmpty();
+  }
+
+  protected void handleMoveTowardsObstacle(TimeLapse time,
+      double travelDistance, double connLength, Loc objLoc, Point nextHop) {
+
+    final double subjectRelPos = objLoc.relativePos;
+    final Loc closest = findClosestObstacle(objLoc, nextHop);
+
+    final double travelableDist = closest.relativePos - subjectRelPos
+        - vehicleLength - minDistance;
+    verify(travelableDist >= 0);
+
+  }
+
+  Loc findClosestObstacle(Loc objLoc, Point nextHop) {
+    final Collection<RoadUser> obstacles;
+    final double subjectRelPos;
+    if (objLoc.isOnConnection()) {
+      subjectRelPos = objLoc.relativePos;
+      final Connection<?> conn = objLoc.conn.get();
+      obstacles = connMap.get(Conn.create(conn.from(), conn.to()));
+    } else {
+      obstacles = connMap.get(Conn.create(objLoc, nextHop));
+      subjectRelPos = 0;
+    }
+
+    double closestDist = Double.POSITIVE_INFINITY;
+    Loc closestLoc = null;
+    for (final RoadUser ru : obstacles) {
+      final Loc cur = objLocs.get(ru);
+      final double curDist = cur.relativePos - subjectRelPos;
+      if (subjectRelPos < cur.relativePos && curDist < closestDist) {
+        closestDist = curDist;
+        closestLoc = cur;
+      }
+    }
+    return verifyNotNull(closestLoc);
   }
 
   @Override

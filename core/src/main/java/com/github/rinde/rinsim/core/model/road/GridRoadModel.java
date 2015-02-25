@@ -127,12 +127,12 @@ public class GridRoadModel extends AbstractRoadModel<Position> {
     path.remove();
     objLocs.put(obj, point2LocObj(dest));
 
-    final Measure<Double, Length> distTraveled = Measure.valueOf(
-        toExternalDistConv.convert(cellSize), externalDistanceUnit);
+    final Measure<Double, Length> distTraveled = unitConversion
+        .toExDistMeasure(cellSize);
     final Measure<Long, Duration> timeConsumed = Measure.valueOf(
         time.getTimeConsumed(), time.getTimeUnit());
 
-    return new MoveProgress(distTraveled, timeConsumed, asList(origin));
+    return MoveProgress.create(distTraveled, timeConsumed, asList(origin));
   }
 
   @Override
@@ -236,7 +236,7 @@ public class GridRoadModel extends AbstractRoadModel<Position> {
   }
 
   private static final class Factory implements
-  Supplier<Map<Integer, RoadUser>> {
+      Supplier<Map<Integer, RoadUser>> {
     Factory() {}
 
     @Override

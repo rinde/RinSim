@@ -75,10 +75,10 @@ public class DynamicGraphRoadModelTest {
     // therefore the new shortest path towards NE is: [cur -> NW -> SW -> SE ->
     // NE]
     final MoveProgress mp = model.moveTo(tru, NE, hour(38));
-    assertEquals(38d, mp.distance.getValue().doubleValue(),
+    assertEquals(38d, mp.distance().getValue().doubleValue(),
         GraphRoadModel.DELTA);
     assertEquals(NE, model.getPosition(tru));
-    assertEquals(asList(NW, SW, SE, NE), mp.travelledNodes);
+    assertEquals(asList(NW, SW, SE, NE), mp.travelledNodes());
 
     model.moveTo(tru, SE, hour(1));
     // a shortest path to SW is found: [cur -> SE -> SW]
@@ -94,9 +94,9 @@ public class DynamicGraphRoadModelTest {
 
     final MoveProgress mp2 = model.moveTo(tru, SW, hour(10));
 
-    assertEquals(10d, mp2.distance.getValue().doubleValue(),
+    assertEquals(10d, mp2.distance().getValue().doubleValue(),
         GraphRoadModel.DELTA);
-    assertEquals(asList(SE, X, SW), mp2.travelledNodes);
+    assertEquals(asList(SE, X, SW), mp2.travelledNodes());
     assertEquals(SW, model.getPosition(tru));
 
     model.moveTo(tru, NW, hour(10));
@@ -108,9 +108,9 @@ public class DynamicGraphRoadModelTest {
     // connection length is changed so new path becomes: [cur -> SW -> SE].
     final MoveProgress mp3 = model.moveTo(tru, SE, hour(18));
 
-    assertEquals(18d, mp3.distance.getValue().doubleValue(),
+    assertEquals(18d, mp3.distance().getValue().doubleValue(),
         GraphRoadModel.DELTA);
-    assertEquals(asList(SW, SE), mp3.travelledNodes);
+    assertEquals(asList(SW, SE), mp3.travelledNodes());
     assertEquals(SE, model.getPosition(tru));
   }
 

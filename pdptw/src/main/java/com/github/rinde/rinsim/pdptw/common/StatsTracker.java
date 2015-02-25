@@ -178,15 +178,15 @@ final class StatsTracker implements Model<Object> {
         simulationTime = simulator.getCurrentTime() - startTimeSim;
       } else if (e.getEventType() == RoadEventType.MOVE) {
         final MoveEvent me = (MoveEvent) e;
-        increment(me.roadUser, me.pathProgress.distance.getValue()
+        increment(me.roadUser, me.pathProgress.distance().getValue()
             .doubleValue());
-        totalDistance += me.pathProgress.distance.getValue().doubleValue();
+        totalDistance += me.pathProgress.distance().getValue().doubleValue();
         // if we are closer than 10 cm to the depot, we say we are 'at'
         // the depot
         if (Point.distance(me.roadModel.getPosition(me.roadUser),
             ((DefaultVehicle) me.roadUser).getDTO().startPosition) < MOVE_THRESHOLD) {
           // only override time if the vehicle did actually move
-          if (me.pathProgress.distance.getValue().doubleValue() > MOVE_THRESHOLD) {
+          if (me.pathProgress.distance().getValue().doubleValue() > MOVE_THRESHOLD) {
             lastArrivalTimeAtDepot.put(me.roadUser, simulator.getCurrentTime());
             if (totalVehicles == lastArrivalTimeAtDepot.size()) {
               eventDispatcher.dispatchEvent(new Event(

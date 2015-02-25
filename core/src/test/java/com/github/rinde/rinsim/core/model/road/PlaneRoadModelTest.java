@@ -97,23 +97,23 @@ public class PlaneRoadModelTest extends AbstractRoadModelTest<PlaneRoadModel> {
 
     final MoveProgress pp = model.followPath(mru, path, hour());
     assertEquals(asPath(new Point(5, 0), new Point(5, 5)), path);
-    assertEquals(1, pp.distance.getValue(), EPSILON);
-    assertEquals(hour().getTimeStep(), pp.time.getValue(), EPSILON);
-    assertEquals(asList(new Point(0, 0)), pp.travelledNodes);
+    assertEquals(1, pp.distance().getValue(), EPSILON);
+    assertEquals(hour().getTimeStep(), pp.time().getValue(), EPSILON);
+    assertEquals(asList(new Point(0, 0)), pp.travelledNodes());
     assertTrue(Point.distance(new Point(1, 0), model.getPosition(mru)) < EPSILON);
 
     final MoveProgress pp2 = model.followPath(mru, path, hour(5));
     assertEquals(asPath(new Point(5, 5)), path);
-    assertEquals(5, pp2.distance.getValue(), EPSILON);
-    assertEquals(hour(5).getTimeStep(), pp2.time.getValue(), EPSILON);
-    assertEquals(asList(new Point(5, 0)), pp2.travelledNodes);
+    assertEquals(5, pp2.distance().getValue(), EPSILON);
+    assertEquals(hour(5).getTimeStep(), pp2.time().getValue(), EPSILON);
+    assertEquals(asList(new Point(5, 0)), pp2.travelledNodes());
     assertTrue(Point.distance(new Point(5, 1), model.getPosition(mru)) < EPSILON);
 
     final MoveProgress pp3 = model.followPath(mru, path, hour(50));
     assertTrue(path.isEmpty());
-    assertEquals(4, pp3.distance.getValue(), EPSILON);
-    assertEquals(hour(4).getTimeStep(), pp3.time.getValue(), EPSILON);
-    assertEquals(asList(new Point(5, 5)), pp3.travelledNodes);
+    assertEquals(4, pp3.distance().getValue(), EPSILON);
+    assertEquals(hour(4).getTimeStep(), pp3.time().getValue(), EPSILON);
+    assertEquals(asList(new Point(5, 5)), pp3.travelledNodes());
     assertTrue(Point.distance(new Point(5, 5), model.getPosition(mru)) < EPSILON);
   }
 

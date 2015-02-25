@@ -18,6 +18,7 @@ package com.github.rinde.rinsim.core.model.road;
 import static com.github.rinde.rinsim.geom.Graphs.shortestPathEuclideanDistance;
 import static com.github.rinde.rinsim.geom.Graphs.unmodifiableGraph;
 import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Verify.verify;
 
 import java.math.RoundingMode;
 import java.util.ArrayList;
@@ -25,9 +26,6 @@ import java.util.List;
 import java.util.Queue;
 
 import javax.annotation.Nullable;
-import javax.measure.Measure;
-import javax.measure.converter.UnitConverter;
-import javax.measure.quantity.Duration;
 import javax.measure.quantity.Length;
 import javax.measure.quantity.Velocity;
 import javax.measure.unit.Unit;
@@ -42,6 +40,7 @@ import com.github.rinde.rinsim.geom.Graph;
 import com.github.rinde.rinsim.geom.MultiAttributeData;
 import com.github.rinde.rinsim.geom.Point;
 import com.google.common.base.Optional;
+import com.google.common.base.VerifyException;
 import com.google.common.collect.ImmutableList;
 import com.google.common.math.DoubleMath;
 
@@ -49,7 +48,8 @@ import com.google.common.math.DoubleMath;
  * A {@link RoadModel} that uses a {@link Graph} as road structure.
  * {@link RoadUser}s can only be added on nodes on the graph. This model assumes
  * that the {@link Graph} does <b>not</b> change. Modifying the graph after
- * passing it to the model may break this model. The graph can define
+ * passing it to the model may break this model, for support for modifications
+ * take a look at {@link DynamicGraphRoadModel}. The graph can define
  * {@link Connection} specific speed limits using {@link MultiAttributeData}.
  *
  * @author Rinde van Lon
@@ -57,9 +57,6 @@ import com.google.common.math.DoubleMath;
  */
 public class GraphRoadModel extends AbstractRoadModel<Loc> {
 
-  // FIXME precision stuff should be defined in the interface, implemented in
-  // abstract class and thoroughly tested
-  // TODO what about precision?
   /**
    * Precision.
    */
@@ -96,91 +93,96 @@ public class GraphRoadModel extends AbstractRoadModel<Loc> {
   public void addObjectAt(RoadUser newObj, Point pos) {
     checkArgument(graph.containsNode(pos),
         "Object must be initiated on a crossroad.");
-    super.addObjectAt(newObj, newLoc(pos));
+    super.addObjectAt(newObj, asLoc(pos));
   }
 
-  // TODO add unit tests for timelapse inputs
+  /**
+   * Computes the distance that can be traveled on the connection between
+   * <code>from</code> and <code>to</code> at the specified <code>speed</code>
+   * and using the available <code>time</code>. This method can optionally be
+   * overridden to change the move behavior of the model. The return value of
+   * the method is interpreted in the following way:
+   * <ul>
+   * <li> <code>if travelableDistance &lt; distance(from,to)</code> then there is
+   * either:
+   * <ul>
+   * <li>not enough time left to travel the whole distance</li>
+   * <li>another reason (e.g. an obstacle on the way) that prevents traveling
+   * the whole distance</li>
+   * </ul>
+   * <li><code>if travelableDistance &ge; distance(from,to)</code> then it is
+   * possible to travel the whole distance at once.</li>
+   * </ul>
+   * Note that <code>from</code> and <code>to</code> do not necessarily
+   * correspond to the start and end points of a connection. However, it is
+   * guaranteed that the two points are <i>on</i> the same connection.
+   * @param from The start position for this travel.
+   * @param to The destination position for this travel.
+   * @param speed The travel speed.
+   * @param time The time available for traveling.
+   * @return The distance that can be traveled.
+   */
+  protected double computeTravelableDistance(Loc from, Point to, double speed,
+      TimeLapse time) {
+    return speed
+        * unitConversion.toInTime(time.getTimeLeft(), time.getTimeUnit());
+  }
+
+  /**
+   * Determines if the {@link #doFollowPath(MovingRoadUser, Queue, TimeLapse)}
+   * method should continue moving towards the next hop in path. This method can
+   * be overridden to add additional constraints.
+   * @param curLoc The current location of the moving object.
+   * @param path The path of the moving object.
+   * @param time The time available for moving.
+   * @return <code>true</code> if the object should keep moving,
+   *         <code>false</code> otherwise.
+   */
+  protected boolean keepMoving(Loc curLoc, Queue<Point> path, TimeLapse time) {
+    return time.hasTimeLeft() && !path.isEmpty();
+  }
+
   @Override
   protected MoveProgress doFollowPath(MovingRoadUser object, Queue<Point> path,
       TimeLapse time) {
-    final long startTimeConsumed = time.getTimeConsumed();
-    final Loc objLoc = objLocs.get(object);
-    checkLocation(objLoc);
-    double traveled = 0;
-
-    final UnitConverter toInternalTimeConv = time.getTimeUnit().getConverterTo(
-        INTERNAL_TIME_UNIT);
-    final UnitConverter toExternalTimeConv = INTERNAL_TIME_UNIT
-        .getConverterTo(time.getTimeUnit());
-
+    final Loc objLoc = verifyLocation(objLocs.get(object));
     Loc tempLoc = objLoc;
-    Point tempPos = objLoc;
+    final MoveProgress.Builder mpBuilder =
+        MoveProgress.builder(unitConversion, time);
 
-    double newDis = Double.NaN;
-
-    final List<Point> travelledNodes = new ArrayList<Point>();
-    while (time.hasTimeLeft() && !path.isEmpty()) {
-      checkIsValidMove(tempLoc, path.peek());
-      final boolean containsObstacle = containsObstacle(tempLoc, path.peek());
-
+    while (keepMoving(tempLoc, path, time)) {
+      checkMoveValidity(tempLoc, path.peek());
       // speed in internal speed unit
-      final double speed = getMaxSpeed(object, tempPos, path.peek());
-
+      final double speed = getMaxSpeed(object, tempLoc, path.peek());
       // distance that can be traveled in current edge with timeleft
-      final double travelDistance = speed
-          * toInternalTimeConv.convert(time.getTimeLeft());
-      final double connLength = toInternalDistConv
-          .convert(computeConnectionLength(tempPos, path.peek()));
+      final double travelableDistance = computeTravelableDistance(tempLoc,
+          path.peek(), speed, time);
+      final double connLength = unitConversion.toInDist(
+          computePartialConnectionLength(tempLoc, path.peek()));
 
-      if (containsObstacle) {
-
-      } else if (travelDistance >= connLength) {
-        // jump to next vertex
-        tempPos = path.remove();
-        if (!(tempPos instanceof Loc)) {
-          travelledNodes.add(tempPos);
-        }
-        final long timeSpent = DoubleMath.roundToLong(
-            toExternalTimeConv.convert(connLength / speed),
-            RoundingMode.HALF_DOWN);
-        time.consume(timeSpent);
-        traveled += connLength;
-
-        if (tempPos instanceof Loc) {
-          tempLoc = checkLocation((Loc) tempPos);
-        } else {
-          tempLoc = checkLocation(newLoc(tempPos));
-        }
+      double traveledDistance;
+      if (travelableDistance >= connLength) {
+        // jump to next node in path (this may be a vertex or a point on a
+        // connection)
+        tempLoc = verifyLocation(asLoc(path.remove()));
+        traveledDistance = connLength;
+        mpBuilder.addNode(tempLoc);
       } else {
-        // distanceLeft < connLength
-        newDis = travelDistance;
-        time.consumeAll();
-        traveled += travelDistance;
-
-        final Point from = isOnConnection(tempLoc) ? tempLoc.conn.get().from()
-            : tempLoc;
-        final Point peekTo = isOnConnection(path.peek()) ?
-            ((Loc) path.peek()).conn.get().to()
-            : path.peek();
-        final Connection<?> conn = graph.getConnection(from, peekTo);
-        tempLoc = checkLocation(newLoc(conn, tempLoc.relativePos
-            + toExternalDistConv.convert(newDis)));
+        // travelableDistance < connLength
+        traveledDistance = travelableDistance;
+        final Connection<?> conn = getConnection(tempLoc, path.peek());
+        tempLoc = verifyLocation(newLoc(conn, tempLoc.relativePos
+            + unitConversion.toExDist(travelableDistance)));
       }
-      tempPos = tempLoc;
+      mpBuilder.addDistance(traveledDistance);
+      final long timeSpent = DoubleMath.roundToLong(
+          unitConversion.toExTime(traveledDistance / speed,
+              time.getTimeUnit()), RoundingMode.HALF_DOWN);
+      time.consume(timeSpent);
     }
-
+    // update location and construct a MoveProgress object
     objLocs.put(object, tempLoc);
-
-    // convert to external units
-    final Measure<Double, Length> distTraveled = Measure.valueOf(
-        toExternalDistConv.convert(traveled), externalDistanceUnit);
-    final Measure<Long, Duration> timeConsumed = Measure.valueOf(
-        time.getTimeConsumed() - startTimeConsumed, time.getTimeUnit());
-    return new MoveProgress(distTraveled, timeConsumed, travelledNodes);
-  }
-
-  protected boolean containsObstacle(Loc objLoc, Point nextHop) {
-    return false;
+    return mpBuilder.build();
   }
 
   /**
@@ -190,7 +192,7 @@ public class GraphRoadModel extends AbstractRoadModel<Loc> {
    * @param nextHop The destination node.
    * @throws IllegalArgumentException if it the proposed move is invalid.
    */
-  protected void checkIsValidMove(Loc objLoc, Point nextHop) {
+  protected void checkMoveValidity(Loc objLoc, Point nextHop) {
     // in case we start from an edge and our next destination is to go to
     // the end of the current edge then its ok. Otherwise more checks are
     // required..
@@ -232,7 +234,7 @@ public class GraphRoadModel extends AbstractRoadModel<Loc> {
    * @throws IllegalArgumentException when two points are part of the graph but
    *           are not equal or there is no connection between them
    */
-  protected double computeConnectionLength(Point from, Point to) {
+  protected double computePartialConnectionLength(Point from, Point to) {
     if (from.equals(to)) {
       return 0;
     }
@@ -272,14 +274,13 @@ public class GraphRoadModel extends AbstractRoadModel<Loc> {
    * Checks whether the specified location is valid.
    * @param l The location to check.
    * @return The location if it is valid.
-   * @throws IllegalArgumentException if the location is not valid.
+   * @throws VerifyException if the location is not valid.
    */
-  protected Loc checkLocation(Loc l) {
-    checkArgument(l.isOnConnection() || graph.containsNode(l),
+  protected Loc verifyLocation(Loc l) {
+    verify(l.isOnConnection() || graph.containsNode(l),
         "Location points to non-existing vertex: %s.", l);
-    checkArgument(
-        !l.isOnConnection()
-            || graph.hasConnection(l.conn.get().from(), l.conn.get().to()),
+    verify(!l.isOnConnection()
+        || graph.hasConnection(l.conn.get().from(), l.conn.get().to()),
         "Location points to non-existing connection: %s.", l.conn);
     return l;
   }
@@ -293,7 +294,7 @@ public class GraphRoadModel extends AbstractRoadModel<Loc> {
    * @return The maximum speed in the internal unit.
    */
   protected double getMaxSpeed(MovingRoadUser object, Point from, Point to) {
-    final double objSpeed = toInternalSpeedConv.convert(object.getSpeed());
+    final double objSpeed = unitConversion.toInSpeed(object.getSpeed());
     if (!from.equals(to)) {
       final Connection<?> conn = getConnection(from, to);
       if (conn.data().isPresent()
@@ -302,8 +303,8 @@ public class GraphRoadModel extends AbstractRoadModel<Loc> {
             .get();
 
         if (maed.getMaxSpeed().isPresent()) {
-          return Math.min(
-              toInternalSpeedConv.convert(maed.getMaxSpeed().get()), objSpeed);
+          return Math.min(unitConversion.toInSpeed(maed.getMaxSpeed().get()),
+              objSpeed);
         }
         return objSpeed;
       }
@@ -323,21 +324,19 @@ public class GraphRoadModel extends AbstractRoadModel<Loc> {
     final boolean fromIsOnConn = isOnConnection(from);
     final boolean toIsOnConn = isOnConnection(to);
     Connection<?> conn;
+    final String errorMsg = "The specified points must be part of the same connection.";
     if (fromIsOnConn) {
       final Loc start = (Loc) from;
       if (toIsOnConn) {
-        checkArgument(start.isOnSameConnection((Loc) to),
-            "The specified points must be part of the same connection.");
+        checkArgument(start.isOnSameConnection((Loc) to), errorMsg);
       } else {
-        checkArgument(start.conn.get().to().equals(to),
-            "The specified points must be part of the same connection.");
+        checkArgument(start.conn.get().to().equals(to), errorMsg);
       }
       conn = start.conn.get();
 
     } else if (toIsOnConn) {
       final Loc end = (Loc) to;
-      checkArgument(end.conn.get().from().equals(from),
-          "The specified points must be part of the same connection.");
+      checkArgument(end.conn.get().from().equals(from), errorMsg);
       conn = end.conn.get();
     } else {
       checkArgument(graph.hasConnection(from, to),
@@ -409,7 +408,10 @@ public class GraphRoadModel extends AbstractRoadModel<Loc> {
    * @return A {@link Loc} with identical position as the specified
    *         {@link Point}.
    */
-  protected static Loc newLoc(Point p) {
+  protected static Loc asLoc(Point p) {
+    if (p instanceof Loc) {
+      return (Loc) p;
+    }
     return new Loc(p.x, p.y, null, -1, 0);
   }
 
@@ -443,7 +445,7 @@ public class GraphRoadModel extends AbstractRoadModel<Loc> {
 
   @Override
   protected Loc point2LocObj(Point point) {
-    return newLoc(point);
+    return asLoc(point);
   }
 
   @Override
@@ -507,20 +509,6 @@ public class GraphRoadModel extends AbstractRoadModel<Loc> {
     @Override
     public String toString() {
       return super.toString() + "{" + conn + "}";
-    }
-
-    /*
-     * TODO equals and hashCode should be removed in next major release
-     */
-
-    @Override
-    public boolean equals(@Nullable Object o) {
-      return super.equals(o);
-    }
-
-    @Override
-    public int hashCode() {
-      return super.hashCode();
     }
   }
 }
