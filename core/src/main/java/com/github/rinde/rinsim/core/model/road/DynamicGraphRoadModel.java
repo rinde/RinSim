@@ -37,7 +37,6 @@ import com.github.rinde.rinsim.geom.ListenableGraph;
 import com.github.rinde.rinsim.geom.ListenableGraph.EventTypes;
 import com.github.rinde.rinsim.geom.ListenableGraph.GraphEvent;
 import com.github.rinde.rinsim.geom.Point;
-import com.google.auto.value.AutoValue;
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Multimap;
 
@@ -59,7 +58,7 @@ import com.google.common.collect.Multimap;
  */
 public class DynamicGraphRoadModel extends GraphRoadModel {
   private final ListenableGraph<? extends ConnectionData> listenableGraph;
-  final Multimap<Conn, RoadUser> connMap;
+  final Multimap<Connection<?>, RoadUser> connMap;
   final Multimap<Point, RoadUser> posMap;
 
   /**
@@ -102,7 +101,7 @@ public class DynamicGraphRoadModel extends GraphRoadModel {
     final Loc loc = objLocs.get(newObj);
     if (loc.isOnConnection()) {
       final Connection<? extends ConnectionData> conn = loc.conn.get();
-      connMap.put(Conn.create(conn.from(), conn.to()), newObj);
+      connMap.put(conn, newObj);
     } else {
       posMap.put(loc, newObj);
     }
@@ -128,8 +127,7 @@ public class DynamicGraphRoadModel extends GraphRoadModel {
       TimeLapse time) {
     final Loc prevLoc = objLocs.get(object);
     if (prevLoc.isOnConnection()) {
-      final Connection<? extends ConnectionData> conn = prevLoc.conn.get();
-      connMap.remove(Conn.create(conn.from(), conn.to()), object);
+      connMap.remove(prevLoc.conn.get(), object);
     } else {
       posMap.remove(prevLoc, object);
     }
@@ -137,8 +135,7 @@ public class DynamicGraphRoadModel extends GraphRoadModel {
 
     final Loc newLoc = objLocs.get(object);
     if (newLoc.isOnConnection()) {
-      final Connection<? extends ConnectionData> conn = newLoc.conn.get();
-      connMap.put(Conn.create(conn.from(), conn.to()), object);
+      connMap.put(newLoc.conn.get(), object);
     } else {
       posMap.put(newLoc, object);
     }
@@ -158,7 +155,7 @@ public class DynamicGraphRoadModel extends GraphRoadModel {
    */
   public boolean isOccupied(Point from, Point to) {
     checkArgument(graph.hasConnection(from, to));
-    return connMap.containsKey(Conn.create(from, to))
+    return connMap.containsKey(graph.getConnection(from, to))
         || posMap.containsKey(from) || posMap.containsKey(to);
   }
 
@@ -169,7 +166,7 @@ public class DynamicGraphRoadModel extends GraphRoadModel {
     final Loc prevLoc = objLocs.get(object);
     if (prevLoc.isOnConnection()) {
       final Connection<? extends ConnectionData> conn = prevLoc.conn.get();
-      connMap.remove(Conn.create(conn.from(), conn.to()), object);
+      connMap.remove(conn, object);
     } else {
       posMap.remove(prevLoc, object);
     }
@@ -190,41 +187,28 @@ public class DynamicGraphRoadModel extends GraphRoadModel {
       if (ge.getEventType() == EventTypes.REMOVE_CONNECTION
           || ge.getEventType() == EventTypes.CHANGE_CONNECTION_DATA) {
 
-        final Conn conn = Conn.create(ge.getFrom(), ge.getTo());
+        final Connection<?> conn = ge.getConnection();
         checkState(
             !model.connMap.containsKey(conn),
             "A connection (%s->%s) with an object (%s) on it can not be changed or removed: %s.",
-            ge.getFrom(), ge.getTo(), model.connMap.get(conn),
-            ge.getEventType());
+            conn.from(), conn.to(), model.connMap.get(conn), ge.getEventType());
 
-        if (model.posMap.containsKey(ge.getFrom())) {
+        if (model.posMap.containsKey(conn.from())) {
           checkState(
-              ge.getGraph().containsNode(ge.getFrom()),
+              ge.getGraph().containsNode(conn.from()),
               "There is an object on (%s) therefore the last connection to that location (%s->%s) can not be changed or removed: %s.",
-              ge.getFrom(), ge.getFrom(), ge.getTo(), ge.getEventType());
+              conn.from(), conn.from(), conn.to(), ge.getEventType());
         }
-        if (model.posMap.containsKey(ge.getTo())) {
+        if (model.posMap.containsKey(conn.to())) {
           checkState(
-              ge.getGraph().containsNode(ge.getTo()),
+              ge.getGraph().containsNode(conn.to()),
               "There is an object on (%s) therefore the last connection to that location (%s->%s) can not be changed or removed: %s.",
-              ge.getTo(), ge.getFrom(), ge.getTo(), ge.getEventType());
+              conn.to(), conn.from(), conn.to(), ge.getEventType());
         }
       }
       // remove all previously computed shortest paths because they may have
       // been invalidated by the graph modification
       model.objDestinations.clear();
-    }
-  }
-
-  @AutoValue
-  abstract static class Conn {
-
-    abstract Point from();
-
-    abstract Point to();
-
-    static Conn create(Point from, Point to) {
-      return new AutoValue_DynamicGraphRoadModel_Conn(from, to);
     }
   }
 }

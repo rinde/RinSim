@@ -150,7 +150,9 @@ public class GraphRoadModel extends AbstractRoadModel<Loc> {
     final MoveProgress.Builder mpBuilder =
         MoveProgress.builder(unitConversion, time);
 
-    while (keepMoving(tempLoc, path, time)) {
+    boolean cont = true;
+
+    while (time.hasTimeLeft() && !path.isEmpty() && cont) {
       checkMoveValidity(tempLoc, path.peek());
       // speed in internal speed unit
       final double speed = getMaxSpeed(object, tempLoc, path.peek());
@@ -169,6 +171,7 @@ public class GraphRoadModel extends AbstractRoadModel<Loc> {
         mpBuilder.addNode(tempLoc);
       } else {
         // travelableDistance < connLength
+        cont = false;
         traveledDistance = travelableDistance;
         final Connection<?> conn = getConnection(tempLoc, path.peek());
         tempLoc = verifyLocation(newLoc(conn, tempLoc.relativePos
@@ -329,8 +332,10 @@ public class GraphRoadModel extends AbstractRoadModel<Loc> {
       checkArgument(end.conn.get().from().equals(from), errorMsg);
       conn = end.conn.get();
     } else {
-      checkArgument(graph.hasConnection(from, to),
-          "The specified points must be part of an existing connection in the graph.");
+      checkArgument(
+          graph.hasConnection(from, to),
+          "The specified points (%s and %s) must be part of an existing connection in the graph.",
+          from, to);
       conn = graph.getConnection(from, to);
     }
     return conn;

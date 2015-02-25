@@ -17,7 +17,6 @@ package com.github.rinde.rinsim.core.model.road;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Verify.verify;
-import static com.google.common.base.Verify.verifyNotNull;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -34,12 +33,9 @@ import com.github.rinde.rinsim.core.TimeLapse;
 import com.github.rinde.rinsim.event.Event;
 import com.github.rinde.rinsim.event.Listener;
 import com.github.rinde.rinsim.geom.Connection;
-import com.github.rinde.rinsim.geom.ConnectionData;
 import com.github.rinde.rinsim.geom.ListenableGraph;
 import com.github.rinde.rinsim.geom.ListenableGraph.GraphEvent;
 import com.github.rinde.rinsim.geom.Point;
-import com.google.common.base.Optional;
-import com.google.common.base.Verify;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 import com.google.common.primitives.Doubles;
@@ -86,77 +82,44 @@ public class CollisionGraphRoadModel extends DynamicGraphRoadModel {
   }
 
   @Override
-  protected void checkMoveValidity(Loc objLoc, Point nextHop) {
-    super.checkMoveValidity(objLoc, nextHop);
+  protected double computeTravelableDistance(Loc from, Point to, double speed,
+      TimeLapse time) {
+    double closestDist = Double.POSITIVE_INFINITY;
+    if (!from.equals(to)) {
+      final Connection<?> conn = getConnection(from, to);
+      // check if there is an obstacle
+      if (connMap.containsKey(conn)) {
+        // if yes, how far is it from 'from'
+        final Collection<RoadUser> potentialObstacles = connMap.get(conn);
 
-    final Point from = objLoc.isOnConnection() ? objLoc.conn.get().from()
-        : objLoc;
-    // check if there is a vehicle driving in the opposite direction
-    checkArgument(
-        !connMap.containsKey(Conn.create(nextHop, from)),
-        "Deadlock detected: there is a vehicle driving in the opposite direction on the same connection.");
-  }
-
-  protected boolean containsObstacle(Loc objLoc, Point nextHop) {
-    if (occupiedNodes.containsKey(nextHop)) {
-      return true;
-    }
-    Collection<RoadUser> obstacles;
-    if (objLoc.isOnConnection()) {
-      final Connection<?> conn = objLoc.conn.get();
-      obstacles = connMap.get(Conn.create(conn.from(), conn.to()));
-      final double subjectRelPos = objLoc.relativePos;
-
-      // check if there is an obstacle in front of the current position
-      for (final RoadUser ru : obstacles) {
-        final Loc loc = objLocs.get(ru);
-        Verify.verify(loc.isOnConnection());
-        if (subjectRelPos < loc.relativePos) {
-          return true;
+        for (final RoadUser ru : potentialObstacles) {
+          final Loc loc = objLocs.get(ru);
+          if (loc.isOnConnection() && loc.relativePos > from.relativePos) {
+            final double dist = loc.relativePos - from.relativePos
+                - vehicleLength - minDistance;
+            if (dist < closestDist) {
+              closestDist = dist;
+            }
+          }
         }
       }
     }
-    else {
-      obstacles = connMap.get(Conn.create(objLoc, nextHop));
-    }
-    return obstacles.isEmpty();
+    return Math.min(closestDist,
+        super.computeTravelableDistance(from, to, speed, time));
   }
 
-  protected void handleMoveTowardsObstacle(TimeLapse time,
-      double travelDistance, double connLength, Loc objLoc, Point nextHop) {
+  @Override
+  protected void checkMoveValidity(Loc objLoc, Point nextHop) {
+    super.checkMoveValidity(objLoc, nextHop);
 
-    final double subjectRelPos = objLoc.relativePos;
-    final Loc closest = findClosestObstacle(objLoc, nextHop);
-
-    final double travelableDist = closest.relativePos - subjectRelPos
-        - vehicleLength - minDistance;
-    verify(travelableDist >= 0);
-
-  }
-
-  Loc findClosestObstacle(Loc objLoc, Point nextHop) {
-    final Collection<RoadUser> obstacles;
-    final double subjectRelPos;
-    if (objLoc.isOnConnection()) {
-      subjectRelPos = objLoc.relativePos;
-      final Connection<?> conn = objLoc.conn.get();
-      obstacles = connMap.get(Conn.create(conn.from(), conn.to()));
-    } else {
-      obstacles = connMap.get(Conn.create(objLoc, nextHop));
-      subjectRelPos = 0;
+    // check if there is a vehicle driving in the opposite direction
+    if (!objLoc.equals(nextHop)) {
+      final Connection<?> conn = getConnection(objLoc, nextHop);
+      checkArgument(
+          !(graph.hasConnection(conn.to(), conn.from())
+          && connMap.containsKey(graph.getConnection(conn.to(), conn.from()))),
+          "Deadlock detected: there is a vehicle driving in the opposite direction on the same connection.");
     }
-
-    double closestDist = Double.POSITIVE_INFINITY;
-    Loc closestLoc = null;
-    for (final RoadUser ru : obstacles) {
-      final Loc cur = objLocs.get(ru);
-      final double curDist = cur.relativePos - subjectRelPos;
-      if (subjectRelPos < cur.relativePos && curDist < closestDist) {
-        closestDist = curDist;
-        closestLoc = cur;
-      }
-    }
-    return verifyNotNull(closestLoc);
   }
 
   @Override
@@ -166,6 +129,12 @@ public class CollisionGraphRoadModel extends DynamicGraphRoadModel {
         "Vehicles can not be added at the same position.");
   }
 
+  /**
+   * Checks whether the specified node is occupied.
+   * @param node The node to check for occupancy.
+   * @return <code>true</code> if the specified node is occupied,
+   *         <code>false</code> otherwise.
+   */
   public boolean isOccupied(Point node) {
     return occupiedNodes.containsKey(node);
   }
@@ -210,8 +179,19 @@ public class CollisionGraphRoadModel extends DynamicGraphRoadModel {
    * @param graph A {@link ListenableGraph}
    * @return A new {@link Builder} instance.
    */
-  public static Builder builder(ListenableGraph<? extends ConnectionData> graph) {
+  public static Builder builder(ListenableGraph<?> graph) {
     return new Builder(graph);
+  }
+
+  static void checkConnectionLength(double minConnLength, Connection<?> conn) {
+    checkArgument(
+        Point.distance(conn.from(), conn.to()) >= minConnLength,
+        "Invalid graph: the minimum connection length is %s, connection %s->%s is too short.",
+        minConnLength, conn.from(), conn.to());
+    checkArgument(
+        conn.getLength() >= minConnLength,
+        "Invalid graph: the minimum connection length is %s, connection %s->%s defines length data that is too short: %s.",
+        minConnLength, conn.from(), conn.to(), conn.getLength());
   }
 
   /**
@@ -241,13 +221,13 @@ public class CollisionGraphRoadModel extends DynamicGraphRoadModel {
      */
     public static final double DEFAULT_MIN_DISTANCE = .25;
 
-    final ListenableGraph<? extends ConnectionData> graph;
+    final ListenableGraph<?> graph;
     Unit<Length> distanceUnit;
     Unit<Velocity> speedUnit;
     double vehicleLength;
     double minDistance;
 
-    Builder(ListenableGraph<? extends ConnectionData> g) {
+    Builder(ListenableGraph<?> g) {
       graph = g;
       distanceUnit = DEFAULT_DISTANCE_UNIT;
       speedUnit = DEFAULT_SPEED_UNIT;
@@ -314,31 +294,15 @@ public class CollisionGraphRoadModel extends DynamicGraphRoadModel {
      * @return A new {@link CollisionGraphRoadModel} instance.
      */
     public CollisionGraphRoadModel build() {
-      final double minConnLength = 2 * vehicleLength;
+      final double minConnectionLength = 2 * vehicleLength;
       checkArgument(
-          minDistance <= minConnLength,
+          minDistance <= minConnectionLength,
           "Min distance must be smaller than 2 * vehicle length (%s), but is %s.",
           vehicleLength, minDistance);
-      for (final Connection<? extends ConnectionData> conn : graph
-          .getConnections()) {
-        checkConnectionLength(minConnLength, conn.from(), conn.to(),
-            conn.data());
+      for (final Connection<?> conn : graph.getConnections()) {
+        checkConnectionLength(minConnectionLength, conn);
       }
-      return new CollisionGraphRoadModel(this, minConnLength);
-    }
-  }
-
-  static void checkConnectionLength(double minConnLength,
-      Point from, Point to, Optional<? extends ConnectionData> connData) {
-    checkArgument(
-        Point.distance(from, to) >= minConnLength,
-        "Invalid graph: the minimum connection length is %s, connection %s->%s is too short.",
-        minConnLength, from, to);
-    if (connData.isPresent() && connData.get().getLength().isPresent()) {
-      checkArgument(
-          connData.get().getLength().get() >= minConnLength,
-          "Invalid graph: the minimum connection length is %s, connection %s->%s defines length data that is too short.",
-          connData.get().getLength(), from, to);
+      return new CollisionGraphRoadModel(this, minConnectionLength);
     }
   }
 
@@ -351,9 +315,10 @@ public class CollisionGraphRoadModel extends DynamicGraphRoadModel {
 
     @Override
     public void handleEvent(Event e) {
+      verify(e instanceof GraphEvent);
       final GraphEvent event = (GraphEvent) e;
-      checkConnectionLength(minConnLength, event.getFrom(), event.getTo(),
-          event.getConnData());
+      checkConnectionLength(minConnLength, event.getConnection());
     }
+
   }
 }

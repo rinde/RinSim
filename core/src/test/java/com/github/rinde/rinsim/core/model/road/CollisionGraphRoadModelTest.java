@@ -122,7 +122,6 @@ public class CollisionGraphRoadModelTest {
    * {@link IllegalArgumentException} should be thrown at the moment the second
    * AGV tries to enter the connection.
    */
-  @Ignore
   @Test
   public void testDetectDeadLock() {
     final MovingRoadUser agv1 = new TestRoadUser();
@@ -144,7 +143,6 @@ public class CollisionGraphRoadModelTest {
    * Test for checking that an AGV can not overtake another AGV on the same
    * connection. The AGV that is behind should be forced to stay behind.
    */
-  @Ignore
   @Test
   public void testHeadTailCollisionAvoidance() {
     final MovingRoadUser agv1 = new TestRoadUser();
