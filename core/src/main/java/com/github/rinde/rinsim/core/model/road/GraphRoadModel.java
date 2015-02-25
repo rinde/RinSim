@@ -241,18 +241,13 @@ public class GraphRoadModel extends AbstractRoadModel<Loc> {
     }
     final Connection<?> conn = getConnection(from, to);
     if (isOnConnection(from) && isOnConnection(to)) {
-      final Loc start = (Loc) from;
-      final Loc end = (Loc) to;
-      return Math.abs(start.relativePos - end.relativePos);
+      return Math.abs(((Loc) from).relativePos - ((Loc) to).relativePos);
     } else if (isOnConnection(from)) {
-      final Loc start = (Loc) from;
-      return start.connLength - start.relativePos;
+      return conn.getLength() - ((Loc) from).relativePos;
     } else if (isOnConnection(to)) {
-      final Loc end = (Loc) to;
-      return end.relativePos;
-    } else {
-      return conn.getLength();
+      return ((Loc) to).relativePos;
     }
+    return conn.getLength();
   }
 
   /**
