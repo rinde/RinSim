@@ -70,6 +70,12 @@ public abstract class ForwardingGraph<E extends ConnectionData> implements
   }
 
   @Override
+  public <T extends ConnectionData> boolean hasConnection(
+      Connection<T> connection) {
+    return delegate.hasConnection(connection);
+  }
+
+  @Override
   public Connection<E> getConnection(Point from, Point to) {
     return delegate.getConnection(from, to);
   }

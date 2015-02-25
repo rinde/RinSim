@@ -128,13 +128,6 @@ public abstract class AbstractGraph<E extends ConnectionData> implements
   }
 
   @Override
-  public Connection<E> getConnection(Point from, Point to) {
-    checkArgument(hasConnection(from, to), "%s -> %s is not a connection.",
-        from, to);
-    return Connection.create(from, to, connectionData(from, to));
-  }
-
-  @Override
   public Optional<E> setConnectionData(Point from, Point to, E connData) {
     return changeConnectionData(from, to, Optional.of(connData));
   }

@@ -57,14 +57,24 @@ public interface Graph<E extends ConnectionData> {
   Collection<Point> getIncomingConnections(Point node);
 
   /**
-   * Checks if there exist a directed connection between <code>from</code> and
-   * <code>to</code>.
+   * Checks if a directed connection between <code>from</code> and
+   * <code>to</code> exists.
    * @param from The starting node.
    * @param to The end node.
    * @return <code>true</code> if the connection exist, <code>false</code>
    *         otherwise.
    */
   boolean hasConnection(Point from, Point to);
+
+  /**
+   * Checks if the same (as defined by {@link Connection#equals(Object)})
+   * connection exists in this graph.
+   * @param <T> The type of connection.
+   * @param connection The connection to check.
+   * @return <code>true</code> if the connection exist, <code>false</code>
+   *         otherwise.
+   */
+  <T extends ConnectionData> boolean hasConnection(Connection<T> connection);
 
   /**
    * Returns a {@link Connection} between <code>from</code> and <code>to</code>.

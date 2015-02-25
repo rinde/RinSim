@@ -86,6 +86,16 @@ public class MultimapGraph<E extends ConnectionData> extends AbstractGraph<E> {
   }
 
   @Override
+  public <T extends ConnectionData> boolean hasConnection(
+      Connection<T> connection) {
+    if (connection.data().isPresent()) {
+      return getConnection(connection.from(), connection.to()).equals(
+          connection);
+    }
+    return hasConnection(connection.from(), connection.to());
+  }
+
+  @Override
   public int getNumberOfConnections() {
     return multimap.size();
   }
@@ -124,12 +134,19 @@ public class MultimapGraph<E extends ConnectionData> extends AbstractGraph<E> {
   }
 
   @Override
+  public Connection<E> getConnection(Point from, Point to) {
+    checkArgument(hasConnection(from, to), "%s -> %s is not a connection.",
+        from, to);
+    if (!lazyConnectionTable.contains(from, to)) {
+      lazyConnectionTable.put(from, to, Connection.<E> create(from, to));
+    }
+    return lazyConnectionTable.get(from, to);
+  }
+
+  @Override
   public List<Connection<E>> getConnections() {
     for (final Entry<Point, Point> p : multimap.entries()) {
-      if (!lazyConnectionTable.contains(p.getKey(), p.getValue())) {
-        lazyConnectionTable.put(p.getKey(), p.getValue(),
-            Connection.<E> create(p.getKey(), p.getValue()));
-      }
+      getConnection(p.getKey(), p.getValue());
     }
     return ImmutableList.copyOf(lazyConnectionTable.values());
   }

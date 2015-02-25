@@ -119,12 +119,12 @@ public class ListenableGraphTest {
 
     assertEquals(2, history.getHistory().size());
     assertEquals(
-        new GraphEvent(ADD_CONNECTION, graph1, a, c,
-            Optional.<ConnectionData> absent()), history
+        new GraphEvent(ADD_CONNECTION, graph1, Connection.create(a, c,
+            Optional.<ConnectionData> absent())), history
             .getHistory().get(0));
     assertEquals(
-        new GraphEvent(ADD_CONNECTION, graph1, c, a,
-            Optional.<ConnectionData> absent()), history
+        new GraphEvent(ADD_CONNECTION, graph1, Connection.create(c, a,
+            Optional.<ConnectionData> absent())), history
             .getHistory().get(1));
   }
 
@@ -134,19 +134,25 @@ public class ListenableGraphTest {
     public void handleEvent(Event e) {
       GraphEvent ge = (GraphEvent) e;
       if (e.getEventType() == ADD_CONNECTION) {
-        assertTrue(ge.getGraph().hasConnection(ge.getFrom(), ge.getTo()));
-        assertEquals(ge.getConnData(),
-            ge.getGraph().getConnection(ge.getFrom(), ge.getTo()).data());
+        assertTrue(ge.getGraph().hasConnection(ge.getConnection()));
+        assertEquals(
+            ge.getConnection(),
+            ge.getGraph().getConnection(ge.getConnection().from(),
+                ge.getConnection().to()));
       } else if (e.getEventType() == REMOVE_CONNECTION) {
-        assertFalse(ge.getGraph().hasConnection(ge.getFrom(), ge.getTo()));
+        assertFalse(ge.getGraph().hasConnection(ge.getConnection().from(),
+            ge.getConnection().to()));
       } else if (e.getEventType() == CHANGE_CONNECTION_DATA) {
-        assertTrue(ge.getGraph().hasConnection(ge.getFrom(), ge.getTo()));
-        assertEquals(ge.getConnData(),
-            ge.getGraph().getConnection(ge.getFrom(), ge.getTo()).data());
+        assertTrue(ge.getGraph().hasConnection(ge.getConnection().from(),
+            ge.getConnection().to()));
+        assertEquals(
+            ge.getConnection().data(),
+            ge.getGraph()
+                .getConnection(ge.getConnection().from(),
+                    ge.getConnection().to()).data());
       }
 
     }
-
   }
 
 }

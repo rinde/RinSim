@@ -66,6 +66,13 @@ public class TableGraph<E extends ConnectionData> extends AbstractGraph<E> {
   }
 
   @Override
+  public <T extends ConnectionData> boolean hasConnection(
+      Connection<T> connection) {
+    return hasConnection(connection.from(), connection.to())
+        && data.get(connection.from(), connection.to()).equals(connection);
+  }
+
+  @Override
   public int getNumberOfNodes() {
     return getNodes().size();
   }
@@ -151,4 +158,5 @@ public class TableGraph<E extends ConnectionData> extends AbstractGraph<E> {
   public boolean equals(@Nullable Object o) {
     return super.equals(o);
   }
+
 }
