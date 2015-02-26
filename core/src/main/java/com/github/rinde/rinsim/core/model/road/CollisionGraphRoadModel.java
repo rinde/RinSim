@@ -41,9 +41,13 @@ import com.google.common.collect.HashBiMap;
 import com.google.common.primitives.Doubles;
 
 /**
- *
- * For information about modifying the graph see {@link DynamicGraphRoadModel}.
- * For creating instances see {@link #builder(ListenableGraph)}.
+ * Graph road model that avoids collisions between {@link RoadUser}s. When a
+ * dead lock situation arises a {@link IllegalStateException} is thrown.
+ * Instances can be obtained via a dedicated builder, see
+ * {@link #builder(ListenableGraph)}.
+ * <p>
+ * The graph can be modified at runtime, for information about modifying the
+ * graph see {@link DynamicGraphRoadModel}.
  * @author Rinde van Lon
  */
 public class CollisionGraphRoadModel extends DynamicGraphRoadModel {
@@ -54,9 +58,9 @@ public class CollisionGraphRoadModel extends DynamicGraphRoadModel {
 
   CollisionGraphRoadModel(Builder builder, double pMinConnLength) {
     super(builder.graph, builder.distanceUnit, builder.speedUnit);
-    vehicleLength = builder.vehicleLength;
-    minDistance = builder.minDistance;
-    minConnLength = pMinConnLength;
+    vehicleLength = unitConversion.toInDist(builder.vehicleLength);
+    minDistance = unitConversion.toInDist(builder.minDistance);
+    minConnLength = unitConversion.toInDist(pMinConnLength);
     occupiedNodes = HashBiMap.create();
     builder.graph.getEventAPI().addListener(
         new ModificationChecker(minConnLength),
@@ -71,12 +75,19 @@ public class CollisionGraphRoadModel extends DynamicGraphRoadModel {
     if (occupiedNodes.containsValue(object)) {
       occupiedNodes.inverse().remove(object);
     }
-    // it should be checked whether the road is clear
-
     final MoveProgress mp = super.doFollowPath(object, path, time);
 
     // detects if the new location of the object occupies a node
-    // objLocs.get(object)
+    final Loc loc = objLocs.get(object);
+    if (loc.isOnConnection()) {
+      if (loc.relativePos < vehicleLength) {
+        occupiedNodes.put(loc.conn.get().from(), object);
+      } else if (loc.relativePos > loc.connLength - vehicleLength) {
+        occupiedNodes.put(loc.conn.get().to(), object);
+      }
+    } else {
+      occupiedNodes.put(loc, object);
+    }
 
     return mp;
   }
@@ -87,7 +98,15 @@ public class CollisionGraphRoadModel extends DynamicGraphRoadModel {
     double closestDist = Double.POSITIVE_INFINITY;
     if (!from.equals(to)) {
       final Connection<?> conn = getConnection(from, to);
-      // check if there is an obstacle
+
+      // check if the node is occupied
+      if (occupiedNodes.containsKey(conn.to())) {
+        closestDist = (from.isOnConnection() ? from.connLength
+            - from.relativePos : conn.getLength()) - vehicleLength
+            - minDistance;
+      }
+
+      // check if there is an obstacle on the connection
       if (connMap.containsKey(conn)) {
         // if yes, how far is it from 'from'
         final Collection<RoadUser> potentialObstacles = connMap.get(conn);
@@ -111,7 +130,6 @@ public class CollisionGraphRoadModel extends DynamicGraphRoadModel {
   @Override
   protected void checkMoveValidity(Loc objLoc, Point nextHop) {
     super.checkMoveValidity(objLoc, nextHop);
-
     // check if there is a vehicle driving in the opposite direction
     if (!objLoc.equals(nextHop)) {
       final Connection<?> conn = getConnection(objLoc, nextHop);
@@ -120,6 +138,14 @@ public class CollisionGraphRoadModel extends DynamicGraphRoadModel {
           && connMap.containsKey(graph.getConnection(conn.to(), conn.from()))),
           "Deadlock detected: there is a vehicle driving in the opposite direction on the same connection.");
     }
+  }
+
+  @Override
+  public void addObjectAt(RoadUser newObj, Point pos) {
+    checkArgument(!occupiedNodes.containsKey(pos),
+        "An object can not be added on an already occupied position %s.", pos);
+    super.addObjectAt(newObj, pos);
+    occupiedNodes.put(pos, newObj);
   }
 
   @Override
@@ -140,8 +166,8 @@ public class CollisionGraphRoadModel extends DynamicGraphRoadModel {
   }
 
   /**
-   * @return A read-only indeterministic ordered live view of all currently
-   *         occupied nodes in the graph.
+   * @return A read-only <b>indeterministic</b> ordered live view of all
+   *         currently occupied nodes in the graph.
    */
   public Set<Point> getOccupiedNodes() {
     return Collections.unmodifiableSet(occupiedNodes.keySet());
@@ -175,8 +201,10 @@ public class CollisionGraphRoadModel extends DynamicGraphRoadModel {
 
   /**
    * Create a {@link Builder} for constructing {@link CollisionGraphRoadModel}
-   * instances.
-   * @param graph A {@link ListenableGraph}
+   * instances. Note that all connections in the specified graph must have
+   * length <code>2 * vehicleLength</code>, where vehicle length can be
+   * specified in {@link Builder#setVehicleLength(double)}.
+   * @param graph A {@link ListenableGraph}.
    * @return A new {@link Builder} instance.
    */
   public static Builder builder(ListenableGraph<?> graph) {
@@ -319,6 +347,5 @@ public class CollisionGraphRoadModel extends DynamicGraphRoadModel {
       final GraphEvent event = (GraphEvent) e;
       checkConnectionLength(minConnLength, event.getConnection());
     }
-
   }
 }

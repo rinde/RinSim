@@ -151,7 +151,6 @@ public class GraphRoadModel extends AbstractRoadModel<Loc> {
         MoveProgress.builder(unitConversion, time);
 
     boolean cont = true;
-
     while (time.hasTimeLeft() && !path.isEmpty() && cont) {
       checkMoveValidity(tempLoc, path.peek());
       // speed in internal speed unit

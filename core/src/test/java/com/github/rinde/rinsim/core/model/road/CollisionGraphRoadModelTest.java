@@ -23,7 +23,6 @@ import static org.junit.Assert.assertTrue;
 import java.math.RoundingMode;
 
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import com.github.rinde.rinsim.core.TimeLapse;
@@ -85,7 +84,6 @@ public class CollisionGraphRoadModelTest {
    * Adding an object to an occupied node is not allowed, but when the node is
    * free it is allowed.
    */
-  @Ignore
   @Test
   public void testAddObject() {
     final MovingRoadUser agv1 = new TestRoadUser();
@@ -172,7 +170,6 @@ public class CollisionGraphRoadModelTest {
    * Test for avoidance of a collision on a node. When one AGV comes near ( < of
    * its length) a node, this node becomes blocked for any other node.
    */
-  @Ignore
   @Test
   public void testNodeCollisionAvoidance() {
     final Point X = new Point(0, -10);
@@ -189,9 +186,12 @@ public class CollisionGraphRoadModelTest {
     assertEquals(32401L, tl.getTimeLeft());
     // agv1 is within the node area of SW now.
     model.moveTo(agv1, SW, tl);
+    assertTrue(model.isOccupied(SW));
+
     model.moveTo(agv2, SW, meter(10));
 
-    assertPointEquals(new Point(1, 0), model.getPosition(agv1),
+    assertPointEquals(new Point(1d - 0.0002777777778, 0),
+        model.getPosition(agv1),
         GraphRoadModel.DELTA);
     assertPointEquals(new Point(0, 1.25), model.getPosition(agv2),
         GraphRoadModel.DELTA);
