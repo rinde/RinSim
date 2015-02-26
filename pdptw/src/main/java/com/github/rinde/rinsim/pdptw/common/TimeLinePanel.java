@@ -16,6 +16,7 @@
 package com.github.rinde.rinsim.pdptw.common;
 
 import static com.google.common.base.Preconditions.checkState;
+import static com.google.common.base.Verify.verify;
 import static com.google.common.base.Verify.verifyNotNull;
 import static com.google.common.collect.Lists.newArrayList;
 
@@ -99,6 +100,7 @@ public final class TimeLinePanel implements ModelReceiver, PanelRenderer,
       @Override
       public void handleEvent(Event e) {
         if (e.getEventType() == PDPModelEventType.NEW_PARCEL) {
+          verify(e instanceof PDPModelEvent);
           final PDPModelEvent event = (PDPModelEvent) e;
           timeline.addParcel(new ParcelInfo(event.time,
               verifyNotNull(event.parcel)));

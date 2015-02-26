@@ -15,6 +15,8 @@
  */
 package com.github.rinde.rinsim.pdptw.common;
 
+import static com.google.common.base.Verify.verify;
+
 import java.lang.reflect.Field;
 
 import org.eclipse.swt.SWT;
@@ -35,7 +37,7 @@ import com.google.common.base.Optional;
 
 /**
  * A UI panel that gives a live view of the current statistics of a simulation.
- * @author Rinde van Lon 
+ * @author Rinde van Lon
  */
 final class StatsPanel implements PanelRenderer, TickListener {
 
@@ -103,6 +105,7 @@ final class StatsPanel implements PanelRenderer, TickListener {
     statsTracker.getEventAPI().addListener(new Listener() {
       @Override
       public void handleEvent(Event e) {
+        verify(e instanceof StatisticsEvent);
         final StatisticsEvent se = (StatisticsEvent) e;
         if (eventList.getDisplay().isDisposed()) {
           return;

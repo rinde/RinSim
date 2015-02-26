@@ -16,6 +16,7 @@
 package com.github.rinde.rinsim.scenario;
 
 import static com.google.common.base.Preconditions.checkState;
+import static com.google.common.base.Verify.verify;
 import static com.google.common.collect.Sets.newHashSet;
 import static java.util.Arrays.asList;
 
@@ -28,9 +29,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.github.rinde.rinsim.core.Simulator;
+import com.github.rinde.rinsim.core.Simulator.SimulatorEventType;
 import com.github.rinde.rinsim.core.TickListener;
 import com.github.rinde.rinsim.core.TimeLapse;
-import com.github.rinde.rinsim.core.Simulator.SimulatorEventType;
 import com.github.rinde.rinsim.event.Event;
 import com.github.rinde.rinsim.event.EventAPI;
 import com.github.rinde.rinsim.event.EventDispatcher;
@@ -42,9 +43,9 @@ import com.google.common.base.Optional;
  * {@link Scenario}. The scenario controller makes sure that all events in the
  * scenario are dispatched at their respective time and it checks whether they
  * are handled.
- * 
- * @author Rinde van Lon 
- * @author Bartosz Michalik 
+ *
+ * @author Rinde van Lon
+ * @author Bartosz Michalik
  * @since 2.0
  */
 public class ScenarioController implements TickListener {
@@ -57,7 +58,7 @@ public class ScenarioController implements TickListener {
 
   /**
    * The {@link Event} types which can be dispatched by this class.
-   * @author Rinde van Lon 
+   * @author Rinde van Lon
    */
   public enum EventType {
     /**
@@ -112,7 +113,7 @@ public class ScenarioController implements TickListener {
    * number of ticks till end. If the number of ticks is negative the simulator
    * will run until the {@link Simulator#stop()} method is called. TODO refine
    * documentation
-   * 
+   *
    * @param scen Scenario which is controlled.
    * @param sim Simulator which is controlled.
    * @param eventHandler Is used to handle scenario events.
@@ -260,7 +261,7 @@ public class ScenarioController implements TickListener {
   /**
    * A UICreator can be used to dynamically create a UI for the simulation run.
    * It can be used with any kind of GUI imaginable.
-   * @author Rinde van Lon 
+   * @author Rinde van Lon
    */
   public interface UICreator {
     // TODO convert to use View.Builder ?
@@ -278,6 +279,7 @@ public class ScenarioController implements TickListener {
 
     @Override
     public final void handleEvent(Event e) {
+      verify(e instanceof TimedEvent);
       checkState(timedEventHandler.handleTimedEvent((TimedEvent) e),
           "The event %s is not handled.", e.getEventType());
     }

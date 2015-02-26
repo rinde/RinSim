@@ -71,9 +71,9 @@ import com.google.common.collect.Multimap;
 
 /**
  * Simulation viewer.
- * 
- * @author Bartosz Michalik 
- * @author Rinde van Lon 
+ *
+ * @author Bartosz Michalik
+ * @author Rinde van Lon
  */
 final class SimulationViewer extends Composite implements TickListener,
     ControlListener, PaintListener, SelectionListener {
@@ -89,13 +89,6 @@ final class SimulationViewer extends Composite implements TickListener,
       .appendLiteral(":")
       .appendSeconds()
       .toFormatter();
-
-  // TODO need to refactor this class in separate logical parts:
-  // Time stuff: receives ticks and decides when gui should be updated.
-  // > show fps?
-  // Time display: move into separate TimeRenderer
-  // Canvas stuff: zooming, scrolling, renderers
-  // Menu stuff: accelerators/names
 
   private static final int MIN_SPEED_UP = 1;
   private static final int MAX_SPEED_UP = 512;
@@ -312,7 +305,7 @@ final class SimulationViewer extends Composite implements TickListener,
 
       @Override
       public void handleEvent(@Nullable Event e) {
-        checkState(e != null);
+        assert e != null;
         onToglePlay((MenuItem) e.widget);
       }
     });
@@ -325,7 +318,7 @@ final class SimulationViewer extends Composite implements TickListener,
     nextItem.addListener(SWT.Selection, new Listener() {
       @Override
       public void handleEvent(@Nullable Event e) {
-        checkState(e != null);
+        assert e != null;
         onTick((MenuItem) e.widget);
       }
     });
@@ -352,7 +345,7 @@ final class SimulationViewer extends Composite implements TickListener,
     final Listener zoomingListener = new Listener() {
       @Override
       public void handleEvent(@Nullable Event e) {
-        checkState(e != null);
+        assert e != null;
         onZooming((MenuItem) e.widget);
       }
     };
@@ -365,7 +358,7 @@ final class SimulationViewer extends Composite implements TickListener,
 
       @Override
       public void handleEvent(@Nullable Event e) {
-        checkState(e != null);
+        assert e != null;
         onSpeedChange((MenuItem) e.widget);
       }
     };
@@ -388,7 +381,7 @@ final class SimulationViewer extends Composite implements TickListener,
   /**
    * Default implementation of the play/pause action. Can be overridden if
    * needed.
-   * 
+   *
    * @param source
    */
   void onToglePlay(MenuItem source) {
@@ -408,7 +401,7 @@ final class SimulationViewer extends Composite implements TickListener,
   /**
    * Default implementation of step execution action. Can be overridden if
    * needed.
-   * 
+   *
    * @param source
    */
   void onTick(MenuItem source) {
@@ -471,7 +464,7 @@ final class SimulationViewer extends Composite implements TickListener,
 
   @Override
   public void paintControl(@Nullable PaintEvent e) {
-    checkState(e != null);
+    assert e != null;
     final GC gc = e.gc;
 
     final boolean wasFirstTime = firstTime;

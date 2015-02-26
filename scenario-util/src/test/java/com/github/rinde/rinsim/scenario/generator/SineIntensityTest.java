@@ -23,7 +23,6 @@ import java.util.List;
 
 import org.junit.Test;
 
-import com.github.rinde.rinsim.scenario.generator.IntensityFunctions;
 import com.github.rinde.rinsim.scenario.generator.IntensityFunctions.IntensityFunction;
 import com.github.rinde.rinsim.scenario.generator.IntensityFunctions.SineIntensity;
 import com.google.common.collect.ImmutableRangeSet;
@@ -32,7 +31,7 @@ import com.google.common.collect.RangeSet;
 
 /**
  * Tests for {@link IntensityFunctions#sineIntensity()}.
- * @author Rinde van Lon 
+ * @author Rinde van Lon
  */
 public class SineIntensityTest {
 
@@ -148,8 +147,6 @@ public class SineIntensityTest {
   /**
    * Tests whether phase shifts are correctly implemented.
    */
-  // varargs
-  @SuppressWarnings("unchecked")
   @Test
   public void testPhaseShift() {
     SineIntensity si = (SineIntensity) IntensityFunctions.sineIntensity()
@@ -176,6 +173,7 @@ public class SineIntensityTest {
     nonZeroCheck(Range.closed(0d, 1d), si, Range.open(0d, .5));
   }
 
+  @SafeVarargs
   private static <C extends Comparable<?>> ImmutableRangeSet<C> asSet(
       Range<C>... ranges) {
     final ImmutableRangeSet.Builder<C> b = ImmutableRangeSet.builder();
@@ -185,6 +183,7 @@ public class SineIntensityTest {
     return b.build();
   }
 
+  @SafeVarargs
   private static void nonZeroCheck(Range<Double> globalRange,
       IntensityFunction intFunc, Range<Double>... nonZeroRanges) {
     final RangeSet<Double> nonZeroRangeSet = asSet(nonZeroRanges);
