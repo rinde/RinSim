@@ -46,13 +46,18 @@ import com.google.common.base.Function;
  */
 @RunWith(Parameterized.class)
 public class GraphsTest {
-  protected static final double DELTA = 0.0001;
+  static final double DELTA = 0.0001;
 
   Graph<LengthData> graph;
   Class<? extends Graph<LengthData>> graphType;
 
-  public GraphsTest(Class<? extends Graph<LengthData>> c) {
+  static final Connection<LengthData> DUMMY = Connection.create(
+      new Point(0, 0), new Point(1, 1));
+
+  public GraphsTest(Class<? extends Graph<LengthData>> c)
+      throws InstantiationException, IllegalAccessException {
     graphType = c;
+    graph = graphType.newInstance();
   }
 
   @Parameters
@@ -527,7 +532,7 @@ public class GraphsTest {
       }
 
       @Override
-      public void setSeed(int[] arg0) {
+      public void setSeed(@Nullable int[] arg0) {
 
       }
 

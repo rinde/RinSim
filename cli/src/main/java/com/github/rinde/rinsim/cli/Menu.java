@@ -19,6 +19,7 @@ import static com.github.rinde.rinsim.cli.CliException.checkAlreadySelected;
 import static com.github.rinde.rinsim.cli.CliException.checkCommand;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
+import static com.google.common.base.Verify.verifyNotNull;
 import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Maps.newLinkedHashMap;
 import static com.google.common.collect.Sets.newLinkedHashSet;
@@ -28,6 +29,8 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import javax.annotation.Nullable;
 
 import com.github.rinde.rinsim.cli.CliException.CauseType;
 import com.github.rinde.rinsim.cli.Option.OptionArg;
@@ -206,8 +209,9 @@ public final class Menu {
     }
     Collections.sort(options, new Comparator<Option>() {
       @Override
-      public int compare(Option o1, Option o2) {
-        return o1.getShortName().compareTo(o2.getShortName());
+      public int compare(@Nullable Option o1, @Nullable Option o2) {
+        return verifyNotNull(o1).getShortName().compareTo(
+            verifyNotNull(o2).getShortName());
       }
     });
     return ImmutableList.copyOf(options);

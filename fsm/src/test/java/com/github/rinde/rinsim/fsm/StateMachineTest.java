@@ -285,7 +285,7 @@ public class StateMachineTest {
 
     @Nullable
     @Override
-    public Object handle(Object event, Object context) {
+    public Object handle(@Nullable Object event, Object context) {
       return null;
     }
   }

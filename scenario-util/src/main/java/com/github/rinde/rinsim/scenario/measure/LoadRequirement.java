@@ -64,7 +64,7 @@ class LoadRequirement implements Predicate<Scenario> {
 
   @Override
   public boolean apply(@Nullable Scenario scenario) {
-    checkArgument(scenario != null);
+    assert scenario != null;
     final List<Double> loads = newArrayList(relative ? Metrics
         .measureRelativeLoad(scenario) : Metrics.measureLoad(scenario));
     final int toAdd = desiredLoadList.size() - loads.size();

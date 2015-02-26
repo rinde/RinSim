@@ -20,7 +20,6 @@ import static com.github.rinde.rinsim.core.model.pdp.PDPScenarioEvent.ADD_PARCEL
 import static com.github.rinde.rinsim.core.model.pdp.PDPScenarioEvent.ADD_VEHICLE;
 import static com.github.rinde.rinsim.core.model.pdp.PDPScenarioEvent.TIME_OUT;
 import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.Lists.newArrayList;
 
 import java.io.BufferedReader;
@@ -208,7 +207,7 @@ public final class Gendreau06Parser {
         new FileFilter() {
           @Override
           public boolean accept(@Nullable File file) {
-            checkNotNull(file);
+            assert file != null;
             return isValidFileName(file.getName());
           }
         });
@@ -385,8 +384,7 @@ public final class Gendreau06Parser {
         final long requestArrivalTime = DoubleMath.roundToLong(
             Double.parseDouble(parts.next()) * TIME_MULTIPLIER,
             RoundingMode.HALF_EVEN);
-        // FIXME currently filtering out first and last lines of file. Is
-        // this ok?
+        // currently filtering out first and last lines of file. Is this ok?
         if (requestArrivalTime >= 0) {
           final long pickupServiceTime = Long.parseLong(parts.next())
               * TIME_MULTIPLIER_INTEGER;
@@ -437,7 +435,8 @@ public final class Gendreau06Parser {
     @Override
     @Nonnull
     public Gendreau06Scenario apply(@Nullable Path input) {
-      return Gendreau06Parser.parse(checkNotNull(input).toFile());
+      assert input != null;
+      return Gendreau06Parser.parse(input.toFile());
     }
   }
 

@@ -20,7 +20,6 @@ import static com.google.common.base.Preconditions.checkArgument;
 import javax.measure.quantity.Duration;
 import javax.measure.unit.Unit;
 
-// TODO investigate: could TimeLapse and TimeWindow both be a Range?
 /**
  * Represents a consumable interval of time: [start, end). Instances of time
  * lapse are handed out by the {@link Simulator} and can be received by
@@ -100,7 +99,7 @@ public final class TimeLapse {
    * @return The time that was previously consumed in this time lapse.
    */
   public long getTimeConsumed() {
-    return (endTime - startTime) - timeLeft;
+    return endTime - startTime - timeLeft;
   }
 
   /**

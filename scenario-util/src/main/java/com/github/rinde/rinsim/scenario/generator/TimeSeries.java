@@ -16,7 +16,6 @@
 package com.github.rinde.rinsim.scenario.generator;
 
 import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.Iterator;
 import java.util.List;
@@ -228,7 +227,8 @@ public final class TimeSeries {
     return new Predicate<List<Double>>() {
       @Override
       public boolean apply(@Nullable List<Double> input) {
-        return checkNotNull(input).size() == num;
+        assert input != null;
+        return input.size() == num;
       }
     };
   }
@@ -375,6 +375,7 @@ public final class TimeSeries {
       randomNumberGenerator = rng;
     }
 
+    @SuppressWarnings("null")
     @Nullable
     @Override
     protected Double computeNext(Double previous) {
@@ -451,7 +452,7 @@ public final class TimeSeries {
   }
 
   static class FixedTimeSeriesIterator extends
-      AbstractSequentialIterator<Double> {
+  AbstractSequentialIterator<Double> {
 
     private final double length;
     private final double average;
@@ -463,6 +464,7 @@ public final class TimeSeries {
       average = avg;
     }
 
+    @SuppressWarnings("null")
     @Nullable
     @Override
     protected Double computeNext(Double prev) {
@@ -484,6 +486,7 @@ public final class TimeSeries {
       ed = distr;
     }
 
+    @SuppressWarnings("null")
     @Nullable
     @Override
     protected Double computeNext(Double previous) {
@@ -521,7 +524,8 @@ public final class TimeSeries {
 
     @Override
     public boolean apply(@Nullable Double input) {
-      return rng.nextDouble() <= lambda.apply(checkNotNull(input)) / lambdaMax;
+      assert input != null;
+      return rng.nextDouble() <= lambda.apply(input) / lambdaMax;
     }
   }
 

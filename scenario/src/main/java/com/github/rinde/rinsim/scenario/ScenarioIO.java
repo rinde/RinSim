@@ -16,7 +16,7 @@
 package com.github.rinde.rinsim.scenario;
 
 import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.base.Verify.verifyNotNull;
 import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Sets.newLinkedHashSet;
 
@@ -73,7 +73,7 @@ import com.google.gson.stream.JsonWriter;
 
 /**
  * Provides utilities for reading and writing scenario files.
- * @author Rinde van Lon 
+ * @author Rinde van Lon
  */
 public final class ScenarioIO {
   private static final Gson GSON = initialize();
@@ -226,12 +226,12 @@ public final class ScenarioIO {
     @SuppressWarnings("unchecked")
     @Override
     public @Nullable T apply(@Nullable Path input) {
-      checkNotNull(input);
+      Path in = verifyNotNull(input);
       try {
         if (clazz.isPresent()) {
-          return read(input, clazz.get());
+          return read(in, clazz.get());
         }
-        return (T) read(input);
+        return (T) read(in);
       } catch (final IOException e) {
         throw new IllegalStateException(e);
       }
@@ -242,21 +242,21 @@ public final class ScenarioIO {
       JsonDeserializer<T> {
 
     @Override
-    public final JsonElement serialize(@Nullable T src, @Nullable Type typeOfSrc,
+    public final JsonElement serialize(@Nullable T src,
+        @Nullable Type typeOfSrc,
         @Nullable JsonSerializationContext context) {
-      checkNotNull(src);
-      checkNotNull(typeOfSrc);
-      checkNotNull(context);
-      return doSerialize(src, typeOfSrc, context);
+      return doSerialize(verifyNotNull(src),
+          verifyNotNull(typeOfSrc),
+          verifyNotNull(context));
     }
 
     @Override
-    public final T deserialize(@Nullable JsonElement json, @Nullable Type typeOfT,
+    public final T deserialize(@Nullable JsonElement json,
+        @Nullable Type typeOfT,
         @Nullable JsonDeserializationContext context) {
-      checkNotNull(json);
-      checkNotNull(typeOfT);
-      checkNotNull(context);
-      return doDeserialize(json, typeOfT, context);
+      return doDeserialize(verifyNotNull(json),
+          verifyNotNull(typeOfT),
+          verifyNotNull(context));
     }
 
     abstract JsonElement doSerialize(T src, Type typeOfSrc,
@@ -311,11 +311,11 @@ public final class ScenarioIO {
 
   static class TimedEventHierarchyIO implements JsonDeserializer<TimedEvent> {
     @Override
-    public TimedEvent deserialize(@Nullable JsonElement json, @Nullable Type typeOfT,
-        @Nullable JsonDeserializationContext context) {
-      checkNotNull(json);
-      checkNotNull(typeOfT);
-      checkNotNull(context);
+    public TimedEvent deserialize(@Nullable JsonElement j,
+        @Nullable Type typeOfT, @Nullable JsonDeserializationContext c) {
+      JsonElement json = verifyNotNull(j);
+      verifyNotNull(typeOfT);
+      JsonDeserializationContext context = verifyNotNull(c);
       final JsonObject obj = json.getAsJsonObject();
       final long time = obj.get("time").getAsLong();
       final Enum<?> type = context

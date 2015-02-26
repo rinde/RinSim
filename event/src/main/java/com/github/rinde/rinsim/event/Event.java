@@ -18,7 +18,6 @@ package com.github.rinde.rinsim.event;
 import javax.annotation.Nullable;
 
 import com.google.common.base.Optional;
-// TODO convert to interface and create a SimpleEvent which is equivalent to current implementation
 /**
  * The base event class. It is immutable.
  * @author Rinde van Lon 

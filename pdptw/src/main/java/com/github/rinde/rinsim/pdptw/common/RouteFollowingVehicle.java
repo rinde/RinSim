@@ -17,6 +17,7 @@ package com.github.rinde.rinsim.pdptw.common;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
+import static com.google.common.base.Verify.verify;
 import static com.google.common.collect.Lists.newLinkedList;
 import static java.util.Collections.unmodifiableCollection;
 
@@ -38,9 +39,9 @@ import org.slf4j.LoggerFactory;
 
 import com.github.rinde.rinsim.core.TimeLapse;
 import com.github.rinde.rinsim.core.model.pdp.PDPModel;
-import com.github.rinde.rinsim.core.model.pdp.Parcel;
 import com.github.rinde.rinsim.core.model.pdp.PDPModel.ParcelState;
 import com.github.rinde.rinsim.core.model.pdp.PDPModel.VehicleState;
+import com.github.rinde.rinsim.core.model.pdp.Parcel;
 import com.github.rinde.rinsim.core.model.road.RoadModel;
 import com.github.rinde.rinsim.core.model.road.RoadModels;
 import com.github.rinde.rinsim.core.pdptw.DefaultDepot;
@@ -74,7 +75,7 @@ import com.google.common.math.DoubleMath;
  * <b>Extension</b> The behavior of this vehicle can be altered by modifying the
  * state machine that is used internally. This can be done by overriding
  * {@link #createStateMachine()}.
- * @author Rinde van Lon 
+ * @author Rinde van Lon
  */
 public class RouteFollowingVehicle extends DefaultVehicle {
 
@@ -145,8 +146,8 @@ public class RouteFollowingVehicle extends DefaultVehicle {
     stateMachine.getEventAPI().addListener(new Listener() {
       @Override
       public void handleEvent(Event e) {
-        @SuppressWarnings("unchecked")
-        final StateTransitionEvent<DefaultEvent, RouteFollowingVehicle> event = (StateTransitionEvent<RouteFollowingVehicle.DefaultEvent, RouteFollowingVehicle>) e;
+        verify(e instanceof StateTransitionEvent<?, ?>);
+        final StateTransitionEvent<?, ?> event = (StateTransitionEvent<?, ?>) e;
         LOGGER.trace("vehicle({}) - {} + {} -> {}", v, event.previousState,
             event.trigger, event.newState);
       }
@@ -426,13 +427,13 @@ public class RouteFollowingVehicle extends DefaultVehicle {
   /**
    * Marker interface for events. When defining new events simply implement this
    * interface.
-   * @author Rinde van Lon 
+   * @author Rinde van Lon
    */
   protected interface StateEvent {}
 
   /**
    * The default event types of the state machine.
-   * @author Rinde van Lon 
+   * @author Rinde van Lon
    */
   protected enum DefaultEvent implements StateEvent {
     /**
@@ -470,10 +471,10 @@ public class RouteFollowingVehicle extends DefaultVehicle {
 
   /**
    * Base state class, can be subclassed to define custom states.
-   * @author Rinde van Lon 
+   * @author Rinde van Lon
    */
   protected abstract class AbstractTruckState extends
-      AbstractState<StateEvent, RouteFollowingVehicle> {
+  AbstractState<StateEvent, RouteFollowingVehicle> {
     @Override
     public String toString() {
       return this.getClass().getSimpleName();
@@ -483,7 +484,7 @@ public class RouteFollowingVehicle extends DefaultVehicle {
   /**
    * Implementation of waiting state, is also responsible for driving back to
    * the depot.
-   * @author Rinde van Lon 
+   * @author Rinde van Lon
    */
   protected class Wait extends AbstractTruckState {
 
@@ -492,6 +493,7 @@ public class RouteFollowingVehicle extends DefaultVehicle {
      */
     protected Wait() {}
 
+    @SuppressWarnings("synthetic-access")
     @Override
     public void onEntry(StateEvent event, RouteFollowingVehicle context) {
       checkState(
@@ -506,6 +508,7 @@ public class RouteFollowingVehicle extends DefaultVehicle {
       }
     }
 
+    @SuppressWarnings("synthetic-access")
     @Nullable
     @Override
     public DefaultEvent handle(@Nullable StateEvent event,
@@ -529,7 +532,7 @@ public class RouteFollowingVehicle extends DefaultVehicle {
 
   /**
    * State responsible for moving to a service location.
-   * @author Rinde van Lon 
+   * @author Rinde van Lon
    */
   protected class Goto extends AbstractTruckState {
     /**
@@ -558,6 +561,7 @@ public class RouteFollowingVehicle extends DefaultVehicle {
       destination = Optional.of(route.element());
     }
 
+    @SuppressWarnings("synthetic-access")
     @Nullable
     @Override
     public DefaultEvent handle(@Nullable StateEvent event,
@@ -605,7 +609,7 @@ public class RouteFollowingVehicle extends DefaultVehicle {
 
   /**
    * State responsible for waiting at a service location to become available.
-   * @author Rinde van Lon 
+   * @author Rinde van Lon
    */
   protected class WaitAtService extends AbstractTruckState {
     /**
@@ -613,6 +617,7 @@ public class RouteFollowingVehicle extends DefaultVehicle {
      */
     protected WaitAtService() {}
 
+    @SuppressWarnings("synthetic-access")
     @Nullable
     @Override
     public DefaultEvent handle(@Nullable StateEvent event,
@@ -653,7 +658,7 @@ public class RouteFollowingVehicle extends DefaultVehicle {
 
   /**
    * State responsible for servicing a parcel.
-   * @author Rinde van Lon 
+   * @author Rinde van Lon
    */
   protected class Service extends AbstractTruckState {
     /**
@@ -661,11 +666,13 @@ public class RouteFollowingVehicle extends DefaultVehicle {
      */
     protected Service() {}
 
+    @SuppressWarnings("synthetic-access")
     @Override
     public void onEntry(StateEvent event, RouteFollowingVehicle context) {
       pdpModel.get().service(context, route.peek(), currentTime.get());
     }
 
+    @SuppressWarnings("synthetic-access")
     @Nullable
     @Override
     public DefaultEvent handle(@Nullable StateEvent event,

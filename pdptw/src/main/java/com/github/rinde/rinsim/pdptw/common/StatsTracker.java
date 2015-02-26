@@ -30,6 +30,7 @@ import static com.github.rinde.rinsim.core.model.pdp.PDPScenarioEvent.TIME_OUT;
 import static com.github.rinde.rinsim.core.model.road.AbstractRoadModel.RoadEventType.MOVE;
 import static com.github.rinde.rinsim.scenario.ScenarioController.EventType.SCENARIO_FINISHED;
 import static com.github.rinde.rinsim.scenario.ScenarioController.EventType.SCENARIO_STARTED;
+import static com.google.common.base.Verify.verify;
 import static com.google.common.collect.Maps.newLinkedHashMap;
 
 import java.util.Map;
@@ -57,8 +58,8 @@ import com.github.rinde.rinsim.scenario.TimedEvent;
 import com.google.common.base.Optional;
 
 /**
- * @author Rinde van Lon 
- * 
+ * @author Rinde van Lon
+ *
  */
 final class StatsTracker implements Model<Object> {
 
@@ -122,6 +123,21 @@ final class StatsTracker implements Model<Object> {
         roadModel.getSpeedUnit());
   }
 
+  @Override
+  public boolean register(Object element) {
+    return true;
+  }
+
+  @Override
+  public boolean unregister(Object element) {
+    return true;
+  }
+
+  @Override
+  public Class<Object> getSupportedType() {
+    return Object.class;
+  }
+
   class TheListener implements Listener {
 
     private static final double MOVE_THRESHOLD = 0.0001;
@@ -177,6 +193,7 @@ final class StatsTracker implements Model<Object> {
         computationTime = System.currentTimeMillis() - startTimeReal;
         simulationTime = simulator.getCurrentTime() - startTimeSim;
       } else if (e.getEventType() == RoadEventType.MOVE) {
+        verify(e instanceof MoveEvent);
         final MoveEvent me = (MoveEvent) e;
         increment(me.roadUser, me.pathProgress.distance().getValue()
             .doubleValue());
@@ -198,28 +215,40 @@ final class StatsTracker implements Model<Object> {
         }
 
       } else if (e.getEventType() == PDPModelEventType.START_PICKUP) {
+        verify(e instanceof PDPModelEvent);
         final PDPModelEvent pme = (PDPModelEvent) e;
-        final long latestBeginTime = pme.parcel.getPickupTimeWindow().end
-            - pme.parcel.getPickupDuration();
+        final Parcel p = pme.parcel;
+        final Vehicle v = pme.vehicle;
+        assert p != null;
+        assert v != null;
+
+        final long latestBeginTime = p.getPickupTimeWindow().end
+            - p.getPickupDuration();
         if (pme.time > latestBeginTime) {
           final long tardiness = pme.time - latestBeginTime;
           pickupTardiness += tardiness;
           eventDispatcher.dispatchEvent(new StatisticsEvent(
-              StatisticsEventType.PICKUP_TARDINESS, this, pme.parcel,
-              pme.vehicle, tardiness, pme.time));
+              StatisticsEventType.PICKUP_TARDINESS, this, p, v, tardiness,
+              pme.time));
         }
       } else if (e.getEventType() == PDPModelEventType.END_PICKUP) {
         totalPickups++;
       } else if (e.getEventType() == PDPModelEventType.START_DELIVERY) {
         final PDPModelEvent pme = (PDPModelEvent) e;
-        final long latestBeginTime = pme.parcel.getDeliveryTimeWindow().end
-            - pme.parcel.getDeliveryDuration();
+
+        final Parcel p = pme.parcel;
+        final Vehicle v = pme.vehicle;
+        assert p != null;
+        assert v != null;
+
+        final long latestBeginTime = p.getDeliveryTimeWindow().end
+            - p.getDeliveryDuration();
         if (pme.time > latestBeginTime) {
           final long tardiness = pme.time - latestBeginTime;
           deliveryTardiness += tardiness;
           eventDispatcher.dispatchEvent(new StatisticsEvent(
-              StatisticsEventType.DELIVERY_TARDINESS, this, pme.parcel,
-              pme.vehicle, tardiness, pme.time));
+              StatisticsEventType.DELIVERY_TARDINESS, this, p, v, tardiness,
+              pme.time));
         }
       } else if (e.getEventType() == PDPModelEventType.END_DELIVERY) {
         totalDeliveries++;
@@ -232,13 +261,14 @@ final class StatsTracker implements Model<Object> {
       } else if (e.getEventType() == ADD_VEHICLE) {
         totalVehicles++;
       } else if (e.getEventType() == NEW_VEHICLE) {
+        verify(e instanceof PDPModelEvent);
         final PDPModelEvent ev = (PDPModelEvent) e;
         lastArrivalTimeAtDepot.put(ev.vehicle, simulator.getCurrentTime());
       } else if (e.getEventType() == TIME_OUT) {
         simFinish = true;
         scenarioEndTime = ((TimedEvent) e).time;
       } else {
-        // System.out.println("fall through: " + e);
+        verify(false);
       }
 
     }
@@ -250,21 +280,6 @@ final class StatsTracker implements Model<Object> {
         distanceMap.put(mru, distanceMap.get(mru) + num);
       }
     }
-  }
-
-  @Override
-  public boolean register(Object element) {
-    return true;
-  }
-
-  @Override
-  public boolean unregister(Object element) {
-    return true;
-  }
-
-  @Override
-  public Class<Object> getSupportedType() {
-    return Object.class;
   }
 
   static class StatisticsEvent extends Event {

@@ -227,7 +227,7 @@ public final class Graphs {
     for (final T obj : objects) {
       @Nullable
       final Point objPos = transformation.apply(obj);
-      checkNotNull(objPos);
+      assert objPos != null;
       final double currentDist = Point.distance(pos, objPos);
       if (currentDist < dist) {
         dist = currentDist;
@@ -333,7 +333,8 @@ public final class Graphs {
 
     @Override
     public int compareTo(@Nullable ObjectWithDistance<T> o) {
-      return Double.compare(dist, checkNotNull(o).dist);
+      assert o != null;
+      return Double.compare(dist, o.dist);
     }
 
     @Override

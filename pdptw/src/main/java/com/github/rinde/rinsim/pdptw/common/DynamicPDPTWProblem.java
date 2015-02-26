@@ -24,6 +24,7 @@ import static com.google.common.collect.Maps.newHashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.annotation.Nullable;
 import javax.measure.Measure;
 
 import org.apache.commons.math3.random.MersenneTwister;
@@ -286,7 +287,7 @@ public class DynamicPDPTWProblem {
       Creator<T> creator) {
     checkArgument(
         eventType == AddVehicleEvent.class || eventType == AddParcelEvent.class
-            || eventType == AddDepotEvent.class,
+        || eventType == AddDepotEvent.class,
         "A creator can only be added to one of the following classes: AddVehicleEvent, AddParcelEvent, AddDepotEvent.");
     eventCreatorMap.put(eventType, creator);
   }
@@ -323,7 +324,7 @@ public class DynamicPDPTWProblem {
    * This class contains default stop conditions which can be used in the
    * problem. If you want to create your own stop condition you can do it in the
    * following way:
-   * 
+   *
    * <pre>
    * Predicate&lt;SimulationInfo&gt; sc = new Predicate&lt;SimulationInfo&gt;() {
    *   &#064;Override
@@ -332,7 +333,7 @@ public class DynamicPDPTWProblem {
    *   }
    * };
    * </pre>
-   * 
+   *
    * StopConditions can be combined into more complex conditions by using
    * {@link Predicates#and(Predicate, Predicate)},
    * {@link Predicates#or(Predicate, Predicate)} and
@@ -348,7 +349,8 @@ public class DynamicPDPTWProblem {
      */
     TIME_OUT_EVENT {
       @Override
-      public boolean apply(Simulator context) {
+      public boolean apply(@Nullable Simulator context) {
+        assert context != null;
         return getStats(context).simFinish;
       }
     },
@@ -361,7 +363,8 @@ public class DynamicPDPTWProblem {
      */
     VEHICLES_DONE_AND_BACK_AT_DEPOT {
       @Override
-      public boolean apply(Simulator context) {
+      public boolean apply(@Nullable Simulator context) {
+        assert context != null;
         final StatisticsDTO stats = getStats(context);
 
         return stats.totalVehicles == stats.vehiclesAtDepot
@@ -375,7 +378,8 @@ public class DynamicPDPTWProblem {
      */
     ANY_TARDINESS {
       @Override
-      public boolean apply(Simulator context) {
+      public boolean apply(@Nullable Simulator context) {
+        assert context != null;
         final StatisticsDTO stats = getStats(context);
         return stats.pickupTardiness > 0
             || stats.deliveryTardiness > 0;
@@ -487,7 +491,7 @@ public class DynamicPDPTWProblem {
     public void createUI(Simulator sim) {
       initRenderers();
       View.create(sim).with(renderers.toArray(new Renderer[] {}))
-          .setSpeedUp(speedup).show();
+      .setSpeedUp(speedup).show();
     }
 
     /**

@@ -46,16 +46,15 @@ import com.github.rinde.rinsim.core.TimeLapseFactory;
 import com.github.rinde.rinsim.event.Event;
 import com.github.rinde.rinsim.event.Listener;
 import com.github.rinde.rinsim.event.ListenerEventHistory;
-import com.github.rinde.rinsim.scenario.Scenario;
-import com.github.rinde.rinsim.scenario.ScenarioController;
-import com.github.rinde.rinsim.scenario.TimedEvent;
-import com.github.rinde.rinsim.scenario.TimedEventHandler;
 import com.github.rinde.rinsim.scenario.ScenarioController.UICreator;
 
 public class ScenarioControllerTest {
 
+  @SuppressWarnings("null")
   protected ScenarioController controller;
+  @SuppressWarnings("null")
   protected Scenario scenario;
+  @SuppressWarnings("null")
   protected Simulator simulator;
 
   public enum TestEvents {

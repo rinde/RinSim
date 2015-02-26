@@ -15,8 +15,6 @@
  */
 package com.github.rinde.rinsim.scenario;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import java.util.Comparator;
 
 import javax.annotation.Nullable;
@@ -26,7 +24,7 @@ import com.google.common.base.Objects;
 
 /**
  * Simplest time event. The object is a value object.
- * @author Bartosz Michalik 
+ * @author Bartosz Michalik
  * @since 2.0
  */
 public class TimedEvent extends Event {
@@ -77,7 +75,7 @@ public class TimedEvent extends Event {
 
   /**
    * Comparator for comparing {@link TimedEvent}s on their time.
-   * @author Rinde van Lon 
+   * @author Rinde van Lon
    */
   public enum TimeComparator implements Comparator<TimedEvent> {
     /**
@@ -87,7 +85,9 @@ public class TimedEvent extends Event {
 
     @Override
     public int compare(@Nullable TimedEvent o1, @Nullable TimedEvent o2) {
-      return (int) (checkNotNull(o1).time - checkNotNull(o2).time);
+      assert o1 != null;
+      assert o2 != null;
+      return (int) (o1.time - o2.time);
     }
   }
 }

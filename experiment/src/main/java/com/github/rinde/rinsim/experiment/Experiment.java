@@ -17,7 +17,6 @@
 package com.github.rinde.rinsim.experiment;
 
 import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Sets.newLinkedHashSet;
@@ -669,7 +668,7 @@ public final class Experiment {
 
     @Override
     public int compareTo(@Nullable SimulationResult o) {
-      checkNotNull(o);
+      assert o != null;
       return ComparisonChain
           .start()
           .compare(scenario.getProblemClass().getId(),

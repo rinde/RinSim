@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import javax.annotation.Nullable;
@@ -32,13 +33,12 @@ import com.github.rinde.rinsim.core.model.road.RoadModel;
 import com.github.rinde.rinsim.geom.Point;
 import com.github.rinde.rinsim.util.StochasticSupplier;
 import com.github.rinde.rinsim.util.StochasticSuppliers;
-import com.github.rinde.rinsim.util.StochasticSuppliers.AbstractStochasticSupplier;
 import com.google.common.collect.ImmutableList;
 
 /**
- * 
+ *
  * @author David Merckx
- * @author Rinde van Lon 
+ * @author Rinde van Lon
  */
 public class GradientModel implements Model<FieldEmitter>, ModelReceiver {
 
@@ -146,12 +146,12 @@ public class GradientModel implements Model<FieldEmitter>, ModelReceiver {
     }
 
     float avg = 0;
-    for (final Point p : fields.keySet()) {
-      avg += fields.get(p);
+    for (final Float f : fields.values()) {
+      avg += f;
     }
     avg /= fields.size();
-    for (final Point p : fields.keySet()) {
-      fields.put(p, fields.get(p) - avg);
+    for (final Entry<Point, Float> entry : fields.entrySet()) {
+      fields.put(entry.getKey(), entry.getValue() - avg);
     }
     return fields;
   }

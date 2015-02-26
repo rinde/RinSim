@@ -45,7 +45,7 @@ import com.github.rinde.rinsim.event.EventDispatcher;
  * stop simulations. The simulator also acts as a facade through which
  * {@link Model}s and objects can be added to the simulator, more info about
  * models can be found in {@link ModelManager}.
- * 
+ *
  * The configuration phase of the simulator looks as follows:
  * <ol>
  * <li>register models using {@link #register(Model)}</li>
@@ -56,10 +56,9 @@ import com.github.rinde.rinsim.event.EventDispatcher;
  * Note that objects can not be registered <b>before</b> calling
  * {@link #configure()} and {@link Model}s can not be registered <b>after</b>
  * configuring.
- * 
+ *
  * @author Rinde van Lon (rinde.vanlon@cs.kuleuven.be)
- * @author Bartosz Michalik  - simulator API
- *         changes
+ * @author Bartosz Michalik - simulator API changes
  */
 public class Simulator implements SimulatorAPI {
 
@@ -122,17 +121,6 @@ public class Simulator implements SimulatorAPI {
   private final long timeStep;
   private final TimeLapse timeLapse;
 
-  // TODO RandomGenerator should be moved into an own model. This way, objects
-  // that need a reference to a random generator can get one by implementing
-  // this model's interface. The model could have several policies for
-  // distributing RNGs: ALL_SAME, CLASS_SAME, ALL_DIFFERENT. This would
-  // indicate: every subscribing object uses same RNG, objects of the same
-  // class share same RNG, all objects get a different RNG instance
-  // respectively.
-
-  // TODO investigate if a TimeModel should be created, this would move all
-  // time/tick related stuff into its own class. Making it easier to extend
-  // this part.
   /**
    * Create a new simulator instance.
    * @param r The random number generator that is used in this simulator.
@@ -176,8 +164,6 @@ public class Simulator implements SimulatorAPI {
     dispatcher.dispatchEvent(new Event(SimulatorEventType.CONFIGURED, this));
   }
 
-  // TODO create a SimulatorBuilder for configuration of Simulator?
-  // TODO should fail on error instead of returning a boolean
   /**
    * Register a model to the simulator.
    * @param model The {@link Model} instance to register.
