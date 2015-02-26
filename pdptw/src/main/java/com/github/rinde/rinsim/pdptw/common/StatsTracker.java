@@ -83,11 +83,11 @@ final class StatsTracker implements Model<Object> {
         simulator.getModelProvider().getModel(RoadModel.class)).get();
     roadModel.getEventAPI().addListener(theListener, MOVE);
     Optional
-        .fromNullable(simulator.getModelProvider().getModel(PDPModel.class))
-        .get()
-        .getEventAPI()
-        .addListener(theListener, START_PICKUP, END_PICKUP, START_DELIVERY,
-            END_DELIVERY, NEW_PARCEL, NEW_VEHICLE);
+    .fromNullable(simulator.getModelProvider().getModel(PDPModel.class))
+    .get()
+    .getEventAPI()
+    .addListener(theListener, START_PICKUP, END_PICKUP, START_DELIVERY,
+        END_DELIVERY, NEW_PARCEL, NEW_VEHICLE);
   }
 
   EventAPI getEventAPI() {
@@ -268,7 +268,7 @@ final class StatsTracker implements Model<Object> {
         simFinish = true;
         scenarioEndTime = ((TimedEvent) e).time;
       } else {
-        verify(false);
+        // currently not handling fall throughs
       }
 
     }
