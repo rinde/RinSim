@@ -20,9 +20,9 @@ import com.github.rinde.rinsim.geom.Point;
 /**
  * Value object containing information about the region of the screen which is
  * used for rendering.
- * 
+ *
  * @author Rinde van Lon (rinde.vanlon@cs.kuleuven.be)
- * 
+ *
  */
 public class ViewPort {
 
@@ -37,11 +37,15 @@ public class ViewPort {
   }
 
   public int toCoordX(double x) {
-    return (int) (origin.x + ((x - rect.min.x) * scale));
+    return (int) (origin.x + (x - rect.min.x) * scale);
   }
 
   public int toCoordY(double y) {
-    return (int) (origin.y + ((y - rect.min.y) * scale));
+    return (int) (origin.y + (y - rect.min.y) * scale);
+  }
+
+  public int scale(double i) {
+    return (int) (scale * i);
   }
 
 }

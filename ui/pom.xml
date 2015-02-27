@@ -30,6 +30,11 @@
 			<artifactId>rinsim-geom</artifactId>
 		</dependency>
 		<dependency>
+			<groupId>org.inferred</groupId>
+			<artifactId>freebuilder</artifactId>
+			<optional>true</optional>
+		</dependency>
+		<dependency>
 			<groupId>org.eclipse.swt</groupId>
 			<artifactId>org.eclipse.swt.${swt.variant}</artifactId>
 			<version>${swt.version}</version>

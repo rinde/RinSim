@@ -58,6 +58,7 @@ import org.joda.time.format.PeriodFormatterBuilder;
 import com.github.rinde.rinsim.core.Simulator;
 import com.github.rinde.rinsim.core.TickListener;
 import com.github.rinde.rinsim.core.TimeLapse;
+import com.github.rinde.rinsim.core.model.ModelProvider;
 import com.github.rinde.rinsim.core.model.ModelReceiver;
 import com.github.rinde.rinsim.geom.Point;
 import com.github.rinde.rinsim.ui.renderers.CanvasRenderer;
@@ -109,6 +110,7 @@ final class SimulationViewer extends Composite implements TickListener,
   private Image image;
   private final ImmutableList<PanelRenderer> panelRenderers;
   private final List<CanvasRenderer> renderers;
+  private final List<Factory<? extends CanvasRenderer, ModelProvider>> rendererFactories;
   private final Set<ModelReceiver> modelRenderers;
   private final boolean autoPlay;
   private MenuItem playPauseMenuItem;
@@ -129,15 +131,19 @@ final class SimulationViewer extends Composite implements TickListener,
   private final Map<MenuItems, Integer> accelerators;
 
   SimulationViewer(Shell shell, final Simulator sim, int pSpeedUp,
-      boolean pAutoPlay, List<Renderer> pRenderers, Map<MenuItems, Integer> acc) {
+      boolean pAutoPlay, List<Renderer> pRenderers,
+      List<Factory<? extends CanvasRenderer, ModelProvider>> factories,
+      Map<MenuItems, Integer> acc) {
     super(shell, SWT.NONE);
 
     accelerators = acc;
     autoPlay = pAutoPlay;
+    rendererFactories = factories;
 
     final Multimap<Integer, PanelRenderer> panels = LinkedHashMultimap.create();
     renderers = newArrayList();
     modelRenderers = newLinkedHashSet();
+
     for (final Renderer r : pRenderers) {
       if (r instanceof ModelReceiver) {
         modelRenderers.add((ModelReceiver) r);
@@ -254,6 +260,11 @@ final class SimulationViewer extends Composite implements TickListener,
   }
 
   void configureModelRenderers() {
+
+    for (final Factory<? extends CanvasRenderer, ModelProvider> factory : rendererFactories) {
+      renderers.add(factory.create(simulator.getModelProvider()));
+    }
+
     for (final ModelReceiver mr : modelRenderers) {
       mr.registerModelProvider(simulator.getModelProvider());
     }

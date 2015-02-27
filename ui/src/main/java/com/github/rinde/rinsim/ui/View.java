@@ -17,10 +17,10 @@ package com.github.rinde.rinsim.ui;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
-import static com.google.common.collect.Lists.newArrayList;
-import static com.google.common.collect.Maps.newHashMap;
 import static java.util.Arrays.asList;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -35,15 +35,17 @@ import org.eclipse.swt.widgets.Shell;
 import com.github.rinde.rinsim.core.Simulator;
 import com.github.rinde.rinsim.core.TickListener;
 import com.github.rinde.rinsim.core.TimeLapse;
+import com.github.rinde.rinsim.core.model.ModelProvider;
 import com.github.rinde.rinsim.event.Event;
 import com.github.rinde.rinsim.event.Listener;
+import com.github.rinde.rinsim.ui.renderers.CanvasRenderer;
 import com.github.rinde.rinsim.ui.renderers.Renderer;
 
 /**
  * The view class is the main GUI class. For creating a view, see
  * {@link #create(Simulator)}.
  * @author Rinde van Lon (rinde.vanlon@cs.kuleuven.be)
- * @author Bartosz Michalik 
+ * @author Bartosz Michalik
  * @since 2.0
  */
 public final class View {
@@ -62,7 +64,7 @@ public final class View {
 
   /**
    * A builder that creates a visualization for {@link Simulator} instances.
-   * @author Rinde van Lon 
+   * @author Rinde van Lon
    */
   public static class Builder {
     /**
@@ -86,6 +88,7 @@ public final class View {
     @Nullable
     Monitor monitor;
     final List<Renderer> rendererList;
+    final List<Factory<? extends CanvasRenderer, ModelProvider>> renderFactories;
     Map<MenuItems, Integer> accelerators;
     @Nullable
     Listener callback;
@@ -100,8 +103,9 @@ public final class View {
       speedUp = 1;
       stopTime = -1;
       screenSize = DEFAULT_WINDOW_SIZE;
-      rendererList = newArrayList();
-      accelerators = newHashMap();
+      rendererList = new ArrayList<>();
+      renderFactories = new ArrayList<>();
+      accelerators = new HashMap<>();
       accelerators.putAll(MenuItems.QWERTY_ACCELERATORS);
     }
 
@@ -111,6 +115,18 @@ public final class View {
      */
     public Builder with(Renderer... renderers) {
       rendererList.addAll(asList(renderers));
+      return this;
+    }
+
+    public Builder with(
+        Factory<? extends CanvasRenderer, ModelProvider> renderFactory) {
+      renderFactories.add(renderFactory);
+      return this;
+    }
+
+    public Builder with(
+        IBuilder<? extends Factory<? extends CanvasRenderer, ModelProvider>> renderFactoryBuilder) {
+      renderFactories.add(renderFactoryBuilder.build());
       return this;
     }
 
@@ -256,7 +272,7 @@ public final class View {
           simulator.isConfigured(),
           "Simulator needs to be configured before it can be visualized, see Simulator.configure()");
 
-      checkArgument(!rendererList.isEmpty(),
+      checkArgument(!(rendererList.isEmpty() && renderFactories.isEmpty()),
           "At least one renderer needs to be defined.");
 
       Display.setAppName("RinSim");
@@ -336,7 +352,7 @@ public final class View {
 
       // simulator viewer is run in here
       new SimulationViewer(shell, simulator, speedUp, autoPlay, rendererList,
-          accelerators);
+          renderFactories, accelerators);
       shell.open();
       if (!async) {
         while (!shell.isDisposed()) {
