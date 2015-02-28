@@ -51,7 +51,9 @@ public class CollisionGraphRoadModelTest {
   @Before
   public void setUp() {
     graph = new ListenableGraph<>(new TableGraph<LengthData>());
-    model = CollisionGraphRoadModel.builder(graph).build();
+    model = CollisionGraphRoadModel.builder(graph)
+        .setVehicleLength(1d)
+        .build();
     SW = new Point(0, 0);
     SE = new Point(10, 0);
     NE = new Point(10, 10);
@@ -274,6 +276,7 @@ public class CollisionGraphRoadModelTest {
     boolean fail = false;
     try {
       CollisionGraphRoadModel.builder(graph)
+          .setVehicleLength(1d)
           .setMinDistance(2.000000001)
           .build();
     } catch (final IllegalArgumentException e) {
