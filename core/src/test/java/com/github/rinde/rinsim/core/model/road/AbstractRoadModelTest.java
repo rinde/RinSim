@@ -44,7 +44,7 @@ import org.junit.Test;
 
 import com.github.rinde.rinsim.core.TimeLapse;
 import com.github.rinde.rinsim.core.TimeLapseFactory;
-import com.github.rinde.rinsim.core.model.road.AbstractRoadModel.RoadEventType;
+import com.github.rinde.rinsim.core.model.road.GenericRoadModel.RoadEventType;
 import com.github.rinde.rinsim.event.ListenerEventHistory;
 import com.github.rinde.rinsim.geom.Point;
 import com.github.rinde.rinsim.util.TrivialRoadUser;

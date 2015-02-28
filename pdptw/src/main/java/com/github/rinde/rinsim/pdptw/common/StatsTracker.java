@@ -27,7 +27,7 @@ import static com.github.rinde.rinsim.core.model.pdp.PDPScenarioEvent.ADD_DEPOT;
 import static com.github.rinde.rinsim.core.model.pdp.PDPScenarioEvent.ADD_PARCEL;
 import static com.github.rinde.rinsim.core.model.pdp.PDPScenarioEvent.ADD_VEHICLE;
 import static com.github.rinde.rinsim.core.model.pdp.PDPScenarioEvent.TIME_OUT;
-import static com.github.rinde.rinsim.core.model.road.AbstractRoadModel.RoadEventType.MOVE;
+import static com.github.rinde.rinsim.core.model.road.GenericRoadModel.RoadEventType.MOVE;
 import static com.github.rinde.rinsim.scenario.ScenarioController.EventType.SCENARIO_FINISHED;
 import static com.github.rinde.rinsim.scenario.ScenarioController.EventType.SCENARIO_STARTED;
 import static com.google.common.base.Verify.verify;
@@ -43,7 +43,7 @@ import com.github.rinde.rinsim.core.model.pdp.PDPModel.PDPModelEventType;
 import com.github.rinde.rinsim.core.model.pdp.PDPModelEvent;
 import com.github.rinde.rinsim.core.model.pdp.Parcel;
 import com.github.rinde.rinsim.core.model.pdp.Vehicle;
-import com.github.rinde.rinsim.core.model.road.AbstractRoadModel.RoadEventType;
+import com.github.rinde.rinsim.core.model.road.GenericRoadModel.RoadEventType;
 import com.github.rinde.rinsim.core.model.road.MoveEvent;
 import com.github.rinde.rinsim.core.model.road.MovingRoadUser;
 import com.github.rinde.rinsim.core.model.road.RoadModel;
@@ -195,7 +195,8 @@ final class StatsTracker implements Model<Object> {
       } else if (e.getEventType() == RoadEventType.MOVE) {
         verify(e instanceof MoveEvent);
         final MoveEvent me = (MoveEvent) e;
-        increment(me.roadUser, me.pathProgress.distance().getValue()
+        increment((MovingRoadUser) me.roadUser, me.pathProgress.distance()
+            .getValue()
             .doubleValue());
         totalDistance += me.pathProgress.distance().getValue().doubleValue();
         // if we are closer than 10 cm to the depot, we say we are 'at'
@@ -204,7 +205,8 @@ final class StatsTracker implements Model<Object> {
             ((DefaultVehicle) me.roadUser).getDTO().startPosition) < MOVE_THRESHOLD) {
           // only override time if the vehicle did actually move
           if (me.pathProgress.distance().getValue().doubleValue() > MOVE_THRESHOLD) {
-            lastArrivalTimeAtDepot.put(me.roadUser, simulator.getCurrentTime());
+            lastArrivalTimeAtDepot.put((MovingRoadUser) me.roadUser,
+                simulator.getCurrentTime());
             if (totalVehicles == lastArrivalTimeAtDepot.size()) {
               eventDispatcher.dispatchEvent(new Event(
                   StatisticsEventType.ALL_VEHICLES_AT_DEPOT, this));

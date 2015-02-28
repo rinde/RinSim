@@ -16,15 +16,20 @@
 package com.github.rinde.rinsim.core.model.road;
 
 import static com.google.common.base.Preconditions.checkState;
+import static java.util.Arrays.asList;
+
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.github.rinde.rinsim.core.model.AbstractModel;
+import com.github.rinde.rinsim.event.EventDispatcher;
 
 /**
  * A very generic implementation of the {@link RoadModel} interface.
- * @author Rinde van Lon 
+ * @author Rinde van Lon
  */
 public abstract class GenericRoadModel extends AbstractModel<RoadUser>
     implements RoadModel {
@@ -36,11 +41,51 @@ public abstract class GenericRoadModel extends AbstractModel<RoadUser>
       .getLogger(GenericRoadModel.class);
 
   /**
+   * The types of events this model can dispatch.
+   * @author Rinde van Lon
+   */
+  public enum RoadEventType {
+    /**
+     * Indicates that a {@link MovingRoadUser} has moved.
+     */
+    MOVE,
+
+    /**
+     * Is dispatched when a new {@link RoadUser} has been added to the model and
+     * has a position.
+     */
+    ADD_ROAD_USER,
+
+    /**
+     * Is dispatched when a {@link RoadUser} has been removed from the model.
+     */
+    REMOVE_ROAD_USER
+  }
+
+  // TODO event dispatching has to be tested
+  /**
+   * The {@link EventDispatcher} that dispatches all event for this model.
+   */
+  protected final EventDispatcher eventDispatcher;
+
+  /**
    * Reference to the outermost decorator of this road model, or to
    * <code>this</code> if there are no decorators.
    */
   protected GenericRoadModel self = this;
   private boolean initialized = false;
+
+  /**
+   * Initializes the model, optionally adding more event types to the
+   * {@link EventDispatcher}.
+   * @param additionalEventTypes Additional event types (may be empty).
+   */
+  protected GenericRoadModel(Enum<?>... additionalEventTypes) {
+    final Set<Enum<?>> events = new LinkedHashSet<>();
+    events.addAll(asList(additionalEventTypes));
+    events.addAll(asList(RoadEventType.values()));
+    eventDispatcher = new EventDispatcher(events);
+  }
 
   /**
    * Method which should only be called by a decorator of this instance.

@@ -40,7 +40,6 @@ import javax.measure.unit.Unit;
 
 import com.github.rinde.rinsim.core.TimeLapse;
 import com.github.rinde.rinsim.event.EventAPI;
-import com.github.rinde.rinsim.event.EventDispatcher;
 import com.github.rinde.rinsim.geom.Point;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Sets;
@@ -58,17 +57,6 @@ import com.google.common.collect.Sets;
 public abstract class AbstractRoadModel<T> extends GenericRoadModel {
 
   /**
-   * The types of events this model can dispatch.
-   * @author Rinde van Lon
-   */
-  public enum RoadEventType {
-    /**
-     * Indicates that a {@link MovingRoadUser} has moved.
-     */
-    MOVE
-  }
-
-  /**
    * A mapping of {@link RoadUser} to location.
    */
   protected volatile Map<RoadUser, T> objLocs;
@@ -77,12 +65,6 @@ public abstract class AbstractRoadModel<T> extends GenericRoadModel {
    * A mapping of {@link MovingRoadUser}s to {@link DestinationPath}s.
    */
   protected Map<MovingRoadUser, DestinationPath> objDestinations;
-
-  // TODO event dispatching has to be tested
-  /**
-   * The {@link EventDispatcher} that dispatches all event for this model.
-   */
-  protected final EventDispatcher eventDispatcher;
 
   /**
    * A reference to {@link RoadUnits}.
@@ -105,10 +87,10 @@ public abstract class AbstractRoadModel<T> extends GenericRoadModel {
    */
   protected AbstractRoadModel(Unit<Length> distanceUnit,
       Unit<Velocity> speedUnit) {
+    super();
     unitConversion = new RoadUnits(distanceUnit, speedUnit);
     objLocs = Collections.synchronizedMap(new LinkedHashMap<RoadUser, T>());
     objDestinations = newLinkedHashMap();
-    eventDispatcher = new EventDispatcher(RoadEventType.MOVE);
   }
 
   /**
@@ -190,6 +172,8 @@ public abstract class AbstractRoadModel<T> extends GenericRoadModel {
     checkArgument(!objLocs.containsKey(newObj), "Object is already added: %s.",
         newObj);
     objLocs.put(newObj, point2LocObj(pos));
+    eventDispatcher.dispatchEvent(new RoadModelEvent(
+        RoadEventType.ADD_ROAD_USER, this, newObj));
   }
 
   @Override
@@ -199,6 +183,8 @@ public abstract class AbstractRoadModel<T> extends GenericRoadModel {
     checkArgument(objLocs.containsKey(existingObj),
         "Object %s does not exist.", existingObj);
     objLocs.put(newObj, objLocs.get(existingObj));
+    eventDispatcher.dispatchEvent(new RoadModelEvent(
+        RoadEventType.ADD_ROAD_USER, this, newObj));
   }
 
   @Override
@@ -208,6 +194,8 @@ public abstract class AbstractRoadModel<T> extends GenericRoadModel {
         "RoadUser: %s does not exist.", roadUser);
     objLocs.remove(roadUser);
     objDestinations.remove(roadUser);
+    eventDispatcher.dispatchEvent(new RoadModelEvent(
+        RoadEventType.REMOVE_ROAD_USER, this, roadUser));
   }
 
   @Override

@@ -144,8 +144,8 @@ public class CollisionGraphRoadModel extends DynamicGraphRoadModel {
   public void addObjectAt(RoadUser newObj, Point pos) {
     checkArgument(!occupiedNodes.containsKey(pos),
         "An object can not be added on an already occupied position %s.", pos);
-    super.addObjectAt(newObj, pos);
     occupiedNodes.put(pos, newObj);
+    super.addObjectAt(newObj, pos);
   }
 
   @Override
@@ -240,9 +240,9 @@ public class CollisionGraphRoadModel extends DynamicGraphRoadModel {
     public static final Unit<Velocity> DEFAULT_SPEED_UNIT = NonSI.KILOMETERS_PER_HOUR;
 
     /**
-     * The default vehicle length: <code>1</code>.
+     * The default vehicle length: <code>2</code>.
      */
-    public static final double DEFAULT_VEHICLE_LENGTH = 1;
+    public static final double DEFAULT_VEHICLE_LENGTH = 2;
 
     /**
      * The default minimum distance: <code>.25</code>.

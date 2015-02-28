@@ -15,28 +15,38 @@
  */
 package com.github.rinde.rinsim.core.model.road;
 
-import org.apache.commons.lang3.builder.ToStringBuilder;
-
 import com.github.rinde.rinsim.core.model.road.GenericRoadModel.RoadEventType;
+import com.github.rinde.rinsim.event.Event;
+import com.google.common.base.MoreObjects;
 
 /**
- * Event representing a move of a {@link MovingRoadUser}.
+ * Event representing a change in a {@link RoadModel}. See {@link RoadEventType}
+ * for a list of event types.
  * @author Rinde van Lon
  */
-public class MoveEvent extends RoadModelEvent {
+public class RoadModelEvent extends Event {
 
   /**
-   * Object containing the distance, time and path of this move.
+   * The {@link RoadModel} that dispatched this event.
    */
-  public final MoveProgress pathProgress;
+  public final RoadModel roadModel;
 
-  MoveEvent(RoadModel rm, MovingRoadUser ru, MoveProgress pp) {
-    super(RoadEventType.MOVE, rm, ru);
-    pathProgress = pp;
+  /**
+   * The {@link RoadUser} that is involved in the event.
+   */
+  public final RoadUser roadUser;
+
+  RoadModelEvent(Enum<?> type, RoadModel rm, RoadUser ru) {
+    super(type, rm);
+    roadModel = rm;
+    roadUser = ru;
   }
 
   @Override
   public String toString() {
-    return ToStringBuilder.reflectionToString(this);
+    return MoreObjects.toStringHelper("RoadModelEvent")
+        .add("roadModel", roadModel)
+        .add("roadUser", roadUser)
+        .toString();
   }
 }
