@@ -94,7 +94,7 @@ public class RouteRenderer implements CanvasRenderer, ModelReceiver {
 
   @Override
   public void registerModelProvider(ModelProvider mp) {
-    rm = Optional.fromNullable(mp.getModel(RoadModel.class));
-    pm = Optional.fromNullable(mp.getModel(PDPModel.class));
+    rm = Optional.fromNullable(mp.tryGetModel(RoadModel.class));
+    pm = Optional.fromNullable(mp.tryGetModel(PDPModel.class));
   }
 }

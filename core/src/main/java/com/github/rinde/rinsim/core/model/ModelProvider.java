@@ -20,7 +20,7 @@ import javax.annotation.Nullable;
 /**
  * Implementations of this interface may provide access to any {@link Model}s it
  * knows.
- * @author Rinde van Lon 
+ * @author Rinde van Lon
  */
 public interface ModelProvider {
 
@@ -31,6 +31,14 @@ public interface ModelProvider {
    *         it, <code>null</code> otherwise.
    */
   @Nullable
-  <T extends Model<?>> T getModel(Class<T> clazz);
+  <T extends Model<?>> T tryGetModel(Class<T> clazz);
 
+  /**
+   * @param clazz The type of {@link Model}.
+   * @param <T> The type of model.
+   * @return A {@link Model} instance of the specified type.
+   * @throws IllegalArgumentException if there is no known {@link Model} with
+   *           the specified class.
+   */
+  <T extends Model<?>> T getModel(Class<T> clazz);
 }

@@ -100,7 +100,7 @@ public class CollisionGraphRoadModelTest {
     assertTrue(fail);
 
     // max distance to travel while still staying within node area
-    model.moveTo(agv1, NW, meter(0.9997222222));
+    model.moveTo(agv1, NW, meter(1.9997222222));
 
     fail = false;
     try {
@@ -208,8 +208,8 @@ public class CollisionGraphRoadModelTest {
 
     // this represents the maximum distance to travel while still staying within
     // the node's area, moving agv2 is still not allowed
-    final TimeLapse tl2 = meter(0.9997222222);
-    assertEquals(3599L, tl2.getTimeLeft());
+    final TimeLapse tl2 = meter(1.9997222222);
+    assertEquals(7199L, tl2.getTimeLeft());
     model.moveTo(agv1, X, tl2);
     checkNoMovement(model.moveTo(agv2, SW, meter(20)));
 
@@ -218,7 +218,7 @@ public class CollisionGraphRoadModelTest {
     final TimeLapse tl3 = meter(0.0002777777778);
     assertEquals(1L, tl3.getTimeLeft());
     model.moveTo(agv1, X, tl3);
-    assertPointEquals(new Point(0, -1), model.getPosition(agv1),
+    assertPointEquals(new Point(0, -2), model.getPosition(agv1),
         GraphRoadModel.DELTA);
     model.moveTo(agv2, SW, meter(2));
     assertEquals(SW, model.getPosition(agv2));

@@ -158,8 +158,8 @@ public class GradientModel implements Model<FieldEmitter>, ModelReceiver {
 
   @Override
   public void registerModelProvider(ModelProvider mp) {
-    pdpModel = mp.getModel(PDPModel.class);
-    final ImmutableList<Point> bounds = mp.getModel(RoadModel.class)
+    pdpModel = mp.tryGetModel(PDPModel.class);
+    final ImmutableList<Point> bounds = mp.tryGetModel(RoadModel.class)
         .getBounds();
 
     minX = bounds.get(0).x;

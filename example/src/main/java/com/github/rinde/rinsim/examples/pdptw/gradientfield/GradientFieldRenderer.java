@@ -85,7 +85,7 @@ public class GradientFieldRenderer implements ModelRenderer {
 
   @Override
   public void registerModelProvider(ModelProvider mp) {
-    gradientModel = mp.getModel(GradientModel.class);
+    gradientModel = mp.tryGetModel(GradientModel.class);
   }
 
 }

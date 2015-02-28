@@ -75,9 +75,9 @@ class AgvModel implements TickListener, ModelReceiver, Model<AGV>,
 
   @Override
   public void registerModelProvider(ModelProvider mp) {
-    rm = Optional.fromNullable(mp.getModel(RoadModel.class));
+    rm = Optional.fromNullable(mp.tryGetModel(RoadModel.class));
     Optional
-        .fromNullable(mp.getModel(PDPModel.class))
+        .fromNullable(mp.tryGetModel(PDPModel.class))
         .get()
         .getEventAPI()
         .addListener(this, PDPModelEventType.END_DELIVERY,

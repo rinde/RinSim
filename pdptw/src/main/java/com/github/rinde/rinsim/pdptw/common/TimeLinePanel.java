@@ -94,7 +94,7 @@ public final class TimeLinePanel implements ModelReceiver, PanelRenderer,
 
   @Override
   public void registerModelProvider(ModelProvider mp) {
-    final PDPModel pdp = mp.getModel(PDPModel.class);
+    final PDPModel pdp = mp.tryGetModel(PDPModel.class);
     checkState(pdp != null, "PDPModel is required.");
     pdp.getEventAPI().addListener(new Listener() {
       @Override

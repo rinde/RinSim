@@ -561,7 +561,7 @@ public final class DefaultPDPModel extends PDPModel {
   @Override
   public void registerModelProvider(ModelProvider mp) {
     synchronized (this) {
-      roadModel = Optional.fromNullable(mp.getModel(RoadModel.class));
+      roadModel = Optional.fromNullable(mp.tryGetModel(RoadModel.class));
     }
   }
 

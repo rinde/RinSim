@@ -151,12 +151,19 @@ public class ModelManager implements ModelProvider {
   @SuppressWarnings("unchecked")
   @Nullable
   @Override
-  public <T extends Model<?>> T getModel(Class<T> clazz) {
+  public <T extends Model<?>> T tryGetModel(Class<T> clazz) {
     for (final Model<?> model : models) {
       if (clazz.isInstance(model)) {
         return (T) model;
       }
     }
     throw new IllegalArgumentException("There is no model of type: " + clazz);
+  }
+
+  @Override
+  public <T extends Model<?>> T getModel(Class<T> clazz) {
+    final T m = tryGetModel(clazz);
+    checkArgument(m != null, "The specified model %s does not exist.", clazz);
+    return m;
   }
 }

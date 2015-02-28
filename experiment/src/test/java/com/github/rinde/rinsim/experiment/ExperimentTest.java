@@ -114,7 +114,7 @@ public class ExperimentTest {
 
     @Override
     public ImmutableList<Point> collectResults(Simulator sim) {
-      final RoadModel rm = sim.getModelProvider().getModel(RoadModel.class);
+      final RoadModel rm = sim.getModelProvider().tryGetModel(RoadModel.class);
       return ImmutableList.copyOf(rm.getObjectPositions());
     }
   }

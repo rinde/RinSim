@@ -80,10 +80,10 @@ final class StatsTracker implements Model<Object> {
         SCENARIO_FINISHED, ADD_DEPOT, ADD_PARCEL, ADD_VEHICLE, TIME_OUT);
     simulator.getEventAPI().addListener(theListener, STARTED, STOPPED);
     roadModel = Optional.fromNullable(
-        simulator.getModelProvider().getModel(RoadModel.class)).get();
+        simulator.getModelProvider().tryGetModel(RoadModel.class)).get();
     roadModel.getEventAPI().addListener(theListener, MOVE);
     Optional
-    .fromNullable(simulator.getModelProvider().getModel(PDPModel.class))
+    .fromNullable(simulator.getModelProvider().tryGetModel(PDPModel.class))
     .get()
     .getEventAPI()
     .addListener(theListener, START_PICKUP, END_PICKUP, START_DELIVERY,

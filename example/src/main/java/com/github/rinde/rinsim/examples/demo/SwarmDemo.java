@@ -292,7 +292,7 @@ public class SwarmDemo {
 
     @Override
     public void registerModelProvider(ModelProvider mp) {
-      rm = Optional.fromNullable(mp.getModel(RoadModel.class));
+      rm = Optional.fromNullable(mp.tryGetModel(RoadModel.class));
       vehicles = rm.get().getObjectsOfType(Vehicle.class);
     }
 
@@ -333,7 +333,7 @@ public class SwarmDemo {
 
     @Override
     public void registerModelProvider(ModelProvider mp) {
-      rm = Optional.fromNullable(mp.getModel(RoadModel.class));
+      rm = Optional.fromNullable(mp.tryGetModel(RoadModel.class));
     }
   }
 

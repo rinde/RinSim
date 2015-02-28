@@ -62,8 +62,8 @@ public class TaxiRenderer implements ModelRenderer {
 
   @Override
   public void registerModelProvider(ModelProvider mp) {
-    rm = Optional.fromNullable(mp.getModel(RoadModel.class));
-    pm = Optional.fromNullable(mp.getModel(DefaultPDPModel.class));
+    rm = Optional.fromNullable(mp.tryGetModel(RoadModel.class));
+    pm = Optional.fromNullable(mp.tryGetModel(DefaultPDPModel.class));
   }
 
   @Override

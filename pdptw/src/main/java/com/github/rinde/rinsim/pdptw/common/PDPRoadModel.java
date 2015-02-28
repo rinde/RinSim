@@ -298,7 +298,7 @@ public class PDPRoadModel extends ForwardingRoadModel implements ModelReceiver {
 
   @Override
   public void registerModelProvider(ModelProvider mp) {
-    pdpModel = Optional.fromNullable(mp.getModel(PDPModel.class));
+    pdpModel = Optional.fromNullable(mp.tryGetModel(PDPModel.class));
   }
 
   private static final class DestinationObject {

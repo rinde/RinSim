@@ -16,6 +16,7 @@
 package com.github.rinde.rinsim.core.model.road;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.base.Verify.verify;
 
 import java.util.Collection;
@@ -75,12 +76,18 @@ public class CollisionGraphRoadModel extends DynamicGraphRoadModel {
     if (occupiedNodes.containsValue(object)) {
       occupiedNodes.inverse().remove(object);
     }
+
+    final Point p = getPosition(object);
+    if (graph.containsNode(p)) {
+      checkState(!occupiedNodes.containsKey(p));
+    }
+
     final MoveProgress mp = super.doFollowPath(object, path, time);
 
     // detects if the new location of the object occupies a node
     final Loc loc = objLocs.get(object);
     if (loc.isOnConnection()) {
-      if (loc.relativePos < vehicleLength) {
+      if (loc.relativePos < vehicleLength * 2) {
         occupiedNodes.put(loc.conn.get().from(), object);
       } else if (loc.relativePos > loc.connLength - vehicleLength) {
         occupiedNodes.put(loc.conn.get().to(), object);

@@ -87,8 +87,8 @@ class BoxRenderer implements ModelRenderer {
 
   @Override
   public void registerModelProvider(ModelProvider mp) {
-    roadModel = Optional.fromNullable(mp.getModel(RoadModel.class));
-    pdpModel = Optional.fromNullable(mp.getModel(PDPModel.class));
+    roadModel = Optional.fromNullable(mp.tryGetModel(RoadModel.class));
+    pdpModel = Optional.fromNullable(mp.tryGetModel(PDPModel.class));
   }
 
   @Override

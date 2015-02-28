@@ -293,7 +293,7 @@ public class DynamicPDPTWProblem {
   }
 
   static StatisticsDTO getStats(Simulator sim) {
-    final StatsTracker t = sim.getModelProvider().getModel(StatsTracker.class);
+    final StatsTracker t = sim.getModelProvider().tryGetModel(StatsTracker.class);
     if (t == null) {
       throw new IllegalStateException("No stats tracker found!");
     }
