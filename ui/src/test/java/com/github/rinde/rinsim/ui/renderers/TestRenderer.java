@@ -35,7 +35,7 @@ public class TestRenderer implements ModelRenderer {
 
   @Override
   public void registerModelProvider(ModelProvider mp) {
-    roadModel = Optional.fromNullable(mp.getModel(RoadModel.class));
+    roadModel = Optional.fromNullable(mp.tryGetModel(RoadModel.class));
   }
 
   @Override

@@ -17,6 +17,8 @@ package com.github.rinde.rinsim.ui.renderers;
 
 import java.util.List;
 
+import javax.annotation.Nullable;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.GC;
 
@@ -25,8 +27,8 @@ import com.github.rinde.rinsim.core.model.road.RoadModel;
 import com.github.rinde.rinsim.geom.Point;
 
 /**
- * @author Rinde van Lon 
- * 
+ * @author Rinde van Lon
+ *
  */
 public final class PlaneRoadModelRenderer implements ModelRenderer {
 
@@ -70,6 +72,7 @@ public final class PlaneRoadModelRenderer implements ModelRenderer {
   public void renderDynamic(GC gc, ViewPort vp, long time) {}
 
   @Override
+  @Nullable
   public ViewRect getViewRect() {
     return new ViewRect(new Point(bounds.get(0).x - xMargin, bounds.get(0).y
         - yMargin), new Point(bounds.get(1).x + xMargin, bounds.get(1).y

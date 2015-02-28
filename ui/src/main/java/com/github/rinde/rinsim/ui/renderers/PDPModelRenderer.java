@@ -177,8 +177,8 @@ public final class PDPModelRenderer implements ModelRenderer {
 
   @Override
   public void registerModelProvider(ModelProvider mp) {
-    pdpModel = mp.getModel(PDPModel.class);
-    roadModel = mp.getModel(RoadModel.class);
+    pdpModel = mp.tryGetModel(PDPModel.class);
+    roadModel = mp.tryGetModel(RoadModel.class);
   }
 
 }

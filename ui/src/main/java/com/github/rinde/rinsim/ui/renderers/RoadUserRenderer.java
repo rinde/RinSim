@@ -112,6 +112,6 @@ public final class RoadUserRenderer implements ModelRenderer {
 
   @Override
   public void registerModelProvider(ModelProvider mp) {
-    rs = mp.getModel(RoadModel.class);
+    rs = mp.tryGetModel(RoadModel.class);
   }
 }

@@ -8,13 +8,7 @@
     <factorypathentry kind="VARJAR" id="M2_REPO/com/google/code/findbugs/jsr305/3.0.0/jsr305-3.0.0.jar" enabled="true" runInBatchMode="false"/>
     <factorypathentry kind="VARJAR" id="M2_REPO/org/jscience/jscience/4.3.1/jscience-4.3.1.jar" enabled="true" runInBatchMode="false"/>
     <factorypathentry kind="VARJAR" id="M2_REPO/org/javolution/javolution/5.2.3/javolution-5.2.3.jar" enabled="true" runInBatchMode="false"/>
-    <factorypathentry kind="VARJAR" id="M2_REPO/org/inferred/freebuilder/1.0-rc3/freebuilder-1.0-rc3.jar" enabled="true" runInBatchMode="false"/>
-    <factorypathentry kind="VARJAR" id="M2_REPO/com/google/auto/service/auto-service/1.0-rc2/auto-service-1.0-rc2.jar" enabled="true" runInBatchMode="false"/>
-    <factorypathentry kind="VARJAR" id="M2_REPO/com/google/auto/auto-common/0.3/auto-common-0.3.jar" enabled="true" runInBatchMode="false"/>
-    <factorypathentry kind="VARJAR" id="M2_REPO/com/google/gwt/gwt-user/2.6.1/gwt-user-2.6.1.jar" enabled="true" runInBatchMode="false"/>
-    <factorypathentry kind="VARJAR" id="M2_REPO/javax/validation/validation-api/1.0.0.GA/validation-api-1.0.0.GA.jar" enabled="true" runInBatchMode="false"/>
-    <factorypathentry kind="VARJAR" id="M2_REPO/javax/validation/validation-api/1.0.0.GA/validation-api-1.0.0.GA-sources.jar" enabled="true" runInBatchMode="false"/>
-    <factorypathentry kind="VARJAR" id="M2_REPO/org/json/json/20090211/json-20090211.jar" enabled="true" runInBatchMode="false"/>
-    <factorypathentry kind="VARJAR" id="M2_REPO/org/jvnet/sorcerer/sorcerer-javac/0.8/sorcerer-javac-0.8.jar" enabled="true" runInBatchMode="false"/>
-    <factorypathentry kind="VARJAR" id="M2_REPO/org/eclipse/swt/org.eclipse.swt.cocoa.macosx.x86_64/4.3/org.eclipse.swt.cocoa.macosx.x86_64-4.3.jar" enabled="true" runInBatchMode="false"/>
+    <factorypathentry kind="VARJAR" id="M2_REPO/com/google/auto/value/auto-value/1.0/auto-value-1.0.jar" enabled="true" runInBatchMode="false"/>
+    <factorypathentry kind="VARJAR" id="M2_REPO/org/eclipse/swt/org.eclipse.swt.cocoa.macosx.x86_64/4.4/org.eclipse.swt.cocoa.macosx.x86_64-4.4.jar" enabled="true" runInBatchMode="false"/>
+    <factorypathentry kind="EXTJAR" id="/Users/rinde/workspace/RinSim/test-util/pom.xml" enabled="true" runInBatchMode="false"/>
 </factorypath>

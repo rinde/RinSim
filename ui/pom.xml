@@ -29,11 +29,12 @@
 			<groupId>com.github.rinde</groupId>
 			<artifactId>rinsim-geom</artifactId>
 		</dependency>
+		
 		<dependency>
-			<groupId>org.inferred</groupId>
-			<artifactId>freebuilder</artifactId>
-			<optional>true</optional>
-		</dependency>
+			<groupId>com.google.auto.value</groupId>
+			<artifactId>auto-value</artifactId>
+			<scope>provided</scope>
+		</dependency> 
 		<dependency>
 			<groupId>org.eclipse.swt</groupId>
 			<artifactId>org.eclipse.swt.${swt.variant}</artifactId>
@@ -131,7 +132,7 @@
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<sonar.language>java</sonar.language>
-		<swt.version>4.3</swt.version> <!-- SHOULD BE SAME AS IN packaging/pom.xml -->
+		<swt.version>4.4</swt.version>
 		<!-- by default there are no arguments passed to tests -->
 		<test.arg />
 	</properties>
@@ -156,10 +157,8 @@
 				</executions>
 			</plugin>
 
-			<!-- <plugin>
-				<groupId>com.googlecode.japi-checker</groupId>
-				<artifactId>japi-checker-maven-plugin</artifactId>
-			</plugin> -->
+			<!-- <plugin> <groupId>com.googlecode.japi-checker</groupId> <artifactId>japi-checker-maven-plugin</artifactId> 
+				</plugin> -->
 		</plugins>
 	</build>
 </project>

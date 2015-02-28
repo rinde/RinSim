@@ -121,7 +121,7 @@ class RenderHelper {
   void drawArrow(Point from, Point to, double width, double height) {
     final Point left = PointUtil.perp(to, from, height, width / 2d);
     final Point right = PointUtil.perp(to, from, height, width / -2d);
-    drawLine(from, to);
+    drawLine(from, PointUtil.on(from, to, height));
     fillPolygon(left, right, to);
   }
 }

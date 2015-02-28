@@ -149,6 +149,6 @@ public final class GraphRoadModelRenderer implements ModelRenderer {
 
   @Override
   public void registerModelProvider(ModelProvider mp) {
-    grm = Optional.fromNullable(mp.getModel(GraphRoadModel.class)).get();
+    grm = Optional.fromNullable(mp.tryGetModel(GraphRoadModel.class)).get();
   }
 }

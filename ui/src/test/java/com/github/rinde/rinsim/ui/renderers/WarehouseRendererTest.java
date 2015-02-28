@@ -15,8 +15,6 @@
  */
 package com.github.rinde.rinsim.ui.renderers;
 
-import static org.junit.Assert.assertEquals;
-
 import javax.measure.Measure;
 import javax.measure.unit.SI;
 
@@ -48,27 +46,6 @@ import com.google.common.base.Optional;
 public class WarehouseRendererTest {
 
   @Test
-  public void test2() {
-
-    final Point a = new Point(1, 0);
-    final Point b = new Point(3, 0);
-
-    final Point c = new Point(0, 1);
-    final Point d = new Point(0, 3);
-
-    final Point z = new Point(0, 0);
-    final Point e = new Point(10, 10);
-    final Point f = new Point(0, 10);
-
-    assertEquals(new Point(0, 0),
-        PointUtil.intersectionPoint(a, b, c, d).get());
-
-    assertEquals(z,
-        PointUtil.intersectionPoint(z, e, f, z).get());
-
-  }
-
-  @Test
   public void test() {
 
     final Simulator sim = new Simulator(new MersenneTwister(123L),
@@ -77,43 +54,55 @@ public class WarehouseRendererTest {
     final ListenableGraph<LengthData> graph = new ListenableGraph<>(
         new TableGraph<LengthData>());
 
-    // graph.addConnection(new Point(0, 0), new Point(0, 10));
-    // graph.addConnection(new Point(0, 10), new Point(10, 10));
-    graph.addConnection(new Point(0, 0), new Point(10, 10));
-    // graph.addConnection(new Point(0, 0), new Point(10, 0));
-    Graphs.addPath(graph, new Point(0, 0), new Point(0, 10),
-        new Point(10, 10), new Point(10, 0), new Point(0, 0));
-    Graphs.addBiPath(graph, new Point(10, 0), new Point(20, 0),
-        new Point(20, 10), new Point(10, 10));
+    Graphs.addPath(graph, new Point(0, 0), new Point(10, 0), new Point(10,
+        10),
+        new Point(0, 10), new Point(0, 0));
 
-    Graphs.addBiPath(graph, new Point(10, 10), new Point(20, 15), new Point(30,
-        10), new Point(30, 5), new Point(20, 10));
-
-    Graphs.addPath(graph, new Point(30, 5), new Point(30, 3), new Point(28, 3),
-        new Point(30, 1), new Point(20, 0));
+    // graph.addConnection(new Point(0, 0), new Point(20, 20));
+    // Graphs.addPath(graph, new Point(0, 0), new Point(0, 20),
+    // new Point(20, 20), new Point(20, 0), new Point(0, 0));
+    // Graphs.addBiPath(graph, new Point(20, 0), new Point(40, 0),
+    // new Point(40, 20), new Point(20, 20));
+    //
+    // Graphs.addBiPath(graph, new Point(20, 20), new Point(40, 35), new
+    // Point(60,
+    // 20), new Point(60, 10), new Point(40, 20));
+    //
+    // Graphs.addPath(graph, new Point(60, 10), new Point(60, 6),
+    // new Point(56, 6),
+    // new Point(60, 2), new Point(40, 0));
+    //
+    // Graphs.addBiPath(graph, new Point(20, 20), new Point(20, 30), new
+    // Point(20,
+    // 40));
 
     sim.register(CollisionGraphRoadModel.builder(graph).build());
     sim.configure();
-    sim.register(new Agent(sim.getRandomGenerator()));
-    sim.register(new Agent(sim.getRandomGenerator()));
-    sim.register(new Agent(sim.getRandomGenerator()));
-
+    for (int i = 0; i < 4; i++) {
+      sim.register(new Agent(sim.getRandomGenerator()));
+    }
     View.create(sim)
         .with(WarehouseRenderer.builder()
             .setMargin(0)
-            .setDrawOneWayStreetArrows(true))
-        .with(AGVRenderer.builder())
+            .drawOneWayStreetArrows()
+            .showNodeOccupancy()
+        )
+        .with(AGVRenderer.builder()
+            .showVehicleCreationNumber()
+            .useDifferentColorsForVehicles()
+            .showVehicleCoordinates()
+        )
+        .enableAutoPlay()
         .stopSimulatorAtTime(150 * 1000L)
         .enableAutoClose()
-        .enableAutoPlay()
-        .setSpeedUp(2)
+        .setSpeedUp(8)
         .show();
 
   }
 
   static class Agent implements TickListener, MovingRoadUser {
-    Optional<RoadModel> model;
-    Point destination;
+    Optional<CollisionGraphRoadModel> model;
+    Optional<Point> destination;
     RandomGenerator rng;
     boolean haveABreak;
 
@@ -126,9 +115,13 @@ public class WarehouseRendererTest {
 
     @Override
     public void initRoadUser(RoadModel m) {
-      model = Optional.of(m);
-      model.get().addObjectAt(this, model.get().getRandomPosition(rng));
-      destination = model.get().getRandomPosition(rng);
+      model = Optional.of((CollisionGraphRoadModel) m);
+
+      Point p;
+      while (model.get().isOccupied(p = model.get().getRandomPosition(rng))) {}
+
+      model.get().addObjectAt(this, p);
+      destination = Optional.of(model.get().getRandomPosition(rng));
     }
 
     @Override
@@ -138,20 +131,19 @@ public class WarehouseRendererTest {
 
     @Override
     public void tick(TimeLapse timeLapse) {
-      if (rng.nextInt(100) < 1 || timeOut > 0) {
-        if (timeOut == 0L) {
-          timeOut = 100L;
-        } else {
-          timeOut--;
-        }
-
-      } else {
-
-        if (model.get().getPosition(this).equals(destination)) {
-          destination = model.get().getRandomPosition(rng);
-        }
-        model.get().moveTo(this, destination, timeLapse);
+      // if (rng.nextInt(100) < 1 || timeOut > 0) {
+      // if (timeOut == 0L) {
+      // // timeOut = 100L;
+      // } else {
+      // timeOut--;
+      // }
+      //
+      // } else {
+      if (model.get().getPosition(this).equals(destination.get())) {
+        destination = Optional.of(model.get().getRandomPosition(rng));
       }
+      model.get().moveTo(this, destination.get(), timeLapse);
+      // }
     }
 
     @Override
