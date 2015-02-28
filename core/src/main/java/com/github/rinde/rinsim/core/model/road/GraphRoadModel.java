@@ -18,6 +18,7 @@ package com.github.rinde.rinsim.core.model.road;
 import static com.github.rinde.rinsim.geom.Graphs.shortestPathEuclideanDistance;
 import static com.github.rinde.rinsim.geom.Graphs.unmodifiableGraph;
 import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.base.Verify.verify;
 
 import java.math.RoundingMode;
@@ -120,7 +121,7 @@ public class GraphRoadModel extends AbstractRoadModel<Loc> {
    * @param to The destination position for this travel.
    * @param speed The travel speed.
    * @param time The time available for traveling.
-   * @return The distance that can be traveled.
+   * @return The distance that can be traveled, must be &ge; 0.
    */
   protected double computeTravelableDistance(Loc from, Point to, double speed,
       TimeLapse time) {
@@ -155,11 +156,22 @@ public class GraphRoadModel extends AbstractRoadModel<Loc> {
       checkMoveValidity(tempLoc, path.peek());
       // speed in internal speed unit
       final double speed = getMaxSpeed(object, tempLoc, path.peek());
+      checkState(speed >= 0,
+          "Found a bug in getMaxSpeed, return value must be >= 0, but is %s.",
+          speed);
       // distance that can be traveled in current edge with timeleft
       final double travelableDistance = computeTravelableDistance(tempLoc,
           path.peek(), speed, time);
+      checkState(
+          travelableDistance >= 0d,
+          "Found a bug in computeTravelableDistance, return value must be >= 0, but is %s.",
+          travelableDistance);
       final double connLength = unitConversion.toInDist(
           computeDistanceOnConnection(tempLoc, path.peek()));
+      checkState(
+          connLength >= 0d,
+          "Found a bug in computeDistanceOnConnection, return value must be >= 0, but is %s.",
+          connLength);
 
       double traveledDistance;
       if (travelableDistance >= connLength) {
@@ -233,7 +245,7 @@ public class GraphRoadModel extends AbstractRoadModel<Loc> {
    * available.
    * @param from Start of the connection.
    * @param to End of the connection.
-   * @return the distance between two points
+   * @return the distance between two points, must be &ge; 0.
    * @throws IllegalArgumentException when two points are part of the graph but
    *           are not equal or there is no connection between them
    */
@@ -283,7 +295,7 @@ public class GraphRoadModel extends AbstractRoadModel<Loc> {
    * @param object traveling object
    * @param from the point on the graph object is located
    * @param to the next point on the path it want to reach
-   * @return The maximum speed in the internal unit.
+   * @return The maximum speed in the internal unit, must be &ge; 0.
    */
   protected double getMaxSpeed(MovingRoadUser object, Point from, Point to) {
     final double objSpeed = unitConversion.toInSpeed(object.getSpeed());

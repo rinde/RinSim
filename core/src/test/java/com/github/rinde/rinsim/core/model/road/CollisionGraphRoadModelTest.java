@@ -195,7 +195,7 @@ public class CollisionGraphRoadModelTest {
     assertPointEquals(new Point(1d - 0.0002777777778, 0),
         model.getPosition(agv1),
         GraphRoadModel.DELTA);
-    assertPointEquals(new Point(0, 1.25), model.getPosition(agv2),
+    assertPointEquals(new Point(0, 1.0), model.getPosition(agv2),
         GraphRoadModel.DELTA);
 
     // moving agv2 is not allowed

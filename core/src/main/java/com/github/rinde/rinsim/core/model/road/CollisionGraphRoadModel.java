@@ -102,8 +102,7 @@ public class CollisionGraphRoadModel extends DynamicGraphRoadModel {
       // check if the node is occupied
       if (occupiedNodes.containsKey(conn.to())) {
         closestDist = (from.isOnConnection() ? from.connLength
-            - from.relativePos : conn.getLength()) - vehicleLength
-            - minDistance;
+            - from.relativePos : conn.getLength()) - vehicleLength;
       }
 
       // check if there is an obstacle on the connection
