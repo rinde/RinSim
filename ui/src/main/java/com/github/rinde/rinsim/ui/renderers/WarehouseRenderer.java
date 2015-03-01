@@ -36,9 +36,7 @@ import com.github.rinde.rinsim.core.model.road.CollisionGraphRoadModel;
 import com.github.rinde.rinsim.geom.Connection;
 import com.github.rinde.rinsim.geom.Graph;
 import com.github.rinde.rinsim.geom.Point;
-import com.github.rinde.rinsim.ui.Factory;
-import com.github.rinde.rinsim.ui.IBuilder;
-import com.google.auto.value.AutoValue;
+import com.github.rinde.rinsim.ui.CanvasRendererBuilder;
 import com.google.common.base.Optional;
 import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.Iterators;
@@ -47,14 +45,13 @@ import com.google.common.collect.Table;
 
 /**
  * Renders a graph as an warehouse. Instances can be obtained via
- * {@link WarehouseRenderer#builder()}.
+ * {@link #builder()}.
  * <p>
  * <b>Requires:</b> a {@link CollisionGraphRoadModel} in the
  * {@link com.github.rinde.rinsim.core.Simulator}.
  * @author Rinde van Lon
  */
 public final class WarehouseRenderer implements CanvasRenderer {
-
   private final CollisionGraphRoadModel model;
   private final double margin;
   private final RenderHelper adapter;
@@ -63,19 +60,18 @@ public final class WarehouseRenderer implements CanvasRenderer {
   private final double halfRoadWidth;
   private final Graph<?> graph;
   private final boolean drawOneWayStreetArrows;
-
   private final boolean showNodeOccupancy;
 
-  WarehouseRenderer(WarehouseRendererFactory factory, CollisionGraphRoadModel m) {
+  WarehouseRenderer(Builder builder, CollisionGraphRoadModel m) {
     model = m;
     graph = model.getGraph();
-    margin = factory.getMargin() + m.getVehicleLength() / 2d;
-    drawOneWayStreetArrows = factory.isDrawOneWayStreetArrows();
+    margin = builder.margin + m.getVehicleLength() / 2d;
+    drawOneWayStreetArrows = builder.drawOneWayStreetArrows;
+    showNodeOccupancy = builder.showNodeOccupancy;
     adapter = new RenderHelper();
     vehicleLength = model.getVehicleLength();
     roadWidth = model.getVehicleLength() / 1.5d;
     halfRoadWidth = roadWidth / 2d;
-    showNodeOccupancy = factory.isShowNodeOccupancy();
   }
 
   @Override
@@ -212,39 +208,11 @@ public final class WarehouseRenderer implements CanvasRenderer {
     return new Builder();
   }
 
-  @AutoValue
-  abstract static class WarehouseRendererFactory implements
-      Factory<WarehouseRenderer, ModelProvider> {
-
-    WarehouseRendererFactory() {}
-
-    abstract boolean isDrawOneWayStreetArrows();
-
-    abstract double getMargin();
-
-    abstract boolean isShowNodeOccupancy();
-
-    @Override
-    public WarehouseRenderer create(ModelProvider argument) {
-      return new WarehouseRenderer(this,
-          argument.getModel(CollisionGraphRoadModel.class));
-    }
-
-    static Factory<WarehouseRenderer, ModelProvider> create(Builder b) {
-      return new AutoValue_WarehouseRenderer_WarehouseRendererFactory(
-          b.drawOneWayStreetArrows,
-          b.margin,
-          b.showNodeOccupancy);
-    }
-  }
-
   /**
    * A builder for creating a {@link WarehouseRenderer}.
    * @author Rinde van Lon
    */
-  public static class Builder implements
-      IBuilder<Factory<WarehouseRenderer, ModelProvider>> {
-
+  public static class Builder implements CanvasRendererBuilder {
     boolean drawOneWayStreetArrows;
     double margin;
     boolean showNodeOccupancy;
@@ -257,7 +225,8 @@ public final class WarehouseRenderer implements CanvasRenderer {
 
     /**
      * Defines the margin around the warehouse. The margin is defined in the
-     * unit used by the {@link CollisionGraphRoadModel}.
+     * unit used by the {@link CollisionGraphRoadModel}. The default value is
+     * <code>0</code>.
      * @param m Must be a positive value.
      * @return This, as per the builder pattern.
      */
@@ -269,7 +238,7 @@ public final class WarehouseRenderer implements CanvasRenderer {
 
     /**
      * One way streets will be indicated with an arrow indicating the allowed
-     * driving direction.
+     * driving direction. By default this is not drawn.
      * @return This, as per the builder pattern.
      */
     public Builder drawOneWayStreetArrows() {
@@ -278,7 +247,7 @@ public final class WarehouseRenderer implements CanvasRenderer {
     }
 
     /**
-     * Will draw an overlay on occupied nodes.
+     * Will draw an overlay on occupied nodes. By default this is not shown.
      * @return This, as per the builder pattern.
      */
     public Builder showNodeOccupancy() {
@@ -287,8 +256,18 @@ public final class WarehouseRenderer implements CanvasRenderer {
     }
 
     @Override
-    public Factory<WarehouseRenderer, ModelProvider> build() {
-      return WarehouseRendererFactory.create(this);
+    public CanvasRenderer build(ModelProvider mp) {
+      return new WarehouseRenderer(this,
+          mp.getModel(CollisionGraphRoadModel.class));
+    }
+
+    @Override
+    public CanvasRendererBuilder copy() {
+      final Builder b = new Builder();
+      b.drawOneWayStreetArrows = drawOneWayStreetArrows;
+      b.margin = margin;
+      b.showNodeOccupancy = showNodeOccupancy;
+      return b;
     }
   }
 }

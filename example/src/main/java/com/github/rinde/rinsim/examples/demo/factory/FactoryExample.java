@@ -56,8 +56,8 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.math.DoubleMath;
 
 /**
- * @author Rinde van Lon 
- * 
+ * @author Rinde van Lon
+ *
  */
 public final class FactoryExample {
 
@@ -190,8 +190,10 @@ public final class FactoryExample {
 
     final View.Builder view = View
         .create(simulator)
-        .with(new GraphRoadModelRenderer(CANVAS_MARGIN, false, false, false),
-            new BoxRenderer(), new RoadUserRenderer(uis, false))
+        .with(GraphRoadModelRenderer.builder()
+            .setMargin(CANVAS_MARGIN))
+        .with(new BoxRenderer())
+        .with(new RoadUserRenderer(uis, false))
         .setTitleAppendix("Factory Demo")
         .enableAutoPlay()
         .enableAutoClose()

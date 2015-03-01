@@ -15,14 +15,25 @@
  */
 package com.github.rinde.rinsim.ui;
 
+import com.github.rinde.rinsim.core.model.ModelProvider;
+import com.github.rinde.rinsim.ui.renderers.CanvasRenderer;
+
 /**
- *
- * implementations should always be immutable
+ * Builder interface for creating {@link CanvasRenderer}s.
  * @author Rinde van Lon
- *
  */
-public interface Factory<T, U> {
+public interface CanvasRendererBuilder {
+  /**
+   * Should construct a {@link CanvasRenderer}.
+   * @param mp A {@link ModelProvider} that can be used to obtain model
+   *          dependencies for the renderer.
+   * @return A {@link CanvasRenderer} instance.
+   */
+  CanvasRenderer build(ModelProvider mp);
 
-  T create(U argument);
-
+  /**
+   * Should create a complete copy of the builder.
+   * @return An instance with exactly the same behavior as this.
+   */
+  CanvasRendererBuilder copy();
 }

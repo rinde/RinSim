@@ -15,6 +15,7 @@
  */
 package com.github.rinde.rinsim.ui.renderers;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
 
 import java.util.Collection;
@@ -30,43 +31,37 @@ import com.github.rinde.rinsim.geom.Connection;
 import com.github.rinde.rinsim.geom.ConnectionData;
 import com.github.rinde.rinsim.geom.Graph;
 import com.github.rinde.rinsim.geom.Point;
-import com.google.common.base.Optional;
+import com.github.rinde.rinsim.ui.CanvasRendererBuilder;
 
 /**
- *
+ * A simple {@link CanvasRenderer} for {@link GraphRoadModel}s. Instances can be
+ * obtained via {@link #builder()}.
+ * <p>
+ * <b>Requires:</b> a {@link GraphRoadModel} in the
+ * {@link com.github.rinde.rinsim.core.Simulator}.
  * @author Rinde van Lon (rinde.vanlon@cs.kuleuven.be)
- *
  */
-public final class GraphRoadModelRenderer implements ModelRenderer {
-
+public final class GraphRoadModelRenderer implements CanvasRenderer {
   private static final int NODE_RADIUS = 2;
   private static final Point RELATIVE_TEXT_POSITION = new Point(4, -14);
 
-  private GraphRoadModel grm;
+  private final GraphRoadModel model;
   private final int margin;
   private final boolean showNodes;
   private final boolean showNodeLabels;
-  private final boolean drawDirectionArrows;
+  private final boolean showDirectionArrows;
 
-  public GraphRoadModelRenderer(int pMargin, boolean pShowNodes,
-      boolean pShowNodeLabels, boolean pDrawDirectionArrows) {
-    margin = pMargin;
-    showNodes = pShowNodes;
-    showNodeLabels = pShowNodeLabels;
-    drawDirectionArrows = pDrawDirectionArrows;
-  }
-
-  /**
-   * Creates a {@link GraphRoadModelRenderer} instance with a margin of
-   * <code>20</code> and not displaying nodes or direction arrows.
-   */
-  public GraphRoadModelRenderer() {
-    this(20, false, false, false);
+  GraphRoadModelRenderer(GraphRoadModel grm, Builder b) {
+    model = grm;
+    margin = b.margin;
+    showNodes = b.showNodes;
+    showNodeLabels = b.showNodeLabels;
+    showDirectionArrows = b.showDirectionArrows;
   }
 
   @Override
   public void renderStatic(GC gc, ViewPort vp) {
-    final Graph<? extends ConnectionData> graph = grm.getGraph();
+    final Graph<? extends ConnectionData> graph = model.getGraph();
 
     if (showNodes || showNodeLabels) {
       for (final Point node : graph.getNodes()) {
@@ -95,7 +90,7 @@ public final class GraphRoadModelRenderer implements ModelRenderer {
       gc.setForeground(gc.getDevice().getSystemColor(SWT.COLOR_GRAY));
       gc.drawLine(x1, y1, x2, y2);
 
-      if (drawDirectionArrows) {
+      if (showDirectionArrows) {
         final double dist = Point
             .distance(new Point(x1, y1), new Point(x2, y2));
         final double r = 14d / dist;
@@ -128,9 +123,9 @@ public final class GraphRoadModelRenderer implements ModelRenderer {
   @Nullable
   @Override
   public ViewRect getViewRect() {
-    checkState(!grm.getGraph().isEmpty(),
+    checkState(!model.getGraph().isEmpty(),
         "graph may not be empty at this point");
-    final Collection<Point> nodes = grm.getGraph().getNodes();
+    final Collection<Point> nodes = model.getGraph().getNodes();
 
     double minX = Double.POSITIVE_INFINITY;
     double maxX = Double.NEGATIVE_INFINITY;
@@ -147,8 +142,84 @@ public final class GraphRoadModelRenderer implements ModelRenderer {
         + margin, maxY + margin));
   }
 
-  @Override
-  public void registerModelProvider(ModelProvider mp) {
-    grm = Optional.fromNullable(mp.tryGetModel(GraphRoadModel.class)).get();
+  /**
+   * @return A new {@link Builder} for creating {@link GraphRoadModelRenderer}
+   *         instances.
+   */
+  public static Builder builder() {
+    return new Builder();
+  }
+
+  /**
+   * A builder for creating a {@link GraphRoadModelRenderer}.
+   * @author Rinde van Lon
+   */
+  public static final class Builder implements CanvasRendererBuilder {
+    int margin;
+    boolean showNodes;
+    boolean showNodeLabels;
+    boolean showDirectionArrows;
+
+    Builder() {
+      margin = 0;
+      showNodes = false;
+      showNodeLabels = false;
+      showDirectionArrows = false;
+    }
+
+    /**
+     * Sets the margin to display around the graph.
+     * @param m The margin, in the same unit as
+     *          {@link GraphRoadModel#getDistanceUnit()}.
+     * @return This, as per the builder pattern.
+     */
+    public Builder setMargin(int m) {
+      checkArgument(m >= 0);
+      margin = m;
+      return this;
+    }
+
+    /**
+     * Draws a circle for each node in the graph.
+     * @return This, as per the builder pattern.
+     */
+    public Builder showNodes() {
+      showNodes = true;
+      return this;
+    }
+
+    /**
+     * Shows a label with coordinates next to each node in the graph.
+     * @return This, as per the builder pattern.
+     */
+    public Builder showNodeLabels() {
+      showNodeLabels = true;
+      return this;
+    }
+
+    /**
+     * Shows arrows for each connection in the graph, indicating the allowed
+     * driving direction(s).
+     * @return This, as per the builder pattern.
+     */
+    public Builder showDirectionArrows() {
+      showDirectionArrows = true;
+      return this;
+    }
+
+    @Override
+    public Builder copy() {
+      final Builder copy = new Builder();
+      copy.margin = margin;
+      copy.showNodes = showNodes;
+      copy.showNodeLabels = showNodeLabels;
+      copy.showDirectionArrows = showDirectionArrows;
+      return copy;
+    }
+
+    @Override
+    public CanvasRenderer build(ModelProvider mp) {
+      return new GraphRoadModelRenderer(mp.getModel(GraphRoadModel.class), this);
+    }
   }
 }

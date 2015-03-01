@@ -58,7 +58,7 @@ import com.github.rinde.rinsim.util.TimeWindow;
  * <p>
  * If this class is run on MacOS it might be necessary to use
  * -XstartOnFirstThread as a VM argument.
- * @author Rinde van Lon 
+ * @author Rinde van Lon
  */
 public final class TaxiExample {
 
@@ -85,9 +85,9 @@ public final class TaxiExample {
     final long endTime = args != null && args.length >= 1 ? Long
         .parseLong(args[0]) : Long.MAX_VALUE;
 
-    final String graphFile = args != null && args.length >= 2 ? args[1]
-        : MAP_FILE;
-    run(false, endTime, graphFile, null /* new Display() */, null, null);
+        final String graphFile = args != null && args.length >= 2 ? args[1]
+            : MAP_FILE;
+        run(false, endTime, graphFile, null /* new Display() */, null, null);
   }
 
   /**
@@ -148,7 +148,7 @@ public final class TaxiExample {
         } else if (rng.nextDouble() < .007) {
           simulator.register(new Customer(
               roadModel.getRandomPosition(rng), roadModel
-                  .getRandomPosition(rng), SERVICE_DURATION, SERVICE_DURATION,
+              .getRandomPosition(rng), SERVICE_DURATION, SERVICE_DURATION,
               1 + rng.nextInt(3)));
         }
       }
@@ -162,26 +162,26 @@ public final class TaxiExample {
     uis.add(Taxi.class, "/graphics/flat/taxi-32.png");
     uis.add(Customer.class, "/graphics/flat/person-red-32.png");
     final View.Builder view = View.create(simulator)
-        .with(new GraphRoadModelRenderer())
+        .with(GraphRoadModelRenderer.builder())
         .with(new RoadUserRenderer(uis, false))
         .with(new TaxiRenderer(Language.ENGLISH))
         .setTitleAppendix("Taxi Demo");
 
     if (testing) {
       view.enableAutoClose()
-          .enableAutoPlay()
-          .stopSimulatorAtTime(60 * 60 * 1000)
-          .setSpeedUp(64);
+      .enableAutoPlay()
+      .stopSimulatorAtTime(60 * 60 * 1000)
+      .setSpeedUp(64);
     }
     else if (m != null && list != null) {
       view.displayOnMonitor(m)
-          .setSpeedUp(4)
-          .setResolution(m.getClientArea().width, m.getClientArea().height)
-          .setDisplay(display)
-          .setCallback(list)
-          .setAsync()
-          .enableAutoPlay()
-          .enableAutoClose();
+      .setSpeedUp(4)
+      .setResolution(m.getClientArea().width, m.getClientArea().height)
+      .setDisplay(display)
+      .setCallback(list)
+      .setAsync()
+      .enableAutoPlay()
+      .enableAutoClose();
     }
 
     view.show();
@@ -223,7 +223,7 @@ public final class TaxiExample {
       final Graph<MultiAttributeData> g = DotGraphSerializer
           .getMultiAttributeGraphSerializer(
               new SelfCycleFilter()).read(
-              TaxiExample.class.getResourceAsStream(name));
+                  TaxiExample.class.getResourceAsStream(name));
 
       GRAPH_CACHE.put(name, g);
       return g;

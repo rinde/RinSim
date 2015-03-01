@@ -58,7 +58,6 @@ import org.joda.time.format.PeriodFormatterBuilder;
 import com.github.rinde.rinsim.core.Simulator;
 import com.github.rinde.rinsim.core.TickListener;
 import com.github.rinde.rinsim.core.TimeLapse;
-import com.github.rinde.rinsim.core.model.ModelProvider;
 import com.github.rinde.rinsim.core.model.ModelReceiver;
 import com.github.rinde.rinsim.geom.Point;
 import com.github.rinde.rinsim.ui.renderers.CanvasRenderer;
@@ -110,7 +109,7 @@ final class SimulationViewer extends Composite implements TickListener,
   private Image image;
   private final ImmutableList<PanelRenderer> panelRenderers;
   private final List<CanvasRenderer> renderers;
-  private final List<Factory<? extends CanvasRenderer, ModelProvider>> rendererFactories;
+  private final List<CanvasRendererBuilder> rendererBuilders;
   private final Set<ModelReceiver> modelRenderers;
   private final boolean autoPlay;
   private MenuItem playPauseMenuItem;
@@ -130,15 +129,24 @@ final class SimulationViewer extends Composite implements TickListener,
   private final Display display;
   private final Map<MenuItems, Integer> accelerators;
 
+  static SimulationViewer create(Shell shell, final Simulator sim,
+      int pSpeedUp,
+      boolean pAutoPlay, List<Renderer> pRenderers,
+      List<CanvasRendererBuilder> builders,
+      Map<MenuItems, Integer> acc) {
+    return new SimulationViewer(shell, sim, pSpeedUp, pAutoPlay, pRenderers,
+        builders, acc);
+  }
+
   SimulationViewer(Shell shell, final Simulator sim, int pSpeedUp,
       boolean pAutoPlay, List<Renderer> pRenderers,
-      List<Factory<? extends CanvasRenderer, ModelProvider>> factories,
+      List<CanvasRendererBuilder> builder,
       Map<MenuItems, Integer> acc) {
     super(shell, SWT.NONE);
 
     accelerators = acc;
     autoPlay = pAutoPlay;
-    rendererFactories = factories;
+    rendererBuilders = builder;
 
     final Multimap<Integer, PanelRenderer> panels = LinkedHashMultimap.create();
     renderers = newArrayList();
@@ -261,8 +269,8 @@ final class SimulationViewer extends Composite implements TickListener,
 
   void configureModelRenderers() {
 
-    for (final Factory<? extends CanvasRenderer, ModelProvider> factory : rendererFactories) {
-      renderers.add(factory.create(simulator.getModelProvider()));
+    for (final CanvasRendererBuilder builder : rendererBuilders) {
+      renderers.add(builder.build(simulator.getModelProvider()));
     }
 
     for (final ModelReceiver mr : modelRenderers) {

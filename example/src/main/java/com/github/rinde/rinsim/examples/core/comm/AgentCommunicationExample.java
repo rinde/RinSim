@@ -53,9 +53,9 @@ import com.github.rinde.rinsim.ui.renderers.UiSchema;
  * <p>
  * If this class is run on MacOS it might be necessary to use
  * -XstartOnFirstThread as a VM argument.
- * 
- * @author Bartosz Michalik 
- * @author Rinde van Lon 
+ *
+ * @author Bartosz Michalik
+ * @author Rinde van Lon
  * @since 2.0
  */
 public class AgentCommunicationExample {
@@ -126,7 +126,7 @@ public class AgentCommunicationExample {
     // create GUI
     final UiSchema schema = new UiSchema(false);
     schema
-        .add(ExamplePackage.class, "/graphics/perspective/deliverypackage2.png");
+    .add(ExamplePackage.class, "/graphics/perspective/deliverypackage2.png");
 
     final UiSchema schema2 = new UiSchema();
     schema2.add(Colors.BLACK.name(), Colors.BLACK.color());
@@ -134,16 +134,16 @@ public class AgentCommunicationExample {
     schema2.add(Colors.GREEN.name(), Colors.GREEN.color());
 
     final View.Builder viewBuilder = View.create(simulator)
-        .with(new GraphRoadModelRenderer())
+        .with(GraphRoadModelRenderer.builder())
         .with(new RoadUserRenderer(schema, false))
         .with(new MessagingLayerRenderer(roadModel, schema2))
         .setSpeedUp(4);
 
     if (testing) {
       viewBuilder.enableAutoPlay()
-          .enableAutoClose()
-          .setSpeedUp(64)
-          .stopSimulatorAtTime(60 * 60 * 1000);
+      .enableAutoClose()
+      .setSpeedUp(64)
+      .stopSimulatorAtTime(60 * 60 * 1000);
     }
 
     viewBuilder.show();

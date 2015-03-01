@@ -20,18 +20,31 @@ import javax.annotation.Nullable;
 import org.eclipse.swt.graphics.GC;
 
 /**
+ * A {@link Renderer} that allows rendering on the main canvas of the
+ * visualization.
  * @author Rinde van Lon (rinde.vanlon@cs.kuleuven.be)
- * 
  */
 public interface CanvasRenderer extends Renderer {
-
-  // FIXME documentation!
-
+  /**
+   * Should render static objects (such as a graph).
+   * @param gc The graphic context of the canvas.
+   * @param vp The {@link ViewPort}.
+   */
   void renderStatic(GC gc, ViewPort vp);
 
+  /**
+   * Should render dynamic objects (such as agents).
+   * @param gc The graphic context of the canvas.
+   * @param vp The {@link ViewPort}.
+   * @param time The current time of the simulator.
+   */
   void renderDynamic(GC gc, ViewPort vp, long time);
 
+  /**
+   * @return A {@link ViewRect} indicating the dimensions of the rendered
+   *         objects. May be <code>null</code> to indicate that another
+   *         {@link CanvasRenderer} should implement this.
+   */
   @Nullable
   ViewRect getViewRect();
-
 }

@@ -44,9 +44,7 @@ import com.github.rinde.rinsim.event.Event;
 import com.github.rinde.rinsim.event.Listener;
 import com.github.rinde.rinsim.geom.Connection;
 import com.github.rinde.rinsim.geom.Point;
-import com.github.rinde.rinsim.ui.Factory;
-import com.github.rinde.rinsim.ui.IBuilder;
-import com.google.auto.value.AutoValue;
+import com.github.rinde.rinsim.ui.CanvasRendererBuilder;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterators;
@@ -80,13 +78,13 @@ public final class AGVRenderer implements CanvasRenderer, Listener {
       SWT.COLOR_DARK_GREEN, SWT.COLOR_DARK_CYAN, SWT.COLOR_DARK_MAGENTA,
       SWT.COLOR_DARK_YELLOW);
 
-  AGVRenderer(CollisionGraphRoadModel m, AGVRendererFactory factory) {
+  AGVRenderer(CollisionGraphRoadModel m, Builder factory) {
     model = m;
     helper = new RenderHelper();
     vehicles = new LinkedHashMap<>();
-    useDifferentColors = factory.getUseDifferentColorsForVehicles();
+    useDifferentColors = factory.useDifferentColors;
     vehicleCounter = 0;
-    labelTypes = factory.getDebugStringTypes();
+    labelTypes = Sets.immutableEnumSet(factory.debugStringTypes);
 
     final Set<RoadUser> obs = model.getObjects();
     for (final RoadUser ru : obs) {
@@ -151,8 +149,7 @@ public final class AGVRenderer implements CanvasRenderer, Listener {
    * A builder for creating {@link AGVRenderer}s.
    * @author Rinde van Lon
    */
-  public static class Builder implements
-      IBuilder<Factory<AGVRenderer, ModelProvider>> {
+  public static class Builder implements CanvasRendererBuilder {
     boolean useDifferentColors;
     Set<DebugStringType> debugStringTypes;
 
@@ -190,30 +187,16 @@ public final class AGVRenderer implements CanvasRenderer, Listener {
     }
 
     @Override
-    public Factory<AGVRenderer, ModelProvider> build() {
-      return AGVRendererFactory.create(this);
+    public CanvasRenderer build(ModelProvider mp) {
+      return new AGVRenderer(mp.getModel(CollisionGraphRoadModel.class), this);
     }
-  }
-
-  @AutoValue
-  abstract static class AGVRendererFactory implements
-      Factory<AGVRenderer, ModelProvider> {
-
-    AGVRendererFactory() {}
-
-    abstract boolean getUseDifferentColorsForVehicles();
-
-    abstract ImmutableSet<DebugStringType> getDebugStringTypes();
 
     @Override
-    public AGVRenderer create(ModelProvider argument) {
-      return new AGVRenderer(argument.getModel(CollisionGraphRoadModel.class),
-          this);
-    }
-
-    static Factory<AGVRenderer, ModelProvider> create(Builder b) {
-      return new AutoValue_AGVRenderer_AGVRendererFactory(b.useDifferentColors,
-          Sets.immutableEnumSet(b.debugStringTypes));
+    public CanvasRendererBuilder copy() {
+      final Builder copy = new Builder();
+      copy.useDifferentColors = useDifferentColors;
+      copy.debugStringTypes.addAll(debugStringTypes);
+      return copy;
     }
   }
 

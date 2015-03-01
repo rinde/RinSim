@@ -19,9 +19,11 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
 import static java.util.Arrays.asList;
 
+import java.awt.im.InputContext;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 import javax.annotation.Nullable;
@@ -35,10 +37,8 @@ import org.eclipse.swt.widgets.Shell;
 import com.github.rinde.rinsim.core.Simulator;
 import com.github.rinde.rinsim.core.TickListener;
 import com.github.rinde.rinsim.core.TimeLapse;
-import com.github.rinde.rinsim.core.model.ModelProvider;
 import com.github.rinde.rinsim.event.Event;
 import com.github.rinde.rinsim.event.Listener;
-import com.github.rinde.rinsim.ui.renderers.CanvasRenderer;
 import com.github.rinde.rinsim.ui.renderers.Renderer;
 
 /**
@@ -88,7 +88,7 @@ public final class View {
     @Nullable
     Monitor monitor;
     final List<Renderer> rendererList;
-    final List<Factory<? extends CanvasRenderer, ModelProvider>> renderFactories;
+    final List<CanvasRendererBuilder> renderFactories;
     Map<MenuItems, Integer> accelerators;
     @Nullable
     Listener callback;
@@ -106,27 +106,36 @@ public final class View {
       rendererList = new ArrayList<>();
       renderFactories = new ArrayList<>();
       accelerators = new HashMap<>();
-      accelerators.putAll(MenuItems.QWERTY_ACCELERATORS);
+
+      @Nullable
+      final Locale loc = InputContext.getInstance().getLocale();
+      if (loc != null && loc.getLanguage().equals(Locale.FRENCH.getLanguage())) {
+        accelerators.putAll(MenuItems.AZERTY_ACCELERATORS);
+      } else {
+        accelerators.putAll(MenuItems.QWERTY_ACCELERATORS);
+      }
     }
 
     /**
+     * Adds the specified renderers.
      * @param renderers The {@link Renderer}s to add to the view.
-     * @return This as per the builder pattern.
+     * @return This, as per the builder pattern.
      */
     public Builder with(Renderer... renderers) {
       rendererList.addAll(asList(renderers));
       return this;
     }
 
+    /**
+     * Copies the specified {@link CanvasRendererBuilder} and adds it to the
+     * view. The user is free to modify the builder after calling this method
+     * but this will have no effect on the display.
+     * @param builder The builder to add.
+     * @return This, as per the builder pattern.
+     */
     public Builder with(
-        Factory<? extends CanvasRenderer, ModelProvider> renderFactory) {
-      renderFactories.add(renderFactory);
-      return this;
-    }
-
-    public Builder with(
-        IBuilder<? extends Factory<? extends CanvasRenderer, ModelProvider>> renderFactoryBuilder) {
-      renderFactories.add(renderFactoryBuilder.build());
+        CanvasRendererBuilder builder) {
+      renderFactories.add(builder.copy());
       return this;
     }
 
@@ -245,7 +254,9 @@ public final class View {
      * Allows to change the accelerators (aka shortcuts) of the menu items. Each
      * accelerator is set to its respective menu item via
      * {@link org.eclipse.swt.widgets.MenuItem#setAccelerator(int)}. By default
-     * the {@link MenuItems#QWERTY_ACCELERATORS} are used.
+     * the accelerators are set to {@link MenuItems#QWERTY_ACCELERATORS} unless
+     * a keyboard for the French language is detected (probably using an AZERTY
+     * layout), then {@link MenuItems#AZERTY_ACCELERATORS} is used.
      * @param acc The accelerators to set.
      * @return This, as per the builder pattern.
      */
@@ -254,11 +265,22 @@ public final class View {
       return this;
     }
 
+    /**
+     * Sets the view into asynchronous mode. This means that the call to
+     * {@link #show()} is non-blocking and will return immediately. By default
+     * the {@link #show()} is synchronous.
+     * @return This, as per the builder pattern.
+     */
     public Builder setAsync() {
       async = true;
       return this;
     }
 
+    /**
+     * Allows to register a {@link Listener} for stop events of the simulator.
+     * @param l The listener to register, overwrites previous listeners if any.
+     * @return This, as per the builder pattern.
+     */
     public Builder setCallback(Listener l) {
       callback = l;
       return this;
@@ -287,7 +309,8 @@ public final class View {
       }
       final Shell shell = new Shell(disp, shellArgs);
       if (monitor != null) {
-        shell.setLocation(monitor.getBounds().x, monitor.getBounds().y);
+        final Monitor m = monitor;
+        shell.setLocation(m.getBounds().x, m.getBounds().y);
       }
 
       shell.setText("RinSim - " + title);
@@ -351,8 +374,8 @@ public final class View {
       });
 
       // simulator viewer is run in here
-      new SimulationViewer(shell, simulator, speedUp, autoPlay, rendererList,
-          renderFactories, accelerators);
+      SimulationViewer.create(shell, simulator, speedUp, autoPlay,
+          rendererList, renderFactories, accelerators);
       shell.open();
       if (!async) {
         while (!shell.isDisposed()) {
