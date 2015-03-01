@@ -17,6 +17,8 @@ package com.github.rinde.rinsim.geom;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.collect.Lists.newArrayList;
+import static com.google.common.collect.Lists.reverse;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -36,6 +38,8 @@ import javax.annotation.Nullable;
 import com.google.common.base.Function;
 import com.google.common.base.Objects;
 import com.google.common.base.Optional;
+import com.google.common.collect.Iterators;
+import com.google.common.collect.PeekingIterator;
 
 /**
  * Utility class containing many methods for working with graphs.
@@ -63,6 +67,26 @@ public final class Graphs {
   }
 
   /**
+   * Create a path of connections on the specified {@link Graph} using the
+   * specified {@link Point}s. If the points <code>A, B, C</code> are specified,
+   * the two connections: <code>A -&gt; B</code> and <code>B -&gt; C</code> will
+   * be added to the graph.
+   * @param graph The graph to which the connections will be added.
+   * @param path Points that will be treated as a path.
+   * @param <E> The type of connection data.
+   */
+  public static <E extends ConnectionData> void addPath(Graph<E> graph,
+      Iterable<Point> path) {
+    PeekingIterator<Point> it = Iterators.peekingIterator(path.iterator());
+    while (it.hasNext()) {
+      Point n = it.next();
+      if (it.hasNext()) {
+        graph.addConnection(n, it.peek());
+      }
+    }
+  }
+
+  /**
    * Create a path of bi-directional connections on the specified {@link Graph}
    * using the specified {@link Point}s. If the points <code>A, B, C</code> are
    * specified, the four connections: <code>A -&gt; B</code>,
@@ -78,6 +102,22 @@ public final class Graphs {
     final List<Point> list = Arrays.asList(path);
     Collections.reverse(list);
     addPath(graph, list.toArray(new Point[path.length]));
+  }
+
+  /**
+   * Create a path of bi-directional connections on the specified {@link Graph}
+   * using the specified {@link Point}s. If the points <code>A, B, C</code> are
+   * specified, the four connections: <code>A -&gt; B</code>,
+   * <code>B -&gt; A</code>, <code>B -&gt; C</code> and <code>C -&gt; B</code>
+   * will be added to the graph.
+   * @param graph The graph to which the connections will be added.
+   * @param path Points that will be treated as a path.
+   * @param <E> The type of connection data.
+   */
+  public static <E extends ConnectionData> void addBiPath(Graph<E> graph,
+      Iterable<Point> path) {
+    addPath(graph, path);
+    addPath(graph, reverse(newArrayList(path)));
   }
 
   /**
