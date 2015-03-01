@@ -118,6 +118,10 @@ class RenderHelper {
     gc.get().drawPolygon(toCoordinates(points));
   }
 
+  void drawPolyline(Point... points) {
+    gc.get().drawPolyline(toCoordinates(points));
+  }
+
   void drawArrow(Point from, Point to, double width, double height) {
     final Point left = PointUtil.perp(to, from, height, width / 2d);
     final Point right = PointUtil.perp(to, from, height, width / -2d);

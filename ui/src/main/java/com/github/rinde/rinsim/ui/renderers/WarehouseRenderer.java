@@ -126,41 +126,54 @@ public final class WarehouseRenderer implements CanvasRenderer {
       conns.addAll(graph.getIncomingConnections(p));
       conns.addAll(graph.getOutgoingConnections(p));
 
-      final List<Point> neighbors = new ArrayList<>(conns);
-      Collections.sort(neighbors, new Comparator<Point>() {
-        @Override
-        public int compare(@Nullable Point o1, @Nullable Point o2) {
-          assert o1 != null;
-          assert o2 != null;
-          return Double.compare(PointUtil.angle(p, o1), PointUtil.angle(p, o2));
-        }
-      });
+      if (conns.size() == 1) {
+        // dead end is a special case
+        final Point n = conns.iterator().next();
+        final Point c1 = PointUtil.perp(p, n, -vehicleLength, -halfRoadWidth);
+        final Point c2 = PointUtil.perp(p, n, -vehicleLength, halfRoadWidth);
+        final Point o1 = PointUtil.perp(p, n, vehicleLength, -halfRoadWidth);
+        final Point o2 = PointUtil.perp(p, n, vehicleLength, halfRoadWidth);
+        adapter.setForegroundSysCol(SWT.COLOR_GRAY);
+        adapter.drawPolyline(o1, c1, c2, o2);
+      } else {
+        final List<Point> neighbors = new ArrayList<>(conns);
+        Collections.sort(neighbors, new Comparator<Point>() {
+          @Override
+          public int compare(@Nullable Point o1, @Nullable Point o2) {
+            assert o1 != null;
+            assert o2 != null;
+            return Double.compare(PointUtil.angle(p, o1),
+                PointUtil.angle(p, o2));
+          }
+        });
 
-      neighbors.add(neighbors.get(0));
-      final PeekingIterator<Point> it = Iterators.peekingIterator(neighbors
-          .iterator());
+        neighbors.add(neighbors.get(0));
+        final PeekingIterator<Point> it = Iterators.peekingIterator(neighbors
+            .iterator());
 
-      for (Point n = it.next(); it.hasNext(); n = it.next()) {
-        if (!it.hasNext()) {
-          break;
-        }
-        final Point a = PointUtil.perp(p, n, vehicleLength, -halfRoadWidth);
-        final Point a2 = PointUtil
-            .perp(p, n, vehicleLength + 1, -halfRoadWidth);
-        final Point b = PointUtil.perp(p, it.peek(), vehicleLength,
-            halfRoadWidth);
-        final Point b2 = PointUtil.perp(p, it.peek(), vehicleLength + 1,
-            halfRoadWidth);
-        final Optional<Point> intersect = PointUtil.intersectionPoint(a, a2, b,
-            b2);
+        for (Point n = it.next(); it.hasNext(); n = it.next()) {
+          if (!it.hasNext()) {
+            break;
+          }
+          final Point a = PointUtil.perp(p, n, vehicleLength, -halfRoadWidth);
+          final Point a2 = PointUtil
+              .perp(p, n, vehicleLength + 1, -halfRoadWidth);
+          final Point b = PointUtil.perp(p, it.peek(), vehicleLength,
+              halfRoadWidth);
+          final Point b2 = PointUtil.perp(p, it.peek(), vehicleLength + 1,
+              halfRoadWidth);
+          final Optional<Point> intersect = PointUtil.intersectionPoint(a, a2,
+              b,
+              b2);
 
-        if (intersect.isPresent()) {
-          final Point control = intersect.get();
-          adapter.setForegroundSysCol(SWT.COLOR_GRAY);
-          adapter.drawCurve(a, b, control);
-        } else {
-          adapter.setForegroundSysCol(SWT.COLOR_GRAY);
-          adapter.drawLine(a, b);
+          if (intersect.isPresent()) {
+            final Point control = intersect.get();
+            adapter.setForegroundSysCol(SWT.COLOR_GRAY);
+            adapter.drawCurve(a, b, control);
+          } else {
+            adapter.setForegroundSysCol(SWT.COLOR_GRAY);
+            adapter.drawLine(a, b);
+          }
         }
       }
     }
