@@ -31,17 +31,17 @@ import com.google.common.collect.Multiset;
 
 /**
  * A category can have multiple values, a value can be in only one category.
- * 
+ *
  * Trades memory for cpu speed. Lookups are O(1) on both keys and values.
- * 
+ *
  * This datastructure is useful in case you want to regularly look up:
  * <ul>
  * <li>the category of a value</li>
  * <li>all values in a category</li>
  * </ul>
- * 
- * @author Rinde van Lon 
- * 
+ *
+ * @author Rinde van Lon
+ *
  */
 // TODO better name: MultiBiMap ?
 public class CategoryMap<C, V> implements Multimap<C, V> {
@@ -102,6 +102,14 @@ public class CategoryMap<C, V> implements Multimap<C, V> {
   public boolean removeValue(V value) {
     final C category = valueCategoryMap.remove(value);
     return categoryValueMultiMap.remove(category, value);
+  }
+
+  public boolean removeKey(C key) {
+    final Collection<V> col = categoryValueMultiMap.get(key);
+    for (final V v : col) {
+      valueCategoryMap.remove(v);
+    }
+    return !col.isEmpty();
   }
 
   @Override

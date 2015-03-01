@@ -19,6 +19,7 @@ import static com.github.rinde.rinsim.core.TimeLapseFactory.ms;
 import static com.github.rinde.rinsim.geom.PointAssert.assertPointEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.math.RoundingMode;
 
@@ -353,6 +354,11 @@ public class CollisionGraphRoadModelTest {
       fail = true;
     }
     assertTrue(fail);
+  }
+
+  @Test
+  public void testVehicleOccupiesTwoNodes() {
+    fail("todo");
   }
 
   /**

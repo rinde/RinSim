@@ -37,8 +37,7 @@ import com.github.rinde.rinsim.geom.Connection;
 import com.github.rinde.rinsim.geom.ListenableGraph;
 import com.github.rinde.rinsim.geom.ListenableGraph.GraphEvent;
 import com.github.rinde.rinsim.geom.Point;
-import com.google.common.collect.BiMap;
-import com.google.common.collect.HashBiMap;
+import com.github.rinde.rinsim.util.CategoryMap;
 import com.google.common.primitives.Doubles;
 
 /**
@@ -55,14 +54,14 @@ public class CollisionGraphRoadModel extends DynamicGraphRoadModel {
   private final double minConnLength;
   private final double vehicleLength;
   private final double minDistance;
-  private final BiMap<Point, RoadUser> occupiedNodes;
+  private final CategoryMap<Point, RoadUser> occupiedNodes;
 
   CollisionGraphRoadModel(Builder builder, double pMinConnLength) {
     super(builder.graph, builder.distanceUnit, builder.speedUnit);
     vehicleLength = unitConversion.toInDist(builder.vehicleLength);
     minDistance = unitConversion.toInDist(builder.minDistance);
     minConnLength = unitConversion.toInDist(pMinConnLength);
-    occupiedNodes = HashBiMap.create();
+    occupiedNodes = CategoryMap.create();
     builder.graph.getEventAPI().addListener(
         new ModificationChecker(minConnLength),
         ListenableGraph.EventTypes.ADD_CONNECTION,
@@ -74,7 +73,7 @@ public class CollisionGraphRoadModel extends DynamicGraphRoadModel {
       TimeLapse time) {
 
     if (occupiedNodes.containsValue(object)) {
-      occupiedNodes.inverse().remove(object);
+      occupiedNodes.removeValue(object);
     }
 
     final Point p = getPosition(object);
@@ -89,7 +88,8 @@ public class CollisionGraphRoadModel extends DynamicGraphRoadModel {
     if (loc.isOnConnection()) {
       if (loc.relativePos < vehicleLength * 2) {
         occupiedNodes.put(loc.conn.get().from(), object);
-      } else if (loc.relativePos > loc.connLength - vehicleLength) {
+      }
+      if (loc.relativePos > loc.connLength - vehicleLength) {
         occupiedNodes.put(loc.conn.get().to(), object);
       }
     } else {
@@ -129,6 +129,7 @@ public class CollisionGraphRoadModel extends DynamicGraphRoadModel {
         }
       }
     }
+    verify(closestDist >= 0d, "", from, to);
     return Math.min(closestDist,
         super.computeTravelableDistance(from, to, speed, time));
   }
