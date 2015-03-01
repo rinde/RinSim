@@ -58,7 +58,9 @@ public class WarehouseExample {
     final Simulator sim = new Simulator(rng, Measure.valueOf(1000L,
         SI.MILLI(SI.SECOND)));
 
-    sim.register(CollisionGraphRoadModel.builder(createSimpleGraph()).build());
+    sim.register(CollisionGraphRoadModel.builder(createSimpleGraph())
+        .setVehicleLength(VEHICLE_LENGTH)
+        .build());
     sim.configure();
 
     for (int i = 0; i < 20; i++) {
