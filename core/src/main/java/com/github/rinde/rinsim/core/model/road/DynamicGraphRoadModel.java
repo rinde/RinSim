@@ -53,7 +53,7 @@ import com.google.common.collect.Multimap;
  * </ul>
  * An {@link IllegalStateException} will be thrown upon detection of an invalid
  * modification. It is up to the user to prevent this from happening. The method
- * {@link #isOccupied(Point, Point)} can be of help for this.
+ * {@link #hasRoadUserOn(Point, Point)} can be of help for this.
  * @author Rinde van Lon
  */
 public class DynamicGraphRoadModel extends GraphRoadModel {
@@ -148,18 +148,20 @@ public class DynamicGraphRoadModel extends GraphRoadModel {
   }
 
   /**
-   * Checks if a connection between <code>from</code> and <code>to</code>
-   * exists, if so it will check if it is occupied.
+   * Checks whether there is a {@link RoadUser} on the connection between
+   * <code>from</code> and <code>to</code>.
    * @param from The start point of a connection.
    * @param to The end point of a connection.
    * @return <code>true</code> if a {@link RoadUser} occupies either
-   *         <code>from</code>, <code>to</code> or the connection from
-   *         <code>from</code> to <code>to</code>, <code>false</code> otherwise.
+   *         <code>from</code>, <code>to</code> or the connection between
+   *         <code>from</code> and <code>to</code>, <code>false</code>
+   *         otherwise.
    * @throws IllegalArgumentException if no connection exists between
    *           <code>from</code> and <code>to</code>.
    */
-  public boolean isOccupied(Point from, Point to) {
-    checkArgument(graph.hasConnection(from, to));
+  public boolean hasRoadUserOn(Point from, Point to) {
+    checkArgument(graph.hasConnection(from, to),
+        "There is no connection between %s and %s.", from, to);
     return connMap.containsKey(graph.getConnection(from, to))
         || posMap.containsKey(from) || posMap.containsKey(to);
   }

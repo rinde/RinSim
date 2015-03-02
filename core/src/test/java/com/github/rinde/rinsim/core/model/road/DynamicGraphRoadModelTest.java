@@ -181,10 +181,10 @@ public class DynamicGraphRoadModelTest {
     final MovingRoadUser user = new TestRoadUser();
     model.addObjectAt(user, SW);
     model.moveTo(user, NW, hour(1));
-    assertTrue(model.isOccupied(SW, NW));
+    assertTrue(model.hasRoadUserOn(SW, NW));
     model.moveTo(user, NE, hour(10));
-    assertFalse(model.isOccupied(SW, NW));
-    assertTrue(model.isOccupied(NW, NE));
+    assertFalse(model.hasRoadUserOn(SW, NW));
+    assertTrue(model.hasRoadUserOn(NW, NE));
     model.getGraph().removeConnection(SW, NW);
   }
 
@@ -195,29 +195,29 @@ public class DynamicGraphRoadModelTest {
   public void testIsOccupied() {
     final MovingRoadUser car = new TestRoadUser();
     model.addObjectAt(car, SW);
-    assertTrue(model.isOccupied(SW, NW));
-    assertTrue(model.isOccupied(NW, SW));
-    assertTrue(model.isOccupied(SW, SE));
-    assertTrue(model.isOccupied(SE, SW));
-    assertFalse(model.isOccupied(NE, SE));
+    assertTrue(model.hasRoadUserOn(SW, NW));
+    assertTrue(model.hasRoadUserOn(NW, SW));
+    assertTrue(model.hasRoadUserOn(SW, SE));
+    assertTrue(model.hasRoadUserOn(SE, SW));
+    assertFalse(model.hasRoadUserOn(NE, SE));
 
     boolean fail = false;
     try {
-      model.isOccupied(SW, NE);
+      model.hasRoadUserOn(SW, NE);
     } catch (final IllegalArgumentException e) {
       fail = true;
     }
     assertTrue(fail);
 
     model.moveTo(car, NW, hour(1));
-    assertTrue(model.isOccupied(SW, NW));
-    assertFalse(model.isOccupied(NW, SW));
-    assertFalse(model.isOccupied(SW, SE));
-    assertFalse(model.isOccupied(SE, SW));
-    assertFalse(model.isOccupied(NE, SE));
+    assertTrue(model.hasRoadUserOn(SW, NW));
+    assertFalse(model.hasRoadUserOn(NW, SW));
+    assertFalse(model.hasRoadUserOn(SW, SE));
+    assertFalse(model.hasRoadUserOn(SE, SW));
+    assertFalse(model.hasRoadUserOn(NE, SE));
 
     model.removeObject(car);
-    assertFalse(model.isOccupied(SW, NW));
+    assertFalse(model.hasRoadUserOn(SW, NW));
   }
 
   /**
@@ -238,7 +238,7 @@ public class DynamicGraphRoadModelTest {
     model.removeObject(car);
     assertTrue(model.getObjects().isEmpty());
 
-    assertFalse(model.isOccupied(NW, NE));
+    assertFalse(model.hasRoadUserOn(NW, NE));
   }
 
   /**
@@ -251,25 +251,25 @@ public class DynamicGraphRoadModelTest {
     final MovingRoadUser car3 = new TestRoadUser();
 
     model.addObjectAt(car1, SW);
-    assertTrue(model.isOccupied(SW, SE));
+    assertTrue(model.hasRoadUserOn(SW, SE));
 
     model.addObjectAtSamePosition(car2, car1);
-    assertTrue(model.isOccupied(SW, SE));
+    assertTrue(model.hasRoadUserOn(SW, SE));
 
     model.removeObject(car1);
-    assertTrue(model.isOccupied(SW, SE));
+    assertTrue(model.hasRoadUserOn(SW, SE));
 
     model.moveTo(car2, NW, hour(1));
-    assertFalse(model.isOccupied(SW, SE));
-    assertTrue(model.isOccupied(SW, NW));
+    assertFalse(model.hasRoadUserOn(SW, SE));
+    assertTrue(model.hasRoadUserOn(SW, NW));
 
     model.addObjectAtSamePosition(car3, car2);
     model.moveTo(car2, NE, hour(10));
-    assertTrue(model.isOccupied(SW, NW));
-    assertTrue(model.isOccupied(NW, NE));
+    assertTrue(model.hasRoadUserOn(SW, NW));
+    assertTrue(model.hasRoadUserOn(NW, NE));
 
     model.clear();
-    assertFalse(model.isOccupied(SW, NW));
-    assertFalse(model.isOccupied(NW, NE));
+    assertFalse(model.hasRoadUserOn(SW, NW));
+    assertFalse(model.hasRoadUserOn(NW, NE));
   }
 }
