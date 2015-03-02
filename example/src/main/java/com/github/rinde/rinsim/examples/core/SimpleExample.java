@@ -40,13 +40,12 @@ import com.github.rinde.rinsim.ui.renderers.RoadUserRenderer;
  * <p>
  * If this class is run on MacOS it might be necessary to use
  * -XstartOnFirstThread as a VM argument.
- * 
- * @author Rinde van Lon 
+ *
+ * @author Rinde van Lon
  */
 public final class SimpleExample {
 
-  // speed in km/h
-  static final double VEHICLE_SPEED = 50d;
+  static final double VEHICLE_SPEED_KMH = 50d;
   static final Point MIN_POINT = new Point(0, 0);
   static final Point MAX_POINT = new Point(10, 10);
 
@@ -70,14 +69,14 @@ public final class SimpleExample {
     final RandomGenerator rnd = new MersenneTwister(123);
 
     // initialize a new Simulator instance
-    final Simulator sim = new Simulator(rnd, Measure.valueOf(1000L,
-        SI.MILLI(SI.SECOND)));
+    final Simulator sim = new Simulator(rnd,
+        Measure.valueOf(1000L, SI.MILLI(SI.SECOND)));
 
     // register a PlaneRoadModel, a model which facilitates the moving of
     // RoadUsers on a plane. The plane is bounded by two corner points:
     // (0,0) and (10,10)
-    sim.register(new PlaneRoadModel(MIN_POINT, MAX_POINT, SI.KILOMETER, Measure
-        .valueOf(VEHICLE_SPEED, NonSI.KILOMETERS_PER_HOUR)));
+    sim.register(new PlaneRoadModel(MIN_POINT, MAX_POINT, SI.KILOMETER,
+        Measure.valueOf(VEHICLE_SPEED_KMH, NonSI.KILOMETERS_PER_HOUR)));
     // configure the simulator, once configured we can no longer change the
     // configuration (i.e. add new models) but we can start adding objects
     sim.configure();
@@ -92,8 +91,8 @@ public final class SimpleExample {
       sim.register(new Driver(rnd));
     }
     // initialize the GUI. We use separate renderers for the road model and
-    // for the drivers. By default the road model is rendererd as a square
-    // (indicating its boundaries), and the drivers are rendererd as red
+    // for the drivers. By default the road model is rendered as a square
+    // (indicating its boundaries), and the drivers are rendered as red
     // dots.
     final View.Builder viewBuilder = View.create(sim)
         .with(new PlaneRoadModelRenderer())
@@ -153,7 +152,7 @@ public final class SimpleExample {
     @Override
     public double getSpeed() {
       // the drivers speed
-      return VEHICLE_SPEED;
+      return VEHICLE_SPEED_KMH;
     }
   }
 }

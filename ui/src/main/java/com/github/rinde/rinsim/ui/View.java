@@ -173,7 +173,7 @@ public final class View {
     }
 
     /**
-     * Speed up defines the simulation time between to respective GUI draw
+     * Speed up defines the simulation time between two respective GUI draw
      * operations. Default: <code>1</code>.
      * @param speed The speed to use.
      * @return This as per the builder pattern.
