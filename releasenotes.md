@@ -1,5 +1,13 @@
 # Release notes
 
+## v3.1.0
+ * Core module: Simulator class now has a deprecated constructor and a new Builder class to construct instances.
+ * Core module: __New:__ DynamicGraphRoadModel, which allows adding and removing connections to a graph while it is being used (with some restrictions).
+ * Core module: __New:__ CollisionGraphRoadModel supports (the avoidance of) collisions between _RoadUser_ objects.
+ * UI module: __New:__ WarehouseRenderer and AGVRenderer for visualizing the CollisionGraphRoadModel and its objects.
+ * Examples module: __New:__ WarehouseExample
+ * Geom module: Connection and ConnectionData are now immutable.
+
 ## v3.0.0
 RinSim is restructured in a total of 14 modules:
  * Central
