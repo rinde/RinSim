@@ -20,6 +20,10 @@
         ```
         git checkout master
         ```
+    1. 
+        ```
+        git pull
+        ```
    1. 
         ```
         git merge develop
@@ -30,14 +34,18 @@
         mvn clean deploy -DperformRelease=true
         ```
    1. Wait for success confirmation by email ("Nexus: Promotion Completed").
+ 1. 
+      ```
+      git push
+      ```
  1. goto github.com, draft a new release from master:
     * use vX.Y.Z as tag name and release title
-    * use text from releasenotes.md as description
+    * use text from releasenotes.md as description (don't copy the title since it is already added by GitHub)
  1. go back to develop, prepare next version
    1. 
         ```
- 	    git checkout develop
- 	    ```
+        git checkout develop
+        ```
    1. 
         ```
         mvn versions:set -DnewVersion=X.Y.Z-SNAPSHOT
