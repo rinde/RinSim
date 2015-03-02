@@ -234,8 +234,8 @@
 				<configuration>
 					<header>LICENSE_HEADER</header>
 					<properties>
-						<owner>Rinde van Lon, iMinds DistriNet, KU Leuven</owner>
-						<year>2014</year>
+						<owner>Rinde van Lon, iMinds-DistriNet, KU Leuven</owner>
+						<year>2015</year>
 					</properties>
 					<mapping>
 						<java>SLASHSTAR_STYLE</java>
