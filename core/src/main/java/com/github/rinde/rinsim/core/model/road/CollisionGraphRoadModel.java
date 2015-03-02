@@ -16,11 +16,9 @@
 package com.github.rinde.rinsim.core.model.road;
 
 import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.base.Verify.verify;
 
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Queue;
 import java.util.Set;
 
@@ -38,6 +36,7 @@ import com.github.rinde.rinsim.geom.ListenableGraph;
 import com.github.rinde.rinsim.geom.ListenableGraph.GraphEvent;
 import com.github.rinde.rinsim.geom.Point;
 import com.github.rinde.rinsim.util.CategoryMap;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.primitives.Doubles;
 
 /**
@@ -54,7 +53,7 @@ public class CollisionGraphRoadModel extends DynamicGraphRoadModel {
   private final double minConnLength;
   private final double vehicleLength;
   private final double minDistance;
-  private final CategoryMap<Point, RoadUser> occupiedNodes;
+  private final CategoryMap<RoadUser, Point> occupiedNodes;
 
   CollisionGraphRoadModel(Builder builder, double pMinConnLength) {
     super(builder.graph, builder.distanceUnit, builder.speedUnit);
@@ -71,31 +70,23 @@ public class CollisionGraphRoadModel extends DynamicGraphRoadModel {
   @Override
   protected MoveProgress doFollowPath(MovingRoadUser object, Queue<Point> path,
       TimeLapse time) {
-
-    if (occupiedNodes.containsValue(object)) {
-      occupiedNodes.removeValue(object);
+    if (occupiedNodes.containsKey(object)) {
+      occupiedNodes.removeAll(object);
     }
-
-    final Point p = getPosition(object);
-    if (graph.containsNode(p)) {
-      checkState(!occupiedNodes.containsKey(p));
-    }
-
     final MoveProgress mp = super.doFollowPath(object, path, time);
 
     // detects if the new location of the object occupies a node
     final Loc loc = objLocs.get(object);
     if (loc.isOnConnection()) {
-      if (loc.relativePos < vehicleLength * 2) {
-        occupiedNodes.put(loc.conn.get().from(), object);
+      if (loc.relativePos < vehicleLength * 2d) {
+        verify(occupiedNodes.put(object, loc.conn.get().from()));
       }
       if (loc.relativePos > loc.connLength - vehicleLength) {
-        occupiedNodes.put(loc.conn.get().to(), object);
+        occupiedNodes.put(object, loc.conn.get().to());
       }
     } else {
-      occupiedNodes.put(loc, object);
+      occupiedNodes.put(object, loc);
     }
-
     return mp;
   }
 
@@ -107,7 +98,7 @@ public class CollisionGraphRoadModel extends DynamicGraphRoadModel {
       final Connection<?> conn = getConnection(from, to);
 
       // check if the node is occupied
-      if (occupiedNodes.containsKey(conn.to())) {
+      if (occupiedNodes.containsValue(conn.to())) {
         closestDist = (from.isOnConnection() ? from.connLength
             - from.relativePos : conn.getLength()) - vehicleLength;
       }
@@ -149,9 +140,9 @@ public class CollisionGraphRoadModel extends DynamicGraphRoadModel {
 
   @Override
   public void addObjectAt(RoadUser newObj, Point pos) {
-    checkArgument(!occupiedNodes.containsKey(pos),
+    checkArgument(!occupiedNodes.containsValue(pos),
         "An object can not be added on an already occupied position %s.", pos);
-    occupiedNodes.put(pos, newObj);
+    occupiedNodes.put(newObj, pos);
     super.addObjectAt(newObj, pos);
   }
 
@@ -169,7 +160,7 @@ public class CollisionGraphRoadModel extends DynamicGraphRoadModel {
    *         <code>false</code> otherwise.
    */
   public boolean isOccupied(Point node) {
-    return occupiedNodes.containsKey(node);
+    return occupiedNodes.containsValue(node);
   }
 
   /**
@@ -177,7 +168,7 @@ public class CollisionGraphRoadModel extends DynamicGraphRoadModel {
    *         currently occupied nodes in the graph.
    */
   public Set<Point> getOccupiedNodes() {
-    return Collections.unmodifiableSet(occupiedNodes.keySet());
+    return ImmutableSet.copyOf(occupiedNodes.values());
   }
 
   /**

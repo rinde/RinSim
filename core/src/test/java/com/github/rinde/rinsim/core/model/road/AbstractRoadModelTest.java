@@ -588,6 +588,24 @@ class SpeedyRoadUser implements MovingRoadUser {
 
 }
 
-class TestRoadUser extends TrivialRoadUser {}
+class TestRoadUser extends TrivialRoadUser {
+  final String name;
+
+  TestRoadUser() {
+    this("");
+  }
+
+  TestRoadUser(String n) {
+    name = n;
+  }
+
+  @Override
+  public String toString() {
+    if (name.isEmpty()) {
+      return super.toString();
+    }
+    return name;
+  }
+}
 
 class TestRoadUser2 extends TrivialRoadUser {}

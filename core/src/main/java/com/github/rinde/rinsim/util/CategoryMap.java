@@ -210,4 +210,9 @@ public class CategoryMap<C, V> implements Multimap<C, V> {
   public static <C, V> CategoryMap<C, V> create() {
     return new CategoryMap<C, V>();
   }
+
+  @Override
+  public String toString() {
+    return categoryValueMultiMap.toString();
+  }
 }
