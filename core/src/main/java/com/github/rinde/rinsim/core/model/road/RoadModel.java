@@ -47,7 +47,7 @@ import com.google.common.collect.ImmutableList;
  * On top of that the RoadModel provides several functions for retrieving
  * objects and finding the shortest path. More utilities for working with
  * {@link RoadModel}s are defined in {@link RoadModels}.
- * @author Rinde van Lon 
+ * @author Rinde van Lon
  */
 public interface RoadModel extends Model<RoadUser> {
 
@@ -121,16 +121,16 @@ public interface RoadModel extends Model<RoadUser> {
   /**
    * Moves the specified {@link MovingRoadUser} using the specified path and
    * with the specified time. The provided <code>path</code> can not be empty
-   * and there must be time left in the provided {@link TimeLapse}. <br>
-   * <br>
+   * and there must be time left in the provided {@link TimeLapse}.
+   * <p>
    * <b>Speed</b><br>
    * The {@link MovingRoadUser} has to define a speed with which it wants to
    * travel. This method uses the {@link MovingRoadUser}s speed as an
    * <i>upper</i> bound, it gives no guarantee about the lower bound (i.e. the
    * object could stand still). The actual speed of the object depends on the
    * model implementation. A model can define constraints such as speed limits
-   * or traffic jams which can slow down a {@link MovingRoadUser}. <br>
-   * <br>
+   * or traffic jams which can slow down a {@link MovingRoadUser}.
+   * <p>
    * <b>Path</b><br>
    * The {@link MovingRoadUser} follows the path that is specified by the
    * provided {@link Queue}. This path is composed of a number of {@link Point}
@@ -141,20 +141,28 @@ public interface RoadModel extends Model<RoadUser> {
    * {@link Queue}. This means that after this method is finished the provided
    * {@link Queue} will contain only <code>B, C</code>. By storing the reference
    * to the queue, users of this method can repeatedly call this method using
-   * the same path object instance. <br>
-   * <br>
+   * the same path object instance.
+   * <p>
+   * Note that when an invalid path is supplied this method will throw an
+   * {@link IllegalArgumentException}. This method guarantees that the road
+   * model will not be in an invalid state when this happens. The path that is
+   * supplied may not be in a valid state. This means that it is safe to put
+   * invocations of this method in a try/catch block but that it is not safe to
+   * reuse the supplied path.
+   * <p>
    * <b>Time</b><br>
    * The time that is specified as indicated by the {@link TimeLapse} object may
    * or may not be consumed completely. Normally, this method will try to
    * consume all time in the {@link TimeLapse} object. In case the end of the
    * path is reached before all time is consumed (which depends on the object's
    * <i>speed</i>, the length of the <code>path</code> and any speed constraints
-   * if available) there will be some time left in the {@link TimeLapse}. <br>
+   * if available) there will be some time left in the {@link TimeLapse}.
+   *
    * @param object The object that is moved.
    * @param path The path that is followed.
    * @param time The time that is available for travel.
    * @return A {@link MoveProgress} instance which details: the distance
-   *         traveled, the actual time spent traveling and the nodes which where
+   *         traveled, the actual time spent traveling and the nodes which were
    *         traveled.
    * @see #moveTo(MovingRoadUser, Point, TimeLapse)
    * @see #moveTo(MovingRoadUser, RoadUser, TimeLapse)

@@ -21,6 +21,7 @@ import static com.google.common.base.Verify.verify;
 import java.util.Collection;
 import java.util.Queue;
 
+import javax.measure.quantity.Duration;
 import javax.measure.quantity.Length;
 import javax.measure.quantity.Velocity;
 import javax.measure.unit.NonSI;
@@ -75,41 +76,43 @@ public class CollisionGraphRoadModel extends DynamicGraphRoadModel {
     if (occupiedNodes.containsKey(object)) {
       occupiedNodes.removeAll(object);
     }
-    final MoveProgress mp = super.doFollowPath(object, path, time);
-
-    // detects if the new location of the object occupies a node
-    final Loc loc = objLocs.get(object);
-    if (loc.isOnConnection()) {
-      if (loc.relativePos < vehicleLength * 2d) {
-        verify(occupiedNodes.put(object, loc.conn.get().from()));
+    final MoveProgress mp;
+    try {
+      mp = super.doFollowPath(object, path, time);
+    } catch (final IllegalArgumentException e) {
+      throw e;
+    } finally {
+      // detects if the new location of the object occupies a node
+      final Loc loc = objLocs.get(object);
+      if (loc.isOnConnection()) {
+        if (loc.relativePos < vehicleLength * 2d) {
+          verify(occupiedNodes.put(object, loc.conn.get().from()));
+        }
+        if (loc.relativePos > loc.connLength - vehicleLength) {
+          occupiedNodes.put(object, loc.conn.get().to());
+        }
+      } else {
+        occupiedNodes.put(object, loc);
       }
-      if (loc.relativePos > loc.connLength - vehicleLength) {
-        occupiedNodes.put(object, loc.conn.get().to());
-      }
-    } else {
-      occupiedNodes.put(object, loc);
     }
     return mp;
   }
 
   @Override
   protected double computeTravelableDistance(Loc from, Point to, double speed,
-      TimeLapse time) {
+      long timeLeft, Unit<Duration> timeUnit) {
     double closestDist = Double.POSITIVE_INFINITY;
     if (!from.equals(to)) {
       final Connection<?> conn = getConnection(from, to);
-
       // check if the node is occupied
       if (occupiedNodes.containsValue(conn.to())) {
         closestDist = (from.isOnConnection() ? from.connLength
             - from.relativePos : conn.getLength()) - vehicleLength;
       }
-
       // check if there is an obstacle on the connection
       if (connMap.containsKey(conn)) {
         // if yes, how far is it from 'from'
         final Collection<RoadUser> potentialObstacles = connMap.get(conn);
-
         for (final RoadUser ru : potentialObstacles) {
           final Loc loc = objLocs.get(ru);
           if (loc.isOnConnection() && loc.relativePos > from.relativePos) {
@@ -124,7 +127,7 @@ public class CollisionGraphRoadModel extends DynamicGraphRoadModel {
     }
     verify(closestDist >= 0d, "", from, to);
     return Math.min(closestDist,
-        super.computeTravelableDistance(from, to, speed, time));
+        super.computeTravelableDistance(from, to, speed, timeLeft, timeUnit));
   }
 
   @Override
@@ -133,10 +136,10 @@ public class CollisionGraphRoadModel extends DynamicGraphRoadModel {
     // check if there is a vehicle driving in the opposite direction
     if (!objLoc.equals(nextHop)) {
       final Connection<?> conn = getConnection(objLoc, nextHop);
-      checkArgument(
-          !(graph.hasConnection(conn.to(), conn.from())
-          && connMap.containsKey(graph.getConnection(conn.to(), conn.from()))),
-          "Deadlock detected: there is a vehicle driving in the opposite direction on the same connection.");
+      if (graph.hasConnection(conn.to(), conn.from())
+          && connMap.containsKey(graph.getConnection(conn.to(), conn.from()))) {
+        throw new DeadlockException(conn);
+      }
     }
   }
 

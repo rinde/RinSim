@@ -27,6 +27,7 @@ import java.util.List;
 import java.util.Queue;
 
 import javax.annotation.Nullable;
+import javax.measure.quantity.Duration;
 import javax.measure.quantity.Length;
 import javax.measure.quantity.Velocity;
 import javax.measure.unit.Unit;
@@ -120,13 +121,14 @@ public class GraphRoadModel extends AbstractRoadModel<Loc> {
    * @param from The start position for this travel.
    * @param to The destination position for this travel.
    * @param speed The travel speed.
-   * @param time The time available for traveling.
+   * @param timeLeft The time available for traveling.
+   * @param timeUnit Unit in which <code>timeLeft</code> is expressed.
    * @return The distance that can be traveled, must be &ge; 0.
    */
   protected double computeTravelableDistance(Loc from, Point to, double speed,
-      TimeLapse time) {
+      long timeLeft, Unit<Duration> timeUnit) {
     return speed
-        * unitConversion.toInTime(time.getTimeLeft(), time.getTimeUnit());
+        * unitConversion.toInTime(timeLeft, timeUnit);
   }
 
   /**
@@ -152,7 +154,8 @@ public class GraphRoadModel extends AbstractRoadModel<Loc> {
         MoveProgress.builder(unitConversion, time);
 
     boolean cont = true;
-    while (time.hasTimeLeft() && !path.isEmpty() && cont) {
+    long timeLeft = time.getTimeLeft();
+    while (timeLeft > 0 && !path.isEmpty() && cont) {
       checkMoveValidity(tempLoc, path.peek());
       // speed in internal speed unit
       final double speed = getMaxSpeed(object, tempLoc, path.peek());
@@ -161,7 +164,7 @@ public class GraphRoadModel extends AbstractRoadModel<Loc> {
           speed);
       // distance that can be traveled in current edge with timeleft
       final double travelableDistance = computeTravelableDistance(tempLoc,
-          path.peek(), speed, time);
+          path.peek(), speed, timeLeft, time.getTimeUnit());
       checkState(
           travelableDistance >= 0d,
           "Found a bug in computeTravelableDistance, return value must be >= 0, but is %s.",
@@ -192,8 +195,10 @@ public class GraphRoadModel extends AbstractRoadModel<Loc> {
       final long timeSpent = DoubleMath.roundToLong(
           unitConversion.toExTime(traveledDistance / speed,
               time.getTimeUnit()), RoundingMode.HALF_DOWN);
-      time.consume(timeSpent);
+      // time.consume(timeSpent);
+      timeLeft -= timeSpent;
     }
+    time.consume(time.getTimeLeft() - timeLeft);
     // update location and construct a MoveProgress object
     objLocs.put(object, tempLoc);
     return mpBuilder.build();

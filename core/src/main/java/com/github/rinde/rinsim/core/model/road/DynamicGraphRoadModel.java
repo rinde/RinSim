@@ -131,13 +131,18 @@ public class DynamicGraphRoadModel extends GraphRoadModel {
     } else {
       posMap.remove(prevLoc, object);
     }
-    final MoveProgress mp = super.doFollowPath(object, path, time);
-
-    final Loc newLoc = objLocs.get(object);
-    if (newLoc.isOnConnection()) {
-      connMap.put(newLoc.conn.get(), object);
-    } else {
-      posMap.put(newLoc, object);
+    final MoveProgress mp;
+    try {
+      mp = super.doFollowPath(object, path, time);
+    } catch (final IllegalArgumentException e) {
+      throw e;
+    } finally {
+      final Loc newLoc = objLocs.get(object);
+      if (newLoc.isOnConnection()) {
+        connMap.put(newLoc.conn.get(), object);
+      } else {
+        posMap.put(newLoc, object);
+      }
     }
     return mp;
   }

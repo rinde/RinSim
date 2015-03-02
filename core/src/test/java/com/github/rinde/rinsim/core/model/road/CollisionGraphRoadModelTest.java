@@ -134,7 +134,9 @@ public class CollisionGraphRoadModelTest {
     boolean fail = false;
     try {
       model.moveTo(agv2, NW, meter(1));
-    } catch (final IllegalArgumentException e) {
+    } catch (final DeadlockException e) {
+      assertEquals(SW, e.getConnection().from());
+      assertEquals(NW, e.getConnection().to());
       fail = true;
     }
     assertTrue(fail);
