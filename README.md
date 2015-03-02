@@ -1,7 +1,7 @@
 
-# RinSim 3.0.0
+# RinSim 3.1.0
 
-RinSim is an extensible logistics simulator with support for (de)centralized algorithms for pickup and delivery problems. The simulator focuses on __simplicity__ and __consistency__ making it ideal for performing scientific simulations. Further, software quality is a priority resulting in an ever improving test suite and documentation.
+RinSim is an extensible logistics simulator with support for (de)centralized algorithms for pickup and delivery problems and AGV routing. The simulator focuses on __simplicity__ and __consistency__ making it ideal for performing scientific simulations. Further, software quality is a priority resulting in an ever improving test suite and documentation.
 
 [![Build Status](https://travis-ci.org/rinde/RinSim.svg?branch=master)](https://travis-ci.org/rinde/RinSim) [![DOI](https://zenodo.org/badge/7417/rinde/RinSim.svg)](http://dx.doi.org/10.5281/zenodo.13343)
 
@@ -10,7 +10,7 @@ RinSim is an extensible logistics simulator with support for (de)centralized alg
 
 ## Installation
 
-RinSim uses [Maven](http://maven.apache.org/) for managing its dependencies. It is recommended to use the [Maven plugin for Eclipse](http://www.eclipse.org/m2e/). Using this plugin, RinSim can be added to your project by including the following in your pom file, where x and y represents the preferred version number. More __[detailed instructions](docs/howtorun.md)__ are available.
+RinSim uses [Maven](http://maven.apache.org/) for managing its dependencies. RinSim can be added to your Maven project by including the following in your pom file, where x and y represents the preferred version number. More __[detailed instructions](docs/howtorun.md)__ are available.
 ```xml
 <dependency>
 	<groupId>com.github.rinde</groupId>
@@ -34,12 +34,12 @@ Other modules can be added similarly:
 For more detailed instructions on how create a Maven project in Eclipse and add RinSim as a dependency see the [instructions](docs/howtorun.md). For release notes of the latest release click [here](releasenotes.md).
  
 ## Getting Started 
-Once the simulator is installed, you are ready to explore the simulator. It is recommended to start by running and studying the [examples](example/README.md). When using Maven in Eclipse, the RinSim JavaDocs are automatically made available making exploration of the code much easier. The remainder of this page gives a high level overview of the simulator. If you have questions or like to stay up to date about RinSim you can subscribe to the mailing list at [this page](https://groups.google.com/forum/?fromgroups=#!forum/rinsim).
+Once the simulator is installed, you are ready to explore the simulator. It is recommended to start by running and studying the [examples](example/README.md). When using Maven in Eclipse, the RinSim JavaDocs are automatically made available making exploration of the code much easier. The remainder of this page gives a high level overview of the simulator. If you have questions or like to stay up to date about RinSim you can subscribe to the mailing list at [this page](https://groups.google.com/forum/?fromgroups=#!forum/rinsim) or ask them on [StackOverflow using the RinSim tag](https://stackoverflow.com/questions/tagged/rinsim).
 
 ## About
 RinSim is developed at [AgentWise](http://distrinet.cs.kuleuven.be/research/taskforces/agentwise) in the [iMinds-DistriNet group](http://distrinet.cs.kuleuven.be/) at the [Department of Computer Science, KU Leuven, Belgium](http://www.cs.kuleuven.be/). The lead developer is [Rinde van Lon](http://distrinet.cs.kuleuven.be/people/rinde). Valuable contributions were made by Bartosz Michalik and Robrecht Haesevoets.
 
-RinSim is used in both research and education. Several publications use RinSim for their experiments and RinSim is used in a course on multi-agent systems as a testbed for students.
+RinSim is used in both research and education. Several publications rely on RinSim for their experiments and RinSim is used in a course on multi-agent systems as a testbed for students.
 
 ## Open source
 RinSim is open source under the [Apache License Version 2.0](LICENSE).
@@ -48,29 +48,19 @@ From version 3.0.0 RinSim uses [semantic versioning](http://semver.org/), this m
 
 ## Design Overview
 
-__Warning: description below is outdated__
-
 This section gives a brief overview of the most important elements of the simulator. For a deeper understanding you can have a look at the examples, the source code, and the tests.
 
-In RinSim terminology, the parts of the simulation that define the problem and environment are called models, the parts of the simulation that solve the problem (i.e. the solution, the collective adaptive system) are called agents. The design of RinSim allows for easy use and recombination of models to configure a simulation problem. When the problem is configured, the programmer can focus on solving the actual problem by designing a collective adaptive system without having to worry about accidentally violating simulation consistency. The following figure shows a high-level component diagram:
-
-![PDPModel](docs/DesignOverview.png)
-
-Actions that agents can take are considered to be part of the problem not the solution, e.g. a vehicle that can pickup things or can communicate with other vehicles. Actions define the problem space in which a good solution has to be found.
+In RinSim terminology, the parts of the simulation that define the problem and environment are called models, the parts of the simulation that solve the problem (i.e. the solution, the collective adaptive system) are called agents. The design of RinSim allows for easy use and recombination of models to configure a simulation problem. When the problem is configured, the programmer can focus on solving the actual problem by designing a collective adaptive system without having to worry about accidentally violating simulation consistency. Actions that agents can take are considered to be part of the problem not the solution, e.g. a vehicle that can pickup things or can communicate with other vehicles. Actions define the problem space in which a good solution has to be found.
 
 ### Simulator
 
-The _Simulator_ class is the heart of RinSim. Its main concern is to simulate time. This is done in a discrete manner. Time is divided in ticks of a certain length, which is chosen upon initializing the simulator (see examples and code).
+The [Simulator](core/src/main/java/com/github/rinde/rinsim/core/Simulator.java) is the heart of RinSim. Its main concern is to simulate time. This is done in a discrete manner. Time is divided in ticks of a certain length, which is chosen upon initializing the simulator (see examples and code).
 
-Of course time on its own is not so useful, so we can register objects in the simulator, such as objects implementing the _TickListener_ interface. These objects will listen to the internal clock of the simulator. You can also register other objects, as we will see in a moment.
+Of course time on its own is not so useful, so we can register objects in the simulator, such as objects implementing the  [TickListener](core/src/main/java/com/github/rinde/rinsim/core/TickListener.java) interface. These objects will listen to the internal clock of the simulator. You can also register other objects, as we will see in a moment.
 
-Once started, the simulator will start to tick, and with each tick it will call all registered tickListeners, in turn, to perform some actions within the length of the time step. Time consistency is enforced by the _TimeLapse_ objects. Each _TickListener_ receives a single _TimeLapse_ object every tick, the time in this object can be 'spent' on actions. This spending can be done only once, as such an agent can not violate the time consistency in the simulator. For example, calling _RoadModel#moveTo(..)_ several times will have no effect.
+Once started, the simulator will start to tick, and with each tick it will call all registered tickListeners, in turn, to perform some actions within the length of the time step. Time consistency is enforced by the [TimeLapse](core/src/main/java/com/github/rinde/rinsim/core/TimeLapse.java) objects. Each _TickListener_ receives a single _TimeLapse_ object every tick, the time in this object can be 'spent' on actions. This spending can be done only once, as such an agent can not violate the time consistency in the simulator. For example, calling _RoadModel#moveTo(..)_ several times will have no effect. As you can see there is also an _afterTick_, but we'll ignore this for now.
 
-As you can see there is also an _afterTick_, but we'll ignore this for now.
-
-Apart from simulating time, the simulator has little functionality on its own.
-All additional functionality (such as movement, communication, etc.) that is required by your simulation, should be delegated to models.
-These models can be easily plugged (or registered) in the simulator.
+Apart from simulating time, the simulator has little functionality on its own. All additional functionality (such as movement, communication, etc.) that is required by your simulation, should be delegated to models. These models can be easily plugged (or registered) in the simulator.
 
 ### Models
 
@@ -89,9 +79,9 @@ Messages between agents are send asynchronously.
 
 ### GUI
 
-The GUI is realized by the _SimulationViewer_, which relies on a set of _Renderers_.
+The GUI can be configured using the [View](ui/src/main/java/com/github/rinde/rinsim/ui/View.java) class. The GUI can be customized using _Renderers_.
 
-* __SimulationViewer__: is responsible for rendering the simulator. Specific renderers can be added for each model, for the provided models there exist default renderers.
+* __View__: is responsible for rendering the simulator. Specific renderers can be added for each model, for the provided models there exist default renderers.
 
 * __Renderer__: is responsible for rendering one model (or more).
 Examples are the _RoadUserRenderer_ to do basic rendering of objects in the _RoadModel_, or _MessagingLayerRenderer_ to visualize messages between agents.
