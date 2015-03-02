@@ -92,7 +92,7 @@ public final class SimpleExample {
     // dots.
     final View.Builder viewBuilder = View.create(sim)
         .with(PlaneRoadModelRenderer.create())
-        .with(new RoadUserRenderer());
+        .with(RoadUserRenderer.builder());
 
     if (testing) {
       final int speedUp = 16;

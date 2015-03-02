@@ -23,40 +23,62 @@ import javax.annotation.Nullable;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.graphics.RGB;
 
 import com.github.rinde.rinsim.core.model.ModelProvider;
 import com.github.rinde.rinsim.core.model.road.RoadModel;
 import com.github.rinde.rinsim.core.model.road.RoadUser;
 import com.github.rinde.rinsim.geom.Point;
+import com.google.common.base.Optional;
 
 /**
+ * Renderer that draws simple circles for {@link RoadUser}s in a
+ * {@link RoadModel}. Use {@link #builder()} for obtaining instances.
  * @author Rinde van Lon (rinde.vanlon@cs.kuleuven.be)
- * @author Bartosz Michalik  changes in
- *         handling colors
- * 
+ * @author Bartosz Michalik changes in handling colors
  */
 public final class RoadUserRenderer implements ModelRenderer {
 
   @Nullable
-  private RoadModel rs;
+  private RoadModel model;
   private final boolean useEncirclement;
   private final UiSchema uiSchema;
-  @Nullable
-  private final ViewRect viewRect;
+  private final Optional<ViewRect> viewRect;
 
+  /**
+   * @deprecated Use {@link #builder()} instead.
+   */
+  @Deprecated
   public RoadUserRenderer() {
-    this(null, null, false);
+    this(null, Optional.<ViewRect> absent(), new UiSchema(), false);
   }
 
+  /**
+   * @deprecated Use {@link #builder()} instead.
+   */
+  @Deprecated
   public RoadUserRenderer(UiSchema schema, boolean useEncirclement) {
-    this(null, schema, useEncirclement);
+    this(null, Optional.<ViewRect> absent(), schema, useEncirclement);
   }
 
+  /**
+   * @deprecated Use {@link #builder()} instead.
+   */
+  @Deprecated
   public RoadUserRenderer(@Nullable ViewRect rect, @Nullable UiSchema schema,
       boolean useEncirclement) {
+    this(null,
+        Optional.fromNullable(rect),
+        schema == null ? new UiSchema() : schema,
+        useEncirclement);
+  }
+
+  RoadUserRenderer(@Nullable RoadModel rm, Optional<ViewRect> rect,
+      UiSchema schema, boolean encirclement) {
+    model = rm;
     viewRect = rect;
-    this.useEncirclement = useEncirclement;
-    uiSchema = schema == null ? new UiSchema() : schema;
+    useEncirclement = encirclement;
+    uiSchema = schema;
   }
 
   @Override
@@ -66,7 +88,7 @@ public final class RoadUserRenderer implements ModelRenderer {
     uiSchema.initialize(gc.getDevice());
     gc.setBackground(uiSchema.getDefaultColor());
 
-    final Map<RoadUser, Point> objects = rs.getObjectsAndPositions();
+    final Map<RoadUser, Point> objects = model.getObjectsAndPositions();
     synchronized (objects) {
       for (final Entry<RoadUser, Point> entry : objects.entrySet()) {
         final Point p = entry.getValue();
@@ -107,11 +129,115 @@ public final class RoadUserRenderer implements ModelRenderer {
   @Nullable
   @Override
   public ViewRect getViewRect() {
-    return viewRect;
+    if (viewRect.isPresent()) {
+      return viewRect.get();
+    }
+    return null;
   }
 
   @Override
   public void registerModelProvider(ModelProvider mp) {
-    rs = mp.tryGetModel(RoadModel.class);
+    model = mp.tryGetModel(RoadModel.class);
+  }
+
+  /**
+   * Constructs a {@link Builder} for building {@link RoadUserRenderer}
+   * instances.
+   * @return A new builder.
+   */
+  public static Builder builder() {
+    return new Builder();
+  }
+
+  /**
+   * Builder for {@link RoadUserRenderer}.
+   * @author Rinde van Lon
+   */
+  public static class Builder implements CanvasRendererBuilder {
+    private boolean useEncirclement;
+    private final UiSchema uiSchema;
+    private Optional<Point> minPoint;
+    private Optional<Point> maxPoint;
+
+    Builder(UiSchema uis) {
+      useEncirclement = false;
+      uiSchema = uis;
+      minPoint = Optional.absent();
+      maxPoint = Optional.absent();
+    }
+
+    Builder() {
+      this(new UiSchema());
+    }
+
+    /**
+     * Sets the minimum point used to determine the area to draw.
+     * @param min The left top corner.
+     * @return This, as per the builder pattern.
+     */
+    public Builder setMinPoint(Point min) {
+      minPoint = Optional.of(min);
+      return this;
+    }
+
+    /**
+     * Sets the maximum point used to determine the area to draw.
+     * @param max The right bottom corner.
+     * @return This, as per the builder pattern.
+     */
+    public Builder setMaxPoint(Point max) {
+      maxPoint = Optional.of(max);
+      return this;
+    }
+
+    /**
+     * Draws a wide circle around all objects.
+     * @return This, as per the builder pattern.
+     */
+    public Builder showCircleAroundObjects() {
+      useEncirclement = true;
+      return this;
+    }
+
+    /**
+     * Associate a {@link RGB} to a {@link Class}. This color association works
+     * through super classes as well. An example: <br>
+     * consider the following class hierarchy<br>
+     * <code>class A{}</code><br>
+     * <code>class AA extends A{}</code><br>
+     * <code>class AAA extends AA{}</code><br>
+     * When adding a color named <code>C1</code> to <code>AA</code>, both
+     * <code>AA</code> and <code>AAA</code> will have color <code>C1</code>.
+     * When adding another color named <code>C2</code> to <code>A</code>
+     * <code>A</code> will have color <code>C2</code> and <code>AA</code> and
+     * <code>AAA</code> will have color <code>C1</code>.
+     * @param type The {@link Class} used as identifier.
+     * @param rgb The {@link RGB} instance used as color.
+     * @return This, as per the builder pattern.
+     */
+    public Builder setColorAssociation(Class<?> type, RGB rgb) {
+      uiSchema.add(type, rgb);
+      return this;
+    }
+
+    @Override
+    public CanvasRenderer build(ModelProvider mp) {
+      Optional<ViewRect> viewRect = Optional.absent();
+      if (minPoint.isPresent() && maxPoint.isPresent()) {
+        viewRect = Optional.of(new ViewRect(minPoint.get(), maxPoint.get()));
+      }
+      final RoadModel rm = mp.getModel(RoadModel.class);
+
+      return new RoadUserRenderer(rm, viewRect, uiSchema, useEncirclement);
+    }
+
+    @Override
+    public CanvasRendererBuilder copy() {
+      final Builder copy = new Builder(uiSchema);
+      copy.useEncirclement = useEncirclement;
+      copy.minPoint = minPoint;
+      copy.maxPoint = maxPoint;
+      return copy;
+    }
   }
 }
