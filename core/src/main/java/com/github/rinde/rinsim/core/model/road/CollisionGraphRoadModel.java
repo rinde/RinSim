@@ -20,7 +20,6 @@ import static com.google.common.base.Verify.verify;
 
 import java.util.Collection;
 import java.util.Queue;
-import java.util.Set;
 
 import javax.measure.quantity.Length;
 import javax.measure.quantity.Velocity;
@@ -37,6 +36,8 @@ import com.github.rinde.rinsim.geom.ListenableGraph.GraphEvent;
 import com.github.rinde.rinsim.geom.Point;
 import com.github.rinde.rinsim.util.CategoryMap;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Multimaps;
+import com.google.common.collect.SetMultimap;
 import com.google.common.primitives.Doubles;
 
 /**
@@ -53,14 +54,15 @@ public class CollisionGraphRoadModel extends DynamicGraphRoadModel {
   private final double minConnLength;
   private final double vehicleLength;
   private final double minDistance;
-  private final CategoryMap<RoadUser, Point> occupiedNodes;
+  private final SetMultimap<RoadUser, Point> occupiedNodes;
 
   CollisionGraphRoadModel(Builder builder, double pMinConnLength) {
     super(builder.graph, builder.distanceUnit, builder.speedUnit);
     vehicleLength = unitConversion.toInDist(builder.vehicleLength);
     minDistance = unitConversion.toInDist(builder.minDistance);
     minConnLength = unitConversion.toInDist(pMinConnLength);
-    occupiedNodes = CategoryMap.create();
+    occupiedNodes = Multimaps.synchronizedSetMultimap(CategoryMap
+        .<RoadUser, Point> create());
     builder.graph.getEventAPI().addListener(
         new ModificationChecker(minConnLength),
         ListenableGraph.EventTypes.ADD_CONNECTION,
@@ -164,11 +166,15 @@ public class CollisionGraphRoadModel extends DynamicGraphRoadModel {
   }
 
   /**
-   * @return A read-only <b>indeterministic</b> ordered live view of all
-   *         currently occupied nodes in the graph.
+   * @return A read-only <b>indeterministic</b> ordered copy of all currently
+   *         occupied nodes in the graph.
    */
-  public Set<Point> getOccupiedNodes() {
-    return ImmutableSet.copyOf(occupiedNodes.values());
+  public ImmutableSet<Point> getOccupiedNodes() {
+    ImmutableSet<Point> set;
+    synchronized (occupiedNodes) {
+      set = ImmutableSet.copyOf(occupiedNodes.values());
+    }
+    return set;
   }
 
   /**

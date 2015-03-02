@@ -28,6 +28,7 @@ import javax.annotation.Nullable;
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Multiset;
+import com.google.common.collect.SetMultimap;
 
 /**
  * A category can have multiple values, a value can be in only one category.
@@ -44,14 +45,14 @@ import com.google.common.collect.Multiset;
  *
  */
 // TODO better name: MultiBiMap ?
-public class CategoryMap<C, V> implements Multimap<C, V> {
+public class CategoryMap<C, V> implements SetMultimap<C, V> {
 
   // TODO use Guava test tools
   // TODO do a benchmark to compare performance with ordinary multimap
 
   // TODO use ForwardingMultimap<K, V>
 
-  final Multimap<C, V> categoryValueMultiMap;
+  final SetMultimap<C, V> categoryValueMultiMap;
   final Map<V, C> valueCategoryMap;
 
   public CategoryMap() {
@@ -63,7 +64,7 @@ public class CategoryMap<C, V> implements Multimap<C, V> {
     return newLinkedHashMap();
   }
 
-  protected Multimap<C, V> createMultimap() {
+  protected SetMultimap<C, V> createMultimap() {
     return LinkedHashMultimap.create();
   }
 
@@ -135,14 +136,14 @@ public class CategoryMap<C, V> implements Multimap<C, V> {
   // TODO
   @Deprecated
   @Override
-  public Collection<V> replaceValues(C key, Iterable<? extends V> values) {
+  public Set<V> replaceValues(C key, Iterable<? extends V> values) {
     throw new UnsupportedOperationException();
   }
 
   // TODO should return an unmodifiable view? currently edits in the returned
   // structure result in an invalid state
   @Override
-  public Collection<V> get(C key) {
+  public Set<V> get(C key) {
     return categoryValueMultiMap.get(key);
   }
 
@@ -174,8 +175,8 @@ public class CategoryMap<C, V> implements Multimap<C, V> {
   }
 
   @Override
-  public Collection<V> removeAll(@Nullable Object key) {
-    final Collection<V> values = categoryValueMultiMap.removeAll(key);
+  public Set<V> removeAll(@Nullable Object key) {
+    final Set<V> values = categoryValueMultiMap.removeAll(key);
     for (final V v : values) {
       valueCategoryMap.remove(v);
     }
@@ -198,7 +199,7 @@ public class CategoryMap<C, V> implements Multimap<C, V> {
   }
 
   @Override
-  public Collection<Entry<C, V>> entries() {
+  public Set<Entry<C, V>> entries() {
     return categoryValueMultiMap.entries();
   }
 
