@@ -55,8 +55,7 @@ public class WarehouseRendererTest {
         new TableGraph<LengthData>());
 
     Graphs.addPath(graph, new Point(0, 0), new Point(10, 0), new Point(10,
-        10),
-        new Point(0, 10), new Point(0, 0));
+        10), new Point(0, 10), new Point(0, 0));
 
     // graph.addConnection(new Point(0, 0), new Point(20, 20));
     // Graphs.addPath(graph, new Point(0, 0), new Point(0, 20),
@@ -92,12 +91,17 @@ public class WarehouseRendererTest {
             .useDifferentColorsForVehicles()
             .showVehicleCoordinates()
         )
+        .with(GraphRoadModelRenderer.builder()
+            .showDirectionArrows()
+            .showNodeLabels()
+            .setMargin(1)
+            .showNodes()
+        )
         .enableAutoPlay()
         .stopSimulatorAtTime(150 * 1000L)
         .enableAutoClose()
         .setSpeedUp(8)
         .show();
-
   }
 
   static class Agent implements TickListener, MovingRoadUser {

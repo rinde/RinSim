@@ -19,7 +19,6 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.LinkedHashSet;
@@ -35,8 +34,8 @@ import com.github.rinde.rinsim.core.model.ModelProvider;
 import com.github.rinde.rinsim.core.model.road.CollisionGraphRoadModel;
 import com.github.rinde.rinsim.geom.Connection;
 import com.github.rinde.rinsim.geom.Graph;
+import com.github.rinde.rinsim.geom.Graphs;
 import com.github.rinde.rinsim.geom.Point;
-import com.github.rinde.rinsim.ui.CanvasRendererBuilder;
 import com.google.common.base.Optional;
 import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.Iterators;
@@ -52,6 +51,20 @@ import com.google.common.collect.Table;
  * @author Rinde van Lon
  */
 public final class WarehouseRenderer implements CanvasRenderer {
+  /**
+   * The definition of a 'short' connection. Connections that are smaller or
+   * equal to this number times the length of the vehicle are considered short.
+   */
+  private static final double SHORT_CONNECTION_LENGTH = 3d;
+
+  /**
+   * The dimensions of the head of the arrow relative to the vehicle length.
+   */
+  private static final Point ARROW_HEAD_REL_DIM = new Point(.5, .25);
+
+  private static final int OPAQUE = 255;
+  private static final int SEMI_TRANSPARENT = 50;
+
   private final CollisionGraphRoadModel model;
   private final double margin;
   private final RenderHelper adapter;
@@ -61,6 +74,8 @@ public final class WarehouseRenderer implements CanvasRenderer {
   private final Graph<?> graph;
   private final boolean drawOneWayStreetArrows;
   private final boolean showNodeOccupancy;
+  private final boolean showNodes;
+  private final Point arrowDimensions;
 
   WarehouseRenderer(Builder builder, CollisionGraphRoadModel m) {
     model = m;
@@ -68,16 +83,17 @@ public final class WarehouseRenderer implements CanvasRenderer {
     margin = builder.margin + m.getVehicleLength() / 2d;
     drawOneWayStreetArrows = builder.drawOneWayStreetArrows;
     showNodeOccupancy = builder.showNodeOccupancy;
+    showNodes = builder.showNodes;
     adapter = new RenderHelper();
     vehicleLength = model.getVehicleLength();
-    roadWidth = model.getVehicleLength() / 1.5d;
+    roadWidth = model.getVehicleLength();
     halfRoadWidth = roadWidth / 2d;
+    arrowDimensions = new Point(
+        ARROW_HEAD_REL_DIM.x * roadWidth,
+        ARROW_HEAD_REL_DIM.y * roadWidth);
   }
 
-  @Override
-  public void renderStatic(GC gc, ViewPort vp) {
-    adapter.adapt(gc, vp);
-
+  private Table<Point, Point, Connection<?>> filterConnections() {
     // filter connections to avoid double work for bidirectional roads
     final Table<Point, Point, Connection<?>> filteredConnections = HashBasedTable
         .create();
@@ -86,6 +102,12 @@ public final class WarehouseRenderer implements CanvasRenderer {
         filteredConnections.put(e.from(), e.to(), e);
       }
     }
+    return filteredConnections;
+  }
+
+  private void drawConnections() {
+    // filter connections to avoid double work for bidirectional roads
+    final Table<Point, Point, Connection<?>> filteredConnections = filterConnections();
 
     adapter.setForegroundSysCol(SWT.COLOR_GRAY);
     adapter.setBackgroundSysCol(SWT.COLOR_GRAY);
@@ -93,20 +115,21 @@ public final class WarehouseRenderer implements CanvasRenderer {
     for (final Connection<?> e : filteredConnections.values()) {
       // draw arrows
       if (!graph.hasConnection(e.to(), e.from()) && drawOneWayStreetArrows) {
-        if (PointUtil.length(e) > 3 * vehicleLength) {
-          final Point start1 = PointUtil.on(e, 1 * vehicleLength);
-          final Point end1 = PointUtil.on(e, 1.5 * vehicleLength);
-          adapter.drawArrow(start1, end1, roadWidth / 2d, vehicleLength / 4d);
-          final Point start2 = PointUtil.on(e.to(), e.from(),
-              1.5 * vehicleLength);
-          final Point end2 = PointUtil.on(e.to(), e.from(), 1 * vehicleLength);
-          adapter.drawArrow(start2, end2, roadWidth / 2d, vehicleLength / 4d);
+        if (PointUtil.length(e) > SHORT_CONNECTION_LENGTH * vehicleLength) {
+          final Point start1 = PointUtil.on(e, vehicleLength);
+          final Point end1 = PointUtil.on(e,
+              vehicleLength + arrowDimensions.y * 2);
+          adapter.drawArrow(start1, end1, arrowDimensions.x, arrowDimensions.y);
 
+          final Point start2 = PointUtil.on(e.to(), e.from(),
+              vehicleLength + arrowDimensions.y * 2);
+          final Point end2 = PointUtil.on(e.to(), e.from(), vehicleLength);
+          adapter.drawArrow(start2, end2, arrowDimensions.x, arrowDimensions.y);
         } else {
           final double center = PointUtil.length(e) / 2d;
-          final Point start1 = PointUtil.on(e, center - vehicleLength / 4d);
-          final Point end1 = PointUtil.on(e, center + vehicleLength / 4d);
-          adapter.drawArrow(start1, end1, roadWidth / 2d, vehicleLength / 4d);
+          final Point start1 = PointUtil.on(e, center - arrowDimensions.y);
+          final Point end1 = PointUtil.on(e, center + arrowDimensions.y);
+          adapter.drawArrow(start1, end1, arrowDimensions.x, arrowDimensions.y);
         }
       }
 
@@ -119,9 +142,16 @@ public final class WarehouseRenderer implements CanvasRenderer {
       final Point d = PointUtil.perp(e, length - vehicleLength, -halfRoadWidth);
       adapter.drawLine(c, d);
     }
+  }
 
+  private void drawNodes() {
     // draw node connectors
     for (final Point p : graph.getNodes()) {
+      if (showNodes) {
+        adapter.setBackgroundSysCol(SWT.COLOR_RED);
+        adapter.fillCircle(p, 2);
+      }
+
       final Set<Point> conns = new LinkedHashSet<>();
       conns.addAll(graph.getIncomingConnections(p));
       conns.addAll(graph.getOutgoingConnections(p));
@@ -180,14 +210,21 @@ public final class WarehouseRenderer implements CanvasRenderer {
   }
 
   @Override
+  public void renderStatic(GC gc, ViewPort vp) {
+    adapter.adapt(gc, vp);
+    drawConnections();
+    drawNodes();
+  }
+
+  @Override
   public void renderDynamic(GC gc, ViewPort vp, long time) {
     adapter.adapt(gc, vp);
     if (showNodeOccupancy) {
       for (final Point p : model.getOccupiedNodes()) {
-        gc.setAlpha(50);
+        gc.setAlpha(SEMI_TRANSPARENT);
         adapter.setBackgroundSysCol(SWT.COLOR_RED);
         adapter.fillCircle(p, vehicleLength);
-        gc.setAlpha(255);
+        gc.setAlpha(OPAQUE);
       }
     }
   }
@@ -197,21 +234,10 @@ public final class WarehouseRenderer implements CanvasRenderer {
   public ViewRect getViewRect() {
     checkState(!graph.isEmpty(),
         "graph may not be empty at this point");
-    final Collection<Point> nodes = graph.getNodes();
-
-    double minX = Double.POSITIVE_INFINITY;
-    double maxX = Double.NEGATIVE_INFINITY;
-    double minY = Double.POSITIVE_INFINITY;
-    double maxY = Double.NEGATIVE_INFINITY;
-
-    for (final Point p : nodes) {
-      minX = Math.min(minX, p.x);
-      maxX = Math.max(maxX, p.x);
-      minY = Math.min(minY, p.y);
-      maxY = Math.max(maxY, p.y);
-    }
-    return new ViewRect(new Point(minX - margin, minY - margin), new Point(maxX
-        + margin, maxY + margin));
+    final List<Point> extremes = Graphs.getExtremes(graph);
+    return new ViewRect(
+        PointUtil.sub(extremes.get(0), margin),
+        PointUtil.add(extremes.get(1), margin));
   }
 
   /**
@@ -229,11 +255,13 @@ public final class WarehouseRenderer implements CanvasRenderer {
     boolean drawOneWayStreetArrows;
     double margin;
     boolean showNodeOccupancy;
+    boolean showNodes;
 
     Builder() {
       margin = 0;
       drawOneWayStreetArrows = false;
       showNodeOccupancy = false;
+      showNodes = false;
     }
 
     /**
@@ -268,6 +296,15 @@ public final class WarehouseRenderer implements CanvasRenderer {
       return this;
     }
 
+    /**
+     * Will draw a small dot for each node. By default this is not shown.
+     * @return This, as per the builder pattern.
+     */
+    public Builder showNodes() {
+      showNodes = true;
+      return this;
+    }
+
     @Override
     public CanvasRenderer build(ModelProvider mp) {
       return new WarehouseRenderer(this,
@@ -280,6 +317,7 @@ public final class WarehouseRenderer implements CanvasRenderer {
       b.drawOneWayStreetArrows = drawOneWayStreetArrows;
       b.margin = margin;
       b.showNodeOccupancy = showNodeOccupancy;
+      b.showNodes = showNodes;
       return b;
     }
   }

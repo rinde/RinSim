@@ -48,4 +48,7 @@ public class ViewPort {
     return (int) (scale * i);
   }
 
+  double invScale(int val) {
+    return 1d / scale * val;
+  }
 }

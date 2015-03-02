@@ -77,6 +77,15 @@ class RenderHelper {
         );
   }
 
+  void fillCircle(Point p, int radiusInPixels) {
+    gc.get().fillOval(
+        vp.get().toCoordX(p.x) - radiusInPixels,
+        vp.get().toCoordY(p.y) - radiusInPixels,
+        radiusInPixels * 2,
+        radiusInPixels * 2
+        );
+  }
+
   void drawCircle(Point p, int radius) {
     gc.get().drawOval(
         vp.get().toCoordX(p.x) - radius,
@@ -127,5 +136,22 @@ class RenderHelper {
     final Point right = PointUtil.perp(to, from, height, width / -2d);
     drawLine(from, PointUtil.on(from, to, height));
     fillPolygon(left, right, to);
+  }
+
+  void drawArrow(Point from, Point to, int width, int height) {
+    final double w = vp.get().invScale(width);
+    final double h = vp.get().invScale(height);
+
+    final Point left = PointUtil.perp(to, from, h, w / 2d);
+    final Point right = PointUtil.perp(to, from, h, w / -2d);
+    drawLine(from, PointUtil.on(from, to, h));
+    fillPolygon(left, right, to);
+  }
+
+  void drawString(String string, Point pos, boolean isTransparent) {
+    gc.get().drawString(string,
+        vp.get().toCoordX(pos.x),
+        vp.get().toCoordY(pos.y),
+        isTransparent);
   }
 }

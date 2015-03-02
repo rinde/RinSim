@@ -18,7 +18,7 @@ package com.github.rinde.rinsim.ui.renderers;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
 
-import java.util.Collection;
+import java.util.List;
 
 import javax.annotation.Nullable;
 
@@ -30,8 +30,8 @@ import com.github.rinde.rinsim.core.model.road.GraphRoadModel;
 import com.github.rinde.rinsim.geom.Connection;
 import com.github.rinde.rinsim.geom.ConnectionData;
 import com.github.rinde.rinsim.geom.Graph;
+import com.github.rinde.rinsim.geom.Graphs;
 import com.github.rinde.rinsim.geom.Point;
-import com.github.rinde.rinsim.ui.CanvasRendererBuilder;
 
 /**
  * A simple {@link CanvasRenderer} for {@link GraphRoadModel}s. Instances can be
@@ -50,6 +50,7 @@ public final class GraphRoadModelRenderer implements CanvasRenderer {
   private final boolean showNodes;
   private final boolean showNodeLabels;
   private final boolean showDirectionArrows;
+  private final RenderHelper helper;
 
   GraphRoadModelRenderer(GraphRoadModel grm, Builder b) {
     model = grm;
@@ -57,62 +58,38 @@ public final class GraphRoadModelRenderer implements CanvasRenderer {
     showNodes = b.showNodes;
     showNodeLabels = b.showNodeLabels;
     showDirectionArrows = b.showDirectionArrows;
+    helper = new RenderHelper();
   }
 
   @Override
   public void renderStatic(GC gc, ViewPort vp) {
+    helper.adapt(gc, vp);
     final Graph<? extends ConnectionData> graph = model.getGraph();
 
-    if (showNodes || showNodeLabels) {
+    if (showNodes) {
       for (final Point node : graph.getNodes()) {
-        final int x1 = vp.toCoordX(node.x) - NODE_RADIUS;
-        final int y1 = vp.toCoordY(node.y) - NODE_RADIUS;
-
-        if (showNodes) {
-          final int size = NODE_RADIUS * 2;
-          gc.setBackground(gc.getDevice().getSystemColor(SWT.COLOR_RED));
-          gc.fillOval(x1, y1, size, size);
-        }
-        if (showNodeLabels) {
-          gc.setForeground(gc.getDevice().getSystemColor(SWT.COLOR_GRAY));
-          gc.drawString(node.toString(), x1 + (int) RELATIVE_TEXT_POSITION.x,
-              y1 + (int) RELATIVE_TEXT_POSITION.y, true);
-        }
+        helper.setBackgroundSysCol(SWT.COLOR_RED);
+        helper.fillCircle(node, NODE_RADIUS);
+      }
+    }
+    if (showNodeLabels) {
+      for (final Point node : graph.getNodes()) {
+        helper.setForegroundSysCol(SWT.COLOR_GRAY);
+        helper.drawString(node.toString(),
+            PointUtil.add(node, RELATIVE_TEXT_POSITION), true);
       }
     }
 
     for (final Connection<? extends ConnectionData> e : graph.getConnections()) {
-      final int x1 = vp.toCoordX(e.from().x);
-      final int y1 = vp.toCoordY(e.from().y);
-
-      final int x2 = vp.toCoordX(e.to().x);
-      final int y2 = vp.toCoordY(e.to().y);
-      gc.setForeground(gc.getDevice().getSystemColor(SWT.COLOR_GRAY));
-      gc.drawLine(x1, y1, x2, y2);
+      helper.setForegroundSysCol(SWT.COLOR_GRAY);
+      helper.drawLine(e.from(), e.to());
 
       if (showDirectionArrows) {
-        final double dist = Point
-            .distance(new Point(x1, y1), new Point(x2, y2));
-        final double r = 14d / dist;
-        final double r2 = 4d / dist;
-        final Point unit = Point.divide(
-            Point.diff(new Point(x1, y1), new Point(x2, y2)), dist);
-
-        // get two points on the line
-        final int x3 = (int) (r * x1 + (1 - r) * x2);
-        final int y3 = (int) (r * y1 + (1 - r) * y2);
-        final int x6 = (int) (r2 * x1 + (1 - r2) * x2);
-        final int y6 = (int) (r2 * y1 + (1 - r2) * y2);
-
-        // get two points perpendicular to the line next to point 3
-        final int x4 = (int) (x3 + 5 * unit.y);
-        final int y4 = (int) (y3 + 5 * unit.x);
-        final int x5 = (int) (x3 - 5 * unit.y);
-        final int y5 = (int) (y3 - 5 * unit.x);
-
-        // draw the arrow
-        gc.setBackground(gc.getDevice().getSystemColor(SWT.COLOR_GRAY));
-        gc.fillPolygon(new int[] { x4, y4, x5, y5, x6, y6 });
+        final double dist = Point.distance(e.from(), e.to());
+        final Point f = PointUtil.on(e, dist * .9);
+        final Point t = PointUtil.on(e, dist * .95);
+        helper.setBackgroundSysCol(SWT.COLOR_GRAY);
+        helper.drawArrow(f, t, 8, 8);
       }
     }
   }
@@ -125,21 +102,11 @@ public final class GraphRoadModelRenderer implements CanvasRenderer {
   public ViewRect getViewRect() {
     checkState(!model.getGraph().isEmpty(),
         "graph may not be empty at this point");
-    final Collection<Point> nodes = model.getGraph().getNodes();
 
-    double minX = Double.POSITIVE_INFINITY;
-    double maxX = Double.NEGATIVE_INFINITY;
-    double minY = Double.POSITIVE_INFINITY;
-    double maxY = Double.NEGATIVE_INFINITY;
-
-    for (final Point p : nodes) {
-      minX = Math.min(minX, p.x);
-      maxX = Math.max(maxX, p.x);
-      minY = Math.min(minY, p.y);
-      maxY = Math.max(maxY, p.y);
-    }
-    return new ViewRect(new Point(minX - margin, minY - margin), new Point(maxX
-        + margin, maxY + margin));
+    final List<Point> extremes = Graphs.getExtremes(model.getGraph());
+    return new ViewRect(
+        PointUtil.sub(extremes.get(0), margin),
+        PointUtil.add(extremes.get(1), margin));
   }
 
   /**

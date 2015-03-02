@@ -20,10 +20,9 @@ import com.github.rinde.rinsim.geom.Point;
 import com.google.common.base.Optional;
 
 final class PointUtil {
+  private static final double TOLERANCE = 0.0000001;
 
   private PointUtil() {}
-
-  private static final double TOLERANCE = 0.0000001;
 
   static Optional<Point> intersectionPoint(Point own1, Point own2,
       Point oth1, Point oth2) {
@@ -116,10 +115,21 @@ final class PointUtil {
     return length(conn.from(), conn.to());
   }
 
-  public static Point pointInDir(Point value, double angle, double distance) {
+  static Point pointInDir(Point value, double angle, double distance) {
     final double x = Math.cos(angle) * distance;
     final double y = Math.sin(angle) * distance;
     return new Point(value.x + x, value.y + y);
   }
 
+  static Point add(Point p1, Point p2) {
+    return new Point(p1.x + p2.x, p1.y + p2.y);
+  }
+
+  static Point sub(Point point, double value) {
+    return new Point(point.x - value, point.y - value);
+  }
+
+  static Point add(Point point, double value) {
+    return new Point(point.x + value, point.y + value);
+  }
 }

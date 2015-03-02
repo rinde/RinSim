@@ -44,7 +44,6 @@ import com.github.rinde.rinsim.event.Event;
 import com.github.rinde.rinsim.event.Listener;
 import com.github.rinde.rinsim.geom.Connection;
 import com.github.rinde.rinsim.geom.Point;
-import com.github.rinde.rinsim.ui.CanvasRendererBuilder;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterators;
@@ -63,14 +62,13 @@ public final class AGVRenderer implements CanvasRenderer, Listener {
   private final CollisionGraphRoadModel model;
   private final RenderHelper helper;
   private final Map<MovingRoadUser, VehicleUI> vehicles;
-  private final boolean useDifferentColors;
   private int vehicleCounter;
 
-  enum DebugStringType {
-    COORDINATES, CREATION_NUMBER;
+  enum VizOptions {
+    COORDINATES, CREATION_NUMBER, VEHICLE_ORIGIN, USE_DIFFERENT_COLORS;
   }
 
-  private final ImmutableSet<DebugStringType> labelTypes;
+  private final ImmutableSet<VizOptions> vizOptions;
 
   private final Iterator<Integer> colors = Iterators.cycle(SWT.COLOR_BLUE,
       SWT.COLOR_RED, SWT.COLOR_GREEN, SWT.COLOR_CYAN, SWT.COLOR_MAGENTA,
@@ -82,9 +80,8 @@ public final class AGVRenderer implements CanvasRenderer, Listener {
     model = m;
     helper = new RenderHelper();
     vehicles = new LinkedHashMap<>();
-    useDifferentColors = factory.useDifferentColors;
     vehicleCounter = 0;
-    labelTypes = Sets.immutableEnumSet(factory.debugStringTypes);
+    vizOptions = Sets.immutableEnumSet(factory.vizOptions);
 
     final Set<RoadUser> obs = model.getObjects();
     for (final RoadUser ru : obs) {
@@ -99,8 +96,10 @@ public final class AGVRenderer implements CanvasRenderer, Listener {
   }
 
   void addVehicleUI(MovingRoadUser mru) {
-    final int color = useDifferentColors ? colors.next() : DEFAULT_COLOR;
-    final VehicleUI v = new VehicleUI(mru, model, color, labelTypes,
+    final int color = vizOptions.contains(VizOptions.USE_DIFFERENT_COLORS) ? colors
+        .next()
+        : DEFAULT_COLOR;
+    final VehicleUI v = new VehicleUI(mru, model, color, vizOptions,
         vehicleCounter++);
 
     verify(vehicles.put(mru, v) == null);
@@ -139,7 +138,7 @@ public final class AGVRenderer implements CanvasRenderer, Listener {
   }
 
   /**
-   * @return A {@link Builder} for creating a {@link AGVRenderer}.
+   * @return A {@link Builder} for creating an {@link AGVRenderer}.
    */
   public static Builder builder() {
     return new Builder();
@@ -150,12 +149,10 @@ public final class AGVRenderer implements CanvasRenderer, Listener {
    * @author Rinde van Lon
    */
   public static class Builder implements CanvasRendererBuilder {
-    boolean useDifferentColors;
-    Set<DebugStringType> debugStringTypes;
+    Set<VizOptions> vizOptions;
 
     Builder() {
-      useDifferentColors = false;
-      debugStringTypes = EnumSet.noneOf(DebugStringType.class);
+      vizOptions = EnumSet.noneOf(VizOptions.class);
     }
 
     /**
@@ -164,7 +161,7 @@ public final class AGVRenderer implements CanvasRenderer, Listener {
      * @return This, as per the builder pattern.
      */
     public Builder showVehicleCreationNumber() {
-      debugStringTypes.add(DebugStringType.CREATION_NUMBER);
+      vizOptions.add(VizOptions.CREATION_NUMBER);
       return this;
     }
 
@@ -173,7 +170,7 @@ public final class AGVRenderer implements CanvasRenderer, Listener {
      * @return This, as per the builder pattern.
      */
     public Builder showVehicleCoordinates() {
-      debugStringTypes.add(DebugStringType.COORDINATES);
+      vizOptions.add(VizOptions.COORDINATES);
       return this;
     }
 
@@ -182,7 +179,19 @@ public final class AGVRenderer implements CanvasRenderer, Listener {
      * @return This, as per the builder pattern.
      */
     public Builder useDifferentColorsForVehicles() {
-      useDifferentColors = true;
+      vizOptions.add(VizOptions.USE_DIFFERENT_COLORS);
+      return this;
+    }
+
+    /**
+     * Vehicles are drawn with a small half circle on top, the center of this
+     * half circle indicates the vehicle origin. The origin is the actual
+     * position as returned by
+     * {@link CollisionGraphRoadModel#getPosition(RoadUser)}.
+     * @return This, as per the builder pattern.
+     */
+    public Builder showVehicleOrigin() {
+      vizOptions.add(VizOptions.VEHICLE_ORIGIN);
       return this;
     }
 
@@ -194,8 +203,7 @@ public final class AGVRenderer implements CanvasRenderer, Listener {
     @Override
     public CanvasRendererBuilder copy() {
       final Builder copy = new Builder();
-      copy.useDifferentColors = useDifferentColors;
-      copy.debugStringTypes.addAll(debugStringTypes);
+      copy.vizOptions.addAll(vizOptions);
       return copy;
     }
   }
@@ -208,19 +216,19 @@ public final class AGVRenderer implements CanvasRenderer, Listener {
     Optional<? extends Connection<?>> connection;
 
     final int color;
-    final Set<DebugStringType> labelTypes;
+    final Set<VizOptions> vizOptions;
     final int creationNumber;
     double scale = 1;
     Optional<Image> image;
 
     VehicleUI(MovingRoadUser mru, CollisionGraphRoadModel m, int c,
-        Set<DebugStringType> t, int num) {
+        Set<VizOptions> t, int num) {
       vehicle = mru;
       model = m;
       angle = 0;
       connection = Optional.absent();
       color = c;
-      labelTypes = t;
+      vizOptions = t;
       creationNumber = num;
       position = new Point(0, 0);
       image = Optional.absent();
@@ -252,7 +260,7 @@ public final class AGVRenderer implements CanvasRenderer, Listener {
       igc.setBackground(gc.getDevice().getSystemColor(SWT.COLOR_GRAY));
       igc.fillRectangle(0, frontSize, width, length - frontSize);
 
-      if (labelTypes.contains(DebugStringType.CREATION_NUMBER)) {
+      if (vizOptions.contains(VizOptions.CREATION_NUMBER)) {
         final String string = Integer.toString(creationNumber);
         final double factor = width / (double) igc.stringExtent(string).x;
         final Font initialFont = igc.getFont();
@@ -272,6 +280,14 @@ public final class AGVRenderer implements CanvasRenderer, Listener {
         igc.drawText(string, xOffset, yOffset, true);
         newFont.dispose();
       }
+
+      if (vizOptions.contains(VizOptions.VEHICLE_ORIGIN)) {
+        igc.setBackground(gc.getDevice().getSystemColor(SWT.COLOR_GRAY));
+        igc.setForeground(gc.getDevice().getSystemColor(SWT.COLOR_WHITE));
+        igc.fillOval(width / 2 - 2, -2, 4, 4);
+        igc.drawOval(width / 2 - 2, -2, 4, 4);
+      }
+
       igc.dispose();
       return img;
     }
@@ -305,7 +321,7 @@ public final class AGVRenderer implements CanvasRenderer, Listener {
       gc.setTransform(null);
       transform.dispose();
 
-      if (labelTypes.contains(DebugStringType.COORDINATES)) {
+      if (vizOptions.contains(VizOptions.COORDINATES)) {
         helper.setBackgroundSysCol(SWT.COLOR_YELLOW);
         helper.setForegroundSysCol(SWT.COLOR_BLACK);
         gc.drawString(String.format("%1.2f,%1.2f", position.x, position.y),

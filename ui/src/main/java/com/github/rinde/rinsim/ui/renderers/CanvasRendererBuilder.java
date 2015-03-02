@@ -13,10 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.github.rinde.rinsim.ui;
+package com.github.rinde.rinsim.ui.renderers;
 
 import com.github.rinde.rinsim.core.model.ModelProvider;
-import com.github.rinde.rinsim.ui.renderers.CanvasRenderer;
 
 /**
  * Builder interface for creating {@link CanvasRenderer}s.
