@@ -43,7 +43,8 @@ import com.google.common.math.DoubleMath;
 /**
  * A {@link RoadModel} that uses a plane as road structure. This assumes that
  * from every point in the plane it is possible to drive to every other point in
- * the plane. The plane has a boundary as defined by a rectangle.
+ * the plane. The plane has a boundary as defined by a rectangle. Instances can
+ * be obtained via {@link #builder()}.
  *
  * @author Rinde van Lon
  */
@@ -84,6 +85,7 @@ public class PlaneRoadModel extends AbstractRoadModel<Point> {
    *          locations (i.e. {@link Point}s) should be specified.
    * @param pMaxSpeed The maximum speed that objects can travel on the plane.
    */
+  @Deprecated
   public PlaneRoadModel(Point pMin, Point pMax, Unit<Length> distanceUnit,
       Measure<Double, Velocity> pMaxSpeed) {
     super(distanceUnit, pMaxSpeed.getUnit());
@@ -106,6 +108,7 @@ public class PlaneRoadModel extends AbstractRoadModel<Point> {
    * @param speedLimitInKmh The maximum speed that objects can travel on the
    *          plane.
    */
+  @Deprecated
   public PlaneRoadModel(Point pMin, Point pMax, double speedLimitInKmh) {
     this(pMin, pMax, SI.KILOMETER, Measure.valueOf(speedLimitInKmh,
         NonSI.KILOMETERS_PER_HOUR));
@@ -232,6 +235,13 @@ public class PlaneRoadModel extends AbstractRoadModel<Point> {
   }
 
   /**
+   * @return A new {@link Builder} for creating a {@link PlaneRoadModel}.
+   */
+  public static Builder builder() {
+    return new Builder();
+  }
+
+  /**
    * Create a {@link Supplier} for {@link PlaneRoadModel}s.
    * @param min The minimum x and y of the plane.
    * @param max The maximum x and y of the plane.
@@ -246,6 +256,90 @@ public class PlaneRoadModel extends AbstractRoadModel<Point> {
       final Unit<Length> distanceUnit,
       final Measure<Double, Velocity> maxSpeed) {
     return new DefaultSupplier(min, max, distanceUnit, maxSpeed);
+  }
+
+  /**
+   * A builder for {@link PlaneRoadModel}.
+   * @author Rinde van Lon
+   */
+  public static class Builder {
+    Point min;
+    Point max;
+    Unit<Length> distUnit;
+    Unit<Velocity> velocityUnit;
+    double maxSpeed;
+
+    Builder() {
+      min = new Point(0, 0);
+      max = new Point(10, 10);
+      distUnit = SI.KILOMETER;
+      velocityUnit = NonSI.KILOMETERS_PER_HOUR;
+      maxSpeed = 50d;
+    }
+
+    /**
+     * Sets the min point that defines the left top corner of the plane. The
+     * default is <code>(0,0)</code>.
+     * @param minPoint The min point to set.
+     * @return This, as per the builder pattern.
+     */
+    public Builder setMinPoint(Point minPoint) {
+      min = minPoint;
+      return this;
+    }
+
+    /**
+     * Sets the max point that defines the right bottom corner of the plane. The
+     * default is <code>(10,10)</code>.
+     * @param maxPoint The max point to set.
+     * @return This, as per the builder pattern.
+     */
+    public Builder setMaxPoint(Point maxPoint) {
+      max = maxPoint;
+      return this;
+    }
+
+    /**
+     * Sets the distance unit to for all dimensions. The default is
+     * {@link SI#KILOMETER}.
+     * @param distanceUnit The distanceUnit to set.
+     * @return This, as per the builder pattern.
+     */
+    public Builder setDistanceUnit(Unit<Length> distanceUnit) {
+      distUnit = distanceUnit;
+      return this;
+    }
+
+    /**
+     * Sets the speed unit to use for all speeds. The default is
+     * {@link NonSI#KILOMETERS_PER_HOUR}.
+     * @param speedUnit The speedUnit to set
+     * @return This, as per the builder pattern.
+     */
+    public Builder setSpeedUnit(Unit<Velocity> speedUnit) {
+      velocityUnit = speedUnit;
+      return this;
+    }
+
+    /**
+     * Sets the maximum speed to use for all vehicles in the model. The default
+     * is <code>50</code>.
+     * @param speed The max speed to set.
+     * @return This, as per the builder pattern.
+     */
+    public Builder setMaxSpeed(double speed) {
+      maxSpeed = speed;
+      return this;
+    }
+
+    /**
+     * @return A new {@link PlaneRoadModel} instance.
+     */
+    public PlaneRoadModel build() {
+      return new PlaneRoadModel(min, max, distUnit,
+          Measure.valueOf(maxSpeed, velocityUnit));
+    }
+
   }
 
   private static class DefaultSupplier implements Supplier<PlaneRoadModel> {

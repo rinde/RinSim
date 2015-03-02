@@ -25,10 +25,10 @@ import com.github.rinde.rinsim.event.EventAPI;
 /**
  * Limited simulator API that provides an API for simulation elements (e.g.,
  * agents).
- * @author Bartosz Michalik 
- * @author Rinde van Lon 
+ * @author Bartosz Michalik
+ * @author Rinde van Lon
  * @since 2.0
- * 
+ *
  */
 public interface SimulatorAPI {
 
@@ -39,8 +39,7 @@ public interface SimulatorAPI {
    * @param o object to register
    * @return <code>true</code> when registration of the object in the simulator
    *         was successful
-   * @throws IllegalStateException when simulator is not configured (by calling
-   *           {@link Simulator#configure()}
+   * @throws IllegalStateException when simulator is not configured.
    */
   boolean register(Object o);
 
@@ -76,7 +75,8 @@ public interface SimulatorAPI {
   /**
    * Reference to the {@link EventAPI} of the Simulator. Can be used to add
    * listeners to events dispatched by the simulator. Simulator events are
-   * defined in {@link com.github.rinde.rinsim.core.Simulator.SimulatorEventType}.
+   * defined in
+   * {@link com.github.rinde.rinsim.core.Simulator.SimulatorEventType}.
    * @return {@link EventAPI}
    */
   EventAPI getEventAPI();

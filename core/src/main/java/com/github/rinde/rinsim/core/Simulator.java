@@ -18,6 +18,7 @@ package com.github.rinde.rinsim.core;
 import static com.google.common.base.Preconditions.checkArgument;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -25,8 +26,10 @@ import java.util.Set;
 
 import javax.measure.Measure;
 import javax.measure.quantity.Duration;
+import javax.measure.unit.SI;
 import javax.measure.unit.Unit;
 
+import org.apache.commons.math3.random.MersenneTwister;
 import org.apache.commons.math3.random.RandomGenerator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,19 +51,17 @@ import com.github.rinde.rinsim.event.EventDispatcher;
  *
  * The configuration phase of the simulator looks as follows:
  * <ol>
- * <li>register models using {@link #register(Model)}</li>
- * <li>call {@link #configure()}
+ * <li>Use {@link Simulator#builder()} to register models and define other
+ * global settings.</li>
+ * <li>Obtain a {@link Simulator} instance via {@link Simulator.Builder#build()}.
  * <li>register objects using {@link #register(Object)}</li>
  * <li>start simulation by calling {@link #start()}</li>
  * </ol>
- * Note that objects can not be registered <b>before</b> calling
- * {@link #configure()} and {@link Model}s can not be registered <b>after</b>
- * configuring.
  *
- * @author Rinde van Lon (rinde.vanlon@cs.kuleuven.be)
- * @author Bartosz Michalik - simulator API changes
+ * @author Rinde van Lon
+ * @author Bartosz Michalik
  */
-public class Simulator implements SimulatorAPI {
+public final class Simulator implements SimulatorAPI {
 
   /**
    * The logger of the simulator.
@@ -126,10 +127,18 @@ public class Simulator implements SimulatorAPI {
    * @param r The random number generator that is used in this simulator.
    * @param step The time that passes each tick. This can be in any unit the
    *          programmer prefers.
+   * @deprecated Use {@link #builder()} instead.
    */
+  @Deprecated
   public Simulator(RandomGenerator r, Measure<Long, Duration> step) {
+    this(r, step, Arrays.<Model<?>> asList());
+  }
+
+  Simulator(RandomGenerator r, Measure<Long, Duration> step,
+      List<Model<?>> models) {
     LOGGER.info("Simulator constructor, time step {}", step);
-    checkArgument(step.getValue() > 0L, "Step must be a positive number.");
+    checkArgument(step.getValue() > 0L,
+        "Step must be a strictly positive number.");
     timeStep = step.getValue();
     tickListeners = Collections
         .synchronizedSet(new LinkedHashSet<TickListener>());
@@ -144,6 +153,14 @@ public class Simulator implements SimulatorAPI {
     modelManager = new ModelManager();
 
     dispatcher = new EventDispatcher(SimulatorEventType.values());
+    for (final Model<?> m : models) {
+      register(m);
+    }
+
+    if (!models.isEmpty()) {
+
+      configure();
+    }
   }
 
   /**
@@ -151,7 +168,9 @@ public class Simulator implements SimulatorAPI {
    * method models can no longer be added, objects can only be registered after
    * this method is called.
    * @see ModelManager#configure()
+   * @deprecated Use {@link #builder()} instead.
    */
+  @Deprecated
   public void configure() {
     for (final Model<?> m : modelManager.getModels()) {
       if (m instanceof TickListener) {
@@ -168,7 +187,9 @@ public class Simulator implements SimulatorAPI {
    * Register a model to the simulator.
    * @param model The {@link Model} instance to register.
    * @return true if successful, false otherwise
+   * @deprecated Use {@link #builder()} instead.
    */
+  @Deprecated
   public boolean register(Model<?> model) {
     if (configured) {
       throw new IllegalStateException(
@@ -389,5 +410,103 @@ public class Simulator implements SimulatorAPI {
   @Override
   public EventAPI getEventAPI() {
     return dispatcher.getPublicEventAPI();
+  }
+
+  /**
+   * @return A new {@link Builder} for creating a {@link Simulator} instance.
+   */
+  public static Builder builder() {
+    return new Builder();
+  }
+
+  /**
+   * A builder for {@link Simulator}.
+   * @author Rinde van Lon
+   */
+  public static class Builder {
+    RandomGenerator rng;
+    Unit<Duration> timeUnit;
+    long tickLength;
+    List<Model<?>> models;
+
+    Builder() {
+      rng = new MersenneTwister(123L);
+      timeUnit = SI.MILLI(SI.SECOND);
+      tickLength = 1000L;
+      models = new ArrayList<>();
+    }
+
+    /**
+     * Sets the random seed used in the {@link RandomGenerator} used in the
+     * simulator. The default {@link RandomGenerator} is a
+     * {@link MersenneTwister} with seed <code>123</code>.
+     * @param seed The seed to use.
+     * @return This, as per the builder pattern.
+     */
+    public Builder setRandomSeed(long seed) {
+      rng.setSeed(seed);
+      return this;
+    }
+
+    /**
+     * Sets the {@link RandomGenerator} to use in the simulator. This overwrites
+     * any previous calls made to {@link #setRandomSeed(long)}. The default
+     * {@link RandomGenerator} is a {@link MersenneTwister} with seed
+     * <code>123</code>.
+     * @param randomGenerator The generator to set.
+     * @return This, as per the builder pattern.
+     */
+    public Builder setRandomGenerator(RandomGenerator randomGenerator) {
+      rng = randomGenerator;
+      return this;
+    }
+
+    /**
+     * Sets the time unit to use in the simulator. The default time unit is
+     * milliseconds.
+     * @param unit The time unit to use.
+     * @return This, as per the builder pattern.
+     */
+    public Builder setTimeUnit(Unit<Duration> unit) {
+      timeUnit = unit;
+      return this;
+    }
+
+    /**
+     * Sets the length of a single tick in the simulator. The default tick
+     * length is <code>1000</code>.
+     * @param length The tick length to set.
+     * @return This, as per the builder pattern.
+     */
+    public Builder setTickLength(long length) {
+      checkArgument(length > 0,
+          "Tick length must be strictly positive but is %s.", length);
+      tickLength = length;
+      return this;
+    }
+
+    /**
+     * Adds the specified {@link Model} to the simulator.
+     * @param model The model to add.
+     * @return This, as per the builder pattern.
+     */
+    public Builder addModel(Model<?> model) {
+      models.add(model);
+      return this;
+    }
+
+    /**
+     * Builds the simulator, at least one {@link Model} must have been added.
+     * @return A new {@link Simulator} instance.
+     */
+    public Simulator build() {
+      checkArgument(!models.isEmpty(), "At least one model must be added.");
+      final Simulator sim = new Simulator(rng, Measure.valueOf(tickLength,
+          timeUnit));
+      for (final Model<?> m : models) {
+        sim.register(m);
+      }
+      return sim;
+    }
   }
 }
