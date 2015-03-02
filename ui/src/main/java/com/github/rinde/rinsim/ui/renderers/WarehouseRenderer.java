@@ -60,7 +60,7 @@ public final class WarehouseRenderer implements CanvasRenderer {
   /**
    * The dimensions of the head of the arrow relative to the vehicle length.
    */
-  private static final Point ARROW_HEAD_REL_DIM = new Point(.5, .25);
+  private static final Point ARROW_HEAD_REL_DIM = new Point(.25, .25);
 
   private static final int OPAQUE = 255;
   private static final int SEMI_TRANSPARENT = 50;
@@ -109,8 +109,8 @@ public final class WarehouseRenderer implements CanvasRenderer {
     // filter connections to avoid double work for bidirectional roads
     final Table<Point, Point, Connection<?>> filteredConnections = filterConnections();
 
-    adapter.setForegroundSysCol(SWT.COLOR_GRAY);
-    adapter.setBackgroundSysCol(SWT.COLOR_GRAY);
+    adapter.setForegroundSysCol(SWT.COLOR_DARK_GRAY);
+    adapter.setBackgroundSysCol(SWT.COLOR_DARK_GRAY);
     // draw connections
     for (final Connection<?> e : filteredConnections.values()) {
       // draw arrows
@@ -133,6 +133,8 @@ public final class WarehouseRenderer implements CanvasRenderer {
         }
       }
 
+      adapter.setForegroundSysCol(SWT.COLOR_GRAY);
+      adapter.setBackgroundSysCol(SWT.COLOR_GRAY);
       final double length = PointUtil.length(e);
 
       final Point a = PointUtil.perp(e, vehicleLength, halfRoadWidth);

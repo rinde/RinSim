@@ -15,11 +15,6 @@
  */
 package com.github.rinde.rinsim.examples.core;
 
-import javax.measure.Measure;
-import javax.measure.unit.NonSI;
-import javax.measure.unit.SI;
-
-import org.apache.commons.math3.random.MersenneTwister;
 import org.apache.commons.math3.random.RandomGenerator;
 
 import com.github.rinde.rinsim.core.Simulator;
@@ -64,22 +59,23 @@ public final class SimpleExample {
    * @param testing if <code>true</code> turns on testing mode.
    */
   public static void run(boolean testing) {
-    // initialize a random generator which we use throughout this
-    // 'experiment'
-    final RandomGenerator rnd = new MersenneTwister(123);
-
     // initialize a new Simulator instance
-    final Simulator sim = new Simulator(rnd,
-        Measure.valueOf(1000L, SI.MILLI(SI.SECOND)));
-
-    // register a PlaneRoadModel, a model which facilitates the moving of
-    // RoadUsers on a plane. The plane is bounded by two corner points:
-    // (0,0) and (10,10)
-    sim.register(new PlaneRoadModel(MIN_POINT, MAX_POINT, SI.KILOMETER,
-        Measure.valueOf(VEHICLE_SPEED_KMH, NonSI.KILOMETERS_PER_HOUR)));
-    // configure the simulator, once configured we can no longer change the
-    // configuration (i.e. add new models) but we can start adding objects
-    sim.configure();
+    final Simulator sim = Simulator.builder()
+        // set the length of a simulation 'tick'
+        .setTickLength(1000L)
+        // set the random seed we use in this 'experiment'
+        .setRandomSeed(123L)
+        // add a PlaneRoadModel, a model which facilitates the moving of
+        // RoadUsers on a plane. The plane is bounded by two corner points:
+        // (0,0) and (10,10)
+        .addModel(
+            PlaneRoadModel.builder()
+                .setMinPoint(MIN_POINT)
+                .setMaxPoint(MAX_POINT)
+                .setMaxSpeed(VEHICLE_SPEED_KMH)
+                .build()
+        )
+        .build();
 
     // add a number of drivers on the road
     final int numDrivers = 200;
@@ -88,14 +84,14 @@ public final class SimpleExample {
       // automatically 'hooked up' with models that it's interested in. An
       // object declares to be interested in an model by implementing an
       // interface.
-      sim.register(new Driver(rnd));
+      sim.register(new Driver(sim.getRandomGenerator()));
     }
     // initialize the GUI. We use separate renderers for the road model and
     // for the drivers. By default the road model is rendered as a square
     // (indicating its boundaries), and the drivers are rendered as red
     // dots.
     final View.Builder viewBuilder = View.create(sim)
-        .with(new PlaneRoadModelRenderer())
+        .with(PlaneRoadModelRenderer.create())
         .with(new RoadUserRenderer());
 
     if (testing) {

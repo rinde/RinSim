@@ -23,12 +23,13 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.GC;
 
 import com.github.rinde.rinsim.core.model.ModelProvider;
+import com.github.rinde.rinsim.core.model.road.PlaneRoadModel;
 import com.github.rinde.rinsim.core.model.road.RoadModel;
 import com.github.rinde.rinsim.geom.Point;
 
 /**
+ * A renderer for a {@link PlaneRoadModel}.
  * @author Rinde van Lon
- *
  */
 public final class PlaneRoadModelRenderer implements ModelRenderer {
 
@@ -40,10 +41,18 @@ public final class PlaneRoadModelRenderer implements ModelRenderer {
 
   private List<Point> bounds;
 
+  /**
+   * @deprecated Use {@link #create()} instead.
+   */
+  @Deprecated
   public PlaneRoadModelRenderer() {
     this(0.02);
   }
 
+  /**
+   * @deprecated Use {@link #create()} instead.
+   */
+  @Deprecated
   public PlaneRoadModelRenderer(double pMargin) {
     margin = pMargin;
   }
@@ -87,5 +96,21 @@ public final class PlaneRoadModelRenderer implements ModelRenderer {
     final double height = bounds.get(1).y - bounds.get(0).y;
     xMargin = width * margin;
     yMargin = height * margin;
+  }
+
+  /**
+   * @return A new {@link PlaneRoadModelRenderer} with a default margin.
+   */
+  public static PlaneRoadModelRenderer create() {
+    return new PlaneRoadModelRenderer();
+  }
+
+  /**
+   * Creates a new {@link PlaneRoadModelRenderer} instance.
+   * @param margin The margin to show around the plane.
+   * @return A new instance.
+   */
+  public static PlaneRoadModelRenderer create(double margin) {
+    return new PlaneRoadModelRenderer(margin);
   }
 }

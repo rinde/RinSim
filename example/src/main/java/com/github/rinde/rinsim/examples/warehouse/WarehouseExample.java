@@ -19,12 +19,6 @@ import static com.google.common.collect.Lists.newArrayList;
 
 import java.util.Map;
 
-import javax.measure.Measure;
-import javax.measure.unit.SI;
-
-import org.apache.commons.math3.random.MersenneTwister;
-import org.apache.commons.math3.random.RandomGenerator;
-
 import com.github.rinde.rinsim.core.Simulator;
 import com.github.rinde.rinsim.core.model.road.CollisionGraphRoadModel;
 import com.github.rinde.rinsim.geom.Graph;
@@ -54,33 +48,23 @@ public class WarehouseExample {
    */
   public static void main(String[] args) {
 
-    final RandomGenerator rng = new MersenneTwister(123L);
-    final Simulator sim = new Simulator(rng, Measure.valueOf(1000L,
-        SI.MILLI(SI.SECOND)));
-
-    sim.register(CollisionGraphRoadModel.builder(createSimpleGraph())
-        .setVehicleLength(VEHICLE_LENGTH)
-        .build());
-    sim.configure();
+    final Simulator sim = Simulator.builder()
+        .addModel(CollisionGraphRoadModel.builder(createSimpleGraph())
+            .setVehicleLength(VEHICLE_LENGTH)
+            .build())
+        .build();
 
     for (int i = 0; i < 20; i++) {
-      sim.register(new AGVAgent(rng));
+      sim.register(new AGVAgent(sim.getRandomGenerator()));
     }
 
     View.create(sim)
         .with(WarehouseRenderer.builder()
             .setMargin(VEHICLE_LENGTH)
-            .drawOneWayStreetArrows()
-        // .showNodeOccupancy()
         )
         .with(AGVRenderer.builder()
             .useDifferentColorsForVehicles()
-            .showVehicleCreationNumber()
         )
-        // .with(GraphRoadModelRenderer.builder()
-        // .showNodes()
-        // .showNodeLabels()
-        // )
         .show();
   }
 
