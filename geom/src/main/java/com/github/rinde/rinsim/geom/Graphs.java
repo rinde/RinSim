@@ -38,6 +38,7 @@ import javax.annotation.Nullable;
 import com.google.common.base.Function;
 import com.google.common.base.Objects;
 import com.google.common.base.Optional;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterators;
 import com.google.common.collect.PeekingIterator;
 
@@ -321,6 +322,27 @@ public final class Graphs {
       dist += Point.distance(path.get(i - 1), path.get(i));
     }
     return dist;
+  }
+
+  /**
+   * Calculates the extremes of the graph.
+   * @param graph The graph.
+   * @return A list containing two points, the first point contains the min x
+   *         and min y, the second point contains the max x and max y.
+   */
+  public static ImmutableList<Point> getExtremes(Graph<?> graph) {
+    final Collection<Point> nodes = graph.getNodes();
+    double minX = Double.POSITIVE_INFINITY;
+    double maxX = Double.NEGATIVE_INFINITY;
+    double minY = Double.POSITIVE_INFINITY;
+    double maxY = Double.NEGATIVE_INFINITY;
+    for (final Point p : nodes) {
+      minX = Math.min(minX, p.x);
+      maxX = Math.max(maxX, p.x);
+      minY = Math.min(minY, p.y);
+      maxY = Math.max(maxY, p.y);
+    }
+    return ImmutableList.of(new Point(minX, minY), new Point(maxX, maxY));
   }
 
   static List<Point> reconstructPath(final Map<Point, Point> cameFrom,
