@@ -64,10 +64,10 @@
 				</executions>
 			</plugin>
 
-			<plugin>
+			<!-- <plugin>
 				<groupId>com.googlecode.japi-checker</groupId>
 				<artifactId>japi-checker-maven-plugin</artifactId>
-			</plugin>
+			</plugin> -->
 		</plugins>
 	</build>
 
