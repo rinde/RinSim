@@ -85,18 +85,10 @@
 		<pluginManagement>
 			<plugins>
 				<!-- unit tests -->
-				<plugin>
-					<groupId>org.apache.maven.plugins</groupId>
-					<artifactId>maven-surefire-plugin</artifactId>
-					<version>2.18</version>
-					<configuration>
-						<argLine>${argLine}</argLine>
-						<excludedGroups>${test.excludedGroups}</excludedGroups>
-						<systemPropertyVariables>
-							<jacoco-agent.destfile>target/jacoco.exec</jacoco-agent.destfile>
-						</systemPropertyVariables>
-					</configuration>
-				</plugin>
+				<!-- <plugin> <groupId>org.apache.maven.plugins</groupId> <artifactId>maven-surefire-plugin</artifactId> 
+					<version>2.18</version> <configuration> <argLine>${argLine}</argLine> <excludedGroups>${test.excludedGroups}</excludedGroups> 
+					<systemPropertyVariables> <jacoco-agent.destfile>target/jacoco.exec</jacoco-agent.destfile> 
+					</systemPropertyVariables> </configuration> </plugin> -->
 
 				<!-- suppresses an annoying warning in all children pom files (maven-enforce-plugin 
 					blabla) -->
@@ -275,11 +267,8 @@
 			</plugin>
 
 			<!-- coveralls -->
-			<plugin>
-				<groupId>org.eluder.coveralls</groupId>
-				<artifactId>coveralls-maven-plugin</artifactId>
-				<version>3.0.1</version>
-			</plugin>
+			<!-- <plugin> <groupId>org.eluder.coveralls</groupId> <artifactId>coveralls-maven-plugin</artifactId> 
+				<version>3.0.1</version> </plugin> -->
 
 			<!-- adds a javadoc jar to every executable jar -->
 			<plugin>
@@ -337,28 +326,6 @@
 				<artifactId>maven-assembly-plugin</artifactId>
 				<version>2.3</version>
 			</plugin>
-
-			<plugin>
-				<groupId>org.codehaus.mojo</groupId>
-				<artifactId>cobertura-maven-plugin</artifactId>
-				<version>2.6</version>
-				<configuration>
-					<formats>
-						<format>html</format>
-						<format>xml</format>
-					</formats>
-					<aggregate>true</aggregate>
-					<!-- <instrumentation> <excludes> <exclude>rinde/sim/example*/**/*.class</exclude> 
-						<exclude>rinde/sim/lab/**/*.class</exclude> </excludes> </instrumentation> -->
-				</configuration>
-				<executions>
-					<execution>
-						<goals>
-							<goal>clean</goal>
-						</goals>
-					</execution>
-				</executions>
-			</plugin>
 		</plugins>
 		<defaultGoal>package</defaultGoal>
 	</build>
@@ -405,16 +372,6 @@
 			</build>
 		</profile>
 	</profiles>
-
-	<reporting>
-		<plugins>
-			<plugin>
-				<groupId>org.codehaus.mojo</groupId>
-				<artifactId>cobertura-maven-plugin</artifactId>
-				<version>2.6</version>
-			</plugin>
-		</plugins>
-	</reporting>
 
 	<dependencies>
 		<dependency>
