@@ -516,10 +516,5 @@ public class GraphRoadModel extends AbstractRoadModel<Loc> {
     public boolean isOnSameConnection(Loc l) {
       return conn.equals(l.conn);
     }
-
-    @Override
-    public String toString() {
-      return super.toString() + "{" + conn + "}";
-    }
   }
 }
