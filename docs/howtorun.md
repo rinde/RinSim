@@ -88,7 +88,7 @@ __Protip__: you can download the sources of RinSim and all other dependencies by
 
 - When you have copied some RinSim code to your own project and you see a compile error such as 'the method/constructor is undefined' make sure that you didn't accidently use the 'organize imports' feature of Eclipse and selected the wrong class. E.g. choose ``rinde.sim.core.graph.Point`` over ``java.awt.Point``.
 
-- When the compiler complains about ``@Override`` annotations in code that you have copied from RinSim, make sure that Maven targets Java version 1.6 or later (see step 7 in the instructions above for the XML code to do this).
+- When the compiler complains about ``@Override`` annotations in code that you have copied from RinSim, make sure that Maven targets Java version 1.7 or later (see step 7 in the instructions above for the XML code to do this).
 
 - If you can not run the UI on Mac OS X make sure that you add ``-XstartOnFirstThread`` as a VM argument.
 
