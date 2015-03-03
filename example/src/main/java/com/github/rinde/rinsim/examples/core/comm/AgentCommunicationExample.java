@@ -17,9 +17,6 @@ package com.github.rinde.rinsim.examples.core.comm;
 
 import java.io.IOException;
 
-import javax.measure.Measure;
-import javax.measure.unit.SI;
-
 import org.apache.commons.math3.random.MersenneTwister;
 import org.eclipse.swt.graphics.RGB;
 
@@ -91,8 +88,6 @@ public class AgentCommunicationExample {
    */
   public static void run(boolean testing) {
     final MersenneTwister rand = new MersenneTwister(123);
-    final Simulator simulator = new Simulator(rand, Measure.valueOf(1000L,
-        SI.MILLI(SI.SECOND)));
     Graph<LengthData> graph;
     try {
       graph = DotGraphSerializer
@@ -106,9 +101,12 @@ public class AgentCommunicationExample {
     final RoadModel roadModel = new GraphRoadModel(graph);
     final CommunicationModel communicationModel = new CommunicationModel(rand,
         false);
-    simulator.register(roadModel);
-    simulator.register(communicationModel);
-    simulator.configure();
+
+    final Simulator simulator = Simulator.builder()
+        .setRandomGenerator(rand)
+        .addModel(roadModel)
+        .addModel(communicationModel)
+        .build();
 
     // add agents
     for (int i = 0; i < NUM_AGENTS; i++) {
@@ -126,7 +124,7 @@ public class AgentCommunicationExample {
     // create GUI
     final UiSchema schema = new UiSchema(false);
     schema
-    .add(ExamplePackage.class, "/graphics/perspective/deliverypackage2.png");
+        .add(ExamplePackage.class, "/graphics/perspective/deliverypackage2.png");
 
     final UiSchema schema2 = new UiSchema();
     schema2.add(Colors.BLACK.name(), Colors.BLACK.color());
@@ -141,9 +139,9 @@ public class AgentCommunicationExample {
 
     if (testing) {
       viewBuilder.enableAutoPlay()
-      .enableAutoClose()
-      .setSpeedUp(64)
-      .stopSimulatorAtTime(60 * 60 * 1000);
+          .enableAutoClose()
+          .setSpeedUp(64)
+          .stopSimulatorAtTime(60 * 60 * 1000);
     }
 
     viewBuilder.show();

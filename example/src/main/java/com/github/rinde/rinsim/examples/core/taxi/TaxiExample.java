@@ -22,10 +22,7 @@ import java.io.IOException;
 import java.util.Map;
 
 import javax.annotation.Nullable;
-import javax.measure.Measure;
-import javax.measure.unit.SI;
 
-import org.apache.commons.math3.random.MersenneTwister;
 import org.apache.commons.math3.random.RandomGenerator;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Monitor;
@@ -85,9 +82,9 @@ public final class TaxiExample {
     final long endTime = args != null && args.length >= 1 ? Long
         .parseLong(args[0]) : Long.MAX_VALUE;
 
-        final String graphFile = args != null && args.length >= 2 ? args[1]
-            : MAP_FILE;
-        run(false, endTime, graphFile, null /* new Display() */, null, null);
+    final String graphFile = args != null && args.length >= 2 ? args[1]
+        : MAP_FILE;
+    run(false, endTime, graphFile, null /* new Display() */, null, null);
   }
 
   /**
@@ -111,19 +108,15 @@ public final class TaxiExample {
       String graphFile,
       @Nullable Display display, @Nullable Monitor m, @Nullable Listener list) {
 
-    // create a new simulator
-    final RandomGenerator rng = new MersenneTwister(123);
-    final Simulator simulator = new Simulator(rng, Measure.valueOf(1000L,
-        SI.MILLI(SI.SECOND)));
-
     // use map of leuven
     final RoadModel roadModel = new GraphRoadModel(loadGraph(graphFile));
     final DefaultPDPModel pdpModel = new DefaultPDPModel();
 
-    // configure simulator with models
-    simulator.register(roadModel);
-    simulator.register(pdpModel);
-    simulator.configure();
+    final Simulator simulator = Simulator.builder()
+        .addModel(roadModel)
+        .addModel(pdpModel)
+        .build();
+    final RandomGenerator rng = simulator.getRandomGenerator();
 
     // add depots, taxis and parcels to simulator
     for (int i = 0; i < NUM_DEPOTS; i++) {
@@ -148,7 +141,7 @@ public final class TaxiExample {
         } else if (rng.nextDouble() < .007) {
           simulator.register(new Customer(
               roadModel.getRandomPosition(rng), roadModel
-              .getRandomPosition(rng), SERVICE_DURATION, SERVICE_DURATION,
+                  .getRandomPosition(rng), SERVICE_DURATION, SERVICE_DURATION,
               1 + rng.nextInt(3)));
         }
       }
@@ -169,19 +162,19 @@ public final class TaxiExample {
 
     if (testing) {
       view.enableAutoClose()
-      .enableAutoPlay()
-      .stopSimulatorAtTime(60 * 60 * 1000)
-      .setSpeedUp(64);
+          .enableAutoPlay()
+          .stopSimulatorAtTime(60 * 60 * 1000)
+          .setSpeedUp(64);
     }
     else if (m != null && list != null) {
       view.displayOnMonitor(m)
-      .setSpeedUp(4)
-      .setResolution(m.getClientArea().width, m.getClientArea().height)
-      .setDisplay(display)
-      .setCallback(list)
-      .setAsync()
-      .enableAutoPlay()
-      .enableAutoClose();
+          .setSpeedUp(4)
+          .setResolution(m.getClientArea().width, m.getClientArea().height)
+          .setDisplay(display)
+          .setCallback(list)
+          .setAsync()
+          .enableAutoPlay()
+          .enableAutoClose();
     }
 
     view.show();
@@ -223,7 +216,7 @@ public final class TaxiExample {
       final Graph<MultiAttributeData> g = DotGraphSerializer
           .getMultiAttributeGraphSerializer(
               new SelfCycleFilter()).read(
-                  TaxiExample.class.getResourceAsStream(name));
+              TaxiExample.class.getResourceAsStream(name));
 
       GRAPH_CACHE.put(name, g);
       return g;
