@@ -44,11 +44,13 @@ import com.github.rinde.rinsim.geom.Point;
 public final class GraphRoadModelRenderer implements CanvasRenderer {
   private static final int NODE_RADIUS = 2;
   private static final Point RELATIVE_TEXT_POSITION = new Point(4, -14);
+  private static final int ARROW_HEAD_SIZE = 8;
+  private static final Point ARROW_REL_FROM_TO = new Point(.9, .95);
 
   private final GraphRoadModel model;
   private final int margin;
   private final boolean showNodes;
-  private final boolean showNodeLabels;
+  private final boolean showNodeCoordinates;
   private final boolean showDirectionArrows;
   private final RenderHelper helper;
 
@@ -56,7 +58,7 @@ public final class GraphRoadModelRenderer implements CanvasRenderer {
     model = grm;
     margin = b.margin;
     showNodes = b.showNodes;
-    showNodeLabels = b.showNodeLabels;
+    showNodeCoordinates = b.showNodeCoordinates;
     showDirectionArrows = b.showDirectionArrows;
     helper = new RenderHelper();
   }
@@ -72,11 +74,11 @@ public final class GraphRoadModelRenderer implements CanvasRenderer {
         helper.fillCircle(node, NODE_RADIUS);
       }
     }
-    if (showNodeLabels) {
+    if (showNodeCoordinates) {
       for (final Point node : graph.getNodes()) {
         helper.setForegroundSysCol(SWT.COLOR_GRAY);
-        helper.drawString(node.toString(),
-            PointUtil.add(node, RELATIVE_TEXT_POSITION), true);
+        helper.drawString(node.toString(), node, true,
+            (int) RELATIVE_TEXT_POSITION.x, (int) RELATIVE_TEXT_POSITION.y);
       }
     }
 
@@ -86,10 +88,10 @@ public final class GraphRoadModelRenderer implements CanvasRenderer {
 
       if (showDirectionArrows) {
         final double dist = Point.distance(e.from(), e.to());
-        final Point f = PointUtil.on(e, dist * .9);
-        final Point t = PointUtil.on(e, dist * .95);
+        final Point f = PointUtil.on(e, dist * ARROW_REL_FROM_TO.x);
+        final Point t = PointUtil.on(e, dist * ARROW_REL_FROM_TO.y);
         helper.setBackgroundSysCol(SWT.COLOR_GRAY);
-        helper.drawArrow(f, t, 8, 8);
+        helper.drawArrow(f, t, ARROW_HEAD_SIZE, ARROW_HEAD_SIZE);
       }
     }
   }
@@ -124,13 +126,13 @@ public final class GraphRoadModelRenderer implements CanvasRenderer {
   public static final class Builder implements CanvasRendererBuilder {
     int margin;
     boolean showNodes;
-    boolean showNodeLabels;
+    boolean showNodeCoordinates;
     boolean showDirectionArrows;
 
     Builder() {
       margin = 0;
       showNodes = false;
-      showNodeLabels = false;
+      showNodeCoordinates = false;
       showDirectionArrows = false;
     }
 
@@ -159,9 +161,19 @@ public final class GraphRoadModelRenderer implements CanvasRenderer {
      * Shows a label with coordinates next to each node in the graph.
      * @return This, as per the builder pattern.
      */
-    public Builder showNodeLabels() {
-      showNodeLabels = true;
+    public Builder showNodeCoordinates() {
+      showNodeCoordinates = true;
       return this;
+    }
+
+    /**
+     * Shows a label with coordinates next to each node in the graph.
+     * @return This, as per the builder pattern.
+     * @deprecated Use {@link #showNodeCoordinates()}.
+     */
+    @Deprecated
+    public Builder showNodeLabels() {
+      return showNodeCoordinates();
     }
 
     /**
@@ -179,7 +191,7 @@ public final class GraphRoadModelRenderer implements CanvasRenderer {
       final Builder copy = new Builder();
       copy.margin = margin;
       copy.showNodes = showNodes;
-      copy.showNodeLabels = showNodeLabels;
+      copy.showNodeCoordinates = showNodeCoordinates;
       copy.showDirectionArrows = showDirectionArrows;
       return copy;
     }

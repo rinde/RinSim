@@ -15,10 +15,6 @@
  */
 package com.github.rinde.rinsim.ui.renderers;
 
-import javax.measure.Measure;
-import javax.measure.unit.SI;
-
-import org.apache.commons.math3.random.MersenneTwister;
 import org.apache.commons.math3.random.RandomGenerator;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
@@ -43,40 +39,43 @@ import com.google.common.base.Optional;
  *
  */
 @Category(GuiTests.class)
-public class WarehouseRendererTest {
+public class GraphBasedRenderersTest {
 
+  /**
+   * Tests graph related renderers.
+   */
   @Test
-  public void test() {
-
-    final Simulator sim = new Simulator(new MersenneTwister(123L),
-        Measure.valueOf(1000L, SI.MILLI(SI.SECOND)));
-
+  public void testRenderer() {
     final ListenableGraph<LengthData> graph = new ListenableGraph<>(
         new TableGraph<LengthData>());
 
     Graphs.addPath(graph, new Point(0, 0), new Point(10, 0), new Point(10,
         10), new Point(0, 10), new Point(0, 0));
 
-    // graph.addConnection(new Point(0, 0), new Point(20, 20));
-    // Graphs.addPath(graph, new Point(0, 0), new Point(0, 20),
-    // new Point(20, 20), new Point(20, 0), new Point(0, 0));
-    // Graphs.addBiPath(graph, new Point(20, 0), new Point(40, 0),
-    // new Point(40, 20), new Point(20, 20));
-    //
-    // Graphs.addBiPath(graph, new Point(20, 20), new Point(40, 35), new
-    // Point(60,
-    // 20), new Point(60, 10), new Point(40, 20));
-    //
-    // Graphs.addPath(graph, new Point(60, 10), new Point(60, 6),
-    // new Point(56, 6),
-    // new Point(60, 2), new Point(40, 0));
-    //
-    // Graphs.addBiPath(graph, new Point(20, 20), new Point(20, 30), new
-    // Point(20,
-    // 40));
+    final Simulator sim = Simulator.builder()
+        .addModel(
+            CollisionGraphRoadModel.builder(graph).build()
+        )
+        .build();
 
-    sim.register(CollisionGraphRoadModel.builder(graph).build());
-    sim.configure();
+    graph.addConnection(new Point(0, 0), new Point(20, 20));
+    Graphs.addPath(graph, new Point(0, 0), new Point(0, 20),
+        new Point(20, 20), new Point(20, 0), new Point(0, 0));
+    Graphs.addBiPath(graph, new Point(20, 0), new Point(40, 0),
+        new Point(40, 20), new Point(20, 20));
+
+    Graphs.addBiPath(graph, new Point(20, 20), new Point(40, 35), new
+        Point(60,
+            20), new Point(60, 10), new Point(40, 20));
+
+    Graphs.addPath(graph, new Point(60, 10), new Point(60, 6),
+        new Point(56, 6),
+        new Point(60, 2), new Point(40, 0));
+
+    Graphs.addBiPath(graph, new Point(20, 20), new Point(20, 30), new
+        Point(20,
+            40));
+
     for (int i = 0; i < 4; i++) {
       sim.register(new Agent(sim.getRandomGenerator()));
     }
@@ -85,15 +84,17 @@ public class WarehouseRendererTest {
             .setMargin(0)
             .drawOneWayStreetArrows()
             .showNodeOccupancy()
+            .showNodes()
         )
         .with(AGVRenderer.builder()
             .showVehicleCreationNumber()
             .useDifferentColorsForVehicles()
             .showVehicleCoordinates()
+            .showVehicleOrigin()
         )
         .with(GraphRoadModelRenderer.builder()
             .showDirectionArrows()
-            .showNodeLabels()
+            .showNodeCoordinates()
             .setMargin(1)
             .showNodes()
         )
@@ -115,6 +116,7 @@ public class WarehouseRendererTest {
     Agent(RandomGenerator r) {
       rng = r;
       model = Optional.absent();
+      destination = Optional.absent();
     }
 
     @Override

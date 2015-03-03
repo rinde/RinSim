@@ -51,4 +51,8 @@ public class ViewPort {
   double invScale(int val) {
     return 1d / scale * val;
   }
+
+  org.eclipse.swt.graphics.Point convert(Point p) {
+    return new org.eclipse.swt.graphics.Point(toCoordX(p.x), toCoordY(p.y));
+  }
 }

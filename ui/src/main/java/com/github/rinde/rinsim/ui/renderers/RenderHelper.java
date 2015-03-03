@@ -149,9 +149,14 @@ class RenderHelper {
   }
 
   void drawString(String string, Point pos, boolean isTransparent) {
+    drawString(string, pos, isTransparent, 0, 0);
+  }
+
+  void drawString(String string, Point pos, boolean isTransparent, int xOffset,
+      int yOffset) {
     gc.get().drawString(string,
-        vp.get().toCoordX(pos.x),
-        vp.get().toCoordY(pos.y),
+        vp.get().toCoordX(pos.x) + xOffset,
+        vp.get().toCoordY(pos.y) + yOffset,
         isTransparent);
   }
 }
