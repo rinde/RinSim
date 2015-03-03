@@ -7,6 +7,8 @@ jdk:
 install: mvn install -DskipTests=true
 
 script: 
+  - Xvfb :1 -ac -screen 0 1024x768x8 & 
+  - export DISPLAY=:1
   - mvn verify -Dskip.gui.tests=true
 
 sudo: false
