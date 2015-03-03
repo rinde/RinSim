@@ -213,8 +213,6 @@ public final class AGVRenderer implements CanvasRenderer, Listener {
     final MovingRoadUser vehicle;
     Point position;
     double angle;
-    Optional<? extends Connection<?>> connection;
-
     final int color;
     final Set<VizOptions> vizOptions;
     final int creationNumber;
@@ -226,7 +224,6 @@ public final class AGVRenderer implements CanvasRenderer, Listener {
       vehicle = mru;
       model = m;
       angle = 0;
-      connection = Optional.absent();
       color = c;
       vizOptions = t;
       creationNumber = num;
@@ -303,7 +300,6 @@ public final class AGVRenderer implements CanvasRenderer, Listener {
       }
 
       if (conn.isPresent()) {
-        connection = conn;
         angle = angle(conn.get());
       }
 

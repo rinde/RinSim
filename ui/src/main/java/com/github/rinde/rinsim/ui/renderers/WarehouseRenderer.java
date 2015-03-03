@@ -69,7 +69,6 @@ public final class WarehouseRenderer implements CanvasRenderer {
   private final double margin;
   private final RenderHelper adapter;
   private final double vehicleLength;
-  private final double roadWidth;
   private final double halfRoadWidth;
   private final Graph<?> graph;
   private final boolean drawOneWayStreetArrows;
@@ -86,7 +85,7 @@ public final class WarehouseRenderer implements CanvasRenderer {
     showNodes = builder.showNodes;
     adapter = new RenderHelper();
     vehicleLength = model.getVehicleLength();
-    roadWidth = model.getVehicleLength();
+    final double roadWidth = model.getVehicleLength();
     halfRoadWidth = roadWidth / 2d;
     arrowDimensions = new Point(
         ARROW_HEAD_REL_DIM.x * roadWidth,

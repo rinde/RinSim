@@ -15,6 +15,7 @@
  */
 package com.github.rinde.rinsim.ui.renderers;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.annotation.Nullable;
@@ -32,13 +33,11 @@ import com.github.rinde.rinsim.geom.Point;
  * @author Rinde van Lon
  */
 public final class PlaneRoadModelRenderer implements ModelRenderer {
+  private static final double DEFAULT_MARGIN = 0.02;
 
-  private RoadModel rm;
   private final double margin;
-
   private double xMargin;
   private double yMargin;
-
   private List<Point> bounds;
 
   /**
@@ -46,15 +45,17 @@ public final class PlaneRoadModelRenderer implements ModelRenderer {
    */
   @Deprecated
   public PlaneRoadModelRenderer() {
-    this(0.02);
+    this(DEFAULT_MARGIN);
   }
 
   /**
+   * @param pMargin The margin to use around the plane.
    * @deprecated Use {@link #create()} instead.
    */
   @Deprecated
   public PlaneRoadModelRenderer(double pMargin) {
     margin = pMargin;
+    bounds = new ArrayList<>();
   }
 
   @Override
@@ -83,14 +84,14 @@ public final class PlaneRoadModelRenderer implements ModelRenderer {
   @Override
   @Nullable
   public ViewRect getViewRect() {
-    return new ViewRect(new Point(bounds.get(0).x - xMargin, bounds.get(0).y
-        - yMargin), new Point(bounds.get(1).x + xMargin, bounds.get(1).y
-        + yMargin));
+    return new ViewRect(
+        new Point(bounds.get(0).x - xMargin, bounds.get(0).y - yMargin),
+        new Point(bounds.get(1).x + xMargin, bounds.get(1).y + yMargin));
   }
 
   @Override
   public void registerModelProvider(ModelProvider mp) {
-    rm = mp.getModel(RoadModel.class);
+    final RoadModel rm = mp.getModel(RoadModel.class);
     bounds = rm.getBounds();
     final double width = bounds.get(1).x - bounds.get(0).x;
     final double height = bounds.get(1).y - bounds.get(0).y;
@@ -102,7 +103,7 @@ public final class PlaneRoadModelRenderer implements ModelRenderer {
    * @return A new {@link PlaneRoadModelRenderer} with a default margin.
    */
   public static PlaneRoadModelRenderer create() {
-    return new PlaneRoadModelRenderer();
+    return new PlaneRoadModelRenderer(DEFAULT_MARGIN);
   }
 
   /**
