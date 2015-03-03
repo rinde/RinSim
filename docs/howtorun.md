@@ -91,3 +91,5 @@ __Protip__: you can download the sources of RinSim and all other dependencies by
 - When the compiler complains about ``@Override`` annotations in code that you have copied from RinSim, make sure that Maven targets Java version 1.6 or later (see step 7 in the instructions above for the XML code to do this).
 
 - If you can not run the UI on Mac OS X make sure that you add ``-XstartOnFirstThread`` as a VM argument.
+
+- On OS X Mavericks there may be a problem where you can not see the menu bar of RinSim (it usually shows the menu of Eclipse), if this happens it can be resolved by using a shortcut (e.g. CMD-P for play) or by CMD tabbing away and back to the RinSim app.
