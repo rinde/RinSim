@@ -69,6 +69,7 @@ public final class WarehouseRenderer implements CanvasRenderer {
   private final double margin;
   private final RenderHelper adapter;
   private final double vehicleLength;
+  private final double minDistance;
   private final double halfRoadWidth;
   private final Graph<?> graph;
   private final boolean drawOneWayStreetArrows;
@@ -85,6 +86,7 @@ public final class WarehouseRenderer implements CanvasRenderer {
     showNodes = builder.showNodes;
     adapter = new RenderHelper();
     vehicleLength = model.getVehicleLength();
+    minDistance = model.getMinDistance();
     final double roadWidth = model.getVehicleLength();
     halfRoadWidth = roadWidth / 2d;
     arrowDimensions = new Point(
@@ -224,7 +226,7 @@ public final class WarehouseRenderer implements CanvasRenderer {
       for (final Point p : model.getOccupiedNodes()) {
         gc.setAlpha(SEMI_TRANSPARENT);
         adapter.setBackgroundSysCol(SWT.COLOR_RED);
-        adapter.fillCircle(p, vehicleLength);
+        adapter.fillCircle(p, vehicleLength / 2d + minDistance);
         gc.setAlpha(OPAQUE);
       }
     }

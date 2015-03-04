@@ -43,7 +43,8 @@ import com.google.common.primitives.Doubles;
 
 /**
  * Graph road model that avoids collisions between {@link RoadUser}s. When a
- * dead lock situation arises a {@link IllegalStateException} is thrown.
+ * dead lock situation arises a {@link DeadlockException} is thrown, note that a
+ * grid lock situation (spanning multiple connections) is not detected.
  * Instances can be obtained via a dedicated builder, see
  * {@link #builder(ListenableGraph)}.
  * <p>
@@ -85,10 +86,10 @@ public class CollisionGraphRoadModel extends DynamicGraphRoadModel {
       // detects if the new location of the object occupies a node
       final Loc loc = objLocs.get(object);
       if (loc.isOnConnection()) {
-        if (loc.relativePos < vehicleLength * 2d) {
+        if (loc.relativePos < vehicleLength + minDistance) {
           verify(occupiedNodes.put(object, loc.conn.get().from()));
         }
-        if (loc.relativePos > loc.connLength - vehicleLength) {
+        if (loc.relativePos > loc.connLength - vehicleLength - minDistance) {
           occupiedNodes.put(object, loc.conn.get().to());
         }
       } else {
@@ -106,8 +107,10 @@ public class CollisionGraphRoadModel extends DynamicGraphRoadModel {
       final Connection<?> conn = getConnection(from, to);
       // check if the node is occupied
       if (occupiedNodes.containsValue(conn.to())) {
-        closestDist = (from.isOnConnection() ? from.connLength
-            - from.relativePos : conn.getLength()) - vehicleLength;
+        closestDist = (from.isOnConnection()
+            ? from.connLength - from.relativePos
+            : conn.getLength())
+            - vehicleLength - minDistance;
       }
       // check if there is an obstacle on the connection
       if (connMap.containsKey(conn)) {
@@ -124,6 +127,7 @@ public class CollisionGraphRoadModel extends DynamicGraphRoadModel {
           }
         }
       }
+
     }
     verify(closestDist >= 0d, "", from, to);
     return Math.min(closestDist,
@@ -329,7 +333,7 @@ public class CollisionGraphRoadModel extends DynamicGraphRoadModel {
      * @return A new {@link CollisionGraphRoadModel} instance.
      */
     public CollisionGraphRoadModel build() {
-      final double minConnectionLength = 2 * vehicleLength;
+      final double minConnectionLength = vehicleLength;
       checkArgument(
           minDistance <= minConnectionLength,
           "Min distance must be smaller than 2 * vehicle length (%s), but is %s.",

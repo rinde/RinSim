@@ -99,7 +99,7 @@ public class GraphBasedRenderersTest {
             .showNodes()
         )
         .enableAutoPlay()
-        .stopSimulatorAtTime(150 * 1000L)
+        .stopSimulatorAtTime(300 * 1000L)
         .enableAutoClose()
         .setSpeedUp(8)
         .show();

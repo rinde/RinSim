@@ -54,6 +54,7 @@ public class CollisionGraphRoadModelTest {
     graph = new ListenableGraph<>(new TableGraph<LengthData>());
     model = CollisionGraphRoadModel.builder(graph)
         .setVehicleLength(1d)
+        .setMinDistance(0)
         .build();
     NW = new Point(0, 0);
     NE = new Point(10, 0);
@@ -101,7 +102,7 @@ public class CollisionGraphRoadModelTest {
     assertTrue(fail);
 
     // max distance to travel while still staying within node area
-    model.moveTo(agv1, SW, meter(1.9997222222));
+    model.moveTo(agv1, SW, meter(.9997222222));
 
     fail = false;
     try {
@@ -159,7 +160,7 @@ public class CollisionGraphRoadModelTest {
 
     assertPointEquals(new Point(3, 0), model.getPosition(agv1),
         GraphRoadModel.DELTA);
-    assertPointEquals(new Point(1.75, 0), model.getPosition(agv2),
+    assertPointEquals(new Point(2, 0), model.getPosition(agv2),
         GraphRoadModel.DELTA);
 
     // moving is not allowed
@@ -173,7 +174,7 @@ public class CollisionGraphRoadModelTest {
 
   /**
    * Test for avoidance of a collision on a node. When one AGV comes near ( < of
-   * its length) a node, this node becomes blocked for any other node.
+   * its length/2) a node, this node becomes blocked for any other node.
    */
   @Test
   public void testNodeCollisionAvoidance() {
@@ -185,10 +186,13 @@ public class CollisionGraphRoadModelTest {
     model.addObjectAt(agv1, NE);
     model.addObjectAt(agv2, SW);
 
+    // still outside the node (but very very close!)
+    model.moveTo(agv1, NW, meter(9));
+    assertFalse(model.isOccupied(NW));
     // this represents the smallest travelable distance to come within the area
     // of a node.
-    final TimeLapse tl = meter(9.0002777777778);
-    assertEquals(32401L, tl.getTimeLeft());
+    final TimeLapse tl = meter(.0002777777778);
+    assertEquals(1L, tl.getTimeLeft());
     // agv1 is within the node area of NW now.
     model.moveTo(agv1, NW, tl);
     assertTrue(model.isOccupied(NW));
@@ -196,8 +200,7 @@ public class CollisionGraphRoadModelTest {
     model.moveTo(agv2, NW, meter(10));
 
     assertPointEquals(new Point(1d - 0.0002777777778, 0),
-        model.getPosition(agv1),
-        GraphRoadModel.DELTA);
+        model.getPosition(agv1), GraphRoadModel.DELTA);
     assertPointEquals(new Point(0, 1.0), model.getPosition(agv2),
         GraphRoadModel.DELTA);
 
@@ -211,8 +214,8 @@ public class CollisionGraphRoadModelTest {
 
     // this represents the maximum distance to travel while still staying within
     // the node's area, moving agv2 is still not allowed
-    final TimeLapse tl2 = meter(1.9997222222);
-    assertEquals(7199L, tl2.getTimeLeft());
+    final TimeLapse tl2 = meter(.9997222222);
+    assertEquals(3599L, tl2.getTimeLeft());
     model.moveTo(agv1, X, tl2);
     checkNoMovement(model.moveTo(agv2, NW, meter(20)));
 
@@ -221,9 +224,9 @@ public class CollisionGraphRoadModelTest {
     final TimeLapse tl3 = meter(0.0002777777778);
     assertEquals(1L, tl3.getTimeLeft());
     model.moveTo(agv1, X, tl3);
-    assertPointEquals(new Point(0, -2), model.getPosition(agv1),
+    assertPointEquals(new Point(0, -1), model.getPosition(agv1),
         GraphRoadModel.DELTA);
-    model.moveTo(agv2, NW, meter(2));
+    model.moveTo(agv2, NW, meter(1));
     assertEquals(NW, model.getPosition(agv2));
   }
 
@@ -306,9 +309,9 @@ public class CollisionGraphRoadModelTest {
     final ListenableGraph<?> g = new ListenableGraph<>(
         new TableGraph<LengthData>());
     // this connection is allowed:
-    g.addConnection(new Point(0, 0), new Point(2, 0));
+    g.addConnection(new Point(0, 0), new Point(1, 0));
     // this connection is not allowed:
-    g.addConnection(new Point(0, 0), new Point(1.99, 0));
+    g.addConnection(new Point(0, 0), new Point(.99, 0));
     boolean fail = false;
     try {
       CollisionGraphRoadModel.builder(g)
@@ -327,13 +330,13 @@ public class CollisionGraphRoadModelTest {
   @Test
   public void testDetectAddInvalidConnLive() {
     final Point a = new Point(0, 0);
-    final Point b = new Point(2, 0);
+    final Point b = new Point(1, 0);
     model.getGraph().addConnection(a, b);
     assertTrue(model.getGraph().hasConnection(a, b));
 
     boolean fail = false;
     try {
-      model.getGraph().addConnection(new Point(0, 0), new Point(1.99, 0));
+      model.getGraph().addConnection(new Point(0, 0), new Point(.99, 0));
     } catch (final IllegalArgumentException e) {
       fail = true;
     }
@@ -346,12 +349,12 @@ public class CollisionGraphRoadModelTest {
   @Test
   public void testDetectChangeConnInvalidLive() {
     // this is allowed
-    graph.setConnectionData(NW, SW, LengthData.create(2d));
+    graph.setConnectionData(NW, SW, LengthData.create(1d));
 
     boolean fail = false;
     try {
       // this is too short
-      graph.setConnectionData(NW, SW, LengthData.create(1.99));
+      graph.setConnectionData(NW, SW, LengthData.create(0.99));
     } catch (final IllegalArgumentException e) {
       fail = true;
     }
@@ -364,8 +367,8 @@ public class CollisionGraphRoadModelTest {
    */
   @Test
   public void testVehicleOccupiesTwoNodes() {
-    final Point SSW = new Point(0, 12);
-    final Point SSW2 = new Point(0, 14.999);
+    final Point SSW = new Point(0, 11);
+    final Point SSW2 = new Point(0, 12.998);
     final MovingRoadUser agv1 = new TestRoadUser();
 
     graph.addConnection(SW, SSW);
@@ -393,23 +396,23 @@ public class CollisionGraphRoadModelTest {
     model.moveTo(agv1, SSW, meter(1));
     assertFalse(model.isOccupied(NW));
     assertTrue(model.isOccupied(SW));
-    assertFalse(model.isOccupied(SSW));
+    assertTrue(model.isOccupied(SSW));
     assertFalse(model.isOccupied(SSW2));
 
-    model.moveTo(agv1, SSW, meter(1));
+    model.moveTo(agv1, SSW, meter(.5));
     assertFalse(model.isOccupied(NW));
     assertTrue(model.isOccupied(SW));
     assertTrue(model.isOccupied(SSW));
     assertFalse(model.isOccupied(SSW2));
 
-    model.moveTo(agv1, SSW, meter(1));
+    model.moveTo(agv1, SSW, meter(.5));
     assertEquals(SSW, model.getPosition(agv1));
     assertFalse(model.isOccupied(NW));
     assertFalse(model.isOccupied(SW));
     assertTrue(model.isOccupied(SSW));
     assertFalse(model.isOccupied(SSW2));
 
-    model.moveTo(agv1, SSW2, meter(1));
+    model.moveTo(agv1, SSW2, meter(.5));
     assertFalse(model.isOccupied(NW));
     assertFalse(model.isOccupied(SW));
     assertTrue(model.isOccupied(SSW));
@@ -417,7 +420,7 @@ public class CollisionGraphRoadModelTest {
 
     // we are at the border between the two nodes. the back of the agv is still
     // occupying SSW while the front is already occupying SSW2
-    model.moveTo(agv1, SSW2, meter(.9997222222));
+    model.moveTo(agv1, SSW2, meter(.4997222222));
     assertFalse(model.isOccupied(NW));
     assertFalse(model.isOccupied(SW));
     assertTrue(model.isOccupied(SSW));

@@ -279,10 +279,10 @@ public final class AGVRenderer implements CanvasRenderer, Listener {
       }
 
       if (vizOptions.contains(VizOptions.VEHICLE_ORIGIN)) {
-        igc.setBackground(gc.getDevice().getSystemColor(SWT.COLOR_GRAY));
+        igc.setBackground(gc.getDevice().getSystemColor(SWT.COLOR_RED));
         igc.setForeground(gc.getDevice().getSystemColor(SWT.COLOR_WHITE));
-        igc.fillOval(width / 2 - 2, -2, 4, 4);
-        igc.drawOval(width / 2 - 2, -2, 4, 4);
+        igc.fillOval(width / 2 - 2, length / 2 - 2, 4, 4);
+        igc.drawOval(width / 2 - 2, length / 2 - 2, 4, 4);
       }
 
       igc.dispose();
@@ -311,7 +311,7 @@ public final class AGVRenderer implements CanvasRenderer, Listener {
       transform.rotate((float) (90 + angle * 180 / Math.PI));
       transform.translate(
           -(x + image.get().getBounds().width / 2),
-          -y);
+          -(y + image.get().getBounds().height / 2));
       gc.setTransform(transform);
       gc.drawImage(image.get(), x, y);
       gc.setTransform(null);
