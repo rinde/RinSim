@@ -1,5 +1,10 @@
 # Release notes
 
+## v3.1.1
+ * CollisionGraphRoadModel: occupancy of a node is now a smaller area.
+ * Updated SWT version to 4.4
+ * Several small bug fixes.
+
 ## v3.1.0
  * Core module: Simulator class now has a deprecated constructor and a new Builder class to construct instances.
  * Core module: __New:__ DynamicGraphRoadModel, which allows adding and removing connections to a graph while it is being used (with some restrictions).
