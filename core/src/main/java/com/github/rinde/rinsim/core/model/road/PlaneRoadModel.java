@@ -77,6 +77,15 @@ public class PlaneRoadModel extends AbstractRoadModel<Point> {
    */
   public final double maxSpeed;
 
+  PlaneRoadModel(Builder b) {
+    super(b.distUnit, b.velocityUnit);
+    min = b.min;
+    max = b.max;
+    width = max.x - min.x;
+    height = max.y - min.y;
+    maxSpeed = unitConversion.toInSpeed(b.maxSpeed);
+  }
+
   /**
    * Create a new plane road model using the specified boundaries and max speed.
    * @param pMin The minimum x and y of the plane.
@@ -84,19 +93,17 @@ public class PlaneRoadModel extends AbstractRoadModel<Point> {
    * @param distanceUnit This is the unit in which all input distances and
    *          locations (i.e. {@link Point}s) should be specified.
    * @param pMaxSpeed The maximum speed that objects can travel on the plane.
+   * @deprecated Use {@link #builder()} instead.
    */
   @Deprecated
   public PlaneRoadModel(Point pMin, Point pMax, Unit<Length> distanceUnit,
       Measure<Double, Velocity> pMaxSpeed) {
-    super(distanceUnit, pMaxSpeed.getUnit());
-    checkArgument(pMin.x < pMax.x && pMin.y < pMax.y,
-        "min should have coordinates smaller than max");
-    checkArgument(pMaxSpeed.getValue() > 0, "max speed must be positive");
-    min = pMin;
-    max = pMax;
-    width = max.x - min.x;
-    height = max.y - min.y;
-    maxSpeed = unitConversion.toInSpeed(pMaxSpeed);
+    this(builder()
+        .setMinPoint(pMin)
+        .setMaxPoint(pMax)
+        .setDistanceUnit(distanceUnit)
+        .setSpeedUnit(pMaxSpeed.getUnit())
+        .setMaxSpeed(pMaxSpeed.getValue()));
   }
 
   /**
@@ -107,11 +114,14 @@ public class PlaneRoadModel extends AbstractRoadModel<Point> {
    * @param pMax The maximum x and y of the plane.
    * @param speedLimitInKmh The maximum speed that objects can travel on the
    *          plane.
+   * @deprecated Use {@link #builder()} instead.
    */
   @Deprecated
   public PlaneRoadModel(Point pMin, Point pMax, double speedLimitInKmh) {
-    this(pMin, pMax, SI.KILOMETER, Measure.valueOf(speedLimitInKmh,
-        NonSI.KILOMETERS_PER_HOUR));
+    this(builder()
+        .setMinPoint(pMin)
+        .setMaxPoint(pMax)
+        .setMaxSpeed(speedLimitInKmh));
   }
 
   @Override
@@ -328,6 +338,9 @@ public class PlaneRoadModel extends AbstractRoadModel<Point> {
      * @return This, as per the builder pattern.
      */
     public Builder setMaxSpeed(double speed) {
+      checkArgument(speed > 0d,
+          "Max speed must be strictly positive but is %s.",
+          speed);
       maxSpeed = speed;
       return this;
     }
@@ -336,29 +349,31 @@ public class PlaneRoadModel extends AbstractRoadModel<Point> {
      * @return A new {@link PlaneRoadModel} instance.
      */
     public PlaneRoadModel build() {
-      return new PlaneRoadModel(min, max, distUnit,
-          Measure.valueOf(maxSpeed, velocityUnit));
-    }
+      checkArgument(
+          min.x < max.x && min.y < max.y,
+          "Min should have coordinates smaller than max, found min %s and max %s.",
+          min, max);
 
+      return new PlaneRoadModel(this);
+    }
   }
 
   private static class DefaultSupplier implements Supplier<PlaneRoadModel> {
-    final Point min;
-    final Point max;
-    final Unit<Length> distanceUnit;
-    final Measure<Double, Velocity> maxSpeed;
+    final Builder b;
 
     DefaultSupplier(Point mi, Point ma, Unit<Length> du,
         Measure<Double, Velocity> ms) {
-      min = mi;
-      max = ma;
-      distanceUnit = du;
-      maxSpeed = ms;
+      b = builder()
+          .setMinPoint(mi)
+          .setMaxPoint(ma)
+          .setDistanceUnit(du)
+          .setSpeedUnit(ms.getUnit())
+          .setMaxSpeed(ms.getValue());
     }
 
     @Override
     public PlaneRoadModel get() {
-      return new PlaneRoadModel(min, max, distanceUnit, maxSpeed);
+      return b.build();
     }
   }
 }

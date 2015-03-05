@@ -27,7 +27,6 @@ import java.util.Map.Entry;
 import java.util.Set;
 
 import javax.annotation.Nullable;
-import javax.measure.Measure;
 import javax.measure.unit.NonSI;
 import javax.measure.unit.SI;
 
@@ -69,8 +68,8 @@ import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 
 /**
- * @author Rinde van Lon 
- * 
+ * @author Rinde van Lon
+ *
  */
 public class SwarmDemo {
 
@@ -85,16 +84,21 @@ public class SwarmDemo {
     final List<Point> points = measureString(string, FONT_SIZE, 30, 0);
 
     final RandomGenerator rng = new MersenneTwister(123);
-    final Simulator sim = new Simulator(rng, Measure.valueOf(1000L,
-        SI.MILLI(SI.SECOND)));
-    sim.register(new PlaneRoadModel(new Point(0, 0), new Point(4500, 1200),
-        SI.METER, Measure.valueOf(1000d, NonSI.KILOMETERS_PER_HOUR)));
-    sim.configure();
+    final Simulator sim = Simulator.builder()
+        .addModel(PlaneRoadModel.builder()
+            .setMinPoint(new Point(0, 0))
+            .setMaxPoint(new Point(4500, 1200))
+            .setDistanceUnit(SI.METER)
+            .setSpeedUnit(NonSI.KILOMETERS_PER_HOUR)
+            .setMaxSpeed(1000d)
+            .build())
+        .build();
+
     for (final Point p : points) {
       sim.register(new Vehicle(p, rng));
     }
     View.create(sim)
-        .with(new PlaneRoadModelRenderer(), new VehicleRenderer(),
+        .with(PlaneRoadModelRenderer.create(), new VehicleRenderer(),
             new DemoPanel(string, rng))
         .setSpeedUp(8)
         .show();

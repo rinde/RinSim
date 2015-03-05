@@ -18,7 +18,6 @@ package com.github.rinde.rinsim.core.model.road;
 import java.util.Arrays;
 import java.util.Collection;
 
-import javax.measure.Measure;
 import javax.measure.unit.SI;
 
 import org.junit.runner.RunWith;
@@ -45,9 +44,14 @@ public class ForwardingRoadModelTest extends
         { { new Creator() {
           @Override
           public GenericRoadModel create(ForwardingRoadModelTest testClass) {
-            return new ForwardingRoadModel(new PlaneRoadModel(new Point(0, 0),
-                new Point(10, 10), SI.METER, Measure.valueOf(10d,
-                    SI.METERS_PER_SECOND)));
+            return new ForwardingRoadModel(
+                PlaneRoadModel.builder()
+                    .setMinPoint(new Point(0, 0))
+                    .setMaxPoint(new Point(10, 0))
+                    .setDistanceUnit(SI.METER)
+                    .setSpeedUnit(SI.METERS_PER_SECOND)
+                    .setMaxSpeed(10d)
+                    .build());
           }
         } }, { new Creator() {
           @Override

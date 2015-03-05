@@ -97,7 +97,7 @@ public final class Models {
   }
 
   private static class Adapter<T extends Model<?>> implements
-  ModelSupplierScenGen<T> {
+      ModelSupplierScenGen<T> {
     private final Supplier<T> supplier;
 
     Adapter(Supplier<T> sup) {
@@ -148,7 +148,7 @@ public final class Models {
   }
 
   private static class DefaultRoadModelSupplier implements
-  ModelSupplierScenGen<RoadModel> {
+      ModelSupplierScenGen<RoadModel> {
     final double speed;
     final boolean diversion;
 
@@ -181,12 +181,14 @@ public final class Models {
     @Override
     public RoadModel get() {
       return new PDPRoadModel(
-          new PlaneRoadModel(
-              min,
-              max,
-              distanceUnit,
-              speedMeasure),
-              allowDiversion);
+          PlaneRoadModel.builder()
+              .setMinPoint(min)
+              .setMaxPoint(max)
+              .setDistanceUnit(distanceUnit)
+              .setSpeedUnit(speedMeasure.getUnit())
+              .setMaxSpeed(speedMeasure.getValue())
+              .build(),
+          allowDiversion);
     }
 
     @Override

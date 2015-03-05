@@ -23,43 +23,68 @@ import static org.junit.Assert.assertTrue;
 
 import java.util.Queue;
 
-import javax.measure.Measure;
-import javax.measure.unit.NonSI;
-import javax.measure.unit.SI;
-
 import org.apache.commons.math3.random.MersenneTwister;
 import org.apache.commons.math3.random.RandomGenerator;
 import org.junit.Test;
 
-import com.github.rinde.rinsim.core.model.road.MoveProgress;
-import com.github.rinde.rinsim.core.model.road.MovingRoadUser;
-import com.github.rinde.rinsim.core.model.road.PlaneRoadModel;
 import com.github.rinde.rinsim.geom.Point;
 
 /**
  * @author Rinde van Lon (rinde.vanlon@cs.kuleuven.be)
- * 
+ *
  */
 public class PlaneRoadModelTest extends AbstractRoadModelTest<PlaneRoadModel> {
 
   @Override
   public void setUp() {
-    model = new PlaneRoadModel(new Point(0, 0), new Point(10, 10),
-        SI.KILOMETER, Measure.valueOf(10d, NonSI.KILOMETERS_PER_HOUR));
+    model = PlaneRoadModel.builder()
+        .setMinPoint(new Point(0, 0))
+        .setMaxPoint(new Point(10, 10))
+        .setMaxSpeed(10d)
+        .build();
   }
 
-  @SuppressWarnings("unused")
-  @Test(expected = IllegalArgumentException.class)
-  public void constructorFail1() {
-    new PlaneRoadModel(new Point(1, 0), new Point(0, 1), SI.KILOMETER,
-        Measure.valueOf(10d, NonSI.KILOMETERS_PER_HOUR));
+  /**
+   * Supplying the builder with illegal points should yield an exception.
+   */
+  @Test
+  public void builderIllegalPoints() {
+    boolean fail = false;
+    try {
+      PlaneRoadModel.builder()
+          .setMinPoint(new Point(1, 0))
+          .setMaxPoint(new Point(0, 1))
+          .build();
+    } catch (final IllegalArgumentException e) {
+      fail = true;
+    }
+    assertTrue(fail);
+    fail = false;
+    try {
+      PlaneRoadModel.builder()
+          .setMinPoint(new Point(0, 1))
+          .setMaxPoint(new Point(1, 0))
+          .build();
+    } catch (final IllegalArgumentException e) {
+      fail = true;
+    }
+    assertTrue(fail);
   }
 
-  @SuppressWarnings("unused")
-  @Test(expected = IllegalArgumentException.class)
-  public void constructorFail2() {
-    new PlaneRoadModel(new Point(0, 1), new Point(1, 0), SI.KILOMETER,
-        Measure.valueOf(10d, NonSI.KILOMETERS_PER_HOUR));
+  /**
+   * Test for illegal max speed.
+   */
+  @Test
+  public void builderIllegalMaxSpeed() {
+    boolean fail = false;
+    try {
+      PlaneRoadModel.builder()
+          .setMaxSpeed(0d)
+          .build();
+    } catch (final IllegalArgumentException e) {
+      fail = true;
+    }
+    assertTrue(fail);
   }
 
   @Test
@@ -92,8 +117,9 @@ public class PlaneRoadModelTest extends AbstractRoadModelTest<PlaneRoadModel> {
   public void followPath() {
     final MovingRoadUser mru = new TestRoadUser();
     model.addObjectAt(mru, new Point(0, 0));
-    final Queue<Point> path = asPath(new Point(0, 0), new Point(5, 0), new Point(
-        5, 5));
+    final Queue<Point> path = asPath(new Point(0, 0), new Point(5, 0),
+        new Point(
+            5, 5));
 
     final MoveProgress pp = model.followPath(mru, path, hour());
     assertEquals(asPath(new Point(5, 0), new Point(5, 5)), path);
@@ -119,8 +145,9 @@ public class PlaneRoadModelTest extends AbstractRoadModelTest<PlaneRoadModel> {
 
   @Test(expected = IllegalArgumentException.class)
   public void followPathFail() {
-    final Queue<Point> path = asPath(new Point(0, 0), new Point(5, 0), new Point(
-        5, 5), new Point(100, 0));
+    final Queue<Point> path = asPath(new Point(0, 0), new Point(5, 0),
+        new Point(
+            5, 5), new Point(100, 0));
     final MovingRoadUser mru = new TestRoadUser();
     model.addObjectAt(mru, new Point(0, 0));
     model.followPath(mru, path, hour(100));

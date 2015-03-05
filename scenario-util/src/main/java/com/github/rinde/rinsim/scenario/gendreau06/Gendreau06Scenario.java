@@ -36,8 +36,8 @@ import com.github.rinde.rinsim.core.model.pdp.PDPModel;
 import com.github.rinde.rinsim.core.model.pdp.TimeWindowPolicy.TimeWindowPolicies;
 import com.github.rinde.rinsim.core.model.road.PlaneRoadModel;
 import com.github.rinde.rinsim.geom.Point;
-import com.github.rinde.rinsim.pdptw.common.PDPRoadModel;
 import com.github.rinde.rinsim.pdptw.common.DynamicPDPTWProblem.StopConditions;
+import com.github.rinde.rinsim.pdptw.common.PDPRoadModel;
 import com.github.rinde.rinsim.scenario.Scenario;
 import com.github.rinde.rinsim.scenario.TimedEvent;
 import com.github.rinde.rinsim.scenario.generator.Models;
@@ -48,7 +48,7 @@ import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableList;
 
 /**
- * 
+ *
  * The length of the scenario is a soft constraint. There is a pre defined
  * length of the day (either 4 hours or 7.5 hours), vehicles are allowed to
  * continue driving after the end of the day.
@@ -59,7 +59,7 @@ import com.google.common.collect.ImmutableList;
  * Distance is expressed in km, time is expressed in ms (the original format is
  * in seconds, however it allows fractions as such it was translated to ms),
  * speed is expressed as km/h.
- * @author Rinde van Lon 
+ * @author Rinde van Lon
  */
 public final class Gendreau06Scenario extends Scenario {
   static final Point MIN = new Point(0, 0);
@@ -152,8 +152,15 @@ public final class Gendreau06Scenario extends Scenario {
 
     @Override
     public PDPRoadModel get() {
-      return new PDPRoadModel(new PlaneRoadModel(MIN, MAX, distanceUnit,
-          MAX_SPEED), allowDiversion);
+      return new PDPRoadModel(
+          PlaneRoadModel.builder()
+              .setMinPoint(MIN)
+              .setMaxPoint(MAX)
+              .setDistanceUnit(distanceUnit)
+              .setSpeedUnit(MAX_SPEED.getUnit())
+              .setMaxSpeed(MAX_SPEED.getValue())
+              .build(),
+          allowDiversion);
     }
   }
 }

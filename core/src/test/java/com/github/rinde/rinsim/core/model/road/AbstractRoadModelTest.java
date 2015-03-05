@@ -286,18 +286,6 @@ public abstract class AbstractRoadModelTest<T extends GenericRoadModel> {
     model.removeObject(agent1);
   }
 
-  @SuppressWarnings("null")
-  @Test(expected = IllegalArgumentException.class)
-  public void removeObjectTestFail() {
-    model.removeObject(null);
-  }
-
-  @SuppressWarnings("null")
-  @Test(expected = IllegalArgumentException.class)
-  public void containsObjectNull() {
-    model.containsObject(null);
-  }
-
   @Test
   public void containsObjectAt() {
     assertFalse(model.containsObjectAt(new TestRoadUser(), new Point(2, 3)));
@@ -319,18 +307,6 @@ public abstract class AbstractRoadModelTest<T extends GenericRoadModel> {
 
     model.followPath(ru, newLinkedList(asList(SE)),
         TimeLapseFactory.create(0, 36000000 - 1));
-  }
-
-  @SuppressWarnings("null")
-  @Test(expected = IllegalArgumentException.class)
-  public void containsObjectAtNull1() {
-    model.containsObjectAt(null, new Point(1, 2));
-  }
-
-  @SuppressWarnings("null")
-  @Test(expected = IllegalArgumentException.class)
-  public void containsObjectAtNull2() {
-    model.containsObjectAt(new TestRoadUser(), null);
   }
 
   @Test

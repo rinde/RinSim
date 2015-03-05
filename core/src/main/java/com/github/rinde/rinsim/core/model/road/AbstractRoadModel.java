@@ -112,10 +112,12 @@ public abstract class AbstractRoadModel<T> extends GenericRoadModel {
   @Override
   public MoveProgress followPath(MovingRoadUser object, Queue<Point> path,
       TimeLapse time) {
-    checkArgument(objLocs.containsKey(object), "object must have a location");
-    checkArgument(path.peek() != null, "path can not be empty");
+    checkArgument(objLocs.containsKey(object),
+        "Object: %s must have a location.", object);
+    checkArgument(!path.isEmpty(),
+        "Path can not be empty, found empty path for %s.", object);
     checkArgument(time.hasTimeLeft(),
-        "can not follow path when to time is left");
+        "Can not follow path when no time is left. For road user %s.", object);
     final Point dest = newArrayList(path).get(path.size() - 1);
     objDestinations.put(object, new DestinationPath(dest, path));
     final MoveProgress mp = doFollowPath(object, path, time);
@@ -189,7 +191,6 @@ public abstract class AbstractRoadModel<T> extends GenericRoadModel {
 
   @Override
   public void removeObject(RoadUser roadUser) {
-    checkArgument(roadUser != null, "RoadUser can not be null");
     checkArgument(objLocs.containsKey(roadUser),
         "RoadUser: %s does not exist.", roadUser);
     objLocs.remove(roadUser);
@@ -206,13 +207,11 @@ public abstract class AbstractRoadModel<T> extends GenericRoadModel {
 
   @Override
   public boolean containsObject(RoadUser obj) {
-    checkArgument(obj != null, "obj can not be null");
     return objLocs.containsKey(obj);
   }
 
   @Override
   public boolean containsObjectAt(RoadUser obj, Point p) {
-    checkArgument(p != null, "point can not be null");
     if (containsObject(obj)) {
       return objLocs.get(obj).equals(p);
     }
@@ -243,7 +242,7 @@ public abstract class AbstractRoadModel<T> extends GenericRoadModel {
 
   @Override
   public Point getPosition(RoadUser roadUser) {
-    checkArgument(containsObject(roadUser), "RoadUser does not exist: %s ",
+    checkArgument(containsObject(roadUser), "RoadUser does not exist: %s.",
         roadUser);
     return locObj2point(objLocs.get(roadUser));
   }
@@ -292,16 +291,15 @@ public abstract class AbstractRoadModel<T> extends GenericRoadModel {
 
   @Override
   public List<Point> getShortestPathTo(RoadUser fromObj, RoadUser toObj) {
-    checkArgument(fromObj != null, "fromObj can not be null");
     checkArgument(objLocs.containsKey(toObj),
-        " to object should be in RoadModel. %s", toObj);
+        "To object (%s) should be in RoadModel.", toObj);
     return getShortestPathTo(fromObj, getPosition(toObj));
   }
 
   @Override
   public List<Point> getShortestPathTo(RoadUser fromObj, Point to) {
     checkArgument(objLocs.containsKey(fromObj),
-        " from object should be in RoadModel. %s", fromObj);
+        "From object (%s) should be in RoadModel.", fromObj);
     return getShortestPathTo(getPosition(fromObj), to);
   }
 

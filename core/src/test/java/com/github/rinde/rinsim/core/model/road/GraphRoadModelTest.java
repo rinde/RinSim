@@ -326,10 +326,12 @@ public class GraphRoadModelTest extends AbstractRoadModelTest<GraphRoadModel> {
         agent2, agent1));
     assertEquals(asList(NW, SW, new Point(5, 0)), path4);
     assertEquals(10,
-        model.followPath(agent2, path4, hour(10)).distance().getValue(), EPSILON);
+        model.followPath(agent2, path4, hour(10)).distance().getValue(),
+        EPSILON);
     assertEquals(new Point(0, 0), model.getPosition(agent2));
     assertEquals(5,
-        model.followPath(agent2, path4, hour(20)).distance().getValue(), EPSILON);
+        model.followPath(agent2, path4, hour(20)).distance().getValue(),
+        EPSILON);
     assertEquals(new Point(5, 0), model.getPosition(agent2));
   }
 
@@ -762,9 +764,11 @@ public class GraphRoadModelTest extends AbstractRoadModelTest<GraphRoadModel> {
             model.getPosition(agent2)), EPSILON);
 
     assertEquals(4,
-        model.computeDistanceOnConnection(model.getPosition(agent1), SW), EPSILON);
+        model.computeDistanceOnConnection(model.getPosition(agent1), SW),
+        EPSILON);
     assertEquals(1,
-        model.computeDistanceOnConnection(SE, model.getPosition(agent1)), EPSILON);
+        model.computeDistanceOnConnection(SE, model.getPosition(agent1)),
+        EPSILON);
   }
 
   @Test
