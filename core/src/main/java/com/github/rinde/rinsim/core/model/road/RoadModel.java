@@ -55,7 +55,9 @@ public interface RoadModel extends Model<RoadUser> {
    * Moves the specified {@link MovingRoadUser} towards the specified
    * <code>destination</code> using the path returned by
    * {@link #getShortestPathTo(RoadUser, Point)}. There must be time left in the
-   * provided {@link TimeLapse}.
+   * provided {@link TimeLapse}. The {@link #getDestination(MovingRoadUser)}
+   * method will return the destination point as specified in the most recent
+   * invocation of this method.
    * <p>
    * <b>Speed</b><br>
    * The {@link MovingRoadUser} has to define a speed with which it wants to
@@ -88,7 +90,9 @@ public interface RoadModel extends Model<RoadUser> {
    * Moves the specified {@link MovingRoadUser} towards the specified
    * <code>destination</code> using the path returned by
    * {@link #getShortestPathTo(RoadUser, RoadUser)}. There must be time left in
-   * the provided {@link TimeLapse}.
+   * the provided {@link TimeLapse}. The {@link #getDestination(MovingRoadUser)}
+   * method will return the destination point as specified in the most recent
+   * invocation of this method.
    * <p>
    * <b>Speed</b><br>
    * The {@link MovingRoadUser} has to define a speed with which it wants to
@@ -141,7 +145,9 @@ public interface RoadModel extends Model<RoadUser> {
    * {@link Queue}. This means that after this method is finished the provided
    * {@link Queue} will contain only <code>B, C</code>. By storing the reference
    * to the queue, users of this method can repeatedly call this method using
-   * the same path object instance.
+   * the same path object instance. The {@link #getDestination(MovingRoadUser)}
+   * method will return the last point of the path specified in the most recent
+   * invocation of this method.
    * <p>
    * Note that when an invalid path is supplied this method will throw an
    * {@link IllegalArgumentException}. This method guarantees that the road
@@ -246,8 +252,17 @@ public interface RoadModel extends Model<RoadUser> {
   Point getPosition(RoadUser roadUser);
 
   /**
-   * Finds the destination of the road user if any. TODO explain when there is a
-   * destination.
+   * Finds the destination of the road user if it has a destination. A road user
+   * has a destination if it has moved previously using either of the following
+   * methods:
+   * <ul>
+   * <li>{@link #followPath(MovingRoadUser, Queue, TimeLapse)}, in this case the
+   * destination is the last point in the supplied path.</li>
+   * <li>{@link #moveTo(MovingRoadUser, Point, TimeLapse)}, in this case the
+   * destination is the supplied point.</li>
+   * <li>{@link #moveTo(MovingRoadUser, RoadUser, TimeLapse)}, in this case the
+   * destination is the position of the target road user.</li>
+   * </ul>
    * @param roadUser The road user to look up.
    * @return The destination of the specified road user or <code>null</code> if
    *         the road user has no destination.
