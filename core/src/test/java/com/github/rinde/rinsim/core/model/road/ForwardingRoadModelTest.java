@@ -47,7 +47,7 @@ public class ForwardingRoadModelTest extends
             return new ForwardingRoadModel(
                 PlaneRoadModel.builder()
                     .setMinPoint(new Point(0, 0))
-                    .setMaxPoint(new Point(10, 0))
+                    .setMaxPoint(new Point(10, 10))
                     .setDistanceUnit(SI.METER)
                     .setSpeedUnit(SI.METERS_PER_SECOND)
                     .setMaxSpeed(10d)
