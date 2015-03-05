@@ -23,8 +23,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import javax.annotation.Nullable;
-
 import com.google.common.base.Objects;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
@@ -153,10 +151,4 @@ public class TableGraph<E extends ConnectionData> extends AbstractGraph<E> {
   public int hashCode() {
     return Objects.hashCode(data);
   }
-
-  @Override
-  public boolean equals(@Nullable Object o) {
-    return super.equals(o);
-  }
-
 }

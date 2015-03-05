@@ -27,8 +27,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
-import javax.annotation.Nullable;
-
 import com.google.common.base.Objects;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
@@ -218,11 +216,6 @@ public class MultimapGraph<E extends ConnectionData> extends AbstractGraph<E> {
   @Override
   public int hashCode() {
     return Objects.hashCode(multimap, deadEndNodes, lazyConnectionTable);
-  }
-
-  @Override
-  public boolean equals(@Nullable Object o) {
-    return super.equals(o);
   }
 
   @Override
