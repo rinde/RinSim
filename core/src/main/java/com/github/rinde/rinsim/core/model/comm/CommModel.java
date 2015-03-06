@@ -15,39 +15,40 @@
  */
 package com.github.rinde.rinsim.core.model.comm;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
 
 import java.util.Map.Entry;
 import java.util.Set;
 
-import javax.measure.quantity.Length;
-import javax.measure.unit.Unit;
+import org.apache.commons.math3.random.RandomGenerator;
 
 import com.github.rinde.rinsim.core.TickListener;
 import com.github.rinde.rinsim.core.TimeLapse;
 import com.github.rinde.rinsim.core.model.Model;
 import com.github.rinde.rinsim.util.LinkedHashBiMap;
+import com.google.common.base.Optional;
 import com.google.common.collect.BiMap;
 
 /**
- * @author Rinde van Lon
  *
+ * @author Rinde van Lon
  */
 public class CommModel implements Model<CommUser>, TickListener {
-  private final Unit<Length> distanceUnit;
-  private final double globalReliability;
+  private final double defaultReliability;
   private final BiMap<CommUser, CommDevice> usersDevices;
+  private final Optional<RandomGenerator> randomGenerator;
 
   CommModel(Builder b) {
-    globalReliability = b.globalReliability;
-    distanceUnit = b.distanceUnit;
+    defaultReliability = b.defaultReliability;
+    randomGenerator = b.randomGenerator;
     usersDevices = LinkedHashBiMap.create();
   }
 
   @Override
   public boolean register(CommUser commUser) {
     final CommDeviceBuilder builder = CommDevice.builder(this, commUser)
-        .setReliability(globalReliability);
+        .setReliability(defaultReliability);
     commUser.setCommDevice(builder);
     checkState(
         builder.isUsed(),
@@ -67,6 +68,20 @@ public class CommModel implements Model<CommUser>, TickListener {
     return CommUser.class;
   }
 
+  /**
+   * @param commUser
+   */
+  public boolean contains(CommUser commUser) {
+    return usersDevices.containsKey(commUser);
+  }
+
+  /**
+   * @return
+   */
+  public double getDefaultReliability() {
+    return defaultReliability;
+  }
+
   @Override
   public void tick(TimeLapse timeLapse) {}
 
@@ -78,17 +93,24 @@ public class CommModel implements Model<CommUser>, TickListener {
     }
   }
 
-  void send(Message msg) {
-    // TODO reliability
+  Optional<RandomGenerator> getRandomGenerator() {
+    return randomGenerator;
+  }
+
+  void send(Message msg, QualityOfService qos) {
     // direct
     if (msg.to().isPresent()) {
-      usersDevices.get(msg.to().get()).receive(msg);
+      if (qos.hasSucces()) {
+        usersDevices.get(msg.to().get()).receive(msg);
+      }
     } else {
       // broadcast
       for (final Entry<CommUser, CommDevice> entry : usersDevices.entrySet()) {
         if (msg.predicate().apply(entry.getKey())
             && msg.from() != entry.getKey()) {
-          entry.getValue().receive(msg);
+          if (qos.hasSucces()) {
+            entry.getValue().receive(msg);
+          }
         }
       }
     }
@@ -106,27 +128,68 @@ public class CommModel implements Model<CommUser>, TickListener {
   }
 
   public static class Builder {
-    private double globalReliability;
-    private Unit<Length> distanceUnit;
+    static double DEFAULT_RELIABILITY = 1d;
+    Optional<RandomGenerator> randomGenerator;
+    double defaultReliability;
+
+    Builder() {
+      randomGenerator = Optional.absent();
+      defaultReliability = DEFAULT_RELIABILITY;
+    }
 
     /**
-     * @param globalReliability the globalReliability to set
+     * @param reliability the defaultReliability to set
      */
-    public Builder setGlobalReliability(double globalReliability) {
-      this.globalReliability = globalReliability;
+    public Builder setDefaultDeviceReliability(double reliability) {
+      defaultReliability = reliability;
       return this;
     }
 
     /**
-     * @param distanceUnit the distanceUnit to set
+     * Should insert a new instance for independence
+     * @param rng
+     * @return
      */
-    public Builder setDistanceUnit(Unit<Length> distanceUnit) {
-      this.distanceUnit = distanceUnit;
+    public Builder setRandomGenerator(RandomGenerator rng) {
+      randomGenerator = Optional.of(rng);
       return this;
     }
 
     public CommModel build() {
+      if (defaultReliability < 1d) {
+        checkArgument(randomGenerator != null);
+      }
       return new CommModel(this);
+    }
+  }
+
+  interface QualityOfService {
+
+    boolean hasSucces();
+
+  }
+
+  static class StochasticQoS implements QualityOfService {
+    private final double reliability;
+    private final RandomGenerator randomGenerator;
+
+    StochasticQoS(double r, RandomGenerator rng) {
+      reliability = r;
+      randomGenerator = rng;
+    }
+
+    @Override
+    public boolean hasSucces() {
+      return randomGenerator.nextDouble() < reliability;
+    }
+  }
+
+  enum QoS implements QualityOfService {
+    RELIABLE {
+      @Override
+      public boolean hasSucces() {
+        return true;
+      }
     }
   }
 

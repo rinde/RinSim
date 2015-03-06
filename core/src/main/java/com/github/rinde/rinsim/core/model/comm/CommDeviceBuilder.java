@@ -18,6 +18,10 @@ package com.github.rinde.rinsim.core.model.comm;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
 
+import com.github.rinde.rinsim.core.model.comm.CommModel.QoS;
+import com.github.rinde.rinsim.core.model.comm.CommModel.QualityOfService;
+import com.github.rinde.rinsim.core.model.comm.CommModel.StochasticQoS;
+
 /**
  * A builder for creating {@link CommDevice} instances. This builder is injected
  * in implementors of the {@link CommUser} interface.
@@ -36,6 +40,7 @@ public final class CommDeviceBuilder {
     model = m;
     user = u;
     used = false;
+    deviceReliability = model.getDefaultReliability();
   }
 
   /**
@@ -73,7 +78,19 @@ public final class CommDeviceBuilder {
         "Only one communication device can be created per user, user: %s.",
         user);
     used = true;
-    return new CommDevice(this);
+
+    QualityOfService rc;
+    if (deviceReliability == 1d) {
+      rc = QoS.RELIABLE;
+    } else {
+      checkArgument(
+          model.getRandomGenerator().isPresent(),
+          "An unreliable comm device can only be created when the CommModel has"
+              + " a RandomGenerator.");
+      rc = new StochasticQoS(deviceReliability, model.getRandomGenerator()
+          .get());
+    }
+    return new CommDevice(this, rc);
   }
 
   boolean isUsed() {

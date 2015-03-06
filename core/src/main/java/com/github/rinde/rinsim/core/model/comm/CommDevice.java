@@ -15,44 +15,51 @@
  */
 package com.github.rinde.rinsim.core.model.comm;
 
+import static com.google.common.base.Preconditions.checkArgument;
+
 import java.util.ArrayList;
 import java.util.List;
 
 import javax.annotation.Nullable;
 
+import com.github.rinde.rinsim.core.model.comm.CommModel.QualityOfService;
 import com.github.rinde.rinsim.geom.Point;
 import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
 import com.google.common.collect.ImmutableList;
 
 /**
- * A communication device that can be used to communicate. Instances can be
- * constructed via {@link CommDeviceBuilder}.
+ * A communication device that can be used to communicate with other
+ * {@link CommUser}s. Instances can be constructed via {@link CommDeviceBuilder}
+ * .
  * @author Rinde van Lon
  */
 public final class CommDevice {
   private final CommModel model;
   private final CommUser user;
+  private final QualityOfService qualityOfService;
 
   private final List<Message> unreadMessages;
   private final List<Message> outbox;
 
-  CommDevice(CommDeviceBuilder builder) {
+  CommDevice(CommDeviceBuilder builder, QualityOfService rc) {
     model = builder.model;
     user = builder.user;
+    qualityOfService = rc;
     unreadMessages = new ArrayList<>();
     outbox = new ArrayList<>();
     model.addDevice(this, user);
   }
 
   void receive(Message m) {
-    // TODO apply receive probability
-    unreadMessages.add(m);
+    if (qualityOfService.hasSucces()) {
+      unreadMessages.add(m);
+    }
   }
 
   void sendMessages() {
     for (final Message msg : outbox) {
-      model.send(msg);
+      model.send(msg, qualityOfService);
     }
     outbox.clear();
   }
@@ -70,6 +77,12 @@ public final class CommDevice {
   }
 
   public void send(MessageContents msg, CommUser recipient) {
+    checkArgument(user != recipient,
+        "Can not send message to self %s.",
+        recipient);
+    checkArgument(model.contains(recipient),
+        "%s can not send message to unknown recipient: %s.",
+        user, recipient);
     outbox.add(Message.createDirect(user, recipient, msg));
   }
 

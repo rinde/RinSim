@@ -21,8 +21,6 @@ import static org.junit.Assert.assertTrue;
 
 import java.util.List;
 
-import javax.measure.unit.SI;
-
 import org.junit.Before;
 import org.junit.Test;
 
@@ -55,8 +53,7 @@ public class CommModelTest {
   @Before
   public void setUp() {
     model = CommModel.builder()
-        .setGlobalReliability(1.0)
-        .setDistanceUnit(SI.KILOMETER)
+        .setDefaultDeviceReliability(1.0)
         .build();
 
     agent1 = new Agent(new Point(0, 0));
