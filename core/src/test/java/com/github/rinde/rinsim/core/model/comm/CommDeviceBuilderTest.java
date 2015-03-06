@@ -15,13 +15,38 @@
  */
 package com.github.rinde.rinsim.core.model.comm;
 
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.mock;
+
+import org.junit.Before;
+import org.junit.Test;
+
 /**
- *
- * Should be immutable, when broadcasted this object is shared with all
- * recipients.
  * @author Rinde van Lon
  *
  */
-public interface MessageContents {
+public class CommDeviceBuilderTest {
+  @SuppressWarnings("null")
+  CommDeviceBuilder builder;
 
+  @Before
+  public void setUp() {
+    builder = new CommDeviceBuilder(CommModel.builder().build(),
+        mock(CommUser.class));
+  }
+
+  /**
+   * Tests that comm users should not create more than one device.
+   */
+  @Test
+  public void testCanBeUsedOnlyOnce() {
+    boolean fail = false;
+    builder.build();
+    try {
+      builder.build();
+    } catch (final IllegalStateException e) {
+      fail = true;
+    }
+    assertTrue(fail);
+  }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011-2014 Rinde van Lon, iMinds DistriNet, KU Leuven
+ * Copyright (C) 2011-2015 Rinde van Lon, iMinds-DistriNet, KU Leuven
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,6 @@
  */
 package com.github.rinde.rinsim.core.model.comm;
 
-import com.github.rinde.rinsim.core.model.comm.CommDevice.DeviceBuilder;
 import com.github.rinde.rinsim.geom.Point;
 
 /**
@@ -30,6 +29,11 @@ public interface CommUser {
    */
   Point getPosition();
 
-  void setCommDevice(DeviceBuilder builder);
+  /**
+   *
+   * exactly one {@link CommDevice} must be constructed
+   *
+   */
+  void setCommDevice(CommDeviceBuilder builder);
 
 }

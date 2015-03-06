@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011-2014 Rinde van Lon, iMinds DistriNet, KU Leuven
+ * Copyright (C) 2011-2015 Rinde van Lon, iMinds-DistriNet, KU Leuven
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,8 +15,6 @@
  */
 package com.github.rinde.rinsim.core.model.comm;
 
-import static com.google.common.base.Preconditions.checkState;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -28,8 +26,9 @@ import com.google.common.base.Predicates;
 import com.google.common.collect.ImmutableList;
 
 /**
+ * A communication device that can be used to communicate. Instances can be
+ * constructed via {@link CommDeviceBuilder}.
  * @author Rinde van Lon
- *
  */
 public final class CommDevice {
   private final CommModel model;
@@ -38,7 +37,7 @@ public final class CommDevice {
   private final List<Message> unreadMessages;
   private final List<Message> outbox;
 
-  CommDevice(DeviceBuilder builder) {
+  CommDevice(CommDeviceBuilder builder) {
     model = builder.model;
     user = builder.user;
     unreadMessages = new ArrayList<>();
@@ -53,12 +52,16 @@ public final class CommDevice {
 
   void sendMessages() {
     for (final Message msg : outbox) {
-      System.out.println("send: " + msg);
       model.send(msg);
     }
     outbox.clear();
   }
 
+  /**
+   * Retrieves the unread messages that this device has received. Calling this
+   * method will clear the unread messages of this device.
+   * @return An immutable list of {@link Message}s.
+   */
   public ImmutableList<Message> getUnreadMessages() {
     final ImmutableList<Message> msgs = ImmutableList
         .copyOf(unreadMessages);
@@ -80,58 +83,8 @@ public final class CommDevice {
         new RangePredicate(user, maxRange)));
   }
 
-  static DeviceBuilder builder(CommModel m, CommUser u) {
-    return new DeviceBuilder(m, u);
-  }
-
-  public static class DeviceBuilder {
-    double reliability;
-    double maxRange;
-    int deviceMemorySize;
-    final CommUser user;
-    final CommModel model;
-    private boolean building;
-
-    DeviceBuilder(CommModel m, CommUser u) {
-      model = m;
-      user = u;
-      building = true;
-    }
-
-    /**
-     * @param reliability the reliability to set
-     * @return
-     */
-    public DeviceBuilder setReliability(double reliability) {
-      this.reliability = reliability;
-      return this;
-    }
-
-    /**
-     * @param maxRange the maxRange to set
-     * @return
-     */
-    public DeviceBuilder setMaxRange(double maxRange) {
-      this.maxRange = maxRange;
-      return this;
-    }
-
-    /**
-     * @param numberOfMessagesToKeep the deviceMemorySize to set
-     * @return
-     */
-    public DeviceBuilder setDeviceMemorySize(int numberOfMessagesToKeep) {
-      deviceMemorySize = numberOfMessagesToKeep;
-      return this;
-    }
-
-    public CommDevice build() {
-      checkState(building,
-          "Only one communication device can be created per user, user: %s.",
-          user);
-      building = false;
-      return new CommDevice(this);
-    }
+  static CommDeviceBuilder builder(CommModel m, CommUser u) {
+    return new CommDeviceBuilder(m, u);
   }
 
   static class RangePredicate implements Predicate<CommUser> {

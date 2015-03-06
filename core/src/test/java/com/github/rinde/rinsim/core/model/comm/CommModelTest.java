@@ -27,7 +27,6 @@ import org.junit.Before;
 import org.junit.Test;
 
 import com.github.rinde.rinsim.core.TimeLapseFactory;
-import com.github.rinde.rinsim.core.model.comm.CommDevice.DeviceBuilder;
 import com.github.rinde.rinsim.geom.Point;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Optional;
@@ -147,6 +146,11 @@ public class CommModelTest {
     assertTrue(agent5.commDevice.get().getUnreadMessages().isEmpty());
   }
 
+  /**
+   * Tests that the messages appear in the device in the actual send ordering,
+   * which is the order in which agents have been registered in the comm model
+   * and not the order of broadcast invocation.
+   */
   @Test
   public void testBroadcastReceiveOrdering() {
     agent4.commDevice.get().broadcast(Contents.YO);
@@ -158,15 +162,26 @@ public class CommModelTest {
     model.afterTick(TimeLapseFactory.create(0, 100));
 
     final List<Message> msgs = agent5.commDevice.get().getUnreadMessages();
-    System.out.println("m: " + msgs);
-
     assertSame(agent1, msgs.get(0).getSender());
     assertSame(agent1, msgs.get(1).getSender());
     assertSame(agent2, msgs.get(2).getSender());
     assertSame(agent3, msgs.get(3).getSender());
     assertSame(agent4, msgs.get(4).getSender());
     assertSame(agent4, msgs.get(5).getSender());
+  }
 
+  /**
+   * Tests that comm users should create a device.
+   */
+  @Test
+  public void testIdleCommUser() {
+    boolean fail = false;
+    try {
+      CommModel.builder().build().register(new IdleCommUser());
+    } catch (final IllegalStateException e) {
+      fail = true;
+    }
+    assertTrue(fail);
   }
 
   static class Agent implements CommUser {
@@ -184,7 +199,7 @@ public class CommModelTest {
     }
 
     @Override
-    public void setCommDevice(DeviceBuilder builder) {
+    public void setCommDevice(CommDeviceBuilder builder) {
       commDevice = Optional.of(builder.build());
     }
 
@@ -194,5 +209,15 @@ public class CommModelTest {
           .add("position", position)
           .toString();
     }
+  }
+
+  static class IdleCommUser implements CommUser {
+    @Override
+    public Point getPosition() {
+      return new Point(0, 0);
+    }
+
+    @Override
+    public void setCommDevice(CommDeviceBuilder builder) {}
   }
 }
