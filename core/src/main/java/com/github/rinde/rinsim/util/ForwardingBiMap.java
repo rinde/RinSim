@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011-2014 Rinde van Lon, iMinds DistriNet, KU Leuven
+ * Copyright (C) 2011-2015 Rinde van Lon, iMinds-DistriNet, KU Leuven
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,14 +26,9 @@ import com.google.common.collect.ForwardingMap;
  * @author Rinde van Lon
  *
  */
-public class ForwardingBiMap<K, V> extends ForwardingMap<K, V> implements
+public abstract class ForwardingBiMap<K, V> extends ForwardingMap<K, V>
+    implements
     BiMap<K, V> {
-
-  private final BiMap<K, V> delegate;
-
-  protected ForwardingBiMap(BiMap<K, V> deleg) {
-    delegate = deleg;
-  }
 
   @Override
   public Set<V> values() {
@@ -51,7 +46,5 @@ public class ForwardingBiMap<K, V> extends ForwardingMap<K, V> implements
   }
 
   @Override
-  protected BiMap<K, V> delegate() {
-    return delegate;
-  }
+  protected abstract BiMap<K, V> delegate();
 }
