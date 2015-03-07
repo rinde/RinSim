@@ -18,20 +18,13 @@ package com.github.rinde.rinsim.core.model.comm;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
 
-import com.github.rinde.rinsim.core.model.comm.CommModel.QoS;
-import com.github.rinde.rinsim.core.model.comm.CommModel.QualityOfService;
-import com.github.rinde.rinsim.core.model.comm.CommModel.StochasticQoS;
-
 /**
  * A builder for creating {@link CommDevice} instances. This builder is injected
  * in implementors of the {@link CommUser} interface.
  *
  * @author Rinde van Lon
  */
-public final class CommDeviceBuilder {
-  double deviceReliability;
-  double deviceMaxRange;
-  int deviceMemorySize;
+public final class CommDeviceBuilder extends AbstractBuilder<CommDeviceBuilder> {
   final CommUser user;
   final CommModel model;
   private boolean used;
@@ -41,59 +34,42 @@ public final class CommDeviceBuilder {
     user = u;
     used = false;
     deviceReliability = model.getDefaultReliability();
+    deviceMaxRange = model.getDefaultMaxRange();
   }
 
-  /**
-   * @param reliability the reliability to set
-   * @return This, as per the builder pattern.
-   */
+  @Override
+  public CommDeviceBuilder setMaxRange(double range) {
+    return super.setMaxRange(range);
+  }
+
+  @Override
   public CommDeviceBuilder setReliability(double reliability) {
-    checkArgument(reliability >= 0d && reliability <= 1d);
-    deviceReliability = reliability;
-    return this;
+    if (reliability < 1d) {
+      checkArgument(
+          model.hasRandomGenerator(),
+          "An unreliable comm device can only be created when the CommModel has"
+              + " a RandomGenerator.");
+    }
+    return super.setReliability(reliability);
   }
 
   /**
-   * @param maxRange the maxRange to set
-   * @return
+   * @return A new {@link CommDevice} instance.
    */
-  public CommDeviceBuilder setMaxRange(double maxRange) {
-    checkArgument(maxRange >= 0d);
-    deviceMaxRange = maxRange;
-    return this;
-  }
-
-  /**
-   * @param numberOfMessagesToKeep the deviceMemorySize to set
-   * @return
-   */
-  public CommDeviceBuilder setDeviceMemorySize(int numberOfMessagesToKeep) {
-    checkArgument(numberOfMessagesToKeep > 0);
-    deviceMemorySize = numberOfMessagesToKeep;
-    return this;
-  }
-
   public CommDevice build() {
     checkState(!used,
         "Only one communication device can be created per user, user: %s.",
         user);
     used = true;
-
-    QualityOfService rc;
-    if (deviceReliability == 1d) {
-      rc = QoS.RELIABLE;
-    } else {
-      checkArgument(
-          model.getRandomGenerator().isPresent(),
-          "An unreliable comm device can only be created when the CommModel has"
-              + " a RandomGenerator.");
-      rc = new StochasticQoS(deviceReliability, model.getRandomGenerator()
-          .get());
-    }
-    return new CommDevice(this, rc);
+    return new CommDevice(this);
   }
 
   boolean isUsed() {
     return used;
+  }
+
+  @Override
+  CommDeviceBuilder self() {
+    return this;
   }
 }

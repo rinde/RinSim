@@ -36,17 +36,24 @@ import com.google.common.collect.BiMap;
  */
 public class CommModel implements Model<CommUser>, TickListener {
   private final double defaultReliability;
+  private final Optional<Double> defaultMaxRange;
   private final BiMap<CommUser, CommDevice> usersDevices;
-  private final Optional<RandomGenerator> randomGenerator;
+  private final QualityOfService qos;
 
   CommModel(Builder b) {
     defaultReliability = b.defaultReliability;
-    randomGenerator = b.randomGenerator;
+    defaultMaxRange = b.defaultMaxRange;
+    if (b.randomGenerator.isPresent()) {
+      qos = new StochasticQoS(b.randomGenerator.get());
+    } else {
+      qos = QoS.PERFECT;
+    }
     usersDevices = LinkedHashBiMap.create();
   }
 
   @Override
   public boolean register(CommUser commUser) {
+    checkArgument(!contains(commUser), "%s is already registered.", commUser);
     final CommDeviceBuilder builder = CommDevice.builder(this, commUser)
         .setReliability(defaultReliability);
     commUser.setCommDevice(builder);
@@ -69,17 +76,29 @@ public class CommModel implements Model<CommUser>, TickListener {
   }
 
   /**
-   * @param commUser
+   * Checks if the specified {@link CommUser} is registered in this model.
+   * @param commUser The user to check.
+   * @return <code>true</code> if {@link CommUser} is registered,
+   *         <code>false</code> otherwise.
    */
   public boolean contains(CommUser commUser) {
     return usersDevices.containsKey(commUser);
   }
 
   /**
-   * @return
+   * @return The default reliability for all {@link CommDevice}s in this model.
    */
   public double getDefaultReliability() {
     return defaultReliability;
+  }
+
+  /**
+   * @return The default maximum range for all {@link CommDevice}s in this
+   *         model, or {@link Optional#absent()} if there is an unlimited range
+   *         by default.
+   */
+  public Optional<Double> getDefaultMaxRange() {
+    return defaultMaxRange;
   }
 
   @Override
@@ -93,26 +112,30 @@ public class CommModel implements Model<CommUser>, TickListener {
     }
   }
 
-  Optional<RandomGenerator> getRandomGenerator() {
-    return randomGenerator;
+  boolean hasRandomGenerator() {
+    return qos != QoS.PERFECT;
   }
 
-  void send(Message msg, QualityOfService qos) {
+  void send(Message msg, double senderReliability) {
     // direct
     if (msg.to().isPresent()) {
-      if (qos.hasSucces()) {
-        usersDevices.get(msg.to().get()).receive(msg);
-      }
+      final CommDevice recipient = usersDevices.get(msg.to().get());
+      doSend(msg, msg.to().get(), recipient, senderReliability);
     } else {
       // broadcast
       for (final Entry<CommUser, CommDevice> entry : usersDevices.entrySet()) {
-        if (msg.predicate().apply(entry.getKey())
-            && msg.from() != entry.getKey()) {
-          if (qos.hasSucces()) {
-            entry.getValue().receive(msg);
-          }
+        if (msg.from() != entry.getKey()) {
+          doSend(msg, entry.getKey(), entry.getValue(), senderReliability);
         }
       }
+    }
+  }
+
+  private void doSend(Message msg, CommUser to, CommDevice recipient,
+      double sendReliability) {
+    if (msg.predicate().apply(to)
+        && qos.hasSucces(sendReliability, recipient.getReliability())) {
+      recipient.receive(msg);
     }
   }
 
@@ -121,28 +144,48 @@ public class CommModel implements Model<CommUser>, TickListener {
   }
 
   /**
-   * @return
+   * @return A new builder for creating a {@link CommModel}.
    */
   public static Builder builder() {
     return new Builder();
   }
 
-  public static class Builder {
+  /**
+   * A builder for creating a {@link CommModel}.
+   * @author Rinde van Lon
+   */
+  public static class Builder extends AbstractBuilder<Builder> {
     static double DEFAULT_RELIABILITY = 1d;
     Optional<RandomGenerator> randomGenerator;
     double defaultReliability;
+    Optional<Double> defaultMaxRange;
 
     Builder() {
       randomGenerator = Optional.absent();
       defaultReliability = DEFAULT_RELIABILITY;
+      defaultMaxRange = Optional.absent();
     }
 
     /**
-     * @param reliability the defaultReliability to set
+     * Sets the reliability of the device to be constructed. The reliability is
+     * applied for both sending and receiving messages. Reliability must be
+     * <code>0 <= r <= 1</code>.
+     * @param reliability The reliability to set.
+     * @return This, as per the builder pattern.
      */
     public Builder setDefaultDeviceReliability(double reliability) {
-      defaultReliability = reliability;
-      return this;
+      return super.setReliability(reliability);
+    }
+
+    /**
+     * Sets the default maximum range for all devices. This means that by
+     * default devices will only be able to send messages to other devices that
+     * are within this range.
+     * @param maxRange The maxRange to set.
+     * @return This, as per the builder pattern.
+     */
+    public Builder setDefaultDeviceMaxRange(double maxRange) {
+      return super.setMaxRange(maxRange);
     }
 
     /**
@@ -157,40 +200,47 @@ public class CommModel implements Model<CommUser>, TickListener {
 
     public CommModel build() {
       if (defaultReliability < 1d) {
-        checkArgument(randomGenerator != null);
+        checkArgument(randomGenerator.isPresent());
       }
+
       return new CommModel(this);
+    }
+
+    @Override
+    Builder self() {
+      return this;
     }
   }
 
   interface QualityOfService {
-
-    boolean hasSucces();
-
+    boolean hasSucces(double senderReliability, double receiverReliability);
   }
 
   static class StochasticQoS implements QualityOfService {
-    private final double reliability;
     private final RandomGenerator randomGenerator;
 
-    StochasticQoS(double r, RandomGenerator rng) {
-      reliability = r;
+    StochasticQoS(RandomGenerator rng) {
       randomGenerator = rng;
     }
 
     @Override
-    public boolean hasSucces() {
-      return randomGenerator.nextDouble() < reliability;
+    public boolean hasSucces(double senderReliability,
+        double receiverReliability) {
+      if (senderReliability == 1d && receiverReliability == 1d) {
+        return true;
+      }
+      return randomGenerator.nextDouble() < senderReliability
+          * receiverReliability;
     }
   }
 
   enum QoS implements QualityOfService {
-    RELIABLE {
+    PERFECT {
       @Override
-      public boolean hasSucces() {
+      public boolean hasSucces(double senderReliability,
+          double receiverReliability) {
         return true;
       }
     }
   }
-
 }

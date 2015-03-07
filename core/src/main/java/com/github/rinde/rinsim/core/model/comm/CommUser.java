@@ -18,22 +18,26 @@ package com.github.rinde.rinsim.core.model.comm;
 import com.github.rinde.rinsim.geom.Point;
 
 /**
+ * A communication user. A communication user is an object that uses a
+ * {@link CommDevice} for communicating with other instances.
  * @author Rinde van Lon
- *
  */
 public interface CommUser {
-
   /**
-   * Should be implemented efficiently
-   * @return
+   * Should return the current position of the user. This method should ideally
+   * be implemented efficiently as it may be called many times (for example for
+   * broadcasts in a certain range).
+   * @return The current position.
    */
   Point getPosition();
 
   /**
-   *
-   * exactly one {@link CommDevice} must be constructed
-   *
+   * This method is called to inject a {@link CommDevice} into the user. The
+   * specific device can be configured via {@link CommDeviceBuilder}. Note that
+   * implementors of this method are required to create exactly one
+   * {@link CommDevice}, failure to do so will result in an
+   * {@link IllegalStateException}.
+   * @param builder The builder for creating a {@link CommDevice}.
    */
   void setCommDevice(CommDeviceBuilder builder);
-
 }

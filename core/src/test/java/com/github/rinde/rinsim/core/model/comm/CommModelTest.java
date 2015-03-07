@@ -16,11 +16,14 @@
 package com.github.rinde.rinsim.core.model.comm;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.mock;
 
 import java.util.List;
 
+import org.apache.commons.math3.random.MersenneTwister;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -54,6 +57,7 @@ public class CommModelTest {
   public void setUp() {
     model = CommModel.builder()
         .setDefaultDeviceReliability(1.0)
+        .setRandomGenerator(new MersenneTwister(123L))
         .build();
 
     agent1 = new Agent(new Point(0, 0));
@@ -71,6 +75,29 @@ public class CommModelTest {
 
   enum Contents implements MessageContents {
     HELLO_WORLD, YO
+  }
+
+  /**
+   * Test registration of object.
+   */
+  @Test
+  public void testRegister() {
+    assertTrue(model.contains(agent1));
+    boolean fail = false;
+    try {
+      model.register(agent1);
+    } catch (final IllegalArgumentException e) {
+      fail = true;
+    }
+    assertTrue(fail);
+  }
+
+  /**
+   * Unregister is not supported.
+   */
+  @Test(expected = UnsupportedOperationException.class)
+  public void testUnregister() {
+    model.unregister(mock(CommUser.class));
   }
 
   /**
@@ -100,9 +127,71 @@ public class CommModelTest {
     assertTrue(agent1.commDevice.get().getUnreadMessages().isEmpty());
     final List<Message> msgs = agent2.commDevice.get().getUnreadMessages();
     assertEquals(1, msgs.size());
+    assertFalse(msgs.get(0).toString().isEmpty());
     assertSame(Contents.YO, msgs.get(0).getContents());
     assertSame(agent1, msgs.get(0).getSender());
     assertTrue(agent2.commDevice.get().getUnreadMessages().isEmpty());
+  }
+
+  /**
+   * Test input validation.
+   */
+  @Test
+  public void testSendDirectMsgInputValidation() {
+    boolean fail = false;
+    try {
+      agent1.commDevice.get().send(Contents.YO, agent1);
+    } catch (final IllegalArgumentException e) {
+      fail = true;
+    }
+    assertTrue(fail);
+    fail = false;
+    final Agent unknown = new Agent(new Point(0, 0));
+    try {
+      agent1.commDevice.get().send(Contents.YO, unknown);
+    } catch (final IllegalArgumentException e) {
+      fail = true;
+    }
+    assertTrue(fail);
+  }
+
+  /**
+   * Test for unreliable direct message.
+   */
+  @Test
+  public void testSendDirectMsgUnreliable() {
+    final Agent unreliable = new Agent(new Point(5, 5), 0);
+    model.register(unreliable);
+
+    unreliable.commDevice.get().send(Contents.YO, agent1);
+    model.afterTick(TimeLapseFactory.create(0, 100));
+    assertTrue(agent1.commDevice.get().getUnreadMessages().isEmpty());
+
+    agent1.commDevice.get().send(Contents.YO, unreliable);
+    model.afterTick(TimeLapseFactory.create(0, 100));
+    assertTrue(unreliable.commDevice.get().getUnreadMessages().isEmpty());
+  }
+
+  /**
+   * Test for send message with limited range.
+   */
+  @Test
+  public void testSendDirectMsgWithRange() {
+    final Agent ranged = new RangedAgent(new Point(0, 5), 5);
+    model.register(ranged);
+    // is possible, is within range
+    ranged.commDevice.get().send(Contents.YO, agent1);
+    // not possible, too far
+    ranged.commDevice.get().send(Contents.YO, agent3);
+    // receiving messages from outside range is possible
+    agent3.commDevice.get().send(Contents.YO, ranged);
+    model.afterTick(TimeLapseFactory.create(0, 100));
+
+    final Message m = agent1.commDevice.get().getUnreadMessages().get(0);
+    assertSame(ranged, m.getSender());
+    assertTrue(agent3.commDevice.get().getUnreadMessages().isEmpty());
+    assertSame(agent3, ranged.commDevice.get().getUnreadMessages().get(0)
+        .getSender());
   }
 
   /**
@@ -168,6 +257,42 @@ public class CommModelTest {
   }
 
   /**
+   * Tests broadcasting from and to unreliable agents.
+   */
+  @Test
+  public void testBroadcastUnreliable() {
+    final Agent unreliable = new Agent(new Point(5, 5), 0);
+    model.register(unreliable);
+
+    unreliable.commDevice.get().broadcast(Contents.YO);
+    model.afterTick(TimeLapseFactory.create(0, 100));
+    assertTrue(agent1.commDevice.get().getUnreadMessages().isEmpty());
+    assertTrue(agent2.commDevice.get().getUnreadMessages().isEmpty());
+
+    agent1.commDevice.get().broadcast(Contents.YO);
+    model.afterTick(TimeLapseFactory.create(0, 100));
+    assertTrue(unreliable.commDevice.get().getUnreadMessages().isEmpty());
+    assertEquals(1, agent2.commDevice.get().getUnreadMessages().size());
+  }
+
+  /**
+   * Test that a broadcast only ends up at agents within the range.
+   */
+  @Test
+  public void testBroadcastWithRange() {
+    final Agent ranged = new RangedAgent(new Point(0, 5), 5);
+    model.register(ranged);
+    ranged.commDevice.get().broadcast(Contents.YO);
+    model.afterTick(TimeLapseFactory.create(0, 100));
+
+    assertFalse(agent1.commDevice.get().getUnreadMessages().isEmpty());
+    assertFalse(agent2.commDevice.get().getUnreadMessages().isEmpty());
+    assertTrue(agent3.commDevice.get().getUnreadMessages().isEmpty());
+    assertFalse(agent4.commDevice.get().getUnreadMessages().isEmpty());
+    assertTrue(agent5.commDevice.get().getUnreadMessages().isEmpty());
+  }
+
+  /**
    * Tests that comm users should create a device.
    */
   @Test
@@ -181,11 +306,43 @@ public class CommModelTest {
     assertTrue(fail);
   }
 
+  static class RangedAgent extends Agent {
+    final double range;
+
+    RangedAgent(Point p, double r) {
+      super(p);
+      range = r;
+    }
+
+    @Override
+    public void setCommDevice(CommDeviceBuilder builder) {
+      commDevice = Optional.of(
+          builder.setReliability(reliability)
+              .setMaxRange(range)
+              .build());
+    }
+
+    @Override
+    public String toString() {
+      return MoreObjects.toStringHelper("Agent")
+          .add("position", position)
+          .add("reliability", reliability)
+          .add("range", range)
+          .toString();
+    }
+  }
+
   static class Agent implements CommUser {
     final Point position;
     Optional<CommDevice> commDevice;
+    double reliability;
 
     Agent(Point p) {
+      this(p, 1d);
+    }
+
+    Agent(Point p, double r) {
+      reliability = r;
       position = p;
       commDevice = Optional.absent();
     }
@@ -197,13 +354,16 @@ public class CommModelTest {
 
     @Override
     public void setCommDevice(CommDeviceBuilder builder) {
-      commDevice = Optional.of(builder.build());
+      commDevice = Optional.of(
+          builder.setReliability(reliability)
+              .build());
     }
 
     @Override
     public String toString() {
       return MoreObjects.toStringHelper("Agent")
           .add("position", position)
+          .add("reliability", reliability)
           .toString();
     }
   }

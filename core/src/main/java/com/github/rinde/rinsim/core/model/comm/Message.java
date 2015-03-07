@@ -19,7 +19,6 @@ import com.google.auto.value.AutoValue;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Optional;
 import com.google.common.base.Predicate;
-import com.google.common.base.Predicates;
 
 /**
  * Immutable value object representing a message. Can not be subclassed, can
@@ -61,9 +60,9 @@ public abstract class Message {
         .toString();
   }
 
-  static Message createDirect(CommUser from, CommUser to, MessageContents m) {
-    return new AutoValue_Message(
-        from, Optional.of(to), m, Predicates.<CommUser> alwaysTrue());
+  static Message createDirect(CommUser from, CommUser to, MessageContents m,
+      Predicate<CommUser> p) {
+    return new AutoValue_Message(from, Optional.of(to), m, p);
   }
 
   static Message createBroadcast(CommUser from, MessageContents m,

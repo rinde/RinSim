@@ -16,14 +16,15 @@
 package com.github.rinde.rinsim.core.model.comm;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Verify.verifyNotNull;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import javax.annotation.Nullable;
 
-import com.github.rinde.rinsim.core.model.comm.CommModel.QualityOfService;
 import com.github.rinde.rinsim.geom.Point;
+import com.google.common.base.Optional;
 import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
 import com.google.common.collect.ImmutableList;
@@ -37,31 +38,26 @@ import com.google.common.collect.ImmutableList;
 public final class CommDevice {
   private final CommModel model;
   private final CommUser user;
-  private final QualityOfService qualityOfService;
+  private final double reliability;
+  private final Optional<Double> maxRange;
+  private final Predicate<CommUser> rangePredicate;
 
   private final List<Message> unreadMessages;
   private final List<Message> outbox;
 
-  CommDevice(CommDeviceBuilder builder, QualityOfService rc) {
+  CommDevice(CommDeviceBuilder builder) {
     model = builder.model;
     user = builder.user;
-    qualityOfService = rc;
+    reliability = builder.deviceReliability;
+    maxRange = builder.deviceMaxRange;
+    if (maxRange.isPresent()) {
+      rangePredicate = new RangePredicate(user, maxRange.get());
+    } else {
+      rangePredicate = Predicates.alwaysTrue();
+    }
     unreadMessages = new ArrayList<>();
     outbox = new ArrayList<>();
     model.addDevice(this, user);
-  }
-
-  void receive(Message m) {
-    if (qualityOfService.hasSucces()) {
-      unreadMessages.add(m);
-    }
-  }
-
-  void sendMessages() {
-    for (final Message msg : outbox) {
-      model.send(msg, qualityOfService);
-    }
-    outbox.clear();
   }
 
   /**
@@ -76,6 +72,24 @@ public final class CommDevice {
     return msgs;
   }
 
+  /**
+   * @return The reliability of this device for sending and receiving messages.
+   */
+  public double getReliability() {
+    return reliability;
+  }
+
+  /**
+   * @return The maximum range for sending messages, or
+   *         {@link Optional#absent()} if the device as unlimited range.
+   */
+  public Optional<Double> getMaxRange() {
+    return maxRange;
+  }
+
+  // talk about reliability. send success = sender reliability * receiver
+  // reliability. max range, if recipient is further away, message will not be
+  // send
   public void send(MessageContents msg, CommUser recipient) {
     checkArgument(user != recipient,
         "Can not send message to self %s.",
@@ -83,17 +97,22 @@ public final class CommDevice {
     checkArgument(model.contains(recipient),
         "%s can not send message to unknown recipient: %s.",
         user, recipient);
-    outbox.add(Message.createDirect(user, recipient, msg));
+    outbox.add(Message.createDirect(user, recipient, msg, rangePredicate));
   }
 
   public void broadcast(MessageContents msg) {
-    outbox.add(Message.createBroadcast(user, msg,
-        Predicates.<CommUser> alwaysTrue()));
+    outbox.add(Message.createBroadcast(user, msg, rangePredicate));
   }
 
-  public void broadcast(MessageContents msg, double maxRange) {
-    outbox.add(Message.createBroadcast(user, msg,
-        new RangePredicate(user, maxRange)));
+  void receive(Message m) {
+    unreadMessages.add(m);
+  }
+
+  void sendMessages() {
+    for (final Message msg : outbox) {
+      model.send(msg, reliability);
+    }
+    outbox.clear();
   }
 
   static CommDeviceBuilder builder(CommModel m, CommUser u) {
@@ -111,9 +130,8 @@ public final class CommDevice {
 
     @Override
     public boolean apply(@Nullable CommUser input) {
-      assert input != null;
-      return Point.distance(user.getPosition(), input.getPosition()) <= range;
+      return Point.distance(user.getPosition(),
+          verifyNotNull(input).getPosition()) <= range;
     }
   }
-
 }
