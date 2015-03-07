@@ -16,12 +16,8 @@
 package com.github.rinde.rinsim.core.model.comm;
 
 /**
- *
- * Should be immutable, when broadcasted this object is shared with all
- * recipients.
+ * A marker interface for contents of messages. Implementations should be
+ * immutable.
  * @author Rinde van Lon
- *
  */
-public interface MessageContents {
-
-}
+public interface MessageContents {}

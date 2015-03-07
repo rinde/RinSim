@@ -24,6 +24,7 @@ import java.util.List;
 import javax.annotation.Nullable;
 
 import com.github.rinde.rinsim.geom.Point;
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Optional;
 import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
@@ -32,7 +33,10 @@ import com.google.common.collect.ImmutableList;
 /**
  * A communication device that can be used to communicate with other
  * {@link CommUser}s. Instances can be constructed via {@link CommDeviceBuilder}
- * .
+ * . A communication device has two important properties, reliability and range.
+ * For more information regarding this properties see
+ * {@link #send(MessageContents, CommUser)} and
+ * {@link #broadcast(MessageContents)}.
  * @author Rinde van Lon
  */
 public final class CommDevice {
@@ -87,21 +91,58 @@ public final class CommDevice {
     return maxRange;
   }
 
-  // talk about reliability. send success = sender reliability * receiver
-  // reliability. max range, if recipient is further away, message will not be
-  // send
-  public void send(MessageContents msg, CommUser recipient) {
+  /**
+   * Attempts to send a message with the specified contents to the specified
+   * recipient. The actual sending of a message is done at the end of the
+   * current tick. Based on the range and reliability it is determined whether
+   * the message will be send.
+   * <p>
+   * <b>Reliability</b> If this device has a reliability of <code>p</code> there
+   * is a probability of <code>1-p</code> that the message will not be send. If
+   * the receiving device has a reliability of <code>r</code> there is a
+   * probability of <code>1-r</code> that the message will not be received at
+   * the other end. This means that in practice the probability of a successful
+   * delivery is <code>(1-p) * (1-r)</code>.
+   * <p>
+   * <b>Range</b> If this device has a maximum range the message will only be
+   * delivered if the recipient is within that range <i>at the moment of sending
+   * at the end of the tick</i>. Note that the range only influences sending of
+   * messages, it is possible to receive messages from senders that are outside
+   * of its max range.
+   * @param contents The contents to send as part of the message.
+   * @param recipient The recipient of the message.
+   */
+  public void send(MessageContents contents, CommUser recipient) {
     checkArgument(user != recipient,
         "Can not send message to self %s.",
         recipient);
     checkArgument(model.contains(recipient),
         "%s can not send message to unknown recipient: %s.",
         user, recipient);
-    outbox.add(Message.createDirect(user, recipient, msg, rangePredicate));
+    outbox.add(Message.createDirect(user, recipient, contents, rangePredicate));
   }
 
-  public void broadcast(MessageContents msg) {
-    outbox.add(Message.createBroadcast(user, msg, rangePredicate));
+  /**
+   * Attempts to broadcast a message with the specified contents. The actual
+   * sending of a message is done at the end of the current tick. Based on the
+   * range and reliability it is determined to whom a message will be send.
+   * <p>
+   * <b>Reliability</b> If this device has a reliability of <code>p</code> there
+   * is a probability of <code>1-p</code> that the message will not be send to a
+   * particular receiver. If the receiving device has a reliability of
+   * <code>r</code> there is a probability of <code>1-r</code> that the message
+   * will not be received at the other end. This means that in practice the
+   * probability of a successful delivery is <code>(1-p) * (1-r)</code>.
+   * <p>
+   * <b>Range</b> If this device has a maximum range the message will only be
+   * delivered to the recipients that are within that range <i>at the moment of
+   * sending at the end of the tick</i>. Note that the range only influences
+   * sending of messages, it is possible to receive messages from senders that
+   * are outside of its max range.
+   * @param contents The contents to send as part of the message.
+   */
+  public void broadcast(MessageContents contents) {
+    outbox.add(Message.createBroadcast(user, contents, rangePredicate));
   }
 
   void receive(Message m) {
@@ -113,6 +154,15 @@ public final class CommDevice {
       model.send(msg, reliability);
     }
     outbox.clear();
+  }
+
+  @Override
+  public String toString() {
+    return MoreObjects.toStringHelper("CommDevice")
+        .add("owner", user)
+        .add("reliability", reliability)
+        .add("range", maxRange)
+        .toString();
   }
 
   static CommDeviceBuilder builder(CommModel m, CommUser u) {

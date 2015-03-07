@@ -31,7 +31,8 @@ import com.google.common.base.Optional;
 import com.google.common.collect.BiMap;
 
 /**
- * TODO
+ * This model supports sending messages between {@link CommUser}s. A
+ * {@link CommUser} can use a {@link CommDevice} to communicate.
  * @author Rinde van Lon
  */
 public class CommModel implements Model<CommUser>, TickListener {
@@ -169,7 +170,7 @@ public class CommModel implements Model<CommUser>, TickListener {
     /**
      * Sets the reliability of the device to be constructed. The reliability is
      * applied for both sending and receiving messages. Reliability must be
-     * <code>0 <= r <= 1</code>.
+     * <code>0 &le; r &le; 1</code>.
      * @param reliability The reliability to set.
      * @return This, as per the builder pattern.
      */
@@ -189,20 +190,29 @@ public class CommModel implements Model<CommUser>, TickListener {
     }
 
     /**
-     * Should insert a new instance for independence
-     * @param rng
-     * @return
+     * Sets the specified {@link RandomGenerator} to use in the model. If
+     * reliability is not taken into account (i.e. all devices are considered to
+     * have perfect connections) this random generator is ignored and doesn't
+     * need to be set. In order to have independent stochastic behavior it is
+     * necessary to construct a new random generator instance just for this
+     * model.
+     * @param rng The random generator to use.
+     * @return This, as per the builder pattern.
      */
     public Builder setRandomGenerator(RandomGenerator rng) {
       randomGenerator = Optional.of(rng);
       return this;
     }
 
+    /**
+     * Construct a new {@link CommModel} instance.
+     * @return A new instance.
+     */
     public CommModel build() {
       if (defaultReliability < 1d) {
-        checkArgument(randomGenerator.isPresent());
+        checkArgument(randomGenerator.isPresent(),
+            "A random generator is required when modeling reliability < 1.");
       }
-
       return new CommModel(this);
     }
 
