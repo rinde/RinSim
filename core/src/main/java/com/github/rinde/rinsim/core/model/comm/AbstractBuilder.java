@@ -20,8 +20,8 @@ import static com.google.common.base.Preconditions.checkArgument;
 import com.google.common.base.Optional;
 
 /**
+ * Abstract builder for reliability and max range properties.
  * @author Rinde van Lon
- *
  */
 abstract class AbstractBuilder<T> {
   double deviceReliability;
@@ -37,7 +37,7 @@ abstract class AbstractBuilder<T> {
   /**
    * Sets the reliability of the device to be constructed. The reliability is
    * applied for both sending and receiving messages. Reliability must be
-   * <code>0 <= r <= 1</code>.
+   * <code>0 &le; r &le; 1</code>.
    * @param reliability The reliability to set.
    * @return This, as per the builder pattern.
    */
@@ -59,5 +59,4 @@ abstract class AbstractBuilder<T> {
     deviceMaxRange = Optional.of(maxRange);
     return self();
   }
-
 }

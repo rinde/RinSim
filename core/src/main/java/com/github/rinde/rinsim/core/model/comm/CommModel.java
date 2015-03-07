@@ -31,7 +31,7 @@ import com.google.common.base.Optional;
 import com.google.common.collect.BiMap;
 
 /**
- *
+ * TODO
  * @author Rinde van Lon
  */
 public class CommModel implements Model<CommUser>, TickListener {
