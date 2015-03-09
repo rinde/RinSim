@@ -29,6 +29,8 @@ import com.github.rinde.rinsim.core.model.Model;
 import com.github.rinde.rinsim.util.LinkedHashBiMap;
 import com.google.common.base.Optional;
 import com.google.common.collect.BiMap;
+import com.google.common.collect.ImmutableBiMap;
+import com.google.common.collect.Maps;
 
 /**
  * This model supports sending messages between {@link CommUser}s. A
@@ -39,7 +41,9 @@ public class CommModel implements Model<CommUser>, TickListener {
   private final double defaultReliability;
   private final Optional<Double> defaultMaxRange;
   private final BiMap<CommUser, CommDevice> usersDevices;
+  private ImmutableBiMap<CommUser, CommDevice> usersDevicesSnapshot;
   private final QualityOfService qos;
+  private boolean usersHasChanged;
 
   CommModel(Builder b) {
     defaultReliability = b.defaultReliability;
@@ -49,7 +53,10 @@ public class CommModel implements Model<CommUser>, TickListener {
     } else {
       qos = QoS.PERFECT;
     }
-    usersDevices = LinkedHashBiMap.create();
+    usersHasChanged = false;
+    usersDevices = Maps.synchronizedBiMap(
+        LinkedHashBiMap.<CommUser, CommDevice> create());
+    usersDevicesSnapshot = ImmutableBiMap.of();
   }
 
   @Override
@@ -58,6 +65,7 @@ public class CommModel implements Model<CommUser>, TickListener {
     final CommDeviceBuilder builder = CommDevice.builder(this, commUser)
         .setReliability(defaultReliability);
     commUser.setCommDevice(builder);
+    usersHasChanged = true;
     checkState(
         builder.isUsed(),
         "%s is not implemented correctly, a CommDevice must be constructed in "
@@ -111,6 +119,20 @@ public class CommModel implements Model<CommUser>, TickListener {
     for (final CommDevice device : devices) {
       device.sendMessages();
     }
+  }
+
+  /**
+   * @return An immutable copy of the bimap containing all {@link CommUser}s and
+   *         {@link CommDevice}s.
+   */
+  public ImmutableBiMap<CommUser, CommDevice> getUsersAndDevices() {
+    if (usersHasChanged) {
+      synchronized (usersDevices) {
+        usersDevicesSnapshot = ImmutableBiMap.copyOf(usersDevices);
+        usersHasChanged = false;
+      }
+    }
+    return usersDevicesSnapshot;
   }
 
   boolean hasRandomGenerator() {
