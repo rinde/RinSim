@@ -15,10 +15,12 @@
  */
 package com.github.rinde.rinsim.util;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -216,9 +218,10 @@ public class LinkedHashBiMap<K, V> extends ForwardingBiMap<K, V> {
     }
 
     @Override
-    @Deprecated
     public <T> T[] toArray(@Nullable T[] a) {
-      throw new UnsupportedOperationException("Use toArray() instead.");
+      final List<V> list = new ArrayList<>(size());
+      Iterators.addAll(list, iterator());
+      return list.toArray(a);
     }
 
     @Override
@@ -268,11 +271,11 @@ public class LinkedHashBiMap<K, V> extends ForwardingBiMap<K, V> {
     }
 
     @Override
-    @Deprecated
     public <T> T[] toArray(@Nullable T[] a) {
-      throw new UnsupportedOperationException();
+      final List<Map.Entry<A, B>> list = new ArrayList<>(size());
+      Iterators.addAll(list, iterator());
+      return list.toArray(a);
     }
-
   }
 
   private static abstract class UnmodifiableSet<T> extends ForwardingSet<T> {
