@@ -26,7 +26,8 @@ Click ``Finish``<br/>
 
 5. In your ``Package Explorer`` you should see the following: <br/>
 ![New](tutorial/3.png)
-
+<br/>
+Note that by default Maven uses (the ancient) Java 1.5. Since RinSim requires at least Java 1.7 we will change this in the next steps.
 
 6. Open the ``pom.xml`` file with the ``Maven POM Editor``. Choose the ``pom.xml`` tab in the bottom. <br/>
 ![New](tutorial/4a.png)
@@ -60,6 +61,7 @@ Click ``Finish``<br/>
 8. Replace ``x.y.z`` with the current latest version (the latest version is shown [here](https://github.com/rinde/RinSim/)). The pom file should now look similar to this: <br/>
 ![New](tutorial/4b.png)
 <br/><br/>
+Check that the ``JRE System Library`` as shown by Eclipse is version 1.7 (or higher), if this isn't the case it often helps to force Maven to update the project: right click on your project -> ``Maven`` -> ``Update Project..``. If that doesn't work it may be that Eclipse can't find a correct Java version in which case you need to update your Eclipse settings.
 
 8. Maven will now start downloading the dependencies. When it is done, make sure your can find the ``rinsim-example-x.y.z.jar`` in your ``Package Explorer``:<br/>
 ![New](tutorial/5a.png)
@@ -76,7 +78,7 @@ Click ``Finish``<br/>
 11. You should now see the following window:<br/>
 ![New](tutorial/5e.png)<br/>
 Congratualations, Your setup is complete, you can start working with RinSim!
-Click ``Control`` -> ``Play`` to start the simulation. For more information about the other available examples, click [here](../example/README.md)
+Click ``Control`` -> ``Play`` to start the simulation. For more information about the other available examples, click [here](../example/README.md).
 
 __Protip__: you can download the sources of RinSim and all other dependencies by right clicking your project -> ``Maven`` -> ``Download Sources``
 
