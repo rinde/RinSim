@@ -506,6 +506,7 @@ public final class Simulator implements SimulatorAPI {
       for (final Model<?> m : models) {
         sim.register(m);
       }
+      sim.configure();
       return sim;
     }
   }
