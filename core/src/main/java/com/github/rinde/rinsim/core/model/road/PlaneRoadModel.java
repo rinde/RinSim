@@ -273,6 +273,10 @@ public class PlaneRoadModel extends AbstractRoadModel<Point> {
    * @author Rinde van Lon
    */
   public static class Builder {
+    static final double DEFAULT_MAX_SPEED = 50d;
+    static final Point DEFAULT_MIN_POINT = new Point(0, 0);
+    static final Point DEFAULT_MAX_POINT = new Point(10, 10);
+
     Point min;
     Point max;
     Unit<Length> distUnit;
@@ -280,11 +284,11 @@ public class PlaneRoadModel extends AbstractRoadModel<Point> {
     double maxSpeed;
 
     Builder() {
-      min = new Point(0, 0);
-      max = new Point(10, 10);
+      min = DEFAULT_MIN_POINT;
+      max = DEFAULT_MAX_POINT;
       distUnit = SI.KILOMETER;
       velocityUnit = NonSI.KILOMETERS_PER_HOUR;
-      maxSpeed = 50d;
+      maxSpeed = DEFAULT_MAX_SPEED;
     }
 
     /**
