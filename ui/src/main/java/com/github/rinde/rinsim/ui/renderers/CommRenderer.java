@@ -48,19 +48,20 @@ import com.google.common.collect.Sets;
  * @author Rinde van Lon
  */
 public final class CommRenderer implements CanvasRenderer {
+  static final int OPAQUE = 255;
+  static final int SEMI_TRANSPARENT = 50;
+  static final double DOT_RADIUS = .05;
 
-  private final CommModel model;
-  final RenderHelper helper;
   private final List<DeviceUI> uiObjects;
+  final RenderHelper helper;
   final Set<ViewOptions> viewOptions;
   final RGB reliableColor;
   final RGB unreliableColor;
 
-  CommRenderer(Builder b, CommModel cm) {
+  CommRenderer(Builder b, CommModel model) {
     viewOptions = Sets.immutableEnumSet(b.viewOptions);
     reliableColor = b.reliableColor;
     unreliableColor = b.unreliableColor;
-    model = cm;
     helper = new RenderHelper();
     uiObjects = new ArrayList<>();
     for (final Entry<CommUser, CommDevice> entry : model.getUsersAndDevices()
@@ -134,12 +135,12 @@ public final class CommRenderer implements CanvasRenderer {
         } else {
           helper.setBackgroundSysCol(SWT.COLOR_DARK_BLUE);
         }
-        gc.setAlpha(50);
+        gc.setAlpha(SEMI_TRANSPARENT);
         helper.fillCircle(user.getPosition(), device.getMaxRange().get());
       }
 
-      gc.setAlpha(255);
-      helper.fillCircle(user.getPosition(), .05);
+      gc.setAlpha(OPAQUE);
+      helper.fillCircle(user.getPosition(), DOT_RADIUS);
 
       final StringBuilder sb = new StringBuilder();
 
@@ -170,7 +171,7 @@ public final class CommRenderer implements CanvasRenderer {
    * @author Rinde van Lon
    */
   public static class Builder implements CanvasRendererBuilder {
-    final EnumSet<ViewOptions> viewOptions;
+    final Set<ViewOptions> viewOptions;
     RGB unreliableColor;
     RGB reliableColor;
 
@@ -247,11 +248,11 @@ public final class CommRenderer implements CanvasRenderer {
     }
 
     static RGB defaultReliableColor() {
-      return new RGB(0, 255, 0);
+      return new RGB(0, OPAQUE, 0);
     }
 
     static RGB defaultUnreliableColor() {
-      return new RGB(255, 0, 0);
+      return new RGB(OPAQUE, 0, 0);
     }
 
     static RGB copy(RGB color) {
