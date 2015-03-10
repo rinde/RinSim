@@ -84,7 +84,7 @@ public class ViewTest {
     sim.addTickListener(new TickListener() {
       @Override
       public void tick(TimeLapse timeLapse) {
-        if (timeLapse.getTime() >= 10000) {
+        if (timeLapse.getTime() >= 15 * 1000) {
           final Display disp = UITestTools.findDisplay();
           verifyNotNull(disp).syncExec(
               new Runnable() {
@@ -99,7 +99,6 @@ public class ViewTest {
       @Override
       public void afterTick(TimeLapse timeLapse) {}
     });
-    UITestTools.startAndClose(-1);
 
     sim.register(new TestDepot());
     final UiSchema uis = new UiSchema();
@@ -108,6 +107,7 @@ public class ViewTest {
         .setTitleAppendix("ViewTest")
         .with(PlaneRoadModelRenderer.create())
         .with(RoadUserRenderer.builder())
+        .enableAutoPlay()
         .show();
   }
 
