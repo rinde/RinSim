@@ -48,9 +48,12 @@ public class EventDispatcherTest {
     OTHER_EVENT1
   }
 
+  @SuppressWarnings("null")
   ListenerEventHistory l1, l2, l3;
 
+  @SuppressWarnings("null")
   EventDispatcher dispatcher;
+  @SuppressWarnings("null")
   EventAPI api;
 
   @Before
