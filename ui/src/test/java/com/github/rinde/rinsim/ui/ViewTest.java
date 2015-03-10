@@ -15,6 +15,8 @@
  */
 package com.github.rinde.rinsim.ui;
 
+import static com.google.common.base.Verify.verifyNotNull;
+
 import javax.measure.Measure;
 import javax.measure.unit.SI;
 
@@ -38,6 +40,10 @@ import com.github.rinde.rinsim.ui.renderers.RoadUserRenderer;
 import com.github.rinde.rinsim.ui.renderers.TestRenderer;
 import com.github.rinde.rinsim.ui.renderers.UiSchema;
 
+/**
+ * Test for {@link View}.
+ * @author Rinde van Lon
+ */
 @Category(GuiTests.class)
 public class ViewTest {
 
@@ -47,27 +53,17 @@ public class ViewTest {
   @Test
   public void testRenderer() {
     System.out.println("testRenderer");
-    final Simulator sim = new Simulator(new MersenneTwister(123),
-        Measure.valueOf(1000L, SI.MILLI(SI.SECOND)));
-    sim.register(new PlaneRoadModel(new Point(0, 0), new Point(10, 10), 50));
-    sim.configure();
-    sim.addTickListener(new TickListener() {
-      @Override
-      public void tick(TimeLapse timeLapse) {
-        if (timeLapse.getTime() >= 10000) {
-          sim.stop();
-        }
-      }
 
-      @Override
-      public void afterTick(TimeLapse timeLapse) {}
-    });
+    final Simulator sim = Simulator.builder()
+        .addModel(PlaneRoadModel.builder().build())
+        .build();
 
     View.create(sim)
         .setTitleAppendix("ViewTest")
         .enableAutoClose()
         .enableAutoPlay()
-        .with(new PlaneRoadModelRenderer())
+        .stopSimulatorAtTime(10000)
+        .with(PlaneRoadModelRenderer.create())
         .with(new TestRenderer())
         .show();
   }
@@ -79,21 +75,22 @@ public class ViewTest {
   @Test
   public void closeWindowWhilePlaying() {
     System.out.println("closeWindowWhilePlaying");
-    final Simulator sim = new Simulator(new MersenneTwister(123),
-        Measure.valueOf(1000L, SI.MILLI(SI.SECOND)));
-    sim.register(new PlaneRoadModel(new Point(0, 0), new Point(10, 10), 50));
-    sim.register(new DefaultPDPModel());
-    sim.configure();
+
+    final Simulator sim = Simulator.builder()
+        .addModel(PlaneRoadModel.builder().build())
+        .addModel(new DefaultPDPModel())
+        .build();
+
     sim.addTickListener(new TickListener() {
       @Override
       public void tick(TimeLapse timeLapse) {
         if (timeLapse.getTime() >= 10000) {
           final Display disp = UITestTools.findDisplay();
-          disp.syncExec(
+          verifyNotNull(disp).syncExec(
               new Runnable() {
                 @Override
                 public void run() {
-                  disp.getActiveShell().close();
+                  verifyNotNull(disp).getActiveShell().close();
                 }
               });
         }
@@ -102,7 +99,6 @@ public class ViewTest {
       @Override
       public void afterTick(TimeLapse timeLapse) {}
     });
-
     UITestTools.startAndClose(-1);
 
     sim.register(new TestDepot());
@@ -110,8 +106,8 @@ public class ViewTest {
     uis.add(TestDepot.class, "/graphics/perspective/tall-building-64.png");
     View.create(sim)
         .setTitleAppendix("ViewTest")
-        .with(new PlaneRoadModelRenderer())
-        .with(new RoadUserRenderer(uis, false))
+        .with(PlaneRoadModelRenderer.create())
+        .with(RoadUserRenderer.builder())
         .show();
   }
 
@@ -121,6 +117,7 @@ public class ViewTest {
   @Test(expected = IllegalStateException.class)
   public void failNotConfiguredSim() {
     System.out.println("failNotConfiguredSim");
+    @SuppressWarnings("deprecation")
     final Simulator sim = new Simulator(new MersenneTwister(123),
         Measure.valueOf(1000L, SI.MILLI(SI.SECOND)));
     View.create(sim).show();
