@@ -20,28 +20,41 @@ import static org.junit.Assert.assertTrue;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 
+import com.github.rinde.rinsim.examples.comm.CommExample;
 import com.github.rinde.rinsim.examples.core.SimpleExample;
-import com.github.rinde.rinsim.examples.core.comm.AgentCommunicationExample;
 import com.github.rinde.rinsim.examples.core.taxi.TaxiExample;
 import com.github.rinde.rinsim.examples.pdptw.gradientfield.GradientFieldExample;
 import com.github.rinde.rinsim.testutil.GuiTests;
 
+/**
+ * Tests whether all examples run.
+ * @author Rinde van Lon
+ */
 @Category(GuiTests.class)
 public class ExamplesTest {
 
+  /**
+   * Tests the taxi example.
+   */
   @Test
   public void taxiExample() {
     TaxiExample.run(true);
   }
 
+  /**
+   * Tests the simple example.
+   */
   @Test
   public void simpleExample() {
     SimpleExample.run(true);
   }
 
+  /**
+   * Tests the communication example.
+   */
   @Test
-  public void communicationExample() throws Exception {
-    AgentCommunicationExample.run(true);
+  public void communicationExample() {
+    CommExample.run(true);
   }
 
   /**
