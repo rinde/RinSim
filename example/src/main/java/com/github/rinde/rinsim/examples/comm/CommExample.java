@@ -43,6 +43,8 @@ import com.github.rinde.rinsim.ui.renderers.PlaneRoadModelRenderer;
  * @author Rinde van Lon
  */
 public final class CommExample {
+  private static final int TEST_SPEEDUP = 32;
+  private static final long TEST_STOP_TIME = 10 * 60 * 1000;
   private static final int NUM_AGENTS = 50;
 
   private CommExample() {}
@@ -66,7 +68,6 @@ public final class CommExample {
         .addModel(PlaneRoadModel.builder().build())
         .addModel(CommModel.builder()
             .setRandomGenerator(rng)
-            .setDefaultDeviceMaxRange(3)
             .build())
         .build();
 
@@ -81,12 +82,11 @@ public final class CommExample {
             .showMessageCount());
 
     if (testing) {
-      viewBuilder.setSpeedUp(32)
+      viewBuilder.setSpeedUp(TEST_SPEEDUP)
           .enableAutoClose()
           .enableAutoPlay()
-          .stopSimulatorAtTime(10 * 60 * 1000);
+          .stopSimulatorAtTime(TEST_STOP_TIME);
     }
     viewBuilder.show();
   }
-
 }

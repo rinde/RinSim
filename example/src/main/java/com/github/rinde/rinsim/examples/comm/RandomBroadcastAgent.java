@@ -29,6 +29,11 @@ import com.github.rinde.rinsim.geom.Point;
 import com.google.common.base.Optional;
 
 class RandomBroadcastAgent implements MovingRoadUser, CommUser, TickListener {
+  static final double MIN_RANGE = .2;
+  static final double MAX_RANGE = 1.5;
+  static final long LONELINESS_THRESHOLD = 10 * 1000;
+  static final double VEHICLE_SPEED_KMH = 50;
+
   Optional<RoadModel> roadModel;
   Optional<CommDevice> device;
   Optional<Point> destination;
@@ -39,7 +44,7 @@ class RandomBroadcastAgent implements MovingRoadUser, CommUser, TickListener {
 
   RandomBroadcastAgent(RandomGenerator r) {
     rng = r;
-    range = .2 + r.nextDouble() * 1.3;
+    range = MIN_RANGE + r.nextDouble() * (MAX_RANGE - MIN_RANGE);
     reliability = r.nextDouble();
     device = Optional.absent();
     roadModel = Optional.absent();
@@ -84,7 +89,7 @@ class RandomBroadcastAgent implements MovingRoadUser, CommUser, TickListener {
       device.get().broadcast(Messages.NICE_TO_MEET_YOU);
     } else if (device.get().getReceivedCount() == 0) {
       device.get().broadcast(Messages.HELLO_WORLD);
-    } else if (lastReceiveTime > 10 * 1000) {
+    } else if (lastReceiveTime > LONELINESS_THRESHOLD) {
       device.get().broadcast(Messages.WHERE_IS_EVERYBODY);
     }
   }
@@ -94,7 +99,7 @@ class RandomBroadcastAgent implements MovingRoadUser, CommUser, TickListener {
 
   @Override
   public double getSpeed() {
-    return 50;
+    return VEHICLE_SPEED_KMH;
   }
 
   enum Messages implements MessageContents {
