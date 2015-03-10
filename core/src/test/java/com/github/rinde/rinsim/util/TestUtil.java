@@ -15,22 +15,45 @@
  */
 package com.github.rinde.rinsim.util;
 
+import static com.google.common.base.Preconditions.checkArgument;
+import static java.util.Arrays.asList;
 import static org.junit.Assert.fail;
 
 import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.List;
 
 /**
- * @author Rinde van Lon 
- * 
+ * @author Rinde van Lon
+ *
  */
 public class TestUtil {
-    public static <T> void testPrivateConstructor(Class<T> clazz) {
-        try {
-            final Constructor<T> c = clazz.getDeclaredConstructor();
-            c.setAccessible(true);
-            c.newInstance();
-        } catch (final Exception e) {
-            fail(e.getMessage());
-        }
+  public static <T> void testPrivateConstructor(Class<T> clazz) {
+    try {
+      final Constructor<T> c = clazz.getDeclaredConstructor();
+      c.setAccessible(true);
+      c.newInstance();
+    } catch (final Exception e) {
+      fail(e.getMessage());
     }
+  }
+
+  public static <T extends Enum<T>> void testEnum(Class<T> en) {
+    checkArgument(en.isEnum(),
+        "The specified class must be an enum, found %s.", en);
+
+    final List<T> enums = asList(en.getEnumConstants());
+    checkArgument(!enums.isEmpty(),
+        "At least one enum constant must be defined in %s.", en);
+    try {
+      final Method m = en.getDeclaredMethod("valueOf", String.class);
+      m.setAccessible(true);
+      m.invoke(null, enums.get(0).toString());
+
+    } catch (NoSuchMethodException | SecurityException | IllegalAccessException
+        | IllegalArgumentException | InvocationTargetException e) {
+      fail("unexpected error " + e.getMessage());
+    }
+  }
 }

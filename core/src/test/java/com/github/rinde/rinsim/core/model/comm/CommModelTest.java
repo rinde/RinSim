@@ -25,10 +25,16 @@ import java.util.List;
 
 import org.apache.commons.math3.random.MersenneTwister;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 
 import com.github.rinde.rinsim.core.TimeLapseFactory;
+import com.github.rinde.rinsim.core.model.comm.CommModel.CommModelEvent;
+import com.github.rinde.rinsim.core.model.comm.CommModel.EventTypes;
+import com.github.rinde.rinsim.event.ListenerEventHistory;
 import com.github.rinde.rinsim.geom.Point;
+import com.github.rinde.rinsim.util.TestUtil;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Optional;
 
@@ -37,6 +43,12 @@ import com.google.common.base.Optional;
  *
  */
 public class CommModelTest {
+  /**
+   * For catching exceptions.
+   */
+  @Rule
+  public ExpectedException thrown = ExpectedException.none();
+
   @SuppressWarnings("null")
   CommModel model;
   @SuppressWarnings("null")
@@ -70,6 +82,9 @@ public class CommModelTest {
     model.register(agent3);
     model.register(agent4);
     model.register(agent5);
+
+    TestUtil.testEnum(CommModel.EventTypes.class);
+    TestUtil.testEnum(CommModel.QoS.class);
 
   }
 
@@ -304,6 +319,55 @@ public class CommModelTest {
       fail = true;
     }
     assertTrue(fail);
+  }
+
+  /**
+   * Tests view on users and devices.
+   */
+  @Test
+  public void testGetUsersAndDevices() {
+    final List<CommUser> users = model.getUsersAndDevices().keySet().asList();
+    assertSame(agent1, users.get(0));
+    assertSame(agent2, users.get(1));
+    assertSame(agent3, users.get(2));
+    assertSame(agent4, users.get(3));
+    assertSame(agent5, users.get(4));
+
+    assertSame(users, model.getUsersAndDevices().keySet().asList());
+
+    final CommUser agent6 = new RangedAgent(new Point(6, 6), 4);
+    model.register(agent6);
+    assertSame(agent6, model.getUsersAndDevices().keySet().asList().get(5));
+  }
+
+  /**
+   * Test immutable view.
+   */
+  @Test
+  public void testImmutableGetUsersAndDevices() {
+    final List<CommUser> users = model.getUsersAndDevices().keySet().asList();
+    thrown.expect(UnsupportedOperationException.class);
+    users.clear();
+  }
+
+  /**
+   * Test event dispatching.
+   */
+  @Test
+  public void testEvent() {
+    final ListenerEventHistory history = new ListenerEventHistory();
+    model.getEventAPI().addListener(history, EventTypes.ADD_COMM_USER);
+
+    final CommUser agent6 = new RangedAgent(new Point(6, 6), 4);
+    model.register(agent6);
+
+    assertEquals(1, history.getHistory().size());
+    assertTrue(history.getHistory().get(0) instanceof CommModelEvent);
+    final CommModelEvent event = (CommModelEvent) history.getHistory().get(0);
+    assertSame(agent6, event.getUser());
+    assertSame(model, event.getIssuer());
+    assertSame(agent6,
+        model.getUsersAndDevices().inverse().get(event.getDevice()));
   }
 
   static class RangedAgent extends Agent {

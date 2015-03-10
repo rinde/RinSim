@@ -26,6 +26,9 @@ import org.apache.commons.math3.random.RandomGenerator;
 import com.github.rinde.rinsim.core.TickListener;
 import com.github.rinde.rinsim.core.TimeLapse;
 import com.github.rinde.rinsim.core.model.Model;
+import com.github.rinde.rinsim.event.Event;
+import com.github.rinde.rinsim.event.EventAPI;
+import com.github.rinde.rinsim.event.EventDispatcher;
 import com.github.rinde.rinsim.util.LinkedHashBiMap;
 import com.google.common.base.Optional;
 import com.google.common.collect.BiMap;
@@ -37,13 +40,28 @@ import com.google.common.collect.Maps;
  * {@link CommUser} can use a {@link CommDevice} to communicate.
  * @author Rinde van Lon
  */
-public class CommModel implements Model<CommUser>, TickListener {
+public final class CommModel implements Model<CommUser>, TickListener {
+  /**
+   * The types of events that are dispatched by {@link CommModel}. The event
+   * class is {@link CommModelEvent}. Listeners can be added via
+   * {@link CommModel#getEventAPI()}.
+   * @author Rinde van Lon
+   */
+  public enum EventTypes {
+    /**
+     * Event type indicating that a new {@link CommUser} is added to the
+     * {@link CommModel}.
+     */
+    ADD_COMM_USER;
+  }
+
   private final double defaultReliability;
   private final Optional<Double> defaultMaxRange;
   private final BiMap<CommUser, CommDevice> usersDevices;
   private ImmutableBiMap<CommUser, CommDevice> usersDevicesSnapshot;
   private final QualityOfService qos;
   private boolean usersHasChanged;
+  private final EventDispatcher eventDispatcher;
 
   CommModel(Builder b) {
     defaultReliability = b.defaultReliability;
@@ -57,6 +75,15 @@ public class CommModel implements Model<CommUser>, TickListener {
     usersDevices = Maps.synchronizedBiMap(
         LinkedHashBiMap.<CommUser, CommDevice> create());
     usersDevicesSnapshot = ImmutableBiMap.of();
+    eventDispatcher = new EventDispatcher(EventTypes.values());
+  }
+
+  /**
+   * @return The {@link EventAPI} which allows adding listeners for events on
+   *         this {@link CommModel}.
+   */
+  public EventAPI getEventAPI() {
+    return eventDispatcher.getPublicEventAPI();
   }
 
   @Override
@@ -71,7 +98,7 @@ public class CommModel implements Model<CommUser>, TickListener {
         "%s is not implemented correctly, a CommDevice must be constructed in "
             + "setCommDevice()",
         commUser);
-    return false;
+    return true;
   }
 
   @Override
@@ -162,8 +189,12 @@ public class CommModel implements Model<CommUser>, TickListener {
     }
   }
 
-  void addDevice(CommDevice commDevice, CommUser user) {
-    usersDevices.put(user, commDevice);
+  void addDevice(CommDevice device, CommUser user) {
+    usersDevices.put(user, device);
+    if (eventDispatcher.hasListenerFor(EventTypes.ADD_COMM_USER)) {
+      eventDispatcher.dispatchEvent(new CommModelEvent(
+          EventTypes.ADD_COMM_USER, this, device, user));
+    }
   }
 
   /**
@@ -241,6 +272,37 @@ public class CommModel implements Model<CommUser>, TickListener {
     @Override
     Builder self() {
       return this;
+    }
+  }
+
+  /**
+   * Event class for events dispatched by {@link CommModel}. Contains references
+   * to {@link CommDevice} and {@link CommUser} that caused the event.
+   *
+   * @author Rinde van Lon
+   */
+  public static final class CommModelEvent extends Event {
+    private final CommDevice device;
+    private final CommUser user;
+
+    CommModelEvent(Enum<?> type, Object pIssuer, CommDevice d, CommUser u) {
+      super(type, pIssuer);
+      device = d;
+      user = u;
+    }
+
+    /**
+     * @return the device
+     */
+    public CommDevice getDevice() {
+      return device;
+    }
+
+    /**
+     * @return the user
+     */
+    public CommUser getUser() {
+      return user;
     }
   }
 

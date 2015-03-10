@@ -48,6 +48,7 @@ public final class CommDevice {
 
   private final List<Message> unreadMessages;
   private final List<Message> outbox;
+  private int receivedCount;
 
   CommDevice(CommDeviceBuilder builder) {
     model = builder.model;
@@ -61,17 +62,32 @@ public final class CommDevice {
     }
     unreadMessages = new ArrayList<>();
     outbox = new ArrayList<>();
+    receivedCount = 0;
     model.addDevice(this, user);
   }
 
   /**
-   * Retrieves the unread messages that this device has received. Calling this
-   * method will clear the unread messages of this device.
+   * @return The total number of received messages.
+   */
+  public int getReceivedCount() {
+    return receivedCount;
+  }
+
+  /**
+   * @return The number of unread messages.
+   */
+  public int getUnreadCount() {
+    return unreadMessages.size();
+  }
+
+  /**
+   * Retrieves the unread messages that this device has received. All messages
+   * in the returned list are considered to be read when this method completes.
+   * Calling this method will clear the unread messages of this device.
    * @return An immutable list of {@link Message}s.
    */
   public ImmutableList<Message> getUnreadMessages() {
-    final ImmutableList<Message> msgs = ImmutableList
-        .copyOf(unreadMessages);
+    final ImmutableList<Message> msgs = ImmutableList.copyOf(unreadMessages);
     unreadMessages.clear();
     return msgs;
   }
@@ -147,6 +163,7 @@ public final class CommDevice {
 
   void receive(Message m) {
     unreadMessages.add(m);
+    receivedCount++;
   }
 
   void sendMessages() {
