@@ -30,16 +30,11 @@ import org.apache.commons.math3.random.MersenneTwister;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.github.rinde.rinsim.core.Simulator;
-import com.github.rinde.rinsim.core.SimulatorAPI;
-import com.github.rinde.rinsim.core.SimulatorUser;
-import com.github.rinde.rinsim.core.TickListener;
-import com.github.rinde.rinsim.core.TimeLapse;
 import com.google.common.collect.Sets;
 
 /**
  * @author Rinde van Lon (rinde.vanlon@cs.kuleuven.be)
- * 
+ *
  */
 public class SimulatorTest {
 
@@ -85,6 +80,7 @@ public class SimulatorTest {
 
   @Test(expected = IllegalStateException.class)
   public void testRegisterModelTooLate() {
+    simulator.register(new DummyModel());
     simulator.configure();
     simulator.register(new DummyModel());
   }
@@ -107,12 +103,23 @@ public class SimulatorTest {
     assertTrue(simulator.register(new DummyObject()));
 
     final DummyObjectTickListener dotl = new DummyObjectTickListener();
-    assertFalse(simulator.register(dotl));
-
+    boolean fail = false;
+    try {
+      simulator.register(dotl);
+    } catch (final IllegalArgumentException e) {
+      fail = true;
+    }
+    assertTrue(fail);
     assertEquals(Sets.newHashSet(m3, dotl), simulator.getTickListeners());
 
     final DummyObjectSimulationUser dosu = new DummyObjectSimulationUser();
-    assertFalse(simulator.register(dosu));
+    fail = false;
+    try {
+      simulator.register(dosu);
+    } catch (final IllegalArgumentException e) {
+      fail = true;
+    }
+    assertTrue(fail);
     assertEquals(simulator, dosu.getAPI());
 
     simulator.unregister(new DummyObject());
@@ -146,7 +153,6 @@ public class SimulatorTest {
     simulator.start();
     assertEquals(3 * timeStep.getValue(), simulator.getCurrentTime());
 
-    simulator.unregister(new Object());
     simulator.togglePlayPause();
     assertEquals(6 * timeStep.getValue(), simulator.getCurrentTime());
     simulator.resetTime();

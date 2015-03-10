@@ -32,9 +32,6 @@ import javax.measure.unit.SI;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.github.rinde.rinsim.core.model.AbstractModel;
-import com.github.rinde.rinsim.core.model.Model;
-import com.github.rinde.rinsim.core.model.ModelManager;
 import com.github.rinde.rinsim.core.model.road.GraphRoadModel;
 import com.github.rinde.rinsim.core.model.road.RoadModel;
 import com.github.rinde.rinsim.core.model.road.RoadUser;
@@ -60,7 +57,13 @@ public class ModelManagerTest {
   @Test
   public void addToEmpty() {
     manager.configure();
-    assertFalse(manager.register(new Object()));
+    boolean fail = false;
+    try {
+      manager.register(new Object());
+    } catch (final IllegalArgumentException e) {
+      fail = true;
+    }
+    assertTrue(fail);
   }
 
   @Test
@@ -69,7 +72,13 @@ public class ModelManagerTest {
     manager.register(model);
     manager.configure();
     assertTrue(manager.register(new Foo()));
-    assertFalse(manager.register(new Bar()));
+    boolean fail = false;
+    try {
+      manager.register(new Bar());
+    } catch (final IllegalArgumentException e) {
+      fail = true;
+    }
+    assertTrue(fail);
     assertEquals(1, model.calledRegister);
     assertEquals(1, model.calledTypes);
   }
@@ -136,7 +145,13 @@ public class ModelManagerTest {
   public void unregisterWithoutModels() {
     manager.configure();
     assertEquals(0, manager.getModels().size());
-    assertFalse(manager.unregister(new Object()));
+    boolean fail = false;
+    try {
+      manager.unregister(new Object());
+    } catch (final IllegalArgumentException e) {
+      fail = true;
+    }
+    assertTrue(fail);
   }
 
   @Test(expected = IllegalArgumentException.class)
@@ -157,10 +172,16 @@ public class ModelManagerTest {
     manager.add(new GraphRoadModel(new MultimapGraph<LengthData>(), SI.METER,
         SI.METERS_PER_SECOND));
     manager.configure();
-    manager.unregister(new RoadUser() {
-      @Override
-      public void initRoadUser(RoadModel model) {}
-    });
+    boolean fail = false;
+    try {
+      manager.unregister(new RoadUser() {
+        @Override
+        public void initRoadUser(RoadModel model) {}
+      });
+    } catch (final IllegalArgumentException e) {
+      fail = true;
+    }
+    assertTrue(fail);
   }
 
   @Test(expected = RuntimeException.class)
@@ -181,10 +202,31 @@ public class ModelManagerTest {
     manager.register(model);
     manager.configure();
     final Object o = new Object();
-    assertFalse(manager.unregister(o));
-    // it wont be register
-    assertFalse(manager.register(o));
-    assertFalse(manager.unregister(o));
+
+    boolean fail = false;
+    try {
+      manager.unregister(o);
+    } catch (final IllegalArgumentException e) {
+      fail = true;
+    }
+    assertTrue(fail);
+
+    // it wont be registered
+    fail = false;
+    try {
+      manager.register(o);
+    } catch (final IllegalArgumentException e) {
+      fail = true;
+    }
+    assertTrue(fail);
+
+    fail = false;
+    try {
+      manager.unregister(o);
+    } catch (final IllegalArgumentException e) {
+      fail = true;
+    }
+    assertTrue(fail);
   }
 
   public void unregisterRegistered() {
@@ -242,7 +284,13 @@ public class ModelManagerTest {
 
     mAA.setRegisterAction(REJECT);
     final ObjectA a3 = new ObjectA();
-    assertFalse(manager.register(a3));
+    boolean fail = false;
+    try {
+      manager.register(a3);
+    } catch (final IllegalArgumentException e) {
+      fail = true;
+    }
+    assertTrue(fail);
     assertEquals(asList(a1, a2, a3), mA.getRegisteredElements());
     assertEquals(asList(a1, a2, a3), mAA.getRegisteredElements());
 
@@ -281,7 +329,13 @@ public class ModelManagerTest {
     // try again, this time with models rejecting unregister
     mA.setUnregisterAction(REJECT);
     mAA.setUnregisterAction(REJECT);
-    assertFalse(manager.unregister(a4));
+    fail = false;
+    try {
+      manager.unregister(a4);
+    } catch (final IllegalArgumentException e) {
+      fail = true;
+    }
+    assertTrue(fail);
     assertEquals(asList(a4, a4), mA.getUnregisteredElements());
     assertEquals(asList(a4, a4), mAA.getUnregisteredElements());
 
@@ -321,8 +375,13 @@ public class ModelManagerTest {
     });
 
     manager.configure();
-
-    assertFalse(manager.register(new InnerObject()));
+    boolean fail = false;
+    try {
+      manager.register(new InnerObject());
+    } catch (final IllegalArgumentException e) {
+      fail = true;
+    }
+    assertTrue(fail);
   }
 
   class InnerObject {}

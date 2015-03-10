@@ -108,6 +108,10 @@ public class ModelManager implements ModelProvider {
         }
       }
     }
+    checkArgument(
+        result,
+        "The object %s with type %s can not be registered to any model.",
+        object, object.getClass());
     return result;
   }
 
@@ -138,6 +142,8 @@ public class ModelManager implements ModelProvider {
         }
       }
     }
+    checkArgument(result, "Object %s with type %s can not be unregistered.",
+        object, object.getClass());
     return result;
   }
 
