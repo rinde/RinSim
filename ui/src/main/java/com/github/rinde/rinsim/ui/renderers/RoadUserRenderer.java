@@ -215,8 +215,21 @@ public final class RoadUserRenderer implements ModelRenderer {
      * @param rgb The {@link RGB} instance used as color.
      * @return This, as per the builder pattern.
      */
-    public Builder setColorAssociation(Class<?> type, RGB rgb) {
+    public Builder addColorAssociation(Class<?> type, RGB rgb) {
       uiSchema.add(type, rgb);
+      return this;
+    }
+
+    /**
+     * Associates instances of the specified type with the specified image. The
+     * <code>fileName</code> must point to a resource such that it can be loaded
+     * using {@link Class#getResourceAsStream(String)}.
+     * @param type The class that will be associated with the specified image.
+     * @param fileName The file.
+     * @return This, as per the builder pattern.
+     */
+    public Builder addImageAssociation(Class<?> type, String fileName) {
+      uiSchema.add(type, fileName);
       return this;
     }
 
