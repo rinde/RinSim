@@ -25,7 +25,7 @@ import org.apache.commons.math3.random.RandomGenerator;
 
 import com.github.rinde.rinsim.core.TickListener;
 import com.github.rinde.rinsim.core.TimeLapse;
-import com.github.rinde.rinsim.core.model.Model;
+import com.github.rinde.rinsim.core.model.AbstractModel;
 import com.github.rinde.rinsim.event.Event;
 import com.github.rinde.rinsim.event.EventAPI;
 import com.github.rinde.rinsim.event.EventDispatcher;
@@ -40,7 +40,8 @@ import com.google.common.collect.Maps;
  * {@link CommUser} can use a {@link CommDevice} to communicate.
  * @author Rinde van Lon
  */
-public final class CommModel implements Model<CommUser>, TickListener {
+public final class CommModel extends AbstractModel<CommUser> implements
+    TickListener {
   /**
    * The types of events that are dispatched by {@link CommModel}. The event
    * class is {@link CommModelEvent}. Listeners can be added via
@@ -104,11 +105,6 @@ public final class CommModel implements Model<CommUser>, TickListener {
   @Override
   public boolean unregister(CommUser element) {
     throw new UnsupportedOperationException();
-  }
-
-  @Override
-  public Class<CommUser> getSupportedType() {
-    return CommUser.class;
   }
 
   /**
