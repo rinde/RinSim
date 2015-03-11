@@ -24,17 +24,17 @@ import java.util.Set;
 
 import org.apache.commons.math3.random.RandomGenerator;
 
+import com.github.rinde.rinsim.core.Simulator.SimulatorEventType;
 import com.github.rinde.rinsim.core.SimulatorAPI;
 import com.github.rinde.rinsim.core.SimulatorUser;
 import com.github.rinde.rinsim.core.TickListener;
 import com.github.rinde.rinsim.core.TimeLapse;
-import com.github.rinde.rinsim.core.Simulator.SimulatorEventType;
-import com.github.rinde.rinsim.core.model.Model;
+import com.github.rinde.rinsim.core.model.AbstractModel;
 import com.github.rinde.rinsim.core.model.ModelProvider;
 import com.github.rinde.rinsim.core.model.ModelReceiver;
 import com.github.rinde.rinsim.core.model.pdp.PDPModel;
-import com.github.rinde.rinsim.core.model.pdp.PDPModelEvent;
 import com.github.rinde.rinsim.core.model.pdp.PDPModel.PDPModelEventType;
+import com.github.rinde.rinsim.core.model.pdp.PDPModelEvent;
 import com.github.rinde.rinsim.core.model.road.RoadModel;
 import com.github.rinde.rinsim.event.Event;
 import com.github.rinde.rinsim.event.Listener;
@@ -43,8 +43,8 @@ import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.math.DoubleMath;
 
-class AgvModel implements TickListener, ModelReceiver, Model<AGV>,
-    SimulatorUser, Listener {
+class AgvModel extends AbstractModel<AGV> implements TickListener,
+    ModelReceiver, SimulatorUser, Listener {
 
   Optional<RoadModel> rm;
   Optional<SimulatorAPI> simulator;
@@ -100,8 +100,8 @@ class AgvModel implements TickListener, ModelReceiver, Model<AGV>,
       final int num = max;
       for (int i = 0; i < num; i++) {
         final long duration = DoubleMath.roundToLong(
-            (FactoryExample.SERVICE_DURATION / 2d)
-                + (rng.nextDouble() * FactoryExample.SERVICE_DURATION),
+            FactoryExample.SERVICE_DURATION / 2d
+                + rng.nextDouble() * FactoryExample.SERVICE_DURATION,
             RoundingMode.CEILING);
 
         final Point rnd = rndBorder();
@@ -135,11 +135,6 @@ class AgvModel implements TickListener, ModelReceiver, Model<AGV>,
   }
 
   @Override
-  public Class<AGV> getSupportedType() {
-    return AGV.class;
-  }
-
-  @Override
   public void handleEvent(Event e) {
     if (e.getEventType() == SimulatorEventType.CONFIGURED) {
       init();
@@ -150,8 +145,8 @@ class AgvModel implements TickListener, ModelReceiver, Model<AGV>,
       }
       if (e.getEventType() == PDPModelEventType.END_DELIVERY) {
         final long duration = DoubleMath.roundToLong(
-            (FactoryExample.SERVICE_DURATION / 2d)
-                + (rng.nextDouble() * FactoryExample.SERVICE_DURATION),
+            FactoryExample.SERVICE_DURATION / 2d
+                + rng.nextDouble() * FactoryExample.SERVICE_DURATION,
             RoundingMode.CEILING);
         simulator.get().unregister(event.parcel);
 

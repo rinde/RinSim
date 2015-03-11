@@ -37,6 +37,7 @@ import org.slf4j.LoggerFactory;
 import com.github.rinde.rinsim.core.model.Model;
 import com.github.rinde.rinsim.core.model.ModelManager;
 import com.github.rinde.rinsim.core.model.ModelProvider;
+import com.github.rinde.rinsim.core.model.rand.RandomModel;
 import com.github.rinde.rinsim.event.Event;
 import com.github.rinde.rinsim.event.EventAPI;
 import com.github.rinde.rinsim.event.EventDispatcher;
@@ -398,6 +399,7 @@ public final class Simulator implements SimulatorAPI {
    * {@inheritDoc}
    */
   @Override
+  @Deprecated
   public RandomGenerator getRandomGenerator() {
     return rand;
   }
@@ -503,9 +505,17 @@ public final class Simulator implements SimulatorAPI {
       checkArgument(!models.isEmpty(), "At least one model must be added.");
       final Simulator sim = new Simulator(rng, Measure.valueOf(tickLength,
           timeUnit));
+      boolean hasRandomModel = false;
       for (final Model<?> m : models) {
         sim.register(m);
+        if (m instanceof RandomModel) {
+          hasRandomModel = true;
+        }
       }
+      if (!hasRandomModel) {
+        models.add(RandomModel.create(rng));
+      }
+
       sim.configure();
       return sim;
     }

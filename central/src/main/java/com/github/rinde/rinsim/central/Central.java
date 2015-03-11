@@ -26,6 +26,7 @@ import com.github.rinde.rinsim.core.SimulatorAPI;
 import com.github.rinde.rinsim.core.SimulatorUser;
 import com.github.rinde.rinsim.core.TickListener;
 import com.github.rinde.rinsim.core.TimeLapse;
+import com.github.rinde.rinsim.core.model.AbstractModel;
 import com.github.rinde.rinsim.core.model.Model;
 import com.github.rinde.rinsim.core.model.ModelProvider;
 import com.github.rinde.rinsim.core.model.ModelReceiver;
@@ -128,8 +129,8 @@ public final class Central {
     }
   }
 
-  private static final class CentralModel implements Model<DefaultParcel>,
-      TickListener, ModelReceiver, SimulatorUser {
+  private static final class CentralModel extends AbstractModel<DefaultParcel>
+      implements TickListener, ModelReceiver, SimulatorUser {
     private boolean hasChanged;
     private Optional<ModelProvider> modelProvider;
     private Optional<PDPRoadModel> roadModel;
@@ -154,11 +155,6 @@ public final class Central {
     @Override
     public boolean unregister(DefaultParcel element) {
       return false;
-    }
-
-    @Override
-    public Class<DefaultParcel> getSupportedType() {
-      return DefaultParcel.class;
     }
 
     @Override

@@ -23,7 +23,6 @@ import static org.mockito.Mockito.mock;
 
 import java.util.List;
 
-import org.apache.commons.math3.random.MersenneTwister;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -32,6 +31,7 @@ import org.junit.rules.ExpectedException;
 import com.github.rinde.rinsim.core.TimeLapseFactory;
 import com.github.rinde.rinsim.core.model.comm.CommModel.CommModelEvent;
 import com.github.rinde.rinsim.core.model.comm.CommModel.EventTypes;
+import com.github.rinde.rinsim.core.model.rand.RandomModel;
 import com.github.rinde.rinsim.event.ListenerEventHistory;
 import com.github.rinde.rinsim.geom.Point;
 import com.github.rinde.rinsim.util.TestUtil;
@@ -69,7 +69,6 @@ public class CommModelTest {
   public void setUp() {
     model = CommModel.builder()
         .setDefaultDeviceReliability(1.0)
-        .setRandomGenerator(new MersenneTwister(123L))
         .build();
 
     agent1 = new Agent(new Point(0, 0));
@@ -83,9 +82,8 @@ public class CommModelTest {
     model.register(agent4);
     model.register(agent5);
 
+    RandomModel.create().register(model);
     TestUtil.testEnum(CommModel.EventTypes.class);
-    TestUtil.testEnum(CommModel.QoS.class);
-
   }
 
   enum Contents implements MessageContents {
@@ -368,6 +366,22 @@ public class CommModelTest {
     assertSame(model, event.getIssuer());
     assertSame(agent6,
         model.getUsersAndDevices().inverse().get(event.getDevice()));
+  }
+
+  /**
+   * Test finalize configuration dependency check.
+   */
+  @Test
+  public void testFinalizeConfiguration() {
+    model.finalizeConfiguration();
+    final CommModel cm = CommModel.builder().build();
+    boolean fail = false;
+    try {
+      cm.finalizeConfiguration();
+    } catch (final IllegalStateException e) {
+      fail = true;
+    }
+    assertTrue(fail);
   }
 
   static class RangedAgent extends Agent {

@@ -24,7 +24,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 
 import javax.annotation.Nullable;
 
-import com.github.rinde.rinsim.core.model.Model;
+import com.github.rinde.rinsim.core.model.AbstractModel;
 import com.github.rinde.rinsim.core.model.ModelProvider;
 import com.github.rinde.rinsim.core.model.ModelReceiver;
 import com.github.rinde.rinsim.core.model.pdp.PDPModel;
@@ -40,7 +40,8 @@ import com.google.common.collect.ImmutableList;
  * @author David Merckx
  * @author Rinde van Lon
  */
-public class GradientModel implements Model<FieldEmitter>, ModelReceiver {
+public class GradientModel extends AbstractModel<FieldEmitter> implements
+    ModelReceiver {
 
   private final List<FieldEmitter> emitters;
   private double minX;
@@ -124,11 +125,6 @@ public class GradientModel implements Model<FieldEmitter>, ModelReceiver {
   public boolean unregister(FieldEmitter element) {
     emitters.remove(element);
     return false;
-  }
-
-  @Override
-  public Class<FieldEmitter> getSupportedType() {
-    return FieldEmitter.class;
   }
 
   public Map<Point, Float> getFields(Truck truck) {

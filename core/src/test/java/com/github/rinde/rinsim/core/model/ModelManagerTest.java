@@ -372,6 +372,9 @@ public class ModelManagerTest {
       public Class<InnerObject> getSupportedType() {
         return InnerObject.class;
       }
+
+      @Override
+      public void finalizeConfiguration() {}
     });
 
     manager.configure();
@@ -426,6 +429,9 @@ class OtherFooModel implements Model<Foo> {
     callUnregister += 1;
     return true;
   }
+
+  @Override
+  public void finalizeConfiguration() {}
 }
 
 class BarModel extends AbstractModel<Bar> {
@@ -564,6 +570,9 @@ class DebugModel<T> implements Model<T> {
   public Class<T> getSupportedType() {
     return supportedType;
   }
+
+  @Override
+  public void finalizeConfiguration() {}
 
 }
 

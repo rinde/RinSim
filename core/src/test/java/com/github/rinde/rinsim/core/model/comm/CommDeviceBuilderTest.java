@@ -19,7 +19,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 
-import org.apache.commons.math3.random.MersenneTwister;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -39,7 +38,6 @@ public class CommDeviceBuilderTest {
   @Before
   public void setUp() {
     builder = new CommDeviceBuilder(CommModel.builder()
-        .setRandomGenerator(new MersenneTwister(123L))
         .build(),
         mock(CommUser.class));
   }
@@ -77,17 +75,6 @@ public class CommDeviceBuilderTest {
     fail = false;
     try {
       builder.setReliability(-0.0000001);
-    } catch (final IllegalArgumentException e) {
-      fail = true;
-    }
-    assertTrue(fail);
-
-    final CommDeviceBuilder builderWithout =
-        new CommDeviceBuilder(CommModel.builder().build(),
-            mock(CommUser.class));
-    fail = false;
-    try {
-      builderWithout.setReliability(.5);
     } catch (final IllegalArgumentException e) {
       fail = true;
     }

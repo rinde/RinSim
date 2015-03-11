@@ -23,12 +23,15 @@ import com.github.rinde.rinsim.core.model.comm.CommDevice;
 import com.github.rinde.rinsim.core.model.comm.CommDeviceBuilder;
 import com.github.rinde.rinsim.core.model.comm.CommUser;
 import com.github.rinde.rinsim.core.model.comm.MessageContents;
+import com.github.rinde.rinsim.core.model.rand.RandomProvider;
+import com.github.rinde.rinsim.core.model.rand.RandomUser;
 import com.github.rinde.rinsim.core.model.road.MovingRoadUser;
 import com.github.rinde.rinsim.core.model.road.RoadModel;
 import com.github.rinde.rinsim.geom.Point;
 import com.google.common.base.Optional;
 
-class RandomBroadcastAgent implements MovingRoadUser, CommUser, TickListener {
+class RandomBroadcastAgent implements MovingRoadUser, CommUser, TickListener,
+    RandomUser {
   static final double MIN_RANGE = .2;
   static final double MAX_RANGE = 1.5;
   static final long LONELINESS_THRESHOLD = 10 * 1000;
@@ -37,15 +40,13 @@ class RandomBroadcastAgent implements MovingRoadUser, CommUser, TickListener {
   Optional<RoadModel> roadModel;
   Optional<CommDevice> device;
   Optional<Point> destination;
-  private final double range;
-  private final double reliability;
-  private final RandomGenerator rng;
+  private double range;
+  private double reliability;
+  private Optional<RandomGenerator> rng;
   long lastReceiveTime = 0;
 
-  RandomBroadcastAgent(RandomGenerator r) {
-    rng = r;
-    range = MIN_RANGE + r.nextDouble() * (MAX_RANGE - MIN_RANGE);
-    reliability = r.nextDouble();
+  RandomBroadcastAgent() {
+    rng = Optional.absent();
     device = Optional.absent();
     roadModel = Optional.absent();
     destination = Optional.absent();
@@ -54,6 +55,13 @@ class RandomBroadcastAgent implements MovingRoadUser, CommUser, TickListener {
   @Override
   public Point getPosition() {
     return roadModel.get().getPosition(this);
+  }
+
+  @Override
+  public void setRandomGenerator(RandomProvider provider) {
+    rng = Optional.of(provider.newInstance());
+    range = MIN_RANGE + rng.get().nextDouble() * (MAX_RANGE - MIN_RANGE);
+    reliability = rng.get().nextDouble();
   }
 
   @Override
@@ -69,13 +77,14 @@ class RandomBroadcastAgent implements MovingRoadUser, CommUser, TickListener {
   @Override
   public void initRoadUser(RoadModel model) {
     roadModel = Optional.of(model);
-    roadModel.get().addObjectAt(this, roadModel.get().getRandomPosition(rng));
+    roadModel.get().addObjectAt(this,
+        roadModel.get().getRandomPosition(rng.get()));
   }
 
   @Override
   public void tick(TimeLapse timeLapse) {
     if (!destination.isPresent()) {
-      destination = Optional.of(roadModel.get().getRandomPosition(rng));
+      destination = Optional.of(roadModel.get().getRandomPosition(rng.get()));
     }
     roadModel.get().moveTo(this, destination.get(), timeLapse);
 

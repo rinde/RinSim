@@ -52,7 +52,6 @@ public class CommRendererTest {
     final Simulator sim = Simulator.builder()
         .setRandomGenerator(rng)
         .addModel(CommModel.builder()
-            .setRandomGenerator(rng)
             .build())
         .addModel(PlaneRoadModel.builder().build())
         .build();

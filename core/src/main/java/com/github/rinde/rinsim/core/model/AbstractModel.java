@@ -19,8 +19,8 @@ import com.google.common.reflect.TypeToken;
 
 /**
  * Basic implementation that provides a getSupportedType method implementation.
- * @author Bartosz Michalik 
- * 
+ * @author Bartosz Michalik
+ *
  * @param <T> The type that is supported by this model.
  */
 public abstract class AbstractModel<T> implements Model<T> {
@@ -40,4 +40,6 @@ public abstract class AbstractModel<T> implements Model<T> {
     return clazz;
   }
 
+  @Override
+  public void finalizeConfiguration() {}
 }

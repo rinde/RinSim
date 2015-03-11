@@ -26,6 +26,8 @@ import org.apache.commons.math3.random.RandomGenerator;
 import com.github.rinde.rinsim.core.TickListener;
 import com.github.rinde.rinsim.core.TimeLapse;
 import com.github.rinde.rinsim.core.model.AbstractModel;
+import com.github.rinde.rinsim.core.model.rand.RandomProvider;
+import com.github.rinde.rinsim.core.model.rand.RandomUser;
 import com.github.rinde.rinsim.event.Event;
 import com.github.rinde.rinsim.event.EventAPI;
 import com.github.rinde.rinsim.event.EventDispatcher;
@@ -41,7 +43,7 @@ import com.google.common.collect.Maps;
  * @author Rinde van Lon
  */
 public final class CommModel extends AbstractModel<CommUser> implements
-    TickListener {
+    TickListener, RandomUser {
   /**
    * The types of events that are dispatched by {@link CommModel}. The event
    * class is {@link CommModelEvent}. Listeners can be added via
@@ -60,23 +62,19 @@ public final class CommModel extends AbstractModel<CommUser> implements
   private final Optional<Double> defaultMaxRange;
   private final BiMap<CommUser, CommDevice> usersDevices;
   private ImmutableBiMap<CommUser, CommDevice> usersDevicesSnapshot;
-  private final QualityOfService qos;
+  private Optional<RandomGenerator> randomGenerator;
   private boolean usersHasChanged;
   private final EventDispatcher eventDispatcher;
 
   CommModel(Builder b) {
     defaultReliability = b.defaultReliability;
     defaultMaxRange = b.defaultMaxRange;
-    if (b.randomGenerator.isPresent()) {
-      qos = new StochasticQoS(b.randomGenerator.get());
-    } else {
-      qos = QoS.PERFECT;
-    }
     usersHasChanged = false;
     usersDevices = Maps.synchronizedBiMap(
         LinkedHashBiMap.<CommUser, CommDevice> create());
     usersDevicesSnapshot = ImmutableBiMap.of();
     eventDispatcher = new EventDispatcher(EventTypes.values());
+    randomGenerator = Optional.absent();
   }
 
   /**
@@ -158,10 +156,6 @@ public final class CommModel extends AbstractModel<CommUser> implements
     return usersDevicesSnapshot;
   }
 
-  boolean hasRandomGenerator() {
-    return qos != QoS.PERFECT;
-  }
-
   void send(Message msg, double senderReliability) {
     // direct
     if (msg.to().isPresent()) {
@@ -180,7 +174,7 @@ public final class CommModel extends AbstractModel<CommUser> implements
   private void doSend(Message msg, CommUser to, CommDevice recipient,
       double sendReliability) {
     if (msg.predicate().apply(to)
-        && qos.hasSucces(sendReliability, recipient.getReliability())) {
+        && hasSucces(sendReliability, recipient.getReliability())) {
       recipient.receive(msg);
     }
   }
@@ -191,6 +185,25 @@ public final class CommModel extends AbstractModel<CommUser> implements
       eventDispatcher.dispatchEvent(new CommModelEvent(
           EventTypes.ADD_COMM_USER, this, device, user));
     }
+  }
+
+  boolean hasSucces(double senderReliability, double receiverReliability) {
+    if (senderReliability == 1d && receiverReliability == 1d) {
+      return true;
+    }
+    return randomGenerator.get().nextDouble() < senderReliability
+        * receiverReliability;
+  }
+
+  @Override
+  public void setRandomGenerator(RandomProvider provider) {
+    randomGenerator = Optional.of(provider.newInstance());
+  }
+
+  @Override
+  public void finalizeConfiguration() {
+    checkState(randomGenerator.isPresent(),
+        "CommModel requires the existence of a RandomModel.");
   }
 
   /**
@@ -239,29 +252,10 @@ public final class CommModel extends AbstractModel<CommUser> implements
     }
 
     /**
-     * Sets the specified {@link RandomGenerator} to use in the model. If
-     * reliability is not taken into account (i.e. all devices are considered to
-     * have perfect connections) this random generator is ignored and doesn't
-     * need to be set. In order to have independent stochastic behavior it is
-     * necessary to construct a new random generator instance just for this
-     * model.
-     * @param rng The random generator to use.
-     * @return This, as per the builder pattern.
-     */
-    public Builder setRandomGenerator(RandomGenerator rng) {
-      randomGenerator = Optional.of(rng);
-      return this;
-    }
-
-    /**
      * Construct a new {@link CommModel} instance.
      * @return A new instance.
      */
     public CommModel build() {
-      if (defaultReliability < 1d) {
-        checkArgument(randomGenerator.isPresent(),
-            "A random generator is required when modeling reliability < 1.");
-      }
       return new CommModel(this);
     }
 
@@ -299,38 +293,6 @@ public final class CommModel extends AbstractModel<CommUser> implements
      */
     public CommUser getUser() {
       return user;
-    }
-  }
-
-  interface QualityOfService {
-    boolean hasSucces(double senderReliability, double receiverReliability);
-  }
-
-  static class StochasticQoS implements QualityOfService {
-    private final RandomGenerator randomGenerator;
-
-    StochasticQoS(RandomGenerator rng) {
-      randomGenerator = rng;
-    }
-
-    @Override
-    public boolean hasSucces(double senderReliability,
-        double receiverReliability) {
-      if (senderReliability == 1d && receiverReliability == 1d) {
-        return true;
-      }
-      return randomGenerator.nextDouble() < senderReliability
-          * receiverReliability;
-    }
-  }
-
-  enum QoS implements QualityOfService {
-    PERFECT {
-      @Override
-      public boolean hasSucces(double senderReliability,
-          double receiverReliability) {
-        return true;
-      }
     }
   }
 }

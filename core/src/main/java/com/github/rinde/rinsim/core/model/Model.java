@@ -16,7 +16,7 @@
 package com.github.rinde.rinsim.core.model;
 
 /**
- * @author Bartosz Michalik 
+ * @author Bartosz Michalik
  * @param <T> basic type of element supported by model
  */
 public interface Model<T> {
@@ -40,4 +40,10 @@ public interface Model<T> {
    * @return The class of the type supported by this model.
    */
   Class<T> getSupportedType();
+
+  /**
+   * Is called when all models are configured. Can be used to check if all
+   * dependencies have been set.
+   */
+  void finalizeConfiguration();
 }

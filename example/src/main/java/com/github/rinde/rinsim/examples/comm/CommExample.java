@@ -15,9 +15,6 @@
  */
 package com.github.rinde.rinsim.examples.comm;
 
-import org.apache.commons.math3.random.MersenneTwister;
-import org.apache.commons.math3.random.RandomGenerator;
-
 import com.github.rinde.rinsim.core.Simulator;
 import com.github.rinde.rinsim.core.model.comm.CommModel;
 import com.github.rinde.rinsim.core.model.road.PlaneRoadModel;
@@ -62,17 +59,15 @@ public final class CommExample {
    * @param testing if <code>true</code> turns on testing mode.
    */
   public static void run(boolean testing) {
-    final RandomGenerator rng = new MersenneTwister(123L);
 
     final Simulator simulator = Simulator.builder()
         .addModel(PlaneRoadModel.builder().build())
         .addModel(CommModel.builder()
-            .setRandomGenerator(rng)
             .build())
         .build();
 
     for (int i = 0; i < NUM_AGENTS; i++) {
-      simulator.register(new RandomBroadcastAgent(rng));
+      simulator.register(new RandomBroadcastAgent());
     }
 
     final View.Builder viewBuilder = View.create(simulator)

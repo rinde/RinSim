@@ -15,7 +15,6 @@
  */
 package com.github.rinde.rinsim.core.model.comm;
 
-import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
 
 /**
@@ -44,12 +43,6 @@ public final class CommDeviceBuilder extends AbstractBuilder<CommDeviceBuilder> 
 
   @Override
   public CommDeviceBuilder setReliability(double reliability) {
-    if (reliability < 1d) {
-      checkArgument(
-          model.hasRandomGenerator(),
-          "An unreliable comm device can only be created when the CommModel has"
-              + " a RandomGenerator.");
-    }
     return super.setReliability(reliability);
   }
 

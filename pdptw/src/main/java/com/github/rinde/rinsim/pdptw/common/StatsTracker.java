@@ -37,7 +37,7 @@ import java.util.Map;
 
 import com.github.rinde.rinsim.core.Simulator;
 import com.github.rinde.rinsim.core.Simulator.SimulatorEventType;
-import com.github.rinde.rinsim.core.model.Model;
+import com.github.rinde.rinsim.core.model.AbstractModel;
 import com.github.rinde.rinsim.core.model.pdp.PDPModel;
 import com.github.rinde.rinsim.core.model.pdp.PDPModel.PDPModelEventType;
 import com.github.rinde.rinsim.core.model.pdp.PDPModelEvent;
@@ -61,7 +61,7 @@ import com.google.common.base.Optional;
  * @author Rinde van Lon
  *
  */
-final class StatsTracker implements Model<Object> {
+final class StatsTracker extends AbstractModel<Object> {
 
   final EventDispatcher eventDispatcher;
   final TheListener theListener;
@@ -131,11 +131,6 @@ final class StatsTracker implements Model<Object> {
   @Override
   public boolean unregister(Object element) {
     return true;
-  }
-
-  @Override
-  public Class<Object> getSupportedType() {
-    return Object.class;
   }
 
   class TheListener implements Listener {

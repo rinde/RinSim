@@ -79,8 +79,28 @@ public class ModelManager implements ModelProvider {
       if (m instanceof ModelReceiver) {
         ((ModelReceiver) m).registerModelProvider(this);
       }
+      doRegister(m);
+    }
+    for (final Model<?> m : models) {
+      m.finalizeConfiguration();
     }
     configured = true;
+  }
+
+  @SuppressWarnings("unchecked")
+  <T> boolean doRegister(T object) {
+    boolean success = false;
+    final Set<Class<?>> modelSupportedTypes = registry.keySet();
+    for (final Class<?> modelSupportedType : modelSupportedTypes) {
+      if (modelSupportedType.isAssignableFrom(object.getClass())) {
+        final Collection<Model<?>> assignableModels = registry
+            .get(modelSupportedType);
+        for (final Model<?> m : assignableModels) {
+          success |= ((Model<T>) m).register(object);
+        }
+      }
+    }
+    return success;
   }
 
   /**
@@ -89,30 +109,18 @@ public class ModelManager implements ModelProvider {
    * @param <T> the type of object to register
    * @return <code>true</code> if object was added to at least one model
    */
-  @SuppressWarnings("unchecked")
   public <T> boolean register(T object) {
     if (object instanceof Model) {
       return add((Model<?>) object);
     }
     checkState(configured,
         "can not register an object if configure() has not been called");
-
-    boolean result = false;
-    final Set<Class<?>> modelSupportedTypes = registry.keySet();
-    for (final Class<?> modelSupportedType : modelSupportedTypes) {
-      if (modelSupportedType.isAssignableFrom(object.getClass())) {
-        final Collection<Model<?>> assignableModels = registry
-            .get(modelSupportedType);
-        for (final Model<?> m : assignableModels) {
-          result |= ((Model<T>) m).register(object);
-        }
-      }
-    }
+    final boolean success = doRegister(object);
     checkArgument(
-        result,
+        success,
         "The object %s with type %s can not be registered to any model.",
         object, object.getClass());
-    return result;
+    return success;
   }
 
   /**
