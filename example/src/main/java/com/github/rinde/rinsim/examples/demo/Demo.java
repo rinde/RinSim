@@ -15,6 +15,7 @@
  */
 package com.github.rinde.rinsim.examples.demo;
 
+import static com.google.common.base.Verify.verifyNotNull;
 import static com.google.common.collect.Lists.newArrayList;
 
 import java.io.IOException;
@@ -51,17 +52,22 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.math.DoubleMath;
 
 /**
- * @author Rinde van Lon 
- * 
+ * @author Rinde van Lon
+ *
  */
 public class Demo {
 
   private Demo() {}
 
+  /**
+   * Runs the demo.
+   * @param args Ignored.
+   * @throws IOException Should not happen.
+   * @throws InterruptedException Should not happen.
+   */
   public static void main(String[] args) throws IOException,
       InterruptedException {
 
-    final long time = 6 * 60 * 60 * 1000L;
     Display.setAppName("RinSim");
     final Display d = new Display();
 
@@ -88,7 +94,8 @@ public class Demo {
 
     timeText.addListener(SWT.Verify, new Listener() {
       @Override
-      public void handleEvent(Event e) {
+      public void handleEvent(@Nullable Event e) {
+        assert e != null;
         final String string = e.text;
         final char[] chars = new char[string.length()];
         string.getChars(0, chars.length, chars, 0);
@@ -142,7 +149,8 @@ public class Demo {
     final List<DemoRunnerControlPanel> panels = newArrayList();
     runButton.addSelectionListener(new SelectionListener() {
       @Override
-      public void widgetSelected(SelectionEvent e) {
+      public void widgetSelected(@Nullable SelectionEvent e) {
+        assert e != null;
         // clear old runners
         for (final DemoRunner dr : demoRunners) {
           dr.setRunning(false);
@@ -202,7 +210,7 @@ public class Demo {
       }
 
       @Override
-      public void widgetDefaultSelected(SelectionEvent e) {}
+      public void widgetDefaultSelected(@Nullable SelectionEvent e) {}
     });
 
     shell.addListener(SWT.Close, new org.eclipse.swt.widgets.Listener() {
@@ -290,12 +298,12 @@ public class Demo {
       next.setText("next");
       next.addSelectionListener(new SelectionListener() {
         @Override
-        public void widgetSelected(SelectionEvent e) {
+        public void widgetSelected(@Nullable SelectionEvent e) {
           runner.next();
         }
 
         @Override
-        public void widgetDefaultSelected(SelectionEvent e) {}
+        public void widgetDefaultSelected(@Nullable SelectionEvent e) {}
       });
       next.setFont(newFont);
       newFont.dispose();
@@ -304,7 +312,7 @@ public class Demo {
     }
 
     /**
-     * 
+     *
      */
     public void remove() {
       group.dispose();
@@ -325,16 +333,19 @@ public class Demo {
     FACTORY, TAXI;
   }
 
-  static class DemoRunner implements Runnable, com.github.rinde.rinsim.event.Listener {
+  static class DemoRunner implements Runnable,
+      com.github.rinde.rinsim.event.Listener {
     static final long DEFAULT_DURATION = 6 * 60 * 60 * 1000L;
 
     boolean running;
     long time;
+    @Nullable
     Monitor monitor;
     Display display;
 
     ImmutableList<DemoType> demoTypes;
     int demoIndex;
+    @Nullable
     DemoRunnerControlPanel listener;
     final List<Simulator> sims;
 
@@ -346,12 +357,8 @@ public class Demo {
       sims = newArrayList();
     }
 
-    /**
-     * @param demoRunnerControlPanel
-     */
-    public void addListener(DemoRunnerControlPanel demoRunnerControlPanel) {
+    void addListener(DemoRunnerControlPanel demoRunnerControlPanel) {
       listener = demoRunnerControlPanel;
-
     }
 
     void setTime(double t) {
@@ -391,7 +398,7 @@ public class Demo {
       if (running) {
         final com.github.rinde.rinsim.event.Listener l = this;
         if (getState() == DemoType.FACTORY) {
-          listener.update();
+          verifyNotNull(listener).update();
           display.asyncExec(new Runnable() {
             @Override
             public void run() {
@@ -399,7 +406,7 @@ public class Demo {
             }
           });
         } else {
-          listener.update();
+          verifyNotNull(listener).update();
           display.asyncExec(new Runnable() {
             @Override
             public void run() {

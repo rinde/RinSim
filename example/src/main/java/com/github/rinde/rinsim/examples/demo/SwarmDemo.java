@@ -104,6 +104,15 @@ public class SwarmDemo {
         .show();
   }
 
+  /**
+   * Measures the specified string using the specified font size.
+   * @param string The string to measure.
+   * @param fontSize The fontsize to use.
+   * @param spacing The spacing between the points.
+   * @param vCorrection The vertical correction for all the points.
+   * @return A list of points, each point represents a pixel in the measured
+   *         string.
+   */
   public static ImmutableList<Point> measureString(String string, int fontSize,
       double spacing, int vCorrection) {
     if (string.trim().isEmpty()) {

@@ -46,7 +46,6 @@ import com.github.rinde.rinsim.serializers.SelfCycleFilter;
 import com.github.rinde.rinsim.ui.View;
 import com.github.rinde.rinsim.ui.renderers.GraphRoadModelRenderer;
 import com.github.rinde.rinsim.ui.renderers.RoadUserRenderer;
-import com.github.rinde.rinsim.ui.renderers.UiSchema;
 import com.github.rinde.rinsim.util.TimeWindow;
 
 /**
@@ -97,12 +96,13 @@ public final class TaxiExample {
 
   /**
    * Starts the example.
-   * @param endTime
-   * @param graphFile
-   * @param display
-   * @param m
-   * @param list
-   * @return
+   * @param testing Indicates whether the method should run in testing mode.
+   * @param endTime The time at which simulation should stop.
+   * @param graphFile The graph that should be loaded.
+   * @param display The display that should be used to show the ui on.
+   * @param m The monitor that should be used to show the ui on.
+   * @param list A listener that will receive callbacks from the ui.
+   * @return The simulator instance.
    */
   public static Simulator run(boolean testing, final long endTime,
       String graphFile,
@@ -150,13 +150,17 @@ public final class TaxiExample {
       public void afterTick(TimeLapse timeLapse) {}
     });
 
-    final UiSchema uis = new UiSchema();
-    uis.add(TaxiBase.class, "/graphics/perspective/tall-building-64.png");
-    uis.add(Taxi.class, "/graphics/flat/taxi-32.png");
-    uis.add(Customer.class, "/graphics/flat/person-red-32.png");
-    final View.Builder view = View.create(simulator)
+    final View.Builder view = View
+        .create(simulator)
         .with(GraphRoadModelRenderer.builder())
-        .with(new RoadUserRenderer(uis, false))
+        .with(RoadUserRenderer.builder()
+            .addImageAssociation(
+                TaxiBase.class, "/graphics/perspective/tall-building-64.png")
+            .addImageAssociation(
+                Taxi.class, "/graphics/flat/taxi-32.png")
+            .addImageAssociation(
+                Customer.class, "/graphics/flat/person-red-32.png")
+        )
         .with(new TaxiRenderer(Language.ENGLISH))
         .setTitleAppendix("Taxi Demo");
 
@@ -166,7 +170,7 @@ public final class TaxiExample {
           .stopSimulatorAtTime(20 * 60 * 1000)
           .setSpeedUp(64);
     }
-    else if (m != null && list != null) {
+    else if (m != null && list != null && display != null) {
       view.displayOnMonitor(m)
           .setSpeedUp(4)
           .setResolution(m.getClientArea().width, m.getClientArea().height)
