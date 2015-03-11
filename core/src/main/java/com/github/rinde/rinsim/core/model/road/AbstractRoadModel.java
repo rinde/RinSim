@@ -134,7 +134,7 @@ public abstract class AbstractRoadModel<T> extends GenericRoadModel {
       // is valid move? -> assume it is
       path = objDestinations.get(object).path;
     } else {
-      path = new LinkedList<Point>(getShortestPathTo(object, destination));
+      path = new LinkedList<>(getShortestPathTo(object, destination));
       objDestinations.put(object, new DestinationPath(destination, path));
     }
     final MoveProgress mp = doFollowPath(object, path, time);
@@ -228,12 +228,12 @@ public abstract class AbstractRoadModel<T> extends GenericRoadModel {
   public Map<RoadUser, Point> getObjectsAndPositions() {
     Map<RoadUser, T> copiedMap;
     synchronized (objLocs) {
-      copiedMap = new LinkedHashMap<RoadUser, T>();
+      copiedMap = new LinkedHashMap<>();
       copiedMap.putAll(objLocs);
       // it is save to release the lock now
     }
 
-    final Map<RoadUser, Point> theMap = new LinkedHashMap<RoadUser, Point>();
+    final Map<RoadUser, Point> theMap = new LinkedHashMap<>();
     for (final java.util.Map.Entry<RoadUser, T> entry : copiedMap.entrySet()) {
       theMap.put(entry.getKey(), locObj2point(entry.getValue()));
     }
@@ -255,7 +255,7 @@ public abstract class AbstractRoadModel<T> extends GenericRoadModel {
   @Override
   public Set<RoadUser> getObjects() {
     synchronized (objLocs) {
-      final Set<RoadUser> copy = new LinkedHashSet<RoadUser>();
+      final Set<RoadUser> copy = new LinkedHashSet<>();
       copy.addAll(objLocs.keySet());
       return copy;
     }
@@ -270,7 +270,7 @@ public abstract class AbstractRoadModel<T> extends GenericRoadModel {
   @Override
   public <Y extends RoadUser> Set<Y> getObjectsAt(RoadUser roadUser,
       Class<Y> type) {
-    final Set<Y> result = new HashSet<Y>();
+    final Set<Y> result = new HashSet<>();
     for (final RoadUser ru : getObjects(new SameLocationPredicate(roadUser,
         type, self))) {
       result.add((Y) ru);

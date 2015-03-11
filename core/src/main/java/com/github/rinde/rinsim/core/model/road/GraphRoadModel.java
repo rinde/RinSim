@@ -359,7 +359,7 @@ public class GraphRoadModel extends AbstractRoadModel<Loc> {
 
   @Override
   public List<Point> getShortestPathTo(Point from, Point to) {
-    final List<Point> path = new ArrayList<Point>();
+    final List<Point> path = new ArrayList<>();
     Point start = from;
     if (isOnConnection(from)) {
       start = asLoc(from).conn.get().to();

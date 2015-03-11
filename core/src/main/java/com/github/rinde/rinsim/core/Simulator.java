@@ -143,7 +143,7 @@ public final class Simulator implements SimulatorAPI {
     tickListeners = Collections
         .synchronizedSet(new LinkedHashSet<TickListener>());
 
-    toUnregister = new LinkedHashSet<Object>();
+    toUnregister = new LinkedHashSet<>();
 
     rand = r;
     time = 0L;
@@ -318,7 +318,7 @@ public final class Simulator implements SimulatorAPI {
     // unregister all pending objects
     Set<Object> copy;
     copy = toUnregister;
-    toUnregister = new LinkedHashSet<Object>();
+    toUnregister = new LinkedHashSet<>();
 
     for (final Object c : copy) {
       modelManager.unregister(c);
@@ -328,7 +328,7 @@ public final class Simulator implements SimulatorAPI {
     // this also means that adding or removing a TickListener is
     // effectively executed after a 'tick'
 
-    final List<TickListener> localCopy = new ArrayList<TickListener>();
+    final List<TickListener> localCopy = new ArrayList<>();
     localCopy.addAll(tickListeners);
 
     final long end = time + timeStep;

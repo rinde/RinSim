@@ -157,7 +157,7 @@ public class PlaneRoadModel extends AbstractRoadModel<Point> {
       return MoveProgress.create(dist, dur, new ArrayList<Point>());
     }
 
-    final List<Point> travelledNodes = new ArrayList<Point>();
+    final List<Point> travelledNodes = new ArrayList<>();
     while (time.hasTimeLeft() && !path.isEmpty()) {
       checkArgument(isPointInBoundary(path.peek()),
           "points in the path must be within the predefined boundary of the plane");

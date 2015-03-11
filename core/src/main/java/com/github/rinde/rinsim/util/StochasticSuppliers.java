@@ -51,7 +51,7 @@ public final class StochasticSuppliers {
    * @return A supplier that always returns the specified value.
    */
   public static <T> StochasticSupplier<T> constant(T value) {
-    return new ConstantSupplier<T>(value);
+    return new ConstantSupplier<>(value);
   }
 
   /**
@@ -80,7 +80,7 @@ public final class StochasticSuppliers {
   public static <T> StochasticSupplier<T> checked(
       StochasticSupplier<T> supplier,
       Predicate<T> predicate) {
-    return new CheckedSupplier<T>(supplier, predicate);
+    return new CheckedSupplier<>(supplier, predicate);
   }
 
   /**
@@ -93,7 +93,7 @@ public final class StochasticSuppliers {
    * @return A supplier based on an iterable.
    */
   public static <T> StochasticSupplier<T> fromIterable(Iterable<T> iter) {
-    return new IteratorSS<T>(iter.iterator());
+    return new IteratorSS<>(iter.iterator());
   }
 
   /**
@@ -103,7 +103,7 @@ public final class StochasticSuppliers {
    * @return The adapted supplier.
    */
   public static <T> StochasticSupplier<T> fromSupplier(Supplier<T> supplier) {
-    return new SupplierAdapter<T>(supplier);
+    return new SupplierAdapter<>(supplier);
   }
 
   /**
@@ -216,7 +216,7 @@ public final class StochasticSuppliers {
     }
 
     /**
-     * 
+     *
      * @param sd The standard deviation. Default value: <code>1</code>.
      * @return This, as per the builder pattern.
      */
@@ -226,7 +226,7 @@ public final class StochasticSuppliers {
     }
 
     /**
-     * 
+     *
      * @param var The variance. Default value: <code>1</code>.
      * @return This, as per the builder pattern.
      */
@@ -391,9 +391,8 @@ public final class StochasticSuppliers {
       if (Doubles.isFinite(lowerBound) || Doubles.isFinite(upperBound)) {
         return new BoundedDoubleDistSS(distribution, upperBound,
             lowerBound, outOfBoundStrategy);
-      } else {
-        return new DoubleDistributionSS(distribution);
       }
+      return new DoubleDistributionSS(distribution);
     }
 
     /**

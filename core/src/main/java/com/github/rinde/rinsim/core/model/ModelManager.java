@@ -47,7 +47,7 @@ public class ModelManager implements ModelProvider {
    */
   public ModelManager() {
     registry = LinkedHashMultimap.create();
-    models = new LinkedList<Model<? extends Object>>();
+    models = new LinkedList<>();
   }
 
   /**

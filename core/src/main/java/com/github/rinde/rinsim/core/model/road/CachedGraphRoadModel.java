@@ -38,8 +38,8 @@ import com.google.common.collect.Tables;
  * {@link #getShortestPathTo(Point, Point)} invocations. Further, it keeps track
  * of all {@link RoadUser}s and their types, such that
  * {@link #getObjectsOfType(Class)} is now O(1).
- * 
- * @author Rinde van Lon 
+ *
+ * @author Rinde van Lon
  */
 public class CachedGraphRoadModel extends GraphRoadModel {
 
@@ -81,11 +81,10 @@ public class CachedGraphRoadModel extends GraphRoadModel {
   protected List<Point> doGetShortestPathTo(Point from, Point to) {
     if (pathTable.contains(from, to)) {
       return pathTable.get(from, to);
-    } else {
-      final List<Point> path = super.doGetShortestPathTo(from, to);
-      pathTable.put(from, to, path);
-      return path;
     }
+    final List<Point> path = super.doGetShortestPathTo(from, to);
+    pathTable.put(from, to, path);
+    return path;
   }
 
   @Override
@@ -113,7 +112,7 @@ public class CachedGraphRoadModel extends GraphRoadModel {
   @Override
   public <Y extends RoadUser> Set<Y> getObjectsOfType(final Class<Y> type) {
     checkArgument(type != null, "type can not be null");
-    final Set<Y> set = new LinkedHashSet<Y>();
+    final Set<Y> set = new LinkedHashSet<>();
     set.addAll((Set<Y>) classObjectMap.get(type));
     return set;
   }
