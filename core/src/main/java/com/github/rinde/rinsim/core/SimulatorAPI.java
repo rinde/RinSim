@@ -20,8 +20,6 @@ import javax.measure.unit.Unit;
 
 import org.apache.commons.math3.random.RandomGenerator;
 
-import com.github.rinde.rinsim.core.model.rand.RandomModel;
-import com.github.rinde.rinsim.core.model.rand.RandomUser;
 import com.github.rinde.rinsim.event.EventAPI;
 
 /**
@@ -55,9 +53,7 @@ public interface SimulatorAPI {
   /**
    * Get access to the main random generator used in the simulator.
    * @return the random generator of the simulator
-   * @deprecated Use {@link RandomModel} and {@link RandomUser} instead.
    */
-  @Deprecated
   RandomGenerator getRandomGenerator();
 
   /**

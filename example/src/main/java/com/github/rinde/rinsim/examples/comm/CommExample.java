@@ -60,17 +60,17 @@ public final class CommExample {
    */
   public static void run(boolean testing) {
 
-    final Simulator simulator = Simulator.builder()
+    final Simulator sim = Simulator.builder()
         .addModel(PlaneRoadModel.builder().build())
         .addModel(CommModel.builder()
             .build())
         .build();
 
     for (int i = 0; i < NUM_AGENTS; i++) {
-      simulator.register(new RandomBroadcastAgent());
+      sim.register(new RandomBroadcastAgent(sim.getRandomGenerator()));
     }
 
-    final View.Builder viewBuilder = View.create(simulator)
+    final View.Builder viewBuilder = View.create(sim)
         .with(PlaneRoadModelRenderer.create())
         .with(CommRenderer.builder()
             .showReliabilityColors()

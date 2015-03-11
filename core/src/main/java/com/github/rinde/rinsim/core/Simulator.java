@@ -399,7 +399,6 @@ public final class Simulator implements SimulatorAPI {
    * {@inheritDoc}
    */
   @Override
-  @Deprecated
   public RandomGenerator getRandomGenerator() {
     return rand;
   }
@@ -507,13 +506,18 @@ public final class Simulator implements SimulatorAPI {
           timeUnit));
       boolean hasRandomModel = false;
       for (final Model<?> m : models) {
-        sim.register(m);
         if (m instanceof RandomModel) {
           hasRandomModel = true;
         }
       }
       if (!hasRandomModel) {
         models.add(RandomModel.create(rng));
+      }
+      for (final Model<?> m : models) {
+        sim.register(m);
+        if (m instanceof RandomModel) {
+          hasRandomModel = true;
+        }
       }
 
       sim.configure();

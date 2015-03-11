@@ -35,7 +35,7 @@ import com.github.rinde.rinsim.ui.renderers.UiSchema;
  * If this class is run on MacOS it might be necessary to use
  * -XstartOnFirstThread as a VM argument.
  * @author David Merckx
- * @author Rinde van Lon 
+ * @author Rinde van Lon
  */
 public class GradientFieldExample {
 
@@ -62,8 +62,10 @@ public class GradientFieldExample {
                 new PDPModelRenderer(false)
             );
         if (testing) {
-          viewBuilder.enableAutoClose().enableAutoPlay().setSpeedUp(64)
-              .stopSimulatorAtTime(60 * 60 * 1000);
+          viewBuilder.enableAutoClose()
+              .enableAutoPlay()
+              .setSpeedUp(64)
+              .stopSimulatorAtTime(20 * 60 * 1000);
         }
         viewBuilder.show();
       }

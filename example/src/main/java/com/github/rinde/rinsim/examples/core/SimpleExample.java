@@ -112,14 +112,14 @@ public final class SimpleExample {
   static class Driver implements MovingRoadUser, TickListener {
     // the MovingRoadUser interface indicates that this class can move on a
     // RoadModel. The TickListener interface indicates that this class wants
-    // to keep track of time.
+    // to keep track of time. The RandomUser interface indicates that this class
+    // wants to get access to a random generator
 
-    protected RoadModel roadModel;
-    protected final RandomGenerator rnd;
+    RoadModel roadModel;
+    final RandomGenerator rnd;
 
     @SuppressWarnings("null")
     Driver(RandomGenerator r) {
-      // we store the reference to the random generator
       rnd = r;
     }
 
@@ -128,7 +128,6 @@ public final class SimpleExample {
       // this is where we receive an instance to the model. we store the
       // reference and add ourselves to the model on a random position.
       roadModel = model;
-      roadModel.addObjectAt(this, roadModel.getRandomPosition(rnd));
     }
 
     @Override
@@ -136,6 +135,9 @@ public final class SimpleExample {
       // every time step (tick) this gets called. Each time we chose a
       // different destination and move in that direction using the time
       // that was made available to us.
+      if (!roadModel.containsObject(this)) {
+        roadModel.addObjectAt(this, roadModel.getRandomPosition(rnd));
+      }
       roadModel.moveTo(this, roadModel.getRandomPosition(rnd), timeLapse);
     }
 
@@ -150,5 +152,6 @@ public final class SimpleExample {
       // the drivers speed
       return VEHICLE_SPEED_KMH;
     }
+
   }
 }

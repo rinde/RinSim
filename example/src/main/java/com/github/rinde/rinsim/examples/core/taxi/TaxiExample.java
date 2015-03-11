@@ -163,7 +163,7 @@ public final class TaxiExample {
     if (testing) {
       view.enableAutoClose()
           .enableAutoPlay()
-          .stopSimulatorAtTime(60 * 60 * 1000)
+          .stopSimulatorAtTime(20 * 60 * 1000)
           .setSpeedUp(64);
     }
     else if (m != null && list != null) {
