@@ -42,32 +42,32 @@ import com.google.common.collect.Multimap;
 /**
  * Assumptions of the model, any vehicle can pickup any (kind of) parcel (as
  * long as size constraints are met).
- * 
+ *
  * Currently supports three kinds of objects:
  * <ul>
  * <li> {@link Parcel}</li>
  * <li> {@link Vehicle}</li>
  * <li> {@link Depot}</li>
  * </ul>
- * 
+ *
  * A parcel must be in one of three locations: on a vehicle, in a depot or on a
  * road (roadmodel).
- * 
+ *
  * Variable pickup and delivery times are supported. Even when pickup time spans
  * multiple simulation ticks, the {@link DefaultPDPModel} ensures time
  * consistency.
- * 
+ *
  * TODO write more about assumptions in model <br>
  * TODO write about extensibility
- * 
- * 
- * 
+ *
+ *
+ *
  * {@link Parcel}s can be added on any node in the {@link RoadModel}.
  * {@link Depot}s have no real function in the current implementation.
- * 
- * 
- * 
- * @author Rinde van Lon 
+ *
+ *
+ *
+ * @author Rinde van Lon
  */
 public final class DefaultPDPModel extends PDPModel {
 
@@ -124,7 +124,9 @@ public final class DefaultPDPModel extends PDPModel {
   /**
    * Initializes the model using a {@link TimeWindowPolicies#LIBERAL} as
    * {@link TimeWindowPolicy}.
+   * @deprecated Use {@link #create()} instead.
    */
+  @Deprecated
   public DefaultPDPModel() {
     this(TimeWindowPolicies.LIBERAL);
   }
@@ -132,7 +134,9 @@ public final class DefaultPDPModel extends PDPModel {
   /**
    * Initializes the PDPModel.
    * @param twp The {@link TimeWindowPolicy} which is used in the model.
+   * @deprecated Use {@link #create(TimeWindowPolicy)} instead.
    */
+  @Deprecated
   public DefaultPDPModel(TimeWindowPolicy twp) {
     timeWindowPolicy = twp;
 
@@ -226,7 +230,7 @@ public final class DefaultPDPModel extends PDPModel {
 
   /**
    * Checks whether the vehicle exists in the RoadModel.
-   * 
+   *
    * @param vehicle The vehicle to check.
    */
   protected void checkVehicleInRoadModel(Vehicle vehicle) {
@@ -236,7 +240,7 @@ public final class DefaultPDPModel extends PDPModel {
 
   /**
    * Actual pickup, updates the {@link Vehicle} contents.
-   * 
+   *
    * @param vehicle The {@link Vehicle} that performs the pickup.
    * @param parcel The {@link Parcel} that is picked up.
    * @param time The current time.
@@ -303,7 +307,7 @@ public final class DefaultPDPModel extends PDPModel {
   /**
    * The actual delivery of the specified {@link Parcel} by the specified
    * {@link Vehicle}.
-   * 
+   *
    * @param vehicle The {@link Vehicle} that performs the delivery.
    * @param parcel The {@link Parcel} that is delivered.
    * @param time The current time.
@@ -347,7 +351,7 @@ public final class DefaultPDPModel extends PDPModel {
   /**
    * The actual dropping of the specified {@link Parcel} by the specified
    * {@link Vehicle}.
-   * 
+   *
    * @param vehicle The {@link Vehicle} that performs the dropping.
    * @param parcel The {@link Parcel} that is dropped.
    * @param time The current time.
@@ -578,13 +582,13 @@ public final class DefaultPDPModel extends PDPModel {
    * Represents an action that takes time. This is used for actions that can not
    * be done at once (since there is not enough time available), using this
    * interface actions can be performed in steps.
-   * 
-   * @author Rinde van Lon 
+   *
+   * @author Rinde van Lon
    */
   interface Action {
     /**
      * Performs the action using the specified amount of time.
-     * 
+     *
      * @param time The time to use.
      */
     void perform(TimeLapse time);
@@ -657,6 +661,24 @@ public final class DefaultPDPModel extends PDPModel {
   public static Supplier<DefaultPDPModel> supplier(
       TimeWindowPolicy timeWindowPolicy) {
     return new DefaultSupplier(timeWindowPolicy);
+  }
+
+  /**
+   * Create a new model using a {@link TimeWindowPolicies#LIBERAL} as
+   * {@link TimeWindowPolicy}.
+   * @return A new instance.
+   */
+  public static DefaultPDPModel create() {
+    return new DefaultPDPModel(TimeWindowPolicies.LIBERAL);
+  }
+
+  /**
+   * Creates a new PDPModel.
+   * @param policy The {@link TimeWindowPolicy} which is used in the model.
+   * @return A new instance.
+   */
+  public static DefaultPDPModel create(TimeWindowPolicy policy) {
+    return new DefaultPDPModel(policy);
   }
 
   private static class DefaultSupplier implements Supplier<DefaultPDPModel> {

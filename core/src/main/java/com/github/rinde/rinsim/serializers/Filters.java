@@ -13,8 +13,32 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-/**
- * Graph serializers.
- */
-@javax.annotation.ParametersAreNonnullByDefault
 package com.github.rinde.rinsim.serializers;
+
+import javax.annotation.Nullable;
+
+import com.github.rinde.rinsim.geom.Connection;
+import com.google.common.base.Predicate;
+
+/**
+ * @author Rinde van Lon
+ *
+ */
+public final class Filters {
+
+  Filters() {}
+
+  public static Predicate<Connection<?>> selfCycleFilter() {
+    return SimpleFilters.SELF_CYCLE;
+  }
+
+  enum SimpleFilters implements Predicate<Connection<?>> {
+    SELF_CYCLE {
+      @Override
+      public boolean apply(@Nullable Connection<?> input) {
+        assert input != null;
+        return !input.from().equals(input.to());
+      }
+    }
+  }
+}

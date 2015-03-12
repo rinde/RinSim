@@ -30,13 +30,13 @@ import com.github.rinde.rinsim.geom.Graph;
 
 /**
  * Common interface for graph serialization deserialization
- * @author Bartosz Michalik 
- * 
+ * @author Bartosz Michalik
+ *
  */
 public abstract class AbstractGraphSerializer<E extends ConnectionData> {
   abstract public Graph<E> read(Reader reader) throws IOException;
 
-  abstract public void write(Graph<? extends E> graph, Writer writer)
+  abstract public void write(Graph<E> graph, Writer writer)
       throws IOException;
 
   public Graph<E> read(File file) throws FileNotFoundException, IOException {
@@ -58,14 +58,13 @@ public abstract class AbstractGraphSerializer<E extends ConnectionData> {
     return read(new File(filePath));
   }
 
-  public void write(Graph<? extends E> graph, File file) throws IOException {
+  public void write(Graph<E> graph, File file) throws IOException {
     final FileWriter writer = new FileWriter(file);
     write(graph, writer);
     writer.close();
   }
 
-  public void write(Graph<? extends E> graph, String filePath)
-      throws IOException {
+  public void write(Graph<E> graph, String filePath) throws IOException {
     write(graph, new File(filePath));
   }
 }

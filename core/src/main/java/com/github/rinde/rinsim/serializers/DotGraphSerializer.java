@@ -15,6 +15,8 @@
  */
 package com.github.rinde.rinsim.serializers;
 
+import static java.util.Arrays.asList;
+
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
@@ -29,54 +31,44 @@ import com.github.rinde.rinsim.geom.LengthData;
 import com.github.rinde.rinsim.geom.MultiAttributeData;
 import com.github.rinde.rinsim.geom.MultimapGraph;
 import com.github.rinde.rinsim.geom.Point;
+import com.google.common.base.Predicate;
+import com.google.common.base.Predicates;
 
 /**
  * Dot format serializer for a road model graph. Allows for reading storing maps
  * in dot format. The default implementation of the serializer for graphs with
  * edge length information can be obtained via calling
  * {@link DotGraphSerializer#getLengthGraphSerializer(SerializerFilter...)}
+ * @param <E>
  *
  * @author Bartosz Michalik
- *
+ * @author Rinde van Lon
  */
 public class DotGraphSerializer<E extends ConnectionData> extends
     AbstractGraphSerializer<E> {
 
-  private SerializerFilter<? extends Object>[] filters;
-  private ConnectionSerializer<E> serializer;
+  static final String POS = "p=";
+  static final String NODE_PREFIX = "n";
+  static final String DISTANCE = "d";
+  static final String MAX_SPEED = "s";
 
-  public static final String POS = "p";
-  public static final String NODE_PREFIX = "n";
-  public static final String DISTANCE = "d";
-  public static final String MAX_SPEED = "s";
+  private final Predicate<Connection<?>> filter;
+  private final ConnectionSerializer<E> serializer;
 
-  public DotGraphSerializer(ConnectionSerializer<E> connectionSerializer,
-      SerializerFilter<?>... filters) {
-    if (connectionSerializer == null) {
-      throw new IllegalArgumentException("connectionSerializer cannot be null");
-    }
-    this.filters = filters;
-    if (filters == null) {
-      this.filters = new SerializerFilter<?>[0];
-    }
+  DotGraphSerializer(ConnectionSerializer<E> connectionSerializer,
+      Iterable<? extends Predicate<Connection<?>>> predicates) {
+    filter = Predicates.or(predicates);
     this.serializer = connectionSerializer;
-  }
-
-  public DotGraphSerializer(ConnectionSerializer<E> serializer) {
-    this(serializer, new SerializerFilter[0]);
   }
 
   @Override
   public Graph<E> read(Reader r) throws IOException {
-
     final BufferedReader reader = new BufferedReader(r);
-
-    final MultimapGraph<E> graph = new MultimapGraph<E>();
-
-    final HashMap<String, Point> nodeMapping = new HashMap<String, Point>();
+    final MultimapGraph<E> graph = new MultimapGraph<>();
+    final HashMap<String, Point> nodeMapping = new HashMap<>();
     String line;
     while ((line = reader.readLine()) != null) {
-      if (line.contains(POS + "=")) {
+      if (line.contains(POS)) {
         final String nodeName = line.substring(0, line.indexOf("[")).trim();
         final String[] position = line.split("\"")[1].split(",");
         final Point p = new Point(Double.parseDouble(position[0]),
@@ -91,14 +83,12 @@ public class DotGraphSerializer<E extends ConnectionData> extends
             .trim();
         final Point from = nodeMapping.get(fromStr);
         final Point to = nodeMapping.get(toStr);
-        for (final SerializerFilter<?> f : filters) {
-          if (f.filterOut(from, to)) {
-            continue;
-          }
-        }
         final E data = serializer.deserialize(line);
-        graph.addConnection(from, to, data);
 
+        final Connection<E> conn = Connection.create(from, to, data);
+        if (filter.apply(conn)) {
+          graph.addConnection(conn);
+        }
       }
     }
     return graph;
@@ -106,22 +96,22 @@ public class DotGraphSerializer<E extends ConnectionData> extends
   }
 
   @Override
-  public void write(Graph<? extends E> graph, Writer writer) throws IOException {
+  public void write(Graph<E> graph, Writer writer) throws IOException {
     final BufferedWriter out = new BufferedWriter(writer);
 
     final StringBuilder string = new StringBuilder();
     string.append("digraph mapgraph {\n");
 
     int nodeId = 0;
-    final HashMap<Point, Integer> idMap = new HashMap<Point, Integer>();
+    final HashMap<Point, Integer> idMap = new HashMap<>();
     for (final Point p : graph.getNodes()) {
       string.append(NODE_PREFIX).append(nodeId).append('[').append(POS)
-          .append("=\"").append(p.x).append(',').append(p.y).append("\"]\n");
+          .append("\"").append(p.x).append(',').append(p.y).append("\"]\n");
       idMap.put(p, nodeId);
       nodeId++;
     }
 
-    for (final Connection<? extends E> entry : graph.getConnections()) {
+    for (final Connection<E> entry : graph.getConnections()) {
       string.append(serializer.serializeConnection(idMap.get(entry.from()),
           idMap
               .get(entry.to()), entry));
@@ -138,28 +128,32 @@ public class DotGraphSerializer<E extends ConnectionData> extends
    *
    * @since 2.0
    */
-  public static abstract class ConnectionSerializer<E extends ConnectionData> {
-    public abstract String serializeConnection(int idFrom, int idTo,
-        Connection<? extends E> conn);
+  interface ConnectionSerializer<E extends ConnectionData> {
+    String serializeConnection(int idFrom, int idTo, Connection<E> conn);
 
-    public abstract E deserialize(String connection);
+    E deserialize(String connection);
   }
 
-  private static class LengthConnectionSerializer extends
+  private static class LengthConnectionSerializer implements
       ConnectionSerializer<LengthData> {
 
     public LengthConnectionSerializer() {}
 
     @Override
     public String serializeConnection(int idFrom, int idTo,
-        Connection<? extends LengthData> conn) {
-      final StringBuffer buffer = new StringBuffer();
-      buffer.append(NODE_PREFIX).append(idFrom).append(" -> ")
-          .append(NODE_PREFIX).append(idTo);
-      buffer.append('[').append(DISTANCE).append("=\"")
+        Connection<LengthData> conn) {
+      final StringBuilder sb = new StringBuilder();
+      sb.append(NODE_PREFIX)
+          .append(idFrom)
+          .append(" -> ")
+          .append(NODE_PREFIX)
+          .append(idTo)
+          .append('[')
+          .append(DISTANCE)
+          .append("=\"")
           .append(Math.round(conn.data().get().getLength().get()) / 10d)
           .append("\"]\n");
-      return buffer.toString();
+      return sb.toString();
     }
 
     @Override
@@ -169,24 +163,31 @@ public class DotGraphSerializer<E extends ConnectionData> extends
     }
   }
 
-  private static class MultiAttributeConnectionSerializer extends
+  private static class MultiAttributeConnectionSerializer implements
       ConnectionSerializer<MultiAttributeData> {
     public MultiAttributeConnectionSerializer() {}
 
     @Override
     public String serializeConnection(int idFrom, int idTo,
-        Connection<? extends MultiAttributeData> conn) {
-      final StringBuffer buffer = new StringBuffer();
-      buffer.append(NODE_PREFIX).append(idFrom).append(" -> ")
-          .append(NODE_PREFIX).append(idTo);
-      buffer.append('[').append(DISTANCE).append("=\"")
+        Connection<MultiAttributeData> conn) {
+      final StringBuilder sb = new StringBuilder();
+      sb.append(NODE_PREFIX)
+          .append(idFrom)
+          .append(" -> ")
+          .append(NODE_PREFIX)
+          .append(idTo)
+          .append('[')
+          .append(DISTANCE)
+          .append("=\"")
           .append(Math.round(conn.data().get().getLength().get()) / 10d);
       if (conn.data().get().getMaxSpeed().isPresent()) {
-        buffer.append("\", ").append(MAX_SPEED).append("=\"")
+        sb.append("\", ")
+            .append(MAX_SPEED)
+            .append("=\"")
             .append(conn.data().get().getMaxSpeed().get());
       }
-      buffer.append("\"]\n");
-      return buffer.toString();
+      sb.append("\"]\n");
+      return sb.toString();
     }
 
     @Override
@@ -209,16 +210,34 @@ public class DotGraphSerializer<E extends ConnectionData> extends
   /**
    * Get instance of the serializer that can read write graph with the edges
    * length information
+   * @param filters
+   * @return
    */
   public static DotGraphSerializer<LengthData> getLengthGraphSerializer(
-      SerializerFilter<?>... filters) {
-    return new DotGraphSerializer<LengthData>(new LengthConnectionSerializer(),
+      Iterable<? extends Predicate<Connection<?>>> filters) {
+    return new DotGraphSerializer<>(new LengthConnectionSerializer(),
         filters);
   }
 
+  public static DotGraphSerializer<LengthData> getLengthGraphSerializer(
+      Predicate<Connection<?>> filters) {
+    return new DotGraphSerializer<>(new LengthConnectionSerializer(),
+        asList(filters));
+  }
+
   public static DotGraphSerializer<MultiAttributeData> getMultiAttributeGraphSerializer(
-      SerializerFilter<?>... filters) {
-    return new DotGraphSerializer<MultiAttributeData>(
-        new MultiAttributeConnectionSerializer(), filters);
+      Predicate<Connection<?>> filter) {
+    return new DotGraphSerializer<>(new MultiAttributeConnectionSerializer(),
+        asList(filter));
+  }
+
+  /**
+   * @param filters
+   * @return
+   */
+  public static DotGraphSerializer<MultiAttributeData> getMultiAttributeGraphSerializer(
+      Iterable<? extends Predicate<Connection<?>>> filters) {
+    return new DotGraphSerializer<>(new MultiAttributeConnectionSerializer(),
+        filters);
   }
 }

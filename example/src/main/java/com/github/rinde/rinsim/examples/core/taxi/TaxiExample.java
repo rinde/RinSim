@@ -42,7 +42,7 @@ import com.github.rinde.rinsim.geom.Graph;
 import com.github.rinde.rinsim.geom.MultiAttributeData;
 import com.github.rinde.rinsim.geom.Point;
 import com.github.rinde.rinsim.serializers.DotGraphSerializer;
-import com.github.rinde.rinsim.serializers.SelfCycleFilter;
+import com.github.rinde.rinsim.serializers.Filters;
 import com.github.rinde.rinsim.ui.View;
 import com.github.rinde.rinsim.ui.renderers.GraphRoadModelRenderer;
 import com.github.rinde.rinsim.ui.renderers.RoadUserRenderer;
@@ -110,7 +110,7 @@ public final class TaxiExample {
 
     // use map of leuven
     final RoadModel roadModel = new GraphRoadModel(loadGraph(graphFile));
-    final DefaultPDPModel pdpModel = new DefaultPDPModel();
+    final DefaultPDPModel pdpModel = DefaultPDPModel.create();
 
     final Simulator simulator = Simulator.builder()
         .addModel(roadModel)
@@ -219,7 +219,7 @@ public final class TaxiExample {
       }
       final Graph<MultiAttributeData> g = DotGraphSerializer
           .getMultiAttributeGraphSerializer(
-              new SelfCycleFilter()).read(
+              Filters.selfCycleFilter()).read(
               TaxiExample.class.getResourceAsStream(name));
 
       GRAPH_CACHE.put(name, g);
