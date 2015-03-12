@@ -70,6 +70,34 @@ public class RandomModel extends AbstractModel<RandomUser> {
     return true;
   }
 
+  /**
+   * @return A new {@link RandomModel} with the {@link RandomModel#DEFAULT_SEED}
+   *         .
+   */
+  public static RandomModel create() {
+    return create(DEFAULT_SEED);
+  }
+
+  /**
+   * Creates a new {@link RandomModel} using a {@link MersenneTwister} and the
+   * specified seed.
+   * @param seed The seed to use.
+   * @return A new instance.
+   */
+  public static RandomModel create(long seed) {
+    return create(new MersenneTwister(seed));
+  }
+
+  /**
+   * Creates a new {@link RandomModel} using the specified
+   * {@link RandomGenerator}.
+   * @param rng The generator to use.
+   * @return A new instance.
+   */
+  public static RandomModel create(RandomGenerator rng) {
+    return new RandomModel(rng);
+  }
+
   class RngProvider implements RandomProvider {
     boolean used;
 
@@ -115,33 +143,5 @@ public class RandomModel extends AbstractModel<RandomUser> {
       }
       return classRngMap.get(clazz);
     }
-  }
-
-  /**
-   * @return A new {@link RandomModel} with the {@link RandomModel#DEFAULT_SEED}
-   *         .
-   */
-  public static RandomModel create() {
-    return create(DEFAULT_SEED);
-  }
-
-  /**
-   * Creates a new {@link RandomModel} using a {@link MersenneTwister} and the
-   * specified seed.
-   * @param seed The seed to use.
-   * @return A new instance.
-   */
-  public static RandomModel create(long seed) {
-    return create(new MersenneTwister(seed));
-  }
-
-  /**
-   * Creates a new {@link RandomModel} using the specified
-   * {@link RandomGenerator}.
-   * @param rng The generator to use.
-   * @return A new instance.
-   */
-  public static RandomModel create(RandomGenerator rng) {
-    return new RandomModel(rng);
   }
 }

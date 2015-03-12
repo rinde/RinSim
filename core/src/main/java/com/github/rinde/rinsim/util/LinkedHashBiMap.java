@@ -47,7 +47,7 @@ public class LinkedHashBiMap<K, V> extends ForwardingBiMap<K, V> {
   @Nullable
   private BiMap<V, K> inverse;
   final BiMap<K, V> delegateBiMap;
-  final LinkedHashSet<K> set;
+  final Set<K> set;
 
   LinkedHashBiMap() {
     delegateBiMap = HashBiMap.create();
@@ -278,7 +278,7 @@ public class LinkedHashBiMap<K, V> extends ForwardingBiMap<K, V> {
     }
   }
 
-  private static abstract class UnmodifiableSet<T> extends ForwardingSet<T> {
+  private abstract static class UnmodifiableSet<T> extends ForwardingSet<T> {
 
     UnmodifiableSet() {}
 

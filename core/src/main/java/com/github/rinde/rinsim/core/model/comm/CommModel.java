@@ -219,12 +219,10 @@ public final class CommModel extends AbstractModel<CommUser> implements
    */
   public static class Builder extends AbstractBuilder<Builder> {
     static double DEFAULT_RELIABILITY = 1d;
-    Optional<RandomGenerator> randomGenerator;
     double defaultReliability;
     Optional<Double> defaultMaxRange;
 
     Builder() {
-      randomGenerator = Optional.absent();
       defaultReliability = DEFAULT_RELIABILITY;
       defaultMaxRange = Optional.absent();
     }

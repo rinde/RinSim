@@ -425,15 +425,18 @@ public final class Simulator implements SimulatorAPI {
    * @author Rinde van Lon
    */
   public static class Builder {
+    static final long DEFAULT_SEED = 123L;
+    static final long DEFAULT_TICK_LENGTH = 1000L;
+
     RandomGenerator rng;
     Unit<Duration> timeUnit;
     long tickLength;
     List<Model<?>> models;
 
     Builder() {
-      rng = new MersenneTwister(123L);
+      rng = new MersenneTwister(DEFAULT_SEED);
       timeUnit = SI.MILLI(SI.SECOND);
-      tickLength = 1000L;
+      tickLength = DEFAULT_TICK_LENGTH;
       models = new ArrayList<>();
     }
 
