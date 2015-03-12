@@ -52,8 +52,6 @@ public class ViewTest {
    */
   @Test
   public void testRenderer() {
-    System.out.println("testRenderer");
-
     final Simulator sim = Simulator.builder()
         .addModel(PlaneRoadModel.builder().build())
         .build();
@@ -74,8 +72,6 @@ public class ViewTest {
    */
   @Test
   public void closeWindowWhilePlaying() {
-    System.out.println("closeWindowWhilePlaying");
-
     final Simulator sim = Simulator.builder()
         .addModel(PlaneRoadModel.builder().build())
         .addModel(new DefaultPDPModel())
@@ -116,7 +112,6 @@ public class ViewTest {
    */
   @Test(expected = IllegalStateException.class)
   public void failNotConfiguredSim() {
-    System.out.println("failNotConfiguredSim");
     @SuppressWarnings("deprecation")
     final Simulator sim = new Simulator(new MersenneTwister(123),
         Measure.valueOf(1000L, SI.MILLI(SI.SECOND)));
