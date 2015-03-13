@@ -137,7 +137,7 @@ public class DotGraphIO<E extends ConnectionData> extends
       string.append("digraph mapgraph {\n");
 
       int nodeId = 0;
-      final HashMap<Point, Integer> idMap = new HashMap<>();
+      final Map<Point, Integer> idMap = new HashMap<>();
       for (final Point p : graph.getNodes()) {
         string.append(NODE_PREFIX)
             .append(nodeId)

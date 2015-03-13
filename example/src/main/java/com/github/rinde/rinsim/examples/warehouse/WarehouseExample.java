@@ -43,6 +43,8 @@ public class WarehouseExample {
 
   private static final double VEHICLE_LENGTH = 2d;
 
+  private WarehouseExample() {}
+
   /**
    * @param args - No args.
    */

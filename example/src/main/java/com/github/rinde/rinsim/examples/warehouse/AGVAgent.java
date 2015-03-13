@@ -43,9 +43,10 @@ class AGVAgent implements TickListener, MovingRoadUser {
   @Override
   public void initRoadUser(RoadModel model) {
     roadModel = Optional.of((CollisionGraphRoadModel) model);
-
     Point p;
-    while (roadModel.get().isOccupied(p = model.getRandomPosition(rng))) {}
+    do {
+      p = model.getRandomPosition(rng);
+    } while (roadModel.get().isOccupied(p));
     roadModel.get().addObjectAt(this, p);
 
   }

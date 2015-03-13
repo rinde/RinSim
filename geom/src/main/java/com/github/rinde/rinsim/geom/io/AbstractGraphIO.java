@@ -42,7 +42,7 @@ public abstract class AbstractGraphIO<E extends ConnectionData> {
    * @return A {@link Graph} instance.
    * @throws IOException If something goes wrong while reading.
    */
-  abstract public Graph<E> read(Reader reader) throws IOException;
+  public abstract Graph<E> read(Reader reader) throws IOException;
 
   /**
    * Reads a graph from the specified path.
@@ -61,7 +61,7 @@ public abstract class AbstractGraphIO<E extends ConnectionData> {
    * @throws IOException If something goes wrong while reading.
    */
   public Graph<E> read(InputStream stream) throws IOException {
-    return readReader(new InputStreamReader(stream));
+    return readReader(new InputStreamReader(stream, Charsets.UTF_8));
   }
 
   /**
@@ -80,7 +80,7 @@ public abstract class AbstractGraphIO<E extends ConnectionData> {
    * @param writer The writer to use for writing to.
    * @throws IOException If something goes wrong while writing.
    */
-  abstract public void write(Graph<E> graph, Writer writer)
+  public abstract void write(Graph<E> graph, Writer writer)
       throws IOException;
 
   /**
