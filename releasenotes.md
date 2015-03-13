@@ -1,5 +1,9 @@
 # Release notes
 
+## v3.2.0
+ * CommModel replaces the old CommunicationModel. Has a new API and is better tested.
+ * Serializers have moved to graph.io package. Reworked API and fixed some bugs.
+
 ## v3.1.1
  * CollisionGraphRoadModel: occupancy of a node is now a smaller area.
  * Updated SWT version to 4.4
