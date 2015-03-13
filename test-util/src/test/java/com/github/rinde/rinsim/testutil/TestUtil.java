@@ -25,10 +25,17 @@ import java.lang.reflect.Method;
 import java.util.List;
 
 /**
+ * Provides some utilities for tricking code coverage tools into thinking that
+ * code that is impossible to execute is executed. In this situation the code
+ * coverage output is polluted as it shows a lot of false negatives. Using
+ * methods in this class some of these false positives can be removed.
  * @author Rinde van Lon
- *
  */
 public class TestUtil {
+  /**
+   * Invokes a private constructor.
+   * @param clazz The class to invoke the constructor of.
+   */
   public static <T> void testPrivateConstructor(Class<T> clazz) {
     try {
       final Constructor<T> c = clazz.getDeclaredConstructor();
@@ -39,6 +46,10 @@ public class TestUtil {
     }
   }
 
+  /**
+   * Invokes several auto generated methods of the specified enum.
+   * @param en The enum class to test.
+   */
   public static <T extends Enum<T>> void testEnum(Class<T> en) {
     checkArgument(en.isEnum(),
         "The specified class must be an enum, found %s.", en);
