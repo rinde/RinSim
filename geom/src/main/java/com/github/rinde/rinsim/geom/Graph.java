@@ -16,7 +16,6 @@
 package com.github.rinde.rinsim.geom;
 
 import java.util.Collection;
-import java.util.List;
 import java.util.Set;
 
 import org.apache.commons.math3.random.RandomGenerator;
@@ -112,7 +111,7 @@ public interface Graph<E extends ConnectionData> {
   /**
    * @return All connections in this graph.
    */
-  List<Connection<E>> getConnections();
+  Set<Connection<E>> getConnections();
 
   /**
    * @return The total number of nodes in this graph.

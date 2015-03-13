@@ -40,7 +40,7 @@ import com.github.rinde.rinsim.geom.Point;
 import com.github.rinde.rinsim.scenario.generator.ScenarioGenerator.TravelTimes;
 import com.github.rinde.rinsim.scenario.generator.TimeWindows.TimeWindowGenerator;
 import com.github.rinde.rinsim.scenario.generator.TravelTimesUtil.DistanceTT;
-import com.github.rinde.rinsim.util.TestUtil;
+import com.github.rinde.rinsim.testutil.TestUtil;
 import com.github.rinde.rinsim.util.TimeWindow;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterators;

@@ -41,7 +41,7 @@ import com.github.rinde.rinsim.scenario.generator.TimeSeries;
 import com.github.rinde.rinsim.scenario.generator.IntensityFunctions.SineIntensity;
 import com.github.rinde.rinsim.scenario.generator.TimeSeries.NonHomogenous;
 import com.github.rinde.rinsim.scenario.generator.TimeSeries.PoissonProcess;
-import com.github.rinde.rinsim.util.TestUtil;
+import com.github.rinde.rinsim.testutil.TestUtil;
 import com.google.common.math.DoubleMath;
 
 /**

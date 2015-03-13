@@ -15,6 +15,7 @@
  */
 package com.github.rinde.rinsim.geom;
 
+import static com.google.common.collect.Lists.newArrayList;
 import static java.util.Arrays.asList;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
@@ -174,7 +175,8 @@ public class GraphsTest {
     Graphs.addPath(graph, N, NE, E, SE, S, SW, W, NW);
     final List<Point> points = Arrays.asList(N, NE, E, SE, S, SW, W, NW);
 
-    final List<Connection<LengthData>> connections = graph.getConnections();
+    final List<Connection<LengthData>> connections = newArrayList(graph
+        .getConnections());
     for (int i = 1; i < points.size(); i++) {
       assertSame(connections.get(i - 1).from(), points.get(i - 1));
       assertSame(connections.get(i - 1).to(), points.get(i));
@@ -252,7 +254,7 @@ public class GraphsTest {
     graph.addConnection(Connection.create(B, A, LengthData.create(1.5)));
     graph.addConnection(B, C, LengthData.create(2));
     // explicit empty value
-    graph.addConnection(A, C, LengthData.empty());
+    graph.addConnection(A, C);
 
     assertFalse("existing but empty", graph.connectionData(A, B).isPresent());
     assertFalse("non existing", graph.connectionData(C, A).isPresent());

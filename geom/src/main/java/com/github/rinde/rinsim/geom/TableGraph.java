@@ -19,13 +19,11 @@ import static com.google.common.base.Preconditions.checkArgument;
 
 import java.util.Collection;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import com.google.common.base.Objects;
 import com.google.common.base.Optional;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Table;
 import com.google.common.collect.Tables;
@@ -112,8 +110,8 @@ public class TableGraph<E extends ConnectionData> extends AbstractGraph<E> {
   }
 
   @Override
-  public List<Connection<E>> getConnections() {
-    return ImmutableList.copyOf(data.values());
+  public Set<Connection<E>> getConnections() {
+    return ImmutableSet.copyOf(data.values());
   }
 
   @Override

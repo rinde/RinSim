@@ -20,6 +20,7 @@ import static com.google.common.collect.Lists.newArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 
 import javax.annotation.Nullable;
 
@@ -91,8 +92,8 @@ public final class ListenableGraph<E extends ConnectionData> extends
   }
 
   @Override
-  public List<Connection<E>> getConnections() {
-    return Collections.unmodifiableList(delegate.getConnections());
+  public Set<Connection<E>> getConnections() {
+    return Collections.unmodifiableSet(delegate.getConnections());
   }
 
   @Override

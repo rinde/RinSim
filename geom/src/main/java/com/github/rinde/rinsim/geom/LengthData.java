@@ -30,34 +30,10 @@ import com.google.common.primitives.Doubles;
 @AutoValue
 public abstract class LengthData implements ConnectionData {
 
-  private static final LengthData EMPTY_LENGTH_DATA = create(Optional
-      .<Double> absent());
-
   LengthData() {}
 
   @Override
   public abstract Optional<Double> getLength();
-
-  /**
-   * @return A {@link LengthData} instance that does not specify a length.
-   */
-  public static LengthData empty() {
-    return EMPTY_LENGTH_DATA;
-  }
-
-  /**
-   * Create a new {@link LengthData} instance using the specified length.
-   * @param length The length of the connection.
-   * @return A new instance.
-   */
-  public static LengthData create(Optional<Double> length) {
-    if (length.isPresent()) {
-      checkArgument(length.get() >= 0d && Doubles.isFinite(length.get()),
-          "Only positive values are allowed for length, it is: %s.",
-          length.get());
-    }
-    return new AutoValue_LengthData(length);
-  }
 
   /**
    * Create a new {@link LengthData} instance using the specified length.
@@ -65,6 +41,9 @@ public abstract class LengthData implements ConnectionData {
    * @return A new instance.
    */
   public static LengthData create(double length) {
-    return create(Optional.of(length));
+    checkArgument(length >= 0d && Doubles.isFinite(length),
+        "Only positive values are allowed for length, it is: %s.",
+        length);
+    return new AutoValue_LengthData(Optional.of(length));
   }
 }

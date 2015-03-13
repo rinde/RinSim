@@ -441,8 +441,8 @@ public final class Graphs {
     }
 
     @Override
-    public List<Connection<E>> getConnections() {
-      return Collections.unmodifiableList(delegate.getConnections());
+    public Set<Connection<E>> getConnections() {
+      return Collections.unmodifiableSet(delegate.getConnections());
     }
 
     @Override

@@ -82,5 +82,15 @@ public abstract class MultiAttributeData implements ConnectionData {
           "Expected positive value for maxSpeed but found %s.", speed);
       return super.setMaxSpeed(speed);
     }
+
+    @Override
+    public MultiAttributeData build() {
+      MultiAttributeData data = super.build();
+      checkArgument(!data.getAttributes().isEmpty()
+          || data.getLength().isPresent()
+          || data.getMaxSpeed().isPresent(),
+          "At least length, maxSpeed or another attribute must to be defined.");
+      return data;
+    }
   }
 }

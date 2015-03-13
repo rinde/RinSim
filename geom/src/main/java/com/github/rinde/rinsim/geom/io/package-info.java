@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 /**
- * Graph serializers.
+ * Utilities for reading and writing geometric objects.
+ * @author Rinde van Lon
  */
 @javax.annotation.ParametersAreNonnullByDefault
-package com.github.rinde.rinsim.serializers;
+package com.github.rinde.rinsim.geom.io;

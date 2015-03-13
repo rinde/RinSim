@@ -652,8 +652,7 @@ public class GraphRoadModelTest extends AbstractRoadModelTest<GraphRoadModel> {
   public void locationIsOnSameEdge() {
     ((Graph<MultiAttributeData>) graph).addConnection(SE, SW,
         MultiAttributeData.builder().setLength(300).build());
-    ((Graph<MultiAttributeData>) graph).addConnection(NE, SW,
-        MultiAttributeData.builder().build());
+    ((Graph<MultiAttributeData>) graph).addConnection(NE, SW);
 
     final Loc loc1 = GraphRoadModel.newLoc(Connection.create(SW, SE), 3);
     final Loc loc2 = GraphRoadModel.newLoc(Connection.create(SW, SE), 1);

@@ -16,7 +16,6 @@
 package com.github.rinde.rinsim.geom;
 
 import java.util.Collection;
-import java.util.List;
 import java.util.Set;
 
 import javax.annotation.Nullable;
@@ -96,7 +95,7 @@ public abstract class ForwardingGraph<E extends ConnectionData> implements
   }
 
   @Override
-  public List<Connection<E>> getConnections() {
+  public Set<Connection<E>> getConnections() {
     return delegate.getConnections();
   }
 

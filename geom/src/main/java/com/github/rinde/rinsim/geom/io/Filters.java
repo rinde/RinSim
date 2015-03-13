@@ -13,23 +13,37 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.github.rinde.rinsim.serializers;
+package com.github.rinde.rinsim.geom.io;
 
 import javax.annotation.Nullable;
 
 import com.github.rinde.rinsim.geom.Connection;
+import com.github.rinde.rinsim.geom.Graph;
 import com.google.common.base.Predicate;
+import com.google.common.base.Predicates;
 
 /**
+ * Defines some {@link Predicate}s that can be useful for filtering
+ * {@link Connection}s when parsing a {@link Graph} using {@link DotGraphIO}.
  * @author Rinde van Lon
- *
  */
 public final class Filters {
 
   Filters() {}
 
+  /**
+   * @return A predicate that filters out self cycles, i.e. connection with the
+   *         same start and end.
+   */
   public static Predicate<Connection<?>> selfCycleFilter() {
     return SimpleFilters.SELF_CYCLE;
+  }
+
+  /**
+   * @return No filter, everything is included.
+   */
+  public static Predicate<Connection<?>> noFilter() {
+    return Predicates.alwaysTrue();
   }
 
   enum SimpleFilters implements Predicate<Connection<?>> {

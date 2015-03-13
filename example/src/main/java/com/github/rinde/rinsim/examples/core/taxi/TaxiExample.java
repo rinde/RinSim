@@ -41,8 +41,8 @@ import com.github.rinde.rinsim.examples.core.taxi.TaxiRenderer.Language;
 import com.github.rinde.rinsim.geom.Graph;
 import com.github.rinde.rinsim.geom.MultiAttributeData;
 import com.github.rinde.rinsim.geom.Point;
-import com.github.rinde.rinsim.serializers.DotGraphSerializer;
-import com.github.rinde.rinsim.serializers.Filters;
+import com.github.rinde.rinsim.geom.io.DotGraphIO;
+import com.github.rinde.rinsim.geom.io.Filters;
 import com.github.rinde.rinsim.ui.View;
 import com.github.rinde.rinsim.ui.renderers.GraphRoadModelRenderer;
 import com.github.rinde.rinsim.ui.renderers.RoadUserRenderer;
@@ -217,8 +217,8 @@ public final class TaxiExample {
       if (GRAPH_CACHE.containsKey(name)) {
         return GRAPH_CACHE.get(name);
       }
-      final Graph<MultiAttributeData> g = DotGraphSerializer
-          .getMultiAttributeGraphSerializer(
+      final Graph<MultiAttributeData> g = DotGraphIO
+          .getMultiAttributeGraphIO(
               Filters.selfCycleFilter()).read(
               TaxiExample.class.getResourceAsStream(name));
 

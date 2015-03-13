@@ -34,7 +34,7 @@ import com.github.rinde.rinsim.core.model.comm.CommModel.EventTypes;
 import com.github.rinde.rinsim.core.model.rand.RandomModel;
 import com.github.rinde.rinsim.event.ListenerEventHistory;
 import com.github.rinde.rinsim.geom.Point;
-import com.github.rinde.rinsim.util.TestUtil;
+import com.github.rinde.rinsim.testutil.TestUtil;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Optional;
 

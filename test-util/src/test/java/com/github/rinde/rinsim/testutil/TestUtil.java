@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.github.rinde.rinsim.util;
+package com.github.rinde.rinsim.testutil;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static java.util.Arrays.asList;

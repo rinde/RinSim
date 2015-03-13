@@ -29,7 +29,7 @@ import java.util.Set;
 
 import com.google.common.base.Objects;
 import com.google.common.base.Optional;
-import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Multimaps;
@@ -142,11 +142,11 @@ public class MultimapGraph<E extends ConnectionData> extends AbstractGraph<E> {
   }
 
   @Override
-  public List<Connection<E>> getConnections() {
+  public Set<Connection<E>> getConnections() {
     for (final Entry<Point, Point> p : multimap.entries()) {
       getConnection(p.getKey(), p.getValue());
     }
-    return ImmutableList.copyOf(lazyConnectionTable.values());
+    return ImmutableSet.copyOf(lazyConnectionTable.values());
   }
 
   /**
