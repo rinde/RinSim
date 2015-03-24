@@ -88,8 +88,7 @@ public final class View {
     Point screenSize;
     @Nullable
     Monitor monitor;
-    final List<Renderer> rendererList;
-    final List<CanvasRendererBuilder> renderFactories;
+    final List<Object> rendererList;
     Map<MenuItems, Integer> accelerators;
     @Nullable
     Listener callback;
@@ -105,7 +104,6 @@ public final class View {
       stopTime = -1;
       screenSize = DEFAULT_WINDOW_SIZE;
       rendererList = new ArrayList<>();
-      renderFactories = new ArrayList<>();
       accelerators = new HashMap<>();
 
       @Nullable
@@ -134,9 +132,8 @@ public final class View {
      * @param builder The builder to add.
      * @return This, as per the builder pattern.
      */
-    public Builder with(
-        CanvasRendererBuilder builder) {
-      renderFactories.add(builder.copy());
+    public Builder with(CanvasRendererBuilder builder) {
+      rendererList.add(builder);
       return this;
     }
 
@@ -233,8 +230,8 @@ public final class View {
      */
     public Builder setResolution(int width, int height) {
       checkArgument(width > 0 && height > 0,
-          "Only positive dimensions are allowed, input: %s x %s.", width,
-          height);
+        "Only positive dimensions are allowed, input: %s x %s.", width,
+        height);
       screenSize = new Point(width, height);
       return this;
     }
@@ -292,17 +289,17 @@ public final class View {
      */
     public void show() {
       checkState(
-          simulator.isConfigured(),
-          "Simulator needs to be configured before it can be visualized, see Simulator.configure()");
+        simulator.isConfigured(),
+        "Simulator needs to be configured before it can be visualized, see Simulator.configure()");
 
-      checkArgument(!(rendererList.isEmpty() && renderFactories.isEmpty()),
-          "At least one renderer needs to be defined.");
+      checkArgument(!rendererList.isEmpty(),
+        "At least one renderer needs to be defined.");
 
       Display.setAppName("RinSim");
       final Display d = display != null ? display : Display.getCurrent();
       final boolean isDisplayOwner = d == null;
       final Display disp = isDisplayOwner ? new Display() : Display
-          .getCurrent();
+        .getCurrent();
 
       int shellArgs = SWT.TITLE | SWT.CLOSE;
       if (allowResize) {
@@ -376,7 +373,7 @@ public final class View {
 
       // simulator viewer is run in here
       SimulationViewer.create(shell, simulator, speedUp, autoPlay,
-          rendererList, renderFactories, accelerators);
+        rendererList, accelerators);
       shell.open();
       if (!async) {
         while (!shell.isDisposed()) {

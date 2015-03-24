@@ -16,13 +16,11 @@
 package com.github.rinde.rinsim.ui;
 
 import static com.google.common.base.Preconditions.checkState;
-import static com.google.common.collect.Lists.newArrayList;
-import static com.google.common.collect.Sets.newLinkedHashSet;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import javax.annotation.Nullable;
 
@@ -63,10 +61,8 @@ import com.github.rinde.rinsim.geom.Point;
 import com.github.rinde.rinsim.ui.renderers.CanvasRenderer;
 import com.github.rinde.rinsim.ui.renderers.CanvasRendererBuilder;
 import com.github.rinde.rinsim.ui.renderers.PanelRenderer;
-import com.github.rinde.rinsim.ui.renderers.Renderer;
 import com.github.rinde.rinsim.ui.renderers.ViewPort;
 import com.github.rinde.rinsim.ui.renderers.ViewRect;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Multimap;
 
@@ -77,19 +73,19 @@ import com.google.common.collect.Multimap;
  * @author Rinde van Lon
  */
 final class SimulationViewer extends Composite implements TickListener,
-    ControlListener, PaintListener, SelectionListener {
+  ControlListener, PaintListener, SelectionListener {
 
   static final PeriodFormatter FORMATTER = new PeriodFormatterBuilder()
-      .appendDays()
-      .appendSeparator(" ")
-      .minimumPrintedDigits(2)
-      .printZeroAlways()
-      .appendHours()
-      .appendLiteral(":")
-      .appendMinutes()
-      .appendLiteral(":")
-      .appendSeconds()
-      .toFormatter();
+    .appendDays()
+    .appendSeparator(" ")
+    .minimumPrintedDigits(2)
+    .printZeroAlways()
+    .appendHours()
+    .appendLiteral(":")
+    .appendMinutes()
+    .appendLiteral(":")
+    .appendSeconds()
+    .toFormatter();
 
   private static final int MIN_SPEED_UP = 1;
   private static final int MAX_SPEED_UP = 512;
@@ -108,10 +104,9 @@ final class SimulationViewer extends Composite implements TickListener,
 
   @Nullable
   private Image image;
-  private final ImmutableList<PanelRenderer> panelRenderers;
+  private final List<PanelRenderer> panelRenderers;
+  private final List<Object> rawRenderers;
   private final List<CanvasRenderer> renderers;
-  private final List<CanvasRendererBuilder> rendererBuilders;
-  private final Set<ModelReceiver> modelRenderers;
   private final boolean autoPlay;
   private MenuItem playPauseMenuItem;
   // multiplier
@@ -131,62 +126,44 @@ final class SimulationViewer extends Composite implements TickListener,
   private final Map<MenuItems, Integer> accelerators;
 
   static SimulationViewer create(Shell shell, final Simulator sim,
-      int pSpeedUp,
-      boolean pAutoPlay, List<Renderer> pRenderers,
-      List<CanvasRendererBuilder> builders,
-      Map<MenuItems, Integer> acc) {
+    int pSpeedUp,
+    boolean pAutoPlay, List<Object> pRenderers,
+    Map<MenuItems, Integer> acc) {
     return new SimulationViewer(shell, sim, pSpeedUp, pAutoPlay, pRenderers,
-        builders, acc);
+      acc);
   }
 
   SimulationViewer(Shell shell, final Simulator sim, int pSpeedUp,
-      boolean pAutoPlay, List<Renderer> pRenderers,
-      List<CanvasRendererBuilder> builder,
-      Map<MenuItems, Integer> acc) {
+    boolean pAutoPlay, List<Object> pRenderers,
+    Map<MenuItems, Integer> acc) {
     super(shell, SWT.NONE);
 
     accelerators = acc;
     autoPlay = pAutoPlay;
-    rendererBuilders = builder;
-
-    final Multimap<Integer, PanelRenderer> panels = LinkedHashMultimap.create();
-    renderers = newArrayList();
-    modelRenderers = newLinkedHashSet();
-
-    for (final Renderer r : pRenderers) {
-      if (r instanceof ModelReceiver) {
-        modelRenderers.add((ModelReceiver) r);
-      }
-      boolean valid = false;
-      if (r instanceof PanelRenderer) {
-        panels.put(((PanelRenderer) r).getPreferredPosition(),
-            (PanelRenderer) r);
-        valid = true;
-      }
-
-      if (r instanceof CanvasRenderer) {
-        renderers.add((CanvasRenderer) r);
-        valid = true;
-      }
-
-      checkState(valid, "A renderer was not of a recognized subtype: %s", r);
-
-      if (r instanceof TickListener) {
-        sim.addTickListener((TickListener) r);
-      }
-    }
-    panelRenderers = ImmutableList.copyOf(panels.values());
 
     simulator = sim;
     simulator.addTickListener(this);
+
+    rawRenderers = pRenderers;
+    renderers = new ArrayList<>();
+    panelRenderers = new ArrayList<>();
+    final Multimap<Integer, PanelRenderer> panels = LinkedHashMultimap.create();
+
+    for (final Object o : rawRenderers) {
+      if (o instanceof PanelRenderer) {
+        panels.put(((PanelRenderer) o).getPreferredPosition(),
+          (PanelRenderer) o);
+      }
+    }
+    panelRenderers.addAll(panels.values());
 
     speedUp = pSpeedUp;
     shell.setLayout(new FillLayout());
     display = shell.getDisplay();
     setLayout(new FillLayout());
 
-    createMenu(shell);
     panelsLayout(panels);
+    createMenu(shell);
   }
 
   void panelsLayout(Multimap<Integer, PanelRenderer> panels) {
@@ -200,19 +177,19 @@ final class SimulationViewer extends Composite implements TickListener,
       final int topHeight = configurePanels(vertical, panels.removeAll(SWT.TOP));
 
       final SashForm horizontal = new SashForm(vertical, SWT.HORIZONTAL
-          | SWT.SMOOTH);
+        | SWT.SMOOTH);
       horizontal.setLayout(new FillLayout());
 
       final int leftWidth = configurePanels(horizontal,
-          panels.removeAll(SWT.LEFT));
+        panels.removeAll(SWT.LEFT));
 
       // create canvas
       createContent(horizontal);
 
       final int rightWidth = configurePanels(horizontal,
-          panels.removeAll(SWT.RIGHT));
+        panels.removeAll(SWT.RIGHT));
       final int bottomHeight = configurePanels(vertical,
-          panels.removeAll(SWT.BOTTOM));
+        panels.removeAll(SWT.BOTTOM));
 
       final int canvasHeight = size.y - topHeight - bottomHeight;
       if (topHeight > 0 && bottomHeight > 0) {
@@ -233,7 +210,7 @@ final class SimulationViewer extends Composite implements TickListener,
       }
 
       checkState(panels.isEmpty(),
-          "Invalid preferred position set for panels: %s", panels.values());
+        "Invalid preferred position set for panels: %s", panels.values());
     }
   }
 
@@ -270,13 +247,23 @@ final class SimulationViewer extends Composite implements TickListener,
 
   void configureModelRenderers() {
 
-    for (final CanvasRendererBuilder builder : rendererBuilders) {
-      renderers.add(builder.build(simulator.getModelProvider()));
-    }
+    for (final Object r : rawRenderers) {
+      if (r instanceof ModelReceiver) {
+        ((ModelReceiver) r).registerModelProvider(simulator.getModelProvider());
+      }
 
-    for (final ModelReceiver mr : modelRenderers) {
-      mr.registerModelProvider(simulator.getModelProvider());
+      if (r instanceof CanvasRenderer) {
+        renderers.add((CanvasRenderer) r);
+      } else if (r instanceof CanvasRendererBuilder) {
+        renderers.add(
+          ((CanvasRendererBuilder) r).build(simulator.getModelProvider()));
+      }
+
+      if (r instanceof TickListener) {
+        simulator.addTickListener((TickListener) r);
+      }
     }
+    System.out.println(renderers);
   }
 
   /**
@@ -284,7 +271,7 @@ final class SimulationViewer extends Composite implements TickListener,
    */
   void createContent(Composite parent) {
     canvas = new Canvas(parent, SWT.DOUBLE_BUFFERED | SWT.NONE
-        | SWT.NO_REDRAW_RESIZE | SWT.V_SCROLL | SWT.H_SCROLL);
+      | SWT.NO_REDRAW_RESIZE | SWT.V_SCROLL | SWT.H_SCROLL);
     canvas.setBackground(display.getSystemColor(SWT.COLOR_WIDGET_BACKGROUND));
 
     origin = new org.eclipse.swt.graphics.Point(0, 0);
@@ -298,7 +285,7 @@ final class SimulationViewer extends Composite implements TickListener,
     timeLabel.pack();
     timeLabel.setLocation(50, 10);
     timeLabel
-        .setBackground(canvas.getDisplay().getSystemColor(SWT.COLOR_WHITE));
+      .setBackground(canvas.getDisplay().getSystemColor(SWT.COLOR_WHITE));
 
     hBar = canvas.getHorizontalBar();
     hBar.addSelectionListener(this);
@@ -385,7 +372,7 @@ final class SimulationViewer extends Composite implements TickListener,
 
     final MenuItem increaseSpeedItem = new MenuItem(submenu, SWT.PUSH);
     increaseSpeedItem
-        .setAccelerator(accelerators.get(MenuItems.INCREASE_SPEED));
+      .setAccelerator(accelerators.get(MenuItems.INCREASE_SPEED));
     increaseSpeedItem.setText("Speed &up\tCtrl+]");
     increaseSpeedItem.setData(MenuItems.INCREASE_SPEED);
     increaseSpeedItem.addListener(SWT.Selection, speedUpListener);
@@ -471,7 +458,7 @@ final class SimulationViewer extends Composite implements TickListener,
 
   Image renderStatic() {
     size = new org.eclipse.swt.graphics.Point((int) (m * viewRect.width),
-        (int) (m * viewRect.height));
+      (int) (m * viewRect.height));
     final Image img = new Image(getDisplay(), size.x, size.y);
     final GC gc = new GC(img);
 
@@ -504,8 +491,8 @@ final class SimulationViewer extends Composite implements TickListener,
     gc.drawImage(image, center.x, center.y);
     for (final CanvasRenderer renderer : renderers) {
       renderer.renderDynamic(gc, new ViewPort(new Point(center.x,
-          center.y),
-          viewRect, m), simulator.getCurrentTime());
+        center.y),
+        viewRect, m), simulator.getCurrentTime());
     }
     for (final PanelRenderer renderer : panelRenderers) {
       renderer.render();
@@ -529,7 +516,7 @@ final class SimulationViewer extends Composite implements TickListener,
     final int zeroX = client.x + client.width / 2 - rect.width / 2;
     final int zeroY = client.y + client.height / 2 - rect.height / 2;
     return new org.eclipse.swt.graphics.Point(origin.x + zeroX, origin.y
-        + zeroY);
+      + zeroY);
   }
 
   void updateScrollbars(boolean adaptToScrollbar) {
@@ -570,9 +557,9 @@ final class SimulationViewer extends Composite implements TickListener,
     }
 
     checkState(
-        isDefined,
-        "none of the available renderers implements getViewRect(), known renderers: %s",
-        renderers);
+      isDefined,
+      "none of the available renderers implements getViewRect(), known renderers: %s",
+      renderers);
 
     viewRect = new ViewRect(new Point(minX, minY), new Point(maxX, maxY));
 
@@ -618,7 +605,7 @@ final class SimulationViewer extends Composite implements TickListener,
       final int vSelection = vBar.getSelection();
       final int destY = -vSelection - center.y;
       canvas.scroll(center.x, destY, center.x, center.y, content.width,
-          content.height, false);
+        content.height, false);
       origin.y = -vSelection + origin.y - center.y;
     }
   }
@@ -634,7 +621,7 @@ final class SimulationViewer extends Composite implements TickListener,
       final int hSelection = hBar.getSelection();
       final int destX = -hSelection - center.x;
       canvas.scroll(destX, center.y, center.x, center.y, content.width,
-          content.height, false);
+        content.height, false);
       origin.x = -hSelection + origin.x - center.x;
     }
   }
@@ -648,8 +635,8 @@ final class SimulationViewer extends Composite implements TickListener,
   @Override
   public void afterTick(final TimeLapse timeLapse) {
     if (simulator.isPlaying()
-        && lastRefresh + timeLapse.getTimeStep() * speedUp > timeLapse
-            .getStartTime()) {
+      && lastRefresh + timeLapse.getTimeStep() * speedUp > timeLapse
+        .getStartTime()) {
       return;
     }
     lastRefresh = timeLapse.getStartTime();
@@ -668,8 +655,8 @@ final class SimulationViewer extends Composite implements TickListener,
         if (!canvas.isDisposed()) {
           if (simulator.getTimeStep() > 500) {
             final String formatted = FORMATTER
-                .print(
-                new Period(0, simulator.getCurrentTime()));
+              .print(
+              new Period(0, simulator.getCurrentTime()));
             timeLabel.setText(formatted);
           } else {
             timeLabel.setText("" + simulator.getCurrentTime());

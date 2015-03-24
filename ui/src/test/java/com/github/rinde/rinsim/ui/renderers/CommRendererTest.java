@@ -50,11 +50,10 @@ public class CommRendererTest {
   public void testRenderer() {
     final RandomGenerator rng = new MersenneTwister(123L);
     final Simulator sim = Simulator.builder()
-        .setRandomGenerator(rng)
-        .addModel(CommModel.builder()
-            .build())
-        .addModel(PlaneRoadModel.builder().build())
-        .build();
+      .setRandomGenerator(rng)
+      .addModel(CommModel.builder().build())
+      .addModel(PlaneRoadModel.builder().build())
+      .build();
 
     for (int i = 0; i < 20; i++) {
       sim.register(new CommAgent(rng, (i + 1) / 10d, i * (1d / 20d)));
@@ -63,17 +62,17 @@ public class CommRendererTest {
     sim.register(new CommAgent(rng, -1d, 1d));
 
     View.create(sim)
-        .with(CommRenderer.builder()
-            .showReliabilityColors(new RGB(0, 0, 255), new RGB(255, 255, 0))
-            .showReliabilityPercentage()
-            .showMessageCount()
-        )
-        .with(PlaneRoadModelRenderer.create())
-        .enableAutoPlay()
-        .enableAutoClose()
-        .setSpeedUp(10)
-        .stopSimulatorAtTime(1000 * 60 * 5)
-        .show();
+      .with(CommRenderer.builder()
+        .showReliabilityColors(new RGB(0, 0, 255), new RGB(255, 255, 0))
+        .showReliabilityPercentage()
+        .showMessageCount()
+      )
+      .with(PlaneRoadModelRenderer.create())
+      .enableAutoPlay()
+      .enableAutoClose()
+      .setSpeedUp(10)
+      .stopSimulatorAtTime(1000 * 60 * 5)
+      .show();
   }
 
   static class CommAgent implements MovingRoadUser, CommUser, TickListener {
@@ -105,8 +104,8 @@ public class CommRendererTest {
         builder.setMaxRange(range);
       }
       device = Optional.of(builder
-          .setReliability(reliability)
-          .build());
+        .setReliability(reliability)
+        .build());
     }
 
     @Override
