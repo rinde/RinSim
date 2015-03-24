@@ -58,7 +58,6 @@ public final class GradientFieldExample {
       @Override
       public void createUI(Simulator sim) {
         final View.Builder viewBuilder = View.create(sim)
-          .with(new GradientFieldRenderer())
           .with(PlaneRoadModelRenderer.create())
           .with(RoadUserRenderer.builder()
             .addImageAssociation(
@@ -68,10 +67,11 @@ public final class GradientFieldExample {
             .addImageAssociation(
               GFParcel.class, "/graphics/flat/hailing-cab-32.png")
           )
-          .with(
-            new RouteRenderer(),
-            new PDPModelRenderer(false)
-          );
+          .with(new GradientFieldRenderer())
+          .with(new RouteRenderer())
+          .with(new PDPModelRenderer(false))
+
+        ;
         if (testing) {
           viewBuilder.enableAutoClose()
             .enableAutoPlay()
