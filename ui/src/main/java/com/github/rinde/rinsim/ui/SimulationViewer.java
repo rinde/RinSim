@@ -263,7 +263,6 @@ final class SimulationViewer extends Composite implements TickListener,
         simulator.addTickListener((TickListener) r);
       }
     }
-    System.out.println(renderers);
   }
 
   /**
