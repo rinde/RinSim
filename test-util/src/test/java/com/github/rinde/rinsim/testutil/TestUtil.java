@@ -31,7 +31,10 @@ import java.util.List;
  * methods in this class some of these false positives can be removed.
  * @author Rinde van Lon
  */
-public class TestUtil {
+public final class TestUtil {
+
+  private TestUtil() {}
+
   /**
    * Invokes a private constructor.
    * @param clazz The class to invoke the constructor of.
