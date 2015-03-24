@@ -15,6 +15,8 @@
  */
 package com.github.rinde.rinsim.examples.pdptw.gradientfield;
 
+import static com.google.common.base.Verify.verifyNotNull;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -41,26 +43,24 @@ import com.google.common.collect.ImmutableList;
  * @author Rinde van Lon
  */
 public class GradientModel extends AbstractModel<FieldEmitter> implements
-    ModelReceiver {
-
+  ModelReceiver {
   private final List<FieldEmitter> emitters;
   private double minX;
   private double maxX;
   private double minY;
   private double maxY;
+  @Nullable
   private PDPModel pdpModel;
-  ImmutableList<Point> bounds;
 
-  public GradientModel() {
-
+  GradientModel() {
     emitters = new CopyOnWriteArrayList<FieldEmitter>();
   }
 
-  public List<FieldEmitter> getEmitters() {
+  List<FieldEmitter> getEmitters() {
     return emitters;
   }
 
-  public List<Truck> getTruckEmitters() {
+  List<Truck> getTruckEmitters() {
     final List<Truck> trucks = new ArrayList<Truck>();
 
     for (final FieldEmitter emitter : emitters) {
@@ -79,13 +79,13 @@ public class GradientModel extends AbstractModel<FieldEmitter> implements
   private final int[] y = { 1, 1, 1, 0, -1, -1, -1, 0 };
 
   @Nullable
-  public Point getTargetFor(Truck element) {
+  Point getTargetFor(Truck element) {
     float maxField = Float.NEGATIVE_INFINITY;
     Point maxFieldPoint = null;
 
     for (int i = 0; i < x.length; i++) {
       final Point p = new Point(element.getPosition().x + x[i],
-          element.getPosition().y + y[i]);
+        element.getPosition().y + y[i]);
 
       if (p.x < minX || p.x > maxX || p.y < minY || p.y > maxY) {
         continue;
@@ -101,14 +101,14 @@ public class GradientModel extends AbstractModel<FieldEmitter> implements
     return maxFieldPoint;
   }
 
-  public float getField(Point in, Truck truck) {
+  float getField(Point in, Truck truck) {
     float field = 0.0f;
     for (final FieldEmitter emitter : emitters) {
       field += emitter.getStrength()
-          / Point.distance(emitter.getPosition(), in);
+        / Point.distance(emitter.getPosition(), in);
     }
 
-    for (final Parcel p : pdpModel.getContents(truck)) {
+    for (final Parcel p : verifyNotNull(pdpModel).getContents(truck)) {
       field += 2 / Point.distance(p.getDestination(), in);
     }
     return field;
@@ -127,12 +127,12 @@ public class GradientModel extends AbstractModel<FieldEmitter> implements
     return false;
   }
 
-  public Map<Point, Float> getFields(Truck truck) {
+  Map<Point, Float> getFields(Truck truck) {
     final Map<Point, Float> fields = new HashMap<Point, Float>();
 
     for (int i = 0; i < x.length; i++) {
       final Point p = new Point(truck.getPosition().x + x[i],
-          truck.getPosition().y + y[i]);
+        truck.getPosition().y + y[i]);
 
       if (p.x < minX || p.x > maxX || p.y < minY || p.y > maxY) {
         continue;
@@ -155,17 +155,19 @@ public class GradientModel extends AbstractModel<FieldEmitter> implements
   @Override
   public void registerModelProvider(ModelProvider mp) {
     pdpModel = mp.tryGetModel(PDPModel.class);
-    final ImmutableList<Point> bounds = mp.tryGetModel(RoadModel.class)
-        .getBounds();
+    final ImmutableList<Point> bs = mp.getModel(RoadModel.class)
+      .getBounds();
 
-    minX = bounds.get(0).x;
-    maxX = bounds.get(1).x;
-    minY = bounds.get(0).y;
-    maxY = bounds.get(1).y;
+    minX = bs.get(0).x;
+    maxX = bs.get(1).x;
+    minY = bs.get(0).y;
+    maxY = bs.get(1).y;
   }
 
-  public static StochasticSupplier<GradientModel> supplier() {
+  static StochasticSupplier<GradientModel> supplier() {
     return new StochasticSuppliers.AbstractStochasticSupplier<GradientModel>() {
+      private static final long serialVersionUID = 1701618808844264668L;
+
       @Override
       public GradientModel get(long seed) {
         return new GradientModel();

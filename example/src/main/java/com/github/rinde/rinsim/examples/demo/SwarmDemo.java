@@ -71,9 +71,11 @@ import com.google.common.collect.ImmutableList;
  * @author Rinde van Lon
  *
  */
-public class SwarmDemo {
+public final class SwarmDemo {
 
   private static final int FONT_SIZE = 12;
+
+  private SwarmDemo() {}
 
   /**
    * Starts the demo.

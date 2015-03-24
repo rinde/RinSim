@@ -40,10 +40,12 @@ import com.google.common.io.Files;
 /**
  * Simplest example showing how the Fabri {@literal &} Recht problem can be
  * configured using a custom vehicle.
- * 
+ *
  * @author Rinde van Lon
  */
-public class FabriRechtExample {
+public final class FabriRechtExample {
+
+  private FabriRechtExample() {}
 
   public static void main2(String[] args) throws IOException {
     // we load a problem instance from disk, we instantiate it with 8
@@ -78,7 +80,7 @@ public class FabriRechtExample {
 
 /**
  * This truck implementation only picks parcels up, it does not deliver them.
- * 
+ *
  * @author Rinde van Lon
  */
 class Truck extends DefaultVehicle {

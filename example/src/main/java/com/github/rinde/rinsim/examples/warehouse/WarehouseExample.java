@@ -39,7 +39,7 @@ import com.google.common.collect.Table;
  * {@link WarehouseRenderer} and {@link AGVRenderer}.
  * @author Rinde van Lon
  */
-public class WarehouseExample {
+public final class WarehouseExample {
 
   private static final double VEHICLE_LENGTH = 2d;
 

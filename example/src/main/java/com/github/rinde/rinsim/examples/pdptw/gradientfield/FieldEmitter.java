@@ -17,11 +17,11 @@ package com.github.rinde.rinsim.examples.pdptw.gradientfield;
 
 import com.github.rinde.rinsim.geom.Point;
 
-public interface FieldEmitter {
+interface FieldEmitter {
 
-  public void setModel(GradientModel model);
+  void setModel(GradientModel model);
 
-  public Point getPosition();
+  Point getPosition();
 
-  public float getStrength();
+  float getStrength();
 }

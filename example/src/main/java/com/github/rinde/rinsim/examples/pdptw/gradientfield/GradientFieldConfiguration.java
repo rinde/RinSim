@@ -26,10 +26,11 @@ import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 
 /**
- * 
- * @author Rinde van Lon 
+ *
+ * @author Rinde van Lon
  */
-public class GradientFieldConfiguration extends DefaultMASConfiguration {
+class GradientFieldConfiguration extends DefaultMASConfiguration {
+  private static final long serialVersionUID = -3882825964052190638L;
 
   @Override
   public ImmutableList<? extends StochasticSupplier<? extends Model<?>>> getModels() {

@@ -21,7 +21,7 @@ import org.eclipse.swt.graphics.RGB;
  * @author Rinde van Lon
  *
  */
-class ColorUtil {
+final class ColorUtil {
 
   private ColorUtil() {}
 

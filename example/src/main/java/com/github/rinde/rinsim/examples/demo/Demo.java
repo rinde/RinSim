@@ -55,7 +55,7 @@ import com.google.common.math.DoubleMath;
  * @author Rinde van Lon
  *
  */
-public class Demo {
+public final class Demo {
 
   private Demo() {}
 

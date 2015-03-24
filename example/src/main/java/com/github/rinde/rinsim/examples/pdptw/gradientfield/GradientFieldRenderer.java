@@ -15,6 +15,8 @@
  */
 package com.github.rinde.rinsim.examples.pdptw.gradientfield;
 
+import static com.google.common.base.Verify.verifyNotNull;
+
 import java.util.List;
 import java.util.Map;
 
@@ -30,19 +32,20 @@ import com.github.rinde.rinsim.ui.renderers.ModelRenderer;
 import com.github.rinde.rinsim.ui.renderers.ViewPort;
 import com.github.rinde.rinsim.ui.renderers.ViewRect;
 
-public class GradientFieldRenderer implements ModelRenderer {
+class GradientFieldRenderer implements ModelRenderer {
 
-  protected final static RGB GREEN = new RGB(0, 255, 0);
-  protected final static RGB RED = new RGB(255, 0, 0);
+  final static RGB GREEN = new RGB(0, 255, 0);
+  final static RGB RED = new RGB(255, 0, 0);
 
-  protected GradientModel gradientModel;
+  @Nullable
+  GradientModel gradientModel;
 
   @Override
   public void renderStatic(GC gc, ViewPort vp) {}
 
   @Override
   public void renderDynamic(GC gc, ViewPort vp, long time) {
-    final List<Truck> trucks = gradientModel.getTruckEmitters();
+    final List<Truck> trucks = verifyNotNull(gradientModel).getTruckEmitters();
 
     synchronized (trucks) {
       for (final Truck t : trucks) {
@@ -87,5 +90,4 @@ public class GradientFieldRenderer implements ModelRenderer {
   public void registerModelProvider(ModelProvider mp) {
     gradientModel = mp.tryGetModel(GradientModel.class);
   }
-
 }
