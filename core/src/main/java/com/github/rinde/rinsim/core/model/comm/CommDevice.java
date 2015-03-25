@@ -16,9 +16,11 @@
 package com.github.rinde.rinsim.core.model.comm;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Verify.verify;
 import static com.google.common.base.Verify.verifyNotNull;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import javax.annotation.Nullable;
@@ -110,11 +112,12 @@ public final class CommDevice {
   /**
    * Attempts to send a message with the specified contents to the specified
    * recipient. The actual sending of a message is done at the end of the
-   * current tick. Based on the range and reliability it is determined whether
-   * the message will be send.
+   * current tick. Based on the reliability, range and position it is determined
+   * whether the message will be sent. Until a message is sent it lives in the
+   * {@link #getOutbox()} of the device.
    * <p>
    * <b>Reliability</b> If this device has a reliability of <code>p</code> there
-   * is a probability of <code>1-p</code> that the message will not be send. If
+   * is a probability of <code>1-p</code> that the message will not be sent. If
    * the receiving device has a reliability of <code>r</code> there is a
    * probability of <code>1-r</code> that the message will not be received at
    * the other end. This means that in practice the probability of a successful
@@ -125,23 +128,33 @@ public final class CommDevice {
    * at the end of the tick</i>. Note that the range only influences sending of
    * messages, it is possible to receive messages from senders that are outside
    * of its max range.
+   * <p>
+   * <b>Position</b> If the {@link CommUser} that owns this device has no
+   * position ({@link CommUser#getPosition()} is absent) <i>and</i> this device
+   * has a maximum range ({@link #getMaxRange()} is present). The message will
+   * not be sent and will stay in the outbox of this device (see
+   * {@link #getOutbox()}). If at a later stage the {@link CommUser} gets a
+   * position all messages that are still in the outbox will be sent. The outbox
+   * can be cleared by calling {@link #clearOutbox()}.
    * @param contents The contents to send as part of the message.
    * @param recipient The recipient of the message.
    */
   public void send(MessageContents contents, CommUser recipient) {
     checkArgument(user != recipient,
-        "Can not send message to self %s.",
-        recipient);
+      "Can not send message to self %s.",
+      recipient);
     checkArgument(model.contains(recipient),
-        "%s can not send message to unknown recipient: %s.",
-        user, recipient);
+      "%s can not send message to unknown recipient: %s.",
+      user, recipient);
     outbox.add(Message.createDirect(user, recipient, contents, rangePredicate));
   }
 
   /**
    * Attempts to broadcast a message with the specified contents. The actual
    * sending of a message is done at the end of the current tick. Based on the
-   * range and reliability it is determined to whom a message will be send.
+   * reliability, range and position it is determined to whom a message will be
+   * sent. Until a message is sent it lives in the {@link #getOutbox()} of the
+   * device.
    * <p>
    * <b>Reliability</b> If this device has a reliability of <code>p</code> there
    * is a probability of <code>1-p</code> that the message will not be send to a
@@ -155,10 +168,38 @@ public final class CommDevice {
    * sending at the end of the tick</i>. Note that the range only influences
    * sending of messages, it is possible to receive messages from senders that
    * are outside of its max range.
+   * <p>
+   * <b>Position</b> If the {@link CommUser} that owns this device has no
+   * position ({@link CommUser#getPosition()} is absent) <i>and</i> this device
+   * has a maximum range ({@link #getMaxRange()} is present). The message will
+   * not be sent and will stay in the outbox of this device (see
+   * {@link #getOutbox()}). If at a later stage the {@link CommUser} gets a
+   * position all messages that are still in the outbox will be sent. The outbox
+   * can be cleared by calling {@link #clearOutbox()}.
    * @param contents The contents to send as part of the message.
    */
   public void broadcast(MessageContents contents) {
     outbox.add(Message.createBroadcast(user, contents, rangePredicate));
+  }
+
+  /**
+   * Clears all message in the outbox.
+   */
+  public void clearOutbox() {
+    outbox.clear();
+  }
+
+  /**
+   * Returns an unmodifiable view of the outbox of this device. Each invocation
+   * of {@link #send(MessageContents, CommUser)} and
+   * {@link #broadcast(MessageContents)} will add a message to the outbox. Each
+   * message that has been sent is removed from the outbox. Note that if a
+   * message is no longer in the outbox it doesn't necessarily imply that it has
+   * also been received by the receiver.
+   * @return An unmodifiable view of the outbox.
+   */
+  public List<Message> getOutbox() {
+    return Collections.unmodifiableList(outbox);
   }
 
   void receive(Message m) {
@@ -167,19 +208,21 @@ public final class CommDevice {
   }
 
   void sendMessages() {
-    for (final Message msg : outbox) {
-      model.send(msg, reliability);
+    if (!getMaxRange().isPresent() || user.getPosition().isPresent()) {
+      for (final Message msg : outbox) {
+        model.send(msg, reliability);
+      }
+      clearOutbox();
     }
-    outbox.clear();
   }
 
   @Override
   public String toString() {
     return MoreObjects.toStringHelper("CommDevice")
-        .add("owner", user)
-        .add("reliability", reliability)
-        .add("range", maxRange)
-        .toString();
+      .add("owner", user)
+      .add("reliability", reliability)
+      .add("range", maxRange)
+      .toString();
   }
 
   static CommDeviceBuilder builder(CommModel m, CommUser u) {
@@ -197,8 +240,13 @@ public final class CommDevice {
 
     @Override
     public boolean apply(@Nullable CommUser input) {
-      return Point.distance(user.getPosition(),
-          verifyNotNull(input).getPosition()) <= range;
+      final Optional<Point> pos = user.getPosition();
+      verify(pos.isPresent());
+      final Optional<Point> otherPos = verifyNotNull(input).getPosition();
+      if (otherPos.isPresent()) {
+        return Point.distance(pos.get(), otherPos.get()) <= range;
+      }
+      return false;
     }
   }
 }

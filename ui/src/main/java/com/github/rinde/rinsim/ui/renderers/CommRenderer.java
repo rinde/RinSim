@@ -65,7 +65,7 @@ public final class CommRenderer implements CanvasRenderer {
     helper = new RenderHelper();
     uiObjects = new ArrayList<>();
     for (final Entry<CommUser, CommDevice> entry : model.getUsersAndDevices()
-        .entrySet()) {
+      .entrySet()) {
       addUIObject(entry.getKey(), entry.getValue());
 
     }
@@ -122,40 +122,40 @@ public final class CommRenderer implements CanvasRenderer {
 
     void update(GC gc, ViewPort vp, long time) {
       if (!color.isPresent()
-          && viewOptions.contains(ViewOptions.RELIABILITY_COLOR)) {
+        && viewOptions.contains(ViewOptions.RELIABILITY_COLOR)) {
         final RGB rgb = ColorUtil.interpolate(unreliableColor, reliableColor,
-            device.getReliability());
+          device.getReliability());
         color = Optional.of(new Color(gc.getDevice(), rgb));
       }
 
       if (device.getMaxRange().isPresent()) {
-        helper.drawCircle(user.getPosition(), device.getMaxRange().get());
+        helper.drawCircle(user.getPosition().get(), device.getMaxRange().get());
         if (color.isPresent()) {
           gc.setBackground(color.get());
         } else {
           helper.setBackgroundSysCol(SWT.COLOR_DARK_BLUE);
         }
         gc.setAlpha(SEMI_TRANSPARENT);
-        helper.fillCircle(user.getPosition(), device.getMaxRange().get());
+        helper.fillCircle(user.getPosition().get(), device.getMaxRange().get());
       }
 
       gc.setAlpha(OPAQUE);
-      helper.fillCircle(user.getPosition(), DOT_RADIUS);
+      helper.fillCircle(user.getPosition().get(), DOT_RADIUS);
 
       final StringBuilder sb = new StringBuilder();
 
       if (viewOptions.contains(ViewOptions.MSG_COUNT)) {
         sb.append(device.getReceivedCount())
-            .append('(')
-            .append(device.getUnreadCount())
-            .append(')');
+          .append('(')
+          .append(device.getUnreadCount())
+          .append(')');
       }
       if (viewOptions.contains(ViewOptions.RELIABILITY_PERC)) {
         sb.append(" rel:")
-            .append(String.format("%.2f", device.getReliability()));
+          .append(String.format("%.2f", device.getReliability()));
       }
       if (sb.length() > 0) {
-        helper.drawString(sb.toString(), user.getPosition(), true);
+        helper.drawString(sb.toString(), user.getPosition().get(), true);
       }
     }
 

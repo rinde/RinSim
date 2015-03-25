@@ -94,8 +94,8 @@ public class CommRendererTest {
     }
 
     @Override
-    public Point getPosition() {
-      return roadModel.get().getPosition(this);
+    public Optional<Point> getPosition() {
+      return Optional.of(roadModel.get().getPosition(this));
     }
 
     @Override

@@ -16,6 +16,7 @@
 package com.github.rinde.rinsim.core.model.comm;
 
 import com.github.rinde.rinsim.geom.Point;
+import com.google.common.base.Optional;
 
 /**
  * A communication user. A communication user is an object that uses a
@@ -24,12 +25,15 @@ import com.github.rinde.rinsim.geom.Point;
  */
 public interface CommUser {
   /**
-   * Should return the current position of the user. This method should ideally
-   * be implemented efficiently as it may be called many times (for example for
-   * broadcasts in a certain range).
+   * Should return the current position of the user or {@link Optional#absent()}
+   * if it has none. This method should ideally be implemented efficiently as it
+   * may be called many times (for example for broadcasts in a certain range).
+   * Note that when {@link Optional#absent()} is returned the {@link CommDevice}
+   * of this {@link CommUser} can not send message if the device has a range nor
+   * can it receive messages that are send by devices with a range.
    * @return The current position.
    */
-  Point getPosition();
+  Optional<Point> getPosition();
 
   /**
    * This method is called to inject a {@link CommDevice} into the user. The

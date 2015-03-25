@@ -23,6 +23,8 @@ import static org.mockito.Mockito.mock;
 
 import java.util.List;
 
+import javax.annotation.Nullable;
+
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -68,8 +70,8 @@ public class CommModelTest {
   @Before
   public void setUp() {
     model = CommModel.builder()
-        .setDefaultDeviceReliability(1.0)
-        .build();
+      .setDefaultDeviceReliability(1.0)
+      .build();
 
     agent1 = new Agent(new Point(0, 0));
     agent2 = new Agent(new Point(0, 10));
@@ -118,7 +120,7 @@ public class CommModelTest {
    */
   @Test
   public void testUnmodifiableUnreadMessages() {
-    final List<Message> msgs = agent1.commDevice.get().getUnreadMessages();
+    final List<Message> msgs = agent1.device().getUnreadMessages();
     boolean fail = false;
     try {
       msgs.clear();
@@ -133,17 +135,17 @@ public class CommModelTest {
    */
   @Test
   public void testSendDirectMsg() {
-    agent1.commDevice.get().send(Contents.YO, agent2);
-    assertTrue(agent2.commDevice.get().getUnreadMessages().isEmpty());
+    agent1.device().send(Contents.YO, agent2);
+    assertTrue(agent2.device().getUnreadMessages().isEmpty());
     // send messages
     model.afterTick(TimeLapseFactory.create(0, 100));
-    assertTrue(agent1.commDevice.get().getUnreadMessages().isEmpty());
-    final List<Message> msgs = agent2.commDevice.get().getUnreadMessages();
+    assertTrue(agent1.device().getUnreadMessages().isEmpty());
+    final List<Message> msgs = agent2.device().getUnreadMessages();
     assertEquals(1, msgs.size());
     assertFalse(msgs.get(0).toString().isEmpty());
     assertSame(Contents.YO, msgs.get(0).getContents());
     assertSame(agent1, msgs.get(0).getSender());
-    assertTrue(agent2.commDevice.get().getUnreadMessages().isEmpty());
+    assertTrue(agent2.device().getUnreadMessages().isEmpty());
   }
 
   /**
@@ -153,7 +155,7 @@ public class CommModelTest {
   public void testSendDirectMsgInputValidation() {
     boolean fail = false;
     try {
-      agent1.commDevice.get().send(Contents.YO, agent1);
+      agent1.device().send(Contents.YO, agent1);
     } catch (final IllegalArgumentException e) {
       fail = true;
     }
@@ -161,7 +163,7 @@ public class CommModelTest {
     fail = false;
     final Agent unknown = new Agent(new Point(0, 0));
     try {
-      agent1.commDevice.get().send(Contents.YO, unknown);
+      agent1.device().send(Contents.YO, unknown);
     } catch (final IllegalArgumentException e) {
       fail = true;
     }
@@ -176,13 +178,13 @@ public class CommModelTest {
     final Agent unreliable = new Agent(new Point(5, 5), 0);
     model.register(unreliable);
 
-    unreliable.commDevice.get().send(Contents.YO, agent1);
+    unreliable.device().send(Contents.YO, agent1);
     model.afterTick(TimeLapseFactory.create(0, 100));
-    assertTrue(agent1.commDevice.get().getUnreadMessages().isEmpty());
+    assertTrue(agent1.device().getUnreadMessages().isEmpty());
 
-    agent1.commDevice.get().send(Contents.YO, unreliable);
+    agent1.device().send(Contents.YO, unreliable);
     model.afterTick(TimeLapseFactory.create(0, 100));
-    assertTrue(unreliable.commDevice.get().getUnreadMessages().isEmpty());
+    assertTrue(unreliable.device().getUnreadMessages().isEmpty());
   }
 
   /**
@@ -193,18 +195,105 @@ public class CommModelTest {
     final Agent ranged = new RangedAgent(new Point(0, 5), 5);
     model.register(ranged);
     // is possible, is within range
-    ranged.commDevice.get().send(Contents.YO, agent1);
+    ranged.device().send(Contents.YO, agent1);
     // not possible, too far
-    ranged.commDevice.get().send(Contents.YO, agent3);
+    ranged.device().send(Contents.YO, agent3);
     // receiving messages from outside range is possible
-    agent3.commDevice.get().send(Contents.YO, ranged);
+    agent3.device().send(Contents.YO, ranged);
     model.afterTick(TimeLapseFactory.create(0, 100));
 
-    final Message m = agent1.commDevice.get().getUnreadMessages().get(0);
+    final Message m = agent1.device().getUnreadMessages().get(0);
     assertSame(ranged, m.getSender());
-    assertTrue(agent3.commDevice.get().getUnreadMessages().isEmpty());
-    assertSame(agent3, ranged.commDevice.get().getUnreadMessages().get(0)
-        .getSender());
+    assertTrue(agent3.device().getUnreadMessages().isEmpty());
+    assertSame(agent3, ranged.device().getUnreadMessages().get(0)
+      .getSender());
+  }
+
+  /**
+   * Tests that sending an receiving of messages is different when the user has
+   * no position.
+   */
+  @Test
+  public void testSendAndReceiveWithoutPosition() {
+    final Agent rangedNoPos = new RangedAgent(null, 5);
+    final Agent ranged = new RangedAgent(new Point(1, 1), 5);
+    final Agent noPos = new Agent(null);
+    assertFalse(rangedNoPos.getPosition().isPresent());
+    model.register(rangedNoPos);
+    model.register(ranged);
+    model.register(noPos);
+
+    // rangedNoPos can not send direct msg, the message will stay in its outbox
+    rangedNoPos.device().send(Contents.YO, agent1);
+    model.afterTick(TimeLapseFactory.create(0, 100));
+    assertEquals(0, agent1.device().getReceivedCount());
+    assertEquals(0, agent1.device().getUnreadCount());
+    assertEquals(1, rangedNoPos.device().getOutbox().size());
+
+    // rangedNoPos can not broadcast, the message will stay in its outbox
+    rangedNoPos.device().broadcast(Contents.YO);
+    model.afterTick(TimeLapseFactory.create(0, 100));
+    assertEquals(0, agent1.device().getReceivedCount());
+    assertEquals(0, agent2.device().getReceivedCount());
+    assertEquals(0, agent3.device().getReceivedCount());
+    assertEquals(0, agent4.device().getReceivedCount());
+    assertEquals(0, agent5.device().getReceivedCount());
+    assertEquals(0, ranged.device().getReceivedCount());
+    assertEquals(0, noPos.device().getReceivedCount());
+    assertEquals(2, rangedNoPos.device().getOutbox().size());
+    final List<Message> msgs = rangedNoPos.device().getOutbox();
+    assertFalse(msgs.get(0).isBroadcast());
+    assertTrue(msgs.get(1).isBroadcast());
+
+    // rangedNoPos can receive a direct message send by agents with unlimited
+    // range
+    assertEquals(0, rangedNoPos.device().getReceivedCount());
+    agent1.device().send(Contents.YO, rangedNoPos);
+    model.afterTick(TimeLapseFactory.create(0, 100));
+    assertEquals(1, rangedNoPos.device().getReceivedCount());
+
+    // rangedNoPos can not receive a direct message send by agents with a
+    // limited range
+    ranged.device().send(Contents.YO, rangedNoPos);
+    assertEquals(1, ranged.device().getOutbox().size());
+    model.afterTick(TimeLapseFactory.create(0, 100));
+    assertEquals(1, rangedNoPos.device().getReceivedCount());
+
+    // rangedNoPos has a new position, in the next tick all messages still in
+    // the outbox are send.
+    rangedNoPos.setPosition(new Point(0, 0));
+    model.afterTick(TimeLapseFactory.create(0, 100));
+    assertEquals(2, agent1.device().getReceivedCount());
+    assertEquals(0, agent2.device().getReceivedCount());
+    assertEquals(0, agent3.device().getReceivedCount());
+    assertEquals(0, agent4.device().getReceivedCount());
+    assertEquals(1, agent5.device().getReceivedCount());
+  }
+
+  /**
+   * Tests what happens if an agent no longer has a position.
+   */
+  @Test
+  public void testSenderIsRemovedDuringSend() {
+    final Agent a = new Agent(new Point(0, 0));
+    final Agent b = new RangedAgent(new Point(0, 0), 5);
+    model.register(a);
+    model.register(b);
+
+    // a is removed during the same tick as that it sends a message, this
+    // doesn't matter since it has no range, therefore it sends anyway.
+    a.device().broadcast(Contents.YO);
+    a.setPosition(null);
+    model.afterTick(TimeLapseFactory.create(0, 100));
+    assertEquals(1, agent1.device().getReceivedCount());
+
+    // b is removed during the same tick as that is sends a message, since it is
+    // a ranged device the message is not sent and will stay in the outbox.
+    b.device().broadcast(Contents.YO);
+    b.setPosition(null);
+    model.afterTick(TimeLapseFactory.create(0, 100));
+    assertEquals(1, agent1.device().getReceivedCount());
+    assertEquals(1, b.device().getOutbox().size());
   }
 
   /**
@@ -212,20 +301,20 @@ public class CommModelTest {
    */
   @Test
   public void testBroadcast() {
-    agent1.commDevice.get().broadcast(Contents.HELLO_WORLD);
+    agent1.device().broadcast(Contents.HELLO_WORLD);
 
-    assertTrue(agent1.commDevice.get().getUnreadMessages().isEmpty());
-    assertTrue(agent2.commDevice.get().getUnreadMessages().isEmpty());
-    assertTrue(agent3.commDevice.get().getUnreadMessages().isEmpty());
-    assertTrue(agent4.commDevice.get().getUnreadMessages().isEmpty());
-    assertTrue(agent5.commDevice.get().getUnreadMessages().isEmpty());
+    assertTrue(agent1.device().getUnreadMessages().isEmpty());
+    assertTrue(agent2.device().getUnreadMessages().isEmpty());
+    assertTrue(agent3.device().getUnreadMessages().isEmpty());
+    assertTrue(agent4.device().getUnreadMessages().isEmpty());
+    assertTrue(agent5.device().getUnreadMessages().isEmpty());
 
     model.afterTick(TimeLapseFactory.create(0, 100));
-    assertTrue(agent1.commDevice.get().getUnreadMessages().isEmpty());
-    final List<Message> msgs2 = agent2.commDevice.get().getUnreadMessages();
-    final List<Message> msgs3 = agent3.commDevice.get().getUnreadMessages();
-    final List<Message> msgs4 = agent4.commDevice.get().getUnreadMessages();
-    final List<Message> msgs5 = agent5.commDevice.get().getUnreadMessages();
+    assertTrue(agent1.device().getUnreadMessages().isEmpty());
+    final List<Message> msgs2 = agent2.device().getUnreadMessages();
+    final List<Message> msgs3 = agent3.device().getUnreadMessages();
+    final List<Message> msgs4 = agent4.device().getUnreadMessages();
+    final List<Message> msgs5 = agent5.device().getUnreadMessages();
 
     assertEquals(1, msgs2.size());
     assertEquals(Contents.HELLO_WORLD, msgs2.get(0).getContents());
@@ -238,11 +327,11 @@ public class CommModelTest {
     assertSame(msgs2.get(0), msgs4.get(0));
     assertSame(msgs2.get(0), msgs5.get(0));
 
-    assertTrue(agent1.commDevice.get().getUnreadMessages().isEmpty());
-    assertTrue(agent2.commDevice.get().getUnreadMessages().isEmpty());
-    assertTrue(agent3.commDevice.get().getUnreadMessages().isEmpty());
-    assertTrue(agent4.commDevice.get().getUnreadMessages().isEmpty());
-    assertTrue(agent5.commDevice.get().getUnreadMessages().isEmpty());
+    assertTrue(agent1.device().getUnreadMessages().isEmpty());
+    assertTrue(agent2.device().getUnreadMessages().isEmpty());
+    assertTrue(agent3.device().getUnreadMessages().isEmpty());
+    assertTrue(agent4.device().getUnreadMessages().isEmpty());
+    assertTrue(agent5.device().getUnreadMessages().isEmpty());
   }
 
   /**
@@ -252,15 +341,15 @@ public class CommModelTest {
    */
   @Test
   public void testBroadcastReceiveOrdering() {
-    agent4.commDevice.get().broadcast(Contents.YO);
-    agent1.commDevice.get().broadcast(Contents.HELLO_WORLD);
-    agent2.commDevice.get().broadcast(Contents.YO);
-    agent1.commDevice.get().broadcast(Contents.HELLO_WORLD);
-    agent3.commDevice.get().broadcast(Contents.YO);
-    agent4.commDevice.get().broadcast(Contents.YO);
+    agent4.device().broadcast(Contents.YO);
+    agent1.device().broadcast(Contents.HELLO_WORLD);
+    agent2.device().broadcast(Contents.YO);
+    agent1.device().broadcast(Contents.HELLO_WORLD);
+    agent3.device().broadcast(Contents.YO);
+    agent4.device().broadcast(Contents.YO);
     model.afterTick(TimeLapseFactory.create(0, 100));
 
-    final List<Message> msgs = agent5.commDevice.get().getUnreadMessages();
+    final List<Message> msgs = agent5.device().getUnreadMessages();
     assertSame(agent1, msgs.get(0).getSender());
     assertSame(agent1, msgs.get(1).getSender());
     assertSame(agent2, msgs.get(2).getSender());
@@ -277,15 +366,15 @@ public class CommModelTest {
     final Agent unreliable = new Agent(new Point(5, 5), 0);
     model.register(unreliable);
 
-    unreliable.commDevice.get().broadcast(Contents.YO);
+    unreliable.device().broadcast(Contents.YO);
     model.afterTick(TimeLapseFactory.create(0, 100));
-    assertTrue(agent1.commDevice.get().getUnreadMessages().isEmpty());
-    assertTrue(agent2.commDevice.get().getUnreadMessages().isEmpty());
+    assertTrue(agent1.device().getUnreadMessages().isEmpty());
+    assertTrue(agent2.device().getUnreadMessages().isEmpty());
 
-    agent1.commDevice.get().broadcast(Contents.YO);
+    agent1.device().broadcast(Contents.YO);
     model.afterTick(TimeLapseFactory.create(0, 100));
-    assertTrue(unreliable.commDevice.get().getUnreadMessages().isEmpty());
-    assertEquals(1, agent2.commDevice.get().getUnreadMessages().size());
+    assertTrue(unreliable.device().getUnreadMessages().isEmpty());
+    assertEquals(1, agent2.device().getUnreadMessages().size());
   }
 
   /**
@@ -295,14 +384,14 @@ public class CommModelTest {
   public void testBroadcastWithRange() {
     final Agent ranged = new RangedAgent(new Point(0, 5), 5);
     model.register(ranged);
-    ranged.commDevice.get().broadcast(Contents.YO);
+    ranged.device().broadcast(Contents.YO);
     model.afterTick(TimeLapseFactory.create(0, 100));
 
-    assertFalse(agent1.commDevice.get().getUnreadMessages().isEmpty());
-    assertFalse(agent2.commDevice.get().getUnreadMessages().isEmpty());
-    assertTrue(agent3.commDevice.get().getUnreadMessages().isEmpty());
-    assertFalse(agent4.commDevice.get().getUnreadMessages().isEmpty());
-    assertTrue(agent5.commDevice.get().getUnreadMessages().isEmpty());
+    assertFalse(agent1.device().getUnreadMessages().isEmpty());
+    assertFalse(agent2.device().getUnreadMessages().isEmpty());
+    assertTrue(agent3.device().getUnreadMessages().isEmpty());
+    assertFalse(agent4.device().getUnreadMessages().isEmpty());
+    assertTrue(agent5.device().getUnreadMessages().isEmpty());
   }
 
   /**
@@ -365,7 +454,7 @@ public class CommModelTest {
     assertSame(agent6, event.getUser());
     assertSame(model, event.getIssuer());
     assertSame(agent6,
-        model.getUsersAndDevices().inverse().get(event.getDevice()));
+      model.getUsersAndDevices().inverse().get(event.getDevice()));
   }
 
   /**
@@ -387,7 +476,7 @@ public class CommModelTest {
   static class RangedAgent extends Agent {
     final double range;
 
-    RangedAgent(Point p, double r) {
+    RangedAgent(@Nullable Point p, double r) {
       super(p);
       range = r;
     }
@@ -395,61 +484,69 @@ public class CommModelTest {
     @Override
     public void setCommDevice(CommDeviceBuilder builder) {
       commDevice = Optional.of(
-          builder.setReliability(reliability)
-              .setMaxRange(range)
-              .build());
+        builder.setReliability(reliability)
+          .setMaxRange(range)
+          .build());
     }
 
     @Override
     public String toString() {
       return MoreObjects.toStringHelper("Agent")
-          .add("position", position)
-          .add("reliability", reliability)
-          .add("range", range)
-          .toString();
+        .add("position", position)
+        .add("reliability", reliability)
+        .add("range", range)
+        .toString();
     }
   }
 
   static class Agent implements CommUser {
-    final Point position;
+    Optional<Point> position;
     Optional<CommDevice> commDevice;
     double reliability;
 
-    Agent(Point p) {
+    Agent(@Nullable Point p) {
       this(p, 1d);
     }
 
-    Agent(Point p, double r) {
+    Agent(@Nullable Point p, double r) {
       reliability = r;
-      position = p;
+      position = Optional.fromNullable(p);
       commDevice = Optional.absent();
     }
 
+    void setPosition(@Nullable Point p) {
+      position = Optional.fromNullable(p);
+    }
+
+    CommDevice device() {
+      return commDevice.get();
+    }
+
     @Override
-    public Point getPosition() {
+    public Optional<Point> getPosition() {
       return position;
     }
 
     @Override
     public void setCommDevice(CommDeviceBuilder builder) {
       commDevice = Optional.of(
-          builder.setReliability(reliability)
-              .build());
+        builder.setReliability(reliability)
+          .build());
     }
 
     @Override
     public String toString() {
       return MoreObjects.toStringHelper("Agent")
-          .add("position", position)
-          .add("reliability", reliability)
-          .toString();
+        .add("position", position)
+        .add("reliability", reliability)
+        .toString();
     }
   }
 
   static class IdleCommUser implements CommUser {
     @Override
-    public Point getPosition() {
-      return new Point(0, 0);
+    public Optional<Point> getPosition() {
+      return Optional.of(new Point(0, 0));
     }
 
     @Override

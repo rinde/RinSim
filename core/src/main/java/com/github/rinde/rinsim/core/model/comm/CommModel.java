@@ -43,7 +43,7 @@ import com.google.common.collect.Maps;
  * @author Rinde van Lon
  */
 public final class CommModel extends AbstractModel<CommUser> implements
-    TickListener, RandomUser {
+  TickListener, RandomUser {
   /**
    * The types of events that are dispatched by {@link CommModel}. The event
    * class is {@link CommModelEvent}. Listeners can be added via
@@ -71,7 +71,7 @@ public final class CommModel extends AbstractModel<CommUser> implements
     defaultMaxRange = b.defaultMaxRange;
     usersHasChanged = false;
     usersDevices = Maps.synchronizedBiMap(
-        LinkedHashBiMap.<CommUser, CommDevice> create());
+      LinkedHashBiMap.<CommUser, CommDevice> create());
     usersDevicesSnapshot = ImmutableBiMap.of();
     eventDispatcher = new EventDispatcher(EventTypes.values());
     randomGenerator = Optional.absent();
@@ -89,14 +89,14 @@ public final class CommModel extends AbstractModel<CommUser> implements
   public boolean register(CommUser commUser) {
     checkArgument(!contains(commUser), "%s is already registered.", commUser);
     final CommDeviceBuilder builder = CommDevice.builder(this, commUser)
-        .setReliability(defaultReliability);
+      .setReliability(defaultReliability);
     commUser.setCommDevice(builder);
     usersHasChanged = true;
     checkState(
-        builder.isUsed(),
-        "%s is not implemented correctly, a CommDevice must be constructed in "
-            + "setCommDevice()",
-        commUser);
+      builder.isUsed(),
+      "%s is not implemented correctly, a CommDevice must be constructed in "
+        + "setCommDevice()",
+      commUser);
     return true;
   }
 
@@ -172,9 +172,10 @@ public final class CommModel extends AbstractModel<CommUser> implements
   }
 
   private void doSend(Message msg, CommUser to, CommDevice recipient,
-      double sendReliability) {
+    double sendReliability) {
+
     if (msg.predicate().apply(to)
-        && hasSucces(sendReliability, recipient.getReliability())) {
+      && hasSucces(sendReliability, recipient.getReliability())) {
       recipient.receive(msg);
     }
   }
@@ -183,7 +184,7 @@ public final class CommModel extends AbstractModel<CommUser> implements
     usersDevices.put(user, device);
     if (eventDispatcher.hasListenerFor(EventTypes.ADD_COMM_USER)) {
       eventDispatcher.dispatchEvent(new CommModelEvent(
-          EventTypes.ADD_COMM_USER, this, device, user));
+        EventTypes.ADD_COMM_USER, this, device, user));
     }
   }
 
@@ -192,7 +193,7 @@ public final class CommModel extends AbstractModel<CommUser> implements
       return true;
     }
     return randomGenerator.get().nextDouble() < senderReliability
-        * receiverReliability;
+      * receiverReliability;
   }
 
   @Override
@@ -203,7 +204,7 @@ public final class CommModel extends AbstractModel<CommUser> implements
   @Override
   public void finalizeConfiguration() {
     checkState(randomGenerator.isPresent(),
-        "CommModel requires the existence of a RandomModel.");
+      "CommModel requires the existence of a RandomModel.");
   }
 
   /**
