@@ -36,27 +36,36 @@ import com.github.rinde.rinsim.scenario.gendreau06.Gendreau06Scenario;
  */
 @RunWith(Parameterized.class)
 public class CentralIntegrationTest {
-
   private Gendreau06Scenario scenario;
-
   private final boolean offline;
   private final boolean allowDiversion;
 
+  /**
+   * Create new test.
+   * @param offl Should the scenario be parsed in an offline way.
+   * @param allowDiv Is diversion allowed by the agents.
+   */
   public CentralIntegrationTest(boolean offl, boolean allowDiv) {
     offline = offl;
     allowDiversion = allowDiv;
   }
 
+  /**
+   * @return Parameters to try all combinations.
+   */
   @Parameters
   public static Collection<Object[]> configs() {
     return Arrays.asList(new Object[][] {//
-        { false, true }, { true, true }, { true, false }, { false, false } });
+      { false, true }, { true, true }, { true, false }, { false, false } });
   }
 
+  /**
+   * Sets up the scenario.
+   */
   @Before
   public void setUp() {
     final Gendreau06Parser parser = Gendreau06Parser.parser().addFile(
-        ScenarioPaths.GENDREAU);
+      ScenarioPaths.GENDREAU);
     if (allowDiversion) {
       parser.allowDiversion();
     }
@@ -74,13 +83,12 @@ public class CentralIntegrationTest {
   @Test
   public void test() {
     Experiment
-        .build(Gendreau06ObjectiveFunction.instance())
-        .addScenario(
-            scenario)
-        .addConfiguration(
-            Central.solverConfiguration(RandomMVArraysSolver.solverSupplier()))
-        .repeat(3)
-        .perform();
+      .build(Gendreau06ObjectiveFunction.instance())
+      .addScenario(scenario)
+      .addConfiguration(
+        Central.solverConfiguration(RandomMVArraysSolver.solverSupplier()))
+      .repeat((!offline && allowDiversion) ? 2 : 1)
+      .perform();
   }
 
   /**
@@ -90,12 +98,12 @@ public class CentralIntegrationTest {
   @Test
   public void testRandomSolver() {
     Experiment
-        .build(Gendreau06ObjectiveFunction.instance())
-        .addScenario(scenario)
-        .addConfiguration(
-            Central.solverConfiguration(SolverValidator.wrap(RandomSolver
-                .supplier())))
-        .repeat(6)
-        .perform();
+      .build(Gendreau06ObjectiveFunction.instance())
+      .addScenario(scenario)
+      .addConfiguration(
+        Central.solverConfiguration(SolverValidator.wrap(RandomSolver
+          .supplier())))
+      .repeat(3)
+      .perform();
   }
 }
