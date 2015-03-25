@@ -15,6 +15,7 @@
  */
 package com.github.rinde.rinsim.examples.demo.factory;
 
+import static com.google.common.base.Verify.verify;
 import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Sets.newLinkedHashSet;
 
@@ -44,7 +45,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.math.DoubleMath;
 
 class AgvModel extends AbstractModel<AGV> implements TickListener,
-    ModelReceiver, SimulatorUser, Listener {
+  ModelReceiver, SimulatorUser, Listener {
 
   Optional<RoadModel> rm;
   Optional<SimulatorAPI> simulator;
@@ -57,7 +58,7 @@ class AgvModel extends AbstractModel<AGV> implements TickListener,
   final List<Point> border;
 
   AgvModel(RandomGenerator r, ImmutableList<ImmutableList<Point>> ps,
-      ImmutableList<Point> b) {
+    ImmutableList<Point> b) {
     rm = Optional.absent();
     rng = r;
     occupiedPositions = newLinkedHashSet();
@@ -77,18 +78,18 @@ class AgvModel extends AbstractModel<AGV> implements TickListener,
   public void registerModelProvider(ModelProvider mp) {
     rm = Optional.fromNullable(mp.tryGetModel(RoadModel.class));
     Optional
-        .fromNullable(mp.tryGetModel(PDPModel.class))
-        .get()
-        .getEventAPI()
-        .addListener(this, PDPModelEventType.END_DELIVERY,
-            PDPModelEventType.END_PICKUP);
+      .fromNullable(mp.tryGetModel(PDPModel.class))
+      .get()
+      .getEventAPI()
+      .addListener(this, PDPModelEventType.END_DELIVERY,
+        PDPModelEventType.END_PICKUP);
   }
 
   @Override
   public void setSimulator(SimulatorAPI api) {
     simulator = Optional.of(api);
     simulator.get().getEventAPI()
-        .addListener(this, SimulatorEventType.CONFIGURED);
+      .addListener(this, SimulatorEventType.CONFIGURED);
   }
 
   void init() {
@@ -100,9 +101,9 @@ class AgvModel extends AbstractModel<AGV> implements TickListener,
       final int num = max;
       for (int i = 0; i < num; i++) {
         final long duration = DoubleMath.roundToLong(
-            FactoryExample.SERVICE_DURATION / 2d
-                + rng.nextDouble() * FactoryExample.SERVICE_DURATION,
-            RoundingMode.CEILING);
+          FactoryExample.SERVICE_DURATION / 2d
+            + rng.nextDouble() * FactoryExample.SERVICE_DURATION,
+          RoundingMode.CEILING);
 
         final Point rnd = rndBorder();
         Point dest;
@@ -139,15 +140,16 @@ class AgvModel extends AbstractModel<AGV> implements TickListener,
     if (e.getEventType() == SimulatorEventType.CONFIGURED) {
       init();
     } else {
+      verify(e instanceof PDPModelEvent);
       final PDPModelEvent event = (PDPModelEvent) e;
       if (e.getEventType() == PDPModelEventType.END_PICKUP) {
         occupiedPositions.remove(((Box) event.parcel).origin);
       }
       if (e.getEventType() == PDPModelEventType.END_DELIVERY) {
         final long duration = DoubleMath.roundToLong(
-            FactoryExample.SERVICE_DURATION / 2d
-                + rng.nextDouble() * FactoryExample.SERVICE_DURATION,
-            RoundingMode.CEILING);
+          FactoryExample.SERVICE_DURATION / 2d
+            + rng.nextDouble() * FactoryExample.SERVICE_DURATION,
+          RoundingMode.CEILING);
         simulator.get().unregister(event.parcel);
 
         final BoxHandle bh = ((Box) event.parcel).boxHandle;

@@ -43,7 +43,6 @@ public final class PDPModelRenderer implements ModelRenderer {
 
   private Color black;
   private Color white;
-  private Color gray;
   private Color lightGray;
   private Color darkGreen;
   private Color green;
@@ -71,7 +70,6 @@ public final class PDPModelRenderer implements ModelRenderer {
     isInitialized = true;
     black = gc.getDevice().getSystemColor(SWT.COLOR_BLACK);
     white = gc.getDevice().getSystemColor(SWT.COLOR_WHITE);
-    gray = gc.getDevice().getSystemColor(SWT.COLOR_GRAY);
     darkGreen = gc.getDevice().getSystemColor(SWT.COLOR_DARK_GREEN);
     green = gc.getDevice().getSystemColor(SWT.COLOR_GREEN);
     blue = gc.getDevice().getSystemColor(SWT.COLOR_BLUE);

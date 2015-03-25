@@ -56,9 +56,9 @@ class GradientFieldRenderer implements ModelRenderer {
         float max = Float.NEGATIVE_INFINITY;
         float min = Float.POSITIVE_INFINITY;
 
-        for (final Point p : fields.keySet()) {
-          max = Math.max(max, fields.get(p));
-          min = Math.min(min, fields.get(p));
+        for (final Entry<Point, Float> p : fields.entrySet()) {
+          max = Math.max(max, p.getValue());
+          min = Math.min(min, p.getValue());
         }
         int dia;
         RGB color = null;

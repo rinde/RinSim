@@ -75,8 +75,8 @@ public class GradientModel extends AbstractModel<FieldEmitter> implements
   /**
    * Possibilities (-1,1) (0,1) (1,1) (-1,0) (1,0 (-1,-1) (0,-1) (1,-1)
    */
-  private final int[] x = { -1, 0, 1, 1, 1, 0, -1, -1 };
-  private final int[] y = { 1, 1, 1, 0, -1, -1, -1, 0 };
+  private static final int[] x = { -1, 0, 1, 1, 1, 0, -1, -1 };
+  private static final int[] y = { 1, 1, 1, 0, -1, -1, -1, 0 };
 
   @Nullable
   Point getTargetFor(Truck element) {

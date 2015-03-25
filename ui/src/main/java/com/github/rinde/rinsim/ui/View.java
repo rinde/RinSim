@@ -81,7 +81,6 @@ public final class View {
     boolean async;
     int speedUp;
     long stopTime;
-    long sleep;
     @Nullable
     Display display;
     String title;

@@ -48,7 +48,6 @@ public final class RandomObjectRenderer implements ModelRenderer {
   @Override
   public void renderDynamic(GC gc, ViewPort viewPort, long time) {
     final int radius = 4;
-    final int outerRadius = 10;
     if (defaultColor == null) {
       defaultColor = gc.getDevice().getSystemColor(SWT.COLOR_RED);
     }
