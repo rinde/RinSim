@@ -658,7 +658,7 @@ final class SimulationViewer extends Composite implements TickListener,
               new Period(0, simulator.getCurrentTime()));
             timeLabel.setText(formatted);
           } else {
-            timeLabel.setText("" + simulator.getCurrentTime());
+            timeLabel.setText(Long.toString(simulator.getCurrentTime()));
           }
           timeLabel.pack();
           canvas.redraw();

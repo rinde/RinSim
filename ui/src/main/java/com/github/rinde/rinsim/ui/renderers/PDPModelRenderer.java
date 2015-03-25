@@ -27,17 +27,17 @@ import org.eclipse.swt.graphics.GC;
 
 import com.github.rinde.rinsim.core.model.ModelProvider;
 import com.github.rinde.rinsim.core.model.pdp.PDPModel;
-import com.github.rinde.rinsim.core.model.pdp.Parcel;
-import com.github.rinde.rinsim.core.model.pdp.Vehicle;
 import com.github.rinde.rinsim.core.model.pdp.PDPModel.ParcelState;
 import com.github.rinde.rinsim.core.model.pdp.PDPModel.VehicleState;
+import com.github.rinde.rinsim.core.model.pdp.Parcel;
+import com.github.rinde.rinsim.core.model.pdp.Vehicle;
 import com.github.rinde.rinsim.core.model.road.RoadModel;
 import com.github.rinde.rinsim.core.model.road.RoadUser;
 import com.github.rinde.rinsim.geom.Point;
 
 /**
- * @author Rinde van Lon 
- * 
+ * @author Rinde van Lon
+ *
  */
 public final class PDPModelRenderer implements ModelRenderer {
 
@@ -130,18 +130,18 @@ public final class PDPModelRenderer implements ModelRenderer {
           // FIXME, investigate why the second check is
           // neccesary..
           if (state != VehicleState.IDLE
-              && pdpModel.getVehicleActionInfo(v) != null) {
+            && pdpModel.getVehicleActionInfo(v) != null) {
             gc.drawText(
-                state.toString() + " "
-                    + pdpModel.getVehicleActionInfo(v).timeNeeded(), x, y - 20);
+              state.toString() + " "
+                + pdpModel.getVehicleActionInfo(v).timeNeeded(), x, y - 20);
           }
-          gc.drawText("" + size, x, y);
+          gc.drawText(Double.toString(size), x, y);
           drawMore(gc, vp, time, v, p, posMap);
         }
       }
 
       final Collection<Parcel> parcels = pdpModel.getParcels(
-          ParcelState.AVAILABLE, ParcelState.ANNOUNCED);
+        ParcelState.AVAILABLE, ParcelState.ANNOUNCED);
       for (final Parcel parcel : parcels) {
 
         final Point p = posMap.get(parcel);
@@ -150,7 +150,7 @@ public final class PDPModelRenderer implements ModelRenderer {
           final int y = vp.toCoordY(p.y);
           gc.setForeground(lightGray);
           gc.drawLine(x, y, vp.toCoordX(parcel.getDestination().x),
-              vp.toCoordY(parcel.getDestination().y));
+            vp.toCoordY(parcel.getDestination().y));
 
           if (parcel.getPickupTimeWindow().isBeforeStart(time)) {
             gc.setBackground(darkGreen);
@@ -167,7 +167,7 @@ public final class PDPModelRenderer implements ModelRenderer {
   }
 
   protected void drawMore(GC gc, ViewPort vp, long time, Vehicle v, Point p,
-      Map<RoadUser, Point> posMap) {}
+    Map<RoadUser, Point> posMap) {}
 
   @Nullable
   @Override

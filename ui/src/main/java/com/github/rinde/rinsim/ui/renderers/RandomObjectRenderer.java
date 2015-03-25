@@ -34,7 +34,7 @@ import com.github.rinde.rinsim.geom.Point;
 
 /**
  * @author Rinde van Lon (rinde.vanlon@cs.kuleuven.be)
- * 
+ *
  */
 public final class RandomObjectRenderer implements ModelRenderer {
 
@@ -64,14 +64,14 @@ public final class RandomObjectRenderer implements ModelRenderer {
         gc.setBackground(defaultColor);
 
         final int x = (int) (viewPort.origin.x + (p.x - viewPort.rect.min.x)
-            * viewPort.scale)
-            - radius;
+          * viewPort.scale)
+          - radius;
         final int y = (int) (viewPort.origin.y + (p.y - viewPort.rect.min.y)
-            * viewPort.scale)
-            - radius;
+          * viewPort.scale)
+          - radius;
 
         gc.fillOval(x, y, 2 * radius, 2 * radius);
-        gc.drawText(entry.getKey() + "", x + 5, y - 15);
+        gc.drawText(entry.getKey().toString(), x + 5, y - 15);
       }
     }
   }
