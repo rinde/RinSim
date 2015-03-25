@@ -1,5 +1,9 @@
 # Release notes
 
+## v3.2.1
+ * CommUser.getPosition() now returns an optional instead of a position, CommModel and CommDevice have been adapted accordingly
+ * Bug fixes
+
 ## v3.2.0
  * CommModel replaces the old CommunicationModel. Has a new API and is better tested.
  * Serializers have moved to graph.io package. Reworked API and fixed some bugs.
