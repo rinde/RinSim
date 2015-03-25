@@ -15,7 +15,6 @@
  */
 package com.github.rinde.rinsim.examples.demo;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Sets.newHashSet;
 
@@ -87,23 +86,23 @@ public final class SwarmDemo {
 
     final RandomGenerator rng = new MersenneTwister(123);
     final Simulator sim = Simulator.builder()
-        .addModel(PlaneRoadModel.builder()
-            .setMinPoint(new Point(0, 0))
-            .setMaxPoint(new Point(4500, 1200))
-            .setDistanceUnit(SI.METER)
-            .setSpeedUnit(NonSI.KILOMETERS_PER_HOUR)
-            .setMaxSpeed(1000d)
-            .build())
-        .build();
+      .addModel(PlaneRoadModel.builder()
+        .setMinPoint(new Point(0, 0))
+        .setMaxPoint(new Point(4500, 1200))
+        .setDistanceUnit(SI.METER)
+        .setSpeedUnit(NonSI.KILOMETERS_PER_HOUR)
+        .setMaxSpeed(1000d)
+        .build())
+      .build();
 
     for (final Point p : points) {
       sim.register(new Vehicle(p, rng));
     }
     View.create(sim)
-        .with(PlaneRoadModelRenderer.create(), new VehicleRenderer(),
-            new DemoPanel(string, rng))
-        .setSpeedUp(8)
-        .show();
+      .with(PlaneRoadModelRenderer.create(), new VehicleRenderer(),
+        new DemoPanel(string, rng))
+      .setSpeedUp(8)
+      .show();
   }
 
   /**
@@ -116,7 +115,7 @@ public final class SwarmDemo {
    *         string.
    */
   public static ImmutableList<Point> measureString(String string, int fontSize,
-      double spacing, int vCorrection) {
+    double spacing, int vCorrection) {
     if (string.trim().isEmpty()) {
       return ImmutableList.of();
     }
@@ -139,7 +138,7 @@ public final class SwarmDemo {
     measureGC.setFont(newFont);
 
     final org.eclipse.swt.graphics.Point extent = measureGC
-        .textExtent(stringToDraw);
+      .textExtent(stringToDraw);
     measureGC.dispose();
 
     final Image image = new Image(display, extent.x, extent.y);
@@ -150,14 +149,14 @@ public final class SwarmDemo {
     gc.drawText(stringToDraw, 0, 0);
 
     final ImmutableList.Builder<Point> coordinateBuilder = ImmutableList
-        .builder();
+      .builder();
     final int white = (int) Math.pow(2, 24) / 2 - 1;
     for (int i = 0; i < image.getBounds().width; i++) {
       for (int j = vCorrection; j < image.getBounds().height; j++) {
         final int color = image.getImageData().getPixel(i, j);
         if (color < white) {
           coordinateBuilder.add(new Point(i * spacing, (j - vCorrection)
-              * spacing));
+            * spacing));
         }
       }
     }
@@ -219,7 +218,7 @@ public final class SwarmDemo {
     private void doSetDestination(Point dest) {
       destPos = dest;
       speed = Point.distance(rm.get().getPosition(this), destPos)
-          / (30 + 40 * rng.nextDouble());
+        / (30 + 40 * rng.nextDouble());
     }
 
     /**
@@ -289,9 +288,9 @@ public final class SwarmDemo {
 
     @Override
     public void handleEvent(@Nullable Event event) {
-      checkNotNull(event);
+      assert event != null;
       final Iterator<Point> points = measureString(
-          ((Text) event.widget).getText(), FONT_SIZE, 30d, 0).iterator();
+        ((Text) event.widget).getText(), FONT_SIZE, 30d, 0).iterator();
       final List<Vehicle> vs = newArrayList(vehicles);
       if (event.type == SWT.DefaultSelection) {
         Collections.shuffle(vs, new RandomAdaptor(rng));
@@ -331,8 +330,8 @@ public final class SwarmDemo {
         for (final Entry<RoadUser, Point> entry : objects.entrySet()) {
           final Point p = entry.getValue();
           gc.fillOval((int) (vp.origin.x + (p.x - vp.rect.min.x) * vp.scale)
-              - radius, (int) (vp.origin.y + (p.y - vp.rect.min.y) * vp.scale)
-              - radius, 2 * radius, 2 * radius);
+            - radius, (int) (vp.origin.y + (p.y - vp.rect.min.y) * vp.scale)
+            - radius, 2 * radius, 2 * radius);
         }
       }
     }
