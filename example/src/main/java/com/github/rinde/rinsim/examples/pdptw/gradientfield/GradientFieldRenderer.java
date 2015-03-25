@@ -19,6 +19,7 @@ import static com.google.common.base.Verify.verifyNotNull;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import javax.annotation.Nullable;
 
@@ -61,10 +62,11 @@ class GradientFieldRenderer implements ModelRenderer {
         }
         int dia;
         RGB color = null;
-        for (final Point p : fields.keySet()) {
+        for (final Entry<Point, Float> entry : fields.entrySet()) {
+          final Point p = entry.getKey();
+          final float field = entry.getValue();
           final int x = vp.toCoordX(tp.x + p.x / 6d);
           final int y = vp.toCoordY(tp.y + p.y / 6d);
-          final float field = fields.get(p);
 
           if (field < 0) {
             dia = (int) (field / -min * 6);
