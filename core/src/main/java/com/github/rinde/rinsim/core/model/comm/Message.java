@@ -46,7 +46,7 @@ public abstract class Message {
 
   /**
    * @return <code>true</code> if this message is broadcast, or
-   *         <code>false<code> if this message is a direct message.
+   *         <code>false</code> if this message is a direct message.
    */
   public boolean isBroadcast() {
     return !to().isPresent();
