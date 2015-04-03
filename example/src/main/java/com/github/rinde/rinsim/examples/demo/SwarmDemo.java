@@ -49,13 +49,13 @@ import org.eclipse.swt.widgets.Text;
 
 import com.github.rinde.rinsim.core.Simulator;
 import com.github.rinde.rinsim.core.TickListener;
-import com.github.rinde.rinsim.core.TimeLapse;
 import com.github.rinde.rinsim.core.model.ModelProvider;
 import com.github.rinde.rinsim.core.model.ModelReceiver;
 import com.github.rinde.rinsim.core.model.road.MovingRoadUser;
 import com.github.rinde.rinsim.core.model.road.PlaneRoadModel;
 import com.github.rinde.rinsim.core.model.road.RoadModel;
 import com.github.rinde.rinsim.core.model.road.RoadUser;
+import com.github.rinde.rinsim.core.model.time.TimeLapse;
 import com.github.rinde.rinsim.geom.Point;
 import com.github.rinde.rinsim.ui.View;
 import com.github.rinde.rinsim.ui.renderers.ModelRenderer;
@@ -91,8 +91,7 @@ public final class SwarmDemo {
         .setMaxPoint(new Point(4500, 1200))
         .setDistanceUnit(SI.METER)
         .setSpeedUnit(NonSI.KILOMETERS_PER_HOUR)
-        .setMaxSpeed(1000d)
-        .build())
+        .setMaxSpeed(1000d))
       .build();
 
     for (final Point p : points) {

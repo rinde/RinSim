@@ -25,11 +25,9 @@ import java.util.Set;
 
 import org.apache.commons.math3.random.RandomGenerator;
 
-import com.github.rinde.rinsim.core.Simulator.SimulatorEventType;
 import com.github.rinde.rinsim.core.SimulatorAPI;
 import com.github.rinde.rinsim.core.SimulatorUser;
 import com.github.rinde.rinsim.core.TickListener;
-import com.github.rinde.rinsim.core.TimeLapse;
 import com.github.rinde.rinsim.core.model.AbstractModel;
 import com.github.rinde.rinsim.core.model.ModelProvider;
 import com.github.rinde.rinsim.core.model.ModelReceiver;
@@ -37,6 +35,7 @@ import com.github.rinde.rinsim.core.model.pdp.PDPModel;
 import com.github.rinde.rinsim.core.model.pdp.PDPModel.PDPModelEventType;
 import com.github.rinde.rinsim.core.model.pdp.PDPModelEvent;
 import com.github.rinde.rinsim.core.model.road.RoadModel;
+import com.github.rinde.rinsim.core.model.time.TimeLapse;
 import com.github.rinde.rinsim.event.Event;
 import com.github.rinde.rinsim.event.Listener;
 import com.github.rinde.rinsim.geom.Point;
@@ -88,8 +87,6 @@ class AgvModel extends AbstractModel<AGV> implements TickListener,
   @Override
   public void setSimulator(SimulatorAPI api) {
     simulator = Optional.of(api);
-    simulator.get().getEventAPI()
-      .addListener(this, SimulatorEventType.CONFIGURED);
   }
 
   void init() {
@@ -137,38 +134,39 @@ class AgvModel extends AbstractModel<AGV> implements TickListener,
 
   @Override
   public void handleEvent(Event e) {
-    if (e.getEventType() == SimulatorEventType.CONFIGURED) {
-      init();
-    } else {
-      verify(e instanceof PDPModelEvent);
-      final PDPModelEvent event = (PDPModelEvent) e;
-      if (e.getEventType() == PDPModelEventType.END_PICKUP) {
-        occupiedPositions.remove(((Box) event.parcel).origin);
-      }
-      if (e.getEventType() == PDPModelEventType.END_DELIVERY) {
-        final long duration = DoubleMath.roundToLong(
-          FactoryExample.SERVICE_DURATION / 2d
-            + rng.nextDouble() * FactoryExample.SERVICE_DURATION,
-          RoundingMode.CEILING);
-        simulator.get().unregister(event.parcel);
-
-        final BoxHandle bh = ((Box) event.parcel).boxHandle;
-        bh.wordIndex = (bh.wordIndex + 1) % points.size();
-
-        Point dest;
-        if (bh.index >= points.get(bh.wordIndex).size()) {
-          dest = rndBorder();
-        } else {
-          dest = points.get(bh.wordIndex).get(bh.index);
-          occupiedPositions.add(dest);
-        }
-
-        final Box b = new Box(event.parcel.getDestination(), dest, duration, bh);
-        bh.box = b;
-
-        simulator.get().register(b);
-      }
+    // FIXME
+    // if (e.getEventType() == SimulatorEventType.CONFIGURED) {
+    // init();
+    // } else {
+    verify(e instanceof PDPModelEvent);
+    final PDPModelEvent event = (PDPModelEvent) e;
+    if (e.getEventType() == PDPModelEventType.END_PICKUP) {
+      occupiedPositions.remove(((Box) event.parcel).origin);
     }
+    if (e.getEventType() == PDPModelEventType.END_DELIVERY) {
+      final long duration = DoubleMath.roundToLong(
+        FactoryExample.SERVICE_DURATION / 2d
+          + rng.nextDouble() * FactoryExample.SERVICE_DURATION,
+        RoundingMode.CEILING);
+      simulator.get().unregister(event.parcel);
+
+      final BoxHandle bh = ((Box) event.parcel).boxHandle;
+      bh.wordIndex = (bh.wordIndex + 1) % points.size();
+
+      Point dest;
+      if (bh.index >= points.get(bh.wordIndex).size()) {
+        dest = rndBorder();
+      } else {
+        dest = points.get(bh.wordIndex).get(bh.index);
+        occupiedPositions.add(dest);
+      }
+
+      final Box b = new Box(event.parcel.getDestination(), dest, duration, bh);
+      bh.box = b;
+
+      simulator.get().register(b);
+    }
+    // }
   }
 
   Point rndBorder() {

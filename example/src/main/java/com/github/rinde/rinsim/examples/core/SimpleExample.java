@@ -19,10 +19,10 @@ import org.apache.commons.math3.random.RandomGenerator;
 
 import com.github.rinde.rinsim.core.Simulator;
 import com.github.rinde.rinsim.core.TickListener;
-import com.github.rinde.rinsim.core.TimeLapse;
 import com.github.rinde.rinsim.core.model.road.MovingRoadUser;
 import com.github.rinde.rinsim.core.model.road.PlaneRoadModel;
 import com.github.rinde.rinsim.core.model.road.RoadModel;
+import com.github.rinde.rinsim.core.model.time.TimeLapse;
 import com.github.rinde.rinsim.geom.Point;
 import com.github.rinde.rinsim.ui.View;
 import com.github.rinde.rinsim.ui.renderers.PlaneRoadModelRenderer;
@@ -61,21 +61,20 @@ public final class SimpleExample {
   public static void run(boolean testing) {
     // initialize a new Simulator instance
     final Simulator sim = Simulator.builder()
-        // set the length of a simulation 'tick'
-        .setTickLength(1000L)
-        // set the random seed we use in this 'experiment'
-        .setRandomSeed(123L)
-        // add a PlaneRoadModel, a model which facilitates the moving of
-        // RoadUsers on a plane. The plane is bounded by two corner points:
-        // (0,0) and (10,10)
-        .addModel(
-            PlaneRoadModel.builder()
-                .setMinPoint(MIN_POINT)
-                .setMaxPoint(MAX_POINT)
-                .setMaxSpeed(VEHICLE_SPEED_KMH)
-                .build()
-        )
-        .build();
+      // set the length of a simulation 'tick'
+      .setTickLength(1000L)
+      // set the random seed we use in this 'experiment'
+      .setRandomSeed(123L)
+      // add a PlaneRoadModel, a model which facilitates the moving of
+      // RoadUsers on a plane. The plane is bounded by two corner points:
+      // (0,0) and (10,10)
+      .addModel(
+        PlaneRoadModel.builder()
+          .setMinPoint(MIN_POINT)
+          .setMaxPoint(MAX_POINT)
+          .setMaxSpeed(VEHICLE_SPEED_KMH)
+      )
+      .build();
 
     // add a number of drivers on the road
     final int numDrivers = 200;
@@ -91,17 +90,17 @@ public final class SimpleExample {
     // (indicating its boundaries), and the drivers are rendered as red
     // dots.
     final View.Builder viewBuilder = View.create(sim)
-        .with(PlaneRoadModelRenderer.create())
-        .with(RoadUserRenderer.builder());
+      .with(PlaneRoadModelRenderer.create())
+      .with(RoadUserRenderer.builder());
 
     if (testing) {
       final int speedUp = 16;
       final long simulatorStopTime = 10 * 60 * 1000;
       viewBuilder
-          .setSpeedUp(speedUp)
-          .enableAutoClose()
-          .enableAutoPlay()
-          .stopSimulatorAtTime(simulatorStopTime);
+        .setSpeedUp(speedUp)
+        .enableAutoClose()
+        .enableAutoPlay()
+        .stopSimulatorAtTime(simulatorStopTime);
     }
 
     viewBuilder.show();

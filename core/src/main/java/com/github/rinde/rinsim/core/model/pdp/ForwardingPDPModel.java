@@ -18,8 +18,8 @@ package com.github.rinde.rinsim.core.model.pdp;
 import java.util.Collection;
 import java.util.Set;
 
-import com.github.rinde.rinsim.core.TimeLapse;
 import com.github.rinde.rinsim.core.model.ModelProvider;
+import com.github.rinde.rinsim.core.model.time.TimeLapse;
 import com.github.rinde.rinsim.event.EventAPI;
 import com.google.common.collect.ImmutableSet;
 

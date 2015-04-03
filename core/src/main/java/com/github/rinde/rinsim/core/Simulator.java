@@ -18,13 +18,10 @@ package com.github.rinde.rinsim.core;
 import static com.google.common.base.Preconditions.checkArgument;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
-import javax.measure.Measure;
 import javax.measure.quantity.Duration;
 import javax.measure.unit.SI;
 import javax.measure.unit.Unit;
@@ -38,9 +35,15 @@ import com.github.rinde.rinsim.core.model.Model;
 import com.github.rinde.rinsim.core.model.ModelManager;
 import com.github.rinde.rinsim.core.model.ModelProvider;
 import com.github.rinde.rinsim.core.model.rand.RandomModel;
+import com.github.rinde.rinsim.core.model.time.Clock;
+import com.github.rinde.rinsim.core.model.time.TimeLapse;
+import com.github.rinde.rinsim.core.model.time.TimeModel;
 import com.github.rinde.rinsim.event.Event;
 import com.github.rinde.rinsim.event.EventAPI;
 import com.github.rinde.rinsim.event.EventDispatcher;
+import com.google.common.base.Supplier;
+import com.google.common.collect.ImmutableCollection;
+import com.google.common.collect.ImmutableSet;
 
 /**
  * Simulator is the core class of a simulation. It is responsible for managing
@@ -68,7 +71,7 @@ public final class Simulator implements SimulatorAPI {
    * The logger of the simulator.
    */
   protected static final Logger LOGGER = LoggerFactory
-      .getLogger(Simulator.class);
+    .getLogger(Simulator.class);
 
   /**
    * Enum that describes the possible types of events that the simulator can
@@ -83,18 +86,8 @@ public final class Simulator implements SimulatorAPI {
     /**
      * Indicates that the simulator has started.
      */
-    STARTED,
-
-    /**
-     * Indicates that the simulator has been configured.
-     */
-    CONFIGURED
+    STARTED
   }
-
-  /**
-   * Contains the set of registered {@link TickListener}s.
-   */
-  protected volatile Set<TickListener> tickListeners;
 
   /**
    * Reference to dispatcher of simulator events, can be used by subclasses to
@@ -103,122 +96,39 @@ public final class Simulator implements SimulatorAPI {
   protected final EventDispatcher dispatcher;
 
   /**
-   * @see #isPlaying
-   */
-  protected volatile boolean isPlaying;
-
-  /**
-   * @see #getCurrentTime()
-   */
-  protected long time;
-
-  /**
    * Model manager instance.
    */
   protected final ModelManager modelManager;
-  private boolean configured;
 
-  private Set<Object> toUnregister;
+  private final Set<Object> toUnregister;
   private final RandomGenerator rand;
-  private final long timeStep;
-  private final TimeLapse timeLapse;
+  private final Clock timeModel;
 
-  /**
-   * Create a new simulator instance.
-   * @param r The random number generator that is used in this simulator.
-   * @param step The time that passes each tick. This can be in any unit the
-   *          programmer prefers.
-   * @deprecated Use {@link #builder()} instead.
-   */
-  @Deprecated
-  public Simulator(RandomGenerator r, Measure<Long, Duration> step) {
-    this(r, step, Arrays.<Model<?>> asList());
-  }
+  Simulator(Builder b) {
+    modelManager = new ModelManager(b.buildModels());
 
-  Simulator(RandomGenerator r, Measure<Long, Duration> step,
-      List<Model<?>> models) {
-    LOGGER.info("Simulator constructor, time step {}", step);
-    checkArgument(step.getValue() > 0L,
-        "Step must be a strictly positive number.");
-    timeStep = step.getValue();
-    tickListeners = Collections
-        .synchronizedSet(new LinkedHashSet<TickListener>());
+    timeModel = modelManager.getModel(TimeModel.class);
+
+    for (final Model<?> m : modelManager.getModels()) {
+      if (m.getSupportedType().isAssignableFrom(TickListener.class)) {
+        // TODO check uniqueness
+      }
+    }
 
     toUnregister = new LinkedHashSet<>();
 
-    rand = r;
-    time = 0L;
-    // time lapse is reused in a Flyweight kind of style
-    timeLapse = new TimeLapse(step.getUnit());
-
-    modelManager = new ModelManager();
+    rand = b.rng;
 
     dispatcher = new EventDispatcher(SimulatorEventType.values());
-    for (final Model<?> m : models) {
-      register(m);
-    }
-
-    if (!models.isEmpty()) {
-
-      configure();
-    }
-  }
-
-  /**
-   * This configures the {@link Model}s in the simulator. After calling this
-   * method models can no longer be added, objects can only be registered after
-   * this method is called.
-   * @see ModelManager#configure()
-   * @deprecated Use {@link #builder()} instead.
-   */
-  @Deprecated
-  public void configure() {
-    for (final Model<?> m : modelManager.getModels()) {
-      if (m instanceof TickListener) {
-        LOGGER.info("adding {} as a tick listener", m.getClass().getName());
-        addTickListener((TickListener) m);
-      }
-    }
-    modelManager.configure();
-    configured = true;
-    dispatcher.dispatchEvent(new Event(SimulatorEventType.CONFIGURED, this));
-  }
-
-  /**
-   * Register a model to the simulator.
-   * @param model The {@link Model} instance to register.
-   * @return true if successful, false otherwise
-   * @deprecated Use {@link #builder()} instead.
-   */
-  @Deprecated
-  public boolean register(Model<?> model) {
-    if (configured) {
-      throw new IllegalStateException(
-          "cannot add model after calling configure()");
-    }
-    injectDependencies(model);
-    final boolean result = modelManager.add(model);
-    if (result) {
-      LOGGER.info("registering model {} for type {}.", model.getClass()
-          .getName(), model.getSupportedType().getName());
-    }
-    return result;
   }
 
   @Override
   public boolean register(Object obj) {
-    if (obj instanceof Model<?>) {
-      return register((Model<?>) obj);
-    }
-    if (!configured) {
-      configure();
-    }
-    checkArgument(!modelManager.getModels().isEmpty(), "No models are added.");
-    LOGGER.info("{} - register({})", time, obj);
+    checkArgument(!(obj instanceof Model<?>), "Can not register a model: %s.",
+      obj);
+
+    LOGGER.info("{} - register({})", timeModel.getCurrentTime(), obj);
     injectDependencies(obj);
-    if (obj instanceof TickListener) {
-      addTickListener((TickListener) obj);
-    }
     return modelManager.register(obj);
   }
 
@@ -231,10 +141,6 @@ public final class Simulator implements SimulatorAPI {
     if (o instanceof Model<?>) {
       throw new IllegalArgumentException("can not unregister a model");
     }
-    if (!configured) {
-      throw new IllegalStateException(
-          "can not unregister object before calling configure()");
-    }
     if (o instanceof TickListener) {
       removeTickListener((TickListener) o);
     }
@@ -243,8 +149,9 @@ public final class Simulator implements SimulatorAPI {
   }
 
   /**
-   * Inject all required dependecies basing on the declared types of the object.
-   * @param o object that need to have dependecies injected
+   * Inject all required dependencies basing on the declared types of the
+   * object.
+   * @param o object that need to have dependencies injected
    */
   protected void injectDependencies(Object o) {
     if (o instanceof SimulatorUser) {
@@ -253,10 +160,10 @@ public final class Simulator implements SimulatorAPI {
   }
 
   /**
-   * Returns a safe to modify list of all models registered in the simulator.
-   * @return list of models
+   * Returns all models registered in the simulator.
+   * @return immutable list of models.
    */
-  public List<Model<?>> getModels() {
+  public ImmutableCollection<Model<?>> getModels() {
     return modelManager.getModels();
   }
 
@@ -270,12 +177,12 @@ public final class Simulator implements SimulatorAPI {
 
   @Override
   public long getCurrentTime() {
-    return time;
+    return timeModel.getCurrentTime();
   }
 
   @Override
   public long getTimeStep() {
-    return timeStep;
+    return timeModel.getTimeStep();
   }
 
   /**
@@ -283,117 +190,70 @@ public final class Simulator implements SimulatorAPI {
    * @param listener The listener to add.
    */
   public void addTickListener(TickListener listener) {
-    tickListeners.add(listener);
+    register(listener);
   }
 
   /**
-   * Removes the listener specified. Implemented in O(1).
+   * Removes the listener specified.
    * @param listener The listener to remove
    */
   public void removeTickListener(TickListener listener) {
-    tickListeners.remove(listener);
+    unregister(listener);
   }
 
   /**
    * Start the simulation.
    */
   public void start() {
-    if (!configured) {
-      configure();
-    }
-    if (!isPlaying) {
+    if (!timeModel.isTicking()) {
       dispatcher.dispatchEvent(new Event(SimulatorEventType.STARTED, this));
     }
-    isPlaying = true;
-    while (isPlaying) {
-      tick();
-    }
+    timeModel.start();
     dispatcher.dispatchEvent(new Event(SimulatorEventType.STOPPED, this));
-  }
-
-  /**
-   * Advances the simulator with one step (the size is determined by the time
-   * step).
-   */
-  public void tick() {
-    // unregister all pending objects
-    Set<Object> copy;
-    copy = toUnregister;
-    toUnregister = new LinkedHashSet<>();
-
-    for (final Object c : copy) {
-      modelManager.unregister(c);
-    }
-
-    // using a copy to avoid concurrent modifications of this set
-    // this also means that adding or removing a TickListener is
-    // effectively executed after a 'tick'
-
-    final List<TickListener> localCopy = new ArrayList<>();
-    localCopy.addAll(tickListeners);
-
-    final long end = time + timeStep;
-    LOGGER.trace("{} ->----> tick ->----> {}", time, end);
-    for (final TickListener t : localCopy) {
-      timeLapse.initialize(time, end);
-      t.tick(timeLapse);
-    }
-    timeLapse.initialize(time, end);
-    // in the after tick the TimeLapse can no longer be consumed
-    timeLapse.consumeAll();
-    for (final TickListener t : localCopy) {
-      t.afterTick(timeLapse);
-    }
-    time += timeStep;
-
   }
 
   /**
    * Either starts or stops the simulation depending on the current state.
    */
   public void togglePlayPause() {
-    if (!isPlaying) {
+    if (!timeModel.isTicking()) {
       start();
     } else {
-      isPlaying = false;
+      stop();
     }
   }
 
-  /**
-   * Resets the time to 0.
-   */
-  public void resetTime() {
-    time = 0L;
-  }
+  // /**
+  // * Resets the time to 0.
+  // */
+  // public void resetTime() {
+  // time = 0L;
+  // }
 
   /**
    * Stops the simulation.
    */
   public void stop() {
-    isPlaying = false;
+    timeModel.stop();
+  }
+
+  public void tick() {
+    timeModel.tick();
   }
 
   /**
    * @return true if simulator is playing, false otherwise.
    */
   public boolean isPlaying() {
-    return isPlaying;
-  }
-
-  /**
-   * @return <code>true</code> if the simulator is configured, see
-   *         {@link Simulator} for more information.
-   */
-  public boolean isConfigured() {
-    return configured;
+    return timeModel.isTicking();
   }
 
   /**
    * @return An unmodifiable view on the set of tick listeners.
    */
-  public Set<TickListener> getTickListeners() {
-    return Collections.unmodifiableSet(tickListeners);
-  }
+  // public Set<TickListener> getTickListeners() {
+  // return Collections.unmodifiableSet(tickListeners);
+  // }
 
   /**
    * {@inheritDoc}
@@ -405,7 +265,7 @@ public final class Simulator implements SimulatorAPI {
 
   @Override
   public Unit<Duration> getTimeUnit() {
-    return timeLapse.getTimeUnit();
+    return timeModel.getTimeUnit();
   }
 
   @Override
@@ -431,7 +291,7 @@ public final class Simulator implements SimulatorAPI {
     RandomGenerator rng;
     Unit<Duration> timeUnit;
     long tickLength;
-    List<Model<?>> models;
+    List<Supplier<Model<?>>> models;
 
     Builder() {
       rng = new MersenneTwister(DEFAULT_SEED);
@@ -484,7 +344,7 @@ public final class Simulator implements SimulatorAPI {
      */
     public Builder setTickLength(long length) {
       checkArgument(length > 0,
-          "Tick length must be strictly positive but is %s.", length);
+        "Tick length must be strictly positive but is %s.", length);
       tickLength = length;
       return this;
     }
@@ -494,9 +354,33 @@ public final class Simulator implements SimulatorAPI {
      * @param model The model to add.
      * @return This, as per the builder pattern.
      */
-    public Builder addModel(Model<?> model) {
-      models.add(model);
+    @SuppressWarnings("unchecked")
+    public Builder addModel(Supplier<? extends Model<?>> model) {
+      models.add((Supplier<Model<?>>) model);
       return this;
+    }
+
+    ImmutableSet<Model<?>> buildModels() {
+      final ImmutableSet.Builder<Model<?>> modelsBuilder = ImmutableSet
+        .builder();
+      boolean hasRandomModel = false;
+      boolean hasTimeModel = false;
+      for (final Supplier<Model<?>> ms : models) {
+        final Model<?> m = ms.get();
+        if (m instanceof RandomModel) {
+          hasRandomModel = true;
+        } else if (m instanceof TimeModel) {
+          hasTimeModel = true;
+        }
+        modelsBuilder.add(m);
+      }
+      if (!hasRandomModel) {
+        modelsBuilder.add(RandomModel.create(rng));
+      }
+      if (!hasTimeModel) {
+        modelsBuilder.add(TimeModel.defaultSupplier().get());
+      }
+      return modelsBuilder.build();
     }
 
     /**
@@ -504,27 +388,7 @@ public final class Simulator implements SimulatorAPI {
      * @return A new {@link Simulator} instance.
      */
     public Simulator build() {
-      checkArgument(!models.isEmpty(), "At least one model must be added.");
-      final Simulator sim = new Simulator(rng, Measure.valueOf(tickLength,
-          timeUnit));
-      boolean hasRandomModel = false;
-      for (final Model<?> m : models) {
-        if (m instanceof RandomModel) {
-          hasRandomModel = true;
-        }
-      }
-      if (!hasRandomModel) {
-        models.add(RandomModel.create(rng));
-      }
-      for (final Model<?> m : models) {
-        sim.register(m);
-        if (m instanceof RandomModel) {
-          hasRandomModel = true;
-        }
-      }
-
-      sim.configure();
-      return sim;
+      return new Simulator(this);
     }
   }
 }

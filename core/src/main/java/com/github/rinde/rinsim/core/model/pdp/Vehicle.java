@@ -16,8 +16,8 @@
 package com.github.rinde.rinsim.core.model.pdp;
 
 import com.github.rinde.rinsim.core.TickListener;
-import com.github.rinde.rinsim.core.TimeLapse;
 import com.github.rinde.rinsim.core.model.road.MovingRoadUser;
+import com.github.rinde.rinsim.core.model.time.TimeLapse;
 
 /**
  * Abstract base class for vehicle concept: moving {@link Container}.

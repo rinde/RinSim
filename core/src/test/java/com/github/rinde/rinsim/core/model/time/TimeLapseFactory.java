@@ -13,14 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.github.rinde.rinsim.core;
+package com.github.rinde.rinsim.core.model.time;
 
 import javax.measure.quantity.Duration;
 import javax.measure.unit.NonSI;
 import javax.measure.unit.SI;
 import javax.measure.unit.Unit;
 
-import com.github.rinde.rinsim.core.TimeLapse;
+import com.github.rinde.rinsim.core.model.time.TimeLapse;
 
 /**
  * @author Rinde van Lon (rinde.vanlon@cs.kuleuven.be)

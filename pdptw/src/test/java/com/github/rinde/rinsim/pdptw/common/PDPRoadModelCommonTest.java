@@ -29,8 +29,6 @@ import javax.measure.unit.SI;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.github.rinde.rinsim.core.TimeLapse;
-import com.github.rinde.rinsim.core.TimeLapseFactory;
 import com.github.rinde.rinsim.core.model.ModelProvider;
 import com.github.rinde.rinsim.core.model.TestModelProvider;
 import com.github.rinde.rinsim.core.model.pdp.DefaultPDPModel;
@@ -40,6 +38,8 @@ import com.github.rinde.rinsim.core.model.pdp.Parcel;
 import com.github.rinde.rinsim.core.model.pdp.TimeWindowPolicy.TimeWindowPolicies;
 import com.github.rinde.rinsim.core.model.road.PlaneRoadModel;
 import com.github.rinde.rinsim.core.model.road.RoadModel;
+import com.github.rinde.rinsim.core.model.time.TimeLapse;
+import com.github.rinde.rinsim.core.model.time.TimeLapseFactory;
 import com.github.rinde.rinsim.core.pdptw.DefaultDepot;
 import com.github.rinde.rinsim.core.pdptw.DefaultParcel;
 import com.github.rinde.rinsim.core.pdptw.DefaultVehicle;

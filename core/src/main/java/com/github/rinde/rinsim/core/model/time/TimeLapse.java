@@ -13,12 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.github.rinde.rinsim.core;
+package com.github.rinde.rinsim.core.model.time;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
 import javax.measure.quantity.Duration;
 import javax.measure.unit.Unit;
+
+import com.github.rinde.rinsim.core.Simulator;
+import com.github.rinde.rinsim.core.TickListener;
 
 /**
  * Represents a consumable interval of time: [start, end). Instances of time

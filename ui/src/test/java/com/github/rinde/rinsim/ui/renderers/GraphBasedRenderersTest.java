@@ -21,10 +21,10 @@ import org.junit.experimental.categories.Category;
 
 import com.github.rinde.rinsim.core.Simulator;
 import com.github.rinde.rinsim.core.TickListener;
-import com.github.rinde.rinsim.core.TimeLapse;
 import com.github.rinde.rinsim.core.model.road.CollisionGraphRoadModel;
 import com.github.rinde.rinsim.core.model.road.MovingRoadUser;
 import com.github.rinde.rinsim.core.model.road.RoadModel;
+import com.github.rinde.rinsim.core.model.time.TimeLapse;
 import com.github.rinde.rinsim.geom.Graphs;
 import com.github.rinde.rinsim.geom.LengthData;
 import com.github.rinde.rinsim.geom.ListenableGraph;
@@ -47,62 +47,60 @@ public class GraphBasedRenderersTest {
   @Test
   public void testRenderer() {
     final ListenableGraph<LengthData> graph = new ListenableGraph<>(
-        new TableGraph<LengthData>());
+      new TableGraph<LengthData>());
 
     Graphs.addPath(graph, new Point(0, 0), new Point(10, 0), new Point(10,
-        10), new Point(0, 10), new Point(0, 0));
+      10), new Point(0, 10), new Point(0, 0));
 
     final Simulator sim = Simulator.builder()
-        .addModel(
-            CollisionGraphRoadModel.builder(graph).build()
-        )
-        .build();
+      .addModel(CollisionGraphRoadModel.builder(graph))
+      .build();
 
     graph.addConnection(new Point(0, 0), new Point(20, 20));
     Graphs.addPath(graph, new Point(0, 0), new Point(0, 20),
-        new Point(20, 20), new Point(20, 0), new Point(0, 0));
+      new Point(20, 20), new Point(20, 0), new Point(0, 0));
     Graphs.addBiPath(graph, new Point(20, 0), new Point(40, 0),
-        new Point(40, 20), new Point(20, 20));
+      new Point(40, 20), new Point(20, 20));
 
     Graphs.addBiPath(graph, new Point(20, 20), new Point(40, 35), new
-        Point(60,
-            20), new Point(60, 10), new Point(40, 20));
+      Point(60,
+        20), new Point(60, 10), new Point(40, 20));
 
     Graphs.addPath(graph, new Point(60, 10), new Point(60, 6),
-        new Point(56, 6),
-        new Point(60, 2), new Point(40, 0));
+      new Point(56, 6),
+      new Point(60, 2), new Point(40, 0));
 
     Graphs.addBiPath(graph, new Point(20, 20), new Point(20, 30), new
-        Point(20,
-            40));
+      Point(20,
+        40));
 
     for (int i = 0; i < 4; i++) {
       sim.register(new Agent(sim.getRandomGenerator()));
     }
     View.create(sim)
-        .with(WarehouseRenderer.builder()
-            .setMargin(0)
-            .drawOneWayStreetArrows()
-            .showNodeOccupancy()
-            .showNodes()
-        )
-        .with(AGVRenderer.builder()
-            .showVehicleCreationNumber()
-            .useDifferentColorsForVehicles()
-            .showVehicleCoordinates()
-            .showVehicleOrigin()
-        )
-        .with(GraphRoadModelRenderer.builder()
-            .showDirectionArrows()
-            .showNodeCoordinates()
-            .setMargin(1)
-            .showNodes()
-        )
-        .enableAutoPlay()
-        .stopSimulatorAtTime(300 * 1000L)
-        .enableAutoClose()
-        .setSpeedUp(8)
-        .show();
+      .with(WarehouseRenderer.builder()
+        .setMargin(0)
+        .drawOneWayStreetArrows()
+        .showNodeOccupancy()
+        .showNodes()
+      )
+      .with(AGVRenderer.builder()
+        .showVehicleCreationNumber()
+        .useDifferentColorsForVehicles()
+        .showVehicleCoordinates()
+        .showVehicleOrigin()
+      )
+      .with(GraphRoadModelRenderer.builder()
+        .showDirectionArrows()
+        .showNodeCoordinates()
+        .setMargin(1)
+        .showNodes()
+      )
+      .enableAutoPlay()
+      .stopSimulatorAtTime(300 * 1000L)
+      .enableAutoClose()
+      .setSpeedUp(8)
+      .show();
   }
 
   static class Agent implements TickListener, MovingRoadUser {

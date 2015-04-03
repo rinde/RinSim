@@ -23,7 +23,6 @@ import org.junit.experimental.categories.Category;
 
 import com.github.rinde.rinsim.core.Simulator;
 import com.github.rinde.rinsim.core.TickListener;
-import com.github.rinde.rinsim.core.TimeLapse;
 import com.github.rinde.rinsim.core.model.comm.CommDevice;
 import com.github.rinde.rinsim.core.model.comm.CommDeviceBuilder;
 import com.github.rinde.rinsim.core.model.comm.CommModel;
@@ -32,6 +31,7 @@ import com.github.rinde.rinsim.core.model.comm.MessageContents;
 import com.github.rinde.rinsim.core.model.road.MovingRoadUser;
 import com.github.rinde.rinsim.core.model.road.PlaneRoadModel;
 import com.github.rinde.rinsim.core.model.road.RoadModel;
+import com.github.rinde.rinsim.core.model.time.TimeLapse;
 import com.github.rinde.rinsim.geom.Point;
 import com.github.rinde.rinsim.testutil.GuiTests;
 import com.github.rinde.rinsim.ui.View;
@@ -51,8 +51,8 @@ public class CommRendererTest {
     final RandomGenerator rng = new MersenneTwister(123L);
     final Simulator sim = Simulator.builder()
       .setRandomGenerator(rng)
-      .addModel(CommModel.builder().build())
-      .addModel(PlaneRoadModel.builder().build())
+      .addModel(CommModel.builder())
+      .addModel(PlaneRoadModel.builder())
       .build();
 
     for (int i = 0; i < 20; i++) {

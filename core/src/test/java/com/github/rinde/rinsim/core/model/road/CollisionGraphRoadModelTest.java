@@ -15,7 +15,7 @@
  */
 package com.github.rinde.rinsim.core.model.road;
 
-import static com.github.rinde.rinsim.core.TimeLapseFactory.ms;
+import static com.github.rinde.rinsim.core.model.time.TimeLapseFactory.ms;
 import static com.github.rinde.rinsim.geom.PointAssert.assertPointEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -26,7 +26,7 @@ import java.math.RoundingMode;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.github.rinde.rinsim.core.TimeLapse;
+import com.github.rinde.rinsim.core.model.time.TimeLapse;
 import com.github.rinde.rinsim.geom.Graphs;
 import com.github.rinde.rinsim.geom.LengthData;
 import com.github.rinde.rinsim.geom.ListenableGraph;

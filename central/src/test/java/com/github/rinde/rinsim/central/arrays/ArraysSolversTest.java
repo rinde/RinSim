@@ -34,7 +34,6 @@ import javax.measure.quantity.Velocity;
 import javax.measure.unit.ProductUnit;
 import javax.measure.unit.SI;
 
-import org.apache.commons.math3.random.MersenneTwister;
 import org.junit.Test;
 
 import com.github.rinde.rinsim.central.Solvers;
@@ -45,6 +44,7 @@ import com.github.rinde.rinsim.central.arrays.ArraysSolvers.ArraysObject;
 import com.github.rinde.rinsim.core.Simulator;
 import com.github.rinde.rinsim.core.model.pdp.DefaultPDPModel;
 import com.github.rinde.rinsim.core.model.pdp.Depot;
+import com.github.rinde.rinsim.core.model.pdp.TimeWindowPolicy.TimeWindowPolicies;
 import com.github.rinde.rinsim.core.model.road.PlaneRoadModel;
 import com.github.rinde.rinsim.core.pdptw.DefaultDepot;
 import com.github.rinde.rinsim.core.pdptw.DefaultParcel;
@@ -54,6 +54,7 @@ import com.github.rinde.rinsim.geom.Point;
 import com.github.rinde.rinsim.pdptw.common.PDPRoadModel;
 import com.github.rinde.rinsim.pdptw.common.RouteFollowingVehicle;
 import com.github.rinde.rinsim.util.TimeWindow;
+import com.google.common.base.Suppliers;
 
 /**
  * @author Rinde van Lon
@@ -70,10 +71,10 @@ public class ArraysSolversTest {
 
     // input in kilometers, output in minutes (rounded up), speed 40 km/h
     final Measure<Double, Velocity> speed1 = Measure.valueOf(40d,
-        KILOMETERS_PER_HOUR);
+      KILOMETERS_PER_HOUR);
     final int[][] matrix1 = ArraysSolvers
-        .toTravelTimeMatrix(asList(p0, p1, p2, p3), KILOMETER, speed1, MINUTE,
-            RoundingMode.CEILING);
+      .toTravelTimeMatrix(asList(p0, p1, p2, p3), KILOMETER, speed1, MINUTE,
+        RoundingMode.CEILING);
     assertArrayEquals(new int[] { 0, 15, 22, 15 }, matrix1[0]);
     assertArrayEquals(new int[] { 15, 0, 15, 22 }, matrix1[1]);
     assertArrayEquals(new int[] { 22, 15, 0, 15 }, matrix1[2]);
@@ -83,10 +84,10 @@ public class ArraysSolversTest {
     // input in meters, output in milliseconds (round down), speed .0699
     // m/ms
     final Measure<Double, Velocity> speed2 = Measure.valueOf(.0699,
-        new ProductUnit<Velocity>(METER.divide(MILLI(SECOND))));
+      new ProductUnit<Velocity>(METER.divide(MILLI(SECOND))));
     final int[][] matrix2 = ArraysSolvers.toTravelTimeMatrix(
-        asList(p0, p1, p2, p3, p4), METER, speed2, MILLI(SECOND),
-        RoundingMode.FLOOR);
+      asList(p0, p1, p2, p3, p4), METER, speed2, MILLI(SECOND),
+      RoundingMode.FLOOR);
     assertArrayEquals(new int[] { 0, 143, 202, 143, 163 }, matrix2[0]);
     assertArrayEquals(new int[] { 143, 0, 143, 202, 45 }, matrix2[1]);
     assertArrayEquals(new int[] { 202, 143, 0, 143, 101 }, matrix2[2]);
@@ -123,7 +124,7 @@ public class ArraysSolversTest {
     final int[] serviceTimes = new int[] { 0, 5, 5, 0 };
     final int[] dueDates = new int[] { 40, 70, 80, 110 };
     final int tardiness = ArraysSolvers.computeRouteTardiness(route,
-        arrivalTimes, serviceTimes, dueDates, 0);
+      arrivalTimes, serviceTimes, dueDates, 0);
     assertEquals(20, tardiness);
   }
 
@@ -134,43 +135,43 @@ public class ArraysSolversTest {
   @Test
   public void testToInventoriesArrayWithDuplicatePositions() {
 
-    final Simulator sim = new Simulator(new MersenneTwister(123),
-        Measure.valueOf(1000L, SI.MILLI(SI.SECOND)));
-
-    sim.register(new DefaultPDPModel());
-    sim.register(new PDPRoadModel(new PlaneRoadModel(new Point(0, 0),
-        new Point(10, 10), 50), false));
-    sim.configure();
+    final Simulator sim = Simulator
+      .builder()
+      .addModel(DefaultPDPModel.supplier(TimeWindowPolicies.LIBERAL))
+      .addModel(
+        Suppliers.ofInstance(new PDPRoadModel(PlaneRoadModel.builder().build(),
+          false)))
+      .build();
 
     final RouteFollowingVehicle rfv = new RouteFollowingVehicle(VehicleDTO
-        .builder()
-        .startPosition(new Point(1, 1))
-        .speed(50d)
-        .capacity(10)
-        .availabilityTimeWindow(new TimeWindow(0, 1000000))
-        .build(),
-        false);
+      .builder()
+      .startPosition(new Point(1, 1))
+      .speed(50d)
+      .capacity(10)
+      .availabilityTimeWindow(new TimeWindow(0, 1000000))
+      .build(),
+      false);
     final Depot depot = new DefaultDepot(new Point(5, 5));
 
     final DefaultParcel dp1 = new DefaultParcel(
-        ParcelDTO.builder(new Point(2, 2), new Point(3, 3))
-            .pickupTimeWindow(new TimeWindow(0, 1000))
-            .deliveryTimeWindow(new TimeWindow(0, 1000))
-            .neededCapacity(0)
-            .orderAnnounceTime(0L)
-            .pickupDuration(5L)
-            .deliveryDuration(5L)
-            .build());
+      ParcelDTO.builder(new Point(2, 2), new Point(3, 3))
+        .pickupTimeWindow(new TimeWindow(0, 1000))
+        .deliveryTimeWindow(new TimeWindow(0, 1000))
+        .neededCapacity(0)
+        .orderAnnounceTime(0L)
+        .pickupDuration(5L)
+        .deliveryDuration(5L)
+        .build());
 
     final DefaultParcel dp2 = new DefaultParcel(
-        ParcelDTO.builder(new Point(2, 2), new Point(3, 3))
-            .pickupTimeWindow(new TimeWindow(0, 1000))
-            .deliveryTimeWindow(new TimeWindow(0, 1000))
-            .neededCapacity(0)
-            .orderAnnounceTime(0L)
-            .pickupDuration(5L)
-            .deliveryDuration(5L)
-            .build());
+      ParcelDTO.builder(new Point(2, 2), new Point(3, 3))
+        .pickupTimeWindow(new TimeWindow(0, 1000))
+        .deliveryTimeWindow(new TimeWindow(0, 1000))
+        .neededCapacity(0)
+        .orderAnnounceTime(0L)
+        .pickupDuration(5L)
+        .deliveryDuration(5L)
+        .build());
 
     sim.register(depot);
     sim.register(rfv);
@@ -184,16 +185,16 @@ public class ArraysSolversTest {
     }
 
     final SimulationConverter simConv = Solvers.converterBuilder().with(sim)
-        .build();
+      .build();
     final StateContext sc = simConv.convert(SolveArgs.create()
-        .noCurrentRoutes().useAllParcels());
+      .noCurrentRoutes().useAllParcels());
 
     final ArraysObject singleVehicleArrays = ArraysSolvers
-        .toSingleVehicleArrays(sc.state,
-            SI.MILLI(SI.SECOND));
+      .toSingleVehicleArrays(sc.state,
+        SI.MILLI(SI.SECOND));
 
     final int[][] inventories = ArraysSolvers.toInventoriesArray(sc.state,
-        singleVehicleArrays);
+      singleVehicleArrays);
 
     assertArrayEquals(new int[][] { { 0, 1 }, { 0, 2 } }, inventories);
   }

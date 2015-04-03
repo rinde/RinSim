@@ -16,75 +16,50 @@
 package com.github.rinde.rinsim.core.model;
 
 import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.base.Preconditions.checkState;
+import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.Collection;
-import java.util.Collections;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Set;
 
 import javax.annotation.Nullable;
 
-import com.google.common.collect.LinkedHashMultimap;
-import com.google.common.collect.Multimap;
+import com.google.common.collect.ImmutableCollection;
+import com.google.common.collect.ImmutableMultimap;
+import com.google.common.collect.ImmutableSet;
 
 /**
- * Models manager keeps track of all models used in the simulator. It is
+ * Model manager keeps track of all models used in the simulator. It is
  * responsible for adding a simulation object to the appropriate models
  *
  * @author Bartosz Michalik
  * @author Rinde van Lon
  */
-public class ModelManager implements ModelProvider {
-
-  private final Multimap<Class<? extends Object>, Model<? extends Object>> registry;
-  private final List<Model<? extends Object>> models;
-  private boolean configured;
+public final class ModelManager implements ModelProvider {
+  private final ImmutableMultimap<Class<?>, Model<?>> registry;
 
   /**
    * Instantiate a new model manager.
+   * @param models
    */
-  public ModelManager() {
-    registry = LinkedHashMultimap.create();
-    models = new LinkedList<>();
-  }
+  public ModelManager(ImmutableSet<? extends Model<?>> models) {
+    final ImmutableMultimap.Builder<Class<?>, Model<?>> builder =
+      ImmutableMultimap.builder();
+    builder.put(ModelReceiver.class, new ModelReceiverModel(this));
 
-  /**
-   * Adds a model to the manager. Note: a model can be added only once.
-   * @param model The model to be added.
-   * @return true when the addition was successful, false otherwise.
-   * @throws IllegalStateException when method called after calling configure
-   */
-  public boolean add(Model<?> model) {
-    checkState(!configured, "model can not be registered after configure()");
-    final Class<?> supportedType = model.getSupportedType();
-    checkArgument(supportedType != null,
-        "model must implement getSupportedType() and return a non-null");
-    models.add(model);
-    final boolean result = registry.put(supportedType, model);
-    if (!result) {
-      models.remove(model);
-    }
-    return result;
-  }
-
-  /**
-   * Method that allows for initialization of the manager (e.g., resolution of
-   * the dependencies between models) Should be called after all models were
-   * registered in the manager.
-   */
-  public void configure() {
     for (final Model<?> m : models) {
-      if (m instanceof ModelReceiver) {
-        ((ModelReceiver) m).registerModelProvider(this);
-      }
+      final Class<?> suptype = m.getSupportedType();
+      checkNotNull(suptype,
+        "Model.getSupportedType() must return a non-null, model: %s.", m);
+      builder.put(suptype, m);
+    }
+
+    registry = builder.build();
+    for (final Model<?> m : models) {
       doRegister(m);
     }
     for (final Model<?> m : models) {
       m.finalizeConfiguration();
     }
-    configured = true;
   }
 
   @SuppressWarnings("unchecked")
@@ -94,7 +69,7 @@ public class ModelManager implements ModelProvider {
     for (final Class<?> modelSupportedType : modelSupportedTypes) {
       if (modelSupportedType.isAssignableFrom(object.getClass())) {
         final Collection<Model<?>> assignableModels = registry
-            .get(modelSupportedType);
+          .get(modelSupportedType);
         for (final Model<?> m : assignableModels) {
           success |= ((Model<T>) m).register(object);
         }
@@ -110,16 +85,13 @@ public class ModelManager implements ModelProvider {
    * @return <code>true</code> if object was added to at least one model
    */
   public <T> boolean register(T object) {
-    if (object instanceof Model) {
-      return add((Model<?>) object);
-    }
-    checkState(configured,
-        "can not register an object if configure() has not been called");
+    checkArgument(!(object instanceof Model), "Can not register a model: %s.",
+      object);
     final boolean success = doRegister(object);
     checkArgument(
-        success,
-        "The object %s with type %s can not be registered to any model.",
-        object, object.getClass());
+      success,
+      "The object %s with type %s can not be registered to any model.",
+      object, object.getClass());
     return success;
   }
 
@@ -135,8 +107,6 @@ public class ModelManager implements ModelProvider {
   @SuppressWarnings("unchecked")
   public <T> boolean unregister(T object) {
     checkArgument(!(object instanceof Model), "can not unregister a model");
-    checkState(configured,
-        "can not unregister when not configured, call configure() first");
 
     boolean result = false;
     final Set<Class<?>> modelSupportedTypes = registry.keySet();
@@ -144,29 +114,22 @@ public class ModelManager implements ModelProvider {
       // check if object is from a known type
       if (modelSupportedType.isAssignableFrom(object.getClass())) {
         final Collection<Model<?>> assignableModels = registry
-            .get(modelSupportedType);
+          .get(modelSupportedType);
         for (final Model<?> m : assignableModels) {
           result |= ((Model<T>) m).unregister(object);
         }
       }
     }
     checkArgument(result, "Object %s with type %s can not be unregistered.",
-        object, object.getClass());
+      object, object.getClass());
     return result;
-  }
-
-  /**
-   * @return An unmodifiable view on all registered models.
-   */
-  public List<Model<?>> getModels() {
-    return Collections.unmodifiableList(models);
   }
 
   @SuppressWarnings("unchecked")
   @Nullable
   @Override
   public <T extends Model<?>> T tryGetModel(Class<T> clazz) {
-    for (final Model<?> model : models) {
+    for (final Model<?> model : registry.values()) {
       if (clazz.isInstance(model)) {
         return (T) model;
       }
@@ -179,5 +142,31 @@ public class ModelManager implements ModelProvider {
     final T m = tryGetModel(clazz);
     checkArgument(m != null, "The specified model %s does not exist.", clazz);
     return m;
+  }
+
+  /**
+   * @return The {@link Model}s that are registered.
+   */
+  public ImmutableCollection<Model<?>> getModels() {
+    return registry.values();
+  }
+
+  static class ModelReceiverModel extends AbstractModel<ModelReceiver> {
+    private final ModelManager modelManager;
+
+    ModelReceiverModel(ModelManager mm) {
+      modelManager = mm;
+    }
+
+    @Override
+    public boolean register(ModelReceiver element) {
+      element.registerModelProvider(modelManager);
+      return true;
+    }
+
+    @Override
+    public boolean unregister(ModelReceiver element) {
+      return false;
+    }
   }
 }

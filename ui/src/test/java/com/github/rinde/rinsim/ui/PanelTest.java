@@ -15,10 +15,6 @@
  */
 package com.github.rinde.rinsim.ui;
 
-import javax.measure.Measure;
-import javax.measure.unit.SI;
-
-import org.apache.commons.math3.random.MersenneTwister;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.widgets.Button;
@@ -35,7 +31,7 @@ import com.github.rinde.rinsim.ui.renderers.RoadUserRenderer;
 
 /**
  * @author Rinde van Lon
- * 
+ *
  */
 @Category(GuiTests.class)
 public final class PanelTest {
@@ -44,19 +40,21 @@ public final class PanelTest {
 
   public static void main(String[] args) {
 
-    final Simulator sim = new Simulator(new MersenneTwister(123),
-        Measure.valueOf(1000L, SI.MILLI(SI.SECOND)));
-    sim.register(new PlaneRoadModel(new Point(0, 0), new Point(10, 10), 10));
-    sim.configure();
+    final Simulator sim = Simulator.builder()
+      .addModel(PlaneRoadModel.builder()
+        .setMinPoint(new Point(0, 0))
+        .setMaxPoint(new Point(10, 10))
+        .setMaxSpeed(10d)
+      ).build();
 
     View.create(sim)
-        .with(new RoadUserRenderer(), new PlaneRoadModelRenderer(),
-            new TestPanelRenderer("LEFT", SWT.LEFT, 200),
-            new TestPanelRenderer("RIHGT BOEEE YEAH", SWT.RIGHT, 300),
-            new TestPanelRenderer("RIHGT BOEEE YEAH", SWT.TOP, 100),
-            new TestPanelRenderer("TOP2", SWT.TOP, 100),
-            new TestPanelRenderer("LEFT2", SWT.LEFT, 100),
-            new TestPanelRenderer("LEFT3", SWT.LEFT, 150)).show();
+      .with(new RoadUserRenderer(), new PlaneRoadModelRenderer(),
+        new TestPanelRenderer("LEFT", SWT.LEFT, 200),
+        new TestPanelRenderer("RIHGT BOEEE YEAH", SWT.RIGHT, 300),
+        new TestPanelRenderer("RIHGT BOEEE YEAH", SWT.TOP, 100),
+        new TestPanelRenderer("TOP2", SWT.TOP, 100),
+        new TestPanelRenderer("LEFT2", SWT.LEFT, 100),
+        new TestPanelRenderer("LEFT3", SWT.LEFT, 150)).show();
 
   }
 

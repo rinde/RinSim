@@ -25,7 +25,6 @@ import java.util.Random;
 import java.util.Set;
 
 import javax.annotation.Nullable;
-import javax.measure.Measure;
 import javax.measure.unit.NonSI;
 import javax.measure.unit.SI;
 
@@ -37,10 +36,10 @@ import org.eclipse.swt.widgets.Monitor;
 
 import com.github.rinde.rinsim.core.Simulator;
 import com.github.rinde.rinsim.core.TickListener;
-import com.github.rinde.rinsim.core.TimeLapse;
 import com.github.rinde.rinsim.core.model.pdp.DefaultPDPModel;
 import com.github.rinde.rinsim.core.model.pdp.PDPModel;
 import com.github.rinde.rinsim.core.model.road.RoadModel;
+import com.github.rinde.rinsim.core.model.time.TimeLapse;
 import com.github.rinde.rinsim.event.Listener;
 import com.github.rinde.rinsim.examples.demo.SwarmDemo;
 import com.github.rinde.rinsim.geom.Graph;
@@ -120,8 +119,7 @@ public final class FactoryExample {
     }
 
     final RandomGenerator rng = new MersenneTwister(123);
-    final Simulator simulator = new Simulator(rng, Measure.valueOf(1000L,
-      SI.MILLI(SI.SECOND)));
+    final Simulator simulator = Simulator.builder().build();
 
     final ImmutableList.Builder<ImmutableList<Point>> pointBuilder = ImmutableList
       .builder();
@@ -165,7 +163,6 @@ public final class FactoryExample {
       .<ImmutableList<Point>> builder().addAll(points)
       .add(ImmutableList.copyOf(borderNodes))
       .build(), getBorderNodes(g)));
-    simulator.configure();
 
     for (int i = 0; i < NUM_VECHICLES; i++) {
       simulator.register(new AGV(rng));

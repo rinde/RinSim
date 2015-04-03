@@ -24,6 +24,7 @@ import org.apache.commons.math3.random.MersenneTwister;
 import org.apache.commons.math3.random.RandomGenerator;
 
 import com.github.rinde.rinsim.core.model.AbstractModel;
+import com.google.common.base.Supplier;
 
 /**
  * The random model provides a centralized mechanism for distributing random
@@ -98,6 +99,29 @@ public class RandomModel extends AbstractModel<RandomUser> {
     return new RandomModel(rng);
   }
 
+  /**
+   * Creates a new {@link RandomModel} {@link Supplier} using the specified
+   * {@link RandomGenerator}.
+   * @param rng The generator to use.
+   * @return A new supplier instance.
+   */
+  public static Supplier<RandomModel> supplier(RandomGenerator rng) {
+    return new RandomModelSupplier(rng);
+  }
+
+  static class RandomModelSupplier implements Supplier<RandomModel> {
+    private final RandomGenerator r;
+
+    RandomModelSupplier(RandomGenerator rng) {
+      r = rng;
+    }
+
+    @Override
+    public RandomModel get() {
+      return new RandomModel(r);
+    }
+  }
+
   class RngProvider implements RandomProvider {
     boolean used;
 
@@ -137,7 +161,7 @@ public class RandomModel extends AbstractModel<RandomUser> {
       stateCheck();
       if (!classRngMap.containsKey(clazz)) {
         final RandomGenerator rng = new UnmodifiableRandomGenerator(
-            new MersenneTwister(masterRandomGenerator.nextLong()));
+          new MersenneTwister(masterRandomGenerator.nextLong()));
         classRngMap.put(clazz, rng);
         return rng;
       }

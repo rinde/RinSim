@@ -30,10 +30,10 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
-import com.github.rinde.rinsim.core.TimeLapseFactory;
 import com.github.rinde.rinsim.core.model.comm.CommModel.CommModelEvent;
 import com.github.rinde.rinsim.core.model.comm.CommModel.EventTypes;
 import com.github.rinde.rinsim.core.model.rand.RandomModel;
+import com.github.rinde.rinsim.core.model.time.TimeLapseFactory;
 import com.github.rinde.rinsim.event.ListenerEventHistory;
 import com.github.rinde.rinsim.geom.Point;
 import com.github.rinde.rinsim.testutil.TestUtil;

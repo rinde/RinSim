@@ -61,26 +61,25 @@ public final class CommExample {
   public static void run(boolean testing) {
 
     final Simulator sim = Simulator.builder()
-        .addModel(PlaneRoadModel.builder().build())
-        .addModel(CommModel.builder()
-            .build())
-        .build();
+      .addModel(PlaneRoadModel.builder())
+      .addModel(CommModel.builder())
+      .build();
 
     for (int i = 0; i < NUM_AGENTS; i++) {
       sim.register(new RandomBroadcastAgent(sim.getRandomGenerator()));
     }
 
     final View.Builder viewBuilder = View.create(sim)
-        .with(PlaneRoadModelRenderer.create())
-        .with(CommRenderer.builder()
-            .showReliabilityColors()
-            .showMessageCount());
+      .with(PlaneRoadModelRenderer.create())
+      .with(CommRenderer.builder()
+        .showReliabilityColors()
+        .showMessageCount());
 
     if (testing) {
       viewBuilder.setSpeedUp(TEST_SPEEDUP)
-          .enableAutoClose()
-          .enableAutoPlay()
-          .stopSimulatorAtTime(TEST_STOP_TIME);
+        .enableAutoClose()
+        .enableAutoPlay()
+        .stopSimulatorAtTime(TEST_STOP_TIME);
     }
     viewBuilder.show();
   }

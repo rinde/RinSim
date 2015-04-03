@@ -34,7 +34,7 @@ import javax.measure.unit.Unit;
 
 import org.apache.commons.math3.random.RandomGenerator;
 
-import com.github.rinde.rinsim.core.TimeLapse;
+import com.github.rinde.rinsim.core.model.time.TimeLapse;
 import com.github.rinde.rinsim.geom.Point;
 import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableList;
@@ -97,13 +97,13 @@ public class PlaneRoadModel extends AbstractRoadModel<Point> {
    */
   @Deprecated
   public PlaneRoadModel(Point pMin, Point pMax, Unit<Length> distanceUnit,
-      Measure<Double, Velocity> pMaxSpeed) {
+    Measure<Double, Velocity> pMaxSpeed) {
     this(builder()
-        .setMinPoint(pMin)
-        .setMaxPoint(pMax)
-        .setDistanceUnit(distanceUnit)
-        .setSpeedUnit(pMaxSpeed.getUnit())
-        .setMaxSpeed(pMaxSpeed.getValue()));
+      .setMinPoint(pMin)
+      .setMaxPoint(pMax)
+      .setDistanceUnit(distanceUnit)
+      .setSpeedUnit(pMaxSpeed.getUnit())
+      .setMaxSpeed(pMaxSpeed.getValue()));
   }
 
   /**
@@ -119,64 +119,64 @@ public class PlaneRoadModel extends AbstractRoadModel<Point> {
   @Deprecated
   public PlaneRoadModel(Point pMin, Point pMax, double speedLimitInKmh) {
     this(builder()
-        .setMinPoint(pMin)
-        .setMaxPoint(pMax)
-        .setMaxSpeed(speedLimitInKmh));
+      .setMinPoint(pMin)
+      .setMaxPoint(pMax)
+      .setMaxSpeed(speedLimitInKmh));
   }
 
   @Override
   public Point getRandomPosition(RandomGenerator rnd) {
     return new Point(min.x + rnd.nextDouble() * width, min.y
-        + rnd.nextDouble() * height);
+      + rnd.nextDouble() * height);
   }
 
   @Override
   public void addObjectAt(RoadUser obj, Point pos) {
     checkArgument(
-        isPointInBoundary(pos),
-        "objects can only be added within the boundaries of the plane, %s is not in the boundary.",
-        pos);
+      isPointInBoundary(pos),
+      "objects can only be added within the boundaries of the plane, %s is not in the boundary.",
+      pos);
     super.addObjectAt(obj, pos);
   }
 
   @Override
   protected MoveProgress doFollowPath(MovingRoadUser object, Queue<Point> path,
-      TimeLapse time) {
+    TimeLapse time) {
     final long startTimeConsumed = time.getTimeConsumed();
     Point loc = objLocs.get(object);
 
     double traveled = 0;
     final double speed = min(unitConversion.toInSpeed(object.getSpeed()),
-        maxSpeed);
+      maxSpeed);
     if (speed == 0d) {
       // FIXME add test for this case, also check GraphRoadModel
       final Measure<Double, Length> dist = Measure.valueOf(0d,
-          getDistanceUnit());
+        getDistanceUnit());
       final Measure<Long, Duration> dur = Measure.valueOf(0L,
-          time.getTimeUnit());
+        time.getTimeUnit());
       return MoveProgress.create(dist, dur, new ArrayList<Point>());
     }
 
     final List<Point> travelledNodes = new ArrayList<>();
     while (time.hasTimeLeft() && !path.isEmpty()) {
       checkArgument(isPointInBoundary(path.peek()),
-          "points in the path must be within the predefined boundary of the plane");
+        "points in the path must be within the predefined boundary of the plane");
 
       // distance in internal time unit that can be traveled with timeleft
       final double travelDistance = speed
-          * unitConversion.toInTime(time.getTimeLeft(),
-              time.getTimeUnit());
+        * unitConversion.toInTime(time.getTimeLeft(),
+          time.getTimeUnit());
       final double stepLength = unitConversion.toInDist(Point
-          .distance(loc, path.peek()));
+        .distance(loc, path.peek()));
 
       if (travelDistance >= stepLength) {
         loc = path.remove();
         travelledNodes.add(loc);
 
         final long timeSpent = DoubleMath.roundToLong(
-            unitConversion.toExTime(stepLength / speed,
-                time.getTimeUnit()),
-            RoundingMode.HALF_DOWN);
+          unitConversion.toExTime(stepLength / speed,
+            time.getTimeUnit()),
+          RoundingMode.HALF_DOWN);
         time.consume(timeSpent);
         traveled += stepLength;
       } else {
@@ -198,22 +198,22 @@ public class PlaneRoadModel extends AbstractRoadModel<Point> {
 
     // convert to external units
     final Measure<Double, Length> distTraveled = unitConversion
-        .toExDistMeasure(traveled);
+      .toExDistMeasure(traveled);
     final Measure<Long, Duration> timeConsumed = Measure.valueOf(
-        time.getTimeConsumed() - startTimeConsumed, time.getTimeUnit());
+      time.getTimeConsumed() - startTimeConsumed, time.getTimeUnit());
     return MoveProgress.create(distTraveled, timeConsumed, travelledNodes);
   }
 
   @Override
   public List<Point> getShortestPathTo(Point from, Point to) {
     checkArgument(
-        isPointInBoundary(from),
-        "from must be within the predefined boundary of the plane, from is %s, boundary: min %s, max %s.",
-        to, min, max);
+      isPointInBoundary(from),
+      "from must be within the predefined boundary of the plane, from is %s, boundary: min %s, max %s.",
+      to, min, max);
     checkArgument(
-        isPointInBoundary(to),
-        "to must be within the predefined boundary of the plane, to is %s, boundary: min %s, max %s.",
-        to, min, max);
+      isPointInBoundary(to),
+      "to must be within the predefined boundary of the plane, to is %s, boundary: min %s, max %s.",
+      to, min, max);
     return asList(from, to);
   }
 
@@ -261,10 +261,10 @@ public class PlaneRoadModel extends AbstractRoadModel<Point> {
    * @return A newly created supplier.
    */
   public static Supplier<PlaneRoadModel> supplier(
-      final Point min,
-      final Point max,
-      final Unit<Length> distanceUnit,
-      final Measure<Double, Velocity> maxSpeed) {
+    final Point min,
+    final Point max,
+    final Unit<Length> distanceUnit,
+    final Measure<Double, Velocity> maxSpeed) {
     return new DefaultSupplier(min, max, distanceUnit, maxSpeed);
   }
 
@@ -272,7 +272,7 @@ public class PlaneRoadModel extends AbstractRoadModel<Point> {
    * A builder for {@link PlaneRoadModel}.
    * @author Rinde van Lon
    */
-  public static class Builder {
+  public static class Builder implements Supplier<PlaneRoadModel> {
     static final double DEFAULT_MAX_SPEED = 50d;
     static final Point DEFAULT_MIN_POINT = new Point(0, 0);
     static final Point DEFAULT_MAX_POINT = new Point(10, 10);
@@ -343,8 +343,8 @@ public class PlaneRoadModel extends AbstractRoadModel<Point> {
      */
     public Builder setMaxSpeed(double speed) {
       checkArgument(speed > 0d,
-          "Max speed must be strictly positive but is %s.",
-          speed);
+        "Max speed must be strictly positive but is %s.",
+        speed);
       maxSpeed = speed;
       return this;
     }
@@ -354,11 +354,16 @@ public class PlaneRoadModel extends AbstractRoadModel<Point> {
      */
     public PlaneRoadModel build() {
       checkArgument(
-          min.x < max.x && min.y < max.y,
-          "Min should have coordinates smaller than max, found min %s and max %s.",
-          min, max);
+        min.x < max.x && min.y < max.y,
+        "Min should have coordinates smaller than max, found min %s and max %s.",
+        min, max);
 
       return new PlaneRoadModel(this);
+    }
+
+    @Override
+    public PlaneRoadModel get() {
+      return build();
     }
   }
 
@@ -366,13 +371,13 @@ public class PlaneRoadModel extends AbstractRoadModel<Point> {
     final Builder b;
 
     DefaultSupplier(Point mi, Point ma, Unit<Length> du,
-        Measure<Double, Velocity> ms) {
+      Measure<Double, Velocity> ms) {
       b = builder()
-          .setMinPoint(mi)
-          .setMaxPoint(ma)
-          .setDistanceUnit(du)
-          .setSpeedUnit(ms.getUnit())
-          .setMaxSpeed(ms.getValue());
+        .setMinPoint(mi)
+        .setMaxPoint(ma)
+        .setDistanceUnit(du)
+        .setSpeedUnit(ms.getUnit())
+        .setMaxSpeed(ms.getValue());
     }
 
     @Override

@@ -29,13 +29,13 @@ import org.eclipse.swt.widgets.Monitor;
 
 import com.github.rinde.rinsim.core.Simulator;
 import com.github.rinde.rinsim.core.TickListener;
-import com.github.rinde.rinsim.core.TimeLapse;
 import com.github.rinde.rinsim.core.model.pdp.DefaultPDPModel;
 import com.github.rinde.rinsim.core.model.pdp.Depot;
 import com.github.rinde.rinsim.core.model.pdp.PDPModel;
 import com.github.rinde.rinsim.core.model.pdp.Parcel;
 import com.github.rinde.rinsim.core.model.road.GraphRoadModel;
 import com.github.rinde.rinsim.core.model.road.RoadModel;
+import com.github.rinde.rinsim.core.model.time.TimeLapse;
 import com.github.rinde.rinsim.event.Listener;
 import com.github.rinde.rinsim.examples.core.taxi.TaxiRenderer.Language;
 import com.github.rinde.rinsim.geom.Graph;
@@ -47,6 +47,7 @@ import com.github.rinde.rinsim.ui.View;
 import com.github.rinde.rinsim.ui.renderers.GraphRoadModelRenderer;
 import com.github.rinde.rinsim.ui.renderers.RoadUserRenderer;
 import com.github.rinde.rinsim.util.TimeWindow;
+import com.google.common.base.Suppliers;
 
 /**
  * Example showing a fleet of taxis that have to pickup and transport customers
@@ -79,10 +80,10 @@ public final class TaxiExample {
    */
   public static void main(@Nullable String[] args) {
     final long endTime = args != null && args.length >= 1 ? Long
-        .parseLong(args[0]) : Long.MAX_VALUE;
+      .parseLong(args[0]) : Long.MAX_VALUE;
 
     final String graphFile = args != null && args.length >= 2 ? args[1]
-        : MAP_FILE;
+      : MAP_FILE;
     run(false, endTime, graphFile, null /* new Display() */, null, null);
   }
 
@@ -105,32 +106,32 @@ public final class TaxiExample {
    * @return The simulator instance.
    */
   public static Simulator run(boolean testing, final long endTime,
-      String graphFile,
-      @Nullable Display display, @Nullable Monitor m, @Nullable Listener list) {
+    String graphFile,
+    @Nullable Display display, @Nullable Monitor m, @Nullable Listener list) {
 
     // use map of leuven
     final RoadModel roadModel = new GraphRoadModel(loadGraph(graphFile));
     final DefaultPDPModel pdpModel = DefaultPDPModel.create();
 
     final Simulator simulator = Simulator.builder()
-        .addModel(roadModel)
-        .addModel(pdpModel)
-        .build();
+      .addModel(Suppliers.ofInstance(roadModel))
+      .addModel(Suppliers.ofInstance(pdpModel))
+      .build();
     final RandomGenerator rng = simulator.getRandomGenerator();
 
     // add depots, taxis and parcels to simulator
     for (int i = 0; i < NUM_DEPOTS; i++) {
       simulator.register(new TaxiBase(roadModel.getRandomPosition(rng),
-          DEPOT_CAPACITY));
+        DEPOT_CAPACITY));
     }
     for (int i = 0; i < NUM_TAXIS; i++) {
       simulator.register(new Taxi(roadModel.getRandomPosition(rng),
-          TAXI_CAPACITY));
+        TAXI_CAPACITY));
     }
     for (int i = 0; i < NUM_CUSTOMERS; i++) {
       simulator.register(new Customer(roadModel.getRandomPosition(rng),
-          roadModel.getRandomPosition(rng), SERVICE_DURATION, SERVICE_DURATION,
-          1 + rng.nextInt(3)));
+        roadModel.getRandomPosition(rng), SERVICE_DURATION, SERVICE_DURATION,
+        1 + rng.nextInt(3)));
     }
 
     simulator.addTickListener(new TickListener() {
@@ -140,9 +141,9 @@ public final class TaxiExample {
           simulator.stop();
         } else if (rng.nextDouble() < .007) {
           simulator.register(new Customer(
-              roadModel.getRandomPosition(rng), roadModel
-                  .getRandomPosition(rng), SERVICE_DURATION, SERVICE_DURATION,
-              1 + rng.nextInt(3)));
+            roadModel.getRandomPosition(rng), roadModel
+              .getRandomPosition(rng), SERVICE_DURATION, SERVICE_DURATION,
+            1 + rng.nextInt(3)));
         }
       }
 
@@ -151,34 +152,34 @@ public final class TaxiExample {
     });
 
     final View.Builder view = View
-        .create(simulator)
-        .with(GraphRoadModelRenderer.builder())
-        .with(RoadUserRenderer.builder()
-            .addImageAssociation(
-                TaxiBase.class, "/graphics/perspective/tall-building-64.png")
-            .addImageAssociation(
-                Taxi.class, "/graphics/flat/taxi-32.png")
-            .addImageAssociation(
-                Customer.class, "/graphics/flat/person-red-32.png")
-        )
-        .with(new TaxiRenderer(Language.ENGLISH))
-        .setTitleAppendix("Taxi Demo");
+      .create(simulator)
+      .with(GraphRoadModelRenderer.builder())
+      .with(RoadUserRenderer.builder()
+        .addImageAssociation(
+          TaxiBase.class, "/graphics/perspective/tall-building-64.png")
+        .addImageAssociation(
+          Taxi.class, "/graphics/flat/taxi-32.png")
+        .addImageAssociation(
+          Customer.class, "/graphics/flat/person-red-32.png")
+      )
+      .with(new TaxiRenderer(Language.ENGLISH))
+      .setTitleAppendix("Taxi Demo");
 
     if (testing) {
       view.enableAutoClose()
-          .enableAutoPlay()
-          .stopSimulatorAtTime(20 * 60 * 1000)
-          .setSpeedUp(64);
+        .enableAutoPlay()
+        .stopSimulatorAtTime(20 * 60 * 1000)
+        .setSpeedUp(64);
     }
     else if (m != null && list != null && display != null) {
       view.displayOnMonitor(m)
-          .setSpeedUp(4)
-          .setResolution(m.getClientArea().width, m.getClientArea().height)
-          .setDisplay(display)
-          .setCallback(list)
-          .setAsync()
-          .enableAutoPlay()
-          .enableAutoClose();
+        .setSpeedUp(4)
+        .setResolution(m.getClientArea().width, m.getClientArea().height)
+        .setDisplay(display)
+        .setCallback(list)
+        .setAsync()
+        .enableAutoPlay()
+        .enableAutoClose();
     }
 
     view.show();
@@ -190,9 +191,9 @@ public final class TaxiExample {
    */
   static class Customer extends Parcel {
     Customer(Point startPosition, Point pDestination,
-        long pLoadingDuration, long pUnloadingDuration, double pMagnitude) {
+      long pLoadingDuration, long pUnloadingDuration, double pMagnitude) {
       super(pDestination, pLoadingDuration, TimeWindow.ALWAYS,
-          pUnloadingDuration, TimeWindow.ALWAYS, pMagnitude);
+        pUnloadingDuration, TimeWindow.ALWAYS, pMagnitude);
       setStartPosition(startPosition);
     }
 
@@ -218,9 +219,9 @@ public final class TaxiExample {
         return GRAPH_CACHE.get(name);
       }
       final Graph<MultiAttributeData> g = DotGraphIO
-          .getMultiAttributeGraphIO(
-              Filters.selfCycleFilter()).read(
-              TaxiExample.class.getResourceAsStream(name));
+        .getMultiAttributeGraphIO(
+          Filters.selfCycleFilter()).read(
+          TaxiExample.class.getResourceAsStream(name));
 
       GRAPH_CACHE.put(name, g);
       return g;

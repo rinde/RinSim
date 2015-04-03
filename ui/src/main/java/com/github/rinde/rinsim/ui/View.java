@@ -16,7 +16,6 @@
 package com.github.rinde.rinsim.ui;
 
 import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.base.Preconditions.checkState;
 import static java.util.Arrays.asList;
 
 import java.awt.im.InputContext;
@@ -36,7 +35,7 @@ import org.eclipse.swt.widgets.Shell;
 
 import com.github.rinde.rinsim.core.Simulator;
 import com.github.rinde.rinsim.core.TickListener;
-import com.github.rinde.rinsim.core.TimeLapse;
+import com.github.rinde.rinsim.core.model.time.TimeLapse;
 import com.github.rinde.rinsim.event.Event;
 import com.github.rinde.rinsim.event.Listener;
 import com.github.rinde.rinsim.ui.renderers.CanvasRendererBuilder;
@@ -287,10 +286,6 @@ public final class View {
      * Show the view.
      */
     public void show() {
-      checkState(
-        simulator.isConfigured(),
-        "Simulator needs to be configured before it can be visualized, see Simulator.configure()");
-
       checkArgument(!rendererList.isEmpty(),
         "At least one renderer needs to be defined.");
 

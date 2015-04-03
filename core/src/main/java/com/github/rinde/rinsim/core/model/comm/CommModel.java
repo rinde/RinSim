@@ -24,15 +24,16 @@ import java.util.Set;
 import org.apache.commons.math3.random.RandomGenerator;
 
 import com.github.rinde.rinsim.core.TickListener;
-import com.github.rinde.rinsim.core.TimeLapse;
 import com.github.rinde.rinsim.core.model.AbstractModel;
 import com.github.rinde.rinsim.core.model.rand.RandomProvider;
 import com.github.rinde.rinsim.core.model.rand.RandomUser;
+import com.github.rinde.rinsim.core.model.time.TimeLapse;
 import com.github.rinde.rinsim.event.Event;
 import com.github.rinde.rinsim.event.EventAPI;
 import com.github.rinde.rinsim.event.EventDispatcher;
 import com.github.rinde.rinsim.util.LinkedHashBiMap;
 import com.google.common.base.Optional;
+import com.google.common.base.Supplier;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.ImmutableBiMap;
 import com.google.common.collect.Maps;
@@ -218,7 +219,8 @@ public final class CommModel extends AbstractModel<CommUser> implements
    * A builder for creating a {@link CommModel}.
    * @author Rinde van Lon
    */
-  public static class Builder extends AbstractBuilder<Builder> {
+  public static class Builder extends AbstractBuilder<Builder> implements
+    Supplier<CommModel> {
     static double DEFAULT_RELIABILITY = 1d;
     double defaultReliability;
     Optional<Double> defaultMaxRange;
@@ -256,6 +258,11 @@ public final class CommModel extends AbstractModel<CommUser> implements
      */
     public CommModel build() {
       return new CommModel(this);
+    }
+
+    @Override
+    public CommModel get() {
+      return build();
     }
 
     @Override

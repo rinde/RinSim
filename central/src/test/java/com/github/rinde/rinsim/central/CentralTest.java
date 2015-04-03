@@ -25,10 +25,6 @@ import static org.junit.Assert.assertTrue;
 
 import java.io.File;
 
-import javax.measure.Measure;
-import javax.measure.unit.NonSI;
-import javax.measure.unit.SI;
-
 import org.apache.commons.math3.random.MersenneTwister;
 import org.junit.Before;
 import org.junit.Test;
@@ -60,6 +56,7 @@ import com.github.rinde.rinsim.scenario.gendreau06.Gendreau06Parser;
 import com.github.rinde.rinsim.scenario.gendreau06.Gendreau06Scenario;
 import com.github.rinde.rinsim.util.StochasticSupplier;
 import com.github.rinde.rinsim.util.TimeWindow;
+import com.google.common.base.Suppliers;
 
 /**
  * @author Rinde van Lon
@@ -80,17 +77,20 @@ public class CentralTest {
 
   @Before
   public void setUp() {
-    sim = new Simulator(new MersenneTwister(123), Measure.valueOf(1000L,
-        SI.MILLI(SI.SECOND)));
-    rm = new PDPRoadModel(new PlaneRoadModel(new Point(0, 0),
-        new Point(10, 10), SI.KILOMETER, Measure.valueOf(300d,
-            NonSI.KILOMETERS_PER_HOUR)), false);
-    pm = new DefaultPDPModel(TimeWindowPolicies.TARDY_ALLOWED);
+    rm = new PDPRoadModel(
+      PlaneRoadModel.builder()
+        .setMaxSpeed(300d)
+        .build()
+      , false);
+    pm = DefaultPDPModel.create(TimeWindowPolicies.TARDY_ALLOWED);
+
+    sim = Simulator.builder()
+      // FIXME
+      .addModel(Suppliers.ofInstance(rm))
+      .addModel(Suppliers.ofInstance(pm))
+      .build();
 
     depot = new DefaultDepot(new Point(5, 5));
-    sim.register(rm);
-    sim.register(pm);
-    sim.configure();
     sim.register(depot);
 
     p1 = createParcel(new Point(3, 0), new Point(0, 3));
@@ -104,21 +104,21 @@ public class CentralTest {
   @Test
   public void testConfigurator() {
     final Gendreau06Scenario scenario = Gendreau06Parser.parse(
-        new File(ScenarioPaths.GENDREAU));
+      new File(ScenarioPaths.GENDREAU));
 
     final StochasticSupplier<Solver> s = new StochasticSupplier<Solver>() {
       @Override
       public Solver get(long seed) {
         return SolverValidator.wrap(new MultiVehicleSolverAdapter(
-            ArraysSolverValidator.wrap(new RandomMVArraysSolver(
-                new MersenneTwister(seed))), scenario.getTimeUnit()));
+          ArraysSolverValidator.wrap(new RandomMVArraysSolver(
+            new MersenneTwister(seed))), scenario.getTimeUnit()));
       }
     };
     final Experiment.Builder builder = Experiment
-        .build(Gendreau06ObjectiveFunction.instance())
-        .addScenario(scenario)
-        .addConfiguration(Central.solverConfiguration(s))
-        .withRandomSeed(123);
+      .build(Gendreau06ObjectiveFunction.instance())
+      .addScenario(scenario)
+      .addConfiguration(Central.solverConfiguration(s))
+      .withRandomSeed(123);
 
     final ExperimentResults res1 = builder.perform();
     final ExperimentResults res2 = builder.perform();
@@ -135,7 +135,7 @@ public class CentralTest {
     final SimulationConverter s = Solvers.converterBuilder().with(sim).build();
 
     StateContext res = s.convert(SolveArgs.create().useAllParcels()
-        .noCurrentRoutes());
+      .noCurrentRoutes());
     assertEquals(2, res.state.vehicles.size());
     assertTrue(res.state.vehicles.get(0).contents.isEmpty());
     assertNull(res.state.vehicles.get(0).destination);
@@ -177,26 +177,26 @@ public class CentralTest {
 
   static DefaultParcel createParcel(Point origin, Point dest) {
     return new DefaultParcel(
-        ParcelDTO.builder(origin, dest)
-            .pickupTimeWindow(new TimeWindow(380001, 380002))
-            .deliveryTimeWindow(new TimeWindow(0, 1000))
-            .neededCapacity(0)
-            .orderAnnounceTime(0L)
-            .pickupDuration(3000L)
-            .deliveryDuration(3000L)
-            .build());
+      ParcelDTO.builder(origin, dest)
+        .pickupTimeWindow(new TimeWindow(380001, 380002))
+        .deliveryTimeWindow(new TimeWindow(0, 1000))
+        .neededCapacity(0)
+        .orderAnnounceTime(0L)
+        .pickupDuration(3000L)
+        .deliveryDuration(3000L)
+        .build());
   }
 
   static class TestVehicle extends RouteFollowingVehicle {
 
     TestVehicle(Point start) {
       super(VehicleDTO.builder()
-          .startPosition(start)
-          .speed(30d)
-          .capacity(1)
-          .availabilityTimeWindow(new TimeWindow(0, 1000))
-          .build(),
-          false);
+        .startPosition(start)
+        .speed(30d)
+        .capacity(1)
+        .availabilityTimeWindow(new TimeWindow(0, 1000))
+        .build(),
+        false);
     }
 
     public State<StateEvent, RouteFollowingVehicle> getState() {

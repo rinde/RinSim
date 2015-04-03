@@ -55,8 +55,8 @@ import org.joda.time.format.PeriodFormatterBuilder;
 
 import com.github.rinde.rinsim.core.Simulator;
 import com.github.rinde.rinsim.core.TickListener;
-import com.github.rinde.rinsim.core.TimeLapse;
 import com.github.rinde.rinsim.core.model.ModelReceiver;
+import com.github.rinde.rinsim.core.model.time.TimeLapse;
 import com.github.rinde.rinsim.geom.Point;
 import com.github.rinde.rinsim.ui.renderers.CanvasRenderer;
 import com.github.rinde.rinsim.ui.renderers.CanvasRendererBuilder;
@@ -534,10 +534,6 @@ final class SimulationViewer extends Composite implements TickListener,
   }
 
   private void calculateSizes() {
-    if (!simulator.isConfigured()) {
-      return;
-    }
-
     double minX = Double.POSITIVE_INFINITY;
     double maxX = Double.NEGATIVE_INFINITY;
     double minY = Double.POSITIVE_INFINITY;

@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.github.rinde.rinsim.core;
+package com.github.rinde.rinsim.core.model.time;
 
-import static com.github.rinde.rinsim.core.TimeLapseFactory.create;
+import static com.github.rinde.rinsim.core.model.time.TimeLapseFactory.create;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -24,7 +24,7 @@ import javax.measure.unit.SI;
 
 import org.junit.Test;
 
-import com.github.rinde.rinsim.core.TimeLapse;
+import com.github.rinde.rinsim.core.model.time.TimeLapse;
 
 /**
  * @author Rinde van Lon (rinde.vanlon@cs.kuleuven.be)
