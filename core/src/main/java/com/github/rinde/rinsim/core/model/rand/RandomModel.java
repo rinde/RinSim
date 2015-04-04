@@ -23,7 +23,7 @@ import java.util.Map;
 import org.apache.commons.math3.random.MersenneTwister;
 import org.apache.commons.math3.random.RandomGenerator;
 
-import com.github.rinde.rinsim.core.model.AbstractModel;
+import com.github.rinde.rinsim.core.AbstractModel;
 import com.google.common.base.Supplier;
 
 /**

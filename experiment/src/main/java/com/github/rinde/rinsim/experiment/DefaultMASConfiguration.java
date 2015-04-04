@@ -17,7 +17,7 @@ package com.github.rinde.rinsim.experiment;
 
 import java.io.Serializable;
 
-import com.github.rinde.rinsim.core.model.Model;
+import com.github.rinde.rinsim.core.Model;
 import com.github.rinde.rinsim.pdptw.common.DynamicPDPTWProblem.Creator;
 import com.github.rinde.rinsim.scenario.AddDepotEvent;
 import com.github.rinde.rinsim.scenario.AddParcelEvent;

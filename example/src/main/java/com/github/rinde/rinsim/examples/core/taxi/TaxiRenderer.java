@@ -22,7 +22,7 @@ import javax.annotation.Nullable;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.GC;
 
-import com.github.rinde.rinsim.core.model.ModelProvider;
+import com.github.rinde.rinsim.core.ModelProvider;
 import com.github.rinde.rinsim.core.model.pdp.DefaultPDPModel;
 import com.github.rinde.rinsim.core.model.pdp.PDPModel.VehicleState;
 import com.github.rinde.rinsim.core.model.road.RoadModel;

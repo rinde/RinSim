@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.github.rinde.rinsim.core.model;
+package com.github.rinde.rinsim.core;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -34,14 +34,14 @@ import com.google.common.collect.ImmutableSet;
  * @author Bartosz Michalik
  * @author Rinde van Lon
  */
-public final class ModelManager implements ModelProvider {
+final class ModelManager implements ModelProvider {
   private final ImmutableMultimap<Class<?>, Model<?>> registry;
 
   /**
    * Instantiate a new model manager.
    * @param models
    */
-  public ModelManager(ImmutableSet<? extends Model<?>> models) {
+  ModelManager(ImmutableSet<? extends Model<?>> models) {
     final ImmutableMultimap.Builder<Class<?>, Model<?>> builder =
       ImmutableMultimap.builder();
     builder.put(ModelReceiver.class, new ModelReceiverModel(this));

@@ -13,10 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.github.rinde.rinsim.core.model;
+package com.github.rinde.rinsim.core;
 
 import java.util.List;
 
+import com.github.rinde.rinsim.core.Model;
+import com.github.rinde.rinsim.core.ModelProvider;
 import com.google.common.base.Optional;
 
 /**

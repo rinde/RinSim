@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.github.rinde.rinsim.core.model;
+package com.github.rinde.rinsim.core;
 
-import static com.github.rinde.rinsim.core.model.DebugModel.Action.ALLOW;
-import static com.github.rinde.rinsim.core.model.DebugModel.Action.REJECT;
+import static com.github.rinde.rinsim.core.DebugModel.Action.ALLOW;
+import static com.github.rinde.rinsim.core.DebugModel.Action.REJECT;
 import static java.util.Arrays.asList;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
@@ -29,7 +29,6 @@ import java.util.List;
 import javax.measure.unit.SI;
 
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import com.github.rinde.rinsim.core.model.road.GraphRoadModel;
@@ -40,7 +39,6 @@ import com.github.rinde.rinsim.geom.LengthData;
 import com.github.rinde.rinsim.geom.MultimapGraph;
 import com.google.common.collect.ImmutableSet;
 
-@Ignore
 public class ModelManagerTest {
 
   protected ModelManager manager;

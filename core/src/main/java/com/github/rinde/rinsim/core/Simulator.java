@@ -31,10 +31,6 @@ import org.apache.commons.math3.random.RandomGenerator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.github.rinde.rinsim.core.model.AbstractModel;
-import com.github.rinde.rinsim.core.model.Model;
-import com.github.rinde.rinsim.core.model.ModelManager;
-import com.github.rinde.rinsim.core.model.ModelProvider;
 import com.github.rinde.rinsim.core.model.rand.RandomModel;
 import com.github.rinde.rinsim.core.model.time.Clock;
 import com.github.rinde.rinsim.core.model.time.TickListener;
@@ -127,6 +123,13 @@ public final class Simulator implements SimulatorAPI {
     dispatcher = new EventDispatcher(SimulatorEventType.values());
   }
 
+  /**
+   * @param m The model.
+   * @return False.
+   * @deprecated To add a {@link Model} use {@link #builder()} instead.
+   * @throws UnsupportedOperationException is always thrown.
+   */
+  @SuppressWarnings("static-method")
   @Deprecated
   public boolean register(Model<?> m) {
     throw new UnsupportedOperationException(

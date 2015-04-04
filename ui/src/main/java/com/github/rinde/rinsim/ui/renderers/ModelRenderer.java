@@ -15,7 +15,7 @@
  */
 package com.github.rinde.rinsim.ui.renderers;
 
-import com.github.rinde.rinsim.core.model.ModelReceiver;
+import com.github.rinde.rinsim.core.ModelReceiver;
 
 /**
  * @author Rinde van Lon 

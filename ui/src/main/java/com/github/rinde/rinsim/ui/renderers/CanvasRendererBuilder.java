@@ -15,7 +15,7 @@
  */
 package com.github.rinde.rinsim.ui.renderers;
 
-import com.github.rinde.rinsim.core.model.ModelProvider;
+import com.github.rinde.rinsim.core.ModelProvider;
 
 /**
  * Builder interface for creating {@link CanvasRenderer}s.

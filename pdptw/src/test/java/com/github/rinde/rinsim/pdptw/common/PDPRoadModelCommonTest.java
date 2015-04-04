@@ -29,8 +29,8 @@ import javax.measure.unit.SI;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.github.rinde.rinsim.core.model.ModelProvider;
-import com.github.rinde.rinsim.core.model.TestModelProvider;
+import com.github.rinde.rinsim.core.ModelProvider;
+import com.github.rinde.rinsim.core.TestModelProvider;
 import com.github.rinde.rinsim.core.model.pdp.DefaultPDPModel;
 import com.github.rinde.rinsim.core.model.pdp.PDPModel;
 import com.github.rinde.rinsim.core.model.pdp.PDPModel.ParcelState;

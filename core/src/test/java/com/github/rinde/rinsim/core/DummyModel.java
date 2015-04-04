@@ -18,7 +18,6 @@ package com.github.rinde.rinsim.core;
 import java.util.HashSet;
 
 import com.github.rinde.rinsim.core.SimulatorTest.DummyObject;
-import com.github.rinde.rinsim.core.model.Model;
 
 class DummyModel implements Model<DummyObject> {
 

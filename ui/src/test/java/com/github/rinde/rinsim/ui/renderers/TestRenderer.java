@@ -21,7 +21,7 @@ import javax.annotation.Nullable;
 
 import org.eclipse.swt.graphics.GC;
 
-import com.github.rinde.rinsim.core.model.ModelProvider;
+import com.github.rinde.rinsim.core.ModelProvider;
 import com.github.rinde.rinsim.core.model.road.RoadModel;
 import com.github.rinde.rinsim.geom.Point;
 import com.github.rinde.rinsim.ui.renderers.ModelRenderer;

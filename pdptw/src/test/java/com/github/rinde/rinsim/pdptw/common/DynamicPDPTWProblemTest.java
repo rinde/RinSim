@@ -31,8 +31,8 @@ import javax.measure.unit.Unit;
 
 import org.junit.Test;
 
+import com.github.rinde.rinsim.core.Model;
 import com.github.rinde.rinsim.core.Simulator;
-import com.github.rinde.rinsim.core.model.Model;
 import com.github.rinde.rinsim.core.model.pdp.DefaultPDPModel;
 import com.github.rinde.rinsim.core.model.pdp.PDPScenarioEvent;
 import com.github.rinde.rinsim.core.model.pdp.TimeWindowPolicy.TimeWindowPolicies;
