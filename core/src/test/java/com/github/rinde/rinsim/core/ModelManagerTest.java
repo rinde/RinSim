@@ -17,6 +17,7 @@ package com.github.rinde.rinsim.core;
 
 import static com.github.rinde.rinsim.core.DebugModel.Action.ALLOW;
 import static com.github.rinde.rinsim.core.DebugModel.Action.REJECT;
+import static com.google.common.truth.Truth.assertThat;
 import static java.util.Arrays.asList;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
@@ -26,6 +27,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import javax.annotation.Nullable;
 import javax.measure.unit.SI;
 
 import org.junit.Before;
@@ -69,7 +71,7 @@ public class ModelManagerTest {
   public void addOtherFooModel() {
     final OtherFooModel model = new OtherFooModel();
     manager.register(model);
-    assertTrue(manager.register(new Foo()));
+    manager.register(new Foo());
     boolean fail = false;
     try {
       manager.register(new Bar());
@@ -87,9 +89,9 @@ public class ModelManagerTest {
     final BarModel model2 = new BarModel();
     manager.register(model);
     manager.register(model2);
-    assertTrue(manager.register(new Foo()));
-    assertTrue(manager.register(new Bar()));
-    assertTrue(manager.register(new Foo()));
+    manager.register(new Foo());
+    manager.register(new Bar());
+    manager.register(new Foo());
     assertEquals(2, model.calledRegister);
     assertEquals(1, model.calledTypes);
     assertEquals(1, model2.calledRegister);
@@ -98,16 +100,28 @@ public class ModelManagerTest {
       .toArray(new Model<?>[2]));
   }
 
-  @Test(expected = IllegalArgumentException.class)
+  /**
+   * Checks if a faulty model is detected and rejected.
+   */
+  @SuppressWarnings("unused")
+  @Test
   public void addFaultyModel() {
-    // FIXME
-    // final ModelA model = new ModelA();
-    // model.setSupportedType(null);
-    // manager.add(model);
+    final ModelA model = new ModelA();
+    model.setSupportedType(null);
+    boolean fail = false;
+    try {
+      new ModelManager(ImmutableSet.of(model));
+    } catch (final NullPointerException e) {
+      fail = true;
+    }
+    assertThat(fail).isTrue();
   }
 
-  @Test(expected = IllegalStateException.class)
-  public void registerModelTooLate() {
+  /**
+   * A model can not be registered.
+   */
+  @Test(expected = IllegalArgumentException.class)
+  public void canNotRegisterModel() {
     manager.register(new GraphRoadModel(new MultimapGraph<LengthData>(),
       SI.METER, SI.METERS_PER_SECOND));
   }
@@ -229,8 +243,8 @@ public class ModelManagerTest {
     final Foo foo = new Foo();
     final Bar bar = new Bar();
 
-    assertTrue(manager.register(foo));
-    assertTrue(manager.register(bar));
+    manager.register(foo);
+    manager.register(bar);
 
     assertTrue(manager.unregister(foo));
 
@@ -260,13 +274,13 @@ public class ModelManagerTest {
     manager.register(mC);
 
     final ObjectA a1 = new ObjectA();
-    assertTrue(manager.register(a1));
+    manager.register(a1);
     assertEquals(asList(a1), mA.getRegisteredElements());
     assertEquals(asList(a1), mAA.getRegisteredElements());
 
     mA.setRegisterAction(REJECT);
     final ObjectA a2 = new ObjectA();
-    assertTrue(manager.register(a2));
+    manager.register(a2);
     assertEquals(asList(a1, a2), mA.getRegisteredElements());
     assertEquals(asList(a1, a2), mAA.getRegisteredElements());
 
@@ -284,22 +298,22 @@ public class ModelManagerTest {
 
     mA.setRegisterAction(ALLOW);
     mAA.setRegisterAction(ALLOW);
-    assertTrue(manager.register(a1));// allow duplicates
+    manager.register(a1);// allow duplicates
     assertEquals(asList(a1, a2, a3, a1), mA.getRegisteredElements());
     assertEquals(asList(a1, a2, a3, a1), mAA.getRegisteredElements());
 
     final ObjectB b1 = new ObjectB();
-    assertTrue(manager.register(b1));
+    manager.register(b1);
     assertEquals(asList(b1), mB.getRegisteredElements());
     assertEquals(asList(b1), mB2.getRegisteredElements());
     assertEquals(asList(b1), mBB.getRegisteredElements());
     assertEquals(asList(b1), mBBB.getRegisteredElements());
     assertEquals(asList(), mSB.getRegisteredElements());
 
-    // subclass of B is registerd in all general models and its subclass
+    // subclass of B is registered in all general models and its subclass
     // model
     final SpecialB s1 = new SpecialB();
-    assertTrue(manager.register(s1));
+    manager.register(s1);
     assertEquals(asList(b1, s1), mB.getRegisteredElements());
     assertEquals(asList(b1, s1), mB2.getRegisteredElements());
     assertEquals(asList(b1, s1), mBB.getRegisteredElements());
@@ -518,7 +532,8 @@ class DebugModel<T> implements Model<T> {
     unregisterAction = a;
   }
 
-  public void setSupportedType(Class<T> type) {
+  @SuppressWarnings("null")
+  public void setSupportedType(@Nullable Class<T> type) {
     supportedType = type;
   }
 

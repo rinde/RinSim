@@ -48,8 +48,7 @@ import com.google.common.collect.ImmutableSet;
  * time which it does by periodically providing {@link TimeLapse} instances to
  * registered {@link TickListener}s. Further it provides methods to start and
  * stop simulations. The simulator also acts as a facade through which
- * {@link Model}s and objects can be added to the simulator, more info about
- * models can be found in {@link ModelManager}.
+ * {@link Model}s and objects can be added to the simulator.
  *
  * The configuration phase of the simulator looks as follows:
  * <ol>
@@ -138,12 +137,6 @@ public final class Simulator implements SimulatorAPI {
 
   @Override
   public void register(Object obj) {
-    checkArgument(
-      !(obj instanceof Model<?>),
-      "Can not register a model: %s. "
-        + "Models can be added via Simulator.builder().",
-      obj);
-
     LOGGER.info("{} - register({})", timeModel.getCurrentTime(), obj);
     modelManager.register(obj);
   }

@@ -78,34 +78,21 @@ final class ModelManager implements ModelProvider {
     return success;
   }
 
-  /**
-   * Add object to all models that support a given object.
-   * @param object object to register
-   * @param <T> the type of object to register
-   * @return <code>true</code> if object was added to at least one model
-   */
-  public <T> boolean register(T object) {
-    checkArgument(!(object instanceof Model), "Can not register a model: %s.",
+  <T> void register(T object) {
+    checkArgument(
+      !(object instanceof Model<?>),
+      "Can not register a model: %s. "
+        + "Models can be added via Simulator.builder().",
       object);
     final boolean success = doRegister(object);
     checkArgument(
       success,
       "The object %s with type %s can not be registered to any model.",
       object, object.getClass());
-    return success;
   }
 
-  /**
-   * Unregister an object from all models it was attached to.
-   * @param object object to unregister
-   * @param <T> the type of object to unregister
-   * @return <code>true</code> when the unregistration succeeded in at least one
-   *         model
-   * @throws IllegalStateException if the method is called before simulator is
-   *           configured
-   */
   @SuppressWarnings("unchecked")
-  public <T> boolean unregister(T object) {
+  <T> boolean unregister(T object) {
     checkArgument(!(object instanceof Model), "can not unregister a model");
 
     boolean result = false;
