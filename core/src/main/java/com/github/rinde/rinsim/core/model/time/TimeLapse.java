@@ -21,7 +21,6 @@ import javax.measure.quantity.Duration;
 import javax.measure.unit.Unit;
 
 import com.github.rinde.rinsim.core.Simulator;
-import com.github.rinde.rinsim.core.TickListener;
 
 /**
  * Represents a consumable interval of time: [start, end). Instances of time

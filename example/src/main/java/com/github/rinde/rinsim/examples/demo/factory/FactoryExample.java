@@ -35,10 +35,10 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Monitor;
 
 import com.github.rinde.rinsim.core.Simulator;
-import com.github.rinde.rinsim.core.TickListener;
 import com.github.rinde.rinsim.core.model.pdp.DefaultPDPModel;
 import com.github.rinde.rinsim.core.model.pdp.PDPModel;
 import com.github.rinde.rinsim.core.model.road.RoadModel;
+import com.github.rinde.rinsim.core.model.time.TickListener;
 import com.github.rinde.rinsim.core.model.time.TimeLapse;
 import com.github.rinde.rinsim.event.Listener;
 import com.github.rinde.rinsim.examples.demo.SwarmDemo;

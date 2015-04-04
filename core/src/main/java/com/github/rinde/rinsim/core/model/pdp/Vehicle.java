@@ -15,8 +15,8 @@
  */
 package com.github.rinde.rinsim.core.model.pdp;
 
-import com.github.rinde.rinsim.core.TickListener;
 import com.github.rinde.rinsim.core.model.road.MovingRoadUser;
+import com.github.rinde.rinsim.core.model.time.TickListener;
 import com.github.rinde.rinsim.core.model.time.TimeLapse;
 
 /**

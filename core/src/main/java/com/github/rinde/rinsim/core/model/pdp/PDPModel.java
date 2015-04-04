@@ -23,9 +23,9 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.github.rinde.rinsim.core.TickListener;
 import com.github.rinde.rinsim.core.model.AbstractModel;
 import com.github.rinde.rinsim.core.model.ModelReceiver;
+import com.github.rinde.rinsim.core.model.time.TickListener;
 import com.github.rinde.rinsim.core.model.time.TimeLapse;
 import com.github.rinde.rinsim.event.EventAPI;
 import com.google.common.collect.ImmutableSet;

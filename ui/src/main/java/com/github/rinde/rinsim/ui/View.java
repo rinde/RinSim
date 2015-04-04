@@ -34,7 +34,7 @@ import org.eclipse.swt.widgets.Monitor;
 import org.eclipse.swt.widgets.Shell;
 
 import com.github.rinde.rinsim.core.Simulator;
-import com.github.rinde.rinsim.core.TickListener;
+import com.github.rinde.rinsim.core.model.time.TickListener;
 import com.github.rinde.rinsim.core.model.time.TimeLapse;
 import com.github.rinde.rinsim.event.Event;
 import com.github.rinde.rinsim.event.Listener;

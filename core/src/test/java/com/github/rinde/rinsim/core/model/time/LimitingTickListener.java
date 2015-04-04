@@ -17,8 +17,6 @@ package com.github.rinde.rinsim.core.model.time;
 
 import static com.google.common.truth.Truth.assertThat;
 
-import com.github.rinde.rinsim.core.TickListener;
-
 class LimitingTickListener implements TickListener {
   private final int limit;
   private int tickCount;

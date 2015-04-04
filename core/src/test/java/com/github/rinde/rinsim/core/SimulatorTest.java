@@ -28,6 +28,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import com.github.rinde.rinsim.core.Simulator.SimulatorEventType;
+import com.github.rinde.rinsim.core.model.time.TickListener;
 import com.github.rinde.rinsim.core.model.time.TimeLapse;
 import com.github.rinde.rinsim.testutil.TestUtil;
 import com.google.common.base.Suppliers;

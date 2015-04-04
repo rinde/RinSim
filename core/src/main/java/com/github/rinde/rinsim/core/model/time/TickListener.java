@@ -13,9 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.github.rinde.rinsim.core;
+package com.github.rinde.rinsim.core.model.time;
 
-import com.github.rinde.rinsim.core.model.time.TimeLapse;
 
 /**
  * Allows an implementor to receive updates when time progresses in the

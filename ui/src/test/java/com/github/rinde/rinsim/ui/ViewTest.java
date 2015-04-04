@@ -22,13 +22,13 @@ import org.junit.Test;
 import org.junit.experimental.categories.Category;
 
 import com.github.rinde.rinsim.core.Simulator;
-import com.github.rinde.rinsim.core.TickListener;
 import com.github.rinde.rinsim.core.model.pdp.DefaultPDPModel;
 import com.github.rinde.rinsim.core.model.pdp.Depot;
 import com.github.rinde.rinsim.core.model.pdp.PDPModel;
 import com.github.rinde.rinsim.core.model.pdp.TimeWindowPolicy.TimeWindowPolicies;
 import com.github.rinde.rinsim.core.model.road.PlaneRoadModel;
 import com.github.rinde.rinsim.core.model.road.RoadModel;
+import com.github.rinde.rinsim.core.model.time.TickListener;
 import com.github.rinde.rinsim.core.model.time.TimeLapse;
 import com.github.rinde.rinsim.geom.Point;
 import com.github.rinde.rinsim.testutil.GuiTests;

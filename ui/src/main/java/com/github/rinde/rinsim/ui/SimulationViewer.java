@@ -54,8 +54,8 @@ import org.joda.time.format.PeriodFormatter;
 import org.joda.time.format.PeriodFormatterBuilder;
 
 import com.github.rinde.rinsim.core.Simulator;
-import com.github.rinde.rinsim.core.TickListener;
 import com.github.rinde.rinsim.core.model.ModelReceiver;
+import com.github.rinde.rinsim.core.model.time.TickListener;
 import com.github.rinde.rinsim.core.model.time.TimeLapse;
 import com.github.rinde.rinsim.geom.Point;
 import com.github.rinde.rinsim.ui.renderers.CanvasRenderer;

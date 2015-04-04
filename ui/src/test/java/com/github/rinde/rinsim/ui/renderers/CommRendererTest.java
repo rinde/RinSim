@@ -22,7 +22,6 @@ import org.junit.Test;
 import org.junit.experimental.categories.Category;
 
 import com.github.rinde.rinsim.core.Simulator;
-import com.github.rinde.rinsim.core.TickListener;
 import com.github.rinde.rinsim.core.model.comm.CommDevice;
 import com.github.rinde.rinsim.core.model.comm.CommDeviceBuilder;
 import com.github.rinde.rinsim.core.model.comm.CommModel;
@@ -31,6 +30,7 @@ import com.github.rinde.rinsim.core.model.comm.MessageContents;
 import com.github.rinde.rinsim.core.model.road.MovingRoadUser;
 import com.github.rinde.rinsim.core.model.road.PlaneRoadModel;
 import com.github.rinde.rinsim.core.model.road.RoadModel;
+import com.github.rinde.rinsim.core.model.time.TickListener;
 import com.github.rinde.rinsim.core.model.time.TimeLapse;
 import com.github.rinde.rinsim.geom.Point;
 import com.github.rinde.rinsim.testutil.GuiTests;

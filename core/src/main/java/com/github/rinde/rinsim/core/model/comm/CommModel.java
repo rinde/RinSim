@@ -23,10 +23,10 @@ import java.util.Set;
 
 import org.apache.commons.math3.random.RandomGenerator;
 
-import com.github.rinde.rinsim.core.TickListener;
 import com.github.rinde.rinsim.core.model.AbstractModel;
 import com.github.rinde.rinsim.core.model.rand.RandomProvider;
 import com.github.rinde.rinsim.core.model.rand.RandomUser;
+import com.github.rinde.rinsim.core.model.time.TickListener;
 import com.github.rinde.rinsim.core.model.time.TimeLapse;
 import com.github.rinde.rinsim.event.Event;
 import com.github.rinde.rinsim.event.EventAPI;

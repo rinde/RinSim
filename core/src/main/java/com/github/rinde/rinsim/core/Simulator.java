@@ -37,6 +37,7 @@ import com.github.rinde.rinsim.core.model.ModelManager;
 import com.github.rinde.rinsim.core.model.ModelProvider;
 import com.github.rinde.rinsim.core.model.rand.RandomModel;
 import com.github.rinde.rinsim.core.model.time.Clock;
+import com.github.rinde.rinsim.core.model.time.TickListener;
 import com.github.rinde.rinsim.core.model.time.TimeLapse;
 import com.github.rinde.rinsim.core.model.time.TimeModel;
 import com.github.rinde.rinsim.event.Event;

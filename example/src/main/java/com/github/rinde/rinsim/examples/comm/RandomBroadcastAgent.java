@@ -17,13 +17,13 @@ package com.github.rinde.rinsim.examples.comm;
 
 import org.apache.commons.math3.random.RandomGenerator;
 
-import com.github.rinde.rinsim.core.TickListener;
 import com.github.rinde.rinsim.core.model.comm.CommDevice;
 import com.github.rinde.rinsim.core.model.comm.CommDeviceBuilder;
 import com.github.rinde.rinsim.core.model.comm.CommUser;
 import com.github.rinde.rinsim.core.model.comm.MessageContents;
 import com.github.rinde.rinsim.core.model.road.MovingRoadUser;
 import com.github.rinde.rinsim.core.model.road.RoadModel;
+import com.github.rinde.rinsim.core.model.time.TickListener;
 import com.github.rinde.rinsim.core.model.time.TimeLapse;
 import com.github.rinde.rinsim.geom.Point;
 import com.google.common.base.Optional;

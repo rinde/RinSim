@@ -21,8 +21,6 @@ import javax.measure.quantity.Duration;
 import javax.measure.unit.SI;
 import javax.measure.unit.Unit;
 
-import com.github.rinde.rinsim.core.TickListener;
-
 /**
  * @author Rinde van Lon
  *

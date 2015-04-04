@@ -32,7 +32,6 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 
-import com.github.rinde.rinsim.core.TickListener;
 import com.google.common.base.Supplier;
 
 /**
