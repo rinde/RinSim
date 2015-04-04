@@ -30,8 +30,11 @@ import org.slf4j.LoggerFactory;
 
 import com.github.rinde.rinsim.core.Simulator;
 import com.github.rinde.rinsim.core.Simulator.SimulatorEventType;
-import com.github.rinde.rinsim.core.model.time.TimeLapse;
+import com.github.rinde.rinsim.core.SimulatorAPI;
+import com.github.rinde.rinsim.core.SimulatorUser;
 import com.github.rinde.rinsim.core.TickListener;
+import com.github.rinde.rinsim.core.model.AbstractModel;
+import com.github.rinde.rinsim.core.model.time.TimeLapse;
 import com.github.rinde.rinsim.event.Event;
 import com.github.rinde.rinsim.event.EventAPI;
 import com.github.rinde.rinsim.event.EventDispatcher;
@@ -48,13 +51,14 @@ import com.google.common.base.Optional;
  * @author Bartosz Michalik
  * @since 2.0
  */
-public class ScenarioController implements TickListener {
+public class ScenarioController extends AbstractModel<Scenario> implements
+  TickListener, SimulatorUser {
   // rename to event scheduler?
   /**
    * Logger for this class.
    */
   protected static final Logger LOGGER = LoggerFactory
-      .getLogger(ScenarioController.class);
+    .getLogger(ScenarioController.class);
 
   /**
    * The {@link Event} types which can be dispatched by this class.
@@ -89,7 +93,7 @@ public class ScenarioController implements TickListener {
   /**
    * A reference to the simulator.
    */
-  protected final Simulator simulator;
+  protected Simulator simulator;
 
   /**
    * A reference to the {@link UICreator} that is responsible for creating the
@@ -120,34 +124,21 @@ public class ScenarioController implements TickListener {
    * @param numberOfTicks The number of ticks play, when negative the number of
    *          tick is infinite.
    */
-  public ScenarioController(final Scenario scen, Simulator sim,
-      TimedEventHandler eventHandler, int numberOfTicks) {
+  public ScenarioController(final Scenario scen,
+    TimedEventHandler eventHandler, int numberOfTicks) {
 
-    scenario = scen;
-    simulator = sim;
     timedEventHandler = eventHandler;
     ticks = numberOfTicks;
     uiCreator = Optional.absent();
 
+    scenario = scen;
     scenarioQueue = scenario.asQueue();
 
     final Set<Enum<?>> typeSet = newHashSet(scenario.getPossibleEventTypes());
     typeSet.addAll(asList(EventType.values()));
     disp = new EventDispatcher(typeSet);
     disp.addListener(new InternalTimedEventHandler(),
-        scenario.getPossibleEventTypes());
-
-    simulator.getEventAPI().addListener(new Listener() {
-      @Override
-      public void handleEvent(Event e) {
-        if (simulator.getCurrentTime() == 0) {
-          dispatchSetupEvents();
-        }
-
-      }
-    }, SimulatorEventType.STARTED);
-    simulator.addTickListener(this);
-
+      scenario.getPossibleEventTypes());
   }
 
   // TODO add UICreator directly to Simulator?
@@ -222,7 +213,7 @@ public class ScenarioController implements TickListener {
   public final void tick(TimeLapse timeLapse) {
     if (!uiCreator.isPresent() && ticks == 0) {
       LOGGER.info("scenario finished at virtual time:" + timeLapse.getTime()
-          + "[stopping simulation]");
+        + "[stopping simulation]");
       simulator.stop();
     }
     if (LOGGER.isDebugEnabled() && ticks >= 0) {
@@ -248,7 +239,7 @@ public class ScenarioController implements TickListener {
     }
     if (ticks == 0 && status == EventType.SCENARIO_FINISHED) {
       LOGGER.info("scenario finished at virtual time:" + timeLapse.getTime()
-          + "[stopping simulation]");
+        + "[stopping simulation]");
       simulator.stop();
       simulator.removeTickListener(this);
     }
@@ -281,8 +272,35 @@ public class ScenarioController implements TickListener {
     public final void handleEvent(Event e) {
       verify(e instanceof TimedEvent);
       checkState(timedEventHandler.handleTimedEvent((TimedEvent) e),
-          "The event %s is not handled.", e.getEventType());
+        "The event %s is not handled.", e.getEventType());
     }
+  }
+
+  @Override
+  public boolean register(Scenario element) {
+    // TODO Auto-generated method stub
+    return false;
+  }
+
+  @Override
+  public boolean unregister(Scenario element) {
+    return false;
+  }
+
+  @Override
+  public void setSimulator(SimulatorAPI api) {
+    // FIXME this cast is unsafe, coupling to Simulator should be reduced
+    simulator = (Simulator) api;
+    simulator.getEventAPI().addListener(new Listener() {
+      @Override
+      public void handleEvent(Event e) {
+        if (simulator.getCurrentTime() == 0) {
+          dispatchSetupEvents();
+        }
+
+      }
+    }, SimulatorEventType.STARTED);
+
   }
 
 }

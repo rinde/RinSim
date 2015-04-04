@@ -80,8 +80,7 @@ public class ScenarioControllerTest {
 
   @Test(expected = IllegalStateException.class)
   public void testEmptyController() {
-    controller = new ScenarioController(scenario, simulator, new TestHandler(),
-      3);
+    controller = new ScenarioController(scenario, new TestHandler(), 3);
     controller.tick(TimeLapseFactory.create(0, 1));
   }
 
@@ -103,7 +102,7 @@ public class ScenarioControllerTest {
 
   @Test
   public void handleTimedEvent() {
-    final ScenarioController sc = new ScenarioController(scenario, simulator,
+    final ScenarioController sc = new ScenarioController(scenario,
       new TestHandler(), 1);
 
     assertFalse(sc.timedEventHandler
@@ -118,14 +117,14 @@ public class ScenarioControllerTest {
 
   @Test(expected = IllegalStateException.class)
   public void eventNotHandled() {
-    final ScenarioController sc = new ScenarioController(scenario, simulator,
+    final ScenarioController sc = new ScenarioController(scenario,
       new TestHandler(), 1);
     sc.disp.dispatchEvent(new TimedEvent(EVENT_A, 0));
   }
 
   @Test
   public void finiteSimulation() throws InterruptedException {
-    final ScenarioController sc = new ScenarioController(scenario, simulator,
+    final ScenarioController sc = new ScenarioController(scenario,
       new TestHandler(TestEvents.values()), 101);
 
     final ListenerEventHistory leh = new ListenerEventHistory();
@@ -150,7 +149,7 @@ public class ScenarioControllerTest {
 
   @Test
   public void fakeUImode() {
-    final ScenarioController sc = new ScenarioController(scenario, simulator,
+    final ScenarioController sc = new ScenarioController(scenario,
       new TestHandler(TestEvents.values()), 3);
     sc.enableUI(new UICreator() {
 
@@ -181,7 +180,7 @@ public class ScenarioControllerTest {
       .build();
 
     final EventHistory th = new EventHistory();
-    final ScenarioController sc = new ScenarioController(s, simulator, th, 1);
+    final ScenarioController sc = new ScenarioController(s, th, 1);
     sc.start();
     assertEquals(asList(EVENT_B, EVENT_C, EVENT_A), th.eventTypes);
 
@@ -193,7 +192,7 @@ public class ScenarioControllerTest {
    */
   @Test
   public void testStartEventGenerated() {
-    controller = new ScenarioController(scenario, simulator, new TestHandler(
+    controller = new ScenarioController(scenario, new TestHandler(
       EVENT_A, EVENT_B), 3);
 
     // {
@@ -234,7 +233,7 @@ public class ScenarioControllerTest {
 
   @Test
   public void runningWholeScenario() throws InterruptedException {
-    controller = new ScenarioController(scenario, simulator, new TestHandler(
+    controller = new ScenarioController(scenario, new TestHandler(
       EVENT_A, EVENT_B, EVENT_C), -1);
 
     final boolean[] r = new boolean[1];

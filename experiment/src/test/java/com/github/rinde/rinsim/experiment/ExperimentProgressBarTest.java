@@ -15,10 +15,10 @@
  */
 package com.github.rinde.rinsim.experiment;
 
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 
-import com.github.rinde.rinsim.experiment.ExperimentProgressBar;
 import com.github.rinde.rinsim.testutil.GuiTests;
 
 @Category(GuiTests.class)
@@ -26,6 +26,7 @@ public class ExperimentProgressBarTest {
 
   @SuppressWarnings("null")
   @Test
+  @Ignore
   public void test() {
     final ExperimentProgressBar pb = new ExperimentProgressBar();
     pb.startComputing(30);

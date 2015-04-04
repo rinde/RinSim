@@ -25,9 +25,7 @@ import java.util.List;
 import java.util.Map;
 
 import javax.annotation.Nullable;
-import javax.measure.Measure;
 
-import org.apache.commons.math3.random.MersenneTwister;
 import org.eclipse.swt.SWT;
 
 import com.github.rinde.rinsim.core.Simulator;
@@ -57,6 +55,7 @@ import com.github.rinde.rinsim.ui.renderers.UiSchema;
 import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
 import com.google.common.base.Supplier;
+import com.google.common.base.Suppliers;
 import com.google.common.collect.ImmutableMap;
 
 /**
@@ -98,17 +97,17 @@ public class DynamicPDPTWProblem {
   protected static final ImmutableMap<Class<?>, Creator<?>> DEFAULT_EVENT_CREATOR_MAP;
   static {
     DEFAULT_EVENT_CREATOR_MAP = ImmutableMap.of(
-        (Class<?>) AddParcelEvent.class, new Creator<AddParcelEvent>() {
-          @Override
-          public boolean create(Simulator sim, AddParcelEvent event) {
-            return sim.register(new DefaultParcel(event.parcelDTO));
-          }
-        }, AddDepotEvent.class, new Creator<AddDepotEvent>() {
-          @Override
-          public boolean create(Simulator sim, AddDepotEvent event) {
-            return sim.register(new DefaultDepot(event.position));
-          }
-        });
+      (Class<?>) AddParcelEvent.class, new Creator<AddParcelEvent>() {
+        @Override
+        public boolean create(Simulator sim, AddParcelEvent event) {
+          return sim.register(new DefaultParcel(event.parcelDTO));
+        }
+      }, AddDepotEvent.class, new Creator<AddDepotEvent>() {
+        @Override
+        public boolean create(Simulator sim, AddDepotEvent event) {
+          return sim.register(new DefaultDepot(event.position));
+        }
+      });
   }
 
   /**
@@ -152,16 +151,20 @@ public class DynamicPDPTWProblem {
    *          option custom models for specific solutions can be added.
    */
   public DynamicPDPTWProblem(final Scenario scen, long randomSeed,
-      Model<?>... models) {
-    simulator = new Simulator(new MersenneTwister(randomSeed), Measure.valueOf(
-        scen.getTickSize(), scen.getTimeUnit()));
+    Model<?>... models) {
+
+    final Simulator.Builder simBuilder = Simulator.builder()
+      .setRandomSeed(randomSeed)
+      .setTickLength(scen.getTickSize())
+      .setTimeUnit(scen.getTimeUnit());
+
     final List<? extends Supplier<? extends Model<?>>> modelSuppliers = scen
-        .getModelSuppliers();
+      .getModelSuppliers();
     for (final Supplier<? extends Model<?>> supplier : modelSuppliers) {
-      simulator.register(supplier.get());
+      simBuilder.addModel(supplier);
     }
     for (final Model<?> m : models) {
-      simulator.register(m);
+      simBuilder.addModel(Suppliers.ofInstance(m));
     }
     eventCreatorMap = newHashMap();
 
@@ -171,10 +174,10 @@ public class DynamicPDPTWProblem {
       public boolean handleTimedEvent(TimedEvent event) {
         if (eventCreatorMap.containsKey(event.getClass())) {
           return ((Creator<TimedEvent>) eventCreatorMap.get(event.getClass()))
-              .create(simulator, event);
+            .create(simulator, event);
         } else if (DEFAULT_EVENT_CREATOR_MAP.containsKey(event.getClass())) {
           return ((Creator<TimedEvent>) DEFAULT_EVENT_CREATOR_MAP.get(event
-              .getClass())).create(simulator, event);
+            .getClass())).create(simulator, event);
         } else if (event.getEventType() == TIME_OUT) {
           return true;
         }
@@ -182,12 +185,15 @@ public class DynamicPDPTWProblem {
       }
     };
     final int ticks = scen.getTimeWindow().end == Long.MAX_VALUE ? -1
-        : (int) (scen.getTimeWindow().end - scen.getTimeWindow().begin);
-    controller = new ScenarioController(scen, simulator, handler, ticks);
-    statsTracker = new StatsTracker(controller, simulator);
+      : (int) (scen.getTimeWindow().end - scen.getTimeWindow().begin);
 
-    simulator.register(statsTracker);
-    simulator.configure();
+    controller = new ScenarioController(scen, handler, ticks);
+    statsTracker = new StatsTracker(controller);
+
+    simBuilder.addModel(Suppliers.ofInstance(statsTracker));
+    simBuilder.addModel(Suppliers.ofInstance(controller));
+
+    simulator = simBuilder.build();
     stopCondition = scen.getStopCondition();
 
     simulator.addTickListener(new TickListener() {
@@ -257,8 +263,8 @@ public class DynamicPDPTWProblem {
    */
   public StatisticsDTO simulate() {
     checkState(eventCreatorMap.containsKey(AddVehicleEvent.class),
-        "A creator for AddVehicleEvent is required, use %s.addCreator(..)",
-        this.getClass().getName());
+      "A creator for AddVehicleEvent is required, use %s.addCreator(..)",
+      this.getClass().getName());
     controller.start();
     return getStatistics();
   }
@@ -284,16 +290,17 @@ public class DynamicPDPTWProblem {
    * @param <T> The type of the event.
    */
   public <T extends TimedEvent> void addCreator(Class<T> eventType,
-      Creator<T> creator) {
+    Creator<T> creator) {
     checkArgument(
-        eventType == AddVehicleEvent.class || eventType == AddParcelEvent.class
+      eventType == AddVehicleEvent.class || eventType == AddParcelEvent.class
         || eventType == AddDepotEvent.class,
-        "A creator can only be added to one of the following classes: AddVehicleEvent, AddParcelEvent, AddDepotEvent.");
+      "A creator can only be added to one of the following classes: AddVehicleEvent, AddParcelEvent, AddDepotEvent.");
     eventCreatorMap.put(eventType, creator);
   }
 
   static StatisticsDTO getStats(Simulator sim) {
-    final StatsTracker t = sim.getModelProvider().tryGetModel(StatsTracker.class);
+    final StatsTracker t = sim.getModelProvider().tryGetModel(
+      StatsTracker.class);
     if (t == null) {
       throw new IllegalStateException("No stats tracker found!");
     }
@@ -368,8 +375,8 @@ public class DynamicPDPTWProblem {
         final StatisticsDTO stats = getStats(context);
 
         return stats.totalVehicles == stats.vehiclesAtDepot
-            && stats.movedVehicles > 0
-            && stats.totalParcels == stats.totalDeliveries;
+          && stats.movedVehicles > 0
+          && stats.totalParcels == stats.totalDeliveries;
       }
     },
 
@@ -382,7 +389,7 @@ public class DynamicPDPTWProblem {
         assert context != null;
         final StatisticsDTO stats = getStats(context);
         return stats.pickupTardiness > 0
-            || stats.deliveryTardiness > 0;
+          || stats.deliveryTardiness > 0;
       }
     };
   }
@@ -491,7 +498,7 @@ public class DynamicPDPTWProblem {
     public void createUI(Simulator sim) {
       initRenderers();
       View.create(sim).with(renderers.toArray(new Renderer[] {}))
-      .setSpeedUp(speedup).show();
+        .setSpeedUp(speedup).show();
     }
 
     /**

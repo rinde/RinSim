@@ -123,6 +123,7 @@ public class SimulatorTest {
     simulator.unregister(new DummyModel());
   }
 
+  @Ignore
   @Test(expected = IllegalStateException.class)
   public void testUnregisterTooEarly() {
     simulator.unregister(new Object());
