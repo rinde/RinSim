@@ -61,7 +61,7 @@ public final class Central {
    * @return A new configuration.
    */
   public static MASConfiguration solverConfiguration(
-      StochasticSupplier<? extends Solver> solverCreator) {
+    StochasticSupplier<? extends Solver> solverCreator) {
     return new CentralConfiguration(solverCreator, "");
   }
 
@@ -74,18 +74,18 @@ public final class Central {
    * @return A new configuration.
    */
   public static MASConfiguration solverConfiguration(
-      StochasticSupplier<? extends Solver> solverCreator, String nameSuffix) {
+    StochasticSupplier<? extends Solver> solverCreator, String nameSuffix) {
     return new CentralConfiguration(solverCreator, nameSuffix);
   }
 
   private static final class CentralConfiguration extends
-      DefaultMASConfiguration {
+    DefaultMASConfiguration {
     private static final long serialVersionUID = 8906291887010954854L;
     final StochasticSupplier<? extends Solver> solverCreator;
     private final String nameSuffix;
 
     CentralConfiguration(StochasticSupplier<? extends Solver> solverCreator,
-        String name) {
+      String name) {
       this.solverCreator = solverCreator;
       nameSuffix = name;
     }
@@ -111,12 +111,13 @@ public final class Central {
 
     @Override
     public boolean create(Simulator sim, AddVehicleEvent event) {
-      return sim.register(new RouteFollowingVehicle(event.vehicleDTO, false));
+      sim.register(new RouteFollowingVehicle(event.vehicleDTO, false));
+      return true;
     }
   }
 
   private static class CentralModelSupplier implements
-      StochasticSupplier<CentralModel> {
+    StochasticSupplier<CentralModel> {
     private final StochasticSupplier<? extends Solver> solverSupplier;
 
     CentralModelSupplier(StochasticSupplier<? extends Solver> solverSupplier) {
@@ -130,7 +131,7 @@ public final class Central {
   }
 
   private static final class CentralModel extends AbstractModel<DefaultParcel>
-      implements TickListener, ModelReceiver, SimulatorUser {
+    implements TickListener, ModelReceiver, SimulatorUser {
     private boolean hasChanged;
     private Optional<ModelProvider> modelProvider;
     private Optional<PDPRoadModel> roadModel;
@@ -168,22 +169,22 @@ public final class Central {
         // correct vehicles
 
         final Set<RouteFollowingVehicle> vehicles = roadModel.get()
-            .getObjectsOfType(RouteFollowingVehicle.class);
+          .getObjectsOfType(RouteFollowingVehicle.class);
 
         // gather current routes
         final ImmutableList.Builder<ImmutableList<DefaultParcel>> currentRouteBuilder = ImmutableList
-            .builder();
+          .builder();
         for (final RouteFollowingVehicle vehicle : vehicles) {
           final ImmutableList<DefaultParcel> l = ImmutableList.copyOf(vehicle
-              .getRoute());
+            .getRoute());
           currentRouteBuilder.add(l);
         }
 
         final Iterator<Queue<DefaultParcel>> routes = solverAdapter
-            .get()
-            .solve(
-                SolveArgs.create().useAllParcels()
-                    .useCurrentRoutes(currentRouteBuilder.build())).iterator();
+          .get()
+          .solve(
+            SolveArgs.create().useAllParcels()
+              .useCurrentRoutes(currentRouteBuilder.build())).iterator();
 
         for (final RouteFollowingVehicle vehicle : vehicles) {
           vehicle.setRoute(routes.next());
@@ -211,7 +212,7 @@ public final class Central {
       if (modelProvider.isPresent() && simulatorAPI.isPresent()) {
 
         solverAdapter = Optional.of(Solvers.solverBuilder(solver)
-            .with(modelProvider.get()).with(simulatorAPI.get()).build());
+          .with(modelProvider.get()).with(simulatorAPI.get()).build());
       }
     }
   }

@@ -42,7 +42,8 @@ class GradientFieldConfiguration extends DefaultMASConfiguration {
     return new Creator<AddVehicleEvent>() {
       @Override
       public boolean create(Simulator sim, AddVehicleEvent event) {
-        return sim.register(new Truck(event.vehicleDTO));
+        sim.register(new Truck(event.vehicleDTO));
+        return true;
       }
     };
   }
@@ -53,7 +54,8 @@ class GradientFieldConfiguration extends DefaultMASConfiguration {
       @Override
       public boolean create(Simulator sim, AddParcelEvent event) {
         // all parcels are accepted by default
-        return sim.register(new GFParcel(event.parcelDTO));
+        sim.register(new GFParcel(event.parcelDTO));
+        return true;
       }
     });
   }

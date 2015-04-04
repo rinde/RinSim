@@ -51,9 +51,9 @@ public final class FabriRechtExample {
     // we load a problem instance from disk, we instantiate it with 8
     // trucks, each with a capacity of 20 units
     final FabriRechtScenario scenario = FabriRechtParser
-        .fromJson(Files.toString(
-            new File("../problem/data/test/fabri-recht/lc101.scenario"),
-            Charsets.UTF_8), 8, 20);
+      .fromJson(Files.toString(
+        new File("../problem/data/test/fabri-recht/lc101.scenario"),
+        Charsets.UTF_8), 8, 20);
 
     // instantiate the problem using the scenario and a random seed (which
     // will not be used in this example)
@@ -63,7 +63,8 @@ public final class FabriRechtExample {
     problem.addCreator(AddVehicleEvent.class, new Creator<AddVehicleEvent>() {
       @Override
       public boolean create(Simulator sim, AddVehicleEvent event) {
-        return sim.register(new Truck(event.vehicleDTO));
+        sim.register(new Truck(event.vehicleDTO));
+        return true;
       }
     });
 
@@ -95,21 +96,21 @@ class Truck extends DefaultVehicle {
     final PDPModel pm = pdpModel.get();
     // we always go to the closest available parcel
     final DefaultParcel closest = (DefaultParcel) RoadModels
-        .findClosestObject(rm.getPosition(this), rm, new Predicate<RoadUser>() {
-          @Override
-          public boolean apply(RoadUser input) {
-            return input instanceof DefaultParcel
-                && pm.getParcelState((DefaultParcel) input) == ParcelState.AVAILABLE;
-          }
-        });
+      .findClosestObject(rm.getPosition(this), rm, new Predicate<RoadUser>() {
+        @Override
+        public boolean apply(RoadUser input) {
+          return input instanceof DefaultParcel
+            && pm.getParcelState((DefaultParcel) input) == ParcelState.AVAILABLE;
+        }
+      });
 
     if (closest != null) {
       rm.moveTo(this, closest, time);
       if (rm.equalPosition(closest, this)
-          && pm
-              .getTimeWindowPolicy()
-              .canPickup(closest.getPickupTimeWindow(), time.getTime(),
-                  closest.getPickupDuration())) {
+        && pm
+          .getTimeWindowPolicy()
+          .canPickup(closest.getPickupTimeWindow(), time.getTime(),
+            closest.getPickupDuration())) {
         pm.pickup(this, closest, time);
       }
     }

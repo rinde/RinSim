@@ -20,7 +20,6 @@ import java.io.Serializable;
 import com.github.rinde.rinsim.core.Model;
 import com.github.rinde.rinsim.core.Simulator;
 import com.github.rinde.rinsim.core.pdptw.RandomVehicle;
-import com.github.rinde.rinsim.experiment.MASConfiguration;
 import com.github.rinde.rinsim.pdptw.common.DynamicPDPTWProblem.Creator;
 import com.github.rinde.rinsim.scenario.AddDepotEvent;
 import com.github.rinde.rinsim.scenario.AddParcelEvent;
@@ -51,8 +50,9 @@ public class TestMASConfiguration implements MASConfiguration, Serializable {
     return new Creator<AddVehicleEvent>() {
       @Override
       public boolean create(Simulator sim, AddVehicleEvent event) {
-        return sim.register(new RandomVehicle(event.vehicleDTO, sim
-            .getRandomGenerator().nextLong()));
+        sim.register(new RandomVehicle(event.vehicleDTO, sim
+          .getRandomGenerator().nextLong()));
+        return true;
       }
     };
   }

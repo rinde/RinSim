@@ -100,12 +100,14 @@ public class DynamicPDPTWProblem {
       (Class<?>) AddParcelEvent.class, new Creator<AddParcelEvent>() {
         @Override
         public boolean create(Simulator sim, AddParcelEvent event) {
-          return sim.register(new DefaultParcel(event.parcelDTO));
+          sim.register(new DefaultParcel(event.parcelDTO));
+          return true;
         }
       }, AddDepotEvent.class, new Creator<AddDepotEvent>() {
         @Override
         public boolean create(Simulator sim, AddDepotEvent event) {
-          return sim.register(new DefaultDepot(event.position));
+          sim.register(new DefaultDepot(event.position));
+          return true;
         }
       });
   }

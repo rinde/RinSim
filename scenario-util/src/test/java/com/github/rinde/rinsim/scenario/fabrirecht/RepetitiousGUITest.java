@@ -32,8 +32,6 @@ import com.github.rinde.rinsim.pdptw.common.DynamicPDPTWProblem;
 import com.github.rinde.rinsim.pdptw.common.DynamicPDPTWProblem.Creator;
 import com.github.rinde.rinsim.pdptw.common.DynamicPDPTWProblem.DefaultUICreator;
 import com.github.rinde.rinsim.scenario.AddVehicleEvent;
-import com.github.rinde.rinsim.scenario.fabrirecht.FabriRechtParser;
-import com.github.rinde.rinsim.scenario.fabrirecht.FabriRechtScenario;
 import com.github.rinde.rinsim.ui.View;
 import com.github.rinde.rinsim.ui.renderers.Renderer;
 import com.google.common.base.Charsets;
@@ -43,22 +41,23 @@ import com.google.common.io.Files;
 /**
  * Simplest example showing how the Fabri & Recht problem can be configured
  * using a custom vehicle.
- * 
- * @author Rinde van Lon 
+ *
+ * @author Rinde van Lon
  */
 public class RepetitiousGUITest {
 
   public static void main(String[] args) throws IOException {
     for (int i = 0; i < 100; i++) {
       final FabriRechtScenario scenario = FabriRechtParser.fromJson(Files
-          .toString(new File("files/test/fabri-recht/lc101.scenario"),
-              Charsets.UTF_8), 8, 20);
+        .toString(new File("files/test/fabri-recht/lc101.scenario"),
+          Charsets.UTF_8), 8, 20);
 
       final DynamicPDPTWProblem problem = new DynamicPDPTWProblem(scenario, 123);
       problem.addCreator(AddVehicleEvent.class, new Creator<AddVehicleEvent>() {
         @Override
         public boolean create(Simulator sim, AddVehicleEvent event) {
-          return sim.register(new Truck(event.vehicleDTO));
+          sim.register(new Truck(event.vehicleDTO));
+          return true;
         }
       });
       final int iteration = i;
@@ -69,7 +68,7 @@ public class RepetitiousGUITest {
           try {
             initRenderers();
             View.create(sim).with(renderers.toArray(new Renderer[] {}))
-                .setSpeedUp(speedup).enableAutoClose().enableAutoPlay().show();
+              .setSpeedUp(speedup).enableAutoClose().enableAutoPlay().show();
           } catch (final Throwable e) {
             System.err.println("Crash occured at iteration " + iteration);
             e.printStackTrace();
@@ -84,8 +83,8 @@ public class RepetitiousGUITest {
 
 /**
  * This truck implementation only picks parcels up, it does not deliver them.
- * 
- * @author Rinde van Lon 
+ *
+ * @author Rinde van Lon
  */
 class Truck extends DefaultVehicle {
 
@@ -99,19 +98,19 @@ class Truck extends DefaultVehicle {
     final PDPModel pm = pdpModel.get();
     // we always go to the closest available parcel
     final DefaultParcel closest = (DefaultParcel) RoadModels.findClosestObject(
-        rm.getPosition(this), rm, new Predicate<RoadUser>() {
-          @Override
-          public boolean apply(RoadUser input) {
-            return input instanceof DefaultParcel
-                && pm.getParcelState((DefaultParcel) input) == ParcelState.AVAILABLE;
-          }
-        });
+      rm.getPosition(this), rm, new Predicate<RoadUser>() {
+        @Override
+        public boolean apply(RoadUser input) {
+          return input instanceof DefaultParcel
+            && pm.getParcelState((DefaultParcel) input) == ParcelState.AVAILABLE;
+        }
+      });
 
     if (closest != null) {
       rm.moveTo(this, closest, time);
       if (rm.equalPosition(closest, this)
-          && pm.getTimeWindowPolicy().canPickup(closest.getPickupTimeWindow(),
-              time.getTime(), closest.getPickupDuration())) {
+        && pm.getTimeWindowPolicy().canPickup(closest.getPickupTimeWindow(),
+          time.getTime(), closest.getPickupDuration())) {
         pm.pickup(this, closest, time);
       }
     }
