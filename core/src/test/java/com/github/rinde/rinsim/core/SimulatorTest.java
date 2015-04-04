@@ -15,23 +15,22 @@
  */
 package com.github.rinde.rinsim.core;
 
+import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
-import java.util.Arrays;
-
 import javax.measure.unit.SI;
 
 import org.apache.commons.math3.random.MersenneTwister;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import com.github.rinde.rinsim.core.Simulator.SimulatorEventType;
 import com.github.rinde.rinsim.core.model.time.TimeLapse;
 import com.github.rinde.rinsim.testutil.TestUtil;
+import com.google.common.base.Suppliers;
 
 /**
  * @author Rinde van Lon (rinde.vanlon@cs.kuleuven.be)
@@ -52,81 +51,54 @@ public class SimulatorTest {
     TestUtil.testEnum(SimulatorEventType.class);
   }
 
-  @Ignore
-  @Test
-  // (expected = IllegalArgumentException.class)
-  public void testRegisterTooEarly() {
-    simulator.register(new DummyObject());
-  }
-
-  @Ignore
-  @Test(expected = IllegalStateException.class)
-  public void testRegisterModelTooLate() {
-    simulator.register(new DummyModel());
-    // simulator.configure();
+  /**
+   * Models should not register.
+   */
+  @SuppressWarnings("deprecation")
+  @Test(expected = UnsupportedOperationException.class)
+  public void testRegisterModel() {
     simulator.register(new DummyModel());
   }
 
-  @Test
-  public void addDuplicateModel() {
-    // FIXME
-    // final OtherFooModel model = new OtherFooModel();
-    // assertTrue(manager.add(model));
-    // assertFalse(manager.add(model));
+  /**
+   * Models should not register.
+   */
+  @Test(expected = IllegalArgumentException.class)
+  public void testRegisterModel2() {
+    simulator.register((Object) new DummyModel());
   }
 
-  @Ignore
   @Test
   public void testRegister() {
-    // assertTrue(simulator.getModels().isEmpty());
     final DummyModel m1 = new DummyModel();
     final DummyModel m2 = new DummyModel();
     final DummyModelAsTickListener m3 = new DummyModelAsTickListener();
-    assertTrue(simulator.register(m1));
-    assertFalse(simulator.register(m1));
-    assertTrue(simulator.register(m2));
-    assertTrue(simulator.register(m3));
-    assertFalse(simulator.register(m3));
+    final Simulator sim = Simulator.builder()
+      .addModel(Suppliers.ofInstance(m1))
+      .addModel(Suppliers.ofInstance(m2))
+      .addModel(Suppliers.ofInstance(m3))
+      .build();
 
-    assertEquals(Arrays.asList(m1, m2, m3), simulator.getModels());
-    // simulator.configure();
+    assertThat((Iterable<?>) sim.getModels()).containsAllOf(m1, m2, m3)
+      .inOrder();
 
-    assertTrue(simulator.register(new DummyObject()));
+    sim.register(new DummyObject());
 
     final DummyObjectTickListener dotl = new DummyObjectTickListener();
-    boolean fail = false;
-    try {
-      simulator.register(dotl);
-    } catch (final IllegalArgumentException e) {
-      fail = true;
-    }
-    assertTrue(fail);
-    // assertEquals(Sets.newHashSet(m3, dotl), simulator.getTickListeners());
+    sim.register(dotl);
 
     final DummyObjectSimulationUser dosu = new DummyObjectSimulationUser();
-    fail = false;
-    try {
-      simulator.register(dosu);
-    } catch (final IllegalArgumentException e) {
-      fail = true;
-    }
-    assertTrue(fail);
-    assertEquals(simulator, dosu.getAPI());
+    sim.register(dosu);
+    assertEquals(sim, dosu.getAPI());
 
-    simulator.unregister(new DummyObject());
-    simulator.unregister(new DummyObjectTickListener());
+    sim.unregister(new DummyObject());
+    sim.unregister(new DummyObjectTickListener());
 
   }
 
   @Test(expected = IllegalArgumentException.class)
   public void testUnregisterModel() {
     simulator.unregister(new DummyModel());
-  }
-
-  @Ignore
-  @Test(expected = IllegalStateException.class)
-  public void testUnregisterTooEarly() {
-    simulator.unregister(new Object());
   }
 
   @Test

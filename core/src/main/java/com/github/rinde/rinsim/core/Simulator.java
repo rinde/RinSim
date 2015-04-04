@@ -31,6 +31,7 @@ import org.apache.commons.math3.random.RandomGenerator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.github.rinde.rinsim.core.model.AbstractModel;
 import com.github.rinde.rinsim.core.model.Model;
 import com.github.rinde.rinsim.core.model.ModelManager;
 import com.github.rinde.rinsim.core.model.ModelProvider;
@@ -105,7 +106,10 @@ public final class Simulator implements SimulatorAPI {
   private final Clock timeModel;
 
   Simulator(Builder b) {
-    modelManager = new ModelManager(b.buildModels());
+    modelManager = new ModelManager(ImmutableSet.<Model<?>> builder()
+      .add(new SimulatorModel(this))
+      .addAll(b.buildModels())
+      .build());
 
     timeModel = modelManager.getModel(TimeModel.class);
 
@@ -122,14 +126,22 @@ public final class Simulator implements SimulatorAPI {
     dispatcher = new EventDispatcher(SimulatorEventType.values());
   }
 
+  @Deprecated
+  public boolean register(Model<?> m) {
+    throw new UnsupportedOperationException(
+      "Models can be added via Simulator.builder().");
+  }
+
   @Override
-  public boolean register(Object obj) {
-    checkArgument(!(obj instanceof Model<?>), "Can not register a model: %s.",
+  public void register(Object obj) {
+    checkArgument(
+      !(obj instanceof Model<?>),
+      "Can not register a model: %s. "
+        + "Models can be added via Simulator.builder().",
       obj);
 
     LOGGER.info("{} - register({})", timeModel.getCurrentTime(), obj);
-    injectDependencies(obj);
-    return modelManager.register(obj);
+    modelManager.register(obj);
   }
 
   /**
@@ -137,26 +149,11 @@ public final class Simulator implements SimulatorAPI {
    * processed.
    */
   @Override
-  public boolean unregister(Object o) {
+  public void unregister(Object o) {
     if (o instanceof Model<?>) {
       throw new IllegalArgumentException("can not unregister a model");
     }
-    if (o instanceof TickListener) {
-      removeTickListener((TickListener) o);
-    }
     toUnregister.add(o);
-    return true;
-  }
-
-  /**
-   * Inject all required dependencies basing on the declared types of the
-   * object.
-   * @param o object that need to have dependencies injected
-   */
-  protected void injectDependencies(Object o) {
-    if (o instanceof SimulatorUser) {
-      ((SimulatorUser) o).setSimulator(this);
-    }
   }
 
   /**
@@ -389,6 +386,25 @@ public final class Simulator implements SimulatorAPI {
      */
     public Simulator build() {
       return new Simulator(this);
+    }
+  }
+
+  static class SimulatorModel extends AbstractModel<SimulatorUser> {
+    final Simulator simulator;
+
+    SimulatorModel(Simulator sim) {
+      simulator = sim;
+    }
+
+    @Override
+    public boolean register(SimulatorUser element) {
+      element.setSimulator(simulator);
+      return true;
+    }
+
+    @Override
+    public boolean unregister(SimulatorUser element) {
+      return true;
     }
   }
 }

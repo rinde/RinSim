@@ -45,4 +45,9 @@ class DummyModel implements Model<DummyObject> {
 
   @Override
   public void finalizeConfiguration() {}
+
+  @Override
+  public String toString() {
+    return "DummyModel" + Integer.toHexString(hashCode());
+  }
 }

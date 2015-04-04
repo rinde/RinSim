@@ -37,18 +37,18 @@ public interface SimulatorAPI {
    * provided all features it requires (declared by interfaces) and bound to the
    * required models (if they were registered in the simulator before).
    * @param o object to register
-   * @return <code>true</code> when registration of the object in the simulator
-   *         was successful
-   * @throws IllegalStateException when simulator is not configured.
+   * @throws IllegalArgumentException when object can not be registered to any
+   *           model.
    */
-  boolean register(Object o);
+  void register(Object o);
 
   /**
    * Unregister an object from simulator.
    * @param o The object to be unregistered.
-   * @return True if the object could be unregistered, false otherwise.
+   * @throws IllegalArgumentException when object can not be unregistered from
+   *           any model.
    */
-  boolean unregister(Object o);
+  void unregister(Object o);
 
   /**
    * Get access to the main random generator used in the simulator.
