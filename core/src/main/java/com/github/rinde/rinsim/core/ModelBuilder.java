@@ -15,35 +15,67 @@
  */
 package com.github.rinde.rinsim.core;
 
-import static com.google.common.collect.Lists.asList;
-
 import com.google.common.collect.ImmutableSet;
 import com.google.common.reflect.TypeToken;
 
 /**
- * @author Rinde van Lon
- * @param <T>
+ * Interface for builders of {@link Model}s. An implementation of the
+ * {@link ModelBuilder} interface can specify three different properties of the
+ * {@link Model} its constructing:
+ * <ul>
+ * <li>Associated type, as advertised via {@link #getAssociatedType()}</li>
+ * <li>Provided types, as advertised via {@link #getProvidingTypes()}</li>
+ * <li>Dependent types, as advertised via {@link #getDependencies()}</li>
+ * </ul>
+ * <p>
+ * <b>Associated type</b><br/>
+ * Objects (not models) that are added to the simulator with a type that is
+ * assignable to the associated type are automatically registered to the model.
+ * <p>
+ * <b>Provided types</b><br/>
+ * These are the types that the model that is constructed by this builder
+ * provides to the simulator. Instances of these types should be provided via
+ * {@link Model#get(Class)}.
+ * <p>
+ * <b>Dependent types</b><br/>
+ * These are the types that the model that is constructed by this builder
+ * depends on. Instances of this type can be requested via a
+ * {@link DependencyProvider} that is made available when
+ * {@link #build(DependencyProvider)} is called.
  *
+ * @param <T> The associated type.
+ * @author Rinde van Lon
+ * @see AbstractModelBuilder
  */
 public interface ModelBuilder<T> {
 
   Class<T> getAssociatedType();
 
-  Model<T> build(DependencyProvider dependencyProvider);
-
   ImmutableSet<Class<?>> getProvidingTypes();
 
   ImmutableSet<Class<?>> getDependencies();
 
+  Model<T> build(DependencyProvider dependencyProvider);
+
+  /**
+   * Abstract implementation of {@link ModelBuilder} that provides default
+   * implementations all methods except {@link #build(DependencyProvider)}.
+   * @author Rinde van Lon
+   * @param <T> The associated type.
+   */
   public static abstract class AbstractModelBuilder<T> implements
     ModelBuilder<T> {
-
-    private final ImmutableSet<Class<?>> providingTypes;
+    private final ImmutableSet<Class<?>> provTypes;
     private final Class<T> clazz;
 
+    /**
+     * Construct a new instance.
+     * @param providingTypes The providing types of this builder, see
+     *          {@link ModelBuilder} header comment for more info.
+     */
     @SuppressWarnings({ "unchecked", "serial" })
-    protected AbstractModelBuilder(Class<?> type, Class<?>... moreTypes) {
-      providingTypes = ImmutableSet.copyOf(asList(type, moreTypes));
+    protected AbstractModelBuilder(Class<?>... providingTypes) {
+      provTypes = ImmutableSet.copyOf(providingTypes);
       clazz = (Class<T>) new TypeToken<T>(getClass()) {}.getRawType();
     }
 
@@ -54,7 +86,7 @@ public interface ModelBuilder<T> {
 
     @Override
     public final ImmutableSet<Class<?>> getProvidingTypes() {
-      return providingTypes;
+      return provTypes;
     }
 
     @Override

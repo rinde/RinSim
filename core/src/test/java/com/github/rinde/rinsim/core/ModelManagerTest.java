@@ -400,9 +400,6 @@ public class ModelManagerTest {
         }
 
         @Override
-        public void finalizeConfiguration() {}
-
-        @Override
         public <T> T get(Class<T> clazz) {
           throw new UnsupportedOperationException();
         }
@@ -459,9 +456,6 @@ class OtherFooModel implements Model<Foo> {
     callUnregister += 1;
     return true;
   }
-
-  @Override
-  public void finalizeConfiguration() {}
 
   @Override
   public <T> T get(Class<T> clazz) {
@@ -608,13 +602,9 @@ class DebugModel<T> implements Model<T> {
   }
 
   @Override
-  public void finalizeConfiguration() {}
-
-  @Override
   public <T> T get(Class<T> clazz) {
     throw new UnsupportedOperationException();
   }
-
 }
 
 class Foo {}

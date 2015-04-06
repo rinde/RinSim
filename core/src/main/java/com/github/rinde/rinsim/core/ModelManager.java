@@ -57,9 +57,6 @@ final class ModelManager implements ModelProvider {
     for (final Model<?> m : models) {
       doRegister(m);
     }
-    for (final Model<?> m : models) {
-      m.finalizeConfiguration();
-    }
   }
 
   @SuppressWarnings("unchecked")

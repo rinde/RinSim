@@ -16,8 +16,8 @@
 package com.github.rinde.rinsim.core;
 
 /**
- * @author Rinde van Lon
  *
+ * @author Rinde van Lon
  */
 public interface DependencyProvider {
 

@@ -121,6 +121,12 @@ public class RandomModel extends AbstractModel<RandomUser> {
     return new RandomModelSupplier(rng);
   }
 
+  /**
+   * Creates a new {@link RandomModel} {@link Supplier} using the specified
+   * {@link RandomGenerator}.
+   * @param rng The generator to use.
+   * @return A new supplier instance.
+   */
   public static ModelBuilder<RandomUser> builder(RandomGenerator rng) {
     return new RandomModelSupplier(rng);
   }

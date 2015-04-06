@@ -21,6 +21,9 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
+import java.util.LinkedHashSet;
+import java.util.Set;
+
 import javax.measure.unit.NonSI;
 import javax.measure.unit.SI;
 
@@ -187,6 +190,63 @@ public class SimulatorTest {
       fail = true;
     }
     assertThat(fail).isTrue();
+  }
+
+  /**
+   * Tests that a duplicate provided is detected correctly.
+   */
+  @Test
+  public void testDuplicateProvider() {
+    final Simulator.Builder b = Simulator.builder()
+      .addModel(new DuplicateA())
+      .addModel(new DuplicateB());
+    boolean fail = false;
+    try {
+      b.build();
+    } catch (final IllegalArgumentException e) {
+      fail = true;
+    }
+    assertThat(fail).isTrue();
+  }
+
+  class DuplicateA extends AbstractModelBuilder<Object> {
+    DuplicateA() {
+      super(Object.class);
+    }
+
+    @Override
+    public GenericModel<Object> build(DependencyProvider dependencyProvider) {
+      return new GenericModel<>();
+    }
+  }
+
+  class DuplicateB extends AbstractModelBuilder<Object> {
+    DuplicateB() {
+      super(Object.class);
+    }
+
+    @Override
+    public GenericModel<Object> build(DependencyProvider dependencyProvider) {
+      return new GenericModel<>();
+    }
+  }
+
+  class GenericModel<T> extends AbstractModel<T> {
+    Set<T> set;
+
+    GenericModel() {
+      set = new LinkedHashSet<>();
+    }
+
+    @Override
+    public boolean register(T element) {
+      return set.add(element);
+    }
+
+    @Override
+    public boolean unregister(T element) {
+      return set.remove(element);
+    }
   }
 
   class A extends AbstractModelBuilder<Object> {

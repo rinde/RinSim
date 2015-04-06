@@ -59,7 +59,8 @@ class DependencyResolver implements DependencyProvider {
       modelTypeMap.put(mb.getAssociatedType(), mb);
 
       for (final Class<?> clz : mb.getProvidingTypes()) {
-        checkArgument(!providerMap.containsKey(clz));
+        checkArgument(!providerMap.containsKey(clz),
+          "A provider for %s already exists: %s.", clz, providerMap.get(clz));
         providerMap.put(clz, mb);
       }
 

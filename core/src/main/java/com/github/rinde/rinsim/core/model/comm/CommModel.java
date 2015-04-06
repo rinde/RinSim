@@ -198,9 +198,6 @@ public final class CommModel extends AbstractModel<CommUser> implements
       * receiverReliability;
   }
 
-  @Override
-  public void finalizeConfiguration() {}
-
   /**
    * @return A new builder for creating a {@link CommModel}.
    */

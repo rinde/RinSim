@@ -42,10 +42,13 @@ public interface Model<T> {
   Class<T> getSupportedType();
 
   /**
-   * Is called when all models are configured. Can be used to check if all
-   * dependencies have been set.
+   * Implementors of this method should return an object of the specified type.
+   * A {@link Model} can advertise the types it can provide via
+   * {@link ModelBuilder#getProvidingTypes()}.
+   * @param clazz The type.
+   * @param <U> The type.
+   * @return A new instance of type <code>U</code>.
+   * @throws IllegalArgumentException For classes for which it has no support.
    */
-  void finalizeConfiguration();
-
   <U> U get(Class<U> clazz);
 }

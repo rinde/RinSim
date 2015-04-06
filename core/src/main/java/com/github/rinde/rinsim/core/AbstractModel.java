@@ -25,26 +25,24 @@ import com.google.common.reflect.TypeToken;
  */
 public abstract class AbstractModel<T> implements Model<T> {
 
-  private final Class<T> clazz;
+  private final Class<T> supportedType;
 
   /**
    * Create a new model.
    */
   @SuppressWarnings({ "serial", "unchecked" })
   protected AbstractModel() {
-    this.clazz = (Class<T>) new TypeToken<T>(getClass()) {}.getRawType();
+    supportedType = (Class<T>) new TypeToken<T>(getClass()) {}.getRawType();
   }
 
   @Override
   public final Class<T> getSupportedType() {
-    return clazz;
+    return supportedType;
   }
 
   @Override
-  public void finalizeConfiguration() {}
-
-  @Override
   public <U> U get(Class<U> clazz) {
-    throw new UnsupportedOperationException();
+    throw new IllegalArgumentException(
+      "This model does not support providing any objects.");
   }
 }
