@@ -119,7 +119,6 @@ public class ScenarioController extends AbstractModel<Scenario> implements
    * documentation
    *
    * @param scen Scenario which is controlled.
-   * @param sim Simulator which is controlled.
    * @param eventHandler Is used to handle scenario events.
    * @param numberOfTicks The number of ticks play, when negative the number of
    *          tick is infinite.
