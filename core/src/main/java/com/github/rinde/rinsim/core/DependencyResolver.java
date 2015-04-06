@@ -83,19 +83,18 @@ class DependencyResolver implements DependencyProvider {
       mb.build(this);
       builders.add(mb);
     }
-
-    System.out.println(builders);
   }
 
   ImmutableSet<Model<?>> resolve() {
-    System.out.println("RESOLVE");
     final Multimap<CachedModelBuilder<?>, CachedModelBuilder<?>> dependencyGraph = LinkedHashMultimap
       .create();
     for (final Entry<CachedModelBuilder<?>, Class<?>> entry : dependencyMap
       .entries()) {
+      checkArgument(providerMap.containsKey(entry.getValue()),
+        "Could not resolve dependency for implementations of %s.",
+        entry.getValue());
       dependencyGraph.put(entry.getKey(), providerMap.get(entry.getValue()));
     }
-    System.out.println(dependencyGraph);
     while (!dependencyGraph.isEmpty()) {
       final List<CachedModelBuilder<?>> toRemove = new ArrayList<>();
       for (final CachedModelBuilder<?> mb : dependencyGraph.keys()) {
@@ -104,12 +103,10 @@ class DependencyResolver implements DependencyProvider {
 
         boolean allResolved = true;
         for (final CachedModelBuilder<?> dependency : dependencies) {
-          System.out.println(dependency + " " + dependency.isResolved());
           allResolved &= dependency.isResolved();
         }
 
         if (allResolved) {
-          System.out.println("build " + mb);
           mb.build(this);
           toRemove.add(mb);
         }
@@ -119,7 +116,9 @@ class DependencyResolver implements DependencyProvider {
         dependencyGraph.removeAll(mb);
       }
       if (toRemove.isEmpty()) {
-        throw new IllegalArgumentException();
+        throw new IllegalArgumentException(
+          "Could not resolve dependencies for " + dependencyGraph.keySet()
+            + ", most likely a circular dependency was declared.");
       }
     }
 
@@ -172,6 +171,7 @@ class DependencyResolver implements DependencyProvider {
     }
   }
 
+  @SuppressWarnings("unchecked")
   static <A extends Model<B>, B> ModelBuilder<B> adaptObj(final Object sup) {
     return adapt((Supplier<A>) sup);
   }
@@ -191,14 +191,12 @@ class DependencyResolver implements DependencyProvider {
     private Model<T> value;
 
     CachedModelBuilder(ModelBuilder<T> deleg) {
-      System.out.println("cache " + deleg);
       delegate = deleg;
     }
 
     @Override
     public Model<T> build(DependencyProvider dependencyProvider) {
       if (value == null) {
-        System.out.println(delegate + " build");
         value = delegate.build(dependencyProvider);
         checkNotNull(value, "%s returned null where a Model was expected.",
           delegate);

@@ -31,6 +31,7 @@ import org.apache.commons.math3.random.RandomGenerator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.github.rinde.rinsim.core.ModelBuilder.AbstractModelBuilder;
 import com.github.rinde.rinsim.core.model.time.Clock;
 import com.github.rinde.rinsim.core.model.time.TickListener;
 import com.github.rinde.rinsim.core.model.time.TimeLapse;
@@ -40,7 +41,6 @@ import com.github.rinde.rinsim.event.EventAPI;
 import com.github.rinde.rinsim.event.EventDispatcher;
 import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableCollection;
-import com.google.common.collect.ImmutableSet;
 
 /**
  * Simulator is the core class of a simulation. It is responsible for managing
@@ -105,18 +105,20 @@ public final class Simulator implements SimulatorAPI {
     dispatcher = new EventDispatcher(SimulatorEventType.values());
     rand = b.rng;
 
-    modelManager = new ModelManager(ImmutableSet.<Model<?>> builder()
-      .add(new SimulatorModel(this))
-      .addAll(b.buildModels())
-      .build());
-
-    timeModel = modelManager.getModel(TimeModel.class);
-
-    for (final Model<?> m : modelManager.getModels()) {
-      if (m.getSupportedType().isAssignableFrom(TickListener.class)) {
-        // TODO check uniqueness
+    final List<ModelBuilder<?>> list = new ArrayList<>();
+    list.add(new SimulatorModelBuilder(this));
+    for (final Object o : b.models) {
+      if (o instanceof ModelBuilder<?>) {
+        list.add((ModelBuilder<?>) o);
+      } else {
+        @SuppressWarnings("unchecked")
+        final Supplier<? extends Model<?>> m = (Supplier<? extends Model<?>>) o;
+        list.add(DependencyResolver.adaptObj(m));
       }
     }
+    final DependencyResolver resolver = new DependencyResolver(list, b);
+    modelManager = new ModelManager(resolver.resolve());
+    timeModel = modelManager.getModel(TimeModel.class);
   }
 
   /**
@@ -240,13 +242,6 @@ public final class Simulator implements SimulatorAPI {
   }
 
   /**
-   * @return An unmodifiable view on the set of tick listeners.
-   */
-  // public Set<TickListener> getTickListeners() {
-  // return Collections.unmodifiableSet(tickListeners);
-  // }
-
-  /**
    * {@inheritDoc}
    */
   @Override
@@ -341,34 +336,27 @@ public final class Simulator implements SimulatorAPI {
     }
 
     /**
-     * Adds the specified {@link Model} to the simulator.
-     * @param model The model to add.
+     * Adds the specified {@link Supplier} to the simulator. The
+     * {@link Supplier} will be used to obtain a {@link Model} instance that
+     * will be added to the simulator.
+     * @param supplier The supplier to add.
      * @return This, as per the builder pattern.
      */
-    public Builder addModel(Supplier<? extends Model<?>> model) {
-      models.add(model);
+    public Builder addModel(Supplier<? extends Model<?>> supplier) {
+      models.add(supplier);
       return this;
     }
 
+    /**
+     * Adds the specified {@link ModelBuilder} to the simulator. The
+     * {@link ModelBuilder} will be used to obtain a {@link Model} instance that
+     * will be added to the simulator.
+     * @param builder The builder to add.
+     * @return This, as per the builder pattern.
+     */
     public Builder addModel(ModelBuilder<?> builder) {
       models.add(builder);
       return this;
-    }
-
-    @SuppressWarnings("unchecked")
-    ImmutableSet<Model<?>> buildModels() {
-      System.out.println("BUILDMODELS");
-      final List<ModelBuilder<?>> list = new ArrayList<>();
-      for (final Object o : models) {
-        if (o instanceof ModelBuilder<?>) {
-          list.add((ModelBuilder<?>) o);
-        } else {
-          final Supplier<? extends Model<?>> m = (Supplier<? extends Model<?>>) o;
-          list.add(DependencyResolver.adaptObj(m));
-        }
-      }
-      final DependencyResolver resolver = new DependencyResolver(list, this);
-      return resolver.resolve();
     }
 
     /**
@@ -378,6 +366,23 @@ public final class Simulator implements SimulatorAPI {
     public Simulator build() {
       return new Simulator(this);
     }
+  }
+
+  static class SimulatorModelBuilder extends
+    AbstractModelBuilder<SimulatorUser> {
+
+    final Simulator simulator;
+
+    SimulatorModelBuilder(Simulator sim) {
+      super(SimulatorAPI.class);
+      simulator = sim;
+    }
+
+    @Override
+    public Model<SimulatorUser> build(DependencyProvider dependencyProvider) {
+      return new SimulatorModel(simulator);
+    }
+
   }
 
   static class SimulatorModel extends AbstractModel<SimulatorUser> {

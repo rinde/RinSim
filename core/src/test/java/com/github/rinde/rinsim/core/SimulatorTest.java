@@ -154,6 +154,95 @@ public class SimulatorTest {
 
   }
 
+  /**
+   * Tests correct detection of circular dependencies.
+   */
+  @Test
+  public void testCircularDependencies() {
+    final Simulator.Builder b = Simulator.builder()
+      .addModel(new A())
+      .addModel(new B())
+      .addModel(new C());
+
+    boolean fail = false;
+    try {
+      b.build();
+    } catch (final IllegalArgumentException e) {
+      fail = true;
+    }
+    assertThat(fail).isTrue();
+  }
+
+  /**
+   * Tests correct detection of a dependency that is not supplied.
+   */
+  @Test
+  public void testUnknownDependency() {
+    final Simulator.Builder b = Simulator.builder()
+      .addModel(new A());
+    boolean fail = false;
+    try {
+      b.build();
+    } catch (final IllegalArgumentException e) {
+      fail = true;
+    }
+    assertThat(fail).isTrue();
+  }
+
+  class A extends AbstractModelBuilder<Object> {
+    A() {
+      super(ProviderForA.class);
+    }
+
+    @Override
+    public Model<Object> build(DependencyProvider dependencyProvider) {
+      return null;
+    }
+
+    @Override
+    public ImmutableSet<Class<?>> getDependencies() {
+      return ImmutableSet.<Class<?>> of(ProviderForB.class);
+    }
+  }
+
+  class B extends AbstractModelBuilder<Object> {
+    B() {
+      super(ProviderForB.class);
+    }
+
+    @Override
+    public Model<Object> build(DependencyProvider dependencyProvider) {
+      return null;
+    }
+
+    @Override
+    public ImmutableSet<Class<?>> getDependencies() {
+      return ImmutableSet.<Class<?>> of(ProviderForC.class);
+    }
+  }
+
+  class C extends AbstractModelBuilder<Object> {
+    C() {
+      super(ProviderForC.class);
+    }
+
+    @Override
+    public Model<Object> build(DependencyProvider dependencyProvider) {
+      return null;
+    }
+
+    @Override
+    public ImmutableSet<Class<?>> getDependencies() {
+      return ImmutableSet.<Class<?>> of(ProviderForA.class);
+    }
+  }
+
+  class ProviderForA {}
+
+  class ProviderForB {}
+
+  class ProviderForC {}
+
   class DummyObject {}
 
   class DummyObjectTickListener implements TickListener {
