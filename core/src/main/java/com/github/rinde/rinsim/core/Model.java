@@ -46,4 +46,6 @@ public interface Model<T> {
    * dependencies have been set.
    */
   void finalizeConfiguration();
+
+  <U> U get(Class<U> clazz);
 }

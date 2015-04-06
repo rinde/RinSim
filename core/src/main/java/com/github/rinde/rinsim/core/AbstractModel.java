@@ -42,4 +42,9 @@ public abstract class AbstractModel<T> implements Model<T> {
 
   @Override
   public void finalizeConfiguration() {}
+
+  @Override
+  public <U> U get(Class<U> clazz) {
+    throw new UnsupportedOperationException();
+  }
 }

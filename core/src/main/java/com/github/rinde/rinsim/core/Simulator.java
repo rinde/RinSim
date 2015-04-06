@@ -31,7 +31,6 @@ import org.apache.commons.math3.random.RandomGenerator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.github.rinde.rinsim.core.model.rand.RandomModel;
 import com.github.rinde.rinsim.core.model.time.Clock;
 import com.github.rinde.rinsim.core.model.time.TickListener;
 import com.github.rinde.rinsim.core.model.time.TimeLapse;
@@ -283,7 +282,7 @@ public final class Simulator implements SimulatorAPI {
     RandomGenerator rng;
     Unit<Duration> timeUnit;
     long tickLength;
-    List<Supplier<Model<?>>> models;
+    List<Object> models;
 
     Builder() {
       rng = new MersenneTwister(DEFAULT_SEED);
@@ -346,33 +345,30 @@ public final class Simulator implements SimulatorAPI {
      * @param model The model to add.
      * @return This, as per the builder pattern.
      */
-    @SuppressWarnings("unchecked")
     public Builder addModel(Supplier<? extends Model<?>> model) {
-      models.add((Supplier<Model<?>>) model);
+      models.add(model);
       return this;
     }
 
+    public Builder addModel(ModelBuilder<?> builder) {
+      models.add(builder);
+      return this;
+    }
+
+    @SuppressWarnings("unchecked")
     ImmutableSet<Model<?>> buildModels() {
-      final ImmutableSet.Builder<Model<?>> modelsBuilder = ImmutableSet
-        .builder();
-      boolean hasRandomModel = false;
-      boolean hasTimeModel = false;
-      for (final Supplier<Model<?>> ms : models) {
-        final Model<?> m = ms.get();
-        if (m instanceof RandomModel) {
-          hasRandomModel = true;
-        } else if (m instanceof TimeModel) {
-          hasTimeModel = true;
+      System.out.println("BUILDMODELS");
+      final List<ModelBuilder<?>> list = new ArrayList<>();
+      for (final Object o : models) {
+        if (o instanceof ModelBuilder<?>) {
+          list.add((ModelBuilder<?>) o);
+        } else {
+          final Supplier<? extends Model<?>> m = (Supplier<? extends Model<?>>) o;
+          list.add(DependencyResolver.adapt(m));
         }
-        modelsBuilder.add(m);
       }
-      if (!hasRandomModel) {
-        modelsBuilder.add(RandomModel.create(rng));
-      }
-      if (!hasTimeModel) {
-        modelsBuilder.add(TimeModel.supplier(tickLength, timeUnit).get());
-      }
-      return modelsBuilder.build();
+      final DependencyResolver resolver = new DependencyResolver(list, this);
+      return resolver.resolve();
     }
 
     /**

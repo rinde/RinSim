@@ -28,11 +28,14 @@ import org.apache.commons.math3.random.MersenneTwister;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.github.rinde.rinsim.core.ModelBuilder.AbstractModelBuilder;
 import com.github.rinde.rinsim.core.Simulator.SimulatorEventType;
+import com.github.rinde.rinsim.core.model.rand.RandomProvider;
 import com.github.rinde.rinsim.core.model.time.TickListener;
 import com.github.rinde.rinsim.core.model.time.TimeLapse;
 import com.github.rinde.rinsim.testutil.TestUtil;
 import com.google.common.base.Suppliers;
+import com.google.common.collect.ImmutableSet;
 
 /**
  * @author Rinde van Lon (rinde.vanlon@cs.kuleuven.be)
@@ -128,6 +131,27 @@ public class SimulatorTest {
   @Test
   public void testGetRnd() {
     assertNotNull(simulator.getRandomGenerator());
+  }
+
+  @Test
+  public void testModelBuilder() {
+    final Simulator sim = Simulator.builder()
+      .addModel(new AbstractModelBuilder<DummyObject>(Object.class) {
+        @Override
+        public Model<DummyObject> build(DependencyProvider dp) {
+          final RandomProvider rg = dp.get(RandomProvider.class);
+          rg.newInstance();
+          return new DummyModel();
+        }
+
+        @Override
+        public ImmutableSet<Class<?>> getDependencies() {
+          return ImmutableSet.<Class<?>> of(RandomProvider.class);
+        }
+      })
+      .build();
+    assertThat((Iterable<?>) sim.getModels()).containsNoDuplicates();
+
   }
 
   class DummyObject {}

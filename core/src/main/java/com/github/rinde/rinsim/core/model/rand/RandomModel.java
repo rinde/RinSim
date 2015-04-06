@@ -24,6 +24,10 @@ import org.apache.commons.math3.random.MersenneTwister;
 import org.apache.commons.math3.random.RandomGenerator;
 
 import com.github.rinde.rinsim.core.AbstractModel;
+import com.github.rinde.rinsim.core.DependencyProvider;
+import com.github.rinde.rinsim.core.Model;
+import com.github.rinde.rinsim.core.ModelBuilder;
+import com.github.rinde.rinsim.core.ModelBuilder.AbstractModelBuilder;
 import com.google.common.base.Supplier;
 
 /**
@@ -64,6 +68,14 @@ public class RandomModel extends AbstractModel<RandomUser> {
     element.setRandomGenerator(provider);
     provider.invalidate();
     return true;
+  }
+
+  @Override
+  public <U> U get(Class<U> clazz) {
+    if (clazz == RandomProvider.class) {
+      return clazz.cast(new RngProvider());
+    }
+    throw new IllegalArgumentException();
   }
 
   @Override
@@ -109,16 +121,32 @@ public class RandomModel extends AbstractModel<RandomUser> {
     return new RandomModelSupplier(rng);
   }
 
-  static class RandomModelSupplier implements Supplier<RandomModel> {
+  public static ModelBuilder<RandomUser> builder(RandomGenerator rng) {
+    return new RandomModelSupplier(rng);
+  }
+
+  static class RandomModelSupplier extends AbstractModelBuilder<RandomUser>
+    implements Supplier<RandomModel> {
     private final RandomGenerator r;
 
     RandomModelSupplier(RandomGenerator rng) {
+      super(RandomProvider.class);
       r = rng;
     }
 
     @Override
     public RandomModel get() {
       return new RandomModel(r);
+    }
+
+    @Override
+    public Model<RandomUser> build(DependencyProvider modelProvider) {
+      return new RandomModel(r);
+    }
+
+    @Override
+    public String toString() {
+      return "RandomModelBuilder";
     }
   }
 

@@ -401,6 +401,11 @@ public class ModelManagerTest {
 
         @Override
         public void finalizeConfiguration() {}
+
+        @Override
+        public <T> T get(Class<T> clazz) {
+          throw new UnsupportedOperationException();
+        }
       }));
 
     boolean fail = false;
@@ -457,6 +462,11 @@ class OtherFooModel implements Model<Foo> {
 
   @Override
   public void finalizeConfiguration() {}
+
+  @Override
+  public <T> T get(Class<T> clazz) {
+    throw new UnsupportedOperationException();
+  }
 }
 
 class BarModel extends AbstractModel<Bar> {
@@ -599,6 +609,11 @@ class DebugModel<T> implements Model<T> {
 
   @Override
   public void finalizeConfiguration() {}
+
+  @Override
+  public <T> T get(Class<T> clazz) {
+    throw new UnsupportedOperationException();
+  }
 
 }
 

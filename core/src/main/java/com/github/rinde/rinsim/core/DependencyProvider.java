@@ -15,30 +15,11 @@
  */
 package com.github.rinde.rinsim.core;
 
-import java.util.HashSet;
+/**
+ * @author Rinde van Lon
+ *
+ */
+public interface DependencyProvider {
 
-import com.github.rinde.rinsim.core.SimulatorTest.DummyObject;
-
-class DummyModel extends AbstractModel<DummyObject> {
-
-  private final HashSet<DummyObject> objs;
-
-  DummyModel() {
-    objs = new HashSet<>();
-  }
-
-  @Override
-  public boolean register(DummyObject element) {
-    return objs.add(element);
-  }
-
-  @Override
-  public boolean unregister(DummyObject element) {
-    return objs.remove(element);
-  }
-
-  @Override
-  public String toString() {
-    return "DummyModel" + Integer.toHexString(hashCode());
-  }
+  <T> T get(Class<T> type);
 }
