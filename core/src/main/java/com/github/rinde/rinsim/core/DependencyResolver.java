@@ -172,6 +172,10 @@ class DependencyResolver implements DependencyProvider {
     }
   }
 
+  static <A extends Model<B>, B> ModelBuilder<B> adaptObj(final Object sup) {
+    return adapt((Supplier<A>) sup);
+  }
+
   static <A extends Model<B>, B> ModelBuilder<B> adapt(final Supplier<A> sup) {
     return new SupplierAdapter<>(sup);
   }

@@ -364,7 +364,7 @@ public final class Simulator implements SimulatorAPI {
           list.add((ModelBuilder<?>) o);
         } else {
           final Supplier<? extends Model<?>> m = (Supplier<? extends Model<?>>) o;
-          list.add(DependencyResolver.adapt(m));
+          list.add(DependencyResolver.adaptObj(m));
         }
       }
       final DependencyResolver resolver = new DependencyResolver(list, this);
