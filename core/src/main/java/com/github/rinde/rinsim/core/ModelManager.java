@@ -134,7 +134,7 @@ final class ModelManager implements ModelProvider {
   /**
    * @return The {@link Model}s that are registered.
    */
-  public ImmutableCollection<Model<?>> getModels() {
+  ImmutableCollection<Model<?>> getModels() {
     return registry.values();
   }
 
