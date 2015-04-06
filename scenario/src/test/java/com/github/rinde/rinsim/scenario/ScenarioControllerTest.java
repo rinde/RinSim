@@ -45,17 +45,21 @@ import com.github.rinde.rinsim.event.Event;
 import com.github.rinde.rinsim.event.Listener;
 import com.github.rinde.rinsim.event.ListenerEventHistory;
 import com.github.rinde.rinsim.scenario.ScenarioController.UICreator;
+import com.github.rinde.rinsim.testutil.TestUtil;
+import com.google.common.base.Suppliers;
 
+/**
+ * Tests for {@link ScenarioController}.
+ * @author Rinde van Lon
+ */
 public class ScenarioControllerTest {
 
   @SuppressWarnings("null")
   protected ScenarioController controller;
   @SuppressWarnings("null")
   protected Scenario scenario;
-  @SuppressWarnings("null")
-  protected Simulator simulator;
 
-  public enum TestEvents {
+  enum TestEvents {
     EVENT_A, EVENT_B, EVENT_C, EVENT_D;
   }
 
@@ -71,11 +75,8 @@ public class ScenarioControllerTest {
       .addEvent(new TimedEvent(EVENT_C, 100))
       .build();
     assertNotNull(scenario);
-    ScenarioController.EventType.valueOf("SCENARIO_STARTED");
-    simulator = Simulator.builder()
-      .setTickLength(1L)
-      .setTimeUnit(SI.SECOND)
-      .build();
+
+    TestUtil.testEnum(ScenarioController.EventType.class);
   }
 
   @Test(expected = IllegalStateException.class)
@@ -126,6 +127,12 @@ public class ScenarioControllerTest {
   public void finiteSimulation() throws InterruptedException {
     final ScenarioController sc = new ScenarioController(scenario,
       new TestHandler(TestEvents.values()), 101);
+
+    Simulator.builder()
+      .setTickLength(1L)
+      .setTimeUnit(SI.SECOND)
+      .addModel(Suppliers.ofInstance(sc))
+      .build();
 
     final ListenerEventHistory leh = new ListenerEventHistory();
     sc.getEventAPI().addListener(leh);
@@ -181,6 +188,13 @@ public class ScenarioControllerTest {
 
     final EventHistory th = new EventHistory();
     final ScenarioController sc = new ScenarioController(s, th, 1);
+
+    Simulator.builder()
+      .setTickLength(1L)
+      .setTimeUnit(SI.SECOND)
+      .addModel(Suppliers.ofInstance(sc))
+      .build();
+
     sc.start();
     assertEquals(asList(EVENT_B, EVENT_C, EVENT_A), th.eventTypes);
 
@@ -195,19 +209,11 @@ public class ScenarioControllerTest {
     controller = new ScenarioController(scenario, new TestHandler(
       EVENT_A, EVENT_B), 3);
 
-    // {
-    //
-    // @Override
-    // protected boolean handleTimedEvent(TimedEvent event) {
-    // if (event.getEventType() == EVENT_A
-    // || event.getEventType() == EVENT_B) {
-    // return true;
-    // }
-    //
-    // return super.handleTimedEvent(event);
-    // }
-    //
-    // };
+    Simulator.builder()
+      .setTickLength(1L)
+      .setTimeUnit(SI.SECOND)
+      .addModel(Suppliers.ofInstance(controller))
+      .build();
 
     final boolean[] r = new boolean[1];
     final int[] i = new int[1];
@@ -235,6 +241,12 @@ public class ScenarioControllerTest {
   public void runningWholeScenario() throws InterruptedException {
     controller = new ScenarioController(scenario, new TestHandler(
       EVENT_A, EVENT_B, EVENT_C), -1);
+
+    Simulator.builder()
+      .setTickLength(1L)
+      .setTimeUnit(SI.SECOND)
+      .addModel(Suppliers.ofInstance(controller))
+      .build();
 
     final boolean[] r = new boolean[1];
     final int[] i = new int[1];

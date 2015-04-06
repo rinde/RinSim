@@ -28,9 +28,9 @@ import javax.annotation.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.github.rinde.rinsim.core.AbstractModel;
 import com.github.rinde.rinsim.core.Simulator;
 import com.github.rinde.rinsim.core.Simulator.SimulatorEventType;
-import com.github.rinde.rinsim.core.AbstractModel;
 import com.github.rinde.rinsim.core.SimulatorAPI;
 import com.github.rinde.rinsim.core.SimulatorUser;
 import com.github.rinde.rinsim.core.model.time.TickListener;
@@ -209,8 +209,13 @@ public class ScenarioController extends AbstractModel<Scenario> implements
     return scenarioQueue.isEmpty();
   }
 
+  boolean stop = false;
+
   @Override
   public final void tick(TimeLapse timeLapse) {
+    if (stop) {
+      return;
+    }
     if (!uiCreator.isPresent() && ticks == 0) {
       LOGGER.info("scenario finished at virtual time:" + timeLapse.getTime()
         + "[stopping simulation]");
@@ -241,7 +246,7 @@ public class ScenarioController extends AbstractModel<Scenario> implements
       LOGGER.info("scenario finished at virtual time:" + timeLapse.getTime()
         + "[stopping simulation]");
       simulator.stop();
-      simulator.removeTickListener(this);
+      stop = true;
     }
 
   }
@@ -278,7 +283,6 @@ public class ScenarioController extends AbstractModel<Scenario> implements
 
   @Override
   public boolean register(Scenario element) {
-    // TODO Auto-generated method stub
     return false;
   }
 
