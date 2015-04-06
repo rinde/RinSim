@@ -21,6 +21,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
+import javax.measure.unit.NonSI;
 import javax.measure.unit.SI;
 
 import org.apache.commons.math3.random.MersenneTwister;
@@ -69,6 +70,20 @@ public class SimulatorTest {
     simulator.register((Object) new DummyModel());
   }
 
+  /**
+   * Test the correct setting of the time model settings.
+   */
+  @Test
+  public void testTimeModelSettings() {
+    final Simulator sim = Simulator.builder()
+      .setTickLength(123L)
+      .setTimeUnit(NonSI.WEEK)
+      .build();
+
+    assertThat(sim.getTimeStep()).isEqualTo(123L);
+    assertThat(sim.getTimeUnit()).isEqualTo(NonSI.WEEK);
+  }
+
   @Test
   public void testRegister() {
     final DummyModel m1 = new DummyModel();
@@ -107,7 +122,7 @@ public class SimulatorTest {
     final LimitingTickListener ltl = new LimitingTickListener(simulator, 3);
     simulator.addTickListener(ltl);
     simulator.start();
-    assertEquals(3000, simulator.getCurrentTime());
+    assertEquals(300, simulator.getCurrentTime());
   }
 
   @Test

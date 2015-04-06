@@ -102,6 +102,10 @@ public final class Simulator implements SimulatorAPI {
   private final Clock timeModel;
 
   Simulator(Builder b) {
+    toUnregister = new LinkedHashSet<>();
+    dispatcher = new EventDispatcher(SimulatorEventType.values());
+    rand = b.rng;
+
     modelManager = new ModelManager(ImmutableSet.<Model<?>> builder()
       .add(new SimulatorModel(this))
       .addAll(b.buildModels())
@@ -114,12 +118,6 @@ public final class Simulator implements SimulatorAPI {
         // TODO check uniqueness
       }
     }
-
-    toUnregister = new LinkedHashSet<>();
-
-    rand = b.rng;
-
-    dispatcher = new EventDispatcher(SimulatorEventType.values());
   }
 
   /**
@@ -372,7 +370,7 @@ public final class Simulator implements SimulatorAPI {
         modelsBuilder.add(RandomModel.create(rng));
       }
       if (!hasTimeModel) {
-        modelsBuilder.add(TimeModel.defaultSupplier().get());
+        modelsBuilder.add(TimeModel.supplier(tickLength, timeUnit).get());
       }
       return modelsBuilder.build();
     }
