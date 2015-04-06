@@ -24,8 +24,9 @@ import java.util.Set;
 import org.apache.commons.math3.random.RandomGenerator;
 
 import com.github.rinde.rinsim.core.AbstractModel;
+import com.github.rinde.rinsim.core.DependencyProvider;
+import com.github.rinde.rinsim.core.ModelBuilder;
 import com.github.rinde.rinsim.core.model.rand.RandomProvider;
-import com.github.rinde.rinsim.core.model.rand.RandomUser;
 import com.github.rinde.rinsim.core.model.time.TickListener;
 import com.github.rinde.rinsim.core.model.time.TimeLapse;
 import com.github.rinde.rinsim.event.Event;
@@ -33,9 +34,9 @@ import com.github.rinde.rinsim.event.EventAPI;
 import com.github.rinde.rinsim.event.EventDispatcher;
 import com.github.rinde.rinsim.util.LinkedHashBiMap;
 import com.google.common.base.Optional;
-import com.google.common.base.Supplier;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.ImmutableBiMap;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 
 /**
@@ -44,7 +45,7 @@ import com.google.common.collect.Maps;
  * @author Rinde van Lon
  */
 public final class CommModel extends AbstractModel<CommUser> implements
-  TickListener, RandomUser {
+  TickListener {
   /**
    * The types of events that are dispatched by {@link CommModel}. The event
    * class is {@link CommModelEvent}. Listeners can be added via
@@ -63,11 +64,11 @@ public final class CommModel extends AbstractModel<CommUser> implements
   private final Optional<Double> defaultMaxRange;
   private final BiMap<CommUser, CommDevice> usersDevices;
   private ImmutableBiMap<CommUser, CommDevice> usersDevicesSnapshot;
-  private Optional<RandomGenerator> randomGenerator;
+  private final RandomGenerator randomGenerator;
   private boolean usersHasChanged;
   private final EventDispatcher eventDispatcher;
 
-  CommModel(Builder b) {
+  CommModel(RandomGenerator rng, Builder b) {
     defaultReliability = b.defaultReliability;
     defaultMaxRange = b.defaultMaxRange;
     usersHasChanged = false;
@@ -75,7 +76,7 @@ public final class CommModel extends AbstractModel<CommUser> implements
       LinkedHashBiMap.<CommUser, CommDevice> create());
     usersDevicesSnapshot = ImmutableBiMap.of();
     eventDispatcher = new EventDispatcher(EventTypes.values());
-    randomGenerator = Optional.absent();
+    randomGenerator = rng;
   }
 
   /**
@@ -193,20 +194,12 @@ public final class CommModel extends AbstractModel<CommUser> implements
     if (senderReliability == 1d && receiverReliability == 1d) {
       return true;
     }
-    return randomGenerator.get().nextDouble() < senderReliability
+    return randomGenerator.nextDouble() < senderReliability
       * receiverReliability;
   }
 
   @Override
-  public void setRandomGenerator(RandomProvider provider) {
-    randomGenerator = Optional.of(provider.newInstance());
-  }
-
-  @Override
-  public void finalizeConfiguration() {
-    checkState(randomGenerator.isPresent(),
-      "CommModel requires the existence of a RandomModel.");
-  }
+  public void finalizeConfiguration() {}
 
   /**
    * @return A new builder for creating a {@link CommModel}.
@@ -220,7 +213,7 @@ public final class CommModel extends AbstractModel<CommUser> implements
    * @author Rinde van Lon
    */
   public static class Builder extends AbstractBuilder<Builder> implements
-    Supplier<CommModel> {
+    ModelBuilder<CommUser> {
     static double DEFAULT_RELIABILITY = 1d;
     double defaultReliability;
     Optional<Double> defaultMaxRange;
@@ -252,22 +245,30 @@ public final class CommModel extends AbstractModel<CommUser> implements
       return super.setMaxRange(maxRange);
     }
 
-    /**
-     * Construct a new {@link CommModel} instance.
-     * @return A new instance.
-     */
-    public CommModel build() {
-      return new CommModel(this);
-    }
-
-    @Override
-    public CommModel get() {
-      return build();
-    }
-
     @Override
     Builder self() {
       return this;
+    }
+
+    @Override
+    public Class<CommUser> getAssociatedType() {
+      return CommUser.class;
+    }
+
+    @Override
+    public CommModel build(DependencyProvider dependencyProvider) {
+      return new CommModel(
+        dependencyProvider.get(RandomProvider.class).newInstance(), this);
+    }
+
+    @Override
+    public ImmutableSet<Class<?>> getProvidingTypes() {
+      return ImmutableSet.of();
+    }
+
+    @Override
+    public ImmutableSet<Class<?>> getDependencies() {
+      return ImmutableSet.<Class<?>> of(RandomProvider.class);
     }
   }
 

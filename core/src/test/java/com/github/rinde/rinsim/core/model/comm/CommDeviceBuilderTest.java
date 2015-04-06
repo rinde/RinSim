@@ -38,8 +38,8 @@ public class CommDeviceBuilderTest {
   @Before
   public void setUp() {
     builder = new CommDeviceBuilder(CommModel.builder()
-        .build(),
-        mock(CommUser.class));
+      .build(CommModelTest.fakeDependencies()),
+      mock(CommUser.class));
   }
 
   /**
