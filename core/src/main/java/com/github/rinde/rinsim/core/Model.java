@@ -61,7 +61,7 @@ public interface Model<T> {
    *
    * @param <T> The type that is supported by this model.
    */
-  public abstract class AbstractModel<T> implements Model<T> {
+  abstract class AbstractModel<T> implements Model<T> {
 
     private final Class<T> supportedType;
 

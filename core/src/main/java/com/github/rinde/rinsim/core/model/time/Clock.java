@@ -29,6 +29,8 @@ public interface Clock {
 
   void stop();
 
+  void tick();
+
   @CheckReturnValue
   boolean isTicking();
 
@@ -40,7 +42,5 @@ public interface Clock {
 
   @CheckReturnValue
   long getTimeStep();
-
-  void tick();
 
 }

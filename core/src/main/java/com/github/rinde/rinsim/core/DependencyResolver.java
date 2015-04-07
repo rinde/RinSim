@@ -128,6 +128,15 @@ class DependencyResolver extends DependencyProvider {
     return providerMap.get(type).build().get(type);
   }
 
+  @SuppressWarnings("unchecked")
+  static <A extends Model<B>, B> ModelBuilder<B> adaptObj(final Object sup) {
+    return adapt((Supplier<A>) sup);
+  }
+
+  static <A extends Model<B>, B> ModelBuilder<B> adapt(final Supplier<A> sup) {
+    return new SupplierAdapter<>(sup);
+  }
+
   static class DependencyProviderAccessDecorator extends DependencyProvider {
     final DependencyProvider delegate;
     final ImmutableSet<Class<?>> knownDependencies;
@@ -142,11 +151,11 @@ class DependencyResolver extends DependencyProvider {
       requestedDependencies = new HashSet<>();
     }
 
-    public boolean areAllDependenciesRequested() {
+    boolean areAllDependenciesRequested() {
       return requestedDependencies.equals(knownDependencies);
     }
 
-    public Set<Class<?>> getUnusedDependencies() {
+    Set<Class<?>> getUnusedDependencies() {
       return Sets.difference(knownDependencies, requestedDependencies);
     }
 
@@ -205,15 +214,6 @@ class DependencyResolver extends DependencyProvider {
     }
   }
 
-  @SuppressWarnings("unchecked")
-  static <A extends Model<B>, B> ModelBuilder<B> adaptObj(final Object sup) {
-    return adapt((Supplier<A>) sup);
-  }
-
-  static <A extends Model<B>, B> ModelBuilder<B> adapt(final Supplier<A> sup) {
-    return new SupplierAdapter<>(sup);
-  }
-
   static class Dependency {
     private final ModelBuilder<?> modelBuilder;
     private final DependencyProviderAccessDecorator dependencyProvider;
@@ -229,7 +229,7 @@ class DependencyResolver extends DependencyProvider {
       }
     }
 
-    public Model<?> build() {
+    final Model<?> build() {
       if (value == null) {
         value = modelBuilder.build(dependencyProvider);
         checkNotNull(value, "%s returned null where a Model was expected.",
