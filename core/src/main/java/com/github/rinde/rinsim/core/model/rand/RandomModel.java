@@ -51,6 +51,7 @@ import com.google.common.base.Supplier;
  * <li><i>Provides:</i> {@link RandomProvider}.</li>
  * <li><i>Dependencies:</i> none.</li>
  * </ul>
+ * See {@link ModelBuilder} for more information about model properties.
  *
  * @author Rinde van Lon
  * @see RandomUser

@@ -47,8 +47,9 @@ import com.google.common.collect.Maps;
  * <ul>
  * <li><i>Associated type:</i> {@link CommUser}.</li>
  * <li><i>Provides:</i> none.</li>
- * <li><i>Dependencies:</i> {@link RandomProvider}.</li>
+ * <li><i>Dependency:</i> {@link RandomProvider}.</li>
  * </ul>
+ * See {@link ModelBuilder} for more information about model properties.
  * @author Rinde van Lon
  */
 public final class CommModel extends AbstractModel<CommUser> implements
