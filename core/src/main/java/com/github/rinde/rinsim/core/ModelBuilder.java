@@ -28,18 +28,16 @@ import com.google.common.reflect.TypeToken;
  * <li>Dependent types, as advertised via {@link #getDependencies()}</li>
  * </ul>
  * <p>
- * <b>Associated type</b><br/>
- * Objects (not models) that are added to the simulator with a type that is
- * assignable to the associated type are automatically registered to the model.
+ * <b>Associated type</b> Objects (not models) that are added to the simulator
+ * with a type that is assignable to the associated type are automatically
+ * registered to the model.
  * <p>
- * <b>Provided types</b><br/>
- * These are the types that the model that is constructed by this builder
- * provides to the simulator. Instances of these types should be provided via
- * {@link Model#get(Class)}.
+ * <b>Provided types</b> These are the types that the model that is constructed
+ * by this builder provides to the simulator. Instances of these types should be
+ * provided via {@link Model#get(Class)}.
  * <p>
- * <b>Dependent types</b><br/>
- * These are the types that the model that is constructed by this builder
- * depends on. Instances of this type can be requested via a
+ * <b>Dependent types</b> These are the types that the model that is constructed
+ * by this builder depends on. Instances of this type can be requested via a
  * {@link DependencyProvider} that is made available when
  * {@link #build(DependencyProvider)} is called.
  *
