@@ -42,10 +42,10 @@ import com.google.common.collect.Multimap;
 import com.google.common.reflect.TypeToken;
 
 class DependencyResolver implements DependencyProvider {
-  final Map<Class<?>, CachedModelBuilder<?>> providerMap;
-  final Multimap<CachedModelBuilder<?>, Class<?>> dependencyMap;
-  final BiMap<Class<?>, ModelBuilder<?>> modelTypeMap;
-  final List<CachedModelBuilder<?>> builders;
+  final Map<Class<?>, Dependency> providerMap;
+  final Multimap<Dependency, Class<?>> dependencyMap;
+  final BiMap<Class<?>, Dependency> modelTypeMap;
+  final List<Dependency> builders;
 
   DependencyResolver(List<ModelBuilder<?>> models, Simulator.Builder simBui) {
     providerMap = new LinkedHashMap<>();
@@ -54,42 +54,34 @@ class DependencyResolver implements DependencyProvider {
     builders = new ArrayList<>();
 
     for (final ModelBuilder<?> o : models) {
-      final CachedModelBuilder<?> mb = new CachedModelBuilder<>(
-        (ModelBuilder<?>) o);
-      modelTypeMap.put(mb.getAssociatedType(), mb);
+      final Dependency mb = new Dependency(this, o);
+      modelTypeMap.put(o.getAssociatedType(), mb);
 
-      for (final Class<?> clz : mb.getProvidingTypes()) {
+      for (final Class<?> clz : o.getProvidingTypes()) {
         checkArgument(!providerMap.containsKey(clz),
           "A provider for %s already exists: %s.", clz, providerMap.get(clz));
         providerMap.put(clz, mb);
       }
-
-      final ImmutableSet<Class<?>> dependencies = mb.getDependencies();
-      if (dependencies.isEmpty()) {
-        mb.build(this);
-      } else {
-        dependencyMap.putAll(mb, dependencies);
-      }
+      dependencyMap.putAll(mb, o.getDependencies());
       builders.add(mb);
     }
     if (!providerMap.containsKey(RandomProvider.class)) {
-      final CachedModelBuilder<?> mb = cache(RandomModel.builder(simBui.rng));
-      mb.build(this);
+      final Dependency mb = new Dependency(this,
+        RandomModel.builder(simBui.rng));
       providerMap.put(RandomProvider.class, mb);
       builders.add(mb);
     }
     if (!modelTypeMap.containsKey(TickListener.class)) {
-      final CachedModelBuilder<?> mb = cache(adapt(TimeModel.supplier(
+      final Dependency mb = new Dependency(this, adapt(TimeModel.supplier(
         simBui.tickLength, simBui.timeUnit)));
-      mb.build(this);
       builders.add(mb);
     }
   }
 
   ImmutableSet<Model<?>> resolve() {
-    final Multimap<CachedModelBuilder<?>, CachedModelBuilder<?>> dependencyGraph = LinkedHashMultimap
+    final Multimap<Dependency, Dependency> dependencyGraph = LinkedHashMultimap
       .create();
-    for (final Entry<CachedModelBuilder<?>, Class<?>> entry : dependencyMap
+    for (final Entry<Dependency, Class<?>> entry : dependencyMap
       .entries()) {
       checkArgument(providerMap.containsKey(entry.getValue()),
         "Could not resolve dependency for implementations of %s.",
@@ -97,23 +89,21 @@ class DependencyResolver implements DependencyProvider {
       dependencyGraph.put(entry.getKey(), providerMap.get(entry.getValue()));
     }
     while (!dependencyGraph.isEmpty()) {
-      final List<CachedModelBuilder<?>> toRemove = new ArrayList<>();
-      for (final CachedModelBuilder<?> mb : dependencyGraph.keys()) {
-        final Collection<CachedModelBuilder<?>> dependencies = dependencyGraph
-          .get(mb);
-
+      final List<Dependency> toRemove = new ArrayList<>();
+      for (final Dependency dep : dependencyGraph.keys()) {
+        final Collection<Dependency> dependencies = dependencyGraph.get(dep);
         boolean allResolved = true;
-        for (final CachedModelBuilder<?> dependency : dependencies) {
+        for (final Dependency dependency : dependencies) {
           allResolved &= dependency.isResolved();
         }
 
         if (allResolved) {
-          mb.build(this);
-          toRemove.add(mb);
+          dep.build();
+          toRemove.add(dep);
         }
       }
 
-      for (final CachedModelBuilder<?> mb : toRemove) {
+      for (final Dependency mb : toRemove) {
         dependencyGraph.removeAll(mb);
       }
       if (toRemove.isEmpty()) {
@@ -124,15 +114,15 @@ class DependencyResolver implements DependencyProvider {
     }
 
     final ImmutableSet.Builder<Model<?>> builder = ImmutableSet.builder();
-    for (final CachedModelBuilder<?> cmb : builders) {
-      builder.add(cmb.build(this));
+    for (final Dependency cmb : builders) {
+      builder.add(cmb.build());
     }
     return builder.build();
   }
 
   @Override
   public <T> T get(Class<T> type) {
-    return providerMap.get(type).build(this).get(type);
+    return providerMap.get(type).build().get(type);
   }
 
   static class SupplierAdapter<T> implements ModelBuilder<T>, Serializable {
@@ -181,26 +171,26 @@ class DependencyResolver implements DependencyProvider {
     return new SupplierAdapter<>(sup);
   }
 
-  static <T> CachedModelBuilder<T> cache(ModelBuilder<T> mb) {
-    return new CachedModelBuilder<>(mb);
-  }
-
-  static class CachedModelBuilder<T> implements ModelBuilder<T>, Serializable {
+  static class Dependency implements Serializable {
     private static final long serialVersionUID = -3860607311745505548L;
-    private final ModelBuilder<T> delegate;
+    private final ModelBuilder<?> modelBuilder;
+    private final DependencyProvider dependencyProvider;
     @Nullable
-    private Model<T> value;
+    private Model<?> value;
 
-    CachedModelBuilder(ModelBuilder<T> deleg) {
-      delegate = deleg;
+    Dependency(DependencyProvider dp, ModelBuilder<?> mb) {
+      modelBuilder = mb;
+      dependencyProvider = dp;
+      if (modelBuilder.getDependencies().isEmpty()) {
+        build();
+      }
     }
 
-    @Override
-    public Model<T> build(DependencyProvider dependencyProvider) {
+    public Model<?> build() {
       if (value == null) {
-        value = delegate.build(dependencyProvider);
+        value = modelBuilder.build(dependencyProvider);
         checkNotNull(value, "%s returned null where a Model was expected.",
-          delegate);
+          modelBuilder);
       }
       return verifyNotNull(value);
     }
@@ -210,23 +200,8 @@ class DependencyResolver implements DependencyProvider {
     }
 
     @Override
-    public ImmutableSet<Class<?>> getProvidingTypes() {
-      return delegate.getProvidingTypes();
-    }
-
-    @Override
-    public ImmutableSet<Class<?>> getDependencies() {
-      return delegate.getDependencies();
-    }
-
-    @Override
-    public Class<T> getAssociatedType() {
-      return delegate.getAssociatedType();
-    }
-
-    @Override
     public String toString() {
-      return "Cached-" + delegate.toString();
+      return "Dependency-" + modelBuilder.toString();
     }
   }
 }
