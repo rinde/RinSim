@@ -47,12 +47,32 @@ import com.google.common.reflect.TypeToken;
  */
 public interface ModelBuilder<T> {
 
+  /**
+   * @return The type parameter of the {@link Model} that is constructed by this
+   *         builder.
+   */
   Class<T> getAssociatedType();
 
+  /**
+   * @return A set of types that are provided by the {@link Model}.
+   */
   ImmutableSet<Class<?>> getProvidingTypes();
 
+  /**
+   * @return A set of types that are dependencies of this {@link Model}.
+   */
   ImmutableSet<Class<?>> getDependencies();
 
+  /**
+   * Should build the model. The {@link DependencyProvider} allows to request
+   * instances with any of the types specified by {@link #getDependencies()}.
+   * Each declared dependency <b>must</b> be requested of the
+   * {@link DependencyProvider}. References to the {@link DependencyProvider}
+   * should not be kept, the provider is <i>guaranteed</i> to be unusable after
+   * this method has been invoked.
+   * @param dependencyProvider The dependency provider.
+   * @return A new {@link Model} instance.
+   */
   Model<T> build(DependencyProvider dependencyProvider);
 
   /**
@@ -61,8 +81,7 @@ public interface ModelBuilder<T> {
    * @author Rinde van Lon
    * @param <T> The associated type.
    */
-  public abstract class AbstractModelBuilder<T> implements
-    ModelBuilder<T> {
+  public abstract class AbstractModelBuilder<T> implements ModelBuilder<T> {
     private final ImmutableSet<Class<?>> provTypes;
     private final Class<T> clazz;
 

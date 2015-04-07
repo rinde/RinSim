@@ -217,13 +217,6 @@ public final class Simulator implements SimulatorAPI {
     }
   }
 
-  // /**
-  // * Resets the time to 0.
-  // */
-  // public void resetTime() {
-  // time = 0L;
-  // }
-
   /**
    * Stops the simulation.
    */
@@ -231,6 +224,9 @@ public final class Simulator implements SimulatorAPI {
     timeModel.stop();
   }
 
+  /**
+   * Advances the time a single tick.
+   */
   public void tick() {
     timeModel.tick();
   }

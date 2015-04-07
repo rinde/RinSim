@@ -23,7 +23,7 @@ import com.google.common.collect.ImmutableMap;
  * @author Rinde van Lon
  *
  */
-public class FakeDependencyProvider implements DependencyProvider {
+public class FakeDependencyProvider extends DependencyProvider {
   final Map<Class<?>, Model<?>> map;
 
   FakeDependencyProvider(Map<Class<?>, Model<?>> m) {

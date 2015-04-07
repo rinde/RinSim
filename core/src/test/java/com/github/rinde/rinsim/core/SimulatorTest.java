@@ -39,6 +39,7 @@ import com.github.rinde.rinsim.core.model.time.TickListener;
 import com.github.rinde.rinsim.core.model.time.TimeLapse;
 import com.github.rinde.rinsim.testutil.TestUtil;
 import com.google.common.base.Suppliers;
+import com.google.common.collect.ImmutableClassToInstanceMap;
 import com.google.common.collect.ImmutableSet;
 
 /**
@@ -50,6 +51,9 @@ public class SimulatorTest {
   @SuppressWarnings("null")
   private Simulator simulator;
 
+  /**
+   * Set up a simulator with the default models.
+   */
   @Before
   public void setUp() {
     simulator = Simulator.builder()
@@ -91,6 +95,9 @@ public class SimulatorTest {
     assertThat(sim.getTimeUnit()).isEqualTo(NonSI.WEEK);
   }
 
+  /**
+   * Registration test.
+   */
   @Test
   public void testRegister() {
     final DummyModel m1 = new DummyModel();
@@ -119,24 +126,25 @@ public class SimulatorTest {
 
   }
 
+  /**
+   * Models can not be unregistered.
+   */
   @Test(expected = IllegalArgumentException.class)
   public void testUnregisterModel() {
     simulator.unregister(new DummyModel());
   }
 
-  @Test
-  public void testStartWithoutConfiguring() {
-    final LimitingTickListener ltl = new LimitingTickListener(simulator, 3);
-    simulator.addTickListener(ltl);
-    simulator.start();
-    assertEquals(300, simulator.getCurrentTime());
-  }
-
+  /**
+   * Tests that the rng is defined.
+   */
   @Test
   public void testGetRnd() {
     assertNotNull(simulator.getRandomGenerator());
   }
 
+  /**
+   * Simple test for building models.
+   */
   @Test
   public void testModelBuilder() {
     final Simulator sim = Simulator.builder()
@@ -155,7 +163,6 @@ public class SimulatorTest {
       })
       .build();
     assertThat((Iterable<?>) sim.getModels()).containsNoDuplicates();
-
   }
 
   /**
@@ -164,9 +171,9 @@ public class SimulatorTest {
   @Test
   public void testCircularDependencies() {
     final Simulator.Builder b = Simulator.builder()
-      .addModel(new A())
-      .addModel(new B())
-      .addModel(new C());
+      .addModel(new CircleA())
+      .addModel(new CircleB())
+      .addModel(new CircleC());
 
     boolean fail = false;
     try {
@@ -183,7 +190,7 @@ public class SimulatorTest {
   @Test
   public void testUnknownDependency() {
     final Simulator.Builder b = Simulator.builder()
-      .addModel(new A());
+      .addModel(new CircleA());
     boolean fail = false;
     try {
       b.build();
@@ -210,6 +217,125 @@ public class SimulatorTest {
     assertThat(fail).isTrue();
   }
 
+  /**
+   * Tests that not using a dependency is detected.
+   */
+  @Test
+  public void testNopBuilder() {
+    final Simulator.Builder b = Simulator.builder()
+      .addModel(new NopBuilder())
+      .addModel(new A())
+      .addModel(new B());
+    boolean fail = false;
+    try {
+      b.build();
+    } catch (final IllegalStateException e) {
+      assertThat(e.getMessage())
+        .containsMatch("dependencies MUST be requested");
+      fail = true;
+    }
+    assertThat(fail).isTrue();
+  }
+
+  /**
+   * Tests that requesting two instances of a type results in a failure.
+   */
+  @Test
+  public void testAskTwiceBuilder() {
+    final Simulator.Builder b = Simulator.builder()
+      .addModel(new AskTwiceBuilder())
+      .addModel(new A())
+      .addModel(new B());
+    boolean fail = false;
+    try {
+      b.build();
+    } catch (final IllegalArgumentException e) {
+      assertThat(e.getMessage()).containsMatch("is already requested");
+      fail = true;
+    }
+    assertThat(fail).isTrue();
+  }
+
+  /**
+   * Tests that asking a undeclared dependency results in a failure.
+   */
+  @Test
+  public void testAskWrongTypeBuilder() {
+    final Simulator.Builder b = Simulator.builder()
+      .addModel(new AskWrongTypeBuilder())
+      .addModel(new A())
+      .addModel(new B());
+    boolean fail = false;
+    try {
+      b.build();
+    } catch (final IllegalArgumentException e) {
+      assertThat(e.getMessage()).containsMatch("is not a type that");
+      assertThat(e.getMessage()).containsMatch("declared as a dependency");
+      fail = true;
+    }
+    assertThat(fail).isTrue();
+  }
+
+  /**
+   * A builder that has no declared dependencies can not request any.
+   */
+  @Test
+  public void testAskWithoutAnyDepsBuilder() {
+    final Simulator.Builder b = Simulator.builder()
+      .addModel(new AskWithoutAnyDepsBuilder())
+      .addModel(new A())
+      .addModel(new B());
+    boolean fail = false;
+    try {
+      b.build();
+    } catch (final IllegalArgumentException e) {
+      assertThat(e.getMessage()).containsMatch(
+        "did not declare any dependencies");
+      fail = true;
+    }
+    assertThat(fail).isTrue();
+  }
+
+  abstract class IllBehavedBuilderBase extends AbstractModelBuilder<Object> {
+    @Override
+    public ImmutableSet<Class<?>> getDependencies() {
+      return ImmutableSet.<Class<?>> of(ProviderForA.class);
+    }
+  }
+
+  class NopBuilder extends IllBehavedBuilderBase {
+    @Override
+    public Model<Object> build(DependencyProvider dependencyProvider) {
+      return new GenericModel<>();
+    }
+  }
+
+  class AskTwiceBuilder extends IllBehavedBuilderBase {
+    @Override
+    public Model<Object> build(DependencyProvider dependencyProvider) {
+      dependencyProvider.get(ProviderForA.class);
+      dependencyProvider.get(ProviderForA.class);
+      return new GenericModel<>();
+    }
+  }
+
+  class AskWrongTypeBuilder extends IllBehavedBuilderBase {
+    @Override
+    public Model<Object> build(DependencyProvider dependencyProvider) {
+      dependencyProvider.get(ProviderForA.class);
+      dependencyProvider.get(ProviderForB.class);
+      return new GenericModel<>();
+    }
+  }
+
+  class AskWithoutAnyDepsBuilder extends AbstractModelBuilder<Object> {
+    @Override
+    public Model<Object> build(DependencyProvider dependencyProvider) {
+      dependencyProvider.get(ProviderForA.class);
+      return new GenericModel<>();
+    }
+  }
+
   class DuplicateA extends AbstractModelBuilder<Object> {
     DuplicateA() {
       super(Object.class);
@@ -234,9 +360,15 @@ public class SimulatorTest {
 
   class GenericModel<T> extends AbstractModel<T> {
     Set<T> set;
+    ImmutableClassToInstanceMap<Object> map;
 
     GenericModel() {
+      this(ImmutableClassToInstanceMap.builder().build());
+    }
+
+    GenericModel(ImmutableClassToInstanceMap<Object> m) {
       set = new LinkedHashSet<>();
+      map = m;
     }
 
     @Override
@@ -248,6 +380,13 @@ public class SimulatorTest {
     public boolean unregister(T element) {
       return set.remove(element);
     }
+
+    @Override
+    public <U> U get(Class<U> type) {
+      final U value = map.getInstance(type);
+      assertNotNull(value);
+      return value;
+    }
   }
 
   class A extends AbstractModelBuilder<Object> {
@@ -257,7 +396,10 @@ public class SimulatorTest {
 
     @Override
     public Model<Object> build(DependencyProvider dependencyProvider) {
-      return null;
+      dependencyProvider.get(ProviderForB.class);
+      return new GenericModel<>(ImmutableClassToInstanceMap.builder()
+        .put(ProviderForA.class, new ProviderForA())
+        .build());
     }
 
     @Override
@@ -273,6 +415,37 @@ public class SimulatorTest {
 
     @Override
     public Model<Object> build(DependencyProvider dependencyProvider) {
+      return new GenericModel<>(ImmutableClassToInstanceMap.builder()
+        .put(ProviderForB.class, new ProviderForB())
+        .build());
+    }
+  }
+
+  class CircleA extends AbstractModelBuilder<Object> {
+    CircleA() {
+      super(ProviderForA.class);
+    }
+
+    @SuppressWarnings("null")
+    @Override
+    public Model<Object> build(DependencyProvider dependencyProvider) {
+      return null;
+    }
+
+    @Override
+    public ImmutableSet<Class<?>> getDependencies() {
+      return ImmutableSet.<Class<?>> of(ProviderForB.class);
+    }
+  }
+
+  class CircleB extends AbstractModelBuilder<Object> {
+    CircleB() {
+      super(ProviderForB.class);
+    }
+
+    @SuppressWarnings("null")
+    @Override
+    public Model<Object> build(DependencyProvider dependencyProvider) {
       return null;
     }
 
@@ -282,11 +455,12 @@ public class SimulatorTest {
     }
   }
 
-  class C extends AbstractModelBuilder<Object> {
-    C() {
+  class CircleC extends AbstractModelBuilder<Object> {
+    CircleC() {
       super(ProviderForC.class);
     }
 
+    @SuppressWarnings("null")
     @Override
     public Model<Object> build(DependencyProvider dependencyProvider) {
       return null;
@@ -315,6 +489,7 @@ public class SimulatorTest {
   }
 
   class DummyObjectSimulationUser implements SimulatorUser {
+    @SuppressWarnings("null")
     private SimulatorAPI receivedAPI;
 
     @Override

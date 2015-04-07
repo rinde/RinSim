@@ -17,15 +17,17 @@ package com.github.rinde.rinsim.core;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.base.Verify.verifyNotNull;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 
 import javax.annotation.Nullable;
 
@@ -39,9 +41,10 @@ import com.google.common.collect.BiMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Multimap;
+import com.google.common.collect.Sets;
 import com.google.common.reflect.TypeToken;
 
-class DependencyResolver implements DependencyProvider {
+class DependencyResolver extends DependencyProvider {
   final Map<Class<?>, Dependency> providerMap;
   final Multimap<Dependency, Class<?>> dependencyMap;
   final BiMap<Class<?>, Dependency> modelTypeMap;
@@ -54,28 +57,28 @@ class DependencyResolver implements DependencyProvider {
     builders = new ArrayList<>();
 
     for (final ModelBuilder<?> o : models) {
-      final Dependency mb = new Dependency(this, o);
-      modelTypeMap.put(o.getAssociatedType(), mb);
-
-      for (final Class<?> clz : o.getProvidingTypes()) {
-        checkArgument(!providerMap.containsKey(clz),
-          "A provider for %s already exists: %s.", clz, providerMap.get(clz));
-        providerMap.put(clz, mb);
-      }
-      dependencyMap.putAll(mb, o.getDependencies());
-      builders.add(mb);
+      add(o);
     }
     if (!providerMap.containsKey(RandomProvider.class)) {
-      final Dependency mb = new Dependency(this,
-        RandomModel.builder(simBui.rng));
-      providerMap.put(RandomProvider.class, mb);
-      builders.add(mb);
+      add(RandomModel.builder(simBui.rng));
     }
     if (!modelTypeMap.containsKey(TickListener.class)) {
-      final Dependency mb = new Dependency(this, adapt(TimeModel.supplier(
-        simBui.tickLength, simBui.timeUnit)));
-      builders.add(mb);
+      add(adapt(TimeModel.supplier(simBui.tickLength, simBui.timeUnit)));
     }
+  }
+
+  final void add(ModelBuilder<?> mb) {
+    final ImmutableSet<Class<?>> deps = mb.getDependencies();
+    final Dependency dep = new Dependency(this, mb, deps);
+    modelTypeMap.put(mb.getAssociatedType(), dep);
+
+    for (final Class<?> clz : mb.getProvidingTypes()) {
+      checkArgument(!providerMap.containsKey(clz),
+        "A provider for %s already exists: %s.", clz, providerMap.get(clz));
+      providerMap.put(clz, dep);
+    }
+    dependencyMap.putAll(dep, deps);
+    builders.add(dep);
   }
 
   ImmutableSet<Model<?>> resolve() {
@@ -125,8 +128,48 @@ class DependencyResolver implements DependencyProvider {
     return providerMap.get(type).build().get(type);
   }
 
-  static class SupplierAdapter<T> implements ModelBuilder<T>, Serializable {
-    private static final long serialVersionUID = 1167482652694633842L;
+  static class DependencyProviderAccessDecorator extends DependencyProvider {
+    final DependencyProvider delegate;
+    final ImmutableSet<Class<?>> knownDependencies;
+    final Set<Class<?>> requestedDependencies;
+    final ModelBuilder<?> modelBuilder;
+
+    DependencyProviderAccessDecorator(DependencyProvider dp,
+      ImmutableSet<Class<?>> allowed, ModelBuilder<?> mb) {
+      delegate = dp;
+      knownDependencies = allowed;
+      modelBuilder = mb;
+      requestedDependencies = new HashSet<>();
+    }
+
+    public boolean areAllDependenciesRequested() {
+      return requestedDependencies.equals(knownDependencies);
+    }
+
+    public Set<Class<?>> getUnusedDependencies() {
+      return Sets.difference(knownDependencies, requestedDependencies);
+    }
+
+    @Override
+    public <T> T get(Class<T> type) {
+      checkArgument(!knownDependencies.isEmpty(),
+        "%s did not declare any dependencies.", modelBuilder);
+      checkArgument(
+        knownDependencies.contains(type),
+        "%s is not a type that %s declared as a dependency, "
+          + "known dependencies: %s.",
+        type, modelBuilder, knownDependencies);
+      checkArgument(
+        !requestedDependencies.contains(type),
+        "%s is already requested by %s, each type must be requested "
+          + "exactly once.",
+        type, modelBuilder);
+      requestedDependencies.add(type);
+      return delegate.get(type);
+    }
+  }
+
+  static class SupplierAdapter<T> implements ModelBuilder<T> {
     final Supplier<? extends Model<T>> supplier;
     Class<T> clazz;
 
@@ -171,17 +214,17 @@ class DependencyResolver implements DependencyProvider {
     return new SupplierAdapter<>(sup);
   }
 
-  static class Dependency implements Serializable {
-    private static final long serialVersionUID = -3860607311745505548L;
+  static class Dependency {
     private final ModelBuilder<?> modelBuilder;
-    private final DependencyProvider dependencyProvider;
+    private final DependencyProviderAccessDecorator dependencyProvider;
     @Nullable
     private Model<?> value;
 
-    Dependency(DependencyProvider dp, ModelBuilder<?> mb) {
+    Dependency(DependencyProvider dp, ModelBuilder<?> mb,
+      ImmutableSet<Class<?>> deps) {
       modelBuilder = mb;
-      dependencyProvider = dp;
-      if (modelBuilder.getDependencies().isEmpty()) {
+      dependencyProvider = new DependencyProviderAccessDecorator(dp, deps, mb);
+      if (deps.isEmpty()) {
         build();
       }
     }
@@ -191,6 +234,11 @@ class DependencyResolver implements DependencyProvider {
         value = modelBuilder.build(dependencyProvider);
         checkNotNull(value, "%s returned null where a Model was expected.",
           modelBuilder);
+        checkState(
+          dependencyProvider.areAllDependenciesRequested(),
+          "All declared dependencies MUST be requested from the dependency "
+            + "provider, %s has unused dependencies: %s.",
+          modelBuilder, dependencyProvider.getUnusedDependencies());
       }
       return verifyNotNull(value);
     }
