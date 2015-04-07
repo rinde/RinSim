@@ -31,6 +31,7 @@ import org.apache.commons.math3.random.RandomGenerator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.github.rinde.rinsim.core.Model.AbstractModel;
 import com.github.rinde.rinsim.core.ModelBuilder.AbstractModelBuilder;
 import com.github.rinde.rinsim.core.model.time.Clock;
 import com.github.rinde.rinsim.core.model.time.TickListener;

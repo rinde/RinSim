@@ -35,10 +35,10 @@ import static com.google.common.collect.Maps.newLinkedHashMap;
 
 import java.util.Map;
 
-import com.github.rinde.rinsim.core.Simulator.SimulatorEventType;
-import com.github.rinde.rinsim.core.AbstractModel;
+import com.github.rinde.rinsim.core.Model.AbstractModel;
 import com.github.rinde.rinsim.core.ModelProvider;
 import com.github.rinde.rinsim.core.ModelReceiver;
+import com.github.rinde.rinsim.core.Simulator.SimulatorEventType;
 import com.github.rinde.rinsim.core.SimulatorAPI;
 import com.github.rinde.rinsim.core.SimulatorUser;
 import com.github.rinde.rinsim.core.model.pdp.PDPModel;

@@ -32,9 +32,6 @@ import org.junit.Test;
 import com.github.rinde.rinsim.core.model.pdp.PDPScenarioEvent;
 import com.github.rinde.rinsim.pdptw.common.PDPRoadModel;
 import com.github.rinde.rinsim.scenario.TimedEvent;
-import com.github.rinde.rinsim.scenario.gendreau06.Gendreau06Parser;
-import com.github.rinde.rinsim.scenario.gendreau06.Gendreau06Scenario;
-import com.github.rinde.rinsim.scenario.gendreau06.GendreauProblemClass;
 
 /**
  * @author Rinde van Lon 

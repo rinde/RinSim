@@ -17,8 +17,6 @@ package com.github.rinde.rinsim.core;
 
 import java.util.List;
 
-import com.github.rinde.rinsim.core.Model;
-import com.github.rinde.rinsim.core.ModelProvider;
 import com.google.common.base.Optional;
 
 /**

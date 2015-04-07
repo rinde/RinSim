@@ -32,6 +32,7 @@ import javax.measure.unit.SI;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.github.rinde.rinsim.core.Model.AbstractModel;
 import com.github.rinde.rinsim.core.model.road.GraphRoadModel;
 import com.github.rinde.rinsim.core.model.road.RoadModel;
 import com.github.rinde.rinsim.core.model.road.RoadUser;

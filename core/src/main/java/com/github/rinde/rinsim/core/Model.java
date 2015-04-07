@@ -15,6 +15,8 @@
  */
 package com.github.rinde.rinsim.core;
 
+import com.google.common.reflect.TypeToken;
+
 /**
  * @author Bartosz Michalik
  * @param <T> basic type of element supported by model
@@ -51,4 +53,35 @@ public interface Model<T> {
    * @throws IllegalArgumentException For classes for which it has no support.
    */
   <U> U get(Class<U> clazz);
+
+  /**
+   * Basic implementation that provides a getSupportedType method
+   * implementation.
+   * @author Bartosz Michalik
+   *
+   * @param <T> The type that is supported by this model.
+   */
+  public abstract class AbstractModel<T> implements Model<T> {
+
+    private final Class<T> supportedType;
+
+    /**
+     * Create a new model.
+     */
+    @SuppressWarnings({ "serial", "unchecked" })
+    protected AbstractModel() {
+      supportedType = (Class<T>) new TypeToken<T>(getClass()) {}.getRawType();
+    }
+
+    @Override
+    public final Class<T> getSupportedType() {
+      return supportedType;
+    }
+
+    @Override
+    public <U> U get(Class<U> clazz) {
+      throw new IllegalArgumentException(
+        "This model does not support providing any objects.");
+    }
+  }
 }

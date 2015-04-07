@@ -23,8 +23,8 @@ import javax.measure.quantity.Duration;
 import javax.measure.unit.Unit;
 
 import com.github.rinde.rinsim.central.GlobalStateObject;
-import com.github.rinde.rinsim.central.Solver;
 import com.github.rinde.rinsim.central.GlobalStateObject.VehicleStateObject;
+import com.github.rinde.rinsim.central.Solver;
 import com.github.rinde.rinsim.central.arrays.ArraysSolvers.ArraysObject;
 import com.github.rinde.rinsim.core.pdptw.ParcelDTO;
 import com.google.common.collect.ImmutableList;

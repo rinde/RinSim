@@ -21,8 +21,8 @@ import java.util.Set;
 
 import com.github.rinde.rinsim.central.Solvers.SimulationSolver;
 import com.github.rinde.rinsim.central.Solvers.SolveArgs;
-import com.github.rinde.rinsim.core.AbstractModel;
 import com.github.rinde.rinsim.core.Model;
+import com.github.rinde.rinsim.core.Model.AbstractModel;
 import com.github.rinde.rinsim.core.ModelProvider;
 import com.github.rinde.rinsim.core.ModelReceiver;
 import com.github.rinde.rinsim.core.Simulator;

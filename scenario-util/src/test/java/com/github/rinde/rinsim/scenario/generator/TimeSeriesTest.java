@@ -24,7 +24,6 @@ import org.apache.commons.math3.random.MersenneTwister;
 import org.apache.commons.math3.random.RandomGenerator;
 import org.junit.Test;
 
-import com.github.rinde.rinsim.scenario.generator.TimeSeries;
 import com.github.rinde.rinsim.scenario.generator.TimeSeries.TimeSeriesGenerator;
 
 /**

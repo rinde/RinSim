@@ -28,7 +28,7 @@ import javax.annotation.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.github.rinde.rinsim.core.AbstractModel;
+import com.github.rinde.rinsim.core.Model.AbstractModel;
 import com.github.rinde.rinsim.core.Simulator;
 import com.github.rinde.rinsim.core.Simulator.SimulatorEventType;
 import com.github.rinde.rinsim.core.SimulatorAPI;

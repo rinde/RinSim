@@ -26,10 +26,6 @@ import javax.annotation.Nullable;
 
 import org.junit.Test;
 
-import com.github.rinde.rinsim.central.arrays.ArraysSolverValidator;
-import com.github.rinde.rinsim.central.arrays.MultiVehicleArraysSolver;
-import com.github.rinde.rinsim.central.arrays.SingleVehicleArraysSolver;
-import com.github.rinde.rinsim.central.arrays.SolutionObject;
 import com.github.rinde.rinsim.testutil.TestUtil;
 
 /**

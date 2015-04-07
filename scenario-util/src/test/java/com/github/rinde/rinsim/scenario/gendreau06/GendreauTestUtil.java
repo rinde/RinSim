@@ -25,9 +25,6 @@ import java.util.Set;
 
 import com.github.rinde.rinsim.scenario.TimedEvent;
 import com.github.rinde.rinsim.scenario.TimedEvent.TimeComparator;
-import com.github.rinde.rinsim.scenario.gendreau06.Gendreau06Parser;
-import com.github.rinde.rinsim.scenario.gendreau06.Gendreau06Scenario;
-import com.github.rinde.rinsim.scenario.gendreau06.GendreauProblemClass;
 
 /**
  * @author Rinde van Lon 

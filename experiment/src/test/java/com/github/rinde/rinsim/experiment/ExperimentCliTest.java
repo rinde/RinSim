@@ -24,9 +24,6 @@ import org.junit.Test;
 
 import com.github.rinde.rinsim.cli.CliException.CauseType;
 import com.github.rinde.rinsim.cli.Menu;
-import com.github.rinde.rinsim.experiment.Experiment;
-import com.github.rinde.rinsim.experiment.ExperimentCli;
-import com.github.rinde.rinsim.experiment.MASConfiguration;
 import com.github.rinde.rinsim.experiment.Experiment.Builder;
 import com.github.rinde.rinsim.pdptw.common.TestObjectiveFunction;
 import com.github.rinde.rinsim.scenario.ScenarioIO;

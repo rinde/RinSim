@@ -36,8 +36,6 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 
-import com.github.rinde.rinsim.scenario.generator.IntensityFunctions;
-import com.github.rinde.rinsim.scenario.generator.TimeSeries;
 import com.github.rinde.rinsim.scenario.generator.IntensityFunctions.SineIntensity;
 import com.github.rinde.rinsim.scenario.generator.TimeSeries.NonHomogenous;
 import com.github.rinde.rinsim.scenario.generator.TimeSeries.PoissonProcess;

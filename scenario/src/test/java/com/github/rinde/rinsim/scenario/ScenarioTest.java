@@ -43,8 +43,6 @@ import com.github.rinde.rinsim.core.Simulator;
 import com.github.rinde.rinsim.core.model.pdp.PDPScenarioEvent;
 import com.github.rinde.rinsim.core.model.road.PlaneRoadModel;
 import com.github.rinde.rinsim.geom.Point;
-import com.github.rinde.rinsim.scenario.Scenario;
-import com.github.rinde.rinsim.scenario.TimedEvent;
 import com.github.rinde.rinsim.scenario.Scenario.ProblemClass;
 import com.github.rinde.rinsim.scenario.Scenario.SimpleProblemClass;
 import com.github.rinde.rinsim.util.TimeWindow;

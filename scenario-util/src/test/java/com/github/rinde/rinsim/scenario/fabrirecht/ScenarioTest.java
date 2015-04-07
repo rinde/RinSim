@@ -23,9 +23,6 @@ import java.io.IOException;
 
 import org.junit.Test;
 
-import com.github.rinde.rinsim.scenario.fabrirecht.FabriRechtParser;
-import com.github.rinde.rinsim.scenario.fabrirecht.FabriRechtScenario;
-
 /**
  * @author Rinde van Lon 
  * 

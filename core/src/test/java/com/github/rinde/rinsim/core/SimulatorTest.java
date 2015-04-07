@@ -31,6 +31,7 @@ import org.apache.commons.math3.random.MersenneTwister;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.github.rinde.rinsim.core.Model.AbstractModel;
 import com.github.rinde.rinsim.core.ModelBuilder.AbstractModelBuilder;
 import com.github.rinde.rinsim.core.Simulator.SimulatorEventType;
 import com.github.rinde.rinsim.core.model.rand.RandomProvider;

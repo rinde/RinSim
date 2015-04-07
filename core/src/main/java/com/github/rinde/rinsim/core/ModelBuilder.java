@@ -61,7 +61,7 @@ public interface ModelBuilder<T> {
    * @author Rinde van Lon
    * @param <T> The associated type.
    */
-  public static abstract class AbstractModelBuilder<T> implements
+  public abstract class AbstractModelBuilder<T> implements
     ModelBuilder<T> {
     private final ImmutableSet<Class<?>> provTypes;
     private final Class<T> clazz;

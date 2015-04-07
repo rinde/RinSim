@@ -23,6 +23,7 @@ import java.util.Set;
 
 import javax.annotation.Nullable;
 
+import com.github.rinde.rinsim.core.Model.AbstractModel;
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.ImmutableSet;

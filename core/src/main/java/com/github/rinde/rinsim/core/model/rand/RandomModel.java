@@ -23,9 +23,9 @@ import java.util.Map;
 import org.apache.commons.math3.random.MersenneTwister;
 import org.apache.commons.math3.random.RandomGenerator;
 
-import com.github.rinde.rinsim.core.AbstractModel;
 import com.github.rinde.rinsim.core.DependencyProvider;
 import com.github.rinde.rinsim.core.Model;
+import com.github.rinde.rinsim.core.Model.AbstractModel;
 import com.github.rinde.rinsim.core.ModelBuilder;
 import com.github.rinde.rinsim.core.ModelBuilder.AbstractModelBuilder;
 import com.google.common.base.Supplier;

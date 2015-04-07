@@ -25,7 +25,7 @@ import java.util.Set;
 
 import org.apache.commons.math3.random.RandomGenerator;
 
-import com.github.rinde.rinsim.core.AbstractModel;
+import com.github.rinde.rinsim.core.Model.AbstractModel;
 import com.github.rinde.rinsim.core.ModelProvider;
 import com.github.rinde.rinsim.core.ModelReceiver;
 import com.github.rinde.rinsim.core.SimulatorAPI;

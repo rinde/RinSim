@@ -20,15 +20,12 @@ import javax.measure.unit.Unit;
 
 import org.apache.commons.math3.random.MersenneTwister;
 
-import com.github.rinde.rinsim.central.Solver;
-import com.github.rinde.rinsim.central.SolverDebugger;
-import com.github.rinde.rinsim.central.SolverValidator;
 import com.github.rinde.rinsim.central.arrays.ArraysSolverDebugger;
+import com.github.rinde.rinsim.central.arrays.ArraysSolverDebugger.MVASDebugger;
 import com.github.rinde.rinsim.central.arrays.ArraysSolverValidator;
 import com.github.rinde.rinsim.central.arrays.MultiVehicleArraysSolver;
 import com.github.rinde.rinsim.central.arrays.MultiVehicleSolverAdapter;
 import com.github.rinde.rinsim.central.arrays.RandomMVArraysSolver;
-import com.github.rinde.rinsim.central.arrays.ArraysSolverDebugger.MVASDebugger;
 import com.github.rinde.rinsim.util.StochasticSupplier;
 
 /**
