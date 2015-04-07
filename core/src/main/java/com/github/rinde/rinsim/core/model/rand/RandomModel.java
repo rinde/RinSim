@@ -44,6 +44,14 @@ import com.google.common.base.Supplier;
  * <li>{@link #create(long)}</li>
  * <li>{@link #create(RandomGenerator)}</li>
  * </ul>
+ * <p>
+ * <b>Model properties</b>
+ * <ul>
+ * <li><i>Associated type:</i> {@link RandomUser}.</li>
+ * <li><i>Provides:</i> {@link RandomProvider}.</li>
+ * <li><i>Dependencies:</i> none.</li>
+ * </ul>
+ *
  * @author Rinde van Lon
  * @see RandomUser
  * @see RandomProvider

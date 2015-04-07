@@ -42,6 +42,13 @@ import com.google.common.collect.Maps;
 /**
  * This model supports sending messages between {@link CommUser}s. A
  * {@link CommUser} can use a {@link CommDevice} to communicate.
+ * <p>
+ * <b>Model properties</b>
+ * <ul>
+ * <li><i>Associated type:</i> {@link CommUser}.</li>
+ * <li><i>Provides:</i> none.</li>
+ * <li><i>Dependencies:</i> {@link RandomProvider}.</li>
+ * </ul>
  * @author Rinde van Lon
  */
 public final class CommModel extends AbstractModel<CommUser> implements
