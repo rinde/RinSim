@@ -28,11 +28,15 @@ import javax.annotation.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.github.rinde.rinsim.core.DependencyProvider;
+import com.github.rinde.rinsim.core.Model;
 import com.github.rinde.rinsim.core.Model.AbstractModel;
+import com.github.rinde.rinsim.core.ModelBuilder.AbstractModelBuilder;
 import com.github.rinde.rinsim.core.Simulator;
 import com.github.rinde.rinsim.core.Simulator.SimulatorEventType;
 import com.github.rinde.rinsim.core.SimulatorAPI;
 import com.github.rinde.rinsim.core.SimulatorUser;
+import com.github.rinde.rinsim.core.model.time.Clock;
 import com.github.rinde.rinsim.core.model.time.TickListener;
 import com.github.rinde.rinsim.core.model.time.TimeLapse;
 import com.github.rinde.rinsim.event.Event;
@@ -40,6 +44,7 @@ import com.github.rinde.rinsim.event.EventAPI;
 import com.github.rinde.rinsim.event.EventDispatcher;
 import com.github.rinde.rinsim.event.Listener;
 import com.google.common.base.Optional;
+import com.google.common.collect.ImmutableSet;
 
 /**
  * A scenario controller represents a single simulation run using a
@@ -304,6 +309,20 @@ public class ScenarioController extends AbstractModel<Scenario> implements
       }
     }, SimulatorEventType.STARTED);
 
+  }
+
+  public static class Builder extends AbstractModelBuilder<Scenario> {
+
+    @Override
+    public Model<Scenario> build(DependencyProvider dependencyProvider) {
+      // TODO Auto-generated method stub
+      return null;
+    }
+
+    @Override
+    public ImmutableSet<Class<?>> getDependencies() {
+      return ImmutableSet.<Class<?>> of(SimulatorAPI.class, Clock.class);
+    }
   }
 
 }
