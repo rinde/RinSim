@@ -17,8 +17,8 @@ package com.github.rinde.rinsim.core;
 
 import java.util.HashSet;
 
-import com.github.rinde.rinsim.core.Model.AbstractModel;
 import com.github.rinde.rinsim.core.SimulatorTest.DummyObject;
+import com.github.rinde.rinsim.core.model.Model.AbstractModel;
 
 class DummyModel extends AbstractModel<DummyObject> {
 

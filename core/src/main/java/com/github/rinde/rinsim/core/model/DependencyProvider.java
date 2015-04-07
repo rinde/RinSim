@@ -13,19 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.github.rinde.rinsim.core;
+package com.github.rinde.rinsim.core.model;
+
 
 /**
- * Implementors of this interface will receive a reference to a
- * {@link ModelProvider} which can be used to gain access to available
- * {@link Model}s.
- * @author Rinde van Lon 
+ * Provider of dependencies. An instance is automatically injected into
+ * {@link ModelBuilder#build(DependencyProvider)}.
+ * @author Rinde van Lon
  */
-public interface ModelReceiver {
+public abstract class DependencyProvider {
+
+  DependencyProvider() {}
 
   /**
-   * Via this method the {@link ModelProvider} is injected.
-   * @param mp The {@link ModelProvider} to inject.
+   * Retrieves an instance of the specified type.
+   * @param type The type to request an instance of.
+   * @return An instance of the specified type.
+   * @throws IllegalArgumentException if the specified type can not be provided.
    */
-  void registerModelProvider(ModelProvider mp);
+  public abstract <T> T get(Class<T> type);
 }

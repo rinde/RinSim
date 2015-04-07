@@ -35,8 +35,8 @@ import javax.measure.unit.NonSI;
 import javax.measure.unit.SI;
 import javax.measure.unit.Unit;
 
-import com.github.rinde.rinsim.core.Model;
 import com.github.rinde.rinsim.core.Simulator;
+import com.github.rinde.rinsim.core.model.Model;
 import com.github.rinde.rinsim.scenario.TimedEvent.TimeComparator;
 import com.github.rinde.rinsim.util.TimeWindow;
 import com.google.common.base.Objects;

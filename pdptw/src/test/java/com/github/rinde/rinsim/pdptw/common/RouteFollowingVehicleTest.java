@@ -38,9 +38,9 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 
-import com.github.rinde.rinsim.core.Model;
-import com.github.rinde.rinsim.core.ModelProvider;
 import com.github.rinde.rinsim.core.TestModelProvider;
+import com.github.rinde.rinsim.core.model.Model;
+import com.github.rinde.rinsim.core.model.ModelProvider;
 import com.github.rinde.rinsim.core.model.pdp.DefaultPDPModel;
 import com.github.rinde.rinsim.core.model.pdp.PDPModel;
 import com.github.rinde.rinsim.core.model.pdp.PDPModel.PDPModelEventType;

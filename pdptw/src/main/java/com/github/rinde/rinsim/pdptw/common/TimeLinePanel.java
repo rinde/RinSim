@@ -46,8 +46,8 @@ import org.joda.time.Period;
 import org.joda.time.format.PeriodFormatter;
 import org.joda.time.format.PeriodFormatterBuilder;
 
-import com.github.rinde.rinsim.core.ModelProvider;
-import com.github.rinde.rinsim.core.ModelReceiver;
+import com.github.rinde.rinsim.core.model.ModelProvider;
+import com.github.rinde.rinsim.core.model.ModelReceiver;
 import com.github.rinde.rinsim.core.model.pdp.PDPModel;
 import com.github.rinde.rinsim.core.model.pdp.PDPModel.PDPModelEventType;
 import com.github.rinde.rinsim.core.model.pdp.PDPModelEvent;

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.github.rinde.rinsim.core;
+package com.github.rinde.rinsim.core.model;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -31,10 +31,6 @@ import java.util.Set;
 
 import javax.annotation.Nullable;
 
-import com.github.rinde.rinsim.core.model.rand.RandomModel;
-import com.github.rinde.rinsim.core.model.rand.RandomProvider;
-import com.github.rinde.rinsim.core.model.time.TickListener;
-import com.github.rinde.rinsim.core.model.time.TimeModel;
 import com.github.rinde.rinsim.util.LinkedHashBiMap;
 import com.google.common.base.Supplier;
 import com.google.common.collect.BiMap;
@@ -50,7 +46,8 @@ class DependencyResolver extends DependencyProvider {
   final BiMap<Class<?>, Dependency> modelTypeMap;
   final List<Dependency> builders;
 
-  DependencyResolver(List<ModelBuilder<?>> models, Simulator.Builder simBui) {
+  DependencyResolver(Set<ModelBuilder<?>> models,
+    Set<ModelBuilder<?>> defaultModels) {
     providerMap = new LinkedHashMap<>();
     dependencyMap = LinkedHashMultimap.create();
     modelTypeMap = LinkedHashBiMap.create();
@@ -59,12 +56,17 @@ class DependencyResolver extends DependencyProvider {
     for (final ModelBuilder<?> o : models) {
       add(o);
     }
-    if (!providerMap.containsKey(RandomProvider.class)) {
-      add(RandomModel.builder(simBui.rng));
+
+    for (final ModelBuilder<?> b : defaultModels) {
+      final ImmutableSet<Class<?>> providingTypes = b.getProvidingTypes();
+      if (providingTypes.isEmpty()
+        || !providerMap.keySet().containsAll(providingTypes)) {
+        checkArgument(Sets.intersection(providerMap.keySet(), providingTypes)
+          .isEmpty());
+        add(b);
+      }
     }
-    if (!modelTypeMap.containsKey(TickListener.class)) {
-      add(adapt(TimeModel.supplier(simBui.tickLength, simBui.timeUnit)));
-    }
+
   }
 
   final void add(ModelBuilder<?> mb) {

@@ -30,8 +30,8 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
-import com.github.rinde.rinsim.core.DependencyProvider;
-import com.github.rinde.rinsim.core.FakeDependencyProvider;
+import com.github.rinde.rinsim.core.model.DependencyProvider;
+import com.github.rinde.rinsim.core.model.FakeDependencyProvider;
 import com.github.rinde.rinsim.core.model.comm.CommModel.CommModelEvent;
 import com.github.rinde.rinsim.core.model.comm.CommModel.EventTypes;
 import com.github.rinde.rinsim.core.model.rand.RandomModel;

@@ -25,8 +25,8 @@ import javax.annotation.Nullable;
 
 import org.apache.commons.lang3.builder.EqualsBuilder;
 
-import com.github.rinde.rinsim.core.ModelProvider;
-import com.github.rinde.rinsim.core.ModelReceiver;
+import com.github.rinde.rinsim.core.model.ModelProvider;
+import com.github.rinde.rinsim.core.model.ModelReceiver;
 import com.github.rinde.rinsim.core.model.pdp.PDPModel;
 import com.github.rinde.rinsim.core.model.pdp.PDPModel.ParcelState;
 import com.github.rinde.rinsim.core.model.pdp.Parcel;

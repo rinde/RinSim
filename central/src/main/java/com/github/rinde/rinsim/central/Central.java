@@ -21,13 +21,13 @@ import java.util.Set;
 
 import com.github.rinde.rinsim.central.Solvers.SimulationSolver;
 import com.github.rinde.rinsim.central.Solvers.SolveArgs;
-import com.github.rinde.rinsim.core.Model;
-import com.github.rinde.rinsim.core.Model.AbstractModel;
-import com.github.rinde.rinsim.core.ModelProvider;
-import com.github.rinde.rinsim.core.ModelReceiver;
 import com.github.rinde.rinsim.core.Simulator;
 import com.github.rinde.rinsim.core.SimulatorAPI;
 import com.github.rinde.rinsim.core.SimulatorUser;
+import com.github.rinde.rinsim.core.model.Model;
+import com.github.rinde.rinsim.core.model.ModelProvider;
+import com.github.rinde.rinsim.core.model.ModelReceiver;
+import com.github.rinde.rinsim.core.model.Model.AbstractModel;
 import com.github.rinde.rinsim.core.model.time.TickListener;
 import com.github.rinde.rinsim.core.model.time.TimeLapse;
 import com.github.rinde.rinsim.core.pdptw.DefaultParcel;

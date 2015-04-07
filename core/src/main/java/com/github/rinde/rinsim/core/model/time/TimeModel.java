@@ -26,7 +26,7 @@ import javax.measure.quantity.Duration;
 import javax.measure.unit.SI;
 import javax.measure.unit.Unit;
 
-import com.github.rinde.rinsim.core.Model.AbstractModel;
+import com.github.rinde.rinsim.core.model.Model.AbstractModel;
 import com.google.common.base.Supplier;
 
 /**

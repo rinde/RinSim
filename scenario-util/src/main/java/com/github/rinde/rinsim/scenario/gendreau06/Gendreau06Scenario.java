@@ -29,8 +29,8 @@ import javax.measure.unit.Unit;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 
-import com.github.rinde.rinsim.core.Model;
 import com.github.rinde.rinsim.core.Simulator;
+import com.github.rinde.rinsim.core.model.Model;
 import com.github.rinde.rinsim.core.model.pdp.DefaultPDPModel;
 import com.github.rinde.rinsim.core.model.pdp.PDPModel;
 import com.github.rinde.rinsim.core.model.pdp.TimeWindowPolicy.TimeWindowPolicies;

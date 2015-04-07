@@ -38,9 +38,9 @@ import javax.measure.quantity.Velocity;
 import javax.measure.unit.Unit;
 
 import com.github.rinde.rinsim.central.GlobalStateObject.VehicleStateObject;
-import com.github.rinde.rinsim.core.ModelProvider;
 import com.github.rinde.rinsim.core.Simulator;
 import com.github.rinde.rinsim.core.SimulatorAPI;
+import com.github.rinde.rinsim.core.model.ModelProvider;
 import com.github.rinde.rinsim.core.model.pdp.PDPModel;
 import com.github.rinde.rinsim.core.model.pdp.PDPModel.ParcelState;
 import com.github.rinde.rinsim.core.model.pdp.PDPModel.VehicleParcelActionInfo;

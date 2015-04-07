@@ -13,17 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.github.rinde.rinsim.core;
+package com.github.rinde.rinsim.core.model;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.Collection;
+import java.util.LinkedHashSet;
 import java.util.Set;
 
 import javax.annotation.Nullable;
 
-import com.github.rinde.rinsim.core.Model.AbstractModel;
+import com.github.rinde.rinsim.core.model.Model.AbstractModel;
+import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.ImmutableSet;
@@ -35,7 +37,7 @@ import com.google.common.collect.ImmutableSet;
  * @author Bartosz Michalik
  * @author Rinde van Lon
  */
-final class ModelManager implements ModelProvider {
+public final class ModelManager implements ModelProvider {
   private final ImmutableMultimap<Class<?>, Model<?>> registry;
 
   /**
@@ -76,7 +78,7 @@ final class ModelManager implements ModelProvider {
     return success;
   }
 
-  <T> void register(T object) {
+  public <T> void register(T object) {
     checkArgument(
       !(object instanceof Model<?>),
       "Can not register a model: %s. "
@@ -90,7 +92,7 @@ final class ModelManager implements ModelProvider {
   }
 
   @SuppressWarnings("unchecked")
-  <T> boolean unregister(T object) {
+  public <T> boolean unregister(T object) {
     checkArgument(!(object instanceof Model), "can not unregister a model");
 
     boolean result = false;
@@ -132,8 +134,55 @@ final class ModelManager implements ModelProvider {
   /**
    * @return The {@link Model}s that are registered.
    */
-  ImmutableCollection<Model<?>> getModels() {
+  public ImmutableCollection<Model<?>> getModels() {
     return registry.values();
+  }
+
+  public static Builder builder() {
+    return new Builder();
+  }
+
+  public static class Builder {
+    final ImmutableSet.Builder<ModelBuilder<?>> models;
+    final Set<ModelBuilder<?>> defaultModels;
+
+    Builder() {
+      models = ImmutableSet.builder();
+      defaultModels = new LinkedHashSet<>();
+    }
+
+    public Builder add(Iterable<? extends ModelBuilder<?>> builders) {
+      models.addAll(builders);
+      return this;
+    }
+
+    public Builder add(ModelBuilder<?> builder) {
+      models.add(builder);
+      return this;
+    }
+
+    public Builder add(Supplier<? extends Model<?>> supplier) {
+      models.add(DependencyResolver.adaptObj(supplier));
+      return this;
+    }
+
+    public Builder setDefaultProvider(ModelBuilder<?> provider) {
+      checkArgument(!defaultModels.contains(provider));
+      defaultModels.add(provider);
+      return this;
+    }
+
+    public Builder setDefaultProvider(Supplier<? extends Model<?>> provider) {
+      return setDefaultProvider(DependencyResolver.adaptObj(provider));
+    }
+
+    public ModelManager build() {
+
+      final DependencyResolver r = new DependencyResolver(models.build(),
+        defaultModels);
+
+      return new ModelManager(r.resolve());
+    }
   }
 
   static class ModelReceiverModel extends AbstractModel<ModelReceiver> {

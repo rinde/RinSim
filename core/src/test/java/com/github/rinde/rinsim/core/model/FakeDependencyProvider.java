@@ -13,10 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.github.rinde.rinsim.core;
+package com.github.rinde.rinsim.core.model;
 
 import java.util.Map;
 
+import com.github.rinde.rinsim.core.model.DependencyProvider;
+import com.github.rinde.rinsim.core.model.Model;
 import com.google.common.collect.ImmutableMap;
 
 /**

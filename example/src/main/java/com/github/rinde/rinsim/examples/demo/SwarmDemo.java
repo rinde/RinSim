@@ -47,9 +47,9 @@ import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Text;
 
-import com.github.rinde.rinsim.core.ModelProvider;
-import com.github.rinde.rinsim.core.ModelReceiver;
 import com.github.rinde.rinsim.core.Simulator;
+import com.github.rinde.rinsim.core.model.ModelProvider;
+import com.github.rinde.rinsim.core.model.ModelReceiver;
 import com.github.rinde.rinsim.core.model.road.MovingRoadUser;
 import com.github.rinde.rinsim.core.model.road.PlaneRoadModel;
 import com.github.rinde.rinsim.core.model.road.RoadModel;

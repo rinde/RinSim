@@ -34,7 +34,7 @@ import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Transform;
 
-import com.github.rinde.rinsim.core.ModelProvider;
+import com.github.rinde.rinsim.core.model.ModelProvider;
 import com.github.rinde.rinsim.core.model.road.CollisionGraphRoadModel;
 import com.github.rinde.rinsim.core.model.road.GenericRoadModel.RoadEventType;
 import com.github.rinde.rinsim.core.model.road.MovingRoadUser;

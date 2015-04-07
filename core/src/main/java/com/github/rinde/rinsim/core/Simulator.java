@@ -31,8 +31,14 @@ import org.apache.commons.math3.random.RandomGenerator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.github.rinde.rinsim.core.Model.AbstractModel;
-import com.github.rinde.rinsim.core.ModelBuilder.AbstractModelBuilder;
+import com.github.rinde.rinsim.core.model.DependencyProvider;
+import com.github.rinde.rinsim.core.model.Model;
+import com.github.rinde.rinsim.core.model.Model.AbstractModel;
+import com.github.rinde.rinsim.core.model.ModelBuilder;
+import com.github.rinde.rinsim.core.model.ModelBuilder.AbstractModelBuilder;
+import com.github.rinde.rinsim.core.model.ModelManager;
+import com.github.rinde.rinsim.core.model.ModelProvider;
+import com.github.rinde.rinsim.core.model.rand.RandomModel;
 import com.github.rinde.rinsim.core.model.time.Clock;
 import com.github.rinde.rinsim.core.model.time.TickListener;
 import com.github.rinde.rinsim.core.model.time.TimeLapse;
@@ -101,24 +107,24 @@ public final class Simulator implements SimulatorAPI {
   private final RandomGenerator rand;
   private final Clock timeModel;
 
+  @SuppressWarnings("unchecked")
   Simulator(Builder b) {
     toUnregister = new LinkedHashSet<>();
     dispatcher = new EventDispatcher(SimulatorEventType.values());
     rand = b.rng;
 
-    final List<ModelBuilder<?>> list = new ArrayList<>();
-    list.add(new SimulatorModelBuilder(this));
+    final ModelManager.Builder mb = ModelManager.builder();
+    mb.add(new SimulatorModelBuilder(this));
     for (final Object o : b.models) {
       if (o instanceof ModelBuilder<?>) {
-        list.add((ModelBuilder<?>) o);
+        mb.add((ModelBuilder<?>) o);
       } else {
-        @SuppressWarnings("unchecked")
-        final Supplier<? extends Model<?>> m = (Supplier<? extends Model<?>>) o;
-        list.add(DependencyResolver.adaptObj(m));
+        mb.add((Supplier<? extends Model<?>>) o);
       }
     }
-    final DependencyResolver resolver = new DependencyResolver(list, b);
-    modelManager = new ModelManager(resolver.resolve());
+    mb.setDefaultProvider(RandomModel.builder(b.rng));
+    mb.setDefaultProvider(TimeModel.supplier(b.tickLength, b.timeUnit));
+    modelManager = mb.build();
     timeModel = modelManager.getModel(TimeModel.class);
   }
 

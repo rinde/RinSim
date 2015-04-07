@@ -21,7 +21,7 @@ import javax.measure.quantity.Length;
 import javax.measure.quantity.Velocity;
 import javax.measure.unit.Unit;
 
-import com.github.rinde.rinsim.core.Model;
+import com.github.rinde.rinsim.core.model.Model;
 import com.github.rinde.rinsim.core.model.pdp.DefaultPDPModel;
 import com.github.rinde.rinsim.core.model.pdp.PDPModel;
 import com.github.rinde.rinsim.core.model.pdp.TimeWindowPolicy;

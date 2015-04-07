@@ -15,8 +15,8 @@
  */
 package com.github.rinde.rinsim.examples.pdptw.gradientfield;
 
-import com.github.rinde.rinsim.core.Model;
 import com.github.rinde.rinsim.core.Simulator;
+import com.github.rinde.rinsim.core.model.Model;
 import com.github.rinde.rinsim.experiment.DefaultMASConfiguration;
 import com.github.rinde.rinsim.pdptw.common.DynamicPDPTWProblem.Creator;
 import com.github.rinde.rinsim.scenario.AddParcelEvent;

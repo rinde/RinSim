@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.github.rinde.rinsim.core;
+package com.github.rinde.rinsim.core.model;
 
-import static com.github.rinde.rinsim.core.DebugModel.Action.ALLOW;
-import static com.github.rinde.rinsim.core.DebugModel.Action.REJECT;
+import static com.github.rinde.rinsim.core.model.DebugModel.Action.ALLOW;
+import static com.github.rinde.rinsim.core.model.DebugModel.Action.REJECT;
 import static com.google.common.truth.Truth.assertThat;
 import static java.util.Arrays.asList;
 import static org.junit.Assert.assertEquals;
@@ -32,7 +32,9 @@ import javax.measure.unit.SI;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.github.rinde.rinsim.core.Model.AbstractModel;
+import com.github.rinde.rinsim.core.model.Model;
+import com.github.rinde.rinsim.core.model.ModelManager;
+import com.github.rinde.rinsim.core.model.Model.AbstractModel;
 import com.github.rinde.rinsim.core.model.road.GraphRoadModel;
 import com.github.rinde.rinsim.core.model.road.RoadModel;
 import com.github.rinde.rinsim.core.model.road.RoadUser;

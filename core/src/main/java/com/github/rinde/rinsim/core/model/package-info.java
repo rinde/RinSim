@@ -13,22 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.github.rinde.rinsim.core;
-
 /**
- * Provider of dependencies. An instance is automatically injected into
- * {@link ModelBuilder#build(DependencyProvider)}.
  * @author Rinde van Lon
+ *
  */
-public abstract class DependencyProvider {
-
-  DependencyProvider() {}
-
-  /**
-   * Retrieves an instance of the specified type.
-   * @param type The type to request an instance of.
-   * @return An instance of the specified type.
-   * @throws IllegalArgumentException if the specified type can not be provided.
-   */
-  public abstract <T> T get(Class<T> type);
-}
+@javax.annotation.ParametersAreNonnullByDefault
+package com.github.rinde.rinsim.core.model;

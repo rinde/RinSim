@@ -23,9 +23,9 @@ import java.util.Set;
 
 import org.apache.commons.math3.random.RandomGenerator;
 
-import com.github.rinde.rinsim.core.DependencyProvider;
-import com.github.rinde.rinsim.core.Model.AbstractModel;
-import com.github.rinde.rinsim.core.ModelBuilder;
+import com.github.rinde.rinsim.core.model.DependencyProvider;
+import com.github.rinde.rinsim.core.model.ModelBuilder;
+import com.github.rinde.rinsim.core.model.Model.AbstractModel;
 import com.github.rinde.rinsim.core.model.rand.RandomProvider;
 import com.github.rinde.rinsim.core.model.time.TickListener;
 import com.github.rinde.rinsim.core.model.time.TimeLapse;

@@ -28,8 +28,8 @@ import javax.annotation.Nullable;
 
 import org.eclipse.swt.SWT;
 
-import com.github.rinde.rinsim.core.Model;
 import com.github.rinde.rinsim.core.Simulator;
+import com.github.rinde.rinsim.core.model.Model;
 import com.github.rinde.rinsim.core.model.pdp.Depot;
 import com.github.rinde.rinsim.core.model.pdp.Parcel;
 import com.github.rinde.rinsim.core.model.pdp.Vehicle;
