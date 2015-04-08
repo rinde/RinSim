@@ -31,15 +31,13 @@ import org.apache.commons.math3.random.MersenneTwister;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.github.rinde.rinsim.core.Simulator.SimulatorEventType;
 import com.github.rinde.rinsim.core.model.DependencyProvider;
-import com.github.rinde.rinsim.core.model.Model;
 import com.github.rinde.rinsim.core.model.Model.AbstractModel;
+import com.github.rinde.rinsim.core.model.ModelBuilder;
 import com.github.rinde.rinsim.core.model.ModelBuilder.AbstractModelBuilder;
 import com.github.rinde.rinsim.core.model.rand.RandomProvider;
 import com.github.rinde.rinsim.core.model.time.TickListener;
 import com.github.rinde.rinsim.core.model.time.TimeLapse;
-import com.github.rinde.rinsim.testutil.TestUtil;
 import com.google.common.base.Suppliers;
 import com.google.common.collect.ImmutableClassToInstanceMap;
 import com.google.common.collect.ImmutableSet;
@@ -63,7 +61,6 @@ public class SimulatorTest {
       .setTickLength(100L)
       .setTimeUnit(SI.SECOND)
       .build();
-    TestUtil.testEnum(SimulatorEventType.class);
   }
 
   /**
@@ -150,9 +147,9 @@ public class SimulatorTest {
   @Test
   public void testModelBuilder() {
     final Simulator sim = Simulator.builder()
-      .addModel(new AbstractModelBuilder<DummyObject>(Object.class) {
+      .addModel(new ModelBuilder<DummyModel, DummyObject>() {
         @Override
-        public Model<DummyObject> build(DependencyProvider dp) {
+        public DummyModel build(DependencyProvider dp) {
           final RandomProvider rg = dp.get(RandomProvider.class);
           rg.newInstance();
           return new DummyModel();
@@ -161,6 +158,21 @@ public class SimulatorTest {
         @Override
         public ImmutableSet<Class<?>> getDependencies() {
           return ImmutableSet.<Class<?>> of(RandomProvider.class);
+        }
+
+        @Override
+        public Class<DummyObject> getAssociatedType() {
+          return DummyObject.class;
+        }
+
+        @Override
+        public ImmutableSet<Class<?>> getProvidingTypes() {
+          return ImmutableSet.<Class<?>> of(Object.class);
+        }
+
+        @Override
+        public Class<DummyModel> getModelType() {
+          return DummyModel.class;
         }
       })
       .build();
@@ -298,23 +310,23 @@ public class SimulatorTest {
     assertThat(fail).isTrue();
   }
 
-  abstract class IllBehavedBuilderBase extends AbstractModelBuilder<Object> {
-    @Override
-    public ImmutableSet<Class<?>> getDependencies() {
-      return ImmutableSet.<Class<?>> of(ProviderForA.class);
+  abstract class IllBehavedBuilderBase extends
+    AbstractModelBuilder<GenericModel<Object>, Object> {
+    IllBehavedBuilderBase() {
+      setDependencies(ProviderForA.class);
     }
   }
 
   class NopBuilder extends IllBehavedBuilderBase {
     @Override
-    public Model<Object> build(DependencyProvider dependencyProvider) {
+    public GenericModel<Object> build(DependencyProvider dependencyProvider) {
       return new GenericModel<>();
     }
   }
 
   class AskTwiceBuilder extends IllBehavedBuilderBase {
     @Override
-    public Model<Object> build(DependencyProvider dependencyProvider) {
+    public GenericModel<Object> build(DependencyProvider dependencyProvider) {
       dependencyProvider.get(ProviderForA.class);
       dependencyProvider.get(ProviderForA.class);
       return new GenericModel<>();
@@ -323,24 +335,25 @@ public class SimulatorTest {
 
   class AskWrongTypeBuilder extends IllBehavedBuilderBase {
     @Override
-    public Model<Object> build(DependencyProvider dependencyProvider) {
+    public GenericModel<Object> build(DependencyProvider dependencyProvider) {
       dependencyProvider.get(ProviderForA.class);
       dependencyProvider.get(ProviderForB.class);
       return new GenericModel<>();
     }
   }
 
-  class AskWithoutAnyDepsBuilder extends AbstractModelBuilder<Object> {
+  class AskWithoutAnyDepsBuilder extends
+    AbstractModelBuilder<GenericModel<Object>, Object> {
     @Override
-    public Model<Object> build(DependencyProvider dependencyProvider) {
+    public GenericModel<Object> build(DependencyProvider dependencyProvider) {
       dependencyProvider.get(ProviderForA.class);
       return new GenericModel<>();
     }
   }
 
-  class DuplicateA extends AbstractModelBuilder<Object> {
+  class DuplicateA extends AbstractModelBuilder<GenericModel<Object>, Object> {
     DuplicateA() {
-      super(Object.class);
+      setProvidingTypes(Object.class);
     }
 
     @Override
@@ -349,9 +362,9 @@ public class SimulatorTest {
     }
   }
 
-  class DuplicateB extends AbstractModelBuilder<Object> {
+  class DuplicateB extends AbstractModelBuilder<GenericModel<Object>, Object> {
     DuplicateB() {
-      super(Object.class);
+      setProvidingTypes(Object.class);
     }
 
     @Override
@@ -391,86 +404,70 @@ public class SimulatorTest {
     }
   }
 
-  class A extends AbstractModelBuilder<Object> {
+  class A extends AbstractModelBuilder<GenericModel<Object>, Object> {
     A() {
-      super(ProviderForA.class);
+      setProvidingTypes(ProviderForA.class);
+      setDependencies(ProviderForB.class);
     }
 
     @Override
-    public Model<Object> build(DependencyProvider dependencyProvider) {
+    public GenericModel<Object> build(DependencyProvider dependencyProvider) {
       dependencyProvider.get(ProviderForB.class);
       return new GenericModel<>(ImmutableClassToInstanceMap.builder()
         .put(ProviderForA.class, new ProviderForA())
         .build());
     }
-
-    @Override
-    public ImmutableSet<Class<?>> getDependencies() {
-      return ImmutableSet.<Class<?>> of(ProviderForB.class);
-    }
   }
 
-  class B extends AbstractModelBuilder<Object> {
+  class B extends AbstractModelBuilder<GenericModel<Object>, Object> {
     B() {
-      super(ProviderForB.class);
+      setProvidingTypes(ProviderForB.class);
     }
 
     @Override
-    public Model<Object> build(DependencyProvider dependencyProvider) {
+    public GenericModel<Object> build(DependencyProvider dependencyProvider) {
       return new GenericModel<>(ImmutableClassToInstanceMap.builder()
         .put(ProviderForB.class, new ProviderForB())
         .build());
     }
   }
 
-  class CircleA extends AbstractModelBuilder<Object> {
+  class CircleA extends AbstractModelBuilder<GenericModel<Object>, Object> {
     CircleA() {
-      super(ProviderForA.class);
+      setProvidingTypes(ProviderForA.class);
+      setDependencies(ProviderForB.class);
     }
 
     @SuppressWarnings("null")
     @Override
-    public Model<Object> build(DependencyProvider dependencyProvider) {
+    public GenericModel<Object> build(DependencyProvider dependencyProvider) {
       return null;
-    }
-
-    @Override
-    public ImmutableSet<Class<?>> getDependencies() {
-      return ImmutableSet.<Class<?>> of(ProviderForB.class);
     }
   }
 
-  class CircleB extends AbstractModelBuilder<Object> {
+  class CircleB extends AbstractModelBuilder<GenericModel<Object>, Object> {
     CircleB() {
-      super(ProviderForB.class);
+      setProvidingTypes(ProviderForB.class);
+      setDependencies(ProviderForC.class);
     }
 
     @SuppressWarnings("null")
     @Override
-    public Model<Object> build(DependencyProvider dependencyProvider) {
+    public GenericModel<Object> build(DependencyProvider dependencyProvider) {
       return null;
-    }
-
-    @Override
-    public ImmutableSet<Class<?>> getDependencies() {
-      return ImmutableSet.<Class<?>> of(ProviderForC.class);
     }
   }
 
-  class CircleC extends AbstractModelBuilder<Object> {
+  class CircleC extends AbstractModelBuilder<GenericModel<Object>, Object> {
     CircleC() {
-      super(ProviderForC.class);
+      setProvidingTypes(ProviderForC.class);
+      setDependencies(ProviderForA.class);
     }
 
     @SuppressWarnings("null")
     @Override
-    public Model<Object> build(DependencyProvider dependencyProvider) {
+    public GenericModel<Object> build(DependencyProvider dependencyProvider) {
       return null;
-    }
-
-    @Override
-    public ImmutableSet<Class<?>> getDependencies() {
-      return ImmutableSet.<Class<?>> of(ProviderForA.class);
     }
   }
 

@@ -16,12 +16,11 @@
 package com.github.rinde.rinsim.examples.pdptw.gradientfield;
 
 import com.github.rinde.rinsim.core.Simulator;
-import com.github.rinde.rinsim.core.model.Model;
+import com.github.rinde.rinsim.core.model.ModelBuilder;
 import com.github.rinde.rinsim.experiment.DefaultMASConfiguration;
 import com.github.rinde.rinsim.pdptw.common.DynamicPDPTWProblem.Creator;
 import com.github.rinde.rinsim.scenario.AddParcelEvent;
 import com.github.rinde.rinsim.scenario.AddVehicleEvent;
-import com.github.rinde.rinsim.util.StochasticSupplier;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 
@@ -33,8 +32,8 @@ class GradientFieldConfiguration extends DefaultMASConfiguration {
   private static final long serialVersionUID = -3882825964052190638L;
 
   @Override
-  public ImmutableList<? extends StochasticSupplier<? extends Model<?>>> getModels() {
-    return ImmutableList.of(GradientModel.supplier());
+  public ImmutableList<? extends ModelBuilder<?, ?>> getModels() {
+    return ImmutableList.<ModelBuilder<?, ?>> of(GradientModel.builder());
   }
 
   @Override

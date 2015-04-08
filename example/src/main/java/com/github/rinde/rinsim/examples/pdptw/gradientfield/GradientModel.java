@@ -26,15 +26,15 @@ import java.util.concurrent.CopyOnWriteArrayList;
 
 import javax.annotation.Nullable;
 
+import com.github.rinde.rinsim.core.model.DependencyProvider;
+import com.github.rinde.rinsim.core.model.Model.AbstractModel;
+import com.github.rinde.rinsim.core.model.ModelBuilder.AbstractModelBuilder;
 import com.github.rinde.rinsim.core.model.ModelProvider;
 import com.github.rinde.rinsim.core.model.ModelReceiver;
-import com.github.rinde.rinsim.core.model.Model.AbstractModel;
 import com.github.rinde.rinsim.core.model.pdp.PDPModel;
 import com.github.rinde.rinsim.core.model.pdp.Parcel;
 import com.github.rinde.rinsim.core.model.road.RoadModel;
 import com.github.rinde.rinsim.geom.Point;
-import com.github.rinde.rinsim.util.StochasticSupplier;
-import com.github.rinde.rinsim.util.StochasticSuppliers;
 import com.google.common.collect.ImmutableList;
 
 /**
@@ -164,14 +164,16 @@ public class GradientModel extends AbstractModel<FieldEmitter> implements
     maxY = bs.get(1).y;
   }
 
-  static StochasticSupplier<GradientModel> supplier() {
-    return new StochasticSuppliers.AbstractStochasticSupplier<GradientModel>() {
-      private static final long serialVersionUID = 1701618808844264668L;
-
-      @Override
-      public GradientModel get(long seed) {
-        return new GradientModel();
-      }
-    };
+  static Builder builder() {
+    return new Builder();
   }
+
+  static class Builder extends
+    AbstractModelBuilder<GradientModel, FieldEmitter> {
+    @Override
+    public GradientModel build(DependencyProvider dependencyProvider) {
+      return new GradientModel();
+    }
+  }
+
 }

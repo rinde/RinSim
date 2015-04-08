@@ -15,7 +15,6 @@
  */
 package com.github.rinde.rinsim.core.model.pdp;
 
-import static com.google.common.base.Verify.verifyNotNull;
 import static com.google.common.collect.Lists.newLinkedList;
 import static com.google.common.collect.Sets.newHashSet;
 import static java.util.Arrays.asList;
@@ -23,11 +22,12 @@ import static junit.framework.Assert.assertSame;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import java.util.Arrays;
 import java.util.Collection;
 
-import javax.measure.Measure;
 import javax.measure.unit.SI;
 
 import org.junit.Before;
@@ -36,8 +36,9 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 
-import com.github.rinde.rinsim.core.model.Model;
-import com.github.rinde.rinsim.core.model.ModelProvider;
+import com.github.rinde.rinsim.core.model.DependencyProvider;
+import com.github.rinde.rinsim.core.model.ModelBuilder;
+import com.github.rinde.rinsim.core.model.ModelBuilder.AbstractModelBuilder;
 import com.github.rinde.rinsim.core.model.pdp.DefaultPDPModel.PickupAction;
 import com.github.rinde.rinsim.core.model.pdp.PDPModel.PDPModelEventType;
 import com.github.rinde.rinsim.core.model.pdp.PDPModel.ParcelState;
@@ -50,7 +51,6 @@ import com.github.rinde.rinsim.event.Event;
 import com.github.rinde.rinsim.event.Listener;
 import com.github.rinde.rinsim.geom.Point;
 import com.github.rinde.rinsim.util.TimeWindow;
-import com.google.common.base.Supplier;
 
 /**
  * @author Rinde van Lon
@@ -64,52 +64,63 @@ public class PDPModelTest {
   PDPModel model;
   RoadModel rm;
 
-  Supplier<PDPModel> modelSupplier;
+  ModelBuilder<PDPModel, PDPObject> modelSupplier;
 
-  public PDPModelTest(Supplier<PDPModel> supplier) {
-    modelSupplier = supplier;
+  public PDPModelTest(ModelBuilder<PDPModel, PDPObject> builder) {
+    modelSupplier = builder;
   }
 
   @Parameters
   public static Collection<Object[]> configs() {
-    return Arrays.asList(new Object[][] //
-        { { new Supplier<PDPModel>() {
-          @Override
-          public PDPModel get() {
-            return new DefaultPDPModel();
-          }
-        } }, { new Supplier<PDPModel>() {
-          @Override
-          public PDPModel get() {
-            return new ForwardingPDPModel(new DefaultPDPModel());
-          }
-        } }, { new Supplier<PDPModel>() {
-          @Override
-          public PDPModel get() {
-            return new ForwardingPDPModel(new ForwardingPDPModel(
-                new ForwardingPDPModel(new ForwardingPDPModel(
-                    new DefaultPDPModel()))));
-          }
-        } } });
+    return Arrays.asList(new Object[][] {
+        { DefaultPDPModel.builder() },
+        { forwardingBuilder().setPDPModel(DefaultPDPModel.builder()) },
+        { forwardingBuilder().setPDPModel(
+          forwardingBuilder().setPDPModel(DefaultPDPModel.builder())) }
+    }
+      );
+  }
+
+  static ForwardingPDPModelBuilder forwardingBuilder() {
+    return new ForwardingPDPModelBuilder();
+  }
+
+  static class ForwardingPDPModelBuilder extends
+    AbstractModelBuilder<PDPModel, PDPObject> {
+
+    ModelBuilder<? extends PDPModel, PDPObject> delegateBuilder;
+
+    ForwardingPDPModelBuilder() {
+      setProvidingTypes(PDPModel.class);
+    }
+
+    public ForwardingPDPModelBuilder setPDPModel(
+      ModelBuilder<? extends PDPModel, PDPObject> mb) {
+      setDependencies(mb.getDependencies());
+      delegateBuilder = mb;
+      return this;
+    }
+
+    @Override
+    public ForwardingPDPModel build(DependencyProvider dependencyProvider) {
+      final PDPModel delegate = delegateBuilder
+        .build(dependencyProvider);
+      return new ForwardingPDPModel(delegate);
+    }
   }
 
   @Before
   public void setUp() {
-    rm = new PlaneRoadModel(new Point(0, 0), new Point(10, 10), SI.METER,
-        Measure.valueOf(Double.POSITIVE_INFINITY, SI.METERS_PER_SECOND));
-    model = modelSupplier.get();
-    model.registerModelProvider(new ModelProvider() {
-      @SuppressWarnings("unchecked")
-      @Override
-      public <T extends Model<?>> T tryGetModel(Class<T> clazz) {
-        return (T) rm;
-      }
+    final DependencyProvider dp = mock(DependencyProvider.class);
 
-      @Override
-      public <T extends Model<?>> T getModel(Class<T> clazz) {
-        return verifyNotNull(tryGetModel(clazz));
-      }
-    });
+    rm = PlaneRoadModel.builder()
+      .setDistanceUnit(SI.METER)
+      .setMaxSpeed(Double.POSITIVE_INFINITY)
+      .setSpeedUnit(SI.METERS_PER_SECOND)
+      .build(dp);
+
+    when(dp.get(RoadModel.class)).thenReturn(rm);
+    model = modelSupplier.build(dp);
 
     // checks whether the events contain the decorated instance
     final PDPModel modelRef = model;
@@ -147,7 +158,7 @@ public class PDPModelTest {
     rm.addObjectAt(pack, new Point(1, 2));
 
     rm.followPath(truck, newLinkedList(asList(new Point(1, 2))),
-        TimeLapseFactory.create(0, 3600000));
+      TimeLapseFactory.create(0, 3600000));
     model.pickup(truck, pack, TimeLapseFactory.create(0, 40));
     model.continuePreviousActions(truck, TimeLapseFactory.create(0, 40));
 
@@ -159,7 +170,7 @@ public class PDPModelTest {
 
     // riding to other spot to drop
     rm.followPath(truck, newLinkedList(asList(new Point(2, 2))),
-        TimeLapseFactory.create(0, 3600000));
+      TimeLapseFactory.create(0, 3600000));
     model.drop(truck, pack, TimeLapseFactory.create(0, 50));
     // not enough time for dropping
     assertFalse(model.getContents(truck).isEmpty());
@@ -185,7 +196,7 @@ public class PDPModelTest {
     rm.addObjectAt(pack2, new Point(1, 2));
 
     rm.followPath(truck, newLinkedList(asList(new Point(1, 2))),
-        TimeLapseFactory.create(0, 3600000));
+      TimeLapseFactory.create(0, 3600000));
     model.pickup(truck, pack2, TimeLapseFactory.create(0, 40));
     model.continuePreviousActions(truck, TimeLapseFactory.create(0, 40));
 
@@ -197,7 +208,7 @@ public class PDPModelTest {
 
     // riding to other spot to drop
     rm.followPath(truck, newLinkedList(asList(new Point(2, 2))),
-        TimeLapseFactory.create(0, 3600000));
+      TimeLapseFactory.create(0, 3600000));
 
     model.drop(truck, pack2, TimeLapseFactory.create(0, 100));
 
@@ -248,7 +259,7 @@ public class PDPModelTest {
     rm.addObjectAt(pack2, new Point(1, 2));
 
     rm.followPath(truck, newLinkedList(asList(new Point(1, 2))),
-        TimeLapseFactory.create(0, 3600000));
+      TimeLapseFactory.create(0, 3600000));
 
     assertEquals(new Point(1, 2), rm.getPosition(truck));
     assertEquals(new Point(1, 2), rm.getPosition(pack2));
@@ -257,7 +268,7 @@ public class PDPModelTest {
     model.pickup(truck, pack2, TimeLapseFactory.create(0, 40));
     assertFalse(rm.containsObject(pack2));
     final PickupAction action = (PickupAction) model
-        .getVehicleActionInfo(truck);
+      .getVehicleActionInfo(truck);
     assertFalse(action.isDone());
     assertEquals(60, action.timeNeeded());
     assertEquals(ParcelState.PICKING_UP, model.getParcelState(pack2));
@@ -440,7 +451,7 @@ public class PDPModelTest {
     assertTrue(model.getParcels(ParcelState.AVAILABLE).isEmpty());
 
     rm.moveTo(truck, pack1.getDestination(),
-        TimeLapseFactory.create(0, 3600000 * 3));
+      TimeLapseFactory.create(0, 3600000 * 3));
     assertEquals(pack1.getDestination(), rm.getPosition(truck));
 
     model.deliver(truck, pack1, TimeLapseFactory.create(0, 8));
@@ -476,7 +487,7 @@ public class PDPModelTest {
   public void testDeliverFail1() {
     // truck does not exist in roadmodel
     model.deliver(new TestVehicle(new Point(1, 1), 20.0, 1.0), null,
-        TimeLapseFactory.create(0, 1));
+      TimeLapseFactory.create(0, 1));
   }
 
   @Test(expected = IllegalArgumentException.class)
@@ -668,15 +679,15 @@ public class PDPModelTest {
   static class TestParcel extends Parcel {
 
     public TestParcel(Point pDestination, int pLoadingDuration,
-        int pUnloadingDuration, double pMagnitude) {
+      int pUnloadingDuration, double pMagnitude) {
       super(pDestination, pLoadingDuration, TimeWindow.ALWAYS,
-          pUnloadingDuration, TimeWindow.ALWAYS, pMagnitude);
+        pUnloadingDuration, TimeWindow.ALWAYS, pMagnitude);
     }
 
     TestParcel(Point pDestination, int pLoadingDuration, TimeWindow pickupTW,
-        int pUnloadingDuration, TimeWindow deliverTW, double pMagnitude) {
+      int pUnloadingDuration, TimeWindow deliverTW, double pMagnitude) {
       super(pDestination, pLoadingDuration, pickupTW, pUnloadingDuration,
-          deliverTW, pMagnitude);
+        deliverTW, pMagnitude);
     }
 
     @Override
@@ -717,4 +728,5 @@ public class PDPModelTest {
     public void initRoadPDP(RoadModel pRoadModel, PDPModel pPdpModel) {}
 
   }
+
 }

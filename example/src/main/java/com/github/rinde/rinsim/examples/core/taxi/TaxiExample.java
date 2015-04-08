@@ -47,7 +47,6 @@ import com.github.rinde.rinsim.ui.View;
 import com.github.rinde.rinsim.ui.renderers.GraphRoadModelRenderer;
 import com.github.rinde.rinsim.ui.renderers.RoadUserRenderer;
 import com.github.rinde.rinsim.util.TimeWindow;
-import com.google.common.base.Suppliers;
 
 /**
  * Example showing a fleet of taxis that have to pickup and transport customers
@@ -110,15 +109,14 @@ public final class TaxiExample {
     @Nullable Display display, @Nullable Monitor m, @Nullable Listener list) {
 
     // use map of leuven
-    final RoadModel roadModel = new GraphRoadModel(loadGraph(graphFile));
-    final DefaultPDPModel pdpModel = DefaultPDPModel.create();
-
     final Simulator simulator = Simulator.builder()
-      .addModel(Suppliers.ofInstance(roadModel))
-      .addModel(Suppliers.ofInstance(pdpModel))
+      .addModel(GraphRoadModel.builder().setGraph(loadGraph(graphFile)))
+      .addModel(DefaultPDPModel.builder())
       .build();
     final RandomGenerator rng = simulator.getRandomGenerator();
 
+    final RoadModel roadModel = simulator.getModelProvider().getModel(
+      RoadModel.class);
     // add depots, taxis and parcels to simulator
     for (int i = 0; i < NUM_DEPOTS; i++) {
       simulator.register(new TaxiBase(roadModel.getRandomPosition(rng),

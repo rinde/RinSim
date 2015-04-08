@@ -21,8 +21,9 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
-import javax.measure.Measure;
 import javax.measure.unit.NonSI;
 import javax.measure.unit.SI;
 
@@ -30,6 +31,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import com.github.rinde.rinsim.core.TestModelProvider;
+import com.github.rinde.rinsim.core.model.DependencyProvider;
 import com.github.rinde.rinsim.core.model.ModelProvider;
 import com.github.rinde.rinsim.core.model.pdp.DefaultPDPModel;
 import com.github.rinde.rinsim.core.model.pdp.PDPModel;
@@ -74,13 +76,28 @@ public abstract class PDPRoadModelCommonTest {
    */
   @Before
   public void setUp() {
-    rm = new PDPRoadModel(new PlaneRoadModel(new Point(0, 0),
-        new Point(10, 10), SI.KILOMETER, Measure.valueOf(0.1,
-            NonSI.KILOMETERS_PER_HOUR)), allowDiversion);
-    pm = new DefaultPDPModel(TimeWindowPolicies.TARDY_ALLOWED);
+    final DependencyProvider dep = mock(DependencyProvider.class);
+
+    rm = PDPRoadModel.builder()
+      .setRoadModel(
+        PlaneRoadModel.builder()
+          .setMinPoint(new Point(0, 0))
+          .setMaxPoint(new Point(10, 10))
+          .setDistanceUnit(SI.KILOMETER)
+          .setMaxSpeed(0.1)
+          .setSpeedUnit(NonSI.KILOMETERS_PER_HOUR)
+      )
+      .setAllowVehicleDiversion(allowDiversion)
+      .build(dep);
+
+    when(dep.get(RoadModel.class)).thenReturn(rm);
+
+    pm = DefaultPDPModel.builder()
+      .setTimeWindowPolicy(TimeWindowPolicies.TARDY_ALLOWED)
+      .build(dep);
+
     final ModelProvider mp = new TestModelProvider(asList(pm, rm));
     rm.registerModelProvider(mp);
-    pm.registerModelProvider(mp);
 
     dp1 = create(new Point(1, 0), new Point(0, 7));
     dp2 = create(new Point(5, 0), new Point(0, 5));
@@ -163,15 +180,15 @@ public abstract class PDPRoadModelCommonTest {
   @Test
   public void test1() {
     dp1 = new DefaultParcel(
-        ParcelDTO.builder(new Point(1, 0), new Point(0, 7))
-            .pickupTimeWindow(DEFAULT_TW)
-            .deliveryTimeWindow(DEFAULT_TW)
-            .neededCapacity(0)
-            .orderAnnounceTime(0L)
-            .pickupDuration(2L)
-            .deliveryDuration(0L)
-            .build()
-        );
+      ParcelDTO.builder(new Point(1, 0), new Point(0, 7))
+        .pickupTimeWindow(DEFAULT_TW)
+        .deliveryTimeWindow(DEFAULT_TW)
+        .neededCapacity(0)
+        .orderAnnounceTime(0L)
+        .pickupDuration(2L)
+        .deliveryDuration(0L)
+        .build()
+      );
 
     rm.addObjectAt(dp1, dp1.dto.pickupLocation);
     pm.register(dp1);
@@ -335,10 +352,10 @@ public abstract class PDPRoadModelCommonTest {
     boolean success = true;
     try {
       rm.followPath(
-          dv1,
-          newLinkedList(rm
-              .getShortestPathTo(new Point(0, 0), new Point(10, 10))),
-          time(1));
+        dv1,
+        newLinkedList(rm
+          .getShortestPathTo(new Point(0, 0), new Point(10, 10))),
+        time(1));
     } catch (final UnsupportedOperationException e) {
       success = false;
     }
@@ -348,11 +365,11 @@ public abstract class PDPRoadModelCommonTest {
   static class TestVehicle extends DefaultVehicle {
     public TestVehicle(Point start) {
       super(VehicleDTO.builder()
-          .startPosition(start)
-          .speed(10d)
-          .capacity(0)
-          .availabilityTimeWindow(DEFAULT_TW)
-          .build());
+        .startPosition(start)
+        .speed(10d)
+        .capacity(0)
+        .availabilityTimeWindow(DEFAULT_TW)
+        .build());
     }
 
     @Override
@@ -379,13 +396,13 @@ public abstract class PDPRoadModelCommonTest {
 
   static DefaultParcel create(Point p1, Point p2) {
     return new DefaultParcel(
-        ParcelDTO.builder(p1, p2)
-            .pickupTimeWindow(DEFAULT_TW)
-            .deliveryTimeWindow(DEFAULT_TW)
-            .neededCapacity(0)
-            .orderAnnounceTime(0L)
-            .pickupDuration(0L)
-            .deliveryDuration(0L)
-            .build());
+      ParcelDTO.builder(p1, p2)
+        .pickupTimeWindow(DEFAULT_TW)
+        .deliveryTimeWindow(DEFAULT_TW)
+        .neededCapacity(0)
+        .orderAnnounceTime(0L)
+        .pickupDuration(0L)
+        .deliveryDuration(0L)
+        .build());
   }
 }

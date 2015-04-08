@@ -94,7 +94,6 @@ public final class ModelManager implements ModelProvider {
   @SuppressWarnings("unchecked")
   public <T> boolean unregister(T object) {
     checkArgument(!(object instanceof Model), "can not unregister a model");
-
     boolean result = false;
     final Set<Class<?>> modelSupportedTypes = registry.keySet();
     for (final Class<?> modelSupportedType : modelSupportedTypes) {
@@ -143,20 +142,20 @@ public final class ModelManager implements ModelProvider {
   }
 
   public static class Builder {
-    final ImmutableSet.Builder<ModelBuilder<?>> models;
-    final Set<ModelBuilder<?>> defaultModels;
+    final ImmutableSet.Builder<ModelBuilder<?, ?>> models;
+    final Set<ModelBuilder<?, ?>> defaultModels;
 
     Builder() {
       models = ImmutableSet.builder();
       defaultModels = new LinkedHashSet<>();
     }
 
-    public Builder add(Iterable<? extends ModelBuilder<?>> builders) {
+    public Builder add(Iterable<? extends ModelBuilder<?, ?>> builders) {
       models.addAll(builders);
       return this;
     }
 
-    public Builder add(ModelBuilder<?> builder) {
+    public Builder add(ModelBuilder<?, ?> builder) {
       models.add(builder);
       return this;
     }
@@ -166,21 +165,15 @@ public final class ModelManager implements ModelProvider {
       return this;
     }
 
-    public Builder setDefaultProvider(ModelBuilder<?> provider) {
+    public Builder setDefaultProvider(ModelBuilder<?, ?> provider) {
       checkArgument(!defaultModels.contains(provider));
       defaultModels.add(provider);
       return this;
     }
 
-    public Builder setDefaultProvider(Supplier<? extends Model<?>> provider) {
-      return setDefaultProvider(DependencyResolver.adaptObj(provider));
-    }
-
     public ModelManager build() {
-
       final DependencyResolver r = new DependencyResolver(models.build(),
         defaultModels);
-
       return new ModelManager(r.resolve());
     }
   }

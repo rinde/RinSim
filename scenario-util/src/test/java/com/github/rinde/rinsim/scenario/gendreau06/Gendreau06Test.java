@@ -37,6 +37,7 @@ import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 
 import com.github.rinde.rinsim.core.Simulator;
+import com.github.rinde.rinsim.core.model.ModelBuilder;
 import com.github.rinde.rinsim.core.model.pdp.PDPModel;
 import com.github.rinde.rinsim.core.model.pdp.PDPModel.ParcelState;
 import com.github.rinde.rinsim.core.model.pdp.PDPScenarioEvent;
@@ -57,6 +58,7 @@ import com.github.rinde.rinsim.scenario.AddVehicleEvent;
 import com.github.rinde.rinsim.scenario.TimedEvent;
 import com.github.rinde.rinsim.testutil.GuiTests;
 import com.github.rinde.rinsim.util.TimeWindow;
+import com.google.common.collect.ImmutableList;
 
 /**
  * @author Rinde van Lon
@@ -193,7 +195,8 @@ public class Gendreau06Test {
   }
 
   static StatisticsDTO runProblem(Gendreau06Scenario s, boolean useGui) {
-    final DynamicPDPTWProblem problem = new DynamicPDPTWProblem(s, 123);
+    final DynamicPDPTWProblem problem = new DynamicPDPTWProblem(s, 123,
+      ImmutableList.<ModelBuilder<?, ?>> of());
     if (useGui) {
       problem.enableUI(new TestUICreator(problem, 50));
     }

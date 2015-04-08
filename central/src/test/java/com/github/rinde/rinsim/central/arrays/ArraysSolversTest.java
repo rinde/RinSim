@@ -54,7 +54,6 @@ import com.github.rinde.rinsim.geom.Point;
 import com.github.rinde.rinsim.pdptw.common.PDPRoadModel;
 import com.github.rinde.rinsim.pdptw.common.RouteFollowingVehicle;
 import com.github.rinde.rinsim.util.TimeWindow;
-import com.google.common.base.Suppliers;
 
 /**
  * @author Rinde van Lon
@@ -135,12 +134,16 @@ public class ArraysSolversTest {
   @Test
   public void testToInventoriesArrayWithDuplicatePositions() {
 
-    final Simulator sim = Simulator
-      .builder()
-      .addModel(DefaultPDPModel.supplier(TimeWindowPolicies.LIBERAL))
+    final Simulator sim = Simulator.builder()
       .addModel(
-        Suppliers.ofInstance(new PDPRoadModel(PlaneRoadModel.builder().build(),
-          false)))
+        DefaultPDPModel.builder()
+          .setTimeWindowPolicy(TimeWindowPolicies.LIBERAL)
+      )
+      .addModel(
+        PDPRoadModel.builder()
+          .setAllowVehicleDiversion(false)
+          .setRoadModel(PlaneRoadModel.builder())
+      )
       .build();
 
     final RouteFollowingVehicle rfv = new RouteFollowingVehicle(VehicleDTO

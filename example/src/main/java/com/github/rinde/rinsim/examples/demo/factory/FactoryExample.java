@@ -36,8 +36,6 @@ import org.eclipse.swt.widgets.Monitor;
 
 import com.github.rinde.rinsim.core.Simulator;
 import com.github.rinde.rinsim.core.model.pdp.DefaultPDPModel;
-import com.github.rinde.rinsim.core.model.pdp.PDPModel;
-import com.github.rinde.rinsim.core.model.road.RoadModel;
 import com.github.rinde.rinsim.core.model.time.TickListener;
 import com.github.rinde.rinsim.core.model.time.TimeLapse;
 import com.github.rinde.rinsim.event.Listener;
@@ -118,9 +116,6 @@ public final class FactoryExample {
       NUM_VECHICLES = 12;
     }
 
-    final RandomGenerator rng = new MersenneTwister(123);
-    final Simulator simulator = Simulator.builder().build();
-
     final ImmutableList.Builder<ImmutableList<Point>> pointBuilder = ImmutableList
       .builder();
 
@@ -150,19 +145,31 @@ public final class FactoryExample {
     final Graph<?> g = createGrid(width, height, 1, VERTICAL_LINE_SPACING,
       SPACING);
 
-    final RoadModel roadModel = new BlockingGraphRoadModel(g, SI.METER,
-      NonSI.KILOMETERS_PER_HOUR);
-    final PDPModel pdpModel = new DefaultPDPModel();
-    simulator.register(roadModel);
-    simulator.register(pdpModel);
-
     final List<Point> borderNodes = newArrayList(getBorderNodes(g));
     Collections.shuffle(borderNodes, new Random(123));
 
-    simulator.register(new AgvModel(rng, ImmutableList
-      .<ImmutableList<Point>> builder().addAll(points)
-      .add(ImmutableList.copyOf(borderNodes))
-      .build(), getBorderNodes(g)));
+    final RandomGenerator rng = new MersenneTwister(123);
+    final Simulator simulator = Simulator
+      .builder()
+      .setRandomGenerator(rng)
+      .addModel(
+        BlockingGraphRoadModel.builder()
+          .setGraph(g)
+          .setDistanceUnit(SI.METER)
+          .setSpeedUnit(NonSI.KILOMETERS_PER_HOUR)
+      )
+      .addModel(
+        DefaultPDPModel.builder()
+      )
+      .addModel(
+        AgvModel.builder().setPoints(
+          ImmutableList.<ImmutableList<Point>> builder()
+            .addAll(points)
+            .add(ImmutableList.copyOf(borderNodes))
+            .build(),
+          getBorderNodes(g))
+      )
+      .build();
 
     for (int i = 0; i < NUM_VECHICLES; i++) {
       simulator.register(new AGV(rng));

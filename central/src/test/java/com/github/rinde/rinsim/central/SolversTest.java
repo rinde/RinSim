@@ -24,6 +24,7 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -31,14 +32,10 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
-import javax.measure.Measure;
-import javax.measure.quantity.Duration;
 import javax.measure.unit.NonSI;
 import javax.measure.unit.SI;
-import javax.measure.unit.Unit;
 
 import org.apache.commons.math3.random.MersenneTwister;
-import org.apache.commons.math3.random.RandomGenerator;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -48,8 +45,8 @@ import com.github.rinde.rinsim.central.Solvers.SolveArgs;
 import com.github.rinde.rinsim.central.Solvers.StateContext;
 import com.github.rinde.rinsim.central.arrays.MultiVehicleSolverAdapter;
 import com.github.rinde.rinsim.central.arrays.RandomMVArraysSolver;
-import com.github.rinde.rinsim.core.SimulatorAPI;
 import com.github.rinde.rinsim.core.TestModelProvider;
+import com.github.rinde.rinsim.core.model.DependencyProvider;
 import com.github.rinde.rinsim.core.model.Model;
 import com.github.rinde.rinsim.core.model.ModelProvider;
 import com.github.rinde.rinsim.core.model.pdp.DefaultPDPModel;
@@ -59,13 +56,14 @@ import com.github.rinde.rinsim.core.model.pdp.PDPModel.VehicleState;
 import com.github.rinde.rinsim.core.model.pdp.Parcel;
 import com.github.rinde.rinsim.core.model.pdp.TimeWindowPolicy.TimeWindowPolicies;
 import com.github.rinde.rinsim.core.model.road.PlaneRoadModel;
+import com.github.rinde.rinsim.core.model.road.RoadModel;
+import com.github.rinde.rinsim.core.model.time.Clock;
 import com.github.rinde.rinsim.core.model.time.TimeLapse;
 import com.github.rinde.rinsim.core.model.time.TimeLapseFactory;
 import com.github.rinde.rinsim.core.pdptw.DefaultParcel;
 import com.github.rinde.rinsim.core.pdptw.DefaultVehicle;
 import com.github.rinde.rinsim.core.pdptw.ParcelDTO;
 import com.github.rinde.rinsim.core.pdptw.VehicleDTO;
-import com.github.rinde.rinsim.event.EventAPI;
 import com.github.rinde.rinsim.geom.Point;
 import com.github.rinde.rinsim.pdptw.common.ObjectiveFunction;
 import com.github.rinde.rinsim.pdptw.common.PDPRoadModel;
@@ -102,14 +100,26 @@ public class SolversTest {
    */
   @Before
   public void setUp() {
-    rm = new PDPRoadModel(new PlaneRoadModel(new Point(0, 0),
-      new Point(10, 10), SI.KILOMETER, Measure.valueOf(300d,
-        NonSI.KILOMETERS_PER_HOUR)), false);
-    pm = new DefaultPDPModel(TimeWindowPolicies.TARDY_ALLOWED);
-    mp = new TestModelProvider(new ArrayList<Model<?>>(
+
+    DependencyProvider dp = mock(DependencyProvider.class);
+
+    rm = PDPRoadModel.builder()
+      .setAllowVehicleDiversion(false)
+      .setRoadModel(
+        PlaneRoadModel.builder()
+          .setMaxSpeed(300d)
+      )
+      .build(dp);
+
+    when(dp.get(RoadModel.class)).thenReturn(rm);
+
+    pm = DefaultPDPModel.builder()
+      .setTimeWindowPolicy(TimeWindowPolicies.TARDY_ALLOWED)
+      .build(dp);
+
+    mp = new TestModelProvider(new ArrayList<>(
       Arrays.<Model<?>> asList(rm, pm)));
     rm.registerModelProvider(mp);
-    pm.registerModelProvider(mp);
 
     v1 = new TestVehicle(new Point(0, 1));
     v2 = new TestVehicle(new Point(0, 2));
@@ -125,9 +135,14 @@ public class SolversTest {
     // time unit = hour
     PDPTWTestUtil.register(rm, pm, v1, p1);
 
-    final TestSimAPI simAPI = new TestSimAPI(0, 1, NonSI.MINUTE);
-    final SimulationConverter handle = Solvers.converterBuilder().with(mp)
-      .with(simAPI).build();
+    Clock clock = mock(Clock.class);
+    when(clock.getCurrentTime()).thenReturn(0L);
+    when(clock.getTimeStep()).thenReturn(1L);
+    when(clock.getTimeUnit()).thenReturn(NonSI.MINUTE);
+    final SimulationConverter handle = Solvers.converterBuilder()
+      .with(mp)
+      .with(clock)
+      .build();
 
     final StateContext sc = handle.convert(SolveArgs.create().useAllParcels()
       .noCurrentRoutes());
@@ -171,7 +186,6 @@ public class SolversTest {
   @Test
   public void convertWithAbsentDestination() {
     PDPTWTestUtil.register(rm, pm, v1, p1);
-    final TestSimAPI simAPI = new TestSimAPI(0, 1, NonSI.MINUTE);
 
     final DefaultParcel destination = rm.getObjectsOfType(DefaultParcel.class)
       .iterator().next();
@@ -179,8 +193,15 @@ public class SolversTest {
     assertEquals(destination, rm.getDestinationToParcel(v1));
     assertEquals(ParcelState.AVAILABLE, pm.getParcelState(p1));
 
-    final SimulationConverter handle = Solvers.converterBuilder().with(mp)
-      .with(simAPI).build();
+    Clock clock = mock(Clock.class);
+    when(clock.getCurrentTime()).thenReturn(0L);
+    when(clock.getTimeStep()).thenReturn(1L);
+    when(clock.getTimeUnit()).thenReturn(NonSI.MINUTE);
+
+    final SimulationConverter handle = Solvers.converterBuilder()
+      .with(mp)
+      .with(clock)
+      .build();
 
     final StateContext sc = handle.convert(SolveArgs.create()
       .useParcels(ImmutableSet.<DefaultParcel> of())
@@ -189,7 +210,11 @@ public class SolversTest {
     assertEquals(0, sc.state.vehicles.get(0).contents.size());
     final Solver solver = SolverValidator.wrap(new MultiVehicleSolverAdapter(
       new RandomMVArraysSolver(new MersenneTwister(123)), NonSI.MINUTE));
-    Solvers.solverBuilder(solver).with(mp).with(simAPI).build().solve(sc);
+    Solvers.solverBuilder(solver)
+      .with(mp)
+      .with(clock)
+      .build()
+      .solve(sc);
 
     // give enough time to reach destination
     rm.moveTo(v1, destination, TimeLapseFactory.create(0, 1000000000));
@@ -434,57 +459,5 @@ public class SolversTest {
 
     @Override
     protected void tickImpl(TimeLapse time) {}
-  }
-
-  static class TestSimAPI implements SimulatorAPI {
-
-    long time;
-    final long step;
-    final Unit<Duration> unit;
-
-    TestSimAPI(long currentTime, long step, Unit<Duration> unit) {
-      time = currentTime;
-      this.step = step;
-      this.unit = unit;
-    }
-
-    @Override
-    public void register(Object o) {
-      throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void unregister(Object o) {
-      throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public RandomGenerator getRandomGenerator() {
-      throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public long getCurrentTime() {
-      return time;
-    }
-
-    @Override
-    public long getTimeStep() {
-      return step;
-    }
-
-    @Override
-    public Unit<Duration> getTimeUnit() {
-      return unit;
-    }
-
-    public void setTime(long t) {
-      time = t;
-    }
-
-    @Override
-    public EventAPI getEventAPI() {
-      throw new UnsupportedOperationException();
-    }
   }
 }

@@ -24,6 +24,8 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -39,6 +41,7 @@ import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 
 import com.github.rinde.rinsim.core.TestModelProvider;
+import com.github.rinde.rinsim.core.model.DependencyProvider;
 import com.github.rinde.rinsim.core.model.Model;
 import com.github.rinde.rinsim.core.model.ModelProvider;
 import com.github.rinde.rinsim.core.model.pdp.DefaultPDPModel;
@@ -49,6 +52,7 @@ import com.github.rinde.rinsim.core.model.pdp.PDPModel.VehicleState;
 import com.github.rinde.rinsim.core.model.pdp.PDPModelEvent;
 import com.github.rinde.rinsim.core.model.pdp.TimeWindowPolicy.TimeWindowPolicies;
 import com.github.rinde.rinsim.core.model.road.PlaneRoadModel;
+import com.github.rinde.rinsim.core.model.road.RoadModel;
 import com.github.rinde.rinsim.core.model.time.TimeLapse;
 import com.github.rinde.rinsim.core.pdptw.DefaultDepot;
 import com.github.rinde.rinsim.core.pdptw.DefaultParcel;
@@ -68,7 +72,7 @@ import com.google.common.base.Optional;
 
 /**
  * Tests for {@link RouteFollowingVehicle}.
- * @author Rinde van Lon 
+ * @author Rinde van Lon
  */
 @RunWith(value = Parameterized.class)
 public class RouteFollowingVehicleTest {
@@ -91,7 +95,7 @@ public class RouteFollowingVehicleTest {
    */
   @SuppressWarnings("null")
   public RouteFollowingVehicleTest(boolean allowDiversion,
-      boolean allowDelayedRouteChange) {
+    boolean allowDelayedRouteChange) {
     diversionIsAllowed = allowDiversion;
     allowDelayedRouteChanges = allowDelayedRouteChange;
     DefaultEvent.values();
@@ -121,46 +125,55 @@ public class RouteFollowingVehicleTest {
    * @param register If true the objects will be registered in their models.
    */
   protected void init(boolean register) {
-    rm = new PDPRoadModel(new PlaneRoadModel(new Point(0, 0),
-        new Point(10, 10), 30d), diversionIsAllowed);
+    final DependencyProvider dp = mock(DependencyProvider.class);
+    rm = PDPRoadModel.builder()
+      .setAllowVehicleDiversion(diversionIsAllowed)
+      .setRoadModel(
+        PlaneRoadModel.builder()
+          .setMaxSpeed(30d)
+      )
+      .build(dp);
 
-    pm = new DefaultPDPModel(TimeWindowPolicies.TARDY_ALLOWED);
-    @SuppressWarnings("unchecked")
+    when(dp.get(RoadModel.class)).thenReturn(rm);
+
+    pm = DefaultPDPModel.builder()
+      .setTimeWindowPolicy(TimeWindowPolicies.TARDY_ALLOWED)
+      .build(dp);
+
     final ModelProvider mp = new TestModelProvider(new ArrayList<Model<?>>(
-        asList(rm, pm)));
+      asList(rm, pm)));
     rm.registerModelProvider(mp);
-    pm.registerModelProvider(mp);
 
     final VehicleDTO v = VehicleDTO.builder()
-        .startPosition(new Point(1, 1))
-        .speed(30d)
-        .capacity(1)
-        .availabilityTimeWindow(new TimeWindow(0, minute(30)))
-        .build();
+      .startPosition(new Point(1, 1))
+      .speed(30d)
+      .capacity(1)
+      .availabilityTimeWindow(new TimeWindow(0, minute(30)))
+      .build();
     d = new RouteFollowingVehicle(v, allowDelayedRouteChanges);
     d2 = new RouteFollowingVehicle(v, allowDelayedRouteChanges);
 
     p1 = new DefaultParcel(ParcelDTO
-        .builder(new Point(1, 2), new Point(1, 4))
-        .pickupTimeWindow(new TimeWindow(minute(5), minute(15)))
-        .deliveryTimeWindow(new TimeWindow(minute(16), minute(30)))
-        .pickupDuration(minute(3))
-        .deliveryDuration(minute(1))
-        .build());
+      .builder(new Point(1, 2), new Point(1, 4))
+      .pickupTimeWindow(new TimeWindow(minute(5), minute(15)))
+      .deliveryTimeWindow(new TimeWindow(minute(16), minute(30)))
+      .pickupDuration(minute(3))
+      .deliveryDuration(minute(1))
+      .build());
 
     p2 = new DefaultParcel(ParcelDTO
-        .builder(new Point(1, 3), new Point(1, 5))
-        .pickupTimeWindow(new TimeWindow(minute(15) + 10, minute(25)))
-        .deliveryTimeWindow(new TimeWindow(minute(22) + 10, minute(30)))
-        .deliveryDuration(minute(3))
-        .build());
+      .builder(new Point(1, 3), new Point(1, 5))
+      .pickupTimeWindow(new TimeWindow(minute(15) + 10, minute(25)))
+      .deliveryTimeWindow(new TimeWindow(minute(22) + 10, minute(30)))
+      .deliveryDuration(minute(3))
+      .build());
 
     p3 = new DefaultParcel(ParcelDTO
-        .builder(new Point(1, 3), new Point(1, 5))
-        .pickupTimeWindow(new TimeWindow(minute(15) + 10, minute(25)))
-        .deliveryTimeWindow(new TimeWindow(minute(22) + 10, minute(30)))
-        .serviceDuration(minute(3))
-        .build());
+      .builder(new Point(1, 3), new Point(1, 5))
+      .pickupTimeWindow(new TimeWindow(minute(15) + 10, minute(25)))
+      .deliveryTimeWindow(new TimeWindow(minute(22) + 10, minute(30)))
+      .serviceDuration(minute(3))
+      .build());
 
     depot = new DefaultDepot(new Point(3, 5));
     if (register) {
@@ -187,7 +200,7 @@ public class RouteFollowingVehicleTest {
   public void testIsTooEarly() {
     // traveling 1km at 30km/h should take 2 minutes
     assertEquals(minute(2),
-        d.computeTravelTimeTo(new Point(1, 2), SI.MILLI(SI.SECOND)));
+      d.computeTravelTimeTo(new Point(1, 2), SI.MILLI(SI.SECOND)));
 
     // if we start immediately we are too early
     assertTrue(d.isTooEarly(p1, time(0, 10)));
@@ -218,7 +231,7 @@ public class RouteFollowingVehicleTest {
     // tests whether internal states of vehicle match the state of the pdp model
     // at all times
     if (pm.getVehicleState(d) == VehicleState.DELIVERING
-        || pm.getVehicleState(d) == VehicleState.PICKING_UP) {
+      || pm.getVehicleState(d) == VehicleState.PICKING_UP) {
       assertSame(d.serviceState, d.stateMachine.getCurrentState());
     } else {
       assertNotSame(d.serviceState, d.stateMachine.getCurrentState());
@@ -288,13 +301,13 @@ public class RouteFollowingVehicleTest {
     // pickup and move towards destination p1
     tick(15, 16);
     assertEquals(0d, Point.distance(new Point(1, 3.5), rm.getPosition(d)),
-        EPSILON);
+      EPSILON);
     assertEquals(newHashSet(p1, p2), pm.getContents(d));
 
     // move
     tick(16, 17);
     assertEquals(0d, Point.distance(new Point(1, 4d), rm.getPosition(d)),
-        EPSILON);
+      EPSILON);
 
     // arrive and start
     tick(17, 18);
@@ -341,7 +354,7 @@ public class RouteFollowingVehicleTest {
     // travel time back to the depot is 4 minutes. so we should go to depot
     // at 26'.
     assertEquals(minute(4),
-        d.computeTravelTimeTo(new Point(3, 5), SI.MILLI(SI.SECOND)));
+      d.computeTravelTimeTo(new Point(3, 5), SI.MILLI(SI.SECOND)));
 
     // don't do anything yet
     tick(25, 26);
@@ -660,7 +673,7 @@ public class RouteFollowingVehicleTest {
   public void diversionTestInGotoState2() {
     final ListenerEventHistory leh = new ListenerEventHistory();
     d.stateMachine.getEventAPI().addListener(leh,
-        StateMachineEvent.STATE_TRANSITION);
+      StateMachineEvent.STATE_TRANSITION);
     assertEquals(0, leh.getHistory().size());
     assertFalse(d.gotoState.destination.isPresent());
     assertFalse(d.gotoState.prevDestination.isPresent());
@@ -676,7 +689,7 @@ public class RouteFollowingVehicleTest {
 
     @SuppressWarnings("unchecked")
     final StateTransitionEvent<StateEvent, RouteFollowingVehicle> ev1 = (StateTransitionEvent<StateEvent, RouteFollowingVehicle>) leh
-        .getHistory().get(0);
+      .getHistory().get(0);
     assertEquals(DefaultEvent.GOTO, ev1.trigger);
     assertEquals(d.waitState, ev1.previousState);
     assertEquals(d.gotoState, ev1.newState);
@@ -699,7 +712,7 @@ public class RouteFollowingVehicleTest {
       assertEquals(2, leh.getHistory().size());
       @SuppressWarnings("unchecked")
       final StateTransitionEvent<StateEvent, RouteFollowingVehicle> ev2 = (StateTransitionEvent<StateEvent, RouteFollowingVehicle>) leh
-          .getHistory().get(1);
+        .getHistory().get(1);
       assertEquals(DefaultEvent.REROUTE, ev2.trigger);
       assertEquals(d.gotoState, ev2.previousState);
       assertEquals(d.gotoState, ev2.newState);
@@ -842,7 +855,7 @@ public class RouteFollowingVehicleTest {
   }
 
   /**
-   * 
+   *
    */
   @Test
   public void brokenWaitState() {
@@ -950,12 +963,12 @@ public class RouteFollowingVehicleTest {
   @Test
   public void tooEarlyTest1() {
     final DefaultParcel p4 = new DefaultParcel(ParcelDTO
-        .builder(new Point(1, 2), new Point(1, 4))
-        .pickupTimeWindow(new TimeWindow(minute(5) + second(30), minute(15)))
-        .deliveryTimeWindow(new TimeWindow(minute(16), minute(30)))
-        .pickupDuration(minute(3))
-        .deliveryDuration(minute(1))
-        .build());
+      .builder(new Point(1, 2), new Point(1, 4))
+      .pickupTimeWindow(new TimeWindow(minute(5) + second(30), minute(15)))
+      .deliveryTimeWindow(new TimeWindow(minute(16), minute(30)))
+      .pickupDuration(minute(3))
+      .deliveryDuration(minute(1))
+      .build());
 
     PDPTWTestUtil.register(rm, pm, p4);
 
@@ -997,12 +1010,12 @@ public class RouteFollowingVehicleTest {
   @Test
   public void tooEarlyTest2() {
     final DefaultParcel p4 = new DefaultParcel(ParcelDTO
-        .builder(new Point(1, 2.2), new Point(1, 4))
-        .pickupTimeWindow(new TimeWindow(minute(5) + second(30), minute(15)))
-        .deliveryTimeWindow(new TimeWindow(minute(16), minute(30)))
-        .pickupDuration(minute(3))
-        .deliveryDuration(minute(1))
-        .build());
+      .builder(new Point(1, 2.2), new Point(1, 4))
+      .pickupTimeWindow(new TimeWindow(minute(5) + second(30), minute(15)))
+      .deliveryTimeWindow(new TimeWindow(minute(16), minute(30)))
+      .pickupDuration(minute(3))
+      .deliveryDuration(minute(1))
+      .build());
 
     PDPTWTestUtil.register(rm, pm, p4);
 
@@ -1043,12 +1056,12 @@ public class RouteFollowingVehicleTest {
   @Test
   public void tooEarlyTest3() {
     final DefaultParcel p4 = new DefaultParcel(ParcelDTO
-        .builder(new Point(1, 1.99), new Point(1, 4))
-        .pickupTimeWindow(new TimeWindow(minute(5) + second(30), minute(15)))
-        .deliveryTimeWindow(new TimeWindow(minute(16), minute(30)))
-        .pickupDuration(minute(3))
-        .deliveryDuration(minute(1))
-        .build());
+      .builder(new Point(1, 1.99), new Point(1, 4))
+      .pickupTimeWindow(new TimeWindow(minute(5) + second(30), minute(15)))
+      .deliveryTimeWindow(new TimeWindow(minute(16), minute(30)))
+      .pickupDuration(minute(3))
+      .deliveryDuration(minute(1))
+      .build());
 
     PDPTWTestUtil.register(rm, pm, p4);
 
@@ -1092,11 +1105,11 @@ public class RouteFollowingVehicleTest {
   @Test
   public void testExtension() {
     final VehicleDTO v = VehicleDTO.builder()
-        .startPosition(new Point(1, 1))
-        .speed(30d)
-        .capacity(1)
-        .availabilityTimeWindow(new TimeWindow(0, minute(30)))
-        .build();
+      .startPosition(new Point(1, 1))
+      .speed(30d)
+      .capacity(1)
+      .availabilityTimeWindow(new TimeWindow(0, minute(30)))
+      .build();
     final SubVehicle vehicle = new SubVehicle(v, allowDelayedRouteChanges);
     d = vehicle;
 

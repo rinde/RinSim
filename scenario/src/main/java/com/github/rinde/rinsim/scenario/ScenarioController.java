@@ -29,14 +29,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.github.rinde.rinsim.core.Simulator;
-import com.github.rinde.rinsim.core.Simulator.SimulatorEventType;
 import com.github.rinde.rinsim.core.SimulatorAPI;
-import com.github.rinde.rinsim.core.SimulatorUser;
 import com.github.rinde.rinsim.core.model.DependencyProvider;
-import com.github.rinde.rinsim.core.model.Model;
 import com.github.rinde.rinsim.core.model.Model.AbstractModel;
 import com.github.rinde.rinsim.core.model.ModelBuilder.AbstractModelBuilder;
 import com.github.rinde.rinsim.core.model.time.Clock;
+import com.github.rinde.rinsim.core.model.time.ClockController;
 import com.github.rinde.rinsim.core.model.time.TickListener;
 import com.github.rinde.rinsim.core.model.time.TimeLapse;
 import com.github.rinde.rinsim.event.Event;
@@ -44,7 +42,6 @@ import com.github.rinde.rinsim.event.EventAPI;
 import com.github.rinde.rinsim.event.EventDispatcher;
 import com.github.rinde.rinsim.event.Listener;
 import com.google.common.base.Optional;
-import com.google.common.collect.ImmutableSet;
 
 /**
  * A scenario controller represents a single simulation run using a
@@ -56,9 +53,8 @@ import com.google.common.collect.ImmutableSet;
  * @author Bartosz Michalik
  * @since 2.0
  */
-public class ScenarioController extends AbstractModel<Scenario> implements
-  TickListener, SimulatorUser {
-  // rename to event scheduler?
+public final class ScenarioController extends AbstractModel<Scenario> implements
+  TickListener {
   /**
    * Logger for this class.
    */
@@ -80,43 +76,19 @@ public class ScenarioController extends AbstractModel<Scenario> implements
     SCENARIO_FINISHED;
   }
 
-  /**
-   * The scenario that is played.
-   */
-  protected final Scenario scenario;
+  final Scenario scenario;
+  final Queue<TimedEvent> scenarioQueue;
+  final EventDispatcher disp;
+  final SimulatorAPI simulator;
+  final ClockController clock;
+  final TimedEventHandler timedEventHandler;
 
-  /**
-   * The {@link Event} queue.
-   */
-  protected final Queue<TimedEvent> scenarioQueue;
-
-  /**
-   * The {@link EventDispatcher} that is used for dispatching all events.
-   */
-  protected final EventDispatcher disp;
-
-  /**
-   * A reference to the simulator.
-   */
-  protected Simulator simulator;
-
-  /**
-   * A reference to the {@link UICreator} that is responsible for creating the
-   * UI.
-   */
-  protected Optional<UICreator> uiCreator;
-
-  /**
-   * A handler for the TimedEvents.
-   */
-  protected TimedEventHandler timedEventHandler;
-
+  Optional<UICreator> uiCreator;
   private int ticks;
+
   @Nullable
   private EventType status;
 
-  // TODO ScenarioController should be added to Simulator not other way
-  // around.
   /**
    * Create an instance of ScenarioController with defined {@link Scenario} and
    * number of ticks till end. If the number of ticks is negative the simulator
@@ -128,14 +100,14 @@ public class ScenarioController extends AbstractModel<Scenario> implements
    * @param numberOfTicks The number of ticks play, when negative the number of
    *          tick is infinite.
    */
-  public ScenarioController(final Scenario scen,
-    TimedEventHandler eventHandler, int numberOfTicks) {
-
-    timedEventHandler = eventHandler;
-    ticks = numberOfTicks;
+  ScenarioController(SimulatorAPI sim, ClockController c, Builder builder) {
+    simulator = sim;
+    clock = c;
+    timedEventHandler = builder.eventHandler;
+    ticks = builder.numberOfTicks;
     uiCreator = Optional.absent();
 
-    scenario = scen;
+    scenario = builder.scenario;
     scenarioQueue = scenario.asQueue();
 
     final Set<Enum<?>> typeSet = newHashSet(scenario.getPossibleEventTypes());
@@ -143,6 +115,17 @@ public class ScenarioController extends AbstractModel<Scenario> implements
     disp = new EventDispatcher(typeSet);
     disp.addListener(new InternalTimedEventHandler(),
       scenario.getPossibleEventTypes());
+
+    clock.getEventAPI().addListener(new Listener() {
+      @Override
+      public void handleEvent(Event e) {
+        if (clock.getCurrentTime() == 0) {
+          dispatchSetupEvents();
+        }
+
+      }
+    }, Clock.ClockEventType.STARTED);
+
   }
 
   // TODO add UICreator directly to Simulator?
@@ -171,7 +154,7 @@ public class ScenarioController extends AbstractModel<Scenario> implements
    */
   public void stop() {
     if (!uiCreator.isPresent()) {
-      simulator.stop();
+      clock.stop();
     }
   }
 
@@ -183,9 +166,9 @@ public class ScenarioController extends AbstractModel<Scenario> implements
   public void start() {
     if (ticks != 0) {
       if (uiCreator.isPresent()) {
-        uiCreator.get().createUI(simulator);
+        uiCreator.get().createUI((Simulator) simulator);
       } else {
-        simulator.start();
+        clock.start();
       }
     }
   }
@@ -223,7 +206,7 @@ public class ScenarioController extends AbstractModel<Scenario> implements
     if (!uiCreator.isPresent() && ticks == 0) {
       LOGGER.info("scenario finished at virtual time:" + timeLapse.getTime()
         + "[stopping simulation]");
-      simulator.stop();
+      clock.stop();
     }
     if (LOGGER.isDebugEnabled() && ticks >= 0) {
       LOGGER.debug("ticks to end: " + ticks);
@@ -249,7 +232,7 @@ public class ScenarioController extends AbstractModel<Scenario> implements
     if (ticks == 0 && status == EventType.SCENARIO_FINISHED) {
       LOGGER.info("scenario finished at virtual time:" + timeLapse.getTime()
         + "[stopping simulation]");
-      simulator.stop();
+      clock.stop();
       stop = true;
     }
 
@@ -296,33 +279,46 @@ public class ScenarioController extends AbstractModel<Scenario> implements
   }
 
   @Override
-  public void setSimulator(SimulatorAPI api) {
-    // FIXME this cast is unsafe, coupling to Simulator should be reduced
-    simulator = (Simulator) api;
-    simulator.getEventAPI().addListener(new Listener() {
-      @Override
-      public void handleEvent(Event e) {
-        if (simulator.getCurrentTime() == 0) {
-          dispatchSetupEvents();
-        }
-
-      }
-    }, SimulatorEventType.STARTED);
-
+  public <U> U get(Class<U> type) {
+    return type.cast(this);
   }
 
-  public static class Builder extends AbstractModelBuilder<Scenario> {
+  public static Builder builder() {
+    return new Builder();
+  }
 
-    @Override
-    public Model<Scenario> build(DependencyProvider dependencyProvider) {
-      // TODO Auto-generated method stub
-      return null;
+  public static class Builder extends
+    AbstractModelBuilder<ScenarioController, Scenario> {
+
+    Scenario scenario;
+    TimedEventHandler eventHandler;
+    int numberOfTicks;
+
+    Builder() {
+      setProvidingTypes(ScenarioController.class);
+      setDependencies(SimulatorAPI.class, ClockController.class);
+    }
+
+    public Builder setScenario(Scenario scen) {
+      scenario = scen;
+      return this;
+    }
+
+    public Builder setEventHandler(TimedEventHandler handler) {
+      eventHandler = handler;
+      return this;
+    }
+
+    public Builder setNumberOfTicks(int ticks) {
+      numberOfTicks = ticks;
+      return this;
     }
 
     @Override
-    public ImmutableSet<Class<?>> getDependencies() {
-      return ImmutableSet.<Class<?>> of(SimulatorAPI.class, Clock.class);
+    public ScenarioController build(DependencyProvider dependencyProvider) {
+      SimulatorAPI sim = dependencyProvider.get(SimulatorAPI.class);
+      ClockController clock = dependencyProvider.get(ClockController.class);
+      return new ScenarioController(sim, clock, this);
     }
   }
-
 }

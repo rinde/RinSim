@@ -34,9 +34,10 @@ import javax.measure.unit.Unit;
 
 import org.apache.commons.math3.random.RandomGenerator;
 
+import com.github.rinde.rinsim.core.model.DependencyProvider;
+import com.github.rinde.rinsim.core.model.ModelBuilder.AbstractModelBuilder;
 import com.github.rinde.rinsim.core.model.time.TimeLapse;
 import com.github.rinde.rinsim.geom.Point;
-import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableList;
 import com.google.common.math.DoubleMath;
 
@@ -244,6 +245,11 @@ public class PlaneRoadModel extends AbstractRoadModel<Point> {
     return ImmutableList.of(min, max);
   }
 
+  @Override
+  public <U> U get(Class<U> type) {
+    return type.cast(this);
+  }
+
   /**
    * @return A new {@link Builder} for creating a {@link PlaneRoadModel}.
    */
@@ -251,28 +257,29 @@ public class PlaneRoadModel extends AbstractRoadModel<Point> {
     return new Builder();
   }
 
-  /**
-   * Create a {@link Supplier} for {@link PlaneRoadModel}s.
-   * @param min The minimum x and y of the plane.
-   * @param max The maximum x and y of the plane.
-   * @param distanceUnit This is the unit in which all input distances and
-   *          locations (i.e. {@link Point}s) should be specified.
-   * @param maxSpeed The maximum speed that objects can travel on the plane.
-   * @return A newly created supplier.
-   */
-  public static Supplier<PlaneRoadModel> supplier(
-    final Point min,
-    final Point max,
-    final Unit<Length> distanceUnit,
-    final Measure<Double, Velocity> maxSpeed) {
-    return new DefaultSupplier(min, max, distanceUnit, maxSpeed);
-  }
+  // /**
+  // * Create a {@link Supplier} for {@link PlaneRoadModel}s.
+  // * @param min The minimum x and y of the plane.
+  // * @param max The maximum x and y of the plane.
+  // * @param distanceUnit This is the unit in which all input distances and
+  // * locations (i.e. {@link Point}s) should be specified.
+  // * @param maxSpeed The maximum speed that objects can travel on the plane.
+  // * @return A newly created supplier.
+  // */
+  // public static Supplier<PlaneRoadModel> supplier(
+  // final Point min,
+  // final Point max,
+  // final Unit<Length> distanceUnit,
+  // final Measure<Double, Velocity> maxSpeed) {
+  // return new DefaultSupplier(min, max, distanceUnit, maxSpeed);
+  // }
 
   /**
    * A builder for {@link PlaneRoadModel}.
    * @author Rinde van Lon
    */
-  public static class Builder implements Supplier<PlaneRoadModel> {
+  public static class Builder extends
+    AbstractModelBuilder<PlaneRoadModel, RoadUser> {
     static final double DEFAULT_MAX_SPEED = 50d;
     static final Point DEFAULT_MIN_POINT = new Point(0, 0);
     static final Point DEFAULT_MAX_POINT = new Point(10, 10);
@@ -284,6 +291,7 @@ public class PlaneRoadModel extends AbstractRoadModel<Point> {
     double maxSpeed;
 
     Builder() {
+      setProvidingTypes(RoadModel.class, PlaneRoadModel.class);
       min = DEFAULT_MIN_POINT;
       max = DEFAULT_MAX_POINT;
       distUnit = SI.KILOMETER;
@@ -349,40 +357,13 @@ public class PlaneRoadModel extends AbstractRoadModel<Point> {
       return this;
     }
 
-    /**
-     * @return A new {@link PlaneRoadModel} instance.
-     */
-    public PlaneRoadModel build() {
+    @Override
+    public PlaneRoadModel build(DependencyProvider dependencyProvider) {
       checkArgument(
         min.x < max.x && min.y < max.y,
         "Min should have coordinates smaller than max, found min %s and max %s.",
         min, max);
-
       return new PlaneRoadModel(this);
-    }
-
-    @Override
-    public PlaneRoadModel get() {
-      return build();
-    }
-  }
-
-  private static class DefaultSupplier implements Supplier<PlaneRoadModel> {
-    final Builder b;
-
-    DefaultSupplier(Point mi, Point ma, Unit<Length> du,
-      Measure<Double, Velocity> ms) {
-      b = builder()
-        .setMinPoint(mi)
-        .setMaxPoint(ma)
-        .setDistanceUnit(du)
-        .setSpeedUnit(ms.getUnit())
-        .setMaxSpeed(ms.getValue());
-    }
-
-    @Override
-    public PlaneRoadModel get() {
-      return b.build();
     }
   }
 }

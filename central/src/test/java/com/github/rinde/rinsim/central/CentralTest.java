@@ -56,7 +56,6 @@ import com.github.rinde.rinsim.scenario.gendreau06.Gendreau06Parser;
 import com.github.rinde.rinsim.scenario.gendreau06.Gendreau06Scenario;
 import com.github.rinde.rinsim.util.StochasticSupplier;
 import com.github.rinde.rinsim.util.TimeWindow;
-import com.google.common.base.Suppliers;
 
 /**
  * @author Rinde van Lon
@@ -77,18 +76,23 @@ public class CentralTest {
 
   @Before
   public void setUp() {
-    rm = new PDPRoadModel(
-      PlaneRoadModel.builder()
-        .setMaxSpeed(300d)
-        .build()
-      , false);
-    pm = DefaultPDPModel.create(TimeWindowPolicies.TARDY_ALLOWED);
-
     sim = Simulator.builder()
-      // FIXME
-      .addModel(Suppliers.ofInstance(rm))
-      .addModel(Suppliers.ofInstance(pm))
+      .addModel(
+        PDPRoadModel.builder()
+          .setAllowVehicleDiversion(false)
+          .setRoadModel(
+            PlaneRoadModel.builder()
+              .setMaxSpeed(300d)
+          )
+      )
+      .addModel(
+        DefaultPDPModel.builder()
+          .setTimeWindowPolicy(TimeWindowPolicies.TARDY_ALLOWED)
+      )
       .build();
+
+    rm = sim.getModelProvider().getModel(PDPRoadModel.class);
+    pm = sim.getModelProvider().getModel(PDPModel.class);
 
     depot = new DefaultDepot(new Point(5, 5));
     sim.register(depot);

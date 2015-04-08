@@ -15,10 +15,12 @@
  */
 package com.github.rinde.rinsim.core.model;
 
+import static com.google.common.truth.Truth.assertThat;
+
 import java.util.Map;
 
-import com.github.rinde.rinsim.core.model.DependencyProvider;
-import com.github.rinde.rinsim.core.model.Model;
+import com.google.common.collect.ClassToInstanceMap;
+import com.google.common.collect.ImmutableClassToInstanceMap;
 import com.google.common.collect.ImmutableMap;
 
 /**
@@ -27,14 +29,26 @@ import com.google.common.collect.ImmutableMap;
  */
 public class FakeDependencyProvider extends DependencyProvider {
   final Map<Class<?>, Model<?>> map;
+  final ClassToInstanceMap<Object> classMap;
 
-  FakeDependencyProvider(Map<Class<?>, Model<?>> m) {
+  FakeDependencyProvider(Map<Class<?>, Model<?>> m,
+    ClassToInstanceMap<Object> cm) {
     map = m;
+    classMap = cm;
   }
 
   @Override
   public <T> T get(Class<T> type) {
+    System.out.println(type);
+    assertThat(classMap.containsKey(type) || map.containsKey(type)).isTrue();
+    if (classMap.containsKey(type)) {
+      return classMap.getInstance(type);
+    }
     return map.get(type).get(type);
+  }
+
+  public static DependencyProvider empty() {
+    return builder().build();
   }
 
   public static Builder builder() {
@@ -42,24 +56,32 @@ public class FakeDependencyProvider extends DependencyProvider {
   }
 
   public static class Builder {
-
-    ImmutableMap.Builder<Class<?>, Model<?>> mapBuilder;
+    ImmutableMap.Builder<Class<?>, Model<?>> modelMapBuilder;
+    ImmutableClassToInstanceMap.Builder<Object> classMapBuilder;
 
     Builder() {
-      mapBuilder = ImmutableMap.builder();
+      modelMapBuilder = ImmutableMap.builder();
+      classMapBuilder = ImmutableClassToInstanceMap.builder();
     }
 
     public Builder add(Model<?> model, Class<?> providedType,
       Class<?>... moreProvidedTypes) {
-      mapBuilder.put(providedType, model);
+      modelMapBuilder.put(providedType, model);
       for (final Class<?> clz : moreProvidedTypes) {
-        mapBuilder.put(clz, model);
+        modelMapBuilder.put(clz, model);
       }
       return this;
     }
 
-    public FakeDependencyProvider build() {
-      return new FakeDependencyProvider(mapBuilder.build());
+    public <U> Builder add(U instance, Class<U> type) {
+      classMapBuilder.put(type, instance);
+      return this;
+    }
+
+    public DependencyProvider build() {
+      return new FakeDependencyProvider(
+        modelMapBuilder.build(),
+        classMapBuilder.build());
     }
   }
 

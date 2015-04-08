@@ -41,17 +41,23 @@ import com.google.common.reflect.TypeToken;
  * {@link DependencyProvider} that is made available when
  * {@link #build(DependencyProvider)} is called.
  *
- * @param <T> The associated type.
+ * @param <T> The model type.
+ * @param <U> The associated type.
  * @author Rinde van Lon
  * @see AbstractModelBuilder
  */
-public interface ModelBuilder<T> {
+public interface ModelBuilder<T extends Model<? extends U>, U> {
 
   /**
    * @return The type parameter of the {@link Model} that is constructed by this
    *         builder.
    */
-  Class<T> getAssociatedType();
+  Class<U> getAssociatedType();
+
+  /**
+   * @return The type of the {@link Model} that is constructed by this builder.
+   */
+  Class<T> getModelType();
 
   /**
    * @return A set of types that are provided by the {@link Model}.
@@ -73,32 +79,59 @@ public interface ModelBuilder<T> {
    * @param dependencyProvider The dependency provider.
    * @return A new {@link Model} instance.
    */
-  Model<T> build(DependencyProvider dependencyProvider);
+  T build(DependencyProvider dependencyProvider);
 
   /**
    * Abstract implementation of {@link ModelBuilder} that provides default
-   * implementations all methods except {@link #build(DependencyProvider)}.
+   * implementations for all methods except {@link #build(DependencyProvider)}.
+   * @param <T> The model type.
+   * @param <U> The associated type.
    * @author Rinde van Lon
-   * @param <T> The associated type.
    */
-  abstract class AbstractModelBuilder<T> implements ModelBuilder<T> {
-    private final ImmutableSet<Class<?>> provTypes;
-    private final Class<T> clazz;
+  public abstract class AbstractModelBuilder<T extends Model<? extends U>, U>
+    implements ModelBuilder<T, U> {
+    private ImmutableSet<Class<?>> provTypes;
+    private ImmutableSet<Class<?>> deps;
+    private final Class<T> modelType;
+    private final Class<U> associatedType;
 
     /**
      * Construct a new instance.
-     * @param providingTypes The providing types of this builder, see
-     *          {@link ModelBuilder} header comment for more info.
+     *
      */
     @SuppressWarnings({ "unchecked", "serial" })
-    protected AbstractModelBuilder(Class<?>... providingTypes) {
-      provTypes = ImmutableSet.copyOf(providingTypes);
-      clazz = (Class<T>) new TypeToken<T>(getClass()) {}.getRawType();
+    protected AbstractModelBuilder() {
+      provTypes = ImmutableSet.of();
+      deps = ImmutableSet.of();
+      modelType = (Class<T>) new TypeToken<T>(getClass()) {}.getRawType();
+      associatedType = (Class<U>) new TypeToken<U>(getClass()) {}.getRawType();
+    }
+
+    /**
+     *
+     * @param types The providing types of this builder, see
+     *          {@link ModelBuilder} header comment for more info.
+     */
+    protected final void setProvidingTypes(Class<?>... types) {
+      provTypes = ImmutableSet.copyOf(types);
+    }
+
+    protected final void setDependencies(Class<?>... types) {
+      deps = ImmutableSet.copyOf(types);
+    }
+
+    protected final void setDependencies(Iterable<? extends Class<?>> types) {
+      deps = ImmutableSet.copyOf(types);
     }
 
     @Override
-    public final Class<T> getAssociatedType() {
-      return clazz;
+    public final Class<U> getAssociatedType() {
+      return associatedType;
+    }
+
+    @Override
+    public final Class<T> getModelType() {
+      return modelType;
     }
 
     @Override
@@ -107,8 +140,8 @@ public interface ModelBuilder<T> {
     }
 
     @Override
-    public ImmutableSet<Class<?>> getDependencies() {
-      return ImmutableSet.of();
+    public final ImmutableSet<Class<?>> getDependencies() {
+      return deps;
     }
   }
 }

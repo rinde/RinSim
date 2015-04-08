@@ -28,7 +28,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import javax.measure.Measure;
 import javax.measure.quantity.Duration;
 import javax.measure.quantity.Length;
 import javax.measure.quantity.Velocity;
@@ -39,21 +38,21 @@ import javax.measure.unit.Unit;
 import org.junit.Test;
 
 import com.github.rinde.rinsim.core.Simulator;
-import com.github.rinde.rinsim.core.model.Model;
+import com.github.rinde.rinsim.core.model.ModelBuilder;
 import com.github.rinde.rinsim.core.model.pdp.PDPScenarioEvent;
 import com.github.rinde.rinsim.core.model.road.PlaneRoadModel;
+import com.github.rinde.rinsim.core.model.road.RoadUser;
 import com.github.rinde.rinsim.geom.Point;
 import com.github.rinde.rinsim.scenario.Scenario.ProblemClass;
 import com.github.rinde.rinsim.scenario.Scenario.SimpleProblemClass;
 import com.github.rinde.rinsim.util.TimeWindow;
 import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
-import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableList;
 
 /**
  * Tests for {@link Scenario} and its builder.
- * @author Rinde van Lon 
+ * @author Rinde van Lon
  */
 public class ScenarioTest {
 
@@ -63,12 +62,12 @@ public class ScenarioTest {
   @Test
   public void testDefaults() {
     final Scenario scenario = Scenario
-        .builder(Scenario.DEFAULT_PROBLEM_CLASS)
-        .addEventType(FakeEventType.A)
-        .build();
+      .builder(Scenario.DEFAULT_PROBLEM_CLASS)
+      .addEventType(FakeEventType.A)
+      .build();
 
     assertEquals(SI.KILOMETER, scenario.getDistanceUnit());
-    assertTrue(scenario.getModelSuppliers().isEmpty());
+    assertTrue(scenario.getModelBuilders().isEmpty());
     assertEquals(newHashSet(FakeEventType.A), scenario.getPossibleEventTypes());
     assertSame(Scenario.DEFAULT_PROBLEM_CLASS, scenario.getProblemClass());
     assertEquals("", scenario.getProblemInstanceId());
@@ -77,7 +76,7 @@ public class ScenarioTest {
     assertEquals(1000L, scenario.getTickSize());
     assertEquals(SI.MILLI(SI.SECOND), scenario.getTimeUnit());
     assertEquals(new TimeWindow(0, 8 * 60 * 60 * 1000),
-        scenario.getTimeWindow());
+      scenario.getTimeWindow());
   }
 
   /**
@@ -90,16 +89,16 @@ public class ScenarioTest {
     final TimedEvent ev2 = new TimedEvent(FakeEventType.B, 7);
     final TimedEvent ev3 = new TimedEvent(FakeEventType.B, 203);
     final Scenario scenario = Scenario
-        .builder(Scenario.DEFAULT_PROBLEM_CLASS)
-        .addEvent(ev0)
-        .addEvent(ev1)
-        .addEvents(asList(ev2, ev3))
-        // redundant adding of event types, should not make any difference
-        .addEventTypes(asList(FakeEventType.A, FakeEventType.B))
-        .build();
+      .builder(Scenario.DEFAULT_PROBLEM_CLASS)
+      .addEvent(ev0)
+      .addEvent(ev1)
+      .addEvents(asList(ev2, ev3))
+      // redundant adding of event types, should not make any difference
+      .addEventTypes(asList(FakeEventType.A, FakeEventType.B))
+      .build();
     assertEquals(asList(ev0, ev2, ev3, ev1), scenario.asList());
     assertEquals(newHashSet(FakeEventType.A, FakeEventType.B),
-        scenario.getPossibleEventTypes());
+      scenario.getPossibleEventTypes());
   }
 
   /**
@@ -109,18 +108,24 @@ public class ScenarioTest {
   public void testCustomProperties() {
     final ProblemClass problemClass = new FakeProblemClass();
     final Scenario scenario = Scenario
-        .builder(problemClass)
-        .distanceUnit(SI.PICO(SI.METER))
-        .speedUnit(NonSI.MACH)
-        .timeUnit(NonSI.DAY_SIDEREAL)
-        .instanceId("crazyfast")
-        .scenarioLength(7L)
-        .tickSize(1)
-        .addEventType(PDPScenarioEvent.TIME_OUT)
-        .stopCondition(Predicates.<Simulator> alwaysTrue())
-        .addModel(PlaneRoadModel.supplier(new Point(6, 6), new Point(1034,
-            32), SI.METER, Measure.valueOf(1d, SI.METERS_PER_SECOND)))
-        .build();
+      .builder(problemClass)
+      .distanceUnit(SI.PICO(SI.METER))
+      .speedUnit(NonSI.MACH)
+      .timeUnit(NonSI.DAY_SIDEREAL)
+      .instanceId("crazyfast")
+      .scenarioLength(7L)
+      .tickSize(1)
+      .addEventType(PDPScenarioEvent.TIME_OUT)
+      .stopCondition(Predicates.<Simulator> alwaysTrue())
+      .addModel(
+        PlaneRoadModel.builder()
+          .setMinPoint(new Point(6, 6))
+          .setMaxPoint(new Point(1034, 32))
+          .setDistanceUnit(SI.METER)
+          .setSpeedUnit(SI.METERS_PER_SECOND)
+          .setMaxSpeed(1d)
+      )
+      .build();
 
     assertEquals(SI.PICO(SI.METER), scenario.getDistanceUnit());
     assertEquals(NonSI.MACH, scenario.getSpeedUnit());
@@ -129,22 +134,22 @@ public class ScenarioTest {
     assertEquals(new TimeWindow(0L, 7L), scenario.getTimeWindow());
     assertEquals(1L, scenario.getTickSize());
     assertEquals(newHashSet(PDPScenarioEvent.TIME_OUT),
-        scenario.getPossibleEventTypes());
+      scenario.getPossibleEventTypes());
     assertEquals(Predicates.alwaysTrue(), scenario.getStopCondition());
-    assertEquals(1, scenario.getModelSuppliers().size());
-    assertTrue(scenario.getModelSuppliers().get(0).get() instanceof PlaneRoadModel);
+    assertEquals(1, scenario.getModelBuilders().size());
+    assertTrue(scenario.getModelBuilders().get(0).getAssociatedType() == RoadUser.class);
 
     final Scenario.Builder builder = Scenario
-        .builder(Scenario.DEFAULT_PROBLEM_CLASS)
-        .copyProperties(scenario);
+      .builder(Scenario.DEFAULT_PROBLEM_CLASS)
+      .copyProperties(scenario);
 
     final Scenario copiedScen = builder.build();
     assertEquals(scenario, copiedScen);
 
     final Scenario builderCopyScen = Scenario.builder(builder,
-        Scenario.DEFAULT_PROBLEM_CLASS)
-        .addEventType(PDPScenarioEvent.TIME_OUT)
-        .build();
+      Scenario.DEFAULT_PROBLEM_CLASS)
+      .addEventType(PDPScenarioEvent.TIME_OUT)
+      .build();
 
     assertNotEquals(copiedScen, builderCopyScen);
   }
@@ -173,13 +178,13 @@ public class ScenarioTest {
     final List<TimedEvent> events = asList(ev1, ev2, ev3, ev3b, ev4, ev5);
 
     final Scenario.Builder b = Scenario
-        .builder(Scenario.DEFAULT_PROBLEM_CLASS)
-        .addEvents(events)
-        .clearEvents();
+      .builder(Scenario.DEFAULT_PROBLEM_CLASS)
+      .addEvents(events)
+      .clearEvents();
     assertTrue(b.eventList.isEmpty());
     assertTrue(b.eventTypeSet.isEmpty());
     b.addEvents(events)
-        .ensureFrequency(Predicates.equalTo(ev3), 1);
+      .ensureFrequency(Predicates.equalTo(ev3), 1);
     assertEquals(asList(ev1, ev2, ev4, ev5, ev3), b.eventList);
 
     // should add two instances of ev1
@@ -201,7 +206,7 @@ public class ScenarioTest {
   @Test(expected = IllegalArgumentException.class)
   public void testEnsureFrequencyFailFrequency() {
     Scenario.builder(Scenario.DEFAULT_PROBLEM_CLASS)
-        .ensureFrequency(Predicates.<TimedEvent> alwaysTrue(), -1);
+      .ensureFrequency(Predicates.<TimedEvent> alwaysTrue(), -1);
   }
 
   /**
@@ -210,7 +215,7 @@ public class ScenarioTest {
   @Test(expected = IllegalStateException.class)
   public void testEnsureFrequencyFailEmptyEventsList() {
     Scenario.builder(Scenario.DEFAULT_PROBLEM_CLASS)
-        .ensureFrequency(Predicates.<TimedEvent> alwaysTrue(), 1);
+      .ensureFrequency(Predicates.<TimedEvent> alwaysTrue(), 1);
   }
 
   /**
@@ -219,8 +224,8 @@ public class ScenarioTest {
   @Test(expected = IllegalArgumentException.class)
   public void testEnsureFrequencyFailFilter1() {
     Scenario.builder(Scenario.DEFAULT_PROBLEM_CLASS)
-        .addEvent(new CustomEvent(FakeEventType.A, 0))
-        .ensureFrequency(Predicates.<TimedEvent> alwaysFalse(), 1);
+      .addEvent(new CustomEvent(FakeEventType.A, 0))
+      .ensureFrequency(Predicates.<TimedEvent> alwaysFalse(), 1);
   }
 
   /**
@@ -229,10 +234,10 @@ public class ScenarioTest {
   @Test(expected = IllegalArgumentException.class)
   public void testEnsureFrequencyFailFilter2() {
     Scenario
-        .builder(Scenario.DEFAULT_PROBLEM_CLASS)
-        .addEvent(new CustomEvent(FakeEventType.A, 0))
-        .addEvent(new CustomEvent(FakeEventType.A, 1))
-        .ensureFrequency(Predicates.instanceOf(CustomEvent.class), 1);
+      .builder(Scenario.DEFAULT_PROBLEM_CLASS)
+      .addEvent(new CustomEvent(FakeEventType.A, 0))
+      .addEvent(new CustomEvent(FakeEventType.A, 1))
+      .ensureFrequency(Predicates.instanceOf(CustomEvent.class), 1);
   }
 
   /**
@@ -254,7 +259,7 @@ public class ScenarioTest {
   static class EmptyScenario extends Scenario {
 
     @Override
-    public ImmutableList<? extends Supplier<? extends Model<?>>> getModelSuppliers() {
+    public ImmutableList<? extends ModelBuilder<?, ?>> getModelBuilders() {
       throw new UnsupportedOperationException();
     }
 
@@ -312,14 +317,14 @@ public class ScenarioTest {
   @Test
   public void testEqualsEvents() {
     final List<TimedEvent> events1 = newArrayList(new TimedEvent(
-        FakeEventType.A, 0));
+      FakeEventType.A, 0));
     final List<TimedEvent> events2 = newArrayList(new TimedEvent(
-        FakeEventType.A, 0));
+      FakeEventType.A, 0));
     final List<TimedEvent> events3 = newArrayList(new TimedEvent(
-        FakeEventType.A, 1));
+      FakeEventType.A, 1));
     final List<TimedEvent> events4 = newArrayList(new TimedEvent(
-        FakeEventType.A, 1),
-        new TimedEvent(FakeEventType.A, 2));
+      FakeEventType.A, 1),
+      new TimedEvent(FakeEventType.A, 2));
 
     final Scenario s1 = Scenario.builder().addEvents(events1).build();
     final Scenario s2 = Scenario.builder().addEvents(events2).build();
@@ -365,11 +370,11 @@ public class ScenarioTest {
   @Test
   public void testCreateScenarioByCopying() {
     final Scenario s = Scenario.builder()
-        .addEventType(FakeEventType.A)
-        .addEvent(new AddObjectEvent(100, new Point(0, 0)))
-        .addEvent(new AddObjectEvent(200, new Point(0, 0)))
-        .addEvent(new AddObjectEvent(300, new Point(0, 0)))
-        .build();
+      .addEventType(FakeEventType.A)
+      .addEvent(new AddObjectEvent(100, new Point(0, 0)))
+      .addEvent(new AddObjectEvent(200, new Point(0, 0)))
+      .addEvent(new AddObjectEvent(300, new Point(0, 0)))
+      .build();
 
     assertEquals(3, s.asList().size());
 
@@ -388,7 +393,7 @@ public class ScenarioTest {
     final TimedEvent b10 = new TimedEvent(FakeEventType.B, 10);
 
     assertNotEquals(new AddObjectEvent(10, new Point(10, 0)),
-        a10);
+      a10);
     assertNotEquals(a10, null);
     assertNotEquals(a10, b10);
     assertEquals(b10, new TimedEvent(FakeEventType.B, 10));

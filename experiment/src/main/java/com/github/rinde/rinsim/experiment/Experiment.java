@@ -30,7 +30,7 @@ import javax.annotation.Nullable;
 import org.apache.commons.math3.random.MersenneTwister;
 import org.apache.commons.math3.random.RandomGenerator;
 
-import com.github.rinde.rinsim.core.model.Model;
+import com.github.rinde.rinsim.core.model.ModelBuilder;
 import com.github.rinde.rinsim.experiment.LocalComputer.ExperimentRunner;
 import com.github.rinde.rinsim.io.FileProvider;
 import com.github.rinde.rinsim.pdptw.common.DynamicPDPTWProblem;
@@ -141,12 +141,12 @@ public final class Experiment {
    * @return The {@link SimulationResult} generated in the run.
    */
   public static SimulationResult singleRun(Scenario scenario,
-      MASConfiguration configuration, long seed, ObjectiveFunction objFunc,
-      boolean showGui, @Nullable PostProcessor<?> postProcessor,
-      @Nullable UICreator uic) {
+    MASConfiguration configuration, long seed, ObjectiveFunction objFunc,
+    boolean showGui, @Nullable PostProcessor<?> postProcessor,
+    @Nullable UICreator uic) {
 
     final ExperimentRunner er = new ExperimentRunner(new SimArgs(scenario,
-        configuration, seed, objFunc, showGui, postProcessor, uic));
+      configuration, seed, objFunc, showGui, postProcessor, uic));
     final SimulationResult res = er.call();
     checkState(res != null);
     return res;
@@ -161,21 +161,14 @@ public final class Experiment {
    */
   @VisibleForTesting
   static DynamicPDPTWProblem init(Scenario scenario,
-      MASConfiguration config, long seed, boolean showGui,
-      Optional<UICreator> uiCreator) {
+    MASConfiguration config, long seed, boolean showGui,
+    Optional<UICreator> uiCreator) {
 
-    final RandomGenerator rng = new MersenneTwister(seed);
-    final long simSeed = rng.nextLong();
-
-    final ImmutableList<? extends StochasticSupplier<? extends Model<?>>> modelSuppliers = config
-        .getModels();
-    final Model<?>[] models = new Model<?>[modelSuppliers.size()];
-    for (int i = 0; i < modelSuppliers.size(); i++) {
-      models[i] = modelSuppliers.get(i).get(rng.nextLong());
-    }
+    final ImmutableList<? extends ModelBuilder<?, ?>> modelBuilders = config
+      .getModels();
 
     final DynamicPDPTWProblem problem = new DynamicPDPTWProblem(scenario,
-        simSeed, models);
+      seed, modelBuilders);
     problem.addCreator(AddVehicleEvent.class, config.getVehicleCreator());
     if (config.getDepotCreator().isPresent()) {
       problem.addCreator(AddDepotEvent.class, config.getDepotCreator().get());
@@ -241,7 +234,7 @@ public final class Experiment {
      */
     public Builder repeat(int times) {
       checkArgument(times > 0,
-          "The number of repetitions must be strictly positive, was %s.", times);
+        "The number of repetitions must be strictly positive, was %s.", times);
       repetitions = times;
       return this;
     }
@@ -293,7 +286,7 @@ public final class Experiment {
     public Builder addConfigurations(Iterable<MASConfiguration> configs) {
       final Set<MASConfiguration> newConfigs = ImmutableSet.copyOf(configs);
       checkArgument(Sets.intersection(configurationsSet, newConfigs)
-          .isEmpty());
+        .isEmpty());
       configurationsSet.addAll(newConfigs);
       return this;
     }
@@ -339,7 +332,7 @@ public final class Experiment {
      * @return This, as per the builder pattern.
      */
     public Builder setScenarioReader(
-        Function<Path, ? extends Scenario> reader) {
+      Function<Path, ? extends Scenario> reader) {
       fileReader = reader;
       return this;
     }
@@ -352,7 +345,7 @@ public final class Experiment {
      */
     public Builder withThreads(int threads) {
       checkArgument(threads > 0,
-          "Only a positive number of threads is allowed, was %s.", threads);
+        "Only a positive number of threads is allowed, was %s.", threads);
       numThreads = threads;
       return this;
     }
@@ -388,7 +381,7 @@ public final class Experiment {
      */
     public Builder numBatches(int num) {
       checkArgument(num > 0,
-          "The number of batches must be strictly positive, was %s.", num);
+        "The number of batches must be strictly positive, was %s.", num);
       numBatches = num;
       return this;
     }
@@ -440,13 +433,13 @@ public final class Experiment {
      * @return This, as per the builder pattern.
      */
     public Builder dryRun(final boolean verbose, final PrintStream stream,
-        final PrintStream error) {
+      final PrintStream error) {
       final Supplier<Computer> originalComputerType = computerType;
       computerType = new Supplier<Computer>() {
         @Override
         public Computer get() {
           return new DryRunComputer(originalComputerType, verbose, stream,
-              error);
+            error);
         }
       };
       return this;
@@ -473,7 +466,7 @@ public final class Experiment {
      */
     public ExperimentResults perform() {
       checkArgument(numThreads == 1 || !showGui,
-          "The GUI can not be shown when using more than one thread.");
+        "The GUI can not be shown when using more than one thread.");
       final List<Long> seeds = generateSeeds();
 
       // run Forrest run!
@@ -512,7 +505,7 @@ public final class Experiment {
 
     ImmutableSet<Scenario> getAllScenarios() {
       final Set<Scenario> scenarios = newLinkedHashSet(scenariosBuilder
-          .build());
+        .build());
       if (scenarioProviderBuilder.isPresent()) {
         scenarios.addAll(scenarioProviderBuilder.get().build(fileReader).get());
       }
@@ -523,7 +516,7 @@ public final class Experiment {
       final Set<Scenario> scenarios = scenariosBuilder.build();
       if (scenarioProviderBuilder.isPresent()) {
         return scenarios.size()
-            + scenarioProviderBuilder.get().build().get().size();
+          + scenarioProviderBuilder.get().build().get().size();
       }
       return scenarios.size();
     }
@@ -532,18 +525,18 @@ public final class Experiment {
       final Set<Scenario> scenarios = getAllScenarios();
 
       final ImmutableSet<MASConfiguration> conf = ImmutableSet
-          .copyOf(configurationsSet);
+        .copyOf(configurationsSet);
 
       checkArgument(!scenarios.isEmpty(), "At least one scenario is required.");
       checkArgument(!conf.isEmpty(), "At least one configuration is required.");
       final ImmutableSet.Builder<SimArgs> runnerBuilder = ImmutableSet
-          .builder();
+        .builder();
       for (final MASConfiguration configuration : conf) {
         for (final Scenario scenario : scenarios) {
           for (int i = 0; i < repetitions; i++) {
             final long seed = seeds.get(i);
             runnerBuilder.add(new SimArgs(scenario, configuration,
-                seed, objectiveFunction, showGui, postProc, uiCreator));
+              seed, objectiveFunction, showGui, postProc, uiCreator));
           }
         }
       }
@@ -569,8 +562,8 @@ public final class Experiment {
     final Optional<UICreator> uiCreator;
 
     SimArgs(Scenario s, MASConfiguration m, long seed,
-        ObjectiveFunction obj, boolean gui, @Nullable PostProcessor<?> pp,
-        @Nullable UICreator uic) {
+      ObjectiveFunction obj, boolean gui, @Nullable PostProcessor<?> pp,
+      @Nullable UICreator uic) {
       scenario = s;
       masConfig = m;
       randomSeed = seed;
@@ -583,9 +576,9 @@ public final class Experiment {
     @Override
     public String toString() {
       return Joiner.on(",").join(scenario.getClass().getName(),
-          scenario.getProblemClass(),
-          scenario.getProblemInstanceId(), masConfig, randomSeed,
-          objectiveFunction, showGui, postProcessor, uiCreator);
+        scenario.getProblemClass(),
+        scenario.getProblemInstanceId(), masConfig, randomSeed,
+        objectiveFunction, showGui, postProcessor, uiCreator);
     }
   }
 
@@ -595,7 +588,7 @@ public final class Experiment {
    * @author Rinde van Lon
    */
   public static final class SimulationResult implements
-      Comparable<SimulationResult> {
+    Comparable<SimulationResult> {
     /**
      * The simulation statistics.
      */
@@ -624,7 +617,7 @@ public final class Experiment {
     public Optional<?> simulationData;
 
     SimulationResult(StatisticsDTO stats, Scenario scenario,
-        MASConfiguration masConfiguration, long seed, Optional<?> simData) {
+      MASConfiguration masConfiguration, long seed, Optional<?> simData) {
       this.stats = stats;
       this.scenario = scenario;
       this.masConfiguration = masConfiguration;
@@ -642,39 +635,39 @@ public final class Experiment {
       }
       final SimulationResult other = (SimulationResult) obj;
       return Objects.equal(stats, other.stats)
-          && Objects.equal(scenario, other.scenario)
-          && Objects.equal(masConfiguration, other.masConfiguration)
-          && Objects.equal(seed, other.seed)
-          && Objects.equal(simulationData, other.simulationData);
+        && Objects.equal(scenario, other.scenario)
+        && Objects.equal(masConfiguration, other.masConfiguration)
+        && Objects.equal(seed, other.seed)
+        && Objects.equal(simulationData, other.simulationData);
     }
 
     @Override
     public int hashCode() {
       return Objects.hashCode(stats, scenario, masConfiguration, seed,
-          simulationData);
+        simulationData);
     }
 
     @Override
     public String toString() {
       return MoreObjects.toStringHelper(this)
-          .add("stats", stats)
-          .add("scenario", scenario)
-          .add("masConfiguration", masConfiguration)
-          .add("seed", seed)
-          .add("simulationData", simulationData)
-          .toString();
+        .add("stats", stats)
+        .add("scenario", scenario)
+        .add("masConfiguration", masConfiguration)
+        .add("seed", seed)
+        .add("simulationData", simulationData)
+        .toString();
     }
 
     @Override
     public int compareTo(@Nullable SimulationResult o) {
       assert o != null;
       return ComparisonChain
-          .start()
-          .compare(scenario.getProblemClass().getId(),
-              o.scenario.getProblemClass().getId())
-          .compare(scenario.getProblemInstanceId(),
-              o.scenario.getProblemInstanceId())
-          .result();
+        .start()
+        .compare(scenario.getProblemClass().getId(),
+          o.scenario.getProblemClass().getId())
+        .compare(scenario.getProblemInstanceId(),
+          o.scenario.getProblemInstanceId())
+        .result();
     }
   }
 }

@@ -22,7 +22,6 @@ import java.math.RoundingMode;
 import java.util.Collections;
 
 import javax.annotation.Nullable;
-import javax.measure.Measure;
 import javax.measure.unit.NonSI;
 import javax.measure.unit.SI;
 
@@ -43,62 +42,70 @@ import com.google.common.math.DoubleMath;
 
 public class ScenarioTestUtil {
 
-	public static Scenario create(long seed) {
-		final int endTime = 3 * 60 * 60 * 1000;
-		Scenario.Builder b = Scenario
-				.builder()
-				.addModel(
-						PlaneRoadModel.supplier(new Point(0, 0), new Point(10,
-								10), SI.KILOMETER, Measure.valueOf(50d,
-								NonSI.KILOMETERS_PER_HOUR)))
-				.addModel(DefaultPDPModel.supplier(TimeWindowPolicies.LIBERAL))
-				.addEvents(
-						Collections
-								.nCopies(
-										10,
-										new AddVehicleEvent(-1, VehicleDTO
-												.builder()
-												.startPosition(new Point(5, 5))
-												.build())));
+  public static Scenario create(long seed) {
+    final int endTime = 3 * 60 * 60 * 1000;
+    Scenario.Builder b = Scenario
+      .builder()
+      .addModel(
+        PlaneRoadModel.builder()
+          .setMinPoint(new Point(0, 0))
+          .setMaxPoint(new Point(10, 10))
+          .setDistanceUnit(SI.KILOMETER)
+          .setMaxSpeed(50d)
+          .setSpeedUnit(NonSI.KILOMETERS_PER_HOUR)
+      )
+      .addModel(
+        DefaultPDPModel.builder()
+          .setTimeWindowPolicy(TimeWindowPolicies.LIBERAL)
+      )
+      .addEvents(
+        Collections
+          .nCopies(
+            10,
+            new AddVehicleEvent(-1, VehicleDTO
+              .builder()
+              .startPosition(new Point(5, 5))
+              .build())));
 
-		RandomGenerator rng = new MersenneTwister(seed);
-		for (int i = 0; i < 20; i++) {
-			long announceTime = rng.nextInt(DoubleMath.roundToInt(
-					endTime * .8, RoundingMode.FLOOR));
-			b.addEvent(new AddParcelEvent(ParcelDTO
-					.builder(
-							new Point(rng.nextDouble() * 10,
-									rng.nextDouble() * 10),
-							new Point(rng.nextDouble() * 10,
-									rng.nextDouble() * 10))
-					.orderAnnounceTime(announceTime)
-					.pickupTimeWindow(new TimeWindow(announceTime, endTime))
-					.deliveryTimeWindow(new TimeWindow(announceTime, endTime))
-					.neededCapacity(0).build()));
-		}
+    RandomGenerator rng = new MersenneTwister(seed);
+    for (int i = 0; i < 20; i++) {
+      long announceTime = rng.nextInt(DoubleMath.roundToInt(
+        endTime * .8, RoundingMode.FLOOR));
+      b.addEvent(new AddParcelEvent(ParcelDTO
+        .builder(
+          new Point(rng.nextDouble() * 10,
+            rng.nextDouble() * 10),
+          new Point(rng.nextDouble() * 10,
+            rng.nextDouble() * 10))
+        .orderAnnounceTime(announceTime)
+        .pickupTimeWindow(new TimeWindow(announceTime, endTime))
+        .deliveryTimeWindow(new TimeWindow(announceTime, endTime))
+        .neededCapacity(0).build()));
+    }
 
-		b.addEvent(new TimedEvent(PDPScenarioEvent.TIME_OUT, endTime))
-				.scenarioLength(endTime)
-				.stopCondition(new EndTimeStopCondition(endTime));
+    b.addEvent(new TimedEvent(PDPScenarioEvent.TIME_OUT, endTime))
+      .scenarioLength(endTime)
+      .stopCondition(new EndTimeStopCondition(endTime));
 
-		b.addEventType(PDPScenarioEvent.ADD_DEPOT);
+    b.addEventType(PDPScenarioEvent.ADD_DEPOT);
 
-		return b.build();
-	}
+    return b.build();
+  }
 
-	static class EndTimeStopCondition implements Predicate<Simulator>,
-			Serializable {
+  static class EndTimeStopCondition implements Predicate<Simulator>,
+    Serializable {
     private static final long serialVersionUID = 7929691008595477071L;
-    
+
     private final long endTime;
-		public EndTimeStopCondition(long time){
-			endTime  = time;
-		}
-		
-		@Override
-		public boolean apply(@Nullable Simulator simulator) {
-		  checkNotNull(simulator);
-			return simulator.getCurrentTime() >= endTime;
-		}
-	}
+
+    public EndTimeStopCondition(long time) {
+      endTime = time;
+    }
+
+    @Override
+    public boolean apply(@Nullable Simulator simulator) {
+      checkNotNull(simulator);
+      return simulator.getCurrentTime() >= endTime;
+    }
+  }
 }

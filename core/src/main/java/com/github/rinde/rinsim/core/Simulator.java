@@ -39,13 +39,10 @@ import com.github.rinde.rinsim.core.model.ModelBuilder.AbstractModelBuilder;
 import com.github.rinde.rinsim.core.model.ModelManager;
 import com.github.rinde.rinsim.core.model.ModelProvider;
 import com.github.rinde.rinsim.core.model.rand.RandomModel;
-import com.github.rinde.rinsim.core.model.time.Clock;
+import com.github.rinde.rinsim.core.model.time.ClockController;
 import com.github.rinde.rinsim.core.model.time.TickListener;
 import com.github.rinde.rinsim.core.model.time.TimeLapse;
 import com.github.rinde.rinsim.core.model.time.TimeModel;
-import com.github.rinde.rinsim.event.Event;
-import com.github.rinde.rinsim.event.EventAPI;
-import com.github.rinde.rinsim.event.EventDispatcher;
 import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableCollection;
 
@@ -77,55 +74,35 @@ public final class Simulator implements SimulatorAPI {
     .getLogger(Simulator.class);
 
   /**
-   * Enum that describes the possible types of events that the simulator can
-   * dispatch.
-   */
-  public enum SimulatorEventType {
-    /**
-     * Indicates that the simulator has stopped.
-     */
-    STOPPED,
-
-    /**
-     * Indicates that the simulator has started.
-     */
-    STARTED
-  }
-
-  /**
-   * Reference to dispatcher of simulator events, can be used by subclasses to
-   * issue additional events.
-   */
-  protected final EventDispatcher dispatcher;
-
-  /**
    * Model manager instance.
    */
   protected final ModelManager modelManager;
 
   private final Set<Object> toUnregister;
   private final RandomGenerator rand;
-  private final Clock timeModel;
+  private final ClockController clock;
 
   @SuppressWarnings("unchecked")
   Simulator(Builder b) {
     toUnregister = new LinkedHashSet<>();
-    dispatcher = new EventDispatcher(SimulatorEventType.values());
     rand = b.rng;
 
     final ModelManager.Builder mb = ModelManager.builder();
     mb.add(new SimulatorModelBuilder(this));
     for (final Object o : b.models) {
-      if (o instanceof ModelBuilder<?>) {
-        mb.add((ModelBuilder<?>) o);
+      if (o instanceof ModelBuilder<?, ?>) {
+        mb.add((ModelBuilder<?, ?>) o);
       } else {
         mb.add((Supplier<? extends Model<?>>) o);
       }
     }
     mb.setDefaultProvider(RandomModel.builder(b.rng));
-    mb.setDefaultProvider(TimeModel.supplier(b.tickLength, b.timeUnit));
+    mb.setDefaultProvider(TimeModel.builder()
+      .setTickLength(b.tickLength)
+      .setTimeUnit(b.timeUnit)
+      );
     modelManager = mb.build();
-    timeModel = modelManager.getModel(TimeModel.class);
+    clock = modelManager.getModel(TimeModel.class);
   }
 
   /**
@@ -143,7 +120,7 @@ public final class Simulator implements SimulatorAPI {
 
   @Override
   public void register(Object obj) {
-    LOGGER.info("{} - register({})", timeModel.getCurrentTime(), obj);
+    LOGGER.info("{} - register({})", clock.getCurrentTime(), obj);
     modelManager.register(obj);
   }
 
@@ -175,14 +152,19 @@ public final class Simulator implements SimulatorAPI {
     return modelManager;
   }
 
-  @Override
+  /**
+   * @return The current simulation time.
+   */
   public long getCurrentTime() {
-    return timeModel.getCurrentTime();
+    return clock.getCurrentTime();
   }
 
-  @Override
+  /**
+   * @return The time step (in simulation time) which is added to current time
+   *         at every tick.
+   */
   public long getTimeStep() {
-    return timeModel.getTimeStep();
+    return clock.getTimeStep();
   }
 
   /**
@@ -205,18 +187,14 @@ public final class Simulator implements SimulatorAPI {
    * Start the simulation.
    */
   public void start() {
-    if (!timeModel.isTicking()) {
-      dispatcher.dispatchEvent(new Event(SimulatorEventType.STARTED, this));
-    }
-    timeModel.start();
-    dispatcher.dispatchEvent(new Event(SimulatorEventType.STOPPED, this));
+    clock.start();
   }
 
   /**
    * Either starts or stops the simulation depending on the current state.
    */
   public void togglePlayPause() {
-    if (!timeModel.isTicking()) {
+    if (!clock.isTicking()) {
       start();
     } else {
       stop();
@@ -227,39 +205,36 @@ public final class Simulator implements SimulatorAPI {
    * Stops the simulation.
    */
   public void stop() {
-    timeModel.stop();
+    clock.stop();
   }
 
   /**
    * Advances the time a single tick.
    */
   public void tick() {
-    timeModel.tick();
+    clock.tick();
   }
 
   /**
    * @return true if simulator is playing, false otherwise.
    */
   public boolean isPlaying() {
-    return timeModel.isTicking();
+    return clock.isTicking();
   }
 
   /**
-   * {@inheritDoc}
+   * Get access to the main random generator used in the simulator.
+   * @return the random generator of the simulator
    */
-  @Override
   public RandomGenerator getRandomGenerator() {
     return rand;
   }
 
-  @Override
+  /**
+   * @return The unit of time that is used for generating ticks.
+   */
   public Unit<Duration> getTimeUnit() {
-    return timeModel.getTimeUnit();
-  }
-
-  @Override
-  public EventAPI getEventAPI() {
-    return dispatcher.getPublicEventAPI();
+    return clock.getTimeUnit();
   }
 
   /**
@@ -357,7 +332,7 @@ public final class Simulator implements SimulatorAPI {
      * @param builder The builder to add.
      * @return This, as per the builder pattern.
      */
-    public Builder addModel(ModelBuilder<?> builder) {
+    public Builder addModel(ModelBuilder<?, ?> builder) {
       models.add(builder);
       return this;
     }
@@ -372,20 +347,19 @@ public final class Simulator implements SimulatorAPI {
   }
 
   static class SimulatorModelBuilder extends
-    AbstractModelBuilder<SimulatorUser> {
+    AbstractModelBuilder<SimulatorModel, SimulatorUser> {
 
     final Simulator simulator;
 
     SimulatorModelBuilder(Simulator sim) {
-      super(SimulatorAPI.class);
       simulator = sim;
+      setProvidingTypes(SimulatorAPI.class);
     }
 
     @Override
-    public Model<SimulatorUser> build(DependencyProvider dependencyProvider) {
+    public SimulatorModel build(DependencyProvider dependencyProvider) {
       return new SimulatorModel(simulator);
     }
-
   }
 
   static class SimulatorModel extends AbstractModel<SimulatorUser> {
@@ -404,6 +378,12 @@ public final class Simulator implements SimulatorAPI {
     @Override
     public boolean unregister(SimulatorUser element) {
       return true;
+    }
+
+    @Override
+    public <U> U get(Class<U> clazz) {
+      checkArgument(clazz == SimulatorAPI.class);
+      return clazz.cast(simulator);
     }
   }
 }

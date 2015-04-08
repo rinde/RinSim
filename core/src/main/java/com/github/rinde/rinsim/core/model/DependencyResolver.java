@@ -31,6 +31,7 @@ import java.util.Set;
 
 import javax.annotation.Nullable;
 
+import com.github.rinde.rinsim.core.model.ModelBuilder.AbstractModelBuilder;
 import com.github.rinde.rinsim.util.LinkedHashBiMap;
 import com.google.common.base.Supplier;
 import com.google.common.collect.BiMap;
@@ -38,7 +39,6 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
-import com.google.common.reflect.TypeToken;
 
 class DependencyResolver extends DependencyProvider {
   final Map<Class<?>, Dependency> providerMap;
@@ -46,18 +46,18 @@ class DependencyResolver extends DependencyProvider {
   final BiMap<Class<?>, Dependency> modelTypeMap;
   final List<Dependency> builders;
 
-  DependencyResolver(Set<ModelBuilder<?>> models,
-    Set<ModelBuilder<?>> defaultModels) {
+  DependencyResolver(Set<ModelBuilder<?, ?>> models,
+    Set<ModelBuilder<?, ?>> defaultModels) {
     providerMap = new LinkedHashMap<>();
     dependencyMap = LinkedHashMultimap.create();
     modelTypeMap = LinkedHashBiMap.create();
     builders = new ArrayList<>();
 
-    for (final ModelBuilder<?> o : models) {
+    for (final ModelBuilder<?, ?> o : models) {
       add(o);
     }
 
-    for (final ModelBuilder<?> b : defaultModels) {
+    for (final ModelBuilder<?, ?> b : defaultModels) {
       final ImmutableSet<Class<?>> providingTypes = b.getProvidingTypes();
       if (providingTypes.isEmpty()
         || !providerMap.keySet().containsAll(providingTypes)) {
@@ -69,7 +69,7 @@ class DependencyResolver extends DependencyProvider {
 
   }
 
-  final void add(ModelBuilder<?> mb) {
+  final void add(ModelBuilder<?, ?> mb) {
     final ImmutableSet<Class<?>> deps = mb.getDependencies();
     final Dependency dep = new Dependency(this, mb, deps);
     modelTypeMap.put(mb.getAssociatedType(), dep);
@@ -88,9 +88,11 @@ class DependencyResolver extends DependencyProvider {
       .create();
     for (final Entry<Dependency, Class<?>> entry : dependencyMap
       .entries()) {
-      checkArgument(providerMap.containsKey(entry.getValue()),
-        "Could not resolve dependency for implementations of %s.",
-        entry.getValue());
+      checkArgument(
+        providerMap.containsKey(entry.getValue()),
+        "Could not resolve dependency for implementations of %s, as requested "
+          + "by %s.",
+        entry.getValue(), entry.getKey().modelBuilder);
       dependencyGraph.put(entry.getKey(), providerMap.get(entry.getValue()));
     }
     while (!dependencyGraph.isEmpty()) {
@@ -131,11 +133,11 @@ class DependencyResolver extends DependencyProvider {
   }
 
   @SuppressWarnings("unchecked")
-  static <A extends Model<B>, B> ModelBuilder<B> adaptObj(final Object sup) {
+  static <A extends Model<B>, B> ModelBuilder<A, B> adaptObj(final Object sup) {
     return adapt((Supplier<A>) sup);
   }
 
-  static <A extends Model<B>, B> ModelBuilder<B> adapt(final Supplier<A> sup) {
+  static <A extends Model<B>, B> ModelBuilder<A, B> adapt(final Supplier<A> sup) {
     return new SupplierAdapter<>(sup);
   }
 
@@ -143,10 +145,10 @@ class DependencyResolver extends DependencyProvider {
     final DependencyProvider delegate;
     final ImmutableSet<Class<?>> knownDependencies;
     final Set<Class<?>> requestedDependencies;
-    final ModelBuilder<?> modelBuilder;
+    final ModelBuilder<?, ?> modelBuilder;
 
     DependencyProviderAccessDecorator(DependencyProvider dp,
-      ImmutableSet<Class<?>> allowed, ModelBuilder<?> mb) {
+      ImmutableSet<Class<?>> allowed, ModelBuilder<?, ?> mb) {
       delegate = dp;
       knownDependencies = allowed;
       modelBuilder = mb;
@@ -180,34 +182,17 @@ class DependencyResolver extends DependencyProvider {
     }
   }
 
-  static class SupplierAdapter<T> implements ModelBuilder<T> {
-    final Supplier<? extends Model<T>> supplier;
-    Class<T> clazz;
+  static class SupplierAdapter<T extends Model<U>, U> extends
+    AbstractModelBuilder<T, U> {
+    final Supplier<T> supplier;
 
-    @SuppressWarnings({ "serial", "unchecked" })
-    SupplierAdapter(Supplier<? extends Model<T>> sup) {
-      clazz = (Class<T>) new TypeToken<T>(getClass()) {}.getRawType();
+    SupplierAdapter(Supplier<T> sup) {
       supplier = sup;
     }
 
     @Override
-    public Model<T> build(DependencyProvider dependencyProvider) {
+    public T build(DependencyProvider dependencyProvider) {
       return supplier.get();
-    }
-
-    @Override
-    public ImmutableSet<Class<?>> getProvidingTypes() {
-      return ImmutableSet.<Class<?>> of();
-    }
-
-    @Override
-    public ImmutableSet<Class<?>> getDependencies() {
-      return ImmutableSet.of();
-    }
-
-    @Override
-    public Class<T> getAssociatedType() {
-      return clazz;
     }
 
     @Override
@@ -217,12 +202,12 @@ class DependencyResolver extends DependencyProvider {
   }
 
   static class Dependency {
-    private final ModelBuilder<?> modelBuilder;
+    final ModelBuilder<?, ?> modelBuilder;
     private final DependencyProviderAccessDecorator dependencyProvider;
     @Nullable
     private Model<?> value;
 
-    Dependency(DependencyProvider dp, ModelBuilder<?> mb,
+    Dependency(DependencyProvider dp, ModelBuilder<?, ?> mb,
       ImmutableSet<Class<?>> deps) {
       modelBuilder = mb;
       dependencyProvider = new DependencyProviderAccessDecorator(dp, deps, mb);

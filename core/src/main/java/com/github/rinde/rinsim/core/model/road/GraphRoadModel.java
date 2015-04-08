@@ -30,10 +30,14 @@ import javax.annotation.Nullable;
 import javax.measure.quantity.Duration;
 import javax.measure.quantity.Length;
 import javax.measure.quantity.Velocity;
+import javax.measure.unit.NonSI;
+import javax.measure.unit.SI;
 import javax.measure.unit.Unit;
 
 import org.apache.commons.math3.random.RandomGenerator;
 
+import com.github.rinde.rinsim.core.model.DependencyProvider;
+import com.github.rinde.rinsim.core.model.ModelBuilder.AbstractModelBuilder;
 import com.github.rinde.rinsim.core.model.road.GraphRoadModel.Loc;
 import com.github.rinde.rinsim.core.model.time.TimeLapse;
 import com.github.rinde.rinsim.geom.Connection;
@@ -463,10 +467,65 @@ public class GraphRoadModel extends AbstractRoadModel<Loc> {
     return graph.getRandomNode(rnd);
   }
 
+  @Override
+  public <U> U get(Class<U> type) {
+    return type.cast(self);
+  }
+
   @Deprecated
   @Override
   public ImmutableList<Point> getBounds() {
     throw new UnsupportedOperationException("Not yet implemented.");
+  }
+
+  public static Builder builder() {
+    return new Builder();
+  }
+
+  public static class Builder extends
+    AbstractModelBuilder<GraphRoadModel, RoadUser> {
+
+    protected Graph<?> graph;
+    protected Unit<Length> distanceUnit;
+    protected Unit<Velocity> speedUnit;
+
+    protected Builder() {
+      setProvidingTypes(RoadModel.class, GraphRoadModel.class);
+      distanceUnit = SI.KILOMETER;
+      speedUnit = NonSI.KILOMETERS_PER_HOUR;
+    }
+
+    /**
+     * @param g The graph which will be used as road structure.
+     * @return This, as per the builder pattern.
+     */
+    public Builder setGraph(Graph<?> g) {
+      graph = g;
+      return this;
+    }
+
+    /**
+     * @param du The distance unit used in the graph.
+     * @return This, as per the builder pattern.
+     */
+    public Builder setDistanceUnit(Unit<Length> du) {
+      distanceUnit = du;
+      return this;
+    }
+
+    /**
+     * @param su The speed unit for {@link MovingRoadUser}s in this model.
+     * @return This, as per the builder pattern.
+     */
+    public Builder setSpeedUnit(Unit<Velocity> su) {
+      speedUnit = su;
+      return this;
+    }
+
+    @Override
+    public GraphRoadModel build(DependencyProvider dependencyProvider) {
+      return new GraphRoadModel(graph, distanceUnit, speedUnit);
+    }
   }
 
   /**

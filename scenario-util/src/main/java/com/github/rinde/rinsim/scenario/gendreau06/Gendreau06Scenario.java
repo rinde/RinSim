@@ -30,9 +30,8 @@ import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 
 import com.github.rinde.rinsim.core.Simulator;
-import com.github.rinde.rinsim.core.model.Model;
+import com.github.rinde.rinsim.core.model.ModelBuilder;
 import com.github.rinde.rinsim.core.model.pdp.DefaultPDPModel;
-import com.github.rinde.rinsim.core.model.pdp.PDPModel;
 import com.github.rinde.rinsim.core.model.pdp.TimeWindowPolicy.TimeWindowPolicies;
 import com.github.rinde.rinsim.core.model.road.PlaneRoadModel;
 import com.github.rinde.rinsim.geom.Point;
@@ -40,11 +39,9 @@ import com.github.rinde.rinsim.pdptw.common.DynamicPDPTWProblem.StopConditions;
 import com.github.rinde.rinsim.pdptw.common.PDPRoadModel;
 import com.github.rinde.rinsim.scenario.Scenario;
 import com.github.rinde.rinsim.scenario.TimedEvent;
-import com.github.rinde.rinsim.scenario.generator.Models;
 import com.github.rinde.rinsim.util.TimeWindow;
 import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
-import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableList;
 
 /**
@@ -65,7 +62,7 @@ public final class Gendreau06Scenario extends Scenario {
   static final Point MIN = new Point(0, 0);
   static final Point MAX = new Point(5, 5);
   static final Measure<Double, Velocity> MAX_SPEED = Measure.valueOf(
-      30d, NonSI.KILOMETERS_PER_HOUR);
+    30d, NonSI.KILOMETERS_PER_HOUR);
 
   private final long tickSize;
   private final GendreauProblemClass problemClass;
@@ -73,8 +70,8 @@ public final class Gendreau06Scenario extends Scenario {
   private final boolean allowDiversion;
 
   Gendreau06Scenario(List<? extends TimedEvent> pEvents,
-      Set<Enum<?>> pSupportedTypes, long ts, GendreauProblemClass problemClass,
-      int instanceNumber, boolean diversion) {
+    Set<Enum<?>> pSupportedTypes, long ts, GendreauProblemClass problemClass,
+    int instanceNumber, boolean diversion) {
     super(pEvents, pSupportedTypes);
     tickSize = ts;
     this.problemClass = problemClass;
@@ -85,7 +82,7 @@ public final class Gendreau06Scenario extends Scenario {
   @Override
   public String toString() {
     return ToStringBuilder.reflectionToString(this,
-        ToStringStyle.MULTI_LINE_STYLE);
+      ToStringStyle.MULTI_LINE_STYLE);
   }
 
   @Override
@@ -101,19 +98,29 @@ public final class Gendreau06Scenario extends Scenario {
   @Override
   public Predicate<Simulator> getStopCondition() {
     return Predicates.and(StopConditions.VEHICLES_DONE_AND_BACK_AT_DEPOT,
-        StopConditions.TIME_OUT_EVENT);
+      StopConditions.TIME_OUT_EVENT);
   }
 
   @Override
-  public ImmutableList<? extends Supplier<? extends Model<?>>> getModelSuppliers() {
-    return ImmutableList.<Supplier<? extends Model<?>>> builder()
-        .add(new RoadModelSupplier(getDistanceUnit(), allowDiversion))
-        .add(Models.pdpModel(TimeWindowPolicies.TARDY_ALLOWED))
-        .build();
-  }
-
-  static PDPModel createPDPModel() {
-    return new DefaultPDPModel(TimeWindowPolicies.TARDY_ALLOWED);
+  public ImmutableList<? extends ModelBuilder<?, ?>> getModelBuilders() {
+    return ImmutableList.<ModelBuilder<?, ?>> builder()
+      .add(
+        PDPRoadModel.builder()
+          .setAllowVehicleDiversion(allowDiversion)
+          .setRoadModel(
+            PlaneRoadModel.builder()
+              .setMinPoint(MIN)
+              .setMaxPoint(MAX)
+              .setDistanceUnit(getDistanceUnit())
+              .setSpeedUnit(MAX_SPEED.getUnit())
+              .setMaxSpeed(MAX_SPEED.getValue())
+          )
+      )
+      .add(
+        DefaultPDPModel.builder()
+          .setTimeWindowPolicy(TimeWindowPolicies.TARDY_ALLOWED)
+      )
+      .build();
   }
 
   @Override
@@ -139,28 +146,5 @@ public final class Gendreau06Scenario extends Scenario {
   @Override
   public String getProblemInstanceId() {
     return Integer.toString(instanceNumber);
-  }
-
-  static class RoadModelSupplier implements Supplier<PDPRoadModel> {
-    private final Unit<Length> distanceUnit;
-    private final boolean allowDiversion;
-
-    RoadModelSupplier(Unit<Length> du, boolean ad) {
-      distanceUnit = du;
-      allowDiversion = ad;
-    }
-
-    @Override
-    public PDPRoadModel get() {
-      return new PDPRoadModel(
-          PlaneRoadModel.builder()
-              .setMinPoint(MIN)
-              .setMaxPoint(MAX)
-              .setDistanceUnit(distanceUnit)
-              .setSpeedUnit(MAX_SPEED.getUnit())
-              .setMaxSpeed(MAX_SPEED.getValue())
-              .build(),
-          allowDiversion);
-    }
   }
 }

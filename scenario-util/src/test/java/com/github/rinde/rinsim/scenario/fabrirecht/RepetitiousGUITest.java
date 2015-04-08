@@ -19,6 +19,7 @@ import java.io.File;
 import java.io.IOException;
 
 import com.github.rinde.rinsim.core.Simulator;
+import com.github.rinde.rinsim.core.model.ModelBuilder;
 import com.github.rinde.rinsim.core.model.pdp.PDPModel;
 import com.github.rinde.rinsim.core.model.pdp.PDPModel.ParcelState;
 import com.github.rinde.rinsim.core.model.road.RoadModel;
@@ -36,6 +37,7 @@ import com.github.rinde.rinsim.ui.View;
 import com.github.rinde.rinsim.ui.renderers.Renderer;
 import com.google.common.base.Charsets;
 import com.google.common.base.Predicate;
+import com.google.common.collect.ImmutableList;
 import com.google.common.io.Files;
 
 /**
@@ -52,7 +54,8 @@ public class RepetitiousGUITest {
         .toString(new File("files/test/fabri-recht/lc101.scenario"),
           Charsets.UTF_8), 8, 20);
 
-      final DynamicPDPTWProblem problem = new DynamicPDPTWProblem(scenario, 123);
+      final DynamicPDPTWProblem problem = new DynamicPDPTWProblem(scenario,
+        123, ImmutableList.<ModelBuilder<?, ?>> of());
       problem.addCreator(AddVehicleEvent.class, new Creator<AddVehicleEvent>() {
         @Override
         public boolean create(Simulator sim, AddVehicleEvent event) {

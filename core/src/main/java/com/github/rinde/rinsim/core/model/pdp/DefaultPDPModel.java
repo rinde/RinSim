@@ -26,15 +26,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import com.github.rinde.rinsim.core.model.ModelProvider;
+import com.github.rinde.rinsim.core.model.DependencyProvider;
+import com.github.rinde.rinsim.core.model.ModelBuilder.AbstractModelBuilder;
 import com.github.rinde.rinsim.core.model.pdp.TimeWindowPolicy.TimeWindowPolicies;
 import com.github.rinde.rinsim.core.model.road.RoadModel;
 import com.github.rinde.rinsim.core.model.time.TimeLapse;
 import com.github.rinde.rinsim.event.EventAPI;
 import com.github.rinde.rinsim.event.EventDispatcher;
 import com.github.rinde.rinsim.util.CategoryMap;
-import com.google.common.base.Optional;
-import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Multimap;
@@ -79,7 +78,7 @@ public final class DefaultPDPModel extends PDPModel {
   /**
    * Reference to the {@link RoadModel} on which the pdp objects are situated.
    */
-  protected Optional<RoadModel> roadModel;
+  protected final RoadModel roadModel;
 
   /**
    * Multimap for keeping references to the contents of {@link Container}s.
@@ -122,22 +121,10 @@ public final class DefaultPDPModel extends PDPModel {
   final Map<Vehicle, Action> pendingVehicleActions;
 
   /**
-   * Initializes the model using a {@link TimeWindowPolicies#LIBERAL} as
-   * {@link TimeWindowPolicy}.
-   * @deprecated Use {@link #create()} instead.
-   */
-  @Deprecated
-  public DefaultPDPModel() {
-    this(TimeWindowPolicies.LIBERAL);
-  }
-
-  /**
    * Initializes the PDPModel.
    * @param twp The {@link TimeWindowPolicy} which is used in the model.
-   * @deprecated Use {@link #create(TimeWindowPolicy)} instead.
    */
-  @Deprecated
-  public DefaultPDPModel(TimeWindowPolicy twp) {
+  DefaultPDPModel(RoadModel rm, TimeWindowPolicy twp) {
     timeWindowPolicy = twp;
 
     containerContents = LinkedHashMultimap.create();
@@ -148,7 +135,7 @@ public final class DefaultPDPModel extends PDPModel {
     parcelState = CategoryMap.create();
 
     eventDispatcher = new EventDispatcher(PDPModelEventType.values());
-    roadModel = Optional.absent();
+    roadModel = rm;
   }
 
   @Override
@@ -177,40 +164,40 @@ public final class DefaultPDPModel extends PDPModel {
   public void pickup(Vehicle vehicle, Parcel parcel, TimeLapse time) {
     synchronized (this) {
       /* 1 */checkVehicleInRoadModel(vehicle);
-      /* 2 */checkArgument(roadModel.get().containsObject(parcel),
-          "parcel does not exist in RoadModel");
+      /* 2 */checkArgument(roadModel.containsObject(parcel),
+        "parcel does not exist in RoadModel");
       final ParcelState ps = parcelState.getKeys(parcel);
       /* 3 */checkArgument(
-          ps == ParcelState.AVAILABLE || ps == ParcelState.ANNOUNCED,
-          "Parcel must be registered and must be either ANNOUNCED or AVAILABE, it is: %s. Parcel: %s.",
-          ps, parcel);
+        ps == ParcelState.AVAILABLE || ps == ParcelState.ANNOUNCED,
+        "Parcel must be registered and must be either ANNOUNCED or AVAILABE, it is: %s. Parcel: %s.",
+        ps, parcel);
       /* 4 */checkArgument(vehicleState.get(vehicle) == VehicleState.IDLE,
-          "vehicle must be registered and must be available");
-      /* 5 */checkArgument(roadModel.get().equalPosition(vehicle, parcel),
-          "vehicle must be at the same location as the parcel it wishes to pickup");
+        "vehicle must be registered and must be available");
+      /* 5 */checkArgument(roadModel.equalPosition(vehicle, parcel),
+        "vehicle must be at the same location as the parcel it wishes to pickup");
       final double newSize = containerContentsSize.get(vehicle)
-          + parcel.getMagnitude();
+        + parcel.getMagnitude();
       /* 6 */checkArgument(
-          newSize <= containerCapacities.get(vehicle),
-          "parcel does not fit in vehicle. Parcel size: %s, current contents size: %s, capacity: %s.",
-          parcel.getMagnitude(), containerContentsSize.get(vehicle),
-          containerCapacities.get(vehicle));
+        newSize <= containerCapacities.get(vehicle),
+        "parcel does not fit in vehicle. Parcel size: %s, current contents size: %s, capacity: %s.",
+        parcel.getMagnitude(), containerContentsSize.get(vehicle),
+        containerCapacities.get(vehicle));
 
       checkArgument(
-          timeWindowPolicy.canPickup(parcel.getPickupTimeWindow(),
-              time.getTime(), parcel.getPickupDuration()),
-          "parcel pickup is not allowed according to the time window policy: %s, current time: %s, time window %s.",
-          timeWindowPolicy, time.getTime(), parcel.getPickupTimeWindow());
+        timeWindowPolicy.canPickup(parcel.getPickupTimeWindow(),
+          time.getTime(), parcel.getPickupDuration()),
+        "parcel pickup is not allowed according to the time window policy: %s, current time: %s, time window %s.",
+        timeWindowPolicy, time.getTime(), parcel.getPickupTimeWindow());
 
       checkArgument(parcel.canBePickedUp(vehicle, time.getTime()),
-          "the parcel does not allow pickup now");
+        "the parcel does not allow pickup now");
 
       eventDispatcher
-          .dispatchEvent(new PDPModelEvent(PDPModelEventType.START_PICKUP,
-              self, time.getTime(), parcel, vehicle));
+        .dispatchEvent(new PDPModelEvent(PDPModelEventType.START_PICKUP,
+          self, time.getTime(), parcel, vehicle));
 
       // remove the parcel such that no other attempts to pickup can be made
-      roadModel.get().removeObject(parcel);
+      roadModel.removeObject(parcel);
 
       // in this case we know we cannot finish this action with the
       // available time. We must continue in the next tick.
@@ -219,7 +206,7 @@ public final class DefaultPDPModel extends PDPModel {
         parcelState.put(ParcelState.PICKING_UP, parcel);
 
         pendingVehicleActions.put(vehicle, new PickupAction(this, vehicle,
-            parcel, parcel.getPickupDuration() - time.getTimeLeft()));
+          parcel, parcel.getPickupDuration() - time.getTimeLeft()));
         time.consumeAll();
       } else {
         time.consume(parcel.getPickupDuration());
@@ -234,8 +221,8 @@ public final class DefaultPDPModel extends PDPModel {
    * @param vehicle The vehicle to check.
    */
   protected void checkVehicleInRoadModel(Vehicle vehicle) {
-    checkArgument(roadModel.get().containsObject(vehicle),
-        "vehicle does not exist in RoadModel");
+    checkArgument(roadModel.containsObject(vehicle),
+      "vehicle does not exist in RoadModel");
   }
 
   /**
@@ -250,23 +237,23 @@ public final class DefaultPDPModel extends PDPModel {
     synchronized (this) {
       containerContents.put(vehicle, parcel);
       containerContentsSize.put(vehicle, containerContentsSize.get(vehicle)
-          + parcel.getMagnitude());
+        + parcel.getMagnitude());
 
       parcelState.put(ParcelState.IN_CARGO, parcel);
       LOGGER.info("{} end pickup of {} by {}", time, parcel, vehicle);
       eventDispatcher.dispatchEvent(new PDPModelEvent(
-          PDPModelEventType.END_PICKUP, self, time, parcel, vehicle));
+        PDPModelEventType.END_PICKUP, self, time, parcel, vehicle));
     }
   }
 
   void checkVehicleIdle(Vehicle vehicle) {
     checkArgument(vehicleState.get(vehicle).equals(VehicleState.IDLE),
-        "Vehicle must be idle but is: %s ", vehicleState.get(vehicle));
+      "Vehicle must be idle but is: %s ", vehicleState.get(vehicle));
   }
 
   void checkVehicleDoesNotContainParcel(Vehicle vehicle, Parcel parcel) {
     checkArgument(containerContents.get(vehicle).contains(parcel),
-        "vehicle does not contain parcel");
+      "vehicle does not contain parcel");
   }
 
   @Override
@@ -276,26 +263,26 @@ public final class DefaultPDPModel extends PDPModel {
       /* 2 */checkVehicleIdle(vehicle);
       /* 3 */checkVehicleDoesNotContainParcel(vehicle, parcel);
       /* 4 */checkArgument(
-          parcel.getDestination().equals(roadModel.get().getPosition(vehicle)),
-          "parcel must be delivered at its destination, vehicle should move there first");
+        parcel.getDestination().equals(roadModel.getPosition(vehicle)),
+        "parcel must be delivered at its destination, vehicle should move there first");
 
       checkArgument(
-          timeWindowPolicy.canDeliver(parcel.getDeliveryTimeWindow(),
-              time.getTime(), parcel.getDeliveryDuration()),
-          "parcel delivery is not allowed at this time (%s) according to the time window policy: %s",
-          time.getTime(), timeWindowPolicy);
+        timeWindowPolicy.canDeliver(parcel.getDeliveryTimeWindow(),
+          time.getTime(), parcel.getDeliveryDuration()),
+        "parcel delivery is not allowed at this time (%s) according to the time window policy: %s",
+        time.getTime(), timeWindowPolicy);
 
       checkArgument(parcel.canBeDelivered(vehicle, time.getTime()),
-          "the parcel does not allow a delivery now");
+        "the parcel does not allow a delivery now");
 
       eventDispatcher.dispatchEvent(new PDPModelEvent(
-          PDPModelEventType.START_DELIVERY, self, time.getTime(), parcel,
-          vehicle));
+        PDPModelEventType.START_DELIVERY, self, time.getTime(), parcel,
+        vehicle));
       if (time.getTimeLeft() < parcel.getDeliveryDuration()) {
         vehicleState.put(vehicle, VehicleState.DELIVERING);
         parcelState.put(ParcelState.DELIVERING, parcel);
         pendingVehicleActions.put(vehicle, new DeliverAction(this, vehicle,
-            parcel, parcel.getDeliveryDuration() - time.getTimeLeft()));
+          parcel, parcel.getDeliveryDuration() - time.getTimeLeft()));
         time.consumeAll();
       } else {
         time.consume(parcel.getDeliveryDuration());
@@ -316,12 +303,12 @@ public final class DefaultPDPModel extends PDPModel {
     synchronized (this) {
       containerContents.remove(vehicle, parcel);
       containerContentsSize.put(vehicle, containerContentsSize.get(vehicle)
-          - parcel.getMagnitude());
+        - parcel.getMagnitude());
 
       parcelState.put(ParcelState.DELIVERED, parcel);
       LOGGER.info("{} end delivery of {} by {}", time, parcel, vehicle);
       eventDispatcher.dispatchEvent(new PDPModelEvent(
-          PDPModelEventType.END_DELIVERY, self, time, parcel, vehicle));
+        PDPModelEventType.END_DELIVERY, self, time, parcel, vehicle));
     }
   }
 
@@ -333,13 +320,13 @@ public final class DefaultPDPModel extends PDPModel {
       /* 3 */checkVehicleDoesNotContainParcel(vehicle, parcel);
 
       eventDispatcher.dispatchEvent(new PDPModelEvent(
-          PDPModelEventType.START_DELIVERY, self, time.getTime(), parcel,
-          vehicle));
+        PDPModelEventType.START_DELIVERY, self, time.getTime(), parcel,
+        vehicle));
       if (time.getTimeLeft() < parcel.getDeliveryDuration()) {
         vehicleState.put(vehicle, VehicleState.DELIVERING);
         parcelState.put(ParcelState.DELIVERING, parcel);
         pendingVehicleActions.put(vehicle, new DropAction(this, vehicle,
-            parcel, parcel.getDeliveryDuration() - time.getTimeLeft()));
+          parcel, parcel.getDeliveryDuration() - time.getTimeLeft()));
         time.consumeAll();
       } else {
         time.consume(parcel.getDeliveryDuration());
@@ -360,35 +347,35 @@ public final class DefaultPDPModel extends PDPModel {
     synchronized (this) {
       containerContents.remove(vehicle, parcel);
       containerContentsSize.put(vehicle, containerContentsSize.get(vehicle)
-          - parcel.getMagnitude());
-      roadModel.get().addObjectAtSamePosition(parcel, vehicle);
+        - parcel.getMagnitude());
+      roadModel.addObjectAtSamePosition(parcel, vehicle);
       parcelState.put(ParcelState.AVAILABLE, parcel);
       LOGGER.info("{} dropped {} by {}", time, parcel, vehicle);
       eventDispatcher.dispatchEvent(new PDPModelEvent(
-          PDPModelEventType.PARCEL_AVAILABLE, self, time, parcel, null));
+        PDPModelEventType.PARCEL_AVAILABLE, self, time, parcel, null));
     }
   }
 
   @Override
   public void addParcelIn(Container container, Parcel parcel) {
     synchronized (this) {
-      /* 1 */checkArgument(!roadModel.get().containsObject(parcel),
-          "this parcel is already added to the roadmodel");
+      /* 1 */checkArgument(!roadModel.containsObject(parcel),
+        "this parcel is already added to the roadmodel");
       /* 2 */checkArgument(
-          parcelState.getKeys(parcel) == ParcelState.AVAILABLE,
-          "parcel must be registered and in AVAILABLE state, current state: %s",
-          parcelState.getKeys(parcel));
+        parcelState.getKeys(parcel) == ParcelState.AVAILABLE,
+        "parcel must be registered and in AVAILABLE state, current state: %s",
+        parcelState.getKeys(parcel));
       /* 3 */checkArgument(containerCapacities.containsKey(container),
-          "the parcel container is not registered");
-      /* 4 */checkArgument(roadModel.get().containsObject(container),
-          "the parcel container is not on the roadmodel");
+        "the parcel container is not registered");
+      /* 4 */checkArgument(roadModel.containsObject(container),
+        "the parcel container is not on the roadmodel");
       final double newSize = containerContentsSize.get(container)
-          + parcel.getMagnitude();
+        + parcel.getMagnitude();
       /* 5 */checkArgument(
-          newSize <= containerCapacities.get(container),
-          "parcel does not fit in container. Capacity is %s, current content size is %s, new parcel size is %s",
-          containerCapacities.get(container),
-          containerContentsSize.get(container), parcel.getMagnitude());
+        newSize <= containerCapacities.get(container),
+        "parcel does not fit in container. Capacity is %s, current content size is %s, new parcel size is %s",
+        containerCapacities.get(container),
+        containerContentsSize.get(container), parcel.getMagnitude());
 
       containerContents.put(container, parcel);
       containerContentsSize.put(container, newSize);
@@ -428,7 +415,7 @@ public final class DefaultPDPModel extends PDPModel {
   public VehicleState getVehicleState(Vehicle vehicle) {
     synchronized (this) {
       checkArgument(vehicleState.containsKey(vehicle),
-          "vehicle must be registered");
+        "vehicle must be registered");
       return vehicleState.get(vehicle);
     }
   }
@@ -439,11 +426,11 @@ public final class DefaultPDPModel extends PDPModel {
     synchronized (this) {
       final VehicleState state = vehicleState.get(vehicle);
       checkArgument(
-          state == VehicleState.DELIVERING || state == VehicleState.PICKING_UP,
-          "the vehicle must be in either DELIVERING or PICKING_UP state, but it is %s.",
-          state);
+        state == VehicleState.DELIVERING || state == VehicleState.PICKING_UP,
+        "the vehicle must be in either DELIVERING or PICKING_UP state, but it is %s.",
+        state);
       return (PDPModel.VehicleParcelActionInfo) pendingVehicleActions
-          .get(vehicle);
+        .get(vehicle);
     }
   }
 
@@ -455,15 +442,15 @@ public final class DefaultPDPModel extends PDPModel {
         checkArgument(!parcelState.containsValue(element));
         final Parcel p = (Parcel) element;
         final ParcelState state = currentTime < p.getPickupTimeWindow().begin ? ParcelState.ANNOUNCED
-            : ParcelState.AVAILABLE;
+          : ParcelState.AVAILABLE;
         parcelState.put(state, (Parcel) element);
         eventDispatcher.dispatchEvent(new PDPModelEvent(
-            PDPModelEventType.NEW_PARCEL, self, currentTime, p, null));
+          PDPModelEventType.NEW_PARCEL, self, currentTime, p, null));
         // if the parcel is immediately available, we send this event as
         // well
         if (state == ParcelState.AVAILABLE) {
           eventDispatcher.dispatchEvent(new PDPModelEvent(
-              PDPModelEventType.PARCEL_AVAILABLE, self, currentTime, p, null));
+            PDPModelEventType.PARCEL_AVAILABLE, self, currentTime, p, null));
         }
       } else {
         // it is a vehicle or a depot
@@ -476,7 +463,7 @@ public final class DefaultPDPModel extends PDPModel {
           final Vehicle v = (Vehicle) element;
           vehicleState.put(v, VehicleState.IDLE);
           eventDispatcher.dispatchEvent(new PDPModelEvent(
-              PDPModelEventType.NEW_VEHICLE, self, currentTime, null, v));
+            PDPModelEventType.NEW_VEHICLE, self, currentTime, null, v));
         }
       }
       element.initPDPObject(self);
@@ -549,7 +536,7 @@ public final class DefaultPDPModel extends PDPModel {
       for (final Parcel p : newAvailables) {
         parcelState.put(ParcelState.AVAILABLE, p);
         eventDispatcher.dispatchEvent(new PDPModelEvent(
-            PDPModelEventType.PARCEL_AVAILABLE, self, currentTime, p, null));
+          PDPModelEventType.PARCEL_AVAILABLE, self, currentTime, p, null));
       }
     }
   }
@@ -563,19 +550,17 @@ public final class DefaultPDPModel extends PDPModel {
   }
 
   @Override
-  public void registerModelProvider(ModelProvider mp) {
-    synchronized (this) {
-      roadModel = Optional.fromNullable(mp.tryGetModel(RoadModel.class));
-    }
-  }
-
-  @Override
   public void service(Vehicle vehicle, Parcel parcel, TimeLapse time) {
     if (getContents(vehicle).contains(parcel)) {
       deliver(vehicle, parcel, time);
     } else {
       pickup(vehicle, parcel, time);
     }
+  }
+
+  @Override
+  public <U> U get(Class<U> type) {
+    return type.cast(self);
   }
 
   /**
@@ -601,14 +586,14 @@ public final class DefaultPDPModel extends PDPModel {
   }
 
   abstract static class VehicleParcelAction implements Action,
-      PDPModel.VehicleParcelActionInfo {
+    PDPModel.VehicleParcelActionInfo {
     protected final DefaultPDPModel modelRef;
     protected final Vehicle vehicle;
     protected final Parcel parcel;
     protected long timeNeeded;
 
     VehicleParcelAction(DefaultPDPModel model, Vehicle v, Parcel p,
-        long pTimeNeeded) {
+      long pTimeNeeded) {
       modelRef = model;
       vehicle = v;
       parcel = p;
@@ -653,44 +638,43 @@ public final class DefaultPDPModel extends PDPModel {
   }
 
   /**
-   * Create a {@link Supplier} for {@link DefaultPDPModel}s.
-   * @param timeWindowPolicy The {@link TimeWindowPolicy} to instantiate the
-   *          model with.
-   * @return A new supplier instance.
+   * @return A new {@link Builder} instance for creating {@link DefaultPDPModel}
+   *         s.
    */
-  public static Supplier<DefaultPDPModel> supplier(
-      TimeWindowPolicy timeWindowPolicy) {
-    return new DefaultSupplier(timeWindowPolicy);
+  public static Builder builder() {
+    return new Builder();
   }
 
   /**
-   * Create a new model using a {@link TimeWindowPolicies#LIBERAL} as
-   * {@link TimeWindowPolicy}.
-   * @return A new instance.
+   * A builder for creating {@link DefaultPDPModel}s.
+   *
+   * @author Rinde van Lon
    */
-  public static DefaultPDPModel create() {
-    return new DefaultPDPModel(TimeWindowPolicies.LIBERAL);
-  }
+  public static class Builder extends
+    AbstractModelBuilder<DefaultPDPModel, PDPObject> {
+    TimeWindowPolicy policy;
 
-  /**
-   * Creates a new PDPModel.
-   * @param policy The {@link TimeWindowPolicy} which is used in the model.
-   * @return A new instance.
-   */
-  public static DefaultPDPModel create(TimeWindowPolicy policy) {
-    return new DefaultPDPModel(policy);
-  }
+    Builder() {
+      policy = TimeWindowPolicies.LIBERAL;
+      setProvidingTypes(PDPModel.class);
+      setDependencies(RoadModel.class);
+    }
 
-  private static class DefaultSupplier implements Supplier<DefaultPDPModel> {
-    final TimeWindowPolicy timeWindowPolicy;
-
-    DefaultSupplier(TimeWindowPolicy twp) {
-      timeWindowPolicy = twp;
+    /**
+     * Sets the {@link TimeWindowPolicy}. The default is
+     * {@link TimeWindowPolicies#LIBERAL}.
+     * @param p The {@link TimeWindowPolicy} which will be used in the model.
+     * @return This, as per the builder pattern.
+     */
+    public Builder setTimeWindowPolicy(TimeWindowPolicy p) {
+      policy = p;
+      return this;
     }
 
     @Override
-    public DefaultPDPModel get() {
-      return new DefaultPDPModel(timeWindowPolicy);
+    public DefaultPDPModel build(DependencyProvider dependencyProvider) {
+      final RoadModel rm = dependencyProvider.get(RoadModel.class);
+      return new DefaultPDPModel(rm, policy);
     }
   }
 

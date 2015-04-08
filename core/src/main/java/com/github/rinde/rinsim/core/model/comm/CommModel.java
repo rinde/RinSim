@@ -24,8 +24,8 @@ import java.util.Set;
 import org.apache.commons.math3.random.RandomGenerator;
 
 import com.github.rinde.rinsim.core.model.DependencyProvider;
-import com.github.rinde.rinsim.core.model.ModelBuilder;
 import com.github.rinde.rinsim.core.model.Model.AbstractModel;
+import com.github.rinde.rinsim.core.model.ModelBuilder;
 import com.github.rinde.rinsim.core.model.rand.RandomProvider;
 import com.github.rinde.rinsim.core.model.time.TickListener;
 import com.github.rinde.rinsim.core.model.time.TimeLapse;
@@ -41,7 +41,8 @@ import com.google.common.collect.Maps;
 
 /**
  * This model supports sending messages between {@link CommUser}s. A
- * {@link CommUser} can use a {@link CommDevice} to communicate.
+ * {@link CommUser} can use a {@link CommDevice} to communicate. Instances can
+ * be obtained via {@link #builder()}.
  * <p>
  * <b>Model properties</b>
  * <ul>
@@ -218,7 +219,7 @@ public final class CommModel extends AbstractModel<CommUser> implements
    * @author Rinde van Lon
    */
   public static class Builder extends AbstractBuilder<Builder> implements
-    ModelBuilder<CommUser> {
+    ModelBuilder<CommModel, CommUser> {
     static double DEFAULT_RELIABILITY = 1d;
     double defaultReliability;
     Optional<Double> defaultMaxRange;
@@ -256,11 +257,6 @@ public final class CommModel extends AbstractModel<CommUser> implements
     }
 
     @Override
-    public Class<CommUser> getAssociatedType() {
-      return CommUser.class;
-    }
-
-    @Override
     public CommModel build(DependencyProvider dependencyProvider) {
       return new CommModel(
         dependencyProvider.get(RandomProvider.class).newInstance(), this);
@@ -274,6 +270,16 @@ public final class CommModel extends AbstractModel<CommUser> implements
     @Override
     public ImmutableSet<Class<?>> getDependencies() {
       return ImmutableSet.<Class<?>> of(RandomProvider.class);
+    }
+
+    @Override
+    public Class<CommUser> getAssociatedType() {
+      return CommUser.class;
+    }
+
+    @Override
+    public Class<CommModel> getModelType() {
+      return CommModel.class;
     }
   }
 

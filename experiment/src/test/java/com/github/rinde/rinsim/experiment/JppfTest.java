@@ -32,21 +32,23 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import com.github.rinde.rinsim.core.Simulator;
+import com.github.rinde.rinsim.core.model.pdp.DefaultPDPModel;
 import com.github.rinde.rinsim.core.model.pdp.TimeWindowPolicy.TimeWindowPolicies;
+import com.github.rinde.rinsim.core.model.road.PlaneRoadModel;
 import com.github.rinde.rinsim.experiment.ExperimentTest.TestPostProcessor;
 import com.github.rinde.rinsim.pdptw.common.DynamicPDPTWProblem.StopConditions;
 import com.github.rinde.rinsim.pdptw.common.ObjectiveFunction;
+import com.github.rinde.rinsim.pdptw.common.PDPRoadModel;
 import com.github.rinde.rinsim.pdptw.common.StatisticsDTO;
 import com.github.rinde.rinsim.pdptw.common.TestObjectiveFunction;
 import com.github.rinde.rinsim.scenario.Scenario;
 import com.github.rinde.rinsim.scenario.ScenarioTestUtil;
 import com.github.rinde.rinsim.scenario.gendreau06.Gendreau06ObjectiveFunction;
-import com.github.rinde.rinsim.scenario.generator.Models;
 import com.github.rinde.rinsim.scenario.generator.ScenarioGenerator;
 
 /**
  * Test for JPPF computation.
- * @author Rinde van Lon 
+ * @author Rinde van Lon
  */
 public class JppfTest {
   @SuppressWarnings("null")
@@ -60,7 +62,7 @@ public class JppfTest {
   @BeforeClass
   public static void setUp() {
     JPPFConfiguration.getProperties().setBoolean("jppf.local.node.enabled",
-        true);
+      true);
     JPPFDriver.main(new String[] { "noLauncher" });
     driver = JPPFDriver.getInstance();
 
@@ -84,16 +86,16 @@ public class JppfTest {
     final List<ExperimentResults> allResults = newArrayList();
 
     final Experiment.Builder experimentBuilder = Experiment
-        .build(TestObjectiveFunction.INSTANCE)
-        .computeDistributed()
-        .addScenario(scenario)
-        .withRandomSeed(123)
-        .repeat(10)
-        .addConfiguration(TestMASConfiguration.create("A"));
+      .build(TestObjectiveFunction.INSTANCE)
+      .computeDistributed()
+      .addScenario(scenario)
+      .withRandomSeed(123)
+      .repeat(10)
+      .addConfiguration(TestMASConfiguration.create("A"));
     for (final int i : ints) {
       allResults.add(
-          experimentBuilder.numBatches(i)
-              .perform());
+        experimentBuilder.numBatches(i)
+          .perform());
     }
     assertEquals(4, allResults.size());
     for (int i = 0; i < allResults.size() - 1; i++) {
@@ -108,13 +110,13 @@ public class JppfTest {
   @Test
   public void determinismLocalVsJppf() {
     final Experiment.Builder experimentBuilder = Experiment
-        .build(TestObjectiveFunction.INSTANCE)
-        .computeDistributed()
-        .addScenario(scenario)
-        .withRandomSeed(123)
-        .repeat(1)
-        .usePostProcessor(new TestPostProcessor())
-        .addConfiguration(TestMASConfiguration.create("A"));
+      .build(TestObjectiveFunction.INSTANCE)
+      .computeDistributed()
+      .addScenario(scenario)
+      .withRandomSeed(123)
+      .repeat(1)
+      .usePostProcessor(new TestPostProcessor())
+      .addConfiguration(TestMASConfiguration.create("A"));
 
     final ExperimentResults results3 = experimentBuilder.perform();
     experimentBuilder.computeLocal();
@@ -131,25 +133,34 @@ public class JppfTest {
   public void determinismGeneratedScenarioLocalVsJppf() {
     final RandomGenerator rng = new MersenneTwister(123L);
     final Scenario generatedScenario = ScenarioGenerator
-        .builder()
-        .addModel(Models.roadModel(20, true))
-        .addModel(Models.pdpModel(TimeWindowPolicies.LIBERAL))
-        .stopCondition(StopConditions.TIME_OUT_EVENT)
-        .build().generate(rng, "hoi");
+      .builder()
+      .addModel(
+        PDPRoadModel.builder()
+          .setAllowVehicleDiversion(true)
+          .setRoadModel(PlaneRoadModel.builder()
+            .setMaxSpeed(20d)
+          )
+      )
+      .addModel(
+        DefaultPDPModel.builder()
+          .setTimeWindowPolicy(TimeWindowPolicies.LIBERAL)
+      )
+      .stopCondition(StopConditions.TIME_OUT_EVENT)
+      .build().generate(rng, "hoi");
 
     final Experiment.Builder experimentBuilder = Experiment
-        .build(Gendreau06ObjectiveFunction.instance())
-        .computeDistributed()
-        .addScenario(generatedScenario)
-        .withRandomSeed(123)
-        .repeat(1)
-        .usePostProcessor(new TestPostProcessor())
-        .addConfiguration(TestMASConfiguration.create("A"));
+      .build(Gendreau06ObjectiveFunction.instance())
+      .computeDistributed()
+      .addScenario(generatedScenario)
+      .withRandomSeed(123)
+      .repeat(1)
+      .usePostProcessor(new TestPostProcessor())
+      .addConfiguration(TestMASConfiguration.create("A"));
 
     final ExperimentResults resultsDistributed = experimentBuilder.perform();
     final ExperimentResults resultsLocal = experimentBuilder
-        .computeLocal()
-        .perform();
+      .computeLocal()
+      .perform();
     assertEquals(resultsLocal, resultsDistributed);
   }
 
@@ -160,13 +171,13 @@ public class JppfTest {
   @Test(expected = IllegalArgumentException.class)
   public void testFaultyPostProcessor() {
     Experiment.build(Gendreau06ObjectiveFunction.instance())
-        .computeDistributed()
-        .addScenario(scenario)
-        .withRandomSeed(123)
-        .repeat(1)
-        .usePostProcessor(new TestFaultyPostProcessor())
-        .addConfiguration(TestMASConfiguration.create("A"))
-        .perform();
+      .computeDistributed()
+      .addScenario(scenario)
+      .withRandomSeed(123)
+      .repeat(1)
+      .usePostProcessor(new TestFaultyPostProcessor())
+      .addConfiguration(TestMASConfiguration.create("A"))
+      .perform();
 
   }
 
@@ -176,17 +187,17 @@ public class JppfTest {
   @Test(expected = IllegalArgumentException.class)
   public void testNotSerializableObjFunc() {
     Experiment
-        .build(new NotSerializableObjFunc())
-        .computeDistributed()
-        .addScenario(scenario)
-        .withRandomSeed(123)
-        .repeat(1)
-        .addConfiguration(TestMASConfiguration.create("A"))
-        .perform();
+      .build(new NotSerializableObjFunc())
+      .computeDistributed()
+      .addScenario(scenario)
+      .withRandomSeed(123)
+      .repeat(1)
+      .addConfiguration(TestMASConfiguration.create("A"))
+      .perform();
   }
 
   static class TestFaultyPostProcessor implements
-      PostProcessor<NotSerializable>, Serializable {
+    PostProcessor<NotSerializable>, Serializable {
     private static final long serialVersionUID = -2166760289557525263L;
 
     @Override

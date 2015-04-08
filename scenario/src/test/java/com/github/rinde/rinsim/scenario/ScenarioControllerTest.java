@@ -23,12 +23,15 @@ import static com.github.rinde.rinsim.scenario.ScenarioControllerTest.TestEvents
 import static com.github.rinde.rinsim.scenario.ScenarioControllerTest.TestEvents.EVENT_D;
 import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Sets.newHashSet;
+import static com.google.common.truth.Truth.assertThat;
 import static java.util.Arrays.asList;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import java.util.List;
 import java.util.Set;
@@ -39,14 +42,17 @@ import org.junit.Before;
 import org.junit.Test;
 
 import com.github.rinde.rinsim.core.Simulator;
+import com.github.rinde.rinsim.core.SimulatorAPI;
+import com.github.rinde.rinsim.core.model.DependencyProvider;
+import com.github.rinde.rinsim.core.model.time.ClockController;
 import com.github.rinde.rinsim.core.model.time.TimeLapse;
 import com.github.rinde.rinsim.core.model.time.TimeLapseFactory;
 import com.github.rinde.rinsim.event.Event;
+import com.github.rinde.rinsim.event.EventAPI;
 import com.github.rinde.rinsim.event.Listener;
 import com.github.rinde.rinsim.event.ListenerEventHistory;
 import com.github.rinde.rinsim.scenario.ScenarioController.UICreator;
 import com.github.rinde.rinsim.testutil.TestUtil;
-import com.google.common.base.Suppliers;
 
 /**
  * Tests for {@link ScenarioController}.
@@ -58,6 +64,9 @@ public class ScenarioControllerTest {
   protected ScenarioController controller;
   @SuppressWarnings("null")
   protected Scenario scenario;
+
+  @SuppressWarnings("null")
+  DependencyProvider dependencyProvider;
 
   enum TestEvents {
     EVENT_A, EVENT_B, EVENT_C, EVENT_D;
@@ -77,34 +86,44 @@ public class ScenarioControllerTest {
     assertNotNull(scenario);
 
     TestUtil.testEnum(ScenarioController.EventType.class);
+
+    ClockController clock = mock(ClockController.class);
+    when(clock.getEventAPI()).thenReturn(mock(EventAPI.class));
+    SimulatorAPI sim = mock(SimulatorAPI.class);
+
+    dependencyProvider = mock(DependencyProvider.class);
+    when(dependencyProvider.get(ClockController.class)).thenReturn(clock);
+    when(dependencyProvider.get(SimulatorAPI.class)).thenReturn(sim);
   }
 
-  @Test(expected = IllegalStateException.class)
-  public void testEmptyController() {
-    controller = new ScenarioController(scenario, new TestHandler(), 3);
-    controller.tick(TimeLapseFactory.create(0, 1));
+  /**
+   * Tests that a not handled event results in a {@link IllegalStateException}.
+   */
+  @Test
+  public void testEventNotHandled() {
+    controller = ScenarioController.builder()
+      .setScenario(scenario)
+      .setEventHandler(new TestHandler())
+      .setNumberOfTicks(3)
+      .build(dependencyProvider);
+    boolean fail = false;
+    try {
+      controller.tick(TimeLapseFactory.create(0, 1));
+    } catch (IllegalStateException e) {
+      assertThat(e.getMessage()).containsMatch("The event .* is not handled");
+      fail = true;
+    }
+    assertThat(fail).isTrue();
   }
-
-  // @Test(expected = ConfigurationException.class)
-  // public void initializeFail() throws ConfigurationException {
-  // final ScenarioController sc = new ScenarioController(scenario, 1) {
-  // @Override
-  // protected Simulator createSimulator() throws Exception {
-  // throw new RuntimeException("this is what we want");
-  // }
-  //
-  // @Override
-  // protected boolean handleTimedEvent(TimedEvent event) {
-  // return true;
-  // }
-  // };
-  // sc.initialize();
-  // }
 
   @Test
   public void handleTimedEvent() {
-    final ScenarioController sc = new ScenarioController(scenario,
-      new TestHandler(), 1);
+    final ScenarioController sc =
+      ScenarioController.builder()
+        .setScenario(scenario)
+        .setNumberOfTicks(1)
+        .setEventHandler(new TestHandler())
+        .build(dependencyProvider);
 
     assertFalse(sc.timedEventHandler
       .handleTimedEvent(new TimedEvent(EVENT_A, 0)));
@@ -116,23 +135,21 @@ public class ScenarioControllerTest {
       .handleTimedEvent(new TimedEvent(EVENT_D, 0)));
   }
 
-  @Test(expected = IllegalStateException.class)
-  public void eventNotHandled() {
-    final ScenarioController sc = new ScenarioController(scenario,
-      new TestHandler(), 1);
-    sc.disp.dispatchEvent(new TimedEvent(EVENT_A, 0));
-  }
-
   @Test
   public void finiteSimulation() throws InterruptedException {
-    final ScenarioController sc = new ScenarioController(scenario,
-      new TestHandler(TestEvents.values()), 101);
+    final ScenarioController.Builder scb = ScenarioController.builder()
+      .setScenario(scenario)
+      .setEventHandler(new TestHandler(TestEvents.values()))
+      .setNumberOfTicks(101);
 
-    Simulator.builder()
+    Simulator sim = Simulator.builder()
       .setTickLength(1L)
       .setTimeUnit(SI.SECOND)
-      .addModel(Suppliers.ofInstance(sc))
+      .addModel(scb)
       .build();
+
+    ScenarioController sc = sim.getModelProvider().getModel(
+      ScenarioController.class);
 
     final ListenerEventHistory leh = new ListenerEventHistory();
     sc.getEventAPI().addListener(leh);
@@ -140,15 +157,14 @@ public class ScenarioControllerTest {
     sc.start();
     assertEquals(
       asList(SCENARIO_STARTED, EVENT_A, EVENT_B, EVENT_B, EVENT_A, EVENT_C,
-        EVENT_C, SCENARIO_FINISHED), leh
-        .getEventTypeHistory());
+        EVENT_C, SCENARIO_FINISHED), leh.getEventTypeHistory());
 
     assertTrue(sc.isScenarioFinished());
     sc.stop();
-    final long before = sc.simulator.getCurrentTime();
+    final long before = sc.clock.getCurrentTime();
     sc.start();// should have no effect
 
-    assertEquals(before, sc.simulator.getCurrentTime());
+    assertEquals(before, sc.clock.getCurrentTime());
     final TimeLapse emptyTime = TimeLapseFactory.create(0, 1);
     emptyTime.consumeAll();
     sc.tick(emptyTime);
@@ -156,15 +172,23 @@ public class ScenarioControllerTest {
 
   @Test
   public void fakeUImode() {
-    final ScenarioController sc = new ScenarioController(scenario,
-      new TestHandler(TestEvents.values()), 3);
+    Simulator sim = Simulator.builder()
+      .setTickLength(1L)
+      .setTimeUnit(SI.SECOND)
+      .addModel(
+        ScenarioController.builder()
+          .setScenario(scenario)
+          .setNumberOfTicks(3)
+          .setEventHandler(new TestHandler(TestEvents.values()))
+      )
+      .build();
+
+    ScenarioController sc = sim.getModelProvider().getModel(
+      ScenarioController.class);
+
     sc.enableUI(new UICreator() {
-
       @Override
-      public void createUI(Simulator sim) {
-        // TODO Auto-generated method stub
-
-      }
+      public void createUI(Simulator simulator) {}
     });
 
     sc.start();
@@ -187,14 +211,19 @@ public class ScenarioControllerTest {
       .build();
 
     final EventHistory th = new EventHistory();
-    final ScenarioController sc = new ScenarioController(s, th, 1);
-
-    Simulator.builder()
+    Simulator sim = Simulator.builder()
       .setTickLength(1L)
       .setTimeUnit(SI.SECOND)
-      .addModel(Suppliers.ofInstance(sc))
+      .addModel(
+        ScenarioController.builder()
+          .setScenario(s)
+          .setNumberOfTicks(1)
+          .setEventHandler(th)
+      )
       .build();
 
+    ScenarioController sc = sim.getModelProvider().getModel(
+      ScenarioController.class);
     sc.start();
     assertEquals(asList(EVENT_B, EVENT_C, EVENT_A), th.eventTypes);
 
@@ -206,20 +235,24 @@ public class ScenarioControllerTest {
    */
   @Test
   public void testStartEventGenerated() {
-    controller = new ScenarioController(scenario, new TestHandler(
-      EVENT_A, EVENT_B), 3);
 
-    Simulator.builder()
+    Simulator sim = Simulator.builder()
       .setTickLength(1L)
       .setTimeUnit(SI.SECOND)
-      .addModel(Suppliers.ofInstance(controller))
+      .addModel(
+        ScenarioController.builder()
+          .setScenario(scenario)
+          .setNumberOfTicks(3)
+          .setEventHandler(new TestHandler(EVENT_A, EVENT_B))
+      )
       .build();
 
     final boolean[] r = new boolean[1];
     final int[] i = new int[1];
 
-    controller.getEventAPI().addListener(new Listener() {
+    controller = sim.getModelProvider().getModel(ScenarioController.class);
 
+    controller.getEventAPI().addListener(new Listener() {
       @Override
       public void handleEvent(Event e) {
         if (e.getEventType() == ScenarioController.EventType.SCENARIO_STARTED) {
@@ -232,25 +265,27 @@ public class ScenarioControllerTest {
       }
     });
 
-    controller.simulator.tick();
+    controller.clock.tick();
     assertTrue("event generated", r[0]);
     assertEquals(3, i[0]);
   }
 
   @Test
   public void runningWholeScenario() throws InterruptedException {
-    controller = new ScenarioController(scenario, new TestHandler(
-      EVENT_A, EVENT_B, EVENT_C), -1);
-
-    Simulator.builder()
+    Simulator sim = Simulator.builder()
       .setTickLength(1L)
       .setTimeUnit(SI.SECOND)
-      .addModel(Suppliers.ofInstance(controller))
+      .addModel(
+        ScenarioController.builder()
+          .setScenario(scenario)
+          .setNumberOfTicks(-1)
+          .setEventHandler(new TestHandler(EVENT_A, EVENT_B, EVENT_C))
+      )
       .build();
 
     final boolean[] r = new boolean[1];
     final int[] i = new int[1];
-
+    controller = sim.getModelProvider().getModel(ScenarioController.class);
     controller.getEventAPI().addListener(new Listener() {
 
       @Override

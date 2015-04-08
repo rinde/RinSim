@@ -22,12 +22,13 @@ import java.util.Set;
 import com.github.rinde.rinsim.central.Solvers.SimulationSolver;
 import com.github.rinde.rinsim.central.Solvers.SolveArgs;
 import com.github.rinde.rinsim.core.Simulator;
-import com.github.rinde.rinsim.core.SimulatorAPI;
-import com.github.rinde.rinsim.core.SimulatorUser;
-import com.github.rinde.rinsim.core.model.Model;
-import com.github.rinde.rinsim.core.model.ModelProvider;
-import com.github.rinde.rinsim.core.model.ModelReceiver;
+import com.github.rinde.rinsim.core.model.DependencyProvider;
 import com.github.rinde.rinsim.core.model.Model.AbstractModel;
+import com.github.rinde.rinsim.core.model.ModelBuilder;
+import com.github.rinde.rinsim.core.model.ModelBuilder.AbstractModelBuilder;
+import com.github.rinde.rinsim.core.model.pdp.PDPModel;
+import com.github.rinde.rinsim.core.model.rand.RandomProvider;
+import com.github.rinde.rinsim.core.model.time.Clock;
 import com.github.rinde.rinsim.core.model.time.TickListener;
 import com.github.rinde.rinsim.core.model.time.TimeLapse;
 import com.github.rinde.rinsim.core.pdptw.DefaultParcel;
@@ -38,7 +39,6 @@ import com.github.rinde.rinsim.pdptw.common.PDPRoadModel;
 import com.github.rinde.rinsim.pdptw.common.RouteFollowingVehicle;
 import com.github.rinde.rinsim.scenario.AddVehicleEvent;
 import com.github.rinde.rinsim.util.StochasticSupplier;
-import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 
 // FIXME test this class thoroughly
@@ -96,8 +96,8 @@ public final class Central {
     }
 
     @Override
-    public ImmutableList<? extends StochasticSupplier<? extends Model<?>>> getModels() {
-      return ImmutableList.of(new CentralModelSupplier(solverCreator));
+    public ImmutableList<? extends ModelBuilder<?, ?>> getModels() {
+      return ImmutableList.of(new Builder(solverCreator));
     }
 
     @Override
@@ -116,35 +116,45 @@ public final class Central {
     }
   }
 
-  private static class CentralModelSupplier implements
-    StochasticSupplier<CentralModel> {
+  static class Builder extends
+    AbstractModelBuilder<CentralModel, DefaultParcel> {
     private final StochasticSupplier<? extends Solver> solverSupplier;
 
-    CentralModelSupplier(StochasticSupplier<? extends Solver> solverSupplier) {
+    Builder(StochasticSupplier<? extends Solver> solverSupplier) {
+      setDependencies(Clock.class,
+        PDPRoadModel.class,
+        PDPModel.class,
+        RandomProvider.class);
       this.solverSupplier = solverSupplier;
     }
 
     @Override
-    public CentralModel get(long seed) {
-      return new CentralModel(solverSupplier.get(seed));
+    public CentralModel build(DependencyProvider dependencyProvider) {
+      Clock clock = dependencyProvider.get(Clock.class);
+      PDPRoadModel rm = dependencyProvider.get(PDPRoadModel.class);
+      PDPModel pm = dependencyProvider.get(PDPModel.class);
+      RandomProvider rnd = dependencyProvider.get(RandomProvider.class);
+      Solver solver = solverSupplier.get(rnd.masterInstance().nextLong());
+      return new CentralModel(clock, rm, pm, solver);
     }
   }
 
   private static final class CentralModel extends AbstractModel<DefaultParcel>
-    implements TickListener, ModelReceiver, SimulatorUser {
+    implements TickListener {
     private boolean hasChanged;
-    private Optional<ModelProvider> modelProvider;
-    private Optional<PDPRoadModel> roadModel;
-    private Optional<SimulationSolver> solverAdapter;
-    private final Solver solver;
-    private Optional<SimulatorAPI> simulatorAPI;
+    private final PDPRoadModel roadModel;
+    private final SimulationSolver solverAdapter;
+    private final Clock clock;
 
-    CentralModel(Solver solver) {
-      modelProvider = Optional.absent();
-      roadModel = Optional.absent();
-      solverAdapter = Optional.absent();
-      simulatorAPI = Optional.absent();
-      this.solver = solver;
+    CentralModel(Clock c, PDPRoadModel rm, PDPModel pm, Solver solver) {
+      clock = c;
+      roadModel = rm;
+      solverAdapter = Solvers.solverBuilder(solver)
+        // .with(modelProvider.get())
+        .with(rm)
+        .with(pm)
+        .with(clock)
+        .build();
     }
 
     @Override
@@ -168,7 +178,7 @@ public final class Central {
         // TODO it must be checked whether the calculated routes end up in the
         // correct vehicles
 
-        final Set<RouteFollowingVehicle> vehicles = roadModel.get()
+        final Set<RouteFollowingVehicle> vehicles = roadModel
           .getObjectsOfType(RouteFollowingVehicle.class);
 
         // gather current routes
@@ -181,7 +191,6 @@ public final class Central {
         }
 
         final Iterator<Queue<DefaultParcel>> routes = solverAdapter
-          .get()
           .solve(
             SolveArgs.create().useAllParcels()
               .useCurrentRoutes(currentRouteBuilder.build())).iterator();
@@ -194,26 +203,5 @@ public final class Central {
 
     @Override
     public void afterTick(TimeLapse timeLapse) {}
-
-    @Override
-    public void registerModelProvider(ModelProvider mp) {
-      modelProvider = Optional.of(mp);
-      roadModel = Optional.fromNullable(mp.getModel(PDPRoadModel.class));
-      initSolver();
-    }
-
-    @Override
-    public void setSimulator(SimulatorAPI api) {
-      simulatorAPI = Optional.of(api);
-      initSolver();
-    }
-
-    void initSolver() {
-      if (modelProvider.isPresent() && simulatorAPI.isPresent()) {
-
-        solverAdapter = Optional.of(Solvers.solverBuilder(solver)
-          .with(modelProvider.get()).with(simulatorAPI.get()).build());
-      }
-    }
   }
 }

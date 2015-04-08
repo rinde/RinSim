@@ -32,7 +32,10 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 
-import com.google.common.base.Supplier;
+import com.github.rinde.rinsim.core.model.FakeDependencyProvider;
+import com.github.rinde.rinsim.core.model.time.Clock.ClockEventType;
+import com.github.rinde.rinsim.event.ListenerEventHistory;
+import com.github.rinde.rinsim.testutil.TestUtil;
 
 /**
  * @author Rinde van Lon
@@ -40,14 +43,14 @@ import com.google.common.base.Supplier;
  */
 @RunWith(Parameterized.class)
 public class TimeModelTest {
-  final Supplier<TimeModel> modelSupplier;
+  final TimeModel.Builder modelSupplier;
   TimeModel model;
 
   /**
    * @param sup The supplier to use for creating model instances.
    */
   @SuppressWarnings("null")
-  public TimeModelTest(Supplier<TimeModel> sup) {
+  public TimeModelTest(TimeModel.Builder sup) {
     modelSupplier = sup;
   }
 
@@ -56,7 +59,8 @@ public class TimeModelTest {
    */
   @Before
   public void setUp() {
-    model = modelSupplier.get();
+    TestUtil.testEnum(ClockEventType.class);
+    model = modelSupplier.build(FakeDependencyProvider.empty());
   }
 
   /**
@@ -65,8 +69,8 @@ public class TimeModelTest {
   @Parameters
   public static Collection<Object[]> data() {
     return asList(new Object[][] {
-        { TimeModel.defaultSupplier() },
-        { TimeModel.supplier(333, NonSI.HOUR) }
+        { TimeModel.builder() },
+        { TimeModel.builder().setTickLength(333L).setTimeUnit(NonSI.HOUR) }
     });
   }
 
@@ -145,12 +149,23 @@ public class TimeModelTest {
   @Test
   public void testStartStop() {
     final LimitingTickListener ltl = new LimitingTickListener(model, 3);
+    final ListenerEventHistory leh = new ListenerEventHistory();
+
+    model.getEventAPI().addListener(leh, ClockEventType.values());
     model.register(ltl);
     model.start();
     assertEquals(3 * model.getTimeStep(), model.getCurrentTime());
 
     model.start();
     assertEquals(6 * model.getTimeStep(), model.getCurrentTime());
+
+    assertThat(leh.getEventTypeHistory()).isEqualTo(
+      asList(
+        ClockEventType.STARTED,
+        ClockEventType.STOPPED,
+        ClockEventType.STARTED,
+        ClockEventType.STOPPED)
+      );
   }
 
   /**

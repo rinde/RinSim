@@ -19,6 +19,7 @@ import java.io.File;
 import java.io.IOException;
 
 import com.github.rinde.rinsim.core.Simulator;
+import com.github.rinde.rinsim.core.model.ModelBuilder;
 import com.github.rinde.rinsim.core.model.pdp.PDPModel;
 import com.github.rinde.rinsim.core.model.pdp.PDPModel.ParcelState;
 import com.github.rinde.rinsim.core.model.road.RoadModel;
@@ -35,6 +36,7 @@ import com.github.rinde.rinsim.scenario.fabrirecht.FabriRechtParser;
 import com.github.rinde.rinsim.scenario.fabrirecht.FabriRechtScenario;
 import com.google.common.base.Charsets;
 import com.google.common.base.Predicate;
+import com.google.common.collect.ImmutableList;
 import com.google.common.io.Files;
 
 /**
@@ -57,7 +59,8 @@ public final class FabriRechtExample {
 
     // instantiate the problem using the scenario and a random seed (which
     // will not be used in this example)
-    final DynamicPDPTWProblem problem = new DynamicPDPTWProblem(scenario, 123);
+    final DynamicPDPTWProblem problem = new DynamicPDPTWProblem(scenario, 123,
+      ImmutableList.<ModelBuilder<?, ?>> of());
 
     // we plug our custom vehicle in by specifying a creator
     problem.addCreator(AddVehicleEvent.class, new Creator<AddVehicleEvent>() {

@@ -18,7 +18,6 @@ package com.github.rinde.rinsim.core.model.pdp;
 import java.util.Collection;
 import java.util.Set;
 
-import com.github.rinde.rinsim.core.model.ModelProvider;
 import com.github.rinde.rinsim.core.model.time.TimeLapse;
 import com.github.rinde.rinsim.event.EventAPI;
 import com.google.common.collect.ImmutableSet;
@@ -28,7 +27,7 @@ import com.google.common.collect.ImmutableSet;
  * {@link PDPModel}. Subclasses should override one or more methods to modify
  * the behavior of the backing model as desired per the <a
  * href="http://en.wikipedia.org/wiki/Decorator_pattern">decorator pattern</a>.
- * @author Rinde van Lon 
+ * @author Rinde van Lon
  */
 public class ForwardingPDPModel extends PDPModel {
   /**
@@ -158,13 +157,12 @@ public class ForwardingPDPModel extends PDPModel {
   }
 
   @Override
-  public void registerModelProvider(ModelProvider mp) {
-    delegate.registerModelProvider(mp);
+  public void drop(Vehicle vehicle, Parcel parcel, TimeLapse time) {
+    delegate.drop(vehicle, parcel, time);
   }
 
   @Override
-  public void drop(Vehicle vehicle, Parcel parcel, TimeLapse time) {
-    delegate.drop(vehicle, parcel, time);
-
+  public <U> U get(Class<U> type) {
+    return delegate.get(type);
   }
 }

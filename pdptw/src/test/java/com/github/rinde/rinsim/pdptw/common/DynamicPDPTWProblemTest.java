@@ -21,7 +21,6 @@ import static org.junit.Assert.assertEquals;
 import java.util.HashSet;
 import java.util.List;
 
-import javax.measure.Measure;
 import javax.measure.quantity.Duration;
 import javax.measure.quantity.Length;
 import javax.measure.quantity.Velocity;
@@ -32,7 +31,7 @@ import javax.measure.unit.Unit;
 import org.junit.Test;
 
 import com.github.rinde.rinsim.core.Simulator;
-import com.github.rinde.rinsim.core.model.Model;
+import com.github.rinde.rinsim.core.model.ModelBuilder;
 import com.github.rinde.rinsim.core.model.pdp.DefaultPDPModel;
 import com.github.rinde.rinsim.core.model.pdp.PDPScenarioEvent;
 import com.github.rinde.rinsim.core.model.pdp.TimeWindowPolicy.TimeWindowPolicies;
@@ -45,12 +44,11 @@ import com.github.rinde.rinsim.scenario.Scenario;
 import com.github.rinde.rinsim.scenario.TimedEvent;
 import com.github.rinde.rinsim.util.TimeWindow;
 import com.google.common.base.Predicate;
-import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableList;
 
 /**
  * @author Rinde van Lon
- * 
+ *
  */
 public class DynamicPDPTWProblemTest {
 
@@ -67,16 +65,17 @@ public class DynamicPDPTWProblemTest {
   @Test(expected = IllegalStateException.class)
   public void noVehicleCreator() {
     final List<TimedEvent> events = asList(new TimedEvent(
-        PDPScenarioEvent.ADD_DEPOT, 10));
-    new DynamicPDPTWProblem(new DummyScenario(events), 123).simulate();
+      PDPScenarioEvent.ADD_DEPOT, 10));
+    new DynamicPDPTWProblem(new DummyScenario(events), 123,
+      ImmutableList.<ModelBuilder<?, ?>> of()).simulate();
   }
 
   @Test
   public void testStopCondition() {
     final List<TimedEvent> events = asList(new TimedEvent(
-        PDPScenarioEvent.ADD_DEPOT, 10));
+      PDPScenarioEvent.ADD_DEPOT, 10));
     final DynamicPDPTWProblem prob = new DynamicPDPTWProblem(new DummyScenario(
-        events), 123);
+      events), 123, ImmutableList.<ModelBuilder<?, ?>> of());
     prob.addCreator(AddVehicleEvent.class, DUMMY_ADD_VEHICLE_EVENT_CREATOR);
 
     prob.addStopCondition(new TimeStopCondition(4));
@@ -102,7 +101,7 @@ public class DynamicPDPTWProblemTest {
 
     public DummyScenario(List<TimedEvent> events) {
       super(events, new HashSet<Enum<?>>(
-          java.util.Arrays.asList(PDPScenarioEvent.values())));
+        java.util.Arrays.asList(PDPScenarioEvent.values())));
     }
 
     @Override
@@ -121,12 +120,21 @@ public class DynamicPDPTWProblemTest {
     }
 
     @Override
-    public ImmutableList<? extends Supplier<? extends Model<?>>> getModelSuppliers() {
-      return ImmutableList.<Supplier<? extends Model<?>>> builder()
-          .add(PlaneRoadModel.supplier(new Point(0, 0), new Point(10, 10),
-              SI.KILOMETER, Measure.valueOf(1d, NonSI.KILOMETERS_PER_HOUR)))
-          .add(DefaultPDPModel.supplier(TimeWindowPolicies.TARDY_ALLOWED))
-          .build();
+    public ImmutableList<? extends ModelBuilder<?, ?>> getModelBuilders() {
+      return ImmutableList.<ModelBuilder<?, ?>> builder()
+        .add(
+          PlaneRoadModel.builder()
+            .setMinPoint(new Point(0, 0))
+            .setMaxPoint(new Point(10, 10))
+            .setDistanceUnit(SI.KILOMETER)
+            .setMaxSpeed(1d)
+            .setSpeedUnit(NonSI.KILOMETERS_PER_HOUR)
+        )
+        .add(
+          DefaultPDPModel.builder()
+            .setTimeWindowPolicy(TimeWindowPolicies.TARDY_ALLOWED)
+        )
+        .build();
     }
 
     @Override

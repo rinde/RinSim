@@ -30,7 +30,10 @@ import javax.measure.unit.Unit;
 import org.apache.commons.math3.random.RandomGenerator;
 
 import com.github.rinde.rinsim.core.model.Model;
+import com.github.rinde.rinsim.core.model.ModelBuilder;
 import com.github.rinde.rinsim.core.model.pdp.PDPScenarioEvent;
+import com.github.rinde.rinsim.core.model.road.ForwardingRoadModel;
+import com.github.rinde.rinsim.core.model.road.PlaneRoadModel;
 import com.github.rinde.rinsim.core.model.road.RoadModel;
 import com.github.rinde.rinsim.core.model.road.RoadModels;
 import com.github.rinde.rinsim.geom.Point;
@@ -41,12 +44,10 @@ import com.github.rinde.rinsim.scenario.Scenario.AbstractBuilder;
 import com.github.rinde.rinsim.scenario.Scenario.ProblemClass;
 import com.github.rinde.rinsim.scenario.TimedEvent;
 import com.github.rinde.rinsim.scenario.generator.Depots.DepotGenerator;
-import com.github.rinde.rinsim.scenario.generator.Models.ModelSupplierScenGen;
 import com.github.rinde.rinsim.scenario.generator.Parcels.ParcelGenerator;
 import com.github.rinde.rinsim.scenario.generator.Vehicles.VehicleGenerator;
 import com.github.rinde.rinsim.util.TimeWindow;
 import com.google.common.base.Optional;
-import com.google.common.base.Supplier;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 
@@ -59,7 +60,7 @@ public final class ScenarioGenerator {
 
   // global properties
   final Builder builder;
-  final ImmutableList<Supplier<? extends Model<?>>> modelSuppliers;
+  final ImmutableList<ModelBuilder<?, ?>> modelSuppliers;
 
   private final ParcelGenerator parcelGenerator;
   private final VehicleGenerator vehicleGenerator;
@@ -71,20 +72,33 @@ public final class ScenarioGenerator {
     vehicleGenerator = b.vehicleGenerator;
     depotGenerator = b.depotGenerator;
 
-    boolean containsRoadModelSupplier = false;
-    final ImmutableList.Builder<Supplier<? extends Model<?>>> modelsBuilder = ImmutableList
-        .builder();
-    for (final ModelSupplierScenGen<?> sup : builder.modelSuppliers) {
-      final Supplier<? extends Model<?>> modelSupplier = sup.get(this);
-      if (modelSupplier.get() instanceof RoadModel) {
-        containsRoadModelSupplier = true;
+    modelSuppliers = ImmutableList.copyOf(builder.modelSuppliers);
+
+    boolean foundRoadModel = false;
+    for (final ModelBuilder<?, ?> mb : modelSuppliers) {
+
+      if (RoadModel.class.isAssignableFrom(mb.getModelType())) {
+        checkArgument(!foundRoadModel,
+          "Already found a RoadModel, only one RoadModel is allowed.");
+        foundRoadModel = true;
+        final PlaneRoadModel.Builder planeBuilder;
+        if (mb instanceof ForwardingRoadModel.Builder) {
+          ModelBuilder<?, ?> delegate = ((ForwardingRoadModel.Builder<?, ?>) mb)
+            .getDelegateModelBuilder();
+
+          checkArgument(delegate instanceof PlaneRoadModel.Builder);
+          planeBuilder = (PlaneRoadModel.Builder) delegate;
+        } else {
+          checkArgument(mb instanceof PlaneRoadModel.Builder);
+          planeBuilder = (PlaneRoadModel.Builder) mb;
+        }
+        planeBuilder.setMinPoint(getMin())
+          .setMaxPoint(getMax())
+          .setDistanceUnit(getDistanceUnit())
+          .setSpeedUnit(getSpeedUnit());
       }
-      modelsBuilder.add(modelSupplier);
     }
-    modelSuppliers = modelsBuilder.build();
-    checkArgument(containsRoadModelSupplier,
-        "A supplier of a RoadModel is mandatory. Found suppliers: %s.",
-        modelSuppliers);
+    checkArgument(foundRoadModel, "At least one RoadModel must be specified.");
   }
 
   /**
@@ -154,31 +168,31 @@ public final class ScenarioGenerator {
     final ImmutableList.Builder<TimedEvent> b = ImmutableList.builder();
     // depots
     final Iterable<? extends AddDepotEvent> depots = depotGenerator.generate(
-        rng.nextLong(), parcelGenerator.getCenter());
+      rng.nextLong(), parcelGenerator.getCenter());
     b.addAll(depots);
 
     // vehicles
     final ImmutableList<AddVehicleEvent> vehicles = vehicleGenerator.generate(
-        rng.nextLong(), parcelGenerator.getCenter(),
-        builder.getTimeWindow().end);
+      rng.nextLong(), parcelGenerator.getCenter(),
+      builder.getTimeWindow().end);
     b.addAll(vehicles);
 
     final TravelTimes tm = createTravelTimes(modelSuppliers, getTimeUnit(),
-        depots, vehicles);
+      depots, vehicles);
 
     // parcels
     b.addAll(parcelGenerator.generate(rng.nextLong(), tm,
-        builder.getTimeWindow().end));
+      builder.getTimeWindow().end));
 
     // time out
     b.add(new TimedEvent(PDPScenarioEvent.TIME_OUT, builder.getTimeWindow().end));
 
     // create
     return Scenario.builder(builder, builder.problemClass)
-        .addModels(modelSuppliers)
-        .addEvents(b.build())
-        .instanceId(id)
-        .build();
+      .addModels(modelSuppliers)
+      .addEvents(b.build())
+      .instanceId(id)
+      .build();
   }
 
   /**
@@ -205,43 +219,42 @@ public final class ScenarioGenerator {
    * @param s The scenario.
    * @return The travel times.
    */
+  @SuppressWarnings("null")
   public static TravelTimes createTravelTimes(Scenario s) {
     final Iterable<AddDepotEvent> depots = FluentIterable.from(s.asList())
-        .filter(AddDepotEvent.class);
+      .filter(AddDepotEvent.class);
     final Iterable<AddVehicleEvent> vehicles = FluentIterable.from(s.asList())
-        .filter(AddVehicleEvent.class);
+      .filter(AddVehicleEvent.class);
 
     final List<RoadModel> roadModels = newArrayList();
-    for (final Supplier<? extends Model<?>> sup : s.getModelSuppliers()) {
-      final Model<?> m = sup.get();
-      if (m instanceof RoadModel) {
-        roadModels.add((RoadModel) m);
+    for (final ModelBuilder<?, ?> mb : s.getModelBuilders()) {
+      if (RoadModel.class.isAssignableFrom(mb.getModelType())) {
+        roadModels.add((RoadModel) mb.build(null));
       }
     }
     checkArgument(roadModels.size() == 1);
     return new DefaultTravelTimes(roadModels.get(0), s.getTimeUnit(),
-        depots, vehicles);
+      depots, vehicles);
   }
 
   static TravelTimes createTravelTimes(
-      Iterable<? extends Supplier<? extends Model<?>>> modelSuppliers,
-      Unit<Duration> tu,
-      Iterable<? extends AddDepotEvent> depots,
-      Iterable<? extends AddVehicleEvent> vehicles) {
+    Iterable<? extends ModelBuilder<?, ?>> modelSuppliers,
+    Unit<Duration> tu,
+    Iterable<? extends AddDepotEvent> depots,
+    Iterable<? extends AddVehicleEvent> vehicles) {
     final RoadModel rm = getRm(modelSuppliers);
     return new DefaultTravelTimes(rm, tu, depots, vehicles);
   }
 
-  static RoadModel getRm(
-      Iterable<? extends Supplier<? extends Model<?>>> modelSuppliers) {
-    for (final Supplier<?> sup : modelSuppliers) {
-      final Object v = sup.get();
-      if (v instanceof RoadModel) {
-        return (RoadModel) v;
+  @SuppressWarnings("null")
+  static RoadModel getRm(Iterable<? extends ModelBuilder<?, ?>> modelSuppliers) {
+    for (final ModelBuilder<?, ?> sup : modelSuppliers) {
+      if (RoadModel.class.isAssignableFrom(sup.getModelType())) {
+        return (RoadModel) sup.build(null);
       }
     }
     throw new IllegalArgumentException("There is no RoadModel supplier in "
-        + modelSuppliers + ".");
+      + modelSuppliers + ".");
   }
 
   /**
@@ -250,16 +263,16 @@ public final class ScenarioGenerator {
    */
   public static class Builder extends AbstractBuilder<Builder> {
     static final ParcelGenerator DEFAULT_PARCEL_GENERATOR = Parcels.builder()
-        .build();
+      .build();
     static final VehicleGenerator DEFAULT_VEHICLE_GENERATOR = Vehicles
-        .builder().build();
+      .builder().build();
     static final DepotGenerator DEFAULT_DEPOT_GENERATOR = Depots
-        .singleCenteredDepot();
+      .singleCenteredDepot();
 
     ParcelGenerator parcelGenerator;
     VehicleGenerator vehicleGenerator;
     DepotGenerator depotGenerator;
-    final List<ModelSupplierScenGen<?>> modelSuppliers;
+    final List<ModelBuilder<?, ?>> modelSuppliers;
     final ProblemClass problemClass;
 
     Builder(ProblemClass pc) {
@@ -319,14 +332,14 @@ public final class ScenarioGenerator {
     }
 
     /**
-     * Add a supplier of a {@link Model}. The provided supplier will use default
+     * Add a builder of a {@link Model}. The provided buil will use default
      * values provided by the {@link ScenarioGenerator} instance which is
      * currently being constructed. For most models implementations are
      * available in {@link Models}.
      * @param modelSup The supplier to add.
      * @return This, as per the builder pattern.
      */
-    public Builder addModel(ModelSupplierScenGen<?> modelSup) {
+    public Builder addModel(ModelBuilder<?, ?> modelSup) {
       modelSuppliers.add(modelSup);
       return this;
     }
@@ -336,10 +349,10 @@ public final class ScenarioGenerator {
      * @param modelSup The supplier to add.
      * @return This, as per the builder pattern.
      */
-    public Builder addModel(Supplier<? extends Model<?>> modelSup) {
-      modelSuppliers.add(Models.adapt(modelSup));
-      return this;
-    }
+    // public Builder addModel(Supplier<? extends Model<?>> modelSup) {
+    // modelSuppliers.add(Models.adapt(modelSup));
+    // return this;
+    // }
 
     /**
      * @return Constructs a new {@link ScenarioGenerator} instance based on this
@@ -381,8 +394,8 @@ public final class ScenarioGenerator {
     private final ImmutableList<Point> depotLocations;
 
     DefaultTravelTimes(RoadModel rm, Unit<Duration> tu,
-        Iterable<? extends AddDepotEvent> depots,
-        Iterable<? extends AddVehicleEvent> vehicles) {
+      Iterable<? extends AddDepotEvent> depots,
+      Iterable<? extends AddVehicleEvent> vehicles) {
       roadModel = rm;
 
       double max = 0;
@@ -403,16 +416,16 @@ public final class ScenarioGenerator {
     @Override
     public long getShortestTravelTime(Point from, Point to) {
       final Iterator<Point> path = roadModel.getShortestPathTo(from, to)
-          .iterator();
+        .iterator();
 
       long travelTime = 0L;
       final Point prev = path.next();
       while (path.hasNext()) {
         final Point cur = path.next();
         final Measure<Double, Length> distance = Measure.valueOf(
-            Point.distance(prev, cur), roadModel.getDistanceUnit());
+          Point.distance(prev, cur), roadModel.getDistanceUnit());
         travelTime += RoadModels.computeTravelTime(vehicleSpeed, distance,
-            timeUnit);
+          timeUnit);
       }
       return travelTime;
     }

@@ -15,26 +15,25 @@
  */
 package com.github.rinde.rinsim.experiment;
 
-import com.github.rinde.rinsim.core.model.Model;
+import com.github.rinde.rinsim.core.model.ModelBuilder;
 import com.github.rinde.rinsim.pdptw.common.DynamicPDPTWProblem.Creator;
 import com.github.rinde.rinsim.scenario.AddDepotEvent;
 import com.github.rinde.rinsim.scenario.AddParcelEvent;
 import com.github.rinde.rinsim.scenario.AddVehicleEvent;
-import com.github.rinde.rinsim.util.StochasticSupplier;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 
 /**
  * This represents a configuration of a multi-agent system in a simulation.
  * Implementations should always be immutable.
- * @author Rinde van Lon 
+ * @author Rinde van Lon
  */
 public interface MASConfiguration {
 
   /**
-   * @return A possibly empty list of model suppliers.
+   * @return A possibly empty list of model builders.
    */
-  ImmutableList<? extends StochasticSupplier<? extends Model<?>>> getModels();
+  ImmutableList<? extends ModelBuilder<?, ?>> getModels();
 
   /**
    * @return A creator that creates vehicle agents.

@@ -37,13 +37,13 @@ import javax.measure.unit.Unit;
 
 import com.github.rinde.rinsim.core.Simulator;
 import com.github.rinde.rinsim.core.model.Model;
+import com.github.rinde.rinsim.core.model.ModelBuilder;
 import com.github.rinde.rinsim.scenario.TimedEvent.TimeComparator;
 import com.github.rinde.rinsim.util.TimeWindow;
 import com.google.common.base.Objects;
 import com.google.common.base.Optional;
 import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
-import com.google.common.base.Supplier;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
@@ -53,15 +53,15 @@ import com.google.common.collect.ImmutableSet;
  * Scenario is an unmodifiable list of events sorted by the time stamp. To
  * obtain an instance there are a number of builder methods available such as
  * {@link #builder()}.
- * @author Rinde van Lon 
- * @author Bartosz Michalik 
+ * @author Rinde van Lon
+ * @author Bartosz Michalik
  */
 public abstract class Scenario {
   /**
    * The default {@link ProblemClass}.
    */
   public static final ProblemClass DEFAULT_PROBLEM_CLASS = new SimpleProblemClass(
-      "DEFAULT");
+    "DEFAULT");
   private final ImmutableList<TimedEvent> events;
   private final ImmutableSet<Enum<?>> supportedTypes;
 
@@ -138,10 +138,10 @@ public abstract class Scenario {
   }
 
   /**
-   * @return Should return a list of newly created {@link Model}s which will be
-   *         used for simulating this scenario.
+   * @return Should return a list of {@link ModelBuilder}s which will be used
+   *         for creating the models for this scenario.
    */
-  public abstract ImmutableList<? extends Supplier<? extends Model<?>>> getModelSuppliers();
+  public abstract ImmutableList<? extends ModelBuilder<?, ?>> getModelBuilders();
 
   /**
    * @return The {@link TimeWindow} of the scenario indicates the start and end
@@ -192,7 +192,7 @@ public abstract class Scenario {
    * @return A set of event types.
    */
   protected static ImmutableSet<Enum<?>> collectEventTypes(
-      Collection<? extends TimedEvent> pEvents) {
+    Collection<? extends TimedEvent> pEvents) {
     final Set<Enum<?>> types = newLinkedHashSet();
     for (final TimedEvent te : pEvents) {
       types.add(te.getEventType());
@@ -234,13 +234,13 @@ public abstract class Scenario {
    * @return The newly constructed {@link Builder}.
    */
   public static Builder builder(AbstractBuilder<?> base,
-      ProblemClass problemClass) {
+    ProblemClass problemClass) {
     return new Builder(Optional.<AbstractBuilder<?>> of(base), problemClass);
   }
 
   /**
    * Represents a class of scenarios.
-   * @author Rinde van Lon 
+   * @author Rinde van Lon
    */
   public interface ProblemClass {
     /**
@@ -251,7 +251,7 @@ public abstract class Scenario {
 
   /**
    * String based implementation of {@link ProblemClass}.
-   * @author Rinde van Lon 
+   * @author Rinde van Lon
    */
   public static final class SimpleProblemClass implements ProblemClass {
     private final String id;
@@ -290,12 +290,12 @@ public abstract class Scenario {
 
   /**
    * A builder for constructing {@link Scenario} instances.
-   * @author Rinde van Lon 
+   * @author Rinde van Lon
    */
   public static class Builder extends AbstractBuilder<Builder> {
     final List<TimedEvent> eventList;
     final Set<Enum<?>> eventTypeSet;
-    final ImmutableList.Builder<Supplier<? extends Model<?>>> modelSuppliers;
+    final ImmutableList.Builder<ModelBuilder<?, ?>> modelBuilders;
     ProblemClass problemClass;
     String instanceId;
 
@@ -309,7 +309,7 @@ public abstract class Scenario {
       instanceId = "";
       eventList = newArrayList();
       eventTypeSet = newLinkedHashSet();
-      modelSuppliers = ImmutableList.builder();
+      modelBuilders = ImmutableList.builder();
     }
 
     /**
@@ -377,36 +377,35 @@ public abstract class Scenario {
     }
 
     /**
-     * Adds the model supplier. The suppliers will be used to instantiate
+     * Adds the model builder. The builders will be used to instantiate
      * {@link Model}s needed for the scenario.
-     * @param modelSupplier The model supplier to add.
+     * @param modelBuilder The model builder to add.
      * @return This, as per the builder pattern.
      */
-    public Builder addModel(Supplier<? extends Model<?>> modelSupplier) {
-      modelSuppliers.add(modelSupplier);
+    public Builder addModel(ModelBuilder<?, ?> modelBuilder) {
+      modelBuilders.add(modelBuilder);
       return self();
     }
 
     /**
-     * Adds the model suppliers. The suppliers will be used to instantiate
+     * Adds the model builders. The builders will be used to instantiate
      * {@link Model}s needed for the scenario.
-     * @param suppliers The model suppliers to add.
+     * @param builders The model builders to add.
      * @return This, as per the builder pattern.
      */
-    public Builder addModels(
-        Iterable<? extends Supplier<? extends Model<?>>> suppliers) {
-      modelSuppliers.addAll(suppliers);
+    public Builder addModels(Iterable<? extends ModelBuilder<?, ?>> builders) {
+      modelBuilders.addAll(builders);
       return self();
     }
 
     @Override
     public Builder copyProperties(Scenario scenario) {
       return super.copyProperties(scenario)
-          .addEvents(scenario.asList())
-          .addEventTypes(scenario.getPossibleEventTypes())
-          .problemClass(scenario.getProblemClass())
-          .instanceId(scenario.getProblemInstanceId())
-          .addModels(scenario.getModelSuppliers());
+        .addEvents(scenario.asList())
+        .addEventTypes(scenario.getPossibleEventTypes())
+        .problemClass(scenario.getProblemClass())
+        .instanceId(scenario.getProblemInstanceId())
+        .addModels(scenario.getModelBuilders());
     }
 
     /**
@@ -447,21 +446,21 @@ public abstract class Scenario {
      * @return This, as per the builder pattern.
      */
     public Builder ensureFrequency(Predicate<? super TimedEvent> filter,
-        int frequency) {
+      int frequency) {
       checkArgument(frequency >= 0, "Frequency must be >= 0.");
       checkState(!eventList.isEmpty(), "Event list is empty.");
       final FluentIterable<TimedEvent> filtered = FluentIterable
-          .from(eventList)
-          .filter(filter);
+        .from(eventList)
+        .filter(filter);
       checkArgument(
-          !filtered.isEmpty(),
-          "The specified filter did not match any event in the event list (size %s), filter: %s.",
-          eventList.size(), filter);
+        !filtered.isEmpty(),
+        "The specified filter did not match any event in the event list (size %s), filter: %s.",
+        eventList.size(), filter);
       final Set<TimedEvent> set = filtered.toSet();
       checkArgument(
-          set.size() == 1,
-          "The specified filter matches multiple non-equal events, all matches must be equal. Events: %s. Filter: %s.",
-          set, filter);
+        set.size() == 1,
+        "The specified filter matches multiple non-equal events, all matches must be equal. Events: %s. Filter: %s.",
+        set, filter);
 
       if (filtered.size() > frequency) {
         // limit
@@ -471,7 +470,7 @@ public abstract class Scenario {
       } else if (filtered.size() < frequency) {
         // grow
         eventList.addAll(Collections.nCopies(frequency - filtered.size(), set
-            .iterator().next()));
+          .iterator().next()));
       }
       return self();
     }
@@ -494,7 +493,7 @@ public abstract class Scenario {
       Collections.sort(list, TimeComparator.INSTANCE);
       eventTypeSet.addAll(collectEventTypes(list));
       return new DefaultScenario(this, ImmutableList.copyOf(list),
-          ImmutableSet.copyOf(eventTypeSet));
+        ImmutableSet.copyOf(eventTypeSet));
     }
 
     @Override
@@ -502,15 +501,15 @@ public abstract class Scenario {
       return this;
     }
 
-    ImmutableList<Supplier<? extends Model<?>>> getModelSuppliers() {
-      return modelSuppliers.build();
+    ImmutableList<? extends ModelBuilder<?, ?>> getModelBuilders() {
+      return modelBuilders.build();
     }
   }
 
   /**
    * Abstract builder of {@link Scenario} instances. Provides methods for
    * setting the basic properties of a scenario.
-   * 
+   *
    * @param <T> The type of concrete builder.
    * @author Rinde van Lon
    */
@@ -520,9 +519,9 @@ public abstract class Scenario {
     static final Unit<Duration> DEFAULT_TIME_UNIT = SI.MILLI(SI.SECOND);
     static final long DEFAULT_TICK_SIZE = 1000L;
     static final TimeWindow DEFAULT_TIME_WINDOW = new TimeWindow(0,
-        8 * 60 * 60 * 1000);
+      8 * 60 * 60 * 1000);
     static final Predicate<Simulator> DEFAULT_STOP_CONDITION = Predicates
-        .alwaysFalse();
+      .alwaysFalse();
 
     /**
      * Defines {@link Scenario#getDistanceUnit()}.
@@ -711,7 +710,7 @@ public abstract class Scenario {
   }
 
   static class DefaultScenario extends Scenario {
-    final ImmutableList<? extends Supplier<? extends Model<?>>> modelSuppliers;
+    final ImmutableList<? extends ModelBuilder<?, ?>> modelBuilders;
     private final Unit<Velocity> speedUnit;
     private final Unit<Length> distanceUnit;
     private final Unit<Duration> timeUnit;
@@ -722,10 +721,10 @@ public abstract class Scenario {
     private final String instanceId;
 
     DefaultScenario(Builder b, ImmutableList<TimedEvent> events,
-        ImmutableSet<Enum<?>> eventTypes) {
+      ImmutableSet<Enum<?>> eventTypes) {
       super(events, eventTypes.isEmpty() ? collectEventTypes(events)
-          : eventTypes);
-      modelSuppliers = b.getModelSuppliers();
+        : eventTypes);
+      modelBuilders = b.getModelBuilders();
       speedUnit = b.speedUnit;
       distanceUnit = b.distanceUnit;
       timeUnit = b.timeUnit;
@@ -767,8 +766,8 @@ public abstract class Scenario {
     }
 
     @Override
-    public ImmutableList<? extends Supplier<? extends Model<?>>> getModelSuppliers() {
-      return modelSuppliers;
+    public ImmutableList<? extends ModelBuilder<?, ?>> getModelBuilders() {
+      return modelBuilders;
     }
 
     @Override
@@ -791,22 +790,22 @@ public abstract class Scenario {
       }
       final DefaultScenario o = (DefaultScenario) other;
       return super.equals(o)
-          && Objects.equal(o.modelSuppliers, modelSuppliers)
-          && Objects.equal(o.speedUnit, speedUnit)
-          && Objects.equal(o.distanceUnit, distanceUnit)
-          && Objects.equal(o.timeUnit, timeUnit)
-          && Objects.equal(o.timeWindow, timeWindow)
-          && Objects.equal(o.tickSize, tickSize)
-          && Objects.equal(o.stopCondition, stopCondition)
-          && Objects.equal(o.problemClass, problemClass)
-          && Objects.equal(o.instanceId, instanceId);
+        && Objects.equal(o.modelBuilders, modelBuilders)
+        && Objects.equal(o.speedUnit, speedUnit)
+        && Objects.equal(o.distanceUnit, distanceUnit)
+        && Objects.equal(o.timeUnit, timeUnit)
+        && Objects.equal(o.timeWindow, timeWindow)
+        && Objects.equal(o.tickSize, tickSize)
+        && Objects.equal(o.stopCondition, stopCondition)
+        && Objects.equal(o.problemClass, problemClass)
+        && Objects.equal(o.instanceId, instanceId);
     }
 
     @Override
     public int hashCode() {
-      return Objects.hashCode(super.hashCode(), modelSuppliers, speedUnit,
-          distanceUnit, timeUnit, timeWindow, tickSize, stopCondition,
-          problemClass, instanceId);
+      return Objects.hashCode(super.hashCode(), modelBuilders, speedUnit,
+        distanceUnit, timeUnit, timeWindow, tickSize, stopCondition,
+        problemClass, instanceId);
     }
   }
 }

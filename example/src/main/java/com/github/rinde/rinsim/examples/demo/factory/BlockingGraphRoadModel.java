@@ -28,9 +28,11 @@ import javax.measure.quantity.Length;
 import javax.measure.quantity.Velocity;
 import javax.measure.unit.Unit;
 
+import com.github.rinde.rinsim.core.model.DependencyProvider;
 import com.github.rinde.rinsim.core.model.road.GraphRoadModel;
 import com.github.rinde.rinsim.core.model.road.MoveProgress;
 import com.github.rinde.rinsim.core.model.road.MovingRoadUser;
+import com.github.rinde.rinsim.core.model.road.RoadModel;
 import com.github.rinde.rinsim.core.model.time.TimeLapse;
 import com.github.rinde.rinsim.geom.Connection;
 import com.github.rinde.rinsim.geom.ConnectionData;
@@ -49,7 +51,7 @@ public class BlockingGraphRoadModel extends GraphRoadModel {
   Multimap<MovingRoadUser, Point> vehicleBlocks;
 
   BlockingGraphRoadModel(Graph<? extends ConnectionData> pGraph,
-      Unit<Length> distanceUnit, Unit<Velocity> speedUnit) {
+    Unit<Length> distanceUnit, Unit<Velocity> speedUnit) {
     super(pGraph, distanceUnit, speedUnit);
     blockedNodes = newLinkedHashSet();
     vehicleBlocks = LinkedHashMultimap.create();
@@ -57,7 +59,7 @@ public class BlockingGraphRoadModel extends GraphRoadModel {
 
   @Override
   protected MoveProgress doFollowPath(MovingRoadUser object, Queue<Point> path,
-      TimeLapse time) {
+    TimeLapse time) {
     blockedNodes.removeAll(vehicleBlocks.get(object));
     vehicleBlocks.removeAll(object);
 
@@ -72,7 +74,7 @@ public class BlockingGraphRoadModel extends GraphRoadModel {
     final MoveProgress mp;
     if (index >= 0) {
       final Queue<Point> newPath = index == -1 ? new LinkedList<Point>()
-          : newLinkedList(inputP.subList(0, index));
+        : newLinkedList(inputP.subList(0, index));
       final int originalSize = newPath.size();
       mp = super.doFollowPath(object, newPath, time);
       for (int i = 0; i < originalSize - newPath.size(); i++) {
@@ -92,5 +94,22 @@ public class BlockingGraphRoadModel extends GraphRoadModel {
       vehicleBlocks.put(object, getPosition(object));
     }
     return mp;
+  }
+
+  public static Builder builder() {
+    return new Builder();
+  }
+
+  static class Builder extends GraphRoadModel.Builder {
+
+    Builder() {
+      setProvidingTypes(RoadModel.class, GraphRoadModel.class,
+        BlockingGraphRoadModel.class);
+    }
+
+    @Override
+    public BlockingGraphRoadModel build(DependencyProvider dependencyProvider) {
+      return new BlockingGraphRoadModel(graph, distanceUnit, speedUnit);
+    }
   }
 }

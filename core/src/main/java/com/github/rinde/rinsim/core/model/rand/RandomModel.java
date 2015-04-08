@@ -24,9 +24,8 @@ import org.apache.commons.math3.random.MersenneTwister;
 import org.apache.commons.math3.random.RandomGenerator;
 
 import com.github.rinde.rinsim.core.model.DependencyProvider;
-import com.github.rinde.rinsim.core.model.Model;
-import com.github.rinde.rinsim.core.model.ModelBuilder;
 import com.github.rinde.rinsim.core.model.Model.AbstractModel;
+import com.github.rinde.rinsim.core.model.ModelBuilder;
 import com.github.rinde.rinsim.core.model.ModelBuilder.AbstractModelBuilder;
 import com.google.common.base.Supplier;
 
@@ -136,17 +135,19 @@ public class RandomModel extends AbstractModel<RandomUser> {
    * @param rng The generator to use.
    * @return A new supplier instance.
    */
-  public static ModelBuilder<RandomUser> builder(RandomGenerator rng) {
+  public static ModelBuilder<RandomModel, RandomUser> builder(
+    RandomGenerator rng) {
     return new RandomModelSupplier(rng);
   }
 
-  static class RandomModelSupplier extends AbstractModelBuilder<RandomUser>
+  static class RandomModelSupplier extends
+    AbstractModelBuilder<RandomModel, RandomUser>
     implements Supplier<RandomModel> {
     private final RandomGenerator r;
 
     RandomModelSupplier(RandomGenerator rng) {
-      super(RandomProvider.class);
       r = rng;
+      setProvidingTypes(RandomProvider.class);
     }
 
     @Override
@@ -155,7 +156,7 @@ public class RandomModel extends AbstractModel<RandomUser> {
     }
 
     @Override
-    public Model<RandomUser> build(DependencyProvider modelProvider) {
+    public RandomModel build(DependencyProvider modelProvider) {
       return new RandomModel(r);
     }
 

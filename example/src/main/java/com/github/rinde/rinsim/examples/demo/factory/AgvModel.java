@@ -27,12 +27,15 @@ import org.apache.commons.math3.random.RandomGenerator;
 
 import com.github.rinde.rinsim.core.SimulatorAPI;
 import com.github.rinde.rinsim.core.SimulatorUser;
+import com.github.rinde.rinsim.core.model.DependencyProvider;
+import com.github.rinde.rinsim.core.model.Model.AbstractModel;
+import com.github.rinde.rinsim.core.model.ModelBuilder.AbstractModelBuilder;
 import com.github.rinde.rinsim.core.model.ModelProvider;
 import com.github.rinde.rinsim.core.model.ModelReceiver;
-import com.github.rinde.rinsim.core.model.Model.AbstractModel;
 import com.github.rinde.rinsim.core.model.pdp.PDPModel;
 import com.github.rinde.rinsim.core.model.pdp.PDPModel.PDPModelEventType;
 import com.github.rinde.rinsim.core.model.pdp.PDPModelEvent;
+import com.github.rinde.rinsim.core.model.rand.RandomProvider;
 import com.github.rinde.rinsim.core.model.road.RoadModel;
 import com.github.rinde.rinsim.core.model.time.TickListener;
 import com.github.rinde.rinsim.core.model.time.TimeLapse;
@@ -196,6 +199,34 @@ class AgvModel extends AbstractModel<AGV> implements TickListener,
     BoxHandle(int i) {
       index = i;
       wordIndex = 0;
+    }
+  }
+
+  static Builder builder() {
+    return new Builder();
+  }
+
+  static class Builder extends AbstractModelBuilder<AgvModel, AGV> {
+
+    ImmutableList<ImmutableList<Point>> points;
+    ImmutableList<Point> border;
+
+    Builder() {
+      setDependencies(RandomProvider.class);
+    }
+
+    Builder setPoints(ImmutableList<ImmutableList<Point>> ps,
+      ImmutableList<Point> b) {
+      points = ps;
+      border = b;
+      return this;
+    }
+
+    @Override
+    public AgvModel build(DependencyProvider dependencyProvider) {
+      final RandomGenerator rng = dependencyProvider.get(RandomProvider.class)
+        .newInstance();
+      return new AgvModel(rng, points, border);
     }
   }
 }

@@ -18,7 +18,6 @@ package com.github.rinde.rinsim.scenario.fabrirecht;
 import java.util.List;
 import java.util.Set;
 
-import javax.measure.Measure;
 import javax.measure.quantity.Duration;
 import javax.measure.quantity.Length;
 import javax.measure.quantity.Velocity;
@@ -26,7 +25,8 @@ import javax.measure.unit.NonSI;
 import javax.measure.unit.SI;
 import javax.measure.unit.Unit;
 
-import com.github.rinde.rinsim.core.model.Model;
+import com.github.rinde.rinsim.core.model.ModelBuilder;
+import com.github.rinde.rinsim.core.model.pdp.DefaultPDPModel;
 import com.github.rinde.rinsim.core.model.pdp.TimeWindowPolicy.TimeWindowPolicies;
 import com.github.rinde.rinsim.core.model.road.PlaneRoadModel;
 import com.github.rinde.rinsim.core.pdptw.VehicleDTO;
@@ -34,9 +34,7 @@ import com.github.rinde.rinsim.geom.Point;
 import com.github.rinde.rinsim.pdptw.common.DynamicPDPTWProblem.StopConditions;
 import com.github.rinde.rinsim.scenario.Scenario;
 import com.github.rinde.rinsim.scenario.TimedEvent;
-import com.github.rinde.rinsim.scenario.generator.Models;
 import com.github.rinde.rinsim.util.TimeWindow;
-import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableList;
 
 /**
@@ -62,7 +60,7 @@ public class FabriRechtScenario extends Scenario {
   public final VehicleDTO defaultVehicle;
 
   FabriRechtScenario(Point pMin, Point pMax, TimeWindow pTimeWindow,
-      VehicleDTO pDefaultVehicle) {
+    VehicleDTO pDefaultVehicle) {
     super();
     min = pMin;
     max = pMax;
@@ -80,8 +78,8 @@ public class FabriRechtScenario extends Scenario {
    * @param pDefaultVehicle {@link #defaultVehicle}.
    */
   public FabriRechtScenario(List<? extends TimedEvent> pEvents,
-      Set<Enum<?>> pSupportedTypes, Point pMin, Point pMax,
-      TimeWindow pTimeWindow, VehicleDTO pDefaultVehicle) {
+    Set<Enum<?>> pSupportedTypes, Point pMin, Point pMax,
+    TimeWindow pTimeWindow, VehicleDTO pDefaultVehicle) {
     super(pEvents, pSupportedTypes);
     min = pMin;
     max = pMax;
@@ -105,12 +103,21 @@ public class FabriRechtScenario extends Scenario {
   }
 
   @Override
-  public ImmutableList<? extends Supplier<? extends Model<?>>> getModelSuppliers() {
-    return ImmutableList.<Supplier<? extends Model<?>>> builder()
-        .add(PlaneRoadModel.supplier(min, max, getDistanceUnit(),
-            Measure.valueOf(100d, getSpeedUnit())))
-        .add(Models.pdpModel(TimeWindowPolicies.TARDY_ALLOWED))
-        .build();
+  public ImmutableList<? extends ModelBuilder<?, ?>> getModelBuilders() {
+    return ImmutableList.<ModelBuilder<?, ?>> builder()
+      .add(
+        PlaneRoadModel.builder()
+          .setMinPoint(min)
+          .setMaxPoint(max)
+          .setDistanceUnit(getDistanceUnit())
+          .setMaxSpeed(100d)
+          .setSpeedUnit(getSpeedUnit())
+      )
+      .add(
+        DefaultPDPModel.builder()
+          .setTimeWindowPolicy(TimeWindowPolicies.TARDY_ALLOWED)
+      )
+      .build();
   }
 
   @Override

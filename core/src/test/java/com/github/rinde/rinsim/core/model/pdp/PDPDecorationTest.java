@@ -17,20 +17,19 @@ package com.github.rinde.rinsim.core.model.pdp;
 
 import static junit.framework.Assert.assertTrue;
 import static org.junit.Assert.assertSame;
+import static org.mockito.Mockito.mock;
 
 import org.junit.Test;
 
-import com.github.rinde.rinsim.core.model.pdp.DefaultPDPModel;
-import com.github.rinde.rinsim.core.model.pdp.Depot;
-import com.github.rinde.rinsim.core.model.pdp.ForwardingPDPModel;
-import com.github.rinde.rinsim.core.model.pdp.PDPModel;
+import com.github.rinde.rinsim.core.model.DependencyProvider;
 import com.github.rinde.rinsim.core.model.road.RoadModel;
 
 public class PDPDecorationTest {
 
   @Test
   public void decoration() {
-    final PDPModel defaultPDPModel = new DefaultPDPModel();
+    final PDPModel defaultPDPModel = DefaultPDPModel.builder()
+      .build(mock(DependencyProvider.class));
     assertSame(defaultPDPModel, defaultPDPModel.self);
 
     final PDPModel forwardA = new ForwardingA(defaultPDPModel);
@@ -52,7 +51,8 @@ public class PDPDecorationTest {
   @SuppressWarnings("unused")
   @Test
   public void decorationFail() {
-    final PDPModel defaultPDPModel = new DefaultPDPModel();
+    final PDPModel defaultPDPModel = DefaultPDPModel.builder()
+      .build(mock(DependencyProvider.class));
     assertSame(defaultPDPModel, defaultPDPModel.self);
 
     final PDPModel forwardA = new ForwardingA(defaultPDPModel);

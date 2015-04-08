@@ -26,15 +26,30 @@ import javax.measure.quantity.Duration;
 import javax.measure.unit.SI;
 import javax.measure.unit.Unit;
 
+import com.github.rinde.rinsim.core.model.DependencyProvider;
 import com.github.rinde.rinsim.core.model.Model.AbstractModel;
-import com.google.common.base.Supplier;
+import com.github.rinde.rinsim.core.model.ModelBuilder;
+import com.github.rinde.rinsim.core.model.ModelBuilder.AbstractModelBuilder;
+import com.github.rinde.rinsim.event.Event;
+import com.github.rinde.rinsim.event.EventAPI;
+import com.github.rinde.rinsim.event.EventDispatcher;
 
 /**
+ * This model is an implementation of a simulation clock. It notifies
+ * {@link TickListener}s of time progress. Instances can be obtained via
+ * {@link #builder()}.
+ * <p>
+ * <b>Model properties</b>
+ * <ul>
+ * <li><i>Associated type:</i> {@link TickListener}.</li>
+ * <li><i>Provides:</i> {@link Clock}.</li>
+ * <li><i>Dependencies:</i> none.</li>
+ * </ul>
+ * See {@link ModelBuilder} for more information about model properties.
  * @author Rinde van Lon
- *
  */
 public final class TimeModel extends AbstractModel<TickListener>
-  implements Clock {
+  implements ClockController {
 
   private volatile Set<TickListener> tickListeners;
   private volatile long time;
@@ -42,13 +57,14 @@ public final class TimeModel extends AbstractModel<TickListener>
 
   private final long timeStep;
   private final TimeLapse timeLapse;
+  private final EventDispatcher eventDispatcher;
 
   TimeModel(long tickLength, Unit<Duration> unit) {
     tickListeners = new CopyOnWriteArraySet<>();
-    // Collections .synchronizedSet(new LinkedHashSet<TickListener>());
     time = 0L;
-
     timeStep = tickLength;
+
+    eventDispatcher = new EventDispatcher(ClockEventType.values());
 
     // time lapse is reused in a Flyweight kind of style
     timeLapse = new TimeLapse(unit);
@@ -59,10 +75,14 @@ public final class TimeModel extends AbstractModel<TickListener>
    */
   @Override
   public void start() {
+    if (!isTicking()) {
+      eventDispatcher.dispatchEvent(new Event(ClockEventType.STARTED, this));
+    }
     isPlaying = true;
     while (isPlaying) {
       tick();
     }
+    eventDispatcher.dispatchEvent(new Event(ClockEventType.STOPPED, this));
   }
 
   @Override
@@ -84,7 +104,15 @@ public final class TimeModel extends AbstractModel<TickListener>
       t.afterTick(timeLapse);
     }
     time += timeStep;
+  }
 
+  @Override
+  public <U> U get(Class<U> clazz) {
+    if (clazz == Clock.class || clazz == ClockController.class) {
+      return clazz.cast(this);
+    }
+    throw new IllegalArgumentException(
+      "This model does not provides instances of " + clazz + ".");
   }
 
   @Override
@@ -131,28 +159,63 @@ public final class TimeModel extends AbstractModel<TickListener>
     return Collections.unmodifiableSet(tickListeners);
   }
 
-  @CheckReturnValue
-  public static Supplier<TimeModel> supplier(long step, Unit<Duration> unit) {
-    return new TimeModelSupplier(step, unit);
+  @Override
+  public EventAPI getEventAPI() {
+    return eventDispatcher.getPublicEventAPI();
   }
 
+  /**
+   * @return A new {@link Builder} instance for constructing {@link TimeModel}
+   *         instances.
+   */
   @CheckReturnValue
-  public static Supplier<TimeModel> defaultSupplier() {
-    return new TimeModelSupplier(1000L, SI.MILLI(SI.SECOND));
+  public static Builder builder() {
+    return new Builder();
   }
 
-  static class TimeModelSupplier implements Supplier<TimeModel> {
-    private final long step;
-    private final Unit<Duration> unit;
+  /**
+   * A builder for constructing {@link TimeModel} instances.
+   * @author Rinde van Lon
+   */
+  public static class Builder extends
+    AbstractModelBuilder<TimeModel, TickListener> {
+    static final long DEFAULT_TIME_STEP = 1000L;
+    static final Unit<Duration> DEFAULT_TIME_UNIT = SI.MILLI(SI.SECOND);
 
-    TimeModelSupplier(long s, Unit<Duration> u) {
-      step = s;
-      unit = u;
+    private long timeLength;
+    private Unit<Duration> timeUnit;
+
+    Builder() {
+      setProvidingTypes(Clock.class, ClockController.class);
+      timeLength = DEFAULT_TIME_STEP;
+      timeUnit = DEFAULT_TIME_UNIT;
     }
 
+    /**
+     * Sets the length of a single tick. The default tick length is
+     * <code>1000</code>.
+     * @param length The tick length to set.
+     * @return This, as per the builder pattern.
+     */
+    public Builder setTickLength(long length) {
+      timeLength = length;
+      return this;
+    }
+
+    /**
+     * Sets the time unit to use. The default time unit is milliseconds.
+     * @param unit The time unit to use.
+     * @return This, as per the builder pattern.
+     */
+    public Builder setTimeUnit(Unit<Duration> unit) {
+      timeUnit = unit;
+      return this;
+    }
+
+    @CheckReturnValue
     @Override
-    public TimeModel get() {
-      return new TimeModel(step, unit);
+    public TimeModel build(DependencyProvider dependencyProvider) {
+      return new TimeModel(timeLength, timeUnit);
     }
   }
 }

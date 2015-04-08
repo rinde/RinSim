@@ -19,28 +19,63 @@ import javax.annotation.CheckReturnValue;
 import javax.measure.quantity.Duration;
 import javax.measure.unit.Unit;
 
+import com.github.rinde.rinsim.event.EventAPI;
+
 /**
+ * Represents the clock in a simulation. This class provides several methods
+ * that allow to retrieve the time and related properties. For controlling the
+ * simulation clock see {@link ClockController}. For getting notified about time
+ * progress see {@link TickListener}.
  * @author Rinde van Lon
- *
  */
 public interface Clock {
 
-  void start();
-
-  void stop();
-
-  void tick();
-
+  /**
+   * @return <code>true</code> if the clock is ticking, <code>false</code>
+   *         otherwise.
+   */
   @CheckReturnValue
   boolean isTicking();
 
+  /**
+   * @return The unit in which time is expressed.
+   */
   @CheckReturnValue
   Unit<Duration> getTimeUnit();
 
+  /**
+   * @return The clock's current time.
+   */
   @CheckReturnValue
   long getCurrentTime();
 
+  /**
+   * @return The length of a single tick.
+   */
   @CheckReturnValue
   long getTimeStep();
 
+  /**
+   * Reference to the {@link EventAPI} of the clock. Can be used to add
+   * listeners to events dispatched by the clock. Clock event types are defined
+   * in {@link ClockEventType}.
+   * @return {@link EventAPI}
+   */
+  EventAPI getEventAPI();
+
+  /**
+   * Enum that describes the possible types of events that the simulator can
+   * dispatch.
+   */
+  enum ClockEventType {
+    /**
+     * Indicates that the simulator has stopped.
+     */
+    STOPPED,
+
+    /**
+     * Indicates that the simulator has started.
+     */
+    STARTED
+  }
 }

@@ -20,6 +20,7 @@ import static java.util.Arrays.asList;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.mock;
 
 import java.util.Queue;
 
@@ -27,6 +28,7 @@ import org.apache.commons.math3.random.MersenneTwister;
 import org.apache.commons.math3.random.RandomGenerator;
 import org.junit.Test;
 
+import com.github.rinde.rinsim.core.model.DependencyProvider;
 import com.github.rinde.rinsim.geom.Point;
 
 /**
@@ -38,10 +40,10 @@ public class PlaneRoadModelTest extends AbstractRoadModelTest<PlaneRoadModel> {
   @Override
   public void setUp() {
     model = PlaneRoadModel.builder()
-        .setMinPoint(new Point(0, 0))
-        .setMaxPoint(new Point(10, 10))
-        .setMaxSpeed(10d)
-        .build();
+      .setMinPoint(new Point(0, 0))
+      .setMaxPoint(new Point(10, 10))
+      .setMaxSpeed(10d)
+      .build(mock(DependencyProvider.class));
   }
 
   /**
@@ -52,9 +54,9 @@ public class PlaneRoadModelTest extends AbstractRoadModelTest<PlaneRoadModel> {
     boolean fail = false;
     try {
       PlaneRoadModel.builder()
-          .setMinPoint(new Point(1, 0))
-          .setMaxPoint(new Point(0, 1))
-          .build();
+        .setMinPoint(new Point(1, 0))
+        .setMaxPoint(new Point(0, 1))
+        .build(mock(DependencyProvider.class));
     } catch (final IllegalArgumentException e) {
       fail = true;
     }
@@ -62,9 +64,9 @@ public class PlaneRoadModelTest extends AbstractRoadModelTest<PlaneRoadModel> {
     fail = false;
     try {
       PlaneRoadModel.builder()
-          .setMinPoint(new Point(0, 1))
-          .setMaxPoint(new Point(1, 0))
-          .build();
+        .setMinPoint(new Point(0, 1))
+        .setMaxPoint(new Point(1, 0))
+        .build(mock(DependencyProvider.class));
     } catch (final IllegalArgumentException e) {
       fail = true;
     }
@@ -79,8 +81,8 @@ public class PlaneRoadModelTest extends AbstractRoadModelTest<PlaneRoadModel> {
     boolean fail = false;
     try {
       PlaneRoadModel.builder()
-          .setMaxSpeed(0d)
-          .build();
+        .setMaxSpeed(0d)
+        .build(mock(DependencyProvider.class));
     } catch (final IllegalArgumentException e) {
       fail = true;
     }
@@ -118,8 +120,8 @@ public class PlaneRoadModelTest extends AbstractRoadModelTest<PlaneRoadModel> {
     final MovingRoadUser mru = new TestRoadUser();
     model.addObjectAt(mru, new Point(0, 0));
     final Queue<Point> path = asPath(new Point(0, 0), new Point(5, 0),
-        new Point(
-            5, 5));
+      new Point(
+        5, 5));
 
     final MoveProgress pp = model.followPath(mru, path, hour());
     assertEquals(asPath(new Point(5, 0), new Point(5, 5)), path);
@@ -146,8 +148,8 @@ public class PlaneRoadModelTest extends AbstractRoadModelTest<PlaneRoadModel> {
   @Test(expected = IllegalArgumentException.class)
   public void followPathFail() {
     final Queue<Point> path = asPath(new Point(0, 0), new Point(5, 0),
-        new Point(
-            5, 5), new Point(100, 0));
+      new Point(
+        5, 5), new Point(100, 0));
     final MovingRoadUser mru = new TestRoadUser();
     model.addObjectAt(mru, new Point(0, 0));
     model.followPath(mru, path, hour(100));
@@ -202,7 +204,7 @@ public class PlaneRoadModelTest extends AbstractRoadModelTest<PlaneRoadModel> {
   @Test
   public void getShortestPathTo() {
     assertEquals(asList(new Point(0, 0), new Point(5, 5)), model
-        .getShortestPathTo(new Point(0, 0), new Point(5, 5)));
+      .getShortestPathTo(new Point(0, 0), new Point(5, 5)));
   }
 
 }

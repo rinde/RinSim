@@ -15,35 +15,26 @@
  */
 package com.github.rinde.rinsim.core.model.time;
 
-import static com.google.common.truth.Truth.assertThat;
+/**
+ * Represents a clock that can be manipulated.
+ * @author Rinde van Lon
+ */
+public interface ClockController extends Clock {
 
-class LimitingTickListener implements TickListener {
-  private final int limit;
-  private int tickCount;
-  private final ClockController clock;
+  /**
+   * Start the clock. {@link #isTicking()} will return <code>true</code> from
+   * now on. All registered {@link TickListener}s will receive ticks.
+   */
+  void start();
 
-  public LimitingTickListener(ClockController s, int tickLimit) {
-    clock = s;
-    limit = tickLimit;
-    tickCount = 0;
-  }
+  /**
+   * Stops the clock. {@link #isTicking()} will return <code>false</code>.
+   */
+  void stop();
 
-  public void reset() {
-    tickCount = 0;
-  }
+  /**
+   * Advances the clock with a single tick.
+   */
+  void tick();
 
-  @Override
-  public void tick(TimeLapse tl) {
-    tickCount++;
-  }
-
-  @Override
-  public void afterTick(TimeLapse tl) {
-    if (tickCount >= limit) {
-      assertThat(clock.isTicking()).isTrue();
-      clock.stop();
-      assertThat(clock.isTicking()).isFalse();
-      reset();
-    }
-  }
 }

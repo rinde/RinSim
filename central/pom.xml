@@ -47,6 +47,10 @@
 			<artifactId>rinsim-scenario</artifactId>
 		</dependency>
 		<dependency>
+            <groupId>com.github.rinde</groupId>
+            <artifactId>rinsim-core</artifactId>
+        </dependency>
+		<dependency>
 			<groupId>com.github.rinde</groupId>
 			<artifactId>rinsim-scenario-util</artifactId>
 			<scope>test</scope>

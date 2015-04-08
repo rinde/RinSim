@@ -34,8 +34,8 @@ import com.github.rinde.rinsim.pdptw.common.PDPRoadModel;
 import com.github.rinde.rinsim.scenario.TimedEvent;
 
 /**
- * @author Rinde van Lon 
- * 
+ * @author Rinde van Lon
+ *
  */
 public class Gendreau06ParserTest {
 
@@ -54,7 +54,7 @@ public class Gendreau06ParserTest {
     scenarios.addAll(parser().addFile(new File(FILE_PATH)).parse());
     scenarios.addAll(parser().addFile(FILE_PATH).parse());
     scenarios.addAll(parser().addFile(new FileInputStream(FILE_PATH),
-        FILE_NAME).parse());
+      FILE_NAME).parse());
     scenarios.addAll(parser().addDirectory(new File(FILE_DIR)).parse());
     scenarios.addAll(parser().addDirectory(FILE_DIR).parse());
 
@@ -74,10 +74,10 @@ public class Gendreau06ParserTest {
   @Test
   public void customNumVehiclesTest() {
     final Gendreau06Scenario scen = Gendreau06Parser.parser()
-        .addFile(FILE_PATH)
-        .setNumVehicles(5)
-        .parse()
-        .get(0);
+      .addFile(FILE_PATH)
+      .setNumVehicles(5)
+      .parse()
+      .get(0);
     containsVehicles(scen, 5);
     containsTimeOut(scen, 240);
     assertTrue(isOnline(scen));
@@ -91,10 +91,10 @@ public class Gendreau06ParserTest {
   @Test
   public void offlineTest() {
     final Gendreau06Scenario scen = Gendreau06Parser.parser()
-        .addFile("files/test/gendreau06/req_rapide_1_240_24")
-        .offline()
-        .parse()
-        .get(0);
+      .addFile("files/test/gendreau06/req_rapide_1_240_24")
+      .offline()
+      .parse()
+      .get(0);
     containsVehicles(scen, 10);
     containsTimeOut(scen, 240);
     assertFalse(isOnline(scen));
@@ -109,7 +109,7 @@ public class Gendreau06ParserTest {
   @Test
   public void allowDiversionTest() {
     final Gendreau06Scenario scen = parser().allowDiversion()
-        .addFile(FILE_PATH).parse().get(0);
+      .addFile(FILE_PATH).parse().get(0);
     containsVehicles(scen, 10);
     containsTimeOut(scen, 240);
     assertTrue(isOnline(scen));
@@ -124,7 +124,7 @@ public class Gendreau06ParserTest {
   @Test
   public void setTickSizeTest() {
     final Gendreau06Scenario scen = parser().setTickSize(101)
-        .addFile(FILE_PATH).parse().get(0);
+      .addFile(FILE_PATH).parse().get(0);
     containsVehicles(scen, 10);
     containsTimeOut(scen, 240);
     assertTrue(isOnline(scen));
@@ -138,16 +138,16 @@ public class Gendreau06ParserTest {
   @Test
   public void filterTest() {
     assertTrue(parser().filter(GendreauProblemClass.LONG_LOW_FREQ)
-        .addFile(FILE_PATH).parse().isEmpty());
+      .addFile(FILE_PATH).parse().isEmpty());
 
     assertEquals(1, parser().filter(GendreauProblemClass.SHORT_LOW_FREQ)
-        .addFile(FILE_PATH).parse().size());
+      .addFile(FILE_PATH).parse().size());
 
     assertEquals(1, parser().filter(GendreauProblemClass.LONG_LOW_FREQ,
-        GendreauProblemClass.SHORT_LOW_FREQ).addFile(FILE_PATH).parse().size());
+      GendreauProblemClass.SHORT_LOW_FREQ).addFile(FILE_PATH).parse().size());
 
     assertEquals(1, parser().filter(GendreauProblemClass.values())
-        .addFile(FILE_PATH).parse().size());
+      .addFile(FILE_PATH).parse().size());
   }
 
   /**
@@ -156,7 +156,7 @@ public class Gendreau06ParserTest {
   @Test(expected = IllegalArgumentException.class)
   public void parseWrongFileName() {
     Gendreau06Parser.parse(new File(
-        "pointer/to/non-existing/file/req_rapide_1_240_24"));
+      "pointer/to/non-existing/file/req_rapide_1_240_24"));
   }
 
   /**
@@ -237,7 +237,7 @@ public class Gendreau06ParserTest {
   }
 
   static boolean isDiversionAllowed(Gendreau06Scenario scen) {
-    return ((PDPRoadModel) scen.getModelSuppliers().get(0).get())
-        .isVehicleDiversionAllowed();
+    return ((PDPRoadModel) scen.getModelBuilders().get(0).build(null))
+      .isVehicleDiversionAllowed();
   }
 }

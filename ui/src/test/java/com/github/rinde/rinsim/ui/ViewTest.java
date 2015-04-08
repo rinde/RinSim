@@ -71,7 +71,10 @@ public class ViewTest {
   public void closeWindowWhilePlaying() {
     final Simulator sim = Simulator.builder()
       .addModel(PlaneRoadModel.builder())
-      .addModel(DefaultPDPModel.supplier(TimeWindowPolicies.LIBERAL))
+      .addModel(
+        DefaultPDPModel.builder()
+          .setTimeWindowPolicy(TimeWindowPolicies.LIBERAL)
+      )
       .build();
 
     sim.addTickListener(new TickListener() {

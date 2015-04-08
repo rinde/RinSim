@@ -15,8 +15,6 @@
  */
 package com.github.rinde.rinsim.pdptw.common;
 
-import static com.github.rinde.rinsim.core.Simulator.SimulatorEventType.STARTED;
-import static com.github.rinde.rinsim.core.Simulator.SimulatorEventType.STOPPED;
 import static com.github.rinde.rinsim.core.model.pdp.PDPModel.PDPModelEventType.END_DELIVERY;
 import static com.github.rinde.rinsim.core.model.pdp.PDPModel.PDPModelEventType.END_PICKUP;
 import static com.github.rinde.rinsim.core.model.pdp.PDPModel.PDPModelEventType.NEW_PARCEL;
@@ -28,6 +26,8 @@ import static com.github.rinde.rinsim.core.model.pdp.PDPScenarioEvent.ADD_PARCEL
 import static com.github.rinde.rinsim.core.model.pdp.PDPScenarioEvent.ADD_VEHICLE;
 import static com.github.rinde.rinsim.core.model.pdp.PDPScenarioEvent.TIME_OUT;
 import static com.github.rinde.rinsim.core.model.road.GenericRoadModel.RoadEventType.MOVE;
+import static com.github.rinde.rinsim.core.model.time.Clock.ClockEventType.STARTED;
+import static com.github.rinde.rinsim.core.model.time.Clock.ClockEventType.STOPPED;
 import static com.github.rinde.rinsim.scenario.ScenarioController.EventType.SCENARIO_FINISHED;
 import static com.github.rinde.rinsim.scenario.ScenarioController.EventType.SCENARIO_STARTED;
 import static com.google.common.base.Verify.verify;
@@ -35,12 +35,9 @@ import static com.google.common.collect.Maps.newLinkedHashMap;
 
 import java.util.Map;
 
-import com.github.rinde.rinsim.core.Simulator.SimulatorEventType;
-import com.github.rinde.rinsim.core.SimulatorAPI;
-import com.github.rinde.rinsim.core.SimulatorUser;
-import com.github.rinde.rinsim.core.model.ModelProvider;
-import com.github.rinde.rinsim.core.model.ModelReceiver;
+import com.github.rinde.rinsim.core.model.DependencyProvider;
 import com.github.rinde.rinsim.core.model.Model.AbstractModel;
+import com.github.rinde.rinsim.core.model.ModelBuilder.AbstractModelBuilder;
 import com.github.rinde.rinsim.core.model.pdp.PDPModel;
 import com.github.rinde.rinsim.core.model.pdp.PDPModel.PDPModelEventType;
 import com.github.rinde.rinsim.core.model.pdp.PDPModelEvent;
@@ -50,6 +47,8 @@ import com.github.rinde.rinsim.core.model.road.GenericRoadModel.RoadEventType;
 import com.github.rinde.rinsim.core.model.road.MoveEvent;
 import com.github.rinde.rinsim.core.model.road.MovingRoadUser;
 import com.github.rinde.rinsim.core.model.road.RoadModel;
+import com.github.rinde.rinsim.core.model.time.Clock;
+import com.github.rinde.rinsim.core.model.time.Clock.ClockEventType;
 import com.github.rinde.rinsim.core.pdptw.DefaultVehicle;
 import com.github.rinde.rinsim.event.Event;
 import com.github.rinde.rinsim.event.EventAPI;
@@ -58,29 +57,36 @@ import com.github.rinde.rinsim.event.Listener;
 import com.github.rinde.rinsim.geom.Point;
 import com.github.rinde.rinsim.scenario.ScenarioController;
 import com.github.rinde.rinsim.scenario.TimedEvent;
-import com.google.common.base.Optional;
 
 /**
  * @author Rinde van Lon
  *
  */
-final class StatsTracker extends AbstractModel<Object> implements
-  SimulatorUser, ModelReceiver {
-
+final class StatsTracker extends AbstractModel<Object> {
   final EventDispatcher eventDispatcher;
   final TheListener theListener;
-  SimulatorAPI simulator;
-  RoadModel roadModel;
+  final Clock clock;
+  final RoadModel roadModel;
 
   enum StatisticsEventType {
     PICKUP_TARDINESS, DELIVERY_TARDINESS, ALL_VEHICLES_AT_DEPOT;
   }
 
-  StatsTracker(ScenarioController scenContr) {
+  StatsTracker(ScenarioController scenContr, Clock c, RoadModel rm, PDPModel pm) {
+    clock = c;
+    roadModel = rm;
+
     eventDispatcher = new EventDispatcher(StatisticsEventType.values());
     theListener = new TheListener();
     scenContr.getEventAPI().addListener(theListener, SCENARIO_STARTED,
       SCENARIO_FINISHED, ADD_DEPOT, ADD_PARCEL, ADD_VEHICLE, TIME_OUT);
+
+    roadModel.getEventAPI().addListener(theListener, MOVE);
+    clock.getEventAPI().addListener(theListener, STARTED, STOPPED);
+
+    pm.getEventAPI()
+      .addListener(theListener, START_PICKUP, END_PICKUP, START_DELIVERY,
+        END_DELIVERY, NEW_PARCEL, NEW_VEHICLE);
   }
 
   EventAPI getEventAPI() {
@@ -110,9 +116,9 @@ final class StatsTracker extends AbstractModel<Object> implements
       theListener.totalPickups, theListener.totalDeliveries,
       theListener.totalParcels, theListener.acceptedParcels,
       theListener.pickupTardiness, theListener.deliveryTardiness, compTime,
-      simulator.getCurrentTime(), theListener.simFinish, vehicleBack,
+      clock.getCurrentTime(), theListener.simFinish, vehicleBack,
       overTime, theListener.totalVehicles, theListener.distanceMap.size(),
-      simulator.getTimeUnit(), roadModel.getDistanceUnit(),
+      clock.getTimeUnit(), roadModel.getDistanceUnit(),
       roadModel.getSpeedUnit());
   }
 
@@ -172,14 +178,14 @@ final class StatsTracker extends AbstractModel<Object> implements
 
     @Override
     public void handleEvent(Event e) {
-      if (e.getEventType() == SimulatorEventType.STARTED) {
+      if (e.getEventType() == ClockEventType.STARTED) {
         startTimeReal = System.currentTimeMillis();
-        startTimeSim = simulator.getCurrentTime();
+        startTimeSim = clock.getCurrentTime();
         computationTime = 0;
 
-      } else if (e.getEventType() == SimulatorEventType.STOPPED) {
+      } else if (e.getEventType() == ClockEventType.STOPPED) {
         computationTime = System.currentTimeMillis() - startTimeReal;
-        simulationTime = simulator.getCurrentTime() - startTimeSim;
+        simulationTime = clock.getCurrentTime() - startTimeSim;
       } else if (e.getEventType() == RoadEventType.MOVE) {
         verify(e instanceof MoveEvent);
         final MoveEvent me = (MoveEvent) e;
@@ -194,7 +200,7 @@ final class StatsTracker extends AbstractModel<Object> implements
           // only override time if the vehicle did actually move
           if (me.pathProgress.distance().getValue().doubleValue() > MOVE_THRESHOLD) {
             lastArrivalTimeAtDepot.put((MovingRoadUser) me.roadUser,
-              simulator.getCurrentTime());
+              clock.getCurrentTime());
             if (totalVehicles == lastArrivalTimeAtDepot.size()) {
               eventDispatcher.dispatchEvent(new Event(
                 StatisticsEventType.ALL_VEHICLES_AT_DEPOT, this));
@@ -253,7 +259,7 @@ final class StatsTracker extends AbstractModel<Object> implements
       } else if (e.getEventType() == NEW_VEHICLE) {
         verify(e instanceof PDPModelEvent);
         final PDPModelEvent ev = (PDPModelEvent) e;
-        lastArrivalTimeAtDepot.put(ev.vehicle, simulator.getCurrentTime());
+        lastArrivalTimeAtDepot.put(ev.vehicle, clock.getCurrentTime());
       } else if (e.getEventType() == TIME_OUT) {
         simFinish = true;
         scenarioEndTime = ((TimedEvent) e).time;
@@ -288,19 +294,28 @@ final class StatsTracker extends AbstractModel<Object> implements
     }
   }
 
-  @Override
-  public void setSimulator(SimulatorAPI api) {
-    simulator = api;
-    simulator.getEventAPI().addListener(theListener, STARTED, STOPPED);
+  public static Builder builder() {
+    return new Builder();
   }
 
-  @Override
-  public void registerModelProvider(ModelProvider mp) {
-    roadModel = Optional.fromNullable(mp.tryGetModel(RoadModel.class)).get();
-    roadModel.getEventAPI().addListener(theListener, MOVE);
+  public static class Builder extends
+    AbstractModelBuilder<StatsTracker, Object> {
 
-    mp.getModel(PDPModel.class).getEventAPI()
-      .addListener(theListener, START_PICKUP, END_PICKUP, START_DELIVERY,
-        END_DELIVERY, NEW_PARCEL, NEW_VEHICLE);
+    Builder() {
+      setDependencies(ScenarioController.class,
+        Clock.class,
+        RoadModel.class,
+        PDPModel.class);
+    }
+
+    @Override
+    public StatsTracker build(DependencyProvider dependencyProvider) {
+      final ScenarioController ctrl = dependencyProvider
+        .get(ScenarioController.class);
+      final Clock clock = dependencyProvider.get(Clock.class);
+      final RoadModel rm = dependencyProvider.get(RoadModel.class);
+      final PDPModel pm = dependencyProvider.get(PDPModel.class);
+      return new StatsTracker(ctrl, clock, rm, pm);
+    }
   }
 }

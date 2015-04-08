@@ -15,6 +15,8 @@
  */
 package com.github.rinde.rinsim.core.model.road;
 
+import static org.mockito.Mockito.mock;
+
 import java.util.Arrays;
 import java.util.Collection;
 
@@ -24,6 +26,7 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 
+import com.github.rinde.rinsim.core.model.DependencyProvider;
 import com.github.rinde.rinsim.geom.Graph;
 import com.github.rinde.rinsim.geom.MultimapGraph;
 import com.github.rinde.rinsim.geom.Point;
@@ -34,39 +37,39 @@ import com.github.rinde.rinsim.geom.Point;
  */
 @RunWith(Parameterized.class)
 public class ForwardingRoadModelTest extends
-    AbstractRoadModelTest<GenericRoadModel> {
+  AbstractRoadModelTest<GenericRoadModel> {
   /**
    * @return The configs to test.
    */
   @Parameters
   public static Collection<Object[]> configs() {
     return Arrays.asList(new Object[][] //
-        { { new Creator() {
-          @Override
-          public GenericRoadModel create(ForwardingRoadModelTest testClass) {
-            return new ForwardingRoadModel(
-                PlaneRoadModel.builder()
-                    .setMinPoint(new Point(0, 0))
-                    .setMaxPoint(new Point(10, 10))
-                    .setDistanceUnit(SI.METER)
-                    .setSpeedUnit(SI.METERS_PER_SECOND)
-                    .setMaxSpeed(10d)
-                    .build());
-          }
-        } }, { new Creator() {
-          @Override
-          public GenericRoadModel create(ForwardingRoadModelTest testClass) {
-            return new ForwardingRoadModel(new GraphRoadModel(testClass
-                .createGraph(), SI.METER, SI.METERS_PER_SECOND));
-          }
-        } }, { new Creator() {
-          @Override
-          public GenericRoadModel create(ForwardingRoadModelTest testClass) {
-            return new ForwardingRoadModel(new ForwardingRoadModel(
-                new ForwardingRoadModel(new GraphRoadModel(testClass
-                    .createGraph(), SI.METER, SI.METERS_PER_SECOND))));
-          }
-        } } });
+      { { new Creator() {
+        @Override
+        public GenericRoadModel create(ForwardingRoadModelTest testClass) {
+          return new ForwardingRoadModel(
+            PlaneRoadModel.builder()
+              .setMinPoint(new Point(0, 0))
+              .setMaxPoint(new Point(10, 10))
+              .setDistanceUnit(SI.METER)
+              .setSpeedUnit(SI.METERS_PER_SECOND)
+              .setMaxSpeed(10d)
+              .build(mock(DependencyProvider.class)));
+        }
+      } }, { new Creator() {
+        @Override
+        public GenericRoadModel create(ForwardingRoadModelTest testClass) {
+          return new ForwardingRoadModel(new GraphRoadModel(testClass
+            .createGraph(), SI.METER, SI.METERS_PER_SECOND));
+        }
+      } }, { new Creator() {
+        @Override
+        public GenericRoadModel create(ForwardingRoadModelTest testClass) {
+          return new ForwardingRoadModel(new ForwardingRoadModel(
+            new ForwardingRoadModel(new GraphRoadModel(testClass
+              .createGraph(), SI.METER, SI.METERS_PER_SECOND))));
+        }
+      } } });
   }
 
   Graph<?> createGraph() {

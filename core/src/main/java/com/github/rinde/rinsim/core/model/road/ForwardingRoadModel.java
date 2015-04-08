@@ -28,6 +28,8 @@ import javax.measure.unit.Unit;
 
 import org.apache.commons.math3.random.RandomGenerator;
 
+import com.github.rinde.rinsim.core.model.ModelBuilder;
+import com.github.rinde.rinsim.core.model.ModelBuilder.AbstractModelBuilder;
 import com.github.rinde.rinsim.core.model.time.TimeLapse;
 import com.github.rinde.rinsim.event.EventAPI;
 import com.github.rinde.rinsim.geom.Point;
@@ -39,7 +41,7 @@ import com.google.common.collect.ImmutableList;
  * {@link RoadModel}. Subclasses should override one or more methods to modify
  * the behavior of the backing model as desired per the <a
  * href="http://en.wikipedia.org/wiki/Decorator_pattern">decorator pattern</a>.
- * @author Rinde van Lon 
+ * @author Rinde van Lon
  */
 public class ForwardingRoadModel extends GenericRoadModel {
   /**
@@ -76,19 +78,19 @@ public class ForwardingRoadModel extends GenericRoadModel {
 
   @Override
   public MoveProgress moveTo(MovingRoadUser object, Point destination,
-      TimeLapse time) {
+    TimeLapse time) {
     return delegate.moveTo(object, destination, time);
   }
 
   @Override
   public MoveProgress moveTo(MovingRoadUser object, RoadUser destination,
-      TimeLapse time) {
+    TimeLapse time) {
     return delegate.moveTo(object, destination, time);
   }
 
   @Override
   public MoveProgress followPath(MovingRoadUser object, Queue<Point> path,
-      TimeLapse time) {
+    TimeLapse time) {
     return delegate.followPath(object, path, time);
   }
 
@@ -165,7 +167,7 @@ public class ForwardingRoadModel extends GenericRoadModel {
 
   @Override
   public <Y extends RoadUser> Set<Y> getObjectsAt(RoadUser roadUser,
-      Class<Y> type) {
+    Class<Y> type) {
     return delegate.getObjectsAt(roadUser, type);
   }
 
@@ -207,5 +209,30 @@ public class ForwardingRoadModel extends GenericRoadModel {
   @Override
   public Unit<Velocity> getSpeedUnit() {
     return delegate.getSpeedUnit();
+  }
+
+  @Override
+  public <U> U get(Class<U> type) {
+    return delegate.get(type);
+  }
+
+  public static abstract class Builder<T extends ForwardingRoadModel, S>
+    extends AbstractModelBuilder<T, RoadUser> {
+
+    protected ModelBuilder<? extends RoadModel, ? extends RoadUser> delegate;
+
+    protected abstract S self();
+
+    public S setRoadModel(
+      ModelBuilder<? extends RoadModel, ? extends RoadUser> rm) {
+      setDependencies(rm.getDependencies());
+      delegate = rm;
+      return self();
+    }
+
+    public ModelBuilder<RoadModel, RoadUser> getDelegateModelBuilder() {
+      return (ModelBuilder<RoadModel, RoadUser>) delegate;
+    }
+
   }
 }

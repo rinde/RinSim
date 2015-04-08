@@ -88,22 +88,23 @@ public final class ScenarioIO {
 
     final GsonBuilder builder = new GsonBuilder();
     builder
-        .registerTypeHierarchyAdapter(ProblemClass.class,
-            new ProblemClassHierarchyIO())
-        .registerTypeHierarchyAdapter(TimedEvent.class,
-            new TimedEventHierarchyIO())
-        .registerTypeHierarchyAdapter(TimeWindowPolicy.class,
-            new TimeWindowHierarchyIO())
+      .registerTypeHierarchyAdapter(ProblemClass.class,
+        new ProblemClassHierarchyIO())
+      .registerTypeHierarchyAdapter(TimedEvent.class,
+        new TimedEventHierarchyIO())
+      .registerTypeHierarchyAdapter(TimeWindowPolicy.class,
+        new TimeWindowHierarchyIO())
 
-        .registerTypeAdapter(Point.class, new PointIO())
-        .registerTypeAdapter(TimeWindow.class, new TimeWindowIO())
-        .registerTypeAdapter(enumSetType, new EnumSetIO())
-        .registerTypeAdapter(Unit.class, new UnitIO())
-        .registerTypeAdapter(Measure.class, new MeasureIO())
-        .registerTypeAdapter(Enum.class, new EnumIO())
-        .registerTypeAdapter(Predicate.class, new PredicateIO())
-        .registerTypeAdapter(ImmutableList.class, new ImmutableListIO())
-        .registerTypeAdapter(ImmutableSet.class, new ImmutableSetIO());
+      .registerTypeAdapter(Point.class, new PointIO())
+      .registerTypeAdapter(TimeWindow.class, new TimeWindowIO())
+      .registerTypeAdapter(enumSetType, new EnumSetIO())
+      .registerTypeAdapter(Unit.class, new UnitIO())
+      .registerTypeAdapter(Measure.class, new MeasureIO())
+      .registerTypeAdapter(Enum.class, new EnumIO())
+      .registerTypeAdapter(Predicate.class, new PredicateIO())
+      .registerTypeAdapter(Class.class, new ClassIO())
+      .registerTypeAdapter(ImmutableList.class, new ImmutableListIO())
+      .registerTypeAdapter(ImmutableSet.class, new ImmutableSetIO());
 
     return builder.create();
   }
@@ -117,7 +118,7 @@ public final class ScenarioIO {
    */
   public static void write(Scenario s, Path to) throws IOException {
     Files.write(to, Splitter.on(System.lineSeparator()).split(write(s)),
-        Charsets.UTF_8);
+      Charsets.UTF_8);
   }
 
   /**
@@ -140,8 +141,8 @@ public final class ScenarioIO {
    */
   public static <T> T read(Path file, Class<T> type) throws IOException {
     return read(
-        Joiner.on(System.lineSeparator()).join(
-            Files.readAllLines(file, Charsets.UTF_8)), type);
+      Joiner.on(System.lineSeparator()).join(
+        Files.readAllLines(file, Charsets.UTF_8)), type);
   }
 
   /**
@@ -202,7 +203,7 @@ public final class ScenarioIO {
   }
 
   static Object deserializeObject(String serialForm) throws IOException,
-      ClassNotFoundException {
+    ClassNotFoundException {
     final byte[] bytes = DatatypeConverter.parseBase64Binary(serialForm);
     final ByteArrayInputStream is = new ByteArrayInputStream(bytes);
     final ObjectInputStream ois = new ObjectInputStream(is);
@@ -212,7 +213,7 @@ public final class ScenarioIO {
   }
 
   private static final class DefaultScenarioReader<T extends Scenario>
-      implements Function<Path, T> {
+    implements Function<Path, T> {
     final Optional<Class<T>> clazz;
 
     DefaultScenarioReader() {
@@ -239,55 +240,55 @@ public final class ScenarioIO {
   }
 
   abstract static class SafeNullIO<T> implements JsonSerializer<T>,
-      JsonDeserializer<T> {
+    JsonDeserializer<T> {
 
     @Override
     public final JsonElement serialize(@Nullable T src,
-        @Nullable Type typeOfSrc,
-        @Nullable JsonSerializationContext context) {
+      @Nullable Type typeOfSrc,
+      @Nullable JsonSerializationContext context) {
       return doSerialize(verifyNotNull(src),
-          verifyNotNull(typeOfSrc),
-          verifyNotNull(context));
+        verifyNotNull(typeOfSrc),
+        verifyNotNull(context));
     }
 
     @Override
     public final T deserialize(@Nullable JsonElement json,
-        @Nullable Type typeOfT,
-        @Nullable JsonDeserializationContext context) {
+      @Nullable Type typeOfT,
+      @Nullable JsonDeserializationContext context) {
       return doDeserialize(verifyNotNull(json),
-          verifyNotNull(typeOfT),
-          verifyNotNull(context));
+        verifyNotNull(typeOfT),
+        verifyNotNull(context));
     }
 
     abstract JsonElement doSerialize(T src, Type typeOfSrc,
-        JsonSerializationContext context);
+      JsonSerializationContext context);
 
     abstract T doDeserialize(JsonElement json, Type typeOfT,
-        JsonDeserializationContext context);
+      JsonDeserializationContext context);
   }
 
   static class TimeWindowHierarchyIO extends SafeNullIO<TimeWindowPolicy> {
     @Override
     public TimeWindowPolicy doDeserialize(JsonElement json, Type typeOfT,
-        JsonDeserializationContext context) {
+      JsonDeserializationContext context) {
       return context.deserialize(json, Enum.class);
     }
 
     @Override
     public JsonElement doSerialize(TimeWindowPolicy src, Type typeOfSrc,
-        JsonSerializationContext context) {
+      JsonSerializationContext context) {
       if (src instanceof Enum<?>) {
         return context.serialize(src, Enum.class);
       }
       throw new IllegalArgumentException(
-          "Only Enum implementations of the TimeWindowPolicy interface are allowed.");
+        "Only Enum implementations of the TimeWindowPolicy interface are allowed.");
     }
   }
 
   static class ProblemClassHierarchyIO extends SafeNullIO<ProblemClass> {
     @Override
     public ProblemClass doDeserialize(JsonElement json, Type typeOfT,
-        JsonDeserializationContext context) {
+      JsonDeserializationContext context) {
       if (json.isJsonPrimitive() && json.getAsJsonPrimitive().isString()) {
         return new SimpleProblemClass(json.getAsJsonPrimitive().getAsString());
       }
@@ -296,15 +297,15 @@ public final class ScenarioIO {
 
     @Override
     public JsonElement doSerialize(ProblemClass src, Type typeOfSrc,
-        JsonSerializationContext context) {
+      JsonSerializationContext context) {
       if (src instanceof Enum<?>) {
         return context.serialize(src, Enum.class);
       } else if (src instanceof SimpleProblemClass) {
         return context.serialize(src.getId(), String.class);
       } else {
         throw new IllegalArgumentException(
-            "Currently only enums and SimpleProblemClass are supported as ProblemClass instances, found: "
-                + src.getClass());
+          "Currently only enums and SimpleProblemClass are supported as ProblemClass instances, found: "
+            + src.getClass());
       }
     }
   }
@@ -312,14 +313,14 @@ public final class ScenarioIO {
   static class TimedEventHierarchyIO implements JsonDeserializer<TimedEvent> {
     @Override
     public TimedEvent deserialize(@Nullable JsonElement j,
-        @Nullable Type typeOfT, @Nullable JsonDeserializationContext c) {
+      @Nullable Type typeOfT, @Nullable JsonDeserializationContext c) {
       JsonElement json = verifyNotNull(j);
       verifyNotNull(typeOfT);
       JsonDeserializationContext context = verifyNotNull(c);
       final JsonObject obj = json.getAsJsonObject();
       final long time = obj.get("time").getAsLong();
       final Enum<?> type = context
-          .deserialize(obj.get("eventType"), Enum.class);
+        .deserialize(obj.get("eventType"), Enum.class);
 
       checkArgument(type instanceof PDPScenarioEvent);
       final PDPScenarioEvent scenEvent = (PDPScenarioEvent) type;
@@ -327,15 +328,15 @@ public final class ScenarioIO {
       switch (scenEvent) {
       case ADD_DEPOT:
         event = new AddDepotEvent(time, (Point) context.deserialize(
-            obj.get("position"), Point.class));
+          obj.get("position"), Point.class));
         break;
       case ADD_VEHICLE:
         event = new AddVehicleEvent(time, (VehicleDTO) context.deserialize(
-            obj.get("vehicleDTO"), VehicleDTO.class));
+          obj.get("vehicleDTO"), VehicleDTO.class));
         break;
       case ADD_PARCEL:
         event = new AddParcelEvent((ParcelDTO) context.deserialize(
-            obj.get("parcelDTO"), ParcelDTO.class));
+          obj.get("parcelDTO"), ParcelDTO.class));
         break;
       case TIME_OUT:
         event = new TimedEvent(type, time);
@@ -373,7 +374,7 @@ public final class ScenarioIO {
 
     @Override
     public void write(@Nullable JsonWriter writer, @Nullable Point value)
-        throws IOException {
+      throws IOException {
       if (writer == null) {
         return;
       }
@@ -406,7 +407,7 @@ public final class ScenarioIO {
 
     @Override
     public void write(@Nullable JsonWriter writer, @Nullable TimeWindow value)
-        throws IOException {
+      throws IOException {
       if (writer == null) {
         return;
       }
@@ -422,10 +423,10 @@ public final class ScenarioIO {
   static class EnumSetIO extends SafeNullIO<Set<Enum<?>>> {
     @Override
     public Set<Enum<?>> doDeserialize(JsonElement json, Type typeOfT,
-        JsonDeserializationContext context) {
+      JsonDeserializationContext context) {
       final Set<Enum<?>> eventTypes = newLinkedHashSet();
       final List<String> list = context
-          .deserialize(json, new TypeToken<List<String>>() {}.getType());
+        .deserialize(json, new TypeToken<List<String>>() {}.getType());
       for (final String s : list) {
         eventTypes.add(PDPScenarioEvent.valueOf(s));
       }
@@ -434,7 +435,7 @@ public final class ScenarioIO {
 
     @Override
     public JsonElement doSerialize(Set<Enum<?>> src, Type typeOfSrc,
-        JsonSerializationContext context) {
+      JsonSerializationContext context) {
       final List<String> list = newArrayList();
       for (final Enum<?> e : src) {
         list.add(e.name());
@@ -446,13 +447,13 @@ public final class ScenarioIO {
   static class UnitIO extends SafeNullIO<Unit<?>> {
     @Override
     public Unit<?> doDeserialize(JsonElement json, Type typeOfT,
-        JsonDeserializationContext context) {
+      JsonDeserializationContext context) {
       return Unit.valueOf(json.getAsString());
     }
 
     @Override
     public JsonElement doSerialize(Unit<?> src, Type typeOfSrc,
-        JsonSerializationContext context) {
+      JsonSerializationContext context) {
       return context.serialize(src.toString());
     }
   }
@@ -463,7 +464,7 @@ public final class ScenarioIO {
 
     @Override
     public Measure<?, ?> doDeserialize(JsonElement json, Type typeOfT,
-        JsonDeserializationContext context) {
+      JsonDeserializationContext context) {
       final JsonObject obj = json.getAsJsonObject();
       final Unit<?> unit = context.deserialize(obj.get(UNIT), Unit.class);
       try {
@@ -484,7 +485,7 @@ public final class ScenarioIO {
 
     @Override
     public JsonElement doSerialize(Measure<?, ?> src, Type typeOfSrc,
-        JsonSerializationContext context) {
+      JsonSerializationContext context) {
       final JsonObject obj = new JsonObject();
       obj.add(UNIT, context.serialize(src.getUnit(), Unit.class));
       obj.add(VALUE, context.serialize(src.getValue()));
@@ -497,7 +498,7 @@ public final class ScenarioIO {
   static class EnumIO extends SafeNullIO<Enum<?>> {
     @Override
     public JsonElement doSerialize(Enum<?> src, Type typeOfSrc,
-        JsonSerializationContext context) {
+      JsonSerializationContext context) {
       final String className = src.getDeclaringClass().getName();
       final String valueName = src.name();
 
@@ -509,10 +510,10 @@ public final class ScenarioIO {
 
     @Override
     public Enum<?> doDeserialize(JsonElement json, Type typeOfT,
-        JsonDeserializationContext context) {
+      JsonDeserializationContext context) {
       final JsonObject obj = json.getAsJsonObject();
       return getEnum(obj.get(CLAZZ).getAsString(), obj
-          .get(VALUE).getAsString());
+        .get(VALUE).getAsString());
     }
 
     @SuppressWarnings({ "unchecked", "rawtypes" })
@@ -528,11 +529,11 @@ public final class ScenarioIO {
   static class PredicateIO extends SafeNullIO<Predicate<?>> {
     @Override
     public Predicate<?> doDeserialize(JsonElement json, Type typeOfT,
-        JsonDeserializationContext context) {
+      JsonDeserializationContext context) {
       checkArgument(json.isJsonPrimitive());
       try {
         final Predicate<?> obj = (Predicate<?>) deserializeObject(json
-            .getAsString());
+          .getAsString());
         return obj;
       } catch (final IOException e) {
         throw new IllegalArgumentException(e);
@@ -543,7 +544,7 @@ public final class ScenarioIO {
 
     @Override
     public JsonElement doSerialize(Predicate<?> src, Type typeOfSrc,
-        JsonSerializationContext context) {
+      JsonSerializationContext context) {
       if (src instanceof Serializable) {
         try {
           return new JsonPrimitive(serializeObject(src));
@@ -552,15 +553,34 @@ public final class ScenarioIO {
         }
       }
       throw new IllegalArgumentException(
-          "All predicates must be serializable, found: "
-              + src.getClass().getName());
+        "All predicates must be serializable, found: "
+          + src.getClass().getName());
+    }
+  }
+
+  static class ClassIO extends SafeNullIO<Class<?>> {
+    @Override
+    public Class<?> doDeserialize(JsonElement json, Type typeOfT,
+      JsonDeserializationContext context) {
+      checkArgument(json.isJsonPrimitive());
+      try {
+        return Class.forName(json.getAsString());
+      } catch (ClassNotFoundException e) {
+        throw new IllegalArgumentException(e);
+      }
+    }
+
+    @Override
+    public JsonElement doSerialize(Class<?> src, Type typeOfSrc,
+      JsonSerializationContext context) {
+      return new JsonPrimitive(src.getName());
     }
   }
 
   static class ImmutableListIO extends SafeNullIO<ImmutableList<?>> {
     @Override
     public ImmutableList<?> doDeserialize(JsonElement json, Type typeOfT,
-        JsonDeserializationContext context) {
+      JsonDeserializationContext context) {
       final ImmutableList.Builder<Object> builder = ImmutableList.builder();
       final Iterator<JsonElement> it = json.getAsJsonArray().iterator();
       while (it.hasNext()) {
@@ -579,7 +599,7 @@ public final class ScenarioIO {
 
     @Override
     public JsonElement doSerialize(ImmutableList<?> src, Type typeOfSrc,
-        JsonSerializationContext context) {
+      JsonSerializationContext context) {
       final JsonArray arr = new JsonArray();
       for (final Object item : src) {
         final JsonObject obj = new JsonObject();
@@ -594,7 +614,7 @@ public final class ScenarioIO {
   static class ImmutableSetIO extends SafeNullIO<ImmutableSet<?>> {
     @Override
     public ImmutableSet<?> doDeserialize(JsonElement json, Type typeOfT,
-        JsonDeserializationContext context) {
+      JsonDeserializationContext context) {
       final ImmutableSet.Builder<Object> builder = ImmutableSet.builder();
       final Iterator<JsonElement> it = json.getAsJsonArray().iterator();
       while (it.hasNext()) {
@@ -613,7 +633,7 @@ public final class ScenarioIO {
 
     @Override
     public JsonElement doSerialize(ImmutableSet<?> src, Type typeOfSrc,
-        JsonSerializationContext context) {
+      JsonSerializationContext context) {
       final JsonArray arr = new JsonArray();
       for (final Object item : src) {
         final JsonObject obj = new JsonObject();

@@ -29,7 +29,7 @@ import javax.annotation.Nullable;
 import org.eclipse.swt.SWT;
 
 import com.github.rinde.rinsim.core.Simulator;
-import com.github.rinde.rinsim.core.model.Model;
+import com.github.rinde.rinsim.core.model.ModelBuilder;
 import com.github.rinde.rinsim.core.model.pdp.Depot;
 import com.github.rinde.rinsim.core.model.pdp.Parcel;
 import com.github.rinde.rinsim.core.model.pdp.Vehicle;
@@ -54,8 +54,6 @@ import com.github.rinde.rinsim.ui.renderers.RoadUserRenderer;
 import com.github.rinde.rinsim.ui.renderers.UiSchema;
 import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
-import com.google.common.base.Supplier;
-import com.google.common.base.Suppliers;
 import com.google.common.collect.ImmutableMap;
 
 /**
@@ -74,7 +72,7 @@ import com.google.common.collect.ImmutableMap;
  * to plug in custom parcels and depots.
  * @author Rinde van Lon
  */
-public class DynamicPDPTWProblem {
+public final class DynamicPDPTWProblem {
 
   // TODO create a builder for configuration of problems
   // TODO a scenario should be an event list AND a pre-configured set of models
@@ -136,7 +134,7 @@ public class DynamicPDPTWProblem {
   /**
    * The StatsTracker which is used internally for gathering statistics.
    */
-  protected final StatsTracker statsTracker;
+  protected StatsTracker statsTracker;
 
   /**
    * The {@link StopConditions} which is used as the condition when the
@@ -153,20 +151,20 @@ public class DynamicPDPTWProblem {
    *          option custom models for specific solutions can be added.
    */
   public DynamicPDPTWProblem(final Scenario scen, long randomSeed,
-    Model<?>... models) {
+    Iterable<? extends ModelBuilder<?, ?>> models) {
 
     final Simulator.Builder simBuilder = Simulator.builder()
       .setRandomSeed(randomSeed)
       .setTickLength(scen.getTickSize())
       .setTimeUnit(scen.getTimeUnit());
 
-    final List<? extends Supplier<? extends Model<?>>> modelSuppliers = scen
-      .getModelSuppliers();
-    for (final Supplier<? extends Model<?>> supplier : modelSuppliers) {
-      simBuilder.addModel(supplier);
+    final List<? extends ModelBuilder<?, ?>> modelBuilders = scen
+      .getModelBuilders();
+    for (final ModelBuilder<?, ?> builder : modelBuilders) {
+      simBuilder.addModel(builder);
     }
-    for (final Model<?> m : models) {
-      simBuilder.addModel(Suppliers.ofInstance(m));
+    for (final ModelBuilder<?, ?> m : models) {
+      simBuilder.addModel(m);
     }
     eventCreatorMap = newHashMap();
 
@@ -189,13 +187,17 @@ public class DynamicPDPTWProblem {
     final int ticks = scen.getTimeWindow().end == Long.MAX_VALUE ? -1
       : (int) (scen.getTimeWindow().end - scen.getTimeWindow().begin);
 
-    controller = new ScenarioController(scen, handler, ticks);
-    statsTracker = new StatsTracker(controller);
-
-    simBuilder.addModel(Suppliers.ofInstance(statsTracker));
-    simBuilder.addModel(Suppliers.ofInstance(controller));
+    simBuilder.addModel(ScenarioController.builder()
+      .setScenario(scen)
+      .setEventHandler(handler)
+      .setNumberOfTicks(ticks)
+      )
+      .addModel(StatsTracker.builder());
 
     simulator = simBuilder.build();
+    statsTracker = simulator.getModelProvider().getModel(StatsTracker.class);
+    controller = simulator.getModelProvider()
+      .getModel(ScenarioController.class);
     stopCondition = scen.getStopCondition();
 
     simulator.addTickListener(new TickListener() {

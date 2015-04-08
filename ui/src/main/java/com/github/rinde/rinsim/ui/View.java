@@ -34,8 +34,11 @@ import org.eclipse.swt.widgets.Monitor;
 import org.eclipse.swt.widgets.Shell;
 
 import com.github.rinde.rinsim.core.Simulator;
+import com.github.rinde.rinsim.core.model.time.Clock;
+import com.github.rinde.rinsim.core.model.time.ClockController;
 import com.github.rinde.rinsim.core.model.time.TickListener;
 import com.github.rinde.rinsim.core.model.time.TimeLapse;
+import com.github.rinde.rinsim.core.model.time.TimeModel;
 import com.github.rinde.rinsim.event.Event;
 import com.github.rinde.rinsim.event.Listener;
 import com.github.rinde.rinsim.ui.renderers.CanvasRendererBuilder;
@@ -331,7 +334,10 @@ public final class View {
 
         final Listener list = callback;
 
-        simulator.getEventAPI().addListener(new Listener() {
+        final ClockController clock = simulator.getModelProvider().getModel(
+          TimeModel.class);
+
+        clock.getEventAPI().addListener(new Listener() {
           @Override
           public void handleEvent(final Event arg0) {
             if (!shell.isDisposed()) {
@@ -346,7 +352,7 @@ public final class View {
               list.handleEvent(arg0);
             }
           }
-        }, Simulator.SimulatorEventType.STOPPED);
+        }, Clock.ClockEventType.STOPPED);
       }
 
       shell.addListener(SWT.Close, new org.eclipse.swt.widgets.Listener() {
