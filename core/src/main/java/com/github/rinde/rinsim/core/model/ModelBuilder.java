@@ -15,6 +15,10 @@
  */
 package com.github.rinde.rinsim.core.model;
 
+import java.util.Objects;
+
+import javax.annotation.Nullable;
+
 import com.google.common.collect.ImmutableSet;
 import com.google.common.reflect.TypeToken;
 
@@ -142,6 +146,18 @@ public interface ModelBuilder<T extends Model<? extends U>, U> {
     @Override
     public final ImmutableSet<Class<?>> getDependencies() {
       return deps;
+    }
+
+    @Override
+    public boolean equals(@Nullable Object other) {
+      if (!(other instanceof AbstractModelBuilder<?, ?>)) {
+        return false;
+      }
+      final AbstractModelBuilder<?, ?> o = (AbstractModelBuilder<?, ?>) other;
+      return Objects.equals(provTypes, o.provTypes)
+        && Objects.equals(deps, o.deps)
+        && Objects.equals(modelType, o.modelType)
+        && Objects.equals(associatedType, o.associatedType);
     }
   }
 }

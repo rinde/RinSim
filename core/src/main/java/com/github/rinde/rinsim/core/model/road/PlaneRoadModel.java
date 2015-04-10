@@ -22,8 +22,10 @@ import static java.util.Arrays.asList;
 import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Queue;
 
+import javax.annotation.Nullable;
 import javax.measure.Measure;
 import javax.measure.quantity.Duration;
 import javax.measure.quantity.Length;
@@ -364,6 +366,25 @@ public class PlaneRoadModel extends AbstractRoadModel<Point> {
         "Min should have coordinates smaller than max, found min %s and max %s.",
         min, max);
       return new PlaneRoadModel(this);
+    }
+
+    @Override
+    public boolean equals(@Nullable Object other) {
+      if (other == null || getClass() != other.getClass()) {
+        return false;
+      }
+      final Builder o = (Builder) other;
+      return Objects.equals(min, o.min)
+        && Objects.equals(max, o.max)
+        && Objects.equals(distUnit, o.distUnit)
+        && Objects.equals(velocityUnit, o.velocityUnit)
+        && Objects.equals(maxSpeed, o.maxSpeed)
+        && super.equals(other);
+    }
+
+    @Override
+    public int hashCode() {
+      return Objects.hash(min, max, distUnit, velocityUnit, maxSpeed);
     }
   }
 }

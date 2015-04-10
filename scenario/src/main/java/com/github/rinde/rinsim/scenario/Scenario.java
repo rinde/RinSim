@@ -24,6 +24,7 @@ import static com.google.common.collect.Sets.newLinkedHashSet;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.Queue;
 import java.util.Set;
 
@@ -40,7 +41,6 @@ import com.github.rinde.rinsim.core.model.Model;
 import com.github.rinde.rinsim.core.model.ModelBuilder;
 import com.github.rinde.rinsim.scenario.TimedEvent.TimeComparator;
 import com.github.rinde.rinsim.util.TimeWindow;
-import com.google.common.base.Objects;
 import com.google.common.base.Optional;
 import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
@@ -125,7 +125,7 @@ public abstract class Scenario {
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(supportedTypes, events);
+    return Objects.hash(supportedTypes, events);
   }
 
   /**
@@ -790,20 +790,20 @@ public abstract class Scenario {
       }
       final DefaultScenario o = (DefaultScenario) other;
       return super.equals(o)
-        && Objects.equal(o.modelBuilders, modelBuilders)
-        && Objects.equal(o.speedUnit, speedUnit)
-        && Objects.equal(o.distanceUnit, distanceUnit)
-        && Objects.equal(o.timeUnit, timeUnit)
-        && Objects.equal(o.timeWindow, timeWindow)
-        && Objects.equal(o.tickSize, tickSize)
-        && Objects.equal(o.stopCondition, stopCondition)
-        && Objects.equal(o.problemClass, problemClass)
-        && Objects.equal(o.instanceId, instanceId);
+        && Objects.equals(o.modelBuilders, modelBuilders)
+        && Objects.equals(o.speedUnit, speedUnit)
+        && Objects.equals(o.distanceUnit, distanceUnit)
+        && Objects.equals(o.timeUnit, timeUnit)
+        && Objects.equals(o.timeWindow, timeWindow)
+        && Objects.equals(o.tickSize, tickSize)
+        && Objects.equals(o.stopCondition, stopCondition)
+        && Objects.equals(o.problemClass, problemClass)
+        && Objects.equals(o.instanceId, instanceId);
     }
 
     @Override
     public int hashCode() {
-      return Objects.hashCode(super.hashCode(), modelBuilders, speedUnit,
+      return Objects.hash(super.hashCode(), modelBuilders, speedUnit,
         distanceUnit, timeUnit, timeWindow, tickSize, stopCondition,
         problemClass, instanceId);
     }

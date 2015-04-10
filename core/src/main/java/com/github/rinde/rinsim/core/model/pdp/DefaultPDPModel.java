@@ -24,7 +24,10 @@ import static java.util.Collections.unmodifiableSet;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
+
+import javax.annotation.Nullable;
 
 import com.github.rinde.rinsim.core.model.DependencyProvider;
 import com.github.rinde.rinsim.core.model.ModelBuilder.AbstractModelBuilder;
@@ -675,6 +678,20 @@ public final class DefaultPDPModel extends PDPModel {
     public DefaultPDPModel build(DependencyProvider dependencyProvider) {
       final RoadModel rm = dependencyProvider.get(RoadModel.class);
       return new DefaultPDPModel(rm, policy);
+    }
+
+    @Override
+    public boolean equals(@Nullable Object other) {
+      if (other == null || getClass() != other.getClass()) {
+        return false;
+      }
+      return super.equals(other)
+        && Objects.equals(policy, ((Builder) other).policy);
+    }
+
+    @Override
+    public int hashCode() {
+      return Objects.hash(policy);
     }
   }
 
