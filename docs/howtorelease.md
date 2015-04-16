@@ -32,6 +32,10 @@
    1. 
         ```
         mvn clean deploy -DperformRelease=true
+        ``` 
+        Possibly need to add:
+        ```
+        -Dgpg.executable=gpg2
         ```
    1. Wait for success confirmation by email ("Nexus: Promotion Completed").
  1. 
