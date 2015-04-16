@@ -17,6 +17,8 @@ package com.github.rinde.rinsim.core.model;
 
 import java.util.Objects;
 
+import javax.annotation.Nullable;
+
 import com.google.common.collect.ImmutableSet;
 import com.google.common.reflect.TypeToken;
 
@@ -146,9 +148,35 @@ public interface ModelBuilder<T extends Model<? extends U>, U> {
       return deps;
     }
 
-    // @Override
-    // public abstract boolean equals(@Nullable Object other);
+    /**
+     * {@inheritDoc}
+     * <p>
+     * Must be implemented in subclasses. If the default hash code is desired,
+     * one can use {@link System#identityHashCode(Object)}.
+     */
+    @Override
+    public abstract int hashCode();
 
+    /**
+     * {@inheritDoc}
+     * <p>
+     * Must be implemented in subclasses. To compare common properties of
+     * {@link ModelBuilder.AbstractModelBuilder}s,
+     * {@link #equal(AbstractModelBuilder, AbstractModelBuilder)} can be used.
+     */
+    @Override
+    public abstract boolean equals(@Nullable Object other);
+
+    /**
+     * Compares the two provided {@link ModelBuilder.AbstractModelBuilder}
+     * instances on their equality with respect to properties defined in the
+     * abstract base class.
+     * @param one One builder.
+     * @param other Another builder.
+     * @return <code>true</code> if the properties as defined in this class of
+     *         the two provided {@link ModelBuilder.AbstractModelBuilder}s are
+     *         equal.
+     */
     public static boolean equal(AbstractModelBuilder<?, ?> one,
       AbstractModelBuilder<?, ?> other) {
       return Objects.equals(one.provTypes, other.provTypes)

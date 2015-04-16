@@ -24,6 +24,7 @@ import static org.junit.Assert.assertTrue;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
+import javax.annotation.Nullable;
 import javax.measure.unit.NonSI;
 import javax.measure.unit.SI;
 
@@ -32,6 +33,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import com.github.rinde.rinsim.core.model.DependencyProvider;
+import com.github.rinde.rinsim.core.model.Model;
 import com.github.rinde.rinsim.core.model.Model.AbstractModel;
 import com.github.rinde.rinsim.core.model.ModelBuilder;
 import com.github.rinde.rinsim.core.model.ModelBuilder.AbstractModelBuilder;
@@ -313,6 +315,16 @@ public class SimulatorTest {
     IllBehavedBuilderBase() {
       setDependencies(ProviderForA.class);
     }
+
+    @Override
+    public boolean equals(@Nullable Object other) {
+      return this == other;
+    }
+
+    @Override
+    public int hashCode() {
+      return 0;
+    }
   }
 
   class NopBuilder extends IllBehavedBuilderBase {
@@ -340,8 +352,21 @@ public class SimulatorTest {
     }
   }
 
+  abstract class TestModelBuilder<T extends Model<? extends U>, U> extends
+    AbstractModelBuilder<T, U> {
+    @Override
+    public int hashCode() {
+      return System.identityHashCode(this);
+    }
+
+    @Override
+    public boolean equals(@Nullable Object other) {
+      return this == other;
+    }
+  }
+
   class AskWithoutAnyDepsBuilder extends
-    AbstractModelBuilder<GenericModel<Object>, Object> {
+    TestModelBuilder<GenericModel<Object>, Object> {
     @Override
     public GenericModel<Object> build(DependencyProvider dependencyProvider) {
       dependencyProvider.get(ProviderForA.class);
@@ -349,7 +374,7 @@ public class SimulatorTest {
     }
   }
 
-  class DuplicateA extends AbstractModelBuilder<GenericModel<Object>, Object> {
+  class DuplicateA extends TestModelBuilder<GenericModel<Object>, Object> {
     DuplicateA() {
       setProvidingTypes(Object.class);
     }
@@ -360,7 +385,7 @@ public class SimulatorTest {
     }
   }
 
-  class DuplicateB extends AbstractModelBuilder<GenericModel<Object>, Object> {
+  class DuplicateB extends TestModelBuilder<GenericModel<Object>, Object> {
     DuplicateB() {
       setProvidingTypes(Object.class);
     }
@@ -402,7 +427,7 @@ public class SimulatorTest {
     }
   }
 
-  class A extends AbstractModelBuilder<GenericModel<Object>, Object> {
+  class A extends TestModelBuilder<GenericModel<Object>, Object> {
     A() {
       setProvidingTypes(ProviderForA.class);
       setDependencies(ProviderForB.class);
@@ -417,7 +442,7 @@ public class SimulatorTest {
     }
   }
 
-  class B extends AbstractModelBuilder<GenericModel<Object>, Object> {
+  class B extends TestModelBuilder<GenericModel<Object>, Object> {
     B() {
       setProvidingTypes(ProviderForB.class);
     }
@@ -430,7 +455,7 @@ public class SimulatorTest {
     }
   }
 
-  class CircleA extends AbstractModelBuilder<GenericModel<Object>, Object> {
+  class CircleA extends TestModelBuilder<GenericModel<Object>, Object> {
     CircleA() {
       setProvidingTypes(ProviderForA.class);
       setDependencies(ProviderForB.class);
@@ -443,7 +468,7 @@ public class SimulatorTest {
     }
   }
 
-  class CircleB extends AbstractModelBuilder<GenericModel<Object>, Object> {
+  class CircleB extends TestModelBuilder<GenericModel<Object>, Object> {
     CircleB() {
       setProvidingTypes(ProviderForB.class);
       setDependencies(ProviderForC.class);
@@ -456,7 +481,7 @@ public class SimulatorTest {
     }
   }
 
-  class CircleC extends AbstractModelBuilder<GenericModel<Object>, Object> {
+  class CircleC extends TestModelBuilder<GenericModel<Object>, Object> {
     CircleC() {
       setProvidingTypes(ProviderForC.class);
       setDependencies(ProviderForA.class);

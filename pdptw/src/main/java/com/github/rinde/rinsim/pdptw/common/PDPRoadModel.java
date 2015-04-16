@@ -17,6 +17,7 @@ package com.github.rinde.rinsim.pdptw.common;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.collect.Maps.newHashMap;
+import static java.util.Objects.hash;
 
 import java.util.Map;
 import java.util.Queue;
@@ -344,6 +345,20 @@ public class PDPRoadModel extends ForwardingRoadModel implements ModelReceiver {
       return this;
     }
 
+    @Override
+    public int hashCode() {
+      return hash(delegate, allowVehicleDiversion);
+    }
+
+    @Override
+    public boolean equals(@Nullable Object other) {
+      if (!(other instanceof Builder)) {
+        return false;
+      }
+      final Builder o = (Builder) other;
+      return Objects.equal(allowVehicleDiversion, o.allowVehicleDiversion)
+        && Objects.equal(delegate, o.delegate);
+    }
   }
 
   private static final class DestinationObject {

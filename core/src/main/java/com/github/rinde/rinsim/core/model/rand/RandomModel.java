@@ -20,6 +20,8 @@ import static com.google.common.base.Preconditions.checkState;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+import javax.annotation.Nullable;
+
 import org.apache.commons.math3.random.MersenneTwister;
 import org.apache.commons.math3.random.RandomGenerator;
 
@@ -126,7 +128,7 @@ public class RandomModel extends AbstractModel<RandomUser> {
    * @return A new supplier instance.
    */
   public static Supplier<RandomModel> supplier(RandomGenerator rng) {
-    return new RandomModelSupplier(rng);
+    return new RandomModelBuilder(rng);
   }
 
   /**
@@ -137,15 +139,15 @@ public class RandomModel extends AbstractModel<RandomUser> {
    */
   public static ModelBuilder<RandomModel, RandomUser> builder(
     RandomGenerator rng) {
-    return new RandomModelSupplier(rng);
+    return new RandomModelBuilder(rng);
   }
 
-  static class RandomModelSupplier extends
+  static class RandomModelBuilder extends
     AbstractModelBuilder<RandomModel, RandomUser>
     implements Supplier<RandomModel> {
     private final RandomGenerator r;
 
-    RandomModelSupplier(RandomGenerator rng) {
+    RandomModelBuilder(RandomGenerator rng) {
       r = rng;
       setProvidingTypes(RandomProvider.class);
     }
@@ -163,6 +165,19 @@ public class RandomModel extends AbstractModel<RandomUser> {
     @Override
     public String toString() {
       return "RandomModelBuilder";
+    }
+
+    @Override
+    public int hashCode() {
+      return r.hashCode();
+    }
+
+    @Override
+    public boolean equals(@Nullable Object other) {
+      if (other instanceof RandomModelBuilder) {
+        return r.equals(((RandomModelBuilder) other).r);
+      }
+      return false;
     }
   }
 

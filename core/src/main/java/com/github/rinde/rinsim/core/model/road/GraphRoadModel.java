@@ -20,10 +20,12 @@ import static com.github.rinde.rinsim.geom.Graphs.unmodifiableGraph;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.base.Verify.verify;
+import static java.util.Objects.hash;
 
 import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Queue;
 
 import javax.annotation.Nullable;
@@ -525,6 +527,22 @@ public class GraphRoadModel extends AbstractRoadModel<Loc> {
     @Override
     public GraphRoadModel build(DependencyProvider dependencyProvider) {
       return new GraphRoadModel(graph, distanceUnit, speedUnit);
+    }
+
+    @Override
+    public int hashCode() {
+      return hash(graph, distanceUnit, speedUnit);
+    }
+
+    @Override
+    public boolean equals(@Nullable Object other) {
+      if (!(other instanceof Builder)) {
+        return false;
+      }
+      final Builder o = (Builder) other;
+      return Objects.equals(graph, o.graph)
+        && Objects.equals(distanceUnit, o.distanceUnit)
+        && Objects.equals(speedUnit, o.speedUnit);
     }
   }
 

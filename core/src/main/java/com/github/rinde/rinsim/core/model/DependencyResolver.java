@@ -202,6 +202,19 @@ class DependencyResolver extends DependencyProvider {
     public String toString() {
       return "AdapterOf-" + supplier.toString();
     }
+
+    @Override
+    public int hashCode() {
+      return supplier.hashCode();
+    }
+
+    @Override
+    public boolean equals(@Nullable Object other) {
+      if (other instanceof SupplierAdapter) {
+        return supplier.equals(((SupplierAdapter<?, ?>) other).supplier);
+      }
+      return false;
+    }
   }
 
   static class Dependency {

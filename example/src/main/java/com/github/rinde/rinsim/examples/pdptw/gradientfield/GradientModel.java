@@ -174,6 +174,16 @@ public class GradientModel extends AbstractModel<FieldEmitter> implements
     public GradientModel build(DependencyProvider dependencyProvider) {
       return new GradientModel();
     }
+
+    @Override
+    public int hashCode() {
+      return System.identityHashCode(this);
+    }
+
+    @Override
+    public boolean equals(@Nullable Object other) {
+      return this == other;
+    }
   }
 
 }

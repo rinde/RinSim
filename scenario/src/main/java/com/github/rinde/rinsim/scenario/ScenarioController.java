@@ -19,7 +19,9 @@ import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.base.Verify.verify;
 import static com.google.common.collect.Sets.newHashSet;
 import static java.util.Arrays.asList;
+import static java.util.Objects.hash;
 
+import java.util.Objects;
 import java.util.Queue;
 import java.util.Set;
 
@@ -319,6 +321,23 @@ public final class ScenarioController extends AbstractModel<Scenario> implements
       SimulatorAPI sim = dependencyProvider.get(SimulatorAPI.class);
       ClockController clock = dependencyProvider.get(ClockController.class);
       return new ScenarioController(sim, clock, this);
+    }
+
+    @Override
+    public int hashCode() {
+      return hash(scenario, eventHandler, numberOfTicks);
+    }
+
+    @Override
+    public boolean equals(@Nullable Object other) {
+      if (!(other instanceof Builder)) {
+        return false;
+      }
+
+      Builder o = (Builder) other;
+      return Objects.equals(scenario, o.scenario)
+        && Objects.equals(eventHandler, o.eventHandler)
+        && Objects.equals(numberOfTicks, o.numberOfTicks);
     }
   }
 }

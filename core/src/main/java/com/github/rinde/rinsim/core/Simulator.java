@@ -20,6 +20,7 @@ import static com.google.common.base.Preconditions.checkArgument;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
+import javax.annotation.Nullable;
 import javax.measure.quantity.Duration;
 import javax.measure.unit.SI;
 import javax.measure.unit.Unit;
@@ -341,6 +342,16 @@ public final class Simulator implements SimulatorAPI {
     @Override
     public SimulatorModel build(DependencyProvider dependencyProvider) {
       return new SimulatorModel(simulator);
+    }
+
+    @Override
+    public int hashCode() {
+      return System.identityHashCode(this);
+    }
+
+    @Override
+    public boolean equals(@Nullable Object other) {
+      return this == other;
     }
   }
 

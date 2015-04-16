@@ -18,10 +18,14 @@ package com.github.rinde.rinsim.examples.demo.factory;
 import static com.google.common.base.Verify.verify;
 import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Sets.newLinkedHashSet;
+import static java.util.Objects.hash;
 
 import java.math.RoundingMode;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
+
+import javax.annotation.Nullable;
 
 import org.apache.commons.math3.random.RandomGenerator;
 
@@ -227,6 +231,21 @@ class AgvModel extends AbstractModel<AGV> implements TickListener,
       final RandomGenerator rng = dependencyProvider.get(RandomProvider.class)
         .newInstance();
       return new AgvModel(rng, points, border);
+    }
+
+    @Override
+    public int hashCode() {
+      return hash(points, border);
+    }
+
+    @Override
+    public boolean equals(@Nullable Object other) {
+      if (!(other instanceof Builder)) {
+        return false;
+      }
+      final Builder o = (Builder) other;
+      return Objects.equals(points, o.points)
+        && Objects.equals(border, o.border);
     }
   }
 }

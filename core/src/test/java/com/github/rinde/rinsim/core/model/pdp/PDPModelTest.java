@@ -28,6 +28,7 @@ import static org.mockito.Mockito.when;
 import java.util.Arrays;
 import java.util.Collection;
 
+import javax.annotation.Nullable;
 import javax.measure.unit.SI;
 
 import org.junit.Before;
@@ -106,6 +107,16 @@ public class PDPModelTest {
       final PDPModel delegate = delegateBuilder
         .build(dependencyProvider);
       return new ForwardingPDPModel(delegate);
+    }
+
+    @Override
+    public int hashCode() {
+      return System.identityHashCode(this);
+    }
+
+    @Override
+    public boolean equals(@Nullable Object other) {
+      return this == other;
     }
   }
 

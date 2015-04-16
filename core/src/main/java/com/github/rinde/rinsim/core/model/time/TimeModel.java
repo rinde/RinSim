@@ -16,12 +16,15 @@
 package com.github.rinde.rinsim.core.model.time;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static java.util.Objects.hash;
 
 import java.util.Collections;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
 
 import javax.annotation.CheckReturnValue;
+import javax.annotation.Nullable;
 import javax.measure.quantity.Duration;
 import javax.measure.unit.SI;
 import javax.measure.unit.Unit;
@@ -216,6 +219,21 @@ public final class TimeModel extends AbstractModel<TickListener>
     @Override
     public TimeModel build(DependencyProvider dependencyProvider) {
       return new TimeModel(timeLength, timeUnit);
+    }
+
+    @Override
+    public int hashCode() {
+      return hash(timeLength, timeUnit);
+    }
+
+    @Override
+    public boolean equals(@Nullable Object other) {
+      if (!(other instanceof Builder)) {
+        return false;
+      }
+      final Builder o = (Builder) other;
+      return Objects.equals(timeLength, o.timeLength)
+        && Objects.equals(timeUnit, o.timeUnit);
     }
   }
 }

@@ -16,8 +16,11 @@
 package com.github.rinde.rinsim.central;
 
 import java.util.Iterator;
+import java.util.Objects;
 import java.util.Queue;
 import java.util.Set;
+
+import javax.annotation.Nullable;
 
 import com.github.rinde.rinsim.central.Solvers.SimulationSolver;
 import com.github.rinde.rinsim.central.Solvers.SolveArgs;
@@ -136,6 +139,19 @@ public final class Central {
       RandomProvider rnd = dependencyProvider.get(RandomProvider.class);
       Solver solver = solverSupplier.get(rnd.masterInstance().nextLong());
       return new CentralModel(clock, rm, pm, solver);
+    }
+
+    @Override
+    public int hashCode() {
+      return solverSupplier.hashCode();
+    }
+
+    @Override
+    public boolean equals(@Nullable Object other) {
+      if (!(other instanceof Builder)) {
+        return false;
+      }
+      return Objects.equals(solverSupplier, ((Builder) other).solverSupplier);
     }
   }
 
