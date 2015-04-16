@@ -685,8 +685,9 @@ public final class DefaultPDPModel extends PDPModel {
       if (other == null || getClass() != other.getClass()) {
         return false;
       }
-      return super.equals(other)
-        && Objects.equals(policy, ((Builder) other).policy);
+      final Builder o = (Builder) other;
+      return AbstractModelBuilder.equal(this, o)
+        && Objects.equals(policy, o.policy);
     }
 
     @Override

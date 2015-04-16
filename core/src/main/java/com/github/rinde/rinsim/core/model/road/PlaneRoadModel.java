@@ -379,7 +379,7 @@ public class PlaneRoadModel extends AbstractRoadModel<Point> {
         && Objects.equals(distUnit, o.distUnit)
         && Objects.equals(velocityUnit, o.velocityUnit)
         && Objects.equals(maxSpeed, o.maxSpeed)
-        && super.equals(other);
+        && AbstractModelBuilder.equal(this, o);
     }
 
     @Override

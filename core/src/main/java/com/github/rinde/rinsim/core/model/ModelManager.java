@@ -19,7 +19,6 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.Collection;
-import java.util.LinkedHashSet;
 import java.util.Set;
 
 import javax.annotation.Nullable;
@@ -142,39 +141,28 @@ public final class ModelManager implements ModelProvider {
   }
 
   public static class Builder {
-    final ImmutableSet.Builder<ModelBuilder<?, ?>> models;
-    final Set<ModelBuilder<?, ?>> defaultModels;
+    DependencyResolver resolver;
 
     Builder() {
-      models = ImmutableSet.builder();
-      defaultModels = new LinkedHashSet<>();
-    }
-
-    public Builder add(Iterable<? extends ModelBuilder<?, ?>> builders) {
-      models.addAll(builders);
-      return this;
+      resolver = new DependencyResolver();
     }
 
     public Builder add(ModelBuilder<?, ?> builder) {
-      models.add(builder);
+      resolver.add(builder);
       return this;
     }
 
     public Builder add(Supplier<? extends Model<?>> supplier) {
-      models.add(DependencyResolver.adaptObj(supplier));
-      return this;
+      return add(DependencyResolver.adaptObj(supplier));
     }
 
     public Builder setDefaultProvider(ModelBuilder<?, ?> provider) {
-      checkArgument(!defaultModels.contains(provider));
-      defaultModels.add(provider);
+      resolver.addDefault(provider);
       return this;
     }
 
     public ModelManager build() {
-      final DependencyResolver r = new DependencyResolver(models.build(),
-        defaultModels);
-      return new ModelManager(r.resolve());
+      return new ModelManager(resolver.resolve());
     }
   }
 

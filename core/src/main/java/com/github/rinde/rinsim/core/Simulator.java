@@ -17,9 +17,7 @@ package com.github.rinde.rinsim.core;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
-import java.util.ArrayList;
 import java.util.LinkedHashSet;
-import java.util.List;
 import java.util.Set;
 
 import javax.measure.quantity.Duration;
@@ -66,42 +64,25 @@ import com.google.common.collect.ImmutableCollection;
  * @author Bartosz Michalik
  */
 public final class Simulator implements SimulatorAPI {
+  private static final Logger LOGGER = LoggerFactory.getLogger(Simulator.class);
 
-  /**
-   * The logger of the simulator.
-   */
-  protected static final Logger LOGGER = LoggerFactory
-    .getLogger(Simulator.class);
-
-  /**
-   * Model manager instance.
-   */
-  protected final ModelManager modelManager;
-
+  private final ModelManager modelManager;
   private final Set<Object> toUnregister;
   private final RandomGenerator rand;
   private final ClockController clock;
 
-  @SuppressWarnings("unchecked")
   Simulator(Builder b) {
-    toUnregister = new LinkedHashSet<>();
     rand = b.rng;
-
-    final ModelManager.Builder mb = ModelManager.builder();
-    mb.add(new SimulatorModelBuilder(this));
-    for (final Object o : b.models) {
-      if (o instanceof ModelBuilder<?, ?>) {
-        mb.add((ModelBuilder<?, ?>) o);
-      } else {
-        mb.add((Supplier<? extends Model<?>>) o);
-      }
-    }
-    mb.setDefaultProvider(RandomModel.builder(b.rng));
-    mb.setDefaultProvider(TimeModel.builder()
-      .setTickLength(b.tickLength)
-      .setTimeUnit(b.timeUnit)
-      );
-    modelManager = mb.build();
+    modelManager = b.mmBuilder
+      .add(new SimulatorModelBuilder(this))
+      .setDefaultProvider(RandomModel.builder(rand))
+      .setDefaultProvider(
+        TimeModel.builder()
+          .setTickLength(b.tickLength)
+          .setTimeUnit(b.timeUnit)
+      )
+      .build();
+    toUnregister = new LinkedHashSet<>();
     clock = modelManager.getModel(TimeModel.class);
   }
 
@@ -255,13 +236,13 @@ public final class Simulator implements SimulatorAPI {
     RandomGenerator rng;
     Unit<Duration> timeUnit;
     long tickLength;
-    List<Object> models;
+    ModelManager.Builder mmBuilder;
 
     Builder() {
       rng = new MersenneTwister(DEFAULT_SEED);
       timeUnit = SI.MILLI(SI.SECOND);
       tickLength = DEFAULT_TICK_LENGTH;
-      models = new ArrayList<>();
+      mmBuilder = ModelManager.builder();
     }
 
     /**
@@ -321,7 +302,7 @@ public final class Simulator implements SimulatorAPI {
      * @return This, as per the builder pattern.
      */
     public Builder addModel(Supplier<? extends Model<?>> supplier) {
-      models.add(supplier);
+      mmBuilder.add(supplier);
       return this;
     }
 
@@ -333,7 +314,7 @@ public final class Simulator implements SimulatorAPI {
      * @return This, as per the builder pattern.
      */
     public Builder addModel(ModelBuilder<?, ?> builder) {
-      models.add(builder);
+      mmBuilder.add(builder);
       return this;
     }
 
@@ -342,6 +323,7 @@ public final class Simulator implements SimulatorAPI {
      * @return A new {@link Simulator} instance.
      */
     public Simulator build() {
+
       return new Simulator(this);
     }
   }

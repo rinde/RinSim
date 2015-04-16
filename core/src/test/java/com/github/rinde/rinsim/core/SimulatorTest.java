@@ -215,17 +215,18 @@ public class SimulatorTest {
   }
 
   /**
-   * Tests that a duplicate provided is detected correctly.
+   * Tests that a duplicate provider is detected correctly.
    */
   @Test
   public void testDuplicateProvider() {
     final Simulator.Builder b = Simulator.builder()
-      .addModel(new DuplicateA())
-      .addModel(new DuplicateB());
+      .addModel(new DuplicateA());
     boolean fail = false;
     try {
-      b.build();
+      b.addModel(new DuplicateB());
     } catch (final IllegalArgumentException e) {
+      assertThat(e.getMessage()).contains(
+        "provider for class java.lang.Object already exists");
       fail = true;
     }
     assertThat(fail).isTrue();
@@ -295,13 +296,10 @@ public class SimulatorTest {
    */
   @Test
   public void testAskWithoutAnyDepsBuilder() {
-    final Simulator.Builder b = Simulator.builder()
-      .addModel(new AskWithoutAnyDepsBuilder())
-      .addModel(new A())
-      .addModel(new B());
+    final Simulator.Builder b = Simulator.builder();
     boolean fail = false;
     try {
-      b.build();
+      b.addModel(new AskWithoutAnyDepsBuilder());
     } catch (final IllegalArgumentException e) {
       assertThat(e.getMessage()).containsMatch(
         "did not declare any dependencies");

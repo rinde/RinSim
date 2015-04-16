@@ -42,7 +42,7 @@ import com.github.rinde.rinsim.event.EventDispatcher;
  * <b>Model properties</b>
  * <ul>
  * <li><i>Associated type:</i> {@link TickListener}.</li>
- * <li><i>Provides:</i> {@link Clock}.</li>
+ * <li><i>Provides:</i> {@link Clock} and {@link ClockController}.</li>
  * <li><i>Dependencies:</i> none.</li>
  * </ul>
  * See {@link ModelBuilder} for more information about model properties.

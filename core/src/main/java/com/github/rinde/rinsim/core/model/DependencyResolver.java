@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -45,18 +46,37 @@ class DependencyResolver extends DependencyProvider {
   final Multimap<Dependency, Class<?>> dependencyMap;
   final BiMap<Class<?>, Dependency> modelTypeMap;
   final List<Dependency> builders;
+  final Set<ModelBuilder<?, ?>> defaultModels;
 
-  DependencyResolver(Set<ModelBuilder<?, ?>> models,
-    Set<ModelBuilder<?, ?>> defaultModels) {
+  DependencyResolver() {
     providerMap = new LinkedHashMap<>();
     dependencyMap = LinkedHashMultimap.create();
     modelTypeMap = LinkedHashBiMap.create();
     builders = new ArrayList<>();
+    defaultModels = new LinkedHashSet<>();
+  }
 
-    for (final ModelBuilder<?, ?> o : models) {
-      add(o);
+  void addDefault(ModelBuilder<?, ?> mb) {
+    checkArgument(!defaultModels.contains(mb));
+    defaultModels.add(mb);
+  }
+
+  void add(ModelBuilder<?, ?> mb) {
+    final ImmutableSet<Class<?>> deps = mb.getDependencies();
+    final Dependency dep = new Dependency(this, mb, deps);
+    modelTypeMap.put(mb.getAssociatedType(), dep);
+
+    for (final Class<?> clz : mb.getProvidingTypes()) {
+      checkArgument(!providerMap.containsKey(clz),
+        "A provider for %s already exists: %s.", clz,
+        providerMap.get(clz));
+      providerMap.put(clz, dep);
     }
+    dependencyMap.putAll(dep, deps);
+    builders.add(dep);
+  }
 
+  ImmutableSet<Model<?>> resolve() {
     for (final ModelBuilder<?, ?> b : defaultModels) {
       final ImmutableSet<Class<?>> providingTypes = b.getProvidingTypes();
       if (providingTypes.isEmpty()
@@ -67,23 +87,6 @@ class DependencyResolver extends DependencyProvider {
       }
     }
 
-  }
-
-  final void add(ModelBuilder<?, ?> mb) {
-    final ImmutableSet<Class<?>> deps = mb.getDependencies();
-    final Dependency dep = new Dependency(this, mb, deps);
-    modelTypeMap.put(mb.getAssociatedType(), dep);
-
-    for (final Class<?> clz : mb.getProvidingTypes()) {
-      checkArgument(!providerMap.containsKey(clz),
-        "A provider for %s already exists: %s.", clz, providerMap.get(clz));
-      providerMap.put(clz, dep);
-    }
-    dependencyMap.putAll(dep, deps);
-    builders.add(dep);
-  }
-
-  ImmutableSet<Model<?>> resolve() {
     final Multimap<Dependency, Dependency> dependencyGraph = LinkedHashMultimap
       .create();
     for (final Entry<Dependency, Class<?>> entry : dependencyMap
