@@ -78,12 +78,11 @@ public class CentralTest {
   public void setUp() {
     sim = Simulator.builder()
       .addModel(
-        PDPRoadModel.builder()
-          .setAllowVehicleDiversion(false)
-          .setRoadModel(
-            PlaneRoadModel.builder()
-              .setMaxSpeed(300d)
+        PDPRoadModel.builder(
+          PlaneRoadModel.builder()
+            .setMaxSpeed(300d)
           )
+          .setAllowVehicleDiversion(false)
       )
       .addModel(
         DefaultPDPModel.builder()

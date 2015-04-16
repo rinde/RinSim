@@ -27,6 +27,7 @@ import javax.annotation.Nullable;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 
 import com.github.rinde.rinsim.core.model.DependencyProvider;
+import com.github.rinde.rinsim.core.model.ModelBuilder;
 import com.github.rinde.rinsim.core.model.ModelProvider;
 import com.github.rinde.rinsim.core.model.ModelReceiver;
 import com.github.rinde.rinsim.core.model.pdp.PDPModel;
@@ -311,8 +312,9 @@ public class PDPRoadModel extends ForwardingRoadModel implements ModelReceiver {
     return type.cast(self);
   }
 
-  public static Builder builder() {
-    return new Builder();
+  public static Builder builder(
+    ModelBuilder<? extends RoadModel, ? extends RoadUser> rm) {
+    return new Builder(rm);
   }
 
   public static class Builder extends
@@ -320,7 +322,8 @@ public class PDPRoadModel extends ForwardingRoadModel implements ModelReceiver {
 
     boolean allowVehicleDiversion;
 
-    Builder() {
+    Builder(ModelBuilder<? extends RoadModel, ? extends RoadUser> rm) {
+      super(rm);
       setProvidingTypes(RoadModel.class, PDPRoadModel.class);
     }
 
@@ -334,7 +337,7 @@ public class PDPRoadModel extends ForwardingRoadModel implements ModelReceiver {
 
     @Override
     public PDPRoadModel build(DependencyProvider dependencyProvider) {
-      final AbstractRoadModel<?> rm = (AbstractRoadModel<?>) delegate
+      final AbstractRoadModel<?> rm = (AbstractRoadModel<?>) getDelegateModelBuilder()
         .build(dependencyProvider);
 
       return new PDPRoadModel(rm, allowVehicleDiversion);
@@ -347,7 +350,7 @@ public class PDPRoadModel extends ForwardingRoadModel implements ModelReceiver {
 
     @Override
     public int hashCode() {
-      return hash(delegate, allowVehicleDiversion);
+      return hash(getDelegateModelBuilder(), allowVehicleDiversion);
     }
 
     @Override
@@ -357,7 +360,8 @@ public class PDPRoadModel extends ForwardingRoadModel implements ModelReceiver {
       }
       final Builder o = (Builder) other;
       return Objects.equal(allowVehicleDiversion, o.allowVehicleDiversion)
-        && Objects.equal(delegate, o.delegate);
+        && Objects
+          .equal(getDelegateModelBuilder(), o.getDelegateModelBuilder());
     }
   }
 

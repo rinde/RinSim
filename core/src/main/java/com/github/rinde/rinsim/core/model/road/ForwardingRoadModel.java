@@ -219,15 +219,12 @@ public class ForwardingRoadModel extends GenericRoadModel {
   public static abstract class Builder<T extends ForwardingRoadModel, S>
     extends AbstractModelBuilder<T, RoadUser> {
 
-    protected ModelBuilder<? extends RoadModel, ? extends RoadUser> delegate;
+    private final ModelBuilder<? extends RoadModel, ? extends RoadUser> delegate;
 
     protected abstract S self();
 
-    public S setRoadModel(
-      ModelBuilder<? extends RoadModel, ? extends RoadUser> rm) {
-      setDependencies(rm.getDependencies());
+    protected Builder(ModelBuilder<? extends RoadModel, ? extends RoadUser> rm) {
       delegate = rm;
-      return self();
     }
 
     public ModelBuilder<RoadModel, RoadUser> getDelegateModelBuilder() {

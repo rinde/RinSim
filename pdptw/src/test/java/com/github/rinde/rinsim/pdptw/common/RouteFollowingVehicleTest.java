@@ -126,12 +126,11 @@ public class RouteFollowingVehicleTest {
    */
   protected void init(boolean register) {
     final DependencyProvider dp = mock(DependencyProvider.class);
-    rm = PDPRoadModel.builder()
-      .setAllowVehicleDiversion(diversionIsAllowed)
-      .setRoadModel(
-        PlaneRoadModel.builder()
-          .setMaxSpeed(30d)
+    rm = PDPRoadModel.builder(
+      PlaneRoadModel.builder()
+        .setMaxSpeed(30d)
       )
+      .setAllowVehicleDiversion(diversionIsAllowed)
       .build(dp);
 
     when(dp.get(RoadModel.class)).thenReturn(rm);

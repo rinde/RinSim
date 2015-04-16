@@ -135,11 +135,11 @@ public class JppfTest {
     final Scenario generatedScenario = ScenarioGenerator
       .builder()
       .addModel(
-        PDPRoadModel.builder()
-          .setAllowVehicleDiversion(true)
-          .setRoadModel(PlaneRoadModel.builder()
+        PDPRoadModel.builder(
+          PlaneRoadModel.builder()
             .setMaxSpeed(20d)
           )
+          .setAllowVehicleDiversion(true)
       )
       .addModel(
         DefaultPDPModel.builder()

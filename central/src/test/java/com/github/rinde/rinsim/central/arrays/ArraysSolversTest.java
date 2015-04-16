@@ -140,9 +140,8 @@ public class ArraysSolversTest {
           .setTimeWindowPolicy(TimeWindowPolicies.LIBERAL)
       )
       .addModel(
-        PDPRoadModel.builder()
+        PDPRoadModel.builder(PlaneRoadModel.builder())
           .setAllowVehicleDiversion(false)
-          .setRoadModel(PlaneRoadModel.builder())
       )
       .build();
 

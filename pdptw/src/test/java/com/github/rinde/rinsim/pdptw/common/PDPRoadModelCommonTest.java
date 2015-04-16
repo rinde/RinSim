@@ -78,14 +78,13 @@ public abstract class PDPRoadModelCommonTest {
   public void setUp() {
     final DependencyProvider dep = mock(DependencyProvider.class);
 
-    rm = PDPRoadModel.builder()
-      .setRoadModel(
-        PlaneRoadModel.builder()
-          .setMinPoint(new Point(0, 0))
-          .setMaxPoint(new Point(10, 10))
-          .setDistanceUnit(SI.KILOMETER)
-          .setMaxSpeed(0.1)
-          .setSpeedUnit(NonSI.KILOMETERS_PER_HOUR)
+    rm = PDPRoadModel.builder(
+      PlaneRoadModel.builder()
+        .setMinPoint(new Point(0, 0))
+        .setMaxPoint(new Point(10, 10))
+        .setDistanceUnit(SI.KILOMETER)
+        .setMaxSpeed(0.1)
+        .setSpeedUnit(NonSI.KILOMETERS_PER_HOUR)
       )
       .setAllowVehicleDiversion(allowDiversion)
       .build(dep);

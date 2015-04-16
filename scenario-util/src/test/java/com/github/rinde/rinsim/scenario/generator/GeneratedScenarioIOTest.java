@@ -83,12 +83,11 @@ public class GeneratedScenarioIOTest {
       )
       // .deliveryDurations(constant(10L))
       .addModel(
-        PDPRoadModel.builder()
-          .setAllowVehicleDiversion(true)
-          .setRoadModel(
-            PlaneRoadModel.builder()
-              .setMaxSpeed(50d)
+        PDPRoadModel.builder(
+          PlaneRoadModel.builder()
+            .setMaxSpeed(50d)
           )
+          .setAllowVehicleDiversion(true)
       )
       .addModel(
         DefaultPDPModel.builder()

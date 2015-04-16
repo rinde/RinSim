@@ -105,16 +105,15 @@ public final class Gendreau06Scenario extends Scenario {
   public ImmutableList<? extends ModelBuilder<?, ?>> getModelBuilders() {
     return ImmutableList.<ModelBuilder<?, ?>> builder()
       .add(
-        PDPRoadModel.builder()
-          .setAllowVehicleDiversion(allowDiversion)
-          .setRoadModel(
-            PlaneRoadModel.builder()
-              .setMinPoint(MIN)
-              .setMaxPoint(MAX)
-              .setDistanceUnit(getDistanceUnit())
-              .setSpeedUnit(MAX_SPEED.getUnit())
-              .setMaxSpeed(MAX_SPEED.getValue())
+        PDPRoadModel.builder(
+          PlaneRoadModel.builder()
+            .setMinPoint(MIN)
+            .setMaxPoint(MAX)
+            .setDistanceUnit(getDistanceUnit())
+            .setSpeedUnit(MAX_SPEED.getUnit())
+            .setMaxSpeed(MAX_SPEED.getValue())
           )
+          .setAllowVehicleDiversion(allowDiversion)
       )
       .add(
         DefaultPDPModel.builder()

@@ -103,12 +103,11 @@ public class SolversTest {
 
     DependencyProvider dp = mock(DependencyProvider.class);
 
-    rm = PDPRoadModel.builder()
-      .setAllowVehicleDiversion(false)
-      .setRoadModel(
-        PlaneRoadModel.builder()
-          .setMaxSpeed(300d)
+    rm = PDPRoadModel.builder(
+      PlaneRoadModel.builder()
+        .setMaxSpeed(300d)
       )
+      .setAllowVehicleDiversion(false)
       .build(dp);
 
     when(dp.get(RoadModel.class)).thenReturn(rm);
