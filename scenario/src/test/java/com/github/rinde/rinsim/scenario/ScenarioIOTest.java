@@ -16,7 +16,6 @@
 package com.github.rinde.rinsim.scenario;
 
 import static java.util.Arrays.asList;
-import static org.junit.Assert.assertEquals;
 
 import java.util.List;
 
@@ -93,13 +92,7 @@ public class ScenarioIOTest {
     final List<ProblemClass> pcs = asList(TestProblemClass.TEST,
       new SimpleProblemClass("hello"));
     for (final ProblemClass pc : pcs) {
-      final Scenario s = sb.problemClass(pc).build();
-      final String res = ScenarioIO.write(s);
-
-      Scenario s2 = ScenarioIO.read(res);
-
-      assertEquals(res, ScenarioIO.write(s2));
-      assertEquals(s, s2);
+      ScenarioTestUtil.assertScenarioIO(sb.problemClass(pc).build());
     }
   }
 

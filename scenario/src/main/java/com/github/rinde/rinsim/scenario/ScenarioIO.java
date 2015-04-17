@@ -38,6 +38,7 @@ import javax.measure.Measure;
 import javax.measure.unit.Unit;
 import javax.xml.bind.DatatypeConverter;
 
+import com.github.rinde.rinsim.core.model.ModelBuilder;
 import com.github.rinde.rinsim.core.model.pdp.PDPScenarioEvent;
 import com.github.rinde.rinsim.core.model.pdp.TimeWindowPolicy;
 import com.github.rinde.rinsim.core.pdptw.ParcelDTO;
@@ -104,7 +105,8 @@ public final class ScenarioIO {
       .registerTypeAdapter(Predicate.class, new PredicateIO())
       .registerTypeAdapter(Class.class, new ClassIO())
       .registerTypeAdapter(ImmutableList.class, new ImmutableListIO())
-      .registerTypeAdapter(ImmutableSet.class, new ImmutableSetIO());
+      .registerTypeAdapter(ImmutableSet.class, new ImmutableSetIO())
+      .registerTypeAdapter(ModelBuilder.class, new ModelBuilderIO());
 
     return builder.create();
   }
@@ -265,6 +267,25 @@ public final class ScenarioIO {
 
     abstract T doDeserialize(JsonElement json, Type typeOfT,
       JsonDeserializationContext context);
+  }
+
+  static class ModelBuilderIO extends SafeNullIO<ModelBuilder<?, ?>> {
+    @Override
+    JsonElement doSerialize(ModelBuilder<?, ?> src, Type typeOfSrc,
+      JsonSerializationContext context) {
+      JsonObject obj = new JsonObject();
+      obj.add(CLAZZ, new JsonPrimitive(src.getClass().getName()));
+      obj.add(VALUE, context.serialize(src, src.getClass()));
+      return obj;
+    }
+
+    @Override
+    ModelBuilder<?, ?> doDeserialize(JsonElement json, Type typeOfT,
+      JsonDeserializationContext context) {
+      JsonObject obj = json.getAsJsonObject();
+      Class<?> clazz = context.deserialize(obj.get(CLAZZ), Class.class);
+      return context.deserialize(obj.get(VALUE), clazz);
+    }
   }
 
   static class TimeWindowHierarchyIO extends SafeNullIO<TimeWindowPolicy> {

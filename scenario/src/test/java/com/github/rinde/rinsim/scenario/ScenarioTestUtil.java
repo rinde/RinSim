@@ -16,6 +16,7 @@
 package com.github.rinde.rinsim.scenario;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.truth.Truth.assertThat;
 
 import java.io.Serializable;
 import java.math.RoundingMode;
@@ -41,6 +42,21 @@ import com.google.common.base.Predicate;
 import com.google.common.math.DoubleMath;
 
 public class ScenarioTestUtil {
+
+  /**
+   * Tests whether the specified scenario can be correctly written to disk, it
+   * compares the equality of the specified object with a parsed object and it
+   * compares the equality of the serialized string.
+   * @param input The scenario to test with IO.
+   */
+  public static void assertScenarioIO(Scenario input) {
+    String serialized = ScenarioIO.write(input);
+    Scenario parsed = ScenarioIO.read(serialized);
+    String serializedAgain = ScenarioIO.write(parsed);
+
+    assertThat(input).isEqualTo(parsed);
+    assertThat(serialized).comparesEqualTo(serializedAgain);
+  }
 
   public static Scenario create(long seed) {
     final int endTime = 3 * 60 * 60 * 1000;
