@@ -223,7 +223,7 @@ public class ForwardingRoadModel extends GenericRoadModel {
    *          construct.
    * @author Rinde van Lon
    */
-  public static abstract class Builder<T extends ForwardingRoadModel>
+  public abstract static class Builder<T extends ForwardingRoadModel>
     extends AbstractModelBuilder<T, RoadUser> {
     private final ModelBuilder<RoadModel, RoadUser> delegate;
 
