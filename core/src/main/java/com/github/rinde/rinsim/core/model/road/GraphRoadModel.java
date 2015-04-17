@@ -20,12 +20,10 @@ import static com.github.rinde.rinsim.geom.Graphs.unmodifiableGraph;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.base.Verify.verify;
-import static java.util.Objects.hash;
 
 import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.Queue;
 
 import javax.annotation.Nullable;
@@ -34,7 +32,6 @@ import javax.measure.unit.Unit;
 
 import org.apache.commons.math3.random.RandomGenerator;
 
-import com.github.rinde.rinsim.core.model.DependencyProvider;
 import com.github.rinde.rinsim.core.model.road.GraphRoadModel.Loc;
 import com.github.rinde.rinsim.core.model.time.TimeLapse;
 import com.github.rinde.rinsim.geom.Connection;
@@ -43,8 +40,6 @@ import com.github.rinde.rinsim.geom.Graph;
 import com.github.rinde.rinsim.geom.MultiAttributeData;
 import com.github.rinde.rinsim.geom.Point;
 import com.google.common.base.Optional;
-import com.google.common.base.Supplier;
-import com.google.common.base.Suppliers;
 import com.google.common.base.VerifyException;
 import com.google.common.collect.ImmutableList;
 import com.google.common.math.DoubleMath;
@@ -79,7 +74,7 @@ public class GraphRoadModel extends AbstractRoadModel<Loc> {
    * @param b The builder that contains the properties.
    */
   protected GraphRoadModel(Graph<? extends ConnectionData> g,
-    AbstractBuilder<?, ?> b) {
+    RoadModelBuilders.AbstractGraphBuilder<?, ?> b) {
     super(b.getDistanceUnit(), b.getSpeedUnit());
     graph = g;
   }
@@ -465,92 +460,6 @@ public class GraphRoadModel extends AbstractRoadModel<Loc> {
   @Override
   public ImmutableList<Point> getBounds() {
     throw new UnsupportedOperationException("Not yet implemented.");
-  }
-
-  /**
-   * Construct a new {@link Builder} for creating a {@link GraphRoadModel}.
-   * @param graph The graph which will be used as road structure.
-   * @return A new {@link Builder}.
-   */
-  public static Builder builder(Graph<?> graph) {
-    return new Builder(Suppliers.ofInstance(graph));
-  }
-
-  /**
-   * Construct a new {@link Builder} for creating a {@link GraphRoadModel}.
-   * @param graphSupplier The supplier that creates a graph that will be used as
-   *          road structure.
-   * @return A new {@link Builder}.
-   */
-  public static Builder builder(Supplier<? extends Graph<?>> graphSupplier) {
-    return new Builder(graphSupplier);
-  }
-
-  /**
-   * A builder for creating {@link GraphRoadModel} instances. Instances can be
-   * obtained via {@link GraphRoadModel#builder(Graph)}.
-   * @author Rinde van Lon
-   */
-  public static class Builder extends AbstractBuilder<GraphRoadModel, Builder> {
-    Builder(Supplier<? extends Graph<?>> g) {
-      super(g);
-    }
-
-    @Override
-    public GraphRoadModel build(DependencyProvider dependencyProvider) {
-      return new GraphRoadModel(getGraph(), this);
-    }
-
-    @Override
-    protected Builder self() {
-      return this;
-    }
-  }
-
-  /**
-   * Abstract builder for constructing subclasses of {@link GraphRoadModel}.
-   * @param <T> The type of the model that the builder is constructing.
-   * @param <S> The builder type itself, necessary to make a inheritance-based
-   *          builder.
-   * @author Rinde van Lon
-   */
-  public static abstract class AbstractBuilder<T extends GraphRoadModel, S>
-    extends AbstractRoadModelBuilder<T, S> {
-
-    private final Supplier<Graph<?>> graphSupplier;
-
-    /**
-     * Create a new instance.
-     * @param g The graph which will be used as road structure.
-     */
-    @SuppressWarnings("unchecked")
-    protected AbstractBuilder(Supplier<? extends Graph<?>> g) {
-      graphSupplier = (Supplier<Graph<?>>) g;
-      setProvidingTypes(RoadModel.class, GraphRoadModel.class);
-    }
-
-    @Override
-    public int hashCode() {
-      return hash(graphSupplier, getDistanceUnit(), getSpeedUnit());
-    }
-
-    @Override
-    public boolean equals(@Nullable Object other) {
-      if (other == null || other.getClass() != getClass()) {
-        return false;
-      }
-      final AbstractBuilder<?, ?> o = (AbstractBuilder<?, ?>) other;
-      return Objects.equals(graphSupplier, o.graphSupplier)
-        && Objects.equals(getDistanceUnit(), o.getDistanceUnit())
-        && Objects.equals(getSpeedUnit(), o.getSpeedUnit());
-    }
-
-    /**
-     * @return the graph
-     */
-    public Graph<?> getGraph() {
-      return graphSupplier.get();
-    }
   }
 
   /**

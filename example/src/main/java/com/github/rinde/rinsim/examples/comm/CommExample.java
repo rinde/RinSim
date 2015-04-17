@@ -17,7 +17,7 @@ package com.github.rinde.rinsim.examples.comm;
 
 import com.github.rinde.rinsim.core.Simulator;
 import com.github.rinde.rinsim.core.model.comm.CommModel;
-import com.github.rinde.rinsim.core.model.road.PlaneRoadModel;
+import com.github.rinde.rinsim.core.model.road.RoadModelBuilders;
 import com.github.rinde.rinsim.ui.View;
 import com.github.rinde.rinsim.ui.renderers.CommRenderer;
 import com.github.rinde.rinsim.ui.renderers.PlaneRoadModelRenderer;
@@ -61,7 +61,7 @@ public final class CommExample {
   public static void run(boolean testing) {
 
     final Simulator sim = Simulator.builder()
-      .addModel(PlaneRoadModel.builder())
+      .addModel(RoadModelBuilders.plane())
       .addModel(CommModel.builder())
       .build();
 

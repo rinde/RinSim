@@ -38,8 +38,8 @@ import com.github.rinde.rinsim.core.model.pdp.PDPModel;
 import com.github.rinde.rinsim.core.model.pdp.PDPModel.ParcelState;
 import com.github.rinde.rinsim.core.model.pdp.Parcel;
 import com.github.rinde.rinsim.core.model.pdp.TimeWindowPolicy.TimeWindowPolicies;
-import com.github.rinde.rinsim.core.model.road.PlaneRoadModel;
 import com.github.rinde.rinsim.core.model.road.RoadModel;
+import com.github.rinde.rinsim.core.model.road.RoadModelBuilders;
 import com.github.rinde.rinsim.core.model.time.TimeLapse;
 import com.github.rinde.rinsim.core.model.time.TimeLapseFactory;
 import com.github.rinde.rinsim.core.pdptw.DefaultDepot;
@@ -79,7 +79,7 @@ public abstract class PDPRoadModelCommonTest {
     final DependencyProvider dep = mock(DependencyProvider.class);
 
     rm = PDPRoadModel.builder(
-      PlaneRoadModel.builder()
+      RoadModelBuilders.plane()
         .setMinPoint(new Point(0, 0))
         .setMaxPoint(new Point(10, 10))
         .setDistanceUnit(SI.KILOMETER)

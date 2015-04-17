@@ -21,7 +21,6 @@ import static com.google.common.base.Verify.verify;
 
 import java.util.Queue;
 
-import com.github.rinde.rinsim.core.model.DependencyProvider;
 import com.github.rinde.rinsim.core.model.time.TimeLapse;
 import com.github.rinde.rinsim.event.Event;
 import com.github.rinde.rinsim.event.Listener;
@@ -32,8 +31,6 @@ import com.github.rinde.rinsim.geom.ListenableGraph;
 import com.github.rinde.rinsim.geom.ListenableGraph.EventTypes;
 import com.github.rinde.rinsim.geom.ListenableGraph.GraphEvent;
 import com.github.rinde.rinsim.geom.Point;
-import com.google.common.base.Supplier;
-import com.google.common.base.Suppliers;
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Multimap;
 
@@ -51,7 +48,7 @@ import com.google.common.collect.Multimap;
  * An {@link IllegalStateException} will be thrown upon detection of an invalid
  * modification. It is up to the user to prevent this from happening. The method
  * {@link #hasRoadUserOn(Point, Point)} can be of help for this. Instances can
- * be obtained via {@link #builderDynamic(ListenableGraph)}.
+ * be obtained via {@link RoadModelBuilders#dynamicGraph(ListenableGraph)}.
  * @author Rinde van Lon
  */
 public class DynamicGraphRoadModel extends GraphRoadModel {
@@ -63,7 +60,8 @@ public class DynamicGraphRoadModel extends GraphRoadModel {
    * @param g The graph to use.
    * @param b The builder that contains the properties to initialize this model.
    */
-  protected DynamicGraphRoadModel(ListenableGraph<?> g, AbstractBuilder<?, ?> b) {
+  protected DynamicGraphRoadModel(ListenableGraph<?> g,
+    RoadModelBuilders.AbstractDynamicBuilder<?, ?> b) {
     super(g, b);
     getGraph().getEventAPI().addListener(
       new GraphModificationChecker(this));
@@ -160,76 +158,6 @@ public class DynamicGraphRoadModel extends GraphRoadModel {
       posMap.remove(prevLoc, object);
     }
     super.removeObject(object);
-  }
-
-  /**
-   * Create a {@link Builder} for constructing {@link DynamicGraphRoadModel}
-   * instances.
-   * @param g A {@link ListenableGraph}.
-   * @return A new {@link Builder} instance.
-   */
-  public static Builder builderDynamic(ListenableGraph<?> g) {
-    return new Builder(Suppliers.ofInstance(g));
-  }
-
-  /**
-   * Create a {@link Builder} for constructing {@link DynamicGraphRoadModel}
-   * instances.
-   * @param g A supplier of {@link ListenableGraph}.
-   * @return A new {@link Builder} instance.
-   */
-  public static Builder builderDynamic(Supplier<? extends ListenableGraph<?>> g) {
-    return new Builder(g);
-  }
-
-  /**
-   * A builder for constructing {@link DynamicGraphRoadModel} instances. Use
-   * {@link DynamicGraphRoadModel#builderDynamic(ListenableGraph)} for obtaining
-   * builder instances.
-   * @author Rinde van Lon
-   */
-  public static class Builder extends
-    AbstractBuilder<DynamicGraphRoadModel, Builder> {
-
-    Builder(Supplier<? extends ListenableGraph<?>> g) {
-      super(g);
-    }
-
-    @Override
-    public DynamicGraphRoadModel build(DependencyProvider dependencyProvider) {
-      return new DynamicGraphRoadModel(getGraph(), this);
-    }
-
-    @Override
-    protected Builder self() {
-      return this;
-    }
-  }
-
-  /**
-   * Abstract builder for constructing subclasses of
-   * {@link DynamicGraphRoadModel}.
-   * @param <T> The type of the model that the builder is constructing.
-   * @param <S> The builder type itself, necessary to make a inheritance-based
-   *          builder.
-   * @author Rinde van Lon
-   */
-  public static abstract class AbstractBuilder<T extends DynamicGraphRoadModel, S>
-    extends GraphRoadModel.AbstractBuilder<T, S> {
-
-    /**
-     * Create a new instance.
-     * @param supplier Supplier of the graph that will be used as road
-     *          structure.
-     */
-    protected AbstractBuilder(Supplier<? extends ListenableGraph<?>> supplier) {
-      super(supplier);
-    }
-
-    @Override
-    public ListenableGraph<?> getGraph() {
-      return (ListenableGraph<?>) super.getGraph();
-    }
   }
 
   private static class GraphModificationChecker implements Listener {

@@ -39,7 +39,7 @@ public class PlaneRoadModelTest extends AbstractRoadModelTest<PlaneRoadModel> {
 
   @Override
   public void doSetUp() {
-    model = PlaneRoadModel.builder()
+    model = RoadModelBuilders.plane()
       .setMinPoint(new Point(0, 0))
       .setMaxPoint(new Point(10, 10))
       .setMaxSpeed(10d)
@@ -53,7 +53,7 @@ public class PlaneRoadModelTest extends AbstractRoadModelTest<PlaneRoadModel> {
   public void builderIllegalPoints() {
     boolean fail = false;
     try {
-      PlaneRoadModel.builder()
+      RoadModelBuilders.plane()
         .setMinPoint(new Point(1, 0))
         .setMaxPoint(new Point(0, 1))
         .build(mock(DependencyProvider.class));
@@ -63,7 +63,7 @@ public class PlaneRoadModelTest extends AbstractRoadModelTest<PlaneRoadModel> {
     assertTrue(fail);
     fail = false;
     try {
-      PlaneRoadModel.builder()
+      RoadModelBuilders.plane()
         .setMinPoint(new Point(0, 1))
         .setMaxPoint(new Point(1, 0))
         .build(mock(DependencyProvider.class));
@@ -80,7 +80,7 @@ public class PlaneRoadModelTest extends AbstractRoadModelTest<PlaneRoadModel> {
   public void builderIllegalMaxSpeed() {
     boolean fail = false;
     try {
-      PlaneRoadModel.builder()
+      RoadModelBuilders.plane()
         .setMaxSpeed(0d)
         .build(mock(DependencyProvider.class));
     } catch (final IllegalArgumentException e) {

@@ -24,6 +24,8 @@ import static org.mockito.Mockito.mock;
 
 import java.math.RoundingMode;
 
+import javax.measure.unit.SI;
+
 import org.junit.Before;
 import org.junit.Test;
 
@@ -54,7 +56,9 @@ public class CollisionGraphRoadModelTest {
   @Before
   public void setUp() {
     graph = new ListenableGraph<>(new TableGraph<LengthData>());
-    model = CollisionGraphRoadModel.builderCollision(graph)
+    model = RoadModelBuilders.dynamicGraph(graph)
+      .avoidCollisions()
+      .setDistanceUnit(SI.METER)
       .setVehicleLength(1d)
       .setMinDistance(0)
       .build(mock(DependencyProvider.class));
@@ -240,7 +244,8 @@ public class CollisionGraphRoadModelTest {
     // vehicle length must be > 0
     boolean fail = false;
     try {
-      CollisionGraphRoadModel.builderCollision(graph)
+      RoadModelBuilders.dynamicGraph(graph)
+        .avoidCollisions()
         .setVehicleLength(0d);
     } catch (final IllegalArgumentException e) {
       fail = true;
@@ -250,15 +255,17 @@ public class CollisionGraphRoadModelTest {
     // vehicle length may not be infinite
     fail = false;
     try {
-      CollisionGraphRoadModel.builderCollision(graph)
+      RoadModelBuilders.dynamicGraph(graph)
+        .avoidCollisions()
         .setVehicleLength(Double.POSITIVE_INFINITY);
     } catch (final IllegalArgumentException e) {
       fail = true;
     }
     assertTrue(fail);
 
-    final CollisionGraphRoadModel cgr1 = CollisionGraphRoadModel
-      .builderCollision(graph)
+    final CollisionGraphRoadModel cgr1 = RoadModelBuilders.dynamicGraph(graph)
+      .avoidCollisions()
+      .setDistanceUnit(SI.METER)
       .setVehicleLength(5d)
       .build(mock(DependencyProvider.class));
     assertEquals(5d, cgr1.getVehicleLength(), 0);
@@ -269,13 +276,17 @@ public class CollisionGraphRoadModelTest {
    */
   @Test
   public void testBuilderMinDistance() {
-    assertEquals(0d, CollisionGraphRoadModel.builderCollision(graph)
+    assertEquals(0d, RoadModelBuilders.dynamicGraph(graph)
+      .avoidCollisions()
       .setMinDistance(0d)
+      .setDistanceUnit(SI.METER)
       .build(mock(DependencyProvider.class))
       .getMinDistance(),
       0);
 
-    assertEquals(2d, CollisionGraphRoadModel.builderCollision(graph)
+    assertEquals(2d, RoadModelBuilders.dynamicGraph(graph)
+      .setDistanceUnit(SI.METER)
+      .avoidCollisions()
       .setMinDistance(2d)
       .build(mock(DependencyProvider.class))
       .getMinDistance(),
@@ -284,7 +295,8 @@ public class CollisionGraphRoadModelTest {
     // min distance may not be > 2 * vehicle length
     boolean fail = false;
     try {
-      CollisionGraphRoadModel.builderCollision(graph)
+      RoadModelBuilders.dynamicGraph(graph)
+        .avoidCollisions()
         .setVehicleLength(1d)
         .setMinDistance(2.000000001)
         .build(mock(DependencyProvider.class));
@@ -296,7 +308,8 @@ public class CollisionGraphRoadModelTest {
     // min distance may not be negative
     fail = false;
     try {
-      CollisionGraphRoadModel.builderCollision(graph)
+      RoadModelBuilders.dynamicGraph(graph)
+        .avoidCollisions()
         .setMinDistance(-1d);
     } catch (final IllegalArgumentException e) {
       fail = true;
@@ -317,7 +330,8 @@ public class CollisionGraphRoadModelTest {
     g.addConnection(new Point(0, 0), new Point(.99, 0));
     boolean fail = false;
     try {
-      CollisionGraphRoadModel.builderCollision(g)
+      RoadModelBuilders.dynamicGraph(g)
+        .avoidCollisions()
         .setVehicleLength(1d)
         .setMinDistance(.25)
         .build(mock(DependencyProvider.class));

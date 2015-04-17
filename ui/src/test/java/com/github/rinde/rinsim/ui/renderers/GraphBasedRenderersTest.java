@@ -23,6 +23,7 @@ import com.github.rinde.rinsim.core.Simulator;
 import com.github.rinde.rinsim.core.model.road.CollisionGraphRoadModel;
 import com.github.rinde.rinsim.core.model.road.MovingRoadUser;
 import com.github.rinde.rinsim.core.model.road.RoadModel;
+import com.github.rinde.rinsim.core.model.road.RoadModelBuilders;
 import com.github.rinde.rinsim.core.model.time.TickListener;
 import com.github.rinde.rinsim.core.model.time.TimeLapse;
 import com.github.rinde.rinsim.geom.Graphs;
@@ -53,7 +54,7 @@ public class GraphBasedRenderersTest {
       10), new Point(0, 10), new Point(0, 0));
 
     final Simulator sim = Simulator.builder()
-      .addModel(CollisionGraphRoadModel.builderCollision(graph))
+      .addModel(RoadModelBuilders.dynamicGraph(graph).avoidCollisions())
       .build();
 
     graph.addConnection(new Point(0, 0), new Point(20, 20));

@@ -51,8 +51,8 @@ import com.github.rinde.rinsim.core.Simulator;
 import com.github.rinde.rinsim.core.model.ModelProvider;
 import com.github.rinde.rinsim.core.model.ModelReceiver;
 import com.github.rinde.rinsim.core.model.road.MovingRoadUser;
-import com.github.rinde.rinsim.core.model.road.PlaneRoadModel;
 import com.github.rinde.rinsim.core.model.road.RoadModel;
+import com.github.rinde.rinsim.core.model.road.RoadModelBuilders;
 import com.github.rinde.rinsim.core.model.road.RoadUser;
 import com.github.rinde.rinsim.core.model.time.TickListener;
 import com.github.rinde.rinsim.core.model.time.TimeLapse;
@@ -86,7 +86,7 @@ public final class SwarmDemo {
 
     final RandomGenerator rng = new MersenneTwister(123);
     final Simulator sim = Simulator.builder()
-      .addModel(PlaneRoadModel.builder()
+      .addModel(RoadModelBuilders.plane()
         .setMinPoint(new Point(0, 0))
         .setMaxPoint(new Point(4500, 1200))
         .setDistanceUnit(SI.METER)

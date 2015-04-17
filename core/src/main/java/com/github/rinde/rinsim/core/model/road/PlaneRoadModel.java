@@ -22,17 +22,14 @@ import static java.util.Arrays.asList;
 import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.Queue;
 
-import javax.annotation.Nullable;
 import javax.measure.Measure;
 import javax.measure.quantity.Duration;
 import javax.measure.quantity.Length;
 
 import org.apache.commons.math3.random.RandomGenerator;
 
-import com.github.rinde.rinsim.core.model.DependencyProvider;
 import com.github.rinde.rinsim.core.model.time.TimeLapse;
 import com.github.rinde.rinsim.geom.Point;
 import com.google.common.collect.ImmutableList;
@@ -42,7 +39,7 @@ import com.google.common.math.DoubleMath;
  * A {@link RoadModel} that uses a plane as road structure. This assumes that
  * from every point in the plane it is possible to drive to every other point in
  * the plane. The plane has a boundary as defined by a rectangle. Instances can
- * be obtained via {@link #builder()}.
+ * be obtained via {@link RoadModelBuilders#plane()}.
  *
  * @author Rinde van Lon
  */
@@ -75,7 +72,7 @@ public class PlaneRoadModel extends AbstractRoadModel<Point> {
    */
   public final double maxSpeed;
 
-  PlaneRoadModel(Builder b) {
+  PlaneRoadModel(RoadModelBuilders.PlaneBuilder b) {
     super(b.getDistanceUnit(), b.getSpeedUnit());
     min = b.min;
     max = b.max;
@@ -207,105 +204,5 @@ public class PlaneRoadModel extends AbstractRoadModel<Point> {
   @Override
   public <U> U get(Class<U> type) {
     return type.cast(this);
-  }
-
-  /**
-   * @return A new {@link Builder} for creating a {@link PlaneRoadModel}.
-   */
-  public static Builder builder() {
-    return new Builder();
-  }
-
-  /**
-   * A builder for {@link PlaneRoadModel}. Instances can be obtained via
-   * {@link PlaneRoadModel#builder()}.
-   * @author Rinde van Lon
-   */
-  public static class Builder extends
-    AbstractRoadModelBuilder<PlaneRoadModel, Builder> {
-    static final double DEFAULT_MAX_SPEED = 50d;
-    static final Point DEFAULT_MIN_POINT = new Point(0, 0);
-    static final Point DEFAULT_MAX_POINT = new Point(10, 10);
-
-    Point min;
-    Point max;
-    double maxSpeed;
-
-    Builder() {
-      setProvidingTypes(RoadModel.class, PlaneRoadModel.class);
-      min = DEFAULT_MIN_POINT;
-      max = DEFAULT_MAX_POINT;
-      maxSpeed = DEFAULT_MAX_SPEED;
-    }
-
-    /**
-     * Sets the min point that defines the left top corner of the plane. The
-     * default is <code>(0,0)</code>.
-     * @param minPoint The min point to set.
-     * @return This, as per the builder pattern.
-     */
-    public Builder setMinPoint(Point minPoint) {
-      min = minPoint;
-      return self();
-    }
-
-    /**
-     * Sets the max point that defines the right bottom corner of the plane. The
-     * default is <code>(10,10)</code>.
-     * @param maxPoint The max point to set.
-     * @return This, as per the builder pattern.
-     */
-    public Builder setMaxPoint(Point maxPoint) {
-      max = maxPoint;
-      return self();
-    }
-
-    /**
-     * Sets the maximum speed to use for all vehicles in the model. The default
-     * is <code>50</code>.
-     * @param speed The max speed to set.
-     * @return This, as per the builder pattern.
-     */
-    public Builder setMaxSpeed(double speed) {
-      checkArgument(speed > 0d,
-        "Max speed must be strictly positive but is %s.",
-        speed);
-      maxSpeed = speed;
-      return self();
-    }
-
-    @Override
-    public PlaneRoadModel build(DependencyProvider dependencyProvider) {
-      checkArgument(
-        min.x < max.x && min.y < max.y,
-        "Min should have coordinates smaller than max, found min %s and max %s.",
-        min, max);
-      return new PlaneRoadModel(this);
-    }
-
-    @Override
-    public boolean equals(@Nullable Object other) {
-      if (other == null || getClass() != other.getClass()) {
-        return false;
-      }
-      final Builder o = (Builder) other;
-      return Objects.equals(min, o.min)
-        && Objects.equals(max, o.max)
-        && Objects.equals(getDistanceUnit(), o.getDistanceUnit())
-        && Objects.equals(getSpeedUnit(), o.getSpeedUnit())
-        && Objects.equals(maxSpeed, o.maxSpeed)
-        && AbstractModelBuilder.equal(this, o);
-    }
-
-    @Override
-    public int hashCode() {
-      return Objects
-        .hash(min, max, getDistanceUnit(), getSpeedUnit(), maxSpeed);
-    }
-
-    @Override
-    protected Builder self() {
-      return this;
-    }
   }
 }

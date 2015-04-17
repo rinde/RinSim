@@ -35,6 +35,7 @@ import org.junit.Test;
 import com.github.rinde.rinsim.core.model.Model.AbstractModel;
 import com.github.rinde.rinsim.core.model.road.GraphRoadModel;
 import com.github.rinde.rinsim.core.model.road.RoadModel;
+import com.github.rinde.rinsim.core.model.road.RoadModelBuilders;
 import com.github.rinde.rinsim.core.model.road.RoadUser;
 import com.github.rinde.rinsim.geom.ConnectionData;
 import com.github.rinde.rinsim.geom.Graph;
@@ -134,7 +135,7 @@ public class ModelManagerTest {
    */
   @Test(expected = IllegalArgumentException.class)
   public void canNotRegisterModel() {
-    emptyManager.register(GraphRoadModel.builder(
+    emptyManager.register(RoadModelBuilders.staticGraph(
       new MultimapGraph<LengthData>()).build(mock(DependencyProvider.class)));
   }
 
@@ -144,7 +145,7 @@ public class ModelManagerTest {
   @Test(expected = RuntimeException.class)
   public void registerWithBrokenModel() {
     final ModelManager mm = new ModelManager(ImmutableSet.of(
-      GraphRoadModel.builder(
+      RoadModelBuilders.staticGraph(
         new MultimapGraph<LengthData>()).build(mock(DependencyProvider.class)),
       new BrokenRoadModel(new MultimapGraph<LengthData>())));
 
@@ -168,7 +169,7 @@ public class ModelManagerTest {
    */
   @Test(expected = IllegalArgumentException.class)
   public void unregisterFailModel() {
-    emptyManager.unregister(GraphRoadModel.builder(
+    emptyManager.unregister(RoadModelBuilders.staticGraph(
       new MultimapGraph<LengthData>()).build(mock(DependencyProvider.class)));
   }
 
@@ -179,9 +180,9 @@ public class ModelManagerTest {
   public void unregisterFailNotRegisteredObject() {
     final ModelManager mm = new ModelManager(
       ImmutableSet.of(
-        GraphRoadModel.builder(new MultimapGraph<LengthData>())
+        RoadModelBuilders.staticGraph(new MultimapGraph<LengthData>())
           .build(mock(DependencyProvider.class)),
-        GraphRoadModel.builder(new MultimapGraph<LengthData>())
+        RoadModelBuilders.staticGraph(new MultimapGraph<LengthData>())
           .build(mock(DependencyProvider.class))
         )
       );
@@ -204,7 +205,7 @@ public class ModelManagerTest {
   @Test
   public void unregisterWithBrokenModel() {
     final ModelManager mm = new ModelManager(
-      ImmutableSet.of(GraphRoadModel.builder(
+      ImmutableSet.of(RoadModelBuilders.staticGraph(
         new MultimapGraph<LengthData>()).build(mock(DependencyProvider.class)),
         new BrokenRoadModel(new MultimapGraph<LengthData>()))
       );
@@ -423,7 +424,7 @@ public class ModelManagerTest {
 
 class BrokenRoadModel extends GraphRoadModel {
   public BrokenRoadModel(Graph<? extends ConnectionData> pGraph) {
-    super(pGraph, GraphRoadModel.builder(pGraph));
+    super(pGraph, RoadModelBuilders.staticGraph(pGraph));
   }
 
   @Override

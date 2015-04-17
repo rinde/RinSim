@@ -30,7 +30,7 @@ import org.junit.Test;
 
 import com.github.rinde.rinsim.core.model.pdp.DefaultPDPModel;
 import com.github.rinde.rinsim.core.model.pdp.TimeWindowPolicy.TimeWindowPolicies;
-import com.github.rinde.rinsim.core.model.road.PlaneRoadModel;
+import com.github.rinde.rinsim.core.model.road.RoadModelBuilders;
 import com.github.rinde.rinsim.pdptw.common.DynamicPDPTWProblem.StopConditions;
 import com.github.rinde.rinsim.pdptw.common.PDPRoadModel;
 import com.github.rinde.rinsim.scenario.Scenario;
@@ -84,7 +84,7 @@ public class GeneratedScenarioIOTest {
       // .deliveryDurations(constant(10L))
       .addModel(
         PDPRoadModel.builder(
-          PlaneRoadModel.builder()
+          RoadModelBuilders.plane()
             .setMaxSpeed(50d)
           )
           .setAllowVehicleDiversion(true)

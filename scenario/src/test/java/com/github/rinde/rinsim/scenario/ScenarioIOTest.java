@@ -27,7 +27,7 @@ import org.junit.Test;
 import com.github.rinde.rinsim.core.model.pdp.DefaultPDPModel;
 import com.github.rinde.rinsim.core.model.pdp.PDPScenarioEvent;
 import com.github.rinde.rinsim.core.model.pdp.TimeWindowPolicy.TimeWindowPolicies;
-import com.github.rinde.rinsim.core.model.road.PlaneRoadModel;
+import com.github.rinde.rinsim.core.model.road.RoadModelBuilders;
 import com.github.rinde.rinsim.core.pdptw.ParcelDTO;
 import com.github.rinde.rinsim.core.pdptw.VehicleDTO;
 import com.github.rinde.rinsim.geom.Point;
@@ -78,7 +78,7 @@ public class ScenarioIOTest {
           .build())
       )
       .addEvent(new TimedEvent(PDPScenarioEvent.TIME_OUT, 200000))
-      .addModel(PlaneRoadModel.builder()
+      .addModel(RoadModelBuilders.plane()
         .setDistanceUnit(SI.CENTIMETER)
         .setMaxPoint(new Point(7d, 8.4))
         .setMinPoint(new Point(-1, 3))

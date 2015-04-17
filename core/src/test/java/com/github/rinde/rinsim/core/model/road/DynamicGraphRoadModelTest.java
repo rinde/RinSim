@@ -50,7 +50,7 @@ public class DynamicGraphRoadModelTest {
   @Before
   public void setUp() {
     graph = new ListenableGraph<>(new TableGraph<LengthData>());
-    model = DynamicGraphRoadModel.builderDynamic(graph).build(
+    model = RoadModelBuilders.dynamicGraph(graph).build(
       mock(DependencyProvider.class));
     SW = new Point(0, 0);
     SE = new Point(10, 0);

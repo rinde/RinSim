@@ -28,8 +28,8 @@ import com.github.rinde.rinsim.core.model.comm.CommModel;
 import com.github.rinde.rinsim.core.model.comm.CommUser;
 import com.github.rinde.rinsim.core.model.comm.MessageContents;
 import com.github.rinde.rinsim.core.model.road.MovingRoadUser;
-import com.github.rinde.rinsim.core.model.road.PlaneRoadModel;
 import com.github.rinde.rinsim.core.model.road.RoadModel;
+import com.github.rinde.rinsim.core.model.road.RoadModelBuilders;
 import com.github.rinde.rinsim.core.model.time.TickListener;
 import com.github.rinde.rinsim.core.model.time.TimeLapse;
 import com.github.rinde.rinsim.geom.Point;
@@ -52,7 +52,7 @@ public class CommRendererTest {
     final Simulator sim = Simulator.builder()
       .setRandomGenerator(rng)
       .addModel(CommModel.builder())
-      .addModel(PlaneRoadModel.builder())
+      .addModel(RoadModelBuilders.plane())
       .build();
 
     for (int i = 0; i < 20; i++) {

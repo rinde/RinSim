@@ -19,8 +19,8 @@ import org.apache.commons.math3.random.RandomGenerator;
 
 import com.github.rinde.rinsim.core.Simulator;
 import com.github.rinde.rinsim.core.model.road.MovingRoadUser;
-import com.github.rinde.rinsim.core.model.road.PlaneRoadModel;
 import com.github.rinde.rinsim.core.model.road.RoadModel;
+import com.github.rinde.rinsim.core.model.road.RoadModelBuilders;
 import com.github.rinde.rinsim.core.model.time.TickListener;
 import com.github.rinde.rinsim.core.model.time.TimeLapse;
 import com.github.rinde.rinsim.geom.Point;
@@ -69,7 +69,7 @@ public final class SimpleExample {
       // RoadUsers on a plane. The plane is bounded by two corner points:
       // (0,0) and (10,10)
       .addModel(
-        PlaneRoadModel.builder()
+        RoadModelBuilders.plane()
           .setMinPoint(MIN_POINT)
           .setMaxPoint(MAX_POINT)
           .setMaxSpeed(VEHICLE_SPEED_KMH)

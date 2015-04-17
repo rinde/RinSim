@@ -21,10 +21,8 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
-import com.github.rinde.rinsim.core.model.DependencyProvider;
 import com.github.rinde.rinsim.geom.Graph;
 import com.github.rinde.rinsim.geom.Point;
-import com.google.common.base.Supplier;
 import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Multimap;
@@ -46,7 +44,7 @@ public class CachedGraphRoadModel extends GraphRoadModel {
   private Table<Point, Point, List<Point>> pathTable;
   private final Multimap<Class<?>, RoadUser> classObjectMap;
 
-  CachedGraphRoadModel(Graph<?> g, Builder b) {
+  CachedGraphRoadModel(Graph<?> g, RoadModelBuilders.CachedBuilder b) {
     super(g, b);
     pathTable = HashBasedTable.create();
     classObjectMap = LinkedHashMultimap.create();
@@ -112,36 +110,5 @@ public class CachedGraphRoadModel extends GraphRoadModel {
   public void removeObject(RoadUser o) {
     super.removeObject(o);
     classObjectMap.remove(o.getClass(), o);
-  }
-
-  /**
-   *
-   * @param g The graph supplier.
-   * @return A {@link Builder}.
-   */
-  public static Builder builderCached(Supplier<? extends Graph<?>> g) {
-    return new Builder(g);
-  }
-
-  /**
-   * Builder for {@link CachedGraphRoadModel} instances.
-   * @author Rinde van Lon
-   */
-  public static class Builder extends
-    GraphRoadModel.AbstractBuilder<CachedGraphRoadModel, Builder> {
-
-    Builder(Supplier<? extends Graph<?>> g) {
-      super(g);
-    }
-
-    @Override
-    public CachedGraphRoadModel build(DependencyProvider dependencyProvider) {
-      return new CachedGraphRoadModel(getGraph(), this);
-    }
-
-    @Override
-    protected Builder self() {
-      return this;
-    }
   }
 }

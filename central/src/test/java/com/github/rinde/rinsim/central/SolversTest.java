@@ -55,8 +55,8 @@ import com.github.rinde.rinsim.core.model.pdp.PDPModel.ParcelState;
 import com.github.rinde.rinsim.core.model.pdp.PDPModel.VehicleState;
 import com.github.rinde.rinsim.core.model.pdp.Parcel;
 import com.github.rinde.rinsim.core.model.pdp.TimeWindowPolicy.TimeWindowPolicies;
-import com.github.rinde.rinsim.core.model.road.PlaneRoadModel;
 import com.github.rinde.rinsim.core.model.road.RoadModel;
+import com.github.rinde.rinsim.core.model.road.RoadModelBuilders;
 import com.github.rinde.rinsim.core.model.time.Clock;
 import com.github.rinde.rinsim.core.model.time.TimeLapse;
 import com.github.rinde.rinsim.core.model.time.TimeLapseFactory;
@@ -104,7 +104,7 @@ public class SolversTest {
     DependencyProvider dp = mock(DependencyProvider.class);
 
     rm = PDPRoadModel.builder(
-      PlaneRoadModel.builder()
+      RoadModelBuilders.plane()
         .setMaxSpeed(300d)
       )
       .setAllowVehicleDiversion(false)

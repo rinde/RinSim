@@ -26,8 +26,8 @@ import com.github.rinde.rinsim.core.model.pdp.DefaultPDPModel;
 import com.github.rinde.rinsim.core.model.pdp.Depot;
 import com.github.rinde.rinsim.core.model.pdp.PDPModel;
 import com.github.rinde.rinsim.core.model.pdp.TimeWindowPolicy.TimeWindowPolicies;
-import com.github.rinde.rinsim.core.model.road.PlaneRoadModel;
 import com.github.rinde.rinsim.core.model.road.RoadModel;
+import com.github.rinde.rinsim.core.model.road.RoadModelBuilders;
 import com.github.rinde.rinsim.core.model.time.TickListener;
 import com.github.rinde.rinsim.core.model.time.TimeLapse;
 import com.github.rinde.rinsim.geom.Point;
@@ -50,7 +50,7 @@ public class ViewTest {
   @Test
   public void testRenderer() {
     final Simulator sim = Simulator.builder()
-      .addModel(PlaneRoadModel.builder())
+      .addModel(RoadModelBuilders.plane())
       .build();
 
     View.create(sim)
@@ -70,7 +70,7 @@ public class ViewTest {
   @Test
   public void closeWindowWhilePlaying() {
     final Simulator sim = Simulator.builder()
-      .addModel(PlaneRoadModel.builder())
+      .addModel(RoadModelBuilders.plane())
       .addModel(
         DefaultPDPModel.builder()
           .setTimeWindowPolicy(TimeWindowPolicies.LIBERAL)

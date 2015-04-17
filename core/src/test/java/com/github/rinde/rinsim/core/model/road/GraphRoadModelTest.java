@@ -73,11 +73,11 @@ public class GraphRoadModelTest extends AbstractRoadModelTest<GraphRoadModel> {
   @Parameters
   public static Collection<Object[]> configs() {
     return Arrays.asList(new Object[][] {
-        { GraphRoadModel.builder(MultimapGraph.supplier()) },
-        { CachedGraphRoadModel.builderCached(MultimapGraph.supplier()) },
-        { GraphRoadModel.builder(TableGraph.supplier()) },
-        { CachedGraphRoadModel.builderCached(TableGraph.supplier()) },
-        { DynamicGraphRoadModel.builderDynamic(ListenableGraph
+        { RoadModelBuilders.staticGraph(MultimapGraph.supplier()) },
+        { RoadModelBuilders.staticGraph(MultimapGraph.supplier()).useCache() },
+        { RoadModelBuilders.staticGraph(TableGraph.supplier()) },
+        { RoadModelBuilders.staticGraph(TableGraph.supplier()).useCache() },
+        { RoadModelBuilders.dynamicGraph(ListenableGraph
           .supplier(TableGraph.supplier())) }
     });
   }
@@ -670,7 +670,7 @@ public class GraphRoadModelTest extends AbstractRoadModelTest<GraphRoadModel> {
     final Point B = new Point(10, 0);
 
     final Graph<LengthData> g = new MultimapGraph<>();
-    final GraphRoadModel rm = GraphRoadModel.builder(g).build(
+    final GraphRoadModel rm = RoadModelBuilders.staticGraph(g).build(
       mock(DependencyProvider.class));
     g.addConnection(A, B, LengthData.create(3));
 
@@ -743,7 +743,7 @@ public class GraphRoadModelTest extends AbstractRoadModelTest<GraphRoadModel> {
     g.addConnection(NE, SW);
     g.addConnection(SW, NW);
 
-    final GraphRoadModel rm = GraphRoadModel.builder(g)
+    final GraphRoadModel rm = RoadModelBuilders.staticGraph(g)
       .setDistanceUnit(SI.METER)
       .setSpeedUnit(SI.METERS_PER_SECOND)
       .build(mock(DependencyProvider.class));

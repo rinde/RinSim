@@ -28,7 +28,7 @@ import javax.measure.unit.Unit;
 import com.github.rinde.rinsim.core.model.ModelBuilder;
 import com.github.rinde.rinsim.core.model.pdp.DefaultPDPModel;
 import com.github.rinde.rinsim.core.model.pdp.TimeWindowPolicy.TimeWindowPolicies;
-import com.github.rinde.rinsim.core.model.road.PlaneRoadModel;
+import com.github.rinde.rinsim.core.model.road.RoadModelBuilders;
 import com.github.rinde.rinsim.core.pdptw.VehicleDTO;
 import com.github.rinde.rinsim.geom.Point;
 import com.github.rinde.rinsim.pdptw.common.DynamicPDPTWProblem.StopConditions;
@@ -106,7 +106,7 @@ public class FabriRechtScenario extends Scenario {
   public ImmutableList<? extends ModelBuilder<?, ?>> getModelBuilders() {
     return ImmutableList.<ModelBuilder<?, ?>> builder()
       .add(
-        PlaneRoadModel.builder()
+        RoadModelBuilders.plane()
           .setMinPoint(min)
           .setMaxPoint(max)
           .setDistanceUnit(getDistanceUnit())

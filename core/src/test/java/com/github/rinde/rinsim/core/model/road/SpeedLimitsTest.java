@@ -80,15 +80,18 @@ public class SpeedLimitsTest {
     final double twoAndHalf = 2.5;
     return Arrays
       .asList(new Object[][] {
-          { GraphRoadModel.builder(MultimapGraph.supplier()), five },
-          { CachedGraphRoadModel.builderCached(MultimapGraph.supplier()), five },
-          { GraphRoadModel.builder(MultimapGraph.supplier()), twoAndHalf },
-          { CachedGraphRoadModel.builderCached(MultimapGraph.supplier()),
+          { RoadModelBuilders.staticGraph(MultimapGraph.supplier()), five },
+          { RoadModelBuilders.staticGraph(MultimapGraph.supplier()).useCache(),
+              five },
+          { RoadModelBuilders.staticGraph(MultimapGraph.supplier()),
               twoAndHalf },
-          { GraphRoadModel.builder(TableGraph.supplier()), five },
-          { CachedGraphRoadModel.builderCached(TableGraph.supplier()), five },
-          { GraphRoadModel.builder(TableGraph.supplier()), twoAndHalf },
-          { CachedGraphRoadModel.builderCached(TableGraph.supplier()),
+          { RoadModelBuilders.staticGraph(MultimapGraph.supplier()).useCache(),
+              twoAndHalf },
+          { RoadModelBuilders.staticGraph(TableGraph.supplier()), five },
+          { RoadModelBuilders.staticGraph(TableGraph.supplier()).useCache(),
+              five },
+          { RoadModelBuilders.staticGraph(TableGraph.supplier()), twoAndHalf },
+          { RoadModelBuilders.staticGraph(TableGraph.supplier()).useCache(),
               twoAndHalf }
       });
   }

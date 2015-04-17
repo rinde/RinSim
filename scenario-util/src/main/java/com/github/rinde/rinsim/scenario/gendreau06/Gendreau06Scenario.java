@@ -33,7 +33,7 @@ import com.github.rinde.rinsim.core.Simulator;
 import com.github.rinde.rinsim.core.model.ModelBuilder;
 import com.github.rinde.rinsim.core.model.pdp.DefaultPDPModel;
 import com.github.rinde.rinsim.core.model.pdp.TimeWindowPolicy.TimeWindowPolicies;
-import com.github.rinde.rinsim.core.model.road.PlaneRoadModel;
+import com.github.rinde.rinsim.core.model.road.RoadModelBuilders;
 import com.github.rinde.rinsim.geom.Point;
 import com.github.rinde.rinsim.pdptw.common.DynamicPDPTWProblem.StopConditions;
 import com.github.rinde.rinsim.pdptw.common.PDPRoadModel;
@@ -106,7 +106,7 @@ public final class Gendreau06Scenario extends Scenario {
     return ImmutableList.<ModelBuilder<?, ?>> builder()
       .add(
         PDPRoadModel.builder(
-          PlaneRoadModel.builder()
+          RoadModelBuilders.plane()
             .setMinPoint(MIN)
             .setMaxPoint(MAX)
             .setDistanceUnit(getDistanceUnit())

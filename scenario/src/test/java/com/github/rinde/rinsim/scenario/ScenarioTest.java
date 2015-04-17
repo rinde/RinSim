@@ -40,7 +40,7 @@ import org.junit.Test;
 import com.github.rinde.rinsim.core.Simulator;
 import com.github.rinde.rinsim.core.model.ModelBuilder;
 import com.github.rinde.rinsim.core.model.pdp.PDPScenarioEvent;
-import com.github.rinde.rinsim.core.model.road.PlaneRoadModel;
+import com.github.rinde.rinsim.core.model.road.RoadModelBuilders;
 import com.github.rinde.rinsim.core.model.road.RoadUser;
 import com.github.rinde.rinsim.geom.Point;
 import com.github.rinde.rinsim.scenario.Scenario.ProblemClass;
@@ -118,7 +118,7 @@ public class ScenarioTest {
       .addEventType(PDPScenarioEvent.TIME_OUT)
       .stopCondition(Predicates.<Simulator> alwaysTrue())
       .addModel(
-        PlaneRoadModel.builder()
+        RoadModelBuilders.plane()
           .setMinPoint(new Point(6, 6))
           .setMaxPoint(new Point(1034, 32))
           .setDistanceUnit(SI.METER)

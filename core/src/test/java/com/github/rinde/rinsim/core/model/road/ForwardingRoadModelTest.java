@@ -48,7 +48,7 @@ public class ForwardingRoadModelTest extends
         @Override
         public GenericRoadModel create(ForwardingRoadModelTest testClass) {
           return new ForwardingRoadModel(
-            PlaneRoadModel.builder()
+            RoadModelBuilders.plane()
               .setMinPoint(new Point(0, 0))
               .setMaxPoint(new Point(10, 10))
               .setDistanceUnit(SI.METER)
@@ -59,14 +59,14 @@ public class ForwardingRoadModelTest extends
       } }, { new Creator() {
         @Override
         public GenericRoadModel create(ForwardingRoadModelTest testClass) {
-          return new ForwardingRoadModel(GraphRoadModel.builder(testClass
+          return new ForwardingRoadModel(RoadModelBuilders.staticGraph(testClass
             .createGraph()).build(mock(DependencyProvider.class)));
         }
       } }, { new Creator() {
         @Override
         public GenericRoadModel create(ForwardingRoadModelTest testClass) {
           return new ForwardingRoadModel(new ForwardingRoadModel(
-            new ForwardingRoadModel(GraphRoadModel.builder(testClass
+            new ForwardingRoadModel(RoadModelBuilders.staticGraph(testClass
               .createGraph()).build(mock(DependencyProvider.class)))));
         }
       } } });

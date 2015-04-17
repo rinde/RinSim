@@ -34,7 +34,7 @@ import org.junit.Test;
 import com.github.rinde.rinsim.core.Simulator;
 import com.github.rinde.rinsim.core.model.pdp.DefaultPDPModel;
 import com.github.rinde.rinsim.core.model.pdp.TimeWindowPolicy.TimeWindowPolicies;
-import com.github.rinde.rinsim.core.model.road.PlaneRoadModel;
+import com.github.rinde.rinsim.core.model.road.RoadModelBuilders;
 import com.github.rinde.rinsim.experiment.ExperimentTest.TestPostProcessor;
 import com.github.rinde.rinsim.pdptw.common.DynamicPDPTWProblem.StopConditions;
 import com.github.rinde.rinsim.pdptw.common.ObjectiveFunction;
@@ -136,7 +136,7 @@ public class JppfTest {
       .builder()
       .addModel(
         PDPRoadModel.builder(
-          PlaneRoadModel.builder()
+          RoadModelBuilders.plane()
             .setMaxSpeed(20d)
           )
           .setAllowVehicleDiversion(true)

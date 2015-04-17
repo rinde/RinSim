@@ -22,7 +22,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.junit.experimental.categories.Category;
 
 import com.github.rinde.rinsim.core.Simulator;
-import com.github.rinde.rinsim.core.model.road.PlaneRoadModel;
+import com.github.rinde.rinsim.core.model.road.RoadModelBuilders;
 import com.github.rinde.rinsim.geom.Point;
 import com.github.rinde.rinsim.testutil.GuiTests;
 import com.github.rinde.rinsim.ui.renderers.PanelRenderer;
@@ -41,7 +41,7 @@ public final class PanelTest {
   public static void main(String[] args) {
 
     final Simulator sim = Simulator.builder()
-      .addModel(PlaneRoadModel.builder()
+      .addModel(RoadModelBuilders.plane()
         .setMinPoint(new Point(0, 0))
         .setMaxPoint(new Point(10, 10))
         .setMaxSpeed(10d)

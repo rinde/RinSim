@@ -44,8 +44,8 @@ import com.github.rinde.rinsim.core.model.pdp.DefaultPDPModel.PickupAction;
 import com.github.rinde.rinsim.core.model.pdp.PDPModel.PDPModelEventType;
 import com.github.rinde.rinsim.core.model.pdp.PDPModel.ParcelState;
 import com.github.rinde.rinsim.core.model.pdp.PDPModel.VehicleState;
-import com.github.rinde.rinsim.core.model.road.PlaneRoadModel;
 import com.github.rinde.rinsim.core.model.road.RoadModel;
+import com.github.rinde.rinsim.core.model.road.RoadModelBuilders;
 import com.github.rinde.rinsim.core.model.time.TimeLapse;
 import com.github.rinde.rinsim.core.model.time.TimeLapseFactory;
 import com.github.rinde.rinsim.event.Event;
@@ -124,7 +124,7 @@ public class PDPModelTest {
   public void setUp() {
     final DependencyProvider dp = mock(DependencyProvider.class);
 
-    rm = PlaneRoadModel.builder()
+    rm = RoadModelBuilders.plane()
       .setDistanceUnit(SI.METER)
       .setMaxSpeed(Double.POSITIVE_INFINITY)
       .setSpeedUnit(SI.METERS_PER_SECOND)

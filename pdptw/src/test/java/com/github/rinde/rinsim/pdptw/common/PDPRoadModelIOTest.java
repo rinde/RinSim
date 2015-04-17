@@ -19,7 +19,7 @@ import javax.measure.unit.NonSI;
 
 import org.junit.Test;
 
-import com.github.rinde.rinsim.core.model.road.PlaneRoadModel;
+import com.github.rinde.rinsim.core.model.road.RoadModelBuilders;
 import com.github.rinde.rinsim.scenario.Scenario;
 import com.github.rinde.rinsim.scenario.Scenario.ProblemClass;
 import com.github.rinde.rinsim.scenario.ScenarioTestUtil;
@@ -38,7 +38,7 @@ public class PDPRoadModelIOTest {
     final Scenario.Builder sb = Scenario
       .builder(Scenario.DEFAULT_PROBLEM_CLASS)
       .addModel(PDPRoadModel.builder(
-        PlaneRoadModel.builder()
+        RoadModelBuilders.plane()
           .setSpeedUnit(NonSI.MILES_PER_HOUR)
           .setMaxSpeed(7)
         )

@@ -33,8 +33,8 @@ import com.github.rinde.rinsim.core.model.Model;
 import com.github.rinde.rinsim.core.model.ModelBuilder;
 import com.github.rinde.rinsim.core.model.pdp.PDPScenarioEvent;
 import com.github.rinde.rinsim.core.model.road.ForwardingRoadModel;
-import com.github.rinde.rinsim.core.model.road.PlaneRoadModel;
 import com.github.rinde.rinsim.core.model.road.RoadModel;
+import com.github.rinde.rinsim.core.model.road.RoadModelBuilders;
 import com.github.rinde.rinsim.core.model.road.RoadModels;
 import com.github.rinde.rinsim.geom.Point;
 import com.github.rinde.rinsim.scenario.AddDepotEvent;
@@ -81,16 +81,16 @@ public final class ScenarioGenerator {
         checkArgument(!foundRoadModel,
           "Already found a RoadModel, only one RoadModel is allowed.");
         foundRoadModel = true;
-        final PlaneRoadModel.Builder planeBuilder;
+        final RoadModelBuilders.PlaneBuilder planeBuilder;
         if (mb instanceof ForwardingRoadModel.Builder) {
           ModelBuilder<?, ?> delegate = ((ForwardingRoadModel.Builder<?>) mb)
             .getDelegateModelBuilder();
 
-          checkArgument(delegate instanceof PlaneRoadModel.Builder);
-          planeBuilder = (PlaneRoadModel.Builder) delegate;
+          checkArgument(delegate instanceof RoadModelBuilders.PlaneBuilder);
+          planeBuilder = (RoadModelBuilders.PlaneBuilder) delegate;
         } else {
-          checkArgument(mb instanceof PlaneRoadModel.Builder);
-          planeBuilder = (PlaneRoadModel.Builder) mb;
+          checkArgument(mb instanceof RoadModelBuilders.PlaneBuilder);
+          planeBuilder = (RoadModelBuilders.PlaneBuilder) mb;
         }
         planeBuilder.setMinPoint(getMin())
           .setMaxPoint(getMax())

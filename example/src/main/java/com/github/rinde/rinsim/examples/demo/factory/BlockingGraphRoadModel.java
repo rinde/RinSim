@@ -29,6 +29,7 @@ import com.github.rinde.rinsim.core.model.road.GraphRoadModel;
 import com.github.rinde.rinsim.core.model.road.MoveProgress;
 import com.github.rinde.rinsim.core.model.road.MovingRoadUser;
 import com.github.rinde.rinsim.core.model.road.RoadModel;
+import com.github.rinde.rinsim.core.model.road.RoadModelBuilders;
 import com.github.rinde.rinsim.core.model.time.TimeLapse;
 import com.github.rinde.rinsim.geom.Connection;
 import com.github.rinde.rinsim.geom.ConnectionData;
@@ -97,7 +98,7 @@ public class BlockingGraphRoadModel extends GraphRoadModel {
   }
 
   static class Builder extends
-    GraphRoadModel.AbstractBuilder<BlockingGraphRoadModel, Builder> {
+    RoadModelBuilders.AbstractGraphBuilder<BlockingGraphRoadModel, Builder> {
 
     Builder(Graph<?> g) {
       super(Suppliers.ofInstance(g));

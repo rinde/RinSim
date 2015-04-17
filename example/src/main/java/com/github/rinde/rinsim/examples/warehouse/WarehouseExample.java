@@ -21,6 +21,7 @@ import java.util.Map;
 
 import com.github.rinde.rinsim.core.Simulator;
 import com.github.rinde.rinsim.core.model.road.CollisionGraphRoadModel;
+import com.github.rinde.rinsim.core.model.road.RoadModelBuilders;
 import com.github.rinde.rinsim.geom.Graph;
 import com.github.rinde.rinsim.geom.Graphs;
 import com.github.rinde.rinsim.geom.LengthData;
@@ -51,8 +52,10 @@ public final class WarehouseExample {
   public static void main(String[] args) {
 
     final Simulator sim = Simulator.builder()
-      .addModel(CollisionGraphRoadModel.builderCollision(createSimpleGraph())
-        .setVehicleLength(VEHICLE_LENGTH)
+      .addModel(
+        RoadModelBuilders.dynamicGraph(createSimpleGraph())
+          .avoidCollisions()
+          .setVehicleLength(VEHICLE_LENGTH)
       )
       .build();
 

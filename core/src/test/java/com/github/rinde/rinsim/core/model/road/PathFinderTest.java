@@ -79,7 +79,7 @@ public class PathFinderTest {
   @Before
   public void setUp() throws InstantiationException, IllegalAccessException {
     graph = rmType.newInstance();
-    rm = GraphRoadModel.builder(graph).build(mock(DependencyProvider.class));
+    rm = RoadModelBuilders.staticGraph(graph).build(mock(DependencyProvider.class));
 
     a = new Point(0, 0);
     b = new Point(10, 0);
@@ -183,7 +183,7 @@ public class PathFinderTest {
   public void impossiblePath() throws InstantiationException,
     IllegalAccessException {
     final Graph<?> gg = rmType.newInstance();
-    final GraphRoadModel roads = GraphRoadModel.builder(gg).build(
+    final GraphRoadModel roads = RoadModelBuilders.staticGraph(gg).build(
       mock(DependencyProvider.class));
     gg.addConnection(a, b);
     gg.addConnection(b, c);
