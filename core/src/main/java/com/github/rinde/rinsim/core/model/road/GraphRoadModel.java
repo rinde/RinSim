@@ -74,7 +74,7 @@ public class GraphRoadModel extends AbstractRoadModel<Loc> {
    * @param b The builder that contains the properties.
    */
   protected GraphRoadModel(Graph<? extends ConnectionData> g,
-    RoadModelBuilders.AbstractGraphBuilder<?, ?> b) {
+    RoadModelBuilders.AbstractGraphRMB<?, ?, ?> b) {
     super(b.getDistanceUnit(), b.getSpeedUnit());
     graph = g;
   }

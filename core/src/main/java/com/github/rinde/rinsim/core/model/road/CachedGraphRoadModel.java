@@ -44,7 +44,7 @@ public class CachedGraphRoadModel extends GraphRoadModel {
   private Table<Point, Point, List<Point>> pathTable;
   private final Multimap<Class<?>, RoadUser> classObjectMap;
 
-  CachedGraphRoadModel(Graph<?> g, RoadModelBuilders.CachedBuilder b) {
+  CachedGraphRoadModel(Graph<?> g, RoadModelBuilders.CachedGraphRMB b) {
     super(g, b);
     pathTable = HashBasedTable.create();
     classObjectMap = LinkedHashMultimap.create();

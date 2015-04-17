@@ -81,16 +81,16 @@ public final class ScenarioGenerator {
         checkArgument(!foundRoadModel,
           "Already found a RoadModel, only one RoadModel is allowed.");
         foundRoadModel = true;
-        final RoadModelBuilders.PlaneBuilder planeBuilder;
+        final RoadModelBuilders.PlaneRMB planeBuilder;
         if (mb instanceof ForwardingRoadModel.Builder) {
           ModelBuilder<?, ?> delegate = ((ForwardingRoadModel.Builder<?>) mb)
             .getDelegateModelBuilder();
 
-          checkArgument(delegate instanceof RoadModelBuilders.PlaneBuilder);
-          planeBuilder = (RoadModelBuilders.PlaneBuilder) delegate;
+          checkArgument(delegate instanceof RoadModelBuilders.PlaneRMB);
+          planeBuilder = (RoadModelBuilders.PlaneRMB) delegate;
         } else {
-          checkArgument(mb instanceof RoadModelBuilders.PlaneBuilder);
-          planeBuilder = (RoadModelBuilders.PlaneBuilder) mb;
+          checkArgument(mb instanceof RoadModelBuilders.PlaneRMB);
+          planeBuilder = (RoadModelBuilders.PlaneRMB) mb;
         }
         planeBuilder.setMinPoint(getMin())
           .setMaxPoint(getMax())

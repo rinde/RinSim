@@ -42,7 +42,7 @@ import com.google.common.collect.SetMultimap;
  * grid lock situation (spanning multiple connections) is not detected.
  * Instances can be obtained via a builder, see
  * {@link RoadModelBuilders#dynamicGraph(ListenableGraph)} and then call
- * {@link RoadModelBuilders.DynamicBuilder#avoidCollisions()}.
+ * {@link RoadModelBuilders.DynamicGraphRMB#avoidCollisions()}.
  * <p>
  * The graph can be modified at runtime, for information about modifying the
  * graph see {@link DynamicGraphRoadModel}.
@@ -55,7 +55,7 @@ public class CollisionGraphRoadModel extends DynamicGraphRoadModel {
   private final SetMultimap<RoadUser, Point> occupiedNodes;
 
   CollisionGraphRoadModel(ListenableGraph<?> g, double pMinConnLength,
-    RoadModelBuilders.CollisionBuilder builder) {
+    RoadModelBuilders.CollisionGraphRMB builder) {
     super(g, builder);
     vehicleLength = unitConversion.toInDist(builder.vehicleLength);
     minDistance = unitConversion.toInDist(builder.minDistance);

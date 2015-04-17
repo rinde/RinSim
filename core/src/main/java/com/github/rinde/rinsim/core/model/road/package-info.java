@@ -14,10 +14,9 @@
  * limitations under the License.
  */
 /**
- * Contains several models for traveling over roads.
+ * Contains several models for traveling over roads. Instances can be obtained
+ * via {@link com.github.rinde.rinsim.core.model.road.RoadModelBuilders}.
  */
-@ParametersAreNonnullByDefault
+@javax.annotation.ParametersAreNonnullByDefault
 package com.github.rinde.rinsim.core.model.road;
-
-import javax.annotation.ParametersAreNonnullByDefault;
 

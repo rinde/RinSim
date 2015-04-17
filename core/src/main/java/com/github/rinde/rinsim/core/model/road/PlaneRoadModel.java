@@ -72,7 +72,7 @@ public class PlaneRoadModel extends AbstractRoadModel<Point> {
    */
   public final double maxSpeed;
 
-  PlaneRoadModel(RoadModelBuilders.PlaneBuilder b) {
+  PlaneRoadModel(RoadModelBuilders.PlaneRMB b) {
     super(b.getDistanceUnit(), b.getSpeedUnit());
     min = b.min;
     max = b.max;

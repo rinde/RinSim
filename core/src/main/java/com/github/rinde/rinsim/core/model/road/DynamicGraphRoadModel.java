@@ -61,7 +61,7 @@ public class DynamicGraphRoadModel extends GraphRoadModel {
    * @param b The builder that contains the properties to initialize this model.
    */
   protected DynamicGraphRoadModel(ListenableGraph<?> g,
-    RoadModelBuilders.AbstractDynamicBuilder<?, ?> b) {
+    RoadModelBuilders.AbstractDynamicGraphRMB<?, ?> b) {
     super(g, b);
     getGraph().getEventAPI().addListener(
       new GraphModificationChecker(this));

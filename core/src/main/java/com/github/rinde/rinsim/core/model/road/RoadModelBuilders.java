@@ -21,9 +21,14 @@ import static java.util.Objects.hash;
 import java.util.Objects;
 
 import javax.annotation.Nullable;
+import javax.measure.quantity.Length;
+import javax.measure.quantity.Velocity;
+import javax.measure.unit.NonSI;
+import javax.measure.unit.SI;
 import javax.measure.unit.Unit;
 
 import com.github.rinde.rinsim.core.model.DependencyProvider;
+import com.github.rinde.rinsim.core.model.ModelBuilder.AbstractModelBuilder;
 import com.github.rinde.rinsim.geom.Connection;
 import com.github.rinde.rinsim.geom.Graph;
 import com.github.rinde.rinsim.geom.ListenableGraph;
@@ -33,62 +38,203 @@ import com.google.common.base.Suppliers;
 import com.google.common.primitives.Doubles;
 
 /**
+ * This class is the main entry point to obtain builders for creating
+ * {@link RoadModel}s. There are three kinds of road model implementations:
+ * <ul>
+ * <li>plane based, see {@link #plane()}</li>
+ * <li>static graph based, see {@link #staticGraph(Graph)}</li>
+ * <li>dynamic graph based, see {@link #dynamicGraph(ListenableGraph)}</li>
+ * </ul>
  * @author Rinde van Lon
- *
  */
 public final class RoadModelBuilders {
   RoadModelBuilders() {}
 
   /**
-   * @return A new {@link RoadModelBuilders.PlaneBuilder} for creating a
+   * @return A new {@link RoadModelBuilders.PlaneRMB} for creating a
    *         {@link PlaneRoadModel}.
    */
-  public static RoadModelBuilders.PlaneBuilder plane() {
-    return new RoadModelBuilders.PlaneBuilder();
+  public static RoadModelBuilders.PlaneRMB plane() {
+    return new RoadModelBuilders.PlaneRMB();
   }
 
   /**
-   * Construct a new {@link RoadModelBuilders.GraphBuilder} for creating a
+   * Construct a new {@link RoadModelBuilders.StaticGraphRMB} for creating a
    * {@link GraphRoadModel}.
    * @param graph The graph which will be used as road structure.
-   * @return A new {@link RoadModelBuilders.GraphBuilder}.
+   * @return A new {@link RoadModelBuilders.StaticGraphRMB}.
    */
-  public static RoadModelBuilders.GraphBuilder staticGraph(Graph<?> graph) {
-    return new RoadModelBuilders.GraphBuilder(Suppliers.ofInstance(graph));
+  public static RoadModelBuilders.StaticGraphRMB staticGraph(Graph<?> graph) {
+    return new RoadModelBuilders.StaticGraphRMB(Suppliers.ofInstance(graph));
   }
 
   /**
-   * Construct a new {@link RoadModelBuilders.GraphBuilder} for creating a
+   * Construct a new {@link RoadModelBuilders.StaticGraphRMB} for creating a
    * {@link GraphRoadModel}.
    * @param graphSupplier The supplier that creates a graph that will be used as
    *          road structure.
-   * @return A new {@link RoadModelBuilders.GraphBuilder}.
+   * @return A new {@link RoadModelBuilders.StaticGraphRMB}.
    */
-  public static RoadModelBuilders.GraphBuilder staticGraph(
+  public static RoadModelBuilders.StaticGraphRMB staticGraph(
     Supplier<? extends Graph<?>> graphSupplier) {
-    return new RoadModelBuilders.GraphBuilder(graphSupplier);
+    return new RoadModelBuilders.StaticGraphRMB(graphSupplier);
   }
 
   /**
-   * Create a {@link RoadModelBuilders.DynamicBuilder} for constructing
+   * Create a {@link RoadModelBuilders.DynamicGraphRMB} for constructing
    * {@link DynamicGraphRoadModel} instances.
    * @param g A {@link ListenableGraph}.
-   * @return A new {@link RoadModelBuilders.DynamicBuilder} instance.
+   * @return A new {@link RoadModelBuilders.DynamicGraphRMB} instance.
    */
-  public static RoadModelBuilders.DynamicBuilder dynamicGraph(
+  public static RoadModelBuilders.DynamicGraphRMB dynamicGraph(
     ListenableGraph<?> g) {
-    return new RoadModelBuilders.DynamicBuilder(Suppliers.ofInstance(g));
+    return dynamicGraph(Suppliers.<ListenableGraph<?>> ofInstance(g));
   }
 
   /**
-   * Create a {@link RoadModelBuilders.DynamicBuilder} for constructing
+   * Create a {@link RoadModelBuilders.DynamicGraphRMB} for constructing
    * {@link DynamicGraphRoadModel} instances.
    * @param g A supplier of {@link ListenableGraph}.
-   * @return A new {@link RoadModelBuilders.DynamicBuilder} instance.
+   * @return A new {@link RoadModelBuilders.DynamicGraphRMB} instance.
    */
-  public static RoadModelBuilders.DynamicBuilder dynamicGraph(
+  @SuppressWarnings("unchecked")
+  public static RoadModelBuilders.DynamicGraphRMB dynamicGraph(
     Supplier<? extends ListenableGraph<?>> g) {
-    return new RoadModelBuilders.DynamicBuilder(g);
+    return new RoadModelBuilders.DynamicGraphRMB(
+      (Supplier<ListenableGraph<?>>) g);
+  }
+
+  /**
+   * Abstract builder for constructing subclasses of {@link RoadModel}.
+   *
+   * @param <T> The type of the model that the builder is constructing.
+   * @param <S> The builder type itself, necessary to make a inheritance-based
+   *          builder.
+   * @author Rinde van Lon
+   */
+  public abstract static class AbstractRMB<T extends RoadModel, S> extends
+    AbstractModelBuilder<T, RoadUser> {
+
+    private Unit<Length> distanceUnit;
+    private Unit<Velocity> speedUnit;
+
+    /**
+     * Create instance.
+     */
+    protected AbstractRMB() {
+      distanceUnit = SI.KILOMETER;
+      speedUnit = NonSI.KILOMETERS_PER_HOUR;
+    }
+
+    /**
+     * Should return the builder itself.
+     * @return This.
+     */
+    protected abstract S self();
+
+    /**
+     * Sets the distance unit to for all dimensions. The default is
+     * {@link SI#KILOMETER}.
+     * @param unit The distance unit to set.
+     * @return This, as per the builder pattern.
+     */
+    public S setDistanceUnit(Unit<Length> unit) {
+      distanceUnit = unit;
+      return self();
+    }
+
+    /**
+     * Sets the speed unit to use for all speeds. The default is
+     * {@link NonSI#KILOMETERS_PER_HOUR}.
+     * @param unit The speed unit to set
+     * @return This, as per the builder pattern.
+     */
+    public S setSpeedUnit(Unit<Velocity> unit) {
+      speedUnit = unit;
+      return self();
+    }
+
+    /**
+     * @return the distanceUnit
+     */
+    public Unit<Length> getDistanceUnit() {
+      return distanceUnit;
+    }
+
+    /**
+     * @return the speedUnit
+     */
+    public Unit<Velocity> getSpeedUnit() {
+      return speedUnit;
+    }
+  }
+
+  /**
+   * Abstract builder for constructing subclasses of {@link GraphRoadModel}.
+   * @param <T> The type of the model that the builder is constructing.
+   * @param <S> The builder type itself, necessary to make a inheritance-based
+   *          builder.
+   * @param <G> The type of the graph.
+   * @author Rinde van Lon
+   */
+  public abstract static class AbstractGraphRMB<T extends GraphRoadModel, S, G extends Graph<?>>
+    extends AbstractRMB<T, S> {
+
+    final Supplier<G> graphSupplier;
+
+    /**
+     * Create a new instance.
+     * @param g The graph which will be used as road structure.
+     */
+    @SuppressWarnings("unchecked")
+    protected AbstractGraphRMB(Supplier<? extends G> g) {
+      graphSupplier = (Supplier<G>) g;
+      setProvidingTypes(RoadModel.class, GraphRoadModel.class);
+    }
+
+    @Override
+    public int hashCode() {
+      return hash(graphSupplier, getDistanceUnit(), getSpeedUnit());
+    }
+
+    @Override
+    public boolean equals(@Nullable Object other) {
+      if (other == null || other.getClass() != getClass()) {
+        return false;
+      }
+      final AbstractGraphRMB<?, ?, ?> o = (AbstractGraphRMB<?, ?, ?>) other;
+      return Objects.equals(graphSupplier, o.graphSupplier)
+        && Objects.equals(getDistanceUnit(), o.getDistanceUnit())
+        && Objects.equals(getSpeedUnit(), o.getSpeedUnit());
+    }
+
+    /**
+     * @return the graph
+     */
+    public G getGraph() {
+      return graphSupplier.get();
+    }
+  }
+
+  /**
+   * Abstract builder for constructing subclasses of
+   * {@link DynamicGraphRoadModel}.
+   * @param <T> The type of the model that the builder is constructing.
+   * @param <S> The builder type itself, necessary to make a inheritance-based
+   *          builder.
+   * @author Rinde van Lon
+   */
+  public abstract static class AbstractDynamicGraphRMB<T extends DynamicGraphRoadModel, S>
+    extends AbstractGraphRMB<T, S, ListenableGraph<?>> {
+
+    /**
+     * Create a new instance.
+     * @param supplier Supplier of the graph that will be used as road
+     *          structure.
+     */
+    protected AbstractDynamicGraphRMB(Supplier<ListenableGraph<?>> supplier) {
+      super(supplier);
+    }
   }
 
   /**
@@ -96,8 +242,8 @@ public final class RoadModelBuilders {
    * {@link #plane()}.
    * @author Rinde van Lon
    */
-  public static class PlaneBuilder extends
-    AbstractRoadModelBuilder<PlaneRoadModel, PlaneBuilder> {
+  public static final class PlaneRMB extends
+    AbstractRMB<PlaneRoadModel, PlaneRMB> {
     static final double DEFAULT_MAX_SPEED = 50d;
     static final Point DEFAULT_MIN_POINT = new Point(0, 0);
     static final Point DEFAULT_MAX_POINT = new Point(10, 10);
@@ -106,7 +252,7 @@ public final class RoadModelBuilders {
     Point max;
     double maxSpeed;
 
-    PlaneBuilder() {
+    PlaneRMB() {
       setProvidingTypes(RoadModel.class, PlaneRoadModel.class);
       min = DEFAULT_MIN_POINT;
       max = DEFAULT_MAX_POINT;
@@ -119,7 +265,7 @@ public final class RoadModelBuilders {
      * @param minPoint The min point to set.
      * @return This, as per the builder pattern.
      */
-    public PlaneBuilder setMinPoint(Point minPoint) {
+    public PlaneRMB setMinPoint(Point minPoint) {
       min = minPoint;
       return self();
     }
@@ -130,7 +276,7 @@ public final class RoadModelBuilders {
      * @param maxPoint The max point to set.
      * @return This, as per the builder pattern.
      */
-    public PlaneBuilder setMaxPoint(Point maxPoint) {
+    public PlaneRMB setMaxPoint(Point maxPoint) {
       max = maxPoint;
       return self();
     }
@@ -141,7 +287,7 @@ public final class RoadModelBuilders {
      * @param speed The max speed to set.
      * @return This, as per the builder pattern.
      */
-    public PlaneBuilder setMaxSpeed(double speed) {
+    public PlaneRMB setMaxSpeed(double speed) {
       checkArgument(speed > 0d,
         "Max speed must be strictly positive but is %s.",
         speed);
@@ -163,7 +309,7 @@ public final class RoadModelBuilders {
       if (other == null || getClass() != other.getClass()) {
         return false;
       }
-      final PlaneBuilder o = (PlaneBuilder) other;
+      final PlaneRMB o = (PlaneRMB) other;
       return Objects.equals(min, o.min)
         && Objects.equals(max, o.max)
         && Objects.equals(getDistanceUnit(), o.getDistanceUnit())
@@ -179,54 +325,8 @@ public final class RoadModelBuilders {
     }
 
     @Override
-    protected PlaneBuilder self() {
+    protected PlaneRMB self() {
       return this;
-    }
-  }
-
-  /**
-   * Abstract builder for constructing subclasses of {@link GraphRoadModel}.
-   * @param <T> The type of the model that the builder is constructing.
-   * @param <S> The builder type itself, necessary to make a inheritance-based
-   *          builder.
-   * @author Rinde van Lon
-   */
-  public static abstract class AbstractGraphBuilder<T extends GraphRoadModel, S>
-    extends AbstractRoadModelBuilder<T, S> {
-
-    final Supplier<Graph<?>> graphSupplier;
-
-    /**
-     * Create a new instance.
-     * @param g The graph which will be used as road structure.
-     */
-    @SuppressWarnings("unchecked")
-    protected AbstractGraphBuilder(Supplier<? extends Graph<?>> g) {
-      graphSupplier = (Supplier<Graph<?>>) g;
-      setProvidingTypes(RoadModel.class, GraphRoadModel.class);
-    }
-
-    @Override
-    public int hashCode() {
-      return hash(graphSupplier, getDistanceUnit(), getSpeedUnit());
-    }
-
-    @Override
-    public boolean equals(@Nullable Object other) {
-      if (other == null || other.getClass() != getClass()) {
-        return false;
-      }
-      final AbstractGraphBuilder<?, ?> o = (AbstractGraphBuilder<?, ?>) other;
-      return Objects.equals(graphSupplier, o.graphSupplier)
-        && Objects.equals(getDistanceUnit(), o.getDistanceUnit())
-        && Objects.equals(getSpeedUnit(), o.getSpeedUnit());
-    }
-
-    /**
-     * @return the graph
-     */
-    public Graph<?> getGraph() {
-      return graphSupplier.get();
     }
   }
 
@@ -235,9 +335,9 @@ public final class RoadModelBuilders {
    * obtained via {@link RoadModelBuilders#staticGraph(Graph)}.
    * @author Rinde van Lon
    */
-  public static class GraphBuilder extends
-    AbstractGraphBuilder<GraphRoadModel, GraphBuilder> {
-    GraphBuilder(Supplier<? extends Graph<?>> g) {
+  public static final class StaticGraphRMB extends
+    AbstractGraphRMB<GraphRoadModel, StaticGraphRMB, Graph<?>> {
+    StaticGraphRMB(Supplier<? extends Graph<?>> g) {
       super(g);
     }
 
@@ -249,44 +349,17 @@ public final class RoadModelBuilders {
     /**
      * When this is called it will return a builder that creates
      * {@link CachedGraphRoadModel} instead.
-     * @return A new {@link CachedBuilder} instance.
+     * @return A new {@link CachedGraphRMB} instance.
      */
-    public CachedBuilder useCache() {
-      return new CachedBuilder(graphSupplier)
+    public CachedGraphRMB useCache() {
+      return new CachedGraphRMB(graphSupplier)
         .setDistanceUnit(getDistanceUnit())
         .setSpeedUnit(getSpeedUnit());
     }
 
     @Override
-    protected GraphBuilder self() {
+    protected StaticGraphRMB self() {
       return this;
-    }
-  }
-
-  /**
-   * Abstract builder for constructing subclasses of
-   * {@link DynamicGraphRoadModel}.
-   * @param <T> The type of the model that the builder is constructing.
-   * @param <S> The builder type itself, necessary to make a inheritance-based
-   *          builder.
-   * @author Rinde van Lon
-   */
-  public static abstract class AbstractDynamicBuilder<T extends DynamicGraphRoadModel, S>
-    extends AbstractGraphBuilder<T, S> {
-
-    /**
-     * Create a new instance.
-     * @param supplier Supplier of the graph that will be used as road
-     *          structure.
-     */
-    protected AbstractDynamicBuilder(
-      Supplier<? extends ListenableGraph<?>> supplier) {
-      super(supplier);
-    }
-
-    @Override
-    public ListenableGraph<?> getGraph() {
-      return (ListenableGraph<?>) super.getGraph();
     }
   }
 
@@ -296,10 +369,10 @@ public final class RoadModelBuilders {
    * builder instances.
    * @author Rinde van Lon
    */
-  public static class DynamicBuilder extends
-    AbstractDynamicBuilder<DynamicGraphRoadModel, DynamicBuilder> {
+  public static final class DynamicGraphRMB extends
+    AbstractDynamicGraphRMB<DynamicGraphRoadModel, DynamicGraphRMB> {
 
-    DynamicBuilder(Supplier<? extends ListenableGraph<?>> g) {
+    DynamicGraphRMB(Supplier<ListenableGraph<?>> g) {
       super(g);
     }
 
@@ -308,11 +381,12 @@ public final class RoadModelBuilders {
      * instances instead of {@link DynamicGraphRoadModel} instances. Note that
      * all connections in the specified graph must have length
      * <code>2 * vehicleLength</code>, where vehicle length can be specified in
-     * {@link CollisionBuilder#setVehicleLength(double)}.
-     * @return A new {@link CollisionBuilder} instance.
+     * {@link CollisionGraphRMB#setVehicleLength(double)}.
+     * @return A new {@link CollisionGraphRMB} instance.
      */
-    public CollisionBuilder avoidCollisions() {
-      return new CollisionBuilder(getGraph())
+    public CollisionGraphRMB avoidCollisions() {
+      return new CollisionGraphRMB(
+        graphSupplier)
         .setDistanceUnit(getDistanceUnit())
         .setSpeedUnit(getSpeedUnit());
     }
@@ -323,7 +397,7 @@ public final class RoadModelBuilders {
     }
 
     @Override
-    protected DynamicBuilder self() {
+    protected DynamicGraphRMB self() {
       return this;
     }
   }
@@ -332,10 +406,10 @@ public final class RoadModelBuilders {
    * Builder for {@link CachedGraphRoadModel} instances.
    * @author Rinde van Lon
    */
-  public static class CachedBuilder extends
-    AbstractGraphBuilder<CachedGraphRoadModel, CachedBuilder> {
+  public static final class CachedGraphRMB extends
+    AbstractGraphRMB<CachedGraphRoadModel, CachedGraphRMB, Graph<?>> {
 
-    CachedBuilder(Supplier<? extends Graph<?>> g) {
+    CachedGraphRMB(Supplier<? extends Graph<?>> g) {
       super(g);
     }
 
@@ -345,7 +419,7 @@ public final class RoadModelBuilders {
     }
 
     @Override
-    protected CachedBuilder self() {
+    protected CachedGraphRMB self() {
       return this;
     }
   }
@@ -354,8 +428,8 @@ public final class RoadModelBuilders {
    * A builder for constructing {@link CollisionGraphRoadModel} instances.
    * @author Rinde van Lon
    */
-  public static final class CollisionBuilder extends
-    AbstractDynamicBuilder<CollisionGraphRoadModel, CollisionBuilder> {
+  public static final class CollisionGraphRMB extends
+    AbstractDynamicGraphRMB<CollisionGraphRoadModel, CollisionGraphRMB> {
 
     /**
      * The default vehicle length: <code>2</code>.
@@ -370,8 +444,8 @@ public final class RoadModelBuilders {
     double vehicleLength;
     double minDistance;
 
-    CollisionBuilder(ListenableGraph<?> g) {
-      super(Suppliers.ofInstance(g));
+    CollisionGraphRMB(Supplier<ListenableGraph<?>> g) {
+      super(g);
       vehicleLength = DEFAULT_VEHICLE_LENGTH;
       minDistance = DEFAULT_MIN_DISTANCE;
     }
@@ -385,7 +459,7 @@ public final class RoadModelBuilders {
      *          {@link #setDistanceUnit(Unit)}.
      * @return This, as per the builder pattern.
      */
-    public CollisionBuilder setVehicleLength(double length) {
+    public CollisionGraphRMB setVehicleLength(double length) {
       checkArgument(length > 0d,
         "Only positive vehicle lengths are allowed, found %s.", length);
       checkArgument(Doubles.isFinite(length),
@@ -402,7 +476,7 @@ public final class RoadModelBuilders {
      *          {@link #setDistanceUnit(Unit)}.
      * @return This, as per the builder pattern.
      */
-    public CollisionBuilder setMinDistance(double dist) {
+    public CollisionGraphRMB setMinDistance(double dist) {
       checkArgument(dist >= 0d);
       minDistance = dist;
       return this;
@@ -429,7 +503,7 @@ public final class RoadModelBuilders {
       if (other == null || other.getClass() != getClass()) {
         return false;
       }
-      final CollisionBuilder o = (CollisionBuilder) other;
+      final CollisionGraphRMB o = (CollisionGraphRMB) other;
       return Objects.equals(minDistance, o.minDistance)
         && Objects.equals(vehicleLength, o.vehicleLength)
         && super.equals(other);
@@ -442,9 +516,8 @@ public final class RoadModelBuilders {
     }
 
     @Override
-    protected CollisionBuilder self() {
+    protected CollisionGraphRMB self() {
       return this;
     }
   }
-
 }
