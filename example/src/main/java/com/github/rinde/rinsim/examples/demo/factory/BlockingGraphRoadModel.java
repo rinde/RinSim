@@ -97,8 +97,9 @@ public class BlockingGraphRoadModel extends GraphRoadModel {
     return new Builder(g);
   }
 
-  static class Builder extends
-    RoadModelBuilders.AbstractGraphRMB<BlockingGraphRoadModel, Builder> {
+  static class Builder
+    extends
+    RoadModelBuilders.AbstractGraphRMB<BlockingGraphRoadModel, Builder, Graph<?>> {
 
     Builder(Graph<?> g) {
       super(Suppliers.ofInstance(g));
