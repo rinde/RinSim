@@ -16,14 +16,17 @@
 package com.github.rinde.rinsim.geom;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static java.util.Objects.hash;
 
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 
-import com.google.common.base.Objects;
+import javax.annotation.Nullable;
+
 import com.google.common.base.Optional;
+import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Table;
 import com.google.common.collect.Tables;
@@ -44,16 +47,16 @@ public class TableGraph<E extends ConnectionData> extends AbstractGraph<E> {
    */
   public TableGraph() {
     data = Tables.newCustomTable(
-        new LinkedHashMap<Point, Map<Point, Connection<E>>>(),
-        new LinkedHashMapFactory<Connection<E>>());
+      new LinkedHashMap<Point, Map<Point, Connection<E>>>(),
+      new LinkedHashMapFactory<Connection<E>>());
   }
 
   @Override
   public Set<Point> getNodes() {
     return ImmutableSet.<Point> builder()
-        .addAll(data.rowKeySet())
-        .addAll(data.columnKeySet())
-        .build();
+      .addAll(data.rowKeySet())
+      .addAll(data.columnKeySet())
+      .build();
   }
 
   @Override
@@ -63,9 +66,9 @@ public class TableGraph<E extends ConnectionData> extends AbstractGraph<E> {
 
   @Override
   public <T extends ConnectionData> boolean hasConnection(
-      Connection<T> connection) {
+    Connection<T> connection) {
     return hasConnection(connection.from(), connection.to())
-        && data.get(connection.from(), connection.to()).equals(connection);
+      && data.get(connection.from(), connection.to()).equals(connection);
   }
 
   @Override
@@ -105,7 +108,7 @@ public class TableGraph<E extends ConnectionData> extends AbstractGraph<E> {
       data.remove(from, to);
     } else {
       throw new IllegalArgumentException(
-          "Can not remove non-existing connection: " + from + " -> " + to);
+        "Can not remove non-existing connection: " + from + " -> " + to);
     }
   }
 
@@ -122,7 +125,7 @@ public class TableGraph<E extends ConnectionData> extends AbstractGraph<E> {
   @Override
   public Connection<E> getConnection(Point from, Point to) {
     checkArgument(hasConnection(from, to), "%s -> %s is not a connection",
-        from, to);
+      from, to);
     return data.get(from, to);
   }
 
@@ -141,12 +144,42 @@ public class TableGraph<E extends ConnectionData> extends AbstractGraph<E> {
 
   @Override
   protected Optional<E> doChangeConnectionData(Point from, Point to,
-      Optional<E> edgeData) {
+    Optional<E> edgeData) {
     return data.put(from, to, Connection.create(from, to, edgeData)).data();
   }
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(data);
+    return hash(data);
+  }
+
+  /**
+   * Create a supplier for empty instances of {@link TableGraph}.
+   * @param <E> The type of connection data.
+   * @return A new supplier.
+   */
+  public static <E extends ConnectionData> Supplier<TableGraph<E>> supplier() {
+    return new TableGraphSupplier<>();
+  }
+
+  private static class TableGraphSupplier<E extends ConnectionData>
+    implements Supplier<TableGraph<E>> {
+
+    TableGraphSupplier() {}
+
+    @Override
+    public TableGraph<E> get() {
+      return new TableGraph<>();
+    }
+
+    @Override
+    public boolean equals(@Nullable Object other) {
+      return other != null && other.getClass() == getClass();
+    }
+
+    @Override
+    public int hashCode() {
+      return super.hashCode();
+    }
   }
 }

@@ -27,8 +27,10 @@ import javax.annotation.Nullable;
 import com.github.rinde.rinsim.event.Event;
 import com.github.rinde.rinsim.event.EventAPI;
 import com.github.rinde.rinsim.event.EventDispatcher;
+import com.google.auto.value.AutoValue;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Optional;
+import com.google.common.base.Supplier;
 
 /**
  * An observable decorator for {@link Graph} instances. This implementation
@@ -46,7 +48,7 @@ import com.google.common.base.Optional;
  * @param <E> The type of {@link ConnectionData} that is used in the edges.
  */
 public final class ListenableGraph<E extends ConnectionData> extends
-    ForwardingGraph<E> {
+  ForwardingGraph<E> {
 
   /**
    * The event types dispatched by {@link ListenableGraph}.
@@ -100,21 +102,21 @@ public final class ListenableGraph<E extends ConnectionData> extends
   public void addConnection(Point from, Point to, E connData) {
     delegate.addConnection(from, to, connData);
     eventDispatcher.dispatchEvent(new GraphEvent(EventTypes.ADD_CONNECTION,
-        this, getConnection(from, to)));
+      this, getConnection(from, to)));
   }
 
   @Override
   public void addConnection(Point from, Point to) {
     delegate.addConnection(from, to);
     eventDispatcher.dispatchEvent(new GraphEvent(EventTypes.ADD_CONNECTION,
-        this, getConnection(from, to)));
+      this, getConnection(from, to)));
   }
 
   @Override
   public void addConnection(Connection<E> connection) {
     delegate.addConnection(connection);
     eventDispatcher.dispatchEvent(new GraphEvent(EventTypes.ADD_CONNECTION,
-        this, connection));
+      this, connection));
   }
 
   @Override
@@ -128,7 +130,7 @@ public final class ListenableGraph<E extends ConnectionData> extends
   public Optional<E> setConnectionData(Point from, Point to, E connectionData) {
     Optional<E> val = delegate.setConnectionData(from, to, connectionData);
     eventDispatcher.dispatchEvent(new GraphEvent(
-        EventTypes.CHANGE_CONNECTION_DATA, this, getConnection(from, to)));
+      EventTypes.CHANGE_CONNECTION_DATA, this, getConnection(from, to)));
     return val;
   }
 
@@ -137,7 +139,7 @@ public final class ListenableGraph<E extends ConnectionData> extends
     Optional<E> val = delegate.removeConnectionData(from, to);
 
     eventDispatcher.dispatchEvent(new GraphEvent(
-        EventTypes.CHANGE_CONNECTION_DATA, this, getConnection(from, to)));
+      EventTypes.CHANGE_CONNECTION_DATA, this, getConnection(from, to)));
     return val;
   }
 
@@ -157,7 +159,7 @@ public final class ListenableGraph<E extends ConnectionData> extends
     // notify listeners
     for (Connection<?> c : removedConnections) {
       eventDispatcher.dispatchEvent(new GraphEvent(
-          EventTypes.REMOVE_CONNECTION, this, c));
+        EventTypes.REMOVE_CONNECTION, this, c));
     }
   }
 
@@ -166,8 +168,8 @@ public final class ListenableGraph<E extends ConnectionData> extends
     Connection<?> conn = delegate.getConnection(from, to);
     delegate.removeConnection(from, to);
     eventDispatcher
-        .dispatchEvent(new GraphEvent(
-            EventTypes.REMOVE_CONNECTION, this, conn));
+      .dispatchEvent(new GraphEvent(
+        EventTypes.REMOVE_CONNECTION, this, conn));
   }
 
   @Override
@@ -175,6 +177,18 @@ public final class ListenableGraph<E extends ConnectionData> extends
     for (Connection<E> connection : other.getConnections()) {
       addConnection(connection);
     }
+  }
+
+  /**
+   * Create a supplier for instances of {@link ListenableGraph}.
+   * @param sup The supplier that generates {@link Graph} instances that will be
+   *          decorated by {@link ListenableGraph}.
+   * @param <E> The type of connection data.
+   * @return A new supplier.
+   */
+  public static <E extends ConnectionData> Supplier<ListenableGraph<E>> supplier(
+    Supplier<? extends Graph<E>> sup) {
+    return new AutoValue_ListenableGraph_ListenableGraphSupplier<>(sup);
   }
 
   /**
@@ -215,17 +229,29 @@ public final class ListenableGraph<E extends ConnectionData> extends
       }
       GraphEvent o = (GraphEvent) other;
       return Objects.equals(o.eventType, eventType) &&
-          Objects.equals(o.getIssuer(), getIssuer()) &&
-          Objects.equals(o.connection, connection);
+        Objects.equals(o.getIssuer(), getIssuer()) &&
+        Objects.equals(o.connection, connection);
     }
 
     @Override
     public String toString() {
       return MoreObjects.toStringHelper("GraphEvent")
-          .add("type", this.eventType)
-          .add("issuer", this.getIssuer())
-          .add("connection", connection)
-          .toString();
+        .add("type", this.eventType)
+        .add("issuer", this.getIssuer())
+        .add("connection", connection)
+        .toString();
+    }
+  }
+
+  @AutoValue
+  static abstract class ListenableGraphSupplier<E extends ConnectionData>
+    implements Supplier<ListenableGraph<E>> {
+
+    abstract Supplier<? extends Graph<E>> supplier();
+
+    @Override
+    public ListenableGraph<E> get() {
+      return new ListenableGraph<>(supplier().get());
     }
   }
 }

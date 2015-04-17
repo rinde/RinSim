@@ -16,6 +16,7 @@
 package com.github.rinde.rinsim.geom;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static java.util.Objects.hash;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -25,10 +26,14 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.Set;
 
-import com.google.common.base.Objects;
+import javax.annotation.Nullable;
+
 import com.google.common.base.Optional;
+import com.google.common.base.Supplier;
+import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Multimap;
@@ -61,8 +66,8 @@ public class MultimapGraph<E extends ConnectionData> extends AbstractGraph<E> {
   public MultimapGraph(Multimap<Point, Point> map) {
     multimap = LinkedHashMultimap.create(map);
     lazyConnectionTable = Tables.newCustomTable(
-        new LinkedHashMap<Point, Map<Point, Connection<E>>>(),
-        new LinkedHashMapFactory<Connection<E>>());
+      new LinkedHashMap<Point, Map<Point, Connection<E>>>(),
+      new LinkedHashMapFactory<Connection<E>>());
     deadEndNodes = new HashSet<>();
     deadEndNodes.addAll(multimap.values());
     deadEndNodes.removeAll(multimap.keySet());
@@ -85,10 +90,10 @@ public class MultimapGraph<E extends ConnectionData> extends AbstractGraph<E> {
 
   @Override
   public <T extends ConnectionData> boolean hasConnection(
-      Connection<T> connection) {
+    Connection<T> connection) {
     if (connection.data().isPresent()) {
       return getConnection(connection.from(), connection.to()).equals(
-          connection);
+        connection);
     }
     return hasConnection(connection.from(), connection.to());
   }
@@ -105,7 +110,7 @@ public class MultimapGraph<E extends ConnectionData> extends AbstractGraph<E> {
 
   @Override
   protected Optional<E> doChangeConnectionData(Point from, Point to,
-      Optional<E> connData) {
+    Optional<E> connData) {
     Optional<E> dat;
     if (lazyConnectionTable.contains(from, to)) {
       dat = lazyConnectionTable.get(from, to).data();
@@ -134,7 +139,7 @@ public class MultimapGraph<E extends ConnectionData> extends AbstractGraph<E> {
   @Override
   public Connection<E> getConnection(Point from, Point to) {
     checkArgument(hasConnection(from, to), "%s -> %s is not a connection.",
-        from, to);
+      from, to);
     if (!lazyConnectionTable.contains(from, to)) {
       lazyConnectionTable.put(from, to, Connection.<E> create(from, to));
     }
@@ -201,7 +206,7 @@ public class MultimapGraph<E extends ConnectionData> extends AbstractGraph<E> {
   @Override
   public void removeConnection(Point from, Point to) {
     checkArgument(hasConnection(from, to),
-        "Can not remove non-existing connection: %s -> %s", from, to);
+      "Can not remove non-existing connection: %s -> %s", from, to);
     multimap.remove(from, to);
     removeData(from, to);
     if (!multimap.containsKey(to)) {
@@ -215,7 +220,7 @@ public class MultimapGraph<E extends ConnectionData> extends AbstractGraph<E> {
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(multimap, deadEndNodes, lazyConnectionTable);
+    return hash(multimap, deadEndNodes, lazyConnectionTable);
   }
 
   @Override
@@ -227,7 +232,60 @@ public class MultimapGraph<E extends ConnectionData> extends AbstractGraph<E> {
     }
     if (connData.isPresent()) {
       this.lazyConnectionTable.put(from, to,
-          Connection.create(from, to, connData));
+        Connection.create(from, to, connData));
+    }
+  }
+
+  /**
+   * Create a supplier for empty instances of {@link MultimapGraph}.
+   * @param <E> The type of connection data.
+   * @return A new supplier.
+   */
+  public static <E extends ConnectionData> Supplier<MultimapGraph<E>> supplier() {
+    return new MultimapGraphSupplier<>();
+  }
+
+  /**
+   * Instantiates a new graph supplier that will create {@link MultimapGraph}
+   * instances using the specified data.
+   * @param data The multimap that is copied into this new graph.
+   * @param <E> The type of connection data.
+   * @return A new supplier.
+   */
+  public static <E extends ConnectionData> Supplier<MultimapGraph<E>> supplier(
+    ImmutableMultimap<Point, Point> data) {
+    return new MultimapGraphSupplier<>(data);
+  }
+
+  private static class MultimapGraphSupplier<E extends ConnectionData>
+    implements Supplier<MultimapGraph<E>> {
+
+    private final ImmutableMultimap<Point, Point> data;
+
+    MultimapGraphSupplier() {
+      this(ImmutableMultimap.<Point, Point> of());
+    }
+
+    MultimapGraphSupplier(ImmutableMultimap<Point, Point> d) {
+      data = d;
+    }
+
+    @Override
+    public MultimapGraph<E> get() {
+      return new MultimapGraph<>(data);
+    }
+
+    @Override
+    public boolean equals(@Nullable Object other) {
+      if (other == null || other.getClass() != getClass()) {
+        return false;
+      }
+      return Objects.equals(data, ((MultimapGraphSupplier<?>) other).data);
+    }
+
+    @Override
+    public int hashCode() {
+      return hash(data);
     }
   }
 }
