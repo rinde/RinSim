@@ -15,6 +15,8 @@
  */
 package com.github.rinde.rinsim.ui.renderers;
 
+import javax.measure.unit.SI;
+
 import org.apache.commons.math3.random.RandomGenerator;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
@@ -54,7 +56,8 @@ public class GraphBasedRenderersTest {
       10), new Point(0, 10), new Point(0, 0));
 
     final Simulator sim = Simulator.builder()
-      .addModel(RoadModelBuilders.dynamicGraph(graph).avoidCollisions())
+      .addModel(RoadModelBuilders.dynamicGraph(graph).avoidCollisions()
+        .setDistanceUnit(SI.METER))
       .build();
 
     graph.addConnection(new Point(0, 0), new Point(20, 20));
