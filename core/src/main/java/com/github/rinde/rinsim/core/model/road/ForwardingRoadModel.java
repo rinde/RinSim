@@ -216,19 +216,33 @@ public class ForwardingRoadModel extends GenericRoadModel {
     return delegate.get(type);
   }
 
-  public static abstract class Builder<T extends ForwardingRoadModel, S>
+  /**
+   * Abstract base builder for creating subclasses of
+   * {@link ForwardingRoadModel}.
+   * @param <T> The specific subtype of {@link ForwardingRoadModel} to
+   *          construct.
+   * @author Rinde van Lon
+   */
+  public static abstract class Builder<T extends ForwardingRoadModel>
     extends AbstractModelBuilder<T, RoadUser> {
     private final ModelBuilder<RoadModel, RoadUser> delegate;
 
-    protected abstract S self();
-
+    /**
+     * @param rm The road model builder that creates the delegate road model
+     *          that will be decorated by the {@link ForwardingRoadModel}
+     *          constructed by this builder.
+     */
+    @SuppressWarnings("unchecked")
     protected Builder(ModelBuilder<? extends RoadModel, ? extends RoadUser> rm) {
       delegate = (ModelBuilder<RoadModel, RoadUser>) rm;
     }
 
+    /**
+     * @return The {@link ModelBuilder} that will be decorated by the
+     *         {@link ForwardingRoadModel} constructed by this builder.
+     */
     public ModelBuilder<RoadModel, RoadUser> getDelegateModelBuilder() {
       return delegate;
     }
-
   }
 }

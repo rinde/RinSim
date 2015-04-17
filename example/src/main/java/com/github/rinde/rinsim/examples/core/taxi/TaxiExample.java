@@ -110,7 +110,7 @@ public final class TaxiExample {
 
     // use map of leuven
     final Simulator simulator = Simulator.builder()
-      .addModel(GraphRoadModel.builder().setGraph(loadGraph(graphFile)))
+      .addModel(GraphRoadModel.builder(loadGraph(graphFile)))
       .addModel(DefaultPDPModel.builder())
       .build();
     final RandomGenerator rng = simulator.getRandomGenerator();

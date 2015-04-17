@@ -153,8 +153,7 @@ public final class FactoryExample {
       .builder()
       .setRandomGenerator(rng)
       .addModel(
-        BlockingGraphRoadModel.builder()
-          .setGraph(g)
+        BlockingGraphRoadModel.blockingBuilder(g)
           .setDistanceUnit(SI.METER)
           .setSpeedUnit(NonSI.KILOMETERS_PER_HOUR)
       )

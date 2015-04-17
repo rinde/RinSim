@@ -18,8 +18,8 @@ package com.github.rinde.rinsim.core.model.road;
 import static java.util.Arrays.asList;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.mock;
 
-import java.lang.reflect.InvocationTargetException;
 import java.math.RoundingMode;
 import java.util.Arrays;
 import java.util.Collection;
@@ -31,7 +31,6 @@ import javax.measure.Measure;
 import javax.measure.converter.UnitConverter;
 import javax.measure.unit.NonSI;
 import javax.measure.unit.SI;
-import javax.measure.unit.Unit;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -39,6 +38,8 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 
+import com.github.rinde.rinsim.core.model.DependencyProvider;
+import com.github.rinde.rinsim.core.model.ModelBuilder;
 import com.github.rinde.rinsim.core.model.time.TimeLapse;
 import com.github.rinde.rinsim.core.model.time.TimeLapseFactory;
 import com.github.rinde.rinsim.geom.Graph;
@@ -57,8 +58,7 @@ import com.google.common.math.DoubleMath;
 public class SpeedLimitsTest {
   final static double DELTA = 0.00001;
 
-  Class<? extends Graph<MultiAttributeData>> graphType;
-  Class<? extends GraphRoadModel> roadModelType;
+  ModelBuilder<GraphRoadModel, RoadUser> modelBuilder;
   GraphRoadModel model;
   Queue<Point> path;
   Point A, B, C, D, E;
@@ -66,10 +66,10 @@ public class SpeedLimitsTest {
   private final double speed;
   private double pathLength;
 
-  public SpeedLimitsTest(Class<? extends Graph<MultiAttributeData>> pGraphType,
-      Class<? extends GraphRoadModel> pRoadModelType, double pSpeed) {
-    graphType = pGraphType;
-    roadModelType = pRoadModelType;
+  @SuppressWarnings("null")
+  public SpeedLimitsTest(ModelBuilder<GraphRoadModel, RoadUser> mb,
+    double pSpeed) {
+    modelBuilder = mb;
     speed = pSpeed;
   }
 
@@ -78,26 +78,26 @@ public class SpeedLimitsTest {
 
     final double five = 5;
     final double twoAndHalf = 2.5;
-    return Arrays.asList(new Object[][] {
-        { MultimapGraph.class, GraphRoadModel.class, five },
-        { MultimapGraph.class, CachedGraphRoadModel.class, five },
-        { MultimapGraph.class, GraphRoadModel.class, twoAndHalf },
-        { MultimapGraph.class, CachedGraphRoadModel.class, twoAndHalf },
-        { TableGraph.class, GraphRoadModel.class, five },
-        { TableGraph.class, CachedGraphRoadModel.class, five },
-        { TableGraph.class, GraphRoadModel.class, twoAndHalf },
-        { TableGraph.class, CachedGraphRoadModel.class, twoAndHalf } });
+    return Arrays
+      .asList(new Object[][] {
+          { GraphRoadModel.builder(MultimapGraph.supplier()), five },
+          { CachedGraphRoadModel.builderCached(MultimapGraph.supplier()), five },
+          { GraphRoadModel.builder(MultimapGraph.supplier()), twoAndHalf },
+          { CachedGraphRoadModel.builderCached(MultimapGraph.supplier()),
+              twoAndHalf },
+          { GraphRoadModel.builder(TableGraph.supplier()), five },
+          { CachedGraphRoadModel.builderCached(TableGraph.supplier()), five },
+          { GraphRoadModel.builder(TableGraph.supplier()), twoAndHalf },
+          { CachedGraphRoadModel.builderCached(TableGraph.supplier()),
+              twoAndHalf }
+      });
   }
 
   @Before
-  public void setUp() throws InstantiationException, IllegalAccessException,
-      IllegalArgumentException, SecurityException, InvocationTargetException,
-      NoSuchMethodException {
-
-    final Graph<MultiAttributeData> graph = graphType.newInstance();
-
-    model = roadModelType.getConstructor(Graph.class, Unit.class, Unit.class)
-        .newInstance(graph, SI.KILOMETER, NonSI.KILOMETERS_PER_HOUR);
+  public void setUp() {
+    model = modelBuilder.build(mock(DependencyProvider.class));
+    @SuppressWarnings("unchecked")
+    final Graph<MultiAttributeData> graph = (Graph<MultiAttributeData>) model.graph;
 
     A = new Point(0, 0);
     B = new Point(0, 10);
@@ -110,28 +110,28 @@ public class SpeedLimitsTest {
 
     // length 10 speed 2.5
     graph.addConnection(B, C, MultiAttributeData.builder()
-        .setLength(10)
-        .setMaxSpeed(2.5)
-        .build());
+      .setLength(10)
+      .setMaxSpeed(2.5)
+      .build());
     graph.addConnection(C, B); // length Math.sqr(10^2 + 10^2)
 
     // length 10 speed 10
     graph.addConnection(B, D, MultiAttributeData.builder()
-        .setLength(10d)
-        .setMaxSpeed(10)
-        .build());
+      .setLength(10d)
+      .setMaxSpeed(10)
+      .build());
 
     graph.addConnection(C, D); // length 10
 
     // length 12 speed 1
     graph.addConnection(D, C, MultiAttributeData.builder()
-        .setLength(12)
-        .setMaxSpeed(1)
-        .build());
+      .setLength(12)
+      .setMaxSpeed(1)
+      .build());
     graph.addConnection(D, E, MultiAttributeData.builder()
-        .setLength(5)
-        .setMaxSpeed(7)
-        .build());
+      .setLength(5)
+      .setMaxSpeed(7)
+      .build());
 
     final Set<Point> points = graph.getNodes();
     assertEquals(5, points.size());
@@ -153,9 +153,9 @@ public class SpeedLimitsTest {
   @Test
   public void followPathAllAtOnce() {
     final int timeNeeded = DoubleMath.roundToInt(pathLength / speed * 1.5,
-        RoundingMode.CEILING);
+      RoundingMode.CEILING);
     final TimeLapse timeLapse = TimeLapseFactory.create(NonSI.HOUR, 0,
-        timeNeeded);
+      timeNeeded);
 
     final SpeedyRoadUser agent = new SpeedyRoadUser(speed);
     model.addObjectAt(agent, new Point(0, 0));
@@ -166,7 +166,7 @@ public class SpeedLimitsTest {
     assertTrue(timeLapse.hasTimeLeft());
     assertEquals(pathLength, travelled.distance().getValue(), DELTA);
     assertTrue("time spend < timeNeeded",
-        timeNeeded > travelled.time().getValue());
+      timeNeeded > travelled.time().getValue());
     assertEquals(0, path.size());
     assertEquals(new Point(5, 15), model.getPosition(agent));
   }
@@ -186,7 +186,7 @@ public class SpeedLimitsTest {
 
     // MOVE 1: travelling on edge A -> B (length 10), with no speed limit
     MoveProgress progress = model.followPath(agent, path,
-        AbstractRoadModelTest.hour(2));
+      AbstractRoadModelTest.hour(2));
     assertEquals(2 * speed, progress.distance().getValue(), DELTA);
     assertEquals(new Point(0, 2 * speed), model.getPosition(agent));
 
@@ -215,7 +215,7 @@ public class SpeedLimitsTest {
     progress = model.followPath(agent, path, AbstractRoadModelTest.hour(time));
     assertEquals(10d, progress.distance().getValue(), DELTA);
     assertEquals(Measure.valueOf(time, NonSI.HOUR).to(SI.MILLI(SI.SECOND)),
-        progress.time());
+      progress.time());
     assertEquals(1, path.size());
     assertEquals(D, model.getPosition(agent));
 
@@ -225,7 +225,7 @@ public class SpeedLimitsTest {
     progress = model.followPath(agent, path, AbstractRoadModelTest.hour(3));
     assertEquals(RoadTestUtil.km(5), progress.distance());
     assertEquals(Measure.valueOf(time, NonSI.HOUR).to(SI.MILLI(SI.SECOND)),
-        progress.time());
+      progress.time());
     assertEquals(0, path.size());
     assertEquals(E, model.getPosition(agent));
 
@@ -234,19 +234,19 @@ public class SpeedLimitsTest {
   @Test
   public void maxSpeedTest() {
     final UnitConverter speedConverter = NonSI.KILOMETERS_PER_HOUR
-        .getConverterTo(RoadUnits.INTERNAL_SPEED_UNIT);
+      .getConverterTo(RoadUnits.INTERNAL_SPEED_UNIT);
 
     final double s = speedConverter.convert(speed);
 
     final SpeedyRoadUser agent = new SpeedyRoadUser(speed);
     assertEquals(s, model.getMaxSpeed(agent, A, B), DELTA);
     assertEquals(speed > 2.5 ? speedConverter.convert(2.5) : s,
-        model.getMaxSpeed(agent, B, C), DELTA);
+      model.getMaxSpeed(agent, B, C), DELTA);
     assertEquals(s, model.getMaxSpeed(agent, C, B), DELTA);
     assertEquals(s, model.getMaxSpeed(agent, B, D), DELTA);
     assertEquals(s, model.getMaxSpeed(agent, C, D), DELTA);
     assertEquals(speedConverter.convert(1), model.getMaxSpeed(agent, D, C),
-        DELTA);
+      DELTA);
     assertEquals(s, model.getMaxSpeed(agent, D, E), DELTA);
   }
 
@@ -258,7 +258,7 @@ public class SpeedLimitsTest {
     assertEquals(5, path.size());
 
     final MoveProgress progress = model.followPath(agent, path,
-        AbstractRoadModelTest.hour());
+      AbstractRoadModelTest.hour());
     assertEquals(speed, progress.distance().getValue(), DELTA);
     assertEquals(4, path.size());
   }

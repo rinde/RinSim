@@ -38,7 +38,7 @@ import com.github.rinde.rinsim.geom.Point;
 public class PlaneRoadModelTest extends AbstractRoadModelTest<PlaneRoadModel> {
 
   @Override
-  public void setUp() {
+  public void doSetUp() {
     model = PlaneRoadModel.builder()
       .setMinPoint(new Point(0, 0))
       .setMaxPoint(new Point(10, 10))

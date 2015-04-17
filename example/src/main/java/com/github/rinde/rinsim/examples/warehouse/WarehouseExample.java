@@ -51,7 +51,7 @@ public final class WarehouseExample {
   public static void main(String[] args) {
 
     final Simulator sim = Simulator.builder()
-      .addModel(CollisionGraphRoadModel.builder(createSimpleGraph())
+      .addModel(CollisionGraphRoadModel.builderCollision(createSimpleGraph())
         .setVehicleLength(VEHICLE_LENGTH)
       )
       .build();

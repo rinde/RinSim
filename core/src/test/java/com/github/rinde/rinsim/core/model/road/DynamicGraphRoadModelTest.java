@@ -20,10 +20,12 @@ import static java.util.Arrays.asList;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.mock;
 
 import org.junit.Before;
 import org.junit.Test;
 
+import com.github.rinde.rinsim.core.model.DependencyProvider;
 import com.github.rinde.rinsim.geom.Graphs;
 import com.github.rinde.rinsim.geom.LengthData;
 import com.github.rinde.rinsim.geom.ListenableGraph;
@@ -48,7 +50,8 @@ public class DynamicGraphRoadModelTest {
   @Before
   public void setUp() {
     graph = new ListenableGraph<>(new TableGraph<LengthData>());
-    model = new DynamicGraphRoadModel(graph);
+    model = DynamicGraphRoadModel.builderDynamic(graph).build(
+      mock(DependencyProvider.class));
     SW = new Point(0, 0);
     SE = new Point(10, 0);
     NE = new Point(10, 10);
@@ -76,7 +79,7 @@ public class DynamicGraphRoadModelTest {
     // NE]
     final MoveProgress mp = model.moveTo(tru, NE, hour(38));
     assertEquals(38d, mp.distance().getValue().doubleValue(),
-        GraphRoadModel.DELTA);
+      GraphRoadModel.DELTA);
     assertEquals(NE, model.getPosition(tru));
     assertEquals(asList(NW, SW, SE, NE), mp.travelledNodes());
 
@@ -95,7 +98,7 @@ public class DynamicGraphRoadModelTest {
     final MoveProgress mp2 = model.moveTo(tru, SW, hour(10));
 
     assertEquals(10d, mp2.distance().getValue().doubleValue(),
-        GraphRoadModel.DELTA);
+      GraphRoadModel.DELTA);
     assertEquals(asList(SE, X, SW), mp2.travelledNodes());
     assertEquals(SW, model.getPosition(tru));
 
@@ -109,7 +112,7 @@ public class DynamicGraphRoadModelTest {
     final MoveProgress mp3 = model.moveTo(tru, SE, hour(18));
 
     assertEquals(18d, mp3.distance().getValue().doubleValue(),
-        GraphRoadModel.DELTA);
+      GraphRoadModel.DELTA);
     assertEquals(asList(SW, SE), mp3.travelledNodes());
     assertEquals(SE, model.getPosition(tru));
   }

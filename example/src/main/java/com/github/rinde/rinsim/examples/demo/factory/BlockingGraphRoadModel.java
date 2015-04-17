@@ -24,10 +24,6 @@ import java.util.List;
 import java.util.Queue;
 import java.util.Set;
 
-import javax.measure.quantity.Length;
-import javax.measure.quantity.Velocity;
-import javax.measure.unit.Unit;
-
 import com.github.rinde.rinsim.core.model.DependencyProvider;
 import com.github.rinde.rinsim.core.model.road.GraphRoadModel;
 import com.github.rinde.rinsim.core.model.road.MoveProgress;
@@ -38,6 +34,7 @@ import com.github.rinde.rinsim.geom.Connection;
 import com.github.rinde.rinsim.geom.ConnectionData;
 import com.github.rinde.rinsim.geom.Graph;
 import com.github.rinde.rinsim.geom.Point;
+import com.google.common.base.Suppliers;
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Multimap;
 
@@ -50,9 +47,8 @@ public class BlockingGraphRoadModel extends GraphRoadModel {
   Set<Point> blockedNodes;
   Multimap<MovingRoadUser, Point> vehicleBlocks;
 
-  BlockingGraphRoadModel(Graph<? extends ConnectionData> pGraph,
-    Unit<Length> distanceUnit, Unit<Velocity> speedUnit) {
-    super(pGraph, distanceUnit, speedUnit);
+  BlockingGraphRoadModel(Graph<? extends ConnectionData> pGraph, Builder b) {
+    super(pGraph, b);
     blockedNodes = newLinkedHashSet();
     vehicleBlocks = LinkedHashMultimap.create();
   }
@@ -96,20 +92,27 @@ public class BlockingGraphRoadModel extends GraphRoadModel {
     return mp;
   }
 
-  public static Builder builder() {
-    return new Builder();
+  static Builder blockingBuilder(Graph<?> g) {
+    return new Builder(g);
   }
 
-  static class Builder extends GraphRoadModel.Builder {
+  static class Builder extends
+    GraphRoadModel.AbstractBuilder<BlockingGraphRoadModel, Builder> {
 
-    Builder() {
+    Builder(Graph<?> g) {
+      super(Suppliers.ofInstance(g));
       setProvidingTypes(RoadModel.class, GraphRoadModel.class,
         BlockingGraphRoadModel.class);
     }
 
     @Override
     public BlockingGraphRoadModel build(DependencyProvider dependencyProvider) {
-      return new BlockingGraphRoadModel(graph, distanceUnit, speedUnit);
+      return new BlockingGraphRoadModel(getGraph(), this);
+    }
+
+    @Override
+    protected Builder self() {
+      return this;
     }
   }
 }

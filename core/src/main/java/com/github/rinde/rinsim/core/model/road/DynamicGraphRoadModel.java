@@ -21,12 +21,7 @@ import static com.google.common.base.Verify.verify;
 
 import java.util.Queue;
 
-import javax.measure.quantity.Length;
-import javax.measure.quantity.Velocity;
-import javax.measure.unit.NonSI;
-import javax.measure.unit.SI;
-import javax.measure.unit.Unit;
-
+import com.github.rinde.rinsim.core.model.DependencyProvider;
 import com.github.rinde.rinsim.core.model.time.TimeLapse;
 import com.github.rinde.rinsim.event.Event;
 import com.github.rinde.rinsim.event.Listener;
@@ -37,6 +32,8 @@ import com.github.rinde.rinsim.geom.ListenableGraph;
 import com.github.rinde.rinsim.geom.ListenableGraph.EventTypes;
 import com.github.rinde.rinsim.geom.ListenableGraph.GraphEvent;
 import com.github.rinde.rinsim.geom.Point;
+import com.google.common.base.Supplier;
+import com.google.common.base.Suppliers;
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Multimap;
 
@@ -53,40 +50,25 @@ import com.google.common.collect.Multimap;
  * </ul>
  * An {@link IllegalStateException} will be thrown upon detection of an invalid
  * modification. It is up to the user to prevent this from happening. The method
- * {@link #hasRoadUserOn(Point, Point)} can be of help for this.
+ * {@link #hasRoadUserOn(Point, Point)} can be of help for this. Instances can
+ * be obtained via {@link #builderDynamic(ListenableGraph)}.
  * @author Rinde van Lon
  */
 public class DynamicGraphRoadModel extends GraphRoadModel {
-  private final ListenableGraph<? extends ConnectionData> listenableGraph;
   final Multimap<Connection<?>, RoadUser> connMap;
   final Multimap<Point, RoadUser> posMap;
 
   /**
-   * Creates a new instance using the specified {@link ListenableGraph} as road
-   * structure.
-   * @param pGraph The graph which will be used as road structure.
-   * @param distanceUnit The distance unit used in the graph.
-   * @param speedUnit The speed unit for {@link MovingRoadUser}s in this model.
+   * Creates a new instance.
+   * @param g The graph to use.
+   * @param b The builder that contains the properties to initialize this model.
    */
-  public DynamicGraphRoadModel(
-      ListenableGraph<? extends ConnectionData> pGraph,
-      Unit<Length> distanceUnit, Unit<Velocity> speedUnit) {
-    super(pGraph, distanceUnit, speedUnit);
-    listenableGraph = pGraph;
-    listenableGraph.getEventAPI().addListener(
-        new GraphModificationChecker(this));
+  protected DynamicGraphRoadModel(ListenableGraph<?> g, AbstractBuilder<?, ?> b) {
+    super(g, b);
+    getGraph().getEventAPI().addListener(
+      new GraphModificationChecker(this));
     connMap = LinkedHashMultimap.create();
     posMap = LinkedHashMultimap.create();
-  }
-
-  /**
-   * Creates a new instance using the specified {@link ListenableGraph} as road
-   * structure. The default units are used as defined by
-   * {@link AbstractRoadModel}.
-   * @param pGraph The graph which will be used as road structure.
-   */
-  public DynamicGraphRoadModel(ListenableGraph<? extends ConnectionData> pGraph) {
-    this(pGraph, SI.KILOMETER, NonSI.KILOMETERS_PER_HOUR);
   }
 
   @Override
@@ -118,13 +100,13 @@ public class DynamicGraphRoadModel extends GraphRoadModel {
    * @return A reference to the graph.
    */
   @Override
-  public Graph<? extends ConnectionData> getGraph() {
-    return listenableGraph;
+  public ListenableGraph<? extends ConnectionData> getGraph() {
+    return (ListenableGraph<? extends ConnectionData>) graph;
   }
 
   @Override
   protected MoveProgress doFollowPath(MovingRoadUser object, Queue<Point> path,
-      TimeLapse time) {
+    TimeLapse time) {
     final Loc prevLoc = objLocs.get(object);
     if (prevLoc.isOnConnection()) {
       connMap.remove(prevLoc.conn.get(), object);
@@ -161,15 +143,15 @@ public class DynamicGraphRoadModel extends GraphRoadModel {
    */
   public boolean hasRoadUserOn(Point from, Point to) {
     checkArgument(graph.hasConnection(from, to),
-        "There is no connection between %s and %s.", from, to);
+      "There is no connection between %s and %s.", from, to);
     return connMap.containsKey(graph.getConnection(from, to))
-        || posMap.containsKey(from) || posMap.containsKey(to);
+      || posMap.containsKey(from) || posMap.containsKey(to);
   }
 
   @Override
   public void removeObject(RoadUser object) {
     checkArgument(objLocs.containsKey(object),
-        "RoadUser: %s does not exist.", object);
+      "RoadUser: %s does not exist.", object);
     final Loc prevLoc = objLocs.get(object);
     if (prevLoc.isOnConnection()) {
       final Connection<? extends ConnectionData> conn = prevLoc.conn.get();
@@ -178,6 +160,76 @@ public class DynamicGraphRoadModel extends GraphRoadModel {
       posMap.remove(prevLoc, object);
     }
     super.removeObject(object);
+  }
+
+  /**
+   * Create a {@link Builder} for constructing {@link DynamicGraphRoadModel}
+   * instances.
+   * @param g A {@link ListenableGraph}.
+   * @return A new {@link Builder} instance.
+   */
+  public static Builder builderDynamic(ListenableGraph<?> g) {
+    return new Builder(Suppliers.ofInstance(g));
+  }
+
+  /**
+   * Create a {@link Builder} for constructing {@link DynamicGraphRoadModel}
+   * instances.
+   * @param g A supplier of {@link ListenableGraph}.
+   * @return A new {@link Builder} instance.
+   */
+  public static Builder builderDynamic(Supplier<? extends ListenableGraph<?>> g) {
+    return new Builder(g);
+  }
+
+  /**
+   * A builder for constructing {@link DynamicGraphRoadModel} instances. Use
+   * {@link DynamicGraphRoadModel#builderDynamic(ListenableGraph)} for obtaining
+   * builder instances.
+   * @author Rinde van Lon
+   */
+  public static class Builder extends
+    AbstractBuilder<DynamicGraphRoadModel, Builder> {
+
+    Builder(Supplier<? extends ListenableGraph<?>> g) {
+      super(g);
+    }
+
+    @Override
+    public DynamicGraphRoadModel build(DependencyProvider dependencyProvider) {
+      return new DynamicGraphRoadModel(getGraph(), this);
+    }
+
+    @Override
+    protected Builder self() {
+      return this;
+    }
+  }
+
+  /**
+   * Abstract builder for constructing subclasses of
+   * {@link DynamicGraphRoadModel}.
+   * @param <T> The type of the model that the builder is constructing.
+   * @param <S> The builder type itself, necessary to make a inheritance-based
+   *          builder.
+   * @author Rinde van Lon
+   */
+  public static abstract class AbstractBuilder<T extends DynamicGraphRoadModel, S>
+    extends GraphRoadModel.AbstractBuilder<T, S> {
+
+    /**
+     * Create a new instance.
+     * @param supplier Supplier of the graph that will be used as road
+     *          structure.
+     */
+    protected AbstractBuilder(Supplier<? extends ListenableGraph<?>> supplier) {
+      super(supplier);
+    }
+
+    @Override
+    public ListenableGraph<?> getGraph() {
+      return (ListenableGraph<?>) super.getGraph();
+    }
   }
 
   private static class GraphModificationChecker implements Listener {
@@ -192,25 +244,25 @@ public class DynamicGraphRoadModel extends GraphRoadModel {
       verify(e instanceof GraphEvent);
       final GraphEvent ge = (GraphEvent) e;
       if (ge.getEventType() == EventTypes.REMOVE_CONNECTION
-          || ge.getEventType() == EventTypes.CHANGE_CONNECTION_DATA) {
+        || ge.getEventType() == EventTypes.CHANGE_CONNECTION_DATA) {
 
         final Connection<?> conn = ge.getConnection();
         checkState(
-            !model.connMap.containsKey(conn),
-            "A connection (%s->%s) with an object (%s) on it can not be changed or removed: %s.",
-            conn.from(), conn.to(), model.connMap.get(conn), ge.getEventType());
+          !model.connMap.containsKey(conn),
+          "A connection (%s->%s) with an object (%s) on it can not be changed or removed: %s.",
+          conn.from(), conn.to(), model.connMap.get(conn), ge.getEventType());
 
         if (model.posMap.containsKey(conn.from())) {
           checkState(
-              ge.getGraph().containsNode(conn.from()),
-              "There is an object on (%s) therefore the last connection to that location (%s->%s) can not be changed or removed: %s.",
-              conn.from(), conn.from(), conn.to(), ge.getEventType());
+            ge.getGraph().containsNode(conn.from()),
+            "There is an object on (%s) therefore the last connection to that location (%s->%s) can not be changed or removed: %s.",
+            conn.from(), conn.from(), conn.to(), ge.getEventType());
         }
         if (model.posMap.containsKey(conn.to())) {
           checkState(
-              ge.getGraph().containsNode(conn.to()),
-              "There is an object on (%s) therefore the last connection to that location (%s->%s) can not be changed or removed: %s.",
-              conn.to(), conn.from(), conn.to(), ge.getEventType());
+            ge.getGraph().containsNode(conn.to()),
+            "There is an object on (%s) therefore the last connection to that location (%s->%s) can not be changed or removed: %s.",
+            conn.to(), conn.from(), conn.to(), ge.getEventType());
         }
       }
       // remove all previously computed shortest paths because they may have

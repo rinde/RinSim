@@ -59,15 +59,15 @@ public class ForwardingRoadModelTest extends
       } }, { new Creator() {
         @Override
         public GenericRoadModel create(ForwardingRoadModelTest testClass) {
-          return new ForwardingRoadModel(new GraphRoadModel(testClass
-            .createGraph(), SI.METER, SI.METERS_PER_SECOND));
+          return new ForwardingRoadModel(GraphRoadModel.builder(testClass
+            .createGraph()).build(mock(DependencyProvider.class)));
         }
       } }, { new Creator() {
         @Override
         public GenericRoadModel create(ForwardingRoadModelTest testClass) {
           return new ForwardingRoadModel(new ForwardingRoadModel(
-            new ForwardingRoadModel(new GraphRoadModel(testClass
-              .createGraph(), SI.METER, SI.METERS_PER_SECOND))));
+            new ForwardingRoadModel(GraphRoadModel.builder(testClass
+              .createGraph()).build(mock(DependencyProvider.class)))));
         }
       } } });
   }
@@ -91,7 +91,7 @@ public class ForwardingRoadModelTest extends
   }
 
   @Override
-  public void setUp() throws Exception {
+  public void doSetUp() throws Exception {
     model = creator.create(this);
   }
 }

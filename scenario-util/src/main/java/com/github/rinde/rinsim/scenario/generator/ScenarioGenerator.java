@@ -83,7 +83,7 @@ public final class ScenarioGenerator {
         foundRoadModel = true;
         final PlaneRoadModel.Builder planeBuilder;
         if (mb instanceof ForwardingRoadModel.Builder) {
-          ModelBuilder<?, ?> delegate = ((ForwardingRoadModel.Builder<?, ?>) mb)
+          ModelBuilder<?, ?> delegate = ((ForwardingRoadModel.Builder<?>) mb)
             .getDelegateModelBuilder();
 
           checkArgument(delegate instanceof PlaneRoadModel.Builder);

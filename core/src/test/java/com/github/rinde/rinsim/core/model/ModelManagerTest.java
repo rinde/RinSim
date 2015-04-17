@@ -21,19 +21,17 @@ import static com.google.common.truth.Truth.assertThat;
 import static java.util.Arrays.asList;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.mock;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
 import javax.annotation.Nullable;
-import javax.measure.unit.SI;
 
 import org.junit.Before;
 import org.junit.Test;
 
-import com.github.rinde.rinsim.core.model.Model;
-import com.github.rinde.rinsim.core.model.ModelManager;
 import com.github.rinde.rinsim.core.model.Model.AbstractModel;
 import com.github.rinde.rinsim.core.model.road.GraphRoadModel;
 import com.github.rinde.rinsim.core.model.road.RoadModel;
@@ -136,8 +134,8 @@ public class ModelManagerTest {
    */
   @Test(expected = IllegalArgumentException.class)
   public void canNotRegisterModel() {
-    emptyManager.register(new GraphRoadModel(new MultimapGraph<LengthData>(),
-      SI.METER, SI.METERS_PER_SECOND));
+    emptyManager.register(GraphRoadModel.builder(
+      new MultimapGraph<LengthData>()).build(mock(DependencyProvider.class)));
   }
 
   /**
@@ -146,8 +144,8 @@ public class ModelManagerTest {
   @Test(expected = RuntimeException.class)
   public void registerWithBrokenModel() {
     final ModelManager mm = new ModelManager(ImmutableSet.of(
-      new GraphRoadModel(new MultimapGraph<LengthData>(), SI.METER,
-        SI.METERS_PER_SECOND),
+      GraphRoadModel.builder(
+        new MultimapGraph<LengthData>()).build(mock(DependencyProvider.class)),
       new BrokenRoadModel(new MultimapGraph<LengthData>())));
 
     mm.register(new RoadUser() {
@@ -170,8 +168,8 @@ public class ModelManagerTest {
    */
   @Test(expected = IllegalArgumentException.class)
   public void unregisterFailModel() {
-    emptyManager.unregister(new GraphRoadModel(new MultimapGraph<LengthData>(),
-      SI.METER, SI.METERS_PER_SECOND));
+    emptyManager.unregister(GraphRoadModel.builder(
+      new MultimapGraph<LengthData>()).build(mock(DependencyProvider.class)));
   }
 
   /**
@@ -179,11 +177,14 @@ public class ModelManagerTest {
    */
   @Test
   public void unregisterFailNotRegisteredObject() {
-    final ModelManager mm = new ModelManager(ImmutableSet.of(
-      new GraphRoadModel(new MultimapGraph<LengthData>(), SI.METER,
-        SI.METERS_PER_SECOND),
-      new GraphRoadModel(new MultimapGraph<LengthData>(), SI.METER,
-        SI.METERS_PER_SECOND)));
+    final ModelManager mm = new ModelManager(
+      ImmutableSet.of(
+        GraphRoadModel.builder(new MultimapGraph<LengthData>())
+          .build(mock(DependencyProvider.class)),
+        GraphRoadModel.builder(new MultimapGraph<LengthData>())
+          .build(mock(DependencyProvider.class))
+        )
+      );
 
     boolean fail = false;
     try {
@@ -203,8 +204,8 @@ public class ModelManagerTest {
   @Test
   public void unregisterWithBrokenModel() {
     final ModelManager mm = new ModelManager(
-      ImmutableSet.of(new GraphRoadModel(new MultimapGraph<LengthData>(),
-        SI.METER, SI.METERS_PER_SECOND),
+      ImmutableSet.of(GraphRoadModel.builder(
+        new MultimapGraph<LengthData>()).build(mock(DependencyProvider.class)),
         new BrokenRoadModel(new MultimapGraph<LengthData>()))
       );
 
@@ -422,7 +423,7 @@ public class ModelManagerTest {
 
 class BrokenRoadModel extends GraphRoadModel {
   public BrokenRoadModel(Graph<? extends ConnectionData> pGraph) {
-    super(pGraph, SI.METER, SI.METERS_PER_SECOND);
+    super(pGraph, GraphRoadModel.builder(pGraph));
   }
 
   @Override

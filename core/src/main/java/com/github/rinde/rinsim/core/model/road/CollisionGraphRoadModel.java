@@ -17,17 +17,19 @@ package com.github.rinde.rinsim.core.model.road;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Verify.verify;
+import static java.util.Objects.hash;
 
 import java.util.Collection;
+import java.util.Objects;
 import java.util.Queue;
 
+import javax.annotation.Nullable;
 import javax.measure.quantity.Duration;
 import javax.measure.quantity.Length;
-import javax.measure.quantity.Velocity;
-import javax.measure.unit.NonSI;
 import javax.measure.unit.SI;
 import javax.measure.unit.Unit;
 
+import com.github.rinde.rinsim.core.model.DependencyProvider;
 import com.github.rinde.rinsim.core.model.time.TimeLapse;
 import com.github.rinde.rinsim.event.Event;
 import com.github.rinde.rinsim.event.Listener;
@@ -36,7 +38,7 @@ import com.github.rinde.rinsim.geom.ListenableGraph;
 import com.github.rinde.rinsim.geom.ListenableGraph.GraphEvent;
 import com.github.rinde.rinsim.geom.Point;
 import com.github.rinde.rinsim.util.CategoryMap;
-import com.google.common.base.Supplier;
+import com.google.common.base.Suppliers;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Multimaps;
 import com.google.common.collect.SetMultimap;
@@ -47,7 +49,7 @@ import com.google.common.primitives.Doubles;
  * dead lock situation arises a {@link DeadlockException} is thrown, note that a
  * grid lock situation (spanning multiple connections) is not detected.
  * Instances can be obtained via a dedicated builder, see
- * {@link #builder(ListenableGraph)}.
+ * {@link #builderCollision(ListenableGraph)}.
  * <p>
  * The graph can be modified at runtime, for information about modifying the
  * graph see {@link DynamicGraphRoadModel}.
@@ -59,14 +61,15 @@ public class CollisionGraphRoadModel extends DynamicGraphRoadModel {
   private final double minDistance;
   private final SetMultimap<RoadUser, Point> occupiedNodes;
 
-  CollisionGraphRoadModel(Builder builder, double pMinConnLength) {
-    super(builder.graph, builder.distanceUnit, builder.speedUnit);
+  CollisionGraphRoadModel(ListenableGraph<?> g, double pMinConnLength,
+    Builder builder) {
+    super(g, builder);
     vehicleLength = unitConversion.toInDist(builder.vehicleLength);
     minDistance = unitConversion.toInDist(builder.minDistance);
     minConnLength = unitConversion.toInDist(pMinConnLength);
     occupiedNodes = Multimaps.synchronizedSetMultimap(CategoryMap
       .<RoadUser, Point> create());
-    builder.graph.getEventAPI().addListener(
+    getGraph().getEventAPI().addListener(
       new ModificationChecker(minConnLength),
       ListenableGraph.EventTypes.ADD_CONNECTION,
       ListenableGraph.EventTypes.CHANGE_CONNECTION_DATA);
@@ -219,7 +222,7 @@ public class CollisionGraphRoadModel extends DynamicGraphRoadModel {
    * @param graph A {@link ListenableGraph}.
    * @return A new {@link Builder} instance.
    */
-  public static Builder builder(ListenableGraph<?> graph) {
+  public static Builder builderCollision(ListenableGraph<?> graph) {
     return new Builder(graph);
   }
 
@@ -236,21 +239,12 @@ public class CollisionGraphRoadModel extends DynamicGraphRoadModel {
 
   /**
    * A builder for constructing {@link CollisionGraphRoadModel} instances. Use
-   * {@link CollisionGraphRoadModel#builder(ListenableGraph)} for obtaining
-   * builder instances.
+   * {@link CollisionGraphRoadModel#builderCollision(ListenableGraph)} for
+   * obtaining builder instances.
    * @author Rinde van Lon
    */
-  public static final class Builder implements
-    Supplier<CollisionGraphRoadModel> {
-    /**
-     * The default distance unit: {@link SI#METER}.
-     */
-    public static final Unit<Length> DEFAULT_DISTANCE_UNIT = SI.METER;
-
-    /**
-     * The default speed unit: {@link NonSI#KILOMETERS_PER_HOUR}.
-     */
-    public static final Unit<Velocity> DEFAULT_SPEED_UNIT = NonSI.KILOMETERS_PER_HOUR;
+  public static final class Builder extends
+    DynamicGraphRoadModel.AbstractBuilder<CollisionGraphRoadModel, Builder> {
 
     /**
      * The default vehicle length: <code>2</code>.
@@ -262,41 +256,27 @@ public class CollisionGraphRoadModel extends DynamicGraphRoadModel {
      */
     public static final double DEFAULT_MIN_DISTANCE = .25;
 
-    final ListenableGraph<?> graph;
-    Unit<Length> distanceUnit;
-    Unit<Velocity> speedUnit;
     double vehicleLength;
     double minDistance;
 
     Builder(ListenableGraph<?> g) {
-      graph = g;
-      distanceUnit = DEFAULT_DISTANCE_UNIT;
-      speedUnit = DEFAULT_SPEED_UNIT;
+      super(Suppliers.ofInstance(g));
       vehicleLength = DEFAULT_VEHICLE_LENGTH;
       minDistance = DEFAULT_MIN_DISTANCE;
+      setDistanceUnit(SI.METER);
     }
 
     /**
-     * Sets the distance unit used to interpret all coordinates and distances,
-     * including those of the supplied {@link ListenableGraph}. The default
-     * value is {@link #DEFAULT_DISTANCE_UNIT}.
-     * @param unit The unit to set.
+     * Sets the distance unit to for all dimensions. The default is
+     * {@link SI#METER}.
+     * @param unit The distance unit to set.
      * @return This, as per the builder pattern.
      */
+    // this method is overridden just to override the JavaDoc comment such that
+    // it displays the correct default unit
+    @Override
     public Builder setDistanceUnit(Unit<Length> unit) {
-      distanceUnit = unit;
-      return this;
-    }
-
-    /**
-     * Sets the speed unit used to interpret the speeds of all vehicles. The
-     * default value is {@link #DEFAULT_SPEED_UNIT}.
-     * @param unit The unit to set.
-     * @return This, as per the builder pattern.
-     */
-    public Builder setSpeedUnit(Unit<Velocity> unit) {
-      speedUnit = unit;
-      return this;
+      return super.setDistanceUnit(unit);
     }
 
     /**
@@ -331,24 +311,41 @@ public class CollisionGraphRoadModel extends DynamicGraphRoadModel {
       return this;
     }
 
-    /**
-     * @return A new {@link CollisionGraphRoadModel} instance.
-     */
-    public CollisionGraphRoadModel build() {
+    @Override
+    public CollisionGraphRoadModel build(DependencyProvider dependencyProvider) {
       final double minConnectionLength = vehicleLength;
       checkArgument(
         minDistance <= minConnectionLength,
         "Min distance must be smaller than 2 * vehicle length (%s), but is %s.",
         vehicleLength, minDistance);
+      final ListenableGraph<?> graph = getGraph();
+
       for (final Connection<?> conn : graph.getConnections()) {
         checkConnectionLength(minConnectionLength, conn);
       }
-      return new CollisionGraphRoadModel(this, minConnectionLength);
+      return new CollisionGraphRoadModel(graph, minConnectionLength, this);
     }
 
     @Override
-    public CollisionGraphRoadModel get() {
-      return build();
+    public boolean equals(@Nullable Object other) {
+      if (other == null || other.getClass() != getClass()) {
+        return false;
+      }
+      final Builder o = (Builder) other;
+      return Objects.equals(minDistance, o.minDistance)
+        && Objects.equals(vehicleLength, o.vehicleLength)
+        && super.equals(other);
+    }
+
+    @Override
+    public int hashCode() {
+      return hash(minDistance, vehicleLength, getGraph(), getDistanceUnit(),
+        getSpeedUnit());
+    }
+
+    @Override
+    protected Builder self() {
+      return this;
     }
   }
 

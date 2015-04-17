@@ -19,6 +19,7 @@ import static com.github.rinde.rinsim.geom.Graphs.pathLength;
 import static java.util.Arrays.asList;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.mock;
 
 import java.math.RoundingMode;
 import java.util.Arrays;
@@ -27,7 +28,6 @@ import java.util.LinkedList;
 import java.util.List;
 
 import javax.measure.unit.NonSI;
-import javax.measure.unit.SI;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -35,6 +35,7 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 
+import com.github.rinde.rinsim.core.model.DependencyProvider;
 import com.github.rinde.rinsim.core.model.time.TimeLapseFactory;
 import com.github.rinde.rinsim.geom.Graph;
 import com.github.rinde.rinsim.geom.Graphs;
@@ -78,7 +79,7 @@ public class PathFinderTest {
   @Before
   public void setUp() throws InstantiationException, IllegalAccessException {
     graph = rmType.newInstance();
-    rm = new GraphRoadModel(graph, SI.KILOMETER, NonSI.KILOMETERS_PER_HOUR);
+    rm = GraphRoadModel.builder(graph).build(mock(DependencyProvider.class));
 
     a = new Point(0, 0);
     b = new Point(10, 0);
@@ -180,10 +181,10 @@ public class PathFinderTest {
 
   @Test(expected = RuntimeException.class)
   public void impossiblePath() throws InstantiationException,
-      IllegalAccessException {
+    IllegalAccessException {
     final Graph<?> gg = rmType.newInstance();
-    final GraphRoadModel roads = new GraphRoadModel(gg, SI.KILOMETER,
-        NonSI.KILOMETERS_PER_HOUR);
+    final GraphRoadModel roads = GraphRoadModel.builder(gg).build(
+      mock(DependencyProvider.class));
     gg.addConnection(a, b);
     gg.addConnection(b, c);
 
@@ -197,16 +198,16 @@ public class PathFinderTest {
     // speed of trivial truck is 1 len per hour thus we need to travel 'len'
     // hours
     final MoveProgress progress = rm.followPath(
-        truck,
-        new LinkedList<Point>(t),
-        TimeLapseFactory.create(NonSI.HOUR, 0,
-            DoubleMath.roundToLong(len, RoundingMode.CEILING)));
+      truck,
+      new LinkedList<Point>(t),
+      TimeLapseFactory.create(NonSI.HOUR, 0,
+        DoubleMath.roundToLong(len, RoundingMode.CEILING)));
     assertEquals(len, progress.distance().getValue(), EPSILON);
   }
 
   @Test
   public void checkRutgerBug() throws InstantiationException,
-      IllegalAccessException {
+    IllegalAccessException {
     final Graph<?> g = rmType.newInstance();
     final Point q = new Point(0, 10);
     final Point r = new Point(10, 15);
@@ -231,36 +232,36 @@ public class PathFinderTest {
     assertEquals(o2, RoadModels.findClosestObject(new Point(5.000001, 5), rm));
 
     assertEquals(o6,
-        RoadModels.findClosestObject(new Point(5, 5), rm, LongRoadUser.class));
+      RoadModels.findClosestObject(new Point(5, 5), rm, LongRoadUser.class));
 
     assertEquals(null, RoadModels.findClosestObject(new Point(5, 5), rm,
-        new Predicate<RoadUser>() {
-          @Override
-          public boolean apply(RoadUser input) {
-            return false;
-          }
-        }));
+      new Predicate<RoadUser>() {
+        @Override
+        public boolean apply(RoadUser input) {
+          return false;
+        }
+      }));
   }
 
   @Test
   public void findClosestObjectsTest() {
     assertEquals(Arrays.asList(o1, o2, o3, o6, o5, o4),
-        RoadModels.findClosestObjects(new Point(5, 5), rm));
+      RoadModels.findClosestObjects(new Point(5, 5), rm));
     assertEquals(Arrays.asList(o1, o2, o3),
-        RoadModels.findClosestObjects(new Point(5, 5), rm, 3));
+      RoadModels.findClosestObjects(new Point(5, 5), rm, 3));
     assertEquals(Arrays.asList(o6, o5, o4), RoadModels.findClosestObjects(
-        new Point(5, 5), rm, LongRoadUser.class, 300));
+      new Point(5, 5), rm, LongRoadUser.class, 300));
     assertEquals(Arrays.asList(), RoadModels.findClosestObjects(
-        new Point(5, 5), rm, EmptyRoadUser.class, 1));
+      new Point(5, 5), rm, EmptyRoadUser.class, 1));
 
     assertEquals(Arrays.asList(o3, o6, o4, o5), RoadModels.findClosestObjects(
-        new Point(8, 8), rm, new Predicate<RoadUser>() {
-          @Override
-          public boolean apply(RoadUser input) {
-            return input instanceof LongRoadUser
-                || rm.getPosition(input).equals(new Point(15, 15));
-          }
-        }, 99));
+      new Point(8, 8), rm, new Predicate<RoadUser>() {
+        @Override
+        public boolean apply(RoadUser input) {
+          return input instanceof LongRoadUser
+            || rm.getPosition(input).equals(new Point(15, 15));
+        }
+      }, 99));
   }
 
   /**
@@ -275,25 +276,25 @@ public class PathFinderTest {
   public void findObjectsWithinRadiusTest() {
     final Point ref = new Point(10, 10);
     assertArrayEquals(asList(o1, o2, o3, o4, o6).toArray(), RoadModels
-        .findObjectsWithinRadius(ref, rm, 15).toArray());
+      .findObjectsWithinRadius(ref, rm, 15).toArray());
     assertArrayEquals(asList(o3).toArray(),
-        RoadModels.findObjectsWithinRadius(ref, rm, 10).toArray());
+      RoadModels.findObjectsWithinRadius(ref, rm, 10).toArray());
     assertArrayEquals(asList(o2, o3).toArray(), RoadModels
-        .findObjectsWithinRadius(ref, rm, 10.000000001).toArray());
+      .findObjectsWithinRadius(ref, rm, 10.000000001).toArray());
     assertArrayEquals(asList().toArray(),
-        RoadModels.findObjectsWithinRadius(ref, rm, 5).toArray());
+      RoadModels.findObjectsWithinRadius(ref, rm, 5).toArray());
 
     assertArrayEquals(asList(o1, o2, o3).toArray(), RoadModels
-        .findObjectsWithinRadius(ref, rm, 15, StringRoadUser.class).toArray());
+      .findObjectsWithinRadius(ref, rm, 15, StringRoadUser.class).toArray());
     assertArrayEquals(asList(o3).toArray(),
-        RoadModels.findObjectsWithinRadius(ref, rm, 10, StringRoadUser.class)
-            .toArray());
+      RoadModels.findObjectsWithinRadius(ref, rm, 10, StringRoadUser.class)
+        .toArray());
     assertArrayEquals(allObjects.toArray(),
-        RoadModels.findObjectsWithinRadius(ref, rm, 30, RoadUser.class)
-            .toArray());
+      RoadModels.findObjectsWithinRadius(ref, rm, 30, RoadUser.class)
+        .toArray());
     assertArrayEquals(asList().toArray(),
-        RoadModels.findObjectsWithinRadius(ref, rm, 30, EmptyRoadUser.class)
-            .toArray());
+      RoadModels.findObjectsWithinRadius(ref, rm, 30, EmptyRoadUser.class)
+        .toArray());
 
   }
 

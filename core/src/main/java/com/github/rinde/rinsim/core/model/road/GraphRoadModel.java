@@ -30,16 +30,11 @@ import java.util.Queue;
 
 import javax.annotation.Nullable;
 import javax.measure.quantity.Duration;
-import javax.measure.quantity.Length;
-import javax.measure.quantity.Velocity;
-import javax.measure.unit.NonSI;
-import javax.measure.unit.SI;
 import javax.measure.unit.Unit;
 
 import org.apache.commons.math3.random.RandomGenerator;
 
 import com.github.rinde.rinsim.core.model.DependencyProvider;
-import com.github.rinde.rinsim.core.model.ModelBuilder.AbstractModelBuilder;
 import com.github.rinde.rinsim.core.model.road.GraphRoadModel.Loc;
 import com.github.rinde.rinsim.core.model.time.TimeLapse;
 import com.github.rinde.rinsim.geom.Connection;
@@ -48,6 +43,8 @@ import com.github.rinde.rinsim.geom.Graph;
 import com.github.rinde.rinsim.geom.MultiAttributeData;
 import com.github.rinde.rinsim.geom.Point;
 import com.google.common.base.Optional;
+import com.google.common.base.Supplier;
+import com.google.common.base.Suppliers;
 import com.google.common.base.VerifyException;
 import com.google.common.collect.ImmutableList;
 import com.google.common.math.DoubleMath;
@@ -77,24 +74,14 @@ public class GraphRoadModel extends AbstractRoadModel<Loc> {
 
   /**
    * Creates a new instance using the specified {@link Graph} as road structure.
-   * @param pGraph The graph which will be used as road structure.
-   * @param distanceUnit The distance unit used in the graph.
-   * @param speedUnit The speed unit for {@link MovingRoadUser}s in this model.
-   */
-  public GraphRoadModel(Graph<? extends ConnectionData> pGraph,
-    Unit<Length> distanceUnit, Unit<Velocity> speedUnit) {
-    super(distanceUnit, speedUnit);
-    graph = pGraph;
-  }
-
-  /**
-   * Creates a new instance using the specified {@link Graph} as road structure.
    * The default units are used as defined by {@link AbstractRoadModel}.
-   * @param pGraph The graph which will be used as road structure.
+   * @param g The graph which will be used as road structure.
+   * @param b The builder that contains the properties.
    */
-  public GraphRoadModel(Graph<? extends ConnectionData> pGraph) {
-    super();
-    graph = pGraph;
+  protected GraphRoadModel(Graph<? extends ConnectionData> g,
+    AbstractBuilder<?, ?> b) {
+    super(b.getDistanceUnit(), b.getSpeedUnit());
+    graph = g;
   }
 
   @Override
@@ -480,69 +467,89 @@ public class GraphRoadModel extends AbstractRoadModel<Loc> {
     throw new UnsupportedOperationException("Not yet implemented.");
   }
 
-  public static Builder builder() {
-    return new Builder();
+  /**
+   * Construct a new {@link Builder} for creating a {@link GraphRoadModel}.
+   * @param graph The graph which will be used as road structure.
+   * @return A new {@link Builder}.
+   */
+  public static Builder builder(Graph<?> graph) {
+    return new Builder(Suppliers.ofInstance(graph));
   }
 
-  public static class Builder extends
-    AbstractModelBuilder<GraphRoadModel, RoadUser> {
+  /**
+   * Construct a new {@link Builder} for creating a {@link GraphRoadModel}.
+   * @param graphSupplier The supplier that creates a graph that will be used as
+   *          road structure.
+   * @return A new {@link Builder}.
+   */
+  public static Builder builder(Supplier<? extends Graph<?>> graphSupplier) {
+    return new Builder(graphSupplier);
+  }
 
-    protected Graph<?> graph;
-    protected Unit<Length> distanceUnit;
-    protected Unit<Velocity> speedUnit;
-
-    protected Builder() {
-      setProvidingTypes(RoadModel.class, GraphRoadModel.class);
-      distanceUnit = SI.KILOMETER;
-      speedUnit = NonSI.KILOMETERS_PER_HOUR;
-    }
-
-    /**
-     * @param g The graph which will be used as road structure.
-     * @return This, as per the builder pattern.
-     */
-    public Builder setGraph(Graph<?> g) {
-      graph = g;
-      return this;
-    }
-
-    /**
-     * @param du The distance unit used in the graph.
-     * @return This, as per the builder pattern.
-     */
-    public Builder setDistanceUnit(Unit<Length> du) {
-      distanceUnit = du;
-      return this;
-    }
-
-    /**
-     * @param su The speed unit for {@link MovingRoadUser}s in this model.
-     * @return This, as per the builder pattern.
-     */
-    public Builder setSpeedUnit(Unit<Velocity> su) {
-      speedUnit = su;
-      return this;
+  /**
+   * A builder for creating {@link GraphRoadModel} instances. Instances can be
+   * obtained via {@link GraphRoadModel#builder(Graph)}.
+   * @author Rinde van Lon
+   */
+  public static class Builder extends AbstractBuilder<GraphRoadModel, Builder> {
+    Builder(Supplier<? extends Graph<?>> g) {
+      super(g);
     }
 
     @Override
     public GraphRoadModel build(DependencyProvider dependencyProvider) {
-      return new GraphRoadModel(graph, distanceUnit, speedUnit);
+      return new GraphRoadModel(getGraph(), this);
+    }
+
+    @Override
+    protected Builder self() {
+      return this;
+    }
+  }
+
+  /**
+   * Abstract builder for constructing subclasses of {@link GraphRoadModel}.
+   * @param <T> The type of the model that the builder is constructing.
+   * @param <S> The builder type itself, necessary to make a inheritance-based
+   *          builder.
+   * @author Rinde van Lon
+   */
+  public static abstract class AbstractBuilder<T extends GraphRoadModel, S>
+    extends AbstractRoadModelBuilder<T, S> {
+
+    private final Supplier<Graph<?>> graphSupplier;
+
+    /**
+     * Create a new instance.
+     * @param g The graph which will be used as road structure.
+     */
+    @SuppressWarnings("unchecked")
+    protected AbstractBuilder(Supplier<? extends Graph<?>> g) {
+      graphSupplier = (Supplier<Graph<?>>) g;
+      setProvidingTypes(RoadModel.class, GraphRoadModel.class);
     }
 
     @Override
     public int hashCode() {
-      return hash(graph, distanceUnit, speedUnit);
+      return hash(graphSupplier, getDistanceUnit(), getSpeedUnit());
     }
 
     @Override
     public boolean equals(@Nullable Object other) {
-      if (!(other instanceof Builder)) {
+      if (other == null || other.getClass() != getClass()) {
         return false;
       }
-      final Builder o = (Builder) other;
-      return Objects.equals(graph, o.graph)
-        && Objects.equals(distanceUnit, o.distanceUnit)
-        && Objects.equals(speedUnit, o.speedUnit);
+      final AbstractBuilder<?, ?> o = (AbstractBuilder<?, ?>) other;
+      return Objects.equals(graphSupplier, o.graphSupplier)
+        && Objects.equals(getDistanceUnit(), o.getDistanceUnit())
+        && Objects.equals(getSpeedUnit(), o.getSpeedUnit());
+    }
+
+    /**
+     * @return the graph
+     */
+    public Graph<?> getGraph() {
+      return graphSupplier.get();
     }
   }
 

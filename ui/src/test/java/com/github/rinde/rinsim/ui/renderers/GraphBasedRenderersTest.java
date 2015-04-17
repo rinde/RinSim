@@ -53,7 +53,7 @@ public class GraphBasedRenderersTest {
       10), new Point(0, 10), new Point(0, 0));
 
     final Simulator sim = Simulator.builder()
-      .addModel(CollisionGraphRoadModel.builder(graph))
+      .addModel(CollisionGraphRoadModel.builderCollision(graph))
       .build();
 
     graph.addConnection(new Point(0, 0), new Point(20, 20));

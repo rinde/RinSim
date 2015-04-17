@@ -106,10 +106,10 @@ public abstract class AbstractRoadModelTest<T extends GenericRoadModel> {
     SE = new Point(10, 0);
     NE = new Point(10, 10);
     NW = new Point(0, 10);
-    setUp();
+    doSetUp();
   }
 
-  public abstract void setUp() throws Exception;
+  public abstract void doSetUp() throws Exception;
 
   public static Queue<Point> asPath(Point... points) {
     return new LinkedList<Point>(Arrays.asList(points));

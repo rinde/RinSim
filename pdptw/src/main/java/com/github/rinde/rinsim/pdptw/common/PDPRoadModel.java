@@ -80,12 +80,6 @@ public class PDPRoadModel extends ForwardingRoadModel implements ModelReceiver {
   final boolean allowDiversion;
   Optional<PDPModel> pdpModel;
 
-  /**
-   * Decorates the {@link AbstractRoadModel}.
-   * @param rm The road model that is being decorated by this model.
-   * @param diversion Should the model allow vehicle diversion or not. See
-   *          {@link PDPRoadModel} for more information about diversion.
-   */
   PDPRoadModel(AbstractRoadModel<?> rm, boolean diversion) {
     super(rm);
     allowDiversion = diversion;
@@ -312,27 +306,42 @@ public class PDPRoadModel extends ForwardingRoadModel implements ModelReceiver {
     return type.cast(self);
   }
 
+  /**
+   * Create a new {@link Builder} instance.
+   * @param delegate The {@link ModelBuilder} that constructs the
+   *          {@link RoadModel} that is going to be decorated.
+   * @return A new {@link Builder} that constructs {@link PDPRoadModel}
+   *         instances that decorate the <code>delegate</code>.
+   */
   public static Builder builder(
-    ModelBuilder<? extends RoadModel, ? extends RoadUser> rm) {
-    return new Builder(rm);
+    ModelBuilder<? extends RoadModel, ? extends RoadUser> delegate) {
+    return new Builder(delegate);
   }
 
-  public static class Builder extends
-    ForwardingRoadModel.Builder<PDPRoadModel, Builder> {
-
-    boolean allowVehicleDiversion;
+  /**
+   * Builder for constructing {@link PDPRoadModel} instances. Instances can be
+   * obtained via {@link PDPRoadModel#builder(ModelBuilder)}.
+   * @author Rinde van Lon
+   */
+  public static class Builder extends ForwardingRoadModel.Builder<PDPRoadModel> {
+    private boolean allowVehicleDiversion;
 
     Builder(ModelBuilder<? extends RoadModel, ? extends RoadUser> rm) {
       super(rm);
       setProvidingTypes(RoadModel.class, PDPRoadModel.class);
+      allowVehicleDiversion = false;
     }
 
     /**
-     * @param allowDiversion
+     * Should the model allow vehicle diversion or not. See {@link PDPRoadModel}
+     * for more information about diversion. Default: <code>false</code>.
+     * @param allowDiversion Allow (<code>true</code>) or disallow (
+     *          <code>false</code>) vehicle diversion.
+     * @return This, as per the builder pattern.
      */
     public Builder setAllowVehicleDiversion(boolean allowDiversion) {
       allowVehicleDiversion = allowDiversion;
-      return self();
+      return this;
     }
 
     @Override
@@ -341,11 +350,6 @@ public class PDPRoadModel extends ForwardingRoadModel implements ModelReceiver {
         .build(dependencyProvider);
 
       return new PDPRoadModel(rm, allowVehicleDiversion);
-    }
-
-    @Override
-    protected Builder self() {
-      return this;
     }
 
     @Override
