@@ -30,8 +30,14 @@ import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.ImmutableSet;
 
 /**
- * Model manager keeps track of all models used in the simulator. It is
- * responsible for adding a simulation object to the appropriate models
+ * Model manager is a utility class that manages {@link Model}s. It has two main
+ * responsibilities:
+ * <ul>
+ * <li>Resolving inter-model dependencies, this is done at construction time via
+ * {@link #builder()}.</li>
+ * <li>Registering and unregistering objects to models, via
+ * {@link #register(Object)} and {@link #unregister(Object)}.</li>
+ * </ul>
  *
  * @author Bartosz Michalik
  * @author Rinde van Lon
@@ -77,6 +83,12 @@ public final class ModelManager implements ModelProvider {
     return success;
   }
 
+  /**
+   * Registers the given object.
+   * @param object The object to register.
+   * @throws IllegalArgumentException if an instance of {@link Model} is
+   *           provided or if the model could not be registered to any model.
+   */
   public <T> void register(T object) {
     checkArgument(
       !(object instanceof Model<?>),
@@ -90,8 +102,15 @@ public final class ModelManager implements ModelProvider {
       object, object.getClass());
   }
 
+  /**
+   * Unregisters the given object.
+   * @param object The object to unregister.
+   * @throws IllegalArgumentException if an instance of {@link Model} is
+   *           provided or if the model could not be unregistered from any
+   *           model.
+   */
   @SuppressWarnings("unchecked")
-  public <T> boolean unregister(T object) {
+  public <T> void unregister(T object) {
     checkArgument(!(object instanceof Model), "can not unregister a model");
     boolean result = false;
     final Set<Class<?>> modelSupportedTypes = registry.keySet();
@@ -107,7 +126,6 @@ public final class ModelManager implements ModelProvider {
     }
     checkArgument(result, "Object %s with type %s can not be unregistered.",
       object, object.getClass());
-    return result;
   }
 
   @SuppressWarnings("unchecked")
@@ -136,6 +154,9 @@ public final class ModelManager implements ModelProvider {
     return registry.values();
   }
 
+  /**
+   * @return A new {@link Builder} instance.
+   */
   public static Builder builder() {
     return new Builder();
   }

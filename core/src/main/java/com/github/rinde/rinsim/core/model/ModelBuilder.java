@@ -112,7 +112,7 @@ public interface ModelBuilder<T extends Model<? extends U>, U> {
     }
 
     /**
-     *
+     * Sets the providing types, overwrites previous calls.
      * @param types The providing types of this builder, see
      *          {@link ModelBuilder} header comment for more info.
      */
@@ -120,10 +120,20 @@ public interface ModelBuilder<T extends Model<? extends U>, U> {
       provTypes = ImmutableSet.copyOf(types);
     }
 
+    /**
+     * Sets the dependencies, overwrites previous calls.
+     * @param types The dependencies of this builder, see {@link ModelBuilder}
+     *          header comment for more info.
+     */
     protected final void setDependencies(Class<?>... types) {
       deps = ImmutableSet.copyOf(types);
     }
 
+    /**
+     * Sets the dependencies, overwrites previous calls.
+     * @param types The dependencies of this builder, see {@link ModelBuilder}
+     *          header comment for more info.
+     */
     protected final void setDependencies(Iterable<? extends Class<?>> types) {
       deps = ImmutableSet.copyOf(types);
     }

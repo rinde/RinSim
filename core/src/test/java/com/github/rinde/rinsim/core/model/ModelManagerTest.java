@@ -273,7 +273,7 @@ public class ModelManagerTest {
     emptyManager.register(foo);
     emptyManager.register(bar);
 
-    assertTrue(emptyManager.unregister(foo));
+    emptyManager.unregister(foo);
 
     assertEquals(1, model.calledRegister);
     assertEquals(1, model2.calledRegister);
@@ -349,7 +349,7 @@ public class ModelManagerTest {
 
     // unregister not registered object
     final ObjectA a4 = new ObjectA();
-    assertTrue(mm.unregister(a4));
+    mm.unregister(a4);
     assertEquals(asList(a4), mA.getUnregisteredElements());
     assertEquals(asList(a4), mAA.getUnregisteredElements());
 
@@ -366,14 +366,14 @@ public class ModelManagerTest {
     assertEquals(asList(a4, a4), mA.getUnregisteredElements());
     assertEquals(asList(a4, a4), mAA.getUnregisteredElements());
 
-    assertTrue(mm.unregister(b1));
+    mm.unregister(b1);
     assertEquals(asList(b1), mB.getUnregisteredElements());
     assertEquals(asList(b1), mB2.getUnregisteredElements());
     assertEquals(asList(b1), mBB.getUnregisteredElements());
     assertEquals(asList(b1), mBBB.getUnregisteredElements());
     assertEquals(asList(), mSB.getUnregisteredElements());
 
-    assertTrue(mm.unregister(s1));
+    mm.unregister(s1);
     assertEquals(asList(b1, s1), mB.getUnregisteredElements());
     assertEquals(asList(b1, s1), mB2.getUnregisteredElements());
     assertEquals(asList(b1, s1), mBB.getUnregisteredElements());
