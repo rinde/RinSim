@@ -24,8 +24,6 @@ import java.util.Queue;
 
 import javax.annotation.Nullable;
 
-import org.apache.commons.lang3.builder.EqualsBuilder;
-
 import com.github.rinde.rinsim.core.model.DependencyProvider;
 import com.github.rinde.rinsim.core.model.ModelBuilder;
 import com.github.rinde.rinsim.core.model.ModelProvider;
@@ -44,7 +42,7 @@ import com.github.rinde.rinsim.core.pdptw.DefaultDepot;
 import com.github.rinde.rinsim.core.pdptw.DefaultParcel;
 import com.github.rinde.rinsim.core.pdptw.DefaultVehicle;
 import com.github.rinde.rinsim.geom.Point;
-import com.google.common.base.MoreObjects;
+import com.google.auto.value.AutoValue;
 import com.google.common.base.Objects;
 import com.google.common.base.Optional;
 import com.google.common.collect.LinkedHashMultimap;
@@ -174,66 +172,67 @@ public class PDPRoadModel extends ForwardingRoadModel implements ModelReceiver {
           "A vehicle can only move to the delivery location of a parcel if it "
             + "is carrying it.");
       }
-      newDestinationObject = new DestinationObject(type, pos, dp);
+      newDestinationObject = DestinationObject.create(type, pos, dp);
     } else {
-      newDestinationObject = new DestinationObject(DestType.DEPOT,
+      newDestinationObject = DestinationObject.create(DestType.DEPOT,
         getPosition(destinationRoadUser), destinationRoadUser);
     }
 
     boolean destChange = true;
     if (destinations.containsKey(object) && !allowDiversion) {
       final DestinationObject prev = destinations.get(object);
-      final boolean atDestination = getPosition(object).equals(prev.dest);
+      final boolean atDestination = getPosition(object).equals(prev.dest());
 
-      if (!atDestination && prev.type != DestType.DEPOT) {
+      if (!atDestination && prev.type() != DestType.DEPOT) {
         // when we haven't reached our destination and the destination
         // isn't the depot we are not allowed to change destination
         checkArgument(
-          prev.roadUser == destinationRoadUser
-            || isAlreadyServiced(prev.type, prev.roadUser),
+          prev.roadUser() == destinationRoadUser
+            || isAlreadyServiced(prev.type(), prev.roadUser()),
           "Diversion from the current destination is not allowed. "
             + "Prev: %s, new: %s.",
           prev, destinationRoadUser);
         destChange = false;
       } else
       // change destination
-      if (prev.type == DestType.PICKUP) {
+      if (prev.type() == DestType.PICKUP) {
         // when we are at the prev destination, and it was a pickup, we are
         // allowed to move if it has been picked up
         checkArgument(
-          pdpModel.get().getParcelState((DefaultParcel) prev.roadUser) != ParcelState.AVAILABLE,
+          pdpModel.get().getParcelState((DefaultParcel) prev.roadUser()) != ParcelState.AVAILABLE,
           "Can not move away before the parcel has been picked up: %s.",
-          prev.roadUser);
-      } else if (prev.type == DestType.DELIVERY) {
+          prev.roadUser());
+      } else if (prev.type() == DestType.DELIVERY) {
         // when we are at the prev destination and it was a delivery, we are
         // allowed to move to other objects only, and only if the parcel is
         // delivered
-        checkArgument(prev.roadUser != destinationRoadUser,
+        checkArgument(prev.roadUser() != destinationRoadUser,
           "Can not move to the same parcel since we are already there: %s.",
-          prev.roadUser);
+          prev.roadUser());
         checkArgument(
-          pdpModel.get().getParcelState((DefaultParcel) prev.roadUser) == ParcelState.DELIVERED,
+          pdpModel.get().getParcelState((DefaultParcel) prev.roadUser()) == ParcelState.DELIVERED,
           "The parcel needs to be delivered before moving away: %s.",
-          prev.roadUser);
+          prev.roadUser());
       } else {
         // it is a depot
         // the destination is only changed in case we are no longer going
         // towards the depot
-        destChange = newDestinationObject.type != DestType.DEPOT;
+        destChange = newDestinationObject.type() != DestType.DEPOT;
       }
     }
 
     destinations.put(object, newDestinationObject);
-    if (destChange && newDestinationObject.type != DestType.DEPOT) {
+    if (destChange && newDestinationObject.type() != DestType.DEPOT) {
       checkArgument(
         allowDiversion
           || !destinationHistory
             .containsEntry(object, newDestinationObject),
-        "It is not allowed to revisit this parcel, it should have been picked up and been delivered already: %s.",
-        newDestinationObject.roadUser);
+        "It is not allowed to revisit this parcel, it should have been picked "
+          + "up and been delivered already: %s.",
+        newDestinationObject.roadUser());
       destinationHistory.put(object, newDestinationObject);
     }
-    return delegate.moveTo(object, newDestinationObject.dest, time);
+    return delegate.moveTo(object, newDestinationObject.dest(), time);
   }
 
   /**
@@ -253,17 +252,17 @@ public class PDPRoadModel extends ForwardingRoadModel implements ModelReceiver {
   @Nullable
   public DefaultParcel getDestinationToParcel(MovingRoadUser obj) {
     if (destinations.containsKey(obj)
-      && destinations.get(obj).type != DestType.DEPOT) {
+      && destinations.get(obj).type() != DestType.DEPOT) {
       final ParcelState parcelState = pdpModel.get().getParcelState(
-        (Parcel) destinations.get(obj).roadUser);
+        (Parcel) destinations.get(obj).roadUser());
       // if it is a pickup destination it must still be available
-      if (destinations.get(obj).type == DestType.PICKUP
+      if (destinations.get(obj).type() == DestType.PICKUP
         && parcelState == ParcelState.AVAILABLE
         || parcelState == ParcelState.ANNOUNCED
         // if it is a delivery destination it must still be in cargo
-        || destinations.get(obj).type == DestType.DELIVERY
+        || destinations.get(obj).type() == DestType.DELIVERY
         && parcelState == ParcelState.IN_CARGO) {
-        return (DefaultParcel) destinations.get(obj).roadUser;
+        return (DefaultParcel) destinations.get(obj).roadUser();
       }
     }
     return null;
@@ -299,7 +298,8 @@ public class PDPRoadModel extends ForwardingRoadModel implements ModelReceiver {
 
   private MoveProgress unsupported() {
     throw new UnsupportedOperationException(
-      "This road model doesn't allow diversion and therefore only supports the moveTo(MovingRoadUser,RoadUser,TimeLapse) method.");
+      "This road model doesn't allow diversion and therefore only supports the "
+        + "moveTo(MovingRoadUser,RoadUser,TimeLapse) method.");
   }
 
   @Override
@@ -365,50 +365,23 @@ public class PDPRoadModel extends ForwardingRoadModel implements ModelReceiver {
     }
   }
 
-  private static final class DestinationObject {
-    final DestType type;
-    final Point dest;
-    final RoadUser roadUser;
-    private final int hashCode;
+  @AutoValue
+  static abstract class DestinationObject {
 
-    DestinationObject(DestType type, Point dest, RoadUser obj) {
-      this.type = type;
-      this.dest = dest;
-      roadUser = obj;
-      hashCode = Objects.hashCode(type, dest, obj);
+    DestinationObject() {}
+
+    static DestinationObject create(DestType type, Point dest, RoadUser obj) {
+      return new AutoValue_PDPRoadModel_DestinationObject(type, dest, obj);
     }
 
-    @Override
-    public int hashCode() {
-      return hashCode;
-    }
+    abstract DestType type();
 
-    @Override
-    public boolean equals(@Nullable Object obj) {
-      if (obj == null) {
-        return false;
-      }
-      if (obj == this) {
-        return true;
-      }
-      if (getClass() != obj.getClass()) {
-        return false;
-      }
-      final DestinationObject other = (DestinationObject) obj;
-      return new EqualsBuilder().append(type, other.type)
-        .append(dest, other.dest).append(roadUser, other.roadUser).isEquals();
-    }
+    abstract Point dest();
 
-    @Override
-    public String toString() {
-      return MoreObjects.toStringHelper(this).add("type", type)
-        .add("dest", dest)
-        .add("roadUser", roadUser).toString();
-    }
+    abstract RoadUser roadUser();
   }
 
   enum DestType {
     PICKUP, DELIVERY, DEPOT;
   }
-
 }
