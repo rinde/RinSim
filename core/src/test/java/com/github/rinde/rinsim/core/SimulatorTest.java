@@ -40,7 +40,6 @@ import com.github.rinde.rinsim.core.model.ModelBuilder.AbstractModelBuilder;
 import com.github.rinde.rinsim.core.model.rand.RandomProvider;
 import com.github.rinde.rinsim.core.model.time.TickListener;
 import com.github.rinde.rinsim.core.model.time.TimeLapse;
-import com.google.common.base.Suppliers;
 import com.google.common.collect.ImmutableClassToInstanceMap;
 import com.google.common.collect.ImmutableSet;
 
@@ -101,17 +100,16 @@ public class SimulatorTest {
    */
   @Test
   public void testRegister() {
-    final DummyModel m1 = new DummyModel();
-    final DummyModel m2 = new DummyModel();
-    final DummyModelAsTickListener m3 = new DummyModelAsTickListener();
     final Simulator sim = Simulator.builder()
-      .addModel(Suppliers.ofInstance(m1))
-      .addModel(Suppliers.ofInstance(m2))
-      .addModel(Suppliers.ofInstance(m3))
+      .addModel(DummyModel.builder())
+      .addModel(DummyModel.builder())
+      .addModel(DummyModelAsTickListener.builderAsTickListener())
       .build();
 
-    assertThat((Iterable<?>) sim.getModels()).containsAllOf(m1, m2, m3)
-      .inOrder();
+    assertThat(sim.getModels().asList().get(0)).isInstanceOf(DummyModel.class);
+    assertThat(sim.getModels().asList().get(1)).isInstanceOf(DummyModel.class);
+    assertThat(sim.getModels().asList().get(2)).isInstanceOf(
+      DummyModelAsTickListener.class);
 
     sim.register(new DummyObject());
 
@@ -524,7 +522,8 @@ public class SimulatorTest {
     }
   }
 
-  class DummyModelAsTickListener extends DummyModel implements TickListener {
+  static class DummyModelAsTickListener extends DummyModel implements
+    TickListener {
 
     @Override
     public void tick(TimeLapse tl) {}
@@ -532,6 +531,29 @@ public class SimulatorTest {
     @Override
     public void afterTick(TimeLapse tl) {}
 
+    static Builder builderAsTickListener() {
+      return new Builder();
+    }
+
+    static class Builder extends
+      AbstractModelBuilder<DummyModelAsTickListener, DummyObject> {
+
+      @Override
+      public DummyModelAsTickListener build(
+        DependencyProvider dependencyProvider) {
+        return new DummyModelAsTickListener();
+      }
+
+      @Override
+      public int hashCode() {
+        return System.identityHashCode(this);
+      }
+
+      @Override
+      public boolean equals(@Nullable Object other) {
+        return other != null && other.getClass() == getClass();
+      }
+    }
   }
 
   class LimitingTickListener implements TickListener {

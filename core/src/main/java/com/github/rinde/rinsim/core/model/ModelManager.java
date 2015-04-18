@@ -24,10 +24,8 @@ import java.util.Set;
 import javax.annotation.Nullable;
 
 import com.github.rinde.rinsim.core.model.Model.AbstractModel;
-import com.google.common.base.Supplier;
-import com.google.common.collect.ImmutableCollection;
-import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ImmutableSetMultimap;
 
 /**
  * Model manager is a utility class that manages {@link Model}s. It has two main
@@ -43,15 +41,18 @@ import com.google.common.collect.ImmutableSet;
  * @author Rinde van Lon
  */
 public final class ModelManager implements ModelProvider {
-  private final ImmutableMultimap<Class<?>, Model<?>> registry;
+  private final ImmutableSet<Model<?>> models;
+  private final ImmutableSetMultimap<Class<?>, Model<?>> registry;
 
   /**
    * Instantiate a new model manager.
-   * @param models
+   * @param ms
    */
-  ModelManager(ImmutableSet<? extends Model<?>> models) {
-    final ImmutableMultimap.Builder<Class<?>, Model<?>> builder =
-      ImmutableMultimap.builder();
+  @SuppressWarnings("unchecked")
+  ModelManager(ImmutableSet<? extends Model<?>> ms) {
+    models = (ImmutableSet<Model<?>>) ms;
+    final ImmutableSetMultimap.Builder<Class<?>, Model<?>> builder =
+      ImmutableSetMultimap.builder();
     builder.put(ModelReceiver.class, new ModelReceiverModel(this));
 
     for (final Model<?> m : models) {
@@ -150,8 +151,8 @@ public final class ModelManager implements ModelProvider {
   /**
    * @return The {@link Model}s that are registered.
    */
-  public ImmutableCollection<Model<?>> getModels() {
-    return registry.values();
+  public ImmutableSet<Model<?>> getModels() {
+    return models;
   }
 
   /**
@@ -161,33 +162,50 @@ public final class ModelManager implements ModelProvider {
     return new Builder();
   }
 
-  public static class Builder {
-    DependencyResolver resolver;
+  /**
+   * A builder for constructing {@link ModelManager} instances.
+   * @author Rinde van Lon
+   */
+  public static final class Builder {
+    private final DependencyResolver resolver;
 
     Builder() {
       resolver = new DependencyResolver();
     }
 
+    /**
+     * Adds the specified {@link ModelBuilder} to the manager. The
+     * {@link ModelBuilder} will be used to obtain a {@link Model} instance.
+     * @param builder The builder to add.
+     * @return This, as per the builder pattern.
+     */
     public Builder add(ModelBuilder<?, ?> builder) {
       resolver.add(builder);
       return this;
     }
 
-    public Builder add(Supplier<? extends Model<?>> supplier) {
-      return add(DependencyResolver.adaptObj(supplier));
-    }
-
+    /**
+     * Adds the specified {@link ModelBuilder} to the manager as a default
+     * provider. A default provider will only be used if there is no regular
+     * {@link ModelBuilder} (added via {@link #add(ModelBuilder)}) that provides
+     * the same types.
+     * @param provider The builder to add.
+     * @return This, as per the builder pattern.
+     */
     public Builder setDefaultProvider(ModelBuilder<?, ?> provider) {
       resolver.addDefault(provider);
       return this;
     }
 
+    /**
+     * @return A new {@link ModelManager} instance.
+     */
     public ModelManager build() {
       return new ModelManager(resolver.resolve());
     }
   }
 
-  static class ModelReceiverModel extends AbstractModel<ModelReceiver> {
+  static final class ModelReceiverModel extends AbstractModel<ModelReceiver> {
     private final ModelManager modelManager;
 
     ModelReceiverModel(ModelManager mm) {

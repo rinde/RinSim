@@ -42,8 +42,7 @@ import com.github.rinde.rinsim.core.model.time.ClockController;
 import com.github.rinde.rinsim.core.model.time.TickListener;
 import com.github.rinde.rinsim.core.model.time.TimeLapse;
 import com.github.rinde.rinsim.core.model.time.TimeModel;
-import com.google.common.base.Supplier;
-import com.google.common.collect.ImmutableCollection;
+import com.google.common.collect.ImmutableSet;
 
 /**
  * Simulator is the core class of a simulation. It is responsible for managing
@@ -122,7 +121,7 @@ public final class Simulator implements SimulatorAPI {
    * Returns all models registered in the simulator.
    * @return immutable list of models.
    */
-  public ImmutableCollection<Model<?>> getModels() {
+  public ImmutableSet<Model<?>> getModels() {
     return modelManager.getModels();
   }
 
@@ -292,18 +291,6 @@ public final class Simulator implements SimulatorAPI {
       checkArgument(length > 0,
         "Tick length must be strictly positive but is %s.", length);
       tickLength = length;
-      return this;
-    }
-
-    /**
-     * Adds the specified {@link Supplier} to the simulator. The
-     * {@link Supplier} will be used to obtain a {@link Model} instance that
-     * will be added to the simulator.
-     * @param supplier The supplier to add.
-     * @return This, as per the builder pattern.
-     */
-    public Builder addModel(Supplier<? extends Model<?>> supplier) {
-      mmBuilder.add(supplier);
       return this;
     }
 

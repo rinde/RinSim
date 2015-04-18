@@ -17,8 +17,12 @@ package com.github.rinde.rinsim.core;
 
 import java.util.HashSet;
 
+import javax.annotation.Nullable;
+
 import com.github.rinde.rinsim.core.SimulatorTest.DummyObject;
+import com.github.rinde.rinsim.core.model.DependencyProvider;
 import com.github.rinde.rinsim.core.model.Model.AbstractModel;
+import com.github.rinde.rinsim.core.model.ModelBuilder.AbstractModelBuilder;
 
 class DummyModel extends AbstractModel<DummyObject> {
 
@@ -41,5 +45,26 @@ class DummyModel extends AbstractModel<DummyObject> {
   @Override
   public String toString() {
     return "DummyModel" + Integer.toHexString(hashCode());
+  }
+
+  public static Builder builder() {
+    return new Builder();
+  }
+
+  static class Builder extends AbstractModelBuilder<DummyModel, DummyObject> {
+    @Override
+    public DummyModel build(DependencyProvider dependencyProvider) {
+      return new DummyModel();
+    }
+
+    @Override
+    public int hashCode() {
+      return System.identityHashCode(this);
+    }
+
+    @Override
+    public boolean equals(@Nullable Object other) {
+      return other != null && other.getClass() == getClass();
+    }
   }
 }

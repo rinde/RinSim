@@ -76,17 +76,7 @@ class DependencyResolver extends DependencyProvider {
     builders.add(dep);
   }
 
-  ImmutableSet<Model<?>> resolve() {
-    for (final ModelBuilder<?, ?> b : defaultModels) {
-      final ImmutableSet<Class<?>> providingTypes = b.getProvidingTypes();
-      if (providingTypes.isEmpty()
-        || !providerMap.keySet().containsAll(providingTypes)) {
-        checkArgument(Sets.intersection(providerMap.keySet(), providingTypes)
-          .isEmpty());
-        add(b);
-      }
-    }
-
+  Multimap<Dependency, Dependency> constructDependencyGraph() {
     final Multimap<Dependency, Dependency> dependencyGraph = LinkedHashMultimap
       .create();
     for (final Entry<Dependency, Class<?>> entry : dependencyMap
@@ -98,6 +88,26 @@ class DependencyResolver extends DependencyProvider {
         entry.getValue(), entry.getKey().modelBuilder);
       dependencyGraph.put(entry.getKey(), providerMap.get(entry.getValue()));
     }
+    return dependencyGraph;
+  }
+
+  void addDefaultModels() {
+    for (final ModelBuilder<?, ?> b : defaultModels) {
+      final ImmutableSet<Class<?>> providingTypes = b.getProvidingTypes();
+      if (providingTypes.isEmpty()
+        || !providerMap.keySet().containsAll(providingTypes)) {
+        checkArgument(Sets.intersection(providerMap.keySet(), providingTypes)
+          .isEmpty());
+        add(b);
+      }
+    }
+  }
+
+  ImmutableSet<Model<?>> resolve() {
+    addDefaultModels();
+    final Multimap<Dependency, Dependency> dependencyGraph =
+      constructDependencyGraph();
+
     while (!dependencyGraph.isEmpty()) {
       final List<Dependency> toRemove = new ArrayList<>();
       for (final Dependency dep : dependencyGraph.keys()) {
@@ -106,7 +116,6 @@ class DependencyResolver extends DependencyProvider {
         for (final Dependency dependency : dependencies) {
           allResolved &= dependency.isResolved();
         }
-
         if (allResolved) {
           dep.build();
           toRemove.add(dep);
