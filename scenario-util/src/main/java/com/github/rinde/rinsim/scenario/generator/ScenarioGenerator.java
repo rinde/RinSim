@@ -332,27 +332,16 @@ public final class ScenarioGenerator {
     }
 
     /**
-     * Add a builder of a {@link Model}. The provided buil will use default
-     * values provided by the {@link ScenarioGenerator} instance which is
-     * currently being constructed. For most models implementations are
-     * available in {@link Models}.
-     * @param modelSup The supplier to add.
+     * Add a builder of a {@link Model}. The provided model builder will use
+     * default values provided by the {@link ScenarioGenerator} instance which
+     * is currently being constructed.
+     * @param modelBuilder The model builder to add.
      * @return This, as per the builder pattern.
      */
-    public Builder addModel(ModelBuilder<?, ?> modelSup) {
-      modelSuppliers.add(modelSup);
+    public Builder addModel(ModelBuilder<?, ?> modelBuilder) {
+      modelSuppliers.add(modelBuilder);
       return this;
     }
-
-    /**
-     * Add a supplier of a {@link Model}.
-     * @param modelSup The supplier to add.
-     * @return This, as per the builder pattern.
-     */
-    // public Builder addModel(Supplier<? extends Model<?>> modelSup) {
-    // modelSuppliers.add(Models.adapt(modelSup));
-    // return this;
-    // }
 
     /**
      * @return Constructs a new {@link ScenarioGenerator} instance based on this
