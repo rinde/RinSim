@@ -27,10 +27,10 @@ import org.junit.Before;
 import org.junit.Test;
 
 import com.github.rinde.rinsim.core.Simulator;
-import com.github.rinde.rinsim.core.TimeLapse;
 import com.github.rinde.rinsim.core.model.pdp.DefaultPDPModel;
 import com.github.rinde.rinsim.core.model.pdp.PDPModel.ParcelState;
 import com.github.rinde.rinsim.core.model.pdp.Parcel;
+import com.github.rinde.rinsim.core.model.time.TimeLapse;
 import com.github.rinde.rinsim.core.pdptw.DefaultParcel;
 import com.github.rinde.rinsim.core.pdptw.DefaultVehicle;
 import com.github.rinde.rinsim.core.pdptw.ParcelDTO;
@@ -74,14 +74,14 @@ public class CollisionGraphRoadModelPDPIntegrationTest {
       .setTickLength(1)
       .setTimeUnit(SI.SECOND)
       .addModel(
-        CollisionGraphRoadModel.builder(graph)
+        RoadModelBuilders.dynamicGraph(graph)
+          .avoidCollisions()
           .setVehicleLength(1d)
           .setDistanceUnit(SI.METER)
           .setMinDistance(0)
           .setSpeedUnit(SI.METERS_PER_SECOND)
-          .build()
       )
-      .addModel(DefaultPDPModel.create())
+      .addModel(DefaultPDPModel.builder())
       .build();
 
     rm = simulator.getModelProvider().getModel(CollisionGraphRoadModel.class);
