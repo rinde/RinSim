@@ -244,7 +244,7 @@ public final class ListenableGraph<E extends ConnectionData> extends
   }
 
   @AutoValue
-  static abstract class ListenableGraphSupplier<E extends ConnectionData>
+  abstract static class ListenableGraphSupplier<E extends ConnectionData>
     implements Supplier<ListenableGraph<E>> {
 
     abstract Supplier<? extends Graph<E>> supplier();

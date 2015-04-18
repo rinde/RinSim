@@ -563,7 +563,17 @@ public final class DefaultPDPModel extends PDPModel {
 
   @Override
   public <U> U get(Class<U> type) {
-    return type.cast(self);
+    synchronized (this) {
+      return type.cast(self);
+    }
+  }
+
+  /**
+   * @return A new {@link Builder} instance for creating {@link DefaultPDPModel}
+   *         s.
+   */
+  public static Builder builder() {
+    return new Builder();
   }
 
   /**
@@ -638,14 +648,6 @@ public final class DefaultPDPModel extends PDPModel {
     public Vehicle getVehicle() {
       return vehicle;
     }
-  }
-
-  /**
-   * @return A new {@link Builder} instance for creating {@link DefaultPDPModel}
-   *         s.
-   */
-  public static Builder builder() {
-    return new Builder();
   }
 
   /**
