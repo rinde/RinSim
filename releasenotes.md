@@ -1,5 +1,8 @@
 # Release notes
 
+## v3.2.2
+ * CollisionGraphRoadModel is changed such that only implementors of MovingRoadUser (instead of RoadUser) are blocking. This means that depots and parcels are no longer blocking the way of AGVs which means that the PDPModel can now actually be used together with the CollisionGraphRoadModel.
+
 ## v3.2.1
  * CommUser.getPosition() now returns an optional instead of a position, CommModel and CommDevice have been adapted accordingly
  * Bug fixes
