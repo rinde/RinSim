@@ -25,6 +25,8 @@ import static org.junit.Assert.assertTrue;
 
 import java.io.File;
 
+import javax.measure.unit.SI;
+
 import org.apache.commons.math3.random.MersenneTwister;
 import org.junit.Before;
 import org.junit.Test;
@@ -114,7 +116,7 @@ public class CentralTest {
       public Solver get(long seed) {
         return SolverValidator.wrap(new MultiVehicleSolverAdapter(
           ArraysSolverValidator.wrap(new RandomMVArraysSolver(
-            new MersenneTwister(seed))), scenario.getTimeUnit()));
+            new MersenneTwister(seed))), SI.MILLI(SI.SECOND)));
       }
     };
     final Experiment.Builder builder = Experiment

@@ -29,16 +29,11 @@ import java.util.Queue;
 import java.util.Set;
 
 import javax.annotation.Nullable;
-import javax.measure.quantity.Duration;
-import javax.measure.quantity.Length;
-import javax.measure.quantity.Velocity;
-import javax.measure.unit.NonSI;
-import javax.measure.unit.SI;
-import javax.measure.unit.Unit;
 
 import com.github.rinde.rinsim.core.Simulator;
 import com.github.rinde.rinsim.core.model.Model;
 import com.github.rinde.rinsim.core.model.ModelBuilder;
+import com.github.rinde.rinsim.core.model.time.TimeModel;
 import com.github.rinde.rinsim.scenario.TimedEvent.TimeComparator;
 import com.github.rinde.rinsim.util.TimeWindow;
 import com.google.common.base.Optional;
@@ -50,8 +45,8 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 
 /**
- * Scenario is an unmodifiable list of events sorted by the time stamp. To
- * obtain an instance there are a number of builder methods available such as
+ * Scenario is an immutable list of events sorted by the time stamp. To obtain
+ * an instance there are a number of builder methods available such as
  * {@link #builder()}.
  * @author Rinde van Lon
  * @author Bartosz Michalik
@@ -150,31 +145,9 @@ public abstract class Scenario {
   public abstract TimeWindow getTimeWindow();
 
   /**
-   * @return The size of a tick.
-   */
-  public abstract long getTickSize();
-
-  /**
    * @return The stop condition indicating when a simulation should end.
    */
   public abstract Predicate<Simulator> getStopCondition();
-
-  /**
-   * @return The time unit used in the simulator.
-   */
-  public abstract Unit<Duration> getTimeUnit();
-
-  /**
-   * @return The speed unit used in the
-   *         {@link com.github.rinde.rinsim.core.model.road.RoadModel}.
-   */
-  public abstract Unit<Velocity> getSpeedUnit();
-
-  /**
-   * @return The distance unit used in the
-   *         {@link com.github.rinde.rinsim.core.model.road.RoadModel}.
-   */
-  public abstract Unit<Length> getDistanceUnit();
 
   /**
    * @return The 'class' to which this scenario belongs.
@@ -514,34 +487,10 @@ public abstract class Scenario {
    * @author Rinde van Lon
    */
   public abstract static class AbstractBuilder<T extends AbstractBuilder<T>> {
-    static final Unit<Length> DEFAULT_DISTANCE_UNIT = SI.KILOMETER;
-    static final Unit<Velocity> DEFAULT_SPEED_UNIT = NonSI.KILOMETERS_PER_HOUR;
-    static final Unit<Duration> DEFAULT_TIME_UNIT = SI.MILLI(SI.SECOND);
-    static final long DEFAULT_TICK_SIZE = 1000L;
     static final TimeWindow DEFAULT_TIME_WINDOW = new TimeWindow(0,
       8 * 60 * 60 * 1000);
     static final Predicate<Simulator> DEFAULT_STOP_CONDITION = Predicates
       .alwaysFalse();
-
-    /**
-     * Defines {@link Scenario#getDistanceUnit()}.
-     */
-    protected Unit<Length> distanceUnit;
-
-    /**
-     * Defines {@link Scenario#getSpeedUnit()}.
-     */
-    protected Unit<Velocity> speedUnit;
-
-    /**
-     * Defines {@link Scenario#getTimeUnit()}.
-     */
-    protected Unit<Duration> timeUnit;
-
-    /**
-     * Defines {@link Scenario#getTickSize()}.
-     */
-    protected long tickSize;
 
     /**
      * Defines {@link Scenario#getTimeWindow()}.
@@ -560,18 +509,10 @@ public abstract class Scenario {
      */
     protected AbstractBuilder(Optional<AbstractBuilder<?>> copy) {
       if (copy.isPresent()) {
-        distanceUnit = copy.get().distanceUnit;
-        speedUnit = copy.get().speedUnit;
-        timeUnit = copy.get().timeUnit;
-        tickSize = copy.get().tickSize;
         timeWindow = copy.get().timeWindow;
         stopCondition = copy.get().stopCondition;
       }
       else {
-        distanceUnit = DEFAULT_DISTANCE_UNIT;
-        speedUnit = DEFAULT_SPEED_UNIT;
-        timeUnit = DEFAULT_TIME_UNIT;
-        tickSize = DEFAULT_TICK_SIZE;
         timeWindow = DEFAULT_TIME_WINDOW;
         stopCondition = DEFAULT_STOP_CONDITION;
       }
@@ -584,55 +525,11 @@ public abstract class Scenario {
     protected abstract T self();
 
     /**
-     * Set the time unit to use. Possible values include: {@link SI#SECOND},
-     * {@link NonSI#HOUR}, etc.
-     * @param tu The time unit.
-     * @return This, as per the builder pattern.
-     */
-    public T timeUnit(Unit<Duration> tu) {
-      timeUnit = tu;
-      return self();
-    }
-
-    /**
-     * Set the tick size.
-     * @param ts The tick size, expressed in the time unit as set by
-     *          {@link #timeUnit(Unit)}.
-     * @return This, as per the builder pattern.
-     */
-    public T tickSize(long ts) {
-      tickSize = ts;
-      return self();
-    }
-
-    /**
-     * Set the speed unit. Possible values include: {@link SI#METERS_PER_SECOND}
-     * , {@link NonSI#KILOMETERS_PER_HOUR}.
-     * @param su The speed unit.
-     * @return This, as per the builder pattern.
-     */
-    public T speedUnit(Unit<Velocity> su) {
-      speedUnit = su;
-      return self();
-    }
-
-    /**
-     * Set the distance unit. Possible values include: {@link SI#METER},
-     * {@link NonSI#MILE}.
-     * @param du The distance unit.
-     * @return This, as per the builder pattern.
-     */
-    public T distanceUnit(Unit<Length> du) {
-      distanceUnit = du;
-      return self();
-    }
-
-    /**
      * Set the length (duration) of the scenario. Note that the time at which
      * the simulation is stopped is defined by {@link #stopCondition(Predicate)}
      * .
      * @param length The length of the scenario, expressed in the time unit as
-     *          set by {@link #timeUnit(Unit)}.
+     *          defined by the {@link TimeModel}.
      * @return This, as per the builder pattern.
      */
     public T scenarioLength(long length) {
@@ -657,41 +554,9 @@ public abstract class Scenario {
      * @return This, as per the builder pattern.
      */
     protected T copyProperties(Scenario scenario) {
-      distanceUnit = scenario.getDistanceUnit();
-      speedUnit = scenario.getSpeedUnit();
-      timeUnit = scenario.getTimeUnit();
-      tickSize = scenario.getTickSize();
       timeWindow = scenario.getTimeWindow();
       stopCondition = scenario.getStopCondition();
       return self();
-    }
-
-    /**
-     * @return {@link Scenario#getDistanceUnit()}.
-     */
-    public Unit<Length> getDistanceUnit() {
-      return distanceUnit;
-    }
-
-    /**
-     * @return {@link Scenario#getSpeedUnit()}.
-     */
-    public Unit<Velocity> getSpeedUnit() {
-      return speedUnit;
-    }
-
-    /**
-     * @return {@link Scenario#getTimeUnit()}.
-     */
-    public Unit<Duration> getTimeUnit() {
-      return timeUnit;
-    }
-
-    /**
-     * @return {@link Scenario#getTickSize()}.
-     */
-    public long getTickSize() {
-      return tickSize;
     }
 
     /**
@@ -701,6 +566,7 @@ public abstract class Scenario {
       return timeWindow;
     }
 
+    // move into separate model or scenario controller?
     /**
      * @return {@link Scenario#getStopCondition()}.
      */
@@ -711,11 +577,7 @@ public abstract class Scenario {
 
   static class DefaultScenario extends Scenario {
     final ImmutableList<? extends ModelBuilder<?, ?>> modelBuilders;
-    private final Unit<Velocity> speedUnit;
-    private final Unit<Length> distanceUnit;
-    private final Unit<Duration> timeUnit;
     private final TimeWindow timeWindow;
-    private final long tickSize;
     private final Predicate<Simulator> stopCondition;
     private final ProblemClass problemClass;
     private final String instanceId;
@@ -725,39 +587,15 @@ public abstract class Scenario {
       super(events, eventTypes.isEmpty() ? collectEventTypes(events)
         : eventTypes);
       modelBuilders = b.getModelBuilders();
-      speedUnit = b.speedUnit;
-      distanceUnit = b.distanceUnit;
-      timeUnit = b.timeUnit;
       timeWindow = b.timeWindow;
-      tickSize = b.tickSize;
       stopCondition = b.stopCondition;
       problemClass = b.problemClass;
       instanceId = b.instanceId;
     }
 
     @Override
-    public Unit<Duration> getTimeUnit() {
-      return timeUnit;
-    }
-
-    @Override
     public TimeWindow getTimeWindow() {
       return timeWindow;
-    }
-
-    @Override
-    public long getTickSize() {
-      return tickSize;
-    }
-
-    @Override
-    public Unit<Velocity> getSpeedUnit() {
-      return speedUnit;
-    }
-
-    @Override
-    public Unit<Length> getDistanceUnit() {
-      return distanceUnit;
     }
 
     @Override
@@ -791,11 +629,7 @@ public abstract class Scenario {
       final DefaultScenario o = (DefaultScenario) other;
       return super.equals(o)
         && Objects.equals(o.modelBuilders, modelBuilders)
-        && Objects.equals(o.speedUnit, speedUnit)
-        && Objects.equals(o.distanceUnit, distanceUnit)
-        && Objects.equals(o.timeUnit, timeUnit)
         && Objects.equals(o.timeWindow, timeWindow)
-        && Objects.equals(o.tickSize, tickSize)
         && Objects.equals(o.stopCondition, stopCondition)
         && Objects.equals(o.problemClass, problemClass)
         && Objects.equals(o.instanceId, instanceId);
@@ -803,9 +637,8 @@ public abstract class Scenario {
 
     @Override
     public int hashCode() {
-      return Objects.hash(super.hashCode(), modelBuilders, speedUnit,
-        distanceUnit, timeUnit, timeWindow, tickSize, stopCondition,
-        problemClass, instanceId);
+      return Objects.hash(super.hashCode(), modelBuilders, timeWindow,
+        stopCondition, problemClass, instanceId);
     }
   }
 }

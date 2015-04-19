@@ -155,17 +155,8 @@ public final class DynamicPDPTWProblem {
 
     final Simulator.Builder simBuilder = Simulator.builder()
       .setRandomSeed(randomSeed)
-      .setTickLength(scen.getTickSize())
-      .setTimeUnit(scen.getTimeUnit());
-
-    final List<? extends ModelBuilder<?, ?>> modelBuilders = scen
-      .getModelBuilders();
-    for (final ModelBuilder<?, ?> builder : modelBuilders) {
-      simBuilder.addModel(builder);
-    }
-    for (final ModelBuilder<?, ?> m : models) {
-      simBuilder.addModel(m);
-    }
+      .addModels(scen.getModelBuilders())
+      .addModels(models);
     eventCreatorMap = newHashMap();
 
     final TimedEventHandler handler = new TimedEventHandler() {
@@ -187,10 +178,11 @@ public final class DynamicPDPTWProblem {
     final int ticks = scen.getTimeWindow().end == Long.MAX_VALUE ? -1
       : (int) (scen.getTimeWindow().end - scen.getTimeWindow().begin);
 
-    simBuilder.addModel(ScenarioController.builder()
-      .setScenario(scen)
-      .setEventHandler(handler)
-      .setNumberOfTicks(ticks)
+    simBuilder.addModel(
+      ScenarioController.builder()
+        .setScenario(scen)
+        .setEventHandler(handler)
+        .setNumberOfTicks(ticks)
       )
       .addModel(StatsTracker.builder());
 

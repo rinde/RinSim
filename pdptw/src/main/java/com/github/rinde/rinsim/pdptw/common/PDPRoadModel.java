@@ -344,6 +344,14 @@ public class PDPRoadModel extends ForwardingRoadModel implements ModelReceiver {
       return this;
     }
 
+    /**
+     * @return <code>true</code> if vehicle diversion is allowed,
+     *         <code>false</code> otherwise.
+     */
+    public boolean isVehicleDiversionAllowed() {
+      return allowVehicleDiversion;
+    }
+
     @Override
     public PDPRoadModel build(DependencyProvider dependencyProvider) {
       final AbstractRoadModel<?> rm = (AbstractRoadModel<?>) getDelegateModelBuilder()

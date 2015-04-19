@@ -19,12 +19,9 @@ import java.util.List;
 import java.util.Set;
 
 import javax.measure.Measure;
-import javax.measure.quantity.Duration;
-import javax.measure.quantity.Length;
 import javax.measure.quantity.Velocity;
 import javax.measure.unit.NonSI;
 import javax.measure.unit.SI;
-import javax.measure.unit.Unit;
 
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
@@ -34,6 +31,7 @@ import com.github.rinde.rinsim.core.model.ModelBuilder;
 import com.github.rinde.rinsim.core.model.pdp.DefaultPDPModel;
 import com.github.rinde.rinsim.core.model.pdp.TimeWindowPolicy.TimeWindowPolicies;
 import com.github.rinde.rinsim.core.model.road.RoadModelBuilders;
+import com.github.rinde.rinsim.core.model.time.TimeModel;
 import com.github.rinde.rinsim.geom.Point;
 import com.github.rinde.rinsim.pdptw.common.DynamicPDPTWProblem.StopConditions;
 import com.github.rinde.rinsim.pdptw.common.PDPRoadModel;
@@ -91,11 +89,6 @@ public final class Gendreau06Scenario extends Scenario {
   }
 
   @Override
-  public long getTickSize() {
-    return tickSize;
-  }
-
-  @Override
   public Predicate<Simulator> getStopCondition() {
     return Predicates.and(StopConditions.VEHICLES_DONE_AND_BACK_AT_DEPOT,
       StopConditions.TIME_OUT_EVENT);
@@ -105,11 +98,16 @@ public final class Gendreau06Scenario extends Scenario {
   public ImmutableList<? extends ModelBuilder<?, ?>> getModelBuilders() {
     return ImmutableList.<ModelBuilder<?, ?>> builder()
       .add(
+        TimeModel.builder()
+          .setTickLength(tickSize)
+          .setTimeUnit(SI.MILLI(SI.SECOND))
+      )
+      .add(
         PDPRoadModel.builder(
           RoadModelBuilders.plane()
             .setMinPoint(MIN)
             .setMaxPoint(MAX)
-            .setDistanceUnit(getDistanceUnit())
+            .setDistanceUnit(SI.KILOMETER)
             .setSpeedUnit(MAX_SPEED.getUnit())
             .setMaxSpeed(MAX_SPEED.getValue())
           )
@@ -120,21 +118,6 @@ public final class Gendreau06Scenario extends Scenario {
           .setTimeWindowPolicy(TimeWindowPolicies.TARDY_ALLOWED)
       )
       .build();
-  }
-
-  @Override
-  public Unit<Duration> getTimeUnit() {
-    return SI.MILLI(SI.SECOND);
-  }
-
-  @Override
-  public Unit<Velocity> getSpeedUnit() {
-    return NonSI.KILOMETERS_PER_HOUR;
-  }
-
-  @Override
-  public Unit<Length> getDistanceUnit() {
-    return SI.KILOMETER;
   }
 
   @Override

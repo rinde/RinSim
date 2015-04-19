@@ -53,7 +53,6 @@ import com.github.rinde.rinsim.event.EventDispatcher;
  */
 public final class TimeModel extends AbstractModel<TickListener>
   implements ClockController {
-
   private volatile Set<TickListener> tickListeners;
   private volatile long time;
   private volatile boolean isPlaying;
@@ -182,8 +181,16 @@ public final class TimeModel extends AbstractModel<TickListener>
    */
   public static class Builder extends
     AbstractModelBuilder<TimeModel, TickListener> {
-    static final long DEFAULT_TIME_STEP = 1000L;
-    static final Unit<Duration> DEFAULT_TIME_UNIT = SI.MILLI(SI.SECOND);
+
+    /**
+     * The default time step: <code>1000</code>.
+     */
+    public static final long DEFAULT_TIME_STEP = 1000L;
+
+    /**
+     * The default time unit: ms.
+     */
+    public static final Unit<Duration> DEFAULT_TIME_UNIT = SI.MILLI(SI.SECOND);
 
     private long timeLength;
     private Unit<Duration> timeUnit;
@@ -234,6 +241,20 @@ public final class TimeModel extends AbstractModel<TickListener>
       final Builder o = (Builder) other;
       return Objects.equals(timeLength, o.timeLength)
         && Objects.equals(timeUnit, o.timeUnit);
+    }
+
+    /**
+     * @return The time unit.
+     */
+    public Unit<Duration> getTimeUnit() {
+      return timeUnit;
+    }
+
+    /**
+     * @return The tick length.
+     */
+    public long getTickLength() {
+      return timeLength;
     }
   }
 }

@@ -18,6 +18,7 @@ package com.github.rinde.rinsim.scenario.gendreau06;
 import static com.github.rinde.rinsim.scenario.gendreau06.Gendreau06Parser.parse;
 import static com.github.rinde.rinsim.scenario.gendreau06.Gendreau06Parser.parser;
 import static com.google.common.collect.Lists.newArrayList;
+import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -27,9 +28,15 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.util.List;
 
+import javax.measure.quantity.Duration;
+import javax.measure.unit.SI;
+import javax.measure.unit.Unit;
+
 import org.junit.Test;
 
+import com.github.rinde.rinsim.core.model.ModelBuilder;
 import com.github.rinde.rinsim.core.model.pdp.PDPScenarioEvent;
+import com.github.rinde.rinsim.core.model.time.TimeModel;
 import com.github.rinde.rinsim.pdptw.common.PDPRoadModel;
 import com.github.rinde.rinsim.scenario.TimedEvent;
 
@@ -64,7 +71,7 @@ public class Gendreau06ParserTest {
       containsTimeOut(scen, 240);
       assertTrue(isOnline(scen));
       assertFalse(isDiversionAllowed(scen));
-      assertEquals(1000L, scen.getTickSize());
+      assertContainsTimeModel(scen, 1000L, SI.MILLI(SI.SECOND));
     }
   }
 
@@ -82,7 +89,7 @@ public class Gendreau06ParserTest {
     containsTimeOut(scen, 240);
     assertTrue(isOnline(scen));
     assertFalse(isDiversionAllowed(scen));
-    assertEquals(1000L, scen.getTickSize());
+    assertContainsTimeModel(scen, 1000L, SI.MILLI(SI.SECOND));
   }
 
   /**
@@ -99,7 +106,7 @@ public class Gendreau06ParserTest {
     containsTimeOut(scen, 240);
     assertFalse(isOnline(scen));
     assertFalse(isDiversionAllowed(scen));
-    assertEquals(1000L, scen.getTickSize());
+    assertContainsTimeModel(scen, 1000L, SI.MILLI(SI.SECOND));
   }
 
   /**
@@ -114,7 +121,7 @@ public class Gendreau06ParserTest {
     containsTimeOut(scen, 240);
     assertTrue(isOnline(scen));
     assertTrue(isDiversionAllowed(scen));
-    assertEquals(1000L, scen.getTickSize());
+    assertContainsTimeModel(scen, 1000L, SI.MILLI(SI.SECOND));
   }
 
   /**
@@ -129,7 +136,7 @@ public class Gendreau06ParserTest {
     containsTimeOut(scen, 240);
     assertTrue(isOnline(scen));
     assertFalse(isDiversionAllowed(scen));
-    assertEquals(101L, scen.getTickSize());
+    assertContainsTimeModel(scen, 101L, SI.MILLI(SI.SECOND));
   }
 
   /**
@@ -236,8 +243,29 @@ public class Gendreau06ParserTest {
     return true;
   }
 
+  static void assertContainsTimeModel(Gendreau06Scenario scen, long tickSize,
+    Unit<Duration> timeUnit) {
+
+    TimeModel.Builder tb = getModelBuilderOfType(scen.getModelBuilders(),
+      TimeModel.Builder.class);
+    assertThat(tb.getTickLength()).isEqualTo(tickSize);
+    assertThat(tb.getTimeUnit()).isEqualTo(timeUnit);
+  }
+
+  @SuppressWarnings("unchecked")
+  static <T> T getModelBuilderOfType(
+    Iterable<? extends ModelBuilder<?, ?>> builders, Class<T> clazz) {
+    for (ModelBuilder<?, ?> mb : builders) {
+      if (clazz.isInstance(mb)) {
+        return (T) mb;
+      }
+    }
+    throw new IllegalArgumentException();
+  }
+
   static boolean isDiversionAllowed(Gendreau06Scenario scen) {
-    return ((PDPRoadModel) scen.getModelBuilders().get(0).build(null))
-      .isVehicleDiversionAllowed();
+    PDPRoadModel.Builder rb = getModelBuilderOfType(scen.getModelBuilders(),
+      PDPRoadModel.Builder.class);
+    return rb.isVehicleDiversionAllowed();
   }
 }

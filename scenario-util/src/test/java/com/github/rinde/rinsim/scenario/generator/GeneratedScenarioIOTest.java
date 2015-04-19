@@ -21,9 +21,6 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Paths;
 
-import javax.measure.unit.NonSI;
-import javax.measure.unit.SI;
-
 import org.apache.commons.math3.random.MersenneTwister;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -64,10 +61,6 @@ public class GeneratedScenarioIOTest {
   public void testIO() throws IOException {
     final ScenarioGenerator generator = ScenarioGenerator
       .builder(TestPC.CLASS_A)
-      .timeUnit(SI.MILLI(SI.SECOND))
-      .distanceUnit(SI.KILOMETER)
-      .speedUnit(NonSI.KILOMETERS_PER_HOUR)
-      .tickSize(1000L)
       .scenarioLength(4 * 60 * 60 * 1000L)
       .stopCondition(
         Predicates.and(StopConditions.ANY_TARDINESS,

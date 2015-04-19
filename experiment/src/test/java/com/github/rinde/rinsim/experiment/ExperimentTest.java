@@ -54,7 +54,7 @@ public class ExperimentTest {
 
   @Test
   public void testPostProcessor() {
-    final Scenario scenario = ScenarioTestUtil.create(123L);
+    final Scenario scenario = ScenarioTestUtil.createRandomScenario(123L);
     final Experiment.Builder builder = Experiment
         .build(TestObjectiveFunction.INSTANCE)
         .addScenario(scenario)
@@ -81,7 +81,7 @@ public class ExperimentTest {
   public void multiThreadedOrder() {
     final Experiment.Builder builder = Experiment
         .build(TestObjectiveFunction.INSTANCE)
-        .addScenario(ScenarioTestUtil.create(456L))
+        .addScenario(ScenarioTestUtil.createRandomScenario(456L))
         .addConfiguration(
             TestMASConfiguration.create("A"))
         .addConfiguration(

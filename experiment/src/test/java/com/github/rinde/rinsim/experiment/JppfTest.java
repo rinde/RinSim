@@ -66,7 +66,7 @@ public class JppfTest {
     JPPFDriver.main(new String[] { "noLauncher" });
     driver = JPPFDriver.getInstance();
 
-    scenario = ScenarioTestUtil.create(123L);
+    scenario = ScenarioTestUtil.createRandomScenario(123L);
   }
 
   /**

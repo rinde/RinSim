@@ -28,12 +28,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import javax.measure.quantity.Duration;
-import javax.measure.quantity.Length;
-import javax.measure.quantity.Velocity;
-import javax.measure.unit.NonSI;
 import javax.measure.unit.SI;
-import javax.measure.unit.Unit;
 
 import org.junit.Test;
 
@@ -66,15 +61,11 @@ public class ScenarioTest {
       .addEventType(FakeEventType.A)
       .build();
 
-    assertEquals(SI.KILOMETER, scenario.getDistanceUnit());
     assertTrue(scenario.getModelBuilders().isEmpty());
     assertEquals(newHashSet(FakeEventType.A), scenario.getPossibleEventTypes());
     assertSame(Scenario.DEFAULT_PROBLEM_CLASS, scenario.getProblemClass());
     assertEquals("", scenario.getProblemInstanceId());
-    assertEquals(NonSI.KILOMETERS_PER_HOUR, scenario.getSpeedUnit());
     assertEquals(Predicates.alwaysFalse(), scenario.getStopCondition());
-    assertEquals(1000L, scenario.getTickSize());
-    assertEquals(SI.MILLI(SI.SECOND), scenario.getTimeUnit());
     assertEquals(new TimeWindow(0, 8 * 60 * 60 * 1000),
       scenario.getTimeWindow());
   }
@@ -109,12 +100,8 @@ public class ScenarioTest {
     final ProblemClass problemClass = new FakeProblemClass();
     final Scenario scenario = Scenario
       .builder(problemClass)
-      .distanceUnit(SI.PICO(SI.METER))
-      .speedUnit(NonSI.MACH)
-      .timeUnit(NonSI.DAY_SIDEREAL)
       .instanceId("crazyfast")
       .scenarioLength(7L)
-      .tickSize(1)
       .addEventType(PDPScenarioEvent.TIME_OUT)
       .stopCondition(Predicates.<Simulator> alwaysTrue())
       .addModel(
@@ -127,12 +114,8 @@ public class ScenarioTest {
       )
       .build();
 
-    assertEquals(SI.PICO(SI.METER), scenario.getDistanceUnit());
-    assertEquals(NonSI.MACH, scenario.getSpeedUnit());
-    assertEquals(NonSI.DAY_SIDEREAL, scenario.getTimeUnit());
     assertEquals("crazyfast", scenario.getProblemInstanceId());
     assertEquals(new TimeWindow(0L, 7L), scenario.getTimeWindow());
-    assertEquals(1L, scenario.getTickSize());
     assertEquals(newHashSet(PDPScenarioEvent.TIME_OUT),
       scenario.getPossibleEventTypes());
     assertEquals(Predicates.alwaysTrue(), scenario.getStopCondition());
@@ -269,27 +252,7 @@ public class ScenarioTest {
     }
 
     @Override
-    public long getTickSize() {
-      throw new UnsupportedOperationException();
-    }
-
-    @Override
     public Predicate<Simulator> getStopCondition() {
-      throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public Unit<Duration> getTimeUnit() {
-      throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public Unit<Velocity> getSpeedUnit() {
-      throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public Unit<Length> getDistanceUnit() {
       throw new UnsupportedOperationException();
     }
 

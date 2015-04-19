@@ -21,12 +21,8 @@ import static org.junit.Assert.assertEquals;
 import java.util.HashSet;
 import java.util.List;
 
-import javax.measure.quantity.Duration;
-import javax.measure.quantity.Length;
-import javax.measure.quantity.Velocity;
 import javax.measure.unit.NonSI;
 import javax.measure.unit.SI;
-import javax.measure.unit.Unit;
 
 import org.junit.Test;
 
@@ -36,6 +32,7 @@ import com.github.rinde.rinsim.core.model.pdp.DefaultPDPModel;
 import com.github.rinde.rinsim.core.model.pdp.PDPScenarioEvent;
 import com.github.rinde.rinsim.core.model.pdp.TimeWindowPolicy.TimeWindowPolicies;
 import com.github.rinde.rinsim.core.model.road.RoadModelBuilders;
+import com.github.rinde.rinsim.core.model.time.TimeModel;
 import com.github.rinde.rinsim.geom.Point;
 import com.github.rinde.rinsim.pdptw.common.DynamicPDPTWProblem.Creator;
 import com.github.rinde.rinsim.pdptw.common.DynamicPDPTWProblem.StopConditions;
@@ -110,11 +107,6 @@ public class DynamicPDPTWProblemTest {
     }
 
     @Override
-    public long getTickSize() {
-      return 1;
-    }
-
-    @Override
     public StopConditions getStopCondition() {
       return StopConditions.TIME_OUT_EVENT;
     }
@@ -122,6 +114,11 @@ public class DynamicPDPTWProblemTest {
     @Override
     public ImmutableList<? extends ModelBuilder<?, ?>> getModelBuilders() {
       return ImmutableList.<ModelBuilder<?, ?>> builder()
+        .add(
+          TimeModel.builder()
+            .setTickLength(1L)
+            .setTimeUnit(SI.SECOND)
+        )
         .add(
           RoadModelBuilders.plane()
             .setMinPoint(new Point(0, 0))
@@ -135,21 +132,6 @@ public class DynamicPDPTWProblemTest {
             .setTimeWindowPolicy(TimeWindowPolicies.TARDY_ALLOWED)
         )
         .build();
-    }
-
-    @Override
-    public Unit<Duration> getTimeUnit() {
-      return SI.SECOND;
-    }
-
-    @Override
-    public Unit<Velocity> getSpeedUnit() {
-      throw new UnsupportedOperationException("Not implemented.");
-    }
-
-    @Override
-    public Unit<Length> getDistanceUnit() {
-      throw new UnsupportedOperationException("Not implemented.");
     }
 
     @Override

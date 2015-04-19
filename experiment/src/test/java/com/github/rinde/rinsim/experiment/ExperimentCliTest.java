@@ -56,7 +56,7 @@ public class ExperimentCliTest {
     configC = TestMASConfiguration.create("C");
     builder = Experiment
         .build(TestObjectiveFunction.INSTANCE)
-        .addScenario(ScenarioTestUtil.create(1655L))
+        .addScenario(ScenarioTestUtil.createRandomScenario(1655L))
         .addConfiguration(configA)
         .addConfiguration(configB)
         .addConfiguration(configC)

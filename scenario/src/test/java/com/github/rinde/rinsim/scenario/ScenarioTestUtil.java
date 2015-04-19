@@ -23,8 +23,6 @@ import java.math.RoundingMode;
 import java.util.Collections;
 
 import javax.annotation.Nullable;
-import javax.measure.unit.NonSI;
-import javax.measure.unit.SI;
 
 import org.apache.commons.math3.random.MersenneTwister;
 import org.apache.commons.math3.random.RandomGenerator;
@@ -32,7 +30,6 @@ import org.apache.commons.math3.random.RandomGenerator;
 import com.github.rinde.rinsim.core.Simulator;
 import com.github.rinde.rinsim.core.model.pdp.DefaultPDPModel;
 import com.github.rinde.rinsim.core.model.pdp.PDPScenarioEvent;
-import com.github.rinde.rinsim.core.model.pdp.TimeWindowPolicy.TimeWindowPolicies;
 import com.github.rinde.rinsim.core.model.road.RoadModelBuilders;
 import com.github.rinde.rinsim.core.pdptw.ParcelDTO;
 import com.github.rinde.rinsim.core.pdptw.VehicleDTO;
@@ -41,7 +38,13 @@ import com.github.rinde.rinsim.util.TimeWindow;
 import com.google.common.base.Predicate;
 import com.google.common.math.DoubleMath;
 
+/**
+ * Utilities for testing {@link Scenario}.
+ * @author Rinde van Lon
+ */
 public class ScenarioTestUtil {
+
+  private ScenarioTestUtil() {}
 
   /**
    * Tests whether the specified scenario can be correctly written to disk, it
@@ -58,22 +61,17 @@ public class ScenarioTestUtil {
     assertThat(serialized).comparesEqualTo(serializedAgain);
   }
 
-  public static Scenario create(long seed) {
+  /**
+   * Creates a random scenario.
+   * @param seed The seed to use.
+   * @return A new random scenario.
+   */
+  public static Scenario createRandomScenario(long seed) {
     final int endTime = 3 * 60 * 60 * 1000;
     Scenario.Builder b = Scenario
       .builder()
-      .addModel(
-        RoadModelBuilders.plane()
-          .setMinPoint(new Point(0, 0))
-          .setMaxPoint(new Point(10, 10))
-          .setDistanceUnit(SI.KILOMETER)
-          .setMaxSpeed(50d)
-          .setSpeedUnit(NonSI.KILOMETERS_PER_HOUR)
-      )
-      .addModel(
-        DefaultPDPModel.builder()
-          .setTimeWindowPolicy(TimeWindowPolicies.LIBERAL)
-      )
+      .addModel(RoadModelBuilders.plane())
+      .addModel(DefaultPDPModel.builder())
       .addEvents(
         Collections
           .nCopies(

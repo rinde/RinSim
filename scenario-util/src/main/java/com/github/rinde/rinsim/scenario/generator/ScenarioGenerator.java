@@ -18,6 +18,7 @@ package com.github.rinde.rinsim.scenario.generator;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.collect.Lists.newArrayList;
 
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
@@ -36,6 +37,7 @@ import com.github.rinde.rinsim.core.model.road.ForwardingRoadModel;
 import com.github.rinde.rinsim.core.model.road.RoadModel;
 import com.github.rinde.rinsim.core.model.road.RoadModelBuilders;
 import com.github.rinde.rinsim.core.model.road.RoadModels;
+import com.github.rinde.rinsim.core.model.time.TimeModel;
 import com.github.rinde.rinsim.geom.Point;
 import com.github.rinde.rinsim.scenario.AddDepotEvent;
 import com.github.rinde.rinsim.scenario.AddVehicleEvent;
@@ -66,6 +68,10 @@ public final class ScenarioGenerator {
   private final VehicleGenerator vehicleGenerator;
   private final DepotGenerator depotGenerator;
 
+  private final Unit<Velocity> speedUnit;
+  private final Unit<Length> distanceUnit;
+  private final Unit<Duration> timeUnit;
+
   ScenarioGenerator(Builder b) {
     builder = b;
     parcelGenerator = b.parcelGenerator;
@@ -74,52 +80,70 @@ public final class ScenarioGenerator {
 
     modelSuppliers = ImmutableList.copyOf(builder.modelSuppliers);
 
-    boolean foundRoadModel = false;
-    for (final ModelBuilder<?, ?> mb : modelSuppliers) {
+    List<ModelBuilder<RoadModel, ?>> rmBuilders = findBuildersThatBuild(
+      modelSuppliers, RoadModel.class);
+    checkArgument(rmBuilders.size() == 1,
+      "Exactly one RoadModel builder must be supplied, found %s builders.",
+      rmBuilders.size());
+    ModelBuilder<? extends RoadModel, ?> mb = rmBuilders.get(0);
+    final RoadModelBuilders.PlaneRMB planeBuilder;
+    if (mb instanceof ForwardingRoadModel.Builder) {
+      ModelBuilder<?, ?> delegate = ((ForwardingRoadModel.Builder<?>) mb)
+        .getDelegateModelBuilder();
 
-      if (RoadModel.class.isAssignableFrom(mb.getModelType())) {
-        checkArgument(!foundRoadModel,
-          "Already found a RoadModel, only one RoadModel is allowed.");
-        foundRoadModel = true;
-        final RoadModelBuilders.PlaneRMB planeBuilder;
-        if (mb instanceof ForwardingRoadModel.Builder) {
-          ModelBuilder<?, ?> delegate = ((ForwardingRoadModel.Builder<?>) mb)
-            .getDelegateModelBuilder();
+      checkArgument(delegate instanceof RoadModelBuilders.PlaneRMB);
+      planeBuilder = (RoadModelBuilders.PlaneRMB) delegate;
+    } else {
+      checkArgument(mb instanceof RoadModelBuilders.PlaneRMB);
+      planeBuilder = (RoadModelBuilders.PlaneRMB) mb;
+    }
+    planeBuilder.setMinPoint(getMin())
+      .setMaxPoint(getMax());
+    distanceUnit = planeBuilder.getDistanceUnit();
+    speedUnit = planeBuilder.getSpeedUnit();
 
-          checkArgument(delegate instanceof RoadModelBuilders.PlaneRMB);
-          planeBuilder = (RoadModelBuilders.PlaneRMB) delegate;
-        } else {
-          checkArgument(mb instanceof RoadModelBuilders.PlaneRMB);
-          planeBuilder = (RoadModelBuilders.PlaneRMB) mb;
-        }
-        planeBuilder.setMinPoint(getMin())
-          .setMaxPoint(getMax())
-          .setDistanceUnit(getDistanceUnit())
-          .setSpeedUnit(getSpeedUnit());
+    List<ModelBuilder<TimeModel, ?>> tmBuilders = findBuildersThatBuild(
+      modelSuppliers, TimeModel.class);
+    checkArgument(tmBuilders.size() <= 1,
+      "At most one TimeModel builder can be specified.");
+    if (tmBuilders.isEmpty()) {
+      timeUnit = TimeModel.Builder.DEFAULT_TIME_UNIT;
+    } else {
+      timeUnit = ((TimeModel.Builder) tmBuilders.get(0)).getTimeUnit();
+    }
+  }
+
+  @SuppressWarnings("unchecked")
+  static <T extends Model<?>> List<ModelBuilder<T, ?>> findBuildersThatBuild(
+    Iterable<? extends ModelBuilder<?, ?>> builders, Class<T> type) {
+    List<ModelBuilder<T, ?>> foundBuilders = new ArrayList<>();
+    for (ModelBuilder<?, ?> b : builders) {
+      if (type.isAssignableFrom(b.getModelType())) {
+        foundBuilders.add((ModelBuilder<T, ?>) b);
       }
     }
-    checkArgument(foundRoadModel, "At least one RoadModel must be specified.");
+    return foundBuilders;
   }
 
   /**
    * @return The speed unit used in generated scenarios.
    */
   public Unit<Velocity> getSpeedUnit() {
-    return builder.getSpeedUnit();
+    return speedUnit;
   }
 
   /**
    * @return The distance unit used in generated scenarios.
    */
   public Unit<Length> getDistanceUnit() {
-    return builder.getDistanceUnit();
+    return distanceUnit;
   }
 
   /**
    * @return The time unit used in generated scenarios.
    */
   public Unit<Duration> getTimeUnit() {
-    return builder.getTimeUnit();
+    return timeUnit;
   }
 
   /**
@@ -127,13 +151,6 @@ public final class ScenarioGenerator {
    */
   public TimeWindow getTimeWindow() {
     return builder.getTimeWindow();
-  }
-
-  /**
-   * @return The tick size of generated scenarios.
-   */
-  public long getTickSize() {
-    return builder.getTickSize();
   }
 
   /**
@@ -227,14 +244,19 @@ public final class ScenarioGenerator {
       .filter(AddVehicleEvent.class);
 
     final List<RoadModel> roadModels = newArrayList();
+
+    Unit<Duration> timeUnit = TimeModel.Builder.DEFAULT_TIME_UNIT;
     for (final ModelBuilder<?, ?> mb : s.getModelBuilders()) {
       if (RoadModel.class.isAssignableFrom(mb.getModelType())) {
         roadModels.add((RoadModel) mb.build(null));
       }
+      if (TimeModel.class.isAssignableFrom(mb.getModelType())) {
+        timeUnit = ((TimeModel.Builder) mb).getTimeUnit();
+      }
     }
     checkArgument(roadModels.size() == 1);
-    return new DefaultTravelTimes(roadModels.get(0), s.getTimeUnit(),
-      depots, vehicles);
+    return new DefaultTravelTimes(roadModels.get(0), timeUnit, depots,
+      vehicles);
   }
 
   static TravelTimes createTravelTimes(

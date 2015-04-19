@@ -307,11 +307,24 @@ public final class Simulator implements SimulatorAPI {
     }
 
     /**
+     * Adds the specified {@link ModelBuilder}s to the simulator. Each
+     * {@link ModelBuilder} will be used to obtain a {@link Model} instance that
+     * will be added to the simulator.
+     * @param builders The builders to add.
+     * @return This, as per the builder pattern.
+     */
+    public Builder addModels(Iterable<? extends ModelBuilder<?, ?>> builders) {
+      for (final ModelBuilder<?, ?> b : builders) {
+        addModel(b);
+      }
+      return this;
+    }
+
+    /**
      * Builds the simulator, at least one {@link Model} must have been added.
      * @return A new {@link Simulator} instance.
      */
     public Simulator build() {
-
       return new Simulator(this);
     }
   }

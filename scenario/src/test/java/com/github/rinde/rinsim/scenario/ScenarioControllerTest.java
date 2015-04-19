@@ -61,9 +61,9 @@ import com.github.rinde.rinsim.testutil.TestUtil;
 public class ScenarioControllerTest {
 
   @SuppressWarnings("null")
-  protected ScenarioController controller;
+  ScenarioController controller;
   @SuppressWarnings("null")
-  protected Scenario scenario;
+  Scenario scenario;
 
   @SuppressWarnings("null")
   DependencyProvider dependencyProvider;

@@ -18,17 +18,15 @@ package com.github.rinde.rinsim.scenario.fabrirecht;
 import java.util.List;
 import java.util.Set;
 
-import javax.measure.quantity.Duration;
-import javax.measure.quantity.Length;
 import javax.measure.quantity.Velocity;
 import javax.measure.unit.NonSI;
 import javax.measure.unit.SI;
-import javax.measure.unit.Unit;
 
 import com.github.rinde.rinsim.core.model.ModelBuilder;
 import com.github.rinde.rinsim.core.model.pdp.DefaultPDPModel;
 import com.github.rinde.rinsim.core.model.pdp.TimeWindowPolicy.TimeWindowPolicies;
 import com.github.rinde.rinsim.core.model.road.RoadModelBuilders;
+import com.github.rinde.rinsim.core.model.time.TimeModel;
 import com.github.rinde.rinsim.core.pdptw.VehicleDTO;
 import com.github.rinde.rinsim.geom.Point;
 import com.github.rinde.rinsim.pdptw.common.DynamicPDPTWProblem.StopConditions;
@@ -93,46 +91,33 @@ public class FabriRechtScenario extends Scenario {
   }
 
   @Override
-  public long getTickSize() {
-    return 1L;
-  }
-
-  @Override
   public StopConditions getStopCondition() {
     return StopConditions.TIME_OUT_EVENT;
   }
 
   @Override
   public ImmutableList<? extends ModelBuilder<?, ?>> getModelBuilders() {
-    return ImmutableList.<ModelBuilder<?, ?>> builder()
+    return ImmutableList
+      .<ModelBuilder<?, ?>> builder()
+      .add(
+        TimeModel.builder()
+          .setTickLength(1L)
+          .setTimeUnit(NonSI.MINUTE)
+      )
       .add(
         RoadModelBuilders.plane()
           .setMinPoint(min)
           .setMaxPoint(max)
-          .setDistanceUnit(getDistanceUnit())
+          .setDistanceUnit(SI.KILOMETER)
           .setMaxSpeed(100d)
-          .setSpeedUnit(getSpeedUnit())
+          .setSpeedUnit(
+            SI.KILOMETRE.divide(NonSI.MINUTE).asType(Velocity.class))
       )
       .add(
         DefaultPDPModel.builder()
           .setTimeWindowPolicy(TimeWindowPolicies.TARDY_ALLOWED)
       )
       .build();
-  }
-
-  @Override
-  public Unit<Duration> getTimeUnit() {
-    return NonSI.MINUTE;
-  }
-
-  @Override
-  public Unit<Velocity> getSpeedUnit() {
-    return SI.KILOMETRE.divide(NonSI.MINUTE).asType(Velocity.class);
-  }
-
-  @Override
-  public Unit<Length> getDistanceUnit() {
-    return SI.KILOMETER;
   }
 
   @Override
