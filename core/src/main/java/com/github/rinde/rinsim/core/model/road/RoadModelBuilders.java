@@ -108,7 +108,7 @@ public final class RoadModelBuilders {
    * Abstract builder for constructing subclasses of {@link RoadModel}.
    *
    * @param <T> The type of the model that the builder is constructing.
-   * @param <S> The builder type itself, necessary to make a inheritance-based
+   * @param <S> The builder type itself, necessary to make an inheritance-based
    *          builder.
    * @author Rinde van Lon
    */

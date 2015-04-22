@@ -18,6 +18,7 @@ package com.github.rinde.rinsim.core.model;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
+import static com.google.common.base.Verify.verify;
 import static com.google.common.base.Verify.verifyNotNull;
 
 import java.util.ArrayList;
@@ -45,14 +46,14 @@ class DependencyResolver extends DependencyProvider {
   final Map<Class<?>, Dependency> providerMap;
   final Multimap<Dependency, Class<?>> dependencyMap;
   final BiMap<Class<?>, Dependency> modelTypeMap;
-  final List<Dependency> builders;
+  final Set<Dependency> builders;
   final Set<ModelBuilder<?, ?>> defaultModels;
 
   DependencyResolver() {
     providerMap = new LinkedHashMap<>();
     dependencyMap = LinkedHashMultimap.create();
     modelTypeMap = LinkedHashBiMap.create();
-    builders = new ArrayList<>();
+    builders = new LinkedHashSet<>();
     defaultModels = new LinkedHashSet<>();
   }
 
@@ -73,6 +74,7 @@ class DependencyResolver extends DependencyProvider {
       providerMap.put(clz, dep);
     }
     dependencyMap.putAll(dep, deps);
+    verify(!builders.contains(dep));
     builders.add(dep);
   }
 
