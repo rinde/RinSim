@@ -28,6 +28,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import javax.annotation.Nullable;
 import javax.measure.unit.SI;
 
 import org.junit.Test;
@@ -44,6 +45,7 @@ import com.github.rinde.rinsim.util.TimeWindow;
 import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 
 /**
  * Tests for {@link Scenario} and its builder.
@@ -87,7 +89,7 @@ public class ScenarioTest {
       // redundant adding of event types, should not make any difference
       .addEventTypes(asList(FakeEventType.A, FakeEventType.B))
       .build();
-    assertEquals(asList(ev0, ev2, ev3, ev1), scenario.asList());
+    assertEquals(asList(ev0, ev2, ev3, ev1), scenario.getEvents());
     assertEquals(newHashSet(FakeEventType.A, FakeEventType.B),
       scenario.getPossibleEventTypes());
   }
@@ -120,7 +122,8 @@ public class ScenarioTest {
       scenario.getPossibleEventTypes());
     assertEquals(Predicates.alwaysTrue(), scenario.getStopCondition());
     assertEquals(1, scenario.getModelBuilders().size());
-    assertTrue(scenario.getModelBuilders().get(0).getAssociatedType() == RoadUser.class);
+    assertTrue(scenario.getModelBuilders().iterator().next()
+      .getAssociatedType() == RoadUser.class);
 
     final Scenario.Builder builder = Scenario
       .builder(Scenario.DEFAULT_PROBLEM_CLASS)
@@ -143,7 +146,7 @@ public class ScenarioTest {
   @Test
   public void testNoArgConstructor() {
     final Scenario scenario = new EmptyScenario();
-    assertTrue(scenario.asList().isEmpty());
+    assertTrue(scenario.getEvents().isEmpty());
   }
 
   /**
@@ -242,7 +245,7 @@ public class ScenarioTest {
   static class EmptyScenario extends Scenario {
 
     @Override
-    public ImmutableList<? extends ModelBuilder<?, ?>> getModelBuilders() {
+    public ImmutableSet<ModelBuilder<?, ?>> getModelBuilders() {
       throw new UnsupportedOperationException();
     }
 
@@ -264,6 +267,26 @@ public class ScenarioTest {
     @Override
     public String getProblemInstanceId() {
       throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public ImmutableList<TimedEvent> getEvents() {
+      return ImmutableList.of();
+    }
+
+    @Override
+    public ImmutableSet<Enum<?>> getPossibleEventTypes() {
+      return ImmutableSet.of();
+    }
+
+    @Override
+    public boolean equals(@Nullable Object other) {
+      return other != null && other.getClass() == getClass();
+    }
+
+    @Override
+    public int hashCode() {
+      return System.identityHashCode(this);
     }
   }
 
@@ -318,7 +341,7 @@ public class ScenarioTest {
     Collections.reverse(events);
 
     final Scenario s = Scenario.builder().addEvents(events).build();
-    final List<TimedEvent> res = newArrayList(s.asList());
+    final List<TimedEvent> res = newArrayList(s.getEvents());
 
     assertEquals(asList(A2, A1, B, C, D2, D1, E, F), res);
     assertFalse(res.equals(events));
@@ -339,12 +362,12 @@ public class ScenarioTest {
       .addEvent(new AddObjectEvent(300, new Point(0, 0)))
       .build();
 
-    assertEquals(3, s.asList().size());
+    assertEquals(3, s.getEvents().size());
 
     final Scenario s2 = Scenario.builder(s).build();
 
-    assertEquals(3, s.asList().size());
-    assertEquals(3, s2.asList().size());
+    assertEquals(3, s.getEvents().size());
+    assertEquals(3, s2.getEvents().size());
   }
 
   /**

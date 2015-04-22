@@ -23,9 +23,6 @@ import javax.measure.quantity.Velocity;
 import javax.measure.unit.NonSI;
 import javax.measure.unit.SI;
 
-import org.apache.commons.lang3.builder.ToStringBuilder;
-import org.apache.commons.lang3.builder.ToStringStyle;
-
 import com.github.rinde.rinsim.core.Simulator;
 import com.github.rinde.rinsim.core.model.ModelBuilder;
 import com.github.rinde.rinsim.core.model.pdp.DefaultPDPModel;
@@ -38,9 +35,11 @@ import com.github.rinde.rinsim.pdptw.common.PDPRoadModel;
 import com.github.rinde.rinsim.scenario.Scenario;
 import com.github.rinde.rinsim.scenario.TimedEvent;
 import com.github.rinde.rinsim.util.TimeWindow;
+import com.google.auto.value.AutoValue;
 import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 
 /**
  *
@@ -56,32 +55,26 @@ import com.google.common.collect.ImmutableList;
  * speed is expressed as km/h.
  * @author Rinde van Lon
  */
-public final class Gendreau06Scenario extends Scenario {
+@AutoValue
+public abstract class Gendreau06Scenario extends Scenario {
   static final Point MIN = new Point(0, 0);
   static final Point MAX = new Point(5, 5);
   static final Measure<Double, Velocity> MAX_SPEED = Measure.valueOf(
     30d, NonSI.KILOMETERS_PER_HOUR);
 
-  private final long tickSize;
-  private final GendreauProblemClass problemClass;
-  private final int instanceNumber;
-  private final boolean allowDiversion;
-
-  Gendreau06Scenario(List<? extends TimedEvent> pEvents,
+  static Gendreau06Scenario create(List<? extends TimedEvent> pEvents,
     Set<Enum<?>> pSupportedTypes, long ts, GendreauProblemClass problemClass,
     int instanceNumber, boolean diversion) {
-    super(pEvents, pSupportedTypes);
-    tickSize = ts;
-    this.problemClass = problemClass;
-    this.instanceNumber = instanceNumber;
-    allowDiversion = diversion;
+
+    return new AutoValue_Gendreau06Scenario(
+      ImmutableList.<TimedEvent> copyOf(pEvents),
+      ImmutableSet.<Enum<?>> copyOf(pSupportedTypes),
+      problemClass, Integer.toString(instanceNumber), ts, diversion);
   }
 
-  @Override
-  public String toString() {
-    return ToStringBuilder.reflectionToString(this,
-      ToStringStyle.MULTI_LINE_STYLE);
-  }
+  abstract long getTickSize();
+
+  abstract boolean getAllowDiversion();
 
   @Override
   public TimeWindow getTimeWindow() {
@@ -95,11 +88,11 @@ public final class Gendreau06Scenario extends Scenario {
   }
 
   @Override
-  public ImmutableList<? extends ModelBuilder<?, ?>> getModelBuilders() {
-    return ImmutableList.<ModelBuilder<?, ?>> builder()
+  public ImmutableSet<ModelBuilder<?, ?>> getModelBuilders() {
+    return ImmutableSet.<ModelBuilder<?, ?>> builder()
       .add(
         TimeModel.builder()
-          .setTickLength(tickSize)
+          .setTickLength(getTickSize())
           .setTimeUnit(SI.MILLI(SI.SECOND))
       )
       .add(
@@ -111,22 +104,12 @@ public final class Gendreau06Scenario extends Scenario {
             .setSpeedUnit(MAX_SPEED.getUnit())
             .setMaxSpeed(MAX_SPEED.getValue())
           )
-          .setAllowVehicleDiversion(allowDiversion)
+          .setAllowVehicleDiversion(getAllowDiversion())
       )
       .add(
         DefaultPDPModel.builder()
           .setTimeWindowPolicy(TimeWindowPolicies.TARDY_ALLOWED)
       )
       .build();
-  }
-
-  @Override
-  public ProblemClass getProblemClass() {
-    return problemClass;
-  }
-
-  @Override
-  public String getProblemInstanceId() {
-    return Integer.toString(instanceNumber);
   }
 }

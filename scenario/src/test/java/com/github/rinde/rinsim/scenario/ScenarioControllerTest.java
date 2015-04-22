@@ -304,7 +304,7 @@ public class ScenarioControllerTest {
     controller.start();
 
     assertTrue(r[0]);
-    assertEquals(scenario.asList().size() + 1, i[0]);
+    assertEquals(scenario.getEvents().size() + 1, i[0]);
     assertTrue(controller.isScenarioFinished());
 
     controller.stop();

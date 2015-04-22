@@ -50,6 +50,11 @@
 			<artifactId>rinsim-event</artifactId>
 		</dependency>
 		<dependency>
+            <groupId>com.google.auto.value</groupId>
+            <artifactId>auto-value</artifactId>
+            <scope>provided</scope>
+        </dependency>
+		<dependency>
 			<groupId>com.github.rinde</groupId>
 			<artifactId>rinsim-core</artifactId>
 			<type>test-jar</type>

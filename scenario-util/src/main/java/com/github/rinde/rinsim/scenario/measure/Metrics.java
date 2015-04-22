@@ -67,7 +67,7 @@ public final class Metrics {
   static ImmutableList<Double> measureLoad(Scenario s, int numVehicles) {
     final TravelTimes tt = ScenarioGenerator.createTravelTimes(s);
     final ImmutableList.Builder<LoadPart> loadParts = ImmutableList.builder();
-    for (final TimedEvent te : s.asList()) {
+    for (final TimedEvent te : s.getEvents()) {
       if (te instanceof AddParcelEvent) {
         loadParts.addAll(measureLoad((AddParcelEvent) te, tt));
       }
@@ -168,7 +168,7 @@ public final class Metrics {
    */
   public static double getVehicleSpeed(Scenario s) {
     double vehicleSpeed = -1d;
-    for (final TimedEvent te : s.asList()) {
+    for (final TimedEvent te : s.getEvents()) {
       if (te instanceof AddVehicleEvent) {
         if (vehicleSpeed == -1d) {
           vehicleSpeed = ((AddVehicleEvent) te).vehicleDTO.speed;
@@ -192,7 +192,7 @@ public final class Metrics {
   public static ImmutableMultiset<Enum<?>> getEventTypeCounts(Scenario s) {
     final ImmutableMultiset.Builder<Enum<?>> occurences = ImmutableMultiset
         .builder();
-    for (final TimedEvent te : s.asList()) {
+    for (final TimedEvent te : s.getEvents()) {
       occurences.add(te.getEventType());
     }
     return occurences.build();
@@ -218,7 +218,7 @@ public final class Metrics {
    */
   public static void checkTimeWindowStrictness(Scenario s) {
     final TravelTimes tt = ScenarioGenerator.createTravelTimes(s);
-    for (final TimedEvent te : s.asList()) {
+    for (final TimedEvent te : s.getEvents()) {
       if (te instanceof AddParcelEvent) {
         checkParcelTWStrictness((AddParcelEvent) te, tt);
       }
@@ -258,7 +258,7 @@ public final class Metrics {
    */
   public static ImmutableList<Long> getArrivalTimes(Scenario s) {
     final ImmutableList.Builder<Long> builder = ImmutableList.builder();
-    for (final TimedEvent te : s.asList()) {
+    for (final TimedEvent te : s.getEvents()) {
       if (te instanceof AddParcelEvent) {
         builder.add(te.time);
       }
@@ -323,7 +323,7 @@ public final class Metrics {
    *         scenario.
    */
   public static StatisticalSummary measureUrgency(Scenario s) {
-    final List<Long> urgencyValues = FluentIterable.from(s.asList())
+    final List<Long> urgencyValues = FluentIterable.from(s.getEvents())
         .filter(AddParcelEvent.class)
         .transform(Urgency.PICKUP)
         .toList();
@@ -409,7 +409,7 @@ public final class Metrics {
    */
   public static ImmutableList<Point> getServicePoints(Scenario s) {
     final ImmutableList.Builder<Point> builder = ImmutableList.builder();
-    for (final TimedEvent se : s.asList()) {
+    for (final TimedEvent se : s.getEvents()) {
       if (se instanceof AddParcelEvent) {
         builder.add(((AddParcelEvent) se).parcelDTO.pickupLocation);
         builder.add(((AddParcelEvent) se).parcelDTO.deliveryLocation);
@@ -420,7 +420,7 @@ public final class Metrics {
 
   static ImmutableList<Long> getOrderArrivalTimes(Scenario s) {
     final ImmutableList.Builder<Long> builder = ImmutableList.builder();
-    for (final TimedEvent se : s.asList()) {
+    for (final TimedEvent se : s.getEvents()) {
       if (se instanceof AddParcelEvent) {
         builder.add(((AddParcelEvent) se).parcelDTO.orderAnnounceTime);
       }

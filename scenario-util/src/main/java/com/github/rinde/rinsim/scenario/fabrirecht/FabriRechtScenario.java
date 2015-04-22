@@ -15,7 +15,6 @@
  */
 package com.github.rinde.rinsim.scenario.fabrirecht;
 
-import java.util.List;
 import java.util.Set;
 
 import javax.measure.quantity.Velocity;
@@ -33,62 +32,30 @@ import com.github.rinde.rinsim.pdptw.common.DynamicPDPTWProblem.StopConditions;
 import com.github.rinde.rinsim.scenario.Scenario;
 import com.github.rinde.rinsim.scenario.TimedEvent;
 import com.github.rinde.rinsim.util.TimeWindow;
+import com.google.auto.value.AutoValue;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 
 /**
  * A scenario for Fabri {@literal &} Recht problems.
  * @author Rinde van Lon
  */
-public class FabriRechtScenario extends Scenario {
+@AutoValue
+public abstract class FabriRechtScenario extends Scenario {
   /**
-   * Minimum position.
+   * @return Minimum position.
    */
-  public final Point min;
-  /**
-   * Maximum position.
-   */
-  public final Point max;
-  /**
-   * Time window of the scenario.
-   */
-  public final TimeWindow timeWindow;
-  /**
-   * The default vehicle.
-   */
-  public final VehicleDTO defaultVehicle;
-
-  FabriRechtScenario(Point pMin, Point pMax, TimeWindow pTimeWindow,
-    VehicleDTO pDefaultVehicle) {
-    super();
-    min = pMin;
-    max = pMax;
-    timeWindow = pTimeWindow;
-    defaultVehicle = pDefaultVehicle;
-  }
+  public abstract Point getMin();
 
   /**
-   * Create a new scenario.
-   * @param pEvents The event list.
-   * @param pSupportedTypes The event types.
-   * @param pMin {@link #min}.
-   * @param pMax {@link #max}.
-   * @param pTimeWindow {@link #timeWindow}.
-   * @param pDefaultVehicle {@link #defaultVehicle}.
+   * @return Maximum position.
    */
-  public FabriRechtScenario(List<? extends TimedEvent> pEvents,
-    Set<Enum<?>> pSupportedTypes, Point pMin, Point pMax,
-    TimeWindow pTimeWindow, VehicleDTO pDefaultVehicle) {
-    super(pEvents, pSupportedTypes);
-    min = pMin;
-    max = pMax;
-    timeWindow = pTimeWindow;
-    defaultVehicle = pDefaultVehicle;
-  }
+  public abstract Point getMax();
 
-  @Override
-  public TimeWindow getTimeWindow() {
-    return timeWindow;
-  }
+  /**
+   * @return The default vehicle.
+   */
+  public abstract VehicleDTO getDefaultVehicle();
 
   @Override
   public StopConditions getStopCondition() {
@@ -96,9 +63,8 @@ public class FabriRechtScenario extends Scenario {
   }
 
   @Override
-  public ImmutableList<? extends ModelBuilder<?, ?>> getModelBuilders() {
-    return ImmutableList
-      .<ModelBuilder<?, ?>> builder()
+  public ImmutableSet<ModelBuilder<?, ?>> getModelBuilders() {
+    return ImmutableSet.<ModelBuilder<?, ?>> builder()
       .add(
         TimeModel.builder()
           .setTickLength(1L)
@@ -106,8 +72,8 @@ public class FabriRechtScenario extends Scenario {
       )
       .add(
         RoadModelBuilders.plane()
-          .setMinPoint(min)
-          .setMaxPoint(max)
+          .setMinPoint(getMin())
+          .setMaxPoint(getMax())
           .setDistanceUnit(SI.KILOMETER)
           .setMaxSpeed(100d)
           .setSpeedUnit(
@@ -128,6 +94,30 @@ public class FabriRechtScenario extends Scenario {
   @Override
   public String getProblemInstanceId() {
     return "1";
+  }
+
+  /**
+   * Create a new scenario.
+   * @param pEvents The event list.
+   * @param pSupportedTypes The event types.
+   * @param pMin {@link #getMin()}.
+   * @param pMax {@link #getMax()}.
+   * @param pTimeWindow {@link #getTimeWindow()}.
+   * @param pDefaultVehicle {@link #getDefaultVehicle()}.
+   * @return a new instance.
+   */
+  public static FabriRechtScenario create(
+    Iterable<? extends TimedEvent> pEvents,
+    Set<Enum<?>> pSupportedTypes, Point pMin, Point pMax,
+    TimeWindow pTimeWindow, VehicleDTO pDefaultVehicle) {
+
+    return new AutoValue_FabriRechtScenario(
+      ImmutableList.<TimedEvent> copyOf(pEvents),
+      ImmutableSet.copyOf(pSupportedTypes),
+      pTimeWindow,
+      pMin,
+      pMax,
+      pDefaultVehicle);
   }
 
   enum FabriRechtProblemClass implements ProblemClass {

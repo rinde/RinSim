@@ -234,7 +234,7 @@ public class Gendreau06Test {
 
     final Set<Enum<?>> eventTypes = new HashSet<Enum<?>>(
       asList(PDPScenarioEvent.values()));
-    return new Gendreau06Scenario(events, eventTypes, 1000L,
+    return Gendreau06Scenario.create(events, eventTypes, 1000L,
       GendreauProblemClass.LONG_LOW_FREQ, 1, false);
   }
 

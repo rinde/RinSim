@@ -220,7 +220,7 @@ public class Gendreau06ParserTest {
 
   static void containsVehicles(Gendreau06Scenario scen, int num) {
     int vehicles = 0;
-    for (final TimedEvent e : scen.asList()) {
+    for (final TimedEvent e : scen.getEvents()) {
       if (e.getEventType() == PDPScenarioEvent.ADD_VEHICLE) {
         vehicles++;
       }
@@ -229,13 +229,13 @@ public class Gendreau06ParserTest {
   }
 
   static void containsTimeOut(Gendreau06Scenario scen, int minutes) {
-    final TimedEvent e = scen.asList().get(scen.size() - 1);
+    final TimedEvent e = scen.getEvents().get(scen.size() - 1);
     assertEquals(PDPScenarioEvent.TIME_OUT, e.getEventType());
     assertEquals(minutes * 60 * 1000, e.time);
   }
 
   static boolean isOnline(Gendreau06Scenario scen) {
-    for (final TimedEvent e : scen.asList()) {
+    for (final TimedEvent e : scen.getEvents()) {
       if (e.getEventType() == PDPScenarioEvent.ADD_PARCEL && e.time == -1) {
         return false;
       }

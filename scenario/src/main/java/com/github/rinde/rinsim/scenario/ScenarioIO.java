@@ -44,7 +44,6 @@ import com.github.rinde.rinsim.core.model.pdp.TimeWindowPolicy;
 import com.github.rinde.rinsim.core.pdptw.ParcelDTO;
 import com.github.rinde.rinsim.core.pdptw.VehicleDTO;
 import com.github.rinde.rinsim.geom.Point;
-import com.github.rinde.rinsim.scenario.Scenario.DefaultScenario;
 import com.github.rinde.rinsim.scenario.Scenario.ProblemClass;
 import com.github.rinde.rinsim.scenario.Scenario.SimpleProblemClass;
 import com.github.rinde.rinsim.util.TimeWindow;
@@ -95,6 +94,7 @@ public final class ScenarioIO {
         new TimedEventHierarchyIO())
       .registerTypeHierarchyAdapter(TimeWindowPolicy.class,
         new TimeWindowHierarchyIO())
+      .registerTypeAdapter(Scenario.class, new ScenarioObjIO())
 
       .registerTypeAdapter(Point.class, new PointIO())
       .registerTypeAdapter(TimeWindow.class, new TimeWindowIO())
@@ -130,7 +130,7 @@ public final class ScenarioIO {
    * @throws IOException When reading fails.
    */
   public static Scenario read(Path file) throws IOException {
-    return read(file, DefaultScenario.class);
+    return read(file, Scenario.class);
   }
 
   /**
@@ -162,7 +162,7 @@ public final class ScenarioIO {
    * @return A {@link Scenario} instance.
    */
   public static Scenario read(String s) {
-    return read(s, DefaultScenario.class);
+    return read(s, Scenario.class);
   }
 
   /**
@@ -267,6 +267,27 @@ public final class ScenarioIO {
 
     abstract T doDeserialize(JsonElement json, Type typeOfT,
       JsonDeserializationContext context);
+  }
+
+  static class ScenarioObjIO extends SafeNullIO<Scenario> {
+
+    @Override
+    JsonElement doSerialize(Scenario src, Type typeOfSrc,
+      JsonSerializationContext context) {
+      JsonObject obj = new JsonObject();
+      obj.add(CLAZZ, new JsonPrimitive(src.getClass().getName()));
+      obj.add(VALUE, context.serialize(src, src.getClass()));
+      return obj;
+    }
+
+    @Override
+    Scenario doDeserialize(JsonElement json, Type typeOfT,
+      JsonDeserializationContext context) {
+      JsonObject obj = json.getAsJsonObject();
+      Class<?> clazz = context.deserialize(obj.get(CLAZZ), Class.class);
+      return context.deserialize(obj.get(VALUE), clazz);
+    }
+
   }
 
   static class ModelBuilderIO extends SafeNullIO<ModelBuilder<?, ?>> {

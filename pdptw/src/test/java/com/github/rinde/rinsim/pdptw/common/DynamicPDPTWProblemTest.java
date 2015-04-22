@@ -18,7 +18,6 @@ package com.github.rinde.rinsim.pdptw.common;
 import static java.util.Arrays.asList;
 import static org.junit.Assert.assertEquals;
 
-import java.util.HashSet;
 import java.util.List;
 
 import javax.measure.unit.NonSI;
@@ -40,8 +39,10 @@ import com.github.rinde.rinsim.scenario.AddVehicleEvent;
 import com.github.rinde.rinsim.scenario.Scenario;
 import com.github.rinde.rinsim.scenario.TimedEvent;
 import com.github.rinde.rinsim.util.TimeWindow;
+import com.google.auto.value.AutoValue;
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 
 /**
  * @author Rinde van Lon
@@ -63,7 +64,7 @@ public class DynamicPDPTWProblemTest {
   public void noVehicleCreator() {
     final List<TimedEvent> events = asList(new TimedEvent(
       PDPScenarioEvent.ADD_DEPOT, 10));
-    new DynamicPDPTWProblem(new DummyScenario(events), 123,
+    new DynamicPDPTWProblem(createDummyScenario(events), 123,
       ImmutableList.<ModelBuilder<?, ?>> of()).simulate();
   }
 
@@ -71,8 +72,8 @@ public class DynamicPDPTWProblemTest {
   public void testStopCondition() {
     final List<TimedEvent> events = asList(new TimedEvent(
       PDPScenarioEvent.ADD_DEPOT, 10));
-    final DynamicPDPTWProblem prob = new DynamicPDPTWProblem(new DummyScenario(
-      events), 123, ImmutableList.<ModelBuilder<?, ?>> of());
+    final DynamicPDPTWProblem prob = new DynamicPDPTWProblem(
+      createDummyScenario(events), 123, ImmutableList.<ModelBuilder<?, ?>> of());
     prob.addCreator(AddVehicleEvent.class, DUMMY_ADD_VEHICLE_EVENT_CREATOR);
 
     prob.addStopCondition(new TimeStopCondition(4));
@@ -94,13 +95,14 @@ public class DynamicPDPTWProblemTest {
     }
   }
 
-  class DummyScenario extends Scenario {
+  static DummyScenario createDummyScenario(List<TimedEvent> events) {
+    return new AutoValue_DynamicPDPTWProblemTest_DummyScenario(
+      ImmutableList.copyOf(events),
+      ImmutableSet.<Enum<?>> copyOf(PDPScenarioEvent.values()));
+  }
 
-    public DummyScenario(List<TimedEvent> events) {
-      super(events, new HashSet<Enum<?>>(
-        java.util.Arrays.asList(PDPScenarioEvent.values())));
-    }
-
+  @AutoValue
+  abstract static class DummyScenario extends Scenario {
     @Override
     public TimeWindow getTimeWindow() {
       return TimeWindow.ALWAYS;
@@ -112,8 +114,8 @@ public class DynamicPDPTWProblemTest {
     }
 
     @Override
-    public ImmutableList<? extends ModelBuilder<?, ?>> getModelBuilders() {
-      return ImmutableList.<ModelBuilder<?, ?>> builder()
+    public ImmutableSet<ModelBuilder<?, ?>> getModelBuilders() {
+      return ImmutableSet.<ModelBuilder<?, ?>> builder()
         .add(
           TimeModel.builder()
             .setTickLength(1L)
@@ -143,7 +145,6 @@ public class DynamicPDPTWProblemTest {
     public String getProblemInstanceId() {
       throw new UnsupportedOperationException("Not implemented.");
     }
-
   }
 
 }

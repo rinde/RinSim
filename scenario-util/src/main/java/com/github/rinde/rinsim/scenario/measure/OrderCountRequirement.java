@@ -66,7 +66,7 @@ class OrderCountRequirement implements Predicate<Scenario> {
       return false;
     }
     final int numOrders = Collections.frequency(
-        Collections2.transform(input.asList(),
+        Collections2.transform(input.getEvents(),
             new ToClassFunction()), AddParcelEvent.class);
     return numOrders >= min && numOrders <= max;
   }

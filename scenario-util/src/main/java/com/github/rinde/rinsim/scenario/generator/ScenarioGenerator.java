@@ -238,9 +238,9 @@ public final class ScenarioGenerator {
    */
   @SuppressWarnings("null")
   public static TravelTimes createTravelTimes(Scenario s) {
-    final Iterable<AddDepotEvent> depots = FluentIterable.from(s.asList())
+    final Iterable<AddDepotEvent> depots = FluentIterable.from(s.getEvents())
       .filter(AddDepotEvent.class);
-    final Iterable<AddVehicleEvent> vehicles = FluentIterable.from(s.asList())
+    final Iterable<AddVehicleEvent> vehicles = FluentIterable.from(s.getEvents())
       .filter(AddVehicleEvent.class);
 
     final List<RoadModel> roadModels = newArrayList();

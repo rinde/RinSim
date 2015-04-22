@@ -24,7 +24,6 @@ import static com.google.common.collect.Sets.newLinkedHashSet;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
 import java.util.Queue;
 import java.util.Set;
 
@@ -36,6 +35,7 @@ import com.github.rinde.rinsim.core.model.ModelBuilder;
 import com.github.rinde.rinsim.core.model.time.TimeModel;
 import com.github.rinde.rinsim.scenario.TimedEvent.TimeComparator;
 import com.github.rinde.rinsim.util.TimeWindow;
+import com.google.auto.value.AutoValue;
 import com.google.common.base.Optional;
 import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
@@ -51,76 +51,37 @@ import com.google.common.collect.ImmutableSet;
  * @author Rinde van Lon
  * @author Bartosz Michalik
  */
+@AutoValue
 public abstract class Scenario {
   /**
    * The default {@link ProblemClass}.
    */
   public static final ProblemClass DEFAULT_PROBLEM_CLASS = new SimpleProblemClass(
     "DEFAULT");
-  private final ImmutableList<TimedEvent> events;
-  private final ImmutableSet<Enum<?>> supportedTypes;
 
   /**
-   * Creates a new empty instance with no events or event types.
+   * Instantiate a scenario.
    */
-  protected Scenario() {
-    events = ImmutableList.of();
-    supportedTypes = ImmutableSet.of();
-  }
-
-  /**
-   * Creates a new instance using a copy of the specified events and event
-   * types.
-   * @param evs A list of event sorted by time. It is the caller's
-   *          responsibility to ensure that the events are sorted, this is not
-   *          checked.
-   * @param ts A set of event types, it must contain at least all event types of
-   *          the events.
-   */
-  protected Scenario(List<? extends TimedEvent> evs, Set<Enum<?>> ts) {
-    supportedTypes = ImmutableSet.copyOf(ts);
-    events = ImmutableList.copyOf(evs);
-  }
+  protected Scenario() {}
 
   /**
    * Return a scenario as a list of (time sorted) events.
    * @return the list of events.
    */
-  public ImmutableList<TimedEvent> asList() {
-    return events;
-  }
+  public abstract ImmutableList<TimedEvent> getEvents();
 
   /**
    * @return A queue containing all events of this scenario.
    */
   public Queue<TimedEvent> asQueue() {
-    return newLinkedList(events);
+    return newLinkedList(getEvents());
   }
 
   /**
-   * @return The number of events that is in this scenario.
+   * @return The number of events that are in this scenario.
    */
   public int size() {
-    return events.size();
-  }
-
-  @Override
-  public boolean equals(@Nullable Object other) {
-    if (other == null) {
-      return false;
-    }
-    if (other == this) {
-      return true;
-    }
-    if (other.getClass() != getClass()) {
-      return false;
-    }
-    return events.equals(((Scenario) other).events);
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(supportedTypes, events);
+    return getEvents().size();
   }
 
   /**
@@ -128,15 +89,13 @@ public abstract class Scenario {
    * scenario are checked for the event type.
    * @return event types
    */
-  public Set<Enum<?>> getPossibleEventTypes() {
-    return supportedTypes;
-  }
+  public abstract ImmutableSet<Enum<?>> getPossibleEventTypes();
 
   /**
    * @return Should return a list of {@link ModelBuilder}s which will be used
    *         for creating the models for this scenario.
    */
-  public abstract ImmutableList<? extends ModelBuilder<?, ?>> getModelBuilders();
+  public abstract ImmutableSet<ModelBuilder<?, ?>> getModelBuilders();
 
   /**
    * @return The {@link TimeWindow} of the scenario indicates the start and end
@@ -158,6 +117,27 @@ public abstract class Scenario {
    * @return The instance id of this scenario.
    */
   public abstract String getProblemInstanceId();
+
+  @Override
+  public abstract boolean equals(@Nullable Object other);
+
+  @Override
+  public abstract int hashCode();
+
+  static Scenario create(
+    Iterable<? extends TimedEvent> events,
+    Iterable<? extends Enum<?>> types,
+    Iterable<? extends ModelBuilder<?, ?>> builders,
+    TimeWindow tw,
+    Predicate<Simulator> stopCondition,
+    ProblemClass pc,
+    String id) {
+    return new AutoValue_Scenario(
+      ImmutableList.<TimedEvent> copyOf(events),
+      ImmutableSet.<Enum<?>> copyOf(types),
+      ImmutableSet.<ModelBuilder<?, ?>> copyOf(builders),
+      tw, stopCondition, pc, id);
+  }
 
   /**
    * Finds all event types in the provided events.
@@ -374,7 +354,7 @@ public abstract class Scenario {
     @Override
     public Builder copyProperties(Scenario scenario) {
       return super.copyProperties(scenario)
-        .addEvents(scenario.asList())
+        .addEvents(scenario.getEvents())
         .addEventTypes(scenario.getPossibleEventTypes())
         .problemClass(scenario.getProblemClass())
         .instanceId(scenario.getProblemInstanceId())
@@ -465,17 +445,13 @@ public abstract class Scenario {
       final List<TimedEvent> list = newArrayList(eventList);
       Collections.sort(list, TimeComparator.INSTANCE);
       eventTypeSet.addAll(collectEventTypes(list));
-      return new DefaultScenario(this, ImmutableList.copyOf(list),
-        ImmutableSet.copyOf(eventTypeSet));
+      return Scenario.create(list, eventTypeSet, modelBuilders.build(),
+        timeWindow, stopCondition, problemClass, instanceId);
     }
 
     @Override
     protected Builder self() {
       return this;
-    }
-
-    ImmutableList<? extends ModelBuilder<?, ?>> getModelBuilders() {
-      return modelBuilders.build();
     }
   }
 
@@ -572,73 +548,6 @@ public abstract class Scenario {
      */
     public Predicate<Simulator> getStopCondition() {
       return stopCondition;
-    }
-  }
-
-  static class DefaultScenario extends Scenario {
-    final ImmutableList<? extends ModelBuilder<?, ?>> modelBuilders;
-    private final TimeWindow timeWindow;
-    private final Predicate<Simulator> stopCondition;
-    private final ProblemClass problemClass;
-    private final String instanceId;
-
-    DefaultScenario(Builder b, ImmutableList<TimedEvent> events,
-      ImmutableSet<Enum<?>> eventTypes) {
-      super(events, eventTypes.isEmpty() ? collectEventTypes(events)
-        : eventTypes);
-      modelBuilders = b.getModelBuilders();
-      timeWindow = b.timeWindow;
-      stopCondition = b.stopCondition;
-      problemClass = b.problemClass;
-      instanceId = b.instanceId;
-    }
-
-    @Override
-    public TimeWindow getTimeWindow() {
-      return timeWindow;
-    }
-
-    @Override
-    public Predicate<Simulator> getStopCondition() {
-      return stopCondition;
-    }
-
-    @Override
-    public ImmutableList<? extends ModelBuilder<?, ?>> getModelBuilders() {
-      return modelBuilders;
-    }
-
-    @Override
-    public ProblemClass getProblemClass() {
-      return problemClass;
-    }
-
-    @Override
-    public String getProblemInstanceId() {
-      return instanceId;
-    }
-
-    @Override
-    public boolean equals(@Nullable Object other) {
-      if (this == other) {
-        return true;
-      }
-      if (!(other instanceof DefaultScenario)) {
-        return false;
-      }
-      final DefaultScenario o = (DefaultScenario) other;
-      return super.equals(o)
-        && Objects.equals(o.modelBuilders, modelBuilders)
-        && Objects.equals(o.timeWindow, timeWindow)
-        && Objects.equals(o.stopCondition, stopCondition)
-        && Objects.equals(o.problemClass, problemClass)
-        && Objects.equals(o.instanceId, instanceId);
-    }
-
-    @Override
-    public int hashCode() {
-      return Objects.hash(super.hashCode(), modelBuilders, timeWindow,
-        stopCondition, problemClass, instanceId);
     }
   }
 }

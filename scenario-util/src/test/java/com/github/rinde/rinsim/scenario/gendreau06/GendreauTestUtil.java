@@ -27,17 +27,17 @@ import com.github.rinde.rinsim.scenario.TimedEvent;
 import com.github.rinde.rinsim.scenario.TimedEvent.TimeComparator;
 
 /**
- * @author Rinde van Lon 
- * 
+ * @author Rinde van Lon
+ *
  */
 public class GendreauTestUtil {
 
   public static Gendreau06Scenario create(
-      List<? extends TimedEvent> events, Set<Enum<?>> eventTypes,
-      long ts) {
+    List<? extends TimedEvent> events, Set<Enum<?>> eventTypes,
+    long ts) {
     Collections.sort(events, TimeComparator.INSTANCE);
-    return new Gendreau06Scenario(events, eventTypes, ts,
-        GendreauProblemClass.SHORT_LOW_FREQ, 1, false);
+    return Gendreau06Scenario.create(events, eventTypes, ts,
+      GendreauProblemClass.SHORT_LOW_FREQ, 1, false);
   }
 
   public static Gendreau06Scenario create(Collection<TimedEvent> parcels) {
@@ -45,16 +45,16 @@ public class GendreauTestUtil {
   }
 
   public static Gendreau06Scenario create(Collection<TimedEvent> parcels,
-      int numTrucks) {
+    int numTrucks) {
 
     final Gendreau06Scenario gs = Gendreau06Parser
-        .parser()
-        .addFile(new ByteArrayInputStream("".getBytes()), "req_rapide_1_240_24")
-        .setNumVehicles(numTrucks)
-        .parse().get(0);
+      .parser()
+      .addFile(new ByteArrayInputStream("".getBytes()), "req_rapide_1_240_24")
+      .setNumVehicles(numTrucks)
+      .parse().get(0);
 
     final List<TimedEvent> events = newArrayList();
-    events.addAll(gs.asList());
+    events.addAll(gs.getEvents());
     events.addAll(parcels);
     return create(events, gs.getPossibleEventTypes(), 1000);
   }

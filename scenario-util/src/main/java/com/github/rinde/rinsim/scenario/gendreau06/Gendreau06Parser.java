@@ -143,8 +143,8 @@ public final class Gendreau06Parser {
     checkValidFileName(file.getName());
     try {
       parcelsSuppliers.put(file.getName(), new InputStreamToParcels(
-          new FileInputStream(
-              file)));
+        new FileInputStream(
+          file)));
     } catch (final FileNotFoundException e) {
       throw new IllegalArgumentException(e);
     }
@@ -182,7 +182,7 @@ public final class Gendreau06Parser {
    * @return This, as per the builder pattern.
    */
   public Gendreau06Parser addFile(ImmutableList<AddParcelEvent> events,
-      String fileName) {
+    String fileName) {
     checkValidFileName(fileName);
     parcelsSuppliers.put(fileName, new Parcels(events));
     return this;
@@ -204,13 +204,13 @@ public final class Gendreau06Parser {
    */
   public Gendreau06Parser addDirectory(File dir) {
     final File[] files = dir.listFiles(
-        new FileFilter() {
-          @Override
-          public boolean accept(@Nullable File file) {
-            assert file != null;
-            return isValidFileName(file.getName());
-          }
-        });
+      new FileFilter() {
+        @Override
+        public boolean accept(@Nullable File file) {
+          assert file != null;
+          return isValidFileName(file.getName());
+        }
+      });
     Arrays.sort(files);
     for (final File f : files) {
       addFile(f);
@@ -287,9 +287,9 @@ public final class Gendreau06Parser {
    */
   public ImmutableList<Gendreau06Scenario> parse() {
     final ImmutableList.Builder<Gendreau06Scenario> scenarios = ImmutableList
-        .builder();
+      .builder();
     for (final Entry<String, ParcelsSupplier> entry : parcelsSuppliers.build()
-        .entrySet()) {
+      .entrySet()) {
       boolean include = false;
       if (!problemClasses.isPresent()) {
         include = true;
@@ -303,7 +303,7 @@ public final class Gendreau06Parser {
       }
       if (include) {
         scenarios.add(parse(entry.getValue(), entry.getKey(), numVehicles,
-            tickSize, allowDiversion, online));
+          tickSize, allowDiversion, online));
       }
     }
     return scenarios.build();
@@ -319,8 +319,8 @@ public final class Gendreau06Parser {
 
   static void checkValidFileName(Matcher m, String name) {
     checkArgument(m.matches(),
-        "The filename must conform to the following regex: %s input was: %s",
-        REGEX, name);
+      "The filename must conform to the following regex: %s input was: %s",
+      REGEX, name);
   }
 
   static void checkValidFileName(String name) {
@@ -328,12 +328,12 @@ public final class Gendreau06Parser {
   }
 
   private static Gendreau06Scenario parse(
-      ParcelsSupplier parcels,
-      String fileName, int numVehicles, final long tickSize,
-      final boolean allowDiversion, boolean online) {
+    ParcelsSupplier parcels,
+    String fileName, int numVehicles, final long tickSize,
+    final boolean allowDiversion, boolean online) {
 
     final Set<Enum<?>> evTypes = ImmutableSet.<Enum<?>> of(ADD_PARCEL,
-        ADD_DEPOT, ADD_VEHICLE, TIME_OUT);
+      ADD_DEPOT, ADD_VEHICLE, TIME_OUT);
 
     final Matcher m = matcher(fileName);
     checkValidFileName(m, fileName);
@@ -344,10 +344,10 @@ public final class Gendreau06Parser {
     final long requestsPerHour = Long.parseLong(m.group(3));
 
     final GendreauProblemClass problemClass = GendreauProblemClass.with(
-        minutes, requestsPerHour);
+      minutes, requestsPerHour);
 
     final int vehicles = numVehicles == -1 ? problemClass.vehicles
-        : numVehicles;
+      : numVehicles;
 
     final Point depotPosition = new Point(2.0, 2.5);
     final double truckSpeed = 30;
@@ -356,7 +356,7 @@ public final class Gendreau06Parser {
     events.add(new AddDepotEvent(-1, depotPosition));
     for (int i = 0; i < vehicles; i++) {
       events.add(new AddVehicleEvent(-1,
-          VehicleDTO.builder()
+        VehicleDTO.builder()
           .startPosition(depotPosition)
           .speed(truckSpeed)
           .capacity(0)
@@ -367,60 +367,60 @@ public final class Gendreau06Parser {
     events.add(new TimedEvent(TIME_OUT, totalTime));
     Collections.sort(events, TimeComparator.INSTANCE);
 
-    return new Gendreau06Scenario(events, evTypes, tickSize,
-        problemClass, instanceNumber, allowDiversion);
+    return Gendreau06Scenario.create(events, evTypes, tickSize,
+      problemClass, instanceNumber, allowDiversion);
   }
 
   static ImmutableList<AddParcelEvent> parseParcels(InputStream inputStream,
-      boolean online) {
+    boolean online) {
     final ImmutableList.Builder<AddParcelEvent> listBuilder = ImmutableList
-        .builder();
+      .builder();
     final BufferedReader reader = new BufferedReader(new InputStreamReader(
-        inputStream, Charsets.UTF_8));
+      inputStream, Charsets.UTF_8));
     String line;
     try {
       while ((line = reader.readLine()) != null) {
         final Iterator<String> parts = Iterators.forArray(line.split(" "));
         final long requestArrivalTime = DoubleMath.roundToLong(
-            Double.parseDouble(parts.next()) * TIME_MULTIPLIER,
-            RoundingMode.HALF_EVEN);
+          Double.parseDouble(parts.next()) * TIME_MULTIPLIER,
+          RoundingMode.HALF_EVEN);
         // currently filtering out first and last lines of file. Is this ok?
         if (requestArrivalTime >= 0) {
           final long pickupServiceTime = Long.parseLong(parts.next())
-              * TIME_MULTIPLIER_INTEGER;
+            * TIME_MULTIPLIER_INTEGER;
           final double pickupX = Double.parseDouble(parts.next());
           final double pickupY = Double.parseDouble(parts.next());
           final long pickupTimeWindowBegin = DoubleMath.roundToLong(
-              Double.parseDouble(parts.next()) * TIME_MULTIPLIER,
-              RoundingMode.HALF_EVEN);
+            Double.parseDouble(parts.next()) * TIME_MULTIPLIER,
+            RoundingMode.HALF_EVEN);
           final long pickupTimeWindowEnd = DoubleMath.roundToLong(
-              Double.parseDouble(parts.next()) * TIME_MULTIPLIER,
-              RoundingMode.HALF_EVEN);
+            Double.parseDouble(parts.next()) * TIME_MULTIPLIER,
+            RoundingMode.HALF_EVEN);
           final long deliveryServiceTime = Long.parseLong(parts.next())
-              * TIME_MULTIPLIER_INTEGER;
+            * TIME_MULTIPLIER_INTEGER;
           final double deliveryX = Double.parseDouble(parts.next());
           final double deliveryY = Double.parseDouble(parts.next());
           final long deliveryTimeWindowBegin = DoubleMath.roundToLong(
-              Double.parseDouble(parts.next()) * TIME_MULTIPLIER,
-              RoundingMode.HALF_EVEN);
+            Double.parseDouble(parts.next()) * TIME_MULTIPLIER,
+            RoundingMode.HALF_EVEN);
           final long deliveryTimeWindowEnd = DoubleMath.roundToLong(
-              Double.parseDouble(parts.next()) * TIME_MULTIPLIER,
-              RoundingMode.HALF_EVEN);
+            Double.parseDouble(parts.next()) * TIME_MULTIPLIER,
+            RoundingMode.HALF_EVEN);
 
           // when an offline scenario is desired, all times are set to -1
           final long arrTime = online ? requestArrivalTime : -1;
 
           final ParcelDTO dto = ParcelDTO.builder(new Point(pickupX, pickupY),
-              new Point(deliveryX, deliveryY)).
-              pickupTimeWindow(new TimeWindow(
-                  pickupTimeWindowBegin, pickupTimeWindowEnd))
-                  .deliveryTimeWindow(new TimeWindow(
-                      deliveryTimeWindowBegin, deliveryTimeWindowEnd))
-                      .neededCapacity(PARCEL_MAGNITUDE)
-                      .orderAnnounceTime(arrTime)
-                      .pickupDuration(pickupServiceTime)
-                      .deliveryDuration(deliveryServiceTime)
-                      .build();
+            new Point(deliveryX, deliveryY)).
+            pickupTimeWindow(new TimeWindow(
+              pickupTimeWindowBegin, pickupTimeWindowEnd))
+            .deliveryTimeWindow(new TimeWindow(
+              deliveryTimeWindowBegin, deliveryTimeWindowEnd))
+            .neededCapacity(PARCEL_MAGNITUDE)
+            .orderAnnounceTime(arrTime)
+            .pickupDuration(pickupServiceTime)
+            .deliveryDuration(deliveryServiceTime)
+            .build();
           listBuilder.add(new AddParcelEvent(dto));
         }
       }
