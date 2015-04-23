@@ -22,7 +22,6 @@ import java.util.List;
 import javax.measure.unit.NonSI;
 import javax.measure.unit.SI;
 
-import org.junit.Ignore;
 import org.junit.Test;
 
 import com.github.rinde.rinsim.core.model.pdp.DefaultPDPModel;
@@ -41,13 +40,11 @@ import com.github.rinde.rinsim.util.TimeWindow;
  * @author Rinde van Lon
  */
 public class ScenarioIOTest {
-  // FIXME
   /**
    * Tests the equality of a serialized and deserialized scenario with the
    * original.
    */
   @Test
-  @Ignore
   public void test() {
     final Scenario.Builder sb = Scenario
       .builder(Scenario.DEFAULT_PROBLEM_CLASS);

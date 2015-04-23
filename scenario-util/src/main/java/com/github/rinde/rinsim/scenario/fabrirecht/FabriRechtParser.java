@@ -174,7 +174,7 @@ public final class FabriRechtParser {
    * @return A new instance of [@link {@link FabriRechtScenario}.
    */
   public static FabriRechtScenario fromJson(String json) {
-    return ScenarioIO.read(json, FabriRechtScenario.class);
+    return ScenarioIO.read(json, AutoValue_FabriRechtScenario.class);
   }
 
   /**

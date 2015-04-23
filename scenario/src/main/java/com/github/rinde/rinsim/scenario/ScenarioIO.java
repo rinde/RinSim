@@ -162,7 +162,7 @@ public final class ScenarioIO {
    * @return A {@link Scenario} instance.
    */
   public static Scenario read(String s) {
-    return read(s, Scenario.class);
+    return read(s, AutoValue_Scenario.class);
   }
 
   /**

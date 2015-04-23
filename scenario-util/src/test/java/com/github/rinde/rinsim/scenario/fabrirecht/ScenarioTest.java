@@ -21,7 +21,6 @@ import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
 
-import org.junit.Ignore;
 import org.junit.Test;
 
 /**
@@ -29,8 +28,6 @@ import org.junit.Test;
  *
  */
 public class ScenarioTest {
-  // FIXME
-  @Ignore
   @Test
   public void test() throws IOException {
     final FabriRechtScenario scen = FabriRechtParser
