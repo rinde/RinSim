@@ -162,16 +162,16 @@ public final class RoadModelBuilders {
     extends AbstractRMB<T, S> {
 
     /**
-     * @return The graph supplier.
-     */
-    protected abstract Supplier<G> getGraphSupplier();
-
-    /**
      * Create a new instance.
      */
     protected AbstractGraphRMB() {
       setProvidingTypes(RoadModel.class, GraphRoadModel.class);
     }
+
+    /**
+     * @return The graph supplier.
+     */
+    protected abstract Supplier<G> getGraphSupplier();
 
     /**
      * @return the graph
