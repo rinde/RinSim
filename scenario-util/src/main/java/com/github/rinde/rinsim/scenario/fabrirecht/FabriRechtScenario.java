@@ -72,11 +72,11 @@ public abstract class FabriRechtScenario extends Scenario {
       )
       .add(
         RoadModelBuilders.plane()
-          .setMinPoint(getMin())
-          .setMaxPoint(getMax())
-          .setDistanceUnit(SI.KILOMETER)
-          .setMaxSpeed(100d)
-          .setSpeedUnit(
+          .withMinPoint(getMin())
+          .withMaxPoint(getMax())
+          .withDistanceUnit(SI.KILOMETER)
+          .withMaxSpeed(100d)
+          .withSpeedUnit(
             SI.KILOMETRE.divide(NonSI.MINUTE).asType(Velocity.class))
       )
       .add(

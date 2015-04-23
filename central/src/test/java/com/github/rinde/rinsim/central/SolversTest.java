@@ -105,7 +105,7 @@ public class SolversTest {
 
     rm = PDPRoadModel.builder(
       RoadModelBuilders.plane()
-        .setMaxSpeed(300d)
+        .withMaxSpeed(300d)
       )
       .setAllowVehicleDiversion(false)
       .build(dp);

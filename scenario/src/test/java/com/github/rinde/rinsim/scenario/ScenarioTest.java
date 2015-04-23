@@ -108,11 +108,11 @@ public class ScenarioTest {
       .stopCondition(Predicates.<Simulator> alwaysTrue())
       .addModel(
         RoadModelBuilders.plane()
-          .setMinPoint(new Point(6, 6))
-          .setMaxPoint(new Point(1034, 32))
-          .setDistanceUnit(SI.METER)
-          .setSpeedUnit(SI.METERS_PER_SECOND)
-          .setMaxSpeed(1d)
+          .withMinPoint(new Point(6, 6))
+          .withMaxPoint(new Point(1034, 32))
+          .withDistanceUnit(SI.METER)
+          .withSpeedUnit(SI.METERS_PER_SECOND)
+          .withMaxSpeed(1d)
       )
       .build();
 

@@ -74,9 +74,9 @@ public class GraphRoadModelTest extends AbstractRoadModelTest<GraphRoadModel> {
   public static Collection<Object[]> configs() {
     return Arrays.asList(new Object[][] {
         { RoadModelBuilders.staticGraph(MultimapGraph.supplier()) },
-        { RoadModelBuilders.staticGraph(MultimapGraph.supplier()).useCache() },
+        { RoadModelBuilders.staticGraph(MultimapGraph.supplier()).withCache() },
         { RoadModelBuilders.staticGraph(TableGraph.supplier()) },
-        { RoadModelBuilders.staticGraph(TableGraph.supplier()).useCache() },
+        { RoadModelBuilders.staticGraph(TableGraph.supplier()).withCache() },
         { RoadModelBuilders.dynamicGraph(ListenableGraph
           .supplier(TableGraph.supplier())) }
     });
@@ -744,8 +744,8 @@ public class GraphRoadModelTest extends AbstractRoadModelTest<GraphRoadModel> {
     g.addConnection(SW, NW);
 
     final GraphRoadModel rm = RoadModelBuilders.staticGraph(g)
-      .setDistanceUnit(SI.METER)
-      .setSpeedUnit(SI.METERS_PER_SECOND)
+      .withDistanceUnit(SI.METER)
+      .withSpeedUnit(SI.METERS_PER_SECOND)
       .build(mock(DependencyProvider.class));
     assertEquals(g, rm.getGraph());
     g.addConnection(NE, NW);

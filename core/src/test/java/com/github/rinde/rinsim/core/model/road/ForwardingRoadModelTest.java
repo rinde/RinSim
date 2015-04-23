@@ -49,11 +49,11 @@ public class ForwardingRoadModelTest extends
         public GenericRoadModel create(ForwardingRoadModelTest testClass) {
           return new ForwardingRoadModel(
             RoadModelBuilders.plane()
-              .setMinPoint(new Point(0, 0))
-              .setMaxPoint(new Point(10, 10))
-              .setDistanceUnit(SI.METER)
-              .setSpeedUnit(SI.METERS_PER_SECOND)
-              .setMaxSpeed(10d)
+              .withMinPoint(new Point(0, 0))
+              .withMaxPoint(new Point(10, 10))
+              .withDistanceUnit(SI.METER)
+              .withSpeedUnit(SI.METERS_PER_SECOND)
+              .withMaxSpeed(10d)
               .build(mock(DependencyProvider.class)));
         }
       } }, { new Creator() {

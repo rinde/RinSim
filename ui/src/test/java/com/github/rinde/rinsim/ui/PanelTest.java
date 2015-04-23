@@ -42,9 +42,9 @@ public final class PanelTest {
 
     final Simulator sim = Simulator.builder()
       .addModel(RoadModelBuilders.plane()
-        .setMinPoint(new Point(0, 0))
-        .setMaxPoint(new Point(10, 10))
-        .setMaxSpeed(10d)
+        .withMinPoint(new Point(0, 0))
+        .withMaxPoint(new Point(10, 10))
+        .withMaxSpeed(10d)
       ).build();
 
     View.create(sim)

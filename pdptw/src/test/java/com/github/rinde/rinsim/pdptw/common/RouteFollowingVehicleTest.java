@@ -128,7 +128,7 @@ public class RouteFollowingVehicleTest {
     final DependencyProvider dp = mock(DependencyProvider.class);
     rm = PDPRoadModel.builder(
       RoadModelBuilders.plane()
-        .setMaxSpeed(30d)
+        .withMaxSpeed(30d)
       )
       .setAllowVehicleDiversion(diversionIsAllowed)
       .build(dp);

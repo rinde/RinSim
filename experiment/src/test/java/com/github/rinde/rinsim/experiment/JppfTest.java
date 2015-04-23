@@ -137,7 +137,7 @@ public class JppfTest {
       .addModel(
         PDPRoadModel.builder(
           RoadModelBuilders.plane()
-            .setMaxSpeed(20d)
+            .withMaxSpeed(20d)
           )
           .setAllowVehicleDiversion(true)
       )

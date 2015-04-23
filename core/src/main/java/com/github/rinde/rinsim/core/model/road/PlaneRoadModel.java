@@ -74,11 +74,11 @@ public class PlaneRoadModel extends AbstractRoadModel<Point> {
 
   PlaneRoadModel(RoadModelBuilders.PlaneRMB b) {
     super(b.getDistanceUnit(), b.getSpeedUnit());
-    min = b.min;
-    max = b.max;
+    min = b.getMin();
+    max = b.getMax();
     width = max.x - min.x;
     height = max.y - min.y;
-    maxSpeed = unitConversion.toInSpeed(b.maxSpeed);
+    maxSpeed = unitConversion.toInSpeed(b.getMaxSpeed());
   }
 
   @Override

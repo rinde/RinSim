@@ -54,8 +54,8 @@ public final class WarehouseExample {
     final Simulator sim = Simulator.builder()
       .addModel(
         RoadModelBuilders.dynamicGraph(createSimpleGraph())
-          .avoidCollisions()
-          .setVehicleLength(VEHICLE_LENGTH)
+          .withCollisionAvoidance()
+          .withVehicleLength(VEHICLE_LENGTH)
       )
       .build();
 

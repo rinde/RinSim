@@ -78,7 +78,7 @@ public class GeneratedScenarioIOTest {
       .addModel(
         PDPRoadModel.builder(
           RoadModelBuilders.plane()
-            .setMaxSpeed(50d)
+            .withMaxSpeed(50d)
           )
           .setAllowVehicleDiversion(true)
       )

@@ -42,7 +42,7 @@ import com.google.common.collect.SetMultimap;
  * grid lock situation (spanning multiple connections) is not detected.
  * Instances can be obtained via a builder, see
  * {@link RoadModelBuilders#dynamicGraph(ListenableGraph)} and then call
- * {@link RoadModelBuilders.DynamicGraphRMB#avoidCollisions()}.
+ * {@link RoadModelBuilders.DynamicGraphRMB#withCollisionAvoidance()}.
  * <p>
  * The graph can be modified at runtime, for information about modifying the
  * graph see {@link DynamicGraphRoadModel}.
@@ -57,8 +57,8 @@ public class CollisionGraphRoadModel extends DynamicGraphRoadModel {
   CollisionGraphRoadModel(ListenableGraph<?> g, double pMinConnLength,
     RoadModelBuilders.CollisionGraphRMB builder) {
     super(g, builder);
-    vehicleLength = unitConversion.toInDist(builder.vehicleLength);
-    minDistance = unitConversion.toInDist(builder.minDistance);
+    vehicleLength = unitConversion.toInDist(builder.getVehicleLength());
+    minDistance = unitConversion.toInDist(builder.getMinDistance());
     minConnLength = unitConversion.toInDist(pMinConnLength);
     occupiedNodes = Multimaps.synchronizedSetMultimap(CategoryMap
       .<RoadUser, Point> create());
@@ -148,7 +148,7 @@ public class CollisionGraphRoadModel extends DynamicGraphRoadModel {
   public void addObjectAt(RoadUser newObj, Point pos) {
     if (newObj instanceof MovingRoadUser) {
       checkArgument(!occupiedNodes.containsValue(pos),
-      	"An object can not be added on an already occupied position %s.", pos);
+        "An object can not be added on an already occupied position %s.", pos);
       occupiedNodes.put(newObj, pos);
     }
     super.addObjectAt(newObj, pos);

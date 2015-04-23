@@ -123,11 +123,11 @@ public class DynamicPDPTWProblemTest {
         )
         .add(
           RoadModelBuilders.plane()
-            .setMinPoint(new Point(0, 0))
-            .setMaxPoint(new Point(10, 10))
-            .setDistanceUnit(SI.KILOMETER)
-            .setMaxSpeed(1d)
-            .setSpeedUnit(NonSI.KILOMETERS_PER_HOUR)
+            .withMinPoint(new Point(0, 0))
+            .withMaxPoint(new Point(10, 10))
+            .withDistanceUnit(SI.KILOMETER)
+            .withMaxSpeed(1d)
+            .withSpeedUnit(NonSI.KILOMETERS_PER_HOUR)
         )
         .add(
           DefaultPDPModel.builder()

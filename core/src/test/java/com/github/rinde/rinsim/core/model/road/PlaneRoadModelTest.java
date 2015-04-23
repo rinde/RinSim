@@ -40,9 +40,9 @@ public class PlaneRoadModelTest extends AbstractRoadModelTest<PlaneRoadModel> {
   @Override
   public void doSetUp() {
     model = RoadModelBuilders.plane()
-      .setMinPoint(new Point(0, 0))
-      .setMaxPoint(new Point(10, 10))
-      .setMaxSpeed(10d)
+      .withMinPoint(new Point(0, 0))
+      .withMaxPoint(new Point(10, 10))
+      .withMaxSpeed(10d)
       .build(mock(DependencyProvider.class));
   }
 
@@ -54,8 +54,8 @@ public class PlaneRoadModelTest extends AbstractRoadModelTest<PlaneRoadModel> {
     boolean fail = false;
     try {
       RoadModelBuilders.plane()
-        .setMinPoint(new Point(1, 0))
-        .setMaxPoint(new Point(0, 1))
+        .withMinPoint(new Point(1, 0))
+        .withMaxPoint(new Point(0, 1))
         .build(mock(DependencyProvider.class));
     } catch (final IllegalArgumentException e) {
       fail = true;
@@ -64,8 +64,8 @@ public class PlaneRoadModelTest extends AbstractRoadModelTest<PlaneRoadModel> {
     fail = false;
     try {
       RoadModelBuilders.plane()
-        .setMinPoint(new Point(0, 1))
-        .setMaxPoint(new Point(1, 0))
+        .withMinPoint(new Point(0, 1))
+        .withMaxPoint(new Point(1, 0))
         .build(mock(DependencyProvider.class));
     } catch (final IllegalArgumentException e) {
       fail = true;
@@ -81,7 +81,7 @@ public class PlaneRoadModelTest extends AbstractRoadModelTest<PlaneRoadModel> {
     boolean fail = false;
     try {
       RoadModelBuilders.plane()
-        .setMaxSpeed(0d)
+        .withMaxSpeed(0d)
         .build(mock(DependencyProvider.class));
     } catch (final IllegalArgumentException e) {
       fail = true;

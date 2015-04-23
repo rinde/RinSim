@@ -125,9 +125,9 @@ public class PDPModelTest {
     final DependencyProvider dp = mock(DependencyProvider.class);
 
     rm = RoadModelBuilders.plane()
-      .setDistanceUnit(SI.METER)
-      .setMaxSpeed(Double.POSITIVE_INFINITY)
-      .setSpeedUnit(SI.METERS_PER_SECOND)
+      .withDistanceUnit(SI.METER)
+      .withMaxSpeed(Double.POSITIVE_INFINITY)
+      .withSpeedUnit(SI.METERS_PER_SECOND)
       .build(dp);
 
     when(dp.get(RoadModel.class)).thenReturn(rm);

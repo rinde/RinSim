@@ -70,9 +70,9 @@ public final class SimpleExample {
       // (0,0) and (10,10)
       .addModel(
         RoadModelBuilders.plane()
-          .setMinPoint(MIN_POINT)
-          .setMaxPoint(MAX_POINT)
-          .setMaxSpeed(VEHICLE_SPEED_KMH)
+          .withMinPoint(MIN_POINT)
+          .withMaxPoint(MAX_POINT)
+          .withMaxSpeed(VEHICLE_SPEED_KMH)
       )
       .build();
 

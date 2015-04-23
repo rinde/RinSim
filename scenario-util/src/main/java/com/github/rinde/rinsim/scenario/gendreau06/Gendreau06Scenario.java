@@ -98,11 +98,11 @@ public abstract class Gendreau06Scenario extends Scenario {
       .add(
         PDPRoadModel.builder(
           RoadModelBuilders.plane()
-            .setMinPoint(MIN)
-            .setMaxPoint(MAX)
-            .setDistanceUnit(SI.KILOMETER)
-            .setSpeedUnit(MAX_SPEED.getUnit())
-            .setMaxSpeed(MAX_SPEED.getValue())
+            .withMinPoint(MIN)
+            .withMaxPoint(MAX)
+            .withDistanceUnit(SI.KILOMETER)
+            .withSpeedUnit(MAX_SPEED.getUnit())
+            .withMaxSpeed(MAX_SPEED.getValue())
           )
           .setAllowVehicleDiversion(getAllowDiversion())
       )

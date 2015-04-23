@@ -56,8 +56,8 @@ public class GraphBasedRenderersTest {
       10), new Point(0, 10), new Point(0, 0));
 
     final Simulator sim = Simulator.builder()
-      .addModel(RoadModelBuilders.dynamicGraph(graph).avoidCollisions()
-        .setDistanceUnit(SI.METER))
+      .addModel(RoadModelBuilders.dynamicGraph(graph).withCollisionAvoidance()
+        .withDistanceUnit(SI.METER))
       .build();
 
     graph.addConnection(new Point(0, 0), new Point(20, 20));

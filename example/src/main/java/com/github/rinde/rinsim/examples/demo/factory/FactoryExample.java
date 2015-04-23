@@ -154,8 +154,8 @@ public final class FactoryExample {
       .setRandomGenerator(rng)
       .addModel(
         BlockingGraphRoadModel.blockingBuilder(g)
-          .setDistanceUnit(SI.METER)
-          .setSpeedUnit(NonSI.KILOMETERS_PER_HOUR)
+          .withDistanceUnit(SI.METER)
+          .withSpeedUnit(NonSI.KILOMETERS_PER_HOUR)
       )
       .addModel(
         DefaultPDPModel.builder()

@@ -39,8 +39,8 @@ public class PDPRoadModelIOTest {
       .builder(Scenario.DEFAULT_PROBLEM_CLASS)
       .addModel(PDPRoadModel.builder(
         RoadModelBuilders.plane()
-          .setSpeedUnit(NonSI.MILES_PER_HOUR)
-          .setMaxSpeed(7)
+          .withSpeedUnit(NonSI.MILES_PER_HOUR)
+          .withMaxSpeed(7)
         )
         .setAllowVehicleDiversion(true)
       );

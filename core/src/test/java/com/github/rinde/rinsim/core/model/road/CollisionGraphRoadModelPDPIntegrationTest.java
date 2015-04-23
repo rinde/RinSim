@@ -75,11 +75,11 @@ public class CollisionGraphRoadModelPDPIntegrationTest {
       .setTimeUnit(SI.SECOND)
       .addModel(
         RoadModelBuilders.dynamicGraph(graph)
-          .avoidCollisions()
-          .setVehicleLength(1d)
-          .setDistanceUnit(SI.METER)
-          .setMinDistance(0)
-          .setSpeedUnit(SI.METERS_PER_SECOND)
+          .withCollisionAvoidance()
+          .withVehicleLength(1d)
+          .withDistanceUnit(SI.METER)
+          .withMinDistance(0)
+          .withSpeedUnit(SI.METERS_PER_SECOND)
       )
       .addModel(DefaultPDPModel.builder())
       .build();

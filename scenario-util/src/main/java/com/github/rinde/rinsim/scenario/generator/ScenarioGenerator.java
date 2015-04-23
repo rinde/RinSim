@@ -97,8 +97,8 @@ public final class ScenarioGenerator {
       checkArgument(mb instanceof RoadModelBuilders.PlaneRMB);
       planeBuilder = (RoadModelBuilders.PlaneRMB) mb;
     }
-    planeBuilder.setMinPoint(getMin())
-      .setMaxPoint(getMax());
+    planeBuilder.withMinPoint(getMin())
+      .withMaxPoint(getMax());
     distanceUnit = planeBuilder.getDistanceUnit();
     speedUnit = planeBuilder.getSpeedUnit();
 

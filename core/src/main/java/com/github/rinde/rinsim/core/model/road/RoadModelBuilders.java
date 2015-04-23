@@ -16,11 +16,7 @@
 package com.github.rinde.rinsim.core.model.road;
 
 import static com.google.common.base.Preconditions.checkArgument;
-import static java.util.Objects.hash;
 
-import java.util.Objects;
-
-import javax.annotation.Nullable;
 import javax.measure.quantity.Length;
 import javax.measure.quantity.Velocity;
 import javax.measure.unit.NonSI;
@@ -33,6 +29,7 @@ import com.github.rinde.rinsim.geom.Connection;
 import com.github.rinde.rinsim.geom.Graph;
 import com.github.rinde.rinsim.geom.ListenableGraph;
 import com.github.rinde.rinsim.geom.Point;
+import com.google.auto.value.AutoValue;
 import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
 import com.google.common.primitives.Doubles;
@@ -55,7 +52,7 @@ public final class RoadModelBuilders {
    *         {@link PlaneRoadModel}.
    */
   public static RoadModelBuilders.PlaneRMB plane() {
-    return new RoadModelBuilders.PlaneRMB();
+    return PlaneRMB.create();
   }
 
   /**
@@ -65,7 +62,7 @@ public final class RoadModelBuilders {
    * @return A new {@link RoadModelBuilders.StaticGraphRMB}.
    */
   public static RoadModelBuilders.StaticGraphRMB staticGraph(Graph<?> graph) {
-    return new RoadModelBuilders.StaticGraphRMB(Suppliers.ofInstance(graph));
+    return StaticGraphRMB.create(Suppliers.ofInstance(graph));
   }
 
   /**
@@ -77,7 +74,7 @@ public final class RoadModelBuilders {
    */
   public static RoadModelBuilders.StaticGraphRMB staticGraph(
     Supplier<? extends Graph<?>> graphSupplier) {
-    return new RoadModelBuilders.StaticGraphRMB(graphSupplier);
+    return StaticGraphRMB.create(graphSupplier);
   }
 
   /**
@@ -97,11 +94,9 @@ public final class RoadModelBuilders {
    * @param g A supplier of {@link ListenableGraph}.
    * @return A new {@link RoadModelBuilders.DynamicGraphRMB} instance.
    */
-  @SuppressWarnings("unchecked")
   public static RoadModelBuilders.DynamicGraphRMB dynamicGraph(
     Supplier<? extends ListenableGraph<?>> g) {
-    return new RoadModelBuilders.DynamicGraphRMB(
-      (Supplier<ListenableGraph<?>>) g);
+    return DynamicGraphRMB.create(g);
   }
 
   /**
@@ -115,58 +110,41 @@ public final class RoadModelBuilders {
   public abstract static class AbstractRMB<T extends RoadModel, S> extends
     AbstractModelBuilder<T, RoadUser> {
 
-    private Unit<Length> distanceUnit;
-    private Unit<Velocity> speedUnit;
+    /**
+     * The default distance unit: {@link SI#KILOMETER}.
+     */
+    protected static final Unit<Length> DEFAULT_DISTANCE_UNIT = SI.KILOMETER;
 
     /**
-     * Create instance.
+     * The default speed unit: {@link NonSI#KILOMETERS_PER_HOUR}.
      */
-    protected AbstractRMB() {
-      distanceUnit = SI.KILOMETER;
-      speedUnit = NonSI.KILOMETERS_PER_HOUR;
-    }
-
-    /**
-     * Should return the builder itself.
-     * @return This.
-     */
-    protected abstract S self();
-
-    /**
-     * Sets the distance unit to for all dimensions. The default is
-     * {@link SI#KILOMETER}.
-     * @param unit The distance unit to set.
-     * @return This, as per the builder pattern.
-     */
-    public S setDistanceUnit(Unit<Length> unit) {
-      distanceUnit = unit;
-      return self();
-    }
-
-    /**
-     * Sets the speed unit to use for all speeds. The default is
-     * {@link NonSI#KILOMETERS_PER_HOUR}.
-     * @param unit The speed unit to set
-     * @return This, as per the builder pattern.
-     */
-    public S setSpeedUnit(Unit<Velocity> unit) {
-      speedUnit = unit;
-      return self();
-    }
+    protected static final Unit<Velocity> DEFAULT_SPEED_UNIT = NonSI.KILOMETERS_PER_HOUR;
 
     /**
      * @return the distanceUnit
      */
-    public Unit<Length> getDistanceUnit() {
-      return distanceUnit;
-    }
+    public abstract Unit<Length> getDistanceUnit();
 
     /**
      * @return the speedUnit
      */
-    public Unit<Velocity> getSpeedUnit() {
-      return speedUnit;
-    }
+    public abstract Unit<Velocity> getSpeedUnit();
+
+    /**
+     * Returns a new copy of this builder with the specified distance unit used
+     * for all distances. The default is {@link SI#KILOMETER}.
+     * @param unit The distance unit to set.
+     * @return A new builder instance.
+     */
+    public abstract S withDistanceUnit(Unit<Length> unit);
+
+    /**
+     * Returns a new copy of this builder with the specified speed unit to use
+     * for all speeds. The default is {@link NonSI#KILOMETERS_PER_HOUR}.
+     * @param unit The speed unit to set
+     * @return A new builder instance.
+     */
+    public abstract S withSpeedUnit(Unit<Velocity> unit);
   }
 
   /**
@@ -180,39 +158,23 @@ public final class RoadModelBuilders {
   public abstract static class AbstractGraphRMB<T extends GraphRoadModel, S, G extends Graph<?>>
     extends AbstractRMB<T, S> {
 
-    final Supplier<G> graphSupplier;
+    /**
+     * @return The graph supplier.
+     */
+    protected abstract Supplier<G> getGraphSupplier();
 
     /**
      * Create a new instance.
-     * @param g The graph which will be used as road structure.
      */
-    @SuppressWarnings("unchecked")
-    protected AbstractGraphRMB(Supplier<? extends G> g) {
-      graphSupplier = (Supplier<G>) g;
+    protected AbstractGraphRMB() {
       setProvidingTypes(RoadModel.class, GraphRoadModel.class);
-    }
-
-    @Override
-    public int hashCode() {
-      return hash(graphSupplier, getDistanceUnit(), getSpeedUnit());
-    }
-
-    @Override
-    public boolean equals(@Nullable Object other) {
-      if (other == null || other.getClass() != getClass()) {
-        return false;
-      }
-      final AbstractGraphRMB<?, ?, ?> o = (AbstractGraphRMB<?, ?, ?>) other;
-      return Objects.equals(graphSupplier, o.graphSupplier)
-        && Objects.equals(getDistanceUnit(), o.getDistanceUnit())
-        && Objects.equals(getSpeedUnit(), o.getSpeedUnit());
     }
 
     /**
      * @return the graph
      */
     public G getGraph() {
-      return graphSupplier.get();
+      return getGraphSupplier().get();
     }
   }
 
@@ -225,107 +187,97 @@ public final class RoadModelBuilders {
    * @author Rinde van Lon
    */
   public abstract static class AbstractDynamicGraphRMB<T extends DynamicGraphRoadModel, S>
-    extends AbstractGraphRMB<T, S, ListenableGraph<?>> {
-
-    /**
-     * Create a new instance.
-     * @param supplier Supplier of the graph that will be used as road
-     *          structure.
-     */
-    protected AbstractDynamicGraphRMB(Supplier<ListenableGraph<?>> supplier) {
-      super(supplier);
-    }
-  }
+    extends AbstractGraphRMB<T, S, ListenableGraph<?>> {}
 
   /**
    * A builder for {@link PlaneRoadModel}. Instances can be obtained via
    * {@link #plane()}.
    * @author Rinde van Lon
    */
-  public static final class PlaneRMB extends
+  @AutoValue
+  public abstract static class PlaneRMB extends
     AbstractRMB<PlaneRoadModel, PlaneRMB> {
     static final double DEFAULT_MAX_SPEED = 50d;
     static final Point DEFAULT_MIN_POINT = new Point(0, 0);
     static final Point DEFAULT_MAX_POINT = new Point(10, 10);
 
-    Point min;
-    Point max;
-    double maxSpeed;
-
     PlaneRMB() {
       setProvidingTypes(RoadModel.class, PlaneRoadModel.class);
-      min = DEFAULT_MIN_POINT;
-      max = DEFAULT_MAX_POINT;
-      maxSpeed = DEFAULT_MAX_SPEED;
     }
 
+    abstract Point getMin();
+
+    abstract Point getMax();
+
+    abstract double getMaxSpeed();
+
     /**
-     * Sets the min point that defines the left top corner of the plane. The
-     * default is <code>(0,0)</code>.
+     * Returns a copy of this builder with the specified min point. The min
+     * point defines the left top corner of the plane. The default is
+     * <code>(0,0)</code>.
      * @param minPoint The min point to set.
-     * @return This, as per the builder pattern.
+     * @return A new builder instance.
      */
-    public PlaneRMB setMinPoint(Point minPoint) {
-      min = minPoint;
-      return self();
+    public PlaneRMB withMinPoint(Point minPoint) {
+      return create(getDistanceUnit(), getSpeedUnit(), minPoint, getMax(),
+        getMaxSpeed());
     }
 
     /**
-     * Sets the max point that defines the right bottom corner of the plane. The
-     * default is <code>(10,10)</code>.
+     * Returns a copy of this builder with the specified max point. The max
+     * point defines the right bottom corner of the plane. The default is
+     * <code>(10,10)</code>.
      * @param maxPoint The max point to set.
-     * @return This, as per the builder pattern.
+     * @return A new builder instance.
      */
-    public PlaneRMB setMaxPoint(Point maxPoint) {
-      max = maxPoint;
-      return self();
+    public PlaneRMB withMaxPoint(Point maxPoint) {
+      return create(getDistanceUnit(), getSpeedUnit(), getMin(), maxPoint,
+        getMaxSpeed());
     }
 
     /**
-     * Sets the maximum speed to use for all vehicles in the model. The default
-     * is <code>50</code>.
-     * @param speed The max speed to set.
-     * @return This, as per the builder pattern.
+     * Returns a copy of this builder with the specified maximum speed. The
+     * maximum speed will be used for all vehicles in the model. The default is
+     * <code>50</code>.
+     * @param maxSpeed The max speed to set.
+     * @return A new builder instance.
      */
-    public PlaneRMB setMaxSpeed(double speed) {
-      checkArgument(speed > 0d,
+    public PlaneRMB withMaxSpeed(double maxSpeed) {
+      checkArgument(maxSpeed > 0d,
         "Max speed must be strictly positive but is %s.",
-        speed);
-      maxSpeed = speed;
-      return self();
+        maxSpeed);
+      return create(getDistanceUnit(), getSpeedUnit(), getMin(), getMax(),
+        maxSpeed);
+    }
+
+    @Override
+    public PlaneRMB withDistanceUnit(Unit<Length> unit) {
+      return create(unit, getSpeedUnit(), getMin(), getMax(), getMaxSpeed());
+    }
+
+    @Override
+    public PlaneRMB withSpeedUnit(Unit<Velocity> unit) {
+      return create(getDistanceUnit(), unit, getMin(), getMax(), getMaxSpeed());
     }
 
     @Override
     public PlaneRoadModel build(DependencyProvider dependencyProvider) {
       checkArgument(
-        min.x < max.x && min.y < max.y,
+        getMin().x < getMax().x && getMin().y < getMax().y,
         "Min should have coordinates smaller than max, found min %s and max %s.",
-        min, max);
+        getMin(), getMax());
       return new PlaneRoadModel(this);
     }
 
-    @Override
-    public boolean equals(@Nullable Object other) {
-      if (other == null || getClass() != other.getClass()) {
-        return false;
-      }
-      final PlaneRMB o = (PlaneRMB) other;
-      return Objects.equals(min, o.min)
-        && Objects.equals(max, o.max)
-        && Objects.equals(getDistanceUnit(), o.getDistanceUnit())
-        && Objects.equals(getSpeedUnit(), o.getSpeedUnit())
-        && Objects.equals(maxSpeed, o.maxSpeed);
+    static PlaneRMB create() {
+      return create(DEFAULT_DISTANCE_UNIT, DEFAULT_SPEED_UNIT,
+        DEFAULT_MIN_POINT, DEFAULT_MAX_POINT, DEFAULT_MAX_SPEED);
     }
 
-    @Override
-    public int hashCode() {
-      return Objects
-        .hash(min, max, getDistanceUnit(), getSpeedUnit(), maxSpeed);
-    }
-
-    @Override
-    protected PlaneRMB self() {
-      return this;
+    static PlaneRMB create(Unit<Length> distanceUnit, Unit<Velocity> speedUnit,
+      Point min, Point max, double maxSpeed) {
+      return new AutoValue_RoadModelBuilders_PlaneRMB(distanceUnit, speedUnit,
+        min, max, maxSpeed);
     }
   }
 
@@ -334,15 +286,24 @@ public final class RoadModelBuilders {
    * obtained via {@link RoadModelBuilders#staticGraph(Graph)}.
    * @author Rinde van Lon
    */
-  public static final class StaticGraphRMB extends
+  @AutoValue
+  public abstract static class StaticGraphRMB extends
     AbstractGraphRMB<GraphRoadModel, StaticGraphRMB, Graph<?>> {
-    StaticGraphRMB(Supplier<? extends Graph<?>> g) {
-      super(g);
+    StaticGraphRMB() {
+      setProvidingTypes(RoadModel.class, GraphRoadModel.class);
     }
 
     @Override
-    public GraphRoadModel build(DependencyProvider dependencyProvider) {
-      return new GraphRoadModel(getGraph(), this);
+    protected abstract Supplier<Graph<?>> getGraphSupplier();
+
+    @Override
+    public StaticGraphRMB withDistanceUnit(Unit<Length> unit) {
+      return create(unit, getSpeedUnit(), getGraphSupplier());
+    }
+
+    @Override
+    public StaticGraphRMB withSpeedUnit(Unit<Velocity> unit) {
+      return create(getDistanceUnit(), unit, getGraphSupplier());
     }
 
     /**
@@ -350,15 +311,25 @@ public final class RoadModelBuilders {
      * {@link CachedGraphRoadModel} instead.
      * @return A new {@link CachedGraphRMB} instance.
      */
-    public CachedGraphRMB useCache() {
-      return new CachedGraphRMB(graphSupplier)
-        .setDistanceUnit(getDistanceUnit())
-        .setSpeedUnit(getSpeedUnit());
+    public CachedGraphRMB withCache() {
+      return CachedGraphRMB.create(getDistanceUnit(), getSpeedUnit(),
+        getGraphSupplier());
     }
 
     @Override
-    protected StaticGraphRMB self() {
-      return this;
+    public GraphRoadModel build(DependencyProvider dependencyProvider) {
+      return new GraphRoadModel(getGraph(), this);
+    }
+
+    static StaticGraphRMB create(Supplier<? extends Graph<?>> graph) {
+      return create(DEFAULT_DISTANCE_UNIT, DEFAULT_SPEED_UNIT, graph);
+    }
+
+    @SuppressWarnings("unchecked")
+    static StaticGraphRMB create(Unit<Length> distanceUnit,
+      Unit<Velocity> speedUnit, Supplier<? extends Graph<?>> graph) {
+      return new AutoValue_RoadModelBuilders_StaticGraphRMB(distanceUnit,
+        speedUnit, (Supplier<Graph<?>>) graph);
     }
   }
 
@@ -368,26 +339,33 @@ public final class RoadModelBuilders {
    * builder instances.
    * @author Rinde van Lon
    */
-  public static final class DynamicGraphRMB extends
+  @AutoValue
+  public abstract static class DynamicGraphRMB extends
     AbstractDynamicGraphRMB<DynamicGraphRoadModel, DynamicGraphRMB> {
 
-    DynamicGraphRMB(Supplier<ListenableGraph<?>> g) {
-      super(g);
-    }
+    @Override
+    protected abstract Supplier<ListenableGraph<?>> getGraphSupplier();
 
     /**
      * Will return a new builder that constructs {@link CollisionGraphRoadModel}
      * instances instead of {@link DynamicGraphRoadModel} instances. Note that
      * all connections in the specified graph must have length
      * <code>2 * vehicleLength</code>, where vehicle length can be specified in
-     * {@link CollisionGraphRMB#setVehicleLength(double)}.
+     * {@link CollisionGraphRMB#withVehicleLength(double)}.
      * @return A new {@link CollisionGraphRMB} instance.
      */
-    public CollisionGraphRMB avoidCollisions() {
-      return new CollisionGraphRMB(
-        graphSupplier)
-        .setDistanceUnit(getDistanceUnit())
-        .setSpeedUnit(getSpeedUnit());
+    public CollisionGraphRMB withCollisionAvoidance() {
+      return CollisionGraphRMB.create(this);
+    }
+
+    @Override
+    public DynamicGraphRMB withDistanceUnit(Unit<Length> unit) {
+      return create(unit, getSpeedUnit(), getGraphSupplier());
+    }
+
+    @Override
+    public DynamicGraphRMB withSpeedUnit(Unit<Velocity> unit) {
+      return create(getDistanceUnit(), unit, getGraphSupplier());
     }
 
     @Override
@@ -395,9 +373,17 @@ public final class RoadModelBuilders {
       return new DynamicGraphRoadModel(getGraph(), this);
     }
 
-    @Override
-    protected DynamicGraphRMB self() {
-      return this;
+    static DynamicGraphRMB create(
+      Supplier<? extends ListenableGraph<?>> graphSupplier) {
+      return create(DEFAULT_DISTANCE_UNIT, DEFAULT_SPEED_UNIT, graphSupplier);
+    }
+
+    @SuppressWarnings("unchecked")
+    static DynamicGraphRMB create(Unit<Length> distanceUnit,
+      Unit<Velocity> speedUnit,
+      Supplier<? extends ListenableGraph<?>> graphSupplier) {
+      return new AutoValue_RoadModelBuilders_DynamicGraphRMB(distanceUnit,
+        speedUnit, (Supplier<ListenableGraph<?>>) graphSupplier);
     }
   }
 
@@ -405,12 +391,12 @@ public final class RoadModelBuilders {
    * Builder for {@link CachedGraphRoadModel} instances.
    * @author Rinde van Lon
    */
-  public static final class CachedGraphRMB extends
+  @AutoValue
+  public abstract static class CachedGraphRMB extends
     AbstractGraphRMB<CachedGraphRoadModel, CachedGraphRMB, Graph<?>> {
 
-    CachedGraphRMB(Supplier<? extends Graph<?>> g) {
-      super(g);
-    }
+    @Override
+    protected abstract Supplier<Graph<?>> getGraphSupplier();
 
     @Override
     public CachedGraphRoadModel build(DependencyProvider dependencyProvider) {
@@ -418,8 +404,20 @@ public final class RoadModelBuilders {
     }
 
     @Override
-    protected CachedGraphRMB self() {
-      return this;
+    public CachedGraphRMB withDistanceUnit(Unit<Length> unit) {
+      return create(unit, getSpeedUnit(), getGraphSupplier());
+    }
+
+    @Override
+    public CachedGraphRMB withSpeedUnit(Unit<Velocity> unit) {
+      return create(getDistanceUnit(), unit, getGraphSupplier());
+    }
+
+    @SuppressWarnings("unchecked")
+    static CachedGraphRMB create(Unit<Length> distanceUnit,
+      Unit<Velocity> speedUnit, Supplier<? extends Graph<?>> graph) {
+      return new AutoValue_RoadModelBuilders_CachedGraphRMB(distanceUnit,
+        speedUnit, (Supplier<Graph<?>>) graph);
     }
   }
 
@@ -427,7 +425,8 @@ public final class RoadModelBuilders {
    * A builder for constructing {@link CollisionGraphRoadModel} instances.
    * @author Rinde van Lon
    */
-  public static final class CollisionGraphRMB extends
+  @AutoValue
+  public abstract static class CollisionGraphRMB extends
     AbstractDynamicGraphRMB<CollisionGraphRoadModel, CollisionGraphRMB> {
 
     /**
@@ -440,54 +439,66 @@ public final class RoadModelBuilders {
      */
     public static final double DEFAULT_MIN_DISTANCE = .25;
 
-    double vehicleLength;
-    double minDistance;
+    @Override
+    protected abstract Supplier<ListenableGraph<?>> getGraphSupplier();
 
-    CollisionGraphRMB(Supplier<ListenableGraph<?>> g) {
-      super(g);
-      vehicleLength = DEFAULT_VEHICLE_LENGTH;
-      minDistance = DEFAULT_MIN_DISTANCE;
-    }
+    abstract double getVehicleLength();
+
+    abstract double getMinDistance();
 
     /**
-     * Sets the length of each vehicle added to the
+     * Returns a copy of this builder with the specified vehicle length. The
+     * vehicle length defines the length of each vehicle added to the
      * {@link CollisionGraphRoadModel} that will be constructed by this builder.
      * The vehicle length must be a strictly positive number. The default value
      * is {@link #DEFAULT_VEHICLE_LENGTH}.
      * @param length A length expressed in the unit set by
-     *          {@link #setDistanceUnit(Unit)}.
-     * @return This, as per the builder pattern.
+     *          {@link #withDistanceUnit(Unit)}.
+     * @return A new builder instance.
      */
-    public CollisionGraphRMB setVehicleLength(double length) {
+    public CollisionGraphRMB withVehicleLength(double length) {
       checkArgument(length > 0d,
         "Only positive vehicle lengths are allowed, found %s.", length);
       checkArgument(Doubles.isFinite(length),
         "%s is not a valid vehicle length.", length);
-      vehicleLength = length;
-      return this;
+      return create(getDistanceUnit(), getSpeedUnit(), getGraphSupplier(),
+        length, getMinDistance());
     }
 
     /**
-     * Sets the minimum required distance between two vehicles. The minimum
-     * distance must be a positive number &le; to 2 * vehicle length. The
-     * default value is {@link #DEFAULT_MIN_DISTANCE}.
+     * Returns a copy of this builder with the specified min distance. The min
+     * distance defines the minimum required distance between two vehicles. The
+     * minimum distance must be a positive number &le; to 2 * vehicle length.
+     * The default value is {@link #DEFAULT_MIN_DISTANCE}.
      * @param dist A distance expressed in the unit set by
-     *          {@link #setDistanceUnit(Unit)}.
-     * @return This, as per the builder pattern.
+     *          {@link #withDistanceUnit(Unit)}.
+     * @return A new builder instance.
      */
-    public CollisionGraphRMB setMinDistance(double dist) {
+    public CollisionGraphRMB withMinDistance(double dist) {
       checkArgument(dist >= 0d);
-      minDistance = dist;
-      return this;
+      return create(getDistanceUnit(), getSpeedUnit(), getGraphSupplier(),
+        getVehicleLength(), dist);
+    }
+
+    @Override
+    public CollisionGraphRMB withDistanceUnit(Unit<Length> unit) {
+      return create(unit, getSpeedUnit(), getGraphSupplier(),
+        getVehicleLength(), getMinDistance());
+    }
+
+    @Override
+    public CollisionGraphRMB withSpeedUnit(Unit<Velocity> unit) {
+      return create(getDistanceUnit(), unit, getGraphSupplier(),
+        getVehicleLength(), getMinDistance());
     }
 
     @Override
     public CollisionGraphRoadModel build(DependencyProvider dependencyProvider) {
-      final double minConnectionLength = vehicleLength;
+      final double minConnectionLength = getVehicleLength();
       checkArgument(
-        minDistance <= minConnectionLength,
+        getMinDistance() <= minConnectionLength,
         "Min distance must be smaller than 2 * vehicle length (%s), but is %s.",
-        vehicleLength, minDistance);
+        getVehicleLength(), getMinDistance());
       final ListenableGraph<?> graph = getGraph();
 
       for (final Connection<?> conn : graph.getConnections()) {
@@ -497,26 +508,19 @@ public final class RoadModelBuilders {
       return new CollisionGraphRoadModel(graph, minConnectionLength, this);
     }
 
-    @Override
-    public boolean equals(@Nullable Object other) {
-      if (other == null || other.getClass() != getClass()) {
-        return false;
-      }
-      final CollisionGraphRMB o = (CollisionGraphRMB) other;
-      return Objects.equals(minDistance, o.minDistance)
-        && Objects.equals(vehicleLength, o.vehicleLength)
-        && super.equals(other);
+    static CollisionGraphRMB create(DynamicGraphRMB builder) {
+      return create(builder.getDistanceUnit(), builder.getSpeedUnit(),
+        builder.getGraphSupplier(), DEFAULT_VEHICLE_LENGTH,
+        DEFAULT_MIN_DISTANCE);
     }
 
-    @Override
-    public int hashCode() {
-      return hash(minDistance, vehicleLength, getGraph(), getDistanceUnit(),
-        getSpeedUnit());
-    }
-
-    @Override
-    protected CollisionGraphRMB self() {
-      return this;
+    static CollisionGraphRMB create(Unit<Length> distanceUnit,
+      Unit<Velocity> speedUnit,
+      Supplier<ListenableGraph<?>> graphSupplier,
+      double vehicleLength,
+      double minDistance) {
+      return new AutoValue_RoadModelBuilders_CollisionGraphRMB(distanceUnit,
+        speedUnit, graphSupplier, vehicleLength, minDistance);
     }
   }
 }

@@ -24,17 +24,23 @@ import java.util.List;
 import java.util.Queue;
 import java.util.Set;
 
+import javax.measure.quantity.Length;
+import javax.measure.quantity.Velocity;
+import javax.measure.unit.Unit;
+
 import com.github.rinde.rinsim.core.model.DependencyProvider;
 import com.github.rinde.rinsim.core.model.road.GraphRoadModel;
 import com.github.rinde.rinsim.core.model.road.MoveProgress;
 import com.github.rinde.rinsim.core.model.road.MovingRoadUser;
 import com.github.rinde.rinsim.core.model.road.RoadModel;
-import com.github.rinde.rinsim.core.model.road.RoadModelBuilders;
+import com.github.rinde.rinsim.core.model.road.RoadModelBuilders.AbstractGraphRMB;
 import com.github.rinde.rinsim.core.model.time.TimeLapse;
 import com.github.rinde.rinsim.geom.Connection;
 import com.github.rinde.rinsim.geom.ConnectionData;
 import com.github.rinde.rinsim.geom.Graph;
 import com.github.rinde.rinsim.geom.Point;
+import com.google.auto.value.AutoValue;
+import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Multimap;
@@ -94,17 +100,29 @@ public class BlockingGraphRoadModel extends GraphRoadModel {
   }
 
   static Builder blockingBuilder(Graph<?> g) {
-    return new Builder(g);
+    return Builder.create(Suppliers.<Graph<?>> ofInstance(g));
   }
 
-  static class Builder
-    extends
-    RoadModelBuilders.AbstractGraphRMB<BlockingGraphRoadModel, Builder, Graph<?>> {
+  @AutoValue
+  abstract static class Builder extends
+    AbstractGraphRMB<BlockingGraphRoadModel, Builder, Graph<?>> {
 
-    Builder(Graph<?> g) {
-      super(Suppliers.ofInstance(g));
+    Builder() {
       setProvidingTypes(RoadModel.class, GraphRoadModel.class,
         BlockingGraphRoadModel.class);
+    }
+
+    @Override
+    protected abstract Supplier<Graph<?>> getGraphSupplier();
+
+    @Override
+    public Builder withDistanceUnit(Unit<Length> unit) {
+      return create(unit, getSpeedUnit(), getGraphSupplier());
+    }
+
+    @Override
+    public Builder withSpeedUnit(Unit<Velocity> unit) {
+      return create(getDistanceUnit(), unit, getGraphSupplier());
     }
 
     @Override
@@ -112,9 +130,14 @@ public class BlockingGraphRoadModel extends GraphRoadModel {
       return new BlockingGraphRoadModel(getGraph(), this);
     }
 
-    @Override
-    protected Builder self() {
-      return this;
+    static Builder create(Supplier<Graph<?>> graphSupplier) {
+      return create(DEFAULT_DISTANCE_UNIT, DEFAULT_SPEED_UNIT, graphSupplier);
+    }
+
+    static Builder create(Unit<Length> distanceUnit, Unit<Velocity> speedUnit,
+      Supplier<Graph<?>> graphSupplier) {
+      return new AutoValue_BlockingGraphRoadModel_Builder(distanceUnit,
+        speedUnit, graphSupplier);
     }
   }
 }

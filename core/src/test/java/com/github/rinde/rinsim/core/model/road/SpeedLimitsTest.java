@@ -81,17 +81,17 @@ public class SpeedLimitsTest {
     return Arrays
       .asList(new Object[][] {
           { RoadModelBuilders.staticGraph(MultimapGraph.supplier()), five },
-          { RoadModelBuilders.staticGraph(MultimapGraph.supplier()).useCache(),
+          { RoadModelBuilders.staticGraph(MultimapGraph.supplier()).withCache(),
               five },
           { RoadModelBuilders.staticGraph(MultimapGraph.supplier()),
               twoAndHalf },
-          { RoadModelBuilders.staticGraph(MultimapGraph.supplier()).useCache(),
+          { RoadModelBuilders.staticGraph(MultimapGraph.supplier()).withCache(),
               twoAndHalf },
           { RoadModelBuilders.staticGraph(TableGraph.supplier()), five },
-          { RoadModelBuilders.staticGraph(TableGraph.supplier()).useCache(),
+          { RoadModelBuilders.staticGraph(TableGraph.supplier()).withCache(),
               five },
           { RoadModelBuilders.staticGraph(TableGraph.supplier()), twoAndHalf },
-          { RoadModelBuilders.staticGraph(TableGraph.supplier()).useCache(),
+          { RoadModelBuilders.staticGraph(TableGraph.supplier()).withCache(),
               twoAndHalf }
       });
   }

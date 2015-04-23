@@ -87,11 +87,11 @@ public final class SwarmDemo {
     final RandomGenerator rng = new MersenneTwister(123);
     final Simulator sim = Simulator.builder()
       .addModel(RoadModelBuilders.plane()
-        .setMinPoint(new Point(0, 0))
-        .setMaxPoint(new Point(4500, 1200))
-        .setDistanceUnit(SI.METER)
-        .setSpeedUnit(NonSI.KILOMETERS_PER_HOUR)
-        .setMaxSpeed(1000d))
+        .withMinPoint(new Point(0, 0))
+        .withMaxPoint(new Point(4500, 1200))
+        .withDistanceUnit(SI.METER)
+        .withSpeedUnit(NonSI.KILOMETERS_PER_HOUR)
+        .withMaxSpeed(1000d))
       .build();
 
     for (final Point p : points) {
