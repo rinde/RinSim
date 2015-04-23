@@ -34,15 +34,5 @@
 			<attribute name="maven.pomderived" value="true"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry kind="src" path="target/generated-test-sources/test-annotations">
-		<attributes>
-			<attribute name="ignore_optional_problems" value="true"/>
-		</attributes>
-	</classpathentry>
-	<classpathentry kind="src" path=".apt_generated">
-		<attributes>
-			<attribute name="optional" value="true"/>
-		</attributes>
-	</classpathentry>
 	<classpathentry kind="output" path="target/classes"/>
 </classpath>
