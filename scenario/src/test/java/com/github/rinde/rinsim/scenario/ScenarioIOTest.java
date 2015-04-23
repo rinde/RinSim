@@ -85,7 +85,7 @@ public class ScenarioIOTest {
         .setSpeedUnit(NonSI.MILES_PER_HOUR)
       )
       .addModel(DefaultPDPModel.builder()
-        .setTimeWindowPolicy(TimeWindowPolicies.STRICT)
+        .withTimeWindowPolicy(TimeWindowPolicies.STRICT)
       );
 
     final List<ProblemClass> pcs = asList(TestProblemClass.TEST,

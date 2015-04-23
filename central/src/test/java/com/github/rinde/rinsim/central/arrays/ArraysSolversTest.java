@@ -137,7 +137,7 @@ public class ArraysSolversTest {
     final Simulator sim = Simulator.builder()
       .addModel(
         DefaultPDPModel.builder()
-          .setTimeWindowPolicy(TimeWindowPolicies.LIBERAL)
+          .withTimeWindowPolicy(TimeWindowPolicies.LIBERAL)
       )
       .addModel(
         PDPRoadModel.builder(RoadModelBuilders.plane())

@@ -92,7 +92,7 @@ public abstract class PDPRoadModelCommonTest {
     when(dep.get(RoadModel.class)).thenReturn(rm);
 
     pm = DefaultPDPModel.builder()
-      .setTimeWindowPolicy(TimeWindowPolicies.TARDY_ALLOWED)
+      .withTimeWindowPolicy(TimeWindowPolicies.TARDY_ALLOWED)
       .build(dep);
 
     final ModelProvider mp = new TestModelProvider(asList(pm, rm));

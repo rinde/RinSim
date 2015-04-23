@@ -74,7 +74,7 @@ public class CommModelTest {
   public void setUp() {
     model = CommModel
       .builder()
-      .setDefaultDeviceReliability(1.0)
+      .withDefaultDeviceReliability(1.0)
       .build(fakeDependencies());
 
     agent1 = new Agent(new Point(0, 0));

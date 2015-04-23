@@ -131,7 +131,7 @@ public class DynamicPDPTWProblemTest {
         )
         .add(
           DefaultPDPModel.builder()
-            .setTimeWindowPolicy(TimeWindowPolicies.TARDY_ALLOWED)
+            .withTimeWindowPolicy(TimeWindowPolicies.TARDY_ALLOWED)
         )
         .build();
     }

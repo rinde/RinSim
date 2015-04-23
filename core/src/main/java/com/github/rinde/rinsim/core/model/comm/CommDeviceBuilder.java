@@ -17,16 +17,20 @@ package com.github.rinde.rinsim.core.model.comm;
 
 import static com.google.common.base.Preconditions.checkState;
 
+import com.google.common.base.Optional;
+
 /**
  * A builder for creating {@link CommDevice} instances. This builder is injected
  * in implementors of the {@link CommUser} interface.
  *
  * @author Rinde van Lon
  */
-public final class CommDeviceBuilder extends AbstractBuilder<CommDeviceBuilder> {
+public final class CommDeviceBuilder {
   final CommUser user;
   final CommModel model;
   private boolean used;
+  double deviceReliability;
+  Optional<Double> deviceMaxRange;
 
   CommDeviceBuilder(CommModel m, CommUser u) {
     model = m;
@@ -36,14 +40,29 @@ public final class CommDeviceBuilder extends AbstractBuilder<CommDeviceBuilder> 
     deviceMaxRange = model.getDefaultMaxRange();
   }
 
-  @Override
-  public CommDeviceBuilder setMaxRange(double range) {
-    return super.setMaxRange(range);
+  /**
+   * Sets the reliability of the device to be constructed. The reliability is
+   * applied for both sending and receiving messages. Reliability must be
+   * <code>0 &le; r &le; 1</code>.
+   * @param reliability The reliability to set.
+   * @return This, as per the builder pattern.
+   */
+  public CommDeviceBuilder setReliability(double reliability) {
+    CommModel.checkReliability(reliability);
+    deviceReliability = reliability;
+    return this;
   }
 
-  @Override
-  public CommDeviceBuilder setReliability(double reliability) {
-    return super.setReliability(reliability);
+  /**
+   * Sets the maximum range. This means that the device to be created will only
+   * be able to send messages to other devices that are within this range.
+   * @param range The max range to set.
+   * @return This, as per the builder pattern.
+   */
+  public CommDeviceBuilder setMaxRange(double range) {
+    CommModel.checkMaxRange(range);
+    deviceMaxRange = Optional.of(range);
+    return this;
   }
 
   /**
@@ -51,18 +70,13 @@ public final class CommDeviceBuilder extends AbstractBuilder<CommDeviceBuilder> 
    */
   public CommDevice build() {
     checkState(!used,
-        "Only one communication device can be created per user, user: %s.",
-        user);
+      "Only one communication device can be created per user, user: %s.",
+      user);
     used = true;
     return new CommDevice(this);
   }
 
   boolean isUsed() {
     return used;
-  }
-
-  @Override
-  CommDeviceBuilder self() {
-    return this;
   }
 }

@@ -136,7 +136,7 @@ public class RouteFollowingVehicleTest {
     when(dp.get(RoadModel.class)).thenReturn(rm);
 
     pm = DefaultPDPModel.builder()
-      .setTimeWindowPolicy(TimeWindowPolicies.TARDY_ALLOWED)
+      .withTimeWindowPolicy(TimeWindowPolicies.TARDY_ALLOWED)
       .build(dp);
 
     final ModelProvider mp = new TestModelProvider(new ArrayList<Model<?>>(

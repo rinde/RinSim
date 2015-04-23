@@ -26,6 +26,7 @@ import org.apache.commons.math3.random.RandomGenerator;
 import com.github.rinde.rinsim.core.model.DependencyProvider;
 import com.github.rinde.rinsim.core.model.Model.AbstractModel;
 import com.github.rinde.rinsim.core.model.ModelBuilder;
+import com.github.rinde.rinsim.core.model.ModelBuilder.AbstractModelBuilder;
 import com.github.rinde.rinsim.core.model.rand.RandomProvider;
 import com.github.rinde.rinsim.core.model.time.TickListener;
 import com.github.rinde.rinsim.core.model.time.TimeLapse;
@@ -33,10 +34,10 @@ import com.github.rinde.rinsim.event.Event;
 import com.github.rinde.rinsim.event.EventAPI;
 import com.github.rinde.rinsim.event.EventDispatcher;
 import com.github.rinde.rinsim.util.LinkedHashBiMap;
+import com.google.auto.value.AutoValue;
 import com.google.common.base.Optional;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.ImmutableBiMap;
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 
 /**
@@ -78,8 +79,8 @@ public final class CommModel extends AbstractModel<CommUser> implements
   private final EventDispatcher eventDispatcher;
 
   CommModel(RandomGenerator rng, Builder b) {
-    defaultReliability = b.defaultReliability;
-    defaultMaxRange = b.defaultMaxRange;
+    defaultReliability = b.defaultReliability();
+    defaultMaxRange = b.defaultMaxRange();
     usersHasChanged = false;
     usersDevices = Maps.synchronizedBiMap(
       LinkedHashBiMap.<CommUser, CommDevice> create());
@@ -211,75 +212,72 @@ public final class CommModel extends AbstractModel<CommUser> implements
    * @return A new builder for creating a {@link CommModel}.
    */
   public static Builder builder() {
-    return new Builder();
+    return Builder.create();
+  }
+
+  static void checkReliability(double reliability) {
+    checkArgument(reliability >= 0d && reliability <= 1d,
+      "Reliability must be 0 <= r <= 1, found %s.", reliability);
+  }
+
+  static void checkMaxRange(double maxRange) {
+    checkArgument(maxRange >= 0d);
   }
 
   /**
    * A builder for creating a {@link CommModel}.
    * @author Rinde van Lon
    */
-  public static class Builder extends AbstractBuilder<Builder> implements
-    ModelBuilder<CommModel, CommUser> {
+  @AutoValue
+  public abstract static class Builder extends
+    AbstractModelBuilder<CommModel, CommUser> {
     static double DEFAULT_RELIABILITY = 1d;
-    double defaultReliability;
-    Optional<Double> defaultMaxRange;
 
     Builder() {
-      defaultReliability = DEFAULT_RELIABILITY;
-      defaultMaxRange = Optional.absent();
+      setDependencies(RandomProvider.class);
     }
 
+    static Builder create() {
+      return new AutoValue_CommModel_Builder(DEFAULT_RELIABILITY,
+        Optional.<Double> absent());
+    }
+
+    abstract double defaultReliability();
+
+    abstract Optional<Double> defaultMaxRange();
+
     /**
-     * Sets the reliability of the device to be constructed. The reliability is
-     * applied for both sending and receiving messages. Reliability must be
+     * Returns a copy of this builder with the reliability of the device to be
+     * constructed set to the specified value. The reliability is applied for
+     * both sending and receiving messages. Reliability must be
      * <code>0 &le; r &le; 1</code>.
      * @param reliability The reliability to set.
-     * @return This, as per the builder pattern.
+     * @return A new instance of {@link Builder} with reliability set to the
+     *         specified value.
      */
-    public Builder setDefaultDeviceReliability(double reliability) {
-      return super.setReliability(reliability);
+    public Builder withDefaultDeviceReliability(double reliability) {
+      checkReliability(reliability);
+      return new AutoValue_CommModel_Builder(reliability, defaultMaxRange());
     }
 
     /**
-     * Sets the default maximum range for all devices. This means that by
-     * default devices will only be able to send messages to other devices that
-     * are within this range.
+     * Returns a copy of this builder with the default maximum range for all
+     * devices set to the specified value. By default devices will only be able
+     * to send messages to other devices that are within this max range.
      * @param maxRange The maxRange to set.
-     * @return This, as per the builder pattern.
+     * @return A new instance of {@link Builder} with max range set to the
+     *         specified value.
      */
-    public Builder setDefaultDeviceMaxRange(double maxRange) {
-      return super.setMaxRange(maxRange);
-    }
-
-    @Override
-    Builder self() {
-      return this;
+    public Builder withDefaultDeviceMaxRange(double maxRange) {
+      checkMaxRange(maxRange);
+      return new AutoValue_CommModel_Builder(defaultReliability(),
+        Optional.of(maxRange));
     }
 
     @Override
     public CommModel build(DependencyProvider dependencyProvider) {
       return new CommModel(
         dependencyProvider.get(RandomProvider.class).newInstance(), this);
-    }
-
-    @Override
-    public ImmutableSet<Class<?>> getProvidingTypes() {
-      return ImmutableSet.of();
-    }
-
-    @Override
-    public ImmutableSet<Class<?>> getDependencies() {
-      return ImmutableSet.<Class<?>> of(RandomProvider.class);
-    }
-
-    @Override
-    public Class<CommUser> getAssociatedType() {
-      return CommUser.class;
-    }
-
-    @Override
-    public Class<CommModel> getModelType() {
-      return CommModel.class;
     }
   }
 

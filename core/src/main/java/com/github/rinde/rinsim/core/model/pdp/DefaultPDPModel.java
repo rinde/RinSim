@@ -24,10 +24,7 @@ import static java.util.Collections.unmodifiableSet;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
-
-import javax.annotation.Nullable;
 
 import com.github.rinde.rinsim.core.model.DependencyProvider;
 import com.github.rinde.rinsim.core.model.ModelBuilder.AbstractModelBuilder;
@@ -37,6 +34,7 @@ import com.github.rinde.rinsim.core.model.time.TimeLapse;
 import com.github.rinde.rinsim.event.EventAPI;
 import com.github.rinde.rinsim.event.EventDispatcher;
 import com.github.rinde.rinsim.util.CategoryMap;
+import com.google.auto.value.AutoValue;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Multimap;
@@ -573,7 +571,7 @@ public final class DefaultPDPModel extends PDPModel {
    *         s.
    */
   public static Builder builder() {
-    return new Builder();
+    return new AutoValue_DefaultPDPModel_Builder(TimeWindowPolicies.LIBERAL);
   }
 
   /**
@@ -651,50 +649,40 @@ public final class DefaultPDPModel extends PDPModel {
   }
 
   /**
-   * A builder for creating {@link DefaultPDPModel}s.
+   * A builder for creating {@link DefaultPDPModel}s. Instances can be obtained
+   * via {@link DefaultPDPModel#builder()}.
    *
    * @author Rinde van Lon
    */
-  public static class Builder extends
+  @AutoValue
+  public abstract static class Builder extends
     AbstractModelBuilder<DefaultPDPModel, PDPObject> {
-    TimeWindowPolicy policy;
 
     Builder() {
-      policy = TimeWindowPolicies.LIBERAL;
       setProvidingTypes(PDPModel.class);
       setDependencies(RoadModel.class);
     }
 
     /**
-     * Sets the {@link TimeWindowPolicy}. The default is
+     * @return The {@link TimeWindowPolicy}.
+     */
+    public abstract TimeWindowPolicy getPolicy();
+
+    /**
+     * Returns a copy of this builder with the specified
+     * {@link TimeWindowPolicy}. The default policy is
      * {@link TimeWindowPolicies#LIBERAL}.
      * @param p The {@link TimeWindowPolicy} which will be used in the model.
-     * @return This, as per the builder pattern.
+     * @return A new {@link Builder} instance.
      */
-    public Builder setTimeWindowPolicy(TimeWindowPolicy p) {
-      policy = p;
-      return this;
+    public Builder withTimeWindowPolicy(TimeWindowPolicy p) {
+      return new AutoValue_DefaultPDPModel_Builder(p);
     }
 
     @Override
     public DefaultPDPModel build(DependencyProvider dependencyProvider) {
       final RoadModel rm = dependencyProvider.get(RoadModel.class);
-      return new DefaultPDPModel(rm, policy);
-    }
-
-    @Override
-    public boolean equals(@Nullable Object other) {
-      if (other == null || getClass() != other.getClass()) {
-        return false;
-      }
-      final Builder o = (Builder) other;
-      return AbstractModelBuilder.equal(this, o)
-        && Objects.equals(policy, o.policy);
-    }
-
-    @Override
-    public int hashCode() {
-      return Objects.hash(policy);
+      return new DefaultPDPModel(rm, getPolicy());
     }
   }
 

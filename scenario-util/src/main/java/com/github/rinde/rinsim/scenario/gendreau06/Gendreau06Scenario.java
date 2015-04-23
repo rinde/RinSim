@@ -108,7 +108,7 @@ public abstract class Gendreau06Scenario extends Scenario {
       )
       .add(
         DefaultPDPModel.builder()
-          .setTimeWindowPolicy(TimeWindowPolicies.TARDY_ALLOWED)
+          .withTimeWindowPolicy(TimeWindowPolicies.TARDY_ALLOWED)
       )
       .build();
   }

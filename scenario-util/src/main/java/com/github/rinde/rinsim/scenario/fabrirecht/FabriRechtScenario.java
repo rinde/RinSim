@@ -81,7 +81,7 @@ public abstract class FabriRechtScenario extends Scenario {
       )
       .add(
         DefaultPDPModel.builder()
-          .setTimeWindowPolicy(TimeWindowPolicies.TARDY_ALLOWED)
+          .withTimeWindowPolicy(TimeWindowPolicies.TARDY_ALLOWED)
       )
       .build();
   }

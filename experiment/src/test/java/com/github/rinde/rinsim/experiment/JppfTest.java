@@ -143,7 +143,7 @@ public class JppfTest {
       )
       .addModel(
         DefaultPDPModel.builder()
-          .setTimeWindowPolicy(TimeWindowPolicies.LIBERAL)
+          .withTimeWindowPolicy(TimeWindowPolicies.LIBERAL)
       )
       .stopCondition(StopConditions.TIME_OUT_EVENT)
       .build().generate(rng, "hoi");

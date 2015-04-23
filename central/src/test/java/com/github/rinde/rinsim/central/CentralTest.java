@@ -88,7 +88,7 @@ public class CentralTest {
       )
       .addModel(
         DefaultPDPModel.builder()
-          .setTimeWindowPolicy(TimeWindowPolicies.TARDY_ALLOWED)
+          .withTimeWindowPolicy(TimeWindowPolicies.TARDY_ALLOWED)
       )
       .build();
 

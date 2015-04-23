@@ -73,7 +73,7 @@ public class ViewTest {
       .addModel(RoadModelBuilders.plane())
       .addModel(
         DefaultPDPModel.builder()
-          .setTimeWindowPolicy(TimeWindowPolicies.LIBERAL)
+          .withTimeWindowPolicy(TimeWindowPolicies.LIBERAL)
       )
       .build();
 

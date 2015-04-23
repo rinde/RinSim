@@ -314,8 +314,7 @@ public final class RoadModelBuilders {
         && Objects.equals(max, o.max)
         && Objects.equals(getDistanceUnit(), o.getDistanceUnit())
         && Objects.equals(getSpeedUnit(), o.getSpeedUnit())
-        && Objects.equals(maxSpeed, o.maxSpeed)
-        && AbstractModelBuilder.equal(this, o);
+        && Objects.equals(maxSpeed, o.maxSpeed);
     }
 
     @Override
