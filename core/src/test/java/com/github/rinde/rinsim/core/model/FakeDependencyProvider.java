@@ -16,6 +16,7 @@
 package com.github.rinde.rinsim.core.model;
 
 import static com.google.common.truth.Truth.assertThat;
+import static org.mockito.Mockito.mock;
 
 import java.util.Map;
 
@@ -39,7 +40,6 @@ public class FakeDependencyProvider extends DependencyProvider {
 
   @Override
   public <T> T get(Class<T> type) {
-    System.out.println(type);
     assertThat(classMap.containsKey(type) || map.containsKey(type)).isTrue();
     if (classMap.containsKey(type)) {
       return classMap.getInstance(type);
@@ -71,6 +71,18 @@ public class FakeDependencyProvider extends DependencyProvider {
         modelMapBuilder.put(clz, model);
       }
       return this;
+    }
+
+    public Builder add(Model<?> model, Iterable<Class<?>> moreProvidedTypes) {
+      for (final Class<?> clz : moreProvidedTypes) {
+        modelMapBuilder.put(clz, model);
+      }
+      return this;
+    }
+
+    public Builder add(ModelBuilder<?, ?> mb) {
+      return add(mb.build(mock(DependencyProvider.class)),
+        mb.getProvidingTypes());
     }
 
     public <U> Builder add(U instance, Class<U> type) {

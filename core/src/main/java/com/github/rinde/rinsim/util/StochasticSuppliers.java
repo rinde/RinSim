@@ -29,6 +29,7 @@ import org.apache.commons.math3.distribution.UniformIntegerDistribution;
 import org.apache.commons.math3.distribution.UniformRealDistribution;
 import org.apache.commons.math3.random.MersenneTwister;
 
+import com.google.auto.value.AutoValue;
 import com.google.common.base.Predicate;
 import com.google.common.base.Supplier;
 import com.google.common.math.DoubleMath;
@@ -78,8 +79,8 @@ public final class StochasticSuppliers {
    *         given predicate or throw an {@link IllegalArgumentException}.
    */
   public static <T> StochasticSupplier<T> checked(
-      StochasticSupplier<T> supplier,
-      Predicate<T> predicate) {
+    StochasticSupplier<T> supplier,
+    Predicate<T> predicate) {
     return new CheckedSupplier<>(supplier, predicate);
   }
 
@@ -122,9 +123,9 @@ public final class StochasticSuppliers {
    * @return The supplier.
    */
   public static StochasticSupplier<Double> uniformDouble(double lower,
-      double upper) {
+    double upper) {
     return new DoubleDistributionSS(new UniformRealDistribution(
-        new MersenneTwister(), lower, upper));
+      new MersenneTwister(), lower, upper));
   }
 
   /**
@@ -136,7 +137,7 @@ public final class StochasticSuppliers {
    */
   public static StochasticSupplier<Integer> uniformInt(int lower, int upper) {
     return new IntegerDistributionSS(new UniformIntegerDistribution(
-        new MersenneTwister(), lower, upper));
+      new MersenneTwister(), lower, upper));
   }
 
   /**
@@ -157,7 +158,7 @@ public final class StochasticSuppliers {
    * @return The converted supplier.
    */
   public static StochasticSupplier<Long> intToLong(
-      StochasticSupplier<Integer> supplier) {
+    StochasticSupplier<Integer> supplier) {
     return new IntToLongAdapter(supplier);
   }
 
@@ -168,7 +169,7 @@ public final class StochasticSuppliers {
    * @return The converted supplier.
    */
   public static StochasticSupplier<Integer> roundDoubleToInt(
-      StochasticSupplier<Double> supplier) {
+    StochasticSupplier<Double> supplier) {
     return new DoubleToIntAdapter(supplier);
   }
 
@@ -179,8 +180,15 @@ public final class StochasticSuppliers {
    * @return The converted supplier.
    */
   public static StochasticSupplier<Long> roundDoubleToLong(
-      StochasticSupplier<Double> supplier) {
+    StochasticSupplier<Double> supplier) {
     return new DoubleToLongAdapter(supplier);
+  }
+
+  /**
+   * @return A {@link StochasticSupplier} of {@link MersenneTwister}.
+   */
+  public static StochasticSupplier<MersenneTwister> mersenneTwister() {
+    return MersenneTwisterSS.create();
   }
 
   /**
@@ -325,9 +333,9 @@ public final class StochasticSuppliers {
      */
     public Builder scaleMean() {
       checkArgument(!Double.isInfinite(lowerBound),
-          "A lower bound must be set in order to scale the mean.");
+        "A lower bound must be set in order to scale the mean.");
       checkArgument(Double.isInfinite(upperBound),
-          "Scaling the mean with an upper bound is currently not supported.");
+        "Scaling the mean with an upper bound is currently not supported.");
       checkArgument(OutOfBoundStrategy.REDRAW == outOfBoundStrategy);
 
       double stepSize = 1;
@@ -356,8 +364,8 @@ public final class StochasticSuppliers {
         }
         iterations++;
         checkState(iterations < MAX_ITERATIONS,
-            "Could not converge. Target mean: %s, effective mean: %s.", mean,
-            effectiveMean);
+          "Could not converge. Target mean: %s, effective mean: %s.", mean,
+          effectiveMean);
       } while (Math.abs(effectiveMean - mean) > SMALLEST_DOUBLE);
       mean = curMean;
       return this;
@@ -390,7 +398,7 @@ public final class StochasticSuppliers {
       final RealDistribution distribution = new NormalDistribution(mean, std);
       if (Doubles.isFinite(lowerBound) || Doubles.isFinite(upperBound)) {
         return new BoundedDoubleDistSS(distribution, upperBound,
-            lowerBound, outOfBoundStrategy);
+          lowerBound, outOfBoundStrategy);
       }
       return new DoubleDistributionSS(distribution);
     }
@@ -415,9 +423,9 @@ public final class StochasticSuppliers {
 
     void integerChecks() {
       checkArgument(Double.isInfinite(lowerBound)
-          || DoubleMath.isMathematicalInteger(lowerBound));
+        || DoubleMath.isMathematicalInteger(lowerBound));
       checkArgument(Double.isInfinite(upperBound)
-          || DoubleMath.isMathematicalInteger(upperBound));
+        || DoubleMath.isMathematicalInteger(upperBound));
     }
   }
 
@@ -428,7 +436,7 @@ public final class StochasticSuppliers {
    * @author Rinde van Lon
    */
   public abstract static class AbstractStochasticSupplier<T> implements
-      StochasticSupplier<T>, Serializable {
+    StochasticSupplier<T>, Serializable {
     private static final long serialVersionUID = 992219257352250656L;
 
     @Override
@@ -444,7 +452,7 @@ public final class StochasticSuppliers {
   }
 
   private static class IntToLongAdapter extends
-      AbstractStochasticSupplier<Long> {
+    AbstractStochasticSupplier<Long> {
     private static final long serialVersionUID = 3638307177262422449L;
     private final StochasticSupplier<Integer> supplier;
 
@@ -459,7 +467,7 @@ public final class StochasticSuppliers {
   }
 
   private static class DoubleToIntAdapter extends
-      AbstractStochasticSupplier<Integer> {
+    AbstractStochasticSupplier<Integer> {
     private static final long serialVersionUID = 3086452659883375531L;
     private final StochasticSupplier<Double> supplier;
 
@@ -474,7 +482,7 @@ public final class StochasticSuppliers {
   }
 
   private static class DoubleToLongAdapter extends
-      AbstractStochasticSupplier<Long> {
+    AbstractStochasticSupplier<Long> {
     private static final long serialVersionUID = -8846720318135533333L;
     private final StochasticSupplier<Double> supplier;
 
@@ -489,7 +497,7 @@ public final class StochasticSuppliers {
   }
 
   private static class IntegerDistributionSS extends
-      AbstractStochasticSupplier<Integer> {
+    AbstractStochasticSupplier<Integer> {
     private static final long serialVersionUID = -7967542154741162460L;
     private final IntegerDistribution distribution;
 
@@ -505,7 +513,7 @@ public final class StochasticSuppliers {
   }
 
   private static class BoundedDoubleDistSS extends
-      AbstractStochasticSupplier<Double> {
+    AbstractStochasticSupplier<Double> {
     private static final long serialVersionUID = -6738290534532097051L;
     private final RealDistribution distribution;
     private final double lowerBound;
@@ -513,9 +521,9 @@ public final class StochasticSuppliers {
     private final OutOfBoundStrategy outOfBoundStrategy;
 
     BoundedDoubleDistSS(RealDistribution rd, double upper,
-        double lower, OutOfBoundStrategy strategy) {
+      double lower, OutOfBoundStrategy strategy) {
       checkArgument(strategy == OutOfBoundStrategy.REDRAW
-          || strategy == OutOfBoundStrategy.ROUND);
+        || strategy == OutOfBoundStrategy.ROUND);
       distribution = rd;
       lowerBound = lower;
       upperBound = upper;
@@ -544,7 +552,7 @@ public final class StochasticSuppliers {
   }
 
   private static class DoubleDistributionSS extends
-      AbstractStochasticSupplier<Double> {
+    AbstractStochasticSupplier<Double> {
     private static final long serialVersionUID = -5853417575632121095L;
     private final RealDistribution distribution;
 
@@ -560,7 +568,7 @@ public final class StochasticSuppliers {
   }
 
   private static class IteratorSS<T> extends
-      AbstractStochasticSupplier<T> {
+    AbstractStochasticSupplier<T> {
     private static final long serialVersionUID = 3151363361183354655L;
     private final Iterator<T> iterator;
 
@@ -578,7 +586,7 @@ public final class StochasticSuppliers {
   }
 
   private static final class ConstantSupplier<T> extends
-      AbstractStochasticSupplier<T> {
+    AbstractStochasticSupplier<T> {
     private static final long serialVersionUID = -5017806121674846656L;
     private final T value;
 
@@ -619,8 +627,22 @@ public final class StochasticSuppliers {
     public T get(long seed) {
       final T value = supplier.get(seed);
       checkArgument(predicate.apply(value),
-          "The supplier generated an invalid value: %s.", value);
+        "The supplier generated an invalid value: %s.", value);
       return value;
+    }
+  }
+
+  @AutoValue
+  abstract static class MersenneTwisterSS implements
+    StochasticSupplier<MersenneTwister> {
+
+    @Override
+    public MersenneTwister get(long seed) {
+      return new MersenneTwister(seed);
+    }
+
+    static MersenneTwisterSS create() {
+      return new AutoValue_StochasticSuppliers_MersenneTwisterSS();
     }
   }
 }

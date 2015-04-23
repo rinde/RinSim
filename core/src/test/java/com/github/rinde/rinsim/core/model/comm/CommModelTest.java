@@ -35,7 +35,6 @@ import com.github.rinde.rinsim.core.model.FakeDependencyProvider;
 import com.github.rinde.rinsim.core.model.comm.CommModel.CommModelEvent;
 import com.github.rinde.rinsim.core.model.comm.CommModel.EventTypes;
 import com.github.rinde.rinsim.core.model.rand.RandomModel;
-import com.github.rinde.rinsim.core.model.rand.RandomProvider;
 import com.github.rinde.rinsim.core.model.time.TimeLapseFactory;
 import com.github.rinde.rinsim.event.ListenerEventHistory;
 import com.github.rinde.rinsim.geom.Point;
@@ -463,7 +462,7 @@ public class CommModelTest {
 
   static DependencyProvider fakeDependencies() {
     return FakeDependencyProvider.builder()
-      .add(RandomModel.create(), RandomProvider.class)
+      .add(RandomModel.builder())
       .build();
   }
 

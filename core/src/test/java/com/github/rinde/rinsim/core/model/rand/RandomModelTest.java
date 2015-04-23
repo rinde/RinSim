@@ -18,6 +18,7 @@ package com.github.rinde.rinsim.core.model.rand;
 import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.mock;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -26,6 +27,8 @@ import java.util.List;
 import org.apache.commons.math3.random.RandomGenerator;
 import org.junit.Before;
 import org.junit.Test;
+
+import com.github.rinde.rinsim.core.model.DependencyProvider;
 
 /**
  * Tests {@link RandomModel}.
@@ -41,7 +44,7 @@ public class RandomModelTest {
    */
   @Before
   public void setUp() {
-    model = RandomModel.create();
+    model = RandomModel.builder().build(mock(DependencyProvider.class));
   }
 
   /**

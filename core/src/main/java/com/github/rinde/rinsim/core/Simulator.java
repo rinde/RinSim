@@ -42,6 +42,7 @@ import com.github.rinde.rinsim.core.model.time.ClockController;
 import com.github.rinde.rinsim.core.model.time.TickListener;
 import com.github.rinde.rinsim.core.model.time.TimeLapse;
 import com.github.rinde.rinsim.core.model.time.TimeModel;
+import com.github.rinde.rinsim.util.StochasticSuppliers;
 import com.google.common.collect.ImmutableSet;
 
 /**
@@ -75,7 +76,9 @@ public final class Simulator implements SimulatorAPI {
     rand = b.rng;
     modelManager = b.mmBuilder
       .add(new SimulatorModelBuilder(this))
-      .setDefaultProvider(RandomModel.builder(rand))
+      .setDefaultProvider(
+        RandomModel.builder().withRandomGenerator(
+          StochasticSuppliers.constant(rand)))
       .setDefaultProvider(
         TimeModel.builder()
           .setTickLength(b.tickLength)

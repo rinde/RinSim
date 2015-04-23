@@ -20,8 +20,6 @@ import static com.google.common.base.Preconditions.checkState;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-import javax.annotation.Nullable;
-
 import org.apache.commons.math3.random.MersenneTwister;
 import org.apache.commons.math3.random.RandomGenerator;
 
@@ -29,7 +27,9 @@ import com.github.rinde.rinsim.core.model.DependencyProvider;
 import com.github.rinde.rinsim.core.model.Model.AbstractModel;
 import com.github.rinde.rinsim.core.model.ModelBuilder;
 import com.github.rinde.rinsim.core.model.ModelBuilder.AbstractModelBuilder;
-import com.google.common.base.Supplier;
+import com.github.rinde.rinsim.util.StochasticSupplier;
+import com.github.rinde.rinsim.util.StochasticSuppliers;
+import com.google.auto.value.AutoValue;
 
 /**
  * The random model provides a centralized mechanism for distributing random
@@ -39,12 +39,7 @@ import com.google.common.base.Supplier;
  * {@link RandomGenerator} instances for different parts of the code to make
  * sure they are independent of each other. The {@link RandomProvider} that is
  * injected into a {@link RandomUser} provides several options for this use
- * case. Obtaining instances can be done via the static creation methods:
- * <ul>
- * <li>{@link #create()}</li>
- * <li>{@link #create(long)}</li>
- * <li>{@link #create(RandomGenerator)}</li>
- * </ul>
+ * case. A builder can be obtained via {@link #builder()}.
  * <p>
  * <b>Model properties</b>
  * <ul>
@@ -94,90 +89,67 @@ public class RandomModel extends AbstractModel<RandomUser> {
   }
 
   /**
-   * @return A new {@link RandomModel} with the {@link RandomModel#DEFAULT_SEED}
-   *         .
+   * @return A new {@link RandomModel} that uses a {@link MersenneTwister} with
+   *         seed: {@link RandomModel#DEFAULT_SEED}.
    */
-  public static RandomModel create() {
-    return create(DEFAULT_SEED);
+  public static Builder builder() {
+    return Builder.create(DEFAULT_SEED);
   }
 
   /**
-   * Creates a new {@link RandomModel} using a {@link MersenneTwister} and the
-   * specified seed.
-   * @param seed The seed to use.
-   * @return A new instance.
+   * A builder for {@link RandomModel}. Instances can be obtained via
+   * {@link RandomModel#builder()}.
+   * @author Rinde van Lon
    */
-  public static RandomModel create(long seed) {
-    return create(new MersenneTwister(seed));
-  }
+  @AutoValue
+  public abstract static class Builder extends
+    AbstractModelBuilder<RandomModel, RandomUser> {
 
-  /**
-   * Creates a new {@link RandomModel} using the specified
-   * {@link RandomGenerator}.
-   * @param rng The generator to use.
-   * @return A new instance.
-   */
-  public static RandomModel create(RandomGenerator rng) {
-    return new RandomModel(rng);
-  }
+    static final StochasticSupplier<MersenneTwister> DEFAULT_RNG = StochasticSuppliers
+      .mersenneTwister();
 
-  /**
-   * Creates a new {@link RandomModel} {@link Supplier} using the specified
-   * {@link RandomGenerator}.
-   * @param rng The generator to use.
-   * @return A new supplier instance.
-   */
-  public static Supplier<RandomModel> supplier(RandomGenerator rng) {
-    return new RandomModelBuilder(rng);
-  }
-
-  /**
-   * Creates a new {@link RandomModel} {@link Supplier} using the specified
-   * {@link RandomGenerator}.
-   * @param rng The generator to use.
-   * @return A new supplier instance.
-   */
-  public static ModelBuilder<RandomModel, RandomUser> builder(
-    RandomGenerator rng) {
-    return new RandomModelBuilder(rng);
-  }
-
-  static class RandomModelBuilder extends
-    AbstractModelBuilder<RandomModel, RandomUser>
-    implements Supplier<RandomModel> {
-    private final RandomGenerator r;
-
-    RandomModelBuilder(RandomGenerator rng) {
-      r = rng;
+    Builder() {
       setProvidingTypes(RandomProvider.class);
     }
 
-    @Override
-    public RandomModel get() {
-      return new RandomModel(r);
+    abstract long seed();
+
+    abstract StochasticSupplier<RandomGenerator> rngSupplier();
+
+    /**
+     * Returns a copy of this builder with the specified seed.
+     * @param seed The random seed.
+     * @return A new builder instance.
+     */
+    public Builder withSeed(long seed) {
+      return create(seed, rngSupplier());
+    }
+
+    /**
+     * Returns a copy of this builder with the specified random generator
+     * supplier.
+     * @param supplier The supplier of random generators.
+     * @return A new builder instance.
+     */
+    public Builder withRandomGenerator(
+      StochasticSupplier<? extends RandomGenerator> supplier) {
+      return create(seed(), supplier);
     }
 
     @Override
     public RandomModel build(DependencyProvider modelProvider) {
-      return new RandomModel(r);
+      return new RandomModel(rngSupplier().get(seed()));
     }
 
-    @Override
-    public String toString() {
-      return "RandomModelBuilder";
+    static Builder create(long seed) {
+      return create(seed, DEFAULT_RNG);
     }
 
-    @Override
-    public int hashCode() {
-      return r.hashCode();
-    }
-
-    @Override
-    public boolean equals(@Nullable Object other) {
-      if (other instanceof RandomModelBuilder) {
-        return r.equals(((RandomModelBuilder) other).r);
-      }
-      return false;
+    @SuppressWarnings("unchecked")
+    static Builder create(long seed,
+      StochasticSupplier<? extends RandomGenerator> ss) {
+      return new AutoValue_RandomModel_Builder(seed,
+        (StochasticSupplier<RandomGenerator>) ss);
     }
   }
 
