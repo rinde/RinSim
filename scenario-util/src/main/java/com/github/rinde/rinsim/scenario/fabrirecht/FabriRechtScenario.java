@@ -67,8 +67,8 @@ public abstract class FabriRechtScenario extends Scenario {
     return ImmutableSet.<ModelBuilder<?, ?>> builder()
       .add(
         TimeModel.builder()
-          .setTickLength(1L)
-          .setTimeUnit(NonSI.MINUTE)
+          .withTickLength(1L)
+          .withTimeUnit(NonSI.MINUTE)
       )
       .add(
         RoadModelBuilders.plane()

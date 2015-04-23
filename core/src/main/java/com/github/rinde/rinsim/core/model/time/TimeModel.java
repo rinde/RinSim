@@ -16,15 +16,12 @@
 package com.github.rinde.rinsim.core.model.time;
 
 import static com.google.common.base.Preconditions.checkArgument;
-import static java.util.Objects.hash;
 
 import java.util.Collections;
-import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
 
 import javax.annotation.CheckReturnValue;
-import javax.annotation.Nullable;
 import javax.measure.quantity.Duration;
 import javax.measure.unit.SI;
 import javax.measure.unit.Unit;
@@ -36,6 +33,7 @@ import com.github.rinde.rinsim.core.model.ModelBuilder.AbstractModelBuilder;
 import com.github.rinde.rinsim.event.Event;
 import com.github.rinde.rinsim.event.EventAPI;
 import com.github.rinde.rinsim.event.EventDispatcher;
+import com.google.auto.value.AutoValue;
 
 /**
  * This model is an implementation of a simulation clock. It notifies
@@ -172,14 +170,15 @@ public final class TimeModel extends AbstractModel<TickListener>
    */
   @CheckReturnValue
   public static Builder builder() {
-    return new Builder();
+    return Builder.create(Builder.DEFAULT_TIME_STEP, Builder.DEFAULT_TIME_UNIT);
   }
 
   /**
    * A builder for constructing {@link TimeModel} instances.
    * @author Rinde van Lon
    */
-  public static class Builder extends
+  @AutoValue
+  public abstract static class Builder extends
     AbstractModelBuilder<TimeModel, TickListener> {
 
     /**
@@ -192,69 +191,48 @@ public final class TimeModel extends AbstractModel<TickListener>
      */
     public static final Unit<Duration> DEFAULT_TIME_UNIT = SI.MILLI(SI.SECOND);
 
-    private long timeLength;
-    private Unit<Duration> timeUnit;
-
     Builder() {
       setProvidingTypes(Clock.class, ClockController.class);
-      timeLength = DEFAULT_TIME_STEP;
-      timeUnit = DEFAULT_TIME_UNIT;
-    }
-
-    /**
-     * Sets the length of a single tick. The default tick length is
-     * <code>1000</code>.
-     * @param length The tick length to set.
-     * @return This, as per the builder pattern.
-     */
-    public Builder setTickLength(long length) {
-      timeLength = length;
-      return this;
-    }
-
-    /**
-     * Sets the time unit to use. The default time unit is milliseconds.
-     * @param unit The time unit to use.
-     * @return This, as per the builder pattern.
-     */
-    public Builder setTimeUnit(Unit<Duration> unit) {
-      timeUnit = unit;
-      return this;
-    }
-
-    @CheckReturnValue
-    @Override
-    public TimeModel build(DependencyProvider dependencyProvider) {
-      return new TimeModel(timeLength, timeUnit);
-    }
-
-    @Override
-    public int hashCode() {
-      return hash(timeLength, timeUnit);
-    }
-
-    @Override
-    public boolean equals(@Nullable Object other) {
-      if (!(other instanceof Builder)) {
-        return false;
-      }
-      final Builder o = (Builder) other;
-      return Objects.equals(timeLength, o.timeLength)
-        && Objects.equals(timeUnit, o.timeUnit);
-    }
-
-    /**
-     * @return The time unit.
-     */
-    public Unit<Duration> getTimeUnit() {
-      return timeUnit;
     }
 
     /**
      * @return The tick length.
      */
-    public long getTickLength() {
-      return timeLength;
+    public abstract long getTickLength();
+
+    /**
+     * @return The time unit.
+     */
+    public abstract Unit<Duration> getTimeUnit();
+
+    /**
+     * Returns a copy of this builder with the specified length of a single
+     * tick. The default tick length is {@link #DEFAULT_TIME_STEP}.
+     * @param tickLength The tick length to set.
+     * @return A new builder instance.
+     */
+    public Builder withTickLength(long tickLength) {
+      return create(tickLength, getTimeUnit());
+    }
+
+    /**
+     * Returns a copy of this builder with the specified time unit to use. The
+     * default time unit is milliseconds.
+     * @param timeUnit The time unit to use.
+     * @return A new builder instance.
+     */
+    public Builder withTimeUnit(Unit<Duration> timeUnit) {
+      return create(getTickLength(), timeUnit);
+    }
+
+    @CheckReturnValue
+    @Override
+    public TimeModel build(DependencyProvider dependencyProvider) {
+      return new TimeModel(getTickLength(), getTimeUnit());
+    }
+
+    static Builder create(long tickLength, Unit<Duration> timeUnit) {
+      return new AutoValue_TimeModel_Builder(tickLength, timeUnit);
     }
   }
 }

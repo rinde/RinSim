@@ -70,7 +70,7 @@ public class TimeModelTest {
   public static Collection<Object[]> data() {
     return asList(new Object[][] {
         { TimeModel.builder() },
-        { TimeModel.builder().setTickLength(333L).setTimeUnit(NonSI.HOUR) }
+        { TimeModel.builder().withTickLength(333L).withTimeUnit(NonSI.HOUR) }
     });
   }
 

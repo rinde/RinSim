@@ -92,8 +92,8 @@ public abstract class Gendreau06Scenario extends Scenario {
     return ImmutableSet.<ModelBuilder<?, ?>> builder()
       .add(
         TimeModel.builder()
-          .setTickLength(getTickSize())
-          .setTimeUnit(SI.MILLI(SI.SECOND))
+          .withTickLength(getTickSize())
+          .withTimeUnit(SI.MILLI(SI.SECOND))
       )
       .add(
         PDPRoadModel.builder(

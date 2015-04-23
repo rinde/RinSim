@@ -118,8 +118,8 @@ public class DynamicPDPTWProblemTest {
       return ImmutableSet.<ModelBuilder<?, ?>> builder()
         .add(
           TimeModel.builder()
-            .setTickLength(1L)
-            .setTimeUnit(SI.SECOND)
+            .withTickLength(1L)
+            .withTimeUnit(SI.SECOND)
         )
         .add(
           RoadModelBuilders.plane()

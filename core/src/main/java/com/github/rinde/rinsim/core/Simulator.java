@@ -81,8 +81,8 @@ public final class Simulator implements SimulatorAPI {
           StochasticSuppliers.constant(rand)))
       .setDefaultProvider(
         TimeModel.builder()
-          .setTickLength(b.tickLength)
-          .setTimeUnit(b.timeUnit)
+          .withTickLength(b.tickLength)
+          .withTimeUnit(b.timeUnit)
       )
       .build();
     toUnregister = new LinkedHashSet<>();
