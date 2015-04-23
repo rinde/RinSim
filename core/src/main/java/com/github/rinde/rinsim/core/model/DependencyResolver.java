@@ -33,9 +33,7 @@ import java.util.Set;
 
 import javax.annotation.Nullable;
 
-import com.github.rinde.rinsim.core.model.ModelBuilder.AbstractModelBuilder;
 import com.github.rinde.rinsim.util.LinkedHashBiMap;
-import com.google.common.base.Supplier;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.LinkedHashMultimap;
@@ -146,15 +144,6 @@ class DependencyResolver extends DependencyProvider {
     return providerMap.get(type).build().get(type);
   }
 
-  @SuppressWarnings("unchecked")
-  static <A extends Model<B>, B> ModelBuilder<A, B> adaptObj(final Object sup) {
-    return adapt((Supplier<A>) sup);
-  }
-
-  static <A extends Model<B>, B> ModelBuilder<A, B> adapt(final Supplier<A> sup) {
-    return new SupplierAdapter<>(sup);
-  }
-
   static class DependencyProviderAccessDecorator extends DependencyProvider {
     final DependencyProvider delegate;
     final ImmutableSet<Class<?>> knownDependencies;
@@ -193,38 +182,6 @@ class DependencyResolver extends DependencyProvider {
         type, modelBuilder);
       requestedDependencies.add(type);
       return delegate.get(type);
-    }
-  }
-
-  static class SupplierAdapter<T extends Model<U>, U> extends
-    AbstractModelBuilder<T, U> {
-    final Supplier<T> supplier;
-
-    SupplierAdapter(Supplier<T> sup) {
-      supplier = sup;
-    }
-
-    @Override
-    public T build(DependencyProvider dependencyProvider) {
-      return supplier.get();
-    }
-
-    @Override
-    public String toString() {
-      return "AdapterOf-" + supplier.toString();
-    }
-
-    @Override
-    public int hashCode() {
-      return supplier.hashCode();
-    }
-
-    @Override
-    public boolean equals(@Nullable Object other) {
-      if (other instanceof SupplierAdapter) {
-        return supplier.equals(((SupplierAdapter<?, ?>) other).supplier);
-      }
-      return false;
     }
   }
 
