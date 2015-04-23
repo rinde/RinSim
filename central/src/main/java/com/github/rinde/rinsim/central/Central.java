@@ -16,11 +16,8 @@
 package com.github.rinde.rinsim.central;
 
 import java.util.Iterator;
-import java.util.Objects;
 import java.util.Queue;
 import java.util.Set;
-
-import javax.annotation.Nullable;
 
 import com.github.rinde.rinsim.central.Solvers.SimulationSolver;
 import com.github.rinde.rinsim.central.Solvers.SolveArgs;
@@ -42,6 +39,7 @@ import com.github.rinde.rinsim.pdptw.common.PDPRoadModel;
 import com.github.rinde.rinsim.pdptw.common.RouteFollowingVehicle;
 import com.github.rinde.rinsim.scenario.AddVehicleEvent;
 import com.github.rinde.rinsim.util.StochasticSupplier;
+import com.google.auto.value.AutoValue;
 import com.google.common.collect.ImmutableList;
 
 // FIXME test this class thoroughly
@@ -100,7 +98,7 @@ public final class Central {
 
     @Override
     public ImmutableList<? extends ModelBuilder<?, ?>> getModels() {
-      return ImmutableList.of(new Builder(solverCreator));
+      return ImmutableList.of(Builder.create(solverCreator));
     }
 
     @Override
@@ -119,17 +117,18 @@ public final class Central {
     }
   }
 
-  static class Builder extends
+  @AutoValue
+  abstract static class Builder extends
     AbstractModelBuilder<CentralModel, DefaultParcel> {
-    private final StochasticSupplier<? extends Solver> solverSupplier;
 
-    Builder(StochasticSupplier<? extends Solver> solverSupplier) {
+    Builder() {
       setDependencies(Clock.class,
         PDPRoadModel.class,
         PDPModel.class,
         RandomProvider.class);
-      this.solverSupplier = solverSupplier;
     }
+
+    abstract StochasticSupplier<Solver> getSolverSupplier();
 
     @Override
     public CentralModel build(DependencyProvider dependencyProvider) {
@@ -137,21 +136,14 @@ public final class Central {
       PDPRoadModel rm = dependencyProvider.get(PDPRoadModel.class);
       PDPModel pm = dependencyProvider.get(PDPModel.class);
       RandomProvider rnd = dependencyProvider.get(RandomProvider.class);
-      Solver solver = solverSupplier.get(rnd.masterInstance().nextLong());
+      Solver solver = getSolverSupplier().get(rnd.masterInstance().nextLong());
       return new CentralModel(clock, rm, pm, solver);
     }
 
-    @Override
-    public int hashCode() {
-      return solverSupplier.hashCode();
-    }
-
-    @Override
-    public boolean equals(@Nullable Object other) {
-      if (!(other instanceof Builder)) {
-        return false;
-      }
-      return Objects.equals(solverSupplier, ((Builder) other).solverSupplier);
+    @SuppressWarnings("unchecked")
+    static Builder create(StochasticSupplier<? extends Solver> solverSupplier) {
+      return new AutoValue_Central_Builder(
+        (StochasticSupplier<Solver>) solverSupplier);
     }
   }
 
