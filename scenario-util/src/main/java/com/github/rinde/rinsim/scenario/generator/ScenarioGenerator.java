@@ -35,7 +35,7 @@ import com.github.rinde.rinsim.core.model.ModelBuilder;
 import com.github.rinde.rinsim.core.model.pdp.PDPScenarioEvent;
 import com.github.rinde.rinsim.core.model.road.ForwardingRoadModel;
 import com.github.rinde.rinsim.core.model.road.RoadModel;
-import com.github.rinde.rinsim.core.model.road.RoadModelBuilders;
+import com.github.rinde.rinsim.core.model.road.RoadModelBuilders.PlaneRMB;
 import com.github.rinde.rinsim.core.model.road.RoadModels;
 import com.github.rinde.rinsim.core.model.time.TimeModel;
 import com.github.rinde.rinsim.geom.Point;
@@ -52,6 +52,7 @@ import com.github.rinde.rinsim.util.TimeWindow;
 import com.google.common.base.Optional;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 
 /**
  * A generator of {@link Scenario}s.
@@ -62,7 +63,7 @@ public final class ScenarioGenerator {
 
   // global properties
   final Builder builder;
-  final ImmutableList<ModelBuilder<?, ?>> modelSuppliers;
+  final ImmutableSet<ModelBuilder<?, ?>> modelBuilders;
 
   private final ParcelGenerator parcelGenerator;
   private final VehicleGenerator vehicleGenerator;
@@ -77,33 +78,30 @@ public final class ScenarioGenerator {
     parcelGenerator = b.parcelGenerator;
     vehicleGenerator = b.vehicleGenerator;
     depotGenerator = b.depotGenerator;
-
-    modelSuppliers = ImmutableList.copyOf(builder.modelSuppliers);
+    modelBuilders = ImmutableSet.copyOf(builder.modelSuppliers);
 
     List<ModelBuilder<RoadModel, ?>> rmBuilders = findBuildersThatBuild(
-      modelSuppliers, RoadModel.class);
+      modelBuilders, RoadModel.class);
     checkArgument(rmBuilders.size() == 1,
       "Exactly one RoadModel builder must be supplied, found %s builders.",
       rmBuilders.size());
-    ModelBuilder<? extends RoadModel, ?> mb = rmBuilders.get(0);
-    final RoadModelBuilders.PlaneRMB planeBuilder;
-    if (mb instanceof ForwardingRoadModel.Builder) {
-      ModelBuilder<?, ?> delegate = ((ForwardingRoadModel.Builder<?>) mb)
+    ModelBuilder<? extends RoadModel, ?> rmb = rmBuilders.get(0);
+    PlaneRMB planeBuilder;
+    if (rmb instanceof ForwardingRoadModel.Builder) {
+      ModelBuilder<?, ?> delegate = ((ForwardingRoadModel.Builder<?>) rmb)
         .getDelegateModelBuilder();
 
-      checkArgument(delegate instanceof RoadModelBuilders.PlaneRMB);
-      planeBuilder = (RoadModelBuilders.PlaneRMB) delegate;
+      checkArgument(delegate instanceof PlaneRMB);
+      planeBuilder = (PlaneRMB) delegate;
     } else {
-      checkArgument(mb instanceof RoadModelBuilders.PlaneRMB);
-      planeBuilder = (RoadModelBuilders.PlaneRMB) mb;
+      checkArgument(rmb instanceof PlaneRMB);
+      planeBuilder = (PlaneRMB) rmb;
     }
-    planeBuilder.withMinPoint(getMin())
-      .withMaxPoint(getMax());
     distanceUnit = planeBuilder.getDistanceUnit();
     speedUnit = planeBuilder.getSpeedUnit();
 
     List<ModelBuilder<TimeModel, ?>> tmBuilders = findBuildersThatBuild(
-      modelSuppliers, TimeModel.class);
+      modelBuilders, TimeModel.class);
     checkArgument(tmBuilders.size() <= 1,
       "At most one TimeModel builder can be specified.");
     if (tmBuilders.isEmpty()) {
@@ -194,7 +192,7 @@ public final class ScenarioGenerator {
       builder.getTimeWindow().end);
     b.addAll(vehicles);
 
-    final TravelTimes tm = createTravelTimes(modelSuppliers, getTimeUnit(),
+    final TravelTimes tm = createTravelTimes(modelBuilders, getTimeUnit(),
       depots, vehicles);
 
     // parcels
@@ -206,7 +204,7 @@ public final class ScenarioGenerator {
 
     // create
     return Scenario.builder(builder, builder.problemClass)
-      .addModels(modelSuppliers)
+      .addModels(modelBuilders)
       .addEvents(b.build())
       .instanceId(id)
       .build();
@@ -240,7 +238,8 @@ public final class ScenarioGenerator {
   public static TravelTimes createTravelTimes(Scenario s) {
     final Iterable<AddDepotEvent> depots = FluentIterable.from(s.getEvents())
       .filter(AddDepotEvent.class);
-    final Iterable<AddVehicleEvent> vehicles = FluentIterable.from(s.getEvents())
+    final Iterable<AddVehicleEvent> vehicles = FluentIterable.from(
+      s.getEvents())
       .filter(AddVehicleEvent.class);
 
     final List<RoadModel> roadModels = newArrayList();

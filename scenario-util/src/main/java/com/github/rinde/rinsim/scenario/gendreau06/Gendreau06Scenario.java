@@ -104,7 +104,7 @@ public abstract class Gendreau06Scenario extends Scenario {
             .withSpeedUnit(MAX_SPEED.getUnit())
             .withMaxSpeed(MAX_SPEED.getValue())
           )
-          .setAllowVehicleDiversion(getAllowDiversion())
+          .withAllowVehicleDiversion(getAllowDiversion())
       )
       .add(
         DefaultPDPModel.builder()

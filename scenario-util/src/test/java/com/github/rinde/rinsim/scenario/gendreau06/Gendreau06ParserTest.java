@@ -266,6 +266,6 @@ public class Gendreau06ParserTest {
   static boolean isDiversionAllowed(Gendreau06Scenario scen) {
     PDPRoadModel.Builder rb = getModelBuilderOfType(scen.getModelBuilders(),
       PDPRoadModel.Builder.class);
-    return rb.isVehicleDiversionAllowed();
+    return rb.getAllowVehicleDiversion();
   }
 }

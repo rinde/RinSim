@@ -107,7 +107,7 @@ public class SolversTest {
       RoadModelBuilders.plane()
         .withMaxSpeed(300d)
       )
-      .setAllowVehicleDiversion(false)
+      .withAllowVehicleDiversion(false)
       .build(dp);
 
     when(dp.get(RoadModel.class)).thenReturn(rm);

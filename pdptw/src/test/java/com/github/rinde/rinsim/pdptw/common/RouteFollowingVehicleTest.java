@@ -130,7 +130,7 @@ public class RouteFollowingVehicleTest {
       RoadModelBuilders.plane()
         .withMaxSpeed(30d)
       )
-      .setAllowVehicleDiversion(diversionIsAllowed)
+      .withAllowVehicleDiversion(diversionIsAllowed)
       .build(dp);
 
     when(dp.get(RoadModel.class)).thenReturn(rm);

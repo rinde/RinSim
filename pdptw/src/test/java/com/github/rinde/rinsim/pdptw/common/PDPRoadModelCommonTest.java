@@ -86,7 +86,7 @@ public abstract class PDPRoadModelCommonTest {
         .withMaxSpeed(0.1)
         .withSpeedUnit(NonSI.KILOMETERS_PER_HOUR)
       )
-      .setAllowVehicleDiversion(allowDiversion)
+      .withAllowVehicleDiversion(allowDiversion)
       .build(dep);
 
     when(dep.get(RoadModel.class)).thenReturn(rm);

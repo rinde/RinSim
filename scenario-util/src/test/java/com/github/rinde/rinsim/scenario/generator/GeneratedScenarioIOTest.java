@@ -80,7 +80,7 @@ public class GeneratedScenarioIOTest {
           RoadModelBuilders.plane()
             .withMaxSpeed(50d)
           )
-          .setAllowVehicleDiversion(true)
+          .withAllowVehicleDiversion(true)
       )
       .addModel(
         DefaultPDPModel.builder()

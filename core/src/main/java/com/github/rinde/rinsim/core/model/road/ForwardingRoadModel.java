@@ -225,24 +225,10 @@ public class ForwardingRoadModel extends GenericRoadModel {
    */
   public abstract static class Builder<T extends ForwardingRoadModel>
     extends AbstractModelBuilder<T, RoadUser> {
-    private final ModelBuilder<RoadModel, RoadUser> delegate;
-
-    /**
-     * @param rm The road model builder that creates the delegate road model
-     *          that will be decorated by the {@link ForwardingRoadModel}
-     *          constructed by this builder.
-     */
-    @SuppressWarnings("unchecked")
-    protected Builder(ModelBuilder<? extends RoadModel, ? extends RoadUser> rm) {
-      delegate = (ModelBuilder<RoadModel, RoadUser>) rm;
-    }
-
     /**
      * @return The {@link ModelBuilder} that will be decorated by the
      *         {@link ForwardingRoadModel} constructed by this builder.
      */
-    public ModelBuilder<RoadModel, RoadUser> getDelegateModelBuilder() {
-      return delegate;
-    }
+    public abstract ModelBuilder<RoadModel, RoadUser> getDelegateModelBuilder();
   }
 }

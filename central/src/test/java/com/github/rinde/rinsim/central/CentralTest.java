@@ -84,7 +84,7 @@ public class CentralTest {
           RoadModelBuilders.plane()
             .withMaxSpeed(300d)
           )
-          .setAllowVehicleDiversion(false)
+          .withAllowVehicleDiversion(false)
       )
       .addModel(
         DefaultPDPModel.builder()

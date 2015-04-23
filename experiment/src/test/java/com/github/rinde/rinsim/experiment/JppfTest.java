@@ -139,7 +139,7 @@ public class JppfTest {
           RoadModelBuilders.plane()
             .withMaxSpeed(20d)
           )
-          .setAllowVehicleDiversion(true)
+          .withAllowVehicleDiversion(true)
       )
       .addModel(
         DefaultPDPModel.builder()

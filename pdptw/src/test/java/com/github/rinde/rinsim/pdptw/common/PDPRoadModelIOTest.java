@@ -42,7 +42,7 @@ public class PDPRoadModelIOTest {
           .withSpeedUnit(NonSI.MILES_PER_HOUR)
           .withMaxSpeed(7)
         )
-        .setAllowVehicleDiversion(true)
+        .withAllowVehicleDiversion(true)
       );
 
     final Scenario s = sb.problemClass(TestProblemClass.TEST).build();

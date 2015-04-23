@@ -17,7 +17,6 @@ package com.github.rinde.rinsim.pdptw.common;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.collect.Maps.newHashMap;
-import static java.util.Objects.hash;
 
 import java.util.Map;
 import java.util.Queue;
@@ -43,7 +42,6 @@ import com.github.rinde.rinsim.core.pdptw.DefaultParcel;
 import com.github.rinde.rinsim.core.pdptw.DefaultVehicle;
 import com.github.rinde.rinsim.geom.Point;
 import com.google.auto.value.AutoValue;
-import com.google.common.base.Objects;
 import com.google.common.base.Optional;
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Multimap;
@@ -313,9 +311,10 @@ public class PDPRoadModel extends ForwardingRoadModel implements ModelReceiver {
    * @return A new {@link Builder} that constructs {@link PDPRoadModel}
    *         instances that decorate the <code>delegate</code>.
    */
+  @SuppressWarnings("unchecked")
   public static Builder builder(
     ModelBuilder<? extends RoadModel, ? extends RoadUser> delegate) {
-    return new Builder(delegate);
+    return Builder.create((ModelBuilder<RoadModel, RoadUser>) delegate, false);
   }
 
   /**
@@ -323,14 +322,19 @@ public class PDPRoadModel extends ForwardingRoadModel implements ModelReceiver {
    * obtained via {@link PDPRoadModel#builder(ModelBuilder)}.
    * @author Rinde van Lon
    */
-  public static class Builder extends ForwardingRoadModel.Builder<PDPRoadModel> {
-    private boolean allowVehicleDiversion;
+  @AutoValue
+  public abstract static class Builder extends
+    ForwardingRoadModel.Builder<PDPRoadModel> {
 
-    Builder(ModelBuilder<? extends RoadModel, ? extends RoadUser> rm) {
-      super(rm);
+    Builder() {
       setProvidingTypes(RoadModel.class, PDPRoadModel.class);
-      allowVehicleDiversion = false;
     }
+
+    /**
+     * @return <code>true</code> if vehicle diversion is allowed,
+     *         <code>false</code> otherwise.
+     */
+    public abstract boolean getAllowVehicleDiversion();
 
     /**
      * Should the model allow vehicle diversion or not. See {@link PDPRoadModel}
@@ -339,41 +343,22 @@ public class PDPRoadModel extends ForwardingRoadModel implements ModelReceiver {
      *          <code>false</code>) vehicle diversion.
      * @return This, as per the builder pattern.
      */
-    public Builder setAllowVehicleDiversion(boolean allowDiversion) {
-      allowVehicleDiversion = allowDiversion;
-      return this;
-    }
-
-    /**
-     * @return <code>true</code> if vehicle diversion is allowed,
-     *         <code>false</code> otherwise.
-     */
-    public boolean isVehicleDiversionAllowed() {
-      return allowVehicleDiversion;
+    public Builder withAllowVehicleDiversion(boolean allowDiversion) {
+      return create(getDelegateModelBuilder(), allowDiversion);
     }
 
     @Override
     public PDPRoadModel build(DependencyProvider dependencyProvider) {
       final AbstractRoadModel<?> rm = (AbstractRoadModel<?>) getDelegateModelBuilder()
         .build(dependencyProvider);
-
-      return new PDPRoadModel(rm, allowVehicleDiversion);
+      return new PDPRoadModel(rm, getAllowVehicleDiversion());
     }
 
-    @Override
-    public int hashCode() {
-      return hash(getDelegateModelBuilder(), allowVehicleDiversion);
-    }
-
-    @Override
-    public boolean equals(@Nullable Object other) {
-      if (!(other instanceof Builder)) {
-        return false;
-      }
-      final Builder o = (Builder) other;
-      return Objects.equal(allowVehicleDiversion, o.allowVehicleDiversion)
-        && Objects
-          .equal(getDelegateModelBuilder(), o.getDelegateModelBuilder());
+    static Builder create(
+      ModelBuilder<RoadModel, RoadUser> delegateModelBuilder,
+      boolean allowVehicleDiversion) {
+      return new AutoValue_PDPRoadModel_Builder(delegateModelBuilder,
+        allowVehicleDiversion);
     }
   }
 

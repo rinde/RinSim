@@ -17,6 +17,7 @@ package com.github.rinde.rinsim.core.model.road;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
+import javax.annotation.CheckReturnValue;
 import javax.measure.quantity.Length;
 import javax.measure.quantity.Velocity;
 import javax.measure.unit.NonSI;
@@ -136,6 +137,7 @@ public final class RoadModelBuilders {
      * @param unit The distance unit to set.
      * @return A new builder instance.
      */
+    @CheckReturnValue
     public abstract S withDistanceUnit(Unit<Length> unit);
 
     /**
@@ -144,6 +146,7 @@ public final class RoadModelBuilders {
      * @param unit The speed unit to set
      * @return A new builder instance.
      */
+    @CheckReturnValue
     public abstract S withSpeedUnit(Unit<Velocity> unit);
   }
 
@@ -218,6 +221,7 @@ public final class RoadModelBuilders {
      * @param minPoint The min point to set.
      * @return A new builder instance.
      */
+    @CheckReturnValue
     public PlaneRMB withMinPoint(Point minPoint) {
       return create(getDistanceUnit(), getSpeedUnit(), minPoint, getMax(),
         getMaxSpeed());
@@ -230,6 +234,7 @@ public final class RoadModelBuilders {
      * @param maxPoint The max point to set.
      * @return A new builder instance.
      */
+    @CheckReturnValue
     public PlaneRMB withMaxPoint(Point maxPoint) {
       return create(getDistanceUnit(), getSpeedUnit(), getMin(), maxPoint,
         getMaxSpeed());
@@ -242,6 +247,7 @@ public final class RoadModelBuilders {
      * @param maxSpeed The max speed to set.
      * @return A new builder instance.
      */
+    @CheckReturnValue
     public PlaneRMB withMaxSpeed(double maxSpeed) {
       checkArgument(maxSpeed > 0d,
         "Max speed must be strictly positive but is %s.",
@@ -311,6 +317,7 @@ public final class RoadModelBuilders {
      * {@link CachedGraphRoadModel} instead.
      * @return A new {@link CachedGraphRMB} instance.
      */
+    @CheckReturnValue
     public CachedGraphRMB withCache() {
       return CachedGraphRMB.create(getDistanceUnit(), getSpeedUnit(),
         getGraphSupplier());
@@ -354,6 +361,7 @@ public final class RoadModelBuilders {
      * {@link CollisionGraphRMB#withVehicleLength(double)}.
      * @return A new {@link CollisionGraphRMB} instance.
      */
+    @CheckReturnValue
     public CollisionGraphRMB withCollisionAvoidance() {
       return CollisionGraphRMB.create(this);
     }
@@ -456,6 +464,7 @@ public final class RoadModelBuilders {
      *          {@link #withDistanceUnit(Unit)}.
      * @return A new builder instance.
      */
+    @CheckReturnValue
     public CollisionGraphRMB withVehicleLength(double length) {
       checkArgument(length > 0d,
         "Only positive vehicle lengths are allowed, found %s.", length);
@@ -474,6 +483,7 @@ public final class RoadModelBuilders {
      *          {@link #withDistanceUnit(Unit)}.
      * @return A new builder instance.
      */
+    @CheckReturnValue
     public CollisionGraphRMB withMinDistance(double dist) {
       checkArgument(dist >= 0d);
       return create(getDistanceUnit(), getSpeedUnit(), getGraphSupplier(),

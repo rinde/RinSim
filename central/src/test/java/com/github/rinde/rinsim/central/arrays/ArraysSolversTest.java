@@ -141,7 +141,7 @@ public class ArraysSolversTest {
       )
       .addModel(
         PDPRoadModel.builder(RoadModelBuilders.plane())
-          .setAllowVehicleDiversion(false)
+          .withAllowVehicleDiversion(false)
       )
       .build();
 
