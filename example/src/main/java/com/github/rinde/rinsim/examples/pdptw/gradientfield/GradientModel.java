@@ -35,6 +35,7 @@ import com.github.rinde.rinsim.core.model.pdp.PDPModel;
 import com.github.rinde.rinsim.core.model.pdp.Parcel;
 import com.github.rinde.rinsim.core.model.road.RoadModel;
 import com.github.rinde.rinsim.geom.Point;
+import com.google.auto.value.AutoValue;
 import com.google.common.collect.ImmutableList;
 
 /**
@@ -165,24 +166,15 @@ public class GradientModel extends AbstractModel<FieldEmitter> implements
   }
 
   static Builder builder() {
-    return new Builder();
+    return new AutoValue_GradientModel_Builder();
   }
 
-  static class Builder extends
+  @AutoValue
+  abstract static class Builder extends
     AbstractModelBuilder<GradientModel, FieldEmitter> {
     @Override
     public GradientModel build(DependencyProvider dependencyProvider) {
       return new GradientModel();
-    }
-
-    @Override
-    public int hashCode() {
-      return System.identityHashCode(this);
-    }
-
-    @Override
-    public boolean equals(@Nullable Object other) {
-      return this == other;
     }
   }
 

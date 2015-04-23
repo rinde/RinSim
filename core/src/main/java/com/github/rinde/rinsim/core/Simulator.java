@@ -20,7 +20,6 @@ import static com.google.common.base.Preconditions.checkArgument;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
-import javax.annotation.Nullable;
 import javax.measure.quantity.Duration;
 import javax.measure.unit.SI;
 import javax.measure.unit.Unit;
@@ -43,6 +42,7 @@ import com.github.rinde.rinsim.core.model.time.TickListener;
 import com.github.rinde.rinsim.core.model.time.TimeLapse;
 import com.github.rinde.rinsim.core.model.time.TimeModel;
 import com.github.rinde.rinsim.util.StochasticSuppliers;
+import com.google.auto.value.AutoValue;
 import com.google.common.collect.ImmutableSet;
 
 /**
@@ -75,7 +75,7 @@ public final class Simulator implements SimulatorAPI {
   Simulator(Builder b) {
     rand = b.rng;
     modelManager = b.mmBuilder
-      .add(new SimulatorModelBuilder(this))
+      .add(SimulatorModelBuilder.create(this))
       .setDefaultProvider(
         RandomModel.builder().withRandomGenerator(
           StochasticSuppliers.constant(rand)))
@@ -332,29 +332,23 @@ public final class Simulator implements SimulatorAPI {
     }
   }
 
-  static class SimulatorModelBuilder extends
+  @AutoValue
+  abstract static class SimulatorModelBuilder extends
     AbstractModelBuilder<SimulatorModel, SimulatorUser> {
 
-    final Simulator simulator;
-
-    SimulatorModelBuilder(Simulator sim) {
-      simulator = sim;
+    SimulatorModelBuilder() {
       setProvidingTypes(SimulatorAPI.class);
     }
 
+    abstract Simulator getSimulator();
+
     @Override
     public SimulatorModel build(DependencyProvider dependencyProvider) {
-      return new SimulatorModel(simulator);
+      return new SimulatorModel(getSimulator());
     }
 
-    @Override
-    public int hashCode() {
-      return System.identityHashCode(this);
-    }
-
-    @Override
-    public boolean equals(@Nullable Object other) {
-      return this == other;
+    static SimulatorModelBuilder create(Simulator sim) {
+      return new AutoValue_Simulator_SimulatorModelBuilder(sim);
     }
   }
 

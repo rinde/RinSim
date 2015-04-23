@@ -18,14 +18,10 @@ package com.github.rinde.rinsim.examples.demo.factory;
 import static com.google.common.base.Verify.verify;
 import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Sets.newLinkedHashSet;
-import static java.util.Objects.hash;
 
 import java.math.RoundingMode;
 import java.util.List;
-import java.util.Objects;
 import java.util.Set;
-
-import javax.annotation.Nullable;
 
 import org.apache.commons.math3.random.RandomGenerator;
 
@@ -46,6 +42,7 @@ import com.github.rinde.rinsim.core.model.time.TimeLapse;
 import com.github.rinde.rinsim.event.Event;
 import com.github.rinde.rinsim.event.Listener;
 import com.github.rinde.rinsim.geom.Point;
+import com.google.auto.value.AutoValue;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.math.DoubleMath;
@@ -207,45 +204,36 @@ class AgvModel extends AbstractModel<AGV> implements TickListener,
   }
 
   static Builder builder() {
-    return new Builder();
+    return Builder.create(ImmutableList.<ImmutableList<Point>> of(),
+      ImmutableList.<Point> of());
   }
 
-  static class Builder extends AbstractModelBuilder<AgvModel, AGV> {
-
-    ImmutableList<ImmutableList<Point>> points;
-    ImmutableList<Point> border;
+  @AutoValue
+  abstract static class Builder extends AbstractModelBuilder<AgvModel, AGV> {
 
     Builder() {
       setDependencies(RandomProvider.class);
     }
 
-    Builder setPoints(ImmutableList<ImmutableList<Point>> ps,
+    abstract ImmutableList<ImmutableList<Point>> getPoints();
+
+    abstract ImmutableList<Point> getBorder();
+
+    Builder withPoints(ImmutableList<ImmutableList<Point>> ps,
       ImmutableList<Point> b) {
-      points = ps;
-      border = b;
-      return this;
+      return create(ps, b);
     }
 
     @Override
     public AgvModel build(DependencyProvider dependencyProvider) {
       final RandomGenerator rng = dependencyProvider.get(RandomProvider.class)
         .newInstance();
-      return new AgvModel(rng, points, border);
+      return new AgvModel(rng, getPoints(), getBorder());
     }
 
-    @Override
-    public int hashCode() {
-      return hash(points, border);
-    }
-
-    @Override
-    public boolean equals(@Nullable Object other) {
-      if (!(other instanceof Builder)) {
-        return false;
-      }
-      final Builder o = (Builder) other;
-      return Objects.equals(points, o.points)
-        && Objects.equals(border, o.border);
+    static Builder create(ImmutableList<ImmutableList<Point>> ps,
+      ImmutableList<Point> b) {
+      return new AutoValue_AgvModel_Builder(ps, b);
     }
   }
 }

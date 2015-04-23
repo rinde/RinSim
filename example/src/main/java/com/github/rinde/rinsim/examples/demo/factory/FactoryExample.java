@@ -161,7 +161,7 @@ public final class FactoryExample {
         DefaultPDPModel.builder()
       )
       .addModel(
-        AgvModel.builder().setPoints(
+        AgvModel.builder().withPoints(
           ImmutableList.<ImmutableList<Point>> builder()
             .addAll(points)
             .add(ImmutableList.copyOf(borderNodes))

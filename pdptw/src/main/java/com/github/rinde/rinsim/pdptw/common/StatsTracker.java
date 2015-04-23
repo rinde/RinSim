@@ -35,8 +35,6 @@ import static com.google.common.collect.Maps.newLinkedHashMap;
 
 import java.util.Map;
 
-import javax.annotation.Nullable;
-
 import com.github.rinde.rinsim.core.model.DependencyProvider;
 import com.github.rinde.rinsim.core.model.Model.AbstractModel;
 import com.github.rinde.rinsim.core.model.ModelBuilder.AbstractModelBuilder;
@@ -59,6 +57,7 @@ import com.github.rinde.rinsim.event.Listener;
 import com.github.rinde.rinsim.geom.Point;
 import com.github.rinde.rinsim.scenario.ScenarioController;
 import com.github.rinde.rinsim.scenario.TimedEvent;
+import com.google.auto.value.AutoValue;
 
 /**
  * @author Rinde van Lon
@@ -297,10 +296,11 @@ final class StatsTracker extends AbstractModel<Object> {
   }
 
   public static Builder builder() {
-    return new Builder();
+    return new AutoValue_StatsTracker_Builder();
   }
 
-  public static class Builder extends
+  @AutoValue
+  public abstract static class Builder extends
     AbstractModelBuilder<StatsTracker, Object> {
 
     Builder() {
@@ -318,16 +318,6 @@ final class StatsTracker extends AbstractModel<Object> {
       final RoadModel rm = dependencyProvider.get(RoadModel.class);
       final PDPModel pm = dependencyProvider.get(PDPModel.class);
       return new StatsTracker(ctrl, clock, rm, pm);
-    }
-
-    @Override
-    public int hashCode() {
-      return getClass().hashCode();
-    }
-
-    @Override
-    public boolean equals(@Nullable Object other) {
-      return other instanceof Builder;
     }
   }
 }
