@@ -180,7 +180,24 @@ public final class ModelManager implements ModelProvider {
      * @return This, as per the builder pattern.
      */
     public Builder add(ModelBuilder<?, ?> builder) {
+      if (builder instanceof CompositeModelBuilder<?, ?>) {
+        return add((CompositeModelBuilder<?, ?>) builder);
+      }
       resolver.add(builder);
+      return this;
+    }
+
+    /**
+     * Adds the specified {@link CompositeModelBuilder} and its children to the
+     * manager.
+     * @param builder The builder to add.
+     * @return This, as per the builder pattern.
+     */
+    public Builder add(CompositeModelBuilder<?, ?> builder) {
+      resolver.add(builder);
+      for (final ModelBuilder<?, ?> mb : builder.getChildren()) {
+        add(mb);
+      }
       return this;
     }
 
@@ -192,8 +209,25 @@ public final class ModelManager implements ModelProvider {
      * @param provider The builder to add.
      * @return This, as per the builder pattern.
      */
-    public Builder setDefaultProvider(ModelBuilder<?, ?> provider) {
+    public Builder addDefaultProvider(ModelBuilder<?, ?> provider) {
+      if (provider instanceof CompositeModelBuilder<?, ?>) {
+        return addDefaultProvider((CompositeModelBuilder<?, ?>) provider);
+      }
       resolver.addDefault(provider);
+      return this;
+    }
+
+    /**
+     * Adds the specified {@link CompositeModelBuilder} and its children to the
+     * manager as a default provider.
+     * @param provider The provider to add.
+     * @return This, as per the builder pattern.
+     */
+    public Builder addDefaultProvider(CompositeModelBuilder<?, ?> provider) {
+      resolver.addDefault(provider);
+      for (final ModelBuilder<?, ?> mb : provider.getChildren()) {
+        addDefaultProvider(mb);
+      }
       return this;
     }
 

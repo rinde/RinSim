@@ -76,10 +76,10 @@ public final class Simulator implements SimulatorAPI {
     rand = b.rng;
     modelManager = b.mmBuilder
       .add(SimulatorModelBuilder.create(this))
-      .setDefaultProvider(
+      .addDefaultProvider(
         RandomModel.builder().withRandomGenerator(
           StochasticSuppliers.constant(rand)))
-      .setDefaultProvider(
+      .addDefaultProvider(
         TimeModel.builder()
           .withTickLength(b.tickLength)
           .withTimeUnit(b.timeUnit)
