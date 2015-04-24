@@ -26,6 +26,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import javax.annotation.CheckReturnValue;
+
 import com.github.rinde.rinsim.core.model.DependencyProvider;
 import com.github.rinde.rinsim.core.model.ModelBuilder.AbstractModelBuilder;
 import com.github.rinde.rinsim.core.model.pdp.TimeWindowPolicy.TimeWindowPolicies;
@@ -675,6 +677,7 @@ public final class DefaultPDPModel extends PDPModel {
      * @param p The {@link TimeWindowPolicy} which will be used in the model.
      * @return A new {@link Builder} instance.
      */
+    @CheckReturnValue
     public Builder withTimeWindowPolicy(TimeWindowPolicy p) {
       return new AutoValue_DefaultPDPModel_Builder(p);
     }

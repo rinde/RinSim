@@ -21,6 +21,8 @@ import static com.google.common.base.Preconditions.checkState;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import javax.annotation.CheckReturnValue;
+
 import org.apache.commons.math3.random.RandomGenerator;
 
 import com.github.rinde.rinsim.core.model.DependencyProvider;
@@ -255,6 +257,7 @@ public final class CommModel extends AbstractModel<CommUser> implements
      * @return A new instance of {@link Builder} with reliability set to the
      *         specified value.
      */
+    @CheckReturnValue
     public Builder withDefaultDeviceReliability(double reliability) {
       checkReliability(reliability);
       return new AutoValue_CommModel_Builder(reliability, defaultMaxRange());
@@ -268,6 +271,7 @@ public final class CommModel extends AbstractModel<CommUser> implements
      * @return A new instance of {@link Builder} with max range set to the
      *         specified value.
      */
+    @CheckReturnValue
     public Builder withDefaultDeviceMaxRange(double maxRange) {
       checkMaxRange(maxRange);
       return new AutoValue_CommModel_Builder(defaultReliability(),

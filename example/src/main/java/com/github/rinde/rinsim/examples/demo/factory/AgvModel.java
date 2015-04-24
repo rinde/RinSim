@@ -23,6 +23,8 @@ import java.math.RoundingMode;
 import java.util.List;
 import java.util.Set;
 
+import javax.annotation.CheckReturnValue;
+
 import org.apache.commons.math3.random.RandomGenerator;
 
 import com.github.rinde.rinsim.core.SimulatorAPI;
@@ -219,6 +221,7 @@ class AgvModel extends AbstractModel<AGV> implements TickListener,
 
     abstract ImmutableList<Point> getBorder();
 
+    @CheckReturnValue
     Builder withPoints(ImmutableList<ImmutableList<Point>> ps,
       ImmutableList<Point> b) {
       return create(ps, b);

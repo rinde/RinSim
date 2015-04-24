@@ -211,6 +211,7 @@ public final class TimeModel extends AbstractModel<TickListener>
      * @param tickLength The tick length to set.
      * @return A new builder instance.
      */
+    @CheckReturnValue
     public Builder withTickLength(long tickLength) {
       return create(tickLength, getTimeUnit());
     }
@@ -221,6 +222,7 @@ public final class TimeModel extends AbstractModel<TickListener>
      * @param timeUnit The time unit to use.
      * @return A new builder instance.
      */
+    @CheckReturnValue
     public Builder withTimeUnit(Unit<Duration> timeUnit) {
       return create(getTickLength(), timeUnit);
     }

@@ -21,6 +21,7 @@ import static com.google.common.collect.Maps.newHashMap;
 import java.util.Map;
 import java.util.Queue;
 
+import javax.annotation.CheckReturnValue;
 import javax.annotation.Nullable;
 
 import com.github.rinde.rinsim.core.model.DependencyProvider;
@@ -343,6 +344,7 @@ public class PDPRoadModel extends ForwardingRoadModel implements ModelReceiver {
      *          <code>false</code>) vehicle diversion.
      * @return This, as per the builder pattern.
      */
+    @CheckReturnValue
     public Builder withAllowVehicleDiversion(boolean allowDiversion) {
       return create(getDelegateModelBuilder(), allowDiversion);
     }

@@ -20,6 +20,8 @@ import static com.google.common.base.Preconditions.checkState;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+import javax.annotation.CheckReturnValue;
+
 import org.apache.commons.math3.random.MersenneTwister;
 import org.apache.commons.math3.random.RandomGenerator;
 
@@ -92,6 +94,7 @@ public class RandomModel extends AbstractModel<RandomUser> {
    * @return A new {@link RandomModel} that uses a {@link MersenneTwister} with
    *         seed: {@link RandomModel#DEFAULT_SEED}.
    */
+  @CheckReturnValue
   public static Builder builder() {
     return Builder.create(DEFAULT_SEED);
   }
@@ -121,6 +124,7 @@ public class RandomModel extends AbstractModel<RandomUser> {
      * @param seed The random seed.
      * @return A new builder instance.
      */
+    @CheckReturnValue
     public Builder withSeed(long seed) {
       return create(seed, rngSupplier());
     }
@@ -131,6 +135,7 @@ public class RandomModel extends AbstractModel<RandomUser> {
      * @param supplier The supplier of random generators.
      * @return A new builder instance.
      */
+    @CheckReturnValue
     public Builder withRandomGenerator(
       StochasticSupplier<? extends RandomGenerator> supplier) {
       return create(seed(), supplier);
