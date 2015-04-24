@@ -15,17 +15,18 @@
  */
 package com.github.rinde.rinsim.scenario;
 
+import com.github.rinde.rinsim.core.SimulatorAPI;
+
 /**
  * Interface for handling scenario events.
- * @author Rinde van Lon 
+ * @author Rinde van Lon
+ * @param <T> The type of TimedEvent that this handler handles.
  */
-public interface TimedEventHandler {
+public interface TimedEventHandler<T extends TimedEvent> {
 
   /**
    * Should handle the timed event.
    * @param event The event to handle.
-   * @return <code>true</code> if successful, <code>false</code> otherwise.
    */
-  boolean handleTimedEvent(TimedEvent event);
-
+  void handleTimedEvent(T event, SimulatorAPI simulator);
 }

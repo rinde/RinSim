@@ -43,6 +43,7 @@ import com.github.rinde.rinsim.scenario.AddVehicleEvent;
 import com.github.rinde.rinsim.scenario.Scenario;
 import com.github.rinde.rinsim.scenario.ScenarioController.UICreator;
 import com.github.rinde.rinsim.scenario.ScenarioIO;
+import com.github.rinde.rinsim.scenario.TimedEventHandler;
 import com.github.rinde.rinsim.util.StochasticSupplier;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Function;
@@ -53,6 +54,7 @@ import com.google.common.base.Optional;
 import com.google.common.base.Supplier;
 import com.google.common.collect.ComparisonChain;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 
@@ -167,15 +169,23 @@ public final class Experiment {
     final ImmutableList<? extends ModelBuilder<?, ?>> modelBuilders = config
       .getModels();
 
-    final DynamicPDPTWProblem problem = new DynamicPDPTWProblem(scenario,
-      seed, modelBuilders);
-    problem.addCreator(AddVehicleEvent.class, config.getVehicleCreator());
+    ImmutableMap.Builder<Class<?>, TimedEventHandler<?>> b = ImmutableMap
+      .builder();
+
+    b.put(AddVehicleEvent.class,
+      DynamicPDPTWProblem.adaptCreator(config.getVehicleCreator()));
     if (config.getDepotCreator().isPresent()) {
-      problem.addCreator(AddDepotEvent.class, config.getDepotCreator().get());
+      b.put(AddDepotEvent.class,
+        DynamicPDPTWProblem.adaptCreator(config.getDepotCreator().get()));
     }
     if (config.getParcelCreator().isPresent()) {
-      problem.addCreator(AddParcelEvent.class, config.getParcelCreator().get());
+      b.put(AddParcelEvent.class,
+        DynamicPDPTWProblem.adaptCreator(config.getParcelCreator().get()));
     }
+
+    final DynamicPDPTWProblem problem = new DynamicPDPTWProblem(scenario,
+      seed, modelBuilders, b.build());
+
     if (showGui) {
       if (uiCreator.isPresent()) {
         problem.enableUI(uiCreator.get());

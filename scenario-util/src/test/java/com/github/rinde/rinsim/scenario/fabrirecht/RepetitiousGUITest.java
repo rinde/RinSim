@@ -19,6 +19,7 @@ import java.io.File;
 import java.io.IOException;
 
 import com.github.rinde.rinsim.core.Simulator;
+import com.github.rinde.rinsim.core.SimulatorAPI;
 import com.github.rinde.rinsim.core.model.ModelBuilder;
 import com.github.rinde.rinsim.core.model.pdp.PDPModel;
 import com.github.rinde.rinsim.core.model.pdp.PDPModel.ParcelState;
@@ -30,14 +31,15 @@ import com.github.rinde.rinsim.core.pdptw.DefaultParcel;
 import com.github.rinde.rinsim.core.pdptw.DefaultVehicle;
 import com.github.rinde.rinsim.core.pdptw.VehicleDTO;
 import com.github.rinde.rinsim.pdptw.common.DynamicPDPTWProblem;
-import com.github.rinde.rinsim.pdptw.common.DynamicPDPTWProblem.Creator;
 import com.github.rinde.rinsim.pdptw.common.DynamicPDPTWProblem.DefaultUICreator;
 import com.github.rinde.rinsim.scenario.AddVehicleEvent;
+import com.github.rinde.rinsim.scenario.TimedEventHandler;
 import com.github.rinde.rinsim.ui.View;
 import com.github.rinde.rinsim.ui.renderers.Renderer;
 import com.google.common.base.Charsets;
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.io.Files;
 
 /**
@@ -55,14 +57,16 @@ public class RepetitiousGUITest {
           Charsets.UTF_8), 8, 20);
 
       final DynamicPDPTWProblem problem = new DynamicPDPTWProblem(scenario,
-        123, ImmutableList.<ModelBuilder<?, ?>> of());
-      problem.addCreator(AddVehicleEvent.class, new Creator<AddVehicleEvent>() {
-        @Override
-        public boolean create(Simulator sim, AddVehicleEvent event) {
-          sim.register(new Truck(event.vehicleDTO));
-          return true;
-        }
-      });
+        123, ImmutableList.<ModelBuilder<?, ?>> of(),
+        ImmutableMap.<Class<?>, TimedEventHandler<?>> of(AddVehicleEvent.class,
+          new TimedEventHandler<AddVehicleEvent>() {
+            @Override
+            public void handleTimedEvent(AddVehicleEvent event,
+              SimulatorAPI simulator) {
+              simulator.register(new Truck(event.vehicleDTO));
+            }
+          })
+        );
       final int iteration = i;
 
       problem.enableUI(new DefaultUICreator(problem, 15) {

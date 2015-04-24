@@ -15,31 +15,23 @@
  */
 package com.github.rinde.rinsim.pdptw.common;
 
-import static com.github.rinde.rinsim.core.model.pdp.PDPScenarioEvent.TIME_OUT;
 import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.collect.Lists.newArrayList;
-import static com.google.common.collect.Maps.newHashMap;
 
 import java.util.List;
-import java.util.Map;
 
 import javax.annotation.Nullable;
 
 import org.eclipse.swt.SWT;
 
 import com.github.rinde.rinsim.core.Simulator;
+import com.github.rinde.rinsim.core.SimulatorAPI;
 import com.github.rinde.rinsim.core.model.ModelBuilder;
 import com.github.rinde.rinsim.core.model.pdp.Depot;
 import com.github.rinde.rinsim.core.model.pdp.Parcel;
 import com.github.rinde.rinsim.core.model.pdp.Vehicle;
 import com.github.rinde.rinsim.core.model.time.TickListener;
 import com.github.rinde.rinsim.core.model.time.TimeLapse;
-import com.github.rinde.rinsim.core.pdptw.DefaultDepot;
-import com.github.rinde.rinsim.core.pdptw.DefaultParcel;
-import com.github.rinde.rinsim.scenario.AddDepotEvent;
-import com.github.rinde.rinsim.scenario.AddParcelEvent;
-import com.github.rinde.rinsim.scenario.AddVehicleEvent;
 import com.github.rinde.rinsim.scenario.Scenario;
 import com.github.rinde.rinsim.scenario.ScenarioController;
 import com.github.rinde.rinsim.scenario.ScenarioController.UICreator;
@@ -66,10 +58,7 @@ import com.google.common.collect.ImmutableMap;
  * worry about adding its own solution to this instance.
  * <p>
  * By default this class needs very little customization, it needs to be given a
- * scenario which it then uses to configure the simulation. Further it is
- * required to plug your own vehicle in by using
- * {@link #addCreator(Class, Creator)}. Optionally this method can also be used
- * to plug in custom parcels and depots.
+ * scenario which it then uses to configure the simulation.
  * @author Rinde van Lon
  */
 public final class DynamicPDPTWProblem {
@@ -88,33 +77,6 @@ public final class DynamicPDPTWProblem {
 
   // TODO if there can be some generic way to hook custom agents into the
   // simulator/scenario, this class can probably be removed
-
-  /**
-   * A map which contains the default {@link Creator}s.
-   */
-  protected static final ImmutableMap<Class<?>, Creator<?>> DEFAULT_EVENT_CREATOR_MAP;
-  static {
-    DEFAULT_EVENT_CREATOR_MAP = ImmutableMap.of(
-      (Class<?>) AddParcelEvent.class, new Creator<AddParcelEvent>() {
-        @Override
-        public boolean create(Simulator sim, AddParcelEvent event) {
-          sim.register(new DefaultParcel(event.parcelDTO));
-          return true;
-        }
-      }, AddDepotEvent.class, new Creator<AddDepotEvent>() {
-        @Override
-        public boolean create(Simulator sim, AddDepotEvent event) {
-          sim.register(new DefaultDepot(event.position));
-          return true;
-        }
-      });
-  }
-
-  /**
-   * Map containing the {@link Creator}s which handle specific
-   * {@link TimedEvent}s.
-   */
-  protected final Map<Class<?>, Creator<?>> eventCreatorMap;
 
   /**
    * The {@link ScenarioController} which is used to play the scenario.
@@ -151,38 +113,19 @@ public final class DynamicPDPTWProblem {
    *          option custom models for specific solutions can be added.
    */
   public DynamicPDPTWProblem(final Scenario scen, long randomSeed,
-    Iterable<? extends ModelBuilder<?, ?>> models) {
+    Iterable<? extends ModelBuilder<?, ?>> models,
+    ImmutableMap<Class<?>, TimedEventHandler<?>> m) {
 
-    final Simulator.Builder simBuilder = Simulator.builder()
-      .setRandomSeed(randomSeed)
-      .addModels(scen.getModelBuilders())
-      .addModels(models);
-    eventCreatorMap = newHashMap();
-
-    final TimedEventHandler handler = new TimedEventHandler() {
-      @SuppressWarnings("unchecked")
-      @Override
-      public boolean handleTimedEvent(TimedEvent event) {
-        if (eventCreatorMap.containsKey(event.getClass())) {
-          return ((Creator<TimedEvent>) eventCreatorMap.get(event.getClass()))
-            .create(simulator, event);
-        } else if (DEFAULT_EVENT_CREATOR_MAP.containsKey(event.getClass())) {
-          return ((Creator<TimedEvent>) DEFAULT_EVENT_CREATOR_MAP.get(event
-            .getClass())).create(simulator, event);
-        } else if (event.getEventType() == TIME_OUT) {
-          return true;
-        }
-        return false;
-      }
-    };
     final int ticks = scen.getTimeWindow().end == Long.MAX_VALUE ? -1
       : (int) (scen.getTimeWindow().end - scen.getTimeWindow().begin);
 
-    simBuilder.addModel(
-      ScenarioController.builder()
-        .setScenario(scen)
-        .setEventHandler(handler)
-        .setNumberOfTicks(ticks)
+    final Simulator.Builder simBuilder = Simulator.builder()
+      .setRandomSeed(randomSeed)
+      .addModels(models)
+      .addModel(
+        ScenarioController.builder(scen)
+          .withEventHandlers(m)
+          .withNumberOfTicks(ticks)
       )
       .addModel(StatsTracker.builder());
 
@@ -258,9 +201,9 @@ public final class DynamicPDPTWProblem {
    * @return The statistics that were gathered during the simulation.
    */
   public StatisticsDTO simulate() {
-    checkState(eventCreatorMap.containsKey(AddVehicleEvent.class),
-      "A creator for AddVehicleEvent is required, use %s.addCreator(..)",
-      this.getClass().getName());
+    // checkState(eventCreatorMap.containsKey(AddVehicleEvent.class),
+    // "A creator for AddVehicleEvent is required, use %s.addCreator(..)",
+    // this.getClass().getName());
     controller.start();
     return getStatistics();
   }
@@ -285,14 +228,14 @@ public final class DynamicPDPTWProblem {
    * @param creator The creator that will be used.
    * @param <T> The type of the event.
    */
-  public <T extends TimedEvent> void addCreator(Class<T> eventType,
-    Creator<T> creator) {
-    checkArgument(
-      eventType == AddVehicleEvent.class || eventType == AddParcelEvent.class
-        || eventType == AddDepotEvent.class,
-      "A creator can only be added to one of the following classes: AddVehicleEvent, AddParcelEvent, AddDepotEvent.");
-    eventCreatorMap.put(eventType, creator);
-  }
+  // public <T extends TimedEvent> void addCreator(Class<T> eventType,
+  // Creator<T> creator) {
+  // checkArgument(
+  // eventType == AddVehicleEvent.class || eventType == AddParcelEvent.class
+  // || eventType == AddDepotEvent.class,
+  // "A creator can only be added to one of the following classes: AddVehicleEvent, AddParcelEvent, AddDepotEvent.");
+  // eventCreatorMap.put(eventType, creator);
+  // }
 
   static StatisticsDTO getStats(Simulator sim) {
     final StatsTracker t = sim.getModelProvider().tryGetModel(
@@ -301,6 +244,26 @@ public final class DynamicPDPTWProblem {
       throw new IllegalStateException("No stats tracker found!");
     }
     return t.getStatsDTO();
+  }
+
+  public static <T extends TimedEvent> TimedEventHandler<T> adaptCreator(
+    Creator<T> c) {
+    return new CreatorAdapter<>(c);
+  }
+
+  static class CreatorAdapter<T extends TimedEvent> implements
+    TimedEventHandler<T> {
+
+    private final Creator<T> creator;
+
+    CreatorAdapter(Creator<T> c) {
+      creator = c;
+    }
+
+    @Override
+    public void handleTimedEvent(T event, SimulatorAPI simulator) {
+      creator.create((Simulator) simulator, event);
+    }
   }
 
   /**

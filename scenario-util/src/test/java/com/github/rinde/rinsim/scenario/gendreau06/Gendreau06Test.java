@@ -36,7 +36,7 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 
-import com.github.rinde.rinsim.core.Simulator;
+import com.github.rinde.rinsim.core.SimulatorAPI;
 import com.github.rinde.rinsim.core.model.ModelBuilder;
 import com.github.rinde.rinsim.core.model.pdp.PDPModel;
 import com.github.rinde.rinsim.core.model.pdp.PDPModel.ParcelState;
@@ -50,15 +50,16 @@ import com.github.rinde.rinsim.core.pdptw.ParcelDTO;
 import com.github.rinde.rinsim.core.pdptw.VehicleDTO;
 import com.github.rinde.rinsim.geom.Point;
 import com.github.rinde.rinsim.pdptw.common.DynamicPDPTWProblem;
-import com.github.rinde.rinsim.pdptw.common.DynamicPDPTWProblem.Creator;
 import com.github.rinde.rinsim.pdptw.common.StatisticsDTO;
 import com.github.rinde.rinsim.scenario.AddDepotEvent;
 import com.github.rinde.rinsim.scenario.AddParcelEvent;
 import com.github.rinde.rinsim.scenario.AddVehicleEvent;
 import com.github.rinde.rinsim.scenario.TimedEvent;
+import com.github.rinde.rinsim.scenario.TimedEventHandler;
 import com.github.rinde.rinsim.testutil.GuiTests;
 import com.github.rinde.rinsim.util.TimeWindow;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 
 /**
  * @author Rinde van Lon
@@ -196,18 +197,23 @@ public class Gendreau06Test {
 
   static StatisticsDTO runProblem(Gendreau06Scenario s, boolean useGui) {
     final DynamicPDPTWProblem problem = new DynamicPDPTWProblem(s, 123,
-      ImmutableList.<ModelBuilder<?, ?>> of());
+      ImmutableList.<ModelBuilder<?, ?>> of(),
+      ImmutableMap.<Class<?>, TimedEventHandler<?>> of(
+        AddVehicleEvent.class,
+        new TimedEventHandler<AddVehicleEvent>() {
+          @Override
+          public void handleTimedEvent(AddVehicleEvent event,
+            SimulatorAPI simulator) {
+            simulator.register(new SimpleTruck(event.vehicleDTO,
+              new ClosestParcelStrategy()));
+          }
+        }
+        ));
+
     if (useGui) {
       problem.enableUI(new TestUICreator(problem, 50));
     }
-    problem.addCreator(AddVehicleEvent.class, new Creator<AddVehicleEvent>() {
-      @Override
-      public boolean create(Simulator sim, AddVehicleEvent event) {
-        sim.register(new SimpleTruck(event.vehicleDTO,
-          new ClosestParcelStrategy()));
-        return true;
-      }
-    });
+
     problem.simulate();
     return problem.getStatistics();
   }

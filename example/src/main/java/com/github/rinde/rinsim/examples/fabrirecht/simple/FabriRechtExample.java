@@ -32,11 +32,13 @@ import com.github.rinde.rinsim.core.pdptw.VehicleDTO;
 import com.github.rinde.rinsim.pdptw.common.DynamicPDPTWProblem;
 import com.github.rinde.rinsim.pdptw.common.DynamicPDPTWProblem.Creator;
 import com.github.rinde.rinsim.scenario.AddVehicleEvent;
+import com.github.rinde.rinsim.scenario.TimedEventHandler;
 import com.github.rinde.rinsim.scenario.fabrirecht.FabriRechtParser;
 import com.github.rinde.rinsim.scenario.fabrirecht.FabriRechtScenario;
 import com.google.common.base.Charsets;
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.io.Files;
 
 /**
@@ -57,19 +59,22 @@ public final class FabriRechtExample {
         new File("../problem/data/test/fabri-recht/lc101.scenario"),
         Charsets.UTF_8), 8, 20);
 
+    // we plug our custom vehicle in by specifying a creator
+    final ImmutableMap<Class<?>, TimedEventHandler<?>> m = ImmutableMap
+      .<Class<?>, TimedEventHandler<?>> of(
+        AddVehicleEvent.class,
+        DynamicPDPTWProblem.adaptCreator(new Creator<AddVehicleEvent>() {
+          @Override
+          public boolean create(Simulator sim, AddVehicleEvent event) {
+            sim.register(new Truck(event.vehicleDTO));
+            return true;
+          }
+        }));
+
     // instantiate the problem using the scenario and a random seed (which
     // will not be used in this example)
     final DynamicPDPTWProblem problem = new DynamicPDPTWProblem(scenario, 123,
-      ImmutableList.<ModelBuilder<?, ?>> of());
-
-    // we plug our custom vehicle in by specifying a creator
-    problem.addCreator(AddVehicleEvent.class, new Creator<AddVehicleEvent>() {
-      @Override
-      public boolean create(Simulator sim, AddVehicleEvent event) {
-        sim.register(new Truck(event.vehicleDTO));
-        return true;
-      }
-    });
+      ImmutableList.<ModelBuilder<?, ?>> of(), m);
 
     // enable the default UI
     problem.enableUI();

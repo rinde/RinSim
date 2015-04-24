@@ -26,7 +26,7 @@ import org.junit.Test;
 import com.github.rinde.rinsim.core.model.Model.AbstractModel;
 import com.github.rinde.rinsim.core.model.ModelBuilder.AbstractModelBuilder;
 import com.google.common.base.Function;
-import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 
 /**
  * @author Rinde van Lon
@@ -92,8 +92,8 @@ public class CompositeModelsTest {
       }
 
       @Override
-      public ImmutableList<ModelBuilder<?, ?>> getChildren() {
-        return ImmutableList.<ModelBuilder<?, ?>> of(
+      public ImmutableSet<ModelBuilder<?, ?>> getChildren() {
+        return ImmutableSet.<ModelBuilder<?, ?>> of(
           new ModelAsub1.Builder(),
           new ModelAsub2.Builder());
       }
@@ -109,8 +109,8 @@ public class CompositeModelsTest {
       }
 
       @Override
-      public ImmutableList<ModelBuilder<?, ?>> getChildren() {
-        return ImmutableList
+      public ImmutableSet<ModelBuilder<?, ?>> getChildren() {
+        return ImmutableSet
           .<ModelBuilder<?, ?>> of(new ModelAsub1sub1.Builder());
       }
     }

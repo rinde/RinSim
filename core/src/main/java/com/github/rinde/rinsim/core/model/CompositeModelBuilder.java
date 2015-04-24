@@ -15,7 +15,7 @@
  */
 package com.github.rinde.rinsim.core.model;
 
-import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 
 /**
  * An extension of {@link ModelBuilder} that allows to specify a number of
@@ -30,5 +30,5 @@ public interface CompositeModelBuilder<T extends Model<? extends U>, U> extends
   /**
    * @return A list of {@link ModelBuilder}s.
    */
-  ImmutableList<ModelBuilder<?, ?>> getChildren();
+  ImmutableSet<ModelBuilder<?, ?>> getChildren();
 }

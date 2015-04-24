@@ -21,20 +21,14 @@ import static com.github.rinde.rinsim.scenario.ScenarioControllerTest.TestEvents
 import static com.github.rinde.rinsim.scenario.ScenarioControllerTest.TestEvents.EVENT_B;
 import static com.github.rinde.rinsim.scenario.ScenarioControllerTest.TestEvents.EVENT_C;
 import static com.github.rinde.rinsim.scenario.ScenarioControllerTest.TestEvents.EVENT_D;
-import static com.google.common.collect.Lists.newArrayList;
-import static com.google.common.collect.Sets.newHashSet;
 import static com.google.common.truth.Truth.assertThat;
 import static java.util.Arrays.asList;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 import javax.measure.unit.SI;
 
@@ -45,6 +39,7 @@ import com.github.rinde.rinsim.core.Simulator;
 import com.github.rinde.rinsim.core.SimulatorAPI;
 import com.github.rinde.rinsim.core.model.DependencyProvider;
 import com.github.rinde.rinsim.core.model.time.ClockController;
+import com.github.rinde.rinsim.core.model.time.TickListener;
 import com.github.rinde.rinsim.core.model.time.TimeLapse;
 import com.github.rinde.rinsim.core.model.time.TimeLapseFactory;
 import com.github.rinde.rinsim.event.Event;
@@ -72,8 +67,11 @@ public class ScenarioControllerTest {
     EVENT_A, EVENT_B, EVENT_C, EVENT_D;
   }
 
+  /**
+   * Sets up a scenario.
+   */
   @Before
-  public void setUp() throws Exception {
+  public void setUp() {
     scenario = Scenario.builder()
       .addEventTypes(asList(EVENT_A, EVENT_B, EVENT_C, EVENT_D))
       .addEvent(new TimedEvent(EVENT_A, 0))
@@ -83,7 +81,7 @@ public class ScenarioControllerTest {
       .addEvent(new TimedEvent(EVENT_C, 5))
       .addEvent(new TimedEvent(EVENT_C, 100))
       .build();
-    assertNotNull(scenario);
+    assertThat(scenario).isNotNull();
 
     TestUtil.testEnum(ScenarioController.EventType.class);
 
@@ -101,10 +99,8 @@ public class ScenarioControllerTest {
    */
   @Test
   public void testEventNotHandled() {
-    controller = ScenarioController.builder()
-      .setScenario(scenario)
-      .setEventHandler(new TestHandler())
-      .setNumberOfTicks(3)
+    controller = ScenarioController.builder(scenario)
+      .withNumberOfTicks(3)
       .build(dependencyProvider);
     boolean fail = false;
     try {
@@ -116,55 +112,55 @@ public class ScenarioControllerTest {
     assertThat(fail).isTrue();
   }
 
+  /**
+   * Tests a scenario with a limited number of ticks.
+   */
   @Test
-  public void handleTimedEvent() {
-    final ScenarioController sc =
-      ScenarioController.builder()
-        .setScenario(scenario)
-        .setNumberOfTicks(1)
-        .setEventHandler(new TestHandler())
-        .build(dependencyProvider);
-
-    assertFalse(sc.timedEventHandler
-      .handleTimedEvent(new TimedEvent(EVENT_A, 0)));
-    assertFalse(sc.timedEventHandler
-      .handleTimedEvent(new TimedEvent(EVENT_B, 0)));
-    assertFalse(sc.timedEventHandler
-      .handleTimedEvent(new TimedEvent(EVENT_C, 0)));
-    assertFalse(sc.timedEventHandler
-      .handleTimedEvent(new TimedEvent(EVENT_D, 0)));
-  }
-
-  @Test
-  public void finiteSimulation() throws InterruptedException {
-    final ScenarioController.Builder scb = ScenarioController.builder()
-      .setScenario(scenario)
-      .setEventHandler(new TestHandler(TestEvents.values()))
-      .setNumberOfTicks(101);
-
-    Simulator sim = Simulator.builder()
+  public void finiteSimulation() {
+    Simulator sim = Simulator
+      .builder()
       .setTickLength(1L)
       .setTimeUnit(SI.SECOND)
-      .addModel(scb)
+      .addModel(
+        ScenarioController.builder(scenario)
+          .withEventHandler(AddParcelEvent.class,
+            new NopHandler<AddParcelEvent>())
+          .withEventHandler(TimedEvent.class, new NopHandler<>())
+          .withNumberOfTicks(101)
+      )
       .build();
+
+    final List<Long> ticks = new ArrayList<>();
+    sim.addTickListener(new TickListener() {
+
+      @Override
+      public void tick(TimeLapse timeLapse) {
+        ticks.add(timeLapse.getStartTime());
+      }
+
+      @Override
+      public void afterTick(TimeLapse timeLapse) {}
+    });
 
     ScenarioController sc = sim.getModelProvider().getModel(
       ScenarioController.class);
 
     final ListenerEventHistory leh = new ListenerEventHistory();
     sc.getEventAPI().addListener(leh);
-    assertFalse(sc.isScenarioFinished());
+    assertThat(sc.isScenarioFinished()).isFalse();
     sc.start();
-    assertEquals(
-      asList(SCENARIO_STARTED, EVENT_A, EVENT_B, EVENT_B, EVENT_A, EVENT_C,
-        EVENT_C, SCENARIO_FINISHED), leh.getEventTypeHistory());
+    assertThat(leh.getEventTypeHistory())
+      .containsExactly(SCENARIO_STARTED, EVENT_A, EVENT_B, EVENT_B, EVENT_A,
+        EVENT_C, EVENT_C, SCENARIO_FINISHED).inOrder();
 
-    assertTrue(sc.isScenarioFinished());
+    assertThat(sc.isScenarioFinished()).isTrue();
     sc.stop();
     final long before = sc.clock.getCurrentTime();
     sc.start();// should have no effect
 
-    assertEquals(before, sc.clock.getCurrentTime());
+    assertThat(ticks).hasSize(101);
+
+    assertThat(before).isEqualTo(sc.clock.getCurrentTime());
     final TimeLapse emptyTime = TimeLapseFactory.create(0, 1);
     emptyTime.consumeAll();
     sc.tick(emptyTime);
@@ -176,10 +172,9 @@ public class ScenarioControllerTest {
       .setTickLength(1L)
       .setTimeUnit(SI.SECOND)
       .addModel(
-        ScenarioController.builder()
-          .setScenario(scenario)
-          .setNumberOfTicks(3)
-          .setEventHandler(new TestHandler(TestEvents.values()))
+        ScenarioController.builder(scenario)
+          .withNumberOfTicks(3)
+          .withEventHandler(TimedEvent.class, new NopHandler<>())
       )
       .build();
 
@@ -198,6 +193,9 @@ public class ScenarioControllerTest {
     sc.tick(emptyTime);
   }
 
+  /**
+   * Tests proper dispatching of setup events.
+   */
   @Test
   public void testSetupEvents() {
     final Scenario s = Scenario.builder()
@@ -210,22 +208,23 @@ public class ScenarioControllerTest {
       .addEvent(new TimedEvent(EVENT_C, 100))
       .build();
 
-    final EventHistory th = new EventHistory();
     Simulator sim = Simulator.builder()
       .setTickLength(1L)
       .setTimeUnit(SI.SECOND)
       .addModel(
-        ScenarioController.builder()
-          .setScenario(s)
-          .setNumberOfTicks(1)
-          .setEventHandler(th)
+        ScenarioController.builder(s)
+          .withNumberOfTicks(1)
+          .withEventHandler(TimedEvent.class, new NopHandler<>())
       )
       .build();
 
+    final ListenerEventHistory leh = new ListenerEventHistory();
     ScenarioController sc = sim.getModelProvider().getModel(
       ScenarioController.class);
+    sc.getEventAPI().addListener(leh);
     sc.start();
-    assertEquals(asList(EVENT_B, EVENT_C, EVENT_A), th.eventTypes);
+    assertThat(leh.getEventTypeHistory())
+      .containsExactly(EVENT_B, EVENT_C, SCENARIO_STARTED, EVENT_A).inOrder();
 
   }
 
@@ -240,10 +239,9 @@ public class ScenarioControllerTest {
       .setTickLength(1L)
       .setTimeUnit(SI.SECOND)
       .addModel(
-        ScenarioController.builder()
-          .setScenario(scenario)
-          .setNumberOfTicks(3)
-          .setEventHandler(new TestHandler(EVENT_A, EVENT_B))
+        ScenarioController.builder(scenario)
+          .withNumberOfTicks(3)
+          .withEventHandler(TimedEvent.class, new NopHandler<>())
       )
       .build();
 
@@ -258,6 +256,7 @@ public class ScenarioControllerTest {
         if (e.getEventType() == ScenarioController.EventType.SCENARIO_STARTED) {
           r[0] = true;
         } else if (!r[0]) {
+
           fail();
         } else {
           i[0] += 1;
@@ -266,20 +265,22 @@ public class ScenarioControllerTest {
     });
 
     controller.clock.tick();
-    assertTrue("event generated", r[0]);
-    assertEquals(3, i[0]);
+    assertThat(r[0]).isTrue();
+    assertThat(i[0]).isEqualTo(3);
   }
 
+  /**
+   * Test run of whole scenario.
+   */
   @Test
-  public void runningWholeScenario() throws InterruptedException {
+  public void runningWholeScenario() {
     Simulator sim = Simulator.builder()
       .setTickLength(1L)
       .setTimeUnit(SI.SECOND)
       .addModel(
-        ScenarioController.builder()
-          .setScenario(scenario)
-          .setNumberOfTicks(-1)
-          .setEventHandler(new TestHandler(EVENT_A, EVENT_B, EVENT_C))
+        ScenarioController.builder(scenario)
+          .withNumberOfTicks(-1)
+          .withEventHandler(TimedEvent.class, new NopHandler<>())
       )
       .build();
 
@@ -300,46 +301,17 @@ public class ScenarioControllerTest {
         }
       }
     });
-
     controller.start();
 
-    assertTrue(r[0]);
-    assertEquals(scenario.getEvents().size() + 1, i[0]);
-    assertTrue(controller.isScenarioFinished());
+    assertThat(r[0]).isTrue();
+    assertThat(i[0]).isEqualTo(scenario.getEvents().size() + 1);
+    assertThat(controller.isScenarioFinished()).isTrue();
 
     controller.stop();
   }
 
-  class TestHandler implements TimedEventHandler {
-    Set<Enum<?>> types;
-
-    public TestHandler(Enum<?>... handledTypes) {
-      types = newHashSet(handledTypes);
-    }
-
+  static class NopHandler<T extends TimedEvent> implements TimedEventHandler<T> {
     @Override
-    public boolean handleTimedEvent(TimedEvent event) {
-      return types.contains(event.getEventType());
-    }
+    public void handleTimedEvent(T event, SimulatorAPI simulator) {}
   }
-
-  class EventHistory implements TimedEventHandler {
-
-    protected final List<TimedEvent> eventList;
-    protected final List<Enum<?>> eventTypes;
-
-    public EventHistory() {
-      eventList = newArrayList();
-      eventTypes = newArrayList();
-    }
-
-    @Override
-    public boolean handleTimedEvent(TimedEvent event) {
-      eventList.add(event);
-      eventTypes.add(event.getEventType());
-      return true;
-    }
-
-  }
-
 }

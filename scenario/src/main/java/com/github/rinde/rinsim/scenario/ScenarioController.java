@@ -16,15 +16,14 @@
 package com.github.rinde.rinsim.scenario;
 
 import static com.google.common.base.Preconditions.checkState;
-import static com.google.common.base.Verify.verify;
 import static com.google.common.collect.Sets.newHashSet;
 import static java.util.Arrays.asList;
-import static java.util.Objects.hash;
 
-import java.util.Objects;
+import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
 
+import javax.annotation.CheckReturnValue;
 import javax.annotation.Nullable;
 
 import org.slf4j.Logger;
@@ -32,18 +31,26 @@ import org.slf4j.LoggerFactory;
 
 import com.github.rinde.rinsim.core.Simulator;
 import com.github.rinde.rinsim.core.SimulatorAPI;
+import com.github.rinde.rinsim.core.model.CompositeModelBuilder;
 import com.github.rinde.rinsim.core.model.DependencyProvider;
 import com.github.rinde.rinsim.core.model.Model.AbstractModel;
+import com.github.rinde.rinsim.core.model.ModelBuilder;
 import com.github.rinde.rinsim.core.model.ModelBuilder.AbstractModelBuilder;
+import com.github.rinde.rinsim.core.model.pdp.PDPScenarioEvent;
 import com.github.rinde.rinsim.core.model.time.Clock;
 import com.github.rinde.rinsim.core.model.time.ClockController;
 import com.github.rinde.rinsim.core.model.time.TickListener;
 import com.github.rinde.rinsim.core.model.time.TimeLapse;
+import com.github.rinde.rinsim.core.pdptw.DefaultDepot;
+import com.github.rinde.rinsim.core.pdptw.DefaultParcel;
 import com.github.rinde.rinsim.event.Event;
 import com.github.rinde.rinsim.event.EventAPI;
 import com.github.rinde.rinsim.event.EventDispatcher;
 import com.github.rinde.rinsim.event.Listener;
+import com.google.auto.value.AutoValue;
 import com.google.common.base.Optional;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 
 /**
  * A scenario controller represents a single simulation run using a
@@ -83,7 +90,7 @@ public final class ScenarioController extends AbstractModel<Scenario> implements
   final EventDispatcher disp;
   final SimulatorAPI simulator;
   final ClockController clock;
-  final TimedEventHandler timedEventHandler;
+  // final TimedEventHandler timedEventHandler;
 
   Optional<UICreator> uiCreator;
   private int ticks;
@@ -102,20 +109,21 @@ public final class ScenarioController extends AbstractModel<Scenario> implements
    * @param numberOfTicks The number of ticks play, when negative the number of
    *          tick is infinite.
    */
-  ScenarioController(SimulatorAPI sim, ClockController c, Builder builder) {
+  ScenarioController(SimulatorAPI sim, ClockController c, Scenario s,
+    ImmutableMap<Class<?>, TimedEventHandler<?>> m, int t) {
     simulator = sim;
     clock = c;
-    timedEventHandler = builder.eventHandler;
-    ticks = builder.numberOfTicks;
+    ticks = t;
     uiCreator = Optional.absent();
 
-    scenario = builder.scenario;
+    scenario = s;
     scenarioQueue = scenario.asQueue();
 
     final Set<Enum<?>> typeSet = newHashSet(scenario.getPossibleEventTypes());
     typeSet.addAll(asList(EventType.values()));
     disp = new EventDispatcher(typeSet);
-    disp.addListener(new InternalTimedEventHandler(),
+
+    disp.addListener(new InternalListener(sim, m),
       scenario.getPossibleEventTypes());
 
     clock.getEventAPI().addListener(new Listener() {
@@ -258,16 +266,32 @@ public final class ScenarioController extends AbstractModel<Scenario> implements
     void createUI(Simulator sim);
   }
 
-  class InternalTimedEventHandler implements Listener {
+  static class InternalListener implements Listener {
+    final SimulatorAPI simulator;
+    final ImmutableMap<Class<?>, TimedEventHandler<?>> handlers;
 
-    public InternalTimedEventHandler() {}
+    InternalListener(SimulatorAPI sim,
+      ImmutableMap<Class<?>, TimedEventHandler<?>> h) {
+      simulator = sim;
+      handlers = h;
+    }
 
     @Override
-    public final void handleEvent(Event e) {
-      verify(e instanceof TimedEvent);
-      checkState(timedEventHandler.handleTimedEvent((TimedEvent) e),
-        "The event %s is not handled.", e.getEventType());
+    public void handleEvent(Event e) {
+      if (e.getEventType() == PDPScenarioEvent.TIME_OUT) {
+        return;
+      }
+      checkState(handlers.containsKey(e.getClass()),
+        "The event %s with event type %s is not handled.", e.getClass(),
+        e.getEventType());
+      handle(handlers.get(e.getClass()), e);
     }
+
+    @SuppressWarnings("unchecked")
+    <T extends TimedEvent> void handle(TimedEventHandler<T> h, Event e) {
+      h.handleTimedEvent((T) e, simulator);
+    }
+
   }
 
   @Override
@@ -285,59 +309,98 @@ public final class ScenarioController extends AbstractModel<Scenario> implements
     return type.cast(this);
   }
 
-  public static Builder builder() {
-    return new Builder();
+  public static Builder builder(Scenario scenario) {
+    return Builder.create(scenario);
   }
 
-  public static class Builder extends
-    AbstractModelBuilder<ScenarioController, Scenario> {
+  @AutoValue
+  public abstract static class Builder extends
+    AbstractModelBuilder<ScenarioController, Scenario> implements
+    CompositeModelBuilder<ScenarioController, Scenario> {
 
-    Scenario scenario;
-    TimedEventHandler eventHandler;
-    int numberOfTicks;
+    static final TimedEventHandler<AddParcelEvent> DEFAULT_ADD_PARCEL_HANDLER = new TimedEventHandler<AddParcelEvent>() {
+      @Override
+      public void handleTimedEvent(AddParcelEvent event, SimulatorAPI sim) {
+        sim.register(new DefaultParcel(event.parcelDTO));
+      }
+    };
+    static final TimedEventHandler<AddDepotEvent> DEFAULT_ADD_DEPOT_HANDLER = new TimedEventHandler<AddDepotEvent>() {
+      @Override
+      public void handleTimedEvent(AddDepotEvent event, SimulatorAPI sim) {
+        sim.register(new DefaultDepot(event.position));
+      }
+    };
 
     Builder() {
       setProvidingTypes(ScenarioController.class);
       setDependencies(SimulatorAPI.class, ClockController.class);
     }
 
-    public Builder setScenario(Scenario scen) {
-      scenario = scen;
-      return this;
+    abstract Scenario getScenario();
+
+    abstract ImmutableMap<Class<?>, TimedEventHandler<?>> getEventHandlers();
+
+    abstract int getNumberOfTicks();
+
+    @CheckReturnValue
+    public <T extends TimedEvent> Builder withEventHandler(Class<T> type,
+      TimedEventHandler<T> handler) {
+      return create(
+        getScenario(),
+        ImmutableMap.<Class<?>, TimedEventHandler<?>> builder()
+          .putAll(getEventHandlers()).put(type, handler).build(),
+        getNumberOfTicks());
     }
 
-    public Builder setEventHandler(TimedEventHandler handler) {
-      eventHandler = handler;
-      return this;
+    @CheckReturnValue
+    public Builder withEventHandlers(Map<Class<?>, TimedEventHandler<?>> m) {
+      return create(
+        getScenario(),
+        ImmutableMap.<Class<?>, TimedEventHandler<?>> builder()
+          .putAll(getEventHandlers()).putAll(m).build(),
+        getNumberOfTicks());
     }
 
-    public Builder setNumberOfTicks(int ticks) {
-      numberOfTicks = ticks;
-      return this;
+    @CheckReturnValue
+    public Builder withNumberOfTicks(int ticks) {
+      return create(getScenario(), getEventHandlers(), ticks);
     }
 
     @Override
     public ScenarioController build(DependencyProvider dependencyProvider) {
       SimulatorAPI sim = dependencyProvider.get(SimulatorAPI.class);
       ClockController clock = dependencyProvider.get(ClockController.class);
-      return new ScenarioController(sim, clock, this);
-    }
 
-    @Override
-    public int hashCode() {
-      return hash(scenario, eventHandler, numberOfTicks);
-    }
-
-    @Override
-    public boolean equals(@Nullable Object other) {
-      if (!(other instanceof Builder)) {
-        return false;
+      ImmutableMap.Builder<Class<?>, TimedEventHandler<?>> b = ImmutableMap
+        .builder();
+      b.putAll(getEventHandlers());
+      if (!getEventHandlers().containsKey(AddDepotEvent.class)) {
+        b.put(AddDepotEvent.class, DEFAULT_ADD_DEPOT_HANDLER);
+      }
+      if (!getEventHandlers().containsKey(AddParcelEvent.class)) {
+        b.put(AddParcelEvent.class, DEFAULT_ADD_PARCEL_HANDLER);
       }
 
-      Builder o = (Builder) other;
-      return Objects.equals(scenario, o.scenario)
-        && Objects.equals(eventHandler, o.eventHandler)
-        && Objects.equals(numberOfTicks, o.numberOfTicks);
+      return new ScenarioController(sim, clock, getScenario(), b.build(),
+        getNumberOfTicks());
     }
+
+    @Override
+    public ImmutableSet<ModelBuilder<?, ?>> getChildren() {
+      return getScenario().getModelBuilders();
+    }
+
+    static Builder create(Scenario scen) {
+      return create(
+        scen,
+        ImmutableMap.<Class<?>, TimedEventHandler<?>> of()
+        , -1);
+    }
+
+    static Builder create(Scenario scen,
+      ImmutableMap<Class<?>, TimedEventHandler<?>> handlers, int ticks) {
+      return new AutoValue_ScenarioController_Builder(scen, handlers, ticks);
+    }
+
   }
 }

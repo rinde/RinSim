@@ -26,6 +26,7 @@ import javax.measure.unit.SI;
 import org.junit.Test;
 
 import com.github.rinde.rinsim.core.Simulator;
+import com.github.rinde.rinsim.core.SimulatorAPI;
 import com.github.rinde.rinsim.core.model.ModelBuilder;
 import com.github.rinde.rinsim.core.model.pdp.DefaultPDPModel;
 import com.github.rinde.rinsim.core.model.pdp.PDPScenarioEvent;
@@ -33,15 +34,16 @@ import com.github.rinde.rinsim.core.model.pdp.TimeWindowPolicy.TimeWindowPolicie
 import com.github.rinde.rinsim.core.model.road.RoadModelBuilders;
 import com.github.rinde.rinsim.core.model.time.TimeModel;
 import com.github.rinde.rinsim.geom.Point;
-import com.github.rinde.rinsim.pdptw.common.DynamicPDPTWProblem.Creator;
 import com.github.rinde.rinsim.pdptw.common.DynamicPDPTWProblem.StopConditions;
 import com.github.rinde.rinsim.scenario.AddVehicleEvent;
 import com.github.rinde.rinsim.scenario.Scenario;
 import com.github.rinde.rinsim.scenario.TimedEvent;
+import com.github.rinde.rinsim.scenario.TimedEventHandler;
 import com.github.rinde.rinsim.util.TimeWindow;
 import com.google.auto.value.AutoValue;
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 
 /**
@@ -50,11 +52,9 @@ import com.google.common.collect.ImmutableSet;
  */
 public class DynamicPDPTWProblemTest {
 
-  protected static final Creator<AddVehicleEvent> DUMMY_ADD_VEHICLE_EVENT_CREATOR = new Creator<AddVehicleEvent>() {
+  protected static final TimedEventHandler<AddVehicleEvent> DUMMY_ADD_VEHICLE_EVENT_CREATOR = new TimedEventHandler<AddVehicleEvent>() {
     @Override
-    public boolean create(Simulator sim, AddVehicleEvent event) {
-      return true;
-    }
+    public void handleTimedEvent(AddVehicleEvent event, SimulatorAPI simulator) {}
   };
 
   /**
@@ -65,7 +65,8 @@ public class DynamicPDPTWProblemTest {
     final List<TimedEvent> events = asList(new TimedEvent(
       PDPScenarioEvent.ADD_DEPOT, 10));
     new DynamicPDPTWProblem(createDummyScenario(events), 123,
-      ImmutableList.<ModelBuilder<?, ?>> of()).simulate();
+      ImmutableList.<ModelBuilder<?, ?>> of(),
+      ImmutableMap.<Class<?>, TimedEventHandler<?>> of()).simulate();
   }
 
   @Test
@@ -73,8 +74,10 @@ public class DynamicPDPTWProblemTest {
     final List<TimedEvent> events = asList(new TimedEvent(
       PDPScenarioEvent.ADD_DEPOT, 10));
     final DynamicPDPTWProblem prob = new DynamicPDPTWProblem(
-      createDummyScenario(events), 123, ImmutableList.<ModelBuilder<?, ?>> of());
-    prob.addCreator(AddVehicleEvent.class, DUMMY_ADD_VEHICLE_EVENT_CREATOR);
+      createDummyScenario(events), 123,
+      ImmutableList.<ModelBuilder<?, ?>> of(),
+      ImmutableMap.<Class<?>, TimedEventHandler<?>> of(AddVehicleEvent.class,
+        DUMMY_ADD_VEHICLE_EVENT_CREATOR));
 
     prob.addStopCondition(new TimeStopCondition(4));
     final StatisticsDTO stats = prob.simulate();
