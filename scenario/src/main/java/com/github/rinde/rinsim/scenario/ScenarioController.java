@@ -381,6 +381,9 @@ public final class ScenarioController extends AbstractModel<Scenario> implements
         b.put(AddParcelEvent.class, DEFAULT_ADD_PARCEL_HANDLER);
       }
 
+      // TODO it needs to be checked whether all events that occur in the
+      // scenario are handled
+
       return new ScenarioController(sim, clock, getScenario(), b.build(),
         getNumberOfTicks());
     }
