@@ -95,3 +95,5 @@ __Protip__: you can download the sources of RinSim and all other dependencies by
 - If you can not run the UI on Mac OS X make sure that you add ``-XstartOnFirstThread`` as a VM argument.
 
 - On OS X Mavericks there may be a problem where you can not see the menu bar of RinSim (it usually shows the menu of Eclipse), if this happens it can be resolved by using a shortcut (e.g. CMD-P for play) or by CMD tabbing away and back to the RinSim app.
+
+- If you have a problem with the SWT UI of RinSim on a 64-bit version of Windows while using IntelliJ IDEA, [see this StackOverflow thread](https://stackoverflow.com/questions/29793596/how-do-i-get-intellij-idea-to-import-rinsim-from-maven-correctly/) for a solution.
