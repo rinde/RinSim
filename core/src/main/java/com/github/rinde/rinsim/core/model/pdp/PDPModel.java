@@ -309,25 +309,30 @@ public abstract class PDPModel extends AbstractModel<PDPObject> implements
      * pickup but that it will be in the (near) future.
      */
     ANNOUNCED(false, false, false),
+
     /**
      * State that indicates that the {@link Parcel} is available for pickup.
      */
     AVAILABLE(false, false, false),
+
     /**
      * State that indicates that the {@link Parcel} is in the process of being
      * picked up.
      */
     PICKING_UP(false, false, true),
+
     /**
      * State that indicates that the {@link Parcel} is currently in the cargo of
      * a {@link Vehicle}.
      */
     IN_CARGO(true, false, false),
+
     /**
      * State that indicates that the {@link Parcel} is in the process of being
      * delivered.
      */
     DELIVERING(true, false, true),
+
     /**
      * State that indicates that the {@link Parcel} has been delivered.
      */
@@ -379,11 +384,13 @@ public abstract class PDPModel extends AbstractModel<PDPObject> implements
      * {@link #PICKING_UP} nor in {@link #DELIVERING} state.
      */
     IDLE,
+
     /**
      * State that indicates that the {@link Vehicle} is currently picking up a
      * {@link Parcel}.
      */
     PICKING_UP,
+
     /**
      * State that indicates that the {@link Vehicle} is currently delivering a
      * {@link Parcel}.
@@ -401,29 +408,33 @@ public abstract class PDPModel extends AbstractModel<PDPObject> implements
      * Indicates the start of a pickup of a {@link Parcel} by a {@link Vehicle}.
      */
     START_PICKUP,
+
     /**
      * Indicates the end of a pickup of a {@link Parcel} by a {@link Vehicle}.
      */
     END_PICKUP,
+
     /**
      * Indicates the start of a delivery of a {@link Parcel} by a
      * {@link Vehicle}.
      */
     START_DELIVERY,
+
     /**
-     * Indicates the start of a delivery of a {@link Parcel} by a
-     * {@link Vehicle}.
+     * Indicates the end of a delivery of a {@link Parcel} by a {@link Vehicle}.
      */
     END_DELIVERY,
+
     /**
      * Indicates that a new {@link Parcel} has been added to the model.
      */
     NEW_PARCEL,
+
     /**
-     * Indicates that a new {@link Vehicle} has been added to the model. It
-     * automatically
+     * Indicates that a new {@link Vehicle} has been added to the model.
      */
     NEW_VEHICLE,
+
     /**
      * Indicates that a {@link Parcel} has become available. This means that it
      * switched state from {@link ParcelState#ANNOUNCED} state to
