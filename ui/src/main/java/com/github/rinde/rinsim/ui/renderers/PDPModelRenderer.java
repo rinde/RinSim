@@ -23,9 +23,12 @@ import javax.annotation.Nullable;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Color;
+import org.eclipse.swt.graphics.Device;
 import org.eclipse.swt.graphics.GC;
 
-import com.github.rinde.rinsim.core.model.ModelProvider;
+import com.github.rinde.rinsim.core.model.DependencyProvider;
+import com.github.rinde.rinsim.core.model.Model.AbstractModel;
+import com.github.rinde.rinsim.core.model.ModelBuilder.AbstractModelBuilder;
 import com.github.rinde.rinsim.core.model.pdp.PDPModel;
 import com.github.rinde.rinsim.core.model.pdp.PDPModel.ParcelState;
 import com.github.rinde.rinsim.core.model.pdp.PDPModel.VehicleState;
@@ -34,52 +37,45 @@ import com.github.rinde.rinsim.core.model.pdp.Vehicle;
 import com.github.rinde.rinsim.core.model.road.RoadModel;
 import com.github.rinde.rinsim.core.model.road.RoadUser;
 import com.github.rinde.rinsim.geom.Point;
+import com.google.auto.value.AutoValue;
 
 /**
  * @author Rinde van Lon
  *
  */
-public final class PDPModelRenderer implements ModelRenderer {
+public final class PDPModelRenderer extends AbstractModel<Void> implements
+  CanvasRenderer {
 
-  private Color black;
-  private Color white;
-  private Color lightGray;
-  private Color darkGreen;
-  private Color green;
-  private Color orange;
-  private Color blue;
-  private Color foregroundInfo;
-  private Color backgroundInfo;
-
-  private PDPModel pdpModel;
-  private RoadModel roadModel;
-
-  private boolean isInitialized;
+  private final Color black;
+  private final Color white;
+  private final Color lightGray;
+  private final Color darkGreen;
+  private final Color green;
+  private final Color orange;
+  private final Color blue;
+  private final Color foregroundInfo;
+  private final Color backgroundInfo;
+  private final PDPModel pdpModel;
+  private final RoadModel roadModel;
   private final boolean drawDestLines;
 
-  public PDPModelRenderer() {
-    this(true);
-  }
+  PDPModelRenderer(RoadModel rm, PDPModel pm, Device d, boolean lines) {
+    roadModel = rm;
+    pdpModel = pm;
 
-  public PDPModelRenderer(boolean drawDestinationLines) {
-    drawDestLines = drawDestinationLines;
-  }
+    drawDestLines = lines;
 
-  // TODO dispose colors on exit!
-  private void initialize(GC gc) {
-    isInitialized = true;
-    black = gc.getDevice().getSystemColor(SWT.COLOR_BLACK);
-    white = gc.getDevice().getSystemColor(SWT.COLOR_WHITE);
-    darkGreen = gc.getDevice().getSystemColor(SWT.COLOR_DARK_GREEN);
-    green = gc.getDevice().getSystemColor(SWT.COLOR_GREEN);
-    blue = gc.getDevice().getSystemColor(SWT.COLOR_BLUE);
+    black = d.getSystemColor(SWT.COLOR_BLACK);
+    white = d.getSystemColor(SWT.COLOR_WHITE);
+    darkGreen = d.getSystemColor(SWT.COLOR_DARK_GREEN);
+    green = d.getSystemColor(SWT.COLOR_GREEN);
+    blue = d.getSystemColor(SWT.COLOR_BLUE);
 
-    lightGray = new Color(gc.getDevice(), 205, 201, 201);
-    orange = new Color(gc.getDevice(), 255, 160, 0);
+    lightGray = new Color(d, 205, 201, 201);
+    orange = new Color(d, 255, 160, 0);
 
     foregroundInfo = white;
     backgroundInfo = blue;
-
   }
 
   @Override
@@ -87,10 +83,6 @@ public final class PDPModelRenderer implements ModelRenderer {
 
   @Override
   public void renderDynamic(GC gc, ViewPort vp, long time) {
-    if (!isInitialized) {
-      initialize(gc);
-    }
-
     synchronized (pdpModel) {
       final Map<RoadUser, Point> posMap = roadModel.getObjectsAndPositions();
       final Set<Vehicle> vehicles = pdpModel.getVehicles();
@@ -125,16 +117,12 @@ public final class PDPModelRenderer implements ModelRenderer {
           gc.setBackground(backgroundInfo);
           gc.setForeground(foregroundInfo);
           final VehicleState state = pdpModel.getVehicleState(v);
-          // FIXME, investigate why the second check is
-          // neccesary..
-          if (state != VehicleState.IDLE
-            && pdpModel.getVehicleActionInfo(v) != null) {
+          if (state != VehicleState.IDLE) {
             gc.drawText(
               state.toString() + " "
                 + pdpModel.getVehicleActionInfo(v).timeNeeded(), x, y - 20);
           }
           gc.drawText(Double.toString(size), x, y);
-          drawMore(gc, vp, time, v, p, posMap);
         }
       }
 
@@ -164,8 +152,15 @@ public final class PDPModelRenderer implements ModelRenderer {
     }
   }
 
-  protected void drawMore(GC gc, ViewPort vp, long time, Vehicle v, Point p,
-    Map<RoadUser, Point> posMap) {}
+  @Override
+  public boolean register(Void element) {
+    return false;
+  }
+
+  @Override
+  public boolean unregister(Void element) {
+    return false;
+  }
 
   @Nullable
   @Override
@@ -173,10 +168,47 @@ public final class PDPModelRenderer implements ModelRenderer {
     return null;
   }
 
-  @Override
-  public void registerModelProvider(ModelProvider mp) {
-    pdpModel = mp.tryGetModel(PDPModel.class);
-    roadModel = mp.tryGetModel(RoadModel.class);
+  /**
+   * @return A new {@link Builder} for {@link PDPModelRenderer}.
+   */
+  public static Builder builder() {
+    return Builder.create(false);
   }
 
+  /**
+   * Builder for {@link PDPModelRenderer}.
+   * @author Rinde van Lon
+   */
+  @AutoValue
+  public abstract static class Builder extends
+    AbstractModelBuilder<PDPModelRenderer, Void> {
+
+    Builder() {
+      setDependencies(RoadModel.class, PDPModel.class, Device.class);
+    }
+
+    abstract boolean drawDestLines();
+
+    /**
+     * When called the returned builder will create a {@link PDPModelRenderer}
+     * that will draw destination lines from each vehicle towards the
+     * destinations of its contents (if any).
+     * @return A new builder instance.
+     */
+    public Builder withDestinationLines() {
+      return create(true);
+    }
+
+    @Override
+    public PDPModelRenderer build(DependencyProvider dependencyProvider) {
+      final RoadModel rm = dependencyProvider.get(RoadModel.class);
+      final PDPModel pm = dependencyProvider.get(PDPModel.class);
+      final Device d = dependencyProvider.get(Device.class);
+      return new PDPModelRenderer(rm, pm, d, drawDestLines());
+    }
+
+    static Builder create(boolean lines) {
+      return new AutoValue_PDPModelRenderer_Builder(lines);
+    }
+  }
 }

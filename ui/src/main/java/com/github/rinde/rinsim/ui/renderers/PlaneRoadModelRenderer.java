@@ -15,47 +15,39 @@
  */
 package com.github.rinde.rinsim.ui.renderers;
 
-import java.util.ArrayList;
-import java.util.List;
-
+import javax.annotation.CheckReturnValue;
 import javax.annotation.Nullable;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.GC;
 
-import com.github.rinde.rinsim.core.model.ModelProvider;
+import com.github.rinde.rinsim.core.model.DependencyProvider;
+import com.github.rinde.rinsim.core.model.Model.AbstractModel;
+import com.github.rinde.rinsim.core.model.ModelBuilder.AbstractModelBuilder;
 import com.github.rinde.rinsim.core.model.road.PlaneRoadModel;
 import com.github.rinde.rinsim.core.model.road.RoadModel;
 import com.github.rinde.rinsim.geom.Point;
+import com.google.auto.value.AutoValue;
+import com.google.common.collect.ImmutableList;
 
 /**
  * A renderer for a {@link PlaneRoadModel}.
  * @author Rinde van Lon
  */
-public final class PlaneRoadModelRenderer implements ModelRenderer {
-  private static final double DEFAULT_MARGIN = 0.02;
-
+public final class PlaneRoadModelRenderer extends AbstractModel<Void> implements
+  CanvasRenderer {
   private final double margin;
-  private double xMargin;
-  private double yMargin;
-  private List<Point> bounds;
+  private final double xMargin;
+  private final double yMargin;
+  private final ImmutableList<Point> bounds;
 
-  /**
-   * @deprecated Use {@link #create()} instead.
-   */
-  @Deprecated
-  public PlaneRoadModelRenderer() {
-    this(DEFAULT_MARGIN);
-  }
-
-  /**
-   * @param pMargin The margin to use around the plane.
-   * @deprecated Use {@link #create()} instead.
-   */
-  @Deprecated
-  public PlaneRoadModelRenderer(double pMargin) {
+  PlaneRoadModelRenderer(RoadModel rm, double pMargin) {
     margin = pMargin;
-    bounds = new ArrayList<>();
+    bounds = rm.getBounds();
+    final double width = bounds.get(1).x - bounds.get(0).x;
+    final double height = bounds.get(1).y - bounds.get(0).y;
+    xMargin = width * margin;
+    yMargin = height * margin;
   }
 
   @Override
@@ -85,33 +77,66 @@ public final class PlaneRoadModelRenderer implements ModelRenderer {
   @Nullable
   public ViewRect getViewRect() {
     return new ViewRect(
-        new Point(bounds.get(0).x - xMargin, bounds.get(0).y - yMargin),
-        new Point(bounds.get(1).x + xMargin, bounds.get(1).y + yMargin));
+      new Point(bounds.get(0).x - xMargin, bounds.get(0).y - yMargin),
+      new Point(bounds.get(1).x + xMargin, bounds.get(1).y + yMargin));
   }
 
   @Override
-  public void registerModelProvider(ModelProvider mp) {
-    final RoadModel rm = mp.getModel(RoadModel.class);
-    bounds = rm.getBounds();
-    final double width = bounds.get(1).x - bounds.get(0).x;
-    final double height = bounds.get(1).y - bounds.get(0).y;
-    xMargin = width * margin;
-    yMargin = height * margin;
+  public boolean register(Void element) {
+    return false;
+  }
+
+  @Override
+  public boolean unregister(Void element) {
+    return false;
   }
 
   /**
-   * @return A new {@link PlaneRoadModelRenderer} with a default margin.
+   * @return A {@link Builder} for constructing {@link PlaneRoadModelRenderer}
+   *         instances.
    */
-  public static PlaneRoadModelRenderer create() {
-    return new PlaneRoadModelRenderer(DEFAULT_MARGIN);
+  @CheckReturnValue
+  public static Builder builder() {
+    return Builder.create(Builder.DEFAULT_MARGIN);
   }
 
   /**
-   * Creates a new {@link PlaneRoadModelRenderer} instance.
-   * @param margin The margin to show around the plane.
-   * @return A new instance.
+   * Builder for {@link PlaneRoadModelRenderer}.
+   * @author Rinde van Lon
    */
-  public static PlaneRoadModelRenderer create(double margin) {
-    return new PlaneRoadModelRenderer(margin);
+  @AutoValue
+  public abstract static class Builder extends
+    AbstractModelBuilder<PlaneRoadModelRenderer, Void> {
+    /**
+     * The default margin: 0.02.
+     */
+    public static final double DEFAULT_MARGIN = 0.02;
+
+    abstract double margin();
+
+    Builder() {
+      setDependencies(RoadModel.class);
+    }
+
+    /**
+     * Set the margin to be drawn around the plane. By default the margin is
+     * {@link #DEFAULT_MARGIN}.
+     * @param margin The margin.
+     * @return A new builder instance.
+     */
+    @CheckReturnValue
+    public Builder withMargin(double margin) {
+      return create(margin);
+    }
+
+    @Override
+    public PlaneRoadModelRenderer build(DependencyProvider dependencyProvider) {
+      return new PlaneRoadModelRenderer(
+        dependencyProvider.get(RoadModel.class), margin());
+    }
+
+    static Builder create(double margin) {
+      return new AutoValue_PlaneRoadModelRenderer_Builder(margin);
+    }
   }
 }

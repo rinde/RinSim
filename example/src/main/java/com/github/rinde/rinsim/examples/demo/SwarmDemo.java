@@ -95,8 +95,8 @@ public final class SwarmDemo {
       )
       .addModel(
         View.create()
-          .with(PlaneRoadModelRenderer.create(), new VehicleRenderer(),
-            new DemoPanel(string, rng))
+          .with(PlaneRoadModelRenderer.builder())
+          .with(new VehicleRenderer(), new DemoPanel(string, rng))
           .setSpeedUp(8)
       )
       .build();

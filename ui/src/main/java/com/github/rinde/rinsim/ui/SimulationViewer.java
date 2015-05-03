@@ -64,7 +64,6 @@ import com.github.rinde.rinsim.core.model.time.TickListener;
 import com.github.rinde.rinsim.core.model.time.TimeLapse;
 import com.github.rinde.rinsim.geom.Point;
 import com.github.rinde.rinsim.ui.renderers.CanvasRenderer;
-import com.github.rinde.rinsim.ui.renderers.CanvasRendererBuilder;
 import com.github.rinde.rinsim.ui.renderers.PanelRenderer;
 import com.github.rinde.rinsim.ui.renderers.Renderer;
 import com.github.rinde.rinsim.ui.renderers.ViewPort;
@@ -256,9 +255,6 @@ final class SimulationViewer extends Composite implements TickListener,
 
       if (r instanceof CanvasRenderer) {
         renderers.add((CanvasRenderer) r);
-      } else if (r instanceof CanvasRendererBuilder) {
-        renderers.add(
-          ((CanvasRendererBuilder) r).build(modelProvider));
       }
 
       if (r instanceof TickListener) {
@@ -669,6 +665,37 @@ final class SimulationViewer extends Composite implements TickListener,
     });
   }
 
+  @Override
+  public boolean register(Renderer element) {
+    if (element instanceof PanelRenderer) {
+      panelRenderers.add((PanelRenderer) element);
+    }
+    if (element instanceof CanvasRenderer) {
+      renderers.add((CanvasRenderer) element);
+    }
+    return true;
+  }
+
+  @Override
+  public boolean unregister(Renderer element) {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public Class<Renderer> getSupportedType() {
+    return Renderer.class;
+  }
+
+  @Override
+  public void registerModelProvider(ModelProvider mp) {
+    modelProvider = mp;
+  }
+
+  @Override
+  public <U> U get(Class<U> clazz) {
+    throw new UnsupportedOperationException();
+  }
+
   static class Builder extends AbstractModelBuilder<SimulationViewer, Renderer> {
 
     final View.Builder viewBuilder;
@@ -685,38 +712,5 @@ final class SimulationViewer extends Composite implements TickListener,
       final SimulatorAPI sim = dependencyProvider.get(SimulatorAPI.class);
       return new SimulationViewer(shell, cc, sim, viewBuilder);
     }
-  }
-
-  @Override
-  public boolean register(Renderer element) {
-    if (element instanceof PanelRenderer) {
-      panelRenderers.add((PanelRenderer) element);
-    }
-    if (element instanceof CanvasRenderer) {
-      renderers.add((CanvasRenderer) element);
-    }
-    return true;
-  }
-
-  @Override
-  public boolean unregister(Renderer element) {
-    return true;
-  }
-
-  @Override
-  public Class<Renderer> getSupportedType() {
-    return Renderer.class;
-  }
-
-  @Override
-  public void registerModelProvider(ModelProvider mp) {
-    modelProvider = mp;
-
-  }
-
-  @Override
-  public <U> U get(Class<U> clazz) {
-    // TODO Auto-generated method stub
-    return null;
   }
 }

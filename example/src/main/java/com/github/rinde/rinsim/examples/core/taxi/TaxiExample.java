@@ -111,11 +111,11 @@ public final class TaxiExample {
     View.Builder view = View.create()
       .with(GraphRoadModelRenderer.builder())
       .with(RoadUserRenderer.builder()
-        .addImageAssociation(
+        .withImageAssociation(
           TaxiBase.class, "/graphics/perspective/tall-building-64.png")
-        .addImageAssociation(
+        .withImageAssociation(
           Taxi.class, "/graphics/flat/taxi-32.png")
-        .addImageAssociation(
+        .withImageAssociation(
           Customer.class, "/graphics/flat/person-red-32.png")
       )
       .with(new TaxiRenderer(Language.ENGLISH))

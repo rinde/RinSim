@@ -15,6 +15,8 @@
  */
 package com.github.rinde.rinsim.ui.renderers;
 
+import static com.google.common.truth.Truth.assertThat;
+
 import org.apache.commons.math3.random.MersenneTwister;
 import org.apache.commons.math3.random.RandomGenerator;
 import org.eclipse.swt.graphics.RGB;
@@ -56,11 +58,11 @@ public class CommRendererTest {
       .addModel(
         View.create()
           .with(CommRenderer.builder()
-            .showReliabilityColors(new RGB(0, 0, 255), new RGB(255, 255, 0))
-            .showReliabilityPercentage()
-            .showMessageCount()
+            .withReliabilityColors(new RGB(0, 0, 255), new RGB(255, 255, 0))
+            .withReliabilityPercentage()
+            .withMessageCount()
           )
-          .with(PlaneRoadModelRenderer.create())
+          .with(PlaneRoadModelRenderer.builder())
           .enableAutoPlay()
           .enableAutoClose()
           .setSpeedUp(10)
@@ -75,6 +77,23 @@ public class CommRendererTest {
     sim.register(new CommAgent(rng, -1d, 1d));
 
     sim.start();
+  }
+
+  /**
+   * Tests that colors are applied correctly.
+   */
+  @Test
+  public void testColorSettings() {
+    final RGB unreliableIn = new RGB(255, 255, 0);
+    final RGB reliableIn = new RGB(0, 0, 255);
+
+    final CommRenderer.Builder b = CommRenderer.builder()
+      .withReliabilityColors(unreliableIn, reliableIn);
+
+    assertThat(b.reliableColor()).isNotSameAs(reliableIn);
+    assertThat(b.unreliableColor()).isNotSameAs(unreliableIn);
+    assertThat(b.reliableColor()).isEqualTo(reliableIn);
+    assertThat(b.unreliableColor()).isEqualTo(unreliableIn);
   }
 
   static class CommAgent implements MovingRoadUser, CommUser, TickListener {

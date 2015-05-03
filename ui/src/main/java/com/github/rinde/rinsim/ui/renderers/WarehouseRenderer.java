@@ -15,6 +15,9 @@
  */
 package com.github.rinde.rinsim.ui.renderers;
 
+import static com.github.rinde.rinsim.ui.renderers.WarehouseRenderer.VizOptions.DRAW_ONE_WAY_STREET_ARROWS;
+import static com.github.rinde.rinsim.ui.renderers.WarehouseRenderer.VizOptions.SHOW_NODES;
+import static com.github.rinde.rinsim.ui.renderers.WarehouseRenderer.VizOptions.SHOW_NODE_OCCUPANCY;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
 
@@ -25,21 +28,27 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
+import javax.annotation.CheckReturnValue;
 import javax.annotation.Nullable;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.GC;
 
-import com.github.rinde.rinsim.core.model.ModelProvider;
+import com.github.rinde.rinsim.core.model.DependencyProvider;
+import com.github.rinde.rinsim.core.model.Model.AbstractModel;
+import com.github.rinde.rinsim.core.model.ModelBuilder.AbstractModelBuilder;
 import com.github.rinde.rinsim.core.model.road.CollisionGraphRoadModel;
 import com.github.rinde.rinsim.geom.Connection;
 import com.github.rinde.rinsim.geom.Graph;
 import com.github.rinde.rinsim.geom.Graphs;
 import com.github.rinde.rinsim.geom.Point;
+import com.google.auto.value.AutoValue;
 import com.google.common.base.Optional;
 import com.google.common.collect.HashBasedTable;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterators;
 import com.google.common.collect.PeekingIterator;
+import com.google.common.collect.Sets;
 import com.google.common.collect.Table;
 
 /**
@@ -50,7 +59,8 @@ import com.google.common.collect.Table;
  * {@link com.github.rinde.rinsim.core.Simulator}.
  * @author Rinde van Lon
  */
-public final class WarehouseRenderer implements CanvasRenderer {
+public final class WarehouseRenderer extends AbstractModel<Void> implements
+  CanvasRenderer {
   /**
    * The definition of a 'short' connection. Connections that are smaller or
    * equal to this number times the length of the vehicle are considered short.
@@ -80,24 +90,25 @@ public final class WarehouseRenderer implements CanvasRenderer {
   WarehouseRenderer(Builder builder, CollisionGraphRoadModel m) {
     model = m;
     graph = model.getGraph();
-    margin = builder.margin + m.getVehicleLength() / 2d;
-    drawOneWayStreetArrows = builder.drawOneWayStreetArrows;
-    showNodeOccupancy = builder.showNodeOccupancy;
-    showNodes = builder.showNodes;
+    margin = builder.margin() + m.getVehicleLength() / 2d;
+    drawOneWayStreetArrows = builder.vizOptions().contains(
+      DRAW_ONE_WAY_STREET_ARROWS);
+    showNodeOccupancy = builder.vizOptions().contains(SHOW_NODE_OCCUPANCY);
+    showNodes = builder.vizOptions().contains(SHOW_NODES);
     adapter = new RenderHelper();
     vehicleLength = model.getVehicleLength();
     minDistance = model.getMinDistance();
     final double roadWidth = model.getVehicleLength();
     halfRoadWidth = roadWidth / 2d;
     arrowDimensions = new Point(
-        ARROW_HEAD_REL_DIM.x * roadWidth,
-        ARROW_HEAD_REL_DIM.y * roadWidth);
+      ARROW_HEAD_REL_DIM.x * roadWidth,
+      ARROW_HEAD_REL_DIM.y * roadWidth);
   }
 
   private Table<Point, Point, Connection<?>> filterConnections() {
     // filter connections to avoid double work for bidirectional roads
     final Table<Point, Point, Connection<?>> filteredConnections = HashBasedTable
-        .create();
+      .create();
     for (final Connection<?> e : graph.getConnections()) {
       if (!filteredConnections.contains(e.to(), e.from())) {
         filteredConnections.put(e.from(), e.to(), e);
@@ -119,11 +130,11 @@ public final class WarehouseRenderer implements CanvasRenderer {
         if (PointUtil.length(e) > SHORT_CONNECTION_LENGTH * vehicleLength) {
           final Point start1 = PointUtil.on(e, vehicleLength);
           final Point end1 = PointUtil.on(e,
-              vehicleLength + arrowDimensions.y * 2);
+            vehicleLength + arrowDimensions.y * 2);
           adapter.drawArrow(start1, end1, arrowDimensions.x, arrowDimensions.y);
 
           final Point start2 = PointUtil.on(e.to(), e.from(),
-              vehicleLength + arrowDimensions.y * 2);
+            vehicleLength + arrowDimensions.y * 2);
           final Point end2 = PointUtil.on(e.to(), e.from(), vehicleLength);
           adapter.drawArrow(start2, end2, arrowDimensions.x, arrowDimensions.y);
         } else {
@@ -176,13 +187,13 @@ public final class WarehouseRenderer implements CanvasRenderer {
             assert o1 != null;
             assert o2 != null;
             return Double.compare(PointUtil.angle(p, o1),
-                PointUtil.angle(p, o2));
+              PointUtil.angle(p, o2));
           }
         });
 
         neighbors.add(neighbors.get(0));
         final PeekingIterator<Point> it = Iterators.peekingIterator(neighbors
-            .iterator());
+          .iterator());
 
         for (Point n = it.next(); it.hasNext(); n = it.next()) {
           if (!it.hasNext()) {
@@ -190,14 +201,14 @@ public final class WarehouseRenderer implements CanvasRenderer {
           }
           final Point a = PointUtil.perp(p, n, vehicleLength, -halfRoadWidth);
           final Point a2 = PointUtil
-              .perp(p, n, vehicleLength + 1, -halfRoadWidth);
+            .perp(p, n, vehicleLength + 1, -halfRoadWidth);
           final Point b = PointUtil.perp(p, it.peek(), vehicleLength,
-              halfRoadWidth);
+            halfRoadWidth);
           final Point b2 = PointUtil.perp(p, it.peek(), vehicleLength + 1,
-              halfRoadWidth);
+            halfRoadWidth);
           final Optional<Point> intersect = PointUtil.intersectionPoint(a, a2,
-              b,
-              b2);
+            b,
+            b2);
 
           if (intersect.isPresent()) {
             final Point control = intersect.get();
@@ -236,35 +247,49 @@ public final class WarehouseRenderer implements CanvasRenderer {
   @Override
   public ViewRect getViewRect() {
     checkState(!graph.isEmpty(),
-        "graph may not be empty at this point");
+      "graph may not be empty at this point");
     final List<Point> extremes = Graphs.getExtremes(graph);
     return new ViewRect(
-        PointUtil.sub(extremes.get(0), margin),
-        PointUtil.add(extremes.get(1), margin));
+      PointUtil.sub(extremes.get(0), margin),
+      PointUtil.add(extremes.get(1), margin));
+  }
+
+  @Override
+  public boolean register(Void element) {
+    return false;
+  }
+
+  @Override
+  public boolean unregister(Void element) {
+    return false;
   }
 
   /**
    * @return A new {@link Builder} for creating a {@link WarehouseRenderer}.
    */
+  @CheckReturnValue
   public static Builder builder() {
-    return new Builder();
+    return Builder.create();
+  }
+
+  enum VizOptions {
+    DRAW_ONE_WAY_STREET_ARROWS, SHOW_NODE_OCCUPANCY, SHOW_NODES;
   }
 
   /**
    * A builder for creating a {@link WarehouseRenderer}.
    * @author Rinde van Lon
    */
-  public static class Builder implements CanvasRendererBuilder {
-    boolean drawOneWayStreetArrows;
-    double margin;
-    boolean showNodeOccupancy;
-    boolean showNodes;
+  @AutoValue
+  public abstract static class Builder extends
+    AbstractModelBuilder<WarehouseRenderer, Void> {
+
+    abstract ImmutableSet<VizOptions> vizOptions();
+
+    abstract double margin();
 
     Builder() {
-      margin = 0;
-      drawOneWayStreetArrows = false;
-      showNodeOccupancy = false;
-      showNodes = false;
+      setDependencies(CollisionGraphRoadModel.class);
     }
 
     /**
@@ -272,56 +297,60 @@ public final class WarehouseRenderer implements CanvasRenderer {
      * unit used by the {@link CollisionGraphRoadModel}. The default value is
      * <code>0</code>.
      * @param m Must be a positive value.
-     * @return This, as per the builder pattern.
+     * @return A new builder instance.
      */
-    public Builder setMargin(double m) {
+    @CheckReturnValue
+    public Builder withMargin(double m) {
       checkArgument(m >= 0d);
-      margin = m;
-      return this;
+      return create(m, vizOptions());
     }
 
     /**
      * One way streets will be indicated with an arrow indicating the allowed
      * driving direction. By default this is not drawn.
-     * @return This, as per the builder pattern.
+     * @return A new builder instance.
      */
-    public Builder drawOneWayStreetArrows() {
-      drawOneWayStreetArrows = true;
-      return this;
+    @CheckReturnValue
+    public Builder withOneWayStreetArrows() {
+      return create(margin(), DRAW_ONE_WAY_STREET_ARROWS, vizOptions());
     }
 
     /**
      * Will draw an overlay on occupied nodes. By default this is not shown.
-     * @return This, as per the builder pattern.
+     * @return A new builder instance.
      */
-    public Builder showNodeOccupancy() {
-      showNodeOccupancy = true;
-      return this;
+    @CheckReturnValue
+    public Builder withNodeOccupancy() {
+      return create(margin(), SHOW_NODE_OCCUPANCY, vizOptions());
     }
 
     /**
      * Will draw a small dot for each node. By default this is not shown.
-     * @return This, as per the builder pattern.
+     * @return A new builder instance.
      */
-    public Builder showNodes() {
-      showNodes = true;
-      return this;
+    @CheckReturnValue
+    public Builder withNodes() {
+      return create(margin(), SHOW_NODES, vizOptions());
     }
 
     @Override
-    public CanvasRenderer build(ModelProvider mp) {
+    public WarehouseRenderer build(DependencyProvider dependencyProvider) {
       return new WarehouseRenderer(this,
-          mp.getModel(CollisionGraphRoadModel.class));
+        dependencyProvider.get(CollisionGraphRoadModel.class));
     }
 
-    @Override
-    public CanvasRendererBuilder copy() {
-      final Builder b = new Builder();
-      b.drawOneWayStreetArrows = drawOneWayStreetArrows;
-      b.margin = margin;
-      b.showNodeOccupancy = showNodeOccupancy;
-      b.showNodes = showNodes;
-      return b;
+    static Builder create() {
+      return create(0d, ImmutableSet.<VizOptions> of());
+    }
+
+    static Builder create(double m, ImmutableSet<VizOptions> opts) {
+      return new AutoValue_WarehouseRenderer_Builder(opts, m);
+    }
+
+    static Builder create(double m, VizOptions opt,
+      ImmutableSet<VizOptions> more) {
+      return create(
+        m, Sets.immutableEnumSet(opt, more.toArray(new VizOptions[] {})));
     }
   }
 }

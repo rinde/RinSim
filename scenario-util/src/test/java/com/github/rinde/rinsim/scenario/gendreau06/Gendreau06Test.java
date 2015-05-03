@@ -204,9 +204,9 @@ public class Gendreau06Test {
     ImmutableList<ModelBuilder<?, ?>> models = useGui ?
       ImmutableList.<ModelBuilder<?, ?>> of(
         View.create()
-          .with(PlaneRoadModelRenderer.create())
+          .with(PlaneRoadModelRenderer.builder())
           .with(RoadUserRenderer.builder())
-          .with(new PDPModelRenderer())
+          .with(PDPModelRenderer.builder())
           .setSpeedUp(50)
           .enableAutoClose()
           .enableAutoPlay()

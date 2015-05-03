@@ -40,6 +40,11 @@
 			<artifactId>org.eclipse.swt.${swt.variant}</artifactId>
 			<version>${swt.version}</version>
 		</dependency>
+		  <dependency> 
+            <groupId>com.google.truth</groupId>
+            <artifactId>truth</artifactId>
+            <scope>test</scope>
+        </dependency>
 		<dependency>
 			<groupId>com.github.rinde</groupId>
 			<artifactId>rinsim-test-util</artifactId>

@@ -20,18 +20,24 @@ import static com.google.common.base.Preconditions.checkState;
 
 import java.util.List;
 
+import javax.annotation.CheckReturnValue;
 import javax.annotation.Nullable;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.GC;
 
-import com.github.rinde.rinsim.core.model.ModelProvider;
+import com.github.rinde.rinsim.core.model.DependencyProvider;
+import com.github.rinde.rinsim.core.model.Model.AbstractModel;
+import com.github.rinde.rinsim.core.model.ModelBuilder.AbstractModelBuilder;
 import com.github.rinde.rinsim.core.model.road.GraphRoadModel;
 import com.github.rinde.rinsim.geom.Connection;
 import com.github.rinde.rinsim.geom.ConnectionData;
 import com.github.rinde.rinsim.geom.Graph;
 import com.github.rinde.rinsim.geom.Graphs;
 import com.github.rinde.rinsim.geom.Point;
+import com.google.auto.value.AutoValue;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Sets;
 
 /**
  * A simple {@link CanvasRenderer} for {@link GraphRoadModel}s. Instances can be
@@ -41,7 +47,8 @@ import com.github.rinde.rinsim.geom.Point;
  * {@link com.github.rinde.rinsim.core.Simulator}.
  * @author Rinde van Lon (rinde.vanlon@cs.kuleuven.be)
  */
-public final class GraphRoadModelRenderer implements CanvasRenderer {
+public final class GraphRoadModelRenderer extends AbstractModel<Void> implements
+  CanvasRenderer {
   private static final int NODE_RADIUS = 2;
   private static final Point RELATIVE_TEXT_POSITION = new Point(4, -14);
   private static final int ARROW_HEAD_SIZE = 8;
@@ -56,10 +63,10 @@ public final class GraphRoadModelRenderer implements CanvasRenderer {
 
   GraphRoadModelRenderer(GraphRoadModel grm, Builder b) {
     model = grm;
-    margin = b.margin;
-    showNodes = b.showNodes;
-    showNodeCoordinates = b.showNodeCoordinates;
-    showDirectionArrows = b.showDirectionArrows;
+    margin = b.margin();
+    showNodes = b.vizOptions().contains(VizOptions.NODE_CIRCLES);
+    showNodeCoordinates = b.vizOptions().contains(VizOptions.NODE_COORDS);
+    showDirectionArrows = b.vizOptions().contains(VizOptions.DIR_ARROWS);
     helper = new RenderHelper();
   }
 
@@ -78,7 +85,7 @@ public final class GraphRoadModelRenderer implements CanvasRenderer {
       for (final Point node : graph.getNodes()) {
         helper.setForegroundSysCol(SWT.COLOR_GRAY);
         helper.drawString(node.toString(), node, true,
-            (int) RELATIVE_TEXT_POSITION.x, (int) RELATIVE_TEXT_POSITION.y);
+          (int) RELATIVE_TEXT_POSITION.x, (int) RELATIVE_TEXT_POSITION.y);
       }
     }
 
@@ -103,102 +110,111 @@ public final class GraphRoadModelRenderer implements CanvasRenderer {
   @Override
   public ViewRect getViewRect() {
     checkState(!model.getGraph().isEmpty(),
-        "graph may not be empty at this point");
+      "graph may not be empty at this point");
 
     final List<Point> extremes = Graphs.getExtremes(model.getGraph());
     return new ViewRect(
-        PointUtil.sub(extremes.get(0), margin),
-        PointUtil.add(extremes.get(1), margin));
+      PointUtil.sub(extremes.get(0), margin),
+      PointUtil.add(extremes.get(1), margin));
+  }
+
+  @Override
+  public boolean register(Void element) {
+    return false;
+  }
+
+  @Override
+  public boolean unregister(Void element) {
+    return false;
   }
 
   /**
    * @return A new {@link Builder} for creating {@link GraphRoadModelRenderer}
    *         instances.
    */
+  @CheckReturnValue
   public static Builder builder() {
-    return new Builder();
+    return Builder.create();
+  }
+
+  enum VizOptions {
+    NODE_CIRCLES, NODE_COORDS, DIR_ARROWS;
   }
 
   /**
    * A builder for creating a {@link GraphRoadModelRenderer}.
    * @author Rinde van Lon
    */
-  public static final class Builder implements CanvasRendererBuilder {
-    int margin;
-    boolean showNodes;
-    boolean showNodeCoordinates;
-    boolean showDirectionArrows;
+  @AutoValue
+  public abstract static class Builder extends
+    AbstractModelBuilder<GraphRoadModelRenderer, Void> {
+
+    abstract int margin();
+
+    abstract ImmutableSet<VizOptions> vizOptions();
 
     Builder() {
-      margin = 0;
-      showNodes = false;
-      showNodeCoordinates = false;
-      showDirectionArrows = false;
+      setDependencies(GraphRoadModel.class);
     }
 
     /**
      * Sets the margin to display around the graph.
      * @param m The margin, in the same unit as
      *          {@link GraphRoadModel#getDistanceUnit()}.
-     * @return This, as per the builder pattern.
+     * @return A new builder instance.
      */
-    public Builder setMargin(int m) {
+    @CheckReturnValue
+    public Builder withMargin(int m) {
       checkArgument(m >= 0);
-      margin = m;
-      return this;
+      return create(m, vizOptions());
     }
 
     /**
      * Draws a circle for each node in the graph.
-     * @return This, as per the builder pattern.
+     * @return A new builder instance.
      */
-    public Builder showNodes() {
-      showNodes = true;
-      return this;
+    @CheckReturnValue
+    public Builder withNodeCircles() {
+      return create(margin(), VizOptions.NODE_CIRCLES, vizOptions());
     }
 
     /**
      * Shows a label with coordinates next to each node in the graph.
-     * @return This, as per the builder pattern.
+     * @return A new builder instance.
      */
-    public Builder showNodeCoordinates() {
-      showNodeCoordinates = true;
-      return this;
-    }
-
-    /**
-     * Shows a label with coordinates next to each node in the graph.
-     * @return This, as per the builder pattern.
-     * @deprecated Use {@link #showNodeCoordinates()}.
-     */
-    @Deprecated
-    public Builder showNodeLabels() {
-      return showNodeCoordinates();
+    @CheckReturnValue
+    public Builder withNodeCoordinates() {
+      return create(margin(), VizOptions.NODE_COORDS, vizOptions());
     }
 
     /**
      * Shows arrows for each connection in the graph, indicating the allowed
      * driving direction(s).
-     * @return This, as per the builder pattern.
+     * @return A new builder instance.
      */
-    public Builder showDirectionArrows() {
-      showDirectionArrows = true;
-      return this;
+    @CheckReturnValue
+    public Builder withDirectionArrows() {
+      return create(margin(), VizOptions.DIR_ARROWS, vizOptions());
     }
 
     @Override
-    public Builder copy() {
-      final Builder copy = new Builder();
-      copy.margin = margin;
-      copy.showNodes = showNodes;
-      copy.showNodeCoordinates = showNodeCoordinates;
-      copy.showDirectionArrows = showDirectionArrows;
-      return copy;
+    public GraphRoadModelRenderer build(DependencyProvider dependencyProvider) {
+      return new GraphRoadModelRenderer(
+        dependencyProvider.get(GraphRoadModel.class), this);
     }
 
-    @Override
-    public CanvasRenderer build(ModelProvider mp) {
-      return new GraphRoadModelRenderer(mp.getModel(GraphRoadModel.class), this);
+    static Builder create() {
+      return create(0, ImmutableSet.<VizOptions> of());
+    }
+
+    static Builder create(int margin, ImmutableSet<VizOptions> opts) {
+      return new AutoValue_GraphRoadModelRenderer_Builder(margin, opts);
+    }
+
+    static Builder create(int margin, VizOptions opt,
+      ImmutableSet<VizOptions> opts) {
+      return create(margin,
+        Sets.immutableEnumSet(opt, opts.toArray(new VizOptions[] {})));
     }
   }
 }

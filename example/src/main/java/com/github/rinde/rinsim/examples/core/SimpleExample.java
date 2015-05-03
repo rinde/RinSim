@@ -64,7 +64,7 @@ public final class SimpleExample {
     // (indicating its boundaries), and the drivers are rendered as red
     // dots.
     View.Builder viewBuilder = View.create()
-      .with(PlaneRoadModelRenderer.create())
+      .with(PlaneRoadModelRenderer.builder())
       .with(RoadUserRenderer.builder());
 
     if (testing) {

@@ -55,7 +55,7 @@ public class ViewTest {
         .enableAutoClose()
         .enableAutoPlay()
         .stopSimulatorAtTime(10000)
-        .with(PlaneRoadModelRenderer.create())
+        .with(PlaneRoadModelRenderer.builder())
         .with(new TestRenderer())
       )
       .build();
@@ -79,7 +79,7 @@ public class ViewTest {
       .addModel(
         View.create()
           .setTitleAppendix("ViewTest")
-          .with(PlaneRoadModelRenderer.create())
+          .with(PlaneRoadModelRenderer.builder())
           .with(RoadUserRenderer.builder())
           .enableAutoPlay()
       )

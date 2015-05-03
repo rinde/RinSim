@@ -51,7 +51,9 @@ public final class PanelTest {
       )
       .addModel(
         View.create()
-          .with(new RoadUserRenderer(), new PlaneRoadModelRenderer(),
+          .with(PlaneRoadModelRenderer.builder())
+          .with(RoadUserRenderer.builder())
+          .with(
             new TestPanelRenderer("LEFT", SWT.LEFT, 200),
             new TestPanelRenderer("RIHGT BOEEE YEAH", SWT.RIGHT, 300),
             new TestPanelRenderer("RIHGT BOEEE YEAH", SWT.TOP, 100),

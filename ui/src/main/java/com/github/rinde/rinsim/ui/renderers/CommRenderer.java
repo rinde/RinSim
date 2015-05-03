@@ -15,14 +15,11 @@
  */
 package com.github.rinde.rinsim.ui.renderers;
 
-import static com.google.common.base.Verify.verify;
-
-import java.util.ArrayList;
-import java.util.EnumSet;
-import java.util.List;
-import java.util.Map.Entry;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.Set;
 
+import javax.annotation.CheckReturnValue;
 import javax.annotation.Nullable;
 
 import org.eclipse.swt.SWT;
@@ -30,16 +27,15 @@ import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.RGB;
 
-import com.github.rinde.rinsim.core.model.ModelProvider;
+import com.github.rinde.rinsim.core.model.DependencyProvider;
+import com.github.rinde.rinsim.core.model.Model.AbstractModel;
+import com.github.rinde.rinsim.core.model.ModelBuilder.AbstractModelBuilder;
 import com.github.rinde.rinsim.core.model.comm.CommDevice;
 import com.github.rinde.rinsim.core.model.comm.CommModel;
-import com.github.rinde.rinsim.core.model.comm.CommModel.CommModelEvent;
 import com.github.rinde.rinsim.core.model.comm.CommUser;
-import com.github.rinde.rinsim.event.Event;
-import com.github.rinde.rinsim.event.Listener;
-import com.github.rinde.rinsim.ui.renderers.CommRenderer.Builder.ViewOptions;
+import com.google.auto.value.AutoValue;
 import com.google.common.base.Optional;
-import com.google.common.collect.Sets;
+import com.google.common.collect.ImmutableSet;
 
 /**
  * A renderer for {@link CommModel}. Draws dots for a device, a circle is drawn
@@ -47,41 +43,26 @@ import com.google.common.collect.Sets;
  * configured via {@link #builder()}.
  * @author Rinde van Lon
  */
-public final class CommRenderer implements CanvasRenderer {
+public final class CommRenderer extends AbstractModel<CommUser> implements
+  CanvasRenderer {
   static final int OPAQUE = 255;
   static final int SEMI_TRANSPARENT = 50;
   static final double DOT_RADIUS = .05;
 
-  private final List<DeviceUI> uiObjects;
+  private final Map<CommUser, DeviceUI> uiObjects;
+  private final CommModel model;
   final RenderHelper helper;
   final Set<ViewOptions> viewOptions;
   final RGB reliableColor;
   final RGB unreliableColor;
 
-  CommRenderer(Builder b, CommModel model) {
-    viewOptions = Sets.immutableEnumSet(b.viewOptions);
-    reliableColor = b.reliableColor;
-    unreliableColor = b.unreliableColor;
+  CommRenderer(Builder b, CommModel m) {
+    model = m;
+    viewOptions = b.viewOptions();
+    reliableColor = b.reliableColor();
+    unreliableColor = b.unreliableColor();
     helper = new RenderHelper();
-    uiObjects = new ArrayList<>();
-    for (final Entry<CommUser, CommDevice> entry : model.getUsersAndDevices()
-      .entrySet()) {
-      addUIObject(entry.getKey(), entry.getValue());
-
-    }
-
-    model.getEventAPI().addListener(new Listener() {
-      @Override
-      public void handleEvent(Event e) {
-        verify(e instanceof CommModelEvent);
-        final CommModelEvent event = (CommModelEvent) e;
-        addUIObject(event.getUser(), event.getDevice());
-      }
-    }, CommModel.EventTypes.ADD_COMM_USER);
-  }
-
-  void addUIObject(CommUser u, CommDevice d) {
-    uiObjects.add(new DeviceUI(u, d));
+    uiObjects = new LinkedHashMap<>();
   }
 
   @Override
@@ -91,7 +72,7 @@ public final class CommRenderer implements CanvasRenderer {
   public void renderDynamic(GC gc, ViewPort vp, long time) {
     helper.adapt(gc, vp);
 
-    for (final DeviceUI ui : uiObjects) {
+    for (final DeviceUI ui : uiObjects.values()) {
       ui.update(gc, vp, time);
     }
   }
@@ -102,11 +83,25 @@ public final class CommRenderer implements CanvasRenderer {
     return null;
   }
 
+  @Override
+  public boolean register(CommUser element) {
+    uiObjects
+      .put(element,
+        new DeviceUI(element, model.getUsersAndDevices().get(element)));
+    return true;
+  }
+
+  @Override
+  public boolean unregister(CommUser element) {
+    return uiObjects.remove(element) != null;
+  }
+
   /**
    * @return A new {@link Builder} for creating a {@link CommRenderer}.
    */
+  @CheckReturnValue
   public static Builder builder() {
-    return new Builder();
+    return Builder.create();
   }
 
   class DeviceUI {
@@ -166,33 +161,36 @@ public final class CommRenderer implements CanvasRenderer {
     }
   }
 
+  enum ViewOptions {
+    RELIABILITY_COLOR, MSG_COUNT, RELIABILITY_PERC;
+  }
+
   /**
    * A builder for creating a {@link CommRenderer}.
    * @author Rinde van Lon
    */
-  public static class Builder implements CanvasRendererBuilder {
-    final Set<ViewOptions> viewOptions;
-    RGB unreliableColor;
-    RGB reliableColor;
-
-    enum ViewOptions {
-      RELIABILITY_COLOR, MSG_COUNT, RELIABILITY_PERC;
-    }
+  @AutoValue
+  public abstract static class Builder extends
+    AbstractModelBuilder<CommRenderer, CommUser> {
 
     Builder() {
-      viewOptions = EnumSet.noneOf(ViewOptions.class);
-      reliableColor = defaultReliableColor();
-      unreliableColor = defaultUnreliableColor();
+      setDependencies(CommModel.class);
     }
+
+    abstract RGB reliableColor();
+
+    abstract RGB unreliableColor();
+
+    abstract ImmutableSet<ViewOptions> viewOptions();
 
     /**
      * Shows the reliability as a percentage for every {@link CommDevice} on the
      * map.
-     * @return This, as per the builder pattern.
+     * @return A new builder instance.
      */
-    public Builder showReliabilityPercentage() {
-      viewOptions.add(ViewOptions.RELIABILITY_PERC);
-      return this;
+    @CheckReturnValue
+    public Builder withReliabilityPercentage() {
+      return create(this, ViewOptions.RELIABILITY_PERC);
     }
 
     /**
@@ -200,51 +198,47 @@ public final class CommRenderer implements CanvasRenderer {
      * format for display is as follows: <code>XX(Y)</code> where
      * <code>XX</code> is the total number of received messages and
      * <code>Y</code> is the number of unread messages.
-     * @return This, as per the builder pattern.
+     * @return A new builder instance.
      */
-    public Builder showMessageCount() {
-      viewOptions.add(ViewOptions.MSG_COUNT);
-      return this;
+    @CheckReturnValue
+    public Builder withMessageCount() {
+      return create(this, ViewOptions.MSG_COUNT);
     }
 
     /**
      * Shows the reliability of all {@link CommDevice}s by drawing them in color
      * ranging from red (0% reliability) to green (100% reliability). For using
-     * different colors see {@link #showReliabilityColors(RGB, RGB)}.
-     * @return This, as per the builder pattern.
+     * different colors see {@link #withReliabilityColors(RGB, RGB)}.
+     * @return A new builder instance.
      */
-    public Builder showReliabilityColors() {
-      viewOptions.add(ViewOptions.RELIABILITY_COLOR);
-      return this;
+    @CheckReturnValue
+    public Builder withReliabilityColors() {
+      return create(this, ViewOptions.RELIABILITY_COLOR);
     }
 
     /**
      * Shows the reliability of all {@link CommDevice}s by drawing them in color
      * ranging from unreliable color (0% reliability) to reliable color (100%
      * reliability). For using the default colors red and green see
-     * {@link #showReliabilityColors()}.
+     * {@link #withReliabilityColors()}.
      * @param unreliable The color that will be used as the negative extreme.
      * @param reliable The color that will be used as the positive extreme.
-     * @return This, as per the builder pattern.
+     * @return A new builder instance.
      */
-    public Builder showReliabilityColors(RGB unreliable, RGB reliable) {
-      reliableColor = reliable;
-      unreliableColor = unreliable;
-      return showReliabilityColors();
+    @CheckReturnValue
+    public Builder withReliabilityColors(RGB unreliable, RGB reliable) {
+      return create(
+        copy(reliable),
+        copy(unreliable),
+        ImmutableSet.<ViewOptions> builder()
+          .addAll(viewOptions())
+          .add(ViewOptions.RELIABILITY_COLOR)
+          .build());
     }
 
     @Override
-    public CanvasRenderer build(ModelProvider mp) {
-      return new CommRenderer(this, mp.getModel(CommModel.class));
-    }
-
-    @Override
-    public CanvasRendererBuilder copy() {
-      final Builder copy = new Builder();
-      copy.viewOptions.addAll(viewOptions);
-      copy.unreliableColor = copy(unreliableColor);
-      copy.reliableColor = copy(reliableColor);
-      return copy;
+    public CommRenderer build(DependencyProvider dependencyProvider) {
+      return new CommRenderer(this, dependencyProvider.get(CommModel.class));
     }
 
     static RGB defaultReliableColor() {
@@ -257,6 +251,23 @@ public final class CommRenderer implements CanvasRenderer {
 
     static RGB copy(RGB color) {
       return new RGB(color.red, color.green, color.blue);
+    }
+
+    static Builder create(Builder b, ViewOptions opt) {
+      return create(b.reliableColor(), b.unreliableColor(),
+        ImmutableSet.<ViewOptions> builder()
+          .addAll(b.viewOptions())
+          .add(opt)
+          .build());
+    }
+
+    static Builder create(RGB rel, RGB unrel, ImmutableSet<ViewOptions> opts) {
+      return new AutoValue_CommRenderer_Builder(rel, unrel, opts);
+    }
+
+    static Builder create() {
+      return create(defaultReliableColor(), defaultUnreliableColor(),
+        ImmutableSet.<ViewOptions> of());
     }
   }
 }

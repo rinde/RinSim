@@ -31,6 +31,7 @@ import javax.annotation.CheckReturnValue;
 import javax.annotation.Nullable;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.graphics.Device;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Monitor;
@@ -49,7 +50,6 @@ import com.github.rinde.rinsim.core.model.time.TickListener;
 import com.github.rinde.rinsim.core.model.time.TimeLapse;
 import com.github.rinde.rinsim.event.Event;
 import com.github.rinde.rinsim.event.Listener;
-import com.github.rinde.rinsim.ui.renderers.CanvasRendererBuilder;
 import com.github.rinde.rinsim.ui.renderers.Renderer;
 import com.google.common.collect.ImmutableSet;
 
@@ -168,20 +168,23 @@ public final class View extends AbstractModel<Void> implements TickListener,
 
   @Override
   public boolean register(Void element) {
-    // TODO Auto-generated method stub
     return false;
   }
 
   @Override
   public boolean unregister(Void element) {
-    // TODO Auto-generated method stub
     return false;
   }
 
   @Override
   public <U> U get(Class<U> clazz) {
-    checkArgument(clazz == Shell.class);
-    return clazz.cast(shell);
+    if (clazz == Shell.class) {
+      return clazz.cast(shell);
+    }
+    if (clazz == Device.class || clazz == Display.class) {
+      return clazz.cast(shell.getDisplay());
+    }
+    throw new IllegalArgumentException("Unknown type: " + clazz);
   }
 
   /**
@@ -226,7 +229,7 @@ public final class View extends AbstractModel<Void> implements TickListener,
 
     Builder() {
       setDependencies(ClockController.class);
-      setProvidingTypes(Shell.class);
+      setProvidingTypes(Shell.class, Device.class, Display.class);
       autoPlay = false;
       autoClose = false;
       allowResize = true;
@@ -260,18 +263,10 @@ public final class View extends AbstractModel<Void> implements TickListener,
     }
 
     /**
-     * Copies the specified {@link CanvasRendererBuilder} and adds it to the
-     * view. The user is free to modify the builder after calling this method
-     * but this will have no effect on the display.
+     * Adds the specified builder of a {@link Renderer}.
      * @param builder The builder to add.
      * @return This, as per the builder pattern.
      */
-    @CheckReturnValue
-    public Builder with(CanvasRendererBuilder builder) {
-      rendererList.add(builder);
-      return this;
-    }
-
     @CheckReturnValue
     public Builder with(ModelBuilder<?, ?> builder) {
       renderers.add(builder);
@@ -441,7 +436,7 @@ public final class View extends AbstractModel<Void> implements TickListener,
     @CheckReturnValue
     @Override
     public View build(DependencyProvider dependencyProvider) {
-      checkArgument(!rendererList.isEmpty(),
+      checkArgument(!(rendererList.isEmpty() && renderers.isEmpty()),
         "At least one renderer needs to be defined.");
 
       final ClockController cc = dependencyProvider.get(ClockController.class);

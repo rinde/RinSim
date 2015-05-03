@@ -53,18 +53,18 @@ public final class GradientFieldExample {
    */
   public static void run(final boolean testing) {
     View.Builder viewBuilder = View.create()
-      .with(PlaneRoadModelRenderer.create())
+      .with(PlaneRoadModelRenderer.builder())
       .with(RoadUserRenderer.builder()
-        .addImageAssociation(
+        .withImageAssociation(
           Truck.class, "/graphics/perspective/bus-44.png")
-        .addImageAssociation(
+        .withImageAssociation(
           DefaultDepot.class, "/graphics/flat/warehouse-32.png")
-        .addImageAssociation(
+        .withImageAssociation(
           GFParcel.class, "/graphics/flat/hailing-cab-32.png")
       )
       .with(new GradientFieldRenderer())
       .with(new RouteRenderer())
-      .with(new PDPModelRenderer(false));
+      .with(PDPModelRenderer.builder());
 
     if (testing) {
       viewBuilder = viewBuilder.enableAutoClose()

@@ -153,9 +153,12 @@ public final class FactoryExample {
 
     View.Builder view = View.create()
       .with(GraphRoadModelRenderer.builder()
-        .setMargin(CANVAS_MARGIN))
+        .withMargin(CANVAS_MARGIN))
       .with(new BoxRenderer())
-      .with(new RoadUserRenderer(uis, false))
+      .with(
+        RoadUserRenderer.builder()
+          .withImageAssociation(AGV.class, "/graphics/flat/forklift2.png")
+      )
       .setTitleAppendix("Factory Demo")
       .enableAutoPlay()
       .enableAutoClose()

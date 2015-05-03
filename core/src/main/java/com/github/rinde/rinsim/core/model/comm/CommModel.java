@@ -146,6 +146,12 @@ public final class CommModel extends AbstractModel<CommUser> implements
   }
 
   @Override
+  public <U> U get(Class<U> clazz) {
+    checkArgument(clazz == CommModel.class);
+    return clazz.cast(this);
+  }
+
+  @Override
   public void tick(TimeLapse timeLapse) {}
 
   @Override
@@ -237,6 +243,7 @@ public final class CommModel extends AbstractModel<CommUser> implements
 
     Builder() {
       setDependencies(RandomProvider.class);
+      setProvidingTypes(CommModel.class);
     }
 
     static Builder create() {

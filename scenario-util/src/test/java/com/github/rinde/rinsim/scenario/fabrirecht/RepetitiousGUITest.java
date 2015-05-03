@@ -59,9 +59,9 @@ public class RepetitiousGUITest {
       final DynamicPDPTWProblem problem = new DynamicPDPTWProblem(scenario,
         123, ImmutableList.<ModelBuilder<?, ?>> of(
           View.create()
-            .with(PlaneRoadModelRenderer.create())
+            .with(PlaneRoadModelRenderer.builder())
             .with(RoadUserRenderer.builder())
-            .with(new PDPModelRenderer())
+            .with(PDPModelRenderer.builder())
             .setSpeedUp(50)
             .enableAutoClose()
             .enableAutoPlay()

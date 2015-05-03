@@ -60,7 +60,7 @@ public final class WarehouseExample {
       .addModel(
         View.create()
           .with(WarehouseRenderer.builder()
-            .setMargin(VEHICLE_LENGTH)
+            .withMargin(VEHICLE_LENGTH)
           )
           .with(AGVRenderer.builder()
             .withDifferentColorsForVehicles()

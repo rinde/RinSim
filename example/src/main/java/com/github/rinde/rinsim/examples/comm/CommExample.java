@@ -61,10 +61,10 @@ public final class CommExample {
   public static void run(boolean testing) {
 
     View.Builder viewBuilder = View.create()
-      .with(PlaneRoadModelRenderer.create())
+      .with(PlaneRoadModelRenderer.builder())
       .with(CommRenderer.builder()
-        .showReliabilityColors()
-        .showMessageCount());
+        .withReliabilityColors()
+        .withMessageCount());
 
     if (testing) {
       viewBuilder = viewBuilder.setSpeedUp(TEST_SPEEDUP)
