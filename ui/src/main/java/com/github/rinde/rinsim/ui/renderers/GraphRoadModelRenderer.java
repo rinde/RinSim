@@ -149,13 +149,13 @@ public final class GraphRoadModelRenderer extends AbstractModel<Void> implements
   public abstract static class Builder extends
     AbstractModelBuilder<GraphRoadModelRenderer, Void> {
 
-    abstract int margin();
-
-    abstract ImmutableSet<VizOptions> vizOptions();
-
     Builder() {
       setDependencies(GraphRoadModel.class);
     }
+
+    abstract int margin();
+
+    abstract ImmutableSet<VizOptions> vizOptions();
 
     /**
      * Sets the margin to display around the graph.

@@ -36,13 +36,11 @@ import com.google.common.collect.ImmutableList;
  */
 public final class PlaneRoadModelRenderer extends AbstractModel<Void> implements
   CanvasRenderer {
-  private final double margin;
   private final double xMargin;
   private final double yMargin;
   private final ImmutableList<Point> bounds;
 
-  PlaneRoadModelRenderer(RoadModel rm, double pMargin) {
-    margin = pMargin;
+  PlaneRoadModelRenderer(RoadModel rm, double margin) {
     bounds = rm.getBounds();
     final double width = bounds.get(1).x - bounds.get(0).x;
     final double height = bounds.get(1).y - bounds.get(0).y;
@@ -112,11 +110,11 @@ public final class PlaneRoadModelRenderer extends AbstractModel<Void> implements
      */
     public static final double DEFAULT_MARGIN = 0.02;
 
-    abstract double margin();
-
     Builder() {
       setDependencies(RoadModel.class);
     }
+
+    abstract double margin();
 
     /**
      * Set the margin to be drawn around the plane. By default the margin is

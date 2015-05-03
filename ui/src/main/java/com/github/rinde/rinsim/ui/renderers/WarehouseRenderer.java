@@ -284,13 +284,13 @@ public final class WarehouseRenderer extends AbstractModel<Void> implements
   public abstract static class Builder extends
     AbstractModelBuilder<WarehouseRenderer, Void> {
 
-    abstract ImmutableSet<VizOptions> vizOptions();
-
-    abstract double margin();
-
     Builder() {
       setDependencies(CollisionGraphRoadModel.class);
     }
+
+    abstract ImmutableSet<VizOptions> vizOptions();
+
+    abstract double margin();
 
     /**
      * Defines the margin around the warehouse. The margin is defined in the
