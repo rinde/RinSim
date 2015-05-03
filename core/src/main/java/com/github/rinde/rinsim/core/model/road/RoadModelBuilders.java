@@ -454,6 +454,10 @@ public final class RoadModelBuilders {
 
     abstract double getMinDistance();
 
+    CollisionGraphRMB() {
+      setProvidingTypes(CollisionGraphRoadModel.class);
+    }
+
     /**
      * Returns a copy of this builder with the specified vehicle length. The
      * vehicle length defines the length of each vehicle added to the

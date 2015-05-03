@@ -21,9 +21,11 @@ import static java.util.Arrays.asList;
 import java.awt.im.InputContext;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 
 import javax.annotation.CheckReturnValue;
 import javax.annotation.Nullable;
@@ -58,8 +60,8 @@ import com.google.common.collect.ImmutableSet;
  * @author Bartosz Michalik
  * @since 2.0
  */
-public final class View extends AbstractModel<Renderer> implements
-  TickListener, UserInterface {
+public final class View extends AbstractModel<Void> implements TickListener,
+  UserInterface {
 
   final Builder builder;
   final ClockController clockController;
@@ -165,13 +167,13 @@ public final class View extends AbstractModel<Renderer> implements
   }
 
   @Override
-  public boolean register(Renderer element) {
+  public boolean register(Void element) {
     // TODO Auto-generated method stub
     return false;
   }
 
   @Override
-  public boolean unregister(Renderer element) {
+  public boolean unregister(Void element) {
     // TODO Auto-generated method stub
     return false;
   }
@@ -196,8 +198,8 @@ public final class View extends AbstractModel<Renderer> implements
    * A builder that creates a visualization for {@link Simulator} instances.
    * @author Rinde van Lon
    */
-  public static class Builder extends AbstractModelBuilder<View, Renderer>
-    implements CompositeModelBuilder<View, Renderer> {
+  public static class Builder extends AbstractModelBuilder<View, Void>
+    implements CompositeModelBuilder<View, Void> {
     /**
      * The default window size: 800x600.
      */
@@ -217,6 +219,7 @@ public final class View extends AbstractModel<Renderer> implements
     @Nullable
     Monitor monitor;
     final List<Object> rendererList;
+    Set<ModelBuilder<?, ?>> renderers;
     Map<MenuItems, Integer> accelerators;
     @Nullable
     Listener callback;
@@ -233,6 +236,7 @@ public final class View extends AbstractModel<Renderer> implements
       stopTime = -1;
       screenSize = DEFAULT_WINDOW_SIZE;
       rendererList = new ArrayList<>();
+      renderers = new LinkedHashSet<>();
       accelerators = new HashMap<>();
 
       @Nullable
@@ -265,6 +269,12 @@ public final class View extends AbstractModel<Renderer> implements
     @CheckReturnValue
     public Builder with(CanvasRendererBuilder builder) {
       rendererList.add(builder);
+      return this;
+    }
+
+    @CheckReturnValue
+    public Builder with(ModelBuilder<?, ?> builder) {
+      renderers.add(builder);
       return this;
     }
 
@@ -440,8 +450,10 @@ public final class View extends AbstractModel<Renderer> implements
 
     @Override
     public ImmutableSet<ModelBuilder<?, ?>> getChildren() {
-      return ImmutableSet.<ModelBuilder<?, ?>> of(new SimulationViewer.Builder(
-        this));
+      return ImmutableSet.<ModelBuilder<?, ?>> builder()
+        .add(new SimulationViewer.Builder(this))
+        .addAll(renderers)
+        .build();
     }
   }
 }

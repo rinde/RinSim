@@ -19,12 +19,12 @@ import static com.github.rinde.rinsim.ui.renderers.PointUtil.angle;
 import static com.google.common.base.Verify.verify;
 import static com.google.common.base.Verify.verifyNotNull;
 
-import java.util.EnumSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 
+import javax.annotation.CheckReturnValue;
 import javax.annotation.Nullable;
 
 import org.eclipse.swt.SWT;
@@ -34,18 +34,18 @@ import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Transform;
 
-import com.github.rinde.rinsim.core.model.ModelProvider;
+import com.github.rinde.rinsim.core.model.DependencyProvider;
+import com.github.rinde.rinsim.core.model.Model.AbstractModel;
+import com.github.rinde.rinsim.core.model.ModelBuilder.AbstractModelBuilder;
 import com.github.rinde.rinsim.core.model.road.CollisionGraphRoadModel;
-import com.github.rinde.rinsim.core.model.road.GenericRoadModel.RoadEventType;
 import com.github.rinde.rinsim.core.model.road.MovingRoadUser;
-import com.github.rinde.rinsim.core.model.road.RoadModelEvent;
 import com.github.rinde.rinsim.core.model.road.RoadUser;
-import com.github.rinde.rinsim.event.Event;
-import com.github.rinde.rinsim.event.Listener;
 import com.github.rinde.rinsim.geom.Connection;
 import com.github.rinde.rinsim.geom.Point;
+import com.google.auto.value.AutoValue;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Iterators;
 import com.google.common.collect.Sets;
 
@@ -57,67 +57,31 @@ import com.google.common.collect.Sets;
  * {@link com.github.rinde.rinsim.core.Simulator}.
  * @author Rinde van Lon
  */
-public final class AGVRenderer implements CanvasRenderer, Listener {
+public final class AGVRenderer extends AbstractModel<MovingRoadUser> implements
+  CanvasRenderer {
   private static final int DEFAULT_COLOR = SWT.COLOR_BLACK;
   private final CollisionGraphRoadModel model;
   private final RenderHelper helper;
   private final Map<MovingRoadUser, VehicleUI> vehicles;
+  private final ImmutableSet<VizOptions> vizOptions;
   private int vehicleCounter;
+
+  private final Iterator<Integer> colors = Iterators.cycle(SWT.COLOR_BLUE,
+    SWT.COLOR_RED, SWT.COLOR_GREEN, SWT.COLOR_CYAN, SWT.COLOR_MAGENTA,
+    SWT.COLOR_YELLOW, SWT.COLOR_DARK_BLUE, SWT.COLOR_DARK_RED,
+    SWT.COLOR_DARK_GREEN, SWT.COLOR_DARK_CYAN, SWT.COLOR_DARK_MAGENTA,
+    SWT.COLOR_DARK_YELLOW);
 
   enum VizOptions {
     COORDINATES, CREATION_NUMBER, VEHICLE_ORIGIN, USE_DIFFERENT_COLORS;
   }
 
-  private final ImmutableSet<VizOptions> vizOptions;
-
-  private final Iterator<Integer> colors = Iterators.cycle(SWT.COLOR_BLUE,
-      SWT.COLOR_RED, SWT.COLOR_GREEN, SWT.COLOR_CYAN, SWT.COLOR_MAGENTA,
-      SWT.COLOR_YELLOW, SWT.COLOR_DARK_BLUE, SWT.COLOR_DARK_RED,
-      SWT.COLOR_DARK_GREEN, SWT.COLOR_DARK_CYAN, SWT.COLOR_DARK_MAGENTA,
-      SWT.COLOR_DARK_YELLOW);
-
-  AGVRenderer(CollisionGraphRoadModel m, Builder factory) {
+  AGVRenderer(CollisionGraphRoadModel m, ImmutableSet<VizOptions> options) {
     model = m;
     helper = new RenderHelper();
     vehicles = new LinkedHashMap<>();
     vehicleCounter = 0;
-    vizOptions = Sets.immutableEnumSet(factory.vizOptions);
-
-    final Set<RoadUser> obs = model.getObjects();
-    for (final RoadUser ru : obs) {
-      if (ru instanceof MovingRoadUser) {
-        addVehicleUI((MovingRoadUser) ru);
-      }
-    }
-
-    model.getEventAPI().addListener(this,
-        RoadEventType.ADD_ROAD_USER,
-        RoadEventType.REMOVE_ROAD_USER);
-  }
-
-  void addVehicleUI(MovingRoadUser mru) {
-    final int color = vizOptions.contains(VizOptions.USE_DIFFERENT_COLORS) ? colors
-        .next()
-        : DEFAULT_COLOR;
-    final VehicleUI v = new VehicleUI(mru, model, color, vizOptions,
-        vehicleCounter++);
-
-    verify(vehicles.put(mru, v) == null);
-  }
-
-  @Override
-  public void handleEvent(Event e) {
-    verify(e instanceof RoadModelEvent);
-    final RoadModelEvent rme = (RoadModelEvent) e;
-    if (rme.roadUser instanceof MovingRoadUser) {
-      if (e.getEventType() == RoadEventType.ADD_ROAD_USER) {
-        addVehicleUI((MovingRoadUser) rme.roadUser);
-      } else if (e.getEventType() == RoadEventType.REMOVE_ROAD_USER) {
-        verifyNotNull(vehicles.remove(rme.roadUser)).dispose();
-      } else {
-        verify(false);
-      }
-    }
+    vizOptions = options;
   }
 
   @Override
@@ -132,6 +96,24 @@ public final class AGVRenderer implements CanvasRenderer, Listener {
   }
 
   @Override
+  public boolean register(MovingRoadUser mru) {
+    final int color = vizOptions.contains(VizOptions.USE_DIFFERENT_COLORS) ? colors
+      .next()
+      : DEFAULT_COLOR;
+    final VehicleUI v = new VehicleUI(mru, model, color, vizOptions,
+      vehicleCounter++);
+
+    verify(vehicles.put(mru, v) == null);
+    return true;
+  }
+
+  @Override
+  public boolean unregister(MovingRoadUser mru) {
+    verifyNotNull(vehicles.remove(mru)).dispose();
+    return true;
+  }
+
+  @Override
   @Nullable
   public ViewRect getViewRect() {
     return null;
@@ -140,47 +122,51 @@ public final class AGVRenderer implements CanvasRenderer, Listener {
   /**
    * @return A {@link Builder} for creating an {@link AGVRenderer}.
    */
+  @CheckReturnValue
   public static Builder builder() {
-    return new Builder();
+    return Builder.create();
   }
 
   /**
    * A builder for creating {@link AGVRenderer}s.
    * @author Rinde van Lon
    */
-  public static class Builder implements CanvasRendererBuilder {
-    Set<VizOptions> vizOptions;
+  @AutoValue
+  public abstract static class Builder extends
+    AbstractModelBuilder<AGVRenderer, MovingRoadUser> {
+
+    abstract ImmutableSet<VizOptions> vizOptions();
 
     Builder() {
-      vizOptions = EnumSet.noneOf(VizOptions.class);
+      setDependencies(CollisionGraphRoadModel.class);
     }
 
     /**
      * Draws a number on each vehicle. The number indicates the creation order
      * of the vehicle.
-     * @return This, as per the builder pattern.
+     * @return A new builder instance.
      */
-    public Builder showVehicleCreationNumber() {
-      vizOptions.add(VizOptions.CREATION_NUMBER);
-      return this;
+    @CheckReturnValue
+    public Builder withVehicleCreationNumber() {
+      return create(VizOptions.CREATION_NUMBER, vizOptions());
     }
 
     /**
      * Displays the coordinates of each vehicle next to it.
-     * @return This, as per the builder pattern.
+     * @return A new builder instance.
      */
-    public Builder showVehicleCoordinates() {
-      vizOptions.add(VizOptions.COORDINATES);
-      return this;
+    @CheckReturnValue
+    public Builder withVehicleCoordinates() {
+      return create(VizOptions.COORDINATES, vizOptions());
     }
 
     /**
      * Vehicles are drawn with different colors to ease debugging.
-     * @return This, as per the builder pattern.
+     * @return A new builder instance.
      */
-    public Builder useDifferentColorsForVehicles() {
-      vizOptions.add(VizOptions.USE_DIFFERENT_COLORS);
-      return this;
+    @CheckReturnValue
+    public Builder withDifferentColorsForVehicles() {
+      return create(VizOptions.USE_DIFFERENT_COLORS, vizOptions());
     }
 
     /**
@@ -188,23 +174,27 @@ public final class AGVRenderer implements CanvasRenderer, Listener {
      * half circle indicates the vehicle origin. The origin is the actual
      * position as returned by
      * {@link CollisionGraphRoadModel#getPosition(RoadUser)}.
-     * @return This, as per the builder pattern.
+     * @return A new builder instance.
      */
-    public Builder showVehicleOrigin() {
-      vizOptions.add(VizOptions.VEHICLE_ORIGIN);
-      return this;
+    @CheckReturnValue
+    public Builder withVehicleOrigin() {
+      return create(VizOptions.VEHICLE_ORIGIN, vizOptions());
     }
 
     @Override
-    public CanvasRenderer build(ModelProvider mp) {
-      return new AGVRenderer(mp.getModel(CollisionGraphRoadModel.class), this);
+    public AGVRenderer build(DependencyProvider dp) {
+      final CollisionGraphRoadModel rm = dp.get(CollisionGraphRoadModel.class);
+      return new AGVRenderer(rm, vizOptions());
     }
 
-    @Override
-    public CanvasRendererBuilder copy() {
-      final Builder copy = new Builder();
-      copy.vizOptions.addAll(vizOptions);
-      return copy;
+    static Builder create() {
+      return new AutoValue_AGVRenderer_Builder(
+        Sets.immutableEnumSet(ImmutableSet.<VizOptions> of()));
+    }
+
+    static Builder create(VizOptions one, Iterable<VizOptions> more) {
+      return new AutoValue_AGVRenderer_Builder(Sets.immutableEnumSet(one,
+        Iterables.toArray(more, VizOptions.class)));
     }
   }
 
@@ -220,7 +210,7 @@ public final class AGVRenderer implements CanvasRenderer, Listener {
     Optional<Image> image;
 
     VehicleUI(MovingRoadUser mru, CollisionGraphRoadModel m, int c,
-        Set<VizOptions> t, int num) {
+      Set<VizOptions> t, int num) {
       vehicle = mru;
       model = m;
       angle = 0;
@@ -269,11 +259,11 @@ public final class AGVRenderer implements CanvasRenderer, Listener {
         igc.setFont(newFont);
 
         final org.eclipse.swt.graphics.Point finalTextSize = igc
-            .stringExtent(string);
+          .stringExtent(string);
 
         final int xOffset = (int) ((width - finalTextSize.x) / 2d);
         final int yOffset = frontSize
-            + (int) ((length - frontSize - finalTextSize.y) / 2d);
+          + (int) ((length - frontSize - finalTextSize.y) / 2d);
         igc.drawText(string, xOffset, yOffset, true);
         newFont.dispose();
       }
@@ -292,7 +282,7 @@ public final class AGVRenderer implements CanvasRenderer, Listener {
     void update(GC gc, ViewPort vp, RenderHelper helper) {
       position = model.getPosition(vehicle);
       final Optional<? extends Connection<?>> conn = model
-          .getConnection(vehicle);
+        .getConnection(vehicle);
 
       if (!image.isPresent() || scale != vp.scale) {
         scale = vp.scale;
@@ -310,8 +300,8 @@ public final class AGVRenderer implements CanvasRenderer, Listener {
       transform.translate(x, y);
       transform.rotate((float) (90 + angle * 180 / Math.PI));
       transform.translate(
-          -(x + image.get().getBounds().width / 2),
-          -(y + image.get().getBounds().height / 2));
+        -(x + image.get().getBounds().width / 2),
+        -(y + image.get().getBounds().height / 2));
       gc.setTransform(transform);
       gc.drawImage(image.get(), x, y);
       gc.setTransform(null);
@@ -321,8 +311,8 @@ public final class AGVRenderer implements CanvasRenderer, Listener {
         helper.setBackgroundSysCol(SWT.COLOR_YELLOW);
         helper.setForegroundSysCol(SWT.COLOR_BLACK);
         gc.drawString(String.format("%1.2f,%1.2f", position.x, position.y),
-            vp.toCoordX(position.x),
-            vp.toCoordY(position.y));
+          vp.toCoordX(position.x),
+          vp.toCoordY(position.y));
       }
     }
   }

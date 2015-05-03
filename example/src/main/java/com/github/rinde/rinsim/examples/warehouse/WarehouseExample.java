@@ -63,7 +63,7 @@ public final class WarehouseExample {
             .setMargin(VEHICLE_LENGTH)
           )
           .with(AGVRenderer.builder()
-            .useDifferentColorsForVehicles()
+            .withDifferentColorsForVehicles()
           )
       )
       .build();

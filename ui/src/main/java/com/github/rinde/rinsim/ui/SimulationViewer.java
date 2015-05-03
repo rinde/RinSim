@@ -66,6 +66,7 @@ import com.github.rinde.rinsim.geom.Point;
 import com.github.rinde.rinsim.ui.renderers.CanvasRenderer;
 import com.github.rinde.rinsim.ui.renderers.CanvasRendererBuilder;
 import com.github.rinde.rinsim.ui.renderers.PanelRenderer;
+import com.github.rinde.rinsim.ui.renderers.Renderer;
 import com.github.rinde.rinsim.ui.renderers.ViewPort;
 import com.github.rinde.rinsim.ui.renderers.ViewRect;
 import com.google.common.collect.LinkedHashMultimap;
@@ -78,7 +79,8 @@ import com.google.common.collect.Multimap;
  * @author Rinde van Lon
  */
 final class SimulationViewer extends Composite implements TickListener,
-  ControlListener, PaintListener, SelectionListener, Model<Void>, ModelReceiver {
+  ControlListener, PaintListener, SelectionListener, Model<Renderer>,
+  ModelReceiver {
 
   static final PeriodFormatter FORMATTER = new PeriodFormatterBuilder()
     .appendDays()
@@ -667,7 +669,7 @@ final class SimulationViewer extends Composite implements TickListener,
     });
   }
 
-  static class Builder extends AbstractModelBuilder<SimulationViewer, Void> {
+  static class Builder extends AbstractModelBuilder<SimulationViewer, Renderer> {
 
     final View.Builder viewBuilder;
 
@@ -686,31 +688,35 @@ final class SimulationViewer extends Composite implements TickListener,
   }
 
   @Override
-  public boolean register(Void element) {
-    // TODO Auto-generated method stub
-    return false;
+  public boolean register(Renderer element) {
+    if (element instanceof PanelRenderer) {
+      panelRenderers.add((PanelRenderer) element);
+    }
+    if (element instanceof CanvasRenderer) {
+      renderers.add((CanvasRenderer) element);
+    }
+    return true;
   }
 
   @Override
-  public boolean unregister(Void element) {
-    // TODO Auto-generated method stub
-    return false;
+  public boolean unregister(Renderer element) {
+    return true;
   }
 
   @Override
-  public Class<Void> getSupportedType() {
-    return Void.class;
-  }
-
-  @Override
-  public <U> U get(Class<U> clazz) {
-    // TODO Auto-generated method stub
-    return null;
+  public Class<Renderer> getSupportedType() {
+    return Renderer.class;
   }
 
   @Override
   public void registerModelProvider(ModelProvider mp) {
     modelProvider = mp;
 
+  }
+
+  @Override
+  public <U> U get(Class<U> clazz) {
+    // TODO Auto-generated method stub
+    return null;
   }
 }
