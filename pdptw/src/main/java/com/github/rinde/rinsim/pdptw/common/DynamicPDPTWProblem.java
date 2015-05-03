@@ -45,14 +45,8 @@ import com.google.common.collect.ImmutableMap;
  */
 public final class DynamicPDPTWProblem {
 
-  // TODO create a builder for configuration of problems
-  // TODO a scenario should be an event list AND a pre-configured set of models
-  // describing the complete problem
-
   // TODO a StopCondition should be a first class simulator entity
   // TODO same with ScenarioController, StatsTracker
-
-  // TODO perhaps a UI config should also be bundled easily?
 
   // TODO stats system should be more modular (per model?) and hook directly in
   // the simulator
@@ -69,11 +63,6 @@ public final class DynamicPDPTWProblem {
    * The {@link Simulator} which is used for the simulation.
    */
   protected final Simulator simulator;
-
-  /**
-   * The {@link UICreator} which is used for creating the default UI.
-   */
-  // protected final DefaultUICreator defaultUICreator;
 
   /**
    * The StatsTracker which is used internally for gathering statistics.
@@ -129,7 +118,6 @@ public final class DynamicPDPTWProblem {
         }
       }
     });
-    // defaultUICreator = new DefaultUICreator(this);
   }
 
   /**
@@ -140,21 +128,6 @@ public final class DynamicPDPTWProblem {
   public StatisticsDTO getStatistics() {
     return statsTracker.getStatsDTO();
   }
-
-  /**
-   * Enables UI using a default visualization.
-   */
-  // public void enableUI() {
-  // enableUI(defaultUICreator);
-  // }
-
-  /**
-   * Allows to add an additional {@link CanvasRenderer} to the default UI.
-   * @param r The {@link CanvasRenderer} to add.
-   */
-  // public void addRendererToUI(CanvasRenderer r) {
-  // defaultUICreator.addRenderer(r);
-  // }
 
   /**
    * Adds a {@link StopConditions} which indicates when the simulation has to
@@ -169,23 +142,12 @@ public final class DynamicPDPTWProblem {
     stopCondition = Predicates.or(stopCondition, condition);
   }
 
-  // /**
-  // * Enables UI by allowing plugging in a custom {@link UICreator}.
-  // * @param creator The creator to use.
-  // */
-  // public void enableUI(UICreator creator) {
-  // controller.enableUI(creator);
-  // }
-
   /**
    * Executes a simulation of the problem. When the simulation is finished (and
    * this method returns) the statistics of the simulation are returned.
    * @return The statistics that were gathered during the simulation.
    */
   public StatisticsDTO simulate() {
-    // checkState(eventCreatorMap.containsKey(AddVehicleEvent.class),
-    // "A creator for AddVehicleEvent is required, use %s.addCreator(..)",
-    // this.getClass().getName());
     simulator.start();
     return getStatistics();
   }
@@ -199,25 +161,6 @@ public final class DynamicPDPTWProblem {
   public Simulator getSimulator() {
     return simulator;
   }
-
-  /**
-   * Using this method a {@link Creator} instance can be associated with a
-   * certain event. The creator will be called when the event is issued, it is
-   * the responsibility of the {@link Creator} the create the appropriate
-   * response. This method will override a previously existing creator for the
-   * specified event type if applicable.
-   * @param eventType The event type to which the creator will be associated.
-   * @param creator The creator that will be used.
-   * @param <T> The type of the event.
-   */
-  // public <T extends TimedEvent> void addCreator(Class<T> eventType,
-  // Creator<T> creator) {
-  // checkArgument(
-  // eventType == AddVehicleEvent.class || eventType == AddParcelEvent.class
-  // || eventType == AddDepotEvent.class,
-  // "A creator can only be added to one of the following classes: AddVehicleEvent, AddParcelEvent, AddDepotEvent.");
-  // eventCreatorMap.put(eventType, creator);
-  // }
 
   static StatisticsDTO getStats(Simulator sim) {
     final StatsTracker t = sim.getModelProvider().tryGetModel(
@@ -360,94 +303,4 @@ public final class DynamicPDPTWProblem {
       scenario = scen;
     }
   }
-
-  /**
-   * A default {@link UICreator} used for creating a UI for a problem.
-   * @author Rinde van Lon
-   */
-  // public static class DefaultUICreator implements UICreator {
-  // private static final double DEFAULT_RENDER_MARGIN = .05;
-  //
-  // /**
-  // * A list of renderers.
-  // */
-  // protected final List<Renderer> renderers;
-  //
-  // /**
-  // * The speedup that is passed to the gui.
-  // */
-  // protected final int speedup;
-  //
-  // private final DynamicPDPTWProblem problem;
-  //
-  // /**
-  // * Create a GUI for the specified problem.
-  // * @param prob The problem to create a GUI for.
-  // */
-  // public DefaultUICreator(DynamicPDPTWProblem prob) {
-  // this(prob, 1);
-  // }
-
-  /**
-   * Create a GUI for the specified problem with the specified speed.
-   * @param prob The problem to create a GUI for.
-   * @param speed The speed to use.
-   */
-  // public DefaultUICreator(DynamicPDPTWProblem prob, int speed) {
-  // checkArgument(speed >= 1, "speed must be a positive integer");
-  // speedup = speed;
-  // problem = prob;
-  // renderers = newArrayList();
-  // }
-  //
-  // /**
-  // * @return The default road model renderer.
-  // */
-  // protected Renderer planeRoadModelRenderer() {
-  // return new PlaneRoadModelRenderer(DEFAULT_RENDER_MARGIN);
-  // }
-  //
-  // /**
-  // * @return The default road user renderer.
-  // */
-  // protected Renderer roadUserRenderer() {
-  // final UiSchema schema = new UiSchema(false);
-  // schema.add(Vehicle.class, SWT.COLOR_RED);
-  // schema.add(Depot.class, SWT.COLOR_CYAN);
-  // schema.add(Parcel.class, SWT.COLOR_BLUE);
-  // return new RoadUserRenderer(schema, false);
-  // }
-  //
-  // /**
-  // * @return The default pdp model renderer.
-  // */
-  // protected Renderer pdpModelRenderer() {
-  // return new PDPModelRenderer(false);
-  // }
-  //
-  // /**
-  // * Initializes all renderers.
-  // */
-  // protected void initRenderers() {
-  // renderers.add(planeRoadModelRenderer());
-  // renderers.add(roadUserRenderer());
-  // renderers.add(pdpModelRenderer());
-  // renderers.add(new StatsPanel(problem.statsTracker));
-  // }
-  //
-  // @Override
-  // public void createUI(Simulator sim) {
-  // initRenderers();
-  // View.create(sim).with(renderers.toArray(new Renderer[] {}))
-  // .setSpeedUp(speedup).show();
-  // }
-  //
-  // /**
-  // * Add a renderer.
-  // * @param r The renderer to add.
-  // */
-  // public void addRenderer(Renderer r) {
-  // renderers.add(r);
-  // }
-  // }
 }
