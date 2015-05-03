@@ -65,6 +65,7 @@ class AgvModel extends AbstractModel<AGV> implements TickListener,
   AgvModel(RandomGenerator r, ImmutableList<ImmutableList<Point>> ps,
     ImmutableList<Point> b) {
     rm = Optional.absent();
+    simulator = Optional.absent();
     rng = r;
     occupiedPositions = newLinkedHashSet();
     points = ps;
@@ -140,10 +141,6 @@ class AgvModel extends AbstractModel<AGV> implements TickListener,
 
   @Override
   public void handleEvent(Event e) {
-    // FIXME
-    // if (e.getEventType() == SimulatorEventType.CONFIGURED) {
-    // init();
-    // } else {
     verify(e instanceof PDPModelEvent);
     final PDPModelEvent event = (PDPModelEvent) e;
     if (e.getEventType() == PDPModelEventType.END_PICKUP) {
@@ -189,6 +186,10 @@ class AgvModel extends AbstractModel<AGV> implements TickListener,
   }
 
   Box nextDestination() {
+    if (boxes.isEmpty()) {
+      init();
+    }
+    verify(!boxes.isEmpty());
     final Box b = boxes.get(currentBox % boxes.size()).box;
     currentBox++;
     return b;

@@ -57,6 +57,10 @@ import com.github.rinde.rinsim.scenario.AddVehicleEvent;
 import com.github.rinde.rinsim.scenario.TimedEvent;
 import com.github.rinde.rinsim.scenario.TimedEventHandler;
 import com.github.rinde.rinsim.testutil.GuiTests;
+import com.github.rinde.rinsim.ui.View;
+import com.github.rinde.rinsim.ui.renderers.PDPModelRenderer;
+import com.github.rinde.rinsim.ui.renderers.PlaneRoadModelRenderer;
+import com.github.rinde.rinsim.ui.renderers.RoadUserRenderer;
 import com.github.rinde.rinsim.util.TimeWindow;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -196,8 +200,22 @@ public class Gendreau06Test {
   }
 
   static StatisticsDTO runProblem(Gendreau06Scenario s, boolean useGui) {
+
+    ImmutableList<ModelBuilder<?, ?>> models = useGui ?
+      ImmutableList.<ModelBuilder<?, ?>> of(
+        View.create()
+          .with(PlaneRoadModelRenderer.create())
+          .with(RoadUserRenderer.builder())
+          .with(new PDPModelRenderer())
+          .setSpeedUp(50)
+          .enableAutoClose()
+          .enableAutoPlay()
+        )
+      :
+      ImmutableList.<ModelBuilder<?, ?>> of();
+
     final DynamicPDPTWProblem problem = new DynamicPDPTWProblem(s, 123,
-      ImmutableList.<ModelBuilder<?, ?>> of(),
+      models,
       ImmutableMap.<Class<?>, TimedEventHandler<?>> of(
         AddVehicleEvent.class,
         new TimedEventHandler<AddVehicleEvent>() {
@@ -209,10 +227,6 @@ public class Gendreau06Test {
           }
         }
         ));
-
-    if (useGui) {
-      problem.enableUI(new TestUICreator(problem, 50));
-    }
 
     problem.simulate();
     return problem.getStatistics();

@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
+import javax.annotation.CheckReturnValue;
 import javax.annotation.Nullable;
 
 import org.eclipse.swt.SWT;
@@ -34,48 +35,174 @@ import org.eclipse.swt.widgets.Monitor;
 import org.eclipse.swt.widgets.Shell;
 
 import com.github.rinde.rinsim.core.Simulator;
+import com.github.rinde.rinsim.core.model.CompositeModelBuilder;
+import com.github.rinde.rinsim.core.model.DependencyProvider;
+import com.github.rinde.rinsim.core.model.Model.AbstractModel;
+import com.github.rinde.rinsim.core.model.ModelBuilder;
+import com.github.rinde.rinsim.core.model.ModelBuilder.AbstractModelBuilder;
+import com.github.rinde.rinsim.core.model.UserInterface;
 import com.github.rinde.rinsim.core.model.time.Clock;
 import com.github.rinde.rinsim.core.model.time.ClockController;
 import com.github.rinde.rinsim.core.model.time.TickListener;
 import com.github.rinde.rinsim.core.model.time.TimeLapse;
-import com.github.rinde.rinsim.core.model.time.TimeModel;
 import com.github.rinde.rinsim.event.Event;
 import com.github.rinde.rinsim.event.Listener;
 import com.github.rinde.rinsim.ui.renderers.CanvasRendererBuilder;
 import com.github.rinde.rinsim.ui.renderers.Renderer;
+import com.google.common.collect.ImmutableSet;
 
 /**
  * The view class is the main GUI class. For creating a view, see
- * {@link #create(Simulator)}.
+ * {@link #create()}.
  * @author Rinde van Lon (rinde.vanlon@cs.kuleuven.be)
  * @author Bartosz Michalik
  * @since 2.0
  */
-public final class View {
+public final class View extends AbstractModel<Renderer> implements
+  TickListener, UserInterface {
 
-  private View() {}
+  final Builder builder;
+  final ClockController clockController;
+  final Shell shell;
+  final Display display;
+
+  View(Builder b, ClockController cc) {
+    builder = b;
+    clockController = cc;
+
+    Display.setAppName("RinSim");
+    final Display d = builder.display != null ? builder.display : Display
+      .getCurrent();
+    final boolean isDisplayOwner = d == null;
+    display = isDisplayOwner ? new Display() : Display.getCurrent();
+
+    int shellArgs = SWT.TITLE | SWT.CLOSE;
+    if (builder.allowResize) {
+      shellArgs = shellArgs | SWT.RESIZE;
+    }
+
+    shell = new Shell(display, shellArgs);
+
+    if (builder.monitor != null) {
+      final Monitor m = builder.monitor;
+      shell.setLocation(m.getBounds().x, m.getBounds().y);
+    }
+
+    shell.setText("RinSim - " + builder.title);
+    if (builder.fullScreen) {
+      shell.setFullScreen(true);
+      shell.setMaximized(true);
+    } else {
+      shell.setSize(builder.screenSize);
+    }
+
+    shell.addListener(SWT.Close, new org.eclipse.swt.widgets.Listener() {
+      @Override
+      public void handleEvent(@Nullable org.eclipse.swt.widgets.Event event) {
+        clockController.stop();
+        while (clockController.isTicking()) {
+          // wait until clock actually stops (it finishes its
+          // current tick first).
+        }
+        if (isDisplayOwner && !display.isDisposed()) {
+          display.dispose();
+        } else if (!isDisplayOwner && !shell.isDisposed()) {
+          shell.dispose();
+        }
+      }
+    });
+    clockController.getEventAPI().addListener(new Listener() {
+      @Override
+      public void handleEvent(Event e) {
+        if (e.getEventType() == Clock.ClockEventType.STARTED) {
+          // show();
+        } else if (builder.autoClose) {
+          close();
+        }
+      }
+    },
+      Clock.ClockEventType.STARTED, Clock.ClockEventType.STOPPED);
+  }
+
+  void close() {
+    if (!shell.isDisposed()) {
+      display.asyncExec(new Runnable() {
+        @Override
+        public void run() {
+          shell.close();
+        }
+      });
+    }
+    if (builder.callback != null) {
+      builder.callback
+        .handleEvent(new Event(Clock.ClockEventType.STOPPED, null));
+    }
+  }
+
+  @Override
+  public void show() {
+    shell.open();
+    if (!builder.async) {
+      while (!shell.isDisposed()) {
+        if (!display.readAndDispatch()) {
+          display.sleep();
+        }
+      }
+      if (shell.isDisposed()) {
+        clockController.stop();
+      }
+    }
+  }
+
+  @Override
+  public void tick(TimeLapse time) {}
+
+  @Override
+  public void afterTick(TimeLapse time) {
+    if (builder.stopTime > 0 && time.getTime() >= builder.stopTime) {
+      clockController.stop();
+    }
+  }
+
+  @Override
+  public boolean register(Renderer element) {
+    // TODO Auto-generated method stub
+    return false;
+  }
+
+  @Override
+  public boolean unregister(Renderer element) {
+    // TODO Auto-generated method stub
+    return false;
+  }
+
+  @Override
+  public <U> U get(Class<U> clazz) {
+    checkArgument(clazz == Shell.class);
+    return clazz.cast(shell);
+  }
 
   /**
-   * Creates a {@link View.Builder} for a specific simulator. The returned
-   * builder allows to configure the visualization.
-   * @param simulator The {@link Simulator} to create the view for.
+   * Creates a {@link View.Builder}. The returned builder allows to configure
+   * the visualization.
    * @return The {@link View.Builder}.
    */
-  public static Builder create(Simulator simulator) {
-    return new Builder(simulator);
+  @CheckReturnValue
+  public static Builder create() {
+    return new Builder();
   }
 
   /**
    * A builder that creates a visualization for {@link Simulator} instances.
    * @author Rinde van Lon
    */
-  public static class Builder {
+  public static class Builder extends AbstractModelBuilder<View, Renderer>
+    implements CompositeModelBuilder<View, Renderer> {
     /**
      * The default window size: 800x600.
      */
     public static final Point DEFAULT_WINDOW_SIZE = new Point(800, 600);
 
-    Simulator simulator;
     boolean autoPlay;
     boolean autoClose;
     boolean allowResize;
@@ -94,8 +221,9 @@ public final class View {
     @Nullable
     Listener callback;
 
-    Builder(Simulator s) {
-      simulator = s;
+    Builder() {
+      setDependencies(ClockController.class);
+      setProvidingTypes(Shell.class);
       autoPlay = false;
       autoClose = false;
       allowResize = true;
@@ -121,6 +249,7 @@ public final class View {
      * @param renderers The {@link Renderer}s to add to the view.
      * @return This, as per the builder pattern.
      */
+    @CheckReturnValue
     public Builder with(Renderer... renderers) {
       rendererList.addAll(asList(renderers));
       return this;
@@ -133,6 +262,7 @@ public final class View {
      * @param builder The builder to add.
      * @return This, as per the builder pattern.
      */
+    @CheckReturnValue
     public Builder with(CanvasRendererBuilder builder) {
       rendererList.add(builder);
       return this;
@@ -143,6 +273,7 @@ public final class View {
      * directly when {@link #show()} is called. Default: <code>disabled</code>.
      * @return This as per the builder pattern.
      */
+    @CheckReturnValue
     public Builder enableAutoPlay() {
       autoPlay = true;
       return this;
@@ -154,6 +285,7 @@ public final class View {
      * Default: <code>disabled</code>.
      * @return This as per the builder pattern.
      */
+    @CheckReturnValue
     public Builder enableAutoClose() {
       autoClose = true;
       return this;
@@ -164,6 +296,7 @@ public final class View {
      * @param simulationTime The time to stop, must be positive.
      * @return This as per the builder pattern.
      */
+    @CheckReturnValue
     public Builder stopSimulatorAtTime(long simulationTime) {
       checkArgument(simulationTime > 0);
       stopTime = simulationTime;
@@ -176,6 +309,7 @@ public final class View {
      * @param speed The speed to use.
      * @return This as per the builder pattern.
      */
+    @CheckReturnValue
     public Builder setSpeedUp(int speed) {
       speedUp = speed;
       return this;
@@ -187,6 +321,7 @@ public final class View {
      * @param d The existing {@link Display} to use as display for the view.
      * @return This as per the builder pattern.
      */
+    @CheckReturnValue
     public Builder setDisplay(Display d) {
       display = d;
       return this;
@@ -198,6 +333,7 @@ public final class View {
      * @param titleAppendix The new appendix to use.
      * @return This as per the builder pattern.
      */
+    @CheckReturnValue
     public Builder setTitleAppendix(String titleAppendix) {
       title = titleAppendix;
       return this;
@@ -208,6 +344,7 @@ public final class View {
      * <i>allowed</i>.
      * @return This as per the builder pattern.
      */
+    @CheckReturnValue
     public Builder disallowResizing() {
       allowResize = false;
       return this;
@@ -217,6 +354,7 @@ public final class View {
      * This takes precedence over any calls to {@link #setResolution(int, int)}.
      * @return This, as per the builder pattern.
      */
+    @CheckReturnValue
     public Builder setFullScreen() {
       fullScreen = true;
       return this;
@@ -229,6 +367,7 @@ public final class View {
      * @param height The new height to use.
      * @return This, as per the builder pattern.
      */
+    @CheckReturnValue
     public Builder setResolution(int width, int height) {
       checkArgument(width > 0 && height > 0,
         "Only positive dimensions are allowed, input: %s x %s.", width,
@@ -244,6 +383,7 @@ public final class View {
      * @param m The monitor.
      * @return This, as per the builder pattern.
      */
+    @CheckReturnValue
     public Builder displayOnMonitor(Monitor m) {
       monitor = m;
       return this;
@@ -259,6 +399,7 @@ public final class View {
      * @param acc The accelerators to set.
      * @return This, as per the builder pattern.
      */
+    @CheckReturnValue
     public Builder setAccelerators(Map<MenuItems, Integer> acc) {
       accelerators.putAll(acc);
       return this;
@@ -270,6 +411,7 @@ public final class View {
      * the {@link #show()} is synchronous.
      * @return This, as per the builder pattern.
      */
+    @CheckReturnValue
     public Builder setAsync() {
       async = true;
       return this;
@@ -280,112 +422,26 @@ public final class View {
      * @param l The listener to register, overwrites previous listeners if any.
      * @return This, as per the builder pattern.
      */
+    @CheckReturnValue
     public Builder setCallback(Listener l) {
       callback = l;
       return this;
     }
 
-    /**
-     * Show the view.
-     */
-    public void show() {
+    @CheckReturnValue
+    @Override
+    public View build(DependencyProvider dependencyProvider) {
       checkArgument(!rendererList.isEmpty(),
         "At least one renderer needs to be defined.");
 
-      Display.setAppName("RinSim");
-      final Display d = display != null ? display : Display.getCurrent();
-      final boolean isDisplayOwner = d == null;
-      final Display disp = isDisplayOwner ? new Display() : Display
-        .getCurrent();
+      final ClockController cc = dependencyProvider.get(ClockController.class);
+      return new View(this, cc);
+    }
 
-      int shellArgs = SWT.TITLE | SWT.CLOSE;
-      if (allowResize) {
-        shellArgs = shellArgs | SWT.RESIZE;
-      }
-      final Shell shell = new Shell(disp, shellArgs);
-      if (monitor != null) {
-        final Monitor m = monitor;
-        shell.setLocation(m.getBounds().x, m.getBounds().y);
-      }
-
-      shell.setText("RinSim - " + title);
-      if (fullScreen) {
-        shell.setFullScreen(true);
-        shell.setMaximized(true);
-      } else {
-        shell.setSize(screenSize);
-      }
-
-      if (stopTime > 0) {
-        simulator.addTickListener(new TickListener() {
-          @Override
-          public void tick(TimeLapse time) {}
-
-          @Override
-          public void afterTick(TimeLapse time) {
-            if (time.getTime() >= stopTime) {
-              simulator.stop();
-            }
-          }
-        });
-      }
-
-      if (autoClose) {
-
-        final Listener list = callback;
-
-        final ClockController clock = simulator.getModelProvider().getModel(
-          TimeModel.class);
-
-        clock.getEventAPI().addListener(new Listener() {
-          @Override
-          public void handleEvent(final Event arg0) {
-            if (!shell.isDisposed()) {
-              disp.asyncExec(new Runnable() {
-                @Override
-                public void run() {
-                  shell.close();
-                }
-              });
-            }
-            if (list != null) {
-              list.handleEvent(arg0);
-            }
-          }
-        }, Clock.ClockEventType.STOPPED);
-      }
-
-      shell.addListener(SWT.Close, new org.eclipse.swt.widgets.Listener() {
-        @Override
-        public void handleEvent(@Nullable org.eclipse.swt.widgets.Event event) {
-          simulator.stop();
-          while (simulator.isPlaying()) {
-            // wait until simulator actually stops (it finishes its
-            // current tick first).
-          }
-          if (isDisplayOwner && !disp.isDisposed()) {
-            disp.dispose();
-          } else if (!isDisplayOwner && !shell.isDisposed()) {
-            shell.dispose();
-          }
-        }
-      });
-
-      // simulator viewer is run in here
-      SimulationViewer.create(shell, simulator, speedUp, autoPlay,
-        rendererList, accelerators);
-      shell.open();
-      if (!async) {
-        while (!shell.isDisposed()) {
-          if (!disp.readAndDispatch()) {
-            disp.sleep();
-          }
-        }
-        if (shell.isDisposed()) {
-          simulator.stop();
-        }
-      }
+    @Override
+    public ImmutableSet<ModelBuilder<?, ?>> getChildren() {
+      return ImmutableSet.<ModelBuilder<?, ?>> of(new SimulationViewer.Builder(
+        this));
     }
   }
-
 }

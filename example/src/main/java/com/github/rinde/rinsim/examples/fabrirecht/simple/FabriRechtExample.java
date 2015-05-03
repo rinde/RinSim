@@ -35,6 +35,7 @@ import com.github.rinde.rinsim.scenario.AddVehicleEvent;
 import com.github.rinde.rinsim.scenario.TimedEventHandler;
 import com.github.rinde.rinsim.scenario.fabrirecht.FabriRechtParser;
 import com.github.rinde.rinsim.scenario.fabrirecht.FabriRechtScenario;
+import com.github.rinde.rinsim.ui.View;
 import com.google.common.base.Charsets;
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableList;
@@ -74,10 +75,14 @@ public final class FabriRechtExample {
     // instantiate the problem using the scenario and a random seed (which
     // will not be used in this example)
     final DynamicPDPTWProblem problem = new DynamicPDPTWProblem(scenario, 123,
-      ImmutableList.<ModelBuilder<?, ?>> of(), m);
+      ImmutableList.<ModelBuilder<?, ?>> of(
+        View.create()
+          .enableAutoPlay()
+
+        ), m);
 
     // enable the default UI
-    problem.enableUI();
+    // problem.enableUI();
 
     // start the simulation
     problem.simulate();

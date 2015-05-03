@@ -19,6 +19,7 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
+import org.junit.Test;
 import org.junit.experimental.categories.Category;
 
 import com.github.rinde.rinsim.core.Simulator;
@@ -36,26 +37,34 @@ import com.github.rinde.rinsim.ui.renderers.RoadUserRenderer;
 @Category(GuiTests.class)
 public final class PanelTest {
 
-  private PanelTest() {}
-
-  public static void main(String[] args) {
+  /**
+   * Test of panel system.
+   */
+  @Test
+  public void panelTest() {
 
     final Simulator sim = Simulator.builder()
       .addModel(RoadModelBuilders.plane()
         .withMinPoint(new Point(0, 0))
         .withMaxPoint(new Point(10, 10))
         .withMaxSpeed(10d)
-      ).build();
+      )
+      .addModel(
+        View.create()
+          .with(new RoadUserRenderer(), new PlaneRoadModelRenderer(),
+            new TestPanelRenderer("LEFT", SWT.LEFT, 200),
+            new TestPanelRenderer("RIHGT BOEEE YEAH", SWT.RIGHT, 300),
+            new TestPanelRenderer("RIHGT BOEEE YEAH", SWT.TOP, 100),
+            new TestPanelRenderer("TOP2", SWT.TOP, 100),
+            new TestPanelRenderer("LEFT2", SWT.LEFT, 100),
+            new TestPanelRenderer("LEFT3", SWT.LEFT, 150))
+          .enableAutoPlay()
+          .enableAutoClose()
+          .stopSimulatorAtTime(10000)
+      )
+      .build();
 
-    View.create(sim)
-      .with(new RoadUserRenderer(), new PlaneRoadModelRenderer(),
-        new TestPanelRenderer("LEFT", SWT.LEFT, 200),
-        new TestPanelRenderer("RIHGT BOEEE YEAH", SWT.RIGHT, 300),
-        new TestPanelRenderer("RIHGT BOEEE YEAH", SWT.TOP, 100),
-        new TestPanelRenderer("TOP2", SWT.TOP, 100),
-        new TestPanelRenderer("LEFT2", SWT.LEFT, 100),
-        new TestPanelRenderer("LEFT3", SWT.LEFT, 150)).show();
-
+    sim.start();
   }
 
   static class TestPanelRenderer implements PanelRenderer {
@@ -74,10 +83,7 @@ public final class PanelTest {
     public void initializePanel(Composite c) {
       c.setLayout(new FillLayout());
       final Button b = new Button(c, SWT.PUSH);
-
       b.setText("push me " + name);
-      // TODO Auto-generated method stub
-
     }
 
     @Override
@@ -97,6 +103,5 @@ public final class PanelTest {
 
     @Override
     public void render() {}
-
   }
 }

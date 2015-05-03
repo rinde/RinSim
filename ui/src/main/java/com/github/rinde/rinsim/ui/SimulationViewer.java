@@ -53,8 +53,13 @@ import org.joda.time.Period;
 import org.joda.time.format.PeriodFormatter;
 import org.joda.time.format.PeriodFormatterBuilder;
 
-import com.github.rinde.rinsim.core.Simulator;
+import com.github.rinde.rinsim.core.SimulatorAPI;
+import com.github.rinde.rinsim.core.model.DependencyProvider;
+import com.github.rinde.rinsim.core.model.Model;
+import com.github.rinde.rinsim.core.model.ModelBuilder.AbstractModelBuilder;
+import com.github.rinde.rinsim.core.model.ModelProvider;
 import com.github.rinde.rinsim.core.model.ModelReceiver;
+import com.github.rinde.rinsim.core.model.time.ClockController;
 import com.github.rinde.rinsim.core.model.time.TickListener;
 import com.github.rinde.rinsim.core.model.time.TimeLapse;
 import com.github.rinde.rinsim.geom.Point;
@@ -73,7 +78,7 @@ import com.google.common.collect.Multimap;
  * @author Rinde van Lon
  */
 final class SimulationViewer extends Composite implements TickListener,
-  ControlListener, PaintListener, SelectionListener {
+  ControlListener, PaintListener, SelectionListener, Model<Void>, ModelReceiver {
 
   static final PeriodFormatter FORMATTER = new PeriodFormatterBuilder()
     .appendDays()
@@ -92,7 +97,8 @@ final class SimulationViewer extends Composite implements TickListener,
   private static final int MAX_ZOOM_LEVEL = 16;
 
   boolean firstTime = true;
-  final Simulator simulator;
+  // final Simulator simulator;
+  final ClockController clock;
   @Nullable
   ViewRect viewRect;
   @Nullable
@@ -125,26 +131,20 @@ final class SimulationViewer extends Composite implements TickListener,
   private final Display display;
   private final Map<MenuItems, Integer> accelerators;
 
-  static SimulationViewer create(Shell shell, final Simulator sim,
-    int pSpeedUp,
-    boolean pAutoPlay, List<Object> pRenderers,
-    Map<MenuItems, Integer> acc) {
-    return new SimulationViewer(shell, sim, pSpeedUp, pAutoPlay, pRenderers,
-      acc);
-  }
+  final SimulatorAPI simulator;
+  ModelProvider modelProvider;
 
-  SimulationViewer(Shell shell, final Simulator sim, int pSpeedUp,
-    boolean pAutoPlay, List<Object> pRenderers,
-    Map<MenuItems, Integer> acc) {
+  SimulationViewer(Shell shell, ClockController cc, SimulatorAPI simapi,
+    View.Builder vb) {
     super(shell, SWT.NONE);
 
-    accelerators = acc;
-    autoPlay = pAutoPlay;
+    clock = cc;
+    simulator = simapi;
 
-    simulator = sim;
-    simulator.addTickListener(this);
+    accelerators = vb.accelerators;
+    autoPlay = vb.autoPlay;
 
-    rawRenderers = pRenderers;
+    rawRenderers = vb.rendererList;
     renderers = new ArrayList<>();
     panelRenderers = new ArrayList<>();
     final Multimap<Integer, PanelRenderer> panels = LinkedHashMultimap.create();
@@ -157,7 +157,7 @@ final class SimulationViewer extends Composite implements TickListener,
     }
     panelRenderers.addAll(panels.values());
 
-    speedUp = pSpeedUp;
+    speedUp = vb.speedUp;
     shell.setLayout(new FillLayout());
     display = shell.getDisplay();
     setLayout(new FillLayout());
@@ -249,18 +249,18 @@ final class SimulationViewer extends Composite implements TickListener,
 
     for (final Object r : rawRenderers) {
       if (r instanceof ModelReceiver) {
-        ((ModelReceiver) r).registerModelProvider(simulator.getModelProvider());
+        ((ModelReceiver) r).registerModelProvider(modelProvider);
       }
 
       if (r instanceof CanvasRenderer) {
         renderers.add((CanvasRenderer) r);
       } else if (r instanceof CanvasRendererBuilder) {
         renderers.add(
-          ((CanvasRendererBuilder) r).build(simulator.getModelProvider()));
+          ((CanvasRendererBuilder) r).build(modelProvider));
       }
 
       if (r instanceof TickListener) {
-        simulator.addTickListener((TickListener) r);
+        simulator.register(r);
       }
     }
   }
@@ -391,7 +391,7 @@ final class SimulationViewer extends Composite implements TickListener,
    * @param source
    */
   void onToglePlay(MenuItem source) {
-    if (simulator.isPlaying()) {
+    if (clock.isTicking()) {
       source.setText("&Play\tCtrl+P");
     } else {
       source.setText("&Pause\tCtrl+P");
@@ -399,7 +399,11 @@ final class SimulationViewer extends Composite implements TickListener,
     new Thread() {
       @Override
       public void run() {
-        simulator.togglePlayPause();
+        if (clock.isTicking()) {
+          clock.stop();
+        } else {
+          clock.start();
+        }
       }
     }.start();
   }
@@ -411,10 +415,10 @@ final class SimulationViewer extends Composite implements TickListener,
    * @param source
    */
   void onTick(MenuItem source) {
-    if (simulator.isPlaying()) {
-      simulator.stop();
+    if (clock.isTicking()) {
+      clock.stop();
     }
-    simulator.tick();
+    clock.tick();
   }
 
   void onZooming(MenuItem source) {
@@ -491,7 +495,7 @@ final class SimulationViewer extends Composite implements TickListener,
     for (final CanvasRenderer renderer : renderers) {
       renderer.renderDynamic(gc, new ViewPort(new Point(center.x,
         center.y),
-        viewRect, m), simulator.getCurrentTime());
+        viewRect, m), clock.getCurrentTime());
     }
     for (final PanelRenderer renderer : panelRenderers) {
       renderer.render();
@@ -629,7 +633,7 @@ final class SimulationViewer extends Composite implements TickListener,
 
   @Override
   public void afterTick(final TimeLapse timeLapse) {
-    if (simulator.isPlaying()
+    if (clock.isTicking()
       && lastRefresh + timeLapse.getTimeStep() * speedUp > timeLapse
         .getStartTime()) {
       return;
@@ -648,18 +652,65 @@ final class SimulationViewer extends Composite implements TickListener,
       @Override
       public void run() {
         if (!canvas.isDisposed()) {
-          if (simulator.getTimeStep() > 500) {
+          if (clock.getTimeStep() > 500) {
             final String formatted = FORMATTER
               .print(
-              new Period(0, simulator.getCurrentTime()));
+              new Period(0, clock.getCurrentTime()));
             timeLabel.setText(formatted);
           } else {
-            timeLabel.setText(Long.toString(simulator.getCurrentTime()));
+            timeLabel.setText(Long.toString(clock.getCurrentTime()));
           }
           timeLabel.pack();
           canvas.redraw();
         }
       }
     });
+  }
+
+  static class Builder extends AbstractModelBuilder<SimulationViewer, Void> {
+
+    final View.Builder viewBuilder;
+
+    Builder(View.Builder vb) {
+      viewBuilder = vb;
+      setDependencies(Shell.class, ClockController.class, SimulatorAPI.class);
+    }
+
+    @Override
+    public SimulationViewer build(DependencyProvider dependencyProvider) {
+      final Shell shell = dependencyProvider.get(Shell.class);
+      final ClockController cc = dependencyProvider.get(ClockController.class);
+      final SimulatorAPI sim = dependencyProvider.get(SimulatorAPI.class);
+      return new SimulationViewer(shell, cc, sim, viewBuilder);
+    }
+  }
+
+  @Override
+  public boolean register(Void element) {
+    // TODO Auto-generated method stub
+    return false;
+  }
+
+  @Override
+  public boolean unregister(Void element) {
+    // TODO Auto-generated method stub
+    return false;
+  }
+
+  @Override
+  public Class<Void> getSupportedType() {
+    return Void.class;
+  }
+
+  @Override
+  public <U> U get(Class<U> clazz) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public void registerModelProvider(ModelProvider mp) {
+    modelProvider = mp;
+
   }
 }

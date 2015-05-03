@@ -15,11 +15,9 @@
  */
 package com.github.rinde.rinsim.examples.pdptw.gradientfield;
 
-import com.github.rinde.rinsim.core.Simulator;
 import com.github.rinde.rinsim.core.pdptw.DefaultDepot;
 import com.github.rinde.rinsim.experiment.Experiment;
 import com.github.rinde.rinsim.pdptw.common.RouteRenderer;
-import com.github.rinde.rinsim.scenario.ScenarioController.UICreator;
 import com.github.rinde.rinsim.scenario.gendreau06.Gendreau06ObjectiveFunction;
 import com.github.rinde.rinsim.scenario.gendreau06.Gendreau06Parser;
 import com.github.rinde.rinsim.scenario.gendreau06.Gendreau06Scenario;
@@ -54,33 +52,26 @@ public final class GradientFieldExample {
    *          this means that it will automatically start and stop itself.
    */
   public static void run(final boolean testing) {
-    final UICreator uic = new UICreator() {
-      @Override
-      public void createUI(Simulator sim) {
-        final View.Builder viewBuilder = View.create(sim)
-          .with(PlaneRoadModelRenderer.create())
-          .with(RoadUserRenderer.builder()
-            .addImageAssociation(
-              Truck.class, "/graphics/perspective/bus-44.png")
-            .addImageAssociation(
-              DefaultDepot.class, "/graphics/flat/warehouse-32.png")
-            .addImageAssociation(
-              GFParcel.class, "/graphics/flat/hailing-cab-32.png")
-          )
-          .with(new GradientFieldRenderer())
-          .with(new RouteRenderer())
-          .with(new PDPModelRenderer(false))
+    View.Builder viewBuilder = View.create()
+      .with(PlaneRoadModelRenderer.create())
+      .with(RoadUserRenderer.builder()
+        .addImageAssociation(
+          Truck.class, "/graphics/perspective/bus-44.png")
+        .addImageAssociation(
+          DefaultDepot.class, "/graphics/flat/warehouse-32.png")
+        .addImageAssociation(
+          GFParcel.class, "/graphics/flat/hailing-cab-32.png")
+      )
+      .with(new GradientFieldRenderer())
+      .with(new RouteRenderer())
+      .with(new PDPModelRenderer(false));
 
-        ;
-        if (testing) {
-          viewBuilder.enableAutoClose()
-            .enableAutoPlay()
-            .setSpeedUp(64)
-            .stopSimulatorAtTime(20 * 60 * 1000);
-        }
-        viewBuilder.show();
-      }
-    };
+    if (testing) {
+      viewBuilder = viewBuilder.enableAutoClose()
+        .enableAutoPlay()
+        .setSpeedUp(64)
+        .stopSimulatorAtTime(20 * 60 * 1000);
+    }
 
     final Gendreau06Scenario scenario = Gendreau06Parser
       .parser().addFile(GradientFieldExample.class
@@ -97,7 +88,7 @@ public final class GradientFieldExample {
       .withThreads(1)
       .addConfiguration(new GradientFieldConfiguration())
       .addScenario(scenario)
-      .showGui(uic)
+      .showGui(viewBuilder)
       .repeat(1)
       .perform();
   }

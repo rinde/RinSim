@@ -53,6 +53,19 @@ public class CommRendererTest {
       .setRandomGenerator(rng)
       .addModel(CommModel.builder())
       .addModel(RoadModelBuilders.plane())
+      .addModel(
+        View.create()
+          .with(CommRenderer.builder()
+            .showReliabilityColors(new RGB(0, 0, 255), new RGB(255, 255, 0))
+            .showReliabilityPercentage()
+            .showMessageCount()
+          )
+          .with(PlaneRoadModelRenderer.create())
+          .enableAutoPlay()
+          .enableAutoClose()
+          .setSpeedUp(10)
+          .stopSimulatorAtTime(1000 * 60 * 5)
+      )
       .build();
 
     for (int i = 0; i < 20; i++) {
@@ -61,18 +74,7 @@ public class CommRendererTest {
 
     sim.register(new CommAgent(rng, -1d, 1d));
 
-    View.create(sim)
-      .with(CommRenderer.builder()
-        .showReliabilityColors(new RGB(0, 0, 255), new RGB(255, 255, 0))
-        .showReliabilityPercentage()
-        .showMessageCount()
-      )
-      .with(PlaneRoadModelRenderer.create())
-      .enableAutoPlay()
-      .enableAutoClose()
-      .setSpeedUp(10)
-      .stopSimulatorAtTime(1000 * 60 * 5)
-      .show();
+    sim.start();
   }
 
   static class CommAgent implements MovingRoadUser, CommUser, TickListener {

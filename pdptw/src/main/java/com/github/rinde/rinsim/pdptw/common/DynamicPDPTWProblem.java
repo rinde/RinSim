@@ -15,35 +15,17 @@
  */
 package com.github.rinde.rinsim.pdptw.common;
 
-import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.collect.Lists.newArrayList;
-
-import java.util.List;
-
 import javax.annotation.Nullable;
-
-import org.eclipse.swt.SWT;
 
 import com.github.rinde.rinsim.core.Simulator;
 import com.github.rinde.rinsim.core.SimulatorAPI;
 import com.github.rinde.rinsim.core.model.ModelBuilder;
-import com.github.rinde.rinsim.core.model.pdp.Depot;
-import com.github.rinde.rinsim.core.model.pdp.Parcel;
-import com.github.rinde.rinsim.core.model.pdp.Vehicle;
 import com.github.rinde.rinsim.core.model.time.TickListener;
 import com.github.rinde.rinsim.core.model.time.TimeLapse;
 import com.github.rinde.rinsim.scenario.Scenario;
 import com.github.rinde.rinsim.scenario.ScenarioController;
-import com.github.rinde.rinsim.scenario.ScenarioController.UICreator;
 import com.github.rinde.rinsim.scenario.TimedEvent;
 import com.github.rinde.rinsim.scenario.TimedEventHandler;
-import com.github.rinde.rinsim.ui.View;
-import com.github.rinde.rinsim.ui.renderers.CanvasRenderer;
-import com.github.rinde.rinsim.ui.renderers.PDPModelRenderer;
-import com.github.rinde.rinsim.ui.renderers.PlaneRoadModelRenderer;
-import com.github.rinde.rinsim.ui.renderers.Renderer;
-import com.github.rinde.rinsim.ui.renderers.RoadUserRenderer;
-import com.github.rinde.rinsim.ui.renderers.UiSchema;
 import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
 import com.google.common.collect.ImmutableMap;
@@ -91,7 +73,7 @@ public final class DynamicPDPTWProblem {
   /**
    * The {@link UICreator} which is used for creating the default UI.
    */
-  protected final DefaultUICreator defaultUICreator;
+  // protected final DefaultUICreator defaultUICreator;
 
   /**
    * The StatsTracker which is used internally for gathering statistics.
@@ -147,7 +129,7 @@ public final class DynamicPDPTWProblem {
         }
       }
     });
-    defaultUICreator = new DefaultUICreator(this);
+    // defaultUICreator = new DefaultUICreator(this);
   }
 
   /**
@@ -162,17 +144,17 @@ public final class DynamicPDPTWProblem {
   /**
    * Enables UI using a default visualization.
    */
-  public void enableUI() {
-    enableUI(defaultUICreator);
-  }
+  // public void enableUI() {
+  // enableUI(defaultUICreator);
+  // }
 
   /**
    * Allows to add an additional {@link CanvasRenderer} to the default UI.
    * @param r The {@link CanvasRenderer} to add.
    */
-  public void addRendererToUI(CanvasRenderer r) {
-    defaultUICreator.addRenderer(r);
-  }
+  // public void addRendererToUI(CanvasRenderer r) {
+  // defaultUICreator.addRenderer(r);
+  // }
 
   /**
    * Adds a {@link StopConditions} which indicates when the simulation has to
@@ -187,13 +169,13 @@ public final class DynamicPDPTWProblem {
     stopCondition = Predicates.or(stopCondition, condition);
   }
 
-  /**
-   * Enables UI by allowing plugging in a custom {@link UICreator}.
-   * @param creator The creator to use.
-   */
-  public void enableUI(UICreator creator) {
-    controller.enableUI(creator);
-  }
+  // /**
+  // * Enables UI by allowing plugging in a custom {@link UICreator}.
+  // * @param creator The creator to use.
+  // */
+  // public void enableUI(UICreator creator) {
+  // controller.enableUI(creator);
+  // }
 
   /**
    * Executes a simulation of the problem. When the simulation is finished (and
@@ -204,7 +186,7 @@ public final class DynamicPDPTWProblem {
     // checkState(eventCreatorMap.containsKey(AddVehicleEvent.class),
     // "A creator for AddVehicleEvent is required, use %s.addCreator(..)",
     // this.getClass().getName());
-    controller.start();
+    simulator.start();
     return getStatistics();
   }
 
@@ -383,89 +365,89 @@ public final class DynamicPDPTWProblem {
    * A default {@link UICreator} used for creating a UI for a problem.
    * @author Rinde van Lon
    */
-  public static class DefaultUICreator implements UICreator {
-    private static final double DEFAULT_RENDER_MARGIN = .05;
+  // public static class DefaultUICreator implements UICreator {
+  // private static final double DEFAULT_RENDER_MARGIN = .05;
+  //
+  // /**
+  // * A list of renderers.
+  // */
+  // protected final List<Renderer> renderers;
+  //
+  // /**
+  // * The speedup that is passed to the gui.
+  // */
+  // protected final int speedup;
+  //
+  // private final DynamicPDPTWProblem problem;
+  //
+  // /**
+  // * Create a GUI for the specified problem.
+  // * @param prob The problem to create a GUI for.
+  // */
+  // public DefaultUICreator(DynamicPDPTWProblem prob) {
+  // this(prob, 1);
+  // }
 
-    /**
-     * A list of renderers.
-     */
-    protected final List<Renderer> renderers;
-
-    /**
-     * The speedup that is passed to the gui.
-     */
-    protected final int speedup;
-
-    private final DynamicPDPTWProblem problem;
-
-    /**
-     * Create a GUI for the specified problem.
-     * @param prob The problem to create a GUI for.
-     */
-    public DefaultUICreator(DynamicPDPTWProblem prob) {
-      this(prob, 1);
-    }
-
-    /**
-     * Create a GUI for the specified problem with the specified speed.
-     * @param prob The problem to create a GUI for.
-     * @param speed The speed to use.
-     */
-    public DefaultUICreator(DynamicPDPTWProblem prob, int speed) {
-      checkArgument(speed >= 1, "speed must be a positive integer");
-      speedup = speed;
-      problem = prob;
-      renderers = newArrayList();
-    }
-
-    /**
-     * @return The default road model renderer.
-     */
-    protected Renderer planeRoadModelRenderer() {
-      return new PlaneRoadModelRenderer(DEFAULT_RENDER_MARGIN);
-    }
-
-    /**
-     * @return The default road user renderer.
-     */
-    protected Renderer roadUserRenderer() {
-      final UiSchema schema = new UiSchema(false);
-      schema.add(Vehicle.class, SWT.COLOR_RED);
-      schema.add(Depot.class, SWT.COLOR_CYAN);
-      schema.add(Parcel.class, SWT.COLOR_BLUE);
-      return new RoadUserRenderer(schema, false);
-    }
-
-    /**
-     * @return The default pdp model renderer.
-     */
-    protected Renderer pdpModelRenderer() {
-      return new PDPModelRenderer(false);
-    }
-
-    /**
-     * Initializes all renderers.
-     */
-    protected void initRenderers() {
-      renderers.add(planeRoadModelRenderer());
-      renderers.add(roadUserRenderer());
-      renderers.add(pdpModelRenderer());
-      renderers.add(new StatsPanel(problem.statsTracker));
-    }
-
-    @Override
-    public void createUI(Simulator sim) {
-      initRenderers();
-      View.create(sim).with(renderers.toArray(new Renderer[] {}))
-        .setSpeedUp(speedup).show();
-    }
-
-    /**
-     * Add a renderer.
-     * @param r The renderer to add.
-     */
-    public void addRenderer(Renderer r) {
-      renderers.add(r);
-    }
-  }
+  /**
+   * Create a GUI for the specified problem with the specified speed.
+   * @param prob The problem to create a GUI for.
+   * @param speed The speed to use.
+   */
+  // public DefaultUICreator(DynamicPDPTWProblem prob, int speed) {
+  // checkArgument(speed >= 1, "speed must be a positive integer");
+  // speedup = speed;
+  // problem = prob;
+  // renderers = newArrayList();
+  // }
+  //
+  // /**
+  // * @return The default road model renderer.
+  // */
+  // protected Renderer planeRoadModelRenderer() {
+  // return new PlaneRoadModelRenderer(DEFAULT_RENDER_MARGIN);
+  // }
+  //
+  // /**
+  // * @return The default road user renderer.
+  // */
+  // protected Renderer roadUserRenderer() {
+  // final UiSchema schema = new UiSchema(false);
+  // schema.add(Vehicle.class, SWT.COLOR_RED);
+  // schema.add(Depot.class, SWT.COLOR_CYAN);
+  // schema.add(Parcel.class, SWT.COLOR_BLUE);
+  // return new RoadUserRenderer(schema, false);
+  // }
+  //
+  // /**
+  // * @return The default pdp model renderer.
+  // */
+  // protected Renderer pdpModelRenderer() {
+  // return new PDPModelRenderer(false);
+  // }
+  //
+  // /**
+  // * Initializes all renderers.
+  // */
+  // protected void initRenderers() {
+  // renderers.add(planeRoadModelRenderer());
+  // renderers.add(roadUserRenderer());
+  // renderers.add(pdpModelRenderer());
+  // renderers.add(new StatsPanel(problem.statsTracker));
+  // }
+  //
+  // @Override
+  // public void createUI(Simulator sim) {
+  // initRenderers();
+  // View.create(sim).with(renderers.toArray(new Renderer[] {}))
+  // .setSpeedUp(speedup).show();
+  // }
+  //
+  // /**
+  // * Add a renderer.
+  // * @param r The renderer to add.
+  // */
+  // public void addRenderer(Renderer r) {
+  // renderers.add(r);
+  // }
+  // }
 }

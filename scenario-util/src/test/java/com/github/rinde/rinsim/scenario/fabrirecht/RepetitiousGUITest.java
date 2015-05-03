@@ -18,7 +18,6 @@ package com.github.rinde.rinsim.scenario.fabrirecht;
 import java.io.File;
 import java.io.IOException;
 
-import com.github.rinde.rinsim.core.Simulator;
 import com.github.rinde.rinsim.core.SimulatorAPI;
 import com.github.rinde.rinsim.core.model.ModelBuilder;
 import com.github.rinde.rinsim.core.model.pdp.PDPModel;
@@ -31,11 +30,12 @@ import com.github.rinde.rinsim.core.pdptw.DefaultParcel;
 import com.github.rinde.rinsim.core.pdptw.DefaultVehicle;
 import com.github.rinde.rinsim.core.pdptw.VehicleDTO;
 import com.github.rinde.rinsim.pdptw.common.DynamicPDPTWProblem;
-import com.github.rinde.rinsim.pdptw.common.DynamicPDPTWProblem.DefaultUICreator;
 import com.github.rinde.rinsim.scenario.AddVehicleEvent;
 import com.github.rinde.rinsim.scenario.TimedEventHandler;
 import com.github.rinde.rinsim.ui.View;
-import com.github.rinde.rinsim.ui.renderers.Renderer;
+import com.github.rinde.rinsim.ui.renderers.PDPModelRenderer;
+import com.github.rinde.rinsim.ui.renderers.PlaneRoadModelRenderer;
+import com.github.rinde.rinsim.ui.renderers.RoadUserRenderer;
 import com.google.common.base.Charsets;
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableList;
@@ -57,7 +57,15 @@ public class RepetitiousGUITest {
           Charsets.UTF_8), 8, 20);
 
       final DynamicPDPTWProblem problem = new DynamicPDPTWProblem(scenario,
-        123, ImmutableList.<ModelBuilder<?, ?>> of(),
+        123, ImmutableList.<ModelBuilder<?, ?>> of(
+          View.create()
+            .with(PlaneRoadModelRenderer.create())
+            .with(RoadUserRenderer.builder())
+            .with(new PDPModelRenderer())
+            .setSpeedUp(50)
+            .enableAutoClose()
+            .enableAutoPlay()
+          ),
         ImmutableMap.<Class<?>, TimedEventHandler<?>> of(AddVehicleEvent.class,
           new TimedEventHandler<AddVehicleEvent>() {
             @Override
@@ -69,20 +77,6 @@ public class RepetitiousGUITest {
         );
       final int iteration = i;
 
-      problem.enableUI(new DefaultUICreator(problem, 15) {
-        @Override
-        public void createUI(Simulator sim) {
-          try {
-            initRenderers();
-            View.create(sim).with(renderers.toArray(new Renderer[] {}))
-              .setSpeedUp(speedup).enableAutoClose().enableAutoPlay().show();
-          } catch (final Throwable e) {
-            System.err.println("Crash occured at iteration " + iteration);
-            e.printStackTrace();
-            throw new RuntimeException("This is the end, resistance is futile.");
-          }
-        }
-      });
       problem.simulate();
     }
   }

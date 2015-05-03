@@ -17,13 +17,16 @@ package com.github.rinde.rinsim.core.model;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.base.Preconditions.checkState;
 
 import java.util.Collection;
+import java.util.LinkedHashSet;
 import java.util.Set;
 
 import javax.annotation.Nullable;
 
 import com.github.rinde.rinsim.core.model.Model.AbstractModel;
+import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSetMultimap;
 
@@ -43,6 +46,7 @@ import com.google.common.collect.ImmutableSetMultimap;
 public final class ModelManager implements ModelProvider {
   private final ImmutableSet<Model<?>> models;
   private final ImmutableSetMultimap<Class<?>, Model<?>> registry;
+  private final Optional<UserInterface> userInterface;
 
   /**
    * Instantiate a new model manager.
@@ -55,11 +59,24 @@ public final class ModelManager implements ModelProvider {
       ImmutableSetMultimap.builder();
     builder.put(ModelReceiver.class, new ModelReceiverModel(this));
 
+    final Set<UserInterface> uis = new LinkedHashSet<>();
     for (final Model<?> m : models) {
       final Class<?> suptype = m.getSupportedType();
       checkNotNull(suptype,
         "Model.getSupportedType() must return a non-null, model: %s.", m);
       builder.put(suptype, m);
+      if (m instanceof UserInterface) {
+        uis.add((UserInterface) m);
+      }
+    }
+
+    checkState(uis.size() <= 1,
+      "At most one implementor of %s can be defined, found %s.",
+      UserInterface.class, uis);
+    if (uis.isEmpty()) {
+      userInterface = Optional.absent();
+    } else {
+      userInterface = Optional.of(uis.iterator().next());
     }
 
     registry = builder.build();
@@ -155,6 +172,10 @@ public final class ModelManager implements ModelProvider {
     return models;
   }
 
+  public Optional<UserInterface> getUserInterface() {
+    return userInterface;
+  }
+
   /**
    * @return A new {@link Builder} instance.
    */
@@ -183,7 +204,7 @@ public final class ModelManager implements ModelProvider {
       if (builder instanceof CompositeModelBuilder<?, ?>) {
         return add((CompositeModelBuilder<?, ?>) builder);
       }
-      resolver.add(builder);
+      doAdd(builder);
       return this;
     }
 
@@ -194,11 +215,15 @@ public final class ModelManager implements ModelProvider {
      * @return This, as per the builder pattern.
      */
     public Builder add(CompositeModelBuilder<?, ?> builder) {
-      resolver.add(builder);
+      doAdd(builder);
       for (final ModelBuilder<?, ?> mb : builder.getChildren()) {
         add(mb);
       }
       return this;
+    }
+
+    void doAdd(ModelBuilder<?, ?> b) {
+      resolver.add(b);
     }
 
     /**

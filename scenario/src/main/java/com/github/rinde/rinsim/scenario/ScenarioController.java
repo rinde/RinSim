@@ -48,7 +48,6 @@ import com.github.rinde.rinsim.event.EventAPI;
 import com.github.rinde.rinsim.event.EventDispatcher;
 import com.github.rinde.rinsim.event.Listener;
 import com.google.auto.value.AutoValue;
-import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 
@@ -90,9 +89,6 @@ public final class ScenarioController extends AbstractModel<Scenario> implements
   final EventDispatcher disp;
   final SimulatorAPI simulator;
   final ClockController clock;
-  // final TimedEventHandler timedEventHandler;
-
-  Optional<UICreator> uiCreator;
   private int ticks;
 
   @Nullable
@@ -114,7 +110,6 @@ public final class ScenarioController extends AbstractModel<Scenario> implements
     simulator = sim;
     clock = c;
     ticks = t;
-    uiCreator = Optional.absent();
 
     scenario = s;
     scenarioQueue = scenario.asQueue();
@@ -126,27 +121,19 @@ public final class ScenarioController extends AbstractModel<Scenario> implements
     disp.addListener(new InternalListener(sim, m),
       scenario.getPossibleEventTypes());
 
+    final ScenarioController sc = this;
     clock.getEventAPI().addListener(new Listener() {
       @Override
       public void handleEvent(Event e) {
         if (clock.getCurrentTime() == 0) {
           dispatchSetupEvents();
         }
-
+        if (sc.stop) {
+          clock.stop();
+        }
       }
     }, Clock.ClockEventType.STARTED);
 
-  }
-
-  // TODO add UICreator directly to Simulator?
-  /**
-   * Enables the UI for this scenario controller. This means that when
-   * {@link #start()} is called the UI is fired up. Using {@link UICreator} any
-   * kind of UI can be hooked to the simulation.
-   * @param creator The creator of the UI.
-   */
-  public void enableUI(UICreator creator) {
-    uiCreator = Optional.of(creator);
   }
 
   /**
@@ -157,30 +144,6 @@ public final class ScenarioController extends AbstractModel<Scenario> implements
    */
   public EventAPI getEventAPI() {
     return disp.getPublicEventAPI();
-  }
-
-  /**
-   * Stop the simulation.
-   */
-  public void stop() {
-    if (!uiCreator.isPresent()) {
-      clock.stop();
-    }
-  }
-
-  /**
-   * Starts the simulation, if UI is enabled it will start the UI instead.
-   * @see #enableUI(UICreator)
-   * @see #stop()
-   */
-  public void start() {
-    if (ticks != 0) {
-      if (uiCreator.isPresent()) {
-        uiCreator.get().createUI((Simulator) simulator);
-      } else {
-        clock.start();
-      }
-    }
   }
 
   /**
@@ -213,7 +176,7 @@ public final class ScenarioController extends AbstractModel<Scenario> implements
     if (stop) {
       return;
     }
-    if (!uiCreator.isPresent() && ticks == 0) {
+    if (ticks == 0) {
       LOGGER.info("scenario finished at virtual time:" + timeLapse.getTime()
         + "[stopping simulation]");
       clock.stop();
@@ -250,21 +213,6 @@ public final class ScenarioController extends AbstractModel<Scenario> implements
 
   @Override
   public void afterTick(TimeLapse timeLapse) {}
-
-  /**
-   * A UICreator can be used to dynamically create a UI for the simulation run.
-   * It can be used with any kind of GUI imaginable.
-   * @author Rinde van Lon
-   */
-  public interface UICreator {
-    // TODO convert to use View.Builder ?
-    /**
-     * Should instantiate the UI.
-     * @param sim The {@link Simulator} instance for which the UI should be
-     *          created.
-     */
-    void createUI(Simulator sim);
-  }
 
   static class InternalListener implements Listener {
     final SimulatorAPI simulator;

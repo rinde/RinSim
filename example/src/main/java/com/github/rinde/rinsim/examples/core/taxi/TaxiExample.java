@@ -108,10 +108,41 @@ public final class TaxiExample {
     String graphFile,
     @Nullable Display display, @Nullable Monitor m, @Nullable Listener list) {
 
+    View.Builder view = View.create()
+      .with(GraphRoadModelRenderer.builder())
+      .with(RoadUserRenderer.builder()
+        .addImageAssociation(
+          TaxiBase.class, "/graphics/perspective/tall-building-64.png")
+        .addImageAssociation(
+          Taxi.class, "/graphics/flat/taxi-32.png")
+        .addImageAssociation(
+          Customer.class, "/graphics/flat/person-red-32.png")
+      )
+      .with(new TaxiRenderer(Language.ENGLISH))
+      .setTitleAppendix("Taxi Demo");
+
+    if (testing) {
+      view = view.enableAutoClose()
+        .enableAutoPlay()
+        .stopSimulatorAtTime(20 * 60 * 1000)
+        .setSpeedUp(64);
+    }
+    else if (m != null && list != null && display != null) {
+      view = view.displayOnMonitor(m)
+        .setSpeedUp(4)
+        .setResolution(m.getClientArea().width, m.getClientArea().height)
+        .setDisplay(display)
+        .setCallback(list)
+        .setAsync()
+        .enableAutoPlay()
+        .enableAutoClose();
+    }
+
     // use map of leuven
     final Simulator simulator = Simulator.builder()
       .addModel(RoadModelBuilders.staticGraph(loadGraph(graphFile)))
       .addModel(DefaultPDPModel.builder())
+      .addModel(view)
       .build();
     final RandomGenerator rng = simulator.getRandomGenerator();
 
@@ -148,39 +179,8 @@ public final class TaxiExample {
       @Override
       public void afterTick(TimeLapse timeLapse) {}
     });
+    simulator.start();
 
-    final View.Builder view = View
-      .create(simulator)
-      .with(GraphRoadModelRenderer.builder())
-      .with(RoadUserRenderer.builder()
-        .addImageAssociation(
-          TaxiBase.class, "/graphics/perspective/tall-building-64.png")
-        .addImageAssociation(
-          Taxi.class, "/graphics/flat/taxi-32.png")
-        .addImageAssociation(
-          Customer.class, "/graphics/flat/person-red-32.png")
-      )
-      .with(new TaxiRenderer(Language.ENGLISH))
-      .setTitleAppendix("Taxi Demo");
-
-    if (testing) {
-      view.enableAutoClose()
-        .enableAutoPlay()
-        .stopSimulatorAtTime(20 * 60 * 1000)
-        .setSpeedUp(64);
-    }
-    else if (m != null && list != null && display != null) {
-      view.displayOnMonitor(m)
-        .setSpeedUp(4)
-        .setResolution(m.getClientArea().width, m.getClientArea().height)
-        .setDisplay(display)
-        .setCallback(list)
-        .setAsync()
-        .enableAutoPlay()
-        .enableAutoClose();
-    }
-
-    view.show();
     return simulator;
   }
 

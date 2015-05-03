@@ -148,6 +148,33 @@ public final class FactoryExample {
     final List<Point> borderNodes = newArrayList(getBorderNodes(g));
     Collections.shuffle(borderNodes, new Random(123));
 
+    final UiSchema uis = new UiSchema(false);
+    uis.add(AGV.class, "/graphics/flat/forklift2.png");
+
+    View.Builder view = View.create()
+      .with(GraphRoadModelRenderer.builder()
+        .setMargin(CANVAS_MARGIN))
+      .with(new BoxRenderer())
+      .with(new RoadUserRenderer(uis, false))
+      .setTitleAppendix("Factory Demo")
+      .enableAutoPlay()
+      .enableAutoClose()
+      .setSpeedUp(4);
+
+    if (m != null) {
+      view = view.displayOnMonitor(m)
+        .setResolution(m.getClientArea().width, m.getClientArea().height)
+        .setDisplay(display);
+
+      if (list != null) {
+        view = view.setCallback(list)
+          .setAsync();
+      }
+      else {
+        view = view.setFullScreen();
+      }
+    }
+
     final RandomGenerator rng = new MersenneTwister(123);
     final Simulator simulator = Simulator
       .builder()
@@ -168,6 +195,7 @@ public final class FactoryExample {
             .build(),
           getBorderNodes(g))
       )
+      .addModel(view)
       .build();
 
     for (int i = 0; i < NUM_VECHICLES; i++) {
@@ -186,35 +214,7 @@ public final class FactoryExample {
       public void afterTick(TimeLapse timeLapse) {}
     });
 
-    final UiSchema uis = new UiSchema(false);
-    uis.add(AGV.class, "/graphics/flat/forklift2.png");
-
-    final View.Builder view = View
-      .create(simulator)
-      .with(GraphRoadModelRenderer.builder()
-        .setMargin(CANVAS_MARGIN))
-      .with(new BoxRenderer())
-      .with(new RoadUserRenderer(uis, false))
-      .setTitleAppendix("Factory Demo")
-      .enableAutoPlay()
-      .enableAutoClose()
-      .setSpeedUp(4);
-
-    if (m != null) {
-      view.displayOnMonitor(m)
-        .setResolution(m.getClientArea().width, m.getClientArea().height)
-        .setDisplay(display);
-
-      if (list != null) {
-        view.setCallback(list)
-          .setAsync();
-      }
-      else {
-        view.setFullScreen();
-      }
-    }
-
-    view.show();
+    simulator.start();
     return simulator;
   }
 

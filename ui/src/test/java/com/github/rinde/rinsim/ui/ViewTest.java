@@ -35,7 +35,6 @@ import com.github.rinde.rinsim.testutil.GuiTests;
 import com.github.rinde.rinsim.ui.renderers.PlaneRoadModelRenderer;
 import com.github.rinde.rinsim.ui.renderers.RoadUserRenderer;
 import com.github.rinde.rinsim.ui.renderers.TestRenderer;
-import com.github.rinde.rinsim.ui.renderers.UiSchema;
 
 /**
  * Test for {@link View}.
@@ -51,16 +50,18 @@ public class ViewTest {
   public void testRenderer() {
     final Simulator sim = Simulator.builder()
       .addModel(RoadModelBuilders.plane())
+      .addModel(View.create()
+        .setTitleAppendix("ViewTest")
+        .enableAutoClose()
+        .enableAutoPlay()
+        .stopSimulatorAtTime(10000)
+        .with(PlaneRoadModelRenderer.create())
+        .with(new TestRenderer())
+      )
       .build();
 
-    View.create(sim)
-      .setTitleAppendix("ViewTest")
-      .enableAutoClose()
-      .enableAutoPlay()
-      .stopSimulatorAtTime(10000)
-      .with(PlaneRoadModelRenderer.create())
-      .with(new TestRenderer())
-      .show();
+    sim.start();
+
   }
 
   /**
@@ -75,9 +76,16 @@ public class ViewTest {
         DefaultPDPModel.builder()
           .withTimeWindowPolicy(TimeWindowPolicies.LIBERAL)
       )
+      .addModel(
+        View.create()
+          .setTitleAppendix("ViewTest")
+          .with(PlaneRoadModelRenderer.create())
+          .with(RoadUserRenderer.builder())
+          .enableAutoPlay()
+      )
       .build();
 
-    sim.addTickListener(new TickListener() {
+    sim.register(new TickListener() {
       @Override
       public void tick(TimeLapse timeLapse) {
         if (timeLapse.getTime() >= 15 * 1000) {
@@ -97,14 +105,7 @@ public class ViewTest {
     });
 
     sim.register(new TestDepot());
-    final UiSchema uis = new UiSchema();
-    uis.add(TestDepot.class, "/graphics/perspective/tall-building-64.png");
-    View.create(sim)
-      .setTitleAppendix("ViewTest")
-      .with(PlaneRoadModelRenderer.create())
-      .with(RoadUserRenderer.builder())
-      .enableAutoPlay()
-      .show();
+    sim.start();
   }
 
   static class TestDepot extends Depot {

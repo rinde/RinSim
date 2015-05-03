@@ -91,17 +91,20 @@ public final class SwarmDemo {
         .withMaxPoint(new Point(4500, 1200))
         .withDistanceUnit(SI.METER)
         .withSpeedUnit(NonSI.KILOMETERS_PER_HOUR)
-        .withMaxSpeed(1000d))
+        .withMaxSpeed(1000d)
+      )
+      .addModel(
+        View.create()
+          .with(PlaneRoadModelRenderer.create(), new VehicleRenderer(),
+            new DemoPanel(string, rng))
+          .setSpeedUp(8)
+      )
       .build();
 
     for (final Point p : points) {
       sim.register(new Vehicle(p, rng));
     }
-    View.create(sim)
-      .with(PlaneRoadModelRenderer.create(), new VehicleRenderer(),
-        new DemoPanel(string, rng))
-      .setSpeedUp(8)
-      .show();
+    sim.start();
   }
 
   /**

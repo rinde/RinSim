@@ -40,6 +40,7 @@ import org.jppf.node.protocol.Task;
 import org.jppf.task.storage.DataProvider;
 import org.jppf.task.storage.MemoryMapDataProvider;
 
+import com.github.rinde.rinsim.core.model.ModelBuilder;
 import com.github.rinde.rinsim.experiment.Experiment.Builder;
 import com.github.rinde.rinsim.experiment.Experiment.SimArgs;
 import com.github.rinde.rinsim.experiment.Experiment.SimulationResult;
@@ -47,7 +48,6 @@ import com.github.rinde.rinsim.pdptw.common.DynamicPDPTWProblem;
 import com.github.rinde.rinsim.pdptw.common.ObjectiveFunction;
 import com.github.rinde.rinsim.pdptw.common.StatisticsDTO;
 import com.github.rinde.rinsim.scenario.Scenario;
-import com.github.rinde.rinsim.scenario.ScenarioController.UICreator;
 import com.github.rinde.rinsim.scenario.ScenarioIO;
 import com.google.common.base.Joiner;
 import com.google.common.base.Objects;
@@ -76,11 +76,11 @@ final class JppfComputer implements Computer {
   @Override
   public ExperimentResults compute(Builder builder, Set<SimArgs> inputs) {
     final IdMap<MASConfiguration> configMap = new IdMap<>("c",
-        MASConfiguration.class);
+      MASConfiguration.class);
     final IdMap<ScenarioProvider> scenarioMap = new IdMap<>("s",
-        ScenarioProvider.class);
+      ScenarioProvider.class);
     final IdMap<ObjectiveFunction> objFuncMap = new IdMap<>("o",
-        ObjectiveFunction.class);
+      ObjectiveFunction.class);
 
     final List<ResultListener> listeners = newArrayList(builder.resultListeners);
 
@@ -92,23 +92,23 @@ final class JppfComputer implements Computer {
     final List<SimulationTask> tasks = newArrayList();
     for (final SimArgs args : inputs) {
       final String configId = configMap.storeAndGenerateId(
-          args.masConfig);
+        args.masConfig);
       final String scenId = scenarioMap.storeAndGenerateId(
-          new ScenarioProvider(ScenarioIO.write(args.scenario),
-              args.scenario.getClass()));
+        new ScenarioProvider(ScenarioIO.write(args.scenario),
+          args.scenario.getClass()));
       scenariosMap.put(scenId, args.scenario);
       final String objFuncId = objFuncMap.storeAndGenerateId(
-          args.objectiveFunction);
+        args.objectiveFunction);
 
       final Optional<String> postProcId;
       if (args.postProcessor.isPresent()) {
         postProcId = Optional.of(ppMap.storeAndGenerateId(args.postProcessor
-            .get()));
+          .get()));
       } else {
         postProcId = Optional.absent();
       }
       tasks.add(new SimulationTask(tasks.size(), args.randomSeed, scenId,
-          configId, objFuncId, postProcId));
+        configId, objFuncId, postProcId));
     }
 
     // this sorts tasks using this chain: scenario, configuration, objective
@@ -118,34 +118,34 @@ final class JppfComputer implements Computer {
     // determine size of batches
     final int numBatches = Math.min(tasks.size(), builder.numBatches);
     final int batchSize = DoubleMath.roundToInt(tasks.size()
-        / (double) numBatches, RoundingMode.CEILING);
+      / (double) numBatches, RoundingMode.CEILING);
 
     final Map<Task<?>, JPPFJob> taskJobMap = newLinkedHashMap();
     final ResultsCollector res = new ResultsCollector(tasks.size(),
-        scenariosMap, taskJobMap, listeners);
+      scenariosMap, taskJobMap, listeners);
     final List<JPPFJob> jobs = newArrayList();
     for (int i = 0; i < numBatches; i++) {
       final JPPFJob job = new JPPFJob(new MemoryMapDataProvider(), res);
       job.setName(Joiner.on("").join(JOB_NAME, " ", i + 1, "/", numBatches));
       jobs.add(job);
       for (final SimulationTask t : tasks.subList(i * batchSize, (i + 1)
-          * batchSize)) {
+        * batchSize)) {
         try {
 
           final MASConfiguration config = configMap.getValue(t
-              .getConfigurationId());
+            .getConfigurationId());
           final ScenarioProvider scenario = scenarioMap.getValue(t
-              .getScenarioId());
+            .getScenarioId());
           final ObjectiveFunction objFunc = objFuncMap.getValue(t
-              .getObjectiveFunctionId());
+            .getObjectiveFunctionId());
           if (t.getPostProcessorId().isPresent()) {
             job.getDataProvider().setParameter(t.getPostProcessorId().get(),
-                ppMap.getValue(t.getPostProcessorId().get()));
+              ppMap.getValue(t.getPostProcessorId().get()));
           }
           job.getDataProvider().setParameter(t.getConfigurationId(), config);
           job.getDataProvider().setParameter(t.getScenarioId(), scenario);
           job.getDataProvider().setParameter(t.getObjectiveFunctionId(),
-              objFunc);
+            objFunc);
 
           job.add(t);
         } catch (final JPPFException e) {
@@ -175,8 +175,8 @@ final class JppfComputer implements Computer {
   }
 
   static SimulationResult processResult(SimulationTask simTask,
-      final Map<String, Scenario> scenariosMap,
-      final Map<Task<?>, JPPFJob> jobMap) {
+    final Map<String, Scenario> scenariosMap,
+    final Map<Task<?>, JPPFJob> jobMap) {
     checkNotNull(simTask);
     if (simTask.getThrowable() != null) {
       throw new IllegalArgumentException(simTask.getThrowable());
@@ -184,9 +184,9 @@ final class JppfComputer implements Computer {
     final SimTaskResult result = simTask.getResult();
     final Scenario scen = scenariosMap.get(simTask.getScenarioId());
     final MASConfiguration conf = jobMap.get(simTask).getDataProvider()
-        .getParameter(simTask.getConfigurationId());
+      .getParameter(simTask.getConfigurationId());
     return new SimulationResult(result.getStats(), scen, conf, simTask
-        .getSeed(), result.getData());
+      .getSeed(), result.getData());
   }
 
   static class ResultsCollector implements TaskResultListener {
@@ -199,8 +199,8 @@ final class JppfComputer implements Computer {
     private Optional<IllegalArgumentException> exception;
 
     ResultsCollector(int expectedNumberOfResults,
-        final Map<String, Scenario> scenMap,
-        final Map<Task<?>, JPPFJob> tjMap, List<ResultListener> list) {
+      final Map<String, Scenario> scenMap,
+      final Map<Task<?>, JPPFJob> tjMap, List<ResultListener> list) {
       results = ImmutableSet.builder();
       scenariosMap = scenMap;
       taskJobMap = tjMap;
@@ -217,7 +217,7 @@ final class JppfComputer implements Computer {
         final SimulationTask simTask = (SimulationTask) t;
         try {
           final SimulationResult res = processResult(simTask, scenariosMap,
-              taskJobMap);
+            taskJobMap);
           results.add(res);
           for (final ResultListener l : listeners) {
             l.receive(res);
@@ -273,7 +273,7 @@ final class JppfComputer implements Computer {
       }
       final SimResultWrapper srw = (SimResultWrapper) o;
       return Objects.equal(srw.result, result)
-          && Objects.equal(srw.index, index);
+        && Objects.equal(srw.index, index);
     }
 
     @Override
@@ -297,9 +297,9 @@ final class JppfComputer implements Computer {
 
     String storeAndGenerateId(T value) {
       checkArgument(
-          value instanceof Serializable,
-          "When using JPPF, instances of %s must implement Serializable, found: '%s' of class: %s.",
-          clazz, value, value.getClass());
+        value instanceof Serializable,
+        "When using JPPF, instances of %s must implement Serializable, found: '%s' of class: %s.",
+        clazz, value, value.getClass());
       final String id;
       if (configMap.containsKey(value)) {
         id = configMap.get(value);
@@ -326,7 +326,7 @@ final class JppfComputer implements Computer {
    * @author Rinde van Lon
    */
   static final class ScenarioProvider implements Supplier<Scenario>,
-      Serializable {
+    Serializable {
     private static final long serialVersionUID = 1738175155810322872L;
 
     private final String serializedScenario;
@@ -345,7 +345,7 @@ final class JppfComputer implements Computer {
     public Scenario get() {
       if (localCache == null) {
         localCache = (Scenario) ScenarioIO.read(
-            serializedScenario, scenarioClass);
+          serializedScenario, scenarioClass);
       }
       return localCache;
     }
@@ -366,7 +366,7 @@ final class JppfComputer implements Computer {
   }
 
   static final class SimulationTask extends AbstractTask<SimTaskResult>
-      implements Comparable<SimulationTask> {
+    implements Comparable<SimulationTask> {
     private static final long serialVersionUID = 5298683984670600238L;
 
     private final long seed;
@@ -379,7 +379,7 @@ final class JppfComputer implements Computer {
     private final int index;
 
     SimulationTask(int ind, long randomSeed, String scenId, String configId,
-        String objFuncId, Optional<String> postProcId) {
+      String objFuncId, Optional<String> postProcId) {
       index = ind;
       seed = randomSeed;
       scenarioId = scenId;
@@ -387,9 +387,9 @@ final class JppfComputer implements Computer {
       objectiveFunctionId = objFuncId;
       postProcessorId = postProcId;
       id = Joiner.on("-").join(seed, scenarioId, configurationId,
-          objectiveFunctionId, postProcessorId);
+        objectiveFunctionId, postProcessorId);
       hashCode = Objects.hashCode(seed, scenarioId, configurationId,
-          objectiveFunctionId, postProcessorId);
+        objectiveFunctionId, postProcessorId);
     }
 
     int getIndex() {
@@ -401,35 +401,35 @@ final class JppfComputer implements Computer {
       // gather data from provider
       final DataProvider dataProvider = getDataProvider();
       checkNotNull(
-          dataProvider,
-          "Probable problem: your MASConfiguration/ObjectiveFunction/PostProcessor is not fully serializable.");
+        dataProvider,
+        "Probable problem: your MASConfiguration/ObjectiveFunction/PostProcessor is not fully serializable.");
 
       final Supplier<Scenario> scenario = getDataProvider().getParameter(
-          scenarioId);
+        scenarioId);
       final MASConfiguration configuration = getDataProvider().getParameter(
-          configurationId);
+        configurationId);
       final ObjectiveFunction objectiveFunction = getDataProvider()
-          .getParameter(objectiveFunctionId);
+        .getParameter(objectiveFunctionId);
 
       // perform simulation
       final DynamicPDPTWProblem prob = Experiment.init(scenario.get(),
-          configuration, seed, false, Optional.<UICreator> absent());
+        configuration, seed, false, Optional.<ModelBuilder<?, ?>> absent());
       final StatisticsDTO stats = prob.simulate();
 
       final Optional<Object> data;
       if (postProcessorId.isPresent()) {
         final PostProcessor<?> postProcessor = getDataProvider().getParameter(
-            postProcessorId.get());
+          postProcessorId.get());
         data = Optional.of((Object) postProcessor.collectResults(prob
-            .getSimulator()));
+          .getSimulator()));
         checkArgument(data.get() instanceof Serializable,
-            "Your PostProcessor must generate Serializable objects, found %s.",
-            data.get());
+          "Your PostProcessor must generate Serializable objects, found %s.",
+          data.get());
       } else {
         data = Optional.absent();
       }
       checkState(objectiveFunction.isValidResult(stats),
-          "The simulation did not result in a valid result: %s.", stats);
+        "The simulation did not result in a valid result: %s.", stats);
 
       setResult(new SimTaskResult(stats, data));
     }
@@ -477,23 +477,23 @@ final class JppfComputer implements Computer {
       }
       final SimulationTask t = (SimulationTask) o;
       return Objects.equal(t.seed, seed) &&
-          Objects.equal(t.scenarioId, scenarioId) &&
-          Objects.equal(t.configurationId, configurationId) &&
-          Objects.equal(t.objectiveFunctionId, objectiveFunctionId) &&
-          Objects.equal(t.postProcessorId, postProcessorId);
+        Objects.equal(t.scenarioId, scenarioId) &&
+        Objects.equal(t.configurationId, configurationId) &&
+        Objects.equal(t.objectiveFunctionId, objectiveFunctionId) &&
+        Objects.equal(t.postProcessorId, postProcessorId);
     }
 
     @Override
     public int compareTo(@Nullable SimulationTask o) {
       assert o != null;
       return ComparisonChain.start()
-          .compare(scenarioId, o.scenarioId)
-          .compare(configurationId, o.configurationId)
-          .compare(objectiveFunctionId, o.objectiveFunctionId)
-          .compare(postProcessorId.orNull(), o.postProcessorId.orNull(),
-              Ordering.natural().nullsLast())
-          .compare(seed, o.seed)
-          .result();
+        .compare(scenarioId, o.scenarioId)
+        .compare(configurationId, o.configurationId)
+        .compare(objectiveFunctionId, o.objectiveFunctionId)
+        .compare(postProcessorId.orNull(), o.postProcessorId.orNull(),
+          Ordering.natural().nullsLast())
+        .compare(seed, o.seed)
+        .result();
     }
   }
 

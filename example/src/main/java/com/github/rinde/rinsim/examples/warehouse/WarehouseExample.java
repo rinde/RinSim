@@ -57,20 +57,22 @@ public final class WarehouseExample {
           .withCollisionAvoidance()
           .withVehicleLength(VEHICLE_LENGTH)
       )
+      .addModel(
+        View.create()
+          .with(WarehouseRenderer.builder()
+            .setMargin(VEHICLE_LENGTH)
+          )
+          .with(AGVRenderer.builder()
+            .useDifferentColorsForVehicles()
+          )
+      )
       .build();
 
     for (int i = 0; i < 20; i++) {
       sim.register(new AGVAgent(sim.getRandomGenerator()));
     }
 
-    View.create(sim)
-      .with(WarehouseRenderer.builder()
-        .setMargin(VEHICLE_LENGTH)
-      )
-      .with(AGVRenderer.builder()
-        .useDifferentColorsForVehicles()
-      )
-      .show();
+    sim.start();
   }
 
   static ImmutableTable<Integer, Integer, Point> createMatrix(int cols,

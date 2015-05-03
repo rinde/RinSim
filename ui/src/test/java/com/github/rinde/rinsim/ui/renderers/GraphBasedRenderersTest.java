@@ -58,6 +58,32 @@ public class GraphBasedRenderersTest {
     final Simulator sim = Simulator.builder()
       .addModel(RoadModelBuilders.dynamicGraph(graph).withCollisionAvoidance()
         .withDistanceUnit(SI.METER))
+      .addModel(
+        View.create()
+          .with(WarehouseRenderer.builder()
+            .setMargin(0)
+            .drawOneWayStreetArrows()
+            .showNodeOccupancy()
+            .showNodes()
+          )
+          .with(AGVRenderer.builder()
+            .showVehicleCreationNumber()
+            .useDifferentColorsForVehicles()
+            .showVehicleCoordinates()
+            .showVehicleOrigin()
+          )
+          .with(GraphRoadModelRenderer.builder()
+            .showDirectionArrows()
+            .showNodeCoordinates()
+            .setMargin(1)
+            .showNodes()
+          )
+          .enableAutoPlay()
+          .stopSimulatorAtTime(300 * 1000L)
+          .enableAutoClose()
+          .setSpeedUp(8)
+      )
+
       .build();
 
     graph.addConnection(new Point(0, 0), new Point(20, 20));
@@ -81,30 +107,8 @@ public class GraphBasedRenderersTest {
     for (int i = 0; i < 4; i++) {
       sim.register(new Agent(sim.getRandomGenerator()));
     }
-    View.create(sim)
-      .with(WarehouseRenderer.builder()
-        .setMargin(0)
-        .drawOneWayStreetArrows()
-        .showNodeOccupancy()
-        .showNodes()
-      )
-      .with(AGVRenderer.builder()
-        .showVehicleCreationNumber()
-        .useDifferentColorsForVehicles()
-        .showVehicleCoordinates()
-        .showVehicleOrigin()
-      )
-      .with(GraphRoadModelRenderer.builder()
-        .showDirectionArrows()
-        .showNodeCoordinates()
-        .setMargin(1)
-        .showNodes()
-      )
-      .enableAutoPlay()
-      .stopSimulatorAtTime(300 * 1000L)
-      .enableAutoClose()
-      .setSpeedUp(8)
-      .show();
+    sim.start();
+
   }
 
   static class Agent implements TickListener, MovingRoadUser {

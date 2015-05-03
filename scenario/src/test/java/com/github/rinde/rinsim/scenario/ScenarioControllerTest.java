@@ -46,7 +46,6 @@ import com.github.rinde.rinsim.event.Event;
 import com.github.rinde.rinsim.event.EventAPI;
 import com.github.rinde.rinsim.event.Listener;
 import com.github.rinde.rinsim.event.ListenerEventHistory;
-import com.github.rinde.rinsim.scenario.ScenarioController.UICreator;
 import com.github.rinde.rinsim.testutil.TestUtil;
 
 /**
@@ -148,46 +147,19 @@ public class ScenarioControllerTest {
     final ListenerEventHistory leh = new ListenerEventHistory();
     sc.getEventAPI().addListener(leh);
     assertThat(sc.isScenarioFinished()).isFalse();
-    sc.start();
+    sim.start();
     assertThat(leh.getEventTypeHistory())
       .containsExactly(SCENARIO_STARTED, EVENT_A, EVENT_B, EVENT_B, EVENT_A,
         EVENT_C, EVENT_C, SCENARIO_FINISHED).inOrder();
 
     assertThat(sc.isScenarioFinished()).isTrue();
-    sc.stop();
+    sim.stop();
     final long before = sc.clock.getCurrentTime();
-    sc.start();// should have no effect
+    sim.start();// should have no effect
 
     assertThat(ticks).hasSize(101);
 
     assertThat(before).isEqualTo(sc.clock.getCurrentTime());
-    final TimeLapse emptyTime = TimeLapseFactory.create(0, 1);
-    emptyTime.consumeAll();
-    sc.tick(emptyTime);
-  }
-
-  @Test
-  public void fakeUImode() {
-    Simulator sim = Simulator.builder()
-      .setTickLength(1L)
-      .setTimeUnit(SI.SECOND)
-      .addModel(
-        ScenarioController.builder(scenario)
-          .withNumberOfTicks(3)
-          .withEventHandler(TimedEvent.class, new NopHandler<>())
-      )
-      .build();
-
-    ScenarioController sc = sim.getModelProvider().getModel(
-      ScenarioController.class);
-
-    sc.enableUI(new UICreator() {
-      @Override
-      public void createUI(Simulator simulator) {}
-    });
-
-    sc.start();
-    sc.stop();
     final TimeLapse emptyTime = TimeLapseFactory.create(0, 1);
     emptyTime.consumeAll();
     sc.tick(emptyTime);
@@ -222,7 +194,7 @@ public class ScenarioControllerTest {
     ScenarioController sc = sim.getModelProvider().getModel(
       ScenarioController.class);
     sc.getEventAPI().addListener(leh);
-    sc.start();
+    sim.start();
     assertThat(leh.getEventTypeHistory())
       .containsExactly(EVENT_B, EVENT_C, SCENARIO_STARTED, EVENT_A).inOrder();
 
@@ -274,7 +246,7 @@ public class ScenarioControllerTest {
    */
   @Test
   public void runningWholeScenario() {
-    Simulator sim = Simulator.builder()
+    final Simulator sim = Simulator.builder()
       .setTickLength(1L)
       .setTimeUnit(SI.SECOND)
       .addModel(
@@ -294,20 +266,20 @@ public class ScenarioControllerTest {
         if (e.getEventType() == ScenarioController.EventType.SCENARIO_FINISHED) {
           synchronized (controller) {
             r[0] = true;
-            controller.stop();
+            sim.stop();
           }
         } else {
           i[0] += 1;
         }
       }
     });
-    controller.start();
+    sim.start();
 
     assertThat(r[0]).isTrue();
     assertThat(i[0]).isEqualTo(scenario.getEvents().size() + 1);
     assertThat(controller.isScenarioFinished()).isTrue();
 
-    controller.stop();
+    sim.stop();
   }
 
   static class NopHandler<T extends TimedEvent> implements TimedEventHandler<T> {

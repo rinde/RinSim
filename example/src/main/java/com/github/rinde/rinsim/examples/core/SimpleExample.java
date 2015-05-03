@@ -59,6 +59,24 @@ public final class SimpleExample {
    * @param testing if <code>true</code> turns on testing mode.
    */
   public static void run(boolean testing) {
+    // configure the GUI. We use separate renderers for the road model and
+    // for the drivers. By default the road model is rendered as a square
+    // (indicating its boundaries), and the drivers are rendered as red
+    // dots.
+    View.Builder viewBuilder = View.create()
+      .with(PlaneRoadModelRenderer.create())
+      .with(RoadUserRenderer.builder());
+
+    if (testing) {
+      final int speedUp = 16;
+      final long simulatorStopTime = 10 * 60 * 1000;
+      viewBuilder = viewBuilder
+        .setSpeedUp(speedUp)
+        .enableAutoClose()
+        .enableAutoPlay()
+        .stopSimulatorAtTime(simulatorStopTime);
+    }
+
     // initialize a new Simulator instance
     final Simulator sim = Simulator.builder()
       // set the length of a simulation 'tick'
@@ -74,6 +92,8 @@ public final class SimpleExample {
           .withMaxPoint(MAX_POINT)
           .withMaxSpeed(VEHICLE_SPEED_KMH)
       )
+      // in case a GUI is not desired simply don't add it.
+      .addModel(viewBuilder)
       .build();
 
     // add a number of drivers on the road
@@ -85,27 +105,10 @@ public final class SimpleExample {
       // interface.
       sim.register(new Driver(sim.getRandomGenerator()));
     }
-    // initialize the GUI. We use separate renderers for the road model and
-    // for the drivers. By default the road model is rendered as a square
-    // (indicating its boundaries), and the drivers are rendered as red
-    // dots.
-    final View.Builder viewBuilder = View.create(sim)
-      .with(PlaneRoadModelRenderer.create())
-      .with(RoadUserRenderer.builder());
 
-    if (testing) {
-      final int speedUp = 16;
-      final long simulatorStopTime = 10 * 60 * 1000;
-      viewBuilder
-        .setSpeedUp(speedUp)
-        .enableAutoClose()
-        .enableAutoPlay()
-        .stopSimulatorAtTime(simulatorStopTime);
-    }
-
-    viewBuilder.show();
-    // in case a GUI is not desired, the simulation can simply be run by
-    // calling the start method of the simulator.
+    // if a GUI is added, it starts it, if no GUI is specified it will
+    // run the simulation without visualization.
+    sim.start();
   }
 
   static class Driver implements MovingRoadUser, TickListener {

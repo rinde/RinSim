@@ -35,13 +35,11 @@ import com.github.rinde.rinsim.experiment.LocalComputer.ExperimentRunner;
 import com.github.rinde.rinsim.io.FileProvider;
 import com.github.rinde.rinsim.pdptw.common.DynamicPDPTWProblem;
 import com.github.rinde.rinsim.pdptw.common.ObjectiveFunction;
-import com.github.rinde.rinsim.pdptw.common.RouteRenderer;
 import com.github.rinde.rinsim.pdptw.common.StatisticsDTO;
 import com.github.rinde.rinsim.scenario.AddDepotEvent;
 import com.github.rinde.rinsim.scenario.AddParcelEvent;
 import com.github.rinde.rinsim.scenario.AddVehicleEvent;
 import com.github.rinde.rinsim.scenario.Scenario;
-import com.github.rinde.rinsim.scenario.ScenarioController.UICreator;
 import com.github.rinde.rinsim.scenario.ScenarioIO;
 import com.github.rinde.rinsim.scenario.TimedEventHandler;
 import com.github.rinde.rinsim.util.StochasticSupplier;
@@ -145,7 +143,7 @@ public final class Experiment {
   public static SimulationResult singleRun(Scenario scenario,
     MASConfiguration configuration, long seed, ObjectiveFunction objFunc,
     boolean showGui, @Nullable PostProcessor<?> postProcessor,
-    @Nullable UICreator uic) {
+    @Nullable ModelBuilder<?, ?> uic) {
 
     final ExperimentRunner er = new ExperimentRunner(new SimArgs(scenario,
       configuration, seed, objFunc, showGui, postProcessor, uic));
@@ -164,10 +162,15 @@ public final class Experiment {
   @VisibleForTesting
   static DynamicPDPTWProblem init(Scenario scenario,
     MASConfiguration config, long seed, boolean showGui,
-    Optional<UICreator> uiCreator) {
+    Optional<ModelBuilder<?, ?>> uiCreator) {
 
-    final ImmutableList<? extends ModelBuilder<?, ?>> modelBuilders = config
-      .getModels();
+    final ImmutableList<ModelBuilder<?, ?>> modelBuilders =
+      ImmutableList
+        .<ModelBuilder<?, ?>> builder()
+        .addAll(
+          showGui ? uiCreator.asSet() : ImmutableSet.<ModelBuilder<?, ?>> of())
+        .addAll(config.getModels())
+        .build();
 
     ImmutableMap.Builder<Class<?>, TimedEventHandler<?>> b = ImmutableMap
       .builder();
@@ -186,15 +189,6 @@ public final class Experiment {
     final DynamicPDPTWProblem problem = new DynamicPDPTWProblem(scenario,
       seed, modelBuilders, b.build());
 
-    if (showGui) {
-      if (uiCreator.isPresent()) {
-        problem.enableUI(uiCreator.get());
-      }
-      else {
-        problem.addRendererToUI(new RouteRenderer());
-        problem.enableUI();
-      }
-    }
     return problem;
   }
 
@@ -211,7 +205,7 @@ public final class Experiment {
 
     final List<ResultListener> resultListeners;
     @Nullable
-    UICreator uiCreator;
+    ModelBuilder<?, ?> uiCreator;
     @Nullable
     PostProcessor<?> postProc;
     boolean showGui;
@@ -265,10 +259,10 @@ public final class Experiment {
      * large number of simulations is performed this may slow down the
      * experiment significantly. The GUI can not be shown when more than one
      * thread is used.
-     * @param uic The {@link UICreator} to use for creating the GUI.
+     * @param uic The {@link ModelBuilder} to use for creating the GUI.
      * @return This, as per the builder pattern.
      */
-    public Builder showGui(UICreator uic) {
+    public Builder showGui(ModelBuilder<?, ?> uic) {
       uiCreator = uic;
       return showGui();
     }
@@ -413,7 +407,7 @@ public final class Experiment {
      * <ul>
      * <li>{@link #withThreads(int)}</li>
      * <li>{@link #showGui()}</li>
-     * <li>{@link #showGui(UICreator)}</li>
+     * <li>{@link #showGui(ModelBuilder)}</li>
      * </ul>
      * 
      * @return This, as per the builder pattern.
@@ -569,18 +563,18 @@ public final class Experiment {
     final ObjectiveFunction objectiveFunction;
     final boolean showGui;
     final Optional<? extends PostProcessor<?>> postProcessor;
-    final Optional<UICreator> uiCreator;
+    final Optional<ModelBuilder<?, ?>> uiCreator;
 
     SimArgs(Scenario s, MASConfiguration m, long seed,
       ObjectiveFunction obj, boolean gui, @Nullable PostProcessor<?> pp,
-      @Nullable UICreator uic) {
+      @Nullable ModelBuilder<?, ?> uic) {
       scenario = s;
       masConfig = m;
       randomSeed = seed;
       objectiveFunction = obj;
       showGui = gui;
       postProcessor = Optional.fromNullable(pp);
-      uiCreator = Optional.fromNullable(uic);
+      uiCreator = Optional.<ModelBuilder<?, ?>> fromNullable(uic);
     }
 
     @Override

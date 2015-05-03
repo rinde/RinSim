@@ -171,7 +171,11 @@ public final class Simulator implements SimulatorAPI {
    * Start the simulation.
    */
   public void start() {
-    clock.start();
+    if (modelManager.getUserInterface().isPresent()) {
+      modelManager.getUserInterface().get().show();
+    } else {
+      clock.start();
+    }
   }
 
   /**

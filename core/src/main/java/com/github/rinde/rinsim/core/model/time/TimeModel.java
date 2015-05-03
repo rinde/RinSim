@@ -76,9 +76,9 @@ public final class TimeModel extends AbstractModel<TickListener>
   @Override
   public void start() {
     if (!isTicking()) {
+      isPlaying = true;
       eventDispatcher.dispatchEvent(new Event(ClockEventType.STARTED, this));
     }
-    isPlaying = true;
     while (isPlaying) {
       tick();
     }
