@@ -455,7 +455,8 @@ public final class RoadModelBuilders {
     abstract double getMinDistance();
 
     CollisionGraphRMB() {
-      setProvidingTypes(CollisionGraphRoadModel.class);
+      setProvidingTypes(RoadModel.class, GraphRoadModel.class,
+        DynamicGraphRoadModel.class, CollisionGraphRoadModel.class);
     }
 
     /**
