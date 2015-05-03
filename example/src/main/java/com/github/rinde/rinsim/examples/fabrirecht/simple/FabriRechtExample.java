@@ -81,9 +81,6 @@ public final class FabriRechtExample {
 
         ), m);
 
-    // enable the default UI
-    // problem.enableUI();
-
     // start the simulation
     problem.simulate();
 
