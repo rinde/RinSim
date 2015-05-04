@@ -1,5 +1,8 @@
 # Release notes
 
+## v3.2.3
+ * CollisionGraphRoadModel bug fix: when a road user is removed from the model the position it was occupying is now released which was previously not the case.
+
 ## v3.2.2
  * CollisionGraphRoadModel is changed such that only implementors of MovingRoadUser (instead of RoadUser) are blocking. This means that depots and parcels are no longer blocking the way of AGVs which means that the PDPModel can now actually be used together with the CollisionGraphRoadModel.
 
