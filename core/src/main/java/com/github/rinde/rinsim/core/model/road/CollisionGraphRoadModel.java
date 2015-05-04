@@ -164,6 +164,14 @@ public class CollisionGraphRoadModel extends DynamicGraphRoadModel {
       "Vehicles can not be added at the same position.");
   }
 
+  @Override
+  public void removeObject(RoadUser object) {
+    checkArgument(objLocs.containsKey(object),
+      "RoadUser: %s does not exist.", object);
+    occupiedNodes.removeAll(object);
+    super.removeObject(object);
+  }
+
   /**
    * Checks whether the specified node is occupied.
    * @param node The node to check for occupancy.

@@ -53,9 +53,9 @@ public class CollisionGraphRoadModelTest {
   public void setUp() {
     graph = new ListenableGraph<>(new TableGraph<LengthData>());
     model = CollisionGraphRoadModel.builder(graph)
-        .setVehicleLength(1d)
-        .setMinDistance(0)
-        .build();
+      .setVehicleLength(1d)
+      .setMinDistance(0)
+      .build();
     NW = new Point(0, 0);
     NE = new Point(10, 0);
     SE = new Point(10, 10);
@@ -119,6 +119,33 @@ public class CollisionGraphRoadModelTest {
   }
 
   /**
+   * Tests that a removed object no longer occupies its position.
+   */
+  @Test
+  public void testRemoveObject() {
+    final MovingRoadUser agv1 = new TestRoadUser();
+    model.addObjectAt(agv1, NW);
+    assertTrue(model.isOccupied(NW));
+
+    model.removeObject(agv1);
+    assertFalse(model.isOccupied(NW));
+  }
+
+  /**
+   * Tests that a unregistered object is removed.
+   */
+  @Test
+  public void testUnregisterObject() {
+    final MovingRoadUser agv1 = new TestRoadUser();
+    model.addObjectAt(agv1, NW);
+    assertTrue(model.isOccupied(NW));
+
+    model.unregister(agv1);
+    assertFalse(model.containsObject(agv1));
+    assertFalse(model.isOccupied(NW));
+  }
+
+  /**
    * Test for detection of a dead lock situation between two AGVs. The AGVs
    * drive on the same connection from opposite ends. An
    * {@link IllegalArgumentException} should be thrown at the moment the second
@@ -159,9 +186,9 @@ public class CollisionGraphRoadModelTest {
     model.moveTo(agv2, NE, meter(20));
 
     assertPointEquals(new Point(3, 0), model.getPosition(agv1),
-        GraphRoadModel.DELTA);
+      GraphRoadModel.DELTA);
     assertPointEquals(new Point(2, 0), model.getPosition(agv2),
-        GraphRoadModel.DELTA);
+      GraphRoadModel.DELTA);
 
     // moving is not allowed
     checkNoMovement(model.moveTo(agv2, NE, meter(20)));
@@ -200,9 +227,9 @@ public class CollisionGraphRoadModelTest {
     model.moveTo(agv2, NW, meter(10));
 
     assertPointEquals(new Point(1d - 0.0002777777778, 0),
-        model.getPosition(agv1), GraphRoadModel.DELTA);
+      model.getPosition(agv1), GraphRoadModel.DELTA);
     assertPointEquals(new Point(0, 1.0), model.getPosition(agv2),
-        GraphRoadModel.DELTA);
+      GraphRoadModel.DELTA);
 
     // moving agv2 is not allowed
     checkNoMovement(model.moveTo(agv2, NW, meter(20)));
@@ -225,7 +252,7 @@ public class CollisionGraphRoadModelTest {
     assertEquals(1L, tl3.getTimeLeft());
     model.moveTo(agv1, X, tl3);
     assertPointEquals(new Point(0, -1), model.getPosition(agv1),
-        GraphRoadModel.DELTA);
+      GraphRoadModel.DELTA);
     model.moveTo(agv2, NW, meter(1));
     assertEquals(NW, model.getPosition(agv2));
   }
@@ -239,7 +266,7 @@ public class CollisionGraphRoadModelTest {
     boolean fail = false;
     try {
       CollisionGraphRoadModel.builder(graph)
-          .setVehicleLength(0d);
+        .setVehicleLength(0d);
     } catch (final IllegalArgumentException e) {
       fail = true;
     }
@@ -249,15 +276,15 @@ public class CollisionGraphRoadModelTest {
     fail = false;
     try {
       CollisionGraphRoadModel.builder(graph)
-          .setVehicleLength(Double.POSITIVE_INFINITY);
+        .setVehicleLength(Double.POSITIVE_INFINITY);
     } catch (final IllegalArgumentException e) {
       fail = true;
     }
     assertTrue(fail);
 
     final CollisionGraphRoadModel cgr1 = CollisionGraphRoadModel.builder(graph)
-        .setVehicleLength(5d)
-        .build();
+      .setVehicleLength(5d)
+      .build();
     assertEquals(5d, cgr1.getVehicleLength(), 0);
   }
 
@@ -267,24 +294,24 @@ public class CollisionGraphRoadModelTest {
   @Test
   public void testBuilderMinDistance() {
     assertEquals(0d, CollisionGraphRoadModel.builder(graph)
-        .setMinDistance(0d)
-        .build()
-        .getMinDistance(),
-        0);
+      .setMinDistance(0d)
+      .build()
+      .getMinDistance(),
+      0);
 
     assertEquals(2d, CollisionGraphRoadModel.builder(graph)
-        .setMinDistance(2d)
-        .build()
-        .getMinDistance(),
-        0);
+      .setMinDistance(2d)
+      .build()
+      .getMinDistance(),
+      0);
 
     // min distance may not be > 2 * vehicle length
     boolean fail = false;
     try {
       CollisionGraphRoadModel.builder(graph)
-          .setVehicleLength(1d)
-          .setMinDistance(2.000000001)
-          .build();
+        .setVehicleLength(1d)
+        .setMinDistance(2.000000001)
+        .build();
     } catch (final IllegalArgumentException e) {
       fail = true;
     }
@@ -294,7 +321,7 @@ public class CollisionGraphRoadModelTest {
     fail = false;
     try {
       CollisionGraphRoadModel.builder(graph)
-          .setMinDistance(-1d);
+        .setMinDistance(-1d);
     } catch (final IllegalArgumentException e) {
       fail = true;
     }
@@ -307,7 +334,7 @@ public class CollisionGraphRoadModelTest {
   @Test
   public void testDetectInvalidConnAtConstruction() {
     final ListenableGraph<?> g = new ListenableGraph<>(
-        new TableGraph<LengthData>());
+      new TableGraph<LengthData>());
     // this connection is allowed:
     g.addConnection(new Point(0, 0), new Point(1, 0));
     // this connection is not allowed:
@@ -315,9 +342,9 @@ public class CollisionGraphRoadModelTest {
     boolean fail = false;
     try {
       CollisionGraphRoadModel.builder(g)
-          .setVehicleLength(1d)
-          .setMinDistance(.25)
-          .build();
+        .setVehicleLength(1d)
+        .setMinDistance(.25)
+        .build();
     } catch (final IllegalArgumentException e) {
       fail = true;
     }
