@@ -15,12 +15,24 @@
  */
 package com.github.rinde.rinsim.pdptw.common;
 
-import org.junit.Ignore;
 import org.junit.Test;
+
+import com.github.rinde.rinsim.core.Simulator;
+import com.github.rinde.rinsim.core.SimulatorAPI;
+import com.github.rinde.rinsim.core.pdptw.RandomVehicle;
+import com.github.rinde.rinsim.scenario.AddVehicleEvent;
+import com.github.rinde.rinsim.scenario.Scenario;
+import com.github.rinde.rinsim.scenario.ScenarioController;
+import com.github.rinde.rinsim.scenario.ScenarioTestUtil;
+import com.github.rinde.rinsim.scenario.TimedEventHandler;
+import com.github.rinde.rinsim.ui.View;
+import com.github.rinde.rinsim.ui.renderers.PDPModelRenderer;
+import com.github.rinde.rinsim.ui.renderers.PlaneRoadModelRenderer;
+import com.github.rinde.rinsim.ui.renderers.RoadUserRenderer;
 
 /**
  * Tests the {@link TimeLinePanel}.
- * @author Rinde van Lon 
+ * @author Rinde van Lon
  */
 public class TimeLinePanelTest {
 
@@ -28,33 +40,34 @@ public class TimeLinePanelTest {
    * Test the gui.
    */
   @Test
-  @Ignore
   public void guiTest() {
-    // TODO enable this test again as soon as cyclic dependencies problem is
-    // solved
-    // Experiment
-    // .build(TestObjectiveFunction.INSTANCE)
-    // .addConfiguration(TestMASConfiguration.create("config"))
-    // .addScenario(ScenarioTestUtil.create(1730))
-    // .showGui(new UICreator() {
-    //
-    // @Override
-    // public void createUI(Simulator sim) {
-    // final UiSchema schema = new UiSchema(false);
-    // schema.add(Vehicle.class, SWT.COLOR_RED);
-    // schema.add(Depot.class, SWT.COLOR_CYAN);
-    // schema.add(Parcel.class, SWT.COLOR_BLUE);
-    // View.create(sim)
-    // .with(new PlaneRoadModelRenderer())
-    // .with(new RoadUserRenderer(schema, false))
-    // .with(new PDPModelRenderer())
-    // .with(new TimeLinePanel())
-    // .setSpeedUp(200)
-    // .enableAutoClose()
-    // .enableAutoPlay()
-    // .show();
-    // }
-    // })
-    // .perform();
+    final Scenario testScenario = ScenarioTestUtil.createRandomScenario(1730);
+
+    final Simulator sim = Simulator
+      .builder()
+      .addModel(
+        ScenarioController.builder(testScenario)
+          .withEventHandler(AddVehicleEvent.class,
+            new TimedEventHandler<AddVehicleEvent>() {
+              @Override
+              public void handleTimedEvent(AddVehicleEvent event,
+                SimulatorAPI simulator) {
+                simulator.register(new RandomVehicle(event.vehicleDTO, 123));
+              }
+            }))
+      .addModel(
+        View.create()
+          .with(PlaneRoadModelRenderer.builder())
+          .with(RoadUserRenderer.builder())
+          .with(PDPModelRenderer.builder())
+          .with(TimeLinePanel.builder())
+          .withSpeedUp(200)
+          .withAutoClose()
+          .withSimulatorEndTime(60 * 60 * 1000)
+          .withAutoPlay()
+      )
+      .build();
+
+    sim.start();
   }
 }
