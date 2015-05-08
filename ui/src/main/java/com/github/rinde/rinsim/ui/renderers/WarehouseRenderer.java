@@ -35,13 +35,13 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.GC;
 
 import com.github.rinde.rinsim.core.model.DependencyProvider;
-import com.github.rinde.rinsim.core.model.Model.AbstractModel;
 import com.github.rinde.rinsim.core.model.ModelBuilder.AbstractModelBuilder;
 import com.github.rinde.rinsim.core.model.road.CollisionGraphRoadModel;
 import com.github.rinde.rinsim.geom.Connection;
 import com.github.rinde.rinsim.geom.Graph;
 import com.github.rinde.rinsim.geom.Graphs;
 import com.github.rinde.rinsim.geom.Point;
+import com.github.rinde.rinsim.ui.renderers.CanvasRenderer.AbstractCanvasRenderer;
 import com.google.auto.value.AutoValue;
 import com.google.common.base.Optional;
 import com.google.common.collect.HashBasedTable;
@@ -59,8 +59,7 @@ import com.google.common.collect.Table;
  * {@link com.github.rinde.rinsim.core.Simulator}.
  * @author Rinde van Lon
  */
-public final class WarehouseRenderer extends AbstractModel<Void> implements
-  CanvasRenderer {
+public final class WarehouseRenderer extends AbstractCanvasRenderer {
   /**
    * The definition of a 'short' connection. Connections that are smaller or
    * equal to this number times the length of the vehicle are considered short.
@@ -243,25 +242,14 @@ public final class WarehouseRenderer extends AbstractModel<Void> implements
     }
   }
 
-  @Nullable
   @Override
-  public ViewRect getViewRect() {
+  public Optional<ViewRect> getViewRect() {
     checkState(!graph.isEmpty(),
       "graph may not be empty at this point");
     final List<Point> extremes = Graphs.getExtremes(graph);
-    return new ViewRect(
+    return Optional.of(new ViewRect(
       PointUtil.sub(extremes.get(0), margin),
-      PointUtil.add(extremes.get(1), margin));
-  }
-
-  @Override
-  public boolean register(Void element) {
-    return false;
-  }
-
-  @Override
-  public boolean unregister(Void element) {
-    return false;
+      PointUtil.add(extremes.get(1), margin)));
   }
 
   /**

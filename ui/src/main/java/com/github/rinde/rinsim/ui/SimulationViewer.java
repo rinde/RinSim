@@ -70,6 +70,7 @@ import com.github.rinde.rinsim.ui.renderers.Renderer;
 import com.github.rinde.rinsim.ui.renderers.ViewPort;
 import com.github.rinde.rinsim.ui.renderers.ViewRect;
 import com.google.auto.value.AutoValue;
+import com.google.common.base.Optional;
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Multimap;
 
@@ -523,12 +524,12 @@ final class SimulationViewer extends Composite implements TickListener,
 
     boolean isDefined = false;
     for (final CanvasRenderer r : canvasRenderers) {
-      final ViewRect rect = r.getViewRect();
-      if (rect != null) {
-        minX = Math.min(minX, rect.min.x);
-        maxX = Math.max(maxX, rect.max.x);
-        minY = Math.min(minY, rect.min.y);
-        maxY = Math.max(maxY, rect.max.y);
+      final Optional<ViewRect> rect = r.getViewRect();
+      if (rect.isPresent()) {
+        minX = Math.min(minX, rect.get().min.x);
+        maxX = Math.max(maxX, rect.get().max.x);
+        minY = Math.min(minY, rect.get().min.y);
+        maxY = Math.max(maxY, rect.get().max.y);
         isDefined = true;
       }
     }

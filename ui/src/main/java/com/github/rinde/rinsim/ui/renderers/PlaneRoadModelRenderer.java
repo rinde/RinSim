@@ -16,26 +16,25 @@
 package com.github.rinde.rinsim.ui.renderers;
 
 import javax.annotation.CheckReturnValue;
-import javax.annotation.Nullable;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.GC;
 
 import com.github.rinde.rinsim.core.model.DependencyProvider;
-import com.github.rinde.rinsim.core.model.Model.AbstractModel;
 import com.github.rinde.rinsim.core.model.ModelBuilder.AbstractModelBuilder;
 import com.github.rinde.rinsim.core.model.road.PlaneRoadModel;
 import com.github.rinde.rinsim.core.model.road.RoadModel;
 import com.github.rinde.rinsim.geom.Point;
+import com.github.rinde.rinsim.ui.renderers.CanvasRenderer.AbstractCanvasRenderer;
 import com.google.auto.value.AutoValue;
+import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 
 /**
  * A renderer for a {@link PlaneRoadModel}.
  * @author Rinde van Lon
  */
-public final class PlaneRoadModelRenderer extends AbstractModel<Void> implements
-  CanvasRenderer {
+public final class PlaneRoadModelRenderer extends AbstractCanvasRenderer {
   private final double xMargin;
   private final double yMargin;
   private final ImmutableList<Point> bounds;
@@ -72,21 +71,10 @@ public final class PlaneRoadModelRenderer extends AbstractModel<Void> implements
   public void renderDynamic(GC gc, ViewPort vp, long time) {}
 
   @Override
-  @Nullable
-  public ViewRect getViewRect() {
-    return new ViewRect(
+  public Optional<ViewRect> getViewRect() {
+    return Optional.of(new ViewRect(
       new Point(bounds.get(0).x - xMargin, bounds.get(0).y - yMargin),
-      new Point(bounds.get(1).x + xMargin, bounds.get(1).y + yMargin));
-  }
-
-  @Override
-  public boolean register(Void element) {
-    return false;
-  }
-
-  @Override
-  public boolean unregister(Void element) {
-    return false;
+      new Point(bounds.get(1).x + xMargin, bounds.get(1).y + yMargin)));
   }
 
   /**

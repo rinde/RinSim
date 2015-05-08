@@ -19,7 +19,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import javax.annotation.CheckReturnValue;
-import javax.annotation.Nullable;
 
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.GC;
@@ -27,11 +26,11 @@ import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.RGB;
 
 import com.github.rinde.rinsim.core.model.DependencyProvider;
-import com.github.rinde.rinsim.core.model.Model.AbstractModel;
 import com.github.rinde.rinsim.core.model.ModelBuilder.AbstractModelBuilder;
 import com.github.rinde.rinsim.core.model.road.RoadModel;
 import com.github.rinde.rinsim.core.model.road.RoadUser;
 import com.github.rinde.rinsim.geom.Point;
+import com.github.rinde.rinsim.ui.renderers.CanvasRenderer.AbstractCanvasRenderer;
 import com.google.auto.value.AutoValue;
 import com.google.common.collect.ImmutableMap;
 
@@ -41,8 +40,7 @@ import com.google.common.collect.ImmutableMap;
  * @author Rinde van Lon (rinde.vanlon@cs.kuleuven.be)
  * @author Bartosz Michalik changes in handling colors
  */
-public final class RoadUserRenderer extends AbstractModel<RoadUser> implements
-  CanvasRenderer {
+public final class RoadUserRenderer extends AbstractCanvasRenderer {
 
   private final RoadModel model;
   private final boolean useEncirclement;
@@ -99,22 +97,6 @@ public final class RoadUserRenderer extends AbstractModel<RoadUser> implements
   @Override
   public void renderStatic(GC gc, ViewPort vp) {}
 
-  @Nullable
-  @Override
-  public ViewRect getViewRect() {
-    return null;
-  }
-
-  @Override
-  public boolean register(RoadUser element) {
-    return false;
-  }
-
-  @Override
-  public boolean unregister(RoadUser element) {
-    return false;
-  }
-
   /**
    * Constructs a {@link Builder} for building {@link RoadUserRenderer}
    * instances.
@@ -131,7 +113,7 @@ public final class RoadUserRenderer extends AbstractModel<RoadUser> implements
    */
   @AutoValue
   public abstract static class Builder extends
-    AbstractModelBuilder<RoadUserRenderer, RoadUser> {
+    AbstractModelBuilder<RoadUserRenderer, Void> {
 
     Builder() {
       setDependencies(RoadModel.class);

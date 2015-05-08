@@ -19,20 +19,16 @@ import static com.google.common.collect.Sets.newHashSet;
 
 import java.util.Set;
 
-import javax.annotation.Nullable;
-
 import org.eclipse.swt.graphics.GC;
 
 import com.github.rinde.rinsim.core.model.DependencyProvider;
-import com.github.rinde.rinsim.core.model.Model.AbstractModel;
 import com.github.rinde.rinsim.core.model.ModelBuilder.AbstractModelBuilder;
 import com.github.rinde.rinsim.core.model.pdp.PDPModel;
 import com.github.rinde.rinsim.core.model.road.RoadModel;
 import com.github.rinde.rinsim.core.pdptw.DefaultParcel;
 import com.github.rinde.rinsim.geom.Point;
-import com.github.rinde.rinsim.ui.renderers.CanvasRenderer;
+import com.github.rinde.rinsim.ui.renderers.CanvasRenderer.AbstractCanvasRenderer;
 import com.github.rinde.rinsim.ui.renderers.ViewPort;
-import com.github.rinde.rinsim.ui.renderers.ViewRect;
 import com.google.auto.value.AutoValue;
 import com.google.common.collect.ImmutableList;
 
@@ -42,8 +38,7 @@ import com.google.common.collect.ImmutableList;
  *
  * @author Rinde van Lon
  */
-public class RouteRenderer extends AbstractModel<Void> implements
-  CanvasRenderer {
+public class RouteRenderer extends AbstractCanvasRenderer {
 
   RoadModel roadModel;
   PDPModel pdpModel;
@@ -83,22 +78,6 @@ public class RouteRenderer extends AbstractModel<Void> implements
         prevY = y;
       }
     }
-  }
-
-  @Override
-  @Nullable
-  public ViewRect getViewRect() {
-    return null;
-  }
-
-  @Override
-  public boolean register(Void element) {
-    return false;
-  }
-
-  @Override
-  public boolean unregister(Void element) {
-    return false;
   }
 
   /**

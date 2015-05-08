@@ -15,9 +15,11 @@
  */
 package com.github.rinde.rinsim.ui.renderers;
 
-import javax.annotation.Nullable;
-
 import org.eclipse.swt.graphics.GC;
+
+import com.github.rinde.rinsim.core.model.Model.AbstractModel;
+import com.github.rinde.rinsim.core.model.Model.AbstractModelVoid;
+import com.google.common.base.Optional;
 
 /**
  * A {@link Renderer} that allows rendering on the main canvas of the
@@ -42,9 +44,36 @@ public interface CanvasRenderer extends Renderer {
 
   /**
    * @return A {@link ViewRect} indicating the dimensions of the rendered
-   *         objects. May be <code>null</code> to indicate that another
+   *         objects. May be {@link Optional#absent()} to indicate that another
    *         {@link CanvasRenderer} should implement this.
    */
-  @Nullable
-  ViewRect getViewRect();
+  Optional<ViewRect> getViewRect();
+
+  /**
+   * Abstract implementation of {@link CanvasRenderer}.
+   * @author Rinde van Lon
+   */
+  public abstract class AbstractCanvasRenderer extends AbstractModelVoid
+    implements CanvasRenderer {
+
+    @Override
+    public Optional<ViewRect> getViewRect() {
+      return Optional.absent();
+    }
+  }
+
+  /**
+   * Abstract implementation of {@link CanvasRenderer} with support for a
+   * specific type.
+   * @param <T> The type to support.
+   * @author Rinde van Lon
+   */
+  public abstract class AbstractTypedCanvasRenderer<T> extends AbstractModel<T>
+    implements CanvasRenderer {
+
+    @Override
+    public Optional<ViewRect> getViewRect() {
+      return Optional.absent();
+    }
+  }
 }

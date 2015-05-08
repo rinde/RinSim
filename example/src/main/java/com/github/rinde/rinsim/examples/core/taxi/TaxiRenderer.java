@@ -17,28 +17,24 @@ package com.github.rinde.rinsim.examples.core.taxi;
 
 import java.util.Set;
 
-import javax.annotation.Nullable;
-
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.GC;
 
 import com.github.rinde.rinsim.core.model.DependencyProvider;
-import com.github.rinde.rinsim.core.model.Model.AbstractModel;
 import com.github.rinde.rinsim.core.model.ModelBuilder.AbstractModelBuilder;
 import com.github.rinde.rinsim.core.model.pdp.PDPModel;
 import com.github.rinde.rinsim.core.model.pdp.PDPModel.VehicleState;
 import com.github.rinde.rinsim.core.model.road.RoadModel;
 import com.github.rinde.rinsim.geom.Point;
-import com.github.rinde.rinsim.ui.renderers.CanvasRenderer;
+import com.github.rinde.rinsim.ui.renderers.CanvasRenderer.AbstractCanvasRenderer;
 import com.github.rinde.rinsim.ui.renderers.ViewPort;
-import com.github.rinde.rinsim.ui.renderers.ViewRect;
 import com.google.auto.value.AutoValue;
 
 /**
  * @author Rinde van Lon
  *
  */
-public class TaxiRenderer extends AbstractModel<Void> implements CanvasRenderer {
+public class TaxiRenderer extends AbstractCanvasRenderer {
 
   enum Language {
     DUTCH("INSTAPPEN", "UITSTAPPEN"), ENGLISH("EMBARK", "DISEMBARK");
@@ -52,14 +48,14 @@ public class TaxiRenderer extends AbstractModel<Void> implements CanvasRenderer 
     }
   }
 
-  final RoadModel rm;
-  final PDPModel pm;
+  final RoadModel roadModel;
+  final PDPModel pdpModel;
   final Language lang;
 
   TaxiRenderer(RoadModel r, PDPModel p, Language l) {
     lang = l;
-    rm = r;
-    pm = p;
+    roadModel = r;
+    pdpModel = p;
   }
 
   @Override
@@ -67,17 +63,17 @@ public class TaxiRenderer extends AbstractModel<Void> implements CanvasRenderer 
 
   @Override
   public void renderDynamic(GC gc, ViewPort vp, long time) {
-    final Set<Taxi> taxis = rm.getObjectsOfType(Taxi.class);
+    final Set<Taxi> taxis = roadModel.getObjectsOfType(Taxi.class);
     synchronized (taxis) {
       for (final Taxi t : taxis) {
-        final Point p = rm.getPosition(t);
+        final Point p = roadModel.getPosition(t);
         final int x = vp.toCoordX(p.x) - 5;
         final int y = vp.toCoordY(p.y) - 30;
 
-        final VehicleState vs = pm.getVehicleState(t);
+        final VehicleState vs = pdpModel.getVehicleState(t);
 
         String text = null;
-        final int size = (int) pm.getContentsSize(t);
+        final int size = (int) pdpModel.getContentsSize(t);
         if (vs == VehicleState.DELIVERING) {
           text = lang.disembark;
         } else if (vs == VehicleState.PICKING_UP) {
@@ -99,22 +95,6 @@ public class TaxiRenderer extends AbstractModel<Void> implements CanvasRenderer 
         }
       }
     }
-  }
-
-  @Nullable
-  @Override
-  public ViewRect getViewRect() {
-    return null;
-  }
-
-  @Override
-  public boolean register(Void element) {
-    return false;
-  }
-
-  @Override
-  public boolean unregister(Void element) {
-    return false;
   }
 
   static Builder builder(Language l) {

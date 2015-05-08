@@ -19,15 +19,12 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 
-import javax.annotation.Nullable;
-
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Device;
 import org.eclipse.swt.graphics.GC;
 
 import com.github.rinde.rinsim.core.model.DependencyProvider;
-import com.github.rinde.rinsim.core.model.Model.AbstractModel;
 import com.github.rinde.rinsim.core.model.ModelBuilder.AbstractModelBuilder;
 import com.github.rinde.rinsim.core.model.pdp.PDPModel;
 import com.github.rinde.rinsim.core.model.pdp.PDPModel.ParcelState;
@@ -37,15 +34,14 @@ import com.github.rinde.rinsim.core.model.pdp.Vehicle;
 import com.github.rinde.rinsim.core.model.road.RoadModel;
 import com.github.rinde.rinsim.core.model.road.RoadUser;
 import com.github.rinde.rinsim.geom.Point;
+import com.github.rinde.rinsim.ui.renderers.CanvasRenderer.AbstractCanvasRenderer;
 import com.google.auto.value.AutoValue;
 
 /**
  * @author Rinde van Lon
  *
  */
-public final class PDPModelRenderer extends AbstractModel<Void> implements
-  CanvasRenderer {
-
+public final class PDPModelRenderer extends AbstractCanvasRenderer {
   private final Color black;
   private final Color white;
   private final Color lightGray;
@@ -150,22 +146,6 @@ public final class PDPModelRenderer extends AbstractModel<Void> implements
         }
       }
     }
-  }
-
-  @Override
-  public boolean register(Void element) {
-    return false;
-  }
-
-  @Override
-  public boolean unregister(Void element) {
-    return false;
-  }
-
-  @Nullable
-  @Override
-  public ViewRect getViewRect() {
-    return null;
   }
 
   /**

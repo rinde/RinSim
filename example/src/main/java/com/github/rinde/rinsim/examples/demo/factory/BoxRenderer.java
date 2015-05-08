@@ -30,7 +30,6 @@ import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Transform;
 
 import com.github.rinde.rinsim.core.model.DependencyProvider;
-import com.github.rinde.rinsim.core.model.Model.AbstractModel;
 import com.github.rinde.rinsim.core.model.ModelBuilder.AbstractModelBuilder;
 import com.github.rinde.rinsim.core.model.pdp.PDPModel;
 import com.github.rinde.rinsim.core.model.pdp.PDPModel.ParcelState;
@@ -39,13 +38,12 @@ import com.github.rinde.rinsim.core.model.pdp.Parcel;
 import com.github.rinde.rinsim.core.model.pdp.Vehicle;
 import com.github.rinde.rinsim.core.model.road.RoadModel;
 import com.github.rinde.rinsim.geom.Point;
-import com.github.rinde.rinsim.ui.renderers.CanvasRenderer;
+import com.github.rinde.rinsim.ui.renderers.CanvasRenderer.AbstractCanvasRenderer;
 import com.github.rinde.rinsim.ui.renderers.UiSchema;
 import com.github.rinde.rinsim.ui.renderers.ViewPort;
-import com.github.rinde.rinsim.ui.renderers.ViewRect;
 import com.google.auto.value.AutoValue;
 
-class BoxRenderer extends AbstractModel<Void> implements CanvasRenderer {
+class BoxRenderer extends AbstractCanvasRenderer {
 
   // static final Point AT_SITE_OFFSET = new Point(-12, -13);
   static final float AT_SITE_ROTATION = 0f;
@@ -195,22 +193,6 @@ class BoxRenderer extends AbstractModel<Void> implements CanvasRenderer {
         }
       }
     }
-  }
-
-  @Nullable
-  @Override
-  public ViewRect getViewRect() {
-    return null;
-  }
-
-  @Override
-  public boolean register(Void element) {
-    return false;
-  }
-
-  @Override
-  public boolean unregister(Void element) {
-    return false;
   }
 
   static Builder builder() {

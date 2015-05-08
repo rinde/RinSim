@@ -125,7 +125,7 @@ class DemoPanel extends AbstractModel<Void> implements PanelRenderer, Listener {
     return false;
   }
 
-  public static Builder builder(String s) {
+  static Builder builder(String s) {
     return new AutoValue_DemoPanel_Builder(s);
   }
 

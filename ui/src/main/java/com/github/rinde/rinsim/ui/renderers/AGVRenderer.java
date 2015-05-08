@@ -25,7 +25,6 @@ import java.util.Map;
 import java.util.Set;
 
 import javax.annotation.CheckReturnValue;
-import javax.annotation.Nullable;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Font;
@@ -35,13 +34,13 @@ import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Transform;
 
 import com.github.rinde.rinsim.core.model.DependencyProvider;
-import com.github.rinde.rinsim.core.model.Model.AbstractModel;
 import com.github.rinde.rinsim.core.model.ModelBuilder.AbstractModelBuilder;
 import com.github.rinde.rinsim.core.model.road.CollisionGraphRoadModel;
 import com.github.rinde.rinsim.core.model.road.MovingRoadUser;
 import com.github.rinde.rinsim.core.model.road.RoadUser;
 import com.github.rinde.rinsim.geom.Connection;
 import com.github.rinde.rinsim.geom.Point;
+import com.github.rinde.rinsim.ui.renderers.CanvasRenderer.AbstractTypedCanvasRenderer;
 import com.google.auto.value.AutoValue;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableSet;
@@ -57,8 +56,8 @@ import com.google.common.collect.Sets;
  * {@link com.github.rinde.rinsim.core.Simulator}.
  * @author Rinde van Lon
  */
-public final class AGVRenderer extends AbstractModel<MovingRoadUser> implements
-  CanvasRenderer {
+public final class AGVRenderer extends
+  AbstractTypedCanvasRenderer<MovingRoadUser> {
   private static final int DEFAULT_COLOR = SWT.COLOR_BLACK;
   private final CollisionGraphRoadModel model;
   private final RenderHelper helper;
@@ -111,12 +110,6 @@ public final class AGVRenderer extends AbstractModel<MovingRoadUser> implements
   public boolean unregister(MovingRoadUser mru) {
     verifyNotNull(vehicles.remove(mru)).dispose();
     return true;
-  }
-
-  @Override
-  @Nullable
-  public ViewRect getViewRect() {
-    return null;
   }
 
   /**

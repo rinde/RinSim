@@ -61,7 +61,7 @@ public interface Model<T> {
    *
    * @param <T> The type that is supported by this model.
    */
-  abstract class AbstractModel<T> implements Model<T> {
+  public abstract class AbstractModel<T> implements Model<T> {
 
     private final Class<T> supportedType;
 
@@ -83,6 +83,23 @@ public interface Model<T> {
       throw new IllegalArgumentException(
         "This model does not support providing any objects (" + toString()
           + ").");
+    }
+  }
+
+  /**
+   * Abstract implementation of a model without supported type.
+   * @author Rinde van Lon
+   */
+  public abstract class AbstractModelVoid extends AbstractModel<Void> {
+
+    @Override
+    public final boolean register(Void element) {
+      return false;
+    }
+
+    @Override
+    public final boolean unregister(Void element) {
+      return false;
     }
   }
 }

@@ -21,13 +21,11 @@ import static com.google.common.base.Preconditions.checkState;
 import java.util.List;
 
 import javax.annotation.CheckReturnValue;
-import javax.annotation.Nullable;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.GC;
 
 import com.github.rinde.rinsim.core.model.DependencyProvider;
-import com.github.rinde.rinsim.core.model.Model.AbstractModel;
 import com.github.rinde.rinsim.core.model.ModelBuilder.AbstractModelBuilder;
 import com.github.rinde.rinsim.core.model.road.GraphRoadModel;
 import com.github.rinde.rinsim.geom.Connection;
@@ -35,7 +33,9 @@ import com.github.rinde.rinsim.geom.ConnectionData;
 import com.github.rinde.rinsim.geom.Graph;
 import com.github.rinde.rinsim.geom.Graphs;
 import com.github.rinde.rinsim.geom.Point;
+import com.github.rinde.rinsim.ui.renderers.CanvasRenderer.AbstractCanvasRenderer;
 import com.google.auto.value.AutoValue;
+import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 
@@ -47,8 +47,7 @@ import com.google.common.collect.Sets;
  * {@link com.github.rinde.rinsim.core.Simulator}.
  * @author Rinde van Lon (rinde.vanlon@cs.kuleuven.be)
  */
-public final class GraphRoadModelRenderer extends AbstractModel<Void> implements
-  CanvasRenderer {
+public final class GraphRoadModelRenderer extends AbstractCanvasRenderer {
   private static final int NODE_RADIUS = 2;
   private static final Point RELATIVE_TEXT_POSITION = new Point(4, -14);
   private static final int ARROW_HEAD_SIZE = 8;
@@ -106,26 +105,15 @@ public final class GraphRoadModelRenderer extends AbstractModel<Void> implements
   @Override
   public void renderDynamic(GC gc, ViewPort vp, long time) {}
 
-  @Nullable
   @Override
-  public ViewRect getViewRect() {
+  public Optional<ViewRect> getViewRect() {
     checkState(!model.getGraph().isEmpty(),
       "graph may not be empty at this point");
 
     final List<Point> extremes = Graphs.getExtremes(model.getGraph());
-    return new ViewRect(
+    return Optional.of(new ViewRect(
       PointUtil.sub(extremes.get(0), margin),
-      PointUtil.add(extremes.get(1), margin));
-  }
-
-  @Override
-  public boolean register(Void element) {
-    return false;
-  }
-
-  @Override
-  public boolean unregister(Void element) {
-    return false;
+      PointUtil.add(extremes.get(1), margin)));
   }
 
   /**

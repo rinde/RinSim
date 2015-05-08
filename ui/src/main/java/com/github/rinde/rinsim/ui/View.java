@@ -225,6 +225,12 @@ public final class View extends AbstractModel<Void> implements
      */
     public static final Point DEFAULT_WINDOW_SIZE = new Point(800, 600);
 
+    Builder() {
+      setDependencies(ClockController.class);
+      setProvidingTypes(Shell.class, Device.class, Display.class,
+        MainView.class);
+    }
+
     abstract ImmutableSet<ModelBuilder<? extends Renderer, ?>> renderers();
 
     abstract ImmutableSet<ViewOption> viewOptions();
@@ -244,45 +250,6 @@ public final class View extends AbstractModel<Void> implements
     abstract Optional<Monitor> monitor();
 
     abstract Optional<Display> display();
-
-    Builder() {
-      setDependencies(ClockController.class);
-      setProvidingTypes(Shell.class, Device.class, Display.class,
-        MainView.class);
-    }
-
-    static Builder create() {
-      ImmutableMap<MenuItems, Integer> accelerators;
-      @Nullable
-      final Locale loc = InputContext.getInstance().getLocale();
-      if (loc != null && loc.getLanguage().equals(Locale.FRENCH.getLanguage())) {
-        accelerators = MenuItems.AZERTY_ACCELERATORS;
-      } else {
-        accelerators = MenuItems.QWERTY_ACCELERATORS;
-      }
-
-      return create(ImmutableSet.<ModelBuilder<? extends Renderer, ?>> of(),
-        ImmutableSet.<ViewOption> of(), accelerators, 1, -1L, "Simulator",
-        DEFAULT_WINDOW_SIZE,
-        Optional.<Listener> absent(),
-        Optional.<Monitor> absent(),
-        Optional.<Display> absent());
-    }
-
-    static Builder create(
-      ImmutableSet<ModelBuilder<? extends Renderer, ?>> renderers,
-      ImmutableSet<ViewOption> viewOptions,
-      ImmutableMap<MenuItems, Integer> accelerators,
-      int speedUp,
-      long stopTime,
-      String title,
-      Point screenSize,
-      Optional<Listener> callback,
-      Optional<Monitor> monitor,
-      Optional<Display> display) {
-      return new AutoValue_View_Builder(renderers, viewOptions, accelerators,
-        speedUp, stopTime, title, screenSize, callback, monitor, display);
-    }
 
     /**
      * Adds the specified builder of a {@link Renderer}.
@@ -502,6 +469,39 @@ public final class View extends AbstractModel<Void> implements
         .add(SimulationViewer.builder(this))
         .addAll(renderers())
         .build();
+    }
+
+    static Builder create() {
+      ImmutableMap<MenuItems, Integer> accelerators;
+      @Nullable
+      final Locale loc = InputContext.getInstance().getLocale();
+      if (loc != null && loc.getLanguage().equals(Locale.FRENCH.getLanguage())) {
+        accelerators = MenuItems.AZERTY_ACCELERATORS;
+      } else {
+        accelerators = MenuItems.QWERTY_ACCELERATORS;
+      }
+
+      return create(ImmutableSet.<ModelBuilder<? extends Renderer, ?>> of(),
+        ImmutableSet.<ViewOption> of(), accelerators, 1, -1L, "Simulator",
+        DEFAULT_WINDOW_SIZE,
+        Optional.<Listener> absent(),
+        Optional.<Monitor> absent(),
+        Optional.<Display> absent());
+    }
+
+    static Builder create(
+      ImmutableSet<ModelBuilder<? extends Renderer, ?>> renderers,
+      ImmutableSet<ViewOption> viewOptions,
+      ImmutableMap<MenuItems, Integer> accelerators,
+      int speedUp,
+      long stopTime,
+      String title,
+      Point screenSize,
+      Optional<Listener> callback,
+      Optional<Monitor> monitor,
+      Optional<Display> display) {
+      return new AutoValue_View_Builder(renderers, viewOptions, accelerators,
+        speedUp, stopTime, title, screenSize, callback, monitor, display);
     }
   }
 }

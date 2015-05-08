@@ -20,7 +20,6 @@ import java.util.Map;
 import java.util.Set;
 
 import javax.annotation.CheckReturnValue;
-import javax.annotation.Nullable;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Color;
@@ -28,11 +27,11 @@ import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.RGB;
 
 import com.github.rinde.rinsim.core.model.DependencyProvider;
-import com.github.rinde.rinsim.core.model.Model.AbstractModel;
 import com.github.rinde.rinsim.core.model.ModelBuilder.AbstractModelBuilder;
 import com.github.rinde.rinsim.core.model.comm.CommDevice;
 import com.github.rinde.rinsim.core.model.comm.CommModel;
 import com.github.rinde.rinsim.core.model.comm.CommUser;
+import com.github.rinde.rinsim.ui.renderers.CanvasRenderer.AbstractTypedCanvasRenderer;
 import com.google.auto.value.AutoValue;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableSet;
@@ -43,8 +42,8 @@ import com.google.common.collect.ImmutableSet;
  * configured via {@link #builder()}.
  * @author Rinde van Lon
  */
-public final class CommRenderer extends AbstractModel<CommUser> implements
-  CanvasRenderer {
+public final class CommRenderer extends AbstractTypedCanvasRenderer<CommUser>
+{
   static final int OPAQUE = 255;
   static final int SEMI_TRANSPARENT = 50;
   static final double DOT_RADIUS = .05;
@@ -75,12 +74,6 @@ public final class CommRenderer extends AbstractModel<CommUser> implements
     for (final DeviceUI ui : uiObjects.values()) {
       ui.update(gc, vp, time);
     }
-  }
-
-  @Nullable
-  @Override
-  public ViewRect getViewRect() {
-    return null;
   }
 
   @Override

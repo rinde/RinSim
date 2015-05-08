@@ -19,23 +19,18 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import javax.annotation.Nullable;
-
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.RGB;
 
 import com.github.rinde.rinsim.core.model.DependencyProvider;
-import com.github.rinde.rinsim.core.model.Model.AbstractModel;
 import com.github.rinde.rinsim.core.model.ModelBuilder.AbstractModelBuilder;
 import com.github.rinde.rinsim.geom.Point;
-import com.github.rinde.rinsim.ui.renderers.CanvasRenderer;
+import com.github.rinde.rinsim.ui.renderers.CanvasRenderer.AbstractCanvasRenderer;
 import com.github.rinde.rinsim.ui.renderers.ViewPort;
-import com.github.rinde.rinsim.ui.renderers.ViewRect;
 import com.google.auto.value.AutoValue;
 
-class GradientFieldRenderer extends AbstractModel<Void> implements
-  CanvasRenderer {
+class GradientFieldRenderer extends AbstractCanvasRenderer {
 
   final static RGB GREEN = new RGB(0, 255, 0);
   final static RGB RED = new RGB(255, 0, 0);
@@ -86,22 +81,6 @@ class GradientFieldRenderer extends AbstractModel<Void> implements
         }
       }
     }
-  }
-
-  @Nullable
-  @Override
-  public ViewRect getViewRect() {
-    return null;
-  }
-
-  @Override
-  public boolean register(Void element) {
-    return false;
-  }
-
-  @Override
-  public boolean unregister(Void element) {
-    return false;
   }
 
   static Builder builder() {

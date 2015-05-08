@@ -17,21 +17,17 @@ package com.github.rinde.rinsim.ui;
 
 import java.util.List;
 
-import javax.annotation.Nullable;
-
 import org.eclipse.swt.graphics.GC;
 
 import com.github.rinde.rinsim.core.model.DependencyProvider;
-import com.github.rinde.rinsim.core.model.Model.AbstractModel;
 import com.github.rinde.rinsim.core.model.ModelBuilder.AbstractModelBuilder;
 import com.github.rinde.rinsim.core.model.road.RoadModel;
 import com.github.rinde.rinsim.geom.Point;
-import com.github.rinde.rinsim.ui.renderers.CanvasRenderer;
+import com.github.rinde.rinsim.ui.renderers.CanvasRenderer.AbstractCanvasRenderer;
 import com.github.rinde.rinsim.ui.renderers.ViewPort;
-import com.github.rinde.rinsim.ui.renderers.ViewRect;
 import com.google.auto.value.AutoValue;
 
-class TestRenderer extends AbstractModel<Void> implements CanvasRenderer {
+class TestRenderer extends AbstractCanvasRenderer {
 
   RoadModel roadModel;
 
@@ -52,22 +48,6 @@ class TestRenderer extends AbstractModel<Void> implements CanvasRenderer {
     gc.drawText("fancy pancy", vp.toCoordX(bounds.get(0).x),
       vp.toCoordY(bounds.get(0).y) + 100, true);
 
-  }
-
-  @Override
-  @Nullable
-  public ViewRect getViewRect() {
-    return null;
-  }
-
-  @Override
-  public boolean register(Void element) {
-    return false;
-  }
-
-  @Override
-  public boolean unregister(Void element) {
-    return false;
   }
 
   static Builder builder() {
