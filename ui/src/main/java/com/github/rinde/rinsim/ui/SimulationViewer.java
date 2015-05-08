@@ -63,11 +63,13 @@ import com.github.rinde.rinsim.core.model.time.ClockController;
 import com.github.rinde.rinsim.core.model.time.TickListener;
 import com.github.rinde.rinsim.core.model.time.TimeLapse;
 import com.github.rinde.rinsim.geom.Point;
+import com.github.rinde.rinsim.ui.View.ViewOption;
 import com.github.rinde.rinsim.ui.renderers.CanvasRenderer;
 import com.github.rinde.rinsim.ui.renderers.PanelRenderer;
 import com.github.rinde.rinsim.ui.renderers.Renderer;
 import com.github.rinde.rinsim.ui.renderers.ViewPort;
 import com.github.rinde.rinsim.ui.renderers.ViewRect;
+import com.google.auto.value.AutoValue;
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Multimap;
 
@@ -111,8 +113,7 @@ final class SimulationViewer extends Composite implements TickListener,
   @Nullable
   private Image image;
   private final List<PanelRenderer> panelRenderers;
-  private final List<Object> rawRenderers;
-  private final List<CanvasRenderer> renderers;
+  private final List<CanvasRenderer> canvasRenderers;
   private final boolean autoPlay;
   private MenuItem playPauseMenuItem;
   // multiplier
@@ -141,14 +142,13 @@ final class SimulationViewer extends Composite implements TickListener,
     clock = cc;
     simulator = simapi;
 
-    accelerators = vb.accelerators;
-    autoPlay = vb.autoPlay;
+    accelerators = vb.accelerators();
+    autoPlay = vb.viewOptions().contains(ViewOption.AUTO_PLAY);
 
-    rawRenderers = vb.rendererList;
-    renderers = new ArrayList<>();
+    canvasRenderers = new ArrayList<>();
     panelRenderers = new ArrayList<>();
 
-    speedUp = vb.speedUp;
+    speedUp = vb.speedUp();
     shell.setLayout(new FillLayout());
     display = shell.getDisplay();
     setLayout(new FillLayout());
@@ -444,7 +444,7 @@ final class SimulationViewer extends Composite implements TickListener,
     final Image img = new Image(getDisplay(), size.x, size.y);
     final GC gc = new GC(img);
 
-    for (final CanvasRenderer r : renderers) {
+    for (final CanvasRenderer r : canvasRenderers) {
       r.renderStatic(gc, new ViewPort(new Point(0, 0), viewRect, m));
     }
     gc.dispose();
@@ -470,7 +470,7 @@ final class SimulationViewer extends Composite implements TickListener,
     final org.eclipse.swt.graphics.Point center = getCenteredOrigin();
 
     gc.drawImage(image, center.x, center.y);
-    for (final CanvasRenderer renderer : renderers) {
+    for (final CanvasRenderer renderer : canvasRenderers) {
       renderer.renderDynamic(gc, new ViewPort(new Point(center.x,
         center.y),
         viewRect, m), clock.getCurrentTime());
@@ -522,7 +522,7 @@ final class SimulationViewer extends Composite implements TickListener,
     double maxY = Double.NEGATIVE_INFINITY;
 
     boolean isDefined = false;
-    for (final CanvasRenderer r : renderers) {
+    for (final CanvasRenderer r : canvasRenderers) {
       final ViewRect rect = r.getViewRect();
       if (rect != null) {
         minX = Math.min(minX, rect.min.x);
@@ -536,7 +536,7 @@ final class SimulationViewer extends Composite implements TickListener,
     checkState(
       isDefined,
       "none of the available renderers implements getViewRect(), known renderers: %s",
-      renderers);
+      canvasRenderers);
 
     viewRect = new ViewRect(new Point(minX, minY), new Point(maxX, maxY));
 
@@ -651,7 +651,7 @@ final class SimulationViewer extends Composite implements TickListener,
       panelRenderers.add((PanelRenderer) element);
     }
     if (element instanceof CanvasRenderer) {
-      renderers.add((CanvasRenderer) element);
+      canvasRenderers.add((CanvasRenderer) element);
     }
     return true;
   }
@@ -676,15 +676,20 @@ final class SimulationViewer extends Composite implements TickListener,
     throw new UnsupportedOperationException();
   }
 
-  static class Builder extends AbstractModelBuilder<SimulationViewer, Renderer> {
+  static Builder builder(View.Builder vb) {
+    return new AutoValue_SimulationViewer_Builder(vb);
+  }
 
-    final View.Builder viewBuilder;
+  @AutoValue
+  abstract static class Builder extends
+    AbstractModelBuilder<SimulationViewer, Renderer> {
 
-    Builder(View.Builder vb) {
-      viewBuilder = vb;
+    Builder() {
       setDependencies(Shell.class, ClockController.class, SimulatorAPI.class,
         MainView.class);
     }
+
+    abstract View.Builder viewBuilder();
 
     @Override
     public SimulationViewer build(DependencyProvider dependencyProvider) {
@@ -693,7 +698,7 @@ final class SimulationViewer extends Composite implements TickListener,
       final SimulatorAPI sim = dependencyProvider.get(SimulatorAPI.class);
       final MainView mv = dependencyProvider.get(MainView.class);
       final SimulationViewer sv = new SimulationViewer(shell, cc, sim,
-        viewBuilder);
+        viewBuilder());
       mv.addListener(new com.github.rinde.rinsim.event.Listener() {
         @Override
         public void handleEvent(com.github.rinde.rinsim.event.Event e) {

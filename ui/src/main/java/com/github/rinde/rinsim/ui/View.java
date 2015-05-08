@@ -16,13 +16,9 @@
 package com.github.rinde.rinsim.ui;
 
 import static com.google.common.base.Preconditions.checkArgument;
-import static java.util.Arrays.asList;
 
 import java.awt.im.InputContext;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.LinkedHashSet;
-import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
@@ -51,7 +47,11 @@ import com.github.rinde.rinsim.core.model.time.TimeLapse;
 import com.github.rinde.rinsim.event.Event;
 import com.github.rinde.rinsim.event.Listener;
 import com.github.rinde.rinsim.ui.renderers.Renderer;
+import com.google.auto.value.AutoValue;
+import com.google.common.base.Optional;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Sets;
 
 /**
  * The view class is the main GUI class. For creating a view, see
@@ -75,29 +75,30 @@ public final class View extends AbstractModel<Void> implements
 
     listeners = new LinkedHashSet<>();
     Display.setAppName("RinSim");
-    final Display d = builder.display != null ? builder.display : Display
-      .getCurrent();
+    final Display d = builder.display().isPresent()
+      ? builder.display().get()
+      : Display.getCurrent();
     final boolean isDisplayOwner = d == null;
     display = isDisplayOwner ? new Display() : Display.getCurrent();
 
     int shellArgs = SWT.TITLE | SWT.CLOSE;
-    if (builder.allowResize) {
+    if (!builder.viewOptions().contains(ViewOption.DISALLOW_RESIZE)) {
       shellArgs = shellArgs | SWT.RESIZE;
     }
 
     shell = new Shell(display, shellArgs);
 
-    if (builder.monitor != null) {
-      final Monitor m = builder.monitor;
+    if (builder.monitor().isPresent()) {
+      final Monitor m = builder.monitor().get();
       shell.setLocation(m.getBounds().x, m.getBounds().y);
     }
 
-    shell.setText("RinSim - " + builder.title);
-    if (builder.fullScreen) {
+    shell.setText("RinSim - " + builder.title());
+    if (builder.viewOptions().contains(ViewOption.FULL_SCREEN)) {
       shell.setFullScreen(true);
       shell.setMaximized(true);
     } else {
-      shell.setSize(builder.screenSize);
+      shell.setSize(builder.screenSize());
     }
 
     shell.addListener(SWT.Close, new org.eclipse.swt.widgets.Listener() {
@@ -118,14 +119,11 @@ public final class View extends AbstractModel<Void> implements
     clockController.getEventAPI().addListener(new Listener() {
       @Override
       public void handleEvent(Event e) {
-        if (e.getEventType() == Clock.ClockEventType.STARTED) {
-          // show();
-        } else if (builder.autoClose) {
+        if (builder.viewOptions().contains(ViewOption.AUTO_CLOSE)) {
           close();
         }
       }
-    },
-      Clock.ClockEventType.STARTED, Clock.ClockEventType.STOPPED);
+    }, Clock.ClockEventType.STOPPED);
   }
 
   void close() {
@@ -137,8 +135,8 @@ public final class View extends AbstractModel<Void> implements
         }
       });
     }
-    if (builder.callback != null) {
-      builder.callback
+    if (builder.callback().isPresent()) {
+      builder.callback().get()
         .handleEvent(new Event(Clock.ClockEventType.STOPPED, null));
     }
   }
@@ -149,7 +147,7 @@ public final class View extends AbstractModel<Void> implements
     for (final Listener l : listeners) {
       l.handleEvent(new Event(EventType.SHOW, this));
     }
-    if (!builder.async) {
+    if (!builder.viewOptions().contains(ViewOption.ASYNC)) {
       while (!shell.isDisposed()) {
         if (!display.readAndDispatch()) {
           display.sleep();
@@ -167,7 +165,7 @@ public final class View extends AbstractModel<Void> implements
 
   @Override
   public void afterTick(TimeLapse time) {
-    if (builder.stopTime > 0 && time.getTime() >= builder.stopTime) {
+    if (builder.stopTime() > 0 && time.getTime() >= builder.stopTime()) {
       clockController.stop();
     }
   }
@@ -208,73 +206,82 @@ public final class View extends AbstractModel<Void> implements
    */
   @CheckReturnValue
   public static Builder create() {
-    return new Builder();
+    return Builder.create();
+  }
+
+  enum ViewOption {
+    AUTO_PLAY, AUTO_CLOSE, DISALLOW_RESIZE, FULL_SCREEN, ASYNC;
   }
 
   /**
    * A builder that creates a visualization for {@link Simulator} instances.
    * @author Rinde van Lon
    */
-  public static class Builder extends AbstractModelBuilder<View, Void>
+  @AutoValue
+  public abstract static class Builder extends AbstractModelBuilder<View, Void>
     implements CompositeModelBuilder<View, Void> {
     /**
      * The default window size: 800x600.
      */
     public static final Point DEFAULT_WINDOW_SIZE = new Point(800, 600);
 
-    boolean autoPlay;
-    boolean autoClose;
-    boolean allowResize;
-    boolean fullScreen;
-    boolean async;
-    int speedUp;
-    long stopTime;
-    @Nullable
-    Display display;
-    String title;
-    Point screenSize;
-    @Nullable
-    Monitor monitor;
-    final List<Object> rendererList;
-    Set<ModelBuilder<?, ?>> renderers;
-    Map<MenuItems, Integer> accelerators;
-    @Nullable
-    Listener callback;
+    abstract ImmutableSet<ModelBuilder<? extends Renderer, ?>> renderers();
+
+    abstract ImmutableSet<ViewOption> viewOptions();
+
+    abstract ImmutableMap<MenuItems, Integer> accelerators();
+
+    abstract int speedUp();
+
+    abstract long stopTime();
+
+    abstract String title();
+
+    abstract Point screenSize();
+
+    abstract Optional<Listener> callback();
+
+    abstract Optional<Monitor> monitor();
+
+    abstract Optional<Display> display();
 
     Builder() {
       setDependencies(ClockController.class);
       setProvidingTypes(Shell.class, Device.class, Display.class,
         MainView.class);
-      autoPlay = false;
-      autoClose = false;
-      allowResize = true;
-      fullScreen = false;
-      title = "Simulator";
-      speedUp = 1;
-      stopTime = -1;
-      screenSize = DEFAULT_WINDOW_SIZE;
-      rendererList = new ArrayList<>();
-      renderers = new LinkedHashSet<>();
-      accelerators = new HashMap<>();
+    }
 
+    static Builder create() {
+      ImmutableMap<MenuItems, Integer> accelerators;
       @Nullable
       final Locale loc = InputContext.getInstance().getLocale();
       if (loc != null && loc.getLanguage().equals(Locale.FRENCH.getLanguage())) {
-        accelerators.putAll(MenuItems.AZERTY_ACCELERATORS);
+        accelerators = MenuItems.AZERTY_ACCELERATORS;
       } else {
-        accelerators.putAll(MenuItems.QWERTY_ACCELERATORS);
+        accelerators = MenuItems.QWERTY_ACCELERATORS;
       }
+
+      return create(ImmutableSet.<ModelBuilder<? extends Renderer, ?>> of(),
+        ImmutableSet.<ViewOption> of(), accelerators, 1, -1L, "Simulator",
+        DEFAULT_WINDOW_SIZE,
+        Optional.<Listener> absent(),
+        Optional.<Monitor> absent(),
+        Optional.<Display> absent());
     }
 
-    /**
-     * Adds the specified renderers.
-     * @param renderers The {@link Renderer}s to add to the view.
-     * @return This, as per the builder pattern.
-     */
-    @CheckReturnValue
-    public Builder with(Renderer... renderers) {
-      rendererList.addAll(asList(renderers));
-      return this;
+    static Builder create(
+      ImmutableSet<ModelBuilder<? extends Renderer, ?>> renderers,
+      ImmutableSet<ViewOption> viewOptions,
+      ImmutableMap<MenuItems, Integer> accelerators,
+      int speedUp,
+      long stopTime,
+      String title,
+      Point screenSize,
+      Optional<Listener> callback,
+      Optional<Monitor> monitor,
+      Optional<Display> display) {
+      return new AutoValue_View_Builder(renderers, viewOptions, accelerators,
+        speedUp, stopTime, title, screenSize, callback, monitor, display);
     }
 
     /**
@@ -283,9 +290,14 @@ public final class View extends AbstractModel<Void> implements
      * @return This, as per the builder pattern.
      */
     @CheckReturnValue
-    public Builder with(ModelBuilder<?, ?> builder) {
-      renderers.add(builder);
-      return this;
+    public Builder with(ModelBuilder<? extends Renderer, ?> builder) {
+      return create(ImmutableSet
+        .<ModelBuilder<? extends Renderer, ?>> builder()
+        .addAll(renderers())
+        .add(builder)
+        .build(),
+        viewOptions(), accelerators(), speedUp(), stopTime(), title(),
+        screenSize(), callback(), monitor(), display());
     }
 
     /**
@@ -295,8 +307,12 @@ public final class View extends AbstractModel<Void> implements
      */
     @CheckReturnValue
     public Builder enableAutoPlay() {
-      autoPlay = true;
-      return this;
+      return create(
+        renderers(),
+        Sets.immutableEnumSet(ViewOption.AUTO_PLAY,
+          viewOptions().toArray(new ViewOption[] {})),
+        accelerators(), speedUp(), stopTime(), title(), screenSize(),
+        callback(), monitor(), display());
     }
 
     /**
@@ -307,8 +323,12 @@ public final class View extends AbstractModel<Void> implements
      */
     @CheckReturnValue
     public Builder enableAutoClose() {
-      autoClose = true;
-      return this;
+      return create(
+        renderers(),
+        Sets.immutableEnumSet(ViewOption.AUTO_CLOSE,
+          viewOptions().toArray(new ViewOption[] {})),
+        accelerators(), speedUp(), stopTime(), title(), screenSize(),
+        callback(), monitor(), display());
     }
 
     /**
@@ -319,8 +339,9 @@ public final class View extends AbstractModel<Void> implements
     @CheckReturnValue
     public Builder stopSimulatorAtTime(long simulationTime) {
       checkArgument(simulationTime > 0);
-      stopTime = simulationTime;
-      return this;
+      return create(renderers(), viewOptions(), accelerators(), speedUp(),
+        simulationTime,
+        title(), screenSize(), callback(), monitor(), display());
     }
 
     /**
@@ -331,8 +352,8 @@ public final class View extends AbstractModel<Void> implements
      */
     @CheckReturnValue
     public Builder setSpeedUp(int speed) {
-      speedUp = speed;
-      return this;
+      return create(renderers(), viewOptions(), accelerators(), speed,
+        stopTime(), title(), screenSize(), callback(), monitor(), display());
     }
 
     /**
@@ -343,8 +364,9 @@ public final class View extends AbstractModel<Void> implements
      */
     @CheckReturnValue
     public Builder setDisplay(Display d) {
-      display = d;
-      return this;
+      return create(renderers(), viewOptions(), accelerators(), speedUp(),
+        stopTime(), title(), screenSize(), callback(), monitor(),
+        Optional.of(d));
     }
 
     /**
@@ -355,8 +377,9 @@ public final class View extends AbstractModel<Void> implements
      */
     @CheckReturnValue
     public Builder setTitleAppendix(String titleAppendix) {
-      title = titleAppendix;
-      return this;
+      return create(renderers(), viewOptions(), accelerators(), speedUp(),
+        stopTime(), titleAppendix, screenSize(), callback(), monitor(),
+        display());
     }
 
     /**
@@ -366,8 +389,12 @@ public final class View extends AbstractModel<Void> implements
      */
     @CheckReturnValue
     public Builder disallowResizing() {
-      allowResize = false;
-      return this;
+      return create(
+        renderers(),
+        Sets.immutableEnumSet(ViewOption.DISALLOW_RESIZE,
+          viewOptions().toArray(new ViewOption[] {})),
+        accelerators(), speedUp(), stopTime(), title(), screenSize(),
+        callback(), monitor(), display());
     }
 
     /**
@@ -376,8 +403,12 @@ public final class View extends AbstractModel<Void> implements
      */
     @CheckReturnValue
     public Builder setFullScreen() {
-      fullScreen = true;
-      return this;
+      return create(
+        renderers(),
+        Sets.immutableEnumSet(ViewOption.FULL_SCREEN,
+          viewOptions().toArray(new ViewOption[] {})),
+        accelerators(), speedUp(), stopTime(), title(), screenSize(),
+        callback(), monitor(), display());
     }
 
     /**
@@ -392,8 +423,9 @@ public final class View extends AbstractModel<Void> implements
       checkArgument(width > 0 && height > 0,
         "Only positive dimensions are allowed, input: %s x %s.", width,
         height);
-      screenSize = new Point(width, height);
-      return this;
+      return create(renderers(), viewOptions(), accelerators(), speedUp(),
+        stopTime(), title(), new Point(width, height), callback(), monitor(),
+        display());
     }
 
     /**
@@ -405,8 +437,9 @@ public final class View extends AbstractModel<Void> implements
      */
     @CheckReturnValue
     public Builder displayOnMonitor(Monitor m) {
-      monitor = m;
-      return this;
+      return create(renderers(), viewOptions(), accelerators(), speedUp(),
+        stopTime(), title(), screenSize(), callback(), Optional.of(m),
+        display());
     }
 
     /**
@@ -421,8 +454,9 @@ public final class View extends AbstractModel<Void> implements
      */
     @CheckReturnValue
     public Builder setAccelerators(Map<MenuItems, Integer> acc) {
-      accelerators.putAll(acc);
-      return this;
+      return create(renderers(), viewOptions(), ImmutableMap.copyOf(acc),
+        speedUp(), stopTime(), title(), screenSize(), callback(), monitor(),
+        display());
     }
 
     /**
@@ -433,8 +467,12 @@ public final class View extends AbstractModel<Void> implements
      */
     @CheckReturnValue
     public Builder setAsync() {
-      async = true;
-      return this;
+      return create(
+        renderers(),
+        Sets.immutableEnumSet(ViewOption.ASYNC,
+          viewOptions().toArray(new ViewOption[] {})),
+        accelerators(), speedUp(), stopTime(), title(), screenSize(),
+        callback(), monitor(), display());
     }
 
     /**
@@ -444,14 +482,14 @@ public final class View extends AbstractModel<Void> implements
      */
     @CheckReturnValue
     public Builder setCallback(Listener l) {
-      callback = l;
-      return this;
+      return create(renderers(), viewOptions(), accelerators(), speedUp(),
+        stopTime(), title(), screenSize(), Optional.of(l), monitor(), display());
     }
 
     @CheckReturnValue
     @Override
     public View build(DependencyProvider dependencyProvider) {
-      checkArgument(!(rendererList.isEmpty() && renderers.isEmpty()),
+      checkArgument(!renderers().isEmpty(),
         "At least one renderer needs to be defined.");
 
       final ClockController cc = dependencyProvider.get(ClockController.class);
@@ -461,12 +499,11 @@ public final class View extends AbstractModel<Void> implements
     @Override
     public ImmutableSet<ModelBuilder<?, ?>> getChildren() {
       return ImmutableSet.<ModelBuilder<?, ?>> builder()
-        .add(new SimulationViewer.Builder(this))
-        .addAll(renderers)
+        .add(SimulationViewer.builder(this))
+        .addAll(renderers())
         .build();
     }
   }
-
 }
 
 interface MainView {

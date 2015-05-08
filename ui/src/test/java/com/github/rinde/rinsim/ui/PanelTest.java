@@ -16,9 +16,6 @@
 package com.github.rinde.rinsim.ui;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.layout.FillLayout;
-import org.eclipse.swt.widgets.Button;
-import org.eclipse.swt.widgets.Composite;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 
@@ -26,7 +23,6 @@ import com.github.rinde.rinsim.core.Simulator;
 import com.github.rinde.rinsim.core.model.road.RoadModelBuilders;
 import com.github.rinde.rinsim.geom.Point;
 import com.github.rinde.rinsim.testutil.GuiTests;
-import com.github.rinde.rinsim.ui.renderers.PanelRenderer;
 import com.github.rinde.rinsim.ui.renderers.PlaneRoadModelRenderer;
 import com.github.rinde.rinsim.ui.renderers.RoadUserRenderer;
 
@@ -43,23 +39,48 @@ public final class PanelTest {
   @Test
   public void panelTest() {
 
-    final Simulator sim = Simulator.builder()
+    final Simulator sim = Simulator
+      .builder()
       .addModel(RoadModelBuilders.plane()
         .withMinPoint(new Point(0, 0))
         .withMaxPoint(new Point(10, 10))
         .withMaxSpeed(10d)
       )
       .addModel(
-        View.create()
+        View
+          .create()
           .with(PlaneRoadModelRenderer.builder())
           .with(RoadUserRenderer.builder())
           .with(
-            new TestPanelRenderer("LEFT", SWT.LEFT, 200),
-            new TestPanelRenderer("RIHGT BOEEE YEAH", SWT.RIGHT, 300),
-            new TestPanelRenderer("RIHGT BOEEE YEAH", SWT.TOP, 100),
-            new TestPanelRenderer("TOP2", SWT.TOP, 100),
-            new TestPanelRenderer("LEFT2", SWT.LEFT, 100),
-            new TestPanelRenderer("LEFT3", SWT.LEFT, 150))
+            TestPanelRenderer.builder("LEFT")
+              .withPosition(SWT.LEFT)
+              .withSize(200)
+          )
+          .with(
+            TestPanelRenderer.builder("RIHGT BOEEE YEAH")
+              .withPosition(SWT.RIGHT)
+              .withSize(300)
+          )
+          .with(
+            TestPanelRenderer.builder("RIHGT BOEEE YEAH")
+              .withPosition(SWT.TOP)
+              .withSize(100)
+          )
+          .with(
+            TestPanelRenderer.builder("TOP2")
+              .withPosition(SWT.TOP)
+              .withSize(100)
+          )
+          .with(
+            TestPanelRenderer.builder("LEFT2")
+              .withPosition(SWT.LEFT)
+              .withSize(100)
+          )
+          .with(
+            TestPanelRenderer.builder("LEFT3")
+              .withPosition(SWT.LEFT)
+              .withSize(150)
+          )
           .enableAutoPlay()
           .enableAutoClose()
           .stopSimulatorAtTime(10000)
@@ -67,43 +88,5 @@ public final class PanelTest {
       .build();
 
     sim.start();
-  }
-
-  static class TestPanelRenderer implements PanelRenderer {
-
-    protected final String name;
-    protected final int position;
-    protected final int size;
-
-    public TestPanelRenderer(String n, int pos, int s) {
-      name = n;
-      position = pos;
-      size = s;
-    }
-
-    @Override
-    public void initializePanel(Composite c) {
-      c.setLayout(new FillLayout());
-      final Button b = new Button(c, SWT.PUSH);
-      b.setText("push me " + name);
-    }
-
-    @Override
-    public int getPreferredPosition() {
-      return position;
-    }
-
-    @Override
-    public String getName() {
-      return name;
-    }
-
-    @Override
-    public int preferredSize() {
-      return size;
-    }
-
-    @Override
-    public void render() {}
   }
 }
