@@ -16,6 +16,7 @@
 package com.github.rinde.rinsim.pdptw.common;
 
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 
 import com.github.rinde.rinsim.core.Simulator;
 import com.github.rinde.rinsim.core.SimulatorAPI;
@@ -25,6 +26,7 @@ import com.github.rinde.rinsim.scenario.Scenario;
 import com.github.rinde.rinsim.scenario.ScenarioController;
 import com.github.rinde.rinsim.scenario.ScenarioTestUtil;
 import com.github.rinde.rinsim.scenario.TimedEventHandler;
+import com.github.rinde.rinsim.testutil.GuiTests;
 import com.github.rinde.rinsim.ui.View;
 import com.github.rinde.rinsim.ui.renderers.PDPModelRenderer;
 import com.github.rinde.rinsim.ui.renderers.PlaneRoadModelRenderer;
@@ -34,6 +36,7 @@ import com.github.rinde.rinsim.ui.renderers.RoadUserRenderer;
  * Tests the {@link TimeLinePanel}.
  * @author Rinde van Lon
  */
+@Category(GuiTests.class)
 public class TimeLinePanelTest {
 
   /**
