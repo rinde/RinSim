@@ -22,21 +22,23 @@ import javax.annotation.Nullable;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.GC;
 
-import com.github.rinde.rinsim.core.model.ModelProvider;
-import com.github.rinde.rinsim.core.model.pdp.DefaultPDPModel;
+import com.github.rinde.rinsim.core.model.DependencyProvider;
+import com.github.rinde.rinsim.core.model.Model.AbstractModel;
+import com.github.rinde.rinsim.core.model.ModelBuilder.AbstractModelBuilder;
+import com.github.rinde.rinsim.core.model.pdp.PDPModel;
 import com.github.rinde.rinsim.core.model.pdp.PDPModel.VehicleState;
 import com.github.rinde.rinsim.core.model.road.RoadModel;
 import com.github.rinde.rinsim.geom.Point;
-import com.github.rinde.rinsim.ui.renderers.ModelRenderer;
+import com.github.rinde.rinsim.ui.renderers.CanvasRenderer;
 import com.github.rinde.rinsim.ui.renderers.ViewPort;
 import com.github.rinde.rinsim.ui.renderers.ViewRect;
-import com.google.common.base.Optional;
+import com.google.auto.value.AutoValue;
 
 /**
- * @author Rinde van Lon 
- * 
+ * @author Rinde van Lon
+ *
  */
-public class TaxiRenderer implements ModelRenderer {
+public class TaxiRenderer extends AbstractModel<Void> implements CanvasRenderer {
 
   enum Language {
     DUTCH("INSTAPPEN", "UITSTAPPEN"), ENGLISH("EMBARK", "DISEMBARK");
@@ -50,20 +52,14 @@ public class TaxiRenderer implements ModelRenderer {
     }
   }
 
-  Optional<RoadModel> rm;
-  Optional<DefaultPDPModel> pm;
-  Language lang;
+  final RoadModel rm;
+  final PDPModel pm;
+  final Language lang;
 
-  TaxiRenderer(Language l) {
+  TaxiRenderer(RoadModel r, PDPModel p, Language l) {
     lang = l;
-    rm = Optional.absent();
-    pm = Optional.absent();
-  }
-
-  @Override
-  public void registerModelProvider(ModelProvider mp) {
-    rm = Optional.fromNullable(mp.tryGetModel(RoadModel.class));
-    pm = Optional.fromNullable(mp.tryGetModel(DefaultPDPModel.class));
+    rm = r;
+    pm = p;
   }
 
   @Override
@@ -71,17 +67,17 @@ public class TaxiRenderer implements ModelRenderer {
 
   @Override
   public void renderDynamic(GC gc, ViewPort vp, long time) {
-    final Set<Taxi> taxis = rm.get().getObjectsOfType(Taxi.class);
+    final Set<Taxi> taxis = rm.getObjectsOfType(Taxi.class);
     synchronized (taxis) {
       for (final Taxi t : taxis) {
-        final Point p = rm.get().getPosition(t);
+        final Point p = rm.getPosition(t);
         final int x = vp.toCoordX(p.x) - 5;
         final int y = vp.toCoordY(p.y) - 30;
 
-        final VehicleState vs = pm.get().getVehicleState(t);
+        final VehicleState vs = pm.getVehicleState(t);
 
         String text = null;
-        final int size = (int) pm.get().getContentsSize(t);
+        final int size = (int) pm.getContentsSize(t);
         if (vs == VehicleState.DELIVERING) {
           text = lang.disembark;
         } else if (vs == VehicleState.PICKING_UP) {
@@ -94,12 +90,12 @@ public class TaxiRenderer implements ModelRenderer {
           final org.eclipse.swt.graphics.Point extent = gc.textExtent(text);
 
           gc.setBackground(gc.getDevice().getSystemColor(SWT.COLOR_DARK_BLUE));
-          gc.fillRoundRectangle(x - (extent.x / 2), y - (extent.y / 2),
-              extent.x + 2, extent.y + 2, 5, 5);
+          gc.fillRoundRectangle(x - extent.x / 2, y - extent.y / 2,
+            extent.x + 2, extent.y + 2, 5, 5);
           gc.setForeground(gc.getDevice().getSystemColor(SWT.COLOR_WHITE));
 
-          gc.drawText(text, x - (extent.x / 2) + 1, y - (extent.y / 2) + 1,
-              true);
+          gc.drawText(text, x - extent.x / 2 + 1, y - extent.y / 2 + 1,
+            true);
         }
       }
     }
@@ -109,5 +105,37 @@ public class TaxiRenderer implements ModelRenderer {
   @Override
   public ViewRect getViewRect() {
     return null;
+  }
+
+  @Override
+  public boolean register(Void element) {
+    return false;
+  }
+
+  @Override
+  public boolean unregister(Void element) {
+    return false;
+  }
+
+  static Builder builder(Language l) {
+    return new AutoValue_TaxiRenderer_Builder(l);
+  }
+
+  @AutoValue
+  abstract static class Builder extends
+    AbstractModelBuilder<TaxiRenderer, Void> {
+
+    Builder() {
+      setDependencies(RoadModel.class, PDPModel.class);
+    }
+
+    abstract Language language();
+
+    @Override
+    public TaxiRenderer build(DependencyProvider dependencyProvider) {
+      final RoadModel rm = dependencyProvider.get(RoadModel.class);
+      final PDPModel pm = dependencyProvider.get(PDPModel.class);
+      return new TaxiRenderer(rm, pm, language());
+    }
   }
 }

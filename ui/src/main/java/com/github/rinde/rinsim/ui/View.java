@@ -60,18 +60,20 @@ import com.google.common.collect.ImmutableSet;
  * @author Bartosz Michalik
  * @since 2.0
  */
-public final class View extends AbstractModel<Void> implements TickListener,
-  UserInterface {
+public final class View extends AbstractModel<Void> implements
+  TickListener, UserInterface, MainView {
 
   final Builder builder;
   final ClockController clockController;
   final Shell shell;
   final Display display;
+  final Set<Listener> listeners;
 
   View(Builder b, ClockController cc) {
     builder = b;
     clockController = cc;
 
+    listeners = new LinkedHashSet<>();
     Display.setAppName("RinSim");
     final Display d = builder.display != null ? builder.display : Display
       .getCurrent();
@@ -144,6 +146,9 @@ public final class View extends AbstractModel<Void> implements TickListener,
   @Override
   public void show() {
     shell.open();
+    for (final Listener l : listeners) {
+      l.handleEvent(new Event(EventType.SHOW, this));
+    }
     if (!builder.async) {
       while (!shell.isDisposed()) {
         if (!display.readAndDispatch()) {
@@ -154,6 +159,7 @@ public final class View extends AbstractModel<Void> implements TickListener,
         clockController.stop();
       }
     }
+
   }
 
   @Override
@@ -177,12 +183,20 @@ public final class View extends AbstractModel<Void> implements TickListener,
   }
 
   @Override
+  public void addListener(Listener l) {
+    listeners.add(l);
+  }
+
+  @Override
   public <U> U get(Class<U> clazz) {
     if (clazz == Shell.class) {
       return clazz.cast(shell);
     }
     if (clazz == Device.class || clazz == Display.class) {
       return clazz.cast(shell.getDisplay());
+    }
+    if (clazz == MainView.class) {
+      return clazz.cast(this);
     }
     throw new IllegalArgumentException("Unknown type: " + clazz);
   }
@@ -229,7 +243,8 @@ public final class View extends AbstractModel<Void> implements TickListener,
 
     Builder() {
       setDependencies(ClockController.class);
-      setProvidingTypes(Shell.class, Device.class, Display.class);
+      setProvidingTypes(Shell.class, Device.class, Display.class,
+        MainView.class);
       autoPlay = false;
       autoClose = false;
       allowResize = true;
@@ -451,4 +466,13 @@ public final class View extends AbstractModel<Void> implements TickListener,
         .build();
     }
   }
+
+}
+
+interface MainView {
+  enum EventType {
+    SHOW;
+  }
+
+  void addListener(Listener l);
 }

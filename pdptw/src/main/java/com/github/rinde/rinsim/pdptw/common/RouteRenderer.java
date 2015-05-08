@@ -23,8 +23,9 @@ import javax.annotation.Nullable;
 
 import org.eclipse.swt.graphics.GC;
 
-import com.github.rinde.rinsim.core.model.ModelProvider;
-import com.github.rinde.rinsim.core.model.ModelReceiver;
+import com.github.rinde.rinsim.core.model.DependencyProvider;
+import com.github.rinde.rinsim.core.model.Model.AbstractModel;
+import com.github.rinde.rinsim.core.model.ModelBuilder.AbstractModelBuilder;
 import com.github.rinde.rinsim.core.model.pdp.PDPModel;
 import com.github.rinde.rinsim.core.model.road.RoadModel;
 import com.github.rinde.rinsim.core.pdptw.DefaultParcel;
@@ -32,26 +33,24 @@ import com.github.rinde.rinsim.geom.Point;
 import com.github.rinde.rinsim.ui.renderers.CanvasRenderer;
 import com.github.rinde.rinsim.ui.renderers.ViewPort;
 import com.github.rinde.rinsim.ui.renderers.ViewRect;
-import com.google.common.base.Optional;
+import com.google.auto.value.AutoValue;
 import com.google.common.collect.ImmutableList;
 
 /**
  * A renderer that draws the route for any {@link RouteFollowingVehicle}s that
  * exist in the {@link RoadModel}.
- * 
- * @author Rinde van Lon 
+ *
+ * @author Rinde van Lon
  */
-public class RouteRenderer implements CanvasRenderer, ModelReceiver {
+public class RouteRenderer extends AbstractModel<Void> implements
+  CanvasRenderer {
 
-  Optional<RoadModel> rm;
-  Optional<PDPModel> pm;
+  RoadModel roadModel;
+  PDPModel pdpModel;
 
-  /**
-   * Create a new route renderer.
-   */
-  public RouteRenderer() {
-    rm = Optional.absent();
-    pm = Optional.absent();
+  RouteRenderer(RoadModel rm, PDPModel pm) {
+    roadModel = rm;
+    pdpModel = pm;
   }
 
   @Override
@@ -59,18 +58,18 @@ public class RouteRenderer implements CanvasRenderer, ModelReceiver {
 
   @Override
   public void renderDynamic(GC gc, ViewPort vp, long time) {
-    final Set<RouteFollowingVehicle> vehicles = rm.get().getObjectsOfType(
-        RouteFollowingVehicle.class);
+    final Set<RouteFollowingVehicle> vehicles = roadModel.getObjectsOfType(
+      RouteFollowingVehicle.class);
     for (final RouteFollowingVehicle v : vehicles) {
       final Set<DefaultParcel> seen = newHashSet();
-      final Point from = rm.get().getPosition(v);
+      final Point from = roadModel.getPosition(v);
       int prevX = vp.toCoordX(from.x);
       int prevY = vp.toCoordY(from.y);
 
       for (final DefaultParcel parcel : ImmutableList.copyOf(v.getRoute())) {
         Point to;
-        if (pm.get().getParcelState(parcel).isPickedUp()
-            || seen.contains(parcel)) {
+        if (pdpModel.getParcelState(parcel).isPickedUp()
+          || seen.contains(parcel)) {
           to = parcel.dto.deliveryLocation;
         } else {
           to = parcel.dto.pickupLocation;
@@ -93,8 +92,39 @@ public class RouteRenderer implements CanvasRenderer, ModelReceiver {
   }
 
   @Override
-  public void registerModelProvider(ModelProvider mp) {
-    rm = Optional.fromNullable(mp.tryGetModel(RoadModel.class));
-    pm = Optional.fromNullable(mp.tryGetModel(PDPModel.class));
+  public boolean register(Void element) {
+    return false;
+  }
+
+  @Override
+  public boolean unregister(Void element) {
+    return false;
+  }
+
+  /**
+   * @return A new {@link Builder} instance.
+   */
+  public static Builder builder() {
+    return new AutoValue_RouteRenderer_Builder();
+  }
+
+  /**
+   * Builder for {@link RouteRenderer}.
+   * @author Rinde van Lon
+   */
+  @AutoValue
+  public abstract static class Builder extends
+    AbstractModelBuilder<RouteRenderer, Void> {
+
+    Builder() {
+      setDependencies(RoadModel.class, PDPModel.class);
+    }
+
+    @Override
+    public RouteRenderer build(DependencyProvider dependencyProvider) {
+      final RoadModel rm = dependencyProvider.get(RoadModel.class);
+      final PDPModel pm = dependencyProvider.get(PDPModel.class);
+      return new RouteRenderer(rm, pm);
+    }
   }
 }

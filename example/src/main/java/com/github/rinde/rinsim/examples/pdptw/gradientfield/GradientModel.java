@@ -165,6 +165,11 @@ public class GradientModel extends AbstractModel<FieldEmitter> implements
     maxY = bs.get(1).y;
   }
 
+  @Override
+  public <U> U get(Class<U> clazz) {
+    return clazz.cast(this);
+  }
+
   static Builder builder() {
     return new AutoValue_GradientModel_Builder();
   }
@@ -172,6 +177,11 @@ public class GradientModel extends AbstractModel<FieldEmitter> implements
   @AutoValue
   abstract static class Builder extends
     AbstractModelBuilder<GradientModel, FieldEmitter> {
+
+    Builder() {
+      setProvidingTypes(GradientModel.class);
+    }
+
     @Override
     public GradientModel build(DependencyProvider dependencyProvider) {
       return new GradientModel();

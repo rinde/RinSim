@@ -98,7 +98,6 @@ final class SimulationViewer extends Composite implements TickListener,
   private static final int MAX_ZOOM_LEVEL = 16;
 
   boolean firstTime = true;
-  // final Simulator simulator;
   final ClockController clock;
   @Nullable
   ViewRect viewRect;
@@ -148,23 +147,22 @@ final class SimulationViewer extends Composite implements TickListener,
     rawRenderers = vb.rendererList;
     renderers = new ArrayList<>();
     panelRenderers = new ArrayList<>();
-    final Multimap<Integer, PanelRenderer> panels = LinkedHashMultimap.create();
-
-    for (final Object o : rawRenderers) {
-      if (o instanceof PanelRenderer) {
-        panels.put(((PanelRenderer) o).getPreferredPosition(),
-          (PanelRenderer) o);
-      }
-    }
-    panelRenderers.addAll(panels.values());
 
     speedUp = vb.speedUp;
     shell.setLayout(new FillLayout());
     display = shell.getDisplay();
     setLayout(new FillLayout());
 
-    panelsLayout(panels);
     createMenu(shell);
+  }
+
+  void show() {
+    final Multimap<Integer, PanelRenderer> panels = LinkedHashMultimap
+      .create();
+    for (final PanelRenderer pr : panelRenderers) {
+      panels.put(pr.getPreferredPosition(), pr);
+    }
+    panelsLayout(panels);
   }
 
   void panelsLayout(Multimap<Integer, PanelRenderer> panels) {
@@ -244,23 +242,6 @@ final class SimulationViewer extends Composite implements TickListener,
       }
     }
     return prefSize;
-  }
-
-  void configureModelRenderers() {
-
-    for (final Object r : rawRenderers) {
-      if (r instanceof ModelReceiver) {
-        ((ModelReceiver) r).registerModelProvider(modelProvider);
-      }
-
-      if (r instanceof CanvasRenderer) {
-        renderers.add((CanvasRenderer) r);
-      }
-
-      if (r instanceof TickListener) {
-        simulator.register(r);
-      }
-    }
   }
 
   /**
@@ -477,7 +458,6 @@ final class SimulationViewer extends Composite implements TickListener,
 
     final boolean wasFirstTime = firstTime;
     if (firstTime) {
-      configureModelRenderers();
       calculateSizes();
       firstTime = false;
     }
@@ -702,7 +682,8 @@ final class SimulationViewer extends Composite implements TickListener,
 
     Builder(View.Builder vb) {
       viewBuilder = vb;
-      setDependencies(Shell.class, ClockController.class, SimulatorAPI.class);
+      setDependencies(Shell.class, ClockController.class, SimulatorAPI.class,
+        MainView.class);
     }
 
     @Override
@@ -710,7 +691,16 @@ final class SimulationViewer extends Composite implements TickListener,
       final Shell shell = dependencyProvider.get(Shell.class);
       final ClockController cc = dependencyProvider.get(ClockController.class);
       final SimulatorAPI sim = dependencyProvider.get(SimulatorAPI.class);
-      return new SimulationViewer(shell, cc, sim, viewBuilder);
+      final MainView mv = dependencyProvider.get(MainView.class);
+      final SimulationViewer sv = new SimulationViewer(shell, cc, sim,
+        viewBuilder);
+      mv.addListener(new com.github.rinde.rinsim.event.Listener() {
+        @Override
+        public void handleEvent(com.github.rinde.rinsim.event.Event e) {
+          sv.show();
+        }
+      });
+      return sv;
     }
   }
 }

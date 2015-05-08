@@ -68,7 +68,12 @@ public final class FactoryExample {
 
   private FactoryExample() {}
 
-  public static void main(String[] args) {
+  /**
+   * Starts the example.
+   * @param args One optional argument specifying the simulation end time is
+   *          supported.
+   */
+  public static void main(@Nullable String[] args) {
     final long endTime = args != null && args.length >= 1 ? Long
       .parseLong(args[0]) : Long.MAX_VALUE;
 
@@ -154,7 +159,7 @@ public final class FactoryExample {
     View.Builder view = View.create()
       .with(GraphRoadModelRenderer.builder()
         .withMargin(CANVAS_MARGIN))
-      .with(new BoxRenderer())
+      .with(BoxRenderer.builder())
       .with(
         RoadUserRenderer.builder()
           .withImageAssociation(AGV.class, "/graphics/flat/forklift2.png")

@@ -62,8 +62,8 @@ public final class GradientFieldExample {
         .withImageAssociation(
           GFParcel.class, "/graphics/flat/hailing-cab-32.png")
       )
-      .with(new GradientFieldRenderer())
-      .with(new RouteRenderer())
+      .with(GradientFieldRenderer.builder())
+      .with(RouteRenderer.builder())
       .with(PDPModelRenderer.builder());
 
     if (testing) {
