@@ -28,7 +28,13 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.MenuItem;
 
-public class UITestTools {
+/**
+ * Test tools for SWT UIs.
+ * @author Rinde van Lon
+ */
+public final class UITestTools {
+
+  private UITestTools() {}
 
   /**
    * @return The {@link Display} object if it exists, <code>null</code>
@@ -79,7 +85,7 @@ public class UITestTools {
               }
             }
             for (final MenuItem menu : d.getShells()[0].getMenuBar()
-                .getItems()) {
+              .getItems()) {
               if (menu.getText().contains("Control")) {
                 for (final MenuItem m : menu.getMenu().getItems()) {
                   if (m.getText().contains("Play")) {
@@ -99,20 +105,24 @@ public class UITestTools {
           }
 
           d.syncExec(
-              new Runnable() {
-                @Override
-                public void run() {
-                  d.getShells()[0].close();
-                }
-              });
+            new Runnable() {
+              @Override
+              public void run() {
+                d.getShells()[0].close();
+              }
+            });
         }
       }
     });
   }
 
+  /**
+   * Closes the currently active shell after a specified number of ms.
+   * @param delay The time to wait before closing.
+   */
   public static void closeActiveShell(long delay) {
     final ScheduledExecutorService scheduler = Executors
-        .newScheduledThreadPool(1);
+      .newScheduledThreadPool(1);
     scheduler.schedule(new Runnable() {
       @Override
       public void run() {
@@ -121,15 +131,18 @@ public class UITestTools {
     }, delay, TimeUnit.MILLISECONDS);
   }
 
+  /**
+   * Closes the currently active shell.
+   */
   public static void closeActiveShell() {
     final Display disp = findDisplay();
     checkState(disp != null);
     disp.syncExec(
-        new Runnable() {
-          @Override
-          public void run() {
-            disp.getShells()[0].close();
-          }
-        });
+      new Runnable() {
+        @Override
+        public void run() {
+          disp.getShells()[0].close();
+        }
+      });
   }
 }

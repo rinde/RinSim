@@ -34,7 +34,6 @@ import com.github.rinde.rinsim.geom.Point;
 import com.github.rinde.rinsim.testutil.GuiTests;
 import com.github.rinde.rinsim.ui.renderers.PlaneRoadModelRenderer;
 import com.github.rinde.rinsim.ui.renderers.RoadUserRenderer;
-import com.github.rinde.rinsim.ui.renderers.TestRenderer;
 
 /**
  * Test for {@link View}.
@@ -56,7 +55,7 @@ public class ViewTest {
         .enableAutoPlay()
         .stopSimulatorAtTime(10000)
         .with(PlaneRoadModelRenderer.builder())
-        .with(new TestRenderer())
+        .with(TestRenderer.builder())
       )
       .build();
 

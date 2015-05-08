@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.github.rinde.rinsim.ui.renderers;
+package com.github.rinde.rinsim.ui;
 
 import java.util.List;
 
@@ -21,18 +21,22 @@ import javax.annotation.Nullable;
 
 import org.eclipse.swt.graphics.GC;
 
-import com.github.rinde.rinsim.core.model.ModelProvider;
+import com.github.rinde.rinsim.core.model.DependencyProvider;
+import com.github.rinde.rinsim.core.model.Model.AbstractModel;
+import com.github.rinde.rinsim.core.model.ModelBuilder.AbstractModelBuilder;
 import com.github.rinde.rinsim.core.model.road.RoadModel;
 import com.github.rinde.rinsim.geom.Point;
-import com.google.common.base.Optional;
+import com.github.rinde.rinsim.ui.renderers.CanvasRenderer;
+import com.github.rinde.rinsim.ui.renderers.ViewPort;
+import com.github.rinde.rinsim.ui.renderers.ViewRect;
+import com.google.auto.value.AutoValue;
 
-public class TestRenderer implements ModelRenderer {
+class TestRenderer extends AbstractModel<Void> implements CanvasRenderer {
 
-  Optional<RoadModel> roadModel;
+  RoadModel roadModel;
 
-  @Override
-  public void registerModelProvider(ModelProvider mp) {
-    roadModel = Optional.fromNullable(mp.tryGetModel(RoadModel.class));
+  TestRenderer(RoadModel rm) {
+    roadModel = rm;
   }
 
   @Override
@@ -40,7 +44,7 @@ public class TestRenderer implements ModelRenderer {
 
   @Override
   public void renderDynamic(GC gc, ViewPort vp, long time) {
-    final List<Point> bounds = roadModel.get().getBounds();
+    final List<Point> bounds = roadModel.getBounds();
 
     gc.drawLine(vp.toCoordX(bounds.get(0).x), vp.toCoordY(bounds.get(0).y),
       vp.toCoordX(bounds.get(1).x), vp.toCoordY(bounds.get(1).y));
@@ -56,4 +60,31 @@ public class TestRenderer implements ModelRenderer {
     return null;
   }
 
+  @Override
+  public boolean register(Void element) {
+    return false;
+  }
+
+  @Override
+  public boolean unregister(Void element) {
+    return false;
+  }
+
+  static Builder builder() {
+    return new AutoValue_TestRenderer_Builder();
+  }
+
+  @AutoValue
+  static abstract class Builder extends
+    AbstractModelBuilder<TestRenderer, Void> {
+
+    Builder() {
+      setDependencies(RoadModel.class);
+    }
+
+    @Override
+    public TestRenderer build(DependencyProvider dependencyProvider) {
+      return new TestRenderer(dependencyProvider.get(RoadModel.class));
+    }
+  }
 }
