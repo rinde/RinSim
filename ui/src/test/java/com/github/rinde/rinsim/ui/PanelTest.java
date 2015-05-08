@@ -81,9 +81,9 @@ public final class PanelTest {
               .withPosition(SWT.LEFT)
               .withSize(150)
           )
-          .enableAutoPlay()
-          .enableAutoClose()
-          .stopSimulatorAtTime(10000)
+          .withAutoPlay()
+          .withAutoClose()
+          .withSimulatorEndTime(10000)
       )
       .build();
 

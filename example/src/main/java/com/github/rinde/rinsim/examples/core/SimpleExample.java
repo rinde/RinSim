@@ -71,10 +71,10 @@ public final class SimpleExample {
       final int speedUp = 16;
       final long simulatorStopTime = 10 * 60 * 1000;
       viewBuilder = viewBuilder
-        .setSpeedUp(speedUp)
-        .enableAutoClose()
-        .enableAutoPlay()
-        .stopSimulatorAtTime(simulatorStopTime);
+        .withSpeedUp(speedUp)
+        .withAutoClose()
+        .withAutoPlay()
+        .withSimulatorEndTime(simulatorStopTime);
     }
 
     // initialize a new Simulator instance

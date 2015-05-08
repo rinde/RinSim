@@ -207,9 +207,9 @@ public class Gendreau06Test {
           .with(PlaneRoadModelRenderer.builder())
           .with(RoadUserRenderer.builder())
           .with(PDPModelRenderer.builder())
-          .setSpeedUp(50)
-          .enableAutoClose()
-          .enableAutoPlay()
+          .withSpeedUp(50)
+          .withAutoClose()
+          .withAutoPlay()
         )
       :
       ImmutableList.<ModelBuilder<?, ?>> of();

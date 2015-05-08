@@ -56,9 +56,9 @@ public class PDPModelRendererTest {
         .with(PDPModelRenderer.builder()
           .withDestinationLines()
         )
-        .enableAutoPlay()
-        .enableAutoClose()
-        .stopSimulatorAtTime(10000)
+        .withAutoPlay()
+        .withAutoClose()
+        .withSimulatorEndTime(10000)
       )
       .build();
 

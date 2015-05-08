@@ -164,22 +164,22 @@ public final class FactoryExample {
         RoadUserRenderer.builder()
           .withImageAssociation(AGV.class, "/graphics/flat/forklift2.png")
       )
-      .setTitleAppendix("Factory Demo")
-      .enableAutoPlay()
-      .enableAutoClose()
-      .setSpeedUp(4);
+      .withTitleAppendix("Factory Demo")
+      .withAutoPlay()
+      .withAutoClose()
+      .withSpeedUp(4);
 
     if (m != null) {
-      view = view.displayOnMonitor(m)
-        .setResolution(m.getClientArea().width, m.getClientArea().height)
-        .setDisplay(display);
+      view = view.withMonitor(m)
+        .withResolution(m.getClientArea().width, m.getClientArea().height)
+        .withDisplay(display);
 
       if (list != null) {
-        view = view.setCallback(list)
-          .setAsync();
+        view = view.withCallback(list)
+          .withAsync();
       }
       else {
-        view = view.setFullScreen();
+        view = view.withFullScreen();
       }
     }
 

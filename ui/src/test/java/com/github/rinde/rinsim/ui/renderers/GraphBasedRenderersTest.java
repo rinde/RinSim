@@ -79,10 +79,10 @@ public class GraphBasedRenderersTest {
             .withMargin(1)
             .withNodeCircles()
           )
-          .enableAutoPlay()
-          .stopSimulatorAtTime(300 * 1000L)
-          .enableAutoClose()
-          .setSpeedUp(8)
+          .withAutoPlay()
+          .withSimulatorEndTime(300 * 1000L)
+          .withAutoClose()
+          .withSpeedUp(8)
       )
 
       .build();

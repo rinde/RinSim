@@ -62,9 +62,9 @@ public class RepetitiousGUITest {
             .with(PlaneRoadModelRenderer.builder())
             .with(RoadUserRenderer.builder())
             .with(PDPModelRenderer.builder())
-            .setSpeedUp(50)
-            .enableAutoClose()
-            .enableAutoPlay()
+            .withSpeedUp(50)
+            .withAutoClose()
+            .withAutoPlay()
           ),
         ImmutableMap.<Class<?>, TimedEventHandler<?>> of(AddVehicleEvent.class,
           new TimedEventHandler<AddVehicleEvent>() {

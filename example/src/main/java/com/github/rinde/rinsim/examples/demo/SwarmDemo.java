@@ -74,7 +74,7 @@ public final class SwarmDemo {
           .with(PlaneRoadModelRenderer.builder())
           .with(VehicleRenderer.builder())
           .with(DemoPanel.builder(string))
-          .setSpeedUp(8)
+          .withSpeedUp(8)
       )
       .build();
 

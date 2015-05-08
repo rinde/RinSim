@@ -119,23 +119,23 @@ public final class TaxiExample {
           Customer.class, "/graphics/flat/person-red-32.png")
       )
       .with(TaxiRenderer.builder(Language.ENGLISH))
-      .setTitleAppendix("Taxi Demo");
+      .withTitleAppendix("Taxi Demo");
 
     if (testing) {
-      view = view.enableAutoClose()
-        .enableAutoPlay()
-        .stopSimulatorAtTime(20 * 60 * 1000)
-        .setSpeedUp(64);
+      view = view.withAutoClose()
+        .withAutoPlay()
+        .withSimulatorEndTime(20 * 60 * 1000)
+        .withSpeedUp(64);
     }
     else if (m != null && list != null && display != null) {
-      view = view.displayOnMonitor(m)
-        .setSpeedUp(4)
-        .setResolution(m.getClientArea().width, m.getClientArea().height)
-        .setDisplay(display)
-        .setCallback(list)
-        .setAsync()
-        .enableAutoPlay()
-        .enableAutoClose();
+      view = view.withMonitor(m)
+        .withSpeedUp(4)
+        .withResolution(m.getClientArea().width, m.getClientArea().height)
+        .withDisplay(display)
+        .withCallback(list)
+        .withAsync()
+        .withAutoPlay()
+        .withAutoClose();
     }
 
     // use map of leuven

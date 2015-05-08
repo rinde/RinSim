@@ -67,10 +67,10 @@ public final class CommExample {
         .withMessageCount());
 
     if (testing) {
-      viewBuilder = viewBuilder.setSpeedUp(TEST_SPEEDUP)
-        .enableAutoClose()
-        .enableAutoPlay()
-        .stopSimulatorAtTime(TEST_STOP_TIME);
+      viewBuilder = viewBuilder.withSpeedUp(TEST_SPEEDUP)
+        .withAutoClose()
+        .withAutoPlay()
+        .withSimulatorEndTime(TEST_STOP_TIME);
     }
 
     final Simulator sim = Simulator.builder()

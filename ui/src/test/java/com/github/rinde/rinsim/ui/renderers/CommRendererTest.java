@@ -63,10 +63,10 @@ public class CommRendererTest {
             .withMessageCount()
           )
           .with(PlaneRoadModelRenderer.builder())
-          .enableAutoPlay()
-          .enableAutoClose()
-          .setSpeedUp(10)
-          .stopSimulatorAtTime(1000 * 60 * 5)
+          .withAutoPlay()
+          .withAutoClose()
+          .withSpeedUp(10)
+          .withSimulatorEndTime(1000 * 60 * 5)
       )
       .build();
 

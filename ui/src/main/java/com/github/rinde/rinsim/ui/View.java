@@ -254,7 +254,7 @@ public final class View extends AbstractModel<Void> implements
     /**
      * Adds the specified builder of a {@link Renderer}.
      * @param builder The builder to add.
-     * @return This, as per the builder pattern.
+     * @return A new builder instance.
      */
     @CheckReturnValue
     public Builder with(ModelBuilder<? extends Renderer, ?> builder) {
@@ -270,10 +270,10 @@ public final class View extends AbstractModel<Void> implements
     /**
      * When <i>auto play</i> is enabled the {@link Simulator} will be started
      * directly when {@link #show()} is called. Default: <code>disabled</code>.
-     * @return This as per the builder pattern.
+     * @return A new builder instance.
      */
     @CheckReturnValue
-    public Builder enableAutoPlay() {
+    public Builder withAutoPlay() {
       return create(
         renderers(),
         Sets.immutableEnumSet(ViewOption.AUTO_PLAY,
@@ -286,10 +286,10 @@ public final class View extends AbstractModel<Void> implements
      * When <i>auto close</i> is enabled the view will be closed as soon as the
      * {@link Simulator} is stopped. This is useful for creating automated GUIs.
      * Default: <code>disabled</code>.
-     * @return This as per the builder pattern.
+     * @return A new builder instance.
      */
     @CheckReturnValue
-    public Builder enableAutoClose() {
+    public Builder withAutoClose() {
       return create(
         renderers(),
         Sets.immutableEnumSet(ViewOption.AUTO_CLOSE,
@@ -301,10 +301,10 @@ public final class View extends AbstractModel<Void> implements
     /**
      * Stops the simulator at the specified time.
      * @param simulationTime The time to stop, must be positive.
-     * @return This as per the builder pattern.
+     * @return A new builder instance.
      */
     @CheckReturnValue
-    public Builder stopSimulatorAtTime(long simulationTime) {
+    public Builder withSimulatorEndTime(long simulationTime) {
       checkArgument(simulationTime > 0);
       return create(renderers(), viewOptions(), accelerators(), speedUp(),
         simulationTime,
@@ -315,10 +315,10 @@ public final class View extends AbstractModel<Void> implements
      * Speed up defines the simulation time between two respective GUI draw
      * operations. Default: <code>1</code>.
      * @param speed The speed to use.
-     * @return This as per the builder pattern.
+     * @return A new builder instance.
      */
     @CheckReturnValue
-    public Builder setSpeedUp(int speed) {
+    public Builder withSpeedUp(int speed) {
       return create(renderers(), viewOptions(), accelerators(), speed,
         stopTime(), title(), screenSize(), callback(), monitor(), display());
     }
@@ -327,10 +327,10 @@ public final class View extends AbstractModel<Void> implements
      * Should be used in case there is already an SWT application running that
      * was launched from the same VM as the current GUI that is created.
      * @param d The existing {@link Display} to use as display for the view.
-     * @return This as per the builder pattern.
+     * @return A new builder instance.
      */
     @CheckReturnValue
-    public Builder setDisplay(Display d) {
+    public Builder withDisplay(Display d) {
       return create(renderers(), viewOptions(), accelerators(), speedUp(),
         stopTime(), title(), screenSize(), callback(), monitor(),
         Optional.of(d));
@@ -340,10 +340,10 @@ public final class View extends AbstractModel<Void> implements
      * Changes the title appendix of the view. The default title is <i>RinSim -
      * Simulator</i>, the title appendix is everything after the dash.
      * @param titleAppendix The new appendix to use.
-     * @return This as per the builder pattern.
+     * @return A new builder instance.
      */
     @CheckReturnValue
-    public Builder setTitleAppendix(String titleAppendix) {
+    public Builder withTitleAppendix(String titleAppendix) {
       return create(renderers(), viewOptions(), accelerators(), speedUp(),
         stopTime(), titleAppendix, screenSize(), callback(), monitor(),
         display());
@@ -352,10 +352,10 @@ public final class View extends AbstractModel<Void> implements
     /**
      * Don't allow the user to resize the application window. Default:
      * <i>allowed</i>.
-     * @return This as per the builder pattern.
+     * @return A new builder instance.
      */
     @CheckReturnValue
-    public Builder disallowResizing() {
+    public Builder withNoResizing() {
       return create(
         renderers(),
         Sets.immutableEnumSet(ViewOption.DISALLOW_RESIZE,
@@ -365,11 +365,12 @@ public final class View extends AbstractModel<Void> implements
     }
 
     /**
-     * This takes precedence over any calls to {@link #setResolution(int, int)}.
-     * @return This, as per the builder pattern.
+     * This takes precedence over any calls to {@link #withResolution(int, int)}
+     * .
+     * @return A new builder instance.
      */
     @CheckReturnValue
-    public Builder setFullScreen() {
+    public Builder withFullScreen() {
       return create(
         renderers(),
         Sets.immutableEnumSet(ViewOption.FULL_SCREEN,
@@ -383,10 +384,10 @@ public final class View extends AbstractModel<Void> implements
      * {@link #DEFAULT_WINDOW_SIZE}.
      * @param width The new width to use.
      * @param height The new height to use.
-     * @return This, as per the builder pattern.
+     * @return A new builder instance.
      */
     @CheckReturnValue
-    public Builder setResolution(int width, int height) {
+    public Builder withResolution(int width, int height) {
       checkArgument(width > 0 && height > 0,
         "Only positive dimensions are allowed, input: %s x %s.", width,
         height);
@@ -400,10 +401,10 @@ public final class View extends AbstractModel<Void> implements
      * method is not called SWT decides where the screen is positioned, usually
      * on the primary monitor.
      * @param m The monitor.
-     * @return This, as per the builder pattern.
+     * @return A new builder instance.
      */
     @CheckReturnValue
-    public Builder displayOnMonitor(Monitor m) {
+    public Builder withMonitor(Monitor m) {
       return create(renderers(), viewOptions(), accelerators(), speedUp(),
         stopTime(), title(), screenSize(), callback(), Optional.of(m),
         display());
@@ -417,10 +418,10 @@ public final class View extends AbstractModel<Void> implements
      * a keyboard for the French language is detected (probably using an AZERTY
      * layout), then {@link MenuItems#AZERTY_ACCELERATORS} is used.
      * @param acc The accelerators to set.
-     * @return This, as per the builder pattern.
+     * @return A new builder instance.
      */
     @CheckReturnValue
-    public Builder setAccelerators(Map<MenuItems, Integer> acc) {
+    public Builder withAccelerators(Map<MenuItems, Integer> acc) {
       return create(renderers(), viewOptions(), ImmutableMap.copyOf(acc),
         speedUp(), stopTime(), title(), screenSize(), callback(), monitor(),
         display());
@@ -430,10 +431,10 @@ public final class View extends AbstractModel<Void> implements
      * Sets the view into asynchronous mode. This means that the call to
      * {@link #show()} is non-blocking and will return immediately. By default
      * the {@link #show()} is synchronous.
-     * @return This, as per the builder pattern.
+     * @return A new builder instance.
      */
     @CheckReturnValue
-    public Builder setAsync() {
+    public Builder withAsync() {
       return create(
         renderers(),
         Sets.immutableEnumSet(ViewOption.ASYNC,
@@ -445,10 +446,10 @@ public final class View extends AbstractModel<Void> implements
     /**
      * Allows to register a {@link Listener} for stop events of the simulator.
      * @param l The listener to register, overwrites previous listeners if any.
-     * @return This, as per the builder pattern.
+     * @return A new builder instance.
      */
     @CheckReturnValue
-    public Builder setCallback(Listener l) {
+    public Builder withCallback(Listener l) {
       return create(renderers(), viewOptions(), accelerators(), speedUp(),
         stopTime(), title(), screenSize(), Optional.of(l), monitor(), display());
     }

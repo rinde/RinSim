@@ -50,10 +50,10 @@ public class ViewTest {
     final Simulator sim = Simulator.builder()
       .addModel(RoadModelBuilders.plane())
       .addModel(View.create()
-        .setTitleAppendix("ViewTest")
-        .enableAutoClose()
-        .enableAutoPlay()
-        .stopSimulatorAtTime(10000)
+        .withTitleAppendix("ViewTest")
+        .withAutoClose()
+        .withAutoPlay()
+        .withSimulatorEndTime(10000)
         .with(PlaneRoadModelRenderer.builder())
         .with(TestRenderer.builder())
       )
@@ -77,10 +77,10 @@ public class ViewTest {
       )
       .addModel(
         View.create()
-          .setTitleAppendix("ViewTest")
+          .withTitleAppendix("ViewTest")
           .with(PlaneRoadModelRenderer.builder())
           .with(RoadUserRenderer.builder())
-          .enableAutoPlay()
+          .withAutoPlay()
       )
       .build();
 

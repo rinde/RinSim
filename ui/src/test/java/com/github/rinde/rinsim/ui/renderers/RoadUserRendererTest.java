@@ -49,9 +49,9 @@ public class RoadUserRendererTest {
           .withColorAssociation(Agent3.class, new RGB(255, 200, 0))
           .withCircleAroundObjects()
         )
-        .enableAutoPlay()
-        .enableAutoClose()
-        .stopSimulatorAtTime(10000)
+        .withAutoPlay()
+        .withAutoClose()
+        .withSimulatorEndTime(10000)
       )
       .build();
 

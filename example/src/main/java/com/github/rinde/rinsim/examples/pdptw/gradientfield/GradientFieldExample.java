@@ -67,10 +67,10 @@ public final class GradientFieldExample {
       .with(PDPModelRenderer.builder());
 
     if (testing) {
-      viewBuilder = viewBuilder.enableAutoClose()
-        .enableAutoPlay()
-        .setSpeedUp(64)
-        .stopSimulatorAtTime(20 * 60 * 1000);
+      viewBuilder = viewBuilder.withAutoClose()
+        .withAutoPlay()
+        .withSpeedUp(64)
+        .withSimulatorEndTime(20 * 60 * 1000);
     }
 
     final Gendreau06Scenario scenario = Gendreau06Parser

@@ -77,7 +77,7 @@ public final class FabriRechtExample {
     final DynamicPDPTWProblem problem = new DynamicPDPTWProblem(scenario, 123,
       ImmutableList.<ModelBuilder<?, ?>> of(
         View.create()
-          .enableAutoPlay()
+          .withAutoPlay()
 
         ), m);
 
