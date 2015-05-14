@@ -36,10 +36,10 @@ import com.github.rinde.rinsim.core.model.pdp.DefaultPDPModel;
 import com.github.rinde.rinsim.core.model.pdp.TimeWindowPolicy.TimeWindowPolicies;
 import com.github.rinde.rinsim.core.model.road.RoadModelBuilders;
 import com.github.rinde.rinsim.experiment.ExperimentTest.TestPostProcessor;
-import com.github.rinde.rinsim.pdptw.common.DynamicPDPTWProblem.StopConditions;
 import com.github.rinde.rinsim.pdptw.common.ObjectiveFunction;
 import com.github.rinde.rinsim.pdptw.common.PDPRoadModel;
 import com.github.rinde.rinsim.pdptw.common.StatisticsDTO;
+import com.github.rinde.rinsim.pdptw.common.StatsStopConditions;
 import com.github.rinde.rinsim.pdptw.common.TestObjectiveFunction;
 import com.github.rinde.rinsim.scenario.Scenario;
 import com.github.rinde.rinsim.scenario.ScenarioTestUtil;
@@ -145,7 +145,8 @@ public class JppfTest {
         DefaultPDPModel.builder()
           .withTimeWindowPolicy(TimeWindowPolicies.LIBERAL)
       )
-      .stopCondition(StopConditions.TIME_OUT_EVENT)
+      .addStopCondition(
+        StatsStopConditions.adapt(StatsStopConditions.TIME_OUT_EVENT))
       .build().generate(rng, "hoi");
 
     final Experiment.Builder experimentBuilder = Experiment

@@ -38,6 +38,7 @@ import org.junit.Test;
 import com.github.rinde.rinsim.core.Simulator;
 import com.github.rinde.rinsim.core.SimulatorAPI;
 import com.github.rinde.rinsim.core.model.DependencyProvider;
+import com.github.rinde.rinsim.core.model.time.Clock;
 import com.github.rinde.rinsim.core.model.time.ClockController;
 import com.github.rinde.rinsim.core.model.time.TickListener;
 import com.github.rinde.rinsim.core.model.time.TimeLapse;
@@ -47,6 +48,7 @@ import com.github.rinde.rinsim.event.EventAPI;
 import com.github.rinde.rinsim.event.Listener;
 import com.github.rinde.rinsim.event.ListenerEventHistory;
 import com.github.rinde.rinsim.testutil.TestUtil;
+import com.google.common.base.Predicates;
 
 /**
  * Tests for {@link ScenarioController}.
@@ -90,6 +92,7 @@ public class ScenarioControllerTest {
 
     dependencyProvider = mock(DependencyProvider.class);
     when(dependencyProvider.get(ClockController.class)).thenReturn(clock);
+    when(dependencyProvider.get(Clock.class)).thenReturn(clock);
     when(dependencyProvider.get(SimulatorAPI.class)).thenReturn(sim);
   }
 
@@ -163,6 +166,46 @@ public class ScenarioControllerTest {
     final TimeLapse emptyTime = TimeLapseFactory.create(0, 1);
     emptyTime.consumeAll();
     sc.tick(emptyTime);
+  }
+
+  /**
+   * Test for stop condition.
+   */
+  @Test
+  public void testStopCondition() {
+    Simulator sim = Simulator
+      .builder()
+      .setTickLength(1L)
+      .addModel(
+        ScenarioController
+          .builder(scenario)
+          .withEventHandler(AddParcelEvent.class,
+            new NopHandler<AddParcelEvent>())
+          .withEventHandler(TimedEvent.class, new NopHandler<>())
+          .withStopCondition(
+            StopConditions.adapt(Clock.class, Predicates.<Clock> alwaysTrue())))
+      .build();
+
+    sim.start();
+
+    assertThat(sim.getCurrentTime()).isEqualTo(1L);
+
+    Simulator sim2 = Simulator
+      .builder()
+      .setTickLength(1L)
+      .addModel(
+        ScenarioController
+          .builder(scenario)
+          .withEventHandler(AddParcelEvent.class,
+            new NopHandler<AddParcelEvent>())
+          .withEventHandler(TimedEvent.class, new NopHandler<>())
+          .withStopCondition(StopConditions.limitedTime(100))
+      )
+      .build();
+
+    sim2.start();
+
+    assertThat(sim2.getCurrentTime()).isEqualTo(101L);
   }
 
   /**

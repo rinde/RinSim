@@ -16,7 +16,6 @@
 package com.github.rinde.rinsim.pdptw.common;
 
 import static java.util.Arrays.asList;
-import static org.junit.Assert.assertEquals;
 
 import java.util.List;
 
@@ -25,7 +24,6 @@ import javax.measure.unit.SI;
 
 import org.junit.Test;
 
-import com.github.rinde.rinsim.core.Simulator;
 import com.github.rinde.rinsim.core.SimulatorAPI;
 import com.github.rinde.rinsim.core.model.ModelBuilder;
 import com.github.rinde.rinsim.core.model.pdp.DefaultPDPModel;
@@ -34,14 +32,13 @@ import com.github.rinde.rinsim.core.model.pdp.TimeWindowPolicy.TimeWindowPolicie
 import com.github.rinde.rinsim.core.model.road.RoadModelBuilders;
 import com.github.rinde.rinsim.core.model.time.TimeModel;
 import com.github.rinde.rinsim.geom.Point;
-import com.github.rinde.rinsim.pdptw.common.DynamicPDPTWProblem.StopConditions;
 import com.github.rinde.rinsim.scenario.AddVehicleEvent;
 import com.github.rinde.rinsim.scenario.Scenario;
+import com.github.rinde.rinsim.scenario.StopCondition.StopConditionBuilder;
 import com.github.rinde.rinsim.scenario.TimedEvent;
 import com.github.rinde.rinsim.scenario.TimedEventHandler;
 import com.github.rinde.rinsim.util.TimeWindow;
 import com.google.auto.value.AutoValue;
-import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
@@ -69,35 +66,6 @@ public class DynamicPDPTWProblemTest {
       ImmutableMap.<Class<?>, TimedEventHandler<?>> of()).simulate();
   }
 
-  @Test
-  public void testStopCondition() {
-    final List<TimedEvent> events = asList(new TimedEvent(
-      PDPScenarioEvent.ADD_DEPOT, 10));
-    final DynamicPDPTWProblem prob = new DynamicPDPTWProblem(
-      createDummyScenario(events), 123,
-      ImmutableList.<ModelBuilder<?, ?>> of(),
-      ImmutableMap.<Class<?>, TimedEventHandler<?>> of(AddVehicleEvent.class,
-        DUMMY_ADD_VEHICLE_EVENT_CREATOR));
-
-    prob.addStopCondition(new TimeStopCondition(4));
-    final StatisticsDTO stats = prob.simulate();
-
-    assertEquals(5, stats.simulationTime);
-  }
-
-  class TimeStopCondition implements Predicate<Simulator> {
-    protected final long time;
-
-    public TimeStopCondition(long t) {
-      time = t;
-    }
-
-    @Override
-    public boolean apply(Simulator context) {
-      return DynamicPDPTWProblem.getStats(context).simulationTime == time;
-    }
-  }
-
   static DummyScenario createDummyScenario(List<TimedEvent> events) {
     return new AutoValue_DynamicPDPTWProblemTest_DummyScenario(
       ImmutableList.copyOf(events),
@@ -112,8 +80,9 @@ public class DynamicPDPTWProblemTest {
     }
 
     @Override
-    public StopConditions getStopCondition() {
-      return StopConditions.TIME_OUT_EVENT;
+    public ImmutableSet<StopConditionBuilder> getStopConditions() {
+      return ImmutableSet.of(StatsStopConditions
+        .adapt(StatsStopConditions.TIME_OUT_EVENT));
     }
 
     @Override

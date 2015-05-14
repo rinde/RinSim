@@ -23,21 +23,19 @@ import javax.measure.quantity.Velocity;
 import javax.measure.unit.NonSI;
 import javax.measure.unit.SI;
 
-import com.github.rinde.rinsim.core.Simulator;
 import com.github.rinde.rinsim.core.model.ModelBuilder;
 import com.github.rinde.rinsim.core.model.pdp.DefaultPDPModel;
 import com.github.rinde.rinsim.core.model.pdp.TimeWindowPolicy.TimeWindowPolicies;
 import com.github.rinde.rinsim.core.model.road.RoadModelBuilders;
 import com.github.rinde.rinsim.core.model.time.TimeModel;
 import com.github.rinde.rinsim.geom.Point;
-import com.github.rinde.rinsim.pdptw.common.DynamicPDPTWProblem.StopConditions;
 import com.github.rinde.rinsim.pdptw.common.PDPRoadModel;
+import com.github.rinde.rinsim.pdptw.common.StatsStopConditions;
 import com.github.rinde.rinsim.scenario.Scenario;
+import com.github.rinde.rinsim.scenario.StopCondition.StopConditionBuilder;
 import com.github.rinde.rinsim.scenario.TimedEvent;
 import com.github.rinde.rinsim.util.TimeWindow;
 import com.google.auto.value.AutoValue;
-import com.google.common.base.Predicate;
-import com.google.common.base.Predicates;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 
@@ -82,9 +80,12 @@ public abstract class Gendreau06Scenario extends Scenario {
   }
 
   @Override
-  public Predicate<Simulator> getStopCondition() {
-    return Predicates.and(StopConditions.VEHICLES_DONE_AND_BACK_AT_DEPOT,
-      StopConditions.TIME_OUT_EVENT);
+  public ImmutableSet<StopConditionBuilder> getStopConditions() {
+    return ImmutableSet.of(
+      StatsStopConditions.and(
+        StatsStopConditions.VEHICLES_DONE_AND_BACK_AT_DEPOT,
+        StatsStopConditions.TIME_OUT_EVENT)
+      );
   }
 
   @Override

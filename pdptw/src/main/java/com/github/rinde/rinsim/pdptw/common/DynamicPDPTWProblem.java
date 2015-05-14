@@ -15,19 +15,13 @@
  */
 package com.github.rinde.rinsim.pdptw.common;
 
-import javax.annotation.Nullable;
-
 import com.github.rinde.rinsim.core.Simulator;
 import com.github.rinde.rinsim.core.SimulatorAPI;
 import com.github.rinde.rinsim.core.model.ModelBuilder;
-import com.github.rinde.rinsim.core.model.time.TickListener;
-import com.github.rinde.rinsim.core.model.time.TimeLapse;
 import com.github.rinde.rinsim.scenario.Scenario;
 import com.github.rinde.rinsim.scenario.ScenarioController;
 import com.github.rinde.rinsim.scenario.TimedEvent;
 import com.github.rinde.rinsim.scenario.TimedEventHandler;
-import com.google.common.base.Predicate;
-import com.google.common.base.Predicates;
 import com.google.common.collect.ImmutableMap;
 
 /**
@@ -45,19 +39,11 @@ import com.google.common.collect.ImmutableMap;
  */
 public final class DynamicPDPTWProblem {
 
-  // TODO a StopCondition should be a first class simulator entity
-  // TODO same with ScenarioController, StatsTracker
-
   // TODO stats system should be more modular (per model?) and hook directly in
   // the simulator
 
   // TODO if there can be some generic way to hook custom agents into the
   // simulator/scenario, this class can probably be removed
-
-  /**
-   * The {@link ScenarioController} which is used to play the scenario.
-   */
-  protected final ScenarioController controller;
 
   /**
    * The {@link Simulator} which is used for the simulation.
@@ -68,12 +54,6 @@ public final class DynamicPDPTWProblem {
    * The StatsTracker which is used internally for gathering statistics.
    */
   protected StatsTracker statsTracker;
-
-  /**
-   * The {@link StopConditions} which is used as the condition when the
-   * simulation has to stop.
-   */
-  protected Predicate<Simulator> stopCondition;
 
   /**
    * Create a new problem instance using the specified scenario.
@@ -87,37 +67,17 @@ public final class DynamicPDPTWProblem {
     Iterable<? extends ModelBuilder<?, ?>> models,
     ImmutableMap<Class<?>, TimedEventHandler<?>> m) {
 
-    final int ticks = scen.getTimeWindow().end == Long.MAX_VALUE ? -1
-      : (int) (scen.getTimeWindow().end - scen.getTimeWindow().begin);
-
     final Simulator.Builder simBuilder = Simulator.builder()
       .setRandomSeed(randomSeed)
       .addModels(models)
       .addModel(
         ScenarioController.builder(scen)
           .withEventHandlers(m)
-          .withNumberOfTicks(ticks)
       )
       .addModel(StatsTracker.builder());
 
     simulator = simBuilder.build();
     statsTracker = simulator.getModelProvider().getModel(StatsTracker.class);
-    controller = simulator.getModelProvider()
-      .getModel(ScenarioController.class);
-    stopCondition = scen.getStopCondition();
-
-    simulator.addTickListener(new TickListener() {
-
-      @Override
-      public void tick(TimeLapse timeLapse) {}
-
-      @Override
-      public void afterTick(TimeLapse timeLapse) {
-        if (stopCondition.apply(simulator)) {
-          simulator.stop();
-        }
-      }
-    });
   }
 
   /**
@@ -126,20 +86,7 @@ public final class DynamicPDPTWProblem {
    *         statistics that were gathered up until that moment.
    */
   public StatisticsDTO getStatistics() {
-    return statsTracker.getStatsDTO();
-  }
-
-  /**
-   * Adds a {@link StopConditions} which indicates when the simulation has to
-   * stop. The condition is added in an OR fashion to the predefined stop
-   * condition of the scenario. So after this method is called the simulation
-   * stops if the scenario stop condition is true OR new condition is true.
-   * Subsequent invocations of this method will just add more conditions in the
-   * same way.
-   * @param condition The stop condition to add.
-   */
-  public void addStopCondition(Predicate<Simulator> condition) {
-    stopCondition = Predicates.or(stopCondition, condition);
+    return statsTracker.getStatistics();
   }
 
   /**
@@ -160,15 +107,6 @@ public final class DynamicPDPTWProblem {
    */
   public Simulator getSimulator() {
     return simulator;
-  }
-
-  static StatisticsDTO getStats(Simulator sim) {
-    final StatsTracker t = sim.getModelProvider().tryGetModel(
-      StatsTracker.class);
-    if (t == null) {
-      throw new IllegalStateException("No stats tracker found!");
-    }
-    return t.getStatsDTO();
   }
 
   public static <T extends TimedEvent> TimedEventHandler<T> adaptCreator(
@@ -209,98 +147,5 @@ public final class DynamicPDPTWProblem {
      *         successful, <code>false</code> otherwise.
      */
     boolean create(Simulator sim, T event);
-  }
-
-  /**
-   * This class contains default stop conditions which can be used in the
-   * problem. If you want to create your own stop condition you can do it in the
-   * following way:
-   *
-   * <pre>
-   * Predicate&lt;SimulationInfo&gt; sc = new Predicate&lt;SimulationInfo&gt;() {
-   *   &#064;Override
-   *   public boolean apply(SimulationInfo context) {
-   *     return true; // &lt;- insert your own condition here
-   *   }
-   * };
-   * </pre>
-   *
-   * StopConditions can be combined into more complex conditions by using
-   * {@link Predicates#and(Predicate, Predicate)},
-   * {@link Predicates#or(Predicate, Predicate)} and
-   * {@link Predicates#not(Predicate)}.
-   * @author Rinde van Lon
-   */
-  public enum StopConditions implements Predicate<Simulator> {
-
-    /**
-     * The simulation is terminated once the
-     * {@link com.github.rinde.rinsim.core.model.pdp.PDPScenarioEvent#TIME_OUT}
-     * event is dispatched.
-     */
-    TIME_OUT_EVENT {
-      @Override
-      public boolean apply(@Nullable Simulator context) {
-        assert context != null;
-        return getStats(context).simFinish;
-      }
-    },
-
-    /**
-     * The simulation is terminated as soon as all the vehicles are back at the
-     * depot, note that this can be before or after the
-     * {@link com.github.rinde.rinsim.core.model.pdp.PDPScenarioEvent#TIME_OUT}
-     * event is dispatched.
-     */
-    VEHICLES_DONE_AND_BACK_AT_DEPOT {
-      @Override
-      public boolean apply(@Nullable Simulator context) {
-        assert context != null;
-        final StatisticsDTO stats = getStats(context);
-
-        return stats.totalVehicles == stats.vehiclesAtDepot
-          && stats.movedVehicles > 0
-          && stats.totalParcels == stats.totalDeliveries;
-      }
-    },
-
-    /**
-     * The simulation is terminated as soon as any tardiness occurs.
-     */
-    ANY_TARDINESS {
-      @Override
-      public boolean apply(@Nullable Simulator context) {
-        assert context != null;
-        final StatisticsDTO stats = getStats(context);
-        return stats.pickupTardiness > 0
-          || stats.deliveryTardiness > 0;
-      }
-    };
-  }
-
-  /**
-   * This is an immutable state object which is exposed to stopconditions.
-   * @author Rinde van Lon
-   */
-  public static class SimulationInfo {
-    /**
-     * The current statistics.
-     */
-    public final StatisticsDTO stats;
-
-    /**
-     * The scenario which is playing.
-     */
-    public final Scenario scenario;
-
-    /**
-     * Instantiate a new instance using statistics and scenario.
-     * @param st Statistics.
-     * @param scen Scenario.
-     */
-    protected SimulationInfo(StatisticsDTO st, Scenario scen) {
-      stats = st;
-      scenario = scen;
-    }
   }
 }

@@ -15,19 +15,14 @@
  */
 package com.github.rinde.rinsim.scenario;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.truth.Truth.assertThat;
 
-import java.io.Serializable;
 import java.math.RoundingMode;
 import java.util.Collections;
-
-import javax.annotation.Nullable;
 
 import org.apache.commons.math3.random.MersenneTwister;
 import org.apache.commons.math3.random.RandomGenerator;
 
-import com.github.rinde.rinsim.core.Simulator;
 import com.github.rinde.rinsim.core.model.pdp.DefaultPDPModel;
 import com.github.rinde.rinsim.core.model.pdp.PDPScenarioEvent;
 import com.github.rinde.rinsim.core.model.road.RoadModelBuilders;
@@ -35,7 +30,6 @@ import com.github.rinde.rinsim.core.pdptw.ParcelDTO;
 import com.github.rinde.rinsim.core.pdptw.VehicleDTO;
 import com.github.rinde.rinsim.geom.Point;
 import com.github.rinde.rinsim.util.TimeWindow;
-import com.google.common.base.Predicate;
 import com.google.common.math.DoubleMath;
 
 /**
@@ -99,27 +93,10 @@ public class ScenarioTestUtil {
 
     b.addEvent(new TimedEvent(PDPScenarioEvent.TIME_OUT, endTime))
       .scenarioLength(endTime)
-      .stopCondition(new EndTimeStopCondition(endTime));
+      .addStopCondition(StopConditions.limitedTime(endTime));
 
     b.addEventType(PDPScenarioEvent.ADD_DEPOT);
 
     return b.build();
-  }
-
-  static class EndTimeStopCondition implements Predicate<Simulator>,
-    Serializable {
-    private static final long serialVersionUID = 7929691008595477071L;
-
-    private final long endTime;
-
-    public EndTimeStopCondition(long time) {
-      endTime = time;
-    }
-
-    @Override
-    public boolean apply(@Nullable Simulator simulator) {
-      checkNotNull(simulator);
-      return simulator.getCurrentTime() >= endTime;
-    }
   }
 }

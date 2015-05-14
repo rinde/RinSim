@@ -28,8 +28,9 @@ import com.github.rinde.rinsim.core.model.road.RoadModelBuilders;
 import com.github.rinde.rinsim.core.model.time.TimeModel;
 import com.github.rinde.rinsim.core.pdptw.VehicleDTO;
 import com.github.rinde.rinsim.geom.Point;
-import com.github.rinde.rinsim.pdptw.common.DynamicPDPTWProblem.StopConditions;
+import com.github.rinde.rinsim.pdptw.common.StatsStopConditions;
 import com.github.rinde.rinsim.scenario.Scenario;
+import com.github.rinde.rinsim.scenario.StopCondition.StopConditionBuilder;
 import com.github.rinde.rinsim.scenario.TimedEvent;
 import com.github.rinde.rinsim.util.TimeWindow;
 import com.google.auto.value.AutoValue;
@@ -58,8 +59,9 @@ public abstract class FabriRechtScenario extends Scenario {
   public abstract VehicleDTO getDefaultVehicle();
 
   @Override
-  public StopConditions getStopCondition() {
-    return StopConditions.TIME_OUT_EVENT;
+  public ImmutableSet<StopConditionBuilder> getStopConditions() {
+    return ImmutableSet.of(StatsStopConditions
+      .adapt(StatsStopConditions.TIME_OUT_EVENT));
   }
 
   @Override

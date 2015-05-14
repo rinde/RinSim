@@ -19,6 +19,7 @@ import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.collect.Sets.newHashSet;
 import static java.util.Arrays.asList;
 
+import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
@@ -47,6 +48,7 @@ import com.github.rinde.rinsim.event.Event;
 import com.github.rinde.rinsim.event.EventAPI;
 import com.github.rinde.rinsim.event.EventDispatcher;
 import com.github.rinde.rinsim.event.Listener;
+import com.github.rinde.rinsim.scenario.StopCondition.StopConditionBuilder;
 import com.google.auto.value.AutoValue;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
@@ -61,12 +63,12 @@ import com.google.common.collect.ImmutableSet;
  * @author Bartosz Michalik
  * @since 2.0
  */
-public final class ScenarioController extends AbstractModel<Scenario> implements
-  TickListener {
+public final class ScenarioController extends AbstractModel<StopCondition>
+  implements TickListener {
   /**
    * Logger for this class.
    */
-  protected static final Logger LOGGER = LoggerFactory
+  static final Logger LOGGER = LoggerFactory
     .getLogger(ScenarioController.class);
 
   /**
@@ -89,6 +91,7 @@ public final class ScenarioController extends AbstractModel<Scenario> implements
   final EventDispatcher disp;
   final SimulatorAPI simulator;
   final ClockController clock;
+  final Set<StopCondition> stopConditions;
   private int ticks;
 
   @Nullable
@@ -110,6 +113,8 @@ public final class ScenarioController extends AbstractModel<Scenario> implements
     simulator = sim;
     clock = c;
     ticks = t;
+
+    stopConditions = new LinkedHashSet<>();
 
     scenario = s;
     scenarioQueue = scenario.asQueue();
@@ -212,7 +217,20 @@ public final class ScenarioController extends AbstractModel<Scenario> implements
   }
 
   @Override
-  public void afterTick(TimeLapse timeLapse) {}
+  public void afterTick(TimeLapse timeLapse) {
+    if (shouldStop()) {
+      clock.stop();
+    }
+  }
+
+  boolean shouldStop() {
+    for (StopCondition sc : stopConditions) {
+      if (sc.evaluate()) {
+        return true;
+      }
+    }
+    return false;
+  }
 
   static class InternalListener implements Listener {
     final SimulatorAPI simulator;
@@ -239,17 +257,19 @@ public final class ScenarioController extends AbstractModel<Scenario> implements
     <T extends TimedEvent> void handle(TimedEventHandler<T> h, Event e) {
       h.handleTimedEvent((T) e, simulator);
     }
-
   }
 
   @Override
-  public boolean register(Scenario element) {
+  public boolean register(StopCondition element) {
+    stopConditions.add(element);
     return false;
   }
 
+  @Deprecated
   @Override
-  public boolean unregister(Scenario element) {
-    return false;
+  public boolean unregister(StopCondition element) {
+    throw new UnsupportedOperationException(
+      "A stop condition can not be unregistered.");
   }
 
   @Override
@@ -263,8 +283,8 @@ public final class ScenarioController extends AbstractModel<Scenario> implements
 
   @AutoValue
   public abstract static class Builder extends
-    AbstractModelBuilder<ScenarioController, Scenario> implements
-    CompositeModelBuilder<ScenarioController, Scenario> {
+    AbstractModelBuilder<ScenarioController, StopCondition> implements
+    CompositeModelBuilder<ScenarioController, StopCondition> {
 
     static final TimedEventHandler<AddParcelEvent> DEFAULT_ADD_PARCEL_HANDLER = new TimedEventHandler<AddParcelEvent>() {
       @Override
@@ -290,6 +310,8 @@ public final class ScenarioController extends AbstractModel<Scenario> implements
 
     abstract int getNumberOfTicks();
 
+    abstract ImmutableSet<StopConditionBuilder> getStopConditions();
+
     @CheckReturnValue
     public <T extends TimedEvent> Builder withEventHandler(Class<T> type,
       TimedEventHandler<T> handler) {
@@ -297,7 +319,8 @@ public final class ScenarioController extends AbstractModel<Scenario> implements
         getScenario(),
         ImmutableMap.<Class<?>, TimedEventHandler<?>> builder()
           .putAll(getEventHandlers()).put(type, handler).build(),
-        getNumberOfTicks());
+        getNumberOfTicks(),
+        getStopConditions());
     }
 
     @CheckReturnValue
@@ -306,12 +329,33 @@ public final class ScenarioController extends AbstractModel<Scenario> implements
         getScenario(),
         ImmutableMap.<Class<?>, TimedEventHandler<?>> builder()
           .putAll(getEventHandlers()).putAll(m).build(),
-        getNumberOfTicks());
+        getNumberOfTicks(),
+        getStopConditions());
     }
 
     @CheckReturnValue
     public Builder withNumberOfTicks(int ticks) {
-      return create(getScenario(), getEventHandlers(), ticks);
+      return create(getScenario(), getEventHandlers(), ticks,
+        getStopConditions());
+    }
+
+    /**
+     * Adds an additional stop condition to the controller. The first stop
+     * condition is defined by {@link Scenario#getStopConditions()}. The first
+     * stop condition where {@link StopCondition#evaluate()} returns
+     * <code>true</code> will stop the simulation.
+     * @param stp The builder that constructs the {@link StopCondition}.
+     * @return A new {@link Builder} instance.
+     * @see StopConditions
+     */
+    @CheckReturnValue
+    public Builder withStopCondition(StopConditionBuilder stp) {
+      ImmutableSet<StopConditionBuilder> set = ImmutableSet
+        .<StopConditionBuilder> builder()
+        .addAll(getStopConditions())
+        .add(stp)
+        .build();
+      return create(getScenario(), getEventHandlers(), getNumberOfTicks(), set);
     }
 
     @Override
@@ -338,20 +382,28 @@ public final class ScenarioController extends AbstractModel<Scenario> implements
 
     @Override
     public ImmutableSet<ModelBuilder<?, ?>> getChildren() {
-      return getScenario().getModelBuilders();
+      return ImmutableSet.<ModelBuilder<?, ?>> builder()
+        .addAll(getScenario().getModelBuilders())
+        .addAll(getStopConditions())
+        .build();
     }
 
     static Builder create(Scenario scen) {
+      final int ticks = scen.getTimeWindow().end == Long.MAX_VALUE ? -1
+        : (int) (scen.getTimeWindow().end - scen.getTimeWindow().begin);
+
       return create(
         scen,
-        ImmutableMap.<Class<?>, TimedEventHandler<?>> of()
-        , -1);
+        ImmutableMap.<Class<?>, TimedEventHandler<?>> of(),
+        ticks,
+        scen.getStopConditions());
     }
 
     static Builder create(Scenario scen,
-      ImmutableMap<Class<?>, TimedEventHandler<?>> handlers, int ticks) {
-      return new AutoValue_ScenarioController_Builder(scen, handlers, ticks);
+      ImmutableMap<Class<?>, TimedEventHandler<?>> handlers, int ticks,
+      ImmutableSet<StopConditionBuilder> stop) {
+      return new AutoValue_ScenarioController_Builder(scen, handlers, ticks,
+        stop);
     }
-
   }
 }

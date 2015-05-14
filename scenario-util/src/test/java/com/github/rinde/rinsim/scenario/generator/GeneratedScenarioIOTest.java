@@ -28,13 +28,12 @@ import org.junit.Test;
 import com.github.rinde.rinsim.core.model.pdp.DefaultPDPModel;
 import com.github.rinde.rinsim.core.model.pdp.TimeWindowPolicy.TimeWindowPolicies;
 import com.github.rinde.rinsim.core.model.road.RoadModelBuilders;
-import com.github.rinde.rinsim.pdptw.common.DynamicPDPTWProblem.StopConditions;
 import com.github.rinde.rinsim.pdptw.common.PDPRoadModel;
+import com.github.rinde.rinsim.pdptw.common.StatsStopConditions;
 import com.github.rinde.rinsim.scenario.Scenario;
 import com.github.rinde.rinsim.scenario.Scenario.ProblemClass;
 import com.github.rinde.rinsim.scenario.ScenarioIO;
 import com.google.common.base.Charsets;
-import com.google.common.base.Predicates;
 import com.google.common.io.Files;
 
 /**
@@ -62,9 +61,11 @@ public class GeneratedScenarioIOTest {
     final ScenarioGenerator generator = ScenarioGenerator
       .builder(TestPC.CLASS_A)
       .scenarioLength(4 * 60 * 60 * 1000L)
-      .stopCondition(
-        Predicates.and(StopConditions.ANY_TARDINESS,
-          StopConditions.TIME_OUT_EVENT))
+      .addStopCondition(
+        StatsStopConditions.and(
+          StatsStopConditions.ANY_TARDINESS,
+          StatsStopConditions.TIME_OUT_EVENT)
+      )
       .parcels(
         Parcels
           .builder()

@@ -17,6 +17,7 @@ package com.github.rinde.rinsim.scenario;
 
 import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Sets.newHashSet;
+import static com.google.common.truth.Truth.assertThat;
 import static java.util.Arrays.asList;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -33,7 +34,6 @@ import javax.measure.unit.SI;
 
 import org.junit.Test;
 
-import com.github.rinde.rinsim.core.Simulator;
 import com.github.rinde.rinsim.core.model.ModelBuilder;
 import com.github.rinde.rinsim.core.model.pdp.PDPScenarioEvent;
 import com.github.rinde.rinsim.core.model.road.RoadModelBuilders;
@@ -41,6 +41,7 @@ import com.github.rinde.rinsim.core.model.road.RoadUser;
 import com.github.rinde.rinsim.geom.Point;
 import com.github.rinde.rinsim.scenario.Scenario.ProblemClass;
 import com.github.rinde.rinsim.scenario.Scenario.SimpleProblemClass;
+import com.github.rinde.rinsim.scenario.StopCondition.StopConditionBuilder;
 import com.github.rinde.rinsim.util.TimeWindow;
 import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
@@ -67,7 +68,8 @@ public class ScenarioTest {
     assertEquals(newHashSet(FakeEventType.A), scenario.getPossibleEventTypes());
     assertSame(Scenario.DEFAULT_PROBLEM_CLASS, scenario.getProblemClass());
     assertEquals("", scenario.getProblemInstanceId());
-    assertEquals(Predicates.alwaysFalse(), scenario.getStopCondition());
+    assertThat((Iterable<?>) scenario.getStopConditions()).containsExactly(
+      StopConditions.alwaysFalse());
     assertEquals(new TimeWindow(0, 8 * 60 * 60 * 1000),
       scenario.getTimeWindow());
   }
@@ -105,7 +107,7 @@ public class ScenarioTest {
       .instanceId("crazyfast")
       .scenarioLength(7L)
       .addEventType(PDPScenarioEvent.TIME_OUT)
-      .stopCondition(Predicates.<Simulator> alwaysTrue())
+      .addStopCondition(StopConditions.alwaysTrue())
       .addModel(
         RoadModelBuilders.plane()
           .withMinPoint(new Point(6, 6))
@@ -120,7 +122,9 @@ public class ScenarioTest {
     assertEquals(new TimeWindow(0L, 7L), scenario.getTimeWindow());
     assertEquals(newHashSet(PDPScenarioEvent.TIME_OUT),
       scenario.getPossibleEventTypes());
-    assertEquals(Predicates.alwaysTrue(), scenario.getStopCondition());
+
+    assertThat((Iterable<?>) scenario.getStopConditions()).containsExactly(
+      StopConditions.alwaysTrue());
     assertEquals(1, scenario.getModelBuilders().size());
     assertTrue(scenario.getModelBuilders().iterator().next()
       .getAssociatedType() == RoadUser.class);
@@ -255,7 +259,7 @@ public class ScenarioTest {
     }
 
     @Override
-    public Predicate<Simulator> getStopCondition() {
+    public ImmutableSet<StopConditionBuilder> getStopConditions() {
       throw new UnsupportedOperationException();
     }
 

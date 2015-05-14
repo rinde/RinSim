@@ -36,7 +36,7 @@ import static com.google.common.collect.Maps.newLinkedHashMap;
 import java.util.Map;
 
 import com.github.rinde.rinsim.core.model.DependencyProvider;
-import com.github.rinde.rinsim.core.model.Model.AbstractModel;
+import com.github.rinde.rinsim.core.model.Model.AbstractModelVoid;
 import com.github.rinde.rinsim.core.model.ModelBuilder.AbstractModelBuilder;
 import com.github.rinde.rinsim.core.model.pdp.PDPModel;
 import com.github.rinde.rinsim.core.model.pdp.PDPModel.PDPModelEventType;
@@ -59,11 +59,8 @@ import com.github.rinde.rinsim.scenario.ScenarioController;
 import com.github.rinde.rinsim.scenario.TimedEvent;
 import com.google.auto.value.AutoValue;
 
-/**
- * @author Rinde van Lon
- *
- */
-final class StatsTracker extends AbstractModel<Object> {
+public final class StatsTracker extends AbstractModelVoid implements
+  StatisticsProvider {
   final EventDispatcher eventDispatcher;
   final TheListener theListener;
   final Clock clock;
@@ -97,7 +94,8 @@ final class StatsTracker extends AbstractModel<Object> {
   /**
    * @return A {@link StatisticsDTO} with the current simulation stats.
    */
-  public StatisticsDTO getStatsDTO() {
+  @Override
+  public StatisticsDTO getStatistics() {
     final int vehicleBack = theListener.lastArrivalTimeAtDepot.size();
     long overTime = 0;
     if (theListener.simFinish) {
@@ -124,13 +122,8 @@ final class StatsTracker extends AbstractModel<Object> {
   }
 
   @Override
-  public boolean register(Object element) {
-    return true;
-  }
-
-  @Override
-  public boolean unregister(Object element) {
-    return true;
+  public <U> U get(Class<U> clazz) {
+    return clazz.cast(this);
   }
 
   class TheListener implements Listener {
@@ -308,6 +301,7 @@ final class StatsTracker extends AbstractModel<Object> {
         Clock.class,
         RoadModel.class,
         PDPModel.class);
+      setProvidingTypes(StatisticsProvider.class);
     }
 
     @Override
@@ -318,6 +312,7 @@ final class StatsTracker extends AbstractModel<Object> {
       final RoadModel rm = dependencyProvider.get(RoadModel.class);
       final PDPModel pm = dependencyProvider.get(PDPModel.class);
       return new StatsTracker(ctrl, clock, rm, pm);
+
     }
   }
 }

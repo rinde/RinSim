@@ -74,7 +74,7 @@ final class StatsPanel implements PanelRenderer, TickListener {
       final TableColumn column = new TableColumn(table, SWT.NONE);
       column.setText(statsTitles[i]);
     }
-    final StatisticsDTO stats = statsTracker.getStatsDTO();
+    final StatisticsDTO stats = statsTracker.getStatistics();
     final Field[] fields = stats.getClass().getFields();
     for (final Field f : fields) {
       final TableItem ti = new TableItem(table, 0);
@@ -148,7 +148,7 @@ final class StatsPanel implements PanelRenderer, TickListener {
 
   @Override
   public void render() {
-    final StatisticsDTO stats = statsTracker.getStatsDTO();
+    final StatisticsDTO stats = statsTracker.getStatistics();
 
     final Field[] fields = stats.getClass().getFields();
     if (statsTable.get().isDisposed()
