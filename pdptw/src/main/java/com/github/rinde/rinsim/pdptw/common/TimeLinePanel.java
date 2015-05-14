@@ -171,8 +171,7 @@ public final class TimeLinePanel extends AbstractModelVoid implements
         hBar.setThumb(Math.min(timeline.getWidth() + H_THUMB_SIZE, canvas.get()
           .getClientArea().width));
         vBar.setThumb(Math.min(timeline.getHeight() + V_THUMB_SIZE, canvas
-          .get()
-          .getClientArea().height));
+          .get().getClientArea().height));
       }
     });
 
@@ -295,8 +294,8 @@ public final class TimeLinePanel extends AbstractModelVoid implements
   static class TimelineBar {
     static final int LARGE_TICK_HEIGHT = 10;
     static final int SMALL_TICK_HEIGHT = 5;
-    static final int LARGE_TICK_DIST = 600000 / 15000;
-    static final int SMALL_TICK_DIST = LARGE_TICK_DIST / 5;
+    static final int LARGE_TICK_DIST = 40;
+    static final int SMALL_TICK_DIST = 8;
     static final int TL_BAR_HEIGHT_PX = 20;
     static final int ADDITIONAL_WIDTH = 30;
 
@@ -320,7 +319,7 @@ public final class TimeLinePanel extends AbstractModelVoid implements
       }
     }
 
-    void drawTimeline() {
+    final void drawTimeline() {
       final GC gc = new GC(contents);
       gc.setAdvanced(true);
       gc.setTextAntialias(SWT.OFF);
@@ -348,6 +347,12 @@ public final class TimeLinePanel extends AbstractModelVoid implements
     static final long HOUR = 60 * 60 * 1000;
     static final int START_HEIGHT = 100;
     static final int ADDITIONAL_HEIGHT_FACTOR = 10;
+
+    static final int BAR_H = 12;
+    static final int HALF_BAR_H = BAR_H / 2;
+    static final int BAR_START_OFFSET_Y = 1;
+    static final int BAR_END_OFFSET_Y = BAR_H + BAR_START_OFFSET_Y;
+    static final int BAR_MIDDLE_OFFSET_Y = 8;
 
     final Display display;
     Optional<Image> contents;
@@ -453,20 +458,25 @@ public final class TimeLinePanel extends AbstractModelVoid implements
 
       final GC gc = new GC(contents.get());
       gc.setForeground(lineColor);
-      gc.drawLine(startX, y + 1, startX, y + 13);
-      gc.drawLine(startX, y + 8, startPickX, y + 8);
+      gc.drawLine(startX, y + BAR_START_OFFSET_Y, startX, y
+        + BAR_END_OFFSET_Y);
+      gc.drawLine(startX, y + BAR_MIDDLE_OFFSET_Y, startPickX, y
+        + BAR_MIDDLE_OFFSET_Y);
 
       gc.setBackground(pickupColor);
       gc.fillRectangle(startPickX, y + 2,
-        Math.max(endPickX - startPickX, 1), 6);
+        Math.max(endPickX - startPickX, 1), HALF_BAR_H);
       gc.drawRectangle(startPickX, y + 2,
-        Math.max(endPickX - startPickX, 1), 6);
+        Math.max(endPickX - startPickX, 1), HALF_BAR_H);
 
-      gc.drawLine(endPickX, y + 8, startDelX, y + 8);
+      gc.drawLine(endPickX, y + BAR_MIDDLE_OFFSET_Y, startDelX, y
+        + BAR_MIDDLE_OFFSET_Y);
 
       gc.setBackground(deliveryColor);
-      gc.fillRectangle(startDelX, y + 8, Math.max(endDelX - startDelX, 1), 6);
-      gc.drawRectangle(startDelX, y + 8, Math.max(endDelX - startDelX, 1), 6);
+      gc.fillRectangle(startDelX, y + BAR_MIDDLE_OFFSET_Y,
+        Math.max(endDelX - startDelX, 1), HALF_BAR_H);
+      gc.drawRectangle(startDelX, y + BAR_MIDDLE_OFFSET_Y,
+        Math.max(endDelX - startDelX, 1), HALF_BAR_H);
 
       gc.dispose();
     }
