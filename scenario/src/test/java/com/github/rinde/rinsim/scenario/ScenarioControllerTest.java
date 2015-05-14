@@ -48,7 +48,6 @@ import com.github.rinde.rinsim.event.EventAPI;
 import com.github.rinde.rinsim.event.Listener;
 import com.github.rinde.rinsim.event.ListenerEventHistory;
 import com.github.rinde.rinsim.testutil.TestUtil;
-import com.google.common.base.Predicates;
 
 /**
  * Tests for {@link ScenarioController}.
@@ -182,8 +181,8 @@ public class ScenarioControllerTest {
           .withEventHandler(AddParcelEvent.class,
             new NopHandler<AddParcelEvent>())
           .withEventHandler(TimedEvent.class, new NopHandler<>())
-          .withStopCondition(
-            StopConditions.adapt(Clock.class, Predicates.<Clock> alwaysTrue())))
+          .withStopCondition(StopConditions.alwaysTrue())
+      )
       .build();
 
     sim.start();

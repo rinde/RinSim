@@ -23,7 +23,6 @@ import static com.google.common.collect.Sets.newLinkedHashSet;
 
 import java.util.Collection;
 import java.util.Collections;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Queue;
 import java.util.Set;
@@ -33,7 +32,6 @@ import javax.annotation.Nullable;
 import com.github.rinde.rinsim.core.model.Model;
 import com.github.rinde.rinsim.core.model.ModelBuilder;
 import com.github.rinde.rinsim.core.model.time.TimeModel;
-import com.github.rinde.rinsim.scenario.StopCondition.StopConditionBuilder;
 import com.github.rinde.rinsim.scenario.TimedEvent.TimeComparator;
 import com.github.rinde.rinsim.util.TimeWindow;
 import com.google.auto.value.AutoValue;
@@ -107,7 +105,7 @@ public abstract class Scenario {
   /**
    * @return The stop condition indicating when a simulation should end.
    */
-  public abstract ImmutableSet<StopConditionBuilder> getStopConditions();
+  public abstract StopCondition getStopCondition();
 
   /**
    * @return The 'class' to which this scenario belongs.
@@ -130,7 +128,7 @@ public abstract class Scenario {
     Iterable<? extends Enum<?>> types,
     Iterable<? extends ModelBuilder<?, ?>> builders,
     TimeWindow tw,
-    Iterable<? extends StopConditionBuilder> stopConditions,
+    StopCondition stopCondition,
     ProblemClass pc,
     String id) {
     return new AutoValue_Scenario(
@@ -138,7 +136,7 @@ public abstract class Scenario {
       ImmutableSet.<Enum<?>> copyOf(types),
       ImmutableSet.<ModelBuilder<?, ?>> copyOf(builders),
       tw,
-      ImmutableSet.<StopConditionBuilder> copyOf(stopConditions),
+      stopCondition,
       pc, id);
   }
 
@@ -445,18 +443,11 @@ public abstract class Scenario {
      * @return The new instance.
      */
     public Scenario build() {
-      final ImmutableSet<StopConditionBuilder> stpCnds;
-      if (stopConditions.isEmpty()) {
-        stpCnds = ImmutableSet.of(DEFAULT_STOP_CONDITION);
-      } else {
-        stpCnds = ImmutableSet.copyOf(stopConditions);
-      }
-
       final List<TimedEvent> list = newArrayList(eventList);
       Collections.sort(list, TimeComparator.INSTANCE);
       eventTypeSet.addAll(collectEventTypes(list));
       return Scenario.create(list, eventTypeSet, modelBuilders.build(),
-        timeWindow, stpCnds, problemClass, instanceId);
+        timeWindow, stopCondition, problemClass, instanceId);
     }
 
     @Override
@@ -475,7 +466,7 @@ public abstract class Scenario {
   public abstract static class AbstractBuilder<T extends AbstractBuilder<T>> {
     static final TimeWindow DEFAULT_TIME_WINDOW = new TimeWindow(0,
       8 * 60 * 60 * 1000);
-    static final StopConditionBuilder DEFAULT_STOP_CONDITION = StopConditions
+    static final StopCondition DEFAULT_STOP_CONDITION = StopConditions
       .alwaysFalse();
 
     /**
@@ -484,9 +475,9 @@ public abstract class Scenario {
     protected TimeWindow timeWindow;
 
     /**
-     * Defines {@link Scenario#getStopConditions()}.
+     * Defines {@link Scenario#getStopCondition()}.
      */
-    protected Set<StopConditionBuilder> stopConditions;
+    protected StopCondition stopCondition;
 
     /**
      * Copying constructor. Copies all settings from the specified builder into
@@ -496,11 +487,11 @@ public abstract class Scenario {
     protected AbstractBuilder(Optional<AbstractBuilder<?>> copy) {
       if (copy.isPresent()) {
         timeWindow = copy.get().timeWindow;
-        stopConditions = new LinkedHashSet<>(copy.get().stopConditions);
+        stopCondition = copy.get().stopCondition;
       }
       else {
         timeWindow = DEFAULT_TIME_WINDOW;
-        stopConditions = new LinkedHashSet<>();
+        stopCondition = DEFAULT_STOP_CONDITION;
       }
     }
 
@@ -513,7 +504,7 @@ public abstract class Scenario {
     /**
      * Set the length (duration) of the scenario. Note that the time at which
      * the simulation is stopped is defined by
-     * {@link #addStopCondition(StopConditionBuilder)} .
+     * {@link #addStopCondition(StopCondition)} .
      * @param length The length of the scenario, expressed in the time unit as
      *          defined by the {@link TimeModel}.
      * @return This, as per the builder pattern.
@@ -529,8 +520,8 @@ public abstract class Scenario {
      * @param condition The stop condition to set.
      * @return This, as per the builder pattern.
      */
-    public T addStopCondition(StopConditionBuilder condition) {
-      stopConditions.add(condition);
+    public T addStopCondition(StopCondition condition) {
+      stopCondition = (condition);
       return self();
     }
 
@@ -541,7 +532,7 @@ public abstract class Scenario {
      */
     protected T copyProperties(Scenario scenario) {
       timeWindow = scenario.getTimeWindow();
-      stopConditions = new LinkedHashSet<>(scenario.getStopConditions());
+      stopCondition = scenario.getStopCondition();
       return self();
     }
 
@@ -554,10 +545,10 @@ public abstract class Scenario {
 
     // move into separate model or scenario controller?
     /**
-     * @return {@link Scenario#getStopConditions()}.
+     * @return {@link Scenario#getStopCondition()}.
      */
-    public Set<StopConditionBuilder> getStopConditions() {
-      return Collections.unmodifiableSet(stopConditions);
+    public StopCondition getStopConditions() {
+      return stopCondition;
     }
   }
 }

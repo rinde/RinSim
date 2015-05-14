@@ -16,10 +16,10 @@
 package com.github.rinde.rinsim.scenario;
 
 import static com.google.common.base.Preconditions.checkState;
+import static com.google.common.base.Verify.verifyNotNull;
 import static com.google.common.collect.Sets.newHashSet;
 import static java.util.Arrays.asList;
 
-import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
@@ -35,6 +35,7 @@ import com.github.rinde.rinsim.core.SimulatorAPI;
 import com.github.rinde.rinsim.core.model.CompositeModelBuilder;
 import com.github.rinde.rinsim.core.model.DependencyProvider;
 import com.github.rinde.rinsim.core.model.Model.AbstractModel;
+import com.github.rinde.rinsim.core.model.Model.AbstractModelVoid;
 import com.github.rinde.rinsim.core.model.ModelBuilder;
 import com.github.rinde.rinsim.core.model.ModelBuilder.AbstractModelBuilder;
 import com.github.rinde.rinsim.core.model.pdp.PDPScenarioEvent;
@@ -48,8 +49,10 @@ import com.github.rinde.rinsim.event.Event;
 import com.github.rinde.rinsim.event.EventAPI;
 import com.github.rinde.rinsim.event.EventDispatcher;
 import com.github.rinde.rinsim.event.Listener;
-import com.github.rinde.rinsim.scenario.StopCondition.StopConditionBuilder;
+import com.github.rinde.rinsim.scenario.ScenarioController.StopModel;
+import com.github.rinde.rinsim.scenario.StopCondition.TypeProvider;
 import com.google.auto.value.AutoValue;
+import com.google.common.collect.ImmutableClassToInstanceMap;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 
@@ -63,7 +66,7 @@ import com.google.common.collect.ImmutableSet;
  * @author Bartosz Michalik
  * @since 2.0
  */
-public final class ScenarioController extends AbstractModel<StopCondition>
+public final class ScenarioController extends AbstractModel<StopModel>
   implements TickListener {
   /**
    * Logger for this class.
@@ -91,9 +94,9 @@ public final class ScenarioController extends AbstractModel<StopCondition>
   final EventDispatcher disp;
   final SimulatorAPI simulator;
   final ClockController clock;
-  final Set<StopCondition> stopConditions;
   private int ticks;
-
+  @Nullable
+  StopModel stopModel;
   @Nullable
   private EventType status;
 
@@ -113,8 +116,6 @@ public final class ScenarioController extends AbstractModel<StopCondition>
     simulator = sim;
     clock = c;
     ticks = t;
-
-    stopConditions = new LinkedHashSet<>();
 
     scenario = s;
     scenarioQueue = scenario.asQueue();
@@ -218,18 +219,9 @@ public final class ScenarioController extends AbstractModel<StopCondition>
 
   @Override
   public void afterTick(TimeLapse timeLapse) {
-    if (shouldStop()) {
+    if (verifyNotNull(stopModel).evaluate()) {
       clock.stop();
     }
-  }
-
-  boolean shouldStop() {
-    for (StopCondition sc : stopConditions) {
-      if (sc.evaluate()) {
-        return true;
-      }
-    }
-    return false;
   }
 
   static class InternalListener implements Listener {
@@ -260,14 +252,14 @@ public final class ScenarioController extends AbstractModel<StopCondition>
   }
 
   @Override
-  public boolean register(StopCondition element) {
-    stopConditions.add(element);
+  public boolean register(StopModel element) {
+    stopModel = element;
     return false;
   }
 
   @Deprecated
   @Override
-  public boolean unregister(StopCondition element) {
+  public boolean unregister(StopModel element) {
     throw new UnsupportedOperationException(
       "A stop condition can not be unregistered.");
   }
@@ -283,8 +275,8 @@ public final class ScenarioController extends AbstractModel<StopCondition>
 
   @AutoValue
   public abstract static class Builder extends
-    AbstractModelBuilder<ScenarioController, StopCondition> implements
-    CompositeModelBuilder<ScenarioController, StopCondition> {
+    AbstractModelBuilder<ScenarioController, StopModel> implements
+    CompositeModelBuilder<ScenarioController, StopModel> {
 
     static final TimedEventHandler<AddParcelEvent> DEFAULT_ADD_PARCEL_HANDLER = new TimedEventHandler<AddParcelEvent>() {
       @Override
@@ -310,7 +302,7 @@ public final class ScenarioController extends AbstractModel<StopCondition>
 
     abstract int getNumberOfTicks();
 
-    abstract ImmutableSet<StopConditionBuilder> getStopConditions();
+    abstract StopModelBuilder getStopModelBuilder();
 
     @CheckReturnValue
     public <T extends TimedEvent> Builder withEventHandler(Class<T> type,
@@ -320,7 +312,7 @@ public final class ScenarioController extends AbstractModel<StopCondition>
         ImmutableMap.<Class<?>, TimedEventHandler<?>> builder()
           .putAll(getEventHandlers()).put(type, handler).build(),
         getNumberOfTicks(),
-        getStopConditions());
+        getStopModelBuilder());
     }
 
     @CheckReturnValue
@@ -330,18 +322,18 @@ public final class ScenarioController extends AbstractModel<StopCondition>
         ImmutableMap.<Class<?>, TimedEventHandler<?>> builder()
           .putAll(getEventHandlers()).putAll(m).build(),
         getNumberOfTicks(),
-        getStopConditions());
+        getStopModelBuilder());
     }
 
     @CheckReturnValue
     public Builder withNumberOfTicks(int ticks) {
       return create(getScenario(), getEventHandlers(), ticks,
-        getStopConditions());
+        getStopModelBuilder());
     }
 
     /**
      * Adds an additional stop condition to the controller. The first stop
-     * condition is defined by {@link Scenario#getStopConditions()}. The first
+     * condition is defined by {@link Scenario#getStopCondition()}. The first
      * stop condition where {@link StopCondition#evaluate()} returns
      * <code>true</code> will stop the simulation.
      * @param stp The builder that constructs the {@link StopCondition}.
@@ -349,13 +341,18 @@ public final class ScenarioController extends AbstractModel<StopCondition>
      * @see StopConditions
      */
     @CheckReturnValue
-    public Builder withStopCondition(StopConditionBuilder stp) {
-      ImmutableSet<StopConditionBuilder> set = ImmutableSet
-        .<StopConditionBuilder> builder()
-        .addAll(getStopConditions())
-        .add(stp)
-        .build();
-      return create(getScenario(), getEventHandlers(), getNumberOfTicks(), set);
+    public Builder withStopCondition(StopCondition stp) {
+
+      final StopModelBuilder smb;
+      if (getStopModelBuilder().stopCondition().equals(
+        StopConditions.alwaysFalse())) {
+        smb = StopModelBuilder.create(stp);
+      } else {
+        smb = StopModelBuilder.create(StopConditions.and(getStopModelBuilder()
+          .stopCondition(), stp));
+      }
+
+      return create(getScenario(), getEventHandlers(), getNumberOfTicks(), smb);
     }
 
     @Override
@@ -384,7 +381,7 @@ public final class ScenarioController extends AbstractModel<StopCondition>
     public ImmutableSet<ModelBuilder<?, ?>> getChildren() {
       return ImmutableSet.<ModelBuilder<?, ?>> builder()
         .addAll(getScenario().getModelBuilders())
-        .addAll(getStopConditions())
+        .add(getStopModelBuilder())
         .build();
     }
 
@@ -396,14 +393,76 @@ public final class ScenarioController extends AbstractModel<StopCondition>
         scen,
         ImmutableMap.<Class<?>, TimedEventHandler<?>> of(),
         ticks,
-        scen.getStopConditions());
+        StopModelBuilder.create(scen.getStopCondition()));
     }
 
     static Builder create(Scenario scen,
       ImmutableMap<Class<?>, TimedEventHandler<?>> handlers, int ticks,
-      ImmutableSet<StopConditionBuilder> stop) {
+      StopModelBuilder stop) {
       return new AutoValue_ScenarioController_Builder(scen, handlers, ticks,
         stop);
+    }
+  }
+
+  static class StopModel extends AbstractModelVoid {
+    final StopCondition stopCondition;
+    final TypeProvider provider;
+
+    StopModel(StopCondition sc, ImmutableClassToInstanceMap<Object> map) {
+      stopCondition = sc;
+      provider = new MapTypeProvider(map);
+    }
+
+    boolean evaluate() {
+      return stopCondition.evaluate(provider);
+    }
+  }
+
+  static class MapTypeProvider implements TypeProvider {
+    final ImmutableClassToInstanceMap<Object> instanceMap;
+
+    MapTypeProvider(ImmutableClassToInstanceMap<Object> m) {
+      instanceMap = m;
+    }
+
+    @Override
+    public <T> T get(Class<T> type) {
+      return verifyNotNull(instanceMap.getInstance(type));
+    }
+  }
+
+  @AutoValue
+  abstract static class StopModelBuilder extends
+    AbstractModelBuilder<StopModel, Void> {
+
+    abstract StopCondition stopCondition();
+
+    abstract ImmutableSet<Class<?>> dependencies();
+
+    @Override
+    public StopModel build(DependencyProvider dependencyProvider) {
+      ImmutableClassToInstanceMap.Builder<Object> b = ImmutableClassToInstanceMap
+        .builder();
+      for (Class<?> c : dependencies()) {
+        put(b, c, dependencyProvider);
+      }
+      return new StopModel(stopCondition(), b.build());
+    }
+
+    StopModelBuilder init() {
+      setDependencies(dependencies());
+      return this;
+    }
+
+    // helper method for dealing with generics
+    static <T> void put(ImmutableClassToInstanceMap.Builder<Object> b,
+      Class<T> c, DependencyProvider dp) {
+      b.put(c, dp.get(c));
+    }
+
+    static StopModelBuilder create(StopCondition sc) {
+      return new AutoValue_ScenarioController_StopModelBuilder(sc,
+        sc.getTypes()).init();
     }
   }
 }

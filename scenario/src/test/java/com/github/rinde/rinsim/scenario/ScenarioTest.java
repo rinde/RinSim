@@ -41,7 +41,6 @@ import com.github.rinde.rinsim.core.model.road.RoadUser;
 import com.github.rinde.rinsim.geom.Point;
 import com.github.rinde.rinsim.scenario.Scenario.ProblemClass;
 import com.github.rinde.rinsim.scenario.Scenario.SimpleProblemClass;
-import com.github.rinde.rinsim.scenario.StopCondition.StopConditionBuilder;
 import com.github.rinde.rinsim.util.TimeWindow;
 import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
@@ -68,7 +67,7 @@ public class ScenarioTest {
     assertEquals(newHashSet(FakeEventType.A), scenario.getPossibleEventTypes());
     assertSame(Scenario.DEFAULT_PROBLEM_CLASS, scenario.getProblemClass());
     assertEquals("", scenario.getProblemInstanceId());
-    assertThat((Iterable<?>) scenario.getStopConditions()).containsExactly(
+    assertThat(scenario.getStopCondition()).isEqualTo(
       StopConditions.alwaysFalse());
     assertEquals(new TimeWindow(0, 8 * 60 * 60 * 1000),
       scenario.getTimeWindow());
@@ -123,7 +122,7 @@ public class ScenarioTest {
     assertEquals(newHashSet(PDPScenarioEvent.TIME_OUT),
       scenario.getPossibleEventTypes());
 
-    assertThat((Iterable<?>) scenario.getStopConditions()).containsExactly(
+    assertThat(scenario.getStopCondition()).isEqualTo(
       StopConditions.alwaysTrue());
     assertEquals(1, scenario.getModelBuilders().size());
     assertTrue(scenario.getModelBuilders().iterator().next()
@@ -259,7 +258,7 @@ public class ScenarioTest {
     }
 
     @Override
-    public ImmutableSet<StopConditionBuilder> getStopConditions() {
+    public StopCondition getStopCondition() {
       throw new UnsupportedOperationException();
     }
 

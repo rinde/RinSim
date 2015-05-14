@@ -15,20 +15,16 @@
  */
 package com.github.rinde.rinsim.scenario;
 
-import com.github.rinde.rinsim.core.model.Model;
-import com.github.rinde.rinsim.core.model.ModelBuilder;
+import com.google.common.collect.ImmutableSet;
 
-/**
- * it is seldom necessary to implement this interface directly
- * @author Rinde van Lon
- */
-public interface StopCondition extends Model<Void> {
+public interface StopCondition {
 
-  boolean evaluate();
+  ImmutableSet<Class<?>> getTypes();
 
-  public interface StopConditionBuilder extends
-    ModelBuilder<StopCondition, Void> {
+  boolean evaluate(TypeProvider provider);
 
+  public interface TypeProvider {
+    <T> T get(Class<T> type);
   }
 
 }

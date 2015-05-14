@@ -80,7 +80,7 @@ public class DynamicPDPTWProblemTest {
     }
 
     @Override
-    public ImmutableSet<StopConditionBuilder> getStopConditions() {
+    public ImmutableSet<StopConditionBuilder> getStopCondition() {
       return ImmutableSet.of(StatsStopConditions
         .adapt(StatsStopConditions.TIME_OUT_EVENT));
     }

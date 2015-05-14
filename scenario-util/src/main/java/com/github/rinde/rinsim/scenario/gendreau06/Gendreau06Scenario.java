@@ -80,7 +80,7 @@ public abstract class Gendreau06Scenario extends Scenario {
   }
 
   @Override
-  public ImmutableSet<StopConditionBuilder> getStopConditions() {
+  public ImmutableSet<StopConditionBuilder> getStopCondition() {
     return ImmutableSet.of(
       StatsStopConditions.and(
         StatsStopConditions.VEHICLES_DONE_AND_BACK_AT_DEPOT,
