@@ -41,7 +41,7 @@ public class RoadUserRendererTest {
   public void test() {
     final Simulator sim = Simulator.builder()
       .addModel(RoadModelBuilders.plane())
-      .addModel(View.create()
+      .addModel(View.builder()
         .with(PlaneRoadModelRenderer.builder())
         .with(RoadUserRenderer.builder()
           .withColorAssociation(Agent1.class, new RGB(255, 0, 255))

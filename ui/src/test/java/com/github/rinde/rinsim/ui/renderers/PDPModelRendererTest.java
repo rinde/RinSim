@@ -47,7 +47,7 @@ public class PDPModelRendererTest {
     final Simulator sim = Simulator.builder()
       .addModel(RoadModelBuilders.plane())
       .addModel(DefaultPDPModel.builder())
-      .addModel(View.create()
+      .addModel(View.builder()
         .with(PlaneRoadModelRenderer.builder())
         .with(RoadUserRenderer.builder()
           .withColorAssociation(DefaultDepot.class, new RGB(255, 200, 0))

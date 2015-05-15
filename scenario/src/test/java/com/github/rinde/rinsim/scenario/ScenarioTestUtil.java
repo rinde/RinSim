@@ -16,6 +16,7 @@
 package com.github.rinde.rinsim.scenario;
 
 import static com.google.common.truth.Truth.assertThat;
+import static java.util.Arrays.asList;
 
 import java.math.RoundingMode;
 import java.util.Collections;
@@ -23,6 +24,7 @@ import java.util.Collections;
 import org.apache.commons.math3.random.MersenneTwister;
 import org.apache.commons.math3.random.RandomGenerator;
 
+import com.github.rinde.rinsim.core.model.ModelBuilder;
 import com.github.rinde.rinsim.core.model.pdp.DefaultPDPModel;
 import com.github.rinde.rinsim.core.model.pdp.PDPScenarioEvent;
 import com.github.rinde.rinsim.core.model.road.RoadModelBuilders;
@@ -58,14 +60,17 @@ public class ScenarioTestUtil {
   /**
    * Creates a random scenario.
    * @param seed The seed to use.
+   * @param models Additional models (optional).
    * @return A new random scenario.
    */
-  public static Scenario createRandomScenario(long seed) {
+  public static Scenario createRandomScenario(long seed,
+    ModelBuilder<?, ?>... models) {
     final int endTime = 3 * 60 * 60 * 1000;
     Scenario.Builder b = Scenario
       .builder()
       .addModel(RoadModelBuilders.plane())
       .addModel(DefaultPDPModel.builder())
+      .addModels(asList(models))
       .addEvents(
         Collections
           .nCopies(

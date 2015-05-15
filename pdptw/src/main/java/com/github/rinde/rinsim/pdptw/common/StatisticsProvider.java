@@ -16,10 +16,13 @@
 package com.github.rinde.rinsim.pdptw.common;
 
 /**
+ * A provider of {@link StatisticsDTO} instances.
  * @author Rinde van Lon
- *
  */
 public interface StatisticsProvider {
 
+  /**
+   * @return The current {@link StatisticsDTO} instance.
+   */
   StatisticsDTO getStatistics();
 }

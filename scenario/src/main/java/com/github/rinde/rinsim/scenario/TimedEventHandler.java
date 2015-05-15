@@ -27,6 +27,7 @@ public interface TimedEventHandler<T extends TimedEvent> {
   /**
    * Should handle the timed event.
    * @param event The event to handle.
+   * @param simulator The simulator.
    */
   void handleTimedEvent(T event, SimulatorAPI simulator);
 }

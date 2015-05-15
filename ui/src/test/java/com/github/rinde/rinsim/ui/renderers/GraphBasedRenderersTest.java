@@ -60,7 +60,7 @@ public class GraphBasedRenderersTest {
         .withCollisionAvoidance()
         .withDistanceUnit(SI.METER))
       .addModel(
-        View.create()
+        View.builder()
           .with(WarehouseRenderer.builder()
             .withMargin(0)
             .withOneWayStreetArrows()

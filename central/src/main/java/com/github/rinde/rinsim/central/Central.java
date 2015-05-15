@@ -21,7 +21,7 @@ import java.util.Set;
 
 import com.github.rinde.rinsim.central.Solvers.SimulationSolver;
 import com.github.rinde.rinsim.central.Solvers.SolveArgs;
-import com.github.rinde.rinsim.core.Simulator;
+import com.github.rinde.rinsim.core.SimulatorAPI;
 import com.github.rinde.rinsim.core.model.DependencyProvider;
 import com.github.rinde.rinsim.core.model.Model.AbstractModel;
 import com.github.rinde.rinsim.core.model.ModelBuilder;
@@ -34,10 +34,10 @@ import com.github.rinde.rinsim.core.model.time.TimeLapse;
 import com.github.rinde.rinsim.core.pdptw.DefaultParcel;
 import com.github.rinde.rinsim.experiment.DefaultMASConfiguration;
 import com.github.rinde.rinsim.experiment.MASConfiguration;
-import com.github.rinde.rinsim.pdptw.common.DynamicPDPTWProblem.Creator;
 import com.github.rinde.rinsim.pdptw.common.PDPRoadModel;
 import com.github.rinde.rinsim.pdptw.common.RouteFollowingVehicle;
 import com.github.rinde.rinsim.scenario.AddVehicleEvent;
+import com.github.rinde.rinsim.scenario.TimedEventHandler;
 import com.github.rinde.rinsim.util.StochasticSupplier;
 import com.google.auto.value.AutoValue;
 import com.google.common.collect.ImmutableList;
@@ -92,7 +92,7 @@ public final class Central {
     }
 
     @Override
-    public Creator<AddVehicleEvent> getVehicleCreator() {
+    public TimedEventHandler<AddVehicleEvent> getVehicleCreator() {
       return new VehicleCreator();
     }
 
@@ -107,13 +107,13 @@ public final class Central {
     }
   }
 
-  private static final class VehicleCreator implements Creator<AddVehicleEvent> {
+  private static final class VehicleCreator implements
+    TimedEventHandler<AddVehicleEvent> {
     VehicleCreator() {}
 
     @Override
-    public boolean create(Simulator sim, AddVehicleEvent event) {
-      sim.register(new RouteFollowingVehicle(event.vehicleDTO, false));
-      return true;
+    public void handleTimedEvent(AddVehicleEvent event, SimulatorAPI simulator) {
+      simulator.register(new RouteFollowingVehicle(event.vehicleDTO, false));
     }
   }
 

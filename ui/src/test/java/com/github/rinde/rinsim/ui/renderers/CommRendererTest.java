@@ -56,7 +56,7 @@ public class CommRendererTest {
       .addModel(CommModel.builder())
       .addModel(RoadModelBuilders.plane())
       .addModel(
-        View.create()
+        View.builder()
           .with(CommRenderer.builder()
             .withReliabilityColors(new RGB(0, 0, 255), new RGB(255, 255, 0))
             .withReliabilityPercentage()

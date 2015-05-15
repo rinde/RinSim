@@ -16,10 +16,10 @@
 package com.github.rinde.rinsim.experiment;
 
 import com.github.rinde.rinsim.core.model.ModelBuilder;
-import com.github.rinde.rinsim.pdptw.common.DynamicPDPTWProblem.Creator;
 import com.github.rinde.rinsim.scenario.AddDepotEvent;
 import com.github.rinde.rinsim.scenario.AddParcelEvent;
 import com.github.rinde.rinsim.scenario.AddVehicleEvent;
+import com.github.rinde.rinsim.scenario.TimedEventHandler;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 
@@ -38,15 +38,15 @@ public interface MASConfiguration {
   /**
    * @return A creator that creates vehicle agents.
    */
-  Creator<AddVehicleEvent> getVehicleCreator();
+  TimedEventHandler<AddVehicleEvent> getVehicleCreator();
 
   /**
    * @return A creator that creates depot agents.
    */
-  Optional<? extends Creator<AddDepotEvent>> getDepotCreator();
+  Optional<? extends TimedEventHandler<AddDepotEvent>> getDepotCreator();
 
   /**
    * @return A creator that creates parcel agents.
    */
-  Optional<? extends Creator<AddParcelEvent>> getParcelCreator();
+  Optional<? extends TimedEventHandler<AddParcelEvent>> getParcelCreator();
 }

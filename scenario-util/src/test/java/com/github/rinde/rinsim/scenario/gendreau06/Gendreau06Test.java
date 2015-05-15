@@ -36,8 +36,8 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 
+import com.github.rinde.rinsim.core.Simulator;
 import com.github.rinde.rinsim.core.SimulatorAPI;
-import com.github.rinde.rinsim.core.model.ModelBuilder;
 import com.github.rinde.rinsim.core.model.pdp.PDPModel;
 import com.github.rinde.rinsim.core.model.pdp.PDPModel.ParcelState;
 import com.github.rinde.rinsim.core.model.pdp.PDPScenarioEvent;
@@ -49,11 +49,12 @@ import com.github.rinde.rinsim.core.pdptw.DefaultVehicle;
 import com.github.rinde.rinsim.core.pdptw.ParcelDTO;
 import com.github.rinde.rinsim.core.pdptw.VehicleDTO;
 import com.github.rinde.rinsim.geom.Point;
-import com.github.rinde.rinsim.pdptw.common.DynamicPDPTWProblem;
 import com.github.rinde.rinsim.pdptw.common.StatisticsDTO;
+import com.github.rinde.rinsim.pdptw.common.StatsTracker;
 import com.github.rinde.rinsim.scenario.AddDepotEvent;
 import com.github.rinde.rinsim.scenario.AddParcelEvent;
 import com.github.rinde.rinsim.scenario.AddVehicleEvent;
+import com.github.rinde.rinsim.scenario.ScenarioController;
 import com.github.rinde.rinsim.scenario.TimedEvent;
 import com.github.rinde.rinsim.scenario.TimedEventHandler;
 import com.github.rinde.rinsim.testutil.GuiTests;
@@ -62,8 +63,6 @@ import com.github.rinde.rinsim.ui.renderers.PDPModelRenderer;
 import com.github.rinde.rinsim.ui.renderers.PlaneRoadModelRenderer;
 import com.github.rinde.rinsim.ui.renderers.RoadUserRenderer;
 import com.github.rinde.rinsim.util.TimeWindow;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
 
 /**
  * @author Rinde van Lon
@@ -201,35 +200,37 @@ public class Gendreau06Test {
 
   static StatisticsDTO runProblem(Gendreau06Scenario s, boolean useGui) {
 
-    ImmutableList<ModelBuilder<?, ?>> models = useGui ?
-      ImmutableList.<ModelBuilder<?, ?>> of(
-        View.create()
+    Simulator.Builder simBuilder = Simulator.builder()
+      .setRandomSeed(123L)
+      .addModel(
+        ScenarioController.builder(s)
+          .withEventHandler(AddVehicleEvent.class,
+            new TimedEventHandler<AddVehicleEvent>() {
+              @Override
+              public void handleTimedEvent(AddVehicleEvent event,
+                SimulatorAPI simulator) {
+                simulator.register(new SimpleTruck(event.vehicleDTO,
+                  new ClosestParcelStrategy()));
+              }
+            }
+          ));
+
+    if (useGui) {
+      simBuilder.addModel(
+        View.builder()
           .with(PlaneRoadModelRenderer.builder())
           .with(RoadUserRenderer.builder())
           .with(PDPModelRenderer.builder())
           .withSpeedUp(50)
           .withAutoClose()
           .withAutoPlay()
-        )
-      :
-      ImmutableList.<ModelBuilder<?, ?>> of();
+        );
+    }
 
-    final DynamicPDPTWProblem problem = new DynamicPDPTWProblem(s, 123,
-      models,
-      ImmutableMap.<Class<?>, TimedEventHandler<?>> of(
-        AddVehicleEvent.class,
-        new TimedEventHandler<AddVehicleEvent>() {
-          @Override
-          public void handleTimedEvent(AddVehicleEvent event,
-            SimulatorAPI simulator) {
-            simulator.register(new SimpleTruck(event.vehicleDTO,
-              new ClosestParcelStrategy()));
-          }
-        }
-        ));
+    Simulator sim = simBuilder.build();
+    sim.start();
 
-    problem.simulate();
-    return problem.getStatistics();
+    return sim.getModelProvider().getModel(StatsTracker.class).getStatistics();
   }
 
   static Gendreau06Scenario create(int numVehicles, long endTime,

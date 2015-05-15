@@ -17,17 +17,13 @@ package com.github.rinde.rinsim.experiment;
 
 import java.io.Serializable;
 
-import com.github.rinde.rinsim.core.Simulator;
-import com.github.rinde.rinsim.core.model.ModelBuilder;
+import com.github.rinde.rinsim.core.SimulatorAPI;
 import com.github.rinde.rinsim.core.pdptw.RandomVehicle;
-import com.github.rinde.rinsim.pdptw.common.DynamicPDPTWProblem.Creator;
-import com.github.rinde.rinsim.scenario.AddDepotEvent;
-import com.github.rinde.rinsim.scenario.AddParcelEvent;
 import com.github.rinde.rinsim.scenario.AddVehicleEvent;
-import com.google.common.base.Optional;
-import com.google.common.collect.ImmutableList;
+import com.github.rinde.rinsim.scenario.TimedEventHandler;
 
-public class TestMASConfiguration implements MASConfiguration, Serializable {
+public class TestMASConfiguration extends DefaultMASConfiguration implements
+  Serializable {
 
   private final String name;
 
@@ -40,30 +36,13 @@ public class TestMASConfiguration implements MASConfiguration, Serializable {
   }
 
   @Override
-  public ImmutableList<? extends ModelBuilder<?, ?>> getModels() {
-    return ImmutableList.of();
-  }
-
-  @Override
-  public Creator<AddVehicleEvent> getVehicleCreator() {
-    return new Creator<AddVehicleEvent>() {
+  public TimedEventHandler<AddVehicleEvent> getVehicleCreator() {
+    return new TimedEventHandler<AddVehicleEvent>() {
       @Override
-      public boolean create(Simulator sim, AddVehicleEvent event) {
-        sim.register(new RandomVehicle(event.vehicleDTO, sim
-          .getRandomGenerator().nextLong()));
-        return true;
+      public void handleTimedEvent(AddVehicleEvent event, SimulatorAPI sim) {
+        sim.register(new RandomVehicle(event.vehicleDTO));
       }
     };
-  }
-
-  @Override
-  public Optional<? extends Creator<AddDepotEvent>> getDepotCreator() {
-    return Optional.absent();
-  }
-
-  @Override
-  public Optional<? extends Creator<AddParcelEvent>> getParcelCreator() {
-    return Optional.absent();
   }
 
   @Override

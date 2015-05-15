@@ -15,12 +15,12 @@
  */
 package com.github.rinde.rinsim.examples.pdptw.gradientfield;
 
-import com.github.rinde.rinsim.core.Simulator;
+import com.github.rinde.rinsim.core.SimulatorAPI;
 import com.github.rinde.rinsim.core.model.ModelBuilder;
 import com.github.rinde.rinsim.experiment.DefaultMASConfiguration;
-import com.github.rinde.rinsim.pdptw.common.DynamicPDPTWProblem.Creator;
 import com.github.rinde.rinsim.scenario.AddParcelEvent;
 import com.github.rinde.rinsim.scenario.AddVehicleEvent;
+import com.github.rinde.rinsim.scenario.TimedEventHandler;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 
@@ -37,26 +37,23 @@ class GradientFieldConfiguration extends DefaultMASConfiguration {
   }
 
   @Override
-  public Creator<AddVehicleEvent> getVehicleCreator() {
-    return new Creator<AddVehicleEvent>() {
+  public TimedEventHandler<AddVehicleEvent> getVehicleCreator() {
+    return new TimedEventHandler<AddVehicleEvent>() {
       @Override
-      public boolean create(Simulator sim, AddVehicleEvent event) {
+      public void handleTimedEvent(AddVehicleEvent event, SimulatorAPI sim) {
         sim.register(new Truck(event.vehicleDTO));
-        return true;
       }
     };
   }
 
   @Override
-  public Optional<? extends Creator<AddParcelEvent>> getParcelCreator() {
-    return Optional.of(new Creator<AddParcelEvent>() {
+  public Optional<? extends TimedEventHandler<AddParcelEvent>> getParcelCreator() {
+    return Optional.of(new TimedEventHandler<AddParcelEvent>() {
       @Override
-      public boolean create(Simulator sim, AddParcelEvent event) {
+      public void handleTimedEvent(AddParcelEvent event, SimulatorAPI sim) {
         // all parcels are accepted by default
         sim.register(new GFParcel(event.parcelDTO));
-        return true;
       }
     });
   }
-
 }

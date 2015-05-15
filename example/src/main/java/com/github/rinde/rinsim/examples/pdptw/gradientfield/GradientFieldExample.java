@@ -52,7 +52,7 @@ public final class GradientFieldExample {
    *          this means that it will automatically start and stop itself.
    */
   public static void run(final boolean testing) {
-    View.Builder viewBuilder = View.create()
+    View.Builder viewBuilder = View.builder()
       .with(PlaneRoadModelRenderer.builder())
       .with(RoadUserRenderer.builder()
         .withImageAssociation(

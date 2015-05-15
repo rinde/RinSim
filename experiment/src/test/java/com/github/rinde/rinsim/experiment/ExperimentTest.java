@@ -26,41 +26,42 @@ import org.junit.Test;
 import com.github.rinde.rinsim.core.Simulator;
 import com.github.rinde.rinsim.core.model.road.RoadModel;
 import com.github.rinde.rinsim.geom.Point;
-import com.github.rinde.rinsim.pdptw.common.DynamicPDPTWProblem;
 import com.github.rinde.rinsim.pdptw.common.ObjectiveFunction;
 import com.github.rinde.rinsim.pdptw.common.StatisticsDTO;
+import com.github.rinde.rinsim.pdptw.common.StatsTracker;
 import com.github.rinde.rinsim.pdptw.common.TestObjectiveFunction;
 import com.github.rinde.rinsim.scenario.Scenario;
 import com.github.rinde.rinsim.scenario.ScenarioTestUtil;
 import com.google.common.collect.ImmutableList;
 
 /**
- * @author Rinde van Lon 
+ * @author Rinde van Lon
  * 
  */
 public class ExperimentTest {
 
   public static StatisticsDTO singleRun(Scenario scenario,
-      MASConfiguration c, long seed, ObjectiveFunction objFunc, boolean showGui) {
+    MASConfiguration c, long seed, ObjectiveFunction objFunc, boolean showGui) {
     return Experiment.singleRun(scenario, c, seed, objFunc, showGui, null,
-        null).stats;
+      null).stats;
   }
 
-  public static DynamicPDPTWProblem init(Scenario scenario,
-      MASConfiguration config, long seed, boolean showGui) {
+  public static Simulator init(Scenario scenario,
+    MASConfiguration config, long seed, boolean showGui) {
     return Experiment.init(scenario, config, seed, showGui,
-        null);
+      null);
   }
 
   @Test
   public void testPostProcessor() {
-    final Scenario scenario = ScenarioTestUtil.createRandomScenario(123L);
+    final Scenario scenario = ScenarioTestUtil.createRandomScenario(123L,
+      StatsTracker.builder());
     final Experiment.Builder builder = Experiment
-        .build(TestObjectiveFunction.INSTANCE)
-        .addScenario(scenario)
-        .addConfiguration(TestMASConfiguration.create("test"))
-        .usePostProcessor(new TestPostProcessor())
-        .withRandomSeed(123);
+      .build(TestObjectiveFunction.INSTANCE)
+      .addScenario(scenario)
+      .addConfiguration(TestMASConfiguration.create("test"))
+      .usePostProcessor(new TestPostProcessor())
+      .withRandomSeed(123);
 
     final ExperimentResults er = builder.perform();
     assertEquals(123, er.masterSeed);
@@ -68,7 +69,7 @@ public class ExperimentTest {
 
     @SuppressWarnings("unchecked")
     final List<Point> positions = (List<Point>) er.results.asList().get(0).simulationData
-        .get();
+      .get();
     assertEquals(10, positions.size());
   }
 
@@ -80,32 +81,33 @@ public class ExperimentTest {
   @Test
   public void multiThreadedOrder() {
     final Experiment.Builder builder = Experiment
-        .build(TestObjectiveFunction.INSTANCE)
-        .addScenario(ScenarioTestUtil.createRandomScenario(456L))
-        .addConfiguration(
-            TestMASConfiguration.create("A"))
-        .addConfiguration(
-            TestMASConfiguration.create("B"))
-        .addConfiguration(
-            TestMASConfiguration.create("C"))
-        .addConfiguration(
-            TestMASConfiguration.create("D"))
-        .withThreads(4)
-        .withRandomSeed(456);
+      .build(TestObjectiveFunction.INSTANCE)
+      .addScenario(
+        ScenarioTestUtil.createRandomScenario(456L, StatsTracker.builder()))
+      .addConfiguration(
+        TestMASConfiguration.create("A"))
+      .addConfiguration(
+        TestMASConfiguration.create("B"))
+      .addConfiguration(
+        TestMASConfiguration.create("C"))
+      .addConfiguration(
+        TestMASConfiguration.create("D"))
+      .withThreads(4)
+      .withRandomSeed(456);
 
     final ExperimentResults er = builder.perform();
     assertTrue(er.results.asList().get(0).masConfiguration.toString().endsWith(
-        "A"));
+      "A"));
     assertTrue(er.results.asList().get(1).masConfiguration.toString().endsWith(
-        "B"));
+      "B"));
     assertTrue(er.results.asList().get(2).masConfiguration.toString().endsWith(
-        "C"));
+      "C"));
     assertTrue(er.results.asList().get(3).masConfiguration.toString().endsWith(
-        "D"));
+      "D"));
   }
 
   static class TestPostProcessor implements
-      PostProcessor<ImmutableList<Point>>, Serializable {
+    PostProcessor<ImmutableList<Point>>, Serializable {
     private static final long serialVersionUID = -2166760289557525263L;
 
     @Override

@@ -63,7 +63,7 @@ public final class SimpleExample {
     // for the drivers. By default the road model is rendered as a square
     // (indicating its boundaries), and the drivers are rendered as red
     // dots.
-    View.Builder viewBuilder = View.create()
+    View.Builder viewBuilder = View.builder()
       .with(PlaneRoadModelRenderer.builder())
       .with(RoadUserRenderer.builder());
 

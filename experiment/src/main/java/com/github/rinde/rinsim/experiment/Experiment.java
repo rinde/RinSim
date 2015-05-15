@@ -30,18 +30,18 @@ import javax.annotation.Nullable;
 import org.apache.commons.math3.random.MersenneTwister;
 import org.apache.commons.math3.random.RandomGenerator;
 
+import com.github.rinde.rinsim.core.Simulator;
 import com.github.rinde.rinsim.core.model.ModelBuilder;
 import com.github.rinde.rinsim.experiment.LocalComputer.ExperimentRunner;
 import com.github.rinde.rinsim.io.FileProvider;
-import com.github.rinde.rinsim.pdptw.common.DynamicPDPTWProblem;
 import com.github.rinde.rinsim.pdptw.common.ObjectiveFunction;
 import com.github.rinde.rinsim.pdptw.common.StatisticsDTO;
 import com.github.rinde.rinsim.scenario.AddDepotEvent;
 import com.github.rinde.rinsim.scenario.AddParcelEvent;
 import com.github.rinde.rinsim.scenario.AddVehicleEvent;
 import com.github.rinde.rinsim.scenario.Scenario;
+import com.github.rinde.rinsim.scenario.ScenarioController;
 import com.github.rinde.rinsim.scenario.ScenarioIO;
-import com.github.rinde.rinsim.scenario.TimedEventHandler;
 import com.github.rinde.rinsim.util.StochasticSupplier;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Function;
@@ -52,7 +52,6 @@ import com.google.common.base.Optional;
 import com.google.common.base.Supplier;
 import com.google.common.collect.ComparisonChain;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 
@@ -153,43 +152,39 @@ public final class Experiment {
   }
 
   /**
-   * Initialize a {@link DynamicPDPTWProblem} instance.
+   * Initialize a {@link Simulator} instance.
    * @param scenario The scenario to use.
    * @param config The configuration to use.
    * @param showGui Whether to show the gui.
-   * @return The {@link DynamicPDPTWProblem} instance.
+   * @return The {@link Simulator} instance.
    */
   @VisibleForTesting
-  static DynamicPDPTWProblem init(Scenario scenario,
+  static Simulator init(Scenario scenario,
     MASConfiguration config, long seed, boolean showGui,
     Optional<ModelBuilder<?, ?>> uiCreator) {
 
-    final ImmutableList<ModelBuilder<?, ?>> modelBuilders =
-      ImmutableList
-        .<ModelBuilder<?, ?>> builder()
-        .addAll(
-          showGui ? uiCreator.asSet() : ImmutableSet.<ModelBuilder<?, ?>> of())
-        .addAll(config.getModels())
-        .build();
-
-    ImmutableMap.Builder<Class<?>, TimedEventHandler<?>> b = ImmutableMap
-      .builder();
-
-    b.put(AddVehicleEvent.class,
-      DynamicPDPTWProblem.adaptCreator(config.getVehicleCreator()));
+    ScenarioController.Builder scenContrBuilder = ScenarioController.builder(
+      scenario)
+      .withEventHandler(AddVehicleEvent.class, config.getVehicleCreator());
     if (config.getDepotCreator().isPresent()) {
-      b.put(AddDepotEvent.class,
-        DynamicPDPTWProblem.adaptCreator(config.getDepotCreator().get()));
+      scenContrBuilder = scenContrBuilder.withEventHandler(AddDepotEvent.class,
+        config.getDepotCreator().get());
     }
     if (config.getParcelCreator().isPresent()) {
-      b.put(AddParcelEvent.class,
-        DynamicPDPTWProblem.adaptCreator(config.getParcelCreator().get()));
+      scenContrBuilder = scenContrBuilder.withEventHandler(
+        AddParcelEvent.class, config.getParcelCreator().get());
     }
 
-    final DynamicPDPTWProblem problem = new DynamicPDPTWProblem(scenario,
-      seed, modelBuilders, b.build());
+    Simulator.Builder simBuilder = Simulator.builder()
+      .setRandomSeed(seed)
+      .addModels(config.getModels())
+      .addModel(scenContrBuilder);
 
-    return problem;
+    if (showGui) {
+      simBuilder.addModel(uiCreator.get());
+    }
+
+    return simBuilder.build();
   }
 
   /**

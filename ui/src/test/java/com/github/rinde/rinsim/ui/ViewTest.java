@@ -49,7 +49,7 @@ public class ViewTest {
   public void testRenderer() {
     final Simulator sim = Simulator.builder()
       .addModel(RoadModelBuilders.plane())
-      .addModel(View.create()
+      .addModel(View.builder()
         .withTitleAppendix("ViewTest")
         .withAutoClose()
         .withAutoPlay()
@@ -76,7 +76,7 @@ public class ViewTest {
           .withTimeWindowPolicy(TimeWindowPolicies.LIBERAL)
       )
       .addModel(
-        View.create()
+        View.builder()
           .withTitleAppendix("ViewTest")
           .with(PlaneRoadModelRenderer.builder())
           .with(RoadUserRenderer.builder())

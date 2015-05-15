@@ -29,6 +29,7 @@ import com.github.rinde.rinsim.core.model.time.TimeModel;
 import com.github.rinde.rinsim.core.pdptw.VehicleDTO;
 import com.github.rinde.rinsim.geom.Point;
 import com.github.rinde.rinsim.pdptw.common.StatsStopConditions;
+import com.github.rinde.rinsim.pdptw.common.StatsTracker;
 import com.github.rinde.rinsim.scenario.Scenario;
 import com.github.rinde.rinsim.scenario.StopCondition;
 import com.github.rinde.rinsim.scenario.TimedEvent;
@@ -83,6 +84,9 @@ public abstract class FabriRechtScenario extends Scenario {
       .add(
         DefaultPDPModel.builder()
           .withTimeWindowPolicy(TimeWindowPolicies.TARDY_ALLOWED)
+      )
+      .add(
+        StatsTracker.builder()
       )
       .build();
   }

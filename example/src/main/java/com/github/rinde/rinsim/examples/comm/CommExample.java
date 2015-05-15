@@ -60,7 +60,7 @@ public final class CommExample {
    */
   public static void run(boolean testing) {
 
-    View.Builder viewBuilder = View.create()
+    View.Builder viewBuilder = View.builder()
       .with(PlaneRoadModelRenderer.builder())
       .with(CommRenderer.builder()
         .withReliabilityColors()

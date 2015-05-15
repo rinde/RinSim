@@ -55,7 +55,7 @@ import com.google.common.collect.Sets;
 
 /**
  * The view class is the main GUI class. For creating a view, see
- * {@link #create()}.
+ * {@link #builder()}.
  * @author Rinde van Lon (rinde.vanlon@cs.kuleuven.be)
  * @author Bartosz Michalik
  * @since 2.0
@@ -205,7 +205,7 @@ public final class View extends AbstractModel<Void> implements
    * @return The {@link View.Builder}.
    */
   @CheckReturnValue
-  public static Builder create() {
+  public static Builder builder() {
     return Builder.create();
   }
 

@@ -58,7 +58,7 @@ public final class WarehouseExample {
           .withVehicleLength(VEHICLE_LENGTH)
       )
       .addModel(
-        View.create()
+        View.builder()
           .with(WarehouseRenderer.builder()
             .withMargin(VEHICLE_LENGTH)
           )

@@ -40,13 +40,14 @@ import org.jppf.node.protocol.Task;
 import org.jppf.task.storage.DataProvider;
 import org.jppf.task.storage.MemoryMapDataProvider;
 
+import com.github.rinde.rinsim.core.Simulator;
 import com.github.rinde.rinsim.core.model.ModelBuilder;
 import com.github.rinde.rinsim.experiment.Experiment.Builder;
 import com.github.rinde.rinsim.experiment.Experiment.SimArgs;
 import com.github.rinde.rinsim.experiment.Experiment.SimulationResult;
-import com.github.rinde.rinsim.pdptw.common.DynamicPDPTWProblem;
 import com.github.rinde.rinsim.pdptw.common.ObjectiveFunction;
 import com.github.rinde.rinsim.pdptw.common.StatisticsDTO;
+import com.github.rinde.rinsim.pdptw.common.StatsTracker;
 import com.github.rinde.rinsim.scenario.Scenario;
 import com.github.rinde.rinsim.scenario.ScenarioIO;
 import com.google.common.base.Joiner;
@@ -411,17 +412,18 @@ final class JppfComputer implements Computer {
       final ObjectiveFunction objectiveFunction = getDataProvider()
         .getParameter(objectiveFunctionId);
 
-      // perform simulation
-      final DynamicPDPTWProblem prob = Experiment.init(scenario.get(),
+      final Simulator sim = Experiment.init(scenario.get(),
         configuration, seed, false, Optional.<ModelBuilder<?, ?>> absent());
-      final StatisticsDTO stats = prob.simulate();
+      // perform simulation
+      sim.start();
+      final StatisticsDTO stats = sim.getModelProvider().getModel(
+        StatsTracker.class).getStatistics();
 
       final Optional<Object> data;
       if (postProcessorId.isPresent()) {
         final PostProcessor<?> postProcessor = getDataProvider().getParameter(
           postProcessorId.get());
-        data = Optional.of((Object) postProcessor.collectResults(prob
-          .getSimulator()));
+        data = Optional.of((Object) postProcessor.collectResults(sim));
         checkArgument(data.get() instanceof Serializable,
           "Your PostProcessor must generate Serializable objects, found %s.",
           data.get());

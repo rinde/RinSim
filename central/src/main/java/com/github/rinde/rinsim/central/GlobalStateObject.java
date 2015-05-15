@@ -35,8 +35,7 @@ import com.google.common.collect.ImmutableSet;
 
 /**
  * An immutable state object representing the state of an entire
- * {@link com.github.rinde.rinsim.core.Simulator} configured using
- * {@link com.github.rinde.rinsim.pdptw.common.DynamicPDPTWProblem}.
+ * {@link com.github.rinde.rinsim.core.Simulator}.
  * @author Rinde van Lon
  */
 public class GlobalStateObject {
@@ -75,8 +74,8 @@ public class GlobalStateObject {
   public final Unit<Length> distUnit;
 
   GlobalStateObject(ImmutableSet<ParcelDTO> availableParcels,
-      ImmutableList<VehicleStateObject> vehicles, long time,
-      Unit<Duration> timeUnit, Unit<Velocity> speedUnit, Unit<Length> distUnit) {
+    ImmutableList<VehicleStateObject> vehicles, long time,
+    Unit<Duration> timeUnit, Unit<Velocity> speedUnit, Unit<Length> distUnit) {
     this.availableParcels = availableParcels;
     this.vehicles = vehicles;
     this.time = time;
@@ -94,16 +93,16 @@ public class GlobalStateObject {
    */
   public GlobalStateObject withSingleVehicle(int index) {
     checkArgument(index >= 0 && index < vehicles.size(),
-        "Invalid vehicle index (%s) must be >= 0 and < %s.", index,
-        vehicles.size());
+      "Invalid vehicle index (%s) must be >= 0 and < %s.", index,
+      vehicles.size());
     return new GlobalStateObject(availableParcels, ImmutableList.of(vehicles
-        .get(index)), time, timeUnit, speedUnit, distUnit);
+      .get(index)), time, timeUnit, speedUnit, distUnit);
   }
 
   @Override
   public String toString() {
     return new ReflectionToStringBuilder(this, ToStringStyle.MULTI_LINE_STYLE)
-        .toString();
+      .toString();
   }
 
   /**
@@ -163,9 +162,9 @@ public class GlobalStateObject {
     public final ParcelDTO destination;
 
     VehicleStateObject(VehicleDTO dto, Point location,
-        ImmutableSet<ParcelDTO> contents, long remainingServiceTime,
-        @Nullable ParcelDTO destination,
-        @Nullable ImmutableList<ParcelDTO> route) {
+      ImmutableSet<ParcelDTO> contents, long remainingServiceTime,
+      @Nullable ParcelDTO destination,
+      @Nullable ImmutableList<ParcelDTO> route) {
       this.dto = dto;
       // super(dto.startPosition, dto.speed, dto.capacity,
       // dto.availabilityTimeWindow);

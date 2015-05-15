@@ -48,7 +48,7 @@ public final class PanelTest {
       )
       .addModel(
         View
-          .create()
+          .builder()
           .with(PlaneRoadModelRenderer.builder())
           .with(RoadUserRenderer.builder())
           .with(

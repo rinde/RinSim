@@ -70,7 +70,7 @@ public final class SwarmDemo {
         .withMaxSpeed(1000d)
       )
       .addModel(
-        View.create()
+        View.builder()
           .with(PlaneRoadModelRenderer.builder())
           .with(VehicleRenderer.builder())
           .with(DemoPanel.builder(string))

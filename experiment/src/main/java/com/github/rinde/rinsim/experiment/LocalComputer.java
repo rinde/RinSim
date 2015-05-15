@@ -23,11 +23,12 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
 
+import com.github.rinde.rinsim.core.Simulator;
 import com.github.rinde.rinsim.experiment.Experiment.Builder;
 import com.github.rinde.rinsim.experiment.Experiment.SimArgs;
 import com.github.rinde.rinsim.experiment.Experiment.SimulationResult;
-import com.github.rinde.rinsim.pdptw.common.DynamicPDPTWProblem;
 import com.github.rinde.rinsim.pdptw.common.StatisticsDTO;
+import com.github.rinde.rinsim.pdptw.common.StatsTracker;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
@@ -41,7 +42,7 @@ final class LocalComputer implements Computer {
   @Override
   public ExperimentResults compute(Builder builder, Set<SimArgs> inputs) {
     final ImmutableList.Builder<ExperimentRunner> runnerBuilder = ImmutableList
-        .builder();
+      .builder();
     for (final SimArgs args : inputs) {
       runnerBuilder.add(new ExperimentRunner(args));
     }
@@ -51,7 +52,7 @@ final class LocalComputer implements Computer {
     final ListeningExecutorService executor;
     if (threads > 1) {
       executor = MoreExecutors
-          .listeningDecorator(Executors.newFixedThreadPool(threads));
+        .listeningDecorator(Executors.newFixedThreadPool(threads));
     } else {
       executor = MoreExecutors.newDirectExecutorService();
     }
@@ -60,7 +61,7 @@ final class LocalComputer implements Computer {
       // safe cast according to javadoc
       @SuppressWarnings({ "unchecked", "rawtypes" })
       final List<ListenableFuture<SimulationResult>> futures = (List) executor
-          .invokeAll(runners);
+        .invokeAll(runners);
       results = Futures.allAsList(futures).get();
     } catch (final InterruptedException e) {
       throw new IllegalStateException(e);
@@ -72,7 +73,7 @@ final class LocalComputer implements Computer {
     executor.shutdown();
 
     return new ExperimentResults(builder,
-        ImmutableSet.copyOf(results));
+      ImmutableSet.copyOf(results));
   }
 
   static class ExperimentRunner implements Callable<SimulationResult> {
@@ -85,37 +86,39 @@ final class LocalComputer implements Computer {
     @Override
     public SimulationResult call() {
       try {
-        final DynamicPDPTWProblem prob = Experiment.init(arguments.scenario,
-            arguments.masConfig, arguments.randomSeed, arguments.showGui,
-            arguments.uiCreator);
-        final StatisticsDTO stats = prob.simulate();
+        final Simulator sim = Experiment.init(arguments.scenario,
+          arguments.masConfig, arguments.randomSeed, arguments.showGui,
+          arguments.uiCreator);
+        sim.start();
+
+        final StatisticsDTO stats = sim.getModelProvider().getModel(
+          StatsTracker.class).getStatistics();
 
         Optional<?> data = Optional.absent();
         if (arguments.postProcessor.isPresent()) {
-          data = Optional.of(arguments.postProcessor.get().collectResults(
-              prob.getSimulator()));
+          data = Optional.of(arguments.postProcessor.get().collectResults(sim));
         }
         checkState(arguments.objectiveFunction.isValidResult(stats),
-            "The simulation did not result in a valid result: %s.", stats);
+          "The simulation did not result in a valid result: %s.", stats);
         final SimulationResult result = new SimulationResult(stats,
-            arguments.scenario, arguments.masConfig, arguments.randomSeed, data);
+          arguments.scenario, arguments.masConfig, arguments.randomSeed, data);
 
         // FIXME this should be changed into a more decent progress indicator
         System.out.print(".");
         return result;
       } catch (final RuntimeException e) {
         final StringBuilder sb = new StringBuilder()
-            .append("[Scenario= ")
-            .append(arguments.scenario)
-            .append(",")
-            .append(arguments.scenario.getProblemClass())
-            .append("-")
-            .append(arguments.scenario.getProblemInstanceId())
-            .append("]")
-            .append(",seed=")
-            .append(arguments.randomSeed)
-            .append(",config=")
-            .append(arguments.masConfig);
+          .append("[Scenario= ")
+          .append(arguments.scenario)
+          .append(",")
+          .append(arguments.scenario.getProblemClass())
+          .append("-")
+          .append(arguments.scenario.getProblemInstanceId())
+          .append("]")
+          .append(",seed=")
+          .append(arguments.randomSeed)
+          .append(",config=")
+          .append(arguments.masConfig);
         throw new IllegalStateException(sb.toString(), e);
       }
     }

@@ -19,7 +19,7 @@ import java.io.File;
 import java.io.IOException;
 
 import com.github.rinde.rinsim.core.Simulator;
-import com.github.rinde.rinsim.core.model.ModelBuilder;
+import com.github.rinde.rinsim.core.SimulatorAPI;
 import com.github.rinde.rinsim.core.model.pdp.PDPModel;
 import com.github.rinde.rinsim.core.model.pdp.PDPModel.ParcelState;
 import com.github.rinde.rinsim.core.model.road.RoadModel;
@@ -29,16 +29,18 @@ import com.github.rinde.rinsim.core.model.time.TimeLapse;
 import com.github.rinde.rinsim.core.pdptw.DefaultParcel;
 import com.github.rinde.rinsim.core.pdptw.DefaultVehicle;
 import com.github.rinde.rinsim.core.pdptw.VehicleDTO;
-import com.github.rinde.rinsim.pdptw.common.DynamicPDPTWProblem;
-import com.github.rinde.rinsim.pdptw.common.DynamicPDPTWProblem.Creator;
+import com.github.rinde.rinsim.pdptw.common.StatsTracker;
 import com.github.rinde.rinsim.scenario.AddVehicleEvent;
+import com.github.rinde.rinsim.scenario.ScenarioController;
 import com.github.rinde.rinsim.scenario.TimedEventHandler;
 import com.github.rinde.rinsim.scenario.fabrirecht.FabriRechtParser;
 import com.github.rinde.rinsim.scenario.fabrirecht.FabriRechtScenario;
 import com.github.rinde.rinsim.ui.View;
+import com.github.rinde.rinsim.ui.renderers.PDPModelRenderer;
+import com.github.rinde.rinsim.ui.renderers.PlaneRoadModelRenderer;
+import com.github.rinde.rinsim.ui.renderers.RoadUserRenderer;
 import com.google.common.base.Charsets;
 import com.google.common.base.Predicate;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.io.Files;
 
@@ -57,35 +59,38 @@ public final class FabriRechtExample {
     // trucks, each with a capacity of 20 units
     final FabriRechtScenario scenario = FabriRechtParser
       .fromJson(Files.toString(
-        new File("../problem/data/test/fabri-recht/lc101.scenario"),
+        new File("../scenario-util/files/test/fabri-recht/lc101.scenario"),
         Charsets.UTF_8), 8, 20);
 
     // we plug our custom vehicle in by specifying a creator
     final ImmutableMap<Class<?>, TimedEventHandler<?>> m = ImmutableMap
       .<Class<?>, TimedEventHandler<?>> of(
-        AddVehicleEvent.class,
-        DynamicPDPTWProblem.adaptCreator(new Creator<AddVehicleEvent>() {
+        AddVehicleEvent.class, new TimedEventHandler<AddVehicleEvent>() {
           @Override
-          public boolean create(Simulator sim, AddVehicleEvent event) {
+          public void handleTimedEvent(AddVehicleEvent event, SimulatorAPI sim) {
             sim.register(new Truck(event.vehicleDTO));
-            return true;
           }
-        }));
+        });
 
-    // instantiate the problem using the scenario and a random seed (which
-    // will not be used in this example)
-    final DynamicPDPTWProblem problem = new DynamicPDPTWProblem(scenario, 123,
-      ImmutableList.<ModelBuilder<?, ?>> of(
-        View.create()
-          .withAutoPlay()
-
-        ), m);
+    // instantiate the simulator using the scenario
+    final Simulator sim = Simulator.builder()
+      .addModel(ScenarioController.builder(scenario)
+        .withEventHandlers(m)
+      )
+      .addModel(StatsTracker.builder())
+      .addModel(View.builder().withAutoPlay()
+        .with(PlaneRoadModelRenderer.builder())
+        .with(PDPModelRenderer.builder())
+        .with(RoadUserRenderer.builder())
+      )
+      .build();
 
     // start the simulation
-    problem.simulate();
+    sim.start();
 
     // simulation is done, lets print the statistics!
-    System.out.println(problem.getStatistics());
+    System.out.println(sim.getModelProvider().getModel(StatsTracker.class)
+      .getStatistics());
   }
 }
 

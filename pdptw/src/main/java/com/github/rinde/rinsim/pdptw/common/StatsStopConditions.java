@@ -24,6 +24,7 @@ import com.google.common.collect.ImmutableSet;
  * @author Rinde van Lon
  */
 public final class StatsStopConditions {
+
   /**
    * The simulation is terminated once the
    * {@link com.github.rinde.rinsim.core.model.pdp.PDPScenarioEvent#TIME_OUT}

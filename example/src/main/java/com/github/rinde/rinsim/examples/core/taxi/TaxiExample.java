@@ -108,7 +108,7 @@ public final class TaxiExample {
     String graphFile,
     @Nullable Display display, @Nullable Monitor m, @Nullable Listener list) {
 
-    View.Builder view = View.create()
+    View.Builder view = View.builder()
       .with(GraphRoadModelRenderer.builder())
       .with(RoadUserRenderer.builder()
         .withImageAssociation(

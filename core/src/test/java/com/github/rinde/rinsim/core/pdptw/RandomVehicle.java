@@ -20,26 +20,27 @@ import static com.google.common.collect.Lists.newArrayList;
 import java.util.Collection;
 import java.util.Set;
 
-import org.apache.commons.math3.random.MersenneTwister;
 import org.apache.commons.math3.random.RandomGenerator;
 
 import com.github.rinde.rinsim.core.model.pdp.PDPModel;
 import com.github.rinde.rinsim.core.model.pdp.PDPModel.ParcelState;
 import com.github.rinde.rinsim.core.model.pdp.Parcel;
+import com.github.rinde.rinsim.core.model.rand.RandomProvider;
+import com.github.rinde.rinsim.core.model.rand.RandomUser;
 import com.github.rinde.rinsim.core.model.road.RoadModel;
 import com.github.rinde.rinsim.core.model.time.TimeLapse;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableSet;
 
-public class RandomVehicle extends DefaultVehicle {
+public class RandomVehicle extends DefaultVehicle implements RandomUser {
   private Optional<RoadModel> rm;
   private Optional<PDPModel> pm;
-  private final RandomGenerator rng;
+  private Optional<RandomGenerator> rng;
   private Optional<Parcel> target;
 
-  public RandomVehicle(VehicleDTO dto, long seed) {
+  public RandomVehicle(VehicleDTO dto) {
     super(dto);
-    rng = new MersenneTwister(seed);
+    rng = Optional.absent();
     rm = Optional.absent();
     pm = Optional.absent();
     target = Optional.absent();
@@ -73,7 +74,7 @@ public class RandomVehicle extends DefaultVehicle {
       }
     } else {
       final Set<DefaultDepot> depots = rm.get().getObjectsOfType(
-          DefaultDepot.class);
+        DefaultDepot.class);
       if (!depots.isEmpty()) {
         rm.get().moveTo(this, depots.iterator().next(), time);
       }
@@ -82,28 +83,33 @@ public class RandomVehicle extends DefaultVehicle {
 
   Optional<Parcel> findTarget() {
     final Collection<Parcel> available = pm.get().getParcels(
-        ParcelState.AVAILABLE);
+      ParcelState.AVAILABLE);
     final ImmutableSet<Parcel> contents = pm.get().getContents(this);
     if (available.isEmpty() && contents.isEmpty()) {
       return Optional.absent();
     }
     boolean pickup;
     if (!available.isEmpty() && !contents.isEmpty()) {
-      pickup = rng.nextBoolean();
+      pickup = rng.get().nextBoolean();
     } else {
       pickup = !available.isEmpty();
     }
     if (pickup) {
       return Optional.of(newArrayList(available).get(
-          rng.nextInt(available.size())));
-    } else {
-      return Optional.of(contents.asList().get(rng.nextInt(contents.size())));
+        rng.get().nextInt(available.size())));
     }
+    return Optional.of(contents.asList().get(
+      rng.get().nextInt(contents.size())));
   }
 
   @Override
   public void initRoadPDP(RoadModel pRoadModel, PDPModel pPdpModel) {
     rm = Optional.of(pRoadModel);
     pm = Optional.of(pPdpModel);
+  }
+
+  @Override
+  public void setRandomGenerator(RandomProvider provider) {
+    rng = Optional.of(provider.newInstance());
   }
 }

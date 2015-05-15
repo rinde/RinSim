@@ -156,7 +156,7 @@ public final class FactoryExample {
     final UiSchema uis = new UiSchema(false);
     uis.add(AGV.class, "/graphics/flat/forklift2.png");
 
-    View.Builder view = View.create()
+    View.Builder view = View.builder()
       .with(GraphRoadModelRenderer.builder()
         .withMargin(CANVAS_MARGIN))
       .with(BoxRenderer.builder())

@@ -55,11 +55,11 @@ public class TimeLinePanelTest {
               @Override
               public void handleTimedEvent(AddVehicleEvent event,
                 SimulatorAPI simulator) {
-                simulator.register(new RandomVehicle(event.vehicleDTO, 123));
+                simulator.register(new RandomVehicle(event.vehicleDTO));
               }
             }))
       .addModel(
-        View.create()
+        View.builder()
           .with(PlaneRoadModelRenderer.builder())
           .with(RoadUserRenderer.builder())
           .with(PDPModelRenderer.builder())

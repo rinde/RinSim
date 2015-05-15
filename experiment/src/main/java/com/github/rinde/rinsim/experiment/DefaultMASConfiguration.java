@@ -18,9 +18,9 @@ package com.github.rinde.rinsim.experiment;
 import java.io.Serializable;
 
 import com.github.rinde.rinsim.core.model.ModelBuilder;
-import com.github.rinde.rinsim.pdptw.common.DynamicPDPTWProblem.Creator;
 import com.github.rinde.rinsim.scenario.AddDepotEvent;
 import com.github.rinde.rinsim.scenario.AddParcelEvent;
+import com.github.rinde.rinsim.scenario.TimedEventHandler;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 
@@ -39,12 +39,12 @@ public abstract class DefaultMASConfiguration implements MASConfiguration,
   }
 
   @Override
-  public Optional<? extends Creator<AddDepotEvent>> getDepotCreator() {
+  public Optional<? extends TimedEventHandler<AddDepotEvent>> getDepotCreator() {
     return Optional.absent();
   }
 
   @Override
-  public Optional<? extends Creator<AddParcelEvent>> getParcelCreator() {
+  public Optional<? extends TimedEventHandler<AddParcelEvent>> getParcelCreator() {
     return Optional.absent();
   }
 

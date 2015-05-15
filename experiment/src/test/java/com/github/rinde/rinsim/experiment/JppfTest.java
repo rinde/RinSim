@@ -40,6 +40,7 @@ import com.github.rinde.rinsim.pdptw.common.ObjectiveFunction;
 import com.github.rinde.rinsim.pdptw.common.PDPRoadModel;
 import com.github.rinde.rinsim.pdptw.common.StatisticsDTO;
 import com.github.rinde.rinsim.pdptw.common.StatsStopConditions;
+import com.github.rinde.rinsim.pdptw.common.StatsTracker;
 import com.github.rinde.rinsim.pdptw.common.TestObjectiveFunction;
 import com.github.rinde.rinsim.scenario.Scenario;
 import com.github.rinde.rinsim.scenario.ScenarioTestUtil;
@@ -66,7 +67,8 @@ public class JppfTest {
     JPPFDriver.main(new String[] { "noLauncher" });
     driver = JPPFDriver.getInstance();
 
-    scenario = ScenarioTestUtil.createRandomScenario(123L);
+    scenario = ScenarioTestUtil.createRandomScenario(123L,
+      StatsTracker.builder());
   }
 
   /**
@@ -144,6 +146,9 @@ public class JppfTest {
       .addModel(
         DefaultPDPModel.builder()
           .withTimeWindowPolicy(TimeWindowPolicies.LIBERAL)
+      )
+      .addModel(
+        StatsTracker.builder()
       )
       .setStopCondition(StatsStopConditions.timeOutEvent())
       .build().generate(rng, "hoi");

@@ -18,8 +18,8 @@ package com.github.rinde.rinsim.scenario.fabrirecht;
 import java.io.File;
 import java.io.IOException;
 
+import com.github.rinde.rinsim.core.Simulator;
 import com.github.rinde.rinsim.core.SimulatorAPI;
-import com.github.rinde.rinsim.core.model.ModelBuilder;
 import com.github.rinde.rinsim.core.model.pdp.PDPModel;
 import com.github.rinde.rinsim.core.model.pdp.PDPModel.ParcelState;
 import com.github.rinde.rinsim.core.model.road.RoadModel;
@@ -29,8 +29,8 @@ import com.github.rinde.rinsim.core.model.time.TimeLapse;
 import com.github.rinde.rinsim.core.pdptw.DefaultParcel;
 import com.github.rinde.rinsim.core.pdptw.DefaultVehicle;
 import com.github.rinde.rinsim.core.pdptw.VehicleDTO;
-import com.github.rinde.rinsim.pdptw.common.DynamicPDPTWProblem;
 import com.github.rinde.rinsim.scenario.AddVehicleEvent;
+import com.github.rinde.rinsim.scenario.ScenarioController;
 import com.github.rinde.rinsim.scenario.TimedEventHandler;
 import com.github.rinde.rinsim.ui.View;
 import com.github.rinde.rinsim.ui.renderers.PDPModelRenderer;
@@ -38,8 +38,6 @@ import com.github.rinde.rinsim.ui.renderers.PlaneRoadModelRenderer;
 import com.github.rinde.rinsim.ui.renderers.RoadUserRenderer;
 import com.google.common.base.Charsets;
 import com.google.common.base.Predicate;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.io.Files;
 
 /**
@@ -56,28 +54,28 @@ public class RepetitiousGUITest {
         .toString(new File("files/test/fabri-recht/lc101.scenario"),
           Charsets.UTF_8), 8, 20);
 
-      final DynamicPDPTWProblem problem = new DynamicPDPTWProblem(scenario,
-        123, ImmutableList.<ModelBuilder<?, ?>> of(
-          View.create()
+      Simulator.builder()
+        .addModel(
+          ScenarioController.builder(scenario)
+            .withEventHandler(AddVehicleEvent.class,
+              new TimedEventHandler<AddVehicleEvent>() {
+                @Override
+                public void handleTimedEvent(AddVehicleEvent event,
+                  SimulatorAPI simulator) {
+                  simulator.register(new Truck(event.vehicleDTO));
+                }
+              })
+        )
+        .addModel(
+          View.builder()
             .with(PlaneRoadModelRenderer.builder())
             .with(RoadUserRenderer.builder())
             .with(PDPModelRenderer.builder())
             .withSpeedUp(50)
             .withAutoClose()
             .withAutoPlay()
-          ),
-        ImmutableMap.<Class<?>, TimedEventHandler<?>> of(AddVehicleEvent.class,
-          new TimedEventHandler<AddVehicleEvent>() {
-            @Override
-            public void handleTimedEvent(AddVehicleEvent event,
-              SimulatorAPI simulator) {
-              simulator.register(new Truck(event.vehicleDTO));
-            }
-          })
-        );
-      final int iteration = i;
-
-      problem.simulate();
+        )
+        .build().start();
     }
   }
 }
