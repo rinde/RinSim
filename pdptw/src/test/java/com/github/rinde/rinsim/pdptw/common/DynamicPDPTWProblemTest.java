@@ -34,7 +34,7 @@ import com.github.rinde.rinsim.core.model.time.TimeModel;
 import com.github.rinde.rinsim.geom.Point;
 import com.github.rinde.rinsim.scenario.AddVehicleEvent;
 import com.github.rinde.rinsim.scenario.Scenario;
-import com.github.rinde.rinsim.scenario.StopCondition.StopConditionBuilder;
+import com.github.rinde.rinsim.scenario.StopCondition;
 import com.github.rinde.rinsim.scenario.TimedEvent;
 import com.github.rinde.rinsim.scenario.TimedEventHandler;
 import com.github.rinde.rinsim.util.TimeWindow;
@@ -80,9 +80,8 @@ public class DynamicPDPTWProblemTest {
     }
 
     @Override
-    public ImmutableSet<StopConditionBuilder> getStopCondition() {
-      return ImmutableSet.of(StatsStopConditions
-        .adapt(StatsStopConditions.TIME_OUT_EVENT));
+    public StopCondition getStopCondition() {
+      return StatsStopConditions.timeOutEvent();
     }
 
     @Override
@@ -118,5 +117,4 @@ public class DynamicPDPTWProblemTest {
       throw new UnsupportedOperationException("Not implemented.");
     }
   }
-
 }

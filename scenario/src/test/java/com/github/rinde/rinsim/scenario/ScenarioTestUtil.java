@@ -93,7 +93,7 @@ public class ScenarioTestUtil {
 
     b.addEvent(new TimedEvent(PDPScenarioEvent.TIME_OUT, endTime))
       .scenarioLength(endTime)
-      .addStopCondition(StopConditions.limitedTime(endTime));
+      .setStopCondition(StopConditions.limitedTime(endTime));
 
     b.addEventType(PDPScenarioEvent.ADD_DEPOT);
 

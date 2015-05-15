@@ -145,8 +145,7 @@ public class JppfTest {
         DefaultPDPModel.builder()
           .withTimeWindowPolicy(TimeWindowPolicies.LIBERAL)
       )
-      .addStopCondition(
-        StatsStopConditions.adapt(StatsStopConditions.TIME_OUT_EVENT))
+      .setStopCondition(StatsStopConditions.timeOutEvent())
       .build().generate(rng, "hoi");
 
     final Experiment.Builder experimentBuilder = Experiment

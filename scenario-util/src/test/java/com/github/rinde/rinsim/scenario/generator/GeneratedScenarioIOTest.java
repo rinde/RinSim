@@ -33,6 +33,7 @@ import com.github.rinde.rinsim.pdptw.common.StatsStopConditions;
 import com.github.rinde.rinsim.scenario.Scenario;
 import com.github.rinde.rinsim.scenario.Scenario.ProblemClass;
 import com.github.rinde.rinsim.scenario.ScenarioIO;
+import com.github.rinde.rinsim.scenario.StopConditions;
 import com.google.common.base.Charsets;
 import com.google.common.io.Files;
 
@@ -61,10 +62,11 @@ public class GeneratedScenarioIOTest {
     final ScenarioGenerator generator = ScenarioGenerator
       .builder(TestPC.CLASS_A)
       .scenarioLength(4 * 60 * 60 * 1000L)
-      .addStopCondition(
-        StatsStopConditions.and(
-          StatsStopConditions.ANY_TARDINESS,
-          StatsStopConditions.TIME_OUT_EVENT)
+      .setStopCondition(
+        StopConditions.and(
+          StatsStopConditions.anyTardiness(),
+          StatsStopConditions.timeOutEvent()
+          )
       )
       .parcels(
         Parcels

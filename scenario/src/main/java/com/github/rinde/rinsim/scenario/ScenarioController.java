@@ -30,7 +30,6 @@ import javax.annotation.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.github.rinde.rinsim.core.Simulator;
 import com.github.rinde.rinsim.core.SimulatorAPI;
 import com.github.rinde.rinsim.core.model.CompositeModelBuilder;
 import com.github.rinde.rinsim.core.model.DependencyProvider;
@@ -100,17 +99,6 @@ public final class ScenarioController extends AbstractModel<StopModel>
   @Nullable
   private EventType status;
 
-  /**
-   * Create an instance of ScenarioController with defined {@link Scenario} and
-   * number of ticks till end. If the number of ticks is negative the simulator
-   * will run until the {@link Simulator#stop()} method is called. TODO refine
-   * documentation
-   *
-   * @param scen Scenario which is controlled.
-   * @param eventHandler Is used to handle scenario events.
-   * @param numberOfTicks The number of ticks play, when negative the number of
-   *          tick is infinite.
-   */
   ScenarioController(SimulatorAPI sim, ClockController c, Scenario s,
     ImmutableMap<Class<?>, TimedEventHandler<?>> m, int t) {
     simulator = sim;
@@ -269,10 +257,20 @@ public final class ScenarioController extends AbstractModel<StopModel>
     return type.cast(this);
   }
 
+  /**
+   * Creates a {@link Builder} for {@link ScenarioController}.
+   * @param scenario The scenario to control.
+   * @return A new {@link Builder}.
+   */
   public static Builder builder(Scenario scenario) {
     return Builder.create(scenario);
   }
 
+  /**
+   *
+   * @author Rinde van Lon
+   *
+   */
   @AutoValue
   public abstract static class Builder extends
     AbstractModelBuilder<ScenarioController, StopModel> implements
@@ -325,6 +323,12 @@ public final class ScenarioController extends AbstractModel<StopModel>
         getStopModelBuilder());
     }
 
+    /**
+     * Limits the simulation to the specified number of ticks.
+     * @param ticks The number of ticks run, when negative the number of ticks
+     *          is infinite.
+     * @return A new {@link Builder} instance.
+     */
     @CheckReturnValue
     public Builder withNumberOfTicks(int ticks) {
       return create(getScenario(), getEventHandlers(), ticks,
@@ -332,17 +336,14 @@ public final class ScenarioController extends AbstractModel<StopModel>
     }
 
     /**
-     * Adds an additional stop condition to the controller. The first stop
-     * condition is defined by {@link Scenario#getStopCondition()}. The first
-     * stop condition where {@link StopCondition#evaluate()} returns
-     * <code>true</code> will stop the simulation.
+     * Adds an additional stop condition to the controller in AND fashion. The
+     * first stop condition is defined by {@link Scenario#getStopCondition()}.
      * @param stp The builder that constructs the {@link StopCondition}.
      * @return A new {@link Builder} instance.
      * @see StopConditions
      */
     @CheckReturnValue
-    public Builder withStopCondition(StopCondition stp) {
-
+    public Builder withAndStopCondition(StopCondition stp) {
       final StopModelBuilder smb;
       if (getStopModelBuilder().stopCondition().equals(
         StopConditions.alwaysFalse())) {
@@ -351,7 +352,26 @@ public final class ScenarioController extends AbstractModel<StopModel>
         smb = StopModelBuilder.create(StopConditions.and(getStopModelBuilder()
           .stopCondition(), stp));
       }
+      return create(getScenario(), getEventHandlers(), getNumberOfTicks(), smb);
+    }
 
+    /**
+     * Adds an additional stop condition to the controller in OR fashion. The
+     * first stop condition is defined by {@link Scenario#getStopCondition()}.
+     * @param stp The builder that constructs the {@link StopCondition}.
+     * @return A new {@link Builder} instance.
+     * @see StopConditions
+     */
+    @CheckReturnValue
+    public Builder withOrStopCondition(StopCondition stp) {
+      final StopModelBuilder smb;
+      if (getStopModelBuilder().stopCondition().equals(
+        StopConditions.alwaysFalse())) {
+        smb = StopModelBuilder.create(stp);
+      } else {
+        smb = StopModelBuilder.create(StopConditions.or(getStopModelBuilder()
+          .stopCondition(), stp));
+      }
       return create(getScenario(), getEventHandlers(), getNumberOfTicks(), smb);
     }
 
@@ -369,11 +389,12 @@ public final class ScenarioController extends AbstractModel<StopModel>
       if (!getEventHandlers().containsKey(AddParcelEvent.class)) {
         b.put(AddParcelEvent.class, DEFAULT_ADD_PARCEL_HANDLER);
       }
+      ImmutableMap<Class<?>, TimedEventHandler<?>> m = b.build();
 
       // TODO it needs to be checked whether all events that occur in the
       // scenario are handled
 
-      return new ScenarioController(sim, clock, getScenario(), b.build(),
+      return new ScenarioController(sim, clock, getScenario(), m,
         getNumberOfTicks());
     }
 

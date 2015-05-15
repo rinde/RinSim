@@ -101,7 +101,8 @@ public final class ScenarioIO {
       .registerTypeAdapter(enumSetType, new EnumSetIO())
       .registerTypeAdapter(Unit.class, new UnitIO())
       .registerTypeAdapter(Measure.class, new MeasureIO())
-      .registerTypeAdapter(Enum.class, new EnumIO())
+      .registerTypeHierarchyAdapter(Enum.class, new EnumIO())
+      .registerTypeAdapter(StopCondition.class, new StopConditionIO())
       .registerTypeAdapter(Predicate.class, new PredicateIO())
       .registerTypeAdapter(Class.class, new ClassIO())
       .registerTypeAdapter(ImmutableList.class, new ImmutableListIO())
@@ -302,6 +303,25 @@ public final class ScenarioIO {
 
     @Override
     ModelBuilder<?, ?> doDeserialize(JsonElement json, Type typeOfT,
+      JsonDeserializationContext context) {
+      JsonObject obj = json.getAsJsonObject();
+      Class<?> clazz = context.deserialize(obj.get(CLAZZ), Class.class);
+      return context.deserialize(obj.get(VALUE), clazz);
+    }
+  }
+
+  static class StopConditionIO extends SafeNullIO<StopCondition> {
+    @Override
+    JsonElement doSerialize(StopCondition src, Type typeOfSrc,
+      JsonSerializationContext context) {
+      JsonObject obj = new JsonObject();
+      obj.add(CLAZZ, new JsonPrimitive(src.getClass().getName()));
+      obj.add(VALUE, context.serialize(src, src.getClass()));
+      return obj;
+    }
+
+    @Override
+    StopCondition doDeserialize(JsonElement json, Type typeOfT,
       JsonDeserializationContext context) {
       JsonObject obj = json.getAsJsonObject();
       Class<?> clazz = context.deserialize(obj.get(CLAZZ), Class.class);
@@ -553,6 +573,10 @@ public final class ScenarioIO {
     @Override
     public Enum<?> doDeserialize(JsonElement json, Type typeOfT,
       JsonDeserializationContext context) {
+      if (json.isJsonPrimitive()) {
+        checkArgument(typeOfT instanceof Class<?>);
+        return getEnum(((Class<?>) typeOfT).getName(), json.getAsString());
+      }
       final JsonObject obj = json.getAsJsonObject();
       return getEnum(obj.get(CLAZZ).getAsString(), obj
         .get(VALUE).getAsString());

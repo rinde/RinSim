@@ -86,7 +86,10 @@ public class ScenarioIOTest {
       )
       .addModel(DefaultPDPModel.builder()
         .withTimeWindowPolicy(TimeWindowPolicies.STRICT)
-      );
+      )
+      .setStopCondition(
+        StopConditions.and(StopConditions.alwaysTrue(),
+          StopConditions.limitedTime(1000)));
 
     final List<ProblemClass> pcs = asList(TestProblemClass.TEST,
       new SimpleProblemClass("hello"));

@@ -15,16 +15,23 @@
  */
 package com.github.rinde.rinsim.scenario;
 
+import static java.util.Arrays.asList;
+
 import java.io.Serializable;
 
-import com.github.rinde.rinsim.core.model.ModelBuilder;
 import com.github.rinde.rinsim.core.model.time.Clock;
 import com.google.auto.value.AutoValue;
-import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableSet;
 
 /**
- * Utility class for creating {@link StopCondition} instances.
+ * Utility class containing default {@link StopCondition} instances and methods
+ * to create more complex conditions. The following methods accept one or more
+ * {@link StopCondition}s:
+ * <ul>
+ * <li> {@link #and(StopCondition, StopCondition, StopCondition...)}</li>
+ * <li> {@link #or(StopCondition, StopCondition, StopCondition...)}</li>
+ * <li> {@link #not(StopCondition)}</li>
+ * </ul>
  * @author Rinde van Lon
  */
 public final class StopConditions {
@@ -32,31 +39,80 @@ public final class StopConditions {
   private StopConditions() {}
 
   /**
-   * Returns a {@link ModelBuilder} that constructs a {@link StopCondition} that
-   * will stop the simulation at the first possible moment after
-   * <code>endTime</code>. The simulation time after stopping is
-   * <code>endTime+1</code>.
+   * Returns a {@link StopCondition} that will stop the simulation at the first
+   * possible moment after <code>endTime</code>. The simulation time after
+   * stopping is <code>endTime+1</code>.
    * @param endTime The end time.
-   * @return A {@link ModelBuilder}.
+   * @return A {@link StopCondition}.
    */
   public static StopCondition limitedTime(long endTime) {
     return LimitedTime.create(endTime);
   }
 
+  /**
+   * @return A {@link StopCondition} that will stop the simulation immediately.
+   */
   public static StopCondition alwaysTrue() {
     return Default.ALWAYS_TRUE;
   }
 
+  /**
+   * @return A {@link StopCondition} that will never stop the simulation.
+   */
   public static StopCondition alwaysFalse() {
     return Default.ALWAYS_FALSE;
   }
 
-  public static StopCondition and(StopCondition... conditions) {
-    return And.create(ImmutableSet.copyOf(conditions));
+  /**
+   * Combines the specified {@link StopCondition}s into a single
+   * {@link StopCondition} using the logical AND operator. The returned
+   * condition will return <code>true</code> if <i>all</i> specified conditions
+   * return <code>true</code>.
+   * @param condition1 The first condition.
+   * @param condition2 The second condition.
+   * @param more More conditions (optional).
+   * @return A new {@link StopCondition}.
+   */
+  public static StopCondition and(StopCondition condition1,
+    StopCondition condition2, StopCondition... more) {
+    return And.create(
+      ImmutableSet.<StopCondition> builder()
+        .add(condition1)
+        .add(condition2)
+        .addAll(asList(more))
+        .build()
+      );
   }
 
-  public static StopCondition or(StopCondition... conditions) {
-    return Or.create(ImmutableSet.copyOf(conditions));
+  /**
+   * Combines the specified {@link StopCondition}s into a single
+   * {@link StopCondition} using the logical OR operator. The returned condition
+   * will return <code>true</code> if <i>any</i> of the specified conditions
+   * return <code>true</code>.
+   * @param condition1 The first condition.
+   * @param condition2 The second condition.
+   * @param more More conditions (optional).
+   * @return A new {@link StopCondition}.
+   */
+  public static StopCondition or(StopCondition condition1,
+    StopCondition condition2, StopCondition... more) {
+    return Or.create(
+      ImmutableSet.<StopCondition> builder()
+        .add(condition1)
+        .add(condition2)
+        .addAll(asList(more))
+        .build()
+      );
+  }
+
+  /**
+   * Creates a new {@link StopCondition} that returns <code>true</code> when the
+   * specified condition returns <code>false</code> and vice versa.
+   * @param condition The condition.
+   * @return The negated {@link StopCondition}.
+   */
+  public static StopCondition not(StopCondition condition) {
+    return Not.create(condition);
   }
 
   abstract static class CompositeStopCondition implements StopCondition {
@@ -109,17 +165,19 @@ public final class StopConditions {
     }
   }
 
-  /**
-   * Adapts the specified {@link Predicate} such that it can be used as a stop
-   * condition.
-   * @param type The type the {@link Predicate} accepts.
-   * @param pred The predicate that defines the stop condition.
-   * @return The adapted stop condition.
-   */
-  // public static <T> StopConditionBuilder adapt(Class<T> type, Predicate<T>
-  // pred) {
-  // return SingleBuilder.create(type, pred);
-  // }
+  @AutoValue
+  abstract static class Not implements StopCondition {
+    abstract StopCondition delegate();
+
+    @Override
+    public boolean evaluate(TypeProvider provider) {
+      return !delegate().evaluate(provider);
+    }
+
+    static Not create(StopCondition sc) {
+      return new AutoValue_StopConditions_Not(sc.getTypes(), sc);
+    }
+  }
 
   @AutoValue
   abstract static class LimitedTime implements StopCondition, Serializable {
@@ -156,67 +214,4 @@ public final class StopConditions {
       return ImmutableSet.of();
     }
   }
-
-  // @AutoValue
-  // abstract static class SingleBuilder<T> implements StopConditionBuilder {
-  //
-  // final Class<PredicateStopCondition<T>> modelType;
-  //
-  // @SuppressWarnings({ "serial", "unchecked" })
-  // SingleBuilder() {
-  // modelType = (Class<PredicateStopCondition<T>>)
-  // new TypeToken<PredicateStopCondition<T>>(getClass()) {}.getRawType();
-  // }
-  //
-  // abstract Class<T> dependencyType();
-  //
-  // abstract Predicate<T> predicate();
-  //
-  // @Override
-  // public PredicateStopCondition<T> build(DependencyProvider
-  // dependencyProvider) {
-  // T dependency = dependencyProvider.get(dependencyType());
-  // return new PredicateStopCondition<>(dependency, predicate());
-  // }
-  //
-  // @Override
-  // public Class<Void> getAssociatedType() {
-  // return Void.class;
-  // }
-  //
-  // @Override
-  // public Class<StopCondition> getModelType() {
-  // return StopCondition.class;
-  // }
-  //
-  // @Override
-  // public ImmutableSet<Class<?>> getProvidingTypes() {
-  // return ImmutableSet.of();
-  // }
-  //
-  // @Override
-  // public ImmutableSet<Class<?>> getDependencies() {
-  // return ImmutableSet.<Class<?>> of(dependencyType());
-  // }
-  //
-  // static <D> SingleBuilder<D> create(Class<D> type, Predicate<D> p) {
-  // return new AutoValue_StopConditions_SingleBuilder<>(type, p);
-  // }
-  // }
-  //
-  // static class PredicateStopCondition<T> extends AbstractModelVoid implements
-  // StopCondition {
-  // private final T subject;
-  // private final Predicate<T> predicate;
-  //
-  // PredicateStopCondition(T s, Predicate<T> p) {
-  // subject = s;
-  // predicate = p;
-  // }
-  //
-  // @Override
-  // public boolean evaluate() {
-  // return predicate.apply(subject);
-  // }
-  // }
 }

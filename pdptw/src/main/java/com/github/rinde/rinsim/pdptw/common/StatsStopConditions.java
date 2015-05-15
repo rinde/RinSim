@@ -15,72 +15,75 @@
  */
 package com.github.rinde.rinsim.pdptw.common;
 
-import javax.annotation.Nullable;
-
-import com.github.rinde.rinsim.scenario.StopCondition.StopConditionBuilder;
-import com.github.rinde.rinsim.scenario.StopConditions;
-import com.google.common.base.Predicate;
-import com.google.common.base.Predicates;
+import com.github.rinde.rinsim.scenario.StopCondition;
+import com.google.common.collect.ImmutableSet;
 
 /**
  * This class contains default stop conditions that require a
  * {@link StatisticsProvider} in the simulator.
  * @author Rinde van Lon
  */
-public enum StatsStopConditions implements Predicate<StatisticsProvider> {
-
+public final class StatsStopConditions {
   /**
    * The simulation is terminated once the
    * {@link com.github.rinde.rinsim.core.model.pdp.PDPScenarioEvent#TIME_OUT}
    * event is dispatched.
+   * @return A {@link StopCondition}.
    */
-  TIME_OUT_EVENT {
-    @Override
-    public boolean apply(@Nullable StatisticsProvider context) {
-      assert context != null;
-      return context.getStatistics().simFinish;
-    }
-  },
+  public static StopCondition timeOutEvent() {
+    return Instances.TIME_OUT_EVENT;
+  }
 
   /**
    * The simulation is terminated as soon as all the vehicles are back at the
    * depot, note that this can be before or after the
    * {@link com.github.rinde.rinsim.core.model.pdp.PDPScenarioEvent#TIME_OUT}
    * event is dispatched.
+   * @return A {@link StopCondition}.
    */
-  VEHICLES_DONE_AND_BACK_AT_DEPOT {
-    @Override
-    public boolean apply(@Nullable StatisticsProvider context) {
-      assert context != null;
-      final StatisticsDTO stats = context.getStatistics();
-
-      return stats.totalVehicles == stats.vehiclesAtDepot
-        && stats.movedVehicles > 0
-        && stats.totalParcels == stats.totalDeliveries;
-    }
-  },
+  public static StopCondition vehiclesDoneAndBackAtDepot() {
+    return Instances.VEHICLES_DONE_AND_BACK_AT_DEPOT;
+  }
 
   /**
    * The simulation is terminated as soon as any tardiness occurs.
+   * @return A {@link StopCondition}.
    */
-  ANY_TARDINESS {
-    @Override
-    public boolean apply(@Nullable StatisticsProvider context) {
-      assert context != null;
-      final StatisticsDTO stats = context.getStatistics();
-      return stats.pickupTardiness > 0
-        || stats.deliveryTardiness > 0;
-    }
-  };
-
-  @SafeVarargs
-  public static StopConditionBuilder and(
-    Predicate<StatisticsProvider>... conditions) {
-    return adapt(Predicates.and(conditions));
+  public static StopCondition anyTardiness() {
+    return Instances.ANY_TARDINESS;
   }
 
-  public static StopConditionBuilder adapt(
-    Predicate<StatisticsProvider> condition) {
-    return StopConditions.adapt(StatisticsProvider.class, condition);
+  enum Instances implements StopCondition {
+    TIME_OUT_EVENT {
+      @Override
+      public boolean evaluate(TypeProvider provider) {
+        return provider.get(StatisticsProvider.class).getStatistics().simFinish;
+      }
+    },
+    VEHICLES_DONE_AND_BACK_AT_DEPOT {
+      @Override
+      public boolean evaluate(TypeProvider provider) {
+        final StatisticsDTO stats = provider.get(StatisticsProvider.class)
+          .getStatistics();
+
+        return stats.totalVehicles == stats.vehiclesAtDepot
+          && stats.movedVehicles > 0
+          && stats.totalParcels == stats.totalDeliveries;
+      }
+    },
+    ANY_TARDINESS {
+      @Override
+      public boolean evaluate(TypeProvider provider) {
+        final StatisticsDTO stats = provider.get(StatisticsProvider.class)
+          .getStatistics();
+        return stats.pickupTardiness > 0
+          || stats.deliveryTardiness > 0;
+      }
+    };
+
+    @Override
+    public ImmutableSet<Class<?>> getTypes() {
+      return ImmutableSet.<Class<?>> of(StatisticsProvider.class);
+    }
   }
 }

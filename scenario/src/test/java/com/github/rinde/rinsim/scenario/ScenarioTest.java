@@ -106,7 +106,7 @@ public class ScenarioTest {
       .instanceId("crazyfast")
       .scenarioLength(7L)
       .addEventType(PDPScenarioEvent.TIME_OUT)
-      .addStopCondition(StopConditions.alwaysTrue())
+      .setStopCondition(StopConditions.alwaysTrue())
       .addModel(
         RoadModelBuilders.plane()
           .withMinPoint(new Point(6, 6))

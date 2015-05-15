@@ -181,7 +181,7 @@ public class ScenarioControllerTest {
           .withEventHandler(AddParcelEvent.class,
             new NopHandler<AddParcelEvent>())
           .withEventHandler(TimedEvent.class, new NopHandler<>())
-          .withStopCondition(StopConditions.alwaysTrue())
+          .withAndStopCondition(StopConditions.alwaysTrue())
       )
       .build();
 
@@ -198,7 +198,7 @@ public class ScenarioControllerTest {
           .withEventHandler(AddParcelEvent.class,
             new NopHandler<AddParcelEvent>())
           .withEventHandler(TimedEvent.class, new NopHandler<>())
-          .withStopCondition(StopConditions.limitedTime(100))
+          .withAndStopCondition(StopConditions.limitedTime(100))
       )
       .build();
 

@@ -30,7 +30,7 @@ import com.github.rinde.rinsim.core.pdptw.VehicleDTO;
 import com.github.rinde.rinsim.geom.Point;
 import com.github.rinde.rinsim.pdptw.common.StatsStopConditions;
 import com.github.rinde.rinsim.scenario.Scenario;
-import com.github.rinde.rinsim.scenario.StopCondition.StopConditionBuilder;
+import com.github.rinde.rinsim.scenario.StopCondition;
 import com.github.rinde.rinsim.scenario.TimedEvent;
 import com.github.rinde.rinsim.util.TimeWindow;
 import com.google.auto.value.AutoValue;
@@ -59,9 +59,8 @@ public abstract class FabriRechtScenario extends Scenario {
   public abstract VehicleDTO getDefaultVehicle();
 
   @Override
-  public ImmutableSet<StopConditionBuilder> getStopCondition() {
-    return ImmutableSet.of(StatsStopConditions
-      .adapt(StatsStopConditions.TIME_OUT_EVENT));
+  public StopCondition getStopCondition() {
+    return StatsStopConditions.timeOutEvent();
   }
 
   @Override

@@ -504,7 +504,7 @@ public abstract class Scenario {
     /**
      * Set the length (duration) of the scenario. Note that the time at which
      * the simulation is stopped is defined by
-     * {@link #addStopCondition(StopCondition)} .
+     * {@link #setStopCondition(StopCondition)} .
      * @param length The length of the scenario, expressed in the time unit as
      *          defined by the {@link TimeModel}.
      * @return This, as per the builder pattern.
@@ -520,7 +520,7 @@ public abstract class Scenario {
      * @param condition The stop condition to set.
      * @return This, as per the builder pattern.
      */
-    public T addStopCondition(StopCondition condition) {
+    public T setStopCondition(StopCondition condition) {
       stopCondition = (condition);
       return self();
     }
