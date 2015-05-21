@@ -17,9 +17,10 @@ package com.github.rinde.rinsim.ui.renderers;
 
 import static com.google.common.base.Verify.verify;
 
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.EnumSet;
-import java.util.List;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
@@ -34,6 +35,7 @@ import com.github.rinde.rinsim.core.model.ModelProvider;
 import com.github.rinde.rinsim.core.model.comm.CommDevice;
 import com.github.rinde.rinsim.core.model.comm.CommModel;
 import com.github.rinde.rinsim.core.model.comm.CommModel.CommModelEvent;
+import com.github.rinde.rinsim.core.model.comm.CommModel.EventTypes;
 import com.github.rinde.rinsim.core.model.comm.CommUser;
 import com.github.rinde.rinsim.event.Event;
 import com.github.rinde.rinsim.event.Listener;
@@ -52,7 +54,7 @@ public final class CommRenderer implements CanvasRenderer {
   static final int SEMI_TRANSPARENT = 50;
   static final double DOT_RADIUS = .05;
 
-  private final List<DeviceUI> uiObjects;
+  private final Map<CommUser, DeviceUI> uiObjects;
   final RenderHelper helper;
   final Set<ViewOptions> viewOptions;
   final RGB reliableColor;
@@ -63,7 +65,8 @@ public final class CommRenderer implements CanvasRenderer {
     reliableColor = b.reliableColor;
     unreliableColor = b.unreliableColor;
     helper = new RenderHelper();
-    uiObjects = new ArrayList<>();
+    uiObjects = Collections
+      .synchronizedMap(new LinkedHashMap<CommUser, DeviceUI>());
     for (final Entry<CommUser, CommDevice> entry : model.getUsersAndDevices()
       .entrySet()) {
       addUIObject(entry.getKey(), entry.getValue());
@@ -75,13 +78,23 @@ public final class CommRenderer implements CanvasRenderer {
       public void handleEvent(Event e) {
         verify(e instanceof CommModelEvent);
         final CommModelEvent event = (CommModelEvent) e;
-        addUIObject(event.getUser(), event.getDevice());
+        if (e.getEventType() == EventTypes.ADD_COMM_USER) {
+          addUIObject(event.getUser(), event.getDevice());
+        }
+        else {
+          removeUIObject(event.getUser());
+        }
       }
-    }, CommModel.EventTypes.ADD_COMM_USER);
+    }, CommModel.EventTypes.ADD_COMM_USER,
+      CommModel.EventTypes.REMOVE_COMM_USER);
   }
 
   void addUIObject(CommUser u, CommDevice d) {
-    uiObjects.add(new DeviceUI(u, d));
+    uiObjects.put(u, new DeviceUI(u, d));
+  }
+
+  void removeUIObject(CommUser u) {
+    uiObjects.remove(u);
   }
 
   @Override
@@ -91,8 +104,10 @@ public final class CommRenderer implements CanvasRenderer {
   public void renderDynamic(GC gc, ViewPort vp, long time) {
     helper.adapt(gc, vp);
 
-    for (final DeviceUI ui : uiObjects) {
-      ui.update(gc, vp, time);
+    synchronized (uiObjects) {
+      for (final DeviceUI ui : uiObjects.values()) {
+        ui.update(gc, vp, time);
+      }
     }
   }
 
@@ -121,6 +136,9 @@ public final class CommRenderer implements CanvasRenderer {
     }
 
     void update(GC gc, ViewPort vp, long time) {
+      if (!user.getPosition().isPresent()) {
+        return;
+      }
       if (!color.isPresent()
         && viewOptions.contains(ViewOptions.RELIABILITY_COLOR)) {
         final RGB rgb = ColorUtil.interpolate(unreliableColor, reliableColor,

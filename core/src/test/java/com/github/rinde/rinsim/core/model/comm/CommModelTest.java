@@ -15,11 +15,13 @@
  */
 package com.github.rinde.rinsim.core.model.comm;
 
+import static com.github.rinde.rinsim.core.model.comm.CommModel.EventTypes.ADD_COMM_USER;
+import static com.github.rinde.rinsim.core.model.comm.CommModel.EventTypes.REMOVE_COMM_USER;
+import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.mock;
 
 import java.util.List;
 
@@ -108,11 +110,96 @@ public class CommModelTest {
   }
 
   /**
-   * Unregister is not supported.
+   * Tests that unregister works and correctly handles messages.
    */
-  @Test(expected = UnsupportedOperationException.class)
+  @Test
   public void testUnregister() {
-    model.unregister(mock(CommUser.class));
+    agent1.device().send(Contents.YO, agent2);
+    agent2.device().send(Contents.HELLO_WORLD, agent1);
+
+    assertThat(agent1.device().getOutbox()).hasSize(1);
+    assertThat(agent2.device().getOutbox()).hasSize(1);
+
+    assertThat(model.contains(agent2)).isTrue();
+    model.unregister(agent2);
+    assertThat(model.contains(agent2)).isFalse();
+
+    boolean fail = false;
+    try {
+      model.unregister(agent2);
+    } catch (final IllegalArgumentException e) {
+      assertThat(e.getMessage()).contains("CommModel does not contain");
+      fail = true;
+    }
+    assertThat(fail).isTrue();
+
+    // attempt to send messages
+    model.afterTick(TimeLapseFactory.create(0, 100));
+
+    // no messages should have been send
+    assertThat(agent1.device().getReceivedCount()).isEqualTo(0);
+    assertThat(agent2.device().getReceivedCount()).isEqualTo(0);
+
+    // agent 1 should appear to have send its message (but it will not have been
+    // received by agent 2), agent 2 should appear to not have send its message
+    // since it is unregistered
+    assertThat(agent1.device().getOutbox()).hasSize(0);
+    assertThat(agent2.device().getOutbox()).hasSize(1);
+
+    // check that device of agent2 is no unusable
+    fail = false;
+    try {
+      agent2.device().send(Contents.YO, agent1);
+    } catch (final IllegalStateException e) {
+      fail = true;
+      assertThat(e.getMessage()).contains("unregistered");
+    }
+    assertThat(fail).isTrue();
+
+    fail = false;
+    try {
+      agent2.device().broadcast(Contents.YO);
+    } catch (final IllegalStateException e) {
+      fail = true;
+      assertThat(e.getMessage()).contains("unregistered");
+    }
+    assertThat(fail).isTrue();
+
+    fail = false;
+    try {
+      agent2.device().clearOutbox();
+    } catch (final IllegalStateException e) {
+      fail = true;
+      assertThat(e.getMessage()).contains("unregistered");
+    }
+    assertThat(fail).isTrue();
+  }
+
+  /**
+   * Tests that the same device is used again upon re-registering.
+   */
+  @Test
+  public void testRegisterUnregistered() {
+    final ListenerEventHistory leh = new ListenerEventHistory();
+    model.getEventAPI().addListener(leh, EventTypes.ADD_COMM_USER,
+      EventTypes.REMOVE_COMM_USER);
+    final CommDevice originalDevice = agent1.device();
+    assertThat(model.contains(agent1)).isTrue();
+
+    model.unregister(agent1);
+    assertThat(model.contains(agent1)).isFalse();
+    assertThat(leh.getEventTypeHistory()).containsExactly(REMOVE_COMM_USER)
+      .inOrder();
+
+    model.register(agent1);
+    assertThat(model.contains(agent1)).isTrue();
+    final CommDevice newDevice = agent1.device();
+    assertThat(originalDevice).isSameAs(newDevice);
+    assertThat(leh.getEventTypeHistory()).containsExactly(REMOVE_COMM_USER,
+      ADD_COMM_USER)
+      .inOrder();
+
+    newDevice.broadcast(Contents.HELLO_WORLD);
   }
 
   /**

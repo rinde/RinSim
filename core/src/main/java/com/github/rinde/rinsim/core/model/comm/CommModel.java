@@ -44,6 +44,7 @@ import com.google.common.collect.Maps;
  */
 public final class CommModel extends AbstractModel<CommUser> implements
   TickListener, RandomUser {
+
   /**
    * The types of events that are dispatched by {@link CommModel}. The event
    * class is {@link CommModelEvent}. Listeners can be added via
@@ -51,17 +52,25 @@ public final class CommModel extends AbstractModel<CommUser> implements
    * @author Rinde van Lon
    */
   public enum EventTypes {
+
     /**
      * Event type indicating that a new {@link CommUser} is added to the
      * {@link CommModel}.
      */
-    ADD_COMM_USER;
+    ADD_COMM_USER,
+
+    /**
+     * Event type indicating that a {@link CommUser} is removed from the
+     * {@link CommModel}.
+     */
+    REMOVE_COMM_USER;
   }
 
   private final double defaultReliability;
   private final Optional<Double> defaultMaxRange;
   private final BiMap<CommUser, CommDevice> usersDevices;
   private ImmutableBiMap<CommUser, CommDevice> usersDevicesSnapshot;
+  private final BiMap<CommUser, CommDevice> unregisteredUsersDevices;
   private Optional<RandomGenerator> randomGenerator;
   private boolean usersHasChanged;
   private final EventDispatcher eventDispatcher;
@@ -72,6 +81,7 @@ public final class CommModel extends AbstractModel<CommUser> implements
     usersHasChanged = false;
     usersDevices = Maps.synchronizedBiMap(
       LinkedHashBiMap.<CommUser, CommDevice> create());
+    unregisteredUsersDevices = LinkedHashBiMap.<CommUser, CommDevice> create();
     usersDevicesSnapshot = ImmutableBiMap.of();
     eventDispatcher = new EventDispatcher(EventTypes.values());
     randomGenerator = Optional.absent();
@@ -88,21 +98,38 @@ public final class CommModel extends AbstractModel<CommUser> implements
   @Override
   public boolean register(CommUser commUser) {
     checkArgument(!contains(commUser), "%s is already registered.", commUser);
-    final CommDeviceBuilder builder = CommDevice.builder(this, commUser)
-      .setReliability(defaultReliability);
-    commUser.setCommDevice(builder);
-    usersHasChanged = true;
-    checkState(
-      builder.isUsed(),
-      "%s is not implemented correctly, a CommDevice must be constructed in "
-        + "setCommDevice()",
-      commUser);
+    if (unregisteredUsersDevices.containsKey(commUser)) {
+      // re-register, reuse already created device
+      final CommDevice dev = unregisteredUsersDevices.remove(commUser);
+      dev.register();
+      addDevice(dev, commUser);
+    } else {
+      final CommDeviceBuilder builder = CommDevice.builder(this, commUser)
+        .setReliability(defaultReliability);
+      commUser.setCommDevice(builder);
+      checkState(
+        builder.isUsed(),
+        "%s is not implemented correctly, a CommDevice must be constructed in "
+          + "setCommDevice()",
+        commUser);
+    }
     return true;
   }
 
   @Override
-  public boolean unregister(CommUser element) {
-    throw new UnsupportedOperationException();
+  public boolean unregister(CommUser commUser) {
+    checkArgument(contains(commUser), "CommModel does not contain %s.",
+      commUser);
+
+    final CommDevice unregDevice = usersDevices.remove(commUser);
+    unregDevice.unregister();
+    unregisteredUsersDevices.put(commUser, unregDevice);
+    usersHasChanged = true;
+    if (eventDispatcher.hasListenerFor(EventTypes.REMOVE_COMM_USER)) {
+      eventDispatcher.dispatchEvent(new CommModelEvent(
+        EventTypes.REMOVE_COMM_USER, this, unregDevice, commUser));
+    }
+    return true;
   }
 
   /**
@@ -159,8 +186,10 @@ public final class CommModel extends AbstractModel<CommUser> implements
   void send(Message msg, double senderReliability) {
     // direct
     if (msg.to().isPresent()) {
-      final CommDevice recipient = usersDevices.get(msg.to().get());
-      doSend(msg, msg.to().get(), recipient, senderReliability);
+      if (usersDevices.containsKey(msg.to().get())) {
+        final CommDevice recipient = usersDevices.get(msg.to().get());
+        doSend(msg, msg.to().get(), recipient, senderReliability);
+      }
     } else {
       // broadcast
       for (final Entry<CommUser, CommDevice> entry : usersDevices.entrySet()) {
@@ -182,6 +211,7 @@ public final class CommModel extends AbstractModel<CommUser> implements
 
   void addDevice(CommDevice device, CommUser user) {
     usersDevices.put(user, device);
+    usersHasChanged = true;
     if (eventDispatcher.hasListenerFor(EventTypes.ADD_COMM_USER)) {
       eventDispatcher.dispatchEvent(new CommModelEvent(
         EventTypes.ADD_COMM_USER, this, device, user));

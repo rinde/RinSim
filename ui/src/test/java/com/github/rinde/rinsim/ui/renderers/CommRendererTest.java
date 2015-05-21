@@ -15,6 +15,9 @@
  */
 package com.github.rinde.rinsim.ui.renderers;
 
+import java.util.LinkedHashSet;
+import java.util.Set;
+
 import org.apache.commons.math3.random.MersenneTwister;
 import org.apache.commons.math3.random.RandomGenerator;
 import org.eclipse.swt.graphics.RGB;
@@ -22,8 +25,11 @@ import org.junit.Test;
 import org.junit.experimental.categories.Category;
 
 import com.github.rinde.rinsim.core.Simulator;
+import com.github.rinde.rinsim.core.SimulatorAPI;
+import com.github.rinde.rinsim.core.SimulatorUser;
 import com.github.rinde.rinsim.core.TickListener;
 import com.github.rinde.rinsim.core.TimeLapse;
+import com.github.rinde.rinsim.core.model.AbstractModel;
 import com.github.rinde.rinsim.core.model.comm.CommDevice;
 import com.github.rinde.rinsim.core.model.comm.CommDeviceBuilder;
 import com.github.rinde.rinsim.core.model.comm.CommModel;
@@ -53,12 +59,12 @@ public class CommRendererTest {
       .setRandomGenerator(rng)
       .addModel(CommModel.builder().build())
       .addModel(PlaneRoadModel.builder().build())
+      .addModel(new TestModel())
       .build();
 
     for (int i = 0; i < 20; i++) {
       sim.register(new CommAgent(rng, (i + 1) / 10d, i * (1d / 20d)));
     }
-
     sim.register(new CommAgent(rng, -1d, 1d));
 
     View.create(sim)
@@ -73,6 +79,43 @@ public class CommRendererTest {
       .setSpeedUp(10)
       .stopSimulatorAtTime(1000 * 60 * 5)
       .show();
+  }
+
+  static class TestModel extends AbstractModel<CommUser> implements
+    TickListener, SimulatorUser {
+    Optional<SimulatorAPI> simulator;
+    Set<CommUser> users;
+
+    TestModel() {
+      simulator = Optional.absent();
+      users = new LinkedHashSet<>();
+    }
+
+    @Override
+    public void tick(TimeLapse timeLapse) {
+      if (timeLapse.getTime() % 60000 == 0) {
+        final CommUser toRemove = users.iterator().next();
+        simulator.get().unregister(toRemove);
+      }
+    }
+
+    @Override
+    public void afterTick(TimeLapse timeLapse) {}
+
+    @Override
+    public void setSimulator(SimulatorAPI api) {
+      simulator = Optional.of(api);
+    }
+
+    @Override
+    public boolean register(CommUser element) {
+      return users.add(element);
+    }
+
+    @Override
+    public boolean unregister(CommUser element) {
+      return users.remove(element);
+    }
   }
 
   static class CommAgent implements MovingRoadUser, CommUser, TickListener {
