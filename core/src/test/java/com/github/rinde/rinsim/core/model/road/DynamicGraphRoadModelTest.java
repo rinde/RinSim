@@ -16,6 +16,7 @@
 package com.github.rinde.rinsim.core.model.road;
 
 import static com.github.rinde.rinsim.core.TimeLapseFactory.hour;
+import static com.google.common.truth.Truth.assertThat;
 import static java.util.Arrays.asList;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -76,7 +77,7 @@ public class DynamicGraphRoadModelTest {
     // NE]
     final MoveProgress mp = model.moveTo(tru, NE, hour(38));
     assertEquals(38d, mp.distance().getValue().doubleValue(),
-        GraphRoadModel.DELTA);
+      GraphRoadModel.DELTA);
     assertEquals(NE, model.getPosition(tru));
     assertEquals(asList(NW, SW, SE, NE), mp.travelledNodes());
 
@@ -95,7 +96,7 @@ public class DynamicGraphRoadModelTest {
     final MoveProgress mp2 = model.moveTo(tru, SW, hour(10));
 
     assertEquals(10d, mp2.distance().getValue().doubleValue(),
-        GraphRoadModel.DELTA);
+      GraphRoadModel.DELTA);
     assertEquals(asList(SE, X, SW), mp2.travelledNodes());
     assertEquals(SW, model.getPosition(tru));
 
@@ -109,7 +110,7 @@ public class DynamicGraphRoadModelTest {
     final MoveProgress mp3 = model.moveTo(tru, SE, hour(18));
 
     assertEquals(18d, mp3.distance().getValue().doubleValue(),
-        GraphRoadModel.DELTA);
+      GraphRoadModel.DELTA);
     assertEquals(asList(SW, SE), mp3.travelledNodes());
     assertEquals(SE, model.getPosition(tru));
   }
@@ -195,11 +196,20 @@ public class DynamicGraphRoadModelTest {
   public void testIsOccupied() {
     final MovingRoadUser car = new TestRoadUser();
     model.addObjectAt(car, SW);
-    assertTrue(model.hasRoadUserOn(SW, NW));
-    assertTrue(model.hasRoadUserOn(NW, SW));
-    assertTrue(model.hasRoadUserOn(SW, SE));
-    assertTrue(model.hasRoadUserOn(SE, SW));
-    assertFalse(model.hasRoadUserOn(NE, SE));
+    assertThat(model.hasRoadUserOn(SW, NW)).isTrue();
+    assertThat(model.getRoadUsersOn(SW, NW)).containsExactly(car);
+
+    assertThat(model.hasRoadUserOn(NW, SW)).isTrue();
+    assertThat(model.getRoadUsersOn(NW, SW)).containsExactly(car);
+
+    assertThat(model.hasRoadUserOn(SW, SE)).isTrue();
+    assertThat(model.getRoadUsersOn(SW, SE)).containsExactly(car);
+
+    assertThat(model.hasRoadUserOn(SE, SW)).isTrue();
+    assertThat(model.getRoadUsersOn(SE, SW)).containsExactly(car);
+
+    assertThat(model.hasRoadUserOn(NE, SE)).isFalse();
+    assertThat(model.getRoadUsersOn(NE, SE)).isEmpty();
 
     boolean fail = false;
     try {
@@ -207,17 +217,27 @@ public class DynamicGraphRoadModelTest {
     } catch (final IllegalArgumentException e) {
       fail = true;
     }
-    assertTrue(fail);
+    assertThat(fail).isTrue();
 
     model.moveTo(car, NW, hour(1));
-    assertTrue(model.hasRoadUserOn(SW, NW));
-    assertFalse(model.hasRoadUserOn(NW, SW));
-    assertFalse(model.hasRoadUserOn(SW, SE));
-    assertFalse(model.hasRoadUserOn(SE, SW));
-    assertFalse(model.hasRoadUserOn(NE, SE));
+    assertThat(model.hasRoadUserOn(SW, NW)).isTrue();
+    assertThat(model.getRoadUsersOn(SW, NW)).containsExactly(car);
+
+    assertThat(model.hasRoadUserOn(NW, SW)).isFalse();
+    assertThat(model.getRoadUsersOn(NW, SW)).isEmpty();
+
+    assertThat(model.hasRoadUserOn(SW, SE)).isFalse();
+    assertThat(model.getRoadUsersOn(SW, SE)).isEmpty();
+
+    assertThat(model.hasRoadUserOn(SE, SW)).isFalse();
+    assertThat(model.getRoadUsersOn(SE, SW)).isEmpty();
+
+    assertThat(model.hasRoadUserOn(NE, SE)).isFalse();
+    assertThat(model.getRoadUsersOn(NE, SE)).isEmpty();
 
     model.removeObject(car);
-    assertFalse(model.hasRoadUserOn(SW, NW));
+    assertThat(model.hasRoadUserOn(SW, NW)).isFalse();
+    assertThat(model.getRoadUsersOn(SW, NW)).isEmpty();
   }
 
   /**

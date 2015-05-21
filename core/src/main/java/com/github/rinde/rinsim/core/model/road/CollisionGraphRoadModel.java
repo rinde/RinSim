@@ -56,7 +56,7 @@ public class CollisionGraphRoadModel extends DynamicGraphRoadModel {
   private final double minConnLength;
   private final double vehicleLength;
   private final double minDistance;
-  private final SetMultimap<RoadUser, Point> occupiedNodes;
+  private final SetMultimap<MovingRoadUser, Point> occupiedNodes;
 
   CollisionGraphRoadModel(Builder builder, double pMinConnLength) {
     super(builder.graph, builder.distanceUnit, builder.speedUnit);
@@ -64,7 +64,7 @@ public class CollisionGraphRoadModel extends DynamicGraphRoadModel {
     minDistance = unitConversion.toInDist(builder.minDistance);
     minConnLength = unitConversion.toInDist(pMinConnLength);
     occupiedNodes = Multimaps.synchronizedSetMultimap(CategoryMap
-      .<RoadUser, Point> create());
+      .<MovingRoadUser, Point> create());
     builder.graph.getEventAPI().addListener(
       new ModificationChecker(minConnLength),
       ListenableGraph.EventTypes.ADD_CONNECTION,
@@ -152,7 +152,7 @@ public class CollisionGraphRoadModel extends DynamicGraphRoadModel {
     if (newObj instanceof MovingRoadUser) {
       checkArgument(!occupiedNodes.containsValue(pos),
         "An object can not be added on an already occupied position %s.", pos);
-      occupiedNodes.put(newObj, pos);
+      occupiedNodes.put((MovingRoadUser) newObj, pos);
     }
     super.addObjectAt(newObj, pos);
   }
@@ -166,8 +166,7 @@ public class CollisionGraphRoadModel extends DynamicGraphRoadModel {
 
   @Override
   public void removeObject(RoadUser object) {
-    checkArgument(objLocs.containsKey(object),
-      "RoadUser: %s does not exist.", object);
+    checkExists(object);
     occupiedNodes.removeAll(object);
     super.removeObject(object);
   }
@@ -180,6 +179,24 @@ public class CollisionGraphRoadModel extends DynamicGraphRoadModel {
    */
   public boolean isOccupied(Point node) {
     return occupiedNodes.containsValue(node);
+  }
+
+  /**
+   * Checks whether the specified node is occupied by the specified
+   * {@link MovingRoadUser}.
+   * @param node The node to check for occupancy.
+   * @param user The user to check if it is occupying that location.
+   * @return <code>true</code> if the specified node is occupied by the
+   *         specified user, <code>false</code> otherwise.
+   * @throws IllegalArgumentException If road user is not known by this model.
+   */
+  public boolean isOccupiedBy(Point node, MovingRoadUser user) {
+    checkExists(user);
+    return occupiedNodes.containsEntry(user, node);
+  }
+
+  void checkExists(RoadUser user) {
+    checkArgument(containsObject(user), "RoadUser: %s does not exist.", user);
   }
 
   /**

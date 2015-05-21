@@ -17,6 +17,7 @@ package com.github.rinde.rinsim.core.model.road;
 
 import static com.github.rinde.rinsim.core.TimeLapseFactory.ms;
 import static com.github.rinde.rinsim.geom.PointAssert.assertPointEquals;
+import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -93,6 +94,9 @@ public class CollisionGraphRoadModelTest {
     final MovingRoadUser agv1 = new TestRoadUser();
     final MovingRoadUser agv2 = new TestRoadUser();
     model.addObjectAt(agv1, NW);
+    assertThat(model.isOccupied(NW)).isTrue();
+    assertThat(model.isOccupiedBy(NW, agv1)).isTrue();
+    assertThat(model.isOccupiedBy(new Point(-1, -1), agv1)).isFalse();
     boolean fail = false;
     try {
       model.addObjectAt(agv2, NW);
@@ -103,6 +107,7 @@ public class CollisionGraphRoadModelTest {
 
     // max distance to travel while still staying within node area
     model.moveTo(agv1, SW, meter(.9997222222));
+    assertThat(model.isOccupiedBy(NW, agv1)).isTrue();
 
     fail = false;
     try {
@@ -114,8 +119,11 @@ public class CollisionGraphRoadModelTest {
 
     // exiting node area, adding to SW is allowed now
     model.moveTo(agv1, SW, meter(0.0002777777778));
+    assertThat(model.isOccupiedBy(NW, agv1)).isFalse();
+
     model.addObjectAt(agv2, NW);
     assertEquals(NW, model.getPosition(agv2));
+    assertThat(model.isOccupiedBy(NW, agv2)).isTrue();
   }
 
   /**
