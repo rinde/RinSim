@@ -1,5 +1,16 @@
 # Release notes
 
+## v3.2.4
+ * CommModel now supports unregister
+ * CollisionGraphRoadModel new method: 
+ ```
+ public boolean isOccupiedBy(Point node, MovingRoadUser user)
+ ```
+ * DynamicGraphRoadModel new method: 
+ ```
+ public ImmutableSet<RoadUser> getRoadUsersOn(Point from, Point to)
+ ```
+
 ## v3.2.3
  * CollisionGraphRoadModel bug fix: when a road user is removed from the model the position it was occupying is now released which was previously not the case.
 
