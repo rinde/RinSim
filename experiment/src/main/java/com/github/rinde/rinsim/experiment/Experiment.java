@@ -36,6 +36,8 @@ import com.github.rinde.rinsim.experiment.LocalComputer.ExperimentRunner;
 import com.github.rinde.rinsim.io.FileProvider;
 import com.github.rinde.rinsim.pdptw.common.ObjectiveFunction;
 import com.github.rinde.rinsim.pdptw.common.StatisticsDTO;
+import com.github.rinde.rinsim.pdptw.common.StatisticsProvider;
+import com.github.rinde.rinsim.pdptw.common.StatsTracker;
 import com.github.rinde.rinsim.scenario.AddDepotEvent;
 import com.github.rinde.rinsim.scenario.AddParcelEvent;
 import com.github.rinde.rinsim.scenario.AddVehicleEvent;
@@ -180,11 +182,30 @@ public final class Experiment {
       .addModels(config.getModels())
       .addModel(scenContrBuilder);
 
+    boolean hasStatsTracker =
+      containsStatisticsProvider(scenContrBuilder.getChildren())
+        || containsStatisticsProvider(config.getModels());
+
+    if (!hasStatsTracker) {
+      simBuilder.addModel(StatsTracker.builder());
+    }
+
     if (showGui) {
       simBuilder.addModel(uiCreator.get());
     }
 
     return simBuilder.build();
+  }
+
+  static boolean containsStatisticsProvider(
+    Iterable<? extends ModelBuilder<?, ?>> mbs) {
+    for (ModelBuilder<?, ?> mb : mbs) {
+      if (mb.getProvidingTypes().contains(StatisticsProvider.class)) {
+        return true;
+      }
+    }
+    return false;
+
   }
 
   /**

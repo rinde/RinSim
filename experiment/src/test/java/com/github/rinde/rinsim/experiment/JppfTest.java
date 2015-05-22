@@ -147,9 +147,6 @@ public class JppfTest {
         DefaultPDPModel.builder()
           .withTimeWindowPolicy(TimeWindowPolicies.LIBERAL)
       )
-      .addModel(
-        StatsTracker.builder()
-      )
       .setStopCondition(StatsStopConditions.timeOutEvent())
       .build().generate(rng, "hoi");
 
