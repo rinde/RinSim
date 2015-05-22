@@ -152,7 +152,7 @@ public class DynamicGraphRoadModelTest {
    * Tests removals when a connection is occupied.
    */
   @Test
-  public void testRemoveConEdgeOccupied() {
+  public void testRemoveConnectionOccupied() {
     final MovingRoadUser user = new TestRoadUser();
     model.addObjectAt(user, SW);
     model.moveTo(user, NW, hour(1));

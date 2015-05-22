@@ -23,9 +23,8 @@ import org.apache.commons.math3.random.RandomGenerator;
 import com.google.common.base.Optional;
 
 /**
- * Common interface for graphs (V,E). Vertices are called <code>nodes</code>
- * which are represented as {@link Point}s and connections are represented by
- * {@link Connection}s. Graphs are directed.
+ * Common interface for graphs (V,E). Nodes are represented by {@link Point}s
+ * and connections are represented by {@link Connection}s. Graphs are directed.
  * 
  * @author Rinde van Lon
  * @author Bartosz Michalik - added connection data handling
@@ -36,9 +35,9 @@ import com.google.common.base.Optional;
 public interface Graph<E extends ConnectionData> {
 
   /**
-   * Checks whether the specified node is a vertex in this graph.
+   * Checks whether the specified point is a node in this graph.
    * @param node The node to check.
-   * @return <code>true</code> if the node is a vertex in this graph,
+   * @return <code>true</code> if the point is a node in this graph,
    *         <code>false</code> otherwise.
    */
   boolean containsNode(Point node);

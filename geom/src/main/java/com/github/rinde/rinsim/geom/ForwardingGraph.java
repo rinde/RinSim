@@ -110,8 +110,8 @@ public abstract class ForwardingGraph<E extends ConnectionData> implements
   }
 
   @Override
-  public void addConnection(Point from, Point to, E edgeData) {
-    delegate.addConnection(from, to, edgeData);
+  public void addConnection(Point from, Point to, E connData) {
+    delegate.addConnection(from, to, connData);
   }
 
   @Override
@@ -125,8 +125,8 @@ public abstract class ForwardingGraph<E extends ConnectionData> implements
   }
 
   @Override
-  public Optional<E> setConnectionData(Point from, Point to, E edgeData) {
-    return delegate.setConnectionData(from, to, edgeData);
+  public Optional<E> setConnectionData(Point from, Point to, E connData) {
+    return delegate.setConnectionData(from, to, connData);
   }
 
   @Override

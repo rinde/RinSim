@@ -162,7 +162,7 @@ public class GraphRoadModel extends AbstractRoadModel<Loc> {
       checkState(speed >= 0,
         "Found a bug in getMaxSpeed, return value must be >= 0, but is %s.",
         speed);
-      // distance that can be traveled in current edge with timeleft
+      // distance that can be traveled in current conn with timeleft
       final double travelableDistance = computeTravelableDistance(tempLoc,
         path.peek(), speed, timeLeft, time.getTimeUnit());
       checkState(
@@ -178,7 +178,7 @@ public class GraphRoadModel extends AbstractRoadModel<Loc> {
 
       double traveledDistance;
       if (travelableDistance >= connLength) {
-        // jump to next node in path (this may be a vertex or a point on a
+        // jump to next node in path (this may be a node or a point on a
         // connection)
         tempLoc = verifyLocation(asLoc(path.remove()));
         traveledDistance = connLength;
@@ -211,23 +211,23 @@ public class GraphRoadModel extends AbstractRoadModel<Loc> {
    * @throws IllegalArgumentException if it the proposed move is invalid.
    */
   protected void checkMoveValidity(Loc objLoc, Point nextHop) {
-    // in case we start from an edge and our next destination is to go to
-    // the end of the current edge then its ok. Otherwise more checks are
+    // in case we start from an conn and our next destination is to go to
+    // the end of the current conn then its ok. Otherwise more checks are
     // required..
     if (objLoc.isOnConnection() && !nextHop.equals(objLoc.conn.get().to())) {
       // check if next destination is a MidPoint
       checkArgument(
         nextHop instanceof Loc,
-        "Illegal path for this object, from a position on an edge we can not jump to another edge or go back. From %s, to %s.",
+        "Illegal path for this object, from a position on a connection we can not jump to another connection or go back. From %s, to %s.",
         objLoc, nextHop);
       final Loc dest = (Loc) nextHop;
-      // check for same edge
+      // check for same conn
       checkArgument(
         objLoc.isOnSameConnection(dest),
-        "Illegal path for this object, first point is not on the same edge as the object.");
+        "Illegal path for this object, first point is not on the same connection as the object.");
       // check for relative position
       checkArgument(objLoc.relativePos <= dest.relativePos,
-        "Illegal path for this object, can not move backward over an edge.");
+        "Illegal path for this object, can not move backward over an connection.");
     }
     // in case we start from a node and we are not going to another node
     else if (!objLoc.isOnConnection() && !nextHop.equals(objLoc)
@@ -236,9 +236,9 @@ public class GraphRoadModel extends AbstractRoadModel<Loc> {
         "Illegal path, first point should be directly connected to object location.");
       final Loc dest = (Loc) nextHop;
       checkArgument(graph.hasConnection(objLoc, dest.conn.get().to()),
-        "Illegal path, first point is on an edge not connected to object location. ");
+        "Illegal path, first point is on an connection not connected to object location. ");
       checkArgument(objLoc.equals(dest.conn.get().from()),
-        "Illegal path, first point is on a different edge.");
+        "Illegal path, first point is on a different connection.");
     }
   }
 
@@ -286,7 +286,7 @@ public class GraphRoadModel extends AbstractRoadModel<Loc> {
    */
   protected Loc verifyLocation(Loc l) {
     verify(l.isOnConnection() || graph.containsNode(l),
-      "Location points to non-existing vertex: %s.", l);
+      "Location points to non-existing node: %s.", l);
     verify(!l.isOnConnection()
       || graph.hasConnection(l.conn.get().from(), l.conn.get().to()),
       "Location points to non-existing connection: %s.", l.conn);
@@ -398,7 +398,7 @@ public class GraphRoadModel extends AbstractRoadModel<Loc> {
 
   /**
    * Retrieves the connection which the specified {@link RoadUser} is at. If the
-   * road user is at a vertex {@link Optional#absent()} is returned instead.
+   * road user is at a node, {@link Optional#absent()} is returned instead.
    * @param obj The object which position is checked.
    * @return A {@link Connection} if <code>obj</code> is on one,
    *         {@link Optional#absent()} otherwise.

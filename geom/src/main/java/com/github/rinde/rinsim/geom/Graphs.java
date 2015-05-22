@@ -182,7 +182,7 @@ public final class Graphs {
   public static <E extends ConnectionData> List<Point> shortestPath(
       Graph<E> graph, final Point from, final Point to, Graphs.Heuristic h) {
     if (!graph.containsNode(from)) {
-      throw new IllegalArgumentException("from should be valid vertex. " + from);
+      throw new IllegalArgumentException("from should be valid node. " + from);
     }
 
     // The set of nodes already evaluated.
@@ -476,7 +476,7 @@ public final class Graphs {
     }
 
     @Override
-    public void addConnection(Point from, Point to, @Nullable E edgeData) {
+    public void addConnection(Point from, Point to, @Nullable E connData) {
       throw new UnsupportedOperationException();
     }
 
@@ -486,7 +486,7 @@ public final class Graphs {
     }
 
     @Override
-    public Optional<E> setConnectionData(Point from, Point to, E edgeData) {
+    public Optional<E> setConnectionData(Point from, Point to, E connData) {
       throw new UnsupportedOperationException();
     }
 

@@ -33,7 +33,7 @@ import com.google.common.collect.Tables;
  * look ups for both incoming and outgoing connections from nodes is fast.
  * @author Rinde van Lon
  * @author Bartosz Michalik - change to the parametric version
- * @param <E> The type of {@link ConnectionData} that is used in the edges.
+ * @param <E> The type of {@link ConnectionData} that is used.
  */
 public class TableGraph<E extends ConnectionData> extends AbstractGraph<E> {
 
@@ -135,14 +135,14 @@ public class TableGraph<E extends ConnectionData> extends AbstractGraph<E> {
   }
 
   @Override
-  protected void doAddConnection(Point from, Point to, Optional<E> edgeData) {
-    data.put(from, to, Connection.create(from, to, edgeData));
+  protected void doAddConnection(Point from, Point to, Optional<E> connData) {
+    data.put(from, to, Connection.create(from, to, connData));
   }
 
   @Override
   protected Optional<E> doChangeConnectionData(Point from, Point to,
-      Optional<E> edgeData) {
-    return data.put(from, to, Connection.create(from, to, edgeData)).data();
+      Optional<E> connData) {
+    return data.put(from, to, Connection.create(from, to, connData)).data();
   }
 
   @Override

@@ -43,7 +43,7 @@ import com.google.common.base.Optional;
  * {@link GraphEvent}.
  * 
  * @author Rinde van Lon
- * @param <E> The type of {@link ConnectionData} that is used in the edges.
+ * @param <E> The type of {@link ConnectionData} that is used.
  */
 public final class ListenableGraph<E extends ConnectionData> extends
     ForwardingGraph<E> {

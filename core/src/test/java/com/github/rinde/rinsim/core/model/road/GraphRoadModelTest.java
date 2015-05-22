@@ -211,12 +211,12 @@ public class GraphRoadModelTest extends AbstractRoadModelTest<GraphRoadModel> {
   }
 
   @Test(expected = IllegalArgumentException.class)
-  public void followPathNotAvertex() {
+  public void followPathNotANode() {
     final MovingRoadUser agent = new SpeedyRoadUser(EPSILON);
     model.addObjectAt(agent, new Point(0, 0));
     assertEquals(new Point(0, 0), model.getPosition(agent));
 
-    // illegal trajectory, the second point is not a vertex
+    // illegal trajectory, the second point is not a node
     final Queue<Point> traject = new LinkedList<Point>(Arrays.asList(new Point(
         0, 0), new Point(10, 1)));
 
@@ -362,7 +362,7 @@ public class GraphRoadModelTest extends AbstractRoadModelTest<GraphRoadModel> {
   /**
    * Situation: <code>SW ->- tru1 ->- SE </code><br>
    * tru1 wants to move directly to SW, which should throw an exception since
-   * moving backward over an directed edge is not allowed.
+   * moving backward over an directed connection is not allowed.
    */
   @Test(expected = IllegalArgumentException.class)
   public void followPathFailIllegalPath1() {
@@ -420,7 +420,7 @@ public class GraphRoadModelTest extends AbstractRoadModelTest<GraphRoadModel> {
   /**
    * Situation: <code>SW ->- tru1 ->- SE </code><br>
    * tru1 wants to move directly to SW, which should throw an exception since
-   * moving backward over an directed edge is not allowed.
+   * moving backward over an directed connection is not allowed.
    */
   @Test(expected = IllegalArgumentException.class)
   public void followPathFailGoBackwardToNode() {
@@ -433,10 +433,10 @@ public class GraphRoadModelTest extends AbstractRoadModelTest<GraphRoadModel> {
   /**
    * Situation: <code>SW ->- tru1 ->- tru2 ->- SE </code><br>
    * tru2 wants to move directly to tru1, which should throw an exception since
-   * moving backward over an directed edge is not allowed.
+   * moving backward over an directed connection is not allowed.
    */
   @Test(expected = IllegalArgumentException.class)
-  public void followPathFailGoBackwardToEdgePoint() {
+  public void followPathFailGoBackwardToConnectionPoint() {
     // first move tru1 and tru2 in position
     final TestRoadUser tru1 = new TestRoadUser();
     model.addObjectAt(tru1, SW);
@@ -457,10 +457,10 @@ public class GraphRoadModelTest extends AbstractRoadModelTest<GraphRoadModel> {
   /**
    * Situation: <code>SW ->- tru1 ->- SE -<- tru2 -<- NE </code><br>
    * tru2 wants to move directly to tru1, which should throw an exception since
-   * they are on different edges.
+   * they are on different connections.
    */
   @Test(expected = IllegalArgumentException.class)
-  public void followPathFailWrongEdge() {
+  public void followPathFailWrongConnection() {
     graph.addConnection(NE, SE);
 
     // first move tru1 and tru2 in position
@@ -478,10 +478,10 @@ public class GraphRoadModelTest extends AbstractRoadModelTest<GraphRoadModel> {
   /**
    * Situation: <code>SW(tru1) ->- SE -<- tru2 -<- NE </code><br>
    * tru2 wants to move directly to tru1, which should throw an exception since
-   * they are on different edges.
+   * they are on different connections.
    */
   @Test(expected = IllegalArgumentException.class)
-  public void followPathFailWrongEdge2() {
+  public void followPathFailWrongConnection2() {
     graph.addConnection(NE, SE);
 
     // first move tru1 and tru2 in position
@@ -498,10 +498,10 @@ public class GraphRoadModelTest extends AbstractRoadModelTest<GraphRoadModel> {
   /**
    * Situation: <code>SW(tru1) ->- SE -<- tru2 -<- NE </code><br>
    * tru2 wants to move directly to tru1, which should throw an exception since
-   * they are on different edges.
+   * they are on different connections.
    */
   @Test(expected = IllegalArgumentException.class)
-  public void followPathFailWrongEdgeIndirectly() {
+  public void followPathFailWrongConnectionIndirectly() {
     graph.addConnection(NE, SE);
 
     // first move tru1 and tru2 in position
@@ -649,7 +649,7 @@ public class GraphRoadModelTest extends AbstractRoadModelTest<GraphRoadModel> {
 
   @SuppressWarnings("unchecked")
   @Test
-  public void locationIsOnSameEdge() {
+  public void locationIsOnSameConnection() {
     ((Graph<MultiAttributeData>) graph).addConnection(SE, SW,
         MultiAttributeData.builder().setLength(300).build());
     ((Graph<MultiAttributeData>) graph).addConnection(NE, SW);

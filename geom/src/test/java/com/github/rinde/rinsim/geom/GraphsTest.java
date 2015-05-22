@@ -454,7 +454,7 @@ public class GraphsTest {
   }
 
   @Test(expected = UnsupportedOperationException.class)
-  public void unmodSetEdgeData() {
+  public void unmodSetConnData() {
     Graphs.unmodifiableGraph(graph).setConnectionData(null, null, null);
   }
 
@@ -485,7 +485,7 @@ public class GraphsTest {
   }
 
   @Test
-  public void setEdgeData() {
+  public void setConnData() {
     final Point N = new Point(0, 5);
     final Point E = new Point(5, 0);
     final Point S = new Point(0, -5);
