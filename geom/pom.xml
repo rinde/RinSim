@@ -71,10 +71,5 @@
             <artifactId>auto-value</artifactId>
             <scope>provided</scope>
         </dependency>
-		<dependency>
-			<groupId>org.inferred</groupId>
-			<artifactId>freebuilder</artifactId>
-			<scope>provided</scope>
-		</dependency>
 	</dependencies>
 </project>

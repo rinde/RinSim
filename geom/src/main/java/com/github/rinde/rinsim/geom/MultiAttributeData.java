@@ -17,10 +17,12 @@ package com.github.rinde.rinsim.geom;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
-import org.inferred.freebuilder.FreeBuilder;
-
+import com.google.auto.value.AutoValue;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.primitives.Doubles;
@@ -34,7 +36,7 @@ import com.google.common.primitives.Doubles;
  * @author Rinde van Lon
  * @since 2.0
  */
-@FreeBuilder
+@AutoValue
 public abstract class MultiAttributeData implements ConnectionData {
 
   MultiAttributeData() {}
@@ -66,31 +68,97 @@ public abstract class MultiAttributeData implements ConnectionData {
    * A builder for creating {@link MultiAttributeData} instances.
    * @author Rinde van Lon
    */
-  public static class Builder extends MultiAttributeData_Builder {
-    Builder() {}
+  public static class Builder {
+    private Optional<Double> length;
+    private Optional<Double> maxSpeed;
+    private final Map<String, Object> attributes;
 
-    @Override
-    public Builder setLength(double length) {
-      checkArgument(length >= 0d && Doubles.isFinite(length),
-          "Expected positive value for length but found %s.", length);
-      return super.setLength(length);
+    Builder() {
+      length = Optional.absent();
+      maxSpeed = Optional.absent();
+      attributes = new LinkedHashMap<>();
     }
 
-    @Override
+    /**
+     * Sets the length property: {@link MultiAttributeData#getLength()}. By
+     * default no length is defined.
+     * @param len The length to set.
+     * @return This, as per the builder pattern.
+     */
+    public Builder setLength(double len) {
+      checkArgument(len >= 0d && Doubles.isFinite(len),
+        "Expected positive value for length but found %s.", length);
+      length = Optional.of(len);
+      return this;
+    }
+
+    /**
+     * Sets the max speed property: {@link MultiAttributeData#getMaxSpeed()}. By
+     * default no max speed is defined.
+     * @param speed The speed to set.
+     * @return This, as per the builder pattern.
+     */
     public Builder setMaxSpeed(double speed) {
       checkArgument(speed > 0d && Doubles.isFinite(speed),
-          "Expected positive value for maxSpeed but found %s.", speed);
-      return super.setMaxSpeed(speed);
+        "Expected positive value for maxSpeed but found %s.", speed);
+      maxSpeed = Optional.of(speed);
+      return this;
     }
 
-    @Override
+    /**
+     * Adds all attributes from the map.
+     * @param map The attributes to add.
+     * @return This, as per the builder pattern.
+     */
+    public Builder addAllAttributes(Map<? extends String, ? extends Object> map) {
+      attributes.putAll(map);
+      return this;
+    }
+
+    /**
+     * Adds the attribute.
+     * @param string The name of the attribute.
+     * @param obj The attribute.
+     * @return This, as per the builder pattern.
+     */
+    public Builder addAttribute(String string, Object obj) {
+      attributes.put(string, obj);
+      return this;
+    }
+
+    /**
+     * @return The length.
+     */
+    public Optional<Double> getLength() {
+      return length;
+    }
+
+    /**
+     * @return The max speed.
+     */
+    public Optional<Double> getMaxSpeed() {
+      return maxSpeed;
+    }
+
+    /**
+     * @return The attributes.
+     */
+    public Map<String, Object> getAttributes() {
+      return Collections.unmodifiableMap(attributes);
+    }
+
+    /**
+     * Builds a new {@link MultiAttributeData} instance using the properties as
+     * set by this builder.
+     * @return A new instance.
+     */
     public MultiAttributeData build() {
-      MultiAttributeData data = super.build();
-      checkArgument(!data.getAttributes().isEmpty()
-          || data.getLength().isPresent()
-          || data.getMaxSpeed().isPresent(),
-          "At least length, maxSpeed or another attribute must to be defined.");
-      return data;
+      checkArgument(!getAttributes().isEmpty()
+        || getLength().isPresent()
+        || getMaxSpeed().isPresent(),
+        "At least length, maxSpeed or another attribute must to be defined.");
+      return new AutoValue_MultiAttributeData(length, maxSpeed,
+        ImmutableMap.copyOf(attributes));
     }
   }
 }

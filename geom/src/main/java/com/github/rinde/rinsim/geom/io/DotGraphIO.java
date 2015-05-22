@@ -303,7 +303,7 @@ public class DotGraphIO<E extends ConnectionData> extends
           b.setMaxSpeed(Double.parseDouble(map.get(MAX_SPEED)));
           map.remove(MAX_SPEED);
         }
-        b.putAllAttributes(map);
+        b.addAllAttributes(map);
 
         if (b.getAttributes().isEmpty() && !b.getLength().isPresent()
             && !b.getMaxSpeed().isPresent()) {

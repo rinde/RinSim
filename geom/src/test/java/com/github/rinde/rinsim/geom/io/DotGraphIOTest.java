@@ -104,7 +104,7 @@ public class DotGraphIOTest {
             .build());
     simpleMAGraph.addConnection(c, d,
         MultiAttributeData.builder()
-            .putAttributes("key", "specialValue")
+            .addAttribute("key", "specialValue")
             .build());
 
     simpleMAGraph.addConnection(a, d);
@@ -113,7 +113,7 @@ public class DotGraphIOTest {
         MultiAttributeData.builder()
             .setLength(10d)
             .setMaxSpeed(100d)
-            .putAttributes("hello", "world")
+            .addAttribute("hello", "world")
             .build());
     TestUtil.testEnum(LengthDataIO.class);
     TestUtil.testEnum(MultiAttributeDataIO.class);
@@ -155,7 +155,7 @@ public class DotGraphIOTest {
     Graph<MultiAttributeData> g = new TableGraph<>();
     g.addConnection(Connection.create(new Point(0, 0), new Point(1, 1),
         MultiAttributeData.builder()
-            .putAttributes("d", "invalid")
+            .addAttribute("d", "invalid")
             .build()));
 
     exception.expect(IllegalArgumentException.class);
