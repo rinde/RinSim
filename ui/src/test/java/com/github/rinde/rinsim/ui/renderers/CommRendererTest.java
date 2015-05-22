@@ -72,9 +72,9 @@ public class CommRendererTest {
           )
           .with(PlaneRoadModelRenderer.builder())
           .withAutoPlay()
-          // .withAutoClose()
+          .withAutoClose()
           .withSpeedUp(10)
-      // .withSimulatorEndTime(1000 * 60 * 5)
+          .withSimulatorEndTime(1000 * 60 * 5)
       )
       .addModel(TestModel.Builder.create())
       .build();
@@ -117,7 +117,6 @@ public class CommRendererTest {
     @Override
     public void tick(TimeLapse timeLapse) {
       if (timeLapse.getTime() % 60000 == 0) {
-        System.out.println("remove");
         final CommUser toRemove = users.iterator().next();
         simulator.unregister(toRemove);
       }
