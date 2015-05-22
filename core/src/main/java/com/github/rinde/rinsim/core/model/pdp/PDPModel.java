@@ -34,16 +34,16 @@ import com.google.common.collect.ImmutableSet;
  * Defines the public interface for a model for pickup-and-delivery problems.
  * This models is only responsible for the picking up and delivery operations,
  * i.e. it is not responsible for movement.
- * @author Rinde van Lon 
+ * @author Rinde van Lon
  */
 public abstract class PDPModel extends AbstractModel<PDPObject> implements
-    TickListener, ModelReceiver {
+  TickListener, ModelReceiver {
 
   /**
    * The logger of the model.
    */
   protected static final Logger LOGGER = LoggerFactory
-      .getLogger(PDPModel.class);
+    .getLogger(PDPModel.class);
 
   /**
    * Reference to the outermost decorator of this {@link PDPModel} instance.
@@ -58,7 +58,7 @@ public abstract class PDPModel extends AbstractModel<PDPObject> implements
   protected void setSelf(PDPModel pm) {
     LOGGER.info("setSelf {}", pm);
     checkState(!initialized,
-        "This PDPModel is already initialized, it is too late to decorate it.");
+      "This PDPModel is already initialized, it is too late to decorate it.");
     self = pm;
   }
 
@@ -79,7 +79,7 @@ public abstract class PDPModel extends AbstractModel<PDPObject> implements
    * @param time {@link TimeLapse} that is available for performing the actions.
    */
   protected abstract void continuePreviousActions(Vehicle vehicle,
-      TimeLapse time);
+    TimeLapse time);
 
   /**
    * Actual implementation of {@link #register(PDPObject)}.
@@ -114,11 +114,12 @@ public abstract class PDPModel extends AbstractModel<PDPObject> implements
    * Attempts to pickup the specified {@link Parcel} into the specified
    * {@link Vehicle}. Preconditions:
    * <ul>
-   * <li>{@link Vehicle} must be on {@link com.github.rinde.rinsim.core.model.road.RoadModel}.
-   * </li>
+   * <li>{@link Vehicle} must be on
+   * {@link com.github.rinde.rinsim.core.model.road.RoadModel}.</li>
    * <li>{@link Vehicle} must be registered in {@link DefaultPDPModel}.</li>
    * <li>{@link Vehicle} must be in {@link VehicleState#IDLE} state.</li>
-   * <li>{@link Parcel} must be on {@link com.github.rinde.rinsim.core.model.road.RoadModel}.</li>
+   * <li>{@link Parcel} must be on
+   * {@link com.github.rinde.rinsim.core.model.road.RoadModel}.</li>
    * <li>{@link Parcel} must be registered in {@link DefaultPDPModel}.</li>
    * <li>{@link Parcel} must be in {@link ParcelState#ANNOUNCED} or
    * {@link ParcelState#AVAILABLE} state.</li>
@@ -137,9 +138,10 @@ public abstract class PDPModel extends AbstractModel<PDPObject> implements
    * fact, should not be called again in the next tick to continue the pickup.
    * The continued pickup is handled automatically, the effect is that the
    * {@link Vehicle} will receive less time (or no time at all) in its next
-   * tick. When the pickup action is completed an {@link com.github.rinde.rinsim.event.Event}
-   * with type {@link PDPModelEventType#END_PICKUP} is dispatched. When done,
-   * the {@link Parcel} will be contained by the {@link Vehicle}.
+   * tick. When the pickup action is completed an
+   * {@link com.github.rinde.rinsim.event.Event} with type
+   * {@link PDPModelEventType#END_PICKUP} is dispatched. When done, the
+   * {@link Parcel} will be contained by the {@link Vehicle}.
    * @param vehicle The {@link Vehicle} involved in pickup.
    * @param parcel The {@link Parcel} to pick up.
    * @param time The {@link TimeLapse} that is available for the action.
@@ -147,7 +149,7 @@ public abstract class PDPModel extends AbstractModel<PDPObject> implements
   public abstract void pickup(Vehicle vehicle, Parcel parcel, TimeLapse time);
 
   /**
-   * Attempts to drop the specified {@link Parcel} into the specified
+   * Attempts to drop the specified {@link Parcel} from the specified
    * {@link Vehicle}. Preconditions:
    * <ul>
    * <li>{@link Vehicle} must exist in
@@ -162,18 +164,21 @@ public abstract class PDPModel extends AbstractModel<PDPObject> implements
    * dispatching of an {@link com.github.rinde.rinsim.event.Event} with type
    * {@link PDPModelEventType#START_DELIVERY}. If there is not enough time in
    * the specified {@link TimeLapse} to complete the dropping at once, the
-   * action will be completed in the next tick. Note that this method does not,
-   * and in fact, should not be called again in the next tick to continue the
-   * dropping. The continued dropping is handled automatically, the effect is
-   * that the {@link Vehicle} will receive less time (or no time at all) in its
-   * next tick. When the dropping is completed an {@link com.github.rinde.rinsim.event.Event}
-   * with type {@link PDPModelEventType#END_DELIVERY} is dispatched. As a result
-   * the {@link Vehicle} no longer contains the {@link Parcel} and the
-   * {@link Parcel} is added to the {@link com.github.rinde.rinsim.core.model.road.RoadModel}
-   * again.
+   * action will be completed in the next tick. Note that this method does not
+   * need to, and in fact, should not be called again in the next tick to
+   * continue the dropping. The continued dropping is handled automatically, the
+   * effect is that the {@link Vehicle} will receive less time (or no time at
+   * all) in its next tick. When the dropping is completed an
+   * {@link com.github.rinde.rinsim.event.Event} with type
+   * {@link PDPModelEventType#END_DELIVERY} is dispatched. As a result the
+   * {@link Vehicle} no longer contains the {@link Parcel} and the
+   * {@link Parcel} is added to the
+   * {@link com.github.rinde.rinsim.core.model.road.RoadModel} again.
    * @param vehicle The {@link Vehicle} that wishes to deliver a {@link Parcel}.
    * @param parcel The {@link Parcel} that is to be delivered.
    * @param time The {@link TimeLapse} that is available for delivery.
+   * @throws IllegalArgumentException Is thrown when any of the preconditions is
+   *           not met.
    */
   public abstract void drop(Vehicle vehicle, Parcel parcel, TimeLapse time);
 
@@ -192,16 +197,18 @@ public abstract class PDPModel extends AbstractModel<PDPObject> implements
    * {@link IllegalArgumentException}.
    * <p>
    * When all preconditions are met the actual delivery is started, this is
-   * indicated by the dispatching of an {@link com.github.rinde.rinsim.event.Event} with
+   * indicated by the dispatching of an
+   * {@link com.github.rinde.rinsim.event.Event} with
    * {@link PDPModelEventType#START_DELIVERY} type. If there is not enough time
    * in the specified {@link TimeLapse} to complete the delivery at once, the
    * action will be completed in the next tick. Note that this method does not,
    * and in fact, should not be called again in the next tick to continue the
    * delivery. The continued delivery is handled automatically, the effect is
    * that the {@link Vehicle} will receive less time (or no time at all) in its
-   * next tick. When the delivery is completed an {@link com.github.rinde.rinsim.event.Event}
-   * with type {@link PDPModelEventType#END_DELIVERY} is dispatched. As a result
-   * the {@link Vehicle} no longer contains the {@link Parcel} and the
+   * next tick. When the delivery is completed an
+   * {@link com.github.rinde.rinsim.event.Event} with type
+   * {@link PDPModelEventType#END_DELIVERY} is dispatched. As a result the
+   * {@link Vehicle} no longer contains the {@link Parcel} and the
    * {@link Parcel} is NOT added to the
    * {@link com.github.rinde.rinsim.core.model.road.RoadModel} again.
    * @param vehicle The {@link Vehicle} that wishes to deliver a {@link Parcel}.
@@ -260,7 +267,7 @@ public abstract class PDPModel extends AbstractModel<PDPObject> implements
    *           {@link VehicleState#PICKING_UP}.
    */
   public abstract PDPModel.VehicleParcelActionInfo getVehicleActionInfo(
-      Vehicle vehicle);
+    Vehicle vehicle);
 
   /**
    * @return The {@link EventAPI} used by this model. Events that are dispatched
@@ -296,7 +303,7 @@ public abstract class PDPModel extends AbstractModel<PDPObject> implements
 
   /**
    * The possible states a {@link Parcel} can be in.
-   * @author Rinde van Lon 
+   * @author Rinde van Lon
    */
   public enum ParcelState {
 
@@ -367,7 +374,7 @@ public abstract class PDPModel extends AbstractModel<PDPObject> implements
 
   /**
    * The possible states a {@link Vehicle} can be in.
-   * @author Rinde van Lon 
+   * @author Rinde van Lon
    */
   public enum VehicleState {
     /**
@@ -390,7 +397,7 @@ public abstract class PDPModel extends AbstractModel<PDPObject> implements
   /**
    * The possible {@link com.github.rinde.rinsim.event.Event} types that the
    * {@link DefaultPDPModel} dispatches.
-   * @author Rinde van Lon 
+   * @author Rinde van Lon
    */
   public enum PDPModelEventType {
     /**
@@ -431,7 +438,7 @@ public abstract class PDPModel extends AbstractModel<PDPObject> implements
   /**
    * Value object containing information about either a pickup or a delivery
    * operation.
-   * @author Rinde van Lon 
+   * @author Rinde van Lon
    */
   public interface VehicleParcelActionInfo {
 
