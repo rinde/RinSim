@@ -68,9 +68,9 @@ public final class Simulator implements SimulatorAPI {
   private static final Logger LOGGER = LoggerFactory.getLogger(Simulator.class);
 
   private final ModelManager modelManager;
-  private final Set<Object> toUnregister;
   private final RandomGenerator rand;
   private final ClockController clock;
+  private final Set<Object> toUnregister;
 
   Simulator(Builder b) {
     rand = b.rng;
@@ -118,6 +118,15 @@ public final class Simulator implements SimulatorAPI {
       throw new IllegalArgumentException("can not unregister a model");
     }
     toUnregister.add(o);
+  }
+
+  void checkUnregister() {
+    if (!toUnregister.isEmpty()) {
+      for (final Object o : toUnregister) {
+        modelManager.unregister(o);
+      }
+      toUnregister.clear();
+    }
   }
 
   /**
@@ -356,7 +365,8 @@ public final class Simulator implements SimulatorAPI {
     }
   }
 
-  static class SimulatorModel extends AbstractModel<SimulatorUser> {
+  static class SimulatorModel extends AbstractModel<SimulatorUser> implements
+    TickListener {
     final Simulator simulator;
 
     SimulatorModel(Simulator sim) {
@@ -378,6 +388,14 @@ public final class Simulator implements SimulatorAPI {
     public <U> U get(Class<U> clazz) {
       checkArgument(clazz == SimulatorAPI.class);
       return clazz.cast(simulator);
+    }
+
+    @Override
+    public void tick(TimeLapse timeLapse) {}
+
+    @Override
+    public void afterTick(TimeLapse timeLapse) {
+      simulator.checkUnregister();
     }
   }
 }

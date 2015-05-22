@@ -422,7 +422,7 @@
 			<dependency>
 				<groupId>com.google.truth</groupId>
 				<artifactId>truth</artifactId>
-				<version>0.25</version>
+				<version>0.26</version>
 				<scope>test</scope>
 			</dependency>
 			<dependency>
@@ -486,7 +486,7 @@
 			<dependency>
 				<groupId>org.inferred</groupId>
 				<artifactId>freebuilder</artifactId>
-				<version>1.0-rc4</version>
+				<version>1.0-rc8</version>
 				<optional>true</optional>
 			</dependency>
 			<dependency>

@@ -19,8 +19,7 @@ import com.google.auto.value.AutoValue;
 import com.google.common.base.Optional;
 
 /**
- * Immutable value object representing a directed connection (link/edge) in a
- * graph.
+ * Immutable value object representing a directed connection in a graph.
  * @param <E> Type of {@link ConnectionData} that is used. This data object can
  *          be used to add additional information to the connection.
  * @since 2.0

@@ -148,7 +148,7 @@ public abstract class PDPModel extends AbstractModel<PDPObject> implements
   public abstract void pickup(Vehicle vehicle, Parcel parcel, TimeLapse time);
 
   /**
-   * Attempts to drop the specified {@link Parcel} into the specified
+   * Attempts to drop the specified {@link Parcel} from the specified
    * {@link Vehicle}. Preconditions:
    * <ul>
    * <li>{@link Vehicle} must exist in
@@ -163,11 +163,16 @@ public abstract class PDPModel extends AbstractModel<PDPObject> implements
    * dispatching of an {@link com.github.rinde.rinsim.event.Event} with type
    * {@link PDPModelEventType#START_DELIVERY}. If there is not enough time in
    * the specified {@link TimeLapse} to complete the dropping at once, the
-   * action will be completed in the next tick. Note that this method does not,
+   * <<<<<<< HEAD action will be completed in the next tick. Note that this
+   * method does not, and in fact, should not be called again in the next tick
+   * to continue the dropping. The continued dropping is handled automatically,
+   * the effect is that the {@link Vehicle} will receive less time (or no time
+   * at all) in its next tick. When the dropping is completed an ======= action
+   * will be completed in the next tick. Note that this method does not need to,
    * and in fact, should not be called again in the next tick to continue the
    * dropping. The continued dropping is handled automatically, the effect is
    * that the {@link Vehicle} will receive less time (or no time at all) in its
-   * next tick. When the dropping is completed an
+   * next tick. When the dropping is completed an >>>>>>> master
    * {@link com.github.rinde.rinsim.event.Event} with type
    * {@link PDPModelEventType#END_DELIVERY} is dispatched. As a result the
    * {@link Vehicle} no longer contains the {@link Parcel} and the
@@ -176,6 +181,8 @@ public abstract class PDPModel extends AbstractModel<PDPObject> implements
    * @param vehicle The {@link Vehicle} that wishes to deliver a {@link Parcel}.
    * @param parcel The {@link Parcel} that is to be delivered.
    * @param time The {@link TimeLapse} that is available for delivery.
+   * @throws IllegalArgumentException Is thrown when any of the preconditions is
+   *           not met.
    */
   public abstract void drop(Vehicle vehicle, Parcel parcel, TimeLapse time);
 

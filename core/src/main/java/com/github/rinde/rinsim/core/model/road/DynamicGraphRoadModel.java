@@ -31,6 +31,7 @@ import com.github.rinde.rinsim.geom.ListenableGraph;
 import com.github.rinde.rinsim.geom.ListenableGraph.EventTypes;
 import com.github.rinde.rinsim.geom.ListenableGraph.GraphEvent;
 import com.github.rinde.rinsim.geom.Point;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Multimap;
 
@@ -63,8 +64,7 @@ public class DynamicGraphRoadModel extends GraphRoadModel {
   protected DynamicGraphRoadModel(ListenableGraph<?> g,
     RoadModelBuilders.AbstractDynamicGraphRMB<?, ?> b) {
     super(g, b);
-    getGraph().getEventAPI().addListener(
-      new GraphModificationChecker(this));
+    getGraph().getEventAPI().addListener(new GraphModificationChecker(this));
     connMap = LinkedHashMultimap.create();
     posMap = LinkedHashMultimap.create();
   }
@@ -98,7 +98,7 @@ public class DynamicGraphRoadModel extends GraphRoadModel {
    * @return A reference to the graph.
    */
   @Override
-  public ListenableGraph<? extends ConnectionData> getGraph() {
+  public ListenableGraph<?> getGraph() {
     return (ListenableGraph<? extends ConnectionData>) graph;
   }
 
@@ -140,10 +140,41 @@ public class DynamicGraphRoadModel extends GraphRoadModel {
    *           <code>from</code> and <code>to</code>.
    */
   public boolean hasRoadUserOn(Point from, Point to) {
-    checkArgument(graph.hasConnection(from, to),
-      "There is no connection between %s and %s.", from, to);
+    checkConnectionsExists(from, to);
     return connMap.containsKey(graph.getConnection(from, to))
       || posMap.containsKey(from) || posMap.containsKey(to);
+  }
+
+  /**
+   * Returns all {@link RoadUser}s that are on the connection between
+   * <code>from</code> and <code>to</code>.
+   * @param from The start point of a connection.
+   * @param to The end point of a connection.
+   * @return The {@link RoadUser}s that are on the connection, or an empty set
+   *         in case {@link #hasRoadUserOn(Point, Point)} returns
+   *         <code>false</code>.
+   * @throws IllegalArgumentException if no connection exists between
+   *           <code>from</code> and <code>to</code>.
+   */
+  public ImmutableSet<RoadUser> getRoadUsersOn(Point from, Point to) {
+    checkConnectionsExists(from, to);
+    final ImmutableSet.Builder<RoadUser> builder = ImmutableSet.builder();
+    final Connection<?> conn = graph.getConnection(from, to);
+    if (connMap.containsKey(conn)) {
+      builder.addAll(connMap.get(conn));
+    }
+    if (posMap.containsKey(from)) {
+      builder.addAll(posMap.get(from));
+    }
+    if (posMap.containsKey(to)) {
+      builder.addAll(posMap.get(to));
+    }
+    return builder.build();
+  }
+
+  void checkConnectionsExists(Point from, Point to) {
+    checkArgument(graph.hasConnection(from, to),
+      "There is no connection between %s and %s.", from, to);
   }
 
   @Override

@@ -44,8 +44,8 @@ import com.google.common.collect.Tables;
 /**
  * Multimap-based implementation of a graph.
  * @author Rinde van Lon
- * @author Bartosz Michalik - added edge data + and dead end nodes
- * @param <E> The type of {@link ConnectionData} that is used in the edges.
+ * @author Bartosz Michalik - added connection data + and dead end nodes
+ * @param <E> The type of {@link ConnectionData} that is used.
  */
 public class MultimapGraph<E extends ConnectionData> extends AbstractGraph<E> {
   private final Multimap<Point, Point> multimap;

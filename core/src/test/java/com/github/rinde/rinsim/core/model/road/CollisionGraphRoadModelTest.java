@@ -17,6 +17,7 @@ package com.github.rinde.rinsim.core.model.road;
 
 import static com.github.rinde.rinsim.core.model.time.TimeLapseFactory.ms;
 import static com.github.rinde.rinsim.geom.PointAssert.assertPointEquals;
+import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -30,7 +31,10 @@ import org.junit.Before;
 import org.junit.Test;
 
 import com.github.rinde.rinsim.core.model.DependencyProvider;
+import com.github.rinde.rinsim.core.model.pdp.Parcel;
 import com.github.rinde.rinsim.core.model.time.TimeLapse;
+import com.github.rinde.rinsim.core.pdptw.DefaultParcel;
+import com.github.rinde.rinsim.core.pdptw.ParcelDTO;
 import com.github.rinde.rinsim.geom.Graphs;
 import com.github.rinde.rinsim.geom.LengthData;
 import com.github.rinde.rinsim.geom.ListenableGraph;
@@ -62,6 +66,7 @@ public class CollisionGraphRoadModelTest {
       .withVehicleLength(1d)
       .withMinDistance(0)
       .build(mock(DependencyProvider.class));
+
     NW = new Point(0, 0);
     NE = new Point(10, 0);
     SE = new Point(10, 10);
@@ -75,7 +80,6 @@ public class CollisionGraphRoadModelTest {
    * Test that <code>addObjectAtSamePosition</code> throws an unsupported
    * operation exception.
    */
-  @SuppressWarnings("deprecation")
   @Test
   public void testAddObjectAtSamePosition() {
     final MovingRoadUser agv1 = new TestRoadUser();
@@ -84,10 +88,18 @@ public class CollisionGraphRoadModelTest {
     boolean fail = false;
     try {
       model.addObjectAtSamePosition(agv2, agv1);
-    } catch (final UnsupportedOperationException e) {
+    } catch (final IllegalArgumentException e) {
+      assertThat(e.getMessage()).contains(
+        "can not be added on an already occupied position");
       fail = true;
     }
     assertTrue(fail);
+
+    final Parcel p = new DefaultParcel(ParcelDTO.builder(NW, SW).build());
+
+    model.addObjectAtSamePosition(p, agv1);
+
+    assertThat(model.getPosition(agv1)).isEqualTo(model.getPosition(p));
   }
 
   /**
@@ -99,6 +111,9 @@ public class CollisionGraphRoadModelTest {
     final MovingRoadUser agv1 = new TestRoadUser();
     final MovingRoadUser agv2 = new TestRoadUser();
     model.addObjectAt(agv1, NW);
+    assertThat(model.isOccupied(NW)).isTrue();
+    assertThat(model.isOccupiedBy(NW, agv1)).isTrue();
+    assertThat(model.isOccupiedBy(new Point(-1, -1), agv1)).isFalse();
     boolean fail = false;
     try {
       model.addObjectAt(agv2, NW);
@@ -109,6 +124,7 @@ public class CollisionGraphRoadModelTest {
 
     // max distance to travel while still staying within node area
     model.moveTo(agv1, SW, meter(.9997222222));
+    assertThat(model.isOccupiedBy(NW, agv1)).isTrue();
 
     fail = false;
     try {
@@ -120,8 +136,38 @@ public class CollisionGraphRoadModelTest {
 
     // exiting node area, adding to SW is allowed now
     model.moveTo(agv1, SW, meter(0.0002777777778));
+    assertThat(model.isOccupiedBy(NW, agv1)).isFalse();
+
     model.addObjectAt(agv2, NW);
     assertEquals(NW, model.getPosition(agv2));
+    assertThat(model.isOccupiedBy(NW, agv2)).isTrue();
+  }
+
+  /**
+   * Tests that a removed object no longer occupies its position.
+   */
+  @Test
+  public void testRemoveObject() {
+    final MovingRoadUser agv1 = new TestRoadUser();
+    model.addObjectAt(agv1, NW);
+    assertTrue(model.isOccupied(NW));
+
+    model.removeObject(agv1);
+    assertFalse(model.isOccupied(NW));
+  }
+
+  /**
+   * Tests that a unregistered object is removed.
+   */
+  @Test
+  public void testUnregisterObject() {
+    final MovingRoadUser agv1 = new TestRoadUser();
+    model.addObjectAt(agv1, NW);
+    assertTrue(model.isOccupied(NW));
+
+    model.unregister(agv1);
+    assertFalse(model.containsObject(agv1));
+    assertFalse(model.isOccupied(NW));
   }
 
   /**
@@ -247,6 +293,7 @@ public class CollisionGraphRoadModelTest {
       RoadModelBuilders.dynamicGraph(graph)
         .withCollisionAvoidance()
         .withVehicleLength(0d);
+
     } catch (final IllegalArgumentException e) {
       fail = true;
     }
@@ -258,6 +305,7 @@ public class CollisionGraphRoadModelTest {
       RoadModelBuilders.dynamicGraph(graph)
         .withCollisionAvoidance()
         .withVehicleLength(Double.POSITIVE_INFINITY);
+
     } catch (final IllegalArgumentException e) {
       fail = true;
     }
@@ -268,6 +316,7 @@ public class CollisionGraphRoadModelTest {
       .withDistanceUnit(SI.METER)
       .withVehicleLength(5d)
       .build(mock(DependencyProvider.class));
+
     assertEquals(5d, cgr1.getVehicleLength(), 0);
   }
 
@@ -289,6 +338,7 @@ public class CollisionGraphRoadModelTest {
       .withCollisionAvoidance()
       .withMinDistance(2d)
       .build(mock(DependencyProvider.class))
+
       .getMinDistance(),
       0);
 

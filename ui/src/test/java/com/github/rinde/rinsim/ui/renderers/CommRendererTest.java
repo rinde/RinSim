@@ -17,6 +17,9 @@ package com.github.rinde.rinsim.ui.renderers;
 
 import static com.google.common.truth.Truth.assertThat;
 
+import java.util.LinkedHashSet;
+import java.util.Set;
+
 import org.apache.commons.math3.random.MersenneTwister;
 import org.apache.commons.math3.random.RandomGenerator;
 import org.eclipse.swt.graphics.RGB;
@@ -24,6 +27,10 @@ import org.junit.Test;
 import org.junit.experimental.categories.Category;
 
 import com.github.rinde.rinsim.core.Simulator;
+import com.github.rinde.rinsim.core.SimulatorAPI;
+import com.github.rinde.rinsim.core.model.DependencyProvider;
+import com.github.rinde.rinsim.core.model.Model.AbstractModel;
+import com.github.rinde.rinsim.core.model.ModelBuilder.AbstractModelBuilder;
 import com.github.rinde.rinsim.core.model.comm.CommDevice;
 import com.github.rinde.rinsim.core.model.comm.CommDeviceBuilder;
 import com.github.rinde.rinsim.core.model.comm.CommModel;
@@ -37,6 +44,7 @@ import com.github.rinde.rinsim.core.model.time.TimeLapse;
 import com.github.rinde.rinsim.geom.Point;
 import com.github.rinde.rinsim.testutil.GuiTests;
 import com.github.rinde.rinsim.ui.View;
+import com.google.auto.value.AutoValue;
 import com.google.common.base.Optional;
 
 /**
@@ -64,16 +72,16 @@ public class CommRendererTest {
           )
           .with(PlaneRoadModelRenderer.builder())
           .withAutoPlay()
-          .withAutoClose()
+          // .withAutoClose()
           .withSpeedUp(10)
-          .withSimulatorEndTime(1000 * 60 * 5)
+      // .withSimulatorEndTime(1000 * 60 * 5)
       )
+      .addModel(TestModel.Builder.create())
       .build();
 
     for (int i = 0; i < 20; i++) {
       sim.register(new CommAgent(rng, (i + 1) / 10d, i * (1d / 20d)));
     }
-
     sim.register(new CommAgent(rng, -1d, 1d));
 
     sim.start();
@@ -94,6 +102,57 @@ public class CommRendererTest {
     assertThat(b.unreliableColor()).isNotSameAs(unreliableIn);
     assertThat(b.reliableColor()).isEqualTo(reliableIn);
     assertThat(b.unreliableColor()).isEqualTo(unreliableIn);
+  }
+
+  static class TestModel extends AbstractModel<CommUser> implements
+    TickListener {
+    SimulatorAPI simulator;
+    Set<CommUser> users;
+
+    TestModel(SimulatorAPI sim) {
+      simulator = sim;
+      users = new LinkedHashSet<>();
+    }
+
+    @Override
+    public void tick(TimeLapse timeLapse) {
+      if (timeLapse.getTime() % 60000 == 0) {
+        System.out.println("remove");
+        final CommUser toRemove = users.iterator().next();
+        simulator.unregister(toRemove);
+      }
+    }
+
+    @Override
+    public void afterTick(TimeLapse timeLapse) {}
+
+    @Override
+    public boolean register(CommUser element) {
+      return users.add(element);
+    }
+
+    @Override
+    public boolean unregister(CommUser element) {
+      return users.remove(element);
+    }
+
+    @AutoValue
+    static class Builder extends AbstractModelBuilder<TestModel, CommUser> {
+
+      Builder() {
+        setDependencies(SimulatorAPI.class);
+      }
+
+      @Override
+      public TestModel build(DependencyProvider dependencyProvider) {
+        final SimulatorAPI sim = dependencyProvider.get(SimulatorAPI.class);
+        return new TestModel(sim);
+      }
+
+      static Builder create() {
+        return new AutoValue_CommRendererTest_TestModel_Builder();
+      }
+    }
   }
 
   static class CommAgent implements MovingRoadUser, CommUser, TickListener {

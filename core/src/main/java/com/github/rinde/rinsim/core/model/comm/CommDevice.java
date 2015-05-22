@@ -16,6 +16,7 @@
 package com.github.rinde.rinsim.core.model.comm;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.base.Verify.verify;
 import static com.google.common.base.Verify.verifyNotNull;
 
@@ -51,6 +52,7 @@ public final class CommDevice {
   private final List<Message> unreadMessages;
   private final List<Message> outbox;
   private int receivedCount;
+  private boolean registered;
 
   CommDevice(CommDeviceBuilder builder) {
     model = builder.model;
@@ -66,6 +68,7 @@ public final class CommDevice {
     outbox = new ArrayList<>();
     receivedCount = 0;
     model.addDevice(this, user);
+    registered = true;
   }
 
   /**
@@ -138,8 +141,10 @@ public final class CommDevice {
    * can be cleared by calling {@link #clearOutbox()}.
    * @param contents The contents to send as part of the message.
    * @param recipient The recipient of the message.
+   * @throws IllegalStateException If the device is no longer registered.
    */
   public void send(MessageContents contents, CommUser recipient) {
+    checkRegistered();
     checkArgument(user != recipient,
       "Can not send message to self %s.",
       recipient);
@@ -177,15 +182,19 @@ public final class CommDevice {
    * position all messages that are still in the outbox will be sent. The outbox
    * can be cleared by calling {@link #clearOutbox()}.
    * @param contents The contents to send as part of the message.
+   * @throws IllegalStateException If the device is no longer registered.
    */
   public void broadcast(MessageContents contents) {
+    checkRegistered();
     outbox.add(Message.createBroadcast(user, contents, rangePredicate));
   }
 
   /**
    * Clears all message in the outbox.
+   * @throws IllegalStateException If the device is no longer registered.
    */
   public void clearOutbox() {
+    checkRegistered();
     outbox.clear();
   }
 
@@ -214,6 +223,23 @@ public final class CommDevice {
       }
       clearOutbox();
     }
+  }
+
+  void unregister() {
+    registered = false;
+  }
+
+  void register() {
+    registered = true;
+  }
+
+  void checkRegistered() {
+    checkState(isRegistered(),
+      "This CommDevice is unregistered and can therefore not be used.");
+  }
+
+  boolean isRegistered() {
+    return registered;
   }
 
   @Override

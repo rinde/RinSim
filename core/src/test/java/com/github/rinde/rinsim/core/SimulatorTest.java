@@ -134,6 +134,29 @@ public class SimulatorTest {
   }
 
   /**
+   * Test that unregister works.
+   */
+  @Test
+  public void testUnregisterObj() {
+    final Simulator sim = Simulator.builder()
+      .addModel(DummyModel.builder())
+      .build();
+
+    final DummyModel dm = sim.getModelProvider().getModel(DummyModel.class);
+
+    assertThat(dm.getRegisteredObjects()).isEmpty();
+    final DummyObject dotl = new DummyObject();
+    sim.register(dotl);
+
+    assertThat(dm.getRegisteredObjects()).containsExactly(dotl);
+
+    sim.unregister(dotl);
+    sim.tick();
+
+    assertThat(dm.getRegisteredObjects()).isEmpty();
+  }
+
+  /**
    * Tests that the rng is defined.
    */
   @Test

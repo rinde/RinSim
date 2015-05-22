@@ -15,7 +15,9 @@
  */
 package com.github.rinde.rinsim.core;
 
-import java.util.HashSet;
+import java.util.Collections;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 import javax.annotation.Nullable;
 
@@ -26,10 +28,10 @@ import com.github.rinde.rinsim.core.model.ModelBuilder.AbstractModelBuilder;
 
 class DummyModel extends AbstractModel<DummyObject> {
 
-  private final HashSet<DummyObject> objs;
+  private final Set<DummyObject> objs;
 
   DummyModel() {
-    objs = new HashSet<>();
+    objs = new LinkedHashSet<>();
   }
 
   @Override
@@ -40,6 +42,10 @@ class DummyModel extends AbstractModel<DummyObject> {
   @Override
   public boolean unregister(DummyObject element) {
     return objs.remove(element);
+  }
+
+  public Set<DummyObject> getRegisteredObjects() {
+    return Collections.unmodifiableSet(objs);
   }
 
   @Override

@@ -187,7 +187,7 @@ public class SpeedLimitsTest {
     assertTrue(model.getPosition(agent).equals(new Point(0, 0)));
     assertEquals(5, path.size());
 
-    // MOVE 1: travelling on edge A -> B (length 10), with no speed limit
+    // MOVE 1: travelling on connection A -> B (length 10), with no speed limit
     MoveProgress progress = model.followPath(agent, path,
       AbstractRoadModelTest.hour(2));
     assertEquals(2 * speed, progress.distance().getValue(), DELTA);
@@ -200,13 +200,13 @@ public class SpeedLimitsTest {
     assertEquals(3, path.size());
     assertEquals(B, model.getPosition(agent));
 
-    // MOVE 2: traveling on edge B -> C (length 10) with max speed 2.5
+    // MOVE 2: traveling on connection B -> C (length 10) with max speed 2.5
     progress = model.followPath(agent, path, AbstractRoadModelTest.hour(2));
     assertEquals(5, progress.distance().getValue(), DELTA);
     assertEquals(new Point(5, 5), model.getPosition(agent));
     assertEquals(3, path.size());
 
-    // traveling on edge B -> C (length 10) with max speed 2.5
+    // traveling on connection B -> C (length 10) with max speed 2.5
     progress = model.followPath(agent, path, AbstractRoadModelTest.hour(2));
     assertEquals(5, progress.distance().getValue(), DELTA);
     assertEquals(C, model.getPosition(agent));

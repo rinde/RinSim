@@ -16,6 +16,7 @@
 package com.github.rinde.rinsim.core.model.road;
 
 import static com.github.rinde.rinsim.core.model.time.TimeLapseFactory.hour;
+import static com.google.common.truth.Truth.assertThat;
 import static java.util.Arrays.asList;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -154,7 +155,7 @@ public class DynamicGraphRoadModelTest {
    * Tests removals when a connection is occupied.
    */
   @Test
-  public void testRemoveConEdgeOccupied() {
+  public void testRemoveConnectionOccupied() {
     final MovingRoadUser user = new TestRoadUser();
     model.addObjectAt(user, SW);
     model.moveTo(user, NW, hour(1));
@@ -198,11 +199,20 @@ public class DynamicGraphRoadModelTest {
   public void testIsOccupied() {
     final MovingRoadUser car = new TestRoadUser();
     model.addObjectAt(car, SW);
-    assertTrue(model.hasRoadUserOn(SW, NW));
-    assertTrue(model.hasRoadUserOn(NW, SW));
-    assertTrue(model.hasRoadUserOn(SW, SE));
-    assertTrue(model.hasRoadUserOn(SE, SW));
-    assertFalse(model.hasRoadUserOn(NE, SE));
+    assertThat(model.hasRoadUserOn(SW, NW)).isTrue();
+    assertThat(model.getRoadUsersOn(SW, NW)).containsExactly(car);
+
+    assertThat(model.hasRoadUserOn(NW, SW)).isTrue();
+    assertThat(model.getRoadUsersOn(NW, SW)).containsExactly(car);
+
+    assertThat(model.hasRoadUserOn(SW, SE)).isTrue();
+    assertThat(model.getRoadUsersOn(SW, SE)).containsExactly(car);
+
+    assertThat(model.hasRoadUserOn(SE, SW)).isTrue();
+    assertThat(model.getRoadUsersOn(SE, SW)).containsExactly(car);
+
+    assertThat(model.hasRoadUserOn(NE, SE)).isFalse();
+    assertThat(model.getRoadUsersOn(NE, SE)).isEmpty();
 
     boolean fail = false;
     try {
@@ -210,17 +220,27 @@ public class DynamicGraphRoadModelTest {
     } catch (final IllegalArgumentException e) {
       fail = true;
     }
-    assertTrue(fail);
+    assertThat(fail).isTrue();
 
     model.moveTo(car, NW, hour(1));
-    assertTrue(model.hasRoadUserOn(SW, NW));
-    assertFalse(model.hasRoadUserOn(NW, SW));
-    assertFalse(model.hasRoadUserOn(SW, SE));
-    assertFalse(model.hasRoadUserOn(SE, SW));
-    assertFalse(model.hasRoadUserOn(NE, SE));
+    assertThat(model.hasRoadUserOn(SW, NW)).isTrue();
+    assertThat(model.getRoadUsersOn(SW, NW)).containsExactly(car);
+
+    assertThat(model.hasRoadUserOn(NW, SW)).isFalse();
+    assertThat(model.getRoadUsersOn(NW, SW)).isEmpty();
+
+    assertThat(model.hasRoadUserOn(SW, SE)).isFalse();
+    assertThat(model.getRoadUsersOn(SW, SE)).isEmpty();
+
+    assertThat(model.hasRoadUserOn(SE, SW)).isFalse();
+    assertThat(model.getRoadUsersOn(SE, SW)).isEmpty();
+
+    assertThat(model.hasRoadUserOn(NE, SE)).isFalse();
+    assertThat(model.getRoadUsersOn(NE, SE)).isEmpty();
 
     model.removeObject(car);
-    assertFalse(model.hasRoadUserOn(SW, NW));
+    assertThat(model.hasRoadUserOn(SW, NW)).isFalse();
+    assertThat(model.getRoadUsersOn(SW, NW)).isEmpty();
   }
 
   /**

@@ -15,8 +15,12 @@
  */
 package com.github.rinde.rinsim.ui.renderers;
 
+import static com.google.common.base.Verify.verify;
+
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import javax.annotation.CheckReturnValue;
@@ -30,7 +34,10 @@ import com.github.rinde.rinsim.core.model.DependencyProvider;
 import com.github.rinde.rinsim.core.model.ModelBuilder.AbstractModelBuilder;
 import com.github.rinde.rinsim.core.model.comm.CommDevice;
 import com.github.rinde.rinsim.core.model.comm.CommModel;
+import com.github.rinde.rinsim.core.model.comm.CommModel.CommModelEvent;
 import com.github.rinde.rinsim.core.model.comm.CommUser;
+import com.github.rinde.rinsim.event.Event;
+import com.github.rinde.rinsim.event.Listener;
 import com.github.rinde.rinsim.ui.renderers.CanvasRenderer.AbstractTypedCanvasRenderer;
 import com.google.auto.value.AutoValue;
 import com.google.common.base.Optional;
@@ -61,7 +68,34 @@ public final class CommRenderer extends AbstractTypedCanvasRenderer<CommUser>
     reliableColor = b.reliableColor();
     unreliableColor = b.unreliableColor();
     helper = new RenderHelper();
-    uiObjects = new LinkedHashMap<>();
+    uiObjects = Collections
+      .synchronizedMap(new LinkedHashMap<CommUser, DeviceUI>());
+    for (final Entry<CommUser, CommDevice> entry : model.getUsersAndDevices()
+      .entrySet()) {
+      addUIObject(entry.getKey(), entry.getValue());
+    }
+
+    model.getEventAPI().addListener(new Listener() {
+      @Override
+      public void handleEvent(Event e) {
+        verify(e instanceof CommModelEvent);
+        final CommModelEvent event = (CommModelEvent) e;
+        if (e.getEventType() == CommModel.EventTypes.ADD_COMM_USER) {
+          addUIObject(event.getUser(), event.getDevice());
+        } else {
+          removeUIObject(event.getUser());
+        }
+      }
+    }, CommModel.EventTypes.ADD_COMM_USER,
+      CommModel.EventTypes.REMOVE_COMM_USER);
+  }
+
+  void addUIObject(CommUser u, CommDevice d) {
+    uiObjects.put(u, new DeviceUI(u, d));
+  }
+
+  void removeUIObject(CommUser u) {
+    uiObjects.remove(u);
   }
 
   @Override
@@ -71,8 +105,10 @@ public final class CommRenderer extends AbstractTypedCanvasRenderer<CommUser>
   public void renderDynamic(GC gc, ViewPort vp, long time) {
     helper.adapt(gc, vp);
 
-    for (final DeviceUI ui : uiObjects.values()) {
-      ui.update(gc, vp, time);
+    synchronized (uiObjects) {
+      for (final DeviceUI ui : uiObjects.values()) {
+        ui.update(gc, vp, time);
+      }
     }
   }
 
@@ -109,6 +145,9 @@ public final class CommRenderer extends AbstractTypedCanvasRenderer<CommUser>
     }
 
     void update(GC gc, ViewPort vp, long time) {
+      if (!user.getPosition().isPresent()) {
+        return;
+      }
       if (!color.isPresent()
         && viewOptions.contains(ViewOptions.RELIABILITY_COLOR)) {
         final RGB rgb = ColorUtil.interpolate(unreliableColor, reliableColor,
