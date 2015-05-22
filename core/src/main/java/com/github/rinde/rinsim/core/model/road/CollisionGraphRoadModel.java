@@ -150,18 +150,19 @@ public class CollisionGraphRoadModel extends DynamicGraphRoadModel {
   @Override
   public void addObjectAt(RoadUser newObj, Point pos) {
     if (newObj instanceof MovingRoadUser) {
-      checkArgument(!occupiedNodes.containsValue(pos),
-        "An object can not be added on an already occupied position %s.", pos);
+      checkArgument(
+        !occupiedNodes.containsValue(pos),
+        "A MovingRoadUser can not be added on an already occupied position %s.",
+        pos);
       occupiedNodes.put((MovingRoadUser) newObj, pos);
     }
     super.addObjectAt(newObj, pos);
   }
 
   @Override
-  @Deprecated
   public void addObjectAtSamePosition(RoadUser newObj, RoadUser existingObj) {
-    throw new UnsupportedOperationException(
-      "Vehicles can not be added at the same position.");
+    checkExists(existingObj);
+    addObjectAt(newObj, getPosition(existingObj));
   }
 
   @Override

@@ -28,6 +28,9 @@ import org.junit.Before;
 import org.junit.Test;
 
 import com.github.rinde.rinsim.core.TimeLapse;
+import com.github.rinde.rinsim.core.model.pdp.Parcel;
+import com.github.rinde.rinsim.core.pdptw.DefaultParcel;
+import com.github.rinde.rinsim.core.pdptw.ParcelDTO;
 import com.github.rinde.rinsim.geom.Graphs;
 import com.github.rinde.rinsim.geom.LengthData;
 import com.github.rinde.rinsim.geom.ListenableGraph;
@@ -70,7 +73,6 @@ public class CollisionGraphRoadModelTest {
    * Test that <code>addObjectAtSamePosition</code> throws an unsupported
    * operation exception.
    */
-  @SuppressWarnings("deprecation")
   @Test
   public void testAddObjectAtSamePosition() {
     final MovingRoadUser agv1 = new TestRoadUser();
@@ -79,10 +81,18 @@ public class CollisionGraphRoadModelTest {
     boolean fail = false;
     try {
       model.addObjectAtSamePosition(agv2, agv1);
-    } catch (final UnsupportedOperationException e) {
+    } catch (final IllegalArgumentException e) {
+      assertThat(e.getMessage()).contains(
+        "can not be added on an already occupied position");
       fail = true;
     }
     assertTrue(fail);
+
+    final Parcel p = new DefaultParcel(ParcelDTO.builder(NW, SW).build());
+
+    model.addObjectAtSamePosition(p, agv1);
+
+    assertThat(model.getPosition(agv1)).isEqualTo(model.getPosition(p));
   }
 
   /**
