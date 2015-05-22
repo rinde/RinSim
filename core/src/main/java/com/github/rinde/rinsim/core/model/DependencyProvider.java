@@ -15,7 +15,6 @@
  */
 package com.github.rinde.rinsim.core.model;
 
-
 /**
  * Provider of dependencies. An instance is automatically injected into
  * {@link ModelBuilder#build(DependencyProvider)}.
@@ -28,6 +27,7 @@ public abstract class DependencyProvider {
   /**
    * Retrieves an instance of the specified type.
    * @param type The type to request an instance of.
+   * @param <T> The type to request an instance of.
    * @return An instance of the specified type.
    * @throws IllegalArgumentException if the specified type can not be provided.
    */

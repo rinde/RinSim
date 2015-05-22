@@ -172,6 +172,10 @@ public final class ModelManager implements ModelProvider {
     return models;
   }
 
+  /**
+   * @return An optional that contains a value if a model that implements
+   *         {@link UserInterface} has been added to the manager.
+   */
   public Optional<UserInterface> getUserInterface() {
     return userInterface;
   }

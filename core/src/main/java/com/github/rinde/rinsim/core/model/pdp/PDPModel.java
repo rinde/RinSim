@@ -163,16 +163,11 @@ public abstract class PDPModel extends AbstractModel<PDPObject> implements
    * dispatching of an {@link com.github.rinde.rinsim.event.Event} with type
    * {@link PDPModelEventType#START_DELIVERY}. If there is not enough time in
    * the specified {@link TimeLapse} to complete the dropping at once, the
-   * <<<<<<< HEAD action will be completed in the next tick. Note that this
-   * method does not, and in fact, should not be called again in the next tick
-   * to continue the dropping. The continued dropping is handled automatically,
-   * the effect is that the {@link Vehicle} will receive less time (or no time
-   * at all) in its next tick. When the dropping is completed an ======= action
-   * will be completed in the next tick. Note that this method does not need to,
-   * and in fact, should not be called again in the next tick to continue the
-   * dropping. The continued dropping is handled automatically, the effect is
-   * that the {@link Vehicle} will receive less time (or no time at all) in its
-   * next tick. When the dropping is completed an >>>>>>> master
+   * action will be completed in the next tick. Note that this method does not
+   * need to, and in fact, should not be called again in the next tick to
+   * continue the dropping. The continued dropping is handled automatically, the
+   * effect is that the {@link Vehicle} will receive less time (or no time at
+   * all) in its next tick. When the dropping is completed an
    * {@link com.github.rinde.rinsim.event.Event} with type
    * {@link PDPModelEventType#END_DELIVERY} is dispatched. As a result the
    * {@link Vehicle} no longer contains the {@link Parcel} and the
