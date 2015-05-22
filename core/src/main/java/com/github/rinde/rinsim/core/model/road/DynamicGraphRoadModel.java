@@ -119,7 +119,7 @@ public class DynamicGraphRoadModel extends GraphRoadModel {
    * @return A reference to the graph.
    */
   @Override
-  public Graph<? extends ConnectionData> getGraph() {
+  public ListenableGraph<?> getGraph() {
     return listenableGraph;
   }
 
