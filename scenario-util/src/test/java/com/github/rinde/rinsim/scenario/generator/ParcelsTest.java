@@ -21,7 +21,7 @@ import java.util.List;
 
 import org.junit.Test;
 
-import com.github.rinde.rinsim.scenario.AddParcelEvent;
+import com.github.rinde.rinsim.pdptw.common.AddParcelEvent;
 import com.github.rinde.rinsim.scenario.generator.Parcels.ParcelGenerator;
 
 /**
@@ -44,7 +44,7 @@ public class ParcelsTest {
         TravelTimesUtil.distance(), scenarioLength);
 
     for (final AddParcelEvent ape : events) {
-      assertTrue(ape.time < scenarioLength);
+      assertTrue(ape.getTime() < scenarioLength);
     }
   }
 

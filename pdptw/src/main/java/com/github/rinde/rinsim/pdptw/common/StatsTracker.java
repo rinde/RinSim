@@ -21,13 +21,10 @@ import static com.github.rinde.rinsim.core.model.pdp.PDPModel.PDPModelEventType.
 import static com.github.rinde.rinsim.core.model.pdp.PDPModel.PDPModelEventType.NEW_VEHICLE;
 import static com.github.rinde.rinsim.core.model.pdp.PDPModel.PDPModelEventType.START_DELIVERY;
 import static com.github.rinde.rinsim.core.model.pdp.PDPModel.PDPModelEventType.START_PICKUP;
-import static com.github.rinde.rinsim.core.model.pdp.PDPScenarioEvent.ADD_DEPOT;
-import static com.github.rinde.rinsim.core.model.pdp.PDPScenarioEvent.ADD_PARCEL;
-import static com.github.rinde.rinsim.core.model.pdp.PDPScenarioEvent.ADD_VEHICLE;
-import static com.github.rinde.rinsim.core.model.pdp.PDPScenarioEvent.TIME_OUT;
 import static com.github.rinde.rinsim.core.model.road.GenericRoadModel.RoadEventType.MOVE;
 import static com.github.rinde.rinsim.core.model.time.Clock.ClockEventType.STARTED;
 import static com.github.rinde.rinsim.core.model.time.Clock.ClockEventType.STOPPED;
+import static com.github.rinde.rinsim.scenario.ScenarioController.EventType.SCENARIO_EVENT;
 import static com.github.rinde.rinsim.scenario.ScenarioController.EventType.SCENARIO_FINISHED;
 import static com.github.rinde.rinsim.scenario.ScenarioController.EventType.SCENARIO_STARTED;
 import static com.google.common.base.Verify.verify;
@@ -56,7 +53,8 @@ import com.github.rinde.rinsim.event.EventDispatcher;
 import com.github.rinde.rinsim.event.Listener;
 import com.github.rinde.rinsim.geom.Point;
 import com.github.rinde.rinsim.scenario.ScenarioController;
-import com.github.rinde.rinsim.scenario.TimedEvent;
+import com.github.rinde.rinsim.scenario.ScenarioController.ScenarioEvent;
+import com.github.rinde.rinsim.scenario.TimeOutEvent;
 import com.google.auto.value.AutoValue;
 
 public final class StatsTracker extends AbstractModelVoid implements
@@ -77,7 +75,7 @@ public final class StatsTracker extends AbstractModelVoid implements
     eventDispatcher = new EventDispatcher(StatisticsEventType.values());
     theListener = new TheListener();
     scenContr.getEventAPI().addListener(theListener, SCENARIO_STARTED,
-      SCENARIO_FINISHED, ADD_DEPOT, ADD_PARCEL, ADD_VEHICLE, TIME_OUT);
+      SCENARIO_FINISHED, SCENARIO_EVENT);
 
     roadModel.getEventAPI().addListener(theListener, MOVE);
     clock.getEventAPI().addListener(theListener, STARTED, STOPPED);
@@ -242,21 +240,23 @@ public final class StatsTracker extends AbstractModelVoid implements
         }
       } else if (e.getEventType() == PDPModelEventType.END_DELIVERY) {
         totalDeliveries++;
-      } else if (e.getEventType() == ADD_PARCEL) {
-        // scenario event
-        totalParcels++;
+      } else if (e.getEventType() == SCENARIO_EVENT) {
+        final ScenarioEvent se = (ScenarioEvent) e;
+        if (se.getTimedEvent() instanceof AddParcelEvent) {
+          totalParcels++;
+        } else if (se.getTimedEvent() instanceof AddVehicleEvent) {
+          totalVehicles++;
+        } else if (se.getTimedEvent() instanceof TimeOutEvent) {
+          simFinish = true;
+          scenarioEndTime = se.getTimedEvent().getTime();
+        }
       } else if (e.getEventType() == NEW_PARCEL) {
         // pdp model event
         acceptedParcels++;
-      } else if (e.getEventType() == ADD_VEHICLE) {
-        totalVehicles++;
       } else if (e.getEventType() == NEW_VEHICLE) {
         verify(e instanceof PDPModelEvent);
         final PDPModelEvent ev = (PDPModelEvent) e;
         lastArrivalTimeAtDepot.put(ev.vehicle, clock.getCurrentTime());
-      } else if (e.getEventType() == TIME_OUT) {
-        simFinish = true;
-        scenarioEndTime = ((TimedEvent) e).time;
       } else {
         // currently not handling fall throughs
       }

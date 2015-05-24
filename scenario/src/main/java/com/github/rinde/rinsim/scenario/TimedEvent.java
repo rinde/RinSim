@@ -19,59 +19,15 @@ import java.util.Comparator;
 
 import javax.annotation.Nullable;
 
-import com.github.rinde.rinsim.event.Event;
-import com.google.common.base.Objects;
-
 /**
- * Simplest time event. The object is a value object.
- * @author Bartosz Michalik
- * @since 2.0
+ * @author Rinde van Lon
+ *
  */
-public class TimedEvent extends Event {
-
+public interface TimedEvent {
   /**
-   * The time at which the event is to be dispatched.
+   * @return The time at which the event is dispatched.
    */
-  public final long time;
-
-  /**
-   * Create a new TimedEvent.
-   * @param type The type of the event.
-   * @param timestamp The time at which the event occurs.
-   */
-  public TimedEvent(Enum<?> type, long timestamp) {
-    super(type);
-    time = timestamp;
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hashCode(eventType, time);
-  }
-
-  @Override
-  public boolean equals(@Nullable Object obj) {
-    if (this == obj) {
-      return true;
-    }
-    if (obj == null) {
-      return false;
-    }
-    if (getClass() != obj.getClass()) {
-      return false;
-    }
-    final TimedEvent other = (TimedEvent) obj;
-    if (!eventType.equals(other.eventType)) {
-      return false;
-    }
-    return time == other.time;
-  }
-
-  @Override
-  public String toString() {
-    return new StringBuilder().append(eventType).append("|").append(time)
-        .toString();
-  }
+  long getTime();
 
   /**
    * Comparator for comparing {@link TimedEvent}s on their time.
@@ -87,7 +43,7 @@ public class TimedEvent extends Event {
     public int compare(@Nullable TimedEvent o1, @Nullable TimedEvent o2) {
       assert o1 != null;
       assert o2 != null;
-      return (int) (o1.time - o2.time);
+      return (int) (o1.getTime() - o2.getTime());
     }
   }
 }

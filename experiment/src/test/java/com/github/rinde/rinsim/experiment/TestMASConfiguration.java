@@ -19,7 +19,7 @@ import java.io.Serializable;
 
 import com.github.rinde.rinsim.core.SimulatorAPI;
 import com.github.rinde.rinsim.core.pdptw.RandomVehicle;
-import com.github.rinde.rinsim.scenario.AddVehicleEvent;
+import com.github.rinde.rinsim.pdptw.common.AddVehicleEvent;
 import com.github.rinde.rinsim.scenario.TimedEventHandler;
 
 public class TestMASConfiguration extends DefaultMASConfiguration implements
@@ -40,7 +40,7 @@ public class TestMASConfiguration extends DefaultMASConfiguration implements
     return new TimedEventHandler<AddVehicleEvent>() {
       @Override
       public void handleTimedEvent(AddVehicleEvent event, SimulatorAPI sim) {
-        sim.register(new RandomVehicle(event.vehicleDTO));
+        sim.register(new RandomVehicle(event.getVehicleDTO()));
       }
     };
   }

@@ -18,8 +18,8 @@ package com.github.rinde.rinsim.examples.pdptw.gradientfield;
 import com.github.rinde.rinsim.core.SimulatorAPI;
 import com.github.rinde.rinsim.core.model.ModelBuilder;
 import com.github.rinde.rinsim.experiment.DefaultMASConfiguration;
-import com.github.rinde.rinsim.scenario.AddParcelEvent;
-import com.github.rinde.rinsim.scenario.AddVehicleEvent;
+import com.github.rinde.rinsim.pdptw.common.AddParcelEvent;
+import com.github.rinde.rinsim.pdptw.common.AddVehicleEvent;
 import com.github.rinde.rinsim.scenario.TimedEventHandler;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
@@ -41,7 +41,7 @@ class GradientFieldConfiguration extends DefaultMASConfiguration {
     return new TimedEventHandler<AddVehicleEvent>() {
       @Override
       public void handleTimedEvent(AddVehicleEvent event, SimulatorAPI sim) {
-        sim.register(new Truck(event.vehicleDTO));
+        sim.register(new Truck(event.getVehicleDTO()));
       }
     };
   }
@@ -52,7 +52,7 @@ class GradientFieldConfiguration extends DefaultMASConfiguration {
       @Override
       public void handleTimedEvent(AddParcelEvent event, SimulatorAPI sim) {
         // all parcels are accepted by default
-        sim.register(new GFParcel(event.parcelDTO));
+        sim.register(new GFParcel(event.getParcelDTO()));
       }
     });
   }

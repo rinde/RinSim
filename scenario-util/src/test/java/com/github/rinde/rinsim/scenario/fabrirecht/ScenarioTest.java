@@ -40,12 +40,10 @@ public class ScenarioTest {
 
     final FabriRechtScenario scen2 = FabriRechtParser.fromJson(json);
     assertEquals(scen, scen2);
-    assertEquals(scen.getPossibleEventTypes(), scen2.getPossibleEventTypes());
     final String json2 = FabriRechtParser.toJson(scen2);
     assertEquals(json, json2);
     final FabriRechtScenario scen3 = FabriRechtParser.fromJson(json2);
     assertEquals(scen2, scen3);
-    assertEquals(scen2.getPossibleEventTypes(), scen3.getPossibleEventTypes());
   }
 
 }

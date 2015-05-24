@@ -29,8 +29,9 @@ import com.github.rinde.rinsim.core.model.time.TimeLapse;
 import com.github.rinde.rinsim.core.pdptw.DefaultParcel;
 import com.github.rinde.rinsim.core.pdptw.DefaultVehicle;
 import com.github.rinde.rinsim.core.pdptw.VehicleDTO;
+import com.github.rinde.rinsim.pdptw.common.AddParcelEvent;
+import com.github.rinde.rinsim.pdptw.common.AddVehicleEvent;
 import com.github.rinde.rinsim.pdptw.common.StatsTracker;
-import com.github.rinde.rinsim.scenario.AddVehicleEvent;
 import com.github.rinde.rinsim.scenario.ScenarioController;
 import com.github.rinde.rinsim.scenario.TimedEventHandler;
 import com.github.rinde.rinsim.scenario.fabrirecht.FabriRechtParser;
@@ -41,7 +42,6 @@ import com.github.rinde.rinsim.ui.renderers.PlaneRoadModelRenderer;
 import com.github.rinde.rinsim.ui.renderers.RoadUserRenderer;
 import com.google.common.base.Charsets;
 import com.google.common.base.Predicate;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.io.Files;
 
 /**
@@ -62,20 +62,22 @@ public final class FabriRechtExample {
         new File("../scenario-util/files/test/fabri-recht/lc101.scenario"),
         Charsets.UTF_8), 8, 20);
 
-    // we plug our custom vehicle in by specifying a creator
-    final ImmutableMap<Class<?>, TimedEventHandler<?>> m = ImmutableMap
-      .<Class<?>, TimedEventHandler<?>> of(
-        AddVehicleEvent.class, new TimedEventHandler<AddVehicleEvent>() {
-          @Override
-          public void handleTimedEvent(AddVehicleEvent event, SimulatorAPI sim) {
-            sim.register(new Truck(event.vehicleDTO));
-          }
-        });
-
     // instantiate the simulator using the scenario
-    final Simulator sim = Simulator.builder()
-      .addModel(ScenarioController.builder(scenario)
-        .withEventHandlers(m)
+    final Simulator sim = Simulator
+      .builder()
+      .addModel(
+        ScenarioController
+          .builder(scenario)
+          .withEventHandler(AddParcelEvent.class,
+            AddParcelEvent.defaultHandler())
+          .withEventHandler(AddVehicleEvent.class,
+            new TimedEventHandler<AddVehicleEvent>() {
+              @Override
+              public void handleTimedEvent(AddVehicleEvent event,
+                SimulatorAPI sim) {
+                sim.register(new Truck(event.getVehicleDTO()));
+              }
+            })
       )
       .addModel(StatsTracker.builder())
       .addModel(View.builder().withAutoPlay()

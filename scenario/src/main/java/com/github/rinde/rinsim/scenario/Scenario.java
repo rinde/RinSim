@@ -19,9 +19,6 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Lists.newLinkedList;
-import static com.google.common.collect.Sets.newLinkedHashSet;
-
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Queue;
@@ -84,13 +81,6 @@ public abstract class Scenario {
   }
 
   /**
-   * Specify event types that can occur in a scenario. The events added to
-   * scenario are checked for the event type.
-   * @return event types
-   */
-  public abstract ImmutableSet<Enum<?>> getPossibleEventTypes();
-
-  /**
    * @return Should return a list of {@link ModelBuilder}s which will be used
    *         for creating the models for this scenario.
    */
@@ -125,7 +115,6 @@ public abstract class Scenario {
 
   static Scenario create(
     Iterable<? extends TimedEvent> events,
-    Iterable<? extends Enum<?>> types,
     Iterable<? extends ModelBuilder<?, ?>> builders,
     TimeWindow tw,
     StopCondition stopCondition,
@@ -133,25 +122,10 @@ public abstract class Scenario {
     String id) {
     return new AutoValue_Scenario(
       ImmutableList.<TimedEvent> copyOf(events),
-      ImmutableSet.<Enum<?>> copyOf(types),
       ImmutableSet.<ModelBuilder<?, ?>> copyOf(builders),
       tw,
       stopCondition,
       pc, id);
-  }
-
-  /**
-   * Finds all event types in the provided events.
-   * @param pEvents The events to check.
-   * @return A set of event types.
-   */
-  protected static ImmutableSet<Enum<?>> collectEventTypes(
-    Collection<? extends TimedEvent> pEvents) {
-    final Set<Enum<?>> types = newLinkedHashSet();
-    for (final TimedEvent te : pEvents) {
-      types.add(te.getEventType());
-    }
-    return ImmutableSet.copyOf(types);
   }
 
   /**
@@ -248,7 +222,6 @@ public abstract class Scenario {
    */
   public static class Builder extends AbstractBuilder<Builder> {
     final List<TimedEvent> eventList;
-    final Set<Enum<?>> eventTypeSet;
     final ImmutableList.Builder<ModelBuilder<?, ?>> modelBuilders;
     ProblemClass problemClass;
     String instanceId;
@@ -262,7 +235,6 @@ public abstract class Scenario {
       problemClass = pc;
       instanceId = "";
       eventList = newArrayList();
-      eventTypeSet = newLinkedHashSet();
       modelBuilders = ImmutableList.builder();
     }
 
@@ -284,28 +256,6 @@ public abstract class Scenario {
     public Builder addEvents(Iterable<? extends TimedEvent> events) {
       for (final TimedEvent te : events) {
         addEvent(te);
-      }
-      return self();
-    }
-
-    /**
-     * Adds an event type to the builder.
-     * @param eventType The event type to add.
-     * @return This, as per the builder pattern.
-     */
-    public Builder addEventType(Enum<?> eventType) {
-      eventTypeSet.add(eventType);
-      return self();
-    }
-
-    /**
-     * Adds all specified event types to the builder.
-     * @param eventTypes The event types to add.
-     * @return This, as per the builder pattern.
-     */
-    public Builder addEventTypes(Iterable<? extends Enum<?>> eventTypes) {
-      for (final Enum<?> e : eventTypes) {
-        addEventType(e);
       }
       return self();
     }
@@ -356,7 +306,6 @@ public abstract class Scenario {
     public Builder copyProperties(Scenario scenario) {
       return super.copyProperties(scenario)
         .addEvents(scenario.getEvents())
-        .addEventTypes(scenario.getPossibleEventTypes())
         .problemClass(scenario.getProblemClass())
         .instanceId(scenario.getProblemInstanceId())
         .addModels(scenario.getModelBuilders());
@@ -445,8 +394,8 @@ public abstract class Scenario {
     public Scenario build() {
       final List<TimedEvent> list = newArrayList(eventList);
       Collections.sort(list, TimeComparator.INSTANCE);
-      eventTypeSet.addAll(collectEventTypes(list));
-      return Scenario.create(list, eventTypeSet, modelBuilders.build(),
+
+      return Scenario.create(list, modelBuilders.build(),
         timeWindow, stopCondition, problemClass, instanceId);
     }
 
@@ -521,7 +470,7 @@ public abstract class Scenario {
      * @return This, as per the builder pattern.
      */
     public T setStopCondition(StopCondition condition) {
-      stopCondition = (condition);
+      stopCondition = condition;
       return self();
     }
 

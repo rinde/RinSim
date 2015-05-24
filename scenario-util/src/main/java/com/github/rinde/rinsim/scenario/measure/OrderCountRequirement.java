@@ -21,7 +21,7 @@ import java.util.Collections;
 
 import javax.annotation.Nullable;
 
-import com.github.rinde.rinsim.scenario.AddParcelEvent;
+import com.github.rinde.rinsim.pdptw.common.AddParcelEvent;
 import com.github.rinde.rinsim.scenario.Scenario;
 import com.google.common.annotations.Beta;
 import com.google.common.base.Function;

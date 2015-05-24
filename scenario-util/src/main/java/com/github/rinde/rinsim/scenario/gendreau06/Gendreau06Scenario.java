@@ -16,7 +16,6 @@
 package com.github.rinde.rinsim.scenario.gendreau06;
 
 import java.util.List;
-import java.util.Set;
 
 import javax.measure.Measure;
 import javax.measure.quantity.Velocity;
@@ -62,13 +61,11 @@ public abstract class Gendreau06Scenario extends Scenario {
   static final Measure<Double, Velocity> MAX_SPEED = Measure.valueOf(
     30d, NonSI.KILOMETERS_PER_HOUR);
 
-  static Gendreau06Scenario create(List<? extends TimedEvent> pEvents,
-    Set<Enum<?>> pSupportedTypes, long ts, GendreauProblemClass problemClass,
-    int instanceNumber, boolean diversion) {
+  static Gendreau06Scenario create(List<? extends TimedEvent> pEvents, long ts,
+    GendreauProblemClass problemClass, int instanceNumber, boolean diversion) {
 
     return new AutoValue_Gendreau06Scenario(
       ImmutableList.<TimedEvent> copyOf(pEvents),
-      ImmutableSet.<Enum<?>> copyOf(pSupportedTypes),
       problemClass, Integer.toString(instanceNumber), ts, diversion);
   }
 

@@ -15,8 +15,6 @@
  */
 package com.github.rinde.rinsim.scenario.fabrirecht;
 
-import java.util.Set;
-
 import javax.measure.quantity.Velocity;
 import javax.measure.unit.NonSI;
 import javax.measure.unit.SI;
@@ -104,7 +102,6 @@ public abstract class FabriRechtScenario extends Scenario {
   /**
    * Create a new scenario.
    * @param pEvents The event list.
-   * @param pSupportedTypes The event types.
    * @param pMin {@link #getMin()}.
    * @param pMax {@link #getMax()}.
    * @param pTimeWindow {@link #getTimeWindow()}.
@@ -112,13 +109,11 @@ public abstract class FabriRechtScenario extends Scenario {
    * @return a new instance.
    */
   public static FabriRechtScenario create(
-    Iterable<? extends TimedEvent> pEvents,
-    Set<Enum<?>> pSupportedTypes, Point pMin, Point pMax,
+    Iterable<? extends TimedEvent> pEvents, Point pMin, Point pMax,
     TimeWindow pTimeWindow, VehicleDTO pDefaultVehicle) {
 
     return new AutoValue_FabriRechtScenario(
       ImmutableList.<TimedEvent> copyOf(pEvents),
-      ImmutableSet.copyOf(pSupportedTypes),
       pTimeWindow,
       pMin,
       pMax,

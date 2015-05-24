@@ -25,9 +25,9 @@ import org.junit.Test;
 import com.github.rinde.rinsim.cli.CliException.CauseType;
 import com.github.rinde.rinsim.cli.Menu;
 import com.github.rinde.rinsim.experiment.Experiment.Builder;
+import com.github.rinde.rinsim.pdptw.common.ScenarioTestUtil;
 import com.github.rinde.rinsim.pdptw.common.TestObjectiveFunction;
 import com.github.rinde.rinsim.scenario.ScenarioIO;
-import com.github.rinde.rinsim.scenario.ScenarioTestUtil;
 
 /**
  * Test for commandline interface of experiment.

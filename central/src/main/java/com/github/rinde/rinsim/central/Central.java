@@ -34,9 +34,9 @@ import com.github.rinde.rinsim.core.model.time.TimeLapse;
 import com.github.rinde.rinsim.core.pdptw.DefaultParcel;
 import com.github.rinde.rinsim.experiment.DefaultMASConfiguration;
 import com.github.rinde.rinsim.experiment.MASConfiguration;
+import com.github.rinde.rinsim.pdptw.common.AddVehicleEvent;
 import com.github.rinde.rinsim.pdptw.common.PDPRoadModel;
 import com.github.rinde.rinsim.pdptw.common.RouteFollowingVehicle;
-import com.github.rinde.rinsim.scenario.AddVehicleEvent;
 import com.github.rinde.rinsim.scenario.TimedEventHandler;
 import com.github.rinde.rinsim.util.StochasticSupplier;
 import com.google.auto.value.AutoValue;
@@ -113,7 +113,7 @@ public final class Central {
 
     @Override
     public void handleTimedEvent(AddVehicleEvent event, SimulatorAPI simulator) {
-      simulator.register(new RouteFollowingVehicle(event.vehicleDTO, false));
+      simulator.register(new RouteFollowingVehicle(event.getVehicleDTO(), false));
     }
   }
 

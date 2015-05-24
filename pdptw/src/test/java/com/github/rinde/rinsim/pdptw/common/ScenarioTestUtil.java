@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.github.rinde.rinsim.scenario;
+package com.github.rinde.rinsim.pdptw.common;
 
 import static com.google.common.truth.Truth.assertThat;
 import static java.util.Arrays.asList;
@@ -26,11 +26,14 @@ import org.apache.commons.math3.random.RandomGenerator;
 
 import com.github.rinde.rinsim.core.model.ModelBuilder;
 import com.github.rinde.rinsim.core.model.pdp.DefaultPDPModel;
-import com.github.rinde.rinsim.core.model.pdp.PDPScenarioEvent;
 import com.github.rinde.rinsim.core.model.road.RoadModelBuilders;
 import com.github.rinde.rinsim.core.pdptw.ParcelDTO;
 import com.github.rinde.rinsim.core.pdptw.VehicleDTO;
 import com.github.rinde.rinsim.geom.Point;
+import com.github.rinde.rinsim.scenario.Scenario;
+import com.github.rinde.rinsim.scenario.ScenarioIO;
+import com.github.rinde.rinsim.scenario.StopConditions;
+import com.github.rinde.rinsim.scenario.TimeOutEvent;
 import com.github.rinde.rinsim.util.TimeWindow;
 import com.google.common.math.DoubleMath;
 
@@ -49,12 +52,12 @@ public class ScenarioTestUtil {
    * @param input The scenario to test with IO.
    */
   public static void assertScenarioIO(Scenario input) {
-    String serialized = ScenarioIO.write(input);
-    Scenario parsed = ScenarioIO.read(serialized);
-    String serializedAgain = ScenarioIO.write(parsed);
+    final String serialized = ScenarioIO.write(input);
+    final Scenario parsed = ScenarioIO.read(serialized);
+    final String serializedAgain = ScenarioIO.write(parsed);
 
     assertThat(input).isEqualTo(parsed);
-    assertThat(serialized).comparesEqualTo(serializedAgain);
+    assertThat(serialized).isEqualTo(serializedAgain);
   }
 
   /**
@@ -66,7 +69,7 @@ public class ScenarioTestUtil {
   public static Scenario createRandomScenario(long seed,
     ModelBuilder<?, ?>... models) {
     final int endTime = 3 * 60 * 60 * 1000;
-    Scenario.Builder b = Scenario
+    final Scenario.Builder b = Scenario
       .builder()
       .addModel(RoadModelBuilders.plane())
       .addModel(DefaultPDPModel.builder())
@@ -75,32 +78,28 @@ public class ScenarioTestUtil {
         Collections
           .nCopies(
             10,
-            new AddVehicleEvent(-1, VehicleDTO
+            AddVehicleEvent.create(-1, VehicleDTO
               .builder()
               .startPosition(new Point(5, 5))
               .build())));
 
-    RandomGenerator rng = new MersenneTwister(seed);
+    final RandomGenerator rng = new MersenneTwister(seed);
     for (int i = 0; i < 20; i++) {
-      long announceTime = rng.nextInt(DoubleMath.roundToInt(
+      final long announceTime = rng.nextInt(DoubleMath.roundToInt(
         endTime * .8, RoundingMode.FLOOR));
-      b.addEvent(new AddParcelEvent(ParcelDTO
+      b.addEvent(AddParcelEvent.create(ParcelDTO
         .builder(
-          new Point(rng.nextDouble() * 10,
-            rng.nextDouble() * 10),
-          new Point(rng.nextDouble() * 10,
-            rng.nextDouble() * 10))
+          new Point(rng.nextDouble() * 10, rng.nextDouble() * 10),
+          new Point(rng.nextDouble() * 10, rng.nextDouble() * 10))
         .orderAnnounceTime(announceTime)
         .pickupTimeWindow(new TimeWindow(announceTime, endTime))
         .deliveryTimeWindow(new TimeWindow(announceTime, endTime))
         .neededCapacity(0).build()));
     }
 
-    b.addEvent(new TimedEvent(PDPScenarioEvent.TIME_OUT, endTime))
+    b.addEvent(TimeOutEvent.create(endTime))
       .scenarioLength(endTime)
       .setStopCondition(StopConditions.limitedTime(endTime));
-
-    b.addEventType(PDPScenarioEvent.ADD_DEPOT);
 
     return b.build();
   }

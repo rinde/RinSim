@@ -15,19 +15,15 @@
  */
 package com.github.rinde.rinsim.scenario;
 
+import static com.github.rinde.rinsim.scenario.ScenarioController.EventType.SCENARIO_EVENT;
 import static com.github.rinde.rinsim.scenario.ScenarioController.EventType.SCENARIO_FINISHED;
 import static com.github.rinde.rinsim.scenario.ScenarioController.EventType.SCENARIO_STARTED;
-import static com.github.rinde.rinsim.scenario.ScenarioControllerTest.TestEvents.EVENT_A;
-import static com.github.rinde.rinsim.scenario.ScenarioControllerTest.TestEvents.EVENT_B;
-import static com.github.rinde.rinsim.scenario.ScenarioControllerTest.TestEvents.EVENT_C;
-import static com.github.rinde.rinsim.scenario.ScenarioControllerTest.TestEvents.EVENT_D;
 import static com.google.common.truth.Truth.assertThat;
-import static java.util.Arrays.asList;
-import static org.junit.Assert.fail;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import javax.measure.unit.SI;
@@ -47,7 +43,9 @@ import com.github.rinde.rinsim.event.Event;
 import com.github.rinde.rinsim.event.EventAPI;
 import com.github.rinde.rinsim.event.Listener;
 import com.github.rinde.rinsim.event.ListenerEventHistory;
+import com.github.rinde.rinsim.scenario.ScenarioController.EventType;
 import com.github.rinde.rinsim.testutil.TestUtil;
+import com.google.auto.value.AutoValue;
 
 /**
  * Tests for {@link ScenarioController}.
@@ -63,31 +61,27 @@ public class ScenarioControllerTest {
   @SuppressWarnings("null")
   DependencyProvider dependencyProvider;
 
-  enum TestEvents {
-    EVENT_A, EVENT_B, EVENT_C, EVENT_D;
-  }
-
   /**
    * Sets up a scenario.
    */
   @Before
   public void setUp() {
-    scenario = Scenario.builder()
-      .addEventTypes(asList(EVENT_A, EVENT_B, EVENT_C, EVENT_D))
-      .addEvent(new TimedEvent(EVENT_A, 0))
-      .addEvent(new TimedEvent(EVENT_B, 0))
-      .addEvent(new TimedEvent(EVENT_B, 0))
-      .addEvent(new TimedEvent(EVENT_A, 1))
-      .addEvent(new TimedEvent(EVENT_C, 5))
-      .addEvent(new TimedEvent(EVENT_C, 100))
+    scenario = Scenario
+      .builder()
+      .addEvent(EventC.create(100))
+      .addEvent(EventA.create(0))
+      .addEvent(EventA.create(1))
+      .addEvent(EventB.create(0))
+      .addEvent(EventB.create(0))
+      .addEvent(EventC.create(5))
       .build();
     assertThat(scenario).isNotNull();
 
     TestUtil.testEnum(ScenarioController.EventType.class);
 
-    ClockController clock = mock(ClockController.class);
+    final ClockController clock = mock(ClockController.class);
     when(clock.getEventAPI()).thenReturn(mock(EventAPI.class));
-    SimulatorAPI sim = mock(SimulatorAPI.class);
+    final SimulatorAPI sim = mock(SimulatorAPI.class);
 
     dependencyProvider = mock(DependencyProvider.class);
     when(dependencyProvider.get(ClockController.class)).thenReturn(clock);
@@ -100,15 +94,31 @@ public class ScenarioControllerTest {
    */
   @Test
   public void testEventNotHandled() {
-    controller = ScenarioController.builder(scenario)
-      .withNumberOfTicks(3)
-      .build(dependencyProvider);
+    final ScenarioController.Builder b = ScenarioController.builder(scenario)
+      .withNumberOfTicks(3);
+
     boolean fail = false;
     try {
-      controller.tick(TimeLapseFactory.create(0, 1));
-    } catch (IllegalStateException e) {
-      assertThat(e.getMessage()).containsMatch("The event .* is not handled");
+      b.build(dependencyProvider);
+    } catch (final IllegalStateException e) {
+      assertThat(e.getMessage()).containsMatch("No handler found for event");
       fail = true;
+    }
+    assertThat(fail).isTrue();
+  }
+
+  /**
+   * Tests that handling an interface is rejected.
+   */
+  @Test
+  public void testHandleInterface() {
+    boolean fail = false;
+    try {
+      ScenarioController.builder(scenario)
+        .withEventHandler(TimedEvent.class, new NopHandler<>()).toString();
+    } catch (final IllegalArgumentException e) {
+      fail = true;
+      assertThat(e.getMessage()).containsMatch("Must handle a concrete class");
     }
     assertThat(fail).isTrue();
   }
@@ -118,22 +128,23 @@ public class ScenarioControllerTest {
    */
   @Test
   public void finiteSimulation() {
-    Simulator sim = Simulator
+    final NopHandler<?> handler = new NopHandler<>();
+    @SuppressWarnings("unchecked")
+    final Simulator sim = Simulator
       .builder()
       .setTickLength(1L)
       .setTimeUnit(SI.SECOND)
       .addModel(
         ScenarioController.builder(scenario)
-          .withEventHandler(AddParcelEvent.class,
-            new NopHandler<AddParcelEvent>())
-          .withEventHandler(TimedEvent.class, new NopHandler<>())
+          .withEventHandler(EventA.class, (NopHandler<EventA>) handler)
+          .withEventHandler(EventB.class, (NopHandler<EventB>) handler)
+          .withEventHandler(EventC.class, (NopHandler<EventC>) handler)
           .withNumberOfTicks(101)
       )
       .build();
 
     final List<Long> ticks = new ArrayList<>();
     sim.addTickListener(new TickListener() {
-
       @Override
       public void tick(TimeLapse timeLapse) {
         ticks.add(timeLapse.getStartTime());
@@ -143,16 +154,26 @@ public class ScenarioControllerTest {
       public void afterTick(TimeLapse timeLapse) {}
     });
 
-    ScenarioController sc = sim.getModelProvider().getModel(
+    final ScenarioController sc = sim.getModelProvider().getModel(
       ScenarioController.class);
 
     final ListenerEventHistory leh = new ListenerEventHistory();
     sc.getEventAPI().addListener(leh);
     assertThat(sc.isScenarioFinished()).isFalse();
     sim.start();
+
+    assertThat(handler.getEvents()).containsExactly(
+      EventA.create(0),
+      EventB.create(0),
+      EventB.create(0),
+      EventA.create(1),
+      EventC.create(5),
+      EventC.create(100)
+      ).inOrder();
+
     assertThat(leh.getEventTypeHistory())
-      .containsExactly(SCENARIO_STARTED, EVENT_A, EVENT_B, EVENT_B, EVENT_A,
-        EVENT_C, EVENT_C, SCENARIO_FINISHED).inOrder();
+      .containsAllOf(SCENARIO_STARTED, SCENARIO_FINISHED)
+      .inOrder();
 
     assertThat(sc.isScenarioFinished()).isTrue();
     sim.stop();
@@ -172,15 +193,15 @@ public class ScenarioControllerTest {
    */
   @Test
   public void testStopCondition() {
-    Simulator sim = Simulator
+    final Simulator sim = Simulator
       .builder()
       .setTickLength(1L)
       .addModel(
         ScenarioController
           .builder(scenario)
-          .withEventHandler(AddParcelEvent.class,
-            new NopHandler<AddParcelEvent>())
-          .withEventHandler(TimedEvent.class, new NopHandler<>())
+          .withEventHandler(EventA.class, new NopHandler<EventA>())
+          .withEventHandler(EventB.class, new NopHandler<EventB>())
+          .withEventHandler(EventC.class, new NopHandler<EventC>())
           .withAndStopCondition(StopConditions.alwaysTrue())
       )
       .build();
@@ -189,15 +210,15 @@ public class ScenarioControllerTest {
 
     assertThat(sim.getCurrentTime()).isEqualTo(1L);
 
-    Simulator sim2 = Simulator
+    final Simulator sim2 = Simulator
       .builder()
       .setTickLength(1L)
       .addModel(
         ScenarioController
           .builder(scenario)
-          .withEventHandler(AddParcelEvent.class,
-            new NopHandler<AddParcelEvent>())
-          .withEventHandler(TimedEvent.class, new NopHandler<>())
+          .withEventHandler(EventA.class, new NopHandler<EventA>())
+          .withEventHandler(EventB.class, new NopHandler<EventB>())
+          .withEventHandler(EventC.class, new NopHandler<EventC>())
           .withAndStopCondition(StopConditions.limitedTime(100))
       )
       .build();
@@ -212,75 +233,85 @@ public class ScenarioControllerTest {
    */
   @Test
   public void testSetupEvents() {
-    final Scenario s = Scenario.builder()
-      .addEventTypes(asList(EVENT_A, EVENT_B, EVENT_C, EVENT_D))
-      .addEvent(new TimedEvent(EVENT_A, 0))
-      .addEvent(new TimedEvent(EVENT_B, -1))
-      .addEvent(new TimedEvent(EVENT_B, 2))
-      .addEvent(new TimedEvent(EVENT_A, 2))
-      .addEvent(new TimedEvent(EVENT_C, -1))
-      .addEvent(new TimedEvent(EVENT_C, 100))
+    final Scenario s = Scenario
+      .builder()
+      .addEvent(EventA.create(0))
+      .addEvent(EventB.create(-1))
+      .addEvent(EventB.create(2))
+      .addEvent(EventA.create(2))
+      .addEvent(EventC.create(-1))
+      .addEvent(EventC.create(100))
       .build();
 
-    Simulator sim = Simulator.builder()
+    final NopHandler<?> handler = new NopHandler<>();
+
+    @SuppressWarnings("unchecked")
+    final Simulator sim = Simulator.builder()
       .setTickLength(1L)
       .setTimeUnit(SI.SECOND)
       .addModel(
         ScenarioController.builder(s)
           .withNumberOfTicks(1)
-          .withEventHandler(TimedEvent.class, new NopHandler<>())
+          .withEventHandler(EventA.class, (NopHandler<EventA>) handler)
+          .withEventHandler(EventB.class, (NopHandler<EventB>) handler)
+          .withEventHandler(EventC.class, (NopHandler<EventC>) handler)
       )
       .build();
 
     final ListenerEventHistory leh = new ListenerEventHistory();
-    ScenarioController sc = sim.getModelProvider().getModel(
+    final ScenarioController sc = sim.getModelProvider().getModel(
       ScenarioController.class);
     sc.getEventAPI().addListener(leh);
     sim.start();
+
+    assertThat(handler.getEvents()).containsExactly(
+      EventB.create(-1),
+      EventC.create(-1),
+      EventA.create(0)
+      ).inOrder();
+
     assertThat(leh.getEventTypeHistory())
-      .containsExactly(EVENT_B, EVENT_C, SCENARIO_STARTED, EVENT_A).inOrder();
+      .containsExactly(SCENARIO_EVENT, SCENARIO_EVENT, SCENARIO_STARTED,
+        SCENARIO_EVENT).inOrder();
 
   }
 
   /**
-   * check whether the start event was generated. following scenario is
-   * interrupted after 3rd step so there are some events left
+   * Checks whether the start events are generated.
    */
   @Test
   public void testStartEventGenerated() {
+    final NopHandler<EventA> aHandler = new NopHandler<>();
+    final NopHandler<EventB> bHandler = new NopHandler<>();
+    final NopHandler<EventC> cHandler = new NopHandler<>();
 
-    Simulator sim = Simulator.builder()
+    final Simulator sim = Simulator.builder()
       .setTickLength(1L)
       .setTimeUnit(SI.SECOND)
       .addModel(
         ScenarioController.builder(scenario)
-          .withNumberOfTicks(3)
-          .withEventHandler(TimedEvent.class, new NopHandler<>())
+          .withEventHandler(EventA.class, aHandler)
+          .withEventHandler(EventB.class, bHandler)
+          .withEventHandler(EventC.class, cHandler)
       )
       .build();
 
-    final boolean[] r = new boolean[1];
-    final int[] i = new int[1];
-
     controller = sim.getModelProvider().getModel(ScenarioController.class);
 
-    controller.getEventAPI().addListener(new Listener() {
-      @Override
-      public void handleEvent(Event e) {
-        if (e.getEventType() == ScenarioController.EventType.SCENARIO_STARTED) {
-          r[0] = true;
-        } else if (!r[0]) {
-
-          fail();
-        } else {
-          i[0] += 1;
-        }
-      }
-    });
+    final ListenerEventHistory leh = new ListenerEventHistory();
+    controller.getEventAPI().addListener(leh);
 
     controller.clock.tick();
-    assertThat(r[0]).isTrue();
-    assertThat(i[0]).isEqualTo(3);
+
+    assertThat(aHandler.getEvents()).containsExactly(EventA.create(0L));
+    assertThat(bHandler.getEvents()).containsExactly(EventB.create(0L),
+      EventB.create(0L));
+    assertThat(cHandler.getEvents()).isEmpty();
+    assertThat(leh.getEventTypeHistory()).containsExactly(
+      EventType.SCENARIO_STARTED,
+      EventType.SCENARIO_EVENT,
+      EventType.SCENARIO_EVENT,
+      EventType.SCENARIO_EVENT);
   }
 
   /**
@@ -288,44 +319,77 @@ public class ScenarioControllerTest {
    */
   @Test
   public void runningWholeScenario() {
+    final NopHandler<?> handler = new NopHandler<>();
+    @SuppressWarnings("unchecked")
     final Simulator sim = Simulator.builder()
       .setTickLength(1L)
       .setTimeUnit(SI.SECOND)
       .addModel(
         ScenarioController.builder(scenario)
           .withNumberOfTicks(-1)
-          .withEventHandler(TimedEvent.class, new NopHandler<>())
+          .withEventHandler(EventA.class, (NopHandler<EventA>) handler)
+          .withEventHandler(EventB.class, (NopHandler<EventB>) handler)
+          .withEventHandler(EventC.class, (NopHandler<EventC>) handler)
       )
       .build();
 
-    final boolean[] r = new boolean[1];
-    final int[] i = new int[1];
     controller = sim.getModelProvider().getModel(ScenarioController.class);
     controller.getEventAPI().addListener(new Listener() {
-
       @Override
       public void handleEvent(Event e) {
         if (e.getEventType() == ScenarioController.EventType.SCENARIO_FINISHED) {
-          synchronized (controller) {
-            r[0] = true;
-            sim.stop();
-          }
-        } else {
-          i[0] += 1;
+          sim.stop();
         }
       }
     });
     sim.start();
-
-    assertThat(r[0]).isTrue();
-    assertThat(i[0]).isEqualTo(scenario.getEvents().size() + 1);
+    assertThat(handler.getEvents()).hasSize(scenario.getEvents().size());
     assertThat(controller.isScenarioFinished()).isTrue();
-
-    sim.stop();
   }
 
   static class NopHandler<T extends TimedEvent> implements TimedEventHandler<T> {
+
+    private final List<T> events;
+
+    NopHandler() {
+      events = new ArrayList<>();
+    }
+
     @Override
-    public void handleTimedEvent(T event, SimulatorAPI simulator) {}
+    public void handleTimedEvent(T event, SimulatorAPI simulator) {
+      events.add(event);
+    }
+
+    public List<T> getEvents() {
+      return Collections.unmodifiableList(events);
+    }
+  }
+
+  @AutoValue
+  abstract static class EventA implements TimedEvent {
+    static EventA create(long time) {
+      return new AutoValue_ScenarioControllerTest_EventA(time);
+    }
+  }
+
+  @AutoValue
+  abstract static class EventB implements TimedEvent {
+    static EventB create(long time) {
+      return new AutoValue_ScenarioControllerTest_EventB(time);
+    }
+  }
+
+  @AutoValue
+  abstract static class EventC implements TimedEvent {
+    static EventC create(long time) {
+      return new AutoValue_ScenarioControllerTest_EventC(time);
+    }
+  }
+
+  @AutoValue
+  abstract static class EventD implements TimedEvent {
+    static EventD create(long time) {
+      return new AutoValue_ScenarioControllerTest_EventD(time);
+    }
   }
 }

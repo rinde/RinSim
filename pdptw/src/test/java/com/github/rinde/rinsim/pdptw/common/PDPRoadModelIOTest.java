@@ -22,7 +22,6 @@ import org.junit.Test;
 import com.github.rinde.rinsim.core.model.road.RoadModelBuilders;
 import com.github.rinde.rinsim.scenario.Scenario;
 import com.github.rinde.rinsim.scenario.Scenario.ProblemClass;
-import com.github.rinde.rinsim.scenario.ScenarioTestUtil;
 
 /**
  * Tests IO of {@link PDPRoadModel}.

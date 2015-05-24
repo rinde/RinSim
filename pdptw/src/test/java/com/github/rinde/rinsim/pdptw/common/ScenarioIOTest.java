@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.github.rinde.rinsim.scenario;
+package com.github.rinde.rinsim.pdptw.common;
 
 import static java.util.Arrays.asList;
 
@@ -25,12 +25,18 @@ import javax.measure.unit.SI;
 import org.junit.Test;
 
 import com.github.rinde.rinsim.core.model.pdp.DefaultPDPModel;
-import com.github.rinde.rinsim.core.model.pdp.PDPScenarioEvent;
 import com.github.rinde.rinsim.core.model.pdp.TimeWindowPolicy.TimeWindowPolicies;
 import com.github.rinde.rinsim.core.model.road.RoadModelBuilders;
 import com.github.rinde.rinsim.core.pdptw.ParcelDTO;
 import com.github.rinde.rinsim.core.pdptw.VehicleDTO;
 import com.github.rinde.rinsim.geom.Point;
+import com.github.rinde.rinsim.pdptw.common.AddDepotEvent;
+import com.github.rinde.rinsim.pdptw.common.AddParcelEvent;
+import com.github.rinde.rinsim.pdptw.common.AddVehicleEvent;
+import com.github.rinde.rinsim.scenario.Scenario;
+import com.github.rinde.rinsim.scenario.StopConditions;
+import com.github.rinde.rinsim.scenario.TimeOutEvent;
+import com.github.rinde.rinsim.scenario.Scenario.Builder;
 import com.github.rinde.rinsim.scenario.Scenario.ProblemClass;
 import com.github.rinde.rinsim.scenario.Scenario.SimpleProblemClass;
 import com.github.rinde.rinsim.util.TimeWindow;
@@ -49,7 +55,7 @@ public class ScenarioIOTest {
     final Scenario.Builder sb = Scenario
       .builder(Scenario.DEFAULT_PROBLEM_CLASS);
 
-    sb.addEvent(new AddVehicleEvent(100,
+    sb.addEvent(AddVehicleEvent.create(100,
       VehicleDTO.builder()
         .startPosition(new Point(7, 7))
         .speed(7d)
@@ -57,8 +63,8 @@ public class ScenarioIOTest {
         .availabilityTimeWindow(new TimeWindow(0, 1000L))
         .build())
       )
-      .addEvent(new AddDepotEvent(76, new Point(3, 3)))
-      .addEvent(new AddVehicleEvent(125,
+      .addEvent(AddDepotEvent.create(76, new Point(3, 3)))
+      .addEvent(AddVehicleEvent.create(125,
         VehicleDTO.builder()
           .startPosition(new Point(6, 9))
           .speed(3d)
@@ -66,7 +72,7 @@ public class ScenarioIOTest {
           .availabilityTimeWindow(new TimeWindow(500, 10000L))
           .build())
       )
-      .addEvent(new AddParcelEvent(
+      .addEvent(AddParcelEvent.create(
         ParcelDTO.builder(new Point(0, 0), new Point(1, 1))
           .pickupTimeWindow(new TimeWindow(2500, 10000))
           .deliveryTimeWindow(new TimeWindow(5000, 10000))
@@ -76,7 +82,7 @@ public class ScenarioIOTest {
           .deliveryDuration(800)
           .build())
       )
-      .addEvent(new TimedEvent(PDPScenarioEvent.TIME_OUT, 200000))
+      .addEvent(TimeOutEvent.create(200000))
       .addModel(RoadModelBuilders.plane()
         .withDistanceUnit(SI.CENTIMETER)
         .withMaxPoint(new Point(7d, 8.4))

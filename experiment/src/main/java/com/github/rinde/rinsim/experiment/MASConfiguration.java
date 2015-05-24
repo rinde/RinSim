@@ -16,9 +16,9 @@
 package com.github.rinde.rinsim.experiment;
 
 import com.github.rinde.rinsim.core.model.ModelBuilder;
-import com.github.rinde.rinsim.scenario.AddDepotEvent;
-import com.github.rinde.rinsim.scenario.AddParcelEvent;
-import com.github.rinde.rinsim.scenario.AddVehicleEvent;
+import com.github.rinde.rinsim.pdptw.common.AddDepotEvent;
+import com.github.rinde.rinsim.pdptw.common.AddParcelEvent;
+import com.github.rinde.rinsim.pdptw.common.AddVehicleEvent;
 import com.github.rinde.rinsim.scenario.TimedEventHandler;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;

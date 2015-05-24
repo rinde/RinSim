@@ -15,6 +15,7 @@
  */
 package com.github.rinde.rinsim.examples;
 
+import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
@@ -73,8 +74,8 @@ public class ExamplesTest {
       // verify that the exception was caused by the early termination of the
       // simulation
       assertTrue(cur.toString(), cur instanceof IllegalStateException);
-      assertTrue(cur.getMessage().contains(
-          "The simulation did not result in a valid result"));
+      assertThat(cur.getMessage()).containsMatch(
+        "The simulation did not result in a valid result");
     }
   }
 }

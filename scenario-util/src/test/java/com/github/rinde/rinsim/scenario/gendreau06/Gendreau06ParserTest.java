@@ -35,9 +35,11 @@ import javax.measure.unit.Unit;
 import org.junit.Test;
 
 import com.github.rinde.rinsim.core.model.ModelBuilder;
-import com.github.rinde.rinsim.core.model.pdp.PDPScenarioEvent;
 import com.github.rinde.rinsim.core.model.time.TimeModel;
+import com.github.rinde.rinsim.pdptw.common.AddParcelEvent;
+import com.github.rinde.rinsim.pdptw.common.AddVehicleEvent;
 import com.github.rinde.rinsim.pdptw.common.PDPRoadModel;
+import com.github.rinde.rinsim.scenario.TimeOutEvent;
 import com.github.rinde.rinsim.scenario.TimedEvent;
 
 /**
@@ -221,7 +223,7 @@ public class Gendreau06ParserTest {
   static void containsVehicles(Gendreau06Scenario scen, int num) {
     int vehicles = 0;
     for (final TimedEvent e : scen.getEvents()) {
-      if (e.getEventType() == PDPScenarioEvent.ADD_VEHICLE) {
+      if (e instanceof AddVehicleEvent) {
         vehicles++;
       }
     }
@@ -230,13 +232,13 @@ public class Gendreau06ParserTest {
 
   static void containsTimeOut(Gendreau06Scenario scen, int minutes) {
     final TimedEvent e = scen.getEvents().get(scen.size() - 1);
-    assertEquals(PDPScenarioEvent.TIME_OUT, e.getEventType());
-    assertEquals(minutes * 60 * 1000, e.time);
+    assertThat(e).isInstanceOf(TimeOutEvent.class);
+    assertEquals(minutes * 60 * 1000, e.getTime());
   }
 
   static boolean isOnline(Gendreau06Scenario scen) {
     for (final TimedEvent e : scen.getEvents()) {
-      if (e.getEventType() == PDPScenarioEvent.ADD_PARCEL && e.time == -1) {
+      if (e instanceof AddParcelEvent && e.getTime() == -1) {
         return false;
       }
     }

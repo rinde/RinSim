@@ -25,18 +25,17 @@ import java.io.Writer;
 import java.util.Collections;
 import java.util.List;
 
-import com.github.rinde.rinsim.core.model.pdp.PDPScenarioEvent;
 import com.github.rinde.rinsim.core.pdptw.ParcelDTO;
 import com.github.rinde.rinsim.core.pdptw.VehicleDTO;
 import com.github.rinde.rinsim.geom.Point;
-import com.github.rinde.rinsim.scenario.AddDepotEvent;
-import com.github.rinde.rinsim.scenario.AddParcelEvent;
-import com.github.rinde.rinsim.scenario.AddVehicleEvent;
+import com.github.rinde.rinsim.pdptw.common.AddDepotEvent;
+import com.github.rinde.rinsim.pdptw.common.AddParcelEvent;
+import com.github.rinde.rinsim.pdptw.common.AddVehicleEvent;
 import com.github.rinde.rinsim.scenario.ScenarioIO;
+import com.github.rinde.rinsim.scenario.TimeOutEvent;
 import com.github.rinde.rinsim.scenario.TimedEvent;
 import com.github.rinde.rinsim.scenario.TimedEvent.TimeComparator;
 import com.github.rinde.rinsim.util.TimeWindow;
-import com.google.common.collect.ImmutableSet;
 
 /**
  * Parser for {@link FabriRechtScenario}s.
@@ -56,11 +55,6 @@ public final class FabriRechtParser {
    */
   public static FabriRechtScenario parse(String coordinateFile,
     String ordersFile) throws IOException {
-    final ImmutableSet<Enum<?>> eventTypes = ImmutableSet.<Enum<?>> of(
-      PDPScenarioEvent.ADD_DEPOT,
-      PDPScenarioEvent.ADD_PARCEL,
-      PDPScenarioEvent.ADD_VEHICLE,
-      PDPScenarioEvent.TIME_OUT);
     final List<TimedEvent> events = newArrayList();
 
     final BufferedReader coordinateFileReader = new BufferedReader(
@@ -93,7 +87,7 @@ public final class FabriRechtParser {
 
       coordinates.add(new Point(x, y));
       if (Integer.parseInt(parts[0]) == 0) {
-        events.add(new AddDepotEvent(0, new Point(x, y)));
+        events.add(AddDepotEvent.create(0, new Point(x, y)));
       }
       coordinateCounter++;
     }
@@ -113,7 +107,7 @@ public final class FabriRechtParser {
     final long endTime = Long.parseLong(firstLine[3]);
     final TimeWindow timeWindow = new TimeWindow(startTime, endTime);
 
-    events.add(new TimedEvent(PDPScenarioEvent.TIME_OUT, endTime));
+    events.add(TimeOutEvent.create(endTime));
     final VehicleDTO defaultVehicle = VehicleDTO.builder()
       .startPosition(coordinates.get(0))
       .speed(1d)
@@ -143,12 +137,12 @@ public final class FabriRechtParser {
         .deliveryDuration(Long.parseLong(parts[9]))
         .build();
 
-      events.add(new AddParcelEvent(o));
+      events.add(AddParcelEvent.create(o));
     }
     ordersFileReader.close();
     Collections.sort(events, TimeComparator.INSTANCE);
-    return FabriRechtScenario.create(events, eventTypes, min, max,
-      timeWindow, defaultVehicle);
+    return FabriRechtScenario.create(events, min, max, timeWindow,
+      defaultVehicle);
   }
 
   static String toJson(FabriRechtScenario scenario) {
@@ -195,7 +189,7 @@ public final class FabriRechtParser {
     int vehicleCapacity) {
     final List<TimedEvent> events = newArrayList();
     for (int i = 0; i < numVehicles; i++) {
-      events.add(new AddVehicleEvent(0,
+      events.add(AddVehicleEvent.create(0,
         VehicleDTO.builder()
           .use(scen.getDefaultVehicle())
           .capacity(vehicleCapacity)
@@ -203,8 +197,7 @@ public final class FabriRechtParser {
         ));
     }
     events.addAll(scen.getEvents());
-    return FabriRechtScenario.create(events, scen.getPossibleEventTypes(),
-      scen.getMin(), scen.getMax(), scen.getTimeWindow(),
-      scen.getDefaultVehicle());
+    return FabriRechtScenario.create(events, scen.getMin(), scen.getMax(),
+      scen.getTimeWindow(), scen.getDefaultVehicle());
   }
 }

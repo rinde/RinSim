@@ -34,16 +34,17 @@ import com.github.rinde.rinsim.core.Simulator;
 import com.github.rinde.rinsim.core.model.ModelBuilder;
 import com.github.rinde.rinsim.experiment.LocalComputer.ExperimentRunner;
 import com.github.rinde.rinsim.io.FileProvider;
+import com.github.rinde.rinsim.pdptw.common.AddDepotEvent;
+import com.github.rinde.rinsim.pdptw.common.AddParcelEvent;
+import com.github.rinde.rinsim.pdptw.common.AddVehicleEvent;
 import com.github.rinde.rinsim.pdptw.common.ObjectiveFunction;
 import com.github.rinde.rinsim.pdptw.common.StatisticsDTO;
 import com.github.rinde.rinsim.pdptw.common.StatisticsProvider;
 import com.github.rinde.rinsim.pdptw.common.StatsTracker;
-import com.github.rinde.rinsim.scenario.AddDepotEvent;
-import com.github.rinde.rinsim.scenario.AddParcelEvent;
-import com.github.rinde.rinsim.scenario.AddVehicleEvent;
 import com.github.rinde.rinsim.scenario.Scenario;
 import com.github.rinde.rinsim.scenario.ScenarioController;
 import com.github.rinde.rinsim.scenario.ScenarioIO;
+import com.github.rinde.rinsim.scenario.TimeOutEvent;
 import com.github.rinde.rinsim.util.StochasticSupplier;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Function;
@@ -167,14 +168,24 @@ public final class Experiment {
 
     ScenarioController.Builder scenContrBuilder = ScenarioController.builder(
       scenario)
-      .withEventHandler(AddVehicleEvent.class, config.getVehicleCreator());
+      .withIgnoreRedundantHandlers(true)
+      .withEventHandler(AddVehicleEvent.class, config.getVehicleCreator())
+      .withEventHandler(TimeOutEvent.class, TimeOutEvent.ignoreHandler());
+
     if (config.getDepotCreator().isPresent()) {
       scenContrBuilder = scenContrBuilder.withEventHandler(AddDepotEvent.class,
         config.getDepotCreator().get());
+    } else {
+      scenContrBuilder = scenContrBuilder.withEventHandler(AddDepotEvent.class,
+        AddDepotEvent.defaultHandler());
     }
     if (config.getParcelCreator().isPresent()) {
       scenContrBuilder = scenContrBuilder.withEventHandler(
         AddParcelEvent.class, config.getParcelCreator().get());
+    } else {
+      scenContrBuilder = scenContrBuilder.withEventHandler(
+        AddParcelEvent.class,
+        AddParcelEvent.defaultHandler());
     }
 
     Simulator.Builder simBuilder = Simulator.builder()

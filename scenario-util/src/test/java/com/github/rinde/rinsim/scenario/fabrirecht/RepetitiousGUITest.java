@@ -29,7 +29,7 @@ import com.github.rinde.rinsim.core.model.time.TimeLapse;
 import com.github.rinde.rinsim.core.pdptw.DefaultParcel;
 import com.github.rinde.rinsim.core.pdptw.DefaultVehicle;
 import com.github.rinde.rinsim.core.pdptw.VehicleDTO;
-import com.github.rinde.rinsim.scenario.AddVehicleEvent;
+import com.github.rinde.rinsim.pdptw.common.AddVehicleEvent;
 import com.github.rinde.rinsim.scenario.ScenarioController;
 import com.github.rinde.rinsim.scenario.TimedEventHandler;
 import com.github.rinde.rinsim.ui.View;
@@ -62,7 +62,7 @@ public class RepetitiousGUITest {
                 @Override
                 public void handleTimedEvent(AddVehicleEvent event,
                   SimulatorAPI simulator) {
-                  simulator.register(new Truck(event.vehicleDTO));
+                  simulator.register(new Truck(event.getVehicleDTO()));
                 }
               })
         )

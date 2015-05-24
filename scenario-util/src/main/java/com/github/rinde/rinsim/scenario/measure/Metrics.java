@@ -16,21 +16,25 @@
 package com.github.rinde.rinsim.scenario.measure;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Verify.verifyNotNull;
 import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Sets.newLinkedHashSet;
 
+import java.lang.reflect.Modifier;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
+import javax.annotation.Nullable;
+
 import org.apache.commons.math3.stat.descriptive.StatisticalSummary;
 import org.apache.commons.math3.stat.descriptive.SummaryStatistics;
 
-import com.github.rinde.rinsim.core.model.pdp.PDPScenarioEvent;
 import com.github.rinde.rinsim.core.pdptw.ParcelDTO;
 import com.github.rinde.rinsim.geom.Point;
-import com.github.rinde.rinsim.scenario.AddParcelEvent;
-import com.github.rinde.rinsim.scenario.AddVehicleEvent;
+import com.github.rinde.rinsim.pdptw.common.AddParcelEvent;
+import com.github.rinde.rinsim.pdptw.common.AddVehicleEvent;
 import com.github.rinde.rinsim.scenario.Scenario;
 import com.github.rinde.rinsim.scenario.TimedEvent;
 import com.github.rinde.rinsim.scenario.generator.ScenarioGenerator;
@@ -42,10 +46,12 @@ import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMultiset;
 import com.google.common.collect.ImmutableSortedMultiset;
+import com.google.common.collect.LinkedHashMultiset;
+import com.google.common.collect.Multiset;
 
 /**
  * @author Rinde van Lon
- * 
+ *
  */
 public final class Metrics {
 
@@ -76,54 +82,55 @@ public final class Metrics {
   }
 
   static ImmutableList<Double> measureRelativeLoad(Scenario s) {
-    final int numVehicles = getEventTypeCounts(s).count(
-        PDPScenarioEvent.ADD_VEHICLE);
+    final int numVehicles = getEventTypeCounts(s).count(AddVehicleEvent.class);
     return measureLoad(s, numVehicles);
   }
 
   static ImmutableList<LoadPart> measureLoad(AddParcelEvent event,
-      TravelTimes tt) {
+    TravelTimes tt) {
     checkArgument(
-        event.parcelDTO.pickupTimeWindow.begin <= event.parcelDTO.deliveryTimeWindow.begin,
-        "Delivery TW begin may not be before pickup TW begin.");
+      event.getParcelDTO().pickupTimeWindow.begin <= event.getParcelDTO().deliveryTimeWindow.begin,
+      "Delivery TW begin may not be before pickup TW begin.");
     checkArgument(
-        event.parcelDTO.pickupTimeWindow.end <= event.parcelDTO.deliveryTimeWindow.end,
-        "Delivery TW end may not be before pickup TW end.");
+      event.getParcelDTO().pickupTimeWindow.end <= event.getParcelDTO().deliveryTimeWindow.end,
+      "Delivery TW end may not be before pickup TW end.");
 
     // pickup lower bound,
-    final long pickupLb = event.parcelDTO.pickupTimeWindow.begin;
+    final long pickupLb = event.getParcelDTO().pickupTimeWindow.begin;
     // pickup upper bound
-    final long pickupUb = event.parcelDTO.pickupTimeWindow.end
-        + event.parcelDTO.pickupDuration;
-    final double pickupLoad = event.parcelDTO.pickupDuration
-        / (double) (pickupUb - pickupLb);
+    final long pickupUb = event.getParcelDTO().pickupTimeWindow.end
+      + event.getParcelDTO().pickupDuration;
+    final double pickupLoad = event.getParcelDTO().pickupDuration
+      / (double) (pickupUb - pickupLb);
     final LoadPart pickupPart = new LoadPart(pickupLb, pickupUb, pickupLoad);
 
     final long expectedTravelTime = tt.getShortestTravelTime(
-        event.parcelDTO.pickupLocation,
-        event.parcelDTO.deliveryLocation);
+      event.getParcelDTO().pickupLocation,
+      event.getParcelDTO().deliveryLocation);
     // first possible departure time from pickup location
-    final long travelLb = pickupLb + event.parcelDTO.pickupDuration;
+    final long travelLb = pickupLb + event.getParcelDTO().pickupDuration;
     // latest possible arrival time at delivery location
-    final long travelUb = Math.max(event.parcelDTO.deliveryTimeWindow.end,
-        travelLb + expectedTravelTime);
+    final long travelUb = Math.max(event.getParcelDTO().deliveryTimeWindow.end,
+      travelLb + expectedTravelTime);
 
     final double travelLoad = expectedTravelTime
-        / (double) (travelUb - travelLb);
+      / (double) (travelUb - travelLb);
     final LoadPart travelPart = new LoadPart(travelLb, travelUb, travelLoad);
 
     // delivery lower bound: the first possible time the delivery can start,
     // normally uses the start of the delivery TW, in case this is not
     // feasible we correct for the duration and travel time.
-    final long deliveryLb = Math.max(event.parcelDTO.deliveryTimeWindow.begin,
-        pickupLb + event.parcelDTO.pickupDuration + expectedTravelTime);
+    final long deliveryLb = Math.max(
+      event.getParcelDTO().deliveryTimeWindow.begin,
+      pickupLb + event.getParcelDTO().pickupDuration + expectedTravelTime);
     // delivery upper bound: the latest possible time the delivery can end
-    final long deliveryUb = Math.max(event.parcelDTO.deliveryTimeWindow.end,
-        deliveryLb) + event.parcelDTO.deliveryDuration;
-    final double deliveryLoad = event.parcelDTO.deliveryDuration
-        / (double) (deliveryUb - deliveryLb);
+    final long deliveryUb = Math.max(
+      event.getParcelDTO().deliveryTimeWindow.end,
+      deliveryLb) + event.getParcelDTO().deliveryDuration;
+    final double deliveryLoad = event.getParcelDTO().deliveryDuration
+      / (double) (deliveryUb - deliveryLb);
     final LoadPart deliveryPart = new LoadPart(deliveryLb, deliveryUb,
-        deliveryLoad);
+      deliveryLoad);
 
     return ImmutableList.of(pickupPart, travelPart, deliveryPart);
   }
@@ -171,11 +178,11 @@ public final class Metrics {
     for (final TimedEvent te : s.getEvents()) {
       if (te instanceof AddVehicleEvent) {
         if (vehicleSpeed == -1d) {
-          vehicleSpeed = ((AddVehicleEvent) te).vehicleDTO.speed;
+          vehicleSpeed = ((AddVehicleEvent) te).getVehicleDTO().speed;
         } else {
           checkArgument(
-              vehicleSpeed == ((AddVehicleEvent) te).vehicleDTO.speed,
-              "All vehicles are expected to have the same speed.");
+            vehicleSpeed == ((AddVehicleEvent) te).getVehicleDTO().speed,
+            "All vehicles are expected to have the same speed.");
         }
       }
     }
@@ -189,13 +196,24 @@ public final class Metrics {
    * @param s The scenario to check.
    * @return A {@link ImmutableMultiset} of event types.
    */
-  public static ImmutableMultiset<Enum<?>> getEventTypeCounts(Scenario s) {
-    final ImmutableMultiset.Builder<Enum<?>> occurences = ImmutableMultiset
-        .builder();
+  public static ImmutableMultiset<Class<?>> getEventTypeCounts(Scenario s) {
+    Multiset<Class<?>> set = LinkedHashMultiset.create();
     for (final TimedEvent te : s.getEvents()) {
-      occurences.add(te.getEventType());
+      set.add(te.getClass());
     }
-    return occurences.build();
+    List<Class<?>> toMove = new ArrayList<>();
+    for (Class<?> c : set.elementSet()) {
+      if (!Modifier.isPublic(c.getModifiers())
+        && TimedEvent.class.isAssignableFrom(c.getSuperclass())
+        && !set.contains(c.getSuperclass())) {
+        toMove.add(c);
+      }
+    }
+    for (Class<?> c : toMove) {
+      set.add(c.getSuperclass(), set.count(c));
+      set.remove(c);
+    }
+    return ImmutableMultiset.copyOf(set);
   }
 
   /**
@@ -213,7 +231,7 @@ public final class Metrics {
    * <li><code>travelTime</code> is the time to travel the shortest path from
    * {@link ParcelDTO#pickupLocation} to {@link ParcelDTO#deliveryLocation}</li>
    * </ul>
-   * 
+   *
    * @param s The scenario to check.
    */
   public static void checkTimeWindowStrictness(Scenario s) {
@@ -231,24 +249,25 @@ public final class Metrics {
    * @param travelTimes
    */
   static void checkParcelTWStrictness(AddParcelEvent event,
-      TravelTimes travelTimes) {
-    final long firstDepartureTime = event.parcelDTO.pickupTimeWindow.begin
-        + event.parcelDTO.pickupDuration;
-    final long latestDepartureTime = event.parcelDTO.pickupTimeWindow.end
-        + event.parcelDTO.pickupDuration;
+    TravelTimes travelTimes) {
+    final long firstDepartureTime = event.getParcelDTO().pickupTimeWindow.begin
+      + event.getParcelDTO().pickupDuration;
+    final long latestDepartureTime = event.getParcelDTO().pickupTimeWindow.end
+      + event.getParcelDTO().pickupDuration;
 
     final double travelTime = travelTimes.getShortestTravelTime(
-        event.parcelDTO.pickupLocation, event.parcelDTO.deliveryLocation);
+      event.getParcelDTO().pickupLocation,
+      event.getParcelDTO().deliveryLocation);
 
     checkArgument(
-        event.parcelDTO.deliveryTimeWindow.begin >= firstDepartureTime
-            + travelTime,
-        "The begin of the delivery time window (%s) is too early, should be >= %s.",
-        event.parcelDTO.deliveryTimeWindow, firstDepartureTime + travelTime);
+      event.getParcelDTO().deliveryTimeWindow.begin >= firstDepartureTime
+        + travelTime,
+      "The begin of the delivery time window (%s) is too early, should be >= %s.",
+      event.getParcelDTO().deliveryTimeWindow, firstDepartureTime + travelTime);
     checkArgument(
-        latestDepartureTime + travelTime <= event.parcelDTO.deliveryTimeWindow.end,
-        "The end of the pickup time window %s is too late, or end of delivery is too early.",
-        event.parcelDTO.pickupTimeWindow.end);
+      latestDepartureTime + travelTime <= event.getParcelDTO().deliveryTimeWindow.end,
+      "The end of the pickup time window %s is too late, or end of delivery is too early.",
+      event.getParcelDTO().pickupTimeWindow.end);
   }
 
   /**
@@ -260,7 +279,7 @@ public final class Metrics {
     final ImmutableList.Builder<Long> builder = ImmutableList.builder();
     for (final TimedEvent te : s.getEvents()) {
       if (te instanceof AddParcelEvent) {
-        builder.add(te.time);
+        builder.add(te.getTime());
       }
     }
     return builder.build();
@@ -278,19 +297,19 @@ public final class Metrics {
    * @return An {@link ImmutableSortedMultiset} representing the histogram.
    */
   public static ImmutableSortedMultiset<Double> computeHistogram(
-      Iterable<Double> input, double binSize) {
+    Iterable<Double> input, double binSize) {
     final ImmutableSortedMultiset.Builder<Double> builder = ImmutableSortedMultiset
-        .naturalOrder();
+      .naturalOrder();
     for (final double d : input) {
       checkArgument(!Double.isInfinite(d) && !Double.isNaN(d),
-          "Only finite numbers are accepted, found %s.", d);
+        "Only finite numbers are accepted, found %s.", d);
       builder.add(Math.floor(d / binSize) * binSize);
     }
     return builder.build();
   }
 
   static long pickupUrgency(AddParcelEvent event) {
-    return pickupUrgency(event.parcelDTO);
+    return pickupUrgency(event.getParcelDTO());
   }
 
   static long pickupUrgency(ParcelDTO dto) {
@@ -300,14 +319,15 @@ public final class Metrics {
   enum Urgency implements Function<AddParcelEvent, Long> {
     PICKUP {
       @Override
-      public Long apply(AddParcelEvent input) {
-        return pickupUrgency(input);
+      @Nullable
+      public Long apply(@Nullable AddParcelEvent input) {
+        return pickupUrgency(verifyNotNull(input));
       }
     }
   }
 
   static StatisticalSummary toStatisticalSummary(
-      Iterable<? extends Number> values) {
+    Iterable<? extends Number> values) {
     final SummaryStatistics ss = new SummaryStatistics();
     for (final Number n : values) {
       ss.addValue(n.doubleValue());
@@ -324,9 +344,9 @@ public final class Metrics {
    */
   public static StatisticalSummary measureUrgency(Scenario s) {
     final List<Long> urgencyValues = FluentIterable.from(s.getEvents())
-        .filter(AddParcelEvent.class)
-        .transform(Urgency.PICKUP)
-        .toList();
+      .filter(AddParcelEvent.class)
+      .transform(Urgency.PICKUP)
+      .toList();
     return toStatisticalSummary(urgencyValues);
   }
 
@@ -348,7 +368,7 @@ public final class Metrics {
    */
   public static double measureDynamism(Scenario s, long lengthOfDay) {
     return measureDynamism(convert(getOrderArrivalTimes(s)),
-        lengthOfDay);
+      lengthOfDay);
   }
 
   // Best version as of March 6th, 2014
@@ -360,15 +380,15 @@ public final class Metrics {
    * @return A number in range [0, 1].
    */
   public static double measureDynamism(Iterable<Double> arrivalTimes,
-      double lengthOfDay) {
+    double lengthOfDay) {
     final List<Double> times = newArrayList(arrivalTimes);
     checkArgument(times.size() >= 2,
-        "At least two arrival times are required, found %s time(s).",
-        times.size());
+      "At least two arrival times are required, found %s time(s).",
+      times.size());
     for (final double time : times) {
       checkArgument(time >= 0 && time < lengthOfDay,
-          "all specified times should be >= 0 and < %s. Found %s.",
-          lengthOfDay, time);
+        "all specified times should be >= 0 and < %s. Found %s.",
+        lengthOfDay, time);
     }
     Collections.sort(times);
 
@@ -376,7 +396,7 @@ public final class Metrics {
 
     // this is the expected interarrival time
     final double expectedInterArrivalTime = lengthOfDay
-        / numEvents;
+      / numEvents;
 
     // deviation to expectedInterArrivalTime
     double sumDeviation = 0;
@@ -388,7 +408,7 @@ public final class Metrics {
       if (delta < expectedInterArrivalTime) {
         final double diff = expectedInterArrivalTime - delta;
         final double scaledPrev = diff / expectedInterArrivalTime
-            * prevDeviation;
+          * prevDeviation;
         final double cur = diff + scaledPrev;
         sumDeviation += cur;
         maxDeviation += scaledPrev;
@@ -411,8 +431,8 @@ public final class Metrics {
     final ImmutableList.Builder<Point> builder = ImmutableList.builder();
     for (final TimedEvent se : s.getEvents()) {
       if (se instanceof AddParcelEvent) {
-        builder.add(((AddParcelEvent) se).parcelDTO.pickupLocation);
-        builder.add(((AddParcelEvent) se).parcelDTO.deliveryLocation);
+        builder.add(((AddParcelEvent) se).getParcelDTO().pickupLocation);
+        builder.add(((AddParcelEvent) se).getParcelDTO().deliveryLocation);
       }
     }
     return builder.build();
@@ -422,7 +442,7 @@ public final class Metrics {
     final ImmutableList.Builder<Long> builder = ImmutableList.builder();
     for (final TimedEvent se : s.getEvents()) {
       if (se instanceof AddParcelEvent) {
-        builder.add(((AddParcelEvent) se).parcelDTO.orderAnnounceTime);
+        builder.add(((AddParcelEvent) se).getParcelDTO().orderAnnounceTime);
       }
     }
     return builder.build();
@@ -477,7 +497,7 @@ public final class Metrics {
     @Override
     public String toString() {
       return MoreObjects.toStringHelper("LoadPart").add("begin", tw.begin)
-          .add("end", tw.end).add("load", load).toString();
+        .add("end", tw.end).add("load", load).toString();
     }
   }
 }

@@ -18,6 +18,9 @@ package com.github.rinde.rinsim.core.pdptw;
 import static com.google.common.base.Preconditions.checkArgument;
 
 import java.io.Serializable;
+import java.util.Objects;
+
+import javax.annotation.Nullable;
 
 import com.github.rinde.rinsim.geom.Point;
 import com.github.rinde.rinsim.util.TimeWindow;
@@ -74,7 +77,7 @@ public final class ParcelDTO implements Serializable {
 
   ParcelDTO(Builder b) {
     checkArgument(b.orderAnnounceTime <= b.pickupTimeWindow.begin,
-        "Order arrival time may not be after the pickup TW has already opened.");
+      "Order arrival time may not be after the pickup TW has already opened.");
     pickupLocation = b.pickupLocation;
     deliveryLocation = b.deliveryLocation;
     pickupTimeWindow = b.pickupTimeWindow;
@@ -86,9 +89,32 @@ public final class ParcelDTO implements Serializable {
   }
 
   @Override
+  public int hashCode() {
+    return Objects.hash(pickupLocation, deliveryLocation, pickupTimeWindow,
+      deliveryTimeWindow, neededCapacity, orderAnnounceTime, pickupDuration,
+      deliveryDuration);
+  }
+
+  @Override
+  public boolean equals(@Nullable Object object) {
+    if (object == null || object.getClass() != getClass()) {
+      return false;
+    }
+    final ParcelDTO o = (ParcelDTO) object;
+    return Objects.equals(pickupLocation, o.pickupLocation)
+      && Objects.equals(deliveryLocation, o.deliveryLocation)
+      && Objects.equals(pickupTimeWindow, o.pickupTimeWindow)
+      && Objects.equals(deliveryTimeWindow, o.deliveryTimeWindow)
+      && Objects.equals(neededCapacity, o.neededCapacity)
+      && Objects.equals(orderAnnounceTime, o.orderAnnounceTime)
+      && Objects.equals(pickupDuration, o.pickupDuration)
+      && Objects.equals(deliveryDuration, o.deliveryDuration);
+  }
+
+  @Override
   public String toString() {
     return new StringBuilder("ParcelDTO-").append(
-        Integer.toHexString(hashCode())).toString();
+      Integer.toHexString(hashCode())).toString();
   }
 
   /**
@@ -113,7 +139,7 @@ public final class ParcelDTO implements Serializable {
    * <li><code>pickupDuration = 0L</code></li>
    * <li><code>deliveryDuration = 0L</code></li>
    * </ul>
-   * 
+   *
    * @author Rinde van Lon
    */
   public static final class Builder {
@@ -214,7 +240,7 @@ public final class ParcelDTO implements Serializable {
      */
     public Builder pickupDuration(long duration) {
       checkArgument(duration >= 0,
-          "Pickup duration needs to be strictly positive.");
+        "Pickup duration needs to be strictly positive.");
       pickupDuration = duration;
       return this;
     }
@@ -226,7 +252,7 @@ public final class ParcelDTO implements Serializable {
      */
     public Builder deliveryDuration(long duration) {
       checkArgument(duration >= 0,
-          "Delivery duration needs to be strictly positive.");
+        "Delivery duration needs to be strictly positive.");
       deliveryDuration = duration;
       return this;
     }

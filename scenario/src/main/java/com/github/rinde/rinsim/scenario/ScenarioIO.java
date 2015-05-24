@@ -17,8 +17,6 @@ package com.github.rinde.rinsim.scenario;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Verify.verifyNotNull;
-import static com.google.common.collect.Lists.newArrayList;
-import static com.google.common.collect.Sets.newLinkedHashSet;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -30,8 +28,6 @@ import java.lang.reflect.Type;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
 
 import javax.annotation.Nullable;
 import javax.measure.Measure;
@@ -39,10 +35,7 @@ import javax.measure.unit.Unit;
 import javax.xml.bind.DatatypeConverter;
 
 import com.github.rinde.rinsim.core.model.ModelBuilder;
-import com.github.rinde.rinsim.core.model.pdp.PDPScenarioEvent;
 import com.github.rinde.rinsim.core.model.pdp.TimeWindowPolicy;
-import com.github.rinde.rinsim.core.pdptw.ParcelDTO;
-import com.github.rinde.rinsim.core.pdptw.VehicleDTO;
 import com.github.rinde.rinsim.geom.Point;
 import com.github.rinde.rinsim.scenario.Scenario.ProblemClass;
 import com.github.rinde.rinsim.scenario.Scenario.SimpleProblemClass;
@@ -66,7 +59,6 @@ import com.google.gson.JsonPrimitive;
 import com.google.gson.JsonSerializationContext;
 import com.google.gson.JsonSerializer;
 import com.google.gson.TypeAdapter;
-import com.google.gson.reflect.TypeToken;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonToken;
 import com.google.gson.stream.JsonWriter;
@@ -84,21 +76,21 @@ public final class ScenarioIO {
   private ScenarioIO() {}
 
   private static Gson initialize() {
-    final Type enumSetType = new TypeToken<Set<Enum<?>>>() {}.getType();
+    // final Type enumSetType = new TypeToken<Set<Enum<?>>>() {}.getType();
 
     final GsonBuilder builder = new GsonBuilder();
     builder
       .registerTypeHierarchyAdapter(ProblemClass.class,
         new ProblemClassHierarchyIO())
-      .registerTypeHierarchyAdapter(TimedEvent.class,
-        new TimedEventHierarchyIO())
+      // .registerTypeHierarchyAdapter(TimedEvent.class,
+      // new TimedEventHierarchyIO())
       .registerTypeHierarchyAdapter(TimeWindowPolicy.class,
         new TimeWindowHierarchyIO())
       .registerTypeAdapter(Scenario.class, new ScenarioObjIO())
 
       .registerTypeAdapter(Point.class, new PointIO())
       .registerTypeAdapter(TimeWindow.class, new TimeWindowIO())
-      .registerTypeAdapter(enumSetType, new EnumSetIO())
+      // .registerTypeAdapter(enumSetType, new EnumSetIO())
       .registerTypeAdapter(Unit.class, new UnitIO())
       .registerTypeAdapter(Measure.class, new MeasureIO())
       .registerTypeHierarchyAdapter(Enum.class, new EnumIO())
@@ -372,49 +364,50 @@ public final class ScenarioIO {
     }
   }
 
-  static class TimedEventHierarchyIO implements JsonDeserializer<TimedEvent> {
-    @Override
-    public TimedEvent deserialize(@Nullable JsonElement j,
-      @Nullable Type typeOfT, @Nullable JsonDeserializationContext c) {
-      JsonElement json = verifyNotNull(j);
-      verifyNotNull(typeOfT);
-      JsonDeserializationContext context = verifyNotNull(c);
-      final JsonObject obj = json.getAsJsonObject();
-      final long time = obj.get("time").getAsLong();
-      final Enum<?> type = context
-        .deserialize(obj.get("eventType"), Enum.class);
-
-      checkArgument(type instanceof PDPScenarioEvent);
-      final PDPScenarioEvent scenEvent = (PDPScenarioEvent) type;
-      final TimedEvent event;
-      switch (scenEvent) {
-      case ADD_DEPOT:
-        event = new AddDepotEvent(time, (Point) context.deserialize(
-          obj.get("position"), Point.class));
-        break;
-      case ADD_VEHICLE:
-        event = new AddVehicleEvent(time, (VehicleDTO) context.deserialize(
-          obj.get("vehicleDTO"), VehicleDTO.class));
-        break;
-      case ADD_PARCEL:
-        event = new AddParcelEvent((ParcelDTO) context.deserialize(
-          obj.get("parcelDTO"), ParcelDTO.class));
-        break;
-      case TIME_OUT:
-        event = new TimedEvent(type, time);
-        break;
-      case REMOVE_DEPOT:
-        // fall through
-      case REMOVE_PARCEL:
-        // fall through
-      case REMOVE_VEHICLE:
-        // fall through
-      default:
-        throw new IllegalArgumentException("Event not supported: " + scenEvent);
-      }
-      return event;
-    }
-  }
+  // static class TimedEventHierarchyIO implements JsonDeserializer<TimedEvent>
+  // {
+  // @Override
+  // public TimedEvent deserialize(@Nullable JsonElement j,
+  // @Nullable Type typeOfT, @Nullable JsonDeserializationContext c) {
+  // JsonElement json = verifyNotNull(j);
+  // verifyNotNull(typeOfT);
+  // JsonDeserializationContext context = verifyNotNull(c);
+  // final JsonObject obj = json.getAsJsonObject();
+  // final long time = obj.get("time").getAsLong();
+  // final Enum<?> type = context
+  // .deserialize(obj.get("eventType"), Enum.class);
+  //
+  // checkArgument(type instanceof PDPScenarioEvent);
+  // final PDPScenarioEvent scenEvent = (PDPScenarioEvent) type;
+  // final TimedEvent event;
+  // switch (scenEvent) {
+  // case ADD_DEPOT:
+  // event = new AddDepotEvent(time, (Point) context.deserialize(
+  // obj.get("position"), Point.class));
+  // break;
+  // case ADD_VEHICLE:
+  // event = new AddVehicleEvent(time, (VehicleDTO) context.deserialize(
+  // obj.get("vehicleDTO"), VehicleDTO.class));
+  // break;
+  // case ADD_PARCEL:
+  // event = new AddParcelEvent((ParcelDTO) context.deserialize(
+  // obj.get("parcelDTO"), ParcelDTO.class));
+  // break;
+  // case TIME_OUT:
+  // event = new TimedEvent(type, time);
+  // break;
+  // case REMOVE_DEPOT:
+  // // fall through
+  // case REMOVE_PARCEL:
+  // // fall through
+  // case REMOVE_VEHICLE:
+  // // fall through
+  // default:
+  // throw new IllegalArgumentException("Event not supported: " + scenEvent);
+  // }
+  // return event;
+  // }
+  // }
 
   static class PointIO extends TypeAdapter<Point> {
     @Nullable
@@ -482,29 +475,29 @@ public final class ScenarioIO {
     }
   }
 
-  static class EnumSetIO extends SafeNullIO<Set<Enum<?>>> {
-    @Override
-    public Set<Enum<?>> doDeserialize(JsonElement json, Type typeOfT,
-      JsonDeserializationContext context) {
-      final Set<Enum<?>> eventTypes = newLinkedHashSet();
-      final List<String> list = context
-        .deserialize(json, new TypeToken<List<String>>() {}.getType());
-      for (final String s : list) {
-        eventTypes.add(PDPScenarioEvent.valueOf(s));
-      }
-      return eventTypes;
-    }
-
-    @Override
-    public JsonElement doSerialize(Set<Enum<?>> src, Type typeOfSrc,
-      JsonSerializationContext context) {
-      final List<String> list = newArrayList();
-      for (final Enum<?> e : src) {
-        list.add(e.name());
-      }
-      return context.serialize(src, new TypeToken<List<String>>() {}.getType());
-    }
-  }
+  // static class EnumSetIO extends SafeNullIO<Set<Enum<?>>> {
+  // @Override
+  // public Set<Enum<?>> doDeserialize(JsonElement json, Type typeOfT,
+  // JsonDeserializationContext context) {
+  // final Set<Enum<?>> eventTypes = newLinkedHashSet();
+  // final List<String> list = context
+  // .deserialize(json, new TypeToken<List<String>>() {}.getType());
+  // for (final String s : list) {
+  // eventTypes.add(PDPScenarioEvent.valueOf(s));
+  // }
+  // return eventTypes;
+  // }
+  //
+  // @Override
+  // public JsonElement doSerialize(Set<Enum<?>> src, Type typeOfSrc,
+  // JsonSerializationContext context) {
+  // final List<String> list = newArrayList();
+  // for (final Enum<?> e : src) {
+  // list.add(e.name());
+  // }
+  // return context.serialize(src, new TypeToken<List<String>>() {}.getType());
+  // }
+  // }
 
   static class UnitIO extends SafeNullIO<Unit<?>> {
     @Override

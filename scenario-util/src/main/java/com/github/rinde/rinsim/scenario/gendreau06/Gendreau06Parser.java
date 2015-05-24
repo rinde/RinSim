@@ -15,10 +15,6 @@
  */
 package com.github.rinde.rinsim.scenario.gendreau06;
 
-import static com.github.rinde.rinsim.core.model.pdp.PDPScenarioEvent.ADD_DEPOT;
-import static com.github.rinde.rinsim.core.model.pdp.PDPScenarioEvent.ADD_PARCEL;
-import static com.github.rinde.rinsim.core.model.pdp.PDPScenarioEvent.ADD_VEHICLE;
-import static com.github.rinde.rinsim.core.model.pdp.PDPScenarioEvent.TIME_OUT;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.collect.Lists.newArrayList;
 
@@ -37,7 +33,6 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
-import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -47,10 +42,11 @@ import javax.annotation.Nullable;
 import com.github.rinde.rinsim.core.pdptw.ParcelDTO;
 import com.github.rinde.rinsim.core.pdptw.VehicleDTO;
 import com.github.rinde.rinsim.geom.Point;
-import com.github.rinde.rinsim.scenario.AddDepotEvent;
-import com.github.rinde.rinsim.scenario.AddParcelEvent;
-import com.github.rinde.rinsim.scenario.AddVehicleEvent;
+import com.github.rinde.rinsim.pdptw.common.AddDepotEvent;
+import com.github.rinde.rinsim.pdptw.common.AddParcelEvent;
+import com.github.rinde.rinsim.pdptw.common.AddVehicleEvent;
 import com.github.rinde.rinsim.scenario.Scenario.ProblemClass;
+import com.github.rinde.rinsim.scenario.TimeOutEvent;
 import com.github.rinde.rinsim.scenario.TimedEvent;
 import com.github.rinde.rinsim.scenario.TimedEvent.TimeComparator;
 import com.github.rinde.rinsim.util.TimeWindow;
@@ -59,7 +55,6 @@ import com.google.common.base.Function;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterators;
 import com.google.common.math.DoubleMath;
 
@@ -332,9 +327,6 @@ public final class Gendreau06Parser {
     String fileName, int numVehicles, final long tickSize,
     final boolean allowDiversion, boolean online) {
 
-    final Set<Enum<?>> evTypes = ImmutableSet.<Enum<?>> of(ADD_PARCEL,
-      ADD_DEPOT, ADD_VEHICLE, TIME_OUT);
-
     final Matcher m = matcher(fileName);
     checkValidFileName(m, fileName);
 
@@ -353,9 +345,9 @@ public final class Gendreau06Parser {
     final double truckSpeed = 30;
 
     final List<TimedEvent> events = newArrayList();
-    events.add(new AddDepotEvent(-1, depotPosition));
+    events.add(AddDepotEvent.create(-1, depotPosition));
     for (int i = 0; i < vehicles; i++) {
-      events.add(new AddVehicleEvent(-1,
+      events.add(AddVehicleEvent.create(-1,
         VehicleDTO.builder()
           .startPosition(depotPosition)
           .speed(truckSpeed)
@@ -364,10 +356,10 @@ public final class Gendreau06Parser {
           .build()));
     }
     events.addAll(parcels.get(online));
-    events.add(new TimedEvent(TIME_OUT, totalTime));
+    events.add(TimeOutEvent.create(totalTime));
     Collections.sort(events, TimeComparator.INSTANCE);
 
-    return Gendreau06Scenario.create(events, evTypes, tickSize,
+    return Gendreau06Scenario.create(events, tickSize,
       problemClass, instanceNumber, allowDiversion);
   }
 
@@ -421,7 +413,7 @@ public final class Gendreau06Parser {
             .pickupDuration(pickupServiceTime)
             .deliveryDuration(deliveryServiceTime)
             .build();
-          listBuilder.add(new AddParcelEvent(dto));
+          listBuilder.add(AddParcelEvent.create(dto));
         }
       }
       reader.close();

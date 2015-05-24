@@ -32,18 +32,18 @@ import org.apache.commons.math3.random.RandomGenerator;
 
 import com.github.rinde.rinsim.core.model.Model;
 import com.github.rinde.rinsim.core.model.ModelBuilder;
-import com.github.rinde.rinsim.core.model.pdp.PDPScenarioEvent;
 import com.github.rinde.rinsim.core.model.road.ForwardingRoadModel;
 import com.github.rinde.rinsim.core.model.road.RoadModel;
 import com.github.rinde.rinsim.core.model.road.RoadModelBuilders.PlaneRMB;
 import com.github.rinde.rinsim.core.model.road.RoadModels;
 import com.github.rinde.rinsim.core.model.time.TimeModel;
 import com.github.rinde.rinsim.geom.Point;
-import com.github.rinde.rinsim.scenario.AddDepotEvent;
-import com.github.rinde.rinsim.scenario.AddVehicleEvent;
+import com.github.rinde.rinsim.pdptw.common.AddDepotEvent;
+import com.github.rinde.rinsim.pdptw.common.AddVehicleEvent;
 import com.github.rinde.rinsim.scenario.Scenario;
 import com.github.rinde.rinsim.scenario.Scenario.AbstractBuilder;
 import com.github.rinde.rinsim.scenario.Scenario.ProblemClass;
+import com.github.rinde.rinsim.scenario.TimeOutEvent;
 import com.github.rinde.rinsim.scenario.TimedEvent;
 import com.github.rinde.rinsim.scenario.generator.Depots.DepotGenerator;
 import com.github.rinde.rinsim.scenario.generator.Parcels.ParcelGenerator;
@@ -200,7 +200,7 @@ public final class ScenarioGenerator {
       builder.getTimeWindow().end));
 
     // time out
-    b.add(new TimedEvent(PDPScenarioEvent.TIME_OUT, builder.getTimeWindow().end));
+    b.add(TimeOutEvent.create(builder.getTimeWindow().end));
 
     // create
     return Scenario.builder(builder, builder.problemClass)
@@ -410,13 +410,13 @@ public final class ScenarioGenerator {
 
       double max = 0;
       for (final AddVehicleEvent ave : vehicles) {
-        max = Math.max(max, ave.vehicleDTO.speed);
+        max = Math.max(max, ave.getVehicleDTO().speed);
       }
       vehicleSpeed = Measure.valueOf(max, roadModel.getSpeedUnit());
 
       final ImmutableList.Builder<Point> depotBuilder = ImmutableList.builder();
       for (final AddDepotEvent ade : depots) {
-        depotBuilder.add(ade.position);
+        depotBuilder.add(ade.getPosition());
       }
       depotLocations = depotBuilder.build();
 

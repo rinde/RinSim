@@ -27,8 +27,7 @@ public final class StatsStopConditions {
 
   /**
    * The simulation is terminated once the
-   * {@link com.github.rinde.rinsim.core.model.pdp.PDPScenarioEvent#TIME_OUT}
-   * event is dispatched.
+   * {@link com.github.rinde.rinsim.scenario.TimeOutEvent} event is dispatched.
    * @return A {@link StopCondition}.
    */
   public static StopCondition timeOutEvent() {
@@ -38,8 +37,7 @@ public final class StatsStopConditions {
   /**
    * The simulation is terminated as soon as all the vehicles are back at the
    * depot, note that this can be before or after the
-   * {@link com.github.rinde.rinsim.core.model.pdp.PDPScenarioEvent#TIME_OUT}
-   * event is dispatched.
+   * {@link com.github.rinde.rinsim.scenario.TimeOutEvent} event is dispatched.
    * @return A {@link StopCondition}.
    */
   public static StopCondition vehiclesDoneAndBackAtDepot() {

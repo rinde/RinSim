@@ -24,7 +24,7 @@ import org.apache.commons.math3.random.RandomGenerator;
 
 import com.github.rinde.rinsim.core.pdptw.VehicleDTO;
 import com.github.rinde.rinsim.geom.Point;
-import com.github.rinde.rinsim.scenario.AddVehicleEvent;
+import com.github.rinde.rinsim.pdptw.common.AddVehicleEvent;
 import com.github.rinde.rinsim.util.StochasticSupplier;
 import com.github.rinde.rinsim.util.TimeWindow;
 import com.google.common.base.Optional;
@@ -32,7 +32,7 @@ import com.google.common.collect.ImmutableList;
 
 /**
  * Utility class for creating {@link VehicleGenerator}s.
- * @author Rinde van Lon 
+ * @author Rinde van Lon
  */
 public final class Vehicles {
   static final int DEFAULT_NUM_OF_VEHICLES = 10;
@@ -74,7 +74,7 @@ public final class Vehicles {
 
   /**
    * Generator of {@link AddVehicleEvent}s.
-   * @author Rinde van Lon 
+   * @author Rinde van Lon
    */
   public interface VehicleGenerator {
     /**
@@ -87,12 +87,12 @@ public final class Vehicles {
      * @return A list of events.
      */
     ImmutableList<AddVehicleEvent> generate(long seed, Point center,
-        long scenarioLength);
+      long scenarioLength);
   }
 
   /**
    * A builder for constructing {@link VehicleGenerator}s.
-   * @author Rinde van Lon 
+   * @author Rinde van Lon
    */
   public static class Builder {
     StochasticSupplier<Integer> numberOfVehicles;
@@ -113,8 +113,8 @@ public final class Vehicles {
 
     /**
      * Sets the number of vehicles that are to be created by the generator.
-     * Default value: 10. All values returned by the {@link StochasticSupplier} must be
-     * greater than <code>0</code>.
+     * Default value: 10. All values returned by the {@link StochasticSupplier}
+     * must be greater than <code>0</code>.
      * @param num The supplier to draw numbers from.
      * @return This, as per the builder pattern.
      */
@@ -231,44 +231,44 @@ public final class Vehicles {
 
     @Override
     public ImmutableList<AddVehicleEvent> generate(long seed, Point center,
-        long scenarioLength) {
+      long scenarioLength) {
       rng.setSeed(seed);
 
       final ImmutableList.Builder<AddVehicleEvent> builder = ImmutableList
-          .builder();
+        .builder();
       final int num = numberOfVehicles.get(rng.nextLong());
       checkArgument(num > 0,
-          "The numberOfVehicles supplier must generate values > 0, found %s.",
-          num);
+        "The numberOfVehicles supplier must generate values > 0, found %s.",
+        num);
       for (int i = 0; i < num; i++) {
         final Point pos = startPositionGenerator.isPresent()
-            ? startPositionGenerator.get().get(rng.nextLong())
-            : center;
+          ? startPositionGenerator.get().get(rng.nextLong())
+          : center;
         final double speed = speedGenerator.get(rng.nextLong());
         checkArgument(
-            speed > 0d,
-            "The speeds supplier must generate values > 0.0, found %s.",
-            speed);
+          speed > 0d,
+          "The speeds supplier must generate values > 0.0, found %s.",
+          speed);
         final int capacity = capacityGenerator.get(rng.nextLong());
         checkArgument(
-            capacity >= 0,
-            "The capacities supplier must generate non-negative values, found %s.",
-            capacity);
+          capacity >= 0,
+          "The capacities supplier must generate non-negative values, found %s.",
+          capacity);
         final TimeWindow tw = timeWindowGenerator.isPresent()
-            ? timeWindowGenerator.get().get(rng.nextLong())
-            : new TimeWindow(0L, scenarioLength);
+          ? timeWindowGenerator.get().get(rng.nextLong())
+          : new TimeWindow(0L, scenarioLength);
         final long time = creationTimeGenerator.get(rng.nextLong());
         checkArgument(
-            time < scenarioLength,
-            "The creationTimes supplier must generate values smaller than the scenarioLength (%s), found %s.",
-            scenarioLength, time);
+          time < scenarioLength,
+          "The creationTimes supplier must generate values smaller than the scenarioLength (%s), found %s.",
+          scenarioLength, time);
         final VehicleDTO dto = VehicleDTO.builder()
-            .startPosition(pos)
-            .speed(speed)
-            .capacity(capacity)
-            .availabilityTimeWindow(tw)
-            .build();
-        builder.add(new AddVehicleEvent(time, dto));
+          .startPosition(pos)
+          .speed(speed)
+          .capacity(capacity)
+          .availabilityTimeWindow(tw)
+          .build();
+        builder.add(AddVehicleEvent.create(time, dto));
       }
       return builder.build();
     }
@@ -287,10 +287,10 @@ public final class Vehicles {
 
     @Override
     public ImmutableList<AddVehicleEvent> generate(long seed, Point center,
-        long scenarioLength) {
+      long scenarioLength) {
       rng.setSeed(seed);
       return ImmutableList
-          .copyOf(nCopies(n, new AddVehicleEvent(-1, vehicleDto)));
+        .copyOf(nCopies(n, AddVehicleEvent.create(-1, vehicleDto)));
     }
   }
 }

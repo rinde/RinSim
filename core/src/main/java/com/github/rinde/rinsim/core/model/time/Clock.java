@@ -67,7 +67,7 @@ public interface Clock {
    * Enum that describes the possible types of events that the simulator can
    * dispatch.
    */
-  enum ClockEventType {
+  public enum ClockEventType {
     /**
      * Indicates that the simulator has stopped.
      */

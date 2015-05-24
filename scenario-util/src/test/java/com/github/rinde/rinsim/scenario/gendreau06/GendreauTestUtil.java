@@ -21,7 +21,6 @@ import java.io.ByteArrayInputStream;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import java.util.Set;
 
 import com.github.rinde.rinsim.scenario.TimedEvent;
 import com.github.rinde.rinsim.scenario.TimedEvent.TimeComparator;
@@ -33,10 +32,9 @@ import com.github.rinde.rinsim.scenario.TimedEvent.TimeComparator;
 public class GendreauTestUtil {
 
   public static Gendreau06Scenario create(
-    List<? extends TimedEvent> events, Set<Enum<?>> eventTypes,
-    long ts) {
+    List<? extends TimedEvent> events, long ts) {
     Collections.sort(events, TimeComparator.INSTANCE);
-    return Gendreau06Scenario.create(events, eventTypes, ts,
+    return Gendreau06Scenario.create(events, ts,
       GendreauProblemClass.SHORT_LOW_FREQ, 1, false);
   }
 
@@ -56,7 +54,6 @@ public class GendreauTestUtil {
     final List<TimedEvent> events = newArrayList();
     events.addAll(gs.getEvents());
     events.addAll(parcels);
-    return create(events, gs.getPossibleEventTypes(), 1000);
+    return create(events, 1000L);
   }
-
 }
