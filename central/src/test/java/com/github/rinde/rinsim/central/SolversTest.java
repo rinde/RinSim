@@ -251,7 +251,7 @@ public class SolversTest {
 
     // service delivery
     rm.moveTo(v1, destination, TimeLapseFactory.create(0, 1000000000));
-    assertEquals(destination.dto.deliveryLocation, rm.getPosition(v1));
+    assertEquals(destination.dto.getDeliveryLocation(), rm.getPosition(v1));
     pm.deliver(v1, p1, TimeLapseFactory.create(0, 1));
     assertNull(rm.getDestinationToParcel(v1));
     assertEquals(VehicleState.DELIVERING, pm.getVehicleState(v1));

@@ -174,8 +174,8 @@ public final class Solvers {
           time += vso.remainingServiceTime;
         } else {
           // vehicle is not there yet, go there first, then service
-          final Point nextLoc = inCargo ? cur.deliveryLocation
-            : cur.pickupLocation;
+          final Point nextLoc = inCargo ? cur.getDeliveryLocation()
+            : cur.getPickupLocation();
           final Measure<Double, Length> distance = Measure.valueOf(
             Point.distance(vehicleLocation, nextLoc), state.distUnit);
           totalDistance += distance.getValue();
@@ -187,32 +187,32 @@ public final class Solvers {
         }
         if (inCargo) {
           // check if we are early
-          if (cur.deliveryTimeWindow.isBeforeStart(time)) {
-            time = cur.deliveryTimeWindow.begin;
+          if (cur.getDeliveryTimeWindow().isBeforeStart(time)) {
+            time = cur.getDeliveryTimeWindow().begin;
           }
 
           if (!firstAndServicing) {
             truckArrivalTimesBuilder.add(time);
-            time += cur.deliveryDuration;
+            time += cur.getDeliveryDuration();
           }
           // delivering
-          if (cur.deliveryTimeWindow.isAfterEnd(time)) {
-            final long tardiness = time - cur.deliveryTimeWindow.end;
+          if (cur.getDeliveryTimeWindow().isAfterEnd(time)) {
+            final long tardiness = time - cur.getDeliveryTimeWindow().end;
             deliveryTardiness += tardiness;
           }
           totalDeliveries++;
         } else {
           // check if we are early
-          if (cur.pickupTimeWindow.isBeforeStart(time)) {
-            time = cur.pickupTimeWindow.begin;
+          if (cur.getPickupTimeWindow().isBeforeStart(time)) {
+            time = cur.getPickupTimeWindow().begin;
           }
           if (!firstAndServicing) {
             truckArrivalTimesBuilder.add(time);
-            time += cur.pickupDuration;
+            time += cur.getPickupDuration();
           }
           // picking up
-          if (cur.pickupTimeWindow.isAfterEnd(time)) {
-            final long tardiness = time - cur.pickupTimeWindow.end;
+          if (cur.getPickupTimeWindow().isAfterEnd(time)) {
+            final long tardiness = time - cur.getPickupTimeWindow().end;
             pickupTardiness += tardiness;
           }
           totalPickups++;

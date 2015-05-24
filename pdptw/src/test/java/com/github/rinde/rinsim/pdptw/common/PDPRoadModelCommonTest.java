@@ -102,7 +102,7 @@ public abstract class PDPRoadModelCommonTest {
     dp2 = create(new Point(5, 0), new Point(0, 5));
     dp3 = create(new Point(1, 0), new Point(0, 6));
     for (final DefaultParcel dp : asList(dp1, dp2, dp3)) {
-      rm.addObjectAt(dp, dp.dto.pickupLocation);
+      rm.addObjectAt(dp, dp.dto.getPickupLocation());
       pm.register(dp);
     }
 
@@ -189,7 +189,7 @@ public abstract class PDPRoadModelCommonTest {
         .build()
       );
 
-    rm.addObjectAt(dp1, dp1.dto.pickupLocation);
+    rm.addObjectAt(dp1, dp1.dto.getPickupLocation());
     pm.register(dp1);
 
     assertNull(rm.getDestinationToParcel(dv1));

@@ -332,7 +332,7 @@ public class RouteFollowingVehicle extends DefaultVehicle {
     if (isPickup && parcelState == ParcelState.AVAILABLE) {
       return false;
     }
-    final Point loc = isPickup ? ((DefaultParcel) p).dto.pickupLocation : p
+    final Point loc = isPickup ? ((DefaultParcel) p).dto.getPickupLocation() : p
         .getDestination();
     final long travelTime = computeTravelTimeTo(loc, time.getTimeUnit());
     final long openingTime = isPickup ? p.getPickupTimeWindow().begin : p
@@ -637,8 +637,8 @@ public class RouteFollowingVehicle extends DefaultVehicle {
       }
       // if parcel is not ready yet, wait
       final boolean pickup = !pm.getContents(context).contains(cur);
-      final long timeUntilReady = (pickup ? cur.dto.pickupTimeWindow.begin
-          : cur.dto.deliveryTimeWindow.begin) - time.getTime();
+      final long timeUntilReady = (pickup ? cur.dto.getPickupTimeWindow().begin
+          : cur.dto.getDeliveryTimeWindow().begin) - time.getTime();
       if (timeUntilReady > 0) {
         if (time.getTimeLeft() < timeUntilReady) {
           // in this case we can not yet start servicing

@@ -89,28 +89,28 @@ public final class Metrics {
   static ImmutableList<LoadPart> measureLoad(AddParcelEvent event,
     TravelTimes tt) {
     checkArgument(
-      event.getParcelDTO().pickupTimeWindow.begin <= event.getParcelDTO().deliveryTimeWindow.begin,
+      event.getParcelDTO().getPickupTimeWindow().begin <= event.getParcelDTO().getDeliveryTimeWindow().begin,
       "Delivery TW begin may not be before pickup TW begin.");
     checkArgument(
-      event.getParcelDTO().pickupTimeWindow.end <= event.getParcelDTO().deliveryTimeWindow.end,
+      event.getParcelDTO().getPickupTimeWindow().end <= event.getParcelDTO().getDeliveryTimeWindow().end,
       "Delivery TW end may not be before pickup TW end.");
 
     // pickup lower bound,
-    final long pickupLb = event.getParcelDTO().pickupTimeWindow.begin;
+    final long pickupLb = event.getParcelDTO().getPickupTimeWindow().begin;
     // pickup upper bound
-    final long pickupUb = event.getParcelDTO().pickupTimeWindow.end
-      + event.getParcelDTO().pickupDuration;
-    final double pickupLoad = event.getParcelDTO().pickupDuration
+    final long pickupUb = event.getParcelDTO().getPickupTimeWindow().end
+      + event.getParcelDTO().getPickupDuration();
+    final double pickupLoad = event.getParcelDTO().getPickupDuration()
       / (double) (pickupUb - pickupLb);
     final LoadPart pickupPart = new LoadPart(pickupLb, pickupUb, pickupLoad);
 
     final long expectedTravelTime = tt.getShortestTravelTime(
-      event.getParcelDTO().pickupLocation,
-      event.getParcelDTO().deliveryLocation);
+      event.getParcelDTO().getPickupLocation(),
+      event.getParcelDTO().getDeliveryLocation());
     // first possible departure time from pickup location
-    final long travelLb = pickupLb + event.getParcelDTO().pickupDuration;
+    final long travelLb = pickupLb + event.getParcelDTO().getPickupDuration();
     // latest possible arrival time at delivery location
-    final long travelUb = Math.max(event.getParcelDTO().deliveryTimeWindow.end,
+    final long travelUb = Math.max(event.getParcelDTO().getDeliveryTimeWindow().end,
       travelLb + expectedTravelTime);
 
     final double travelLoad = expectedTravelTime
@@ -121,13 +121,13 @@ public final class Metrics {
     // normally uses the start of the delivery TW, in case this is not
     // feasible we correct for the duration and travel time.
     final long deliveryLb = Math.max(
-      event.getParcelDTO().deliveryTimeWindow.begin,
-      pickupLb + event.getParcelDTO().pickupDuration + expectedTravelTime);
+      event.getParcelDTO().getDeliveryTimeWindow().begin,
+      pickupLb + event.getParcelDTO().getPickupDuration() + expectedTravelTime);
     // delivery upper bound: the latest possible time the delivery can end
     final long deliveryUb = Math.max(
-      event.getParcelDTO().deliveryTimeWindow.end,
-      deliveryLb) + event.getParcelDTO().deliveryDuration;
-    final double deliveryLoad = event.getParcelDTO().deliveryDuration
+      event.getParcelDTO().getDeliveryTimeWindow().end,
+      deliveryLb) + event.getParcelDTO().getDeliveryDuration();
+    final double deliveryLoad = event.getParcelDTO().getDeliveryDuration()
       / (double) (deliveryUb - deliveryLb);
     final LoadPart deliveryPart = new LoadPart(deliveryLb, deliveryUb,
       deliveryLoad);
@@ -250,24 +250,24 @@ public final class Metrics {
    */
   static void checkParcelTWStrictness(AddParcelEvent event,
     TravelTimes travelTimes) {
-    final long firstDepartureTime = event.getParcelDTO().pickupTimeWindow.begin
-      + event.getParcelDTO().pickupDuration;
-    final long latestDepartureTime = event.getParcelDTO().pickupTimeWindow.end
-      + event.getParcelDTO().pickupDuration;
+    final long firstDepartureTime = event.getParcelDTO().getPickupTimeWindow().begin
+      + event.getParcelDTO().getPickupDuration();
+    final long latestDepartureTime = event.getParcelDTO().getPickupTimeWindow().end
+      + event.getParcelDTO().getPickupDuration();
 
     final double travelTime = travelTimes.getShortestTravelTime(
-      event.getParcelDTO().pickupLocation,
-      event.getParcelDTO().deliveryLocation);
+      event.getParcelDTO().getPickupLocation(),
+      event.getParcelDTO().getDeliveryLocation());
 
     checkArgument(
-      event.getParcelDTO().deliveryTimeWindow.begin >= firstDepartureTime
+      event.getParcelDTO().getDeliveryTimeWindow().begin >= firstDepartureTime
         + travelTime,
       "The begin of the delivery time window (%s) is too early, should be >= %s.",
-      event.getParcelDTO().deliveryTimeWindow, firstDepartureTime + travelTime);
+      event.getParcelDTO().getDeliveryTimeWindow(), firstDepartureTime + travelTime);
     checkArgument(
-      latestDepartureTime + travelTime <= event.getParcelDTO().deliveryTimeWindow.end,
+      latestDepartureTime + travelTime <= event.getParcelDTO().getDeliveryTimeWindow().end,
       "The end of the pickup time window %s is too late, or end of delivery is too early.",
-      event.getParcelDTO().pickupTimeWindow.end);
+      event.getParcelDTO().getPickupTimeWindow().end);
   }
 
   /**
@@ -313,7 +313,7 @@ public final class Metrics {
   }
 
   static long pickupUrgency(ParcelDTO dto) {
-    return dto.pickupTimeWindow.end - dto.orderAnnounceTime;
+    return dto.getPickupTimeWindow().end - dto.getOrderAnnounceTime();
   }
 
   enum Urgency implements Function<AddParcelEvent, Long> {
@@ -431,8 +431,8 @@ public final class Metrics {
     final ImmutableList.Builder<Point> builder = ImmutableList.builder();
     for (final TimedEvent se : s.getEvents()) {
       if (se instanceof AddParcelEvent) {
-        builder.add(((AddParcelEvent) se).getParcelDTO().pickupLocation);
-        builder.add(((AddParcelEvent) se).getParcelDTO().deliveryLocation);
+        builder.add(((AddParcelEvent) se).getParcelDTO().getPickupLocation());
+        builder.add(((AddParcelEvent) se).getParcelDTO().getDeliveryLocation());
       }
     }
     return builder.build();
@@ -442,7 +442,7 @@ public final class Metrics {
     final ImmutableList.Builder<Long> builder = ImmutableList.builder();
     for (final TimedEvent se : s.getEvents()) {
       if (se instanceof AddParcelEvent) {
-        builder.add(((AddParcelEvent) se).getParcelDTO().orderAnnounceTime);
+        builder.add(((AddParcelEvent) se).getParcelDTO().getOrderAnnounceTime());
       }
     }
     return builder.build();

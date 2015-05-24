@@ -65,9 +65,9 @@ public class RouteRenderer extends AbstractCanvasRenderer {
         Point to;
         if (pdpModel.getParcelState(parcel).isPickedUp()
           || seen.contains(parcel)) {
-          to = parcel.dto.deliveryLocation;
+          to = parcel.dto.getDeliveryLocation();
         } else {
-          to = parcel.dto.pickupLocation;
+          to = parcel.dto.getPickupLocation();
         }
         seen.add(parcel);
         final int x = vp.toCoordX(to.x);

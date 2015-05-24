@@ -34,46 +34,14 @@ import com.github.rinde.rinsim.util.TimeWindow;
 public final class ParcelDTO implements Serializable {
   private static final long serialVersionUID = -6128057042614968652L;
 
-  /**
-   * The location at which this parcel can be picked up.
-   */
-  public final Point pickupLocation;
-
-  /**
-   * The location at which this parcel has to be delivered.
-   */
-  public final Point deliveryLocation;
-
-  /**
-   * The {@link TimeWindow} in which this parcel has to be picked up.
-   */
-  public final TimeWindow pickupTimeWindow;
-
-  /**
-   * The {@link TimeWindow} in which this parcel has to be delivered.
-   */
-  public final TimeWindow deliveryTimeWindow;
-
-  /**
-   * The capacity that is needed in a vehicle to carry this parcel.
-   */
-  public final int neededCapacity;
-
-  /**
-   * The time at which this parcel is announced, i.e. the time at which the
-   * customer calls with this request.
-   */
-  public final long orderAnnounceTime;
-
-  /**
-   * The time the pickup operation takes.
-   */
-  public final long pickupDuration;
-
-  /**
-   * The time the delivery operation takes.
-   */
-  public final long deliveryDuration;
+  private final Point pickupLocation;
+  private final Point deliveryLocation;
+  private final TimeWindow pickupTimeWindow;
+  private final TimeWindow deliveryTimeWindow;
+  private final int neededCapacity;
+  private final long orderAnnounceTime;
+  private final long pickupDuration;
+  private final long deliveryDuration;
 
   ParcelDTO(Builder b) {
     checkArgument(b.orderAnnounceTime <= b.pickupTimeWindow.begin,
@@ -90,9 +58,11 @@ public final class ParcelDTO implements Serializable {
 
   @Override
   public int hashCode() {
-    return Objects.hash(pickupLocation, deliveryLocation, pickupTimeWindow,
-      deliveryTimeWindow, neededCapacity, orderAnnounceTime, pickupDuration,
-      deliveryDuration);
+    return Objects.hash(getPickupLocation(), getDeliveryLocation(),
+      getPickupTimeWindow(),
+      getDeliveryTimeWindow(), getNeededCapacity(), getOrderAnnounceTime(),
+      getPickupDuration(),
+      getDeliveryDuration());
   }
 
   @Override
@@ -101,20 +71,27 @@ public final class ParcelDTO implements Serializable {
       return false;
     }
     final ParcelDTO o = (ParcelDTO) object;
-    return Objects.equals(pickupLocation, o.pickupLocation)
-      && Objects.equals(deliveryLocation, o.deliveryLocation)
-      && Objects.equals(pickupTimeWindow, o.pickupTimeWindow)
-      && Objects.equals(deliveryTimeWindow, o.deliveryTimeWindow)
-      && Objects.equals(neededCapacity, o.neededCapacity)
-      && Objects.equals(orderAnnounceTime, o.orderAnnounceTime)
-      && Objects.equals(pickupDuration, o.pickupDuration)
-      && Objects.equals(deliveryDuration, o.deliveryDuration);
+    return Objects.equals(getPickupLocation(), o.getPickupLocation())
+      && Objects.equals(getDeliveryLocation(), o.getDeliveryLocation())
+      && Objects.equals(getPickupTimeWindow(), o.getPickupTimeWindow())
+      && Objects.equals(getDeliveryTimeWindow(), o.getDeliveryTimeWindow())
+      && Objects.equals(getNeededCapacity(), o.getNeededCapacity())
+      && Objects.equals(getOrderAnnounceTime(), o.getOrderAnnounceTime())
+      && Objects.equals(getPickupDuration(), o.getPickupDuration())
+      && Objects.equals(getDeliveryDuration(), o.getDeliveryDuration());
   }
 
   @Override
   public String toString() {
     return new StringBuilder("ParcelDTO-").append(
       Integer.toHexString(hashCode())).toString();
+  }
+
+  /**
+   * @return The location at which this parcel can be picked up.
+   */
+  public Point getPickupLocation() {
+    return pickupLocation;
   }
 
   /**
@@ -126,6 +103,56 @@ public final class ParcelDTO implements Serializable {
    */
   public static Builder builder(Point from, Point to) {
     return new Builder(from, to);
+  }
+
+  /**
+   * @return The location at which this parcel has to be delivered.
+   */
+  public Point getDeliveryLocation() {
+    return deliveryLocation;
+  }
+
+  /**
+   * @return The {@link TimeWindow} in which this parcel has to be picked up.
+   */
+  public TimeWindow getPickupTimeWindow() {
+    return pickupTimeWindow;
+  }
+
+  /**
+   * @return The {@link TimeWindow} in which this parcel has to be delivered.
+   */
+  public TimeWindow getDeliveryTimeWindow() {
+    return deliveryTimeWindow;
+  }
+
+  /**
+   * @return The capacity that is needed in a vehicle to carry this parcel.
+   */
+  public int getNeededCapacity() {
+    return neededCapacity;
+  }
+
+  /**
+   * @return The time at which this parcel is announced, i.e. the time at which
+   *         the customer calls with this request.
+   */
+  public long getOrderAnnounceTime() {
+    return orderAnnounceTime;
+  }
+
+  /**
+   * @return The time the pickup operation takes.
+   */
+  public long getPickupDuration() {
+    return pickupDuration;
+  }
+
+  /**
+   * @return The time the delivery operation takes.
+   */
+  public long getDeliveryDuration() {
+    return deliveryDuration;
   }
 
   /**

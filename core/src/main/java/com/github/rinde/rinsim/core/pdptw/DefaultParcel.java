@@ -23,7 +23,7 @@ import com.github.rinde.rinsim.geom.Point;
 /**
  * Default {@link Parcel} implementation. It is instantiated using a
  * {@link ParcelDTO}.
- * @author Rinde van Lon 
+ * @author Rinde van Lon
  */
 public class DefaultParcel extends Parcel {
 
@@ -37,9 +37,9 @@ public class DefaultParcel extends Parcel {
    * @param pDto {@link #dto}
    */
   public DefaultParcel(ParcelDTO pDto) {
-    super(pDto.deliveryLocation, pDto.pickupDuration, pDto.pickupTimeWindow,
-        pDto.deliveryDuration, pDto.deliveryTimeWindow, pDto.neededCapacity);
-    setStartPosition(pDto.pickupLocation);
+    super(pDto.getDeliveryLocation(), pDto.getPickupDuration(), pDto.getPickupTimeWindow(),
+      pDto.getDeliveryDuration(), pDto.getDeliveryTimeWindow(), pDto.getNeededCapacity());
+    setStartPosition(pDto.getPickupLocation());
     dto = pDto;
   }
 
@@ -55,6 +55,6 @@ public class DefaultParcel extends Parcel {
    * @return The pickup location of this parcel.
    */
   public Point getPickupLocation() {
-    return dto.pickupLocation;
+    return dto.getPickupLocation();
   }
 }

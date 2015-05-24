@@ -170,16 +170,16 @@ public final class ArraysSolvers {
     int spIndex = 0;
     for (final ParcelDTO p : state.availableParcels) {
       serviceTimes[index] = DoubleMath.roundToInt(
-        timeConverter.convert(p.pickupDuration), RoundingMode.CEILING);
+        timeConverter.convert(p.getPickupDuration()), RoundingMode.CEILING);
       // add pickup location and time window
-      points.add(p.pickupLocation);
+      points.add(p.getPickupLocation());
       final int deliveryIndex = index + state.availableParcels.size();
       final ParcelIndexObj pio = new ParcelIndexObj(p, index, deliveryIndex);
       parcel2indexBuilder.put(p, pio);
       index2parcelBuilder.put(index, pio);
       index2parcelBuilder.put(deliveryIndex, pio);
 
-      final int[] tw = convertTW(p.pickupTimeWindow, state.time, timeConverter);
+      final int[] tw = convertTW(p.getPickupTimeWindow(), state.time, timeConverter);
       releaseDates[index] = tw[0];
       dueDates[index] = tw[1];
       checkState(releaseDates[index] <= dueDates[index]);
@@ -196,16 +196,16 @@ public final class ArraysSolvers {
       .addAll(state.availableParcels).addAll(inCargo).build();
     for (final ParcelDTO p : deliveries) {
       serviceTimes[index] = DoubleMath.roundToInt(
-        timeConverter.convert(p.deliveryDuration), RoundingMode.CEILING);
+        timeConverter.convert(p.getDeliveryDuration()), RoundingMode.CEILING);
 
-      points.add(p.deliveryLocation);
+      points.add(p.getDeliveryLocation());
       if (inCargo.contains(p)) {
         final ParcelIndexObj pio = new ParcelIndexObj(p, -1, index);
         parcel2indexBuilder.put(p, pio);
         index2parcelBuilder.put(index, pio);
       }
 
-      final int[] tw = convertTW(p.deliveryTimeWindow, state.time,
+      final int[] tw = convertTW(p.getDeliveryTimeWindow(), state.time,
         timeConverter);
       releaseDates[index] = tw[0];
       dueDates[index] = tw[1];

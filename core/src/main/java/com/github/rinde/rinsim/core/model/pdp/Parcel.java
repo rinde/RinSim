@@ -20,7 +20,7 @@ import com.github.rinde.rinsim.util.TimeWindow;
 
 /**
  * The parcel class represents goods that can be transported.
- * @author Rinde van Lon 
+ * @author Rinde van Lon
  */
 public abstract class Parcel extends PDPObjectImpl {
 
@@ -30,7 +30,7 @@ public abstract class Parcel extends PDPObjectImpl {
   protected final long pickupDuration;
 
   /**
-   * The time window in which this parcel is preferrably picked up.
+   * The time window in which this parcel is preferably picked up.
    */
   protected final TimeWindow pickupTimeWindow;
 
@@ -66,7 +66,7 @@ public abstract class Parcel extends PDPObjectImpl {
    * @param pMagnitude The weight/volume/count of this parcel.
    */
   public Parcel(Point pDestination, long pPickupDuration, TimeWindow pickupTW,
-      long pDeliveryDuration, TimeWindow deliveryTW, double pMagnitude) {
+    long pDeliveryDuration, TimeWindow deliveryTW, double pMagnitude) {
     destination = pDestination;
     pickupDuration = pPickupDuration;
     pickupTimeWindow = pickupTW;

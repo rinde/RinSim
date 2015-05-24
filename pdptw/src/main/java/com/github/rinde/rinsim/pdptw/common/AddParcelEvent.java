@@ -42,7 +42,7 @@ public abstract class AddParcelEvent implements TimedEvent {
    * @return A new instance.
    */
   public static AddParcelEvent create(ParcelDTO dto) {
-    return new AutoValue_AddParcelEvent(dto.orderAnnounceTime, dto);
+    return new AutoValue_AddParcelEvent(dto.getOrderAnnounceTime(), dto);
   }
 
   /**

@@ -25,7 +25,7 @@ class GFParcel extends DefaultParcel implements FieldEmitter {
 
   GFParcel(ParcelDTO pDto) {
     super(pDto);
-    pos = pDto.pickupLocation;
+    pos = pDto.getPickupLocation();
   }
 
   @Override
