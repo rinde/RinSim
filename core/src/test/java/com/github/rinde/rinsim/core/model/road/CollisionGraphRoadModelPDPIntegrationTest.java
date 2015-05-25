@@ -31,9 +31,7 @@ import com.github.rinde.rinsim.core.model.pdp.DefaultPDPModel;
 import com.github.rinde.rinsim.core.model.pdp.PDPModel.ParcelState;
 import com.github.rinde.rinsim.core.model.pdp.Parcel;
 import com.github.rinde.rinsim.core.model.time.TimeLapse;
-import com.github.rinde.rinsim.core.pdptw.DefaultParcel;
 import com.github.rinde.rinsim.core.pdptw.DefaultVehicle;
-import com.github.rinde.rinsim.core.pdptw.ParcelDTO;
 import com.github.rinde.rinsim.core.pdptw.VehicleDTO;
 import com.github.rinde.rinsim.geom.Graphs;
 import com.github.rinde.rinsim.geom.LengthData;
@@ -94,8 +92,7 @@ public class CollisionGraphRoadModelPDPIntegrationTest {
    */
   @Test
   public void testMoveAndPickup() {
-    final DefaultParcel parcel1 = new DefaultParcel(ParcelDTO.builder(NW, NE)
-      .build());
+    final Parcel parcel1 = Parcel.builder(NW, NE).build();
     final TestAgent agent1 = new TestAgent(VehicleDTO.builder()
       .startPosition(NE)
       .speed(1d)

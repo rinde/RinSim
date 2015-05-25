@@ -16,11 +16,11 @@
 package com.github.rinde.rinsim.examples.pdptw.gradientfield;
 
 import com.github.rinde.rinsim.core.model.pdp.PDPModel.ParcelState;
-import com.github.rinde.rinsim.core.pdptw.DefaultParcel;
-import com.github.rinde.rinsim.core.pdptw.ParcelDTO;
+import com.github.rinde.rinsim.core.model.pdp.Parcel;
+import com.github.rinde.rinsim.core.model.pdp.ParcelDTO;
 import com.github.rinde.rinsim.geom.Point;
 
-class GFParcel extends DefaultParcel implements FieldEmitter {
+class GFParcel extends Parcel implements FieldEmitter {
   private final Point pos;
 
   GFParcel(ParcelDTO pDto) {

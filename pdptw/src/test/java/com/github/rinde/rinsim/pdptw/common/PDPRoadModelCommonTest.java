@@ -43,9 +43,7 @@ import com.github.rinde.rinsim.core.model.road.RoadModelBuilders;
 import com.github.rinde.rinsim.core.model.time.TimeLapse;
 import com.github.rinde.rinsim.core.model.time.TimeLapseFactory;
 import com.github.rinde.rinsim.core.pdptw.DefaultDepot;
-import com.github.rinde.rinsim.core.pdptw.DefaultParcel;
 import com.github.rinde.rinsim.core.pdptw.DefaultVehicle;
-import com.github.rinde.rinsim.core.pdptw.ParcelDTO;
 import com.github.rinde.rinsim.core.pdptw.VehicleDTO;
 import com.github.rinde.rinsim.geom.Point;
 import com.github.rinde.rinsim.util.TimeWindow;
@@ -54,9 +52,9 @@ public abstract class PDPRoadModelCommonTest {
   static final TimeLapse TIME = TimeLapseFactory.create(0, 1);
   static final TimeWindow DEFAULT_TW = new TimeWindow(0, 100);
 
-  DefaultParcel dp1;
-  DefaultParcel dp2;
-  DefaultParcel dp3;
+  Parcel dp1;
+  Parcel dp2;
+  Parcel dp3;
   DefaultDepot depot;
 
   DefaultVehicle dv1;
@@ -101,8 +99,8 @@ public abstract class PDPRoadModelCommonTest {
     dp1 = create(new Point(1, 0), new Point(0, 7));
     dp2 = create(new Point(5, 0), new Point(0, 5));
     dp3 = create(new Point(1, 0), new Point(0, 6));
-    for (final DefaultParcel dp : asList(dp1, dp2, dp3)) {
-      rm.addObjectAt(dp, dp.dto.getPickupLocation());
+    for (final Parcel dp : asList(dp1, dp2, dp3)) {
+      rm.addObjectAt(dp, dp.getDto().getPickupLocation());
       pm.register(dp);
     }
 
@@ -167,29 +165,24 @@ public abstract class PDPRoadModelCommonTest {
   @Test(expected = IllegalArgumentException.class)
   public void testInvalidRoadUser() {
     // does not exist
-    rm.moveTo(dv1, new PlainTestParcel(new Point(6, 6)), time(1));
-  }
-
-  @Test(expected = IllegalArgumentException.class)
-  public void testInvalidRoadUser2() {
-    rm.addObjectAtSamePosition(create(new Point(1, 1), new Point(2, 2)), dp2);
-    rm.addObjectAtSamePosition(new PlainTestParcel(new Point(6, 6)), dp2);
+    rm.moveTo(dv1, Parcel.builder(new Point(0, 0), new Point(6, 6))
+      .build(), time(1));
   }
 
   @Test
   public void test1() {
-    dp1 = new DefaultParcel(
-      ParcelDTO.builder(new Point(1, 0), new Point(0, 7))
+    dp1 = new Parcel(
+      Parcel.builder(new Point(1, 0), new Point(0, 7))
         .pickupTimeWindow(DEFAULT_TW)
         .deliveryTimeWindow(DEFAULT_TW)
         .neededCapacity(0)
         .orderAnnounceTime(0L)
         .pickupDuration(2L)
         .deliveryDuration(0L)
-        .build()
+        .buildDTO()
       );
 
-    rm.addObjectAt(dp1, dp1.dto.getPickupLocation());
+    rm.addObjectAt(dp1, dp1.getDto().getPickupLocation());
     pm.register(dp1);
 
     assertNull(rm.getDestinationToParcel(dv1));
@@ -317,7 +310,7 @@ public abstract class PDPRoadModelCommonTest {
     rm.removeObject(dp1);
     // then deliver
     rm.moveTo(dv1, dp1, time(80));
-    assertEquals(rm.getPosition(dv1), dp1.getDestination());
+    assertEquals(rm.getPosition(dv1), dp1.getDeliveryLocation());
 
     rm.moveTo(dv1, dp2, time(180));
     assertTrue(rm.equalPosition(dv1, dp2));
@@ -380,28 +373,18 @@ public abstract class PDPRoadModelCommonTest {
     }
   }
 
-  static class PlainTestParcel extends Parcel {
-    PlainTestParcel(Point pDestination) {
-      super(pDestination, 0, DEFAULT_TW, 0, DEFAULT_TW, 0);
-    }
-
-    @Override
-    public void initRoadPDP(RoadModel pRoadModel, PDPModel pPdpModel) {}
-  }
-
   static TimeLapse time(long t) {
     return TimeLapseFactory.create(NonSI.HOUR, 0, t);
   }
 
-  static DefaultParcel create(Point p1, Point p2) {
-    return new DefaultParcel(
-      ParcelDTO.builder(p1, p2)
-        .pickupTimeWindow(DEFAULT_TW)
-        .deliveryTimeWindow(DEFAULT_TW)
-        .neededCapacity(0)
-        .orderAnnounceTime(0L)
-        .pickupDuration(0L)
-        .deliveryDuration(0L)
-        .build());
+  static Parcel create(Point p1, Point p2) {
+    return Parcel.builder(p1, p2)
+      .pickupTimeWindow(DEFAULT_TW)
+      .deliveryTimeWindow(DEFAULT_TW)
+      .neededCapacity(0)
+      .orderAnnounceTime(0L)
+      .pickupDuration(0L)
+      .deliveryDuration(0L)
+      .build();
   }
 }

@@ -20,7 +20,7 @@ import javax.measure.unit.SI;
 import org.junit.Test;
 
 import com.github.rinde.rinsim.central.GlobalStateObject.VehicleStateObject;
-import com.github.rinde.rinsim.core.pdptw.ParcelDTO;
+import com.github.rinde.rinsim.core.model.pdp.Parcel;
 import com.github.rinde.rinsim.core.pdptw.VehicleDTO;
 import com.github.rinde.rinsim.geom.Point;
 import com.github.rinde.rinsim.testutil.TestUtil;
@@ -34,17 +34,17 @@ import com.google.common.collect.ImmutableSet;
  */
 public class SolverValidatorTest {
 
-  protected static final ParcelDTO p1 = parcel();
-  protected static final ParcelDTO p2 = parcel();
-  protected static final ParcelDTO p3 = parcel();
-  protected static final ParcelDTO p4 = parcel();
-  protected static final ParcelDTO p5 = parcel();
+  protected static final Parcel p1 = parcel("p1");
+  protected static final Parcel p2 = parcel("p2");
+  protected static final Parcel p3 = parcel("p3");
+  protected static final Parcel p4 = parcel("p4");
+  protected static final Parcel p5 = parcel("p5");
 
   @Test(expected = IllegalArgumentException.class)
   public void validateNegativeTime() {
     @SuppressWarnings("null")
     final GlobalStateObject state = new GlobalStateObject(null, null, -1, null,
-        null, null);
+      null, null);
     SolverValidator.validateInputs(state);
   }
 
@@ -52,9 +52,9 @@ public class SolverValidatorTest {
   @SuppressWarnings("null")
   public void validateNegativeRemainingTime() {
     final VehicleStateObject vs1 = new VehicleStateObject(vdto(), null, null,
-        -1, null, null);
+      -1, null, null);
     final GlobalStateObject state = new GlobalStateObject(null,
-        ImmutableList.of(vs1), 0, null, null, null);
+      ImmutableList.of(vs1), 0, null, null, null);
     SolverValidator.validateInputs(state);
   }
 
@@ -63,9 +63,9 @@ public class SolverValidatorTest {
   public void validateZeroSpeed() {
     final VehicleDTO dto1 = VehicleDTO.builder().speed(0d).build();
     final VehicleStateObject vs1 = new VehicleStateObject(dto1, null, null, 0,
-        null, null);
+      null, null);
     final GlobalStateObject state = new GlobalStateObject(null,
-        ImmutableList.of(vs1), 0, null, null, null);
+      ImmutableList.of(vs1), 0, null, null, null);
     SolverValidator.validateInputs(state);
   }
 
@@ -73,9 +73,9 @@ public class SolverValidatorTest {
   @Test(expected = IllegalArgumentException.class)
   public void validateParcelAvailableAndInInventory() {
     final VehicleStateObject vs1 = new VehicleStateObject(vdto(), null,
-        ImmutableSet.of(p1), 0, null, null);
+      ImmutableSet.of(p1), 0, null, null);
     final GlobalStateObject state = new GlobalStateObject(ImmutableSet.of(p1),
-        ImmutableList.of(vs1), 0, null, null, null);
+      ImmutableList.of(vs1), 0, null, null, null);
     SolverValidator.validateInputs(state);
   }
 
@@ -83,26 +83,26 @@ public class SolverValidatorTest {
   @Test(expected = IllegalArgumentException.class)
   public void validateParcelInTwoInventories() {
     final VehicleStateObject vs1 = new VehicleStateObject(vdto(), null,
-        ImmutableSet.of(p1), 0, null, null);
+      ImmutableSet.of(p1), 0, null, null);
     final VehicleStateObject vs2 = new VehicleStateObject(vdto(), null,
-        ImmutableSet.of(p1), 0, null, null);
-    final ImmutableSet<ParcelDTO> empty = ImmutableSet.of();
+      ImmutableSet.of(p1), 0, null, null);
+    final ImmutableSet<Parcel> empty = ImmutableSet.of();
     final GlobalStateObject state = new GlobalStateObject(empty,
-        ImmutableList.of(vs1, vs2), 0, null, null, null);
+      ImmutableList.of(vs1, vs2), 0, null, null, null);
     SolverValidator.validateInputs(state);
   }
 
   @SuppressWarnings("null")
   @Test(expected = IllegalArgumentException.class)
   public void valiateInputsDestinationNotInContents() {
-    final ImmutableSet<ParcelDTO> empty = ImmutableSet.of();
+    final ImmutableSet<Parcel> empty = ImmutableSet.of();
     final VehicleStateObject vs1 = new VehicleStateObject(vdto(), null, empty,
-        0, p1, null);
+      0, p1, null);
     final VehicleStateObject vs2 = new VehicleStateObject(vdto(), null,
-        ImmutableSet.of(p2, p1), 0, null, null);
+      ImmutableSet.of(p2, p1), 0, null, null);
 
     final GlobalStateObject state = new GlobalStateObject(empty,
-        ImmutableList.of(vs1, vs2), 0, null, null, null);
+      ImmutableList.of(vs1, vs2), 0, null, null, null);
     SolverValidator.validateInputs(state);
   }
 
@@ -113,13 +113,13 @@ public class SolverValidatorTest {
   public void validateInvalidCurrentRoute1() {
     final Point p = new Point(0, 0);
     final VehicleStateObject vs1 = new VehicleStateObject(vdto(), p,
-        ImmutableSet.of(p1), 0, p1, ImmutableList.of(p1));
+      ImmutableSet.of(p1), 0, p1, ImmutableList.of(p1));
     final VehicleStateObject vs2 = new VehicleStateObject(vdto(), p,
-        ImmutableSet.of(p2), 0, null, null);
-    final ImmutableSet<ParcelDTO> available = ImmutableSet.of(p3);
+      ImmutableSet.of(p2), 0, null, null);
+    final ImmutableSet<Parcel> available = ImmutableSet.of(p3);
     final GlobalStateObject state = new GlobalStateObject(available,
-        ImmutableList.of(vs1, vs2), 0, SI.SECOND, SI.METERS_PER_SECOND,
-        SI.METER);
+      ImmutableList.of(vs1, vs2), 0, SI.SECOND, SI.METERS_PER_SECOND,
+      SI.METER);
     SolverValidator.validateInputs(state);
   }
 
@@ -130,13 +130,13 @@ public class SolverValidatorTest {
   public void validateInvalidCurrentRoute2() {
     final Point p = new Point(0, 0);
     final VehicleStateObject vs1 = new VehicleStateObject(vdto(), p,
-        ImmutableSet.<ParcelDTO> of(), 0, p1, ImmutableList.of(p1, p2, p1, p2));
+      ImmutableSet.<Parcel> of(), 0, p1, ImmutableList.of(p1, p2, p1, p2));
     final VehicleStateObject vs2 = new VehicleStateObject(vdto(), p,
-        ImmutableSet.<ParcelDTO> of(), 0, null, ImmutableList.of(p2, p2));
-    final ImmutableSet<ParcelDTO> available = ImmutableSet.of(p1, p2);
+      ImmutableSet.<Parcel> of(), 0, null, ImmutableList.of(p2, p2));
+    final ImmutableSet<Parcel> available = ImmutableSet.of(p1, p2);
     final GlobalStateObject state = new GlobalStateObject(available,
-        ImmutableList.of(vs1, vs2), 0, SI.SECOND, SI.METERS_PER_SECOND,
-        SI.METER);
+      ImmutableList.of(vs1, vs2), 0, SI.SECOND, SI.METERS_PER_SECOND,
+      SI.METER);
     SolverValidator.validateInputs(state);
   }
 
@@ -147,10 +147,10 @@ public class SolverValidatorTest {
   public void validateInvalidCurrentRoute3() {
     final Point p = new Point(0, 0);
     final VehicleStateObject vs1 = new VehicleStateObject(vdto(), p,
-        ImmutableSet.of(p1), 0, p1, ImmutableList.of(p3));
-    final ImmutableSet<ParcelDTO> available = ImmutableSet.of(p3);
+      ImmutableSet.of(p1), 0, p1, ImmutableList.of(p3));
+    final ImmutableSet<Parcel> available = ImmutableSet.of(p3);
     final GlobalStateObject state = new GlobalStateObject(available,
-        ImmutableList.of(vs1), 0, SI.SECOND, SI.METERS_PER_SECOND, SI.METER);
+      ImmutableList.of(vs1), 0, SI.SECOND, SI.METERS_PER_SECOND, SI.METER);
     SolverValidator.validateInputs(state);
   }
 
@@ -162,10 +162,10 @@ public class SolverValidatorTest {
   public void validateInvalidCurrentRoute4a() {
     final Point p = new Point(0, 0);
     final VehicleStateObject vs1 = new VehicleStateObject(vdto(), p,
-        ImmutableSet.of(p1), 0, p1, ImmutableList.of(p3, p1, p3));
-    final ImmutableSet<ParcelDTO> available = ImmutableSet.of(p3);
+      ImmutableSet.of(p1), 0, p1, ImmutableList.of(p3, p1, p3));
+    final ImmutableSet<Parcel> available = ImmutableSet.of(p3);
     final GlobalStateObject state = new GlobalStateObject(available,
-        ImmutableList.of(vs1), 0, SI.SECOND, SI.METERS_PER_SECOND, SI.METER);
+      ImmutableList.of(vs1), 0, SI.SECOND, SI.METERS_PER_SECOND, SI.METER);
     SolverValidator.validateInputs(state);
   }
 
@@ -177,10 +177,10 @@ public class SolverValidatorTest {
   public void validateInvalidCurrentRoute4b() {
     final Point p = new Point(0, 0);
     final VehicleStateObject vs1 = new VehicleStateObject(vdto(), p,
-        ImmutableSet.<ParcelDTO> of(), 0, p1, ImmutableList.<ParcelDTO> of());
-    final ImmutableSet<ParcelDTO> available = ImmutableSet.of(p1);
+      ImmutableSet.<Parcel> of(), 0, p1, ImmutableList.<Parcel> of());
+    final ImmutableSet<Parcel> available = ImmutableSet.of(p1);
     final GlobalStateObject state = new GlobalStateObject(available,
-        ImmutableList.of(vs1), 0, SI.SECOND, SI.METERS_PER_SECOND, SI.METER);
+      ImmutableList.of(vs1), 0, SI.SECOND, SI.METERS_PER_SECOND, SI.METER);
     SolverValidator.validateInputs(state);
   }
 
@@ -191,10 +191,10 @@ public class SolverValidatorTest {
   public void validateInvalidCurrentRoute5() {
     final Point p = new Point(0, 0);
     final VehicleStateObject vs1 = new VehicleStateObject(vdto(), p,
-        ImmutableSet.of(p1), 0, p1, ImmutableList.of(p1, p1, p3));
-    final ImmutableSet<ParcelDTO> available = ImmutableSet.of(p3);
+      ImmutableSet.of(p1), 0, p1, ImmutableList.of(p1, p1, p3));
+    final ImmutableSet<Parcel> available = ImmutableSet.of(p3);
     final GlobalStateObject state = new GlobalStateObject(available,
-        ImmutableList.of(vs1), 0, SI.SECOND, SI.METERS_PER_SECOND, SI.METER);
+      ImmutableList.of(vs1), 0, SI.SECOND, SI.METERS_PER_SECOND, SI.METER);
     SolverValidator.validateInputs(state);
   }
 
@@ -205,10 +205,10 @@ public class SolverValidatorTest {
   public void validateInvalidCurrentRoute6a() {
     final Point p = new Point(0, 0);
     final VehicleStateObject vs1 = new VehicleStateObject(vdto(), p,
-        ImmutableSet.of(p1), 0, p1, ImmutableList.of(p1, p2));
-    final ImmutableSet<ParcelDTO> available = ImmutableSet.of(p2);
+      ImmutableSet.of(p1), 0, p1, ImmutableList.of(p1, p2));
+    final ImmutableSet<Parcel> available = ImmutableSet.of(p2);
     final GlobalStateObject state = new GlobalStateObject(available,
-        ImmutableList.of(vs1), 0, SI.SECOND, SI.METERS_PER_SECOND, SI.METER);
+      ImmutableList.of(vs1), 0, SI.SECOND, SI.METERS_PER_SECOND, SI.METER);
     SolverValidator.validateInputs(state);
   }
 
@@ -219,10 +219,10 @@ public class SolverValidatorTest {
   public void validateInvalidCurrentRoute6b() {
     final Point p = new Point(0, 0);
     final VehicleStateObject vs1 = new VehicleStateObject(vdto(), p,
-        ImmutableSet.of(p1), 0, p1, ImmutableList.of(p1, p2, p2, p2));
-    final ImmutableSet<ParcelDTO> available = ImmutableSet.of(p2);
+      ImmutableSet.of(p1), 0, p1, ImmutableList.of(p1, p2, p2, p2));
+    final ImmutableSet<Parcel> available = ImmutableSet.of(p2);
     final GlobalStateObject state = new GlobalStateObject(available,
-        ImmutableList.of(vs1), 0, SI.SECOND, SI.METERS_PER_SECOND, SI.METER);
+      ImmutableList.of(vs1), 0, SI.SECOND, SI.METERS_PER_SECOND, SI.METER);
     SolverValidator.validateInputs(state);
   }
 
@@ -231,32 +231,32 @@ public class SolverValidatorTest {
    */
   @Test
   public void validateValidCurrentRoutes() {
-    final ImmutableSet<ParcelDTO> empty = ImmutableSet.of();
+    final ImmutableSet<Parcel> empty = ImmutableSet.of();
     final VehicleStateObject vs1 = new VehicleStateObject(vdto(), null,
-        ImmutableSet.of(p1), 0, p1, ImmutableList.of(p1));
+      ImmutableSet.of(p1), 0, p1, ImmutableList.of(p1));
     final VehicleStateObject vs2 = new VehicleStateObject(vdto(), null,
-        ImmutableSet.of(p2), 0, null, ImmutableList.of(p2));
+      ImmutableSet.of(p2), 0, null, ImmutableList.of(p2));
     final VehicleStateObject vs3 = new VehicleStateObject(vdto(), null, empty,
-        0, p3, ImmutableList.<ParcelDTO> of(p3, p3));
-    final ImmutableSet<ParcelDTO> available = ImmutableSet.of(p3);
+      0, p3, ImmutableList.<Parcel> of(p3, p3));
+    final ImmutableSet<Parcel> available = ImmutableSet.of(p3);
     final GlobalStateObject state = new GlobalStateObject(available,
-        ImmutableList.of(vs1, vs2, vs3), 0, null, null, null);
+      ImmutableList.of(vs1, vs2, vs3), 0, null, null, null);
     SolverValidator.validateInputs(state);
   }
 
   @SuppressWarnings("null")
   @Test
   public void validateCorrectInputs() {
-    final ImmutableSet<ParcelDTO> empty = ImmutableSet.of();
+    final ImmutableSet<Parcel> empty = ImmutableSet.of();
     final VehicleStateObject vs1 = new VehicleStateObject(vdto(), null,
-        ImmutableSet.of(p1), 0, p1, null);
+      ImmutableSet.of(p1), 0, p1, null);
     final VehicleStateObject vs2 = new VehicleStateObject(vdto(), null,
-        ImmutableSet.of(p2), 0, null, null);
+      ImmutableSet.of(p2), 0, null, null);
     final VehicleStateObject vs3 = new VehicleStateObject(vdto(), null, empty,
-        0, p3, null);
-    final ImmutableSet<ParcelDTO> available = ImmutableSet.of(p3);
+      0, p3, null);
+    final ImmutableSet<Parcel> available = ImmutableSet.of(p3);
     final GlobalStateObject state = new GlobalStateObject(available,
-        ImmutableList.of(vs1, vs2, vs3), 0, null, null, null);
+      ImmutableList.of(vs1, vs2, vs3), 0, null, null, null);
     SolverValidator.validateInputs(state);
   }
 
@@ -264,45 +264,45 @@ public class SolverValidatorTest {
   @Test(expected = IllegalArgumentException.class)
   public void validateInvalidNumberOfRoutes() {
     final VehicleStateObject vs1 = new VehicleStateObject(vdto(), new Point(0,
-        0), null, 0, null, null);
-    final ImmutableList<ImmutableList<ParcelDTO>> routes = ImmutableList.of();
+      0), null, 0, null, null);
+    final ImmutableList<ImmutableList<Parcel>> routes = ImmutableList.of();
     final GlobalStateObject state = new GlobalStateObject(null,
-        ImmutableList.of(vs1), 0, null, null, null);
+      ImmutableList.of(vs1), 0, null, null, null);
     SolverValidator.validateOutputs(routes, state);
   }
 
   @SuppressWarnings("null")
   @Test(expected = IllegalArgumentException.class)
   public void validateParcelInTwoRoutes() {
-    final ImmutableSet<ParcelDTO> empty = ImmutableSet.of();
+    final ImmutableSet<Parcel> empty = ImmutableSet.of();
     final VehicleStateObject vs1 = new VehicleStateObject(vdto(), new Point(0,
-        0), empty, 0, null, null);
+      0), empty, 0, null, null);
     final VehicleStateObject vs2 = new VehicleStateObject(vdto(), new Point(0,
-        0), empty, 0, null, null);
+      0), empty, 0, null, null);
 
-    final ImmutableList<ImmutableList<ParcelDTO>> routes = ImmutableList.of(
-        ImmutableList.of(p1, p1), ImmutableList.of(p1, p1));
-    final ImmutableSet<ParcelDTO> availableParcels = ImmutableSet.of(p1);
+    final ImmutableList<ImmutableList<Parcel>> routes = ImmutableList.of(
+      ImmutableList.of(p1, p1), ImmutableList.of(p1, p1));
+    final ImmutableSet<Parcel> availableParcels = ImmutableSet.of(p1);
     final ImmutableList<VehicleStateObject> vehicles = ImmutableList.of(vs1,
-        vs2);
+      vs2);
     final GlobalStateObject state = new GlobalStateObject(availableParcels,
-        vehicles, 0, null, null, null);
+      vehicles, 0, null, null, null);
     SolverValidator.validateOutputs(routes, state);
   }
 
   @SuppressWarnings("null")
   @Test(expected = IllegalArgumentException.class)
   public void validateParcelTooManyTimes1() {
-    final ImmutableSet<ParcelDTO> empty = ImmutableSet.of();
+    final ImmutableSet<Parcel> empty = ImmutableSet.of();
     final VehicleStateObject vs1 = new VehicleStateObject(vdto(), new Point(0,
-        0), empty, 0, null, null);
+      0), empty, 0, null, null);
 
-    final ImmutableList<ImmutableList<ParcelDTO>> routes = ImmutableList
-        .of(ImmutableList.of(p1, p1, p1));
-    final ImmutableSet<ParcelDTO> availableParcels = ImmutableSet.of(p1);
+    final ImmutableList<ImmutableList<Parcel>> routes = ImmutableList
+      .of(ImmutableList.of(p1, p1, p1));
+    final ImmutableSet<Parcel> availableParcels = ImmutableSet.of(p1);
     final ImmutableList<VehicleStateObject> vehicles = ImmutableList.of(vs1);
     final GlobalStateObject state = new GlobalStateObject(availableParcels,
-        vehicles, 0, null, null, null);
+      vehicles, 0, null, null, null);
     SolverValidator.validateOutputs(routes, state);
   }
 
@@ -310,170 +310,177 @@ public class SolverValidatorTest {
   @Test(expected = IllegalArgumentException.class)
   public void validateParcelTooManyTimes2() {
     final VehicleStateObject vs1 = new VehicleStateObject(vdto(), new Point(0,
-        0), ImmutableSet.of(p1), 0, null, null);
+      0), ImmutableSet.of(p1), 0, null, null);
 
-    final ImmutableList<ImmutableList<ParcelDTO>> routes = ImmutableList
-        .of(ImmutableList.of(p1, p1));
-    final ImmutableSet<ParcelDTO> availableParcels = ImmutableSet.of();
+    final ImmutableList<ImmutableList<Parcel>> routes = ImmutableList
+      .of(ImmutableList.of(p1, p1));
+    final ImmutableSet<Parcel> availableParcels = ImmutableSet.of();
     final ImmutableList<VehicleStateObject> vehicles = ImmutableList.of(vs1);
     final GlobalStateObject state = new GlobalStateObject(availableParcels,
-        vehicles, 0, null, null, null);
+      vehicles, 0, null, null, null);
     SolverValidator.validateOutputs(routes, state);
   }
 
   @Test(expected = IllegalArgumentException.class)
   public void validateParcelNotInCargo() {
-    final ImmutableSet<ParcelDTO> empty = ImmutableSet.of();
+    final ImmutableSet<Parcel> empty = ImmutableSet.of();
     final VehicleStateObject vs1 = new VehicleStateObject(vdto(), new Point(0,
-        0), empty, 0, null, null);
+      0), empty, 0, null, null);
 
-    final ImmutableList<ImmutableList<ParcelDTO>> routes = ImmutableList
-        .of(ImmutableList.of(p1));
-    final ImmutableSet<ParcelDTO> availableParcels = ImmutableSet.of();
+    final ImmutableList<ImmutableList<Parcel>> routes = ImmutableList
+      .of(ImmutableList.of(p1));
+    final ImmutableSet<Parcel> availableParcels = ImmutableSet.of();
     final ImmutableList<VehicleStateObject> vehicles = ImmutableList.of(vs1);
     @SuppressWarnings("null")
     final GlobalStateObject state = new GlobalStateObject(availableParcels,
-        vehicles, 0, null, null, null);
+      vehicles, 0, null, null, null);
     SolverValidator.validateOutputs(routes, state);
   }
 
   @SuppressWarnings("null")
   @Test(expected = IllegalArgumentException.class)
   public void validateUnknownParcelInRoute() {
-    final ImmutableSet<ParcelDTO> empty = ImmutableSet.of();
+    final ImmutableSet<Parcel> empty = ImmutableSet.of();
     final VehicleStateObject vs1 = new VehicleStateObject(vdto(), new Point(0,
-        0), empty, 0, null, null);
+      0), empty, 0, null, null);
     final VehicleStateObject vs2 = new VehicleStateObject(vdto(), new Point(0,
-        0), empty, 0, null, null);
+      0), empty, 0, null, null);
 
-    final ImmutableList<ImmutableList<ParcelDTO>> routes = ImmutableList.of(
-        ImmutableList.of(p1, p1), ImmutableList.of(p2, p3, p3, p2));
-    final ImmutableSet<ParcelDTO> availableParcels = ImmutableSet.of(p1, p2);
+    final ImmutableList<ImmutableList<Parcel>> routes = ImmutableList.of(
+      ImmutableList.of(p1, p1), ImmutableList.of(p2, p3, p3, p2));
+    final ImmutableSet<Parcel> availableParcels = ImmutableSet.of(p1, p2);
     final ImmutableList<VehicleStateObject> vehicles = ImmutableList.of(vs1,
-        vs2);
+      vs2);
     final GlobalStateObject state = new GlobalStateObject(availableParcels,
-        vehicles, 0, null, null, null);
+      vehicles, 0, null, null, null);
     SolverValidator.validateOutputs(routes, state);
   }
 
   @Test(expected = IllegalArgumentException.class)
   public void validateIncompleteRoute1() {
-    final ImmutableSet<ParcelDTO> empty = ImmutableSet.of();
+    final ImmutableSet<Parcel> empty = ImmutableSet.of();
     final VehicleStateObject vs1 = new VehicleStateObject(vdto(), new Point(0,
-        0), empty, 0, null, null);
+      0), empty, 0, null, null);
     final VehicleStateObject vs2 = new VehicleStateObject(vdto(), new Point(0,
-        0), empty, 0, null, null);
+      0), empty, 0, null, null);
 
-    final ImmutableList<ImmutableList<ParcelDTO>> routes = ImmutableList.of(
-        ImmutableList.of(p1, p1), ImmutableList.of(p2, p2));
-    final ImmutableSet<ParcelDTO> availableParcels = ImmutableSet
-        .of(p1, p2, p3);
+    final ImmutableList<ImmutableList<Parcel>> routes = ImmutableList.of(
+      ImmutableList.of(p1, p1), ImmutableList.of(p2, p2));
+    final ImmutableSet<Parcel> availableParcels = ImmutableSet
+      .of(p1, p2, p3);
     final ImmutableList<VehicleStateObject> vehicles = ImmutableList.of(vs1,
-        vs2);
+      vs2);
     @SuppressWarnings("null")
     final GlobalStateObject state = new GlobalStateObject(availableParcels,
-        vehicles, 0, null, null, null);
+      vehicles, 0, null, null, null);
     SolverValidator.validateOutputs(routes, state);
   }
 
   @Test(expected = IllegalArgumentException.class)
   public void validateIncompleteRouteForVehicle() {
     final VehicleStateObject vs1 = new VehicleStateObject(vdto(), new Point(0,
-        0), ImmutableSet.of(p1), 0, null, null);
+      0), ImmutableSet.of(p1), 0, null, null);
 
-    final ImmutableList<ParcelDTO> empty = ImmutableList.of();
-    final ImmutableList<ImmutableList<ParcelDTO>> routes = ImmutableList
-        .of(empty);
-    final ImmutableSet<ParcelDTO> availableParcels = ImmutableSet.of();
+    final ImmutableList<Parcel> empty = ImmutableList.of();
+    final ImmutableList<ImmutableList<Parcel>> routes = ImmutableList
+      .of(empty);
+    final ImmutableSet<Parcel> availableParcels = ImmutableSet.of();
     final ImmutableList<VehicleStateObject> vehicles = ImmutableList.of(vs1);
     @SuppressWarnings("null")
     final GlobalStateObject state = new GlobalStateObject(availableParcels,
-        vehicles, 0, null, null, null);
+      vehicles, 0, null, null, null);
     SolverValidator.validateOutputs(routes, state);
   }
 
   @Test(expected = IllegalArgumentException.class)
   public void validateOutputDestinationNotFirstInRoute() {
-    final ImmutableSet<ParcelDTO> empty = ImmutableSet.of();
+    final ImmutableSet<Parcel> empty = ImmutableSet.of();
     final VehicleStateObject vs1 = new VehicleStateObject(vdto(), new Point(0,
-        0), empty, 0, p1, null);
+      0), empty, 0, p1, null);
 
-    final ImmutableList<ImmutableList<ParcelDTO>> routes = ImmutableList
-        .of(ImmutableList.of(p2, p1, p1, p2));
+    final ImmutableList<ImmutableList<Parcel>> routes = ImmutableList
+      .of(ImmutableList.of(p2, p1, p1, p2));
 
-    final ImmutableSet<ParcelDTO> availableParcels = ImmutableSet.of(p1, p2);
+    final ImmutableSet<Parcel> availableParcels = ImmutableSet.of(p1, p2);
     final ImmutableList<VehicleStateObject> vehicles = ImmutableList.of(vs1);
     final GlobalStateObject state = new GlobalStateObject(availableParcels,
-        vehicles, 0, null, null, null);
+      vehicles, 0, null, null, null);
     SolverValidator.validateOutputs(routes, state);
   }
 
   @SuppressWarnings("null")
   @Test
   public void validateCorrectOutput() {
-    final ImmutableSet<ParcelDTO> empty = ImmutableSet.of();
+    final ImmutableSet<Parcel> empty = ImmutableSet.of();
     final VehicleStateObject vs1 = new VehicleStateObject(vdto(), new Point(0,
-        0), empty, 0, null, null);
+      0), empty, 0, null, null);
     final VehicleStateObject vs2 = new VehicleStateObject(vdto(), new Point(0,
-        0), ImmutableSet.of(p3), 0, null, null);
+      0), ImmutableSet.of(p3), 0, null, null);
 
-    final ImmutableList<ImmutableList<ParcelDTO>> routes = ImmutableList.of(
-        ImmutableList.of(p1, p1), ImmutableList.of(p2, p3, p2));
-    final ImmutableSet<ParcelDTO> availableParcels = ImmutableSet.of(p1, p2);
+    final ImmutableList<ImmutableList<Parcel>> routes = ImmutableList.of(
+      ImmutableList.of(p1, p1), ImmutableList.of(p2, p3, p2));
+    final ImmutableSet<Parcel> availableParcels = ImmutableSet.of(p1, p2);
     final ImmutableList<VehicleStateObject> vehicles = ImmutableList.of(vs1,
-        vs2);
+      vs2);
     final GlobalStateObject state = new GlobalStateObject(availableParcels,
-        vehicles, 0, null, null, null);
+      vehicles, 0, null, null, null);
     SolverValidator.validateOutputs(routes, state);
   }
 
   @Test
   public void testWrap() {
     TestUtil.testPrivateConstructor(SolverValidator.class);
-    final ImmutableSet<ParcelDTO> empty = ImmutableSet.of();
+    final ImmutableSet<Parcel> empty = ImmutableSet.of();
     final VehicleStateObject vs1 = new VehicleStateObject(vdto(), new Point(0,
-        0), empty, 0, null, null);
+      0), empty, 0, null, null);
     final VehicleStateObject vs2 = new VehicleStateObject(vdto(), new Point(0,
-        0), ImmutableSet.of(p3), 0, null, null);
+      0), ImmutableSet.of(p3), 0, null, null);
     final VehicleStateObject vs3 = new VehicleStateObject(vdto(), new Point(0,
-        0), empty, 0, p4, null);
+      0), empty, 0, p4, null);
 
-    final ImmutableList<ImmutableList<ParcelDTO>> routes = ImmutableList.of(
-        ImmutableList.of(p1, p1), ImmutableList.of(p2, p3, p2),
-        ImmutableList.of(p4, p5, p5, p4));
-    final ImmutableSet<ParcelDTO> availableParcels = ImmutableSet.of(p1, p2,
-        p4, p5);
+    final ImmutableList<ImmutableList<Parcel>> routes = ImmutableList.of(
+      ImmutableList.of(p1, p1), ImmutableList.of(p2, p3, p2),
+      ImmutableList.of(p4, p5, p5, p4));
+    final ImmutableSet<Parcel> availableParcels = ImmutableSet.of(p1, p2,
+      p4, p5);
     final ImmutableList<VehicleStateObject> vehicles = ImmutableList.of(vs1,
-        vs2, vs3);
+      vs2, vs3);
     @SuppressWarnings("null")
     final GlobalStateObject state = new GlobalStateObject(availableParcels,
-        vehicles, 0, null, null, null);
+      vehicles, 0, null, null, null);
     final Solver solver = SolverValidator.wrap(new FakeSolver(routes));
     solver.solve(state);
   }
 
-  static ParcelDTO parcel() {
-    return ParcelDTO.builder(new Point(0, 0), new Point(0, 0)).build();
+  static Parcel parcel(final String name) {
+    return new Parcel(Parcel.builder(new Point(0, 0), new Point(0, 0))
+      .buildDTO()) {
+
+      @Override
+      public String toString() {
+        return name;
+      }
+    };
   }
 
   static VehicleDTO vdto() {
     return VehicleDTO.builder()
-        .startPosition(new Point(0, 0))
-        .speed(1d)
-        .capacity(1)
-        .availabilityTimeWindow(TimeWindow.ALWAYS)
-        .build();
+      .startPosition(new Point(0, 0))
+      .speed(1d)
+      .capacity(1)
+      .availabilityTimeWindow(TimeWindow.ALWAYS)
+      .build();
   }
 
   class FakeSolver implements Solver {
-    ImmutableList<ImmutableList<ParcelDTO>> answer;
+    ImmutableList<ImmutableList<Parcel>> answer;
 
-    FakeSolver(ImmutableList<ImmutableList<ParcelDTO>> answer) {
+    FakeSolver(ImmutableList<ImmutableList<Parcel>> answer) {
       this.answer = answer;
     }
 
     @Override
-    public ImmutableList<ImmutableList<ParcelDTO>> solve(GlobalStateObject state) {
+    public ImmutableList<ImmutableList<Parcel>> solve(GlobalStateObject state) {
       return answer;
     }
   }

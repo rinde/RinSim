@@ -25,7 +25,8 @@ import java.io.Writer;
 import java.util.Collections;
 import java.util.List;
 
-import com.github.rinde.rinsim.core.pdptw.ParcelDTO;
+import com.github.rinde.rinsim.core.model.pdp.Parcel;
+import com.github.rinde.rinsim.core.model.pdp.ParcelDTO;
 import com.github.rinde.rinsim.core.pdptw.VehicleDTO;
 import com.github.rinde.rinsim.geom.Point;
 import com.github.rinde.rinsim.pdptw.common.AddDepotEvent;
@@ -124,7 +125,7 @@ public final class FabriRechtParser {
 
       final int neededCapacity = 1;
 
-      final ParcelDTO o = ParcelDTO
+      final ParcelDTO o = Parcel
         .builder(coordinates.get(Integer
           .parseInt(parts[0])), coordinates.get(Integer.parseInt(parts[1])))
         .pickupTimeWindow(
@@ -135,7 +136,7 @@ public final class FabriRechtParser {
         .orderAnnounceTime(Long.parseLong(parts[7]))
         .pickupDuration(Long.parseLong(parts[8]))
         .deliveryDuration(Long.parseLong(parts[9]))
-        .build();
+        .buildDTO();
 
       events.add(AddParcelEvent.create(o));
     }

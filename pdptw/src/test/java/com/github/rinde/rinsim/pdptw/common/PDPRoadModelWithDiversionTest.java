@@ -40,6 +40,6 @@ public class PDPRoadModelWithDiversionTest extends PDPRoadModelCommonTest {
 
     // now move by using the reference to the parcel
     rm.moveTo(dv1, dp1, time(300));
-    assertEquals(rm.getPosition(dv1), dp1.getDestination());
+    assertEquals(rm.getPosition(dv1), dp1.getDeliveryLocation());
   }
 }

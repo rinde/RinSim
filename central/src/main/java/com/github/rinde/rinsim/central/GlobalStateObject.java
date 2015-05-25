@@ -26,7 +26,7 @@ import javax.measure.unit.Unit;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 
-import com.github.rinde.rinsim.core.pdptw.ParcelDTO;
+import com.github.rinde.rinsim.core.model.pdp.Parcel;
 import com.github.rinde.rinsim.core.pdptw.VehicleDTO;
 import com.github.rinde.rinsim.geom.Point;
 import com.google.common.base.Optional;
@@ -46,7 +46,7 @@ public class GlobalStateObject {
    * All known parcels which require both a pickup and a delivery. They are not
    * in the inventory of a vehicle.
    */
-  public final ImmutableSet<ParcelDTO> availableParcels;
+  public final ImmutableSet<Parcel> availableParcels;
 
   /**
    * All vehicles.
@@ -73,7 +73,7 @@ public class GlobalStateObject {
    */
   public final Unit<Length> distUnit;
 
-  GlobalStateObject(ImmutableSet<ParcelDTO> availableParcels,
+  GlobalStateObject(ImmutableSet<Parcel> availableParcels,
     ImmutableList<VehicleStateObject> vehicles, long time,
     Unit<Duration> timeUnit, Unit<Velocity> speedUnit, Unit<Length> distUnit) {
     this.availableParcels = availableParcels;
@@ -120,7 +120,7 @@ public class GlobalStateObject {
      * The contents of the vehicle. This excludes parcels which are currently
      * being picked up and includes parcels which are currently being delivered.
      */
-    public final ImmutableSet<ParcelDTO> contents;
+    public final ImmutableSet<Parcel> contents;
 
     /**
      * The remaining time the vehicle needs for completion of its current
@@ -132,7 +132,7 @@ public class GlobalStateObject {
      * If present this field contains the route the vehicle is currently
      * following.
      */
-    public final Optional<ImmutableList<ParcelDTO>> route;
+    public final Optional<ImmutableList<Parcel>> route;
 
     private final VehicleDTO dto;
 
@@ -151,20 +151,21 @@ public class GlobalStateObject {
      * vehicle has a destination it <b>must</b> first move to and service this
      * destination.</li>
      * <li>In case the vehicle is servicing a parcel. In this case the
-     * {@link ParcelDTO} as specified by this field is the one being serviced.
-     * In this case servicing <b>must</b> first complete before the vehicle can
-     * do something else. When this {@link ParcelDTO} also occurs in
-     * {@link #contents} this parcel is currently being delivered, otherwise it
-     * is being picked up.</li>
+     * {@link Parcel} as specified by this field is the one being serviced. In
+     * this case servicing <b>must</b> first complete before the vehicle can do
+     * something else. When this {@link Parcel} also occurs in {@link #contents}
+     * this parcel is currently being delivered, otherwise it is being picked
+     * up.</li>
      * </ol>
      */
     @Nullable
-    public final ParcelDTO destination;
+    public final Parcel destination;
 
+    @SuppressWarnings("unchecked")
     VehicleStateObject(VehicleDTO dto, Point location,
-      ImmutableSet<ParcelDTO> contents, long remainingServiceTime,
-      @Nullable ParcelDTO destination,
-      @Nullable ImmutableList<ParcelDTO> route) {
+      ImmutableSet<Parcel> contents, long remainingServiceTime,
+      @Nullable Parcel destination,
+      @Nullable ImmutableList<? extends Parcel> route) {
       this.dto = dto;
       // super(dto.startPosition, dto.speed, dto.capacity,
       // dto.availabilityTimeWindow);
@@ -172,7 +173,7 @@ public class GlobalStateObject {
       this.contents = contents;
       this.remainingServiceTime = remainingServiceTime;
       this.destination = destination;
-      this.route = Optional.fromNullable(route);
+      this.route = Optional.fromNullable((ImmutableList<Parcel>) route);
     }
 
     /**

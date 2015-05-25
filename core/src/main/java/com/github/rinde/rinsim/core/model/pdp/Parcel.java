@@ -15,6 +15,9 @@
  */
 package com.github.rinde.rinsim.core.model.pdp;
 
+import static com.google.common.base.Preconditions.checkArgument;
+
+import com.github.rinde.rinsim.core.model.road.RoadModel;
 import com.github.rinde.rinsim.geom.Point;
 import com.github.rinde.rinsim.util.TimeWindow;
 
@@ -22,57 +25,18 @@ import com.github.rinde.rinsim.util.TimeWindow;
  * The parcel class represents goods that can be transported.
  * @author Rinde van Lon
  */
-public abstract class Parcel extends PDPObjectImpl {
+public class Parcel extends PDPObjectImpl implements IParcel {
 
-  /**
-   * The time it takes to pickup this parcel.
-   */
-  protected final long pickupDuration;
-
-  /**
-   * The time window in which this parcel is preferably picked up.
-   */
-  protected final TimeWindow pickupTimeWindow;
-
-  /**
-   * The time it takes to deliver this parcel.
-   */
-  protected final long deliveryDuration;
-
-  /**
-   * The time window in which this parcel is preferably delivered.
-   */
-  protected final TimeWindow deliveryTimeWindow;
-
-  /**
-   * The destination of this parcel, this is the position to where this parcel
-   * needs to be delivered.
-   */
-  protected final Point destination;
-
-  /**
-   * The magnitude of this parcel, can be weight/volume/count depending on the
-   * specific application.
-   */
-  protected final double magnitude;
+  private final ParcelDTO dto;
 
   /**
    * Create a new parcel.
-   * @param pDestination The position where this parcel needs to be delivered.
-   * @param pPickupDuration The time needed for pickup.
-   * @param pickupTW The time window for pickup.
-   * @param pDeliveryDuration The time needed for delivery.
-   * @param deliveryTW The time window for delivery.
-   * @param pMagnitude The weight/volume/count of this parcel.
+   * @param parcelDto The {@link ParcelDTO} detailing all immutable information
+   *          of a parcel.
    */
-  public Parcel(Point pDestination, long pPickupDuration, TimeWindow pickupTW,
-    long pDeliveryDuration, TimeWindow deliveryTW, double pMagnitude) {
-    destination = pDestination;
-    pickupDuration = pPickupDuration;
-    pickupTimeWindow = pickupTW;
-    deliveryDuration = pDeliveryDuration;
-    deliveryTimeWindow = deliveryTW;
-    magnitude = pMagnitude;
+  public Parcel(ParcelDTO parcelDto) {
+    dto = parcelDto;
+    setStartPosition(dto.getPickupLocation());
   }
 
   @Override
@@ -80,46 +44,51 @@ public abstract class Parcel extends PDPObjectImpl {
     return PDPType.PARCEL;
   }
 
-  /**
-   * @return {@link #magnitude}
-   */
-  public final double getMagnitude() {
-    return magnitude;
+  @Override
+  public long getOrderAnnounceTime() {
+    return dto.getOrderAnnounceTime();
   }
 
-  /**
-   * @return {@link #pickupDuration}
-   */
+  @Override
+  public final double getNeededCapacity() {
+    return dto.getNeededCapacity();
+  }
+
+  @Override
   public final long getPickupDuration() {
-    return pickupDuration;
+    return dto.getPickupDuration();
   }
 
-  /**
-   * @return {@link #deliveryDuration}
-   */
+  @Override
   public final long getDeliveryDuration() {
-    return deliveryDuration;
+    return dto.getDeliveryDuration();
   }
 
-  /**
-   * @return {@link #destination}
-   */
-  public final Point getDestination() {
-    return destination;
+  @Override
+  public final Point getPickupLocation() {
+    return dto.getPickupLocation();
   }
 
-  /**
-   * @return {@link #deliveryTimeWindow}.
-   */
+  @Override
+  public final Point getDeliveryLocation() {
+    return dto.getDeliveryLocation();
+  }
+
+  @Override
   public final TimeWindow getDeliveryTimeWindow() {
-    return deliveryTimeWindow;
+    return dto.getDeliveryTimeWindow();
+  }
+
+  @Override
+  public final TimeWindow getPickupTimeWindow() {
+    return dto.getPickupTimeWindow();
   }
 
   /**
-   * @return {@link #pickupTimeWindow}
+   * @return The immutable {@link ParcelDTO}.
    */
-  public final TimeWindow getPickupTimeWindow() {
-    return pickupTimeWindow;
+  public final ParcelDTO getDto() {
+    return dto;
   }
 
   /**
@@ -144,5 +113,221 @@ public abstract class Parcel extends PDPObjectImpl {
    */
   public boolean canBeDelivered(Vehicle v, long time) {
     return true;
+  }
+
+  @Override
+  public void initRoadPDP(RoadModel pRoadModel, PDPModel pPdpModel) {}
+
+  @Override
+  public String toString() {
+    return "[Parcel " + getDto() + "]";
+  }
+
+  /**
+   * Starts building a {@link ParcelDTO} with the mandatory origin and
+   * destination locations.
+   * @param from The pickup location.
+   * @param to The delivery location.
+   * @return A {@link Parcel.Builder} instance.
+   */
+  public static Parcel.Builder builder(Point from, Point to) {
+    return new Parcel.Builder(from, to);
+  }
+
+  /**
+   * A builder for {@link ParcelDTO}. For fields which are not set the following
+   * default values are used:
+   * <ul>
+   * <li><code>pickupTimeWindow = {@link TimeWindow#ALWAYS}</code></li>
+   * <li><code>deliveryTimeWindow = {@link TimeWindow#ALWAYS}</code></li>
+   * <li><code>neededCapacity = 0</code></li>
+   * <li><code>orderArrivalTime = 0L</code></li>
+   * <li><code>pickupDuration = 0L</code></li>
+   * <li><code>deliveryDuration = 0L</code></li>
+   * </ul>
+   *
+   * @author Rinde van Lon
+   */
+  public static final class Builder {
+    final Point pickupLocation;
+    final Point deliveryLocation;
+    TimeWindow pickupTimeWindow;
+    TimeWindow deliveryTimeWindow;
+    double neededCapacity;
+    long orderAnnounceTime;
+    long pickupDuration;
+    long deliveryDuration;
+
+    Builder(Point from, Point to) {
+      pickupLocation = from;
+      deliveryLocation = to;
+      pickupTimeWindow = TimeWindow.ALWAYS;
+      deliveryTimeWindow = TimeWindow.ALWAYS;
+      neededCapacity = 0;
+      orderAnnounceTime = 0L;
+      pickupDuration = 0L;
+      deliveryDuration = 0L;
+    }
+
+    /**
+     * @return A new parcel data transfer object ({@link ParcelDTO}).
+     */
+    public ParcelDTO buildDTO() {
+      checkArgument(orderAnnounceTime <= pickupTimeWindow.begin,
+        "Order arrival time may not be after the pickup TW has already opened.");
+      return new AutoValue_ParcelDTO(pickupLocation, deliveryLocation,
+        pickupTimeWindow, deliveryTimeWindow, neededCapacity,
+        orderAnnounceTime, pickupDuration, deliveryDuration);
+    }
+
+    /**
+     * @return A new parcel object.
+     */
+    public Parcel build() {
+      return new Parcel(buildDTO());
+    }
+
+    /**
+     * Sets both the pickup and delivery time windows to the specified value.
+     * The default value is {@link TimeWindow#ALWAYS}.
+     * @param tw The time window to set.
+     * @return This, as per the builder pattern.
+     */
+    public Builder timeWindows(TimeWindow tw) {
+      return pickupTimeWindow(tw).deliveryTimeWindow(tw);
+    }
+
+    /**
+     * Sets the pickup time window. The default value is
+     * {@link TimeWindow#ALWAYS}.
+     * @param tw The new pickup time window.
+     * @return This, as per the builder pattern.
+     */
+    public Builder pickupTimeWindow(TimeWindow tw) {
+      pickupTimeWindow = tw;
+      return this;
+    }
+
+    /**
+     * Sets the delivery time window. The default value is
+     * {@link TimeWindow#ALWAYS}.
+     * @param tw The new delivery time window.
+     * @return This, as per the builder pattern.
+     */
+    public Builder deliveryTimeWindow(TimeWindow tw) {
+      deliveryTimeWindow = tw;
+      return this;
+    }
+
+    /**
+     * Sets the capacity that is needed for this parcel.
+     * @param capacity The capacity to set.
+     * @return This, as per the builder pattern.
+     */
+    public Builder neededCapacity(double capacity) {
+      checkArgument(capacity >= 0, "Capacity can not be negative.");
+      neededCapacity = capacity;
+      return this;
+    }
+
+    /**
+     * Sets the order announce time.
+     * @param time The announce time.
+     * @return This, as per the builder pattern.
+     */
+    public Builder orderAnnounceTime(long time) {
+      orderAnnounceTime = time;
+      return this;
+    }
+
+    /**
+     * Sets the duration of both the pickup and delivery process, must be
+     * <code>&gt;= 0</code>.
+     * @param duration The duration of the service process.
+     * @return This, as per the builder pattern.
+     */
+    public Builder serviceDuration(long duration) {
+      return pickupDuration(duration).deliveryDuration(duration);
+    }
+
+    /**
+     * Sets the duration of the pickup, must be <code>&gt;=0</code>.
+     * @param duration The duration of the pickup.
+     * @return This, as per the builder pattern.
+     */
+    public Builder pickupDuration(long duration) {
+      checkArgument(duration >= 0,
+        "Pickup duration needs to be strictly positive.");
+      pickupDuration = duration;
+      return this;
+    }
+
+    /**
+     * Sets the duration of the delivery, must be <code>&gt;=0</code>.
+     * @param duration The duration of the delivery.
+     * @return This, as per the builder pattern.
+     */
+    public Builder deliveryDuration(long duration) {
+      checkArgument(duration >= 0,
+        "Delivery duration needs to be strictly positive.");
+      deliveryDuration = duration;
+      return this;
+    }
+
+    /**
+     * @return The announce time of this parcel order.
+     */
+    public long getOrderAnnounceTime() {
+      return orderAnnounceTime;
+    }
+
+    /**
+     * @return The pickup location of the parcel.
+     */
+    public Point getPickupLocation() {
+      return pickupLocation;
+    }
+
+    /**
+     * @return The pickup time window of the parcel.
+     */
+    public TimeWindow getPickupTimeWindow() {
+      return pickupTimeWindow;
+    }
+
+    /**
+     * @return The duration of the pickup.
+     */
+    public long getPickupDuration() {
+      return pickupDuration;
+    }
+
+    /**
+     * @return The delivery location.
+     */
+    public Point getDeliveryLocation() {
+      return deliveryLocation;
+    }
+
+    /**
+     * @return The delivery time window.
+     */
+    public TimeWindow getDeliveryTimeWindow() {
+      return deliveryTimeWindow;
+    }
+
+    /**
+     * @return The duration of the delivery.
+     */
+    public long getDeliveryDuration() {
+      return deliveryDuration;
+    }
+
+    /**
+     * @return The needed capacity.
+     */
+    public double getNeededCapacity() {
+      return neededCapacity;
+    }
   }
 }

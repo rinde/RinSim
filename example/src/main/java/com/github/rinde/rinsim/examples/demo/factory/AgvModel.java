@@ -144,7 +144,7 @@ class AgvModel extends AbstractModel<AGV> implements TickListener,
     verify(e instanceof PDPModelEvent);
     final PDPModelEvent event = (PDPModelEvent) e;
     if (e.getEventType() == PDPModelEventType.END_PICKUP) {
-      occupiedPositions.remove(((Box) event.parcel).origin);
+      occupiedPositions.remove(((Box) event.parcel).getPickupLocation());
     }
     if (e.getEventType() == PDPModelEventType.END_DELIVERY) {
       final long duration = DoubleMath.roundToLong(
@@ -164,7 +164,8 @@ class AgvModel extends AbstractModel<AGV> implements TickListener,
         occupiedPositions.add(dest);
       }
 
-      final Box b = new Box(event.parcel.getDestination(), dest, duration, bh);
+      final Box b = new Box(event.parcel.getDeliveryLocation(), dest, duration,
+        bh);
       bh.box = b;
 
       simulator.get().register(b);

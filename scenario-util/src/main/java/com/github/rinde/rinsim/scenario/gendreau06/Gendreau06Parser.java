@@ -39,7 +39,8 @@ import java.util.regex.Pattern;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-import com.github.rinde.rinsim.core.pdptw.ParcelDTO;
+import com.github.rinde.rinsim.core.model.pdp.Parcel;
+import com.github.rinde.rinsim.core.model.pdp.ParcelDTO;
 import com.github.rinde.rinsim.core.pdptw.VehicleDTO;
 import com.github.rinde.rinsim.geom.Point;
 import com.github.rinde.rinsim.pdptw.common.AddDepotEvent;
@@ -402,7 +403,7 @@ public final class Gendreau06Parser {
           // when an offline scenario is desired, all times are set to -1
           final long arrTime = online ? requestArrivalTime : -1;
 
-          final ParcelDTO dto = ParcelDTO.builder(new Point(pickupX, pickupY),
+          final ParcelDTO dto = Parcel.builder(new Point(pickupX, pickupY),
             new Point(deliveryX, deliveryY)).
             pickupTimeWindow(new TimeWindow(
               pickupTimeWindowBegin, pickupTimeWindowEnd))
@@ -412,7 +413,7 @@ public final class Gendreau06Parser {
             .orderAnnounceTime(arrTime)
             .pickupDuration(pickupServiceTime)
             .deliveryDuration(deliveryServiceTime)
-            .build();
+            .buildDTO();
           listBuilder.add(AddParcelEvent.create(dto));
         }
       }

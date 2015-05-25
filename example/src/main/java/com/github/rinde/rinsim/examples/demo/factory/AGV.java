@@ -60,12 +60,12 @@ class AGV extends Vehicle {
         pdpModel.get().pickup(this, destination.get(), time);
       } else if (pdpModel.get().getContents(this).contains(destination.get())) {
         if (roadModel.get().getPosition(this)
-            .equals(destination.get().getDestination())) {
+            .equals(destination.get().getDeliveryLocation())) {
           pdpModel.get().deliver(this, destination.get(), time);
           destination = Optional.absent();
         } else {
           roadModel.get()
-              .moveTo(this, destination.get().getDestination(), time);
+              .moveTo(this, destination.get().getDeliveryLocation(), time);
         }
       } else {
         if (roadModel.get().containsObject(destination.get())) {

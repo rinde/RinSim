@@ -57,10 +57,10 @@ public class RandomVehicle extends DefaultVehicle implements RandomUser {
 
     if (target.isPresent()) {
       if (pm.get().containerContains(this, target.get())) {
-        if (rm.get().getPosition(this).equals(target.get().getDestination())) {
+        if (rm.get().getPosition(this).equals(target.get().getDeliveryLocation())) {
           pm.get().deliver(this, target.get(), time);
         } else {
-          rm.get().moveTo(this, target.get().getDestination(), time);
+          rm.get().moveTo(this, target.get().getDeliveryLocation(), time);
         }
       } else {
         if (pm.get().getParcelState(target.get()) != ParcelState.AVAILABLE) {

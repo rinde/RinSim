@@ -22,11 +22,11 @@ import com.github.rinde.rinsim.core.Simulator;
 import com.github.rinde.rinsim.core.SimulatorAPI;
 import com.github.rinde.rinsim.core.model.pdp.PDPModel;
 import com.github.rinde.rinsim.core.model.pdp.PDPModel.ParcelState;
+import com.github.rinde.rinsim.core.model.pdp.Parcel;
 import com.github.rinde.rinsim.core.model.road.RoadModel;
 import com.github.rinde.rinsim.core.model.road.RoadModels;
 import com.github.rinde.rinsim.core.model.road.RoadUser;
 import com.github.rinde.rinsim.core.model.time.TimeLapse;
-import com.github.rinde.rinsim.core.pdptw.DefaultParcel;
 import com.github.rinde.rinsim.core.pdptw.DefaultVehicle;
 import com.github.rinde.rinsim.core.pdptw.VehicleDTO;
 import com.github.rinde.rinsim.pdptw.common.AddVehicleEvent;
@@ -96,12 +96,12 @@ class Truck extends DefaultVehicle {
     final RoadModel rm = roadModel.get();
     final PDPModel pm = pdpModel.get();
     // we always go to the closest available parcel
-    final DefaultParcel closest = (DefaultParcel) RoadModels.findClosestObject(
+    final Parcel closest = (Parcel) RoadModels.findClosestObject(
       rm.getPosition(this), rm, new Predicate<RoadUser>() {
         @Override
         public boolean apply(RoadUser input) {
-          return input instanceof DefaultParcel
-            && pm.getParcelState((DefaultParcel) input) == ParcelState.AVAILABLE;
+          return input instanceof Parcel
+            && pm.getParcelState((Parcel) input) == ParcelState.AVAILABLE;
         }
       });
 

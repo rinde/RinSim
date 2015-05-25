@@ -31,7 +31,8 @@ import javax.annotation.Nullable;
 import org.apache.commons.math3.stat.descriptive.StatisticalSummary;
 import org.apache.commons.math3.stat.descriptive.SummaryStatistics;
 
-import com.github.rinde.rinsim.core.pdptw.ParcelDTO;
+import com.github.rinde.rinsim.core.model.pdp.IParcel;
+import com.github.rinde.rinsim.core.model.pdp.ParcelDTO;
 import com.github.rinde.rinsim.geom.Point;
 import com.github.rinde.rinsim.pdptw.common.AddParcelEvent;
 import com.github.rinde.rinsim.pdptw.common.AddVehicleEvent;
@@ -89,10 +90,12 @@ public final class Metrics {
   static ImmutableList<LoadPart> measureLoad(AddParcelEvent event,
     TravelTimes tt) {
     checkArgument(
-      event.getParcelDTO().getPickupTimeWindow().begin <= event.getParcelDTO().getDeliveryTimeWindow().begin,
+      event.getParcelDTO().getPickupTimeWindow().begin <= event.getParcelDTO()
+        .getDeliveryTimeWindow().begin,
       "Delivery TW begin may not be before pickup TW begin.");
     checkArgument(
-      event.getParcelDTO().getPickupTimeWindow().end <= event.getParcelDTO().getDeliveryTimeWindow().end,
+      event.getParcelDTO().getPickupTimeWindow().end <= event.getParcelDTO()
+        .getDeliveryTimeWindow().end,
       "Delivery TW end may not be before pickup TW end.");
 
     // pickup lower bound,
@@ -110,7 +113,8 @@ public final class Metrics {
     // first possible departure time from pickup location
     final long travelLb = pickupLb + event.getParcelDTO().getPickupDuration();
     // latest possible arrival time at delivery location
-    final long travelUb = Math.max(event.getParcelDTO().getDeliveryTimeWindow().end,
+    final long travelUb = Math.max(
+      event.getParcelDTO().getDeliveryTimeWindow().end,
       travelLb + expectedTravelTime);
 
     final double travelLoad = expectedTravelTime
@@ -225,11 +229,12 @@ public final class Metrics {
    * </ul>
    * Where:
    * <ul>
-   * <li><code>dtw</code> is {@link ParcelDTO#deliveryTimeWindow}</li>
-   * <li><code>ptw</code> is {@link ParcelDTO#pickupTimeWindow}</li>
-   * <li><code>pd</code> is {@link ParcelDTO#pickupDuration}</li>
+   * <li><code>dtw</code> is {@link ParcelDTO#getDeliveryTimeWindow()}</li>
+   * <li><code>ptw</code> is {@link ParcelDTO#getPickupTimeWindow()}</li>
+   * <li><code>pd</code> is {@link ParcelDTO#getPickupDuration()}</li>
    * <li><code>travelTime</code> is the time to travel the shortest path from
-   * {@link ParcelDTO#pickupLocation} to {@link ParcelDTO#deliveryLocation}</li>
+   * {@link ParcelDTO#getPickupLocation()} to
+   * {@link ParcelDTO#getDeliveryLocation()}</li>
    * </ul>
    *
    * @param s The scenario to check.
@@ -263,9 +268,11 @@ public final class Metrics {
       event.getParcelDTO().getDeliveryTimeWindow().begin >= firstDepartureTime
         + travelTime,
       "The begin of the delivery time window (%s) is too early, should be >= %s.",
-      event.getParcelDTO().getDeliveryTimeWindow(), firstDepartureTime + travelTime);
+      event.getParcelDTO().getDeliveryTimeWindow(), firstDepartureTime
+        + travelTime);
     checkArgument(
-      latestDepartureTime + travelTime <= event.getParcelDTO().getDeliveryTimeWindow().end,
+      latestDepartureTime + travelTime <= event.getParcelDTO()
+        .getDeliveryTimeWindow().end,
       "The end of the pickup time window %s is too late, or end of delivery is too early.",
       event.getParcelDTO().getPickupTimeWindow().end);
   }
@@ -312,7 +319,7 @@ public final class Metrics {
     return pickupUrgency(event.getParcelDTO());
   }
 
-  static long pickupUrgency(ParcelDTO dto) {
+  static long pickupUrgency(IParcel dto) {
     return dto.getPickupTimeWindow().end - dto.getOrderAnnounceTime();
   }
 
@@ -442,7 +449,8 @@ public final class Metrics {
     final ImmutableList.Builder<Long> builder = ImmutableList.builder();
     for (final TimedEvent se : s.getEvents()) {
       if (se instanceof AddParcelEvent) {
-        builder.add(((AddParcelEvent) se).getParcelDTO().getOrderAnnounceTime());
+        builder
+          .add(((AddParcelEvent) se).getParcelDTO().getOrderAnnounceTime());
       }
     }
     return builder.build();

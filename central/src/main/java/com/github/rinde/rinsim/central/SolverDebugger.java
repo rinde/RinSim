@@ -20,16 +20,16 @@ import static java.util.Collections.unmodifiableList;
 
 import java.util.List;
 
-import com.github.rinde.rinsim.core.pdptw.ParcelDTO;
+import com.github.rinde.rinsim.core.model.pdp.Parcel;
 import com.google.common.collect.ImmutableList;
 
 /**
  * Allows keeping track of the inputs and outputs of a {@link Solver}.
- * @author Rinde van Lon 
+ * @author Rinde van Lon
  */
 public final class SolverDebugger implements Solver {
   private final List<GlobalStateObject> inputs;
-  private final List<ImmutableList<ImmutableList<ParcelDTO>>> outputs;
+  private final List<ImmutableList<ImmutableList<Parcel>>> outputs;
   private final Solver delegate;
   private final boolean print;
 
@@ -41,13 +41,13 @@ public final class SolverDebugger implements Solver {
   }
 
   @Override
-  public ImmutableList<ImmutableList<ParcelDTO>> solve(GlobalStateObject state) {
+  public ImmutableList<ImmutableList<Parcel>> solve(GlobalStateObject state) {
     if (print) {
       System.out.println(state);
     }
     inputs.add(state);
-    final ImmutableList<ImmutableList<ParcelDTO>> result = delegate
-        .solve(state);
+    final ImmutableList<ImmutableList<Parcel>> result = delegate
+      .solve(state);
     outputs.add(result);
     if (print) {
       System.out.println(result);
@@ -69,7 +69,7 @@ public final class SolverDebugger implements Solver {
    *         {@link #solve(GlobalStateObject)}. The list is in order of
    *         invocation.
    */
-  public List<ImmutableList<ImmutableList<ParcelDTO>>> getOutputs() {
+  public List<ImmutableList<ImmutableList<Parcel>>> getOutputs() {
     return unmodifiableList(outputs);
   }
 

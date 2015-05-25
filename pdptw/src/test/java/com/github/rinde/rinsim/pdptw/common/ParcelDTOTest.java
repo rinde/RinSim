@@ -19,13 +19,14 @@ import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
 
-import com.github.rinde.rinsim.core.pdptw.ParcelDTO;
+import com.github.rinde.rinsim.core.model.pdp.IParcel;
+import com.github.rinde.rinsim.core.model.pdp.Parcel;
 import com.github.rinde.rinsim.geom.Point;
 import com.github.rinde.rinsim.util.TimeWindow;
 
 /**
- * Test for the {@link ParcelDTO#builder(Point, Point)}.
- * @author Rinde van Lon 
+ * Test for the {@link Parcel#builder(Point, Point)}.
+ * @author Rinde van Lon
  */
 public class ParcelDTOTest {
 
@@ -34,13 +35,13 @@ public class ParcelDTOTest {
    */
   @Test
   public void defaultsTest() {
-    final ParcelDTO defaults = ParcelDTO.builder(new Point(0, 0),
-        new Point(2, 2)).build();
+    final IParcel defaults = Parcel.builder(new Point(0, 0),
+      new Point(2, 2)).buildDTO();
 
     assertEquals(new Point(0, 0), defaults.getPickupLocation());
     assertEquals(new Point(2, 2), defaults.getDeliveryLocation());
     assertEquals(0, defaults.getOrderAnnounceTime());
-    assertEquals(0, defaults.getNeededCapacity());
+    assertEquals(0, defaults.getNeededCapacity(), 0.00001);
     assertEquals(TimeWindow.ALWAYS, defaults.getPickupTimeWindow());
     assertEquals(TimeWindow.ALWAYS, defaults.getDeliveryTimeWindow());
     assertEquals(0, defaults.getPickupDuration());
@@ -52,24 +53,24 @@ public class ParcelDTOTest {
    */
   @Test
   public void overridingTest() {
-    final ParcelDTO.Builder b = ParcelDTO.builder(new Point(0, 0),
-        new Point(2, 2));
+    final Parcel.Builder b = Parcel.builder(new Point(0, 0),
+      new Point(2, 2));
 
-    final ParcelDTO dto1 = b.timeWindows(new TimeWindow(7, 10)).build();
+    final IParcel dto1 = b.timeWindows(new TimeWindow(7, 10)).buildDTO();
     assertEquals(new TimeWindow(7, 10), dto1.getPickupTimeWindow());
     assertEquals(new TimeWindow(7, 10), dto1.getDeliveryTimeWindow());
 
-    final ParcelDTO dto2 = b.pickupTimeWindow(new TimeWindow(8, 11)).build();
+    final IParcel dto2 = b.pickupTimeWindow(new TimeWindow(8, 11)).buildDTO();
     assertEquals(new TimeWindow(8, 11), dto2.getPickupTimeWindow());
     assertEquals(new TimeWindow(7, 10), dto2.getDeliveryTimeWindow());
 
-    final ParcelDTO dto3 = b.serviceDuration(560L).build();
+    final IParcel dto3 = b.serviceDuration(560L).buildDTO();
     assertEquals(new TimeWindow(8, 11), dto3.getPickupTimeWindow());
     assertEquals(new TimeWindow(7, 10), dto3.getDeliveryTimeWindow());
     assertEquals(560, dto3.getPickupDuration());
     assertEquals(560, dto3.getDeliveryDuration());
 
-    final ParcelDTO dto4 = b.pickupDuration(230L).build();
+    final IParcel dto4 = b.pickupDuration(230L).buildDTO();
     assertEquals(230, dto4.getPickupDuration());
     assertEquals(560, dto4.getDeliveryDuration());
   }

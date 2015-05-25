@@ -74,8 +74,8 @@ class Taxi extends Vehicle {
         curr = Optional.absent();
       } else if (inCargo) {
         // if it is in cargo, go to its destination
-        rm.moveTo(this, curr.get().getDestination(), time);
-        if (rm.getPosition(this).equals(curr.get().getDestination())) {
+        rm.moveTo(this, curr.get().getDeliveryLocation(), time);
+        if (rm.getPosition(this).equals(curr.get().getDeliveryLocation())) {
           // deliver when we arrive
           pm.deliver(this, curr.get(), time);
         }

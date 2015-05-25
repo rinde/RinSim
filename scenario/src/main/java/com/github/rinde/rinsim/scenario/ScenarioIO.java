@@ -35,6 +35,8 @@ import javax.measure.unit.Unit;
 import javax.xml.bind.DatatypeConverter;
 
 import com.github.rinde.rinsim.core.model.ModelBuilder;
+import com.github.rinde.rinsim.core.model.pdp.Parcel;
+import com.github.rinde.rinsim.core.model.pdp.ParcelDTO;
 import com.github.rinde.rinsim.core.model.pdp.TimeWindowPolicy;
 import com.github.rinde.rinsim.geom.Point;
 import com.github.rinde.rinsim.scenario.Scenario.ProblemClass;
@@ -55,6 +57,7 @@ import com.google.gson.JsonDeserializationContext;
 import com.google.gson.JsonDeserializer;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParseException;
 import com.google.gson.JsonPrimitive;
 import com.google.gson.JsonSerializationContext;
 import com.google.gson.JsonSerializer;
@@ -87,7 +90,7 @@ public final class ScenarioIO {
       .registerTypeHierarchyAdapter(TimeWindowPolicy.class,
         new TimeWindowHierarchyIO())
       .registerTypeAdapter(Scenario.class, new ScenarioObjIO())
-
+      .registerTypeAdapter(ParcelDTO.class, new ParcelCreator())
       .registerTypeAdapter(Point.class, new PointIO())
       .registerTypeAdapter(TimeWindow.class, new TimeWindowIO())
       // .registerTypeAdapter(enumSetType, new EnumSetIO())
@@ -633,6 +636,43 @@ public final class ScenarioIO {
     public JsonElement doSerialize(Class<?> src, Type typeOfSrc,
       JsonSerializationContext context) {
       return new JsonPrimitive(src.getName());
+    }
+  }
+
+  static class ParcelCreator extends SafeNullIO<ParcelDTO> {
+
+    @Override
+    public ParcelDTO doDeserialize(JsonElement json, Type typeOfT,
+      JsonDeserializationContext context) throws JsonParseException {
+      Iterator<JsonElement> it = json.getAsJsonArray().iterator();
+      Point p1 = context.deserialize(it.next(), Point.class);
+      Point p2 = context.deserialize(it.next(), Point.class);
+      return Parcel
+        .builder(p1, p2)
+        .pickupTimeWindow(
+          (TimeWindow) context.deserialize(it.next(), TimeWindow.class))
+        .deliveryTimeWindow(
+          (TimeWindow) context.deserialize(it.next(), TimeWindow.class))
+        .neededCapacity(it.next().getAsDouble())
+        .orderAnnounceTime(it.next().getAsLong())
+        .pickupDuration(it.next().getAsLong())
+        .deliveryDuration(it.next().getAsLong())
+        .buildDTO();
+    }
+
+    @Override
+    JsonElement doSerialize(ParcelDTO src, Type typeOfSrc,
+      JsonSerializationContext context) {
+      JsonArray arr = new JsonArray();
+      arr.add(context.serialize(src.getPickupLocation()));
+      arr.add(context.serialize(src.getDeliveryLocation()));
+      arr.add(context.serialize(src.getPickupTimeWindow()));
+      arr.add(context.serialize(src.getDeliveryTimeWindow()));
+      arr.add(context.serialize(src.getNeededCapacity()));
+      arr.add(context.serialize(src.getOrderAnnounceTime()));
+      arr.add(context.serialize(src.getPickupDuration()));
+      arr.add(context.serialize(src.getDeliveryDuration()));
+      return arr;
     }
   }
 

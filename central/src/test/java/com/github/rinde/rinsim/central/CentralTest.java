@@ -40,11 +40,10 @@ import com.github.rinde.rinsim.central.arrays.RandomMVArraysSolver;
 import com.github.rinde.rinsim.core.Simulator;
 import com.github.rinde.rinsim.core.model.pdp.DefaultPDPModel;
 import com.github.rinde.rinsim.core.model.pdp.PDPModel;
+import com.github.rinde.rinsim.core.model.pdp.Parcel;
 import com.github.rinde.rinsim.core.model.pdp.TimeWindowPolicy.TimeWindowPolicies;
 import com.github.rinde.rinsim.core.model.road.RoadModelBuilders;
 import com.github.rinde.rinsim.core.pdptw.DefaultDepot;
-import com.github.rinde.rinsim.core.pdptw.DefaultParcel;
-import com.github.rinde.rinsim.core.pdptw.ParcelDTO;
 import com.github.rinde.rinsim.core.pdptw.VehicleDTO;
 import com.github.rinde.rinsim.experiment.Experiment;
 import com.github.rinde.rinsim.experiment.ExperimentResults;
@@ -74,7 +73,7 @@ public class CentralTest {
   @SuppressWarnings("null")
   DefaultDepot depot;
   @SuppressWarnings("null")
-  DefaultParcel p1, p2, p3;
+  Parcel p1, p2, p3;
 
   @Before
   public void setUp() {
@@ -158,7 +157,7 @@ public class CentralTest {
       res = s.convert(SolveArgs.create().useAllParcels().noCurrentRoutes());
       assertEquals(2, res.state.vehicles.size());
       assertTrue(res.state.vehicles.get(0).contents.isEmpty());
-      assertEquals(p1.dto, res.state.vehicles.get(0).destination);
+      assertEquals(p1, res.state.vehicles.get(0).destination);
       assertEquals(3, res.state.availableParcels.size());
       assertEquals(v1.getGotoState(), v1.getState());
       sim.tick();
@@ -169,27 +168,27 @@ public class CentralTest {
     res = s.convert(SolveArgs.create().useAllParcels().noCurrentRoutes());
     assertEquals(2, res.state.vehicles.size());
     assertTrue(res.state.vehicles.get(0).contents.isEmpty());
-    assertEquals(p1.dto, res.state.vehicles.get(0).destination);
+    assertEquals(p1, res.state.vehicles.get(0).destination);
     assertEquals(3, res.state.availableParcels.size());
 
     // start servicing: service
     sim.tick();
     assertEquals(v1.getServiceState(), v1.getState());
     res = s.convert(SolveArgs.create().useAllParcels().noCurrentRoutes());
-    assertSame(p1.dto, res.state.vehicles.get(0).destination);
+    assertSame(p1, res.state.vehicles.get(0).destination);
     assertEquals(v1.getServiceState(), v1.getState());
   }
 
-  static DefaultParcel createParcel(Point origin, Point dest) {
-    return new DefaultParcel(
-      ParcelDTO.builder(origin, dest)
+  static Parcel createParcel(Point origin, Point dest) {
+    return new Parcel(
+      Parcel.builder(origin, dest)
         .pickupTimeWindow(new TimeWindow(380001, 380002))
         .deliveryTimeWindow(new TimeWindow(0, 1000))
         .neededCapacity(0)
         .orderAnnounceTime(0L)
         .pickupDuration(3000L)
         .deliveryDuration(3000L)
-        .build());
+        .buildDTO());
   }
 
   static class TestVehicle extends RouteFollowingVehicle {

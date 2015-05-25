@@ -33,8 +33,6 @@ import org.junit.Test;
 import com.github.rinde.rinsim.core.model.DependencyProvider;
 import com.github.rinde.rinsim.core.model.pdp.Parcel;
 import com.github.rinde.rinsim.core.model.time.TimeLapse;
-import com.github.rinde.rinsim.core.pdptw.DefaultParcel;
-import com.github.rinde.rinsim.core.pdptw.ParcelDTO;
 import com.github.rinde.rinsim.geom.Graphs;
 import com.github.rinde.rinsim.geom.LengthData;
 import com.github.rinde.rinsim.geom.ListenableGraph;
@@ -95,7 +93,7 @@ public class CollisionGraphRoadModelTest {
     }
     assertTrue(fail);
 
-    final Parcel p = new DefaultParcel(ParcelDTO.builder(NW, SW).build());
+    final Parcel p = Parcel.builder(NW, SW).build();
 
     model.addObjectAtSamePosition(p, agv1);
 

@@ -32,6 +32,7 @@ import com.github.rinde.rinsim.core.model.pdp.DefaultPDPModel;
 import com.github.rinde.rinsim.core.model.pdp.Depot;
 import com.github.rinde.rinsim.core.model.pdp.PDPModel;
 import com.github.rinde.rinsim.core.model.pdp.Parcel;
+import com.github.rinde.rinsim.core.model.pdp.ParcelDTO;
 import com.github.rinde.rinsim.core.model.road.RoadModel;
 import com.github.rinde.rinsim.core.model.road.RoadModelBuilders;
 import com.github.rinde.rinsim.core.model.time.TickListener;
@@ -46,7 +47,6 @@ import com.github.rinde.rinsim.geom.io.Filters;
 import com.github.rinde.rinsim.ui.View;
 import com.github.rinde.rinsim.ui.renderers.GraphRoadModelRenderer;
 import com.github.rinde.rinsim.ui.renderers.RoadUserRenderer;
-import com.github.rinde.rinsim.util.TimeWindow;
 
 /**
  * Example showing a fleet of taxis that have to pickup and transport customers
@@ -158,9 +158,12 @@ public final class TaxiExample {
         TAXI_CAPACITY));
     }
     for (int i = 0; i < NUM_CUSTOMERS; i++) {
-      simulator.register(new Customer(roadModel.getRandomPosition(rng),
-        roadModel.getRandomPosition(rng), SERVICE_DURATION, SERVICE_DURATION,
-        1 + rng.nextInt(3)));
+      simulator.register(new Customer(
+        Parcel.builder(roadModel.getRandomPosition(rng),
+          roadModel.getRandomPosition(rng))
+          .serviceDuration(SERVICE_DURATION)
+          .neededCapacity(1 + rng.nextInt(3))
+          .buildDTO()));
     }
 
     simulator.addTickListener(new TickListener() {
@@ -170,9 +173,12 @@ public final class TaxiExample {
           simulator.stop();
         } else if (rng.nextDouble() < .007) {
           simulator.register(new Customer(
-            roadModel.getRandomPosition(rng), roadModel
-              .getRandomPosition(rng), SERVICE_DURATION, SERVICE_DURATION,
-            1 + rng.nextInt(3)));
+            Parcel
+              .builder(roadModel.getRandomPosition(rng),
+                roadModel.getRandomPosition(rng))
+              .serviceDuration(SERVICE_DURATION)
+              .neededCapacity(1 + rng.nextInt(3))
+              .buildDTO()));
         }
       }
 
@@ -188,11 +194,13 @@ public final class TaxiExample {
    * A customer with very permissive time windows.
    */
   static class Customer extends Parcel {
-    Customer(Point startPosition, Point pDestination,
-      long pLoadingDuration, long pUnloadingDuration, double pMagnitude) {
-      super(pDestination, pLoadingDuration, TimeWindow.ALWAYS,
-        pUnloadingDuration, TimeWindow.ALWAYS, pMagnitude);
-      setStartPosition(startPosition);
+    Customer(ParcelDTO dto) {
+      // Point startPosition, Point pDestination,
+      // long pLoadingDuration, long pUnloadingDuration, double pMagnitude) {
+      super(dto);
+      // super(pDestination, pLoadingDuration, TimeWindow.ALWAYS,
+      // pUnloadingDuration, TimeWindow.ALWAYS, pMagnitude);
+      // setStartPosition(startPosition);
     }
 
     @Override

@@ -179,11 +179,11 @@ public final class DefaultPDPModel extends PDPModel {
       /* 5 */checkArgument(roadModel.equalPosition(vehicle, parcel),
         "vehicle must be at the same location as the parcel it wishes to pickup");
       final double newSize = containerContentsSize.get(vehicle)
-        + parcel.getMagnitude();
+        + parcel.getNeededCapacity();
       /* 6 */checkArgument(
         newSize <= containerCapacities.get(vehicle),
         "parcel does not fit in vehicle. Parcel size: %s, current contents size: %s, capacity: %s.",
-        parcel.getMagnitude(), containerContentsSize.get(vehicle),
+        parcel.getNeededCapacity(), containerContentsSize.get(vehicle),
         containerCapacities.get(vehicle));
 
       checkArgument(
@@ -240,7 +240,7 @@ public final class DefaultPDPModel extends PDPModel {
     synchronized (this) {
       containerContents.put(vehicle, parcel);
       containerContentsSize.put(vehicle, containerContentsSize.get(vehicle)
-        + parcel.getMagnitude());
+        + parcel.getNeededCapacity());
 
       parcelState.put(ParcelState.IN_CARGO, parcel);
       LOGGER.info("{} end pickup of {} by {}", time, parcel, vehicle);
@@ -266,7 +266,7 @@ public final class DefaultPDPModel extends PDPModel {
       /* 2 */checkVehicleIdle(vehicle);
       /* 3 */checkVehicleDoesNotContainParcel(vehicle, parcel);
       /* 4 */checkArgument(
-        parcel.getDestination().equals(roadModel.getPosition(vehicle)),
+        parcel.getDeliveryLocation().equals(roadModel.getPosition(vehicle)),
         "parcel must be delivered at its destination, vehicle should move there first");
 
       checkArgument(
@@ -306,7 +306,7 @@ public final class DefaultPDPModel extends PDPModel {
     synchronized (this) {
       containerContents.remove(vehicle, parcel);
       containerContentsSize.put(vehicle, containerContentsSize.get(vehicle)
-        - parcel.getMagnitude());
+        - parcel.getNeededCapacity());
 
       parcelState.put(ParcelState.DELIVERED, parcel);
       LOGGER.info("{} end delivery of {} by {}", time, parcel, vehicle);
@@ -350,7 +350,7 @@ public final class DefaultPDPModel extends PDPModel {
     synchronized (this) {
       containerContents.remove(vehicle, parcel);
       containerContentsSize.put(vehicle, containerContentsSize.get(vehicle)
-        - parcel.getMagnitude());
+        - parcel.getNeededCapacity());
       roadModel.addObjectAtSamePosition(parcel, vehicle);
       parcelState.put(ParcelState.AVAILABLE, parcel);
       LOGGER.info("{} dropped {} by {}", time, parcel, vehicle);
@@ -373,12 +373,12 @@ public final class DefaultPDPModel extends PDPModel {
       /* 4 */checkArgument(roadModel.containsObject(container),
         "the parcel container is not on the roadmodel");
       final double newSize = containerContentsSize.get(container)
-        + parcel.getMagnitude();
+        + parcel.getNeededCapacity();
       /* 5 */checkArgument(
         newSize <= containerCapacities.get(container),
         "parcel does not fit in container. Capacity is %s, current content size is %s, new parcel size is %s",
         containerCapacities.get(container),
-        containerContentsSize.get(container), parcel.getMagnitude());
+        containerContentsSize.get(container), parcel.getNeededCapacity());
 
       containerContents.put(container, parcel);
       containerContentsSize.put(container, newSize);

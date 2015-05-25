@@ -25,20 +25,16 @@ import javax.measure.unit.SI;
 import org.junit.Test;
 
 import com.github.rinde.rinsim.core.model.pdp.DefaultPDPModel;
+import com.github.rinde.rinsim.core.model.pdp.Parcel;
 import com.github.rinde.rinsim.core.model.pdp.TimeWindowPolicy.TimeWindowPolicies;
 import com.github.rinde.rinsim.core.model.road.RoadModelBuilders;
-import com.github.rinde.rinsim.core.pdptw.ParcelDTO;
 import com.github.rinde.rinsim.core.pdptw.VehicleDTO;
 import com.github.rinde.rinsim.geom.Point;
-import com.github.rinde.rinsim.pdptw.common.AddDepotEvent;
-import com.github.rinde.rinsim.pdptw.common.AddParcelEvent;
-import com.github.rinde.rinsim.pdptw.common.AddVehicleEvent;
 import com.github.rinde.rinsim.scenario.Scenario;
-import com.github.rinde.rinsim.scenario.StopConditions;
-import com.github.rinde.rinsim.scenario.TimeOutEvent;
-import com.github.rinde.rinsim.scenario.Scenario.Builder;
 import com.github.rinde.rinsim.scenario.Scenario.ProblemClass;
 import com.github.rinde.rinsim.scenario.Scenario.SimpleProblemClass;
+import com.github.rinde.rinsim.scenario.StopConditions;
+import com.github.rinde.rinsim.scenario.TimeOutEvent;
 import com.github.rinde.rinsim.util.TimeWindow;
 
 /**
@@ -73,14 +69,14 @@ public class ScenarioIOTest {
           .build())
       )
       .addEvent(AddParcelEvent.create(
-        ParcelDTO.builder(new Point(0, 0), new Point(1, 1))
+        Parcel.builder(new Point(0, 0), new Point(1, 1))
           .pickupTimeWindow(new TimeWindow(2500, 10000))
           .deliveryTimeWindow(new TimeWindow(5000, 10000))
           .neededCapacity(0)
           .orderAnnounceTime(2400)
           .pickupDuration(200)
           .deliveryDuration(800)
-          .build())
+          .buildDTO())
       )
       .addEvent(TimeOutEvent.create(200000))
       .addModel(RoadModelBuilders.plane()

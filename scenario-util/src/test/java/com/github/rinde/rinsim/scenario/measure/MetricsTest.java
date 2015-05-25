@@ -36,7 +36,8 @@ import org.apache.commons.math3.random.RandomGenerator;
 import org.apache.commons.math3.stat.descriptive.moment.StandardDeviation;
 import org.junit.Test;
 
-import com.github.rinde.rinsim.core.pdptw.ParcelDTO;
+import com.github.rinde.rinsim.core.model.pdp.Parcel;
+import com.github.rinde.rinsim.core.model.pdp.ParcelDTO;
 import com.github.rinde.rinsim.geom.Point;
 import com.github.rinde.rinsim.pdptw.common.AddParcelEvent;
 import com.github.rinde.rinsim.scenario.generator.TravelTimesUtil;
@@ -66,13 +67,13 @@ public class MetricsTest {
   @Test
   public void testLoad1() {
     // distance is 1 km which is traveled in 2 minutes with 30km/h
-    final ParcelDTO dto = ParcelDTO.builder(new Point(0, 0), new Point(0, 1))
+    final ParcelDTO dto = Parcel.builder(new Point(0, 0), new Point(0, 1))
       .pickupTimeWindow(new TimeWindow(0, 10))
       .deliveryTimeWindow(new TimeWindow(10, 20))
       .neededCapacity(0)
       .orderAnnounceTime(0)
       .serviceDuration(5)
-      .build();
+      .buildDTO();
 
     final List<LoadPart> parts = measureLoad(AddParcelEvent.create(dto),
       TravelTimesUtil.constant(2L));
@@ -116,13 +117,13 @@ public class MetricsTest {
   @Test
   public void testLoad2() {
     // distance is 10km which is traveled in 20 minutes with 30km/h
-    final ParcelDTO dto = ParcelDTO.builder(new Point(0, 0), new Point(0, 10))
+    final ParcelDTO dto = Parcel.builder(new Point(0, 0), new Point(0, 10))
       .pickupTimeWindow(new TimeWindow(15, 15))
       .deliveryTimeWindow(new TimeWindow(15, 15))
       .neededCapacity(0)
       .orderAnnounceTime(0)
       .serviceDuration(5)
-      .build();
+      .buildDTO();
 
     final List<LoadPart> parts = measureLoad(AddParcelEvent.create(dto),
       TravelTimesUtil.constant(20L));
@@ -161,14 +162,14 @@ public class MetricsTest {
   public void testLoad3() {
     // distance is 3 km which is traveled in 6 minutes with 30km/h
     final ParcelDTO dto =
-      ParcelDTO.builder(new Point(0, 0), new Point(0, 3))
+      Parcel.builder(new Point(0, 0), new Point(0, 3))
         .pickupTimeWindow(new TimeWindow(10, 30))
         .deliveryTimeWindow(new TimeWindow(50, 75))
         .neededCapacity(0)
         .orderAnnounceTime(0L)
         .pickupDuration(5L)
         .deliveryDuration(5L)
-        .build();
+        .buildDTO();
 
     final List<LoadPart> parts = measureLoad(AddParcelEvent.create(dto),
       TravelTimesUtil.constant(6L));

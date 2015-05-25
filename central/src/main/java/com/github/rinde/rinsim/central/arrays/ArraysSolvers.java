@@ -36,8 +36,8 @@ import javax.measure.unit.Unit;
 
 import com.github.rinde.rinsim.central.GlobalStateObject;
 import com.github.rinde.rinsim.central.GlobalStateObject.VehicleStateObject;
+import com.github.rinde.rinsim.core.model.pdp.Parcel;
 import com.github.rinde.rinsim.core.model.road.RoadModels;
-import com.github.rinde.rinsim.core.pdptw.ParcelDTO;
 import com.github.rinde.rinsim.geom.Point;
 import com.github.rinde.rinsim.util.TimeWindow;
 import com.google.common.collect.ImmutableList;
@@ -137,11 +137,11 @@ public final class ArraysSolvers {
     final VehicleStateObject v = state.vehicles.iterator().next();
 
     // we check all vehicles in case this method is used in other contexts
-    final ImmutableSet.Builder<ParcelDTO> cargoBuilder = ImmutableSet.builder();
+    final ImmutableSet.Builder<Parcel> cargoBuilder = ImmutableSet.builder();
     for (final VehicleStateObject vs : state.vehicles) {
       cargoBuilder.addAll(vs.contents);
     }
-    final Set<ParcelDTO> inCargo = cargoBuilder.build();
+    final Set<Parcel> inCargo = cargoBuilder.build();
 
     // there are always two locations: the current vehicle location and
     // the depot
@@ -154,9 +154,9 @@ public final class ArraysSolvers {
     final int[] serviceTimes = new int[numLocations];
 
     // we need to create two mappings:
-    // parceldto -> pickup index / deliver index
-    // index -> parceldto
-    final ImmutableMap.Builder<ParcelDTO, ParcelIndexObj> parcel2indexBuilder = ImmutableMap
+    // Parcel -> pickup index / deliver index
+    // index -> Parcel
+    final ImmutableMap.Builder<Parcel, ParcelIndexObj> parcel2indexBuilder = ImmutableMap
       .builder();
     final ImmutableMap.Builder<Integer, ParcelIndexObj> index2parcelBuilder = ImmutableMap
       .builder();
@@ -168,7 +168,7 @@ public final class ArraysSolvers {
 
     int index = 1;
     int spIndex = 0;
-    for (final ParcelDTO p : state.availableParcels) {
+    for (final Parcel p : state.availableParcels) {
       serviceTimes[index] = DoubleMath.roundToInt(
         timeConverter.convert(p.getPickupDuration()), RoundingMode.CEILING);
       // add pickup location and time window
@@ -179,7 +179,8 @@ public final class ArraysSolvers {
       index2parcelBuilder.put(index, pio);
       index2parcelBuilder.put(deliveryIndex, pio);
 
-      final int[] tw = convertTW(p.getPickupTimeWindow(), state.time, timeConverter);
+      final int[] tw = convertTW(p.getPickupTimeWindow(), state.time,
+        timeConverter);
       releaseDates[index] = tw[0];
       dueDates[index] = tw[1];
       checkState(releaseDates[index] <= dueDates[index]);
@@ -192,9 +193,9 @@ public final class ArraysSolvers {
     checkState(spIndex == state.availableParcels.size(), "%s %s",
       state.availableParcels.size(), spIndex);
 
-    final List<ParcelDTO> deliveries = new ImmutableList.Builder<ParcelDTO>()
+    final List<Parcel> deliveries = new ImmutableList.Builder<Parcel>()
       .addAll(state.availableParcels).addAll(inCargo).build();
-    for (final ParcelDTO p : deliveries) {
+    for (final Parcel p : deliveries) {
       serviceTimes[index] = DoubleMath.roundToInt(
         timeConverter.convert(p.getDeliveryDuration()), RoundingMode.CEILING);
 
@@ -229,7 +230,7 @@ public final class ArraysSolvers {
       state.speedUnit);
 
     final ImmutableList<Point> pointList = points.build();
-    final ImmutableMap<ParcelDTO, ParcelIndexObj> parcel2indexMap = parcel2indexBuilder
+    final ImmutableMap<Parcel, ParcelIndexObj> parcel2indexMap = parcel2indexBuilder
       .build();
     final ImmutableMap<Integer, ParcelIndexObj> index2parcelMap = index2parcelBuilder
       .build();
@@ -252,7 +253,7 @@ public final class ArraysSolvers {
 
   @Nullable
   static SolutionObject[] toCurrentSolutions(GlobalStateObject state,
-    Map<ParcelDTO, ParcelIndexObj> mapping, int[][] travelTime,
+    Map<Parcel, ParcelIndexObj> mapping, int[][] travelTime,
     int[] releaseDates, int[] dueDates, int[] serviceTimes,
     int[][] vehicleTravelTimes, int[] remainingServiceTimes) {
     final SolutionObject[] sols = new SolutionObject[state.vehicles.size()];
@@ -265,14 +266,14 @@ public final class ArraysSolvers {
   }
 
   static SolutionObject convertRouteToSolutionObject(GlobalStateObject state,
-    VehicleStateObject vso, Map<ParcelDTO, ParcelIndexObj> mapping,
+    VehicleStateObject vso, Map<Parcel, ParcelIndexObj> mapping,
     int[][] travelTime, int[] releaseDates, int[] dueDates,
     int[] serviceTimes, int[] vehicleTravelTimes, int remainingServiceTime) {
     final int[] route = new int[vso.route.get().size() + 2];
 
-    final Set<ParcelDTO> seen = newHashSet();
+    final Set<Parcel> seen = newHashSet();
     for (int i = 0; i < vso.route.get().size(); i++) {
-      final ParcelDTO dto = vso.route.get().get(i);
+      final Parcel dto = vso.route.get().get(i);
 
       if (vso.contents.contains(dto) || seen.contains(dto)) {
         // it is in cargo
@@ -375,15 +376,15 @@ public final class ArraysSolvers {
   }
 
   /**
-   * Converts a {@link SolutionObject} into a list of {@link ParcelDTO}s.
+   * Converts a {@link SolutionObject} into a list of {@link Parcel}s.
    * @param sol The solution to convert.
-   * @param index2parcel Mapping of indices to {@link ParcelDTO}s.
+   * @param index2parcel Mapping of indices to {@link Parcel}s.
    * @return A list containing the route as specified by the
    *         {@link SolutionObject}.
    */
-  public static ImmutableList<ParcelDTO> convertSolutionObject(
+  public static ImmutableList<Parcel> convertSolutionObject(
     SolutionObject sol, Map<Integer, ParcelIndexObj> index2parcel) {
-    final ImmutableList.Builder<ParcelDTO> builder = ImmutableList.builder();
+    final ImmutableList.Builder<Parcel> builder = ImmutableList.builder();
     // ignore first (current pos) and last (depot)
     for (int i = 1; i < sol.route.length - 1; i++) {
       builder.add(index2parcel.get(sol.route[i]).dto);
@@ -399,7 +400,7 @@ public final class ArraysSolvers {
     final int[] destinations = new int[v];
     for (int i = 0; i < v; i++) {
       final VehicleStateObject cur = iterator.next();
-      final ParcelDTO dest = cur.destination;
+      final Parcel dest = cur.destination;
       if (dest != null) {
         checkArgument(sva.parcel2index.containsKey(dest));
         final boolean isInCargo = cur.contents.contains(dest);
@@ -430,7 +431,7 @@ public final class ArraysSolvers {
         cur.getDto().speed,
         state.speedUnit);
 
-      final ParcelDTO dest = cur.destination;
+      final Parcel dest = cur.destination;
       if (dest != null) {
         // only add travel time for current dest
         for (int j = 1; j < n; j++) {
@@ -474,7 +475,7 @@ public final class ArraysSolvers {
       .builder();
     for (int i = 0; i < state.vehicles.size(); i++) {
       final VehicleStateObject cur = iterator.next();
-      for (final ParcelDTO dp : cur.contents) {
+      for (final Parcel dp : cur.contents) {
         invPairBuilder.add(ImmutableList.of(i,
           sva.parcel2index.get(dp).deliveryIndex));
       }
@@ -666,7 +667,7 @@ public final class ArraysSolvers {
     /**
      * A mapping between parcels and their locations.
      */
-    public final ImmutableMap<ParcelDTO, ParcelIndexObj> parcel2index;
+    public final ImmutableMap<Parcel, ParcelIndexObj> parcel2index;
 
     /**
      * A mapping between indices and parcels/locations.
@@ -677,7 +678,7 @@ public final class ArraysSolvers {
       int[][] servicePairs, int[] serviceTimes,
       @Nullable SolutionObject[] currentSolutions,
       ImmutableList<Point> locations,
-      ImmutableMap<ParcelDTO, ParcelIndexObj> parcel2index,
+      ImmutableMap<Parcel, ParcelIndexObj> parcel2index,
       ImmutableMap<Integer, ParcelIndexObj> index2parcel) {
       this.travelTime = travelTime;
       this.releaseDates = releaseDates;
@@ -695,7 +696,7 @@ public final class ArraysSolvers {
       @Nullable SolutionObject[] currentSolutions) {
       this(travelTime, releaseDates, dueDates, servicePairs, serviceTimes,
         currentSolutions, ImmutableList.<Point> of(), ImmutableMap
-          .<ParcelDTO, ParcelIndexObj> of(), ImmutableMap
+          .<Parcel, ParcelIndexObj> of(), ImmutableMap
           .<Integer, ParcelIndexObj> of());
     }
   }
@@ -740,7 +741,7 @@ public final class ArraysSolvers {
       int[][] servicePairs, int[] serviceTimes,
       @Nullable SolutionObject[] currentSolutions,
       ImmutableList<Point> locations,
-      ImmutableMap<ParcelDTO, ParcelIndexObj> parcel2index,
+      ImmutableMap<Parcel, ParcelIndexObj> parcel2index,
       ImmutableMap<Integer, ParcelIndexObj> index2parcel,
       int[][] vehicleTravelTimes, int[][] inventories,
       int[] remainingServiceTimes, int[] currentDestinations) {
@@ -782,11 +783,11 @@ public final class ArraysSolvers {
   }
 
   static class ParcelIndexObj {
-    final ParcelDTO dto;
+    final Parcel dto;
     final int pickupIndex;
     final int deliveryIndex;
 
-    ParcelIndexObj(ParcelDTO dto, int pickupIndex, int deliveryIndex) {
+    ParcelIndexObj(Parcel dto, int pickupIndex, int deliveryIndex) {
       this.dto = dto;
       this.pickupIndex = pickupIndex;
       this.deliveryIndex = deliveryIndex;

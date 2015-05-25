@@ -95,7 +95,7 @@ public final class PDPModelRenderer extends AbstractCanvasRenderer {
           if (drawDestLines) {
             gc.setForeground(black);
             for (final Parcel parcel : contents) {
-              final Point po = parcel.getDestination();
+              final Point po = parcel.getDeliveryLocation();
               final int xd = vp.toCoordX(po.x);
               final int yd = vp.toCoordY(po.y);
               if (parcel.getDeliveryTimeWindow().isBeforeStart(time)) {
@@ -131,8 +131,8 @@ public final class PDPModelRenderer extends AbstractCanvasRenderer {
           final int x = vp.toCoordX(p.x);
           final int y = vp.toCoordY(p.y);
           gc.setForeground(lightGray);
-          gc.drawLine(x, y, vp.toCoordX(parcel.getDestination().x),
-            vp.toCoordY(parcel.getDestination().y));
+          gc.drawLine(x, y, vp.toCoordX(parcel.getDeliveryLocation().x),
+            vp.toCoordY(parcel.getDeliveryLocation().y));
 
           if (parcel.getPickupTimeWindow().isBeforeStart(time)) {
             gc.setBackground(darkGreen);

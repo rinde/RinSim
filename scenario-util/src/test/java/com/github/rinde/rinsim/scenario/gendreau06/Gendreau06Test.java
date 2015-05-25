@@ -44,7 +44,6 @@ import com.github.rinde.rinsim.core.model.road.RoadModel;
 import com.github.rinde.rinsim.core.model.time.TimeLapse;
 import com.github.rinde.rinsim.core.pdptw.DefaultDepot;
 import com.github.rinde.rinsim.core.pdptw.DefaultVehicle;
-import com.github.rinde.rinsim.core.pdptw.ParcelDTO;
 import com.github.rinde.rinsim.core.pdptw.VehicleDTO;
 import com.github.rinde.rinsim.geom.Point;
 import com.github.rinde.rinsim.pdptw.common.AddDepotEvent;
@@ -89,14 +88,14 @@ public class Gendreau06Test {
   public void simpleScenario() throws IOException {
     final Gendreau06Scenario scenario = create(2, minutes(15),
       AddParcelEvent.create(
-        ParcelDTO.builder(new Point(2, 1), new Point(4, 1))
+        Parcel.builder(new Point(2, 1), new Point(4, 1))
           .pickupTimeWindow(new TimeWindow(0, 720000))
           .deliveryTimeWindow(new TimeWindow(5, 720000))
           .neededCapacity(0)
           .orderAnnounceTime(0L)
           .pickupDuration(0L)
           .deliveryDuration(0L)
-          .build()
+          .buildDTO()
         ));
     final StatisticsDTO dto = runProblem(scenario, useGui);
 
@@ -121,14 +120,14 @@ public class Gendreau06Test {
   public void overtimeScenario() {
     final Gendreau06Scenario scenario = create(1, minutes(6),
       AddParcelEvent.create(
-        ParcelDTO.builder(new Point(2, 1), new Point(4, 1))
+        Parcel.builder(new Point(2, 1), new Point(4, 1))
           .pickupTimeWindow(new TimeWindow(0, minutes(12)))
           .deliveryTimeWindow(new TimeWindow(5, minutes(12)))
           .neededCapacity(0)
           .orderAnnounceTime(0L)
           .pickupDuration(0L)
           .deliveryDuration(0L)
-          .build()
+          .buildDTO()
         ));
 
     final StatisticsDTO dto = runProblem(scenario, useGui);
@@ -187,14 +186,14 @@ public class Gendreau06Test {
   static AddParcelEvent parcelEvent(double x1, double y1, double x2, double y2,
     long tw1b, long tw1e, long tw2b, long tw2e) {
     return AddParcelEvent.create(
-      ParcelDTO.builder(new Point(x1, y1), new Point(x2, y2))
+      Parcel.builder(new Point(x1, y1), new Point(x2, y2))
         .pickupTimeWindow(new TimeWindow(tw1b, tw1e))
         .deliveryTimeWindow(new TimeWindow(tw2b, tw2e))
         .neededCapacity(0)
         .orderAnnounceTime(0L)
         .pickupDuration(0L)
         .deliveryDuration(0L)
-        .build());
+        .buildDTO());
   }
 
   static StatisticsDTO runProblem(Gendreau06Scenario s, boolean useGui) {
@@ -325,7 +324,7 @@ public class Gendreau06Test {
         Parcel closest = null;
         for (final Parcel p : parcels) {
           final Point pos = pdpModel.containerContains(vehicle, p) ? p
-            .getDestination() : roadModel.getPosition(p);
+            .getDeliveryLocation() : roadModel.getPosition(p);
           final double d = Point.distance(roadModel.getPosition(vehicle), pos);
           if (d < dist) {
             dist = d;

@@ -23,7 +23,7 @@ import java.util.List;
 import java.util.Set;
 
 import com.github.rinde.rinsim.central.GlobalStateObject.VehicleStateObject;
-import com.github.rinde.rinsim.core.pdptw.ParcelDTO;
+import com.github.rinde.rinsim.core.model.pdp.Parcel;
 import com.github.rinde.rinsim.util.StochasticSupplier;
 import com.github.rinde.rinsim.util.StochasticSuppliers;
 import com.google.common.collect.ImmutableList;
@@ -71,16 +71,16 @@ public final class SolverValidator {
    */
   public static GlobalStateObject validateInputs(GlobalStateObject state) {
     checkArgument(state.time >= 0, "Time must be >= 0, is %s.", state.time);
-    final Set<ParcelDTO> inventoryParcels = newHashSet();
+    final Set<Parcel> inventoryParcels = newHashSet();
 
     final boolean routeIsPresent = state.vehicles.get(0).route.isPresent();
-    final Set<ParcelDTO> allParcels = newHashSet();
+    final Set<Parcel> allParcels = newHashSet();
     for (final VehicleStateObject vs : state.vehicles) {
       checkArgument(
         vs.route.isPresent() == routeIsPresent,
         "Either a route should be present for all vehicles, or no route should be present for all vehicles.");
       if (vs.route.isPresent()) {
-        for (final ParcelDTO p : vs.route.get()) {
+        for (final Parcel p : vs.route.get()) {
           checkArgument(
             !allParcels.contains(p),
             "Found parcel which is already present in the route of another vehicle. Parcel %s.",
@@ -98,13 +98,13 @@ public final class SolverValidator {
         vs.remainingServiceTime);
       checkArgument(vs.getDto().speed > 0, "Speed must be positive, is %s.",
         vs.getDto().speed);
-      final Set<ParcelDTO> intersection = Sets.intersection(
+      final Set<Parcel> intersection = Sets.intersection(
         state.availableParcels, vs.contents);
       checkArgument(
         intersection.isEmpty(),
         "Parcels can not be available AND in the inventory of a vehicle, found: %s.",
         intersection);
-      final Set<ParcelDTO> inventoryIntersection = Sets.intersection(
+      final Set<Parcel> inventoryIntersection = Sets.intersection(
         inventoryParcels, vs.contents);
       checkArgument(
         inventoryIntersection.isEmpty(),
@@ -152,7 +152,7 @@ public final class SolverValidator {
         vs.destination, vs.route.get());
     }
 
-    for (final ParcelDTO dp : vs.route.get()) {
+    for (final Parcel dp : vs.route.get()) {
       final int freq = Collections.frequency(vs.route.get(), dp);
       if (vs.contents.contains(dp)) {
         checkArgument(
@@ -176,19 +176,19 @@ public final class SolverValidator {
    *          {@link Solver#solve(GlobalStateObject)}.
    * @return The routes.
    */
-  public static ImmutableList<ImmutableList<ParcelDTO>> validateOutputs(
-    ImmutableList<ImmutableList<ParcelDTO>> routes, GlobalStateObject state) {
+  public static ImmutableList<ImmutableList<Parcel>> validateOutputs(
+    ImmutableList<ImmutableList<Parcel>> routes, GlobalStateObject state) {
 
     checkArgument(
       routes.size() == state.vehicles.size(),
       "There must be exactly one route for every vehicle, found %s routes with %s vehicles.",
       routes.size(), state.vehicles.size());
 
-    final Set<ParcelDTO> inputParcels = newHashSet(state.availableParcels);
-    final Set<ParcelDTO> outputParcels = newHashSet();
+    final Set<Parcel> inputParcels = newHashSet(state.availableParcels);
+    final Set<Parcel> outputParcels = newHashSet();
     for (int i = 0; i < routes.size(); i++) {
-      final List<ParcelDTO> route = routes.get(i);
-      final Set<ParcelDTO> routeSet = ImmutableSet.copyOf(route);
+      final List<Parcel> route = routes.get(i);
+      final Set<Parcel> routeSet = ImmutableSet.copyOf(route);
       checkArgument(routeSet.containsAll(state.vehicles.get(i).contents),
         "The route of vehicle %s doesn't visit all parcels in its cargo.", i);
       inputParcels.addAll(state.vehicles.get(i).contents);
@@ -200,7 +200,7 @@ public final class SolverValidator {
           i, state.vehicles.get(i).destination);
       }
 
-      for (final ParcelDTO p : route) {
+      for (final Parcel p : route) {
         checkArgument(!outputParcels.contains(p),
           "Found a parcel which is already in another route: %s.", p);
         final int frequency = Collections.frequency(route, p);
@@ -240,7 +240,7 @@ public final class SolverValidator {
     }
 
     @Override
-    public ImmutableList<ImmutableList<ParcelDTO>> solve(GlobalStateObject state) {
+    public ImmutableList<ImmutableList<Parcel>> solve(GlobalStateObject state) {
       return validateOutputs(delegateSolver.solve(validateInputs(state)), state);
     }
   }

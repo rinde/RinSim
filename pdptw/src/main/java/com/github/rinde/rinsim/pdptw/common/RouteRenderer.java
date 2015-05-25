@@ -24,8 +24,8 @@ import org.eclipse.swt.graphics.GC;
 import com.github.rinde.rinsim.core.model.DependencyProvider;
 import com.github.rinde.rinsim.core.model.ModelBuilder.AbstractModelBuilder;
 import com.github.rinde.rinsim.core.model.pdp.PDPModel;
+import com.github.rinde.rinsim.core.model.pdp.Parcel;
 import com.github.rinde.rinsim.core.model.road.RoadModel;
-import com.github.rinde.rinsim.core.pdptw.DefaultParcel;
 import com.github.rinde.rinsim.geom.Point;
 import com.github.rinde.rinsim.ui.renderers.CanvasRenderer.AbstractCanvasRenderer;
 import com.github.rinde.rinsim.ui.renderers.ViewPort;
@@ -56,18 +56,18 @@ public class RouteRenderer extends AbstractCanvasRenderer {
     final Set<RouteFollowingVehicle> vehicles = roadModel.getObjectsOfType(
       RouteFollowingVehicle.class);
     for (final RouteFollowingVehicle v : vehicles) {
-      final Set<DefaultParcel> seen = newHashSet();
+      final Set<Parcel> seen = newHashSet();
       final Point from = roadModel.getPosition(v);
       int prevX = vp.toCoordX(from.x);
       int prevY = vp.toCoordY(from.y);
 
-      for (final DefaultParcel parcel : ImmutableList.copyOf(v.getRoute())) {
+      for (final Parcel parcel : ImmutableList.copyOf(v.getRoute())) {
         Point to;
         if (pdpModel.getParcelState(parcel).isPickedUp()
           || seen.contains(parcel)) {
-          to = parcel.dto.getDeliveryLocation();
+          to = parcel.getDto().getDeliveryLocation();
         } else {
-          to = parcel.dto.getPickupLocation();
+          to = parcel.getDto().getPickupLocation();
         }
         seen.add(parcel);
         final int x = vp.toCoordX(to.x);

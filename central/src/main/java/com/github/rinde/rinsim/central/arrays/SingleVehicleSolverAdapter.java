@@ -26,13 +26,13 @@ import com.github.rinde.rinsim.central.GlobalStateObject;
 import com.github.rinde.rinsim.central.GlobalStateObject.VehicleStateObject;
 import com.github.rinde.rinsim.central.Solver;
 import com.github.rinde.rinsim.central.arrays.ArraysSolvers.ArraysObject;
-import com.github.rinde.rinsim.core.pdptw.ParcelDTO;
+import com.github.rinde.rinsim.core.model.pdp.Parcel;
 import com.google.common.collect.ImmutableList;
 
 /**
  * Adapter for {@link SingleVehicleArraysSolver} to conform to the
  * {@link Solver} interface.
- * @author Rinde van Lon 
+ * @author Rinde van Lon
  */
 public class SingleVehicleSolverAdapter implements Solver {
 
@@ -45,40 +45,40 @@ public class SingleVehicleSolverAdapter implements Solver {
    *          solver.
    */
   public SingleVehicleSolverAdapter(SingleVehicleArraysSolver solver,
-      Unit<Duration> outputTimeUnit) {
+    Unit<Duration> outputTimeUnit) {
     this.solver = solver;
     this.outputTimeUnit = outputTimeUnit;
   }
 
   @Override
-  public ImmutableList<ImmutableList<ParcelDTO>> solve(GlobalStateObject state) {
+  public ImmutableList<ImmutableList<Parcel>> solve(GlobalStateObject state) {
     checkArgument(
-        state.vehicles.size() == 1,
-        "This solver can only deal with the single vehicle problem, found %s vehicles.",
-        state.vehicles.size());
+      state.vehicles.size() == 1,
+      "This solver can only deal with the single vehicle problem, found %s vehicles.",
+      state.vehicles.size());
 
     final VehicleStateObject v = state.vehicles.iterator().next();
     checkArgument(
-        v.remainingServiceTime == 0,
-        "This solver can not deal with remaining service time, it should be 0, it was %s.",
-        v.remainingServiceTime);
-    final Collection<ParcelDTO> inCargo = v.contents;
+      v.remainingServiceTime == 0,
+      "This solver can not deal with remaining service time, it should be 0, it was %s.",
+      v.remainingServiceTime);
+    final Collection<Parcel> inCargo = v.contents;
 
     // there are always two locations: the current vehicle location and
     // the depot
     final int numLocations = 2 + (state.availableParcels.size() * 2)
-        + inCargo.size();
+      + inCargo.size();
 
     if (numLocations == 2) {
       // there are no orders
-      final ImmutableList<ParcelDTO> empty = ImmutableList.of();
+      final ImmutableList<Parcel> empty = ImmutableList.of();
       return ImmutableList.of(empty);
     } else if (state.availableParcels.size() + inCargo.size() == 1) {
       // if there is only one order, the solution is trivial
       if (!state.availableParcels.isEmpty()) {
         // parcels on the map require two visits (one for pickup, one
         // for delivery)
-        final ParcelDTO dto = state.availableParcels.iterator().next();
+        final Parcel dto = state.availableParcels.iterator().next();
         return ImmutableList.of(ImmutableList.of(dto, dto));
       } // else
       return ImmutableList.of(ImmutableList.copyOf(inCargo));
@@ -86,14 +86,14 @@ public class SingleVehicleSolverAdapter implements Solver {
     // else, we are going to look for the optimal solution
 
     final ArraysObject ao = ArraysSolvers.toSingleVehicleArrays(state,
-        outputTimeUnit);
+      outputTimeUnit);
 
     final SolutionObject[] curSols = ao.currentSolutions;
     final SolutionObject sol = solver.solve(ao.travelTime, ao.releaseDates,
-        ao.dueDates, ao.servicePairs, ao.serviceTimes, curSols == null ? null
-            : curSols[0]);
+      ao.dueDates, ao.servicePairs, ao.serviceTimes, curSols == null ? null
+        : curSols[0]);
 
     return ImmutableList.of(ArraysSolvers.convertSolutionObject(sol,
-        ao.index2parcel));
+      ao.index2parcel));
   }
 }

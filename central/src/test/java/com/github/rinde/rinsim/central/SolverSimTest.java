@@ -35,7 +35,7 @@ import com.github.rinde.rinsim.central.arrays.ArraysSolverDebugger.MVASDebugger;
 import com.github.rinde.rinsim.central.arrays.ArraysSolvers;
 import com.github.rinde.rinsim.central.arrays.ArraysSolvers.MVArraysObject;
 import com.github.rinde.rinsim.central.arrays.SolutionObject;
-import com.github.rinde.rinsim.core.pdptw.ParcelDTO;
+import com.github.rinde.rinsim.core.model.pdp.Parcel;
 import com.github.rinde.rinsim.experiment.Experiment;
 import com.github.rinde.rinsim.experiment.ExperimentResults;
 import com.github.rinde.rinsim.pdptw.common.ObjectiveFunction;
@@ -93,7 +93,7 @@ public class SolverSimTest {
       final double objValInMinutes = converter.convert(objVal);
 
       final GlobalStateObject solverInput = dsc.solver.getInputs().get(0);
-      final ImmutableList<ImmutableList<ParcelDTO>> solverOutput = dsc.solver
+      final ImmutableList<ImmutableList<Parcel>> solverOutput = dsc.solver
         .getOutputs().get(0);
 
       assertEquals(obj.computeCost(results.results.asList().get(0).stats),
@@ -139,7 +139,7 @@ public class SolverSimTest {
     for (int i = 0; i < n; i++) {
       final GlobalStateObject solverInput = solver.getInputs().get(i);
 
-      final ImmutableList<ImmutableList<ParcelDTO>> solverOutput = solver
+      final ImmutableList<ImmutableList<Parcel>> solverOutput = solver
         .getOutputs().get(i);
       final SolutionObject[] sols = arraysSolver.getOutputs().get(i);
       final MVArraysObject arrInput = arraysSolver.getInputs().get(i);
@@ -177,7 +177,7 @@ public class SolverSimTest {
   }
 
   static double decomposedCost(GlobalStateObject gso,
-    ImmutableList<ImmutableList<ParcelDTO>> routes, ObjectiveFunction objFunc) {
+    ImmutableList<ImmutableList<Parcel>> routes, ObjectiveFunction objFunc) {
     double sum = 0d;
     for (int i = 0; i < gso.vehicles.size(); i++) {
       sum += objFunc.computeCost(Solvers.computeStats(gso.withSingleVehicle(i),

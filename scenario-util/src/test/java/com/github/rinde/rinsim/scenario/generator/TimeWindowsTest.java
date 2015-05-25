@@ -35,7 +35,7 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 
-import com.github.rinde.rinsim.core.pdptw.ParcelDTO;
+import com.github.rinde.rinsim.core.model.pdp.Parcel;
 import com.github.rinde.rinsim.geom.Point;
 import com.github.rinde.rinsim.scenario.generator.ScenarioGenerator.TravelTimes;
 import com.github.rinde.rinsim.scenario.generator.TimeWindows.TimeWindowGenerator;
@@ -117,7 +117,7 @@ public class TimeWindowsTest {
     return list;
   }
 
-  static Iterable<ParcelDTO.Builder> parcelBuilders() {
+  static Iterable<Parcel.Builder> parcelBuilders() {
     final Iterator<Point> locations = Iterators.cycle(asList(
         new Point(3, 3),
         new Point(8, 1),
@@ -132,10 +132,10 @@ public class TimeWindowsTest {
 
     final Iterator<Long> arrivalTimes = Iterators.cycle(asList(0L, 50L, 85L));
 
-    final List<ParcelDTO.Builder> builders = newArrayList();
+    final List<Parcel.Builder> builders = newArrayList();
     for (int i = 0; i < 50; i++) {
       builders.add(
-          ParcelDTO.builder(locations.next(), locations.next())
+          Parcel.builder(locations.next(), locations.next())
               .orderAnnounceTime(arrivalTimes.next())
               .pickupDuration(serviceDurations.next())
               .deliveryDuration(serviceDurations.next()));
@@ -150,7 +150,7 @@ public class TimeWindowsTest {
   public void determinismTest() {
     final RandomGenerator rng = new MersenneTwister(123L);
     for (final TravelTimes tt : DistanceTT.values()) {
-      for (final ParcelDTO.Builder parcelBuilder : parcelBuilders()) {
+      for (final Parcel.Builder parcelBuilder : parcelBuilders()) {
         for (int i = 0; i < 10; i++) {
           final long seed = rng.nextLong();
           timeWindowGenerator.generate(seed, parcelBuilder, tt, END_TIME);
@@ -181,7 +181,7 @@ public class TimeWindowsTest {
     final RandomGenerator rng = new MersenneTwister(123L);
 
     for (final TravelTimes tt : DistanceTT.values()) {
-      for (final ParcelDTO.Builder parcelBuilder : parcelBuilders()) {
+      for (final Parcel.Builder parcelBuilder : parcelBuilders()) {
         for (int i = 0; i < 10; i++) {
           timeWindowGenerator
               .generate(rng.nextLong(), parcelBuilder, tt, END_TIME);

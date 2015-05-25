@@ -16,8 +16,8 @@
 package com.github.rinde.rinsim.pdptw.common;
 
 import com.github.rinde.rinsim.core.SimulatorAPI;
-import com.github.rinde.rinsim.core.pdptw.DefaultParcel;
-import com.github.rinde.rinsim.core.pdptw.ParcelDTO;
+import com.github.rinde.rinsim.core.model.pdp.Parcel;
+import com.github.rinde.rinsim.core.model.pdp.ParcelDTO;
 import com.github.rinde.rinsim.scenario.TimedEvent;
 import com.github.rinde.rinsim.scenario.TimedEventHandler;
 import com.google.auto.value.AutoValue;
@@ -46,8 +46,8 @@ public abstract class AddParcelEvent implements TimedEvent {
   }
 
   /**
-   * Default {@link TimedEventHandler} that creates a {@link DefaultParcel} for
-   * every {@link AddParcelEvent} that is received.
+   * Default {@link TimedEventHandler} that creates a {@link Parcel} for every
+   * {@link AddParcelEvent} that is received.
    * @return The default handler.
    */
   public static TimedEventHandler<AddParcelEvent> defaultHandler() {
@@ -58,7 +58,7 @@ public abstract class AddParcelEvent implements TimedEvent {
     INSTANCE {
       @Override
       public void handleTimedEvent(AddParcelEvent event, SimulatorAPI sim) {
-        sim.register(new DefaultParcel(event.getParcelDTO()));
+        sim.register(new Parcel(event.getParcelDTO()));
       }
 
       @Override

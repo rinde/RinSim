@@ -27,11 +27,11 @@ import com.github.rinde.rinsim.core.model.Model.AbstractModel;
 import com.github.rinde.rinsim.core.model.ModelBuilder;
 import com.github.rinde.rinsim.core.model.ModelBuilder.AbstractModelBuilder;
 import com.github.rinde.rinsim.core.model.pdp.PDPModel;
+import com.github.rinde.rinsim.core.model.pdp.Parcel;
 import com.github.rinde.rinsim.core.model.rand.RandomProvider;
 import com.github.rinde.rinsim.core.model.time.Clock;
 import com.github.rinde.rinsim.core.model.time.TickListener;
 import com.github.rinde.rinsim.core.model.time.TimeLapse;
-import com.github.rinde.rinsim.core.pdptw.DefaultParcel;
 import com.github.rinde.rinsim.experiment.DefaultMASConfiguration;
 import com.github.rinde.rinsim.experiment.MASConfiguration;
 import com.github.rinde.rinsim.pdptw.common.AddVehicleEvent;
@@ -113,13 +113,14 @@ public final class Central {
 
     @Override
     public void handleTimedEvent(AddVehicleEvent event, SimulatorAPI simulator) {
-      simulator.register(new RouteFollowingVehicle(event.getVehicleDTO(), false));
+      simulator
+        .register(new RouteFollowingVehicle(event.getVehicleDTO(), false));
     }
   }
 
   @AutoValue
   abstract static class Builder extends
-    AbstractModelBuilder<CentralModel, DefaultParcel> {
+    AbstractModelBuilder<CentralModel, Parcel> {
 
     Builder() {
       setDependencies(Clock.class,
@@ -147,7 +148,7 @@ public final class Central {
     }
   }
 
-  private static final class CentralModel extends AbstractModel<DefaultParcel>
+  private static final class CentralModel extends AbstractModel<Parcel>
     implements TickListener {
     private boolean hasChanged;
     private final PDPRoadModel roadModel;
@@ -166,13 +167,13 @@ public final class Central {
     }
 
     @Override
-    public boolean register(DefaultParcel element) {
+    public boolean register(Parcel element) {
       hasChanged = true;
       return false;
     }
 
     @Override
-    public boolean unregister(DefaultParcel element) {
+    public boolean unregister(Parcel element) {
       return false;
     }
 
@@ -190,15 +191,15 @@ public final class Central {
           .getObjectsOfType(RouteFollowingVehicle.class);
 
         // gather current routes
-        final ImmutableList.Builder<ImmutableList<DefaultParcel>> currentRouteBuilder = ImmutableList
+        final ImmutableList.Builder<ImmutableList<Parcel>> currentRouteBuilder = ImmutableList
           .builder();
         for (final RouteFollowingVehicle vehicle : vehicles) {
-          final ImmutableList<DefaultParcel> l = ImmutableList.copyOf(vehicle
+          final ImmutableList<Parcel> l = ImmutableList.copyOf(vehicle
             .getRoute());
           currentRouteBuilder.add(l);
         }
 
-        final Iterator<Queue<DefaultParcel>> routes = solverAdapter
+        final Iterator<Queue<Parcel>> routes = solverAdapter
           .solve(
             SolveArgs.create().useAllParcels()
               .useCurrentRoutes(currentRouteBuilder.build())).iterator();

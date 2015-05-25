@@ -190,7 +190,7 @@ public abstract class PDPModel extends AbstractModel<PDPObject> implements
    * <li>{@link Vehicle} must be in {@link VehicleState#IDLE} state.</li>
    * <li>{@link Vehicle} must contain the specified {@link Parcel}.</li>
    * <li>{@link Vehicle} must be at the position indicated by
-   * {@link Parcel#getDestination()}.</li>
+   * {@link Parcel#getDeliveryLocation()}.</li>
    * </ul>
    * If any of the preconditions is not met this method throws an
    * {@link IllegalArgumentException}.

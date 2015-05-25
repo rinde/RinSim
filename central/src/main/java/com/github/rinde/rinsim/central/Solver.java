@@ -15,13 +15,13 @@
  */
 package com.github.rinde.rinsim.central;
 
-import com.github.rinde.rinsim.core.pdptw.ParcelDTO;
+import com.github.rinde.rinsim.core.model.pdp.Parcel;
 import com.google.common.collect.ImmutableList;
 
 /**
  * Interface for solvers of the pickup-and-delivery problem with time windows
  * (PDPTW).
- * @author Rinde van Lon 
+ * @author Rinde van Lon
  */
 public interface Solver {
 
@@ -35,5 +35,5 @@ public interface Solver {
    * @return A list of routes, one for every vehicle in the
    *         {@link GlobalStateObject}.
    */
-  ImmutableList<ImmutableList<ParcelDTO>> solve(GlobalStateObject state);
+  ImmutableList<ImmutableList<Parcel>> solve(GlobalStateObject state);
 }

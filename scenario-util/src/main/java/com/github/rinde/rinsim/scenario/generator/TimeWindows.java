@@ -23,7 +23,8 @@ import java.math.RoundingMode;
 import org.apache.commons.math3.random.MersenneTwister;
 import org.apache.commons.math3.random.RandomGenerator;
 
-import com.github.rinde.rinsim.core.pdptw.ParcelDTO;
+import com.github.rinde.rinsim.core.model.pdp.Parcel;
+import com.github.rinde.rinsim.core.model.pdp.ParcelDTO;
 import com.github.rinde.rinsim.geom.Point;
 import com.github.rinde.rinsim.scenario.generator.ScenarioGenerator.TravelTimes;
 import com.github.rinde.rinsim.util.StochasticSupplier;
@@ -58,19 +59,19 @@ public final class TimeWindows {
      * enough time for a vehicle to return to the depot.
      * @param seed Random seed.
      * @param parcelBuilder The
-     *          {@link com.github.rinde.rinsim.core.pdptw.ParcelDTO.Builder}
+     *          {@link com.github.rinde.rinsim.core.model.pdp.Parcel.Builder}
      *          that is being used for creating a {@link ParcelDTO}. The time
      *          windows should be added to this builder via the
-     *          {@link com.github.rinde.rinsim.core.pdptw.ParcelDTO.Builder#pickupTimeWindow(TimeWindow)}
+     *          {@link com.github.rinde.rinsim.core.model.pdp.Parcel.Builder#pickupTimeWindow(TimeWindow)}
      *          and
-     *          {@link com.github.rinde.rinsim.core.pdptw.ParcelDTO.Builder#deliveryTimeWindow(TimeWindow)}
+     *          {@link com.github.rinde.rinsim.core.model.pdp.Parcel.Builder#deliveryTimeWindow(TimeWindow)}
      *          methods.
      * @param travelTimes An object that provides information about the travel
      *          times in the scenario.
      * @param endTime The end time of the scenario.
      */
-    void generate(long seed, ParcelDTO.Builder parcelBuilder,
-        TravelTimes travelTimes, long endTime);
+    void generate(long seed, Parcel.Builder parcelBuilder,
+      TravelTimes travelTimes, long endTime);
   }
 
   /**
@@ -183,61 +184,61 @@ public final class TimeWindows {
     }
 
     @Override
-    public void generate(long seed, ParcelDTO.Builder parcelBuilder,
-        TravelTimes travelTimes, long endTime) {
+    public void generate(long seed, Parcel.Builder parcelBuilder,
+      TravelTimes travelTimes, long endTime) {
       rng.setSeed(seed);
       final long orderAnnounceTime = parcelBuilder.getOrderAnnounceTime();
       final Point pickup = parcelBuilder.getPickupLocation();
       final Point delivery = parcelBuilder.getDeliveryLocation();
 
       final long pickupToDeliveryTT = travelTimes.getShortestTravelTime(pickup,
-          delivery);
+        delivery);
       final long deliveryToDepotTT = travelTimes
-          .getTravelTimeToNearestDepot(delivery);
+        .getTravelTimeToNearestDepot(delivery);
 
       // PICKUP
       final long earliestPickupOpening = orderAnnounceTime;
       final long earliestPickupClosing = earliestPickupOpening;
 
       final long latestPickupClosing = endTime - deliveryToDepotTT
-          - pickupToDeliveryTT - parcelBuilder.getPickupDuration()
-          - parcelBuilder.getDeliveryDuration();
+        - pickupToDeliveryTT - parcelBuilder.getPickupDuration()
+        - parcelBuilder.getDeliveryDuration();
       final TimeWindow pickupTW = urgencyTimeWindow(earliestPickupOpening,
-          earliestPickupClosing, latestPickupClosing, pickupUrgency,
-          pickupTWLength);
+        earliestPickupClosing, latestPickupClosing, pickupUrgency,
+        pickupTWLength);
 
       // DELIVERY
       final long earliestDeliveryOpening = pickupTW.begin + pickupToDeliveryTT
-          + parcelBuilder.getPickupDuration();
+        + parcelBuilder.getPickupDuration();
       final long latestDeliveryOpening = endTime - deliveryToDepotTT;
 
       final long delOpen = deliveryOpening.get(rng.nextLong());
       checkArgument(delOpen >= 0);
       long delOpening = Math.min(earliestDeliveryOpening + delOpen,
-          latestDeliveryOpening);
+        latestDeliveryOpening);
       delOpening = Math.max(delOpening, earliestDeliveryOpening);
 
       final long earliestDeliveryClosing = pickupTW.end + pickupToDeliveryTT
-          + parcelBuilder.getPickupDuration();
+        + parcelBuilder.getPickupDuration();
       final long latestDeliveryClosing = endTime - deliveryToDepotTT
-          - parcelBuilder.getDeliveryDuration();
+        - parcelBuilder.getDeliveryDuration();
 
       final double delFactor = deliveryLengthFactor.get(rng.nextLong());
       checkArgument(delFactor > 0d);
       long deliveryClosing = DoubleMath.roundToLong(pickupTW.length()
-          * delFactor, RoundingMode.CEILING);
+        * delFactor, RoundingMode.CEILING);
 
       if (minDeliveryLength.isPresent()) {
         deliveryClosing = Math.max(
-            delOpening + minDeliveryLength.get().get(rng.nextLong()),
-            deliveryClosing);
+          delOpening + minDeliveryLength.get().get(rng.nextLong()),
+          deliveryClosing);
       }
 
       final long boundedDelClose = boundValue(deliveryClosing,
-          earliestDeliveryClosing, latestDeliveryClosing);
+        earliestDeliveryClosing, latestDeliveryClosing);
 
       final TimeWindow deliveryTW = new TimeWindow(delOpening,
-          boundedDelClose);
+        boundedDelClose);
 
       parcelBuilder.pickupTimeWindow(pickupTW);
       parcelBuilder.deliveryTimeWindow(deliveryTW);
@@ -248,13 +249,13 @@ public final class TimeWindows {
     }
 
     TimeWindow urgencyTimeWindow(long earliestOpening, long earliestClosing,
-        long latestClosing, StochasticSupplier<Long> urgency,
-        StochasticSupplier<Long> length) {
+      long latestClosing, StochasticSupplier<Long> urgency,
+      StochasticSupplier<Long> length) {
       final long closing = boundValue(
-          earliestClosing + urgency.get(rng.nextLong()), earliestClosing,
-          latestClosing);
+        earliestClosing + urgency.get(rng.nextLong()), earliestClosing,
+        latestClosing);
       final long opening = boundValue(closing - length.get(rng.nextLong()),
-          earliestOpening, closing);
+        earliestOpening, closing);
       return new TimeWindow(opening, closing);
     }
   }

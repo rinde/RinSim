@@ -15,18 +15,18 @@
  */
 package com.github.rinde.rinsim.central;
 
+import static com.github.rinde.rinsim.core.model.pdp.PDPModel.ParcelState.ANNOUNCED;
+import static com.github.rinde.rinsim.core.model.pdp.PDPModel.ParcelState.AVAILABLE;
+import static com.github.rinde.rinsim.core.model.pdp.PDPModel.ParcelState.PICKING_UP;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Lists.newLinkedList;
 import static com.google.common.collect.Sets.newHashSet;
-import static com.google.common.collect.Sets.newLinkedHashSet;
 
 import java.math.RoundingMode;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
 
@@ -42,15 +42,12 @@ import com.github.rinde.rinsim.core.Simulator;
 import com.github.rinde.rinsim.core.SimulatorAPI;
 import com.github.rinde.rinsim.core.model.ModelProvider;
 import com.github.rinde.rinsim.core.model.pdp.PDPModel;
-import com.github.rinde.rinsim.core.model.pdp.PDPModel.ParcelState;
 import com.github.rinde.rinsim.core.model.pdp.PDPModel.VehicleParcelActionInfo;
 import com.github.rinde.rinsim.core.model.pdp.Parcel;
 import com.github.rinde.rinsim.core.model.road.RoadModels;
 import com.github.rinde.rinsim.core.model.time.Clock;
 import com.github.rinde.rinsim.core.model.time.TimeModel;
-import com.github.rinde.rinsim.core.pdptw.DefaultParcel;
 import com.github.rinde.rinsim.core.pdptw.DefaultVehicle;
-import com.github.rinde.rinsim.core.pdptw.ParcelDTO;
 import com.github.rinde.rinsim.core.pdptw.VehicleDTO;
 import com.github.rinde.rinsim.geom.Point;
 import com.github.rinde.rinsim.pdptw.common.PDPRoadModel;
@@ -59,7 +56,7 @@ import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import com.google.common.math.DoubleMath;
 
 /**
@@ -108,8 +105,8 @@ public final class Solvers {
    *         simulation.
    */
   public static StatisticsDTO computeStats(GlobalStateObject state,
-    @Nullable ImmutableList<ImmutableList<ParcelDTO>> routes) {
-    final Optional<ImmutableList<ImmutableList<ParcelDTO>>> r = Optional
+    @Nullable ImmutableList<ImmutableList<Parcel>> routes) {
+    final Optional<ImmutableList<ImmutableList<Parcel>>> r = Optional
       .fromNullable(routes);
 
     if (r.isPresent()) {
@@ -128,7 +125,7 @@ public final class Solvers {
     final long startTime = state.time;
     long maxTime = 0;
     int movedVehicles = 0;
-    final Set<ParcelDTO> parcels = newHashSet();
+    final Set<Parcel> parcels = newHashSet();
 
     final ImmutableList.Builder<ImmutableList<Long>> arrivalTimesBuilder = ImmutableList
       .builder();
@@ -141,7 +138,7 @@ public final class Solvers {
         .builder();
       truckArrivalTimesBuilder.add(state.time);
 
-      ImmutableList<ParcelDTO> route;
+      ImmutableList<Parcel> route;
       if (r.isPresent()) {
         route = r.get().get(i);
       } else {
@@ -153,9 +150,9 @@ public final class Solvers {
       Point vehicleLocation = vso.location;
       final Measure<Double, Velocity> speed = Measure.valueOf(
         vso.getDto().speed, state.speedUnit);
-      final Set<ParcelDTO> seen = newHashSet();
+      final Set<Parcel> seen = newHashSet();
       for (int j = 0; j < route.size(); j++) {
-        final ParcelDTO cur = route.get(j);
+        final Parcel cur = route.get(j);
         final boolean inCargo = vso.contents.contains(cur)
           || seen.contains(cur);
         seen.add(cur);
@@ -254,79 +251,63 @@ public final class Solvers {
   }
 
   /**
-   * Converts the specified collection containing {@link DefaultParcel}s into an
-   * {@link ImmutableList} of {@link ParcelDTO}s.
+   * Converts the specified collection containing {@link Parcel}s into an
+   * {@link ImmutableList} of {@link Parcel}s.
    * @param parcels The parcels to convert.
-   * @return A list of {@link ParcelDTO}s in the same order as in the provided
+   * @return A list of {@link Parcel}s in the same order as in the provided
    *         collection.
    */
-  public static ImmutableList<ParcelDTO> toDtoList(
-    Collection<DefaultParcel> parcels) {
-    final ImmutableList.Builder<ParcelDTO> builder = ImmutableList.builder();
-    for (final DefaultParcel dp : parcels) {
-      builder.add(dp.dto);
-    }
-    return builder.build();
-  }
+  // public static ImmutableList<Parcel> toDtoList(
+  // Collection<Parcel> parcels) {
+  // final ImmutableList.Builder<Parcel> builder = ImmutableList.builder();
+  // for (final Parcel dp : parcels) {
+  // builder.add(dp.getDto());
+  // }
+  // return builder.build();
+  // }
 
   /**
    * Converts the specified collection of collections containing
-   * {@link DefaultParcel}s into a list of lists containing {@link ParcelDTO}s.
+   * {@link DefaultParcel}s into a list of lists containing {@link Parcel}s.
    * @param routes The collection of collections of parcels to convert.
-   * @return A list of lists of {@link ParcelDTO}s in the same order as the
+   * @return A list of lists of {@link Parcel}s in the same order as the
    *         provided lists.
    */
-  public static ImmutableList<ImmutableList<ParcelDTO>> toDtoLists(
-    Collection<? extends Collection<DefaultParcel>> routes) {
-    final ImmutableList.Builder<ImmutableList<ParcelDTO>> newRoutes = ImmutableList
-      .builder();
-    for (final Collection<DefaultParcel> route : routes) {
-      newRoutes.add(toDtoList(route));
-    }
-    return newRoutes.build();
-  }
+  // public static ImmutableList<ImmutableList<Parcel>> toDtoLists(
+  // Collection<? extends Collection<Parcel>> routes) {
+  // final ImmutableList.Builder<ImmutableList<Parcel>> newRoutes =
+  // ImmutableList
+  // .builder();
+  // for (final Collection<Parcel> route : routes) {
+  // newRoutes.add(toDtoList(route));
+  // }
+  // return newRoutes.build();
+  // }
 
   // converts the routes received from Solver.solve(..) into a format which is
   // expected by the simulator
-  static List<Queue<DefaultParcel>> convertRoutes(StateContext cont,
-    List<? extends List<ParcelDTO>> routes) {
-    final ImmutableList.Builder<Queue<DefaultParcel>> routesBuilder = ImmutableList
+  static ImmutableList<Queue<Parcel>> convertRoutes(StateContext cont,
+    List<? extends List<Parcel>> routes) {
+    final ImmutableList.Builder<Queue<Parcel>> routesBuilder = ImmutableList
       .builder();
-    for (final List<ParcelDTO> route : routes) {
-      final Queue<DefaultParcel> newRoute = newLinkedList();
-      for (final ParcelDTO dto : route) {
-        checkArgument(cont.parcelMap.containsKey(dto),
-          "Parcel %s is not known in the context.", dto);
-        newRoute.add(cont.parcelMap.get(dto));
-      }
-      routesBuilder.add(newRoute);
+    for (final List<Parcel> route : routes) {
+      routesBuilder.add(newLinkedList(route));
     }
     return routesBuilder.build();
   }
 
-  static Collection<DefaultParcel> conv(Collection<Parcel> input) {
-    final List<DefaultParcel> l = newArrayList();
-    for (final Parcel p : input) {
-      checkArgument(p instanceof DefaultParcel);
-      l.add((DefaultParcel) p);
-    }
-    return l;
-  }
-
   static StateContext convert(PDPRoadModel rm, PDPModel pm,
     Collection<DefaultVehicle> vehicles,
-    Collection<DefaultParcel> availableParcels, Measure<Long, Duration> time,
-    Optional<ImmutableList<ImmutableList<DefaultParcel>>> currentRoutes) {
+    Set<Parcel> availableParcels, Measure<Long, Duration> time,
+    Optional<ImmutableList<ImmutableList<Parcel>>> currentRoutes) {
 
     // final ImmutableList.Builder<VehicleStateObject> vbuilder = ImmutableList
     // .builder();
     final ImmutableMap.Builder<VehicleStateObject, DefaultVehicle> vbuilder = ImmutableMap
       .builder();
-    final ImmutableMap.Builder<ParcelDTO, DefaultParcel> allParcels = ImmutableMap
-      .builder();
 
     @Nullable
-    Iterator<ImmutableList<DefaultParcel>> routeIterator = null;
+    Iterator<ImmutableList<Parcel>> routeIterator = null;
     if (currentRoutes.isPresent()) {
       checkArgument(currentRoutes.get().size() == vehicles.size(),
         "The number of routes (%s) must equal the number of vehicles (%s).",
@@ -334,14 +315,14 @@ public final class Solvers {
       routeIterator = currentRoutes.get().iterator();
     }
 
-    final ImmutableMap.Builder<ParcelDTO, DefaultParcel> availableDestParcels = ImmutableMap
+    final ImmutableSet.Builder<Parcel> availableDestParcels = ImmutableSet
       .builder();
     for (final DefaultVehicle v : vehicles) {
-      final ImmutableMap<ParcelDTO, DefaultParcel> contentsMap = contentsToMap(
-        pm, v);
+      final ImmutableSet<Parcel> contentsMap = ImmutableSet.copyOf(pm
+        .getContents(v));
 
       @Nullable
-      ImmutableList<DefaultParcel> route = null;
+      ImmutableList<Parcel> route = null;
       if (routeIterator != null) {
         route = routeIterator.next();
       }
@@ -350,54 +331,53 @@ public final class Solvers {
         contentsMap, route, availableDestParcels);
 
       vbuilder.put(vehicleState, v);
-      allParcels.putAll(contentsMap);
     }
 
-    final ImmutableMap<ParcelDTO, DefaultParcel> availableMap = toMap(availableParcels);
-    final ImmutableMap<ParcelDTO, DefaultParcel> availableDestMap = availableDestParcels
+    // final ImmutableMap<Parcel, Parcel> availableMap =
+    // toMap(availableParcels);
+    final ImmutableSet<Parcel> availableDestMap = availableDestParcels.build();
+
+    final Set<Parcel> toAdd = Sets.difference(availableParcels,
+      availableDestMap);// .entriesOnlyOnRight();
+
+    final ImmutableSet<Parcel> availableParcelsKeys = ImmutableSet
+      .<Parcel> builder()
+      .addAll(availableParcels)
+      .addAll(toAdd)
       .build();
-
-    final Map<ParcelDTO, DefaultParcel> toAdd = Maps.difference(availableMap,
-      availableDestMap).entriesOnlyOnRight();
-    allParcels.putAll(availableMap);
-    allParcels.putAll(toAdd);
-
-    final ImmutableSet<ParcelDTO> availableParcelsKeys = ImmutableSet
-      .<ParcelDTO> builder()
-      .addAll(availableMap.keySet())
-      .addAll(toAdd.keySet()).build();
 
     final ImmutableMap<VehicleStateObject, DefaultVehicle> vehicleMap = vbuilder
       .build();
 
     return new StateContext(new GlobalStateObject(availableParcelsKeys,
       vehicleMap.keySet().asList(), time.getValue().longValue(),
-      time.getUnit(), rm.getSpeedUnit(), rm.getDistanceUnit()), vehicleMap,
-      allParcels.build());
+      time.getUnit(), rm.getSpeedUnit(), rm.getDistanceUnit()), vehicleMap);
   }
 
-  static ImmutableMap<ParcelDTO, DefaultParcel> contentsToMap(PDPModel pm,
-    DefaultVehicle vehicle) {
-    // this is ok since we actually check the type
-    @SuppressWarnings({ "unchecked", "rawtypes" })
-    final Set<DefaultParcel> ps = Collections.checkedSet(
-      (Set) newLinkedHashSet(pm.getContents(vehicle)), DefaultParcel.class);
-    return toMap(ps);
-  }
+  // static ImmutableSet<Parcel> contentsToMap(PDPModel pm,
+  // DefaultVehicle vehicle) {
+  // // this is ok since we actually check the type
+  // // @SuppressWarnings({ "unchecked", "rawtypes" })
+  //
+  // return ImmutableSet.copyOf(pm.getContents(vehicle));
+  // // final Set<Parcel> ps = Collections.checkedSet(
+  // // newLinkedHashSet(pm.getContents(vehicle)), Parcel.class);
+  // // return toMap(ps);
+  // }
 
   // TODO check for bugs
   static VehicleStateObject convertToVehicleState(PDPRoadModel rm, PDPModel pm,
-    DefaultVehicle vehicle, ImmutableMap<ParcelDTO, DefaultParcel> contents,
-    @Nullable ImmutableList<DefaultParcel> route,
-    ImmutableMap.Builder<ParcelDTO, DefaultParcel> availableDestBuilder) {
+    DefaultVehicle vehicle, ImmutableSet<Parcel> contents,
+    @Nullable ImmutableList<Parcel> route,
+    ImmutableSet.Builder<Parcel> availableDestBuilder) {
     final boolean isIdle = pm.getVehicleState(vehicle) == PDPModel.VehicleState.IDLE;
 
     long remainingServiceTime = 0;
     @Nullable
-    DefaultParcel destination = null;
+    Parcel destination = null;
     if (!isIdle) {
       final VehicleParcelActionInfo vpai = pm.getVehicleActionInfo(vehicle);
-      destination = (DefaultParcel) vpai.getParcel();
+      destination = vpai.getParcel();
       remainingServiceTime = vpai.timeNeeded();
     } else if (!rm.isVehicleDiversionAllowed()) {
       // check whether the vehicle is already underway to parcel
@@ -406,28 +386,23 @@ public final class Solvers {
 
     // destinations which are not yet picked up should be put in the builder
     if (destination != null && !pm.getParcelState(destination).isPickedUp()) {
-      availableDestBuilder.put(destination.dto, destination);
+      availableDestBuilder.add(destination);
     }
 
-    @Nullable
-    ImmutableList<ParcelDTO> r = null;
-    if (route != null) {
-      r = toDtoList(route);
-    }
     return new VehicleStateObject(vehicle.getDTO(), rm.getPosition(vehicle),
-      contents.keySet(), remainingServiceTime, destination == null ? null
-        : destination.dto, r);
+      contents, remainingServiceTime, destination == null ? null
+        : destination, route);
   }
 
-  static ImmutableMap<ParcelDTO, DefaultParcel> toMap(
-    Collection<DefaultParcel> parcels) {
-    final ImmutableMap.Builder<ParcelDTO, DefaultParcel> parcelMapBuilder = ImmutableMap
-      .builder();
-    for (final DefaultParcel dp : parcels) {
-      parcelMapBuilder.put(dp.dto, dp);
-    }
-    return parcelMapBuilder.build();
-  }
+  // static ImmutableMap<Parcel, Parcel> toMap(
+  // Collection<Parcel> parcels) {
+  // final ImmutableMap.Builder<Parcel, Parcel> parcelMapBuilder = ImmutableMap
+  // .builder();
+  // for (final Parcel dp : parcels) {
+  // parcelMapBuilder.put(dp.getDto(), dp);
+  // }
+  // return parcelMapBuilder.build();
+  // }
 
   /**
    * Converter that converts simulations into {@link StateContext} instances
@@ -449,8 +424,8 @@ public final class Solvers {
    * @author Rinde van Lon
    */
   public static final class SolveArgs {
-    Optional<Collection<DefaultParcel>> parcels;
-    Optional<ImmutableList<ImmutableList<DefaultParcel>>> currentRoutes;
+    Optional<ImmutableSet<Parcel>> parcels;
+    Optional<ImmutableList<ImmutableList<Parcel>>> currentRoutes;
 
     private SolveArgs() {
       parcels = Optional.absent();
@@ -479,8 +454,8 @@ public final class Solvers {
      * @param ps The parcels to use.
      * @return This, as per the builder pattern.
      */
-    public SolveArgs useParcels(Collection<DefaultParcel> ps) {
-      parcels = Optional.of(ps);
+    public SolveArgs useParcels(Iterable<? extends Parcel> ps) {
+      parcels = Optional.of(ImmutableSet.copyOf(ps));
       return this;
     }
 
@@ -502,7 +477,7 @@ public final class Solvers {
      * @return This, as per the builder pattern.
      */
     public SolveArgs useCurrentRoutes(
-      ImmutableList<ImmutableList<DefaultParcel>> cr) {
+      ImmutableList<ImmutableList<Parcel>> cr) {
       currentRoutes = Optional.of(cr);
       return this;
     }
@@ -534,7 +509,7 @@ public final class Solvers {
      * @param args {@link SolveArgs} specifying what information to include.
      * @return A list containing routes for each vehicle known to this solver.
      */
-    public List<Queue<DefaultParcel>> solve(SolveArgs args) {
+    public List<Queue<Parcel>> solve(SolveArgs args) {
       return solve(convert(args));
     }
 
@@ -545,7 +520,7 @@ public final class Solvers {
      *          simulation state.
      * @return A list of routes, one for each vehicle.
      */
-    public List<Queue<DefaultParcel>> solve(StateContext state) {
+    public List<Queue<Parcel>> solve(StateContext state) {
       return Solvers.convertRoutes(state, solver.get().solve(state.state));
     }
 
@@ -553,10 +528,10 @@ public final class Solvers {
     public StateContext convert(SolveArgs args) {
       final Collection<DefaultVehicle> vs = vehicles.isEmpty() ? roadModel
         .getObjectsOfType(DefaultVehicle.class) : vehicles;
-      final Collection<DefaultParcel> ps = args.parcels.isPresent() ? args.parcels
-        .get()
-        : conv(pdpModel.getParcels(ParcelState.ANNOUNCED,
-          ParcelState.AVAILABLE, ParcelState.PICKING_UP));
+      final Set<Parcel> ps = args.parcels.isPresent()
+        ? args.parcels.get()
+        : ImmutableSet.copyOf(pdpModel.getParcels(ANNOUNCED, AVAILABLE,
+          PICKING_UP));
       return Solvers.convert(roadModel, pdpModel, vs, ps, time(),
         args.currentRoutes);
     }
@@ -748,17 +723,11 @@ public final class Solvers {
      * A mapping of {@link VehicleDTO} to {@link DefaultVehicle}.
      */
     public final ImmutableMap<VehicleStateObject, DefaultVehicle> vehicleMap;
-    /**
-     * A mapping of {@link ParcelDTO} to {@link DefaultParcel}.
-     */
-    public final ImmutableMap<ParcelDTO, DefaultParcel> parcelMap;
 
     StateContext(GlobalStateObject state,
-      ImmutableMap<VehicleStateObject, DefaultVehicle> vehicleMap,
-      ImmutableMap<ParcelDTO, DefaultParcel> parcelMap) {
+      ImmutableMap<VehicleStateObject, DefaultVehicle> vehicleMap) {
       this.state = state;
       this.vehicleMap = vehicleMap;
-      this.parcelMap = parcelMap;
     }
   }
 

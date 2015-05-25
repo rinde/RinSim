@@ -110,7 +110,7 @@ public class GradientModel extends AbstractModel<FieldEmitter> implements
     }
 
     for (final Parcel p : verifyNotNull(pdpModel).getContents(truck)) {
-      field += 2 / Point.distance(p.getDestination(), in);
+      field += 2 / Point.distance(p.getDeliveryLocation(), in);
     }
     return field;
   }

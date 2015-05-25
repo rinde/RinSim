@@ -44,11 +44,10 @@ import com.github.rinde.rinsim.central.arrays.ArraysSolvers.ArraysObject;
 import com.github.rinde.rinsim.core.Simulator;
 import com.github.rinde.rinsim.core.model.pdp.DefaultPDPModel;
 import com.github.rinde.rinsim.core.model.pdp.Depot;
+import com.github.rinde.rinsim.core.model.pdp.Parcel;
 import com.github.rinde.rinsim.core.model.pdp.TimeWindowPolicy.TimeWindowPolicies;
 import com.github.rinde.rinsim.core.model.road.RoadModelBuilders;
 import com.github.rinde.rinsim.core.pdptw.DefaultDepot;
-import com.github.rinde.rinsim.core.pdptw.DefaultParcel;
-import com.github.rinde.rinsim.core.pdptw.ParcelDTO;
 import com.github.rinde.rinsim.core.pdptw.VehicleDTO;
 import com.github.rinde.rinsim.geom.Point;
 import com.github.rinde.rinsim.pdptw.common.PDPRoadModel;
@@ -155,25 +154,25 @@ public class ArraysSolversTest {
       false);
     final Depot depot = new DefaultDepot(new Point(5, 5));
 
-    final DefaultParcel dp1 = new DefaultParcel(
-      ParcelDTO.builder(new Point(2, 2), new Point(3, 3))
+    final Parcel dp1 =
+      Parcel.builder(new Point(2, 2), new Point(3, 3))
         .pickupTimeWindow(new TimeWindow(0, 1000))
         .deliveryTimeWindow(new TimeWindow(0, 1000))
         .neededCapacity(0)
         .orderAnnounceTime(0L)
         .pickupDuration(5L)
         .deliveryDuration(5L)
-        .build());
+        .build();
 
-    final DefaultParcel dp2 = new DefaultParcel(
-      ParcelDTO.builder(new Point(2, 2), new Point(3, 3))
+    final Parcel dp2 =
+      Parcel.builder(new Point(2, 2), new Point(3, 3))
         .pickupTimeWindow(new TimeWindow(0, 1000))
         .deliveryTimeWindow(new TimeWindow(0, 1000))
         .neededCapacity(0)
         .orderAnnounceTime(0L)
         .pickupDuration(5L)
         .deliveryDuration(5L)
-        .build());
+        .build();
 
     sim.register(depot);
     sim.register(rfv);

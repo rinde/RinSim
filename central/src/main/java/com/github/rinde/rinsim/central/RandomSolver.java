@@ -27,7 +27,7 @@ import org.apache.commons.math3.random.RandomAdaptor;
 import org.apache.commons.math3.random.RandomGenerator;
 
 import com.github.rinde.rinsim.central.GlobalStateObject.VehicleStateObject;
-import com.github.rinde.rinsim.core.pdptw.ParcelDTO;
+import com.github.rinde.rinsim.core.model.pdp.Parcel;
 import com.github.rinde.rinsim.util.StochasticSupplier;
 import com.github.rinde.rinsim.util.StochasticSuppliers;
 import com.google.common.collect.ImmutableList;
@@ -38,7 +38,7 @@ import com.google.common.collect.LinkedListMultimap;
  * randomly selects a vehicle. When all orders are assigned to a vehicle the
  * ordering of the pickups and deliveries is shuffled randomly.
  * 
- * @author Rinde van Lon 
+ * @author Rinde van Lon
  */
 public class RandomSolver implements Solver {
 
@@ -53,12 +53,12 @@ public class RandomSolver implements Solver {
   }
 
   @Override
-  public ImmutableList<ImmutableList<ParcelDTO>> solve(GlobalStateObject state) {
-    final LinkedListMultimap<VehicleStateObject, ParcelDTO> map = LinkedListMultimap
-        .create();
+  public ImmutableList<ImmutableList<Parcel>> solve(GlobalStateObject state) {
+    final LinkedListMultimap<VehicleStateObject, Parcel> map = LinkedListMultimap
+      .create();
 
-    final Set<ParcelDTO> available = newLinkedHashSet(state.availableParcels);
-    final Set<ParcelDTO> destinations = newLinkedHashSet();
+    final Set<Parcel> available = newLinkedHashSet(state.availableParcels);
+    final Set<Parcel> destinations = newLinkedHashSet();
     for (final VehicleStateObject vso : state.vehicles) {
       if (vso.destination != null) {
         destinations.add(vso.destination);
@@ -67,22 +67,22 @@ public class RandomSolver implements Solver {
     available.removeAll(destinations);
 
     // do random assignment of available parcels
-    for (final ParcelDTO p : available) {
+    for (final Parcel p : available) {
       final int index = randomGenerator.nextInt(state.vehicles.size());
       map.put(state.vehicles.get(index), p);
       map.put(state.vehicles.get(index), p);
     }
 
-    final ImmutableList.Builder<ImmutableList<ParcelDTO>> builder = ImmutableList
-        .builder();
+    final ImmutableList.Builder<ImmutableList<Parcel>> builder = ImmutableList
+      .builder();
     // insert contents, shuffle ordering, insert destination if applicable
     for (final VehicleStateObject vso : state.vehicles) {
-      final List<ParcelDTO> assigned = newArrayList(map.get(vso));
-      final List<ParcelDTO> conts = newArrayList(vso.contents);
+      final List<Parcel> assigned = newArrayList(map.get(vso));
+      final List<Parcel> conts = newArrayList(vso.contents);
       conts.remove(vso.destination);
       assigned.addAll(conts);
       if (vso.destination != null
-          && state.availableParcels.contains(vso.destination)) {
+        && state.availableParcels.contains(vso.destination)) {
         assigned.add(vso.destination);
       }
       Collections.shuffle(assigned, new RandomAdaptor(randomGenerator));

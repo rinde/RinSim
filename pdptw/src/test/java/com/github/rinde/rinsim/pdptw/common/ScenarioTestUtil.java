@@ -26,8 +26,8 @@ import org.apache.commons.math3.random.RandomGenerator;
 
 import com.github.rinde.rinsim.core.model.ModelBuilder;
 import com.github.rinde.rinsim.core.model.pdp.DefaultPDPModel;
+import com.github.rinde.rinsim.core.model.pdp.Parcel;
 import com.github.rinde.rinsim.core.model.road.RoadModelBuilders;
-import com.github.rinde.rinsim.core.pdptw.ParcelDTO;
 import com.github.rinde.rinsim.core.pdptw.VehicleDTO;
 import com.github.rinde.rinsim.geom.Point;
 import com.github.rinde.rinsim.scenario.Scenario;
@@ -87,14 +87,14 @@ public class ScenarioTestUtil {
     for (int i = 0; i < 20; i++) {
       final long announceTime = rng.nextInt(DoubleMath.roundToInt(
         endTime * .8, RoundingMode.FLOOR));
-      b.addEvent(AddParcelEvent.create(ParcelDTO
+      b.addEvent(AddParcelEvent.create(Parcel
         .builder(
           new Point(rng.nextDouble() * 10, rng.nextDouble() * 10),
           new Point(rng.nextDouble() * 10, rng.nextDouble() * 10))
         .orderAnnounceTime(announceTime)
         .pickupTimeWindow(new TimeWindow(announceTime, endTime))
         .deliveryTimeWindow(new TimeWindow(announceTime, endTime))
-        .neededCapacity(0).build()));
+        .neededCapacity(0).buildDTO()));
     }
 
     b.addEvent(TimeOutEvent.create(endTime))

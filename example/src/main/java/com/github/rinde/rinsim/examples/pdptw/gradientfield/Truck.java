@@ -29,7 +29,6 @@ import com.github.rinde.rinsim.core.model.road.RoadModel;
 import com.github.rinde.rinsim.core.model.road.RoadModels;
 import com.github.rinde.rinsim.core.model.road.RoadUser;
 import com.github.rinde.rinsim.core.model.time.TimeLapse;
-import com.github.rinde.rinsim.core.pdptw.DefaultParcel;
 import com.github.rinde.rinsim.core.pdptw.DefaultVehicle;
 import com.github.rinde.rinsim.core.pdptw.VehicleDTO;
 import com.github.rinde.rinsim.geom.Point;
@@ -52,22 +51,22 @@ class Truck extends DefaultVehicle implements FieldEmitter {
     final PDPModel pm = pdpModel.get();
 
     if (delivery != null) {
-      if (delivery.getDestination().equals(getPosition())
+      if (delivery.getDeliveryLocation().equals(getPosition())
         && pm.getVehicleState(this) == VehicleState.IDLE) {
         pm.deliver(this, delivery, time);
       } else {
-        rm.moveTo(this, delivery.getDestination(), time);
+        rm.moveTo(this, delivery.getDeliveryLocation(), time);
       }
       return;
     }
 
     // Otherwise, Check if we can pickup nearby
-    final DefaultParcel closest = (DefaultParcel) RoadModels.findClosestObject(
+    final Parcel closest = (Parcel) RoadModels.findClosestObject(
       rm.getPosition(this), rm, new Predicate<RoadUser>() {
         @Override
         public boolean apply(@Nullable RoadUser input) {
-          return input instanceof DefaultParcel
-            && pm.getParcelState((DefaultParcel) input) == ParcelState.AVAILABLE;
+          return input instanceof Parcel
+            && pm.getParcelState((Parcel) input) == ParcelState.AVAILABLE;
         }
       });
 
@@ -77,7 +76,7 @@ class Truck extends DefaultVehicle implements FieldEmitter {
         && pm.getTimeWindowPolicy().canPickup(closest.getPickupTimeWindow(),
           time.getTime(), closest.getPickupDuration())) {
         final double newSize = getPDPModel().getContentsSize(this)
-          + closest.getMagnitude();
+          + closest.getNeededCapacity();
 
         if (newSize <= getCapacity()) {
           pm.pickup(this, closest, time);
@@ -109,7 +108,7 @@ class Truck extends DefaultVehicle implements FieldEmitter {
     for (final Parcel p : pm.getContents(this)) {
 
       final double dist = Point.distance(roadModel.get().getPosition(this),
-        p.getDestination());
+        p.getDeliveryLocation());
       if (dist < closest
         && pm.getTimeWindowPolicy().canDeliver(p.getDeliveryTimeWindow(),
           time.getTime(), p.getPickupDuration())) {
