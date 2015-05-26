@@ -174,30 +174,11 @@ public final class Experiment {
     ScenarioController.Builder scenContrBuilder = ScenarioController.builder(
       scenario)
       .withIgnoreRedundantHandlers(true);
-    // .withEventHandler(AddVehicleEvent.class, config.getVehicleCreator())
-    // .withEventHandler(TimeOutEvent.class, TimeOutEvent.ignoreHandler());
 
     for (Entry<Class<? extends TimedEvent>, TimedEventHandler<?>> entry : config
       .getEventHandlers().entrySet()) {
       scenContrBuilder = add(scenContrBuilder, entry.getKey(), entry.getValue());
     }
-
-    // if (config.getDepotCreator().isPresent()) {
-    // scenContrBuilder = scenContrBuilder.withEventHandler(AddDepotEvent.class,
-    // config.getDepotCreator().get());
-    // } else {
-    // scenContrBuilder = scenContrBuilder.withEventHandler(AddDepotEvent.class,
-    // AddDepotEvent.defaultHandler());
-    // }
-    // if (config.getParcelCreator().isPresent()) {
-    // scenContrBuilder = scenContrBuilder.withEventHandler(
-    // AddParcelEvent.class, config.getParcelCreator().get());
-    // } else {
-    // scenContrBuilder = scenContrBuilder.withEventHandler(
-    // AddParcelEvent.class,
-    // AddParcelEvent.defaultHandler());
-    // }
-
     Simulator.Builder simBuilder = Simulator.builder()
       .setRandomSeed(seed)
       .addModels(config.getModels())
