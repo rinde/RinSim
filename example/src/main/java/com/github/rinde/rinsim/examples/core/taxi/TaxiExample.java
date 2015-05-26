@@ -195,12 +195,7 @@ public final class TaxiExample {
    */
   static class Customer extends Parcel {
     Customer(ParcelDTO dto) {
-      // Point startPosition, Point pDestination,
-      // long pLoadingDuration, long pUnloadingDuration, double pMagnitude) {
       super(dto);
-      // super(pDestination, pLoadingDuration, TimeWindow.ALWAYS,
-      // pUnloadingDuration, TimeWindow.ALWAYS, pMagnitude);
-      // setStartPosition(startPosition);
     }
 
     @Override

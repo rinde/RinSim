@@ -57,7 +57,6 @@ import com.google.gson.JsonDeserializationContext;
 import com.google.gson.JsonDeserializer;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonParseException;
 import com.google.gson.JsonPrimitive;
 import com.google.gson.JsonSerializationContext;
 import com.google.gson.JsonSerializer;
@@ -79,21 +78,17 @@ public final class ScenarioIO {
   private ScenarioIO() {}
 
   private static Gson initialize() {
-    // final Type enumSetType = new TypeToken<Set<Enum<?>>>() {}.getType();
 
     final GsonBuilder builder = new GsonBuilder();
     builder
       .registerTypeHierarchyAdapter(ProblemClass.class,
         new ProblemClassHierarchyIO())
-      // .registerTypeHierarchyAdapter(TimedEvent.class,
-      // new TimedEventHierarchyIO())
       .registerTypeHierarchyAdapter(TimeWindowPolicy.class,
         new TimeWindowHierarchyIO())
       .registerTypeAdapter(Scenario.class, new ScenarioObjIO())
-      .registerTypeAdapter(ParcelDTO.class, new ParcelCreator())
+      .registerTypeAdapter(ParcelDTO.class, new ParcelIO())
       .registerTypeAdapter(Point.class, new PointIO())
       .registerTypeAdapter(TimeWindow.class, new TimeWindowIO())
-      // .registerTypeAdapter(enumSetType, new EnumSetIO())
       .registerTypeAdapter(Unit.class, new UnitIO())
       .registerTypeAdapter(Measure.class, new MeasureIO())
       .registerTypeHierarchyAdapter(Enum.class, new EnumIO())
@@ -367,51 +362,6 @@ public final class ScenarioIO {
     }
   }
 
-  // static class TimedEventHierarchyIO implements JsonDeserializer<TimedEvent>
-  // {
-  // @Override
-  // public TimedEvent deserialize(@Nullable JsonElement j,
-  // @Nullable Type typeOfT, @Nullable JsonDeserializationContext c) {
-  // JsonElement json = verifyNotNull(j);
-  // verifyNotNull(typeOfT);
-  // JsonDeserializationContext context = verifyNotNull(c);
-  // final JsonObject obj = json.getAsJsonObject();
-  // final long time = obj.get("time").getAsLong();
-  // final Enum<?> type = context
-  // .deserialize(obj.get("eventType"), Enum.class);
-  //
-  // checkArgument(type instanceof PDPScenarioEvent);
-  // final PDPScenarioEvent scenEvent = (PDPScenarioEvent) type;
-  // final TimedEvent event;
-  // switch (scenEvent) {
-  // case ADD_DEPOT:
-  // event = new AddDepotEvent(time, (Point) context.deserialize(
-  // obj.get("position"), Point.class));
-  // break;
-  // case ADD_VEHICLE:
-  // event = new AddVehicleEvent(time, (VehicleDTO) context.deserialize(
-  // obj.get("vehicleDTO"), VehicleDTO.class));
-  // break;
-  // case ADD_PARCEL:
-  // event = new AddParcelEvent((ParcelDTO) context.deserialize(
-  // obj.get("parcelDTO"), ParcelDTO.class));
-  // break;
-  // case TIME_OUT:
-  // event = new TimedEvent(type, time);
-  // break;
-  // case REMOVE_DEPOT:
-  // // fall through
-  // case REMOVE_PARCEL:
-  // // fall through
-  // case REMOVE_VEHICLE:
-  // // fall through
-  // default:
-  // throw new IllegalArgumentException("Event not supported: " + scenEvent);
-  // }
-  // return event;
-  // }
-  // }
-
   static class PointIO extends TypeAdapter<Point> {
     @Nullable
     @Override
@@ -477,30 +427,6 @@ public final class ScenarioIO {
       writer.value(xy);
     }
   }
-
-  // static class EnumSetIO extends SafeNullIO<Set<Enum<?>>> {
-  // @Override
-  // public Set<Enum<?>> doDeserialize(JsonElement json, Type typeOfT,
-  // JsonDeserializationContext context) {
-  // final Set<Enum<?>> eventTypes = newLinkedHashSet();
-  // final List<String> list = context
-  // .deserialize(json, new TypeToken<List<String>>() {}.getType());
-  // for (final String s : list) {
-  // eventTypes.add(PDPScenarioEvent.valueOf(s));
-  // }
-  // return eventTypes;
-  // }
-  //
-  // @Override
-  // public JsonElement doSerialize(Set<Enum<?>> src, Type typeOfSrc,
-  // JsonSerializationContext context) {
-  // final List<String> list = newArrayList();
-  // for (final Enum<?> e : src) {
-  // list.add(e.name());
-  // }
-  // return context.serialize(src, new TypeToken<List<String>>() {}.getType());
-  // }
-  // }
 
   static class UnitIO extends SafeNullIO<Unit<?>> {
     @Override
@@ -639,11 +565,10 @@ public final class ScenarioIO {
     }
   }
 
-  static class ParcelCreator extends SafeNullIO<ParcelDTO> {
-
+  static class ParcelIO extends SafeNullIO<ParcelDTO> {
     @Override
     public ParcelDTO doDeserialize(JsonElement json, Type typeOfT,
-      JsonDeserializationContext context) throws JsonParseException {
+      JsonDeserializationContext context) {
       Iterator<JsonElement> it = json.getAsJsonArray().iterator();
       Point p1 = context.deserialize(it.next(), Point.class);
       Point p2 = context.deserialize(it.next(), Point.class);

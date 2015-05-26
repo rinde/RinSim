@@ -52,12 +52,10 @@ import com.github.rinde.rinsim.scenario.StopCondition.TypeProvider;
 import com.google.auto.value.AutoValue;
 import com.google.common.base.Function;
 import com.google.common.base.MoreObjects;
-import com.google.common.base.Predicate;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableClassToInstanceMap;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.ImmutableSetMultimap;
 
 /**
  * A scenario controller represents a single simulation run using a
@@ -348,6 +346,24 @@ public final class ScenarioController extends AbstractModel<StopModel>
     }
 
     /**
+     * Change the behavior of handling redundant handlers. A redundant handler
+     * is a {@link TimedEventHandler} that handles an {@link TimedEvent} type
+     * that does not occur in the specified {@link Scenario}, it is therefore
+     * redundant. By default, adding a redundant {@link TimedEventHandler}
+     * yields a {@link IllegalStateException}. By calling this method with
+     * <code>true</code> this exception can be suppressed.
+     * @param ignore If <code>true</code> redundant handlers are ignored,
+     *          otherwise redundant handlers will generate a
+     *          {@link IllegalStateException}.
+     * @return A new {@link Builder} instance.
+     */
+    @CheckReturnValue
+    public Builder withIgnoreRedundantHandlers(boolean ignore) {
+      return create(getScenario(), getEventHandlers(), getNumberOfTicks(),
+        getStopModelBuilder(), ignore);
+    }
+
+    /**
      * Limits the simulation to the specified number of ticks.
      * @param ticks The number of ticks run, when negative the number of ticks
      *          is infinite.
@@ -401,12 +417,7 @@ public final class ScenarioController extends AbstractModel<StopModel>
         isIgnoreRedundantHandlers());
     }
 
-    @CheckReturnValue
-    public Builder withIgnoreRedundantHandlers(boolean ignore) {
-      return create(getScenario(), getEventHandlers(), getNumberOfTicks(),
-        getStopModelBuilder(), ignore);
-    }
-
+    @SuppressWarnings("unchecked")
     @Override
     public ScenarioController build(DependencyProvider dependencyProvider) {
       final SimulatorAPI sim = dependencyProvider.get(SimulatorAPI.class);
@@ -414,15 +425,7 @@ public final class ScenarioController extends AbstractModel<StopModel>
         .get(ClockController.class);
 
       final Scenario s = getScenario();
-      // final ImmutableSetMultimap<Class<?>, Class<?>> map =
-      // collectEventTypes(s
-      // .getEvents());
-
       final Set<Class<?>> required = collectClasses(s.getEvents());
-
-      // final ImmutableMap<Class<? extends TimedEvent>, TimedEventHandler<?>> m
-      // = getEventHandlers();
-
       final Map<Class<? extends TimedEvent>, TimedEventHandler<?>> m =
         newLinkedHashMap(getEventHandlers());
       final Set<Class<? extends TimedEvent>> covered =
@@ -442,22 +445,6 @@ public final class ScenarioController extends AbstractModel<StopModel>
       }
       checkState(isIgnoreRedundantHandlers() || covered.isEmpty(),
         "Found redundant handlers for type(s): %s.", covered, m.entrySet());
-      // final Set<Class<?>> knownTypes = map.keySet();
-
-      // final ImmutableMap.Builder<Class<? extends TimedEvent>,
-      // TimedEventHandler<?>> b = ImmutableMap
-      // .builder();
-      // b.putAll(getEventHandlers());
-      // if (!getEventHandlers().containsKey(AddDepotEvent.class)) {
-      // b.put(AddDepotEvent.class, DEFAULT_ADD_DEPOT_HANDLER);
-      // }
-      // if (!getEventHandlers().containsKey(AddParcelEvent.class)) {
-      // b.put(AddParcelEvent.class, DEFAULT_ADD_PARCEL_HANDLER);
-      // }
-
-      // for (final Class<? extends TimedEvent> t : s.getPossibleEventTypes()) {
-      // checkState(m.containsKey(t), "No handler found for event %s.", t);
-      // }
       return new ScenarioController(sim, clock, s, ImmutableMap.copyOf(m),
         getNumberOfTicks());
     }
@@ -470,37 +457,9 @@ public final class ScenarioController extends AbstractModel<StopModel>
         .build();
     }
 
-    private static ImmutableSetMultimap<Class<?>, Class<?>> collectEventTypes(
-      Iterable<? extends TimedEvent> pEvents) {
-
-      final Set<Class<?>> classes = collectClasses(pEvents);
-
-      final ImmutableSetMultimap.Builder<Class<?>, Class<?>> b = ImmutableSetMultimap
-        .builder();
-
-      for (final Class<?> cls : classes) {
-        Class<?> from = cls;
-        Class<?> tmp = from.getSuperclass();
-        b.putAll(from, collectInterfaces(from));
-        while (TimedEvent.class.isAssignableFrom(tmp)) {
-          b.put(from, tmp);
-          b.putAll(tmp, collectInterfaces(tmp));
-          from = tmp;
-          tmp = tmp.getSuperclass();
-        }
-      }
-
-      return b.build();
-    }
-
     private static ImmutableSet<Class<?>> collectClasses(
       Iterable<? extends TimedEvent> objs) {
       return FluentIterable.from(objs).transform(ToClassFunc.INSTANCE).toSet();
-    }
-
-    private static Iterable<Class<?>> collectInterfaces(Class<?> tp) {
-      return FluentIterable.of(tp.getInterfaces()).filter(
-        IsTimedEventPred.INSTANCE);
     }
 
     enum ToClassFunc implements Function<Object, Class<?>> {
@@ -509,15 +468,6 @@ public final class ScenarioController extends AbstractModel<StopModel>
         @Nullable
         public Class<?> apply(@Nullable Object input) {
           return verifyNotNull(input).getClass();
-        }
-      }
-    }
-
-    enum IsTimedEventPred implements Predicate<Class<?>> {
-      INSTANCE {
-        @Override
-        public boolean apply(@Nullable Class<?> input) {
-          return TimedEvent.class.isAssignableFrom(input);
         }
       }
     }

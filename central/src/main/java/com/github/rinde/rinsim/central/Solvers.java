@@ -250,40 +250,6 @@ public final class Solvers {
       arrivalTimesBuilder.build());
   }
 
-  /**
-   * Converts the specified collection containing {@link Parcel}s into an
-   * {@link ImmutableList} of {@link Parcel}s.
-   * @param parcels The parcels to convert.
-   * @return A list of {@link Parcel}s in the same order as in the provided
-   *         collection.
-   */
-  // public static ImmutableList<Parcel> toDtoList(
-  // Collection<Parcel> parcels) {
-  // final ImmutableList.Builder<Parcel> builder = ImmutableList.builder();
-  // for (final Parcel dp : parcels) {
-  // builder.add(dp.getDto());
-  // }
-  // return builder.build();
-  // }
-
-  /**
-   * Converts the specified collection of collections containing
-   * {@link DefaultParcel}s into a list of lists containing {@link Parcel}s.
-   * @param routes The collection of collections of parcels to convert.
-   * @return A list of lists of {@link Parcel}s in the same order as the
-   *         provided lists.
-   */
-  // public static ImmutableList<ImmutableList<Parcel>> toDtoLists(
-  // Collection<? extends Collection<Parcel>> routes) {
-  // final ImmutableList.Builder<ImmutableList<Parcel>> newRoutes =
-  // ImmutableList
-  // .builder();
-  // for (final Collection<Parcel> route : routes) {
-  // newRoutes.add(toDtoList(route));
-  // }
-  // return newRoutes.build();
-  // }
-
   // converts the routes received from Solver.solve(..) into a format which is
   // expected by the simulator
   static ImmutableList<Queue<Parcel>> convertRoutes(StateContext cont,
@@ -301,8 +267,6 @@ public final class Solvers {
     Set<Parcel> availableParcels, Measure<Long, Duration> time,
     Optional<ImmutableList<ImmutableList<Parcel>>> currentRoutes) {
 
-    // final ImmutableList.Builder<VehicleStateObject> vbuilder = ImmutableList
-    // .builder();
     final ImmutableMap.Builder<VehicleStateObject, DefaultVehicle> vbuilder = ImmutableMap
       .builder();
 
@@ -333,12 +297,9 @@ public final class Solvers {
       vbuilder.put(vehicleState, v);
     }
 
-    // final ImmutableMap<Parcel, Parcel> availableMap =
-    // toMap(availableParcels);
     final ImmutableSet<Parcel> availableDestMap = availableDestParcels.build();
-
     final Set<Parcel> toAdd = Sets.difference(availableParcels,
-      availableDestMap);// .entriesOnlyOnRight();
+      availableDestMap);
 
     final ImmutableSet<Parcel> availableParcelsKeys = ImmutableSet
       .<Parcel> builder()
@@ -353,17 +314,6 @@ public final class Solvers {
       vehicleMap.keySet().asList(), time.getValue().longValue(),
       time.getUnit(), rm.getSpeedUnit(), rm.getDistanceUnit()), vehicleMap);
   }
-
-  // static ImmutableSet<Parcel> contentsToMap(PDPModel pm,
-  // DefaultVehicle vehicle) {
-  // // this is ok since we actually check the type
-  // // @SuppressWarnings({ "unchecked", "rawtypes" })
-  //
-  // return ImmutableSet.copyOf(pm.getContents(vehicle));
-  // // final Set<Parcel> ps = Collections.checkedSet(
-  // // newLinkedHashSet(pm.getContents(vehicle)), Parcel.class);
-  // // return toMap(ps);
-  // }
 
   // TODO check for bugs
   static VehicleStateObject convertToVehicleState(PDPRoadModel rm, PDPModel pm,
@@ -393,16 +343,6 @@ public final class Solvers {
       contents, remainingServiceTime, destination == null ? null
         : destination, route);
   }
-
-  // static ImmutableMap<Parcel, Parcel> toMap(
-  // Collection<Parcel> parcels) {
-  // final ImmutableMap.Builder<Parcel, Parcel> parcelMapBuilder = ImmutableMap
-  // .builder();
-  // for (final Parcel dp : parcels) {
-  // parcelMapBuilder.put(dp.getDto(), dp);
-  // }
-  // return parcelMapBuilder.build();
-  // }
 
   /**
    * Converter that converts simulations into {@link StateContext} instances
