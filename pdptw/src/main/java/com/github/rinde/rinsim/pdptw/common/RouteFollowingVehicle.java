@@ -37,6 +37,7 @@ import javax.measure.unit.Unit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.github.rinde.rinsim.core.model.pdp.Depot;
 import com.github.rinde.rinsim.core.model.pdp.PDPModel;
 import com.github.rinde.rinsim.core.model.pdp.PDPModel.ParcelState;
 import com.github.rinde.rinsim.core.model.pdp.PDPModel.VehicleState;
@@ -46,7 +47,6 @@ import com.github.rinde.rinsim.core.model.pdp.VehicleDTO;
 import com.github.rinde.rinsim.core.model.road.RoadModel;
 import com.github.rinde.rinsim.core.model.road.RoadModels;
 import com.github.rinde.rinsim.core.model.time.TimeLapse;
-import com.github.rinde.rinsim.core.pdptw.DefaultDepot;
 import com.github.rinde.rinsim.event.Event;
 import com.github.rinde.rinsim.event.Listener;
 import com.github.rinde.rinsim.fsm.AbstractState;
@@ -112,7 +112,7 @@ public class RouteFollowingVehicle extends Vehicle {
 
   Queue<Parcel> route;
   Optional<? extends Queue<Parcel>> newRoute;
-  Optional<DefaultDepot> depot;
+  Optional<Depot> depot;
   Optional<TimeLapse> currentTime;
   boolean isDiversionAllowed;
   private Optional<Measure<Double, Velocity>> speed;
@@ -275,8 +275,7 @@ public class RouteFollowingVehicle extends Vehicle {
   @Override
   public void initRoadPDP(RoadModel pRoadModel, PDPModel pPdpModel) {
     super.initRoadPDP(pRoadModel, pPdpModel);
-    final Set<DefaultDepot> depots = getRoadModel().getObjectsOfType(
-      DefaultDepot.class);
+    final Set<Depot> depots = getRoadModel().getObjectsOfType(Depot.class);
     checkArgument(depots.size() == 1,
       "This vehicle requires exactly 1 depot, found %s depots.",
       depots.size());
@@ -373,7 +372,7 @@ public class RouteFollowingVehicle extends Vehicle {
   /**
    * @return the depot
    */
-  protected DefaultDepot getDepot() {
+  protected Depot getDepot() {
     return depot.get();
   }
 

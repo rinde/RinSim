@@ -24,9 +24,7 @@ import org.junit.experimental.categories.Category;
 import com.github.rinde.rinsim.core.Simulator;
 import com.github.rinde.rinsim.core.model.pdp.DefaultPDPModel;
 import com.github.rinde.rinsim.core.model.pdp.Depot;
-import com.github.rinde.rinsim.core.model.pdp.PDPModel;
 import com.github.rinde.rinsim.core.model.pdp.TimeWindowPolicy.TimeWindowPolicies;
-import com.github.rinde.rinsim.core.model.road.RoadModel;
 import com.github.rinde.rinsim.core.model.road.RoadModelBuilders;
 import com.github.rinde.rinsim.core.model.time.TickListener;
 import com.github.rinde.rinsim.core.model.time.TimeLapse;
@@ -103,16 +101,8 @@ public class ViewTest {
       public void afterTick(TimeLapse timeLapse) {}
     });
 
-    sim.register(new TestDepot());
+    sim.register(new Depot(new Point(1, 1)));
     sim.start();
   }
 
-  static class TestDepot extends Depot {
-    public TestDepot() {
-      setStartPosition(new Point(1, 1));
-    }
-
-    @Override
-    public void initRoadPDP(RoadModel pRoadModel, PDPModel pPdpModel) {}
-  }
 }

@@ -15,14 +15,28 @@
  */
 package com.github.rinde.rinsim.core.model.pdp;
 
+import com.github.rinde.rinsim.core.model.road.RoadModel;
+import com.github.rinde.rinsim.geom.Point;
+
 /**
  * Abstract base class for depot concept: a stationary {@link Container}.
- * @author Rinde van Lon 
+ * @author Rinde van Lon
  */
-public abstract class Depot extends ContainerImpl {
+public class Depot extends ContainerImpl {
+
+  /**
+   * Instantiate the depot at the provided position.
+   * @param position The position where the depot will be located.
+   */
+  public Depot(Point position) {
+    setStartPosition(position);
+  }
 
   @Override
   public final PDPType getType() {
     return PDPType.DEPOT;
   }
+
+  @Override
+  public void initRoadPDP(RoadModel pRoadModel, PDPModel pPdpModel) {}
 }

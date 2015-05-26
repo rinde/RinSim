@@ -45,18 +45,18 @@ import com.github.rinde.rinsim.core.model.DependencyProvider;
 import com.github.rinde.rinsim.core.model.Model;
 import com.github.rinde.rinsim.core.model.ModelProvider;
 import com.github.rinde.rinsim.core.model.pdp.DefaultPDPModel;
+import com.github.rinde.rinsim.core.model.pdp.Depot;
 import com.github.rinde.rinsim.core.model.pdp.PDPModel;
-import com.github.rinde.rinsim.core.model.pdp.VehicleDTO;
 import com.github.rinde.rinsim.core.model.pdp.PDPModel.PDPModelEventType;
 import com.github.rinde.rinsim.core.model.pdp.PDPModel.ParcelState;
 import com.github.rinde.rinsim.core.model.pdp.PDPModel.VehicleState;
 import com.github.rinde.rinsim.core.model.pdp.PDPModelEvent;
 import com.github.rinde.rinsim.core.model.pdp.Parcel;
 import com.github.rinde.rinsim.core.model.pdp.TimeWindowPolicy.TimeWindowPolicies;
+import com.github.rinde.rinsim.core.model.pdp.VehicleDTO;
 import com.github.rinde.rinsim.core.model.road.RoadModel;
 import com.github.rinde.rinsim.core.model.road.RoadModelBuilders;
 import com.github.rinde.rinsim.core.model.time.TimeLapse;
-import com.github.rinde.rinsim.core.pdptw.DefaultDepot;
 import com.github.rinde.rinsim.event.Event;
 import com.github.rinde.rinsim.event.Listener;
 import com.github.rinde.rinsim.event.ListenerEventHistory;
@@ -83,7 +83,7 @@ public class RouteFollowingVehicleTest {
   private PDPModel pm;
   private RouteFollowingVehicle d, d2;
   private Parcel p1, p2, p3;
-  private DefaultDepot depot;
+  private Depot depot;
   private final boolean diversionIsAllowed;
   private final boolean allowDelayedRouteChanges;
 
@@ -172,7 +172,7 @@ public class RouteFollowingVehicleTest {
       .serviceDuration(minute(3))
       .build();
 
-    depot = new DefaultDepot(new Point(3, 5));
+    depot = new Depot(new Point(3, 5));
     if (register) {
       PDPTWTestUtil.register(rm, pm, depot, d, d2, p1, p2, p3);
       assertEquals(depot, d.getDepot());
@@ -187,7 +187,7 @@ public class RouteFollowingVehicleTest {
   @Test(expected = IllegalArgumentException.class)
   public void multiDepotFail() {
     init(false);
-    PDPTWTestUtil.register(rm, pm, depot, new DefaultDepot(new Point(3, 5)), d);
+    PDPTWTestUtil.register(rm, pm, depot, new Depot(new Point(3, 5)), d);
   }
 
   /**

@@ -23,6 +23,7 @@ import org.junit.Test;
 
 import com.github.rinde.rinsim.core.model.DependencyProvider;
 import com.github.rinde.rinsim.core.model.road.RoadModel;
+import com.github.rinde.rinsim.geom.Point;
 
 public class PDPDecorationTest {
 
@@ -58,7 +59,7 @@ public class PDPDecorationTest {
     final PDPModel forwardA = new ForwardingA(defaultPDPModel);
     assertSame(forwardA, defaultPDPModel.self);
 
-    forwardA.register(new Depot() {
+    forwardA.register(new Depot(new Point(0, 0)) {
       @Override
       public void initRoadPDP(RoadModel pRoadModel, PDPModel pPdpModel) {}
     });

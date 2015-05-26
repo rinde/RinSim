@@ -20,7 +20,7 @@ import org.junit.experimental.categories.Category;
 
 import com.github.rinde.rinsim.core.Simulator;
 import com.github.rinde.rinsim.core.SimulatorAPI;
-import com.github.rinde.rinsim.core.pdptw.RandomVehicle;
+import com.github.rinde.rinsim.core.model.pdp.RandomVehicle;
 import com.github.rinde.rinsim.scenario.Scenario;
 import com.github.rinde.rinsim.scenario.ScenarioController;
 import com.github.rinde.rinsim.scenario.TimeOutEvent;

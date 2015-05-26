@@ -37,6 +37,7 @@ import org.junit.runners.Parameterized.Parameters;
 
 import com.github.rinde.rinsim.core.Simulator;
 import com.github.rinde.rinsim.core.SimulatorAPI;
+import com.github.rinde.rinsim.core.model.pdp.Depot;
 import com.github.rinde.rinsim.core.model.pdp.PDPModel;
 import com.github.rinde.rinsim.core.model.pdp.PDPModel.ParcelState;
 import com.github.rinde.rinsim.core.model.pdp.Parcel;
@@ -44,7 +45,6 @@ import com.github.rinde.rinsim.core.model.pdp.Vehicle;
 import com.github.rinde.rinsim.core.model.pdp.VehicleDTO;
 import com.github.rinde.rinsim.core.model.road.RoadModel;
 import com.github.rinde.rinsim.core.model.time.TimeLapse;
-import com.github.rinde.rinsim.core.pdptw.DefaultDepot;
 import com.github.rinde.rinsim.geom.Point;
 import com.github.rinde.rinsim.pdptw.common.AddDepotEvent;
 import com.github.rinde.rinsim.pdptw.common.AddParcelEvent;
@@ -293,7 +293,7 @@ public class Gendreau06Test {
     protected RoadModel roadModel;
     protected PDPModel pdpModel;
     protected Parcel target;
-    protected DefaultDepot depot;
+    protected Depot depot;
 
     public ClosestParcelStrategy() {}
 
@@ -305,7 +305,7 @@ public class Gendreau06Test {
       roadModel = rm;
       pdpModel = pm;
 
-      final Set<DefaultDepot> set = rm.getObjectsOfType(DefaultDepot.class);
+      final Set<Depot> set = rm.getObjectsOfType(Depot.class);
       checkArgument(set.size() == 1,
         "This strategy only supports problems with one depot.");
       depot = set.iterator().next();

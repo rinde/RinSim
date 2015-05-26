@@ -18,7 +18,7 @@ package com.github.rinde.rinsim.experiment;
 import java.io.Serializable;
 
 import com.github.rinde.rinsim.core.SimulatorAPI;
-import com.github.rinde.rinsim.core.pdptw.RandomVehicle;
+import com.github.rinde.rinsim.core.model.pdp.RandomVehicle;
 import com.github.rinde.rinsim.pdptw.common.AddVehicleEvent;
 import com.github.rinde.rinsim.scenario.TimedEventHandler;
 

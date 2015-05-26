@@ -45,10 +45,9 @@ import com.github.rinde.rinsim.core.Simulator;
 import com.github.rinde.rinsim.core.model.pdp.DefaultPDPModel;
 import com.github.rinde.rinsim.core.model.pdp.Depot;
 import com.github.rinde.rinsim.core.model.pdp.Parcel;
-import com.github.rinde.rinsim.core.model.pdp.VehicleDTO;
 import com.github.rinde.rinsim.core.model.pdp.TimeWindowPolicy.TimeWindowPolicies;
+import com.github.rinde.rinsim.core.model.pdp.VehicleDTO;
 import com.github.rinde.rinsim.core.model.road.RoadModelBuilders;
-import com.github.rinde.rinsim.core.pdptw.DefaultDepot;
 import com.github.rinde.rinsim.geom.Point;
 import com.github.rinde.rinsim.pdptw.common.PDPRoadModel;
 import com.github.rinde.rinsim.pdptw.common.RouteFollowingVehicle;
@@ -152,7 +151,7 @@ public class ArraysSolversTest {
       .availabilityTimeWindow(new TimeWindow(0, 1000000))
       .build(),
       false);
-    final Depot depot = new DefaultDepot(new Point(5, 5));
+    final Depot depot = new Depot(new Point(5, 5));
 
     final Parcel dp1 =
       Parcel.builder(new Point(2, 2), new Point(3, 3))

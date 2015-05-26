@@ -205,7 +205,7 @@ public final class TaxiExample {
   // currently has no function
   static class TaxiBase extends Depot {
     TaxiBase(Point position, double capacity) {
-      setStartPosition(position);
+      super(position);
       setCapacity(capacity);
     }
 

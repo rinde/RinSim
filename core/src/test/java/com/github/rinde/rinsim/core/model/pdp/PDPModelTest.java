@@ -818,6 +818,7 @@ public class PDPModelTest {
 
   static class TestDepot extends Depot {
     TestDepot(int pCapacity) {
+      super(new Point(0, 0));
       setCapacity(pCapacity);
     }
 

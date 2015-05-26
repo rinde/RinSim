@@ -21,12 +21,12 @@ import org.junit.experimental.categories.Category;
 
 import com.github.rinde.rinsim.core.Simulator;
 import com.github.rinde.rinsim.core.model.pdp.DefaultPDPModel;
+import com.github.rinde.rinsim.core.model.pdp.Depot;
 import com.github.rinde.rinsim.core.model.pdp.Parcel;
 import com.github.rinde.rinsim.core.model.pdp.Vehicle;
 import com.github.rinde.rinsim.core.model.pdp.VehicleDTO;
 import com.github.rinde.rinsim.core.model.road.RoadModelBuilders;
 import com.github.rinde.rinsim.core.model.time.TimeLapse;
-import com.github.rinde.rinsim.core.pdptw.DefaultDepot;
 import com.github.rinde.rinsim.geom.Point;
 import com.github.rinde.rinsim.testutil.GuiTests;
 import com.github.rinde.rinsim.ui.View;
@@ -49,7 +49,7 @@ public class PDPModelRendererTest {
       .addModel(View.builder()
         .with(PlaneRoadModelRenderer.builder())
         .with(RoadUserRenderer.builder()
-          .withColorAssociation(DefaultDepot.class, new RGB(255, 200, 0))
+          .withColorAssociation(Depot.class, new RGB(255, 200, 0))
           .withCircleAroundObjects()
         )
         .with(PDPModelRenderer.builder()
@@ -69,7 +69,7 @@ public class PDPModelRendererTest {
           .register(new TestVehicle(new Point(i, 10 - i), new Point(i, i + 1)));
       }
     }
-    sim.register(new DefaultDepot(new Point(5, 5)));
+    sim.register(new Depot(new Point(5, 5)));
 
     sim.start();
   }

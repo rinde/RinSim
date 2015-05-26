@@ -39,12 +39,12 @@ import com.github.rinde.rinsim.central.arrays.MultiVehicleSolverAdapter;
 import com.github.rinde.rinsim.central.arrays.RandomMVArraysSolver;
 import com.github.rinde.rinsim.core.Simulator;
 import com.github.rinde.rinsim.core.model.pdp.DefaultPDPModel;
+import com.github.rinde.rinsim.core.model.pdp.Depot;
 import com.github.rinde.rinsim.core.model.pdp.PDPModel;
 import com.github.rinde.rinsim.core.model.pdp.Parcel;
-import com.github.rinde.rinsim.core.model.pdp.VehicleDTO;
 import com.github.rinde.rinsim.core.model.pdp.TimeWindowPolicy.TimeWindowPolicies;
+import com.github.rinde.rinsim.core.model.pdp.VehicleDTO;
 import com.github.rinde.rinsim.core.model.road.RoadModelBuilders;
-import com.github.rinde.rinsim.core.pdptw.DefaultDepot;
 import com.github.rinde.rinsim.experiment.Experiment;
 import com.github.rinde.rinsim.experiment.ExperimentResults;
 import com.github.rinde.rinsim.fsm.State;
@@ -71,7 +71,7 @@ public class CentralTest {
   @SuppressWarnings("null")
   PDPModel pm;
   @SuppressWarnings("null")
-  DefaultDepot depot;
+  Depot depot;
   @SuppressWarnings("null")
   Parcel p1, p2, p3;
 
@@ -94,7 +94,7 @@ public class CentralTest {
     rm = sim.getModelProvider().getModel(PDPRoadModel.class);
     pm = sim.getModelProvider().getModel(PDPModel.class);
 
-    depot = new DefaultDepot(new Point(5, 5));
+    depot = new Depot(new Point(5, 5));
     sim.register(depot);
 
     p1 = createParcel(new Point(3, 0), new Point(0, 3));

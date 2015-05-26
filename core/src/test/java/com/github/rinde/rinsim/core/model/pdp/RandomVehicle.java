@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.github.rinde.rinsim.core.pdptw;
+package com.github.rinde.rinsim.core.model.pdp;
 
 import static com.google.common.collect.Lists.newArrayList;
 
@@ -22,6 +22,7 @@ import java.util.Set;
 
 import org.apache.commons.math3.random.RandomGenerator;
 
+import com.github.rinde.rinsim.core.model.pdp.Depot;
 import com.github.rinde.rinsim.core.model.pdp.PDPModel;
 import com.github.rinde.rinsim.core.model.pdp.PDPModel.ParcelState;
 import com.github.rinde.rinsim.core.model.pdp.Parcel;
@@ -76,8 +77,7 @@ public class RandomVehicle extends Vehicle implements RandomUser {
         }
       }
     } else {
-      final Set<DefaultDepot> depots = rm.get().getObjectsOfType(
-        DefaultDepot.class);
+      final Set<Depot> depots = rm.get().getObjectsOfType(Depot.class);
       if (!depots.isEmpty()) {
         rm.get().moveTo(this, depots.iterator().next(), time);
       }

@@ -16,7 +16,7 @@
 package com.github.rinde.rinsim.pdptw.common;
 
 import com.github.rinde.rinsim.core.SimulatorAPI;
-import com.github.rinde.rinsim.core.pdptw.DefaultDepot;
+import com.github.rinde.rinsim.core.model.pdp.Depot;
 import com.github.rinde.rinsim.geom.Point;
 import com.github.rinde.rinsim.scenario.TimedEvent;
 import com.github.rinde.rinsim.scenario.TimedEventHandler;
@@ -47,8 +47,8 @@ public abstract class AddDepotEvent implements TimedEvent {
   }
 
   /**
-   * Default {@link TimedEventHandler} that creates a {@link DefaultDepot} for
-   * every {@link AddDepotEvent} that is received.
+   * Default {@link TimedEventHandler} that creates a {@link Depot} for every
+   * {@link AddDepotEvent} that is received.
    * @return The default handler.
    */
   public static TimedEventHandler<AddDepotEvent> defaultHandler() {
@@ -59,7 +59,7 @@ public abstract class AddDepotEvent implements TimedEvent {
     INSTANCE {
       @Override
       public void handleTimedEvent(AddDepotEvent event, SimulatorAPI sim) {
-        sim.register(new DefaultDepot(event.getPosition()));
+        sim.register(new Depot(event.getPosition()));
       }
 
       @Override

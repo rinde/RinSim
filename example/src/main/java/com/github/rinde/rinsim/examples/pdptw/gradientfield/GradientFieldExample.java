@@ -15,7 +15,7 @@
  */
 package com.github.rinde.rinsim.examples.pdptw.gradientfield;
 
-import com.github.rinde.rinsim.core.pdptw.DefaultDepot;
+import com.github.rinde.rinsim.core.model.pdp.Depot;
 import com.github.rinde.rinsim.experiment.Experiment;
 import com.github.rinde.rinsim.pdptw.common.RouteRenderer;
 import com.github.rinde.rinsim.scenario.gendreau06.Gendreau06ObjectiveFunction;
@@ -58,7 +58,7 @@ public final class GradientFieldExample {
         .withImageAssociation(
           Truck.class, "/graphics/perspective/bus-44.png")
         .withImageAssociation(
-          DefaultDepot.class, "/graphics/flat/warehouse-32.png")
+          Depot.class, "/graphics/flat/warehouse-32.png")
         .withImageAssociation(
           GFParcel.class, "/graphics/flat/hailing-cab-32.png")
       )

@@ -33,7 +33,8 @@ public abstract class Vehicle extends ContainerImpl implements MovingRoadUser,
 
   /**
    * Instantiate a new vehicle based on the specified properties.
-   * @param vehicleDto
+   * @param vehicleDto The data transfer object that holds all vehicle
+   *          properties.
    */
   protected Vehicle(VehicleDTO vehicleDto) {
     dto = vehicleDto;
@@ -81,10 +82,16 @@ public abstract class Vehicle extends ContainerImpl implements MovingRoadUser,
     return dto.getSpeed();
   }
 
+  /**
+   * @return The time window in which this vehicle is available.
+   */
   public final TimeWindow getAvailabilityTimeWindow() {
     return dto.getAvailabilityTimeWindow();
   }
 
+  /**
+   * @return The start position of the vehicle.
+   */
   public final Point getStartPosition() {
     return dto.getStartPosition();
   }

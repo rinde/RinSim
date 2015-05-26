@@ -34,17 +34,17 @@ import com.github.rinde.rinsim.core.TestModelProvider;
 import com.github.rinde.rinsim.core.model.DependencyProvider;
 import com.github.rinde.rinsim.core.model.ModelProvider;
 import com.github.rinde.rinsim.core.model.pdp.DefaultPDPModel;
+import com.github.rinde.rinsim.core.model.pdp.Depot;
 import com.github.rinde.rinsim.core.model.pdp.PDPModel;
-import com.github.rinde.rinsim.core.model.pdp.VehicleDTO;
 import com.github.rinde.rinsim.core.model.pdp.PDPModel.ParcelState;
 import com.github.rinde.rinsim.core.model.pdp.Parcel;
 import com.github.rinde.rinsim.core.model.pdp.TimeWindowPolicy.TimeWindowPolicies;
 import com.github.rinde.rinsim.core.model.pdp.Vehicle;
+import com.github.rinde.rinsim.core.model.pdp.VehicleDTO;
 import com.github.rinde.rinsim.core.model.road.RoadModel;
 import com.github.rinde.rinsim.core.model.road.RoadModelBuilders;
 import com.github.rinde.rinsim.core.model.time.TimeLapse;
 import com.github.rinde.rinsim.core.model.time.TimeLapseFactory;
-import com.github.rinde.rinsim.core.pdptw.DefaultDepot;
 import com.github.rinde.rinsim.geom.Point;
 import com.github.rinde.rinsim.util.TimeWindow;
 
@@ -55,7 +55,7 @@ public abstract class PDPRoadModelCommonTest {
   Parcel dp1;
   Parcel dp2;
   Parcel dp3;
-  DefaultDepot depot;
+  Depot depot;
 
   Vehicle dv1;
   Vehicle dv2;
@@ -105,7 +105,7 @@ public abstract class PDPRoadModelCommonTest {
     }
 
     final Point depotLocation = new Point(5, 5);
-    depot = new DefaultDepot(depotLocation);
+    depot = new Depot(depotLocation);
     rm.addObjectAt(depot, depotLocation);
 
     dv1 = new TestVehicle(new Point(0, 0));

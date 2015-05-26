@@ -28,6 +28,7 @@ import com.github.rinde.rinsim.core.model.DependencyProvider;
 import com.github.rinde.rinsim.core.model.ModelBuilder;
 import com.github.rinde.rinsim.core.model.ModelProvider;
 import com.github.rinde.rinsim.core.model.ModelReceiver;
+import com.github.rinde.rinsim.core.model.pdp.Depot;
 import com.github.rinde.rinsim.core.model.pdp.PDPModel;
 import com.github.rinde.rinsim.core.model.pdp.PDPModel.ParcelState;
 import com.github.rinde.rinsim.core.model.pdp.Parcel;
@@ -39,7 +40,6 @@ import com.github.rinde.rinsim.core.model.road.MovingRoadUser;
 import com.github.rinde.rinsim.core.model.road.RoadModel;
 import com.github.rinde.rinsim.core.model.road.RoadUser;
 import com.github.rinde.rinsim.core.model.time.TimeLapse;
-import com.github.rinde.rinsim.core.pdptw.DefaultDepot;
 import com.github.rinde.rinsim.geom.Point;
 import com.google.auto.value.AutoValue;
 import com.google.common.base.Optional;
@@ -98,7 +98,7 @@ public class PDPRoadModel extends ForwardingRoadModel implements ModelReceiver {
 
   private void checkType(RoadUser ru) {
     checkArgument(ru instanceof Vehicle
-      || ru instanceof DefaultDepot
+      || ru instanceof Depot
       || ru instanceof Parcel,
       "This RoadModel only allows instances of Vehicle, Depot and Parcel.");
   }
