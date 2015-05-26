@@ -51,18 +51,18 @@ import com.github.rinde.rinsim.core.model.Model;
 import com.github.rinde.rinsim.core.model.ModelProvider;
 import com.github.rinde.rinsim.core.model.pdp.DefaultPDPModel;
 import com.github.rinde.rinsim.core.model.pdp.PDPModel;
+import com.github.rinde.rinsim.core.model.pdp.VehicleDTO;
 import com.github.rinde.rinsim.core.model.pdp.PDPModel.ParcelState;
 import com.github.rinde.rinsim.core.model.pdp.PDPModel.VehicleState;
 import com.github.rinde.rinsim.core.model.pdp.Parcel;
 import com.github.rinde.rinsim.core.model.pdp.ParcelDTO;
 import com.github.rinde.rinsim.core.model.pdp.TimeWindowPolicy.TimeWindowPolicies;
+import com.github.rinde.rinsim.core.model.pdp.Vehicle;
 import com.github.rinde.rinsim.core.model.road.RoadModel;
 import com.github.rinde.rinsim.core.model.road.RoadModelBuilders;
 import com.github.rinde.rinsim.core.model.time.Clock;
 import com.github.rinde.rinsim.core.model.time.TimeLapse;
 import com.github.rinde.rinsim.core.model.time.TimeLapseFactory;
-import com.github.rinde.rinsim.core.pdptw.DefaultVehicle;
-import com.github.rinde.rinsim.core.pdptw.VehicleDTO;
 import com.github.rinde.rinsim.geom.Point;
 import com.github.rinde.rinsim.pdptw.common.ObjectiveFunction;
 import com.github.rinde.rinsim.pdptw.common.PDPRoadModel;
@@ -368,7 +368,7 @@ public class SolversTest {
     final Parcel b = Parcel.builder(
       new Point(0, 1), new Point(1, 1)).build();
 
-    final DefaultVehicle vehicle = new TestVehicle(new Point(1, 1));
+    final Vehicle vehicle = new TestVehicle(new Point(1, 1));
     final GlobalStateObject gso = mock(GlobalStateObject.class);
     final VehicleStateObject vso = mock(VehicleStateObject.class);
 
@@ -391,11 +391,11 @@ public class SolversTest {
       final VehicleDTO dto = vehicle.dto;
       final VehicleStateObject vs = states.get(i);
 
-      assertEquals(dto.availabilityTimeWindow,
-        vs.getDto().availabilityTimeWindow);
-      assertEquals(dto.capacity, vs.getDto().capacity);
-      assertEquals(dto.speed, vs.getDto().speed, 0);
-      assertEquals(dto.startPosition, vs.getDto().startPosition);
+      assertEquals(dto.getAvailabilityTimeWindow(),
+        vs.getDto().getAvailabilityTimeWindow());
+      assertEquals(dto.getCapacity(), vs.getDto().getCapacity());
+      assertEquals(dto.getSpeed(), vs.getDto().getSpeed(), 0);
+      assertEquals(dto.getStartPosition(), vs.getDto().getStartPosition());
 
       assertEquals(rm.getPosition(expected.get(i)), vs.location);
 
@@ -433,7 +433,7 @@ public class SolversTest {
       .build();
   }
 
-  static class TestVehicle extends DefaultVehicle {
+  static class TestVehicle extends Vehicle {
     public final VehicleDTO dto;
 
     TestVehicle(Point start) {

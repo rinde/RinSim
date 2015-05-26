@@ -96,8 +96,8 @@ public final class SolverValidator {
       checkArgument(vs.remainingServiceTime >= 0,
         "Remaining service time must be >= 0, is %s.",
         vs.remainingServiceTime);
-      checkArgument(vs.getDto().speed > 0, "Speed must be positive, is %s.",
-        vs.getDto().speed);
+      checkArgument(vs.getDto().getSpeed() > 0, "Speed must be positive, is %s.",
+        vs.getDto().getSpeed());
       final Set<Parcel> intersection = Sets.intersection(
         state.availableParcels, vs.contents);
       checkArgument(

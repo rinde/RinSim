@@ -15,7 +15,7 @@
  */
 package com.github.rinde.rinsim.pdptw.common;
 
-import com.github.rinde.rinsim.core.pdptw.VehicleDTO;
+import com.github.rinde.rinsim.core.model.pdp.VehicleDTO;
 import com.github.rinde.rinsim.scenario.TimedEvent;
 import com.google.auto.value.AutoValue;
 

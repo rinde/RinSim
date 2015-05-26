@@ -30,9 +30,9 @@ import com.github.rinde.rinsim.core.Simulator;
 import com.github.rinde.rinsim.core.model.pdp.DefaultPDPModel;
 import com.github.rinde.rinsim.core.model.pdp.PDPModel.ParcelState;
 import com.github.rinde.rinsim.core.model.pdp.Parcel;
+import com.github.rinde.rinsim.core.model.pdp.Vehicle;
+import com.github.rinde.rinsim.core.model.pdp.VehicleDTO;
 import com.github.rinde.rinsim.core.model.time.TimeLapse;
-import com.github.rinde.rinsim.core.pdptw.DefaultVehicle;
-import com.github.rinde.rinsim.core.pdptw.VehicleDTO;
 import com.github.rinde.rinsim.geom.Graphs;
 import com.github.rinde.rinsim.geom.LengthData;
 import com.github.rinde.rinsim.geom.ListenableGraph;
@@ -124,7 +124,7 @@ public class CollisionGraphRoadModelPDPIntegrationTest {
     assertEquals(pm.getContents(agent1), newLinkedHashSet(asList(parcel1)));
   }
 
-  class TestAgent extends DefaultVehicle {
+  class TestAgent extends Vehicle {
 
     public TestAgent(VehicleDTO pDto) {
       super(pDto);
@@ -132,13 +132,13 @@ public class CollisionGraphRoadModelPDPIntegrationTest {
 
     @Override
     protected void tickImpl(TimeLapse time) {
-      final Parcel p = pdpModel.get().getParcels(ParcelState.values())
+      final Parcel p = getPDPModel().getParcels(ParcelState.values())
         .iterator().next();
 
-      roadModel.get().moveTo(this, p, time);
+      getRoadModel().moveTo(this, p, time);
 
-      if (roadModel.get().equalPosition(this, p) && time.hasTimeLeft()) {
-        pdpModel.get().pickup(this, p, time);
+      if (getRoadModel().equalPosition(this, p) && time.hasTimeLeft()) {
+        getPDPModel().pickup(this, p, time);
       }
     }
 

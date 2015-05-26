@@ -31,6 +31,7 @@ import com.github.rinde.rinsim.core.model.ModelReceiver;
 import com.github.rinde.rinsim.core.model.pdp.PDPModel;
 import com.github.rinde.rinsim.core.model.pdp.PDPModel.ParcelState;
 import com.github.rinde.rinsim.core.model.pdp.Parcel;
+import com.github.rinde.rinsim.core.model.pdp.Vehicle;
 import com.github.rinde.rinsim.core.model.road.AbstractRoadModel;
 import com.github.rinde.rinsim.core.model.road.ForwardingRoadModel;
 import com.github.rinde.rinsim.core.model.road.MoveProgress;
@@ -39,7 +40,6 @@ import com.github.rinde.rinsim.core.model.road.RoadModel;
 import com.github.rinde.rinsim.core.model.road.RoadUser;
 import com.github.rinde.rinsim.core.model.time.TimeLapse;
 import com.github.rinde.rinsim.core.pdptw.DefaultDepot;
-import com.github.rinde.rinsim.core.pdptw.DefaultVehicle;
 import com.github.rinde.rinsim.geom.Point;
 import com.google.auto.value.AutoValue;
 import com.google.common.base.Optional;
@@ -97,11 +97,10 @@ public class PDPRoadModel extends ForwardingRoadModel implements ModelReceiver {
   }
 
   private void checkType(RoadUser ru) {
-    checkArgument(
-      ru instanceof DefaultVehicle || ru instanceof DefaultDepot
-        || ru instanceof Parcel,
-      "This RoadModel only allows instances of DefaultVehicle, DefaultDepot and"
-        + " Parcel.");
+    checkArgument(ru instanceof Vehicle
+      || ru instanceof DefaultDepot
+      || ru instanceof Parcel,
+      "This RoadModel only allows instances of Vehicle, Depot and Parcel.");
   }
 
   @Override
@@ -159,7 +158,7 @@ public class PDPRoadModel extends ForwardingRoadModel implements ModelReceiver {
       final Point pos = getParcelPos(destinationRoadUser);
       if (type == DestType.DELIVERY) {
         checkArgument(
-          pdpModel.get().containerContains((DefaultVehicle) object,
+          pdpModel.get().containerContains((Vehicle) object,
             (Parcel) destinationRoadUser),
           "A vehicle can only move to the delivery location of a parcel if it "
             + "is carrying it.");

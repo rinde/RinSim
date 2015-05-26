@@ -15,32 +15,24 @@
  */
 package com.github.rinde.rinsim.examples.demo.factory;
 
-import org.apache.commons.math3.random.RandomGenerator;
-
-import com.github.rinde.rinsim.core.model.pdp.PDPModel;
 import com.github.rinde.rinsim.core.model.pdp.Vehicle;
-import com.github.rinde.rinsim.core.model.road.RoadModel;
+import com.github.rinde.rinsim.core.model.pdp.VehicleDTO;
 import com.github.rinde.rinsim.core.model.time.TimeLapse;
+import com.github.rinde.rinsim.geom.Point;
 import com.google.common.base.Optional;
 
 class AGV extends Vehicle {
-  private Optional<RoadModel> roadModel;
-  private Optional<PDPModel> pdpModel;
   private Optional<Box> destination;
-  private final RandomGenerator randomGenerator;
   private Optional<AgvModel> agvModel;
 
-  AGV(RandomGenerator rng) {
-    roadModel = Optional.absent();
+  AGV(Point startPos) {
+    super(VehicleDTO.builder()
+      .capacity(1)
+      .startPosition(startPos)
+      .speed(FactoryExample.AGV_SPEED)
+      .build());
     destination = Optional.absent();
     agvModel = Optional.absent();
-    randomGenerator = rng;
-    setCapacity(1);
-  }
-
-  @Override
-  public double getSpeed() {
-    return FactoryExample.AGV_SPEED;
   }
 
   @Override
@@ -56,33 +48,25 @@ class AGV extends Vehicle {
     }
 
     if (destination.isPresent()) {
-      if (roadModel.get().equalPosition(this, destination.get())) {
-        pdpModel.get().pickup(this, destination.get(), time);
-      } else if (pdpModel.get().getContents(this).contains(destination.get())) {
-        if (roadModel.get().getPosition(this)
-            .equals(destination.get().getDeliveryLocation())) {
-          pdpModel.get().deliver(this, destination.get(), time);
+      if (getRoadModel().equalPosition(this, destination.get())) {
+        getPDPModel().pickup(this, destination.get(), time);
+      } else if (getPDPModel().getContents(this).contains(destination.get())) {
+        if (getRoadModel().getPosition(this)
+          .equals(destination.get().getDeliveryLocation())) {
+          getPDPModel().deliver(this, destination.get(), time);
           destination = Optional.absent();
         } else {
-          roadModel.get()
-              .moveTo(this, destination.get().getDeliveryLocation(), time);
+          getRoadModel()
+            .moveTo(this, destination.get().getDeliveryLocation(), time);
         }
       } else {
-        if (roadModel.get().containsObject(destination.get())) {
-          roadModel.get().moveTo(this, destination.get(), time);
+        if (getRoadModel().containsObject(destination.get())) {
+          getRoadModel().moveTo(this, destination.get(), time);
         } else {
           destination = Optional.absent();
         }
       }
     }
-  }
-
-  @Override
-  public void initRoadPDP(RoadModel pRoadModel, PDPModel pPdpModel) {
-    roadModel = Optional.of(pRoadModel);
-    pdpModel = Optional.of(pPdpModel);
-    pRoadModel.addObjectAt(this,
-        roadModel.get().getRandomPosition(randomGenerator));
   }
 
   /**

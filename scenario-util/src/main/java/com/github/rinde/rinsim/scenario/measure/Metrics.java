@@ -182,10 +182,10 @@ public final class Metrics {
     for (final TimedEvent te : s.getEvents()) {
       if (te instanceof AddVehicleEvent) {
         if (vehicleSpeed == -1d) {
-          vehicleSpeed = ((AddVehicleEvent) te).getVehicleDTO().speed;
+          vehicleSpeed = ((AddVehicleEvent) te).getVehicleDTO().getSpeed();
         } else {
           checkArgument(
-            vehicleSpeed == ((AddVehicleEvent) te).getVehicleDTO().speed,
+            vehicleSpeed == ((AddVehicleEvent) te).getVehicleDTO().getSpeed(),
             "All vehicles are expected to have the same speed.");
         }
       }

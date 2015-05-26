@@ -18,6 +18,7 @@ package com.github.rinde.rinsim.examples.core.taxi;
 import com.github.rinde.rinsim.core.model.pdp.PDPModel;
 import com.github.rinde.rinsim.core.model.pdp.Parcel;
 import com.github.rinde.rinsim.core.model.pdp.Vehicle;
+import com.github.rinde.rinsim.core.model.pdp.VehicleDTO;
 import com.github.rinde.rinsim.core.model.road.RoadModel;
 import com.github.rinde.rinsim.core.model.road.RoadModels;
 import com.github.rinde.rinsim.core.model.time.TimeLapse;
@@ -27,27 +28,20 @@ import com.google.common.base.Optional;
 /**
  * Implementation of a very simple taxi agent. It moves to the closest customer,
  * picks it up, then delivers it, repeat.
- * 
- * @author Rinde van Lon 
+ *
+ * @author Rinde van Lon
  */
 class Taxi extends Vehicle {
-
   private static final double SPEED = 1000d;
-  private Optional<RoadModel> roadModel;
-  private Optional<PDPModel> pdpModel;
   private Optional<Parcel> curr;
 
-  Taxi(Point startPosition, double capacity) {
-    setStartPosition(startPosition);
-    setCapacity(capacity);
-    roadModel = Optional.absent();
-    pdpModel = Optional.absent();
+  Taxi(Point startPosition, int capacity) {
+    super(VehicleDTO.builder()
+      .capacity(capacity)
+      .startPosition(startPosition)
+      .speed(SPEED)
+      .build());
     curr = Optional.absent();
-  }
-
-  @Override
-  public double getSpeed() {
-    return SPEED;
   }
 
   @Override
@@ -55,15 +49,15 @@ class Taxi extends Vehicle {
 
   @Override
   protected void tickImpl(TimeLapse time) {
-    final RoadModel rm = roadModel.get();
-    final PDPModel pm = pdpModel.get();
+    final RoadModel rm = getRoadModel();
+    final PDPModel pm = getPDPModel();
 
     if (!time.hasTimeLeft()) {
       return;
     }
     if (!curr.isPresent()) {
       curr = Optional.fromNullable(RoadModels.findClosestObject(
-          rm.getPosition(this), rm, Parcel.class));
+        rm.getPosition(this), rm, Parcel.class));
     }
 
     if (curr.isPresent()) {
@@ -88,11 +82,5 @@ class Taxi extends Vehicle {
         }
       }
     }
-  }
-
-  @Override
-  public void initRoadPDP(RoadModel pRoadModel, PDPModel pPdpModel) {
-    roadModel = Optional.of(pRoadModel);
-    pdpModel = Optional.of(pPdpModel);
   }
 }

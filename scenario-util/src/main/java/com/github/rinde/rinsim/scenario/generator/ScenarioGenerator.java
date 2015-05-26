@@ -410,7 +410,7 @@ public final class ScenarioGenerator {
 
       double max = 0;
       for (final AddVehicleEvent ave : vehicles) {
-        max = Math.max(max, ave.getVehicleDTO().speed);
+        max = Math.max(max, ave.getVehicleDTO().getSpeed());
       }
       vehicleSpeed = Measure.valueOf(max, roadModel.getSpeedUnit());
 

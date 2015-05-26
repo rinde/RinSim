@@ -22,11 +22,11 @@ import org.junit.experimental.categories.Category;
 import com.github.rinde.rinsim.core.Simulator;
 import com.github.rinde.rinsim.core.model.pdp.DefaultPDPModel;
 import com.github.rinde.rinsim.core.model.pdp.Parcel;
+import com.github.rinde.rinsim.core.model.pdp.Vehicle;
+import com.github.rinde.rinsim.core.model.pdp.VehicleDTO;
 import com.github.rinde.rinsim.core.model.road.RoadModelBuilders;
 import com.github.rinde.rinsim.core.model.time.TimeLapse;
 import com.github.rinde.rinsim.core.pdptw.DefaultDepot;
-import com.github.rinde.rinsim.core.pdptw.DefaultVehicle;
-import com.github.rinde.rinsim.core.pdptw.VehicleDTO;
 import com.github.rinde.rinsim.geom.Point;
 import com.github.rinde.rinsim.testutil.GuiTests;
 import com.github.rinde.rinsim.ui.View;
@@ -65,7 +65,8 @@ public class PDPModelRendererTest {
       if (i != 5) {
         sim.register(Parcel.builder(new Point(i, i + 1), new Point(5, 5))
           .build());
-        sim.register(new Vehicle(new Point(i, 10 - i), new Point(i, i + 1)));
+        sim
+          .register(new TestVehicle(new Point(i, 10 - i), new Point(i, i + 1)));
       }
     }
     sim.register(new DefaultDepot(new Point(5, 5)));
@@ -73,18 +74,18 @@ public class PDPModelRendererTest {
     sim.start();
   }
 
-  static class Vehicle extends DefaultVehicle {
+  static class TestVehicle extends Vehicle {
 
     final Point destination;
 
-    public Vehicle(Point p, Point dest) {
+    public TestVehicle(Point p, Point dest) {
       super(VehicleDTO.builder().startPosition(p).build());
       destination = dest;
     }
 
     @Override
     protected void tickImpl(TimeLapse time) {
-      roadModel.get().moveTo(this, destination, time);
+      getRoadModel().moveTo(this, destination, time);
     }
   }
 }

@@ -25,16 +25,16 @@ import com.github.rinde.rinsim.core.model.pdp.PDPModel;
 import com.github.rinde.rinsim.core.model.pdp.PDPModel.ParcelState;
 import com.github.rinde.rinsim.core.model.pdp.PDPModel.VehicleState;
 import com.github.rinde.rinsim.core.model.pdp.Parcel;
+import com.github.rinde.rinsim.core.model.pdp.Vehicle;
+import com.github.rinde.rinsim.core.model.pdp.VehicleDTO;
 import com.github.rinde.rinsim.core.model.road.RoadModel;
 import com.github.rinde.rinsim.core.model.road.RoadModels;
 import com.github.rinde.rinsim.core.model.road.RoadUser;
 import com.github.rinde.rinsim.core.model.time.TimeLapse;
-import com.github.rinde.rinsim.core.pdptw.DefaultVehicle;
-import com.github.rinde.rinsim.core.pdptw.VehicleDTO;
 import com.github.rinde.rinsim.geom.Point;
 import com.google.common.base.Predicate;
 
-class Truck extends DefaultVehicle implements FieldEmitter {
+class Truck extends Vehicle implements FieldEmitter {
   @Nullable
   private GradientModel gradientModel;
 
@@ -47,8 +47,8 @@ class Truck extends DefaultVehicle implements FieldEmitter {
     // Check if we can deliver nearby
     final Parcel delivery = getDelivery(time, 5);
 
-    final RoadModel rm = roadModel.get();
-    final PDPModel pm = pdpModel.get();
+    final RoadModel rm = getRoadModel();
+    final PDPModel pm = getPDPModel();
 
     if (delivery != null) {
       if (delivery.getDeliveryLocation().equals(getPosition())
@@ -88,7 +88,7 @@ class Truck extends DefaultVehicle implements FieldEmitter {
     }
 
     if (rm.getObjectsOfType(Parcel.class).isEmpty()) {
-      rm.moveTo(this, dto.startPosition, time);
+      rm.moveTo(this, getStartPosition(), time);
       return;
     }
 
@@ -104,10 +104,10 @@ class Truck extends DefaultVehicle implements FieldEmitter {
   public Parcel getDelivery(TimeLapse time, int distance) {
     Parcel target = null;
     double closest = distance;
-    final PDPModel pm = pdpModel.get();
+    final PDPModel pm = getPDPModel();
     for (final Parcel p : pm.getContents(this)) {
 
-      final double dist = Point.distance(roadModel.get().getPosition(this),
+      final double dist = Point.distance(getRoadModel().getPosition(this),
         p.getDeliveryLocation());
       if (dist < closest
         && pm.getTimeWindowPolicy().canDeliver(p.getDeliveryTimeWindow(),
@@ -127,7 +127,7 @@ class Truck extends DefaultVehicle implements FieldEmitter {
 
   @Override
   public Point getPosition() {
-    return roadModel.get().getPosition(this);
+    return getRoadModel().getPosition(this);
   }
 
   @Override

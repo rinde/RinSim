@@ -25,6 +25,8 @@ import org.apache.commons.math3.random.RandomGenerator;
 import com.github.rinde.rinsim.core.model.pdp.PDPModel;
 import com.github.rinde.rinsim.core.model.pdp.PDPModel.ParcelState;
 import com.github.rinde.rinsim.core.model.pdp.Parcel;
+import com.github.rinde.rinsim.core.model.pdp.Vehicle;
+import com.github.rinde.rinsim.core.model.pdp.VehicleDTO;
 import com.github.rinde.rinsim.core.model.rand.RandomProvider;
 import com.github.rinde.rinsim.core.model.rand.RandomUser;
 import com.github.rinde.rinsim.core.model.road.RoadModel;
@@ -32,7 +34,7 @@ import com.github.rinde.rinsim.core.model.time.TimeLapse;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableSet;
 
-public class RandomVehicle extends DefaultVehicle implements RandomUser {
+public class RandomVehicle extends Vehicle implements RandomUser {
   private Optional<RoadModel> rm;
   private Optional<PDPModel> pm;
   private Optional<RandomGenerator> rng;
@@ -57,7 +59,8 @@ public class RandomVehicle extends DefaultVehicle implements RandomUser {
 
     if (target.isPresent()) {
       if (pm.get().containerContains(this, target.get())) {
-        if (rm.get().getPosition(this).equals(target.get().getDeliveryLocation())) {
+        if (rm.get().getPosition(this)
+          .equals(target.get().getDeliveryLocation())) {
           pm.get().deliver(this, target.get(), time);
         } else {
           rm.get().moveTo(this, target.get().getDeliveryLocation(), time);

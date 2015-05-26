@@ -38,6 +38,7 @@ import com.github.rinde.rinsim.core.model.ModelBuilder;
 import com.github.rinde.rinsim.core.model.pdp.Parcel;
 import com.github.rinde.rinsim.core.model.pdp.ParcelDTO;
 import com.github.rinde.rinsim.core.model.pdp.TimeWindowPolicy;
+import com.github.rinde.rinsim.core.model.pdp.VehicleDTO;
 import com.github.rinde.rinsim.geom.Point;
 import com.github.rinde.rinsim.scenario.Scenario.ProblemClass;
 import com.github.rinde.rinsim.scenario.Scenario.SimpleProblemClass;
@@ -87,6 +88,7 @@ public final class ScenarioIO {
         new TimeWindowHierarchyIO())
       .registerTypeAdapter(Scenario.class, new ScenarioObjIO())
       .registerTypeAdapter(ParcelDTO.class, new ParcelIO())
+      .registerTypeAdapter(VehicleDTO.class, new VehicleIO())
       .registerTypeAdapter(Point.class, new PointIO())
       .registerTypeAdapter(TimeWindow.class, new TimeWindowIO())
       .registerTypeAdapter(Unit.class, new UnitIO())
@@ -597,6 +599,33 @@ public final class ScenarioIO {
       arr.add(context.serialize(src.getOrderAnnounceTime()));
       arr.add(context.serialize(src.getPickupDuration()));
       arr.add(context.serialize(src.getDeliveryDuration()));
+      return arr;
+    }
+  }
+
+  static class VehicleIO extends SafeNullIO<VehicleDTO> {
+    @Override
+    public VehicleDTO doDeserialize(JsonElement json, Type typeOfT,
+      JsonDeserializationContext context) {
+      Iterator<JsonElement> it = json.getAsJsonArray().iterator();
+      return VehicleDTO
+        .builder()
+        .availabilityTimeWindow(
+          (TimeWindow) context.deserialize(it.next(), TimeWindow.class))
+        .capacity(it.next().getAsInt())
+        .speed(it.next().getAsDouble())
+        .startPosition((Point) context.deserialize(it.next(), Point.class))
+        .build();
+    }
+
+    @Override
+    JsonElement doSerialize(VehicleDTO src, Type typeOfSrc,
+      JsonSerializationContext context) {
+      JsonArray arr = new JsonArray();
+      arr.add(context.serialize(src.getAvailabilityTimeWindow()));
+      arr.add(context.serialize(src.getCapacity()));
+      arr.add(context.serialize(src.getSpeed()));
+      arr.add(context.serialize(src.getStartPosition()));
       return arr;
     }
   }

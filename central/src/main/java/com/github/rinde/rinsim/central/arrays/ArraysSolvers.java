@@ -217,16 +217,16 @@ public final class ArraysSolvers {
     checkState(index == numLocations - 1);
 
     // the start position of the truck points to the depot location
-    points.add(v.getDto().startPosition);
+    points.add(v.getDto().getStartPosition());
 
     // end of the day
-    dueDates[index] = fixTWend(v.getDto().availabilityTimeWindow.end,
+    dueDates[index] = fixTWend(v.getDto().getAvailabilityTimeWindow().end,
       state.time,
       timeConverter);
 
     releaseDates[index] = Math.min(0, dueDates[index]);
 
-    final Measure<Double, Velocity> speed = Measure.valueOf(v.getDto().speed,
+    final Measure<Double, Velocity> speed = Measure.valueOf(v.getDto().getSpeed(),
       state.speedUnit);
 
     final ImmutableList<Point> pointList = points.build();
@@ -428,7 +428,7 @@ public final class ArraysSolvers {
     for (int i = 0; i < v; i++) {
       final VehicleStateObject cur = iterator.next();
       final Measure<Double, Velocity> speed = Measure.valueOf(
-        cur.getDto().speed,
+        cur.getDto().getSpeed(),
         state.speedUnit);
 
       final Parcel dest = cur.destination;

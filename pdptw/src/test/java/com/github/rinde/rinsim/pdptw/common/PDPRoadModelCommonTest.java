@@ -35,16 +35,16 @@ import com.github.rinde.rinsim.core.model.DependencyProvider;
 import com.github.rinde.rinsim.core.model.ModelProvider;
 import com.github.rinde.rinsim.core.model.pdp.DefaultPDPModel;
 import com.github.rinde.rinsim.core.model.pdp.PDPModel;
+import com.github.rinde.rinsim.core.model.pdp.VehicleDTO;
 import com.github.rinde.rinsim.core.model.pdp.PDPModel.ParcelState;
 import com.github.rinde.rinsim.core.model.pdp.Parcel;
 import com.github.rinde.rinsim.core.model.pdp.TimeWindowPolicy.TimeWindowPolicies;
+import com.github.rinde.rinsim.core.model.pdp.Vehicle;
 import com.github.rinde.rinsim.core.model.road.RoadModel;
 import com.github.rinde.rinsim.core.model.road.RoadModelBuilders;
 import com.github.rinde.rinsim.core.model.time.TimeLapse;
 import com.github.rinde.rinsim.core.model.time.TimeLapseFactory;
 import com.github.rinde.rinsim.core.pdptw.DefaultDepot;
-import com.github.rinde.rinsim.core.pdptw.DefaultVehicle;
-import com.github.rinde.rinsim.core.pdptw.VehicleDTO;
 import com.github.rinde.rinsim.geom.Point;
 import com.github.rinde.rinsim.util.TimeWindow;
 
@@ -57,8 +57,8 @@ public abstract class PDPRoadModelCommonTest {
   Parcel dp3;
   DefaultDepot depot;
 
-  DefaultVehicle dv1;
-  DefaultVehicle dv2;
+  Vehicle dv1;
+  Vehicle dv2;
 
   PDPRoadModel rm;
   PDPModel pm;
@@ -110,8 +110,8 @@ public abstract class PDPRoadModelCommonTest {
 
     dv1 = new TestVehicle(new Point(0, 0));
     dv2 = new TestVehicle(new Point(0, 0));
-    for (final DefaultVehicle tv : asList(dv1, dv2)) {
-      rm.addObjectAt(tv, tv.getDTO().startPosition);
+    for (final Vehicle tv : asList(dv1, dv2)) {
+      rm.addObjectAt(tv, tv.getDTO().getStartPosition());
       pm.register(tv);
     }
 
@@ -354,7 +354,7 @@ public abstract class PDPRoadModelCommonTest {
     assertEquals(allowDiversion, success);
   }
 
-  static class TestVehicle extends DefaultVehicle {
+  static class TestVehicle extends Vehicle {
     public TestVehicle(Point start) {
       super(VehicleDTO.builder()
         .startPosition(start)

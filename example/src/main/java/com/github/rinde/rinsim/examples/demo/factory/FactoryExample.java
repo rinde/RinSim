@@ -86,8 +86,6 @@ public final class FactoryExample {
         break;
       }
     }
-    System.out.println(sec);
-
     run(endTime, d, sec, null);
   }
 
@@ -207,7 +205,9 @@ public final class FactoryExample {
       .build();
 
     for (int i = 0; i < NUM_VECHICLES; i++) {
-      simulator.register(new AGV(rng));
+      final List<Point> l = points.get(rng.nextInt(points.size()));
+      final Point p = l.get(rng.nextInt(l.size()));
+      simulator.register(new AGV(p));
     }
 
     simulator.addTickListener(new TickListener() {

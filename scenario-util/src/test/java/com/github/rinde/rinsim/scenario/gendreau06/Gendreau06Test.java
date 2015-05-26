@@ -40,11 +40,11 @@ import com.github.rinde.rinsim.core.SimulatorAPI;
 import com.github.rinde.rinsim.core.model.pdp.PDPModel;
 import com.github.rinde.rinsim.core.model.pdp.PDPModel.ParcelState;
 import com.github.rinde.rinsim.core.model.pdp.Parcel;
+import com.github.rinde.rinsim.core.model.pdp.Vehicle;
+import com.github.rinde.rinsim.core.model.pdp.VehicleDTO;
 import com.github.rinde.rinsim.core.model.road.RoadModel;
 import com.github.rinde.rinsim.core.model.time.TimeLapse;
 import com.github.rinde.rinsim.core.pdptw.DefaultDepot;
-import com.github.rinde.rinsim.core.pdptw.DefaultVehicle;
-import com.github.rinde.rinsim.core.pdptw.VehicleDTO;
 import com.github.rinde.rinsim.geom.Point;
 import com.github.rinde.rinsim.pdptw.common.AddDepotEvent;
 import com.github.rinde.rinsim.pdptw.common.AddParcelEvent;
@@ -261,7 +261,7 @@ public class Gendreau06Test {
       GendreauProblemClass.LONG_LOW_FREQ, 1, false);
   }
 
-  static class SimpleTruck extends DefaultVehicle {
+  static class SimpleTruck extends Vehicle {
     protected VehicleStrategy strategy;
 
     public SimpleTruck(VehicleDTO dto, VehicleStrategy vs) {
@@ -282,14 +282,14 @@ public class Gendreau06Test {
   }
 
   interface VehicleStrategy {
-    void init(DefaultVehicle vehicle, RoadModel rm, PDPModel pm);
+    void init(Vehicle vehicle, RoadModel rm, PDPModel pm);
 
     void execute(TimeLapse time);
   }
 
   static class ClosestParcelStrategy implements VehicleStrategy {
 
-    protected DefaultVehicle vehicle;
+    protected Vehicle vehicle;
     protected RoadModel roadModel;
     protected PDPModel pdpModel;
     protected Parcel target;
@@ -298,7 +298,7 @@ public class Gendreau06Test {
     public ClosestParcelStrategy() {}
 
     @Override
-    public void init(DefaultVehicle v, RoadModel rm, PDPModel pm) {
+    public void init(Vehicle v, RoadModel rm, PDPModel pm) {
       checkState(vehicle == null && roadModel == null && pdpModel == null,
         "init can be called only once!");
       vehicle = v;

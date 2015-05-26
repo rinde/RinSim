@@ -23,12 +23,12 @@ import com.github.rinde.rinsim.core.SimulatorAPI;
 import com.github.rinde.rinsim.core.model.pdp.PDPModel;
 import com.github.rinde.rinsim.core.model.pdp.PDPModel.ParcelState;
 import com.github.rinde.rinsim.core.model.pdp.Parcel;
+import com.github.rinde.rinsim.core.model.pdp.Vehicle;
+import com.github.rinde.rinsim.core.model.pdp.VehicleDTO;
 import com.github.rinde.rinsim.core.model.road.RoadModel;
 import com.github.rinde.rinsim.core.model.road.RoadModels;
 import com.github.rinde.rinsim.core.model.road.RoadUser;
 import com.github.rinde.rinsim.core.model.time.TimeLapse;
-import com.github.rinde.rinsim.core.pdptw.DefaultVehicle;
-import com.github.rinde.rinsim.core.pdptw.VehicleDTO;
 import com.github.rinde.rinsim.pdptw.common.AddVehicleEvent;
 import com.github.rinde.rinsim.scenario.ScenarioController;
 import com.github.rinde.rinsim.scenario.TimedEventHandler;
@@ -85,7 +85,7 @@ public class RepetitiousGUITest {
  *
  * @author Rinde van Lon
  */
-class Truck extends DefaultVehicle {
+class Truck extends Vehicle {
 
   public Truck(VehicleDTO pDto) {
     super(pDto);
@@ -93,8 +93,8 @@ class Truck extends DefaultVehicle {
 
   @Override
   protected void tickImpl(TimeLapse time) {
-    final RoadModel rm = roadModel.get();
-    final PDPModel pm = pdpModel.get();
+    final RoadModel rm = getRoadModel();
+    final PDPModel pm = getPDPModel();
     // we always go to the closest available parcel
     final Parcel closest = (Parcel) RoadModels.findClosestObject(
       rm.getPosition(this), rm, new Predicate<RoadUser>() {

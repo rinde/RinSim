@@ -44,11 +44,11 @@ import com.github.rinde.rinsim.core.model.ModelProvider;
 import com.github.rinde.rinsim.core.model.pdp.PDPModel;
 import com.github.rinde.rinsim.core.model.pdp.PDPModel.VehicleParcelActionInfo;
 import com.github.rinde.rinsim.core.model.pdp.Parcel;
+import com.github.rinde.rinsim.core.model.pdp.Vehicle;
+import com.github.rinde.rinsim.core.model.pdp.VehicleDTO;
 import com.github.rinde.rinsim.core.model.road.RoadModels;
 import com.github.rinde.rinsim.core.model.time.Clock;
 import com.github.rinde.rinsim.core.model.time.TimeModel;
-import com.github.rinde.rinsim.core.pdptw.DefaultVehicle;
-import com.github.rinde.rinsim.core.pdptw.VehicleDTO;
 import com.github.rinde.rinsim.geom.Point;
 import com.github.rinde.rinsim.pdptw.common.PDPRoadModel;
 import com.github.rinde.rinsim.pdptw.common.StatisticsDTO;
@@ -149,7 +149,7 @@ public final class Solvers {
       long time = state.time;
       Point vehicleLocation = vso.location;
       final Measure<Double, Velocity> speed = Measure.valueOf(
-        vso.getDto().speed, state.speedUnit);
+        vso.getDto().getSpeed(), state.speedUnit);
       final Set<Parcel> seen = newHashSet();
       for (int j = 0; j < route.size(); j++) {
         final Parcel cur = route.get(j);
@@ -218,7 +218,7 @@ public final class Solvers {
 
       // go to depot
       final Measure<Double, Length> distance = Measure.valueOf(
-        Point.distance(vehicleLocation, vso.getDto().startPosition),
+        Point.distance(vehicleLocation, vso.getDto().getStartPosition()),
         state.distUnit);
       totalDistance += distance.getValue();
       final long tt = DoubleMath.roundToLong(
@@ -226,8 +226,8 @@ public final class Solvers {
         RoundingMode.CEILING);
       time += tt;
       // check overtime
-      if (vso.getDto().availabilityTimeWindow.isAfterEnd(time)) {
-        overTime += time - vso.getDto().availabilityTimeWindow.end;
+      if (vso.getDto().getAvailabilityTimeWindow().isAfterEnd(time)) {
+        overTime += time - vso.getDto().getAvailabilityTimeWindow().end;
       }
       maxTime = Math.max(maxTime, time);
 
@@ -263,11 +263,11 @@ public final class Solvers {
   }
 
   static StateContext convert(PDPRoadModel rm, PDPModel pm,
-    Collection<DefaultVehicle> vehicles,
+    Collection<Vehicle> vehicles,
     Set<Parcel> availableParcels, Measure<Long, Duration> time,
     Optional<ImmutableList<ImmutableList<Parcel>>> currentRoutes) {
 
-    final ImmutableMap.Builder<VehicleStateObject, DefaultVehicle> vbuilder = ImmutableMap
+    final ImmutableMap.Builder<VehicleStateObject, Vehicle> vbuilder = ImmutableMap
       .builder();
 
     @Nullable
@@ -281,7 +281,7 @@ public final class Solvers {
 
     final ImmutableSet.Builder<Parcel> availableDestParcels = ImmutableSet
       .builder();
-    for (final DefaultVehicle v : vehicles) {
+    for (final Vehicle v : vehicles) {
       final ImmutableSet<Parcel> contentsMap = ImmutableSet.copyOf(pm
         .getContents(v));
 
@@ -307,7 +307,7 @@ public final class Solvers {
       .addAll(toAdd)
       .build();
 
-    final ImmutableMap<VehicleStateObject, DefaultVehicle> vehicleMap = vbuilder
+    final ImmutableMap<VehicleStateObject, Vehicle> vehicleMap = vbuilder
       .build();
 
     return new StateContext(new GlobalStateObject(availableParcelsKeys,
@@ -317,7 +317,7 @@ public final class Solvers {
 
   // TODO check for bugs
   static VehicleStateObject convertToVehicleState(PDPRoadModel rm, PDPModel pm,
-    DefaultVehicle vehicle, ImmutableSet<Parcel> contents,
+    Vehicle vehicle, ImmutableSet<Parcel> contents,
     @Nullable ImmutableList<Parcel> route,
     ImmutableSet.Builder<Parcel> availableDestBuilder) {
     final boolean isIdle = pm.getVehicleState(vehicle) == PDPModel.VehicleState.IDLE;
@@ -432,10 +432,10 @@ public final class Solvers {
     final Clock clock;
     final PDPRoadModel roadModel;
     final PDPModel pdpModel;
-    final List<DefaultVehicle> vehicles;
+    final List<Vehicle> vehicles;
 
     SimulationSolver(Optional<Solver> s, PDPRoadModel rm, PDPModel pm,
-      Clock sim, List<DefaultVehicle> vs) {
+      Clock sim, List<Vehicle> vs) {
       solver = s;
       clock = sim;
       roadModel = rm;
@@ -466,8 +466,8 @@ public final class Solvers {
 
     @Override
     public StateContext convert(SolveArgs args) {
-      final Collection<DefaultVehicle> vs = vehicles.isEmpty() ? roadModel
-        .getObjectsOfType(DefaultVehicle.class) : vehicles;
+      final Collection<Vehicle> vs = vehicles.isEmpty() ? roadModel
+        .getObjectsOfType(Vehicle.class) : vehicles;
       final Set<Parcel> ps = args.parcels.isPresent()
         ? args.parcels.get()
         : ImmutableSet.copyOf(pdpModel.getParcels(ANNOUNCED, AVAILABLE,
@@ -494,9 +494,9 @@ public final class Solvers {
    * {@link ModelProvider} or via {@link Simulator} instance</li>
    * <li>{@link SimulatorAPI} - can be supplied directly or via a
    * {@link Simulator} instance.</li>
-   * <li>A number of {@link DefaultVehicle}s - can be supplied directly or if
-   * not supplied all vehicles available in the {@link PDPRoadModel} instance
-   * will be used.</li>
+   * <li>A number of {@link Vehicle}s - can be supplied directly or if not
+   * supplied all vehicles available in the {@link PDPRoadModel} instance will
+   * be used.</li>
    * </ul>
    * 
    * @param <T> The type of adapter to produce.
@@ -513,7 +513,7 @@ public final class Solvers {
     PDPRoadModel roadModel;
     @Nullable
     PDPModel pdpModel;
-    final List<DefaultVehicle> vehicles;
+    final List<Vehicle> vehicles;
     final Optional<Solver> solver;
 
     AdapterBuilder(@Nullable Solver s) {
@@ -577,10 +577,10 @@ public final class Solvers {
      * Adds the specified vehicle to the resulting adapter, the vehicle will be
      * included in the resulting adapter. When no vehicles are supplied, the
      * adapter will use all vehicles in {@link PDPRoadModel}.
-     * @param dv The {@link DefaultVehicle} to add.
+     * @param dv The {@link Vehicle} to add.
      * @return This, as per the builder pattern.
      */
-    public AdapterBuilder<T> with(DefaultVehicle dv) {
+    public AdapterBuilder<T> with(Vehicle dv) {
       vehicles.add(dv);
       return this;
     }
@@ -589,10 +589,10 @@ public final class Solvers {
      * Adds the specified vehicles to the resulting adapter, the vehicles will
      * be included in the resulting adapter. When no vehicles are supplied, the
      * adapter will use all vehicles in {@link PDPRoadModel}.
-     * @param dv The {@link DefaultVehicle}s to include.
+     * @param dv The {@link Vehicle}s to include.
      * @return This, as per the builder pattern.
      */
-    public AdapterBuilder<T> with(List<? extends DefaultVehicle> dv) {
+    public AdapterBuilder<T> with(List<? extends Vehicle> dv) {
       vehicles.addAll(dv);
       return this;
     }
@@ -660,12 +660,12 @@ public final class Solvers {
      */
     public final GlobalStateObject state;
     /**
-     * A mapping of {@link VehicleDTO} to {@link DefaultVehicle}.
+     * A mapping of {@link VehicleDTO} to {@link Vehicle}.
      */
-    public final ImmutableMap<VehicleStateObject, DefaultVehicle> vehicleMap;
+    public final ImmutableMap<VehicleStateObject, Vehicle> vehicleMap;
 
     StateContext(GlobalStateObject state,
-      ImmutableMap<VehicleStateObject, DefaultVehicle> vehicleMap) {
+      ImmutableMap<VehicleStateObject, Vehicle> vehicleMap) {
       this.state = state;
       this.vehicleMap = vehicleMap;
     }

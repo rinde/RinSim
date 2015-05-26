@@ -16,15 +16,30 @@
 package com.github.rinde.rinsim.core.model.pdp;
 
 import com.github.rinde.rinsim.core.model.road.MovingRoadUser;
+import com.github.rinde.rinsim.core.model.road.RoadModel;
 import com.github.rinde.rinsim.core.model.time.TickListener;
 import com.github.rinde.rinsim.core.model.time.TimeLapse;
+import com.github.rinde.rinsim.geom.Point;
+import com.github.rinde.rinsim.util.TimeWindow;
 
 /**
  * Abstract base class for vehicle concept: moving {@link Container}.
- * @author Rinde van Lon 
+ * @author Rinde van Lon
  */
 public abstract class Vehicle extends ContainerImpl implements MovingRoadUser,
-    TickListener {
+  TickListener {
+
+  final VehicleDTO dto;
+
+  /**
+   * Instantiate a new vehicle based on the specified properties.
+   * @param vehicleDto
+   */
+  protected Vehicle(VehicleDTO vehicleDto) {
+    dto = vehicleDto;
+    setStartPosition(dto.getStartPosition());
+    setCapacity(dto.getCapacity());
+  }
 
   @Override
   public final PDPType getType() {
@@ -39,6 +54,9 @@ public abstract class Vehicle extends ContainerImpl implements MovingRoadUser,
     tickImpl(time);
   }
 
+  @Override
+  public void initRoadPDP(RoadModel pRoadModel, PDPModel pPdpModel) {}
+
   /**
    * Is called every tick. This replaces the
    * {@link TickListener#tick(TimeLapse)} for vehicles.
@@ -49,4 +67,25 @@ public abstract class Vehicle extends ContainerImpl implements MovingRoadUser,
 
   @Override
   public void afterTick(TimeLapse time) {}
+
+  /**
+   * @return The data transfer object which holds the immutable properties of
+   *         this vehicle.
+   */
+  public final VehicleDTO getDTO() {
+    return dto;
+  }
+
+  @Override
+  public final double getSpeed() {
+    return dto.getSpeed();
+  }
+
+  public final TimeWindow getAvailabilityTimeWindow() {
+    return dto.getAvailabilityTimeWindow();
+  }
+
+  public final Point getStartPosition() {
+    return dto.getStartPosition();
+  }
 }

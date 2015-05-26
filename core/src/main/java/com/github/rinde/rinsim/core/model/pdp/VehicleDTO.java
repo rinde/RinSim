@@ -13,86 +13,43 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.github.rinde.rinsim.core.pdptw;
+package com.github.rinde.rinsim.core.model.pdp;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
-import java.util.Objects;
-
-import javax.annotation.Nullable;
-
 import com.github.rinde.rinsim.geom.Point;
 import com.github.rinde.rinsim.util.TimeWindow;
+import com.google.auto.value.AutoValue;
 
 /**
  * An immutable value object representing a vehicle in a pickup-and-delivery
  * problem. Instances can be created via {@link #builder()}.
  * @author Rinde van Lon
  */
-public final class VehicleDTO {
-  /**
-   * The start position of the vehicle.
-   */
-  public final Point startPosition;
+@AutoValue
+public abstract class VehicleDTO {
+
+  VehicleDTO() {}
 
   /**
-   * The maximum speed of the vehicle.
+   * @return The start position of the vehicle.
    */
-  public final double speed;
+  public abstract Point getStartPosition();
 
   /**
-   * The maximum capacity of the vehicle.
+   * @return The maximum speed of the vehicle.
    */
-  public final int capacity;
+  public abstract double getSpeed();
 
   /**
-   * The time window in which this vehicle is available.
+   * @return The maximum capacity of the vehicle.
    */
-  public final TimeWindow availabilityTimeWindow;
+  public abstract int getCapacity();
 
-  VehicleDTO(Builder b) {
-    startPosition = b.startPosition;
-    speed = b.speed;
-    capacity = b.capacity;
-    availabilityTimeWindow = b.availabilityTimeWindow;
-  }
-
-  @Override
-  public String toString() {
-    final StringBuilder sb = new StringBuilder("VehicleDTO{startPosition:");
-    sb.append(startPosition);
-    sb.append(",speed:");
-    sb.append(speed);
-    sb.append(",capacity:");
-    sb.append(capacity);
-    sb.append(",availabilityTimeWindow:");
-    sb.append(availabilityTimeWindow);
-    sb.append("}");
-    return sb.toString();
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(startPosition, speed, capacity, availabilityTimeWindow);
-  }
-
-  @Override
-  public boolean equals(@Nullable Object o) {
-    if (null == o) {
-      return false;
-    }
-    if (this == o) {
-      return true;
-    }
-    if (o.getClass() != getClass()) {
-      return false;
-    }
-    final VehicleDTO v = (VehicleDTO) o;
-    return Objects.equals(v.startPosition, startPosition)
-        && Objects.equals(v.speed, speed)
-        && Objects.equals(v.capacity, capacity)
-        && Objects.equals(v.availabilityTimeWindow, availabilityTimeWindow);
-  }
+  /**
+   * @return The time window in which this vehicle is available.
+   */
+  public abstract TimeWindow getAvailabilityTimeWindow();
 
   /**
    * @return A new builder for constructing {@link VehicleDTO}s.
@@ -126,10 +83,10 @@ public final class VehicleDTO {
      * @return This, as per the builder pattern.
      */
     public Builder use(VehicleDTO dto) {
-      return startPosition(dto.startPosition)
-          .availabilityTimeWindow(dto.availabilityTimeWindow)
-          .speed(dto.speed)
-          .capacity(dto.capacity);
+      return startPosition(dto.getStartPosition())
+        .availabilityTimeWindow(dto.getAvailabilityTimeWindow())
+        .speed(dto.getSpeed())
+        .capacity(dto.getCapacity());
     }
 
     /**
@@ -180,7 +137,8 @@ public final class VehicleDTO {
      * @return A new {@link VehicleDTO} instance.
      */
     public VehicleDTO build() {
-      return new VehicleDTO(this);
+      return new AutoValue_VehicleDTO(startPosition, speed, capacity,
+        availabilityTimeWindow);
     }
   }
 }
