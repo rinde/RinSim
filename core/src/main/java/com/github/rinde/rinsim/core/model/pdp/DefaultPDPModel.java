@@ -21,6 +21,7 @@ import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Maps.newLinkedHashMap;
 import static java.util.Collections.unmodifiableSet;
 
+import java.io.Serializable;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -658,7 +659,9 @@ public final class DefaultPDPModel extends PDPModel {
    */
   @AutoValue
   public abstract static class Builder extends
-    AbstractModelBuilder<DefaultPDPModel, PDPObject> {
+    AbstractModelBuilder<DefaultPDPModel, PDPObject> implements Serializable {
+
+    private static final long serialVersionUID = 165944940216903075L;
 
     Builder() {
       setProvidingTypes(PDPModel.class);

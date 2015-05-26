@@ -18,6 +18,7 @@ package com.github.rinde.rinsim.core.model.comm;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
 
+import java.io.Serializable;
 import java.util.Map.Entry;
 import java.util.Set;
 
@@ -268,8 +269,9 @@ public final class CommModel extends AbstractModel<CommUser> implements
    */
   @AutoValue
   public abstract static class Builder extends
-    AbstractModelBuilder<CommModel, CommUser> {
-    static double DEFAULT_RELIABILITY = 1d;
+    AbstractModelBuilder<CommModel, CommUser> implements Serializable {
+    private static final long serialVersionUID = -6598454973114403967L;
+    private static final double DEFAULT_RELIABILITY = 1d;
 
     Builder() {
       setDependencies(RandomProvider.class);

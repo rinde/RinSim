@@ -93,7 +93,7 @@ public class JppfTest {
       .addScenario(scenario)
       .withRandomSeed(123)
       .repeat(10)
-      .addConfiguration(TestMASConfiguration.create("A"));
+      .addConfiguration(ExperimentTest.testConfig("A"));
     for (final int i : ints) {
       allResults.add(
         experimentBuilder.numBatches(i)
@@ -118,7 +118,7 @@ public class JppfTest {
       .withRandomSeed(123)
       .repeat(1)
       .usePostProcessor(new TestPostProcessor())
-      .addConfiguration(TestMASConfiguration.create("A"));
+      .addConfiguration(ExperimentTest.testConfig("A"));
 
     final ExperimentResults results3 = experimentBuilder.perform();
     experimentBuilder.computeLocal();
@@ -157,7 +157,7 @@ public class JppfTest {
       .withRandomSeed(123)
       .repeat(1)
       .usePostProcessor(new TestPostProcessor())
-      .addConfiguration(TestMASConfiguration.create("A"));
+      .addConfiguration(ExperimentTest.testConfig("A"));
 
     final ExperimentResults resultsDistributed = experimentBuilder.perform();
     final ExperimentResults resultsLocal = experimentBuilder
@@ -178,7 +178,7 @@ public class JppfTest {
       .withRandomSeed(123)
       .repeat(1)
       .usePostProcessor(new TestFaultyPostProcessor())
-      .addConfiguration(TestMASConfiguration.create("A"))
+      .addConfiguration(ExperimentTest.testConfig("A"))
       .perform();
 
   }
@@ -194,7 +194,7 @@ public class JppfTest {
       .addScenario(scenario)
       .withRandomSeed(123)
       .repeat(1)
-      .addConfiguration(TestMASConfiguration.create("A"))
+      .addConfiguration(ExperimentTest.testConfig("A"))
       .perform();
   }
 

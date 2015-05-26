@@ -23,8 +23,8 @@ import com.google.common.base.Optional;
 
 /**
  * Default implementation of {@link PDPObject}.
- * 
- * @author Rinde van Lon 
+ *
+ * @author Rinde van Lon
  */
 public abstract class PDPObjectImpl implements PDPObject {
 
@@ -48,6 +48,14 @@ public abstract class PDPObjectImpl implements PDPObject {
    * @param pPdpModel The {@link PDPModel} which is used for transportation.
    */
   public abstract void initRoadPDP(RoadModel pRoadModel, PDPModel pPdpModel);
+
+  /**
+   * @return <code>true</code> when {@link #initRoadPDP(RoadModel, PDPModel)}
+   *         has been called.
+   */
+  protected final boolean isInitialized() {
+    return roadModel.isPresent() && pdpModel.isPresent();
+  }
 
   @Override
   public final void initPDPObject(PDPModel model) {
@@ -88,8 +96,8 @@ public abstract class PDPObjectImpl implements PDPObject {
    */
   protected final void setStartPosition(Point p) {
     checkState(
-        !isRegistered,
-        "this should be called before this object is registered, preferably in the constructor");
+      !isRegistered,
+      "this should be called before this object is registered, preferably in the constructor");
     startPosition = Optional.of(p);
   }
 

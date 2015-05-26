@@ -15,6 +15,7 @@
  */
 package com.github.rinde.rinsim.central;
 
+import java.io.Serializable;
 import java.util.Iterator;
 import java.util.Queue;
 import java.util.Set;
@@ -24,7 +25,6 @@ import com.github.rinde.rinsim.central.Solvers.SolveArgs;
 import com.github.rinde.rinsim.core.SimulatorAPI;
 import com.github.rinde.rinsim.core.model.DependencyProvider;
 import com.github.rinde.rinsim.core.model.Model.AbstractModel;
-import com.github.rinde.rinsim.core.model.ModelBuilder;
 import com.github.rinde.rinsim.core.model.ModelBuilder.AbstractModelBuilder;
 import com.github.rinde.rinsim.core.model.pdp.PDPModel;
 import com.github.rinde.rinsim.core.model.pdp.Parcel;
@@ -32,7 +32,6 @@ import com.github.rinde.rinsim.core.model.rand.RandomProvider;
 import com.github.rinde.rinsim.core.model.time.Clock;
 import com.github.rinde.rinsim.core.model.time.TickListener;
 import com.github.rinde.rinsim.core.model.time.TimeLapse;
-import com.github.rinde.rinsim.experiment.DefaultMASConfiguration;
 import com.github.rinde.rinsim.experiment.MASConfiguration;
 import com.github.rinde.rinsim.pdptw.common.AddVehicleEvent;
 import com.github.rinde.rinsim.pdptw.common.PDPRoadModel;
@@ -63,7 +62,7 @@ public final class Central {
    */
   public static MASConfiguration solverConfiguration(
     StochasticSupplier<? extends Solver> solverCreator) {
-    return new CentralConfiguration(solverCreator, "");
+    return solverConfiguration(solverCreator, "");
   }
 
   /**
@@ -76,51 +75,27 @@ public final class Central {
    */
   public static MASConfiguration solverConfiguration(
     StochasticSupplier<? extends Solver> solverCreator, String nameSuffix) {
-    return new CentralConfiguration(solverCreator, nameSuffix);
+    return MASConfiguration.pdptwBuilder()
+      .addEventHandler(AddVehicleEvent.class, VehicleCreator.INSTANCE)
+      .addModel(Builder.create(solverCreator))
+      .setName("Central-" + solverCreator.toString() + nameSuffix)
+      .build();
   }
 
-  private static final class CentralConfiguration extends
-    DefaultMASConfiguration {
-    private static final long serialVersionUID = 8906291887010954854L;
-    final StochasticSupplier<? extends Solver> solverCreator;
-    private final String nameSuffix;
-
-    CentralConfiguration(StochasticSupplier<? extends Solver> solverCreator,
-      String name) {
-      this.solverCreator = solverCreator;
-      nameSuffix = name;
-    }
-
-    @Override
-    public TimedEventHandler<AddVehicleEvent> getVehicleCreator() {
-      return new VehicleCreator();
-    }
-
-    @Override
-    public ImmutableList<? extends ModelBuilder<?, ?>> getModels() {
-      return ImmutableList.of(Builder.create(solverCreator));
-    }
-
-    @Override
-    public String toString() {
-      return "Central-" + solverCreator.toString() + nameSuffix;
-    }
-  }
-
-  private static final class VehicleCreator implements
-    TimedEventHandler<AddVehicleEvent> {
-    VehicleCreator() {}
-
-    @Override
-    public void handleTimedEvent(AddVehicleEvent event, SimulatorAPI simulator) {
-      simulator
-        .register(new RouteFollowingVehicle(event.getVehicleDTO(), false));
+  private enum VehicleCreator implements TimedEventHandler<AddVehicleEvent> {
+    INSTANCE {
+      @Override
+      public void handleTimedEvent(AddVehicleEvent event, SimulatorAPI sim) {
+        sim.register(new RouteFollowingVehicle(event.getVehicleDTO(), false));
+      }
     }
   }
 
   @AutoValue
   abstract static class Builder extends
-    AbstractModelBuilder<CentralModel, Parcel> {
+    AbstractModelBuilder<CentralModel, Parcel> implements Serializable {
+
+    private static final long serialVersionUID = 1168431215289110828L;
 
     Builder() {
       setDependencies(Clock.class,

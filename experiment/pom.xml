@@ -30,6 +30,11 @@
 			<artifactId>guava</artifactId>
 		</dependency>
 		<dependency>
+            <groupId>com.google.auto.value</groupId>
+            <artifactId>auto-value</artifactId>
+            <scope>provided</scope>
+        </dependency>
+		<dependency>
 			<groupId>com.google.code.findbugs</groupId>
 			<artifactId>jsr305</artifactId>
 		</dependency>
@@ -53,6 +58,11 @@
 			<groupId>com.github.rinde</groupId>
 			<artifactId>rinsim-cli</artifactId>
 		</dependency>
+		<dependency> 
+            <groupId>com.google.truth</groupId>
+            <artifactId>truth</artifactId>
+            <scope>test</scope>
+        </dependency>
 		<dependency>
 			<groupId>com.github.rinde</groupId>
 			<artifactId>rinsim-pdptw</artifactId>

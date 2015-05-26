@@ -17,6 +17,7 @@ package com.github.rinde.rinsim.core.model.rand;
 
 import static com.google.common.base.Preconditions.checkState;
 
+import java.io.Serializable;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -106,8 +107,9 @@ public class RandomModel extends AbstractModel<RandomUser> {
    */
   @AutoValue
   public abstract static class Builder extends
-    AbstractModelBuilder<RandomModel, RandomUser> {
+    AbstractModelBuilder<RandomModel, RandomUser> implements Serializable {
 
+    private static final long serialVersionUID = 7985638617806912711L;
     static final StochasticSupplier<MersenneTwister> DEFAULT_RNG = StochasticSuppliers
       .mersenneTwister();
 

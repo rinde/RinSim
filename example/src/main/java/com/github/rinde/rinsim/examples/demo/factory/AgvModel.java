@@ -19,6 +19,7 @@ import static com.google.common.base.Verify.verify;
 import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Sets.newLinkedHashSet;
 
+import java.io.Serializable;
 import java.math.RoundingMode;
 import java.util.List;
 import java.util.Set;
@@ -213,7 +214,10 @@ class AgvModel extends AbstractModel<AGV> implements TickListener,
   }
 
   @AutoValue
-  abstract static class Builder extends AbstractModelBuilder<AgvModel, AGV> {
+  abstract static class Builder extends AbstractModelBuilder<AgvModel, AGV>
+    implements Serializable {
+
+    private static final long serialVersionUID = -8527252625057713751L;
 
     Builder() {
       setDependencies(RandomProvider.class);

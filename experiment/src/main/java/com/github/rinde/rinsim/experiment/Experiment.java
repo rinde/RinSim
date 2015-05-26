@@ -23,6 +23,7 @@ import static com.google.common.collect.Sets.newLinkedHashSet;
 import java.io.PrintStream;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import javax.annotation.Nullable;
@@ -34,9 +35,6 @@ import com.github.rinde.rinsim.core.Simulator;
 import com.github.rinde.rinsim.core.model.ModelBuilder;
 import com.github.rinde.rinsim.experiment.LocalComputer.ExperimentRunner;
 import com.github.rinde.rinsim.io.FileProvider;
-import com.github.rinde.rinsim.pdptw.common.AddDepotEvent;
-import com.github.rinde.rinsim.pdptw.common.AddParcelEvent;
-import com.github.rinde.rinsim.pdptw.common.AddVehicleEvent;
 import com.github.rinde.rinsim.pdptw.common.ObjectiveFunction;
 import com.github.rinde.rinsim.pdptw.common.StatisticsDTO;
 import com.github.rinde.rinsim.pdptw.common.StatisticsProvider;
@@ -44,7 +42,8 @@ import com.github.rinde.rinsim.pdptw.common.StatsTracker;
 import com.github.rinde.rinsim.scenario.Scenario;
 import com.github.rinde.rinsim.scenario.ScenarioController;
 import com.github.rinde.rinsim.scenario.ScenarioIO;
-import com.github.rinde.rinsim.scenario.TimeOutEvent;
+import com.github.rinde.rinsim.scenario.TimedEvent;
+import com.github.rinde.rinsim.scenario.TimedEventHandler;
 import com.github.rinde.rinsim.util.StochasticSupplier;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Function;
@@ -154,6 +153,12 @@ public final class Experiment {
     return res;
   }
 
+  @SuppressWarnings("unchecked")
+  static <T extends TimedEvent> ScenarioController.Builder add(
+    ScenarioController.Builder b, Class<T> type, TimedEventHandler<?> h) {
+    return b.withEventHandler(type, (TimedEventHandler<T>) h);
+  }
+
   /**
    * Initialize a {@link Simulator} instance.
    * @param scenario The scenario to use.
@@ -168,25 +173,30 @@ public final class Experiment {
 
     ScenarioController.Builder scenContrBuilder = ScenarioController.builder(
       scenario)
-      .withIgnoreRedundantHandlers(true)
-      .withEventHandler(AddVehicleEvent.class, config.getVehicleCreator())
-      .withEventHandler(TimeOutEvent.class, TimeOutEvent.ignoreHandler());
+      .withIgnoreRedundantHandlers(true);
+    // .withEventHandler(AddVehicleEvent.class, config.getVehicleCreator())
+    // .withEventHandler(TimeOutEvent.class, TimeOutEvent.ignoreHandler());
 
-    if (config.getDepotCreator().isPresent()) {
-      scenContrBuilder = scenContrBuilder.withEventHandler(AddDepotEvent.class,
-        config.getDepotCreator().get());
-    } else {
-      scenContrBuilder = scenContrBuilder.withEventHandler(AddDepotEvent.class,
-        AddDepotEvent.defaultHandler());
+    for (Entry<Class<? extends TimedEvent>, TimedEventHandler<?>> entry : config
+      .getEventHandlers().entrySet()) {
+      scenContrBuilder = add(scenContrBuilder, entry.getKey(), entry.getValue());
     }
-    if (config.getParcelCreator().isPresent()) {
-      scenContrBuilder = scenContrBuilder.withEventHandler(
-        AddParcelEvent.class, config.getParcelCreator().get());
-    } else {
-      scenContrBuilder = scenContrBuilder.withEventHandler(
-        AddParcelEvent.class,
-        AddParcelEvent.defaultHandler());
-    }
+
+    // if (config.getDepotCreator().isPresent()) {
+    // scenContrBuilder = scenContrBuilder.withEventHandler(AddDepotEvent.class,
+    // config.getDepotCreator().get());
+    // } else {
+    // scenContrBuilder = scenContrBuilder.withEventHandler(AddDepotEvent.class,
+    // AddDepotEvent.defaultHandler());
+    // }
+    // if (config.getParcelCreator().isPresent()) {
+    // scenContrBuilder = scenContrBuilder.withEventHandler(
+    // AddParcelEvent.class, config.getParcelCreator().get());
+    // } else {
+    // scenContrBuilder = scenContrBuilder.withEventHandler(
+    // AddParcelEvent.class,
+    // AddParcelEvent.defaultHandler());
+    // }
 
     Simulator.Builder simBuilder = Simulator.builder()
       .setRandomSeed(seed)

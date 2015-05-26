@@ -15,6 +15,7 @@
  */
 package com.github.rinde.rinsim.core.model.road;
 
+import java.io.Serializable;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -224,7 +225,10 @@ public class ForwardingRoadModel extends GenericRoadModel {
    * @author Rinde van Lon
    */
   public abstract static class Builder<T extends ForwardingRoadModel>
-    extends AbstractModelBuilder<T, RoadUser> {
+    extends AbstractModelBuilder<T, RoadUser> implements Serializable {
+
+    private static final long serialVersionUID = 1852539610753492228L;
+
     /**
      * @return The {@link ModelBuilder} that will be decorated by the
      *         {@link ForwardingRoadModel} constructed by this builder.

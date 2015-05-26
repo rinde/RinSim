@@ -17,6 +17,7 @@ package com.github.rinde.rinsim.examples.pdptw.gradientfield;
 
 import static com.google.common.base.Verify.verifyNotNull;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -176,7 +177,9 @@ public class GradientModel extends AbstractModel<FieldEmitter> implements
 
   @AutoValue
   abstract static class Builder extends
-    AbstractModelBuilder<GradientModel, FieldEmitter> {
+    AbstractModelBuilder<GradientModel, FieldEmitter> implements Serializable {
+
+    private static final long serialVersionUID = 4464819196521333718L;
 
     Builder() {
       setProvidingTypes(GradientModel.class);
@@ -187,5 +190,4 @@ public class GradientModel extends AbstractModel<FieldEmitter> implements
       return new GradientModel();
     }
   }
-
 }

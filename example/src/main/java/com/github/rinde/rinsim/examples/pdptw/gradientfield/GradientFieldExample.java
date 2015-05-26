@@ -15,9 +15,14 @@
  */
 package com.github.rinde.rinsim.examples.pdptw.gradientfield;
 
+import com.github.rinde.rinsim.core.SimulatorAPI;
 import com.github.rinde.rinsim.core.model.pdp.Depot;
 import com.github.rinde.rinsim.experiment.Experiment;
+import com.github.rinde.rinsim.experiment.MASConfiguration;
+import com.github.rinde.rinsim.pdptw.common.AddParcelEvent;
+import com.github.rinde.rinsim.pdptw.common.AddVehicleEvent;
 import com.github.rinde.rinsim.pdptw.common.RouteRenderer;
+import com.github.rinde.rinsim.scenario.TimedEventHandler;
 import com.github.rinde.rinsim.scenario.gendreau06.Gendreau06ObjectiveFunction;
 import com.github.rinde.rinsim.scenario.gendreau06.Gendreau06Parser;
 import com.github.rinde.rinsim.scenario.gendreau06.Gendreau06Scenario;
@@ -86,10 +91,35 @@ public final class GradientFieldExample {
       .build(objFunc)
       .withRandomSeed(123)
       .withThreads(1)
-      .addConfiguration(new GradientFieldConfiguration())
+      .addConfiguration(MASConfiguration.pdptwBuilder()
+        .setName("GradientFieldConfiguration")
+        .addEventHandler(AddVehicleEvent.class, VehicleHandler.INSTANCE)
+        .addEventHandler(AddParcelEvent.class, ParcelHandler.INSTANCE)
+        .addModel(GradientModel.builder())
+        .build()
+      )
       .addScenario(scenario)
       .showGui(viewBuilder)
       .repeat(1)
       .perform();
+  }
+
+  enum VehicleHandler implements TimedEventHandler<AddVehicleEvent> {
+    INSTANCE {
+      @Override
+      public void handleTimedEvent(AddVehicleEvent event, SimulatorAPI sim) {
+        sim.register(new Truck(event.getVehicleDTO()));
+      }
+    }
+  }
+
+  enum ParcelHandler implements TimedEventHandler<AddParcelEvent> {
+    INSTANCE {
+      @Override
+      public void handleTimedEvent(AddParcelEvent event, SimulatorAPI sim) {
+        // all parcels are accepted by default
+        sim.register(new GFParcel(event.getParcelDTO()));
+      }
+    }
   }
 }

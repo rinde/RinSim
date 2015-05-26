@@ -17,6 +17,8 @@ package com.github.rinde.rinsim.core.model.road;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
+import java.io.Serializable;
+
 import javax.annotation.CheckReturnValue;
 import javax.measure.quantity.Length;
 import javax.measure.quantity.Velocity;
@@ -199,7 +201,8 @@ public final class RoadModelBuilders {
    */
   @AutoValue
   public abstract static class PlaneRMB extends
-    AbstractRMB<PlaneRoadModel, PlaneRMB> {
+    AbstractRMB<PlaneRoadModel, PlaneRMB> implements Serializable {
+    private static final long serialVersionUID = 8160700332762443917L;
     static final double DEFAULT_MAX_SPEED = 50d;
     static final Point DEFAULT_MIN_POINT = new Point(0, 0);
     static final Point DEFAULT_MAX_POINT = new Point(10, 10);
@@ -294,7 +297,10 @@ public final class RoadModelBuilders {
    */
   @AutoValue
   public abstract static class StaticGraphRMB extends
-    AbstractGraphRMB<GraphRoadModel, StaticGraphRMB, Graph<?>> {
+    AbstractGraphRMB<GraphRoadModel, StaticGraphRMB, Graph<?>> implements
+    Serializable {
+    private static final long serialVersionUID = 1206566008918936928L;
+
     StaticGraphRMB() {
       setProvidingTypes(RoadModel.class, GraphRoadModel.class);
     }
@@ -348,7 +354,10 @@ public final class RoadModelBuilders {
    */
   @AutoValue
   public abstract static class DynamicGraphRMB extends
-    AbstractDynamicGraphRMB<DynamicGraphRoadModel, DynamicGraphRMB> {
+    AbstractDynamicGraphRMB<DynamicGraphRoadModel, DynamicGraphRMB> implements
+    Serializable {
+
+    private static final long serialVersionUID = 7269626100558413212L;
 
     @Override
     protected abstract Supplier<ListenableGraph<?>> getGraphSupplier();
@@ -401,7 +410,10 @@ public final class RoadModelBuilders {
    */
   @AutoValue
   public abstract static class CachedGraphRMB extends
-    AbstractGraphRMB<CachedGraphRoadModel, CachedGraphRMB, Graph<?>> {
+    AbstractGraphRMB<CachedGraphRoadModel, CachedGraphRMB, Graph<?>> implements
+    Serializable {
+
+    private static final long serialVersionUID = -7837221650923727573L;
 
     @Override
     protected abstract Supplier<Graph<?>> getGraphSupplier();
@@ -435,7 +447,10 @@ public final class RoadModelBuilders {
    */
   @AutoValue
   public abstract static class CollisionGraphRMB extends
-    AbstractDynamicGraphRMB<CollisionGraphRoadModel, CollisionGraphRMB> {
+    AbstractDynamicGraphRMB<CollisionGraphRoadModel, CollisionGraphRMB>
+    implements Serializable {
+
+    private static final long serialVersionUID = -5076770082090735004L;
 
     /**
      * The default vehicle length: <code>2</code>.
