@@ -77,10 +77,10 @@ public final class ListenableGraph<E extends ConnectionData> extends
   /**
    * Decorates the specified graph such that all modifications are monitored.
    * See {@link ListenableGraph} for more information.
-   * @param delegate The graph to decorate.
+   * @param delegateGraph The graph to decorate.
    */
-  public ListenableGraph(Graph<E> delegate) {
-    super(delegate);
+  public ListenableGraph(Graph<E> delegateGraph) {
+    super(delegateGraph);
     eventDispatcher = new EventDispatcher(EventTypes.values());
   }
 

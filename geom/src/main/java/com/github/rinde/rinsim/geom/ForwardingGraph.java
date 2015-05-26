@@ -42,10 +42,10 @@ public abstract class ForwardingGraph<E extends ConnectionData> implements
 
   /**
    * Instantiates a new instance.
-   * @param delegate The graph instance to decorate.
+   * @param delegateGraph The graph instance to decorate.
    */
-  protected ForwardingGraph(Graph<E> delegate) {
-    this.delegate = delegate;
+  protected ForwardingGraph(Graph<E> delegateGraph) {
+    this.delegate = delegateGraph;
   }
 
   @Override

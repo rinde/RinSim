@@ -424,8 +424,8 @@ public final class Graphs {
   private static class UnmodifiableGraph<E extends ConnectionData> extends
       ForwardingGraph<E> {
 
-    UnmodifiableGraph(Graph<E> delegate) {
-      super(delegate);
+    UnmodifiableGraph(Graph<E> delegateGraph) {
+      super(delegateGraph);
     }
 
     @Override
