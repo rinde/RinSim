@@ -15,9 +15,6 @@
  */
 package com.github.rinde.rinsim.central;
 
-import static com.github.rinde.rinsim.core.model.pdp.PDPModel.ParcelState.ANNOUNCED;
-import static com.github.rinde.rinsim.core.model.pdp.PDPModel.ParcelState.AVAILABLE;
-import static com.github.rinde.rinsim.core.model.pdp.PDPModel.ParcelState.PICKING_UP;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Lists.newLinkedList;
@@ -420,65 +417,6 @@ public final class Solvers {
       ImmutableList<ImmutableList<Parcel>> cr) {
       currentRoutes = Optional.of(cr);
       return this;
-    }
-  }
-
-  /**
-   * Adapter for {@link Solver}s.
-   * @author Rinde van Lon
-   */
-  public static class SimulationSolver implements SimulationConverter {
-    final Optional<Solver> solver;
-    final Clock clock;
-    final PDPRoadModel roadModel;
-    final PDPModel pdpModel;
-    final List<Vehicle> vehicles;
-
-    SimulationSolver(Optional<Solver> s, PDPRoadModel rm, PDPModel pm,
-      Clock sim, List<Vehicle> vs) {
-      solver = s;
-      clock = sim;
-      roadModel = rm;
-      pdpModel = pm;
-      vehicles = vs;
-    }
-
-    /**
-     * Calls the {@link Solver} to solve the problem as defined by the current
-     * simulation state.
-     * @param args {@link SolveArgs} specifying what information to include.
-     * @return A list containing routes for each vehicle known to this solver.
-     */
-    public List<Queue<Parcel>> solve(SolveArgs args) {
-      return solve(convert(args));
-    }
-
-    /**
-     * Calls the {@link Solver} to solve the problem as defined by the current
-     * simulation state.
-     * @param state The {@link StateContext} that specifies the current
-     *          simulation state.
-     * @return A list of routes, one for each vehicle.
-     */
-    public List<Queue<Parcel>> solve(StateContext state) {
-      return Solvers.convertRoutes(state, solver.get().solve(state.state));
-    }
-
-    @Override
-    public StateContext convert(SolveArgs args) {
-      final Collection<Vehicle> vs = vehicles.isEmpty() ? roadModel
-        .getObjectsOfType(Vehicle.class) : vehicles;
-      final Set<Parcel> ps = args.parcels.isPresent()
-        ? args.parcels.get()
-        : ImmutableSet.copyOf(pdpModel.getParcels(ANNOUNCED, AVAILABLE,
-          PICKING_UP));
-      return Solvers.convert(roadModel, pdpModel, vs, ps, time(),
-        args.currentRoutes);
-    }
-
-    Measure<Long, Duration> time() {
-      return Measure.valueOf(clock.getCurrentTime(),
-        clock.getTimeUnit());
     }
   }
 

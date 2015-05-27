@@ -56,6 +56,18 @@ import com.github.rinde.rinsim.scenario.ScenarioController.ScenarioEvent;
 import com.github.rinde.rinsim.scenario.TimeOutEvent;
 import com.google.auto.value.AutoValue;
 
+/**
+ * This class tracks statistics in a simulation.
+ *
+ * <p>
+ * <b>Model properties</b>
+ * <ul>
+ * <li><i>Provides:</i> {@link StatisticsProvider}.</li>
+ * <li><i>Dependencies:</i> {@link ScenarioController}, {@link Clock},
+ * {@link RoadModel}, {@link PDPModel}.</li>
+ * </ul>
+ * @author Rinde van Lon
+ */
 public final class StatsTracker extends AbstractModelVoid implements
   StatisticsProvider {
   final EventDispatcher eventDispatcher;
@@ -287,10 +299,17 @@ public final class StatsTracker extends AbstractModelVoid implements
     }
   }
 
+  /**
+   * @return A new {@link Builder} instance.
+   */
   public static Builder builder() {
     return new AutoValue_StatsTracker_Builder();
   }
 
+  /**
+   * Builder for creating {@link StatsTracker} instance.
+   * @author Rinde van Lon
+   */
   @AutoValue
   public abstract static class Builder extends
     AbstractModelBuilder<StatsTracker, Object> {
@@ -311,7 +330,6 @@ public final class StatsTracker extends AbstractModelVoid implements
       final RoadModel rm = dependencyProvider.get(RoadModel.class);
       final PDPModel pm = dependencyProvider.get(PDPModel.class);
       return new StatsTracker(ctrl, clock, rm, pm);
-
     }
   }
 }

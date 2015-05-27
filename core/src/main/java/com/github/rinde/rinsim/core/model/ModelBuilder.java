@@ -162,5 +162,10 @@ public interface ModelBuilder<T extends Model<? extends U>, U> {
     public final ImmutableSet<Class<?>> getDependencies() {
       return deps;
     }
+
+    @Override
+    public String toString() {
+      return getModelType().getSimpleName() + ".builder()";
+    }
   }
 }

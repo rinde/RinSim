@@ -278,6 +278,11 @@ public final class RoadModelBuilders {
       return new PlaneRoadModel(this);
     }
 
+    @Override
+    public String toString() {
+      return RoadModelBuilders.class.getSimpleName() + ".plane()";
+    }
+
     static PlaneRMB create() {
       return create(DEFAULT_DISTANCE_UNIT, DEFAULT_SPEED_UNIT,
         DEFAULT_MIN_POINT, DEFAULT_MAX_POINT, DEFAULT_MAX_SPEED);
@@ -332,6 +337,11 @@ public final class RoadModelBuilders {
     @Override
     public GraphRoadModel build(DependencyProvider dependencyProvider) {
       return new GraphRoadModel(getGraph(), this);
+    }
+
+    @Override
+    public String toString() {
+      return RoadModelBuilders.class.getSimpleName() + ".staticGraph()";
     }
 
     static StaticGraphRMB create(Supplier<? extends Graph<?>> graph) {
@@ -390,6 +400,11 @@ public final class RoadModelBuilders {
       return new DynamicGraphRoadModel(getGraph(), this);
     }
 
+    @Override
+    public String toString() {
+      return RoadModelBuilders.class.getSimpleName() + ".dynamicGraph()";
+    }
+
     static DynamicGraphRMB create(
       Supplier<? extends ListenableGraph<?>> graphSupplier) {
       return create(DEFAULT_DISTANCE_UNIT, DEFAULT_SPEED_UNIT, graphSupplier);
@@ -431,6 +446,12 @@ public final class RoadModelBuilders {
     @Override
     public CachedGraphRMB withSpeedUnit(Unit<Velocity> unit) {
       return create(getDistanceUnit(), unit, getGraphSupplier());
+    }
+
+    @Override
+    public String toString() {
+      return RoadModelBuilders.class.getSimpleName()
+        + ".staticGraph().withCache()";
     }
 
     @SuppressWarnings("unchecked")
@@ -536,6 +557,12 @@ public final class RoadModelBuilders {
           .checkConnectionLength(minConnectionLength, conn);
       }
       return new CollisionGraphRoadModel(graph, minConnectionLength, this);
+    }
+
+    @Override
+    public String toString() {
+      return RoadModelBuilders.class.getSimpleName()
+        + ".dynamicGraph().withCollisionAvoidance()";
     }
 
     static CollisionGraphRMB create(DynamicGraphRMB builder) {

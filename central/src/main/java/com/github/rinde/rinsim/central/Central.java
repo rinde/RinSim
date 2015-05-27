@@ -20,11 +20,11 @@ import java.util.Iterator;
 import java.util.Queue;
 import java.util.Set;
 
-import com.github.rinde.rinsim.central.Solvers.SimulationSolver;
 import com.github.rinde.rinsim.central.Solvers.SolveArgs;
 import com.github.rinde.rinsim.core.SimulatorAPI;
 import com.github.rinde.rinsim.core.model.DependencyProvider;
 import com.github.rinde.rinsim.core.model.Model.AbstractModel;
+import com.github.rinde.rinsim.core.model.ModelBuilder;
 import com.github.rinde.rinsim.core.model.ModelBuilder.AbstractModelBuilder;
 import com.github.rinde.rinsim.core.model.pdp.PDPModel;
 import com.github.rinde.rinsim.core.model.pdp.Parcel;
@@ -53,6 +53,16 @@ import com.google.common.collect.ImmutableList;
 public final class Central {
 
   private Central() {}
+
+  /**
+   * Creates a new {@link Builder} for creating a {@link CentralModel}.
+   * @param solverSupplier The solver to use.
+   * @return A new instance.
+   */
+  public static ModelBuilder<?, ?> builder(
+    StochasticSupplier<? extends Solver> solverSupplier) {
+    return Builder.create(solverSupplier);
+  }
 
   /**
    * Provides a {@link MASConfiguration} that configures a MAS that is

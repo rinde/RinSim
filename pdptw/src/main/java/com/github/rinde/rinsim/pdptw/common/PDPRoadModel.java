@@ -42,6 +42,7 @@ import com.github.rinde.rinsim.core.model.road.RoadUser;
 import com.github.rinde.rinsim.core.model.time.TimeLapse;
 import com.github.rinde.rinsim.geom.Point;
 import com.google.auto.value.AutoValue;
+import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Multimap;
@@ -325,6 +326,8 @@ public class PDPRoadModel extends ForwardingRoadModel implements ModelReceiver {
   public abstract static class Builder extends
     ForwardingRoadModel.Builder<PDPRoadModel> {
 
+    private static final long serialVersionUID = -4743379496855573980L;
+
     Builder() {
       setProvidingTypes(RoadModel.class, PDPRoadModel.class);
     }
@@ -352,6 +355,16 @@ public class PDPRoadModel extends ForwardingRoadModel implements ModelReceiver {
       final AbstractRoadModel<?> rm = (AbstractRoadModel<?>) getDelegateModelBuilder()
         .build(dependencyProvider);
       return new PDPRoadModel(rm, getAllowVehicleDiversion());
+    }
+
+    @Override
+    public String toString() {
+      return Joiner.on("").join(
+        PDPRoadModel.class.getSimpleName(),
+        ".builder(",
+        getDelegateModelBuilder(),
+        ")"
+        );
     }
 
     static Builder create(
