@@ -37,6 +37,7 @@ import com.github.rinde.rinsim.core.model.ModelBuilder.AbstractModelBuilder;
 import com.github.rinde.rinsim.core.model.ModelManager;
 import com.github.rinde.rinsim.core.model.ModelProvider;
 import com.github.rinde.rinsim.core.model.rand.RandomModel;
+import com.github.rinde.rinsim.core.model.rand.RandomProvider;
 import com.github.rinde.rinsim.core.model.time.ClockController;
 import com.github.rinde.rinsim.core.model.time.TickListener;
 import com.github.rinde.rinsim.core.model.time.TimeLapse;
@@ -68,17 +69,16 @@ public final class Simulator implements SimulatorAPI {
   private static final Logger LOGGER = LoggerFactory.getLogger(Simulator.class);
 
   private final ModelManager modelManager;
-  private final RandomGenerator rand;
   private final ClockController clock;
+  private final RandomModel rand;
   private final Set<Object> toUnregister;
 
   Simulator(Builder b) {
-    rand = b.rng;
     modelManager = b.mmBuilder
       .add(SimulatorModelBuilder.create(this))
       .addDefaultProvider(
         RandomModel.builder().withRandomGenerator(
-          StochasticSuppliers.constant(rand)))
+          StochasticSuppliers.constant(b.rng)))
       .addDefaultProvider(
         TimeModel.builder()
           .withTickLength(b.tickLength)
@@ -87,6 +87,7 @@ public final class Simulator implements SimulatorAPI {
       .build();
     toUnregister = new LinkedHashSet<>();
     clock = modelManager.getModel(TimeModel.class);
+    rand = modelManager.getModel(RandomModel.class);
   }
 
   /**
@@ -223,8 +224,9 @@ public final class Simulator implements SimulatorAPI {
    * Get access to the main random generator used in the simulator.
    * @return the random generator of the simulator
    */
+  @Override
   public RandomGenerator getRandomGenerator() {
-    return rand;
+    return rand.get(RandomProvider.class).masterInstance();
   }
 
   /**

@@ -15,6 +15,8 @@
  */
 package com.github.rinde.rinsim.core;
 
+import org.apache.commons.math3.random.RandomGenerator;
+
 /**
  * Limited simulator API that provides an API for simulation elements (e.g.,
  * agents).
@@ -40,4 +42,10 @@ public interface SimulatorAPI {
    *           any model.
    */
   void unregister(Object o);
+
+  /**
+   * @return An reference of the {@link RandomGenerator}, note that the seed can
+   *         not be changed.
+   */
+  public RandomGenerator getRandomGenerator();
 }
