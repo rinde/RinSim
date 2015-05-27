@@ -93,7 +93,8 @@ public class SolverModel extends AbstractModel<SolverUser> {
     }
 
     @Override
-    public SimulationSolverBuilder setVehicles(Iterable<? extends Vehicle> vehicles) {
+    public SimulationSolverBuilder setVehicles(
+      Iterable<? extends Vehicle> vehicles) {
       vehiclesList = ImmutableList.copyOf(vehicles);
       return this;
     }
@@ -129,11 +130,5 @@ public class SolverModel extends AbstractModel<SolverUser> {
     static Builder create() {
       return new AutoValue_SolverModel_Builder();
     }
-
-    // @Override
-    // public String toString() {
-    // return SolverModel.class.getSimpleName() + "."
-    // + Builder.class.getSimpleName();
-    // }
   }
 }
