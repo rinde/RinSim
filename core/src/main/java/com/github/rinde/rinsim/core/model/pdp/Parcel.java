@@ -120,7 +120,7 @@ public class Parcel extends PDPObjectImpl implements IParcel {
 
   @Override
   public String toString() {
-    return "[Parcel " + getDto() + "]";
+    return "[Parcel-" + Integer.toHexString(hashCode()) + "]";
   }
 
   /**

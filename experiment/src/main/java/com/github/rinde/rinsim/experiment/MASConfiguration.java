@@ -114,8 +114,7 @@ public abstract class MASConfiguration implements Serializable {
      * @return This, as per the builder pattern.
      */
     public Builder addModel(ModelBuilder<?, ?> model) {
-      checkArgument(model instanceof Serializable, "%s is not Serializable.",
-        model);
+      checkSerializable(model);
       modelsBuilder.add(model);
       return this;
     }
@@ -140,7 +139,7 @@ public abstract class MASConfiguration implements Serializable {
      */
     public <T extends TimedEvent> Builder addEventHandler(Class<T> type,
       TimedEventHandler<T> handler) {
-      checkArgument(handler instanceof Serializable);
+      checkSerializable(handler);
       eventHandlers.put(type, handler);
       return this;
     }
@@ -159,6 +158,10 @@ public abstract class MASConfiguration implements Serializable {
         name,
         modelsBuilder.build(),
         ImmutableMap.copyOf(eventHandlers));
+    }
+
+    static void checkSerializable(Object o) {
+      checkArgument(o instanceof Serializable, "%s is not Serializable.", o);
     }
   }
 }

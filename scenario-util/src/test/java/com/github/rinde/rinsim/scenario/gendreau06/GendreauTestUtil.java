@@ -18,7 +18,6 @@ package com.github.rinde.rinsim.scenario.gendreau06;
 import static com.google.common.collect.Lists.newArrayList;
 
 import java.io.ByteArrayInputStream;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
@@ -38,11 +37,11 @@ public class GendreauTestUtil {
       GendreauProblemClass.SHORT_LOW_FREQ, 1, false);
   }
 
-  public static Gendreau06Scenario create(Collection<TimedEvent> parcels) {
-    return create(parcels, 1);
+  public static Gendreau06Scenario create(List<? extends TimedEvent> parcels) {
+    return createWithTrucks(parcels, 1);
   }
 
-  public static Gendreau06Scenario create(Collection<TimedEvent> parcels,
+  public static Gendreau06Scenario createWithTrucks(List<? extends TimedEvent> parcels,
     int numTrucks) {
 
     final Gendreau06Scenario gs = Gendreau06Parser
