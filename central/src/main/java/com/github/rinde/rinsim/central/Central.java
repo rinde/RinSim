@@ -98,6 +98,11 @@ public final class Central {
       public void handleTimedEvent(AddVehicleEvent event, SimulatorAPI sim) {
         sim.register(new RouteFollowingVehicle(event.getVehicleDTO(), false));
       }
+
+      @Override
+      public String toString() {
+        return "CentralVehicle";
+      }
     }
   }
 

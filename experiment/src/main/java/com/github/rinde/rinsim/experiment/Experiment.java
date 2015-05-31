@@ -193,6 +193,7 @@ public final class Experiment {
     }
 
     if (showGui) {
+      checkState(uiCreator.isPresent(), "No UI was specified.");
       simBuilder.addModel(uiCreator.get());
     }
 
