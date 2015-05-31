@@ -95,7 +95,6 @@ public final class ScenarioIO {
       .registerTypeAdapter(Measure.class, new MeasureIO())
       .registerTypeHierarchyAdapter(Enum.class, new EnumIO())
       .registerTypeAdapter(StopCondition.class, new StopConditionIO())
-      .registerTypeAdapter(Predicate.class, new PredicateIO())
       .registerTypeAdapter(Class.class, new ClassIO())
       .registerTypeAdapter(ImmutableList.class, new ImmutableListIO())
       .registerTypeAdapter(ImmutableSet.class, new ImmutableSetIO())
@@ -123,7 +122,7 @@ public final class ScenarioIO {
    * @throws IOException When reading fails.
    */
   public static Scenario read(Path file) throws IOException {
-    return read(file, Scenario.class);
+    return read(file, AutoValue_Scenario.class);
   }
 
   /**
@@ -166,7 +165,7 @@ public final class ScenarioIO {
    * @return A {@link Scenario} instance.
    */
   public static <T> T read(String s, Class<T> type) {
-    return GSON.fromJson(s, type);
+    return verifyNotNull(GSON.fromJson(s, type), "This is a bug in ScenarioIO");
   }
 
   /**
@@ -225,9 +224,9 @@ public final class ScenarioIO {
       Path in = verifyNotNull(input);
       try {
         if (clazz.isPresent()) {
-          return read(in, clazz.get());
+          return verifyNotNull(read(in, clazz.get()));
         }
-        return (T) read(in);
+        return verifyNotNull((T) read(in));
       } catch (final IOException e) {
         throw new IllegalStateException(e);
       }
@@ -241,18 +240,18 @@ public final class ScenarioIO {
     public final JsonElement serialize(@Nullable T src,
       @Nullable Type typeOfSrc,
       @Nullable JsonSerializationContext context) {
-      return doSerialize(verifyNotNull(src),
+      return verifyNotNull(doSerialize(verifyNotNull(src),
         verifyNotNull(typeOfSrc),
-        verifyNotNull(context));
+        verifyNotNull(context)));
     }
 
     @Override
     public final T deserialize(@Nullable JsonElement json,
       @Nullable Type typeOfT,
       @Nullable JsonDeserializationContext context) {
-      return doDeserialize(verifyNotNull(json),
+      return verifyNotNull(doDeserialize(verifyNotNull(json),
         verifyNotNull(typeOfT),
-        verifyNotNull(context));
+        verifyNotNull(context)), "found a null: %s", typeOfT, json);
     }
 
     abstract JsonElement doSerialize(T src, Type typeOfSrc,

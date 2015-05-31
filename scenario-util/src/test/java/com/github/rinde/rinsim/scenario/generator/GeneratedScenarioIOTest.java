@@ -22,7 +22,6 @@ import java.io.IOException;
 import java.nio.file.Paths;
 
 import org.apache.commons.math3.random.MersenneTwister;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import com.github.rinde.rinsim.core.model.pdp.DefaultPDPModel;
@@ -57,7 +56,6 @@ public class GeneratedScenarioIOTest {
    * @throws IOException when something IO related went wrong.
    */
   @Test
-  @Ignore
   public void testIO() throws IOException {
     final ScenarioGenerator generator = ScenarioGenerator
       .builder(TestPC.CLASS_A)
@@ -103,6 +101,7 @@ public class GeneratedScenarioIOTest {
     final String output = ScenarioIO.write(scenario);
     Files.write(output, new File("files/scen.json"), Charsets.UTF_8);
     final Scenario converted = ScenarioIO.read(output);
+
     assertEquals(scenario, converted);
   }
 }

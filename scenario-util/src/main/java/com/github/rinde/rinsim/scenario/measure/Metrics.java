@@ -195,7 +195,7 @@ public final class Metrics {
   }
 
   /**
-   * Computes the number of occurrences of each event type in the specifies
+   * Computes the number of occurrences of each event type in the specified
    * {@link Scenario}.
    * @param s The scenario to check.
    * @return A {@link ImmutableMultiset} of event types.
@@ -215,7 +215,7 @@ public final class Metrics {
     }
     for (Class<?> c : toMove) {
       set.add(c.getSuperclass(), set.count(c));
-      set.remove(c);
+      set.remove(c, set.count(c));
     }
     return ImmutableMultiset.copyOf(set);
   }
