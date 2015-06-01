@@ -97,12 +97,12 @@ public class ExperimentTest {
     final ExperimentResults er = builder.perform();
     assertThat(er.results.asList().get(0).masConfiguration.getName()).endsWith(
       "A");
-    assertThat(er.results.asList().get(1).masConfiguration.getName().endsWith(
-      "B"));
-    assertThat(er.results.asList().get(2).masConfiguration.getName().endsWith(
-      "C"));
-    assertThat(er.results.asList().get(3).masConfiguration.getName().endsWith(
-      "D"));
+    assertThat(er.results.asList().get(1).masConfiguration.getName()).endsWith(
+      "B");
+    assertThat(er.results.asList().get(2).masConfiguration.getName()).endsWith(
+      "C");
+    assertThat(er.results.asList().get(3).masConfiguration.getName()).endsWith(
+      "D");
   }
 
   static class TestPostProcessor implements

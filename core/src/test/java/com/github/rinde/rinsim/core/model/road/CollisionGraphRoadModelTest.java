@@ -32,6 +32,7 @@ import org.junit.Test;
 
 import com.github.rinde.rinsim.core.model.DependencyProvider;
 import com.github.rinde.rinsim.core.model.pdp.Parcel;
+import com.github.rinde.rinsim.core.model.road.RoadModelBuilders.CollisionGraphRMB;
 import com.github.rinde.rinsim.core.model.time.TimeLapse;
 import com.github.rinde.rinsim.geom.Graphs;
 import com.github.rinde.rinsim.geom.LengthData;
@@ -288,10 +289,10 @@ public class CollisionGraphRoadModelTest {
     // vehicle length must be > 0
     boolean fail = false;
     try {
-      RoadModelBuilders.dynamicGraph(graph)
+      @SuppressWarnings("unused")
+      final CollisionGraphRMB b = RoadModelBuilders.dynamicGraph(graph)
         .withCollisionAvoidance()
         .withVehicleLength(0d);
-
     } catch (final IllegalArgumentException e) {
       fail = true;
     }
@@ -300,10 +301,10 @@ public class CollisionGraphRoadModelTest {
     // vehicle length may not be infinite
     fail = false;
     try {
-      RoadModelBuilders.dynamicGraph(graph)
+      @SuppressWarnings("unused")
+      final CollisionGraphRMB b = RoadModelBuilders.dynamicGraph(graph)
         .withCollisionAvoidance()
         .withVehicleLength(Double.POSITIVE_INFINITY);
-
     } catch (final IllegalArgumentException e) {
       fail = true;
     }
@@ -356,7 +357,8 @@ public class CollisionGraphRoadModelTest {
     // min distance may not be negative
     fail = false;
     try {
-      RoadModelBuilders.dynamicGraph(graph)
+      @SuppressWarnings("unused")
+      final CollisionGraphRMB b = RoadModelBuilders.dynamicGraph(graph)
         .withCollisionAvoidance()
         .withMinDistance(-1d);
     } catch (final IllegalArgumentException e) {
