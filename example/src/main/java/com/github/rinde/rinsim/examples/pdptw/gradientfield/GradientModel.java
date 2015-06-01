@@ -106,12 +106,12 @@ public class GradientModel extends AbstractModel<FieldEmitter> implements
   float getField(Point in, Truck truck) {
     float field = 0.0f;
     for (final FieldEmitter emitter : emitters) {
-      field += emitter.getStrength()
-        / Point.distance(emitter.getPosition(), in);
+      field = field + (float) (emitter.getStrength()
+        / Point.distance(emitter.getPosition(), in));
     }
 
     for (final Parcel p : verifyNotNull(pdpModel).getContents(truck)) {
-      field += 2 / Point.distance(p.getDeliveryLocation(), in);
+      field = field + (float) (2 / Point.distance(p.getDeliveryLocation(), in));
     }
     return field;
   }
