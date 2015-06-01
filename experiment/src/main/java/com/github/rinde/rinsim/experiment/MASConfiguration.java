@@ -110,7 +110,7 @@ public abstract class MASConfiguration implements Serializable {
 
     /**
      * Adds the specified model builder.
-     * @param model
+     * @param model The model builder to add.
      * @return This, as per the builder pattern.
      */
     public Builder addModel(ModelBuilder<?, ?> model) {
@@ -121,7 +121,7 @@ public abstract class MASConfiguration implements Serializable {
 
     /**
      * Adds the specified model builders.
-     * @param models
+     * @param models The model builders to add.
      * @return This, as per the builder pattern.
      */
     public Builder addModels(Iterable<? extends ModelBuilder<?, ?>> models) {
@@ -134,7 +134,7 @@ public abstract class MASConfiguration implements Serializable {
     /**
      * Adds the specified {@link TimedEventHandler}s.
      * @param type The type of event to handle.
-     * @param handler
+     * @param handler The handler to add.
      * @return This, as per the builder pattern.
      */
     public <T extends TimedEvent> Builder addEventHandler(Class<T> type,

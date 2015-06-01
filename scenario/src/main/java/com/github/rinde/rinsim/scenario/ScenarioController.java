@@ -327,6 +327,7 @@ public final class ScenarioController extends AbstractModel<StopModel>
      * {@link TimedEvent}s of the specified type.
      * @param type The type of event to handle.
      * @param handler The handler that handles the event.
+     * @param <T> The type of event to handle.
      * @return A new {@link Builder} instance.
      * @throws IllegalArgumentException If an interface class is provided.
      */

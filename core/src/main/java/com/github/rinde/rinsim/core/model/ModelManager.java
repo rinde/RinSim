@@ -104,6 +104,7 @@ public final class ModelManager implements ModelProvider {
   /**
    * Registers the given object.
    * @param object The object to register.
+   * @param <T> The type of object.
    * @throws IllegalArgumentException if an instance of {@link Model} is
    *           provided or if the model could not be registered to any model.
    */
@@ -123,6 +124,7 @@ public final class ModelManager implements ModelProvider {
   /**
    * Unregisters the given object.
    * @param object The object to unregister.
+   * @param <T> The type of object.
    * @throws IllegalArgumentException if an instance of {@link Model} is
    *           provided or if the model could not be unregistered from any
    *           model.
