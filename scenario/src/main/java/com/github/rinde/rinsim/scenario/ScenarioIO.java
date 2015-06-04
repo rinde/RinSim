@@ -41,7 +41,6 @@ import com.github.rinde.rinsim.core.model.pdp.TimeWindowPolicy;
 import com.github.rinde.rinsim.core.model.pdp.VehicleDTO;
 import com.github.rinde.rinsim.geom.Point;
 import com.github.rinde.rinsim.scenario.Scenario.ProblemClass;
-import com.github.rinde.rinsim.scenario.Scenario.SimpleProblemClass;
 import com.github.rinde.rinsim.util.TimeWindow;
 import com.google.common.base.Charsets;
 import com.google.common.base.Function;
@@ -82,8 +81,7 @@ public final class ScenarioIO {
 
     final GsonBuilder builder = new GsonBuilder();
     builder
-      .registerTypeHierarchyAdapter(ProblemClass.class,
-        new ProblemClassHierarchyIO())
+      .registerTypeAdapter(ProblemClass.class, new ProblemClassIO())
       .registerTypeHierarchyAdapter(TimeWindowPolicy.class,
         new TimeWindowHierarchyIO())
       .registerTypeAdapter(Scenario.class, new ScenarioObjIO())
@@ -338,28 +336,22 @@ public final class ScenarioIO {
     }
   }
 
-  static class ProblemClassHierarchyIO extends SafeNullIO<ProblemClass> {
+  static class ProblemClassIO extends SafeNullIO<ProblemClass> {
     @Override
     public ProblemClass doDeserialize(JsonElement json, Type typeOfT,
       JsonDeserializationContext context) {
-      if (json.isJsonPrimitive() && json.getAsJsonPrimitive().isString()) {
-        return new SimpleProblemClass(json.getAsJsonPrimitive().getAsString());
-      }
-      return context.deserialize(json, Enum.class);
+      JsonObject obj = json.getAsJsonObject();
+      Class<?> clazz = context.deserialize(obj.get(CLAZZ), Class.class);
+      return context.deserialize(obj.get(VALUE), clazz);
     }
 
     @Override
     public JsonElement doSerialize(ProblemClass src, Type typeOfSrc,
       JsonSerializationContext context) {
-      if (src instanceof Enum<?>) {
-        return context.serialize(src, Enum.class);
-      } else if (src instanceof SimpleProblemClass) {
-        return context.serialize(src.getId(), String.class);
-      } else {
-        throw new IllegalArgumentException(
-          "Currently only enums and SimpleProblemClass are supported as ProblemClass instances, found: "
-            + src.getClass());
-      }
+      JsonObject obj = new JsonObject();
+      obj.add(CLAZZ, new JsonPrimitive(src.getClass().getName()));
+      obj.add(VALUE, context.serialize(src, src.getClass()));
+      return obj;
     }
   }
 
