@@ -146,7 +146,7 @@ public class GraphRoadModelTest extends AbstractRoadModelTest<GraphRoadModel> {
     final TestRoadUser driver1 = new TestRoadUser();
     model.addObjectAt(driver1, SW);
     final MoveProgress pp = model.followPath(driver1, path, hour(44));
-    assertEquals(hour(44).getTimeStep(), pp.time().getValue().longValue());
+    assertEquals(hour(44).getTickLength(), pp.time().getValue().longValue());
     assertEquals(44, pp.distance().getValue(), EPSILON);
     assertEquals(asList(SW, SE, NE, A, B), pp.travelledNodes());
   }
@@ -716,13 +716,13 @@ public class GraphRoadModelTest extends AbstractRoadModelTest<GraphRoadModel> {
     final MoveProgress pp1 = model.followPath(agent1, asPath(SW), hour());
     pp1.toString();
     assertEquals(1, pp1.distance().getValue(), EPSILON);
-    assertEquals(hour().getTimeStep(), pp1.time().getValue().longValue());
+    assertEquals(hour().getTickLength(), pp1.time().getValue().longValue());
 
     final TestRoadUser agent2 = new TestRoadUser();
     model.addObjectAt(agent2, SE);
     final MoveProgress pp2 = model.followPath(agent2, asPath(SW), hour(2));
     assertEquals(2, pp2.distance().getValue(), EPSILON);
-    assertEquals(hour(2).getTimeStep(), pp2.time().getValue().longValue());
+    assertEquals(hour(2).getTickLength(), pp2.time().getValue().longValue());
 
     assertEquals(
       1,

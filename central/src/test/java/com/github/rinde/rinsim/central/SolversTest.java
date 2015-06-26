@@ -135,7 +135,7 @@ public class SolversTest {
 
     Clock clock = mock(Clock.class);
     when(clock.getCurrentTime()).thenReturn(0L);
-    when(clock.getTimeStep()).thenReturn(1L);
+    when(clock.getTickLength()).thenReturn(1L);
     when(clock.getTimeUnit()).thenReturn(NonSI.MINUTE);
     final SimulationConverter handle = Solvers.converterBuilder()
       .with(mp)
@@ -192,7 +192,7 @@ public class SolversTest {
 
     Clock clock = mock(Clock.class);
     when(clock.getCurrentTime()).thenReturn(0L);
-    when(clock.getTimeStep()).thenReturn(1L);
+    when(clock.getTickLength()).thenReturn(1L);
     when(clock.getTimeUnit()).thenReturn(NonSI.MINUTE);
 
     final SimulationConverter handle = Solvers.converterBuilder()

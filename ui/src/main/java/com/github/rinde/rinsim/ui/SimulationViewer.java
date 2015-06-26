@@ -613,7 +613,7 @@ final class SimulationViewer extends Composite implements TickListener,
   @Override
   public void afterTick(final TimeLapse timeLapse) {
     if (clock.isTicking()
-      && lastRefresh + timeLapse.getTimeStep() * speedUp > timeLapse
+      && lastRefresh + timeLapse.getTickLength() * speedUp > timeLapse
         .getStartTime()) {
       return;
     }
@@ -631,7 +631,7 @@ final class SimulationViewer extends Composite implements TickListener,
       @Override
       public void run() {
         if (!canvas.isDisposed()) {
-          if (clock.getTimeStep() > 500) {
+          if (clock.getTickLength() > 500) {
             final String formatted = FORMATTER
               .print(
               new Period(0, clock.getCurrentTime()));

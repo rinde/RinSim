@@ -158,7 +158,7 @@ public final class Simulator implements SimulatorAPI {
    *         at every tick.
    */
   public long getTimeStep() {
-    return clock.getTimeStep();
+    return clock.getTickLength();
   }
 
   /**

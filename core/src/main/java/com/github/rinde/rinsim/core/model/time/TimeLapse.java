@@ -26,7 +26,7 @@ import com.github.rinde.rinsim.core.Simulator;
  * Represents a consumable interval of time: [start, end). Instances of time
  * lapse are handed out by the {@link Simulator} and can be received by
  * implementing the {@link TickListener} interface.
- * @author Rinde van Lon (rinde.vanlon@cs.kuleuven.be)
+ * @author Rinde van Lon
  */
 public final class TimeLapse {
 
@@ -35,16 +35,24 @@ public final class TimeLapse {
   private long endTime;
   private long timeLeft;
 
-  TimeLapse(Unit<Duration> unit) {
-    timeUnit = unit;
-  }
-
-  void initialize(long start, long end) {
+  TimeLapse(Unit<Duration> unit, long start, long end) {
     checkArgument(start >= 0, "time must be positive");
     checkArgument(end > start, "end time must be after start time");
+    timeUnit = unit;
     startTime = start;
     endTime = end;
     timeLeft = end - start;
+  }
+
+  void reset() {
+    timeLeft = endTime - startTime;
+  }
+
+  void next() {
+    final long step = getTickLength();
+    startTime = endTime;
+    endTime += step;
+    reset();
   }
 
   /**
@@ -54,9 +62,9 @@ public final class TimeLapse {
    */
   public void consume(long time) {
     checkArgument(time >= 0,
-        "the time to consume must be a positive value, it is %s.", time);
+      "the time to consume must be a positive value, it is %s.", time);
     checkArgument(timeLeft - time >= 0,
-        "there is not enough time left to consume %s.", time);
+      "there is not enough time left to consume %s.", time);
     timeLeft -= time;
   }
 
@@ -93,7 +101,7 @@ public final class TimeLapse {
   /**
    * @return The step (or length) of this time lapse.
    */
-  public long getTimeStep() {
+  public long getTickLength() {
     return endTime - startTime;
   }
 
@@ -138,6 +146,6 @@ public final class TimeLapse {
   @Override
   public String toString() {
     return new StringBuilder("[").append(startTime).append(",").append(endTime)
-        .append(")").toString();
+      .append(")").toString();
   }
 }

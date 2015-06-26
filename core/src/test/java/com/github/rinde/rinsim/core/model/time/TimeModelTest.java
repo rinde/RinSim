@@ -16,62 +16,48 @@
 package com.github.rinde.rinsim.core.model.time;
 
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.common.truth.Truth.assert_;
-import static java.util.Arrays.asList;
-import static org.junit.Assert.assertEquals;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
-
-import javax.measure.unit.NonSI;
 
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
-import org.junit.runners.Parameterized.Parameters;
 
 import com.github.rinde.rinsim.core.model.FakeDependencyProvider;
 import com.github.rinde.rinsim.core.model.time.Clock.ClockEventType;
-import com.github.rinde.rinsim.event.ListenerEventHistory;
+import com.github.rinde.rinsim.core.model.time.RealTimeModel.PriorityThreadFactory;
+import com.github.rinde.rinsim.core.model.time.TimeModel.TMFactories;
 import com.github.rinde.rinsim.testutil.TestUtil;
 
 /**
  * @author Rinde van Lon
- *
+ * @param <T>
  */
 @RunWith(Parameterized.class)
-public class TimeModelTest {
-  final TimeModel.Builder modelSupplier;
-  TimeModel model;
+public abstract class TimeModelTest<T extends TimeModel> {
+  final TimeModel.Builder builder;
+  private T model;
 
   /**
    * @param sup The supplier to use for creating model instances.
    */
   @SuppressWarnings("null")
   public TimeModelTest(TimeModel.Builder sup) {
-    modelSupplier = sup;
+    builder = sup;
   }
 
   /**
    * Sets up the model.
    */
+  @SuppressWarnings("unchecked")
   @Before
   public void setUp() {
     TestUtil.testEnum(ClockEventType.class);
-    model = modelSupplier.build(FakeDependencyProvider.empty());
-  }
-
-  /**
-   * @return The models to test.
-   */
-  @Parameters
-  public static Collection<Object[]> data() {
-    return asList(new Object[][] {
-        { TimeModel.builder() },
-        { TimeModel.builder().withTickLength(333L).withTimeUnit(NonSI.HOUR) }
-    });
+    TestUtil.testEnum(PriorityThreadFactory.class);
+    TestUtil.testEnum(TMFactories.class);
+    setModel((T) builder.build(FakeDependencyProvider.empty()));
   }
 
   /**
@@ -79,9 +65,9 @@ public class TimeModelTest {
    */
   @Test
   public void testDefaultProperties() {
-    assertThat((Iterable<?>) model.getTickListeners()).isEmpty();
-    assertThat(model.getCurrentTime()).comparesEqualTo(0L);
-    assertThat(model.isTicking()).isFalse();
+    assertThat(getModel().getTickListeners()).isEmpty();
+    assertThat(getModel().getCurrentTime()).isEqualTo(0L);
+    assertThat(getModel().isTicking()).isFalse();
   }
 
   /**
@@ -90,22 +76,26 @@ public class TimeModelTest {
   @Test
   public void testTicks() {
     final TickListenerChecker a = checker();
+    final LimitingTickListener ltl = new LimitingTickListener(getModel(), 1);
     a.assertCountEquals(0L);
 
-    assertThat(model.register(a)).isTrue();
-    assertThat((Iterable<?>) model.getTickListeners()).containsExactly(a);
+    assertThat(getModel().register(a)).isTrue();
+    assertThat(getModel().register(ltl)).isTrue();
+    assertThat(getModel().getTickListeners()).containsExactly(a, ltl).inOrder();
 
-    model.tick();
-    assertThat(model.getCurrentTime()).isEqualTo(model.getTimeStep());
+    getModel().start();
+
+    assertThat(getModel().getCurrentTime()).isEqualTo(
+      getModel().getTickLength());
     assertThat(a.getTickCount()).isEqualTo(1L);
-    model.unregister(a);
-    assertThat((Iterable<?>) model.getTickListeners()).isEmpty();
-    model.tick();
+    getModel().unregister(a);
+    assertThat(getModel().getTickListeners()).containsExactly(ltl);
+
     assertThat(a.getTickCount()).isEqualTo(1L);
 
     // re-register
-    assertThat(model.register(a)).isTrue();
-    assertThat((Iterable<?>) model.getTickListeners()).containsExactly(a);
+    assertThat(getModel().register(a)).isTrue();
+    assertThat(getModel().getTickListeners()).containsExactly(ltl, a).inOrder();
   }
 
   /**
@@ -114,16 +104,16 @@ public class TimeModelTest {
   @Test
   public void testTwice() {
     final TickListener a = checker();
-    model.register(a);
+    getModel().register(a);
     boolean fail = false;
     try {
-      model.register(a);
+      getModel().register(a);
     } catch (final IllegalArgumentException e) {
       fail = true;
     }
     assertThat(fail).isTrue();
 
-    assert_().that((Iterable<?>) model.getTickListeners()).containsExactly(a);
+    assertThat(getModel().getTickListeners()).containsExactly(a);
   }
 
   /**
@@ -133,9 +123,11 @@ public class TimeModelTest {
   public void testTickOrder() {
     final TickListenerChecker a = checker();
     final TickListenerChecker b = checker();
-    model.register(a);
-    model.register(b);
-    model.tick();
+    getModel().register(a);
+    getModel().register(b);
+
+    getModel().register(new LimitingTickListener(getModel(), 1));
+    getModel().start();
 
     assertThat(b.getLastTickTime() - a.getLastTickTime()).isAtLeast(0L);
     assertThat(a.getLastAfterTickTime() - b.getLastTickTime()).isAtLeast(0L);
@@ -144,71 +136,47 @@ public class TimeModelTest {
   }
 
   /**
-   * Test starting and stopping time.
-   */
-  @Test
-  public void testStartStop() {
-    final LimitingTickListener ltl = new LimitingTickListener(model, 3);
-    final ListenerEventHistory leh = new ListenerEventHistory();
-
-    model.getEventAPI().addListener(leh, ClockEventType.values());
-    model.register(ltl);
-    model.start();
-    assertEquals(3 * model.getTimeStep(), model.getCurrentTime());
-
-    model.start();
-    assertEquals(6 * model.getTimeStep(), model.getCurrentTime());
-
-    assertThat(leh.getEventTypeHistory()).isEqualTo(
-      asList(
-        ClockEventType.STARTED,
-        ClockEventType.STOPPED,
-        ClockEventType.STARTED,
-        ClockEventType.STOPPED)
-      );
-  }
-
-  /**
    * Test that removing a tick listener during a tick is performed correctly.
    */
   @Test
   public void removeDuringTick() {
-    final TickListenerChecker a = new TickListenerChecker(model) {
+    final TickListenerChecker a = new TickListenerChecker(getModel()) {
       @Override
       public void tick(TimeLapse timeLapse) {
         super.tick(timeLapse);
         if (getTickCount() > 2) {
-          model.unregister(this);
+          getModel().unregister(this);
         }
       }
     };
-    final TickListenerChecker b = new TickListenerChecker(model) {
+    final TickListenerChecker b = new TickListenerChecker(getModel()) {
       @Override
       public void afterTick(TimeLapse timeLapse) {
         super.afterTick(timeLapse);
         if (getTickCount() > 2) {
-          model.unregister(this);
+          getModel().unregister(this);
         }
       }
     };
-    final TickListenerChecker d = new TickListenerChecker(model);
-    final TickListenerChecker c = new TickListenerChecker(model) {
+    final TickListenerChecker d = new TickListenerChecker(getModel());
+    final TickListenerChecker c = new TickListenerChecker(getModel()) {
       @Override
       public void tick(TimeLapse timeLapse) {
         super.tick(timeLapse);
         if (getTickCount() > 2) {
-          model.unregister(d);
+          getModel().unregister(d);
         }
       }
     };
-    assertThat(model.register(a)).isTrue();
-    assertThat(model.register(b)).isTrue();
-    assertThat(model.register(c)).isTrue();
-    assertThat(model.register(d)).isTrue();
-    assertThat(model.register(new LimitingTickListener(model, 4))).isTrue();
-    model.start();
-
-    assertThat(model.getCurrentTime()).isEqualTo(4 * model.getTimeStep());
+    assertThat(getModel().register(a)).isTrue();
+    assertThat(getModel().register(b)).isTrue();
+    assertThat(getModel().register(c)).isTrue();
+    assertThat(getModel().register(d)).isTrue();
+    assertThat(getModel().register(new LimitingTickListener(getModel(), 4)))
+      .isTrue();
+    getModel().start();
+    assertThat(getModel().getCurrentTime()).isEqualTo(
+      4 * getModel().getTickLength());
 
     assertThat(a.getTickCount()).isEqualTo(3);
     assertThat(a.getAfterTickCount()).isEqualTo(2);
@@ -230,8 +198,8 @@ public class TimeModelTest {
   @Test
   public void timeLapseSafety() {
     final List<IllegalArgumentException> failures = new ArrayList<>();
-    model.register(new LimitingTickListener(model, 3));
-    model.register(new TickListener() {
+    getModel().register(new LimitingTickListener(getModel(), 3));
+    getModel().register(new TickListener() {
       @Override
       public void tick(TimeLapse timeLapse) {
         timeLapse.consume(1L);
@@ -247,11 +215,26 @@ public class TimeModelTest {
         }
       }
     });
-    model.start();
+    getModel().start();
     assertThat(failures).hasSize(3);
   }
 
   TickListenerChecker checker() {
-    return new TickListenerChecker(model.getTimeStep(), model.getTimeUnit());
+    return new TickListenerChecker(getModel().getTickLength(), getModel()
+      .getTimeUnit());
+  }
+
+  /**
+   * @return the model
+   */
+  T getModel() {
+    return model;
+  }
+
+  /**
+   * @param model the model to set
+   */
+  void setModel(T model) {
+    this.model = model;
   }
 }

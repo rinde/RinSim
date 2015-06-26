@@ -50,62 +50,48 @@ import com.google.auto.value.AutoValue;
  * See {@link ModelBuilder} for more information about model properties.
  * @author Rinde van Lon
  */
-public final class TimeModel extends AbstractModel<TickListener>
+public abstract class TimeModel extends AbstractModel<TickListener>
   implements ClockController {
-  private volatile Set<TickListener> tickListeners;
-  private volatile long time;
-  private volatile boolean isPlaying;
+  final TimeLapse timeLapse;
 
-  private final long timeStep;
-  private final TimeLapse timeLapse;
+  private volatile Set<TickListener> tickListeners;
+  volatile boolean isTicking;
   private final EventDispatcher eventDispatcher;
 
-  TimeModel(long tickLength, Unit<Duration> unit) {
+  TimeModel(Builder builder) {
     tickListeners = new CopyOnWriteArraySet<>();
-    time = 0L;
-    timeStep = tickLength;
-
     eventDispatcher = new EventDispatcher(ClockEventType.values());
 
     // time lapse is reused in a Flyweight kind of style
-    timeLapse = new TimeLapse(unit);
+    timeLapse = new TimeLapse(builder.getTimeUnit(), 0L,
+      builder.getTickLength());
   }
 
   /**
    * Start the simulation.
    */
   @Override
-  public void start() {
+  public final void start() {
     if (!isTicking()) {
-      isPlaying = true;
+      isTicking = true;
       eventDispatcher.dispatchEvent(new Event(ClockEventType.STARTED, this));
     }
-    while (isPlaying) {
-      tick();
-    }
+    doStart();
     eventDispatcher.dispatchEvent(new Event(ClockEventType.STOPPED, this));
   }
 
   @Override
-  public void stop() {
-    isPlaying = false;
+  public final void stop() {
+    doStop();
+
   }
 
+  abstract void doStart();
+
+  abstract void doStop();
+
   @Override
-  public void tick() {
-    final long end = time + timeStep;
-    for (final TickListener t : tickListeners) {
-      timeLapse.initialize(time, end);
-      t.tick(timeLapse);
-    }
-    timeLapse.initialize(time, end);
-    // in the after tick the TimeLapse can no longer be consumed
-    timeLapse.consumeAll();
-    for (final TickListener t : tickListeners) {
-      t.afterTick(timeLapse);
-    }
-    time += timeStep;
-  }
+  public abstract void tick();
 
   @Override
   public <U> U get(Class<U> clazz) {
@@ -128,13 +114,27 @@ public final class TimeModel extends AbstractModel<TickListener>
     return tickListeners.remove(element);
   }
 
+  protected final void tickImpl() {
+    for (final TickListener t : tickListeners) {
+      timeLapse.reset();
+      t.tick(timeLapse);
+    }
+    // in the after tick the TimeLapse can no longer be consumed
+    timeLapse.consumeAll();
+    for (final TickListener t : tickListeners) {
+      t.afterTick(timeLapse);
+    }
+    // advance time
+    timeLapse.next();
+  }
+
   /**
    * @return true if time is ticking, false otherwise.
    */
   @Override
   @CheckReturnValue
   public boolean isTicking() {
-    return isPlaying;
+    return isTicking;
   }
 
   @Override
@@ -146,13 +146,13 @@ public final class TimeModel extends AbstractModel<TickListener>
   @Override
   @CheckReturnValue
   public long getCurrentTime() {
-    return time;
+    return timeLapse.getStartTime();
   }
 
   @Override
   @CheckReturnValue
-  public long getTimeStep() {
-    return timeStep;
+  public long getTickLength() {
+    return timeLapse.getTickLength();
   }
 
   @CheckReturnValue
@@ -171,7 +171,8 @@ public final class TimeModel extends AbstractModel<TickListener>
    */
   @CheckReturnValue
   public static Builder builder() {
-    return Builder.create(Builder.DEFAULT_TIME_STEP, Builder.DEFAULT_TIME_UNIT);
+    return Builder.create(Builder.DEFAULT_TIME_STEP, Builder.DEFAULT_TIME_UNIT,
+      Builder.DEFAULT_TICK_FACTORY);
   }
 
   /**
@@ -194,6 +195,8 @@ public final class TimeModel extends AbstractModel<TickListener>
      */
     public static final Unit<Duration> DEFAULT_TIME_UNIT = SI.MILLI(SI.SECOND);
 
+    static final TimeModelFactory DEFAULT_TICK_FACTORY = TMFactories.SIMULATED;
+
     Builder() {
       setProvidingTypes(Clock.class, ClockController.class);
     }
@@ -208,6 +211,8 @@ public final class TimeModel extends AbstractModel<TickListener>
      */
     public abstract Unit<Duration> getTimeUnit();
 
+    abstract TimeModelFactory getTickStrategyFactory();
+
     /**
      * Returns a copy of this builder with the specified length of a single
      * tick. The default tick length is {@link #DEFAULT_TIME_STEP}.
@@ -216,7 +221,7 @@ public final class TimeModel extends AbstractModel<TickListener>
      */
     @CheckReturnValue
     public Builder withTickLength(long tickLength) {
-      return create(tickLength, getTimeUnit());
+      return create(tickLength, getTimeUnit(), getTickStrategyFactory());
     }
 
     /**
@@ -227,17 +232,75 @@ public final class TimeModel extends AbstractModel<TickListener>
      */
     @CheckReturnValue
     public Builder withTimeUnit(Unit<Duration> timeUnit) {
-      return create(getTickLength(), timeUnit);
+      return create(getTickLength(), timeUnit, getTickStrategyFactory());
+    }
+
+    @CheckReturnValue
+    public Builder withRealTime() {
+      return create(getTickLength(), getTimeUnit(), TMFactories.REAL_TIME);
     }
 
     @CheckReturnValue
     @Override
     public TimeModel build(DependencyProvider dependencyProvider) {
-      return new TimeModel(getTickLength(), getTimeUnit());
+      return getTickStrategyFactory().create(this);
     }
 
-    static Builder create(long tickLength, Unit<Duration> timeUnit) {
-      return new AutoValue_TimeModel_Builder(tickLength, timeUnit);
+    static Builder create(long tickLength, Unit<Duration> timeUnit,
+      TimeModelFactory tf) {
+      return new AutoValue_TimeModel_Builder(tickLength, timeUnit, tf);
     }
   }
+
+  interface TimeModelFactory {
+    TimeModel create(TimeModel.Builder builder);
+  }
+
+  enum TMFactories implements TimeModelFactory {
+    SIMULATED {
+      @Override
+      public TimeModel create(Builder builder) {
+        return new SimulatedTimeModel(builder);
+      }
+    },
+    REAL_TIME {
+      @Override
+      public TimeModel create(Builder builder) {
+        return new RealTimeModel(builder);
+      }
+    }
+  }
+
+  // static class RealtimeTick implements TickStrategy {
+  // long prevTime;
+  // long timeStep;
+  //
+  // RealtimeTick(TimeLapse tl) {
+  // prevTime = System.nanoTime();
+  // timeStep = Measure.valueOf(tl.getTickLength(), tl.getTimeUnit())
+  // .longValue(SI.NANO(SI.SECOND));
+  // }
+  //
+  // @Override
+  // public void execute(TimeLapse tl, Set<TickListener> tls) {
+  // SimulatedTime.INSTANCE.execute(tl, tls);
+  // final long duration = System.nanoTime() - prevTime;
+  // checkState(duration <= timeStep);
+  //
+  // try {
+  // final long diff = timeStep - duration;
+  // final long ms = DoubleMath.roundToLong(diff / 1000000,
+  // RoundingMode.DOWN);
+  // System.out.println(duration);
+  // System.out.println(" > sleep " + diff + " nano seconds, ms " + ms
+  // + " nanos " + (diff - ms * 1000000));
+  // Thread.sleep(ms, (int) (diff - ms * 1000000));
+  // final long t = System.nanoTime();
+  // System.out.println("time: " + (t - prevTime));
+  // prevTime = t;
+  // } catch (final InterruptedException e) {
+  // throw new IllegalStateException(e);
+  // }
+  // }
+  // }
 }

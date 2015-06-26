@@ -24,20 +24,18 @@ import javax.measure.unit.SI;
 
 import org.junit.Test;
 
-import com.github.rinde.rinsim.core.model.time.TimeLapse;
-
 /**
  * @author Rinde van Lon (rinde.vanlon@cs.kuleuven.be)
- * 
+ *
  */
 public class TimeLapseTest {
 
   @Test
   public void unitConstructor() {
-    final TimeLapse tl = new TimeLapse(SI.SECOND);
+    final TimeLapse tl = new TimeLapse(SI.SECOND, 0, 1);
     assertEquals(0, tl.getTime());
     assertEquals(0, tl.getStartTime());
-    assertEquals(0, tl.getEndTime());
+    assertEquals(1, tl.getEndTime());
     assertEquals(SI.SECOND, tl.getTimeUnit());
   }
 
@@ -47,7 +45,7 @@ public class TimeLapseTest {
 
     assertEquals(0, tl.getTime());
     assertEquals(0, tl.getTimeConsumed());
-    assertEquals(10, tl.getTimeStep());
+    assertEquals(10, tl.getTickLength());
     assertEquals(10, tl.getTimeLeft());
     assertTrue(tl.hasTimeLeft());
 
@@ -77,21 +75,21 @@ public class TimeLapseTest {
       assertEquals(start[i], tl.getTime());
       assertEquals(0, tl.getTimeConsumed());
       assertTrue(tl.hasTimeLeft());
-      assertEquals(end[i] - start[i], tl.getTimeStep());
+      assertEquals(end[i] - start[i], tl.getTickLength());
 
       tl.consume(10);
       assertEquals(end[i] - start[i] - 10, tl.getTimeLeft());
       assertEquals(start[i] + 10, tl.getTime());
       assertEquals(10, tl.getTimeConsumed());
       assertTrue(tl.hasTimeLeft());
-      assertEquals(end[i] - start[i], tl.getTimeStep());
+      assertEquals(end[i] - start[i], tl.getTickLength());
 
       tl.consumeAll();
       assertEquals(0, tl.getTimeLeft());
       assertEquals(end[i], tl.getTime());
       assertEquals(end[i] - start[i], tl.getTimeConsumed());
       assertFalse(tl.hasTimeLeft());
-      assertEquals(end[i] - start[i], tl.getTimeStep());
+      assertEquals(end[i] - start[i], tl.getTickLength());
     }
 
   }

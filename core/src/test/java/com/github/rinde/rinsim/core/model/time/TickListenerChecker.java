@@ -35,7 +35,7 @@ public class TickListenerChecker implements TickListener {
   private long lastAfterTickTime;
 
   public TickListenerChecker(TimeModel tm) {
-    this(tm.getTimeStep(), tm.getTimeUnit());
+    this(tm.getTickLength(), tm.getTimeUnit());
   }
 
   public TickListenerChecker() {
@@ -51,8 +51,9 @@ public class TickListenerChecker implements TickListener {
 
   @Override
   public void tick(TimeLapse timeLapse) {
+    assertCountEquals();
     assertThat(timeLapse.getTimeUnit()).isEqualTo(expectedTimeUnit);
-    assertThat(timeLapse.getTimeStep()).isEqualTo(expectedTimeStep);
+    assertThat(timeLapse.getTickLength()).isEqualTo(expectedTimeStep);
     tickCount++;
     lastTickTime = System.nanoTime();
   }
@@ -60,9 +61,10 @@ public class TickListenerChecker implements TickListener {
   @Override
   public void afterTick(TimeLapse timeLapse) {
     assertThat(timeLapse.getTimeUnit()).isEqualTo(expectedTimeUnit);
-    assertThat(timeLapse.getTimeStep()).isEqualTo(expectedTimeStep);
+    assertThat(timeLapse.getTickLength()).isEqualTo(expectedTimeStep);
     afterTickCount++;
     lastAfterTickTime = System.nanoTime();
+    assertCountEquals();
   }
 
   public void assertCountEquals() {

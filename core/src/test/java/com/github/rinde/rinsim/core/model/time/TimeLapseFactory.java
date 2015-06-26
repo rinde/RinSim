@@ -20,8 +20,6 @@ import javax.measure.unit.NonSI;
 import javax.measure.unit.SI;
 import javax.measure.unit.Unit;
 
-import com.github.rinde.rinsim.core.model.time.TimeLapse;
-
 /**
  * @author Rinde van Lon (rinde.vanlon@cs.kuleuven.be)
  */
@@ -32,9 +30,7 @@ public final class TimeLapseFactory {
   // this should only be used in tests!
 
   public static TimeLapse create(Unit<Duration> unit, long start, long end) {
-    final TimeLapse tl = new TimeLapse(unit);
-    tl.initialize(start, end);
-    return tl;
+    return new TimeLapse(unit, start, end);
   }
 
   public static TimeLapse create(long start, long end) {

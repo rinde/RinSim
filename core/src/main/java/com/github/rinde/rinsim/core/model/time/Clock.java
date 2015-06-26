@@ -53,7 +53,7 @@ public interface Clock {
    * @return The length of a single tick.
    */
   @CheckReturnValue
-  long getTimeStep();
+  long getTickLength();
 
   /**
    * Reference to the {@link EventAPI} of the clock. Can be used to add
