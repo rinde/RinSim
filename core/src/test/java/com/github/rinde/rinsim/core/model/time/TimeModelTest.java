@@ -29,11 +29,13 @@ import com.github.rinde.rinsim.core.model.FakeDependencyProvider;
 import com.github.rinde.rinsim.core.model.time.Clock.ClockEventType;
 import com.github.rinde.rinsim.core.model.time.RealTimeModel.PriorityThreadFactory;
 import com.github.rinde.rinsim.core.model.time.TimeModel.TMFactories;
+import com.github.rinde.rinsim.event.ListenerEventHistory;
 import com.github.rinde.rinsim.testutil.TestUtil;
+import com.google.common.collect.Range;
 
 /**
  * @author Rinde van Lon
- * @param <T>
+ * @param <T> The type of the model that is under test.
  */
 @RunWith(Parameterized.class)
 public abstract class TimeModelTest<T extends TimeModel> {
@@ -57,7 +59,7 @@ public abstract class TimeModelTest<T extends TimeModel> {
     TestUtil.testEnum(ClockEventType.class);
     TestUtil.testEnum(PriorityThreadFactory.class);
     TestUtil.testEnum(TMFactories.class);
-    setModel((T) builder.build(FakeDependencyProvider.empty()));
+    model = (T) builder.build(FakeDependencyProvider.empty());
   }
 
   /**
@@ -219,6 +221,70 @@ public abstract class TimeModelTest<T extends TimeModel> {
     assertThat(failures).hasSize(3);
   }
 
+  /**
+   * Tests that the events are dispatched at the right moments.
+   */
+  @Test
+  public void testEvents() {
+    final ListenerEventHistory leh = new ListenerEventHistory();
+    getModel().getEventAPI().addListener(leh, ClockEventType.values());
+
+    final List<Range<Long>> intervals = new ArrayList<>();
+
+    getModel().register(new LimitingTickListener(getModel(), 2));
+    getModel().register(new TickListener() {
+      @Override
+      public void tick(TimeLapse timeLapse) {
+        intervals.add(Range.openClosed(timeLapse.getStartTime(),
+          timeLapse.getEndTime()));
+        assertThat(leh.getEventTypeHistory()).containsExactly(
+          ClockEventType.STARTED);
+      }
+
+      @Override
+      public void afterTick(TimeLapse timeLapse) {
+        assertThat(leh.getEventTypeHistory()).containsExactly(
+          ClockEventType.STARTED);
+      }
+    });
+    assertThat(intervals).isEmpty();
+    assertThat(leh.getEventTypeHistory()).isEmpty();
+    getModel().start();
+    assertThat(intervals).hasSize(2);
+    assertThat(intervals).containsExactly(
+      Range.openClosed(0L, model.getTickLength()),
+      Range.openClosed(model.getTickLength(), model.getTickLength() * 2)
+      ).inOrder();
+    assertThat(leh.getEventTypeHistory()).containsExactly(
+      ClockEventType.STARTED, ClockEventType.STOPPED);
+  }
+
+  /**
+   * Tests that trying to start the time twice is prevented.
+   */
+  @Test
+  public void testStartStart() {
+    getModel().register(new TickListener() {
+      @Override
+      public void tick(TimeLapse timeLapse) {
+        // this should throw an exception to prevent inception to take place
+        getModel().start();
+      }
+
+      @Override
+      public void afterTick(TimeLapse timeLapse) {}
+    });
+
+    boolean fail = false;
+    try {
+      getModel().start();
+    } catch (final IllegalStateException e) {
+      assertThat(e.getMessage()).contains("Time is already ticking.");
+      fail = true;
+    }
+    assertThat(fail).isTrue();
+  }
+
   TickListenerChecker checker() {
     return new TickListenerChecker(getModel().getTickLength(), getModel()
       .getTimeUnit());
@@ -229,12 +295,5 @@ public abstract class TimeModelTest<T extends TimeModel> {
    */
   T getModel() {
     return model;
-  }
-
-  /**
-   * @param model the model to set
-   */
-  void setModel(T model) {
-    this.model = model;
   }
 }

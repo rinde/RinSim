@@ -53,6 +53,9 @@ public class RealTimeModelTest extends TimeModelTest<RealTimeModel> {
     return super.getModel();
   }
 
+  /**
+   * Tests the actual elapsed time.
+   */
   @Test
   public void testRealTime() {
     getModel().register(new LimitingTickListener(getModel(), 3));
@@ -65,8 +68,11 @@ public class RealTimeModelTest extends TimeModelTest<RealTimeModel> {
     assertThat(getModel().getCurrentTime()).isEqualTo(300);
   }
 
+  /**
+   * Tests that restarting the time is forbidden.
+   */
   @Test
-  public void testStartStop() {
+  public void testStartStopStart() {
     final LimitingTickListener ltl = new LimitingTickListener(getModel(), 3);
     getModel().register(ltl);
     getModel().start();
@@ -80,6 +86,10 @@ public class RealTimeModelTest extends TimeModelTest<RealTimeModel> {
     assertThat(fail).isTrue();
   }
 
+  /**
+   * Tests that calling tick is unsupported.
+   */
+  @SuppressWarnings("deprecation")
   @Test
   public void testTick() {
     boolean fail = false;
@@ -91,5 +101,4 @@ public class RealTimeModelTest extends TimeModelTest<RealTimeModel> {
     }
     assertThat(fail);
   }
-
 }

@@ -25,7 +25,8 @@ import com.github.rinde.rinsim.event.EventAPI;
  * Represents the clock in a simulation. This class provides several methods
  * that allow to retrieve the time and related properties. For controlling the
  * simulation clock see {@link ClockController}. For getting notified about time
- * progress see {@link TickListener}.
+ * progress see {@link TickListener}. For information about events see
+ * {@link #getEventAPI()}.
  * @author Rinde van Lon
  */
 public interface Clock {

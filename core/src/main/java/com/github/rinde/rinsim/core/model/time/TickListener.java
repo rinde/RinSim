@@ -15,12 +15,11 @@
  */
 package com.github.rinde.rinsim.core.model.time;
 
-
 /**
  * Allows an implementor to receive updates when time progresses in the
  * simulator.
  *
- * @author Rinde van Lon (rinde.vanlon@cs.kuleuven.be)
+ * @author Rinde van Lon
  * @author Bartosz Michalik
  */
 public interface TickListener {

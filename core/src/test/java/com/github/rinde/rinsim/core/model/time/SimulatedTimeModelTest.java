@@ -37,7 +37,7 @@ import com.github.rinde.rinsim.event.ListenerEventHistory;
 public class SimulatedTimeModelTest extends TimeModelTest<SimulatedTimeModel> {
 
   /**
-   * @param sup
+   * @param sup The supplier to use for creating model instances.
    */
   public SimulatedTimeModelTest(Builder sup) {
     super(sup);

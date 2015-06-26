@@ -16,6 +16,7 @@
 package com.github.rinde.rinsim.core.model.time;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkState;
 
 import java.io.Serializable;
 import java.util.Collections;
@@ -72,10 +73,9 @@ public abstract class TimeModel extends AbstractModel<TickListener>
    */
   @Override
   public final void start() {
-    if (!isTicking()) {
-      isTicking = true;
-      eventDispatcher.dispatchEvent(new Event(ClockEventType.STARTED, this));
-    }
+    checkState(!isTicking(), "Time is already ticking.");
+    isTicking = true;
+    eventDispatcher.dispatchEvent(new Event(ClockEventType.STARTED, this));
     doStart();
     eventDispatcher.dispatchEvent(new Event(ClockEventType.STOPPED, this));
   }
@@ -83,7 +83,6 @@ public abstract class TimeModel extends AbstractModel<TickListener>
   @Override
   public final void stop() {
     doStop();
-
   }
 
   abstract void doStart();

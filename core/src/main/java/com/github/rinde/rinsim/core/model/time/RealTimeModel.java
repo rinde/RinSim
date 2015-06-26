@@ -17,6 +17,8 @@ package com.github.rinde.rinsim.core.model.time;
 
 import static com.google.common.base.Preconditions.checkState;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
@@ -25,6 +27,9 @@ import javax.annotation.Nullable;
 import javax.measure.Measure;
 import javax.measure.unit.SI;
 
+import com.google.common.util.concurrent.FutureCallback;
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableScheduledFuture;
 import com.google.common.util.concurrent.ListeningScheduledExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
 
@@ -54,24 +59,44 @@ class RealTimeModel extends TimeModel {
         + RealTimeModel.class.getSimpleName());
   }
 
-  // FIXME test events
   @Override
   void doStart() {
     checkState(!executor.isShutdown(), "%s can be started only once",
       getClass().getSimpleName());
 
-    executor.scheduleAtFixedRate(
-      new Runnable() {
-        @Override
-        public void run() {
-          tickImpl();
-        }
-      }, 0, tickNanoSeconds, TimeUnit.NANOSECONDS);
+    @SuppressWarnings("unchecked")
+    final ListenableScheduledFuture<Object> f =
+      (ListenableScheduledFuture<Object>) executor.scheduleAtFixedRate(
+        new Runnable() {
+          @Override
+          public void run() {
+            tickImpl();
+          }
+        }, 0, tickNanoSeconds, TimeUnit.NANOSECONDS);
+
+    final List<Throwable> exceptions = new ArrayList<>();
+    Futures.addCallback(f, new FutureCallback<Object>() {
+      @Override
+      public void onSuccess(@Nullable Object result) {}
+
+      @Override
+      public void onFailure(Throwable t) {
+        exceptions.add(t);
+        stop();
+      }
+    });
 
     try {
       executor.awaitTermination(Long.MAX_VALUE, TimeUnit.DAYS);
     } catch (final InterruptedException e) {
       throw new IllegalStateException(e);
+    }
+
+    if (!exceptions.isEmpty()) {
+      if (exceptions.get(0) instanceof RuntimeException) {
+        throw (RuntimeException) exceptions.get(0);
+      }
+      throw new IllegalStateException(exceptions.get(0));
     }
   }
 
