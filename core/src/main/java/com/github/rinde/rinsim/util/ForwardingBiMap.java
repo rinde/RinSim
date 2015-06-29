@@ -35,6 +35,7 @@ public abstract class ForwardingBiMap<K, V> extends ForwardingMap<K, V>
     return delegate().values();
   }
 
+  @Nullable
   @Override
   public V forcePut(@Nullable K key, @Nullable V value) {
     return delegate().forcePut(key, value);
