@@ -16,6 +16,7 @@
 package com.github.rinde.rinsim.geom;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Verify.verifyNotNull;
 import static java.util.Objects.hash;
 
 import java.util.Collection;
@@ -145,7 +146,8 @@ public class TableGraph<E extends ConnectionData> extends AbstractGraph<E> {
   @Override
   protected Optional<E> doChangeConnectionData(Point from, Point to,
     Optional<E> connData) {
-    return data.put(from, to, Connection.create(from, to, connData)).data();
+    return verifyNotNull(
+      data.put(from, to, Connection.create(from, to, connData))).data();
   }
 
   @Override
