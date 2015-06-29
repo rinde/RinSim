@@ -211,8 +211,7 @@ public abstract class TimeModelTest<T extends TimeModel> {
       public void afterTick(TimeLapse timeLapse) {
         try {
           timeLapse.consume(1L);
-        }
-        catch (final IllegalArgumentException e) {
+        } catch (final IllegalArgumentException e) {
           failures.add(e);
         }
       }
@@ -253,8 +252,8 @@ public abstract class TimeModelTest<T extends TimeModel> {
     assertThat(intervals).hasSize(2);
     assertThat(intervals).containsExactly(
       Range.openClosed(0L, model.getTickLength()),
-      Range.openClosed(model.getTickLength(), model.getTickLength() * 2)
-      ).inOrder();
+      Range.openClosed(model.getTickLength(), model.getTickLength() * 2))
+      .inOrder();
     assertThat(leh.getEventTypeHistory()).containsExactly(
       ClockEventType.STARTED, ClockEventType.STOPPED);
   }
@@ -288,6 +287,10 @@ public abstract class TimeModelTest<T extends TimeModel> {
   TickListenerChecker checker() {
     return new TickListenerChecker(getModel().getTickLength(), getModel()
       .getTimeUnit());
+  }
+
+  LimitingTickListener limiter(int limit) {
+    return new LimitingTickListener(getModel(), limit);
   }
 
   /**

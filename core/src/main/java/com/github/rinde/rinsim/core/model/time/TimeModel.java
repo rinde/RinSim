@@ -180,7 +180,7 @@ public abstract class TimeModel extends AbstractModel<TickListener>
    */
   @AutoValue
   public abstract static class Builder extends
-    AbstractModelBuilder<TimeModel, TickListener> implements Serializable {
+    AbstractModelBuilder<TimeModel, TickListener>implements Serializable {
 
     private static final long serialVersionUID = 4029776255118617541L;
 
@@ -269,37 +269,4 @@ public abstract class TimeModel extends AbstractModel<TickListener>
       }
     }
   }
-
-  // static class RealtimeTick implements TickStrategy {
-  // long prevTime;
-  // long timeStep;
-  //
-  // RealtimeTick(TimeLapse tl) {
-  // prevTime = System.nanoTime();
-  // timeStep = Measure.valueOf(tl.getTickLength(), tl.getTimeUnit())
-  // .longValue(SI.NANO(SI.SECOND));
-  // }
-  //
-  // @Override
-  // public void execute(TimeLapse tl, Set<TickListener> tls) {
-  // SimulatedTime.INSTANCE.execute(tl, tls);
-  // final long duration = System.nanoTime() - prevTime;
-  // checkState(duration <= timeStep);
-  //
-  // try {
-  // final long diff = timeStep - duration;
-  // final long ms = DoubleMath.roundToLong(diff / 1000000,
-  // RoundingMode.DOWN);
-  // System.out.println(duration);
-  // System.out.println(" > sleep " + diff + " nano seconds, ms " + ms
-  // + " nanos " + (diff - ms * 1000000));
-  // Thread.sleep(ms, (int) (diff - ms * 1000000));
-  // final long t = System.nanoTime();
-  // System.out.println("time: " + (t - prevTime));
-  // prevTime = t;
-  // } catch (final InterruptedException e) {
-  // throw new IllegalStateException(e);
-  // }
-  // }
-  // }
 }

@@ -18,12 +18,14 @@ package com.github.rinde.rinsim.core.model.time;
 import static com.google.common.truth.Truth.assertThat;
 import static java.util.Arrays.asList;
 
+import java.math.RoundingMode;
 import java.util.Collection;
 
 import org.junit.Test;
 import org.junit.runners.Parameterized.Parameters;
 
 import com.github.rinde.rinsim.core.model.time.TimeModel.Builder;
+import com.google.common.math.DoubleMath;
 
 /**
  * @author Rinde van Lon
@@ -46,11 +48,6 @@ public class RealTimeModelTest extends TimeModelTest<RealTimeModel> {
     return asList(new Object[][] {
         { TimeModel.builder().withRealTime().withTickLength(100L) }
     });
-  }
-
-  @Override
-  RealTimeModel getModel() {
-    return super.getModel();
   }
 
   /**
@@ -99,6 +96,38 @@ public class RealTimeModelTest extends TimeModelTest<RealTimeModel> {
       fail = true;
       assertThat(e.getMessage()).contains("not supported");
     }
-    assertThat(fail);
+    assertThat(fail).isTrue();
+  }
+
+  @Test
+  public void testConsistencyCheck() {
+    getModel().register(limiter(150));
+
+    final int t = RealTimeModel.CONSISTENCY_CHECK_LENGTH + DoubleMath
+      .roundToInt(.5 * RealTimeModel.CONSISTENCY_CHECK_LENGTH,
+        RoundingMode.HALF_DOWN);
+
+    getModel().register(new TickListener() {
+      @Override
+      public void tick(TimeLapse timeLapse) {
+        if (timeLapse.getStartTime() == timeLapse.getTickLength() * t) {
+          try {
+            Thread.sleep(150);
+          } catch (final InterruptedException e) {
+            throw new IllegalStateException(e);
+          }
+        }
+      }
+
+      @Override
+      public void afterTick(TimeLapse timeLapse) {}
+    });
+    boolean fail = false;
+    try {
+      getModel().start();
+    } catch (final IllegalStateException e) {
+      fail = true;
+    }
+    assertThat(fail).isTrue();
   }
 }

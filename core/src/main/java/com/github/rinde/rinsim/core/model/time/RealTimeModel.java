@@ -27,6 +27,11 @@ import javax.annotation.Nullable;
 import javax.measure.Measure;
 import javax.measure.unit.SI;
 
+import org.apache.commons.math3.stat.descriptive.StatisticalSummary;
+import org.apache.commons.math3.stat.descriptive.SummaryStatistics;
+
+import com.google.common.collect.Iterators;
+import com.google.common.collect.PeekingIterator;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableScheduledFuture;
@@ -64,12 +69,16 @@ class RealTimeModel extends TimeModel {
     checkState(!executor.isShutdown(), "%s can be started only once",
       getClass().getSimpleName());
 
+    final List<Long> timings = new ArrayList<>();
+
     @SuppressWarnings("unchecked")
-    final ListenableScheduledFuture<Object> f =
-      (ListenableScheduledFuture<Object>) executor.scheduleAtFixedRate(
+    final ListenableScheduledFuture<Object> f = (ListenableScheduledFuture<Object>) executor
+      .scheduleAtFixedRate(
         new Runnable() {
           @Override
           public void run() {
+            timings.add(System.nanoTime());
+            checkConsistency(timings);
             tickImpl();
           }
         }, 0, tickNanoSeconds, TimeUnit.NANOSECONDS);
@@ -98,6 +107,39 @@ class RealTimeModel extends TimeModel {
       }
       throw new IllegalStateException(exceptions.get(0));
     }
+  }
+
+  static final int CONSISTENCY_CHECK_LENGTH = 50;
+
+  void checkConsistency(List<Long> timestamps) {
+    if (timestamps.size() < CONSISTENCY_CHECK_LENGTH) {
+      return;
+    }
+    final PeekingIterator<Long> it = Iterators.peekingIterator(timestamps
+      .subList(timestamps.size() - CONSISTENCY_CHECK_LENGTH, timestamps.size())
+      .iterator());
+
+    final List<Long> interArrivalTimes = new ArrayList<>();
+    for (long l1 = it.next(); it.hasNext(); l1 = it.next()) {
+      final Long l2 = it.peek();
+      interArrivalTimes.add(l2 - l1);
+    }
+
+    final SummaryStatistics ss = new SummaryStatistics();
+    for (final Long n : interArrivalTimes) {
+      ss.addValue(n.longValue());
+    }
+    final StatisticalSummary sum = ss.getSummary();
+    System.out.printf("%1.2f +- %1.2f%n", sum.getMean() / 1000000d,
+      sum.getStandardDeviation() / 1000000d);
+
+    // standard deviation may not be greater than 5ms
+    checkState(sum.getStandardDeviation() < 5000000d,
+      "Std is above threshold of 5ms: %s.", sum.getStandardDeviation());
+    // on average we don't want a deviation to the mean of more than 1 ms per
+    // tick.
+    checkState(Math.abs(tickNanoSeconds - sum.getMean()) < 1000000,
+      "Mean interval is above threshold of 1ms: %s.", sum.getMean());
   }
 
   @Override
