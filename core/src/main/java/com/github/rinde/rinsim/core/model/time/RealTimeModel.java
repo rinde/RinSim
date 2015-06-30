@@ -43,6 +43,12 @@ import com.google.common.util.concurrent.MoreExecutors;
  *
  */
 class RealTimeModel extends TimeModel {
+  // number of ticks that will be checked for consistency
+  static final int CONSISTENCY_CHECK_LENGTH = 50;
+  // max standard deviation = 5ms
+  static final double MAX_STD_NS = 5000000d;
+  // max mean deviation = 1ms
+  static final double MAX_MEAN_DEVIATION_NS = 1000000d;
 
   final ListeningScheduledExecutorService executor;
   final long tickNanoSeconds;
@@ -109,8 +115,6 @@ class RealTimeModel extends TimeModel {
     }
   }
 
-  static final int CONSISTENCY_CHECK_LENGTH = 50;
-
   void checkConsistency(List<Long> timestamps) {
     if (timestamps.size() < CONSISTENCY_CHECK_LENGTH) {
       return;
@@ -130,15 +134,14 @@ class RealTimeModel extends TimeModel {
       ss.addValue(n.longValue());
     }
     final StatisticalSummary sum = ss.getSummary();
-    System.out.printf("%1.2f +- %1.2f%n", sum.getMean() / 1000000d,
-      sum.getStandardDeviation() / 1000000d);
 
     // standard deviation may not be greater than 5ms
-    checkState(sum.getStandardDeviation() < 5000000d,
+    checkState(sum.getStandardDeviation() < MAX_STD_NS,
       "Std is above threshold of 5ms: %s.", sum.getStandardDeviation());
     // on average we don't want a deviation to the mean of more than 1 ms per
     // tick.
-    checkState(Math.abs(tickNanoSeconds - sum.getMean()) < 1000000,
+    checkState(
+      Math.abs(tickNanoSeconds - sum.getMean()) < MAX_MEAN_DEVIATION_NS,
       "Mean interval is above threshold of 1ms: %s.", sum.getMean());
   }
 
