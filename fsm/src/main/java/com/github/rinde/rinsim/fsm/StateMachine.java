@@ -17,6 +17,7 @@ package com.github.rinde.rinsim.fsm;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
+import javax.annotation.CheckReturnValue;
 import javax.annotation.Nullable;
 
 import com.github.rinde.rinsim.event.Event;
@@ -38,7 +39,7 @@ import com.google.common.collect.ImmutableTable;
  * in a {@link RuntimeException}. Note that the transition table is immutable.
  * StateMachine instances can only be created using its builder via the
  * {@link #create(State)} method.
- * 
+ *
  * @param <T> The trigger type. Concrete trigger objects that describe the same
  *          event should be <i>equal</i> (according to {@link #equals(Object)} )
  *          and their {@link #hashCode()} implementation should return the same
@@ -47,7 +48,7 @@ import com.google.common.collect.ImmutableTable;
  * @param <C> The context type. This is typically the object that contains the
  *          {@link StateMachine}, a {@link State} represents a state of this
  *          object.
- * @author Rinde van Lon 
+ * @author Rinde van Lon
  */
 public class StateMachine<T, C> {
 
@@ -90,8 +91,8 @@ public class StateMachine<T, C> {
   protected final boolean explicitRecursiveTransitions;
 
   StateMachine(State<T, C> start,
-      ImmutableTable<State<T, C>, T, State<T, C>> table,
-      boolean explRecurTrns) {
+    ImmutableTable<State<T, C>, T, State<T, C>> table,
+    boolean explRecurTrns) {
     eventDispatcher = new EventDispatcher(StateMachineEvent.values());
     startState = start;
     currentState = start;
@@ -131,8 +132,8 @@ public class StateMachine<T, C> {
    */
   protected void changeState(T trigger, C context) {
     checkArgument(transitionTable.contains(currentState, trigger),
-        "The trigger %s is not supported when in state %s.", trigger,
-        currentState);
+      "The trigger %s is not supported when in state %s.", trigger,
+      currentState);
     final State<T, C> newState = transitionTable.get(currentState, trigger);
     if (!newState.equals(currentState) || explicitRecursiveTransitions) {
       currentState.onExit(trigger, context);
@@ -140,7 +141,7 @@ public class StateMachine<T, C> {
       currentState = newState;
       currentState.onEntry(trigger, context);
       eventDispatcher.dispatchEvent(new StateTransitionEvent<>(this,
-          oldState, trigger, newState));
+        oldState, trigger, newState));
     }
   }
 
@@ -202,7 +203,7 @@ public class StateMachine<T, C> {
       }
     }
     throw new IllegalArgumentException("There is no instance of " + type
-        + " in this state machine.");
+      + " in this state machine.");
   }
 
   /**
@@ -217,7 +218,8 @@ public class StateMachine<T, C> {
 
   /**
    * @return The {@link EventAPI} which allows to add and remove
-   *         {@link com.github.rinde.rinsim.event.Listener}s to this {@link StateMachine}.
+   *         {@link com.github.rinde.rinsim.event.Listener}s to this
+   *         {@link StateMachine}.
    */
   public EventAPI getEventAPI() {
     return eventDispatcher.getPublicEventAPI();
@@ -226,7 +228,7 @@ public class StateMachine<T, C> {
   @Override
   public int hashCode() {
     return Objects.hashCode(startState, transitionTable, currentState,
-        explicitRecursiveTransitions);
+      explicitRecursiveTransitions);
   }
 
   @Override
@@ -243,20 +245,20 @@ public class StateMachine<T, C> {
     @SuppressWarnings("unchecked")
     final StateMachine<T, C> fsm = (StateMachine<T, C>) other;
     return Objects.equal(startState, fsm.startState)
-        && Objects.equal(transitionTable, fsm.transitionTable)
-        && Objects.equal(currentState, fsm.currentState)
-        && Objects.equal(explicitRecursiveTransitions,
-            fsm.explicitRecursiveTransitions);
+      && Objects.equal(transitionTable, fsm.transitionTable)
+      && Objects.equal(currentState, fsm.currentState)
+      && Objects.equal(explicitRecursiveTransitions,
+        fsm.explicitRecursiveTransitions);
   }
 
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(this)
-        .add("startState", startState)
-        .add("transitionTable", transitionTable)
-        .add("currentState", currentState)
-        .add("explicitRecursiveTransitions", explicitRecursiveTransitions)
-        .toString();
+      .add("startState", startState)
+      .add("transitionTable", transitionTable)
+      .add("currentState", currentState)
+      .add("explicitRecursiveTransitions", explicitRecursiveTransitions)
+      .toString();
   }
 
   /**
@@ -269,7 +271,9 @@ public class StateMachine<T, C> {
    * @return A reference to the {@link StateMachineBuilder} which is used for
    *         creating the {@link StateMachine}.
    */
-  public static <T, C> StateMachineBuilder<T, C> create(State<T, C> initialState) {
+  @CheckReturnValue
+  public static <T, C> StateMachineBuilder<T, C> create(
+    State<T, C> initialState) {
     return new StateMachineBuilder<>(initialState);
   }
 
@@ -298,7 +302,7 @@ public class StateMachine<T, C> {
      * @return A reference to this for method chaining.
      */
     public StateMachineBuilder<T, C> addTransition(State<T, C> from, T trigger,
-        State<T, C> to) {
+      State<T, C> to) {
       tableBuilder.put(from, trigger, to);
       return this;
     }
@@ -332,9 +336,10 @@ public class StateMachine<T, C> {
      * {@link com.github.rinde.rinsim.fsm.StateMachine.StateMachineBuilder}.
      * @return The {@link StateMachine}.
      */
+    @CheckReturnValue
     public StateMachine<T, C> build() {
       return new StateMachine<>(start, tableBuilder.build(),
-          explicitRecursiveTransitions);
+        explicitRecursiveTransitions);
     }
   }
 
@@ -367,7 +372,7 @@ public class StateMachine<T, C> {
      * @param next {@link #newState}.
      */
     protected StateTransitionEvent(StateMachine<T, C> issuer, State<T, C> prev,
-        T trig, State<T, C> next) {
+      T trig, State<T, C> next) {
       super(StateMachineEvent.STATE_TRANSITION, issuer);
       previousState = prev;
       trigger = trig;
@@ -385,14 +390,14 @@ public class StateMachine<T, C> {
      */
     public boolean equalTo(State<T, C> prev, T trig, State<T, C> next) {
       return previousState.equals(prev) && trigger.equals(trig)
-          && newState.equals(next);
+        && newState.equals(next);
     }
 
     @Override
     public String toString() {
       return new StringBuilder("[Event ").append(getEventType()).append(" ")
-          .append(previousState).append(" + ").append(trigger).append(" -> ")
-          .append(newState).append("]").toString();
+        .append(previousState).append(" + ").append(trigger).append(" -> ")
+        .append(newState).append("]").toString();
     }
 
     @Override
@@ -414,10 +419,10 @@ public class StateMachine<T, C> {
       @SuppressWarnings("unchecked")
       final StateTransitionEvent<T, C> ev = (StateTransitionEvent<T, C>) other;
       return Objects.equal(previousState, ev.previousState) &&
-          Objects.equal(newState, ev.newState) &&
-          Objects.equal(trigger, ev.trigger) &&
-          Objects.equal(eventType, ev.eventType) &&
-          Objects.equal(getIssuer(), ev.getIssuer());
+        Objects.equal(newState, ev.newState) &&
+        Objects.equal(trigger, ev.trigger) &&
+        Objects.equal(eventType, ev.eventType) &&
+        Objects.equal(getIssuer(), ev.getIssuer());
     }
   }
 }

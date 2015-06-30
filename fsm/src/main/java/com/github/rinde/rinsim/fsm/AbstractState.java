@@ -20,11 +20,11 @@ import javax.annotation.Nullable;
 /**
  * Default empty implementation of state. Subclasses only need to implement the
  * {@link AbstractState#handle(Object, Object)} method.
- * @param <E> The event type, see {@link StateMachine} for more information.
+ * @param <T> The trigger type, see {@link StateMachine} for more information.
  * @param <C> The context type, see {@link StateMachine} for more information.
- * @author Rinde van Lon 
+ * @author Rinde van Lon
  */
-public abstract class AbstractState<E, C> implements State<E, C> {
+public abstract class AbstractState<T, C> implements State<T, C> {
 
   @Override
   public String name() {
@@ -33,12 +33,12 @@ public abstract class AbstractState<E, C> implements State<E, C> {
 
   @Nullable
   @Override
-  public abstract E handle(@Nullable E event, C context);
+  public abstract T handle(@Nullable T trigger, C context);
 
   @Override
-  public void onEntry(E event, C context) {}
+  public void onEntry(T trigger, C context) {}
 
   @Override
-  public void onExit(E event, C context) {}
+  public void onExit(T trigger, C context) {}
 
 }
