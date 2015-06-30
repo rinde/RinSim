@@ -24,6 +24,7 @@ import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
 
 import javax.annotation.CheckReturnValue;
+import javax.annotation.OverridingMethodsMustInvokeSuper;
 import javax.measure.quantity.Duration;
 import javax.measure.unit.SI;
 import javax.measure.unit.Unit;
@@ -36,6 +37,7 @@ import com.github.rinde.rinsim.event.Event;
 import com.github.rinde.rinsim.event.EventAPI;
 import com.github.rinde.rinsim.event.EventDispatcher;
 import com.google.auto.value.AutoValue;
+import com.google.common.annotations.VisibleForTesting;
 
 /**
  * This model is an implementation of a simulation clock. It notifies
@@ -81,13 +83,9 @@ public abstract class TimeModel extends AbstractModel<TickListener>
   }
 
   @Override
-  public final void stop() {
-    doStop();
-  }
+  public abstract void stop();
 
   abstract void doStart();
-
-  abstract void doStop();
 
   @Override
   public abstract void tick();
@@ -101,6 +99,7 @@ public abstract class TimeModel extends AbstractModel<TickListener>
       "This model does not provides instances of " + clazz + ".");
   }
 
+  @OverridingMethodsMustInvokeSuper
   @Override
   public boolean register(TickListener element) {
     checkArgument(tickListeners.add(element),
@@ -108,6 +107,7 @@ public abstract class TimeModel extends AbstractModel<TickListener>
     return true;
   }
 
+  @OverridingMethodsMustInvokeSuper
   @Override
   public boolean unregister(TickListener element) {
     return tickListeners.remove(element);
@@ -154,6 +154,7 @@ public abstract class TimeModel extends AbstractModel<TickListener>
     return timeLapse.getTickLength();
   }
 
+  @VisibleForTesting
   @CheckReturnValue
   Set<TickListener> getTickListeners() {
     return Collections.unmodifiableSet(tickListeners);

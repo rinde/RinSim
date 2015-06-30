@@ -18,7 +18,9 @@ package com.github.rinde.rinsim.core.model.time;
 import static com.google.common.truth.Truth.assertThat;
 
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -28,6 +30,9 @@ import org.junit.runners.Parameterized;
 import com.github.rinde.rinsim.core.model.FakeDependencyProvider;
 import com.github.rinde.rinsim.core.model.time.Clock.ClockEventType;
 import com.github.rinde.rinsim.core.model.time.RealTimeModel.PriorityThreadFactory;
+import com.github.rinde.rinsim.core.model.time.RealTimeModel.SimpleState;
+import com.github.rinde.rinsim.core.model.time.RealTimeModel.TickListenerTimingChecker;
+import com.github.rinde.rinsim.core.model.time.RealTimeModel.Trigger;
 import com.github.rinde.rinsim.core.model.time.TimeModel.TMFactories;
 import com.github.rinde.rinsim.event.ListenerEventHistory;
 import com.github.rinde.rinsim.testutil.TestUtil;
@@ -59,6 +64,8 @@ public abstract class TimeModelTest<T extends TimeModel> {
     TestUtil.testEnum(ClockEventType.class);
     TestUtil.testEnum(PriorityThreadFactory.class);
     TestUtil.testEnum(TMFactories.class);
+    TestUtil.testEnum(Trigger.class);
+    TestUtil.testEnum(SimpleState.class);
     model = (T) builder.build(FakeDependencyProvider.empty());
   }
 
@@ -72,6 +79,20 @@ public abstract class TimeModelTest<T extends TimeModel> {
     assertThat(getModel().isTicking()).isFalse();
   }
 
+  // unwraps the listeners
+  Set<TickListener> getTickListeners() {
+    final Set<TickListener> listeners = getModel().getTickListeners();
+    final Set<TickListener> newSet = new LinkedHashSet<>();
+    for (final TickListener tl : listeners) {
+      if (tl instanceof TickListenerTimingChecker) {
+        newSet.add(((TickListenerTimingChecker) tl).delegate);
+      } else {
+        newSet.add(tl);
+      }
+    }
+    return newSet;
+  }
+
   /**
    * Basic register/unregister tests.
    */
@@ -83,7 +104,7 @@ public abstract class TimeModelTest<T extends TimeModel> {
 
     assertThat(getModel().register(a)).isTrue();
     assertThat(getModel().register(ltl)).isTrue();
-    assertThat(getModel().getTickListeners()).containsExactly(a, ltl).inOrder();
+    assertThat(getTickListeners()).containsExactly(a, ltl).inOrder();
 
     getModel().start();
 
@@ -91,20 +112,20 @@ public abstract class TimeModelTest<T extends TimeModel> {
       getModel().getTickLength());
     assertThat(a.getTickCount()).isEqualTo(1L);
     getModel().unregister(a);
-    assertThat(getModel().getTickListeners()).containsExactly(ltl);
+    assertThat(getTickListeners()).containsExactly(ltl);
 
     assertThat(a.getTickCount()).isEqualTo(1L);
 
     // re-register
     assertThat(getModel().register(a)).isTrue();
-    assertThat(getModel().getTickListeners()).containsExactly(ltl, a).inOrder();
+    assertThat(getTickListeners()).containsExactly(ltl, a).inOrder();
   }
 
   /**
    * Tests that adding a listener twice yields no result.
    */
   @Test
-  public void testTwice() {
+  public void testAddListenerTwice() {
     final TickListener a = checker();
     getModel().register(a);
     boolean fail = false;
@@ -115,7 +136,7 @@ public abstract class TimeModelTest<T extends TimeModel> {
     }
     assertThat(fail).isTrue();
 
-    assertThat(getModel().getTickListeners()).containsExactly(a);
+    assertThat(getTickListeners()).containsExactly(a);
   }
 
   /**

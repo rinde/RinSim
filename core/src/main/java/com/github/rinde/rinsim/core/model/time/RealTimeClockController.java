@@ -19,26 +19,12 @@ package com.github.rinde.rinsim.core.model.time;
  * @author Rinde van Lon
  *
  */
-class SimulatedTimeModel extends TimeModel {
+public interface RealTimeClockController extends ClockController {
 
-  SimulatedTimeModel(Builder builder) {
-    super(builder);
-  }
+  void switchToRealTime();
 
-  @Override
-  void doStart() {
-    while (isTicking()) {
-      tickImpl();
-    }
-  }
+  void switchToSimulatedTime();
 
-  @Override
-  public void stop() {
-    isTicking = false;
-  }
+  // isSimulatedTime() or getTimeMode() ?
 
-  @Override
-  public void tick() {
-    tickImpl();
-  }
 }

@@ -70,6 +70,10 @@
 			<artifactId>rinsim-event</artifactId>
 		</dependency>
 		<dependency>
+            <groupId>com.github.rinde</groupId>
+            <artifactId>rinsim-fsm</artifactId>
+        </dependency>
+		<dependency>
 			<groupId>com.github.rinde</groupId>
 			<artifactId>rinsim-cli</artifactId>
 		</dependency>
