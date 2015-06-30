@@ -37,7 +37,6 @@ import org.apache.commons.math3.stat.descriptive.StatisticalSummary;
 import org.apache.commons.math3.stat.descriptive.SummaryStatistics;
 
 import com.github.rinde.rinsim.fsm.AbstractState;
-import com.github.rinde.rinsim.fsm.State;
 import com.github.rinde.rinsim.fsm.StateMachine;
 import com.google.common.collect.Iterators;
 import com.google.common.collect.PeekingIterator;
@@ -60,7 +59,7 @@ class RealTimeModel extends TimeModel implements RealTimeClockController {
     decoratorMap = new HashMap<>();
 
     final RealTime rt = new RealTime(timeLapse);
-    final FastForward ff = new FastForward();
+    final SimulatedTime ff = new SimulatedTime();
     stateMachine = StateMachine.create(INIT_RT)
       .addTransition(INIT_RT, Trigger.FAST_FORWARD, INIT_FF)
       .addTransition(INIT_RT, Trigger.START, rt)
@@ -86,31 +85,6 @@ class RealTimeModel extends TimeModel implements RealTimeClockController {
   }
 
   @Override
-  public void switchToRealTime() {
-    stateMachine.handle(Trigger.REAL_TIME, this);
-  }
-
-  @Override
-  public void switchToSimulatedTime() {
-    stateMachine.handle(Trigger.FAST_FORWARD, this);
-  }
-
-  @Override
-  public boolean isTicking() {
-    return !stateMachine.stateIsOneOf(SimpleState.values());
-  }
-
-  @Override
-  public boolean register(TickListener tickListener) {
-    checkArgument(!decoratorMap.containsKey(tickListener),
-      "A TickListener can not be registered more than once: %s.", tickListener);
-    final TickListenerTimingChecker decorated = new TickListenerTimingChecker(
-      tickListener);
-    decoratorMap.put(tickListener, decorated);
-    return super.register(decorated);
-  }
-
-  @Override
   public void stop() {
     checkState(stateMachine.isSupported(Trigger.STOP),
       "Can not stop in current state: %s",
@@ -127,12 +101,40 @@ class RealTimeModel extends TimeModel implements RealTimeClockController {
   }
 
   @Override
+  public boolean isTicking() {
+    return !stateMachine.stateIsOneOf(SimpleState.values());
+  }
+
+  @Override
+  public void switchToRealTime() {
+    stateMachine.handle(Trigger.REAL_TIME, this);
+  }
+
+  @Override
+  public void switchToSimulatedTime() {
+    stateMachine.handle(Trigger.FAST_FORWARD, this);
+  }
+
+  @Override
+  public boolean register(TickListener tickListener) {
+    checkArgument(!decoratorMap.containsKey(tickListener),
+      "A TickListener can not be registered more than once: %s.", tickListener);
+    final TickListenerTimingChecker decorated = new TickListenerTimingChecker(
+      tickListener);
+    decoratorMap.put(tickListener, decorated);
+    return super.register(decorated);
+  }
+
+  @Override
   public boolean unregister(TickListener tickListener) {
     return super.unregister(decoratorMap.remove(tickListener));
   }
 
-  static class FastForward extends AbstractState<Trigger, RealTimeModel> {
+  enum Trigger {
+    START, STOP, FAST_FORWARD, DO_FAST_FORWARD, REAL_TIME, DO_REAL_TIME;
+  }
 
+  static class SimulatedTime extends AbstractState<Trigger, RealTimeModel> {
     boolean isTicking;
     @Nullable
     Trigger nextTrigger;
@@ -161,22 +163,6 @@ class RealTimeModel extends TimeModel implements RealTimeClockController {
     @Override
     public void onExit(Trigger event, RealTimeModel context) {
       isTicking = false;
-    }
-
-    @Override
-    public String toString() {
-      return "FastForward";
-    }
-  }
-
-  enum PriorityThreadFactory implements ThreadFactory {
-    INSTANCE {
-      @Override
-      public Thread newThread(@Nullable Runnable r) {
-        final Thread t = new Thread(r);
-        t.setPriority(Thread.MAX_PRIORITY);
-        return t;
-      }
     }
   }
 
@@ -309,15 +295,12 @@ class RealTimeModel extends TimeModel implements RealTimeClockController {
         Math.abs(tickNanoSeconds - sum.getMean()) < MAX_MEAN_DEVIATION_NS,
         "Mean interval is above threshold of 1ms: %s.", sum.getMean());
     }
-
-    @Override
-    public String toString() {
-      return "RealTime";
-    }
   }
 
+  // for some reason the complete package name is required for the Java compiler
   @SuppressWarnings("null")
-  enum SimpleState implements State<Trigger, RealTimeModel> {
+  enum SimpleState
+    implements com.github.rinde.rinsim.fsm.State<Trigger, RealTimeModel> {
     INIT_RT, INIT_FF, STOPPED;
 
     @Override
@@ -364,7 +347,15 @@ class RealTimeModel extends TimeModel implements RealTimeClockController {
 
   }
 
-  enum Trigger {
-    START, STOP, FAST_FORWARD, DO_FAST_FORWARD, REAL_TIME, DO_REAL_TIME;
+  enum PriorityThreadFactory implements ThreadFactory {
+    INSTANCE {
+      @Override
+      public Thread newThread(@Nullable Runnable r) {
+        final Thread t = new Thread(r);
+        t.setPriority(Thread.MAX_PRIORITY);
+        return t;
+      }
+    }
   }
+
 }
