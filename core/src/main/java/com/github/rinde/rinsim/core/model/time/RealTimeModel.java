@@ -362,6 +362,7 @@ class RealTimeModel extends TimeModel implements RealTimeClockController {
   }
 
   static class TickListenerTimingChecker implements TickListener {
+    static final double MS_TO_NS = 1000000d;
     final TickListener delegate;
     long tickDuration;
 
@@ -376,7 +377,7 @@ class RealTimeModel extends TimeModel implements RealTimeClockController {
       final long afterTickDuration = System.nanoTime() - start;
 
       checkState(
-        tickDuration + afterTickDuration < timeLapse.getTickLength() * 1000000,
+        tickDuration + afterTickDuration < timeLapse.getTickLength() * MS_TO_NS,
         "%s took too much time, max combined computation time is tick length "
           + "(%sms). Tick duration: %sns, after tick duration: %sns.",
         delegate, timeLapse.getTickLength(), tickDuration, afterTickDuration);
