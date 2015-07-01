@@ -55,19 +55,19 @@ public final class TestUtil {
    */
   public static <T extends Enum<T>> void testEnum(Class<T> en) {
     checkArgument(en.isEnum(),
-        "The specified class must be an enum, found %s.", en);
+      "The specified class must be an enum, found %s.", en);
 
     final List<T> enums = asList(en.getEnumConstants());
     checkArgument(!enums.isEmpty(),
-        "At least one enum constant must be defined in %s.", en);
+      "At least one enum constant must be defined in %s.", en);
     try {
       final Method m = en.getDeclaredMethod("valueOf", String.class);
       m.setAccessible(true);
-      m.invoke(null, enums.get(0).toString());
+      m.invoke(null, enums.get(0).name());
 
     } catch (NoSuchMethodException | SecurityException | IllegalAccessException
-        | IllegalArgumentException | InvocationTargetException e) {
-      fail("unexpected error " + e.getMessage());
+      | IllegalArgumentException | InvocationTargetException e) {
+      fail("unexpected error " + e.getMessage() + " (" + e.getClass() + ")");
     }
   }
 }
