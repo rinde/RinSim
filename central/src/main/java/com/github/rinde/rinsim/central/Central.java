@@ -92,7 +92,7 @@ public final class Central {
       .build();
   }
 
-  private enum VehicleCreator implements TimedEventHandler<AddVehicleEvent> {
+  enum VehicleCreator implements TimedEventHandler<AddVehicleEvent> {
     INSTANCE {
       @Override
       public void handleTimedEvent(AddVehicleEvent event, SimulatorAPI sim) {
@@ -108,7 +108,7 @@ public final class Central {
 
   @AutoValue
   abstract static class Builder extends
-    AbstractModelBuilder<CentralModel, Parcel> implements Serializable {
+    AbstractModelBuilder<CentralModel, Parcel>implements Serializable {
 
     private static final long serialVersionUID = 1168431215289110828L;
 
@@ -192,7 +192,8 @@ public final class Central {
         final Iterator<Queue<Parcel>> routes = solverAdapter
           .solve(
             SolveArgs.create().useAllParcels()
-              .useCurrentRoutes(currentRouteBuilder.build())).iterator();
+              .useCurrentRoutes(currentRouteBuilder.build()))
+          .iterator();
 
         for (final RouteFollowingVehicle vehicle : vehicles) {
           vehicle.setRoute(routes.next());

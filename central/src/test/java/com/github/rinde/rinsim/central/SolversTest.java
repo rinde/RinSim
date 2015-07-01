@@ -51,13 +51,13 @@ import com.github.rinde.rinsim.core.model.Model;
 import com.github.rinde.rinsim.core.model.ModelProvider;
 import com.github.rinde.rinsim.core.model.pdp.DefaultPDPModel;
 import com.github.rinde.rinsim.core.model.pdp.PDPModel;
-import com.github.rinde.rinsim.core.model.pdp.VehicleDTO;
 import com.github.rinde.rinsim.core.model.pdp.PDPModel.ParcelState;
 import com.github.rinde.rinsim.core.model.pdp.PDPModel.VehicleState;
 import com.github.rinde.rinsim.core.model.pdp.Parcel;
 import com.github.rinde.rinsim.core.model.pdp.ParcelDTO;
 import com.github.rinde.rinsim.core.model.pdp.TimeWindowPolicy.TimeWindowPolicies;
 import com.github.rinde.rinsim.core.model.pdp.Vehicle;
+import com.github.rinde.rinsim.core.model.pdp.VehicleDTO;
 import com.github.rinde.rinsim.core.model.road.RoadModel;
 import com.github.rinde.rinsim.core.model.road.RoadModelBuilders;
 import com.github.rinde.rinsim.core.model.time.Clock;
@@ -104,8 +104,7 @@ public class SolversTest {
 
     rm = PDPRoadModel.builder(
       RoadModelBuilders.plane()
-        .withMaxSpeed(300d)
-      )
+        .withMaxSpeed(300d))
       .withAllowVehicleDiversion(false)
       .build(dp);
 
@@ -149,14 +148,15 @@ public class SolversTest {
     assertEquals(v1.dto, sc.vehicleMap.keySet().iterator().next().getDto());
     assertTrue(sc.vehicleMap.containsValue(v1));
 
-    assertEquals(ImmutableSet.of(p1), sc.state.availableParcels);
-    checkVehicles(asList(v1), sc.state.vehicles);
+    assertEquals(ImmutableSet.of(p1), sc.state.getAvailableParcels());
+    checkVehicles(asList(v1), sc.state.getVehicles());
 
     rm.moveTo(v1, p1, create(NonSI.HOUR, 0L, 1L));
 
     checkVehicles(
       asList(v1),
-      handle.convert(SolveArgs.create().useAllParcels().noCurrentRoutes()).state.vehicles);
+      handle.convert(SolveArgs.create().useAllParcels().noCurrentRoutes()).state
+        .getVehicles());
 
     rm.moveTo(v1, p1, create(NonSI.HOUR, 0, 40));
     assertTrue(rm.equalPosition(v1, p1));
@@ -166,11 +166,11 @@ public class SolversTest {
     final StateContext sc2 = handle.convert(SolveArgs.create().useAllParcels()
       .noCurrentRoutes());
 
-    assertTrue(sc2.state.availableParcels.contains(p1));
-    assertFalse(sc2.state.vehicles.get(0).contents.contains(p1));
-    assertSame(p1, sc2.state.vehicles.get(0).destination);
-    assertEquals(29, sc2.state.vehicles.get(0).remainingServiceTime);
-    assertFalse(sc2.state.vehicles.get(0).route.isPresent());
+    assertTrue(sc2.state.getAvailableParcels().contains(p1));
+    assertFalse(sc2.state.getVehicles().get(0).getContents().contains(p1));
+    assertSame(p1, sc2.state.getVehicles().get(0).getDestination().get());
+    assertEquals(29, sc2.state.getVehicles().get(0).getRemainingServiceTime());
+    assertFalse(sc2.state.getVehicles().get(0).getRoute().isPresent());
 
     // checkVehicles(asList(v1), sc2.state.vehicles);
   }
@@ -202,8 +202,8 @@ public class SolversTest {
 
     final StateContext sc = handle.convert(SolveArgs.create()
       .noCurrentRoutes());
-    assertEquals(1, sc.state.availableParcels.size());
-    assertEquals(0, sc.state.vehicles.get(0).contents.size());
+    assertEquals(1, sc.state.getAvailableParcels().size());
+    assertEquals(0, sc.state.getVehicles().get(0).getContents().size());
     final Solver solver = SolverValidator.wrap(new MultiVehicleSolverAdapter(
       new RandomMVArraysSolver(new MersenneTwister(123)), NonSI.MINUTE));
     Solvers.solverBuilder(solver)
@@ -221,8 +221,8 @@ public class SolversTest {
 
     final StateContext sc2 = handle.convert(SolveArgs.create()
       .noCurrentRoutes());
-    assertEquals(1, sc2.state.availableParcels.size());
-    assertEquals(0, sc2.state.vehicles.get(0).contents.size());
+    assertEquals(1, sc2.state.getAvailableParcels().size());
+    assertEquals(0, sc2.state.getVehicles().get(0).getContents().size());
 
     // finish pickup operation
     v1.tick(TimeLapseFactory.create(0, 1000000000));
@@ -231,8 +231,8 @@ public class SolversTest {
     final StateContext sc3 = handle.convert(SolveArgs.create()
       .useParcels(ImmutableSet.<Parcel> of())
       .noCurrentRoutes());
-    assertTrue(sc3.state.availableParcels.isEmpty());
-    assertEquals(1, sc3.state.vehicles.get(0).contents.size());
+    assertTrue(sc3.state.getAvailableParcels().isEmpty());
+    assertEquals(1, sc3.state.getVehicles().get(0).getContents().size());
 
     // move to delivery location
     rm.moveTo(v1, destination, TimeLapseFactory.create(0, 1000));
@@ -242,20 +242,21 @@ public class SolversTest {
     final StateContext sc4 = handle.convert(SolveArgs.create()
       .useParcels(ImmutableSet.<Parcel> of())
       .noCurrentRoutes());
-    assertEquals(1, sc4.state.vehicles.get(0).contents.size());
-    assertTrue(sc4.state.availableParcels.isEmpty());
+    assertEquals(1, sc4.state.getVehicles().get(0).getContents().size());
+    assertTrue(sc4.state.getAvailableParcels().isEmpty());
 
     // service delivery
     rm.moveTo(v1, destination, TimeLapseFactory.create(0, 1000000000));
-    assertEquals(destination.getDto().getDeliveryLocation(), rm.getPosition(v1));
+    assertEquals(destination.getDto().getDeliveryLocation(),
+      rm.getPosition(v1));
     pm.deliver(v1, p1, TimeLapseFactory.create(0, 1));
     assertNull(rm.getDestinationToParcel(v1));
     assertEquals(VehicleState.DELIVERING, pm.getVehicleState(v1));
     final StateContext sc5 = handle.convert(SolveArgs.create()
       .useParcels(ImmutableSet.<Parcel> of())
       .noCurrentRoutes());
-    assertEquals(1, sc5.state.vehicles.get(0).contents.size());
-    assertTrue(sc5.state.availableParcels.isEmpty());
+    assertEquals(1, sc5.state.getVehicles().get(0).getContents().size());
+    assertTrue(sc5.state.getAvailableParcels().isEmpty());
 
     // finish delivery operation
     v1.tick(TimeLapseFactory.create(0, 1000000000));
@@ -264,8 +265,8 @@ public class SolversTest {
     final StateContext sc6 = handle.convert(SolveArgs.create()
       .useParcels(ImmutableSet.<Parcel> of())
       .noCurrentRoutes());
-    assertTrue(sc6.state.vehicles.get(0).contents.isEmpty());
-    assertTrue(sc6.state.availableParcels.isEmpty());
+    assertTrue(sc6.state.getVehicles().get(0).getContents().isEmpty());
+    assertTrue(sc6.state.getAvailableParcels().isEmpty());
   }
 
   /**
@@ -318,14 +319,14 @@ public class SolversTest {
     final ImmutableList<VehicleStateObject> vehicles = ImmutableList
       .<VehicleStateObject> builder()
       .add(
-        new VehicleStateObject(
+        VehicleStateObject.create(
           vd1,
           new Point(7, 9),
           ImmutableSet.<Parcel> of(a),
           0L,
           null,
           null))
-      .add(new VehicleStateObject(
+      .add(VehicleStateObject.create(
         vd1,
         new Point(3, 2),
         ImmutableSet.<Parcel> of(d),
@@ -334,7 +335,7 @@ public class SolversTest {
         null))
       .build();
 
-    final GlobalStateObject state = new GlobalStateObject(availableParcels,
+    final GlobalStateObject state = GlobalStateObject.create(availableParcels,
       vehicles, 0L, SI.MILLI(SI.SECOND), NonSI.KILOMETERS_PER_HOUR,
       SI.KILOMETER);
 
@@ -397,20 +398,20 @@ public class SolversTest {
       assertEquals(dto.getSpeed(), vs.getDto().getSpeed(), 0);
       assertEquals(dto.getStartPosition(), vs.getDto().getStartPosition());
 
-      assertEquals(rm.getPosition(expected.get(i)), vs.location);
+      assertEquals(rm.getPosition(expected.get(i)), vs.getLocation());
 
       final Parcel dest = rm.getDestinationToParcel(vehicle);
       if (dest == null) {
-        assertNull(vs.destination);
+        assertFalse(vs.getDestination().isPresent());
       } else {
-        assertEquals(dest, vs.destination);
+        assertEquals(dest, vs.getDestination().get());
       }
 
       if (pm.getVehicleState(vehicle) == VehicleState.IDLE) {
-        assertEquals(0, vs.remainingServiceTime);
+        assertEquals(0, vs.getRemainingServiceTime());
       } else {
         assertEquals(pm.getVehicleActionInfo(vehicle).timeNeeded(),
-          vs.remainingServiceTime);
+          vs.getRemainingServiceTime());
       }
     }
   }

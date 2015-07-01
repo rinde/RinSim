@@ -96,8 +96,8 @@ public final class Solvers {
    * @param routes Specifies the route the vehicles are currently following,
    *          must be of same size as the number of vehicles (one route per
    *          vehicle). If this is <code>null</code> the
-   *          {@link VehicleStateObject#route} field must be set instead for
-   *          <b>each</b> vehicle.
+   *          {@link VehicleStateObject#getRoute()} field must be set instead
+   *          for <b>each</b> vehicle.
    * @return The statistics that will be generated when executing this
    *         simulation.
    */
@@ -108,9 +108,9 @@ public final class Solvers {
 
     if (r.isPresent()) {
       checkArgument(
-        state.vehicles.size() == r.get().size(),
+        state.getVehicles().size() == r.get().size(),
         "Exactly one route should be supplied for every vehicle in state. %s vehicle(s) in state, received %s route(s).",
-        state.vehicles.size(), r.get().size());
+        state.getVehicles().size(), r.get().size());
     }
 
     double totalDistance = 0;
@@ -119,7 +119,7 @@ public final class Solvers {
     long pickupTardiness = 0;
     long deliveryTardiness = 0;
     long overTime = 0;
-    final long startTime = state.time;
+    final long startTime = state.getTime();
     long maxTime = 0;
     int movedVehicles = 0;
     final Set<Parcel> parcels = newHashSet();
@@ -127,55 +127,55 @@ public final class Solvers {
     final ImmutableList.Builder<ImmutableList<Long>> arrivalTimesBuilder = ImmutableList
       .builder();
 
-    for (int i = 0; i < state.vehicles.size(); i++) {
-      final VehicleStateObject vso = state.vehicles.get(i);
-      checkArgument(r.isPresent() || vso.route.isPresent());
+    for (int i = 0; i < state.getVehicles().size(); i++) {
+      final VehicleStateObject vso = state.getVehicles().get(i);
+      checkArgument(r.isPresent() || vso.getRoute().isPresent());
 
       final ImmutableList.Builder<Long> truckArrivalTimesBuilder = ImmutableList
         .builder();
-      truckArrivalTimesBuilder.add(state.time);
+      truckArrivalTimesBuilder.add(state.getTime());
 
       ImmutableList<Parcel> route;
       if (r.isPresent()) {
         route = r.get().get(i);
       } else {
-        route = vso.route.get();
+        route = vso.getRoute().get();
       }
       parcels.addAll(route);
 
-      long time = state.time;
-      Point vehicleLocation = vso.location;
+      long time = state.getTime();
+      Point vehicleLocation = vso.getLocation();
       final Measure<Double, Velocity> speed = Measure.valueOf(
-        vso.getDto().getSpeed(), state.speedUnit);
+        vso.getDto().getSpeed(), state.getSpeedUnit());
       final Set<Parcel> seen = newHashSet();
       for (int j = 0; j < route.size(); j++) {
         final Parcel cur = route.get(j);
-        final boolean inCargo = vso.contents.contains(cur)
+        final boolean inCargo = vso.getContents().contains(cur)
           || seen.contains(cur);
         seen.add(cur);
-        if (vso.destination != null && j == 0) {
+        if (vso.getDestination().isPresent() && j == 0) {
           checkArgument(
-            vso.destination == cur,
+            vso.getDestination().asSet().contains(cur),
             "If a vehicle has a destination, the first position in the route must equal this. Expected %s, is %s.",
-            vso.destination, cur);
+            vso.getDestination(), cur);
         }
 
         boolean firstAndServicing = false;
-        if (j == 0 && vso.remainingServiceTime > 0) {
+        if (j == 0 && vso.getRemainingServiceTime() > 0) {
           // we are already at the service location
           firstAndServicing = true;
           truckArrivalTimesBuilder.add(time);
-          time += vso.remainingServiceTime;
+          time += vso.getRemainingServiceTime();
         } else {
           // vehicle is not there yet, go there first, then service
           final Point nextLoc = inCargo ? cur.getDeliveryLocation()
             : cur.getPickupLocation();
           final Measure<Double, Length> distance = Measure.valueOf(
-            Point.distance(vehicleLocation, nextLoc), state.distUnit);
+            Point.distance(vehicleLocation, nextLoc), state.getDistUnit());
           totalDistance += distance.getValue();
           vehicleLocation = nextLoc;
           final long tt = DoubleMath.roundToLong(
-            RoadModels.computeTravelTime(speed, distance, state.timeUnit),
+            RoadModels.computeTravelTime(speed, distance, state.getTimeUnit()),
             RoundingMode.CEILING);
           time += tt;
         }
@@ -216,10 +216,10 @@ public final class Solvers {
       // go to depot
       final Measure<Double, Length> distance = Measure.valueOf(
         Point.distance(vehicleLocation, vso.getDto().getStartPosition()),
-        state.distUnit);
+        state.getDistUnit());
       totalDistance += distance.getValue();
       final long tt = DoubleMath.roundToLong(
-        RoadModels.computeTravelTime(speed, distance, state.timeUnit),
+        RoadModels.computeTravelTime(speed, distance, state.getTimeUnit()),
         RoundingMode.CEILING);
       time += tt;
       // check overtime
@@ -237,13 +237,14 @@ public final class Solvers {
       }
     }
     final int totalParcels = parcels.size();
-    final int totalVehicles = state.vehicles.size();
+    final int totalVehicles = state.getVehicles().size();
     final long simulationTime = maxTime - startTime;
 
     return new ExtendedStats(totalDistance, totalPickups, totalDeliveries,
       totalParcels, totalParcels, pickupTardiness, deliveryTardiness, 0,
       simulationTime, true, totalVehicles, overTime, totalVehicles,
-      movedVehicles, state.timeUnit, state.distUnit, state.speedUnit,
+      movedVehicles, state.getTimeUnit(), state.getDistUnit(),
+      state.getSpeedUnit(),
       arrivalTimesBuilder.build());
   }
 
@@ -307,7 +308,7 @@ public final class Solvers {
     final ImmutableMap<VehicleStateObject, Vehicle> vehicleMap = vbuilder
       .build();
 
-    return new StateContext(new GlobalStateObject(availableParcelsKeys,
+    return new StateContext(GlobalStateObject.create(availableParcelsKeys,
       vehicleMap.keySet().asList(), time.getValue().longValue(),
       time.getUnit(), rm.getSpeedUnit(), rm.getDistanceUnit()), vehicleMap);
   }
@@ -317,7 +318,8 @@ public final class Solvers {
     Vehicle vehicle, ImmutableSet<Parcel> contents,
     @Nullable ImmutableList<Parcel> route,
     ImmutableSet.Builder<Parcel> availableDestBuilder) {
-    final boolean isIdle = pm.getVehicleState(vehicle) == PDPModel.VehicleState.IDLE;
+    final boolean isIdle = pm
+      .getVehicleState(vehicle) == PDPModel.VehicleState.IDLE;
 
     long remainingServiceTime = 0;
     @Nullable
@@ -336,9 +338,10 @@ public final class Solvers {
       availableDestBuilder.add(destination);
     }
 
-    return new VehicleStateObject(vehicle.getDTO(), rm.getPosition(vehicle),
+    return VehicleStateObject.create(vehicle.getDTO(), rm.getPosition(vehicle),
       contents, remainingServiceTime, destination == null ? null
-        : destination, route);
+        : destination,
+      route);
   }
 
   /**

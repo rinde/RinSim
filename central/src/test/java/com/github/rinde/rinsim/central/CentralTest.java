@@ -19,7 +19,6 @@ import static com.google.common.collect.Lists.newArrayList;
 import static java.util.Arrays.asList;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 
@@ -31,6 +30,7 @@ import org.apache.commons.math3.random.MersenneTwister;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.github.rinde.rinsim.central.Central.VehicleCreator;
 import com.github.rinde.rinsim.central.Solvers.SimulationConverter;
 import com.github.rinde.rinsim.central.Solvers.SolveArgs;
 import com.github.rinde.rinsim.central.Solvers.StateContext;
@@ -55,6 +55,7 @@ import com.github.rinde.rinsim.pdptw.common.RouteFollowingVehicle;
 import com.github.rinde.rinsim.scenario.gendreau06.Gendreau06ObjectiveFunction;
 import com.github.rinde.rinsim.scenario.gendreau06.Gendreau06Parser;
 import com.github.rinde.rinsim.scenario.gendreau06.Gendreau06Scenario;
+import com.github.rinde.rinsim.testutil.TestUtil;
 import com.github.rinde.rinsim.util.StochasticSupplier;
 import com.github.rinde.rinsim.util.TimeWindow;
 
@@ -81,14 +82,11 @@ public class CentralTest {
       .addModel(
         PDPRoadModel.builder(
           RoadModelBuilders.plane()
-            .withMaxSpeed(300d)
-          )
-          .withAllowVehicleDiversion(false)
-      )
+            .withMaxSpeed(300d))
+          .withAllowVehicleDiversion(false))
       .addModel(
         DefaultPDPModel.builder()
-          .withTimeWindowPolicy(TimeWindowPolicies.TARDY_ALLOWED)
-      )
+          .withTimeWindowPolicy(TimeWindowPolicies.TARDY_ALLOWED))
       .build();
 
     rm = sim.getModelProvider().getModel(PDPRoadModel.class);
@@ -100,6 +98,10 @@ public class CentralTest {
     p1 = createParcel(new Point(3, 0), new Point(0, 3));
     p2 = createParcel(new Point(6, 9), new Point(2, 9));
     p3 = createParcel(new Point(2, 8), new Point(8, 2));
+
+    TestUtil.testPrivateConstructor(Central.class);
+    TestUtil.testPrivateConstructor(Solvers.class);
+    TestUtil.testEnum(VehicleCreator.class);
   }
 
   /**
@@ -115,7 +117,8 @@ public class CentralTest {
       public Solver get(long seed) {
         return SolverValidator.wrap(new MultiVehicleSolverAdapter(
           ArraysSolverValidator.wrap(new RandomMVArraysSolver(
-            new MersenneTwister(seed))), SI.MILLI(SI.SECOND)));
+            new MersenneTwister(seed))),
+          SI.MILLI(SI.SECOND)));
       }
     };
     final Experiment.Builder builder = Experiment
@@ -140,10 +143,10 @@ public class CentralTest {
 
     StateContext res = s.convert(SolveArgs.create().useAllParcels()
       .noCurrentRoutes());
-    assertEquals(2, res.state.vehicles.size());
-    assertTrue(res.state.vehicles.get(0).contents.isEmpty());
-    assertNull(res.state.vehicles.get(0).destination);
-    assertEquals(3, res.state.availableParcels.size());
+    assertEquals(2, res.state.getVehicles().size());
+    assertTrue(res.state.getVehicles().get(0).getContents().isEmpty());
+    assertFalse(res.state.getVehicles().get(0).getDestination().isPresent());
+    assertEquals(3, res.state.getAvailableParcels().size());
     assertEquals(v1.getWaitState(), v1.getState());
 
     // start moving: goto
@@ -155,10 +158,10 @@ public class CentralTest {
     while (v1.getState() == v1.getGotoState()) {
       assertFalse(new Point(0, 1).equals(rm.getPosition(v1)));
       res = s.convert(SolveArgs.create().useAllParcels().noCurrentRoutes());
-      assertEquals(2, res.state.vehicles.size());
-      assertTrue(res.state.vehicles.get(0).contents.isEmpty());
-      assertEquals(p1, res.state.vehicles.get(0).destination);
-      assertEquals(3, res.state.availableParcels.size());
+      assertEquals(2, res.state.getVehicles().size());
+      assertTrue(res.state.getVehicles().get(0).getContents().isEmpty());
+      assertEquals(p1, res.state.getVehicles().get(0).getDestination().get());
+      assertEquals(3, res.state.getAvailableParcels().size());
       assertEquals(v1.getGotoState(), v1.getState());
       sim.tick();
     }
@@ -166,16 +169,16 @@ public class CentralTest {
     assertEquals(new Point(3, 0), rm.getPosition(v1));
     assertEquals(v1.getWaitForServiceState(), v1.getState());
     res = s.convert(SolveArgs.create().useAllParcels().noCurrentRoutes());
-    assertEquals(2, res.state.vehicles.size());
-    assertTrue(res.state.vehicles.get(0).contents.isEmpty());
-    assertEquals(p1, res.state.vehicles.get(0).destination);
-    assertEquals(3, res.state.availableParcels.size());
+    assertEquals(2, res.state.getVehicles().size());
+    assertTrue(res.state.getVehicles().get(0).getContents().isEmpty());
+    assertEquals(p1, res.state.getVehicles().get(0).getDestination().get());
+    assertEquals(3, res.state.getAvailableParcels().size());
 
     // start servicing: service
     sim.tick();
     assertEquals(v1.getServiceState(), v1.getState());
     res = s.convert(SolveArgs.create().useAllParcels().noCurrentRoutes());
-    assertSame(p1, res.state.vehicles.get(0).destination);
+    assertSame(p1, res.state.getVehicles().get(0).getDestination().get());
     assertEquals(v1.getServiceState(), v1.getState());
   }
 

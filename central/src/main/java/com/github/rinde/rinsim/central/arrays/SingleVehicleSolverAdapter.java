@@ -53,32 +53,32 @@ public class SingleVehicleSolverAdapter implements Solver {
   @Override
   public ImmutableList<ImmutableList<Parcel>> solve(GlobalStateObject state) {
     checkArgument(
-      state.vehicles.size() == 1,
+      state.getVehicles().size() == 1,
       "This solver can only deal with the single vehicle problem, found %s vehicles.",
-      state.vehicles.size());
+      state.getVehicles().size());
 
-    final VehicleStateObject v = state.vehicles.iterator().next();
+    final VehicleStateObject v = state.getVehicles().iterator().next();
     checkArgument(
-      v.remainingServiceTime == 0,
+      v.getRemainingServiceTime() == 0,
       "This solver can not deal with remaining service time, it should be 0, it was %s.",
-      v.remainingServiceTime);
-    final Collection<Parcel> inCargo = v.contents;
+      v.getRemainingServiceTime());
+    final Collection<Parcel> inCargo = v.getContents();
 
     // there are always two locations: the current vehicle location and
     // the depot
-    final int numLocations = 2 + (state.availableParcels.size() * 2)
+    final int numLocations = 2 + (state.getAvailableParcels().size() * 2)
       + inCargo.size();
 
     if (numLocations == 2) {
       // there are no orders
       final ImmutableList<Parcel> empty = ImmutableList.of();
       return ImmutableList.of(empty);
-    } else if (state.availableParcels.size() + inCargo.size() == 1) {
+    } else if (state.getAvailableParcels().size() + inCargo.size() == 1) {
       // if there is only one order, the solution is trivial
-      if (!state.availableParcels.isEmpty()) {
+      if (!state.getAvailableParcels().isEmpty()) {
         // parcels on the map require two visits (one for pickup, one
         // for delivery)
-        final Parcel dto = state.availableParcels.iterator().next();
+        final Parcel dto = state.getAvailableParcels().iterator().next();
         return ImmutableList.of(ImmutableList.of(dto, dto));
       } // else
       return ImmutableList.of(ImmutableList.copyOf(inCargo));

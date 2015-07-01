@@ -159,7 +159,7 @@ public class SolverSimTest {
       for (int j = 0; j < sols.length; j++) {
         final SolutionObject sol = sols[j];
         final long[] arraysArrivalTimes = incrArr(sol.arrivalTimes,
-          solverInput.time);
+          solverInput.getTime());
         final long[] arrivalTimes = Longs.toArray(stats.arrivalTimes.get(j));
         assertArrayEquals(arraysArrivalTimes, arrivalTimes);
       }
@@ -179,7 +179,7 @@ public class SolverSimTest {
   static double decomposedCost(GlobalStateObject gso,
     ImmutableList<ImmutableList<Parcel>> routes, ObjectiveFunction objFunc) {
     double sum = 0d;
-    for (int i = 0; i < gso.vehicles.size(); i++) {
+    for (int i = 0; i < gso.getVehicles().size(); i++) {
       sum += objFunc.computeCost(Solvers.computeStats(gso.withSingleVehicle(i),
         ImmutableList.of(routes.get(i))));
     }

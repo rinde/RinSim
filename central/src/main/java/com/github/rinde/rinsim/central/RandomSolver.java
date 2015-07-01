@@ -57,37 +57,35 @@ public class RandomSolver implements Solver {
     final LinkedListMultimap<VehicleStateObject, Parcel> map = LinkedListMultimap
       .create();
 
-    final Set<Parcel> available = newLinkedHashSet(state.availableParcels);
+    final Set<Parcel> available = newLinkedHashSet(state.getAvailableParcels());
     final Set<Parcel> destinations = newLinkedHashSet();
-    for (final VehicleStateObject vso : state.vehicles) {
-      if (vso.destination != null) {
-        destinations.add(vso.destination);
-      }
+    for (final VehicleStateObject vso : state.getVehicles()) {
+      destinations.addAll(vso.getDestination().asSet());
     }
     available.removeAll(destinations);
 
     // do random assignment of available parcels
     for (final Parcel p : available) {
-      final int index = randomGenerator.nextInt(state.vehicles.size());
-      map.put(state.vehicles.get(index), p);
-      map.put(state.vehicles.get(index), p);
+      final int index = randomGenerator.nextInt(state.getVehicles().size());
+      map.put(state.getVehicles().get(index), p);
+      map.put(state.getVehicles().get(index), p);
     }
 
     final ImmutableList.Builder<ImmutableList<Parcel>> builder = ImmutableList
       .builder();
     // insert contents, shuffle ordering, insert destination if applicable
-    for (final VehicleStateObject vso : state.vehicles) {
+    for (final VehicleStateObject vso : state.getVehicles()) {
       final List<Parcel> assigned = newArrayList(map.get(vso));
-      final List<Parcel> conts = newArrayList(vso.contents);
-      conts.remove(vso.destination);
+      final List<Parcel> conts = newArrayList(vso.getContents());
+      conts.removeAll(vso.getDestination().asSet());
       assigned.addAll(conts);
-      if (vso.destination != null
-        && state.availableParcels.contains(vso.destination)) {
-        assigned.add(vso.destination);
+      if (vso.getDestination().isPresent()
+        && state.getAvailableParcels().contains(vso.getDestination().get())) {
+        assigned.add(vso.getDestination().get());
       }
       Collections.shuffle(assigned, new RandomAdaptor(randomGenerator));
-      if (vso.destination != null) {
-        assigned.add(0, vso.destination);
+      if (vso.getDestination().isPresent()) {
+        assigned.add(0, vso.getDestination().get());
       }
       builder.add(ImmutableList.copyOf(assigned));
     }

@@ -23,12 +23,10 @@ import javax.measure.quantity.Length;
 import javax.measure.quantity.Velocity;
 import javax.measure.unit.Unit;
 
-import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
-import org.apache.commons.lang3.builder.ToStringStyle;
-
 import com.github.rinde.rinsim.core.model.pdp.Parcel;
 import com.github.rinde.rinsim.core.model.pdp.VehicleDTO;
 import com.github.rinde.rinsim.geom.Point;
+import com.google.auto.value.AutoValue;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
@@ -38,50 +36,49 @@ import com.google.common.collect.ImmutableSet;
  * {@link com.github.rinde.rinsim.core.Simulator}.
  * @author Rinde van Lon
  */
-public class GlobalStateObject {
+@AutoValue
+public abstract class GlobalStateObject {
   // TODO add generic way for storing travel distances based on shortest path
   // in road model
 
-  /**
-   * All known parcels which require both a pickup and a delivery. They are not
-   * in the inventory of a vehicle.
-   */
-  public final ImmutableSet<Parcel> availableParcels;
+  GlobalStateObject() {}
 
   /**
-   * All vehicles.
+   * @return All known parcels which require both a pickup and a delivery. They
+   *         are not in the inventory of a vehicle.
    */
-  public final ImmutableList<VehicleStateObject> vehicles;
+  public abstract ImmutableSet<Parcel> getAvailableParcels();
 
   /**
-   * The current time.
+   * @return All vehicles.
    */
-  public final long time;
+  public abstract ImmutableList<VehicleStateObject> getVehicles();
 
   /**
-   * The unit of time.
+   * @return The current time.
    */
-  public final Unit<Duration> timeUnit;
+  public abstract long getTime();
 
   /**
-   * The unit of (vehicle) speed.
+   * @return The unit of time.
    */
-  public final Unit<Velocity> speedUnit;
+  public abstract Unit<Duration> getTimeUnit();
 
   /**
-   * The unit of distances.
+   * @return The unit of (vehicle) speed.
    */
-  public final Unit<Length> distUnit;
+  public abstract Unit<Velocity> getSpeedUnit();
 
-  GlobalStateObject(ImmutableSet<Parcel> availableParcels,
+  /**
+   * @return The unit of distances.
+   */
+  public abstract Unit<Length> getDistUnit();
+
+  static GlobalStateObject create(ImmutableSet<Parcel> availableParcels,
     ImmutableList<VehicleStateObject> vehicles, long time,
     Unit<Duration> timeUnit, Unit<Velocity> speedUnit, Unit<Length> distUnit) {
-    this.availableParcels = availableParcels;
-    this.vehicles = vehicles;
-    this.time = time;
-    this.timeUnit = timeUnit;
-    this.speedUnit = speedUnit;
-    this.distUnit = distUnit;
+    return new AutoValue_GlobalStateObject(availableParcels, vehicles, time,
+      timeUnit, speedUnit, distUnit);
   }
 
   /**
@@ -92,52 +89,61 @@ public class GlobalStateObject {
    *         are copied from this instance.
    */
   public GlobalStateObject withSingleVehicle(int index) {
-    checkArgument(index >= 0 && index < vehicles.size(),
+    checkArgument(index >= 0 && index < getVehicles().size(),
       "Invalid vehicle index (%s) must be >= 0 and < %s.", index,
-      vehicles.size());
-    return new GlobalStateObject(availableParcels, ImmutableList.of(vehicles
-      .get(index)), time, timeUnit, speedUnit, distUnit);
-  }
-
-  @Override
-  public String toString() {
-    return new ReflectionToStringBuilder(this, ToStringStyle.MULTI_LINE_STYLE)
-      .toString();
+      getVehicles().size());
+    return create(getAvailableParcels(),
+      ImmutableList.of(getVehicles().get(index)),
+      getTime(), getTimeUnit(), getSpeedUnit(), getDistUnit());
   }
 
   /**
    * Immutable state object of a vehicle.
    * @author Rinde van Lon
    */
-  public static class VehicleStateObject {
+  @AutoValue
+  public abstract static class VehicleStateObject {
+
+    // @SuppressWarnings("unchecked")
+    // VehicleStateObject(VehicleDTO dto, Point location,
+    // ImmutableSet<Parcel> contents, long remainingServiceTime,
+    // @Nullable Parcel destination,
+    // @Nullable ImmutableList<? extends Parcel> route) {
+    // this.dto = dto;
+    // // super(dto.startPosition, dto.speed, dto.capacity,
+    // // dto.availabilityTimeWindow);
+    // this.location = location;
+    // this.contents = contents;
+    // this.remainingServiceTime = remainingServiceTime;
+    // this.destination = Optional.fromNullable(destination);
+    // this.route = Optional.fromNullable((ImmutableList<Parcel>) route);
+    // }
 
     /**
-     * Location of the vehicle.
+     * @return The {@link VehicleDTO}.
      */
-    public final Point location;
+    public abstract VehicleDTO getDto();
 
     /**
-     * The contents of the vehicle. This excludes parcels which are currently
-     * being picked up and includes parcels which are currently being delivered.
+     * @return Location of the vehicle.
      */
-    public final ImmutableSet<Parcel> contents;
+    public abstract Point getLocation();
 
     /**
-     * The remaining time the vehicle needs for completion of its current
-     * servicing operation.
+     * @return The contents of the vehicle. This excludes parcels which are
+     *         currently being picked up and includes parcels which are
+     *         currently being delivered.
      */
-    public final long remainingServiceTime;
+    public abstract ImmutableSet<Parcel> getContents();
 
     /**
-     * If present this field contains the route the vehicle is currently
-     * following.
+     * @return The remaining time the vehicle needs for completion of its
+     *         current servicing operation.
      */
-    public final Optional<ImmutableList<Parcel>> route;
-
-    private final VehicleDTO dto;
+    public abstract long getRemainingServiceTime();
 
     /**
-     * This field is not <code>null</code> in two situations:
+     * Destination is present in two situations:
      * <ol>
      * <li>In case all of the following holds:
      * <ul>
@@ -153,39 +159,43 @@ public class GlobalStateObject {
      * <li>In case the vehicle is servicing a parcel. In this case the
      * {@link Parcel} as specified by this field is the one being serviced. In
      * this case servicing <b>must</b> first complete before the vehicle can do
-     * something else. When this {@link Parcel} also occurs in {@link #contents}
-     * this parcel is currently being delivered, otherwise it is being picked
-     * up.</li>
+     * something else. When this {@link Parcel} also occurs in
+     * {@link #getContents()} this parcel is currently being delivered,
+     * otherwise it is being picked up.</li>
      * </ol>
+     * @return The destination.
      */
-    @Nullable
-    public final Parcel destination;
+    public abstract Optional<Parcel> getDestination();
+
+    /**
+     * @return If present the route the vehicle is currently following is
+     *         returned. If no route is being followed {@link Optional#absent()}
+     *         is returned.
+     */
+    public abstract Optional<ImmutableList<Parcel>> getRoute();
 
     @SuppressWarnings("unchecked")
-    VehicleStateObject(VehicleDTO dto, Point location,
+    static VehicleStateObject create(VehicleDTO dto, Point location,
       ImmutableSet<Parcel> contents, long remainingServiceTime,
       @Nullable Parcel destination,
       @Nullable ImmutableList<? extends Parcel> route) {
-      this.dto = dto;
-      // super(dto.startPosition, dto.speed, dto.capacity,
-      // dto.availabilityTimeWindow);
-      this.location = location;
-      this.contents = contents;
-      this.remainingServiceTime = remainingServiceTime;
-      this.destination = destination;
-      this.route = Optional.fromNullable((ImmutableList<Parcel>) route);
-    }
-
-    /**
-     * @return The {@link VehicleDTO}.
-     */
-    public VehicleDTO getDto() {
-      return dto;
+      return new AutoValue_GlobalStateObject_VehicleStateObject(
+        dto,
+        location,
+        contents,
+        remainingServiceTime,
+        Optional.fromNullable(destination),
+        Optional.fromNullable((ImmutableList<Parcel>) route));
     }
 
     @Override
-    public String toString() {
-      return new ReflectionToStringBuilder(this).toString();
+    public int hashCode() {
+      return System.identityHashCode(this);
+    }
+
+    @Override
+    public boolean equals(@Nullable Object other) {
+      return this == other;
     }
   }
 }
