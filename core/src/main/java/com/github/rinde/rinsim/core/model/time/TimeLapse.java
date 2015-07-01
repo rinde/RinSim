@@ -25,7 +25,9 @@ import com.github.rinde.rinsim.core.Simulator;
 /**
  * Represents a consumable interval of time: [start, end). Instances of time
  * lapse are handed out by the {@link Simulator} and can be received by
- * implementing the {@link TickListener} interface.
+ * implementing the {@link TickListener} interface. Since this class implements
+ * the flyweight pattern, references to a {@link TimeLapse} should never be
+ * kept.
  * @author Rinde van Lon
  */
 public final class TimeLapse {
@@ -145,7 +147,11 @@ public final class TimeLapse {
 
   @Override
   public String toString() {
-    return new StringBuilder("[").append(startTime).append(",").append(endTime)
-      .append(")").toString();
+    return new StringBuilder("[")
+      .append(startTime)
+      .append(",")
+      .append(endTime)
+      .append(")")
+      .toString();
   }
 }

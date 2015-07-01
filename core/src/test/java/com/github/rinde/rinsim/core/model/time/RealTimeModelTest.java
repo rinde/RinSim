@@ -26,7 +26,8 @@ import java.util.List;
 import org.junit.Test;
 import org.junit.runners.Parameterized.Parameters;
 
-import com.github.rinde.rinsim.core.model.time.TimeModel.Builder;
+import com.github.rinde.rinsim.core.model.time.RealTimeClockController.ClockMode;
+import com.github.rinde.rinsim.core.model.time.TimeModel.AbstractBuilder;
 import com.google.common.collect.Iterators;
 import com.google.common.collect.PeekingIterator;
 import com.google.common.math.DoubleMath;
@@ -40,7 +41,7 @@ public class RealTimeModelTest extends TimeModelTest<RealTimeModel> {
   /**
    * @param sup The supplier to use for creating model instances.
    */
-  public RealTimeModelTest(Builder sup) {
+  public RealTimeModelTest(AbstractBuilder<?> sup) {
     super(sup);
   }
 
@@ -143,7 +144,9 @@ public class RealTimeModelTest extends TimeModelTest<RealTimeModel> {
    */
   @Test
   public void testSwitching() {
+    assertThat(getModel().getClockMode()).isEqualTo(ClockMode.REAL_TIME);
     getModel().switchToSimulatedTime();
+    assertThat(getModel().getClockMode()).isEqualTo(ClockMode.SIMULATED);
 
     final List<Long> times = new ArrayList<>();
     final List<Long> timeLapseTimes = new ArrayList<>();
@@ -151,31 +154,55 @@ public class RealTimeModelTest extends TimeModelTest<RealTimeModel> {
       @Override
       public void tick(TimeLapse timeLapse) {
         timeLapseTimes.add(timeLapse.getStartTime());
+        // initiate switch from simulated to real time
         if (timeLapse.getTime() == 100000 || timeLapse.getTime() == 200000) {
           times.add(System.nanoTime());
+          assertThat(getModel().getClockMode()).isEqualTo(ClockMode.SIMULATED);
           getModel().switchToRealTime();
           getModel().switchToSimulatedTime();
           getModel().switchToRealTime();
+          assertThat(getModel().getClockMode()).isEqualTo(ClockMode.SIMULATED);
+        }
+        // switch to real time should be completed
+        if (timeLapse.getTime() == 100100 || timeLapse.getTime() == 200100) {
+          assertThat(getModel().getClockMode()).isEqualTo(ClockMode.REAL_TIME);
         }
         // this switch should not have any effect
         if (timeLapse.getTime() == 50000) {
+          assertThat(getModel().getClockMode()).isEqualTo(ClockMode.SIMULATED);
           getModel().switchToRealTime();
+          assertThat(getModel().getClockMode()).isEqualTo(ClockMode.SIMULATED);
           getModel().switchToSimulatedTime();
+          assertThat(getModel().getClockMode()).isEqualTo(ClockMode.SIMULATED);
         }
+        // initiate switch from real time to simulated time
         if (timeLapse.getTime() == 100500 || timeLapse.getTime() == 200500) {
           times.add(System.nanoTime());
+          assertThat(getModel().getClockMode()).isEqualTo(ClockMode.REAL_TIME);
           getModel().switchToSimulatedTime();
           getModel().switchToRealTime();
           getModel().switchToSimulatedTime();
+          assertThat(getModel().getClockMode()).isEqualTo(ClockMode.REAL_TIME);
+        }
+        // now the switch to simulated should be completed
+        if (timeLapse.getTime() == 100600 || timeLapse.getTime() == 200600) {
+          assertThat(getModel().getClockMode()).isEqualTo(ClockMode.SIMULATED);
         }
         // this switch should not have any effect
         if (timeLapse.getTime() == 100200) {
+          assertThat(getModel().getClockMode()).isEqualTo(ClockMode.REAL_TIME);
           getModel().switchToSimulatedTime();
+          assertThat(getModel().getClockMode()).isEqualTo(ClockMode.REAL_TIME);
           getModel().switchToRealTime();
+          assertThat(getModel().getClockMode()).isEqualTo(ClockMode.REAL_TIME);
         }
         if (timeLapse.getTime() >= 300000) {
           times.add(System.nanoTime());
+          assertThat(getModel().isTicking()).isTrue();
+          assertThat(getModel().getClockMode()).isEqualTo(ClockMode.SIMULATED);
           getModel().stop();
+          assertThat(getModel().isTicking()).isFalse();
+          assertThat(getModel().getClockMode()).isEqualTo(ClockMode.STOPPED);
         }
       }
 
@@ -185,7 +212,9 @@ public class RealTimeModelTest extends TimeModelTest<RealTimeModel> {
 
     assertThat(times).isEmpty();
     assertThat(timeLapseTimes).isEmpty();
+
     getModel().start();
+    assertThat(getModel().getClockMode()).isEqualTo(ClockMode.STOPPED);
 
     assertThat(times).hasSize(5);
     assertThat(timeLapseTimes).hasSize(3001);

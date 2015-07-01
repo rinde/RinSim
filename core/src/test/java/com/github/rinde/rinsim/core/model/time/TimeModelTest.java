@@ -29,11 +29,11 @@ import org.junit.runners.Parameterized;
 
 import com.github.rinde.rinsim.core.model.FakeDependencyProvider;
 import com.github.rinde.rinsim.core.model.time.Clock.ClockEventType;
+import com.github.rinde.rinsim.core.model.time.RealTimeClockController.ClockMode;
 import com.github.rinde.rinsim.core.model.time.RealTimeModel.PriorityThreadFactory;
 import com.github.rinde.rinsim.core.model.time.RealTimeModel.SimpleState;
 import com.github.rinde.rinsim.core.model.time.RealTimeModel.TickListenerTimingChecker;
 import com.github.rinde.rinsim.core.model.time.RealTimeModel.Trigger;
-import com.github.rinde.rinsim.core.model.time.TimeModel.TMFactories;
 import com.github.rinde.rinsim.event.ListenerEventHistory;
 import com.github.rinde.rinsim.testutil.TestUtil;
 import com.google.common.collect.Range;
@@ -44,14 +44,14 @@ import com.google.common.collect.Range;
  */
 @RunWith(Parameterized.class)
 public abstract class TimeModelTest<T extends TimeModel> {
-  final TimeModel.Builder builder;
+  final TimeModel.AbstractBuilder<?> builder;
   private T model;
 
   /**
    * @param sup The supplier to use for creating model instances.
    */
   @SuppressWarnings("null")
-  public TimeModelTest(TimeModel.Builder sup) {
+  public TimeModelTest(TimeModel.AbstractBuilder<?> sup) {
     builder = sup;
   }
 
@@ -63,9 +63,9 @@ public abstract class TimeModelTest<T extends TimeModel> {
   public void setUp() {
     TestUtil.testEnum(ClockEventType.class);
     TestUtil.testEnum(PriorityThreadFactory.class);
-    TestUtil.testEnum(TMFactories.class);
     TestUtil.testEnum(Trigger.class);
     TestUtil.testEnum(SimpleState.class);
+    TestUtil.testEnum(ClockMode.class);
     model = (T) builder.build(FakeDependencyProvider.empty());
   }
 
@@ -301,6 +301,32 @@ public abstract class TimeModelTest<T extends TimeModel> {
     } catch (final IllegalStateException e) {
       assertThat(e.getMessage()).contains("Time is already ticking.");
       fail = true;
+    }
+    assertThat(fail).isTrue();
+  }
+
+  /**
+   * Tests that an exception thrown inside a {@link TickListener} is nicely
+   * propagated.
+   */
+  @Test
+  public void testExceptionPropagation() {
+    getModel().register(new TickListener() {
+      @Override
+      public void tick(TimeLapse timeLapse) {
+        throw new IllegalArgumentException("YOLO");
+      }
+
+      @Override
+      public void afterTick(TimeLapse timeLapse) {}
+    });
+
+    boolean fail = false;
+    try {
+      getModel().start();
+    } catch (final IllegalArgumentException e) {
+      fail = true;
+      assertThat(e.getMessage()).isEqualTo("YOLO");
     }
     assertThat(fail).isTrue();
   }

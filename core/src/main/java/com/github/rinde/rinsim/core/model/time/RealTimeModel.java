@@ -15,8 +15,8 @@
  */
 package com.github.rinde.rinsim.core.model.time;
 
-import static com.github.rinde.rinsim.core.model.time.RealTimeModel.SimpleState.INIT_FF;
 import static com.github.rinde.rinsim.core.model.time.RealTimeModel.SimpleState.INIT_RT;
+import static com.github.rinde.rinsim.core.model.time.RealTimeModel.SimpleState.INIT_ST;
 import static com.github.rinde.rinsim.core.model.time.RealTimeModel.SimpleState.STOPPED;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
@@ -54,23 +54,23 @@ class RealTimeModel extends TimeModel implements RealTimeClockController {
   final StateMachine<Trigger, RealTimeModel> stateMachine;
   final Map<TickListener, TickListenerTimingChecker> decoratorMap;
 
-  RealTimeModel(Builder builder) {
+  RealTimeModel(RealTimeBuilder builder) {
     super(builder);
     decoratorMap = new HashMap<>();
 
     final RealTime rt = new RealTime(timeLapse);
     final SimulatedTime ff = new SimulatedTime();
     stateMachine = StateMachine.create(INIT_RT)
-      .addTransition(INIT_RT, Trigger.FAST_FORWARD, INIT_FF)
+      .addTransition(INIT_RT, Trigger.SIMULATE, INIT_ST)
       .addTransition(INIT_RT, Trigger.START, rt)
-      .addTransition(INIT_FF, Trigger.REAL_TIME, INIT_RT)
-      .addTransition(INIT_FF, Trigger.START, ff)
-      .addTransition(rt, Trigger.FAST_FORWARD, rt)
+      .addTransition(INIT_ST, Trigger.REAL_TIME, INIT_RT)
+      .addTransition(INIT_ST, Trigger.START, ff)
+      .addTransition(rt, Trigger.SIMULATE, rt)
       .addTransition(rt, Trigger.REAL_TIME, rt)
-      .addTransition(rt, Trigger.DO_FAST_FORWARD, ff)
+      .addTransition(rt, Trigger.DO_SIMULATE, ff)
       .addTransition(rt, Trigger.STOP, STOPPED)
       .addTransition(ff, Trigger.REAL_TIME, ff)
-      .addTransition(ff, Trigger.FAST_FORWARD, ff)
+      .addTransition(ff, Trigger.SIMULATE, ff)
       .addTransition(ff, Trigger.DO_REAL_TIME, rt)
       .addTransition(ff, Trigger.STOP, STOPPED)
       .build();
@@ -92,6 +92,7 @@ class RealTimeModel extends TimeModel implements RealTimeClockController {
     stateMachine.handle(Trigger.STOP, this);
   }
 
+  @SuppressWarnings("deprecation")
   @Deprecated
   @Override
   public void tick() {
@@ -107,12 +108,21 @@ class RealTimeModel extends TimeModel implements RealTimeClockController {
 
   @Override
   public void switchToRealTime() {
+    checkState(stateMachine.isSupported(Trigger.REAL_TIME),
+      "Can not switch to real time mode because clock is already stopped.");
     stateMachine.handle(Trigger.REAL_TIME, this);
   }
 
   @Override
   public void switchToSimulatedTime() {
-    stateMachine.handle(Trigger.FAST_FORWARD, this);
+    checkState(stateMachine.isSupported(Trigger.SIMULATE),
+      "Can not switch to simulated time mode because clock is already stopped.");
+    stateMachine.handle(Trigger.SIMULATE, this);
+  }
+
+  @Override
+  public ClockMode getClockMode() {
+    return ((ClockState) stateMachine.getCurrentState()).getClockMode();
   }
 
   @Override
@@ -131,10 +141,19 @@ class RealTimeModel extends TimeModel implements RealTimeClockController {
   }
 
   enum Trigger {
-    START, STOP, FAST_FORWARD, DO_FAST_FORWARD, REAL_TIME, DO_REAL_TIME;
+    START, STOP, SIMULATE, DO_SIMULATE, REAL_TIME, DO_REAL_TIME;
   }
 
-  static class SimulatedTime extends AbstractState<Trigger, RealTimeModel> {
+  interface ClockState
+    extends com.github.rinde.rinsim.fsm.State<Trigger, RealTimeModel> {
+    ClockMode getClockMode();
+  }
+
+  abstract static class AbstractClockState
+    extends AbstractState<Trigger, RealTimeModel>
+    implements ClockState {}
+
+  static class SimulatedTime extends AbstractClockState {
     boolean isTicking;
     @Nullable
     Trigger nextTrigger;
@@ -146,7 +165,7 @@ class RealTimeModel extends TimeModel implements RealTimeClockController {
         isTicking = false;
         nextTrigger = Trigger.DO_REAL_TIME;
         return null;
-      } else if (trigger == Trigger.FAST_FORWARD) {
+      } else if (trigger == Trigger.SIMULATE) {
         isTicking = true;
         nextTrigger = null;
         return null;
@@ -164,9 +183,14 @@ class RealTimeModel extends TimeModel implements RealTimeClockController {
     public void onExit(Trigger event, RealTimeModel context) {
       isTicking = false;
     }
+
+    @Override
+    public ClockMode getClockMode() {
+      return ClockMode.SIMULATED;
+    }
   }
 
-  static class RealTime extends AbstractState<Trigger, RealTimeModel> {
+  static class RealTime extends AbstractClockState {
     // number of ticks that will be checked for consistency
     static final int CONSISTENCY_CHECK_LENGTH = 50;
     // max standard deviation = 5ms
@@ -197,8 +221,8 @@ class RealTimeModel extends TimeModel implements RealTimeClockController {
     @Nullable
     public Trigger handle(@Nullable Trigger event,
       final RealTimeModel context) {
-      if (event == Trigger.FAST_FORWARD) {
-        nextTrigger = Trigger.DO_FAST_FORWARD;
+      if (event == Trigger.SIMULATE) {
+        nextTrigger = Trigger.DO_SIMULATE;
         return null;
       } else if (event == Trigger.REAL_TIME) {
         nextTrigger = null;
@@ -295,13 +319,33 @@ class RealTimeModel extends TimeModel implements RealTimeClockController {
         Math.abs(tickNanoSeconds - sum.getMean()) < MAX_MEAN_DEVIATION_NS,
         "Mean interval is above threshold of 1ms: %s.", sum.getMean());
     }
+
+    @Override
+    public ClockMode getClockMode() {
+      return ClockMode.REAL_TIME;
+    }
   }
 
-  // for some reason the complete package name is required for the Java compiler
   @SuppressWarnings("null")
-  enum SimpleState
-    implements com.github.rinde.rinsim.fsm.State<Trigger, RealTimeModel> {
-    INIT_RT, INIT_FF, STOPPED;
+  enum SimpleState implements ClockState {
+    INIT_RT {
+      @Override
+      public ClockMode getClockMode() {
+        return ClockMode.REAL_TIME;
+      }
+    },
+    INIT_ST {
+      @Override
+      public ClockMode getClockMode() {
+        return ClockMode.SIMULATED;
+      }
+    },
+    STOPPED {
+      @Override
+      public ClockMode getClockMode() {
+        return ClockMode.STOPPED;
+      }
+    };
 
     @Override
     @Nullable
@@ -314,11 +358,11 @@ class RealTimeModel extends TimeModel implements RealTimeClockController {
 
     @Override
     public void onExit(Trigger event, RealTimeModel context) {}
+
   }
 
   static class TickListenerTimingChecker implements TickListener {
     final TickListener delegate;
-
     long tickDuration;
 
     TickListenerTimingChecker(TickListener tl) {
@@ -344,7 +388,6 @@ class RealTimeModel extends TimeModel implements RealTimeClockController {
       delegate.tick(timeLapse);
       tickDuration = System.nanoTime() - start;
     }
-
   }
 
   enum PriorityThreadFactory implements ThreadFactory {
@@ -355,7 +398,11 @@ class RealTimeModel extends TimeModel implements RealTimeClockController {
         t.setPriority(Thread.MAX_PRIORITY);
         return t;
       }
+
+      @Override
+      public String toString() {
+        return PriorityThreadFactory.class.getSimpleName();
+      }
     }
   }
-
 }

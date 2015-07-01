@@ -75,7 +75,6 @@ public class SimulatedTimeModelTest extends TimeModelTest<SimulatedTimeModel> {
         ClockEventType.STARTED,
         ClockEventType.STOPPED,
         ClockEventType.STARTED,
-        ClockEventType.STOPPED)
-      );
+        ClockEventType.STOPPED));
   }
 }

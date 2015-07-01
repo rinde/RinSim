@@ -16,6 +16,7 @@
 package com.github.rinde.rinsim.core.model.time;
 
 import static com.github.rinde.rinsim.core.model.time.TimeLapseFactory.create;
+import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -91,7 +92,34 @@ public class TimeLapseTest {
       assertFalse(tl.hasTimeLeft());
       assertEquals(end[i] - start[i], tl.getTickLength());
     }
+  }
 
+  /**
+   * Tests flyweight implementation.
+   */
+  @Test
+  public void testFlyweight() {
+    final TimeLapse tl = create(0, 10);
+    assertThat(tl.toString()).isEqualTo("[0,10)");
+    assertThat(tl.isIn(7)).isTrue();
+    assertThat(tl.isIn(-1)).isFalse();
+    assertThat(tl.isIn(0)).isTrue();
+    assertThat(tl.isIn(10)).isFalse();
+    assertThat(tl.isIn(11)).isFalse();
+    tl.consume(7L);
+    assertThat(tl.getTimeConsumed()).isEqualTo(7L);
+    assertThat(tl.getStartTime()).isEqualTo(0);
+    assertThat(tl.getEndTime()).isEqualTo(10L);
+    tl.reset();
+    assertThat(tl.getTimeConsumed()).isEqualTo(0L);
+    assertThat(tl.getStartTime()).isEqualTo(0);
+    assertThat(tl.getEndTime()).isEqualTo(10L);
+
+    tl.consume(6L);
+    tl.next();
+    assertThat(tl.getTimeConsumed()).isEqualTo(0L);
+    assertThat(tl.getStartTime()).isEqualTo(10);
+    assertThat(tl.getEndTime()).isEqualTo(20L);
   }
 
   @Test(expected = IllegalArgumentException.class)

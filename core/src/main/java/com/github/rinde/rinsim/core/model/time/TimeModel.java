@@ -33,6 +33,7 @@ import com.github.rinde.rinsim.core.model.DependencyProvider;
 import com.github.rinde.rinsim.core.model.Model.AbstractModel;
 import com.github.rinde.rinsim.core.model.ModelBuilder;
 import com.github.rinde.rinsim.core.model.ModelBuilder.AbstractModelBuilder;
+import com.github.rinde.rinsim.core.model.time.RealTimeClockController.ClockMode;
 import com.github.rinde.rinsim.event.Event;
 import com.github.rinde.rinsim.event.EventAPI;
 import com.github.rinde.rinsim.event.EventDispatcher;
@@ -47,7 +48,9 @@ import com.google.common.annotations.VisibleForTesting;
  * <b>Model properties</b>
  * <ul>
  * <li><i>Associated type:</i> {@link TickListener}.</li>
- * <li><i>Provides:</i> {@link Clock} and {@link ClockController}.</li>
+ * <li><i>Provides:</i> {@link Clock} and {@link ClockController} and optionally
+ * {@link RealTimeClockController} (if created via
+ * {@link Builder#withRealTime()}).</li>
  * <li><i>Dependencies:</i> none.</li>
  * </ul>
  * See {@link ModelBuilder} for more information about model properties.
@@ -61,7 +64,7 @@ public abstract class TimeModel extends AbstractModel<TickListener>
   volatile boolean isTicking;
   private final EventDispatcher eventDispatcher;
 
-  TimeModel(Builder builder) {
+  TimeModel(AbstractBuilder<?> builder) {
     tickListeners = new CopyOnWriteArraySet<>();
     eventDispatcher = new EventDispatcher(ClockEventType.values());
 
@@ -113,7 +116,7 @@ public abstract class TimeModel extends AbstractModel<TickListener>
     return tickListeners.remove(element);
   }
 
-  protected final void tickImpl() {
+  final void tickImpl() {
     for (final TickListener t : tickListeners) {
       timeLapse.reset();
       t.tick(timeLapse);
@@ -171,16 +174,18 @@ public abstract class TimeModel extends AbstractModel<TickListener>
    */
   @CheckReturnValue
   public static Builder builder() {
-    return Builder.create(Builder.DEFAULT_TIME_STEP, Builder.DEFAULT_TIME_UNIT,
-      Builder.DEFAULT_TICK_FACTORY);
+    return Builder.create(AbstractBuilder.DEFAULT_TIME_STEP,
+      AbstractBuilder.DEFAULT_TIME_UNIT);
   }
 
   /**
-   * A builder for constructing {@link TimeModel} instances.
+   * Abstract builder for constructing {@link TimeModel} instances.
    * @author Rinde van Lon
+   * @param <T> The builder type itself, necessary to make an inheritance-based
+   *          builder.
    */
-  @AutoValue
-  public abstract static class Builder extends
+  public abstract static class AbstractBuilder<T>
+    extends
     AbstractModelBuilder<TimeModel, TickListener>implements Serializable {
 
     private static final long serialVersionUID = 4029776255118617541L;
@@ -195,12 +200,6 @@ public abstract class TimeModel extends AbstractModel<TickListener>
      */
     public static final Unit<Duration> DEFAULT_TIME_UNIT = SI.MILLI(SI.SECOND);
 
-    static final TimeModelFactory DEFAULT_TICK_FACTORY = TMFactories.SIMULATED;
-
-    Builder() {
-      setProvidingTypes(Clock.class, ClockController.class);
-    }
-
     /**
      * @return The tick length.
      */
@@ -211,8 +210,6 @@ public abstract class TimeModel extends AbstractModel<TickListener>
      */
     public abstract Unit<Duration> getTimeUnit();
 
-    abstract TimeModelFactory getTickStrategyFactory();
-
     /**
      * Returns a copy of this builder with the specified length of a single
      * tick. The default tick length is {@link #DEFAULT_TIME_STEP}.
@@ -220,9 +217,7 @@ public abstract class TimeModel extends AbstractModel<TickListener>
      * @return A new builder instance.
      */
     @CheckReturnValue
-    public Builder withTickLength(long tickLength) {
-      return create(tickLength, getTimeUnit(), getTickStrategyFactory());
-    }
+    public abstract T withTickLength(long tickLength);
 
     /**
      * Returns a copy of this builder with the specified time unit to use. The
@@ -231,43 +226,108 @@ public abstract class TimeModel extends AbstractModel<TickListener>
      * @return A new builder instance.
      */
     @CheckReturnValue
-    public Builder withTimeUnit(Unit<Duration> timeUnit) {
-      return create(getTickLength(), timeUnit, getTickStrategyFactory());
+    public abstract T withTimeUnit(Unit<Duration> timeUnit);
+  }
+
+  /**
+   * Builder for constructing {@link TimeModel} instances.
+   * @author Rinde van Lon
+   */
+  @AutoValue
+  public abstract static class Builder extends AbstractBuilder<Builder> {
+    private static final long serialVersionUID = 4197062023514532225L;
+
+    Builder() {
+      setProvidingTypes(Clock.class, ClockController.class);
     }
 
+    @Override
+    public Builder withTickLength(long tickLength) {
+      return create(tickLength, getTimeUnit());
+    }
+
+    @Override
+    public Builder withTimeUnit(Unit<Duration> timeUnit) {
+      return create(getTickLength(), timeUnit);
+    }
+
+    /**
+     * Create a time model that synchronized ticks to the real time. An
+     * additional type is provided by this model:
+     * {@link RealTimeClockController}.
+     * @return A new builder instance.
+     */
     @CheckReturnValue
-    public Builder withRealTime() {
-      return create(getTickLength(), getTimeUnit(), TMFactories.REAL_TIME);
+    public RealTimeBuilder withRealTime() {
+      return RealTimeBuilder.create(getTickLength(), getTimeUnit(),
+        ClockMode.REAL_TIME);
     }
 
     @CheckReturnValue
     @Override
     public TimeModel build(DependencyProvider dependencyProvider) {
-      return getTickStrategyFactory().create(this);
+      return new SimulatedTimeModel(this);
     }
 
-    static Builder create(long tickLength, Unit<Duration> timeUnit,
-      TimeModelFactory tf) {
-      return new AutoValue_TimeModel_Builder(tickLength, timeUnit, tf);
+    static Builder create(long tickLength, Unit<Duration> timeUnit) {
+      return new AutoValue_TimeModel_Builder(tickLength, timeUnit);
     }
   }
 
-  interface TimeModelFactory {
-    TimeModel create(TimeModel.Builder builder);
-  }
+  /**
+   * Builder for real-time version of {@link TimeModel}. Besides providing
+   * {@link Clock} and {@link ClockController}, {@link RealTimeClockController}
+   * is also provided.
+   * @author Rinde van Lon
+   */
+  @AutoValue
+  public abstract static class RealTimeBuilder
+    extends AbstractBuilder<RealTimeBuilder> {
 
-  enum TMFactories implements TimeModelFactory {
-    SIMULATED {
-      @Override
-      public TimeModel create(Builder builder) {
-        return new SimulatedTimeModel(builder);
-      }
-    },
-    REAL_TIME {
-      @Override
-      public TimeModel create(Builder builder) {
-        return new RealTimeModel(builder);
-      }
+    private static final long serialVersionUID = 7255633280244047198L;
+
+    RealTimeBuilder() {
+      setProvidingTypes(Clock.class, ClockController.class,
+        RealTimeClockController.class);
+    }
+
+    /**
+     * @return The {@link ClockMode} the time model will start in.
+     */
+    public abstract ClockMode getClockMode();
+
+    /**
+     * Sets the {@link ClockMode} the model should start with. By default the
+     * mode is {@link ClockMode#REAL_TIME}.
+     * @param mode The mode to start with, can be either
+     *          {@link ClockMode#REAL_TIME} or {@link ClockMode#STOPPED}.
+     * @return A new builder instance.
+     */
+    @CheckReturnValue
+    public RealTimeBuilder withStartInClockMode(ClockMode mode) {
+      checkArgument(mode != ClockMode.STOPPED,
+        "Can not use %s as starting mode.", ClockMode.STOPPED);
+      return create(getTickLength(), getTimeUnit(), mode);
+    }
+
+    @Override
+    public RealTimeBuilder withTickLength(long tickLength) {
+      return create(tickLength, getTimeUnit(), getClockMode());
+    }
+
+    @Override
+    public RealTimeBuilder withTimeUnit(Unit<Duration> timeUnit) {
+      return create(getTickLength(), timeUnit, getClockMode());
+    }
+
+    @Override
+    public TimeModel build(DependencyProvider dependencyProvider) {
+      return new RealTimeModel(this);
+    }
+
+    static RealTimeBuilder create(long length, Unit<Duration> unit,
+      ClockMode mode) {
+      return new AutoValue_TimeModel_RealTimeBuilder(length, unit, mode);
     }
   }
 }
