@@ -104,21 +104,6 @@ public abstract class GlobalStateObject {
   @AutoValue
   public abstract static class VehicleStateObject {
 
-    // @SuppressWarnings("unchecked")
-    // VehicleStateObject(VehicleDTO dto, Point location,
-    // ImmutableSet<Parcel> contents, long remainingServiceTime,
-    // @Nullable Parcel destination,
-    // @Nullable ImmutableList<? extends Parcel> route) {
-    // this.dto = dto;
-    // // super(dto.startPosition, dto.speed, dto.capacity,
-    // // dto.availabilityTimeWindow);
-    // this.location = location;
-    // this.contents = contents;
-    // this.remainingServiceTime = remainingServiceTime;
-    // this.destination = Optional.fromNullable(destination);
-    // this.route = Optional.fromNullable((ImmutableList<Parcel>) route);
-    // }
-
     /**
      * @return The {@link VehicleDTO}.
      */
