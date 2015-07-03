@@ -33,7 +33,7 @@ import com.google.common.collect.ImmutableList;
 /**
  * The solver model facilitates the use of {@link Solver}s from within agents.
  * By implementing {@link SolverUser} an agent can obtain an
- * {@link SimulationSolver} instance.
+ * {@link SimSolver} instance.
  * <p>
  * <b>Model properties</b>
  * <ul>
@@ -102,8 +102,8 @@ public class SolverModel extends AbstractModel<SolverUser> {
     }
 
     @Override
-    public SimulationSolver build(Solver s) {
-      return new SimulationSolver(Optional.of(s), roadModel, pdpModel, clock,
+    public SimSolver build(Solver s) {
+      return new SimSolver(Optional.of(s), roadModel, pdpModel, clock,
         vehiclesList);
     }
   }

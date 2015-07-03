@@ -23,7 +23,7 @@ import com.github.rinde.rinsim.central.GlobalStateObject;
  */
 public interface RealtimeSolver {
 
-  void init(Scheduler scheduler, int numVehicles);
+  void init(Scheduler scheduler);
 
   void receiveSnapshot(GlobalStateObject snapshot);
 

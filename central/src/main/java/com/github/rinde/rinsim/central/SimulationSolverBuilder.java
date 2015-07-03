@@ -18,7 +18,7 @@ package com.github.rinde.rinsim.central;
 import com.github.rinde.rinsim.core.model.pdp.Vehicle;
 
 /**
- * A builder for creating a {@link SimulationSolver}. Can be obtained by
+ * A builder for creating a {@link SimSolver}. Can be obtained by
  * implementing {@link SolverUser}.
  * @author Rinde van Lon
  */
@@ -34,7 +34,7 @@ public abstract class SimulationSolverBuilder {
   public abstract SimulationSolverBuilder setVehicle(Vehicle v);
 
   /**
-   * Sets the vehicles to sue to the specified vehicles and no other.
+   * Sets the vehicles to use to the specified vehicles and no other.
    * @param vehicles The vehicles to use in the solver.
    * @return This, as per the builder pattern.
    */
@@ -42,9 +42,9 @@ public abstract class SimulationSolverBuilder {
     Iterable<? extends Vehicle> vehicles);
 
   /**
-   * Construct a new {@link SimulationSolver} instance.
+   * Construct a new {@link SimSolver} instance.
    * @param s The {@link Solver} to use internally.
    * @return A new instance.
    */
-  public abstract SimulationSolver build(Solver s);
+  public abstract SimSolver build(Solver s);
 }

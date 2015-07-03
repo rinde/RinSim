@@ -57,7 +57,7 @@ public class SolverToRealtimeAdapter implements RealtimeSolver {
   }
 
   @Override
-  public void init(Scheduler s, int numVehicles) {
+  public void init(Scheduler s) {
     scheduler = Optional.of(s);
   }
 

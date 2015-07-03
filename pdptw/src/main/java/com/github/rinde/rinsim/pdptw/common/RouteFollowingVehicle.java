@@ -184,7 +184,8 @@ public class RouteFollowingVehicle extends Vehicle {
    * situations when the route is changed immediately are:
    * <ul>
    * <li>If the vehicle is waiting.</li>
-   * <li>If diversion is allowed and the vehicle is not currently servicing.</li>
+   * <li>If diversion is allowed and the vehicle is not currently servicing.
+   * </li>
    * <li>If the current route is empty.</li>
    * <li>If the first destination in the new route equals the first destination
    * of the current route.</li>
@@ -192,7 +193,7 @@ public class RouteFollowingVehicle extends Vehicle {
    * @param r The route to set. The elements are copied from the
    *          {@link Collection} using its iteration order.
    */
-  public void setRoute(Collection<Parcel> r) {
+  public void setRoute(Collection<? extends Parcel> r) {
     // note: the following checks can not detect if a parcel has been set to
     // multiple vehicles at the same time
     for (final Parcel dp : r) {
@@ -267,7 +268,8 @@ public class RouteFollowingVehicle extends Vehicle {
    *         equal or if either of the routes are empty <code>false</code> is
    *         returned.
    */
-  protected final boolean firstEqualsFirstInRoute(Collection<Parcel> r) {
+  protected final boolean firstEqualsFirstInRoute(
+    Collection<? extends Parcel> r) {
     return !r.isEmpty() && !route.isEmpty()
       && r.iterator().next().equals(route.element());
   }
@@ -348,7 +350,7 @@ public class RouteFollowingVehicle extends Vehicle {
   protected long computeTravelTimeTo(Point p, Unit<Duration> timeUnit) {
     final Measure<Double, Length> distance = Measure.valueOf(Point.distance(
       getRoadModel().getPosition(this), p), getRoadModel()
-      .getDistanceUnit());
+        .getDistanceUnit());
 
     return DoubleMath.roundToLong(
       RoadModels.computeTravelTime(speed.get(), distance, timeUnit),
@@ -636,7 +638,8 @@ public class RouteFollowingVehicle extends Vehicle {
       }
       // if parcel is not ready yet, wait
       final boolean pickup = !pm.getContents(context).contains(cur);
-      final long timeUntilReady = (pickup ? cur.getDto().getPickupTimeWindow().begin
+      final long timeUntilReady = (pickup
+        ? cur.getDto().getPickupTimeWindow().begin
         : cur.getDto().getDeliveryTimeWindow().begin)
         - time.getTime();
       if (timeUntilReady > 0) {

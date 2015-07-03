@@ -42,14 +42,14 @@ import com.google.common.collect.ImmutableSet;
  * Adapter for {@link Solver}s.
  * @author Rinde van Lon
  */
-public final class SimulationSolver implements SimulationConverter {
+public final class SimSolver implements SimulationConverter {
   final Optional<Solver> solver;
   final Clock clock;
   final PDPRoadModel roadModel;
   final PDPModel pdpModel;
   final List<Vehicle> vehicles;
 
-  SimulationSolver(Optional<Solver> s, PDPRoadModel rm, PDPModel pm,
+  SimSolver(Optional<Solver> s, PDPRoadModel rm, PDPModel pm,
     Clock sim, List<Vehicle> vs) {
     solver = s;
     clock = sim;

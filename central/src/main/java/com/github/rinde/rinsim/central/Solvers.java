@@ -65,12 +65,12 @@ public final class Solvers {
   private Solvers() {}
 
   /**
-   * Creates a builder for creating {@link SimulationSolver} instances. For more
+   * Creates a builder for creating {@link SimSolver} instances. For more
    * information see {@link AdapterBuilder}.
    * @param sol The solver to use internally.
    * @return The builder.
    */
-  public static AdapterBuilder<SimulationSolver> solverBuilder(Solver sol) {
+  public static AdapterBuilder<SimSolver> solverBuilder(Solver sol) {
     return new AdapterBuilder<>(sol);
   }
 
@@ -359,7 +359,7 @@ public final class Solvers {
   }
 
   /**
-   * Builder for specifying parameters used in {@link SimulationSolver} and
+   * Builder for specifying parameters used in {@link SimSolver} and
    * {@link SimulationConverter}.
    * @author Rinde van Lon
    */
@@ -571,7 +571,7 @@ public final class Solvers {
         c = simulator.getModelProvider().getModel(TimeModel.class);
       }
       if (c != null && rm != null && pm != null) {
-        return (T) new SimulationSolver(solver, rm, pm, c, vehicles);
+        return (T) new SimSolver(solver, rm, pm, c, vehicles);
       }
       throw new IllegalArgumentException(
         "Not all required components could be found, PDPRoadModel: " + rm

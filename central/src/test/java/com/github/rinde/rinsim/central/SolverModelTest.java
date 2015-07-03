@@ -100,7 +100,7 @@ public class SolverModelTest {
 
   static class Agent extends RouteFollowingVehicle implements SolverUser {
 
-    Optional<SimulationSolver> solver;
+    Optional<SimSolver> solver;
 
     Agent() {
       super(VehicleDTO.builder()

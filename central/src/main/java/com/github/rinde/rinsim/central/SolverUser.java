@@ -16,7 +16,7 @@
 package com.github.rinde.rinsim.central;
 
 /**
- * Can be implemented by agents to obtain a {@link SimulationSolver} instance.
+ * Can be implemented by agents to obtain a {@link SimSolver} instance.
  * Requires a {@link SolverModel} to be present in the simulator.
  * @author Rinde van Lon
  */
@@ -24,7 +24,7 @@ public interface SolverUser {
 
   /**
    * Is called when the solver user is registered.
-   * @param builder A builder for constructing a {@link SimulationSolver}.
+   * @param builder A builder for constructing a {@link SimSolver}.
    */
   void setSolverProvider(SimulationSolverBuilder builder);
 

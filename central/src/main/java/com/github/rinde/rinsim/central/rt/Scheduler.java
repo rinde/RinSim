@@ -18,15 +18,16 @@ package com.github.rinde.rinsim.central.rt;
 import java.util.List;
 
 import com.github.rinde.rinsim.core.model.pdp.Parcel;
+import com.google.common.collect.ImmutableList;
 
 /**
  * @author Rinde van Lon
  *
  */
-public abstract class Scheduler {
+public interface Scheduler {
 
   public abstract void updateSchedule(
-    List<? extends List<? extends Parcel>> routes);
+    ImmutableList<ImmutableList<? extends Parcel>> routes);
 
   public abstract List<List<Parcel>> getCurrentSchedule();
 
