@@ -25,6 +25,8 @@ public interface RealtimeSolver {
 
   void init(Scheduler scheduler);
 
+  // will be called from a dedicated thread, this thread should be freed as soon
+  // as possible to avoid delaying receiving of a second call
   void receiveSnapshot(GlobalStateObject snapshot);
 
 }

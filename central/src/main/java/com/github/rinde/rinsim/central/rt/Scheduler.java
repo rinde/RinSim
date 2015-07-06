@@ -15,8 +15,6 @@
  */
 package com.github.rinde.rinsim.central.rt;
 
-import java.util.List;
-
 import com.github.rinde.rinsim.core.model.pdp.Parcel;
 import com.google.common.collect.ImmutableList;
 
@@ -24,12 +22,14 @@ import com.google.common.collect.ImmutableList;
  * @author Rinde van Lon
  *
  */
-public interface Scheduler {
+public abstract class Scheduler {
+
+  Scheduler() {}
 
   public abstract void updateSchedule(
-    ImmutableList<ImmutableList<? extends Parcel>> routes);
+    ImmutableList<ImmutableList<Parcel>> routes);
 
-  public abstract List<List<Parcel>> getCurrentSchedule();
+  public abstract ImmutableList<ImmutableList<Parcel>> getCurrentSchedule();
 
   // fast forward simulation until next change
   // time warp/ fast forward?

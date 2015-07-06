@@ -38,7 +38,7 @@ import com.google.common.collect.ImmutableList;
  * <b>Model properties</b>
  * <ul>
  * <li><i>Associated type:</i> {@link SolverUser}.</li>
- * <li><i>Provides:</i> {@link SimulationSolverBuilder}.</li>
+ * <li><i>Provides:</i> {@link SimSolverBuilder}.</li>
  * <li><i>Dependencies:</i> {@link Clock}, {@link PDPRoadModel},
  * {@link PDPModel}.</li>
  * </ul>
@@ -70,7 +70,7 @@ public class SolverModel extends AbstractModel<SolverUser> {
   @SuppressWarnings("unchecked")
   @Override
   public <U> U get(Class<U> clazz) {
-    checkArgument(clazz == SimulationSolverBuilder.class);
+    checkArgument(clazz == SimSolverBuilder.class);
     return (U) new Provider();
   }
 
@@ -81,7 +81,7 @@ public class SolverModel extends AbstractModel<SolverUser> {
     return Builder.create();
   }
 
-  class Provider extends SimulationSolverBuilder {
+  class Provider extends SimSolverBuilder {
     ImmutableList<Vehicle> vehiclesList;
 
     Provider() {
@@ -89,13 +89,13 @@ public class SolverModel extends AbstractModel<SolverUser> {
     }
 
     @Override
-    public SimulationSolverBuilder setVehicle(Vehicle v) {
+    public SimSolverBuilder setVehicle(Vehicle v) {
       vehiclesList = ImmutableList.of(v);
       return this;
     }
 
     @Override
-    public SimulationSolverBuilder setVehicles(
+    public SimSolverBuilder setVehicles(
       Iterable<? extends Vehicle> vehicles) {
       vehiclesList = ImmutableList.copyOf(vehicles);
       return this;
@@ -120,7 +120,7 @@ public class SolverModel extends AbstractModel<SolverUser> {
 
     Builder() {
       setDependencies(Clock.class, PDPRoadModel.class, PDPModel.class);
-      setProvidingTypes(SimulationSolverBuilder.class);
+      setProvidingTypes(SimSolverBuilder.class);
     }
 
     @Override

@@ -22,23 +22,23 @@ import com.github.rinde.rinsim.core.model.pdp.Vehicle;
  * implementing {@link SolverUser}.
  * @author Rinde van Lon
  */
-public abstract class SimulationSolverBuilder {
+public abstract class SimSolverBuilder {
 
-  SimulationSolverBuilder() {}
+  SimSolverBuilder() {}
 
   /**
    * Sets the vehicles to use to the specified vehicle and no other.
    * @param v The only vehicle to use in the solver.
    * @return This, as per the builder pattern.
    */
-  public abstract SimulationSolverBuilder setVehicle(Vehicle v);
+  public abstract SimSolverBuilder setVehicle(Vehicle v);
 
   /**
    * Sets the vehicles to use to the specified vehicles and no other.
    * @param vehicles The vehicles to use in the solver.
    * @return This, as per the builder pattern.
    */
-  public abstract SimulationSolverBuilder setVehicles(
+  public abstract SimSolverBuilder setVehicles(
     Iterable<? extends Vehicle> vehicles);
 
   /**

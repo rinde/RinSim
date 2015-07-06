@@ -111,7 +111,7 @@ public class SolverModelTest {
     }
 
     @Override
-    public void setSolverProvider(SimulationSolverBuilder provider) {
+    public void setSolverProvider(SimSolverBuilder provider) {
       solver = Optional.of(provider.setVehicle(this)
         .build(new RandomSolver(new MersenneTwister(123))));
     }

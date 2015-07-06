@@ -42,9 +42,7 @@ public class SolverToRealtimeAdapter implements RealtimeSolver {
   private final Solver solver;
 
   final ListeningExecutorService executor;
-
   Optional<Scheduler> scheduler;
-
   Optional<ListenableFuture<ImmutableList<ImmutableList<Parcel>>>> currentFuture;
 
   SolverToRealtimeAdapter(Solver s) {

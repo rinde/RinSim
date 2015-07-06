@@ -17,13 +17,14 @@ package com.github.rinde.rinsim.central;
 
 import java.io.Serializable;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Queue;
 import java.util.Set;
 
 import com.github.rinde.rinsim.central.Solvers.SolveArgs;
 import com.github.rinde.rinsim.central.rt.RealtimeSolver;
-import com.github.rinde.rinsim.central.rt.Scheduler;
+import com.github.rinde.rinsim.central.rt.RtSimSolver;
+import com.github.rinde.rinsim.central.rt.RtSimSolverBuilder;
+import com.github.rinde.rinsim.central.rt.RtSolverModel;
 import com.github.rinde.rinsim.core.SimulatorAPI;
 import com.github.rinde.rinsim.core.model.CompositeModelBuilder;
 import com.github.rinde.rinsim.core.model.DependencyProvider;
@@ -72,8 +73,8 @@ public final class Central {
   }
 
   public static ModelBuilder<?, ?> realtimeBuilder(
-    StochasticSupplier<? extends Solver> solverSupplier) {
-
+    StochasticSupplier<? extends RealtimeSolver> solverSupplier) {
+    return RtBuilder.create(solverSupplier);
   }
 
   /**
@@ -217,13 +218,21 @@ public final class Central {
     public void afterTick(TimeLapse timeLapse) {}
   }
 
-  private static abstract class RTBuilder
+  @AutoValue
+  static abstract class RtBuilder
     extends AbstractModelBuilder<RealtimeCentralModel, Parcel>
     implements CompositeModelBuilder<RealtimeCentralModel, Parcel> {
 
-    RTBuilder() {
-      setDependencies(RandomProvider.class, SimulationSolverBuilder.class,
+    RtBuilder() {
+      setDependencies(RandomProvider.class, RtSimSolverBuilder.class,
         RealTimeClockController.class, PDPRoadModel.class);
+    }
+
+    @SuppressWarnings("unchecked")
+    static ModelBuilder<?, ?> create(
+      StochasticSupplier<? extends RealtimeSolver> solverSupplier) {
+      return new AutoValue_Central_RtBuilder(
+        (StochasticSupplier<RealtimeSolver>) solverSupplier);
     }
 
     abstract StochasticSupplier<RealtimeSolver> getSolverSupplier();
@@ -233,7 +242,7 @@ public final class Central {
       RandomProvider rnd = dependencyProvider.get(RandomProvider.class);
       RealtimeSolver solver = getSolverSupplier()
         .get(rnd.masterInstance().nextLong());
-      SimSolver s = dependencyProvider.get(SimulationSolverBuilder.class)
+      RtSimSolver s = dependencyProvider.get(RtSimSolverBuilder.class)
         .build(solver);
       RealTimeClockController clock = dependencyProvider
         .get(RealTimeClockController.class);
@@ -243,21 +252,21 @@ public final class Central {
 
     @Override
     public ImmutableSet<ModelBuilder<?, ?>> getChildren() {
-      return ImmutableSet.<ModelBuilder<?, ?>> of(SolverModel.builder());
+      return ImmutableSet.<ModelBuilder<?, ?>> of(RtSolverModel.builder());
     }
   }
 
   private static final class RealtimeCentralModel extends AbstractModel<Parcel>
-    implements TickListener, Scheduler {
+    implements TickListener {
     private boolean problemHasChanged;
-    private boolean assignmentHasChanged;
+    private final boolean assignmentHasChanged;
     Optional<ImmutableList<ImmutableList<? extends Parcel>>> schedule;
 
     private final PDPRoadModel roadModel;
-    private final RealtimeSolver solver;
+    private final RtSimSolver solver;
     private final RealTimeClockController clock;
 
-    RealtimeCentralModel(RealTimeClockController c, RealtimeSolver s,
+    RealtimeCentralModel(RealTimeClockController c, RtSimSolver s,
       PDPRoadModel rm) {
       problemHasChanged = false;
       assignmentHasChanged = false;
@@ -265,7 +274,6 @@ public final class Central {
       solver = s;
       roadModel = rm;
       schedule = Optional.absent();
-      solver.init(this);
     }
 
     @Override
@@ -280,7 +288,6 @@ public final class Central {
       return false;
     }
 
-    @SuppressWarnings("unchecked")
     @Override
     public void tick(TimeLapse timeLapse) {
       if (problemHasChanged) {
@@ -303,17 +310,8 @@ public final class Central {
           currentRouteBuilder.add(l);
         }
 
-        solver.receiveSnapshot(snapshot);
-
-        // final Iterator<Queue<Parcel>> routes = solver.solve(
-        // SolveArgs.create()
-        // .useAllParcels()
-        // .useCurrentRoutes(currentRouteBuilder.build()))
-        // .iterator();
-        //
-        // for (final RouteFollowingVehicle vehicle : vehicles) {
-        // vehicle.setRoute(routes.next());
-        // }
+        solver.solve(
+          SolveArgs.create().useCurrentRoutes(currentRouteBuilder.build()));
       }
 
       if (assignmentHasChanged) {
@@ -326,30 +324,9 @@ public final class Central {
           vehicle.setRoute(routes.next());
         }
       }
-
     }
 
     @Override
     public void afterTick(TimeLapse timeLapse) {}
-
-    @Override
-    public void updateSchedule(
-      ImmutableList<ImmutableList<? extends Parcel>> routes) {
-      assignmentHasChanged = true;
-      schedule = Optional.of(routes);
-    }
-
-    @Override
-    public List<List<Parcel>> getCurrentSchedule() {
-      // TODO Auto-generated method stub
-      return null;
-    }
-
-    @Override
-    public void doneForNow() {
-      clock.switchToSimulatedTime();
-
-    }
-
   }
 }

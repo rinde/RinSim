@@ -15,26 +15,11 @@
  */
 package com.github.rinde.rinsim.central.rt;
 
-import com.github.rinde.rinsim.central.Solvers.SolveArgs;
-import com.github.rinde.rinsim.core.model.pdp.Parcel;
-import com.google.common.collect.ImmutableList;
-
 /**
- * api for {@link RealtimeSolver} in context of simulation
- * 
  * @author Rinde van Lon
  *
  */
-public abstract class RtSimSolver {
+public interface RtSolverUser {
 
-  RtSimSolver() {}
-
-  // switch back to real time
-  // start computation
-  public abstract void solve(SolveArgs args);
-
-  public abstract boolean isScheduleUpdated();
-
-  public abstract ImmutableList<ImmutableList<Parcel>> getCurrentSchedule();
-
+  void setSolverProvider(RtSimSolverBuilder builder);
 }
