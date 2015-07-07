@@ -31,6 +31,7 @@ import org.junit.runners.Parameterized.Parameters;
 import com.github.rinde.rinsim.core.model.FakeDependencyProvider;
 import com.github.rinde.rinsim.core.model.time.RealTimeClockController.ClockMode;
 import com.github.rinde.rinsim.core.model.time.TimeModel.AbstractBuilder;
+import com.github.rinde.rinsim.core.model.time.TimeModel.RealTimeBuilder;
 import com.google.common.collect.Iterators;
 import com.google.common.collect.PeekingIterator;
 import com.google.common.math.DoubleMath;
@@ -292,7 +293,8 @@ public class RealTimeModelTest extends TimeModelTest<RealTimeModel> {
 
     boolean fail = false;
     try {
-      TimeModel.builder()
+      @SuppressWarnings("unused")
+      final RealTimeBuilder b = TimeModel.builder()
         .withRealTime()
         .withStartInClockMode(ClockMode.STOPPED);
     } catch (final IllegalArgumentException e) {
