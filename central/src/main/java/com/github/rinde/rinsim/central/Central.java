@@ -21,12 +21,7 @@ import java.util.Queue;
 import java.util.Set;
 
 import com.github.rinde.rinsim.central.Solvers.SolveArgs;
-import com.github.rinde.rinsim.central.rt.RealtimeSolver;
-import com.github.rinde.rinsim.central.rt.RtSimSolver;
-import com.github.rinde.rinsim.central.rt.RtSimSolverBuilder;
-import com.github.rinde.rinsim.central.rt.RtSolverModel;
 import com.github.rinde.rinsim.core.SimulatorAPI;
-import com.github.rinde.rinsim.core.model.CompositeModelBuilder;
 import com.github.rinde.rinsim.core.model.DependencyProvider;
 import com.github.rinde.rinsim.core.model.Model.AbstractModel;
 import com.github.rinde.rinsim.core.model.ModelBuilder;
@@ -35,7 +30,6 @@ import com.github.rinde.rinsim.core.model.pdp.PDPModel;
 import com.github.rinde.rinsim.core.model.pdp.Parcel;
 import com.github.rinde.rinsim.core.model.rand.RandomProvider;
 import com.github.rinde.rinsim.core.model.time.Clock;
-import com.github.rinde.rinsim.core.model.time.RealTimeClockController;
 import com.github.rinde.rinsim.core.model.time.TickListener;
 import com.github.rinde.rinsim.core.model.time.TimeLapse;
 import com.github.rinde.rinsim.experiment.MASConfiguration;
@@ -45,9 +39,7 @@ import com.github.rinde.rinsim.pdptw.common.RouteFollowingVehicle;
 import com.github.rinde.rinsim.scenario.TimedEventHandler;
 import com.github.rinde.rinsim.util.StochasticSupplier;
 import com.google.auto.value.AutoValue;
-import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
 
 // FIXME test this class thoroughly
 /**
@@ -70,11 +62,6 @@ public final class Central {
   public static ModelBuilder<?, ?> builder(
     StochasticSupplier<? extends Solver> solverSupplier) {
     return Builder.create(solverSupplier);
-  }
-
-  public static ModelBuilder<?, ?> realtimeBuilder(
-    StochasticSupplier<? extends RealtimeSolver> solverSupplier) {
-    return RtBuilder.create(solverSupplier);
   }
 
   /**
@@ -105,6 +92,10 @@ public final class Central {
       .build();
   }
 
+  public static TimedEventHandler<AddVehicleEvent> vehicleHandler() {
+    return VehicleCreator.INSTANCE;
+  }
+
   enum VehicleCreator implements TimedEventHandler<AddVehicleEvent> {
     INSTANCE {
       @Override
@@ -114,7 +105,7 @@ public final class Central {
 
       @Override
       public String toString() {
-        return "CentralVehicle";
+        return Central.class.getName() + ".centralVehicleHandler()";
       }
     }
   }
@@ -208,118 +199,6 @@ public final class Central {
               .useCurrentRoutes(currentRouteBuilder.build()))
           .iterator();
 
-        for (final RouteFollowingVehicle vehicle : vehicles) {
-          vehicle.setRoute(routes.next());
-        }
-      }
-    }
-
-    @Override
-    public void afterTick(TimeLapse timeLapse) {}
-  }
-
-  @AutoValue
-  static abstract class RtBuilder
-    extends AbstractModelBuilder<RealtimeCentralModel, Parcel>
-    implements CompositeModelBuilder<RealtimeCentralModel, Parcel> {
-
-    RtBuilder() {
-      setDependencies(RandomProvider.class, RtSimSolverBuilder.class,
-        RealTimeClockController.class, PDPRoadModel.class);
-    }
-
-    @SuppressWarnings("unchecked")
-    static ModelBuilder<?, ?> create(
-      StochasticSupplier<? extends RealtimeSolver> solverSupplier) {
-      return new AutoValue_Central_RtBuilder(
-        (StochasticSupplier<RealtimeSolver>) solverSupplier);
-    }
-
-    abstract StochasticSupplier<RealtimeSolver> getSolverSupplier();
-
-    @Override
-    public RealtimeCentralModel build(DependencyProvider dependencyProvider) {
-      RandomProvider rnd = dependencyProvider.get(RandomProvider.class);
-      RealtimeSolver solver = getSolverSupplier()
-        .get(rnd.masterInstance().nextLong());
-      RtSimSolver s = dependencyProvider.get(RtSimSolverBuilder.class)
-        .build(solver);
-      RealTimeClockController clock = dependencyProvider
-        .get(RealTimeClockController.class);
-      PDPRoadModel rm = dependencyProvider.get(PDPRoadModel.class);
-      return new RealtimeCentralModel(clock, s, rm);
-    }
-
-    @Override
-    public ImmutableSet<ModelBuilder<?, ?>> getChildren() {
-      return ImmutableSet.<ModelBuilder<?, ?>> of(RtSolverModel.builder());
-    }
-  }
-
-  private static final class RealtimeCentralModel extends AbstractModel<Parcel>
-    implements TickListener {
-    private boolean problemHasChanged;
-    private final boolean assignmentHasChanged;
-    Optional<ImmutableList<ImmutableList<? extends Parcel>>> schedule;
-
-    private final PDPRoadModel roadModel;
-    private final RtSimSolver solver;
-    private final RealTimeClockController clock;
-
-    RealtimeCentralModel(RealTimeClockController c, RtSimSolver s,
-      PDPRoadModel rm) {
-      problemHasChanged = false;
-      assignmentHasChanged = false;
-      clock = c;
-      solver = s;
-      roadModel = rm;
-      schedule = Optional.absent();
-    }
-
-    @Override
-    public boolean register(Parcel element) {
-      problemHasChanged = true;
-      clock.switchToRealTime();
-      return true;
-    }
-
-    @Override
-    public boolean unregister(Parcel element) {
-      return false;
-    }
-
-    @Override
-    public void tick(TimeLapse timeLapse) {
-      if (problemHasChanged) {
-        problemHasChanged = false;
-        // TODO check to see that this is called the first possible moment after
-        // the add parcel event was dispatched
-
-        // TODO it must be checked whether the calculated routes end up in the
-        // correct vehicles
-
-        final Set<RouteFollowingVehicle> vehicles = roadModel
-          .getObjectsOfType(RouteFollowingVehicle.class);
-
-        // gather current routes
-        final ImmutableList.Builder<ImmutableList<Parcel>> currentRouteBuilder = ImmutableList
-          .builder();
-        for (final RouteFollowingVehicle vehicle : vehicles) {
-          final ImmutableList<Parcel> l = ImmutableList.copyOf(vehicle
-            .getRoute());
-          currentRouteBuilder.add(l);
-        }
-
-        solver.solve(
-          SolveArgs.create().useCurrentRoutes(currentRouteBuilder.build()));
-      }
-
-      if (assignmentHasChanged) {
-        final Set<RouteFollowingVehicle> vehicles = roadModel
-          .getObjectsOfType(RouteFollowingVehicle.class);
-
-        Iterator<ImmutableList<? extends Parcel>> routes = schedule.get()
-          .iterator();
         for (final RouteFollowingVehicle vehicle : vehicles) {
           vehicle.setRoute(routes.next());
         }

@@ -15,6 +15,7 @@
  */
 package com.github.rinde.rinsim.central.rt;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
 
 import java.util.concurrent.Executors;
@@ -62,6 +63,13 @@ public class RtSolverModel extends AbstractModel<RtSolverUser> {
   @Override
   public boolean unregister(RtSolverUser element) {
     return true;
+  }
+
+  @Override
+  public <U> U get(Class<U> clazz) {
+    checkArgument(clazz == RtSimSolverBuilder.class,
+      "%s does not provide this type: %s.", getClass().getSimpleName(), clazz);
+    return clazz.cast(builder);
   }
 
   class RtSimSolverBuilderImpl extends RtSimSolverBuilder {
@@ -130,7 +138,6 @@ public class RtSolverModel extends AbstractModel<RtSolverUser> {
       @Override
       public void solve(SolveArgs args) {
         final StateContext sc = converter.convert(args);
-        clock.switchToRealTime();
         executor.submit(new Runnable() {
           @Override
           public void run() {
@@ -162,7 +169,8 @@ public class RtSolverModel extends AbstractModel<RtSolverUser> {
 
       @Override
       public ImmutableList<ImmutableList<Parcel>> getCurrentSchedule() {
-        checkState(currentSchedule.isPresent(), "No schedule.");
+        checkState(currentSchedule.isPresent(),
+          "No schedule has been set, use updateSchedule(..).");
         return currentSchedule.get();
       }
 
