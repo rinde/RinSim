@@ -18,14 +18,17 @@ package com.github.rinde.rinsim.scenario;
 import com.github.rinde.rinsim.core.SimulatorAPI;
 
 /**
- * Interface for handling scenario events.
+ * Interface for handling scenario events. Typically, implementors of this
+ * interface behave like a factory, upon receiving the event they will add a new
+ * object to the simulator.
  * @author Rinde van Lon
  * @param <T> The type of TimedEvent that this handler handles.
  */
 public interface TimedEventHandler<T extends TimedEvent> {
 
   /**
-   * Should handle the timed event.
+   * Should handle the timed event. Typically, a object that corresponds to the
+   * event is added to the simulator.
    * @param event The event to handle.
    * @param simulator The simulator.
    */

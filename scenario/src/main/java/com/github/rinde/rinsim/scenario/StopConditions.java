@@ -28,9 +28,9 @@ import com.google.common.collect.ImmutableSet;
  * to create more complex conditions. The following methods accept one or more
  * {@link StopCondition}s:
  * <ul>
- * <li> {@link #and(StopCondition, StopCondition, StopCondition...)}</li>
- * <li> {@link #or(StopCondition, StopCondition, StopCondition...)}</li>
- * <li> {@link #not(StopCondition)}</li>
+ * <li>{@link #and(StopCondition, StopCondition, StopCondition...)}</li>
+ * <li>{@link #or(StopCondition, StopCondition, StopCondition...)}</li>
+ * <li>{@link #not(StopCondition)}</li>
  * </ul>
  * @author Rinde van Lon
  */
@@ -80,8 +80,7 @@ public final class StopConditions {
         .add(condition1)
         .add(condition2)
         .addAll(asList(more))
-        .build()
-      );
+        .build());
   }
 
   /**
@@ -101,8 +100,7 @@ public final class StopConditions {
         .add(condition1)
         .add(condition2)
         .addAll(asList(more))
-        .build()
-      );
+        .build());
   }
 
   /**
@@ -202,11 +200,21 @@ public final class StopConditions {
       public boolean evaluate(TypeProvider provider) {
         return true;
       }
+
+      @Override
+      public String toString() {
+        return StopConditions.class.getSimpleName() + ".alwaysTrue()";
+      }
     },
     ALWAYS_FALSE {
       @Override
       public boolean evaluate(TypeProvider provider) {
         return false;
+      }
+
+      @Override
+      public String toString() {
+        return StopConditions.class.getSimpleName() + ".alwaysFalse()";
       }
     };
     @Override
