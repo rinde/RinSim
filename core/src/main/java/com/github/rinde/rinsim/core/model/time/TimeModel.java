@@ -99,7 +99,8 @@ public abstract class TimeModel extends AbstractModel<TickListener>
       return clazz.cast(this);
     }
     throw new IllegalArgumentException(
-      "This model does not provides instances of " + clazz + ".");
+      getClass().getSimpleName() + " does not provide instances of "
+        + clazz.getName() + ".");
   }
 
   @OverridingMethodsMustInvokeSuper

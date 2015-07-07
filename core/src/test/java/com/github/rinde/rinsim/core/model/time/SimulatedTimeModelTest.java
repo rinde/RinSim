@@ -77,4 +77,20 @@ public class SimulatedTimeModelTest extends TimeModelTest<SimulatedTimeModel> {
         ClockEventType.STARTED,
         ClockEventType.STOPPED));
   }
+
+  @Test
+  public void testProvidingTypes() {
+    assertThat(getModel().get(Clock.class)).isNotNull();
+    assertThat(getModel().get(ClockController.class)).isNotNull();
+
+    boolean fail = false;
+    try {
+      getModel().get(RealTimeClockController.class);
+    } catch (final IllegalArgumentException e) {
+      fail = true;
+      assertThat(e.getMessage()).contains(
+        "does not provide instances of com.github.rinde.rinsim.core.model.time.RealTimeClockController");
+    }
+    assertThat(fail).isTrue();
+  }
 }

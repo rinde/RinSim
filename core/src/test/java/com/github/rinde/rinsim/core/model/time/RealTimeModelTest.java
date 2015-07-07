@@ -23,9 +23,12 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import javax.measure.unit.NonSI;
+
 import org.junit.Test;
 import org.junit.runners.Parameterized.Parameters;
 
+import com.github.rinde.rinsim.core.model.FakeDependencyProvider;
 import com.github.rinde.rinsim.core.model.time.RealTimeClockController.ClockMode;
 import com.github.rinde.rinsim.core.model.time.TimeModel.AbstractBuilder;
 import com.google.common.collect.Iterators;
@@ -262,6 +265,58 @@ public class RealTimeModelTest extends TimeModelTest<RealTimeModel> {
     } catch (final IllegalStateException e) {
       assertThat(e.getMessage()).contains("took too much time");
       fail = true;
+    }
+    assertThat(fail).isTrue();
+  }
+
+  /**
+   * Tests that clock mode is correctly set through the builder.
+   */
+  @Test
+  public void testBuilderClockMode() {
+    final RealTimeModel tm1 = (RealTimeModel) TimeModel.builder()
+      .withRealTime()
+      .build(FakeDependencyProvider.empty());
+    assertThat(tm1.getClockMode()).isEqualTo(ClockMode.REAL_TIME);
+
+    final RealTimeModel tm2 = (RealTimeModel) TimeModel.builder()
+      .withRealTime()
+      .withStartInClockMode(ClockMode.SIMULATED)
+      .withTimeUnit(NonSI.HOUR)
+      .withTickLength(1)
+      .build(FakeDependencyProvider.empty());
+
+    assertThat(tm2.getClockMode()).isEqualTo(ClockMode.SIMULATED);
+    assertThat(tm2.getTimeUnit()).isEqualTo(NonSI.HOUR);
+    assertThat(tm2.getTickLength()).isEqualTo(1);
+
+    boolean fail = false;
+    try {
+      TimeModel.builder()
+        .withRealTime()
+        .withStartInClockMode(ClockMode.STOPPED);
+    } catch (final IllegalArgumentException e) {
+      assertThat(e.getMessage()).contains("Can not use");
+      fail = true;
+    }
+    assertThat(fail).isTrue();
+  }
+
+  /**
+   * Tests that the model provides the correct objects.
+   */
+  @Test
+  public void testProvidingTypes() {
+    assertThat(getModel().get(Clock.class)).isNotNull();
+    assertThat(getModel().get(ClockController.class)).isNotNull();
+    assertThat(getModel().get(RealTimeClockController.class)).isNotNull();
+    boolean fail = false;
+    try {
+      getModel().get(Object.class);
+    } catch (final IllegalArgumentException e) {
+      fail = true;
+      assertThat(e.getMessage())
+        .contains("does not provide instances of java.lang.Object");
     }
     assertThat(fail).isTrue();
   }

@@ -60,7 +60,8 @@ class RealTimeModel extends TimeModel implements RealTimeClockController {
 
     final RealTime rt = new RealTime(timeLapse);
     final SimulatedTime ff = new SimulatedTime();
-    stateMachine = StateMachine.create(INIT_RT)
+    stateMachine = StateMachine
+      .create(builder.getClockMode() == ClockMode.REAL_TIME ? INIT_RT : INIT_ST)
       .addTransition(INIT_RT, Trigger.SIMULATE, INIT_ST)
       .addTransition(INIT_RT, Trigger.START, rt)
       .addTransition(INIT_ST, Trigger.REAL_TIME, INIT_RT)
@@ -138,6 +139,14 @@ class RealTimeModel extends TimeModel implements RealTimeClockController {
   @Override
   public boolean unregister(TickListener tickListener) {
     return super.unregister(decoratorMap.remove(tickListener));
+  }
+
+  @Override
+  public <U> U get(Class<U> clazz) {
+    if (clazz == RealTimeClockController.class) {
+      return clazz.cast(this);
+    }
+    return super.get(clazz);
   }
 
   enum Trigger {
