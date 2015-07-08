@@ -74,6 +74,7 @@ class RealTimeModel extends TimeModel implements RealTimeClockController {
       .addTransition(ff, Trigger.SIMULATE, ff)
       .addTransition(ff, Trigger.DO_REAL_TIME, rt)
       .addTransition(ff, Trigger.STOP, STOPPED)
+      .addTransition(STOPPED, Trigger.STOP, STOPPED)
       .build();
   }
 
@@ -88,7 +89,7 @@ class RealTimeModel extends TimeModel implements RealTimeClockController {
   @Override
   public void stop() {
     checkState(stateMachine.isSupported(Trigger.STOP),
-      "Can not stop in current state: %s",
+      "Can not stop time in current state: %s",
       stateMachine.getCurrentState().name());
     stateMachine.handle(Trigger.STOP, this);
   }

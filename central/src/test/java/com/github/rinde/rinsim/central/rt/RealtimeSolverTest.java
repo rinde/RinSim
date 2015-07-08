@@ -20,7 +20,6 @@ import static com.google.common.truth.Truth.assertThat;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.junit.Ignore;
 import org.junit.Test;
 
 import com.github.rinde.rinsim.central.GlobalStateObject;
@@ -136,7 +135,7 @@ public class RealtimeSolverTest {
   }
 
   // TODO finish this test
-  @Ignore
+  // @Ignore
   @Test
   public void test() {
     Simulator sim = init(false)

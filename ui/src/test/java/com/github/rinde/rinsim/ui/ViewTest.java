@@ -28,6 +28,7 @@ import com.github.rinde.rinsim.core.model.pdp.TimeWindowPolicy.TimeWindowPolicie
 import com.github.rinde.rinsim.core.model.road.RoadModelBuilders;
 import com.github.rinde.rinsim.core.model.time.TickListener;
 import com.github.rinde.rinsim.core.model.time.TimeLapse;
+import com.github.rinde.rinsim.core.model.time.TimeModel;
 import com.github.rinde.rinsim.geom.Point;
 import com.github.rinde.rinsim.testutil.GuiTests;
 import com.github.rinde.rinsim.ui.renderers.PlaneRoadModelRenderer;
@@ -53,12 +54,32 @@ public class ViewTest {
         .withAutoPlay()
         .withSimulatorEndTime(10000)
         .with(PlaneRoadModelRenderer.builder())
-        .with(TestRenderer.builder())
-      )
+        .with(TestRenderer.builder()))
       .build();
 
     sim.start();
 
+  }
+
+  /**
+   * Test for ui with real time clock.
+   */
+  @Test
+  public void testRealtime() {
+    final Simulator sim = Simulator.builder()
+      .addModel(TimeModel.builder()
+        .withRealTime()
+        .withTickLength(100L))
+      .addModel(RoadModelBuilders.plane())
+      .addModel(View.builder()
+        .withTitleAppendix("ViewTest")
+        .withAutoClose()
+        .withAutoPlay()
+        .withSimulatorEndTime(1000)
+        .with(PlaneRoadModelRenderer.builder())
+        .with(TestRenderer.builder()))
+      .build();
+    sim.start();
   }
 
   /**
@@ -71,15 +92,13 @@ public class ViewTest {
       .addModel(RoadModelBuilders.plane())
       .addModel(
         DefaultPDPModel.builder()
-          .withTimeWindowPolicy(TimeWindowPolicies.LIBERAL)
-      )
+          .withTimeWindowPolicy(TimeWindowPolicies.LIBERAL))
       .addModel(
         View.builder()
           .withTitleAppendix("ViewTest")
           .with(PlaneRoadModelRenderer.builder())
           .with(RoadUserRenderer.builder())
-          .withAutoPlay()
-      )
+          .withAutoPlay())
       .build();
 
     sim.register(new TickListener() {
@@ -89,11 +108,11 @@ public class ViewTest {
           final Display disp = UITestTools.findDisplay();
           verifyNotNull(disp).syncExec(
             new Runnable() {
-              @Override
-              public void run() {
-                verifyNotNull(disp).getActiveShell().close();
-              }
-            });
+            @Override
+            public void run() {
+              verifyNotNull(disp).getActiveShell().close();
+            }
+          });
         }
       }
 

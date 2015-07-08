@@ -27,6 +27,7 @@ import com.github.rinde.rinsim.core.model.pdp.Vehicle;
 import com.github.rinde.rinsim.core.model.pdp.VehicleDTO;
 import com.github.rinde.rinsim.core.model.road.RoadModelBuilders;
 import com.github.rinde.rinsim.core.model.time.TimeLapse;
+import com.github.rinde.rinsim.core.model.time.TimeModel;
 import com.github.rinde.rinsim.geom.Point;
 import com.github.rinde.rinsim.testutil.GuiTests;
 import com.github.rinde.rinsim.ui.View;
@@ -39,26 +40,24 @@ import com.github.rinde.rinsim.ui.View;
 public class PDPModelRendererTest {
 
   /**
-   * Test for {@link PDPModelRenderer}.
+   * Test for {@link PDPModelRenderer} in combination with a realtime clock.
    */
   @Test
   public void test() {
     final Simulator sim = Simulator.builder()
+      .addModel(TimeModel.builder().withRealTime())
       .addModel(RoadModelBuilders.plane())
       .addModel(DefaultPDPModel.builder())
       .addModel(View.builder()
         .with(PlaneRoadModelRenderer.builder())
         .with(RoadUserRenderer.builder()
           .withColorAssociation(Depot.class, new RGB(255, 200, 0))
-          .withCircleAroundObjects()
-        )
+          .withCircleAroundObjects())
         .with(PDPModelRenderer.builder()
-          .withDestinationLines()
-        )
+          .withDestinationLines())
         .withAutoPlay()
         .withAutoClose()
-        .withSimulatorEndTime(10000)
-      )
+        .withSimulatorEndTime(5000))
       .build();
 
     for (int i = 0; i < 10; i++) {
