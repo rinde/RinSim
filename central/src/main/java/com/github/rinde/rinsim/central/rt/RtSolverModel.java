@@ -160,8 +160,7 @@ public class RtSolverModel extends AbstractModel<RtSolverUser> {
 
     class InternalScheduler extends Scheduler {
       @Override
-      public void updateSchedule(
-        ImmutableList<ImmutableList<Parcel>> routes) {
+      public void updateSchedule(ImmutableList<ImmutableList<Parcel>> routes) {
         currentSchedule = Optional.of(routes);
         isUpdated = true;
 

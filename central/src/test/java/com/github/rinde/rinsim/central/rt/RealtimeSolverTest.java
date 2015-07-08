@@ -20,15 +20,20 @@ import static com.google.common.truth.Truth.assertThat;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.github.rinde.rinsim.central.GlobalStateObject;
 import com.github.rinde.rinsim.central.RandomSolver;
+import com.github.rinde.rinsim.central.SolverValidator;
 import com.github.rinde.rinsim.core.Simulator;
+import com.github.rinde.rinsim.core.SimulatorAPI;
 import com.github.rinde.rinsim.core.model.DependencyProvider;
 import com.github.rinde.rinsim.core.model.Model.AbstractModelVoid;
 import com.github.rinde.rinsim.core.model.ModelBuilder.AbstractModelBuilder;
 import com.github.rinde.rinsim.core.model.pdp.DefaultPDPModel;
+import com.github.rinde.rinsim.core.model.pdp.PDPModel;
+import com.github.rinde.rinsim.core.model.pdp.PDPModel.PDPModelEventType;
 import com.github.rinde.rinsim.core.model.pdp.Parcel;
 import com.github.rinde.rinsim.core.model.pdp.VehicleDTO;
 import com.github.rinde.rinsim.core.model.road.RoadModelBuilders;
@@ -37,17 +42,21 @@ import com.github.rinde.rinsim.core.model.time.RealTimeClockController.ClockMode
 import com.github.rinde.rinsim.core.model.time.TickListener;
 import com.github.rinde.rinsim.core.model.time.TimeLapse;
 import com.github.rinde.rinsim.core.model.time.TimeModel;
+import com.github.rinde.rinsim.event.Event;
+import com.github.rinde.rinsim.event.Listener;
 import com.github.rinde.rinsim.geom.Point;
 import com.github.rinde.rinsim.pdptw.common.AddDepotEvent;
 import com.github.rinde.rinsim.pdptw.common.AddParcelEvent;
 import com.github.rinde.rinsim.pdptw.common.AddVehicleEvent;
 import com.github.rinde.rinsim.pdptw.common.PDPRoadModel;
+import com.github.rinde.rinsim.pdptw.common.RouteFollowingVehicle;
 import com.github.rinde.rinsim.pdptw.common.RouteRenderer;
 import com.github.rinde.rinsim.pdptw.common.StatsStopConditions;
 import com.github.rinde.rinsim.pdptw.common.StatsTracker;
 import com.github.rinde.rinsim.scenario.Scenario;
 import com.github.rinde.rinsim.scenario.ScenarioController;
 import com.github.rinde.rinsim.scenario.TimeOutEvent;
+import com.github.rinde.rinsim.scenario.TimedEventHandler;
 import com.github.rinde.rinsim.ui.View;
 import com.github.rinde.rinsim.ui.renderers.PDPModelRenderer;
 import com.github.rinde.rinsim.ui.renderers.PlaneRoadModelRenderer;
@@ -67,7 +76,8 @@ import com.google.common.collect.Range;
  */
 public class RealtimeSolverTest {
 
-  static Simulator.Builder init(boolean timeOut) {
+  static Simulator.Builder init(boolean timeOut,
+    TimedEventHandler<AddVehicleEvent> vehicleHandler) {
 
     Scenario.Builder b = Scenario.builder()
       .addEvent(AddDepotEvent.create(-1, new Point(5, 5)))
@@ -92,7 +102,7 @@ public class RealtimeSolverTest {
 
     ScenarioController.Builder sb = ScenarioController.builder(scenario)
       .withEventHandler(AddParcelEvent.class, AddParcelEvent.defaultHandler())
-      .withEventHandler(AddVehicleEvent.class, RtCentral.vehicleHandler())
+      .withEventHandler(AddVehicleEvent.class, vehicleHandler)
       .withEventHandler(AddDepotEvent.class, AddDepotEvent.defaultHandler())
       .withOrStopCondition(StatsStopConditions.vehiclesDoneAndBackAtDepot())
       .withOrStopCondition(StatsStopConditions.timeOutEvent());
@@ -120,7 +130,7 @@ public class RealtimeSolverTest {
    */
   @Test
   public void testDynamicClockModeSwitching() {
-    Simulator sim = init(true)
+    Simulator sim = init(true, RtCentral.vehicleHandler())
       .addModel(
         RtCentral.builder(StochasticSuppliers.constant(new TestRtSolver())))
       .addModel(ClockInspectModel.builder())
@@ -135,18 +145,31 @@ public class RealtimeSolverTest {
   }
 
   // TODO finish this test
-  // @Ignore
+  @Ignore
   @Test
   public void test() {
-    Simulator sim = init(false)
-      .addModel(RtCentral.builderAdapt(RandomSolver.supplier()))
+    final List<RouteFollowingVehicle> vehicles = new ArrayList<>();
+    Simulator sim = init(false, new TestVehicleHandler(vehicles))
+      .addModel(
+        RtCentral.builderAdapt(SolverValidator.wrap(RandomSolver.supplier())))
       .addModel(
         View.builder()
+          .withAutoPlay()
           .with(PDPModelRenderer.builder())
           .with(RouteRenderer.builder())
           .with(RoadUserRenderer.builder())
           .with(PlaneRoadModelRenderer.builder()))
       .build();
+
+    sim.getModelProvider().getModel(PDPModel.class).getEventAPI()
+      .addListener(new Listener() {
+
+        @Override
+        public void handleEvent(Event e) {
+          System.out.println(e);
+
+        }
+      }, PDPModelEventType.values());
 
     sim.register(new TickListener() {
 
@@ -154,16 +177,49 @@ public class RealtimeSolverTest {
       public void tick(TimeLapse timeLapse) {
         System.out.println(timeLapse);
 
+        // if (timeLapse.getStartTime() == 300) {
+        for (int i = 0; i < vehicles.size(); i++) {
+
+          System.out.println(i + " " + vehicles.get(i).getRoute());
+        }
+        // }
+
       }
 
       @Override
       public void afterTick(TimeLapse timeLapse) {
         // TODO Auto-generated method stub
+        // if (timeLapse.getStartTime() == 300) {
+        for (int i = 0; i < vehicles.size(); i++) {
+
+          System.out.println(i + " " + vehicles.get(i).getRoute());
+        }
+        // }
 
       }
     });
 
     sim.start();
+  }
+
+  static class TestVehicleHandler
+    implements TimedEventHandler<AddVehicleEvent> {
+
+    final List<RouteFollowingVehicle> vehicles;
+
+    // all created vehicles will be added to this list
+    TestVehicleHandler(List<RouteFollowingVehicle> vs) {
+      vehicles = vs;
+    }
+
+    @Override
+    public void handleTimedEvent(AddVehicleEvent event,
+      SimulatorAPI simulator) {
+      RouteFollowingVehicle v = new RouteFollowingVehicle(event.getVehicleDTO(),
+        false);
+      simulator.register(v);
+      vehicles.add(v);
+    }
   }
 
   static class ClockInspectModel extends AbstractModelVoid
@@ -295,7 +351,8 @@ public class RealtimeSolverTest {
       scheduler.get().doneForNow();
 
       ImmutableList<ImmutableList<Parcel>> schedule = ImmutableList
-        .of(ImmutableList.copyOf(snapshot.getAvailableParcels()));
+        .of(ImmutableList.copyOf(snapshot.getAvailableParcels()),
+          ImmutableList.<Parcel> of());
 
       scheduler.get().updateSchedule(schedule);
       assertThat(scheduler.get().getCurrentSchedule()).isEqualTo(schedule);

@@ -77,7 +77,9 @@ public class SolverToRealtimeAdapter implements RealtimeSolver {
         }
 
         @Override
-        public void onFailure(Throwable t) {}
+        public void onFailure(Throwable t) {
+          throw new IllegalStateException(t);
+        }
       });
   }
 

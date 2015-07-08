@@ -15,6 +15,8 @@
  */
 package com.github.rinde.rinsim.central.rt;
 
+import static com.google.common.base.Preconditions.checkArgument;
+
 import java.util.Iterator;
 import java.util.Set;
 
@@ -38,7 +40,6 @@ import com.github.rinde.rinsim.pdptw.common.RouteFollowingVehicle;
 import com.github.rinde.rinsim.scenario.TimedEventHandler;
 import com.github.rinde.rinsim.util.StochasticSupplier;
 import com.google.auto.value.AutoValue;
-import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 
@@ -78,8 +79,6 @@ public class RtCentral {
   public static final class RtCentralModel extends AbstractModel<Parcel>
     implements TickListener {
     private boolean problemHasChanged;
-    private final boolean assignmentHasChanged;
-    Optional<ImmutableList<ImmutableList<? extends Parcel>>> schedule;
 
     private final PDPRoadModel roadModel;
     private final RtSimSolver solver;
@@ -87,11 +86,9 @@ public class RtCentral {
 
     RtCentralModel(RealTimeClockController c, RtSimSolver s, PDPRoadModel rm) {
       problemHasChanged = false;
-      assignmentHasChanged = false;
       clock = c;
       solver = s;
       roadModel = rm;
-      schedule = Optional.absent();
     }
 
     @Override
@@ -110,6 +107,7 @@ public class RtCentral {
     public void tick(TimeLapse timeLapse) {
       if (problemHasChanged) {
         problemHasChanged = false;
+        System.out.println("problem has changed");
         // TODO check to see that this is called the first possible moment after
         // the add parcel event was dispatched
 
@@ -130,14 +128,26 @@ public class RtCentral {
 
         solver.solve(
           SolveArgs.create().useCurrentRoutes(currentRouteBuilder.build()));
+
+        // TODO
+        // wait for about 1 tick ? to immediately use result of solver if it is
+        // that fast?
       }
 
-      if (assignmentHasChanged) {
+      if (solver.isScheduleUpdated()) {
+        System.out.println("solver has new schedule");
         final Set<RouteFollowingVehicle> vehicles = roadModel
           .getObjectsOfType(RouteFollowingVehicle.class);
 
-        Iterator<ImmutableList<? extends Parcel>> routes = schedule.get()
-          .iterator();
+        ImmutableList<ImmutableList<Parcel>> schedule = solver
+          .getCurrentSchedule();
+
+        checkArgument(schedule.size() == vehicles.size(),
+          "An invalid schedule was created, a valid schedule should contain one "
+            + "route for each vehicle, routes: %s, vehicles: %s.",
+          schedule.size(), vehicles.size());
+
+        Iterator<ImmutableList<Parcel>> routes = schedule.iterator();
         for (final RouteFollowingVehicle vehicle : vehicles) {
           vehicle.setRoute(routes.next());
         }
