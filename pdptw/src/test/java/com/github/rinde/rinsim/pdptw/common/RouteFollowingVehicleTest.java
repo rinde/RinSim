@@ -18,8 +18,8 @@ package com.github.rinde.rinsim.pdptw.common;
 import static com.github.rinde.rinsim.core.model.time.TimeLapseFactory.time;
 import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Sets.newHashSet;
+import static com.google.common.truth.Truth.assertThat;
 import static java.util.Arrays.asList;
-import static junit.framework.Assert.assertNotSame;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertSame;
@@ -31,6 +31,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.LinkedList;
 
 import javax.measure.unit.SI;
 
@@ -127,8 +128,7 @@ public class RouteFollowingVehicleTest {
     final DependencyProvider dp = mock(DependencyProvider.class);
     rm = PDPRoadModel.builder(
       RoadModelBuilders.plane()
-        .withMaxSpeed(30d)
-      )
+        .withMaxSpeed(30d))
       .withAllowVehicleDiversion(diversionIsAllowed)
       .build(dp);
 
@@ -231,9 +231,8 @@ public class RouteFollowingVehicleTest {
       || pm.getVehicleState(d) == VehicleState.PICKING_UP) {
       assertSame(d.serviceState, d.stateMachine.getCurrentState());
     } else {
-      assertNotSame(d.serviceState, d.stateMachine.getCurrentState());
+      assertThat(d.serviceState).isNotSameAs(d.stateMachine.getCurrentState());
     }
-
   }
 
   void tick(long beginMinute, long endMinute) {
@@ -510,7 +509,17 @@ public class RouteFollowingVehicleTest {
     } catch (final IllegalArgumentException e) {
       exception = true;
     }
-    assertNotSame(exception, allowDelayedRouteChanges);
+    assertThat(exception).isNotSameAs(allowDelayedRouteChanges);
+  }
+
+  @Test
+  public void setRouteSafeTest() {
+    d.setRouteSafe(asList(p1));
+    tick(0, 8);
+    assertThat(pm.getParcelState(p1)).isSameAs(ParcelState.IN_CARGO);
+    assertThat(d.getRoute()).isEmpty();
+    d.setRouteSafe(asList(p1, p2, p1));
+    assertThat(d.getRoute()).containsExactly(p2, p1).inOrder();
   }
 
   /**
@@ -530,12 +539,12 @@ public class RouteFollowingVehicleTest {
       if (diversionIsAllowed) {
         // route has changed, here the actual NOGO event will be sent
         assertEquals(d.waitState, d.stateMachine.getCurrentState());
-        assertEquals(asList(), d.route);
+        assertEquals(new LinkedList<>(), d.route);
         assertFalse(d.newRoute.isPresent());
       } else {
         // route has not yet changed
         assertEquals(d.gotoState, d.stateMachine.getCurrentState());
-        assertEquals(asList(p2), d.route);
+        assertEquals(new LinkedList<>(asList(p2)), d.route);
         assertEquals(asList(), d.newRoute.get());
       }
     } catch (final IllegalArgumentException e) {
@@ -560,12 +569,12 @@ public class RouteFollowingVehicleTest {
       if (diversionIsAllowed) {
         // route has changed, here the actual REROUTE event will be sent
         assertEquals(d.gotoState, d.stateMachine.getCurrentState());
-        assertEquals(asList(p2), d.route);
+        assertEquals(new LinkedList<>(asList(p2)), d.route);
         assertFalse(d.newRoute.isPresent());
       } else {
         // route has not yet changed
         assertEquals(d.serviceState, d.stateMachine.getCurrentState());
-        assertEquals(asList(p1), d.route);
+        assertEquals(new LinkedList<>(asList(p1)), d.route);
         assertEquals(asList(p2), d.newRoute.get());
       }
     } catch (final IllegalArgumentException e) {
@@ -614,7 +623,7 @@ public class RouteFollowingVehicleTest {
         assertFalse(d.newRoute.isPresent());
       }
       // no diversion allowed, no change yet
-      assertEquals(asList(p1, p2, p1), d.route);
+      assertEquals(new LinkedList<>(asList(p1, p2, p1)), d.route);
     }
 
     // change it back
@@ -629,11 +638,11 @@ public class RouteFollowingVehicleTest {
       exception2 = true;
     }
     if (diversionIsAllowed) {
-      assertEquals(asList(p2), d.route);
+      assertEquals(new LinkedList<>(asList(p2)), d.route);
       assertEquals(Optional.absent(), d.newRoute);
       assertFalse(exception2);
     } else {
-      assertEquals(asList(p1), d.route);
+      assertEquals(new LinkedList<>(asList(p1)), d.route);
 
       if (allowDelayedRouteChanges) {
         assertFalse(exception2);
@@ -716,8 +725,7 @@ public class RouteFollowingVehicleTest {
 
       assertEquals(p2, d.gotoState.getDestination());
       assertEquals(p1, d.gotoState.getPreviousDestination());
-    }
-    else {
+    } else {
       assertEquals(1, leh.getHistory().size());
       assertEquals(p1, d.gotoState.getDestination());
       assertFalse(d.gotoState.prevDestination.isPresent());
@@ -750,21 +758,21 @@ public class RouteFollowingVehicleTest {
     // during servicing, the first part of the route can not be changed
 
     d.setRoute(asList(p1, p2, p1));
-    assertEquals(asList(p1, p2, p1), d.route);
+    assertEquals(new LinkedList<>(asList(p1, p2, p1)), d.route);
     assertEquals(Optional.absent(), d.newRoute);
     d.setRoute(asList(p1));
-    assertEquals(asList(p1), d.route);
+    assertEquals(new LinkedList<>(asList(p1)), d.route);
     assertEquals(Optional.absent(), d.newRoute);
 
     boolean excep = false;
     try {
       d.setRoute(asList(p2));
       assertEquals(asList(p2), d.newRoute.get());
-      assertEquals(asList(p1), d.route);
+      assertEquals(new LinkedList<>(asList(p1)), d.route);
     } catch (final IllegalArgumentException e) {
       excep = true;
     }
-    assertNotSame(excep, allowDelayedRouteChanges);
+    assertThat(excep).isNotSameAs(allowDelayedRouteChanges);
 
     tick(6, 7);
     assertEquals(d.serviceState, d.stateMachine.getCurrentState());
@@ -776,10 +784,10 @@ public class RouteFollowingVehicleTest {
     tick(8, 9);
     assertEquals(d.waitState, d.stateMachine.getCurrentState());
     if (excep) {
-      assertEquals(asList(), d.route);
+      assertEquals(new LinkedList<>(asList()), d.route);
       assertEquals(Optional.absent(), d.newRoute);
     } else {
-      assertEquals(asList(p2), d.route);
+      assertEquals(new LinkedList<>(asList(p2)), d.route);
       assertEquals(Optional.absent(), d.newRoute);
     }
   }
@@ -793,15 +801,15 @@ public class RouteFollowingVehicleTest {
     assertEquals(d.waitState, d.stateMachine.getCurrentState());
     d.setRoute(asList(p1));
     assertEquals(Optional.absent(), d.newRoute);
-    assertEquals(asList(p1), d.route);
+    assertEquals(new LinkedList<>(asList(p1)), d.route);
 
     d.setRoute(asList(p1, p2, p1, p2));
     assertEquals(Optional.absent(), d.newRoute);
-    assertEquals(asList(p1, p2, p1, p2), d.route);
+    assertEquals(new LinkedList<>(asList(p1, p2, p1, p2)), d.route);
 
     d.setRoute(asList(p2, p2, p1, p1));
     assertEquals(Optional.absent(), d.newRoute);
-    assertEquals(asList(p2, p2, p1, p1), d.route);
+    assertEquals(new LinkedList<>(asList(p2, p2, p1, p1)), d.route);
   }
 
   /**
@@ -836,7 +844,8 @@ public class RouteFollowingVehicleTest {
     } catch (final IllegalArgumentException e) {
       fails = true;
     }
-    assertNotSame(allowDelayedRouteChanges || diversionIsAllowed, fails);
+    assertThat(allowDelayedRouteChanges || diversionIsAllowed)
+      .isNotSameAs(fails);
 
     if (allowDelayedRouteChanges && !diversionIsAllowed) {
       assertEquals(1, d.getRoute().size());
@@ -845,8 +854,7 @@ public class RouteFollowingVehicleTest {
     tick(4, 5);
     if (diversionIsAllowed) {
       assertEquals(d.waitState, d.stateMachine.getCurrentState());
-    }
-    else {
+    } else {
       assertEquals(d.waitForServiceState, d.stateMachine.getCurrentState());
     }
   }
