@@ -16,7 +16,6 @@
 package com.github.rinde.rinsim.central.rt;
 
 import static com.google.common.base.Preconditions.checkState;
-import static com.google.common.base.Verify.verifyNotNull;
 
 import java.util.concurrent.Callable;
 import java.util.concurrent.Executors;
@@ -73,7 +72,11 @@ public class SolverToRealtimeAdapter implements RealtimeSolver {
         @Override
         public void onSuccess(
           @Nullable ImmutableList<ImmutableList<Parcel>> result) {
-          scheduler.get().updateSchedule(verifyNotNull(result));
+          if (result == null) {
+            throw new NullPointerException(
+              "Solver.solve(..) must return a non-null result.");
+          }
+          scheduler.get().updateSchedule(result);
           scheduler.get().doneForNow();
         }
 

@@ -108,7 +108,7 @@ public class RtCentral {
     public void tick(TimeLapse timeLapse) {
       if (problemHasChanged) {
         problemHasChanged = false;
-        System.out.println("problem has changed");
+        System.out.println("problem has changed " + timeLapse);
         // TODO check to see that this is called the first possible moment after
         // the add parcel event was dispatched
 
@@ -130,13 +130,19 @@ public class RtCentral {
         solver.solve(
           SolveArgs.create().useCurrentRoutes(currentRouteBuilder.build()));
 
+        try {
+          Thread.sleep(timeLapse.getTickLength() / 2);
+        } catch (InterruptedException e) {
+          throw new IllegalStateException(e);
+        }
+
         // TODO
         // wait for about 1 tick ? to immediately use result of solver if it is
         // that fast?
       }
 
       if (solver.isScheduleUpdated()) {
-        System.out.println("solver has new schedule");
+        System.out.println("solver has new schedule " + timeLapse);
         final Set<RouteFollowingVehicle> vehicles = roadModel
           .getObjectsOfType(RouteFollowingVehicle.class);
 

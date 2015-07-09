@@ -16,15 +16,16 @@
 package com.github.rinde.rinsim.central.rt;
 
 import static com.google.common.truth.Truth.assertThat;
+import static java.util.Arrays.asList;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.github.rinde.rinsim.central.GlobalStateObject;
-import com.github.rinde.rinsim.central.RandomSolver;
-import com.github.rinde.rinsim.central.SolverValidator;
+import com.github.rinde.rinsim.central.Solver;
 import com.github.rinde.rinsim.core.Simulator;
 import com.github.rinde.rinsim.core.SimulatorAPI;
 import com.github.rinde.rinsim.core.model.DependencyProvider;
@@ -35,6 +36,7 @@ import com.github.rinde.rinsim.core.model.pdp.PDPModel;
 import com.github.rinde.rinsim.core.model.pdp.PDPModel.PDPModelEventType;
 import com.github.rinde.rinsim.core.model.pdp.Parcel;
 import com.github.rinde.rinsim.core.model.pdp.VehicleDTO;
+import com.github.rinde.rinsim.core.model.road.RoadModel;
 import com.github.rinde.rinsim.core.model.road.RoadModelBuilders;
 import com.github.rinde.rinsim.core.model.time.RealTimeClockController;
 import com.github.rinde.rinsim.core.model.time.RealTimeClockController.ClockMode;
@@ -56,6 +58,7 @@ import com.github.rinde.rinsim.pdptw.common.TimeLinePanel;
 import com.github.rinde.rinsim.scenario.Scenario;
 import com.github.rinde.rinsim.scenario.ScenarioController;
 import com.github.rinde.rinsim.scenario.TimeOutEvent;
+import com.github.rinde.rinsim.scenario.TimedEvent;
 import com.github.rinde.rinsim.scenario.TimedEventHandler;
 import com.github.rinde.rinsim.ui.View;
 import com.github.rinde.rinsim.ui.renderers.PDPModelRenderer;
@@ -76,42 +79,25 @@ import com.google.common.collect.Range;
  */
 public class RealtimeSolverTest {
 
-  static Simulator.Builder init(boolean timeOut,
-    TimedEventHandler<AddVehicleEvent> vehicleHandler) {
+  static Simulator.Builder init(
+    TimedEventHandler<AddVehicleEvent> vehicleHandler,
+    Iterable<? extends TimedEvent> events) {
 
-    Scenario.Builder b = Scenario.builder()
+    Scenario scenario = Scenario.builder()
       .addEvent(AddDepotEvent.create(-1, new Point(5, 5)))
       .addEvent(AddVehicleEvent.create(-1, VehicleDTO.builder().build()))
       .addEvent(AddVehicleEvent.create(-1, VehicleDTO.builder().build()))
-      .addEvent(
-        AddParcelEvent
-          .create(Parcel.builder(new Point(0, 0), new Point(3, 3))
-            .orderAnnounceTime(200)
-            .pickupTimeWindow(new TimeWindow(1000, 2000))
-            .buildDTO()))
-      .addEvent(
-        AddParcelEvent
-          .create(Parcel.builder(new Point(0, 0), new Point(3, 3))
-            .orderAnnounceTime(60000)
-            .pickupTimeWindow(new TimeWindow(60000, 80000))
-            .serviceDuration(180000L)
-            .buildDTO()));
-    if (timeOut) {
-      b.addEvent(TimeOutEvent.create(3000));
-    }
-    Scenario scenario = b.build();
+      .addEvents(events)
+      .build();
 
     ScenarioController.Builder sb = ScenarioController.builder(scenario)
       .withEventHandler(AddParcelEvent.class, AddParcelEvent.defaultHandler())
       .withEventHandler(AddVehicleEvent.class, vehicleHandler)
       .withEventHandler(AddDepotEvent.class, AddDepotEvent.defaultHandler())
+      .withEventHandler(TimeOutEvent.class,
+        TimeOutEvent.ignoreHandler())
       .withOrStopCondition(StatsStopConditions.vehiclesDoneAndBackAtDepot())
       .withOrStopCondition(StatsStopConditions.timeOutEvent());
-
-    if (timeOut) {
-      sb = sb.withEventHandler(TimeOutEvent.class,
-        TimeOutEvent.ignoreHandler());
-    }
 
     return Simulator.builder()
       .addModel(PDPRoadModel.builder(RoadModelBuilders.plane()))
@@ -122,7 +108,6 @@ public class RealtimeSolverTest {
         .withTickLength(100))
       .addModel(sb)
       .addModel(StatsTracker.builder());
-
   }
 
   /**
@@ -131,7 +116,20 @@ public class RealtimeSolverTest {
    */
   @Test
   public void testDynamicClockModeSwitching() {
-    Simulator sim = init(true, RtCentral.vehicleHandler())
+    List<TimedEvent> events = asList(AddParcelEvent
+      .create(Parcel.builder(new Point(0, 0), new Point(3, 3))
+        .orderAnnounceTime(200)
+        .pickupTimeWindow(new TimeWindow(1000, 2000))
+        .buildDTO()),
+      AddParcelEvent
+        .create(Parcel.builder(new Point(0, 0), new Point(3, 3))
+          .orderAnnounceTime(1000)
+          .pickupTimeWindow(new TimeWindow(60000, 80000))
+          .serviceDuration(180000L)
+          .buildDTO()),
+      TimeOutEvent.create(3000));
+
+    Simulator sim = init(RtCentral.vehicleHandler(), events)
       .addModel(
         RtCentral.builder(StochasticSuppliers.constant(new TestRtSolver())))
       .addModel(ClockInspectModel.builder())
@@ -157,15 +155,41 @@ public class RealtimeSolverTest {
 
   // TODO finish this test
   @Test
+  @Ignore
   public void test() {
+    List<TimedEvent> events = asList(
+      AddParcelEvent.create(Parcel.builder(new Point(1, 1), new Point(3, 3))
+        .orderAnnounceTime(200)
+        .pickupTimeWindow(new TimeWindow(1000, 2000))
+        .buildDTO()),
+      AddParcelEvent.create(Parcel.builder(new Point(1, 4), new Point(3, 4))
+        .orderAnnounceTime(60000)
+        .pickupTimeWindow(new TimeWindow(60000, 80000))
+        .serviceDuration(180000L)
+        .buildDTO()),
+      TimeOutEvent.create(1800000));
+
     final List<RouteFollowingVehicle> vehicles = new ArrayList<>();
-    Simulator sim = init(false, new TestVehicleHandler(vehicles))
+    Simulator sim = init(new TestVehicleHandler(vehicles), events)
       .addModel(
-        RtCentral.builderAdapt(SolverValidator.wrap(RandomSolver.supplier())))
+        RtCentral.builderAdapt(StochasticSuppliers.constant(new Solver() {
+          @Override
+          public ImmutableList<ImmutableList<Parcel>> solve(
+            GlobalStateObject state) {
+            return ImmutableList.of(ImmutableList.<Parcel> builder()
+              .addAll(state.getAvailableParcels())
+              .addAll(state.getAvailableParcels())
+              .build(),
+              ImmutableList.<Parcel> of());
+          }
+        })
+
+    ))
       .addModel(
         View.builder()
           .withAutoPlay()
-          .with(PDPModelRenderer.builder())
+          .with(PDPModelRenderer.builder()
+            .withDestinationLines())
           .with(RouteRenderer.builder())
           .with(RoadUserRenderer.builder())
           .with(PlaneRoadModelRenderer.builder())
@@ -182,31 +206,36 @@ public class RealtimeSolverTest {
         }
       }, PDPModelEventType.values());
 
+    final RoadModel rm = sim.getModelProvider().getModel(RoadModel.class);
+
     sim.register(new TickListener() {
 
       @Override
       public void tick(TimeLapse timeLapse) {
-        // System.out.println(timeLapse);
 
-        // if (timeLapse.getStartTime() == 300) {
-        for (int i = 0; i < vehicles.size(); i++) {
-
-          // System.out.println(i + " " + vehicles.get(i).getRoute());
+        if (timeLapse.getStartTime() == 100) {
+          System.out.println(rm.getPosition(vehicles.get(0)));
+          assertThat(vehicles.get(0).getRoute()).isEmpty();
+          assertThat(vehicles.get(1).getRoute()).isEmpty();
+        } else if (timeLapse.getStartTime() == 200) {
+          // TODO this is where the vehicle should have moved already?
+          System.out.println(rm.getPosition(vehicles.get(0)));
+          assertThat(vehicles.get(0).getRoute()).hasSize(2);
+          assertThat(vehicles.get(1).getRoute()).isEmpty();
+        } else if (timeLapse.getStartTime() == 300) {
+          System.out.println(rm.getPosition(vehicles.get(0)));
+        } else if (timeLapse.getStartTime() == 59900) {
+          assertThat(vehicles.get(0).getRoute()).hasSize(2);
+          assertThat(vehicles.get(1).getRoute()).isEmpty();
+        } else if (timeLapse.getStartTime() == 60000) {
+          assertThat(vehicles.get(0).getRoute()).hasSize(4);
+          assertThat(vehicles.get(1).getRoute()).isEmpty();
         }
-        // }
 
       }
 
       @Override
-      public void afterTick(TimeLapse timeLapse) {
-        // if (timeLapse.getStartTime() == 300) {
-        for (int i = 0; i < vehicles.size(); i++) {
-
-          // System.out.println(i + " " + vehicles.get(i).getRoute());
-        }
-        // }
-
-      }
+      public void afterTick(TimeLapse timeLapse) {}
     });
 
     sim.start();
@@ -283,7 +312,7 @@ public class RealtimeSolverTest {
         interArrivalTimes.add((l2.wallTime - l1.wallTime) / 1000000d);
       }
 
-      Range<Double> acceptableDuration = Range.closed(90d, 110d);
+      Range<Double> acceptableDuration = Range.closed(90d, 120d);
       assertThat(sum(interArrivalTimes.subList(0, 3))).isAtMost(100d);
       assertThat(interArrivalTimes.get(3)).isIn(acceptableDuration);
       assertThat(interArrivalTimes.get(4)).isIn(acceptableDuration);
