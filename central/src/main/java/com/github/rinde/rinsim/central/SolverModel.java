@@ -32,8 +32,8 @@ import com.google.common.collect.ImmutableList;
 
 /**
  * The solver model facilitates the use of {@link Solver}s from within agents.
- * By implementing {@link SolverUser} an agent can obtain an
- * {@link SimSolver} instance.
+ * By implementing {@link SolverUser} an agent can obtain an {@link SimSolver}
+ * instance.
  * <p>
  * <b>Model properties</b>
  * <ul>
@@ -44,7 +44,7 @@ import com.google.common.collect.ImmutableList;
  * </ul>
  * @author Rinde van Lon
  */
-public class SolverModel extends AbstractModel<SolverUser> {
+public final class SolverModel extends AbstractModel<SolverUser> {
 
   private final Clock clock;
   private final PDPRoadModel roadModel;
@@ -114,7 +114,7 @@ public class SolverModel extends AbstractModel<SolverUser> {
    */
   @AutoValue
   public abstract static class Builder extends
-    AbstractModelBuilder<SolverModel, SolverUser> implements Serializable {
+    AbstractModelBuilder<SolverModel, SolverUser>implements Serializable {
 
     private static final long serialVersionUID = -4369279105715776943L;
 

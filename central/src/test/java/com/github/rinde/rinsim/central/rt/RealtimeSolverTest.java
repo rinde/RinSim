@@ -20,7 +20,6 @@ import static com.google.common.truth.Truth.assertThat;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.junit.Ignore;
 import org.junit.Test;
 
 import com.github.rinde.rinsim.central.GlobalStateObject;
@@ -53,6 +52,7 @@ import com.github.rinde.rinsim.pdptw.common.RouteFollowingVehicle;
 import com.github.rinde.rinsim.pdptw.common.RouteRenderer;
 import com.github.rinde.rinsim.pdptw.common.StatsStopConditions;
 import com.github.rinde.rinsim.pdptw.common.StatsTracker;
+import com.github.rinde.rinsim.pdptw.common.TimeLinePanel;
 import com.github.rinde.rinsim.scenario.Scenario;
 import com.github.rinde.rinsim.scenario.ScenarioController;
 import com.github.rinde.rinsim.scenario.TimeOutEvent;
@@ -92,8 +92,9 @@ public class RealtimeSolverTest {
       .addEvent(
         AddParcelEvent
           .create(Parcel.builder(new Point(0, 0), new Point(3, 3))
-            .orderAnnounceTime(1000)
-            .pickupTimeWindow(new TimeWindow(1000, 2000))
+            .orderAnnounceTime(60000)
+            .pickupTimeWindow(new TimeWindow(60000, 80000))
+            .serviceDuration(180000L)
             .buildDTO()));
     if (timeOut) {
       b.addEvent(TimeOutEvent.create(3000));
@@ -144,8 +145,17 @@ public class RealtimeSolverTest {
     cim.assertLog();
   }
 
+  // TODO new test:
+  // 1. problem changes (state1)
+  // 2. solver start computing (state1)
+  // 3. problem changes (state2)
+  // 4. solver starts computing (state2)
+  // 5. solver finishes computing (state1)
+  // 6. solver finishes computing (state2)
+
+  // TODO what if 5 and 6 happen in different order? can this happen?
+
   // TODO finish this test
-  @Ignore
   @Test
   public void test() {
     final List<RouteFollowingVehicle> vehicles = new ArrayList<>();
@@ -158,7 +168,8 @@ public class RealtimeSolverTest {
           .with(PDPModelRenderer.builder())
           .with(RouteRenderer.builder())
           .with(RoadUserRenderer.builder())
-          .with(PlaneRoadModelRenderer.builder()))
+          .with(PlaneRoadModelRenderer.builder())
+          .with(TimeLinePanel.builder()))
       .build();
 
     sim.getModelProvider().getModel(PDPModel.class).getEventAPI()
@@ -175,12 +186,12 @@ public class RealtimeSolverTest {
 
       @Override
       public void tick(TimeLapse timeLapse) {
-        System.out.println(timeLapse);
+        // System.out.println(timeLapse);
 
         // if (timeLapse.getStartTime() == 300) {
         for (int i = 0; i < vehicles.size(); i++) {
 
-          System.out.println(i + " " + vehicles.get(i).getRoute());
+          // System.out.println(i + " " + vehicles.get(i).getRoute());
         }
         // }
 
@@ -188,11 +199,10 @@ public class RealtimeSolverTest {
 
       @Override
       public void afterTick(TimeLapse timeLapse) {
-        // TODO Auto-generated method stub
         // if (timeLapse.getStartTime() == 300) {
         for (int i = 0; i < vehicles.size(); i++) {
 
-          System.out.println(i + " " + vehicles.get(i).getRoute());
+          // System.out.println(i + " " + vehicles.get(i).getRoute());
         }
         // }
 

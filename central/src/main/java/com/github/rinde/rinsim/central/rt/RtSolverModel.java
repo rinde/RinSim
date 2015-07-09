@@ -41,7 +41,7 @@ import com.google.common.util.concurrent.MoreExecutors;
  * @author Rinde van Lon
  *
  */
-public class RtSolverModel extends AbstractModel<RtSolverUser> {
+public final class RtSolverModel extends AbstractModel<RtSolverUser> {
   final RealTimeClockController clock;
   final PDPRoadModel roadModel;
   final PDPModel pdpModel;

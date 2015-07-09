@@ -74,6 +74,7 @@ public class SolverToRealtimeAdapter implements RealtimeSolver {
         public void onSuccess(
           @Nullable ImmutableList<ImmutableList<Parcel>> result) {
           scheduler.get().updateSchedule(verifyNotNull(result));
+          scheduler.get().doneForNow();
         }
 
         @Override

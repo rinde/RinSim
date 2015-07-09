@@ -40,6 +40,7 @@ import com.github.rinde.rinsim.pdptw.common.RouteFollowingVehicle;
 import com.github.rinde.rinsim.scenario.TimedEventHandler;
 import com.github.rinde.rinsim.util.StochasticSupplier;
 import com.google.auto.value.AutoValue;
+import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 
@@ -148,8 +149,11 @@ public class RtCentral {
           schedule.size(), vehicles.size());
 
         Iterator<ImmutableList<Parcel>> routes = schedule.iterator();
+        System.out.println(Joiner.on("\n").join(schedule));
         for (final RouteFollowingVehicle vehicle : vehicles) {
-          vehicle.setRoute(routes.next());
+          // TODO how to avoid some parcels getting lost? -> central check?
+
+          vehicle.setRouteSafe(routes.next());
         }
       }
     }

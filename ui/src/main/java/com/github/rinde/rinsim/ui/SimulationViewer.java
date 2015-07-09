@@ -60,6 +60,7 @@ import com.github.rinde.rinsim.core.model.ModelBuilder.AbstractModelBuilder;
 import com.github.rinde.rinsim.core.model.ModelProvider;
 import com.github.rinde.rinsim.core.model.ModelReceiver;
 import com.github.rinde.rinsim.core.model.time.ClockController;
+import com.github.rinde.rinsim.core.model.time.RealTimeClockController;
 import com.github.rinde.rinsim.core.model.time.TickListener;
 import com.github.rinde.rinsim.core.model.time.TimeLapse;
 import com.github.rinde.rinsim.geom.Point;
@@ -174,7 +175,8 @@ final class SimulationViewer extends Composite implements TickListener,
       final SashForm vertical = new SashForm(this, SWT.VERTICAL | SWT.SMOOTH);
       vertical.setLayout(new FillLayout());
 
-      final int topHeight = configurePanels(vertical, panels.removeAll(SWT.TOP));
+      final int topHeight = configurePanels(vertical,
+        panels.removeAll(SWT.TOP));
 
       final SashForm horizontal = new SashForm(vertical, SWT.HORIZONTAL
         | SWT.SMOOTH);
@@ -578,8 +580,7 @@ final class SimulationViewer extends Composite implements TickListener,
     final Rectangle client = canvas.getClientArea();
     if (client.height > content.height) {
       origin.y = 0;
-    }
-    else {
+    } else {
       final int vSelection = vBar.getSelection();
       final int destY = -vSelection - center.y;
       canvas.scroll(center.x, destY, center.x, center.y, content.width,
@@ -594,8 +595,7 @@ final class SimulationViewer extends Composite implements TickListener,
     final Rectangle client = canvas.getClientArea();
     if (client.width > content.width) {
       origin.x = 0;
-    }
-    else {
+    } else {
       final int hSelection = hBar.getSelection();
       final int destX = -hSelection - center.x;
       canvas.scroll(destX, center.y, center.x, center.y, content.width,
@@ -619,13 +619,15 @@ final class SimulationViewer extends Composite implements TickListener,
     }
     lastRefresh = timeLapse.getStartTime();
     // TODO sleep should be relative to speedUp as well?
-    try {
-      Thread.sleep(30);
-    } catch (final InterruptedException e) {
-      throw new RuntimeException(e);
-    }
-    if (display.isDisposed()) {
-      return;
+    if (!(clock instanceof RealTimeClockController)) {
+      try {
+        Thread.sleep(30);
+      } catch (final InterruptedException e) {
+        throw new RuntimeException(e);
+      }
+      if (display.isDisposed()) {
+        return;
+      }
     }
     display.syncExec(new Runnable() {
       @Override
@@ -634,7 +636,7 @@ final class SimulationViewer extends Composite implements TickListener,
           if (clock.getTickLength() > 500) {
             final String formatted = FORMATTER
               .print(
-              new Period(0, clock.getCurrentTime()));
+                new Period(0, clock.getCurrentTime()));
             timeLabel.setText(formatted);
           } else {
             timeLabel.setText(Long.toString(clock.getCurrentTime()));
