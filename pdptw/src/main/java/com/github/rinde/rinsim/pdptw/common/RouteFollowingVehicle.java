@@ -277,25 +277,25 @@ public class RouteFollowingVehicle extends Vehicle {
    * such a way that the route is invalid. This method detects such changes and
    * adapts the specified route to make it valid again. Note that this method
    * assumes that the specified route was valid at some point in the past, if
-   * this isn't true this method may yield unexpected results.
+   * this isn't true this method may yield unexpected results. If the route is
+   * valid calling this method is equivalent to calling
+   * {@link #setRoute(Iterable)} directly.
    * <p>
    * There are generally three events that can cause a route to become invalid:
    * <ul>
    * <li>A parcel that occurs in the route has been delivered, all occurrences
    * of this parcel will be removed from the route.</li>
-   * <li>A parcel that occurs in the route but has been picked up by another
+   * <li>A parcel that occurs in the route has been picked up by another
    * vehicle, all occurrences of this parcel will be removed from the route.
    * </li>
    * <li>A parcel that occurs twice in the route but has already been picked up
-   * by this vehicle, the first occurrence in the route will be removed.
+   * by this vehicle, the first occurrence in the route will be removed.</li>
    * </ul>
    *
    * @param r The route to set. The elements are copied from the
    *          {@link Iterable} using its iteration order.
    */
   public void setRouteSafe(Iterable<Parcel> r) {
-    // TODO how to avoid some parcels getting lost? -> central check?
-
     final List<Parcel> routeList = newArrayList(r);
     final Multiset<Parcel> routeSet = LinkedHashMultiset.create(r);
 

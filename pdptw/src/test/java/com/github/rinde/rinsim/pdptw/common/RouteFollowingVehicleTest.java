@@ -67,6 +67,7 @@ import com.github.rinde.rinsim.geom.Point;
 import com.github.rinde.rinsim.pdptw.common.RouteFollowingVehicle.DefaultEvent;
 import com.github.rinde.rinsim.pdptw.common.RouteFollowingVehicle.StateEvent;
 import com.github.rinde.rinsim.pdptw.common.SubVehicle.ExtraEvent;
+import com.github.rinde.rinsim.testutil.TestUtil;
 import com.github.rinde.rinsim.util.TimeWindow;
 import com.google.common.base.Optional;
 
@@ -98,8 +99,8 @@ public class RouteFollowingVehicleTest {
     boolean allowDelayedRouteChange) {
     diversionIsAllowed = allowDiversion;
     allowDelayedRouteChanges = allowDelayedRouteChange;
-    DefaultEvent.values();
-    DefaultEvent.valueOf("GOTO");
+
+    TestUtil.testEnum(DefaultEvent.class);
   }
 
   /**
@@ -112,7 +113,7 @@ public class RouteFollowingVehicleTest {
   }
 
   /**
-   * Set up a simple simulation with models, one vehicle, two parcels and one
+   * Set up a simple simulation with models, two vehicles, three parcels and one
    * depot.
    */
   @Before
@@ -512,12 +513,58 @@ public class RouteFollowingVehicleTest {
     assertThat(exception).isNotSameAs(allowDelayedRouteChanges);
   }
 
+  /**
+   * Test for: A parcel that occurs in the route has been delivered, all
+   * occurrences of this parcel will be removed from the route.
+   */
   @Test
-  public void setRouteSafeTest() {
+  public void setRouteSafeTest1() {
+    d.setRouteSafe(asList(p1, p1));
+    tick(0, 17);
+    assertThat(pm.getParcelState(p1)).isSameAs(ParcelState.DELIVERED);
+    assertThat(d.getRoute()).isEmpty();
+
+    // p1 is already delivered, therefore it can not occur in the route
+    d.setRouteSafe(asList(p1, p2, p1));
+    assertThat(d.getRoute()).containsExactly(p2).inOrder();
+  }
+
+  /**
+   * Test for: A parcel that occurs in the route has been picked up by another
+   * vehicle, all occurrences of this parcel will be removed from the route.
+   */
+  @Test
+  public void setRouteSafeTest2() {
+    d.setRouteSafe(asList(p1));
+
+    tick(0, 8);
+    assertThat(pm.getParcelState(p1)).isSameAs(ParcelState.IN_CARGO);
+    assertThat(pm.getContents(d)).containsExactly(p1);
+    assertThat(d.getRoute()).isEmpty();
+
+    // p1 is already in cargo of d, therefore it can occur only once in the
+    // route
+    d.setRouteSafe(asList(p1, p2, p1));
+    assertThat(d.getRoute()).containsExactly(p2, p1).inOrder();
+
+    // p1 is in another cargo and should be removed from this route
+    d2.setRouteSafe(asList(p1, p2, p1));
+    assertThat(d2.getRoute()).containsExactly(p2).inOrder();
+  }
+
+  /**
+   * Test for: A parcel that occurs twice in the route but has already been
+   * picked up by this vehicle, the first occurrence in the route will be
+   * removed.
+   */
+  @Test
+  public void setRouteSafeTest3() {
     d.setRouteSafe(asList(p1));
     tick(0, 8);
     assertThat(pm.getParcelState(p1)).isSameAs(ParcelState.IN_CARGO);
     assertThat(d.getRoute()).isEmpty();
+
+    // p1 is already in cargo, therefore it can occur only once in the route
     d.setRouteSafe(asList(p1, p2, p1));
     assertThat(d.getRoute()).containsExactly(p2, p1).inOrder();
   }
