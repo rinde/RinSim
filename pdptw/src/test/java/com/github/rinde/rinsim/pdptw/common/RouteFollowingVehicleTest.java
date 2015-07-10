@@ -152,6 +152,11 @@ public class RouteFollowingVehicleTest {
     d = new RouteFollowingVehicle(v, allowDelayedRouteChanges);
     d2 = new RouteFollowingVehicle(v, allowDelayedRouteChanges);
 
+    assertThat(d.isDelayedRouteChangingAllowed())
+      .isEqualTo(allowDelayedRouteChanges);
+    assertThat(d2.isDelayedRouteChangingAllowed())
+      .isEqualTo(allowDelayedRouteChanges);
+
     p1 = Parcel
       .builder(new Point(1, 2), new Point(1, 4))
       .pickupTimeWindow(new TimeWindow(minute(5), minute(15)))

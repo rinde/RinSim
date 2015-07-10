@@ -166,6 +166,17 @@ public class RouteFollowingVehicle extends Vehicle {
   }
 
   /**
+   * Indicates whether delayed route changing is allowed for this vehicle, see
+   * {@link #setRoute(Iterable)} for more information about delayed route
+   * changing.
+   * @return <code>true</code> if this vehicle allows delayed route changing,
+   *         <code>false</code> otherwise.
+   */
+  public boolean isDelayedRouteChangingAllowed() {
+    return allowDelayedRouteChanges;
+  }
+
+  /**
    * Change the route this vehicle is following. The route must adhere to the
    * following requirements:
    * <ul>
@@ -183,8 +194,8 @@ public class RouteFollowingVehicle extends Vehicle {
    * In some case the models do not allow this vehicle to change its route
    * immediately. If this is the case the route is changed the next time this
    * vehicle enters its {@link #waitState}. If
-   * <code>allowDelayedRouteChanging</code> is set to <code>false</code> any
-   * attempts to to this will result in an runtime exception, in this case the
+   * {@link #isDelayedRouteChangingAllowed()} is set to <code>false</code> any
+   * attempts to to this will result in a runtime exception, in this case the
    * caller must ensure that a route is always changed immediately. The
    * situations when the route is changed immediately are:
    * <ul>
@@ -574,7 +585,7 @@ public class RouteFollowingVehicle extends Vehicle {
         checkArgument(isDiversionAllowed);
       }
       if (context.newRoute.isPresent()) {
-        context.setRoute(context.newRoute.get());
+        context.setRouteSafe(context.newRoute.get());
       }
     }
 
