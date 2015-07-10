@@ -251,7 +251,7 @@ public class RealTimeModelTest extends TimeModelTest<RealTimeModel> {
       @Override
       public void tick(TimeLapse timeLapse) {
         try {
-          Thread.sleep(101L);
+          Thread.sleep(111L);
         } catch (final InterruptedException e) {
           throw new IllegalStateException(e);
         }
