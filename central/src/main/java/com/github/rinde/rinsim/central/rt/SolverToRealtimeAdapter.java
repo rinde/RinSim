@@ -18,6 +18,7 @@ package com.github.rinde.rinsim.central.rt;
 import static com.google.common.base.Preconditions.checkState;
 
 import java.util.concurrent.Callable;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.Executors;
 
 import javax.annotation.Nullable;
@@ -35,9 +36,8 @@ import com.google.common.util.concurrent.MoreExecutors;
 
 /**
  * @author Rinde van Lon
- *
  */
-public class SolverToRealtimeAdapter implements RealtimeSolver {
+class SolverToRealtimeAdapter implements RealtimeSolver {
   private final Solver solver;
 
   final ListeningExecutorService executor;
@@ -73,7 +73,7 @@ public class SolverToRealtimeAdapter implements RealtimeSolver {
         public void onSuccess(
           @Nullable ImmutableList<ImmutableList<Parcel>> result) {
           if (result == null) {
-            throw new NullPointerException(
+            throw new IllegalArgumentException(
               "Solver.solve(..) must return a non-null result.");
           }
           scheduler.get().updateSchedule(result);
@@ -82,6 +82,9 @@ public class SolverToRealtimeAdapter implements RealtimeSolver {
 
         @Override
         public void onFailure(Throwable t) {
+          if (t instanceof CancellationException) {
+            return;
+          }
           throw new IllegalStateException(t);
         }
       });

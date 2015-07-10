@@ -55,7 +55,7 @@ public final class Central {
   private Central() {}
 
   /**
-   * Creates a new {@link Builder} for creating a {@link CentralModel}.
+   * Creates a new builder for creating a central model.
    * @param solverSupplier The solver to use.
    * @return A new instance.
    */
@@ -105,7 +105,7 @@ public final class Central {
 
       @Override
       public String toString() {
-        return Central.class.getName() + ".centralVehicleHandler()";
+        return Central.class.getName() + ".vehicleHandler()";
       }
     }
   }

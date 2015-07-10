@@ -179,5 +179,4 @@ public final class RtSolverModel extends AbstractModel<RtSolverUser> {
       }
     }
   }
-
 }
