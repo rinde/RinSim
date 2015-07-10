@@ -21,7 +21,6 @@ import static java.util.Arrays.asList;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.junit.Ignore;
 import org.junit.Test;
 
 import com.github.rinde.rinsim.central.GlobalStateObject;
@@ -32,8 +31,6 @@ import com.github.rinde.rinsim.core.model.DependencyProvider;
 import com.github.rinde.rinsim.core.model.Model.AbstractModelVoid;
 import com.github.rinde.rinsim.core.model.ModelBuilder.AbstractModelBuilder;
 import com.github.rinde.rinsim.core.model.pdp.DefaultPDPModel;
-import com.github.rinde.rinsim.core.model.pdp.PDPModel;
-import com.github.rinde.rinsim.core.model.pdp.PDPModel.PDPModelEventType;
 import com.github.rinde.rinsim.core.model.pdp.Parcel;
 import com.github.rinde.rinsim.core.model.pdp.VehicleDTO;
 import com.github.rinde.rinsim.core.model.road.RoadModel;
@@ -43,27 +40,19 @@ import com.github.rinde.rinsim.core.model.time.RealTimeClockController.ClockMode
 import com.github.rinde.rinsim.core.model.time.TickListener;
 import com.github.rinde.rinsim.core.model.time.TimeLapse;
 import com.github.rinde.rinsim.core.model.time.TimeModel;
-import com.github.rinde.rinsim.event.Event;
-import com.github.rinde.rinsim.event.Listener;
 import com.github.rinde.rinsim.geom.Point;
 import com.github.rinde.rinsim.pdptw.common.AddDepotEvent;
 import com.github.rinde.rinsim.pdptw.common.AddParcelEvent;
 import com.github.rinde.rinsim.pdptw.common.AddVehicleEvent;
 import com.github.rinde.rinsim.pdptw.common.PDPRoadModel;
 import com.github.rinde.rinsim.pdptw.common.RouteFollowingVehicle;
-import com.github.rinde.rinsim.pdptw.common.RouteRenderer;
 import com.github.rinde.rinsim.pdptw.common.StatsStopConditions;
 import com.github.rinde.rinsim.pdptw.common.StatsTracker;
-import com.github.rinde.rinsim.pdptw.common.TimeLinePanel;
 import com.github.rinde.rinsim.scenario.Scenario;
 import com.github.rinde.rinsim.scenario.ScenarioController;
 import com.github.rinde.rinsim.scenario.TimeOutEvent;
 import com.github.rinde.rinsim.scenario.TimedEvent;
 import com.github.rinde.rinsim.scenario.TimedEventHandler;
-import com.github.rinde.rinsim.ui.View;
-import com.github.rinde.rinsim.ui.renderers.PDPModelRenderer;
-import com.github.rinde.rinsim.ui.renderers.PlaneRoadModelRenderer;
-import com.github.rinde.rinsim.ui.renderers.RoadUserRenderer;
 import com.github.rinde.rinsim.util.StochasticSuppliers;
 import com.github.rinde.rinsim.util.TimeWindow;
 import com.google.auto.value.AutoValue;
@@ -153,14 +142,16 @@ public class RealtimeSolverTest {
 
   // TODO what if 5 and 6 happen in different order? can this happen?
 
-  // TODO finish this test
+  /**
+   * Tests that correct vehicles receive routes and that vehicles respond to new
+   * events as fast as possible.
+   */
   @Test
-  @Ignore
-  public void test() {
+  public void testCentralRouteAssignment() {
     List<TimedEvent> events = asList(
       AddParcelEvent.create(Parcel.builder(new Point(1, 1), new Point(3, 3))
         .orderAnnounceTime(200)
-        .pickupTimeWindow(new TimeWindow(1000, 2000))
+        .pickupTimeWindow(new TimeWindow(200, 2000))
         .buildDTO()),
       AddParcelEvent.create(Parcel.builder(new Point(1, 4), new Point(3, 4))
         .orderAnnounceTime(60000)
@@ -182,48 +173,36 @@ public class RealtimeSolverTest {
               .build(),
               ImmutableList.<Parcel> of());
           }
-        })
-
-    ))
-      .addModel(
-        View.builder()
-          .withAutoPlay()
-          .with(PDPModelRenderer.builder()
-            .withDestinationLines())
-          .with(RouteRenderer.builder())
-          .with(RoadUserRenderer.builder())
-          .with(PlaneRoadModelRenderer.builder())
-          .with(TimeLinePanel.builder()))
+        })))
+      // .addModel(
+      // View.builder()
+      // .withAutoPlay()
+      // .with(PDPModelRenderer.builder()
+      // .withDestinationLines())
+      // .with(RouteRenderer.builder())
+      // .with(RoadUserRenderer.builder())
+      // .with(PlaneRoadModelRenderer.builder())
+      // .with(TimeLinePanel.builder()))
       .build();
 
-    sim.getModelProvider().getModel(PDPModel.class).getEventAPI()
-      .addListener(new Listener() {
-
-        @Override
-        public void handleEvent(Event e) {
-          System.out.println(e);
-
-        }
-      }, PDPModelEventType.values());
-
     final RoadModel rm = sim.getModelProvider().getModel(RoadModel.class);
-
     sim.register(new TickListener() {
 
       @Override
       public void tick(TimeLapse timeLapse) {
-
         if (timeLapse.getStartTime() == 100) {
-          System.out.println(rm.getPosition(vehicles.get(0)));
+          assertThat(rm.getPosition(vehicles.get(0)))
+            .isEqualTo(new Point(0, 0));
           assertThat(vehicles.get(0).getRoute()).isEmpty();
           assertThat(vehicles.get(1).getRoute()).isEmpty();
         } else if (timeLapse.getStartTime() == 200) {
-          // TODO this is where the vehicle should have moved already?
-          System.out.println(rm.getPosition(vehicles.get(0)));
+          // this is the tick in which the new order event is dispatched. This
+          // code is executed just before the tick implementation of the
+          // vehicle, therefore the vehicle should not have moved yet.
+          assertThat(rm.getPosition(vehicles.get(0)))
+            .isEqualTo(new Point(0, 0));
           assertThat(vehicles.get(0).getRoute()).hasSize(2);
           assertThat(vehicles.get(1).getRoute()).isEmpty();
-        } else if (timeLapse.getStartTime() == 300) {
-          System.out.println(rm.getPosition(vehicles.get(0)));
         } else if (timeLapse.getStartTime() == 59900) {
           assertThat(vehicles.get(0).getRoute()).hasSize(2);
           assertThat(vehicles.get(1).getRoute()).isEmpty();
@@ -231,11 +210,20 @@ public class RealtimeSolverTest {
           assertThat(vehicles.get(0).getRoute()).hasSize(4);
           assertThat(vehicles.get(1).getRoute()).isEmpty();
         }
-
       }
 
       @Override
-      public void afterTick(TimeLapse timeLapse) {}
+      public void afterTick(TimeLapse timeLapse) {
+        if (timeLapse.getStartTime() == 200) {
+          // this is the tick in which the new order event was dispatched. This
+          // check is to ensure that the vehicle moves at the earliest possible
+          // time (which is in the same tick) towards the new order.
+          assertThat(rm.getPosition(vehicles.get(0)))
+            .isNotEqualTo(new Point(0, 0));
+          assertThat(vehicles.get(0).getRoute()).hasSize(2);
+          assertThat(vehicles.get(1).getRoute()).isEmpty();
+        }
+      }
     });
 
     sim.start();

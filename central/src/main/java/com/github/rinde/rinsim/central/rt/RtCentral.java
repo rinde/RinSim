@@ -40,7 +40,6 @@ import com.github.rinde.rinsim.pdptw.common.RouteFollowingVehicle;
 import com.github.rinde.rinsim.scenario.TimedEventHandler;
 import com.github.rinde.rinsim.util.StochasticSupplier;
 import com.google.auto.value.AutoValue;
-import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 
@@ -48,7 +47,7 @@ import com.google.common.collect.ImmutableSet;
  * @author Rinde van Lon
  *
  */
-public class RtCentral {
+public final class RtCentral {
 
   private RtCentral() {}
 
@@ -108,7 +107,6 @@ public class RtCentral {
     public void tick(TimeLapse timeLapse) {
       if (problemHasChanged) {
         problemHasChanged = false;
-        System.out.println("problem has changed " + timeLapse);
         // TODO check to see that this is called the first possible moment after
         // the add parcel event was dispatched
 
@@ -142,7 +140,6 @@ public class RtCentral {
       }
 
       if (solver.isScheduleUpdated()) {
-        System.out.println("solver has new schedule " + timeLapse);
         final Set<RouteFollowingVehicle> vehicles = roadModel
           .getObjectsOfType(RouteFollowingVehicle.class);
 
@@ -155,10 +152,8 @@ public class RtCentral {
           schedule.size(), vehicles.size());
 
         Iterator<ImmutableList<Parcel>> routes = schedule.iterator();
-        System.out.println(Joiner.on("\n").join(schedule));
         for (final RouteFollowingVehicle vehicle : vehicles) {
           // TODO how to avoid some parcels getting lost? -> central check?
-
           vehicle.setRouteSafe(routes.next());
         }
       }
