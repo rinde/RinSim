@@ -37,15 +37,15 @@ public class ConnectionTest {
     final Point b = new Point(10, 0);
 
     assertEquals(10, Connection.create(a, b).getLength(), GraphRoadModel.DELTA);
-    final Connection<MultiAttributeData> conn =
-        Connection.create(a, b, MultiAttributeData.builder()
+    final Connection<MultiAttributeData> conn = Connection.create(a, b,
+        MultiAttributeData.builder()
             .setLength(12)
             .setMaxSpeed(1d)
             .build());
     assertEquals(12, conn.getLength(), GraphRoadModel.DELTA);
 
-    final Connection<MultiAttributeData> conn2 =
-        Connection.create(a, b, MultiAttributeData.builder()
+    final Connection<MultiAttributeData> conn2 = Connection.create(a, b,
+        MultiAttributeData.builder()
             .setMaxSpeed(1d)
             .build());
     assertEquals(10, conn2.getLength(), GraphRoadModel.DELTA);

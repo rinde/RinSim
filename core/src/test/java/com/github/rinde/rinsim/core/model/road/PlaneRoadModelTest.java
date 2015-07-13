@@ -40,10 +40,10 @@ public class PlaneRoadModelTest extends AbstractRoadModelTest<PlaneRoadModel> {
   @Override
   public void doSetUp() {
     model = RoadModelBuilders.plane()
-      .withMinPoint(new Point(0, 0))
-      .withMaxPoint(new Point(10, 10))
-      .withMaxSpeed(10d)
-      .build(mock(DependencyProvider.class));
+        .withMinPoint(new Point(0, 0))
+        .withMaxPoint(new Point(10, 10))
+        .withMaxSpeed(10d)
+        .build(mock(DependencyProvider.class));
   }
 
   /**
@@ -54,9 +54,9 @@ public class PlaneRoadModelTest extends AbstractRoadModelTest<PlaneRoadModel> {
     boolean fail = false;
     try {
       RoadModelBuilders.plane()
-        .withMinPoint(new Point(1, 0))
-        .withMaxPoint(new Point(0, 1))
-        .build(mock(DependencyProvider.class));
+          .withMinPoint(new Point(1, 0))
+          .withMaxPoint(new Point(0, 1))
+          .build(mock(DependencyProvider.class));
     } catch (final IllegalArgumentException e) {
       fail = true;
     }
@@ -64,9 +64,9 @@ public class PlaneRoadModelTest extends AbstractRoadModelTest<PlaneRoadModel> {
     fail = false;
     try {
       RoadModelBuilders.plane()
-        .withMinPoint(new Point(0, 1))
-        .withMaxPoint(new Point(1, 0))
-        .build(mock(DependencyProvider.class));
+          .withMinPoint(new Point(0, 1))
+          .withMaxPoint(new Point(1, 0))
+          .build(mock(DependencyProvider.class));
     } catch (final IllegalArgumentException e) {
       fail = true;
     }
@@ -81,8 +81,8 @@ public class PlaneRoadModelTest extends AbstractRoadModelTest<PlaneRoadModel> {
     boolean fail = false;
     try {
       RoadModelBuilders.plane()
-        .withMaxSpeed(0d)
-        .build(mock(DependencyProvider.class));
+          .withMaxSpeed(0d)
+          .build(mock(DependencyProvider.class));
     } catch (final IllegalArgumentException e) {
       fail = true;
     }
@@ -120,36 +120,40 @@ public class PlaneRoadModelTest extends AbstractRoadModelTest<PlaneRoadModel> {
     final MovingRoadUser mru = new TestRoadUser();
     model.addObjectAt(mru, new Point(0, 0));
     final Queue<Point> path = asPath(new Point(0, 0), new Point(5, 0),
-      new Point(
-        5, 5));
+        new Point(
+            5, 5));
 
     final MoveProgress pp = model.followPath(mru, path, hour());
     assertEquals(asPath(new Point(5, 0), new Point(5, 5)), path);
     assertEquals(1, pp.distance().getValue(), EPSILON);
     assertEquals(hour().getTickLength(), pp.time().getValue(), EPSILON);
     assertEquals(asList(new Point(0, 0)), pp.travelledNodes());
-    assertTrue(Point.distance(new Point(1, 0), model.getPosition(mru)) < EPSILON);
+    assertTrue(
+        Point.distance(new Point(1, 0), model.getPosition(mru)) < EPSILON);
 
     final MoveProgress pp2 = model.followPath(mru, path, hour(5));
     assertEquals(asPath(new Point(5, 5)), path);
     assertEquals(5, pp2.distance().getValue(), EPSILON);
     assertEquals(hour(5).getTickLength(), pp2.time().getValue(), EPSILON);
     assertEquals(asList(new Point(5, 0)), pp2.travelledNodes());
-    assertTrue(Point.distance(new Point(5, 1), model.getPosition(mru)) < EPSILON);
+    assertTrue(
+        Point.distance(new Point(5, 1), model.getPosition(mru)) < EPSILON);
 
     final MoveProgress pp3 = model.followPath(mru, path, hour(50));
     assertTrue(path.isEmpty());
     assertEquals(4, pp3.distance().getValue(), EPSILON);
     assertEquals(hour(4).getTickLength(), pp3.time().getValue(), EPSILON);
     assertEquals(asList(new Point(5, 5)), pp3.travelledNodes());
-    assertTrue(Point.distance(new Point(5, 5), model.getPosition(mru)) < EPSILON);
+    assertTrue(
+        Point.distance(new Point(5, 5), model.getPosition(mru)) < EPSILON);
   }
 
   @Test(expected = IllegalArgumentException.class)
   public void followPathFail() {
     final Queue<Point> path = asPath(new Point(0, 0), new Point(5, 0),
-      new Point(
-        5, 5), new Point(100, 0));
+        new Point(
+            5, 5),
+        new Point(100, 0));
     final MovingRoadUser mru = new TestRoadUser();
     model.addObjectAt(mru, new Point(0, 0));
     model.followPath(mru, path, hour(100));
@@ -163,25 +167,32 @@ public class PlaneRoadModelTest extends AbstractRoadModelTest<PlaneRoadModel> {
     assertEquals(new Point(0, 0), model.getPosition(agent));
 
     model.moveTo(agent, NW, hour(9));
-    assertTrue(Point.distance(model.getPosition(agent), new Point(0, 9)) < EPSILON);
+    assertTrue(
+        Point.distance(model.getPosition(agent), new Point(0, 9)) < EPSILON);
 
     model.followPath(agent, newLinkedList(asList(SW, SE)), hour(10));
-    assertTrue(Point.distance(model.getPosition(agent), new Point(1, 0)) < EPSILON);
+    assertTrue(
+        Point.distance(model.getPosition(agent), new Point(1, 0)) < EPSILON);
 
     model.moveTo(agent, SE, hour(4));
-    assertTrue(Point.distance(model.getPosition(agent), new Point(5, 0)) < EPSILON);
+    assertTrue(
+        Point.distance(model.getPosition(agent), new Point(5, 0)) < EPSILON);
 
     model.moveTo(agent, NW, hour(Math.sqrt(5)));
-    assertTrue(Point.distance(model.getPosition(agent), new Point(4, 2)) < EPSILON);
+    assertTrue(
+        Point.distance(model.getPosition(agent), new Point(4, 2)) < EPSILON);
 
     model.moveTo(agent, new Point(6, 2), hour(2));
-    assertTrue(Point.distance(model.getPosition(agent), new Point(6, 2)) < EPSILON);
+    assertTrue(
+        Point.distance(model.getPosition(agent), new Point(6, 2)) < EPSILON);
 
     model.followPath(agent, newLinkedList(asList(NE)), hour(Math.sqrt(5)));
-    assertTrue(Point.distance(model.getPosition(agent), new Point(7, 4)) < EPSILON);
+    assertTrue(
+        Point.distance(model.getPosition(agent), new Point(7, 4)) < EPSILON);
 
     model.moveTo(agent, NW, hour(13));
-    assertTrue(Point.distance(model.getPosition(agent), new Point(0, 10)) < EPSILON);
+    assertTrue(
+        Point.distance(model.getPosition(agent), new Point(0, 10)) < EPSILON);
 
     final MovingRoadUser agent2 = new SpeedyRoadUser(1);
     model.addObjectAt(agent2, SW);
@@ -204,7 +215,7 @@ public class PlaneRoadModelTest extends AbstractRoadModelTest<PlaneRoadModel> {
   @Test
   public void getShortestPathTo() {
     assertEquals(asList(new Point(0, 0), new Point(5, 5)), model
-      .getShortestPathTo(new Point(0, 0), new Point(5, 5)));
+        .getShortestPathTo(new Point(0, 0), new Point(5, 5)));
   }
 
 }

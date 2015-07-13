@@ -71,11 +71,11 @@ public class SimulatedTimeModelTest extends TimeModelTest<SimulatedTimeModel> {
 
     assertEquals(6 * getModel().getTickLength(), getModel().getCurrentTime());
     assertThat(leh.getEventTypeHistory()).isEqualTo(
-      asList(
-        ClockEventType.STARTED,
-        ClockEventType.STOPPED,
-        ClockEventType.STARTED,
-        ClockEventType.STOPPED));
+        asList(
+            ClockEventType.STARTED,
+            ClockEventType.STOPPED,
+            ClockEventType.STARTED,
+            ClockEventType.STOPPED));
   }
 
   @Test
@@ -89,7 +89,7 @@ public class SimulatedTimeModelTest extends TimeModelTest<SimulatedTimeModel> {
     } catch (final IllegalArgumentException e) {
       fail = true;
       assertThat(e.getMessage()).contains(
-        "does not provide instances of com.github.rinde.rinsim.core.model.time.RealTimeClockController");
+          "does not provide instances of com.github.rinde.rinsim.core.model.time.RealTimeClockController");
     }
     assertThat(fail).isTrue();
   }

@@ -57,7 +57,8 @@ import com.google.common.collect.ImmutableSet;
  * <ol>
  * <li>Use {@link Simulator#builder()} to register models and define other
  * global settings.</li>
- * <li>Obtain a {@link Simulator} instance via {@link Simulator.Builder#build()}.
+ * <li>Obtain a {@link Simulator} instance via {@link Simulator.Builder#build()}
+ * .
  * <li>register objects using {@link #register(Object)}</li>
  * <li>start simulation by calling {@link #start()}</li>
  * </ol>
@@ -75,16 +76,15 @@ public final class Simulator implements SimulatorAPI {
 
   Simulator(Builder b) {
     modelManager = b.mmBuilder
-      .add(SimulatorModelBuilder.create(this))
-      .addDefaultProvider(
-        RandomModel.builder().withRandomGenerator(
-          StochasticSuppliers.constant(b.rng)))
-      .addDefaultProvider(
-        TimeModel.builder()
-          .withTickLength(b.tickLength)
-          .withTimeUnit(b.timeUnit)
-      )
-      .build();
+        .add(SimulatorModelBuilder.create(this))
+        .addDefaultProvider(
+            RandomModel.builder().withRandomGenerator(
+                StochasticSuppliers.constant(b.rng)))
+        .addDefaultProvider(
+            TimeModel.builder()
+                .withTickLength(b.tickLength)
+                .withTimeUnit(b.timeUnit))
+        .build();
     toUnregister = new LinkedHashSet<>();
     clock = modelManager.getModel(TimeModel.class);
     rand = modelManager.getModel(RandomModel.class);
@@ -100,7 +100,7 @@ public final class Simulator implements SimulatorAPI {
   @Deprecated
   public boolean register(Model<?> m) {
     throw new UnsupportedOperationException(
-      "Models can be added via Simulator.builder().");
+        "Models can be added via Simulator.builder().");
   }
 
   @Override
@@ -307,7 +307,7 @@ public final class Simulator implements SimulatorAPI {
      */
     public Builder setTickLength(long length) {
       checkArgument(length > 0,
-        "Tick length must be strictly positive but is %s.", length);
+          "Tick length must be strictly positive but is %s.", length);
       tickLength = length;
       return this;
     }
@@ -349,7 +349,7 @@ public final class Simulator implements SimulatorAPI {
 
   @AutoValue
   abstract static class SimulatorModelBuilder extends
-    AbstractModelBuilder<SimulatorModel, SimulatorUser> {
+      AbstractModelBuilder<SimulatorModel, SimulatorUser> {
 
     SimulatorModelBuilder() {
       setProvidingTypes(SimulatorAPI.class);
@@ -367,8 +367,8 @@ public final class Simulator implements SimulatorAPI {
     }
   }
 
-  static class SimulatorModel extends AbstractModel<SimulatorUser> implements
-    TickListener {
+  static class SimulatorModel extends AbstractModel<SimulatorUser>implements
+      TickListener {
     final Simulator simulator;
 
     SimulatorModel(Simulator sim) {

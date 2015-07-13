@@ -37,39 +37,39 @@ import com.github.rinde.rinsim.geom.Point;
  */
 @RunWith(Parameterized.class)
 public class ForwardingRoadModelTest extends
-  AbstractRoadModelTest<GenericRoadModel> {
+    AbstractRoadModelTest<GenericRoadModel> {
   /**
    * @return The configs to test.
    */
   @Parameters
   public static Collection<Object[]> configs() {
     return Arrays.asList(new Object[][] //
-      { { new Creator() {
-        @Override
-        public GenericRoadModel create(ForwardingRoadModelTest testClass) {
-          return new ForwardingRoadModel(
+    { { new Creator() {
+      @Override
+      public GenericRoadModel create(ForwardingRoadModelTest testClass) {
+        return new ForwardingRoadModel(
             RoadModelBuilders.plane()
-              .withMinPoint(new Point(0, 0))
-              .withMaxPoint(new Point(10, 10))
-              .withDistanceUnit(SI.METER)
-              .withSpeedUnit(SI.METERS_PER_SECOND)
-              .withMaxSpeed(10d)
-              .build(mock(DependencyProvider.class)));
-        }
-      } }, { new Creator() {
-        @Override
-        public GenericRoadModel create(ForwardingRoadModelTest testClass) {
-          return new ForwardingRoadModel(RoadModelBuilders.staticGraph(testClass
+                .withMinPoint(new Point(0, 0))
+                .withMaxPoint(new Point(10, 10))
+                .withDistanceUnit(SI.METER)
+                .withSpeedUnit(SI.METERS_PER_SECOND)
+                .withMaxSpeed(10d)
+                .build(mock(DependencyProvider.class)));
+      }
+    } }, { new Creator() {
+      @Override
+      public GenericRoadModel create(ForwardingRoadModelTest testClass) {
+        return new ForwardingRoadModel(RoadModelBuilders.staticGraph(testClass
             .createGraph()).build(mock(DependencyProvider.class)));
-        }
-      } }, { new Creator() {
-        @Override
-        public GenericRoadModel create(ForwardingRoadModelTest testClass) {
-          return new ForwardingRoadModel(new ForwardingRoadModel(
+      }
+    } }, { new Creator() {
+      @Override
+      public GenericRoadModel create(ForwardingRoadModelTest testClass) {
+        return new ForwardingRoadModel(new ForwardingRoadModel(
             new ForwardingRoadModel(RoadModelBuilders.staticGraph(testClass
-              .createGraph()).build(mock(DependencyProvider.class)))));
-        }
-      } } });
+                .createGraph()).build(mock(DependencyProvider.class)))));
+      }
+    } } });
   }
 
   Graph<?> createGraph() {

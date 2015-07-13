@@ -55,22 +55,22 @@ public class CollisionGraphRoadModel extends DynamicGraphRoadModel {
   private final SetMultimap<MovingRoadUser, Point> occupiedNodes;
 
   CollisionGraphRoadModel(ListenableGraph<?> g, double pMinConnLength,
-    RoadModelBuilders.CollisionGraphRMB builder) {
+      RoadModelBuilders.CollisionGraphRMB builder) {
     super(g, builder);
     vehicleLength = unitConversion.toInDist(builder.getVehicleLength());
     minDistance = unitConversion.toInDist(builder.getMinDistance());
     minConnLength = unitConversion.toInDist(pMinConnLength);
     occupiedNodes = Multimaps.synchronizedSetMultimap(CategoryMap
-      .<MovingRoadUser, Point> create());
+        .<MovingRoadUser, Point> create());
     getGraph().getEventAPI().addListener(
-      new ModificationChecker(minConnLength),
-      ListenableGraph.EventTypes.ADD_CONNECTION,
-      ListenableGraph.EventTypes.CHANGE_CONNECTION_DATA);
+        new ModificationChecker(minConnLength),
+        ListenableGraph.EventTypes.ADD_CONNECTION,
+        ListenableGraph.EventTypes.CHANGE_CONNECTION_DATA);
   }
 
   @Override
   protected MoveProgress doFollowPath(MovingRoadUser object, Queue<Point> path,
-    TimeLapse time) {
+      TimeLapse time) {
     if (occupiedNodes.containsKey(object)) {
       occupiedNodes.removeAll(object);
     }
@@ -98,16 +98,16 @@ public class CollisionGraphRoadModel extends DynamicGraphRoadModel {
 
   @Override
   protected double computeTravelableDistance(Loc from, Point to, double speed,
-    long timeLeft, Unit<Duration> timeUnit) {
+      long timeLeft, Unit<Duration> timeUnit) {
     double closestDist = Double.POSITIVE_INFINITY;
     if (!from.equals(to)) {
       final Connection<?> conn = getConnection(from, to);
       // check if the node is occupied
       if (occupiedNodes.containsValue(conn.to())) {
         closestDist = (from.isOnConnection()
-          ? from.connLength - from.relativePos
-          : conn.getLength())
-          - vehicleLength - minDistance;
+            ? from.connLength - from.relativePos
+            : conn.getLength())
+            - vehicleLength - minDistance;
       }
       // check if there is an obstacle on the connection
       if (connMap.containsKey(conn)) {
@@ -117,7 +117,7 @@ public class CollisionGraphRoadModel extends DynamicGraphRoadModel {
           final Loc loc = objLocs.get(ru);
           if (loc.isOnConnection() && loc.relativePos > from.relativePos) {
             final double dist = loc.relativePos - from.relativePos
-              - vehicleLength - minDistance;
+                - vehicleLength - minDistance;
             if (dist < closestDist) {
               closestDist = dist;
             }
@@ -128,7 +128,7 @@ public class CollisionGraphRoadModel extends DynamicGraphRoadModel {
     }
     verify(closestDist >= 0d, "", from, to);
     return Math.min(closestDist,
-      super.computeTravelableDistance(from, to, speed, timeLeft, timeUnit));
+        super.computeTravelableDistance(from, to, speed, timeLeft, timeUnit));
   }
 
   @Override
@@ -138,7 +138,7 @@ public class CollisionGraphRoadModel extends DynamicGraphRoadModel {
     if (!objLoc.equals(nextHop)) {
       final Connection<?> conn = getConnection(objLoc, nextHop);
       if (graph.hasConnection(conn.to(), conn.from())
-        && connMap.containsKey(graph.getConnection(conn.to(), conn.from()))) {
+          && connMap.containsKey(graph.getConnection(conn.to(), conn.from()))) {
         throw new DeadlockException(conn);
       }
     }
@@ -148,9 +148,9 @@ public class CollisionGraphRoadModel extends DynamicGraphRoadModel {
   public void addObjectAt(RoadUser newObj, Point pos) {
     if (newObj instanceof MovingRoadUser) {
       checkArgument(
-        !occupiedNodes.containsValue(pos),
-        "A MovingRoadUser can not be added on an already occupied position %s.",
-        pos);
+          !occupiedNodes.containsValue(pos),
+          "A MovingRoadUser can not be added on an already occupied position %s.",
+          pos);
       occupiedNodes.put((MovingRoadUser) newObj, pos);
     }
     super.addObjectAt(newObj, pos);
@@ -237,13 +237,13 @@ public class CollisionGraphRoadModel extends DynamicGraphRoadModel {
 
   static void checkConnectionLength(double minConnLength, Connection<?> conn) {
     checkArgument(
-      Point.distance(conn.from(), conn.to()) >= minConnLength,
-      "Invalid graph: the minimum connection length is %s, connection %s->%s is too short.",
-      minConnLength, conn.from(), conn.to());
+        Point.distance(conn.from(), conn.to()) >= minConnLength,
+        "Invalid graph: the minimum connection length is %s, connection %s->%s is too short.",
+        minConnLength, conn.from(), conn.to());
     checkArgument(
-      conn.getLength() >= minConnLength,
-      "Invalid graph: the minimum connection length is %s, connection %s->%s defines length data that is too short: %s.",
-      minConnLength, conn.from(), conn.to(), conn.getLength());
+        conn.getLength() >= minConnLength,
+        "Invalid graph: the minimum connection length is %s, connection %s->%s defines length data that is too short: %s.",
+        minConnLength, conn.from(), conn.to(), conn.getLength());
   }
 
   static class ModificationChecker implements Listener {

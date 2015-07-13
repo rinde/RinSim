@@ -73,6 +73,7 @@ public final class MetricsIO {
    * {@code 3 40}
    * {@code 4 0}
    * </pre>
+   * 
    * @param list The list of numbers to write to a file.
    * @param file The file to write to.
    */
@@ -102,6 +103,7 @@ public final class MetricsIO {
    * ..
    * {@code time n}
    * </pre>
+   * 
    * @param length The length of the scenario: [0,length)
    * @param times The arrival times of events, for each time it holds that 0
    *          &#8804; time &lt; length.
@@ -113,7 +115,8 @@ public final class MetricsIO {
       Files.createParentDirs(f);
       Files.write(
           new StringBuilder().append(length).append("\n")
-              .append(Joiner.on("\n").join(times)).append("\n"), f,
+              .append(Joiner.on("\n").join(times)).append("\n"),
+          f,
           Charsets.UTF_8);
     } catch (final IOException e) {
       throw new IllegalStateException(e);

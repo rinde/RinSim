@@ -35,14 +35,14 @@ import com.google.common.collect.ImmutableSet;
  * i.e. it is not responsible for movement.
  * @author Rinde van Lon
  */
-public abstract class PDPModel extends AbstractModel<PDPObject> implements
-  TickListener {
+public abstract class PDPModel extends AbstractModel<PDPObject>implements
+    TickListener {
 
   /**
    * The logger of the model.
    */
   protected static final Logger LOGGER = LoggerFactory
-    .getLogger(PDPModel.class);
+      .getLogger(PDPModel.class);
 
   /**
    * Reference to the outermost decorator of this {@link PDPModel} instance.
@@ -57,7 +57,7 @@ public abstract class PDPModel extends AbstractModel<PDPObject> implements
   protected void setSelf(PDPModel pm) {
     LOGGER.info("setSelf {}", pm);
     checkState(!initialized,
-      "This PDPModel is already initialized, it is too late to decorate it.");
+        "This PDPModel is already initialized, it is too late to decorate it.");
     self = pm;
   }
 
@@ -78,7 +78,7 @@ public abstract class PDPModel extends AbstractModel<PDPObject> implements
    * @param time {@link TimeLapse} that is available for performing the actions.
    */
   protected abstract void continuePreviousActions(Vehicle vehicle,
-    TimeLapse time);
+      TimeLapse time);
 
   /**
    * Actual implementation of {@link #register(PDPObject)}.
@@ -266,7 +266,7 @@ public abstract class PDPModel extends AbstractModel<PDPObject> implements
    *           {@link VehicleState#PICKING_UP}.
    */
   public abstract PDPModel.VehicleParcelActionInfo getVehicleActionInfo(
-    Vehicle vehicle);
+      Vehicle vehicle);
 
   /**
    * @return The {@link EventAPI} used by this model. Events that are dispatched

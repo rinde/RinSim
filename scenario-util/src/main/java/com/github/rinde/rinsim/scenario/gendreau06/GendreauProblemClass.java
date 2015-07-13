@@ -20,7 +20,7 @@ import com.github.rinde.rinsim.scenario.Scenario.ProblemClass;
 /**
  * This is an enum containing the three problem classes used in the Gendreau06
  * benchmark.
- * @author Rinde van Lon 
+ * @author Rinde van Lon
  */
 public enum GendreauProblemClass implements ProblemClass {
   /**

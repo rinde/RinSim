@@ -25,8 +25,9 @@ import com.google.common.collect.ImmutableSet;
 /**
  * A {@link PDPModel} which forwards all its method calls to another
  * {@link PDPModel}. Subclasses should override one or more methods to modify
- * the behavior of the backing model as desired per the <a
- * href="http://en.wikipedia.org/wiki/Decorator_pattern">decorator pattern</a>.
+ * the behavior of the backing model as desired per the
+ * <a href="http://en.wikipedia.org/wiki/Decorator_pattern">decorator
+ * pattern</a>.
  * @author Rinde van Lon
  */
 public class ForwardingPDPModel extends PDPModel {
@@ -122,7 +123,8 @@ public class ForwardingPDPModel extends PDPModel {
   }
 
   @Override
-  public PDPModel.VehicleParcelActionInfo getVehicleActionInfo(Vehicle vehicle) {
+  public PDPModel.VehicleParcelActionInfo getVehicleActionInfo(
+      Vehicle vehicle) {
     return delegate.getVehicleActionInfo(vehicle);
   }
 

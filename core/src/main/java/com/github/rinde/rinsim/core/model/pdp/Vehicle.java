@@ -27,7 +27,7 @@ import com.github.rinde.rinsim.util.TimeWindow;
  * @author Rinde van Lon
  */
 public abstract class Vehicle extends ContainerImpl implements MovingRoadUser,
-  TickListener {
+    TickListener {
 
   final VehicleDTO dto;
 

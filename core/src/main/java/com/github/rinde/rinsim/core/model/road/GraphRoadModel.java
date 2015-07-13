@@ -74,7 +74,7 @@ public class GraphRoadModel extends AbstractRoadModel<Loc> {
    * @param b The builder that contains the properties.
    */
   protected GraphRoadModel(Graph<? extends ConnectionData> g,
-    RoadModelBuilders.AbstractGraphRMB<?, ?, ?> b) {
+      RoadModelBuilders.AbstractGraphRMB<?, ?, ?> b) {
     super(b.getDistanceUnit(), b.getSpeedUnit());
     graph = g;
   }
@@ -82,7 +82,7 @@ public class GraphRoadModel extends AbstractRoadModel<Loc> {
   @Override
   public void addObjectAt(RoadUser newObj, Point pos) {
     checkArgument(graph.containsNode(pos),
-      "Object must be initiated on a crossroad.");
+        "Object must be initiated on a crossroad.");
     super.addObjectAt(newObj, asLoc(pos));
   }
 
@@ -93,7 +93,7 @@ public class GraphRoadModel extends AbstractRoadModel<Loc> {
    * overridden to change the move behavior of the model. The return value of
    * the method is interpreted in the following way:
    * <ul>
-   * <li> <code>if travelableDistance &lt; distance(from,to)</code> then there is
+   * <li><code>if travelableDistance &lt; distance(from,to)</code> then there is
    * either:
    * <ul>
    * <li>not enough time left to travel the whole distance</li>
@@ -114,9 +114,9 @@ public class GraphRoadModel extends AbstractRoadModel<Loc> {
    * @return The distance that can be traveled, must be &ge; 0.
    */
   protected double computeTravelableDistance(Loc from, Point to, double speed,
-    long timeLeft, Unit<Duration> timeUnit) {
+      long timeLeft, Unit<Duration> timeUnit) {
     return speed
-      * unitConversion.toInTime(timeLeft, timeUnit);
+        * unitConversion.toInTime(timeLeft, timeUnit);
   }
 
   /**
@@ -135,11 +135,11 @@ public class GraphRoadModel extends AbstractRoadModel<Loc> {
 
   @Override
   protected MoveProgress doFollowPath(MovingRoadUser object, Queue<Point> path,
-    TimeLapse time) {
+      TimeLapse time) {
     final Loc objLoc = verifyLocation(objLocs.get(object));
     Loc tempLoc = objLoc;
-    final MoveProgress.Builder mpBuilder =
-      MoveProgress.builder(unitConversion, time);
+    final MoveProgress.Builder mpBuilder = MoveProgress.builder(unitConversion,
+        time);
 
     boolean cont = true;
     long timeLeft = time.getTimeLeft();
@@ -148,21 +148,21 @@ public class GraphRoadModel extends AbstractRoadModel<Loc> {
       // speed in internal speed unit
       final double speed = getMaxSpeed(object, tempLoc, path.peek());
       checkState(speed >= 0,
-        "Found a bug in getMaxSpeed, return value must be >= 0, but is %s.",
-        speed);
+          "Found a bug in getMaxSpeed, return value must be >= 0, but is %s.",
+          speed);
       // distance that can be traveled in current conn with timeleft
       final double travelableDistance = computeTravelableDistance(tempLoc,
-        path.peek(), speed, timeLeft, time.getTimeUnit());
+          path.peek(), speed, timeLeft, time.getTimeUnit());
       checkState(
-        travelableDistance >= 0d,
-        "Found a bug in computeTravelableDistance, return value must be >= 0, but is %s.",
-        travelableDistance);
+          travelableDistance >= 0d,
+          "Found a bug in computeTravelableDistance, return value must be >= 0, but is %s.",
+          travelableDistance);
       final double connLength = unitConversion.toInDist(
-        computeDistanceOnConnection(tempLoc, path.peek()));
+          computeDistanceOnConnection(tempLoc, path.peek()));
       checkState(
-        connLength >= 0d,
-        "Found a bug in computeDistanceOnConnection, return value must be >= 0, but is %s.",
-        connLength);
+          connLength >= 0d,
+          "Found a bug in computeDistanceOnConnection, return value must be >= 0, but is %s.",
+          connLength);
 
       double traveledDistance;
       if (travelableDistance >= connLength) {
@@ -177,12 +177,13 @@ public class GraphRoadModel extends AbstractRoadModel<Loc> {
         traveledDistance = travelableDistance;
         final Connection<?> conn = getConnection(tempLoc, path.peek());
         tempLoc = verifyLocation(newLoc(conn, tempLoc.relativePos
-          + unitConversion.toExDist(travelableDistance)));
+            + unitConversion.toExDist(travelableDistance)));
       }
       mpBuilder.addDistance(traveledDistance);
       final long timeSpent = DoubleMath.roundToLong(
-        unitConversion.toExTime(traveledDistance / speed,
-          time.getTimeUnit()), RoundingMode.HALF_DOWN);
+          unitConversion.toExTime(traveledDistance / speed,
+              time.getTimeUnit()),
+          RoundingMode.HALF_DOWN);
       timeLeft -= timeSpent;
     }
     time.consume(time.getTimeLeft() - timeLeft);
@@ -205,28 +206,28 @@ public class GraphRoadModel extends AbstractRoadModel<Loc> {
     if (objLoc.isOnConnection() && !nextHop.equals(objLoc.conn.get().to())) {
       // check if next destination is a MidPoint
       checkArgument(
-        nextHop instanceof Loc,
-        "Illegal path for this object, from a position on a connection we can not jump to another connection or go back. From %s, to %s.",
-        objLoc, nextHop);
+          nextHop instanceof Loc,
+          "Illegal path for this object, from a position on a connection we can not jump to another connection or go back. From %s, to %s.",
+          objLoc, nextHop);
       final Loc dest = (Loc) nextHop;
       // check for same conn
       checkArgument(
-        objLoc.isOnSameConnection(dest),
-        "Illegal path for this object, first point is not on the same connection as the object.");
+          objLoc.isOnSameConnection(dest),
+          "Illegal path for this object, first point is not on the same connection as the object.");
       // check for relative position
       checkArgument(objLoc.relativePos <= dest.relativePos,
-        "Illegal path for this object, can not move backward over an connection.");
+          "Illegal path for this object, can not move backward over an connection.");
     }
     // in case we start from a node and we are not going to another node
     else if (!objLoc.isOnConnection() && !nextHop.equals(objLoc)
-      && !graph.hasConnection(objLoc, nextHop)) {
+        && !graph.hasConnection(objLoc, nextHop)) {
       checkArgument(nextHop instanceof Loc,
-        "Illegal path, first point should be directly connected to object location.");
+          "Illegal path, first point should be directly connected to object location.");
       final Loc dest = (Loc) nextHop;
       checkArgument(graph.hasConnection(objLoc, dest.conn.get().to()),
-        "Illegal path, first point is on an connection not connected to object location. ");
+          "Illegal path, first point is on an connection not connected to object location. ");
       checkArgument(objLoc.equals(dest.conn.get().from()),
-        "Illegal path, first point is on a different connection.");
+          "Illegal path, first point is on a different connection.");
     }
   }
 
@@ -274,10 +275,10 @@ public class GraphRoadModel extends AbstractRoadModel<Loc> {
    */
   protected Loc verifyLocation(Loc l) {
     verify(l.isOnConnection() || graph.containsNode(l),
-      "Location points to non-existing node: %s.", l);
+        "Location points to non-existing node: %s.", l);
     verify(!l.isOnConnection()
-      || graph.hasConnection(l.conn.get().from(), l.conn.get().to()),
-      "Location points to non-existing connection: %s.", l.conn);
+        || graph.hasConnection(l.conn.get().from(), l.conn.get().to()),
+        "Location points to non-existing connection: %s.", l.conn);
     return l;
   }
 
@@ -294,13 +295,13 @@ public class GraphRoadModel extends AbstractRoadModel<Loc> {
     if (!from.equals(to)) {
       final Connection<?> conn = getConnection(from, to);
       if (conn.data().isPresent()
-        && conn.data().get() instanceof MultiAttributeData) {
+          && conn.data().get() instanceof MultiAttributeData) {
         final MultiAttributeData maed = (MultiAttributeData) conn.data()
-          .get();
+            .get();
 
         if (maed.getMaxSpeed().isPresent()) {
           return Math.min(unitConversion.toInSpeed(maed.getMaxSpeed().get()),
-            objSpeed);
+              objSpeed);
         }
         return objSpeed;
       }
@@ -336,9 +337,9 @@ public class GraphRoadModel extends AbstractRoadModel<Loc> {
       conn = end.conn.get();
     } else {
       checkArgument(
-        graph.hasConnection(from, to),
-        "The specified points (%s and %s) must be part of an existing connection in the graph.",
-        from, to);
+          graph.hasConnection(from, to),
+          "The specified points (%s and %s) must be part of an existing connection in the graph.",
+          from, to);
       conn = graph.getConnection(from, to);
     }
     return conn;
@@ -395,7 +396,7 @@ public class GraphRoadModel extends AbstractRoadModel<Loc> {
     final Loc point = objLocs.get(obj);
     if (isOnConnection(point)) {
       return Optional.of(graph
-        .getConnection(point.conn.get().from(), point.conn.get().to()));
+          .getConnection(point.conn.get().from(), point.conn.get().to()));
     }
     return Optional.absent();
   }
@@ -423,7 +424,7 @@ public class GraphRoadModel extends AbstractRoadModel<Loc> {
    * @return A new {@link Loc}
    */
   protected static Loc newLoc(Connection<? extends ConnectionData> conn,
-    double relativePos) {
+      double relativePos) {
     final Point diff = Point.diff(conn.to(), conn.from());
     final double roadLength = conn.getLength();
 
@@ -432,8 +433,8 @@ public class GraphRoadModel extends AbstractRoadModel<Loc> {
       return new Loc(conn.to().x, conn.to().y, null, -1, 0);
     }
     return new Loc(conn.from().x + perc * diff.x,
-      conn.from().y + perc * diff.y,
-      conn, roadLength, relativePos);
+        conn.from().y + perc * diff.y,
+        conn, roadLength, relativePos);
   }
 
   @Override
@@ -483,8 +484,8 @@ public class GraphRoadModel extends AbstractRoadModel<Loc> {
     public final Optional<? extends Connection<?>> conn;
 
     Loc(double pX, double pY,
-      @Nullable Connection<? extends ConnectionData> pConn,
-      double pConnLength, double pRelativePos) {
+        @Nullable Connection<? extends ConnectionData> pConn,
+        double pConnLength, double pRelativePos) {
       super(pX, pY);
       connLength = pConnLength;
       relativePos = pRelativePos;

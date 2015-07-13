@@ -81,9 +81,9 @@ public interface Model<T> {
     @Override
     public <U> U get(Class<U> clazz) {
       throw new IllegalArgumentException(
-        "This model (" + getClass().getSimpleName()
-          + ") does not support providing any objects (" + toString()
-          + ").");
+          "This model (" + getClass().getSimpleName()
+              + ") does not support providing any objects (" + toString()
+              + ").");
     }
   }
 

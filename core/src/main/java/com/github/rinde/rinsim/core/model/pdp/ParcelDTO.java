@@ -61,6 +61,6 @@ public abstract class ParcelDTO implements Serializable, IParcel {
   @Override
   public String toString() {
     return new StringBuilder("ParcelDTO-").append(
-      Integer.toHexString(hashCode())).toString();
+        Integer.toHexString(hashCode())).toString();
   }
 }

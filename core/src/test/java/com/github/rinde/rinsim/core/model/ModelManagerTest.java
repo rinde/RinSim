@@ -136,7 +136,7 @@ public class ModelManagerTest {
   @Test(expected = IllegalArgumentException.class)
   public void canNotRegisterModel() {
     emptyManager.register(RoadModelBuilders.staticGraph(
-      new MultimapGraph<LengthData>()).build(mock(DependencyProvider.class)));
+        new MultimapGraph<LengthData>()).build(mock(DependencyProvider.class)));
   }
 
   /**
@@ -145,9 +145,10 @@ public class ModelManagerTest {
   @Test(expected = RuntimeException.class)
   public void registerWithBrokenModel() {
     final ModelManager mm = new ModelManager(ImmutableSet.of(
-      RoadModelBuilders.staticGraph(
-        new MultimapGraph<LengthData>()).build(mock(DependencyProvider.class)),
-      new BrokenRoadModel(new MultimapGraph<LengthData>())));
+        RoadModelBuilders.staticGraph(
+            new MultimapGraph<LengthData>())
+            .build(mock(DependencyProvider.class)),
+        new BrokenRoadModel(new MultimapGraph<LengthData>())));
 
     mm.register(new RoadUser() {
       @Override
@@ -170,7 +171,7 @@ public class ModelManagerTest {
   @Test(expected = IllegalArgumentException.class)
   public void unregisterFailModel() {
     emptyManager.unregister(RoadModelBuilders.staticGraph(
-      new MultimapGraph<LengthData>()).build(mock(DependencyProvider.class)));
+        new MultimapGraph<LengthData>()).build(mock(DependencyProvider.class)));
   }
 
   /**
@@ -179,13 +180,11 @@ public class ModelManagerTest {
   @Test
   public void unregisterFailNotRegisteredObject() {
     final ModelManager mm = new ModelManager(
-      ImmutableSet.of(
-        RoadModelBuilders.staticGraph(new MultimapGraph<LengthData>())
-          .build(mock(DependencyProvider.class)),
-        RoadModelBuilders.staticGraph(new MultimapGraph<LengthData>())
-          .build(mock(DependencyProvider.class))
-        )
-      );
+        ImmutableSet.of(
+            RoadModelBuilders.staticGraph(new MultimapGraph<LengthData>())
+                .build(mock(DependencyProvider.class)),
+            RoadModelBuilders.staticGraph(new MultimapGraph<LengthData>())
+                .build(mock(DependencyProvider.class))));
 
     boolean fail = false;
     try {
@@ -205,10 +204,10 @@ public class ModelManagerTest {
   @Test
   public void unregisterWithBrokenModel() {
     final ModelManager mm = new ModelManager(
-      ImmutableSet.of(RoadModelBuilders.staticGraph(
-        new MultimapGraph<LengthData>()).build(mock(DependencyProvider.class)),
-        new BrokenRoadModel(new MultimapGraph<LengthData>()))
-      );
+        ImmutableSet.of(RoadModelBuilders.staticGraph(
+            new MultimapGraph<LengthData>())
+            .build(mock(DependencyProvider.class)),
+            new BrokenRoadModel(new MultimapGraph<LengthData>())));
 
     boolean fail = false;
     try {
@@ -295,7 +294,7 @@ public class ModelManagerTest {
     final ModelC mC = new ModelC();
 
     final ModelManager mm = new ModelManager(ImmutableSet.<Model<?>> of(
-      mA, mAA, mB, mB2, mBB, mBBB, mSB, mC));
+        mA, mAA, mB, mB2, mBB, mBBB, mSB, mC));
 
     final ObjectA a1 = new ObjectA();
     mm.register(a1);
@@ -388,27 +387,27 @@ public class ModelManagerTest {
   @Test
   public void anonymousModelTest() {
     final ModelManager mm = new ModelManager(ImmutableSet.of(
-      new Model<InnerObject>() {
-        @Override
-        public boolean register(InnerObject element) {
-          return false;
-        }
+        new Model<InnerObject>() {
+          @Override
+          public boolean register(InnerObject element) {
+            return false;
+          }
 
-        @Override
-        public boolean unregister(InnerObject element) {
-          return false;
-        }
+          @Override
+          public boolean unregister(InnerObject element) {
+            return false;
+          }
 
-        @Override
-        public Class<InnerObject> getSupportedType() {
-          return InnerObject.class;
-        }
+          @Override
+          public Class<InnerObject> getSupportedType() {
+            return InnerObject.class;
+          }
 
-        @Override
-        public <T> T get(Class<T> clazz) {
-          throw new UnsupportedOperationException();
-        }
-      }));
+          @Override
+          public <T> T get(Class<T> clazz) {
+            throw new UnsupportedOperationException();
+          }
+        }));
 
     boolean fail = false;
     try {

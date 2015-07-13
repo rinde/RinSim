@@ -25,7 +25,7 @@ import com.google.common.collect.ImmutableSet;
  * @author Rinde van Lon
  */
 public interface CompositeModelBuilder<T extends Model<? extends U>, U> extends
-  ModelBuilder<T, U> {
+    ModelBuilder<T, U> {
 
   /**
    * @return A list of {@link ModelBuilder}s.

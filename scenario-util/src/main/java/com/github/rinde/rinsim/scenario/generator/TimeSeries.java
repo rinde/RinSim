@@ -452,7 +452,7 @@ public final class TimeSeries {
   }
 
   static class FixedTimeSeriesIterator extends
-  AbstractSequentialIterator<Double> {
+      AbstractSequentialIterator<Double> {
 
     private final double length;
     private final double average;

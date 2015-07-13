@@ -89,7 +89,7 @@ public interface ModelBuilder<T extends Model<? extends U>, U> {
    * @author Rinde van Lon
    */
   public abstract class AbstractModelBuilder<T extends Model<? extends U>, U>
-    implements ModelBuilder<T, U> {
+      implements ModelBuilder<T, U> {
     private ImmutableSet<Class<?>> provTypes;
     private ImmutableSet<Class<?>> deps;
     private final Class<T> modelType;

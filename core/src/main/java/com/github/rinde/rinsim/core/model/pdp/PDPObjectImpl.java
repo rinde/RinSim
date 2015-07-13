@@ -70,7 +70,8 @@ public abstract class PDPObjectImpl implements PDPObject {
 
   @Override
   public final void initRoadUser(RoadModel model) {
-    checkState(!roadModel.isPresent(), "RoadModel can not be registered twice!");
+    checkState(!roadModel.isPresent(),
+        "RoadModel can not be registered twice!");
     roadModel = Optional.of(model);
     if (startPosition.isPresent()) {
       model.addObjectAt(this, startPosition.get());
@@ -96,8 +97,8 @@ public abstract class PDPObjectImpl implements PDPObject {
    */
   protected final void setStartPosition(Point p) {
     checkState(
-      !isRegistered,
-      "this should be called before this object is registered, preferably in the constructor");
+        !isRegistered,
+        "this should be called before this object is registered, preferably in the constructor");
     startPosition = Optional.of(p);
   }
 

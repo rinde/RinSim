@@ -22,7 +22,7 @@ import com.github.rinde.rinsim.event.Event;
 
 /**
  * Event object that is dispatched by the {@link DefaultPDPModel}.
- * @author Rinde van Lon 
+ * @author Rinde van Lon
  */
 public class PDPModelEvent extends Event {
 

@@ -65,28 +65,24 @@ public abstract class FabriRechtScenario extends Scenario {
   @Override
   public ImmutableSet<ModelBuilder<?, ?>> getModelBuilders() {
     return ImmutableSet.<ModelBuilder<?, ?>> builder()
-      .add(
-        TimeModel.builder()
-          .withTickLength(1L)
-          .withTimeUnit(NonSI.MINUTE)
-      )
-      .add(
-        RoadModelBuilders.plane()
-          .withMinPoint(getMin())
-          .withMaxPoint(getMax())
-          .withDistanceUnit(SI.KILOMETER)
-          .withMaxSpeed(100d)
-          .withSpeedUnit(
-            SI.KILOMETRE.divide(NonSI.MINUTE).asType(Velocity.class))
-      )
-      .add(
-        DefaultPDPModel.builder()
-          .withTimeWindowPolicy(TimeWindowPolicies.TARDY_ALLOWED)
-      )
-      .add(
-        StatsTracker.builder()
-      )
-      .build();
+        .add(
+            TimeModel.builder()
+                .withTickLength(1L)
+                .withTimeUnit(NonSI.MINUTE))
+        .add(
+            RoadModelBuilders.plane()
+                .withMinPoint(getMin())
+                .withMaxPoint(getMax())
+                .withDistanceUnit(SI.KILOMETER)
+                .withMaxSpeed(100d)
+                .withSpeedUnit(
+                    SI.KILOMETRE.divide(NonSI.MINUTE).asType(Velocity.class)))
+        .add(
+            DefaultPDPModel.builder()
+                .withTimeWindowPolicy(TimeWindowPolicies.TARDY_ALLOWED))
+        .add(
+            StatsTracker.builder())
+        .build();
   }
 
   @Override
@@ -109,15 +105,15 @@ public abstract class FabriRechtScenario extends Scenario {
    * @return a new instance.
    */
   public static FabriRechtScenario create(
-    Iterable<? extends TimedEvent> pEvents, Point pMin, Point pMax,
-    TimeWindow pTimeWindow, VehicleDTO pDefaultVehicle) {
+      Iterable<? extends TimedEvent> pEvents, Point pMin, Point pMax,
+      TimeWindow pTimeWindow, VehicleDTO pDefaultVehicle) {
 
     return new AutoValue_FabriRechtScenario(
-      ImmutableList.<TimedEvent> copyOf(pEvents),
-      pTimeWindow,
-      pMin,
-      pMax,
-      pDefaultVehicle);
+        ImmutableList.<TimedEvent> copyOf(pEvents),
+        pTimeWindow,
+        pMin,
+        pMax,
+        pDefaultVehicle);
   }
 
   enum FabriRechtProblemClass implements ProblemClass {

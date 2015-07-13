@@ -55,9 +55,9 @@ public class RoadModelBuildersTest {
   @Test
   public void testAbstractRMBUnits() {
     final PlaneRoadModel prm = RoadModelBuilders.plane()
-      .withDistanceUnit(NonSI.LIGHT_YEAR)
-      .withSpeedUnit(NonSI.C)
-      .build(mock(DependencyProvider.class));
+        .withDistanceUnit(NonSI.LIGHT_YEAR)
+        .withSpeedUnit(NonSI.C)
+        .build(mock(DependencyProvider.class));
 
     assertThat(prm.getDistanceUnit()).isEqualTo(NonSI.LIGHT_YEAR);
     assertThat(prm.getSpeedUnit()).isEqualTo(NonSI.C);
@@ -70,8 +70,8 @@ public class RoadModelBuildersTest {
   @Test
   public void testPlaneRMB() {
     final PlaneRMB b = RoadModelBuilders.plane()
-      .withMinPoint(new Point(1, 1))
-      .withMaxPoint(new Point(2, 2));
+        .withMinPoint(new Point(1, 1))
+        .withMaxPoint(new Point(2, 2));
 
     assertThat(b.getMin()).isEqualTo(new Point(1, 1));
     assertThat(b.getMax()).isEqualTo(new Point(2, 2));
@@ -87,11 +87,11 @@ public class RoadModelBuildersTest {
    */
   public void testCollisionGraphRMB() {
     final CollisionGraphRMB b = RoadModelBuilders
-      .dynamicGraph(new ListenableGraph<>(
-        new TableGraph<>()))
-      .withCollisionAvoidance()
-      .withVehicleLength(78d)
-      .withMinDistance(3d);
+        .dynamicGraph(new ListenableGraph<>(
+            new TableGraph<>()))
+        .withCollisionAvoidance()
+        .withVehicleLength(78d)
+        .withMinDistance(3d);
 
     assertThat(b.getMinDistance()).isEqualTo(3d);
     assertThat(b.getVehicleLength()).isEqualTo(78d);
@@ -111,12 +111,12 @@ public class RoadModelBuildersTest {
     final PlaneRMB plane = plane();
     final StaticGraphRMB stat = staticGraph(new TableGraph<>());
     final DynamicGraphRMB dynamic = dynamicGraph(new ListenableGraph<>(
-      new TableGraph<>()));
+        new TableGraph<>()));
     final CollisionGraphRMB coll = dynamicGraph(
-      new ListenableGraph<>(new TableGraph<>()))
-      .withCollisionAvoidance();
+        new ListenableGraph<>(new TableGraph<>()))
+            .withCollisionAvoidance();
     final CachedGraphRMB cach = staticGraph(new TableGraph<>())
-      .withCache();
+        .withCache();
 
     final List<?> list = asList(plane, stat, dynamic, coll, cach);
     final Set<Object> set = new LinkedHashSet<>();
@@ -136,25 +136,23 @@ public class RoadModelBuildersTest {
     }
 
     assertThat(stat).isNotEqualTo(
-      plane().withMaxPoint(new Point(7, 7)));
+        plane().withMaxPoint(new Point(7, 7)));
     assertThat(stat).isEqualTo(
-      staticGraph(new MultimapGraph<>()));
+        staticGraph(new MultimapGraph<>()));
     assertThat(plane).isEqualTo(RoadModelBuilders.plane());
     assertThat(plane).isNotEqualTo(
-      RoadModelBuilders.plane().withDistanceUnit(SI.CENTIMETER));
+        RoadModelBuilders.plane().withDistanceUnit(SI.CENTIMETER));
 
     assertThat(coll).isNotEqualTo(
-      dynamicGraph(new ListenableGraph<>(new TableGraph<>()))
-        .withCollisionAvoidance()
-        .withVehicleLength(7d)
-      );
+        dynamicGraph(new ListenableGraph<>(new TableGraph<>()))
+            .withCollisionAvoidance()
+            .withVehicleLength(7d));
     assertThat(coll).isNotEqualTo(
-      dynamicGraph(new ListenableGraph<>(new TableGraph<>()))
-        .withCollisionAvoidance()
-        .withDistanceUnit(NonSI.YARD)
-      );
+        dynamicGraph(new ListenableGraph<>(new TableGraph<>()))
+            .withCollisionAvoidance()
+            .withDistanceUnit(NonSI.YARD));
 
     assertThat((Iterable<?>) set).containsExactly(plane, stat, dynamic, coll,
-      cach);
+        cach);
   }
 }

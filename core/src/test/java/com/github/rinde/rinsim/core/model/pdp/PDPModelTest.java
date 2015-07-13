@@ -77,9 +77,8 @@ public class PDPModelTest {
         { DefaultPDPModel.builder() },
         { forwardingBuilder().setPDPModel(DefaultPDPModel.builder()) },
         { forwardingBuilder().setPDPModel(
-          forwardingBuilder().setPDPModel(DefaultPDPModel.builder())) }
-    }
-      );
+            forwardingBuilder().setPDPModel(DefaultPDPModel.builder())) }
+    });
   }
 
   static ForwardingPDPModelBuilder forwardingBuilder() {
@@ -87,7 +86,7 @@ public class PDPModelTest {
   }
 
   static class ForwardingPDPModelBuilder extends
-    AbstractModelBuilder<PDPModel, PDPObject> {
+      AbstractModelBuilder<PDPModel, PDPObject> {
 
     ModelBuilder<? extends PDPModel, PDPObject> delegateBuilder;
 
@@ -96,7 +95,7 @@ public class PDPModelTest {
     }
 
     public ForwardingPDPModelBuilder setPDPModel(
-      ModelBuilder<? extends PDPModel, PDPObject> mb) {
+        ModelBuilder<? extends PDPModel, PDPObject> mb) {
       setDependencies(mb.getDependencies());
       delegateBuilder = mb;
       return this;
@@ -105,7 +104,7 @@ public class PDPModelTest {
     @Override
     public ForwardingPDPModel build(DependencyProvider dependencyProvider) {
       final PDPModel delegate = delegateBuilder
-        .build(dependencyProvider);
+          .build(dependencyProvider);
       return new ForwardingPDPModel(delegate);
     }
 
@@ -125,10 +124,10 @@ public class PDPModelTest {
     final DependencyProvider dp = mock(DependencyProvider.class);
 
     rm = RoadModelBuilders.plane()
-      .withDistanceUnit(SI.METER)
-      .withMaxSpeed(Double.POSITIVE_INFINITY)
-      .withSpeedUnit(SI.METERS_PER_SECOND)
-      .build(dp);
+        .withDistanceUnit(SI.METER)
+        .withMaxSpeed(Double.POSITIVE_INFINITY)
+        .withSpeedUnit(SI.METERS_PER_SECOND)
+        .build(dp);
 
     when(dp.get(RoadModel.class)).thenReturn(rm);
     model = modelSupplier.build(dp);
@@ -160,24 +159,24 @@ public class PDPModelTest {
   @Test
   public void testDrop() {
     final Vehicle truck = new TestVehicle(VehicleDTO.builder()
-      .startPosition(new Point(1, 1))
-      .capacity(10)
-      .speed(1.0)
-      .build());
+        .startPosition(new Point(1, 1))
+        .capacity(10)
+        .speed(1.0)
+        .build());
     model.register(truck);
     rm.register(truck);
 
     final Parcel pack = Parcel.builder(new Point(1, 2), new Point(2, 2))
-      .pickupDuration(100L)
-      .deliveryDuration(100L)
-      .neededCapacity(2d)
-      .build();
+        .pickupDuration(100L)
+        .deliveryDuration(100L)
+        .neededCapacity(2d)
+        .build();
 
     model.register(pack);
     rm.register(pack);
 
     rm.followPath(truck, newLinkedList(asList(new Point(1, 2))),
-      TimeLapseFactory.create(0, 3600000));
+        TimeLapseFactory.create(0, 3600000));
     model.pickup(truck, pack, TimeLapseFactory.create(0, 40));
     model.continuePreviousActions(truck, TimeLapseFactory.create(0, 40));
 
@@ -189,7 +188,7 @@ public class PDPModelTest {
 
     // riding to other spot to drop
     rm.followPath(truck, newLinkedList(asList(new Point(2, 2))),
-      TimeLapseFactory.create(0, 3600000));
+        TimeLapseFactory.create(0, 3600000));
     model.drop(truck, pack, TimeLapseFactory.create(0, 50));
     // not enough time for dropping
     assertFalse(model.getContents(truck).isEmpty());
@@ -206,26 +205,26 @@ public class PDPModelTest {
   @Test
   public void testPickupAfterDrop() {
     final Vehicle truck = new TestVehicle(
-      VehicleDTO.builder()
-        .startPosition(new Point(1, 1))
-        .capacity(10)
-        .speed(1.0)
-        .build());
+        VehicleDTO.builder()
+            .startPosition(new Point(1, 1))
+            .capacity(10)
+            .speed(1.0)
+            .build());
 
     model.register(truck);
     rm.register(truck);
 
     final Parcel pack2 = Parcel.builder(new Point(1, 2), new Point(2, 2))
-      .pickupDuration(100L)
-      .deliveryDuration(100L)
-      .neededCapacity(2d)
-      .build();
+        .pickupDuration(100L)
+        .deliveryDuration(100L)
+        .neededCapacity(2d)
+        .build();
 
     model.register(pack2);
     rm.register(pack2);
 
     rm.followPath(truck, newLinkedList(asList(new Point(1, 2))),
-      TimeLapseFactory.create(0, 3600000));
+        TimeLapseFactory.create(0, 3600000));
     model.pickup(truck, pack2, TimeLapseFactory.create(0, 40));
     model.continuePreviousActions(truck, TimeLapseFactory.create(0, 40));
 
@@ -237,16 +236,16 @@ public class PDPModelTest {
 
     // riding to other spot to drop
     rm.followPath(truck, newLinkedList(asList(new Point(2, 2))),
-      TimeLapseFactory.create(0, 3600000));
+        TimeLapseFactory.create(0, 3600000));
 
     model.drop(truck, pack2, TimeLapseFactory.create(0, 100));
 
     final Vehicle truck2 = new TestVehicle(
-      VehicleDTO.builder()
-        .startPosition(new Point(2, 2))
-        .capacity(10)
-        .speed(1.0)
-        .build());
+        VehicleDTO.builder()
+            .startPosition(new Point(2, 2))
+            .capacity(10)
+            .speed(1.0)
+            .build());
     model.register(truck2);
     rm.register(truck2);
 
@@ -263,15 +262,15 @@ public class PDPModelTest {
   @Test
   public void testPickup() {
     final Parcel pack1 = Parcel.builder(new Point(1, 1), new Point(2, 2))
-      .neededCapacity(2d)
-      .build();
+        .neededCapacity(2d)
+        .build();
 
     final Vehicle truck = new TestVehicle(
-      VehicleDTO.builder()
-        .startPosition(new Point(1, 1))
-        .capacity(10)
-        .speed(1.0)
-        .build());
+        VehicleDTO.builder()
+            .startPosition(new Point(1, 1))
+            .capacity(10)
+            .speed(1.0)
+            .build());
     model.register(pack1);
     model.register(truck);
     rm.register(pack1);
@@ -295,14 +294,14 @@ public class PDPModelTest {
     assertEquals(1, model.getContents(truck).size());
 
     final Parcel pack2 = Parcel.builder(new Point(1, 2), new Point(2, 2))
-      .serviceDuration(100L)
-      .neededCapacity(2d)
-      .build();
+        .serviceDuration(100L)
+        .neededCapacity(2d)
+        .build();
     model.register(pack2);
     rm.register(pack2);
 
     rm.followPath(truck, newLinkedList(asList(new Point(1, 2))),
-      TimeLapseFactory.create(0, 3600000));
+        TimeLapseFactory.create(0, 3600000));
 
     assertEquals(new Point(1, 2), rm.getPosition(truck));
     assertEquals(new Point(1, 2), rm.getPosition(pack2));
@@ -311,7 +310,7 @@ public class PDPModelTest {
     model.pickup(truck, pack2, TimeLapseFactory.create(0, 40));
     assertFalse(rm.containsObject(pack2));
     final PickupAction action = (PickupAction) model
-      .getVehicleActionInfo(truck);
+        .getVehicleActionInfo(truck);
     assertFalse(action.isDone());
     assertEquals(60, action.timeNeeded());
     assertEquals(ParcelState.PICKING_UP, model.getParcelState(pack2));
@@ -337,15 +336,15 @@ public class PDPModelTest {
   public void testDelayedPickup() {
 
     final Parcel pack1 = Parcel.builder(new Point(1, 1), new Point(2, 2))
-      .serviceDuration(10L)
-      .neededCapacity(2d)
-      .build();
+        .serviceDuration(10L)
+        .neededCapacity(2d)
+        .build();
     final Vehicle truck = new TestVehicle(
-      VehicleDTO.builder()
-        .startPosition(new Point(1, 1))
-        .capacity(10)
-        .speed(1.0)
-        .build());
+        VehicleDTO.builder()
+            .startPosition(new Point(1, 1))
+            .capacity(10)
+            .speed(1.0)
+            .build());
     model.register(pack1);
     model.register(truck);
     rm.register(pack1);
@@ -365,7 +364,7 @@ public class PDPModelTest {
   public void testPickupFail1() {
     // truck not in roadmodel
     final Vehicle truck = new TestVehicle(
-      VehicleDTO.builder().build());
+        VehicleDTO.builder().build());
     model.pickup(truck, null, TimeLapseFactory.create(0, 1));
   }
 
@@ -373,11 +372,11 @@ public class PDPModelTest {
   public void testPickupFail2() {
     // package not in roadmodel
     final Vehicle truck = new TestVehicle(
-      VehicleDTO.builder().startPosition(new Point(1, 1)).build());
+        VehicleDTO.builder().startPosition(new Point(1, 1)).build());
     rm.register(truck);
     final Parcel pack1 = Parcel.builder(new Point(0, 0), new Point(2, 2))
-      .neededCapacity(2d)
-      .build();
+        .neededCapacity(2d)
+        .build();
     model.pickup(truck, pack1, TimeLapseFactory.create(0, 1));
   }
 
@@ -385,11 +384,10 @@ public class PDPModelTest {
   public void testPickupFail3A() {
     // package not in available state (it is already been picked up)
     final Vehicle truck = new TestVehicle(
-      VehicleDTO.builder().startPosition(new Point(1, 1)).build());
+        VehicleDTO.builder().startPosition(new Point(1, 1)).build());
     rm.register(truck);
     model.register(truck);
-    final Parcel pack1 =
-      Parcel.builder(new Point(0, 0), new Point(2, 2))
+    final Parcel pack1 = Parcel.builder(new Point(0, 0), new Point(2, 2))
         .pickupDuration(10)
         .deliveryDuration(10)
         .neededCapacity(2d)
@@ -416,11 +414,11 @@ public class PDPModelTest {
   public void testPickupFail3B() {
     // package is not registered
     final Vehicle truck = new TestVehicle(
-      VehicleDTO.builder().startPosition(new Point(1, 1)).build());
+        VehicleDTO.builder().startPosition(new Point(1, 1)).build());
     rm.register(truck);
     final Parcel pack1 = Parcel.builder(new Point(0, 0), new Point(2, 2))
-      .neededCapacity(2d)
-      .build();
+        .neededCapacity(2d)
+        .build();
     rm.register(pack1);
     rm.addObjectAtSamePosition(pack1, truck);
     model.pickup(truck, pack1, TimeLapseFactory.create(0, 1));
@@ -429,11 +427,11 @@ public class PDPModelTest {
   @Test(expected = IllegalArgumentException.class)
   public void testPickupFail4() {
     final Vehicle truck = new TestVehicle(
-      VehicleDTO.builder().startPosition(new Point(1, 1)).build());
+        VehicleDTO.builder().startPosition(new Point(1, 1)).build());
     rm.register(truck);
     final Parcel pack1 = Parcel.builder(new Point(0, 0), new Point(2, 2))
-      .neededCapacity(2d)
-      .build();
+        .neededCapacity(2d)
+        .build();
     rm.register(pack1);
     rm.addObjectAtSamePosition(pack1, truck);
     model.register(pack1);
@@ -444,12 +442,12 @@ public class PDPModelTest {
   public void testPickupFail5() {
     // wrong position
     final Vehicle truck = new TestVehicle(
-      VehicleDTO.builder().startPosition(new Point(1, 1)).build());
+        VehicleDTO.builder().startPosition(new Point(1, 1)).build());
     rm.register(truck);
     model.register(truck);
     final Parcel pack1 = Parcel.builder(new Point(0, 0), new Point(2, 2))
-      .neededCapacity(2d)
-      .build();
+        .neededCapacity(2d)
+        .build();
     rm.register(pack1);
     rm.addObjectAt(pack1, new Point(0, 0));
     model.register(pack1);
@@ -460,12 +458,12 @@ public class PDPModelTest {
   public void testPickupFail6A() {
     // package does not fit in truck
     final Vehicle truck = new TestVehicle(
-      VehicleDTO.builder().startPosition(new Point(1, 1)).build());
+        VehicleDTO.builder().startPosition(new Point(1, 1)).build());
     rm.register(truck);
     model.register(truck);
     final Parcel pack1 = Parcel.builder(new Point(0, 0), new Point(2, 2))
-      .neededCapacity(2d)
-      .build();
+        .neededCapacity(2d)
+        .build();
     rm.register(pack1);
     model.register(pack1);
     rm.addObjectAtSamePosition(pack1, truck);
@@ -477,17 +475,17 @@ public class PDPModelTest {
   public void testPickupFail6B() {
     // last package does not fit in truck
     final Vehicle truck = new TestVehicle(VehicleDTO.builder()
-      .startPosition(new Point(1, 1))
-      .capacity(10)
-      .build());
+        .startPosition(new Point(1, 1))
+        .capacity(10)
+        .build());
     rm.register(truck);
     model.register(truck);
 
     for (int i = 0; i < 9; i++) {
       final Parcel newPack = Parcel
-        .builder(new Point(1, 1), new Point(2, 2))
-        .neededCapacity(1d)
-        .build();
+          .builder(new Point(1, 1), new Point(2, 2))
+          .neededCapacity(1d)
+          .build();
       rm.register(newPack);
       model.register(newPack);
       model.pickup(truck, newPack, TimeLapseFactory.create(0, 1));
@@ -496,9 +494,9 @@ public class PDPModelTest {
     assertEquals(model.getContentsSize(truck), 9.0, EPSILON);
 
     final Parcel packTooMuch = Parcel
-      .builder(new Point(1, 1), new Point(2, 2))
-      .neededCapacity(1.1)
-      .build();
+        .builder(new Point(1, 1), new Point(2, 2))
+        .neededCapacity(1.1)
+        .build();
     rm.register(packTooMuch);
     model.register(packTooMuch);
     boolean fail = false;
@@ -513,13 +511,12 @@ public class PDPModelTest {
   @Test
   public void testDeliver() {
     final Vehicle truck = new TestVehicle(VehicleDTO.builder()
-      .startPosition(new Point(1, 1))
-      .capacity(10)
-      .build());
+        .startPosition(new Point(1, 1))
+        .capacity(10)
+        .build());
     rm.register(truck);
     model.register(truck);
-    final Parcel pack1 =
-      Parcel.builder(new Point(1, 1), new Point(2, 2))
+    final Parcel pack1 = Parcel.builder(new Point(1, 1), new Point(2, 2))
         .pickupDuration(10)
         .deliveryDuration(10)
         .neededCapacity(2d)
@@ -537,7 +534,7 @@ public class PDPModelTest {
     assertTrue(model.getParcels(ParcelState.AVAILABLE).isEmpty());
 
     rm.moveTo(truck, pack1.getDeliveryLocation(),
-      TimeLapseFactory.create(0, 3600000 * 3));
+        TimeLapseFactory.create(0, 3600000 * 3));
     assertEquals(pack1.getDeliveryLocation(), rm.getPosition(truck));
 
     model.deliver(truck, pack1, TimeLapseFactory.create(0, 8));
@@ -551,10 +548,10 @@ public class PDPModelTest {
     assertEquals(8, tl.getTimeLeft());
 
     final Parcel pack2 = Parcel.builder(new Point(2, 2), new Point(2, 2))
-      .pickupDuration(10)
-      .deliveryDuration(10)
-      .neededCapacity(2d)
-      .build();
+        .pickupDuration(10)
+        .deliveryDuration(10)
+        .neededCapacity(2d)
+        .build();
     rm.register(pack2);
     model.register(pack2);
     assertEquals(ParcelState.AVAILABLE, model.getParcelState(pack2));
@@ -581,11 +578,10 @@ public class PDPModelTest {
   @Test(expected = IllegalArgumentException.class)
   public void testDeliverFail2() {
     final Vehicle truck = new TestVehicle(
-      VehicleDTO.builder().startPosition(new Point(1, 1)).build());
+        VehicleDTO.builder().startPosition(new Point(1, 1)).build());
     rm.register(truck);
     model.register(truck);
-    final Parcel pack1 =
-      Parcel.builder(new Point(1, 1), new Point(2, 2))
+    final Parcel pack1 = Parcel.builder(new Point(1, 1), new Point(2, 2))
         .pickupDuration(10)
         .deliveryDuration(10)
         .neededCapacity(2d)
@@ -602,14 +598,14 @@ public class PDPModelTest {
   @Test(expected = IllegalArgumentException.class)
   public void testDeliverFail3() {
     final Vehicle truck = new TestVehicle(
-      VehicleDTO.builder().startPosition(new Point(1, 1)).build());
+        VehicleDTO.builder().startPosition(new Point(1, 1)).build());
     rm.register(truck);
     model.register(truck);
     final Parcel pack1 = Parcel.builder(new Point(1, 1), new Point(2, 2))
-      .pickupDuration(10)
-      .deliveryDuration(10)
-      .neededCapacity(2d)
-      .build();
+        .pickupDuration(10)
+        .deliveryDuration(10)
+        .neededCapacity(2d)
+        .build();
     rm.register(pack1);
     model.register(pack1);
     rm.addObjectAtSamePosition(pack1, truck);
@@ -620,14 +616,14 @@ public class PDPModelTest {
   @Test(expected = IllegalArgumentException.class)
   public void testDeliverFail4() {
     final Vehicle truck = new TestVehicle(
-      VehicleDTO.builder().startPosition(new Point(1, 1)).build());
+        VehicleDTO.builder().startPosition(new Point(1, 1)).build());
     rm.register(truck);
     model.register(truck);
     final Parcel pack1 = Parcel.builder(new Point(1, 1), new Point(2, 2))
-      .pickupDuration(10)
-      .deliveryDuration(10)
-      .neededCapacity(2d)
-      .build();
+        .pickupDuration(10)
+        .deliveryDuration(10)
+        .neededCapacity(2d)
+        .build();
     rm.register(pack1);
     model.register(pack1);
     rm.addObjectAtSamePosition(pack1, truck);
@@ -642,8 +638,8 @@ public class PDPModelTest {
     assertTrue(model.getParcels(ParcelState.AVAILABLE).isEmpty());
     final Depot d = new TestDepot(10);
     final Parcel p1 = Parcel.builder(new Point(0, 0), new Point(0, 0))
-      .neededCapacity(1d)
-      .build();
+        .neededCapacity(1d)
+        .build();
     model.register(d);
     model.register(p1);
     rm.addObjectAt(d, new Point(0, 0));
@@ -657,8 +653,8 @@ public class PDPModelTest {
   public void addPackageInFail1() {
     final Depot d = new TestDepot(10);
     final Parcel p1 = Parcel.builder(new Point(0, 0), new Point(0, 0))
-      .neededCapacity(1d)
-      .build();
+        .neededCapacity(1d)
+        .build();
     rm.addObjectAt(p1, new Point(0, 0));
     model.addParcelIn(d, p1);
   }
@@ -667,8 +663,8 @@ public class PDPModelTest {
   public void addPackageInFail2() {
     final Depot d = new TestDepot(10);
     final Parcel p1 = Parcel.builder(new Point(0, 0), new Point(0, 0))
-      .neededCapacity(1d)
-      .build();
+        .neededCapacity(1d)
+        .build();
     model.addParcelIn(d, p1);
   }
 
@@ -676,8 +672,8 @@ public class PDPModelTest {
   public void addPackageInFail3() {
     final Depot d = new TestDepot(10);
     final Parcel p1 = Parcel.builder(new Point(0, 0), new Point(0, 0))
-      .neededCapacity(1d)
-      .build();
+        .neededCapacity(1d)
+        .build();
     model.register(p1);
     model.addParcelIn(d, p1);
   }
@@ -685,8 +681,7 @@ public class PDPModelTest {
   @Test(expected = IllegalArgumentException.class)
   public void addPackageInFail4() {
     final Depot d = new TestDepot(10);
-    final Parcel p1 =
-      Parcel.builder(new Point(0, 0), new Point(0, 0))
+    final Parcel p1 = Parcel.builder(new Point(0, 0), new Point(0, 0))
         .neededCapacity(1d)
         .build();
     model.register(p1);
@@ -697,8 +692,7 @@ public class PDPModelTest {
   @Test(expected = IllegalArgumentException.class)
   public void addPackageInFail5() {
     final Depot d = new TestDepot(10);
-    final Parcel p1 =
-      Parcel.builder(new Point(0, 0), new Point(0, 0))
+    final Parcel p1 = Parcel.builder(new Point(0, 0), new Point(0, 0))
         .neededCapacity(11d)
         .build();
     model.register(p1);
@@ -713,7 +707,7 @@ public class PDPModelTest {
   @Test
   public void register() {
     final Parcel p = Parcel.builder(new Point(0, 0), new Point(0, 0))
-      .build();
+        .build();
     model.register(p);
     assertThat(model).isSameAs(p.pdpModel.get());
 
@@ -732,7 +726,7 @@ public class PDPModelTest {
   @Test(expected = IllegalArgumentException.class)
   public void registerFail1() {
     final Parcel p = Parcel.builder(new Point(0, 0), new Point(1, 1))
-      .build();
+        .build();
     model.register(p);
     model.register(p);
   }

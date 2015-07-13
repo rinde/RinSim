@@ -30,7 +30,7 @@ public class PDPDecorationTest {
   @Test
   public void decoration() {
     final PDPModel defaultPDPModel = DefaultPDPModel.builder()
-      .build(mock(DependencyProvider.class));
+        .build(mock(DependencyProvider.class));
     assertSame(defaultPDPModel, defaultPDPModel.self);
 
     final PDPModel forwardA = new ForwardingA(defaultPDPModel);
@@ -53,7 +53,7 @@ public class PDPDecorationTest {
   @Test
   public void decorationFail() {
     final PDPModel defaultPDPModel = DefaultPDPModel.builder()
-      .build(mock(DependencyProvider.class));
+        .build(mock(DependencyProvider.class));
     assertSame(defaultPDPModel, defaultPDPModel.self);
 
     final PDPModel forwardA = new ForwardingA(defaultPDPModel);

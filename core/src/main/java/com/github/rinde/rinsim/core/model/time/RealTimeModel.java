@@ -61,36 +61,37 @@ class RealTimeModel extends TimeModel implements RealTimeClockController {
     final RealTime rt = new RealTime(timeLapse);
     final SimulatedTime ff = new SimulatedTime();
     stateMachine = StateMachine
-      .create(builder.getClockMode() == ClockMode.REAL_TIME ? INIT_RT : INIT_ST)
-      .addTransition(INIT_RT, Trigger.SIMULATE, INIT_ST)
-      .addTransition(INIT_RT, Trigger.START, rt)
-      .addTransition(INIT_ST, Trigger.REAL_TIME, INIT_RT)
-      .addTransition(INIT_ST, Trigger.START, ff)
-      .addTransition(rt, Trigger.SIMULATE, rt)
-      .addTransition(rt, Trigger.REAL_TIME, rt)
-      .addTransition(rt, Trigger.DO_SIMULATE, ff)
-      .addTransition(rt, Trigger.STOP, STOPPED)
-      .addTransition(ff, Trigger.REAL_TIME, ff)
-      .addTransition(ff, Trigger.SIMULATE, ff)
-      .addTransition(ff, Trigger.DO_REAL_TIME, rt)
-      .addTransition(ff, Trigger.STOP, STOPPED)
-      .addTransition(STOPPED, Trigger.STOP, STOPPED)
-      .build();
+        .create(
+            builder.getClockMode() == ClockMode.REAL_TIME ? INIT_RT : INIT_ST)
+        .addTransition(INIT_RT, Trigger.SIMULATE, INIT_ST)
+        .addTransition(INIT_RT, Trigger.START, rt)
+        .addTransition(INIT_ST, Trigger.REAL_TIME, INIT_RT)
+        .addTransition(INIT_ST, Trigger.START, ff)
+        .addTransition(rt, Trigger.SIMULATE, rt)
+        .addTransition(rt, Trigger.REAL_TIME, rt)
+        .addTransition(rt, Trigger.DO_SIMULATE, ff)
+        .addTransition(rt, Trigger.STOP, STOPPED)
+        .addTransition(ff, Trigger.REAL_TIME, ff)
+        .addTransition(ff, Trigger.SIMULATE, ff)
+        .addTransition(ff, Trigger.DO_REAL_TIME, rt)
+        .addTransition(ff, Trigger.STOP, STOPPED)
+        .addTransition(STOPPED, Trigger.STOP, STOPPED)
+        .build();
   }
 
   @Override
   void doStart() {
     checkState(stateMachine.isSupported(Trigger.START),
-      "%s can be started only once",
-      getClass().getSimpleName());
+        "%s can be started only once",
+        getClass().getSimpleName());
     stateMachine.handle(Trigger.START, this);
   }
 
   @Override
   public void stop() {
     checkState(stateMachine.isSupported(Trigger.STOP),
-      "Can not stop time in current state: %s",
-      stateMachine.getCurrentState().name());
+        "Can not stop time in current state: %s",
+        stateMachine.getCurrentState().name());
     stateMachine.handle(Trigger.STOP, this);
   }
 
@@ -99,8 +100,8 @@ class RealTimeModel extends TimeModel implements RealTimeClockController {
   @Override
   public void tick() {
     throw new UnsupportedOperationException(
-      "Calling tick directly is not supported in "
-        + RealTimeModel.class.getSimpleName());
+        "Calling tick directly is not supported in "
+            + RealTimeModel.class.getSimpleName());
   }
 
   @Override
@@ -111,14 +112,14 @@ class RealTimeModel extends TimeModel implements RealTimeClockController {
   @Override
   public void switchToRealTime() {
     checkState(stateMachine.isSupported(Trigger.REAL_TIME),
-      "Can not switch to real time mode because clock is already stopped.");
+        "Can not switch to real time mode because clock is already stopped.");
     stateMachine.handle(Trigger.REAL_TIME, this);
   }
 
   @Override
   public void switchToSimulatedTime() {
     checkState(stateMachine.isSupported(Trigger.SIMULATE),
-      "Can not switch to simulated time mode because clock is already stopped.");
+        "Can not switch to simulated time mode because clock is already stopped.");
     stateMachine.handle(Trigger.SIMULATE, this);
   }
 
@@ -130,9 +131,10 @@ class RealTimeModel extends TimeModel implements RealTimeClockController {
   @Override
   public boolean register(TickListener tickListener) {
     checkArgument(!decoratorMap.containsKey(tickListener),
-      "A TickListener can not be registered more than once: %s.", tickListener);
+        "A TickListener can not be registered more than once: %s.",
+        tickListener);
     final TickListenerTimingChecker decorated = new TickListenerTimingChecker(
-      tickListener);
+        tickListener);
     decoratorMap.put(tickListener, decorated);
     return super.register(decorated);
   }
@@ -155,13 +157,13 @@ class RealTimeModel extends TimeModel implements RealTimeClockController {
   }
 
   interface ClockState
-    extends com.github.rinde.rinsim.fsm.State<Trigger, RealTimeModel> {
+      extends com.github.rinde.rinsim.fsm.State<Trigger, RealTimeModel> {
     ClockMode getClockMode();
   }
 
   abstract static class AbstractClockState
-    extends AbstractState<Trigger, RealTimeModel>
-    implements ClockState {}
+      extends AbstractState<Trigger, RealTimeModel>
+      implements ClockState {}
 
   static class SimulatedTime extends AbstractClockState {
     boolean isTicking;
@@ -218,7 +220,7 @@ class RealTimeModel extends TimeModel implements RealTimeClockController {
     @SuppressWarnings("null")
     RealTime(TimeLapse timeLapse) {
       tickNanoSeconds = Measure.valueOf(timeLapse.getTickLength(),
-        timeLapse.getTimeUnit()).longValue(SI.NANO(SI.SECOND));
+          timeLapse.getTimeUnit()).longValue(SI.NANO(SI.SECOND));
       exceptions = new ArrayList<>();
     }
 
@@ -230,7 +232,7 @@ class RealTimeModel extends TimeModel implements RealTimeClockController {
     @Override
     @Nullable
     public Trigger handle(@Nullable Trigger event,
-      final RealTimeModel context) {
+        final RealTimeModel context) {
       if (event == Trigger.SIMULATE) {
         nextTrigger = Trigger.DO_SIMULATE;
         return null;
@@ -243,18 +245,18 @@ class RealTimeModel extends TimeModel implements RealTimeClockController {
       final RealTime ref = this;
       @SuppressWarnings("unchecked")
       final ListenableScheduledFuture<Object> f = (ListenableScheduledFuture<Object>) executor
-        .scheduleAtFixedRate(
-          new Runnable() {
-            @Override
-            public void run() {
-              timings.add(System.nanoTime());
-              checkConsistency(timings);
-              context.tickImpl();
-              if (ref.nextTrigger != null) {
-                executor.shutdown();
-              }
-            }
-          }, 0, tickNanoSeconds, TimeUnit.NANOSECONDS);
+          .scheduleAtFixedRate(
+              new Runnable() {
+                @Override
+                public void run() {
+                  timings.add(System.nanoTime());
+                  checkConsistency(timings);
+                  context.tickImpl();
+                  if (ref.nextTrigger != null) {
+                    executor.shutdown();
+                  }
+                }
+              }, 0, tickNanoSeconds, TimeUnit.NANOSECONDS);
 
       Futures.addCallback(f, new FutureCallback<Object>() {
         @Override
@@ -281,8 +283,9 @@ class RealTimeModel extends TimeModel implements RealTimeClockController {
 
     void initExecutor() {
       executor = MoreExecutors.listeningDecorator(
-        Executors
-          .newSingleThreadScheduledExecutor(PriorityThreadFactory.INSTANCE));
+          Executors
+              .newSingleThreadScheduledExecutor(
+                  PriorityThreadFactory.INSTANCE));
     }
 
     void awaitTermination() {
@@ -304,9 +307,9 @@ class RealTimeModel extends TimeModel implements RealTimeClockController {
         return;
       }
       final PeekingIterator<Long> it = Iterators.peekingIterator(timestamps
-        .subList(timestamps.size() - CONSISTENCY_CHECK_LENGTH,
-          timestamps.size())
-        .iterator());
+          .subList(timestamps.size() - CONSISTENCY_CHECK_LENGTH,
+              timestamps.size())
+          .iterator());
 
       final List<Long> interArrivalTimes = new ArrayList<>();
       for (long l1 = it.next(); it.hasNext(); l1 = it.next()) {
@@ -322,12 +325,12 @@ class RealTimeModel extends TimeModel implements RealTimeClockController {
 
       // standard deviation may not be greater than 5ms
       checkState(sum.getStandardDeviation() < MAX_STD_NS,
-        "Std is above threshold of 5ms: %s.", sum.getStandardDeviation());
+          "Std is above threshold of 5ms: %s.", sum.getStandardDeviation());
       // on average we don't want a deviation to the mean of more than 1 ms per
       // tick.
       checkState(
-        Math.abs(tickNanoSeconds - sum.getMean()) < MAX_MEAN_DEVIATION_NS,
-        "Mean interval is above threshold of 1ms: %s.", sum.getMean());
+          Math.abs(tickNanoSeconds - sum.getMean()) < MAX_MEAN_DEVIATION_NS,
+          "Mean interval is above threshold of 1ms: %s.", sum.getMean());
     }
 
     @Override
@@ -388,11 +391,11 @@ class RealTimeModel extends TimeModel implements RealTimeClockController {
       final long afterTickDuration = System.nanoTime() - start;
 
       checkState(
-        tickDuration + afterTickDuration < UPPER_LIMIT_FACTOR
-          * timeLapse.getTickLength() * MS_TO_NS,
-        "%s took too much time, max combined computation time is tick length "
-          + "(%sms). Tick duration: %sns, after tick duration: %sns.",
-        delegate, timeLapse.getTickLength(), tickDuration, afterTickDuration);
+          tickDuration + afterTickDuration < UPPER_LIMIT_FACTOR
+              * timeLapse.getTickLength() * MS_TO_NS,
+          "%s took too much time, max combined computation time is tick length "
+              + "(%sms). Tick duration: %sns, after tick duration: %sns.",
+          delegate, timeLapse.getTickLength(), tickDuration, afterTickDuration);
     }
 
     @Override

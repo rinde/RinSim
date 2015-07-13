@@ -71,7 +71,7 @@ public final class TimeWindows {
      * @param endTime The end time of the scenario.
      */
     void generate(long seed, Parcel.Builder parcelBuilder,
-      TravelTimes travelTimes, long endTime);
+        TravelTimes travelTimes, long endTime);
   }
 
   /**
@@ -86,10 +86,14 @@ public final class TimeWindows {
    * @author Rinde van Lon
    */
   public static class Builder {
-    private static final StochasticSupplier<Long> DEFAULT_URGENCY = constant(30 * 60 * 1000L);
-    private static final StochasticSupplier<Long> DEFAULT_PICKUP_LENGTH = constant(10 * 60 * 1000L);
-    private static final StochasticSupplier<Long> DEFAULT_DELIVERY_OPENING = constant(0L);
-    private static final StochasticSupplier<Double> DEFAULT_DELIVERY_LENGTH_FACTOR = constant(2d);
+    private static final StochasticSupplier<Long> DEFAULT_URGENCY = constant(
+        30 * 60 * 1000L);
+    private static final StochasticSupplier<Long> DEFAULT_PICKUP_LENGTH = constant(
+        10 * 60 * 1000L);
+    private static final StochasticSupplier<Long> DEFAULT_DELIVERY_OPENING = constant(
+        0L);
+    private static final StochasticSupplier<Double> DEFAULT_DELIVERY_LENGTH_FACTOR = constant(
+        2d);
 
     StochasticSupplier<Long> pickupUrgency;
     StochasticSupplier<Long> pickupTWLength;
@@ -185,60 +189,60 @@ public final class TimeWindows {
 
     @Override
     public void generate(long seed, Parcel.Builder parcelBuilder,
-      TravelTimes travelTimes, long endTime) {
+        TravelTimes travelTimes, long endTime) {
       rng.setSeed(seed);
       final long orderAnnounceTime = parcelBuilder.getOrderAnnounceTime();
       final Point pickup = parcelBuilder.getPickupLocation();
       final Point delivery = parcelBuilder.getDeliveryLocation();
 
       final long pickupToDeliveryTT = travelTimes.getShortestTravelTime(pickup,
-        delivery);
+          delivery);
       final long deliveryToDepotTT = travelTimes
-        .getTravelTimeToNearestDepot(delivery);
+          .getTravelTimeToNearestDepot(delivery);
 
       // PICKUP
       final long earliestPickupOpening = orderAnnounceTime;
       final long earliestPickupClosing = earliestPickupOpening;
 
       final long latestPickupClosing = endTime - deliveryToDepotTT
-        - pickupToDeliveryTT - parcelBuilder.getPickupDuration()
-        - parcelBuilder.getDeliveryDuration();
+          - pickupToDeliveryTT - parcelBuilder.getPickupDuration()
+          - parcelBuilder.getDeliveryDuration();
       final TimeWindow pickupTW = urgencyTimeWindow(earliestPickupOpening,
-        earliestPickupClosing, latestPickupClosing, pickupUrgency,
-        pickupTWLength);
+          earliestPickupClosing, latestPickupClosing, pickupUrgency,
+          pickupTWLength);
 
       // DELIVERY
       final long earliestDeliveryOpening = pickupTW.begin + pickupToDeliveryTT
-        + parcelBuilder.getPickupDuration();
+          + parcelBuilder.getPickupDuration();
       final long latestDeliveryOpening = endTime - deliveryToDepotTT;
 
       final long delOpen = deliveryOpening.get(rng.nextLong());
       checkArgument(delOpen >= 0);
       long delOpening = Math.min(earliestDeliveryOpening + delOpen,
-        latestDeliveryOpening);
+          latestDeliveryOpening);
       delOpening = Math.max(delOpening, earliestDeliveryOpening);
 
       final long earliestDeliveryClosing = pickupTW.end + pickupToDeliveryTT
-        + parcelBuilder.getPickupDuration();
+          + parcelBuilder.getPickupDuration();
       final long latestDeliveryClosing = endTime - deliveryToDepotTT
-        - parcelBuilder.getDeliveryDuration();
+          - parcelBuilder.getDeliveryDuration();
 
       final double delFactor = deliveryLengthFactor.get(rng.nextLong());
       checkArgument(delFactor > 0d);
       long deliveryClosing = DoubleMath.roundToLong(pickupTW.length()
-        * delFactor, RoundingMode.CEILING);
+          * delFactor, RoundingMode.CEILING);
 
       if (minDeliveryLength.isPresent()) {
         deliveryClosing = Math.max(
-          delOpening + minDeliveryLength.get().get(rng.nextLong()),
-          deliveryClosing);
+            delOpening + minDeliveryLength.get().get(rng.nextLong()),
+            deliveryClosing);
       }
 
       final long boundedDelClose = boundValue(deliveryClosing,
-        earliestDeliveryClosing, latestDeliveryClosing);
+          earliestDeliveryClosing, latestDeliveryClosing);
 
       final TimeWindow deliveryTW = new TimeWindow(delOpening,
-        boundedDelClose);
+          boundedDelClose);
 
       parcelBuilder.pickupTimeWindow(pickupTW);
       parcelBuilder.deliveryTimeWindow(deliveryTW);
@@ -249,13 +253,13 @@ public final class TimeWindows {
     }
 
     TimeWindow urgencyTimeWindow(long earliestOpening, long earliestClosing,
-      long latestClosing, StochasticSupplier<Long> urgency,
-      StochasticSupplier<Long> length) {
+        long latestClosing, StochasticSupplier<Long> urgency,
+        StochasticSupplier<Long> length) {
       final long closing = boundValue(
-        earliestClosing + urgency.get(rng.nextLong()), earliestClosing,
-        latestClosing);
+          earliestClosing + urgency.get(rng.nextLong()), earliestClosing,
+          latestClosing);
       final long opening = boundValue(closing - length.get(rng.nextLong()),
-        earliestOpening, closing);
+          earliestOpening, closing);
       return new TimeWindow(opening, closing);
     }
   }

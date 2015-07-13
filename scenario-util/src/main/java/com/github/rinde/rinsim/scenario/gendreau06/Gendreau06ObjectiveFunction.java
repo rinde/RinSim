@@ -22,7 +22,7 @@ import com.github.rinde.rinsim.pdptw.common.StatisticsDTO;
 
 /**
  * Objective function for Gendreau et al. (2006) problem instances.
- * @author Rinde van Lon 
+ * @author Rinde van Lon
  */
 public final class Gendreau06ObjectiveFunction implements ObjectiveFunction,
     Serializable {

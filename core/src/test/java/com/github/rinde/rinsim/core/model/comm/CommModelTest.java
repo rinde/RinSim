@@ -74,9 +74,9 @@ public class CommModelTest {
   @Before
   public void setUp() {
     model = CommModel
-      .builder()
-      .withDefaultDeviceReliability(1.0)
-      .build(fakeDependencies());
+        .builder()
+        .withDefaultDeviceReliability(1.0)
+        .build(fakeDependencies());
 
     agent1 = new Agent(new Point(0, 0));
     agent2 = new Agent(new Point(0, 10));
@@ -184,22 +184,22 @@ public class CommModelTest {
   public void testRegisterUnregistered() {
     final ListenerEventHistory leh = new ListenerEventHistory();
     model.getEventAPI().addListener(leh, EventTypes.ADD_COMM_USER,
-      EventTypes.REMOVE_COMM_USER);
+        EventTypes.REMOVE_COMM_USER);
     final CommDevice originalDevice = agent1.device();
     assertThat(model.contains(agent1)).isTrue();
 
     model.unregister(agent1);
     assertThat(model.contains(agent1)).isFalse();
     assertThat(leh.getEventTypeHistory()).containsExactly(REMOVE_COMM_USER)
-      .inOrder();
+        .inOrder();
 
     model.register(agent1);
     assertThat(model.contains(agent1)).isTrue();
     final CommDevice newDevice = agent1.device();
     assertThat(originalDevice).isSameAs(newDevice);
     assertThat(leh.getEventTypeHistory()).containsExactly(REMOVE_COMM_USER,
-      ADD_COMM_USER)
-      .inOrder();
+        ADD_COMM_USER)
+        .inOrder();
 
     newDevice.broadcast(Contents.HELLO_WORLD);
   }
@@ -295,7 +295,7 @@ public class CommModelTest {
     assertSame(ranged, m.getSender());
     assertTrue(agent3.device().getUnreadMessages().isEmpty());
     assertSame(agent3, ranged.device().getUnreadMessages().get(0)
-      .getSender());
+        .getSender());
   }
 
   /**
@@ -491,7 +491,7 @@ public class CommModelTest {
     boolean fail = false;
     try {
       CommModel.builder().build(fakeDependencies())
-        .register(new IdleCommUser());
+          .register(new IdleCommUser());
     } catch (final IllegalStateException e) {
       fail = true;
     }
@@ -544,13 +544,13 @@ public class CommModelTest {
     assertSame(agent6, event.getUser());
     assertSame(model, event.getIssuer());
     assertSame(agent6,
-      model.getUsersAndDevices().inverse().get(event.getDevice()));
+        model.getUsersAndDevices().inverse().get(event.getDevice()));
   }
 
   static DependencyProvider fakeDependencies() {
     return FakeDependencyProvider.builder()
-      .add(RandomModel.builder())
-      .build();
+        .add(RandomModel.builder())
+        .build();
   }
 
   static class RangedAgent extends Agent {
@@ -564,18 +564,18 @@ public class CommModelTest {
     @Override
     public void setCommDevice(CommDeviceBuilder builder) {
       commDevice = Optional.of(
-        builder.setReliability(reliability)
-          .setMaxRange(range)
-          .build());
+          builder.setReliability(reliability)
+              .setMaxRange(range)
+              .build());
     }
 
     @Override
     public String toString() {
       return MoreObjects.toStringHelper("Agent")
-        .add("position", position)
-        .add("reliability", reliability)
-        .add("range", range)
-        .toString();
+          .add("position", position)
+          .add("reliability", reliability)
+          .add("range", range)
+          .toString();
     }
   }
 
@@ -610,16 +610,16 @@ public class CommModelTest {
     @Override
     public void setCommDevice(CommDeviceBuilder builder) {
       commDevice = Optional.of(
-        builder.setReliability(reliability)
-          .build());
+          builder.setReliability(reliability)
+              .build());
     }
 
     @Override
     public String toString() {
       return MoreObjects.toStringHelper("Agent")
-        .add("position", position)
-        .add("reliability", reliability)
-        .toString();
+          .add("position", position)
+          .add("reliability", reliability)
+          .toString();
     }
   }
 

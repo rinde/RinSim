@@ -149,8 +149,7 @@ public class RandomModelTest {
         fail = false;
         try {
           provider.masterInstance();
-        }
-        catch (final IllegalStateException e) {
+        } catch (final IllegalStateException e) {
           fail = true;
         }
         assertTrue(fail);
@@ -164,8 +163,7 @@ public class RandomModelTest {
         fail = false;
         try {
           provider.sharedInstance(Object.class);
-        }
-        catch (final IllegalStateException e) {
+        } catch (final IllegalStateException e) {
           fail = true;
         }
         assertTrue(fail);

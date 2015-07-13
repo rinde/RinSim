@@ -109,7 +109,7 @@ public abstract class TimeModelTest<T extends TimeModel> {
     getModel().start();
 
     assertThat(getModel().getCurrentTime()).isEqualTo(
-      getModel().getTickLength());
+        getModel().getTickLength());
     assertThat(a.getTickCount()).isEqualTo(1L);
     getModel().unregister(a);
     assertThat(getTickListeners()).containsExactly(ltl);
@@ -155,7 +155,7 @@ public abstract class TimeModelTest<T extends TimeModel> {
     assertThat(b.getLastTickTime() - a.getLastTickTime()).isAtLeast(0L);
     assertThat(a.getLastAfterTickTime() - b.getLastTickTime()).isAtLeast(0L);
     assertThat(b.getLastAfterTickTime() - a.getLastAfterTickTime())
-      .isAtLeast(0L);
+        .isAtLeast(0L);
   }
 
   /**
@@ -196,10 +196,10 @@ public abstract class TimeModelTest<T extends TimeModel> {
     assertThat(getModel().register(c)).isTrue();
     assertThat(getModel().register(d)).isTrue();
     assertThat(getModel().register(new LimitingTickListener(getModel(), 4)))
-      .isTrue();
+        .isTrue();
     getModel().start();
     assertThat(getModel().getCurrentTime()).isEqualTo(
-      4 * getModel().getTickLength());
+        4 * getModel().getTickLength());
 
     assertThat(a.getTickCount()).isEqualTo(3);
     assertThat(a.getAfterTickCount()).isEqualTo(2);
@@ -256,15 +256,15 @@ public abstract class TimeModelTest<T extends TimeModel> {
       @Override
       public void tick(TimeLapse timeLapse) {
         intervals.add(Range.openClosed(timeLapse.getStartTime(),
-          timeLapse.getEndTime()));
+            timeLapse.getEndTime()));
         assertThat(leh.getEventTypeHistory()).containsExactly(
-          ClockEventType.STARTED);
+            ClockEventType.STARTED);
       }
 
       @Override
       public void afterTick(TimeLapse timeLapse) {
         assertThat(leh.getEventTypeHistory()).containsExactly(
-          ClockEventType.STARTED);
+            ClockEventType.STARTED);
       }
     });
     assertThat(intervals).isEmpty();
@@ -272,11 +272,11 @@ public abstract class TimeModelTest<T extends TimeModel> {
     getModel().start();
     assertThat(intervals).hasSize(2);
     assertThat(intervals).containsExactly(
-      Range.openClosed(0L, model.getTickLength()),
-      Range.openClosed(model.getTickLength(), model.getTickLength() * 2))
-      .inOrder();
+        Range.openClosed(0L, model.getTickLength()),
+        Range.openClosed(model.getTickLength(), model.getTickLength() * 2))
+        .inOrder();
     assertThat(leh.getEventTypeHistory()).containsExactly(
-      ClockEventType.STARTED, ClockEventType.STOPPED);
+        ClockEventType.STARTED, ClockEventType.STOPPED);
   }
 
   /**
@@ -333,7 +333,7 @@ public abstract class TimeModelTest<T extends TimeModel> {
 
   TickListenerChecker checker() {
     return new TickListenerChecker(getModel().getTickLength(), getModel()
-      .getTimeUnit());
+        .getTimeUnit());
   }
 
   LimitingTickListener limiter(int limit) {

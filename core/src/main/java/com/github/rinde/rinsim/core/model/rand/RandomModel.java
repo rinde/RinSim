@@ -107,11 +107,11 @@ public class RandomModel extends AbstractModel<RandomUser> {
    */
   @AutoValue
   public abstract static class Builder extends
-    AbstractModelBuilder<RandomModel, RandomUser> implements Serializable {
+      AbstractModelBuilder<RandomModel, RandomUser>implements Serializable {
 
     private static final long serialVersionUID = 7985638617806912711L;
     static final StochasticSupplier<MersenneTwister> DEFAULT_RNG = StochasticSuppliers
-      .mersenneTwister();
+        .mersenneTwister();
 
     Builder() {
       setProvidingTypes(RandomProvider.class);
@@ -139,7 +139,7 @@ public class RandomModel extends AbstractModel<RandomUser> {
      */
     @CheckReturnValue
     public Builder withRandomGenerator(
-      StochasticSupplier<? extends RandomGenerator> supplier) {
+        StochasticSupplier<? extends RandomGenerator> supplier) {
       return create(seed(), supplier);
     }
 
@@ -154,9 +154,9 @@ public class RandomModel extends AbstractModel<RandomUser> {
 
     @SuppressWarnings("unchecked")
     static Builder create(long seed,
-      StochasticSupplier<? extends RandomGenerator> ss) {
+        StochasticSupplier<? extends RandomGenerator> ss) {
       return new AutoValue_RandomModel_Builder(seed,
-        (StochasticSupplier<RandomGenerator>) ss);
+          (StochasticSupplier<RandomGenerator>) ss);
     }
   }
 
@@ -199,7 +199,7 @@ public class RandomModel extends AbstractModel<RandomUser> {
       stateCheck();
       if (!classRngMap.containsKey(clazz)) {
         final RandomGenerator rng = new UnmodifiableRandomGenerator(
-          new MersenneTwister(masterRandomGenerator.nextLong()));
+            new MersenneTwister(masterRandomGenerator.nextLong()));
         classRngMap.put(clazz, rng);
         return rng;
       }

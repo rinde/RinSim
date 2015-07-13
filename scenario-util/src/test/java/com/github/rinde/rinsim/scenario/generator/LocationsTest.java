@@ -29,7 +29,7 @@ import com.github.rinde.rinsim.scenario.generator.Locations.LocationGenerator;
 
 /**
  * Tests for {@link Locations}.
- * @author Rinde van Lon 
+ * @author Rinde van Lon
  */
 public class LocationsTest {
 

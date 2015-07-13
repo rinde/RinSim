@@ -44,7 +44,8 @@ import com.google.common.collect.Multimap;
  * <ul>
  * <li>Removal of a connection or changing a connection when a {@link RoadUser}
  * is on that connection.</li>
- * <li>Removal of the last connection to a node with a {@link RoadUser} on it.</li>
+ * <li>Removal of the last connection to a node with a {@link RoadUser} on it.
+ * </li>
  * </ul>
  * An {@link IllegalStateException} will be thrown upon detection of an invalid
  * modification. It is up to the user to prevent this from happening. The method
@@ -62,7 +63,7 @@ public class DynamicGraphRoadModel extends GraphRoadModel {
    * @param b The builder that contains the properties to initialize this model.
    */
   protected DynamicGraphRoadModel(ListenableGraph<?> g,
-    RoadModelBuilders.AbstractDynamicGraphRMB<?, ?> b) {
+      RoadModelBuilders.AbstractDynamicGraphRMB<?, ?> b) {
     super(g, b);
     getGraph().getEventAPI().addListener(new GraphModificationChecker(this));
     connMap = LinkedHashMultimap.create();
@@ -104,7 +105,7 @@ public class DynamicGraphRoadModel extends GraphRoadModel {
 
   @Override
   protected MoveProgress doFollowPath(MovingRoadUser object, Queue<Point> path,
-    TimeLapse time) {
+      TimeLapse time) {
     final Loc prevLoc = objLocs.get(object);
     if (prevLoc.isOnConnection()) {
       connMap.remove(prevLoc.conn.get(), object);
@@ -142,7 +143,7 @@ public class DynamicGraphRoadModel extends GraphRoadModel {
   public boolean hasRoadUserOn(Point from, Point to) {
     checkConnectionsExists(from, to);
     return connMap.containsKey(graph.getConnection(from, to))
-      || posMap.containsKey(from) || posMap.containsKey(to);
+        || posMap.containsKey(from) || posMap.containsKey(to);
   }
 
   /**
@@ -174,13 +175,13 @@ public class DynamicGraphRoadModel extends GraphRoadModel {
 
   void checkConnectionsExists(Point from, Point to) {
     checkArgument(graph.hasConnection(from, to),
-      "There is no connection between %s and %s.", from, to);
+        "There is no connection between %s and %s.", from, to);
   }
 
   @Override
   public void removeObject(RoadUser object) {
     checkArgument(objLocs.containsKey(object),
-      "RoadUser: %s does not exist.", object);
+        "RoadUser: %s does not exist.", object);
     final Loc prevLoc = objLocs.get(object);
     if (prevLoc.isOnConnection()) {
       final Connection<? extends ConnectionData> conn = prevLoc.conn.get();
@@ -203,25 +204,25 @@ public class DynamicGraphRoadModel extends GraphRoadModel {
       verify(e instanceof GraphEvent);
       final GraphEvent ge = (GraphEvent) e;
       if (ge.getEventType() == EventTypes.REMOVE_CONNECTION
-        || ge.getEventType() == EventTypes.CHANGE_CONNECTION_DATA) {
+          || ge.getEventType() == EventTypes.CHANGE_CONNECTION_DATA) {
 
         final Connection<?> conn = ge.getConnection();
         checkState(
-          !model.connMap.containsKey(conn),
-          "A connection (%s->%s) with an object (%s) on it can not be changed or removed: %s.",
-          conn.from(), conn.to(), model.connMap.get(conn), ge.getEventType());
+            !model.connMap.containsKey(conn),
+            "A connection (%s->%s) with an object (%s) on it can not be changed or removed: %s.",
+            conn.from(), conn.to(), model.connMap.get(conn), ge.getEventType());
 
         if (model.posMap.containsKey(conn.from())) {
           checkState(
-            ge.getGraph().containsNode(conn.from()),
-            "There is an object on (%s) therefore the last connection to that location (%s->%s) can not be changed or removed: %s.",
-            conn.from(), conn.from(), conn.to(), ge.getEventType());
+              ge.getGraph().containsNode(conn.from()),
+              "There is an object on (%s) therefore the last connection to that location (%s->%s) can not be changed or removed: %s.",
+              conn.from(), conn.from(), conn.to(), ge.getEventType());
         }
         if (model.posMap.containsKey(conn.to())) {
           checkState(
-            ge.getGraph().containsNode(conn.to()),
-            "There is an object on (%s) therefore the last connection to that location (%s->%s) can not be changed or removed: %s.",
-            conn.to(), conn.from(), conn.to(), ge.getEventType());
+              ge.getGraph().containsNode(conn.to()),
+              "There is an object on (%s) therefore the last connection to that location (%s->%s) can not be changed or removed: %s.",
+              conn.to(), conn.from(), conn.to(), ge.getEventType());
         }
       }
       // remove all previously computed shortest paths because they may have

@@ -16,7 +16,7 @@
 /**
  * This package provides a reference implementation of the problem as described
  * in [1].
- * 
+ *
  * <ul>
  * <li>[1]. Gendreau, M., Guertin, F., Potvin, J.-Y., and Séguin, R.
  * Neighborhood search heuristics for a dynamic vehicle dispatching problem with
@@ -28,4 +28,3 @@
 package com.github.rinde.rinsim.scenario.gendreau06;
 
 import javax.annotation.ParametersAreNonnullByDefault;
-

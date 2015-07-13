@@ -124,8 +124,7 @@ public class TimeWindowsTest {
         new Point(2, 0),
         new Point(0, 0),
         new Point(1, 1),
-        new Point(7, 6)
-        ));
+        new Point(7, 6)));
 
     final Iterator<Long> serviceDurations = Iterators.cycle(asList(
         0L, 0L, 1L, 2L, 5L, 10L, 10L));

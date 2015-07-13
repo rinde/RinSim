@@ -106,8 +106,8 @@ public final class TimeWindow implements Serializable {
   }
 
   /**
-   * @return The length of the time window:
-   *         <code>{@link #end} - {@link #begin}</code>.
+   * @return The length of the time window: <code>{@link #end} - 
+   *         {@link #begin}</code>.
    */
   public long length() {
     return end - begin;

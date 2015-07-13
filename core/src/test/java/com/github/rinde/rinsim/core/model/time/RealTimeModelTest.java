@@ -116,8 +116,8 @@ public class RealTimeModelTest extends TimeModelTest<RealTimeModel> {
     getModel().register(limiter(150));
 
     final int t = RealTimeModel.RealTime.CONSISTENCY_CHECK_LENGTH + DoubleMath
-      .roundToInt(.5 * RealTimeModel.RealTime.CONSISTENCY_CHECK_LENGTH,
-        RoundingMode.HALF_DOWN);
+        .roundToInt(.5 * RealTimeModel.RealTime.CONSISTENCY_CHECK_LENGTH,
+            RoundingMode.HALF_DOWN);
 
     getModel().register(new TickListener() {
       @Override
@@ -224,7 +224,7 @@ public class RealTimeModelTest extends TimeModelTest<RealTimeModel> {
     assertThat(timeLapseTimes).hasSize(3001);
 
     final PeekingIterator<Long> it = Iterators
-      .peekingIterator(times.iterator());
+        .peekingIterator(times.iterator());
 
     final List<Double> interArrivalTimes = new ArrayList<>();
     for (long l1 = it.next(); it.hasNext(); l1 = it.next()) {
@@ -276,16 +276,16 @@ public class RealTimeModelTest extends TimeModelTest<RealTimeModel> {
   @Test
   public void testBuilderClockMode() {
     final RealTimeModel tm1 = (RealTimeModel) TimeModel.builder()
-      .withRealTime()
-      .build(FakeDependencyProvider.empty());
+        .withRealTime()
+        .build(FakeDependencyProvider.empty());
     assertThat(tm1.getClockMode()).isEqualTo(ClockMode.REAL_TIME);
 
     final RealTimeModel tm2 = (RealTimeModel) TimeModel.builder()
-      .withRealTime()
-      .withStartInClockMode(ClockMode.SIMULATED)
-      .withTimeUnit(NonSI.HOUR)
-      .withTickLength(1)
-      .build(FakeDependencyProvider.empty());
+        .withRealTime()
+        .withStartInClockMode(ClockMode.SIMULATED)
+        .withTimeUnit(NonSI.HOUR)
+        .withTickLength(1)
+        .build(FakeDependencyProvider.empty());
 
     assertThat(tm2.getClockMode()).isEqualTo(ClockMode.SIMULATED);
     assertThat(tm2.getTimeUnit()).isEqualTo(NonSI.HOUR);
@@ -295,8 +295,8 @@ public class RealTimeModelTest extends TimeModelTest<RealTimeModel> {
     try {
       @SuppressWarnings("unused")
       final RealTimeBuilder b = TimeModel.builder()
-        .withRealTime()
-        .withStartInClockMode(ClockMode.STOPPED);
+          .withRealTime()
+          .withStartInClockMode(ClockMode.STOPPED);
     } catch (final IllegalArgumentException e) {
       assertThat(e.getMessage()).contains("Can not use");
       fail = true;
@@ -318,7 +318,7 @@ public class RealTimeModelTest extends TimeModelTest<RealTimeModel> {
     } catch (final IllegalArgumentException e) {
       fail = true;
       assertThat(e.getMessage())
-        .contains("does not provide instances of java.lang.Object");
+          .contains("does not provide instances of java.lang.Object");
     }
     assertThat(fail).isTrue();
   }

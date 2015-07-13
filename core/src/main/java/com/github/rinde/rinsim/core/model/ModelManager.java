@@ -55,15 +55,15 @@ public final class ModelManager implements ModelProvider {
   @SuppressWarnings("unchecked")
   ModelManager(ImmutableSet<? extends Model<?>> ms) {
     models = (ImmutableSet<Model<?>>) ms;
-    final ImmutableSetMultimap.Builder<Class<?>, Model<?>> builder =
-      ImmutableSetMultimap.builder();
+    final ImmutableSetMultimap.Builder<Class<?>, Model<?>> builder = ImmutableSetMultimap
+        .builder();
     builder.put(ModelReceiver.class, new ModelReceiverModel(this));
 
     final Set<UserInterface> uis = new LinkedHashSet<>();
     for (final Model<?> m : models) {
       final Class<?> suptype = m.getSupportedType();
       checkNotNull(suptype,
-        "Model.getSupportedType() must return a non-null, model: %s.", m);
+          "Model.getSupportedType() must return a non-null, model: %s.", m);
       builder.put(suptype, m);
       if (m instanceof UserInterface) {
         uis.add((UserInterface) m);
@@ -71,8 +71,8 @@ public final class ModelManager implements ModelProvider {
     }
 
     checkState(uis.size() <= 1,
-      "At most one implementor of %s can be defined, found %s.",
-      UserInterface.class, uis);
+        "At most one implementor of %s can be defined, found %s.",
+        UserInterface.class, uis);
     if (uis.isEmpty()) {
       userInterface = Optional.absent();
     } else {
@@ -92,7 +92,7 @@ public final class ModelManager implements ModelProvider {
     for (final Class<?> modelSupportedType : modelSupportedTypes) {
       if (modelSupportedType.isAssignableFrom(object.getClass())) {
         final Collection<Model<?>> assignableModels = registry
-          .get(modelSupportedType);
+            .get(modelSupportedType);
         for (final Model<?> m : assignableModels) {
           success |= ((Model<T>) m).register(object);
         }
@@ -110,15 +110,15 @@ public final class ModelManager implements ModelProvider {
    */
   public <T> void register(T object) {
     checkArgument(
-      !(object instanceof Model<?>),
-      "Can not register a model: %s. "
-        + "Models can be added via Simulator.builder().",
-      object);
+        !(object instanceof Model<?>),
+        "Can not register a model: %s. "
+            + "Models can be added via Simulator.builder().",
+        object);
     final boolean success = doRegister(object);
     checkArgument(
-      success,
-      "The object %s with type %s can not be registered to any model.",
-      object, object.getClass());
+        success,
+        "The object %s with type %s can not be registered to any model.",
+        object, object.getClass());
   }
 
   /**
@@ -138,14 +138,14 @@ public final class ModelManager implements ModelProvider {
       // check if object is from a known type
       if (modelSupportedType.isAssignableFrom(object.getClass())) {
         final Collection<Model<?>> assignableModels = registry
-          .get(modelSupportedType);
+            .get(modelSupportedType);
         for (final Model<?> m : assignableModels) {
           result |= ((Model<T>) m).unregister(object);
         }
       }
     }
     checkArgument(result, "Object %s with type %s can not be unregistered.",
-      object, object.getClass());
+        object, object.getClass());
   }
 
   @SuppressWarnings("unchecked")

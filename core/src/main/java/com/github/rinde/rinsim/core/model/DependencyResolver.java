@@ -67,8 +67,8 @@ class DependencyResolver extends DependencyProvider {
 
     for (final Class<?> clz : mb.getProvidingTypes()) {
       checkArgument(!providerMap.containsKey(clz),
-        "A provider for %s already exists: %s.", clz,
-        providerMap.get(clz));
+          "A provider for %s already exists: %s.", clz,
+          providerMap.get(clz));
       providerMap.put(clz, dep);
     }
     dependencyMap.putAll(dep, deps);
@@ -78,14 +78,14 @@ class DependencyResolver extends DependencyProvider {
 
   Multimap<Dependency, Dependency> constructDependencyGraph() {
     final Multimap<Dependency, Dependency> dependencyGraph = LinkedHashMultimap
-      .create();
+        .create();
     for (final Entry<Dependency, Class<?>> entry : dependencyMap
-      .entries()) {
+        .entries()) {
       checkArgument(
-        providerMap.containsKey(entry.getValue()),
-        "Could not resolve dependency for implementations of %s, as requested "
-          + "by %s.",
-        entry.getValue(), entry.getKey().modelBuilder);
+          providerMap.containsKey(entry.getValue()),
+          "Could not resolve dependency for implementations of %s, as requested "
+              + "by %s.",
+          entry.getValue(), entry.getKey().modelBuilder);
       dependencyGraph.put(entry.getKey(), providerMap.get(entry.getValue()));
     }
     return dependencyGraph;
@@ -95,9 +95,9 @@ class DependencyResolver extends DependencyProvider {
     for (final ModelBuilder<?, ?> b : defaultModels) {
       final ImmutableSet<Class<?>> providingTypes = b.getProvidingTypes();
       if (providingTypes.isEmpty()
-        || !providerMap.keySet().containsAll(providingTypes)) {
+          || !providerMap.keySet().containsAll(providingTypes)) {
         checkArgument(Sets.intersection(providerMap.keySet(), providingTypes)
-          .isEmpty());
+            .isEmpty());
         add(b);
       }
     }
@@ -105,8 +105,7 @@ class DependencyResolver extends DependencyProvider {
 
   ImmutableSet<Model<?>> resolve() {
     addDefaultModels();
-    final Multimap<Dependency, Dependency> dependencyGraph =
-      constructDependencyGraph();
+    final Multimap<Dependency, Dependency> dependencyGraph = constructDependencyGraph();
 
     while (!dependencyGraph.isEmpty()) {
       final List<Dependency> toRemove = new ArrayList<>();
@@ -127,8 +126,8 @@ class DependencyResolver extends DependencyProvider {
       }
       if (toRemove.isEmpty()) {
         throw new IllegalArgumentException(
-          "Could not resolve dependencies for " + dependencyGraph.keySet()
-            + ", most likely a circular dependency was declared.");
+            "Could not resolve dependencies for " + dependencyGraph.keySet()
+                + ", most likely a circular dependency was declared.");
       }
     }
 
@@ -151,7 +150,7 @@ class DependencyResolver extends DependencyProvider {
     final ModelBuilder<?, ?> modelBuilder;
 
     DependencyProviderAccessDecorator(DependencyProvider dp,
-      ImmutableSet<Class<?>> allowed, ModelBuilder<?, ?> mb) {
+        ImmutableSet<Class<?>> allowed, ModelBuilder<?, ?> mb) {
       delegate = dp;
       knownDependencies = allowed;
       modelBuilder = mb;
@@ -169,17 +168,17 @@ class DependencyResolver extends DependencyProvider {
     @Override
     public <T> T get(Class<T> type) {
       checkArgument(!knownDependencies.isEmpty(),
-        "%s did not declare any dependencies.", modelBuilder);
+          "%s did not declare any dependencies.", modelBuilder);
       checkArgument(
-        knownDependencies.contains(type),
-        "%s is not a type that %s declared as a dependency, "
-          + "known dependencies: %s.",
-        type, modelBuilder, knownDependencies);
+          knownDependencies.contains(type),
+          "%s is not a type that %s declared as a dependency, "
+              + "known dependencies: %s.",
+          type, modelBuilder, knownDependencies);
       checkArgument(
-        !requestedDependencies.contains(type),
-        "%s is already requested by %s, each type must be requested "
-          + "exactly once.",
-        type, modelBuilder);
+          !requestedDependencies.contains(type),
+          "%s is already requested by %s, each type must be requested "
+              + "exactly once.",
+          type, modelBuilder);
       requestedDependencies.add(type);
       return delegate.get(type);
     }
@@ -192,7 +191,7 @@ class DependencyResolver extends DependencyProvider {
     private Model<?> value;
 
     Dependency(DependencyProvider dp, ModelBuilder<?, ?> mb,
-      ImmutableSet<Class<?>> deps) {
+        ImmutableSet<Class<?>> deps) {
       modelBuilder = mb;
       dependencyProvider = new DependencyProviderAccessDecorator(dp, deps, mb);
       if (deps.isEmpty()) {
@@ -204,12 +203,12 @@ class DependencyResolver extends DependencyProvider {
       if (value == null) {
         value = modelBuilder.build(dependencyProvider);
         checkNotNull(value, "%s returned null where a Model was expected.",
-          modelBuilder);
+            modelBuilder);
         checkState(
-          dependencyProvider.areAllDependenciesRequested(),
-          "All declared dependencies MUST be requested from the dependency "
-            + "provider, %s has unused dependencies: %s.",
-          modelBuilder, dependencyProvider.getUnusedDependencies());
+            dependencyProvider.areAllDependenciesRequested(),
+            "All declared dependencies MUST be requested from the dependency "
+                + "provider, %s has unused dependencies: %s.",
+            modelBuilder, dependencyProvider.getUnusedDependencies());
       }
       return verifyNotNull(value);
     }

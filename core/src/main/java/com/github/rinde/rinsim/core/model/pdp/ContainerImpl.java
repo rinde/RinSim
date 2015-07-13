@@ -19,7 +19,7 @@ import static com.google.common.base.Preconditions.checkState;
 
 /**
  * Default implementation of the {@link Container} interface.
- * @author Rinde van Lon 
+ * @author Rinde van Lon
  */
 public abstract class ContainerImpl extends PDPObjectImpl implements Container {
 
@@ -31,7 +31,8 @@ public abstract class ContainerImpl extends PDPObjectImpl implements Container {
    * @param pCapacity The capacity to use.
    */
   protected final void setCapacity(double pCapacity) {
-    checkState(!isRegistered(), "capacity must be set before object is registered, it can not be changed afterwards.");
+    checkState(!isRegistered(),
+        "capacity must be set before object is registered, it can not be changed afterwards.");
     capacity = pCapacity;
   }
 

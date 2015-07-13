@@ -40,8 +40,9 @@ import com.google.common.collect.ImmutableList;
 /**
  * A {@link RoadModel} which forwards all its method calls to another
  * {@link RoadModel}. Subclasses should override one or more methods to modify
- * the behavior of the backing model as desired per the <a
- * href="http://en.wikipedia.org/wiki/Decorator_pattern">decorator pattern</a>.
+ * the behavior of the backing model as desired per the
+ * <a href="http://en.wikipedia.org/wiki/Decorator_pattern">decorator
+ * pattern</a>.
  * @author Rinde van Lon
  */
 public class ForwardingRoadModel extends GenericRoadModel {
@@ -79,19 +80,19 @@ public class ForwardingRoadModel extends GenericRoadModel {
 
   @Override
   public MoveProgress moveTo(MovingRoadUser object, Point destination,
-    TimeLapse time) {
+      TimeLapse time) {
     return delegate.moveTo(object, destination, time);
   }
 
   @Override
   public MoveProgress moveTo(MovingRoadUser object, RoadUser destination,
-    TimeLapse time) {
+      TimeLapse time) {
     return delegate.moveTo(object, destination, time);
   }
 
   @Override
   public MoveProgress followPath(MovingRoadUser object, Queue<Point> path,
-    TimeLapse time) {
+      TimeLapse time) {
     return delegate.followPath(object, path, time);
   }
 
@@ -168,7 +169,7 @@ public class ForwardingRoadModel extends GenericRoadModel {
 
   @Override
   public <Y extends RoadUser> Set<Y> getObjectsAt(RoadUser roadUser,
-    Class<Y> type) {
+      Class<Y> type) {
     return delegate.getObjectsAt(roadUser, type);
   }
 
@@ -225,7 +226,7 @@ public class ForwardingRoadModel extends GenericRoadModel {
    * @author Rinde van Lon
    */
   public abstract static class Builder<T extends ForwardingRoadModel>
-    extends AbstractModelBuilder<T, RoadUser> implements Serializable {
+      extends AbstractModelBuilder<T, RoadUser>implements Serializable {
 
     private static final long serialVersionUID = 1852539610753492228L;
 

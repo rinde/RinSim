@@ -19,7 +19,7 @@ package com.github.rinde.rinsim.core.model.pdp;
  * Implementors of this interface can contain 'things', typically {@link Parcel}
  * objects. This interface is typically not used directly, two often used
  * implementations are {@link Vehicle} and {@link Depot}.
- * @author Rinde van Lon 
+ * @author Rinde van Lon
  */
 public interface Container extends PDPObject {
 

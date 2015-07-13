@@ -70,8 +70,8 @@ public final class CommDeviceBuilder {
    */
   public CommDevice build() {
     checkState(!used,
-      "Only one communication device can be created per user, user: %s.",
-      user);
+        "Only one communication device can be created per user, user: %s.",
+        user);
     used = true;
     return new CommDevice(this);
   }

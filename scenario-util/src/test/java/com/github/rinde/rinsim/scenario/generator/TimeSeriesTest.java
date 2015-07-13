@@ -28,7 +28,7 @@ import com.github.rinde.rinsim.scenario.generator.TimeSeries.TimeSeriesGenerator
 
 /**
  * Tests for {@link TimeSeries}.
- * @author Rinde van Lon 
+ * @author Rinde van Lon
  */
 public class TimeSeriesTest {
 
@@ -38,7 +38,8 @@ public class TimeSeriesTest {
   @Test
   public void testFilter() {
     final TimeSeriesGenerator original = homogenousPoisson(500, 20);
-    final TimeSeriesGenerator filtered = filter(original, numEventsPredicate(20));
+    final TimeSeriesGenerator filtered = filter(original,
+        numEventsPredicate(20));
     final RandomGenerator rng = new MersenneTwister(123L);
     for (int i = 0; i < 10; i++) {
       assertEquals(20, filtered.generate(rng.nextLong()).size());

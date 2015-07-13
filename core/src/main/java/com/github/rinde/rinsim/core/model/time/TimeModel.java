@@ -57,7 +57,7 @@ import com.google.common.annotations.VisibleForTesting;
  * @author Rinde van Lon
  */
 public abstract class TimeModel extends AbstractModel<TickListener>
-  implements ClockController {
+    implements ClockController {
   final TimeLapse timeLapse;
 
   private volatile Set<TickListener> tickListeners;
@@ -70,7 +70,7 @@ public abstract class TimeModel extends AbstractModel<TickListener>
 
     // time lapse is reused in a Flyweight kind of style
     timeLapse = new TimeLapse(builder.getTimeUnit(), 0L,
-      builder.getTickLength());
+        builder.getTickLength());
   }
 
   /**
@@ -99,15 +99,15 @@ public abstract class TimeModel extends AbstractModel<TickListener>
       return clazz.cast(this);
     }
     throw new IllegalArgumentException(
-      getClass().getSimpleName() + " does not provide instances of "
-        + clazz.getName() + ".");
+        getClass().getSimpleName() + " does not provide instances of "
+            + clazz.getName() + ".");
   }
 
   @OverridingMethodsMustInvokeSuper
   @Override
   public boolean register(TickListener element) {
     checkArgument(tickListeners.add(element),
-      "A TickListener can not be registered more than once: %s.", element);
+        "A TickListener can not be registered more than once: %s.", element);
     return true;
   }
 
@@ -176,7 +176,7 @@ public abstract class TimeModel extends AbstractModel<TickListener>
   @CheckReturnValue
   public static Builder builder() {
     return Builder.create(AbstractBuilder.DEFAULT_TIME_STEP,
-      AbstractBuilder.DEFAULT_TIME_UNIT);
+        AbstractBuilder.DEFAULT_TIME_UNIT);
   }
 
   /**
@@ -186,8 +186,8 @@ public abstract class TimeModel extends AbstractModel<TickListener>
    *          builder.
    */
   public abstract static class AbstractBuilder<T>
-    extends
-    AbstractModelBuilder<TimeModel, TickListener>implements Serializable {
+      extends
+      AbstractModelBuilder<TimeModel, TickListener>implements Serializable {
 
     private static final long serialVersionUID = 4029776255118617541L;
 
@@ -261,7 +261,7 @@ public abstract class TimeModel extends AbstractModel<TickListener>
     @CheckReturnValue
     public RealTimeBuilder withRealTime() {
       return RealTimeBuilder.create(getTickLength(), getTimeUnit(),
-        ClockMode.REAL_TIME);
+          ClockMode.REAL_TIME);
     }
 
     @CheckReturnValue
@@ -283,13 +283,13 @@ public abstract class TimeModel extends AbstractModel<TickListener>
    */
   @AutoValue
   public abstract static class RealTimeBuilder
-    extends AbstractBuilder<RealTimeBuilder> {
+      extends AbstractBuilder<RealTimeBuilder> {
 
     private static final long serialVersionUID = 7255633280244047198L;
 
     RealTimeBuilder() {
       setProvidingTypes(Clock.class, ClockController.class,
-        RealTimeClockController.class);
+          RealTimeClockController.class);
     }
 
     /**
@@ -307,7 +307,7 @@ public abstract class TimeModel extends AbstractModel<TickListener>
     @CheckReturnValue
     public RealTimeBuilder withStartInClockMode(ClockMode mode) {
       checkArgument(mode != ClockMode.STOPPED,
-        "Can not use %s as starting mode.", ClockMode.STOPPED);
+          "Can not use %s as starting mode.", ClockMode.STOPPED);
       return create(getTickLength(), getTimeUnit(), mode);
     }
 
@@ -327,7 +327,7 @@ public abstract class TimeModel extends AbstractModel<TickListener>
     }
 
     static RealTimeBuilder create(long length, Unit<Duration> unit,
-      ClockMode mode) {
+        ClockMode mode) {
       return new AutoValue_TimeModel_RealTimeBuilder(length, unit, mode);
     }
   }

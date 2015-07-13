@@ -22,7 +22,7 @@ import javax.measure.unit.NonSI;
 import javax.measure.unit.SI;
 
 /**
- * @author Rinde van Lon 
+ * @author Rinde van Lon
  * 
  */
 public class RoadTestUtil {

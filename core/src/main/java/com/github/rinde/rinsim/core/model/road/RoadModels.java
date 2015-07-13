@@ -134,7 +134,8 @@ public final class RoadModels {
    *         ordered such that the closest object appears first. An empty list
    *         is returned when <code>objects</code> is empty.
    */
-  public static List<RoadUser> findClosestObjects(Point pos, RoadModel rm, int n) {
+  public static List<RoadUser> findClosestObjects(Point pos, RoadModel rm,
+      int n) {
     return RoadModels.findClosestObjects(pos, rm, RoadUser.class, n);
   }
 

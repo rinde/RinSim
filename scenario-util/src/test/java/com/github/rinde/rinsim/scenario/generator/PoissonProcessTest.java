@@ -43,7 +43,7 @@ import com.github.rinde.rinsim.testutil.TestUtil;
 import com.google.common.math.DoubleMath;
 
 /**
- * @author Rinde van Lon 
+ * @author Rinde van Lon
  * 
  */
 @RunWith(Parameterized.class)
