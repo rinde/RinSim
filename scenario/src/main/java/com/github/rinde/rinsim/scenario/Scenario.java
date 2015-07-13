@@ -19,6 +19,8 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Lists.newLinkedList;
+
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Queue;
@@ -39,6 +41,7 @@ import com.google.common.collect.Collections2;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Iterables;
 
 /**
  * Scenario is an immutable list of events sorted by the time stamp. To obtain
@@ -52,8 +55,8 @@ public abstract class Scenario {
   /**
    * The default {@link ProblemClass}.
    */
-  public static final ProblemClass DEFAULT_PROBLEM_CLASS = new SimpleProblemClass(
-    "DEFAULT");
+  public static final ProblemClass DEFAULT_PROBLEM_CLASS = SimpleProblemClass
+    .create("DEFAULT");
 
   /**
    * Instantiate a scenario.
@@ -71,13 +74,6 @@ public abstract class Scenario {
    */
   public Queue<TimedEvent> asQueue() {
     return newLinkedList(getEvents());
-  }
-
-  /**
-   * @return The number of events that are in this scenario.
-   */
-  public int size() {
-    return getEvents().size();
   }
 
   /**
@@ -181,38 +177,24 @@ public abstract class Scenario {
    * String based implementation of {@link ProblemClass}.
    * @author Rinde van Lon
    */
-  public static final class SimpleProblemClass implements ProblemClass {
-    private final String id;
-
-    /**
-     * Create a new instance.
-     * @param name The name to use as id.
-     */
-    public SimpleProblemClass(String name) {
-      id = name;
-    }
+  @AutoValue
+  public abstract static class SimpleProblemClass implements ProblemClass {
 
     @Override
-    public String getId() {
-      return id;
-    }
+    public abstract String getId();
 
     @Override
     public String toString() {
-      return String.format("SimpleProblemClass(%s)", id);
+      return String.format("SimpleProblemClass(%s)", getId());
     }
 
-    @Override
-    public int hashCode() {
-      return id.hashCode();
-    }
-
-    @Override
-    public boolean equals(@Nullable Object o) {
-      if (null == o || getClass() != o.getClass()) {
-        return false;
-      }
-      return id.equals(((SimpleProblemClass) o).id);
+    /**
+     * Create a new instance.
+     * @param id The name to use as id.
+     * @return A new instance.
+     */
+    public static SimpleProblemClass create(String id) {
+      return new AutoValue_Scenario_SimpleProblemClass(id);
     }
   }
 
@@ -222,7 +204,7 @@ public abstract class Scenario {
    */
   public static class Builder extends AbstractBuilder<Builder> {
     final List<TimedEvent> eventList;
-    final ImmutableList.Builder<ModelBuilder<?, ?>> modelBuilders;
+    final List<ModelBuilder<?, ?>> modelBuilders;
     ProblemClass problemClass;
     String instanceId;
 
@@ -234,8 +216,8 @@ public abstract class Scenario {
       super(base);
       problemClass = pc;
       instanceId = "";
-      eventList = newArrayList();
-      modelBuilders = ImmutableList.builder();
+      eventList = new ArrayList<>();
+      modelBuilders = new ArrayList<>();
     }
 
     /**
@@ -298,7 +280,27 @@ public abstract class Scenario {
      * @return This, as per the builder pattern.
      */
     public Builder addModels(Iterable<? extends ModelBuilder<?, ?>> builders) {
-      modelBuilders.addAll(builders);
+      Iterables.addAll(modelBuilders, builders);
+      return self();
+    }
+
+    /**
+     * Removes all previously added model builders that are an instance of the
+     * specified type.
+     * @param type All model builders that are instance of this type are
+     *          removed.
+     * @param <T> The type.
+     * @return This, as per the builder pattern.
+     */
+    public <T extends ModelBuilder<?, ?>> Builder removeModelsOfType(
+      Class<T> type) {
+      List<ModelBuilder<?, ?>> toRemove = new ArrayList<>();
+      for (ModelBuilder<?, ?> mb : modelBuilders) {
+        if (type.isInstance(mb)) {
+          toRemove.add(mb);
+        }
+      }
+      modelBuilders.removeAll(toRemove);
       return self();
     }
 
@@ -395,8 +397,8 @@ public abstract class Scenario {
       final List<TimedEvent> list = newArrayList(eventList);
       Collections.sort(list, TimeComparator.INSTANCE);
 
-      return Scenario.create(list, modelBuilders.build(),
-        timeWindow, stopCondition, problemClass, instanceId);
+      return Scenario.create(list, modelBuilders, timeWindow, stopCondition,
+        problemClass, instanceId);
     }
 
     @Override
@@ -437,8 +439,7 @@ public abstract class Scenario {
       if (copy.isPresent()) {
         timeWindow = copy.get().timeWindow;
         stopCondition = copy.get().stopCondition;
-      }
-      else {
+      } else {
         timeWindow = DEFAULT_TIME_WINDOW;
         stopCondition = DEFAULT_STOP_CONDITION;
       }
@@ -496,7 +497,7 @@ public abstract class Scenario {
     /**
      * @return {@link Scenario#getStopCondition()}.
      */
-    public StopCondition getStopConditions() {
+    public StopCondition getStopCondition() {
       return stopCondition;
     }
   }

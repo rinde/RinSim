@@ -34,8 +34,10 @@ import javax.measure.unit.SI;
 import org.junit.Test;
 
 import com.github.rinde.rinsim.core.model.ModelBuilder;
+import com.github.rinde.rinsim.core.model.comm.CommModel;
 import com.github.rinde.rinsim.core.model.road.RoadModelBuilders;
 import com.github.rinde.rinsim.core.model.road.RoadUser;
+import com.github.rinde.rinsim.core.model.time.TimeModel;
 import com.github.rinde.rinsim.geom.Point;
 import com.github.rinde.rinsim.scenario.Scenario.ProblemClass;
 import com.github.rinde.rinsim.scenario.Scenario.SimpleProblemClass;
@@ -59,9 +61,15 @@ public class ScenarioTest {
    */
   @Test
   public void testDefaults() {
-    final Scenario scenario = Scenario
-      .builder(Scenario.DEFAULT_PROBLEM_CLASS)
-      .build();
+    Scenario.Builder builder = Scenario
+      .builder(Scenario.DEFAULT_PROBLEM_CLASS);
+
+    assertThat(builder.getTimeWindow())
+      .isEqualTo(new TimeWindow(0, 8 * 60 * 60 * 1000));
+    assertThat(builder.getStopCondition())
+      .isEqualTo(StopConditions.alwaysFalse());
+
+    final Scenario scenario = builder.build();
 
     assertTrue(scenario.getModelBuilders().isEmpty());
     assertSame(Scenario.DEFAULT_PROBLEM_CLASS, scenario.getProblemClass());
@@ -107,9 +115,10 @@ public class ScenarioTest {
           .withMaxPoint(new Point(1034, 32))
           .withDistanceUnit(SI.METER)
           .withSpeedUnit(SI.METERS_PER_SECOND)
-          .withMaxSpeed(1d)
-      )
+          .withMaxSpeed(1d))
       .build();
+
+    assertThat(scenario.asQueue()).isEqualTo(scenario.getEvents());
 
     assertEquals("crazyfast", scenario.getProblemInstanceId());
     assertEquals(new TimeWindow(0L, 7L), scenario.getTimeWindow());
@@ -224,7 +233,7 @@ public class ScenarioTest {
    */
   @Test
   public void testSimpleProblemClass() {
-    final ProblemClass pc = new SimpleProblemClass("hello world");
+    final ProblemClass pc = SimpleProblemClass.create("hello world");
     assertEquals("hello world", pc.getId());
     assertTrue(pc.toString().contains("hello world"));
   }
@@ -356,6 +365,32 @@ public class ScenarioTest {
     assertNotEquals(a10, null);
     assertNotEquals(a10, b10);
     assertEquals(b10, EventB.create(10));
+  }
+
+  /**
+   * Tests the removal of model builders.
+   */
+  @Test
+  public void testRemoveModelsOfType() {
+    Scenario.Builder builder = Scenario.builder();
+    builder.addModel(TimeModel.builder())
+      .addModel(TimeModel.builder().withRealTime())
+      .addModel(RoadModelBuilders.plane())
+      .addModel(CommModel.builder());
+    assertThat(builder.modelBuilders).hasSize(4);
+
+    builder.removeModelsOfType(RoadModelBuilders.PlaneRMB.class);
+    assertThat(builder.modelBuilders).hasSize(3);
+    assertThat(builder.modelBuilders).containsExactly(TimeModel.builder(),
+      TimeModel.builder().withRealTime(), CommModel.builder());
+
+    builder.removeModelsOfType(RoadModelBuilders.AbstractGraphRMB.class);
+    builder.removeModelsOfType(TimeModel.AbstractBuilder.class);
+    assertThat(builder.modelBuilders).hasSize(1);
+    assertThat(builder.modelBuilders).containsExactly(CommModel.builder());
+
+    builder.removeModelsOfType(CommModel.Builder.class);
+    assertThat(builder.modelBuilders).isEmpty();
   }
 
   @AutoValue
