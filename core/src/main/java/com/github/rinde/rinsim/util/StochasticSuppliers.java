@@ -22,6 +22,8 @@ import java.io.Serializable;
 import java.math.RoundingMode;
 import java.util.Iterator;
 
+import javax.annotation.Nonnull;
+
 import org.apache.commons.math3.distribution.IntegerDistribution;
 import org.apache.commons.math3.distribution.NormalDistribution;
 import org.apache.commons.math3.distribution.RealDistribution;
@@ -327,8 +329,8 @@ public final class StochasticSuppliers {
      * <p>
      * For more information about how the effective mean of the truncated normal
      * distribution is calculated, see this <a href=
-     * "https://en.wikipedia.org/wiki/Truncated_normal_distribution#Moments"
-     * >Wikipedia article</a>.
+     * "https://en.wikipedia.org/wiki/Truncated_normal_distribution#Moments" >
+     * Wikipedia article</a>.
      * @return This, as per the builder pattern.
      */
     public Builder scaleMean() {
@@ -443,7 +445,7 @@ public final class StochasticSuppliers {
     public String toString() {
       return new TypeToken<T>(getClass()) {
         private static final long serialVersionUID = 4641163444574558674L;
-      }.getRawType().getSimpleName();
+      }.getRawType().getSimpleName() + "Supplier";
     }
   }
 
@@ -595,12 +597,21 @@ public final class StochasticSuppliers {
     }
 
     @Override
+    @Nonnull
     public T get(long seed) {
       return value;
     }
+
+    @Override
+    public String toString() {
+      return String.format("%s.constant(%s)",
+        StochasticSuppliers.class.getSimpleName(),
+        value);
+    }
   }
 
-  private static class SupplierAdapter<T> extends AbstractStochasticSupplier<T> {
+  private static class SupplierAdapter<T>
+    extends AbstractStochasticSupplier<T> {
     private static final long serialVersionUID = 1388067842132493130L;
     private final Supplier<T> supplier;
 
