@@ -1,17 +1,12 @@
 /*
- * Copyright (C) 2011-2015 Rinde van Lon, iMinds-DistriNet, KU Leuven
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *         http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Copyright (C) 2011-2015 Rinde van Lon, iMinds-DistriNet, KU Leuven Licensed
+ * under the Apache License, Version 2.0 (the "License"); you may not use this
+ * file except in compliance with the License. You may obtain a copy of the
+ * License at http://www.apache.org/licenses/LICENSE-2.0 Unless required by
+ * applicable law or agreed to in writing, software distributed under the
+ * License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS
+ * OF ANY KIND, either express or implied. See the License for the specific
+ * language governing permissions and limitations under the License.
  */
 package com.github.rinde.rinsim.scenario.gendreau06;
 
@@ -54,6 +49,7 @@ public class Gendreau06ParserTest {
 
   /**
    * Test for default behavior for all (convenience) methods.
+   *
    * @throws FileNotFoundException When file is not available.
    */
   @Test
@@ -62,8 +58,8 @@ public class Gendreau06ParserTest {
     scenarios.add(parse(new File(FILE_PATH)));
     scenarios.addAll(parser().addFile(new File(FILE_PATH)).parse());
     scenarios.addAll(parser().addFile(FILE_PATH).parse());
-    scenarios.addAll(parser().addFile(new FileInputStream(FILE_PATH),
-      FILE_NAME).parse());
+    scenarios.addAll(
+        parser().addFile(new FileInputStream(FILE_PATH), FILE_NAME).parse());
     scenarios.addAll(parser().addDirectory(new File(FILE_DIR)).parse());
     scenarios.addAll(parser().addDirectory(FILE_DIR).parse());
 
@@ -82,11 +78,8 @@ public class Gendreau06ParserTest {
    */
   @Test
   public void customNumVehiclesTest() {
-    final Gendreau06Scenario scen = Gendreau06Parser.parser()
-      .addFile(FILE_PATH)
-      .setNumVehicles(5)
-      .parse()
-      .get(0);
+    final Gendreau06Scenario scen = Gendreau06Parser.parser().addFile(FILE_PATH)
+        .setNumVehicles(5).parse().get(0);
     containsVehicles(scen, 5);
     containsTimeOut(scen, 240);
     assertTrue(isOnline(scen));
@@ -100,10 +93,8 @@ public class Gendreau06ParserTest {
   @Test
   public void offlineTest() {
     final Gendreau06Scenario scen = Gendreau06Parser.parser()
-      .addFile("files/test/gendreau06/req_rapide_1_240_24")
-      .offline()
-      .parse()
-      .get(0);
+        .addFile("files/test/gendreau06/req_rapide_1_240_24")
+        .offline().parse().get(0);
     containsVehicles(scen, 10);
     containsTimeOut(scen, 240);
     assertFalse(isOnline(scen));
@@ -117,8 +108,8 @@ public class Gendreau06ParserTest {
    */
   @Test
   public void allowDiversionTest() {
-    final Gendreau06Scenario scen = parser().allowDiversion()
-      .addFile(FILE_PATH).parse().get(0);
+    final Gendreau06Scenario scen = parser().allowDiversion().addFile(FILE_PATH)
+        .parse().get(0);
     containsVehicles(scen, 10);
     containsTimeOut(scen, 240);
     assertTrue(isOnline(scen));
@@ -132,8 +123,8 @@ public class Gendreau06ParserTest {
    */
   @Test
   public void setTickSizeTest() {
-    final Gendreau06Scenario scen = parser().setTickSize(101)
-      .addFile(FILE_PATH).parse().get(0);
+    final Gendreau06Scenario scen = parser().setTickSize(101).addFile(FILE_PATH)
+        .parse().get(0);
     containsVehicles(scen, 10);
     containsTimeOut(scen, 240);
     assertTrue(isOnline(scen));
@@ -147,16 +138,17 @@ public class Gendreau06ParserTest {
   @Test
   public void filterTest() {
     assertTrue(parser().filter(GendreauProblemClass.LONG_LOW_FREQ)
-      .addFile(FILE_PATH).parse().isEmpty());
+        .addFile(FILE_PATH).parse().isEmpty());
 
     assertEquals(1, parser().filter(GendreauProblemClass.SHORT_LOW_FREQ)
-      .addFile(FILE_PATH).parse().size());
+        .addFile(FILE_PATH).parse().size());
 
     assertEquals(1, parser().filter(GendreauProblemClass.LONG_LOW_FREQ,
-      GendreauProblemClass.SHORT_LOW_FREQ).addFile(FILE_PATH).parse().size());
+        GendreauProblemClass.SHORT_LOW_FREQ)
+        .addFile(FILE_PATH).parse().size());
 
     assertEquals(1, parser().filter(GendreauProblemClass.values())
-      .addFile(FILE_PATH).parse().size());
+        .addFile(FILE_PATH).parse().size());
   }
 
   /**
@@ -164,8 +156,8 @@ public class Gendreau06ParserTest {
    */
   @Test(expected = IllegalArgumentException.class)
   public void parseWrongFileName() {
-    Gendreau06Parser.parse(new File(
-      "pointer/to/non-existing/file/req_rapide_1_240_24"));
+    Gendreau06Parser
+        .parse(new File("pointer/to/non-existing/file/req_rapide_1_240_24"));
   }
 
   /**
@@ -231,7 +223,7 @@ public class Gendreau06ParserTest {
   }
 
   static void containsTimeOut(Gendreau06Scenario scen, int minutes) {
-    final TimedEvent e = scen.getEvents().get(scen.size() - 1);
+    final TimedEvent e = scen.getEvents().get(scen.getEvents().size() - 1);
     assertThat(e).isInstanceOf(TimeOutEvent.class);
     assertEquals(minutes * 60 * 1000, e.getTime());
   }
@@ -246,17 +238,16 @@ public class Gendreau06ParserTest {
   }
 
   static void assertContainsTimeModel(Gendreau06Scenario scen, long tickSize,
-    Unit<Duration> timeUnit) {
-
+      Unit<Duration> timeUnit) {
     TimeModel.Builder tb = getModelBuilderOfType(scen.getModelBuilders(),
-      TimeModel.Builder.class);
+        TimeModel.Builder.class);
     assertThat(tb.getTickLength()).isEqualTo(tickSize);
     assertThat(tb.getTimeUnit()).isEqualTo(timeUnit);
   }
 
   @SuppressWarnings("unchecked")
   static <T> T getModelBuilderOfType(
-    Iterable<? extends ModelBuilder<?, ?>> builders, Class<T> clazz) {
+      Iterable<? extends ModelBuilder<?, ?>> builders, Class<T> clazz) {
     for (ModelBuilder<?, ?> mb : builders) {
       if (clazz.isInstance(mb)) {
         return (T) mb;
@@ -267,7 +258,7 @@ public class Gendreau06ParserTest {
 
   static boolean isDiversionAllowed(Gendreau06Scenario scen) {
     PDPRoadModel.Builder rb = getModelBuilderOfType(scen.getModelBuilders(),
-      PDPRoadModel.Builder.class);
+        PDPRoadModel.Builder.class);
     return rb.getAllowVehicleDiversion();
   }
 }

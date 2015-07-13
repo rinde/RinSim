@@ -26,8 +26,8 @@ import org.junit.Test;
 
 import com.github.rinde.rinsim.core.model.pdp.DefaultPDPModel;
 import com.github.rinde.rinsim.core.model.pdp.Parcel;
-import com.github.rinde.rinsim.core.model.pdp.VehicleDTO;
 import com.github.rinde.rinsim.core.model.pdp.TimeWindowPolicy.TimeWindowPolicies;
+import com.github.rinde.rinsim.core.model.pdp.VehicleDTO;
 import com.github.rinde.rinsim.core.model.road.RoadModelBuilders;
 import com.github.rinde.rinsim.geom.Point;
 import com.github.rinde.rinsim.scenario.Scenario;
@@ -57,8 +57,7 @@ public class ScenarioIOTest {
         .speed(7d)
         .capacity(2)
         .availabilityTimeWindow(new TimeWindow(0, 1000L))
-        .build())
-      )
+        .build()))
       .addEvent(AddDepotEvent.create(76, new Point(3, 3)))
       .addEvent(AddVehicleEvent.create(125,
         VehicleDTO.builder()
@@ -66,8 +65,7 @@ public class ScenarioIOTest {
           .speed(3d)
           .capacity(1)
           .availabilityTimeWindow(new TimeWindow(500, 10000L))
-          .build())
-      )
+          .build()))
       .addEvent(AddParcelEvent.create(
         Parcel.builder(new Point(0, 0), new Point(1, 1))
           .pickupTimeWindow(new TimeWindow(2500, 10000))
@@ -76,25 +74,22 @@ public class ScenarioIOTest {
           .orderAnnounceTime(2400)
           .pickupDuration(200)
           .deliveryDuration(800)
-          .buildDTO())
-      )
+          .buildDTO()))
       .addEvent(TimeOutEvent.create(200000))
       .addModel(RoadModelBuilders.plane()
         .withDistanceUnit(SI.CENTIMETER)
         .withMaxPoint(new Point(7d, 8.4))
         .withMinPoint(new Point(-1, 3))
         .withMaxSpeed(7d)
-        .withSpeedUnit(NonSI.MILES_PER_HOUR)
-      )
+        .withSpeedUnit(NonSI.MILES_PER_HOUR))
       .addModel(DefaultPDPModel.builder()
-        .withTimeWindowPolicy(TimeWindowPolicies.STRICT)
-      )
+        .withTimeWindowPolicy(TimeWindowPolicies.STRICT))
       .setStopCondition(
         StopConditions.and(StopConditions.alwaysTrue(),
           StopConditions.limitedTime(1000)));
 
     final List<ProblemClass> pcs = asList(TestProblemClass.TEST,
-      new SimpleProblemClass("hello"));
+      SimpleProblemClass.create("hello"));
     for (final ProblemClass pc : pcs) {
       ScenarioTestUtil.assertScenarioIO(sb.problemClass(pc).build());
     }
