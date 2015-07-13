@@ -174,7 +174,8 @@ public class Parcel extends PDPObjectImpl implements IParcel {
      */
     public ParcelDTO buildDTO() {
       checkArgument(orderAnnounceTime <= pickupTimeWindow.begin,
-          "Order arrival time may not be after the pickup TW has already opened.");
+          "Order arrival time may not be after the pickup TW has already "
+              + "opened.");
       return new AutoValue_ParcelDTO(pickupLocation, deliveryLocation,
           pickupTimeWindow, deliveryTimeWindow, neededCapacity,
           orderAnnounceTime, pickupDuration, deliveryDuration);

@@ -95,7 +95,8 @@ public abstract class GenericRoadModel extends AbstractModel<RoadUser>
     LOGGER.info("setSelf {}", rm);
     checkState(
         !initialized,
-        "This road model is already initialized, it can only be decorated before objects are registered.");
+        "This road model is already initialized, it can only be decorated "
+            + "before objects are registered.");
     self = rm;
   }
 

@@ -162,8 +162,9 @@ public final class Graphs {
   }
 
   /**
-   * A standard implementation of the <a
-   * href="http://en.wikipedia.org/wiki/A*_search_algorithm">A* algorithm</a>.
+   * A standard implementation of the
+   * <a href="http://en.wikipedia.org/wiki/A*_search_algorithm">A* algorithm</a>
+   * .
    * 
    * @param graph The {@link Graph} which contains <code>from</code> and
    *          <code>to</code>.

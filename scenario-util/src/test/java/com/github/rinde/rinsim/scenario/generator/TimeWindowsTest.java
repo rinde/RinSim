@@ -112,7 +112,7 @@ public class TimeWindowsTest {
   static Iterable<Object[]> c(Iterable<?> in) {
     final List<Object[]> list = newArrayList();
     for (final Object o : in) {
-      list.add(new Object[] { o });
+      list.add(new Object[] {o});
     }
     return list;
   }

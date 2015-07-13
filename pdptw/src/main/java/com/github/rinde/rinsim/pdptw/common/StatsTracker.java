@@ -69,7 +69,7 @@ import com.google.auto.value.AutoValue;
  * @author Rinde van Lon
  */
 public final class StatsTracker extends AbstractModelVoid implements
-  StatisticsProvider {
+    StatisticsProvider {
   final EventDispatcher eventDispatcher;
   final TheListener theListener;
   final Clock clock;
@@ -79,21 +79,22 @@ public final class StatsTracker extends AbstractModelVoid implements
     PICKUP_TARDINESS, DELIVERY_TARDINESS, ALL_VEHICLES_AT_DEPOT;
   }
 
-  StatsTracker(ScenarioController scenContr, Clock c, RoadModel rm, PDPModel pm) {
+  StatsTracker(ScenarioController scenContr, Clock c, RoadModel rm,
+      PDPModel pm) {
     clock = c;
     roadModel = rm;
 
     eventDispatcher = new EventDispatcher(StatisticsEventType.values());
     theListener = new TheListener();
     scenContr.getEventAPI().addListener(theListener, SCENARIO_STARTED,
-      SCENARIO_FINISHED, SCENARIO_EVENT);
+        SCENARIO_FINISHED, SCENARIO_EVENT);
 
     roadModel.getEventAPI().addListener(theListener, MOVE);
     clock.getEventAPI().addListener(theListener, STARTED, STOPPED);
 
     pm.getEventAPI()
-      .addListener(theListener, START_PICKUP, END_PICKUP, START_DELIVERY,
-        END_DELIVERY, NEW_PARCEL, NEW_VEHICLE);
+        .addListener(theListener, START_PICKUP, END_PICKUP, START_DELIVERY,
+            END_DELIVERY, NEW_PARCEL, NEW_VEHICLE);
   }
 
   EventAPI getEventAPI() {
@@ -121,13 +122,13 @@ public final class StatsTracker extends AbstractModelVoid implements
     }
 
     return new StatisticsDTO(theListener.totalDistance,
-      theListener.totalPickups, theListener.totalDeliveries,
-      theListener.totalParcels, theListener.acceptedParcels,
-      theListener.pickupTardiness, theListener.deliveryTardiness, compTime,
-      clock.getCurrentTime(), theListener.simFinish, vehicleBack,
-      overTime, theListener.totalVehicles, theListener.distanceMap.size(),
-      clock.getTimeUnit(), roadModel.getDistanceUnit(),
-      roadModel.getSpeedUnit());
+        theListener.totalPickups, theListener.totalDeliveries,
+        theListener.totalParcels, theListener.acceptedParcels,
+        theListener.pickupTardiness, theListener.deliveryTardiness, compTime,
+        clock.getCurrentTime(), theListener.simFinish, vehicleBack,
+        overTime, theListener.totalVehicles, theListener.distanceMap.size(),
+        clock.getTimeUnit(), roadModel.getDistanceUnit(),
+        roadModel.getSpeedUnit());
   }
 
   @Override
@@ -193,20 +194,21 @@ public final class StatsTracker extends AbstractModelVoid implements
         verify(e instanceof MoveEvent);
         final MoveEvent me = (MoveEvent) e;
         increment((MovingRoadUser) me.roadUser, me.pathProgress.distance()
-          .getValue()
-          .doubleValue());
+            .getValue()
+            .doubleValue());
         totalDistance += me.pathProgress.distance().getValue().doubleValue();
         // if we are closer than 10 cm to the depot, we say we are 'at'
         // the depot
         if (Point.distance(me.roadModel.getPosition(me.roadUser),
-          ((Vehicle) me.roadUser).getStartPosition()) < MOVE_THRESHOLD) {
+            ((Vehicle) me.roadUser).getStartPosition()) < MOVE_THRESHOLD) {
           // only override time if the vehicle did actually move
-          if (me.pathProgress.distance().getValue().doubleValue() > MOVE_THRESHOLD) {
+          if (me.pathProgress.distance().getValue()
+              .doubleValue() > MOVE_THRESHOLD) {
             lastArrivalTimeAtDepot.put((MovingRoadUser) me.roadUser,
-              clock.getCurrentTime());
+                clock.getCurrentTime());
             if (totalVehicles == lastArrivalTimeAtDepot.size()) {
               eventDispatcher.dispatchEvent(new Event(
-                StatisticsEventType.ALL_VEHICLES_AT_DEPOT, this));
+                  StatisticsEventType.ALL_VEHICLES_AT_DEPOT, this));
             }
           }
         } else {
@@ -222,13 +224,13 @@ public final class StatsTracker extends AbstractModelVoid implements
         assert v != null;
 
         final long latestBeginTime = p.getPickupTimeWindow().end
-          - p.getPickupDuration();
+            - p.getPickupDuration();
         if (pme.time > latestBeginTime) {
           final long tardiness = pme.time - latestBeginTime;
           pickupTardiness += tardiness;
           eventDispatcher.dispatchEvent(new StatisticsEvent(
-            StatisticsEventType.PICKUP_TARDINESS, this, p, v, tardiness,
-            pme.time));
+              StatisticsEventType.PICKUP_TARDINESS, this, p, v, tardiness,
+              pme.time));
         }
       } else if (e.getEventType() == PDPModelEventType.END_PICKUP) {
         totalPickups++;
@@ -241,13 +243,13 @@ public final class StatsTracker extends AbstractModelVoid implements
         assert v != null;
 
         final long latestBeginTime = p.getDeliveryTimeWindow().end
-          - p.getDeliveryDuration();
+            - p.getDeliveryDuration();
         if (pme.time > latestBeginTime) {
           final long tardiness = pme.time - latestBeginTime;
           deliveryTardiness += tardiness;
           eventDispatcher.dispatchEvent(new StatisticsEvent(
-            StatisticsEventType.DELIVERY_TARDINESS, this, p, v, tardiness,
-            pme.time));
+              StatisticsEventType.DELIVERY_TARDINESS, this, p, v, tardiness,
+              pme.time));
         }
       } else if (e.getEventType() == PDPModelEventType.END_DELIVERY) {
         totalDeliveries++;
@@ -290,7 +292,7 @@ public final class StatsTracker extends AbstractModelVoid implements
     final long time;
 
     StatisticsEvent(Enum<?> type, Object pIssuer, Parcel p, Vehicle v,
-      long tar, long tim) {
+        long tar, long tim) {
       super(type, pIssuer);
       parcel = p;
       vehicle = v;
@@ -312,20 +314,20 @@ public final class StatsTracker extends AbstractModelVoid implements
    */
   @AutoValue
   public abstract static class Builder extends
-    AbstractModelBuilder<StatsTracker, Object> {
+      AbstractModelBuilder<StatsTracker, Object> {
 
     Builder() {
       setDependencies(ScenarioController.class,
-        Clock.class,
-        RoadModel.class,
-        PDPModel.class);
+          Clock.class,
+          RoadModel.class,
+          PDPModel.class);
       setProvidingTypes(StatisticsProvider.class);
     }
 
     @Override
     public StatsTracker build(DependencyProvider dependencyProvider) {
       final ScenarioController ctrl = dependencyProvider
-        .get(ScenarioController.class);
+          .get(ScenarioController.class);
       final Clock clock = dependencyProvider.get(Clock.class);
       final RoadModel rm = dependencyProvider.get(RoadModel.class);
       final PDPModel pm = dependencyProvider.get(PDPModel.class);

@@ -55,8 +55,9 @@ public final class ModelManager implements ModelProvider {
   @SuppressWarnings("unchecked")
   ModelManager(ImmutableSet<? extends Model<?>> ms) {
     models = (ImmutableSet<Model<?>>) ms;
-    final ImmutableSetMultimap.Builder<Class<?>, Model<?>> builder = ImmutableSetMultimap
-        .builder();
+    final ImmutableSetMultimap.Builder<Class<?>, Model<?>> builder =
+        ImmutableSetMultimap
+            .builder();
     builder.put(ModelReceiver.class, new ModelReceiverModel(this));
 
     final Set<UserInterface> uis = new LinkedHashSet<>();

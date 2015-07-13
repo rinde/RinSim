@@ -21,7 +21,7 @@ import java.util.Arrays;
  * Solution object for single vehicle pickup-and-delivery problem with time
  * windows.
  * 
- * @author Rinde van Lon 
+ * @author Rinde van Lon
  */
 public class SolutionObject {
 

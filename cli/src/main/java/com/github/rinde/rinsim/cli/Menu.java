@@ -69,10 +69,12 @@ public final class Menu {
     optionMap = ImmutableMap.copyOf(b.optionMap);
     helpFormatter = b.helpFormatter;
 
-    final ImmutableList.Builder<ImmutableSet<Option>> groupsBuilder = ImmutableList
-        .builder();
-    final ImmutableMultimap.Builder<Option, Option> groups2Builder = ImmutableMultimap
-        .builder();
+    final ImmutableList.Builder<ImmutableSet<Option>> groupsBuilder =
+        ImmutableList
+            .builder();
+    final ImmutableMultimap.Builder<Option, Option> groups2Builder =
+        ImmutableMultimap
+            .builder();
     for (final Set<Option> group : b.groups) {
       groupsBuilder.add(ImmutableSet.copyOf(group));
       for (final Option opt : group) {
@@ -132,7 +134,8 @@ public final class Menu {
         checkAlreadySelected(
             intersect.isEmpty(),
             optParser.get().getOption(),
-            "An option from the same group as '%s' has already been selected: '%s'.",
+            "An option from the same group as '%s' has already been selected: "
+                + "'%s'.",
             optParser.get().getOption(), intersect);
       }
 
@@ -387,7 +390,8 @@ public final class Menu {
       final int groupOptions = groups.get(groups.size() - 1).size();
       checkArgument(
           groupOptions >= 2,
-          "At least two options need to be added to a group, found %s option(s).",
+          "At least two options need to be added to a group, found %s "
+              + "option(s).",
           groupOptions);
       return this;
     }

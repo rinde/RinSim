@@ -36,26 +36,29 @@ import com.google.common.collect.ImmutableMap;
 
 /**
  * Defines a command-line interface for {@link FileProvider}.
- * @author Rinde van Lon 
+ * @author Rinde van Lon
  */
 public final class FileProviderCli {
 
-  private static final ArgHandler<FileProvider.Builder, List<String>> ADD = new ArgHandler<FileProvider.Builder, List<String>>() {
-    @Override
-    public void execute(FileProvider.Builder ref, Optional<List<String>> value) {
-      final List<String> paths = value.get();
-      for (final String p : paths) {
-        ref.add(Paths.get(p));
-      }
-    }
-  };
+  private static final ArgHandler<FileProvider.Builder, List<String>> ADD =
+      new ArgHandler<FileProvider.Builder, List<String>>() {
+        @Override
+        public void execute(FileProvider.Builder ref,
+            Optional<List<String>> value) {
+          final List<String> paths = value.get();
+          for (final String p : paths) {
+            ref.add(Paths.get(p));
+          }
+        }
+      };
 
-  private static final ArgHandler<FileProvider.Builder, String> FILTER = new ArgHandler<FileProvider.Builder, String>() {
-    @Override
-    public void execute(FileProvider.Builder ref, Optional<String> value) {
-      ref.filter(value.get());
-    }
-  };
+  private static final ArgHandler<FileProvider.Builder, String> FILTER =
+      new ArgHandler<FileProvider.Builder, String>() {
+        @Override
+        public void execute(FileProvider.Builder ref, Optional<String> value) {
+          ref.filter(value.get());
+        }
+      };
 
   private FileProviderCli() {}
 
@@ -64,8 +67,8 @@ public final class FileProviderCli {
   }
 
   /**
-   * Creates the default {@link com.github.rinde.rinsim.cli.Menu.Builder} for creating
-   * the {@link Menu} instances.
+   * Creates the default {@link com.github.rinde.rinsim.cli.Menu.Builder} for
+   * creating the {@link Menu} instances.
    * @param builder The {@link FileProvider.Builder} that should be controlled
    *          via CLI.
    * @return The new menu builder.
@@ -112,8 +115,10 @@ public final class FileProviderCli {
   }
 
   static void printPathOptions(Map<String, Path> pathMap, StringBuilder sb) {
-    sb.append("The following paths can be excluded. If this option is not used all paths are automatically "
-        + "included. The current paths:\n");
+    sb.append(
+        "The following paths can be excluded. If this option is not used all "
+            + "paths are automatically "
+            + "included. The current paths:\n");
     Joiner.on("\n").withKeyValueSeparator(" = ").appendTo(sb, pathMap);
     sb.append("\nThe options should be given as a comma ',' separated list.");
   }
@@ -146,14 +151,14 @@ public final class FileProviderCli {
         .longName("filter")
         .description(
             "Sets a filter of which paths to include. The filter is a string "
-                + "of the form 'syntax:pattern', where 'syntax' is either 'glob' "
-                + "or 'regex'.  The current filter is '"
+                + "of the form 'syntax:pattern', where 'syntax' is either "
+                + "'glob' or 'regex'.  The current filter is '"
                 + ref.pathPredicate
                 + "', there are "
                 + ref.getNumberOfFiles()
                 + " files that satisfy this filter. For more information about"
-                + " the supported syntax please review the documentation of the "
-                + "java.nio.file.FileSystem.getPathMatcher(String) method.")
+                + " the supported syntax please review the documentation of the"
+                + " java.nio.file.FileSystem.getPathMatcher(String) method.")
         .build();
   }
 

@@ -50,8 +50,8 @@ import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.math.DoubleMath;
 
-class AgvModel extends AbstractModel<AGV> implements TickListener,
-  ModelReceiver, SimulatorUser, Listener {
+class AgvModel extends AbstractModel<AGV>implements TickListener,
+    ModelReceiver, SimulatorUser, Listener {
 
   Optional<RoadModel> rm;
   Optional<SimulatorAPI> simulator;
@@ -64,7 +64,7 @@ class AgvModel extends AbstractModel<AGV> implements TickListener,
   final List<Point> border;
 
   AgvModel(RandomGenerator r, ImmutableList<ImmutableList<Point>> ps,
-    ImmutableList<Point> b) {
+      ImmutableList<Point> b) {
     rm = Optional.absent();
     simulator = Optional.absent();
     rng = r;
@@ -85,11 +85,11 @@ class AgvModel extends AbstractModel<AGV> implements TickListener,
   public void registerModelProvider(ModelProvider mp) {
     rm = Optional.fromNullable(mp.tryGetModel(RoadModel.class));
     Optional
-      .fromNullable(mp.tryGetModel(PDPModel.class))
-      .get()
-      .getEventAPI()
-      .addListener(this, PDPModelEventType.END_DELIVERY,
-        PDPModelEventType.END_PICKUP);
+        .fromNullable(mp.tryGetModel(PDPModel.class))
+        .get()
+        .getEventAPI()
+        .addListener(this, PDPModelEventType.END_DELIVERY,
+            PDPModelEventType.END_PICKUP);
   }
 
   @Override
@@ -106,9 +106,9 @@ class AgvModel extends AbstractModel<AGV> implements TickListener,
       final int num = max;
       for (int i = 0; i < num; i++) {
         final long duration = DoubleMath.roundToLong(
-          FactoryExample.SERVICE_DURATION / 2d
-            + rng.nextDouble() * FactoryExample.SERVICE_DURATION,
-          RoundingMode.CEILING);
+            FactoryExample.SERVICE_DURATION / 2d
+                + rng.nextDouble() * FactoryExample.SERVICE_DURATION,
+            RoundingMode.CEILING);
 
         final Point rnd = rndBorder();
         Point dest;
@@ -149,9 +149,9 @@ class AgvModel extends AbstractModel<AGV> implements TickListener,
     }
     if (e.getEventType() == PDPModelEventType.END_DELIVERY) {
       final long duration = DoubleMath.roundToLong(
-        FactoryExample.SERVICE_DURATION / 2d
-          + rng.nextDouble() * FactoryExample.SERVICE_DURATION,
-        RoundingMode.CEILING);
+          FactoryExample.SERVICE_DURATION / 2d
+              + rng.nextDouble() * FactoryExample.SERVICE_DURATION,
+          RoundingMode.CEILING);
       simulator.get().unregister(event.parcel);
 
       final BoxHandle bh = ((Box) event.parcel).boxHandle;
@@ -166,7 +166,7 @@ class AgvModel extends AbstractModel<AGV> implements TickListener,
       }
 
       final Box b = new Box(event.parcel.getDeliveryLocation(), dest, duration,
-        bh);
+          bh);
       bh.box = b;
 
       simulator.get().register(b);
@@ -209,13 +209,13 @@ class AgvModel extends AbstractModel<AGV> implements TickListener,
   }
 
   static Builder builder() {
-    return Builder.create(ImmutableList.<ImmutableList<Point>> of(),
-      ImmutableList.<Point> of());
+    return Builder.create(ImmutableList.<ImmutableList<Point>>of(),
+        ImmutableList.<Point>of());
   }
 
   @AutoValue
   abstract static class Builder extends AbstractModelBuilder<AgvModel, AGV>
-    implements Serializable {
+      implements Serializable {
 
     private static final long serialVersionUID = -8527252625057713751L;
 
@@ -229,19 +229,19 @@ class AgvModel extends AbstractModel<AGV> implements TickListener,
 
     @CheckReturnValue
     Builder withPoints(ImmutableList<ImmutableList<Point>> ps,
-      ImmutableList<Point> b) {
+        ImmutableList<Point> b) {
       return create(ps, b);
     }
 
     @Override
     public AgvModel build(DependencyProvider dependencyProvider) {
       final RandomGenerator rng = dependencyProvider.get(RandomProvider.class)
-        .newInstance();
+          .newInstance();
       return new AgvModel(rng, getPoints(), getBorder());
     }
 
     static Builder create(ImmutableList<ImmutableList<Point>> ps,
-      ImmutableList<Point> b) {
+        ImmutableList<Point> b) {
       return new AutoValue_AgvModel_Builder(ps, b);
     }
   }

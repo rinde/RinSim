@@ -24,10 +24,10 @@ class Box extends Parcel {
 
   Box(Point o, Point d, long duration, BoxHandle bh) {
     super(
-      Parcel.builder(o, d)
-        .serviceDuration(duration)
-        .neededCapacity(1d)
-        .buildDTO());
+        Parcel.builder(o, d)
+            .serviceDuration(duration)
+            .neededCapacity(1d)
+            .buildDTO());
     boxHandle = bh;
   }
 

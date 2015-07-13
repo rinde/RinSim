@@ -61,16 +61,16 @@ public class PoissonIntensityTest {
   public static Collection<Object[]> data() {
     return Arrays
         .asList(new Object[][] {
-            { IntensityFunctions.sineIntensity().area(10).period(20).build() },
-            { IntensityFunctions.sineIntensity().area(10).height(.5).period(20)
-                .build() },
-            { IntensityFunctions.sineIntensity().area(10).height(-.5).period(20)
-                .build() },
-            { IntensityFunctions.sineIntensity().area(10).phaseShift(0)
+            {IntensityFunctions.sineIntensity().area(10).period(20).build()},
+            {IntensityFunctions.sineIntensity().area(10).height(.5).period(20)
+                .build()},
+            {IntensityFunctions.sineIntensity().area(10).height(-.5).period(20)
+                .build()},
+            {IntensityFunctions.sineIntensity().area(10).phaseShift(0)
                 .period(20)
-                .build() },
-            { IntensityFunctions.sineIntensity().area(10).height(1).period(20)
-                .build() }
+                .build()},
+            {IntensityFunctions.sineIntensity().area(10).height(1).period(20)
+                .build()}
         });
   }
 

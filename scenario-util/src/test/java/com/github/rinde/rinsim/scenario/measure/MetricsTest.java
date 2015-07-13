@@ -259,7 +259,7 @@ public class MetricsTest {
   @Test
   public void dynamismTest2() {
 
-    final double[] ordersPerHour = { 15d };// , 20d, 50d, 100d, 1000d };
+    final double[] ordersPerHour = {15d};// , 20d, 50d, 100d, 1000d };
 
     final StandardDeviation sd = new StandardDeviation();
 
@@ -663,7 +663,7 @@ public class MetricsTest {
   @Test
   public void testHistogram() {
     assertEquals(ImmutableSortedMultiset.of(),
-        Metrics.computeHistogram(Arrays.<Double> asList(), .2));
+        Metrics.computeHistogram(Arrays.<Double>asList(), .2));
 
     final List<Double> list = Arrays.asList(1d, 2d, 2d, 1.99999, 3d, 4d);
     assertEquals(ImmutableSortedMultiset.of(0d, 0d, 2d, 2d, 2d, 4d),

@@ -102,7 +102,7 @@ public class UiSchema {
   @Nullable
   public Image getImage(Class<?> type) {
     checkState(colorRegistry != null,
-      "UiSchema needs to be initialized before it can be used");
+        "UiSchema needs to be initialized before it can be used");
     return imageRegistry.get(type.getName());
   }
 
@@ -123,7 +123,7 @@ public class UiSchema {
   @Nullable
   public Color getColor(Class<?> type) {
     checkState(colorRegistry != null,
-      "UiSchema needs to be initialized before it can be used");
+        "UiSchema needs to be initialized before it can be used");
     final Color color = colorRegistry.get(type.getName());
     if (color == null && type.getSuperclass() != null) {
       final Color tmp = getColor(type.getSuperclass());
@@ -170,7 +170,7 @@ public class UiSchema {
 
     for (final Entry<String, String> e : imgCache.entrySet()) {
       imageRegistry.put(e.getKey(), new Image(d, getClass()
-        .getResourceAsStream(e.getValue())));
+          .getResourceAsStream(e.getValue())));
     }
   }
 }

@@ -64,8 +64,7 @@ class RenderHelper {
         vp.get().toCoordX(p.x - radius),
         vp.get().toCoordY(p.y - radius),
         vp.get().scale(radius * 2),
-        vp.get().scale(radius * 2)
-        );
+        vp.get().scale(radius * 2));
   }
 
   void fillCircle(Point p, double radius) {
@@ -73,8 +72,7 @@ class RenderHelper {
         vp.get().toCoordX(p.x - radius),
         vp.get().toCoordY(p.y - radius),
         vp.get().scale(radius * 2),
-        vp.get().scale(radius * 2)
-        );
+        vp.get().scale(radius * 2));
   }
 
   void fillCircle(Point p, int radiusInPixels) {
@@ -82,8 +80,7 @@ class RenderHelper {
         vp.get().toCoordX(p.x) - radiusInPixels,
         vp.get().toCoordY(p.y) - radiusInPixels,
         radiusInPixels * 2,
-        radiusInPixels * 2
-        );
+        radiusInPixels * 2);
   }
 
   void drawCircle(Point p, int radius) {
@@ -99,7 +96,7 @@ class RenderHelper {
     final int y1 = vp.get().toCoordY(corner1.y);
     final int x2 = vp.get().toCoordX(corner2.x);
     final int y2 = vp.get().toCoordY(corner2.y);
-    gc.get().drawPolygon(new int[] { x1, y1, x2, y1, x2, y2, x1, y2 });
+    gc.get().drawPolygon(new int[] {x1, y1, x2, y1, x2, y2, x1, y2});
   }
 
   void fillRect(Point corner1, Point corner2) {
@@ -107,7 +104,7 @@ class RenderHelper {
     final int y1 = vp.get().toCoordY(corner1.y);
     final int x2 = vp.get().toCoordX(corner2.x);
     final int y2 = vp.get().toCoordY(corner2.y);
-    gc.get().fillPolygon(new int[] { x1, y1, x2, y1, x2, y2, x1, y2 });
+    gc.get().fillPolygon(new int[] {x1, y1, x2, y1, x2, y2, x1, y2});
   }
 
   int[] toCoordinates(Point... points) {

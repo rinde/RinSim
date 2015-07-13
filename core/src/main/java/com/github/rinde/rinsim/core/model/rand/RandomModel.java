@@ -106,12 +106,14 @@ public class RandomModel extends AbstractModel<RandomUser> {
    * @author Rinde van Lon
    */
   @AutoValue
-  public abstract static class Builder extends
-      AbstractModelBuilder<RandomModel, RandomUser>implements Serializable {
+  public abstract static class Builder
+      extends AbstractModelBuilder<RandomModel, RandomUser>
+      implements Serializable {
 
     private static final long serialVersionUID = 7985638617806912711L;
-    static final StochasticSupplier<MersenneTwister> DEFAULT_RNG = StochasticSuppliers
-        .mersenneTwister();
+    static final StochasticSupplier<MersenneTwister> DEFAULT_RNG =
+        StochasticSuppliers
+            .mersenneTwister();
 
     Builder() {
       setProvidingTypes(RandomProvider.class);

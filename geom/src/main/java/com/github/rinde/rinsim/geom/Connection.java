@@ -67,7 +67,7 @@ public abstract class Connection<E extends ConnectionData> {
    */
   public static <E extends ConnectionData> Connection<E> create(Point from,
       Point to) {
-    return create(from, to, Optional.<E> absent());
+    return create(from, to, Optional.<E>absent());
   }
 
   /**

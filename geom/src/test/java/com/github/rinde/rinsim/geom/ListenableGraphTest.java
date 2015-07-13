@@ -64,7 +64,7 @@ public class ListenableGraphTest {
     assertEquals(asList(ADD_CONNECTION, ADD_CONNECTION),
         history.getEventTypeHistory());
 
-    graph.addConnections(Arrays.<Connection<LengthData>> asList(
+    graph.addConnections(Arrays.<Connection<LengthData>>asList(
         Connection.create(a, d, LengthData.create(10d)),
         Connection.create(d, e, LengthData.create(7d))));
     assertEquals(
@@ -120,11 +120,13 @@ public class ListenableGraphTest {
     assertEquals(2, history.getHistory().size());
     assertEquals(
         new GraphEvent(ADD_CONNECTION, graph1, Connection.create(a, c,
-            Optional.<ConnectionData> absent())), history
+            Optional.<ConnectionData>absent())),
+        history
             .getHistory().get(0));
     assertEquals(
         new GraphEvent(ADD_CONNECTION, graph1, Connection.create(c, a,
-            Optional.<ConnectionData> absent())), history
+            Optional.<ConnectionData>absent())),
+        history
             .getHistory().get(1));
   }
 
@@ -149,7 +151,8 @@ public class ListenableGraphTest {
             ge.getConnection().data(),
             ge.getGraph()
                 .getConnection(ge.getConnection().from(),
-                    ge.getConnection().to()).data());
+                    ge.getConnection().to())
+                .data());
       }
 
     }

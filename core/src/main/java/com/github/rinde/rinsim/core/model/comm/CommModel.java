@@ -57,8 +57,8 @@ import com.google.common.collect.Maps;
  * See {@link ModelBuilder} for more information about model properties.
  * @author Rinde van Lon
  */
-public final class CommModel extends AbstractModel<CommUser>implements
-    TickListener {
+public final class CommModel extends AbstractModel<CommUser>
+    implements TickListener {
 
   /**
    * The types of events that are dispatched by {@link CommModel}. The event
@@ -95,8 +95,8 @@ public final class CommModel extends AbstractModel<CommUser>implements
     defaultMaxRange = b.defaultMaxRange();
     usersHasChanged = false;
     usersDevices = Maps.synchronizedBiMap(
-        LinkedHashBiMap.<CommUser, CommDevice> create());
-    unregisteredUsersDevices = LinkedHashBiMap.<CommUser, CommDevice> create();
+        LinkedHashBiMap.<CommUser, CommDevice>create());
+    unregisteredUsersDevices = LinkedHashBiMap.<CommUser, CommDevice>create();
     usersDevicesSnapshot = ImmutableBiMap.of();
     eventDispatcher = new EventDispatcher(EventTypes.values());
     randomGenerator = rng;
@@ -124,8 +124,8 @@ public final class CommModel extends AbstractModel<CommUser>implements
       commUser.setCommDevice(builder);
       checkState(
           builder.isUsed(),
-          "%s is not implemented correctly, a CommDevice must be constructed in "
-              + "setCommDevice()",
+          "%s is not implemented correctly, a CommDevice must be constructed in"
+              + " setCommDevice()",
           commUser);
     }
     return true;
@@ -268,8 +268,9 @@ public final class CommModel extends AbstractModel<CommUser>implements
    * @author Rinde van Lon
    */
   @AutoValue
-  public abstract static class Builder extends
-      AbstractModelBuilder<CommModel, CommUser>implements Serializable {
+  public abstract static class Builder
+      extends AbstractModelBuilder<CommModel, CommUser>
+      implements Serializable {
     private static final long serialVersionUID = -6598454973114403967L;
     private static final double DEFAULT_RELIABILITY = 1d;
 
@@ -280,7 +281,7 @@ public final class CommModel extends AbstractModel<CommUser>implements
 
     static Builder create() {
       return new AutoValue_CommModel_Builder(DEFAULT_RELIABILITY,
-          Optional.<Double> absent());
+          Optional.<Double>absent());
     }
 
     abstract double defaultReliability();

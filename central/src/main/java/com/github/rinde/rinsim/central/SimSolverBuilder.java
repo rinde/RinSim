@@ -18,8 +18,8 @@ package com.github.rinde.rinsim.central;
 import com.github.rinde.rinsim.core.model.pdp.Vehicle;
 
 /**
- * A builder for creating a {@link SimSolver}. Can be obtained by
- * implementing {@link SolverUser}.
+ * A builder for creating a {@link SimSolver}. Can be obtained by implementing
+ * {@link SolverUser}.
  * @author Rinde van Lon
  */
 public abstract class SimSolverBuilder {
@@ -39,7 +39,7 @@ public abstract class SimSolverBuilder {
    * @return This, as per the builder pattern.
    */
   public abstract SimSolverBuilder setVehicles(
-    Iterable<? extends Vehicle> vehicles);
+      Iterable<? extends Vehicle> vehicles);
 
   /**
    * Construct a new {@link SimSolver} instance.

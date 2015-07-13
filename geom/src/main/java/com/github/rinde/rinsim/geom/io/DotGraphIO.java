@@ -68,14 +68,13 @@ public class DotGraphIO<E extends ConnectionData> extends
   static final char LIST_ITEM_SEPARATOR = ',';
   static final char KEY_VAL_SEPARATOR = '=';
 
-  static final Splitter KEY_VAL_SPLITTER =
-      Splitter.on(KEY_VAL_SEPARATOR).trimResults();
-  static final Splitter LIST_SPLITTER =
-      Splitter.on(LIST_ITEM_SEPARATOR).trimResults();
-  static final Splitter CONN_SPLITTER =
-      Splitter.on(CONN_SEPARATOR).trimResults();
-  static final Splitter DATA_SPLITTER =
-      Splitter.on(DATA_START).limit(2);
+  static final Splitter KEY_VAL_SPLITTER = Splitter.on(KEY_VAL_SEPARATOR)
+      .trimResults();
+  static final Splitter LIST_SPLITTER = Splitter.on(LIST_ITEM_SEPARATOR)
+      .trimResults();
+  static final Splitter CONN_SPLITTER = Splitter.on(CONN_SEPARATOR)
+      .trimResults();
+  static final Splitter DATA_SPLITTER = Splitter.on(DATA_START).limit(2);
 
   private final Predicate<Connection<?>> filter;
   private final ConnectionDataIO<E> dataIO;
@@ -264,7 +263,7 @@ public class DotGraphIO<E extends ConnectionData> extends
   }
 
   enum MultiAttributeDataIO implements
-      ConnectionDataIO<MultiAttributeData> {
+    ConnectionDataIO<MultiAttributeData> {
     INSTANCE {
       @Override
       public void write(StringBuilder sb, MultiAttributeData data) {

@@ -25,17 +25,17 @@ public final class TestSolvers {
   private TestSolvers() {}
 
   public static Solver asSolver(
-    Iterable<ImmutableList<ImmutableList<Parcel>>> schedules) {
+      Iterable<ImmutableList<ImmutableList<Parcel>>> schedules) {
     final Iterator<ImmutableList<ImmutableList<Parcel>>> it = schedules
-      .iterator();
+        .iterator();
     return SolverValidator.wrap(
-      new Solver() {
-        @Override
-        public ImmutableList<ImmutableList<Parcel>> solve(
-          GlobalStateObject state) {
-          return it.next();
-        }
-      });
+        new Solver() {
+          @Override
+          public ImmutableList<ImmutableList<Parcel>> solve(
+              GlobalStateObject state) {
+            return it.next();
+          }
+        });
   }
 
 }

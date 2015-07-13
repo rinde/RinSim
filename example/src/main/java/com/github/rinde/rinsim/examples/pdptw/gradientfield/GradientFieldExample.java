@@ -58,50 +58,48 @@ public final class GradientFieldExample {
    */
   public static void run(final boolean testing) {
     View.Builder viewBuilder = View.builder()
-      .with(PlaneRoadModelRenderer.builder())
-      .with(RoadUserRenderer.builder()
-        .withImageAssociation(
-          Truck.class, "/graphics/perspective/bus-44.png")
-        .withImageAssociation(
-          Depot.class, "/graphics/flat/warehouse-32.png")
-        .withImageAssociation(
-          GFParcel.class, "/graphics/flat/hailing-cab-32.png")
-      )
-      .with(GradientFieldRenderer.builder())
-      .with(RouteRenderer.builder())
-      .with(PDPModelRenderer.builder());
+        .with(PlaneRoadModelRenderer.builder())
+        .with(RoadUserRenderer.builder()
+            .withImageAssociation(
+                Truck.class, "/graphics/perspective/bus-44.png")
+            .withImageAssociation(
+                Depot.class, "/graphics/flat/warehouse-32.png")
+            .withImageAssociation(
+                GFParcel.class, "/graphics/flat/hailing-cab-32.png"))
+        .with(GradientFieldRenderer.builder())
+        .with(RouteRenderer.builder())
+        .with(PDPModelRenderer.builder());
 
     if (testing) {
       viewBuilder = viewBuilder.withAutoClose()
-        .withAutoPlay()
-        .withSpeedUp(64)
-        .withSimulatorEndTime(20 * 60 * 1000);
+          .withAutoPlay()
+          .withSpeedUp(64)
+          .withSimulatorEndTime(20 * 60 * 1000);
     }
 
     final Gendreau06Scenario scenario = Gendreau06Parser
-      .parser().addFile(GradientFieldExample.class
-        .getResourceAsStream("/data/gendreau06/req_rapide_1_240_24"),
-        "req_rapide_1_240_24")
-      .allowDiversion()
-      .parse().get(0);
+        .parser().addFile(GradientFieldExample.class
+            .getResourceAsStream("/data/gendreau06/req_rapide_1_240_24"),
+            "req_rapide_1_240_24")
+        .allowDiversion()
+        .parse().get(0);
 
     final Gendreau06ObjectiveFunction objFunc = Gendreau06ObjectiveFunction
-      .instance();
+        .instance();
     Experiment
-      .build(objFunc)
-      .withRandomSeed(123)
-      .withThreads(1)
-      .addConfiguration(MASConfiguration.pdptwBuilder()
-        .setName("GradientFieldConfiguration")
-        .addEventHandler(AddVehicleEvent.class, VehicleHandler.INSTANCE)
-        .addEventHandler(AddParcelEvent.class, ParcelHandler.INSTANCE)
-        .addModel(GradientModel.builder())
-        .build()
-      )
-      .addScenario(scenario)
-      .showGui(viewBuilder)
-      .repeat(1)
-      .perform();
+        .build(objFunc)
+        .withRandomSeed(123)
+        .withThreads(1)
+        .addConfiguration(MASConfiguration.pdptwBuilder()
+            .setName("GradientFieldConfiguration")
+            .addEventHandler(AddVehicleEvent.class, VehicleHandler.INSTANCE)
+            .addEventHandler(AddParcelEvent.class, ParcelHandler.INSTANCE)
+            .addModel(GradientModel.builder())
+            .build())
+        .addScenario(scenario)
+        .showGui(viewBuilder)
+        .repeat(1)
+        .perform();
   }
 
   enum VehicleHandler implements TimedEventHandler<AddVehicleEvent> {

@@ -89,7 +89,7 @@ class GradientFieldRenderer extends AbstractCanvasRenderer {
 
   @AutoValue
   abstract static class Builder extends
-    AbstractModelBuilder<GradientFieldRenderer, Void> {
+      AbstractModelBuilder<GradientFieldRenderer, Void> {
 
     Builder() {
       setDependencies(GradientModel.class);

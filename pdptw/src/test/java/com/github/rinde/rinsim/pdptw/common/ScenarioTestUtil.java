@@ -67,39 +67,39 @@ public class ScenarioTestUtil {
    * @return A new random scenario.
    */
   public static Scenario createRandomScenario(long seed,
-    ModelBuilder<?, ?>... models) {
+      ModelBuilder<?, ?>... models) {
     final int endTime = 3 * 60 * 60 * 1000;
     final Scenario.Builder b = Scenario
-      .builder()
-      .addModel(RoadModelBuilders.plane())
-      .addModel(DefaultPDPModel.builder())
-      .addModels(asList(models))
-      .addEvents(
-        Collections
-          .nCopies(
-            10,
-            AddVehicleEvent.create(-1, VehicleDTO
-              .builder()
-              .startPosition(new Point(5, 5))
-              .build())));
+        .builder()
+        .addModel(RoadModelBuilders.plane())
+        .addModel(DefaultPDPModel.builder())
+        .addModels(asList(models))
+        .addEvents(
+            Collections
+                .nCopies(
+                    10,
+                    AddVehicleEvent.create(-1, VehicleDTO
+                        .builder()
+                        .startPosition(new Point(5, 5))
+                        .build())));
 
     final RandomGenerator rng = new MersenneTwister(seed);
     for (int i = 0; i < 20; i++) {
       final long announceTime = rng.nextInt(DoubleMath.roundToInt(
-        endTime * .8, RoundingMode.FLOOR));
+          endTime * .8, RoundingMode.FLOOR));
       b.addEvent(AddParcelEvent.create(Parcel
-        .builder(
-          new Point(rng.nextDouble() * 10, rng.nextDouble() * 10),
-          new Point(rng.nextDouble() * 10, rng.nextDouble() * 10))
-        .orderAnnounceTime(announceTime)
-        .pickupTimeWindow(new TimeWindow(announceTime, endTime))
-        .deliveryTimeWindow(new TimeWindow(announceTime, endTime))
-        .neededCapacity(0).buildDTO()));
+          .builder(
+              new Point(rng.nextDouble() * 10, rng.nextDouble() * 10),
+              new Point(rng.nextDouble() * 10, rng.nextDouble() * 10))
+          .orderAnnounceTime(announceTime)
+          .pickupTimeWindow(new TimeWindow(announceTime, endTime))
+          .deliveryTimeWindow(new TimeWindow(announceTime, endTime))
+          .neededCapacity(0).buildDTO()));
     }
 
     b.addEvent(TimeOutEvent.create(endTime))
-      .scenarioLength(endTime)
-      .setStopCondition(StopConditions.limitedTime(endTime));
+        .scenarioLength(endTime)
+        .setStopCondition(StopConditions.limitedTime(endTime));
 
     return b.build();
   }

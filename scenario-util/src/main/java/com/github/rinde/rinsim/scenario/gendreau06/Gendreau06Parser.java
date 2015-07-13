@@ -271,7 +271,7 @@ public final class Gendreau06Parser {
    * @return This, as per the builder pattern.
    */
   public Gendreau06Parser filter(GendreauProblemClass... classes) {
-    problemClasses = Optional.of(ImmutableList.<ProblemClass> copyOf(classes));
+    problemClasses = Optional.of(ImmutableList.<ProblemClass>copyOf(classes));
     return this;
   }
 

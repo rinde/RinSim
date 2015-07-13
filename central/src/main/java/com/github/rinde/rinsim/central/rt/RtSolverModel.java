@@ -69,7 +69,8 @@ public final class RtSolverModel extends AbstractModel<RtSolverUser> {
   @Override
   public <U> U get(Class<U> clazz) {
     checkArgument(clazz == RtSimSolverBuilder.class,
-      "%s does not provide this type: %s.", getClass().getSimpleName(), clazz);
+        "%s does not provide this type: %s.", getClass().getSimpleName(),
+        clazz);
     return clazz.cast(builder);
   }
 
@@ -77,7 +78,7 @@ public final class RtSolverModel extends AbstractModel<RtSolverUser> {
     @Override
     public RtSimSolver build(RealtimeSolver solver) {
       return new RtSimSolverSchedulerImpl(clock, solver, roadModel,
-        pdpModel).rtSimSolver;
+          pdpModel).rtSimSolver;
     }
   }
 
@@ -87,18 +88,18 @@ public final class RtSolverModel extends AbstractModel<RtSolverUser> {
 
   @AutoValue
   public abstract static class Builder
-    extends AbstractModelBuilder<RtSolverModel, RtSolverUser> {
+      extends AbstractModelBuilder<RtSolverModel, RtSolverUser> {
 
     Builder() {
       setDependencies(RealTimeClockController.class, PDPRoadModel.class,
-        PDPModel.class);
+          PDPModel.class);
       setProvidingTypes(RtSimSolverBuilder.class);
     }
 
     @Override
     public RtSolverModel build(DependencyProvider dependencyProvider) {
       RealTimeClockController c = dependencyProvider
-        .get(RealTimeClockController.class);
+          .get(RealTimeClockController.class);
       PDPRoadModel rm = dependencyProvider.get(PDPRoadModel.class);
       PDPModel pm = dependencyProvider.get(PDPModel.class);
       return new RtSolverModel(c, rm, pm);
@@ -116,19 +117,19 @@ public final class RtSolverModel extends AbstractModel<RtSolverUser> {
     final Scheduler scheduler;
 
     RtSimSolverSchedulerImpl(RealTimeClockController c, RealtimeSolver s,
-      PDPRoadModel rm, PDPModel pm) {
+        PDPRoadModel rm, PDPModel pm) {
       solver = s;
       clock = c;
       converter = Solvers.converterBuilder()
-        .with(clock)
-        .with(rm)
-        .with(pm)
-        .build();
+          .with(clock)
+          .with(rm)
+          .with(pm)
+          .build();
       currentSchedule = Optional.absent();
       isUpdated = false;
 
       executor = MoreExecutors
-        .listeningDecorator(Executors.newSingleThreadExecutor());
+          .listeningDecorator(Executors.newSingleThreadExecutor());
 
       rtSimSolver = new InternalRtSimSolver();
       scheduler = new InternalScheduler();
@@ -170,7 +171,7 @@ public final class RtSolverModel extends AbstractModel<RtSolverUser> {
       @Override
       public ImmutableList<ImmutableList<Parcel>> getCurrentSchedule() {
         checkState(currentSchedule.isPresent(),
-          "No schedule has been set, use updateSchedule(..).");
+            "No schedule has been set, use updateSchedule(..).");
         return currentSchedule.get();
       }
 

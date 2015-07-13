@@ -30,7 +30,7 @@ import com.github.rinde.rinsim.util.StochasticSupplier;
 
 /**
  * A solver creator useful for debugging.
- * @author Rinde van Lon 
+ * @author Rinde van Lon
  */
 public class DebugSolverCreator implements StochasticSupplier<Solver> {
   /**

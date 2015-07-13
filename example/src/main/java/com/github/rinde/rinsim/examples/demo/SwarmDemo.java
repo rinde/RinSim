@@ -62,21 +62,19 @@ public final class SwarmDemo {
 
     final RandomGenerator rng = new MersenneTwister(123);
     final Simulator sim = Simulator.builder()
-      .addModel(RoadModelBuilders.plane()
-        .withMinPoint(new Point(0, 0))
-        .withMaxPoint(new Point(4500, 1200))
-        .withDistanceUnit(SI.METER)
-        .withSpeedUnit(NonSI.KILOMETERS_PER_HOUR)
-        .withMaxSpeed(1000d)
-      )
-      .addModel(
-        View.builder()
-          .with(PlaneRoadModelRenderer.builder())
-          .with(VehicleRenderer.builder())
-          .with(DemoPanel.builder(string))
-          .withSpeedUp(8)
-      )
-      .build();
+        .addModel(RoadModelBuilders.plane()
+            .withMinPoint(new Point(0, 0))
+            .withMaxPoint(new Point(4500, 1200))
+            .withDistanceUnit(SI.METER)
+            .withSpeedUnit(NonSI.KILOMETERS_PER_HOUR)
+            .withMaxSpeed(1000d))
+        .addModel(
+            View.builder()
+                .with(PlaneRoadModelRenderer.builder())
+                .with(VehicleRenderer.builder())
+                .with(DemoPanel.builder(string))
+                .withSpeedUp(8))
+        .build();
 
     for (final Point p : points) {
       sim.register(new Vehicle(p, rng));
@@ -94,7 +92,7 @@ public final class SwarmDemo {
    *         string.
    */
   public static ImmutableList<Point> measureString(String string, int fontSize,
-    double spacing, int vCorrection) {
+      double spacing, int vCorrection) {
     if (string.trim().isEmpty()) {
       return ImmutableList.of();
     }
@@ -117,7 +115,7 @@ public final class SwarmDemo {
     measureGC.setFont(newFont);
 
     final org.eclipse.swt.graphics.Point extent = measureGC
-      .textExtent(stringToDraw);
+        .textExtent(stringToDraw);
     measureGC.dispose();
 
     final Image image = new Image(display, extent.x, extent.y);
@@ -128,14 +126,14 @@ public final class SwarmDemo {
     gc.drawText(stringToDraw, 0, 0);
 
     final ImmutableList.Builder<Point> coordinateBuilder = ImmutableList
-      .builder();
+        .builder();
     final int white = (int) Math.pow(2, 24) / 2 - 1;
     for (int i = 0; i < image.getBounds().width; i++) {
       for (int j = vCorrection; j < image.getBounds().height; j++) {
         final int color = image.getImageData().getPixel(i, j);
         if (color < white) {
           coordinateBuilder.add(new Point(i * spacing, (j - vCorrection)
-            * spacing));
+              * spacing));
         }
       }
     }
@@ -197,7 +195,7 @@ public final class SwarmDemo {
     private void doSetDestination(Point dest) {
       destPos = dest;
       speed = Point.distance(rm.get().getPosition(this), destPos)
-        / (30 + 40 * rng.nextDouble());
+          / (30 + 40 * rng.nextDouble());
     }
 
     /**

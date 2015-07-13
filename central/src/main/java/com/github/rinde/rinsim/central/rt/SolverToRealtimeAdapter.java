@@ -47,7 +47,7 @@ class SolverToRealtimeAdapter implements RealtimeSolver {
   SolverToRealtimeAdapter(Solver s) {
     solver = s;
     executor = MoreExecutors
-      .listeningDecorator(Executors.newSingleThreadExecutor());
+        .listeningDecorator(Executors.newSingleThreadExecutor());
 
     currentFuture = Optional.absent();
     scheduler = Optional.absent();
@@ -66,32 +66,32 @@ class SolverToRealtimeAdapter implements RealtimeSolver {
     }
 
     currentFuture = Optional
-      .of(executor.submit(new SolverComputer(solver, snapshot)));
+        .of(executor.submit(new SolverComputer(solver, snapshot)));
     Futures.addCallback(currentFuture.get(),
-      new FutureCallback<ImmutableList<ImmutableList<Parcel>>>() {
-        @Override
-        public void onSuccess(
-          @Nullable ImmutableList<ImmutableList<Parcel>> result) {
-          if (result == null) {
-            throw new IllegalArgumentException(
-              "Solver.solve(..) must return a non-null result.");
+        new FutureCallback<ImmutableList<ImmutableList<Parcel>>>() {
+          @Override
+          public void onSuccess(
+              @Nullable ImmutableList<ImmutableList<Parcel>> result) {
+            if (result == null) {
+              throw new IllegalArgumentException(
+                  "Solver.solve(..) must return a non-null result.");
+            }
+            scheduler.get().updateSchedule(result);
+            scheduler.get().doneForNow();
           }
-          scheduler.get().updateSchedule(result);
-          scheduler.get().doneForNow();
-        }
 
-        @Override
-        public void onFailure(Throwable t) {
-          if (t instanceof CancellationException) {
-            return;
+          @Override
+          public void onFailure(Throwable t) {
+            if (t instanceof CancellationException) {
+              return;
+            }
+            throw new IllegalStateException(t);
           }
-          throw new IllegalStateException(t);
-        }
-      });
+        });
   }
 
   static class SolverComputer
-    implements Callable<ImmutableList<ImmutableList<Parcel>>> {
+      implements Callable<ImmutableList<ImmutableList<Parcel>>> {
     final Solver solver;
     final GlobalStateObject snapshot;
 

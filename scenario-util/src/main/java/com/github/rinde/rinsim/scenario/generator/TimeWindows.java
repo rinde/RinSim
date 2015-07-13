@@ -88,12 +88,15 @@ public final class TimeWindows {
   public static class Builder {
     private static final StochasticSupplier<Long> DEFAULT_URGENCY = constant(
         30 * 60 * 1000L);
-    private static final StochasticSupplier<Long> DEFAULT_PICKUP_LENGTH = constant(
-        10 * 60 * 1000L);
-    private static final StochasticSupplier<Long> DEFAULT_DELIVERY_OPENING = constant(
-        0L);
-    private static final StochasticSupplier<Double> DEFAULT_DELIVERY_LENGTH_FACTOR = constant(
-        2d);
+    private static final StochasticSupplier<Long> DEFAULT_PICKUP_LENGTH =
+        constant(
+            10 * 60 * 1000L);
+    private static final StochasticSupplier<Long> DEFAULT_DELIVERY_OPENING =
+        constant(
+            0L);
+    private static final StochasticSupplier<Double> DEFAULT_DELIVERY_LENGTH_FACTOR =
+        constant(
+            2d);
 
     StochasticSupplier<Long> pickupUrgency;
     StochasticSupplier<Long> pickupTWLength;

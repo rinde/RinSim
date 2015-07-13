@@ -59,8 +59,7 @@ public class CliTest {
               public void execute(List<Object> ref, Optional<Long> value) {
                 ref.add(value.get());
               }
-            }
-        )
+            })
         .add(
             Option
                 .builder("aa", ArgumentParser.LONG_LIST)
@@ -72,7 +71,8 @@ public class CliTest {
             list,
             new ArgHandler<List<Object>, List<Long>>() {
               @Override
-              public void execute(List<Object> ref, Optional<List<Long>> value) {
+              public void execute(List<Object> ref,
+                  Optional<List<Long>> value) {
                 if (value.isPresent()) {
                   ref.addAll(value.get());
                 }
@@ -83,11 +83,11 @@ public class CliTest {
             list,
             new ArgHandler<List<Object>, List<String>>() {
               @Override
-              public void execute(List<Object> ref, Optional<List<String>> value) {
+              public void execute(List<Object> ref,
+                  Optional<List<String>> value) {
                 ref.addAll(value.get());
               }
-            }
-        )
+            })
         .openGroup()
         .add(Option.builder("x").build(), list, dummyHandler())
         .add(Option.builder("y").build(), list, dummyHandler())
@@ -101,8 +101,7 @@ public class CliTest {
               public void execute(List<Object> ref, Optional<String> value) {
                 ref.addAll(value.asSet());
               }
-            }
-        )
+            })
         .addHelpOption("h", "help", "Print this message")
         .add(Option.builder("failure", ArgumentParser.BOOLEAN).build(), list,
             new ArgHandler<List<Object>, Boolean>() {
@@ -143,7 +142,7 @@ public class CliTest {
                 .longName("a")
                 .build(),
             subject,
-            CliTest.<Object, String> dummyArgHandler());
+            CliTest.<Object, String>dummyArgHandler());
   }
 
   /**
@@ -462,7 +461,8 @@ public class CliTest {
    * @param args The options to execute.
    */
   public static void testFail(Menu m, String failingOptionName,
-      CauseType causeType, Class<? extends Throwable> rootCause, String... args) {
+      CauseType causeType, Class<? extends Throwable> rootCause,
+      String... args) {
     try {
       m.execute(args);
     } catch (final CliException e) {

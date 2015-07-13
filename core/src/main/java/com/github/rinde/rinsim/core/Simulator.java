@@ -367,8 +367,8 @@ public final class Simulator implements SimulatorAPI {
     }
   }
 
-  static class SimulatorModel extends AbstractModel<SimulatorUser>implements
-      TickListener {
+  static class SimulatorModel extends AbstractModel<SimulatorUser>
+      implements TickListener {
     final Simulator simulator;
 
     SimulatorModel(Simulator sim) {

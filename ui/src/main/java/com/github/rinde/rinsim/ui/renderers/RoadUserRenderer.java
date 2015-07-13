@@ -81,13 +81,15 @@ public final class RoadUserRenderer extends AbstractCanvasRenderer {
           if (useEncirclement) {
             gc.setForeground(gc.getBackground());
             gc.drawOval((int) (vp.origin.x + (p.x - vp.rect.min.x) * vp.scale)
-              - outerRadius, (int) (vp.origin.y + (p.y - vp.rect.min.y)
-              * vp.scale)
-              - outerRadius, 2 * outerRadius, 2 * outerRadius);
+                - outerRadius, (int) (vp.origin.y + (p.y - vp.rect.min.y)
+                    * vp.scale)
+                    - outerRadius,
+                2 * outerRadius, 2 * outerRadius);
           }
           gc.fillOval((int) (vp.origin.x + (p.x - vp.rect.min.x) * vp.scale)
-            - radius, (int) (vp.origin.y + (p.y - vp.rect.min.y) * vp.scale)
-            - radius, 2 * radius, 2 * radius);
+              - radius, (int) (vp.origin.y + (p.y - vp.rect.min.y) * vp.scale)
+                  - radius,
+              2 * radius, 2 * radius);
         }
 
       }
@@ -113,7 +115,7 @@ public final class RoadUserRenderer extends AbstractCanvasRenderer {
    */
   @AutoValue
   public abstract static class Builder extends
-    AbstractModelBuilder<RoadUserRenderer, Void> {
+      AbstractModelBuilder<RoadUserRenderer, Void> {
 
     Builder() {
       setDependencies(RoadModel.class);
@@ -153,11 +155,11 @@ public final class RoadUserRenderer extends AbstractCanvasRenderer {
     @CheckReturnValue
     public Builder withColorAssociation(Class<?> type, RGB rgb) {
       return create(useEncirclement(),
-        ImmutableMap.<Class<?>, RGB> builder()
-          .putAll(colorMap())
-          .put(type, rgb)
-          .build(),
-        imageMap());
+          ImmutableMap.<Class<?>, RGB>builder()
+              .putAll(colorMap())
+              .put(type, rgb)
+              .build(),
+          imageMap());
     }
 
     /**
@@ -171,10 +173,10 @@ public final class RoadUserRenderer extends AbstractCanvasRenderer {
     @CheckReturnValue
     public Builder withImageAssociation(Class<?> type, String fileName) {
       return create(useEncirclement(), colorMap(),
-        ImmutableMap.<Class<?>, String> builder()
-          .putAll(imageMap())
-          .put(type, fileName)
-          .build());
+          ImmutableMap.<Class<?>, String>builder()
+              .putAll(imageMap())
+              .put(type, fileName)
+              .build());
     }
 
     @Override
@@ -182,7 +184,7 @@ public final class RoadUserRenderer extends AbstractCanvasRenderer {
       final RoadModel rm = dependencyProvider.get(RoadModel.class);
 
       final UiSchema uis = new UiSchema(colorMap().isEmpty()
-        && imageMap().isEmpty());
+          && imageMap().isEmpty());
       for (final Entry<Class<?>, RGB> entry : colorMap().entrySet()) {
         uis.add(entry.getKey(), entry.getValue());
       }
@@ -193,12 +195,12 @@ public final class RoadUserRenderer extends AbstractCanvasRenderer {
     }
 
     static Builder create() {
-      return create(false, ImmutableMap.<Class<?>, RGB> of(),
-        ImmutableMap.<Class<?>, String> of());
+      return create(false, ImmutableMap.<Class<?>, RGB>of(),
+          ImmutableMap.<Class<?>, String>of());
     }
 
     static Builder create(boolean circle, ImmutableMap<Class<?>, RGB> colMap,
-      ImmutableMap<Class<?>, String> imgMap) {
+        ImmutableMap<Class<?>, String> imgMap) {
       return new AutoValue_RoadUserRenderer_Builder(circle, colMap, imgMap);
     }
   }

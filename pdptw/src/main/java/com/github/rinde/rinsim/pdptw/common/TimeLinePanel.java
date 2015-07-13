@@ -69,15 +69,15 @@ import com.google.common.math.DoubleMath;
  * @author Rinde van Lon
  */
 public final class TimeLinePanel extends AbstractModelVoid implements
-  PanelRenderer, TickListener {
+    PanelRenderer, TickListener {
 
   static final PeriodFormatter FORMATTER = new PeriodFormatterBuilder()
-    .minimumPrintedDigits(2)
-    .printZeroAlways()
-    .appendHours()
-    .appendLiteral(":")
-    .appendMinutes()
-    .toFormatter();
+      .minimumPrintedDigits(2)
+      .printZeroAlways()
+      .appendHours()
+      .appendLiteral(":")
+      .appendMinutes()
+      .toFormatter();
 
   static final int PANEL_PX = 200;
   static final int MARGIN_PX = 2;
@@ -92,6 +92,7 @@ public final class TimeLinePanel extends AbstractModelVoid implements
   static final int SCROLL_PAGE_INCR = 20;
 
   private static final boolean IS_MAC_OR_WINDOWS;
+
   static {
     final String name = System.getProperty("os.name").toLowerCase();
     IS_MAC_OR_WINDOWS = name.contains("win") || name.contains("mac");
@@ -121,7 +122,7 @@ public final class TimeLinePanel extends AbstractModelVoid implements
           verify(e instanceof PDPModelEvent);
           final PDPModelEvent event = (PDPModelEvent) e;
           timeline.addParcel(new ParcelInfo(event.time,
-            verifyNotNull(event.parcel)));
+              verifyNotNull(event.parcel)));
         }
       }
     }, PDPModelEventType.NEW_PARCEL);
@@ -144,12 +145,12 @@ public final class TimeLinePanel extends AbstractModelVoid implements
         e.gc.drawImage(timelineBar.contents, origin.x, 0);
         e.gc.setForeground(e.display.getSystemColor(SWT.COLOR_RED));
         e.gc.drawLine(origin.x + (int) (currentTime / TIME_PER_PIXEL),
-          FONT_SIZE, origin.x + (int) (currentTime / TIME_PER_PIXEL),
-          barCanvas.get().getClientArea().height);
+            FONT_SIZE, origin.x + (int) (currentTime / TIME_PER_PIXEL),
+            barCanvas.get().getClientArea().height);
       }
     });
     canvas = Optional.of(new Canvas(parent, SWT.DOUBLE_BUFFERED | SWT.NONE
-      | SWT.V_SCROLL | SWT.H_SCROLL));
+        | SWT.V_SCROLL | SWT.H_SCROLL));
     final ScrollBar hBar = canvas.get().getHorizontalBar();
     final ScrollBar vBar = canvas.get().getVerticalBar();
 
@@ -159,19 +160,19 @@ public final class TimeLinePanel extends AbstractModelVoid implements
       public void paintControl(@Nullable PaintEvent e) {
         assert e != null;
         final int timeX = DoubleMath.roundToInt(origin.x + currentTime
-          / TIME_PER_PIXEL, RoundingMode.HALF_UP);
+            / TIME_PER_PIXEL, RoundingMode.HALF_UP);
         timeline.update(timeX);
 
         e.gc.drawImage(timeline.contents.get(), origin.x, origin.y);
         e.gc.setForeground(e.display.getSystemColor(SWT.COLOR_RED));
         e.gc.drawLine(timeX, 0, timeX, canvas.get().getClientArea().height);
         hBar.setMaximum(timeline.getWidth() == 0 ? 1 : timeline.getWidth()
-          + H_THUMB_SIZE);
+            + H_THUMB_SIZE);
         vBar.setMaximum(timeline.getHeight() + V_THUMB_SIZE);
         hBar.setThumb(Math.min(timeline.getWidth() + H_THUMB_SIZE, canvas.get()
-          .getClientArea().width));
+            .getClientArea().width));
         vBar.setThumb(Math.min(timeline.getHeight() + V_THUMB_SIZE, canvas
-          .get().getClientArea().height));
+            .get().getClientArea().height));
       }
     });
 
@@ -183,10 +184,10 @@ public final class TimeLinePanel extends AbstractModelVoid implements
         final int hSelection = hBar.getSelection();
         final int destX = -hSelection - origin.x;
         canvas.get().scroll(destX, 0, 0, 0, timeline.getWidth(),
-          timeline.getHeight(), false);
+            timeline.getHeight(), false);
         barCanvas.get().scroll(destX, 0, 0, 0,
-          timelineBar.contents.getBounds().width,
-          timelineBar.contents.getBounds().height, false);
+            timelineBar.contents.getBounds().width,
+            timelineBar.contents.getBounds().height, false);
         origin.x = -hSelection;
       }
     });
@@ -198,7 +199,7 @@ public final class TimeLinePanel extends AbstractModelVoid implements
         final int vSelection = vBar.getSelection();
         final int destY = -vSelection - origin.y;
         canvas.get().scroll(0, destY, 0, 0, timeline.getWidth(),
-          timeline.getHeight(), false);
+            timeline.getHeight(), false);
         origin.y = -vSelection;
       }
     });
@@ -248,7 +249,7 @@ public final class TimeLinePanel extends AbstractModelVoid implements
 
   static Image createNewTransparentImg(Display d, int w, int h) {
     final Color bg = d.getSystemColor(SWT.COLOR_WIDGET_BACKGROUND);
-    final PaletteData palette = new PaletteData(new RGB[] { bg.getRGB() });
+    final PaletteData palette = new PaletteData(new RGB[] {bg.getRGB()});
     final ImageData sourceData = new ImageData(w, h, 1, palette);
     if (IS_MAC_OR_WINDOWS) {
       sourceData.transparentPixel = 0;
@@ -269,7 +270,7 @@ public final class TimeLinePanel extends AbstractModelVoid implements
    */
   @AutoValue
   public abstract static class Builder extends
-    AbstractModelBuilder<TimeLinePanel, Void> {
+      AbstractModelBuilder<TimeLinePanel, Void> {
 
     Builder() {
       setDependencies(PDPModel.class);
@@ -314,7 +315,7 @@ public final class TimeLinePanel extends AbstractModelVoid implements
       if (contents.getBounds().width < width) {
         contents.dispose();
         contents = createNewTransparentImg(display, width + ADDITIONAL_WIDTH,
-          TL_BAR_HEIGHT_PX);
+            TL_BAR_HEIGHT_PX);
         drawTimeline();
       }
     }
@@ -326,11 +327,11 @@ public final class TimeLinePanel extends AbstractModelVoid implements
 
       for (int i = 0; i < contents.getBounds().width; i += SMALL_TICK_DIST) {
         final int height = i % LARGE_TICK_DIST == 0 ? LARGE_TICK_HEIGHT
-          : SMALL_TICK_HEIGHT;
+            : SMALL_TICK_HEIGHT;
         if (i % LARGE_TICK_DIST == 0) {
 
           final String time = FORMATTER
-            .print(new Period(0L, TIME_PER_PIXEL * i));
+              .print(new Period(0L, TIME_PER_PIXEL * i));
           gc.setFont(font);
           final Point size = gc.textExtent(time);
           gc.drawText(time, i - size.x / 2, 0, true);
@@ -381,7 +382,7 @@ public final class TimeLinePanel extends AbstractModelVoid implements
     void ensureImg() {
       if (!contents.isPresent()) {
         contents = Optional.of(createNewTransparentImg(display, WIDTH_PX,
-          START_HEIGHT));
+            START_HEIGHT));
         final GC gc = new GC(contents.get());
         drawVerticals(gc, WIDTH_PX, START_HEIGHT);
         gc.dispose();
@@ -390,13 +391,13 @@ public final class TimeLinePanel extends AbstractModelVoid implements
         final boolean hViolation = height > contents.get().getBounds().height;
         if (wViolation || hViolation) {
           final int newWidth = Math
-            .max(width, contents.get().getBounds().width)
-            + (wViolation ? (int) (HOUR / TIME_PER_PIXEL) : 0);
+              .max(width, contents.get().getBounds().width)
+              + (wViolation ? (int) (HOUR / TIME_PER_PIXEL) : 0);
           final int newHeight = contents.get().getBounds().height
-            + (hViolation ? ADDITIONAL_HEIGHT_FACTOR * ROW_HEIGHT : 0);
+              + (hViolation ? ADDITIONAL_HEIGHT_FACTOR * ROW_HEIGHT : 0);
 
           final Image newContents = createNewTransparentImg(display, newWidth,
-            newHeight);
+              newHeight);
           // copy previous image to new image
           final GC gc = new GC(newContents);
           // draw vertical grid lines
@@ -421,7 +422,7 @@ public final class TimeLinePanel extends AbstractModelVoid implements
       newParcels.add(p);
 
       width = Math.max(width,
-        (int) (p.parcel.getDeliveryTimeWindow().end / TIME_PER_PIXEL));
+          (int) (p.parcel.getDeliveryTimeWindow().end / TIME_PER_PIXEL));
     }
 
     void update(int timeX) {
@@ -459,24 +460,24 @@ public final class TimeLinePanel extends AbstractModelVoid implements
       final GC gc = new GC(contents.get());
       gc.setForeground(lineColor);
       gc.drawLine(startX, y + BAR_START_OFFSET_Y, startX, y
-        + BAR_END_OFFSET_Y);
+          + BAR_END_OFFSET_Y);
       gc.drawLine(startX, y + BAR_MIDDLE_OFFSET_Y, startPickX, y
-        + BAR_MIDDLE_OFFSET_Y);
+          + BAR_MIDDLE_OFFSET_Y);
 
       gc.setBackground(pickupColor);
       gc.fillRectangle(startPickX, y + 2,
-        Math.max(endPickX - startPickX, 1), HALF_BAR_H);
+          Math.max(endPickX - startPickX, 1), HALF_BAR_H);
       gc.drawRectangle(startPickX, y + 2,
-        Math.max(endPickX - startPickX, 1), HALF_BAR_H);
+          Math.max(endPickX - startPickX, 1), HALF_BAR_H);
 
       gc.drawLine(endPickX, y + BAR_MIDDLE_OFFSET_Y, startDelX, y
-        + BAR_MIDDLE_OFFSET_Y);
+          + BAR_MIDDLE_OFFSET_Y);
 
       gc.setBackground(deliveryColor);
       gc.fillRectangle(startDelX, y + BAR_MIDDLE_OFFSET_Y,
-        Math.max(endDelX - startDelX, 1), HALF_BAR_H);
+          Math.max(endDelX - startDelX, 1), HALF_BAR_H);
       gc.drawRectangle(startDelX, y + BAR_MIDDLE_OFFSET_Y,
-        Math.max(endDelX - startDelX, 1), HALF_BAR_H);
+          Math.max(endDelX - startDelX, 1), HALF_BAR_H);
 
       gc.dispose();
     }

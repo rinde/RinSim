@@ -29,12 +29,14 @@ import com.google.common.collect.ImmutableList;
  * @author Rinde van Lon
  */
 public final class Depots {
-  private static final DepotGenerator SINGLE_CENTERED_DEPOT_GENERATOR = new DepotGenerator() {
-    @Override
-    public Iterable<? extends AddDepotEvent> generate(long seed, Point center) {
-      return ImmutableList.of(AddDepotEvent.create(-1, center));
-    }
-  };
+  private static final DepotGenerator SINGLE_CENTERED_DEPOT_GENERATOR =
+      new DepotGenerator() {
+        @Override
+        public Iterable<? extends AddDepotEvent> generate(long seed,
+            Point center) {
+          return ImmutableList.of(AddDepotEvent.create(-1, center));
+        }
+      };
 
   private Depots() {}
 

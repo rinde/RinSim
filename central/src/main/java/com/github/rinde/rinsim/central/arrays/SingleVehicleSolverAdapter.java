@@ -45,7 +45,7 @@ public class SingleVehicleSolverAdapter implements Solver {
    *          solver.
    */
   public SingleVehicleSolverAdapter(SingleVehicleArraysSolver solver,
-    Unit<Duration> outputTimeUnit) {
+      Unit<Duration> outputTimeUnit) {
     this.solver = solver;
     this.outputTimeUnit = outputTimeUnit;
   }
@@ -53,21 +53,21 @@ public class SingleVehicleSolverAdapter implements Solver {
   @Override
   public ImmutableList<ImmutableList<Parcel>> solve(GlobalStateObject state) {
     checkArgument(
-      state.getVehicles().size() == 1,
-      "This solver can only deal with the single vehicle problem, found %s vehicles.",
-      state.getVehicles().size());
+        state.getVehicles().size() == 1,
+        "This solver can only deal with the single vehicle problem, found %s vehicles.",
+        state.getVehicles().size());
 
     final VehicleStateObject v = state.getVehicles().iterator().next();
     checkArgument(
-      v.getRemainingServiceTime() == 0,
-      "This solver can not deal with remaining service time, it should be 0, it was %s.",
-      v.getRemainingServiceTime());
+        v.getRemainingServiceTime() == 0,
+        "This solver can not deal with remaining service time, it should be 0, it was %s.",
+        v.getRemainingServiceTime());
     final Collection<Parcel> inCargo = v.getContents();
 
     // there are always two locations: the current vehicle location and
     // the depot
     final int numLocations = 2 + (state.getAvailableParcels().size() * 2)
-      + inCargo.size();
+        + inCargo.size();
 
     if (numLocations == 2) {
       // there are no orders
@@ -86,14 +86,14 @@ public class SingleVehicleSolverAdapter implements Solver {
     // else, we are going to look for the optimal solution
 
     final ArraysObject ao = ArraysSolvers.toSingleVehicleArrays(state,
-      outputTimeUnit);
+        outputTimeUnit);
 
     final SolutionObject[] curSols = ao.currentSolutions;
     final SolutionObject sol = solver.solve(ao.travelTime, ao.releaseDates,
-      ao.dueDates, ao.servicePairs, ao.serviceTimes, curSols == null ? null
-        : curSols[0]);
+        ao.dueDates, ao.servicePairs, ao.serviceTimes, curSols == null ? null
+            : curSols[0]);
 
     return ImmutableList.of(ArraysSolvers.convertSolutionObject(sol,
-      ao.index2parcel));
+        ao.index2parcel));
   }
 }

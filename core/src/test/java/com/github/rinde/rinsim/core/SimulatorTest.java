@@ -180,7 +180,7 @@ public class SimulatorTest {
 
           @Override
           public ImmutableSet<Class<?>> getDependencies() {
-            return ImmutableSet.<Class<?>> of(RandomProvider.class);
+            return ImmutableSet.<Class<?>>of(RandomProvider.class);
           }
 
           @Override
@@ -190,7 +190,7 @@ public class SimulatorTest {
 
           @Override
           public ImmutableSet<Class<?>> getProvidingTypes() {
-            return ImmutableSet.<Class<?>> of(Object.class);
+            return ImmutableSet.<Class<?>>of(Object.class);
           }
 
           @Override

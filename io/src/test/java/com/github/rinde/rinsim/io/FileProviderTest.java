@@ -38,7 +38,7 @@ import com.google.common.base.Predicate;
 
 /**
  * Tests for {@link FileProvider}.
- * @author Rinde van Lon 
+ * @author Rinde van Lon
  */
 public class FileProviderTest {
 
@@ -168,8 +168,7 @@ public class FileProviderTest {
     final Path p1 = Paths.get("src/test/");
     assertEquals(FileProvider.builder()
         .add(asList(p0, p1))
-        .cli(System.out, "-i", "p1")
-        .paths, asList(p1));
+        .cli(System.out, "-i", "p1").paths, asList(p1));
   }
 
   /**
@@ -216,8 +215,7 @@ public class FileProviderTest {
     final Path p1 = Paths.get("src/test/");
     assertEquals(FileProvider.builder()
         .add(asList(p0, p1))
-        .cli(System.out, "-e", "p1")
-        .paths, asList(p0));
+        .cli(System.out, "-e", "p1").paths, asList(p0));
   }
 
   /**

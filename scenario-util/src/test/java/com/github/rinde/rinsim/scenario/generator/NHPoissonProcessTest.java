@@ -55,8 +55,8 @@ public class NHPoissonProcessTest {
     final int numSamples = 100;
     final long lengthOfScenario = 4 * 60 * 60 * 1000;
     final double period = 30 * 60 * 1000;
-    final int[] orders = new int[] { 10, 20, 30, 40, 50, 75, 100, 150, 200,
-        500 };
+    final int[] orders = new int[] {10, 20, 30, 40, 50, 75, 100, 150, 200,
+        500};
     final List<Point> dataPoints = newArrayList();
     final RandomGenerator rng = new MersenneTwister(123);
 

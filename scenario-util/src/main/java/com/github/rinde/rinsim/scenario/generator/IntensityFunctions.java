@@ -195,10 +195,10 @@ public final class IntensityFunctions {
         return false;
       }
       final SineIntensity other = (SineIntensity) o;
-      return Objects.equal(amplitude, other.amplitude) &&
-          Objects.equal(frequency, other.frequency) &&
-          Objects.equal(height, other.height) &&
-          Objects.equal(phaseShift, other.phaseShift);
+      return Objects.equal(amplitude, other.amplitude)
+          && Objects.equal(frequency, other.frequency)
+          && Objects.equal(height, other.height)
+          && Objects.equal(phaseShift, other.phaseShift);
     }
 
     /**
@@ -232,9 +232,9 @@ public final class IntensityFunctions {
       final double rootA = -ONE_FOURTH / c + common - n1 / c;
       final double rootB = ONE_FOURTH / c - common - n2 / c;
       if (rootA > rootB) {
-        return new double[] { rootB, rootA };
+        return new double[] {rootB, rootA};
       }
-      return new double[] { rootA, rootB };
+      return new double[] {rootA, rootB};
     }
   }
 

@@ -62,12 +62,12 @@ public class ScenarioTest {
   @Test
   public void testDefaults() {
     Scenario.Builder builder = Scenario
-      .builder(Scenario.DEFAULT_PROBLEM_CLASS);
+        .builder(Scenario.DEFAULT_PROBLEM_CLASS);
 
     assertThat(builder.getTimeWindow())
-      .isEqualTo(new TimeWindow(0, 8 * 60 * 60 * 1000));
+        .isEqualTo(new TimeWindow(0, 8 * 60 * 60 * 1000));
     assertThat(builder.getStopCondition())
-      .isEqualTo(StopConditions.alwaysFalse());
+        .isEqualTo(StopConditions.alwaysFalse());
 
     final Scenario scenario = builder.build();
 
@@ -75,9 +75,9 @@ public class ScenarioTest {
     assertSame(Scenario.DEFAULT_PROBLEM_CLASS, scenario.getProblemClass());
     assertEquals("", scenario.getProblemInstanceId());
     assertThat(scenario.getStopCondition()).isEqualTo(
-      StopConditions.alwaysFalse());
+        StopConditions.alwaysFalse());
     assertEquals(new TimeWindow(0, 8 * 60 * 60 * 1000),
-      scenario.getTimeWindow());
+        scenario.getTimeWindow());
   }
 
   /**
@@ -90,11 +90,11 @@ public class ScenarioTest {
     final TimedEvent ev2 = EventB.create(7);
     final TimedEvent ev3 = EventB.create(203);
     final Scenario scenario = Scenario
-      .builder(Scenario.DEFAULT_PROBLEM_CLASS)
-      .addEvent(ev0)
-      .addEvent(ev1)
-      .addEvents(asList(ev2, ev3))
-      .build();
+        .builder(Scenario.DEFAULT_PROBLEM_CLASS)
+        .addEvent(ev0)
+        .addEvent(ev1)
+        .addEvents(asList(ev2, ev3))
+        .build();
     assertEquals(asList(ev0, ev2, ev3, ev1), scenario.getEvents());
   }
 
@@ -105,18 +105,18 @@ public class ScenarioTest {
   public void testCustomProperties() {
     final ProblemClass problemClass = new FakeProblemClass();
     final Scenario scenario = Scenario
-      .builder(problemClass)
-      .instanceId("crazyfast")
-      .scenarioLength(7L)
-      .setStopCondition(StopConditions.alwaysTrue())
-      .addModel(
-        RoadModelBuilders.plane()
-          .withMinPoint(new Point(6, 6))
-          .withMaxPoint(new Point(1034, 32))
-          .withDistanceUnit(SI.METER)
-          .withSpeedUnit(SI.METERS_PER_SECOND)
-          .withMaxSpeed(1d))
-      .build();
+        .builder(problemClass)
+        .instanceId("crazyfast")
+        .scenarioLength(7L)
+        .setStopCondition(StopConditions.alwaysTrue())
+        .addModel(
+            RoadModelBuilders.plane()
+                .withMinPoint(new Point(6, 6))
+                .withMaxPoint(new Point(1034, 32))
+                .withDistanceUnit(SI.METER)
+                .withSpeedUnit(SI.METERS_PER_SECOND)
+                .withMaxSpeed(1d))
+        .build();
 
     assertThat(scenario.asQueue()).isEqualTo(scenario.getEvents());
 
@@ -124,21 +124,21 @@ public class ScenarioTest {
     assertEquals(new TimeWindow(0L, 7L), scenario.getTimeWindow());
 
     assertThat(scenario.getStopCondition()).isEqualTo(
-      StopConditions.alwaysTrue());
+        StopConditions.alwaysTrue());
     assertEquals(1, scenario.getModelBuilders().size());
     assertTrue(scenario.getModelBuilders().iterator().next()
-      .getAssociatedType() == RoadUser.class);
+        .getAssociatedType() == RoadUser.class);
 
     final Scenario.Builder builder = Scenario
-      .builder(Scenario.DEFAULT_PROBLEM_CLASS)
-      .copyProperties(scenario);
+        .builder(Scenario.DEFAULT_PROBLEM_CLASS)
+        .copyProperties(scenario);
 
     final Scenario copiedScen = builder.build();
     assertEquals(scenario, copiedScen);
 
     final Scenario builderCopyScen = Scenario.builder(builder,
-      Scenario.DEFAULT_PROBLEM_CLASS)
-      .build();
+        Scenario.DEFAULT_PROBLEM_CLASS)
+        .build();
 
     assertNotEquals(copiedScen, builderCopyScen);
   }
@@ -167,12 +167,12 @@ public class ScenarioTest {
     final List<TimedEvent> events = asList(ev1, ev2, ev3, ev3b, ev4, ev5);
 
     final Scenario.Builder b = Scenario
-      .builder(Scenario.DEFAULT_PROBLEM_CLASS)
-      .addEvents(events)
-      .clearEvents();
+        .builder(Scenario.DEFAULT_PROBLEM_CLASS)
+        .addEvents(events)
+        .clearEvents();
     assertTrue(b.eventList.isEmpty());
     b.addEvents(events)
-      .ensureFrequency(Predicates.equalTo(ev3), 1);
+        .ensureFrequency(Predicates.equalTo(ev3), 1);
     assertEquals(asList(ev1, ev2, ev4, ev5, ev3), b.eventList);
 
     // should add two instances of ev1
@@ -194,7 +194,7 @@ public class ScenarioTest {
   @Test(expected = IllegalArgumentException.class)
   public void testEnsureFrequencyFailFrequency() {
     Scenario.builder(Scenario.DEFAULT_PROBLEM_CLASS)
-      .ensureFrequency(Predicates.<TimedEvent> alwaysTrue(), -1);
+        .ensureFrequency(Predicates.<TimedEvent>alwaysTrue(), -1);
   }
 
   /**
@@ -203,7 +203,7 @@ public class ScenarioTest {
   @Test(expected = IllegalStateException.class)
   public void testEnsureFrequencyFailEmptyEventsList() {
     Scenario.builder(Scenario.DEFAULT_PROBLEM_CLASS)
-      .ensureFrequency(Predicates.<TimedEvent> alwaysTrue(), 1);
+        .ensureFrequency(Predicates.<TimedEvent>alwaysTrue(), 1);
   }
 
   /**
@@ -212,8 +212,8 @@ public class ScenarioTest {
   @Test(expected = IllegalArgumentException.class)
   public void testEnsureFrequencyFailFilter1() {
     Scenario.builder(Scenario.DEFAULT_PROBLEM_CLASS)
-      .addEvent(EventA.create(0))
-      .ensureFrequency(Predicates.<TimedEvent> alwaysFalse(), 1);
+        .addEvent(EventA.create(0))
+        .ensureFrequency(Predicates.<TimedEvent>alwaysFalse(), 1);
   }
 
   /**
@@ -222,10 +222,10 @@ public class ScenarioTest {
   @Test(expected = IllegalArgumentException.class)
   public void testEnsureFrequencyFailFilter2() {
     Scenario
-      .builder(Scenario.DEFAULT_PROBLEM_CLASS)
-      .addEvent(EventA.create(0))
-      .addEvent(EventA.create(1))
-      .ensureFrequency(Predicates.instanceOf(EventA.class), 1);
+        .builder(Scenario.DEFAULT_PROBLEM_CLASS)
+        .addEvent(EventA.create(0))
+        .addEvent(EventA.create(1))
+        .ensureFrequency(Predicates.instanceOf(EventA.class), 1);
   }
 
   /**
@@ -339,10 +339,10 @@ public class ScenarioTest {
   @Test
   public void testCreateScenarioByCopying() {
     final Scenario s = Scenario.builder()
-      .addEvent(AddObjectEvent.create(100, new Point(0, 0)))
-      .addEvent(AddObjectEvent.create(200, new Point(0, 0)))
-      .addEvent(AddObjectEvent.create(300, new Point(0, 0)))
-      .build();
+        .addEvent(AddObjectEvent.create(100, new Point(0, 0)))
+        .addEvent(AddObjectEvent.create(200, new Point(0, 0)))
+        .addEvent(AddObjectEvent.create(300, new Point(0, 0)))
+        .build();
 
     assertEquals(3, s.getEvents().size());
 
@@ -361,7 +361,7 @@ public class ScenarioTest {
     final TimedEvent b10 = EventB.create(10);
 
     assertNotEquals(AddObjectEvent.create(10, new Point(10, 0)),
-      a10);
+        a10);
     assertNotEquals(a10, null);
     assertNotEquals(a10, b10);
     assertEquals(b10, EventB.create(10));
@@ -374,15 +374,15 @@ public class ScenarioTest {
   public void testRemoveModelsOfType() {
     Scenario.Builder builder = Scenario.builder();
     builder.addModel(TimeModel.builder())
-      .addModel(TimeModel.builder().withRealTime())
-      .addModel(RoadModelBuilders.plane())
-      .addModel(CommModel.builder());
+        .addModel(TimeModel.builder().withRealTime())
+        .addModel(RoadModelBuilders.plane())
+        .addModel(CommModel.builder());
     assertThat(builder.modelBuilders).hasSize(4);
 
     builder.removeModelsOfType(RoadModelBuilders.PlaneRMB.class);
     assertThat(builder.modelBuilders).hasSize(3);
     assertThat(builder.modelBuilders).containsExactly(TimeModel.builder(),
-      TimeModel.builder().withRealTime(), CommModel.builder());
+        TimeModel.builder().withRealTime(), CommModel.builder());
 
     builder.removeModelsOfType(RoadModelBuilders.AbstractGraphRMB.class);
     builder.removeModelsOfType(TimeModel.AbstractBuilder.class);

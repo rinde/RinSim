@@ -43,7 +43,9 @@ class DryRunComputer implements Computer {
   public ExperimentResults compute(Builder builder, Set<SimArgs> inputs) {
 
     printStream
-        .println("===================== RinSim Experiment start dry run =====================");
+        .println(
+            "===================== RinSim Experiment start dry run ====="
+                + "================");
 
     if (originalComputer == Computers.LOCAL) {
       printStream.println("Using local computation.");
@@ -70,15 +72,19 @@ class DryRunComputer implements Computer {
 
     if (verbose) {
       printStream
-          .println("scenario-class,scenario-problem-class,scenario-instance-id,config,seed,obj-func,gui,post-processor,ui-creator");
+          .println(
+              "scenario-class,scenario-problem-class,scenario-instance-id,"
+                  + "config,seed,obj-func,gui,post-processor,ui-creator");
       for (final SimArgs args : inputs) {
         printStream.println(args);
       }
     }
     printStream
-        .println("===================== RinSim Experiment finished dry run =====================");
+        .println(
+            "===================== RinSim Experiment finished dry run ======="
+                + "==============");
     return new ExperimentResults(builder,
-        ImmutableSet.<Experiment.SimulationResult> of());
+        ImmutableSet.<Experiment.SimulationResult>of());
   }
 
 }

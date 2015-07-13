@@ -34,7 +34,7 @@ import com.google.common.base.Optional;
  * @author Rinde van Lon
  */
 public abstract class AbstractGraph<E extends ConnectionData> implements
-  Graph<E> {
+    Graph<E> {
 
   /**
    * Create a new empty graph.
@@ -46,16 +46,16 @@ public abstract class AbstractGraph<E extends ConnectionData> implements
   @Override
   public double connectionLength(Point from, Point to) {
     checkArgument(hasConnection(from, to),
-      "Can not get connection length from a non-existing connection.");
+        "Can not get connection length from a non-existing connection.");
     final Optional<E> connData = connectionData(from, to);
     return connData.isPresent() && connData.get().getLength().isPresent()
-      ? connData.get().getLength().get()
-      : Point.distance(from, to);
+        ? connData.get().getLength().get()
+        : Point.distance(from, to);
   }
 
   @Override
   public void addConnection(Point from, Point to) {
-    addConnection(from, to, Optional.<E> absent());
+    addConnection(from, to, Optional.<E>absent());
   }
 
   @Override
@@ -88,9 +88,9 @@ public abstract class AbstractGraph<E extends ConnectionData> implements
    */
   protected void addConnection(Point from, Point to, Optional<E> connData) {
     checkArgument(!from.equals(to),
-      "A connection cannot be circular: %s -> %s ", from, to);
+        "A connection cannot be circular: %s -> %s ", from, to);
     checkArgument(!hasConnection(from, to),
-      "Connection already exists: %s -> %s ", from, to);
+        "Connection already exists: %s -> %s ", from, to);
     doAddConnection(from, to, connData);
   }
 
@@ -103,7 +103,7 @@ public abstract class AbstractGraph<E extends ConnectionData> implements
    * @param connData The data to be associated to the connection.
    */
   protected abstract void doAddConnection(Point from, Point to,
-    Optional<E> connData);
+      Optional<E> connData);
 
   @Override
   public boolean equals(@Nullable Object other) {
@@ -134,7 +134,7 @@ public abstract class AbstractGraph<E extends ConnectionData> implements
 
   @Override
   public Optional<E> removeConnectionData(Point from, Point to) {
-    return changeConnectionData(from, to, Optional.<E> absent());
+    return changeConnectionData(from, to, Optional.<E>absent());
   }
 
   /**
@@ -148,9 +148,9 @@ public abstract class AbstractGraph<E extends ConnectionData> implements
    *           not exist.
    */
   protected Optional<E> changeConnectionData(Point from, Point to,
-    Optional<E> connData) {
+      Optional<E> connData) {
     checkArgument(hasConnection(from, to),
-      "The connection %s->%s does not exist.", from, to);
+        "The connection %s->%s does not exist.", from, to);
     return doChangeConnectionData(from, to, connData);
   }
 
@@ -163,6 +163,6 @@ public abstract class AbstractGraph<E extends ConnectionData> implements
    *         connection data.
    */
   protected abstract Optional<E> doChangeConnectionData(Point from, Point to,
-    Optional<E> connData);
+      Optional<E> connData);
 
 }

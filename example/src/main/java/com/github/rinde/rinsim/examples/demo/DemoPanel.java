@@ -46,7 +46,7 @@ import com.github.rinde.rinsim.geom.Point;
 import com.github.rinde.rinsim.ui.renderers.PanelRenderer;
 import com.google.auto.value.AutoValue;
 
-class DemoPanel extends AbstractModel<Void> implements PanelRenderer, Listener {
+class DemoPanel extends AbstractModel<Void>implements PanelRenderer, Listener {
   final RoadModel roadModel;
   final RandomGenerator rng;
   final Set<Vehicle> vehicles;
@@ -98,7 +98,8 @@ class DemoPanel extends AbstractModel<Void> implements PanelRenderer, Listener {
   public void handleEvent(@Nullable Event event) {
     assert event != null;
     final Iterator<Point> points = SwarmDemo.measureString(
-      ((Text) event.widget).getText(), SwarmDemo.FONT_SIZE, 30d, 0).iterator();
+        ((Text) event.widget).getText(), SwarmDemo.FONT_SIZE, 30d, 0)
+        .iterator();
     final List<Vehicle> vs = newArrayList(vehicles);
     if (event.type == SWT.DefaultSelection) {
       Collections.shuffle(vs, new RandomAdaptor(rng));
@@ -142,7 +143,7 @@ class DemoPanel extends AbstractModel<Void> implements PanelRenderer, Listener {
     public DemoPanel build(DependencyProvider dependencyProvider) {
       final RoadModel rm = dependencyProvider.get(RoadModel.class);
       final RandomGenerator r = dependencyProvider.get(RandomProvider.class)
-        .newInstance();
+          .newInstance();
       return new DemoPanel(string(), rm, r);
     }
   }

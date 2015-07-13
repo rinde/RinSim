@@ -68,12 +68,12 @@ public final class RtCentral {
    * @return A new {@link Builder} instance.
    */
   public static Builder builder(
-    StochasticSupplier<? extends RealtimeSolver> solverSupplier) {
+      StochasticSupplier<? extends RealtimeSolver> solverSupplier) {
     return Builder.create(solverSupplier, true);
   }
 
   public static ModelBuilder<?, ?> builderAdapt(
-    StochasticSupplier<? extends Solver> solverSupplier) {
+      StochasticSupplier<? extends Solver> solverSupplier) {
     return builder(AdapterSupplier.create(solverSupplier));
   }
 
@@ -89,19 +89,19 @@ public final class RtCentral {
    * @return A new {@link MASConfiguration} instance.
    */
   public static MASConfiguration solverConfiguration(
-    StochasticSupplier<? extends RealtimeSolver> solverSupplier,
-    String nameSuffix) {
+      StochasticSupplier<? extends RealtimeSolver> solverSupplier,
+      String nameSuffix) {
     return MASConfiguration.pdptwBuilder()
-      .addModel(builder(solverSupplier))
-      .addEventHandler(AddVehicleEvent.class, vehicleHandler())
-      .setName(String.format("RtCentral-%s%s", solverSupplier, nameSuffix))
-      .build();
+        .addModel(builder(solverSupplier))
+        .addEventHandler(AddVehicleEvent.class, vehicleHandler())
+        .setName(String.format("RtCentral-%s%s", solverSupplier, nameSuffix))
+        .build();
   }
 
   public static MASConfiguration solverConfigurationAdapt(
-    StochasticSupplier<? extends Solver> solverSupplier, String nameSuffix) {
+      StochasticSupplier<? extends Solver> solverSupplier, String nameSuffix) {
     return solverConfiguration(AdapterSupplier.create(solverSupplier),
-      nameSuffix);
+        nameSuffix);
   }
 
   public static TimedEventHandler<AddVehicleEvent> vehicleHandler() {
@@ -123,7 +123,7 @@ public final class RtCentral {
   }
 
   static final class RtCentralModel extends AbstractModel<Parcel>
-    implements TickListener {
+      implements TickListener {
     private boolean problemHasChanged;
 
     private final PDPRoadModel roadModel;
@@ -133,7 +133,7 @@ public final class RtCentral {
     private final boolean sleepOnChange;
 
     RtCentralModel(RealTimeClockController c, RtSimSolver s, PDPRoadModel rm,
-      PDPModel pm, boolean sleepOnC) {
+        PDPModel pm, boolean sleepOnC) {
       problemHasChanged = false;
       clock = c;
       solver = s;
@@ -156,19 +156,20 @@ public final class RtCentral {
 
     void notifySolverOfChange(TimeLapse timeLapse, boolean sleepAfterNotify) {
       final Set<RouteFollowingVehicle> vehicles = roadModel
-        .getObjectsOfType(RouteFollowingVehicle.class);
+          .getObjectsOfType(RouteFollowingVehicle.class);
 
       // gather current routes
-      final ImmutableList.Builder<ImmutableList<Parcel>> currentRouteBuilder = ImmutableList
-        .builder();
+      final ImmutableList.Builder<ImmutableList<Parcel>> currentRouteBuilder =
+          ImmutableList
+              .builder();
       for (final RouteFollowingVehicle vehicle : vehicles) {
         final ImmutableList<Parcel> l = ImmutableList.copyOf(vehicle
-          .getRoute());
+            .getRoute());
         currentRouteBuilder.add(l);
       }
 
       solver.solve(
-        SolveArgs.create().useCurrentRoutes(currentRouteBuilder.build()));
+          SolveArgs.create().useCurrentRoutes(currentRouteBuilder.build()));
 
       if (sleepAfterNotify) {
         try {
@@ -188,15 +189,15 @@ public final class RtCentral {
 
       if (solver.isScheduleUpdated()) {
         final Set<RouteFollowingVehicle> vehicles = roadModel
-          .getObjectsOfType(RouteFollowingVehicle.class);
+            .getObjectsOfType(RouteFollowingVehicle.class);
 
         ImmutableList<ImmutableList<Parcel>> schedule = solver
-          .getCurrentSchedule();
+            .getCurrentSchedule();
 
         checkArgument(schedule.size() == vehicles.size(),
-          "An invalid schedule was created, a valid schedule should contain one"
-            + " route for each vehicle, routes: %s, vehicles: %s.",
-          schedule.size(), vehicles.size());
+            "An invalid schedule was created, a valid schedule should contain one"
+                + " route for each vehicle, routes: %s, vehicles: %s.",
+            schedule.size(), vehicles.size());
 
         Iterator<ImmutableList<Parcel>> routes = schedule.iterator();
         boolean inconsistencyDetected = false;
@@ -226,24 +227,24 @@ public final class RtCentral {
 
   @AutoValue
   public abstract static class Builder
-    extends AbstractModelBuilder<RtCentralModel, Parcel>
-    implements CompositeModelBuilder<RtCentralModel, Parcel>, Serializable {
+      extends AbstractModelBuilder<RtCentralModel, Parcel>
+      implements CompositeModelBuilder<RtCentralModel, Parcel>, Serializable {
 
     Builder() {
       setDependencies(
-        RandomProvider.class,
-        RtSimSolverBuilder.class,
-        RealTimeClockController.class,
-        PDPRoadModel.class,
-        PDPModel.class);
+          RandomProvider.class,
+          RtSimSolverBuilder.class,
+          RealTimeClockController.class,
+          PDPRoadModel.class,
+          PDPModel.class);
     }
 
     @SuppressWarnings("unchecked")
     static Builder create(
-      StochasticSupplier<? extends RealtimeSolver> solverSupplier,
-      boolean sleepOnChange) {
+        StochasticSupplier<? extends RealtimeSolver> solverSupplier,
+        boolean sleepOnChange) {
       return new AutoValue_RtCentral_Builder(
-        (StochasticSupplier<RealtimeSolver>) solverSupplier, sleepOnChange);
+          (StochasticSupplier<RealtimeSolver>) solverSupplier, sleepOnChange);
     }
 
     public Builder withSleepOnChange(boolean flag) {
@@ -256,14 +257,14 @@ public final class RtCentral {
 
     @Override
     public RtCentralModel build(
-      DependencyProvider dependencyProvider) {
+        DependencyProvider dependencyProvider) {
       RandomProvider rnd = dependencyProvider.get(RandomProvider.class);
       RealtimeSolver solver = getSolverSupplier()
-        .get(rnd.masterInstance().nextLong());
+          .get(rnd.masterInstance().nextLong());
       RtSimSolver s = dependencyProvider.get(RtSimSolverBuilder.class)
-        .build(solver);
+          .build(solver);
       RealTimeClockController clock = dependencyProvider
-        .get(RealTimeClockController.class);
+          .get(RealTimeClockController.class);
       PDPRoadModel rm = dependencyProvider.get(PDPRoadModel.class);
       PDPModel pm = dependencyProvider.get(PDPModel.class);
       return new RtCentral.RtCentralModel(clock, s, rm, pm, getSleepOnChange());
@@ -271,8 +272,8 @@ public final class RtCentral {
 
     @Override
     public ImmutableSet<ModelBuilder<?, ?>> getChildren() {
-      return ImmutableSet.<ModelBuilder<?, ?>> of(RtSolverModel.builder(),
-        VehicleCheckerModel.builder());
+      return ImmutableSet.<ModelBuilder<?, ?>>of(RtSolverModel.builder(),
+          VehicleCheckerModel.builder());
     }
 
     @Override
@@ -282,15 +283,15 @@ public final class RtCentral {
   }
 
   static class VehicleCheckerModel
-    extends AbstractModel<RouteFollowingVehicle> {
+      extends AbstractModel<RouteFollowingVehicle> {
 
     @Override
     public boolean register(RouteFollowingVehicle element) {
       checkArgument(element.isDelayedRouteChangingAllowed(),
-        "%s requires that all registered %s instances allow delayed route "
-          + "changing",
-        RtCentral.class.getSimpleName(),
-        RouteFollowingVehicle.class.getSimpleName());
+          "%s requires that all registered %s instances allow delayed route "
+              + "changing",
+          RtCentral.class.getSimpleName(),
+          RouteFollowingVehicle.class.getSimpleName());
       return true;
     }
 
@@ -305,7 +306,8 @@ public final class RtCentral {
 
     @AutoValue
     abstract static class Builder
-      extends AbstractModelBuilder<VehicleCheckerModel, RouteFollowingVehicle> {
+        extends
+        AbstractModelBuilder<VehicleCheckerModel, RouteFollowingVehicle> {
 
       @Override
       public VehicleCheckerModel build(DependencyProvider dependencyProvider) {
@@ -316,7 +318,7 @@ public final class RtCentral {
 
   @AutoValue
   abstract static class AdapterSupplier
-    implements StochasticSupplier<RealtimeSolver> {
+      implements StochasticSupplier<RealtimeSolver> {
 
     abstract StochasticSupplier<Solver> getSolverSupplier();
 
@@ -328,7 +330,7 @@ public final class RtCentral {
     @SuppressWarnings("unchecked")
     static AdapterSupplier create(StochasticSupplier<? extends Solver> ss) {
       return new AutoValue_RtCentral_AdapterSupplier(
-        (StochasticSupplier<Solver>) ss);
+          (StochasticSupplier<Solver>) ss);
     }
 
     @Override

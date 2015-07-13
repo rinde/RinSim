@@ -81,7 +81,7 @@ public abstract class AbstractGraphIO<E extends ConnectionData> {
    * @throws IOException If something goes wrong while writing.
    */
   public abstract void write(Graph<E> graph, Writer writer)
-    throws IOException;
+      throws IOException;
 
   /**
    * Writes a graph to the specified path.
@@ -90,7 +90,8 @@ public abstract class AbstractGraphIO<E extends ConnectionData> {
    * @throws IOException If something goes wrong while writing.
    */
   public void write(Graph<E> graph, Path path) throws IOException {
-    try (BufferedWriter writer = Files.newBufferedWriter(path, Charsets.UTF_8)) {
+    try (
+        BufferedWriter writer = Files.newBufferedWriter(path, Charsets.UTF_8)) {
       write(graph, writer);
     }
   }

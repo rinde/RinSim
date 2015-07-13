@@ -66,7 +66,7 @@ public abstract class Gendreau06Scenario extends Scenario {
       boolean diversion) {
 
     return new AutoValue_Gendreau06Scenario(
-        ImmutableList.<TimedEvent> copyOf(pEvents),
+        ImmutableList.<TimedEvent>copyOf(pEvents),
         problemClass, Integer.toString(instanceNumber), ts, diversion);
   }
 
@@ -88,7 +88,7 @@ public abstract class Gendreau06Scenario extends Scenario {
 
   @Override
   public ImmutableSet<ModelBuilder<?, ?>> getModelBuilders() {
-    return ImmutableSet.<ModelBuilder<?, ?>> builder()
+    return ImmutableSet.<ModelBuilder<?, ?>>builder()
         .add(
             TimeModel.builder()
                 .withTickLength(getTickSize())

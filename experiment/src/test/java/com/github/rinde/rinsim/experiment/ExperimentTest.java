@@ -45,34 +45,36 @@ import com.google.common.collect.ImmutableList;
 public class ExperimentTest {
 
   public static StatisticsDTO singleRun(Scenario scenario,
-    MASConfiguration c, long seed, ObjectiveFunction objFunc, boolean showGui) {
+      MASConfiguration c, long seed, ObjectiveFunction objFunc,
+      boolean showGui) {
     return Experiment.singleRun(scenario, c, seed, objFunc, showGui, null,
-      null).stats;
+        null).stats;
   }
 
   public static Simulator init(Scenario scenario,
-    MASConfiguration config, long seed, boolean showGui) {
+      MASConfiguration config, long seed, boolean showGui) {
     return Experiment.init(scenario, config, seed, showGui, null);
   }
 
   @Test
   public void testPostProcessor() {
     final Scenario scenario = ScenarioTestUtil.createRandomScenario(123L,
-      StatsTracker.builder());
+        StatsTracker.builder());
     final Experiment.Builder builder = Experiment
-      .build(TestObjectiveFunction.INSTANCE)
-      .addScenario(scenario)
-      .addConfiguration(testConfig("test"))
-      .usePostProcessor(new TestPostProcessor())
-      .withRandomSeed(123);
+        .build(TestObjectiveFunction.INSTANCE)
+        .addScenario(scenario)
+        .addConfiguration(testConfig("test"))
+        .usePostProcessor(new TestPostProcessor())
+        .withRandomSeed(123);
 
     final ExperimentResults er = builder.perform();
     assertEquals(123, er.masterSeed);
     assertEquals(123, er.results.asList().get(0).seed);
 
     @SuppressWarnings("unchecked")
-    final List<Point> positions = (List<Point>) er.results.asList().get(0).simulationData
-      .get();
+    final List<Point> positions =
+        (List<Point>) er.results.asList().get(0).simulationData
+            .get();
     assertEquals(10, positions.size());
   }
 
@@ -84,29 +86,29 @@ public class ExperimentTest {
   @Test
   public void multiThreadedOrder() {
     final Experiment.Builder builder = Experiment
-      .build(TestObjectiveFunction.INSTANCE)
-      .addScenario(
-        ScenarioTestUtil.createRandomScenario(456L, StatsTracker.builder()))
-      .addConfiguration(testConfig("A"))
-      .addConfiguration(testConfig("B"))
-      .addConfiguration(testConfig("C"))
-      .addConfiguration(testConfig("D"))
-      .withThreads(4)
-      .withRandomSeed(456);
+        .build(TestObjectiveFunction.INSTANCE)
+        .addScenario(
+            ScenarioTestUtil.createRandomScenario(456L, StatsTracker.builder()))
+        .addConfiguration(testConfig("A"))
+        .addConfiguration(testConfig("B"))
+        .addConfiguration(testConfig("C"))
+        .addConfiguration(testConfig("D"))
+        .withThreads(4)
+        .withRandomSeed(456);
 
     final ExperimentResults er = builder.perform();
     assertThat(er.results.asList().get(0).masConfiguration.getName()).endsWith(
-      "A");
+        "A");
     assertThat(er.results.asList().get(1).masConfiguration.getName()).endsWith(
-      "B");
+        "B");
     assertThat(er.results.asList().get(2).masConfiguration.getName()).endsWith(
-      "C");
+        "C");
     assertThat(er.results.asList().get(3).masConfiguration.getName()).endsWith(
-      "D");
+        "D");
   }
 
   static class TestPostProcessor implements
-    PostProcessor<ImmutableList<Point>>, Serializable {
+      PostProcessor<ImmutableList<Point>>, Serializable {
     private static final long serialVersionUID = -2166760289557525263L;
 
     @Override
@@ -118,9 +120,9 @@ public class ExperimentTest {
 
   public static MASConfiguration testConfig(String name) {
     return MASConfiguration.pdptwBuilder()
-      .setName(name)
-      .addEventHandler(AddVehicleEvent.class, VehicleHandler.INSTANCE)
-      .build();
+        .setName(name)
+        .addEventHandler(AddVehicleEvent.class, VehicleHandler.INSTANCE)
+        .build();
   }
 
   enum VehicleHandler implements TimedEventHandler<AddVehicleEvent> {

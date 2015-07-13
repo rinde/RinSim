@@ -58,41 +58,39 @@ public final class FabriRechtExample {
     // we load a problem instance from disk, we instantiate it with 8
     // trucks, each with a capacity of 20 units
     final FabriRechtScenario scenario = FabriRechtParser
-      .fromJson(Files.toString(
-        new File("../scenario-util/files/test/fabri-recht/lc101.scenario"),
-        Charsets.UTF_8), 8, 20);
+        .fromJson(Files.toString(
+            new File("../scenario-util/files/test/fabri-recht/lc101.scenario"),
+            Charsets.UTF_8), 8, 20);
 
     // instantiate the simulator using the scenario
     final Simulator sim = Simulator
-      .builder()
-      .addModel(
-        ScenarioController
-          .builder(scenario)
-          .withEventHandler(AddParcelEvent.class,
-            AddParcelEvent.defaultHandler())
-          .withEventHandler(AddVehicleEvent.class,
-            new TimedEventHandler<AddVehicleEvent>() {
-              @Override
-              public void handleTimedEvent(AddVehicleEvent event,
-                SimulatorAPI sim) {
-                sim.register(new Truck(event.getVehicleDTO()));
-              }
-            })
-      )
-      .addModel(StatsTracker.builder())
-      .addModel(View.builder().withAutoPlay()
-        .with(PlaneRoadModelRenderer.builder())
-        .with(PDPModelRenderer.builder())
-        .with(RoadUserRenderer.builder())
-      )
-      .build();
+        .builder()
+        .addModel(
+            ScenarioController
+                .builder(scenario)
+                .withEventHandler(AddParcelEvent.class,
+                    AddParcelEvent.defaultHandler())
+                .withEventHandler(AddVehicleEvent.class,
+                    new TimedEventHandler<AddVehicleEvent>() {
+                      @Override
+                      public void handleTimedEvent(AddVehicleEvent event,
+                          SimulatorAPI sim) {
+                        sim.register(new Truck(event.getVehicleDTO()));
+                      }
+                    }))
+        .addModel(StatsTracker.builder())
+        .addModel(View.builder().withAutoPlay()
+            .with(PlaneRoadModelRenderer.builder())
+            .with(PDPModelRenderer.builder())
+            .with(RoadUserRenderer.builder()))
+        .build();
 
     // start the simulation
     sim.start();
 
     // simulation is done, lets print the statistics!
     System.out.println(sim.getModelProvider().getModel(StatsTracker.class)
-      .getStatistics());
+        .getStatistics());
   }
 }
 
@@ -113,21 +111,21 @@ class Truck extends Vehicle {
     final PDPModel pm = getPDPModel();
     // we always go to the closest available parcel
     final Parcel closest = (Parcel) RoadModels
-      .findClosestObject(rm.getPosition(this), rm, new Predicate<RoadUser>() {
-        @Override
-        public boolean apply(RoadUser input) {
-          return input instanceof Parcel
-            && pm.getParcelState((Parcel) input) == ParcelState.AVAILABLE;
-        }
-      });
+        .findClosestObject(rm.getPosition(this), rm, new Predicate<RoadUser>() {
+          @Override
+          public boolean apply(RoadUser input) {
+            return input instanceof Parcel
+                && pm.getParcelState((Parcel) input) == ParcelState.AVAILABLE;
+          }
+        });
 
     if (closest != null) {
       rm.moveTo(this, closest, time);
       if (rm.equalPosition(closest, this)
-        && pm
-          .getTimeWindowPolicy()
-          .canPickup(closest.getPickupTimeWindow(), time.getTime(),
-            closest.getPickupDuration())) {
+          && pm
+              .getTimeWindowPolicy()
+              .canPickup(closest.getPickupTimeWindow(), time.getTime(),
+                  closest.getPickupDuration())) {
         pm.pickup(this, closest, time);
       }
     }

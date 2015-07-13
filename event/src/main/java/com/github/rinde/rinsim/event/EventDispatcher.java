@@ -16,6 +16,7 @@
 package com.github.rinde.rinsim.event;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.Sets.newHashSet;
 import static java.util.Arrays.asList;
 
@@ -84,7 +85,8 @@ public class EventDispatcher implements EventAPI {
   public void dispatchEvent(Event e) {
     checkArgument(
         supportedTypes.contains(e.getEventType()),
-        "Cannot dispatch an event of type %s since it was not registered at this dispatcher.",
+        "Cannot dispatch an event of type %s since it was not registered at "
+            + "this dispatcher.",
         e.getEventType());
     for (final Listener l : listeners.get(e.getEventType())) {
       l.handleEvent(e);
@@ -155,10 +157,11 @@ public class EventDispatcher implements EventAPI {
       }
     } else {
       for (final Enum<?> eventType : eventTypes) {
-        checkArgument(eventType != null, "event type to remove can not be null");
+        checkNotNull(eventType, "event type to remove can not be null");
         checkArgument(
             containsListener(listener, eventType),
-            "The listener %s for the type %s cannot be removed because it does not exist.",
+            "The listener %s for the type %s cannot be removed because it does "
+                + "not exist.",
             listener, eventType);
         listeners.remove(eventType, listener);
       }

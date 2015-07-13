@@ -226,7 +226,8 @@ public class ForwardingRoadModel extends GenericRoadModel {
    * @author Rinde van Lon
    */
   public abstract static class Builder<T extends ForwardingRoadModel>
-      extends AbstractModelBuilder<T, RoadUser>implements Serializable {
+      extends AbstractModelBuilder<T, RoadUser>
+      implements Serializable {
 
     private static final long serialVersionUID = 1852539610753492228L;
 

@@ -61,7 +61,7 @@ public class CollisionGraphRoadModel extends DynamicGraphRoadModel {
     minDistance = unitConversion.toInDist(builder.getMinDistance());
     minConnLength = unitConversion.toInDist(pMinConnLength);
     occupiedNodes = Multimaps.synchronizedSetMultimap(CategoryMap
-        .<MovingRoadUser, Point> create());
+        .<MovingRoadUser, Point>create());
     getGraph().getEventAPI().addListener(
         new ModificationChecker(minConnLength),
         ListenableGraph.EventTypes.ADD_CONNECTION,
@@ -149,7 +149,8 @@ public class CollisionGraphRoadModel extends DynamicGraphRoadModel {
     if (newObj instanceof MovingRoadUser) {
       checkArgument(
           !occupiedNodes.containsValue(pos),
-          "A MovingRoadUser can not be added on an already occupied position %s.",
+          "A MovingRoadUser can not be added on an already occupied position "
+              + "%s.",
           pos);
       occupiedNodes.put((MovingRoadUser) newObj, pos);
     }
@@ -238,11 +239,13 @@ public class CollisionGraphRoadModel extends DynamicGraphRoadModel {
   static void checkConnectionLength(double minConnLength, Connection<?> conn) {
     checkArgument(
         Point.distance(conn.from(), conn.to()) >= minConnLength,
-        "Invalid graph: the minimum connection length is %s, connection %s->%s is too short.",
+        "Invalid graph: the minimum connection length is %s, connection %s->%s "
+            + "is too short.",
         minConnLength, conn.from(), conn.to());
     checkArgument(
         conn.getLength() >= minConnLength,
-        "Invalid graph: the minimum connection length is %s, connection %s->%s defines length data that is too short: %s.",
+        "Invalid graph: the minimum connection length is %s, connection %s->%s "
+            + "defines length data that is too short: %s.",
         minConnLength, conn.from(), conn.to(), conn.getLength());
   }
 

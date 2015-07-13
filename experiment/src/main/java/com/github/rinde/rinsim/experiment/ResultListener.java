@@ -19,7 +19,7 @@ import com.github.rinde.rinsim.experiment.Experiment.SimulationResult;
 
 /**
  * Implementors get notified of the progress of an {@link Experiment}.
- * @author Rinde van Lon 
+ * @author Rinde van Lon
  */
 public interface ResultListener {
   /**

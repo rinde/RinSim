@@ -298,7 +298,7 @@ public final class ScenarioGenerator {
     final ProblemClass problemClass;
 
     Builder(ProblemClass pc) {
-      super(Optional.<AbstractBuilder<?>> absent());
+      super(Optional.<AbstractBuilder<?>>absent());
       problemClass = pc;
       parcelGenerator = DEFAULT_PARCEL_GENERATOR;
       vehicleGenerator = DEFAULT_VEHICLE_GENERATOR;
@@ -308,7 +308,7 @@ public final class ScenarioGenerator {
 
     // copying constructor
     Builder(Builder b) {
-      super(Optional.<AbstractBuilder<?>> of(b));
+      super(Optional.<AbstractBuilder<?>>of(b));
       problemClass = b.problemClass;
       parcelGenerator = b.parcelGenerator;
       vehicleGenerator = b.vehicleGenerator;

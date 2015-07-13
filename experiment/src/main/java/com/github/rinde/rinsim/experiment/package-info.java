@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 /**
- * @author Rinde van Lon 
+ * @author Rinde van Lon
  */
 @javax.annotation.ParametersAreNonnullByDefault
 package com.github.rinde.rinsim.experiment;

@@ -142,12 +142,12 @@ public final class Experiment {
    * @return The {@link SimulationResult} generated in the run.
    */
   public static SimulationResult singleRun(Scenario scenario,
-    MASConfiguration configuration, long seed, ObjectiveFunction objFunc,
-    boolean showGui, @Nullable PostProcessor<?> postProcessor,
-    @Nullable ModelBuilder<?, ?> uic) {
+      MASConfiguration configuration, long seed, ObjectiveFunction objFunc,
+      boolean showGui, @Nullable PostProcessor<?> postProcessor,
+      @Nullable ModelBuilder<?, ?> uic) {
 
     final ExperimentRunner er = new ExperimentRunner(new SimArgs(scenario,
-      configuration, seed, objFunc, showGui, postProcessor, uic));
+        configuration, seed, objFunc, showGui, postProcessor, uic));
     final SimulationResult res = er.call();
     checkState(res != null);
     return res;
@@ -155,7 +155,7 @@ public final class Experiment {
 
   @SuppressWarnings("unchecked")
   static <T extends TimedEvent> ScenarioController.Builder add(
-    ScenarioController.Builder b, Class<T> type, TimedEventHandler<?> h) {
+      ScenarioController.Builder b, Class<T> type, TimedEventHandler<?> h) {
     return b.withEventHandler(type, (TimedEventHandler<T>) h);
   }
 
@@ -168,25 +168,26 @@ public final class Experiment {
    */
   @VisibleForTesting
   static Simulator init(Scenario scenario,
-    MASConfiguration config, long seed, boolean showGui,
-    Optional<ModelBuilder<?, ?>> uiCreator) {
+      MASConfiguration config, long seed, boolean showGui,
+      Optional<ModelBuilder<?, ?>> uiCreator) {
 
     ScenarioController.Builder scenContrBuilder = ScenarioController.builder(
-      scenario)
-      .withIgnoreRedundantHandlers(true);
+        scenario)
+        .withIgnoreRedundantHandlers(true);
 
     for (Entry<Class<? extends TimedEvent>, TimedEventHandler<?>> entry : config
-      .getEventHandlers().entrySet()) {
-      scenContrBuilder = add(scenContrBuilder, entry.getKey(), entry.getValue());
+        .getEventHandlers().entrySet()) {
+      scenContrBuilder =
+          add(scenContrBuilder, entry.getKey(), entry.getValue());
     }
     Simulator.Builder simBuilder = Simulator.builder()
-      .setRandomSeed(seed)
-      .addModels(config.getModels())
-      .addModel(scenContrBuilder);
+        .setRandomSeed(seed)
+        .addModels(config.getModels())
+        .addModel(scenContrBuilder);
 
     boolean hasStatsTracker =
-      containsStatisticsProvider(scenContrBuilder.getChildren())
-        || containsStatisticsProvider(config.getModels());
+        containsStatisticsProvider(scenContrBuilder.getChildren())
+            || containsStatisticsProvider(config.getModels());
 
     if (!hasStatsTracker) {
       simBuilder.addModel(StatsTracker.builder());
@@ -201,7 +202,7 @@ public final class Experiment {
   }
 
   static boolean containsStatisticsProvider(
-    Iterable<? extends ModelBuilder<?, ?>> mbs) {
+      Iterable<? extends ModelBuilder<?, ?>> mbs) {
     for (ModelBuilder<?, ?> mb : mbs) {
       if (mb.getProvidingTypes().contains(StatisticsProvider.class)) {
         return true;
@@ -257,7 +258,8 @@ public final class Experiment {
      */
     public Builder repeat(int times) {
       checkArgument(times > 0,
-        "The number of repetitions must be strictly positive, was %s.", times);
+          "The number of repetitions must be strictly positive, was %s.",
+          times);
       repetitions = times;
       return this;
     }
@@ -309,7 +311,7 @@ public final class Experiment {
     public Builder addConfigurations(Iterable<MASConfiguration> configs) {
       final Set<MASConfiguration> newConfigs = ImmutableSet.copyOf(configs);
       checkArgument(Sets.intersection(configurationsSet, newConfigs)
-        .isEmpty());
+          .isEmpty());
       configurationsSet.addAll(newConfigs);
       return this;
     }
@@ -355,7 +357,7 @@ public final class Experiment {
      * @return This, as per the builder pattern.
      */
     public Builder setScenarioReader(
-      Function<Path, ? extends Scenario> reader) {
+        Function<Path, ? extends Scenario> reader) {
       fileReader = reader;
       return this;
     }
@@ -368,7 +370,7 @@ public final class Experiment {
      */
     public Builder withThreads(int threads) {
       checkArgument(threads > 0,
-        "Only a positive number of threads is allowed, was %s.", threads);
+          "Only a positive number of threads is allowed, was %s.", threads);
       numThreads = threads;
       return this;
     }
@@ -404,7 +406,7 @@ public final class Experiment {
      */
     public Builder numBatches(int num) {
       checkArgument(num > 0,
-        "The number of batches must be strictly positive, was %s.", num);
+          "The number of batches must be strictly positive, was %s.", num);
       numBatches = num;
       return this;
     }
@@ -456,13 +458,13 @@ public final class Experiment {
      * @return This, as per the builder pattern.
      */
     public Builder dryRun(final boolean verbose, final PrintStream stream,
-      final PrintStream error) {
+        final PrintStream error) {
       final Supplier<Computer> originalComputerType = computerType;
       computerType = new Supplier<Computer>() {
         @Override
         public Computer get() {
           return new DryRunComputer(originalComputerType, verbose, stream,
-            error);
+              error);
         }
       };
       return this;
@@ -489,7 +491,7 @@ public final class Experiment {
      */
     public ExperimentResults perform() {
       checkArgument(numThreads == 1 || !showGui,
-        "The GUI can not be shown when using more than one thread.");
+          "The GUI can not be shown when using more than one thread.");
       final List<Long> seeds = generateSeeds();
 
       // run Forrest run!
@@ -505,7 +507,8 @@ public final class Experiment {
      * @return {@link Optional} containing {@link ExperimentResults} if the
      *         experiment was performed, {@link Optional#absent()} otherwise.
      */
-    public Optional<ExperimentResults> perform(PrintStream out, String... args) {
+    public Optional<ExperimentResults> perform(PrintStream out,
+        String... args) {
       final Optional<String> error = ExperimentCli.safeExecute(this, args);
       if (error.isPresent()) {
         out.println(error.get());
@@ -528,7 +531,7 @@ public final class Experiment {
 
     ImmutableSet<Scenario> getAllScenarios() {
       final Set<Scenario> scenarios = newLinkedHashSet(scenariosBuilder
-        .build());
+          .build());
       if (scenarioProviderBuilder.isPresent()) {
         scenarios.addAll(scenarioProviderBuilder.get().build(fileReader).get());
       }
@@ -539,7 +542,7 @@ public final class Experiment {
       final Set<Scenario> scenarios = scenariosBuilder.build();
       if (scenarioProviderBuilder.isPresent()) {
         return scenarios.size()
-          + scenarioProviderBuilder.get().build().get().size();
+            + scenarioProviderBuilder.get().build().get().size();
       }
       return scenarios.size();
     }
@@ -548,18 +551,18 @@ public final class Experiment {
       final Set<Scenario> scenarios = getAllScenarios();
 
       final ImmutableSet<MASConfiguration> conf = ImmutableSet
-        .copyOf(configurationsSet);
+          .copyOf(configurationsSet);
 
       checkArgument(!scenarios.isEmpty(), "At least one scenario is required.");
       checkArgument(!conf.isEmpty(), "At least one configuration is required.");
       final ImmutableSet.Builder<SimArgs> runnerBuilder = ImmutableSet
-        .builder();
+          .builder();
       for (final MASConfiguration configuration : conf) {
         for (final Scenario scenario : scenarios) {
           for (int i = 0; i < repetitions; i++) {
             final long seed = seeds.get(i);
             runnerBuilder.add(new SimArgs(scenario, configuration,
-              seed, objectiveFunction, showGui, postProc, uiCreator));
+                seed, objectiveFunction, showGui, postProc, uiCreator));
           }
         }
       }
@@ -585,23 +588,23 @@ public final class Experiment {
     final Optional<ModelBuilder<?, ?>> uiCreator;
 
     SimArgs(Scenario s, MASConfiguration m, long seed,
-      ObjectiveFunction obj, boolean gui, @Nullable PostProcessor<?> pp,
-      @Nullable ModelBuilder<?, ?> uic) {
+        ObjectiveFunction obj, boolean gui, @Nullable PostProcessor<?> pp,
+        @Nullable ModelBuilder<?, ?> uic) {
       scenario = s;
       masConfig = m;
       randomSeed = seed;
       objectiveFunction = obj;
       showGui = gui;
       postProcessor = Optional.fromNullable(pp);
-      uiCreator = Optional.<ModelBuilder<?, ?>> fromNullable(uic);
+      uiCreator = Optional.<ModelBuilder<?, ?>>fromNullable(uic);
     }
 
     @Override
     public String toString() {
       return Joiner.on(",").join(scenario.getClass().getName(),
-        scenario.getProblemClass(),
-        scenario.getProblemInstanceId(), masConfig, randomSeed,
-        objectiveFunction, showGui, postProcessor, uiCreator);
+          scenario.getProblemClass(),
+          scenario.getProblemInstanceId(), masConfig, randomSeed,
+          objectiveFunction, showGui, postProcessor, uiCreator);
     }
   }
 
@@ -611,7 +614,7 @@ public final class Experiment {
    * @author Rinde van Lon
    */
   public static final class SimulationResult implements
-    Comparable<SimulationResult> {
+      Comparable<SimulationResult> {
     /**
      * The simulation statistics.
      */
@@ -640,7 +643,7 @@ public final class Experiment {
     public Optional<?> simulationData;
 
     SimulationResult(StatisticsDTO stats, Scenario scenario,
-      MASConfiguration masConfiguration, long seed, Optional<?> simData) {
+        MASConfiguration masConfiguration, long seed, Optional<?> simData) {
       this.stats = stats;
       this.scenario = scenario;
       this.masConfiguration = masConfiguration;
@@ -658,39 +661,39 @@ public final class Experiment {
       }
       final SimulationResult other = (SimulationResult) obj;
       return Objects.equal(stats, other.stats)
-        && Objects.equal(scenario, other.scenario)
-        && Objects.equal(masConfiguration, other.masConfiguration)
-        && Objects.equal(seed, other.seed)
-        && Objects.equal(simulationData, other.simulationData);
+          && Objects.equal(scenario, other.scenario)
+          && Objects.equal(masConfiguration, other.masConfiguration)
+          && Objects.equal(seed, other.seed)
+          && Objects.equal(simulationData, other.simulationData);
     }
 
     @Override
     public int hashCode() {
       return Objects.hashCode(stats, scenario, masConfiguration, seed,
-        simulationData);
+          simulationData);
     }
 
     @Override
     public String toString() {
       return MoreObjects.toStringHelper(this)
-        .add("stats", stats)
-        .add("scenario", scenario)
-        .add("masConfiguration", masConfiguration)
-        .add("seed", seed)
-        .add("simulationData", simulationData)
-        .toString();
+          .add("stats", stats)
+          .add("scenario", scenario)
+          .add("masConfiguration", masConfiguration)
+          .add("seed", seed)
+          .add("simulationData", simulationData)
+          .toString();
     }
 
     @Override
     public int compareTo(@Nullable SimulationResult o) {
       assert o != null;
       return ComparisonChain
-        .start()
-        .compare(scenario.getProblemClass().getId(),
-          o.scenario.getProblemClass().getId())
-        .compare(scenario.getProblemInstanceId(),
-          o.scenario.getProblemInstanceId())
-        .result();
+          .start()
+          .compare(scenario.getProblemClass().getId(),
+              o.scenario.getProblemClass().getId())
+          .compare(scenario.getProblemInstanceId(),
+              o.scenario.getProblemInstanceId())
+          .result();
     }
   }
 }

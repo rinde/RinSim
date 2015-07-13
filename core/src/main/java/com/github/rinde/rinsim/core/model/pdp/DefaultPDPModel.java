@@ -173,24 +173,28 @@ public final class DefaultPDPModel extends PDPModel {
       final ParcelState ps = parcelState.getKeys(parcel);
       /* 3 */checkArgument(
           ps == ParcelState.AVAILABLE || ps == ParcelState.ANNOUNCED,
-          "Parcel must be registered and must be either ANNOUNCED or AVAILABE, it is: %s. Parcel: %s.",
+          "Parcel must be registered and must be either ANNOUNCED or AVAILABE, "
+              + "it is: %s. Parcel: %s.",
           ps, parcel);
       /* 4 */checkArgument(vehicleState.get(vehicle) == VehicleState.IDLE,
           "vehicle must be registered and must be available");
       /* 5 */checkArgument(roadModel.equalPosition(vehicle, parcel),
-          "vehicle must be at the same location as the parcel it wishes to pickup");
+          "vehicle must be at the same location as the parcel it wishes to "
+              + "pickup");
       final double newSize = containerContentsSize.get(vehicle)
           + parcel.getNeededCapacity();
       /* 6 */checkArgument(
           newSize <= containerCapacities.get(vehicle),
-          "parcel does not fit in vehicle. Parcel size: %s, current contents size: %s, capacity: %s.",
+          "parcel does not fit in vehicle. Parcel size: %s, current contents "
+              + "size: %s, capacity: %s.",
           parcel.getNeededCapacity(), containerContentsSize.get(vehicle),
           containerCapacities.get(vehicle));
 
       checkArgument(
           timeWindowPolicy.canPickup(parcel.getPickupTimeWindow(),
               time.getTime(), parcel.getPickupDuration()),
-          "parcel pickup is not allowed according to the time window policy: %s, current time: %s, time window %s.",
+          "parcel pickup is not allowed according to the time window policy: "
+              + "%s, current time: %s, time window %s.",
           timeWindowPolicy, time.getTime(), parcel.getPickupTimeWindow());
 
       checkArgument(parcel.canBePickedUp(vehicle, time.getTime()),
@@ -268,12 +272,14 @@ public final class DefaultPDPModel extends PDPModel {
       /* 3 */checkVehicleDoesNotContainParcel(vehicle, parcel);
       /* 4 */checkArgument(
           parcel.getDeliveryLocation().equals(roadModel.getPosition(vehicle)),
-          "parcel must be delivered at its destination, vehicle should move there first");
+          "parcel must be delivered at its destination, vehicle should move "
+              + "there first");
 
       checkArgument(
           timeWindowPolicy.canDeliver(parcel.getDeliveryTimeWindow(),
               time.getTime(), parcel.getDeliveryDuration()),
-          "parcel delivery is not allowed at this time (%s) according to the time window policy: %s",
+          "parcel delivery is not allowed at this time (%s) according to the "
+              + "time window policy: %s",
           time.getTime(), timeWindowPolicy);
 
       checkArgument(parcel.canBeDelivered(vehicle, time.getTime()),
@@ -377,7 +383,8 @@ public final class DefaultPDPModel extends PDPModel {
           + parcel.getNeededCapacity();
       /* 5 */checkArgument(
           newSize <= containerCapacities.get(container),
-          "parcel does not fit in container. Capacity is %s, current content size is %s, new parcel size is %s",
+          "parcel does not fit in container. Capacity is %s, current content "
+              + "size is %s, new parcel size is %s",
           containerCapacities.get(container),
           containerContentsSize.get(container), parcel.getNeededCapacity());
 
@@ -432,7 +439,8 @@ public final class DefaultPDPModel extends PDPModel {
       final VehicleState state = vehicleState.get(vehicle);
       checkArgument(
           state == VehicleState.DELIVERING || state == VehicleState.PICKING_UP,
-          "the vehicle must be in either DELIVERING or PICKING_UP state, but it is %s.",
+          "the vehicle must be in either DELIVERING or PICKING_UP state, "
+              + "but it is %s.",
           state);
       return (PDPModel.VehicleParcelActionInfo) pendingVehicleActions
           .get(vehicle);
@@ -660,8 +668,9 @@ public final class DefaultPDPModel extends PDPModel {
    * @author Rinde van Lon
    */
   @AutoValue
-  public abstract static class Builder extends
-      AbstractModelBuilder<DefaultPDPModel, PDPObject>implements Serializable {
+  public abstract static class Builder
+      extends AbstractModelBuilder<DefaultPDPModel, PDPObject>
+      implements Serializable {
 
     private static final long serialVersionUID = 165944940216903075L;
 

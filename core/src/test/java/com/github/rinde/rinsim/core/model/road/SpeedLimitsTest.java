@@ -103,7 +103,8 @@ public class SpeedLimitsTest {
   public void setUp() {
     model = modelBuilder.build(mock(DependencyProvider.class));
     @SuppressWarnings("unchecked")
-    final Graph<MultiAttributeData> graph = (Graph<MultiAttributeData>) model.graph;
+    final Graph<MultiAttributeData> graph =
+        (Graph<MultiAttributeData>) model.graph;
 
     A = new Point(0, 0);
     B = new Point(0, 10);

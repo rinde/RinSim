@@ -63,26 +63,26 @@ public final class StatsStopConditions {
       @Override
       public boolean evaluate(TypeProvider provider) {
         final StatisticsDTO stats = provider.get(StatisticsProvider.class)
-          .getStatistics();
+            .getStatistics();
 
         return stats.totalVehicles == stats.vehiclesAtDepot
-          && stats.movedVehicles > 0
-          && stats.totalParcels == stats.totalDeliveries;
+            && stats.movedVehicles > 0
+            && stats.totalParcels == stats.totalDeliveries;
       }
     },
     ANY_TARDINESS {
       @Override
       public boolean evaluate(TypeProvider provider) {
         final StatisticsDTO stats = provider.get(StatisticsProvider.class)
-          .getStatistics();
+            .getStatistics();
         return stats.pickupTardiness > 0
-          || stats.deliveryTardiness > 0;
+            || stats.deliveryTardiness > 0;
       }
     };
 
     @Override
     public ImmutableSet<Class<?>> getTypes() {
-      return ImmutableSet.<Class<?>> of(StatisticsProvider.class);
+      return ImmutableSet.<Class<?>>of(StatisticsProvider.class);
     }
   }
 }

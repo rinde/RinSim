@@ -76,6 +76,6 @@ public abstract class Message {
   static Message createBroadcast(CommUser from, MessageContents m,
       Predicate<CommUser> p) {
     return new AutoValue_Message(
-        from, Optional.<CommUser> absent(), m, p);
+        from, Optional.<CommUser>absent(), m, p);
   }
 }

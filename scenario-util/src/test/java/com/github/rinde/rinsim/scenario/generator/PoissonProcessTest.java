@@ -65,25 +65,25 @@ public class PoissonProcessTest {
   @Parameters
   public static Collection<Object[]> data() {
     return Arrays.asList(new Object[][] {
-        { TimeSeries.homogenousPoisson(60d, 10) },
-        { TimeSeries.homogenousPoisson(60d, 100) },
-        { TimeSeries.homogenousPoisson(180d, 10) },
-        { TimeSeries.homogenousPoisson(180d, 100) },
-        { TimeSeries.nonHomogenousPoisson(60d, IntensityFunctions
+        {TimeSeries.homogenousPoisson(60d, 10)},
+        {TimeSeries.homogenousPoisson(60d, 100)},
+        {TimeSeries.homogenousPoisson(180d, 10)},
+        {TimeSeries.homogenousPoisson(180d, 100)},
+        {TimeSeries.nonHomogenousPoisson(60d, IntensityFunctions
             .sineIntensity()
-            .period(60).area(10).build()) },
-        { TimeSeries.nonHomogenousPoisson(60d, IntensityFunctions
+            .period(60).area(10).build())},
+        {TimeSeries.nonHomogenousPoisson(60d, IntensityFunctions
             .sineIntensity()
-            .period(60).area(10).phaseShift(2).build()) },
-        { TimeSeries.nonHomogenousPoisson(60d, IntensityFunctions
+            .period(60).area(10).phaseShift(2).build())},
+        {TimeSeries.nonHomogenousPoisson(60d, IntensityFunctions
             .sineIntensity()
-            .period(60).area(10).height(1).build()) },
-        { TimeSeries.nonHomogenousPoisson(300d, IntensityFunctions
+            .period(60).area(10).height(1).build())},
+        {TimeSeries.nonHomogenousPoisson(300d, IntensityFunctions
             .sineIntensity()
-            .period(60).area(10).height(1).build()) },
-        { TimeSeries.nonHomogenousPoisson(600d, IntensityFunctions
+            .period(60).area(10).height(1).build())},
+        {TimeSeries.nonHomogenousPoisson(600d, IntensityFunctions
             .sineIntensity()
-            .period(600).area(200).height(1).build()) }
+            .period(600).area(200).height(1).build())}
     });
   }
 

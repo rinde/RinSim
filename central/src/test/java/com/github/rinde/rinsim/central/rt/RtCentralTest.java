@@ -45,30 +45,30 @@ public class RtCentralTest {
   @Test
   public void testConfig() {
     List<TimedEvent> events = Gendreau06Parser.parse(
-      new File("../scenario-util/files/test/gendreau06/req_rapide_1_240_24"))
-      .getEvents().subList(0, 20);
+        new File("../scenario-util/files/test/gendreau06/req_rapide_1_240_24"))
+        .getEvents().subList(0, 20);
 
     Scenario s = Scenario.builder(Gendreau06Parser.parse(
-      new File("../scenario-util/files/test/gendreau06/req_rapide_1_240_24")))
-      .removeModelsOfType(TimeModel.AbstractBuilder.class)
-      .addModel(TimeModel.builder()
-        .withRealTime()
-        .withStartInClockMode(ClockMode.SIMULATED))
-      .clearEvents()
-      .addEvents(events)
-      .addEvent(TimeOutEvent.create(3 * 60 * 60 * 1000))
-      .build();
+        new File("../scenario-util/files/test/gendreau06/req_rapide_1_240_24")))
+        .removeModelsOfType(TimeModel.AbstractBuilder.class)
+        .addModel(TimeModel.builder()
+            .withRealTime()
+            .withStartInClockMode(ClockMode.SIMULATED))
+        .clearEvents()
+        .addEvents(events)
+        .addEvent(TimeOutEvent.create(3 * 60 * 60 * 1000))
+        .build();
 
     ExperimentResults er = Experiment
-      .build(Gendreau06ObjectiveFunction.instance())
-      .addScenario(s)
-      .withThreads(1)
-      .addConfiguration(
-        RtCentral.solverConfigurationAdapt(RandomSolver.supplier(), ""))
-      .perform();
+        .build(Gendreau06ObjectiveFunction.instance())
+        .addScenario(s)
+        .withThreads(1)
+        .addConfiguration(
+            RtCentral.solverConfigurationAdapt(RandomSolver.supplier(), ""))
+        .perform();
 
     double objVal = Gendreau06ObjectiveFunction.instance()
-      .computeCost(er.results.asList().get(0).stats);
+        .computeCost(er.results.asList().get(0).stats);
     assertThat(objVal).isWithin(0.0001).of(495.4718);
   }
 }

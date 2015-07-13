@@ -37,10 +37,10 @@ class Taxi extends Vehicle {
 
   Taxi(Point startPosition, int capacity) {
     super(VehicleDTO.builder()
-      .capacity(capacity)
-      .startPosition(startPosition)
-      .speed(SPEED)
-      .build());
+        .capacity(capacity)
+        .startPosition(startPosition)
+        .speed(SPEED)
+        .build());
     curr = Optional.absent();
   }
 
@@ -57,7 +57,7 @@ class Taxi extends Vehicle {
     }
     if (!curr.isPresent()) {
       curr = Optional.fromNullable(RoadModels.findClosestObject(
-        rm.getPosition(this), rm, Parcel.class));
+          rm.getPosition(this), rm, Parcel.class));
     }
 
     if (curr.isPresent()) {

@@ -54,7 +54,7 @@ public interface CanvasRenderer extends Renderer {
    * @author Rinde van Lon
    */
   public abstract class AbstractCanvasRenderer extends AbstractModelVoid
-    implements CanvasRenderer {
+      implements CanvasRenderer {
 
     @Override
     public Optional<ViewRect> getViewRect() {
@@ -69,7 +69,7 @@ public interface CanvasRenderer extends Renderer {
    * @author Rinde van Lon
    */
   public abstract class AbstractTypedCanvasRenderer<T> extends AbstractModel<T>
-    implements CanvasRenderer {
+      implements CanvasRenderer {
 
     @Override
     public Optional<ViewRect> getViewRect() {

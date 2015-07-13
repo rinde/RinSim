@@ -396,7 +396,8 @@ public final class TimeSeries {
       final double sample = ed.get(rng.nextLong());
       checkArgument(
           sample >= 0d,
-          "A StochasticSupplier used in a TimeSeries may not return negative values, was: %s.",
+          "A StochasticSupplier used in a TimeSeries may not return negative "
+              + "values, was: %s.",
           sample);
       return sample;
     }

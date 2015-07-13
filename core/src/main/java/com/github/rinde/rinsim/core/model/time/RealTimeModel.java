@@ -119,7 +119,8 @@ class RealTimeModel extends TimeModel implements RealTimeClockController {
   @Override
   public void switchToSimulatedTime() {
     checkState(stateMachine.isSupported(Trigger.SIMULATE),
-        "Can not switch to simulated time mode because clock is already stopped.");
+        "Can not switch to simulated time mode because clock is already "
+            + "stopped.");
     stateMachine.handle(Trigger.SIMULATE, this);
   }
 
@@ -244,19 +245,20 @@ class RealTimeModel extends TimeModel implements RealTimeClockController {
       final List<Long> timings = new ArrayList<>();
       final RealTime ref = this;
       @SuppressWarnings("unchecked")
-      final ListenableScheduledFuture<Object> f = (ListenableScheduledFuture<Object>) executor
-          .scheduleAtFixedRate(
-              new Runnable() {
-                @Override
-                public void run() {
-                  timings.add(System.nanoTime());
-                  checkConsistency(timings);
-                  context.tickImpl();
-                  if (ref.nextTrigger != null) {
-                    executor.shutdown();
-                  }
-                }
-              }, 0, tickNanoSeconds, TimeUnit.NANOSECONDS);
+      final ListenableScheduledFuture<Object> f =
+          (ListenableScheduledFuture<Object>) executor
+              .scheduleAtFixedRate(
+                  new Runnable() {
+                    @Override
+                    public void run() {
+                      timings.add(System.nanoTime());
+                      checkConsistency(timings);
+                      context.tickImpl();
+                      if (ref.nextTrigger != null) {
+                        executor.shutdown();
+                      }
+                    }
+                  }, 0, tickNanoSeconds, TimeUnit.NANOSECONDS);
 
       Futures.addCallback(f, new FutureCallback<Object>() {
         @Override

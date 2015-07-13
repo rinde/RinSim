@@ -56,7 +56,7 @@ public class MultimapGraph<E extends ConnectionData> extends AbstractGraph<E> {
    * Create a new empty graph.
    */
   public MultimapGraph() {
-    this(LinkedHashMultimap.<Point, Point> create());
+    this(LinkedHashMultimap.<Point, Point>create());
   }
 
   /**
@@ -66,8 +66,8 @@ public class MultimapGraph<E extends ConnectionData> extends AbstractGraph<E> {
   public MultimapGraph(Multimap<Point, Point> map) {
     multimap = LinkedHashMultimap.create(map);
     lazyConnectionTable = Tables.newCustomTable(
-      new LinkedHashMap<Point, Map<Point, Connection<E>>>(),
-      new LinkedHashMapFactory<Connection<E>>());
+        new LinkedHashMap<Point, Map<Point, Connection<E>>>(),
+        new LinkedHashMapFactory<Connection<E>>());
     deadEndNodes = new HashSet<>();
     deadEndNodes.addAll(multimap.values());
     deadEndNodes.removeAll(multimap.keySet());
@@ -90,10 +90,10 @@ public class MultimapGraph<E extends ConnectionData> extends AbstractGraph<E> {
 
   @Override
   public <T extends ConnectionData> boolean hasConnection(
-    Connection<T> connection) {
+      Connection<T> connection) {
     if (connection.data().isPresent()) {
       return getConnection(connection.from(), connection.to()).equals(
-        connection);
+          connection);
     }
     return hasConnection(connection.from(), connection.to());
   }
@@ -110,7 +110,7 @@ public class MultimapGraph<E extends ConnectionData> extends AbstractGraph<E> {
 
   @Override
   protected Optional<E> doChangeConnectionData(Point from, Point to,
-    Optional<E> connData) {
+      Optional<E> connData) {
     Optional<E> dat;
     if (lazyConnectionTable.contains(from, to)) {
       dat = lazyConnectionTable.get(from, to).data();
@@ -139,9 +139,9 @@ public class MultimapGraph<E extends ConnectionData> extends AbstractGraph<E> {
   @Override
   public Connection<E> getConnection(Point from, Point to) {
     checkArgument(hasConnection(from, to), "%s -> %s is not a connection.",
-      from, to);
+        from, to);
     if (!lazyConnectionTable.contains(from, to)) {
-      lazyConnectionTable.put(from, to, Connection.<E> create(from, to));
+      lazyConnectionTable.put(from, to, Connection.<E>create(from, to));
     }
     return lazyConnectionTable.get(from, to);
   }
@@ -206,7 +206,7 @@ public class MultimapGraph<E extends ConnectionData> extends AbstractGraph<E> {
   @Override
   public void removeConnection(Point from, Point to) {
     checkArgument(hasConnection(from, to),
-      "Can not remove non-existing connection: %s -> %s", from, to);
+        "Can not remove non-existing connection: %s -> %s", from, to);
     multimap.remove(from, to);
     removeData(from, to);
     if (!multimap.containsKey(to)) {
@@ -232,7 +232,7 @@ public class MultimapGraph<E extends ConnectionData> extends AbstractGraph<E> {
     }
     if (connData.isPresent()) {
       this.lazyConnectionTable.put(from, to,
-        Connection.create(from, to, connData));
+          Connection.create(from, to, connData));
     }
   }
 
@@ -253,17 +253,17 @@ public class MultimapGraph<E extends ConnectionData> extends AbstractGraph<E> {
    * @return A new supplier.
    */
   public static <E extends ConnectionData> Supplier<MultimapGraph<E>> supplier(
-    ImmutableMultimap<Point, Point> data) {
+      ImmutableMultimap<Point, Point> data) {
     return new MultimapGraphSupplier<>(data);
   }
 
   private static class MultimapGraphSupplier<E extends ConnectionData>
-    implements Supplier<MultimapGraph<E>> {
+      implements Supplier<MultimapGraph<E>> {
 
     private final ImmutableMultimap<Point, Point> data;
 
     MultimapGraphSupplier() {
-      this(ImmutableMultimap.<Point, Point> of());
+      this(ImmutableMultimap.<Point, Point>of());
     }
 
     MultimapGraphSupplier(ImmutableMultimap<Point, Point> d) {

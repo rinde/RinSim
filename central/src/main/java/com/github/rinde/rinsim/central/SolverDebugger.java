@@ -47,7 +47,7 @@ public final class SolverDebugger implements Solver {
     }
     inputs.add(state);
     final ImmutableList<ImmutableList<Parcel>> result = delegate
-      .solve(state);
+        .solve(state);
     outputs.add(result);
     if (print) {
       System.out.println(result);

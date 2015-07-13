@@ -209,19 +209,22 @@ public class DynamicGraphRoadModel extends GraphRoadModel {
         final Connection<?> conn = ge.getConnection();
         checkState(
             !model.connMap.containsKey(conn),
-            "A connection (%s->%s) with an object (%s) on it can not be changed or removed: %s.",
+            "A connection (%s->%s) with an object (%s) on it can not be changed"
+                + " or removed: %s.",
             conn.from(), conn.to(), model.connMap.get(conn), ge.getEventType());
 
         if (model.posMap.containsKey(conn.from())) {
           checkState(
               ge.getGraph().containsNode(conn.from()),
-              "There is an object on (%s) therefore the last connection to that location (%s->%s) can not be changed or removed: %s.",
+              "There is an object on (%s) therefore the last connection to that"
+                  + " location (%s->%s) can not be changed or removed: %s.",
               conn.from(), conn.from(), conn.to(), ge.getEventType());
         }
         if (model.posMap.containsKey(conn.to())) {
           checkState(
               ge.getGraph().containsNode(conn.to()),
-              "There is an object on (%s) therefore the last connection to that location (%s->%s) can not be changed or removed: %s.",
+              "There is an object on (%s) therefore the last connection to that"
+                  + " location (%s->%s) can not be changed or removed: %s.",
               conn.to(), conn.from(), conn.to(), ge.getEventType());
         }
       }

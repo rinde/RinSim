@@ -26,7 +26,7 @@ import com.github.rinde.rinsim.core.model.ModelBuilder.AbstractModelBuilder;
 import com.github.rinde.rinsim.ui.renderers.PanelRenderer;
 import com.google.auto.value.AutoValue;
 
-class TestPanelRenderer extends AbstractModel<Void> implements PanelRenderer {
+class TestPanelRenderer extends AbstractModel<Void>implements PanelRenderer {
 
   protected final String name;
   protected final int position;
@@ -79,7 +79,7 @@ class TestPanelRenderer extends AbstractModel<Void> implements PanelRenderer {
 
   @AutoValue
   abstract static class Builder extends
-    AbstractModelBuilder<TestPanelRenderer, Void> {
+      AbstractModelBuilder<TestPanelRenderer, Void> {
 
     Builder() {}
 
@@ -91,17 +91,18 @@ class TestPanelRenderer extends AbstractModel<Void> implements PanelRenderer {
 
     Builder withPosition(int position) {
       return new AutoValue_TestPanelRenderer_Builder(name(), position,
-        preferredSize());
+          preferredSize());
     }
 
     Builder withSize(int size) {
       return new AutoValue_TestPanelRenderer_Builder(name(),
-        preferredPosition(), size);
+          preferredPosition(), size);
     }
 
     @Override
     public TestPanelRenderer build(DependencyProvider dependencyProvider) {
-      return new TestPanelRenderer(name(), preferredPosition(), preferredSize());
+      return new TestPanelRenderer(name(), preferredPosition(),
+          preferredSize());
     }
   }
 }

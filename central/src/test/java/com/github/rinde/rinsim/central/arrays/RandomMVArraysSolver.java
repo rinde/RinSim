@@ -42,7 +42,7 @@ import com.google.common.primitives.Ints;
  * should be used for testing only. It is not perfectly random, it is a 'lazy'
  * implementation that creates feasible solutions but two solutions do not
  * necessary have an equal or non-zero probability.
- * @author Rinde van Lon 
+ * @author Rinde van Lon
  */
 public class RandomMVArraysSolver implements MultiVehicleArraysSolver {
 
@@ -151,7 +151,8 @@ public class RandomMVArraysSolver implements MultiVehicleArraysSolver {
       public Solver get(long seed) {
         return SolverValidator.wrap(new MultiVehicleSolverAdapter(
             ArraysSolverValidator.wrap(new RandomMVArraysSolver(
-                new MersenneTwister(seed))), NonSI.MINUTE));
+                new MersenneTwister(seed))),
+            NonSI.MINUTE));
       }
     };
   }

@@ -32,7 +32,7 @@ import com.google.common.primitives.Longs;
  * type. If the parsing fails, a {@link CliException} is thrown. This class
  * contains a number of {@link ArgumentParser}s for common types.
  * @param <V> The argument type.
- * @author Rinde van Lon 
+ * @author Rinde van Lon
  */
 public abstract class ArgumentParser<V> {
   /**
@@ -43,21 +43,23 @@ public abstract class ArgumentParser<V> {
   /**
    * {@link Boolean} parser.
    */
-  public static final ArgumentParser<Boolean> BOOLEAN = new ArgumentParser<Boolean>(
-      "boolean") {
-    @Override
-    Boolean parse(OptionArg<Boolean> option, String arg) {
-      if ("T".equalsIgnoreCase(arg) || "true".equalsIgnoreCase(arg)
-          || "1".equals(arg)) {
-        return true;
-      } else if ("F".equalsIgnoreCase(arg) || "false".equalsIgnoreCase(arg)
-          || "0".equals(arg)) {
-        return false;
-      }
-      throw new CliException("Expected a boolean but found: '" + arg + "'.",
-          CauseType.INVALID_ARG_FORMAT, option);
-    }
-  };
+  public static final ArgumentParser<Boolean> BOOLEAN =
+      new ArgumentParser<Boolean>("boolean") {
+        @Override
+        Boolean parse(OptionArg<Boolean> option, String arg) {
+          if ("T".equalsIgnoreCase(arg)
+              || "true".equalsIgnoreCase(arg)
+              || "1".equals(arg)) {
+            return true;
+          } else if ("F".equalsIgnoreCase(arg)
+              || "false".equalsIgnoreCase(arg)
+              || "0".equals(arg)) {
+            return false;
+          }
+          throw new CliException("Expected a boolean but found: '" + arg + "'.",
+              CauseType.INVALID_ARG_FORMAT, option);
+        }
+      };
 
   /**
    * {@link Long} parser.
@@ -68,8 +70,8 @@ public abstract class ArgumentParser<V> {
   /**
    * List of {@link Long}s parser.
    */
-  public static final ArgumentParser<List<Long>> LONG_LIST = new NumberListParser<>(
-      "long list", Longs.stringConverter());
+  public static final ArgumentParser<List<Long>> LONG_LIST =
+      new NumberListParser<>("long list", Longs.stringConverter());
 
   /**
    * {@link Integer} parser.
@@ -80,8 +82,8 @@ public abstract class ArgumentParser<V> {
   /**
    * List of {@link Integer}s parser.
    */
-  public static final ArgumentParser<List<Integer>> INTEGER_LIST = new NumberListParser<>(
-      "int list", Ints.stringConverter());
+  public static final ArgumentParser<List<Integer>> INTEGER_LIST =
+      new NumberListParser<>("int list", Ints.stringConverter());
 
   /**
    * {@link Double} parser.
@@ -92,30 +94,30 @@ public abstract class ArgumentParser<V> {
   /**
    * List of {@link Double}s parser.
    */
-  public static final ArgumentParser<List<Double>> DOUBLE_LIST = new NumberListParser<>(
-      "double list", Doubles.stringConverter());
+  public static final ArgumentParser<List<Double>> DOUBLE_LIST =
+      new NumberListParser<>("double list", Doubles.stringConverter());
 
   /**
    * {@link String} parser.
    */
-  public static final ArgumentParser<String> STRING = new ArgumentParser<String>(
-      "string") {
-    @Override
-    String parse(OptionArg<String> option, String value) {
-      return value;
-    }
-  };
+  public static final ArgumentParser<String> STRING =
+      new ArgumentParser<String>("string") {
+        @Override
+        String parse(OptionArg<String> option, String value) {
+          return value;
+        }
+      };
 
   /**
    * List of {@link String}s parser.
    */
-  public static final ArgumentParser<List<String>> STRING_LIST = new ArgumentParser<List<String>>(
-      "string list") {
-    @Override
-    List<String> parse(OptionArg<List<String>> option, String value) {
-      return Splitter.on(ARG_LIST_SEPARATOR).splitToList(value);
-    }
-  };
+  public static final ArgumentParser<List<String>> STRING_LIST =
+      new ArgumentParser<List<String>>("string list") {
+        @Override
+        List<String> parse(OptionArg<List<String>> option, String value) {
+          return Splitter.on(ARG_LIST_SEPARATOR).splitToList(value);
+        }
+      };
 
   private final String name;
 
@@ -139,7 +141,7 @@ public abstract class ArgumentParser<V> {
   /**
    * A parser for numbers.
    * @param <T> The type of number.
-   * @author Rinde van Lon 
+   * @author Rinde van Lon
    */
   public static class NumberParser<T> extends ArgumentParser<T> {
     private final Converter<String, T> converter;
@@ -169,7 +171,7 @@ public abstract class ArgumentParser<V> {
   /**
    * A parser for lists of numbers.
    * @param <T> The type of number.
-   * @author Rinde van Lon 
+   * @author Rinde van Lon
    */
   public static class NumberListParser<T> extends ArgumentParser<List<T>> {
     private final Converter<String, T> converter;

@@ -56,7 +56,7 @@ public abstract class Scenario {
    * The default {@link ProblemClass}.
    */
   public static final ProblemClass DEFAULT_PROBLEM_CLASS = SimpleProblemClass
-    .create("DEFAULT");
+      .create("DEFAULT");
 
   /**
    * Instantiate a scenario.
@@ -110,18 +110,18 @@ public abstract class Scenario {
   public abstract int hashCode();
 
   static Scenario create(
-    Iterable<? extends TimedEvent> events,
-    Iterable<? extends ModelBuilder<?, ?>> builders,
-    TimeWindow tw,
-    StopCondition stopCondition,
-    ProblemClass pc,
-    String id) {
+      Iterable<? extends TimedEvent> events,
+      Iterable<? extends ModelBuilder<?, ?>> builders,
+      TimeWindow tw,
+      StopCondition stopCondition,
+      ProblemClass pc,
+      String id) {
     return new AutoValue_Scenario(
-      ImmutableList.<TimedEvent> copyOf(events),
-      ImmutableSet.<ModelBuilder<?, ?>> copyOf(builders),
-      tw,
-      stopCondition,
-      pc, id);
+        ImmutableList.<TimedEvent>copyOf(events),
+        ImmutableSet.<ModelBuilder<?, ?>>copyOf(builders),
+        tw,
+        stopCondition,
+        pc, id);
   }
 
   /**
@@ -158,8 +158,8 @@ public abstract class Scenario {
    * @return The newly constructed {@link Builder}.
    */
   public static Builder builder(AbstractBuilder<?> base,
-    ProblemClass problemClass) {
-    return new Builder(Optional.<AbstractBuilder<?>> of(base), problemClass);
+      ProblemClass problemClass) {
+    return new Builder(Optional.<AbstractBuilder<?>>of(base), problemClass);
   }
 
   /**
@@ -209,7 +209,7 @@ public abstract class Scenario {
     String instanceId;
 
     Builder(ProblemClass pc) {
-      this(Optional.<AbstractBuilder<?>> absent(), pc);
+      this(Optional.<AbstractBuilder<?>>absent(), pc);
     }
 
     Builder(Optional<AbstractBuilder<?>> base, ProblemClass pc) {
@@ -293,9 +293,9 @@ public abstract class Scenario {
      * @return This, as per the builder pattern.
      */
     public <T extends ModelBuilder<?, ?>> Builder removeModelsOfType(
-      Class<T> type) {
-      List<ModelBuilder<?, ?>> toRemove = new ArrayList<>();
-      for (ModelBuilder<?, ?> mb : modelBuilders) {
+        Class<T> type) {
+      final List<ModelBuilder<?, ?>> toRemove = new ArrayList<>();
+      for (final ModelBuilder<?, ?> mb : modelBuilders) {
         if (type.isInstance(mb)) {
           toRemove.add(mb);
         }
@@ -307,10 +307,10 @@ public abstract class Scenario {
     @Override
     public Builder copyProperties(Scenario scenario) {
       return super.copyProperties(scenario)
-        .addEvents(scenario.getEvents())
-        .problemClass(scenario.getProblemClass())
-        .instanceId(scenario.getProblemInstanceId())
-        .addModels(scenario.getModelBuilders());
+          .addEvents(scenario.getEvents())
+          .problemClass(scenario.getProblemClass())
+          .instanceId(scenario.getProblemInstanceId())
+          .addModels(scenario.getModelBuilders());
     }
 
     /**
@@ -351,21 +351,23 @@ public abstract class Scenario {
      * @return This, as per the builder pattern.
      */
     public Builder ensureFrequency(Predicate<? super TimedEvent> filter,
-      int frequency) {
+        int frequency) {
       checkArgument(frequency >= 0, "Frequency must be >= 0.");
       checkState(!eventList.isEmpty(), "Event list is empty.");
       final FluentIterable<TimedEvent> filtered = FluentIterable
-        .from(eventList)
-        .filter(filter);
+          .from(eventList)
+          .filter(filter);
       checkArgument(
-        !filtered.isEmpty(),
-        "The specified filter did not match any event in the event list (size %s), filter: %s.",
-        eventList.size(), filter);
+          !filtered.isEmpty(),
+          "The specified filter did not match any event in the event list "
+              + "(size %s), filter: %s.",
+          eventList.size(), filter);
       final Set<TimedEvent> set = filtered.toSet();
       checkArgument(
-        set.size() == 1,
-        "The specified filter matches multiple non-equal events, all matches must be equal. Events: %s. Filter: %s.",
-        set, filter);
+          set.size() == 1,
+          "The specified filter matches multiple non-equal events, all matches "
+              + "must be equal. Events: %s. Filter: %s.",
+          set, filter);
 
       if (filtered.size() > frequency) {
         // limit
@@ -375,7 +377,7 @@ public abstract class Scenario {
       } else if (filtered.size() < frequency) {
         // grow
         eventList.addAll(Collections.nCopies(frequency - filtered.size(), set
-          .iterator().next()));
+            .iterator().next()));
       }
       return self();
     }
@@ -398,7 +400,7 @@ public abstract class Scenario {
       Collections.sort(list, TimeComparator.INSTANCE);
 
       return Scenario.create(list, modelBuilders, timeWindow, stopCondition,
-        problemClass, instanceId);
+          problemClass, instanceId);
     }
 
     @Override
@@ -416,9 +418,9 @@ public abstract class Scenario {
    */
   public abstract static class AbstractBuilder<T extends AbstractBuilder<T>> {
     static final TimeWindow DEFAULT_TIME_WINDOW = new TimeWindow(0,
-      8 * 60 * 60 * 1000);
+        8 * 60 * 60 * 1000);
     static final StopCondition DEFAULT_STOP_CONDITION = StopConditions
-      .alwaysFalse();
+        .alwaysFalse();
 
     /**
      * Defines {@link Scenario#getTimeWindow()}.

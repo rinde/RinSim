@@ -52,21 +52,17 @@ public final class WarehouseExample {
   public static void main(String[] args) {
 
     final Simulator sim = Simulator.builder()
-      .addModel(
-        RoadModelBuilders.dynamicGraph(createSimpleGraph())
-          .withCollisionAvoidance()
-          .withVehicleLength(VEHICLE_LENGTH)
-      )
-      .addModel(
-        View.builder()
-          .with(WarehouseRenderer.builder()
-            .withMargin(VEHICLE_LENGTH)
-          )
-          .with(AGVRenderer.builder()
-            .withDifferentColorsForVehicles()
-          )
-      )
-      .build();
+        .addModel(
+            RoadModelBuilders.dynamicGraph(createSimpleGraph())
+                .withCollisionAvoidance()
+                .withVehicleLength(VEHICLE_LENGTH))
+        .addModel(
+            View.builder()
+                .with(WarehouseRenderer.builder()
+                    .withMargin(VEHICLE_LENGTH))
+                .with(AGVRenderer.builder()
+                    .withDifferentColorsForVehicles()))
+        .build();
 
     for (int i = 0; i < 20; i++) {
       sim.register(new AGVAgent(sim.getRandomGenerator()));
@@ -76,14 +72,15 @@ public final class WarehouseExample {
   }
 
   static ImmutableTable<Integer, Integer, Point> createMatrix(int cols,
-    int rows, Point offset) {
-    final ImmutableTable.Builder<Integer, Integer, Point> builder = ImmutableTable
-      .builder();
+      int rows, Point offset) {
+    final ImmutableTable.Builder<Integer, Integer, Point> builder =
+        ImmutableTable
+            .builder();
     for (int c = 0; c < cols; c++) {
       for (int r = 0; r < rows; r++) {
         builder.put(r, c, new Point(
-          offset.x + c * VEHICLE_LENGTH * 2,
-          offset.y + r * VEHICLE_LENGTH * 2));
+            offset.x + c * VEHICLE_LENGTH * 2,
+            offset.y + r * VEHICLE_LENGTH * 2));
       }
     }
     return builder.build();
@@ -93,7 +90,7 @@ public final class WarehouseExample {
     final Graph<LengthData> g = new TableGraph<>();
 
     final Table<Integer, Integer, Point> matrix = createMatrix(8, 6,
-      new Point(0, 0));
+        new Point(0, 0));
 
     for (int i = 0; i < matrix.columnMap().size(); i++) {
 
@@ -108,7 +105,7 @@ public final class WarehouseExample {
 
     Graphs.addPath(g, matrix.row(0).values());
     Graphs.addPath(g, Lists.reverse(newArrayList(matrix.row(
-      matrix.rowKeySet().size() - 1).values())));
+        matrix.rowKeySet().size() - 1).values())));
 
     return new ListenableGraph<>(g);
   }
@@ -117,7 +114,7 @@ public final class WarehouseExample {
     final Graph<LengthData> g = new TableGraph<>();
 
     final Table<Integer, Integer, Point> matrix = createMatrix(5, 10,
-      new Point(0, 0));
+        new Point(0, 0));
     for (final Map<Integer, Point> column : matrix.columnMap().values()) {
       Graphs.addBiPath(g, column.values());
     }
@@ -125,13 +122,13 @@ public final class WarehouseExample {
     Graphs.addBiPath(g, matrix.row(5).values());
 
     final Table<Integer, Integer, Point> matrix2 = createMatrix(10, 7,
-      new Point(30, 6));
+        new Point(30, 6));
     for (final Map<Integer, Point> row : matrix2.rowMap().values()) {
       Graphs.addBiPath(g, row.values());
     }
     Graphs.addBiPath(g, matrix2.column(0).values());
     Graphs.addBiPath(g, matrix2.column(matrix2.columnKeySet().size() -
-      1).values());
+        1).values());
 
     Graphs.addPath(g, matrix2.get(2, 0), matrix.get(4, 4));
     Graphs.addPath(g, matrix.get(5, 4), matrix2.get(4, 0));

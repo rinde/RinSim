@@ -57,7 +57,7 @@ public class ModelManagerTest {
    */
   @Before
   public void setUp() {
-    emptyManager = new ModelManager(ImmutableSet.<Model<?>> of());
+    emptyManager = new ModelManager(ImmutableSet.<Model<?>>of());
   }
 
   /**
@@ -293,7 +293,7 @@ public class ModelManagerTest {
     final SpecialModelB mSB = new SpecialModelB();
     final ModelC mC = new ModelC();
 
-    final ModelManager mm = new ModelManager(ImmutableSet.<Model<?>> of(
+    final ModelManager mm = new ModelManager(ImmutableSet.<Model<?>>of(
         mA, mAA, mB, mB2, mBB, mBBB, mSB, mC));
 
     final ObjectA a1 = new ObjectA();

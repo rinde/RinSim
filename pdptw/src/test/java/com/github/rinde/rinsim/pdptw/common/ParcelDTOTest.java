@@ -36,7 +36,7 @@ public class ParcelDTOTest {
   @Test
   public void defaultsTest() {
     final IParcel defaults = Parcel.builder(new Point(0, 0),
-      new Point(2, 2)).buildDTO();
+        new Point(2, 2)).buildDTO();
 
     assertEquals(new Point(0, 0), defaults.getPickupLocation());
     assertEquals(new Point(2, 2), defaults.getDeliveryLocation());
@@ -54,7 +54,7 @@ public class ParcelDTOTest {
   @Test
   public void overridingTest() {
     final Parcel.Builder b = Parcel.builder(new Point(0, 0),
-      new Point(2, 2));
+        new Point(2, 2));
 
     final IParcel dto1 = b.timeWindows(new TimeWindow(7, 10)).buildDTO();
     assertEquals(new TimeWindow(7, 10), dto1.getPickupTimeWindow());

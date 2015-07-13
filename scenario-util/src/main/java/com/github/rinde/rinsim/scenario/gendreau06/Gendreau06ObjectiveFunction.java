@@ -27,7 +27,8 @@ import com.github.rinde.rinsim.pdptw.common.StatisticsDTO;
 public final class Gendreau06ObjectiveFunction implements ObjectiveFunction,
     Serializable {
   private static final long serialVersionUID = 6069190376442772396L;
-  private static final Gendreau06ObjectiveFunction INSTANCE = new Gendreau06ObjectiveFunction();
+  private static final Gendreau06ObjectiveFunction INSTANCE =
+      new Gendreau06ObjectiveFunction();
   private static final double MS_TO_MINUTES = 60000d;
   private static final double ALPHA = 1d;
   private static final double BETA = 1d;

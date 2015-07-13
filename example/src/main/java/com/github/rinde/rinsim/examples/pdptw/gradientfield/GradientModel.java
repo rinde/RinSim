@@ -44,8 +44,8 @@ import com.google.common.collect.ImmutableList;
  * @author David Merckx
  * @author Rinde van Lon
  */
-public class GradientModel extends AbstractModel<FieldEmitter> implements
-  ModelReceiver {
+public class GradientModel extends AbstractModel<FieldEmitter>implements
+    ModelReceiver {
   private final List<FieldEmitter> emitters;
   private double minX;
   private double maxX;
@@ -77,8 +77,8 @@ public class GradientModel extends AbstractModel<FieldEmitter> implements
   /**
    * Possibilities (-1,1) (0,1) (1,1) (-1,0) (1,0 (-1,-1) (0,-1) (1,-1)
    */
-  private static final int[] x = { -1, 0, 1, 1, 1, 0, -1, -1 };
-  private static final int[] y = { 1, 1, 1, 0, -1, -1, -1, 0 };
+  private static final int[] x = {-1, 0, 1, 1, 1, 0, -1, -1};
+  private static final int[] y = {1, 1, 1, 0, -1, -1, -1, 0};
 
   @Nullable
   Point getTargetFor(Truck element) {
@@ -87,7 +87,7 @@ public class GradientModel extends AbstractModel<FieldEmitter> implements
 
     for (int i = 0; i < x.length; i++) {
       final Point p = new Point(element.getPosition().x + x[i],
-        element.getPosition().y + y[i]);
+          element.getPosition().y + y[i]);
 
       if (p.x < minX || p.x > maxX || p.y < minY || p.y > maxY) {
         continue;
@@ -107,7 +107,7 @@ public class GradientModel extends AbstractModel<FieldEmitter> implements
     float field = 0.0f;
     for (final FieldEmitter emitter : emitters) {
       field = field + (float) (emitter.getStrength()
-        / Point.distance(emitter.getPosition(), in));
+          / Point.distance(emitter.getPosition(), in));
     }
 
     for (final Parcel p : verifyNotNull(pdpModel).getContents(truck)) {
@@ -134,7 +134,7 @@ public class GradientModel extends AbstractModel<FieldEmitter> implements
 
     for (int i = 0; i < x.length; i++) {
       final Point p = new Point(truck.getPosition().x + x[i],
-        truck.getPosition().y + y[i]);
+          truck.getPosition().y + y[i]);
 
       if (p.x < minX || p.x > maxX || p.y < minY || p.y > maxY) {
         continue;
@@ -158,7 +158,7 @@ public class GradientModel extends AbstractModel<FieldEmitter> implements
   public void registerModelProvider(ModelProvider mp) {
     pdpModel = mp.tryGetModel(PDPModel.class);
     final ImmutableList<Point> bs = mp.getModel(RoadModel.class)
-      .getBounds();
+        .getBounds();
 
     minX = bs.get(0).x;
     maxX = bs.get(1).x;
@@ -177,7 +177,7 @@ public class GradientModel extends AbstractModel<FieldEmitter> implements
 
   @AutoValue
   abstract static class Builder extends
-    AbstractModelBuilder<GradientModel, FieldEmitter> implements Serializable {
+      AbstractModelBuilder<GradientModel, FieldEmitter>implements Serializable {
 
     private static final long serialVersionUID = 4464819196521333718L;
 

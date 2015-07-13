@@ -88,7 +88,7 @@ public final class RoadModelBuilders {
    */
   public static RoadModelBuilders.DynamicGraphRMB dynamicGraph(
       ListenableGraph<?> g) {
-    return dynamicGraph(Suppliers.<ListenableGraph<?>> ofInstance(g));
+    return dynamicGraph(Suppliers.<ListenableGraph<?>>ofInstance(g));
   }
 
   /**
@@ -121,7 +121,8 @@ public final class RoadModelBuilders {
     /**
      * The default speed unit: {@link NonSI#KILOMETERS_PER_HOUR}.
      */
-    protected static final Unit<Velocity> DEFAULT_SPEED_UNIT = NonSI.KILOMETERS_PER_HOUR;
+    protected static final Unit<Velocity> DEFAULT_SPEED_UNIT =
+        NonSI.KILOMETERS_PER_HOUR;
 
     /**
      * @return the distanceUnit
@@ -200,8 +201,9 @@ public final class RoadModelBuilders {
    * @author Rinde van Lon
    */
   @AutoValue
-  public abstract static class PlaneRMB extends
-      AbstractRMB<PlaneRoadModel, PlaneRMB>implements Serializable {
+  public abstract static class PlaneRMB
+      extends AbstractRMB<PlaneRoadModel, PlaneRMB>
+      implements Serializable {
     private static final long serialVersionUID = 8160700332762443917L;
     static final double DEFAULT_MAX_SPEED = 50d;
     static final Point DEFAULT_MIN_POINT = new Point(0, 0);
@@ -273,7 +275,8 @@ public final class RoadModelBuilders {
     public PlaneRoadModel build(DependencyProvider dependencyProvider) {
       checkArgument(
           getMin().x < getMax().x && getMin().y < getMax().y,
-          "Min should have coordinates smaller than max, found min %s and max %s.",
+          "Min should have coordinates smaller than max, found min %s and max "
+              + "%s.",
           getMin(), getMax());
       return new PlaneRoadModel(this);
     }
@@ -301,9 +304,9 @@ public final class RoadModelBuilders {
    * @author Rinde van Lon
    */
   @AutoValue
-  public abstract static class StaticGraphRMB extends
-      AbstractGraphRMB<GraphRoadModel, StaticGraphRMB, Graph<?>>implements
-      Serializable {
+  public abstract static class StaticGraphRMB
+      extends AbstractGraphRMB<GraphRoadModel, StaticGraphRMB, Graph<?>>
+      implements Serializable {
     private static final long serialVersionUID = 1206566008918936928L;
 
     StaticGraphRMB() {
@@ -363,9 +366,9 @@ public final class RoadModelBuilders {
    * @author Rinde van Lon
    */
   @AutoValue
-  public abstract static class DynamicGraphRMB extends
-      AbstractDynamicGraphRMB<DynamicGraphRoadModel, DynamicGraphRMB>implements
-      Serializable {
+  public abstract static class DynamicGraphRMB
+      extends AbstractDynamicGraphRMB<DynamicGraphRoadModel, DynamicGraphRMB>
+      implements Serializable {
 
     private static final long serialVersionUID = 7269626100558413212L;
 
@@ -424,9 +427,9 @@ public final class RoadModelBuilders {
    * @author Rinde van Lon
    */
   @AutoValue
-  public abstract static class CachedGraphRMB extends
-      AbstractGraphRMB<CachedGraphRoadModel, CachedGraphRMB, Graph<?>>implements
-      Serializable {
+  public abstract static class CachedGraphRMB
+      extends AbstractGraphRMB<CachedGraphRoadModel, CachedGraphRMB, Graph<?>>
+      implements Serializable {
 
     private static final long serialVersionUID = -7837221650923727573L;
 
@@ -467,7 +470,8 @@ public final class RoadModelBuilders {
    * @author Rinde van Lon
    */
   @AutoValue
-  public abstract static class CollisionGraphRMB extends
+  public abstract static class CollisionGraphRMB
+      extends
       AbstractDynamicGraphRMB<CollisionGraphRoadModel, CollisionGraphRMB>
       implements Serializable {
 
@@ -549,7 +553,8 @@ public final class RoadModelBuilders {
       final double minConnectionLength = getVehicleLength();
       checkArgument(
           getMinDistance() <= minConnectionLength,
-          "Min distance must be smaller than 2 * vehicle length (%s), but is %s.",
+          "Min distance must be smaller than 2 * vehicle length (%s), but is "
+              + "%s.",
           getVehicleLength(), getMinDistance());
       final ListenableGraph<?> graph = getGraph();
 

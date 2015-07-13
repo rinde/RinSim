@@ -68,12 +68,12 @@ import com.google.common.collect.ImmutableSet;
  * @since 2.0
  */
 public final class ScenarioController extends AbstractModel<StopModel>
-  implements TickListener {
+    implements TickListener {
   /**
    * Logger for this class.
    */
   static final Logger LOGGER = LoggerFactory
-    .getLogger(ScenarioController.class);
+      .getLogger(ScenarioController.class);
 
   /**
    * The {@link Event} types which can be dispatched by this class.
@@ -110,7 +110,8 @@ public final class ScenarioController extends AbstractModel<StopModel>
   private EventType status;
 
   ScenarioController(SimulatorAPI sim, ClockController c, Scenario s,
-    ImmutableMap<Class<? extends TimedEvent>, TimedEventHandler<?>> m, int t) {
+      ImmutableMap<Class<? extends TimedEvent>, TimedEventHandler<?>> m,
+      int t) {
     simulator = sim;
     clock = c;
     ticks = t;
@@ -165,7 +166,7 @@ public final class ScenarioController extends AbstractModel<StopModel>
   @SuppressWarnings("unchecked")
   <T extends TimedEvent> void dispatch(T e) {
     ((TimedEventHandler<T>) handlers.get(e.getClass())).handleTimedEvent(e,
-      simulator);
+        simulator);
 
     disp.dispatchEvent(new ScenarioEvent(e));
   }
@@ -181,13 +182,13 @@ public final class ScenarioController extends AbstractModel<StopModel>
   boolean stop = false;
 
   @Override
-  public final void tick(TimeLapse timeLapse) {
+  public void tick(TimeLapse timeLapse) {
     if (stop) {
       return;
     }
     if (ticks == 0) {
       LOGGER.info("scenario finished at virtual time:" + timeLapse.getTime()
-        + "[stopping simulation]");
+          + "[stopping simulation]");
       clock.stop();
     }
     if (LOGGER.isDebugEnabled() && ticks >= 0) {
@@ -199,7 +200,7 @@ public final class ScenarioController extends AbstractModel<StopModel>
     TimedEvent e = null;
 
     while ((e = scenarioQueue.peek()) != null
-      && e.getTime() <= timeLapse.getTime()) {
+        && e.getTime() <= timeLapse.getTime()) {
       scenarioQueue.poll();
       if (status == null) {
         LOGGER.info("scenario started at virtual time:" + timeLapse.getTime());
@@ -214,7 +215,7 @@ public final class ScenarioController extends AbstractModel<StopModel>
     }
     if (ticks == 0 && status == EventType.SCENARIO_FINISHED) {
       LOGGER.info("scenario finished at virtual time:" + timeLapse.getTime()
-        + "[stopping simulation]");
+          + "[stopping simulation]");
       clock.stop();
       stop = true;
     }
@@ -238,7 +239,7 @@ public final class ScenarioController extends AbstractModel<StopModel>
   @Override
   public boolean unregister(StopModel element) {
     throw new UnsupportedOperationException(
-      "A stop condition can not be unregistered.");
+        "A stop condition can not be unregistered.");
   }
 
   @Override
@@ -292,8 +293,8 @@ public final class ScenarioController extends AbstractModel<StopModel>
     @Override
     public String toString() {
       return MoreObjects.toStringHelper(ScenarioEvent.class)
-        .add("event", event)
-        .toString();
+          .add("event", event)
+          .toString();
     }
   }
 
@@ -303,9 +304,9 @@ public final class ScenarioController extends AbstractModel<StopModel>
    *
    */
   @AutoValue
-  public abstract static class Builder extends
-    AbstractModelBuilder<ScenarioController, StopModel> implements
-    CompositeModelBuilder<ScenarioController, StopModel> {
+  public abstract static class Builder
+      extends AbstractModelBuilder<ScenarioController, StopModel>
+      implements CompositeModelBuilder<ScenarioController, StopModel> {
 
     Builder() {
       setProvidingTypes(ScenarioController.class);
@@ -333,17 +334,17 @@ public final class ScenarioController extends AbstractModel<StopModel>
      */
     @CheckReturnValue
     public <T extends TimedEvent> Builder withEventHandler(Class<T> type,
-      TimedEventHandler<T> handler) {
+        TimedEventHandler<T> handler) {
       checkArgument(!type.isInterface(),
-        "Must handle a concrete class, not: %s.", type);
+          "Must handle a concrete class, not: %s.", type);
 
       return create(
-        getScenario(),
-        ImmutableMap
-          .<Class<? extends TimedEvent>, TimedEventHandler<?>> builder()
-          .putAll(getEventHandlers()).put(type, handler).build(),
-        getNumberOfTicks(),
-        getStopModelBuilder(), isIgnoreRedundantHandlers());
+          getScenario(),
+          ImmutableMap
+              .<Class<? extends TimedEvent>, TimedEventHandler<?>>builder()
+              .putAll(getEventHandlers()).put(type, handler).build(),
+          getNumberOfTicks(),
+          getStopModelBuilder(), isIgnoreRedundantHandlers());
     }
 
     /**
@@ -361,7 +362,7 @@ public final class ScenarioController extends AbstractModel<StopModel>
     @CheckReturnValue
     public Builder withIgnoreRedundantHandlers(boolean ignore) {
       return create(getScenario(), getEventHandlers(), getNumberOfTicks(),
-        getStopModelBuilder(), ignore);
+          getStopModelBuilder(), ignore);
     }
 
     /**
@@ -373,7 +374,7 @@ public final class ScenarioController extends AbstractModel<StopModel>
     @CheckReturnValue
     public Builder withNumberOfTicks(int ticks) {
       return create(getScenario(), getEventHandlers(), ticks,
-        getStopModelBuilder(), isIgnoreRedundantHandlers());
+          getStopModelBuilder(), isIgnoreRedundantHandlers());
     }
 
     /**
@@ -387,14 +388,14 @@ public final class ScenarioController extends AbstractModel<StopModel>
     public Builder withAndStopCondition(StopCondition stp) {
       final StopModelBuilder smb;
       if (getStopModelBuilder().stopCondition().equals(
-        StopConditions.alwaysFalse())) {
+          StopConditions.alwaysFalse())) {
         smb = StopModelBuilder.create(stp);
       } else {
         smb = StopModelBuilder.create(StopConditions.and(getStopModelBuilder()
-          .stopCondition(), stp));
+            .stopCondition(), stp));
       }
       return create(getScenario(), getEventHandlers(), getNumberOfTicks(), smb,
-        isIgnoreRedundantHandlers());
+          isIgnoreRedundantHandlers());
     }
 
     /**
@@ -408,14 +409,14 @@ public final class ScenarioController extends AbstractModel<StopModel>
     public Builder withOrStopCondition(StopCondition stp) {
       final StopModelBuilder smb;
       if (getStopModelBuilder().stopCondition().equals(
-        StopConditions.alwaysFalse())) {
+          StopConditions.alwaysFalse())) {
         smb = StopModelBuilder.create(stp);
       } else {
         smb = StopModelBuilder.create(StopConditions.or(getStopModelBuilder()
-          .stopCondition(), stp));
+            .stopCondition(), stp));
       }
       return create(getScenario(), getEventHandlers(), getNumberOfTicks(), smb,
-        isIgnoreRedundantHandlers());
+          isIgnoreRedundantHandlers());
     }
 
     @SuppressWarnings("unchecked")
@@ -423,43 +424,44 @@ public final class ScenarioController extends AbstractModel<StopModel>
     public ScenarioController build(DependencyProvider dependencyProvider) {
       final SimulatorAPI sim = dependencyProvider.get(SimulatorAPI.class);
       final ClockController clock = dependencyProvider
-        .get(ClockController.class);
+          .get(ClockController.class);
 
       final Scenario s = getScenario();
       final Set<Class<?>> required = collectClasses(s.getEvents());
       final Map<Class<? extends TimedEvent>, TimedEventHandler<?>> m =
-        newLinkedHashMap(getEventHandlers());
+          newLinkedHashMap(getEventHandlers());
       final Set<Class<? extends TimedEvent>> covered =
-        newLinkedHashSet(getEventHandlers().keySet());
+          newLinkedHashSet(getEventHandlers().keySet());
 
       for (final Class<?> c : required) {
         if (!covered.remove(c)) {
           checkState(TimedEvent.class.isAssignableFrom(c.getSuperclass()),
-            "No handler found for event %s.", c);
+              "No handler found for event %s.", c);
           checkState(covered.remove(c.getSuperclass()),
-            "No handler found for event %s.", c.getSuperclass());
+              "No handler found for event %s.", c.getSuperclass());
 
-          checkState(m.containsKey(c.getSuperclass()), "Cannot place a handler");
+          checkState(m.containsKey(c.getSuperclass()),
+              "Cannot place a handler");
           m.put((Class<TimedEvent>) c, m.get(c.getSuperclass()));
           m.remove(c.getSuperclass());
         }
       }
       checkState(isIgnoreRedundantHandlers() || covered.isEmpty(),
-        "Found redundant handlers for type(s): %s.", covered, m.entrySet());
+          "Found redundant handlers for type(s): %s.", covered, m.entrySet());
       return new ScenarioController(sim, clock, s, ImmutableMap.copyOf(m),
-        getNumberOfTicks());
+          getNumberOfTicks());
     }
 
     @Override
     public ImmutableSet<ModelBuilder<?, ?>> getChildren() {
-      return ImmutableSet.<ModelBuilder<?, ?>> builder()
-        .addAll(getScenario().getModelBuilders())
-        .add(getStopModelBuilder())
-        .build();
+      return ImmutableSet.<ModelBuilder<?, ?>>builder()
+          .addAll(getScenario().getModelBuilders())
+          .add(getStopModelBuilder())
+          .build();
     }
 
     private static ImmutableSet<Class<?>> collectClasses(
-      Iterable<? extends TimedEvent> objs) {
+        Iterable<? extends TimedEvent> objs) {
       return FluentIterable.from(objs).transform(ToClassFunc.INSTANCE).toSet();
     }
 
@@ -475,21 +477,21 @@ public final class ScenarioController extends AbstractModel<StopModel>
 
     static Builder create(Scenario scen) {
       final int ticks = scen.getTimeWindow().end == Long.MAX_VALUE ? -1
-        : (int) (scen.getTimeWindow().end - scen.getTimeWindow().begin);
+          : (int) (scen.getTimeWindow().end - scen.getTimeWindow().begin);
 
       return create(
-        scen,
-        ImmutableMap.<Class<? extends TimedEvent>, TimedEventHandler<?>> of(),
-        ticks,
-        StopModelBuilder.create(scen.getStopCondition()), false);
+          scen,
+          ImmutableMap.<Class<? extends TimedEvent>, TimedEventHandler<?>>of(),
+          ticks,
+          StopModelBuilder.create(scen.getStopCondition()), false);
     }
 
     static Builder create(Scenario scen,
-      ImmutableMap<Class<? extends TimedEvent>, TimedEventHandler<?>> handlers,
-      int ticks,
-      StopModelBuilder stop, boolean ignoreRedundantHandlers) {
+        ImmutableMap<Class<? extends TimedEvent>, TimedEventHandler<?>> handlers,
+        int ticks,
+        StopModelBuilder stop, boolean ignoreRedundantHandlers) {
       return new AutoValue_ScenarioController_Builder(scen, handlers, ticks,
-        stop, ignoreRedundantHandlers);
+          stop, ignoreRedundantHandlers);
     }
   }
 
@@ -522,7 +524,7 @@ public final class ScenarioController extends AbstractModel<StopModel>
 
   @AutoValue
   abstract static class StopModelBuilder extends
-    AbstractModelBuilder<StopModel, Void> {
+      AbstractModelBuilder<StopModel, Void> {
 
     abstract StopCondition stopCondition();
 
@@ -530,8 +532,9 @@ public final class ScenarioController extends AbstractModel<StopModel>
 
     @Override
     public StopModel build(DependencyProvider dependencyProvider) {
-      final ImmutableClassToInstanceMap.Builder<Object> b = ImmutableClassToInstanceMap
-        .builder();
+      final ImmutableClassToInstanceMap.Builder<Object> b =
+          ImmutableClassToInstanceMap
+              .builder();
       for (final Class<?> c : dependencies()) {
         put(b, c, dependencyProvider);
       }
@@ -545,13 +548,13 @@ public final class ScenarioController extends AbstractModel<StopModel>
 
     // helper method for dealing with generics
     static <T> void put(ImmutableClassToInstanceMap.Builder<Object> b,
-      Class<T> c, DependencyProvider dp) {
+        Class<T> c, DependencyProvider dp) {
       b.put(c, dp.get(c));
     }
 
     static StopModelBuilder create(StopCondition sc) {
       return new AutoValue_ScenarioController_StopModelBuilder(sc,
-        sc.getTypes()).init();
+          sc.getTypes()).init();
     }
   }
 }

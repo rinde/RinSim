@@ -18,7 +18,7 @@ package com.github.rinde.rinsim.cli;
 /**
  * Implementations should handle the activation of an option.
  * @param <S> The type of subject this handler expects.
- * @author Rinde van Lon 
+ * @author Rinde van Lon
  */
 public interface NoArgHandler<S> {
   /**

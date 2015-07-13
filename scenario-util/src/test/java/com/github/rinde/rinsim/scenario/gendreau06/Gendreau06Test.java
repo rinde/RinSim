@@ -80,7 +80,7 @@ public class Gendreau06Test {
 
   @Parameters
   public static Collection<Object[]> data() {
-    final Object[][] data = new Object[][] { { true }, { false } };
+    final Object[][] data = new Object[][] {{true}, {false}};
     return Arrays.asList(data);
   }
 

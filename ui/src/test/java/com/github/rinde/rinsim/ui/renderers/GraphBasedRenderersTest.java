@@ -50,59 +50,53 @@ public class GraphBasedRenderersTest {
   @Test
   public void testRenderer() {
     final ListenableGraph<LengthData> graph = new ListenableGraph<>(
-      new TableGraph<LengthData>());
+        new TableGraph<LengthData>());
 
     Graphs.addPath(graph, new Point(0, 0), new Point(10, 0), new Point(10,
-      10), new Point(0, 10), new Point(0, 0));
+        10), new Point(0, 10), new Point(0, 0));
 
     final Simulator sim = Simulator.builder()
-      .addModel(RoadModelBuilders.dynamicGraph(graph)
-        .withCollisionAvoidance()
-        .withDistanceUnit(SI.METER))
-      .addModel(
-        View.builder()
-          .with(WarehouseRenderer.builder()
-            .withMargin(0)
-            .withOneWayStreetArrows()
-            .withNodeOccupancy()
-            .withNodes()
-          )
-          .with(AGVRenderer.builder()
-            .withVehicleCreationNumber()
-            .withDifferentColorsForVehicles()
-            .withVehicleCoordinates()
-            .withVehicleOrigin()
-          )
-          .with(GraphRoadModelRenderer.builder()
-            .withDirectionArrows()
-            .withNodeCoordinates()
-            .withMargin(1)
-            .withNodeCircles()
-          )
-          .withAutoPlay()
-          .withSimulatorEndTime(300 * 1000L)
-          .withAutoClose()
-          .withSpeedUp(8)
-      )
+        .addModel(RoadModelBuilders.dynamicGraph(graph)
+            .withCollisionAvoidance()
+            .withDistanceUnit(SI.METER))
+        .addModel(
+            View.builder()
+                .with(WarehouseRenderer.builder()
+                    .withMargin(0)
+                    .withOneWayStreetArrows()
+                    .withNodeOccupancy()
+                    .withNodes())
+                .with(AGVRenderer.builder()
+                    .withVehicleCreationNumber()
+                    .withDifferentColorsForVehicles()
+                    .withVehicleCoordinates()
+                    .withVehicleOrigin())
+                .with(GraphRoadModelRenderer.builder()
+                    .withDirectionArrows()
+                    .withNodeCoordinates()
+                    .withMargin(1)
+                    .withNodeCircles())
+                .withAutoPlay()
+                .withSimulatorEndTime(300 * 1000L)
+                .withAutoClose()
+                .withSpeedUp(8))
 
-      .build();
+    .build();
 
     graph.addConnection(new Point(0, 0), new Point(20, 20));
     Graphs.addPath(graph, new Point(0, 0), new Point(0, 20),
-      new Point(20, 20), new Point(20, 0), new Point(0, 0));
+        new Point(20, 20), new Point(20, 0), new Point(0, 0));
     Graphs.addBiPath(graph, new Point(20, 0), new Point(40, 0),
-      new Point(40, 20), new Point(20, 20));
+        new Point(40, 20), new Point(20, 20));
 
-    Graphs.addBiPath(graph, new Point(20, 20), new Point(40, 35), new
-      Point(60,
+    Graphs.addBiPath(graph, new Point(20, 20), new Point(40, 35), new Point(60,
         20), new Point(60, 10), new Point(40, 20));
 
     Graphs.addPath(graph, new Point(60, 10), new Point(60, 6),
-      new Point(56, 6),
-      new Point(60, 2), new Point(40, 0));
+        new Point(56, 6),
+        new Point(60, 2), new Point(40, 0));
 
-    Graphs.addBiPath(graph, new Point(20, 20), new Point(20, 30), new
-      Point(20,
+    Graphs.addBiPath(graph, new Point(20, 20), new Point(20, 30), new Point(20,
         40));
 
     for (int i = 0; i < 4; i++) {

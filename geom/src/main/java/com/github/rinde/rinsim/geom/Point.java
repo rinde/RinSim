@@ -94,9 +94,9 @@ public class Point implements Serializable {
   /**
    * Parses the specified string to a point. Example inputs:
    * <ul>
-   * <li> <code>(10.0,2)</code></li>
-   * <li> <code>5,6</code></li>
-   * <li> <code>(7.3242349832,0</code></li>
+   * <li><code>(10.0,2)</code></li>
+   * <li><code>5,6</code></li>
+   * <li><code>(7.3242349832,0</code></li>
    * </ul>
    * @param pointString The string to parse.
    * @return A point.
@@ -104,7 +104,8 @@ public class Point implements Serializable {
   public static Point parsePoint(String pointString) {
     final String[] parts = pointString.replaceAll("\\(|\\)", "").split(
         NUM_SEPARATOR);
-    return new Point(Double.parseDouble(parts[0]), Double.parseDouble(parts[1]));
+    return new Point(Double.parseDouble(parts[0]),
+        Double.parseDouble(parts[1]));
   }
 
   /**

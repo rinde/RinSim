@@ -49,47 +49,47 @@ public class ScenarioIOTest {
   @Test
   public void test() {
     final Scenario.Builder sb = Scenario
-      .builder(Scenario.DEFAULT_PROBLEM_CLASS);
+        .builder(Scenario.DEFAULT_PROBLEM_CLASS);
 
     sb.addEvent(AddVehicleEvent.create(100,
-      VehicleDTO.builder()
-        .startPosition(new Point(7, 7))
-        .speed(7d)
-        .capacity(2)
-        .availabilityTimeWindow(new TimeWindow(0, 1000L))
-        .build()))
-      .addEvent(AddDepotEvent.create(76, new Point(3, 3)))
-      .addEvent(AddVehicleEvent.create(125,
         VehicleDTO.builder()
-          .startPosition(new Point(6, 9))
-          .speed(3d)
-          .capacity(1)
-          .availabilityTimeWindow(new TimeWindow(500, 10000L))
-          .build()))
-      .addEvent(AddParcelEvent.create(
-        Parcel.builder(new Point(0, 0), new Point(1, 1))
-          .pickupTimeWindow(new TimeWindow(2500, 10000))
-          .deliveryTimeWindow(new TimeWindow(5000, 10000))
-          .neededCapacity(0)
-          .orderAnnounceTime(2400)
-          .pickupDuration(200)
-          .deliveryDuration(800)
-          .buildDTO()))
-      .addEvent(TimeOutEvent.create(200000))
-      .addModel(RoadModelBuilders.plane()
-        .withDistanceUnit(SI.CENTIMETER)
-        .withMaxPoint(new Point(7d, 8.4))
-        .withMinPoint(new Point(-1, 3))
-        .withMaxSpeed(7d)
-        .withSpeedUnit(NonSI.MILES_PER_HOUR))
-      .addModel(DefaultPDPModel.builder()
-        .withTimeWindowPolicy(TimeWindowPolicies.STRICT))
-      .setStopCondition(
-        StopConditions.and(StopConditions.alwaysTrue(),
-          StopConditions.limitedTime(1000)));
+            .startPosition(new Point(7, 7))
+            .speed(7d)
+            .capacity(2)
+            .availabilityTimeWindow(new TimeWindow(0, 1000L))
+            .build()))
+        .addEvent(AddDepotEvent.create(76, new Point(3, 3)))
+        .addEvent(AddVehicleEvent.create(125,
+            VehicleDTO.builder()
+                .startPosition(new Point(6, 9))
+                .speed(3d)
+                .capacity(1)
+                .availabilityTimeWindow(new TimeWindow(500, 10000L))
+                .build()))
+        .addEvent(AddParcelEvent.create(
+            Parcel.builder(new Point(0, 0), new Point(1, 1))
+                .pickupTimeWindow(new TimeWindow(2500, 10000))
+                .deliveryTimeWindow(new TimeWindow(5000, 10000))
+                .neededCapacity(0)
+                .orderAnnounceTime(2400)
+                .pickupDuration(200)
+                .deliveryDuration(800)
+                .buildDTO()))
+        .addEvent(TimeOutEvent.create(200000))
+        .addModel(RoadModelBuilders.plane()
+            .withDistanceUnit(SI.CENTIMETER)
+            .withMaxPoint(new Point(7d, 8.4))
+            .withMinPoint(new Point(-1, 3))
+            .withMaxSpeed(7d)
+            .withSpeedUnit(NonSI.MILES_PER_HOUR))
+        .addModel(DefaultPDPModel.builder()
+            .withTimeWindowPolicy(TimeWindowPolicies.STRICT))
+        .setStopCondition(
+            StopConditions.and(StopConditions.alwaysTrue(),
+                StopConditions.limitedTime(1000)));
 
     final List<ProblemClass> pcs = asList(TestProblemClass.TEST,
-      SimpleProblemClass.create("hello"));
+        SimpleProblemClass.create("hello"));
     for (final ProblemClass pc : pcs) {
       ScenarioTestUtil.assertScenarioIO(sb.problemClass(pc).build());
     }

@@ -96,7 +96,7 @@ public final class SolverModel extends AbstractModel<SolverUser> {
 
     @Override
     public SimSolverBuilder setVehicles(
-      Iterable<? extends Vehicle> vehicles) {
+        Iterable<? extends Vehicle> vehicles) {
       vehiclesList = ImmutableList.copyOf(vehicles);
       return this;
     }
@@ -104,7 +104,7 @@ public final class SolverModel extends AbstractModel<SolverUser> {
     @Override
     public SimSolver build(Solver s) {
       return new SimSolver(Optional.of(s), roadModel, pdpModel, clock,
-        vehiclesList);
+          vehiclesList);
     }
   }
 
@@ -114,7 +114,7 @@ public final class SolverModel extends AbstractModel<SolverUser> {
    */
   @AutoValue
   public abstract static class Builder extends
-    AbstractModelBuilder<SolverModel, SolverUser>implements Serializable {
+      AbstractModelBuilder<SolverModel, SolverUser>implements Serializable {
 
     private static final long serialVersionUID = -4369279105715776943L;
 

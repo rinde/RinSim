@@ -91,7 +91,7 @@ public final class WarehouseRenderer extends AbstractCanvasRenderer {
     graph = model.getGraph();
     margin = builder.margin() + m.getVehicleLength() / 2d;
     drawOneWayStreetArrows = builder.vizOptions().contains(
-      DRAW_ONE_WAY_STREET_ARROWS);
+        DRAW_ONE_WAY_STREET_ARROWS);
     showNodeOccupancy = builder.vizOptions().contains(SHOW_NODE_OCCUPANCY);
     showNodes = builder.vizOptions().contains(SHOW_NODES);
     adapter = new RenderHelper();
@@ -100,14 +100,15 @@ public final class WarehouseRenderer extends AbstractCanvasRenderer {
     final double roadWidth = model.getVehicleLength();
     halfRoadWidth = roadWidth / 2d;
     arrowDimensions = new Point(
-      ARROW_HEAD_REL_DIM.x * roadWidth,
-      ARROW_HEAD_REL_DIM.y * roadWidth);
+        ARROW_HEAD_REL_DIM.x * roadWidth,
+        ARROW_HEAD_REL_DIM.y * roadWidth);
   }
 
   private Table<Point, Point, Connection<?>> filterConnections() {
     // filter connections to avoid double work for bidirectional roads
-    final Table<Point, Point, Connection<?>> filteredConnections = HashBasedTable
-      .create();
+    final Table<Point, Point, Connection<?>> filteredConnections =
+        HashBasedTable
+            .create();
     for (final Connection<?> e : graph.getConnections()) {
       if (!filteredConnections.contains(e.to(), e.from())) {
         filteredConnections.put(e.from(), e.to(), e);
@@ -118,7 +119,8 @@ public final class WarehouseRenderer extends AbstractCanvasRenderer {
 
   private void drawConnections() {
     // filter connections to avoid double work for bidirectional roads
-    final Table<Point, Point, Connection<?>> filteredConnections = filterConnections();
+    final Table<Point, Point, Connection<?>> filteredConnections =
+        filterConnections();
 
     adapter.setForegroundSysCol(SWT.COLOR_DARK_GRAY);
     adapter.setBackgroundSysCol(SWT.COLOR_DARK_GRAY);
@@ -129,11 +131,11 @@ public final class WarehouseRenderer extends AbstractCanvasRenderer {
         if (PointUtil.length(e) > SHORT_CONNECTION_LENGTH * vehicleLength) {
           final Point start1 = PointUtil.on(e, vehicleLength);
           final Point end1 = PointUtil.on(e,
-            vehicleLength + arrowDimensions.y * 2);
+              vehicleLength + arrowDimensions.y * 2);
           adapter.drawArrow(start1, end1, arrowDimensions.x, arrowDimensions.y);
 
           final Point start2 = PointUtil.on(e.to(), e.from(),
-            vehicleLength + arrowDimensions.y * 2);
+              vehicleLength + arrowDimensions.y * 2);
           final Point end2 = PointUtil.on(e.to(), e.from(), vehicleLength);
           adapter.drawArrow(start2, end2, arrowDimensions.x, arrowDimensions.y);
         } else {
@@ -186,13 +188,13 @@ public final class WarehouseRenderer extends AbstractCanvasRenderer {
             assert o1 != null;
             assert o2 != null;
             return Double.compare(PointUtil.angle(p, o1),
-              PointUtil.angle(p, o2));
+                PointUtil.angle(p, o2));
           }
         });
 
         neighbors.add(neighbors.get(0));
         final PeekingIterator<Point> it = Iterators.peekingIterator(neighbors
-          .iterator());
+            .iterator());
 
         for (Point n = it.next(); it.hasNext(); n = it.next()) {
           if (!it.hasNext()) {
@@ -200,14 +202,14 @@ public final class WarehouseRenderer extends AbstractCanvasRenderer {
           }
           final Point a = PointUtil.perp(p, n, vehicleLength, -halfRoadWidth);
           final Point a2 = PointUtil
-            .perp(p, n, vehicleLength + 1, -halfRoadWidth);
+              .perp(p, n, vehicleLength + 1, -halfRoadWidth);
           final Point b = PointUtil.perp(p, it.peek(), vehicleLength,
-            halfRoadWidth);
+              halfRoadWidth);
           final Point b2 = PointUtil.perp(p, it.peek(), vehicleLength + 1,
-            halfRoadWidth);
+              halfRoadWidth);
           final Optional<Point> intersect = PointUtil.intersectionPoint(a, a2,
-            b,
-            b2);
+              b,
+              b2);
 
           if (intersect.isPresent()) {
             final Point control = intersect.get();
@@ -245,11 +247,11 @@ public final class WarehouseRenderer extends AbstractCanvasRenderer {
   @Override
   public Optional<ViewRect> getViewRect() {
     checkState(!graph.isEmpty(),
-      "graph may not be empty at this point");
+        "graph may not be empty at this point");
     final List<Point> extremes = Graphs.getExtremes(graph);
     return Optional.of(new ViewRect(
-      PointUtil.sub(extremes.get(0), margin),
-      PointUtil.add(extremes.get(1), margin)));
+        PointUtil.sub(extremes.get(0), margin),
+        PointUtil.add(extremes.get(1), margin)));
   }
 
   /**
@@ -270,7 +272,7 @@ public final class WarehouseRenderer extends AbstractCanvasRenderer {
    */
   @AutoValue
   public abstract static class Builder extends
-    AbstractModelBuilder<WarehouseRenderer, Void> {
+      AbstractModelBuilder<WarehouseRenderer, Void> {
 
     Builder() {
       setDependencies(CollisionGraphRoadModel.class);
@@ -324,11 +326,11 @@ public final class WarehouseRenderer extends AbstractCanvasRenderer {
     @Override
     public WarehouseRenderer build(DependencyProvider dependencyProvider) {
       return new WarehouseRenderer(this,
-        dependencyProvider.get(CollisionGraphRoadModel.class));
+          dependencyProvider.get(CollisionGraphRoadModel.class));
     }
 
     static Builder create() {
-      return create(0d, ImmutableSet.<VizOptions> of());
+      return create(0d, ImmutableSet.<VizOptions>of());
     }
 
     static Builder create(double m, ImmutableSet<VizOptions> opts) {
@@ -336,9 +338,9 @@ public final class WarehouseRenderer extends AbstractCanvasRenderer {
     }
 
     static Builder create(double m, VizOptions opt,
-      ImmutableSet<VizOptions> more) {
+        ImmutableSet<VizOptions> more) {
       return create(
-        m, Sets.immutableEnumSet(opt, more.toArray(new VizOptions[] {})));
+          m, Sets.immutableEnumSet(opt, more.toArray(new VizOptions[] {})));
     }
   }
 }

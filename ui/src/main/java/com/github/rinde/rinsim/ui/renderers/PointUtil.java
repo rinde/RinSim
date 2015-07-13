@@ -64,11 +64,13 @@ final class PointUtil {
     return angle(connection.from(), connection.to());
   }
 
-  static Point perp(Connection<?> conn, double distOnLine, double distFromLine) {
+  static Point perp(Connection<?> conn, double distOnLine,
+      double distFromLine) {
     return PointUtil.perp(conn.from(), conn.to(), distOnLine, distFromLine);
   }
 
-  static Point perp(Point from, Point to, double distOnLine, double distFromLine) {
+  static Point perp(Point from, Point to, double distOnLine,
+      double distFromLine) {
     final Point on = PointUtil.on(from, to, distOnLine);
     final Point unit = PointUtil.unit(from, to);
     return new Point(

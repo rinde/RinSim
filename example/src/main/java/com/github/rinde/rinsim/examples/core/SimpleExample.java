@@ -64,37 +64,36 @@ public final class SimpleExample {
     // (indicating its boundaries), and the drivers are rendered as red
     // dots.
     View.Builder viewBuilder = View.builder()
-      .with(PlaneRoadModelRenderer.builder())
-      .with(RoadUserRenderer.builder());
+        .with(PlaneRoadModelRenderer.builder())
+        .with(RoadUserRenderer.builder());
 
     if (testing) {
       final int speedUp = 16;
       final long simulatorStopTime = 10 * 60 * 1000;
       viewBuilder = viewBuilder
-        .withSpeedUp(speedUp)
-        .withAutoClose()
-        .withAutoPlay()
-        .withSimulatorEndTime(simulatorStopTime);
+          .withSpeedUp(speedUp)
+          .withAutoClose()
+          .withAutoPlay()
+          .withSimulatorEndTime(simulatorStopTime);
     }
 
     // initialize a new Simulator instance
     final Simulator sim = Simulator.builder()
-      // set the length of a simulation 'tick'
-      .setTickLength(1000L)
-      // set the random seed we use in this 'experiment'
-      .setRandomSeed(123L)
-      // add a PlaneRoadModel, a model which facilitates the moving of
-      // RoadUsers on a plane. The plane is bounded by two corner points:
-      // (0,0) and (10,10)
-      .addModel(
-        RoadModelBuilders.plane()
-          .withMinPoint(MIN_POINT)
-          .withMaxPoint(MAX_POINT)
-          .withMaxSpeed(VEHICLE_SPEED_KMH)
-      )
-      // in case a GUI is not desired simply don't add it.
-      .addModel(viewBuilder)
-      .build();
+        // set the length of a simulation 'tick'
+        .setTickLength(1000L)
+        // set the random seed we use in this 'experiment'
+        .setRandomSeed(123L)
+        // add a PlaneRoadModel, a model which facilitates the moving of
+        // RoadUsers on a plane. The plane is bounded by two corner points:
+        // (0,0) and (10,10)
+        .addModel(
+            RoadModelBuilders.plane()
+                .withMinPoint(MIN_POINT)
+                .withMaxPoint(MAX_POINT)
+                .withMaxSpeed(VEHICLE_SPEED_KMH))
+        // in case a GUI is not desired simply don't add it.
+        .addModel(viewBuilder)
+        .build();
 
     // add a number of drivers on the road
     final int numDrivers = 200;

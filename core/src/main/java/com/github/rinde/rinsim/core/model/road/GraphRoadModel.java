@@ -115,8 +115,7 @@ public class GraphRoadModel extends AbstractRoadModel<Loc> {
    */
   protected double computeTravelableDistance(Loc from, Point to, double speed,
       long timeLeft, Unit<Duration> timeUnit) {
-    return speed
-        * unitConversion.toInTime(timeLeft, timeUnit);
+    return speed * unitConversion.toInTime(timeLeft, timeUnit);
   }
 
   /**
@@ -155,13 +154,15 @@ public class GraphRoadModel extends AbstractRoadModel<Loc> {
           path.peek(), speed, timeLeft, time.getTimeUnit());
       checkState(
           travelableDistance >= 0d,
-          "Found a bug in computeTravelableDistance, return value must be >= 0, but is %s.",
+          "Found a bug in computeTravelableDistance, return value must be >= 0,"
+              + " but is %s.",
           travelableDistance);
       final double connLength = unitConversion.toInDist(
           computeDistanceOnConnection(tempLoc, path.peek()));
       checkState(
           connLength >= 0d,
-          "Found a bug in computeDistanceOnConnection, return value must be >= 0, but is %s.",
+          "Found a bug in computeDistanceOnConnection, return value must be "
+              + ">= 0, but is %s.",
           connLength);
 
       double traveledDistance;
@@ -207,25 +208,29 @@ public class GraphRoadModel extends AbstractRoadModel<Loc> {
       // check if next destination is a MidPoint
       checkArgument(
           nextHop instanceof Loc,
-          "Illegal path for this object, from a position on a connection we can not jump to another connection or go back. From %s, to %s.",
+          "Illegal path for this object, from a position on a connection we can"
+              + " not jump to another connection or go back. From %s, to %s.",
           objLoc, nextHop);
       final Loc dest = (Loc) nextHop;
       // check for same conn
       checkArgument(
           objLoc.isOnSameConnection(dest),
-          "Illegal path for this object, first point is not on the same connection as the object.");
+          "Illegal path for this object, first point is not on the same "
+              + "connection as the object.");
       // check for relative position
       checkArgument(objLoc.relativePos <= dest.relativePos,
-          "Illegal path for this object, can not move backward over an connection.");
-    }
-    // in case we start from a node and we are not going to another node
-    else if (!objLoc.isOnConnection() && !nextHop.equals(objLoc)
+          "Illegal path for this object, can not move backward over an "
+              + "connection.");
+    } else if (!objLoc.isOnConnection() && !nextHop.equals(objLoc)
         && !graph.hasConnection(objLoc, nextHop)) {
+      // in case we start from a node and we are not going to another node
       checkArgument(nextHop instanceof Loc,
-          "Illegal path, first point should be directly connected to object location.");
+          "Illegal path, first point should be directly connected to object "
+              + "location.");
       final Loc dest = (Loc) nextHop;
       checkArgument(graph.hasConnection(objLoc, dest.conn.get().to()),
-          "Illegal path, first point is on an connection not connected to object location. ");
+          "Illegal path, first point is on an connection not connected to "
+              + "object location. ");
       checkArgument(objLoc.equals(dest.conn.get().from()),
           "Illegal path, first point is on a different connection.");
     }
@@ -321,7 +326,8 @@ public class GraphRoadModel extends AbstractRoadModel<Loc> {
     final boolean fromIsOnConn = isOnConnection(from);
     final boolean toIsOnConn = isOnConnection(to);
     Connection<?> conn;
-    final String errorMsg = "The specified points must be part of the same connection.";
+    final String errorMsg =
+        "The specified points must be part of the same connection.";
     if (fromIsOnConn) {
       final Loc start = (Loc) from;
       if (toIsOnConn) {
@@ -338,7 +344,8 @@ public class GraphRoadModel extends AbstractRoadModel<Loc> {
     } else {
       checkArgument(
           graph.hasConnection(from, to),
-          "The specified points (%s and %s) must be part of an existing connection in the graph.",
+          "The specified points (%s and %s) must be part of an existing "
+              + "connection in the graph.",
           from, to);
       conn = graph.getConnection(from, to);
     }

@@ -61,21 +61,21 @@ public class SolverSimTest {
   @Test
   public void testOffline() throws IOException {
     final Gendreau06Scenario scenario = Gendreau06Parser.parser()
-      .addFile(ScenarioPaths.GENDREAU)
-      .offline()
-      .parse()
-      .get(0);
+        .addFile(ScenarioPaths.GENDREAU)
+        .offline()
+        .parse()
+        .get(0);
 
     final RandomGenerator rng = new MersenneTwister(123);
     for (int i = 0; i < 5; i++) {
       final long seed = rng.nextLong();
       final DebugSolverCreator dsc = new DebugSolverCreator(seed,
-        SI.MILLI(SI.SECOND));
+          SI.MILLI(SI.SECOND));
       final Gendreau06ObjectiveFunction obj = Gendreau06ObjectiveFunction
-        .instance();
+          .instance();
       final ExperimentResults results = Experiment.build(obj)
-        .addConfiguration(Central.solverConfiguration(dsc))
-        .addScenario(scenario).perform();
+          .addConfiguration(Central.solverConfiguration(dsc))
+          .addScenario(scenario).perform();
       assertEquals(1, results.results.size());
       assertEquals(1, dsc.arraysSolver.getInputs().size());
       assertEquals(1, dsc.arraysSolver.getOutputs().size());
@@ -89,22 +89,22 @@ public class SolverSimTest {
       // convert the objective values computed by the solver to the unit of the
       // gendreau benchmark (minutes).
       final UnitConverter converter = SI.MILLI(SI.SECOND).getConverterTo(
-        NonSI.MINUTE);
+          NonSI.MINUTE);
       final double objValInMinutes = converter.convert(objVal);
 
       final GlobalStateObject solverInput = dsc.solver.getInputs().get(0);
       final ImmutableList<ImmutableList<Parcel>> solverOutput = dsc.solver
-        .getOutputs().get(0);
+          .getOutputs().get(0);
 
       assertEquals(obj.computeCost(results.results.asList().get(0).stats),
-        objValInMinutes, 0.2);
+          objValInMinutes, 0.2);
 
       final StatisticsDTO stats = Solvers.computeStats(solverInput,
-        solverOutput);
+          solverOutput);
       assertTrue(stats.toString(), obj.isValidResult(stats));
       assertEquals(objValInMinutes, obj.computeCost(stats), 0.1);
       assertEquals(objValInMinutes,
-        decomposedCost(solverInput, solverOutput, obj), 0.01);
+          decomposedCost(solverInput, solverOutput, obj), 0.01);
     }
   }
 
@@ -117,16 +117,16 @@ public class SolverSimTest {
   public void testOnline() throws IOException {
 
     final Gendreau06Scenario scenario = Gendreau06Parser
-      .parse(new File(ScenarioPaths.GENDREAU));
+        .parse(new File(ScenarioPaths.GENDREAU));
 
     final DebugSolverCreator dsc = new DebugSolverCreator(123,
-      SI.MILLI(SI.SECOND));
+        SI.MILLI(SI.SECOND));
 
     final Gendreau06ObjectiveFunction obj = Gendreau06ObjectiveFunction
-      .instance();
+        .instance();
     Experiment.build(obj).withThreads(1)
-      .addConfiguration(Central.solverConfiguration(dsc))
-      .addScenario(scenario).repeat(10).perform();
+        .addConfiguration(Central.solverConfiguration(dsc))
+        .addScenario(scenario).repeat(10).perform();
 
     final MVASDebugger arraysSolver = dsc.arraysSolver;
     final SolverDebugger solver = dsc.solver;
@@ -140,26 +140,26 @@ public class SolverSimTest {
       final GlobalStateObject solverInput = solver.getInputs().get(i);
 
       final ImmutableList<ImmutableList<Parcel>> solverOutput = solver
-        .getOutputs().get(i);
+          .getOutputs().get(i);
       final SolutionObject[] sols = arraysSolver.getOutputs().get(i);
       final MVArraysObject arrInput = arraysSolver.getInputs().get(i);
       assertEquals(solverOutput.size(), sols.length);
 
       final double arrObjVal = ArraysSolvers.computeTotalObjectiveValue(sols)
-        / MS_TO_MIN;
+          / MS_TO_MIN;
       final double arrOverTime = overTime(sols, arrInput) / MS_TO_MIN;
       final double arrTardiness = computeTardiness(sols, arrInput) / MS_TO_MIN;
       final double arrTravelTime = computeTravelTime(sols, arrInput)
-        / MS_TO_MIN;
+          / MS_TO_MIN;
 
       final ExtendedStats stats = (ExtendedStats) Solvers.computeStats(
-        solverInput, solverOutput);
+          solverInput, solverOutput);
 
       // check arrival times
       for (int j = 0; j < sols.length; j++) {
         final SolutionObject sol = sols[j];
         final long[] arraysArrivalTimes = incrArr(sol.arrivalTimes,
-          solverInput.getTime());
+            solverInput.getTime());
         final long[] arrivalTimes = Longs.toArray(stats.arrivalTimes.get(j));
         assertArrayEquals(arraysArrivalTimes, arrivalTimes);
       }
@@ -172,16 +172,16 @@ public class SolverSimTest {
       assertEquals(arrTardiness, tardiness, 0.001);
       assertEquals(arrObjVal, obj.computeCost(stats), 0.01);
       assertEquals(arrObjVal,
-        decomposedCost(solverInput, solverOutput, obj), 0.01);
+          decomposedCost(solverInput, solverOutput, obj), 0.01);
     }
   }
 
   static double decomposedCost(GlobalStateObject gso,
-    ImmutableList<ImmutableList<Parcel>> routes, ObjectiveFunction objFunc) {
+      ImmutableList<ImmutableList<Parcel>> routes, ObjectiveFunction objFunc) {
     double sum = 0d;
     for (int i = 0; i < gso.getVehicles().size(); i++) {
       sum += objFunc.computeCost(Solvers.computeStats(gso.withSingleVehicle(i),
-        ImmutableList.of(routes.get(i))));
+          ImmutableList.of(routes.get(i))));
     }
     return sum;
   }
@@ -200,7 +200,7 @@ public class SolverSimTest {
     for (int i = 0; i < sols.length; i++) {
       final SolutionObject sol = sols[i];
       total += ArraysSolvers.computeRouteTardiness(sol.route, sol.arrivalTimes,
-        arr.serviceTimes, arr.dueDates, arr.remainingServiceTimes[i]);
+          arr.serviceTimes, arr.dueDates, arr.remainingServiceTimes[i]);
     }
     return total;
   }
@@ -210,7 +210,7 @@ public class SolverSimTest {
     for (int i = 0; i < sols.length; i++) {
       final SolutionObject sol = sols[i];
       total += ArraysSolvers.computeTotalTravelTime(sol.route, arr.travelTime,
-        arr.vehicleTravelTimes[i]);
+          arr.vehicleTravelTimes[i]);
     }
     return total;
   }
@@ -222,8 +222,8 @@ public class SolverSimTest {
       final int index = sol.route.length - 1;
       assertEquals(0, arr.serviceTimes[sol.route[index]]);
       final int lateness = sol.arrivalTimes[index]
-        + arr.serviceTimes[sol.route[index]]
-        - arr.dueDates[sol.route[index]];
+          + arr.serviceTimes[sol.route[index]]
+          - arr.dueDates[sol.route[index]];
       if (lateness > 0) {
         overTime += lateness;
       }

@@ -35,8 +35,8 @@ import com.google.common.collect.ImmutableSet;
  * i.e. it is not responsible for movement.
  * @author Rinde van Lon
  */
-public abstract class PDPModel extends AbstractModel<PDPObject>implements
-    TickListener {
+public abstract class PDPModel extends AbstractModel<PDPObject>
+    implements TickListener {
 
   /**
    * The logger of the model.

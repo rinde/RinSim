@@ -186,8 +186,8 @@ public abstract class TimeModel extends AbstractModel<TickListener>
    *          builder.
    */
   public abstract static class AbstractBuilder<T>
-      extends
-      AbstractModelBuilder<TimeModel, TickListener>implements Serializable {
+      extends AbstractModelBuilder<TimeModel, TickListener>
+      implements Serializable {
 
     private static final long serialVersionUID = 4029776255118617541L;
 

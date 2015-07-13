@@ -87,7 +87,7 @@ public abstract class MultiAttributeData implements ConnectionData {
      */
     public Builder setLength(double len) {
       checkArgument(len >= 0d && Doubles.isFinite(len),
-        "Expected positive value for length but found %s.", length);
+          "Expected positive value for length but found %s.", length);
       length = Optional.of(len);
       return this;
     }
@@ -100,7 +100,7 @@ public abstract class MultiAttributeData implements ConnectionData {
      */
     public Builder setMaxSpeed(double speed) {
       checkArgument(speed > 0d && Doubles.isFinite(speed),
-        "Expected positive value for maxSpeed but found %s.", speed);
+          "Expected positive value for maxSpeed but found %s.", speed);
       maxSpeed = Optional.of(speed);
       return this;
     }
@@ -110,7 +110,8 @@ public abstract class MultiAttributeData implements ConnectionData {
      * @param map The attributes to add.
      * @return This, as per the builder pattern.
      */
-    public Builder addAllAttributes(Map<? extends String, ? extends Object> map) {
+    public Builder addAllAttributes(
+        Map<? extends String, ? extends Object> map) {
       attributes.putAll(map);
       return this;
     }
@@ -154,11 +155,11 @@ public abstract class MultiAttributeData implements ConnectionData {
      */
     public MultiAttributeData build() {
       checkArgument(!getAttributes().isEmpty()
-        || getLength().isPresent()
-        || getMaxSpeed().isPresent(),
-        "At least length, maxSpeed or another attribute must to be defined.");
+          || getLength().isPresent()
+          || getMaxSpeed().isPresent(),
+          "At least length, maxSpeed or another attribute must to be defined.");
       return new AutoValue_MultiAttributeData(length, maxSpeed,
-        ImmutableMap.copyOf(attributes));
+          ImmutableMap.copyOf(attributes));
     }
   }
 }

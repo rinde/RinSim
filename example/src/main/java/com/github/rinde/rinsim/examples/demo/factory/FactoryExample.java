@@ -75,7 +75,7 @@ public final class FactoryExample {
    */
   public static void main(@Nullable String[] args) {
     final long endTime = args != null && args.length >= 1 ? Long
-      .parseLong(args[0]) : Long.MAX_VALUE;
+        .parseLong(args[0]) : Long.MAX_VALUE;
 
     final Display d = new Display();
     @Nullable
@@ -90,14 +90,13 @@ public final class FactoryExample {
   }
 
   public static Simulator run(final long endTime, Display display,
-    @Nullable Monitor m, @Nullable Listener list) {
+      @Nullable Monitor m, @Nullable Listener list) {
 
     final Rectangle rect;
     if (m != null) {
       if (list != null) {
         rect = m.getClientArea();
-      }
-      else {// full screen
+      } else {// full screen
         rect = m.getBounds();
       }
     } else {
@@ -112,15 +111,16 @@ public final class FactoryExample {
     // screen
     if (rect.width == 1920) {
       // WORDS = asList("AgentWise\nKU Leuven", "iMinds\nDistriNet");
-      // WORDS = asList("  Agent \n  Wise ", "  Distri \n  Net  ");
+      // WORDS = asList(" Agent \n Wise ", " Distri \n Net ");
       WORDS = asList(" iMinds \nDistriNet");
       FONT_SIZE = 10;
       VERTICAL_LINE_SPACING = 6;
       NUM_VECHICLES = 12;
     }
 
-    final ImmutableList.Builder<ImmutableList<Point>> pointBuilder = ImmutableList
-      .builder();
+    final ImmutableList.Builder<ImmutableList<Point>> pointBuilder =
+        ImmutableList
+            .builder();
 
     for (final String word : WORDS) {
       pointBuilder.add(SwarmDemo.measureString(word, FONT_SIZE, SPACING, 2));
@@ -141,12 +141,13 @@ public final class FactoryExample {
     int width = DoubleMath.roundToInt(xMax / SPACING, RoundingMode.CEILING);
     width += VERTICAL_LINE_SPACING - width % VERTICAL_LINE_SPACING;
     width += width / VERTICAL_LINE_SPACING % 2 == 0 ? VERTICAL_LINE_SPACING
-      : 0;
+        : 0;
 
-    int height = DoubleMath.roundToInt(yMax / SPACING, RoundingMode.CEILING) + 2;
+    int height =
+        DoubleMath.roundToInt(yMax / SPACING, RoundingMode.CEILING) + 2;
     height += height % 2;
     final Graph<?> g = createGrid(width, height, 1, VERTICAL_LINE_SPACING,
-      SPACING);
+        SPACING);
 
     final List<Point> borderNodes = newArrayList(getBorderNodes(g));
     Collections.shuffle(borderNodes, new Random(123));
@@ -155,54 +156,50 @@ public final class FactoryExample {
     uis.add(AGV.class, "/graphics/flat/forklift2.png");
 
     View.Builder view = View.builder()
-      .with(GraphRoadModelRenderer.builder()
-        .withMargin(CANVAS_MARGIN))
-      .with(BoxRenderer.builder())
-      .with(
-        RoadUserRenderer.builder()
-          .withImageAssociation(AGV.class, "/graphics/flat/forklift2.png")
-      )
-      .withTitleAppendix("Factory Demo")
-      .withAutoPlay()
-      .withAutoClose()
-      .withSpeedUp(4);
+        .with(GraphRoadModelRenderer.builder()
+            .withMargin(CANVAS_MARGIN))
+        .with(BoxRenderer.builder())
+        .with(
+            RoadUserRenderer.builder()
+                .withImageAssociation(AGV.class,
+                    "/graphics/flat/forklift2.png"))
+        .withTitleAppendix("Factory Demo")
+        .withAutoPlay()
+        .withAutoClose()
+        .withSpeedUp(4);
 
     if (m != null) {
       view = view.withMonitor(m)
-        .withResolution(m.getClientArea().width, m.getClientArea().height)
-        .withDisplay(display);
+          .withResolution(m.getClientArea().width, m.getClientArea().height)
+          .withDisplay(display);
 
       if (list != null) {
         view = view.withCallback(list)
-          .withAsync();
-      }
-      else {
+            .withAsync();
+      } else {
         view = view.withFullScreen();
       }
     }
 
     final RandomGenerator rng = new MersenneTwister(123);
     final Simulator simulator = Simulator
-      .builder()
-      .setRandomGenerator(rng)
-      .addModel(
-        BlockingGraphRoadModel.blockingBuilder(g)
-          .withDistanceUnit(SI.METER)
-          .withSpeedUnit(NonSI.KILOMETERS_PER_HOUR)
-      )
-      .addModel(
-        DefaultPDPModel.builder()
-      )
-      .addModel(
-        AgvModel.builder().withPoints(
-          ImmutableList.<ImmutableList<Point>> builder()
-            .addAll(points)
-            .add(ImmutableList.copyOf(borderNodes))
-            .build(),
-          getBorderNodes(g))
-      )
-      .addModel(view)
-      .build();
+        .builder()
+        .setRandomGenerator(rng)
+        .addModel(
+            BlockingGraphRoadModel.blockingBuilder(g)
+                .withDistanceUnit(SI.METER)
+                .withSpeedUnit(NonSI.KILOMETERS_PER_HOUR))
+        .addModel(
+            DefaultPDPModel.builder())
+        .addModel(
+            AgvModel.builder().withPoints(
+                ImmutableList.<ImmutableList<Point>>builder()
+                    .addAll(points)
+                    .add(ImmutableList.copyOf(borderNodes))
+                    .build(),
+                getBorderNodes(g)))
+        .addModel(view)
+        .build();
 
     for (int i = 0; i < NUM_VECHICLES; i++) {
       final List<Point> l = points.get(rng.nextInt(points.size()));
@@ -231,13 +228,13 @@ public final class FactoryExample {
     for (int i = 0; i < points.length - 1; i++) {
       final double dist = Point.distance(points[i], points[i + 1]);
       final Point unit = Point.divide(Point.diff(points[i + 1], points[i]),
-        dist);
+          dist);
       final int numPoints = DoubleMath.roundToInt(dist / POINT_DISTANCE,
-        RoundingMode.FLOOR);
+          RoundingMode.FLOOR);
       for (int j = 0; j < numPoints; j++) {
         final double factor = j * POINT_DISTANCE;
         newPoints.add(new Point(points[i].x + factor * unit.x, points[i].y
-          + factor * unit.y));
+            + factor * unit.y));
       }
     }
     newPoints.add(points[points.length - 1]);
@@ -267,7 +264,7 @@ public final class FactoryExample {
   }
 
   static Graph<LengthData> createGrid(int width, int height, int hLines,
-    int vLines, double distance) {
+      int vLines, double distance) {
     final Graph<LengthData> graph = new MultimapGraph<LengthData>();
 
     int v = 0;

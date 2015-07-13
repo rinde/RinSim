@@ -104,35 +104,35 @@ public class RealtimeSolverTest {
   }
 
   static Simulator.Builder init(
-    TimedEventHandler<AddVehicleEvent> vehicleHandler,
-    Iterable<? extends TimedEvent> events) {
+      TimedEventHandler<AddVehicleEvent> vehicleHandler,
+      Iterable<? extends TimedEvent> events) {
 
     Scenario scenario = Scenario.builder()
-      .addEvent(AddDepotEvent.create(-1, new Point(5, 5)))
-      .addEvent(AddVehicleEvent.create(-1, VehicleDTO.builder().build()))
-      .addEvent(AddVehicleEvent.create(-1, VehicleDTO.builder().build()))
-      .addEvents(events)
-      .build();
+        .addEvent(AddDepotEvent.create(-1, new Point(5, 5)))
+        .addEvent(AddVehicleEvent.create(-1, VehicleDTO.builder().build()))
+        .addEvent(AddVehicleEvent.create(-1, VehicleDTO.builder().build()))
+        .addEvents(events)
+        .build();
 
     ScenarioController.Builder sb = ScenarioController.builder(scenario)
-      .withEventHandler(AddParcelEvent.class, AddParcelEvent.defaultHandler())
-      .withEventHandler(AddVehicleEvent.class, vehicleHandler)
-      .withEventHandler(AddDepotEvent.class, AddDepotEvent.defaultHandler())
-      .withEventHandler(TimeOutEvent.class,
-        TimeOutEvent.ignoreHandler())
-      .withOrStopCondition(StatsStopConditions.vehiclesDoneAndBackAtDepot())
-      .withOrStopCondition(StatsStopConditions.timeOutEvent());
+        .withEventHandler(AddParcelEvent.class, AddParcelEvent.defaultHandler())
+        .withEventHandler(AddVehicleEvent.class, vehicleHandler)
+        .withEventHandler(AddDepotEvent.class, AddDepotEvent.defaultHandler())
+        .withEventHandler(TimeOutEvent.class,
+            TimeOutEvent.ignoreHandler())
+        .withOrStopCondition(StatsStopConditions.vehiclesDoneAndBackAtDepot())
+        .withOrStopCondition(StatsStopConditions.timeOutEvent());
 
     return Simulator.builder()
-      .addModel(PDPRoadModel.builder(RoadModelBuilders.plane())
-        .withAllowVehicleDiversion(true))
-      .addModel(DefaultPDPModel.builder())
-      .addModel(TimeModel.builder()
-        .withRealTime()
-        .withStartInClockMode(ClockMode.SIMULATED)
-        .withTickLength(100))
-      .addModel(sb)
-      .addModel(StatsTracker.builder());
+        .addModel(PDPRoadModel.builder(RoadModelBuilders.plane())
+            .withAllowVehicleDiversion(true))
+        .addModel(DefaultPDPModel.builder())
+        .addModel(TimeModel.builder()
+            .withRealTime()
+            .withStartInClockMode(ClockMode.SIMULATED)
+            .withTickLength(100))
+        .addModel(sb)
+        .addModel(StatsTracker.builder());
   }
 
   /**
@@ -142,28 +142,28 @@ public class RealtimeSolverTest {
   @Test
   public void testDynamicClockModeSwitching() {
     List<TimedEvent> events = asList(AddParcelEvent
-      .create(Parcel.builder(new Point(0, 0), new Point(3, 3))
-        .orderAnnounceTime(200)
-        .pickupTimeWindow(new TimeWindow(1000, 2000))
-        .buildDTO()),
-      AddParcelEvent
         .create(Parcel.builder(new Point(0, 0), new Point(3, 3))
-          .orderAnnounceTime(1000)
-          .pickupTimeWindow(new TimeWindow(60000, 80000))
-          .serviceDuration(180000L)
-          .buildDTO()),
-      TimeOutEvent.create(3000));
+            .orderAnnounceTime(200)
+            .pickupTimeWindow(new TimeWindow(1000, 2000))
+            .buildDTO()),
+        AddParcelEvent
+            .create(Parcel.builder(new Point(0, 0), new Point(3, 3))
+                .orderAnnounceTime(1000)
+                .pickupTimeWindow(new TimeWindow(60000, 80000))
+                .serviceDuration(180000L)
+                .buildDTO()),
+        TimeOutEvent.create(3000));
 
     Simulator sim = init(RtCentral.vehicleHandler(), events)
-      .addModel(
-        RtCentral.builder(StochasticSuppliers.constant(new TestRtSolver())))
-      .addModel(ClockInspectModel.builder())
-      .build();
+        .addModel(
+            RtCentral.builder(StochasticSuppliers.constant(new TestRtSolver())))
+        .addModel(ClockInspectModel.builder())
+        .build();
 
     sim.start();
 
     ClockInspectModel cim = sim.getModelProvider()
-      .getModel(ClockInspectModel.class);
+        .getModel(ClockInspectModel.class);
 
     cim.assertLog();
   }
@@ -175,32 +175,32 @@ public class RealtimeSolverTest {
   @Test
   public void testCentralRouteAssignment() {
     List<TimedEvent> events = asList(
-      AddParcelEvent.create(Parcel.builder(new Point(1, 1), new Point(3, 3))
-        .orderAnnounceTime(200)
-        .pickupTimeWindow(new TimeWindow(200, 2000))
-        .buildDTO()),
-      AddParcelEvent.create(Parcel.builder(new Point(1, 4), new Point(3, 4))
-        .orderAnnounceTime(60000)
-        .pickupTimeWindow(new TimeWindow(60000, 80000))
-        .serviceDuration(180000L)
-        .buildDTO()),
-      TimeOutEvent.create(1800000));
+        AddParcelEvent.create(Parcel.builder(new Point(1, 1), new Point(3, 3))
+            .orderAnnounceTime(200)
+            .pickupTimeWindow(new TimeWindow(200, 2000))
+            .buildDTO()),
+        AddParcelEvent.create(Parcel.builder(new Point(1, 4), new Point(3, 4))
+            .orderAnnounceTime(60000)
+            .pickupTimeWindow(new TimeWindow(60000, 80000))
+            .serviceDuration(180000L)
+            .buildDTO()),
+        TimeOutEvent.create(1800000));
 
     final List<RouteFollowingVehicle> vehicles = new ArrayList<>();
     Simulator sim = init(new TestVehicleHandler(vehicles), events)
-      .addModel(
-        RtCentral.builderAdapt(StochasticSuppliers.constant(new Solver() {
-          @Override
-          public ImmutableList<ImmutableList<Parcel>> solve(
-            GlobalStateObject state) {
-            return ImmutableList.of(ImmutableList.<Parcel> builder()
-              .addAll(state.getAvailableParcels())
-              .addAll(state.getAvailableParcels())
-              .build(),
-              ImmutableList.<Parcel> of());
-          }
-        })))
-      .build();
+        .addModel(
+            RtCentral.builderAdapt(StochasticSuppliers.constant(new Solver() {
+              @Override
+              public ImmutableList<ImmutableList<Parcel>> solve(
+                  GlobalStateObject state) {
+                return ImmutableList.of(ImmutableList.<Parcel>builder()
+                    .addAll(state.getAvailableParcels())
+                    .addAll(state.getAvailableParcels())
+                    .build(),
+                    ImmutableList.<Parcel>of());
+              }
+            })))
+        .build();
 
     final RoadModel rm = sim.getModelProvider().getModel(RoadModel.class);
     sim.register(new TickListener() {
@@ -209,7 +209,7 @@ public class RealtimeSolverTest {
       public void tick(TimeLapse timeLapse) {
         if (timeLapse.getStartTime() == 100) {
           assertThat(rm.getPosition(vehicles.get(0)))
-            .isEqualTo(new Point(0, 0));
+              .isEqualTo(new Point(0, 0));
           assertThat(vehicles.get(0).getRoute()).isEmpty();
           assertThat(vehicles.get(1).getRoute()).isEmpty();
         } else if (timeLapse.getStartTime() == 200) {
@@ -217,7 +217,7 @@ public class RealtimeSolverTest {
           // code is executed just before the tick implementation of the
           // vehicle, therefore the vehicle should not have moved yet.
           assertThat(rm.getPosition(vehicles.get(0)))
-            .isEqualTo(new Point(0, 0));
+              .isEqualTo(new Point(0, 0));
           assertThat(vehicles.get(0).getRoute()).hasSize(2);
           assertThat(vehicles.get(1).getRoute()).isEmpty();
         } else if (timeLapse.getStartTime() == 59900) {
@@ -236,7 +236,7 @@ public class RealtimeSolverTest {
           // check is to ensure that the vehicle moves at the earliest possible
           // time (which is in the same tick) towards the new order.
           assertThat(rm.getPosition(vehicles.get(0)))
-            .isNotEqualTo(new Point(0, 0));
+              .isNotEqualTo(new Point(0, 0));
           assertThat(vehicles.get(0).getRoute()).hasSize(2);
           assertThat(vehicles.get(1).getRoute()).isEmpty();
         }
@@ -259,39 +259,39 @@ public class RealtimeSolverTest {
     // 4. solver starts computing, and cancels computation of state1 (state2)
 
     List<TimedEvent> events = asList(
-      AddParcelEvent.create(Parcel.builder(new Point(1, 1), new Point(3, 3))
-        .orderAnnounceTime(200)
-        .pickupTimeWindow(new TimeWindow(200, 2000))
-        .buildDTO()),
-      AddParcelEvent.create(Parcel.builder(new Point(1, 4), new Point(3, 4))
-        .orderAnnounceTime(1000)
-        .pickupTimeWindow(new TimeWindow(1000, 80000))
-        .serviceDuration(180000L)
-        .buildDTO()),
-      TimeOutEvent.create(1800000));
+        AddParcelEvent.create(Parcel.builder(new Point(1, 1), new Point(3, 3))
+            .orderAnnounceTime(200)
+            .pickupTimeWindow(new TimeWindow(200, 2000))
+            .buildDTO()),
+        AddParcelEvent.create(Parcel.builder(new Point(1, 4), new Point(3, 4))
+            .orderAnnounceTime(1000)
+            .pickupTimeWindow(new TimeWindow(1000, 80000))
+            .serviceDuration(180000L)
+            .buildDTO()),
+        TimeOutEvent.create(1800000));
 
     RtSolverCheckerSupplierAdapter r = new RtSolverCheckerSupplierAdapter(
-      AdapterSupplier.create(StochasticSuppliers.constant(new Solver() {
-        @Override
-        public ImmutableList<ImmutableList<Parcel>> solve(
-          GlobalStateObject state) {
-          try {
-            Thread.sleep(1000);
-          } catch (InterruptedException e) {
-            throw new IllegalStateException(e);
+        AdapterSupplier.create(StochasticSuppliers.constant(new Solver() {
+          @Override
+          public ImmutableList<ImmutableList<Parcel>> solve(
+              GlobalStateObject state) {
+            try {
+              Thread.sleep(1000);
+            } catch (InterruptedException e) {
+              throw new IllegalStateException(e);
+            }
+            return ImmutableList.of(ImmutableList.<Parcel>builder()
+                .addAll(state.getAvailableParcels())
+                .addAll(state.getAvailableParcels())
+                .build(),
+                ImmutableList.<Parcel>of());
           }
-          return ImmutableList.of(ImmutableList.<Parcel> builder()
-            .addAll(state.getAvailableParcels())
-            .addAll(state.getAvailableParcels())
-            .build(),
-            ImmutableList.<Parcel> of());
-        }
-      })));
+        })));
 
     Simulator sim = init(RtCentral.vehicleHandler(), events)
-      .addModel(
-        RtCentral.builder(r))
-      .build();
+        .addModel(
+            RtCentral.builder(r))
+        .build();
 
     sim.start();
 
@@ -315,67 +315,68 @@ public class RealtimeSolverTest {
   @Test
   public void testConsistencyChecker() {
     List<TimedEvent> events = asList(
-      AddParcelEvent.create(Parcel.builder(new Point(1, 1), new Point(9, 9))
-        .orderAnnounceTime(200)
-        .pickupTimeWindow(new TimeWindow(200, 2000))
-        .buildDTO()),
-      AddParcelEvent.create(Parcel.builder(new Point(1, 4), new Point(3, 4))
-        .orderAnnounceTime(102000)
-        .pickupTimeWindow(new TimeWindow(102100, 800000))
-        .serviceDuration(180000L)
-        .buildDTO()),
-      TimeOutEvent.create(1800000));
+        AddParcelEvent.create(Parcel.builder(new Point(1, 1), new Point(9, 9))
+            .orderAnnounceTime(200)
+            .pickupTimeWindow(new TimeWindow(200, 2000))
+            .buildDTO()),
+        AddParcelEvent.create(Parcel.builder(new Point(1, 4), new Point(3, 4))
+            .orderAnnounceTime(102000)
+            .pickupTimeWindow(new TimeWindow(102100, 800000))
+            .serviceDuration(180000L)
+            .buildDTO()),
+        TimeOutEvent.create(1800000));
 
     final List<GlobalStateObject> snapshots = new ArrayList<>();
     final List<RouteFollowingVehicle> vehicles = new ArrayList<>();
     Simulator sim = init(new TestVehicleHandler(vehicles), events)
-      .addModel(
-        RtCentral.builderAdapt(StochasticSuppliers.constant(new Solver() {
-          @Override
-          public ImmutableList<ImmutableList<Parcel>> solve(
-            GlobalStateObject state) {
-            snapshots.add(state);
+        .addModel(
+            RtCentral.builderAdapt(StochasticSuppliers.constant(new Solver() {
+              @Override
+              public ImmutableList<ImmutableList<Parcel>> solve(
+                  GlobalStateObject state) {
+                snapshots.add(state);
 
-            if (snapshots.size() == 1) {
-              return ImmutableList.of(ImmutableList.<Parcel> builder()
-                .addAll(state.getAvailableParcels())
-                .addAll(state.getAvailableParcels())
-                .build(),
-                ImmutableList.<Parcel> of());
-            } else if (snapshots.size() == 2) {
-              try {
-                Thread.sleep(300);
-              } catch (InterruptedException e) {
-                throw new IllegalStateException(e);
+                if (snapshots.size() == 1) {
+                  return ImmutableList.of(ImmutableList.<Parcel>builder()
+                      .addAll(state.getAvailableParcels())
+                      .addAll(state.getAvailableParcels())
+                      .build(),
+                      ImmutableList.<Parcel>of());
+                } else if (snapshots.size() == 2) {
+                  try {
+                    Thread.sleep(300);
+                  } catch (InterruptedException e) {
+                    throw new IllegalStateException(e);
+                  }
+                  return ImmutableList.of(ImmutableList.<Parcel>of(),
+                      ImmutableList.<Parcel>builder()
+                          .addAll(state.getAvailableParcels())
+                          .addAll(state.getAvailableParcels())
+                          .build());
+                } else if (snapshots.size() == 3) {
+                  return ImmutableList.of(
+                      ImmutableList
+                          .copyOf(state.getVehicles().get(0).getContents()),
+                      ImmutableList.<Parcel>builder()
+                          .addAll(state.getAvailableParcels())
+                          .addAll(state.getAvailableParcels())
+                          .build());
+                } else {
+                  throw new IllegalStateException();
+                }
               }
-              return ImmutableList.of(ImmutableList.<Parcel> of(),
-                ImmutableList.<Parcel> builder()
-                  .addAll(state.getAvailableParcels())
-                  .addAll(state.getAvailableParcels())
-                  .build());
-            } else if (snapshots.size() == 3) {
-              return ImmutableList.of(
-                ImmutableList.copyOf(state.getVehicles().get(0).getContents()),
-                ImmutableList.<Parcel> builder()
-                  .addAll(state.getAvailableParcels())
-                  .addAll(state.getAvailableParcels())
-                  .build());
-            } else {
-              throw new IllegalStateException();
-            }
-          }
-        })))
+            })))
 
     .build();
 
     final List<PDPModelEvent> pdpEvents = new ArrayList<>();
     sim.getModelProvider().getModel(PDPModel.class).getEventAPI()
-      .addListener(new Listener() {
-        @Override
-        public void handleEvent(Event e) {
-          pdpEvents.add((PDPModelEvent) e);
-        }
-      }, PDPModelEventType.values());
+        .addListener(new Listener() {
+          @Override
+          public void handleEvent(Event e) {
+            pdpEvents.add((PDPModelEvent) e);
+          }
+        }, PDPModelEventType.values());
 
     sim.start();
 
@@ -391,20 +392,20 @@ public class RealtimeSolverTest {
     // v0 should have delivered p0
     // v1 should have delivered p1
     assertThat(sub.get(0).getEventType())
-      .isSameAs(PDPModelEventType.START_DELIVERY);
+        .isSameAs(PDPModelEventType.START_DELIVERY);
     assertThat(sub.get(0).vehicle).isSameAs(v1);
     assertThat(sub.get(0).parcel).isSameAs(p1);
     assertThat(sub.get(1).getEventType())
-      .isSameAs(PDPModelEventType.END_DELIVERY);
+        .isSameAs(PDPModelEventType.END_DELIVERY);
     assertThat(sub.get(1).vehicle).isSameAs(v1);
     assertThat(sub.get(1).parcel).isSameAs(p1);
 
     assertThat(sub.get(2).getEventType())
-      .isSameAs(PDPModelEventType.START_DELIVERY);
+        .isSameAs(PDPModelEventType.START_DELIVERY);
     assertThat(sub.get(2).vehicle).isSameAs(v0);
     assertThat(sub.get(2).parcel).isSameAs(p0);
     assertThat(sub.get(3).getEventType())
-      .isSameAs(PDPModelEventType.END_DELIVERY);
+        .isSameAs(PDPModelEventType.END_DELIVERY);
     assertThat(sub.get(3).vehicle).isSameAs(v0);
     assertThat(sub.get(3).parcel).isSameAs(p0);
   }
@@ -416,35 +417,35 @@ public class RealtimeSolverTest {
   @Test
   public void nameTest() {
     assertThat(RtCentral
-      .solverConfigurationAdapt(RandomSolver.supplier(), "hallo").getName())
-        .isEqualTo("RtCentral-RtAdapter{RandomSolverSupplier}hallo");
+        .solverConfigurationAdapt(RandomSolver.supplier(), "hallo").getName())
+            .isEqualTo("RtCentral-RtAdapter{RandomSolverSupplier}hallo");
 
     String name2 = RtCentral
-      .solverConfiguration(StochasticSuppliers.constant(new RealtimeSolver() {
-        @Override
-        public void receiveSnapshot(GlobalStateObject snapshot) {}
+        .solverConfiguration(StochasticSuppliers.constant(new RealtimeSolver() {
+          @Override
+          public void receiveSnapshot(GlobalStateObject snapshot) {}
 
-        @Override
-        public void init(Scheduler scheduler) {}
+          @Override
+          public void init(Scheduler scheduler) {}
 
-        @Override
-        public String toString() {
-          return "THEsupplier";
-        }
-      }), "hallo").getName();
+          @Override
+          public String toString() {
+            return "THEsupplier";
+          }
+        }), "hallo").getName();
 
     assertThat(name2)
-      .isEqualTo("RtCentral-StochasticSuppliers.constant(THEsupplier)hallo");
+        .isEqualTo("RtCentral-StochasticSuppliers.constant(THEsupplier)hallo");
   }
 
   static class RtSolverCheckerSupplierAdapter
-    implements StochasticSupplier<RealtimeSolver> {
+      implements StochasticSupplier<RealtimeSolver> {
 
     StochasticSupplier<RealtimeSolver> delegate;
     Optional<RealtimeSolverChecker> checker;
 
     RtSolverCheckerSupplierAdapter(
-      StochasticSupplier<RealtimeSolver> del) {
+        StochasticSupplier<RealtimeSolver> del) {
       delegate = del;
       checker = Optional.absent();
     }
@@ -513,7 +514,7 @@ public class RealtimeSolverTest {
   }
 
   static class TestVehicleHandler
-    implements TimedEventHandler<AddVehicleEvent> {
+      implements TimedEventHandler<AddVehicleEvent> {
 
     final List<RouteFollowingVehicle> vehicles;
 
@@ -524,16 +525,16 @@ public class RealtimeSolverTest {
 
     @Override
     public void handleTimedEvent(AddVehicleEvent event,
-      SimulatorAPI simulator) {
+        SimulatorAPI simulator) {
       RouteFollowingVehicle v = new RouteFollowingVehicle(event.getVehicleDTO(),
-        true);
+          true);
       simulator.register(v);
       vehicles.add(v);
     }
   }
 
   static class ClockInspectModel extends AbstractModelVoid
-    implements TickListener {
+      implements TickListener {
     RealTimeClockController clock;
 
     List<ClockLogEntry> clockLog;
@@ -546,7 +547,8 @@ public class RealtimeSolverTest {
     @Override
     public void tick(TimeLapse timeLapse) {
       clockLog.add(
-        new ClockLogEntry(System.nanoTime(), timeLapse, clock.getClockMode()));
+          new ClockLogEntry(System.nanoTime(), timeLapse,
+              clock.getClockMode()));
     }
 
     @Override
@@ -570,13 +572,13 @@ public class RealtimeSolverTest {
     void assertClockModeIs(ClockMode m, int start, int end) {
       for (int i = start; i <= end; i++) {
         assertThat(clockLog.get(i).mode).named(Integer.toString(i))
-          .isEqualTo(m);
+            .isEqualTo(m);
       }
     }
 
     void assertTimeConsistency() {
       final PeekingIterator<ClockLogEntry> it = Iterators
-        .peekingIterator(clockLog.iterator());
+          .peekingIterator(clockLog.iterator());
       final List<Double> interArrivalTimes = new ArrayList<>();
       for (ClockLogEntry l1 = it.next(); it.hasNext(); l1 = it.next()) {
         final ClockLogEntry l2 = it.peek();
@@ -619,7 +621,7 @@ public class RealtimeSolverTest {
 
     @AutoValue
     abstract static class Builder
-      extends AbstractModelBuilder<ClockInspectModel, Void> {
+        extends AbstractModelBuilder<ClockInspectModel, Void> {
 
       Builder() {
         setDependencies(RealTimeClockController.class);
@@ -628,7 +630,7 @@ public class RealtimeSolverTest {
       @Override
       public ClockInspectModel build(DependencyProvider dependencyProvider) {
         RealTimeClockController c = dependencyProvider
-          .get(RealTimeClockController.class);
+            .get(RealTimeClockController.class);
         return new ClockInspectModel(c);
       }
     }
@@ -661,8 +663,8 @@ public class RealtimeSolverTest {
       scheduler.get().doneForNow();
 
       ImmutableList<ImmutableList<Parcel>> schedule = ImmutableList
-        .of(ImmutableList.copyOf(snapshot.getAvailableParcels()),
-          ImmutableList.<Parcel> of());
+          .of(ImmutableList.copyOf(snapshot.getAvailableParcels()),
+              ImmutableList.<Parcel>of());
 
       scheduler.get().updateSchedule(schedule);
       assertThat(scheduler.get().getCurrentSchedule()).isEqualTo(schedule);

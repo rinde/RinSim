@@ -63,7 +63,7 @@ public class BlockingGraphRoadModel extends GraphRoadModel {
 
   @Override
   protected MoveProgress doFollowPath(MovingRoadUser object, Queue<Point> path,
-    TimeLapse time) {
+      TimeLapse time) {
     blockedNodes.removeAll(vehicleBlocks.get(object));
     vehicleBlocks.removeAll(object);
 
@@ -78,7 +78,7 @@ public class BlockingGraphRoadModel extends GraphRoadModel {
     final MoveProgress mp;
     if (index >= 0) {
       final Queue<Point> newPath = index == -1 ? new LinkedList<Point>()
-        : newLinkedList(inputP.subList(0, index));
+          : newLinkedList(inputP.subList(0, index));
       final int originalSize = newPath.size();
       mp = super.doFollowPath(object, newPath, time);
       for (int i = 0; i < originalSize - newPath.size(); i++) {
@@ -101,19 +101,19 @@ public class BlockingGraphRoadModel extends GraphRoadModel {
   }
 
   static Builder blockingBuilder(Graph<?> g) {
-    return Builder.create(Suppliers.<Graph<?>> ofInstance(g));
+    return Builder.create(Suppliers.<Graph<?>>ofInstance(g));
   }
 
   @AutoValue
   abstract static class Builder extends
-    AbstractGraphRMB<BlockingGraphRoadModel, Builder, Graph<?>> implements
-    Serializable {
+      AbstractGraphRMB<BlockingGraphRoadModel, Builder, Graph<?>>implements
+      Serializable {
 
     private static final long serialVersionUID = -8663781587611642451L;
 
     Builder() {
       setProvidingTypes(RoadModel.class, GraphRoadModel.class,
-        BlockingGraphRoadModel.class);
+          BlockingGraphRoadModel.class);
     }
 
     @Override
@@ -139,9 +139,9 @@ public class BlockingGraphRoadModel extends GraphRoadModel {
     }
 
     static Builder create(Unit<Length> distanceUnit, Unit<Velocity> speedUnit,
-      Supplier<Graph<?>> graphSupplier) {
+        Supplier<Graph<?>> graphSupplier) {
       return new AutoValue_BlockingGraphRoadModel_Builder(distanceUnit,
-        speedUnit, graphSupplier);
+          speedUnit, graphSupplier);
     }
   }
 }

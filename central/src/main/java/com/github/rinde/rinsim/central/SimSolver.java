@@ -50,7 +50,7 @@ public final class SimSolver implements SimulationConverter {
   final List<Vehicle> vehicles;
 
   SimSolver(Optional<Solver> s, PDPRoadModel rm, PDPModel pm,
-    Clock sim, List<Vehicle> vs) {
+      Clock sim, List<Vehicle> vs) {
     solver = s;
     clock = sim;
     roadModel = rm;
@@ -82,17 +82,17 @@ public final class SimSolver implements SimulationConverter {
   @Override
   public StateContext convert(SolveArgs args) {
     final Collection<Vehicle> vs = vehicles.isEmpty() ? roadModel
-      .getObjectsOfType(Vehicle.class) : vehicles;
+        .getObjectsOfType(Vehicle.class) : vehicles;
     final Set<Parcel> ps = args.parcels.isPresent()
-      ? args.parcels.get()
-      : ImmutableSet.copyOf(pdpModel.getParcels(ANNOUNCED, AVAILABLE,
-        PICKING_UP));
+        ? args.parcels.get()
+        : ImmutableSet.copyOf(pdpModel.getParcels(ANNOUNCED, AVAILABLE,
+            PICKING_UP));
     return Solvers.convert(roadModel, pdpModel, vs, ps, time(),
-      args.currentRoutes);
+        args.currentRoutes);
   }
 
   Measure<Long, Duration> time() {
     return Measure.valueOf(clock.getCurrentTime(),
-      clock.getTimeUnit());
+        clock.getTimeUnit());
   }
 }

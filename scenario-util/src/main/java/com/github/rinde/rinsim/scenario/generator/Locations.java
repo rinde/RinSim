@@ -491,7 +491,8 @@ public final class Locations {
     public ImmutableList<Point> generate(long seed, int numOrders) {
       checkArgument(
           fixedPoints.size() == numOrders,
-          "This fixed LocationGenerator can only output %s locations while %s locations were requested.",
+          "This fixed LocationGenerator can only output %s locations while %s "
+              + "locations were requested.",
           fixedPoints.size(), numOrders);
       return fixedPoints;
     }

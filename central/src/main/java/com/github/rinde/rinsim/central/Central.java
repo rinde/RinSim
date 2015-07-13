@@ -60,7 +60,7 @@ public final class Central {
    * @return A new instance.
    */
   public static ModelBuilder<?, ?> builder(
-    StochasticSupplier<? extends Solver> solverSupplier) {
+      StochasticSupplier<? extends Solver> solverSupplier) {
     return Builder.create(solverSupplier);
   }
 
@@ -71,7 +71,7 @@ public final class Central {
    * @return A new configuration.
    */
   public static MASConfiguration solverConfiguration(
-    StochasticSupplier<? extends Solver> solverCreator) {
+      StochasticSupplier<? extends Solver> solverCreator) {
     return solverConfiguration(solverCreator, "");
   }
 
@@ -84,12 +84,12 @@ public final class Central {
    * @return A new configuration.
    */
   public static MASConfiguration solverConfiguration(
-    StochasticSupplier<? extends Solver> solverCreator, String nameSuffix) {
+      StochasticSupplier<? extends Solver> solverCreator, String nameSuffix) {
     return MASConfiguration.pdptwBuilder()
-      .addEventHandler(AddVehicleEvent.class, VehicleCreator.INSTANCE)
-      .addModel(Builder.create(solverCreator))
-      .setName("Central-" + solverCreator.toString() + nameSuffix)
-      .build();
+        .addEventHandler(AddVehicleEvent.class, VehicleCreator.INSTANCE)
+        .addModel(Builder.create(solverCreator))
+        .setName("Central-" + solverCreator.toString() + nameSuffix)
+        .build();
   }
 
   public static TimedEventHandler<AddVehicleEvent> vehicleHandler() {
@@ -112,15 +112,15 @@ public final class Central {
 
   @AutoValue
   abstract static class Builder extends
-    AbstractModelBuilder<CentralModel, Parcel>implements Serializable {
+      AbstractModelBuilder<CentralModel, Parcel>implements Serializable {
 
     private static final long serialVersionUID = 1168431215289110828L;
 
     Builder() {
       setDependencies(Clock.class,
-        PDPRoadModel.class,
-        PDPModel.class,
-        RandomProvider.class);
+          PDPRoadModel.class,
+          PDPModel.class,
+          RandomProvider.class);
     }
 
     abstract StochasticSupplier<Solver> getSolverSupplier();
@@ -138,12 +138,12 @@ public final class Central {
     @SuppressWarnings("unchecked")
     static Builder create(StochasticSupplier<? extends Solver> solverSupplier) {
       return new AutoValue_Central_Builder(
-        (StochasticSupplier<Solver>) solverSupplier);
+          (StochasticSupplier<Solver>) solverSupplier);
     }
   }
 
   private static final class CentralModel extends AbstractModel<Parcel>
-    implements TickListener {
+      implements TickListener {
     private boolean hasChanged;
     private final PDPRoadModel roadModel;
     private final SimSolver solverAdapter;
@@ -153,10 +153,10 @@ public final class Central {
       clock = c;
       roadModel = rm;
       solverAdapter = Solvers.solverBuilder(solver)
-        .with(rm)
-        .with(pm)
-        .with(clock)
-        .build();
+          .with(rm)
+          .with(pm)
+          .with(clock)
+          .build();
     }
 
     @Override
@@ -181,23 +181,24 @@ public final class Central {
         // correct vehicles
 
         final Set<RouteFollowingVehicle> vehicles = roadModel
-          .getObjectsOfType(RouteFollowingVehicle.class);
+            .getObjectsOfType(RouteFollowingVehicle.class);
 
         // gather current routes
-        final ImmutableList.Builder<ImmutableList<Parcel>> currentRouteBuilder = ImmutableList
-          .builder();
+        final ImmutableList.Builder<ImmutableList<Parcel>> currentRouteBuilder =
+            ImmutableList
+                .builder();
         for (final RouteFollowingVehicle vehicle : vehicles) {
           final ImmutableList<Parcel> l = ImmutableList.copyOf(vehicle
-            .getRoute());
+              .getRoute());
           currentRouteBuilder.add(l);
         }
 
         final Iterator<Queue<Parcel>> routes = solverAdapter
-          .solve(
-            SolveArgs.create()
-              .useAllParcels()
-              .useCurrentRoutes(currentRouteBuilder.build()))
-          .iterator();
+            .solve(
+                SolveArgs.create()
+                    .useAllParcels()
+                    .useCurrentRoutes(currentRouteBuilder.build()))
+            .iterator();
 
         for (final RouteFollowingVehicle vehicle : vehicles) {
           vehicle.setRoute(routes.next());

@@ -75,7 +75,7 @@ public class ExamplesTest {
       // simulation
       assertTrue(cur.toString(), cur instanceof IllegalStateException);
       assertThat(cur.getMessage()).containsMatch(
-        "The simulation did not result in a valid result");
+          "The simulation did not result in a valid result");
     }
   }
 }

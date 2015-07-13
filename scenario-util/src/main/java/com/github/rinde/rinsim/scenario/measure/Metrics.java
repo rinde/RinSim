@@ -270,13 +270,15 @@ public final class Metrics {
     checkArgument(
         event.getParcelDTO().getDeliveryTimeWindow().begin >= firstDepartureTime
             + travelTime,
-        "The begin of the delivery time window (%s) is too early, should be >= %s.",
+        "The begin of the delivery time window (%s) is too early, "
+            + "should be >= %s.",
         event.getParcelDTO().getDeliveryTimeWindow(), firstDepartureTime
             + travelTime);
     checkArgument(
         latestDepartureTime + travelTime <= event.getParcelDTO()
             .getDeliveryTimeWindow().end,
-        "The end of the pickup time window %s is too late, or end of delivery is too early.",
+        "The end of the pickup time window %s is too late, or end of delivery "
+            + "is too early.",
         event.getParcelDTO().getPickupTimeWindow().end);
   }
 
@@ -308,8 +310,9 @@ public final class Metrics {
    */
   public static ImmutableSortedMultiset<Double> computeHistogram(
       Iterable<Double> input, double binSize) {
-    final ImmutableSortedMultiset.Builder<Double> builder = ImmutableSortedMultiset
-        .naturalOrder();
+    final ImmutableSortedMultiset.Builder<Double> builder =
+        ImmutableSortedMultiset
+            .naturalOrder();
     for (final double d : input) {
       checkArgument(!Double.isInfinite(d) && !Double.isNaN(d),
           "Only finite numbers are accepted, found %s.", d);

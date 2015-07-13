@@ -479,8 +479,9 @@ public abstract class AbstractRoadModelTest<T extends GenericRoadModel> {
 
     // make sure that the order of the objects is preserved, even in this
     // RoadUser, Point map
-    final List<Entry<RoadUser, Point>> modelObjects4 = new ArrayList<Entry<RoadUser, Point>>(
-        model.getObjectsAndPositions().entrySet());
+    final List<Entry<RoadUser, Point>> modelObjects4 =
+        new ArrayList<Entry<RoadUser, Point>>(
+            model.getObjectsAndPositions().entrySet());
     assertEquals(objects.size(), modelObjects4.size());
     for (int i = 0; i < modelObjects4.size(); i++) {
       assertSame(modelObjects4.get(i).getKey(), objects.get(i));

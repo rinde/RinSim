@@ -115,15 +115,16 @@ public final class PDPModelRenderer extends AbstractCanvasRenderer {
           final VehicleState state = pdpModel.getVehicleState(v);
           if (state != VehicleState.IDLE) {
             gc.drawText(
-              state.toString() + " "
-                + pdpModel.getVehicleActionInfo(v).timeNeeded(), x, y - 20);
+                state.toString() + " "
+                    + pdpModel.getVehicleActionInfo(v).timeNeeded(),
+                x, y - 20);
           }
           gc.drawText(Double.toString(size), x, y);
         }
       }
 
       final Collection<Parcel> parcels = pdpModel.getParcels(
-        ParcelState.AVAILABLE, ParcelState.ANNOUNCED);
+          ParcelState.AVAILABLE, ParcelState.ANNOUNCED);
       for (final Parcel parcel : parcels) {
 
         final Point p = posMap.get(parcel);
@@ -132,7 +133,7 @@ public final class PDPModelRenderer extends AbstractCanvasRenderer {
           final int y = vp.toCoordY(p.y);
           gc.setForeground(lightGray);
           gc.drawLine(x, y, vp.toCoordX(parcel.getDeliveryLocation().x),
-            vp.toCoordY(parcel.getDeliveryLocation().y));
+              vp.toCoordY(parcel.getDeliveryLocation().y));
 
           if (parcel.getPickupTimeWindow().isBeforeStart(time)) {
             gc.setBackground(darkGreen);
@@ -161,7 +162,7 @@ public final class PDPModelRenderer extends AbstractCanvasRenderer {
    */
   @AutoValue
   public abstract static class Builder extends
-    AbstractModelBuilder<PDPModelRenderer, Void> {
+      AbstractModelBuilder<PDPModelRenderer, Void> {
 
     Builder() {
       setDependencies(RoadModel.class, PDPModel.class, Device.class);

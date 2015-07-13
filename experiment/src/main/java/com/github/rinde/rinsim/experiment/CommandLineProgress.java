@@ -22,7 +22,7 @@ import com.github.rinde.rinsim.experiment.Experiment.SimulationResult;
 /**
  * A {@link ResultListener} that writes simple progress reports to a
  * {@link PrintStream}.
- * @author Rinde van Lon 
+ * @author Rinde van Lon
  */
 public class CommandLineProgress implements ResultListener {
   private final PrintStream printStream;

@@ -64,7 +64,7 @@ public abstract class FabriRechtScenario extends Scenario {
 
   @Override
   public ImmutableSet<ModelBuilder<?, ?>> getModelBuilders() {
-    return ImmutableSet.<ModelBuilder<?, ?>> builder()
+    return ImmutableSet.<ModelBuilder<?, ?>>builder()
         .add(
             TimeModel.builder()
                 .withTickLength(1L)
@@ -109,7 +109,7 @@ public abstract class FabriRechtScenario extends Scenario {
       TimeWindow pTimeWindow, VehicleDTO pDefaultVehicle) {
 
     return new AutoValue_FabriRechtScenario(
-        ImmutableList.<TimedEvent> copyOf(pEvents),
+        ImmutableList.<TimedEvent>copyOf(pEvents),
         pTimeWindow,
         pMin,
         pMax,

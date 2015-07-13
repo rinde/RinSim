@@ -98,7 +98,8 @@ public abstract class PDPObjectImpl implements PDPObject {
   protected final void setStartPosition(Point p) {
     checkState(
         !isRegistered,
-        "this should be called before this object is registered, preferably in the constructor");
+        "this should be called before this object is registered, preferably in "
+            + "the constructor");
     startPosition = Optional.of(p);
   }
 

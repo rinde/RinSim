@@ -93,7 +93,7 @@ public class CompositeModelsTest {
 
       @Override
       public ImmutableSet<ModelBuilder<?, ?>> getChildren() {
-        return ImmutableSet.<ModelBuilder<?, ?>> of(
+        return ImmutableSet.<ModelBuilder<?, ?>>of(
             new ModelAsub1.Builder(),
             new ModelAsub2.Builder());
       }
@@ -111,7 +111,7 @@ public class CompositeModelsTest {
       @Override
       public ImmutableSet<ModelBuilder<?, ?>> getChildren() {
         return ImmutableSet
-            .<ModelBuilder<?, ?>> of(new ModelAsub1sub1.Builder());
+            .<ModelBuilder<?, ?>>of(new ModelAsub1sub1.Builder());
       }
     }
   }

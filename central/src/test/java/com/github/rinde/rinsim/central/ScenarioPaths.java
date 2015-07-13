@@ -17,6 +17,7 @@ package com.github.rinde.rinsim.central;
 
 public class ScenarioPaths {
 
-  public static final String GENDREAU = "../scenario-util/files/test/gendreau06/req_rapide_1_240_24";
+  public static final String GENDREAU =
+      "../scenario-util/files/test/gendreau06/req_rapide_1_240_24";
 
 }

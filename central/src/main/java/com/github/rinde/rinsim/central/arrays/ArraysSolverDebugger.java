@@ -33,7 +33,7 @@ import com.github.rinde.rinsim.central.arrays.ArraysSolvers.MVArraysObject;
  * A {@link SingleVehicleArraysSolver} wrapper that adds debugging facilities. A
  * history is kept of all inputs and outputs and all inputs can optionally be
  * printed to sys.out.
- * @author Rinde van Lon 
+ * @author Rinde van Lon
  */
 public final class ArraysSolverDebugger {
 
@@ -45,8 +45,7 @@ public final class ArraysSolverDebugger {
    * {@link SingleVehicleArraysSolver#solve(int[][], int[], int[], int[][], int[], SolutionObject)}
    * all inputs and outputs are printed to <code>System.out</code>, also all
    * inputs and outputs are stored (accessible via
-   * {@link SVASDebugger#getInputs()} and
-   * {@link SVASDebugger#getOutputs()}.
+   * {@link SVASDebugger#getInputs()} and {@link SVASDebugger#getOutputs()}.
    * @param s The {@link SingleVehicleArraysSolver} to wrap.
    * @return The wrapped solver.
    */
@@ -120,10 +119,10 @@ public final class ArraysSolverDebugger {
 
   /**
    * Debugger for {@link SingleVehicleArraysSolver}s.
-   * @author Rinde van Lon 
+   * @author Rinde van Lon
    */
   public static final class SVASDebugger extends
-      Debugger<ArraysObject, SolutionObject> implements
+      Debugger<ArraysObject, SolutionObject>implements
       SingleVehicleArraysSolver {
     private final SingleVehicleArraysSolver solver;
 
@@ -139,14 +138,16 @@ public final class ArraysSolverDebugger {
 
       inputMemory.add(new ArraysObject(travelTime, releaseDates, dueDates,
           servicePairs, serviceTimes, currentSolution == null ? null
-              : new SolutionObject[] { currentSolution }));
+              : new SolutionObject[] {currentSolution}));
       if (print) {
         out.println("int[][] travelTime = " + fix(deepToString(travelTime)));
         out.println("int[] releaseDates = "
             + fix(Arrays.toString(releaseDates)));
         out.println("int[] dueDates = " + fix(Arrays.toString(dueDates)));
-        out.println("int[][] servicePairs = " + fix(deepToString(servicePairs)));
-        out.println("int[] serviceTime = " + fix(Arrays.toString(serviceTimes)));
+        out.println(
+            "int[][] servicePairs = " + fix(deepToString(servicePairs)));
+        out.println(
+            "int[] serviceTime = " + fix(Arrays.toString(serviceTimes)));
       }
 
       final long start = System.currentTimeMillis();
@@ -176,10 +177,10 @@ public final class ArraysSolverDebugger {
 
   /**
    * Debugger for {@link MultiVehicleArraysSolver}s.
-   * @author Rinde van Lon 
+   * @author Rinde van Lon
    */
   public static final class MVASDebugger extends
-      Debugger<MVArraysObject, SolutionObject[]> implements
+      Debugger<MVArraysObject, SolutionObject[]>implements
       MultiVehicleArraysSolver {
 
     private final MultiVehicleArraysSolver solver;

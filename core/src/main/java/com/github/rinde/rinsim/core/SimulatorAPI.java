@@ -47,5 +47,5 @@ public interface SimulatorAPI {
    * @return An reference of the {@link RandomGenerator}, note that the seed can
    *         not be changed.
    */
-  public RandomGenerator getRandomGenerator();
+  RandomGenerator getRandomGenerator();
 }

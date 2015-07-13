@@ -99,7 +99,8 @@ public class ExperimentProgressBar implements ResultListener,
   }
 
   @Override
-  public void uncaughtException(@Nullable Thread thread, @Nullable Throwable e) {
+  public void uncaughtException(@Nullable Thread thread,
+      @Nullable Throwable e) {
     error = Optional.fromNullable(e);
   }
 
@@ -125,7 +126,9 @@ public class ExperimentProgressBar implements ResultListener,
           final MessageBox messageBox = new MessageBox(shell, style);
           messageBox.setText("Information");
           messageBox
-              .setMessage("Close the shell?\nThis will NOT terminate the current experiment.");
+              .setMessage(
+                  "Close the shell?\nThis will NOT terminate the current "
+                      + "experiment.");
           checkNotNull(event);
           event.doit = messageBox.open() == SWT.YES;
         }
@@ -182,7 +185,8 @@ public class ExperimentProgressBar implements ResultListener,
           shell.setText("RinSim - Experiment "
               + DoubleMath.roundToInt(
                   maxPerc * (progress / (double) bar.getMaximum()),
-                  RoundingMode.HALF_UP) + "%");
+                  RoundingMode.HALF_UP)
+              + "%");
           numberLabel.setText(progress + "/" + bar.getMaximum());
           shell.layout();
         }

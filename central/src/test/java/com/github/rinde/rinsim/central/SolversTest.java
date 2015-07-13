@@ -103,19 +103,19 @@ public class SolversTest {
     DependencyProvider dp = mock(DependencyProvider.class);
 
     rm = PDPRoadModel.builder(
-      RoadModelBuilders.plane()
-        .withMaxSpeed(300d))
-      .withAllowVehicleDiversion(false)
-      .build(dp);
+        RoadModelBuilders.plane()
+            .withMaxSpeed(300d))
+        .withAllowVehicleDiversion(false)
+        .build(dp);
 
     when(dp.get(RoadModel.class)).thenReturn(rm);
 
     pm = DefaultPDPModel.builder()
-      .withTimeWindowPolicy(TimeWindowPolicies.TARDY_ALLOWED)
-      .build(dp);
+        .withTimeWindowPolicy(TimeWindowPolicies.TARDY_ALLOWED)
+        .build(dp);
 
     mp = new TestModelProvider(new ArrayList<>(
-      Arrays.<Model<?>> asList(rm, pm)));
+        Arrays.<Model<?>>asList(rm, pm)));
     rm.registerModelProvider(mp);
 
     v1 = new TestVehicle(new Point(0, 1));
@@ -137,12 +137,12 @@ public class SolversTest {
     when(clock.getTickLength()).thenReturn(1L);
     when(clock.getTimeUnit()).thenReturn(NonSI.MINUTE);
     final SimulationConverter handle = Solvers.converterBuilder()
-      .with(mp)
-      .with(clock)
-      .build();
+        .with(mp)
+        .with(clock)
+        .build();
 
     final StateContext sc = handle.convert(SolveArgs.create().useAllParcels()
-      .noCurrentRoutes());
+        .noCurrentRoutes());
 
     assertEquals(1, sc.vehicleMap.size());
     assertEquals(v1.dto, sc.vehicleMap.keySet().iterator().next().getDto());
@@ -154,9 +154,10 @@ public class SolversTest {
     rm.moveTo(v1, p1, create(NonSI.HOUR, 0L, 1L));
 
     checkVehicles(
-      asList(v1),
-      handle.convert(SolveArgs.create().useAllParcels().noCurrentRoutes()).state
-        .getVehicles());
+        asList(v1),
+        handle
+            .convert(SolveArgs.create().useAllParcels().noCurrentRoutes()).state
+                .getVehicles());
 
     rm.moveTo(v1, p1, create(NonSI.HOUR, 0, 40));
     assertTrue(rm.equalPosition(v1, p1));
@@ -164,7 +165,7 @@ public class SolversTest {
 
     assertEquals(VehicleState.PICKING_UP, pm.getVehicleState(v1));
     final StateContext sc2 = handle.convert(SolveArgs.create().useAllParcels()
-      .noCurrentRoutes());
+        .noCurrentRoutes());
 
     assertTrue(sc2.state.getAvailableParcels().contains(p1));
     assertFalse(sc2.state.getVehicles().get(0).getContents().contains(p1));
@@ -185,7 +186,7 @@ public class SolversTest {
     PDPTWTestUtil.register(rm, pm, v1, p1);
 
     final Parcel destination = rm.getObjectsOfType(Parcel.class)
-      .iterator().next();
+        .iterator().next();
     rm.moveTo(v1, destination, TimeLapseFactory.create(0, 1000));
     assertEquals(destination, rm.getDestinationToParcel(v1));
     assertEquals(ParcelState.AVAILABLE, pm.getParcelState(p1));
@@ -196,21 +197,21 @@ public class SolversTest {
     when(clock.getTimeUnit()).thenReturn(NonSI.MINUTE);
 
     final SimulationConverter handle = Solvers.converterBuilder()
-      .with(mp)
-      .with(clock)
-      .build();
+        .with(mp)
+        .with(clock)
+        .build();
 
     final StateContext sc = handle.convert(SolveArgs.create()
-      .noCurrentRoutes());
+        .noCurrentRoutes());
     assertEquals(1, sc.state.getAvailableParcels().size());
     assertEquals(0, sc.state.getVehicles().get(0).getContents().size());
     final Solver solver = SolverValidator.wrap(new MultiVehicleSolverAdapter(
-      new RandomMVArraysSolver(new MersenneTwister(123)), NonSI.MINUTE));
+        new RandomMVArraysSolver(new MersenneTwister(123)), NonSI.MINUTE));
     Solvers.solverBuilder(solver)
-      .with(mp)
-      .with(clock)
-      .build()
-      .solve(sc);
+        .with(mp)
+        .with(clock)
+        .build()
+        .solve(sc);
 
     // give enough time to reach destination
     rm.moveTo(v1, destination, TimeLapseFactory.create(0, 1000000000));
@@ -220,7 +221,7 @@ public class SolversTest {
     assertEquals(VehicleState.PICKING_UP, pm.getVehicleState(v1));
 
     final StateContext sc2 = handle.convert(SolveArgs.create()
-      .noCurrentRoutes());
+        .noCurrentRoutes());
     assertEquals(1, sc2.state.getAvailableParcels().size());
     assertEquals(0, sc2.state.getVehicles().get(0).getContents().size());
 
@@ -229,8 +230,8 @@ public class SolversTest {
     assertEquals(VehicleState.IDLE, pm.getVehicleState(v1));
 
     final StateContext sc3 = handle.convert(SolveArgs.create()
-      .useParcels(ImmutableSet.<Parcel> of())
-      .noCurrentRoutes());
+        .useParcels(ImmutableSet.<Parcel>of())
+        .noCurrentRoutes());
     assertTrue(sc3.state.getAvailableParcels().isEmpty());
     assertEquals(1, sc3.state.getVehicles().get(0).getContents().size());
 
@@ -240,21 +241,21 @@ public class SolversTest {
     assertEquals(ParcelState.IN_CARGO, pm.getParcelState(p1));
 
     final StateContext sc4 = handle.convert(SolveArgs.create()
-      .useParcels(ImmutableSet.<Parcel> of())
-      .noCurrentRoutes());
+        .useParcels(ImmutableSet.<Parcel>of())
+        .noCurrentRoutes());
     assertEquals(1, sc4.state.getVehicles().get(0).getContents().size());
     assertTrue(sc4.state.getAvailableParcels().isEmpty());
 
     // service delivery
     rm.moveTo(v1, destination, TimeLapseFactory.create(0, 1000000000));
     assertEquals(destination.getDto().getDeliveryLocation(),
-      rm.getPosition(v1));
+        rm.getPosition(v1));
     pm.deliver(v1, p1, TimeLapseFactory.create(0, 1));
     assertNull(rm.getDestinationToParcel(v1));
     assertEquals(VehicleState.DELIVERING, pm.getVehicleState(v1));
     final StateContext sc5 = handle.convert(SolveArgs.create()
-      .useParcels(ImmutableSet.<Parcel> of())
-      .noCurrentRoutes());
+        .useParcels(ImmutableSet.<Parcel>of())
+        .noCurrentRoutes());
     assertEquals(1, sc5.state.getVehicles().get(0).getContents().size());
     assertTrue(sc5.state.getAvailableParcels().isEmpty());
 
@@ -263,8 +264,8 @@ public class SolversTest {
     assertEquals(VehicleState.IDLE, pm.getVehicleState(v1));
 
     final StateContext sc6 = handle.convert(SolveArgs.create()
-      .useParcels(ImmutableSet.<Parcel> of())
-      .noCurrentRoutes());
+        .useParcels(ImmutableSet.<Parcel>of())
+        .noCurrentRoutes());
     assertTrue(sc6.state.getVehicles().get(0).getContents().isEmpty());
     assertTrue(sc6.state.getAvailableParcels().isEmpty());
   }
@@ -277,84 +278,84 @@ public class SolversTest {
   @Test
   public void convertDecompositionTest() {
     final VehicleDTO vd1 = VehicleDTO.builder()
-      .startPosition(new Point(5, 5))
-      .speed(30d)
-      .capacity(0)
-      .availabilityTimeWindow(new TimeWindow(100L, 100000L))
-      .build();
+        .startPosition(new Point(5, 5))
+        .speed(30d)
+        .capacity(0)
+        .availabilityTimeWindow(new TimeWindow(100L, 100000L))
+        .build();
 
     final Parcel a = Parcel.builder(new Point(0, 0), new Point(10, 10))
-      .pickupTimeWindow(new TimeWindow(0, 30))
-      .deliveryTimeWindow(new TimeWindow(70, 80))
-      .pickupDuration(5000L)
-      .deliveryDuration(10000L)
-      .build();
+        .pickupTimeWindow(new TimeWindow(0, 30))
+        .deliveryTimeWindow(new TimeWindow(70, 80))
+        .pickupDuration(5000L)
+        .deliveryDuration(10000L)
+        .build();
 
     final Parcel b = Parcel.builder(new Point(5, 0), new Point(10, 7))
-      .pickupTimeWindow(new TimeWindow(0, 30))
-      .deliveryTimeWindow(new TimeWindow(70, 80))
-      .pickupDuration(5000L)
-      .deliveryDuration(10000L)
-      .build();
+        .pickupTimeWindow(new TimeWindow(0, 30))
+        .deliveryTimeWindow(new TimeWindow(70, 80))
+        .pickupDuration(5000L)
+        .deliveryDuration(10000L)
+        .build();
 
     final Parcel c = Parcel.builder(new Point(3, 0), new Point(6, 7))
-      .pickupTimeWindow(new TimeWindow(0, 30))
-      .deliveryTimeWindow(new TimeWindow(70, 80))
-      .pickupDuration(5000L)
-      .deliveryDuration(10000L)
-      .build();
+        .pickupTimeWindow(new TimeWindow(0, 30))
+        .deliveryTimeWindow(new TimeWindow(70, 80))
+        .pickupDuration(5000L)
+        .deliveryDuration(10000L)
+        .build();
 
     final Parcel d = Parcel.builder(new Point(3, 0), new Point(6, 2))
-      .pickupTimeWindow(new TimeWindow(0, 30))
-      .deliveryTimeWindow(new TimeWindow(70, 80))
-      .pickupDuration(5000L)
-      .deliveryDuration(10000L)
-      .build();
+        .pickupTimeWindow(new TimeWindow(0, 30))
+        .deliveryTimeWindow(new TimeWindow(70, 80))
+        .pickupDuration(5000L)
+        .deliveryDuration(10000L)
+        .build();
 
     final ImmutableSet<Parcel> availableParcels = ImmutableSet
-      .<Parcel> builder()
-      .add(b).add(c)
-      .build();
+        .<Parcel>builder()
+        .add(b).add(c)
+        .build();
 
     final ImmutableList<VehicleStateObject> vehicles = ImmutableList
-      .<VehicleStateObject> builder()
-      .add(
-        VehicleStateObject.create(
-          vd1,
-          new Point(7, 9),
-          ImmutableSet.<Parcel> of(a),
-          0L,
-          null,
-          null))
-      .add(VehicleStateObject.create(
-        vd1,
-        new Point(3, 2),
-        ImmutableSet.<Parcel> of(d),
-        0L,
-        null,
-        null))
-      .build();
+        .<VehicleStateObject>builder()
+        .add(
+            VehicleStateObject.create(
+                vd1,
+                new Point(7, 9),
+                ImmutableSet.<Parcel>of(a),
+                0L,
+                null,
+                null))
+        .add(VehicleStateObject.create(
+            vd1,
+            new Point(3, 2),
+            ImmutableSet.<Parcel>of(d),
+            0L,
+            null,
+            null))
+        .build();
 
     final GlobalStateObject state = GlobalStateObject.create(availableParcels,
-      vehicles, 0L, SI.MILLI(SI.SECOND), NonSI.KILOMETERS_PER_HOUR,
-      SI.KILOMETER);
+        vehicles, 0L, SI.MILLI(SI.SECOND), NonSI.KILOMETERS_PER_HOUR,
+        SI.KILOMETER);
 
     final ImmutableList<ImmutableList<Parcel>> routes = ImmutableList
-      .<ImmutableList<Parcel>> builder()
-      .add(ImmutableList.<Parcel> of(a, b, c, c, b))
-      .add(ImmutableList.<Parcel> of(d, d))
-      .build();
+        .<ImmutableList<Parcel>>builder()
+        .add(ImmutableList.<Parcel>of(a, b, c, c, b))
+        .add(ImmutableList.<Parcel>of(d, d))
+        .build();
 
     final StatisticsDTO stats = Solvers.computeStats(state, routes);
     final ObjectiveFunction objFunc = Gendreau06ObjectiveFunction.instance();
     final double cost = objFunc.computeCost(stats);
 
     final double cost0 = objFunc.computeCost(Solvers.computeStats(
-      state.withSingleVehicle(0),
-      ImmutableList.of(routes.get(0))));
+        state.withSingleVehicle(0),
+        ImmutableList.of(routes.get(0))));
     final double cost1 = objFunc.computeCost(Solvers.computeStats(
-      state.withSingleVehicle(1),
-      ImmutableList.of(routes.get(1))));
+        state.withSingleVehicle(1),
+        ImmutableList.of(routes.get(1))));
     assertEquals(cost, cost0 + cost1, 0.001);
   }
 
@@ -365,24 +366,24 @@ public class SolversTest {
   @Test
   public void convertRoutesFail() {
     final Parcel a = Parcel.builder(
-      new Point(0, 0), new Point(1, 1)).build();
+        new Point(0, 0), new Point(1, 1)).build();
     final Parcel b = Parcel.builder(
-      new Point(0, 1), new Point(1, 1)).build();
+        new Point(0, 1), new Point(1, 1)).build();
 
     final Vehicle vehicle = new TestVehicle(new Point(1, 1));
     final GlobalStateObject gso = mock(GlobalStateObject.class);
     final VehicleStateObject vso = mock(VehicleStateObject.class);
 
     final StateContext sc = new StateContext(gso,
-      ImmutableMap.of(vso, vehicle));
+        ImmutableMap.of(vso, vehicle));
 
     convertRoutes(sc,
-      ImmutableList.of(ImmutableList.of(a, b)));
+        ImmutableList.of(ImmutableList.of(a, b)));
   }
 
   // doesn't check the contents!
   void checkVehicles(List<? extends TestVehicle> expected,
-    ImmutableList<VehicleStateObject> states) {
+      ImmutableList<VehicleStateObject> states) {
 
     assertEquals(expected.size(), states.size());
 
@@ -393,7 +394,7 @@ public class SolversTest {
       final VehicleStateObject vs = states.get(i);
 
       assertEquals(dto.getAvailabilityTimeWindow(),
-        vs.getDto().getAvailabilityTimeWindow());
+          vs.getDto().getAvailabilityTimeWindow());
       assertEquals(dto.getCapacity(), vs.getDto().getCapacity());
       assertEquals(dto.getSpeed(), vs.getDto().getSpeed(), 0);
       assertEquals(dto.getStartPosition(), vs.getDto().getStartPosition());
@@ -411,7 +412,7 @@ public class SolversTest {
         assertEquals(0, vs.getRemainingServiceTime());
       } else {
         assertEquals(pm.getVehicleActionInfo(vehicle).timeNeeded(),
-          vs.getRemainingServiceTime());
+            vs.getRemainingServiceTime());
       }
     }
   }
@@ -428,10 +429,10 @@ public class SolversTest {
 
   static Parcel createParcel(Point origin, Point dest) {
     return Parcel.builder(origin, dest)
-      .pickupTimeWindow(TW)
-      .deliveryTimeWindow(TW)
-      .serviceDuration(30)
-      .build();
+        .pickupTimeWindow(TW)
+        .deliveryTimeWindow(TW)
+        .serviceDuration(30)
+        .build();
   }
 
   static class TestVehicle extends Vehicle {
@@ -439,11 +440,11 @@ public class SolversTest {
 
     TestVehicle(Point start) {
       super(VehicleDTO.builder()
-        .startPosition(start)
-        .speed(.1)
-        .capacity(1)
-        .availabilityTimeWindow(TW)
-        .build());
+          .startPosition(start)
+          .speed(.1)
+          .capacity(1)
+          .availabilityTimeWindow(TW)
+          .build());
       dto = getDTO();
     }
 

@@ -75,10 +75,11 @@ public abstract class GlobalStateObject {
   public abstract Unit<Length> getDistUnit();
 
   static GlobalStateObject create(ImmutableSet<Parcel> availableParcels,
-    ImmutableList<VehicleStateObject> vehicles, long time,
-    Unit<Duration> timeUnit, Unit<Velocity> speedUnit, Unit<Length> distUnit) {
+      ImmutableList<VehicleStateObject> vehicles, long time,
+      Unit<Duration> timeUnit, Unit<Velocity> speedUnit,
+      Unit<Length> distUnit) {
     return new AutoValue_GlobalStateObject(availableParcels, vehicles, time,
-      timeUnit, speedUnit, distUnit);
+        timeUnit, speedUnit, distUnit);
   }
 
   /**
@@ -90,11 +91,11 @@ public abstract class GlobalStateObject {
    */
   public GlobalStateObject withSingleVehicle(int index) {
     checkArgument(index >= 0 && index < getVehicles().size(),
-      "Invalid vehicle index (%s) must be >= 0 and < %s.", index,
-      getVehicles().size());
+        "Invalid vehicle index (%s) must be >= 0 and < %s.", index,
+        getVehicles().size());
     return create(getAvailableParcels(),
-      ImmutableList.of(getVehicles().get(index)),
-      getTime(), getTimeUnit(), getSpeedUnit(), getDistUnit());
+        ImmutableList.of(getVehicles().get(index)),
+        getTime(), getTimeUnit(), getSpeedUnit(), getDistUnit());
   }
 
   /**
@@ -161,16 +162,16 @@ public abstract class GlobalStateObject {
 
     @SuppressWarnings("unchecked")
     static VehicleStateObject create(VehicleDTO dto, Point location,
-      ImmutableSet<Parcel> contents, long remainingServiceTime,
-      @Nullable Parcel destination,
-      @Nullable ImmutableList<? extends Parcel> route) {
+        ImmutableSet<Parcel> contents, long remainingServiceTime,
+        @Nullable Parcel destination,
+        @Nullable ImmutableList<? extends Parcel> route) {
       return new AutoValue_GlobalStateObject_VehicleStateObject(
-        dto,
-        location,
-        contents,
-        remainingServiceTime,
-        Optional.fromNullable(destination),
-        Optional.fromNullable((ImmutableList<Parcel>) route));
+          dto,
+          location,
+          contents,
+          remainingServiceTime,
+          Optional.fromNullable(destination),
+          Optional.fromNullable((ImmutableList<Parcel>) route));
     }
 
     @Override

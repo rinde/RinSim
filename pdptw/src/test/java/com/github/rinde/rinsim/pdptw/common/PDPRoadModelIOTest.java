@@ -35,14 +35,12 @@ public class PDPRoadModelIOTest {
   @Test
   public void testIO() {
     final Scenario.Builder sb = Scenario
-      .builder(Scenario.DEFAULT_PROBLEM_CLASS)
-      .addModel(PDPRoadModel.builder(
-        RoadModelBuilders.plane()
-          .withSpeedUnit(NonSI.MILES_PER_HOUR)
-          .withMaxSpeed(7)
-        )
-        .withAllowVehicleDiversion(true)
-      );
+        .builder(Scenario.DEFAULT_PROBLEM_CLASS)
+        .addModel(PDPRoadModel.builder(
+            RoadModelBuilders.plane()
+                .withSpeedUnit(NonSI.MILES_PER_HOUR)
+                .withMaxSpeed(7))
+            .withAllowVehicleDiversion(true));
 
     final Scenario s = sb.problemClass(TestProblemClass.TEST).build();
     ScenarioTestUtil.assertScenarioIO(s);

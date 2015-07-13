@@ -72,9 +72,9 @@ public final class ArraysSolvers {
    *         the size of the <code>points</code> list.
    */
   public static int[][] toTravelTimeMatrix(List<Point> points, double speed,
-    RoundingMode rm) {
+      RoundingMode rm) {
     return toTravelTimeMatrix(points, SI.METER,
-      Measure.valueOf(speed, SI.METERS_PER_SECOND), SI.SECOND, rm);
+        Measure.valueOf(speed, SI.METERS_PER_SECOND), SI.SECOND, rm);
   }
 
   /**
@@ -97,8 +97,8 @@ public final class ArraysSolvers {
    *         the size of the <code>points</code> list.
    */
   public static int[][] toTravelTimeMatrix(List<Point> points,
-    Unit<Length> distUnit, Measure<Double, Velocity> speed,
-    Unit<Duration> outputTimeUnit, RoundingMode rm) {
+      Unit<Length> distUnit, Measure<Double, Velocity> speed,
+      Unit<Duration> outputTimeUnit, RoundingMode rm) {
     checkArgument(points.size() >= 2);
     final int[][] matrix = new int[points.size()][points.size()];
     for (int i = 0; i < points.size(); i++) {
@@ -106,10 +106,10 @@ public final class ArraysSolvers {
         if (i != j) {
           // compute distance
           final Measure<Double, Length> dist = Measure.valueOf(
-            Point.distance(points.get(i), points.get(j)), distUnit);
+              Point.distance(points.get(i), points.get(j)), distUnit);
           // calculate duration in desired unit
           final double duration = RoadModels.computeTravelTime(speed, dist,
-            outputTimeUnit);
+              outputTimeUnit);
           // round duration
           final int tt = DoubleMath.roundToInt(duration, rm);
           matrix[i][j] = tt;
@@ -129,10 +129,10 @@ public final class ArraysSolvers {
    * @return An {@link ArraysObject} using the specified output time unit.
    */
   public static ArraysObject toSingleVehicleArrays(GlobalStateObject state,
-    Unit<Duration> outputTimeUnit) {
+      Unit<Duration> outputTimeUnit) {
 
     final UnitConverter timeConverter = state.getTimeUnit()
-      .getConverterTo(outputTimeUnit);
+        .getConverterTo(outputTimeUnit);
 
     final VehicleStateObject v = state.getVehicles().iterator().next();
 
@@ -146,7 +146,7 @@ public final class ArraysSolvers {
     // there are always two locations: the current vehicle location and
     // the depot
     final int numLocations = 2 + state.getAvailableParcels().size() * 2
-      + inCargo.size();
+        + inCargo.size();
 
     final int[] releaseDates = new int[numLocations];
     final int[] dueDates = new int[numLocations];
@@ -156,10 +156,12 @@ public final class ArraysSolvers {
     // we need to create two mappings:
     // Parcel -> pickup index / deliver index
     // index -> Parcel
-    final ImmutableMap.Builder<Parcel, ParcelIndexObj> parcel2indexBuilder = ImmutableMap
-      .builder();
-    final ImmutableMap.Builder<Integer, ParcelIndexObj> index2parcelBuilder = ImmutableMap
-      .builder();
+    final ImmutableMap.Builder<Parcel, ParcelIndexObj> parcel2indexBuilder =
+        ImmutableMap
+            .builder();
+    final ImmutableMap.Builder<Integer, ParcelIndexObj> index2parcelBuilder =
+        ImmutableMap
+            .builder();
 
     // we wrap the points in PointWrapper to avoid problems with (possibly)
     // duplicates in the points
@@ -170,7 +172,7 @@ public final class ArraysSolvers {
     int spIndex = 0;
     for (final Parcel p : state.getAvailableParcels()) {
       serviceTimes[index] = DoubleMath.roundToInt(
-        timeConverter.convert(p.getPickupDuration()), RoundingMode.CEILING);
+          timeConverter.convert(p.getPickupDuration()), RoundingMode.CEILING);
       // add pickup location and time window
       points.add(p.getPickupLocation());
       final int deliveryIndex = index + state.getAvailableParcels().size();
@@ -180,24 +182,24 @@ public final class ArraysSolvers {
       index2parcelBuilder.put(deliveryIndex, pio);
 
       final int[] tw = convertTW(p.getPickupTimeWindow(), state.getTime(),
-        timeConverter);
+          timeConverter);
       releaseDates[index] = tw[0];
       dueDates[index] = tw[1];
       checkState(releaseDates[index] <= dueDates[index]);
 
       // link the pair with its delivery location (see next loop)
-      servicePairs[spIndex++] = new int[] { index, deliveryIndex };
+      servicePairs[spIndex++] = new int[] {index, deliveryIndex};
 
       index++;
     }
     checkState(spIndex == state.getAvailableParcels().size(), "%s %s",
-      state.getAvailableParcels().size(), spIndex);
+        state.getAvailableParcels().size(), spIndex);
 
     final List<Parcel> deliveries = new ImmutableList.Builder<Parcel>()
-      .addAll(state.getAvailableParcels()).addAll(inCargo).build();
+        .addAll(state.getAvailableParcels()).addAll(inCargo).build();
     for (final Parcel p : deliveries) {
       serviceTimes[index] = DoubleMath.roundToInt(
-        timeConverter.convert(p.getDeliveryDuration()), RoundingMode.CEILING);
+          timeConverter.convert(p.getDeliveryDuration()), RoundingMode.CEILING);
 
       points.add(p.getDeliveryLocation());
       if (inCargo.contains(p)) {
@@ -207,7 +209,7 @@ public final class ArraysSolvers {
       }
 
       final int[] tw = convertTW(p.getDeliveryTimeWindow(), state.getTime(),
-        timeConverter);
+          timeConverter);
       releaseDates[index] = tw[0];
       dueDates[index] = tw[1];
       checkState(releaseDates[index] <= dueDates[index]);
@@ -221,23 +223,25 @@ public final class ArraysSolvers {
 
     // end of the day
     dueDates[index] = fixTWend(v.getDto().getAvailabilityTimeWindow().end,
-      state.getTime(),
-      timeConverter);
+        state.getTime(),
+        timeConverter);
 
     releaseDates[index] = Math.min(0, dueDates[index]);
 
     final Measure<Double, Velocity> speed = Measure.valueOf(
-      v.getDto().getSpeed(),
-      state.getSpeedUnit());
+        v.getDto().getSpeed(),
+        state.getSpeedUnit());
 
     final ImmutableList<Point> pointList = points.build();
-    final ImmutableMap<Parcel, ParcelIndexObj> parcel2indexMap = parcel2indexBuilder
-      .build();
-    final ImmutableMap<Integer, ParcelIndexObj> index2parcelMap = index2parcelBuilder
-      .build();
+    final ImmutableMap<Parcel, ParcelIndexObj> parcel2indexMap =
+        parcel2indexBuilder
+            .build();
+    final ImmutableMap<Integer, ParcelIndexObj> index2parcelMap =
+        index2parcelBuilder
+            .build();
 
     final int[][] travelTime = ArraysSolvers.toTravelTimeMatrix(pointList,
-      state.getDistUnit(), speed, outputTimeUnit, RoundingMode.CEILING);
+        state.getDistUnit(), speed, outputTimeUnit, RoundingMode.CEILING);
 
     @Nullable
     SolutionObject[] sol = null;
@@ -245,32 +249,32 @@ public final class ArraysSolvers {
       // the assumption is that if the current route of one vehicle is known,
       // the routes of all vehicles should be known.
       sol = toCurrentSolutions(state, parcel2indexMap, travelTime,
-        releaseDates, dueDates, serviceTimes, new int[][] { travelTime[0] },
-        new int[] { 0 });
+          releaseDates, dueDates, serviceTimes, new int[][] {travelTime[0]},
+          new int[] {0});
     }
     return new ArraysObject(travelTime, releaseDates, dueDates, servicePairs,
-      serviceTimes, sol, pointList, parcel2indexMap, index2parcelMap);
+        serviceTimes, sol, pointList, parcel2indexMap, index2parcelMap);
   }
 
   @Nullable
   static SolutionObject[] toCurrentSolutions(GlobalStateObject state,
-    Map<Parcel, ParcelIndexObj> mapping, int[][] travelTime,
-    int[] releaseDates, int[] dueDates, int[] serviceTimes,
-    int[][] vehicleTravelTimes, int[] remainingServiceTimes) {
+      Map<Parcel, ParcelIndexObj> mapping, int[][] travelTime,
+      int[] releaseDates, int[] dueDates, int[] serviceTimes,
+      int[][] vehicleTravelTimes, int[] remainingServiceTimes) {
     final SolutionObject[] sols = new SolutionObject[state.getVehicles()
-      .size()];
+        .size()];
     for (int i = 0; i < state.getVehicles().size(); i++) {
       sols[i] = convertRouteToSolutionObject(state, state.getVehicles().get(i),
-        mapping, travelTime, releaseDates, dueDates, serviceTimes,
-        vehicleTravelTimes[i], remainingServiceTimes[i]);
+          mapping, travelTime, releaseDates, dueDates, serviceTimes,
+          vehicleTravelTimes[i], remainingServiceTimes[i]);
     }
     return sols;
   }
 
   static SolutionObject convertRouteToSolutionObject(GlobalStateObject state,
-    VehicleStateObject vso, Map<Parcel, ParcelIndexObj> mapping,
-    int[][] travelTime, int[] releaseDates, int[] dueDates,
-    int[] serviceTimes, int[] vehicleTravelTimes, int remainingServiceTime) {
+      VehicleStateObject vso, Map<Parcel, ParcelIndexObj> mapping,
+      int[][] travelTime, int[] releaseDates, int[] dueDates,
+      int[] serviceTimes, int[] vehicleTravelTimes, int remainingServiceTime) {
     final int[] route = new int[vso.getRoute().get().size() + 2];
 
     final Set<Parcel> seen = newHashSet();
@@ -282,7 +286,7 @@ public final class ArraysSolvers {
         route[i + 1] = mapping.get(dto).deliveryIndex;
       } else {
         checkArgument(state.getAvailableParcels().contains(dto),
-          "This parcel should be available but is not: %s.", dto);
+            "This parcel should be available but is not: %s.", dto);
         // it is available
         route[i + 1] = mapping.get(dto).pickupIndex;
       }
@@ -292,18 +296,18 @@ public final class ArraysSolvers {
     }
     route[route.length - 1] = travelTime.length - 1;
     final int[] arrivalTimes = computeArrivalTimes(route, travelTime,
-      remainingServiceTime, vehicleTravelTimes, serviceTimes, releaseDates);
+        remainingServiceTime, vehicleTravelTimes, serviceTimes, releaseDates);
 
     final int tardiness = computeRouteTardiness(route, arrivalTimes,
-      serviceTimes, dueDates, remainingServiceTime);
+        serviceTimes, dueDates, remainingServiceTime);
     final int tt = computeTotalTravelTime(route, travelTime,
-      vehicleTravelTimes);
+        vehicleTravelTimes);
     return new SolutionObject(route, arrivalTimes, tt + tardiness);
   }
 
   static int[] computeArrivalTimes(int[] route, int[][] travelTime,
-    int remainingServiceTime, int[] vehicleTravelTimes, int[] serviceTimes,
-    int[] releaseDates) {
+      int remainingServiceTime, int[] vehicleTravelTimes, int[] serviceTimes,
+      int[] releaseDates) {
     final int[] arrivalTimes = new int[route.length];
 
     checkArgument(route.length >= 2);
@@ -327,7 +331,7 @@ public final class ArraysSolvers {
       // service time is different in case we were already halfway with the
       // servicing (as defined by remainingServiceTime)
       final int st = j == 2 && remainingServiceTime > 0 ? remainingServiceTime
-        : serviceTimes[prev];
+          : serviceTimes[prev];
       // we compute the first possible arrival time for the vehicle to
       // arrive at location i, given that it first visited location
       // i-1
@@ -335,7 +339,7 @@ public final class ArraysSolvers {
 
       // we also have to take into account the time window
       final int minArrivalTime = Math.max(earliestArrivalTime,
-        releaseDates[cur]);
+          releaseDates[cur]);
       arrivalTimes[j] = minArrivalTime;
     }
     return arrivalTimes;
@@ -349,20 +353,20 @@ public final class ArraysSolvers {
    * @return A {@link MVArraysObject} using the specified output time unit.
    */
   public static MVArraysObject toMultiVehicleArrays(GlobalStateObject state,
-    Unit<Duration> outputTimeUnit) {
+      Unit<Duration> outputTimeUnit) {
     final ArraysObject singleVehicleArrays = toSingleVehicleArrays(state,
-      outputTimeUnit);
+        outputTimeUnit);
     checkArgument(!state.getVehicles().isEmpty(),
-      "We need at least one vehicle");
+        "We need at least one vehicle");
 
     final int[][] vehicleTravelTimes = toVehicleTravelTimes(state,
-      singleVehicleArrays, outputTimeUnit);
+        singleVehicleArrays, outputTimeUnit);
     final int[][] inventories = toInventoriesArray(state, singleVehicleArrays);
     final int[] remainingServiceTimes = toRemainingServiceTimes(state,
-      outputTimeUnit);
+        outputTimeUnit);
 
     final int[] currentDestinations = toVehicleDestinations(state,
-      singleVehicleArrays);
+        singleVehicleArrays);
 
     @Nullable
     SolutionObject[] sols = null;
@@ -370,13 +374,13 @@ public final class ArraysSolvers {
       // the assumption is that if the current route of one vehicle is known,
       // the routes of all vehicles should be known.
       sols = toCurrentSolutions(state, singleVehicleArrays.parcel2index,
-        singleVehicleArrays.travelTime, singleVehicleArrays.releaseDates,
-        singleVehicleArrays.dueDates, singleVehicleArrays.serviceTimes,
-        vehicleTravelTimes, remainingServiceTimes);
+          singleVehicleArrays.travelTime, singleVehicleArrays.releaseDates,
+          singleVehicleArrays.dueDates, singleVehicleArrays.serviceTimes,
+          vehicleTravelTimes, remainingServiceTimes);
     }
 
     return new MVArraysObject(singleVehicleArrays, sols, vehicleTravelTimes,
-      inventories, remainingServiceTimes, currentDestinations);
+        inventories, remainingServiceTimes, currentDestinations);
   }
 
   /**
@@ -387,7 +391,7 @@ public final class ArraysSolvers {
    *         {@link SolutionObject}.
    */
   public static ImmutableList<Parcel> convertSolutionObject(
-    SolutionObject sol, Map<Integer, ParcelIndexObj> index2parcel) {
+      SolutionObject sol, Map<Integer, ParcelIndexObj> index2parcel) {
     final ImmutableList.Builder<Parcel> builder = ImmutableList.builder();
     // ignore first (current pos) and last (depot)
     for (int i = 1; i < sol.route.length - 1; i++) {
@@ -397,11 +401,11 @@ public final class ArraysSolvers {
   }
 
   static int[] toVehicleDestinations(GlobalStateObject state,
-    ArraysObject sva) {
+      ArraysObject sva) {
     final int v = state.getVehicles().size();
     final UnmodifiableIterator<VehicleStateObject> iterator = state
-      .getVehicles()
-      .iterator();
+        .getVehicles()
+        .iterator();
 
     final int[] destinations = new int[v];
     for (int i = 0; i < v; i++) {
@@ -417,27 +421,27 @@ public final class ArraysSolvers {
         destinations[i] = 0;
       }
       checkArgument(destinations[i] >= 0, "Invalid destination.",
-        cur.getDestination());
+          cur.getDestination());
     }
     return destinations;
   }
 
   static int[][] toVehicleTravelTimes(GlobalStateObject state,
-    ArraysObject sva, Unit<Duration> outputTimeUnit) {
+      ArraysObject sva, Unit<Duration> outputTimeUnit) {
     final int v = state.getVehicles().size();
     final int n = sva.travelTime.length;
     // compute vehicle travel times
     final int[][] vehicleTravelTimes = new int[v][n];
 
     final UnmodifiableIterator<VehicleStateObject> iterator = state
-      .getVehicles()
-      .iterator();
+        .getVehicles()
+        .iterator();
 
     for (int i = 0; i < v; i++) {
       final VehicleStateObject cur = iterator.next();
       final Measure<Double, Velocity> speed = Measure.valueOf(
-        cur.getDto().getSpeed(),
-        state.getSpeedUnit());
+          cur.getDto().getSpeed(),
+          state.getSpeedUnit());
 
       if (cur.getDestination().isPresent()) {
         final Parcel dest = cur.getDestination().get();
@@ -451,19 +455,20 @@ public final class ArraysSolvers {
 
         checkArgument(index > 0);
         vehicleTravelTimes[i][index] = computeRoundedTravelTime(speed,
-          Measure.valueOf(
-            Point.distance(cur.getLocation(), sva.location2index.get(index)),
-            state.getDistUnit()),
-          outputTimeUnit);
+            Measure.valueOf(
+                Point.distance(cur.getLocation(),
+                    sva.location2index.get(index)),
+                state.getDistUnit()),
+            outputTimeUnit);
 
       } else {
         // add travel time for every location
         for (int j = 1; j < n; j++) {
           vehicleTravelTimes[i][j] = computeRoundedTravelTime(speed,
-            Measure.valueOf(
-              Point.distance(cur.getLocation(), sva.location2index.get(j)),
-              state.getDistUnit()),
-            outputTimeUnit);
+              Measure.valueOf(
+                  Point.distance(cur.getLocation(), sva.location2index.get(j)),
+                  state.getDistUnit()),
+              outputTimeUnit);
         }
       }
     }
@@ -471,28 +476,29 @@ public final class ArraysSolvers {
   }
 
   static int computeRoundedTravelTime(Measure<Double, Velocity> speed,
-    Measure<Double, Length> dist, Unit<Duration> outputTimeUnit) {
+      Measure<Double, Length> dist, Unit<Duration> outputTimeUnit) {
     return DoubleMath.roundToInt(
-      RoadModels.computeTravelTime(speed, dist, outputTimeUnit),
-      RoundingMode.CEILING);
+        RoadModels.computeTravelTime(speed, dist, outputTimeUnit),
+        RoundingMode.CEILING);
   }
 
   static int[][] toInventoriesArray(GlobalStateObject state, ArraysObject sva) {
     final UnmodifiableIterator<VehicleStateObject> iterator = state
-      .getVehicles()
-      .iterator();
+        .getVehicles()
+        .iterator();
 
-    final ImmutableList.Builder<ImmutableList<Integer>> invPairBuilder = ImmutableList
-      .builder();
+    final ImmutableList.Builder<ImmutableList<Integer>> invPairBuilder =
+        ImmutableList
+            .builder();
     for (int i = 0; i < state.getVehicles().size(); i++) {
       final VehicleStateObject cur = iterator.next();
       for (final Parcel dp : cur.getContents()) {
         invPairBuilder.add(ImmutableList.of(i,
-          sva.parcel2index.get(dp).deliveryIndex));
+            sva.parcel2index.get(dp).deliveryIndex));
       }
     }
     final ImmutableList<ImmutableList<Integer>> inventoryPairs = invPairBuilder
-      .build();
+        .build();
 
     final int[][] inventories = new int[inventoryPairs.size()][2];
     for (int i = 0; i < inventoryPairs.size(); i++) {
@@ -503,17 +509,17 @@ public final class ArraysSolvers {
   }
 
   static int[] toRemainingServiceTimes(GlobalStateObject state,
-    Unit<Duration> outputTimeUnit) {
+      Unit<Duration> outputTimeUnit) {
     final UnmodifiableIterator<VehicleStateObject> iterator = state
-      .getVehicles()
-      .iterator();
+        .getVehicles()
+        .iterator();
     final int[] remainingServiceTimes = new int[state.getVehicles().size()];
     for (int i = 0; i < state.getVehicles().size(); i++) {
       remainingServiceTimes[i] = DoubleMath.roundToInt(
-        Measure.valueOf(iterator.next().getRemainingServiceTime(),
-          state.getTimeUnit())
-          .doubleValue(outputTimeUnit),
-        RoundingMode.CEILING);
+          Measure.valueOf(iterator.next().getRemainingServiceTime(),
+              state.getTimeUnit())
+              .doubleValue(outputTimeUnit),
+          RoundingMode.CEILING);
     }
     return remainingServiceTimes;
   }
@@ -527,7 +533,7 @@ public final class ArraysSolvers {
    * @return The travel time of the specified route.
    */
   public static int computeTotalTravelTime(int[] route, int[][] travelTime,
-    int[] vehicleTravelTimes) {
+      int[] vehicleTravelTimes) {
     int totalTravelTime = 0;
     for (int i = 1; i < route.length; i++) {
       if (i == 1) {
@@ -553,7 +559,7 @@ public final class ArraysSolvers {
    * @return The sum tardiness.
    */
   public static int computeRouteTardiness(int[] route, int[] arrivalTimes,
-    int[] serviceTimes, int[] dueDates, int remainingServiceTime) {
+      int[] serviceTimes, int[] dueDates, int remainingServiceTime) {
     int tardiness = 0;
     // start at index 1 since there can be no tardiness at start location
     for (int i = 1; i < route.length; i++) {
@@ -594,13 +600,13 @@ public final class ArraysSolvers {
    * @return The sum objective value in the <code>outputUnit</code>.
    */
   public static int computeTotalObjectiveValue(SolutionObject[] sols,
-    Unit<Duration> inputUnit, Unit<Duration> outputUnit) {
+      Unit<Duration> inputUnit, Unit<Duration> outputUnit) {
     return Measure.valueOf(computeTotalObjectiveValue(sols), inputUnit)
-      .intValue(outputUnit);
+        .intValue(outputUnit);
   }
 
   static int[] convertTW(TimeWindow tw, long time,
-    UnitConverter timeConverter) {
+      UnitConverter timeConverter) {
     final int releaseDate = fixTWstart(tw.begin, time, timeConverter);
     final int dueDate = fixTWend(tw.end, time, timeConverter);
     if (releaseDate > dueDate) {
@@ -608,19 +614,19 @@ public final class ArraysSolvers {
       // release is rounded up, due is rounded down. We also know that the
       // difference is only 1. Therefore we flip the values.
       checkArgument(Math.abs(dueDate - releaseDate) == 1);
-      return new int[] { dueDate, releaseDate };
+      return new int[] {dueDate, releaseDate};
     }
-    return new int[] { releaseDate, dueDate };
+    return new int[] {releaseDate, dueDate};
   }
 
   static int fixTWstart(long start, long time, UnitConverter timeConverter) {
     return DoubleMath.roundToInt(timeConverter.convert(start - time),
-      RoundingMode.CEILING);
+        RoundingMode.CEILING);
   }
 
   static int fixTWend(long end, long time, UnitConverter timeConverter) {
     return DoubleMath.roundToInt(timeConverter.convert(end - time),
-      RoundingMode.FLOOR);
+        RoundingMode.FLOOR);
   }
 
   /**
@@ -690,11 +696,11 @@ public final class ArraysSolvers {
     public final ImmutableMap<Integer, ParcelIndexObj> index2parcel;
 
     ArraysObject(int[][] travelTime, int[] releaseDates, int[] dueDates,
-      int[][] servicePairs, int[] serviceTimes,
-      @Nullable SolutionObject[] currentSolutions,
-      ImmutableList<Point> locations,
-      ImmutableMap<Parcel, ParcelIndexObj> parcel2index,
-      ImmutableMap<Integer, ParcelIndexObj> index2parcel) {
+        int[][] servicePairs, int[] serviceTimes,
+        @Nullable SolutionObject[] currentSolutions,
+        ImmutableList<Point> locations,
+        ImmutableMap<Parcel, ParcelIndexObj> parcel2index,
+        ImmutableMap<Integer, ParcelIndexObj> index2parcel) {
       this.travelTime = travelTime;
       this.releaseDates = releaseDates;
       this.dueDates = dueDates;
@@ -707,13 +713,13 @@ public final class ArraysSolvers {
     }
 
     ArraysObject(int[][] travelTime, int[] releaseDates, int[] dueDates,
-      int[][] servicePairs, int[] serviceTimes,
-      @Nullable SolutionObject[] currentSolutions) {
+        int[][] servicePairs, int[] serviceTimes,
+        @Nullable SolutionObject[] currentSolutions) {
       this(travelTime, releaseDates, dueDates, servicePairs, serviceTimes,
-        currentSolutions, ImmutableList.<Point> of(), ImmutableMap
-          .<Parcel, ParcelIndexObj> of(),
-        ImmutableMap
-          .<Integer, ParcelIndexObj> of());
+          currentSolutions, ImmutableList.<Point>of(), ImmutableMap
+              .<Parcel, ParcelIndexObj>of(),
+          ImmutableMap
+              .<Integer, ParcelIndexObj>of());
     }
   }
 
@@ -754,47 +760,47 @@ public final class ArraysSolvers {
     public final int[] currentDestinations;
 
     MVArraysObject(int[][] travelTime, int[] releaseDates, int[] dueDates,
-      int[][] servicePairs, int[] serviceTimes,
-      @Nullable SolutionObject[] currentSolutions,
-      ImmutableList<Point> locations,
-      ImmutableMap<Parcel, ParcelIndexObj> parcel2index,
-      ImmutableMap<Integer, ParcelIndexObj> index2parcel,
-      int[][] vehicleTravelTimes, int[][] inventories,
-      int[] remainingServiceTimes, int[] currentDestinations) {
+        int[][] servicePairs, int[] serviceTimes,
+        @Nullable SolutionObject[] currentSolutions,
+        ImmutableList<Point> locations,
+        ImmutableMap<Parcel, ParcelIndexObj> parcel2index,
+        ImmutableMap<Integer, ParcelIndexObj> index2parcel,
+        int[][] vehicleTravelTimes, int[][] inventories,
+        int[] remainingServiceTimes, int[] currentDestinations) {
       super(travelTime, releaseDates, dueDates, servicePairs, serviceTimes,
-        currentSolutions, locations, parcel2index, index2parcel);
+          currentSolutions, locations, parcel2index, index2parcel);
       this.vehicleTravelTimes = Arrays.copyOf(vehicleTravelTimes,
-        vehicleTravelTimes.length);
+          vehicleTravelTimes.length);
       this.inventories = Arrays.copyOf(inventories, inventories.length);
       this.remainingServiceTimes = Arrays.copyOf(remainingServiceTimes,
-        remainingServiceTimes.length);
+          remainingServiceTimes.length);
       this.currentDestinations = Arrays.copyOf(currentDestinations,
-        currentDestinations.length);
+          currentDestinations.length);
     }
 
     MVArraysObject(ArraysObject ao,
-      @Nullable SolutionObject[] currentSolutions,
-      int[][] vehicleTravelTimes, int[][] inventories,
-      int[] remainingServiceTimes, int[] currentDestinations) {
+        @Nullable SolutionObject[] currentSolutions,
+        int[][] vehicleTravelTimes, int[][] inventories,
+        int[] remainingServiceTimes, int[] currentDestinations) {
       this(ao.travelTime, ao.releaseDates, ao.dueDates, ao.servicePairs,
-        ao.serviceTimes, currentSolutions, ao.location2index,
-        ao.parcel2index, ao.index2parcel, vehicleTravelTimes, inventories,
-        remainingServiceTimes, currentDestinations);
+          ao.serviceTimes, currentSolutions, ao.location2index,
+          ao.parcel2index, ao.index2parcel, vehicleTravelTimes, inventories,
+          remainingServiceTimes, currentDestinations);
     }
 
     MVArraysObject(int[][] travelTime, int[] releaseDates, int[] dueDates,
-      int[][] servicePairs, int[] serviceTimes, int[][] vehicleTravelTimes,
-      int[][] inventories, int[] remainingServiceTimes,
-      int[] currentDestinations, @Nullable SolutionObject[] curSolutions) {
+        int[][] servicePairs, int[] serviceTimes, int[][] vehicleTravelTimes,
+        int[][] inventories, int[] remainingServiceTimes,
+        int[] currentDestinations, @Nullable SolutionObject[] curSolutions) {
       super(travelTime, releaseDates, dueDates, servicePairs, serviceTimes,
-        curSolutions);
+          curSolutions);
       this.vehicleTravelTimes = Arrays.copyOf(vehicleTravelTimes,
-        vehicleTravelTimes.length);
+          vehicleTravelTimes.length);
       this.inventories = Arrays.copyOf(inventories, inventories.length);
       this.remainingServiceTimes = Arrays.copyOf(remainingServiceTimes,
-        remainingServiceTimes.length);
+          remainingServiceTimes.length);
       this.currentDestinations = Arrays.copyOf(currentDestinations,
-        currentDestinations.length);
+          currentDestinations.length);
     }
   }
 

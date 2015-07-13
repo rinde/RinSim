@@ -83,8 +83,8 @@ class DependencyResolver extends DependencyProvider {
         .entries()) {
       checkArgument(
           providerMap.containsKey(entry.getValue()),
-          "Could not resolve dependency for implementations of %s, as requested "
-              + "by %s.",
+          "Could not resolve dependency for implementations of %s, as requested"
+              + " by %s.",
           entry.getValue(), entry.getKey().modelBuilder);
       dependencyGraph.put(entry.getKey(), providerMap.get(entry.getValue()));
     }
@@ -105,7 +105,8 @@ class DependencyResolver extends DependencyProvider {
 
   ImmutableSet<Model<?>> resolve() {
     addDefaultModels();
-    final Multimap<Dependency, Dependency> dependencyGraph = constructDependencyGraph();
+    final Multimap<Dependency, Dependency> dependencyGraph =
+        constructDependencyGraph();
 
     while (!dependencyGraph.isEmpty()) {
       final List<Dependency> toRemove = new ArrayList<>();

@@ -49,7 +49,8 @@ public abstract class TimeOutEvent implements TimedEvent {
   enum Handler implements TimedEventHandler<TimeOutEvent> {
     INSTANCE {
       @Override
-      public void handleTimedEvent(TimeOutEvent event, SimulatorAPI simulator) {}
+      public void handleTimedEvent(TimeOutEvent event,
+          SimulatorAPI simulator) {}
 
       @Override
       public String toString() {

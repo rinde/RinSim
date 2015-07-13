@@ -20,4 +20,3 @@
 package com.github.rinde.rinsim.scenario;
 
 import javax.annotation.ParametersAreNonnullByDefault;
-

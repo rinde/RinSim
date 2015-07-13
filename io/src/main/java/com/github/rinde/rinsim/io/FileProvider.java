@@ -58,7 +58,7 @@ public final class FileProvider<T> implements Supplier<ImmutableSet<T>> {
   final Function<Path, T> pathReader;
 
   FileProvider(ImmutableList<Path> rootPaths, Predicate<Path> predicate,
-    Function<Path, T> reader) {
+      Function<Path, T> reader) {
     roots = rootPaths;
     pathPredicate = predicate;
     pathReader = reader;
@@ -68,7 +68,7 @@ public final class FileProvider<T> implements Supplier<ImmutableSet<T>> {
   public ImmutableSet<T> get() {
     try {
       final PathCollector<T> pc = new PathCollector<>(pathPredicate,
-        pathReader);
+          pathReader);
       for (final Path path : roots) {
         Files.walkFileTree(path, pc);
       }
@@ -142,7 +142,7 @@ public final class FileProvider<T> implements Supplier<ImmutableSet<T>> {
     public Builder filter(String syntaxAndPattern) {
       checkNotNull(syntaxAndPattern);
       pathPredicate = new PredicateAdapter(syntaxAndPattern, FileSystems
-        .getDefault().getPathMatcher(syntaxAndPattern));
+          .getDefault().getPathMatcher(syntaxAndPattern));
       return this;
     }
 
@@ -198,7 +198,7 @@ public final class FileProvider<T> implements Supplier<ImmutableSet<T>> {
      * @return The new {@link FileProvider} instance.
      */
     public FileProvider<Path> build() {
-      return build(Functions.<Path> identity());
+      return build(Functions.<Path>identity());
     }
 
     /**
@@ -215,7 +215,7 @@ public final class FileProvider<T> implements Supplier<ImmutableSet<T>> {
       checkNotNull(converter);
       checkArgument(!paths.isEmpty(), "No paths are specified.");
       return new FileProvider<>(ImmutableList.copyOf(paths),
-        pathPredicate, converter);
+          pathPredicate, converter);
     }
 
     int getNumberOfFiles() {
@@ -239,11 +239,11 @@ public final class FileProvider<T> implements Supplier<ImmutableSet<T>> {
 
     @Override
     public FileVisitResult visitFile(@Nullable Path file,
-      @Nullable BasicFileAttributes attrs)
-      throws IOException {
+        @Nullable BasicFileAttributes attrs)
+            throws IOException {
       if (pathPredicate.apply(file)) {
         convertedPaths.add(verifyNotNull(pathReader.apply(file), "%s",
-          pathReader));
+            pathReader));
       }
       return FileVisitResult.CONTINUE;
     }

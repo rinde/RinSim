@@ -33,8 +33,8 @@ class SubVehicle extends RouteFollowingVehicle {
     // when overriding, please see doc of super method!
 
     // reuse super implementation
-    final StateMachine<StateEvent, RouteFollowingVehicle> fsm = super
-        .createStateMachine();
+    final StateMachine<StateEvent, RouteFollowingVehicle> fsm =
+        super.createStateMachine();
 
     // get ref to existing state
     final Wait wait = fsm.getStateOfType(Wait.class);

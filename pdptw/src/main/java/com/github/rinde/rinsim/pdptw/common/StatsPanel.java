@@ -69,7 +69,7 @@ final class StatsPanel implements PanelRenderer, TickListener {
     statsTable = Optional.of(table);
     table.setHeaderVisible(true);
     table.setLinesVisible(true);
-    final String[] statsTitles = new String[] { "Variable", "Value" };
+    final String[] statsTitles = new String[] {"Variable", "Value"};
     for (int i = 0; i < statsTitles.length; i++) {
       final TableColumn column = new TableColumn(table, SWT.NONE);
       column.setText(statsTitles[i]);
@@ -93,7 +93,7 @@ final class StatsPanel implements PanelRenderer, TickListener {
         | SWT.V_SCROLL | SWT.H_SCROLL);
     eventList.setHeaderVisible(true);
     eventList.setLinesVisible(true);
-    final String[] titles = new String[] { "Time", "Tardiness" };
+    final String[] titles = new String[] {"Time", "Tardiness"};
     for (int i = 0; i < titles.length; i++) {
       final TableColumn column = new TableColumn(eventList, SWT.NONE);
       column.setText(titles[i]);

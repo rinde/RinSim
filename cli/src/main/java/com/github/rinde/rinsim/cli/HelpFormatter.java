@@ -18,7 +18,7 @@ package com.github.rinde.rinsim.cli;
 /**
  * Implementations should create a formatted string containing all information
  * about a menu.
- * @author Rinde van Lon 
+ * @author Rinde van Lon
  */
 public interface HelpFormatter {
 

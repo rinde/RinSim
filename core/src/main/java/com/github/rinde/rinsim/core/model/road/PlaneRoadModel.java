@@ -91,7 +91,8 @@ public class PlaneRoadModel extends AbstractRoadModel<Point> {
   public void addObjectAt(RoadUser obj, Point pos) {
     checkArgument(
         isPointInBoundary(pos),
-        "objects can only be added within the boundaries of the plane, %s is not in the boundary.",
+        "objects can only be added within the boundaries of the plane, %s is "
+            + "not in the boundary.",
         pos);
     super.addObjectAt(obj, pos);
   }
@@ -117,7 +118,8 @@ public class PlaneRoadModel extends AbstractRoadModel<Point> {
     final List<Point> travelledNodes = new ArrayList<>();
     while (time.hasTimeLeft() && !path.isEmpty()) {
       checkArgument(isPointInBoundary(path.peek()),
-          "points in the path must be within the predefined boundary of the plane");
+          "points in the path must be within the predefined boundary of the "
+              + "plane");
 
       // distance in internal time unit that can be traveled with timeleft
       final double travelDistance = speed
@@ -165,11 +167,13 @@ public class PlaneRoadModel extends AbstractRoadModel<Point> {
   public List<Point> getShortestPathTo(Point from, Point to) {
     checkArgument(
         isPointInBoundary(from),
-        "from must be within the predefined boundary of the plane, from is %s, boundary: min %s, max %s.",
+        "from must be within the predefined boundary of the plane, from is %s, "
+            + "boundary: min %s, max %s.",
         to, min, max);
     checkArgument(
         isPointInBoundary(to),
-        "to must be within the predefined boundary of the plane, to is %s, boundary: min %s, max %s.",
+        "to must be within the predefined boundary of the plane, to is %s, "
+            + "boundary: min %s, max %s.",
         to, min, max);
     return asList(from, to);
   }
