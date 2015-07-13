@@ -165,7 +165,8 @@ public final class Graphs {
    * A standard implementation of the
    * <a href="http://en.wikipedia.org/wiki/A*_search_algorithm">A* algorithm</a>
    * .
-   * 
+   * @author Rutger Claes
+   * @author Rinde van Lon
    * @param graph The {@link Graph} which contains <code>from</code> and
    *          <code>to</code>.
    * @param from The start position
@@ -176,9 +177,6 @@ public final class Graphs {
    *         exists, otherwise a {@link PathNotFoundException} is thrown.
    * @throws PathNotFoundException if a path does not exist between
    *           <code>from</code> and <code>to</code>.
-   * 
-   * @author Rutger Claes
-   * @author Rinde van Lon
    */
   public static <E extends ConnectionData> List<Point> shortestPath(
       Graph<E> graph, final Point from, final Point to, Graphs.Heuristic h) {

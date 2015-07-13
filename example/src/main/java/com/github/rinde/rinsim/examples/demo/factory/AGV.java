@@ -70,7 +70,7 @@ class AGV extends Vehicle {
   }
 
   /**
-   * Injection of AvgModel;
+   * Injection of AvgModel.
    * @param model Model to inject.
    */
   public void registerAgvModel(AgvModel model) {

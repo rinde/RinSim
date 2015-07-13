@@ -39,7 +39,7 @@ import com.google.common.collect.ImmutableTable;
  * in a {@link RuntimeException}. Note that the transition table is immutable.
  * StateMachine instances can only be created using its builder via the
  * {@link #create(State)} method.
- *
+ * @author Rinde van Lon
  * @param <T> The trigger type. Concrete trigger objects that describe the same
  *          event should be <i>equal</i> (according to {@link #equals(Object)} )
  *          and their {@link #hashCode()} implementation should return the same
@@ -48,7 +48,6 @@ import com.google.common.collect.ImmutableTable;
  * @param <C> The context type. This is typically the object that contains the
  *          {@link StateMachine}, a {@link State} represents a state of this
  *          object.
- * @author Rinde van Lon
  */
 public class StateMachine<T, C> {
 

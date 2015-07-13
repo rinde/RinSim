@@ -37,10 +37,9 @@ import com.google.common.collect.Maps;
  * {@link BiMap} with key based insertion ordering. Note that all its collection
  * views are unmodifiable.
  *
- * @param <K>
- * @param <V>
- *
  * @author Rinde van Lon
+ * @param <K> Key type.
+ * @param <V> Value type.
  */
 public class LinkedHashBiMap<K, V> extends ForwardingBiMap<K, V> {
 

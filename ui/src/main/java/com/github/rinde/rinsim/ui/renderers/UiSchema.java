@@ -38,7 +38,7 @@ public class UiSchema {
   /**
    * This is the key that is used for the default color.
    */
-  public final static String DEFAULT = "default_color";
+  public static final String DEFAULT = "default_color";
 
   @Nullable
   Map<String, Color> colorRegistry;

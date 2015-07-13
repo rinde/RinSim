@@ -373,13 +373,9 @@ public final class StochasticSuppliers {
       return this;
     }
 
-    /**
+    /*
      * Computes effective mean using
-     * https://en.wikipedia.org/wiki/Truncated_normal_distribution#Moments
-     * @param m
-     * @param s
-     * @param lb
-     * @return
+     * https://en.wikipedia.org/wiki/Truncated_normal_distribution#Moments .
      */
     private static double computeEffectiveMean(double m, double s, double lb) {
       final NormalDistribution normal = new NormalDistribution();
@@ -434,8 +430,8 @@ public final class StochasticSuppliers {
   /**
    * Abstract implementation providing a default {@link #toString()}
    * implementation.
-   * @param <T> The type of objects that this supplier creates.
    * @author Rinde van Lon
+   * @param <T> The type of objects that this supplier creates.
    */
   public abstract static class AbstractStochasticSupplier<T> implements
       StochasticSupplier<T>, Serializable {

@@ -32,8 +32,8 @@ import com.google.auto.value.AutoValue;
 
 class GradientFieldRenderer extends AbstractCanvasRenderer {
 
-  final static RGB GREEN = new RGB(0, 255, 0);
-  final static RGB RED = new RGB(255, 0, 0);
+  static final RGB GREEN = new RGB(0, 255, 0);
+  static final RGB RED = new RGB(255, 0, 0);
 
   GradientModel gradientModel;
 

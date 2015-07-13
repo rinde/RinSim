@@ -20,9 +20,9 @@ import javax.annotation.Nullable;
 /**
  * Default empty implementation of state. Subclasses only need to implement the
  * {@link AbstractState#handle(Object, Object)} method.
+ * @author Rinde van Lon
  * @param <T> The trigger type, see {@link StateMachine} for more information.
  * @param <C> The context type, see {@link StateMachine} for more information.
- * @author Rinde van Lon
  */
 public abstract class AbstractState<T, C> implements State<T, C> {
 

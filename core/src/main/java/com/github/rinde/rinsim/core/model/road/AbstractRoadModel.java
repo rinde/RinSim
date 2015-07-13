@@ -46,11 +46,10 @@ import com.google.common.collect.Sets;
  * A common space neutral implementation of {@link RoadModel}. It implements a
  * data structure for managing objects and locations and checks many
  * preconditions as defined in {@link RoadModel}.
+ * @author Rinde van Lon
  * @param <T> The type of the location representation that is used for storing
  *          object locations. This location representation should only be used
  *          internally in the model.
- *
- * @author Rinde van Lon
  */
 public abstract class AbstractRoadModel<T> extends GenericRoadModel {
 

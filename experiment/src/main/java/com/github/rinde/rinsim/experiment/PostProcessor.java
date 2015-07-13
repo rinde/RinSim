@@ -19,9 +19,8 @@ import com.github.rinde.rinsim.core.Simulator;
 
 /**
  * A post-processor should collect results from a {@link Simulator}.
- * @param <T> The results object type.
- * 
  * @author Rinde van Lon
+ * @param <T> The results object type.
  */
 public interface PostProcessor<T> {
 

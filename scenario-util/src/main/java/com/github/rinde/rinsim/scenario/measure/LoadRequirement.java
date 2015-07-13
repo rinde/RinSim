@@ -33,7 +33,7 @@ import com.google.common.primitives.Doubles;
 /**
  * A {@link Predicate} that evaluates to <code>true</code> if the load graph of
  * a scenario is within the range as described by this predicate.
- * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+ * @author Rinde van Lon
  */
 @Beta
 class LoadRequirement implements Predicate<Scenario> {

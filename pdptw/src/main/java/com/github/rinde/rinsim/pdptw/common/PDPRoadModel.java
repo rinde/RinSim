@@ -380,7 +380,7 @@ public class PDPRoadModel extends ForwardingRoadModel implements ModelReceiver {
   }
 
   @AutoValue
-  static abstract class DestinationObject {
+  abstract static class DestinationObject {
 
     DestinationObject() {}
 

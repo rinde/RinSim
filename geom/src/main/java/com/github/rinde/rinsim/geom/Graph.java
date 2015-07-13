@@ -25,7 +25,6 @@ import com.google.common.base.Optional;
 /**
  * Common interface for graphs (V,E). Nodes are represented by {@link Point}s
  * and connections are represented by {@link Connection}s. Graphs are directed.
- * 
  * @author Rinde van Lon
  * @author Bartosz Michalik - added connection data handling
  * @param <E> The type of {@link ConnectionData} that is used in the

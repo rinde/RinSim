@@ -412,9 +412,8 @@ public abstract class Scenario {
   /**
    * Abstract builder of {@link Scenario} instances. Provides methods for
    * setting the basic properties of a scenario.
-   *
-   * @param <T> The type of concrete builder.
    * @author Rinde van Lon
+   * @param <T> The type of concrete builder.
    */
   public abstract static class AbstractBuilder<T extends AbstractBuilder<T>> {
     static final TimeWindow DEFAULT_TIME_WINDOW = new TimeWindow(0,

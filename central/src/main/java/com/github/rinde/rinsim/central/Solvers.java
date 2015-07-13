@@ -444,9 +444,8 @@ public final class Solvers {
    * supplied all vehicles available in the {@link PDPRoadModel} instance will
    * be used.</li>
    * </ul>
-   * 
-   * @param <T> The type of adapter to produce.
    * @author Rinde van Lon
+   * @param <T> The type of adapter to produce.
    */
   public static class AdapterBuilder<T extends SimulationConverter> {
     @Nullable

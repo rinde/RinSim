@@ -221,9 +221,9 @@ public class ForwardingRoadModel extends GenericRoadModel {
   /**
    * Abstract base builder for creating subclasses of
    * {@link ForwardingRoadModel}.
+   * @author Rinde van Lon
    * @param <T> The specific subtype of {@link ForwardingRoadModel} to
    *          construct.
-   * @author Rinde van Lon
    */
   public abstract static class Builder<T extends ForwardingRoadModel>
       extends AbstractModelBuilder<T, RoadUser>

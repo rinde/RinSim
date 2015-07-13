@@ -46,11 +46,10 @@ import com.google.common.collect.ImmutableSet;
 
 /**
  * Configurable supplier of files.
- *
+ * @author Rinde van Lon
  * @param <T> The type of object that this file provider provides. See
  *          {@link Builder#build()} and {@link Builder#build(Function)} for more
  *          details.
- * @author Rinde van Lon
  */
 public final class FileProvider<T> implements Supplier<ImmutableSet<T>> {
   final ImmutableList<Path> roots;

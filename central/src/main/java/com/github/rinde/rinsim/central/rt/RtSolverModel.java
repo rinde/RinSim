@@ -38,9 +38,8 @@ import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
 
 /**
- * TODO comment
+ * TODO comment.
  * @author Rinde van Lon
- *
  */
 public final class RtSolverModel extends AbstractModel<RtSolverUser> {
   final RealTimeClockController clock;

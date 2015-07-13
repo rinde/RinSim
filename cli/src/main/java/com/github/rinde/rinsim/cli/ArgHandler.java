@@ -19,9 +19,9 @@ import com.google.common.base.Optional;
 
 /**
  * Implementations should handle the activation of an option.
+ * @author Rinde van Lon
  * @param <S> The type of subject this handler expects.
  * @param <V> The type of argument this handler expects.
- * @author Rinde van Lon
  */
 public interface ArgHandler<S, V> {
   /**

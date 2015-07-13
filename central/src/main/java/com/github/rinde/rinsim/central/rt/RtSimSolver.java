@@ -20,10 +20,8 @@ import com.github.rinde.rinsim.core.model.pdp.Parcel;
 import com.google.common.collect.ImmutableList;
 
 /**
- * api for {@link RealtimeSolver} in context of simulation
- * 
+ * Facade for {@link RealtimeSolver} in context of simulation. TODO extend
  * @author Rinde van Lon
- *
  */
 public abstract class RtSimSolver {
 

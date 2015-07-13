@@ -41,9 +41,9 @@ import com.google.common.reflect.TypeToken;
  * {@link DependencyProvider} that is made available when
  * {@link #build(DependencyProvider)} is called.
  *
+ * @author Rinde van Lon
  * @param <T> The model type.
  * @param <U> The associated type.
- * @author Rinde van Lon
  * @see AbstractModelBuilder
  */
 public interface ModelBuilder<T extends Model<? extends U>, U> {
@@ -84,9 +84,9 @@ public interface ModelBuilder<T extends Model<? extends U>, U> {
   /**
    * Abstract implementation of {@link ModelBuilder} that provides default
    * implementations for all methods except {@link #build(DependencyProvider)}.
+   * @author Rinde van Lon
    * @param <T> The model type.
    * @param <U> The associated type.
-   * @author Rinde van Lon
    */
   public abstract class AbstractModelBuilder<T extends Model<? extends U>, U>
       implements ModelBuilder<T, U> {
@@ -99,7 +99,7 @@ public interface ModelBuilder<T extends Model<? extends U>, U> {
      * Construct a new instance.
      *
      */
-    @SuppressWarnings({ "unchecked", "serial" })
+    @SuppressWarnings({"unchecked", "serial"})
     protected AbstractModelBuilder() {
       provTypes = ImmutableSet.of();
       deps = ImmutableSet.of();

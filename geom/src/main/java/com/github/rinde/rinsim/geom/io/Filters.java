@@ -29,7 +29,7 @@ import com.google.common.base.Predicates;
  */
 public final class Filters {
 
-  Filters() {}
+  private Filters() {}
 
   /**
    * @return A predicate that filters out self cycles, i.e. connection with the

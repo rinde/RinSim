@@ -65,8 +65,8 @@ public interface CanvasRenderer extends Renderer {
   /**
    * Abstract implementation of {@link CanvasRenderer} with support for a
    * specific type.
-   * @param <T> The type to support.
    * @author Rinde van Lon
+   * @param <T> The type to support.
    */
   public abstract class AbstractTypedCanvasRenderer<T> extends AbstractModel<T>
       implements CanvasRenderer {

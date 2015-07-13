@@ -20,9 +20,9 @@ import com.google.common.collect.ImmutableSet;
 /**
  * An extension of {@link ModelBuilder} that allows to specify a number of
  * children {@link ModelBuilder}s.
+ * @author Rinde van Lon
  * @param <T> The model type.
  * @param <U> The associated type.
- * @author Rinde van Lon
  */
 public interface CompositeModelBuilder<T extends Model<? extends U>, U> extends
     ModelBuilder<T, U> {

@@ -17,7 +17,7 @@ package com.github.rinde.rinsim.geom;
 
 /**
  * Exception that indicates that a path could not be found.
- * @author Rinde van Lon (rinde.vanlon@cs.kuleuven.be)
+ * @author Rinde van Lon
  */
 public class PathNotFoundException extends RuntimeException {
 

@@ -25,6 +25,8 @@ import com.google.common.collect.ImmutableSet;
  */
 public final class StatsStopConditions {
 
+  private StatsStopConditions() {}
+
   /**
    * The simulation is terminated once the
    * {@link com.github.rinde.rinsim.scenario.TimeOutEvent} event is dispatched.

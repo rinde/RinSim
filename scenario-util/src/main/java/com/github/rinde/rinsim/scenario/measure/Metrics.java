@@ -52,7 +52,6 @@ import com.google.common.collect.Multiset;
 
 /**
  * @author Rinde van Lon
- *
  */
 public final class Metrics {
 
@@ -249,10 +248,8 @@ public final class Metrics {
     }
   }
 
-  /**
+  /*
    * Checks whether the TWs are not unnecessarily big.
-   * @param event
-   * @param travelTimes
    */
   static void checkParcelTWStrictness(AddParcelEvent event,
       TravelTimes travelTimes) {

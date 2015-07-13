@@ -288,7 +288,7 @@ public final class TimeSeries {
     }
 
     /**
-     * All times will be in the interval [0,length)
+     * All times will be in the interval [0,length).
      * @return The upper bound of the interval.
      */
     public double getLength() {

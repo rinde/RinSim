@@ -19,6 +19,7 @@ import com.google.common.reflect.TypeToken;
 
 /**
  * @author Bartosz Michalik
+ * @author Rinde van Lon
  * @param <T> basic type of element supported by model
  */
 public interface Model<T> {
@@ -58,7 +59,7 @@ public interface Model<T> {
    * Basic implementation that provides a getSupportedType method
    * implementation.
    * @author Bartosz Michalik
-   *
+   * @author Rinde van Lon
    * @param <T> The type that is supported by this model.
    */
   public abstract class AbstractModel<T> implements Model<T> {
@@ -68,7 +69,7 @@ public interface Model<T> {
     /**
      * Create a new model.
      */
-    @SuppressWarnings({ "serial", "unchecked" })
+    @SuppressWarnings({"serial", "unchecked"})
     protected AbstractModel() {
       supportedType = (Class<T>) new TypeToken<T>(getClass()) {}.getRawType();
     }

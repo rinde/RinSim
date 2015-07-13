@@ -43,7 +43,6 @@ import com.google.common.base.Supplier;
  * {@link #setConnectionData(Point, Point, ConnectionData)}. The list of
  * supported event types is {@link EventTypes} the event class is
  * {@link GraphEvent}.
- * 
  * @author Rinde van Lon
  * @param <E> The type of {@link ConnectionData} that is used.
  */

@@ -40,7 +40,7 @@ import com.google.auto.value.AutoValue;
 import com.google.common.collect.ImmutableList;
 
 /**
- *
+ * Model for gradient field implementation.
  * @author David Merckx
  * @author Rinde van Lon
  */
@@ -76,19 +76,19 @@ public class GradientModel
   }
 
   /**
-   * Possibilities (-1,1) (0,1) (1,1) (-1,0) (1,0 (-1,-1) (0,-1) (1,-1)
+   * Possibilities (-1,1) (0,1) (1,1) (-1,0) (1,0 (-1,-1) (0,-1) (1,-1).
    */
-  private static final int[] x = {-1, 0, 1, 1, 1, 0, -1, -1};
-  private static final int[] y = {1, 1, 1, 0, -1, -1, -1, 0};
+  private static final int[] X = {-1, 0, 1, 1, 1, 0, -1, -1};
+  private static final int[] Y = {1, 1, 1, 0, -1, -1, -1, 0};
 
   @Nullable
   Point getTargetFor(Truck element) {
     float maxField = Float.NEGATIVE_INFINITY;
     Point maxFieldPoint = null;
 
-    for (int i = 0; i < x.length; i++) {
-      final Point p = new Point(element.getPosition().x + x[i],
-          element.getPosition().y + y[i]);
+    for (int i = 0; i < X.length; i++) {
+      final Point p = new Point(element.getPosition().x + X[i],
+          element.getPosition().y + Y[i]);
 
       if (p.x < minX || p.x > maxX || p.y < minY || p.y > maxY) {
         continue;
@@ -133,15 +133,15 @@ public class GradientModel
   Map<Point, Float> getFields(Truck truck) {
     final Map<Point, Float> fields = new HashMap<Point, Float>();
 
-    for (int i = 0; i < x.length; i++) {
-      final Point p = new Point(truck.getPosition().x + x[i],
-          truck.getPosition().y + y[i]);
+    for (int i = 0; i < X.length; i++) {
+      final Point p = new Point(truck.getPosition().x + X[i],
+          truck.getPosition().y + Y[i]);
 
       if (p.x < minX || p.x > maxX || p.y < minY || p.y > maxY) {
         continue;
       }
 
-      fields.put(new Point(x[i], y[i]), getField(p, truck));
+      fields.put(new Point(X[i], Y[i]), getField(p, truck));
     }
 
     float avg = 0;

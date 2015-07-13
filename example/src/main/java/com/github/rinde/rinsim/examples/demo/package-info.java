@@ -13,5 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+/**
+ * Demo package.
+ */
 @javax.annotation.ParametersAreNonnullByDefault
 package com.github.rinde.rinsim.examples.demo;

@@ -38,8 +38,8 @@ public abstract class Scheduler {
   /**
    * Retrieves the schedule previously set via
    * {@link #updateSchedule(ImmutableList)}.
-   * @throws IllegalStateException If no schedule has been set.
    * @return The previously set schedule.
+   * @throws IllegalStateException If no schedule has been set.
    */
   public abstract ImmutableList<ImmutableList<Parcel>> getCurrentSchedule();
 

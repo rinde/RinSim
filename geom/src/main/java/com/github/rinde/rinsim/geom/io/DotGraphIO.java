@@ -51,9 +51,9 @@ import com.google.common.base.Splitter;
  * <li>{@link #getMultiAttributeGraphIO()}</li>
  * <li>{@link #getMultiAttributeGraphIO(Predicate)}</li>
  * </ul>
- * @param <E> The type of {@link ConnectionData}.
  * @author Bartosz Michalik
  * @author Rinde van Lon
+ * @param <E> The type of {@link ConnectionData}.
  */
 public class DotGraphIO<E extends ConnectionData> extends
     AbstractGraphIO<E> {

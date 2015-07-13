@@ -219,7 +219,8 @@ public final class ScenarioIO {
 
     @SuppressWarnings("unchecked")
     @Override
-    public @Nullable T apply(@Nullable Path input) {
+    @Nullable
+    public T apply(@Nullable Path input) {
       final Path in = verifyNotNull(input);
       try {
         if (clazz.isPresent()) {

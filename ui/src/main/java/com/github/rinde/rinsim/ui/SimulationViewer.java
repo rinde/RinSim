@@ -366,7 +366,7 @@ final class SimulationViewer extends Composite implements TickListener,
 
   }
 
-  /**
+  /*
    * Default implementation of the play/pause action. Can be overridden if
    * needed.
    *
@@ -390,7 +390,7 @@ final class SimulationViewer extends Composite implements TickListener,
     }.start();
   }
 
-  /**
+  /*
    * Default implementation of step execution action. Can be overridden if
    * needed.
    *

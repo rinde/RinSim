@@ -19,10 +19,9 @@ import javax.annotation.Nullable;
 
 /**
  * Defines a state in a state machine.
- *
+ * @author Rinde van Lon
  * @param <T> Trigger type, see {@link StateMachine} for details.
  * @param <C> Context type, see {@link StateMachine} for details.
- * @author Rinde van Lon
  */
 public interface State<T, C> {
 

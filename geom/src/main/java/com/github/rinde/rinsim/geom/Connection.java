@@ -20,11 +20,13 @@ import com.google.common.base.Optional;
 
 /**
  * Immutable value object representing a directed connection in a graph.
+ * @author Bartosz Michalik
+ * @author Rinde van Lon representing a directed connection in a graph.
+ *         representing a directed connection in a graph. representing a
+ *         directed connection in a graph.
+ * @since 2.0
  * @param <E> Type of {@link ConnectionData} that is used. This data object can
  *          be used to add additional information to the connection.
- * @since 2.0
- * @author Bartosz Michalik
- * @author Rinde van Lon
  */
 @AutoValue
 public abstract class Connection<E extends ConnectionData> {

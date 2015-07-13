@@ -29,9 +29,9 @@ import com.google.common.base.Optional;
 /**
  * Abstract graph implementation providing basic implementations of several
  * graph functions.
+ * @author Rinde van Lon
  * @param <E> The type of {@link ConnectionData} that is used at the
  *          {@link Connection}s.
- * @author Rinde van Lon
  */
 public abstract class AbstractGraph<E extends ConnectionData> implements
     Graph<E> {

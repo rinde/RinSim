@@ -31,9 +31,9 @@ import com.google.common.base.Charsets;
 
 /**
  * Common abstract class for graph input and output operations.
- * @param <E> Type of connection data.
  * @author Bartosz Michalik
  * @author Rinde van Lon
+ * @param <E> Type of connection data.
  */
 public abstract class AbstractGraphIO<E extends ConnectionData> {
   /**

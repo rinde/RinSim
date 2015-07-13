@@ -30,7 +30,7 @@ import com.google.common.collect.ComparisonChain;
 /**
  * Point represents a position in euclidean space, it is defined as a simple
  * tuple (double,double).
- * @author Rinde van Lon (rinde.vanlon@cs.kuleuven.be)
+ * @author Rinde van Lon
  */
 public class Point implements Serializable {
   private static final String NUM_SEPARATOR = ",";

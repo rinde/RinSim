@@ -144,8 +144,8 @@ public abstract class Option {
   /**
    * An {@link Option} that optionally requires an argument of type
    * <code>T</code>.
-   * @param <T> The type of the argument.
    * @author Rinde van Lon
+   * @param <T> The type of the argument.
    */
   public static class OptionArg<T> extends Option {
     final ArgumentParser<T> argumentType;
@@ -203,9 +203,9 @@ public abstract class Option {
 
   /**
    * A builder for creating {@link OptionArg} instances.
+   * @author Rinde van Lon
    * @param <V> The type of the argument that options that are created by this
    *          builder require.
-   * @author Rinde van Lon
    */
   public static class ArgBuilder<V> extends Builder<ArgBuilder<V>> {
     ArgumentParser<V> argumentType;
@@ -244,8 +244,8 @@ public abstract class Option {
 
   /**
    * Builder of {@link Option} instances.
-   * @param <T> Value type
    * @author Rinde van Lon
+   * @param <T> Value type
    */
   abstract static class Builder<T extends Builder<T>> {
     String shortName;

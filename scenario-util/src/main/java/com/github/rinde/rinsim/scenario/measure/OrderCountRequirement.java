@@ -32,7 +32,7 @@ import com.google.common.collect.Collections2;
  * A {@link Predicate} that evaluates to <code>true</code> if the input scenario
  * has a number of orders in the range as specified by this instance. An order
  * is specified by a {@link AddParcelEvent}.
- * @author Rinde van Lon <rinde.vanlon@cs.kuleuven.be>
+ * @author Rinde van Lon
  */
 @Beta
 class OrderCountRequirement implements Predicate<Scenario> {

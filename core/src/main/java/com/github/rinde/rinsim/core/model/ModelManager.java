@@ -48,10 +48,6 @@ public final class ModelManager implements ModelProvider {
   private final ImmutableSetMultimap<Class<?>, Model<?>> registry;
   private final Optional<UserInterface> userInterface;
 
-  /**
-   * Instantiate a new model manager.
-   * @param ms
-   */
   @SuppressWarnings("unchecked")
   ModelManager(ImmutableSet<? extends Model<?>> ms) {
     models = (ImmutableSet<Model<?>>) ms;

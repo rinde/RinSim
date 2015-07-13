@@ -48,7 +48,7 @@ import com.google.common.primitives.Doubles;
  * @author Rinde van Lon
  */
 public final class RoadModelBuilders {
-  RoadModelBuilders() {}
+  private RoadModelBuilders() {}
 
   /**
    * @return A new {@link RoadModelBuilders.PlaneRMB} for creating a
@@ -105,10 +105,10 @@ public final class RoadModelBuilders {
   /**
    * Abstract builder for constructing subclasses of {@link RoadModel}.
    *
+   * @author Rinde van Lon
    * @param <T> The type of the model that the builder is constructing.
    * @param <S> The builder type itself, necessary to make an inheritance-based
    *          builder.
-   * @author Rinde van Lon
    */
   public abstract static class AbstractRMB<T extends RoadModel, S> extends
       AbstractModelBuilder<T, RoadUser> {
@@ -155,11 +155,11 @@ public final class RoadModelBuilders {
 
   /**
    * Abstract builder for constructing subclasses of {@link GraphRoadModel}.
+   * @author Rinde van Lon
    * @param <T> The type of the model that the builder is constructing.
    * @param <S> The builder type itself, necessary to make a inheritance-based
    *          builder.
    * @param <G> The type of the graph.
-   * @author Rinde van Lon
    */
   public abstract static class AbstractGraphRMB<T extends GraphRoadModel, S, G extends Graph<?>>
       extends AbstractRMB<T, S> {
@@ -187,10 +187,10 @@ public final class RoadModelBuilders {
   /**
    * Abstract builder for constructing subclasses of
    * {@link DynamicGraphRoadModel}.
+   * @author Rinde van Lon
    * @param <T> The type of the model that the builder is constructing.
    * @param <S> The builder type itself, necessary to make a inheritance-based
    *          builder.
-   * @author Rinde van Lon
    */
   public abstract static class AbstractDynamicGraphRMB<T extends DynamicGraphRoadModel, S>
       extends AbstractGraphRMB<T, S, ListenableGraph<?>> {}
