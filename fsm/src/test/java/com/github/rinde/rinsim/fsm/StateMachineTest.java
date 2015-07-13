@@ -43,7 +43,7 @@ import com.github.rinde.rinsim.fsm.StateMachine.StateMachineEvent;
 import com.github.rinde.rinsim.fsm.StateMachine.StateTransitionEvent;
 
 /**
- * @author Rinde van Lon 
+ * @author Rinde van Lon
  * 
  */
 @RunWith(value = Parameterized.class)
@@ -223,8 +223,7 @@ public class StateMachineTest {
           new StateTransitionEvent<>(fsm, stopState,
               Events.RECURSIVE, stopState),
           history.getHistory().get(0));
-    }
-    else {
+    } else {
       assertTrue(stopState.onEntryHistory().isEmpty());
       assertTrue(stopState.onExitHistory().isEmpty());
       assertTrue(history.getHistory().isEmpty());

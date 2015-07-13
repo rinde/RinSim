@@ -25,7 +25,7 @@ import com.google.common.collect.Table.Cell;
 
 /**
  * Utility class for {@link StateMachine}.
- * @author Rinde van Lon 
+ * @author Rinde van Lon
  */
 public final class StateMachines {
   // constants used for serialization
