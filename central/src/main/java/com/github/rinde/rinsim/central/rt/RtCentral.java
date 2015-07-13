@@ -18,6 +18,7 @@ package com.github.rinde.rinsim.central.rt;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.collect.Sets.newHashSet;
 
+import java.io.Serializable;
 import java.util.Iterator;
 import java.util.Set;
 
@@ -47,8 +48,10 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 
 /**
+ * Real-time version of {@link com.github.rinde.rinsim.central.Central Central}.
+ * 
+ * TODO write full doc
  * @author Rinde van Lon
- *
  */
 public final class RtCentral {
 
@@ -59,7 +62,6 @@ public final class RtCentral {
    * real-time central model is a model that takes control of all vehicles in a
    * simulation and uses a {@link RealtimeSolver} to compute routes for all
    * vehicles.
-   * 
    * @param solverSupplier A {@link StochasticSupplier} that creates the
    *          {@link RealtimeSolver} that will be used for controlling all
    *          vehicles.
@@ -75,15 +77,31 @@ public final class RtCentral {
     return builder(AdapterSupplier.create(solverSupplier));
   }
 
+  /**
+   * Constructs a new {@link MASConfiguration} that uses a
+   * {@link RealtimeSolver} created by the specified <code>solverSupplier</code>
+   * to control all vehicles.
+   * @param solverSupplier A {@link StochasticSupplier} that should create
+   *          instances of {@link RealtimeSolver}.
+   * @param nameSuffix The suffix to the name of the {@link MASConfiguration}.
+   *          The name is formatted as
+   *          <code>RtCentral-[solverSupplier][nameSuffix]</code>.
+   * @return A new {@link MASConfiguration} instance.
+   */
   public static MASConfiguration solverConfiguration(
     StochasticSupplier<? extends RealtimeSolver> solverSupplier,
     String nameSuffix) {
-    return null;
+    return MASConfiguration.pdptwBuilder()
+      .addModel(builder(solverSupplier))
+      .addEventHandler(AddVehicleEvent.class, vehicleHandler())
+      .setName(String.format("RtCentral-%s%s", solverSupplier, nameSuffix))
+      .build();
   }
 
   public static MASConfiguration solverConfigurationAdapt(
     StochasticSupplier<? extends Solver> solverSupplier, String nameSuffix) {
-    return null;
+    return solverConfiguration(AdapterSupplier.create(solverSupplier),
+      nameSuffix);
   }
 
   public static TimedEventHandler<AddVehicleEvent> vehicleHandler() {
@@ -209,7 +227,7 @@ public final class RtCentral {
   @AutoValue
   public abstract static class Builder
     extends AbstractModelBuilder<RtCentralModel, Parcel>
-    implements CompositeModelBuilder<RtCentralModel, Parcel> {
+    implements CompositeModelBuilder<RtCentralModel, Parcel>, Serializable {
 
     Builder() {
       setDependencies(
@@ -255,6 +273,11 @@ public final class RtCentral {
     public ImmutableSet<ModelBuilder<?, ?>> getChildren() {
       return ImmutableSet.<ModelBuilder<?, ?>> of(RtSolverModel.builder(),
         VehicleCheckerModel.builder());
+    }
+
+    @Override
+    public String toString() {
+      return RtCentral.class.getSimpleName() + ".builder(..)";
     }
   }
 
@@ -306,6 +329,11 @@ public final class RtCentral {
     static AdapterSupplier create(StochasticSupplier<? extends Solver> ss) {
       return new AutoValue_RtCentral_AdapterSupplier(
         (StochasticSupplier<Solver>) ss);
+    }
+
+    @Override
+    public String toString() {
+      return String.format("RtAdapter{%s}", getSolverSupplier());
     }
   }
 }

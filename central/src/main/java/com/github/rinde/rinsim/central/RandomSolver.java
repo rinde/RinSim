@@ -103,6 +103,11 @@ public class RandomSolver implements Solver {
       public Solver get(long seed) {
         return new RandomSolver(new MersenneTwister(seed));
       }
+
+      @Override
+      public String toString() {
+        return "RandomSolverSupplier";
+      }
     };
   }
 }

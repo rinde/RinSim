@@ -26,6 +26,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import com.github.rinde.rinsim.central.GlobalStateObject;
+import com.github.rinde.rinsim.central.RandomSolver;
 import com.github.rinde.rinsim.central.Solver;
 import com.github.rinde.rinsim.central.rt.RtCentral.AdapterSupplier;
 import com.github.rinde.rinsim.core.Simulator;
@@ -49,6 +50,7 @@ import com.github.rinde.rinsim.core.model.time.TimeLapse;
 import com.github.rinde.rinsim.core.model.time.TimeModel;
 import com.github.rinde.rinsim.event.Event;
 import com.github.rinde.rinsim.event.Listener;
+import com.github.rinde.rinsim.experiment.MASConfiguration;
 import com.github.rinde.rinsim.geom.Point;
 import com.github.rinde.rinsim.pdptw.common.AddDepotEvent;
 import com.github.rinde.rinsim.pdptw.common.AddParcelEvent;
@@ -405,6 +407,34 @@ public class RealtimeSolverTest {
       .isSameAs(PDPModelEventType.END_DELIVERY);
     assertThat(sub.get(3).vehicle).isSameAs(v0);
     assertThat(sub.get(3).parcel).isSameAs(p0);
+  }
+
+  /**
+   * Checks that the name of the produced {@link MASConfiguration} is
+   * meaningful.
+   */
+  @Test
+  public void nameTest() {
+    assertThat(RtCentral
+      .solverConfigurationAdapt(RandomSolver.supplier(), "hallo").getName())
+        .isEqualTo("RtCentral-RtAdapter{RandomSolverSupplier}hallo");
+
+    String name2 = RtCentral
+      .solverConfiguration(StochasticSuppliers.constant(new RealtimeSolver() {
+        @Override
+        public void receiveSnapshot(GlobalStateObject snapshot) {}
+
+        @Override
+        public void init(Scheduler scheduler) {}
+
+        @Override
+        public String toString() {
+          return "THEsupplier";
+        }
+      }), "hallo").getName();
+
+    assertThat(name2)
+      .isEqualTo("RtCentral-StochasticSuppliers.constant(THEsupplier)hallo");
   }
 
   static class RtSolverCheckerSupplierAdapter
