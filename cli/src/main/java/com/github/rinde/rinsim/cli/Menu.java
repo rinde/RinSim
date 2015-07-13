@@ -373,7 +373,7 @@ public final class Menu {
         closeGroup();
       }
       buildingGroup = true;
-      groups.add(Sets.<Option> newLinkedHashSet());
+      groups.add(Sets.<Option>newLinkedHashSet());
       return this;
     }
 
@@ -450,7 +450,8 @@ public final class Menu {
           "The long prefix may not be an empty string.");
       checkState(
           !buildingGroup,
-          "A submenu can not be added inside a group. First close the group before adding a submenu.");
+          "A submenu can not be added inside a group. First close the group "
+              + "before adding a submenu.");
 
       final Set<OptionParser> newOptions = newLinkedHashSet(menu.optionMap
           .values());
@@ -513,17 +514,15 @@ public final class Menu {
         String longPrefix) {
       final Option opt = exec.getOption();
       if (opt instanceof OptionArg<?>) {
-        final OptionArg<?> adapted =
-            adaptNames(
-                Option.builder((OptionArg<?>) opt),
-                shortPrefix, longPrefix)
+        final OptionArg<?> adapted = adaptNames(
+            Option.builder((OptionArg<?>) opt),
+            shortPrefix, longPrefix)
                 .build();
         return ((ArgParser) exec).newInstance(adapted);
       }
-      final OptionNoArg adapted =
-          adaptNames(
-              Option.builder((OptionNoArg) opt),
-              shortPrefix, longPrefix)
+      final OptionNoArg adapted = adaptNames(
+          Option.builder((OptionNoArg) opt),
+          shortPrefix, longPrefix)
               .build();
       return ((NoArgParser<?>) exec).newInstance(adapted);
     }

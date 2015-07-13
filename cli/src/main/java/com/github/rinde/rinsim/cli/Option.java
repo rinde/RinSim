@@ -157,7 +157,7 @@ public abstract class Option {
 
     @Override
     public Optional<ArgumentParser<?>> getArgument() {
-      return Optional.<ArgumentParser<?>> of(argumentType);
+      return Optional.<ArgumentParser<?>>of(argumentType);
     }
   }
 

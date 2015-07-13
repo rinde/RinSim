@@ -23,7 +23,7 @@ import com.google.common.base.Optional;
 
 /**
  * Exception indicating a problem with the command-line interface.
- * @author Rinde van Lon 
+ * @author Rinde van Lon
  */
 public class CliException extends RuntimeException {
   private static final long serialVersionUID = -7434606684541234080L;
@@ -41,7 +41,7 @@ public class CliException extends RuntimeException {
   CliException(String msg, @Nullable Throwable cause, CauseType type,
       @Nullable Option opt) {
     super(msg, cause);
-    menuOption = Optional.<Option> fromNullable(opt);
+    menuOption = Optional.<Option>fromNullable(opt);
     causeType = type;
   }
 
@@ -81,7 +81,7 @@ public class CliException extends RuntimeException {
 
   /**
    * Collection of causes of command-line interface exceptions.
-   * @author Rinde van Lon 
+   * @author Rinde van Lon
    */
   public enum CauseType {
     /**
