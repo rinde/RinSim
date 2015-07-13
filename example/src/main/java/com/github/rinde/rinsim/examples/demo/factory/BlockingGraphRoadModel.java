@@ -20,7 +20,6 @@ import static com.google.common.collect.Lists.newLinkedList;
 import static com.google.common.collect.Sets.newLinkedHashSet;
 
 import java.io.Serializable;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
 import java.util.Set;
@@ -77,8 +76,7 @@ public class BlockingGraphRoadModel extends GraphRoadModel {
     }
     final MoveProgress mp;
     if (index >= 0) {
-      final Queue<Point> newPath = index == -1 ? new LinkedList<Point>()
-          : newLinkedList(inputP.subList(0, index));
+      final Queue<Point> newPath = newLinkedList(inputP.subList(0, index));
       final int originalSize = newPath.size();
       mp = super.doFollowPath(object, newPath, time);
       for (int i = 0; i < originalSize - newPath.size(); i++) {
@@ -105,9 +103,9 @@ public class BlockingGraphRoadModel extends GraphRoadModel {
   }
 
   @AutoValue
-  abstract static class Builder extends
-      AbstractGraphRMB<BlockingGraphRoadModel, Builder, Graph<?>>implements
-      Serializable {
+  abstract static class Builder
+      extends AbstractGraphRMB<BlockingGraphRoadModel, Builder, Graph<?>>
+      implements Serializable {
 
     private static final long serialVersionUID = -8663781587611642451L;
 

@@ -89,6 +89,14 @@ public final class FactoryExample {
     run(endTime, d, sec, null);
   }
 
+  /**
+   * Run the example.
+   * @param endTime The time to stop.
+   * @param display The display to show it on.
+   * @param m The monitor to show it on.
+   * @param list Listener for events.
+   * @return The simulator used in the example.
+   */
   public static Simulator run(final long endTime, Display display,
       @Nullable Monitor m, @Nullable Listener list) {
 
@@ -96,34 +104,35 @@ public final class FactoryExample {
     if (m != null) {
       if (list != null) {
         rect = m.getClientArea();
-      } else {// full screen
+      } else {
+        // full screen
         rect = m.getBounds();
       }
     } else {
       rect = display.getPrimaryMonitor().getClientArea();
     }
 
-    List<String> WORDS = asList(" BioCo3 \nDistriNet");
-    int FONT_SIZE = 10;
+    List<String> words = asList(" BioCo3 \nDistriNet");
+    int fontSize = 10;
     // spacing between vertical lines in line units
-    int VERTICAL_LINE_SPACING = 6;
-    int NUM_VECHICLES = 12;
+    int verticalLineSpacing = 6;
+    int numVehicles = 12;
     // screen
     if (rect.width == 1920) {
       // WORDS = asList("AgentWise\nKU Leuven", "iMinds\nDistriNet");
       // WORDS = asList(" Agent \n Wise ", " Distri \n Net ");
-      WORDS = asList(" iMinds \nDistriNet");
-      FONT_SIZE = 10;
-      VERTICAL_LINE_SPACING = 6;
-      NUM_VECHICLES = 12;
+      words = asList(" iMinds \nDistriNet");
+      fontSize = 10;
+      verticalLineSpacing = 6;
+      numVehicles = 12;
     }
 
     final ImmutableList.Builder<ImmutableList<Point>> pointBuilder =
         ImmutableList
             .builder();
 
-    for (final String word : WORDS) {
-      pointBuilder.add(SwarmDemo.measureString(word, FONT_SIZE, SPACING, 2));
+    for (final String word : words) {
+      pointBuilder.add(SwarmDemo.measureString(word, fontSize, SPACING, 2));
     }
 
     final ImmutableList<ImmutableList<Point>> points = pointBuilder.build();
@@ -139,14 +148,14 @@ public final class FactoryExample {
     }
 
     int width = DoubleMath.roundToInt(xMax / SPACING, RoundingMode.CEILING);
-    width += VERTICAL_LINE_SPACING - width % VERTICAL_LINE_SPACING;
-    width += width / VERTICAL_LINE_SPACING % 2 == 0 ? VERTICAL_LINE_SPACING
+    width += verticalLineSpacing - width % verticalLineSpacing;
+    width += width / verticalLineSpacing % 2 == 0 ? verticalLineSpacing
         : 0;
 
     int height =
         DoubleMath.roundToInt(yMax / SPACING, RoundingMode.CEILING) + 2;
     height += height % 2;
-    final Graph<?> g = createGrid(width, height, 1, VERTICAL_LINE_SPACING,
+    final Graph<?> g = createGrid(width, height, 1, verticalLineSpacing,
         SPACING);
 
     final List<Point> borderNodes = newArrayList(getBorderNodes(g));
@@ -201,7 +210,7 @@ public final class FactoryExample {
         .addModel(view)
         .build();
 
-    for (int i = 0; i < NUM_VECHICLES; i++) {
+    for (int i = 0; i < numVehicles; i++) {
       final List<Point> l = points.get(rng.nextInt(points.size()));
       final Point p = l.get(rng.nextInt(l.size()));
       simulator.register(new AGV(p));

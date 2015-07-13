@@ -127,8 +127,8 @@ public final class WarehouseExample {
       Graphs.addBiPath(g, row.values());
     }
     Graphs.addBiPath(g, matrix2.column(0).values());
-    Graphs.addBiPath(g, matrix2.column(matrix2.columnKeySet().size() -
-        1).values());
+    Graphs.addBiPath(g, matrix2.column(matrix2.columnKeySet().size()
+        - 1).values());
 
     Graphs.addPath(g, matrix2.get(2, 0), matrix.get(4, 4));
     Graphs.addPath(g, matrix.get(5, 4), matrix2.get(4, 0));

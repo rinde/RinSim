@@ -113,8 +113,9 @@ public final class SolverModel extends AbstractModel<SolverUser> {
    * @author Rinde van Lon
    */
   @AutoValue
-  public abstract static class Builder extends
-      AbstractModelBuilder<SolverModel, SolverUser>implements Serializable {
+  public abstract static class Builder
+      extends AbstractModelBuilder<SolverModel, SolverUser>
+      implements Serializable {
 
     private static final long serialVersionUID = -4369279105715776943L;
 

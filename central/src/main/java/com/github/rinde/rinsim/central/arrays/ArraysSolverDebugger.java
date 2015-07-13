@@ -121,9 +121,9 @@ public final class ArraysSolverDebugger {
    * Debugger for {@link SingleVehicleArraysSolver}s.
    * @author Rinde van Lon
    */
-  public static final class SVASDebugger extends
-      Debugger<ArraysObject, SolutionObject>implements
-      SingleVehicleArraysSolver {
+  public static final class SVASDebugger
+      extends Debugger<ArraysObject, SolutionObject>
+      implements SingleVehicleArraysSolver {
     private final SingleVehicleArraysSolver solver;
 
     SVASDebugger(SingleVehicleArraysSolver solver, boolean print) {
@@ -179,9 +179,9 @@ public final class ArraysSolverDebugger {
    * Debugger for {@link MultiVehicleArraysSolver}s.
    * @author Rinde van Lon
    */
-  public static final class MVASDebugger extends
-      Debugger<MVArraysObject, SolutionObject[]>implements
-      MultiVehicleArraysSolver {
+  public static final class MVASDebugger
+      extends Debugger<MVArraysObject, SolutionObject[]>
+      implements MultiVehicleArraysSolver {
 
     private final MultiVehicleArraysSolver solver;
 

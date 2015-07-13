@@ -195,8 +195,8 @@ public final class RtCentral {
             .getCurrentSchedule();
 
         checkArgument(schedule.size() == vehicles.size(),
-            "An invalid schedule was created, a valid schedule should contain one"
-                + " route for each vehicle, routes: %s, vehicles: %s.",
+            "An invalid schedule was created, a valid schedule should contain "
+                + "one route for each vehicle, routes: %s, vehicles: %s.",
             schedule.size(), vehicles.size());
 
         Iterator<ImmutableList<Parcel>> routes = schedule.iterator();

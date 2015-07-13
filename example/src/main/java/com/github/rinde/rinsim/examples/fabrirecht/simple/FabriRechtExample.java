@@ -18,6 +18,8 @@ package com.github.rinde.rinsim.examples.fabrirecht.simple;
 import java.io.File;
 import java.io.IOException;
 
+import javax.annotation.Nullable;
+
 import com.github.rinde.rinsim.core.Simulator;
 import com.github.rinde.rinsim.core.SimulatorAPI;
 import com.github.rinde.rinsim.core.model.pdp.PDPModel;
@@ -54,6 +56,11 @@ public final class FabriRechtExample {
 
   private FabriRechtExample() {}
 
+  /**
+   * Starts the example.
+   * @param args Ignored.
+   * @throws IOException If file can not be loaded.
+   */
   public static void main2(String[] args) throws IOException {
     // we load a problem instance from disk, we instantiate it with 8
     // trucks, each with a capacity of 20 units
@@ -74,8 +81,8 @@ public final class FabriRechtExample {
                     new TimedEventHandler<AddVehicleEvent>() {
                       @Override
                       public void handleTimedEvent(AddVehicleEvent event,
-                          SimulatorAPI sim) {
-                        sim.register(new Truck(event.getVehicleDTO()));
+                          SimulatorAPI s) {
+                        s.register(new Truck(event.getVehicleDTO()));
                       }
                     }))
         .addModel(StatsTracker.builder())
@@ -113,7 +120,7 @@ class Truck extends Vehicle {
     final Parcel closest = (Parcel) RoadModels
         .findClosestObject(rm.getPosition(this), rm, new Predicate<RoadUser>() {
           @Override
-          public boolean apply(RoadUser input) {
+          public boolean apply(@Nullable RoadUser input) {
             return input instanceof Parcel
                 && pm.getParcelState((Parcel) input) == ParcelState.AVAILABLE;
           }

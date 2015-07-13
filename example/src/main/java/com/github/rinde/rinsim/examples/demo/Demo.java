@@ -79,8 +79,8 @@ public final class Demo {
 
     final Monitor primary = d.getPrimaryMonitor();
     shell.setLocation(primary.getClientArea().x, primary.getClientArea().y);
-    shell
-        .setSize(primary.getClientArea().width, primary.getClientArea().height);
+    shell.setSize(primary.getClientArea().width,
+        primary.getClientArea().height);
 
     final Composite controlsComposite = new Composite(shell, SWT.NONE);
     controlsComposite.setLayout(new RowLayout(SWT.HORIZONTAL));
@@ -92,24 +92,7 @@ public final class Demo {
     timeText.setText("6.0");
     timeText.setLayoutData(new RowData(40, SWT.DEFAULT));
 
-    timeText.addListener(SWT.Verify, new Listener() {
-      @Override
-      public void handleEvent(@Nullable Event e) {
-        assert e != null;
-        final String string = e.text;
-        final char[] chars = new char[string.length()];
-        string.getChars(0, chars.length, chars, 0);
-        for (int i = 0; i < chars.length; i++) {
-          if (!('0' <= chars[i] && chars[i] <= '9') && chars[i] != '.') {
-            e.doit = false;
-            return;
-          }
-        }
-        for (final DemoRunner dr : demoRunners) {
-          dr.setTime(Double.parseDouble(e.text));
-        }
-      }
-    });
+    timeText.addListener(SWT.Verify, new TimeTextVerifier(demoRunners));
     final List<Button> monitorCheckBoxes = newArrayList();
     for (int i = 0; i < d.getMonitors().length; i++) {
       final Monitor m = d.getMonitors()[i];
@@ -188,7 +171,8 @@ public final class Demo {
               types.add((DemoType) b.getData());
             }
           }
-          final ImmutableList<DemoType> demoTypes = ImmutableList.copyOf(types);
+          final ImmutableList<DemoType> demoTypes =
+              ImmutableList.copyOf(types);
           for (final Button b : monitorCheckBoxes) {
             if (b.getSelection()) {
               final Monitor m = (Monitor) b.getData();
@@ -256,7 +240,8 @@ public final class Demo {
     final DemoRunner runner;
     final Monitor monitor;
 
-    public DemoRunnerControlPanel(Composite parent, Monitor m, DemoRunner dr) {
+    public DemoRunnerControlPanel(Composite parent, Monitor m,
+        DemoRunner dr) {
       group = new Group(parent, SWT.NONE);
       runner = dr;
       monitor = m;
@@ -271,8 +256,10 @@ public final class Demo {
       final double wRatio = m.getBounds().width / maxDimension;
       final double hRatio = m.getBounds().height / maxDimension;
 
-      final double xRatio = (m.getBounds().x - displayBounds.x) / maxDimension;
-      final double yRatio = (m.getBounds().y - displayBounds.y) / maxDimension;
+      final double xRatio =
+          (m.getBounds().x - displayBounds.x) / maxDimension;
+      final double yRatio =
+          (m.getBounds().y - displayBounds.y) / maxDimension;
 
       final double displayWidth = parent.getShell().getBounds().width - 100;
 
@@ -408,6 +395,7 @@ public final class Demo {
         } else {
           verifyNotNull(listener).update();
           display.asyncExec(new Runnable() {
+
             @Override
             public void run() {
               sims.add(TaxiExample.run(false, time,
@@ -416,6 +404,7 @@ public final class Demo {
             }
           });
         }
+
       }
     }
 
@@ -425,4 +414,30 @@ public final class Demo {
       next();
     }
   }
+
+  static class TimeTextVerifier implements Listener {
+    final List<DemoRunner> demoRunners;
+
+    TimeTextVerifier(List<DemoRunner> drs) {
+      demoRunners = drs;
+    }
+
+    @Override
+    public void handleEvent(@Nullable Event e) {
+      assert e != null;
+      final String string = e.text;
+      final char[] chars = new char[string.length()];
+      string.getChars(0, chars.length, chars, 0);
+      for (int i = 0; i < chars.length; i++) {
+        if (!('0' <= chars[i] && chars[i] <= '9') && chars[i] != '.') {
+          e.doit = false;
+          return;
+        }
+      }
+      for (final DemoRunner dr : demoRunners) {
+        dr.setTime(Double.parseDouble(e.text));
+      }
+    }
+  }
+
 }

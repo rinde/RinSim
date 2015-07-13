@@ -98,7 +98,7 @@ public final class SwarmDemo {
     }
     final String stringToDraw = string;
 
-    Display display = Display.getDefault();// getCurrent();
+    Display display = Display.getDefault();
     boolean haveToDispose = false;
     if (display == null) {
       display = new Display();

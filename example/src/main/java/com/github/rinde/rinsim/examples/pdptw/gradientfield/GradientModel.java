@@ -44,8 +44,9 @@ import com.google.common.collect.ImmutableList;
  * @author David Merckx
  * @author Rinde van Lon
  */
-public class GradientModel extends AbstractModel<FieldEmitter>implements
-    ModelReceiver {
+public class GradientModel
+    extends AbstractModel<FieldEmitter>
+    implements ModelReceiver {
   private final List<FieldEmitter> emitters;
   private double minX;
   private double maxX;
@@ -176,8 +177,9 @@ public class GradientModel extends AbstractModel<FieldEmitter>implements
   }
 
   @AutoValue
-  abstract static class Builder extends
-      AbstractModelBuilder<GradientModel, FieldEmitter>implements Serializable {
+  abstract static class Builder
+      extends AbstractModelBuilder<GradientModel, FieldEmitter>
+      implements Serializable {
 
     private static final long serialVersionUID = 4464819196521333718L;
 

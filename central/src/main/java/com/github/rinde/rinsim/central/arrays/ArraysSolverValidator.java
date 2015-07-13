@@ -135,7 +135,8 @@ public final class ArraysSolverValidator {
     for (int i = 0; i < n; i++) {
       checkArgument(
           releaseDates[i] <= dueDates[i],
-          "Index %s, release date (%s) should always be before the due date (%s)",
+          "Index %s, release date (%s) should always be before the due date "
+              + "(%s)",
           i, releaseDates[i], dueDates[i]);
     }
 
@@ -153,11 +154,13 @@ public final class ArraysSolverValidator {
       for (int j = 0; j < 2; j++) {
         checkArgument(
             servicePairs[i][j] > 0 && servicePairs[i][j] < n - 1,
-            "Pair consists of an invalid location (start location and depot are not allowed), index is %s, location is %s",
+            "Pair consists of an invalid location (start location and depot are"
+                + " not allowed), index is %s, location is %s",
             i, servicePairs[i][j]);
         checkArgument(
             !set.contains(servicePairs[i][j]),
-            "Location can be part of only one pair, duplicate location: %s (index %s,%s)",
+            "Location can be part of only one pair, duplicate location: %s "
+                + "(index %s,%s)",
             servicePairs[i][j], i, j);
         set.add(servicePairs[i][j]);
       }
@@ -217,41 +220,14 @@ public final class ArraysSolverValidator {
 
     checkArgument(
         v == remainingServiceTimes.length,
-        "Expected a remainingServiceTimes array of size %s, but found one with size %s.",
+        "Expected a remainingServiceTimes array of size %s, but found one with "
+            + "size %s.",
         v, remainingServiceTimes.length);
     checkArgument(currentDestinations.length == v,
         "The currentDestinations array should be of length v=%s, it is %s.", v,
         currentDestinations.length);
 
-    for (int i = 0; i < v; i++) {
-      checkArgument(
-          n == vehicleTravelTimes[i].length,
-          "We expected vehicleTravelTimes matrix of size v x %s, but we found v x %s at index %s.",
-          n, vehicleTravelTimes[i].length, i);
-
-      for (int j = 0; j < n; j++) {
-        checkArgument(
-            vehicleTravelTimes[i][j] >= 0,
-            "Found an invalid vehicle travel time (%s) at position %s,%s. All times must be >= 0.",
-            vehicleTravelTimes[i][j], i, j);
-
-        if (j == 0) {
-          checkArgument(0 == vehicleTravelTimes[i][j],
-              "vehicleTravelTimes[%s][%s] == %s, but must be 0.", i, j,
-              vehicleTravelTimes[i][j]);
-        } else if (currentDestinations[i] != 0 && j != currentDestinations[i]) {
-          checkArgument(
-              vehicleTravelTimes[i][j] == Integer.MAX_VALUE,
-              "vehicleTravelTimes[%s][%s] == %s, but must be Integer.MAX_VALUE.",
-              i, j, vehicleTravelTimes[i][j]);
-        } else {
-          checkArgument(
-              vehicleTravelTimes[i][j] != Integer.MAX_VALUE,
-              "vehicleTravelTimes[%s][%s] == Integer.MAX_VALUE, but must be normal value.",
-              i, j);
-        }
-      }
-    }
+    validateVehicleTravelTimes(v, n, vehicleTravelTimes, currentDestinations);
 
     final ImmutableSet.Builder<Integer> b = ImmutableSet.builder();
     for (int i = 0; i < servicePairs.length; i++) {
@@ -263,7 +239,8 @@ public final class ArraysSolverValidator {
     final int m = n - 2 - (servicePairs.length * 2);
     checkArgument(
         inventories.length == m,
-        "Invalid number of inventory entries, must be equal to number of delivery locations: %s, found: %s.",
+        "Invalid number of inventory entries, must be equal to number of "
+            + "delivery locations: %s, found: %s.",
         m, servicePairs.length);
 
     final Multimap<Integer, Integer> inventoriesMap = HashMultimap.create();
@@ -271,19 +248,23 @@ public final class ArraysSolverValidator {
     for (int i = 0; i < m; i++) {
       checkArgument(
           2 == inventories[i].length,
-          "We expected inventories matrix of size m x 2, but we found m x %s at index %s.",
+          "We expected inventories matrix of size m x 2, but we found m x %s "
+              + "at index %s.",
           inventories[i].length, i);
       checkArgument(
           inventories[i][0] >= 0 && inventories[i][0] < v,
-          "Found a reference to a non-existing vehicle (%s) in inventories at row %s.",
+          "Found a reference to a non-existing vehicle (%s) in inventories at "
+              + "row %s.",
           inventories[i][0], i);
       checkArgument(
           inventories[i][1] >= 1 && inventories[i][1] < n - 1,
-          "Found a reference to a non-existing location (%s) in inventories at row %s.",
+          "Found a reference to a non-existing location (%s) in inventories at "
+              + "row %s.",
           inventories[i][1], i);
       checkArgument(
           !availLocs.contains(inventories[i][1]),
-          "Found a reference to a location (%s) in inventories at row %s which is available, as such, it can not be in the inventory.",
+          "Found a reference to a location (%s) in inventories at row %s which "
+              + "is available, as such, it can not be in the inventory.",
           inventories[i][1], i);
       checkArgument(!parcelsInInventory.contains(inventories[i][1]),
           "Found a duplicate inventory entry, first duplicate at row %s.", i);
@@ -315,7 +296,8 @@ public final class ArraysSolverValidator {
         final int dest = currentDestinations[i];
         checkArgument(
             dest >= 1 && dest < n - 1,
-            "The destination must be a valid location, it can not be the depot. It is %s.",
+            "The destination must be a valid location, it can not be the "
+                + "depot. It is %s.",
             dest);
 
         final boolean isAvailablePickupLoc = servicePairsMap.keySet().contains(
@@ -323,65 +305,119 @@ public final class ArraysSolverValidator {
         final boolean isInInventory = inventoriesMap.containsValue(dest);
         checkArgument(
             isAvailablePickupLoc != isInInventory,
-            "The destination location %s must be an available pickup location OR a delivery location which is in the inventory, available pickup loc: %s, in inventory: %s.",
+            "The destination location %s must be an available pickup location "
+                + "OR a delivery location which is in the inventory, available "
+                + "pickup loc: %s, in inventory: %s.",
             dest, isAvailablePickupLoc, isInInventory);
 
         if (parcelsInInventory.contains(dest)) {
           checkArgument(
               inventoriesMap.get(i).contains(dest),
-              "When a vehicle is moving towards a destination which is a delivery location, it must contain this parcel in its cargo. Vehicle %s, destination %s.",
+              "When a vehicle is moving towards a destination which is a "
+                  + "delivery location, it must contain this parcel in its "
+                  + "cargo. Vehicle %s, destination %s.",
               i, dest);
         }
       }
     }
 
     if (currentSolutions != null) {
-      checkArgument(
-          currentSolutions.length == v,
-          "The number of currentSolutions (%s) should equal the number of vehicles (%s).",
-          currentSolutions.length, v);
+      validateCurrentSolutions(v, n, currentSolutions, currentDestinations,
+          inventoriesMap, servicePairsMap);
+    }
+  }
 
-      for (int i = 0; i < currentSolutions.length; i++) {
-        final List<Integer> route = ImmutableList.copyOf(Ints
-            .asList(currentSolutions[i].route));
+  private static void validateCurrentSolutions(int v, int n,
+      SolutionObject[] currentSolutions,
+      int[] currentDestinations,
+      Multimap<Integer, Integer> inventoriesMap,
+      ImmutableBiMap<Integer, Integer> servicePairsMap) {
+    checkArgument(
+        currentSolutions.length == v,
+        "The number of currentSolutions (%s) should equal the number of "
+            + "vehicles (%s).",
+        currentSolutions.length, v);
 
-        checkArgument(route.get(0) == 0,
-            "First item in route should always be 0, it is %s.", route.get(0));
-        checkArgument(route.get(route.size() - 1) == n - 1,
-            "Last item in route should always be depot (%s), it is %s.", n - 1,
-            route.get(route.size() - 1));
+    for (int i = 0; i < currentSolutions.length; i++) {
+      final List<Integer> route = ImmutableList.copyOf(Ints
+          .asList(currentSolutions[i].route));
 
-        if (currentDestinations[i] > 0) {
-          // there is a current destination
-          checkArgument(
-              currentDestinations[i] == route.get(1),
-              "The vehicle has a current destination (%s) but it is not the first item in its route: %s.",
-              currentDestinations[i], route);
-        }
-        final Collection<Integer> inventory = inventoriesMap.get(i);
+      checkArgument(route.get(0) == 0,
+          "First item in route should always be 0, it is %s.", route.get(0));
+      checkArgument(route.get(route.size() - 1) == n - 1,
+          "Last item in route should always be depot (%s), it is %s.", n - 1,
+          route.get(route.size() - 1));
+
+      if (currentDestinations[i] > 0) {
+        // there is a current destination
         checkArgument(
-            ImmutableSet.copyOf(route).containsAll(inventory),
-            "The route should contain all locations in its inventory. Vehicle %s, route: %s, inventory: %s.",
-            i, route, inventory);
+            currentDestinations[i] == route.get(1),
+            "The vehicle has a current destination (%s) but it is not the "
+                + "first item in its route: %s.",
+            currentDestinations[i], route);
+      }
+      final Collection<Integer> inventory = inventoriesMap.get(i);
+      checkArgument(
+          ImmutableSet.copyOf(route).containsAll(inventory),
+          "The route should contain all locations in its inventory. Vehicle "
+              + "%s, route: %s, inventory: %s.",
+          i, route, inventory);
 
-        for (int j = 1; j < route.size() - 1; j++) {
-          final Integer item = route.get(j);
-          final int freq = Collections.frequency(route, item);
-          checkArgument(
-              freq == 1,
-              "Vehicle %s: each location should occur only once, found %s instances of location %s. Route: %s.",
-              i, freq, item, route);
-          if (!inventoriesMap.containsEntry(i, item)) {
-            // not in cargo, so the pair should appear in the route
-            if (servicePairsMap.containsKey(item)) {
-              checkArgument(route.contains(servicePairsMap.get(item)),
-                  "Couldn't find %s in regular mapping.", item);
-            } else {
-              checkArgument(
-                  route.contains(servicePairsMap.inverse().get(item)),
-                  "Couldn't find %s in inverse mapping.", item);
-            }
+      for (int j = 1; j < route.size() - 1; j++) {
+        final Integer item = route.get(j);
+        final int freq = Collections.frequency(route, item);
+        checkArgument(
+            freq == 1,
+            "Vehicle %s: each location should occur only once, found %s "
+                + "instances of location %s. Route: %s.",
+            i, freq, item, route);
+        if (!inventoriesMap.containsEntry(i, item)) {
+          // not in cargo, so the pair should appear in the route
+          if (servicePairsMap.containsKey(item)) {
+            checkArgument(route.contains(servicePairsMap.get(item)),
+                "Couldn't find %s in regular mapping.", item);
+          } else {
+            checkArgument(
+                route.contains(servicePairsMap.inverse().get(item)),
+                "Couldn't find %s in inverse mapping.", item);
           }
+        }
+      }
+    }
+  }
+
+  private static void validateVehicleTravelTimes(int v, int n,
+      int[][] vehicleTravelTimes, int[] currentDestinations) {
+    for (int i = 0; i < v; i++) {
+      checkArgument(
+          n == vehicleTravelTimes[i].length,
+          "We expected vehicleTravelTimes matrix of size v x %s, but we found "
+              + "v x %s at index %s.",
+          n, vehicleTravelTimes[i].length, i);
+
+      for (int j = 0; j < n; j++) {
+        checkArgument(
+            vehicleTravelTimes[i][j] >= 0,
+            "Found an invalid vehicle travel time (%s) at position %s,%s. All "
+                + "times must be >= 0.",
+            vehicleTravelTimes[i][j], i, j);
+
+        if (j == 0) {
+          checkArgument(0 == vehicleTravelTimes[i][j],
+              "vehicleTravelTimes[%s][%s] == %s, but must be 0.", i, j,
+              vehicleTravelTimes[i][j]);
+        } else if (currentDestinations[i] != 0 && j != currentDestinations[i]) {
+          checkArgument(
+              vehicleTravelTimes[i][j] == Integer.MAX_VALUE,
+              "vehicleTravelTimes[%s][%s] == %s, but must be "
+                  + "Integer.MAX_VALUE.",
+              i, j, vehicleTravelTimes[i][j]);
+        } else {
+          checkArgument(
+              vehicleTravelTimes[i][j] != Integer.MAX_VALUE,
+              "vehicleTravelTimes[%s][%s] == Integer.MAX_VALUE, but must be "
+                  + "normal value.",
+              i, j);
         }
       }
     }
@@ -512,18 +548,21 @@ public final class ArraysSolverValidator {
 
     checkArgument(
         visitedLocations == n - 2,
-        "The number of visits in routes should equal the number of locations, expected: %s, observed: %s.",
+        "The number of visits in routes should equal the number of locations, "
+            + "expected: %s, observed: %s.",
         n - 2, visitedLocations);
 
     // checks duplicates and missing locations
     checkArgument(
         routeSet.size() == n,
-        "Every location should appear exactly once in one route. Missing location: %s.",
+        "Every location should appear exactly once in one route. Missing "
+            + "location: %s.",
         Sets.difference(locationSet, routeSet));
     // checks for completeness of tour
     checkArgument(
         routeSet.equals(locationSet),
-        "Not all locations are serviced, there is probably a non-existing location in the route. Set difference: %s.",
+        "Not all locations are serviced, there is probably a non-existing "
+            + "location in the route. Set difference: %s.",
         Sets.difference(routeSet, locationSet));
 
     final ImmutableMultimap.Builder<Integer, Integer> inventoryBuilder =
@@ -542,7 +581,8 @@ public final class ArraysSolverValidator {
        */
       checkArgument(
           sol.route[0] == 0,
-          "The route should always start with the vehicle start location: 0, actual:%s.",
+          "The route should always start with the vehicle start location: 0, "
+              + "actual:%s.",
           sol.route[0]);
       checkArgument(sol.route[sol.route.length - 1] == n - 1,
           "The route should always finish with the depot.");
@@ -550,7 +590,8 @@ public final class ArraysSolverValidator {
       if (currentDestinations[v] != 0) {
         checkArgument(
             sol.route[1] == currentDestinations[v],
-            "Vehicle %s has a current destination %s, as such this must be the first point to visit (at index 1). The route: %s.",
+            "Vehicle %s has a current destination %s, as such this must be the "
+                + "first point to visit (at index 1). The route: %s.",
             v, currentDestinations[v], Arrays.toString(sol.route));
       }
 
@@ -559,7 +600,8 @@ public final class ArraysSolverValidator {
       for (final Integer i : inventory) {
         checkArgument(
             locs.contains(i),
-            "Every location in the inventory of a vehicle should occur in its route, route for vehicle %s does not contain location %s.",
+            "Every location in the inventory of a vehicle should occur in its "
+                + "route, route for vehicle %s does not contain location %s.",
             v, i);
       }
 
@@ -575,12 +617,14 @@ public final class ArraysSolverValidator {
         if (pairs.containsKey(sol.route[i])) {
           checkArgument(
               !seen.contains(pairs.get(sol.route[i])),
-              "Pickups should be visited before their corresponding deliveries. Location %s should be visited after location %s.",
+              "Pickups should be visited before their corresponding deliveries."
+                  + " Location %s should be visited after location %s.",
               pairs.get(sol.route[i]), sol.route[i]);
 
           checkArgument(
               set.contains(pairs.get(sol.route[i])),
-              "Vehicle %s: this route should contain both the pickup and delivery location, found %s, didn't find %s.",
+              "Vehicle %s: this route should contain both the pickup and "
+                  + "delivery location, found %s, didn't find %s.",
               v, sol.route[i], pairs.get(sol.route[i]));
         }
         seen.add(sol.route[i]);
@@ -601,7 +645,8 @@ public final class ArraysSolverValidator {
       for (int i = 1; i < sol.route.length; i++) {
         checkArgument(
             sol.arrivalTimes[i] >= minArrivalTimes[i],
-            "Vehicle %s, route index %s, arrivalTime (%s) needs to be greater or equal to minArrivalTime (%s).",
+            "Vehicle %s, route index %s, arrivalTime (%s) needs to be greater "
+                + "or equal to minArrivalTime (%s).",
             v, i, sol.arrivalTimes[i], minArrivalTimes[i]);
       }
 
@@ -619,7 +664,8 @@ public final class ArraysSolverValidator {
 
       checkArgument(
           sol.objectiveValue == totalTravelTime + tardiness,
-          "Vehicle %s: incorrect objective value (%s), it should be travel time + tardiness = %s + %s = %s.",
+          "Vehicle %s: incorrect objective value (%s), it should be travel "
+              + "time + tardiness = %s + %s = %s.",
           v, sol.objectiveValue, totalTravelTime, tardiness, totalTravelTime
               + tardiness);
 

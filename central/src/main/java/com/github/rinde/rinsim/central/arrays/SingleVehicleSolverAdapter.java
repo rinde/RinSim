@@ -54,13 +54,15 @@ public class SingleVehicleSolverAdapter implements Solver {
   public ImmutableList<ImmutableList<Parcel>> solve(GlobalStateObject state) {
     checkArgument(
         state.getVehicles().size() == 1,
-        "This solver can only deal with the single vehicle problem, found %s vehicles.",
+        "This solver can only deal with the single vehicle problem, found %s "
+            + "vehicles.",
         state.getVehicles().size());
 
     final VehicleStateObject v = state.getVehicles().iterator().next();
     checkArgument(
         v.getRemainingServiceTime() == 0,
-        "This solver can not deal with remaining service time, it should be 0, it was %s.",
+        "This solver can not deal with remaining service time, it should be 0, "
+            + "it was %s.",
         v.getRemainingServiceTime());
     final Collection<Parcel> inCargo = v.getContents();
 

@@ -16,6 +16,7 @@
 package com.github.rinde.rinsim.examples.demo.factory;
 
 import static com.google.common.base.Verify.verify;
+import static com.google.common.base.Verify.verifyNotNull;
 import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Sets.newLinkedHashSet;
 
@@ -25,6 +26,7 @@ import java.util.List;
 import java.util.Set;
 
 import javax.annotation.CheckReturnValue;
+import javax.annotation.Nullable;
 
 import org.apache.commons.math3.random.RandomGenerator;
 
@@ -50,8 +52,9 @@ import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.math.DoubleMath;
 
-class AgvModel extends AbstractModel<AGV>implements TickListener,
-    ModelReceiver, SimulatorUser, Listener {
+class AgvModel
+    extends AbstractModel<AGV>
+    implements TickListener, ModelReceiver, SimulatorUser, Listener {
 
   Optional<RoadModel> rm;
   Optional<SimulatorAPI> simulator;
@@ -124,7 +127,8 @@ class AgvModel extends AbstractModel<AGV>implements TickListener,
         bh.box = b;
 
         boxes.add(bh);
-        simulator.get().register(boxes.get(boxes.size() - 1).box);
+        simulator.get()
+            .register(verifyNotNull(boxes.get(boxes.size() - 1).box));
       }
     }
   }
@@ -144,17 +148,18 @@ class AgvModel extends AbstractModel<AGV>implements TickListener,
   public void handleEvent(Event e) {
     verify(e instanceof PDPModelEvent);
     final PDPModelEvent event = (PDPModelEvent) e;
+    final Box box = (Box) verifyNotNull(event.parcel);
     if (e.getEventType() == PDPModelEventType.END_PICKUP) {
-      occupiedPositions.remove(((Box) event.parcel).getPickupLocation());
+      occupiedPositions.remove(box.getPickupLocation());
     }
     if (e.getEventType() == PDPModelEventType.END_DELIVERY) {
       final long duration = DoubleMath.roundToLong(
           FactoryExample.SERVICE_DURATION / 2d
               + rng.nextDouble() * FactoryExample.SERVICE_DURATION,
           RoundingMode.CEILING);
-      simulator.get().unregister(event.parcel);
+      simulator.get().unregister(box);
 
-      final BoxHandle bh = ((Box) event.parcel).boxHandle;
+      final BoxHandle bh = box.boxHandle;
       bh.wordIndex = (bh.wordIndex + 1) % points.size();
 
       Point dest;
@@ -165,13 +170,12 @@ class AgvModel extends AbstractModel<AGV>implements TickListener,
         occupiedPositions.add(dest);
       }
 
-      final Box b = new Box(event.parcel.getDeliveryLocation(), dest, duration,
-          bh);
-      bh.box = b;
+      final Box newBox = new Box(box.getDeliveryLocation(),
+          dest, duration, bh);
+      bh.box = newBox;
 
-      simulator.get().register(b);
+      simulator.get().register(newBox);
     }
-    // }
   }
 
   Point rndBorder() {
@@ -187,6 +191,7 @@ class AgvModel extends AbstractModel<AGV>implements TickListener,
     return p;
   }
 
+  @Nullable
   Box nextDestination() {
     if (boxes.isEmpty()) {
       init();
@@ -200,6 +205,7 @@ class AgvModel extends AbstractModel<AGV>implements TickListener,
   static class BoxHandle {
     int wordIndex;
     final int index;
+    @Nullable
     Box box;
 
     BoxHandle(int i) {

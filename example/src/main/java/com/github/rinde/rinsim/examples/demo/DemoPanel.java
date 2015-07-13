@@ -46,7 +46,8 @@ import com.github.rinde.rinsim.geom.Point;
 import com.github.rinde.rinsim.ui.renderers.PanelRenderer;
 import com.google.auto.value.AutoValue;
 
-class DemoPanel extends AbstractModel<Void>implements PanelRenderer, Listener {
+class DemoPanel extends AbstractModel<Void>
+    implements PanelRenderer, Listener {
   final RoadModel roadModel;
   final RandomGenerator rng;
   final Set<Vehicle> vehicles;

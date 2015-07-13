@@ -111,8 +111,9 @@ public final class Central {
   }
 
   @AutoValue
-  abstract static class Builder extends
-      AbstractModelBuilder<CentralModel, Parcel>implements Serializable {
+  abstract static class Builder
+      extends AbstractModelBuilder<CentralModel, Parcel>
+      implements Serializable {
 
     private static final long serialVersionUID = 1168431215289110828L;
 

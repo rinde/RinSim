@@ -109,7 +109,8 @@ public final class Solvers {
     if (r.isPresent()) {
       checkArgument(
           state.getVehicles().size() == r.get().size(),
-          "Exactly one route should be supplied for every vehicle in state. %s vehicle(s) in state, received %s route(s).",
+          "Exactly one route should be supplied for every vehicle in state. %s "
+              + "vehicle(s) in state, received %s route(s).",
           state.getVehicles().size(), r.get().size());
     }
 
@@ -132,8 +133,8 @@ public final class Solvers {
       final VehicleStateObject vso = state.getVehicles().get(i);
       checkArgument(r.isPresent() || vso.getRoute().isPresent());
 
-      final ImmutableList.Builder<Long> truckArrivalTimesBuilder = ImmutableList
-          .builder();
+      final ImmutableList.Builder<Long> truckArrivalTimesBuilder =
+          ImmutableList.builder();
       truckArrivalTimesBuilder.add(state.getTime());
 
       ImmutableList<Parcel> route;
@@ -157,7 +158,8 @@ public final class Solvers {
         if (vso.getDestination().isPresent() && j == 0) {
           checkArgument(
               vso.getDestination().asSet().contains(cur),
-              "If a vehicle has a destination, the first position in the route must equal this. Expected %s, is %s.",
+              "If a vehicle has a destination, the first position in the route "
+                  + "must equal this. Expected %s, is %s.",
               vso.getDestination(), cur);
         }
 
@@ -556,8 +558,9 @@ public final class Solvers {
         if (mp == null) {
           checkArgument(
               simulator != null,
-              "Attempt to find a model provider failed. Either provide the models"
-                  + " directly, provide a model provider or a simulator.");
+              "Attempt to find a model provider failed. Either provide the "
+                  + "models directly, provide a model provider or a "
+                  + "simulator.");
           mp = simulator.getModelProvider();
         }
 
