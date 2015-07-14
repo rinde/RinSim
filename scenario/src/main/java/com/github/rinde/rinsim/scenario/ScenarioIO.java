@@ -44,6 +44,7 @@ import com.github.rinde.rinsim.scenario.Scenario.ProblemClass;
 import com.github.rinde.rinsim.util.TimeWindow;
 import com.google.common.base.Charsets;
 import com.google.common.base.Function;
+import com.google.common.base.Functions;
 import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
 import com.google.common.base.Predicate;
@@ -149,11 +150,11 @@ public final class ScenarioIO {
 
   /**
    * Reads a {@link Scenario} from string.
-   * @param s The string to read.
+   * @param scenarioString The string to read.
    * @return A {@link Scenario} instance.
    */
-  public static Scenario read(String s) {
-    return read(s, AutoValue_Scenario.class);
+  public static Scenario read(String scenarioString) {
+    return read(scenarioString, AutoValue_Scenario.class);
   }
 
   /**
@@ -173,6 +174,18 @@ public final class ScenarioIO {
    */
   public static Function<Path, Scenario> reader() {
     return new DefaultScenarioReader<>();
+  }
+
+  /**
+   * Allows to adapt the default reader ({@link #reader()}) by converting all
+   * read scenarios. {@link ScenarioConverters} contains functions that can be
+   * used for this.
+   * @param converter A converter that transforms a scenario.
+   * @return A new reader function.
+   */
+  public static Function<Path, Scenario> readerAdapter(
+      Function<Scenario, Scenario> converter) {
+    return Functions.compose(converter, reader());
   }
 
   /**
