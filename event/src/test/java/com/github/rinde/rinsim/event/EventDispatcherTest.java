@@ -19,6 +19,7 @@ import static com.github.rinde.rinsim.event.EventDispatcherTest.EventTypes.EVENT
 import static com.github.rinde.rinsim.event.EventDispatcherTest.EventTypes.EVENT2;
 import static com.github.rinde.rinsim.event.EventDispatcherTest.EventTypes.EVENT3;
 import static com.github.rinde.rinsim.event.EventDispatcherTest.OtherEventTypes.OTHER_EVENT1;
+import static com.google.common.truth.Truth.assertThat;
 import static java.util.Arrays.asList;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -30,13 +31,9 @@ import java.util.Set;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.github.rinde.rinsim.event.Event;
-import com.github.rinde.rinsim.event.EventAPI;
-import com.github.rinde.rinsim.event.EventDispatcher;
-
 /**
  * @author Rinde van Lon (rinde.vanlon@cs.kuleuven.be)
- * 
+ *
  */
 public class EventDispatcherTest {
 
@@ -77,17 +74,17 @@ public class EventDispatcherTest {
     assertFalse(dispatcher.hasListenerFor(EVENT2));
     assertFalse(dispatcher.hasListenerFor(EVENT3));
     assertFalse(dispatcher.hasListenerFor(OTHER_EVENT1));
-    
+
     dispatcher.addListener(l1, EVENT1);
     assertTrue(dispatcher.hasListenerFor(EVENT1));
     assertFalse(dispatcher.hasListenerFor(EVENT2));
     assertFalse(dispatcher.hasListenerFor(EVENT3));
     assertFalse(dispatcher.hasListenerFor(OTHER_EVENT1));
-    
+
     final Set<Enum<?>> set = new HashSet<Enum<?>>(asList(EVENT1, EVENT2));
     api.addListener(l2, set);
     assertFalse(dispatcher.hasListenerFor(EVENT3));
-    
+
     dispatcher.addListener(l3, EVENT1, EVENT2, EVENT3);
     assertTrue(dispatcher.hasListenerFor(EVENT1));
     assertFalse(dispatcher.hasListenerFor(OTHER_EVENT1));
@@ -110,7 +107,8 @@ public class EventDispatcherTest {
     dispatcher.dispatchEvent(new Event(EVENT3));
     assertEquals(asList(EVENT1), l1.getEventTypeHistory());
     assertEquals(asList(EVENT2, EVENT1), l2.getEventTypeHistory());
-    assertEquals(asList(EVENT2, EVENT3, EVENT1, EVENT3), l3.getEventTypeHistory());
+    assertEquals(asList(EVENT2, EVENT3, EVENT1, EVENT3),
+        l3.getEventTypeHistory());
   }
 
   @Test(expected = IllegalArgumentException.class)
@@ -120,7 +118,7 @@ public class EventDispatcherTest {
 
   @Test(expected = IllegalArgumentException.class)
   public void addListenerFail6() {
-    dispatcher.addListener(l1, new Enum<?>[] { EVENT2, null, EVENT3 });
+    dispatcher.addListener(l1, new Enum<?>[] {EVENT2, null, EVENT3});
   }
 
   @Test
@@ -228,9 +226,15 @@ public class EventDispatcherTest {
 
   }
 
-  @Test(expected = IllegalArgumentException.class)
+  @Test
   public void removeFail() {
     final EventDispatcher disp = new EventDispatcher(EventTypes.values());
-    disp.removeListener(l1, EVENT1, null);
+    boolean fail = false;
+    try {
+      disp.removeListener(l1, EVENT1, null);
+    } catch (final NullPointerException e) {
+      fail = true;
+    }
+    assertThat(fail).isTrue();
   }
 }
