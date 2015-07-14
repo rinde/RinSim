@@ -29,7 +29,7 @@ import com.github.rinde.rinsim.core.model.Model.AbstractModel;
 import com.github.rinde.rinsim.core.model.ModelBuilder.AbstractModelBuilder;
 import com.github.rinde.rinsim.core.model.pdp.PDPModel;
 import com.github.rinde.rinsim.core.model.pdp.Parcel;
-import com.github.rinde.rinsim.core.model.time.RealTimeClockController;
+import com.github.rinde.rinsim.core.model.time.RealtimeClockController;
 import com.github.rinde.rinsim.pdptw.common.PDPRoadModel;
 import com.google.auto.value.AutoValue;
 import com.google.common.base.Optional;
@@ -42,12 +42,12 @@ import com.google.common.util.concurrent.MoreExecutors;
  * @author Rinde van Lon
  */
 public final class RtSolverModel extends AbstractModel<RtSolverUser> {
-  final RealTimeClockController clock;
+  final RealtimeClockController clock;
   final PDPRoadModel roadModel;
   final PDPModel pdpModel;
   final RtSimSolverBuilder builder;
 
-  RtSolverModel(RealTimeClockController c, PDPRoadModel rm, PDPModel pm) {
+  RtSolverModel(RealtimeClockController c, PDPRoadModel rm, PDPModel pm) {
     clock = c;
     roadModel = rm;
     pdpModel = pm;
@@ -90,15 +90,15 @@ public final class RtSolverModel extends AbstractModel<RtSolverUser> {
       extends AbstractModelBuilder<RtSolverModel, RtSolverUser> {
 
     Builder() {
-      setDependencies(RealTimeClockController.class, PDPRoadModel.class,
+      setDependencies(RealtimeClockController.class, PDPRoadModel.class,
           PDPModel.class);
       setProvidingTypes(RtSimSolverBuilder.class);
     }
 
     @Override
     public RtSolverModel build(DependencyProvider dependencyProvider) {
-      RealTimeClockController c = dependencyProvider
-          .get(RealTimeClockController.class);
+      RealtimeClockController c = dependencyProvider
+          .get(RealtimeClockController.class);
       PDPRoadModel rm = dependencyProvider.get(PDPRoadModel.class);
       PDPModel pm = dependencyProvider.get(PDPModel.class);
       return new RtSolverModel(c, rm, pm);
@@ -108,14 +108,14 @@ public final class RtSolverModel extends AbstractModel<RtSolverUser> {
   static class RtSimSolverSchedulerImpl {
     final SimulationConverter converter;
     final RealtimeSolver solver;
-    final RealTimeClockController clock;
+    final RealtimeClockController clock;
     Optional<ImmutableList<ImmutableList<Parcel>>> currentSchedule;
     boolean isUpdated;
     final ListeningExecutorService executor;
     final RtSimSolver rtSimSolver;
     final Scheduler scheduler;
 
-    RtSimSolverSchedulerImpl(RealTimeClockController c, RealtimeSolver s,
+    RtSimSolverSchedulerImpl(RealtimeClockController c, RealtimeSolver s,
         PDPRoadModel rm, PDPModel pm) {
       solver = s;
       clock = c;

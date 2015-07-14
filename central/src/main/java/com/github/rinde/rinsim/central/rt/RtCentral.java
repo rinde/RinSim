@@ -34,7 +34,7 @@ import com.github.rinde.rinsim.core.model.ModelBuilder.AbstractModelBuilder;
 import com.github.rinde.rinsim.core.model.pdp.PDPModel;
 import com.github.rinde.rinsim.core.model.pdp.Parcel;
 import com.github.rinde.rinsim.core.model.rand.RandomProvider;
-import com.github.rinde.rinsim.core.model.time.RealTimeClockController;
+import com.github.rinde.rinsim.core.model.time.RealtimeClockController;
 import com.github.rinde.rinsim.core.model.time.TickListener;
 import com.github.rinde.rinsim.core.model.time.TimeLapse;
 import com.github.rinde.rinsim.experiment.MASConfiguration;
@@ -129,10 +129,10 @@ public final class RtCentral {
     private final PDPRoadModel roadModel;
     private final PDPModel pdpModel;
     private final RtSimSolver solver;
-    private final RealTimeClockController clock;
+    private final RealtimeClockController clock;
     private final boolean sleepOnChange;
 
-    RtCentralModel(RealTimeClockController c, RtSimSolver s, PDPRoadModel rm,
+    RtCentralModel(RealtimeClockController c, RtSimSolver s, PDPRoadModel rm,
         PDPModel pm, boolean sleepOnC) {
       problemHasChanged = false;
       clock = c;
@@ -234,7 +234,7 @@ public final class RtCentral {
       setDependencies(
           RandomProvider.class,
           RtSimSolverBuilder.class,
-          RealTimeClockController.class,
+          RealtimeClockController.class,
           PDPRoadModel.class,
           PDPModel.class);
     }
@@ -263,8 +263,8 @@ public final class RtCentral {
           .get(rnd.masterInstance().nextLong());
       RtSimSolver s = dependencyProvider.get(RtSimSolverBuilder.class)
           .build(solver);
-      RealTimeClockController clock = dependencyProvider
-          .get(RealTimeClockController.class);
+      RealtimeClockController clock = dependencyProvider
+          .get(RealtimeClockController.class);
       PDPRoadModel rm = dependencyProvider.get(PDPRoadModel.class);
       PDPModel pm = dependencyProvider.get(PDPModel.class);
       return new RtCentral.RtCentralModel(clock, s, rm, pm, getSleepOnChange());

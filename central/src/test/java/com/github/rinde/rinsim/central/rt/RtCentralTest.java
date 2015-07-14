@@ -23,7 +23,7 @@ import java.util.List;
 import org.junit.Test;
 
 import com.github.rinde.rinsim.central.RandomSolver;
-import com.github.rinde.rinsim.core.model.time.RealTimeClockController.ClockMode;
+import com.github.rinde.rinsim.core.model.time.RealtimeClockController.ClockMode;
 import com.github.rinde.rinsim.core.model.time.TimeModel;
 import com.github.rinde.rinsim.experiment.Experiment;
 import com.github.rinde.rinsim.experiment.ExperimentResults;

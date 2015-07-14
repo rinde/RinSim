@@ -29,9 +29,9 @@ import org.junit.Test;
 import org.junit.runners.Parameterized.Parameters;
 
 import com.github.rinde.rinsim.core.model.FakeDependencyProvider;
-import com.github.rinde.rinsim.core.model.time.RealTimeClockController.ClockMode;
+import com.github.rinde.rinsim.core.model.time.RealtimeClockController.ClockMode;
 import com.github.rinde.rinsim.core.model.time.TimeModel.AbstractBuilder;
-import com.github.rinde.rinsim.core.model.time.TimeModel.RealTimeBuilder;
+import com.github.rinde.rinsim.core.model.time.TimeModel.RealtimeBuilder;
 import com.google.common.collect.Iterators;
 import com.google.common.collect.PeekingIterator;
 import com.google.common.math.DoubleMath;
@@ -40,7 +40,7 @@ import com.google.common.math.DoubleMath;
  * @author Rinde van Lon
  *
  */
-public class RealTimeModelTest extends TimeModelTest<RealTimeModel> {
+public class RealTimeModelTest extends TimeModelTest<RealtimeModel> {
 
   /**
    * @param sup The supplier to use for creating model instances.
@@ -115,8 +115,8 @@ public class RealTimeModelTest extends TimeModelTest<RealTimeModel> {
   public void testConsistencyCheck() {
     getModel().register(limiter(150));
 
-    final int t = RealTimeModel.RealTime.CONSISTENCY_CHECK_LENGTH + DoubleMath
-        .roundToInt(.5 * RealTimeModel.RealTime.CONSISTENCY_CHECK_LENGTH,
+    final int t = RealtimeModel.RealTime.CONSISTENCY_CHECK_LENGTH + DoubleMath
+        .roundToInt(.5 * RealtimeModel.RealTime.CONSISTENCY_CHECK_LENGTH,
             RoundingMode.HALF_DOWN);
 
     getModel().register(new TickListener() {
@@ -275,12 +275,12 @@ public class RealTimeModelTest extends TimeModelTest<RealTimeModel> {
    */
   @Test
   public void testBuilderClockMode() {
-    final RealTimeModel tm1 = (RealTimeModel) TimeModel.builder()
+    final RealtimeModel tm1 = (RealtimeModel) TimeModel.builder()
         .withRealTime()
         .build(FakeDependencyProvider.empty());
     assertThat(tm1.getClockMode()).isEqualTo(ClockMode.REAL_TIME);
 
-    final RealTimeModel tm2 = (RealTimeModel) TimeModel.builder()
+    final RealtimeModel tm2 = (RealtimeModel) TimeModel.builder()
         .withRealTime()
         .withStartInClockMode(ClockMode.SIMULATED)
         .withTimeUnit(NonSI.HOUR)
@@ -294,7 +294,7 @@ public class RealTimeModelTest extends TimeModelTest<RealTimeModel> {
     boolean fail = false;
     try {
       @SuppressWarnings("unused")
-      final RealTimeBuilder b = TimeModel.builder()
+      final RealtimeBuilder b = TimeModel.builder()
           .withRealTime()
           .withStartInClockMode(ClockMode.STOPPED);
     } catch (final IllegalArgumentException e) {
@@ -311,7 +311,7 @@ public class RealTimeModelTest extends TimeModelTest<RealTimeModel> {
   public void testProvidingTypes() {
     assertThat(getModel().get(Clock.class)).isNotNull();
     assertThat(getModel().get(ClockController.class)).isNotNull();
-    assertThat(getModel().get(RealTimeClockController.class)).isNotNull();
+    assertThat(getModel().get(RealtimeClockController.class)).isNotNull();
     boolean fail = false;
     try {
       getModel().get(Object.class);

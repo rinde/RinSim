@@ -60,7 +60,7 @@ import com.github.rinde.rinsim.core.model.ModelBuilder.AbstractModelBuilder;
 import com.github.rinde.rinsim.core.model.ModelProvider;
 import com.github.rinde.rinsim.core.model.ModelReceiver;
 import com.github.rinde.rinsim.core.model.time.ClockController;
-import com.github.rinde.rinsim.core.model.time.RealTimeClockController;
+import com.github.rinde.rinsim.core.model.time.RealtimeClockController;
 import com.github.rinde.rinsim.core.model.time.TickListener;
 import com.github.rinde.rinsim.core.model.time.TimeLapse;
 import com.github.rinde.rinsim.geom.Point;
@@ -620,7 +620,7 @@ final class SimulationViewer extends Composite implements TickListener,
     }
     lastRefresh = timeLapse.getStartTime();
     // TODO sleep should be relative to speedUp as well?
-    if (!(clock instanceof RealTimeClockController)) {
+    if (!(clock instanceof RealtimeClockController)) {
       try {
         Thread.sleep(30);
       } catch (final InterruptedException e) {

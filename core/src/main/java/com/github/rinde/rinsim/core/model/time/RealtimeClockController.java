@@ -31,7 +31,7 @@ package com.github.rinde.rinsim.core.model.time;
  * clock can be started and stopped only once.
  * @author Rinde van Lon
  */
-public interface RealTimeClockController extends ClockController {
+public interface RealtimeClockController extends ClockController {
 
   /**
    * Tells the clock to switch to real time mode. The real time mode will be in

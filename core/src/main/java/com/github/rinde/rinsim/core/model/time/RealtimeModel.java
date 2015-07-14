@@ -15,9 +15,9 @@
  */
 package com.github.rinde.rinsim.core.model.time;
 
-import static com.github.rinde.rinsim.core.model.time.RealTimeModel.SimpleState.INIT_RT;
-import static com.github.rinde.rinsim.core.model.time.RealTimeModel.SimpleState.INIT_ST;
-import static com.github.rinde.rinsim.core.model.time.RealTimeModel.SimpleState.STOPPED;
+import static com.github.rinde.rinsim.core.model.time.RealtimeModel.SimpleState.INIT_RT;
+import static com.github.rinde.rinsim.core.model.time.RealtimeModel.SimpleState.INIT_ST;
+import static com.github.rinde.rinsim.core.model.time.RealtimeModel.SimpleState.STOPPED;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
 
@@ -50,11 +50,11 @@ import com.google.common.util.concurrent.MoreExecutors;
  * @author Rinde van Lon
  *
  */
-class RealTimeModel extends TimeModel implements RealTimeClockController {
-  final StateMachine<Trigger, RealTimeModel> stateMachine;
+class RealtimeModel extends TimeModel implements RealtimeClockController {
+  final StateMachine<Trigger, RealtimeModel> stateMachine;
   final Map<TickListener, TickListenerTimingChecker> decoratorMap;
 
-  RealTimeModel(RealTimeBuilder builder) {
+  RealtimeModel(RealtimeBuilder builder) {
     super(builder);
     decoratorMap = new HashMap<>();
 
@@ -101,7 +101,7 @@ class RealTimeModel extends TimeModel implements RealTimeClockController {
   public void tick() {
     throw new UnsupportedOperationException(
         "Calling tick directly is not supported in "
-            + RealTimeModel.class.getSimpleName());
+            + RealtimeModel.class.getSimpleName());
   }
 
   @Override
@@ -147,7 +147,7 @@ class RealTimeModel extends TimeModel implements RealTimeClockController {
 
   @Override
   public <U> U get(Class<U> clazz) {
-    if (clazz == RealTimeClockController.class) {
+    if (clazz == RealtimeClockController.class) {
       return clazz.cast(this);
     }
     return super.get(clazz);
@@ -158,12 +158,12 @@ class RealTimeModel extends TimeModel implements RealTimeClockController {
   }
 
   interface ClockState
-      extends com.github.rinde.rinsim.fsm.State<Trigger, RealTimeModel> {
+      extends com.github.rinde.rinsim.fsm.State<Trigger, RealtimeModel> {
     ClockMode getClockMode();
   }
 
   abstract static class AbstractClockState
-      extends AbstractState<Trigger, RealTimeModel>
+      extends AbstractState<Trigger, RealtimeModel>
       implements ClockState {}
 
   static class SimulatedTime extends AbstractClockState {
@@ -173,7 +173,7 @@ class RealTimeModel extends TimeModel implements RealTimeClockController {
 
     @Override
     @Nullable
-    public Trigger handle(@Nullable Trigger trigger, RealTimeModel context) {
+    public Trigger handle(@Nullable Trigger trigger, RealtimeModel context) {
       if (trigger == Trigger.REAL_TIME) {
         isTicking = false;
         nextTrigger = Trigger.DO_REAL_TIME;
@@ -193,7 +193,7 @@ class RealTimeModel extends TimeModel implements RealTimeClockController {
     }
 
     @Override
-    public void onExit(Trigger event, RealTimeModel context) {
+    public void onExit(Trigger event, RealtimeModel context) {
       isTicking = false;
     }
 
@@ -226,14 +226,14 @@ class RealTimeModel extends TimeModel implements RealTimeClockController {
     }
 
     @Override
-    public void onEntry(Trigger event, RealTimeModel context) {
+    public void onEntry(Trigger event, RealtimeModel context) {
       initExecutor();
     }
 
     @Override
     @Nullable
     public Trigger handle(@Nullable Trigger event,
-        final RealTimeModel context) {
+        final RealtimeModel context) {
       if (event == Trigger.SIMULATE) {
         nextTrigger = Trigger.DO_SIMULATE;
         return null;
@@ -277,7 +277,7 @@ class RealTimeModel extends TimeModel implements RealTimeClockController {
     }
 
     @Override
-    public void onExit(Trigger event, RealTimeModel context) {
+    public void onExit(Trigger event, RealtimeModel context) {
       if (!executor.isShutdown()) {
         executor.shutdown();
       }
@@ -364,15 +364,15 @@ class RealTimeModel extends TimeModel implements RealTimeClockController {
 
     @Override
     @Nullable
-    public Trigger handle(@Nullable Trigger event, RealTimeModel context) {
+    public Trigger handle(@Nullable Trigger event, RealtimeModel context) {
       return null;
     }
 
     @Override
-    public void onEntry(Trigger event, RealTimeModel context) {}
+    public void onEntry(Trigger event, RealtimeModel context) {}
 
     @Override
-    public void onExit(Trigger event, RealTimeModel context) {}
+    public void onExit(Trigger event, RealtimeModel context) {}
 
   }
 

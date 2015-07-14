@@ -33,7 +33,7 @@ import com.github.rinde.rinsim.core.model.DependencyProvider;
 import com.github.rinde.rinsim.core.model.Model.AbstractModel;
 import com.github.rinde.rinsim.core.model.ModelBuilder;
 import com.github.rinde.rinsim.core.model.ModelBuilder.AbstractModelBuilder;
-import com.github.rinde.rinsim.core.model.time.RealTimeClockController.ClockMode;
+import com.github.rinde.rinsim.core.model.time.RealtimeClockController.ClockMode;
 import com.github.rinde.rinsim.event.Event;
 import com.github.rinde.rinsim.event.EventAPI;
 import com.github.rinde.rinsim.event.EventDispatcher;
@@ -49,7 +49,7 @@ import com.google.common.annotations.VisibleForTesting;
  * <ul>
  * <li><i>Associated type:</i> {@link TickListener}.</li>
  * <li><i>Provides:</i> {@link Clock} and {@link ClockController} and optionally
- * {@link RealTimeClockController} (if created via
+ * {@link RealtimeClockController} (if created via
  * {@link Builder#withRealTime()}).</li>
  * <li><i>Dependencies:</i> none.</li>
  * </ul>
@@ -255,12 +255,12 @@ public abstract class TimeModel extends AbstractModel<TickListener>
     /**
      * Create a time model that synchronized ticks to the real time. An
      * additional type is provided by this model:
-     * {@link RealTimeClockController}.
+     * {@link RealtimeClockController}.
      * @return A new builder instance.
      */
     @CheckReturnValue
-    public RealTimeBuilder withRealTime() {
-      return RealTimeBuilder.create(getTickLength(), getTimeUnit(),
+    public RealtimeBuilder withRealTime() {
+      return RealtimeBuilder.create(getTickLength(), getTimeUnit(),
           ClockMode.REAL_TIME);
     }
 
@@ -277,19 +277,19 @@ public abstract class TimeModel extends AbstractModel<TickListener>
 
   /**
    * Builder for real-time version of {@link TimeModel}. Besides providing
-   * {@link Clock} and {@link ClockController}, {@link RealTimeClockController}
+   * {@link Clock} and {@link ClockController}, {@link RealtimeClockController}
    * is also provided.
    * @author Rinde van Lon
    */
   @AutoValue
-  public abstract static class RealTimeBuilder
-      extends AbstractBuilder<RealTimeBuilder> {
+  public abstract static class RealtimeBuilder
+      extends AbstractBuilder<RealtimeBuilder> {
 
     private static final long serialVersionUID = 7255633280244047198L;
 
-    RealTimeBuilder() {
+    RealtimeBuilder() {
       setProvidingTypes(Clock.class, ClockController.class,
-          RealTimeClockController.class);
+          RealtimeClockController.class);
     }
 
     /**
@@ -305,30 +305,35 @@ public abstract class TimeModel extends AbstractModel<TickListener>
      * @return A new builder instance.
      */
     @CheckReturnValue
-    public RealTimeBuilder withStartInClockMode(ClockMode mode) {
+    public RealtimeBuilder withStartInClockMode(ClockMode mode) {
       checkArgument(mode != ClockMode.STOPPED,
           "Can not use %s as starting mode.", ClockMode.STOPPED);
       return create(getTickLength(), getTimeUnit(), mode);
     }
 
     @Override
-    public RealTimeBuilder withTickLength(long tickLength) {
+    public RealtimeBuilder withTickLength(long tickLength) {
       return create(tickLength, getTimeUnit(), getClockMode());
     }
 
     @Override
-    public RealTimeBuilder withTimeUnit(Unit<Duration> timeUnit) {
+    public RealtimeBuilder withTimeUnit(Unit<Duration> timeUnit) {
       return create(getTickLength(), timeUnit, getClockMode());
     }
 
     @Override
     public TimeModel build(DependencyProvider dependencyProvider) {
-      return new RealTimeModel(this);
+      return new RealtimeModel(this);
     }
 
-    static RealTimeBuilder create(long length, Unit<Duration> unit,
+    @Override
+    public String toString() {
+      return super.toString() + ".withRealtime()";
+    }
+
+    static RealtimeBuilder create(long length, Unit<Duration> unit,
         ClockMode mode) {
-      return new AutoValue_TimeModel_RealTimeBuilder(length, unit, mode);
+      return new AutoValue_TimeModel_RealtimeBuilder(length, unit, mode);
     }
   }
 }

@@ -43,8 +43,8 @@ import com.github.rinde.rinsim.core.model.pdp.Vehicle;
 import com.github.rinde.rinsim.core.model.pdp.VehicleDTO;
 import com.github.rinde.rinsim.core.model.road.RoadModel;
 import com.github.rinde.rinsim.core.model.road.RoadModelBuilders;
-import com.github.rinde.rinsim.core.model.time.RealTimeClockController;
-import com.github.rinde.rinsim.core.model.time.RealTimeClockController.ClockMode;
+import com.github.rinde.rinsim.core.model.time.RealtimeClockController;
+import com.github.rinde.rinsim.core.model.time.RealtimeClockController.ClockMode;
 import com.github.rinde.rinsim.core.model.time.TickListener;
 import com.github.rinde.rinsim.core.model.time.TimeLapse;
 import com.github.rinde.rinsim.core.model.time.TimeModel;
@@ -535,11 +535,11 @@ public class RealtimeSolverTest {
 
   static class ClockInspectModel extends AbstractModelVoid
       implements TickListener {
-    RealTimeClockController clock;
+    RealtimeClockController clock;
 
     List<ClockLogEntry> clockLog;
 
-    ClockInspectModel(RealTimeClockController c) {
+    ClockInspectModel(RealtimeClockController c) {
       clock = c;
       clockLog = new ArrayList<>();
     }
@@ -624,13 +624,13 @@ public class RealtimeSolverTest {
         extends AbstractModelBuilder<ClockInspectModel, Void> {
 
       Builder() {
-        setDependencies(RealTimeClockController.class);
+        setDependencies(RealtimeClockController.class);
       }
 
       @Override
       public ClockInspectModel build(DependencyProvider dependencyProvider) {
-        RealTimeClockController c = dependencyProvider
-            .get(RealTimeClockController.class);
+        RealtimeClockController c = dependencyProvider
+            .get(RealtimeClockController.class);
         return new ClockInspectModel(c);
       }
     }

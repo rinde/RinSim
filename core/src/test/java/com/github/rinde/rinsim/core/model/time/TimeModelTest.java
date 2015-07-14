@@ -29,11 +29,11 @@ import org.junit.runners.Parameterized;
 
 import com.github.rinde.rinsim.core.model.FakeDependencyProvider;
 import com.github.rinde.rinsim.core.model.time.Clock.ClockEventType;
-import com.github.rinde.rinsim.core.model.time.RealTimeClockController.ClockMode;
-import com.github.rinde.rinsim.core.model.time.RealTimeModel.PriorityThreadFactory;
-import com.github.rinde.rinsim.core.model.time.RealTimeModel.SimpleState;
-import com.github.rinde.rinsim.core.model.time.RealTimeModel.TickListenerTimingChecker;
-import com.github.rinde.rinsim.core.model.time.RealTimeModel.Trigger;
+import com.github.rinde.rinsim.core.model.time.RealtimeClockController.ClockMode;
+import com.github.rinde.rinsim.core.model.time.RealtimeModel.PriorityThreadFactory;
+import com.github.rinde.rinsim.core.model.time.RealtimeModel.SimpleState;
+import com.github.rinde.rinsim.core.model.time.RealtimeModel.TickListenerTimingChecker;
+import com.github.rinde.rinsim.core.model.time.RealtimeModel.Trigger;
 import com.github.rinde.rinsim.event.ListenerEventHistory;
 import com.github.rinde.rinsim.testutil.TestUtil;
 import com.google.common.collect.Range;

@@ -85,7 +85,7 @@ public class SimulatedTimeModelTest extends TimeModelTest<SimulatedTimeModel> {
 
     boolean fail = false;
     try {
-      getModel().get(RealTimeClockController.class);
+      getModel().get(RealtimeClockController.class);
     } catch (final IllegalArgumentException e) {
       fail = true;
       assertThat(e.getMessage()).contains(
