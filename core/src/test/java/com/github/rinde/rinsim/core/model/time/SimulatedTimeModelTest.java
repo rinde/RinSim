@@ -49,8 +49,8 @@ public class SimulatedTimeModelTest extends TimeModelTest<SimulatedTimeModel> {
   @Parameters
   public static Collection<Object[]> data() {
     return asList(new Object[][] {
-        { TimeModel.builder() },
-        { TimeModel.builder().withTickLength(333L).withTimeUnit(NonSI.HOUR) }
+        {TimeModel.builder()},
+        {TimeModel.builder().withTickLength(333L).withTimeUnit(NonSI.HOUR)}
     });
   }
 
@@ -89,7 +89,7 @@ public class SimulatedTimeModelTest extends TimeModelTest<SimulatedTimeModel> {
     } catch (final IllegalArgumentException e) {
       fail = true;
       assertThat(e.getMessage()).contains(
-          "does not provide instances of com.github.rinde.rinsim.core.model.time.RealTimeClockController");
+          "does not provide instances of com.github.rinde.rinsim.core.model.time.RealtimeClockController");
     }
     assertThat(fail).isTrue();
   }
