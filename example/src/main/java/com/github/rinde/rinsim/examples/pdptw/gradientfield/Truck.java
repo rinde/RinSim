@@ -42,6 +42,8 @@ class Truck extends Vehicle implements FieldEmitter {
     super(pDto);
   }
 
+  static final int DISTANCE_THRESHOLD_KM = 10;
+
   @Override
   protected void tickImpl(TimeLapse time) {
     // Check if we can deliver nearby
@@ -71,7 +73,8 @@ class Truck extends Vehicle implements FieldEmitter {
         });
 
     if (closest != null
-        && Point.distance(rm.getPosition(closest), getPosition()) < 10) {
+        && Point.distance(rm.getPosition(closest),
+            getPosition()) < DISTANCE_THRESHOLD_KM) {
       if (rm.equalPosition(closest, this)
           && pm.getTimeWindowPolicy().canPickup(closest.getPickupTimeWindow(),
               time.getTime(), closest.getPickupDuration())) {
@@ -101,7 +104,7 @@ class Truck extends Vehicle implements FieldEmitter {
   }
 
   @Nullable
-  public Parcel getDelivery(TimeLapse time, int distance) {
+  Parcel getDelivery(TimeLapse time, int distance) {
     Parcel target = null;
     double closest = distance;
     final PDPModel pm = getPDPModel();
@@ -135,7 +138,7 @@ class Truck extends Vehicle implements FieldEmitter {
     return -1;
   }
 
-  public Map<Point, Float> getFields() {
+  Map<Point, Float> getFields() {
     return verifyNotNull(gradientModel).getFields(this);
   }
 }

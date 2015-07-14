@@ -20,6 +20,7 @@ import static com.google.common.collect.Lists.newArrayList;
 
 import java.io.IOException;
 import java.math.RoundingMode;
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.annotation.Nullable;
@@ -57,6 +58,12 @@ import com.google.common.math.DoubleMath;
  */
 public final class Demo {
 
+  static final int TIME_TEXT_WIDTH = 40;
+  static final int RUN_BUTTON_W = 300;
+  static final int RUN_BUTTON_H = 100;
+  static final int START_BUTTON_FONT_SIZE = 60;
+  static final int NEXT_BUTTON_FONT_SIZE = 40;
+
   private Demo() {}
 
   /**
@@ -90,7 +97,7 @@ public final class Demo {
 
     final Text timeText = new Text(controlsComposite, SWT.NONE);
     timeText.setText("6.0");
-    timeText.setLayoutData(new RowData(40, SWT.DEFAULT));
+    timeText.setLayoutData(new RowData(TIME_TEXT_WIDTH, SWT.DEFAULT));
 
     timeText.addListener(SWT.Verify, new TimeTextVerifier(demoRunners));
     final List<Button> monitorCheckBoxes = newArrayList();
@@ -115,87 +122,20 @@ public final class Demo {
     }
 
     final Button runButton = new Button(shell, SWT.TOGGLE);
-    runButton.setSize(300, 100);
+    runButton.setSize(RUN_BUTTON_W, RUN_BUTTON_H);
     runButton.setText("Start demo");
 
     final Font f = runButton.getFont();
     final FontData[] fontData = f.getFontData();
     for (int i = 0; i < fontData.length; i++) {
-      fontData[i].setHeight(60);
+      fontData[i].setHeight(START_BUTTON_FONT_SIZE);
     }
     final Font newFont = new Font(d, fontData);
     runButton.setFont(newFont);
 
-    final Composite panelComposite = new Composite(shell, SWT.NONE);
-    // panelComposite.setLayout(new RowLayout(SWT.HORIZONTAL));
-
-    final List<DemoRunnerControlPanel> panels = newArrayList();
-    runButton.addSelectionListener(new SelectionListener() {
-      @Override
-      public void widgetSelected(@Nullable SelectionEvent e) {
-        assert e != null;
-        // clear old runners
-        for (final DemoRunner dr : demoRunners) {
-          dr.setRunning(false);
-        }
-        demoRunners.clear();
-        // close old shells
-        for (final Shell s : d.getShells()) {
-          if (s != shell) {
-            s.close();
-          }
-        }
-
-        for (final DemoRunnerControlPanel panel : panels) {
-          panel.remove();
-        }
-        panels.clear();
-
-        controlsComposite.setEnabled(!((Button) e.widget).getSelection());
-        for (final Control c : controlsComposite.getChildren()) {
-
-          c.setEnabled(!((Button) e.widget).getSelection());
-        }
-
-        if (((Button) e.widget).getSelection()) {
-          runButton.setText("Stop demo");
-        } else {
-          runButton.setText("Start demo");
-        }
-
-        if (((Button) e.widget).getSelection()) {
-          int index = 0;
-          final List<DemoType> types = newArrayList();
-          for (final Button b : demoCheckBoxes) {
-            if (b.getSelection()) {
-              types.add((DemoType) b.getData());
-            }
-          }
-          final ImmutableList<DemoType> demoTypes =
-              ImmutableList.copyOf(types);
-          for (final Button b : monitorCheckBoxes) {
-            if (b.getSelection()) {
-              final Monitor m = (Monitor) b.getData();
-              final DemoRunner dr = new DemoRunner(d, demoTypes, index);
-              index++;
-
-              dr.setTime(Double.parseDouble(timeText.getText()));
-
-              panels.add(new DemoRunnerControlPanel(panelComposite, m, dr));
-
-              dr.setMonitor(m);
-              demoRunners.add(dr);
-            }
-          }
-          panelComposite.layout();
-          shell.layout();
-          new MasterRunner(demoRunners, d).start();
-        }
-      }
-
-      @Override
-      public void widgetDefaultSelected(@Nullable SelectionEvent e) {}
-    });
+    runButton.addSelectionListener(
+        new RunButtonHandler(runButton, shell, demoRunners, controlsComposite,
+            demoCheckBoxes, monitorCheckBoxes, timeText));
 
     shell.addListener(SWT.Close, new org.eclipse.swt.widgets.Listener() {
       @Override
@@ -233,15 +173,108 @@ public final class Demo {
     }
   }
 
+  static class RunButtonHandler implements SelectionListener {
+    final Composite panelComposite;
+    final List<DemoRunnerControlPanel> panels;
+    final Shell shell;
+    final List<DemoRunner> demoRunners;
+    final Composite controlsComposite;
+    final Button runButton;
+    final List<Button> demoCheckBoxes;
+    final List<Button> monitorCheckBoxes;
+    final Text timeText;
+
+    RunButtonHandler(Button b, Shell s, List<DemoRunner> drs,
+        final Composite cc, List<Button> cbs, List<Button> mcbs,
+        Text tt) {
+      runButton = b;
+      shell = s;
+      panelComposite = new Composite(shell, SWT.NONE);
+      panels = new ArrayList<>();
+      demoRunners = drs;
+      controlsComposite = cc;
+      demoCheckBoxes = cbs;
+      monitorCheckBoxes = mcbs;
+      timeText = tt;
+    }
+
+    @Override
+    public void widgetSelected(@Nullable SelectionEvent e) {
+      assert e != null;
+      // clear old runners
+      for (final DemoRunner dr : demoRunners) {
+        dr.setRunning(false);
+      }
+      demoRunners.clear();
+      // close old shells
+      for (final Shell s : shell.getDisplay().getShells()) {
+        if (s != shell) {
+          s.close();
+        }
+      }
+
+      for (final DemoRunnerControlPanel panel : panels) {
+        panel.remove();
+      }
+      panels.clear();
+
+      controlsComposite.setEnabled(!((Button) e.widget).getSelection());
+      for (final Control c : controlsComposite.getChildren()) {
+
+        c.setEnabled(!((Button) e.widget).getSelection());
+      }
+
+      if (((Button) e.widget).getSelection()) {
+        runButton.setText("Stop demo");
+      } else {
+        runButton.setText("Start demo");
+      }
+
+      if (((Button) e.widget).getSelection()) {
+        int index = 0;
+        final List<DemoType> types = newArrayList();
+        for (final Button b : demoCheckBoxes) {
+          if (b.getSelection()) {
+            types.add((DemoType) b.getData());
+          }
+        }
+        final ImmutableList<DemoType> demoTypes =
+            ImmutableList.copyOf(types);
+        for (final Button b : monitorCheckBoxes) {
+          if (b.getSelection()) {
+            final Monitor m = (Monitor) b.getData();
+            final DemoRunner dr =
+                new DemoRunner(shell.getDisplay(), demoTypes, index);
+            index++;
+
+            dr.setTime(Double.parseDouble(timeText.getText()));
+
+            panels.add(new DemoRunnerControlPanel(panelComposite, m, dr));
+
+            dr.setMonitor(m);
+            demoRunners.add(dr);
+          }
+        }
+        panelComposite.layout();
+        shell.layout();
+        new MasterRunner(demoRunners, shell.getDisplay()).start();
+      }
+    }
+
+    @Override
+    public void widgetDefaultSelected(@Nullable SelectionEvent e) {}
+  }
+
   static class DemoRunnerControlPanel {
+
+    static final int MARGIN = 50;
 
     final Group group;
     final Label label;
     final DemoRunner runner;
     final Monitor monitor;
 
-    public DemoRunnerControlPanel(Composite parent, Monitor m,
-        DemoRunner dr) {
+    DemoRunnerControlPanel(Composite parent, Monitor m, DemoRunner dr) {
       group = new Group(parent, SWT.NONE);
       runner = dr;
       monitor = m;
@@ -261,13 +294,14 @@ public final class Demo {
       final double yRatio =
           (m.getBounds().y - displayBounds.y) / maxDimension;
 
-      final double displayWidth = parent.getShell().getBounds().width - 100;
+      final double displayWidth =
+          parent.getShell().getBounds().width - MARGIN * 2;
 
       group.setSize((int) (wRatio * displayWidth),
           (int) (hRatio * displayWidth));
 
-      final int xLoc = 50 + (int) (xRatio * displayWidth);
-      final int yLoc = 50 + (int) (yRatio * displayWidth);
+      final int xLoc = MARGIN + (int) (xRatio * displayWidth);
+      final int yLoc = MARGIN + (int) (yRatio * displayWidth);
 
       group.setLocation(xLoc, yLoc);
       group.setLayout(new FillLayout(SWT.VERTICAL));
@@ -276,7 +310,7 @@ public final class Demo {
       final Font f = label.getFont();
       final FontData[] fontData = f.getFontData();
       for (int i = 0; i < fontData.length; i++) {
-        fontData[i].setHeight(40);
+        fontData[i].setHeight(NEXT_BUTTON_FONT_SIZE);
       }
       final Font newFont = new Font(parent.getDisplay(), fontData);
       label.setFont(newFont);
@@ -298,14 +332,11 @@ public final class Demo {
       update();
     }
 
-    /**
-     *
-     */
-    public void remove() {
+    void remove() {
       group.dispose();
     }
 
-    public void update() {
+    void update() {
       label.getDisplay().asyncExec(new Runnable() {
         @Override
         public void run() {
@@ -322,7 +353,8 @@ public final class Demo {
 
   static class DemoRunner implements Runnable,
       com.github.rinde.rinsim.event.Listener {
-    static final long DEFAULT_DURATION = 6 * 60 * 60 * 1000L;
+    static final long H_TO_MS = 60 * 60 * 1000L;
+    static final long DEFAULT_DURATION = 6 * H_TO_MS;
 
     boolean running;
     long time;
@@ -349,8 +381,7 @@ public final class Demo {
     }
 
     void setTime(double t) {
-      time = DoubleMath.roundToLong(t * 60d * 60d * 1000d,
-          RoundingMode.HALF_DOWN);
+      time = DoubleMath.roundToLong(t * H_TO_MS, RoundingMode.HALF_DOWN);
     }
 
     void setRunning(boolean r) {
@@ -367,11 +398,11 @@ public final class Demo {
       next();
     }
 
-    public DemoType getState() {
+    DemoType getState() {
       return demoTypes.get(demoIndex);
     }
 
-    public void next() {
+    void next() {
       if (!sims.isEmpty()) {
         for (final Simulator s : sims) {
           s.stop();
@@ -403,6 +434,7 @@ public final class Demo {
                   display, monitor, l));
             }
           });
+
         }
 
       }
@@ -439,5 +471,4 @@ public final class Demo {
       }
     }
   }
-
 }
