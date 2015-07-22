@@ -159,6 +159,12 @@ class RealtimeModel extends TimeModel implements RealtimeClockController {
 
   interface ClockState
       extends com.github.rinde.rinsim.fsm.State<Trigger, RealtimeModel> {
+
+    /**
+     * @return The
+     *         {@link com.github.rinde.rinsim.core.model.time.RealtimeClockController.ClockMode}
+     *         the clock is in.
+     */
     ClockMode getClockMode();
   }
 

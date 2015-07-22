@@ -16,11 +16,14 @@
 package com.github.rinde.rinsim.core.model;
 
 /**
+ * A {@link Model} can implement this interface to indicate that it implements a
+ * user-interface to the simulator. The user interface is responsible for
+ * starting the simulation clock.
  * @author Rinde van Lon
- *
  */
 public interface UserInterface {
-
+  /**
+   * Should launch the user interface.
+   */
   void show();
-
 }
