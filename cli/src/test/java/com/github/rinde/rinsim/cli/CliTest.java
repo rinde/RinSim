@@ -29,6 +29,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import com.github.rinde.rinsim.cli.CliException.CauseType;
+import com.github.rinde.rinsim.testutil.TestUtil;
 import com.google.common.base.Optional;
 
 /**
@@ -47,7 +48,9 @@ public class CliTest {
    */
   @Before
   public void setUp() {
-    CauseType.valueOf("MISSING_ARG");
+    TestUtil.testEnum(CauseType.class);
+    TestUtil.testEnum(DefaultHelpFormatter.class);
+
     list = newArrayList();
     menu = Menu
         .builder()
@@ -360,7 +363,7 @@ public class CliTest {
    */
   @Test
   public void testCustomHelpFormatter() {
-    final HelpFormatter defaultFormatter = new DefaultHelpFormatter();
+    final HelpFormatter defaultFormatter = DefaultHelpFormatter.INSTANCE;
     final HelpFormatter customFormatter = new DummyHelpFormatter();
     final Menu m = Menu.builder()
         .addHelpOption("h", "help", "help")

@@ -278,7 +278,7 @@ public final class Menu {
       buildingGroup = false;
       addedHelpOption = false;
       optionNames = newLinkedHashSet();
-      helpFormatter = new DefaultHelpFormatter();
+      helpFormatter = DefaultHelpFormatter.INSTANCE;
     }
 
     /**
@@ -513,7 +513,7 @@ public final class Menu {
       return b;
     }
 
-    @SuppressWarnings({ "unchecked", "rawtypes" })
+    @SuppressWarnings({"unchecked", "rawtypes"})
     static OptionParser adapt(OptionParser exec, String shortPrefix,
         String longPrefix) {
       final Option opt = exec.getOption();
