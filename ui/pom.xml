@@ -130,7 +130,7 @@
 			</snapshots>
 			<id>swt-repo</id>
 			<name>SWT Repo</name>
-			<url>https://swt-repo.googlecode.com/svn/repo/</url>
+			<url>https://raw.githubusercontent.com/maven-eclipse/swt-repo/master/</url>
 		</repository>
 	</repositories>
 
