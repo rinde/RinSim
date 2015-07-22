@@ -15,6 +15,8 @@
  */
 package com.github.rinde.rinsim.geom.io;
 
+import static com.google.common.base.Verify.verifyNotNull;
+
 import javax.annotation.Nullable;
 
 import com.github.rinde.rinsim.geom.Connection;
@@ -50,8 +52,8 @@ public final class Filters {
     SELF_CYCLE {
       @Override
       public boolean apply(@Nullable Connection<?> input) {
-        assert input != null;
-        return !input.from().equals(input.to());
+        final Connection<?> in = verifyNotNull(input);
+        return !in.from().equals(in.to());
       }
     }
   }

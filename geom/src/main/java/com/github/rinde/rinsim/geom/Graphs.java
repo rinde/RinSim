@@ -78,9 +78,10 @@ public final class Graphs {
    */
   public static <E extends ConnectionData> void addPath(Graph<E> graph,
       Iterable<Point> path) {
-    PeekingIterator<Point> it = Iterators.peekingIterator(path.iterator());
+    final PeekingIterator<Point> it =
+        Iterators.peekingIterator(path.iterator());
     while (it.hasNext()) {
-      Point n = it.next();
+      final Point n = it.next();
       if (it.hasNext()) {
         graph.addConnection(n, it.peek());
       }
@@ -143,7 +144,7 @@ public final class Graphs {
     if (!(other instanceof Graph<?>)) {
       return false;
     }
-    Graph<?> g2 = (Graph<?>) other;
+    final Graph<?> g2 = (Graph<?>) other;
     return Objects.equal(g1.getConnections(), g2.getConnections());
   }
 

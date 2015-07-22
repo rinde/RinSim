@@ -67,6 +67,8 @@ public class DotGraphIO<E extends ConnectionData> extends
   static final String CONN_SEPARATOR = "->";
   static final char LIST_ITEM_SEPARATOR = ',';
   static final char KEY_VAL_SEPARATOR = '=';
+  static final String QUOTE = "\"";
+  static final String SPACE = " ";
 
   static final Splitter KEY_VAL_SPLITTER = Splitter.on(KEY_VAL_SEPARATOR)
       .trimResults();
@@ -95,7 +97,7 @@ public class DotGraphIO<E extends ConnectionData> extends
       if (line.contains(POS)) {
         final String nodeName = line.substring(0, line.indexOf(DATA_START))
             .trim();
-        final String[] position = line.split("\"")[1].split(",");
+        final String[] position = line.split(QUOTE)[1].split(",");
         final Point p = new Point(Double.parseDouble(position[0]),
             Double.parseDouble(position[1]));
         nodeMapping.put(nodeName, p);
@@ -142,11 +144,11 @@ public class DotGraphIO<E extends ConnectionData> extends
             .append(nodeId)
             .append(DATA_START)
             .append(POS)
-            .append("\"")
+            .append(QUOTE)
             .append(p.x)
             .append(LIST_ITEM_SEPARATOR)
             .append(p.y)
-            .append("\"")
+            .append(QUOTE)
             .append(DATA_END)
             .append(System.lineSeparator());
 
@@ -157,9 +159,9 @@ public class DotGraphIO<E extends ConnectionData> extends
       for (final Connection<E> entry : graph.getConnections()) {
         string.append(NODE_PREFIX)
             .append(idMap.get(entry.from()))
-            .append(" ")
+            .append(SPACE)
             .append(CONN_SEPARATOR)
-            .append(" ")
+            .append(SPACE)
             .append(NODE_PREFIX)
             .append(idMap.get(entry.to()));
         if (entry.data().isPresent()) {
@@ -217,14 +219,14 @@ public class DotGraphIO<E extends ConnectionData> extends
   }
 
   static Map<String, String> parseDataAsMap(String line) {
-    List<String> parts = LIST_SPLITTER.trimResults().splitToList(line);
-    Map<String, String> map = new LinkedHashMap<>();
-    for (String part : parts) {
-      List<String> keyVal = KEY_VAL_SPLITTER.splitToList(part);
-      String key = keyVal.get(0).replaceAll("\"", "");
+    final List<String> parts = LIST_SPLITTER.trimResults().splitToList(line);
+    final Map<String, String> map = new LinkedHashMap<>();
+    for (final String part : parts) {
+      final List<String> keyVal = KEY_VAL_SPLITTER.splitToList(part);
+      final String key = keyVal.get(0).replaceAll(QUOTE, "");
       checkArgument(!map.containsKey(key),
           "Found a duplicate key in data '%s'.", line);
-      String val = keyVal.get(1).replaceAll("\"", "");
+      final String val = keyVal.get(1).replaceAll(QUOTE, "");
       map.put(key, val);
     }
     return map;
@@ -251,10 +253,10 @@ public class DotGraphIO<E extends ConnectionData> extends
 
       @Override
       public Optional<LengthData> read(String data) {
-        Map<String, String> map = parseDataAsMap(data);
+        final Map<String, String> map = parseDataAsMap(data);
         if (map.containsKey(DISTANCE)) {
-          double len = Double.parseDouble(map.get(DISTANCE)
-              .replaceAll("\"", ""));
+          final double len = Double.parseDouble(map.get(DISTANCE)
+              .replaceAll(QUOTE, ""));
           return Optional.of(LengthData.create(len));
         }
         return Optional.absent();
@@ -267,14 +269,15 @@ public class DotGraphIO<E extends ConnectionData> extends
     INSTANCE {
       @Override
       public void write(StringBuilder sb, MultiAttributeData data) {
-        Map<String, String> map = new LinkedHashMap<>();
+        final Map<String, String> map = new LinkedHashMap<>();
         if (data.getLength().isPresent()) {
           map.put(DISTANCE, Double.toString(data.getLength().get()));
         }
         if (data.getMaxSpeed().isPresent()) {
           map.put(MAX_SPEED, Double.toString(data.getMaxSpeed().get()));
         }
-        for (Entry<String, Object> entry : data.getAttributes().entrySet()) {
+        for (final Entry<String, Object> entry : data.getAttributes()
+            .entrySet()) {
           checkArgument(!entry.getKey().equals(DISTANCE)
               && !entry.getKey().equals(MAX_SPEED),
               "Attribute key: '%s' is reserved and should not be used.",
@@ -292,8 +295,8 @@ public class DotGraphIO<E extends ConnectionData> extends
 
       @Override
       public Optional<MultiAttributeData> read(String data) {
-        Map<String, String> map = parseDataAsMap(data);
-        Builder b = MultiAttributeData.builder();
+        final Map<String, String> map = parseDataAsMap(data);
+        final Builder b = MultiAttributeData.builder();
         if (map.containsKey(DISTANCE)) {
           b.setLength(Double.parseDouble(map.get(DISTANCE)));
           map.remove(DISTANCE);

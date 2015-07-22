@@ -120,14 +120,15 @@ public final class ListenableGraph<E extends ConnectionData> extends
 
   @Override
   public void addConnections(Iterable<? extends Connection<E>> connections) {
-    for (Connection<E> c : connections) {
+    for (final Connection<E> c : connections) {
       addConnection(c);
     }
   }
 
   @Override
   public Optional<E> setConnectionData(Point from, Point to, E connectionData) {
-    Optional<E> val = delegate.setConnectionData(from, to, connectionData);
+    final Optional<E> val =
+        delegate.setConnectionData(from, to, connectionData);
     eventDispatcher.dispatchEvent(new GraphEvent(
         EventTypes.CHANGE_CONNECTION_DATA, this, getConnection(from, to)));
     return val;
@@ -135,7 +136,7 @@ public final class ListenableGraph<E extends ConnectionData> extends
 
   @Override
   public Optional<E> removeConnectionData(Point from, Point to) {
-    Optional<E> val = delegate.removeConnectionData(from, to);
+    final Optional<E> val = delegate.removeConnectionData(from, to);
 
     eventDispatcher.dispatchEvent(new GraphEvent(
         EventTypes.CHANGE_CONNECTION_DATA, this, getConnection(from, to)));
@@ -145,18 +146,18 @@ public final class ListenableGraph<E extends ConnectionData> extends
   @Override
   public void removeNode(Point node) {
     // collect data of removed connections but only if there is a listener
-    List<Connection<?>> removedConnections = newArrayList();
+    final List<Connection<?>> removedConnections = newArrayList();
     if (eventDispatcher.hasListenerFor(EventTypes.REMOVE_CONNECTION)) {
-      for (Point p : delegate.getIncomingConnections(node)) {
+      for (final Point p : delegate.getIncomingConnections(node)) {
         removedConnections.add(delegate.getConnection(p, node));
       }
-      for (Point p : delegate.getOutgoingConnections(node)) {
+      for (final Point p : delegate.getOutgoingConnections(node)) {
         removedConnections.add(delegate.getConnection(node, p));
       }
     }
     delegate.removeNode(node);
     // notify listeners
-    for (Connection<?> c : removedConnections) {
+    for (final Connection<?> c : removedConnections) {
       eventDispatcher.dispatchEvent(new GraphEvent(
           EventTypes.REMOVE_CONNECTION, this, c));
     }
@@ -164,7 +165,7 @@ public final class ListenableGraph<E extends ConnectionData> extends
 
   @Override
   public void removeConnection(Point from, Point to) {
-    Connection<?> conn = delegate.getConnection(from, to);
+    final Connection<?> conn = delegate.getConnection(from, to);
     delegate.removeConnection(from, to);
     eventDispatcher
         .dispatchEvent(new GraphEvent(
@@ -173,7 +174,7 @@ public final class ListenableGraph<E extends ConnectionData> extends
 
   @Override
   public void merge(Graph<E> other) {
-    for (Connection<E> connection : other.getConnections()) {
+    for (final Connection<E> connection : other.getConnections()) {
       addConnection(connection);
     }
   }
@@ -226,7 +227,7 @@ public final class ListenableGraph<E extends ConnectionData> extends
       if (null == other || other.getClass() != this.getClass()) {
         return false;
       }
-      GraphEvent o = (GraphEvent) other;
+      final GraphEvent o = (GraphEvent) other;
       return Objects.equals(o.eventType, eventType)
           && Objects.equals(o.getIssuer(), getIssuer())
           && Objects.equals(o.connection, connection);
