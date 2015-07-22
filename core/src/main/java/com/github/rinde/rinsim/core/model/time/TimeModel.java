@@ -59,9 +59,8 @@ import com.google.common.annotations.VisibleForTesting;
 public abstract class TimeModel extends AbstractModel<TickListener>
     implements ClockController {
   final TimeLapse timeLapse;
-
-  private volatile Set<TickListener> tickListeners;
   volatile boolean isTicking;
+  private volatile Set<TickListener> tickListeners;
   private final EventDispatcher eventDispatcher;
 
   TimeModel(AbstractBuilder<?> builder) {
@@ -189,8 +188,6 @@ public abstract class TimeModel extends AbstractModel<TickListener>
       extends AbstractModelBuilder<TimeModel, TickListener>
       implements Serializable {
 
-    private static final long serialVersionUID = 4029776255118617541L;
-
     /**
      * The default time step: <code>1000</code>.
      */
@@ -200,6 +197,8 @@ public abstract class TimeModel extends AbstractModel<TickListener>
      * The default time unit: ms.
      */
     public static final Unit<Duration> DEFAULT_TIME_UNIT = SI.MILLI(SI.SECOND);
+
+    private static final long serialVersionUID = 4029776255118617541L;
 
     /**
      * @return The tick length.

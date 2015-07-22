@@ -204,10 +204,10 @@ public final class RoadModelBuilders {
   public abstract static class PlaneRMB
       extends AbstractRMB<PlaneRoadModel, PlaneRMB>
       implements Serializable {
-    private static final long serialVersionUID = 8160700332762443917L;
     static final double DEFAULT_MAX_SPEED = 50d;
     static final Point DEFAULT_MIN_POINT = new Point(0, 0);
     static final Point DEFAULT_MAX_POINT = new Point(10, 10);
+    private static final long serialVersionUID = 8160700332762443917L;
 
     PlaneRMB() {
       setProvidingTypes(RoadModel.class, PlaneRoadModel.class);
@@ -275,8 +275,8 @@ public final class RoadModelBuilders {
     public PlaneRoadModel build(DependencyProvider dependencyProvider) {
       checkArgument(
           getMin().x < getMax().x && getMin().y < getMax().y,
-          "Min should have coordinates smaller than max, found min %s and max "
-              + "%s.",
+          "Min should have coordinates smaller than max, found min %s and max"
+              + " %s.",
           getMin(), getMax());
       return new PlaneRoadModel(this);
     }
@@ -475,8 +475,6 @@ public final class RoadModelBuilders {
       AbstractDynamicGraphRMB<CollisionGraphRoadModel, CollisionGraphRMB>
       implements Serializable {
 
-    private static final long serialVersionUID = -5076770082090735004L;
-
     /**
      * The default vehicle length: <code>2</code>.
      */
@@ -487,17 +485,19 @@ public final class RoadModelBuilders {
      */
     public static final double DEFAULT_MIN_DISTANCE = .25;
 
+    private static final long serialVersionUID = -5076770082090735004L;
+
+    CollisionGraphRMB() {
+      setProvidingTypes(RoadModel.class, GraphRoadModel.class,
+          DynamicGraphRoadModel.class, CollisionGraphRoadModel.class);
+    }
+
     @Override
     protected abstract Supplier<ListenableGraph<?>> getGraphSupplier();
 
     abstract double getVehicleLength();
 
     abstract double getMinDistance();
-
-    CollisionGraphRMB() {
-      setProvidingTypes(RoadModel.class, GraphRoadModel.class,
-          DynamicGraphRoadModel.class, CollisionGraphRoadModel.class);
-    }
 
     /**
      * Returns a copy of this builder with the specified vehicle length. The

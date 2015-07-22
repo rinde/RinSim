@@ -28,9 +28,9 @@ import com.google.common.base.Optional;
 public final class CommDeviceBuilder {
   final CommUser user;
   final CommModel model;
-  private boolean used;
   double deviceReliability;
   Optional<Double> deviceMaxRange;
+  private boolean used;
 
   CommDeviceBuilder(CommModel m, CommUser u) {
     model = m;

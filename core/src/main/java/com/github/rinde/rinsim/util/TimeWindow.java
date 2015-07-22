@@ -15,8 +15,8 @@
  */
 package com.github.rinde.rinsim.util;
 
-import static com.google.common.base.Objects.equal;
 import static com.google.common.base.MoreObjects.toStringHelper;
+import static com.google.common.base.Objects.equal;
 import static com.google.common.base.Preconditions.checkArgument;
 
 import java.io.Serializable;
@@ -31,12 +31,13 @@ import com.google.common.base.Objects;
  * @author Rinde van Lon
  */
 public final class TimeWindow implements Serializable {
-  private static final long serialVersionUID = 7548761538022038612L;
 
   /**
    * A time window which represents 'always'.
    */
   public static final TimeWindow ALWAYS = new TimeWindow(0, Long.MAX_VALUE);
+
+  private static final long serialVersionUID = 7548761538022038612L;
 
   /**
    * Begin of the time window (inclusive). Must be a non-negative value.
@@ -106,7 +107,7 @@ public final class TimeWindow implements Serializable {
   }
 
   /**
-   * @return The length of the time window: <code>{@link #end} - 
+   * @return The length of the time window: <code>{@link #end} -
    *         {@link #begin}</code>.
    */
   public long length() {

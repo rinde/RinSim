@@ -43,10 +43,10 @@ import com.google.common.collect.Maps;
  */
 public class LinkedHashBiMap<K, V> extends ForwardingBiMap<K, V> {
 
-  @Nullable
-  private BiMap<V, K> inverse;
   final BiMap<K, V> delegateBiMap;
   final Set<K> set;
+  @Nullable
+  private BiMap<V, K> inverse;
 
   LinkedHashBiMap() {
     delegateBiMap = HashBiMap.create();
@@ -233,8 +233,8 @@ public class LinkedHashBiMap<K, V> extends ForwardingBiMap<K, V> {
   private static final class EntrySet<A, B> extends
       UnmodifiableSet<Map.Entry<A, B>> {
 
-    private final Set<A> ordering;
     final Map<A, B> delegateSet;
+    private final Set<A> ordering;
 
     EntrySet(Set<A> order, Map<A, B> map) {
       ordering = order;

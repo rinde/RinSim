@@ -239,8 +239,8 @@ public class CollisionGraphRoadModel extends DynamicGraphRoadModel {
   static void checkConnectionLength(double minConnLength, Connection<?> conn) {
     checkArgument(
         Point.distance(conn.from(), conn.to()) >= minConnLength,
-        "Invalid graph: the minimum connection length is %s, connection %s->%s "
-            + "is too short.",
+        "Invalid graph: the minimum connection length is %s, connection %s->%s"
+            + " is too short.",
         minConnLength, conn.from(), conn.to());
     checkArgument(
         conn.getLength() >= minConnLength,

@@ -73,7 +73,7 @@ public abstract class GenericRoadModel extends AbstractModel<RoadUser>
    * <code>this</code> if there are no decorators.
    */
   protected GenericRoadModel self = this;
-  private boolean initialized = false;
+  private boolean initialized;
 
   /**
    * Initializes the model, optionally adding more event types to the

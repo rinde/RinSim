@@ -172,8 +172,8 @@ public class PlaneRoadModel extends AbstractRoadModel<Point> {
         to, min, max);
     checkArgument(
         isPointInBoundary(to),
-        "to must be within the predefined boundary of the plane, to is %s, "
-            + "boundary: min %s, max %s.",
+        "to must be within the predefined boundary of the plane, to is %s,"
+            + " boundary: min %s, max %s.",
         to, min, max);
     return asList(from, to);
   }

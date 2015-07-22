@@ -177,6 +177,8 @@ class RealtimeModel extends TimeModel implements RealtimeClockController {
     @Nullable
     Trigger nextTrigger;
 
+    SimulatedTime() {}
+
     @Override
     @Nullable
     public Trigger handle(@Nullable Trigger trigger, RealtimeModel context) {

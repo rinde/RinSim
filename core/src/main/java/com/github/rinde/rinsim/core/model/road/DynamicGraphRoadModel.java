@@ -193,6 +193,10 @@ public class DynamicGraphRoadModel extends GraphRoadModel {
   }
 
   private static class GraphModificationChecker implements Listener {
+    static final String UNMODIFIABLE_MSG = "There is an object on (%s) "
+        + "therefore the last connection to that location (%s->%s) can not be "
+        + "changed or removed: %s.";
+
     private final DynamicGraphRoadModel model;
 
     GraphModificationChecker(DynamicGraphRoadModel pModel) {
@@ -215,16 +219,12 @@ public class DynamicGraphRoadModel extends GraphRoadModel {
 
         if (model.posMap.containsKey(conn.from())) {
           checkState(
-              ge.getGraph().containsNode(conn.from()),
-              "There is an object on (%s) therefore the last connection to that"
-                  + " location (%s->%s) can not be changed or removed: %s.",
+              ge.getGraph().containsNode(conn.from()), UNMODIFIABLE_MSG,
               conn.from(), conn.from(), conn.to(), ge.getEventType());
         }
         if (model.posMap.containsKey(conn.to())) {
           checkState(
-              ge.getGraph().containsNode(conn.to()),
-              "There is an object on (%s) therefore the last connection to that"
-                  + " location (%s->%s) can not be changed or removed: %s.",
+              ge.getGraph().containsNode(conn.to()), UNMODIFIABLE_MSG,
               conn.to(), conn.from(), conn.to(), ge.getEventType());
         }
       }

@@ -110,10 +110,9 @@ public class RandomModel extends AbstractModel<RandomUser> {
       extends AbstractModelBuilder<RandomModel, RandomUser>
       implements Serializable {
 
-    private static final long serialVersionUID = 7985638617806912711L;
     static final StochasticSupplier<MersenneTwister> DEFAULT_RNG =
-        StochasticSuppliers
-            .mersenneTwister();
+        StochasticSuppliers.mersenneTwister();
+    private static final long serialVersionUID = 7985638617806912711L;
 
     Builder() {
       setProvidingTypes(RandomProvider.class);

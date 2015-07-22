@@ -201,6 +201,7 @@ public final class StochasticSuppliers {
   public static class Builder {
     static final double SMALLEST_DOUBLE = 0.000000000000001;
     static final int MAX_ITERATIONS = 1000000;
+    static final double STEP_SIZE_DENOMINATOR = 1.5d;
     private double mean;
     private double std;
     private double lowerBound;
@@ -356,7 +357,7 @@ public final class StochasticSuppliers {
         }
         // if direction changed decrease step size
         if (dir != oldDir && oldDir != 0) {
-          stepSize /= 1.5d;
+          stepSize /= STEP_SIZE_DENOMINATOR;
         }
         // apply step
         if (effectiveMean > mean) {

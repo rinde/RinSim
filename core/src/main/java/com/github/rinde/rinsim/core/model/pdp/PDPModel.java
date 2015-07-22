@@ -48,7 +48,7 @@ public abstract class PDPModel extends AbstractModel<PDPObject>
    * Reference to the outermost decorator of this {@link PDPModel} instance.
    */
   protected PDPModel self = this;
-  private boolean initialized = false;
+  private boolean initialized;
 
   /**
    * Method which should by called by a decorator of this instance.
