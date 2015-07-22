@@ -63,6 +63,9 @@ public class UiSchema {
     useDefault = pUseDefault;
   }
 
+  /**
+   * Creates schema with default colors.
+   */
   public UiSchema() {
     this(true);
   }
@@ -101,9 +104,13 @@ public class UiSchema {
 
   @Nullable
   public Image getImage(Class<?> type) {
+    checkInitialized();
+    return imageRegistry.get(type.getName());
+  }
+
+  void checkInitialized() {
     checkState(colorRegistry != null,
         "UiSchema needs to be initialized before it can be used");
-    return imageRegistry.get(type.getName());
   }
 
   /**
@@ -122,8 +129,7 @@ public class UiSchema {
    */
   @Nullable
   public Color getColor(Class<?> type) {
-    checkState(colorRegistry != null,
-        "UiSchema needs to be initialized before it can be used");
+    checkInitialized();
     final Color color = colorRegistry.get(type.getName());
     if (color == null && type.getSuperclass() != null) {
       final Color tmp = getColor(type.getSuperclass());

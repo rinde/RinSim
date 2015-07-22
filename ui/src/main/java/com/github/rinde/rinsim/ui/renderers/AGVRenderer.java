@@ -129,11 +129,11 @@ public final class AGVRenderer extends
   public abstract static class Builder extends
       AbstractModelBuilder<AGVRenderer, MovingRoadUser> {
 
-    abstract ImmutableSet<VizOptions> vizOptions();
-
     Builder() {
       setDependencies(CollisionGraphRoadModel.class);
     }
+
+    abstract ImmutableSet<VizOptions> vizOptions();
 
     /**
      * Draws a number on each vehicle. The number indicates the creation order
@@ -193,6 +193,10 @@ public final class AGVRenderer extends
   }
 
   static class VehicleUI {
+    static final int DOT_SIZE_PX = 4;
+    static final int ROTATION_OFFSET_DEG = 90;
+    static final int ROTATION_MAX_DEG = 180;
+
     final CollisionGraphRoadModel model;
     final MovingRoadUser vehicle;
     Point position;
@@ -265,8 +269,8 @@ public final class AGVRenderer extends
       if (vizOptions.contains(VizOptions.VEHICLE_ORIGIN)) {
         igc.setBackground(gc.getDevice().getSystemColor(SWT.COLOR_RED));
         igc.setForeground(gc.getDevice().getSystemColor(SWT.COLOR_WHITE));
-        igc.fillOval(width / 2 - 2, length / 2 - 2, 4, 4);
-        igc.drawOval(width / 2 - 2, length / 2 - 2, 4, 4);
+        igc.fillOval(width / 2 - 2, length / 2 - 2, DOT_SIZE_PX, DOT_SIZE_PX);
+        igc.drawOval(width / 2 - 2, length / 2 - 2, DOT_SIZE_PX, DOT_SIZE_PX);
       }
 
       igc.dispose();
@@ -292,7 +296,8 @@ public final class AGVRenderer extends
 
       final Transform transform = new Transform(gc.getDevice());
       transform.translate(x, y);
-      transform.rotate((float) (90 + angle * 180 / Math.PI));
+      transform.rotate(
+          (float) (ROTATION_OFFSET_DEG + angle * ROTATION_MAX_DEG / Math.PI));
       transform.translate(
           -(x + image.get().getBounds().width / 2),
           -(y + image.get().getBounds().height / 2));

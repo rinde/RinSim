@@ -39,6 +39,8 @@ import com.google.common.util.concurrent.MoreExecutors;
 
 final class LocalComputer implements Computer {
 
+  LocalComputer() {}
+
   @Override
   public ExperimentResults compute(Builder builder, Set<SimArgs> inputs) {
     final ImmutableList.Builder<ExperimentRunner> runnerBuilder = ImmutableList

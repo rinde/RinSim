@@ -80,15 +80,15 @@ public final class ScenarioGenerator {
     depotGenerator = b.depotGenerator;
     modelBuilders = ImmutableSet.copyOf(builder.modelSuppliers);
 
-    List<ModelBuilder<RoadModel, ?>> rmBuilders = findBuildersThatBuild(
+    final List<ModelBuilder<RoadModel, ?>> rmBuilders = findBuildersThatBuild(
         modelBuilders, RoadModel.class);
     checkArgument(rmBuilders.size() == 1,
         "Exactly one RoadModel builder must be supplied, found %s builders.",
         rmBuilders.size());
-    ModelBuilder<? extends RoadModel, ?> rmb = rmBuilders.get(0);
+    final ModelBuilder<? extends RoadModel, ?> rmb = rmBuilders.get(0);
     PlaneRMB planeBuilder;
     if (rmb instanceof ForwardingRoadModel.Builder) {
-      ModelBuilder<?, ?> delegate = ((ForwardingRoadModel.Builder<?>) rmb)
+      final ModelBuilder<?, ?> delegate = ((ForwardingRoadModel.Builder<?>) rmb)
           .getDelegateModelBuilder();
 
       checkArgument(delegate instanceof PlaneRMB);
@@ -100,7 +100,7 @@ public final class ScenarioGenerator {
     distanceUnit = planeBuilder.getDistanceUnit();
     speedUnit = planeBuilder.getSpeedUnit();
 
-    List<ModelBuilder<TimeModel, ?>> tmBuilders = findBuildersThatBuild(
+    final List<ModelBuilder<TimeModel, ?>> tmBuilders = findBuildersThatBuild(
         modelBuilders, TimeModel.class);
     checkArgument(tmBuilders.size() <= 1,
         "At most one TimeModel builder can be specified.");
@@ -114,8 +114,8 @@ public final class ScenarioGenerator {
   @SuppressWarnings("unchecked")
   static <T extends Model<?>> List<ModelBuilder<T, ?>> findBuildersThatBuild(
       Iterable<? extends ModelBuilder<?, ?>> builders, Class<T> type) {
-    List<ModelBuilder<T, ?>> foundBuilders = new ArrayList<>();
-    for (ModelBuilder<?, ?> b : builders) {
+    final List<ModelBuilder<T, ?>> foundBuilders = new ArrayList<>();
+    for (final ModelBuilder<?, ?> b : builders) {
       if (type.isAssignableFrom(b.getModelType())) {
         foundBuilders.add((ModelBuilder<T, ?>) b);
       }

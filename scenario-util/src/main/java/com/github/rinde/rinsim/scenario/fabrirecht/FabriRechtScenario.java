@@ -21,8 +21,8 @@ import javax.measure.unit.SI;
 
 import com.github.rinde.rinsim.core.model.ModelBuilder;
 import com.github.rinde.rinsim.core.model.pdp.DefaultPDPModel;
-import com.github.rinde.rinsim.core.model.pdp.VehicleDTO;
 import com.github.rinde.rinsim.core.model.pdp.TimeWindowPolicy.TimeWindowPolicies;
+import com.github.rinde.rinsim.core.model.pdp.VehicleDTO;
 import com.github.rinde.rinsim.core.model.road.RoadModelBuilders;
 import com.github.rinde.rinsim.core.model.time.TimeModel;
 import com.github.rinde.rinsim.geom.Point;
@@ -42,6 +42,8 @@ import com.google.common.collect.ImmutableSet;
  */
 @AutoValue
 public abstract class FabriRechtScenario extends Scenario {
+  static final double MAX_SPEED = 100d;
+
   /**
    * @return Minimum position.
    */
@@ -74,7 +76,7 @@ public abstract class FabriRechtScenario extends Scenario {
                 .withMinPoint(getMin())
                 .withMaxPoint(getMax())
                 .withDistanceUnit(SI.KILOMETER)
-                .withMaxSpeed(100d)
+                .withMaxSpeed(MAX_SPEED)
                 .withSpeedUnit(
                     SI.KILOMETRE.divide(NonSI.MINUTE).asType(Velocity.class)))
         .add(

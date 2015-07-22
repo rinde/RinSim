@@ -120,8 +120,8 @@ public class RouteFollowingVehicle extends Vehicle {
   Optional<Depot> depot;
   Optional<TimeLapse> currentTime;
   boolean isDiversionAllowed;
-  private Optional<Measure<Double, Velocity>> speed;
 
+  private Optional<Measure<Double, Velocity>> speed;
   private final boolean allowDelayedRouteChanges;
 
   /**
@@ -231,8 +231,8 @@ public class RouteFollowingVehicle extends Vehicle {
         } else {
           checkArgument(
               getPDPModel().getVehicleState(this) == VehicleState.DELIVERING,
-              "When a parcel in the route is in DELIVERING state the vehicle "
-                  + "must also be in that state.");
+              "When a parcel in the route is in DELIVERING state the vehicle"
+                  + " must also be in that state.");
         }
         checkArgument(
             getPDPModel().getVehicleActionInfo(this).getParcel() == dp,

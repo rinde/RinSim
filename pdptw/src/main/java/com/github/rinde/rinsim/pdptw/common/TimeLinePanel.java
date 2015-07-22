@@ -101,7 +101,7 @@ public final class TimeLinePanel extends AbstractModelVoid implements
   Optional<Canvas> canvas;
   Optional<Canvas> barCanvas;
   Point origin = new Point(0, 0);
-  long currentTime = 0;
+  long currentTime;
 
   final PDPModel pdpModel;
 
@@ -360,13 +360,13 @@ public final class TimeLinePanel extends AbstractModelVoid implements
     List<ParcelInfo> parcels;
     List<ParcelInfo> newParcels;
 
-    private int height;
-    int width;
-
     Color lineColor;
     Color pickupColor;
     Color deliveryColor;
     Color gridColor;
+
+    int width;
+    private int height;
 
     Timeline(Display d) {
       display = d;

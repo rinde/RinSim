@@ -121,8 +121,8 @@ public final class StopConditions {
     public abstract boolean evaluate(TypeProvider provider);
 
     static ImmutableSet<Class<?>> getTypes(Iterable<StopCondition> cnds) {
-      ImmutableSet.Builder<Class<?>> types = ImmutableSet.builder();
-      for (StopCondition sc : cnds) {
+      final ImmutableSet.Builder<Class<?>> types = ImmutableSet.builder();
+      for (final StopCondition sc : cnds) {
         types.addAll(sc.getTypes());
       }
       return types.build();
@@ -133,7 +133,7 @@ public final class StopConditions {
   abstract static class And extends CompositeStopCondition {
     @Override
     public boolean evaluate(TypeProvider provider) {
-      for (StopCondition sc : stopConditions()) {
+      for (final StopCondition sc : stopConditions()) {
         if (!sc.evaluate(provider)) {
           return false;
         }
@@ -150,7 +150,7 @@ public final class StopConditions {
   abstract static class Or extends CompositeStopCondition {
     @Override
     public boolean evaluate(TypeProvider provider) {
-      for (StopCondition sc : stopConditions()) {
+      for (final StopCondition sc : stopConditions()) {
         if (sc.evaluate(provider)) {
           return true;
         }

@@ -23,6 +23,7 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Device;
 import org.eclipse.swt.graphics.GC;
+import org.eclipse.swt.graphics.RGB;
 
 import com.github.rinde.rinsim.core.model.DependencyProvider;
 import com.github.rinde.rinsim.core.model.ModelBuilder.AbstractModelBuilder;
@@ -42,6 +43,12 @@ import com.google.auto.value.AutoValue;
  *
  */
 public final class PDPModelRenderer extends AbstractCanvasRenderer {
+  private static final RGB LIGHT_GRAY = new RGB(205, 201, 201);
+  private static final RGB ORANGE = new RGB(255, 160, 0);
+  private static final int OVAL_RADIUS_PX = 5;
+  private static final int OVAL_DIAMETER_PX = 2 * OVAL_RADIUS_PX;
+  private static final int STATE_TEXT_OFFSET = -20;
+
   private final Color black;
   private final Color white;
   private final Color lightGray;
@@ -67,8 +74,8 @@ public final class PDPModelRenderer extends AbstractCanvasRenderer {
     green = d.getSystemColor(SWT.COLOR_GREEN);
     blue = d.getSystemColor(SWT.COLOR_BLUE);
 
-    lightGray = new Color(d, 205, 201, 201);
-    orange = new Color(d, 255, 160, 0);
+    lightGray = new Color(d, LIGHT_GRAY);
+    orange = new Color(d, ORANGE);
 
     foregroundInfo = white;
     backgroundInfo = blue;
@@ -106,8 +113,10 @@ public final class PDPModelRenderer extends AbstractCanvasRenderer {
                 gc.setBackground(orange);
               }
               gc.drawLine(x, y, xd, yd);
-              gc.fillOval(xd - 5, yd - 5, 10, 10);
-              gc.drawOval(xd - 5, yd - 5, 10, 10);
+              gc.fillOval(xd - OVAL_RADIUS_PX, yd - OVAL_RADIUS_PX,
+                  OVAL_DIAMETER_PX, OVAL_DIAMETER_PX);
+              gc.drawOval(xd - OVAL_RADIUS_PX, yd - OVAL_RADIUS_PX,
+                  OVAL_DIAMETER_PX, OVAL_DIAMETER_PX);
             }
           }
           gc.setBackground(backgroundInfo);
@@ -117,7 +126,7 @@ public final class PDPModelRenderer extends AbstractCanvasRenderer {
             gc.drawText(
                 state.toString() + " "
                     + pdpModel.getVehicleActionInfo(v).timeNeeded(),
-                x, y - 20);
+                x, y - STATE_TEXT_OFFSET);
           }
           gc.drawText(Double.toString(size), x, y);
         }
@@ -143,7 +152,8 @@ public final class PDPModelRenderer extends AbstractCanvasRenderer {
             gc.setBackground(orange);
           }
           gc.setForeground(black);
-          gc.fillOval(x - 5, y - 5, 10, 10);
+          gc.fillOval(x - OVAL_RADIUS_PX, y - OVAL_RADIUS_PX, OVAL_DIAMETER_PX,
+              OVAL_DIAMETER_PX);
         }
       }
     }

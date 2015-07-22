@@ -15,7 +15,7 @@
  */
 package com.github.rinde.rinsim.scenario.fabrirecht;
 
-import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Verify.verifyNotNull;
 import static com.google.common.collect.Lists.newArrayList;
 
 import java.io.BufferedReader;
@@ -23,7 +23,10 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
+
+import javax.annotation.Nullable;
 
 import com.github.rinde.rinsim.core.model.pdp.Parcel;
 import com.github.rinde.rinsim.core.model.pdp.ParcelDTO;
@@ -37,6 +40,8 @@ import com.github.rinde.rinsim.scenario.TimeOutEvent;
 import com.github.rinde.rinsim.scenario.TimedEvent;
 import com.github.rinde.rinsim.scenario.TimedEvent.TimeComparator;
 import com.github.rinde.rinsim.util.TimeWindow;
+
+import autovalue.shaded.com.google.common.common.collect.Iterators;
 
 /**
  * Parser for {@link FabriRechtScenario}s.
@@ -99,13 +104,14 @@ public final class FabriRechtParser {
 
     // Anzahl der Fahrzeuge; Kapazität; untere Zeitfenstergrenze; obere
     // Zeitfenstergrenze
+    @Nullable
     final String firstLineString = ordersFileReader.readLine();
-    checkArgument(firstLineString != null);
-    final String[] firstLine = firstLineString.split(LINE_SEPARATOR);
+    final Iterator<String> firstLine = Iterators.forArray(
+        verifyNotNull(firstLineString).split(LINE_SEPARATOR));
     // line 0 contains number of vehicles, but this is not needed
-    final int capacity = Integer.parseInt(firstLine[1]);
-    final long startTime = Long.parseLong(firstLine[2]);
-    final long endTime = Long.parseLong(firstLine[3]);
+    final int capacity = Integer.parseInt(firstLine.next());
+    final long startTime = Long.parseLong(firstLine.next());
+    final long endTime = Long.parseLong(firstLine.next());
     final TimeWindow timeWindow = new TimeWindow(startTime, endTime);
 
     events.add(TimeOutEvent.create(endTime));
@@ -121,23 +127,26 @@ public final class FabriRechtParser {
     // Delivery; obere Zeitfenstergrenze Delivery; benötigte Kapazität;
     // Anrufzeit; Servicezeit Pickup; Servicezeit Delivery
     while ((line = ordersFileReader.readLine()) != null) {
-      final String[] parts = line.split(LINE_SEPARATOR);
+      final Iterator<String> it =
+          Iterators.forArray(line.split(LINE_SEPARATOR));
 
-      final int neededCapacity = 1;
-
-      final ParcelDTO o = Parcel
-          .builder(coordinates.get(Integer
-              .parseInt(parts[0])), coordinates.get(Integer.parseInt(parts[1])))
+      final Parcel.Builder b = Parcel
+          .builder(coordinates.get(Integer.parseInt(it.next())),
+              coordinates.get(Integer.parseInt(it.next())))
           .pickupTimeWindow(
-              new TimeWindow(Long.parseLong(parts[2]),
-                  Long.parseLong(parts[3])))
+              new TimeWindow(Long.parseLong(it.next()),
+                  Long.parseLong(it.next())))
           .deliveryTimeWindow(
-              new TimeWindow(Long.parseLong(parts[4]),
-                  Long.parseLong(parts[5])))
-          .neededCapacity(neededCapacity)
-          .orderAnnounceTime(Long.parseLong(parts[7]))
-          .pickupDuration(Long.parseLong(parts[8]))
-          .deliveryDuration(Long.parseLong(parts[9]))
+              new TimeWindow(Long.parseLong(it.next()),
+                  Long.parseLong(it.next())));
+
+      // we ignore the capacity
+      it.next();
+      final int neededCapacity = 1;
+      final ParcelDTO o = b.neededCapacity(neededCapacity)
+          .orderAnnounceTime(Long.parseLong(it.next()))
+          .pickupDuration(Long.parseLong(it.next()))
+          .deliveryDuration(Long.parseLong(it.next()))
           .buildDTO();
 
       events.add(AddParcelEvent.create(o));

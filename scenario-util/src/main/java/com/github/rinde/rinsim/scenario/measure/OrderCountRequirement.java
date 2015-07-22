@@ -66,21 +66,21 @@ class OrderCountRequirement implements Predicate<Scenario> {
       return false;
     }
     final int numOrders = Collections.frequency(
-        Collections2.transform(input.getEvents(),
-            new ToClassFunction()),
+        Collections2.transform(input.getEvents(), ToClassFunction.INSTANCE),
         AddParcelEvent.class);
     return numOrders >= min && numOrders <= max;
   }
 
-  private static final class ToClassFunction implements
-      Function<Object, Class<?>> {
-    @Override
-    @Nullable
-    public Class<?> apply(@Nullable Object obj) {
-      if (obj == null) {
-        return null;
+  enum ToClassFunction implements Function<Object, Class<?>> {
+    INSTANCE {
+      @Override
+      @Nullable
+      public Class<?> apply(@Nullable Object obj) {
+        if (obj == null) {
+          return null;
+        }
+        return obj.getClass();
       }
-      return obj.getClass();
     }
   }
 }

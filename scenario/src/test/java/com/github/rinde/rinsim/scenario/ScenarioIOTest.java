@@ -42,6 +42,20 @@ public class ScenarioIOTest {
   @BeforeClass
   public static void setUpClass() {
     TestUtil.testPrivateConstructor(ScenarioIO.class);
+    TestUtil.testEnum(ScenarioIO.ClassIO.class);
+    TestUtil.testEnum(ScenarioIO.EnumIO.class);
+    TestUtil.testEnum(ScenarioIO.ImmutableListIO.class);
+    TestUtil.testEnum(ScenarioIO.ImmutableSetIO.class);
+    TestUtil.testEnum(ScenarioIO.MeasureIO.class);
+    TestUtil.testEnum(ScenarioIO.ModelBuilderIO.class);
+    TestUtil.testEnum(ScenarioIO.ParcelIO.class);
+    TestUtil.testEnum(ScenarioIO.PredicateIO.class);
+    TestUtil.testEnum(ScenarioIO.ProblemClassIO.class);
+    TestUtil.testEnum(ScenarioIO.ScenarioObjIO.class);
+    TestUtil.testEnum(ScenarioIO.StopConditionIO.class);
+    TestUtil.testEnum(ScenarioIO.TimeWindowHierarchyIO.class);
+    TestUtil.testEnum(ScenarioIO.UnitIO.class);
+    TestUtil.testEnum(ScenarioIO.VehicleIO.class);
   }
 
   /**

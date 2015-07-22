@@ -89,7 +89,7 @@ public final class ExperimentResults {
    *         comparator.
    */
   public List<SimulationResult> sortedResults() {
-    List<SimulationResult> list = newArrayList(results);
+    final List<SimulationResult> list = newArrayList(results);
     Collections.sort(list);
     return Collections.unmodifiableList(list);
   }

@@ -127,7 +127,7 @@ public final class Gendreau06Parser {
    * @return The {@link Gendreau06Parser} as a {@link Function}.
    */
   public static Function<Path, Gendreau06Scenario> reader() {
-    return new Gendreau06Reader();
+    return Gendreau06Reader.INSTANCE;
   }
 
   /**
@@ -423,13 +423,21 @@ public final class Gendreau06Parser {
     return listBuilder.build();
   }
 
-  static class Gendreau06Reader implements Function<Path, Gendreau06Scenario> {
-    @Override
-    @Nonnull
-    public Gendreau06Scenario apply(@Nullable Path input) {
-      assert input != null;
-      return Gendreau06Parser.parse(input.toFile());
-    }
+  enum Gendreau06Reader implements Function<Path, Gendreau06Scenario> {
+    INSTANCE {
+      @Override
+      @Nonnull
+      public Gendreau06Scenario apply(@Nullable Path input) {
+        assert input != null;
+        return Gendreau06Parser.parse(input.toFile());
+      }
+
+      @Override
+      public String toString() {
+        return String.format("%s.reader()",
+            Gendreau06Parser.class.getSimpleName());
+      }
+    };
   }
 
   interface ParcelsSupplier {

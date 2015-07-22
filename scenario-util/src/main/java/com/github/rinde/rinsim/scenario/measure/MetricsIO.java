@@ -32,16 +32,18 @@ import com.google.common.io.Files;
 @Beta
 public final class MetricsIO {
 
+  static final String SPACE = " ";
+
   private MetricsIO() {}
 
   /**
    * Writes the specified list of {@link Point}s to the specified file. Each
    * point is printed on a separate line using the following format:
-   * 
+   *
    * <pre>
    * {@code x y }
    * </pre>
-   * 
+   *
    * i.e. the coordinates are space-separated.
    * @param locations The locations to write to file.
    * @param f The file to write to, non-existing parent directories will be
@@ -50,7 +52,7 @@ public final class MetricsIO {
   public static void writeLocationList(List<Point> locations, File f) {
     final StringBuilder sb = new StringBuilder();
     for (final Point p : locations) {
-      sb.append(p.x).append(" ").append(p.y).append("\n");
+      sb.append(p.x).append(SPACE).append(p.y).append(System.lineSeparator());
     }
     try {
       Files.createParentDirs(f);
@@ -65,7 +67,7 @@ public final class MetricsIO {
    * the y-values of a graph, the indices of the list are used as the x-values
    * of the graph. A <code>0</code> is always appended. For example, if the
    * provided list is <code>[10, 20, 30, 40]</code>, the file will contain:
-   * 
+   *
    * <pre>
    * {@code 0 10}
    * {@code 1 20}
@@ -73,7 +75,7 @@ public final class MetricsIO {
    * {@code 3 40}
    * {@code 4 0}
    * </pre>
-   * 
+   *
    * @param list The list of numbers to write to a file.
    * @param file The file to write to.
    */
@@ -81,9 +83,10 @@ public final class MetricsIO {
     final StringBuilder sb = new StringBuilder();
     int i = 0;
     for (; i < list.size(); i++) {
-      sb.append(i).append(" ").append(list.get(i)).append("\n");
+      sb.append(i).append(SPACE).append(list.get(i))
+          .append(System.lineSeparator());
     }
-    sb.append(i).append(" ").append(0).append("\n");
+    sb.append(i).append(SPACE).append(0).append(System.lineSeparator());
     try {
       Files.createParentDirs(file);
       Files.write(sb.toString(), file, Charsets.UTF_8);
@@ -95,7 +98,7 @@ public final class MetricsIO {
   /**
    * Writes the provided list of times to a file. The output format is as
    * follows:
-   * 
+   *
    * <pre>
    * {@code length}
    * {@code time 1}
@@ -103,7 +106,7 @@ public final class MetricsIO {
    * ..
    * {@code time n}
    * </pre>
-   * 
+   *
    * @param length The length of the scenario: [0,length)
    * @param times The arrival times of events, for each time it holds that 0
    *          &#8804; time &lt; length.
@@ -114,8 +117,9 @@ public final class MetricsIO {
     try {
       Files.createParentDirs(f);
       Files.write(
-          new StringBuilder().append(length).append("\n")
-              .append(Joiner.on("\n").join(times)).append("\n"),
+          new StringBuilder().append(length).append("System.lineSeparator()")
+              .append(Joiner.on(System.lineSeparator()).join(times))
+              .append(System.lineSeparator()),
           f,
           Charsets.UTF_8);
     } catch (final IOException e) {

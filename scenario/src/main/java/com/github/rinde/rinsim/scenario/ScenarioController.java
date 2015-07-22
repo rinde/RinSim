@@ -103,11 +103,12 @@ public final class ScenarioController extends AbstractModel<StopModel>
   final SimulatorAPI simulator;
   final ClockController clock;
   final ImmutableMap<Class<? extends TimedEvent>, TimedEventHandler<?>> handlers;
-  private int ticks;
   @Nullable
   StopModel stopModel;
+  boolean endOfScenario;
   @Nullable
   private EventType status;
+  private int ticks;
 
   ScenarioController(SimulatorAPI sim, ClockController c, Scenario s,
       ImmutableMap<Class<? extends TimedEvent>, TimedEventHandler<?>> m,
@@ -130,7 +131,7 @@ public final class ScenarioController extends AbstractModel<StopModel>
         if (clock.getCurrentTime() == 0) {
           dispatchSetupEvents();
         }
-        if (sc.stop) {
+        if (sc.endOfScenario) {
           clock.stop();
         }
       }
@@ -179,17 +180,13 @@ public final class ScenarioController extends AbstractModel<StopModel>
     return scenarioQueue.isEmpty();
   }
 
-  boolean stop = false;
-
   @Override
   public void tick(TimeLapse timeLapse) {
-    if (stop) {
+    if (endOfScenario) {
       return;
     }
     if (ticks == 0) {
-      LOGGER.info("scenario finished at virtual time:" + timeLapse.getTime()
-          + "[stopping simulation]");
-      clock.stop();
+      stopClock(timeLapse);
     }
     if (LOGGER.isDebugEnabled() && ticks >= 0) {
       LOGGER.debug("ticks to end: " + ticks);
@@ -214,12 +211,15 @@ public final class ScenarioController extends AbstractModel<StopModel>
       disp.dispatchEvent(new Event(status, this));
     }
     if (ticks == 0 && status == EventType.SCENARIO_FINISHED) {
-      LOGGER.info("scenario finished at virtual time:" + timeLapse.getTime()
-          + "[stopping simulation]");
-      clock.stop();
-      stop = true;
+      stopClock(timeLapse);
+      endOfScenario = true;
     }
+  }
 
+  private void stopClock(TimeLapse timeLapse) {
+    LOGGER.info("scenario finished at virtual time:" + timeLapse.getTime()
+        + "[stopping simulation]");
+    clock.stop();
   }
 
   @Override
@@ -438,7 +438,7 @@ public final class ScenarioController extends AbstractModel<StopModel>
           checkState(TimedEvent.class.isAssignableFrom(c.getSuperclass()),
               "No handler found for event %s.", c);
           checkState(covered.remove(c.getSuperclass()),
-              "No handler found for event %s.", c.getSuperclass());
+              "No handler found for event: %s.", c.getSuperclass());
 
           checkState(m.containsKey(c.getSuperclass()),
               "Cannot place a handler");

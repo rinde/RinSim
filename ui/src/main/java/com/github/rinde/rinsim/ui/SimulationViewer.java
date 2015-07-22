@@ -84,16 +84,23 @@ import com.google.common.collect.Multimap;
 final class SimulationViewer extends Composite implements TickListener,
     ControlListener, PaintListener, SelectionListener, Model<Renderer>,
     ModelReceiver {
-
+  static final org.eclipse.swt.graphics.Point START_SCREEN_SIZE =
+      new org.eclipse.swt.graphics.Point(800, 500);
+  static final org.eclipse.swt.graphics.Point TIME_LABEL_LOC =
+      new org.eclipse.swt.graphics.Point(50, 10);
+  static final String PLAY_LABEL = "&Play\tCtrl+P";
+  static final long SLEEP_MS = 30;
+  static final long TIME_FORMATTER_THRESHOLD = 500;
+  static final String TIME_SEPARATOR = ":";
   static final PeriodFormatter FORMATTER = new PeriodFormatterBuilder()
       .appendDays()
       .appendSeparator(" ")
       .minimumPrintedDigits(2)
       .printZeroAlways()
       .appendHours()
-      .appendLiteral(":")
+      .appendLiteral(TIME_SEPARATOR)
       .appendMinutes()
-      .appendLiteral(":")
+      .appendLiteral(TIME_SEPARATOR)
       .appendSeconds()
       .toFormatter();
 
@@ -107,6 +114,9 @@ final class SimulationViewer extends Composite implements TickListener,
   ViewRect viewRect;
   @Nullable
   Label timeLabel;
+
+  final SimulatorAPI simulator;
+  ModelProvider modelProvider;
 
   private Canvas canvas;
   private org.eclipse.swt.graphics.Point origin;
@@ -133,9 +143,6 @@ final class SimulationViewer extends Composite implements TickListener,
   private int zoomRatio;
   private final Display display;
   private final Map<MenuItems, Integer> accelerators;
-
-  final SimulatorAPI simulator;
-  ModelProvider modelProvider;
 
   SimulationViewer(Shell shell, ClockController cc, SimulatorAPI simapi,
       View.Builder vb) {
@@ -256,7 +263,7 @@ final class SimulationViewer extends Composite implements TickListener,
     canvas.setBackground(display.getSystemColor(SWT.COLOR_WIDGET_BACKGROUND));
 
     origin = new org.eclipse.swt.graphics.Point(0, 0);
-    size = new org.eclipse.swt.graphics.Point(800, 500);
+    size = START_SCREEN_SIZE;
     canvas.addPaintListener(this);
     canvas.addControlListener(this);
     this.layout();
@@ -264,7 +271,7 @@ final class SimulationViewer extends Composite implements TickListener,
     timeLabel = new Label(canvas, SWT.NONE);
     timeLabel.setText("hello world");
     timeLabel.pack();
-    timeLabel.setLocation(50, 10);
+    timeLabel.setLocation(TIME_LABEL_LOC);
     timeLabel
         .setBackground(canvas.getDisplay().getSystemColor(SWT.COLOR_WHITE));
 
@@ -287,7 +294,7 @@ final class SimulationViewer extends Composite implements TickListener,
 
     // play switch
     playPauseMenuItem = new MenuItem(submenu, SWT.PUSH);
-    playPauseMenuItem.setText("&Play\tCtrl+P");
+    playPauseMenuItem.setText(PLAY_LABEL);
     playPauseMenuItem.setAccelerator(accelerators.get(MenuItems.PLAY));
     playPauseMenuItem.addListener(SWT.Selection, new Listener() {
 
@@ -374,7 +381,7 @@ final class SimulationViewer extends Composite implements TickListener,
    */
   void onToglePlay(MenuItem source) {
     if (clock.isTicking()) {
-      source.setText("&Play\tCtrl+P");
+      source.setText(PLAY_LABEL);
     } else {
       source.setText("&Pause\tCtrl+P");
     }
@@ -622,7 +629,7 @@ final class SimulationViewer extends Composite implements TickListener,
     // TODO sleep should be relative to speedUp as well?
     if (!(clock instanceof RealtimeClockController)) {
       try {
-        Thread.sleep(30);
+        Thread.sleep(SLEEP_MS);
       } catch (final InterruptedException e) {
         throw new RuntimeException(e);
       }
@@ -634,7 +641,7 @@ final class SimulationViewer extends Composite implements TickListener,
       @Override
       public void run() {
         if (!canvas.isDisposed()) {
-          if (clock.getTickLength() > 500) {
+          if (clock.getTickLength() > TIME_FORMATTER_THRESHOLD) {
             final String formatted = FORMATTER
                 .print(
                     new Period(0, clock.getCurrentTime()));

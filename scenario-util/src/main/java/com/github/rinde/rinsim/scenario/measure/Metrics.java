@@ -201,19 +201,19 @@ public final class Metrics {
    * @return A {@link ImmutableMultiset} of event types.
    */
   public static ImmutableMultiset<Class<?>> getEventTypeCounts(Scenario s) {
-    Multiset<Class<?>> set = LinkedHashMultiset.create();
+    final Multiset<Class<?>> set = LinkedHashMultiset.create();
     for (final TimedEvent te : s.getEvents()) {
       set.add(te.getClass());
     }
-    List<Class<?>> toMove = new ArrayList<>();
-    for (Class<?> c : set.elementSet()) {
+    final List<Class<?>> toMove = new ArrayList<>();
+    for (final Class<?> c : set.elementSet()) {
       if (!Modifier.isPublic(c.getModifiers())
           && TimedEvent.class.isAssignableFrom(c.getSuperclass())
           && !set.contains(c.getSuperclass())) {
         toMove.add(c);
       }
     }
-    for (Class<?> c : toMove) {
+    for (final Class<?> c : toMove) {
       set.add(c.getSuperclass(), set.count(c));
       set.remove(c, set.count(c));
     }

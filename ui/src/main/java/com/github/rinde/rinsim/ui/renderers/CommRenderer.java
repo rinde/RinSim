@@ -54,12 +54,12 @@ public final class CommRenderer extends AbstractTypedCanvasRenderer<CommUser> {
   static final int SEMI_TRANSPARENT = 50;
   static final double DOT_RADIUS = .05;
 
-  private final Map<CommUser, DeviceUI> uiObjects;
-  private final CommModel model;
   final RenderHelper helper;
   final Set<ViewOptions> viewOptions;
   final RGB reliableColor;
   final RGB unreliableColor;
+  private final Map<CommUser, DeviceUI> uiObjects;
+  private final CommModel model;
 
   CommRenderer(Builder b, CommModel m) {
     model = m;

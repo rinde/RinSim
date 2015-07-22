@@ -47,6 +47,9 @@ import com.google.common.collect.Maps;
  */
 public final class ExperimentCli {
 
+  static final String DEFAULT_LABEL = " (default)";
+  static final String S = "s";
+
   static final ArgHandler<Builder, Integer> BATCHES_HANDLER =
       new ArgHandler<Builder, Integer>() {
         @Override
@@ -166,7 +169,7 @@ public final class ExperimentCli {
         .addHelpOption("h", "help", "Print this message.");
 
     if (builder.scenarioProviderBuilder.isPresent()) {
-      menuBuilder.addSubMenu("s", "scenarios.",
+      menuBuilder.addSubMenu(S, "scenarios.",
           FileProviderCli
               .createDefaultMenu(builder.scenarioProviderBuilder
                   .get()));
@@ -218,8 +221,8 @@ public final class ExperimentCli {
         .builder("e", ArgumentParser.STRING_LIST)
         .longName("exclude")
         .description(
-            "The following configurations can be excluded from the experiment "
-                + "setup:",
+            "The following configurations can be excluded from the experiment"
+                + " setup:",
             createConfigString(configMap),
             "This option can not be used together with --include.")
         .build();
@@ -275,7 +278,7 @@ public final class ExperimentCli {
         .longName("jppf")
         .description(
             "Compute the experiment using the JPPF framework",
-            builder.getComputer() == Computers.DISTRIBUTED ? " (default)"
+            builder.getComputer() == Computers.DISTRIBUTED ? DEFAULT_LABEL
                 : "",
             ". This option can not be used together with the --local option.")
         .build();
@@ -286,7 +289,7 @@ public final class ExperimentCli {
         .longName("local")
         .description(
             "Compute the experiment locally",
-            builder.getComputer() == Computers.LOCAL ? " (default)" : "",
+            builder.getComputer() == Computers.LOCAL ? DEFAULT_LABEL : "",
             ". This option can not be used together with the --jppf option.")
         .build();
   }
@@ -302,7 +305,7 @@ public final class ExperimentCli {
   }
 
   static OptionArg<Long> createSeedOption(Experiment.Builder builder) {
-    return Option.builder("s", ArgumentParser.LONG)
+    return Option.builder(S, ArgumentParser.LONG)
         .longName("seed")
         .description(
             "Sets the master random seed, default: ", builder.masterSeed, ".")

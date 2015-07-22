@@ -67,6 +67,8 @@ final class JppfComputer implements Computer {
   private static final String JOB_NAME = "RinSim - Experiment";
   private static final long THREAD_SLEEP_MS = 1000L;
 
+  JppfComputer() {}
+
   static JPPFClient getJPPFClient() {
     if (!client.isPresent()) {
       client = Optional.of(new JPPFClient());
@@ -325,7 +327,7 @@ final class JppfComputer implements Computer {
   /**
    * This class provides instances of {@link Scenario}. This class equals
    * another if the provided scenarios are equal.
-   * 
+   *
    * @author Rinde van Lon
    */
   static final class ScenarioProvider implements Supplier<Scenario>,
@@ -466,7 +468,7 @@ final class JppfComputer implements Computer {
 
     @Deprecated
     @Override
-    public void setId(@Nullable String id) {
+    public void setId(@Nullable String identifier) {
       throw new UnsupportedOperationException();
     }
 

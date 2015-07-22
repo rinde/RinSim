@@ -82,22 +82,25 @@ public final class ScenarioIO {
 
     final GsonBuilder builder = new GsonBuilder();
     builder
-        .registerTypeAdapter(ProblemClass.class, new ProblemClassIO())
+        .registerTypeAdapter(ProblemClass.class, adapt(ProblemClassIO.INSTANCE))
         .registerTypeHierarchyAdapter(TimeWindowPolicy.class,
-            new TimeWindowHierarchyIO())
-        .registerTypeAdapter(Scenario.class, new ScenarioObjIO())
-        .registerTypeAdapter(ParcelDTO.class, new ParcelIO())
-        .registerTypeAdapter(VehicleDTO.class, new VehicleIO())
+            adapt(TimeWindowHierarchyIO.INSTANCE))
+        .registerTypeAdapter(Scenario.class, adapt(ScenarioObjIO.INSTANCE))
+        .registerTypeAdapter(ParcelDTO.class, adapt(ParcelIO.INSTANCE))
+        .registerTypeAdapter(VehicleDTO.class, adapt(VehicleIO.INSTANCE))
         .registerTypeAdapter(Point.class, new PointIO())
         .registerTypeAdapter(TimeWindow.class, new TimeWindowIO())
-        .registerTypeAdapter(Unit.class, new UnitIO())
-        .registerTypeAdapter(Measure.class, new MeasureIO())
-        .registerTypeHierarchyAdapter(Enum.class, new EnumIO())
-        .registerTypeAdapter(StopCondition.class, new StopConditionIO())
-        .registerTypeAdapter(Class.class, new ClassIO())
-        .registerTypeAdapter(ImmutableList.class, new ImmutableListIO())
-        .registerTypeAdapter(ImmutableSet.class, new ImmutableSetIO())
-        .registerTypeAdapter(ModelBuilder.class, new ModelBuilderIO());
+        .registerTypeAdapter(Unit.class, adapt(UnitIO.INSTANCE))
+        .registerTypeAdapter(Measure.class, adapt(MeasureIO.INSTANCE))
+        .registerTypeHierarchyAdapter(Enum.class, adapt(EnumIO.INSTANCE))
+        .registerTypeAdapter(StopCondition.class,
+            adapt(StopConditionIO.INSTANCE))
+        .registerTypeAdapter(Class.class, adapt(ClassIO.INSTANCE))
+        .registerTypeAdapter(ImmutableList.class,
+            adapt(ImmutableListIO.INSTANCE))
+        .registerTypeAdapter(ImmutableSet.class, adapt(ImmutableSetIO.INSTANCE))
+        .registerTypeAdapter(ModelBuilder.class,
+            adapt(ModelBuilderIO.INSTANCE));
 
     return builder.create();
   }
@@ -246,132 +249,155 @@ public final class ScenarioIO {
     }
   }
 
-  abstract static class SafeNullIO<T> implements JsonSerializer<T>,
+  static <T> SafeNullIOAdapter<T> adapt(SafeNullIO<T> delegate) {
+    return new SafeNullIOAdapter<>(delegate);
+  }
+
+  interface SafeNullIO<T> {
+    JsonElement doSerialize(T src, Type typeOfSrc,
+        JsonSerializationContext context);
+
+    T doDeserialize(JsonElement json, Type typeOfT,
+        JsonDeserializationContext context);
+  }
+
+  static final class SafeNullIOAdapter<T> implements JsonSerializer<T>,
       JsonDeserializer<T> {
 
+    private final SafeNullIO<T> delegate;
+
+    SafeNullIOAdapter(SafeNullIO<T> d) {
+      delegate = d;
+    }
+
     @Override
-    public final JsonElement serialize(@Nullable T src,
+    public JsonElement serialize(@Nullable T src,
         @Nullable Type typeOfSrc,
         @Nullable JsonSerializationContext context) {
-      return verifyNotNull(doSerialize(verifyNotNull(src),
+      return verifyNotNull(delegate.doSerialize(verifyNotNull(src),
           verifyNotNull(typeOfSrc),
           verifyNotNull(context)));
     }
 
     @Override
-    public final T deserialize(@Nullable JsonElement json,
+    public T deserialize(@Nullable JsonElement json,
         @Nullable Type typeOfT,
         @Nullable JsonDeserializationContext context) {
-      return verifyNotNull(doDeserialize(verifyNotNull(json),
+      return verifyNotNull(delegate.doDeserialize(verifyNotNull(json),
           verifyNotNull(typeOfT),
           verifyNotNull(context)), "found a null: %s", typeOfT, json);
     }
-
-    abstract JsonElement doSerialize(T src, Type typeOfSrc,
-        JsonSerializationContext context);
-
-    abstract T doDeserialize(JsonElement json, Type typeOfT,
-        JsonDeserializationContext context);
   }
 
-  static class ScenarioObjIO extends SafeNullIO<Scenario> {
-
-    @Override
-    JsonElement doSerialize(Scenario src, Type typeOfSrc,
-        JsonSerializationContext context) {
-      final JsonObject obj = new JsonObject();
-      obj.add(CLAZZ, new JsonPrimitive(src.getClass().getName()));
-      obj.add(VALUE, context.serialize(src, src.getClass()));
-      return obj;
-    }
-
-    @Override
-    Scenario doDeserialize(JsonElement json, Type typeOfT,
-        JsonDeserializationContext context) {
-      final JsonObject obj = json.getAsJsonObject();
-      final Class<?> clazz = context.deserialize(obj.get(CLAZZ), Class.class);
-      return context.deserialize(obj.get(VALUE), clazz);
-    }
-
-  }
-
-  static class ModelBuilderIO extends SafeNullIO<ModelBuilder<?, ?>> {
-    @Override
-    JsonElement doSerialize(ModelBuilder<?, ?> src, Type typeOfSrc,
-        JsonSerializationContext context) {
-      final JsonObject obj = new JsonObject();
-      obj.add(CLAZZ, new JsonPrimitive(src.getClass().getName()));
-      obj.add(VALUE, context.serialize(src, src.getClass()));
-      return obj;
-    }
-
-    @Override
-    ModelBuilder<?, ?> doDeserialize(JsonElement json, Type typeOfT,
-        JsonDeserializationContext context) {
-      final JsonObject obj = json.getAsJsonObject();
-      final Class<?> clazz = context.deserialize(obj.get(CLAZZ), Class.class);
-      return context.deserialize(obj.get(VALUE), clazz);
-    }
-  }
-
-  static class StopConditionIO extends SafeNullIO<StopCondition> {
-    @Override
-    JsonElement doSerialize(StopCondition src, Type typeOfSrc,
-        JsonSerializationContext context) {
-      final JsonObject obj = new JsonObject();
-      obj.add(CLAZZ, new JsonPrimitive(src.getClass().getName()));
-      obj.add(VALUE, context.serialize(src, src.getClass()));
-      return obj;
-    }
-
-    @Override
-    StopCondition doDeserialize(JsonElement json, Type typeOfT,
-        JsonDeserializationContext context) {
-      final JsonObject obj = json.getAsJsonObject();
-      final Class<?> clazz = context.deserialize(obj.get(CLAZZ), Class.class);
-      return context.deserialize(obj.get(VALUE), clazz);
-    }
-  }
-
-  static class TimeWindowHierarchyIO extends SafeNullIO<TimeWindowPolicy> {
-    @Override
-    public TimeWindowPolicy doDeserialize(JsonElement json, Type typeOfT,
-        JsonDeserializationContext context) {
-      return context.deserialize(json, Enum.class);
-    }
-
-    @Override
-    public JsonElement doSerialize(TimeWindowPolicy src, Type typeOfSrc,
-        JsonSerializationContext context) {
-      if (src instanceof Enum<?>) {
-        return context.serialize(src, Enum.class);
+  enum ScenarioObjIO implements SafeNullIO<Scenario> {
+    INSTANCE {
+      @Override
+      public JsonElement doSerialize(Scenario src, Type typeOfSrc,
+          JsonSerializationContext context) {
+        final JsonObject obj = new JsonObject();
+        obj.add(CLAZZ, new JsonPrimitive(src.getClass().getName()));
+        obj.add(VALUE, context.serialize(src, src.getClass()));
+        return obj;
       }
-      throw new IllegalArgumentException(
-          "Only Enum implementations of the TimeWindowPolicy interface are "
-              + "allowed.");
+
+      @Override
+      public Scenario doDeserialize(JsonElement json, Type typeOfT,
+          JsonDeserializationContext context) {
+        final JsonObject obj = json.getAsJsonObject();
+        final Class<?> clazz = context.deserialize(obj.get(CLAZZ), Class.class);
+        return context.deserialize(obj.get(VALUE), clazz);
+      }
     }
   }
 
-  static class ProblemClassIO extends SafeNullIO<ProblemClass> {
-    @Override
-    public ProblemClass doDeserialize(JsonElement json, Type typeOfT,
-        JsonDeserializationContext context) {
-      final JsonObject obj = json.getAsJsonObject();
-      final Class<?> clazz = context.deserialize(obj.get(CLAZZ), Class.class);
-      return context.deserialize(obj.get(VALUE), clazz);
-    }
+  enum ModelBuilderIO implements SafeNullIO<ModelBuilder<?, ?>> {
+    INSTANCE {
+      @Override
+      public JsonElement doSerialize(ModelBuilder<?, ?> src, Type typeOfSrc,
+          JsonSerializationContext context) {
+        final JsonObject obj = new JsonObject();
+        obj.add(CLAZZ, new JsonPrimitive(src.getClass().getName()));
+        obj.add(VALUE, context.serialize(src, src.getClass()));
+        return obj;
+      }
 
-    @Override
-    public JsonElement doSerialize(ProblemClass src, Type typeOfSrc,
-        JsonSerializationContext context) {
-      final JsonObject obj = new JsonObject();
-      obj.add(CLAZZ, new JsonPrimitive(src.getClass().getName()));
-      obj.add(VALUE, context.serialize(src, src.getClass()));
-      return obj;
+      @Override
+      public ModelBuilder<?, ?> doDeserialize(JsonElement json, Type typeOfT,
+          JsonDeserializationContext context) {
+        final JsonObject obj = json.getAsJsonObject();
+        final Class<?> clazz = context.deserialize(obj.get(CLAZZ), Class.class);
+        return context.deserialize(obj.get(VALUE), clazz);
+      }
+    }
+  }
+
+  enum StopConditionIO implements SafeNullIO<StopCondition> {
+    INSTANCE {
+      @Override
+      public JsonElement doSerialize(StopCondition src, Type typeOfSrc,
+          JsonSerializationContext context) {
+        final JsonObject obj = new JsonObject();
+        obj.add(CLAZZ, new JsonPrimitive(src.getClass().getName()));
+        obj.add(VALUE, context.serialize(src, src.getClass()));
+        return obj;
+      }
+
+      @Override
+      public StopCondition doDeserialize(JsonElement json, Type typeOfT,
+          JsonDeserializationContext context) {
+        final JsonObject obj = json.getAsJsonObject();
+        final Class<?> clazz = context.deserialize(obj.get(CLAZZ), Class.class);
+        return context.deserialize(obj.get(VALUE), clazz);
+      }
+    }
+  }
+
+  enum TimeWindowHierarchyIO implements SafeNullIO<TimeWindowPolicy> {
+    INSTANCE {
+      @Override
+      public TimeWindowPolicy doDeserialize(JsonElement json, Type typeOfT,
+          JsonDeserializationContext context) {
+        return context.deserialize(json, Enum.class);
+      }
+
+      @Override
+      public JsonElement doSerialize(TimeWindowPolicy src, Type typeOfSrc,
+          JsonSerializationContext context) {
+        if (src instanceof Enum<?>) {
+          return context.serialize(src, Enum.class);
+        }
+        throw new IllegalArgumentException(
+            "Only Enum implementations of the TimeWindowPolicy interface are "
+                + "allowed.");
+      }
+    }
+  }
+
+  enum ProblemClassIO implements SafeNullIO<ProblemClass> {
+    INSTANCE {
+      @Override
+      public ProblemClass doDeserialize(JsonElement json, Type typeOfT,
+          JsonDeserializationContext context) {
+        final JsonObject obj = json.getAsJsonObject();
+        final Class<?> clazz = context.deserialize(obj.get(CLAZZ), Class.class);
+        return context.deserialize(obj.get(VALUE), clazz);
+      }
+
+      @Override
+      public JsonElement doSerialize(ProblemClass src, Type typeOfSrc,
+          JsonSerializationContext context) {
+        final JsonObject obj = new JsonObject();
+        obj.add(CLAZZ, new JsonPrimitive(src.getClass().getName()));
+        obj.add(VALUE, context.serialize(src, src.getClass()));
+        return obj;
+      }
     }
   }
 
   static class PointIO extends TypeAdapter<Point> {
+
+    PointIO() {}
+
     @Nullable
     @Override
     public Point read(@Nullable JsonReader reader) throws IOException {
@@ -405,6 +431,9 @@ public final class ScenarioIO {
   }
 
   static class TimeWindowIO extends TypeAdapter<TimeWindow> {
+
+    TimeWindowIO() {}
+
     @Nullable
     @Override
     public TimeWindow read(@Nullable JsonReader reader) throws IOException {
@@ -437,81 +466,87 @@ public final class ScenarioIO {
     }
   }
 
-  static class UnitIO extends SafeNullIO<Unit<?>> {
-    @Override
-    public Unit<?> doDeserialize(JsonElement json, Type typeOfT,
-        JsonDeserializationContext context) {
-      return Unit.valueOf(json.getAsString());
-    }
+  enum UnitIO implements SafeNullIO<Unit<?>> {
+    INSTANCE {
+      @Override
+      public Unit<?> doDeserialize(JsonElement json, Type typeOfT,
+          JsonDeserializationContext context) {
+        return Unit.valueOf(json.getAsString());
+      }
 
-    @Override
-    public JsonElement doSerialize(Unit<?> src, Type typeOfSrc,
-        JsonSerializationContext context) {
-      return context.serialize(src.toString());
+      @Override
+      public JsonElement doSerialize(Unit<?> src, Type typeOfSrc,
+          JsonSerializationContext context) {
+        return context.serialize(src.toString());
+      }
     }
   }
 
-  static class MeasureIO extends SafeNullIO<Measure<?, ?>> {
-    private static final String UNIT = "unit";
-    private static final String VALUE_TYPE = "value-type";
+  enum MeasureIO implements SafeNullIO<Measure<?, ?>> {
+    INSTANCE {
+      private static final String UNIT = "unit";
+      private static final String VALUE_TYPE = "value-type";
 
-    @Override
-    public Measure<?, ?> doDeserialize(JsonElement json, Type typeOfT,
-        JsonDeserializationContext context) {
-      final JsonObject obj = json.getAsJsonObject();
-      final Unit<?> unit = context.deserialize(obj.get(UNIT), Unit.class);
-      try {
-        final Class<?> type = Class.forName(obj.get(VALUE_TYPE).getAsString());
-        final Number value = context.deserialize(obj.get(VALUE), type);
-        if (type.equals(Double.TYPE) || type.equals(Double.class)) {
-          return Measure.valueOf(value.doubleValue(), unit);
-        } else if (type.equals(Integer.TYPE) || type.equals(Integer.class)) {
-          return Measure.valueOf(value.intValue(), unit);
-        } else if (type.equals(Long.TYPE) || type.equals(Long.class)) {
-          return Measure.valueOf(value.longValue(), unit);
+      @Override
+      public Measure<?, ?> doDeserialize(JsonElement json, Type typeOfT,
+          JsonDeserializationContext context) {
+        final JsonObject obj = json.getAsJsonObject();
+        final Unit<?> unit = context.deserialize(obj.get(UNIT), Unit.class);
+        try {
+          final Class<?> type =
+              Class.forName(obj.get(VALUE_TYPE).getAsString());
+          final Number value = context.deserialize(obj.get(VALUE), type);
+          if (type.equals(Double.TYPE) || type.equals(Double.class)) {
+            return Measure.valueOf(value.doubleValue(), unit);
+          } else if (type.equals(Integer.TYPE) || type.equals(Integer.class)) {
+            return Measure.valueOf(value.intValue(), unit);
+          } else if (type.equals(Long.TYPE) || type.equals(Long.class)) {
+            return Measure.valueOf(value.longValue(), unit);
+          }
+          throw new IllegalArgumentException(type + " is not supported");
+        } catch (final ClassNotFoundException e) {
+          throw new IllegalArgumentException(e);
         }
-        throw new IllegalArgumentException(type + " is not supported");
-      } catch (final ClassNotFoundException e) {
-        throw new IllegalArgumentException(e);
+      }
+
+      @Override
+      public JsonElement doSerialize(Measure<?, ?> src, Type typeOfSrc,
+          JsonSerializationContext context) {
+        final JsonObject obj = new JsonObject();
+        obj.add(UNIT, context.serialize(src.getUnit(), Unit.class));
+        obj.add(VALUE, context.serialize(src.getValue()));
+        obj.addProperty(VALUE_TYPE, src.getValue().getClass().getName());
+        return obj;
       }
     }
-
-    @Override
-    public JsonElement doSerialize(Measure<?, ?> src, Type typeOfSrc,
-        JsonSerializationContext context) {
-      final JsonObject obj = new JsonObject();
-      obj.add(UNIT, context.serialize(src.getUnit(), Unit.class));
-      obj.add(VALUE, context.serialize(src.getValue()));
-      obj.addProperty(VALUE_TYPE, src.getValue().getClass().getName());
-      return obj;
-    }
-
   }
 
-  static class EnumIO extends SafeNullIO<Enum<?>> {
-    @Override
-    public JsonElement doSerialize(Enum<?> src, Type typeOfSrc,
-        JsonSerializationContext context) {
-      final String className = src.getDeclaringClass().getName();
-      final String valueName = src.name();
+  enum EnumIO implements SafeNullIO<Enum<?>> {
+    INSTANCE {
+      @Override
+      public JsonElement doSerialize(Enum<?> src, Type typeOfSrc,
+          JsonSerializationContext context) {
+        final String className = src.getDeclaringClass().getName();
+        final String valueName = src.name();
 
-      final JsonObject obj = new JsonObject();
-      obj.addProperty(CLAZZ, className);
-      obj.addProperty(VALUE, valueName);
-      return obj;
-    }
-
-    @Override
-    public Enum<?> doDeserialize(JsonElement json, Type typeOfT,
-        JsonDeserializationContext context) {
-      if (json.isJsonPrimitive()) {
-        checkArgument(typeOfT instanceof Class<?>);
-        return getEnum(((Class<?>) typeOfT).getName(), json.getAsString());
+        final JsonObject obj = new JsonObject();
+        obj.addProperty(CLAZZ, className);
+        obj.addProperty(VALUE, valueName);
+        return obj;
       }
-      final JsonObject obj = json.getAsJsonObject();
-      return getEnum(obj.get(CLAZZ).getAsString(), obj
-          .get(VALUE).getAsString());
-    }
+
+      @Override
+      public Enum<?> doDeserialize(JsonElement json, Type typeOfT,
+          JsonDeserializationContext context) {
+        if (json.isJsonPrimitive()) {
+          checkArgument(typeOfT instanceof Class<?>);
+          return getEnum(((Class<?>) typeOfT).getName(), json.getAsString());
+        }
+        final JsonObject obj = json.getAsJsonObject();
+        return getEnum(obj.get(CLAZZ).getAsString(), obj
+            .get(VALUE).getAsString());
+      }
+    };
 
     @SuppressWarnings({"unchecked", "rawtypes"})
     static Enum<?> getEnum(String enumName, String value) {
@@ -523,186 +558,193 @@ public final class ScenarioIO {
     }
   }
 
-  static class PredicateIO extends SafeNullIO<Predicate<?>> {
-    @Override
-    public Predicate<?> doDeserialize(JsonElement json, Type typeOfT,
-        JsonDeserializationContext context) {
-      checkArgument(json.isJsonPrimitive());
-      try {
-        final Predicate<?> obj = (Predicate<?>) deserializeObject(json
-            .getAsString());
-        return obj;
-      } catch (final IOException e) {
-        throw new IllegalArgumentException(e);
-      } catch (final ClassNotFoundException e) {
-        throw new IllegalArgumentException(e);
-      }
-    }
-
-    @Override
-    public JsonElement doSerialize(Predicate<?> src, Type typeOfSrc,
-        JsonSerializationContext context) {
-      if (src instanceof Serializable) {
+  enum PredicateIO implements SafeNullIO<Predicate<?>> {
+    INSTANCE {
+      @Override
+      public Predicate<?> doDeserialize(JsonElement json, Type typeOfT,
+          JsonDeserializationContext context) {
+        checkArgument(json.isJsonPrimitive());
         try {
-          return new JsonPrimitive(serializeObject(src));
+          final Predicate<?> obj =
+              (Predicate<?>) deserializeObject(json.getAsString());
+          return obj;
         } catch (final IOException e) {
           throw new IllegalArgumentException(e);
-        }
-      }
-      throw new IllegalArgumentException(
-          "All predicates must be serializable, found: "
-              + src.getClass().getName());
-    }
-  }
-
-  static class ClassIO extends SafeNullIO<Class<?>> {
-    @Override
-    public Class<?> doDeserialize(JsonElement json, Type typeOfT,
-        JsonDeserializationContext context) {
-      checkArgument(json.isJsonPrimitive());
-      try {
-        return Class.forName(json.getAsString());
-      } catch (final ClassNotFoundException e) {
-        throw new IllegalArgumentException(e);
-      }
-    }
-
-    @Override
-    public JsonElement doSerialize(Class<?> src, Type typeOfSrc,
-        JsonSerializationContext context) {
-      return new JsonPrimitive(src.getName());
-    }
-  }
-
-  static class ParcelIO extends SafeNullIO<ParcelDTO> {
-    @Override
-    public ParcelDTO doDeserialize(JsonElement json, Type typeOfT,
-        JsonDeserializationContext context) {
-      final Iterator<JsonElement> it = json.getAsJsonArray().iterator();
-      final Point p1 = context.deserialize(it.next(), Point.class);
-      final Point p2 = context.deserialize(it.next(), Point.class);
-      return Parcel
-          .builder(p1, p2)
-          .pickupTimeWindow(
-              (TimeWindow) context.deserialize(it.next(), TimeWindow.class))
-          .deliveryTimeWindow(
-              (TimeWindow) context.deserialize(it.next(), TimeWindow.class))
-          .neededCapacity(it.next().getAsDouble())
-          .orderAnnounceTime(it.next().getAsLong())
-          .pickupDuration(it.next().getAsLong())
-          .deliveryDuration(it.next().getAsLong())
-          .buildDTO();
-    }
-
-    @Override
-    JsonElement doSerialize(ParcelDTO src, Type typeOfSrc,
-        JsonSerializationContext context) {
-      final JsonArray arr = new JsonArray();
-      arr.add(context.serialize(src.getPickupLocation()));
-      arr.add(context.serialize(src.getDeliveryLocation()));
-      arr.add(context.serialize(src.getPickupTimeWindow()));
-      arr.add(context.serialize(src.getDeliveryTimeWindow()));
-      arr.add(context.serialize(src.getNeededCapacity()));
-      arr.add(context.serialize(src.getOrderAnnounceTime()));
-      arr.add(context.serialize(src.getPickupDuration()));
-      arr.add(context.serialize(src.getDeliveryDuration()));
-      return arr;
-    }
-  }
-
-  static class VehicleIO extends SafeNullIO<VehicleDTO> {
-    @Override
-    public VehicleDTO doDeserialize(JsonElement json, Type typeOfT,
-        JsonDeserializationContext context) {
-      final Iterator<JsonElement> it = json.getAsJsonArray().iterator();
-      return VehicleDTO
-          .builder()
-          .availabilityTimeWindow(
-              (TimeWindow) context.deserialize(it.next(), TimeWindow.class))
-          .capacity(it.next().getAsInt())
-          .speed(it.next().getAsDouble())
-          .startPosition((Point) context.deserialize(it.next(), Point.class))
-          .build();
-    }
-
-    @Override
-    JsonElement doSerialize(VehicleDTO src, Type typeOfSrc,
-        JsonSerializationContext context) {
-      final JsonArray arr = new JsonArray();
-      arr.add(context.serialize(src.getAvailabilityTimeWindow()));
-      arr.add(context.serialize(src.getCapacity()));
-      arr.add(context.serialize(src.getSpeed()));
-      arr.add(context.serialize(src.getStartPosition()));
-      return arr;
-    }
-  }
-
-  static class ImmutableListIO extends SafeNullIO<ImmutableList<?>> {
-    @Override
-    public ImmutableList<?> doDeserialize(JsonElement json, Type typeOfT,
-        JsonDeserializationContext context) {
-      final ImmutableList.Builder<Object> builder = ImmutableList.builder();
-      final Iterator<JsonElement> it = json.getAsJsonArray().iterator();
-      while (it.hasNext()) {
-        final JsonObject obj = it.next().getAsJsonObject();
-        final String clazz = obj.get(CLAZZ).getAsString();
-        Class<?> clz;
-        try {
-          clz = Class.forName(clazz);
         } catch (final ClassNotFoundException e) {
           throw new IllegalArgumentException(e);
         }
-        builder.add(context.deserialize(obj.get(VALUE), clz));
       }
-      return builder.build();
-    }
 
-    @Override
-    public JsonElement doSerialize(ImmutableList<?> src, Type typeOfSrc,
-        JsonSerializationContext context) {
-      final JsonArray arr = new JsonArray();
-      for (final Object item : src) {
-        final JsonObject obj = new JsonObject();
-        obj.add(CLAZZ, new JsonPrimitive(item.getClass().getName()));
-        obj.add(VALUE, context.serialize(item, item.getClass()));
-        arr.add(obj);
+      @Override
+      public JsonElement doSerialize(Predicate<?> src, Type typeOfSrc,
+          JsonSerializationContext context) {
+        if (src instanceof Serializable) {
+          try {
+            return new JsonPrimitive(serializeObject(src));
+          } catch (final IOException e) {
+            throw new IllegalArgumentException(e);
+          }
+        }
+        throw new IllegalArgumentException(
+            "All predicates must be serializable, found: "
+                + src.getClass().getName());
       }
-      return arr;
     }
   }
 
-  static class ImmutableSetIO extends SafeNullIO<ImmutableSet<?>> {
-    @Override
-    public ImmutableSet<?> doDeserialize(JsonElement json, Type typeOfT,
-        JsonDeserializationContext context) {
-      final ImmutableSet.Builder<Object> builder = ImmutableSet.builder();
-      final Iterator<JsonElement> it = json.getAsJsonArray().iterator();
-      while (it.hasNext()) {
-        final JsonObject obj = it.next().getAsJsonObject();
-        final String clazz = obj.get(CLAZZ).getAsString();
-        Class<?> clz;
+  enum ClassIO implements SafeNullIO<Class<?>> {
+    INSTANCE {
+      @Override
+      public Class<?> doDeserialize(JsonElement json, Type typeOfT,
+          JsonDeserializationContext context) {
+        checkArgument(json.isJsonPrimitive());
         try {
-          clz = Class.forName(clazz);
+          return Class.forName(json.getAsString());
         } catch (final ClassNotFoundException e) {
           throw new IllegalArgumentException(e);
         }
-        builder.add(context.deserialize(obj.get(VALUE), clz));
       }
-      return builder.build();
-    }
 
-    @Override
-    public JsonElement doSerialize(ImmutableSet<?> src, Type typeOfSrc,
-        JsonSerializationContext context) {
-      final JsonArray arr = new JsonArray();
-      for (final Object item : src) {
-        final JsonObject obj = new JsonObject();
-        obj.add(CLAZZ, new JsonPrimitive(item.getClass().getName()));
-        obj.add(VALUE, context.serialize(item, item.getClass()));
-        arr.add(obj);
+      @Override
+      public JsonElement doSerialize(Class<?> src, Type typeOfSrc,
+          JsonSerializationContext context) {
+        return new JsonPrimitive(src.getName());
       }
-      return arr;
     }
   }
 
+  enum ParcelIO implements SafeNullIO<ParcelDTO> {
+    INSTANCE {
+      @Override
+      public ParcelDTO doDeserialize(JsonElement json, Type typeOfT,
+          JsonDeserializationContext context) {
+        final Iterator<JsonElement> it = json.getAsJsonArray().iterator();
+        final Point p1 = context.deserialize(it.next(), Point.class);
+        final Point p2 = context.deserialize(it.next(), Point.class);
+        return Parcel.builder(p1, p2)
+            .pickupTimeWindow(
+                (TimeWindow) context.deserialize(it.next(), TimeWindow.class))
+            .deliveryTimeWindow(
+                (TimeWindow) context.deserialize(it.next(), TimeWindow.class))
+            .neededCapacity(it.next().getAsDouble())
+            .orderAnnounceTime(it.next().getAsLong())
+            .pickupDuration(it.next().getAsLong())
+            .deliveryDuration(it.next().getAsLong()).buildDTO();
+      }
+
+      @Override
+      public JsonElement doSerialize(ParcelDTO src, Type typeOfSrc,
+          JsonSerializationContext context) {
+        final JsonArray arr = new JsonArray();
+        arr.add(context.serialize(src.getPickupLocation()));
+        arr.add(context.serialize(src.getDeliveryLocation()));
+        arr.add(context.serialize(src.getPickupTimeWindow()));
+        arr.add(context.serialize(src.getDeliveryTimeWindow()));
+        arr.add(context.serialize(src.getNeededCapacity()));
+        arr.add(context.serialize(src.getOrderAnnounceTime()));
+        arr.add(context.serialize(src.getPickupDuration()));
+        arr.add(context.serialize(src.getDeliveryDuration()));
+        return arr;
+      }
+    }
+  }
+
+  enum VehicleIO implements SafeNullIO<VehicleDTO> {
+    INSTANCE {
+      @Override
+      public VehicleDTO doDeserialize(JsonElement json, Type typeOfT,
+          JsonDeserializationContext context) {
+        final Iterator<JsonElement> it = json.getAsJsonArray().iterator();
+        return VehicleDTO.builder()
+            .availabilityTimeWindow(
+                (TimeWindow) context.deserialize(it.next(), TimeWindow.class))
+            .capacity(it.next().getAsInt()).speed(it.next().getAsDouble())
+            .startPosition((Point) context.deserialize(it.next(), Point.class))
+            .build();
+      }
+
+      @Override
+      public JsonElement doSerialize(VehicleDTO src, Type typeOfSrc,
+          JsonSerializationContext context) {
+        final JsonArray arr = new JsonArray();
+        arr.add(context.serialize(src.getAvailabilityTimeWindow()));
+        arr.add(context.serialize(src.getCapacity()));
+        arr.add(context.serialize(src.getSpeed()));
+        arr.add(context.serialize(src.getStartPosition()));
+        return arr;
+      }
+    }
+  }
+
+  enum ImmutableListIO implements SafeNullIO<ImmutableList<?>> {
+    INSTANCE {
+      @Override
+      public ImmutableList<?> doDeserialize(JsonElement json, Type typeOfT,
+          JsonDeserializationContext context) {
+        final ImmutableList.Builder<Object> builder = ImmutableList.builder();
+        final Iterator<JsonElement> it = json.getAsJsonArray().iterator();
+        while (it.hasNext()) {
+          final JsonObject obj = it.next().getAsJsonObject();
+          final String clazz = obj.get(CLAZZ).getAsString();
+          Class<?> clz;
+          try {
+            clz = Class.forName(clazz);
+          } catch (final ClassNotFoundException e) {
+            throw new IllegalArgumentException(e);
+          }
+          builder.add(context.deserialize(obj.get(VALUE), clz));
+        }
+        return builder.build();
+      }
+
+      @Override
+      public JsonElement doSerialize(ImmutableList<?> src, Type typeOfSrc,
+          JsonSerializationContext context) {
+        final JsonArray arr = new JsonArray();
+        for (final Object item : src) {
+          final JsonObject obj = new JsonObject();
+          obj.add(CLAZZ, new JsonPrimitive(item.getClass().getName()));
+          obj.add(VALUE, context.serialize(item, item.getClass()));
+          arr.add(obj);
+        }
+        return arr;
+      }
+    }
+  }
+
+  enum ImmutableSetIO implements SafeNullIO<ImmutableSet<?>> {
+    INSTANCE {
+      @Override
+      public ImmutableSet<?> doDeserialize(JsonElement json, Type typeOfT,
+          JsonDeserializationContext context) {
+        final ImmutableSet.Builder<Object> builder = ImmutableSet.builder();
+        final Iterator<JsonElement> it = json.getAsJsonArray().iterator();
+        while (it.hasNext()) {
+          final JsonObject obj = it.next().getAsJsonObject();
+          final String clazz = obj.get(CLAZZ).getAsString();
+          Class<?> clz;
+          try {
+            clz = Class.forName(clazz);
+          } catch (final ClassNotFoundException e) {
+            throw new IllegalArgumentException(e);
+          }
+          builder.add(context.deserialize(obj.get(VALUE), clz));
+        }
+        return builder.build();
+      }
+
+      @Override
+      public JsonElement doSerialize(ImmutableSet<?> src, Type typeOfSrc,
+          JsonSerializationContext context) {
+        final JsonArray arr = new JsonArray();
+        for (final Object item : src) {
+          final JsonObject obj = new JsonObject();
+          obj.add(CLAZZ, new JsonPrimitive(item.getClass().getName()));
+          obj.add(VALUE, context.serialize(item, item.getClass()));
+          arr.add(obj);
+        }
+        return arr;
+      }
+    }
+  }
 }

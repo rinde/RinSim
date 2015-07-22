@@ -81,7 +81,7 @@ final class StatsPanel implements PanelRenderer, TickListener {
       ti.setText(0, f.getName());
       try {
         ti.setText(1, f.get(stats).toString());
-      } catch (final Exception e) {
+      } catch (final IllegalArgumentException | IllegalAccessException e) {
         ti.setText(1, e.getMessage());
       }
     }
@@ -165,7 +165,7 @@ final class StatsPanel implements PanelRenderer, TickListener {
           try {
             statsTable.get().getItem(i)
                 .setText(1, fields[i].get(stats).toString());
-          } catch (final Exception e) {
+          } catch (final IllegalArgumentException | IllegalAccessException e) {
             statsTable.get().getItem(i).setText(1, e.getMessage());
           }
         }

@@ -67,7 +67,7 @@ import com.google.common.collect.Sets;
  * <b>Example</b> Consider an experiment with three scenarios and two
  * configurations, and each simulation needs to be repeated twice. The code
  * required for this setup:
- * 
+ *
  * <pre>
  * {@code
  * Experiment.experiment(objFunc)
@@ -79,7 +79,7 @@ import com.google.common.collect.Sets;
  *    .perform();
  *    }
  * </pre>
- * 
+ *
  * The following simulations will be run:
  * <ol>
  * <li>config1, scen1, seed1</li>
@@ -96,7 +96,7 @@ import com.google.common.collect.Sets;
  * <li>config2, scen3, seed2</li>
  * </ol>
  * For each simulation a {@link SimulationResult} returned.
- * 
+ *
  * @author Rinde van Lon
  */
 public final class Experiment {
@@ -175,17 +175,17 @@ public final class Experiment {
         scenario)
         .withIgnoreRedundantHandlers(true);
 
-    for (Entry<Class<? extends TimedEvent>, TimedEventHandler<?>> entry : config
+    for (final Entry<Class<? extends TimedEvent>, TimedEventHandler<?>> entry : config
         .getEventHandlers().entrySet()) {
       scenContrBuilder =
           add(scenContrBuilder, entry.getKey(), entry.getValue());
     }
-    Simulator.Builder simBuilder = Simulator.builder()
+    final Simulator.Builder simBuilder = Simulator.builder()
         .setRandomSeed(seed)
         .addModels(config.getModels())
         .addModel(scenContrBuilder);
 
-    boolean hasStatsTracker =
+    final boolean hasStatsTracker =
         containsStatisticsProvider(scenContrBuilder.getChildren())
             || containsStatisticsProvider(config.getModels());
 
@@ -203,7 +203,7 @@ public final class Experiment {
 
   static boolean containsStatisticsProvider(
       Iterable<? extends ModelBuilder<?, ?>> mbs) {
-    for (ModelBuilder<?, ?> mb : mbs) {
+    for (final ModelBuilder<?, ?> mb : mbs) {
       if (mb.getProvidingTypes().contains(StatisticsProvider.class)) {
         return true;
       }
@@ -236,8 +236,8 @@ public final class Experiment {
 
     private Supplier<Computer> computerType;
 
-    Builder(ObjectiveFunction objectiveFunction) {
-      this.objectiveFunction = objectiveFunction;
+    Builder(ObjectiveFunction objFunc) {
+      objectiveFunction = objFunc;
       configurationsSet = newLinkedHashSet();
       scenariosBuilder = ImmutableSet.builder();
       scenarioProviderBuilder = Optional.absent();
@@ -430,7 +430,7 @@ public final class Experiment {
      * <li>{@link #showGui()}</li>
      * <li>{@link #showGui(ModelBuilder)}</li>
      * </ul>
-     * 
+     *
      * @return This, as per the builder pattern.
      */
     public Builder computeDistributed() {
@@ -642,12 +642,12 @@ public final class Experiment {
      */
     public Optional<?> simulationData;
 
-    SimulationResult(StatisticsDTO stats, Scenario scenario,
-        MASConfiguration masConfiguration, long seed, Optional<?> simData) {
-      this.stats = stats;
-      this.scenario = scenario;
-      this.masConfiguration = masConfiguration;
-      this.seed = seed;
+    SimulationResult(StatisticsDTO stat, Scenario scen,
+        MASConfiguration masConfig, long sd, Optional<?> simData) {
+      stats = stat;
+      scenario = scen;
+      masConfiguration = masConfig;
+      seed = sd;
       simulationData = simData;
     }
 
