@@ -108,7 +108,8 @@ public final class FabriRechtParser {
     final String firstLineString = ordersFileReader.readLine();
     final Iterator<String> firstLine = Iterators.forArray(
         verifyNotNull(firstLineString).split(LINE_SEPARATOR));
-    // line 0 contains number of vehicles, but this is not needed
+    // first contains number of vehicles, but this is not needed
+    firstLine.next();
     final int capacity = Integer.parseInt(firstLine.next());
     final long startTime = Long.parseLong(firstLine.next());
     final long endTime = Long.parseLong(firstLine.next());
