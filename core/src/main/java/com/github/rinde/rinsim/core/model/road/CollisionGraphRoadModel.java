@@ -124,9 +124,8 @@ public class CollisionGraphRoadModel extends DynamicGraphRoadModel {
           }
         }
       }
-
     }
-    verify(closestDist >= 0d, "", from, to);
+    verify(closestDist >= 0d, "", from, to, closestDist);
     return Math.min(closestDist,
         super.computeTravelableDistance(from, to, speed, timeLeft, timeUnit));
   }

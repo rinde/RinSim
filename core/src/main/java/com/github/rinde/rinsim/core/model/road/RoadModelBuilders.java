@@ -550,6 +550,10 @@ public final class RoadModelBuilders {
     @Override
     public CollisionGraphRoadModel build(
         DependencyProvider dependencyProvider) {
+      checkArgument(getDistanceUnit() == SI.METER,
+          "Currently only %s is supported, found %s.", SI.METER,
+          getDistanceUnit());
+
       final double minConnectionLength = getVehicleLength();
       checkArgument(
           getMinDistance() <= minConnectionLength,
