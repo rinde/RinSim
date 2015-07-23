@@ -136,6 +136,13 @@ public final class StatsTracker extends AbstractModelVoid implements
     return clazz.cast(this);
   }
 
+  /**
+   * @return A new {@link Builder} instance.
+   */
+  public static Builder builder() {
+    return new AutoValue_StatsTracker_Builder();
+  }
+
   class TheListener implements Listener {
 
     private static final double MOVE_THRESHOLD = 0.0001;
@@ -299,13 +306,6 @@ public final class StatsTracker extends AbstractModelVoid implements
       tardiness = tar;
       time = tim;
     }
-  }
-
-  /**
-   * @return A new {@link Builder} instance.
-   */
-  public static Builder builder() {
-    return new AutoValue_StatsTracker_Builder();
   }
 
   /**

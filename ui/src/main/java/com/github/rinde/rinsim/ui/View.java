@@ -509,11 +509,3 @@ public final class View
     }
   }
 }
-
-interface MainView {
-  enum EventType {
-    SHOW;
-  }
-
-  void addListener(Listener l);
-}

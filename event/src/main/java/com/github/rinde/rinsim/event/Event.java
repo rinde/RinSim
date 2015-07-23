@@ -18,10 +18,11 @@ package com.github.rinde.rinsim.event;
 import javax.annotation.Nullable;
 
 import com.google.common.base.Optional;
+
 /**
  * The base event class. It is immutable.
- * @author Rinde van Lon 
- * @author Bartosz Michalik 
+ * @author Rinde van Lon
+ * @author Bartosz Michalik
  */
 public class Event {
 
@@ -53,21 +54,21 @@ public class Event {
    * @return <code>true</code> if this event has an issuer, <code>false</code>
    *         otherwise.
    */
-  public boolean hasIssuer() {
+  public final boolean hasIssuer() {
     return issuer.isPresent();
   }
 
   /**
    * @return The event issuer.
    */
-  public Object getIssuer() {
+  public final Object getIssuer() {
     return issuer.get();
   }
 
   /**
    * @return The type of event.
    */
-  public Enum<?> getEventType() {
+  public final Enum<?> getEventType() {
     return eventType;
   }
 

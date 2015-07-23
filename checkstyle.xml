@@ -123,24 +123,45 @@
 		<!--module name="AvoidInlineConditionals"/ -->
 		<module name="CovariantEquals" />
 		<module name="EmptyStatement" />
-		<!--<module name="EqualsAvoidNull"/> -->
+		<module name="EqualsAvoidNull" />
 		<module name="EqualsHashCode" />
-		<!--module name="HiddenField"/ -->
+		<module name="FinalLocalVariable" />
+		<module name="HiddenField" />
 		<module name="IllegalInstantiation" />
-		<!--<module name="InnerAssignment"/> -->
-		<!--module name="MagicNumber"/ -->
-		<!-- <module name="MissingSwitchDefault"/> -->
-		<module name="IllegalThrows" />
+		<module name="IllegalToken" />
+		<module name="MagicNumber" />
+		<module name="MissingSwitchDefault" />
+		<module name="ModifiedControlVariable" />
 		<module name="SimplifyBooleanExpression" />
 		<module name="SimplifyBooleanReturn" />
+		<module name="StringLiteralEquality" />
+		<module name="NoClone" />
+		<module name="NoFinalizer" />
+		<module name="IllegalThrows" />
+		<module name="PackageDeclaration"/>
+		<module name="DeclarationOrder"/>
+		<module name="ParameterAssignment"/>
+		<module name="ExplicitInitialization"/>
+		<module name="DefaultComesLast"/>
+		<module name="MissingCtor"/>
+		<module name="FallThrough"/>
+		<module name="MultipleStringLiterals"/>
+		<module name="MultipleVariableDeclarations"/>
+		<module name="UnnecessaryParentheses"/>
+		<module name="OneStatementPerLine"/>
+		
+		
 
 		<!-- Checks for class design -->
 		<!-- See http://checkstyle.sf.net/config_design.html -->
-		<!--module name="DesignForExtension"/ -->
-		<module name="FinalClass" />
-		<module name="HideUtilityClassConstructor" />
-		<!--module name="InterfaceIsType"/ -->
 		<!--module name="VisibilityModifier"/ -->
+		<module name="FinalClass" />
+		<module name="InterfaceIsType"/>
+		<module name="HideUtilityClassConstructor" />
+		<!-- <module name="DesignForExtension"/> -->
+		<module name="MutableException"/>
+		<module name="InnerTypeLast"/>
+		<module name="OneTopLevelClass"/>
 
 
 		<!-- Miscellaneous other checks. -->

@@ -73,6 +73,10 @@ public final class RtSolverModel extends AbstractModel<RtSolverUser> {
     return clazz.cast(builder);
   }
 
+  public static Builder builder() {
+    return new AutoValue_RtSolverModel_Builder();
+  }
+
   class RtSimSolverBuilderImpl extends RtSimSolverBuilder {
 
     RtSimSolverBuilderImpl() {}
@@ -82,10 +86,6 @@ public final class RtSolverModel extends AbstractModel<RtSolverUser> {
       return new RtSimSolverSchedulerImpl(clock, solver, roadModel,
           pdpModel).rtSimSolver;
     }
-  }
-
-  public static Builder builder() {
-    return new AutoValue_RtSolverModel_Builder();
   }
 
   @AutoValue

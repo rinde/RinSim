@@ -18,19 +18,8 @@ package com.github.rinde.rinsim.examples.fabrirecht.simple;
 import java.io.File;
 import java.io.IOException;
 
-import javax.annotation.Nullable;
-
 import com.github.rinde.rinsim.core.Simulator;
 import com.github.rinde.rinsim.core.SimulatorAPI;
-import com.github.rinde.rinsim.core.model.pdp.PDPModel;
-import com.github.rinde.rinsim.core.model.pdp.PDPModel.ParcelState;
-import com.github.rinde.rinsim.core.model.pdp.Parcel;
-import com.github.rinde.rinsim.core.model.pdp.Vehicle;
-import com.github.rinde.rinsim.core.model.pdp.VehicleDTO;
-import com.github.rinde.rinsim.core.model.road.RoadModel;
-import com.github.rinde.rinsim.core.model.road.RoadModels;
-import com.github.rinde.rinsim.core.model.road.RoadUser;
-import com.github.rinde.rinsim.core.model.time.TimeLapse;
 import com.github.rinde.rinsim.pdptw.common.AddParcelEvent;
 import com.github.rinde.rinsim.pdptw.common.AddVehicleEvent;
 import com.github.rinde.rinsim.pdptw.common.StatsTracker;
@@ -43,7 +32,6 @@ import com.github.rinde.rinsim.ui.renderers.PDPModelRenderer;
 import com.github.rinde.rinsim.ui.renderers.PlaneRoadModelRenderer;
 import com.github.rinde.rinsim.ui.renderers.RoadUserRenderer;
 import com.google.common.base.Charsets;
-import com.google.common.base.Predicate;
 import com.google.common.io.Files;
 
 /**
@@ -98,43 +86,5 @@ public final class FabriRechtExample {
     // simulation is done, lets print the statistics!
     System.out.println(sim.getModelProvider().getModel(StatsTracker.class)
         .getStatistics());
-  }
-}
-
-/**
- * This truck implementation only picks parcels up, it does not deliver them.
- *
- * @author Rinde van Lon
- */
-class Truck extends Vehicle {
-
-  public Truck(VehicleDTO pDto) {
-    super(pDto);
-  }
-
-  @Override
-  protected void tickImpl(TimeLapse time) {
-    final RoadModel rm = getRoadModel();
-    final PDPModel pm = getPDPModel();
-    // we always go to the closest available parcel
-    final Parcel closest = (Parcel) RoadModels
-        .findClosestObject(rm.getPosition(this), rm, new Predicate<RoadUser>() {
-          @Override
-          public boolean apply(@Nullable RoadUser input) {
-            return input instanceof Parcel
-                && pm.getParcelState((Parcel) input) == ParcelState.AVAILABLE;
-          }
-        });
-
-    if (closest != null) {
-      rm.moveTo(this, closest, time);
-      if (rm.equalPosition(closest, this)
-          && pm
-              .getTimeWindowPolicy()
-              .canPickup(closest.getPickupTimeWindow(), time.getTime(),
-                  closest.getPickupDuration())) {
-        pm.pickup(this, closest, time);
-      }
-    }
   }
 }

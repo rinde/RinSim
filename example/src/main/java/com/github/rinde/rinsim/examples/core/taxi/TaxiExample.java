@@ -196,6 +196,27 @@ public final class TaxiExample {
     return simulator;
   }
 
+  // load the graph file
+  static Graph<MultiAttributeData> loadGraph(String name) {
+    try {
+      if (GRAPH_CACHE.containsKey(name)) {
+        return GRAPH_CACHE.get(name);
+      }
+      final Graph<MultiAttributeData> g = DotGraphIO
+          .getMultiAttributeGraphIO(
+              Filters.selfCycleFilter())
+          .read(
+              TaxiExample.class.getResourceAsStream(name));
+
+      GRAPH_CACHE.put(name, g);
+      return g;
+    } catch (final FileNotFoundException e) {
+      throw new IllegalStateException(e);
+    } catch (final IOException e) {
+      throw new IllegalStateException(e);
+    }
+  }
+
   /**
    * A customer with very permissive time windows.
    */
@@ -219,24 +240,4 @@ public final class TaxiExample {
     public void initRoadPDP(RoadModel pRoadModel, PDPModel pPdpModel) {}
   }
 
-  // load the graph file
-  static Graph<MultiAttributeData> loadGraph(String name) {
-    try {
-      if (GRAPH_CACHE.containsKey(name)) {
-        return GRAPH_CACHE.get(name);
-      }
-      final Graph<MultiAttributeData> g = DotGraphIO
-          .getMultiAttributeGraphIO(
-              Filters.selfCycleFilter())
-          .read(
-              TaxiExample.class.getResourceAsStream(name));
-
-      GRAPH_CACHE.put(name, g);
-      return g;
-    } catch (final FileNotFoundException e) {
-      throw new IllegalStateException(e);
-    } catch (final IOException e) {
-      throw new IllegalStateException(e);
-    }
-  }
 }

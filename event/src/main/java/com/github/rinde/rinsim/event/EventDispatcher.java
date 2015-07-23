@@ -33,7 +33,7 @@ import com.google.common.collect.Multimap;
  * and adding of listeners.
  * @author Rinde van Lon
  */
-public class EventDispatcher implements EventAPI {
+public final class EventDispatcher implements EventAPI {
 
   /**
    * A map of event types to registered {@link Listener}s.

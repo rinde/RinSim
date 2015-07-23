@@ -202,6 +202,11 @@ class AgvModel
     return b;
   }
 
+  static Builder builder() {
+    return Builder.create(ImmutableList.<ImmutableList<Point>>of(),
+        ImmutableList.<Point>of());
+  }
+
   static class BoxHandle {
     int wordIndex;
     final int index;
@@ -212,11 +217,6 @@ class AgvModel
       index = i;
       wordIndex = 0;
     }
-  }
-
-  static Builder builder() {
-    return Builder.create(ImmutableList.<ImmutableList<Point>>of(),
-        ImmutableList.<Point>of());
   }
 
   @AutoValue

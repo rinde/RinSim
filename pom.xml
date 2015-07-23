@@ -70,7 +70,7 @@
 		<sonar.language>java</sonar.language>
 		<test.excludedGroups />
 		<skip.gui.tests>false</skip.gui.tests>
-		<reference.version>3.1.0</reference.version>
+		<reference.version>4.0.0-SNAPSHOT</reference.version>
 	</properties>
 
 	<distributionManagement>
