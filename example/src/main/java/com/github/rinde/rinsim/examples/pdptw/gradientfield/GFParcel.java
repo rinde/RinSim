@@ -21,6 +21,7 @@ import com.github.rinde.rinsim.core.model.pdp.ParcelDTO;
 import com.github.rinde.rinsim.geom.Point;
 
 class GFParcel extends Parcel implements FieldEmitter {
+  static final float AVAILABLE_STRENGTH = 3.0f;
   private final Point pos;
 
   GFParcel(ParcelDTO pDto) {
@@ -41,7 +42,8 @@ class GFParcel extends Parcel implements FieldEmitter {
     if (!isInitialized()) {
       return 0f;
     }
-    return getPDPModel().getParcelState(this) == ParcelState.AVAILABLE ? 3.0f
+    return getPDPModel().getParcelState(this) == ParcelState.AVAILABLE
+        ? AVAILABLE_STRENGTH
         : 0.0f;
   }
 }

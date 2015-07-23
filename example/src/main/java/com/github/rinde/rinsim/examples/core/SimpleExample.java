@@ -43,6 +43,12 @@ public final class SimpleExample {
   static final double VEHICLE_SPEED_KMH = 50d;
   static final Point MIN_POINT = new Point(0, 0);
   static final Point MAX_POINT = new Point(10, 10);
+  static final long TICK_LENGTH = 1000L;
+  static final long RANDOM_SEED = 123L;
+  static final int NUM_VEHICLES = 200;
+
+  static final int TEST_SPEEDUP = 16;
+  static final long TEST_STOP_TIME = 10 * 60 * 1000;
 
   private SimpleExample() {}
 
@@ -68,21 +74,19 @@ public final class SimpleExample {
         .with(RoadUserRenderer.builder());
 
     if (testing) {
-      final int speedUp = 16;
-      final long simulatorStopTime = 10 * 60 * 1000;
       viewBuilder = viewBuilder
-          .withSpeedUp(speedUp)
+          .withSpeedUp(TEST_SPEEDUP)
           .withAutoClose()
           .withAutoPlay()
-          .withSimulatorEndTime(simulatorStopTime);
+          .withSimulatorEndTime(TEST_STOP_TIME);
     }
 
     // initialize a new Simulator instance
     final Simulator sim = Simulator.builder()
         // set the length of a simulation 'tick'
-        .setTickLength(1000L)
+        .setTickLength(TICK_LENGTH)
         // set the random seed we use in this 'experiment'
-        .setRandomSeed(123L)
+        .setRandomSeed(RANDOM_SEED)
         // add a PlaneRoadModel, a model which facilitates the moving of
         // RoadUsers on a plane. The plane is bounded by two corner points:
         // (0,0) and (10,10)
@@ -96,8 +100,7 @@ public final class SimpleExample {
         .build();
 
     // add a number of drivers on the road
-    final int numDrivers = 200;
-    for (int i = 0; i < numDrivers; i++) {
+    for (int i = 0; i < NUM_VEHICLES; i++) {
       // when an object is registered in the simulator it gets
       // automatically 'hooked up' with models that it's interested in. An
       // object declares to be interested in an model by implementing an

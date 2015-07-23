@@ -40,6 +40,10 @@ import com.github.rinde.rinsim.ui.renderers.RoadUserRenderer;
  * @author Rinde van Lon
  */
 public final class GradientFieldExample {
+  static final long RANDOM_SEED = 123L;
+
+  static final int TEST_SPEED_UP = 64;
+  static final long TEST_END_TIME = 20 * 60 * 1000;
 
   private GradientFieldExample() {}
 
@@ -73,8 +77,8 @@ public final class GradientFieldExample {
     if (testing) {
       viewBuilder = viewBuilder.withAutoClose()
           .withAutoPlay()
-          .withSpeedUp(64)
-          .withSimulatorEndTime(20 * 60 * 1000);
+          .withSpeedUp(TEST_SPEED_UP)
+          .withSimulatorEndTime(TEST_END_TIME);
     }
 
     final Gendreau06Scenario scenario = Gendreau06Parser
@@ -88,7 +92,7 @@ public final class GradientFieldExample {
         .instance();
     Experiment
         .build(objFunc)
-        .withRandomSeed(123)
+        .withRandomSeed(RANDOM_SEED)
         .withThreads(1)
         .addConfiguration(MASConfiguration.pdptwBuilder()
             .setName("GradientFieldConfiguration")

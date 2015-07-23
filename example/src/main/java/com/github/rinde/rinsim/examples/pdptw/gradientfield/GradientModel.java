@@ -47,6 +47,12 @@ import com.google.common.collect.ImmutableList;
 public class GradientModel
     extends AbstractModel<FieldEmitter>
     implements ModelReceiver {
+  /**
+   * Possibilities (-1,1) (0,1) (1,1) (-1,0) (1,0 (-1,-1) (0,-1) (1,-1).
+   */
+  private static final int[] X = {-1, 0, 1, 1, 1, 0, -1, -1};
+  private static final int[] Y = {1, 1, 1, 0, -1, -1, -1, 0};
+
   private final List<FieldEmitter> emitters;
   private double minX;
   private double maxX;
@@ -74,12 +80,6 @@ public class GradientModel
 
     return trucks;
   }
-
-  /**
-   * Possibilities (-1,1) (0,1) (1,1) (-1,0) (1,0 (-1,-1) (0,-1) (1,-1).
-   */
-  private static final int[] X = {-1, 0, 1, 1, 1, 0, -1, -1};
-  private static final int[] Y = {1, 1, 1, 0, -1, -1, -1, 0};
 
   @Nullable
   Point getTargetFor(Truck element) {

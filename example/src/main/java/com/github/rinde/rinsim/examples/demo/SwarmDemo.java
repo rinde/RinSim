@@ -28,6 +28,7 @@ import org.eclipse.swt.graphics.FontData;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.RGB;
+import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.widgets.Display;
 
 import com.github.rinde.rinsim.core.Simulator;
@@ -49,6 +50,14 @@ import com.google.common.collect.ImmutableList;
 public final class SwarmDemo {
 
   static final int FONT_SIZE = 12;
+  static final double FONT_SPACING = 30d;
+  static final long RANDOM_SEED = 123L;
+  static final int SPEED_UP = 8;
+  static final Point MIN_POINT = new Point(0, 0);
+  static final Point MAX_POINT = new Point(4500, 1200);
+  static final double MAX_SPEED = 1000d;
+
+  static final Rectangle MEASURE_RECT = new Rectangle(0, 0, 100, 10);
 
   private SwarmDemo() {}
 
@@ -58,22 +67,23 @@ public final class SwarmDemo {
    */
   public static void main(String[] args) {
     final String string = "AgentWise";
-    final List<Point> points = measureString(string, FONT_SIZE, 30, 0);
+    final List<Point> points =
+        measureString(string, FONT_SIZE, FONT_SPACING, 0);
 
-    final RandomGenerator rng = new MersenneTwister(123);
+    final RandomGenerator rng = new MersenneTwister(RANDOM_SEED);
     final Simulator sim = Simulator.builder()
         .addModel(RoadModelBuilders.plane()
-            .withMinPoint(new Point(0, 0))
-            .withMaxPoint(new Point(4500, 1200))
+            .withMinPoint(MIN_POINT)
+            .withMaxPoint(MAX_POINT)
             .withDistanceUnit(SI.METER)
             .withSpeedUnit(NonSI.KILOMETERS_PER_HOUR)
-            .withMaxSpeed(1000d))
+            .withMaxSpeed(MAX_SPEED))
         .addModel(
             View.builder()
                 .with(PlaneRoadModelRenderer.builder())
                 .with(VehicleRenderer.builder())
                 .with(DemoPanel.builder(string))
-                .withSpeedUp(8))
+                .withSpeedUp(SPEED_UP))
         .build();
 
     for (final Point p : points) {
@@ -105,7 +115,7 @@ public final class SwarmDemo {
       haveToDispose = true;
     }
 
-    final GC measureGC = new GC(new Image(display, 100, 10));
+    final GC measureGC = new GC(new Image(display, MEASURE_RECT));
     final Font initialFont = measureGC.getFont();
     final FontData[] fontData = initialFont.getFontData();
     for (int i = 0; i < fontData.length; i++) {
@@ -147,12 +157,15 @@ public final class SwarmDemo {
   }
 
   static final class Vehicle implements MovingRoadUser, TickListener {
+    static final int LB = 30;
+    static final double MUL = 40;
+
     Point destPos;
     RandomGenerator rng;
 
-    private Optional<RoadModel> rm;
     double speed;
     boolean active;
+    private Optional<RoadModel> rm;
 
     Vehicle(Point p, RandomGenerator r) {
       destPos = p;
@@ -195,7 +208,7 @@ public final class SwarmDemo {
     private void doSetDestination(Point dest) {
       destPos = dest;
       speed = Point.distance(rm.get().getPosition(this), destPos)
-          / (30 + 40 * rng.nextDouble());
+          / (LB + MUL * rng.nextDouble());
     }
 
     /**

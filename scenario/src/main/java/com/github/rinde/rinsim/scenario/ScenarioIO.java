@@ -221,6 +221,10 @@ public final class ScenarioIO {
     return predicate;
   }
 
+  static <T> SafeNullIOAdapter<T> adapt(SafeNullIO<T> delegate) {
+    return new SafeNullIOAdapter<>(delegate);
+  }
+
   private static final class DefaultScenarioReader<T extends Scenario>
       implements Function<Path, T> {
     final Optional<Class<T>> clazz;
@@ -249,14 +253,27 @@ public final class ScenarioIO {
     }
   }
 
-  static <T> SafeNullIOAdapter<T> adapt(SafeNullIO<T> delegate) {
-    return new SafeNullIOAdapter<>(delegate);
-  }
-
   interface SafeNullIO<T> {
+    /**
+     * Non-null version of
+     * {@link JsonSerializer#serialize(Object, Type, JsonSerializationContext)}.
+     * @param src The object that needs to be converted.
+     * @param typeOfSrc The type of the object.
+     * @param context The context.
+     * @return The converted object.
+     */
     JsonElement doSerialize(T src, Type typeOfSrc,
         JsonSerializationContext context);
 
+    /**
+     * Non-null version of
+     * {@link JsonDeserializer#deserialize(JsonElement, Type, JsonDeserializationContext)}
+     * .
+     * @param json The json that needs to be converted to an object.
+     * @param typeOfT The type of the object.
+     * @param context The context.
+     * @return The parsed object.
+     */
     T doDeserialize(JsonElement json, Type typeOfT,
         JsonDeserializationContext context);
   }

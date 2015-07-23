@@ -63,6 +63,7 @@ public final class Demo {
   static final int RUN_BUTTON_H = 100;
   static final int START_BUTTON_FONT_SIZE = 60;
   static final int NEXT_BUTTON_FONT_SIZE = 40;
+  static final String START_DEMO_TEXT = "Start demo";
 
   private Demo() {}
 
@@ -123,7 +124,7 @@ public final class Demo {
 
     final Button runButton = new Button(shell, SWT.TOGGLE);
     runButton.setSize(RUN_BUTTON_W, RUN_BUTTON_H);
-    runButton.setText("Start demo");
+    runButton.setText(START_DEMO_TEXT);
 
     final Font f = runButton.getFont();
     final FontData[] fontData = f.getFontData();
@@ -227,7 +228,7 @@ public final class Demo {
       if (((Button) e.widget).getSelection()) {
         runButton.setText("Stop demo");
       } else {
-        runButton.setText("Start demo");
+        runButton.setText(START_DEMO_TEXT);
       }
 
       if (((Button) e.widget).getSelection()) {
@@ -340,7 +341,7 @@ public final class Demo {
       label.getDisplay().asyncExec(new Runnable() {
         @Override
         public void run() {
-          label.setText(monitor.getBounds().width + "x"
+          label.setText(monitor.getBounds().width + " x "
               + monitor.getBounds().height + "\n" + runner.getState());
         }
       });

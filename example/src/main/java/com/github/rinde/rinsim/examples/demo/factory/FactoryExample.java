@@ -48,7 +48,6 @@ import com.github.rinde.rinsim.geom.Point;
 import com.github.rinde.rinsim.ui.View;
 import com.github.rinde.rinsim.ui.renderers.GraphRoadModelRenderer;
 import com.github.rinde.rinsim.ui.renderers.RoadUserRenderer;
-import com.github.rinde.rinsim.ui.renderers.UiSchema;
 import com.google.common.collect.ImmutableList;
 import com.google.common.math.DoubleMath;
 
@@ -62,6 +61,14 @@ public final class FactoryExample {
   static final long SERVICE_DURATION = 120000;
   static final double AGV_SPEED = 10;
   static final int CANVAS_MARGIN = 30;
+
+  static final int FONT_SIZE = 10;
+
+  static final int VERTICAL_LINE_SPACING = 6;
+  static final int NUM_VEHICLES = 12;
+  static final int FULL_HD_W = 1920;
+  static final int SPEED_UP = 4;
+  static final long RANDOM_SEED = 123L;
 
   // spacing between text pixels
   static final double SPACING = 30d;
@@ -113,18 +120,13 @@ public final class FactoryExample {
     }
 
     List<String> words = asList(" BioCo3 \nDistriNet");
-    int fontSize = 10;
     // spacing between vertical lines in line units
-    int verticalLineSpacing = 6;
-    int numVehicles = 12;
+
     // screen
-    if (rect.width == 1920) {
+    if (rect.width == FULL_HD_W) {
       // WORDS = asList("AgentWise\nKU Leuven", "iMinds\nDistriNet");
       // WORDS = asList(" Agent \n Wise ", " Distri \n Net ");
       words = asList(" iMinds \nDistriNet");
-      fontSize = 10;
-      verticalLineSpacing = 6;
-      numVehicles = 12;
     }
 
     final ImmutableList.Builder<ImmutableList<Point>> pointBuilder =
@@ -132,7 +134,7 @@ public final class FactoryExample {
             .builder();
 
     for (final String word : words) {
-      pointBuilder.add(SwarmDemo.measureString(word, fontSize, SPACING, 2));
+      pointBuilder.add(SwarmDemo.measureString(word, FONT_SIZE, SPACING, 2));
     }
 
     final ImmutableList<ImmutableList<Point>> points = pointBuilder.build();
@@ -148,21 +150,18 @@ public final class FactoryExample {
     }
 
     int width = DoubleMath.roundToInt(xMax / SPACING, RoundingMode.CEILING);
-    width += verticalLineSpacing - width % verticalLineSpacing;
-    width += width / verticalLineSpacing % 2 == 0 ? verticalLineSpacing
+    width += VERTICAL_LINE_SPACING - width % VERTICAL_LINE_SPACING;
+    width += width / VERTICAL_LINE_SPACING % 2 == 0 ? VERTICAL_LINE_SPACING
         : 0;
 
     int height =
         DoubleMath.roundToInt(yMax / SPACING, RoundingMode.CEILING) + 2;
     height += height % 2;
-    final Graph<?> g = createGrid(width, height, 1, verticalLineSpacing,
+    final Graph<?> g = createGrid(width, height, 1, VERTICAL_LINE_SPACING,
         SPACING);
 
     final List<Point> borderNodes = newArrayList(getBorderNodes(g));
-    Collections.shuffle(borderNodes, new Random(123));
-
-    final UiSchema uis = new UiSchema(false);
-    uis.add(AGV.class, "/graphics/flat/forklift2.png");
+    Collections.shuffle(borderNodes, new Random(RANDOM_SEED));
 
     View.Builder view = View.builder()
         .with(GraphRoadModelRenderer.builder()
@@ -175,7 +174,7 @@ public final class FactoryExample {
         .withTitleAppendix("Factory Demo")
         .withAutoPlay()
         .withAutoClose()
-        .withSpeedUp(4);
+        .withSpeedUp(SPEED_UP);
 
     if (m != null) {
       view = view.withMonitor(m)
@@ -190,7 +189,7 @@ public final class FactoryExample {
       }
     }
 
-    final RandomGenerator rng = new MersenneTwister(123);
+    final RandomGenerator rng = new MersenneTwister(RANDOM_SEED);
     final Simulator simulator = Simulator
         .builder()
         .setRandomGenerator(rng)
@@ -210,7 +209,7 @@ public final class FactoryExample {
         .addModel(view)
         .build();
 
-    for (int i = 0; i < numVehicles; i++) {
+    for (int i = 0; i < NUM_VEHICLES; i++) {
       final List<Point> l = points.get(rng.nextInt(points.size()));
       final Point p = l.get(rng.nextInt(l.size()));
       simulator.register(new AGV(p));

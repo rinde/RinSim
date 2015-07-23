@@ -37,10 +37,10 @@ class RandomBroadcastAgent implements MovingRoadUser, CommUser, TickListener {
   Optional<RoadModel> roadModel;
   Optional<CommDevice> device;
   Optional<Point> destination;
+  long lastReceiveTime;
   private final double range;
   private final double reliability;
   private final RandomGenerator rng;
-  long lastReceiveTime = 0;
 
   RandomBroadcastAgent(RandomGenerator r) {
     rng = r;

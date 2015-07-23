@@ -32,6 +32,7 @@ import com.google.auto.value.AutoValue;
 
 class GradientFieldRenderer extends AbstractCanvasRenderer {
 
+  static final double DIAMETER_MUL = 6d;
   static final RGB GREEN = new RGB(0, 255, 0);
   static final RGB RED = new RGB(255, 0, 0);
 
@@ -70,10 +71,10 @@ class GradientFieldRenderer extends AbstractCanvasRenderer {
           final int y = vp.toCoordY(tp.y + p.y / 6d);
 
           if (field < 0) {
-            dia = (int) (field / -min * 6);
+            dia = (int) (field / -min * DIAMETER_MUL);
             color = RED;
           } else {
-            dia = (int) (field / max * 6);
+            dia = (int) (field / max * DIAMETER_MUL);
             color = GREEN;
           }
           gc.setBackground(new Color(gc.getDevice(), color));

@@ -25,6 +25,7 @@ import com.github.rinde.rinsim.examples.comm.CommExample;
 import com.github.rinde.rinsim.examples.core.SimpleExample;
 import com.github.rinde.rinsim.examples.core.taxi.TaxiExample;
 import com.github.rinde.rinsim.examples.pdptw.gradientfield.GradientFieldExample;
+import com.github.rinde.rinsim.examples.warehouse.WarehouseExample;
 import com.github.rinde.rinsim.testutil.GuiTests;
 
 /**
@@ -77,5 +78,13 @@ public class ExamplesTest {
       assertThat(cur.getMessage()).containsMatch(
           "The simulation did not result in a valid result");
     }
+  }
+
+  /**
+   * Runs the warehouse example.
+   */
+  @Test
+  public void warehouseExample() {
+    WarehouseExample.run(true);
   }
 }

@@ -35,14 +35,13 @@ import com.github.rinde.rinsim.geom.Point;
 import com.google.common.base.Predicate;
 
 class Truck extends Vehicle implements FieldEmitter {
+  static final int DISTANCE_THRESHOLD_KM = 10;
   @Nullable
   private GradientModel gradientModel;
 
   Truck(VehicleDTO pDto) {
     super(pDto);
   }
-
-  static final int DISTANCE_THRESHOLD_KM = 10;
 
   @Override
   protected void tickImpl(TimeLapse time) {

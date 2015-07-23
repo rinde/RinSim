@@ -67,9 +67,16 @@ public final class TaxiExample {
   private static final int TAXI_CAPACITY = 10;
   private static final int DEPOT_CAPACITY = 100;
 
+  private static final int SPEED_UP = 4;
+  private static final int MAX_CAPACITY = 3;
+  private static final double NEW_CUSTOMER_PROB = .007;
+
   private static final String MAP_FILE = "/data/maps/leuven-simple.dot";
   private static final Map<String, Graph<MultiAttributeData>> GRAPH_CACHE =
       newHashMap();
+
+  private static final long TEST_STOP_TIME = 20 * 60 * 1000;
+  private static final int TEST_SPEED_UP = 64;
 
   private TaxiExample() {}
 
@@ -124,11 +131,11 @@ public final class TaxiExample {
     if (testing) {
       view = view.withAutoClose()
           .withAutoPlay()
-          .withSimulatorEndTime(20 * 60 * 1000)
-          .withSpeedUp(64);
+          .withSimulatorEndTime(TEST_STOP_TIME)
+          .withSpeedUp(TEST_SPEED_UP);
     } else if (m != null && list != null && display != null) {
       view = view.withMonitor(m)
-          .withSpeedUp(4)
+          .withSpeedUp(SPEED_UP)
           .withResolution(m.getClientArea().width, m.getClientArea().height)
           .withDisplay(display)
           .withCallback(list)
@@ -161,7 +168,7 @@ public final class TaxiExample {
           Parcel.builder(roadModel.getRandomPosition(rng),
               roadModel.getRandomPosition(rng))
               .serviceDuration(SERVICE_DURATION)
-              .neededCapacity(1 + rng.nextInt(3))
+              .neededCapacity(1 + rng.nextInt(MAX_CAPACITY))
               .buildDTO()));
     }
 
@@ -170,13 +177,13 @@ public final class TaxiExample {
       public void tick(TimeLapse time) {
         if (time.getStartTime() > endTime) {
           simulator.stop();
-        } else if (rng.nextDouble() < .007) {
+        } else if (rng.nextDouble() < NEW_CUSTOMER_PROB) {
           simulator.register(new Customer(
               Parcel
                   .builder(roadModel.getRandomPosition(rng),
                       roadModel.getRandomPosition(rng))
                   .serviceDuration(SERVICE_DURATION)
-                  .neededCapacity(1 + rng.nextInt(3))
+                  .neededCapacity(1 + rng.nextInt(MAX_CAPACITY))
                   .buildDTO()));
         }
       }

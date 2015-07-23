@@ -48,6 +48,10 @@ import com.google.auto.value.AutoValue;
 
 class DemoPanel extends AbstractModel<Void>
     implements PanelRenderer, Listener {
+  static final int PREFERRED_SIZE = 30;
+  static final double SPACING = 30d;
+  static final int CHARS = 30;
+
   final RoadModel roadModel;
   final RandomGenerator rng;
   final Set<Vehicle> vehicles;
@@ -67,10 +71,9 @@ class DemoPanel extends AbstractModel<Void>
     final Text t = new Text(parent, SWT.SINGLE | SWT.ICON_CANCEL | SWT.CANCEL);
     t.setText(startString);
 
-    final int chars = 30;
     final GC gc = new GC(t);
     final FontMetrics fm = gc.getFontMetrics();
-    final int width = chars * fm.getAverageCharWidth();
+    final int width = CHARS * fm.getAverageCharWidth();
     final int height = fm.getHeight();
     gc.dispose();
     t.setSize(t.computeSize(width, height));
@@ -82,7 +85,7 @@ class DemoPanel extends AbstractModel<Void>
 
   @Override
   public int preferredSize() {
-    return 30;
+    return PREFERRED_SIZE;
   }
 
   @Override
@@ -99,7 +102,7 @@ class DemoPanel extends AbstractModel<Void>
   public void handleEvent(@Nullable Event event) {
     assert event != null;
     final Iterator<Point> points = SwarmDemo.measureString(
-        ((Text) event.widget).getText(), SwarmDemo.FONT_SIZE, 30d, 0)
+        ((Text) event.widget).getText(), SwarmDemo.FONT_SIZE, SPACING, 0)
         .iterator();
     final List<Vehicle> vs = newArrayList(vehicles);
     if (event.type == SWT.DefaultSelection) {
