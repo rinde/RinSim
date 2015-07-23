@@ -86,8 +86,8 @@ public final class ArraysSolverDebugger {
     protected final List<O> outputMemory;
     protected final boolean print;
 
-    Debugger(boolean print) {
-      this.print = print;
+    Debugger(boolean printing) {
+      print = printing;
       inputMemory = newArrayList();
       outputMemory = newArrayList();
     }
@@ -126,9 +126,9 @@ public final class ArraysSolverDebugger {
       implements SingleVehicleArraysSolver {
     private final SingleVehicleArraysSolver solver;
 
-    SVASDebugger(SingleVehicleArraysSolver solver, boolean print) {
+    SVASDebugger(SingleVehicleArraysSolver s, boolean print) {
       super(print);
-      this.solver = solver;
+      solver = s;
     }
 
     @Override
@@ -185,9 +185,9 @@ public final class ArraysSolverDebugger {
 
     private final MultiVehicleArraysSolver solver;
 
-    MVASDebugger(MultiVehicleArraysSolver solver, boolean print) {
+    MVASDebugger(MultiVehicleArraysSolver s, boolean print) {
       super(print);
-      this.solver = solver;
+      solver = s;
     }
 
     @Override

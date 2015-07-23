@@ -38,11 +38,10 @@ import com.google.common.util.concurrent.MoreExecutors;
  * @author Rinde van Lon
  */
 class SolverToRealtimeAdapter implements RealtimeSolver {
-  private final Solver solver;
-
   final ListeningExecutorService executor;
   Optional<Scheduler> scheduler;
   Optional<ListenableFuture<ImmutableList<ImmutableList<Parcel>>>> currentFuture;
+  private final Solver solver;
 
   SolverToRealtimeAdapter(Solver s) {
     solver = s;

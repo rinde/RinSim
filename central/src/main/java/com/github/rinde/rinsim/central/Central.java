@@ -128,11 +128,12 @@ public final class Central {
 
     @Override
     public CentralModel build(DependencyProvider dependencyProvider) {
-      Clock clock = dependencyProvider.get(Clock.class);
-      PDPRoadModel rm = dependencyProvider.get(PDPRoadModel.class);
-      PDPModel pm = dependencyProvider.get(PDPModel.class);
-      RandomProvider rnd = dependencyProvider.get(RandomProvider.class);
-      Solver solver = getSolverSupplier().get(rnd.masterInstance().nextLong());
+      final Clock clock = dependencyProvider.get(Clock.class);
+      final PDPRoadModel rm = dependencyProvider.get(PDPRoadModel.class);
+      final PDPModel pm = dependencyProvider.get(PDPModel.class);
+      final RandomProvider rnd = dependencyProvider.get(RandomProvider.class);
+      final Solver solver =
+          getSolverSupplier().get(rnd.masterInstance().nextLong());
       return new CentralModel(clock, rm, pm, solver);
     }
 

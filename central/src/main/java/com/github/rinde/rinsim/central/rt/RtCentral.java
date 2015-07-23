@@ -49,7 +49,7 @@ import com.google.common.collect.ImmutableSet;
 
 /**
  * Real-time version of {@link com.github.rinde.rinsim.central.Central Central}.
- * 
+ *
  * TODO write full doc
  * @author Rinde van Lon
  */
@@ -174,7 +174,7 @@ public final class RtCentral {
       if (sleepAfterNotify) {
         try {
           Thread.sleep(timeLapse.getTickLength() / 2);
-        } catch (InterruptedException e) {
+        } catch (final InterruptedException e) {
           throw new IllegalStateException(e);
         }
       }
@@ -191,7 +191,7 @@ public final class RtCentral {
         final Set<RouteFollowingVehicle> vehicles = roadModel
             .getObjectsOfType(RouteFollowingVehicle.class);
 
-        ImmutableList<ImmutableList<Parcel>> schedule = solver
+        final ImmutableList<ImmutableList<Parcel>> schedule = solver
             .getCurrentSchedule();
 
         checkArgument(schedule.size() == vehicles.size(),
@@ -199,14 +199,14 @@ public final class RtCentral {
                 + "one route for each vehicle, routes: %s, vehicles: %s.",
             schedule.size(), vehicles.size());
 
-        Iterator<ImmutableList<Parcel>> routes = schedule.iterator();
+        final Iterator<ImmutableList<Parcel>> routes = schedule.iterator();
         boolean inconsistencyDetected = false;
         for (final RouteFollowingVehicle vehicle : vehicles) {
           vehicle.setRouteSafe(routes.next());
 
-          Set<Parcel> contents = pdpModel.getContents(vehicle);
-          Set<Parcel> routeSet = newHashSet(vehicle.getRoute());
-          for (Parcel p : contents) {
+          final Set<Parcel> contents = pdpModel.getContents(vehicle);
+          final Set<Parcel> routeSet = newHashSet(vehicle.getRoute());
+          for (final Parcel p : contents) {
             if (!routeSet.contains(p)) {
               inconsistencyDetected = true;
               break;
@@ -258,15 +258,15 @@ public final class RtCentral {
     @Override
     public RtCentralModel build(
         DependencyProvider dependencyProvider) {
-      RandomProvider rnd = dependencyProvider.get(RandomProvider.class);
-      RealtimeSolver solver = getSolverSupplier()
+      final RandomProvider rnd = dependencyProvider.get(RandomProvider.class);
+      final RealtimeSolver solver = getSolverSupplier()
           .get(rnd.masterInstance().nextLong());
-      RtSimSolver s = dependencyProvider.get(RtSimSolverBuilder.class)
+      final RtSimSolver s = dependencyProvider.get(RtSimSolverBuilder.class)
           .build(solver);
-      RealtimeClockController clock = dependencyProvider
+      final RealtimeClockController clock = dependencyProvider
           .get(RealtimeClockController.class);
-      PDPRoadModel rm = dependencyProvider.get(PDPRoadModel.class);
-      PDPModel pm = dependencyProvider.get(PDPModel.class);
+      final PDPRoadModel rm = dependencyProvider.get(PDPRoadModel.class);
+      final PDPModel pm = dependencyProvider.get(PDPModel.class);
       return new RtCentral.RtCentralModel(clock, s, rm, pm, getSleepOnChange());
     }
 
@@ -284,6 +284,8 @@ public final class RtCentral {
 
   static class VehicleCheckerModel
       extends AbstractModel<RouteFollowingVehicle> {
+
+    VehicleCheckerModel() {}
 
     @Override
     public boolean register(RouteFollowingVehicle element) {

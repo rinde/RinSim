@@ -74,6 +74,9 @@ public final class RtSolverModel extends AbstractModel<RtSolverUser> {
   }
 
   class RtSimSolverBuilderImpl extends RtSimSolverBuilder {
+
+    RtSimSolverBuilderImpl() {}
+
     @Override
     public RtSimSolver build(RealtimeSolver solver) {
       return new RtSimSolverSchedulerImpl(clock, solver, roadModel,
@@ -97,10 +100,10 @@ public final class RtSolverModel extends AbstractModel<RtSolverUser> {
 
     @Override
     public RtSolverModel build(DependencyProvider dependencyProvider) {
-      RealtimeClockController c = dependencyProvider
+      final RealtimeClockController c = dependencyProvider
           .get(RealtimeClockController.class);
-      PDPRoadModel rm = dependencyProvider.get(PDPRoadModel.class);
-      PDPModel pm = dependencyProvider.get(PDPModel.class);
+      final PDPRoadModel rm = dependencyProvider.get(PDPRoadModel.class);
+      final PDPModel pm = dependencyProvider.get(PDPModel.class);
       return new RtSolverModel(c, rm, pm);
     }
   }
@@ -136,6 +139,9 @@ public final class RtSolverModel extends AbstractModel<RtSolverUser> {
     }
 
     class InternalRtSimSolver extends RtSimSolver {
+
+      InternalRtSimSolver() {}
+
       @Override
       public void solve(SolveArgs args) {
         final StateContext sc = converter.convert(args);
@@ -160,11 +166,12 @@ public final class RtSolverModel extends AbstractModel<RtSolverUser> {
     }
 
     class InternalScheduler extends Scheduler {
+      InternalScheduler() {}
+
       @Override
       public void updateSchedule(ImmutableList<ImmutableList<Parcel>> routes) {
         currentSchedule = Optional.of(routes);
         isUpdated = true;
-
       }
 
       @Override

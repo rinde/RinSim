@@ -33,8 +33,8 @@ public final class SolverDebugger implements Solver {
   private final Solver delegate;
   private final boolean print;
 
-  private SolverDebugger(Solver delegate, boolean debugPrints) {
-    this.delegate = delegate;
+  private SolverDebugger(Solver deleg, boolean debugPrints) {
+    delegate = deleg;
     print = debugPrints;
     inputs = newArrayList();
     outputs = newArrayList();

@@ -40,14 +40,13 @@ public class SingleVehicleSolverAdapter implements Solver {
   private final Unit<Duration> outputTimeUnit;
 
   /**
-   * @param solver The solver to use.
-   * @param outputTimeUnit The time unit which is expected by the specified
-   *          solver.
+   * @param s The solver to use.
+   * @param timeUnit The time unit which is expected by the specified solver.
    */
-  public SingleVehicleSolverAdapter(SingleVehicleArraysSolver solver,
-      Unit<Duration> outputTimeUnit) {
-    this.solver = solver;
-    this.outputTimeUnit = outputTimeUnit;
+  public SingleVehicleSolverAdapter(SingleVehicleArraysSolver s,
+      Unit<Duration> timeUnit) {
+    solver = s;
+    outputTimeUnit = timeUnit;
   }
 
   @Override
@@ -68,7 +67,7 @@ public class SingleVehicleSolverAdapter implements Solver {
 
     // there are always two locations: the current vehicle location and
     // the depot
-    final int numLocations = 2 + (state.getAvailableParcels().size() * 2)
+    final int numLocations = 2 + state.getAvailableParcels().size() * 2
         + inCargo.size();
 
     if (numLocations == 2) {

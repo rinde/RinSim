@@ -48,7 +48,7 @@ import com.google.common.math.DoubleMath;
 
 /**
  * @author Rinde van Lon
- * 
+ *
  */
 public final class ArraysSolvers {
 
@@ -695,28 +695,28 @@ public final class ArraysSolvers {
      */
     public final ImmutableMap<Integer, ParcelIndexObj> index2parcel;
 
-    ArraysObject(int[][] travelTime, int[] releaseDates, int[] dueDates,
-        int[][] servicePairs, int[] serviceTimes,
-        @Nullable SolutionObject[] currentSolutions,
-        ImmutableList<Point> locations,
-        ImmutableMap<Parcel, ParcelIndexObj> parcel2index,
-        ImmutableMap<Integer, ParcelIndexObj> index2parcel) {
-      this.travelTime = travelTime;
-      this.releaseDates = releaseDates;
-      this.dueDates = dueDates;
-      this.servicePairs = servicePairs;
-      this.serviceTimes = serviceTimes;
-      this.currentSolutions = currentSolutions;
-      location2index = locations;
-      this.parcel2index = parcel2index;
-      this.index2parcel = index2parcel;
+    ArraysObject(int[][] pTravelTime, int[] pReleaseDates, int[] pDueDates,
+        int[][] pServicePairs, int[] pServiceTimes,
+        @Nullable SolutionObject[] pCurrentSolutions,
+        ImmutableList<Point> pLocations,
+        ImmutableMap<Parcel, ParcelIndexObj> pParcel2index,
+        ImmutableMap<Integer, ParcelIndexObj> pIndex2parcel) {
+      travelTime = pTravelTime;
+      releaseDates = pReleaseDates;
+      dueDates = pDueDates;
+      servicePairs = pServicePairs;
+      serviceTimes = pServiceTimes;
+      currentSolutions = pCurrentSolutions;
+      location2index = pLocations;
+      parcel2index = pParcel2index;
+      index2parcel = pIndex2parcel;
     }
 
-    ArraysObject(int[][] travelTime, int[] releaseDates, int[] dueDates,
-        int[][] servicePairs, int[] serviceTimes,
-        @Nullable SolutionObject[] currentSolutions) {
-      this(travelTime, releaseDates, dueDates, servicePairs, serviceTimes,
-          currentSolutions, ImmutableList.<Point>of(), ImmutableMap
+    ArraysObject(int[][] pTravelTime, int[] pReleaseDates, int[] pDueDates,
+        int[][] pServicePairs, int[] pServiceTimes,
+        @Nullable SolutionObject[] pCurrentSolutions) {
+      this(pTravelTime, pReleaseDates, pDueDates, pServicePairs, pServiceTimes,
+          pCurrentSolutions, ImmutableList.<Point>of(), ImmutableMap
               .<Parcel, ParcelIndexObj>of(),
           ImmutableMap
               .<Integer, ParcelIndexObj>of());
@@ -765,42 +765,42 @@ public final class ArraysSolvers {
         ImmutableList<Point> locations,
         ImmutableMap<Parcel, ParcelIndexObj> parcel2index,
         ImmutableMap<Integer, ParcelIndexObj> index2parcel,
-        int[][] vehicleTravelTimes, int[][] inventories,
-        int[] remainingServiceTimes, int[] currentDestinations) {
+        int[][] pVehicleTravelTimes, int[][] pInventories,
+        int[] pRemainingServiceTimes, int[] pCurrentDestinations) {
       super(travelTime, releaseDates, dueDates, servicePairs, serviceTimes,
           currentSolutions, locations, parcel2index, index2parcel);
-      this.vehicleTravelTimes = Arrays.copyOf(vehicleTravelTimes,
-          vehicleTravelTimes.length);
-      this.inventories = Arrays.copyOf(inventories, inventories.length);
-      this.remainingServiceTimes = Arrays.copyOf(remainingServiceTimes,
-          remainingServiceTimes.length);
-      this.currentDestinations = Arrays.copyOf(currentDestinations,
-          currentDestinations.length);
+      vehicleTravelTimes = Arrays.copyOf(pVehicleTravelTimes,
+          pVehicleTravelTimes.length);
+      inventories = Arrays.copyOf(pInventories, pInventories.length);
+      remainingServiceTimes = Arrays.copyOf(pRemainingServiceTimes,
+          pRemainingServiceTimes.length);
+      currentDestinations = Arrays.copyOf(pCurrentDestinations,
+          pCurrentDestinations.length);
     }
 
     MVArraysObject(ArraysObject ao,
         @Nullable SolutionObject[] currentSolutions,
-        int[][] vehicleTravelTimes, int[][] inventories,
-        int[] remainingServiceTimes, int[] currentDestinations) {
+        int[][] pVehicleTravelTimes, int[][] pInventories,
+        int[] pRemainingServiceTimes, int[] pCurrentDestinations) {
       this(ao.travelTime, ao.releaseDates, ao.dueDates, ao.servicePairs,
           ao.serviceTimes, currentSolutions, ao.location2index,
-          ao.parcel2index, ao.index2parcel, vehicleTravelTimes, inventories,
-          remainingServiceTimes, currentDestinations);
+          ao.parcel2index, ao.index2parcel, pVehicleTravelTimes, pInventories,
+          pRemainingServiceTimes, pCurrentDestinations);
     }
 
     MVArraysObject(int[][] travelTime, int[] releaseDates, int[] dueDates,
-        int[][] servicePairs, int[] serviceTimes, int[][] vehicleTravelTimes,
-        int[][] inventories, int[] remainingServiceTimes,
-        int[] currentDestinations, @Nullable SolutionObject[] curSolutions) {
+        int[][] servicePairs, int[] serviceTimes, int[][] pVehicleTravelTimes,
+        int[][] pInventories, int[] pRemainingServiceTimes,
+        int[] pCurrentDestinations, @Nullable SolutionObject[] curSolutions) {
       super(travelTime, releaseDates, dueDates, servicePairs, serviceTimes,
           curSolutions);
-      this.vehicleTravelTimes = Arrays.copyOf(vehicleTravelTimes,
-          vehicleTravelTimes.length);
-      this.inventories = Arrays.copyOf(inventories, inventories.length);
-      this.remainingServiceTimes = Arrays.copyOf(remainingServiceTimes,
-          remainingServiceTimes.length);
-      this.currentDestinations = Arrays.copyOf(currentDestinations,
-          currentDestinations.length);
+      vehicleTravelTimes = Arrays.copyOf(pVehicleTravelTimes,
+          pVehicleTravelTimes.length);
+      inventories = Arrays.copyOf(pInventories, pInventories.length);
+      remainingServiceTimes = Arrays.copyOf(pRemainingServiceTimes,
+          pRemainingServiceTimes.length);
+      currentDestinations = Arrays.copyOf(pCurrentDestinations,
+          pCurrentDestinations.length);
     }
   }
 
@@ -809,10 +809,10 @@ public final class ArraysSolvers {
     final int pickupIndex;
     final int deliveryIndex;
 
-    ParcelIndexObj(Parcel dto, int pickupIndex, int deliveryIndex) {
-      this.dto = dto;
-      this.pickupIndex = pickupIndex;
-      this.deliveryIndex = deliveryIndex;
+    ParcelIndexObj(Parcel pDto, int pPickupIndex, int pDeliveryIndex) {
+      dto = pDto;
+      pickupIndex = pPickupIndex;
+      deliveryIndex = pDeliveryIndex;
     }
   }
 }

@@ -236,7 +236,7 @@ public final class ArraysSolverValidator {
     }
     final Set<Integer> availLocs = b.build();
 
-    final int m = n - 2 - (servicePairs.length * 2);
+    final int m = n - 2 - servicePairs.length * 2;
     checkArgument(
         inventories.length == m,
         "Invalid number of inventory entries, must be equal to number of "
@@ -258,8 +258,8 @@ public final class ArraysSolverValidator {
           inventories[i][0], i);
       checkArgument(
           inventories[i][1] >= 1 && inventories[i][1] < n - 1,
-          "Found a reference to a non-existing location (%s) in inventories at "
-              + "row %s.",
+          "Found a reference to a non-existing location (%s) in inventories at"
+              + " row %s.",
           inventories[i][1], i);
       checkArgument(
           !availLocs.contains(inventories[i][1]),

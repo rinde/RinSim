@@ -126,9 +126,9 @@ public final class SolverModel extends AbstractModel<SolverUser> {
 
     @Override
     public SolverModel build(DependencyProvider dependencyProvider) {
-      Clock c = dependencyProvider.get(Clock.class);
-      PDPRoadModel rm = dependencyProvider.get(PDPRoadModel.class);
-      PDPModel pm = dependencyProvider.get(PDPModel.class);
+      final Clock c = dependencyProvider.get(Clock.class);
+      final PDPRoadModel rm = dependencyProvider.get(PDPRoadModel.class);
+      final PDPModel pm = dependencyProvider.get(PDPModel.class);
       return new SolverModel(c, rm, pm);
     }
 

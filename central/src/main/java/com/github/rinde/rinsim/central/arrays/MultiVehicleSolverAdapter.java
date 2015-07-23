@@ -35,14 +35,13 @@ public class MultiVehicleSolverAdapter implements Solver {
   private final Unit<Duration> outputTimeUnit;
 
   /**
-   * @param solver The solver to use.
-   * @param outputTimeUnit The time unit which is expected by the specified
-   *          solver.
+   * @param s The solver to use.
+   * @param timeUnit The time unit which is expected by the specified solver.
    */
-  public MultiVehicleSolverAdapter(MultiVehicleArraysSolver solver,
-      Unit<Duration> outputTimeUnit) {
-    this.solver = solver;
-    this.outputTimeUnit = outputTimeUnit;
+  public MultiVehicleSolverAdapter(MultiVehicleArraysSolver s,
+      Unit<Duration> timeUnit) {
+    solver = s;
+    outputTimeUnit = timeUnit;
   }
 
   @Override

@@ -58,7 +58,7 @@ import com.google.common.math.DoubleMath;
 
 /**
  * @author Rinde van Lon
- * 
+ *
  */
 public final class Solvers {
 
@@ -610,10 +610,10 @@ public final class Solvers {
      */
     public final ImmutableMap<VehicleStateObject, Vehicle> vehicleMap;
 
-    StateContext(GlobalStateObject state,
-        ImmutableMap<VehicleStateObject, Vehicle> vehicleMap) {
-      this.state = state;
-      this.vehicleMap = vehicleMap;
+    StateContext(GlobalStateObject stateObj,
+        ImmutableMap<VehicleStateObject, Vehicle> vehicleMapping) {
+      state = stateObj;
+      vehicleMap = vehicleMapping;
     }
   }
 
@@ -626,10 +626,10 @@ public final class Solvers {
         long pickTar, long delTar, long compT, long simT, boolean finish,
         int atDepot, long overT, int total, int moved, Unit<Duration> time,
         Unit<Length> distUnit, Unit<Velocity> speed,
-        ImmutableList<ImmutableList<Long>> arrivalTimes) {
+        ImmutableList<ImmutableList<Long>> pArrivalTimes) {
       super(dist, pick, del, parc, accP, pickTar, delTar, compT, simT, finish,
           atDepot, overT, total, moved, time, distUnit, speed);
-      this.arrivalTimes = arrivalTimes;
+      arrivalTimes = pArrivalTimes;
     }
   }
 }

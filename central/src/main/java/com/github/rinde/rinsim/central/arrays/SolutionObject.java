@@ -20,7 +20,7 @@ import java.util.Arrays;
 /**
  * Solution object for single vehicle pickup-and-delivery problem with time
  * windows.
- * 
+ *
  * @author Rinde van Lon
  */
 public class SolutionObject {
@@ -47,15 +47,16 @@ public class SolutionObject {
   public final int objectiveValue;
 
   /**
-   * 
-   * @param route {@link #route}
-   * @param arrivalTimes {@link #arrivalTimes}
-   * @param objectiveValue {@link #objectiveValue}
+   *
+   * @param pRoute {@link #route}
+   * @param pArrivalTimes {@link #arrivalTimes}
+   * @param pObjectiveValue {@link #objectiveValue}
    */
-  public SolutionObject(int[] route, int[] arrivalTimes, int objectiveValue) {
-    this.route = Arrays.copyOf(route, route.length);
-    this.arrivalTimes = Arrays.copyOf(arrivalTimes, arrivalTimes.length);
-    this.objectiveValue = objectiveValue;
+  public SolutionObject(int[] pRoute, int[] pArrivalTimes,
+      int pObjectiveValue) {
+    route = Arrays.copyOf(pRoute, pRoute.length);
+    arrivalTimes = Arrays.copyOf(pArrivalTimes, pArrivalTimes.length);
+    objectiveValue = pObjectiveValue;
   }
 
   @Override
