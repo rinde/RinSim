@@ -101,7 +101,7 @@ public final class RtCentral {
   public static MASConfiguration solverConfigurationAdapt(
       StochasticSupplier<? extends Solver> solverSupplier, String nameSuffix) {
     return solverConfiguration(AdapterSupplier.create(solverSupplier),
-        nameSuffix);
+      nameSuffix);
   }
 
   public static TimedEventHandler<AddVehicleEvent> vehicleHandler() {
@@ -160,8 +160,8 @@ public final class RtCentral {
 
       // gather current routes
       final ImmutableList.Builder<ImmutableList<Parcel>> currentRouteBuilder =
-          ImmutableList
-              .builder();
+        ImmutableList
+            .builder();
       for (final RouteFollowingVehicle vehicle : vehicles) {
         final ImmutableList<Parcel> l = ImmutableList.copyOf(vehicle
             .getRoute());
@@ -169,7 +169,7 @@ public final class RtCentral {
       }
 
       solver.solve(
-          SolveArgs.create().useCurrentRoutes(currentRouteBuilder.build()));
+        SolveArgs.create().useCurrentRoutes(currentRouteBuilder.build()));
 
       if (sleepAfterNotify) {
         try {
@@ -195,9 +195,9 @@ public final class RtCentral {
             .getCurrentSchedule();
 
         checkArgument(schedule.size() == vehicles.size(),
-            "An invalid schedule was created, a valid schedule should contain "
-                + "one route for each vehicle, routes: %s, vehicles: %s.",
-            schedule.size(), vehicles.size());
+          "An invalid schedule was created, a valid schedule should contain "
+              + "one route for each vehicle, routes: %s, vehicles: %s.",
+          schedule.size(), vehicles.size());
 
         final Iterator<ImmutableList<Parcel>> routes = schedule.iterator();
         boolean inconsistencyDetected = false;
@@ -232,11 +232,11 @@ public final class RtCentral {
 
     Builder() {
       setDependencies(
-          RandomProvider.class,
-          RtSimSolverBuilder.class,
-          RealtimeClockController.class,
-          PDPRoadModel.class,
-          PDPModel.class);
+        RandomProvider.class,
+        RtSimSolverBuilder.class,
+        RealtimeClockController.class,
+        PDPRoadModel.class,
+        PDPModel.class);
     }
 
     @SuppressWarnings("unchecked")
@@ -273,7 +273,7 @@ public final class RtCentral {
     @Override
     public ImmutableSet<ModelBuilder<?, ?>> getChildren() {
       return ImmutableSet.<ModelBuilder<?, ?>>of(RtSolverModel.builder(),
-          VehicleCheckerModel.builder());
+        VehicleCheckerModel.builder());
     }
 
     @Override
@@ -290,10 +290,10 @@ public final class RtCentral {
     @Override
     public boolean register(RouteFollowingVehicle element) {
       checkArgument(element.isDelayedRouteChangingAllowed(),
-          "%s requires that all registered %s instances allow delayed route "
-              + "changing",
-          RtCentral.class.getSimpleName(),
-          RouteFollowingVehicle.class.getSimpleName());
+        "%s requires that all registered %s instances allow delayed route "
+            + "changing",
+        RtCentral.class.getSimpleName(),
+        RouteFollowingVehicle.class.getSimpleName());
       return true;
     }
 

@@ -24,7 +24,8 @@ import com.github.rinde.rinsim.central.GlobalStateObject;
  * <p>
  * A {@link RealtimeSolver} can be used to schedule all vehicles in a simulation
  * via {@link RtCentral}, or it can be used to compute a route for a single
- * vehicle (TODO explain agent usage).
+ * vehicle (TODO explain agent usage). TODO explain that Scheduler represents
+ * the API towards the sim?
  * <p>
  * When a {@link RealtimeSolver} is added to the simulation
  * {@link #init(Scheduler)} is called. Via this method a {@link Scheduler} is
@@ -34,7 +35,7 @@ import com.github.rinde.rinsim.central.GlobalStateObject;
  * current state. Using the received {@link GlobalStateObject} a new route
  * assignment should be computed which can be set to the vehicle(s) using
  * {@link Scheduler#updateSchedule(com.google.common.collect.ImmutableList)}.
- * 
+ *
  * @author Rinde van Lon
  */
 public interface RealtimeSolver {

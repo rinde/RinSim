@@ -20,7 +20,14 @@ import com.github.rinde.rinsim.core.model.pdp.Parcel;
 import com.google.common.collect.ImmutableList;
 
 /**
- * Facade for {@link RealtimeSolver} in context of simulation. TODO extend
+ * {@link RtSimSolver} is a usage-friendly facade for {@link RealtimeSolver}s.
+ * It provides a convenient API to use a {@link RealtimeSolver} inside a
+ * simulation.
+ * <p>
+ * Instances of {@link RtSimSolver} can only be constructed using
+ * {@link RtSimSolverBuilder}, which can be obtained via {@link RtSolverModel}.
+ * Note that it is not possible to construct your own subclass of
+ * {@link RtSimSolver}.
  * @author Rinde van Lon
  */
 public abstract class RtSimSolver {

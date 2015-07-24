@@ -35,15 +35,16 @@ import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
 
 /**
+ * TODO doc.
  * @author Rinde van Lon
  */
-class SolverToRealtimeAdapter implements RealtimeSolver {
+public class SolverToRealtimeAdapter implements RealtimeSolver {
   final ListeningExecutorService executor;
   Optional<Scheduler> scheduler;
   Optional<ListenableFuture<ImmutableList<ImmutableList<Parcel>>>> currentFuture;
   private final Solver solver;
 
-  SolverToRealtimeAdapter(Solver s) {
+  public SolverToRealtimeAdapter(Solver s) {
     solver = s;
     executor = MoreExecutors
         .listeningDecorator(Executors.newSingleThreadExecutor());
@@ -67,26 +68,26 @@ class SolverToRealtimeAdapter implements RealtimeSolver {
     currentFuture = Optional
         .of(executor.submit(new SolverComputer(solver, snapshot)));
     Futures.addCallback(currentFuture.get(),
-        new FutureCallback<ImmutableList<ImmutableList<Parcel>>>() {
-          @Override
-          public void onSuccess(
-              @Nullable ImmutableList<ImmutableList<Parcel>> result) {
-            if (result == null) {
-              throw new IllegalArgumentException(
-                  "Solver.solve(..) must return a non-null result.");
-            }
-            scheduler.get().updateSchedule(result);
-            scheduler.get().doneForNow();
+      new FutureCallback<ImmutableList<ImmutableList<Parcel>>>() {
+        @Override
+        public void onSuccess(
+            @Nullable ImmutableList<ImmutableList<Parcel>> result) {
+          if (result == null) {
+            throw new IllegalArgumentException(
+                "Solver.solve(..) must return a non-null result.");
           }
+          scheduler.get().updateSchedule(result);
+          scheduler.get().doneForNow();
+        }
 
-          @Override
-          public void onFailure(Throwable t) {
-            if (t instanceof CancellationException) {
-              return;
-            }
-            throw new IllegalStateException(t);
+        @Override
+        public void onFailure(Throwable t) {
+          if (t instanceof CancellationException) {
+            return;
           }
-        });
+          throw new IllegalStateException(t);
+        }
+      });
   }
 
   static class SolverComputer

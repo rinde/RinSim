@@ -18,8 +18,10 @@ package com.github.rinde.rinsim.central.rt;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
 
+import java.util.Set;
 import java.util.concurrent.Executors;
 
+import com.github.rinde.rinsim.central.Solver;
 import com.github.rinde.rinsim.central.Solvers;
 import com.github.rinde.rinsim.central.Solvers.SimulationConverter;
 import com.github.rinde.rinsim.central.Solvers.SolveArgs;
@@ -29,6 +31,7 @@ import com.github.rinde.rinsim.core.model.Model.AbstractModel;
 import com.github.rinde.rinsim.core.model.ModelBuilder.AbstractModelBuilder;
 import com.github.rinde.rinsim.core.model.pdp.PDPModel;
 import com.github.rinde.rinsim.core.model.pdp.Parcel;
+import com.github.rinde.rinsim.core.model.pdp.Vehicle;
 import com.github.rinde.rinsim.core.model.time.RealtimeClockController;
 import com.github.rinde.rinsim.pdptw.common.PDPRoadModel;
 import com.google.auto.value.AutoValue;
@@ -37,8 +40,23 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
 
+import autovalue.shaded.com.google.common.common.collect.ImmutableSet;
+
 /**
- * TODO comment.
+ * {@link RtSolverModel} allows other models and objects added to the simulator
+ * to obtain instances of {@link RtSimSolver} to use a {@link RealtimeSolver} in
+ * a simulation. For models it is possible to declare a dependency on
+ * {@link RtSimSolverBuilder}, other objects can implement the
+ * {@link RtSolverUser} interface which allows injection of a
+ * {@link RtSimSolverBuilder}.
+ * <p>
+ * <b>Model properties</b>
+ * <ul>
+ * <li><i>Associated type:</i> {@link RtSolverUser}.</li>
+ * <li><i>Provides:</i> {@link RtSimSolverBuilder}.</li>
+ * <li><i>Dependencies:</i> {@link RealtimeClockController},
+ * {@link PDPRoadModel}, {@link PDPModel}.</li>
+ * </ul>
  * @author Rinde van Lon
  */
 public final class RtSolverModel extends AbstractModel<RtSolverUser> {
@@ -68,33 +86,30 @@ public final class RtSolverModel extends AbstractModel<RtSolverUser> {
   @Override
   public <U> U get(Class<U> clazz) {
     checkArgument(clazz == RtSimSolverBuilder.class,
-        "%s does not provide this type: %s.", getClass().getSimpleName(),
-        clazz);
+      "%s does not provide this type: %s.", getClass().getSimpleName(),
+      clazz);
     return clazz.cast(builder);
   }
 
+  /**
+   * Constructs a {@link Builder} instance for {@link RtSolverModel}.
+   * @return A new instance.
+   */
   public static Builder builder() {
     return new AutoValue_RtSolverModel_Builder();
   }
 
-  class RtSimSolverBuilderImpl extends RtSimSolverBuilder {
-
-    RtSimSolverBuilderImpl() {}
-
-    @Override
-    public RtSimSolver build(RealtimeSolver solver) {
-      return new RtSimSolverSchedulerImpl(clock, solver, roadModel,
-          pdpModel).rtSimSolver;
-    }
-  }
-
+  /**
+   * A builder for {@link RtSolverModel} instances.
+   * @author Rinde van Lon
+   */
   @AutoValue
   public abstract static class Builder
       extends AbstractModelBuilder<RtSolverModel, RtSolverUser> {
 
     Builder() {
       setDependencies(RealtimeClockController.class, PDPRoadModel.class,
-          PDPModel.class);
+        PDPModel.class);
       setProvidingTypes(RtSimSolverBuilder.class);
     }
 
@@ -105,6 +120,32 @@ public final class RtSolverModel extends AbstractModel<RtSolverUser> {
       final PDPRoadModel rm = dependencyProvider.get(PDPRoadModel.class);
       final PDPModel pm = dependencyProvider.get(PDPModel.class);
       return new RtSolverModel(c, rm, pm);
+    }
+  }
+
+  class RtSimSolverBuilderImpl extends RtSimSolverBuilder {
+    Set<Vehicle> associatedVehicles;
+
+    RtSimSolverBuilderImpl() {
+      associatedVehicles = ImmutableSet.of();
+    }
+
+    @Override
+    public RtSimSolverBuilder setVehicles(Set<? extends Vehicle> vehicles) {
+      checkArgument(!vehicles.isEmpty());
+      associatedVehicles = ImmutableSet.copyOf(vehicles);
+      return this;
+    }
+
+    @Override
+    public RtSimSolver build(RealtimeSolver solver) {
+      return new RtSimSolverSchedulerImpl(clock, solver, roadModel,
+          pdpModel, associatedVehicles).rtSimSolver;
+    }
+
+    @Override
+    public RtSimSolver build(Solver solver) {
+      return build(new SolverToRealtimeAdapter(solver));
     }
   }
 
@@ -119,13 +160,14 @@ public final class RtSolverModel extends AbstractModel<RtSolverUser> {
     final Scheduler scheduler;
 
     RtSimSolverSchedulerImpl(RealtimeClockController c, RealtimeSolver s,
-        PDPRoadModel rm, PDPModel pm) {
+        PDPRoadModel rm, PDPModel pm, Set<Vehicle> vehicles) {
       solver = s;
       clock = c;
       converter = Solvers.converterBuilder()
           .with(clock)
           .with(rm)
           .with(pm)
+          .with(vehicles)
           .build();
       currentSchedule = Optional.absent();
       isUpdated = false;
@@ -177,7 +219,7 @@ public final class RtSolverModel extends AbstractModel<RtSolverUser> {
       @Override
       public ImmutableList<ImmutableList<Parcel>> getCurrentSchedule() {
         checkState(currentSchedule.isPresent(),
-            "No schedule has been set, use updateSchedule(..).");
+          "No schedule has been set, use updateSchedule(..).");
         return currentSchedule.get();
       }
 
