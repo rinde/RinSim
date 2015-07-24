@@ -264,8 +264,7 @@ public class DotGraphIO<E extends ConnectionData> extends
     }
   }
 
-  enum MultiAttributeDataIO implements
-    ConnectionDataIO<MultiAttributeData> {
+  enum MultiAttributeDataIO implements ConnectionDataIO<MultiAttributeData> {
     INSTANCE {
       @Override
       public void write(StringBuilder sb, MultiAttributeData data) {

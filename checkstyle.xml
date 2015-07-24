@@ -138,38 +138,42 @@
 		<module name="NoClone" />
 		<module name="NoFinalizer" />
 		<module name="IllegalThrows" />
-		<module name="PackageDeclaration"/>
-		<module name="DeclarationOrder"/>
-		<module name="ParameterAssignment"/>
-		<module name="ExplicitInitialization"/>
-		<module name="DefaultComesLast"/>
-		<module name="MissingCtor"/>
-		<module name="FallThrough"/>
-		<module name="MultipleStringLiterals"/>
-		<module name="MultipleVariableDeclarations"/>
-		<module name="UnnecessaryParentheses"/>
-		<module name="OneStatementPerLine"/>
-		
-		
+		<module name="PackageDeclaration" />
+		<module name="DeclarationOrder" />
+		<module name="ParameterAssignment" />
+		<module name="ExplicitInitialization" />
+		<module name="DefaultComesLast" />
+		<module name="MissingCtor" />
+		<module name="FallThrough" />
+		<module name="MultipleStringLiterals" />
+		<module name="MultipleVariableDeclarations" />
+		<module name="UnnecessaryParentheses" />
+		<module name="OneStatementPerLine" />
+
+
 
 		<!-- Checks for class design -->
 		<!-- See http://checkstyle.sf.net/config_design.html -->
 		<!--module name="VisibilityModifier"/ -->
 		<module name="FinalClass" />
-		<module name="InterfaceIsType"/>
+		<module name="InterfaceIsType" />
 		<module name="HideUtilityClassConstructor" />
 		<!-- <module name="DesignForExtension"/> -->
-		<module name="MutableException"/>
-		<module name="InnerTypeLast"/>
-		<module name="OneTopLevelClass"/>
+		<module name="MutableException" />
+		<module name="InnerTypeLast" />
+		<module name="OneTopLevelClass" />
 
 
 		<!-- Miscellaneous other checks. -->
 		<!-- See http://checkstyle.sf.net/config_misc.html -->
-		<!--module name="ArrayTypeStyle"/ -->
-		<!--module name="FinalParameters"/ -->
-		<!--module name="TodoComment"/ -->
+		<module name="UncommentedMain">
+			<property name="excludedClasses" value=".*(Demo|Example)$" />
+		</module>
 		<module name="UpperEll" />
+		<module name="ArrayTypeStyle" />
+		<module name="TrailingComment" />
+		<module name="OuterTypeFilename" />
+		<module name="AvoidEscapedUnicodeCharacters" />
 
 		<!-- Enable suppression later -->
 		<module name="FileContentsHolder" />
