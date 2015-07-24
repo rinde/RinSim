@@ -35,7 +35,7 @@ import com.google.common.base.Predicate;
  */
 class Truck extends Vehicle {
 
-  public Truck(VehicleDTO pDto) {
+  Truck(VehicleDTO pDto) {
     super(pDto);
   }
 

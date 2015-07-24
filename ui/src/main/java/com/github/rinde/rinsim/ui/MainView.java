@@ -17,10 +17,25 @@ package com.github.rinde.rinsim.ui;
 
 import com.github.rinde.rinsim.event.Listener;
 
+/**
+ * Implementations should represent the main view of an UI application.
+ * @author Rinde van Lon
+ */
 interface MainView {
+  /**
+   * Event types dispatched by main view.
+   * @author Rinde van Lon
+   */
   enum EventType {
+    /**
+     * Indicates that the view is shown.
+     */
     SHOW;
   }
 
+  /**
+   * Add a {@link Listener} to the main view.
+   * @param l The listener to add.
+   */
   void addListener(Listener l);
 }
