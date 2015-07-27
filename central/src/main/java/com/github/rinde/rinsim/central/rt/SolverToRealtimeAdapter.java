@@ -19,7 +19,6 @@ import static com.google.common.base.Preconditions.checkState;
 
 import java.util.concurrent.Callable;
 import java.util.concurrent.CancellationException;
-import java.util.concurrent.Executors;
 
 import javax.annotation.Nullable;
 
@@ -31,24 +30,18 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
-import com.google.common.util.concurrent.ListeningExecutorService;
-import com.google.common.util.concurrent.MoreExecutors;
 
 /**
  * TODO doc.
  * @author Rinde van Lon
  */
 public class SolverToRealtimeAdapter implements RealtimeSolver {
-  final ListeningExecutorService executor;
   Optional<Scheduler> scheduler;
   Optional<ListenableFuture<ImmutableList<ImmutableList<Parcel>>>> currentFuture;
   private final Solver solver;
 
   public SolverToRealtimeAdapter(Solver s) {
     solver = s;
-    executor = MoreExecutors
-        .listeningDecorator(Executors.newSingleThreadExecutor());
-
     currentFuture = Optional.absent();
     scheduler = Optional.absent();
   }
@@ -64,9 +57,9 @@ public class SolverToRealtimeAdapter implements RealtimeSolver {
     if (currentFuture.isPresent() && !currentFuture.get().isDone()) {
       currentFuture.get().cancel(true);
     }
-
-    currentFuture = Optional
-        .of(executor.submit(new SolverComputer(solver, snapshot)));
+    currentFuture = Optional.of(
+      scheduler.get().getSharedExecutor().submit(
+        new SolverComputer(solver, snapshot)));
     Futures.addCallback(currentFuture.get(),
       new FutureCallback<ImmutableList<ImmutableList<Parcel>>>() {
         @Override

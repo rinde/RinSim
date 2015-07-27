@@ -18,6 +18,7 @@ package com.github.rinde.rinsim.central.rt;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
 
+import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.concurrent.Executors;
 
@@ -37,10 +38,9 @@ import com.github.rinde.rinsim.pdptw.common.PDPRoadModel;
 import com.google.auto.value.AutoValue;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
-
-import autovalue.shaded.com.google.common.common.collect.ImmutableSet;
 
 /**
  * {@link RtSolverModel} allows other models and objects added to the simulator
@@ -49,6 +49,19 @@ import autovalue.shaded.com.google.common.common.collect.ImmutableSet;
  * {@link RtSimSolverBuilder}, other objects can implement the
  * {@link RtSolverUser} interface which allows injection of a
  * {@link RtSimSolverBuilder}.
+ * <p>
+ * The model can be in two different modes: single mode or multi mode. In single
+ * mode only one {@link RtSimSolver} can be created and it can only be obtained
+ * by another model (by declaring a dependency). In multi mode there are no
+ * limits on the number of {@link RtSimSolver}s that can be created and
+ * implementations of {@link RtSolverUser} can created {@link RtSimSolver}s as
+ * well. By default the model will use a mode depending on the method through
+ * which its <i>first</i> builder is requested. If the first request comes from
+ * another model (by declaring a dependency), the model will start in single
+ * mode. If the first request comes from an {@link RtSolverUser} the model will
+ * be in multi mode.
+ * <p>
+ * See {@link #builder()} for creating the model and setting the initial mode.
  * <p>
  * <b>Model properties</b>
  * <ul>
@@ -60,21 +73,37 @@ import autovalue.shaded.com.google.common.common.collect.ImmutableSet;
  * @author Rinde van Lon
  */
 public final class RtSolverModel extends AbstractModel<RtSolverUser> {
+  private static final int NUM_THREADS_IN_SINGLE_MODE = 2;
   final RealtimeClockController clock;
   final PDPRoadModel roadModel;
   final PDPModel pdpModel;
-  final RtSimSolverBuilder builder;
+  final SimSolversManager manager;
+  Optional<ListeningExecutorService> executor;
+  Mode mode;
 
-  RtSolverModel(RealtimeClockController c, PDPRoadModel rm, PDPModel pm) {
+  enum Mode {
+    MULTI_MODE, SINGLE_MODE, UNKNOWN;
+  }
+
+  RtSolverModel(RealtimeClockController c, PDPRoadModel rm, PDPModel pm,
+      Mode m) {
     clock = c;
     roadModel = rm;
     pdpModel = pm;
-    builder = new RtSimSolverBuilderImpl();
+    manager = new SimSolversManager();
+    executor = Optional.absent();
+    mode = m;
+    initExecutor();
   }
 
   @Override
   public boolean register(RtSolverUser element) {
-    element.setSolverProvider(builder);
+    checkState(mode != Mode.SINGLE_MODE,
+      "Can not register a %s because %s is in single mode.",
+      RtSolverUser.class.getSimpleName(), RtSolverModel.class.getSimpleName());
+    mode = Mode.MULTI_MODE;
+    initExecutor();
+    element.setSolverProvider(new RtSimSolverBuilderImpl());
     return true;
   }
 
@@ -86,9 +115,29 @@ public final class RtSolverModel extends AbstractModel<RtSolverUser> {
   @Override
   public <U> U get(Class<U> clazz) {
     checkArgument(clazz == RtSimSolverBuilder.class,
-      "%s does not provide this type: %s.", getClass().getSimpleName(),
-      clazz);
-    return clazz.cast(builder);
+      "%s only provides %s, not %s.", getClass().getSimpleName(),
+      RtSimSolverBuilder.class.getSimpleName(), clazz);
+    if (mode == Mode.UNKNOWN) {
+      mode = Mode.SINGLE_MODE;
+      initExecutor();
+    }
+    return clazz.cast(new RtSimSolverBuilderImpl());
+  }
+
+  void initExecutor() {
+    if (!executor.isPresent() && mode != Mode.UNKNOWN) {
+      if (mode == Mode.SINGLE_MODE) {
+        executor = Optional.of(
+          MoreExecutors.listeningDecorator(
+            Executors.newFixedThreadPool(NUM_THREADS_IN_SINGLE_MODE)));
+      } else {
+        // multi mode
+        executor = Optional.of(
+          MoreExecutors.listeningDecorator(
+            Executors.newFixedThreadPool(
+              Runtime.getRuntime().availableProcessors())));
+      }
+    }
   }
 
   /**
@@ -96,7 +145,7 @@ public final class RtSolverModel extends AbstractModel<RtSolverUser> {
    * @return A new instance.
    */
   public static Builder builder() {
-    return new AutoValue_RtSolverModel_Builder();
+    return Builder.create(Mode.UNKNOWN);
   }
 
   /**
@@ -113,18 +162,54 @@ public final class RtSolverModel extends AbstractModel<RtSolverUser> {
       setProvidingTypes(RtSimSolverBuilder.class);
     }
 
+    abstract Mode getMode();
+
+    /**
+     * The initial mode of the produced {@link RtSolverModel} will be 'single'.
+     * See {@link RtSolverModel} for more information.
+     * @return This, as per the builder pattern.
+     */
+    public Builder withSingleMode() {
+      return create(Mode.SINGLE_MODE);
+    }
+
+    /**
+     * The initial mode of the produced {@link RtSolverModel} will be 'multi'.
+     * See {@link RtSolverModel} for more information.
+     * @return This, as per the builder pattern.
+     */
+    public Builder withMultiMode() {
+      return create(Mode.MULTI_MODE);
+    }
+
     @Override
     public RtSolverModel build(DependencyProvider dependencyProvider) {
       final RealtimeClockController c = dependencyProvider
           .get(RealtimeClockController.class);
       final PDPRoadModel rm = dependencyProvider.get(PDPRoadModel.class);
       final PDPModel pm = dependencyProvider.get(PDPModel.class);
-      return new RtSolverModel(c, rm, pm);
+      return new RtSolverModel(c, rm, pm, getMode());
+    }
+
+    static Builder create(Mode m) {
+      return new AutoValue_RtSolverModel_Builder(m);
+    }
+  }
+
+  class SimSolversManager {
+    final Set<RtSimSolverSchedulerImpl> simSolvers;
+
+    SimSolversManager() {
+      simSolvers = new LinkedHashSet<>();
+    }
+
+    void register(RtSimSolverSchedulerImpl s) {
+      simSolvers.add(s);
     }
   }
 
   class RtSimSolverBuilderImpl extends RtSimSolverBuilder {
-    Set<Vehicle> associatedVehicles;
+    private Set<Vehicle> associatedVehicles;
 
     RtSimSolverBuilderImpl() {
       associatedVehicles = ImmutableSet.of();
@@ -139,8 +224,17 @@ public final class RtSolverModel extends AbstractModel<RtSolverUser> {
 
     @Override
     public RtSimSolver build(RealtimeSolver solver) {
-      return new RtSimSolverSchedulerImpl(clock, solver, roadModel,
-          pdpModel, associatedVehicles).rtSimSolver;
+      if (mode == Mode.SINGLE_MODE) {
+        checkState(manager.simSolvers.isEmpty(),
+          "In single mode %s can build only one %s.",
+          RtSimSolverBuilder.class.getSimpleName(),
+          RtSimSolver.class.getSimpleName());
+      }
+      final RtSimSolverSchedulerImpl s =
+        new RtSimSolverSchedulerImpl(clock, solver, roadModel, pdpModel,
+            associatedVehicles, executor.get());
+      manager.register(s);
+      return s.rtSimSolver;
     }
 
     @Override
@@ -153,14 +247,16 @@ public final class RtSolverModel extends AbstractModel<RtSolverUser> {
     final SimulationConverter converter;
     final RealtimeSolver solver;
     final RealtimeClockController clock;
-    Optional<ImmutableList<ImmutableList<Parcel>>> currentSchedule;
-    boolean isUpdated;
     final ListeningExecutorService executor;
     final RtSimSolver rtSimSolver;
     final Scheduler scheduler;
+    Optional<ImmutableList<ImmutableList<Parcel>>> currentSchedule;
+    boolean isUpdated;
+    boolean isComputing;
 
     RtSimSolverSchedulerImpl(RealtimeClockController c, RealtimeSolver s,
-        PDPRoadModel rm, PDPModel pm, Set<Vehicle> vehicles) {
+        PDPRoadModel rm, PDPModel pm, Set<Vehicle> vehicles,
+        ListeningExecutorService ex) {
       solver = s;
       clock = c;
       converter = Solvers.converterBuilder()
@@ -172,20 +268,18 @@ public final class RtSolverModel extends AbstractModel<RtSolverUser> {
       currentSchedule = Optional.absent();
       isUpdated = false;
 
-      executor = MoreExecutors
-          .listeningDecorator(Executors.newSingleThreadExecutor());
-
+      executor = ex;
       rtSimSolver = new InternalRtSimSolver();
       scheduler = new InternalScheduler();
       solver.init(scheduler);
     }
 
     class InternalRtSimSolver extends RtSimSolver {
-
       InternalRtSimSolver() {}
 
       @Override
       public void solve(SolveArgs args) {
+        isComputing = true;
         final StateContext sc = converter.convert(args);
         executor.submit(new Runnable() {
           @Override
@@ -225,7 +319,13 @@ public final class RtSolverModel extends AbstractModel<RtSolverUser> {
 
       @Override
       public void doneForNow() {
+        isComputing = false;
         clock.switchToSimulatedTime();
+      }
+
+      @Override
+      public ListeningExecutorService getSharedExecutor() {
+        return executor;
       }
     }
   }

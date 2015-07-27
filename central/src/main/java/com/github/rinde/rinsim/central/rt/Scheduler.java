@@ -17,6 +17,7 @@ package com.github.rinde.rinsim.central.rt;
 
 import com.github.rinde.rinsim.core.model.pdp.Parcel;
 import com.google.common.collect.ImmutableList;
+import com.google.common.util.concurrent.ListeningExecutorService;
 
 /**
  * A scheduler is a facade that allows controlling the routes of one or more
@@ -54,4 +55,7 @@ public abstract class Scheduler {
    * fast forwarded when it is not needed.
    */
   public abstract void doneForNow();
+
+  // don't shut it down!
+  public abstract ListeningExecutorService getSharedExecutor();
 }

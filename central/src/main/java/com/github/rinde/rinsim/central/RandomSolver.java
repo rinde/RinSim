@@ -29,7 +29,6 @@ import org.apache.commons.math3.random.RandomGenerator;
 import com.github.rinde.rinsim.central.GlobalStateObject.VehicleStateObject;
 import com.github.rinde.rinsim.core.model.pdp.Parcel;
 import com.github.rinde.rinsim.util.StochasticSupplier;
-import com.github.rinde.rinsim.util.StochasticSuppliers;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.LinkedListMultimap;
 
@@ -37,26 +36,21 @@ import com.google.common.collect.LinkedListMultimap;
  * A {@link Solver} that constructs random solutions. For each order it first
  * randomly selects a vehicle. When all orders are assigned to a vehicle the
  * ordering of the pickups and deliveries is shuffled randomly.
- * 
+ *
  * @author Rinde van Lon
  */
-public class RandomSolver implements Solver {
-
+public final class RandomSolver implements Solver {
   private final RandomGenerator randomGenerator;
 
-  /**
-   * Creates a new instance using the specified random generator.
-   * @param rng The random generator to use for creating random solutions.
-   */
-  public RandomSolver(RandomGenerator rng) {
+  RandomSolver(RandomGenerator rng) {
     randomGenerator = rng;
   }
 
   @Override
   public ImmutableList<ImmutableList<Parcel>> solve(GlobalStateObject state) {
     final LinkedListMultimap<VehicleStateObject, Parcel> map =
-        LinkedListMultimap
-            .create();
+      LinkedListMultimap
+          .create();
 
     final Set<Parcel> available = newLinkedHashSet(state.getAvailableParcels());
     final Set<Parcel> destinations = newLinkedHashSet();
@@ -94,21 +88,32 @@ public class RandomSolver implements Solver {
   }
 
   /**
+   * Creates a new {@link RandomSolver} with the specified random seed.
+   * @param seed The random seed.
+   * @return A new random solver instance.
+   */
+  public static Solver create(long seed) {
+    return new RandomSolver(new MersenneTwister(seed));
+  }
+
+  /**
    * @return A {@link StochasticSupplier} for {@link RandomSolver} instances.
    */
   public static StochasticSupplier<Solver> supplier() {
-    return new StochasticSuppliers.AbstractStochasticSupplier<Solver>() {
-      private static final long serialVersionUID = 992219257352250656L;
+    return RandomSolverSupplier.INSTANCE;
+  }
 
+  enum RandomSolverSupplier implements StochasticSupplier<Solver> {
+    INSTANCE {
       @Override
       public Solver get(long seed) {
-        return new RandomSolver(new MersenneTwister(seed));
+        return create(seed);
       }
 
       @Override
       public String toString() {
-        return "RandomSolverSupplier";
+        return RandomSolver.class.getSimpleName() + ".supplier()";
       }
-    };
+    }
   }
 }

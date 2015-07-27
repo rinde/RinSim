@@ -64,6 +64,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterators;
 import com.google.common.collect.PeekingIterator;
 import com.google.common.collect.Range;
+import com.google.common.util.concurrent.ListeningExecutorService;
 
 /**
  * @author Rinde van Lon
@@ -382,7 +383,7 @@ public class RealtimeSolverTest {
   public void nameTest() {
     assertThat(RtCentral
         .solverConfigurationAdapt(RandomSolver.supplier(), "hallo").getName())
-            .isEqualTo("RtCentral-RtAdapter{RandomSolverSupplier}hallo");
+            .isEqualTo("RtCentral-RtAdapter{RandomSolver.supplier()}hallo");
 
     final String name2 = RtCentral
         .solverConfiguration(StochasticSuppliers.constant(new RealtimeSolver() {
@@ -474,6 +475,11 @@ public class RealtimeSolverTest {
     public void doneForNow() {
       doneForNowCalls++;
       delegate.doneForNow();
+    }
+
+    @Override
+    public ListeningExecutorService getSharedExecutor() {
+      return delegate.getSharedExecutor();
     }
   }
 
