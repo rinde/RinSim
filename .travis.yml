@@ -7,7 +7,7 @@ jdk:
 install: mvn install -DskipTests=true
 
 script: 
-  - mvn verify -Dskip.gui.tests=true
+  - mvn verify -Dskip.test.categories=gui,realtime
 
 sudo: false
 cache:
