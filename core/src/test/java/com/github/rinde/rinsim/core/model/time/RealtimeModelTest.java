@@ -40,12 +40,12 @@ import com.google.common.math.DoubleMath;
  * @author Rinde van Lon
  *
  */
-public class RealTimeModelTest extends TimeModelTest<RealtimeModel> {
+public class RealtimeModelTest extends TimeModelTest<RealtimeModel> {
 
   /**
    * @param sup The supplier to use for creating model instances.
    */
-  public RealTimeModelTest(AbstractBuilder<?> sup) {
+  public RealtimeModelTest(AbstractBuilder<?> sup) {
     super(sup);
   }
 
@@ -55,23 +55,8 @@ public class RealTimeModelTest extends TimeModelTest<RealtimeModel> {
   @Parameters
   public static Collection<Object[]> data() {
     return asList(new Object[][] {
-        { TimeModel.builder().withRealTime().withTickLength(100L) }
+        {TimeModel.builder().withRealTime().withTickLength(100L)}
     });
-  }
-
-  /**
-   * Tests the actual elapsed time.
-   */
-  @Test
-  public void testRealTime() {
-    getModel().register(new LimitingTickListener(getModel(), 3));
-    final long start = System.nanoTime();
-    getModel().start();
-    final long duration = System.nanoTime() - start;
-    // duration should be somewhere between 200 and 300 ms
-    assertThat(duration).isAtLeast(200000000L);
-    assertThat(duration).isLessThan(300000000L);
-    assertThat(getModel().getCurrentTime()).isEqualTo(300);
   }
 
   /**
