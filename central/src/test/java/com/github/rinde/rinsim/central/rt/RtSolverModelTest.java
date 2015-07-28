@@ -18,12 +18,7 @@ package com.github.rinde.rinsim.central.rt;
 import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-
-import java.util.ArrayList;
-import java.util.List;
 
 import javax.measure.unit.NonSI;
 import javax.measure.unit.SI;
@@ -32,8 +27,6 @@ import org.junit.Before;
 import org.junit.Test;
 
 import com.github.rinde.rinsim.central.GlobalStateObject;
-import com.github.rinde.rinsim.central.RandomSolver;
-import com.github.rinde.rinsim.central.Solvers.SolveArgs;
 import com.github.rinde.rinsim.central.rt.RtSolverModel.Mode;
 import com.github.rinde.rinsim.core.model.DependencyProvider;
 import com.github.rinde.rinsim.core.model.FakeDependencyProvider;
@@ -41,7 +34,6 @@ import com.github.rinde.rinsim.core.model.pdp.PDPModel;
 import com.github.rinde.rinsim.core.model.time.RealtimeClockController;
 import com.github.rinde.rinsim.pdptw.common.PDPRoadModel;
 import com.github.rinde.rinsim.testutil.TestUtil;
-import com.google.common.collect.Range;
 
 import autovalue.shaded.com.google.common.common.base.Optional;
 
@@ -203,52 +195,6 @@ public class RtSolverModelTest {
         .withSingleMode()
         .build(dependencyProvider);
     assertThat(m2.mode).isEqualTo(Mode.SINGLE_MODE);
-  }
-
-  /**
-   * Tests execution of two solvers at the same time.
-   */
-  @Test
-  public void testMultiExecution() {
-    final List<RtSimSolver> solvers = new ArrayList<>();
-    model.register(new RtSolverUser() {
-      @Override
-      public void setSolverProvider(RtSimSolverBuilder builder) {
-        solvers.add(
-          builder.build(SleepySolver.create(500L, RandomSolver.create(123))));
-      }
-    });
-    model.register(new RtSolverUser() {
-      @Override
-      public void setSolverProvider(RtSimSolverBuilder builder) {
-        solvers.add(
-          builder.build(SleepySolver.create(1000L, RandomSolver.create(123))));
-      }
-    });
-
-    verify(clock, times(0)).switchToRealTime();
-    verify(clock, times(0)).switchToSimulatedTime();
-
-    solvers.get(0).solve(SolveArgs.create());
-    solvers.get(1).solve(SolveArgs.create());
-
-    verify(clock, times(2)).switchToRealTime();
-    verify(clock, times(0)).switchToSimulatedTime();
-
-    final long start = System.nanoTime();
-    while (model.manager.isComputing()) {
-      verify(clock, times(0)).switchToSimulatedTime();
-      try {
-        Thread.sleep(10);
-      } catch (final InterruptedException e) {
-        throw new IllegalStateException(e);
-      }
-    }
-    final double duration = (System.nanoTime() - start) / 1000000000d;
-    assertThat(duration).isIn(Range.open(0.9, 1.1));
-
-    verify(clock, times(2)).switchToRealTime();
-    verify(clock, times(1)).switchToSimulatedTime();
   }
 
   static class FakeRealtimeSolver implements RealtimeSolver {
