@@ -27,6 +27,7 @@ import com.github.rinde.rinsim.central.Solvers;
 import com.github.rinde.rinsim.central.Solvers.SimulationConverter;
 import com.github.rinde.rinsim.central.Solvers.SolveArgs;
 import com.github.rinde.rinsim.central.Solvers.StateContext;
+import com.github.rinde.rinsim.central.rt.RtSolverModel.RtSimSolverSchedulerImpl.EventType;
 import com.github.rinde.rinsim.core.model.DependencyProvider;
 import com.github.rinde.rinsim.core.model.Model.AbstractModel;
 import com.github.rinde.rinsim.core.model.ModelBuilder.AbstractModelBuilder;
@@ -34,6 +35,10 @@ import com.github.rinde.rinsim.core.model.pdp.PDPModel;
 import com.github.rinde.rinsim.core.model.pdp.Parcel;
 import com.github.rinde.rinsim.core.model.pdp.Vehicle;
 import com.github.rinde.rinsim.core.model.time.RealtimeClockController;
+import com.github.rinde.rinsim.event.Event;
+import com.github.rinde.rinsim.event.EventAPI;
+import com.github.rinde.rinsim.event.EventDispatcher;
+import com.github.rinde.rinsim.event.Listener;
 import com.github.rinde.rinsim.pdptw.common.PDPRoadModel;
 import com.google.auto.value.AutoValue;
 import com.google.common.base.Optional;
@@ -196,15 +201,38 @@ public final class RtSolverModel extends AbstractModel<RtSolverUser> {
     }
   }
 
-  class SimSolversManager {
+  class SimSolversManager implements Listener {
     final Set<RtSimSolverSchedulerImpl> simSolvers;
+    final Set<RtSimSolverSchedulerImpl> computingSimSolvers;
 
     SimSolversManager() {
       simSolvers = new LinkedHashSet<>();
+      computingSimSolvers = new LinkedHashSet<>();
     }
 
     void register(RtSimSolverSchedulerImpl s) {
       simSolvers.add(s);
+      s.getEventAPI().addListener(this,
+        EventType.START_COMPUTING,
+        EventType.DONE_COMPUTING);
+    }
+
+    boolean isComputing() {
+      return !computingSimSolvers.isEmpty();
+    }
+
+    @Override
+    public void handleEvent(Event e) {
+      if (e.getEventType() == EventType.START_COMPUTING) {
+        clock.switchToRealTime();
+        computingSimSolvers.add((RtSimSolverSchedulerImpl) e.getIssuer());
+      } else {
+        checkState(computingSimSolvers.remove(e.getIssuer()));
+
+        if (!isComputing()) {
+          clock.switchToSimulatedTime();
+        }
+      }
     }
   }
 
@@ -244,15 +272,16 @@ public final class RtSolverModel extends AbstractModel<RtSolverUser> {
   }
 
   static class RtSimSolverSchedulerImpl {
+    final EventDispatcher eventDispatcher;
     final SimulationConverter converter;
     final RealtimeSolver solver;
     final RealtimeClockController clock;
     final ListeningExecutorService executor;
     final RtSimSolver rtSimSolver;
     final Scheduler scheduler;
+    final RtSimSolverSchedulerImpl reference;
     Optional<ImmutableList<ImmutableList<Parcel>>> currentSchedule;
     boolean isUpdated;
-    boolean isComputing;
 
     RtSimSolverSchedulerImpl(RealtimeClockController c, RealtimeSolver s,
         PDPRoadModel rm, PDPModel pm, Set<Vehicle> vehicles,
@@ -268,10 +297,21 @@ public final class RtSolverModel extends AbstractModel<RtSolverUser> {
       currentSchedule = Optional.absent();
       isUpdated = false;
 
+      reference = this;
+      eventDispatcher = new EventDispatcher(EventType.values());
       executor = ex;
       rtSimSolver = new InternalRtSimSolver();
       scheduler = new InternalScheduler();
       solver.init(scheduler);
+
+    }
+
+    public EventAPI getEventAPI() {
+      return eventDispatcher.getPublicEventAPI();
+    }
+
+    enum EventType {
+      START_COMPUTING, DONE_COMPUTING;
     }
 
     class InternalRtSimSolver extends RtSimSolver {
@@ -279,7 +319,8 @@ public final class RtSolverModel extends AbstractModel<RtSolverUser> {
 
       @Override
       public void solve(SolveArgs args) {
-        isComputing = true;
+        eventDispatcher
+            .dispatchEvent(new Event(EventType.START_COMPUTING, reference));
         final StateContext sc = converter.convert(args);
         executor.submit(new Runnable() {
           @Override
@@ -319,8 +360,8 @@ public final class RtSolverModel extends AbstractModel<RtSolverUser> {
 
       @Override
       public void doneForNow() {
-        isComputing = false;
-        clock.switchToSimulatedTime();
+        eventDispatcher
+            .dispatchEvent(new Event(EventType.DONE_COMPUTING, reference));
       }
 
       @Override

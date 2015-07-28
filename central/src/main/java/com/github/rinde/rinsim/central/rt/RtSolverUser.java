@@ -27,7 +27,7 @@ public interface RtSolverUser {
 
   /**
    * Injection of the {@link RtSimSolverBuilder}. Will be called at time of
-   * object registration in the simulator, is called at maximum once. The
+   * object registration in the simulator, it is called at maximum once. The
    * simulator needs to be configured with an instance of {@link RtSolverModel}
    * in order for this method to work.
    * @param builder An instance of {@link RtSimSolverBuilder} that allows to
