@@ -56,6 +56,18 @@ public abstract class Scheduler {
    */
   public abstract void doneForNow();
 
-  // don't shut it down!
+  /**
+   * This method provides access to the shared listening service (thread pool)
+   * that is used by {@link RtSolverModel}. Since this executor service is
+   * shared, there are several rules that {@link RtSimSolver}s should adhere to:
+   * <ul>
+   * <li>Each {@link RtSimSolver} may have at most one job computing at the same
+   * time. If that is not enough, you are allowed to spawn your own threads
+   * outside of the shared executor.</li>
+   * <li>{@link ListeningExecutorService#shutdown()} and
+   * {@link ListeningExecutorService#shutdownNow()} may not be called.</li>
+   * </ul>
+   * @return The executor service.
+   */
   public abstract ListeningExecutorService getSharedExecutor();
 }

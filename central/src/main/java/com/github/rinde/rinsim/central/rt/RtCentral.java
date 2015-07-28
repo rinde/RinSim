@@ -49,8 +49,9 @@ import com.google.common.collect.ImmutableSet;
 
 /**
  * Real-time version of {@link com.github.rinde.rinsim.central.Central Central}.
- *
- * TODO write full doc
+ * This class provides methods to add a model to a simulator or a
+ * {@link MASConfiguration} to an experiment that allows a {@link Solver} or
+ * {@link RealtimeSolver} to compute an entire scenario centrally.
  * @author Rinde van Lon
  */
 public final class RtCentral {
@@ -72,6 +73,16 @@ public final class RtCentral {
     return Builder.create(solverSupplier, true);
   }
 
+  /**
+   * Constructs a {@link Builder} for creating a real-time central model. The
+   * real-time central model is a model that takes control of all vehicles in a
+   * simulation and uses a {@link RealtimeSolver} to compute routes for all
+   * vehicles. The supplied {@link Solver} is wrapped by a
+   * {@link SolverToRealtimeAdapter}.
+   * @param solverSupplier A {@link StochasticSupplier} that creates the
+   *          {@link Solver} that will be used for controlling all vehicles.
+   * @return A new {@link Builder} instance.
+   */
   public static ModelBuilder<?, ?> builderAdapt(
       StochasticSupplier<? extends Solver> solverSupplier) {
     return builder(AdapterSupplier.create(solverSupplier));
@@ -98,14 +109,102 @@ public final class RtCentral {
         .build();
   }
 
+  /**
+   * Constructs a new {@link MASConfiguration} that uses a {@link Solver}
+   * created by the specified <code>solverSupplier</code> to control all
+   * vehicles. The {@link Solver} is converted to a {@link RealtimeSolver} using
+   * {@link SolverToRealtimeAdapter}.
+   * @param solverSupplier A {@link StochasticSupplier} that should create
+   *          instances of {@link Solver}.
+   * @param nameSuffix The suffix to the name of the {@link MASConfiguration}.
+   *          The name is formatted as
+   *          <code>RtCentral-[solverSupplier][nameSuffix]</code>.
+   * @return A new {@link MASConfiguration} instance.
+   */
   public static MASConfiguration solverConfigurationAdapt(
       StochasticSupplier<? extends Solver> solverSupplier, String nameSuffix) {
     return solverConfiguration(AdapterSupplier.create(solverSupplier),
       nameSuffix);
   }
 
-  public static TimedEventHandler<AddVehicleEvent> vehicleHandler() {
+  static TimedEventHandler<AddVehicleEvent> vehicleHandler() {
     return VehicleCreator.INSTANCE;
+  }
+
+  /**
+   * Builder for central model.
+   * @author Rinde van Lon
+   */
+  @AutoValue
+  public abstract static class Builder
+      extends AbstractModelBuilder<RtCentralModel, Parcel>
+      implements CompositeModelBuilder<RtCentralModel, Parcel>, Serializable {
+
+    private static final long serialVersionUID = -3900188597329698413L;
+
+    Builder() {
+      setDependencies(
+        RandomProvider.class,
+        RtSimSolverBuilder.class,
+        RealtimeClockController.class,
+        PDPRoadModel.class,
+        PDPModel.class);
+    }
+
+    abstract StochasticSupplier<RealtimeSolver> getSolverSupplier();
+
+    abstract boolean getSleepOnChange();
+
+    /**
+     * If set to <code>true</code> the model will wait half a tick (wall clock
+     * time) after it has started a new computation. By sleeping half a tick the
+     * solver has time to do a some computations already, and, if it is fast
+     * enough if may already be finished. When it is already finished computing,
+     * the new schedule will be applied immediately. If set to
+     * <code>false</code> the model will not wait, this means that a new
+     * schedule will be applied at the earliest the tick after it started the
+     * computation.
+     * @param flag If set to <code>true</code> sleep on change is enabled,
+     *          otherwise it is disabled.
+     * @return A new builder instance with the flag.
+     */
+    public Builder withSleepOnChange(boolean flag) {
+      return create(getSolverSupplier(), flag);
+    }
+
+    @Override
+    public RtCentralModel build(
+        DependencyProvider dependencyProvider) {
+      final RandomProvider rnd = dependencyProvider.get(RandomProvider.class);
+      final RealtimeSolver solver = getSolverSupplier()
+          .get(rnd.masterInstance().nextLong());
+      final RtSimSolver s = dependencyProvider.get(RtSimSolverBuilder.class)
+          .build(solver);
+      final RealtimeClockController clock = dependencyProvider
+          .get(RealtimeClockController.class);
+      final PDPRoadModel rm = dependencyProvider.get(PDPRoadModel.class);
+      final PDPModel pm = dependencyProvider.get(PDPModel.class);
+      return new RtCentral.RtCentralModel(clock, s, rm, pm, getSleepOnChange());
+    }
+
+    @Override
+    public ImmutableSet<ModelBuilder<?, ?>> getChildren() {
+      return ImmutableSet.<ModelBuilder<?, ?>>of(RtSolverModel.builder(),
+        VehicleCheckerModel.builder());
+    }
+
+    @Override
+    public String toString() {
+      return RtCentral.class.getSimpleName() + ".builder(..)";
+    }
+
+    @SuppressWarnings("unchecked")
+    static Builder create(
+        StochasticSupplier<? extends RealtimeSolver> solverSupplier,
+        boolean sleepOnChange) {
+      return new AutoValue_RtCentral_Builder(
+          (StochasticSupplier<RealtimeSolver>) solverSupplier, sleepOnChange);
+    }
   }
 
   enum VehicleCreator implements TimedEventHandler<AddVehicleEvent> {
@@ -223,63 +322,6 @@ public final class RtCentral {
 
     @Override
     public void afterTick(TimeLapse timeLapse) {}
-  }
-
-  @AutoValue
-  public abstract static class Builder
-      extends AbstractModelBuilder<RtCentralModel, Parcel>
-      implements CompositeModelBuilder<RtCentralModel, Parcel>, Serializable {
-
-    Builder() {
-      setDependencies(
-        RandomProvider.class,
-        RtSimSolverBuilder.class,
-        RealtimeClockController.class,
-        PDPRoadModel.class,
-        PDPModel.class);
-    }
-
-    @SuppressWarnings("unchecked")
-    static Builder create(
-        StochasticSupplier<? extends RealtimeSolver> solverSupplier,
-        boolean sleepOnChange) {
-      return new AutoValue_RtCentral_Builder(
-          (StochasticSupplier<RealtimeSolver>) solverSupplier, sleepOnChange);
-    }
-
-    public Builder withSleepOnChange(boolean flag) {
-      return create(getSolverSupplier(), flag);
-    }
-
-    abstract StochasticSupplier<RealtimeSolver> getSolverSupplier();
-
-    abstract boolean getSleepOnChange();
-
-    @Override
-    public RtCentralModel build(
-        DependencyProvider dependencyProvider) {
-      final RandomProvider rnd = dependencyProvider.get(RandomProvider.class);
-      final RealtimeSolver solver = getSolverSupplier()
-          .get(rnd.masterInstance().nextLong());
-      final RtSimSolver s = dependencyProvider.get(RtSimSolverBuilder.class)
-          .build(solver);
-      final RealtimeClockController clock = dependencyProvider
-          .get(RealtimeClockController.class);
-      final PDPRoadModel rm = dependencyProvider.get(PDPRoadModel.class);
-      final PDPModel pm = dependencyProvider.get(PDPModel.class);
-      return new RtCentral.RtCentralModel(clock, s, rm, pm, getSleepOnChange());
-    }
-
-    @Override
-    public ImmutableSet<ModelBuilder<?, ?>> getChildren() {
-      return ImmutableSet.<ModelBuilder<?, ?>>of(RtSolverModel.builder(),
-        VehicleCheckerModel.builder());
-    }
-
-    @Override
-    public String toString() {
-      return RtCentral.class.getSimpleName() + ".builder(..)";
-    }
   }
 
   static class VehicleCheckerModel

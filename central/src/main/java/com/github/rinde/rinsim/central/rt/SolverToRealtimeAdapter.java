@@ -32,15 +32,22 @@ import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 
 /**
- * TODO doc.
+ * Adapter of {@link Solver} to {@link RealtimeSolver}. This real-time solver
+ * behaves as follows, upon receiving a new snapshot
+ * {@link RealtimeSolver#receiveSnapshot(GlobalStateObject)} the underlying
+ * {@link Solver} is called to solve the problem. Any ongoing computation of a
+ * previous snapshot is cancelled. When the solver completes its computation,
+ * {@link Scheduler#updateSchedule(ImmutableList)} is called to provide the
+ * updated schedule. The scheduler is also notified that no computations are
+ * currently taking place by calling {@link Scheduler#doneForNow()}.
  * @author Rinde van Lon
  */
-public class SolverToRealtimeAdapter implements RealtimeSolver {
+public final class SolverToRealtimeAdapter implements RealtimeSolver {
   Optional<Scheduler> scheduler;
   Optional<ListenableFuture<ImmutableList<ImmutableList<Parcel>>>> currentFuture;
   private final Solver solver;
 
-  public SolverToRealtimeAdapter(Solver s) {
+  SolverToRealtimeAdapter(Solver s) {
     solver = s;
     currentFuture = Optional.absent();
     scheduler = Optional.absent();
@@ -81,6 +88,17 @@ public class SolverToRealtimeAdapter implements RealtimeSolver {
           throw new IllegalStateException(t);
         }
       });
+  }
+
+  /**
+   * Constructs an adapter of {@link Solver} to {@link RealtimeSolver}. The
+   * resulting solver behaves as is documented in
+   * {@link SolverToRealtimeAdapter}.
+   * @param solver The solver to adapt.
+   * @return The adapted solver.
+   */
+  public static RealtimeSolver create(Solver solver) {
+    return new SolverToRealtimeAdapter(solver);
   }
 
   static class SolverComputer
