@@ -26,6 +26,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Set;
 
 import org.junit.Before;
@@ -116,7 +117,7 @@ public class EventDispatcherTest {
     dispatcher.addListener(l1, OTHER_EVENT1);
   }
 
-  @Test(expected = IllegalArgumentException.class)
+  @Test(expected = NullPointerException.class)
   public void addListenerFail6() {
     dispatcher.addListener(l1, new Enum<?>[] {EVENT2, null, EVENT3});
   }
@@ -231,7 +232,7 @@ public class EventDispatcherTest {
     final EventDispatcher disp = new EventDispatcher(EventTypes.values());
     boolean fail = false;
     try {
-      disp.removeListener(l1, EVENT1, null);
+      disp.removeListener(l1, new LinkedHashSet<Enum<?>>(null));
     } catch (final NullPointerException e) {
       fail = true;
     }

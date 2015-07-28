@@ -15,14 +15,12 @@
  */
 package com.github.rinde.rinsim.event;
 
-import java.util.Set;
-
 /**
  * The Event API provides an interface which can be presented to objects which
  * have an interest to receive events of a certain object.
- * 
+ *
  * @author Rinde van Lon (rinde.vanlon@cs.kuleuven.be)
- * 
+ *
  */
 public interface EventAPI {
 
@@ -50,7 +48,7 @@ public interface EventAPI {
    *          eventTypes are specified, the listener will be notified of
    *          <b>no</b> events.
    */
-  void addListener(Listener listener, Set<Enum<?>> eventTypes);
+  void addListener(Listener listener, Iterable<? extends Enum<?>> eventTypes);
 
   /**
    * Removes the specified listener with the specified event types. From now on,
@@ -70,7 +68,8 @@ public interface EventAPI {
    * @param listener The {@link Listener} to remove.
    * @param eventTypes The event types.
    */
-  void removeListener(Listener listener, Set<Enum<?>> eventTypes);
+  void removeListener(Listener listener,
+      Iterable<? extends Enum<?>> eventTypes);
 
   /**
    * Checks if the specified <code>listener</code> is registered as listening to

@@ -17,13 +17,13 @@ package com.github.rinde.rinsim.event;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
-import static com.google.common.collect.Sets.newHashSet;
 import static java.util.Arrays.asList;
 
 import java.util.HashSet;
 import java.util.Set;
 
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Multimap;
 
@@ -98,15 +98,17 @@ public final class EventDispatcher implements EventAPI {
    */
   @Override
   public void addListener(Listener listener, Enum<?>... eventTypes) {
-    addListener(listener, newHashSet(eventTypes), eventTypes.length == 0);
+    addListener(listener, ImmutableSet.copyOf(eventTypes),
+        eventTypes.length == 0);
   }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  public void addListener(Listener listener, Set<Enum<?>> eventTypes) {
-    addListener(listener, eventTypes, false);
+  public void addListener(Listener listener,
+      Iterable<? extends Enum<?>> eventTypes) {
+    addListener(listener, ImmutableSet.copyOf(eventTypes), false);
   }
 
   /**
@@ -122,11 +124,12 @@ public final class EventDispatcher implements EventAPI {
    * @param all Indicates whether <code>eventTypes</code> is used or if the
    *          listener is registered to all event types.
    */
-  protected void addListener(Listener listener, Set<Enum<?>> eventTypes,
+  protected void addListener(Listener listener,
+      ImmutableSet<Enum<?>> eventTypes,
       boolean all) {
-    final Set<Enum<?>> theTypes = all ? supportedTypes : eventTypes;
+    final Set<Enum<?>> theTypes =
+        all ? supportedTypes : ImmutableSet.copyOf(eventTypes);
     for (final Enum<?> eventType : theTypes) {
-      checkArgument(eventType != null, "event type to add can not be null");
       checkArgument(supportedTypes.contains(eventType),
           "A listener for type %s is not allowed.", eventType);
       listeners.put(eventType, listener);
@@ -138,15 +141,16 @@ public final class EventDispatcher implements EventAPI {
    */
   @Override
   public void removeListener(Listener listener, Enum<?>... eventTypes) {
-    removeListener(listener, newHashSet(eventTypes));
+    removeListener(listener, ImmutableSet.copyOf(eventTypes));
   }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  public void removeListener(Listener listener, Set<Enum<?>> eventTypes) {
-    if (eventTypes.isEmpty()) {
+  public void removeListener(Listener listener,
+      Iterable<? extends Enum<?>> eventTypes) {
+    if (Iterables.isEmpty(eventTypes)) {
       // remove all store keys in intermediate set to avoid concurrent
       // modifications
       final Set<Enum<?>> keys = new HashSet<>(listeners.keySet());
@@ -166,7 +170,6 @@ public final class EventDispatcher implements EventAPI {
         listeners.remove(eventType, listener);
       }
     }
-
   }
 
   /**
@@ -212,7 +215,8 @@ public final class EventDispatcher implements EventAPI {
     }
 
     @Override
-    public void addListener(Listener listener, Set<Enum<?>> eventTypes) {
+    public void addListener(Listener listener,
+        Iterable<? extends Enum<?>> eventTypes) {
       ref.addListener(listener, eventTypes);
     }
 
@@ -222,7 +226,8 @@ public final class EventDispatcher implements EventAPI {
     }
 
     @Override
-    public void removeListener(Listener listener, Set<Enum<?>> eventTypes) {
+    public void removeListener(Listener listener,
+        Iterable<? extends Enum<?>> eventTypes) {
       ref.removeListener(listener, eventTypes);
     }
 
