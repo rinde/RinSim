@@ -19,6 +19,15 @@
 			<distribution>repo</distribution>
 		</license>
 	</licenses>
+	
+	<build>
+        <plugins>
+            <plugin>
+                <groupId>com.googlecode.japi-checker</groupId>
+                <artifactId>japi-checker-maven-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </build>
 
 	<dependencies>
 		<dependency>

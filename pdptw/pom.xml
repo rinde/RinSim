@@ -64,10 +64,10 @@
 				</executions>
 			</plugin>
 
-			<!-- <plugin>
+			<plugin>
 				<groupId>com.googlecode.japi-checker</groupId>
 				<artifactId>japi-checker-maven-plugin</artifactId>
-			</plugin> -->
+			</plugin>
 		</plugins>
 	</build>
 
@@ -101,14 +101,12 @@
 			<artifactId>rinsim-scenario</artifactId>
 		</dependency>
 		<dependency>
-            <groupId>com.google.auto.value</groupId>
-            <artifactId>auto-value</artifactId>
-            <scope>provided</scope>
-        </dependency>
-		<!-- <dependency>
-			<groupId>com.github.rinde</groupId>
-			<artifactId>rinsim-scenario-util</artifactId>
-		</dependency>-->
+			<groupId>com.google.auto.value</groupId>
+			<artifactId>auto-value</artifactId>
+			<scope>provided</scope>
+		</dependency>
+		<!-- <dependency> <groupId>com.github.rinde</groupId> <artifactId>rinsim-scenario-util</artifactId> 
+			</dependency> -->
 
 		<!-- TEST DEPENDENCIES -->
 
@@ -147,10 +145,10 @@
 			<artifactId>mockito-core</artifactId>
 			<scope>test</scope>
 		</dependency>
-		<dependency> 
-            <groupId>com.google.truth</groupId>
-            <artifactId>truth</artifactId>
-            <scope>test</scope>
-        </dependency>
+		<dependency>
+			<groupId>com.google.truth</groupId>
+			<artifactId>truth</artifactId>
+			<scope>test</scope>
+		</dependency>
 	</dependencies>
 </project>

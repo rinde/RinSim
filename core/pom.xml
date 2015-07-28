@@ -25,8 +25,14 @@
 		<sonar.language>java</sonar.language>
 	</properties>
 
-	<!-- <build> <plugins> <plugin> <groupId>com.googlecode.japi-checker</groupId> 
-		<artifactId>japi-checker-maven-plugin</artifactId> </plugin> </plugins> </build> -->
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>com.googlecode.japi-checker</groupId>
+				<artifactId>japi-checker-maven-plugin</artifactId>
+			</plugin>
+		</plugins>
+	</build>
 
 	<dependencies>
 		<dependency>
@@ -70,9 +76,9 @@
 			<artifactId>rinsim-event</artifactId>
 		</dependency>
 		<dependency>
-            <groupId>com.github.rinde</groupId>
-            <artifactId>rinsim-fsm</artifactId>
-        </dependency>
+			<groupId>com.github.rinde</groupId>
+			<artifactId>rinsim-fsm</artifactId>
+		</dependency>
 		<dependency>
 			<groupId>com.github.rinde</groupId>
 			<artifactId>rinsim-cli</artifactId>
@@ -87,11 +93,11 @@
 			<scope>provided</scope>
 		</dependency>
 		<!-- test dependencies -->
-		<dependency> 
-            <groupId>com.google.truth</groupId>
-            <artifactId>truth</artifactId>
-            <scope>test</scope>
-        </dependency>
+		<dependency>
+			<groupId>com.google.truth</groupId>
+			<artifactId>truth</artifactId>
+			<scope>test</scope>
+		</dependency>
 		<dependency>
 			<groupId>org.mockito</groupId>
 			<artifactId>mockito-core</artifactId>

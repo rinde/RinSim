@@ -27,8 +27,10 @@
 
 	<build>
 		<plugins>
-			<!-- <plugin> <groupId>com.googlecode.japi-checker</groupId> <artifactId>japi-checker-maven-plugin</artifactId> 
-				</plugin> -->
+			<plugin>
+				<groupId>com.googlecode.japi-checker</groupId>
+				<artifactId>japi-checker-maven-plugin</artifactId>
+			</plugin>
 		</plugins>
 	</build>
 
@@ -50,10 +52,10 @@
 			<artifactId>rinsim-event</artifactId>
 		</dependency>
 		<dependency>
-            <groupId>com.google.auto.value</groupId>
-            <artifactId>auto-value</artifactId>
-            <scope>provided</scope>
-        </dependency>
+			<groupId>com.google.auto.value</groupId>
+			<artifactId>auto-value</artifactId>
+			<scope>provided</scope>
+		</dependency>
 		<dependency>
 			<groupId>com.github.rinde</groupId>
 			<artifactId>rinsim-core</artifactId>

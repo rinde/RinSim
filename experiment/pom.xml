@@ -23,6 +23,15 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<sonar.language>java</sonar.language>
 	</properties>
+	
+	<build>
+        <plugins>
+            <plugin>
+                <groupId>com.googlecode.japi-checker</groupId>
+                <artifactId>japi-checker-maven-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </build>
 
 	<dependencies>
 		<dependency>
