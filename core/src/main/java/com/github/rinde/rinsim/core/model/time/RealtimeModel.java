@@ -86,25 +86,20 @@ class RealtimeModel extends TimeModel implements RealtimeClockController {
 
     final RealtimeModel ref = this;
     stateMachine.getEventAPI().addListener(new Listener() {
-
       @Override
       public void handleEvent(Event e) {
         @SuppressWarnings("unchecked")
         final StateTransitionEvent<Trigger, RealtimeModel> event =
             (StateTransitionEvent<Trigger, RealtimeModel>) e;
-        if (event.newState == rt || event.newState == INIT_RT) {
-          if (eventDispatcher.hasListenerFor(SWITCH_TO_REAL_TIME)) {
-            eventDispatcher.dispatchEvent(new Event(SWITCH_TO_REAL_TIME, ref));
-          }
-        } else if (event.newState == ff || event.newState == INIT_ST) {
-          if (eventDispatcher.hasListenerFor(SWITCH_TO_SIM_TIME)) {
-            eventDispatcher.dispatchEvent(new Event(SWITCH_TO_SIM_TIME, ref));
-          }
+        if ((event.newState == rt || event.newState == INIT_RT)
+            && eventDispatcher.hasListenerFor(SWITCH_TO_REAL_TIME)) {
+          eventDispatcher.dispatchEvent(new Event(SWITCH_TO_REAL_TIME, ref));
+        } else if ((event.newState == ff || event.newState == INIT_ST)
+            && eventDispatcher.hasListenerFor(SWITCH_TO_SIM_TIME)) {
+          eventDispatcher.dispatchEvent(new Event(SWITCH_TO_SIM_TIME, ref));
         }
-
       }
-    },
-        StateMachineEvent.values());
+    }, StateMachineEvent.values());
   }
 
   @Override
