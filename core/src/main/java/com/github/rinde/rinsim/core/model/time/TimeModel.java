@@ -60,9 +60,9 @@ import com.google.common.collect.ImmutableSet;
 public abstract class TimeModel extends AbstractModel<TickListener>
     implements ClockController {
   final TimeLapse timeLapse;
+  final EventDispatcher eventDispatcher;
   volatile boolean isTicking;
   private volatile Set<TickListener> tickListeners;
-  final EventDispatcher eventDispatcher;
 
   TimeModel(AbstractBuilder<?> builder, Enum<?>... additionalEventTypes) {
     tickListeners = new CopyOnWriteArraySet<>();
