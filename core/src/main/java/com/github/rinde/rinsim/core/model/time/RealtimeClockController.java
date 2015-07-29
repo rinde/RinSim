@@ -61,6 +61,11 @@ public interface RealtimeClockController extends ClockController {
    */
   ClockMode getClockMode();
 
+  /**
+   * @deprecated To ensure time consistency this method can not be used, use
+   *             {@link #start()} instead.
+   * @throws UnsupportedOperationException Always.
+   */
   @Deprecated
   @Override
   void tick();
@@ -84,5 +89,27 @@ public interface RealtimeClockController extends ClockController {
      * Indicates that the clock is stopped.
      */
     STOPPED;
+  }
+
+  /**
+   * Additional event types dispatched by {@link RealtimeClockController}. See
+   * {@link Clock.ClockEventType} for more event types.
+   * @author Rinde van Lon
+   */
+  public enum RtClockEventType {
+
+    /**
+     * Is dispatched right after clock mode has changed,
+     * {@link RealtimeClockController#getClockMode()} will return
+     * {@link ClockMode#REAL_TIME}.
+     */
+    SWITCH_TO_REAL_TIME,
+
+    /**
+     * Is dispatched right after clock mode has changed,
+     * {@link RealtimeClockController#getClockMode()} will return
+     * {@link ClockMode#SIMULATED}.
+     */
+    SWITCH_TO_SIM_TIME;
   }
 }

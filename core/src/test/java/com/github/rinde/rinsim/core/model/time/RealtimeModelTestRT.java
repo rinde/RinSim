@@ -16,9 +16,13 @@
 package com.github.rinde.rinsim.core.model.time;
 
 import static com.google.common.truth.Truth.assertThat;
+import static java.util.Arrays.asList;
+
+import java.util.Collection;
 
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
+import org.junit.runners.Parameterized.Parameters;
 
 import com.github.rinde.rinsim.core.model.time.TimeModel.AbstractBuilder;
 import com.github.rinde.rinsim.testutil.RealtimeTests;
@@ -35,6 +39,16 @@ public class RealtimeModelTestRT extends TimeModelTest<RealtimeModel> {
    */
   public RealtimeModelTestRT(AbstractBuilder<?> sup) {
     super(sup);
+  }
+
+  /**
+   * @return The models to test.
+   */
+  @Parameters
+  public static Collection<Object[]> data() {
+    return asList(new Object[][] {
+        {TimeModel.builder().withRealTime().withTickLength(100L)}
+    });
   }
 
   /**

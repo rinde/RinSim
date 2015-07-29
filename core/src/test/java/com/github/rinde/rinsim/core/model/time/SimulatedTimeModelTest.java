@@ -78,6 +78,24 @@ public class SimulatedTimeModelTest extends TimeModelTest<SimulatedTimeModel> {
             ClockEventType.STOPPED));
   }
 
+  /**
+   * Tests that single ticks works.
+   */
+  @Test
+  public void testSingleTick() {
+    final TickListenerChecker checker = new TickListenerChecker(
+        getModel().getTickLength(), getModel().getTimeUnit());
+    getModel().register(checker);
+    assertThat(getModel().getCurrentTime()).isEqualTo(0L);
+    getModel().tick();
+    assertThat(getModel().getCurrentTime())
+        .isEqualTo(getModel().getTickLength());
+    assertThat(checker.getTickCount()).isEqualTo(1);
+  }
+
+  /**
+   * Test for provided types.
+   */
   @Test
   public void testProvidingTypes() {
     assertThat(getModel().get(Clock.class)).isNotNull();

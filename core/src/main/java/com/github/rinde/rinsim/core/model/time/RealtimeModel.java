@@ -15,6 +15,8 @@
  */
 package com.github.rinde.rinsim.core.model.time;
 
+import static com.github.rinde.rinsim.core.model.time.RealtimeClockController.RtClockEventType.SWITCH_TO_REAL_TIME;
+import static com.github.rinde.rinsim.core.model.time.RealtimeClockController.RtClockEventType.SWITCH_TO_SIM_TIME;
 import static com.github.rinde.rinsim.core.model.time.RealtimeModel.SimpleState.INIT_RT;
 import static com.github.rinde.rinsim.core.model.time.RealtimeModel.SimpleState.INIT_ST;
 import static com.github.rinde.rinsim.core.model.time.RealtimeModel.SimpleState.STOPPED;
@@ -36,8 +38,12 @@ import javax.measure.unit.SI;
 import org.apache.commons.math3.stat.descriptive.StatisticalSummary;
 import org.apache.commons.math3.stat.descriptive.SummaryStatistics;
 
+import com.github.rinde.rinsim.event.Event;
+import com.github.rinde.rinsim.event.Listener;
 import com.github.rinde.rinsim.fsm.AbstractState;
 import com.github.rinde.rinsim.fsm.StateMachine;
+import com.github.rinde.rinsim.fsm.StateMachine.StateMachineEvent;
+import com.github.rinde.rinsim.fsm.StateMachine.StateTransitionEvent;
 import com.google.common.collect.Iterators;
 import com.google.common.collect.PeekingIterator;
 import com.google.common.util.concurrent.FutureCallback;
@@ -55,7 +61,7 @@ class RealtimeModel extends TimeModel implements RealtimeClockController {
   final Map<TickListener, TickListenerTimingChecker> decoratorMap;
 
   RealtimeModel(RealtimeBuilder builder) {
-    super(builder);
+    super(builder, RtClockEventType.values());
     decoratorMap = new HashMap<>();
 
     final RealTime rt = new RealTime(timeLapse);
@@ -77,6 +83,28 @@ class RealtimeModel extends TimeModel implements RealtimeClockController {
         .addTransition(ff, Trigger.STOP, STOPPED)
         .addTransition(STOPPED, Trigger.STOP, STOPPED)
         .build();
+
+    final RealtimeModel ref = this;
+    stateMachine.getEventAPI().addListener(new Listener() {
+
+      @Override
+      public void handleEvent(Event e) {
+        @SuppressWarnings("unchecked")
+        final StateTransitionEvent<Trigger, RealtimeModel> event =
+            (StateTransitionEvent<Trigger, RealtimeModel>) e;
+        if (event.newState == rt || event.newState == INIT_RT) {
+          if (eventDispatcher.hasListenerFor(SWITCH_TO_REAL_TIME)) {
+            eventDispatcher.dispatchEvent(new Event(SWITCH_TO_REAL_TIME, ref));
+          }
+        } else if (event.newState == ff || event.newState == INIT_ST) {
+          if (eventDispatcher.hasListenerFor(SWITCH_TO_SIM_TIME)) {
+            eventDispatcher.dispatchEvent(new Event(SWITCH_TO_SIM_TIME, ref));
+          }
+        }
+
+      }
+    },
+        StateMachineEvent.values());
   }
 
   @Override

@@ -68,12 +68,12 @@ public class TickListenerChecker implements TickListener {
   }
 
   public void assertCountEquals() {
-    assertThat(tickCount).comparesEqualTo(afterTickCount);
+    assertThat(tickCount).isEqualTo(afterTickCount);
   }
 
   public void assertCountEquals(long c) {
     assertCountEquals();
-    assertThat(tickCount).comparesEqualTo(c);
+    assertThat(tickCount).isEqualTo(c);
   }
 
   public void assertTickOrder() {

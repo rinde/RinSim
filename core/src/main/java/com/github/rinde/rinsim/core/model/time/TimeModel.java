@@ -39,6 +39,7 @@ import com.github.rinde.rinsim.event.EventAPI;
 import com.github.rinde.rinsim.event.EventDispatcher;
 import com.google.auto.value.AutoValue;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.ImmutableSet;
 
 /**
  * This model is an implementation of a simulation clock. It notifies
@@ -61,11 +62,15 @@ public abstract class TimeModel extends AbstractModel<TickListener>
   final TimeLapse timeLapse;
   volatile boolean isTicking;
   private volatile Set<TickListener> tickListeners;
-  private final EventDispatcher eventDispatcher;
+  final EventDispatcher eventDispatcher;
 
-  TimeModel(AbstractBuilder<?> builder) {
+  TimeModel(AbstractBuilder<?> builder, Enum<?>... additionalEventTypes) {
     tickListeners = new CopyOnWriteArraySet<>();
-    eventDispatcher = new EventDispatcher(ClockEventType.values());
+    final Set<Enum<?>> allEventTypes = ImmutableSet.<Enum<?>>builder()
+        .add(ClockEventType.values())
+        .add(additionalEventTypes)
+        .build();
+    eventDispatcher = new EventDispatcher(allEventTypes);
 
     // time lapse is reused in a Flyweight kind of style
     timeLapse = new TimeLapse(builder.getTimeUnit(), 0L,
@@ -306,7 +311,8 @@ public abstract class TimeModel extends AbstractModel<TickListener>
     @CheckReturnValue
     public RealtimeBuilder withStartInClockMode(ClockMode mode) {
       checkArgument(mode != ClockMode.STOPPED,
-          "Can not use %s as starting mode.", ClockMode.STOPPED);
+          "Can not use %s as starting mode in %s.", ClockMode.STOPPED,
+          toString());
       return create(getTickLength(), getTimeUnit(), mode);
     }
 
