@@ -114,8 +114,8 @@ public class RealtimeModelTest extends TimeModelTest<RealtimeModel> {
   public void testConsistencyCheck() {
     getModel().register(limiter(150));
 
-    final int t = RealtimeModel.RealTime.CONSISTENCY_CHECK_LENGTH + DoubleMath
-        .roundToInt(.5 * RealtimeModel.RealTime.CONSISTENCY_CHECK_LENGTH,
+    final int t = RealtimeModel.Realtime.CONSISTENCY_CHECK_LENGTH + DoubleMath
+        .roundToInt(.5 * RealtimeModel.Realtime.CONSISTENCY_CHECK_LENGTH,
             RoundingMode.HALF_DOWN);
 
     getModel().register(new TickListener() {

@@ -64,23 +64,23 @@ class RealtimeModel extends TimeModel implements RealtimeClockController {
     super(builder, RtClockEventType.values());
     decoratorMap = new HashMap<>();
 
-    final RealTime rt = new RealTime(timeLapse);
-    final SimulatedTime ff = new SimulatedTime();
+    final Realtime rt = new Realtime(timeLapse);
+    final SimulatedTime st = new SimulatedTime();
     stateMachine = StateMachine
         .create(
             builder.getClockMode() == ClockMode.REAL_TIME ? INIT_RT : INIT_ST)
         .addTransition(INIT_RT, Trigger.SIMULATE, INIT_ST)
         .addTransition(INIT_RT, Trigger.START, rt)
         .addTransition(INIT_ST, Trigger.REAL_TIME, INIT_RT)
-        .addTransition(INIT_ST, Trigger.START, ff)
+        .addTransition(INIT_ST, Trigger.START, st)
         .addTransition(rt, Trigger.SIMULATE, rt)
         .addTransition(rt, Trigger.REAL_TIME, rt)
-        .addTransition(rt, Trigger.DO_SIMULATE, ff)
+        .addTransition(rt, Trigger.DO_SIMULATE, st)
         .addTransition(rt, Trigger.STOP, STOPPED)
-        .addTransition(ff, Trigger.REAL_TIME, ff)
-        .addTransition(ff, Trigger.SIMULATE, ff)
-        .addTransition(ff, Trigger.DO_REAL_TIME, rt)
-        .addTransition(ff, Trigger.STOP, STOPPED)
+        .addTransition(st, Trigger.REAL_TIME, st)
+        .addTransition(st, Trigger.SIMULATE, st)
+        .addTransition(st, Trigger.DO_REAL_TIME, rt)
+        .addTransition(st, Trigger.STOP, STOPPED)
         .addTransition(STOPPED, Trigger.STOP, STOPPED)
         .build();
 
@@ -94,7 +94,7 @@ class RealtimeModel extends TimeModel implements RealtimeClockController {
         if ((event.newState == rt || event.newState == INIT_RT)
             && eventDispatcher.hasListenerFor(SWITCH_TO_REAL_TIME)) {
           eventDispatcher.dispatchEvent(new Event(SWITCH_TO_REAL_TIME, ref));
-        } else if ((event.newState == ff || event.newState == INIT_ST)
+        } else if ((event.newState == st || event.newState == INIT_ST)
             && eventDispatcher.hasListenerFor(SWITCH_TO_SIM_TIME)) {
           eventDispatcher.dispatchEvent(new Event(SWITCH_TO_SIM_TIME, ref));
         }
@@ -184,9 +184,7 @@ class RealtimeModel extends TimeModel implements RealtimeClockController {
       extends com.github.rinde.rinsim.fsm.State<Trigger, RealtimeModel> {
 
     /**
-     * @return The
-     *         {@link com.github.rinde.rinsim.core.model.time.RealtimeClockController.ClockMode}
-     *         the clock is in.
+     * @return The {@link RealtimeClockController.ClockMode} the clock is in.
      */
     ClockMode getClockMode();
   }
@@ -234,7 +232,7 @@ class RealtimeModel extends TimeModel implements RealtimeClockController {
     }
   }
 
-  static class RealTime extends AbstractClockState {
+  static class Realtime extends AbstractClockState {
     // number of ticks that will be checked for consistency
     static final int CONSISTENCY_CHECK_LENGTH = 50;
     // max standard deviation = 5ms
@@ -250,7 +248,7 @@ class RealtimeModel extends TimeModel implements RealtimeClockController {
     Trigger nextTrigger;
 
     @SuppressWarnings("null")
-    RealTime(TimeLapse timeLapse) {
+    Realtime(TimeLapse timeLapse) {
       tickNanoSeconds = Measure.valueOf(timeLapse.getTickLength(),
           timeLapse.getTimeUnit()).longValue(SI.NANO(SI.SECOND));
       exceptions = new ArrayList<>();
@@ -273,8 +271,9 @@ class RealtimeModel extends TimeModel implements RealtimeClockController {
         return null;
       }
 
+      System.out.println("start exec");
       final List<Long> timings = new ArrayList<>();
-      final RealTime ref = this;
+      final Realtime ref = this;
       @SuppressWarnings("unchecked")
       final ListenableScheduledFuture<Object> f =
           (ListenableScheduledFuture<Object>) executor
@@ -282,6 +281,7 @@ class RealtimeModel extends TimeModel implements RealtimeClockController {
                   new Runnable() {
                     @Override
                     public void run() {
+                      System.out.println("in thread: " + System.nanoTime());
                       timings.add(System.nanoTime());
                       checkConsistency(timings);
                       context.tickImpl();
@@ -316,9 +316,8 @@ class RealtimeModel extends TimeModel implements RealtimeClockController {
 
     void initExecutor() {
       executor = MoreExecutors.listeningDecorator(
-          Executors
-              .newSingleThreadScheduledExecutor(
-                  PriorityThreadFactory.INSTANCE));
+          Executors.newSingleThreadScheduledExecutor(
+              PriorityThreadFactory.INSTANCE));
     }
 
     void awaitTermination() {
