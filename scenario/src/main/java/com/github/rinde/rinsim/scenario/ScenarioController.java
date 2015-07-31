@@ -41,6 +41,7 @@ import com.github.rinde.rinsim.core.model.ModelBuilder;
 import com.github.rinde.rinsim.core.model.ModelBuilder.AbstractModelBuilder;
 import com.github.rinde.rinsim.core.model.time.Clock;
 import com.github.rinde.rinsim.core.model.time.ClockController;
+import com.github.rinde.rinsim.core.model.time.RealtimeClockController;
 import com.github.rinde.rinsim.core.model.time.TickListener;
 import com.github.rinde.rinsim.core.model.time.TimeLapse;
 import com.github.rinde.rinsim.event.Event;
@@ -167,7 +168,7 @@ public final class ScenarioController extends AbstractModel<StopModel>
   @SuppressWarnings("unchecked")
   <T extends TimedEvent> void dispatch(T e) {
     ((TimedEventHandler<T>) handlers.get(e.getClass())).handleTimedEvent(e,
-        simulator);
+      simulator);
 
     disp.dispatchEvent(new ScenarioEvent(e));
   }
@@ -206,6 +207,12 @@ public final class ScenarioController extends AbstractModel<StopModel>
       }
       dispatch(e);
     }
+    if ((e = scenarioQueue.peek()) != null
+        && e.getTime() <= timeLapse.getTime() + timeLapse.getTickLength()
+        && clock instanceof RealtimeClockController) {
+      ((RealtimeClockController) clock).switchToRealTime();
+    }
+
     if (e == null && status != EventType.SCENARIO_FINISHED) {
       status = EventType.SCENARIO_FINISHED;
       disp.dispatchEvent(new Event(status, this));
@@ -336,15 +343,15 @@ public final class ScenarioController extends AbstractModel<StopModel>
     public <T extends TimedEvent> Builder withEventHandler(Class<T> type,
         TimedEventHandler<T> handler) {
       checkArgument(!type.isInterface(),
-          "Must handle a concrete class, not: %s.", type);
+        "Must handle a concrete class, not: %s.", type);
 
       return create(
-          getScenario(),
-          ImmutableMap
-              .<Class<? extends TimedEvent>, TimedEventHandler<?>>builder()
-              .putAll(getEventHandlers()).put(type, handler).build(),
-          getNumberOfTicks(),
-          getStopModelBuilder(), isIgnoreRedundantHandlers());
+        getScenario(),
+        ImmutableMap
+            .<Class<? extends TimedEvent>, TimedEventHandler<?>>builder()
+            .putAll(getEventHandlers()).put(type, handler).build(),
+        getNumberOfTicks(),
+        getStopModelBuilder(), isIgnoreRedundantHandlers());
     }
 
     /**
@@ -362,7 +369,7 @@ public final class ScenarioController extends AbstractModel<StopModel>
     @CheckReturnValue
     public Builder withIgnoreRedundantHandlers(boolean ignore) {
       return create(getScenario(), getEventHandlers(), getNumberOfTicks(),
-          getStopModelBuilder(), ignore);
+        getStopModelBuilder(), ignore);
     }
 
     /**
@@ -374,7 +381,7 @@ public final class ScenarioController extends AbstractModel<StopModel>
     @CheckReturnValue
     public Builder withNumberOfTicks(int ticks) {
       return create(getScenario(), getEventHandlers(), ticks,
-          getStopModelBuilder(), isIgnoreRedundantHandlers());
+        getStopModelBuilder(), isIgnoreRedundantHandlers());
     }
 
     /**
@@ -388,14 +395,15 @@ public final class ScenarioController extends AbstractModel<StopModel>
     public Builder withAndStopCondition(StopCondition stp) {
       final StopModelBuilder smb;
       if (getStopModelBuilder().stopCondition().equals(
-          StopConditions.alwaysFalse())) {
+        StopConditions.alwaysFalse())) {
         smb = StopModelBuilder.create(stp);
       } else {
         smb = StopModelBuilder.create(StopConditions.and(getStopModelBuilder()
-            .stopCondition(), stp));
+            .stopCondition(),
+          stp));
       }
       return create(getScenario(), getEventHandlers(), getNumberOfTicks(), smb,
-          isIgnoreRedundantHandlers());
+        isIgnoreRedundantHandlers());
     }
 
     /**
@@ -409,14 +417,15 @@ public final class ScenarioController extends AbstractModel<StopModel>
     public Builder withOrStopCondition(StopCondition stp) {
       final StopModelBuilder smb;
       if (getStopModelBuilder().stopCondition().equals(
-          StopConditions.alwaysFalse())) {
+        StopConditions.alwaysFalse())) {
         smb = StopModelBuilder.create(stp);
       } else {
         smb = StopModelBuilder.create(StopConditions.or(getStopModelBuilder()
-            .stopCondition(), stp));
+            .stopCondition(),
+          stp));
       }
       return create(getScenario(), getEventHandlers(), getNumberOfTicks(), smb,
-          isIgnoreRedundantHandlers());
+        isIgnoreRedundantHandlers());
     }
 
     @SuppressWarnings("unchecked")
@@ -429,25 +438,25 @@ public final class ScenarioController extends AbstractModel<StopModel>
       final Scenario s = getScenario();
       final Set<Class<?>> required = collectClasses(s.getEvents());
       final Map<Class<? extends TimedEvent>, TimedEventHandler<?>> m =
-          newLinkedHashMap(getEventHandlers());
+        newLinkedHashMap(getEventHandlers());
       final Set<Class<? extends TimedEvent>> covered =
-          newLinkedHashSet(getEventHandlers().keySet());
+        newLinkedHashSet(getEventHandlers().keySet());
 
       for (final Class<?> c : required) {
         if (!covered.remove(c)) {
           checkState(TimedEvent.class.isAssignableFrom(c.getSuperclass()),
-              "No handler found for event %s.", c);
+            "No handler found for event %s.", c);
           checkState(covered.remove(c.getSuperclass()),
-              "No handler found for event: %s.", c.getSuperclass());
+            "No handler found for event: %s.", c.getSuperclass());
 
           checkState(m.containsKey(c.getSuperclass()),
-              "Cannot place a handler");
+            "Cannot place a handler");
           m.put((Class<TimedEvent>) c, m.get(c.getSuperclass()));
           m.remove(c.getSuperclass());
         }
       }
       checkState(isIgnoreRedundantHandlers() || covered.isEmpty(),
-          "Found redundant handlers for type(s): %s.", covered, m.entrySet());
+        "Found redundant handlers for type(s): %s.", covered, m.entrySet());
       return new ScenarioController(sim, clock, s, ImmutableMap.copyOf(m),
           getNumberOfTicks());
     }
@@ -480,10 +489,10 @@ public final class ScenarioController extends AbstractModel<StopModel>
           : (int) (scen.getTimeWindow().end - scen.getTimeWindow().begin);
 
       return create(
-          scen,
-          ImmutableMap.<Class<? extends TimedEvent>, TimedEventHandler<?>>of(),
-          ticks,
-          StopModelBuilder.create(scen.getStopCondition()), false);
+        scen,
+        ImmutableMap.<Class<? extends TimedEvent>, TimedEventHandler<?>>of(),
+        ticks,
+        StopModelBuilder.create(scen.getStopCondition()), false);
     }
 
     static Builder create(Scenario scen,
@@ -533,8 +542,8 @@ public final class ScenarioController extends AbstractModel<StopModel>
     @Override
     public StopModel build(DependencyProvider dependencyProvider) {
       final ImmutableClassToInstanceMap.Builder<Object> b =
-          ImmutableClassToInstanceMap
-              .builder();
+        ImmutableClassToInstanceMap
+            .builder();
       for (final Class<?> c : dependencies()) {
         put(b, c, dependencyProvider);
       }
