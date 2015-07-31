@@ -106,7 +106,7 @@ public abstract class PDPObjectImpl implements PDPObject {
   /**
    * When this object is registered {@link #isRegistered()}, this method returns
    * the reference to the {@link DefaultPDPModel} on which this object lives.
-   * @return The @{link PDPModel} reference if this object is registered.
+   * @return The {@link PDPModel} reference if this object is registered.
    * @throws IllegalStateException if this object is not registered.
    */
   protected PDPModel getPDPModel() {
