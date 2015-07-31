@@ -327,6 +327,8 @@ class RealtimeModel extends TimeModel implements RealtimeClockController {
       if (!exceptions.isEmpty()) {
         if (exceptions.get(0) instanceof RuntimeException) {
           throw (RuntimeException) exceptions.get(0);
+        } else if (exceptions.get(0) instanceof Error) {
+          throw (Error) exceptions.get(0);
         }
         throw new IllegalStateException(exceptions.get(0));
       }
