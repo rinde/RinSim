@@ -182,8 +182,8 @@ public final class Experiment {
     }
     final Simulator.Builder simBuilder = Simulator.builder()
         .setRandomSeed(seed)
-        .addModels(config.getModels())
-        .addModel(scenContrBuilder);
+        .addModel(scenContrBuilder)
+        .addModels(config.getModels());
 
     final boolean hasStatsTracker =
         containsStatisticsProvider(scenContrBuilder.getChildren())
