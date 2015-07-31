@@ -129,16 +129,6 @@ public class RealtimeModelTestRT extends TimeModelTest<RealtimeModel> {
     assertThat(interArrivalTimes.get(3)).isIn(Range.openClosed(90d, 110d));
     assertThat(interArrivalTimes.get(4)).isIn(Range.openClosed(90d, 110d));
     assertThat(sum(interArrivalTimes.subList(5, 7))).isAtMost(100d);
-    for (int i = 0; i < simTimeStamps.size(); i++) {
-
-      if (i == 0) {
-        System.out.println(simTimeStamps.get(i));
-      } else {
-        System.out.println("\t" + interArrivalTimes.get(i - 1));
-        System.out.println(simTimeStamps.get(i));
-      }
-    }
-
   }
 
   static double sum(List<Double> list) {

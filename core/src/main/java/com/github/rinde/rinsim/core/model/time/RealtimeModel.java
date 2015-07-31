@@ -271,7 +271,6 @@ class RealtimeModel extends TimeModel implements RealtimeClockController {
         return null;
       }
 
-      System.out.println("start exec");
       final List<Long> timings = new ArrayList<>();
       final Realtime ref = this;
       @SuppressWarnings("unchecked")
@@ -281,7 +280,6 @@ class RealtimeModel extends TimeModel implements RealtimeClockController {
                   new Runnable() {
                     @Override
                     public void run() {
-                      System.out.println("in thread: " + System.nanoTime());
                       timings.add(System.nanoTime());
                       checkConsistency(timings);
                       context.tickImpl();
