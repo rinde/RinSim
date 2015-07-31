@@ -32,7 +32,7 @@ import com.github.rinde.rinsim.central.GlobalStateObject;
 import com.github.rinde.rinsim.central.rt.RtSolverModel.Mode;
 import com.github.rinde.rinsim.core.model.DependencyProvider;
 import com.github.rinde.rinsim.core.model.FakeDependencyProvider;
-import com.github.rinde.rinsim.core.model.pdp.PDPModel;
+import com.github.rinde.rinsim.core.model.pdp.DefaultPDPModel;
 import com.github.rinde.rinsim.core.model.time.RealtimeClockController;
 import com.github.rinde.rinsim.core.model.time.TimeModel;
 import com.github.rinde.rinsim.pdptw.common.PDPRoadModel;
@@ -70,11 +70,10 @@ public class RtSolverModelTest {
     when(rm.getSpeedUnit()).thenReturn(NonSI.KILOMETERS_PER_HOUR);
     when(rm.getDistanceUnit()).thenReturn(SI.KILOMETER);
 
-    final PDPModel pm = mock(PDPModel.class);
     dependencyProvider = FakeDependencyProvider.builder()
         .add(clock, RealtimeClockController.class)
         .add(rm, PDPRoadModel.class)
-        .add(pm, PDPModel.class)
+        .add(DefaultPDPModel.builder())
         .build();
 
     model = RtSolverModel.builder().build(dependencyProvider);

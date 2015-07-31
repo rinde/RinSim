@@ -28,6 +28,7 @@ import org.junit.Test;
 
 import com.github.rinde.rinsim.central.RandomSolver;
 import com.github.rinde.rinsim.central.Solver;
+import com.github.rinde.rinsim.central.Solvers.SolveArgs;
 import com.github.rinde.rinsim.core.Simulator;
 import com.github.rinde.rinsim.core.SimulatorAPI;
 import com.github.rinde.rinsim.core.model.pdp.PDPModel;
@@ -162,6 +163,8 @@ public class AgentTest {
         public void handleEvent(Event e) {
 
           System.out.println(getCurrentTime() + " " + e);
+
+          simSolver.get().solve(SolveArgs.create());
 
         }
       }, PDPModelEventType.NEW_PARCEL);

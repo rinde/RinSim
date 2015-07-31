@@ -28,12 +28,11 @@ import com.github.rinde.rinsim.central.Solvers.SimulationConverter;
 import com.github.rinde.rinsim.central.Solvers.SolveArgs;
 import com.github.rinde.rinsim.central.Solvers.StateContext;
 import com.github.rinde.rinsim.central.rt.RtSolverModel.RtSimSolverSchedulerImpl.EventType;
-import com.github.rinde.rinsim.core.model.CompositeModelBuilder;
 import com.github.rinde.rinsim.core.model.DependencyProvider;
 import com.github.rinde.rinsim.core.model.Model.AbstractModel;
-import com.github.rinde.rinsim.core.model.ModelBuilder;
 import com.github.rinde.rinsim.core.model.ModelBuilder.AbstractModelBuilder;
 import com.github.rinde.rinsim.core.model.pdp.PDPModel;
+import com.github.rinde.rinsim.core.model.pdp.PDPModel.PDPModelEventType;
 import com.github.rinde.rinsim.core.model.pdp.Parcel;
 import com.github.rinde.rinsim.core.model.pdp.Vehicle;
 import com.github.rinde.rinsim.core.model.time.RealtimeClockController;
@@ -108,6 +107,12 @@ public final class RtSolverModel extends AbstractModel<RtSolverUser>
     mode = m;
 
     clock.getEventAPI().addListener(this, RtClockEventType.values());
+    pdpModel.getEventAPI().addListener(new Listener() {
+      @Override
+      public void handleEvent(Event e) {
+        clock.switchToRealTime();
+      }
+    }, PDPModelEventType.NEW_PARCEL);
     initExecutor();
   }
 
@@ -189,8 +194,7 @@ public final class RtSolverModel extends AbstractModel<RtSolverUser>
    */
   @AutoValue
   public abstract static class Builder
-      extends AbstractModelBuilder<RtSolverModel, RtSolverUser>
-      implements CompositeModelBuilder<RtSolverModel, RtSolverUser> {
+      extends AbstractModelBuilder<RtSolverModel, RtSolverUser> {
 
     Builder() {
       setDependencies(RealtimeClockController.class, PDPRoadModel.class,
@@ -216,12 +220,6 @@ public final class RtSolverModel extends AbstractModel<RtSolverUser>
      */
     public Builder withMultiMode() {
       return create(Mode.MULTI_MODE);
-    }
-
-    @Override
-    public ImmutableSet<ModelBuilder<?, ?>> getChildren() {
-      return ImmutableSet.<ModelBuilder<?, ?>>of(
-        ProblemObserverModel.Builder.create());
     }
 
     @Override
@@ -309,6 +307,7 @@ public final class RtSolverModel extends AbstractModel<RtSolverUser>
   }
 
   static class RtSimSolverSchedulerImpl {
+    final EventDispatcher simSolverEventDispatcher;
     final EventDispatcher eventDispatcher;
     final SimulationConverter converter;
     final RealtimeSolver solver;
@@ -336,6 +335,8 @@ public final class RtSolverModel extends AbstractModel<RtSolverUser>
 
       reference = this;
       eventDispatcher = new EventDispatcher(EventType.values());
+      simSolverEventDispatcher =
+        new EventDispatcher(RtSimSolver.EventType.values());
       executor = ex;
       rtSimSolver = new InternalRtSimSolver();
       scheduler = new InternalScheduler();
@@ -351,12 +352,13 @@ public final class RtSolverModel extends AbstractModel<RtSolverUser>
     }
 
     class InternalRtSimSolver extends RtSimSolver {
+
       InternalRtSimSolver() {}
 
       @Override
       public void solve(SolveArgs args) {
-        eventDispatcher
-            .dispatchEvent(new Event(EventType.START_COMPUTING, reference));
+        eventDispatcher.dispatchEvent(new Event(
+            RtSimSolverSchedulerImpl.EventType.START_COMPUTING, reference));
         final StateContext sc = converter.convert(args);
         executor.submit(new Runnable() {
           @Override
@@ -375,6 +377,18 @@ public final class RtSolverModel extends AbstractModel<RtSolverUser>
       public ImmutableList<ImmutableList<Parcel>> getCurrentSchedule() {
         isUpdated = false;
         return currentSchedule.get();
+      }
+
+      @Override
+      public void addListener(Listener listener) {
+        simSolverEventDispatcher.addListener(listener,
+          RtSimSolver.EventType.NEW_SCHEDULE);
+      }
+
+      @Override
+      public EventAPI getEventAPI() {
+        // TODO Auto-generated method stub
+        return null;
       }
     }
 
@@ -403,45 +417,6 @@ public final class RtSolverModel extends AbstractModel<RtSolverUser>
       @Override
       public ListeningExecutorService getSharedExecutor() {
         return executor;
-      }
-    }
-  }
-
-  static class ProblemObserverModel extends AbstractModel<Parcel> {
-    private final RealtimeClockController clock;
-
-    ProblemObserverModel(RealtimeClockController c) {
-      clock = c;
-    }
-
-    @Override
-    public boolean register(Parcel element) {
-      clock.switchToRealTime();
-      return true;
-    }
-
-    @Override
-    public boolean unregister(Parcel element) {
-      return true;
-    }
-
-    @AutoValue
-    static class Builder
-        extends AbstractModelBuilder<ProblemObserverModel, Parcel> {
-
-      Builder() {
-        setDependencies(RealtimeClockController.class);
-      }
-
-      @Override
-      public ProblemObserverModel build(DependencyProvider dependencyProvider) {
-        final RealtimeClockController clock =
-          dependencyProvider.get(RealtimeClockController.class);
-        return new ProblemObserverModel(clock);
-      }
-
-      static Builder create() {
-        return new AutoValue_RtSolverModel_ProblemObserverModel_Builder();
       }
     }
   }

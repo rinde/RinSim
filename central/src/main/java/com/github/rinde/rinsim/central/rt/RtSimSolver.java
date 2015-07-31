@@ -17,6 +17,7 @@ package com.github.rinde.rinsim.central.rt;
 
 import com.github.rinde.rinsim.central.Solvers.SolveArgs;
 import com.github.rinde.rinsim.core.model.pdp.Parcel;
+import com.github.rinde.rinsim.event.EventAPI;
 import com.google.common.collect.ImmutableList;
 
 /**
@@ -41,5 +42,11 @@ public abstract class RtSimSolver {
   public abstract boolean isScheduleUpdated();
 
   public abstract ImmutableList<ImmutableList<Parcel>> getCurrentSchedule();
+
+  public abstract EventAPI getEventAPI();
+
+  public enum EventType {
+    NEW_SCHEDULE;
+  }
 
 }
