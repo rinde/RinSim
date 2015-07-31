@@ -15,6 +15,8 @@
  */
 package com.github.rinde.rinsim.central.rt;
 
+import static com.github.rinde.rinsim.core.model.time.RealtimeClockController.ClockMode.REAL_TIME;
+import static com.github.rinde.rinsim.core.model.time.RealtimeClockController.ClockMode.SIMULATED;
 import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.truth.Truth.assertThat;
 import static java.util.Arrays.asList;
@@ -32,19 +34,16 @@ import com.github.rinde.rinsim.central.Solver;
 import com.github.rinde.rinsim.central.rt.RtCentral.AdapterSupplier;
 import com.github.rinde.rinsim.core.Simulator;
 import com.github.rinde.rinsim.core.SimulatorAPI;
-import com.github.rinde.rinsim.core.model.DependencyProvider;
-import com.github.rinde.rinsim.core.model.Model.AbstractModelVoid;
-import com.github.rinde.rinsim.core.model.ModelBuilder.AbstractModelBuilder;
 import com.github.rinde.rinsim.core.model.pdp.PDPModel;
 import com.github.rinde.rinsim.core.model.pdp.PDPModel.PDPModelEventType;
 import com.github.rinde.rinsim.core.model.pdp.PDPModelEvent;
 import com.github.rinde.rinsim.core.model.pdp.Parcel;
 import com.github.rinde.rinsim.core.model.pdp.Vehicle;
 import com.github.rinde.rinsim.core.model.road.RoadModel;
-import com.github.rinde.rinsim.core.model.time.RealtimeClockController;
-import com.github.rinde.rinsim.core.model.time.RealtimeClockController.ClockMode;
 import com.github.rinde.rinsim.core.model.time.TickListener;
 import com.github.rinde.rinsim.core.model.time.TimeLapse;
+import com.github.rinde.rinsim.core.model.time.TimeUtil;
+import com.github.rinde.rinsim.core.model.time.TimeUtil.TimeTracker;
 import com.github.rinde.rinsim.event.Event;
 import com.github.rinde.rinsim.event.Listener;
 import com.github.rinde.rinsim.experiment.MASConfiguration;
@@ -60,11 +59,8 @@ import com.github.rinde.rinsim.testutil.TestUtil;
 import com.github.rinde.rinsim.util.StochasticSupplier;
 import com.github.rinde.rinsim.util.StochasticSuppliers;
 import com.github.rinde.rinsim.util.TimeWindow;
-import com.google.auto.value.AutoValue;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Iterators;
-import com.google.common.collect.PeekingIterator;
 import com.google.common.collect.Range;
 import com.google.common.util.concurrent.ListeningExecutorService;
 
@@ -106,7 +102,7 @@ public class RealtimeSolverTest {
     final List<TimedEvent> events = asList(
       AddParcelEvent.create(
         Parcel.builder(new Point(0, 0), new Point(3, 3))
-            .orderAnnounceTime(200)
+            .orderAnnounceTime(300)
             .pickupTimeWindow(new TimeWindow(1000, 2000))
             .buildDTO()),
       AddParcelEvent.create(
@@ -119,22 +115,48 @@ public class RealtimeSolverTest {
 
     final Simulator sim =
       RealtimeTestHelper.init(RtCentral.vehicleHandler(), events)
+          .addModel(TimeUtil.timeTracker())
           .addModel(
-            RtCentral.builder(StochasticSuppliers.constant(new TestRtSolver())))
-          .addModel(ClockInspectModel.builder())
+            RtCentral.builder(
+              StochasticSuppliers.constant(new TestRtSolver(150)))
+                .withSleepOnChange(true))
           .build();
 
     sim.start();
 
-    final ClockInspectModel cim = sim.getModelProvider()
-        .getModel(ClockInspectModel.class);
+    final TimeTracker tt = sim.getModelProvider().getModel(TimeTracker.class);
+    final List<Double> interArrivalTimes =
+      TimeUtil.interArrivalTimes(tt.getBeforeTimeStamps());
+    final Range<Double> acceptableDuration = Range.closed(90d, 120d);
 
-    cim.assertLog();
+    assertThat(tt.getClockModes()).hasSize(31);
+
+    assertThat(tt.getClockModes().subList(0, 3)).containsExactly(
+      SIMULATED, SIMULATED, SIMULATED);
+    assertThat(sum(interArrivalTimes.subList(0, 3))).isAtMost(100d);
+
+    assertThat(tt.getClockModes().subList(3, 6)).containsExactly(
+      REAL_TIME, REAL_TIME, REAL_TIME);
+    assertThat(interArrivalTimes.get(3)).isIn(acceptableDuration);
+    assertThat(interArrivalTimes.get(4)).isIn(acceptableDuration);
+
+    assertThat(tt.getClockModes().subList(6, 10)).containsExactly(
+      SIMULATED, SIMULATED, SIMULATED, SIMULATED);
+    assertThat(sum(interArrivalTimes.subList(5, 10))).isAtMost(100d);
+
+    assertThat(tt.getClockModes().subList(10, 13)).containsExactly(
+      REAL_TIME, REAL_TIME, REAL_TIME);
+    assertThat(interArrivalTimes.get(10)).isIn(acceptableDuration);
+    assertThat(interArrivalTimes.get(11)).isIn(acceptableDuration);
+
+    assertThat(tt.getClockModes().subList(13, 30)).doesNotContain(REAL_TIME);
+    assertThat(sum(interArrivalTimes.subList(12, 30))).isAtMost(100d);
+    assertThat(tt.getClockModes().get(30)).isEqualTo(REAL_TIME);
   }
 
   /**
-   * Tests that correct vehicles receive routes and that vehicles respond to new
-   * events as fast as possible.
+   * Tests that the correct vehicles receive routes and that vehicles respond to
+   * new events as fast as possible.
    */
   @Test
   public void testCentralRouteAssignment() {
@@ -164,7 +186,7 @@ public class RealtimeSolverTest {
                     .build(),
                   ImmutableList.<Parcel>of());
               }
-            })))
+            })).withSleepOnChange(true))
           .build();
 
     final RoadModel rm = sim.getModelProvider().getModel(RoadModel.class);
@@ -507,111 +529,21 @@ public class RealtimeSolverTest {
     }
   }
 
-  static class ClockInspectModel extends AbstractModelVoid
-      implements TickListener {
-    RealtimeClockController clock;
-
-    List<ClockLogEntry> clockLog;
-
-    ClockInspectModel(RealtimeClockController c) {
-      clock = c;
-      clockLog = new ArrayList<>();
+  double sum(List<Double> list) {
+    double sum = 0d;
+    for (final double l : list) {
+      sum += l;
     }
-
-    @Override
-    public void tick(TimeLapse timeLapse) {
-      clockLog.add(
-        new ClockLogEntry(System.nanoTime(), timeLapse,
-            clock.getClockMode()));
-    }
-
-    @Override
-    public void afterTick(TimeLapse timeLapse) {}
-
-    void assertLog() {
-      // events at 200 and 1000
-      assertThat(clockLog).hasSize(31);
-
-      assertClockModeIs(ClockMode.SIMULATED, 0, 2);
-      assertClockModeIs(ClockMode.REAL_TIME, 3, 5);
-      // 6 can be either, depending on thread scheduling
-      assertClockModeIs(ClockMode.SIMULATED, 7, 10);
-      assertClockModeIs(ClockMode.REAL_TIME, 11, 13);
-      // 14 can be either, depending on thread scheduling
-      assertClockModeIs(ClockMode.SIMULATED, 15, 30);
-
-      assertTimeConsistency();
-    }
-
-    void assertClockModeIs(ClockMode m, int start, int end) {
-      for (int i = start; i <= end; i++) {
-        assertThat(clockLog.get(i).mode).named(Integer.toString(i))
-            .isEqualTo(m);
-      }
-    }
-
-    void assertTimeConsistency() {
-      final PeekingIterator<ClockLogEntry> it = Iterators
-          .peekingIterator(clockLog.iterator());
-      final List<Double> interArrivalTimes = new ArrayList<>();
-      for (ClockLogEntry l1 = it.next(); it.hasNext(); l1 = it.next()) {
-        final ClockLogEntry l2 = it.peek();
-        interArrivalTimes.add((l2.wallTime - l1.wallTime) / 1000000d);
-      }
-
-      final Range<Double> acceptableDuration = Range.closed(90d, 120d);
-      assertThat(sum(interArrivalTimes.subList(0, 3))).isAtMost(100d);
-      assertThat(interArrivalTimes.get(3)).isIn(acceptableDuration);
-      assertThat(interArrivalTimes.get(4)).isIn(acceptableDuration);
-      assertThat(sum(interArrivalTimes.subList(6, 11))).isAtMost(100d);
-      assertThat(interArrivalTimes.get(11)).isIn(acceptableDuration);
-      assertThat(interArrivalTimes.get(12)).isIn(acceptableDuration);
-      assertThat(sum(interArrivalTimes.subList(14, 30))).isAtMost(100d);
-    }
-
-    double sum(List<Double> list) {
-      double sum = 0d;
-      for (final double l : list) {
-        sum += l;
-      }
-      return sum;
-    }
-
-    static Builder builder() {
-      return new AutoValue_RealtimeSolverTest_ClockInspectModel_Builder();
-    }
-
-    static class ClockLogEntry {
-      final long wallTime;
-      final Range<Long> timeLapse;
-      final ClockMode mode;
-
-      ClockLogEntry(long wt, TimeLapse tl, ClockMode m) {
-        wallTime = wt;
-        timeLapse = Range.closedOpen(tl.getStartTime(), tl.getEndTime());
-        mode = m;
-      }
-    }
-
-    @AutoValue
-    abstract static class Builder
-        extends AbstractModelBuilder<ClockInspectModel, Void> {
-
-      Builder() {
-        setDependencies(RealtimeClockController.class);
-      }
-
-      @Override
-      public ClockInspectModel build(DependencyProvider dependencyProvider) {
-        final RealtimeClockController c = dependencyProvider
-            .get(RealtimeClockController.class);
-        return new ClockInspectModel(c);
-      }
-    }
+    return sum;
   }
 
   static class TestRtSolver implements RealtimeSolver {
     Optional<Scheduler> scheduler = Optional.absent();
+    final long sleep;
+
+    TestRtSolver(long sleepTime) {
+      sleep = sleepTime;
+    }
 
     @Override
     public void init(Scheduler s) {
@@ -630,11 +562,10 @@ public class RealtimeSolverTest {
     public void receiveSnapshot(GlobalStateObject snapshot) {
       assertThat(scheduler.isPresent()).isTrue();
       try {
-        Thread.sleep(200);
+        Thread.sleep(sleep);
       } catch (final InterruptedException e) {
         throw new IllegalStateException(e);
       }
-      scheduler.get().doneForNow();
 
       final ImmutableList<ImmutableList<Parcel>> schedule = ImmutableList
           .of(ImmutableList.copyOf(snapshot.getAvailableParcels()),
@@ -642,6 +573,7 @@ public class RealtimeSolverTest {
 
       scheduler.get().updateSchedule(schedule);
       assertThat(scheduler.get().getCurrentSchedule()).isEqualTo(schedule);
+      scheduler.get().doneForNow();
     }
   }
 }

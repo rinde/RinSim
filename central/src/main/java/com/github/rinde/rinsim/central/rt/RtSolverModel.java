@@ -28,13 +28,18 @@ import com.github.rinde.rinsim.central.Solvers.SimulationConverter;
 import com.github.rinde.rinsim.central.Solvers.SolveArgs;
 import com.github.rinde.rinsim.central.Solvers.StateContext;
 import com.github.rinde.rinsim.central.rt.RtSolverModel.RtSimSolverSchedulerImpl.EventType;
+import com.github.rinde.rinsim.core.model.CompositeModelBuilder;
 import com.github.rinde.rinsim.core.model.DependencyProvider;
 import com.github.rinde.rinsim.core.model.Model.AbstractModel;
+import com.github.rinde.rinsim.core.model.ModelBuilder;
 import com.github.rinde.rinsim.core.model.ModelBuilder.AbstractModelBuilder;
 import com.github.rinde.rinsim.core.model.pdp.PDPModel;
 import com.github.rinde.rinsim.core.model.pdp.Parcel;
 import com.github.rinde.rinsim.core.model.pdp.Vehicle;
 import com.github.rinde.rinsim.core.model.time.RealtimeClockController;
+import com.github.rinde.rinsim.core.model.time.RealtimeClockController.RtClockEventType;
+import com.github.rinde.rinsim.core.model.time.TickListener;
+import com.github.rinde.rinsim.core.model.time.TimeLapse;
 import com.github.rinde.rinsim.event.Event;
 import com.github.rinde.rinsim.event.EventAPI;
 import com.github.rinde.rinsim.event.EventDispatcher;
@@ -77,7 +82,8 @@ import com.google.common.util.concurrent.MoreExecutors;
  * </ul>
  * @author Rinde van Lon
  */
-public final class RtSolverModel extends AbstractModel<RtSolverUser> {
+public final class RtSolverModel extends AbstractModel<RtSolverUser>
+    implements TickListener, Listener {
   private static final int NUM_THREADS_IN_SINGLE_MODE = 2;
   final RealtimeClockController clock;
   final PDPRoadModel roadModel;
@@ -85,6 +91,8 @@ public final class RtSolverModel extends AbstractModel<RtSolverUser> {
   final SimSolversManager manager;
   Optional<ListeningExecutorService> executor;
   Mode mode;
+
+  boolean checkNextTick;
 
   enum Mode {
     MULTI_MODE, SINGLE_MODE, UNKNOWN;
@@ -98,6 +106,8 @@ public final class RtSolverModel extends AbstractModel<RtSolverUser> {
     manager = new SimSolversManager();
     executor = Optional.absent();
     mode = m;
+
+    clock.getEventAPI().addListener(this, RtClockEventType.values());
     initExecutor();
   }
 
@@ -127,6 +137,26 @@ public final class RtSolverModel extends AbstractModel<RtSolverUser> {
       initExecutor();
     }
     return clazz.cast(new RtSimSolverBuilderImpl());
+  }
+
+  @Override
+  public void tick(TimeLapse timeLapse) {}
+
+  @Override
+  public void afterTick(TimeLapse timeLapse) {
+    if (checkNextTick) {
+      checkNextTick = false;
+      if (!manager.isComputing() && clock.isTicking()) {
+        clock.switchToSimulatedTime();
+      }
+    }
+  }
+
+  @Override
+  public void handleEvent(Event e) {
+    if (e.getEventType() == RtClockEventType.SWITCH_TO_REAL_TIME) {
+      checkNextTick = true;
+    }
   }
 
   void initExecutor() {
@@ -159,7 +189,8 @@ public final class RtSolverModel extends AbstractModel<RtSolverUser> {
    */
   @AutoValue
   public abstract static class Builder
-      extends AbstractModelBuilder<RtSolverModel, RtSolverUser> {
+      extends AbstractModelBuilder<RtSolverModel, RtSolverUser>
+      implements CompositeModelBuilder<RtSolverModel, RtSolverUser> {
 
     Builder() {
       setDependencies(RealtimeClockController.class, PDPRoadModel.class,
@@ -185,6 +216,12 @@ public final class RtSolverModel extends AbstractModel<RtSolverUser> {
      */
     public Builder withMultiMode() {
       return create(Mode.MULTI_MODE);
+    }
+
+    @Override
+    public ImmutableSet<ModelBuilder<?, ?>> getChildren() {
+      return ImmutableSet.<ModelBuilder<?, ?>>of(
+        ProblemObserverModel.Builder.create());
     }
 
     @Override
@@ -303,7 +340,6 @@ public final class RtSolverModel extends AbstractModel<RtSolverUser> {
       rtSimSolver = new InternalRtSimSolver();
       scheduler = new InternalScheduler();
       solver.init(scheduler);
-
     }
 
     public EventAPI getEventAPI() {
@@ -367,6 +403,45 @@ public final class RtSolverModel extends AbstractModel<RtSolverUser> {
       @Override
       public ListeningExecutorService getSharedExecutor() {
         return executor;
+      }
+    }
+  }
+
+  static class ProblemObserverModel extends AbstractModel<Parcel> {
+    private final RealtimeClockController clock;
+
+    ProblemObserverModel(RealtimeClockController c) {
+      clock = c;
+    }
+
+    @Override
+    public boolean register(Parcel element) {
+      clock.switchToRealTime();
+      return true;
+    }
+
+    @Override
+    public boolean unregister(Parcel element) {
+      return true;
+    }
+
+    @AutoValue
+    static class Builder
+        extends AbstractModelBuilder<ProblemObserverModel, Parcel> {
+
+      Builder() {
+        setDependencies(RealtimeClockController.class);
+      }
+
+      @Override
+      public ProblemObserverModel build(DependencyProvider dependencyProvider) {
+        final RealtimeClockController clock =
+          dependencyProvider.get(RealtimeClockController.class);
+        return new ProblemObserverModel(clock);
+      }
+
+      static Builder create() {
+        return new AutoValue_RtSolverModel_ProblemObserverModel_Builder();
       }
     }
   }

@@ -16,6 +16,7 @@
 package com.github.rinde.rinsim.central.rt;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Verify.verify;
 import static com.google.common.collect.Sets.newHashSet;
 
 import java.io.Serializable;
@@ -35,6 +36,7 @@ import com.github.rinde.rinsim.core.model.pdp.PDPModel;
 import com.github.rinde.rinsim.core.model.pdp.Parcel;
 import com.github.rinde.rinsim.core.model.rand.RandomProvider;
 import com.github.rinde.rinsim.core.model.time.RealtimeClockController;
+import com.github.rinde.rinsim.core.model.time.RealtimeClockController.ClockMode;
 import com.github.rinde.rinsim.core.model.time.TickListener;
 import com.github.rinde.rinsim.core.model.time.TimeLapse;
 import com.github.rinde.rinsim.experiment.MASConfiguration;
@@ -56,6 +58,8 @@ import com.google.common.collect.ImmutableSet;
  */
 public final class RtCentral {
 
+  private static final boolean DEFAULT_SLEEP_ON_CHANGE = false;
+
   private RtCentral() {}
 
   /**
@@ -70,7 +74,7 @@ public final class RtCentral {
    */
   public static Builder builder(
       StochasticSupplier<? extends RealtimeSolver> solverSupplier) {
-    return Builder.create(solverSupplier, true);
+    return Builder.create(solverSupplier, DEFAULT_SLEEP_ON_CHANGE);
   }
 
   /**
@@ -83,7 +87,7 @@ public final class RtCentral {
    *          {@link Solver} that will be used for controlling all vehicles.
    * @return A new {@link Builder} instance.
    */
-  public static ModelBuilder<?, ?> builderAdapt(
+  public static Builder builderAdapt(
       StochasticSupplier<? extends Solver> solverSupplier) {
     return builder(AdapterSupplier.create(solverSupplier));
   }
@@ -163,7 +167,7 @@ public final class RtCentral {
      * the new schedule will be applied immediately. If set to
      * <code>false</code> the model will not wait, this means that a new
      * schedule will be applied at the earliest the tick after it started the
-     * computation.
+     * computation. By default sleep on change is set to <code>false</code>.
      * @param flag If set to <code>true</code> sleep on change is enabled,
      *          otherwise it is disabled.
      * @return A new builder instance with the flag.
@@ -282,6 +286,8 @@ public final class RtCentral {
     @Override
     public void tick(TimeLapse timeLapse) {
       if (problemHasChanged) {
+        verify(clock.getClockMode() == ClockMode.REAL_TIME,
+          "Problem detected at %s.", timeLapse);
         problemHasChanged = false;
         notifySolverOfChange(timeLapse, sleepOnChange);
       }

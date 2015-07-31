@@ -15,19 +15,33 @@
  */
 package com.github.rinde.rinsim.central.rt;
 
+import static com.github.rinde.rinsim.core.model.time.RealtimeClockController.RtClockEventType.SWITCH_TO_REAL_TIME;
+import static com.github.rinde.rinsim.core.model.time.RealtimeClockController.RtClockEventType.SWITCH_TO_SIM_TIME;
+import static com.google.common.truth.Truth.assertThat;
 import static java.util.Arrays.asList;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.Before;
+import org.junit.Test;
 
 import com.github.rinde.rinsim.central.RandomSolver;
 import com.github.rinde.rinsim.central.Solver;
 import com.github.rinde.rinsim.core.Simulator;
 import com.github.rinde.rinsim.core.SimulatorAPI;
+import com.github.rinde.rinsim.core.model.pdp.PDPModel;
+import com.github.rinde.rinsim.core.model.pdp.PDPModel.PDPModelEventType;
 import com.github.rinde.rinsim.core.model.pdp.Parcel;
 import com.github.rinde.rinsim.core.model.pdp.VehicleDTO;
+import com.github.rinde.rinsim.core.model.road.RoadModel;
+import com.github.rinde.rinsim.core.model.time.RealtimeClockController;
+import com.github.rinde.rinsim.core.model.time.RealtimeClockController.RtClockEventType;
+import com.github.rinde.rinsim.core.model.time.TickListener;
 import com.github.rinde.rinsim.core.model.time.TimeLapse;
+import com.github.rinde.rinsim.core.model.time.TimeModel;
+import com.github.rinde.rinsim.event.Event;
+import com.github.rinde.rinsim.event.Listener;
 import com.github.rinde.rinsim.geom.Point;
 import com.github.rinde.rinsim.pdptw.common.AddParcelEvent;
 import com.github.rinde.rinsim.pdptw.common.AddVehicleEvent;
@@ -36,6 +50,7 @@ import com.github.rinde.rinsim.scenario.TimeOutEvent;
 import com.github.rinde.rinsim.scenario.TimedEvent;
 import com.github.rinde.rinsim.scenario.TimedEventHandler;
 import com.github.rinde.rinsim.util.TimeWindow;
+import com.google.auto.value.AutoValue;
 import com.google.common.base.Optional;
 
 /**
@@ -44,9 +59,11 @@ import com.google.common.base.Optional;
  */
 public class AgentTest {
 
+  @SuppressWarnings("null")
+  Simulator sim;
+
   @Before
   public void setUp() {
-
     final List<TimedEvent> events = asList(
       AddParcelEvent.create(
         Parcel.builder(new Point(0, 0), new Point(3, 3))
@@ -55,19 +72,66 @@ public class AgentTest {
             .buildDTO()),
       AddParcelEvent.create(
         Parcel.builder(new Point(0, 0), new Point(3, 3))
-            .orderAnnounceTime(1000)
+            .orderAnnounceTime(999)
             .pickupTimeWindow(new TimeWindow(60000, 80000))
             .serviceDuration(180000L)
             .buildDTO()),
       TimeOutEvent.create(3000));
 
-    final Simulator.Builder b =
-      RealtimeTestHelper.init(Handler.INSTANCE, events);
+    sim = RealtimeTestHelper.init(Handler.INSTANCE, events)
+        .addModel(RtSolverModel.builder())
+        .build();
+
+  }
+
+  @AutoValue
+  abstract static class LogEntry {
+    abstract long time();
+
+    abstract Enum<?> eventType();
+
+  }
+
+  static LogEntry logEntry(long time, Enum<?> type) {
+    return new AutoValue_AgentTest_LogEntry(time, type);
+  }
+
+  @Test
+  public void test() {
+
+    final RealtimeClockController clock =
+      (RealtimeClockController) sim.getModelProvider()
+          .getModel(TimeModel.class);
+
+    final List<LogEntry> log = new ArrayList<>();
+    clock.getEventAPI().addListener(new Listener() {
+      @Override
+      public void handleEvent(Event e) {
+        log.add(logEntry(clock.getCurrentTime(), e.getEventType()));
+      }
+    }, RtClockEventType.values());
+
+    sim.addTickListener(new TickListener() {
+      @Override
+      public void tick(TimeLapse timeLapse) {
+        System.out.println(timeLapse + " " + clock.getClockMode());
+
+      }
+
+      @Override
+      public void afterTick(TimeLapse timeLapse) {}
+    });
+    sim.start();
+    assertThat(log.get(0)).isEqualTo(logEntry(0, SWITCH_TO_SIM_TIME));
+    assertThat(log.get(1)).isEqualTo(logEntry(200, SWITCH_TO_REAL_TIME));
+    assertThat(log.get(2)).isEqualTo(logEntry(300, SWITCH_TO_SIM_TIME));
+    assertThat(log.get(3)).isEqualTo(logEntry(1000, SWITCH_TO_REAL_TIME));
+    assertThat(log.get(4)).isEqualTo(logEntry(1100, SWITCH_TO_SIM_TIME));
+    System.out.println(log);
   }
 
   enum Handler implements TimedEventHandler<AddVehicleEvent> {
     INSTANCE {
-
       @Override
       public void handleTimedEvent(AddVehicleEvent event, SimulatorAPI sim) {
         sim.register(new Agent(event.getVehicleDTO()));
@@ -90,6 +154,17 @@ public class AgentTest {
       simSolver = Optional.of(builder.build(solver));
     }
 
-  }
+    @Override
+    public void initRoadPDP(RoadModel pRoadModel, PDPModel pPdpModel) {
+      super.initRoadPDP(pRoadModel, pPdpModel);
+      getPDPModel().getEventAPI().addListener(new Listener() {
+        @Override
+        public void handleEvent(Event e) {
 
+          System.out.println(getCurrentTime() + " " + e);
+
+        }
+      }, PDPModelEventType.NEW_PARCEL);
+    }
+  }
 }

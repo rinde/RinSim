@@ -17,7 +17,9 @@ package com.github.rinde.rinsim.central.rt;
 
 import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.truth.Truth.assertThat;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
 import javax.measure.unit.NonSI;
@@ -32,6 +34,7 @@ import com.github.rinde.rinsim.core.model.DependencyProvider;
 import com.github.rinde.rinsim.core.model.FakeDependencyProvider;
 import com.github.rinde.rinsim.core.model.pdp.PDPModel;
 import com.github.rinde.rinsim.core.model.time.RealtimeClockController;
+import com.github.rinde.rinsim.core.model.time.TimeModel;
 import com.github.rinde.rinsim.pdptw.common.PDPRoadModel;
 import com.github.rinde.rinsim.testutil.TestUtil;
 
@@ -57,9 +60,11 @@ public class RtSolverModelTest {
    */
   @Before
   public void setUp() {
-    clock = mock(RealtimeClockController.class);
-    when(clock.getTimeUnit()).thenReturn(SI.MILLI(SI.SECOND));
-    when(clock.getCurrentTime()).thenReturn(0L);
+    clock = spy((RealtimeClockController) TimeModel.builder()
+        .withRealTime()
+        .build(FakeDependencyProvider.empty()));
+    doNothing().when(clock).switchToRealTime();
+    doNothing().when(clock).switchToSimulatedTime();
 
     final PDPRoadModel rm = mock(PDPRoadModel.class);
     when(rm.getSpeedUnit()).thenReturn(NonSI.KILOMETERS_PER_HOUR);

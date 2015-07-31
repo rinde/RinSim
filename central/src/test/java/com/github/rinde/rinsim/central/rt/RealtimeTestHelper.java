@@ -35,7 +35,7 @@ import com.github.rinde.rinsim.scenario.TimedEvent;
 import com.github.rinde.rinsim.scenario.TimedEventHandler;
 
 /**
- * 
+ *
  * @author Rinde van Lon
  */
 public class RealtimeTestHelper {
