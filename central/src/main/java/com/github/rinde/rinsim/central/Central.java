@@ -92,7 +92,7 @@ public final class Central {
         .build();
   }
 
-  public static TimedEventHandler<AddVehicleEvent> vehicleHandler() {
+  static TimedEventHandler<AddVehicleEvent> vehicleHandler() {
     return VehicleCreator.INSTANCE;
   }
 
@@ -119,9 +119,9 @@ public final class Central {
 
     Builder() {
       setDependencies(Clock.class,
-          PDPRoadModel.class,
-          PDPModel.class,
-          RandomProvider.class);
+        PDPRoadModel.class,
+        PDPModel.class,
+        RandomProvider.class);
     }
 
     abstract StochasticSupplier<Solver> getSolverSupplier();
@@ -133,7 +133,7 @@ public final class Central {
       final PDPModel pm = dependencyProvider.get(PDPModel.class);
       final RandomProvider rnd = dependencyProvider.get(RandomProvider.class);
       final Solver solver =
-          getSolverSupplier().get(rnd.masterInstance().nextLong());
+        getSolverSupplier().get(rnd.masterInstance().nextLong());
       return new CentralModel(clock, rm, pm, solver);
     }
 
@@ -187,8 +187,8 @@ public final class Central {
 
         // gather current routes
         final ImmutableList.Builder<ImmutableList<Parcel>> currentRouteBuilder =
-            ImmutableList
-                .builder();
+          ImmutableList
+              .builder();
         for (final RouteFollowingVehicle vehicle : vehicles) {
           final ImmutableList<Parcel> l = ImmutableList.copyOf(vehicle
               .getRoute());
@@ -197,9 +197,9 @@ public final class Central {
 
         final Iterator<Queue<Parcel>> routes = solverAdapter
             .solve(
-                SolveArgs.create()
-                    .useAllParcels()
-                    .useCurrentRoutes(currentRouteBuilder.build()))
+              SolveArgs.create()
+                  .useAllParcels()
+                  .useCurrentRoutes(currentRouteBuilder.build()))
             .iterator();
 
         for (final RouteFollowingVehicle vehicle : vehicles) {

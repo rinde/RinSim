@@ -38,8 +38,6 @@ import com.github.rinde.rinsim.core.model.pdp.VehicleDTO;
 import com.github.rinde.rinsim.core.model.road.RoadModel;
 import com.github.rinde.rinsim.core.model.time.RealtimeClockController;
 import com.github.rinde.rinsim.core.model.time.RealtimeClockController.RtClockEventType;
-import com.github.rinde.rinsim.core.model.time.TickListener;
-import com.github.rinde.rinsim.core.model.time.TimeLapse;
 import com.github.rinde.rinsim.core.model.time.TimeModel;
 import com.github.rinde.rinsim.event.Event;
 import com.github.rinde.rinsim.event.Listener;
@@ -53,6 +51,7 @@ import com.github.rinde.rinsim.scenario.TimedEventHandler;
 import com.github.rinde.rinsim.util.TimeWindow;
 import com.google.auto.value.AutoValue;
 import com.google.common.base.Optional;
+import com.google.common.collect.ImmutableSet;
 
 /**
  *
@@ -85,21 +84,8 @@ public class AgentTest {
 
   }
 
-  @AutoValue
-  abstract static class LogEntry {
-    abstract long time();
-
-    abstract Enum<?> eventType();
-
-  }
-
-  static LogEntry logEntry(long time, Enum<?> type) {
-    return new AutoValue_AgentTest_LogEntry(time, type);
-  }
-
   @Test
   public void test() {
-
     final RealtimeClockController clock =
       (RealtimeClockController) sim.getModelProvider()
           .getModel(TimeModel.class);
@@ -112,23 +98,15 @@ public class AgentTest {
       }
     }, RtClockEventType.values());
 
-    sim.addTickListener(new TickListener() {
-      @Override
-      public void tick(TimeLapse timeLapse) {
-        System.out.println(timeLapse + " " + clock.getClockMode());
-
-      }
-
-      @Override
-      public void afterTick(TimeLapse timeLapse) {}
-    });
     sim.start();
     assertThat(log.get(0)).isEqualTo(logEntry(0, SWITCH_TO_SIM_TIME));
     assertThat(log.get(1)).isEqualTo(logEntry(200, SWITCH_TO_REAL_TIME));
-    assertThat(log.get(2)).isEqualTo(logEntry(300, SWITCH_TO_SIM_TIME));
+    assertThat(log.get(2).eventType()).isEqualTo(SWITCH_TO_SIM_TIME);
+    assertThat(log.get(2).time()).isIn(ImmutableSet.of(300L, 400L));
     assertThat(log.get(3)).isEqualTo(logEntry(1000, SWITCH_TO_REAL_TIME));
-    assertThat(log.get(4)).isEqualTo(logEntry(1100, SWITCH_TO_SIM_TIME));
-    System.out.println(log);
+    assertThat(log.get(4).eventType()).isEqualTo(SWITCH_TO_SIM_TIME);
+    assertThat(log.get(4).time()).isIn(ImmutableSet.of(1100L, 1200L));
+    assertThat(log.get(5)).isEqualTo(logEntry(3000, SWITCH_TO_REAL_TIME));
   }
 
   enum Handler implements TimedEventHandler<AddVehicleEvent> {
@@ -138,6 +116,17 @@ public class AgentTest {
         sim.register(new Agent(event.getVehicleDTO()));
       }
     }
+  }
+
+  static LogEntry logEntry(long time, Enum<?> type) {
+    return new AutoValue_AgentTest_LogEntry(time, type);
+  }
+
+  @AutoValue
+  abstract static class LogEntry {
+    abstract long time();
+
+    abstract Enum<?> eventType();
   }
 
   static class Agent extends RouteFollowingVehicle implements RtSolverUser {
@@ -152,7 +141,17 @@ public class AgentTest {
 
     @Override
     public void setSolverProvider(RtSimSolverBuilder builder) {
-      simSolver = Optional.of(builder.build(solver));
+      simSolver =
+        Optional.of(builder.setVehicles(ImmutableSet.of(this)).build(solver));
+      final RtSimSolver s = simSolver.get();
+      s.getEventAPI().addListener(new Listener() {
+        @Override
+        public void handleEvent(Event e) {
+          assertThat(s.isScheduleUpdated()).isTrue();
+          assertThat(s.getCurrentSchedule()).hasSize(1);
+          assertThat(s.isScheduleUpdated()).isFalse();
+        }
+      }, RtSimSolver.EventType.NEW_SCHEDULE);
     }
 
     @Override
@@ -161,11 +160,7 @@ public class AgentTest {
       getPDPModel().getEventAPI().addListener(new Listener() {
         @Override
         public void handleEvent(Event e) {
-
-          System.out.println(getCurrentTime() + " " + e);
-
           simSolver.get().solve(SolveArgs.create());
-
         }
       }, PDPModelEventType.NEW_PARCEL);
     }

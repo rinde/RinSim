@@ -35,7 +35,9 @@ import com.github.rinde.rinsim.core.model.pdp.PDPModel;
 import com.github.rinde.rinsim.core.model.pdp.PDPModel.PDPModelEventType;
 import com.github.rinde.rinsim.core.model.pdp.Parcel;
 import com.github.rinde.rinsim.core.model.pdp.Vehicle;
+import com.github.rinde.rinsim.core.model.time.Clock.ClockEventType;
 import com.github.rinde.rinsim.core.model.time.RealtimeClockController;
+import com.github.rinde.rinsim.core.model.time.RealtimeClockController.ClockMode;
 import com.github.rinde.rinsim.core.model.time.RealtimeClockController.RtClockEventType;
 import com.github.rinde.rinsim.core.model.time.TickListener;
 import com.github.rinde.rinsim.core.model.time.TimeLapse;
@@ -107,6 +109,14 @@ public final class RtSolverModel extends AbstractModel<RtSolverUser>
     mode = m;
 
     clock.getEventAPI().addListener(this, RtClockEventType.values());
+    clock.getEventAPI().addListener(new Listener() {
+      @Override
+      public void handleEvent(Event e) {
+        if (executor.isPresent()) {
+          executor.get().shutdown();
+        }
+      }
+    }, ClockEventType.STOPPED);
     pdpModel.getEventAPI().addListener(new Listener() {
       @Override
       public void handleEvent(Event e) {
@@ -262,8 +272,9 @@ public final class RtSolverModel extends AbstractModel<RtSolverUser>
         clock.switchToRealTime();
         computingSimSolvers.add((RtSimSolverSchedulerImpl) e.getIssuer());
       } else {
-        checkState(computingSimSolvers.remove(e.getIssuer()));
-
+        // done computing
+        checkState(computingSimSolvers.remove(e.getIssuer()), "Internal error",
+          computingSimSolvers, e.getIssuer());
         if (!isComputing()) {
           clock.switchToSimulatedTime();
         }
@@ -357,6 +368,8 @@ public final class RtSolverModel extends AbstractModel<RtSolverUser>
 
       @Override
       public void solve(SolveArgs args) {
+        checkState(clock.getClockMode() == ClockMode.REAL_TIME,
+          "Clock must be in real-time mode before calling this method.");
         eventDispatcher.dispatchEvent(new Event(
             RtSimSolverSchedulerImpl.EventType.START_COMPUTING, reference));
         final StateContext sc = converter.convert(args);
@@ -375,20 +388,15 @@ public final class RtSolverModel extends AbstractModel<RtSolverUser>
 
       @Override
       public ImmutableList<ImmutableList<Parcel>> getCurrentSchedule() {
+        checkState(currentSchedule.isPresent(),
+          "No schedule has been computed yet.");
         isUpdated = false;
         return currentSchedule.get();
       }
 
       @Override
-      public void addListener(Listener listener) {
-        simSolverEventDispatcher.addListener(listener,
-          RtSimSolver.EventType.NEW_SCHEDULE);
-      }
-
-      @Override
       public EventAPI getEventAPI() {
-        // TODO Auto-generated method stub
-        return null;
+        return simSolverEventDispatcher;
       }
     }
 
@@ -399,6 +407,8 @@ public final class RtSolverModel extends AbstractModel<RtSolverUser>
       public void updateSchedule(ImmutableList<ImmutableList<Parcel>> routes) {
         currentSchedule = Optional.of(routes);
         isUpdated = true;
+        simSolverEventDispatcher.dispatchEvent(
+          new Event(RtSimSolver.EventType.NEW_SCHEDULE, rtSimSolver));
       }
 
       @Override
@@ -410,8 +420,8 @@ public final class RtSolverModel extends AbstractModel<RtSolverUser>
 
       @Override
       public void doneForNow() {
-        eventDispatcher
-            .dispatchEvent(new Event(EventType.DONE_COMPUTING, reference));
+        eventDispatcher.dispatchEvent(
+          new Event(EventType.DONE_COMPUTING, reference));
       }
 
       @Override

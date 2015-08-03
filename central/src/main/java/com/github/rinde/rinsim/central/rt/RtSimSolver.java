@@ -35,18 +35,49 @@ public abstract class RtSimSolver {
 
   RtSimSolver() {}
 
-  // switch back to real time
-  // start computation
+  /**
+   * Tells the underlying real-time solver to start computing.
+   * @param args Object that allows to specify the information that will be used
+   *          by the solver.
+   * @throws IllegalStateException If the clock is not in real-time mode at the
+   *           time of calling this method.
+   */
   public abstract void solve(SolveArgs args);
 
+  /**
+   * @return <code>true</code> indicates that a new schedule has been computed
+   *         and has not been retrieved yet via a call to
+   *         {@link #getCurrentSchedule()}, if the schedule has not been updated
+   *         since a previous call to {@link #getCurrentSchedule()} or no
+   *         schedule has been computed yet <code>false</code> is returned.
+   */
   public abstract boolean isScheduleUpdated();
 
+  /**
+   * Retrieves the current schedule, after this method is called
+   * {@link #isScheduleUpdated()} always returns <code>false</code>.
+   * @return The current schedule.
+   * @throws IllegalStateException If no schedule has finished computing yet.
+   */
   public abstract ImmutableList<ImmutableList<Parcel>> getCurrentSchedule();
 
+  /**
+   * The event API, the supported event types are documented in
+   * {@link EventType}.
+   * @return The {@link EventAPI}.
+   */
   public abstract EventAPI getEventAPI();
 
+  /**
+   * The event types dispatched by {@link RtSimSolver}.
+   * @author Rinde van Lon
+   */
   public enum EventType {
+    /**
+     * This event is dispatched when the solver has computed a new schedule.
+     * Right after this event is dispatched
+     * {@link RtSimSolver#isScheduleUpdated()} will return <code>true</code>.
+     */
     NEW_SCHEDULE;
   }
-
 }

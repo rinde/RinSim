@@ -27,6 +27,8 @@ import org.junit.experimental.categories.Category;
 
 import com.github.rinde.rinsim.central.RandomSolver;
 import com.github.rinde.rinsim.central.Solvers.SolveArgs;
+import com.github.rinde.rinsim.central.rt.RtSimSolver.EventType;
+import com.github.rinde.rinsim.event.ListenerEventHistory;
 import com.github.rinde.rinsim.testutil.RealtimeTests;
 import com.google.common.collect.Range;
 
@@ -61,8 +63,24 @@ public class RtSolverModelTestRT extends RtSolverModelTest {
     verify(clock, times(0)).switchToRealTime();
     verify(clock, times(0)).switchToSimulatedTime();
 
+    final ListenerEventHistory eventHistory = new ListenerEventHistory();
     solvers.get(0).solve(SolveArgs.create());
+    solvers.get(0).getEventAPI().addListener(eventHistory,
+      EventType.NEW_SCHEDULE);
     solvers.get(1).solve(SolveArgs.create());
+
+    assertThat(solvers.get(0).isScheduleUpdated()).isFalse();
+    boolean fail = false;
+    try {
+      solvers.get(0).getCurrentSchedule();
+    } catch (final IllegalStateException e) {
+      assertThat(e.getMessage())
+          .isEqualTo("No schedule has been computed yet.");
+      fail = true;
+    }
+    assertThat(fail).isTrue();
+    assertThat(solvers.get(0).isScheduleUpdated()).isFalse();
+    assertThat(eventHistory.getHistory()).isEmpty();
 
     verify(clock, times(2)).switchToRealTime();
     verify(clock, times(0)).switchToSimulatedTime();
@@ -81,6 +99,16 @@ public class RtSolverModelTestRT extends RtSolverModelTest {
 
     verify(clock, times(2)).switchToRealTime();
     verify(clock, times(1)).switchToSimulatedTime();
+
+    assertThat(eventHistory.getEventTypeHistory())
+        .containsExactly(EventType.NEW_SCHEDULE);
+    assertThat(eventHistory.getHistory().get(0).getIssuer())
+        .isInstanceOf(RtSimSolver.class);
+    assertThat(solvers.get(0).isScheduleUpdated()).isTrue();
+    // there was no problem to solve (i.e. no vehicles/parcels) so the provided
+    // schedule is empty
+    assertThat(solvers.get(0).getCurrentSchedule()).isEmpty();
+    assertThat(solvers.get(0).isScheduleUpdated()).isFalse();
   }
 
 }
