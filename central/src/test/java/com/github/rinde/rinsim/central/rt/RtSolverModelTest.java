@@ -80,6 +80,7 @@ public class RtSolverModelTest {
     assertThat(model.mode).isEqualTo(Mode.UNKNOWN);
 
     TestUtil.testEnum(Mode.class);
+    TestUtil.testEnum(RtSimSolver.EventType.class);
   }
 
   /**
