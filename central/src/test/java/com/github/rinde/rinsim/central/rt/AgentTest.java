@@ -65,6 +65,9 @@ public class AgentTest {
   @SuppressWarnings("null")
   Simulator sim;
 
+  /**
+   * Sets up simple problem with two agents and two parcels.
+   */
   @Before
   public void setUp() {
     final List<TimedEvent> events = asList(
@@ -87,8 +90,11 @@ public class AgentTest {
 
   }
 
+  /**
+   * Test with two agents using a solver at the same time.
+   */
   @Test
-  public void test() {
+  public void twoSimultaneousComputationsTest() {
     final RealtimeClockController clock =
       (RealtimeClockController) sim.getModelProvider()
           .getModel(TimeModel.class);
