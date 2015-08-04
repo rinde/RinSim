@@ -68,12 +68,12 @@ public class ExperimentTest {
         .withRandomSeed(123);
 
     final ExperimentResults er = builder.perform();
-    assertEquals(123, er.masterSeed);
-    assertEquals(123, er.results.asList().get(0).seed);
+    assertEquals(123, er.getMasterSeed());
+    assertEquals(123, er.getResults().asList().get(0).seed);
 
     @SuppressWarnings("unchecked")
     final List<Point> positions =
-        (List<Point>) er.results.asList().get(0).simulationData
+        (List<Point>) er.getResults().asList().get(0).simulationData
             .get();
     assertEquals(10, positions.size());
   }
@@ -97,13 +97,13 @@ public class ExperimentTest {
         .withRandomSeed(456);
 
     final ExperimentResults er = builder.perform();
-    assertThat(er.results.asList().get(0).masConfiguration.getName()).endsWith(
+    assertThat(er.getResults().asList().get(0).masConfiguration.getName()).endsWith(
         "A");
-    assertThat(er.results.asList().get(1).masConfiguration.getName()).endsWith(
+    assertThat(er.getResults().asList().get(1).masConfiguration.getName()).endsWith(
         "B");
-    assertThat(er.results.asList().get(2).masConfiguration.getName()).endsWith(
+    assertThat(er.getResults().asList().get(2).masConfiguration.getName()).endsWith(
         "C");
-    assertThat(er.results.asList().get(3).masConfiguration.getName()).endsWith(
+    assertThat(er.getResults().asList().get(3).masConfiguration.getName()).endsWith(
         "D");
   }
 

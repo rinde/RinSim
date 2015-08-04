@@ -74,8 +74,7 @@ final class LocalComputer implements Computer {
     }
     executor.shutdown();
 
-    return new ExperimentResults(builder,
-        ImmutableSet.copyOf(results));
+    return ExperimentResults.create(builder, ImmutableSet.copyOf(results));
   }
 
   static class ExperimentRunner implements Callable<SimulationResult> {

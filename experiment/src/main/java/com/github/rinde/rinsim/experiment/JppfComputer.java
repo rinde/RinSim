@@ -130,7 +130,7 @@ final class JppfComputer implements Computer {
     for (final ResultListener l : listeners) {
       l.doneComputing();
     }
-    return new ExperimentResults(builder, res.buildResults());
+    return ExperimentResults.create(builder, res.buildResults());
   }
 
   static void constructTasks(

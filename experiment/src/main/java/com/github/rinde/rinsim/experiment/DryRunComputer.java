@@ -83,7 +83,7 @@ class DryRunComputer implements Computer {
         .println(
             "===================== RinSim Experiment finished dry run ======="
                 + "==============");
-    return new ExperimentResults(builder,
+    return ExperimentResults.create(builder,
         ImmutableSet.<Experiment.SimulationResult>of());
   }
 

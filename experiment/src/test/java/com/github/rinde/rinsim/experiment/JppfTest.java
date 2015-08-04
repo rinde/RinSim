@@ -124,7 +124,7 @@ public class JppfTest {
     experimentBuilder.computeLocal();
     final ExperimentResults results4 = experimentBuilder.perform();
     assertEquals(results3, results4);
-    assertTrue(results3.results.asList().get(0).simulationData.isPresent());
+    assertTrue(results3.getResults().asList().get(0).simulationData.isPresent());
   }
 
   /**

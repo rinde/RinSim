@@ -20,14 +20,11 @@ import static com.google.common.collect.Lists.newArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import javax.annotation.Nullable;
-
 import com.github.rinde.rinsim.experiment.Experiment.Builder;
 import com.github.rinde.rinsim.experiment.Experiment.SimulationResult;
 import com.github.rinde.rinsim.pdptw.common.ObjectiveFunction;
 import com.github.rinde.rinsim.scenario.Scenario;
-import com.google.common.base.MoreObjects;
-import com.google.common.base.Objects;
+import com.google.auto.value.AutoValue;
 import com.google.common.collect.ImmutableSet;
 
 /**
@@ -35,99 +32,66 @@ import com.google.common.collect.ImmutableSet;
  * by {@link Builder#perform()}.
  * @author Rinde van Lon
  */
-public final class ExperimentResults {
-  /**
-   * The {@link ObjectiveFunction} that was used for this experiment.
-   */
-  public final ObjectiveFunction objectiveFunction;
+@AutoValue
+public abstract class ExperimentResults {
 
   /**
-   * The configurations that were used in this experiment.
+   * @return The {@link ObjectiveFunction} that was used for this experiment.
    */
-  public final ImmutableSet<MASConfiguration> configurations;
+  public abstract ObjectiveFunction getObjectiveFunction();
 
   /**
-   * The scenarios that were used in this experiment.
+   * @return The configurations that were used in this experiment.
    */
-  public final ImmutableSet<Scenario> scenarios;
+  public abstract ImmutableSet<MASConfiguration> getConfigurations();
 
   /**
-   * Indicates whether the experiment was executed with or without the graphical
-   * user interface.
+   * @return The scenarios that were used in this experiment.
    */
-  public final boolean showGui;
+  public abstract ImmutableSet<Scenario> getScenarios();
 
   /**
-   * The number of repetitions for each run (with a different seed).
+   * @return Indicates whether the experiment was executed with or without the
+   *         graphical user interface.
    */
-  public final int repetitions;
+  public abstract boolean isShowGui();
 
   /**
-   * The seed of the master random generator.
+   * @return The number of repetitions for each run (with a different seed).
    */
-  public final long masterSeed;
+  public abstract int getRepetitions();
 
   /**
-   * The set of individual simulation results. Note that this set has an
-   * undefined iteration order, if you want a sorted view on the results use
-   * {@link #sortedResults()}.
+   * @return The seed of the master random generator.
    */
-  public final ImmutableSet<SimulationResult> results;
+  public abstract long getMasterSeed();
 
-  ExperimentResults(Builder exp, ImmutableSet<SimulationResult> res) {
-    objectiveFunction = exp.objectiveFunction;
-    configurations = ImmutableSet.copyOf(exp.configurationsSet);
-    scenarios = exp.scenariosBuilder.build();
-    showGui = exp.showGui;
-    repetitions = exp.repetitions;
-    masterSeed = exp.masterSeed;
-    results = res;
-  }
+  /**
+   * @return The set of individual simulation results. Note that this set has an
+   *         undefined iteration order, if you want a sorted view on the results
+   *         use {@link #sortedResults()}.
+   */
+  public abstract ImmutableSet<SimulationResult> getResults();
 
   /**
    * @return A unmodifiable {@link List} containing the results sorted by its
    *         comparator.
    */
   public List<SimulationResult> sortedResults() {
-    final List<SimulationResult> list = newArrayList(results);
+    final List<SimulationResult> list = newArrayList(getResults());
     Collections.sort(list);
     return Collections.unmodifiableList(list);
   }
 
-  @Override
-  public int hashCode() {
-    return Objects.hashCode(objectiveFunction, configurations, scenarios,
-        showGui, repetitions, masterSeed, results);
-  }
-
-  @Override
-  public boolean equals(@Nullable Object other) {
-    if (other == null) {
-      return false;
-    }
-    if (other.getClass() != getClass()) {
-      return false;
-    }
-    final ExperimentResults er = (ExperimentResults) other;
-    return Objects.equal(objectiveFunction, er.objectiveFunction)
-        && Objects.equal(configurations, er.configurations)
-        && Objects.equal(scenarios, er.scenarios)
-        && Objects.equal(showGui, er.showGui)
-        && Objects.equal(repetitions, er.repetitions)
-        && Objects.equal(masterSeed, er.masterSeed)
-        && Objects.equal(results, er.results);
-  }
-
-  @Override
-  public String toString() {
-    return MoreObjects.toStringHelper(this)
-        .add("objectiveFunction", objectiveFunction)
-        .add("configurations", configurations)
-        .add("scenarios", scenarios)
-        .add("showGui", showGui)
-        .add("repetitions", repetitions)
-        .add("masterSeed", masterSeed)
-        .add("results", results)
-        .toString();
+  static ExperimentResults create(Builder exp,
+      ImmutableSet<SimulationResult> res) {
+    return new AutoValue_ExperimentResults(
+        exp.objectiveFunction,
+        ImmutableSet.copyOf(exp.configurationsSet),
+        exp.scenariosBuilder.build(),
+        exp.showGui,
+        exp.repetitions,
+        exp.masterSeed,
+        res);
   }
 }

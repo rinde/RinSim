@@ -130,7 +130,7 @@ public class CentralTest {
     final ExperimentResults res1 = builder.perform();
     final ExperimentResults res2 = builder.perform();
 
-    assertEquals(res1.results, res2.results);
+    assertEquals(res1.getResults(), res2.getResults());
   }
 
   @Test
