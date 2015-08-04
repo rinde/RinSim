@@ -18,6 +18,7 @@ package com.github.rinde.rinsim.central.rt;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
 
+import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.concurrent.Executors;
@@ -252,7 +253,8 @@ public final class RtSolverModel extends AbstractModel<RtSolverUser>
 
     SimSolversManager() {
       simSolvers = new LinkedHashSet<>();
-      computingSimSolvers = new LinkedHashSet<>();
+      computingSimSolvers = Collections.synchronizedSet(
+        new LinkedHashSet<RtSimSolverSchedulerImpl>());
     }
 
     void register(RtSimSolverSchedulerImpl s) {
@@ -263,20 +265,25 @@ public final class RtSolverModel extends AbstractModel<RtSolverUser>
     }
 
     boolean isComputing() {
-      return !computingSimSolvers.isEmpty();
+      synchronized (computingSimSolvers) {
+        return !computingSimSolvers.isEmpty();
+      }
     }
 
     @Override
     public void handleEvent(Event e) {
-      if (e.getEventType() == EventType.START_COMPUTING) {
-        clock.switchToRealTime();
-        computingSimSolvers.add((RtSimSolverSchedulerImpl) e.getIssuer());
-      } else {
-        // done computing
-        checkState(computingSimSolvers.remove(e.getIssuer()), "Internal error",
-          computingSimSolvers, e.getIssuer());
-        if (!isComputing()) {
-          clock.switchToSimulatedTime();
+      synchronized (computingSimSolvers) {
+        if (e.getEventType() == EventType.START_COMPUTING) {
+          clock.switchToRealTime();
+          computingSimSolvers.add((RtSimSolverSchedulerImpl) e.getIssuer());
+        } else {
+          // done computing
+          checkState(computingSimSolvers.remove(e.getIssuer()),
+            "Internal error",
+            computingSimSolvers, e.getIssuer());
+          if (!isComputing()) {
+            clock.switchToSimulatedTime();
+          }
         }
       }
     }

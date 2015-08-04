@@ -25,6 +25,7 @@ import java.util.List;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
 
 import com.github.rinde.rinsim.central.RandomSolver;
 import com.github.rinde.rinsim.central.Solver;
@@ -48,6 +49,7 @@ import com.github.rinde.rinsim.pdptw.common.RouteFollowingVehicle;
 import com.github.rinde.rinsim.scenario.TimeOutEvent;
 import com.github.rinde.rinsim.scenario.TimedEvent;
 import com.github.rinde.rinsim.scenario.TimedEventHandler;
+import com.github.rinde.rinsim.testutil.RealtimeTests;
 import com.github.rinde.rinsim.util.TimeWindow;
 import com.google.auto.value.AutoValue;
 import com.google.common.base.Optional;
@@ -57,6 +59,7 @@ import com.google.common.collect.ImmutableSet;
  *
  * @author Rinde van Lon
  */
+@Category(RealtimeTests.class)
 public class AgentTest {
 
   @SuppressWarnings("null")
