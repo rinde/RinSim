@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.github.rinde.rinsim.examples.demo;
+package com.github.rinde.rinsim.examples.demo.swarm;
 
 import java.util.List;
 
@@ -56,6 +56,7 @@ public final class SwarmDemo {
   static final Point MIN_POINT = new Point(0, 0);
   static final Point MAX_POINT = new Point(4500, 1200);
   static final double MAX_SPEED = 1000d;
+  static final int WHITE_THRESHOLD = (int) Math.pow(2, 24) / 2 - 1;
 
   static final Rectangle MEASURE_RECT = new Rectangle(0, 0, 100, 10);
 
@@ -137,11 +138,10 @@ public final class SwarmDemo {
 
     final ImmutableList.Builder<Point> coordinateBuilder = ImmutableList
         .builder();
-    final int white = (int) Math.pow(2, 24) / 2 - 1;
     for (int i = 0; i < image.getBounds().width; i++) {
       for (int j = vCorrection; j < image.getBounds().height; j++) {
         final int color = image.getImageData().getPixel(i, j);
-        if (color < white) {
+        if (color < WHITE_THRESHOLD) {
           coordinateBuilder.add(new Point(i * spacing, (j - vCorrection)
               * spacing));
         }

@@ -16,6 +16,7 @@
 package com.github.rinde.rinsim.examples.warehouse;
 
 import java.util.LinkedList;
+import java.util.Queue;
 
 import org.apache.commons.math3.random.RandomGenerator;
 
@@ -31,7 +32,7 @@ class AGVAgent implements TickListener, MovingRoadUser {
   private final RandomGenerator rng;
   private Optional<CollisionGraphRoadModel> roadModel;
   private Optional<Point> destination;
-  private LinkedList<Point> path;
+  private Queue<Point> path;
 
   AGVAgent(RandomGenerator r) {
     rng = r;

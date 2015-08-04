@@ -67,8 +67,8 @@ class GradientFieldRenderer extends AbstractCanvasRenderer {
         for (final Entry<Point, Float> entry : fields.entrySet()) {
           final Point p = entry.getKey();
           final float field = entry.getValue();
-          final int x = vp.toCoordX(tp.x + p.x / 6d);
-          final int y = vp.toCoordY(tp.y + p.y / 6d);
+          final int x = vp.toCoordX(tp.x + p.x / DIAMETER_MUL);
+          final int y = vp.toCoordY(tp.y + p.y / DIAMETER_MUL);
 
           if (field < 0) {
             dia = (int) (field / -min * DIAMETER_MUL);

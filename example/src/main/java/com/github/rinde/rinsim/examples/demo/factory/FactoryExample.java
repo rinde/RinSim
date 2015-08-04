@@ -39,7 +39,7 @@ import com.github.rinde.rinsim.core.model.pdp.DefaultPDPModel;
 import com.github.rinde.rinsim.core.model.time.TickListener;
 import com.github.rinde.rinsim.core.model.time.TimeLapse;
 import com.github.rinde.rinsim.event.Listener;
-import com.github.rinde.rinsim.examples.demo.SwarmDemo;
+import com.github.rinde.rinsim.examples.demo.swarm.SwarmDemo;
 import com.github.rinde.rinsim.geom.Graph;
 import com.github.rinde.rinsim.geom.Graphs;
 import com.github.rinde.rinsim.geom.LengthData;
@@ -124,41 +124,13 @@ public final class FactoryExample {
 
     // screen
     if (rect.width == FULL_HD_W) {
-      // WORDS = asList("AgentWise\nKU Leuven", "iMinds\nDistriNet");
-      // WORDS = asList(" Agent \n Wise ", " Distri \n Net ");
+      // AgentWise\nKU Leuven", "iMinds\nDistriNet"
+      // " Agent \n Wise ", " Distri \n Net "
       words = asList(" iMinds \nDistriNet");
     }
 
-    final ImmutableList.Builder<ImmutableList<Point>> pointBuilder =
-        ImmutableList
-            .builder();
-
-    for (final String word : words) {
-      pointBuilder.add(SwarmDemo.measureString(word, FONT_SIZE, SPACING, 2));
-    }
-
-    final ImmutableList<ImmutableList<Point>> points = pointBuilder.build();
-    int max = 0;
-    double xMax = 0;
-    double yMax = 0;
-    for (final List<Point> ps : points) {
-      max = Math.max(max, ps.size());
-      for (final Point p : ps) {
-        xMax = Math.max(p.x, xMax);
-        yMax = Math.max(p.y, yMax);
-      }
-    }
-
-    int width = DoubleMath.roundToInt(xMax / SPACING, RoundingMode.CEILING);
-    width += VERTICAL_LINE_SPACING - width % VERTICAL_LINE_SPACING;
-    width += width / VERTICAL_LINE_SPACING % 2 == 0 ? VERTICAL_LINE_SPACING
-        : 0;
-
-    int height =
-        DoubleMath.roundToInt(yMax / SPACING, RoundingMode.CEILING) + 2;
-    height += height % 2;
-    final Graph<?> g = createGrid(width, height, 1, VERTICAL_LINE_SPACING,
-        SPACING);
+    final ImmutableList<ImmutableList<Point>> points = createPoints(words);
+    final Graph<?> g = createGraph(points);
 
     final List<Point> borderNodes = newArrayList(getBorderNodes(g));
     Collections.shuffle(borderNodes, new Random(RANDOM_SEED));
@@ -229,6 +201,39 @@ public final class FactoryExample {
 
     simulator.start();
     return simulator;
+  }
+
+  static ImmutableList<ImmutableList<Point>> createPoints(
+      Iterable<String> words) {
+    final ImmutableList.Builder<ImmutableList<Point>> pointBuilder =
+        ImmutableList.builder();
+    for (final String word : words) {
+      pointBuilder.add(SwarmDemo.measureString(word, FONT_SIZE, SPACING, 2));
+    }
+    return pointBuilder.build();
+  }
+
+  static Graph<?> createGraph(ImmutableList<ImmutableList<Point>> points) {
+    int max = 0;
+    double xMax = 0;
+    double yMax = 0;
+    for (final List<Point> ps : points) {
+      max = Math.max(max, ps.size());
+      for (final Point p : ps) {
+        xMax = Math.max(p.x, xMax);
+        yMax = Math.max(p.y, yMax);
+      }
+    }
+
+    int width = DoubleMath.roundToInt(xMax / SPACING, RoundingMode.CEILING);
+    width += VERTICAL_LINE_SPACING - width % VERTICAL_LINE_SPACING;
+    width += width / VERTICAL_LINE_SPACING % 2 == 0 ? VERTICAL_LINE_SPACING
+        : 0;
+
+    int height =
+        DoubleMath.roundToInt(yMax / SPACING, RoundingMode.CEILING) + 2;
+    height += height % 2;
+    return createGrid(width, height, 1, VERTICAL_LINE_SPACING, SPACING);
   }
 
   static void addPath(Graph<?> graph, Point... points) {

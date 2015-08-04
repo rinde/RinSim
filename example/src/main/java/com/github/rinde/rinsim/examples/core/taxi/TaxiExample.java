@@ -116,33 +116,7 @@ public final class TaxiExample {
       String graphFile,
       @Nullable Display display, @Nullable Monitor m, @Nullable Listener list) {
 
-    View.Builder view = View.builder()
-        .with(GraphRoadModelRenderer.builder())
-        .with(RoadUserRenderer.builder()
-            .withImageAssociation(
-                TaxiBase.class, "/graphics/perspective/tall-building-64.png")
-            .withImageAssociation(
-                Taxi.class, "/graphics/flat/taxi-32.png")
-            .withImageAssociation(
-                Customer.class, "/graphics/flat/person-red-32.png"))
-        .with(TaxiRenderer.builder(Language.ENGLISH))
-        .withTitleAppendix("Taxi Demo");
-
-    if (testing) {
-      view = view.withAutoClose()
-          .withAutoPlay()
-          .withSimulatorEndTime(TEST_STOP_TIME)
-          .withSpeedUp(TEST_SPEED_UP);
-    } else if (m != null && list != null && display != null) {
-      view = view.withMonitor(m)
-          .withSpeedUp(SPEED_UP)
-          .withResolution(m.getClientArea().width, m.getClientArea().height)
-          .withDisplay(display)
-          .withCallback(list)
-          .withAsync()
-          .withAutoPlay()
-          .withAutoClose();
-    }
+    final View.Builder view = createGui(testing, display, m, list);
 
     // use map of leuven
     final Simulator simulator = Simulator.builder()
@@ -194,6 +168,42 @@ public final class TaxiExample {
     simulator.start();
 
     return simulator;
+  }
+
+  static View.Builder createGui(
+      boolean testing,
+      @Nullable Display display,
+      @Nullable Monitor m,
+      @Nullable Listener list) {
+
+    View.Builder view = View.builder()
+        .with(GraphRoadModelRenderer.builder())
+        .with(RoadUserRenderer.builder()
+            .withImageAssociation(
+                TaxiBase.class, "/graphics/perspective/tall-building-64.png")
+            .withImageAssociation(
+                Taxi.class, "/graphics/flat/taxi-32.png")
+            .withImageAssociation(
+                Customer.class, "/graphics/flat/person-red-32.png"))
+        .with(TaxiRenderer.builder(Language.ENGLISH))
+        .withTitleAppendix("Taxi Demo");
+
+    if (testing) {
+      view = view.withAutoClose()
+          .withAutoPlay()
+          .withSimulatorEndTime(TEST_STOP_TIME)
+          .withSpeedUp(TEST_SPEED_UP);
+    } else if (m != null && list != null && display != null) {
+      view = view.withMonitor(m)
+          .withSpeedUp(SPEED_UP)
+          .withResolution(m.getClientArea().width, m.getClientArea().height)
+          .withDisplay(display)
+          .withCallback(list)
+          .withAsync()
+          .withAutoPlay()
+          .withAutoClose();
+    }
+    return view;
   }
 
   // load the graph file

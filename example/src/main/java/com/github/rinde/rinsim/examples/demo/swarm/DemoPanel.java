@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.github.rinde.rinsim.examples.demo;
+package com.github.rinde.rinsim.examples.demo.swarm;
 
 import static com.google.common.collect.Lists.newArrayList;
 
@@ -41,7 +41,7 @@ import com.github.rinde.rinsim.core.model.Model.AbstractModel;
 import com.github.rinde.rinsim.core.model.ModelBuilder.AbstractModelBuilder;
 import com.github.rinde.rinsim.core.model.rand.RandomProvider;
 import com.github.rinde.rinsim.core.model.road.RoadModel;
-import com.github.rinde.rinsim.examples.demo.SwarmDemo.Vehicle;
+import com.github.rinde.rinsim.examples.demo.swarm.SwarmDemo.Vehicle;
 import com.github.rinde.rinsim.geom.Point;
 import com.github.rinde.rinsim.ui.renderers.PanelRenderer;
 import com.google.auto.value.AutoValue;

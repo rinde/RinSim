@@ -241,9 +241,9 @@ class AgvModel
 
     @Override
     public AgvModel build(DependencyProvider dependencyProvider) {
-      final RandomGenerator rng = dependencyProvider.get(RandomProvider.class)
+      final RandomGenerator r = dependencyProvider.get(RandomProvider.class)
           .newInstance();
-      return new AgvModel(rng, getPoints(), getBorder());
+      return new AgvModel(r, getPoints(), getBorder());
     }
 
     static Builder create(ImmutableList<ImmutableList<Point>> ps,

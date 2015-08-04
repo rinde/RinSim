@@ -37,6 +37,8 @@ import com.google.auto.value.AutoValue;
 public class TaxiRenderer extends AbstractCanvasRenderer {
 
   static final int ROUND_RECT_ARC_HEIGHT = 5;
+  static final int X_OFFSET = -5;
+  static final int Y_OFFSET = -30;
 
   enum Language {
     DUTCH("INSTAPPEN", "UITSTAPPEN"), ENGLISH("EMBARK", "DISEMBARK");
@@ -69,8 +71,8 @@ public class TaxiRenderer extends AbstractCanvasRenderer {
     synchronized (taxis) {
       for (final Taxi t : taxis) {
         final Point p = roadModel.getPosition(t);
-        final int x = vp.toCoordX(p.x) - 5;
-        final int y = vp.toCoordY(p.y) - 30;
+        final int x = vp.toCoordX(p.x) + X_OFFSET;
+        final int y = vp.toCoordY(p.y) + Y_OFFSET;
 
         final VehicleState vs = pdpModel.getVehicleState(t);
 
@@ -81,7 +83,7 @@ public class TaxiRenderer extends AbstractCanvasRenderer {
         } else if (vs == VehicleState.PICKING_UP) {
           text = lang.embark;
         } else if (size > 0) {
-          text = size + "";
+          text = Integer.toString(size);
         }
 
         if (text != null) {

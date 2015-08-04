@@ -199,9 +199,7 @@ public final class Demo {
       timeText = tt;
     }
 
-    @Override
-    public void widgetSelected(@Nullable SelectionEvent e) {
-      assert e != null;
+    void clear() {
       // clear old runners
       for (final DemoRunner dr : demoRunners) {
         dr.setRunning(false);
@@ -209,7 +207,7 @@ public final class Demo {
       demoRunners.clear();
       // close old shells
       for (final Shell s : shell.getDisplay().getShells()) {
-        if (s != shell) {
+        if (!s.equals(shell)) {
           s.close();
         }
       }
@@ -218,6 +216,12 @@ public final class Demo {
         panel.remove();
       }
       panels.clear();
+    }
+
+    @Override
+    public void widgetSelected(@Nullable SelectionEvent e) {
+      assert e != null;
+      clear();
 
       controlsComposite.setEnabled(!((Button) e.widget).getSelection());
       for (final Control c : controlsComposite.getChildren()) {
@@ -337,7 +341,7 @@ public final class Demo {
       group.dispose();
     }
 
-    void update() {
+    final void update() {
       label.getDisplay().asyncExec(new Runnable() {
         @Override
         public void run() {
