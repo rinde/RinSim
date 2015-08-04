@@ -88,12 +88,60 @@ final class JppfComputer implements Computer {
     final List<ResultListener> listeners =
         newArrayList(builder.resultListeners);
 
-    @SuppressWarnings("rawtypes")
-    final IdMap<PostProcessor> ppMap = new IdMap<>("p", PostProcessor.class);
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    final IdMap<PostProcessor<?>> ppMap = new IdMap("p", PostProcessor.class);
     final Map<String, Scenario> scenariosMap = newLinkedHashMap();
 
     // create tasks
     final List<SimulationTask> tasks = newArrayList();
+    constructTasks(inputs, tasks, configMap, scenarioMap, objFuncMap, ppMap,
+        scenariosMap);
+
+    // this sorts tasks using this chain: scenario, configuration, objective
+    // function, postprocessor, seed
+    Collections.sort(tasks);
+
+    // determine size of batches
+    final int numBatches = Math.min(tasks.size(), builder.numBatches);
+    final int batchSize = DoubleMath.roundToInt(tasks.size()
+        / (double) numBatches, RoundingMode.CEILING);
+
+    final Map<Task<?>, JPPFJob> taskJobMap = newLinkedHashMap();
+    final ResultsCollector res = new ResultsCollector(tasks.size(),
+        scenariosMap, taskJobMap, listeners);
+    final List<JPPFJob> jobs = newArrayList();
+
+    constructJobs(numBatches, batchSize, res, jobs, tasks, configMap,
+        scenarioMap, objFuncMap, ppMap, taskJobMap);
+
+    for (final ResultListener l : listeners) {
+      l.startComputing(tasks.size());
+    }
+
+    checkState(!getJPPFClient().isClosed());
+    try {
+      for (final JPPFJob job : jobs) {
+        getJPPFClient().submitJob(job);
+      }
+    } catch (final Exception e) {
+      throw new IllegalStateException(e);
+    }
+    res.awaitResults();
+    for (final ResultListener l : listeners) {
+      l.doneComputing();
+    }
+    return new ExperimentResults(builder, res.buildResults());
+  }
+
+  static void constructTasks(
+      Set<SimArgs> inputs,
+      List<SimulationTask> tasks,
+      IdMap<MASConfiguration> configMap,
+      IdMap<ScenarioProvider> scenarioMap,
+      IdMap<ObjectiveFunction> objFuncMap,
+      IdMap<PostProcessor<?>> ppMap,
+      Map<String, Scenario> scenariosMap) {
+
     for (final SimArgs args : inputs) {
       final String configId = configMap.storeAndGenerateId(
           args.masConfig);
@@ -114,20 +162,20 @@ final class JppfComputer implements Computer {
       tasks.add(new SimulationTask(tasks.size(), args.randomSeed, scenId,
           configId, objFuncId, postProcId));
     }
+  }
 
-    // this sorts tasks using this chain: scenario, configuration, objective
-    // function, postprocessor, seed
-    Collections.sort(tasks);
+  static void constructJobs(
+      int numBatches,
+      int batchSize,
+      ResultsCollector res,
+      List<JPPFJob> jobs,
+      List<SimulationTask> tasks,
+      IdMap<MASConfiguration> configMap,
+      IdMap<ScenarioProvider> scenarioMap,
+      IdMap<ObjectiveFunction> objFuncMap,
+      IdMap<PostProcessor<?>> ppMap,
+      Map<Task<?>, JPPFJob> taskJobMap) {
 
-    // determine size of batches
-    final int numBatches = Math.min(tasks.size(), builder.numBatches);
-    final int batchSize = DoubleMath.roundToInt(tasks.size()
-        / (double) numBatches, RoundingMode.CEILING);
-
-    final Map<Task<?>, JPPFJob> taskJobMap = newLinkedHashMap();
-    final ResultsCollector res = new ResultsCollector(tasks.size(),
-        scenariosMap, taskJobMap, listeners);
-    final List<JPPFJob> jobs = newArrayList();
     for (int i = 0; i < numBatches; i++) {
       final JPPFJob job = new JPPFJob(new MemoryMapDataProvider(), res);
       job.setName(Joiner.on("").join(JOB_NAME, " ", i + 1, "/", numBatches));
@@ -135,7 +183,6 @@ final class JppfComputer implements Computer {
       for (final SimulationTask t : tasks.subList(i * batchSize, (i + 1)
           * batchSize)) {
         try {
-
           final MASConfiguration config = configMap.getValue(t
               .getConfigurationId());
           final ScenarioProvider scenario = scenarioMap.getValue(t
@@ -158,24 +205,6 @@ final class JppfComputer implements Computer {
         taskJobMap.put(t, job);
       }
     }
-
-    for (final ResultListener l : listeners) {
-      l.startComputing(tasks.size());
-    }
-
-    checkState(!getJPPFClient().isClosed());
-    try {
-      for (final JPPFJob job : jobs) {
-        getJPPFClient().submitJob(job);
-      }
-    } catch (final Exception e) {
-      throw new IllegalStateException(e);
-    }
-    res.awaitResults();
-    for (final ResultListener l : listeners) {
-      l.doneComputing();
-    }
-    return new ExperimentResults(builder, res.buildResults());
   }
 
   static SimulationResult processResult(SimulationTask simTask,
