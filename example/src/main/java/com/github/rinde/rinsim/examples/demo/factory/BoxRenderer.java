@@ -42,12 +42,10 @@ import com.github.rinde.rinsim.ui.renderers.ViewPort;
 import com.google.auto.value.AutoValue;
 
 class BoxRenderer extends AbstractCanvasRenderer {
-
-  // static final Point AT_SITE_OFFSET = new Point(-12, -13);
   static final float AT_SITE_ROTATION = 0f;
-  // static final Point IN_CARGO_OFFSET = new Point(-21, -1);
   static final float IN_CARGO_ROTATION = 20f;
   static final Point LABEL_OFFSET = new Point(-15, -40);
+  static final double MAX_PERC = 100d;
 
   ImageType img;
 
@@ -110,88 +108,93 @@ class BoxRenderer extends AbstractCanvasRenderer {
       }
 
       for (final Parcel p : parcels) {
-        float rotation = AT_SITE_ROTATION;
-        int offsetX = 0;
-        int offsetY = 0;
-        final ParcelState ps = pdpModel.getParcelState(p);
-        if (ps == ParcelState.AVAILABLE) {
-          final Point pos = roadModel.getPosition(p);
-          final int x = vp.toCoordX(pos.x);
-          final int y = vp.toCoordY(pos.y);
-          offsetX = (int) img.atSiteOffset.x + x - image.getBounds().width / 2;
-          offsetY = (int) img.atSiteOffset.y + y - image.getBounds().height / 2;
-        } else
-          if (ps == ParcelState.PICKING_UP || ps == ParcelState.DELIVERING) {
+        drawBox(p, gc, vp, time, image, mapping);
+      }
+    }
+  }
 
-          final Vehicle v = mapping.get(p);
-          final PDPModel.VehicleParcelActionInfo vpai = pdpModel
-              .getVehicleActionInfo(v);
-          final Point pos = roadModel.getPosition(v);
-          final int x = vp.toCoordX(pos.x);
-          final int y = vp.toCoordY(pos.y);
-          final double percentage = 1d - vpai.timeNeeded()
-              / (double) p.getPickupDuration();
-          final String text = (int) (percentage * 100d) + "%";
+  void drawBox(Parcel p, GC gc, ViewPort vp, long time, Image image,
+      Map<Parcel, Vehicle> mapping) {
+    float rotation = AT_SITE_ROTATION;
+    int offsetX = 0;
+    int offsetY = 0;
+    final ParcelState ps = pdpModel.getParcelState(p);
+    if (ps == ParcelState.AVAILABLE) {
+      final Point pos = roadModel.getPosition(p);
+      final int x = vp.toCoordX(pos.x);
+      final int y = vp.toCoordY(pos.y);
+      offsetX = (int) img.atSiteOffset.x + x - image.getBounds().width / 2;
+      offsetY = (int) img.atSiteOffset.y + y - image.getBounds().height / 2;
+    } else
+      if (ps == ParcelState.PICKING_UP || ps == ParcelState.DELIVERING) {
 
-          final float rotFac =
-              (float) (ps == ParcelState.PICKING_UP ? percentage
-                  : 1d - percentage);
-          rotation = IN_CARGO_ROTATION * rotFac;
+      final Vehicle v = mapping.get(p);
+      final PDPModel.VehicleParcelActionInfo vpai = pdpModel
+          .getVehicleActionInfo(v);
+      final Point pos = roadModel.getPosition(v);
+      final int x = vp.toCoordX(pos.x);
+      final int y = vp.toCoordY(pos.y);
+      final double percentage = 1d - vpai.timeNeeded()
+          / (double) p.getPickupDuration();
+      final String text = (int) (percentage * MAX_PERC) + "%";
 
-          final int textWidth = gc.textExtent(text).x;
-          gc.setBackground(gc.getDevice().getSystemColor(SWT.COLOR_BLUE));
-          gc.drawText(text, (int) LABEL_OFFSET.x + x - textWidth / 2,
-              (int) LABEL_OFFSET.y + y, true);
+      final float rotFac =
+          (float) (ps == ParcelState.PICKING_UP ? percentage
+              : 1d - percentage);
+      rotation = IN_CARGO_ROTATION * rotFac;
 
-          Point from = new Point(img.atSiteOffset.x + x
-              - image.getBounds().width
-                  / 2d,
-              img.atSiteOffset.y + y - image.getBounds().height / 2d);
-          Point to = new Point(img.inCargoOffset.x + x
-              - image.getBounds().width
-                  / 2d,
-              img.inCargoOffset.y + y - image.getBounds().height / 2d);
+      final int textWidth = gc.textExtent(text).x;
+      gc.setBackground(gc.getDevice().getSystemColor(SWT.COLOR_BLUE));
+      gc.drawText(text, (int) LABEL_OFFSET.x + x - textWidth / 2,
+          (int) LABEL_OFFSET.y + y, true);
 
-          if (ps == ParcelState.DELIVERING) {
-            final Point temp = from;
-            from = to;
-            to = temp;
-          }
+      Point from = new Point(img.atSiteOffset.x + x
+          - image.getBounds().width
+              / 2d,
+          img.atSiteOffset.y + y - image.getBounds().height / 2d);
+      Point to = new Point(img.inCargoOffset.x + x
+          - image.getBounds().width
+              / 2d,
+          img.inCargoOffset.y + y - image.getBounds().height / 2d);
 
-          final Point diff = Point.diff(to, from);
-          offsetX = (int) (from.x + percentage * diff.x);
-          offsetY = (int) (from.y + percentage * diff.y);
+      if (ps == ParcelState.DELIVERING) {
+        final Point temp = from;
+        from = to;
+        to = temp;
+      }
 
-        } else if (ps == ParcelState.IN_CARGO) {
-          rotation = IN_CARGO_ROTATION;
-          final Point pos = roadModel.getPosition(mapping.get(p));
-          final int x = vp.toCoordX(pos.x);
-          final int y = vp.toCoordY(pos.y);
-          offsetX = (int) img.inCargoOffset.x + x - image.getBounds().width / 2;
-          offsetY = (int) img.inCargoOffset.y + y - image.getBounds().height
-              / 2;
-        }
+      final Point diff = Point.diff(to, from);
+      offsetX = (int) (from.x + percentage * diff.x);
+      offsetY = (int) (from.y + percentage * diff.y);
 
-        if (!ps.isDelivered()) {
-          if (rotation == 0f) {
-            gc.drawImage(image, offsetX, offsetY);
-          } else {
-            final Transform oldTransform = new Transform(gc.getDevice());
-            gc.getTransform(oldTransform);
+    } else if (ps == ParcelState.IN_CARGO) {
+      rotation = IN_CARGO_ROTATION;
+      final Point pos = roadModel.getPosition(mapping.get(p));
+      final int x = vp.toCoordX(pos.x);
+      final int y = vp.toCoordY(pos.y);
+      offsetX = (int) img.inCargoOffset.x + x - image.getBounds().width / 2;
+      offsetY = (int) img.inCargoOffset.y + y - image.getBounds().height
+          / 2;
+    }
 
-            final Transform transform = new Transform(gc.getDevice());
-            transform.translate(offsetX + image.getBounds().width / 2, offsetY
-                + image.getBounds().height / 2);
-            transform.rotate(rotation);
-            transform.translate(-(offsetX + image.getBounds().width / 2),
-                -(offsetY + image.getBounds().height / 2));
-            gc.setTransform(transform);
-            gc.drawImage(image, offsetX, offsetY);
-            gc.setTransform(oldTransform);
-            transform.dispose();
-            oldTransform.dispose();
-          }
-        }
+    if (!ps.isDelivered()) {
+      if (rotation == 0f) {
+        gc.drawImage(image, offsetX, offsetY);
+      } else {
+        final Transform oldTransform = new Transform(gc.getDevice());
+        gc.getTransform(oldTransform);
+
+        final Transform transform = new Transform(gc.getDevice());
+        transform.translate(offsetX + image.getBounds().width / 2, offsetY
+            + image.getBounds().height / 2);
+        transform.rotate(rotation);
+        transform.translate(-(offsetX + image.getBounds().width / 2),
+            -(offsetY + image.getBounds().height / 2));
+        gc.setTransform(transform);
+        gc.drawImage(image, offsetX, offsetY);
+        gc.setTransform(oldTransform);
+        transform.dispose();
+        oldTransform.dispose();
       }
     }
   }
