@@ -195,6 +195,15 @@ public final class ScenarioController extends AbstractModel<StopModel>
     if (ticks > 0) {
       ticks--;
     }
+    dispatchEvents(timeLapse);
+
+    if (ticks == 0 && status == EventType.SCENARIO_FINISHED) {
+      stopClock(timeLapse);
+      endOfScenario = true;
+    }
+  }
+
+  private void dispatchEvents(TimeLapse timeLapse) {
     TimedEvent e = null;
 
     while ((e = scenarioQueue.peek()) != null
@@ -207,6 +216,7 @@ public final class ScenarioController extends AbstractModel<StopModel>
       }
       dispatch(e);
     }
+
     if ((e = scenarioQueue.peek()) != null
         && e.getTime() <= timeLapse.getTime() + timeLapse.getTickLength()
         && clock instanceof RealtimeClockController) {
@@ -216,10 +226,6 @@ public final class ScenarioController extends AbstractModel<StopModel>
     if (e == null && status != EventType.SCENARIO_FINISHED) {
       status = EventType.SCENARIO_FINISHED;
       disp.dispatchEvent(new Event(status, this));
-    }
-    if (ticks == 0 && status == EventType.SCENARIO_FINISHED) {
-      stopClock(timeLapse);
-      endOfScenario = true;
     }
   }
 
@@ -432,7 +438,7 @@ public final class ScenarioController extends AbstractModel<StopModel>
     @Override
     public ScenarioController build(DependencyProvider dependencyProvider) {
       final SimulatorAPI sim = dependencyProvider.get(SimulatorAPI.class);
-      final ClockController clock = dependencyProvider
+      final ClockController clockController = dependencyProvider
           .get(ClockController.class);
 
       final Scenario s = getScenario();
@@ -457,8 +463,8 @@ public final class ScenarioController extends AbstractModel<StopModel>
       }
       checkState(isIgnoreRedundantHandlers() || covered.isEmpty(),
         "Found redundant handlers for type(s): %s.", covered, m.entrySet());
-      return new ScenarioController(sim, clock, s, ImmutableMap.copyOf(m),
-          getNumberOfTicks());
+      return new ScenarioController(sim, clockController, s,
+          ImmutableMap.copyOf(m), getNumberOfTicks());
     }
 
     @Override
