@@ -111,8 +111,35 @@ final class JppfComputer implements Computer {
         scenariosMap, taskJobMap, listeners);
     final List<JPPFJob> jobs = newArrayList();
 
-    constructJobs(numBatches, batchSize, res, jobs, tasks, configMap,
-        scenarioMap, objFuncMap, ppMap, taskJobMap);
+    for (int i = 0; i < numBatches; i++) {
+      final JPPFJob job = new JPPFJob(new MemoryMapDataProvider(), res);
+      job.setName(Joiner.on("").join(JOB_NAME, " ", i + 1, "/", numBatches));
+      jobs.add(job);
+      for (final SimulationTask t : tasks.subList(i * batchSize, (i + 1)
+          * batchSize)) {
+        try {
+          final MASConfiguration config = configMap.getValue(t
+              .getConfigurationId());
+          final ScenarioProvider scenario = scenarioMap.getValue(t
+              .getScenarioId());
+          final ObjectiveFunction objFunc = objFuncMap.getValue(t
+              .getObjectiveFunctionId());
+          if (t.getPostProcessorId().isPresent()) {
+            job.getDataProvider().setParameter(t.getPostProcessorId().get(),
+                ppMap.getValue(t.getPostProcessorId().get()));
+          }
+          job.getDataProvider().setParameter(t.getConfigurationId(), config);
+          job.getDataProvider().setParameter(t.getScenarioId(), scenario);
+          job.getDataProvider().setParameter(t.getObjectiveFunctionId(),
+              objFunc);
+
+          job.add(t);
+        } catch (final JPPFException e) {
+          throw new IllegalStateException(e);
+        }
+        taskJobMap.put(t, job);
+      }
+    }
 
     for (final ResultListener l : listeners) {
       l.startComputing(tasks.size());
@@ -161,49 +188,6 @@ final class JppfComputer implements Computer {
       }
       tasks.add(new SimulationTask(tasks.size(), args.randomSeed, scenId,
           configId, objFuncId, postProcId));
-    }
-  }
-
-  static void constructJobs(
-      int numBatches,
-      int batchSize,
-      ResultsCollector res,
-      List<JPPFJob> jobs,
-      List<SimulationTask> tasks,
-      IdMap<MASConfiguration> configMap,
-      IdMap<ScenarioProvider> scenarioMap,
-      IdMap<ObjectiveFunction> objFuncMap,
-      IdMap<PostProcessor<?>> ppMap,
-      Map<Task<?>, JPPFJob> taskJobMap) {
-
-    for (int i = 0; i < numBatches; i++) {
-      final JPPFJob job = new JPPFJob(new MemoryMapDataProvider(), res);
-      job.setName(Joiner.on("").join(JOB_NAME, " ", i + 1, "/", numBatches));
-      jobs.add(job);
-      for (final SimulationTask t : tasks.subList(i * batchSize, (i + 1)
-          * batchSize)) {
-        try {
-          final MASConfiguration config = configMap.getValue(t
-              .getConfigurationId());
-          final ScenarioProvider scenario = scenarioMap.getValue(t
-              .getScenarioId());
-          final ObjectiveFunction objFunc = objFuncMap.getValue(t
-              .getObjectiveFunctionId());
-          if (t.getPostProcessorId().isPresent()) {
-            job.getDataProvider().setParameter(t.getPostProcessorId().get(),
-                ppMap.getValue(t.getPostProcessorId().get()));
-          }
-          job.getDataProvider().setParameter(t.getConfigurationId(), config);
-          job.getDataProvider().setParameter(t.getScenarioId(), scenario);
-          job.getDataProvider().setParameter(t.getObjectiveFunctionId(),
-              objFunc);
-
-          job.add(t);
-        } catch (final JPPFException e) {
-          throw new IllegalStateException(e);
-        }
-        taskJobMap.put(t, job);
-      }
     }
   }
 
