@@ -246,9 +246,11 @@ class RealtimeModel extends TimeModel implements RealtimeClockController {
     ListeningScheduledExecutorService executor;
     final long tickNanoSeconds;
     final List<Throwable> exceptions;
-
     @Nullable
     Trigger nextTrigger;
+
+    // keeps time for last real-time request while in RT mode
+    long lastRtRequest;
 
     @SuppressWarnings("null")
     Realtime(TimeLapse timeLapse) {
@@ -267,9 +269,14 @@ class RealtimeModel extends TimeModel implements RealtimeClockController {
     public Trigger handle(@Nullable Trigger event,
         final RealtimeModel context) {
       if (event == Trigger.SIMULATE) {
-        nextTrigger = Trigger.DO_SIMULATE;
+        // RT takes precedence over ST, if a request for RT has been made during
+        // the same tick, all ST requests are ignored.
+        if (context.getCurrentTime() > lastRtRequest) {
+          nextTrigger = Trigger.DO_SIMULATE;
+        }
         return null;
       } else if (event == Trigger.REAL_TIME) {
+        lastRtRequest = context.getCurrentTime();
         nextTrigger = null;
         return null;
       }

@@ -143,7 +143,12 @@ public class RtCentralTest {
               .orderAnnounceTime(300)
               .pickupTimeWindow(TimeWindow.create(400, 3000))
               .buildDTO()))
-        .add(TimeOutEvent.create(600))
+        .add(AddParcelEvent.create(
+          Parcel.builder(new Point(0, 0), new Point(1, 0))
+              .orderAnnounceTime(800)
+              .pickupTimeWindow(TimeWindow.create(800, 3000))
+              .buildDTO()))
+        .add(TimeOutEvent.create(1500))
         .build();
 
     final Simulator sim = RealtimeTestHelper
@@ -156,12 +161,24 @@ public class RtCentralTest {
       (RealtimeClockController) sim.getModelProvider()
           .getModel(TimeModel.class);
 
+    // 200 -> switch to RT, switches to ST should be ignored
+    // 300 -> new parcel
+    // 500 -> computation done, switch to ST
+    // 600 -> manual switch to RT
+    // 700 -> switch to RT because of new parcel in next tick, attempt to
+    // switch back to ST by solver model should be ignored here
+    // 800 -> new parcel
+    // 1000 -> computation done, switch to ST
+    // 1500 -> switch to RT
+
     final TimeTracker tt = sim.getModelProvider().getModel(TimeTracker.class);
     sim.register(new TickListener() {
       @Override
       public void tick(TimeLapse timeLapse) {
         if (timeLapse.getStartTime() == 200) {
           clock.switchToSimulatedTime();
+        } else if (timeLapse.getStartTime() == 600) {
+          clock.switchToRealTime();
         }
       }
 
@@ -169,10 +186,22 @@ public class RtCentralTest {
       public void afterTick(TimeLapse timeLapse) {}
     });
     sim.start();
-    assertThat(tt.getClockModes()).containsExactly(
-      SIMULATED, SIMULATED, SIMULATED,
-      REAL_TIME, REAL_TIME,
-      SIMULATED,
-      REAL_TIME).inOrder();
+
+    assertThat(tt.getClockModes().subList(0, 3))
+        .containsExactly(SIMULATED, SIMULATED, SIMULATED).inOrder();
+
+    assertThat(tt.getClockModes().subList(3, 5))
+        .containsExactly(REAL_TIME, REAL_TIME).inOrder();
+
+    assertThat(tt.getClockModes().get(5)).isEqualTo(SIMULATED);
+    assertThat(tt.getClockModes().get(6)).isEqualTo(SIMULATED);
+    assertThat(tt.getClockModes().get(7)).isEqualTo(REAL_TIME);
+    assertThat(tt.getClockModes().get(8)).isEqualTo(REAL_TIME);
+    assertThat(tt.getClockModes().get(9)).isEqualTo(REAL_TIME);
+    assertThat(tt.getClockModes().subList(10, 15))
+        .containsExactly(SIMULATED, SIMULATED, SIMULATED, SIMULATED, SIMULATED)
+        .inOrder();
+    assertThat(tt.getClockModes().get(15)).isEqualTo(REAL_TIME);
+
   }
 }
