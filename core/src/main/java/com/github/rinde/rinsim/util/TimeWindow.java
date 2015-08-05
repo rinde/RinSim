@@ -15,51 +15,34 @@
  */
 package com.github.rinde.rinsim.util;
 
-import static com.google.common.base.MoreObjects.toStringHelper;
-import static com.google.common.base.Objects.equal;
 import static com.google.common.base.Preconditions.checkArgument;
 
 import java.io.Serializable;
 
-import javax.annotation.Nullable;
-
-import com.google.common.base.Objects;
+import com.google.auto.value.AutoValue;
 
 /**
  * A time window is an interval in time. It is defined as a half open interval:
  * [begin, end).
  * @author Rinde van Lon
  */
-public final class TimeWindow implements Serializable {
+@AutoValue
+public abstract class TimeWindow implements Serializable {
+
+  private static final long serialVersionUID = -5186749588224283755L;
+  private static final TimeWindow ALWAYS = TimeWindow.create(0, Long.MAX_VALUE);
+
+  TimeWindow() {}
 
   /**
-   * A time window which represents 'always'.
+   * @return Begin of the time window (inclusive). Must be a non-negative value.
    */
-  public static final TimeWindow ALWAYS = new TimeWindow(0, Long.MAX_VALUE);
-
-  private static final long serialVersionUID = 7548761538022038612L;
+  public abstract long begin();
 
   /**
-   * Begin of the time window (inclusive). Must be a non-negative value.
+   * @return End of the time window (exclusive).
    */
-  public final long begin;
-
-  /**
-   * End of the time window (exclusive).
-   */
-  public final long end;
-
-  /**
-   * Create a new time window [begin, end).
-   * @param pBegin {@link #begin}.
-   * @param pEnd {@link #end}.
-   */
-  public TimeWindow(long pBegin, long pEnd) {
-    checkArgument(pBegin >= 0, "Time must be non-negative.");
-    checkArgument(pBegin <= pEnd, "Begin can not be later than end.");
-    begin = pBegin;
-    end = pEnd;
-  }
+  public abstract long end();
 
   /**
    * @param time The time to check.
@@ -76,7 +59,7 @@ public final class TimeWindow implements Serializable {
    *         <code>false</code> otherwise.
    */
   public boolean isAfterStart(long time) {
-    return time >= begin;
+    return time >= begin();
   }
 
   /**
@@ -85,7 +68,7 @@ public final class TimeWindow implements Serializable {
    *         <code>false</code> otherwise.
    */
   public boolean isBeforeEnd(long time) {
-    return time < end;
+    return time < end();
   }
 
   /**
@@ -94,7 +77,7 @@ public final class TimeWindow implements Serializable {
    *         <code>false</code> otherwise.
    */
   public boolean isBeforeStart(long time) {
-    return time < begin;
+    return time < begin();
   }
 
   /**
@@ -103,7 +86,7 @@ public final class TimeWindow implements Serializable {
    *         <code>false</code> otherwise.
    */
   public boolean isAfterEnd(long time) {
-    return time >= end;
+    return time >= end();
   }
 
   /**
@@ -111,33 +94,25 @@ public final class TimeWindow implements Serializable {
    *         {@link #begin}</code>.
    */
   public long length() {
-    return end - begin;
+    return end() - begin();
   }
 
-  @Override
-  public String toString() {
-    return toStringHelper(this).add("begin", begin).add("end", end)
-        .toString();
+  /**
+   * Create a new time window [begin, end).
+   * @param begin {@link #begin()}.
+   * @param end {@link #end()}.
+   * @return A new time window instance.
+   */
+  public static TimeWindow create(long begin, long end) {
+    checkArgument(begin >= 0, "Time must be non-negative.");
+    checkArgument(begin <= end, "Begin can not be later than end.");
+    return new AutoValue_TimeWindow(begin, end);
   }
 
-  @Override
-  public boolean equals(@Nullable Object other) {
-    if (other == null) {
-      return false;
-    }
-    if (this == other) {
-      return true;
-    }
-    if (!(other instanceof TimeWindow)) {
-      return false;
-    }
-    final TimeWindow otherTW = (TimeWindow) other;
-    return equal(begin, otherTW.begin)
-        && equal(end, otherTW.end);
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hashCode(begin, end);
+  /**
+   * @return A time window which represents 'always'.
+   */
+  public static TimeWindow always() {
+    return ALWAYS;
   }
 }

@@ -68,15 +68,15 @@ public class MetricsTest {
   public void testLoad1() {
     // distance is 1 km which is traveled in 2 minutes with 30km/h
     final ParcelDTO dto = Parcel.builder(new Point(0, 0), new Point(0, 1))
-        .pickupTimeWindow(new TimeWindow(0, 10))
-        .deliveryTimeWindow(new TimeWindow(10, 20))
+        .pickupTimeWindow(TimeWindow.create(0, 10))
+        .deliveryTimeWindow(TimeWindow.create(10, 20))
         .neededCapacity(0)
         .orderAnnounceTime(0)
         .serviceDuration(5)
         .buildDTO();
 
     final List<LoadPart> parts = measureLoad(AddParcelEvent.create(dto),
-        TravelTimesUtil.constant(2L));
+      TravelTimesUtil.constant(2L));
     assertEquals(3, parts.size());
 
     // pickup load in [0,15), duration is 5 minutes, so load is 5/15 = 1/3
@@ -118,15 +118,15 @@ public class MetricsTest {
   public void testLoad2() {
     // distance is 10km which is traveled in 20 minutes with 30km/h
     final ParcelDTO dto = Parcel.builder(new Point(0, 0), new Point(0, 10))
-        .pickupTimeWindow(new TimeWindow(15, 15))
-        .deliveryTimeWindow(new TimeWindow(15, 15))
+        .pickupTimeWindow(TimeWindow.create(15, 15))
+        .deliveryTimeWindow(TimeWindow.create(15, 15))
         .neededCapacity(0)
         .orderAnnounceTime(0)
         .serviceDuration(5)
         .buildDTO();
 
     final List<LoadPart> parts = measureLoad(AddParcelEvent.create(dto),
-        TravelTimesUtil.constant(20L));
+      TravelTimesUtil.constant(20L));
     assertEquals(3, parts.size());
 
     // pickup load in [15,20), duration is 5 minutes, so load is 5/5 = 1
@@ -162,8 +162,8 @@ public class MetricsTest {
   public void testLoad3() {
     // distance is 3 km which is traveled in 6 minutes with 30km/h
     final ParcelDTO dto = Parcel.builder(new Point(0, 0), new Point(0, 3))
-        .pickupTimeWindow(new TimeWindow(10, 30))
-        .deliveryTimeWindow(new TimeWindow(50, 75))
+        .pickupTimeWindow(TimeWindow.create(10, 30))
+        .deliveryTimeWindow(TimeWindow.create(50, 75))
         .neededCapacity(0)
         .orderAnnounceTime(0L)
         .pickupDuration(5L)
@@ -171,7 +171,7 @@ public class MetricsTest {
         .buildDTO();
 
     final List<LoadPart> parts = measureLoad(AddParcelEvent.create(dto),
-        TravelTimesUtil.constant(6L));
+      TravelTimesUtil.constant(6L));
     assertEquals(3, parts.size());
 
     // pickup load in [10,35), duration is 5 minutes, so load is 5/25 = 6/30
@@ -272,39 +272,39 @@ public class MetricsTest {
     times.add(asTimes(1000, 250L, 500L, 750L));
     times.add(asTimes(1000, 100L, 500L, 750L));
     times.add(asTimes(1000, 100L, 200L, 300L, 400L, 500L, 600L, 700L, 800L,
-        900L));
+      900L));
     times.add(asTimes(1000, 100L, 200L, 300L, 399L, 500L, 600L, 700L, 800L,
-        900L));
+      900L));
     times
         .add(asTimes(1000, 10L, 150L, 250L, 350L, 450L, 550L, 650L, 750L, 850L,
-            950L));
+          950L));
     times
         .add(asTimes(1000, 50L, 150L, 250L, 350L, 450L, 551L, 650L, 750L, 850L,
-            950L));
+          950L));
     times.add(asTimes(1000, 250L, 500L, 750L));
     times.add(asTimes(1000, 0L, 50L, 55L, 57L, 59L, 60L, 100L, 150L, 750L));
     times.add(asTimes(1000, 5L, 5L, 5L, 5L));
     times.add(asTimes(1000, 4L, 5L, 5L, 5L, 5L, 5L, 5L, 5L, 5L, 5L, 5L, 5L, 5L,
-        5L,
-        5L, 5L, 5L, 5L, 5L, 5L, 5L, 5L, 5L, 5L, 5L, 5L, 5L, 5L, 5L, 5L, 5L));
+      5L,
+      5L, 5L, 5L, 5L, 5L, 5L, 5L, 5L, 5L, 5L, 5L, 5L, 5L, 5L, 5L, 5L, 5L));
     times.add(asTimes(1000, 5L, 5L, 5L, 5L, 5L, 5L, 5L, 5L, 5L, 5L, 5L, 5L, 5L,
-        5L,
-        5L, 5L, 5L, 5L, 5L, 5L, 5L, 5L, 5L, 5L, 5L, 5L, 5L, 5L, 5L, 5L, 5L));
+      5L,
+      5L, 5L, 5L, 5L, 5L, 5L, 5L, 5L, 5L, 5L, 5L, 5L, 5L, 5L, 5L, 5L, 5L));
     times.add(asTimes(1000, 0L, 5L, 5L, 5L, 5L, 5L, 5L, 5L, 5L, 5L, 5L, 5L, 5L,
-        5L,
-        5L, 5L, 5L, 5L, 5L, 5L, 5L, 5L, 5L, 5L, 5L, 5L, 5L, 5L, 5L, 5L, 5L, 5L,
-        999L));
+      5L,
+      5L, 5L, 5L, 5L, 5L, 5L, 5L, 5L, 5L, 5L, 5L, 5L, 5L, 5L, 5L, 5L, 5L, 5L,
+      999L));
     times.add(asTimes(1000, 500L, 500L, 500L, 500L));
     times.add(asTimes(1000, 5L, 5L, 5L, 5L, 400L, 410L, 430L, 440L, 800L, 810L,
-        820L,
-        830L));
+      820L,
+      830L));
     times.add(asTimes(1000, 0L, 0L, 0L));
     times.add(asTimes(1000, 1L, 1L, 1L));
     times.add(asTimes(1000, 999L, 999L, 999L));
     times.add(asTimes(1000, 0L, 0L, 500L, 500L, 999L, 999L));
     times.add(asTimes(1000, 250L, 250L, 500L, 500L, 750L, 750L));
     times.add(asTimes(1000, 250L, 250L, 250L, 500L, 500L, 500L, 750L, 750L,
-        750L));
+      750L));
 
     for (int i = 0; i < 10; i++) {
       times.add(generateTimes(rng, 10d));
@@ -322,7 +322,7 @@ public class MetricsTest {
         newTs.add(l);
         newTs.add(Math.min(999, Math.max(0, l
             + DoubleMath.roundToLong(rng.nextDouble() * 6d - 3d,
-                RoundingMode.HALF_EVEN))));
+              RoundingMode.HALF_EVEN))));
       }
       times.add(asTimesDouble(1000, newTs));
     }
@@ -337,10 +337,10 @@ public class MetricsTest {
         newTs.add(l);
         newTs.add(Math.min(999, Math.max(0, l
             + DoubleMath.roundToLong(rng.nextDouble() * 2d - 1d,
-                RoundingMode.HALF_EVEN))));
+              RoundingMode.HALF_EVEN))));
         newTs.add(Math.min(999, Math.max(0, l
             + DoubleMath.roundToLong(rng.nextDouble() * 2d - 1d,
-                RoundingMode.HALF_EVEN))));
+              RoundingMode.HALF_EVEN))));
       }
       times.add(asTimesDouble(1000, newTs));
     }
@@ -375,15 +375,15 @@ public class MetricsTest {
     times.add(asTimes(1000, variant));
     checkState(variant.size() == 75);
     checkState(times.get(times.size() - 2).list.size() == 75, "",
-        times.get(times.size() - 2).list.size());
+      times.get(times.size() - 2).list.size());
 
     for (int i = 0; i < 10; i++) {
       times.add(generateTimes(rng, (i + 1) * 100d));
     }
 
     final ImmutableList<Long> all = ContiguousSet.create(
-        Range.closedOpen(0L, 1000L),
-        DiscreteDomain.longs()).asList();
+      Range.closedOpen(0L, 1000L),
+      DiscreteDomain.longs()).asList();
 
     times.add(asTimes(1000, all));
 
@@ -437,24 +437,24 @@ public class MetricsTest {
       }
       times
           .add(
-              asTimesDouble((int) (regular.length * Math.pow(10, i)), newList));
+            asTimesDouble((int) (regular.length * Math.pow(10, i)), newList));
     }
 
     times.add(asTimes(1000, 250L, 250L, 250L, 500L, 500L, 500L, 750L,
-        750L, 750L));
+      750L, 750L));
 
     times.add(asTimes(1000, 250L, 500L, 500L, 500L, 500L, 500L, 500L,
-        500L, 750L));
+      500L, 750L));
 
     times.add(asTimes(1000, 100L, 100L, 200L, 200L, 300L, 300L, 400L, 400L,
-        500L,
-        500L, 600L, 600L, 700L, 700L, 800L, 800L, 900L, 900L));
+      500L,
+      500L, 600L, 600L, 700L, 700L, 800L, 800L, 900L, 900L));
     times.add(asTimes(1000, 100L, 200L, 200L, 200L, 200L, 200L, 200L, 200L,
-        200L,
-        200L, 200L, 300L, 400L, 500L, 600L, 700L, 800L, 900L));
+      200L,
+      200L, 200L, 300L, 400L, 500L, 600L, 700L, 800L, 900L));
     times.add(asTimes(1000, 100L, 200L, 300L, 400L, 500L, 600L, 700L, 800L,
-        800L,
-        800L, 800L, 800L, 800L, 800L, 800L, 800L, 800L, 900L));
+      800L,
+      800L, 800L, 800L, 800L, 800L, 800L, 800L, 800L, 900L));
 
     // times.subList(1, times.size()).clear();
 
@@ -468,7 +468,7 @@ public class MetricsTest {
         // times.get(i).length);
 
         final double dod8 = measureDynamism(times.get(i).list,
-            times.get(i).length);
+          times.get(i).length);
 
         // final double dod5 = measureDynamism2ndDerivative(times.get(i).list,
         // times.get(i).length);
@@ -492,10 +492,10 @@ public class MetricsTest {
                   + "-" + name + ".times");
           Files.createParentDirs(dest);
           Files.write(
-              times.get(i).length + "\n"
-                  + Joiner.on("\n").join(times.get(i).list) + "\n",
-              dest,
-              Charsets.UTF_8);
+            times.get(i).length + "\n"
+                + Joiner.on("\n").join(times.get(i).list) + "\n",
+            dest,
+            Charsets.UTF_8);
         } catch (final IOException e) {
           throw new IllegalArgumentException();
         }
@@ -507,7 +507,7 @@ public class MetricsTest {
   public void testDynamismScaleInvariant0() {
     final double expectedDynamism = 0d;
     final List<Integer> numEvents = asList(7, 30, 50, 70, 100, 157, 234,
-        748, 998, 10000, 100000);
+      748, 998, 10000, 100000);
     final int scenarioLength = 1000;
     for (final int num : numEvents) {
       final List<Double> scenario = newArrayList();
@@ -523,7 +523,7 @@ public class MetricsTest {
   public void testDynamismScaleInvariant50() {
     final double expectedDynamism = 0.5d;
     final List<Integer> numEvents = asList(30, 50, 70, 100, 158, 234, 426,
-        748, 998, 10000, 100000);
+      748, 998, 10000, 100000);
     final int scenarioLength = 1000;
     for (final int num : numEvents) {
       final List<Double> scenario = newArrayList();
@@ -545,7 +545,7 @@ public class MetricsTest {
   public void testDynamismScaleInvariant100() {
     final double expectedDynamism = 1d;
     final List<Integer> numEvents = asList(7, 30, 50, 70, 100, 157, 234,
-        748, 998, 10000, 100000);
+      748, 998, 10000, 100000);
     final int scenarioLength = 1000;
     for (final int num : numEvents) {
       final double dist = scenarioLength / (double) num;
@@ -586,7 +586,7 @@ public class MetricsTest {
     final int repetitions = 3;
     final List<Integer> numEvents = asList(200, 300, 400, 500, 600, 700, 800);
     final List<Double> lengthsOfDay = asList(startLengthOfDay, 1300d, 2000d,
-        4500d, 7600d, 15000d, 60000d, 10000d, 100000d);
+      4500d, 7600d, 15000d, 60000d, 10000d, 100000d);
     for (final int events : numEvents) {
       // repetitions
       for (int j = 0; j < repetitions; j++) {
@@ -620,7 +620,7 @@ public class MetricsTest {
     final double lengthOfDay = 1000;
     final int repetitions = 10;
     final List<Integer> numEvents = asList(20, 50, 120, 200, 300, 500, 670,
-        800);
+      800);
 
     for (final int num : numEvents) {
       for (int j = 0; j < repetitions; j++) {
@@ -639,7 +639,7 @@ public class MetricsTest {
           leftShiftedScenario.add(scenario.get(i) - leftMost);
         }
         final double leftDod = measureDynamism(leftShiftedScenario,
-            lengthOfDay);
+          lengthOfDay);
 
         // shift right
         final List<Double> rightShiftedScenario = newArrayList();
@@ -649,7 +649,7 @@ public class MetricsTest {
           rightShiftedScenario.add(scenario.get(i) + rightMost);
         }
         final double rightDod = measureDynamism(rightShiftedScenario,
-            lengthOfDay);
+          lengthOfDay);
 
         assertEquals(curDod, leftDod, 0.0001);
         assertEquals(curDod, rightDod, 0.0001);
@@ -663,15 +663,15 @@ public class MetricsTest {
   @Test
   public void testHistogram() {
     assertEquals(ImmutableSortedMultiset.of(),
-        Metrics.computeHistogram(Arrays.<Double>asList(), .2));
+      Metrics.computeHistogram(Arrays.<Double>asList(), .2));
 
     final List<Double> list = Arrays.asList(1d, 2d, 2d, 1.99999, 3d, 4d);
     assertEquals(ImmutableSortedMultiset.of(0d, 0d, 2d, 2d, 2d, 4d),
-        Metrics.computeHistogram(list, 2));
+      Metrics.computeHistogram(list, 2));
 
     final List<Double> list2 = Arrays.asList(1d, 2d, 2d, 1.99999, 3d, 4d);
     assertEquals(ImmutableSortedMultiset.of(1d, 1.5d, 2d, 2d, 3d, 4d),
-        Metrics.computeHistogram(list2, .5));
+      Metrics.computeHistogram(list2, .5));
   }
 
   /**

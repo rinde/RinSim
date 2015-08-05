@@ -358,16 +358,16 @@ public abstract class Scenario {
           .from(eventList)
           .filter(filter);
       checkArgument(
-          !filtered.isEmpty(),
-          "The specified filter did not match any event in the event list "
-              + "(size %s), filter: %s.",
-          eventList.size(), filter);
+        !filtered.isEmpty(),
+        "The specified filter did not match any event in the event list "
+            + "(size %s), filter: %s.",
+        eventList.size(), filter);
       final Set<TimedEvent> set = filtered.toSet();
       checkArgument(
-          set.size() == 1,
-          "The specified filter matches multiple non-equal events, all matches "
-              + "must be equal. Events: %s. Filter: %s.",
-          set, filter);
+        set.size() == 1,
+        "The specified filter matches multiple non-equal events, all matches "
+            + "must be equal. Events: %s. Filter: %s.",
+        set, filter);
 
       if (filtered.size() > frequency) {
         // limit
@@ -400,7 +400,7 @@ public abstract class Scenario {
       Collections.sort(list, TimeComparator.INSTANCE);
 
       return Scenario.create(list, modelBuilders, timeWindow, stopCondition,
-          problemClass, instanceId);
+        problemClass, instanceId);
     }
 
     @Override
@@ -416,8 +416,8 @@ public abstract class Scenario {
    * @param <T> The type of concrete builder.
    */
   public abstract static class AbstractBuilder<T extends AbstractBuilder<T>> {
-    static final TimeWindow DEFAULT_TIME_WINDOW = new TimeWindow(0,
-        8 * 60 * 60 * 1000);
+    static final TimeWindow DEFAULT_TIME_WINDOW = TimeWindow.create(0,
+      8 * 60 * 60 * 1000);
     static final StopCondition DEFAULT_STOP_CONDITION = StopConditions
         .alwaysFalse();
 
@@ -461,7 +461,7 @@ public abstract class Scenario {
      * @return This, as per the builder pattern.
      */
     public T scenarioLength(long length) {
-      timeWindow = new TimeWindow(0, length);
+      timeWindow = TimeWindow.create(0, length);
       return self();
     }
 

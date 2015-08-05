@@ -187,7 +187,7 @@ public final class Solvers {
         if (inCargo) {
           // check if we are early
           if (cur.getDeliveryTimeWindow().isBeforeStart(time)) {
-            time = cur.getDeliveryTimeWindow().begin;
+            time = cur.getDeliveryTimeWindow().begin();
           }
 
           if (!firstAndServicing) {
@@ -196,14 +196,14 @@ public final class Solvers {
           }
           // delivering
           if (cur.getDeliveryTimeWindow().isAfterEnd(time)) {
-            final long tardiness = time - cur.getDeliveryTimeWindow().end;
+            final long tardiness = time - cur.getDeliveryTimeWindow().end();
             deliveryTardiness += tardiness;
           }
           totalDeliveries++;
         } else {
           // check if we are early
           if (cur.getPickupTimeWindow().isBeforeStart(time)) {
-            time = cur.getPickupTimeWindow().begin;
+            time = cur.getPickupTimeWindow().begin();
           }
           if (!firstAndServicing) {
             truckArrivalTimesBuilder.add(time);
@@ -211,7 +211,7 @@ public final class Solvers {
           }
           // picking up
           if (cur.getPickupTimeWindow().isAfterEnd(time)) {
-            final long tardiness = time - cur.getPickupTimeWindow().end;
+            final long tardiness = time - cur.getPickupTimeWindow().end();
             pickupTardiness += tardiness;
           }
           totalPickups++;
@@ -229,7 +229,7 @@ public final class Solvers {
       time += tt;
       // check overtime
       if (vso.getDto().getAvailabilityTimeWindow().isAfterEnd(time)) {
-        overTime += time - vso.getDto().getAvailabilityTimeWindow().end;
+        overTime += time - vso.getDto().getAvailabilityTimeWindow().end();
       }
       maxTime = Math.max(maxTime, time);
 

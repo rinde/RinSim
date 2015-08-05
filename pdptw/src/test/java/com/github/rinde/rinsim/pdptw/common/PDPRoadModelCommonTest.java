@@ -50,7 +50,7 @@ import com.github.rinde.rinsim.util.TimeWindow;
 
 public abstract class PDPRoadModelCommonTest {
   static final TimeLapse TIME = TimeLapseFactory.create(0, 1);
-  static final TimeWindow DEFAULT_TW = new TimeWindow(0, 100);
+  static final TimeWindow DEFAULT_TW = TimeWindow.create(0, 100);
 
   Parcel dp1;
   Parcel dp2;
@@ -77,12 +77,12 @@ public abstract class PDPRoadModelCommonTest {
     final DependencyProvider dep = mock(DependencyProvider.class);
 
     rm = PDPRoadModel.builder(
-        RoadModelBuilders.plane()
-            .withMinPoint(new Point(0, 0))
-            .withMaxPoint(new Point(10, 10))
-            .withDistanceUnit(SI.KILOMETER)
-            .withMaxSpeed(0.1)
-            .withSpeedUnit(NonSI.KILOMETERS_PER_HOUR))
+      RoadModelBuilders.plane()
+          .withMinPoint(new Point(0, 0))
+          .withMaxPoint(new Point(10, 10))
+          .withDistanceUnit(SI.KILOMETER)
+          .withMaxSpeed(0.1)
+          .withSpeedUnit(NonSI.KILOMETERS_PER_HOUR))
         .withAllowVehicleDiversion(allowDiversion)
         .build(dep);
 
@@ -165,7 +165,8 @@ public abstract class PDPRoadModelCommonTest {
   public void testInvalidRoadUser() {
     // does not exist
     rm.moveTo(dv1, Parcel.builder(new Point(0, 0), new Point(6, 6))
-        .build(), time(1));
+        .build(),
+      time(1));
   }
 
   @Test
@@ -342,10 +343,10 @@ public abstract class PDPRoadModelCommonTest {
     boolean success = true;
     try {
       rm.followPath(
-          dv1,
-          newLinkedList(rm
-              .getShortestPathTo(new Point(0, 0), new Point(10, 10))),
-          time(1));
+        dv1,
+        newLinkedList(rm
+            .getShortestPathTo(new Point(0, 0), new Point(10, 10))),
+        time(1));
     } catch (final UnsupportedOperationException e) {
       success = false;
     }

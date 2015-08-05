@@ -76,7 +76,7 @@ import com.google.common.collect.ImmutableSet;
 
 /**
  * @author Rinde van Lon
- * 
+ *
  */
 public class SolversTest {
 
@@ -100,11 +100,11 @@ public class SolversTest {
   @Before
   public void setUp() {
 
-    DependencyProvider dp = mock(DependencyProvider.class);
+    final DependencyProvider dp = mock(DependencyProvider.class);
 
     rm = PDPRoadModel.builder(
-        RoadModelBuilders.plane()
-            .withMaxSpeed(300d))
+      RoadModelBuilders.plane()
+          .withMaxSpeed(300d))
         .withAllowVehicleDiversion(false)
         .build(dp);
 
@@ -132,7 +132,7 @@ public class SolversTest {
     // time unit = hour
     PDPTWTestUtil.register(rm, pm, v1, p1);
 
-    Clock clock = mock(Clock.class);
+    final Clock clock = mock(Clock.class);
     when(clock.getCurrentTime()).thenReturn(0L);
     when(clock.getTickLength()).thenReturn(1L);
     when(clock.getTimeUnit()).thenReturn(NonSI.MINUTE);
@@ -154,10 +154,10 @@ public class SolversTest {
     rm.moveTo(v1, p1, create(NonSI.HOUR, 0L, 1L));
 
     checkVehicles(
-        asList(v1),
-        handle
-            .convert(SolveArgs.create().useAllParcels().noCurrentRoutes()).state
-                .getVehicles());
+      asList(v1),
+      handle
+          .convert(SolveArgs.create().useAllParcels().noCurrentRoutes()).state
+              .getVehicles());
 
     rm.moveTo(v1, p1, create(NonSI.HOUR, 0, 40));
     assertTrue(rm.equalPosition(v1, p1));
@@ -191,7 +191,7 @@ public class SolversTest {
     assertEquals(destination, rm.getDestinationToParcel(v1));
     assertEquals(ParcelState.AVAILABLE, pm.getParcelState(p1));
 
-    Clock clock = mock(Clock.class);
+    final Clock clock = mock(Clock.class);
     when(clock.getCurrentTime()).thenReturn(0L);
     when(clock.getTickLength()).thenReturn(1L);
     when(clock.getTimeUnit()).thenReturn(NonSI.MINUTE);
@@ -249,7 +249,7 @@ public class SolversTest {
     // service delivery
     rm.moveTo(v1, destination, TimeLapseFactory.create(0, 1000000000));
     assertEquals(destination.getDto().getDeliveryLocation(),
-        rm.getPosition(v1));
+      rm.getPosition(v1));
     pm.deliver(v1, p1, TimeLapseFactory.create(0, 1));
     assertNull(rm.getDestinationToParcel(v1));
     assertEquals(VehicleState.DELIVERING, pm.getVehicleState(v1));
@@ -281,33 +281,33 @@ public class SolversTest {
         .startPosition(new Point(5, 5))
         .speed(30d)
         .capacity(0)
-        .availabilityTimeWindow(new TimeWindow(100L, 100000L))
+        .availabilityTimeWindow(TimeWindow.create(100L, 100000L))
         .build();
 
     final Parcel a = Parcel.builder(new Point(0, 0), new Point(10, 10))
-        .pickupTimeWindow(new TimeWindow(0, 30))
-        .deliveryTimeWindow(new TimeWindow(70, 80))
+        .pickupTimeWindow(TimeWindow.create(0, 30))
+        .deliveryTimeWindow(TimeWindow.create(70, 80))
         .pickupDuration(5000L)
         .deliveryDuration(10000L)
         .build();
 
     final Parcel b = Parcel.builder(new Point(5, 0), new Point(10, 7))
-        .pickupTimeWindow(new TimeWindow(0, 30))
-        .deliveryTimeWindow(new TimeWindow(70, 80))
+        .pickupTimeWindow(TimeWindow.create(0, 30))
+        .deliveryTimeWindow(TimeWindow.create(70, 80))
         .pickupDuration(5000L)
         .deliveryDuration(10000L)
         .build();
 
     final Parcel c = Parcel.builder(new Point(3, 0), new Point(6, 7))
-        .pickupTimeWindow(new TimeWindow(0, 30))
-        .deliveryTimeWindow(new TimeWindow(70, 80))
+        .pickupTimeWindow(TimeWindow.create(0, 30))
+        .deliveryTimeWindow(TimeWindow.create(70, 80))
         .pickupDuration(5000L)
         .deliveryDuration(10000L)
         .build();
 
     final Parcel d = Parcel.builder(new Point(3, 0), new Point(6, 2))
-        .pickupTimeWindow(new TimeWindow(0, 30))
-        .deliveryTimeWindow(new TimeWindow(70, 80))
+        .pickupTimeWindow(TimeWindow.create(0, 30))
+        .deliveryTimeWindow(TimeWindow.create(70, 80))
         .pickupDuration(5000L)
         .deliveryDuration(10000L)
         .build();
@@ -320,25 +320,25 @@ public class SolversTest {
     final ImmutableList<VehicleStateObject> vehicles = ImmutableList
         .<VehicleStateObject>builder()
         .add(
-            VehicleStateObject.create(
-                vd1,
-                new Point(7, 9),
-                ImmutableSet.<Parcel>of(a),
-                0L,
-                null,
-                null))
-        .add(VehicleStateObject.create(
+          VehicleStateObject.create(
             vd1,
-            new Point(3, 2),
-            ImmutableSet.<Parcel>of(d),
+            new Point(7, 9),
+            ImmutableSet.<Parcel>of(a),
             0L,
             null,
             null))
+        .add(VehicleStateObject.create(
+          vd1,
+          new Point(3, 2),
+          ImmutableSet.<Parcel>of(d),
+          0L,
+          null,
+          null))
         .build();
 
     final GlobalStateObject state = GlobalStateObject.create(availableParcels,
-        vehicles, 0L, SI.MILLI(SI.SECOND), NonSI.KILOMETERS_PER_HOUR,
-        SI.KILOMETER);
+      vehicles, 0L, SI.MILLI(SI.SECOND), NonSI.KILOMETERS_PER_HOUR,
+      SI.KILOMETER);
 
     final ImmutableList<ImmutableList<Parcel>> routes = ImmutableList
         .<ImmutableList<Parcel>>builder()
@@ -351,11 +351,11 @@ public class SolversTest {
     final double cost = objFunc.computeCost(stats);
 
     final double cost0 = objFunc.computeCost(Solvers.computeStats(
-        state.withSingleVehicle(0),
-        ImmutableList.of(routes.get(0))));
+      state.withSingleVehicle(0),
+      ImmutableList.of(routes.get(0))));
     final double cost1 = objFunc.computeCost(Solvers.computeStats(
-        state.withSingleVehicle(1),
-        ImmutableList.of(routes.get(1))));
+      state.withSingleVehicle(1),
+      ImmutableList.of(routes.get(1))));
     assertEquals(cost, cost0 + cost1, 0.001);
   }
 
@@ -366,9 +366,9 @@ public class SolversTest {
   @Test
   public void convertRoutesFail() {
     final Parcel a = Parcel.builder(
-        new Point(0, 0), new Point(1, 1)).build();
+      new Point(0, 0), new Point(1, 1)).build();
     final Parcel b = Parcel.builder(
-        new Point(0, 1), new Point(1, 1)).build();
+      new Point(0, 1), new Point(1, 1)).build();
 
     final Vehicle vehicle = new TestVehicle(new Point(1, 1));
     final GlobalStateObject gso = mock(GlobalStateObject.class);
@@ -378,7 +378,7 @@ public class SolversTest {
         ImmutableMap.of(vso, vehicle));
 
     convertRoutes(sc,
-        ImmutableList.of(ImmutableList.of(a, b)));
+      ImmutableList.of(ImmutableList.of(a, b)));
   }
 
   // doesn't check the contents!
@@ -394,7 +394,7 @@ public class SolversTest {
       final VehicleStateObject vs = states.get(i);
 
       assertEquals(dto.getAvailabilityTimeWindow(),
-          vs.getDto().getAvailabilityTimeWindow());
+        vs.getDto().getAvailabilityTimeWindow());
       assertEquals(dto.getCapacity(), vs.getDto().getCapacity());
       assertEquals(dto.getSpeed(), vs.getDto().getSpeed(), 0);
       assertEquals(dto.getStartPosition(), vs.getDto().getStartPosition());
@@ -412,7 +412,7 @@ public class SolversTest {
         assertEquals(0, vs.getRemainingServiceTime());
       } else {
         assertEquals(pm.getVehicleActionInfo(vehicle).timeNeeded(),
-            vs.getRemainingServiceTime());
+          vs.getRemainingServiceTime());
       }
     }
   }
@@ -425,7 +425,7 @@ public class SolversTest {
     return builder.build();
   }
 
-  static final TimeWindow TW = new TimeWindow(0, 1000);
+  static final TimeWindow TW = TimeWindow.create(0, 1000);
 
   static Parcel createParcel(Point origin, Point dest) {
     return Parcel.builder(origin, dest)

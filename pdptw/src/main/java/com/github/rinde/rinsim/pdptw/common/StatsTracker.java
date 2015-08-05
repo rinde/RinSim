@@ -230,7 +230,7 @@ public final class StatsTracker extends AbstractModelVoid implements
         assert p != null;
         assert v != null;
 
-        final long latestBeginTime = p.getPickupTimeWindow().end
+        final long latestBeginTime = p.getPickupTimeWindow().end()
             - p.getPickupDuration();
         if (pme.time > latestBeginTime) {
           final long tardiness = pme.time - latestBeginTime;
@@ -249,7 +249,7 @@ public final class StatsTracker extends AbstractModelVoid implements
         assert p != null;
         assert v != null;
 
-        final long latestBeginTime = p.getDeliveryTimeWindow().end
+        final long latestBeginTime = p.getDeliveryTimeWindow().end()
             - p.getDeliveryDuration();
         if (pme.time > latestBeginTime) {
           final long tardiness = pme.time - latestBeginTime;

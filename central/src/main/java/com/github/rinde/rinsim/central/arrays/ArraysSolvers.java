@@ -222,7 +222,7 @@ public final class ArraysSolvers {
     points.add(v.getDto().getStartPosition());
 
     // end of the day
-    dueDates[index] = fixTWend(v.getDto().getAvailabilityTimeWindow().end,
+    dueDates[index] = fixTWend(v.getDto().getAvailabilityTimeWindow().end(),
         state.getTime(),
         timeConverter);
 
@@ -607,8 +607,8 @@ public final class ArraysSolvers {
 
   static int[] convertTW(TimeWindow tw, long time,
       UnitConverter timeConverter) {
-    final int releaseDate = fixTWstart(tw.begin, time, timeConverter);
-    final int dueDate = fixTWend(tw.end, time, timeConverter);
+    final int releaseDate = fixTWstart(tw.begin(), time, timeConverter);
+    final int dueDate = fixTWend(tw.end(), time, timeConverter);
     if (releaseDate > dueDate) {
       // if this happens, we know this is the result of rounding behavior:
       // release is rounded up, due is rounded down. We also know that the

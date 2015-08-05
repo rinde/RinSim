@@ -84,7 +84,7 @@ public final class ScenarioIO {
     builder
         .registerTypeAdapter(ProblemClass.class, adapt(ProblemClassIO.INSTANCE))
         .registerTypeHierarchyAdapter(TimeWindowPolicy.class,
-            adapt(TimeWindowHierarchyIO.INSTANCE))
+          adapt(TimeWindowHierarchyIO.INSTANCE))
         .registerTypeAdapter(Scenario.class, adapt(ScenarioObjIO.INSTANCE))
         .registerTypeAdapter(ParcelDTO.class, adapt(ParcelIO.INSTANCE))
         .registerTypeAdapter(VehicleDTO.class, adapt(VehicleIO.INSTANCE))
@@ -94,13 +94,13 @@ public final class ScenarioIO {
         .registerTypeAdapter(Measure.class, adapt(MeasureIO.INSTANCE))
         .registerTypeHierarchyAdapter(Enum.class, adapt(EnumIO.INSTANCE))
         .registerTypeAdapter(StopCondition.class,
-            adapt(StopConditionIO.INSTANCE))
+          adapt(StopConditionIO.INSTANCE))
         .registerTypeAdapter(Class.class, adapt(ClassIO.INSTANCE))
         .registerTypeAdapter(ImmutableList.class,
-            adapt(ImmutableListIO.INSTANCE))
+          adapt(ImmutableListIO.INSTANCE))
         .registerTypeAdapter(ImmutableSet.class, adapt(ImmutableSetIO.INSTANCE))
         .registerTypeAdapter(ModelBuilder.class,
-            adapt(ModelBuilderIO.INSTANCE));
+          adapt(ModelBuilderIO.INSTANCE));
 
     return builder.create();
   }
@@ -114,7 +114,7 @@ public final class ScenarioIO {
    */
   public static void write(Scenario s, Path to) throws IOException {
     Files.write(to, Splitter.on(System.lineSeparator()).split(write(s)),
-        Charsets.UTF_8);
+      Charsets.UTF_8);
   }
 
   /**
@@ -137,9 +137,9 @@ public final class ScenarioIO {
    */
   public static <T> T read(Path file, Class<T> type) throws IOException {
     return read(
-        Joiner.on(System.lineSeparator()).join(
-            Files.readAllLines(file, Charsets.UTF_8)),
-        type);
+      Joiner.on(System.lineSeparator()).join(
+        Files.readAllLines(file, Charsets.UTF_8)),
+      type);
   }
 
   /**
@@ -292,8 +292,8 @@ public final class ScenarioIO {
         @Nullable Type typeOfSrc,
         @Nullable JsonSerializationContext context) {
       return verifyNotNull(delegate.doSerialize(verifyNotNull(src),
-          verifyNotNull(typeOfSrc),
-          verifyNotNull(context)));
+        verifyNotNull(typeOfSrc),
+        verifyNotNull(context)));
     }
 
     @Override
@@ -301,8 +301,8 @@ public final class ScenarioIO {
         @Nullable Type typeOfT,
         @Nullable JsonDeserializationContext context) {
       return verifyNotNull(delegate.doDeserialize(verifyNotNull(json),
-          verifyNotNull(typeOfT),
-          verifyNotNull(context)), "found a null: %s", typeOfT, json);
+        verifyNotNull(typeOfT),
+        verifyNotNull(context)), "found a null: %s", typeOfT, json);
     }
   }
 
@@ -465,7 +465,7 @@ public final class ScenarioIO {
       final String[] parts = xy.split(VALUE_SEPARATOR);
       final long x = Long.parseLong(parts[0]);
       final long y = Long.parseLong(parts[1]);
-      return new TimeWindow(x, y);
+      return TimeWindow.create(x, y);
     }
 
     @Override
@@ -478,7 +478,7 @@ public final class ScenarioIO {
         writer.nullValue();
         return;
       }
-      final String xy = value.begin + VALUE_SEPARATOR + value.end;
+      final String xy = value.begin() + VALUE_SEPARATOR + value.end();
       writer.value(xy);
     }
   }
@@ -511,7 +511,7 @@ public final class ScenarioIO {
         final Unit<?> unit = context.deserialize(obj.get(UNIT), Unit.class);
         try {
           final Class<?> type =
-              Class.forName(obj.get(VALUE_TYPE).getAsString());
+            Class.forName(obj.get(VALUE_TYPE).getAsString());
           final Number value = context.deserialize(obj.get(VALUE), type);
           if (type.equals(Double.TYPE) || type.equals(Double.class)) {
             return Measure.valueOf(value.doubleValue(), unit);
@@ -583,7 +583,7 @@ public final class ScenarioIO {
         checkArgument(json.isJsonPrimitive());
         try {
           final Predicate<?> obj =
-              (Predicate<?>) deserializeObject(json.getAsString());
+            (Predicate<?>) deserializeObject(json.getAsString());
           return obj;
         } catch (final IOException e) {
           throw new IllegalArgumentException(e);
@@ -640,9 +640,9 @@ public final class ScenarioIO {
         final Point p2 = context.deserialize(it.next(), Point.class);
         return Parcel.builder(p1, p2)
             .pickupTimeWindow(
-                (TimeWindow) context.deserialize(it.next(), TimeWindow.class))
+              (TimeWindow) context.deserialize(it.next(), TimeWindow.class))
             .deliveryTimeWindow(
-                (TimeWindow) context.deserialize(it.next(), TimeWindow.class))
+              (TimeWindow) context.deserialize(it.next(), TimeWindow.class))
             .neededCapacity(it.next().getAsDouble())
             .orderAnnounceTime(it.next().getAsLong())
             .pickupDuration(it.next().getAsLong())
@@ -655,8 +655,9 @@ public final class ScenarioIO {
         final JsonArray arr = new JsonArray();
         arr.add(context.serialize(src.getPickupLocation()));
         arr.add(context.serialize(src.getDeliveryLocation()));
-        arr.add(context.serialize(src.getPickupTimeWindow()));
-        arr.add(context.serialize(src.getDeliveryTimeWindow()));
+        arr.add(context.serialize(src.getPickupTimeWindow(), TimeWindow.class));
+        arr.add(
+          context.serialize(src.getDeliveryTimeWindow(), TimeWindow.class));
         arr.add(context.serialize(src.getNeededCapacity()));
         arr.add(context.serialize(src.getOrderAnnounceTime()));
         arr.add(context.serialize(src.getPickupDuration()));
@@ -674,7 +675,7 @@ public final class ScenarioIO {
         final Iterator<JsonElement> it = json.getAsJsonArray().iterator();
         return VehicleDTO.builder()
             .availabilityTimeWindow(
-                (TimeWindow) context.deserialize(it.next(), TimeWindow.class))
+              (TimeWindow) context.deserialize(it.next(), TimeWindow.class))
             .capacity(it.next().getAsInt()).speed(it.next().getAsDouble())
             .startPosition((Point) context.deserialize(it.next(), Point.class))
             .build();
@@ -684,7 +685,8 @@ public final class ScenarioIO {
       public JsonElement doSerialize(VehicleDTO src, Type typeOfSrc,
           JsonSerializationContext context) {
         final JsonArray arr = new JsonArray();
-        arr.add(context.serialize(src.getAvailabilityTimeWindow()));
+        arr.add(
+          context.serialize(src.getAvailabilityTimeWindow(), TimeWindow.class));
         arr.add(context.serialize(src.getCapacity()));
         arr.add(context.serialize(src.getSpeed()));
         arr.add(context.serialize(src.getStartPosition()));

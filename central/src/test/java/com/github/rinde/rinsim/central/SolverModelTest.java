@@ -80,20 +80,21 @@ public class SolverModelTest {
     });
 
     sim.register(new Depot(new Point(5, 5)));
-    Agent agent = new Agent();
+    final Agent agent = new Agent();
 
     sim.register(agent);
     for (int i = 0; i < 10; i++) {
       sim.register(Parcel.builder(new Point(i / 2d, 5 + i / 2),
-          new Point(10 - (i / 3), i / 2))
+        new Point(10 - i / 3, i / 2))
           .build());
     }
 
     sim.start();
 
-    PDPModel pm = sim.getModelProvider().getModel(PDPModel.class);
-    Collection<Parcel> allParcels = pm.getParcels(ParcelState.values());
-    Collection<Parcel> deliveredParcels = pm.getParcels(ParcelState.DELIVERED);
+    final PDPModel pm = sim.getModelProvider().getModel(PDPModel.class);
+    final Collection<Parcel> allParcels = pm.getParcels(ParcelState.values());
+    final Collection<Parcel> deliveredParcels =
+      pm.getParcels(ParcelState.DELIVERED);
 
     assertThat(allParcels).containsExactlyElementsIn(deliveredParcels);
   }
@@ -105,7 +106,7 @@ public class SolverModelTest {
     Agent() {
       super(VehicleDTO.builder()
           .startPosition(new Point(1, 1))
-          .availabilityTimeWindow(new TimeWindow(0, 1 * 60 * 60 * 1000))
+          .availabilityTimeWindow(TimeWindow.create(0, 1 * 60 * 60 * 1000))
           .build(), true);
       solver = Optional.absent();
     }

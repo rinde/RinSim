@@ -74,7 +74,7 @@ public abstract class VehicleDTO {
       startPosition = new Point(0, 0);
       speed = DEFAULT_SPEED;
       capacity = 1;
-      availabilityTimeWindow = TimeWindow.ALWAYS;
+      availabilityTimeWindow = TimeWindow.always();
     }
 
     /**
@@ -124,7 +124,7 @@ public abstract class VehicleDTO {
 
     /**
      * Sets the availability {@link TimeWindow} of the vehicle. Default value:
-     * {@link TimeWindow#ALWAYS}.
+     * {@link TimeWindow#always()}.
      * @param tw The time window.
      * @return This, as per the builder pattern.
      */

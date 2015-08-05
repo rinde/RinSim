@@ -138,8 +138,8 @@ public class Parcel extends PDPObjectImpl implements IParcel {
    * A builder for {@link ParcelDTO}. For fields which are not set the following
    * default values are used:
    * <ul>
-   * <li><code>pickupTimeWindow = {@link TimeWindow#ALWAYS}</code></li>
-   * <li><code>deliveryTimeWindow = {@link TimeWindow#ALWAYS}</code></li>
+   * <li><code>pickupTimeWindow = {@link TimeWindow#always()}</code></li>
+   * <li><code>deliveryTimeWindow = {@link TimeWindow#always()}</code></li>
    * <li><code>neededCapacity = 0</code></li>
    * <li><code>orderArrivalTime = 0L</code></li>
    * <li><code>pickupDuration = 0L</code></li>
@@ -161,8 +161,8 @@ public class Parcel extends PDPObjectImpl implements IParcel {
     Builder(Point from, Point to) {
       pickupLocation = from;
       deliveryLocation = to;
-      pickupTimeWindow = TimeWindow.ALWAYS;
-      deliveryTimeWindow = TimeWindow.ALWAYS;
+      pickupTimeWindow = TimeWindow.always();
+      deliveryTimeWindow = TimeWindow.always();
       neededCapacity = 0;
       orderAnnounceTime = 0L;
       pickupDuration = 0L;
@@ -173,7 +173,7 @@ public class Parcel extends PDPObjectImpl implements IParcel {
      * @return A new parcel data transfer object ({@link ParcelDTO}).
      */
     public ParcelDTO buildDTO() {
-      checkArgument(orderAnnounceTime <= pickupTimeWindow.begin,
+      checkArgument(orderAnnounceTime <= pickupTimeWindow.begin(),
           "Order arrival time may not be after the pickup TW has already "
               + "opened.");
       return new AutoValue_ParcelDTO(pickupLocation, deliveryLocation,
@@ -190,7 +190,7 @@ public class Parcel extends PDPObjectImpl implements IParcel {
 
     /**
      * Sets both the pickup and delivery time windows to the specified value.
-     * The default value is {@link TimeWindow#ALWAYS}.
+     * The default value is {@link TimeWindow#always()}.
      * @param tw The time window to set.
      * @return This, as per the builder pattern.
      */
@@ -200,7 +200,7 @@ public class Parcel extends PDPObjectImpl implements IParcel {
 
     /**
      * Sets the pickup time window. The default value is
-     * {@link TimeWindow#ALWAYS}.
+     * {@link TimeWindow#always()}.
      * @param tw The new pickup time window.
      * @return This, as per the builder pattern.
      */
@@ -211,7 +211,7 @@ public class Parcel extends PDPObjectImpl implements IParcel {
 
     /**
      * Sets the delivery time window. The default value is
-     * {@link TimeWindow#ALWAYS}.
+     * {@link TimeWindow#always()}.
      * @param tw The new delivery time window.
      * @return This, as per the builder pattern.
      */

@@ -422,7 +422,7 @@ public final class TimeLinePanel extends AbstractModelVoid implements
       newParcels.add(p);
 
       width = Math.max(width,
-          (int) (p.parcel.getDeliveryTimeWindow().end / TIME_PER_PIXEL));
+          (int) (p.parcel.getDeliveryTimeWindow().end() / TIME_PER_PIXEL));
     }
 
     void update(int timeX) {
@@ -452,10 +452,10 @@ public final class TimeLinePanel extends AbstractModelVoid implements
       final TimeWindow de = p.parcel.getDeliveryTimeWindow();
 
       final int startX = (int) (p.eventTime / TIME_PER_PIXEL);
-      final int startPickX = (int) (pi.begin / TIME_PER_PIXEL);
-      final int endPickX = (int) (pi.end / TIME_PER_PIXEL);
-      final int startDelX = (int) (de.begin / TIME_PER_PIXEL);
-      final int endDelX = (int) (de.end / TIME_PER_PIXEL);
+      final int startPickX = (int) (pi.begin() / TIME_PER_PIXEL);
+      final int endPickX = (int) (pi.end() / TIME_PER_PIXEL);
+      final int startDelX = (int) (de.begin() / TIME_PER_PIXEL);
+      final int endDelX = (int) (de.end() / TIME_PER_PIXEL);
 
       final GC gc = new GC(contents.get());
       gc.setForeground(lineColor);

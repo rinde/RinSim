@@ -107,13 +107,13 @@ public final class FabriRechtParser {
     @Nullable
     final String firstLineString = ordersFileReader.readLine();
     final Iterator<String> firstLine = Iterators.forArray(
-        verifyNotNull(firstLineString).split(LINE_SEPARATOR));
+      verifyNotNull(firstLineString).split(LINE_SEPARATOR));
     // first contains number of vehicles, but this is not needed
     firstLine.next();
     final int capacity = Integer.parseInt(firstLine.next());
     final long startTime = Long.parseLong(firstLine.next());
     final long endTime = Long.parseLong(firstLine.next());
-    final TimeWindow timeWindow = new TimeWindow(startTime, endTime);
+    final TimeWindow timeWindow = TimeWindow.create(startTime, endTime);
 
     events.add(TimeOutEvent.create(endTime));
     final VehicleDTO defaultVehicle = VehicleDTO.builder()
@@ -129,17 +129,17 @@ public final class FabriRechtParser {
     // Anrufzeit; Servicezeit Pickup; Servicezeit Delivery
     while ((line = ordersFileReader.readLine()) != null) {
       final Iterator<String> it =
-          Iterators.forArray(line.split(LINE_SEPARATOR));
+        Iterators.forArray(line.split(LINE_SEPARATOR));
 
       final Parcel.Builder b = Parcel
           .builder(coordinates.get(Integer.parseInt(it.next())),
-              coordinates.get(Integer.parseInt(it.next())))
+            coordinates.get(Integer.parseInt(it.next())))
           .pickupTimeWindow(
-              new TimeWindow(Long.parseLong(it.next()),
-                  Long.parseLong(it.next())))
+            TimeWindow.create(Long.parseLong(it.next()),
+              Long.parseLong(it.next())))
           .deliveryTimeWindow(
-              new TimeWindow(Long.parseLong(it.next()),
-                  Long.parseLong(it.next())));
+            TimeWindow.create(Long.parseLong(it.next()),
+              Long.parseLong(it.next())));
 
       // we ignore the capacity
       it.next();
@@ -155,7 +155,7 @@ public final class FabriRechtParser {
     ordersFileReader.close();
     Collections.sort(events, TimeComparator.INSTANCE);
     return FabriRechtScenario.create(events, min, max, timeWindow,
-        defaultVehicle);
+      defaultVehicle);
   }
 
   static String toJson(FabriRechtScenario scenario) {
@@ -203,13 +203,13 @@ public final class FabriRechtParser {
     final List<TimedEvent> events = newArrayList();
     for (int i = 0; i < numVehicles; i++) {
       events.add(AddVehicleEvent.create(0,
-          VehicleDTO.builder()
-              .use(scen.getDefaultVehicle())
-              .capacity(vehicleCapacity)
-              .build()));
+        VehicleDTO.builder()
+            .use(scen.getDefaultVehicle())
+            .capacity(vehicleCapacity)
+            .build()));
     }
     events.addAll(scen.getEvents());
     return FabriRechtScenario.create(events, scen.getMin(), scen.getMax(),
-        scen.getTimeWindow(), scen.getDefaultVehicle());
+      scen.getTimeWindow(), scen.getDefaultVehicle());
   }
 }

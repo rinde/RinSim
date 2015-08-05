@@ -416,8 +416,8 @@ public class RouteFollowingVehicle extends Vehicle {
     final Point loc = isPickup ? p.getDto().getPickupLocation() : p
         .getDeliveryLocation();
     final long travelTime = computeTravelTimeTo(loc, time.getTimeUnit());
-    final long openingTime = isPickup ? p.getPickupTimeWindow().begin : p
-        .getDeliveryTimeWindow().begin;
+    final long openingTime = isPickup ? p.getPickupTimeWindow().begin() : p
+        .getDeliveryTimeWindow().begin();
     final long latestTimeToLeave = openingTime - travelTime;
     return latestTimeToLeave >= time.getEndTime();
   }
@@ -448,7 +448,7 @@ public class RouteFollowingVehicle extends Vehicle {
   protected boolean isEndOfDay(TimeLapse time) {
     final long travelTime = computeTravelTimeTo(
         getRoadModel().getPosition(depot.get()), time.getTimeUnit());
-    return time.getEndTime() - 1 >= getAvailabilityTimeWindow().end
+    return time.getEndTime() - 1 >= getAvailabilityTimeWindow().end()
         - travelTime;
   }
 
@@ -721,8 +721,8 @@ public class RouteFollowingVehicle extends Vehicle {
       // if parcel is not ready yet, wait
       final boolean pickup = !pm.getContents(context).contains(cur);
       final long timeUntilReady = (pickup
-          ? cur.getDto().getPickupTimeWindow().begin
-          : cur.getDto().getDeliveryTimeWindow().begin)
+          ? cur.getDto().getPickupTimeWindow().begin()
+          : cur.getDto().getDeliveryTimeWindow().begin())
           - time.getTime();
       if (timeUntilReady > 0) {
         if (time.getTimeLeft() < timeUntilReady) {

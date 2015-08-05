@@ -36,14 +36,14 @@ public class ParcelDTOTest {
   @Test
   public void defaultsTest() {
     final IParcel defaults = Parcel.builder(new Point(0, 0),
-        new Point(2, 2)).buildDTO();
+      new Point(2, 2)).buildDTO();
 
     assertEquals(new Point(0, 0), defaults.getPickupLocation());
     assertEquals(new Point(2, 2), defaults.getDeliveryLocation());
     assertEquals(0, defaults.getOrderAnnounceTime());
     assertEquals(0, defaults.getNeededCapacity(), 0.00001);
-    assertEquals(TimeWindow.ALWAYS, defaults.getPickupTimeWindow());
-    assertEquals(TimeWindow.ALWAYS, defaults.getDeliveryTimeWindow());
+    assertEquals(TimeWindow.always(), defaults.getPickupTimeWindow());
+    assertEquals(TimeWindow.always(), defaults.getDeliveryTimeWindow());
     assertEquals(0, defaults.getPickupDuration());
     assertEquals(0, defaults.getDeliveryDuration());
   }
@@ -54,19 +54,20 @@ public class ParcelDTOTest {
   @Test
   public void overridingTest() {
     final Parcel.Builder b = Parcel.builder(new Point(0, 0),
-        new Point(2, 2));
+      new Point(2, 2));
 
-    final IParcel dto1 = b.timeWindows(new TimeWindow(7, 10)).buildDTO();
-    assertEquals(new TimeWindow(7, 10), dto1.getPickupTimeWindow());
-    assertEquals(new TimeWindow(7, 10), dto1.getDeliveryTimeWindow());
+    final IParcel dto1 = b.timeWindows(TimeWindow.create(7, 10)).buildDTO();
+    assertEquals(TimeWindow.create(7, 10), dto1.getPickupTimeWindow());
+    assertEquals(TimeWindow.create(7, 10), dto1.getDeliveryTimeWindow());
 
-    final IParcel dto2 = b.pickupTimeWindow(new TimeWindow(8, 11)).buildDTO();
-    assertEquals(new TimeWindow(8, 11), dto2.getPickupTimeWindow());
-    assertEquals(new TimeWindow(7, 10), dto2.getDeliveryTimeWindow());
+    final IParcel dto2 =
+      b.pickupTimeWindow(TimeWindow.create(8, 11)).buildDTO();
+    assertEquals(TimeWindow.create(8, 11), dto2.getPickupTimeWindow());
+    assertEquals(TimeWindow.create(7, 10), dto2.getDeliveryTimeWindow());
 
     final IParcel dto3 = b.serviceDuration(560L).buildDTO();
-    assertEquals(new TimeWindow(8, 11), dto3.getPickupTimeWindow());
-    assertEquals(new TimeWindow(7, 10), dto3.getDeliveryTimeWindow());
+    assertEquals(TimeWindow.create(8, 11), dto3.getPickupTimeWindow());
+    assertEquals(TimeWindow.create(7, 10), dto3.getDeliveryTimeWindow());
     assertEquals(560, dto3.getPickupDuration());
     assertEquals(560, dto3.getDeliveryDuration());
 

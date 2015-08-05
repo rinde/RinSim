@@ -87,16 +87,16 @@ public final class TimeWindows {
    */
   public static class Builder {
     private static final StochasticSupplier<Long> DEFAULT_URGENCY = constant(
-        30 * 60 * 1000L);
+      30 * 60 * 1000L);
     private static final StochasticSupplier<Long> DEFAULT_PICKUP_LENGTH =
-        constant(
-            10 * 60 * 1000L);
+      constant(
+        10 * 60 * 1000L);
     private static final StochasticSupplier<Long> DEFAULT_DELIVERY_OPENING =
-        constant(
-            0L);
+      constant(
+        0L);
     private static final StochasticSupplier<Double> DEFAULT_DELIVERY_LENGTH_FACTOR =
-        constant(
-            2d);
+      constant(
+        2d);
 
     StochasticSupplier<Long> pickupUrgency;
     StochasticSupplier<Long> pickupTWLength;
@@ -199,7 +199,7 @@ public final class TimeWindows {
       final Point delivery = parcelBuilder.getDeliveryLocation();
 
       final long pickupToDeliveryTT = travelTimes.getShortestTravelTime(pickup,
-          delivery);
+        delivery);
       final long deliveryToDepotTT = travelTimes
           .getTravelTimeToNearestDepot(delivery);
 
@@ -211,21 +211,21 @@ public final class TimeWindows {
           - pickupToDeliveryTT - parcelBuilder.getPickupDuration()
           - parcelBuilder.getDeliveryDuration();
       final TimeWindow pickupTW = urgencyTimeWindow(earliestPickupOpening,
-          earliestPickupClosing, latestPickupClosing, pickupUrgency,
-          pickupTWLength);
+        earliestPickupClosing, latestPickupClosing, pickupUrgency,
+        pickupTWLength);
 
       // DELIVERY
-      final long earliestDeliveryOpening = pickupTW.begin + pickupToDeliveryTT
+      final long earliestDeliveryOpening = pickupTW.begin() + pickupToDeliveryTT
           + parcelBuilder.getPickupDuration();
       final long latestDeliveryOpening = endTime - deliveryToDepotTT;
 
       final long delOpen = deliveryOpening.get(rng.nextLong());
       checkArgument(delOpen >= 0);
       long delOpening = Math.min(earliestDeliveryOpening + delOpen,
-          latestDeliveryOpening);
+        latestDeliveryOpening);
       delOpening = Math.max(delOpening, earliestDeliveryOpening);
 
-      final long earliestDeliveryClosing = pickupTW.end + pickupToDeliveryTT
+      final long earliestDeliveryClosing = pickupTW.end() + pickupToDeliveryTT
           + parcelBuilder.getPickupDuration();
       final long latestDeliveryClosing = endTime - deliveryToDepotTT
           - parcelBuilder.getDeliveryDuration();
@@ -233,19 +233,20 @@ public final class TimeWindows {
       final double delFactor = deliveryLengthFactor.get(rng.nextLong());
       checkArgument(delFactor > 0d);
       long deliveryClosing = DoubleMath.roundToLong(pickupTW.length()
-          * delFactor, RoundingMode.CEILING);
+          * delFactor,
+        RoundingMode.CEILING);
 
       if (minDeliveryLength.isPresent()) {
         deliveryClosing = Math.max(
-            delOpening + minDeliveryLength.get().get(rng.nextLong()),
-            deliveryClosing);
+          delOpening + minDeliveryLength.get().get(rng.nextLong()),
+          deliveryClosing);
       }
 
       final long boundedDelClose = boundValue(deliveryClosing,
-          earliestDeliveryClosing, latestDeliveryClosing);
+        earliestDeliveryClosing, latestDeliveryClosing);
 
-      final TimeWindow deliveryTW = new TimeWindow(delOpening,
-          boundedDelClose);
+      final TimeWindow deliveryTW = TimeWindow.create(delOpening,
+        boundedDelClose);
 
       parcelBuilder.pickupTimeWindow(pickupTW);
       parcelBuilder.deliveryTimeWindow(deliveryTW);
@@ -259,11 +260,11 @@ public final class TimeWindows {
         long latestClosing, StochasticSupplier<Long> urgency,
         StochasticSupplier<Long> length) {
       final long closing = boundValue(
-          earliestClosing + urgency.get(rng.nextLong()), earliestClosing,
-          latestClosing);
+        earliestClosing + urgency.get(rng.nextLong()), earliestClosing,
+        latestClosing);
       final long opening = boundValue(closing - length.get(rng.nextLong()),
-          earliestOpening, closing);
-      return new TimeWindow(opening, closing);
+        earliestOpening, closing);
+      return TimeWindow.create(opening, closing);
     }
   }
 }

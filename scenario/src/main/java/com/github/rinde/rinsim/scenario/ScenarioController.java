@@ -491,8 +491,8 @@ public final class ScenarioController extends AbstractModel<StopModel>
     }
 
     static Builder create(Scenario scen) {
-      final int ticks = scen.getTimeWindow().end == Long.MAX_VALUE ? -1
-          : (int) (scen.getTimeWindow().end - scen.getTimeWindow().begin);
+      final int ticks = scen.getTimeWindow().end() == Long.MAX_VALUE ? -1
+          : (int) (scen.getTimeWindow().end() - scen.getTimeWindow().begin());
 
       return create(
         scen,

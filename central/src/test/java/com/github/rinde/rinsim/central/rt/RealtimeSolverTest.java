@@ -103,12 +103,12 @@ public class RealtimeSolverTest {
       AddParcelEvent.create(
         Parcel.builder(new Point(0, 0), new Point(3, 3))
             .orderAnnounceTime(300)
-            .pickupTimeWindow(new TimeWindow(1000, 2000))
+            .pickupTimeWindow(TimeWindow.create(1000, 2000))
             .buildDTO()),
       AddParcelEvent.create(
         Parcel.builder(new Point(0, 0), new Point(3, 3))
             .orderAnnounceTime(1000)
-            .pickupTimeWindow(new TimeWindow(60000, 80000))
+            .pickupTimeWindow(TimeWindow.create(60000, 80000))
             .serviceDuration(180000L)
             .buildDTO()),
       TimeOutEvent.create(3000));
@@ -163,11 +163,11 @@ public class RealtimeSolverTest {
     final List<TimedEvent> events = asList(
       AddParcelEvent.create(Parcel.builder(new Point(1, 1), new Point(3, 3))
           .orderAnnounceTime(200)
-          .pickupTimeWindow(new TimeWindow(200, 2000))
+          .pickupTimeWindow(TimeWindow.create(200, 2000))
           .buildDTO()),
       AddParcelEvent.create(Parcel.builder(new Point(1, 4), new Point(3, 4))
           .orderAnnounceTime(60000)
-          .pickupTimeWindow(new TimeWindow(60000, 80000))
+          .pickupTimeWindow(TimeWindow.create(60000, 80000))
           .serviceDuration(180000L)
           .buildDTO()),
       TimeOutEvent.create(1800000));
@@ -248,11 +248,11 @@ public class RealtimeSolverTest {
     final List<TimedEvent> events = asList(
       AddParcelEvent.create(Parcel.builder(new Point(1, 1), new Point(3, 3))
           .orderAnnounceTime(200)
-          .pickupTimeWindow(new TimeWindow(200, 2000))
+          .pickupTimeWindow(TimeWindow.create(200, 2000))
           .buildDTO()),
       AddParcelEvent.create(Parcel.builder(new Point(1, 4), new Point(3, 4))
           .orderAnnounceTime(1000)
-          .pickupTimeWindow(new TimeWindow(1000, 80000))
+          .pickupTimeWindow(TimeWindow.create(1000, 80000))
           .serviceDuration(180000L)
           .buildDTO()),
       TimeOutEvent.create(1800000));
@@ -306,11 +306,11 @@ public class RealtimeSolverTest {
     final List<TimedEvent> events = asList(
       AddParcelEvent.create(Parcel.builder(new Point(1, 1), new Point(9, 9))
           .orderAnnounceTime(200)
-          .pickupTimeWindow(new TimeWindow(200, 2000))
+          .pickupTimeWindow(TimeWindow.create(200, 2000))
           .buildDTO()),
       AddParcelEvent.create(Parcel.builder(new Point(1, 4), new Point(3, 4))
           .orderAnnounceTime(102000)
-          .pickupTimeWindow(new TimeWindow(102100, 800000))
+          .pickupTimeWindow(TimeWindow.create(102100, 800000))
           .serviceDuration(180000L)
           .buildDTO()),
       TimeOutEvent.create(1800000));

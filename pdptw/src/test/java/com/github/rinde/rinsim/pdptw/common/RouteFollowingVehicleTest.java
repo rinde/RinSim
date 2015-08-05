@@ -128,8 +128,8 @@ public class RouteFollowingVehicleTest {
   protected void init(boolean register) {
     final DependencyProvider dp = mock(DependencyProvider.class);
     rm = PDPRoadModel.builder(
-        RoadModelBuilders.plane()
-            .withMaxSpeed(30d))
+      RoadModelBuilders.plane()
+          .withMaxSpeed(30d))
         .withAllowVehicleDiversion(diversionIsAllowed)
         .build(dp);
 
@@ -147,7 +147,7 @@ public class RouteFollowingVehicleTest {
         .startPosition(new Point(1, 1))
         .speed(30d)
         .capacity(1)
-        .availabilityTimeWindow(new TimeWindow(0, minute(30)))
+        .availabilityTimeWindow(TimeWindow.create(0, minute(30)))
         .build();
     d = new RouteFollowingVehicle(v, allowDelayedRouteChanges);
     d2 = new RouteFollowingVehicle(v, allowDelayedRouteChanges);
@@ -159,22 +159,22 @@ public class RouteFollowingVehicleTest {
 
     p1 = Parcel
         .builder(new Point(1, 2), new Point(1, 4))
-        .pickupTimeWindow(new TimeWindow(minute(5), minute(15)))
-        .deliveryTimeWindow(new TimeWindow(minute(16), minute(30)))
+        .pickupTimeWindow(TimeWindow.create(minute(5), minute(15)))
+        .deliveryTimeWindow(TimeWindow.create(minute(16), minute(30)))
         .pickupDuration(minute(3))
         .deliveryDuration(minute(1))
         .build();
 
     p2 = Parcel
         .builder(new Point(1, 3), new Point(1, 5))
-        .pickupTimeWindow(new TimeWindow(minute(15) + 10, minute(25)))
-        .deliveryTimeWindow(new TimeWindow(minute(22) + 10, minute(30)))
+        .pickupTimeWindow(TimeWindow.create(minute(15) + 10, minute(25)))
+        .deliveryTimeWindow(TimeWindow.create(minute(22) + 10, minute(30)))
         .deliveryDuration(minute(3))
         .build();
 
     p3 = Parcel.builder(new Point(1, 3), new Point(1, 5))
-        .pickupTimeWindow(new TimeWindow(minute(15) + 10, minute(25)))
-        .deliveryTimeWindow(new TimeWindow(minute(22) + 10, minute(30)))
+        .pickupTimeWindow(TimeWindow.create(minute(15) + 10, minute(25)))
+        .deliveryTimeWindow(TimeWindow.create(minute(22) + 10, minute(30)))
         .serviceDuration(minute(3))
         .build();
 
@@ -203,7 +203,7 @@ public class RouteFollowingVehicleTest {
   public void testIsTooEarly() {
     // traveling 1km at 30km/h should take 2 minutes
     assertEquals(minute(2),
-        d.computeTravelTimeTo(new Point(1, 2), SI.MILLI(SI.SECOND)));
+      d.computeTravelTimeTo(new Point(1, 2), SI.MILLI(SI.SECOND)));
 
     // if we start immediately we are too early
     assertTrue(d.isTooEarly(p1, time(0, 10)));
@@ -303,13 +303,13 @@ public class RouteFollowingVehicleTest {
     // pickup and move towards destination p1
     tick(15, 16);
     assertEquals(0d, Point.distance(new Point(1, 3.5), rm.getPosition(d)),
-        EPSILON);
+      EPSILON);
     assertEquals(newHashSet(p1, p2), pm.getContents(d));
 
     // move
     tick(16, 17);
     assertEquals(0d, Point.distance(new Point(1, 4d), rm.getPosition(d)),
-        EPSILON);
+      EPSILON);
 
     // arrive and start
     tick(17, 18);
@@ -356,7 +356,7 @@ public class RouteFollowingVehicleTest {
     // travel time back to the depot is 4 minutes. so we should go to depot
     // at 26'.
     assertEquals(minute(4),
-        d.computeTravelTimeTo(new Point(3, 5), SI.MILLI(SI.SECOND)));
+      d.computeTravelTimeTo(new Point(3, 5), SI.MILLI(SI.SECOND)));
 
     // don't do anything yet
     tick(25, 26);
@@ -731,7 +731,7 @@ public class RouteFollowingVehicleTest {
   public void diversionTestInGotoState2() {
     final ListenerEventHistory leh = new ListenerEventHistory();
     d.stateMachine.getEventAPI().addListener(leh,
-        StateMachineEvent.STATE_TRANSITION);
+      StateMachineEvent.STATE_TRANSITION);
     assertEquals(0, leh.getHistory().size());
     assertFalse(d.gotoState.destination.isPresent());
     assertFalse(d.gotoState.prevDestination.isPresent());
@@ -747,8 +747,8 @@ public class RouteFollowingVehicleTest {
 
     @SuppressWarnings("unchecked")
     final StateTransitionEvent<StateEvent, RouteFollowingVehicle> ev1 =
-        (StateTransitionEvent<StateEvent, RouteFollowingVehicle>) leh
-            .getHistory().get(0);
+      (StateTransitionEvent<StateEvent, RouteFollowingVehicle>) leh
+          .getHistory().get(0);
     assertEquals(DefaultEvent.GOTO, ev1.trigger);
     assertEquals(d.waitState, ev1.previousState);
     assertEquals(d.gotoState, ev1.newState);
@@ -771,8 +771,8 @@ public class RouteFollowingVehicleTest {
       assertEquals(2, leh.getHistory().size());
       @SuppressWarnings("unchecked")
       final StateTransitionEvent<StateEvent, RouteFollowingVehicle> ev2 =
-          (StateTransitionEvent<StateEvent, RouteFollowingVehicle>) leh
-              .getHistory().get(1);
+        (StateTransitionEvent<StateEvent, RouteFollowingVehicle>) leh
+            .getHistory().get(1);
       assertEquals(DefaultEvent.REROUTE, ev2.trigger);
       assertEquals(d.gotoState, ev2.previousState);
       assertEquals(d.gotoState, ev2.newState);
@@ -1023,8 +1023,8 @@ public class RouteFollowingVehicleTest {
   public void tooEarlyTest1() {
     final Parcel p4 = Parcel
         .builder(new Point(1, 2), new Point(1, 4))
-        .pickupTimeWindow(new TimeWindow(minute(5) + second(30), minute(15)))
-        .deliveryTimeWindow(new TimeWindow(minute(16), minute(30)))
+        .pickupTimeWindow(TimeWindow.create(minute(5) + second(30), minute(15)))
+        .deliveryTimeWindow(TimeWindow.create(minute(16), minute(30)))
         .pickupDuration(minute(3))
         .deliveryDuration(minute(1))
         .build();
@@ -1070,8 +1070,8 @@ public class RouteFollowingVehicleTest {
   public void tooEarlyTest2() {
     final Parcel p4 = Parcel
         .builder(new Point(1, 2.2), new Point(1, 4))
-        .pickupTimeWindow(new TimeWindow(minute(5) + second(30), minute(15)))
-        .deliveryTimeWindow(new TimeWindow(minute(16), minute(30)))
+        .pickupTimeWindow(TimeWindow.create(minute(5) + second(30), minute(15)))
+        .deliveryTimeWindow(TimeWindow.create(minute(16), minute(30)))
         .pickupDuration(minute(3))
         .deliveryDuration(minute(1))
         .build();
@@ -1116,8 +1116,8 @@ public class RouteFollowingVehicleTest {
   public void tooEarlyTest3() {
     final Parcel p4 = Parcel
         .builder(new Point(1, 1.99), new Point(1, 4))
-        .pickupTimeWindow(new TimeWindow(minute(5) + second(30), minute(15)))
-        .deliveryTimeWindow(new TimeWindow(minute(16), minute(30)))
+        .pickupTimeWindow(TimeWindow.create(minute(5) + second(30), minute(15)))
+        .deliveryTimeWindow(TimeWindow.create(minute(16), minute(30)))
         .pickupDuration(minute(3))
         .deliveryDuration(minute(1))
         .build();
@@ -1167,7 +1167,7 @@ public class RouteFollowingVehicleTest {
         .startPosition(new Point(1, 1))
         .speed(30d)
         .capacity(1)
-        .availabilityTimeWindow(new TimeWindow(0, minute(30)))
+        .availabilityTimeWindow(TimeWindow.create(0, minute(30)))
         .build();
     final SubVehicle vehicle = new SubVehicle(v, allowDelayedRouteChanges);
     d = vehicle;

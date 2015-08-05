@@ -454,7 +454,7 @@ public final class DefaultPDPModel extends PDPModel {
       if (element.getType() == PDPType.PARCEL) {
         checkArgument(!parcelState.containsValue(element));
         final Parcel p = (Parcel) element;
-        final ParcelState state = currentTime < p.getPickupTimeWindow().begin
+        final ParcelState state = currentTime < p.getPickupTimeWindow().begin()
             ? ParcelState.ANNOUNCED
             : ParcelState.AVAILABLE;
         parcelState.put(state, (Parcel) element);
@@ -543,7 +543,7 @@ public final class DefaultPDPModel extends PDPModel {
       final Collection<Parcel> parcels = parcelState.get(ParcelState.ANNOUNCED);
       final List<Parcel> newAvailables = newArrayList();
       for (final Parcel p : parcels) {
-        if (timeLapse.getStartTime() >= p.getPickupTimeWindow().begin) {
+        if (timeLapse.getStartTime() >= p.getPickupTimeWindow().begin()) {
           newAvailables.add(p);
         }
       }

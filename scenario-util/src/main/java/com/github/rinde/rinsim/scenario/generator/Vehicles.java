@@ -37,8 +37,8 @@ import com.google.common.collect.ImmutableList;
 public final class Vehicles {
   static final int DEFAULT_NUM_OF_VEHICLES = 10;
   static final StochasticSupplier<Integer> DEFAULT_NUMBER_OF_VEHICLES =
-      constant(
-          DEFAULT_NUM_OF_VEHICLES);
+    constant(
+      DEFAULT_NUM_OF_VEHICLES);
   static final StochasticSupplier<Double> DEFAULT_SPEED = constant(50d);
   static final StochasticSupplier<Integer> DEFAULT_CAPACITY = constant(1);
   static final StochasticSupplier<Long> DEFAULT_TIME = constant(-1L);
@@ -241,32 +241,32 @@ public final class Vehicles {
           .builder();
       final int num = numberOfVehicles.get(rng.nextLong());
       checkArgument(num > 0,
-          "The numberOfVehicles supplier must generate values > 0, found %s.",
-          num);
+        "The numberOfVehicles supplier must generate values > 0, found %s.",
+        num);
       for (int i = 0; i < num; i++) {
         final Point pos = startPositionGenerator.isPresent()
             ? startPositionGenerator.get().get(rng.nextLong())
             : center;
         final double speed = speedGenerator.get(rng.nextLong());
         checkArgument(
-            speed > 0d,
-            "The speeds supplier must generate values > 0.0, found %s.",
-            speed);
+          speed > 0d,
+          "The speeds supplier must generate values > 0.0, found %s.",
+          speed);
         final int capacity = capacityGenerator.get(rng.nextLong());
         checkArgument(
-            capacity >= 0,
-            "The capacities supplier must generate non-negative values, "
-                + "found %s.",
-            capacity);
+          capacity >= 0,
+          "The capacities supplier must generate non-negative values, "
+              + "found %s.",
+          capacity);
         final TimeWindow tw = timeWindowGenerator.isPresent()
             ? timeWindowGenerator.get().get(rng.nextLong())
-            : new TimeWindow(0L, scenarioLength);
+            : TimeWindow.create(0L, scenarioLength);
         final long time = creationTimeGenerator.get(rng.nextLong());
         checkArgument(
-            time < scenarioLength,
-            "The creationTimes supplier must generate values smaller than the "
-                + "scenarioLength (%s), found %s.",
-            scenarioLength, time);
+          time < scenarioLength,
+          "The creationTimes supplier must generate values smaller than the "
+              + "scenarioLength (%s), found %s.",
+          scenarioLength, time);
         final VehicleDTO dto = VehicleDTO.builder()
             .startPosition(pos)
             .speed(speed)

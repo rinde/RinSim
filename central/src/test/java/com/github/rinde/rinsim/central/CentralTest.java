@@ -61,7 +61,7 @@ import com.github.rinde.rinsim.util.TimeWindow;
 
 /**
  * @author Rinde van Lon
- * 
+ *
  */
 public class CentralTest {
 
@@ -80,13 +80,13 @@ public class CentralTest {
   public void setUp() {
     sim = Simulator.builder()
         .addModel(
-            PDPRoadModel.builder(
-                RoadModelBuilders.plane()
-                    .withMaxSpeed(300d))
-                .withAllowVehicleDiversion(false))
+          PDPRoadModel.builder(
+            RoadModelBuilders.plane()
+                .withMaxSpeed(300d))
+              .withAllowVehicleDiversion(false))
         .addModel(
-            DefaultPDPModel.builder()
-                .withTimeWindowPolicy(TimeWindowPolicies.TARDY_ALLOWED))
+          DefaultPDPModel.builder()
+              .withTimeWindowPolicy(TimeWindowPolicies.TARDY_ALLOWED))
         .build();
 
     rm = sim.getModelProvider().getModel(PDPRoadModel.class);
@@ -110,7 +110,7 @@ public class CentralTest {
   @Test
   public void testConfigurator() {
     final Gendreau06Scenario scenario = Gendreau06Parser.parse(
-        new File(ScenarioPaths.GENDREAU));
+      new File(ScenarioPaths.GENDREAU));
 
     final StochasticSupplier<Solver> s = new StochasticSupplier<Solver>() {
       @Override
@@ -185,8 +185,8 @@ public class CentralTest {
   static Parcel createParcel(Point origin, Point dest) {
     return new Parcel(
         Parcel.builder(origin, dest)
-            .pickupTimeWindow(new TimeWindow(380001, 380002))
-            .deliveryTimeWindow(new TimeWindow(0, 1000))
+            .pickupTimeWindow(TimeWindow.create(380001, 380002))
+            .deliveryTimeWindow(TimeWindow.create(0, 1000))
             .neededCapacity(0)
             .orderAnnounceTime(0L)
             .pickupDuration(3000L)
@@ -201,7 +201,7 @@ public class CentralTest {
           .startPosition(start)
           .speed(30d)
           .capacity(1)
-          .availabilityTimeWindow(new TimeWindow(0, 1000))
+          .availabilityTimeWindow(TimeWindow.create(0, 1000))
           .build(),
           false);
     }

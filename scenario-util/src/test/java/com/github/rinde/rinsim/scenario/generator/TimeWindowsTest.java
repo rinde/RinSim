@@ -196,11 +196,11 @@ public class TimeWindowsTest {
           final TimeWindow delTW = parcelBuilder.getDeliveryTimeWindow();
           final long pickDur = parcelBuilder.getPickupDuration();
 
-          assertTrue(pickTW.begin >= 0);
+          assertTrue(pickTW.begin() >= 0);
 
           assertTrue(
               i + " " + tt + " " + pickTW + " " + delTW,
-              pickTW.end <= delTW.end + pickDelTT + pickDur);
+              pickTW.end() <= delTW.end() + pickDelTT + pickDur);
           // FIXME update and re-enable this test
           // assertTrue(i + " " + tt + " " + pickTW + " " + delTW + " "
           // + pickDelTT + " " + pickDur,

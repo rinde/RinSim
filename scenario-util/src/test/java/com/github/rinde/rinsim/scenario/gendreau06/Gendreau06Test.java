@@ -87,15 +87,15 @@ public class Gendreau06Test {
   @Test
   public void simpleScenario() throws IOException {
     final Gendreau06Scenario scenario = create(2, minutes(15),
-        AddParcelEvent.create(
-            Parcel.builder(new Point(2, 1), new Point(4, 1))
-                .pickupTimeWindow(new TimeWindow(0, 720000))
-                .deliveryTimeWindow(new TimeWindow(5, 720000))
-                .neededCapacity(0)
-                .orderAnnounceTime(0L)
-                .pickupDuration(0L)
-                .deliveryDuration(0L)
-                .buildDTO()));
+      AddParcelEvent.create(
+        Parcel.builder(new Point(2, 1), new Point(4, 1))
+            .pickupTimeWindow(TimeWindow.create(0, 720000))
+            .deliveryTimeWindow(TimeWindow.create(5, 720000))
+            .neededCapacity(0)
+            .orderAnnounceTime(0L)
+            .pickupDuration(0L)
+            .deliveryDuration(0L)
+            .buildDTO()));
     final StatisticsDTO dto = runProblem(scenario, useGui);
 
     // the second truck will turn around just one tick distance before
@@ -118,15 +118,15 @@ public class Gendreau06Test {
   @Test
   public void overtimeScenario() {
     final Gendreau06Scenario scenario = create(1, minutes(6),
-        AddParcelEvent.create(
-            Parcel.builder(new Point(2, 1), new Point(4, 1))
-                .pickupTimeWindow(new TimeWindow(0, minutes(12)))
-                .deliveryTimeWindow(new TimeWindow(5, minutes(12)))
-                .neededCapacity(0)
-                .orderAnnounceTime(0L)
-                .pickupDuration(0L)
-                .deliveryDuration(0L)
-                .buildDTO()));
+      AddParcelEvent.create(
+        Parcel.builder(new Point(2, 1), new Point(4, 1))
+            .pickupTimeWindow(TimeWindow.create(0, minutes(12)))
+            .deliveryTimeWindow(TimeWindow.create(5, minutes(12)))
+            .neededCapacity(0)
+            .orderAnnounceTime(0L)
+            .pickupDuration(0L)
+            .deliveryDuration(0L)
+            .buildDTO()));
 
     final StatisticsDTO dto = runProblem(scenario, useGui);
 
@@ -159,8 +159,8 @@ public class Gendreau06Test {
   @Test
   public void tardinessScenario() {
     final Gendreau06Scenario scenario = create(1, minutes(12), /* */
-        parcelEvent(2, 3, 2, 1, 0, seconds(15), 0, minutes(9)), /* */
-        parcelEvent(3, 3, 3, 1, 0, minutes(3), 0, minutes(4)));
+      parcelEvent(2, 3, 2, 1, 0, seconds(15), 0, minutes(9)), /* */
+      parcelEvent(3, 3, 3, 1, 0, minutes(3), 0, minutes(4)));
     final StatisticsDTO dto = runProblem(scenario, useGui);
     assertTrue(dto.simFinish); // the vehicles have returned to the depot
                                // just before the TIME_OUT event, but the
@@ -184,53 +184,53 @@ public class Gendreau06Test {
   static AddParcelEvent parcelEvent(double x1, double y1, double x2, double y2,
       long tw1b, long tw1e, long tw2b, long tw2e) {
     return AddParcelEvent.create(
-        Parcel.builder(new Point(x1, y1), new Point(x2, y2))
-            .pickupTimeWindow(new TimeWindow(tw1b, tw1e))
-            .deliveryTimeWindow(new TimeWindow(tw2b, tw2e))
-            .neededCapacity(0)
-            .orderAnnounceTime(0L)
-            .pickupDuration(0L)
-            .deliveryDuration(0L)
-            .buildDTO());
+      Parcel.builder(new Point(x1, y1), new Point(x2, y2))
+          .pickupTimeWindow(TimeWindow.create(tw1b, tw1e))
+          .deliveryTimeWindow(TimeWindow.create(tw2b, tw2e))
+          .neededCapacity(0)
+          .orderAnnounceTime(0L)
+          .pickupDuration(0L)
+          .deliveryDuration(0L)
+          .buildDTO());
   }
 
   static StatisticsDTO runProblem(Gendreau06Scenario s, boolean useGui) {
 
-    Simulator.Builder simBuilder = Simulator
+    final Simulator.Builder simBuilder = Simulator
         .builder()
         .setRandomSeed(123L)
         .addModel(
-            ScenarioController
-                .builder(s)
-                .withEventHandler(AddDepotEvent.class,
-                    AddDepotEvent.defaultHandler())
-                .withEventHandler(AddParcelEvent.class,
-                    AddParcelEvent.defaultHandler())
-                .withEventHandler(TimeOutEvent.class,
-                    TimeOutEvent.ignoreHandler())
-                .withEventHandler(AddVehicleEvent.class,
-                    new TimedEventHandler<AddVehicleEvent>() {
-                      @Override
-                      public void handleTimedEvent(AddVehicleEvent event,
-                          SimulatorAPI simulator) {
-                        simulator
-                            .register(new SimpleTruck(event.getVehicleDTO(),
-                                new ClosestParcelStrategy()));
-                      }
-                    }));
+          ScenarioController
+              .builder(s)
+              .withEventHandler(AddDepotEvent.class,
+                AddDepotEvent.defaultHandler())
+              .withEventHandler(AddParcelEvent.class,
+                AddParcelEvent.defaultHandler())
+              .withEventHandler(TimeOutEvent.class,
+                TimeOutEvent.ignoreHandler())
+              .withEventHandler(AddVehicleEvent.class,
+                new TimedEventHandler<AddVehicleEvent>() {
+                  @Override
+                  public void handleTimedEvent(AddVehicleEvent event,
+                      SimulatorAPI simulator) {
+                    simulator
+                        .register(new SimpleTruck(event.getVehicleDTO(),
+                            new ClosestParcelStrategy()));
+                  }
+                }));
 
     if (useGui) {
       simBuilder.addModel(
-          View.builder()
-              .with(PlaneRoadModelRenderer.builder())
-              .with(RoadUserRenderer.builder())
-              .with(PDPModelRenderer.builder())
-              .withSpeedUp(50)
-              .withAutoClose()
-              .withAutoPlay());
+        View.builder()
+            .with(PlaneRoadModelRenderer.builder())
+            .with(RoadUserRenderer.builder())
+            .with(PDPModelRenderer.builder())
+            .withSpeedUp(50)
+            .withAutoClose()
+            .withAutoPlay());
     }
 
-    Simulator sim = simBuilder.build();
+    final Simulator sim = simBuilder.build();
     sim.start();
 
     return sim.getModelProvider().getModel(StatsTracker.class).getStatistics();
@@ -248,7 +248,7 @@ public class Gendreau06Test {
           .startPosition(depotPosition)
           .speed(truckSpeed)
           .capacity(0)
-          .availabilityTimeWindow(TimeWindow.ALWAYS)
+          .availabilityTimeWindow(TimeWindow.always())
           .build()));
     }
 
@@ -257,7 +257,7 @@ public class Gendreau06Test {
     events.add(TimeOutEvent.create(endTime));
 
     return Gendreau06Scenario.create(events, 1000L,
-        GendreauProblemClass.LONG_LOW_FREQ, 1, false);
+      GendreauProblemClass.LONG_LOW_FREQ, 1, false);
   }
 
   static class SimpleTruck extends Vehicle {
@@ -299,14 +299,14 @@ public class Gendreau06Test {
     @Override
     public void init(Vehicle v, RoadModel rm, PDPModel pm) {
       checkState(vehicle == null && roadModel == null && pdpModel == null,
-          "init can be called only once!");
+        "init can be called only once!");
       vehicle = v;
       roadModel = rm;
       pdpModel = pm;
 
       final Set<Depot> set = rm.getObjectsOfType(Depot.class);
       checkArgument(set.size() == 1,
-          "This strategy only supports problems with one depot.");
+        "This strategy only supports problems with one depot.");
       depot = set.iterator().next();
     }
 

@@ -61,11 +61,11 @@ public class ScenarioTest {
    */
   @Test
   public void testDefaults() {
-    Scenario.Builder builder = Scenario
+    final Scenario.Builder builder = Scenario
         .builder(Scenario.DEFAULT_PROBLEM_CLASS);
 
     assertThat(builder.getTimeWindow())
-        .isEqualTo(new TimeWindow(0, 8 * 60 * 60 * 1000));
+        .isEqualTo(TimeWindow.create(0, 8 * 60 * 60 * 1000));
     assertThat(builder.getStopCondition())
         .isEqualTo(StopConditions.alwaysFalse());
 
@@ -75,9 +75,9 @@ public class ScenarioTest {
     assertSame(Scenario.DEFAULT_PROBLEM_CLASS, scenario.getProblemClass());
     assertEquals("", scenario.getProblemInstanceId());
     assertThat(scenario.getStopCondition()).isEqualTo(
-        StopConditions.alwaysFalse());
-    assertEquals(new TimeWindow(0, 8 * 60 * 60 * 1000),
-        scenario.getTimeWindow());
+      StopConditions.alwaysFalse());
+    assertEquals(TimeWindow.create(0, 8 * 60 * 60 * 1000),
+      scenario.getTimeWindow());
   }
 
   /**
@@ -110,21 +110,21 @@ public class ScenarioTest {
         .scenarioLength(7L)
         .setStopCondition(StopConditions.alwaysTrue())
         .addModel(
-            RoadModelBuilders.plane()
-                .withMinPoint(new Point(6, 6))
-                .withMaxPoint(new Point(1034, 32))
-                .withDistanceUnit(SI.METER)
-                .withSpeedUnit(SI.METERS_PER_SECOND)
-                .withMaxSpeed(1d))
+          RoadModelBuilders.plane()
+              .withMinPoint(new Point(6, 6))
+              .withMaxPoint(new Point(1034, 32))
+              .withDistanceUnit(SI.METER)
+              .withSpeedUnit(SI.METERS_PER_SECOND)
+              .withMaxSpeed(1d))
         .build();
 
     assertThat(scenario.asQueue()).isEqualTo(scenario.getEvents());
 
     assertEquals("crazyfast", scenario.getProblemInstanceId());
-    assertEquals(new TimeWindow(0L, 7L), scenario.getTimeWindow());
+    assertEquals(TimeWindow.create(0L, 7L), scenario.getTimeWindow());
 
     assertThat(scenario.getStopCondition()).isEqualTo(
-        StopConditions.alwaysTrue());
+      StopConditions.alwaysTrue());
     assertEquals(1, scenario.getModelBuilders().size());
     assertTrue(scenario.getModelBuilders().iterator().next()
         .getAssociatedType() == RoadUser.class);
@@ -137,7 +137,7 @@ public class ScenarioTest {
     assertEquals(scenario, copiedScen);
 
     final Scenario builderCopyScen = Scenario.builder(builder,
-        Scenario.DEFAULT_PROBLEM_CLASS)
+      Scenario.DEFAULT_PROBLEM_CLASS)
         .build();
 
     assertNotEquals(copiedScen, builderCopyScen);
@@ -361,7 +361,7 @@ public class ScenarioTest {
     final TimedEvent b10 = EventB.create(10);
 
     assertNotEquals(AddObjectEvent.create(10, new Point(10, 0)),
-        a10);
+      a10);
     assertNotEquals(a10, null);
     assertNotEquals(a10, b10);
     assertEquals(b10, EventB.create(10));
@@ -372,7 +372,7 @@ public class ScenarioTest {
    */
   @Test
   public void testRemoveModelsOfType() {
-    Scenario.Builder builder = Scenario.builder();
+    final Scenario.Builder builder = Scenario.builder();
     builder.addModel(TimeModel.builder())
         .addModel(TimeModel.builder().withRealTime())
         .addModel(RoadModelBuilders.plane())
@@ -382,7 +382,7 @@ public class ScenarioTest {
     builder.removeModelsOfType(RoadModelBuilders.PlaneRMB.class);
     assertThat(builder.modelBuilders).hasSize(3);
     assertThat(builder.modelBuilders).containsExactly(TimeModel.builder(),
-        TimeModel.builder().withRealTime(), CommModel.builder());
+      TimeModel.builder().withRealTime(), CommModel.builder());
 
     builder.removeModelsOfType(RoadModelBuilders.AbstractGraphRMB.class);
     builder.removeModelsOfType(TimeModel.AbstractBuilder.class);

@@ -189,7 +189,7 @@ public final class ScenarioGenerator {
     // vehicles
     final ImmutableList<AddVehicleEvent> vehicles = vehicleGenerator.generate(
         rng.nextLong(), parcelGenerator.getCenter(),
-        builder.getTimeWindow().end);
+        builder.getTimeWindow().end());
     b.addAll(vehicles);
 
     final TravelTimes tm = createTravelTimes(modelBuilders, getTimeUnit(),
@@ -197,10 +197,10 @@ public final class ScenarioGenerator {
 
     // parcels
     b.addAll(parcelGenerator.generate(rng.nextLong(), tm,
-        builder.getTimeWindow().end));
+        builder.getTimeWindow().end()));
 
     // time out
-    b.add(TimeOutEvent.create(builder.getTimeWindow().end));
+    b.add(TimeOutEvent.create(builder.getTimeWindow().end()));
 
     // create
     return Scenario.builder(builder, builder.problemClass)

@@ -75,25 +75,25 @@ public class ScenarioTestUtil {
         .addModel(DefaultPDPModel.builder())
         .addModels(asList(models))
         .addEvents(
-            Collections
-                .nCopies(
-                    10,
-                    AddVehicleEvent.create(-1, VehicleDTO
-                        .builder()
-                        .startPosition(new Point(5, 5))
-                        .build())));
+          Collections
+              .nCopies(
+                10,
+                AddVehicleEvent.create(-1, VehicleDTO
+                    .builder()
+                    .startPosition(new Point(5, 5))
+                    .build())));
 
     final RandomGenerator rng = new MersenneTwister(seed);
     for (int i = 0; i < 20; i++) {
       final long announceTime = rng.nextInt(DoubleMath.roundToInt(
-          endTime * .8, RoundingMode.FLOOR));
+        endTime * .8, RoundingMode.FLOOR));
       b.addEvent(AddParcelEvent.create(Parcel
           .builder(
-              new Point(rng.nextDouble() * 10, rng.nextDouble() * 10),
-              new Point(rng.nextDouble() * 10, rng.nextDouble() * 10))
+            new Point(rng.nextDouble() * 10, rng.nextDouble() * 10),
+            new Point(rng.nextDouble() * 10, rng.nextDouble() * 10))
           .orderAnnounceTime(announceTime)
-          .pickupTimeWindow(new TimeWindow(announceTime, endTime))
-          .deliveryTimeWindow(new TimeWindow(announceTime, endTime))
+          .pickupTimeWindow(TimeWindow.create(announceTime, endTime))
+          .deliveryTimeWindow(TimeWindow.create(announceTime, endTime))
           .neededCapacity(0).buildDTO()));
     }
 

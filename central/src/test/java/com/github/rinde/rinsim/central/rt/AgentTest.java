@@ -74,12 +74,12 @@ public class AgentTest {
       AddParcelEvent.create(
         Parcel.builder(new Point(0, 0), new Point(3, 3))
             .orderAnnounceTime(200)
-            .pickupTimeWindow(new TimeWindow(1000, 2000))
+            .pickupTimeWindow(TimeWindow.create(1000, 2000))
             .buildDTO()),
       AddParcelEvent.create(
         Parcel.builder(new Point(0, 0), new Point(3, 3))
             .orderAnnounceTime(999)
-            .pickupTimeWindow(new TimeWindow(60000, 80000))
+            .pickupTimeWindow(TimeWindow.create(60000, 80000))
             .serviceDuration(180000L)
             .buildDTO()),
       TimeOutEvent.create(3000));

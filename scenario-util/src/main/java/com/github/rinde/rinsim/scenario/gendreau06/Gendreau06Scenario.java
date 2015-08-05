@@ -59,7 +59,7 @@ public abstract class Gendreau06Scenario extends Scenario {
   static final Point MIN = new Point(0, 0);
   static final Point MAX = new Point(5, 5);
   static final Measure<Double, Velocity> MAX_SPEED = Measure.valueOf(
-      30d, NonSI.KILOMETERS_PER_HOUR);
+    30d, NonSI.KILOMETERS_PER_HOUR);
 
   static Gendreau06Scenario create(List<? extends TimedEvent> pEvents, long ts,
       GendreauProblemClass problemClass, int instanceNumber,
@@ -76,37 +76,37 @@ public abstract class Gendreau06Scenario extends Scenario {
 
   @Override
   public TimeWindow getTimeWindow() {
-    return TimeWindow.ALWAYS;
+    return TimeWindow.always();
   }
 
   @Override
   public StopCondition getStopCondition() {
     return StopConditions.and(
-        StatsStopConditions.vehiclesDoneAndBackAtDepot(),
-        StatsStopConditions.timeOutEvent());
+      StatsStopConditions.vehiclesDoneAndBackAtDepot(),
+      StatsStopConditions.timeOutEvent());
   }
 
   @Override
   public ImmutableSet<ModelBuilder<?, ?>> getModelBuilders() {
     return ImmutableSet.<ModelBuilder<?, ?>>builder()
         .add(
-            TimeModel.builder()
-                .withTickLength(getTickSize())
-                .withTimeUnit(SI.MILLI(SI.SECOND)))
+          TimeModel.builder()
+              .withTickLength(getTickSize())
+              .withTimeUnit(SI.MILLI(SI.SECOND)))
         .add(
-            PDPRoadModel.builder(
-                RoadModelBuilders.plane()
-                    .withMinPoint(MIN)
-                    .withMaxPoint(MAX)
-                    .withDistanceUnit(SI.KILOMETER)
-                    .withSpeedUnit(MAX_SPEED.getUnit())
-                    .withMaxSpeed(MAX_SPEED.getValue()))
-                .withAllowVehicleDiversion(getAllowDiversion()))
+          PDPRoadModel.builder(
+            RoadModelBuilders.plane()
+                .withMinPoint(MIN)
+                .withMaxPoint(MAX)
+                .withDistanceUnit(SI.KILOMETER)
+                .withSpeedUnit(MAX_SPEED.getUnit())
+                .withMaxSpeed(MAX_SPEED.getValue()))
+              .withAllowVehicleDiversion(getAllowDiversion()))
         .add(
-            DefaultPDPModel.builder()
-                .withTimeWindowPolicy(TimeWindowPolicies.TARDY_ALLOWED))
+          DefaultPDPModel.builder()
+              .withTimeWindowPolicy(TimeWindowPolicies.TARDY_ALLOWED))
         .add(
-            StatsTracker.builder())
+          StatsTracker.builder())
         .build();
   }
 }
