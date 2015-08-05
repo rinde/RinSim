@@ -33,12 +33,17 @@ import com.github.rinde.rinsim.core.model.Model.AbstractModel;
 import com.github.rinde.rinsim.core.model.ModelBuilder;
 import com.github.rinde.rinsim.core.model.ModelBuilder.AbstractModelBuilder;
 import com.github.rinde.rinsim.core.model.pdp.PDPModel;
+import com.github.rinde.rinsim.core.model.pdp.PDPModel.PDPModelEventType;
+import com.github.rinde.rinsim.core.model.pdp.PDPModelEvent;
 import com.github.rinde.rinsim.core.model.pdp.Parcel;
+import com.github.rinde.rinsim.core.model.pdp.Vehicle;
 import com.github.rinde.rinsim.core.model.rand.RandomProvider;
 import com.github.rinde.rinsim.core.model.time.RealtimeClockController;
 import com.github.rinde.rinsim.core.model.time.RealtimeClockController.ClockMode;
 import com.github.rinde.rinsim.core.model.time.TickListener;
 import com.github.rinde.rinsim.core.model.time.TimeLapse;
+import com.github.rinde.rinsim.event.Event;
+import com.github.rinde.rinsim.event.Listener;
 import com.github.rinde.rinsim.experiment.MASConfiguration;
 import com.github.rinde.rinsim.pdptw.common.AddVehicleEvent;
 import com.github.rinde.rinsim.pdptw.common.PDPRoadModel;
@@ -193,8 +198,7 @@ public final class RtCentral {
 
     @Override
     public ImmutableSet<ModelBuilder<?, ?>> getChildren() {
-      return ImmutableSet.<ModelBuilder<?, ?>>of(RtSolverModel.builder(),
-        VehicleCheckerModel.builder());
+      return ImmutableSet.<ModelBuilder<?, ?>>of(RtSolverModel.builder());
     }
 
     @Override
@@ -208,6 +212,28 @@ public final class RtCentral {
         boolean sleepOnChange) {
       return new AutoValue_RtCentral_Builder(
           (StochasticSupplier<RealtimeSolver>) solverSupplier, sleepOnChange);
+    }
+  }
+
+  enum VehicleChecker implements Listener {
+    INSTANCE {
+      @Override
+      public void handleEvent(Event e) {
+        verify(e instanceof PDPModelEvent);
+        final PDPModelEvent event = (PDPModelEvent) e;
+        final Vehicle v = event.vehicle;
+        checkArgument(v instanceof RouteFollowingVehicle,
+          "%s requires that all registered vehicles are a subclass of %s.",
+          RtCentral.class.getSimpleName(),
+          RouteFollowingVehicle.class.getSimpleName());
+
+        final RouteFollowingVehicle vehicle = (RouteFollowingVehicle) v;
+        checkArgument(vehicle.isDelayedRouteChangingAllowed(),
+          "%s requires that all registered %s instances allow delayed route "
+              + "changing",
+          RtCentral.class.getSimpleName(),
+          RouteFollowingVehicle.class.getSimpleName());
+      }
     }
   }
 
@@ -243,6 +269,9 @@ public final class RtCentral {
       roadModel = rm;
       pdpModel = pm;
       sleepOnChange = sleepOnC;
+
+      pm.getEventAPI().addListener(VehicleChecker.INSTANCE,
+        PDPModelEventType.NEW_VEHICLE);
     }
 
     @Override
@@ -328,42 +357,6 @@ public final class RtCentral {
 
     @Override
     public void afterTick(TimeLapse timeLapse) {}
-  }
-
-  static class VehicleCheckerModel
-      extends AbstractModel<RouteFollowingVehicle> {
-
-    VehicleCheckerModel() {}
-
-    @Override
-    public boolean register(RouteFollowingVehicle element) {
-      checkArgument(element.isDelayedRouteChangingAllowed(),
-        "%s requires that all registered %s instances allow delayed route "
-            + "changing",
-        RtCentral.class.getSimpleName(),
-        RouteFollowingVehicle.class.getSimpleName());
-      return true;
-    }
-
-    @Override
-    public boolean unregister(RouteFollowingVehicle element) {
-      return true;
-    }
-
-    static Builder builder() {
-      return new AutoValue_RtCentral_VehicleCheckerModel_Builder();
-    }
-
-    @AutoValue
-    abstract static class Builder
-        extends
-        AbstractModelBuilder<VehicleCheckerModel, RouteFollowingVehicle> {
-
-      @Override
-      public VehicleCheckerModel build(DependencyProvider dependencyProvider) {
-        return new VehicleCheckerModel();
-      }
-    }
   }
 
   @AutoValue

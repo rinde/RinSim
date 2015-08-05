@@ -23,15 +23,26 @@ import java.util.List;
 import org.junit.Test;
 
 import com.github.rinde.rinsim.central.RandomSolver;
+import com.github.rinde.rinsim.central.rt.RtCentral.VehicleChecker;
+import com.github.rinde.rinsim.core.Simulator;
+import com.github.rinde.rinsim.core.model.pdp.DefaultPDPModel;
+import com.github.rinde.rinsim.core.model.pdp.Depot;
+import com.github.rinde.rinsim.core.model.pdp.RandomVehicle;
+import com.github.rinde.rinsim.core.model.pdp.VehicleDTO;
+import com.github.rinde.rinsim.core.model.road.RoadModelBuilders;
 import com.github.rinde.rinsim.core.model.time.RealtimeClockController.ClockMode;
 import com.github.rinde.rinsim.core.model.time.TimeModel;
 import com.github.rinde.rinsim.experiment.Experiment;
 import com.github.rinde.rinsim.experiment.ExperimentResults;
+import com.github.rinde.rinsim.geom.Point;
+import com.github.rinde.rinsim.pdptw.common.PDPRoadModel;
+import com.github.rinde.rinsim.pdptw.common.RouteFollowingVehicle;
 import com.github.rinde.rinsim.scenario.Scenario;
 import com.github.rinde.rinsim.scenario.TimeOutEvent;
 import com.github.rinde.rinsim.scenario.TimedEvent;
 import com.github.rinde.rinsim.scenario.gendreau06.Gendreau06ObjectiveFunction;
 import com.github.rinde.rinsim.scenario.gendreau06.Gendreau06Parser;
+import com.github.rinde.rinsim.testutil.TestUtil;
 
 /**
  * Test for {@link RtCentral}.
@@ -70,5 +81,42 @@ public class RtCentralTest {
     final double objVal = Gendreau06ObjectiveFunction.instance()
         .computeCost(er.getResults().asList().get(0).getStats());
     assertThat(objVal).isWithin(0.0001).of(495.4718);
+  }
+
+  /**
+   * Tests that only correct vehicles are allowed.
+   */
+  @Test
+  public void testVehicleConstraintCheck() {
+    TestUtil.testEnum(VehicleChecker.class);
+    final Simulator sim = Simulator.builder()
+        .addModel(TimeModel.builder().withRealTime())
+        .addModel(PDPRoadModel.builder(RoadModelBuilders.plane()))
+        .addModel(DefaultPDPModel.builder())
+        .addModel(RtCentral.builderAdapt(RandomSolver.supplier()))
+        .build();
+
+    sim.register(new Depot(new Point(1, 1)));
+
+    boolean fail = false;
+    try {
+      sim.register(new RandomVehicle(VehicleDTO.builder().build()));
+    } catch (final IllegalArgumentException e) {
+      fail = true;
+      assertThat(e.getMessage())
+          .contains("requires that all registered vehicles are a subclass of");
+    }
+    assertThat(fail).isTrue();
+
+    fail = false;
+    try {
+      sim.register(
+        new RouteFollowingVehicle(VehicleDTO.builder().build(), false));
+    } catch (final IllegalArgumentException e) {
+      fail = true;
+      assertThat(e.getMessage()).contains("allow delayed route changing");
+    }
+    assertThat(fail).isTrue();
+
   }
 }
