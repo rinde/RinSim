@@ -33,6 +33,7 @@ import com.github.rinde.rinsim.scenario.Scenario;
 import com.github.rinde.rinsim.scenario.Scenario.ProblemClass;
 import com.github.rinde.rinsim.scenario.ScenarioIO;
 import com.github.rinde.rinsim.scenario.StopConditions;
+import com.github.rinde.rinsim.testutil.TestUtil;
 import com.google.common.base.Charsets;
 import com.google.common.io.Files;
 
@@ -57,30 +58,32 @@ public class GeneratedScenarioIOTest {
    */
   @Test
   public void testIO() throws IOException {
+    TestUtil.testPrivateConstructor(Vehicles.class);
+    TestUtil.testPrivateConstructor(Depots.class);
     final ScenarioGenerator generator = ScenarioGenerator
         .builder(TestPC.CLASS_A)
         .scenarioLength(4 * 60 * 60 * 1000L)
         .setStopCondition(
-            StopConditions.and(
-                StatsStopConditions.anyTardiness(),
-                StatsStopConditions.timeOutEvent()))
+          StopConditions.and(
+            StatsStopConditions.anyTardiness(),
+            StatsStopConditions.timeOutEvent()))
         .parcels(
-            Parcels
-                .builder()
-                .announceTimes(
-                    TimeSeries.homogenousPoisson(4 * 60 * 60 * 1000L, 10))
-                .locations(Locations.builder().square(5).buildUniform())
-                .timeWindows(TimeWindows.builder().build())
-                .build())
+          Parcels
+              .builder()
+              .announceTimes(
+                TimeSeries.homogenousPoisson(4 * 60 * 60 * 1000L, 10))
+              .locations(Locations.builder().square(5).buildUniform())
+              .timeWindows(TimeWindows.builder().build())
+              .build())
         // .deliveryDurations(constant(10L))
         .addModel(
-            PDPRoadModel.builder(
-                RoadModelBuilders.plane()
-                    .withMaxSpeed(50d))
-                .withAllowVehicleDiversion(true))
+          PDPRoadModel.builder(
+            RoadModelBuilders.plane()
+                .withMaxSpeed(50d))
+              .withAllowVehicleDiversion(true))
         .addModel(
-            DefaultPDPModel.builder()
-                .withTimeWindowPolicy(TimeWindowPolicies.TARDY_ALLOWED))
+          DefaultPDPModel.builder()
+              .withTimeWindowPolicy(TimeWindowPolicies.TARDY_ALLOWED))
         .build();
 
     final Scenario scenario = generator
@@ -90,7 +93,7 @@ public class GeneratedScenarioIOTest {
     final Scenario originalScenario = ScenarioIO.read(Paths
         .get("files/scen.json"));
     assertEquals("Change in scenario format detected.", originalScenario,
-        scenario);
+      scenario);
 
     final String output = ScenarioIO.write(scenario);
     Files.write(output, new File("files/scen.json"), Charsets.UTF_8);

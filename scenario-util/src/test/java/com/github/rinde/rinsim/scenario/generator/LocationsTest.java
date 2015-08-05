@@ -26,6 +26,7 @@ import org.junit.Test;
 
 import com.github.rinde.rinsim.geom.Point;
 import com.github.rinde.rinsim.scenario.generator.Locations.LocationGenerator;
+import com.github.rinde.rinsim.testutil.TestUtil;
 
 /**
  * Tests for {@link Locations}.
@@ -39,7 +40,7 @@ public class LocationsTest {
   @Test
   public void testFixed() {
     final LocationGenerator lg = Locations.builder().buildFixed(
-        asList(new Point(0, 0), new Point(1, 1)));
+      asList(new Point(0, 0), new Point(1, 1)));
     assertAlwaysEquals(lg);
 
     assertEquals(new Point(.5, .5), lg.getCenter());
@@ -51,12 +52,14 @@ public class LocationsTest {
         .max(9.3)
         .mean(0.1)
         .buildFixed(
-            asList(new Point(0, 0), new Point(1, 1)));
+          asList(new Point(0, 0), new Point(1, 1)));
 
     assertAlwaysEquals(lg2);
     assertEquals(new Point(.1, .1), lg2.getCenter());
     assertEquals(new Point(-6.3, -6.3), lg2.getMin());
     assertEquals(new Point(9.3, 9.3), lg2.getMax());
+
+    TestUtil.testPrivateConstructor(Locations.class);
   }
 
   /**

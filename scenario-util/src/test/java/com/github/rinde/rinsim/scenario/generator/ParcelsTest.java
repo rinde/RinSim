@@ -23,6 +23,7 @@ import org.junit.Test;
 
 import com.github.rinde.rinsim.pdptw.common.AddParcelEvent;
 import com.github.rinde.rinsim.scenario.generator.Parcels.ParcelGenerator;
+import com.github.rinde.rinsim.testutil.TestUtil;
 
 /**
  * Test for {@link Parcels}.
@@ -46,6 +47,8 @@ public class ParcelsTest {
     for (final AddParcelEvent ape : events) {
       assertTrue(ape.getTime() < scenarioLength);
     }
+
+    TestUtil.testPrivateConstructor(Parcels.class);
   }
 
   /**
