@@ -77,6 +77,7 @@ public interface RealtimeClockController extends ClockController {
    * @author Rinde van Lon
    */
   public enum ClockMode {
+
     /**
      * Indicates the mode where time is synchronized to real time.
      */

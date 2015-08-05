@@ -136,12 +136,12 @@ public class RtCentralTest {
    * is announced.
    */
   @Test
-  public void test() {
+  public void testStayInRt() {
     final Set<TimedEvent> events = ImmutableSet.<TimedEvent>builder()
         .add(AddParcelEvent.create(
           Parcel.builder(new Point(0, 0), new Point(1, 0))
               .orderAnnounceTime(300)
-              .pickupTimeWindow(TimeWindow.create(300, 3000))
+              .pickupTimeWindow(TimeWindow.create(400, 3000))
               .buildDTO()))
         .add(TimeOutEvent.create(600))
         .build();
@@ -172,6 +172,7 @@ public class RtCentralTest {
     assertThat(tt.getClockModes()).containsExactly(
       SIMULATED, SIMULATED, SIMULATED,
       REAL_TIME, REAL_TIME,
-      SIMULATED, REAL_TIME).inOrder();
+      SIMULATED,
+      REAL_TIME).inOrder();
   }
 }

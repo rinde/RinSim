@@ -276,8 +276,10 @@ public final class RtCentral {
 
     @Override
     public boolean register(Parcel element) {
+      verify(clock.getClockMode() == ClockMode.REAL_TIME,
+        "Problem detected at %s when registering %s, clock mode is %s.",
+        clock.getCurrentTime(), element, clock.getClockMode());
       problemHasChanged = true;
-      clock.switchToRealTime();
       return true;
     }
 
