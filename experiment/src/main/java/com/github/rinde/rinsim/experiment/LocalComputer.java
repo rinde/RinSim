@@ -101,7 +101,7 @@ final class LocalComputer implements Computer {
         }
         checkState(arguments.objectiveFunction.isValidResult(stats),
             "The simulation did not result in a valid result: %s.", stats);
-        final SimulationResult result = new SimulationResult(stats,
+        final SimulationResult result = SimulationResult.create(stats,
             arguments.scenario, arguments.masConfig, arguments.randomSeed,
             data);
 

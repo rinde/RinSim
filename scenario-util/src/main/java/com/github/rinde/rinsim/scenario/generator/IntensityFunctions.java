@@ -30,8 +30,8 @@ import org.apache.commons.math3.random.MersenneTwister;
 import org.apache.commons.math3.random.RandomGenerator;
 
 import com.github.rinde.rinsim.util.StochasticSupplier;
+import com.google.auto.value.AutoValue;
 import com.google.common.base.Function;
-import com.google.common.base.Objects;
 import com.google.common.base.Optional;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Range;
@@ -67,7 +67,7 @@ public final class IntensityFunctions {
       double ub) {
     final UnivariateIntegrator ri = new RombergIntegrator(16, 32);
     final double val = ri.integrate(10000000,
-        asUnivariateFunction(s), lb, ub);
+      asUnivariateFunction(s), lb, ub);
     return val;
   }
 
@@ -106,27 +106,37 @@ public final class IntensityFunctions {
    * .
    * @author Rinde van Lon
    */
-  static class SineIntensity implements IntensityFunction {
+  @AutoValue
+  abstract static class SineIntensity implements IntensityFunction {
     private static final double HALF_PI = .5 * Math.PI;
     private static final double TWO_PI = 2d * Math.PI;
     private static final double ONE_FOURTH = .25d;
 
-    final double amplitude;
-    final double height;
-    private final double frequency;
-    private final double phaseShift;
+    SineIntensity() {}
 
-    SineIntensity(SineIntensityBuilder b, long seed) {
-      final RandomGenerator rng = new MersenneTwister(seed);
-      amplitude = b.amplitudeSup.get(rng.nextLong());
-      frequency = b.frequencySup.get(rng.nextLong());
-      height = b.heightSup.get(rng.nextLong());
-      phaseShift = b.phaseShiftSup.get(rng.nextLong());
-    }
+    /**
+     * @return The amplitude of this sine function.
+     */
+    public abstract double getAmplitude();
+
+    /**
+     * @return The frequency of this sine function.
+     */
+    public abstract double getFrequency();
+
+    /**
+     * @return The height of this sine function.
+     */
+    public abstract double getHeight();
+
+    /**
+     * @return The phase shift of this sine function.
+     */
+    public abstract double getPhaseShift();
 
     @Override
     public double getMax() {
-      return amplitude + height;
+      return getAmplitude() + getHeight();
     }
 
     @Override
@@ -135,70 +145,19 @@ public final class IntensityFunctions {
         throw new IllegalArgumentException();
       }
       return Math.max(0d,
-          amplitude
-              * Math.sin(x * frequency * TWO_PI - Math.PI * phaseShift)
-              + height);
-    }
-
-    /**
-     * @return The amplitude of this sine function.
-     */
-    public double getAmplitude() {
-      return amplitude;
-    }
-
-    /**
-     * @return The frequency of this sine function.
-     */
-    public double getFrequency() {
-      return frequency;
-    }
-
-    /**
-     * @return The height of this sine function.
-     */
-    public double getHeight() {
-      return height;
-    }
-
-    /**
-     * @return The phase shift of this sine function.
-     */
-    public double getPhaseShift() {
-      return phaseShift;
+        getAmplitude()
+            * Math.sin(x * getFrequency() * TWO_PI - Math.PI * getPhaseShift())
+            + getHeight());
     }
 
     @Override
     public String toString() {
       return new StringBuilder().append("{f(x) = ")
-          .append(amplitude).append(" * ")
-          .append("sin(x * ").append(frequency)
-          .append(" * 2pi - pi * ").append(phaseShift)
-          .append(") + ").append(height).append("}")
+          .append(getAmplitude()).append(" * ")
+          .append("sin(x * ").append(getFrequency())
+          .append(" * 2pi - pi * ").append(getPhaseShift())
+          .append(") + ").append(getHeight()).append("}")
           .toString();
-    }
-
-    @Override
-    public int hashCode() {
-      return Objects.hashCode(amplitude, frequency, height, phaseShift);
-    }
-
-    @Override
-    public boolean equals(@Nullable Object o) {
-      if (o == null) {
-        return false;
-      }
-      if (this == o) {
-        return true;
-      }
-      if (getClass() != o.getClass()) {
-        return false;
-      }
-      final SineIntensity other = (SineIntensity) o;
-      return Objects.equal(amplitude, other.amplitude)
-          && Objects.equal(frequency, other.frequency)
-          && Objects.equal(height, other.height)
-          && Objects.equal(phaseShift, other.phaseShift);
     }
 
     /**
@@ -209,9 +168,9 @@ public final class IntensityFunctions {
     public double area() {
       // in this computation the phase shift is ignored as it doesn't have any
       // effect for one period.
-      final double a = amplitude;
-      final double b = height;
-      final double c = frequency;
+      final double a = getAmplitude();
+      final double b = getHeight();
+      final double c = getFrequency();
       final double[] roots = roots();
       final double d = roots[0];
       final double e = roots[1];
@@ -221,10 +180,10 @@ public final class IntensityFunctions {
     }
 
     double[] roots() {
-      final double a = amplitude;
+      final double a = getAmplitude();
       // we need to cap height since if it is higher there are no roots
-      final double b = Math.min(height, a);
-      final double c = frequency;
+      final double b = Math.min(getHeight(), a);
+      final double c = getFrequency();
       final double n1 = -1;
       final double n2 = 0;
 
@@ -235,6 +194,16 @@ public final class IntensityFunctions {
         return new double[] {rootB, rootA};
       }
       return new double[] {rootA, rootB};
+    }
+
+    static SineIntensity create(SineIntensityBuilder b, long seed) {
+      final RandomGenerator rng = new MersenneTwister(seed);
+      final double amplitude = b.amplitudeSup.get(rng.nextLong());
+      final double frequency = b.frequencySup.get(rng.nextLong());
+      final double height = b.heightSup.get(rng.nextLong());
+      final double phaseShift = b.phaseShiftSup.get(rng.nextLong());
+      return new AutoValue_IntensityFunctions_SineIntensity(amplitude,
+          frequency, height, phaseShift);
     }
   }
 
@@ -248,11 +217,11 @@ public final class IntensityFunctions {
     private static final double DEFAULT_HEIGHT = 0d;
     private static final double DEFAULT_PHASE_SHIFT = .5d;
     private static final Predicate<Double> POSITIVE = Range.open(0d,
-        Double.MAX_VALUE);
+      Double.MAX_VALUE);
     private static final Predicate<Double> GREATER_THAN_MINUS_ONE = Range
         .openClosed(-1d, Double.MAX_VALUE);
     private static final Predicate<Double> FINITE = Range.closed(
-        Double.MIN_VALUE, Double.MAX_VALUE);
+      Double.MIN_VALUE, Double.MAX_VALUE);
 
     StochasticSupplier<Double> amplitudeSup;
     StochasticSupplier<Double> frequencySup;
@@ -421,13 +390,13 @@ public final class IntensityFunctions {
      */
     public IntensityFunction build() {
       checkArgument(isConstant(amplitudeSup),
-          "Amplitude should be a constant (not a supplier).");
+        "Amplitude should be a constant (not a supplier).");
       checkArgument(isConstant(frequencySup),
-          "Frequency should be a constant (not a supplier).");
+        "Frequency should be a constant (not a supplier).");
       checkArgument(isConstant(heightSup),
-          "Height should be a constant (not a supplier).");
+        "Height should be a constant (not a supplier).");
       checkArgument(isConstant(phaseShiftSup),
-          "PhaseShift should be a constant (not a supplier).");
+        "PhaseShift should be a constant (not a supplier).");
       return build(0L);
     }
 
@@ -441,7 +410,7 @@ public final class IntensityFunctions {
 
     IntensityFunction build(long seed) {
       if (area.isPresent()) {
-        final SineIntensity ins = new SineIntensity(this, seed);
+        final SineIntensity ins = SineIntensity.create(this, seed);
         // first compute current area
         final double a = ins.area();
         // compute factor to adapt amplitude and height
@@ -452,16 +421,16 @@ public final class IntensityFunctions {
         final StochasticSupplier<Double> hei = heightSup;
 
         // temporarily overwrite values
-        amplitudeSup = constant(ins.amplitude * factor);
-        heightSup = constant(ins.height * factor);
-        final SineIntensity si = new SineIntensity(this, seed);
+        amplitudeSup = constant(ins.getAmplitude() * factor);
+        heightSup = constant(ins.getHeight() * factor);
+        final SineIntensity si = SineIntensity.create(this, seed);
 
         // restore values
         amplitudeSup = ampl;
         heightSup = hei;
         return si;
       }
-      return new SineIntensity(this, seed);
+      return SineIntensity.create(this, seed);
     }
 
     SineIntensityBuilder copy() {

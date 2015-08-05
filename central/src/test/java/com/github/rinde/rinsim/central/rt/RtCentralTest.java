@@ -68,7 +68,7 @@ public class RtCentralTest {
         .perform();
 
     final double objVal = Gendreau06ObjectiveFunction.instance()
-        .computeCost(er.getResults().asList().get(0).stats);
+        .computeCost(er.getResults().asList().get(0).getStats());
     assertThat(objVal).isWithin(0.0001).of(495.4718);
   }
 }

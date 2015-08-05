@@ -96,7 +96,7 @@ public class SolverSimTest {
       final ImmutableList<ImmutableList<Parcel>> solverOutput = dsc.solver
           .getOutputs().get(0);
 
-      assertEquals(obj.computeCost(results.getResults().asList().get(0).stats),
+      assertEquals(obj.computeCost(results.getResults().asList().get(0).getStats()),
           objValInMinutes, 0.2);
 
       final StatisticsDTO stats = Solvers.computeStats(solverInput,

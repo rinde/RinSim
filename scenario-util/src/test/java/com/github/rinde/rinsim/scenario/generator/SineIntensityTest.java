@@ -25,6 +25,7 @@ import org.junit.Test;
 
 import com.github.rinde.rinsim.scenario.generator.IntensityFunctions.IntensityFunction;
 import com.github.rinde.rinsim.scenario.generator.IntensityFunctions.SineIntensity;
+import com.github.rinde.rinsim.testutil.TestUtil;
 import com.google.common.collect.ImmutableRangeSet;
 import com.google.common.collect.Range;
 import com.google.common.collect.RangeSet;
@@ -34,6 +35,10 @@ import com.google.common.collect.RangeSet;
  * @author Rinde van Lon
  */
 public class SineIntensityTest {
+
+  public void unreachableCode() {
+    TestUtil.testPrivateConstructor(IntensityFunctions.class);
+  }
 
   /**
    * Tests correctness of area calculation.
@@ -47,18 +52,18 @@ public class SineIntensityTest {
         .build();
     assertEquals(.369903, sine.area(), 0.000001);
     assertEquals(
-        .369903,
-        IntensityFunctions.areaByIntegration(sine, 0, 1d / sine.getFrequency()),
-        0.000001);
+      .369903,
+      IntensityFunctions.areaByIntegration(sine, 0, 1d / sine.getFrequency()),
+      0.000001);
 
     // integral (0)..(1) max(((1 sin( (2pi x 1) - (.5pi))) + 0),0)
     // = 0.31831
     sine = (SineIntensity) IntensityFunctions.sineIntensity().build();
     assertEquals(.31831, sine.area(), 0.00001);
     assertEquals(
-        .31831,
-        IntensityFunctions.areaByIntegration(sine, 0, 1d / sine.getFrequency()),
-        0.00001);
+      .31831,
+      IntensityFunctions.areaByIntegration(sine, 0, 1d / sine.getFrequency()),
+      0.00001);
 
     // integral (0)..(1) max(((1 sin( (2pi x 1) - (.5pi))) + -.1),0)
     // = 0.269903
@@ -66,9 +71,9 @@ public class SineIntensityTest {
         .build();
     assertEquals(.269903, sine.area(), 0.000001);
     assertEquals(
-        .269903,
-        IntensityFunctions.areaByIntegration(sine, 0, 1d / sine.getFrequency()),
-        0.000001);
+      .269903,
+      IntensityFunctions.areaByIntegration(sine, 0, 1d / sine.getFrequency()),
+      0.000001);
 
     // integral (0)..(3600) max(((5 sin( (2pi x 1/3600) - (.5pi))) + 10),0)
     // = 36000
@@ -79,9 +84,9 @@ public class SineIntensityTest {
         .build();
     assertEquals(36000, sine.area(), 0.00001);
     assertEquals(
-        36000,
-        IntensityFunctions.areaByIntegration(sine, 0, 1d / sine.getFrequency()),
-        0.00001);
+      36000,
+      IntensityFunctions.areaByIntegration(sine, 0, 1d / sine.getFrequency()),
+      0.00001);
 
     // according to Wolfram Alpha:
     // integral (1.84)..(8.15) ((5 sin( (2pi x .1) - (.5pi))) + 2)
@@ -93,9 +98,9 @@ public class SineIntensityTest {
         .build();
     assertEquals(27.2065, sine.area(), 0.0001);
     assertEquals(
-        27.2065,
-        IntensityFunctions.areaByIntegration(sine, 0, 1d / sine.getFrequency()),
-        0.0001);
+      27.2065,
+      IntensityFunctions.areaByIntegration(sine, 0, 1d / sine.getFrequency()),
+      0.0001);
   }
 
   /**
@@ -166,7 +171,7 @@ public class SineIntensityTest {
     si = (SineIntensity) IntensityFunctions.sineIntensity().phaseShift(1.5)
         .build();
     nonZeroCheck(Range.closed(0d, 1d), si, Range.closedOpen(0d, .25),
-        Range.openClosed(.75, 1d));
+      Range.openClosed(.75, 1d));
 
     si = (SineIntensity) IntensityFunctions.sineIntensity().phaseShift(2)
         .build();

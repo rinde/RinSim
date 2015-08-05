@@ -45,11 +45,10 @@ import com.github.rinde.rinsim.scenario.ScenarioIO;
 import com.github.rinde.rinsim.scenario.TimedEvent;
 import com.github.rinde.rinsim.scenario.TimedEventHandler;
 import com.github.rinde.rinsim.util.StochasticSupplier;
+import com.google.auto.value.AutoValue;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
-import com.google.common.base.MoreObjects;
-import com.google.common.base.Objects;
 import com.google.common.base.Optional;
 import com.google.common.base.Supplier;
 import com.google.common.collect.ComparisonChain;
@@ -388,7 +387,7 @@ public final class Experiment {
     /**
      * Specify a {@link PostProcessor} which is used to gather additional
      * results from a simulation. The data gathered by the post-processor ends
-     * up in {@link SimulationResult#simulationData}.
+     * up in {@link SimulationResult#getSimulationData()}.
      * @param postProcessor The post-processor to use, by default there is no
      *          post-processor.
      * @return This, as per the builder pattern.
@@ -613,87 +612,56 @@ public final class Experiment {
    * statistics as well as the inputs used to obtain this result.
    * @author Rinde van Lon
    */
-  public static final class SimulationResult implements
+  @AutoValue
+  public abstract static class SimulationResult implements
       Comparable<SimulationResult> {
-    /**
-     * The simulation statistics.
-     */
-    public final StatisticsDTO stats;
+
+    SimulationResult() {}
 
     /**
-     * The scenario on which the simulation was run.
+     * @return The simulation statistics.
      */
-    public final Scenario scenario;
+    public abstract StatisticsDTO getStats();
 
     /**
-     * The configuration which was used to configure the MAS.
+     * @return The scenario on which the simulation was run.
      */
-    public final MASConfiguration masConfiguration;
+    public abstract Scenario getScenario();
 
     /**
-     * The seed that was supplied to {@link StochasticSupplier#get(long)}.
+     * @return The configuration which was used to configure the MAS.
      */
-    public final long seed;
+    public abstract MASConfiguration getMasConfiguration();
 
     /**
-     * Additional simulation data as gathered by a {@link PostProcessor}, or if
-     * no post-processor was used this object defaults to
-     * <code>Optional#absent()</code>.
+     * @return The seed that was supplied to
+     *         {@link StochasticSupplier#get(long)}.
      */
-    public Optional<?> simulationData;
+    public abstract long getSeed();
 
-    SimulationResult(StatisticsDTO stat, Scenario scen,
-        MASConfiguration masConfig, long sd, Optional<?> simData) {
-      stats = stat;
-      scenario = scen;
-      masConfiguration = masConfig;
-      seed = sd;
-      simulationData = simData;
-    }
-
-    @Override
-    public boolean equals(@Nullable Object obj) {
-      if (obj == null) {
-        return false;
-      }
-      if (obj.getClass() != getClass()) {
-        return false;
-      }
-      final SimulationResult other = (SimulationResult) obj;
-      return Objects.equal(stats, other.stats)
-          && Objects.equal(scenario, other.scenario)
-          && Objects.equal(masConfiguration, other.masConfiguration)
-          && Objects.equal(seed, other.seed)
-          && Objects.equal(simulationData, other.simulationData);
-    }
-
-    @Override
-    public int hashCode() {
-      return Objects.hashCode(stats, scenario, masConfiguration, seed,
-          simulationData);
-    }
-
-    @Override
-    public String toString() {
-      return MoreObjects.toStringHelper(this)
-          .add("stats", stats)
-          .add("scenario", scenario)
-          .add("masConfiguration", masConfiguration)
-          .add("seed", seed)
-          .add("simulationData", simulationData)
-          .toString();
-    }
+    /**
+     * @return Additional simulation data as gathered by a {@link PostProcessor}
+     *         , or if no post-processor was used this object defaults to
+     *         <code>Optional#absent()</code>.
+     */
+    public abstract Optional<?> getSimulationData();
 
     @Override
     public int compareTo(@Nullable SimulationResult o) {
       assert o != null;
       return ComparisonChain
           .start()
-          .compare(scenario.getProblemClass().getId(),
-              o.scenario.getProblemClass().getId())
-          .compare(scenario.getProblemInstanceId(),
-              o.scenario.getProblemInstanceId())
+          .compare(getScenario().getProblemClass().getId(),
+              o.getScenario().getProblemClass().getId())
+          .compare(getScenario().getProblemInstanceId(),
+              o.getScenario().getProblemInstanceId())
           .result();
+    }
+
+    static SimulationResult create(StatisticsDTO stats, Scenario scenario,
+        MASConfiguration masConfig, long seed, Optional<?> simData) {
+      return new AutoValue_Experiment_SimulationResult(stats, scenario,
+          masConfig, seed, simData);
     }
   }
 }

@@ -60,7 +60,6 @@ import com.google.common.collect.HashBiMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Ordering;
 import com.google.common.math.DoubleMath;
-import com.google.common.primitives.Ints;
 
 final class JppfComputer implements Computer {
   private static Optional<JPPFClient> client = Optional.absent();
@@ -202,7 +201,7 @@ final class JppfComputer implements Computer {
     final Scenario scen = scenariosMap.get(simTask.getScenarioId());
     final MASConfiguration conf = jobMap.get(simTask).getDataProvider()
         .getParameter(simTask.getConfigurationId());
-    return new SimulationResult(result.getStats(), scen, conf, simTask
+    return SimulationResult.create(result.getStats(), scen, conf, simTask
         .getSeed(), result.getData());
   }
 
@@ -265,37 +264,6 @@ final class JppfComputer implements Computer {
 
     ImmutableSet<SimulationResult> buildResults() {
       return results.build();
-    }
-  }
-
-  static final class SimResultWrapper implements Comparable<SimResultWrapper> {
-    final SimulationResult result;
-    final int index;
-
-    SimResultWrapper(SimulationResult r, int i) {
-      result = r;
-      index = i;
-    }
-
-    @Override
-    public int compareTo(@Nullable SimResultWrapper o) {
-      assert o != null;
-      return Ints.compare(index, o.index);
-    }
-
-    @Override
-    public boolean equals(@Nullable Object o) {
-      if (o == null || o.getClass() != getClass()) {
-        return false;
-      }
-      final SimResultWrapper srw = (SimResultWrapper) o;
-      return Objects.equal(srw.result, result)
-          && Objects.equal(srw.index, index);
-    }
-
-    @Override
-    public int hashCode() {
-      return Objects.hashCode(result, index);
     }
   }
 

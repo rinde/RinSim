@@ -41,7 +41,7 @@ public class ParcelsTest {
         .build();
 
     final List<AddParcelEvent> events = pg.generate(123,
-        TravelTimesUtil.distance(), scenarioLength);
+      TravelTimesUtil.distance(), scenarioLength);
 
     for (final AddParcelEvent ape : events) {
       assertTrue(ape.getTime() < scenarioLength);
@@ -58,7 +58,7 @@ public class ParcelsTest {
     final ParcelGenerator pg2 = Parcels
         .builder()
         .announceTimes(
-            TimeSeries.homogenousPoisson(scenarioLength + 0.1, 100))
+          TimeSeries.homogenousPoisson(scenarioLength + 0.1, 100))
         .build();
     pg2.generate(123, TravelTimesUtil.distance(), scenarioLength);
   }

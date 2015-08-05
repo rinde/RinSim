@@ -48,7 +48,7 @@ public class ExperimentTest {
       MASConfiguration c, long seed, ObjectiveFunction objFunc,
       boolean showGui) {
     return Experiment.singleRun(scenario, c, seed, objFunc, showGui, null,
-        null).stats;
+        null).getStats();
   }
 
   public static Simulator init(Scenario scenario,
@@ -69,11 +69,11 @@ public class ExperimentTest {
 
     final ExperimentResults er = builder.perform();
     assertEquals(123, er.getMasterSeed());
-    assertEquals(123, er.getResults().asList().get(0).seed);
+    assertEquals(123, er.getResults().asList().get(0).getSeed());
 
     @SuppressWarnings("unchecked")
     final List<Point> positions =
-        (List<Point>) er.getResults().asList().get(0).simulationData
+        (List<Point>) er.getResults().asList().get(0).getSimulationData()
             .get();
     assertEquals(10, positions.size());
   }
@@ -97,13 +97,13 @@ public class ExperimentTest {
         .withRandomSeed(456);
 
     final ExperimentResults er = builder.perform();
-    assertThat(er.getResults().asList().get(0).masConfiguration.getName()).endsWith(
+    assertThat(er.getResults().asList().get(0).getMasConfiguration().getName()).endsWith(
         "A");
-    assertThat(er.getResults().asList().get(1).masConfiguration.getName()).endsWith(
+    assertThat(er.getResults().asList().get(1).getMasConfiguration().getName()).endsWith(
         "B");
-    assertThat(er.getResults().asList().get(2).masConfiguration.getName()).endsWith(
+    assertThat(er.getResults().asList().get(2).getMasConfiguration().getName()).endsWith(
         "C");
-    assertThat(er.getResults().asList().get(3).masConfiguration.getName()).endsWith(
+    assertThat(er.getResults().asList().get(3).getMasConfiguration().getName()).endsWith(
         "D");
   }
 
