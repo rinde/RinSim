@@ -65,6 +65,17 @@ public abstract class MASConfiguration implements Serializable {
   }
 
   /**
+   * Creates a new copying {@link Builder}.
+   * @param config The configuration to copy all settings from into the created
+   *          builder.
+   * @return A new {@link Builder} instance initialized with the same settings
+   *         as the specified configuration.
+   */
+  public static Builder builder(MASConfiguration config) {
+    return new Builder(config);
+  }
+
+  /**
    * Creates a new {@link Builder} with default handlers for PDPTW problems. The
    * default handlers are:
    * <ul>
@@ -98,6 +109,13 @@ public abstract class MASConfiguration implements Serializable {
       eventHandlers = new LinkedHashMap<>();
     }
 
+    Builder(MASConfiguration config) {
+      this();
+      name = config.getName();
+      modelsBuilder.addAll(config.getModels());
+      eventHandlers.putAll(config.getEventHandlers());
+    }
+
     /**
      * Sets the name of the configuration.
      * @param string The new name.
@@ -125,7 +143,7 @@ public abstract class MASConfiguration implements Serializable {
      * @return This, as per the builder pattern.
      */
     public Builder addModels(Iterable<? extends ModelBuilder<?, ?>> models) {
-      for (ModelBuilder<?, ?> mb : models) {
+      for (final ModelBuilder<?, ?> mb : models) {
         addModel(mb);
       }
       return this;

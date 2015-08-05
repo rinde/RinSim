@@ -30,4 +30,6 @@ public interface PostProcessor<T> {
    * @return An object containing simulation results.
    */
   T collectResults(Simulator sim);
+
+  void handleFailure(Exception e, Simulator sim);
 }

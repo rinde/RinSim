@@ -40,7 +40,7 @@ import com.google.common.collect.ImmutableList;
 
 /**
  * @author Rinde van Lon
- * 
+ *
  */
 public class ExperimentTest {
 
@@ -97,14 +97,18 @@ public class ExperimentTest {
         .withRandomSeed(456);
 
     final ExperimentResults er = builder.perform();
-    assertThat(er.getResults().asList().get(0).getMasConfiguration().getName()).endsWith(
-        "A");
-    assertThat(er.getResults().asList().get(1).getMasConfiguration().getName()).endsWith(
-        "B");
-    assertThat(er.getResults().asList().get(2).getMasConfiguration().getName()).endsWith(
-        "C");
-    assertThat(er.getResults().asList().get(3).getMasConfiguration().getName()).endsWith(
-        "D");
+    assertThat(er.getResults().asList().get(0).getMasConfiguration().getName())
+        .endsWith(
+            "A");
+    assertThat(er.getResults().asList().get(1).getMasConfiguration().getName())
+        .endsWith(
+            "B");
+    assertThat(er.getResults().asList().get(2).getMasConfiguration().getName())
+        .endsWith(
+            "C");
+    assertThat(er.getResults().asList().get(3).getMasConfiguration().getName())
+        .endsWith(
+            "D");
   }
 
   static class TestPostProcessor implements
@@ -116,6 +120,9 @@ public class ExperimentTest {
       final RoadModel rm = sim.getModelProvider().getModel(RoadModel.class);
       return ImmutableList.copyOf(rm.getObjectPositions());
     }
+
+    @Override
+    public void handleFailure(Exception e, Simulator sim) {}
   }
 
   public static MASConfiguration testConfig(String name) {

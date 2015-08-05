@@ -86,29 +86,17 @@ final class LocalComputer implements Computer {
 
     @Override
     public SimulationResult call() {
+      final Simulator sim = Experiment.init(arguments.scenario,
+          arguments.masConfig, arguments.randomSeed, arguments.showGui,
+          arguments.uiCreator);
       try {
-        final Simulator sim = Experiment.init(arguments.scenario,
-            arguments.masConfig, arguments.randomSeed, arguments.showGui,
-            arguments.uiCreator);
         sim.start();
 
-        final StatisticsDTO stats = sim.getModelProvider().getModel(
-            StatsTracker.class).getStatistics();
-
-        Optional<?> data = Optional.absent();
-        if (arguments.postProcessor.isPresent()) {
-          data = Optional.of(arguments.postProcessor.get().collectResults(sim));
-        }
-        checkState(arguments.objectiveFunction.isValidResult(stats),
-            "The simulation did not result in a valid result: %s.", stats);
-        final SimulationResult result = SimulationResult.create(stats,
-            arguments.scenario, arguments.masConfig, arguments.randomSeed,
-            data);
-
-        // FIXME this should be changed into a more decent progress indicator
-        System.out.print(".");
-        return result;
       } catch (final RuntimeException e) {
+        if (arguments.postProcessor.isPresent()) {
+          arguments.postProcessor.get().handleFailure(e, sim);
+        }
+
         final StringBuilder sb = new StringBuilder()
             .append("[Scenario= ")
             .append(arguments.scenario)
@@ -123,6 +111,23 @@ final class LocalComputer implements Computer {
             .append(arguments.masConfig);
         throw new IllegalStateException(sb.toString(), e);
       }
+
+      final StatisticsDTO stats = sim.getModelProvider().getModel(
+          StatsTracker.class).getStatistics();
+
+      Optional<?> data = Optional.absent();
+      if (arguments.postProcessor.isPresent()) {
+        data = Optional.of(arguments.postProcessor.get().collectResults(sim));
+      }
+      checkState(arguments.objectiveFunction.isValidResult(stats),
+          "The simulation did not result in a valid result: %s.", stats);
+      final SimulationResult result = SimulationResult.create(stats,
+          arguments.scenario, arguments.masConfig, arguments.randomSeed,
+          data);
+
+      // FIXME this should be changed into a more decent progress indicator
+      System.out.print(".");
+      return result;
     }
   }
 }

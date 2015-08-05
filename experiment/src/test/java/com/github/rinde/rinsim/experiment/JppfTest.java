@@ -124,7 +124,8 @@ public class JppfTest {
     experimentBuilder.computeLocal();
     final ExperimentResults results4 = experimentBuilder.perform();
     assertEquals(results3, results4);
-    assertTrue(results3.getResults().asList().get(0).getSimulationData().isPresent());
+    assertTrue(
+        results3.getResults().asList().get(0).getSimulationData().isPresent());
   }
 
   /**
@@ -203,6 +204,9 @@ public class JppfTest {
     public NotSerializable collectResults(Simulator sim) {
       return new NotSerializable();
     }
+
+    @Override
+    public void handleFailure(Exception e, Simulator sim) {}
   }
 
   static class NotSerializableObjFunc implements ObjectiveFunction {
