@@ -15,10 +15,13 @@
  */
 package com.github.rinde.rinsim.central.rt;
 
+import static com.github.rinde.rinsim.core.model.time.RealtimeClockController.ClockMode.REAL_TIME;
+import static com.github.rinde.rinsim.core.model.time.RealtimeClockController.ClockMode.SIMULATED;
 import static com.google.common.truth.Truth.assertThat;
 
 import java.io.File;
 import java.util.List;
+import java.util.Set;
 
 import org.junit.Test;
 
@@ -27,14 +30,21 @@ import com.github.rinde.rinsim.central.rt.RtCentral.VehicleChecker;
 import com.github.rinde.rinsim.core.Simulator;
 import com.github.rinde.rinsim.core.model.pdp.DefaultPDPModel;
 import com.github.rinde.rinsim.core.model.pdp.Depot;
+import com.github.rinde.rinsim.core.model.pdp.Parcel;
 import com.github.rinde.rinsim.core.model.pdp.RandomVehicle;
 import com.github.rinde.rinsim.core.model.pdp.VehicleDTO;
 import com.github.rinde.rinsim.core.model.road.RoadModelBuilders;
+import com.github.rinde.rinsim.core.model.time.RealtimeClockController;
 import com.github.rinde.rinsim.core.model.time.RealtimeClockController.ClockMode;
+import com.github.rinde.rinsim.core.model.time.TickListener;
+import com.github.rinde.rinsim.core.model.time.TimeLapse;
 import com.github.rinde.rinsim.core.model.time.TimeModel;
+import com.github.rinde.rinsim.core.model.time.TimeUtil;
+import com.github.rinde.rinsim.core.model.time.TimeUtil.TimeTracker;
 import com.github.rinde.rinsim.experiment.Experiment;
 import com.github.rinde.rinsim.experiment.ExperimentResults;
 import com.github.rinde.rinsim.geom.Point;
+import com.github.rinde.rinsim.pdptw.common.AddParcelEvent;
 import com.github.rinde.rinsim.pdptw.common.PDPRoadModel;
 import com.github.rinde.rinsim.pdptw.common.RouteFollowingVehicle;
 import com.github.rinde.rinsim.scenario.Scenario;
@@ -43,6 +53,8 @@ import com.github.rinde.rinsim.scenario.TimedEvent;
 import com.github.rinde.rinsim.scenario.gendreau06.Gendreau06ObjectiveFunction;
 import com.github.rinde.rinsim.scenario.gendreau06.Gendreau06Parser;
 import com.github.rinde.rinsim.testutil.TestUtil;
+import com.github.rinde.rinsim.util.TimeWindow;
+import com.google.common.collect.ImmutableSet;
 
 /**
  * Test for {@link RtCentral}.
@@ -117,6 +129,49 @@ public class RtCentralTest {
       assertThat(e.getMessage()).contains("allow delayed route changing");
     }
     assertThat(fail).isTrue();
+  }
 
+  /**
+   * Tests that switch to simulated time is ignored at the moment that a parcel
+   * is announced.
+   */
+  @Test
+  public void test() {
+    final Set<TimedEvent> events = ImmutableSet.<TimedEvent>builder()
+        .add(AddParcelEvent.create(
+          Parcel.builder(new Point(0, 0), new Point(1, 0))
+              .orderAnnounceTime(300)
+              .pickupTimeWindow(TimeWindow.create(300, 3000))
+              .buildDTO()))
+        .add(TimeOutEvent.create(600))
+        .build();
+
+    final Simulator sim = RealtimeTestHelper
+        .init(RtCentral.vehicleHandler(), events)
+        .addModel(TimeUtil.timeTracker())
+        .addModel(RtCentral.builderAdapt(RandomSolver.supplier()))
+        .build();
+
+    final RealtimeClockController clock =
+      (RealtimeClockController) sim.getModelProvider()
+          .getModel(TimeModel.class);
+
+    final TimeTracker tt = sim.getModelProvider().getModel(TimeTracker.class);
+    sim.register(new TickListener() {
+      @Override
+      public void tick(TimeLapse timeLapse) {
+        if (timeLapse.getStartTime() == 200) {
+          clock.switchToSimulatedTime();
+        }
+      }
+
+      @Override
+      public void afterTick(TimeLapse timeLapse) {}
+    });
+    sim.start();
+    assertThat(tt.getClockModes()).containsExactly(
+      SIMULATED, SIMULATED, SIMULATED,
+      REAL_TIME, REAL_TIME,
+      SIMULATED, REAL_TIME).inOrder();
   }
 }

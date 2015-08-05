@@ -37,6 +37,8 @@ public interface RealtimeClockController extends ClockController {
    * Tells the clock to switch to real time mode. The real time mode will be in
    * effect starting from the <i>next</i> tick. If the clock is already in
    * {@link ClockMode#REAL_TIME} mode, calling this method will have no effect.
+   * When this method is called, any subsequent calls to
+   * {@link #switchToSimulatedTime()} <i>during the same tick</i> are ignored.
    * @throws IllegalStateException If this is called after {@link #stop()} is
    *           called.
    */

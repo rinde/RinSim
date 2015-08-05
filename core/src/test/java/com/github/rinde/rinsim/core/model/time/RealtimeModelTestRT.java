@@ -178,8 +178,8 @@ public class RealtimeModelTestRT extends TimeModelTest<RealtimeModel> {
           times.add(System.nanoTime());
           assertThat(getModel().getClockMode()).isEqualTo(ClockMode.SIMULATED);
           getModel().switchToRealTime();
+          // this switch should be ignored
           getModel().switchToSimulatedTime();
-          getModel().switchToRealTime();
           assertThat(getModel().getClockMode()).isEqualTo(ClockMode.SIMULATED);
           if (timeLapse.getTime() == 100000) {
             assertThat(history.getEventTypeHistory()).containsExactly(
@@ -191,7 +191,6 @@ public class RealtimeModelTestRT extends TimeModelTest<RealtimeModel> {
                 RtClockEventType.SWITCH_TO_REAL_TIME,
                 RtClockEventType.SWITCH_TO_SIM_TIME);
           }
-
         }
         // switch to real time should be completed
         if (timeLapse.getTime() == 100100 || timeLapse.getTime() == 200100) {
@@ -214,8 +213,6 @@ public class RealtimeModelTestRT extends TimeModelTest<RealtimeModel> {
         // this switch should not have any effect
         if (timeLapse.getTime() == 50000) {
           assertThat(getModel().getClockMode()).isEqualTo(ClockMode.SIMULATED);
-          getModel().switchToRealTime();
-          assertThat(getModel().getClockMode()).isEqualTo(ClockMode.SIMULATED);
           getModel().switchToSimulatedTime();
           assertThat(getModel().getClockMode()).isEqualTo(ClockMode.SIMULATED);
         }
@@ -223,8 +220,6 @@ public class RealtimeModelTestRT extends TimeModelTest<RealtimeModel> {
         if (timeLapse.getTime() == 100500 || timeLapse.getTime() == 200500) {
           times.add(System.nanoTime());
           assertThat(getModel().getClockMode()).isEqualTo(ClockMode.REAL_TIME);
-          getModel().switchToSimulatedTime();
-          getModel().switchToRealTime();
           getModel().switchToSimulatedTime();
           assertThat(getModel().getClockMode()).isEqualTo(ClockMode.REAL_TIME);
           if (timeLapse.getTime() == 100500) {

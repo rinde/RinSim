@@ -208,6 +208,9 @@ class RealtimeModel extends TimeModel implements RealtimeClockController {
         nextTrigger = Trigger.DO_REAL_TIME;
         return null;
       } else if (trigger == Trigger.SIMULATE) {
+        if (nextTrigger == Trigger.DO_REAL_TIME) {
+          return null;
+        }
         isTicking = true;
         nextTrigger = null;
         return null;
