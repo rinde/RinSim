@@ -40,8 +40,11 @@ import com.github.rinde.rinsim.core.model.pdp.PDPModelEvent;
 import com.github.rinde.rinsim.core.model.pdp.Parcel;
 import com.github.rinde.rinsim.core.model.pdp.Vehicle;
 import com.github.rinde.rinsim.core.model.road.RoadModel;
+import com.github.rinde.rinsim.core.model.time.RealtimeClockController;
+import com.github.rinde.rinsim.core.model.time.RealtimeClockController.ClockMode;
 import com.github.rinde.rinsim.core.model.time.TickListener;
 import com.github.rinde.rinsim.core.model.time.TimeLapse;
+import com.github.rinde.rinsim.core.model.time.TimeModel;
 import com.github.rinde.rinsim.core.model.time.TimeUtil;
 import com.github.rinde.rinsim.core.model.time.TimeUtil.TimeTracker;
 import com.github.rinde.rinsim.event.Event;
@@ -190,16 +193,23 @@ public class RealtimeSolverTest {
           .build();
 
     final RoadModel rm = sim.getModelProvider().getModel(RoadModel.class);
+
+    final RealtimeClockController clock =
+      (RealtimeClockController) sim.getModelProvider()
+          .getModel(TimeModel.class);
+
     sim.register(new TickListener() {
 
       @Override
       public void tick(TimeLapse timeLapse) {
         if (timeLapse.getStartTime() == 100) {
+          assertThat(clock.getClockMode()).isSameAs(ClockMode.SIMULATED);
           assertThat(rm.getPosition(vehicles.get(0)))
               .isEqualTo(new Point(0, 0));
           assertThat(vehicles.get(0).getRoute()).isEmpty();
           assertThat(vehicles.get(1).getRoute()).isEmpty();
         } else if (timeLapse.getStartTime() == 200) {
+          assertThat(clock.getClockMode()).isSameAs(ClockMode.REAL_TIME);
           // this is the tick in which the new order event is dispatched. This
           // code is executed just before the tick implementation of the
           // vehicle, therefore the vehicle should not have moved yet.
@@ -208,9 +218,11 @@ public class RealtimeSolverTest {
           assertThat(vehicles.get(0).getRoute()).hasSize(2);
           assertThat(vehicles.get(1).getRoute()).isEmpty();
         } else if (timeLapse.getStartTime() == 59900) {
+          assertThat(clock.getClockMode()).isSameAs(ClockMode.SIMULATED);
           assertThat(vehicles.get(0).getRoute()).hasSize(2);
           assertThat(vehicles.get(1).getRoute()).isEmpty();
         } else if (timeLapse.getStartTime() == 60000) {
+          assertThat(clock.getClockMode()).isSameAs(ClockMode.REAL_TIME);
           assertThat(vehicles.get(0).getRoute()).hasSize(4);
           assertThat(vehicles.get(1).getRoute()).isEmpty();
         }
@@ -231,6 +243,8 @@ public class RealtimeSolverTest {
     });
 
     sim.start();
+    // end time is one tick after time out
+    assertThat(sim.getCurrentTime()).isEqualTo(1800100L);
   }
 
   /**

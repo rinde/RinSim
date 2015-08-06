@@ -93,8 +93,7 @@ public final class RtSolverModel extends AbstractModel<RtSolverUser>
   final SimSolversManager manager;
   Optional<ListeningExecutorService> executor;
   Mode mode;
-
-  boolean checkNextTick;
+  long timeToCheckIfComputing;
 
   enum Mode {
     MULTI_MODE, SINGLE_MODE, UNKNOWN;
@@ -160,8 +159,7 @@ public final class RtSolverModel extends AbstractModel<RtSolverUser>
 
   @Override
   public void afterTick(TimeLapse timeLapse) {
-    if (checkNextTick) {
-      checkNextTick = false;
+    if (timeLapse.getStartTime() == timeToCheckIfComputing) {
       if (!manager.isComputing() && clock.isTicking()) {
         clock.switchToSimulatedTime();
       }
@@ -171,7 +169,9 @@ public final class RtSolverModel extends AbstractModel<RtSolverUser>
   @Override
   public void handleEvent(Event e) {
     if (e.getEventType() == RtClockEventType.SWITCH_TO_REAL_TIME) {
-      checkNextTick = true;
+      // when a switch to RT has been made, we should check the next tick if it
+      // is still needed.
+      timeToCheckIfComputing = clock.getCurrentTime() + clock.getTickLength();
     }
   }
 
@@ -279,8 +279,7 @@ public final class RtSolverModel extends AbstractModel<RtSolverUser>
         } else {
           // done computing
           checkState(computingSimSolvers.remove(e.getIssuer()),
-            "Internal error",
-            computingSimSolvers, e.getIssuer());
+            "Internal error", computingSimSolvers, e.getIssuer());
           if (!isComputing()) {
             clock.switchToSimulatedTime();
           }
