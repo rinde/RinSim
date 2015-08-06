@@ -81,10 +81,10 @@ public final class ScenarioGenerator {
     modelBuilders = ImmutableSet.copyOf(builder.modelSuppliers);
 
     final List<ModelBuilder<RoadModel, ?>> rmBuilders = findBuildersThatBuild(
-        modelBuilders, RoadModel.class);
+      modelBuilders, RoadModel.class);
     checkArgument(rmBuilders.size() == 1,
-        "Exactly one RoadModel builder must be supplied, found %s builders.",
-        rmBuilders.size());
+      "Exactly one RoadModel builder must be supplied, found %s builders.",
+      rmBuilders.size());
     final ModelBuilder<? extends RoadModel, ?> rmb = rmBuilders.get(0);
     PlaneRMB planeBuilder;
     if (rmb instanceof ForwardingRoadModel.Builder) {
@@ -101,13 +101,14 @@ public final class ScenarioGenerator {
     speedUnit = planeBuilder.getSpeedUnit();
 
     final List<ModelBuilder<TimeModel, ?>> tmBuilders = findBuildersThatBuild(
-        modelBuilders, TimeModel.class);
+      modelBuilders, TimeModel.class);
     checkArgument(tmBuilders.size() <= 1,
-        "At most one TimeModel builder can be specified.");
+      "At most one TimeModel builder can be specified.");
     if (tmBuilders.isEmpty()) {
-      timeUnit = TimeModel.Builder.DEFAULT_TIME_UNIT;
+      timeUnit = TimeModel.AbstractBuilder.DEFAULT_TIME_UNIT;
     } else {
-      timeUnit = ((TimeModel.Builder) tmBuilders.get(0)).getTimeUnit();
+      timeUnit =
+        ((TimeModel.AbstractBuilder<?>) tmBuilders.get(0)).getTimeUnit();
     }
   }
 
@@ -183,21 +184,21 @@ public final class ScenarioGenerator {
     final ImmutableList.Builder<TimedEvent> b = ImmutableList.builder();
     // depots
     final Iterable<? extends AddDepotEvent> depots = depotGenerator.generate(
-        rng.nextLong(), parcelGenerator.getCenter());
+      rng.nextLong(), parcelGenerator.getCenter());
     b.addAll(depots);
 
     // vehicles
     final ImmutableList<AddVehicleEvent> vehicles = vehicleGenerator.generate(
-        rng.nextLong(), parcelGenerator.getCenter(),
-        builder.getTimeWindow().end());
+      rng.nextLong(), parcelGenerator.getCenter(),
+      builder.getTimeWindow().end());
     b.addAll(vehicles);
 
     final TravelTimes tm = createTravelTimes(modelBuilders, getTimeUnit(),
-        depots, vehicles);
+      depots, vehicles);
 
     // parcels
     b.addAll(parcelGenerator.generate(rng.nextLong(), tm,
-        builder.getTimeWindow().end()));
+      builder.getTimeWindow().end()));
 
     // time out
     b.add(TimeOutEvent.create(builder.getTimeWindow().end()));
@@ -239,18 +240,18 @@ public final class ScenarioGenerator {
     final Iterable<AddDepotEvent> depots = FluentIterable.from(s.getEvents())
         .filter(AddDepotEvent.class);
     final Iterable<AddVehicleEvent> vehicles = FluentIterable.from(
-        s.getEvents())
+      s.getEvents())
         .filter(AddVehicleEvent.class);
 
     final List<RoadModel> roadModels = newArrayList();
 
-    Unit<Duration> timeUnit = TimeModel.Builder.DEFAULT_TIME_UNIT;
+    Unit<Duration> timeUnit = TimeModel.AbstractBuilder.DEFAULT_TIME_UNIT;
     for (final ModelBuilder<?, ?> mb : s.getModelBuilders()) {
       if (RoadModel.class.isAssignableFrom(mb.getModelType())) {
         roadModels.add((RoadModel) mb.build(null));
       }
       if (TimeModel.class.isAssignableFrom(mb.getModelType())) {
-        timeUnit = ((TimeModel.Builder) mb).getTimeUnit();
+        timeUnit = ((TimeModel.AbstractBuilder<?>) mb).getTimeUnit();
       }
     }
     checkArgument(roadModels.size() == 1);
@@ -434,9 +435,9 @@ public final class ScenarioGenerator {
       while (path.hasNext()) {
         final Point cur = path.next();
         final Measure<Double, Length> distance = Measure.valueOf(
-            Point.distance(prev, cur), roadModel.getDistanceUnit());
+          Point.distance(prev, cur), roadModel.getDistanceUnit());
         travelTime += RoadModels.computeTravelTime(vehicleSpeed, distance,
-            timeUnit);
+          timeUnit);
       }
       return travelTime;
     }
