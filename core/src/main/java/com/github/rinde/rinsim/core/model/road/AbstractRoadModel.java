@@ -325,6 +325,7 @@ public abstract class AbstractRoadModel<T> extends GenericRoadModel {
     return unitConversion.getExSpeedUnit();
   }
 
+  @SuppressWarnings("null")
   private static class SameLocationPredicate implements Predicate<RoadUser> {
     private final RoadUser reference;
     private final RoadModel model;

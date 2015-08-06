@@ -23,6 +23,7 @@ import java.util.Map.Entry;
 import java.util.Set;
 
 import javax.annotation.CheckReturnValue;
+import javax.annotation.Nonnull;
 
 import org.apache.commons.math3.random.RandomGenerator;
 
@@ -174,6 +175,7 @@ public final class CommModel extends AbstractModel<CommUser>
   }
 
   @Override
+  @Nonnull
   public <U> U get(Class<U> clazz) {
     checkArgument(clazz == CommModel.class);
     return clazz.cast(this);

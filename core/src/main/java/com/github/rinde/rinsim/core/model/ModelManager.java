@@ -23,6 +23,7 @@ import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import com.github.rinde.rinsim.core.model.Model.AbstractModel;
@@ -158,6 +159,7 @@ public final class ModelManager implements ModelProvider {
   }
 
   @Override
+  @Nonnull
   public <T extends Model<?>> T getModel(Class<T> clazz) {
     final T m = tryGetModel(clazz);
     checkArgument(m != null, "The specified model %s does not exist.", clazz);

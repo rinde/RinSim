@@ -18,6 +18,8 @@ package com.github.rinde.rinsim.core.model.pdp;
 import java.util.Collection;
 import java.util.Set;
 
+import javax.annotation.Nonnull;
+
 import com.github.rinde.rinsim.core.model.time.TimeLapse;
 import com.github.rinde.rinsim.event.EventAPI;
 import com.google.common.collect.ImmutableSet;
@@ -164,6 +166,7 @@ public class ForwardingPDPModel extends PDPModel {
   }
 
   @Override
+  @Nonnull
   public <U> U get(Class<U> type) {
     return delegate.get(type);
   }

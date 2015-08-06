@@ -22,6 +22,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 import javax.annotation.CheckReturnValue;
+import javax.annotation.Nonnull;
 
 import org.apache.commons.math3.random.MersenneTwister;
 import org.apache.commons.math3.random.RandomGenerator;
@@ -79,6 +80,7 @@ public class RandomModel extends AbstractModel<RandomUser> {
   }
 
   @Override
+  @Nonnull
   public <U> U get(Class<U> clazz) {
     if (clazz == RandomProvider.class) {
       return clazz.cast(new RngProvider());

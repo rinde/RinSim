@@ -24,6 +24,7 @@ import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
 
 import javax.annotation.CheckReturnValue;
+import javax.annotation.Nonnull;
 import javax.annotation.OverridingMethodsMustInvokeSuper;
 import javax.measure.quantity.Duration;
 import javax.measure.unit.SI;
@@ -98,6 +99,7 @@ public abstract class TimeModel extends AbstractModel<TickListener>
   public abstract void tick();
 
   @Override
+  @Nonnull
   public <U> U get(Class<U> clazz) {
     if (clazz == Clock.class || clazz == ClockController.class) {
       return clazz.cast(this);

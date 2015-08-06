@@ -26,6 +26,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Queue;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.measure.quantity.Duration;
 import javax.measure.unit.Unit;
@@ -460,6 +461,7 @@ public class GraphRoadModel extends AbstractRoadModel<Loc> {
   }
 
   @Override
+  @Nonnull
   public <U> U get(Class<U> type) {
     return type.cast(self);
   }

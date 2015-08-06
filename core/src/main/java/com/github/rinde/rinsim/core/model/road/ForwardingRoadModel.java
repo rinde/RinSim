@@ -22,6 +22,7 @@ import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.measure.quantity.Length;
 import javax.measure.quantity.Velocity;
@@ -214,6 +215,7 @@ public class ForwardingRoadModel extends GenericRoadModel {
   }
 
   @Override
+  @Nonnull
   public <U> U get(Class<U> type) {
     return delegate.get(type);
   }

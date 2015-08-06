@@ -28,6 +28,7 @@ import java.util.Map;
 import java.util.Set;
 
 import javax.annotation.CheckReturnValue;
+import javax.annotation.Nonnull;
 
 import com.github.rinde.rinsim.core.model.DependencyProvider;
 import com.github.rinde.rinsim.core.model.ModelBuilder.AbstractModelBuilder;
@@ -573,6 +574,7 @@ public final class DefaultPDPModel extends PDPModel {
   }
 
   @Override
+  @Nonnull
   public <U> U get(Class<U> type) {
     synchronized (this) {
       return type.cast(self);

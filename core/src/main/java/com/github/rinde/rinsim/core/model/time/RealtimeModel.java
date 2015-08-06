@@ -31,6 +31,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.measure.Measure;
 import javax.measure.unit.SI;
@@ -169,6 +170,7 @@ class RealtimeModel extends TimeModel implements RealtimeClockController {
   }
 
   @Override
+  @Nonnull
   public <U> U get(Class<U> clazz) {
     if (clazz == RealtimeClockController.class) {
       return clazz.cast(this);

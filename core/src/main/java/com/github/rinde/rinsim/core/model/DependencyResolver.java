@@ -31,6 +31,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import com.github.rinde.rinsim.util.LinkedHashBiMap;
@@ -140,6 +141,7 @@ class DependencyResolver extends DependencyProvider {
   }
 
   @Override
+  @Nonnull
   public <T> T get(Class<T> type) {
     return providerMap.get(type).build().get(type);
   }
@@ -167,6 +169,7 @@ class DependencyResolver extends DependencyProvider {
     }
 
     @Override
+    @Nonnull
     public <T> T get(Class<T> type) {
       checkArgument(!knownDependencies.isEmpty(),
           "%s did not declare any dependencies.", modelBuilder);

@@ -255,6 +255,7 @@ public final class CommDevice {
     return new CommDeviceBuilder(m, u);
   }
 
+  @SuppressWarnings("null")
   static class RangePredicate implements Predicate<CommUser> {
     private final CommUser user;
     private final double range;

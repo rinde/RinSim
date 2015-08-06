@@ -27,6 +27,7 @@ import java.util.List;
 
 import com.github.rinde.rinsim.core.model.DependencyProvider;
 import com.github.rinde.rinsim.core.model.Model.AbstractModelVoid;
+import com.github.rinde.rinsim.core.model.ModelBuilder;
 import com.github.rinde.rinsim.core.model.ModelBuilder.AbstractModelBuilder;
 import com.github.rinde.rinsim.core.model.time.RealtimeClockController.ClockMode;
 import com.github.rinde.rinsim.event.Event;
@@ -35,7 +36,8 @@ import com.google.auto.value.AutoValue;
 import com.google.common.collect.Range;
 
 /**
- *
+ * A utility class that allows to create a log of real-time clock events.
+ * Instances can be obtained via {@link #builder()}.
  * @author Rinde van Lon
  */
 public final class RealtimeClockLogger extends AbstractModelVoid {
@@ -54,18 +56,60 @@ public final class RealtimeClockLogger extends AbstractModelVoid {
     }, SWITCH_TO_REAL_TIME, SWITCH_TO_SIM_TIME, STARTED, STOPPED);
   }
 
+  /**
+   * @return An unmodifiable view on the log.
+   */
   public List<LogEntry> getLog() {
     return Collections.unmodifiableList(log);
   }
 
-  public static Builder builder() {
+  /**
+   * @return A new builder for constructing the logger.
+   */
+  public static ModelBuilder<?, ?> builder() {
     return new AutoValue_RealtimeClockLogger_Builder();
   }
 
+  /**
+   * A log entry consists of the tick in which it occurred, the
+   * {@link ClockMode} at that time and the clock event that was dispatched.
+   * @author Rinde van Lon
+   */
   @AutoValue
-  public static class Builder
+  public abstract static class LogEntry implements Serializable {
+
+    private static final long serialVersionUID = 3044293371048196171L;
+
+    LogEntry() {}
+
+    /**
+     * @return The tick in which the clock event was dispatched.
+     */
+    public abstract Range<Long> getTick();
+
+    /**
+     * @return The {@link ClockMode} at the time of this tick.
+     */
+    public abstract ClockMode getClockMode();
+
+    /**
+     * @return The clock event that was dispatched.
+     */
+    public abstract Enum<?> getClockEvent();
+
+    static LogEntry create(long tickStart, long tickEnd, ClockMode cm,
+        Enum<?> ce) {
+      return new AutoValue_RealtimeClockLogger_LogEntry(
+          Range.closedOpen(tickStart, tickEnd), cm, ce);
+    }
+  }
+
+  @AutoValue
+  static class Builder
       extends AbstractModelBuilder<RealtimeClockLogger, Void>
       implements Serializable {
+
+    private static final long serialVersionUID = -1003703925029199193L;
 
     Builder() {
       setDependencies(RealtimeClockController.class);
@@ -76,24 +120,6 @@ public final class RealtimeClockLogger extends AbstractModelVoid {
       final RealtimeClockController c =
           dependencyProvider.get(RealtimeClockController.class);
       return new RealtimeClockLogger(c);
-    }
-  }
-
-  @AutoValue
-  public abstract static class LogEntry implements Serializable {
-
-    LogEntry() {}
-
-    public abstract Range<Long> getTick();
-
-    public abstract ClockMode getClockMode();
-
-    public abstract Enum<?> getClockEvent();
-
-    static LogEntry create(long tickStart, long tickEnd, ClockMode cm,
-        Enum<?> ce) {
-      return new AutoValue_RealtimeClockLogger_LogEntry(
-          Range.closedOpen(tickStart, tickEnd), cm, ce);
     }
   }
 }

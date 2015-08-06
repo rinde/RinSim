@@ -274,6 +274,7 @@ public final class RoadModels {
         .doubleValue(outputTimeUnit);
   }
 
+  @SuppressWarnings("null")
   static class RoadUserToPositionFunction<T extends RoadUser> implements
       Function<T, Point> {
     private final RoadModel rm;
@@ -289,6 +290,7 @@ public final class RoadModels {
     }
   }
 
+  @SuppressWarnings("null")
   static class DistancePredicate implements Predicate<RoadUser> {
     private final Point position;
     private final RoadModel model;

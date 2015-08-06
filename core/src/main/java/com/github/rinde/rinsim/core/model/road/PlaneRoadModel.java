@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Queue;
 
+import javax.annotation.Nonnull;
 import javax.measure.Measure;
 import javax.measure.quantity.Duration;
 import javax.measure.quantity.Length;
@@ -206,6 +207,7 @@ public class PlaneRoadModel extends AbstractRoadModel<Point> {
   }
 
   @Override
+  @Nonnull
   public <U> U get(Class<U> type) {
     return type.cast(this);
   }

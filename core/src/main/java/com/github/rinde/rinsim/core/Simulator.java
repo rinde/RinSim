@@ -20,6 +20,7 @@ import static com.google.common.base.Preconditions.checkArgument;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
+import javax.annotation.Nonnull;
 import javax.measure.quantity.Duration;
 import javax.measure.unit.SI;
 import javax.measure.unit.Unit;
@@ -387,6 +388,7 @@ public final class Simulator implements SimulatorAPI {
     }
 
     @Override
+    @Nonnull
     public <U> U get(Class<U> clazz) {
       checkArgument(clazz == SimulatorAPI.class);
       return clazz.cast(simulator);

@@ -15,6 +15,8 @@
  */
 package com.github.rinde.rinsim.core.model;
 
+import javax.annotation.Nonnull;
+
 import com.google.common.reflect.TypeToken;
 
 /**
@@ -80,6 +82,7 @@ public interface Model<T> {
     }
 
     @Override
+    @Nonnull
     public <U> U get(Class<U> clazz) {
       throw new IllegalArgumentException(
           "This model (" + getClass().getSimpleName()
