@@ -153,7 +153,7 @@ public class RouteFollowingVehicle extends Vehicle {
         verify(e instanceof StateTransitionEvent<?, ?>);
         final StateTransitionEvent<?, ?> event = (StateTransitionEvent<?, ?>) e;
         LOGGER.trace("vehicle({}) - {} + {} -> {}", v, event.previousState,
-            event.trigger, event.newState);
+          event.trigger, event.newState);
       }
     }, StateMachineEvent.STATE_TRANSITION);
   }
@@ -218,45 +218,46 @@ public class RouteFollowingVehicle extends Vehicle {
     for (final Parcel dp : routeSet.elementSet()) {
       final ParcelState state = getPDPModel().getParcelState(dp);
       checkArgument(
-          !state.isDelivered(),
-          "A parcel that is already delivered can not be part of a route. "
-              + "Parcel %s in route %s.",
-          dp, r);
+        !state.isDelivered(),
+        "A parcel that is already delivered can not be part of a route. "
+            + "Parcel %s in route %s.",
+        dp, r);
       if (state.isTransitionState()) {
         if (state == ParcelState.PICKING_UP) {
           checkArgument(
-              getPDPModel().getVehicleState(this) == VehicleState.PICKING_UP,
-              "When a parcel in the route is in PICKING UP state the vehicle "
-                  + "must also be in that state.");
+            getPDPModel().getVehicleState(this) == VehicleState.PICKING_UP,
+            "When a parcel in the route is in PICKING UP state the vehicle "
+                + "must also be in that state, route: %s.",
+            r);
         } else {
           checkArgument(
-              getPDPModel().getVehicleState(this) == VehicleState.DELIVERING,
-              "When a parcel in the route is in DELIVERING state the vehicle"
-                  + " must also be in that state.");
+            getPDPModel().getVehicleState(this) == VehicleState.DELIVERING,
+            "When a parcel in the route is in DELIVERING state the vehicle"
+                + " must also be in that state.");
         }
         checkArgument(
-            getPDPModel().getVehicleActionInfo(this).getParcel() == dp,
-            "A parcel in the route that is being serviced should be serviced by"
-                + " this truck. This truck is servicing %s.",
-            getPDPModel().getVehicleActionInfo(this).getParcel());
+          getPDPModel().getVehicleActionInfo(this).getParcel() == dp,
+          "A parcel in the route that is being serviced should be serviced by"
+              + " this truck. This truck is servicing %s.",
+          getPDPModel().getVehicleActionInfo(this).getParcel());
       }
 
       final int frequency = routeSet.count(dp);
       if (state.isPickedUp()) {
         checkArgument(getPDPModel().getContents(this).contains(dp),
-            "A parcel that is in cargo state must be in cargo of this "
-                + "vehicle.");
+          "A parcel that is in cargo state must be in cargo of this "
+              + "vehicle.");
         checkArgument(
-            frequency <= 1,
-            "A parcel that is in cargo may not occur more than once in a route,"
-                + " found %s instance(s) of %s.",
-            frequency, dp, state);
+          frequency <= 1,
+          "A parcel that is in cargo may not occur more than once in a route,"
+              + " found %s instance(s) of %s.",
+          frequency, dp, state);
       } else {
         checkArgument(
-            frequency <= 2,
-            "A parcel that is available may not occur more than twice in a "
-                + "route, found %s instance(s).",
-            frequency);
+          frequency <= 2,
+          "A parcel that is available may not occur more than twice in a "
+              + "route, found %s instance(s).",
+          frequency);
       }
     }
 
@@ -272,10 +273,10 @@ public class RouteFollowingVehicle extends Vehicle {
       newRoute = Optional.absent();
     } else {
       checkArgument(
-          allowDelayedRouteChanges,
-          "Diversion is not allowed and delayed route changes are also not "
-              + "allowed, rejected route: %s.",
-          r);
+        allowDelayedRouteChanges,
+        "Diversion is not allowed and delayed route changes are also not "
+            + "allowed, rejected route: %s.",
+        r);
       newRoute = Optional.of(newLinkedList(r));
     }
   }
@@ -297,9 +298,9 @@ public class RouteFollowingVehicle extends Vehicle {
    * <ul>
    * <li>A parcel that occurs in the route has been delivered, all occurrences
    * of this parcel will be removed from the route.</li>
-   * <li>A parcel that occurs in the route has been picked up by another
-   * vehicle, all occurrences of this parcel will be removed from the route.
-   * </li>
+   * <li>A parcel that occurs in the route has been picked up by another vehicle
+   * (or is in the process of being picked up), all occurrences of this parcel
+   * will be removed from the route.</li>
    * <li>A parcel that occurs twice in the route but has already been picked up
    * by this vehicle, the first occurrence in the route will be removed.</li>
    * </ul>
@@ -313,22 +314,33 @@ public class RouteFollowingVehicle extends Vehicle {
 
     for (final Parcel p : routeSet.elementSet()) {
       final ParcelState state = getPDPModel().getParcelState(p);
-
       if (state.isDelivered()) {
         // remove all occurrences
         routeList.removeAll(Collections.singleton(p));
       } else if (state.isPickedUp()) {
+        // in this case the parcel is either: IN_CARGO or DELIVERING
         if (!getPDPModel().getContents(this).contains(p)) {
           // if we don't carry the parcel it must have been picked up by someone
           // else, remove it from our route
           routeList.removeAll(Collections.singleton(p));
         } else if (routeSet.count(p) == 2) {
-          // if > 1 remove first occurrence
+          // in this case it is in cargo and it occurs twice in our route
+          // (which is one too many), therefore first occurrence is removed
           routeList.remove(p);
+        }
+      } else if (state == ParcelState.PICKING_UP) {
+        if (!isPickingUp(p)) {
+          // in this case the parcel is being picked up by another vehicle
+          routeList.removeAll(Collections.singleton(p));
         }
       }
     }
     setRoute(routeList);
+  }
+
+  boolean isPickingUp(Parcel p) {
+    return getPDPModel().getVehicleState(this) == VehicleState.PICKING_UP
+        && getPDPModel().getVehicleActionInfo(this).getParcel().equals(p);
   }
 
   /**
@@ -359,10 +371,10 @@ public class RouteFollowingVehicle extends Vehicle {
     super.initRoadPDP(pRoadModel, pPdpModel);
     final Set<Depot> depots = getRoadModel().getObjectsOfType(Depot.class);
     checkArgument(depots.size() == 1,
-        "This vehicle requires exactly 1 depot, found %s depots.",
-        depots.size());
+      "This vehicle requires exactly 1 depot, found %s depots.",
+      depots.size());
     checkArgument(getRoadModel() instanceof PDPRoadModel,
-        "This vehicle requires the PDPRoadModel.");
+      "This vehicle requires the PDPRoadModel.");
     isDiversionAllowed = ((PDPRoadModel) getRoadModel())
         .isVehicleDiversionAllowed();
     depot = Optional.of(depots.iterator().next());
@@ -403,11 +415,11 @@ public class RouteFollowingVehicle extends Vehicle {
   protected boolean isTooEarly(Parcel p, TimeLapse time) {
     final ParcelState parcelState = getPDPModel().getParcelState(p);
     checkArgument(
-        !parcelState.isTransitionState() && !parcelState.isDelivered(),
-        "Parcel state may not be a transition state nor may it be delivered, "
-            + "it is %s.",
-        parcelState, parcelState.isTransitionState() ? getPDPModel()
-            .getVehicleActionInfo(this).timeNeeded() : null);
+      !parcelState.isTransitionState() && !parcelState.isDelivered(),
+      "Parcel state may not be a transition state nor may it be delivered, "
+          + "it is %s.",
+      parcelState, parcelState.isTransitionState() ? getPDPModel()
+          .getVehicleActionInfo(this).timeNeeded() : null);
     final boolean isPickup = !parcelState.isPickedUp();
     // if it is available, we know we can't be too early
     if (isPickup && parcelState == ParcelState.AVAILABLE) {
@@ -430,12 +442,12 @@ public class RouteFollowingVehicle extends Vehicle {
    */
   protected long computeTravelTimeTo(Point p, Unit<Duration> timeUnit) {
     final Measure<Double, Length> distance = Measure.valueOf(Point.distance(
-        getRoadModel().getPosition(this), p), getRoadModel()
-            .getDistanceUnit());
+      getRoadModel().getPosition(this), p), getRoadModel()
+          .getDistanceUnit());
 
     return DoubleMath.roundToLong(
-        RoadModels.computeTravelTime(speed.get(), distance, timeUnit),
-        RoundingMode.CEILING);
+      RoadModels.computeTravelTime(speed.get(), distance, timeUnit),
+      RoundingMode.CEILING);
   }
 
   /**
@@ -447,7 +459,7 @@ public class RouteFollowingVehicle extends Vehicle {
    */
   protected boolean isEndOfDay(TimeLapse time) {
     final long travelTime = computeTravelTimeTo(
-        getRoadModel().getPosition(depot.get()), time.getTimeUnit());
+      getRoadModel().getPosition(depot.get()), time.getTimeUnit());
     return time.getEndTime() - 1 >= getAvailabilityTimeWindow().end()
         - travelTime;
   }
@@ -501,9 +513,9 @@ public class RouteFollowingVehicle extends Vehicle {
 
   void checkCurrentParcelOwnership() {
     checkState(
-        !getPDPModel().getParcelState(route.peek()).isTransitionState(),
-        "Parcel is already being serviced by another vehicle. Parcel state: %s",
-        getPDPModel().getParcelState(route.peek()));
+      !getPDPModel().getParcelState(route.peek()).isTransitionState(),
+      "Parcel is already being serviced by another vehicle. Parcel state: %s",
+      getPDPModel().getParcelState(route.peek()));
   }
 
   /**
@@ -579,10 +591,10 @@ public class RouteFollowingVehicle extends Vehicle {
     @Override
     public void onEntry(StateEvent event, RouteFollowingVehicle context) {
       checkState(
-          getPDPModel().getVehicleState(context) == VehicleState.IDLE,
-          "We can only be in Wait state when the vehicle is idle, "
-              + "vehicle is %s.",
-          getPDPModel().getVehicleState(context));
+        getPDPModel().getVehicleState(context) == VehicleState.IDLE,
+        "We can only be in Wait state when the vehicle is idle, "
+            + "vehicle is %s.",
+        getPDPModel().getVehicleState(context));
       if (event == DefaultEvent.NOGO) {
         checkArgument(isDiversionAllowed);
       }

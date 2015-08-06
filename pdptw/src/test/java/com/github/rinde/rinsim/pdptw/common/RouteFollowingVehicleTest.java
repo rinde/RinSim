@@ -58,6 +58,7 @@ import com.github.rinde.rinsim.core.model.pdp.VehicleDTO;
 import com.github.rinde.rinsim.core.model.road.RoadModel;
 import com.github.rinde.rinsim.core.model.road.RoadModelBuilders;
 import com.github.rinde.rinsim.core.model.time.TimeLapse;
+import com.github.rinde.rinsim.core.model.time.TimeLapseFactory;
 import com.github.rinde.rinsim.event.Event;
 import com.github.rinde.rinsim.event.Listener;
 import com.github.rinde.rinsim.event.ListenerEventHistory;
@@ -221,15 +222,26 @@ public class RouteFollowingVehicleTest {
     assertFalse(d.isTooEarly(p2, time(minute(20), minute(21))));
   }
 
+  static TimeLapse copy(TimeLapse tl) {
+    final TimeLapse copy = TimeLapseFactory.create(tl.getTimeUnit(),
+      tl.getStartTime(), tl.getEndTime());
+    if (tl.getTimeConsumed() > 0) {
+      copy.consume(tl.getTimeConsumed());
+    }
+    return copy;
+  }
+
   void tick(long beginMinute, long endMinute, long consumeSeconds) {
     final TimeLapse tl = time(minute(beginMinute), minute(endMinute));
     if (consumeSeconds > 0) {
       tl.consume(consumeSeconds * 1000);
     }
-    pm.tick(tl);
-    d.tick(tl);
-    assertSame(tl, d.getCurrentTime());
-    assertFalse(tl.hasTimeLeft());
+    pm.tick(copy(tl));
+
+    final TimeLapse dtl = copy(tl);
+    d.tick(dtl);
+    assertSame(dtl, d.getCurrentTime());
+    assertFalse(dtl.hasTimeLeft());
 
     // tests whether internal states of vehicle match the state of the pdp model
     // at all times
@@ -572,6 +584,59 @@ public class RouteFollowingVehicleTest {
     // p1 is already in cargo, therefore it can occur only once in the route
     d.setRouteSafe(asList(p1, p2, p1));
     assertThat(d.getRoute()).containsExactly(p2, p1).inOrder();
+
+    d.setRouteSafe(asList(p1, p2));
+    assertThat(d.getRoute()).containsExactly(p1, p2).inOrder();
+  }
+
+  /**
+   * Test for: A parcel in the route that is being picked up by another vehicle.
+   */
+  @Test
+  public void setRouteSafeTest4() {
+    d.setRouteSafe(asList(p1, p1));
+    tick(0, 7);
+    assertThat(pm.getParcelState(p1)).isSameAs(ParcelState.PICKING_UP);
+    assertThat(d.getRoute()).containsExactly(p1, p1);
+
+    // it is being picked up by the other vehicle, so this should be ignored
+    d2.setRouteSafe(asList(p1, p1));
+    assertThat(d2.getRoute()).isEmpty();
+  }
+
+  /**
+   * Test for: A parcel in the route that is being picked up by another vehicle,
+   * while the vehicle itself is also picking up another parcel.
+   */
+  @Test
+  public void setRouteSafeTest5() {
+    final Parcel p4 = Parcel.builder(new Point(1, 2), new Point(1, 5))
+        .pickupTimeWindow(TimeWindow.create(minute(5), minute(25)))
+        .deliveryTimeWindow(TimeWindow.create(minute(22), minute(30)))
+        .serviceDuration(minute(3))
+        .build();
+
+    PDPTWTestUtil.register(rm, pm, p4);
+
+    d.setRouteSafe(asList(p1, p1));
+    d2.setRouteSafe(asList(p4, p4));
+    tick(0, 7);
+    d2.tick(TimeLapseFactory.create(minute(0), minute(7)));
+
+    assertThat(pm.getParcelState(p1)).isSameAs(ParcelState.PICKING_UP);
+    assertThat(pm.getParcelState(p4)).isSameAs(ParcelState.PICKING_UP);
+    assertThat(pm.getVehicleState(d)).isSameAs(VehicleState.PICKING_UP);
+    assertThat(pm.getVehicleState(d2)).isSameAs(VehicleState.PICKING_UP);
+    assertThat(pm.getVehicleActionInfo(d).getParcel()).isSameAs(p1);
+    assertThat(pm.getVehicleActionInfo(d2).getParcel()).isSameAs(p4);
+    assertThat(d.getRoute()).containsExactly(p1, p1);
+    assertThat(d2.getRoute()).containsExactly(p4, p4);
+
+    d.setRouteSafe(asList(p1, p4, p1, p4));
+    assertThat(d.getRoute()).containsExactly(p1, p1);
+
+    d2.setRouteSafe(asList(p1, p4, p4, p1));
+    assertThat(d2.getRoute()).containsExactly(p4, p4);
   }
 
   /**
