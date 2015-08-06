@@ -48,6 +48,7 @@ import com.github.rinde.rinsim.event.Event;
 import com.github.rinde.rinsim.event.EventAPI;
 import com.github.rinde.rinsim.event.EventDispatcher;
 import com.github.rinde.rinsim.event.Listener;
+import com.github.rinde.rinsim.scenario.Scenario.ProblemClass;
 import com.github.rinde.rinsim.scenario.ScenarioController.StopModel;
 import com.github.rinde.rinsim.scenario.StopCondition.TypeProvider;
 import com.google.auto.value.AutoValue;
@@ -163,6 +164,22 @@ public final class ScenarioController extends AbstractModel<StopModel>
       scenarioQueue.poll();
       dispatch(e);
     }
+  }
+
+  /**
+   * @return The {@link Scenario#getProblemClass()} of the scenario controlled
+   *         by this controller.
+   */
+  public ProblemClass getScenarioProblemClass() {
+    return scenario.getProblemClass();
+  }
+
+  /**
+   * @return The {@link Scenario#getProblemInstanceId()} of the scenario
+   *         controlled by this controller.
+   */
+  public String getScenarioId() {
+    return scenario.getProblemInstanceId();
   }
 
   @SuppressWarnings("unchecked")
