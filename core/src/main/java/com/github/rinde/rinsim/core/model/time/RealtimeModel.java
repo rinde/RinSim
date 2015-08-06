@@ -369,7 +369,8 @@ class RealtimeModel extends TimeModel implements RealtimeClockController {
 
       // standard deviation may not be greater than 5ms
       checkState(sum.getStandardDeviation() < MAX_STD_NS,
-          "Std is above threshold of 5ms: %s.", sum.getStandardDeviation());
+          "Std is above threshold of 5ms: %s.", sum.getStandardDeviation(),
+          interArrivalTimes);
       // on average we don't want a deviation to the mean of more than 1 ms per
       // tick.
       checkState(
