@@ -85,6 +85,11 @@ public final class SolverToRealtimeAdapter implements RealtimeSolver {
           if (t instanceof CancellationException) {
             return;
           }
+          if (t instanceof RuntimeException) {
+            throw (RuntimeException) t;
+          } else if (t instanceof Error) {
+            throw (Error) t;
+          }
           throw new IllegalStateException(t);
         }
       });
