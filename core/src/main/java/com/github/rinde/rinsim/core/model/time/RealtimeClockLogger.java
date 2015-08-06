@@ -40,12 +40,17 @@ import com.google.common.collect.Range;
  * Instances can be obtained via {@link #builder()}.
  * @author Rinde van Lon
  */
-public final class RealtimeClockLogger extends AbstractModelVoid {
+public final class RealtimeClockLogger extends AbstractModelVoid
+    implements TickListener {
 
   final List<LogEntry> log;
+  final RealtimeClockController clock;
+  long rtCounter;
+  long stCounter;
 
-  RealtimeClockLogger(final RealtimeClockController clock) {
+  RealtimeClockLogger(RealtimeClockController c) {
     log = new ArrayList<>();
+    clock = c;
     clock.getEventAPI().addListener(new Listener() {
       @Override
       public void handleEvent(Event e) {
@@ -62,6 +67,32 @@ public final class RealtimeClockLogger extends AbstractModelVoid {
   public List<LogEntry> getLog() {
     return Collections.unmodifiableList(log);
   }
+
+  /**
+   * @return The number of real-time ticks.
+   */
+  public long getRtCount() {
+    return rtCounter;
+  }
+
+  /**
+   * @return The number of simulated time ticks.
+   */
+  public long getStCount() {
+    return stCounter;
+  }
+
+  @Override
+  public void tick(TimeLapse timeLapse) {
+    if (clock.getClockMode() == ClockMode.REAL_TIME) {
+      rtCounter++;
+    } else {
+      stCounter++;
+    }
+  }
+
+  @Override
+  public void afterTick(TimeLapse timeLapse) {}
 
   /**
    * @return A new builder for constructing the logger.
