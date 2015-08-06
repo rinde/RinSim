@@ -159,10 +159,10 @@ public final class RtSolverModel extends AbstractModel<RtSolverUser>
 
   @Override
   public void afterTick(TimeLapse timeLapse) {
-    if (timeLapse.getStartTime() == timeToCheckIfComputing) {
-      if (!manager.isComputing() && clock.isTicking()) {
-        clock.switchToSimulatedTime();
-      }
+    if (timeLapse.getStartTime() == timeToCheckIfComputing
+        && !manager.isComputing()
+        && clock.isTicking()) {
+      clock.switchToSimulatedTime();
     }
   }
 
