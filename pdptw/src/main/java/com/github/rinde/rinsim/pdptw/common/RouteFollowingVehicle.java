@@ -328,11 +328,9 @@ public class RouteFollowingVehicle extends Vehicle {
           // (which is one too many), therefore first occurrence is removed
           routeList.remove(p);
         }
-      } else if (state == ParcelState.PICKING_UP) {
-        if (!isPickingUp(p)) {
-          // in this case the parcel is being picked up by another vehicle
-          routeList.removeAll(Collections.singleton(p));
-        }
+      } else if (state == ParcelState.PICKING_UP && !isPickingUp(p)) {
+        // in this case the parcel is being picked up by another vehicle
+        routeList.removeAll(Collections.singleton(p));
       }
     }
     setRoute(routeList);
