@@ -117,11 +117,13 @@ public final class MetricsIO {
     try {
       Files.createParentDirs(f);
       Files.write(
-          new StringBuilder().append(length).append("System.lineSeparator()")
-              .append(Joiner.on(System.lineSeparator()).join(times))
-              .append(System.lineSeparator()),
-          f,
-          Charsets.UTF_8);
+        new StringBuilder()
+            .append(length)
+            .append(System.lineSeparator())
+            .append(Joiner.on(System.lineSeparator()).join(times))
+            .append(System.lineSeparator()),
+        f,
+        Charsets.UTF_8);
     } catch (final IOException e) {
       throw new IllegalStateException(e);
     }
