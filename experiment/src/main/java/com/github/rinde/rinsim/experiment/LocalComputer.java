@@ -58,7 +58,8 @@ final class LocalComputer implements Computer {
         .listeningDecorator(Executors.newFixedThreadPool(threads));
     final List<SimulationResult> results =
         Collections.synchronizedList(new ArrayList<SimulationResult>());
-    final ResultCollector resultCatcher = new ResultCollector(executor, results);
+    final ResultCollector resultCatcher =
+        new ResultCollector(executor, results);
 
     try {
       for (final ExperimentRunner r : runners) {
