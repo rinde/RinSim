@@ -240,10 +240,10 @@ class RealtimeModel extends TimeModel implements RealtimeClockController {
   static class Realtime extends AbstractClockState {
     // number of ticks that will be checked for consistency
     static final int CONSISTENCY_CHECK_LENGTH = 50;
-    // max standard deviation = 5ms
-    static final double MAX_STD_NS = 5000000d;
-    // max mean deviation = 1ms
-    static final double MAX_MEAN_DEVIATION_NS = 1000000d;
+    // max standard deviation = 10ms
+    static final double MAX_STD_NS = 10000000d;
+    // max mean deviation = 2ms
+    static final double MAX_MEAN_DEVIATION_NS = 2000000d;
 
     ListeningScheduledExecutorService executor;
     final long tickNanoSeconds;
@@ -369,13 +369,14 @@ class RealtimeModel extends TimeModel implements RealtimeClockController {
 
       // standard deviation may not be greater than 5ms
       checkState(sum.getStandardDeviation() < MAX_STD_NS,
-          "Std is above threshold of 5ms: %s.", sum.getStandardDeviation(),
-          interArrivalTimes);
+          "Std is above threshold of %sns: %sns.", MAX_STD_NS,
+          sum.getStandardDeviation(), interArrivalTimes);
       // on average we don't want a deviation to the mean of more than 1 ms per
       // tick.
       checkState(
           Math.abs(tickNanoSeconds - sum.getMean()) < MAX_MEAN_DEVIATION_NS,
-          "Mean interval is above threshold of 1ms: %s.", sum.getMean());
+          "Mean interval is above threshold of %sns: %s.",
+          MAX_MEAN_DEVIATION_NS, sum.getMean());
     }
 
     @Override
@@ -421,7 +422,7 @@ class RealtimeModel extends TimeModel implements RealtimeClockController {
 
   static class TickListenerTimingChecker implements TickListener {
     static final double MS_TO_NS = 1000000d;
-    static final double UPPER_LIMIT_FACTOR = 1.1d;
+    static final double UPPER_LIMIT_FACTOR = 1.2d;
     final TickListener delegate;
     long tickDuration;
 
