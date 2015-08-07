@@ -50,7 +50,7 @@ public final class PostProcessors {
       }
 
       @Override
-      public FailureStrategy handleFailure(Throwable t, Simulator sim,
+      public FailureStrategy handleFailure(Exception e, Simulator sim,
           SimArgs args) {
         return FailureStrategy.INCLUDE;
       }
@@ -71,7 +71,7 @@ public final class PostProcessors {
       }
 
       @Override
-      public FailureStrategy handleFailure(Throwable t, Simulator sim,
+      public FailureStrategy handleFailure(Exception e, Simulator sim,
           SimArgs args) {
         return FailureStrategy.ABORT_EXPERIMENT_RUN;
       }

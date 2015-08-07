@@ -58,7 +58,7 @@ final class LocalComputer implements Computer {
         .listeningDecorator(Executors.newFixedThreadPool(threads));
     final List<SimulationResult> results =
         Collections.synchronizedList(new ArrayList<SimulationResult>());
-    final ResultCatcher resultCatcher = new ResultCatcher(executor, results);
+    final ResultCollector resultCatcher = new ResultCollector(executor, results);
 
     try {
       for (final ExperimentRunner r : runners) {
@@ -93,14 +93,14 @@ final class LocalComputer implements Computer {
     return ExperimentResults.create(builder, ImmutableSet.copyOf(results));
   }
 
-  static class ResultCatcher implements FutureCallback<SimulationResult> {
+  static class ResultCollector implements FutureCallback<SimulationResult> {
     final ListeningExecutorService executor;
     final List<SimulationResult> results;
 
     @Nullable
     volatile Throwable throwable;
 
-    ResultCatcher(ListeningExecutorService ex, List<SimulationResult> res) {
+    ResultCollector(ListeningExecutorService ex, List<SimulationResult> res) {
       executor = ex;
       results = res;
     }

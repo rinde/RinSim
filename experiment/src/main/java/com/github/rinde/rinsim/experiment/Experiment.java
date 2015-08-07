@@ -212,14 +212,14 @@ public final class Experiment {
       checkNotNull(resultObject, "PostProcessor may not return null.");
       return resultObject;
 
-    } catch (final Throwable t) {
+    } catch (final Exception e) {
       final FailureStrategy strategy =
-          args.getPostProcessor().handleFailure(t, sim, args);
+          args.getPostProcessor().handleFailure(e, sim, args);
 
       if (strategy == FailureStrategy.INCLUDE) {
         return args.getPostProcessor().collectResults(sim, args);
       } else if (strategy == FailureStrategy.ABORT_EXPERIMENT_RUN) {
-        throw new AbortExperimentException("Failed: " + args, t);
+        throw new AbortExperimentException("Failed: " + args, e);
       }
       return strategy;
     }

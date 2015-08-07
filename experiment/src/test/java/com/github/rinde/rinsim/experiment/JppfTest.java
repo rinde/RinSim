@@ -215,7 +215,7 @@ public class JppfTest {
 
     @Override
     public FailureStrategy handleFailure(
-        Throwable t, Simulator sim, SimArgs args) {
+        Exception e, Simulator sim, SimArgs args) {
       return FailureStrategy.ABORT_EXPERIMENT_RUN;
     }
   }
