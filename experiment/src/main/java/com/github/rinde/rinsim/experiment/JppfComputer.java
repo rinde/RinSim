@@ -40,14 +40,10 @@ import org.jppf.node.protocol.Task;
 import org.jppf.task.storage.DataProvider;
 import org.jppf.task.storage.MemoryMapDataProvider;
 
-import com.github.rinde.rinsim.core.Simulator;
-import com.github.rinde.rinsim.core.model.ModelBuilder;
 import com.github.rinde.rinsim.experiment.Experiment.Builder;
 import com.github.rinde.rinsim.experiment.Experiment.SimArgs;
 import com.github.rinde.rinsim.experiment.Experiment.SimulationResult;
 import com.github.rinde.rinsim.pdptw.common.ObjectiveFunction;
-import com.github.rinde.rinsim.pdptw.common.StatisticsDTO;
-import com.github.rinde.rinsim.pdptw.common.StatsTracker;
 import com.github.rinde.rinsim.scenario.Scenario;
 import com.github.rinde.rinsim.scenario.ScenarioIO;
 import com.google.common.base.Joiner;
@@ -123,10 +119,8 @@ final class JppfComputer implements Computer {
               .getScenarioId());
           final ObjectiveFunction objFunc = objFuncMap.getValue(t
               .getObjectiveFunctionId());
-          if (t.getPostProcessorId().isPresent()) {
-            job.getDataProvider().setParameter(t.getPostProcessorId().get(),
-                ppMap.getValue(t.getPostProcessorId().get()));
-          }
+          job.getDataProvider().setParameter(t.getPostProcessorId(),
+              ppMap.getValue(t.getPostProcessorId()));
           job.getDataProvider().setParameter(t.getConfigurationId(), config);
           job.getDataProvider().setParameter(t.getScenarioId(), scenario);
           job.getDataProvider().setParameter(t.getObjectiveFunctionId(),
@@ -170,23 +164,18 @@ final class JppfComputer implements Computer {
 
     for (final SimArgs args : inputs) {
       final String configId = configMap.storeAndGenerateId(
-          args.masConfig);
+          args.getMasConfig());
       final String scenId = scenarioMap.storeAndGenerateId(
-          new ScenarioProvider(ScenarioIO.write(args.scenario),
-              args.scenario.getClass()));
-      scenariosMap.put(scenId, args.scenario);
+          new ScenarioProvider(ScenarioIO.write(args.getScenario()),
+              args.getScenario().getClass()));
+      scenariosMap.put(scenId, args.getScenario());
       final String objFuncId = objFuncMap.storeAndGenerateId(
-          args.objectiveFunction);
+          args.getObjectiveFunction());
 
-      final Optional<String> postProcId;
-      if (args.postProcessor.isPresent()) {
-        postProcId = Optional.of(ppMap.storeAndGenerateId(args.postProcessor
-            .get()));
-      } else {
-        postProcId = Optional.absent();
-      }
-      tasks.add(new SimulationTask(tasks.size(), args.randomSeed, scenId,
-          configId, objFuncId, postProcId));
+      final String postProcId =
+          ppMap.storeAndGenerateId(args.getPostProcessor());
+      tasks.add(new SimulationTask(args.getRandomSeed(), scenId, configId,
+          objFuncId, postProcId));
     }
   }
 
@@ -197,12 +186,18 @@ final class JppfComputer implements Computer {
     if (simTask.getThrowable() != null) {
       throw new IllegalArgumentException(simTask.getThrowable());
     }
-    final SimTaskResult result = simTask.getResult();
+    final Object result = simTask.getResult();
     final Scenario scen = scenariosMap.get(simTask.getScenarioId());
-    final MASConfiguration conf = jobMap.get(simTask).getDataProvider()
-        .getParameter(simTask.getConfigurationId());
-    return SimulationResult.create(result.getStats(), scen, conf, simTask
-        .getSeed(), result.getData());
+
+    final DataProvider dp = jobMap.get(simTask).getDataProvider();
+    final MASConfiguration conf = dp.getParameter(simTask.getConfigurationId());
+    final ObjectiveFunction obj =
+        dp.getParameter(simTask.getObjectiveFunctionId());
+    final PostProcessor<?> pp = dp.getParameter(simTask.getPostProcessorId());
+
+    final SimArgs args =
+        SimArgs.create(scen, conf, simTask.getSeed(), obj, false, pp, null);
+    return SimulationResult.create(args, result);
   }
 
   static class ResultsCollector implements TaskResultListener {
@@ -351,7 +346,7 @@ final class JppfComputer implements Computer {
     }
   }
 
-  static final class SimulationTask extends AbstractTask<SimTaskResult>
+  static final class SimulationTask extends AbstractTask<Object>
       implements Comparable<SimulationTask> {
     private static final long serialVersionUID = 5298683984670600238L;
 
@@ -359,14 +354,12 @@ final class JppfComputer implements Computer {
     private final String scenarioId;
     private final String configurationId;
     private final String objectiveFunctionId;
-    private final Optional<String> postProcessorId;
+    private final String postProcessorId;
     private final String id;
     private final int hashCode;
-    private final int index;
 
-    SimulationTask(int ind, long randomSeed, String scenId, String configId,
-        String objFuncId, Optional<String> postProcId) {
-      index = ind;
+    SimulationTask(long randomSeed, String scenId, String configId,
+        String objFuncId, String postProcId) {
       seed = randomSeed;
       scenarioId = scenId;
       configurationId = configId;
@@ -376,10 +369,6 @@ final class JppfComputer implements Computer {
           objectiveFunctionId, postProcessorId);
       hashCode = Objects.hashCode(seed, scenarioId, configurationId,
           objectiveFunctionId, postProcessorId);
-    }
-
-    int getIndex() {
-      return index;
     }
 
     @Override
@@ -397,29 +386,19 @@ final class JppfComputer implements Computer {
           configurationId);
       final ObjectiveFunction objectiveFunction = getDataProvider()
           .getParameter(objectiveFunctionId);
+      final PostProcessor<?> postProcessor = getDataProvider().getParameter(
+          postProcessorId);
 
-      final Simulator sim = Experiment.init(scenario.get(),
-          configuration, seed, false, Optional.<ModelBuilder<?, ?>>absent());
-      // perform simulation
-      sim.start();
-      final StatisticsDTO stats = sim.getModelProvider().getModel(
-          StatsTracker.class).getStatistics();
+      final Scenario s = scenario.get();
+      final SimArgs simArgs = SimArgs.create(s, configuration, seed,
+          objectiveFunction, false, postProcessor, null);
+      final Object simResult = Experiment.perform(simArgs);
 
-      final Optional<Object> data;
-      if (postProcessorId.isPresent()) {
-        final PostProcessor<?> postProcessor = getDataProvider().getParameter(
-            postProcessorId.get());
-        data = Optional.of((Object) postProcessor.collectResults(sim));
-        checkArgument(data.get() instanceof Serializable,
-            "Your PostProcessor must generate Serializable objects, found %s.",
-            data.get());
-      } else {
-        data = Optional.absent();
-      }
-      checkState(objectiveFunction.isValidResult(stats),
-          "The simulation did not result in a valid result: %s.", stats);
+      checkArgument(simResult instanceof Serializable,
+          "Your PostProcessor must generate Serializable objects, found %s.",
+          simResult);
 
-      setResult(new SimTaskResult(stats, data));
+      setResult(simResult);
     }
 
     long getSeed() {
@@ -438,7 +417,7 @@ final class JppfComputer implements Computer {
       return objectiveFunctionId;
     }
 
-    Optional<String> getPostProcessorId() {
+    String getPostProcessorId() {
       return postProcessorId;
     }
 
@@ -478,29 +457,10 @@ final class JppfComputer implements Computer {
           .compare(scenarioId, o.scenarioId)
           .compare(configurationId, o.configurationId)
           .compare(objectiveFunctionId, o.objectiveFunctionId)
-          .compare(postProcessorId.orNull(), o.postProcessorId.orNull(),
+          .compare(postProcessorId, o.postProcessorId,
               Ordering.natural().nullsLast())
           .compare(seed, o.seed)
           .result();
-    }
-  }
-
-  static class SimTaskResult implements Serializable {
-    private static final long serialVersionUID = -631947579134555016L;
-    private final StatisticsDTO stats;
-    private final Optional<?> data;
-
-    SimTaskResult(StatisticsDTO stat, Optional<?> d) {
-      stats = stat;
-      data = d;
-    }
-
-    StatisticsDTO getStats() {
-      return stats;
-    }
-
-    Optional<?> getData() {
-      return data;
     }
   }
 }

@@ -15,29 +15,32 @@
  */
 package com.github.rinde.rinsim.experiment;
 
-import static com.google.common.base.Preconditions.checkState;
+import static com.google.common.base.Verify.verifyNotNull;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
 
-import com.github.rinde.rinsim.core.Simulator;
+import javax.annotation.Nullable;
+
 import com.github.rinde.rinsim.experiment.Experiment.Builder;
 import com.github.rinde.rinsim.experiment.Experiment.SimArgs;
 import com.github.rinde.rinsim.experiment.Experiment.SimulationResult;
-import com.github.rinde.rinsim.pdptw.common.StatisticsDTO;
-import com.github.rinde.rinsim.pdptw.common.StatsTracker;
-import com.google.common.base.Optional;
+import com.github.rinde.rinsim.experiment.PostProcessor.FailureStrategy;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
 
 final class LocalComputer implements Computer {
+
+  static final long THREAD_SLEEP_TIME = 10L;
 
   LocalComputer() {}
 
@@ -51,30 +54,81 @@ final class LocalComputer implements Computer {
     final List<ExperimentRunner> runners = runnerBuilder.build();
 
     final int threads = Math.min(builder.numThreads, runners.size());
-    final ListeningExecutorService executor;
-    if (threads > 1) {
-      executor = MoreExecutors
-          .listeningDecorator(Executors.newFixedThreadPool(threads));
-    } else {
-      executor = MoreExecutors.newDirectExecutorService();
-    }
-    final List<SimulationResult> results;
+    final ListeningExecutorService executor = MoreExecutors
+        .listeningDecorator(Executors.newFixedThreadPool(threads));
+    final List<SimulationResult> results =
+        Collections.synchronizedList(new ArrayList<SimulationResult>());
+    final ResultCatcher resultCatcher = new ResultCatcher(executor, results);
+
     try {
-      // safe cast according to javadoc
-      @SuppressWarnings({"unchecked", "rawtypes"})
-      final List<ListenableFuture<SimulationResult>> futures = (List) executor
-          .invokeAll(runners);
-      results = Futures.allAsList(futures).get();
+      for (final ExperimentRunner r : runners) {
+        final ListenableFuture<SimulationResult> f = executor.submit(r);
+        Futures.addCallback(f, resultCatcher);
+      }
+      while (results.size() < inputs.size() && !resultCatcher.hasError()) {
+        Thread.sleep(THREAD_SLEEP_TIME);
+      }
+
     } catch (final InterruptedException e) {
       throw new IllegalStateException(e);
-    } catch (final ExecutionException e) {
-      // FIXME need some way to gracefully handle this error. All data
-      // should be saved to reproduce this simulation.
+    } catch (final RuntimeException e) {
+      if (e.getCause() instanceof RuntimeException) {
+        throw (RuntimeException) e.getCause();
+      } else if (e.getCause() instanceof Error) {
+        throw (Error) e.getCause();
+      }
       throw new IllegalStateException(e);
+    }
+
+    if (resultCatcher.hasError()) {
+      if (resultCatcher.throwable instanceof RuntimeException) {
+        throw (RuntimeException) resultCatcher.throwable;
+      } else if (resultCatcher.throwable instanceof Error) {
+        throw (Error) resultCatcher.throwable;
+      }
+      throw new IllegalStateException(resultCatcher.throwable);
     }
     executor.shutdown();
 
     return ExperimentResults.create(builder, ImmutableSet.copyOf(results));
+  }
+
+  static class ResultCatcher implements FutureCallback<SimulationResult> {
+    final ListeningExecutorService executor;
+    final List<SimulationResult> results;
+
+    @Nullable
+    volatile Throwable throwable;
+
+    ResultCatcher(ListeningExecutorService ex, List<SimulationResult> res) {
+      executor = ex;
+      results = res;
+    }
+
+    public boolean hasError() {
+      return throwable != null;
+    }
+
+    @Override
+    public void onFailure(Throwable t) {
+      throwable = t;
+      executor.shutdownNow();
+    }
+
+    @Override
+    public void onSuccess(@Nullable SimulationResult result) {
+      final SimulationResult res = verifyNotNull(result);
+      if (res.getResultObject() == FailureStrategy.RETRY) {
+        final ExperimentRunner newRunner =
+            new ExperimentRunner(res.getSimArgs());
+        Futures.addCallback(executor.submit(newRunner), this);
+      } else {
+        // FIXME this should be changed into a more decent progress indicator
+        System.out.print(".");
+        results.add(result);
+      }
+    }
+
   }
 
   static class ExperimentRunner implements Callable<SimulationResult> {
@@ -86,47 +140,9 @@ final class LocalComputer implements Computer {
 
     @Override
     public SimulationResult call() {
-      final Simulator sim = Experiment.init(arguments.scenario,
-          arguments.masConfig, arguments.randomSeed, arguments.showGui,
-          arguments.uiCreator);
-      try {
-        sim.start();
-
-      } catch (final RuntimeException e) {
-        if (arguments.postProcessor.isPresent()) {
-          arguments.postProcessor.get().handleFailure(e, sim);
-        }
-
-        final StringBuilder sb = new StringBuilder()
-            .append("[Scenario= ")
-            .append(arguments.scenario)
-            .append(",")
-            .append(arguments.scenario.getProblemClass())
-            .append("-")
-            .append(arguments.scenario.getProblemInstanceId())
-            .append("]")
-            .append(",seed=")
-            .append(arguments.randomSeed)
-            .append(",config=")
-            .append(arguments.masConfig);
-        throw new IllegalStateException(sb.toString(), e);
-      }
-
-      final StatisticsDTO stats = sim.getModelProvider().getModel(
-          StatsTracker.class).getStatistics();
-
-      Optional<?> data = Optional.absent();
-      if (arguments.postProcessor.isPresent()) {
-        data = Optional.of(arguments.postProcessor.get().collectResults(sim));
-      }
-      checkState(arguments.objectiveFunction.isValidResult(stats),
-          "The simulation did not result in a valid result: %s.", stats);
-      final SimulationResult result = SimulationResult.create(stats,
-          arguments.scenario, arguments.masConfig, arguments.randomSeed,
-          data);
-
-      // FIXME this should be changed into a more decent progress indicator
-      System.out.print(".");
+      final Object resultObject = Experiment.perform(arguments);
+      final SimulationResult result =
+          SimulationResult.create(arguments, resultObject);
       return result;
     }
   }

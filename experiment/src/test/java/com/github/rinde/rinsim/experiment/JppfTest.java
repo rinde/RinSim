@@ -16,9 +16,9 @@
 package com.github.rinde.rinsim.experiment;
 
 import static com.google.common.collect.Lists.newArrayList;
+import static com.google.common.truth.Truth.assertThat;
 import static java.util.Arrays.asList;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 
 import java.io.Serializable;
 import java.util.List;
@@ -35,7 +35,9 @@ import com.github.rinde.rinsim.core.Simulator;
 import com.github.rinde.rinsim.core.model.pdp.DefaultPDPModel;
 import com.github.rinde.rinsim.core.model.pdp.TimeWindowPolicy.TimeWindowPolicies;
 import com.github.rinde.rinsim.core.model.road.RoadModelBuilders;
+import com.github.rinde.rinsim.experiment.Experiment.SimArgs;
 import com.github.rinde.rinsim.experiment.ExperimentTest.TestPostProcessor;
+import com.github.rinde.rinsim.geom.Point;
 import com.github.rinde.rinsim.pdptw.common.ObjectiveFunction;
 import com.github.rinde.rinsim.pdptw.common.PDPRoadModel;
 import com.github.rinde.rinsim.pdptw.common.ScenarioTestUtil;
@@ -46,6 +48,7 @@ import com.github.rinde.rinsim.pdptw.common.TestObjectiveFunction;
 import com.github.rinde.rinsim.scenario.Scenario;
 import com.github.rinde.rinsim.scenario.gendreau06.Gendreau06ObjectiveFunction;
 import com.github.rinde.rinsim.scenario.generator.ScenarioGenerator;
+import com.google.common.collect.ImmutableList;
 
 /**
  * Test for JPPF computation.
@@ -109,6 +112,7 @@ public class JppfTest {
    * Checks determinism of a local experiment and a JPPF experiment, both with
    * identical settings. Using a Gendreau scenario.
    */
+  @SuppressWarnings("unchecked")
   @Test
   public void determinismLocalVsJppf() {
     final Experiment.Builder experimentBuilder = Experiment
@@ -124,8 +128,12 @@ public class JppfTest {
     experimentBuilder.computeLocal();
     final ExperimentResults results4 = experimentBuilder.perform();
     assertEquals(results3, results4);
-    assertTrue(
-        results3.getResults().asList().get(0).getSimulationData().isPresent());
+
+    assertThat(results3.getResults().asList().get(0).getResultObject())
+        .isInstanceOf(ImmutableList.class);
+    assertThat(
+        (List<Point>) results3.getResults().asList().get(0).getResultObject())
+            .hasSize(10);
   }
 
   /**
@@ -201,12 +209,15 @@ public class JppfTest {
     private static final long serialVersionUID = -2166760289557525263L;
 
     @Override
-    public NotSerializable collectResults(Simulator sim) {
+    public NotSerializable collectResults(Simulator sim, SimArgs args) {
       return new NotSerializable();
     }
 
     @Override
-    public void handleFailure(Exception e, Simulator sim) {}
+    public FailureStrategy handleFailure(
+        Throwable t, Simulator sim, SimArgs args) {
+      return FailureStrategy.ABORT_EXPERIMENT_RUN;
+    }
   }
 
   static class NotSerializableObjFunc implements ObjectiveFunction {

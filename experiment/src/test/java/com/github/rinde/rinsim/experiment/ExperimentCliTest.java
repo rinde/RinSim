@@ -28,6 +28,7 @@ import com.github.rinde.rinsim.experiment.Experiment.Builder;
 import com.github.rinde.rinsim.pdptw.common.ScenarioTestUtil;
 import com.github.rinde.rinsim.pdptw.common.TestObjectiveFunction;
 import com.github.rinde.rinsim.scenario.ScenarioIO;
+import com.github.rinde.rinsim.testutil.TestUtil;
 
 /**
  * Test for commandline interface of experiment.
@@ -51,6 +52,7 @@ public class ExperimentCliTest {
    */
   @Before
   public void setUp() {
+    TestUtil.testEnum(ExperimentCli.ConfigToName.class);
     configA = ExperimentTest.testConfig("A");
     configB = ExperimentTest.testConfig("B");
     configC = ExperimentTest.testConfig("C");

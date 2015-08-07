@@ -16,6 +16,7 @@
 package com.github.rinde.rinsim.experiment;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Sets.newLinkedHashSet;
@@ -34,9 +35,9 @@ import org.apache.commons.math3.random.RandomGenerator;
 import com.github.rinde.rinsim.core.Simulator;
 import com.github.rinde.rinsim.core.model.ModelBuilder;
 import com.github.rinde.rinsim.experiment.LocalComputer.ExperimentRunner;
+import com.github.rinde.rinsim.experiment.PostProcessor.FailureStrategy;
 import com.github.rinde.rinsim.io.FileProvider;
 import com.github.rinde.rinsim.pdptw.common.ObjectiveFunction;
-import com.github.rinde.rinsim.pdptw.common.StatisticsDTO;
 import com.github.rinde.rinsim.pdptw.common.StatisticsProvider;
 import com.github.rinde.rinsim.pdptw.common.StatsTracker;
 import com.github.rinde.rinsim.scenario.Scenario;
@@ -48,7 +49,6 @@ import com.github.rinde.rinsim.util.StochasticSupplier;
 import com.google.auto.value.AutoValue;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Function;
-import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
 import com.google.common.base.Supplier;
 import com.google.common.collect.ComparisonChain;
@@ -142,10 +142,10 @@ public final class Experiment {
    */
   public static SimulationResult singleRun(Scenario scenario,
       MASConfiguration configuration, long seed, ObjectiveFunction objFunc,
-      boolean showGui, @Nullable PostProcessor<?> postProcessor,
+      boolean showGui, PostProcessor<?> postProcessor,
       @Nullable ModelBuilder<?, ?> uic) {
 
-    final ExperimentRunner er = new ExperimentRunner(new SimArgs(scenario,
+    final ExperimentRunner er = new ExperimentRunner(SimArgs.create(scenario,
         configuration, seed, objFunc, showGui, postProcessor, uic));
     final SimulationResult res = er.call();
     checkState(res != null);
@@ -200,6 +200,31 @@ public final class Experiment {
     return simBuilder.build();
   }
 
+  static Object perform(SimArgs args) {
+    final Simulator sim = Experiment.init(args.getScenario(),
+        args.getMasConfig(), args.getRandomSeed(), args.isShowGui(),
+        args.getUiCreator());
+
+    try {
+      sim.start();
+      final Object resultObject =
+          args.getPostProcessor().collectResults(sim, args);
+      checkNotNull(resultObject, "PostProcessor may not return null.");
+      return resultObject;
+
+    } catch (final Throwable t) {
+      final FailureStrategy strategy =
+          args.getPostProcessor().handleFailure(t, sim, args);
+
+      if (strategy == FailureStrategy.INCLUDE) {
+        return args.getPostProcessor().collectResults(sim, args);
+      } else if (strategy == FailureStrategy.ABORT_EXPERIMENT_RUN) {
+        throw new AbortExperimentException("Failed: " + args, t);
+      }
+      return strategy;
+    }
+  }
+
   static boolean containsStatisticsProvider(
       Iterable<? extends ModelBuilder<?, ?>> mbs) {
     for (final ModelBuilder<?, ?> mb : mbs) {
@@ -208,7 +233,6 @@ public final class Experiment {
       }
     }
     return false;
-
   }
 
   /**
@@ -225,7 +249,6 @@ public final class Experiment {
     final List<ResultListener> resultListeners;
     @Nullable
     ModelBuilder<?, ?> uiCreator;
-    @Nullable
     PostProcessor<?> postProc;
     boolean showGui;
     int repetitions;
@@ -248,6 +271,7 @@ public final class Experiment {
       numThreads = Runtime.getRuntime().availableProcessors();
       numBatches = 1;
       computerType = Computers.LOCAL;
+      postProc = PostProcessors.defaultPostProcessor();
     }
 
     /**
@@ -385,11 +409,12 @@ public final class Experiment {
     }
 
     /**
-     * Specify a {@link PostProcessor} which is used to gather additional
-     * results from a simulation. The data gathered by the post-processor ends
-     * up in {@link SimulationResult#getSimulationData()}.
-     * @param postProcessor The post-processor to use, by default there is no
-     *          post-processor.
+     * Specify a {@link PostProcessor} which is used to create a results object
+     * and perform error handling. results from a simulation. The data gathered
+     * by the post-processor ends up in
+     * {@link SimulationResult#getResultObject()}.
+     * @param postProcessor The post-processor to use, by default
+     *          {@link PostProcessors#defaultPostProcessor()} is used.
      * @return This, as per the builder pattern.
      */
     public Builder usePostProcessor(PostProcessor<?> postProcessor) {
@@ -560,7 +585,7 @@ public final class Experiment {
         for (final Scenario scenario : scenarios) {
           for (int i = 0; i < repetitions; i++) {
             final long seed = seeds.get(i);
-            runnerBuilder.add(new SimArgs(scenario, configuration,
+            runnerBuilder.add(SimArgs.create(scenario, configuration,
                 seed, objectiveFunction, showGui, postProc, uiCreator));
           }
         }
@@ -577,33 +602,74 @@ public final class Experiment {
     }
   }
 
-  static class SimArgs {
-    final Scenario scenario;
-    final MASConfiguration masConfig;
-    final long randomSeed;
-    final ObjectiveFunction objectiveFunction;
-    final boolean showGui;
-    final Optional<? extends PostProcessor<?>> postProcessor;
-    final Optional<ModelBuilder<?, ?>> uiCreator;
+  /**
+   * Simulation arguments of a single simulation.
+   * @author Rinde van Lon
+   */
+  @AutoValue
+  public abstract static class SimArgs {
 
-    SimArgs(Scenario s, MASConfiguration m, long seed,
-        ObjectiveFunction obj, boolean gui, @Nullable PostProcessor<?> pp,
-        @Nullable ModelBuilder<?, ?> uic) {
-      scenario = s;
-      masConfig = m;
-      randomSeed = seed;
-      objectiveFunction = obj;
-      showGui = gui;
-      postProcessor = Optional.fromNullable(pp);
-      uiCreator = Optional.<ModelBuilder<?, ?>>fromNullable(uic);
-    }
+    SimArgs() {}
+
+    /**
+     * @return the scenario
+     */
+    public abstract Scenario getScenario();
+
+    /**
+     * @return the masConfig
+     */
+    public abstract MASConfiguration getMasConfig();
+
+    /**
+     * @return the randomSeed
+     */
+    public abstract long getRandomSeed();
+
+    /**
+     * @return the objectiveFunction
+     */
+    public abstract ObjectiveFunction getObjectiveFunction();
+
+    /**
+     * @return the showGui
+     */
+    public abstract boolean isShowGui();
+
+    /**
+     * @return the postProcessor
+     */
+    public abstract PostProcessor<?> getPostProcessor();
+
+    /**
+     * @return the uiCreator
+     */
+    public abstract Optional<ModelBuilder<?, ?>> getUiCreator();
 
     @Override
     public String toString() {
-      return Joiner.on(",").join(scenario.getClass().getName(),
-          scenario.getProblemClass(),
-          scenario.getProblemInstanceId(), masConfig, randomSeed,
-          objectiveFunction, showGui, postProcessor, uiCreator);
+      return new StringBuilder()
+          .append("SimArgs{problemClass=")
+          .append(getScenario().getProblemClass().toString())
+          .append(",instancedId=")
+          .append(getScenario().getProblemInstanceId())
+          .append(",masConfig=")
+          .append(getMasConfig().getName())
+          .append(",objectiveFunction=")
+          .append(getObjectiveFunction().toString())
+          .append(",randomSeed=")
+          .append(getRandomSeed())
+          .append(",postProcessor=")
+          .append(getPostProcessor())
+          .append("}")
+          .toString();
+    }
+
+    static SimArgs create(Scenario s, MASConfiguration m, long seed,
+        ObjectiveFunction obj, boolean gui, PostProcessor<?> pp,
+        @Nullable ModelBuilder<?, ?> uic) {
+      return new AutoValue_Experiment_SimArgs(s, m, seed, obj, gui, pp,
+          Optional.<ModelBuilder<?, ?>>fromNullable(uic));
     }
   }
 
@@ -619,49 +685,28 @@ public final class Experiment {
     SimulationResult() {}
 
     /**
-     * @return The simulation statistics.
+     * @return The arguments of the simulation.
      */
-    public abstract StatisticsDTO getStats();
+    public abstract SimArgs getSimArgs();
 
     /**
-     * @return The scenario on which the simulation was run.
+     * @return A result object is created by a {@link PostProcessor}.
      */
-    public abstract Scenario getScenario();
-
-    /**
-     * @return The configuration which was used to configure the MAS.
-     */
-    public abstract MASConfiguration getMasConfiguration();
-
-    /**
-     * @return The seed that was supplied to
-     *         {@link StochasticSupplier#get(long)}.
-     */
-    public abstract long getSeed();
-
-    /**
-     * @return Additional simulation data as gathered by a {@link PostProcessor}
-     *         , or if no post-processor was used this object defaults to
-     *         <code>Optional#absent()</code>.
-     */
-    public abstract Optional<?> getSimulationData();
+    public abstract Object getResultObject();
 
     @Override
     public int compareTo(@Nullable SimulationResult o) {
       assert o != null;
-      return ComparisonChain
-          .start()
-          .compare(getScenario().getProblemClass().getId(),
-              o.getScenario().getProblemClass().getId())
-          .compare(getScenario().getProblemInstanceId(),
-              o.getScenario().getProblemInstanceId())
+      return ComparisonChain.start()
+          .compare(getSimArgs().getScenario().getProblemClass().getId(),
+              o.getSimArgs().getScenario().getProblemClass().getId())
+          .compare(getSimArgs().getScenario().getProblemInstanceId(),
+              o.getSimArgs().getScenario().getProblemInstanceId())
           .result();
     }
 
-    static SimulationResult create(StatisticsDTO stats, Scenario scenario,
-        MASConfiguration masConfig, long seed, Optional<?> simData) {
-      return new AutoValue_Experiment_SimulationResult(stats, scenario,
-          masConfig, seed, simData);
+    static SimulationResult create(SimArgs simArgs, Object simResult) {
+      return new AutoValue_Experiment_SimulationResult(simArgs, simResult);
     }
   }
 }

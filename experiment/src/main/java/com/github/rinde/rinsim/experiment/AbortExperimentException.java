@@ -15,26 +15,14 @@
  */
 package com.github.rinde.rinsim.experiment;
 
-import com.github.rinde.rinsim.core.Simulator;
-import com.github.rinde.rinsim.experiment.Experiment.SimArgs;
-
 /**
- * A post-processor should collect results from a {@link Simulator}.
+ *
  * @author Rinde van Lon
- * @param <T> The results object type.
  */
-public interface PostProcessor<T> {
+public class AbortExperimentException extends RuntimeException {
 
-  /**
-   * Collects results from the provided {@link Simulator}.
-   * @param sim The simulator.
-   * @return An object containing simulation results.
-   */
-  T collectResults(Simulator sim, SimArgs args);
-
-  FailureStrategy handleFailure(Throwable t, Simulator sim, SimArgs args);
-
-  public enum FailureStrategy {
-    ABORT_EXPERIMENT_RUN, RETRY, INCLUDE
+  public AbortExperimentException(String message, Throwable cause) {
+    super(message, cause);
   }
+
 }

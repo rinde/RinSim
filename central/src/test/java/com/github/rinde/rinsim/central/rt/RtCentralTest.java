@@ -34,9 +34,11 @@ import com.github.rinde.rinsim.core.model.time.RealtimeClockController.ClockMode
 import com.github.rinde.rinsim.core.model.time.TimeModel;
 import com.github.rinde.rinsim.experiment.Experiment;
 import com.github.rinde.rinsim.experiment.ExperimentResults;
+import com.github.rinde.rinsim.experiment.PostProcessors;
 import com.github.rinde.rinsim.geom.Point;
 import com.github.rinde.rinsim.pdptw.common.PDPRoadModel;
 import com.github.rinde.rinsim.pdptw.common.RouteFollowingVehicle;
+import com.github.rinde.rinsim.pdptw.common.StatisticsDTO;
 import com.github.rinde.rinsim.scenario.Scenario;
 import com.github.rinde.rinsim.scenario.TimeOutEvent;
 import com.github.rinde.rinsim.scenario.TimedEvent;
@@ -76,10 +78,12 @@ public class RtCentralTest {
         .withThreads(1)
         .addConfiguration(
           RtCentral.solverConfigurationAdapt(RandomSolver.supplier(), ""))
+        .usePostProcessor(PostProcessors.statisticsPostProcessor())
         .perform();
 
     final double objVal = Gendreau06ObjectiveFunction.instance()
-        .computeCost(er.getResults().asList().get(0).getStats());
+        .computeCost(
+          (StatisticsDTO) er.getResults().asList().get(0).getResultObject());
     assertThat(objVal).isWithin(0.0001).of(495.4718);
   }
 
