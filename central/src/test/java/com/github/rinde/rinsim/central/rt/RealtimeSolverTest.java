@@ -25,6 +25,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 
@@ -316,6 +317,7 @@ public class RealtimeSolverTest {
    * solve the problem again (but then in its new form).
    */
   @Test
+  @Ignore
   public void testConsistencyChecker() {
     final List<TimedEvent> events = asList(
       AddParcelEvent.create(Parcel.builder(new Point(1, 1), new Point(9, 9))
