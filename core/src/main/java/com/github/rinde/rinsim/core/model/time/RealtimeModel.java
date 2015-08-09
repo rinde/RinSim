@@ -240,13 +240,14 @@ class RealtimeModel extends TimeModel implements RealtimeClockController {
   static class Realtime extends AbstractClockState {
     // number of ticks that will be checked for consistency
     static final int CONSISTENCY_CHECK_LENGTH = 50;
-    // max standard deviation = 10ms
-    static final double MAX_STD_NS = 10000000d;
-    // max mean deviation = 2ms
-    static final double MAX_MEAN_DEVIATION_NS = 2000000d;
+
+    static final double MAX_STD_PERC = .1;
+    static final double MAX_MEAN_DEVIATION_PERC = .05;
 
     ListeningScheduledExecutorService executor;
     final long tickNanoSeconds;
+    final double maxStdNs;
+    final double maxMeanDeviationNs;
     final List<Throwable> exceptions;
     @Nullable
     Trigger nextTrigger;
@@ -258,6 +259,9 @@ class RealtimeModel extends TimeModel implements RealtimeClockController {
     Realtime(TimeLapse timeLapse) {
       tickNanoSeconds = Measure.valueOf(timeLapse.getTickLength(),
           timeLapse.getTimeUnit()).longValue(SI.NANO(SI.SECOND));
+      maxStdNs = tickNanoSeconds * MAX_STD_PERC;
+      maxMeanDeviationNs = tickNanoSeconds * MAX_MEAN_DEVIATION_PERC;
+
       exceptions = new ArrayList<>();
     }
 
@@ -367,16 +371,13 @@ class RealtimeModel extends TimeModel implements RealtimeClockController {
       }
       final StatisticalSummary sum = ss.getSummary();
 
-      // standard deviation may not be greater than 5ms
-      checkState(sum.getStandardDeviation() < MAX_STD_NS,
-          "Std is above threshold of %sns: %sns.", MAX_STD_NS,
+      checkState(sum.getStandardDeviation() < maxStdNs,
+          "Std is above threshold of %sns: %sns.", maxStdNs,
           sum.getStandardDeviation(), interArrivalTimes);
-      // on average we don't want a deviation to the mean of more than 1 ms per
-      // tick.
       checkState(
-          Math.abs(tickNanoSeconds - sum.getMean()) < MAX_MEAN_DEVIATION_NS,
+          Math.abs(tickNanoSeconds - sum.getMean()) < maxMeanDeviationNs,
           "Mean interval is above threshold of %sns: %s.",
-          MAX_MEAN_DEVIATION_NS, sum.getMean());
+          maxMeanDeviationNs, sum.getMean());
     }
 
     @Override
