@@ -1,5 +1,12 @@
 # Release notes
 
+## v4.0.0
+ * Many classes have been refactored, including the builder system in core.
+ * Experiment is more flexible using PostProcessors.
+ * Several data value object have been refactored to use getter instead of fields and a factory method instead of a constructor.
+ * ScenarioIO has been greatly improved, it no longer relies on any object serialization.
+ * Support for real-time clock (not stable yet)
+
 ## v3.2.4
  * CommModel now supports unregister
  * CollisionGraphRoadModel new method: 
