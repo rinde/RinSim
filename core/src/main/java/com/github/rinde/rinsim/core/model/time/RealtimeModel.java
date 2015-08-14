@@ -371,9 +371,9 @@ class RealtimeModel extends TimeModel implements RealtimeClockController {
       }
       final StatisticalSummary sum = ss.getSummary();
 
-      // checkState(sum.getStandardDeviation() < maxStdNs,
-      // "Std is above threshold of %sns: %sns.", maxStdNs,
-      // sum.getStandardDeviation(), interArrivalTimes);
+      checkState(sum.getStandardDeviation() < maxStdNs,
+          "Std is above threshold of %sns: %sns.", maxStdNs,
+          sum.getStandardDeviation(), interArrivalTimes);
       checkState(
           Math.abs(tickNanoSeconds - sum.getMean()) < maxMeanDeviationNs,
           "Mean interval is above threshold of %sns: %s.",
