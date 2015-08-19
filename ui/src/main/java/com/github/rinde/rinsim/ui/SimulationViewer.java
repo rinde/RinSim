@@ -85,9 +85,9 @@ final class SimulationViewer extends Composite implements TickListener,
     ControlListener, PaintListener, SelectionListener, Model<Renderer>,
     ModelReceiver {
   static final org.eclipse.swt.graphics.Point START_SCREEN_SIZE =
-      new org.eclipse.swt.graphics.Point(800, 500);
+    new org.eclipse.swt.graphics.Point(800, 500);
   static final org.eclipse.swt.graphics.Point TIME_LABEL_LOC =
-      new org.eclipse.swt.graphics.Point(50, 10);
+    new org.eclipse.swt.graphics.Point(50, 10);
   static final String PLAY_LABEL = "&Play\tCtrl+P";
   static final long SLEEP_MS = 30;
   static final long TIME_FORMATTER_THRESHOLD = 500;
@@ -115,6 +115,7 @@ final class SimulationViewer extends Composite implements TickListener,
   @Nullable
   Label timeLabel;
 
+  final boolean isRealtime;
   final SimulatorAPI simulator;
   ModelProvider modelProvider;
 
@@ -149,6 +150,8 @@ final class SimulationViewer extends Composite implements TickListener,
     super(shell, SWT.NONE);
 
     clock = cc;
+    isRealtime = clock instanceof RealtimeClockController;
+
     simulator = simapi;
 
     accelerators = vb.accelerators();
@@ -183,22 +186,22 @@ final class SimulationViewer extends Composite implements TickListener,
       vertical.setLayout(new FillLayout());
 
       final int topHeight = configurePanels(vertical,
-          panels.removeAll(SWT.TOP));
+        panels.removeAll(SWT.TOP));
 
       final SashForm horizontal = new SashForm(vertical, SWT.HORIZONTAL
           | SWT.SMOOTH);
       horizontal.setLayout(new FillLayout());
 
       final int leftWidth = configurePanels(horizontal,
-          panels.removeAll(SWT.LEFT));
+        panels.removeAll(SWT.LEFT));
 
       // create canvas
       createContent(horizontal);
 
       final int rightWidth = configurePanels(horizontal,
-          panels.removeAll(SWT.RIGHT));
+        panels.removeAll(SWT.RIGHT));
       final int bottomHeight = configurePanels(vertical,
-          panels.removeAll(SWT.BOTTOM));
+        panels.removeAll(SWT.BOTTOM));
 
       final int canvasHeight = size.y - topHeight - bottomHeight;
       if (topHeight > 0 && bottomHeight > 0) {
@@ -219,7 +222,7 @@ final class SimulationViewer extends Composite implements TickListener,
       }
 
       checkState(panels.isEmpty(),
-          "Invalid preferred position set for panels: %s", panels.values());
+        "Invalid preferred position set for panels: %s", panels.values());
     }
   }
 
@@ -483,7 +486,8 @@ final class SimulationViewer extends Composite implements TickListener,
     for (final CanvasRenderer renderer : canvasRenderers) {
       renderer.renderDynamic(gc, new ViewPort(new Point(center.x,
           center.y),
-          viewRect, m), clock.getCurrentTime());
+          viewRect, m),
+        clock.getCurrentTime());
     }
     for (final PanelRenderer renderer : panelRenderers) {
       renderer.render();
@@ -544,10 +548,10 @@ final class SimulationViewer extends Composite implements TickListener,
     }
 
     checkState(
-        isDefined,
-        "none of the available renderers implements getViewRect(), known "
-            + "renderers: %s",
-        canvasRenderers);
+      isDefined,
+      "none of the available renderers implements getViewRect(), known "
+          + "renderers: %s",
+      canvasRenderers);
 
     viewRect = new ViewRect(new Point(minX, minY), new Point(maxX, maxY));
 
@@ -592,7 +596,7 @@ final class SimulationViewer extends Composite implements TickListener,
       final int vSelection = vBar.getSelection();
       final int destY = -vSelection - center.y;
       canvas.scroll(center.x, destY, center.x, center.y, content.width,
-          content.height, false);
+        content.height, false);
       origin.y = -vSelection + origin.y - center.y;
     }
   }
@@ -607,7 +611,7 @@ final class SimulationViewer extends Composite implements TickListener,
       final int hSelection = hBar.getSelection();
       final int destX = -hSelection - center.x;
       canvas.scroll(destX, center.y, center.x, center.y, content.width,
-          content.height, false);
+        content.height, false);
       origin.x = -hSelection + origin.x - center.x;
     }
   }
@@ -642,10 +646,15 @@ final class SimulationViewer extends Composite implements TickListener,
       public void run() {
         if (!canvas.isDisposed()) {
           if (clock.getTickLength() > TIME_FORMATTER_THRESHOLD) {
-            final String formatted = FORMATTER
-                .print(
-                    new Period(0, clock.getCurrentTime()));
-            timeLabel.setText(formatted);
+            final StringBuilder sb = new StringBuilder();
+            sb.append(FORMATTER.print(new Period(0, clock.getCurrentTime())));
+
+            if (isRealtime) {
+              sb.append(" ");
+              sb.append(
+                ((RealtimeClockController) clock).getClockMode().name());
+            }
+            timeLabel.setText(sb.toString());
           } else {
             timeLabel.setText(Long.toString(clock.getCurrentTime()));
           }
@@ -697,7 +706,7 @@ final class SimulationViewer extends Composite implements TickListener,
 
     Builder() {
       setDependencies(Shell.class, ClockController.class, SimulatorAPI.class,
-          MainView.class);
+        MainView.class);
     }
 
     abstract View.Builder viewBuilder();
