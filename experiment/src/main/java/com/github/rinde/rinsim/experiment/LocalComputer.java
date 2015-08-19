@@ -54,8 +54,14 @@ final class LocalComputer implements Computer {
     final List<ExperimentRunner> runners = runnerBuilder.build();
 
     final int threads = Math.min(builder.numThreads, runners.size());
-    final ListeningExecutorService executor = MoreExecutors
-        .listeningDecorator(Executors.newFixedThreadPool(threads));
+
+    final ListeningExecutorService executor;
+    if (builder.showGui) {
+      executor = MoreExecutors.newDirectExecutorService();
+    } else {
+      executor = MoreExecutors.listeningDecorator(
+          Executors.newFixedThreadPool(threads));
+    }
     final List<SimulationResult> results =
         Collections.synchronizedList(new ArrayList<SimulationResult>());
     final ResultCollector resultCatcher =
