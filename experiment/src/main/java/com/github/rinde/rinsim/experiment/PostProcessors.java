@@ -45,7 +45,8 @@ public final class PostProcessors {
         final StatisticsDTO stats =
             sim.getModelProvider().getModel(StatsTracker.class).getStatistics();
         checkState(args.getObjectiveFunction().isValidResult(stats),
-            "The simulation did not result in a valid result: %s.", stats);
+            "The simulation did not result in a valid result: %s, AimArgs: %s.",
+            stats, args);
         return stats;
       }
 
