@@ -84,6 +84,7 @@ import com.google.common.collect.Multimap;
 final class SimulationViewer extends Composite implements TickListener,
     ControlListener, PaintListener, SelectionListener, Model<Renderer>,
     ModelReceiver {
+  static final String SPACE = " ";
   static final org.eclipse.swt.graphics.Point START_SCREEN_SIZE =
     new org.eclipse.swt.graphics.Point(800, 500);
   static final org.eclipse.swt.graphics.Point TIME_LABEL_LOC =
@@ -94,7 +95,7 @@ final class SimulationViewer extends Composite implements TickListener,
   static final String TIME_SEPARATOR = ":";
   static final PeriodFormatter FORMATTER = new PeriodFormatterBuilder()
       .appendDays()
-      .appendSeparator(" ")
+      .appendSeparator(SPACE)
       .minimumPrintedDigits(2)
       .printZeroAlways()
       .appendHours()
@@ -650,7 +651,7 @@ final class SimulationViewer extends Composite implements TickListener,
             sb.append(FORMATTER.print(new Period(0, clock.getCurrentTime())));
 
             if (isRealtime) {
-              sb.append(" ");
+              sb.append(SPACE);
               sb.append(
                 ((RealtimeClockController) clock).getClockMode().name());
             }
