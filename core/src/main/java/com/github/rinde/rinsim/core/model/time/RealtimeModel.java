@@ -53,6 +53,9 @@ import com.google.common.util.concurrent.ListenableScheduledFuture;
 import com.google.common.util.concurrent.ListeningScheduledExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
 
+import net.openhft.affinity.AffinityStrategies;
+import net.openhft.affinity.AffinityThreadFactory;
+
 /**
  * @author Rinde van Lon
  *
@@ -331,7 +334,8 @@ class RealtimeModel extends TimeModel implements RealtimeClockController {
     void initExecutor() {
       executor = MoreExecutors.listeningDecorator(
           Executors.newSingleThreadScheduledExecutor(
-              PriorityThreadFactory.INSTANCE));
+              new AffinityThreadFactory("RinSim-time-model-thread",
+                  AffinityStrategies.ANY)));
     }
 
     void awaitTermination() {
