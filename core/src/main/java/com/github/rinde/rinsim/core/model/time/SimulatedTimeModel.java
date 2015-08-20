@@ -15,6 +15,7 @@
  */
 package com.github.rinde.rinsim.core.model.time;
 
+
 /**
  * @author Rinde van Lon
  *
@@ -27,8 +28,13 @@ class SimulatedTimeModel extends TimeModel {
 
   @Override
   void doStart() {
-    while (isTicking()) {
-      tickImpl();
+    try {
+      while (isTicking()) {
+        tickImpl();
+      }
+    } catch (final RuntimeException e) {
+      cleanUpAfterException();
+      throw e;
     }
   }
 

@@ -28,13 +28,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.measure.Measure;
 import javax.measure.unit.SI;
+
+import net.openhft.affinity.AffinityLock;
 
 import org.apache.commons.math3.stat.descriptive.StatisticalSummary;
 import org.apache.commons.math3.stat.descriptive.SummaryStatistics;
@@ -53,9 +54,6 @@ import com.google.common.util.concurrent.ListenableScheduledFuture;
 import com.google.common.util.concurrent.ListeningScheduledExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
 
-import net.openhft.affinity.AffinityStrategies;
-import net.openhft.affinity.AffinityThreadFactory;
-
 /**
  * @author Rinde van Lon
  *
@@ -63,10 +61,13 @@ import net.openhft.affinity.AffinityThreadFactory;
 class RealtimeModel extends TimeModel implements RealtimeClockController {
   final StateMachine<Trigger, RealtimeModel> stateMachine;
   final Map<TickListener, TickListenerTimingChecker> decoratorMap;
+  final AffinityLock affinityLock;
 
   RealtimeModel(RealtimeBuilder builder) {
     super(builder, RtClockEventType.values());
     decoratorMap = new HashMap<>();
+
+    affinityLock = AffinityLock.acquireLock();
 
     final Realtime rt = new Realtime(timeLapse);
     final SimulatedTime st = new SimulatedTime();
@@ -107,6 +108,12 @@ class RealtimeModel extends TimeModel implements RealtimeClockController {
   }
 
   @Override
+  void cleanUpAfterException() {
+    affinityLock.release();
+    super.cleanUpAfterException();
+  }
+
+  @Override
   void doStart() {
     checkState(stateMachine.isSupported(Trigger.START),
         "%s can be started only once",
@@ -120,6 +127,7 @@ class RealtimeModel extends TimeModel implements RealtimeClockController {
         "Can not stop time in current state: %s",
         stateMachine.getCurrentState().name());
     stateMachine.handle(Trigger.STOP, this);
+    affinityLock.release();
   }
 
   @SuppressWarnings("deprecation")
@@ -221,8 +229,14 @@ class RealtimeModel extends TimeModel implements RealtimeClockController {
         return null;
       }
       isTicking = true;
-      while (isTicking) {
-        context.tickImpl();
+      try {
+        while (isTicking) {
+          context.tickImpl();
+        }
+      } catch (final RuntimeException e) {
+        System.out.println("catched");
+        context.cleanUpAfterException();
+        throw e;
       }
       final Trigger t = nextTrigger;
       nextTrigger = null;
@@ -318,7 +332,7 @@ class RealtimeModel extends TimeModel implements RealtimeClockController {
         @Override
         public void onSuccess(@Nullable Object result) {}
       });
-      awaitTermination();
+      awaitTermination(context);
       final Trigger t = nextTrigger;
       nextTrigger = null;
       return t;
@@ -333,18 +347,17 @@ class RealtimeModel extends TimeModel implements RealtimeClockController {
 
     void initExecutor() {
       executor = MoreExecutors.listeningDecorator(
-          Executors.newSingleThreadScheduledExecutor(
-              new AffinityThreadFactory("RinSim-time-model-thread",
-                  AffinityStrategies.ANY)));
+          Executors.newSingleThreadScheduledExecutor());
     }
 
-    void awaitTermination() {
+    void awaitTermination(RealtimeModel context) {
       try {
         executor.awaitTermination(Long.MAX_VALUE, TimeUnit.DAYS);
       } catch (final InterruptedException e) {
         throw new IllegalStateException(e);
       }
       if (!exceptions.isEmpty()) {
+        context.cleanUpAfterException();
         if (exceptions.get(0) instanceof RuntimeException) {
           throw (RuntimeException) exceptions.get(0);
         } else if (exceptions.get(0) instanceof Error) {
@@ -457,19 +470,4 @@ class RealtimeModel extends TimeModel implements RealtimeClockController {
     }
   }
 
-  enum PriorityThreadFactory implements ThreadFactory {
-    INSTANCE {
-      @Override
-      public Thread newThread(@Nullable Runnable r) {
-        final Thread t = new Thread(r);
-        t.setPriority(Thread.MAX_PRIORITY);
-        return t;
-      }
-
-      @Override
-      public String toString() {
-        return PriorityThreadFactory.class.getSimpleName();
-      }
-    }
-  }
 }

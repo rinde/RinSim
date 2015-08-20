@@ -98,6 +98,11 @@ public abstract class TimeModel extends AbstractModel<TickListener>
   @Override
   public abstract void tick();
 
+  @OverridingMethodsMustInvokeSuper
+  void cleanUpAfterException() {
+    eventDispatcher.dispatchEvent(new Event(ClockEventType.STOPPED, this));
+  }
+
   @Override
   @Nonnull
   public <U> U get(Class<U> clazz) {

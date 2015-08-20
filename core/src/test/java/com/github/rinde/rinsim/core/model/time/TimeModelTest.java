@@ -30,7 +30,6 @@ import org.junit.runners.Parameterized;
 import com.github.rinde.rinsim.core.model.FakeDependencyProvider;
 import com.github.rinde.rinsim.core.model.time.Clock.ClockEventType;
 import com.github.rinde.rinsim.core.model.time.RealtimeClockController.ClockMode;
-import com.github.rinde.rinsim.core.model.time.RealtimeModel.PriorityThreadFactory;
 import com.github.rinde.rinsim.core.model.time.RealtimeModel.SimpleState;
 import com.github.rinde.rinsim.core.model.time.RealtimeModel.TickListenerTimingChecker;
 import com.github.rinde.rinsim.core.model.time.RealtimeModel.Trigger;
@@ -62,7 +61,6 @@ public abstract class TimeModelTest<T extends TimeModel> {
   @Before
   public void setUp() {
     TestUtil.testEnum(ClockEventType.class);
-    TestUtil.testEnum(PriorityThreadFactory.class);
     TestUtil.testEnum(Trigger.class);
     TestUtil.testEnum(SimpleState.class);
     TestUtil.testEnum(ClockMode.class);
@@ -329,6 +327,38 @@ public abstract class TimeModelTest<T extends TimeModel> {
       assertThat(e.getMessage()).isEqualTo("YOLO");
     }
     assertThat(fail).isTrue();
+  }
+
+  /**
+   * Tests that STOPPED event is dispatched when an exception occurs.
+   */
+  @Test
+  public void testStoppedEventOnException() {
+    final ListenerEventHistory history = new ListenerEventHistory();
+    getModel().getEventAPI().addListener(history, Clock.ClockEventType.STOPPED);
+
+    getModel().register(new TickListener() {
+      @Override
+      public void tick(TimeLapse timeLapse) {
+        if (timeLapse.getStartTime() >= 300) {
+          throw new IllegalStateException("Test");
+        }
+      }
+
+      @Override
+      public void afterTick(TimeLapse timeLapse) {}
+    });
+
+    boolean failure = false;
+    try {
+      getModel().start();
+    } catch (final IllegalStateException e) {
+      assertThat(e.getMessage()).isEqualTo("Test");
+      assertThat(history.getEventTypeHistory()).containsExactly(
+          ClockEventType.STOPPED);
+      failure = true;
+    }
+    assertThat(failure).isTrue();
   }
 
   TickListenerChecker checker() {
