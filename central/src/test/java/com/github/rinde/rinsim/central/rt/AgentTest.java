@@ -72,22 +72,23 @@ public class AgentTest {
   public void setUp() {
     final List<TimedEvent> events = asList(
       AddParcelEvent.create(
-        Parcel.builder(new Point(0, 0), new Point(3, 3))
-            .orderAnnounceTime(200)
-            .pickupTimeWindow(TimeWindow.create(1000, 2000))
-            .buildDTO()),
+          Parcel.builder(new Point(0, 0), new Point(3, 3))
+              .orderAnnounceTime(200)
+              .pickupTimeWindow(TimeWindow.create(1000, 2000))
+              .buildDTO()),
       AddParcelEvent.create(
-        Parcel.builder(new Point(0, 0), new Point(3, 3))
-            .orderAnnounceTime(999)
-            .pickupTimeWindow(TimeWindow.create(60000, 80000))
-            .serviceDuration(180000L)
-            .buildDTO()),
+          Parcel.builder(new Point(0, 0), new Point(3, 3))
+              .orderAnnounceTime(999)
+              .pickupTimeWindow(TimeWindow.create(60000, 80000))
+              .serviceDuration(180000L)
+              .buildDTO()),
       TimeOutEvent.create(3000));
 
     sim = RealtimeTestHelper.init(Handler.INSTANCE, events)
-        .addModel(RtSolverModel.builder())
+        .addModel(RtSolverModel.builder()
+            .withThreadPoolSize(3)
+            .withThreadGrouping(false))
         .build();
-
   }
 
   /**

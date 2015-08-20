@@ -49,8 +49,7 @@ public final class RandomSolver implements Solver {
   @Override
   public ImmutableList<ImmutableList<Parcel>> solve(GlobalStateObject state) {
     final LinkedListMultimap<VehicleStateObject, Parcel> map =
-      LinkedListMultimap
-          .create();
+      LinkedListMultimap.create();
 
     final Set<Parcel> available = newLinkedHashSet(state.getAvailableParcels());
     final Set<Parcel> destinations = newLinkedHashSet();

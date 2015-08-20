@@ -22,6 +22,13 @@ import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.TimeUnit;
+
+import javax.annotation.CheckReturnValue;
+
+import net.openhft.affinity.AffinityStrategies;
+import net.openhft.affinity.AffinityThreadFactory;
 
 import com.github.rinde.rinsim.central.Solver;
 import com.github.rinde.rinsim.central.Solvers;
@@ -66,7 +73,7 @@ import com.google.common.util.concurrent.MoreExecutors;
  * mode only one {@link RtSimSolver} can be created and it can only be obtained
  * by another model (by declaring a dependency). In multi mode there are no
  * limits on the number of {@link RtSimSolver}s that can be created and
- * implementations of {@link RtSolverUser} can created {@link RtSimSolver}s as
+ * implementations of {@link RtSolverUser} can create {@link RtSimSolver}s as
  * well. By default the model will use a mode depending on the method through
  * which its <i>first</i> builder is requested. If the first request comes from
  * another model (by declaring a dependency), the model will start in single
@@ -86,11 +93,18 @@ import com.google.common.util.concurrent.MoreExecutors;
  */
 public final class RtSolverModel extends AbstractModel<RtSolverUser>
     implements TickListener, Listener {
-  private static final int NUM_THREADS_IN_SINGLE_MODE = 2;
+
+  /**
+   * Default number of threads in 'single mode'.
+   */
+  public static final int DEFAULT_NUM_THREADS_IN_SINGLE_MODE = 2;
+
   final RealtimeClockController clock;
   final PDPRoadModel roadModel;
   final PDPModel pdpModel;
   final SimSolversManager manager;
+  final int threadPoolSize;
+  final boolean threadGroupingEnabled;
   Optional<ListeningExecutorService> executor;
   Mode mode;
   long timeToCheckIfComputing;
@@ -100,20 +114,27 @@ public final class RtSolverModel extends AbstractModel<RtSolverUser>
   }
 
   RtSolverModel(RealtimeClockController c, PDPRoadModel rm, PDPModel pm,
-      Mode m) {
+      Mode m, int threads, boolean threadGrouping) {
     clock = c;
     roadModel = rm;
     pdpModel = pm;
     manager = new SimSolversManager();
     executor = Optional.absent();
     mode = m;
+    threadGroupingEnabled = threadGrouping;
+    threadPoolSize = threads;
 
     clock.getEventAPI().addListener(this, RtClockEventType.values());
     clock.getEventAPI().addListener(new Listener() {
       @Override
-      public void handleEvent(Event e) {
+      public void handleEvent(Event event) {
         if (executor.isPresent()) {
-          executor.get().shutdown();
+          executor.get().shutdownNow();
+          try {
+            executor.get().awaitTermination(Long.MAX_VALUE, TimeUnit.DAYS);
+          } catch (final InterruptedException e) {
+            throw new IllegalStateException(e);
+          }
         }
       }
     }, ClockEventType.STOPPED);
@@ -177,17 +198,26 @@ public final class RtSolverModel extends AbstractModel<RtSolverUser>
 
   void initExecutor() {
     if (!executor.isPresent() && mode != Mode.UNKNOWN) {
-      if (mode == Mode.SINGLE_MODE) {
-        executor = Optional.of(
-          MoreExecutors.listeningDecorator(
-            Executors.newFixedThreadPool(NUM_THREADS_IN_SINGLE_MODE)));
+      final ThreadFactory factory;
+      if (threadGroupingEnabled) {
+        factory = new AffinityGroupThreadFactory(getClass().getSimpleName());
       } else {
-        // multi mode
-        executor = Optional.of(
-          MoreExecutors.listeningDecorator(
-            Executors.newFixedThreadPool(
-              Runtime.getRuntime().availableProcessors())));
+        factory = new AffinityThreadFactory(getClass().getSimpleName(),
+            AffinityStrategies.ANY);
       }
+
+      final int threads;
+      if (threadPoolSize == 0) {
+        if (mode == Mode.SINGLE_MODE) {
+          threads = DEFAULT_NUM_THREADS_IN_SINGLE_MODE;
+        } else {
+          threads = Runtime.getRuntime().availableProcessors();
+        }
+      } else {
+        threads = threadPoolSize;
+      }
+      executor = Optional.of(MoreExecutors.listeningDecorator(
+          Executors.newFixedThreadPool(threads, factory)));
     }
   }
 
@@ -195,8 +225,9 @@ public final class RtSolverModel extends AbstractModel<RtSolverUser>
    * Constructs a {@link Builder} instance for {@link RtSolverModel}.
    * @return A new instance.
    */
+  @CheckReturnValue
   public static Builder builder() {
-    return Builder.create(Mode.UNKNOWN);
+    return Builder.create(Mode.UNKNOWN, 0, false);
   }
 
   /**
@@ -215,13 +246,18 @@ public final class RtSolverModel extends AbstractModel<RtSolverUser>
 
     abstract Mode getMode();
 
+    abstract int getThreadPoolSize();
+
+    abstract boolean getThreadGrouping();
+
     /**
      * The initial mode of the produced {@link RtSolverModel} will be 'single'.
      * See {@link RtSolverModel} for more information.
      * @return This, as per the builder pattern.
      */
+    @CheckReturnValue
     public Builder withSingleMode() {
-      return create(Mode.SINGLE_MODE);
+      return create(Mode.SINGLE_MODE, getThreadPoolSize(), getThreadGrouping());
     }
 
     /**
@@ -229,8 +265,37 @@ public final class RtSolverModel extends AbstractModel<RtSolverUser>
      * See {@link RtSolverModel} for more information.
      * @return This, as per the builder pattern.
      */
+    @CheckReturnValue
     public Builder withMultiMode() {
-      return create(Mode.MULTI_MODE);
+      return create(Mode.MULTI_MODE, getThreadPoolSize(), getThreadGrouping());
+    }
+
+    /**
+     * Sets the threadpool size. In 'single mode' the number of threads is
+     * determined by {@link #DEFAULT_NUM_THREADS_IN_SINGLE_MODE}. In 'multi
+     * mode' the number of threads is determined by
+     * {@link Runtime#availableProcessors()}.
+     * @param threads The number of threads, must be positive.
+     * @return This, as per the builder pattern.
+     */
+    @CheckReturnValue
+    public Builder withThreadPoolSize(int threads) {
+      checkArgument(threads > 0);
+      return create(getMode(), threads, getThreadGrouping());
+    }
+
+    /**
+     * Sets the thread grouping property. If thread grouping is enabled all
+     * threads spawned by this model will be locked to the same CPU, if it is
+     * disabled each thread will be locked to unique CPU (on a best effort
+     * basis).
+     * @param grouping Indicates whether grouping should be enabled. Default
+     *          value is <code>false</code>.
+     * @return This, as per the builder pattern.
+     */
+    @CheckReturnValue
+    public Builder withThreadGrouping(boolean grouping) {
+      return create(getMode(), getThreadPoolSize(), grouping);
     }
 
     @Override
@@ -239,11 +304,12 @@ public final class RtSolverModel extends AbstractModel<RtSolverUser>
           .get(RealtimeClockController.class);
       final PDPRoadModel rm = dependencyProvider.get(PDPRoadModel.class);
       final PDPModel pm = dependencyProvider.get(PDPModel.class);
-      return new RtSolverModel(c, rm, pm, getMode());
+      return new RtSolverModel(c, rm, pm, getMode(), getThreadPoolSize(),
+          getThreadGrouping());
     }
 
-    static Builder create(Mode m) {
-      return new AutoValue_RtSolverModel_Builder(m);
+    static Builder create(Mode m, int t, boolean g) {
+      return new AutoValue_RtSolverModel_Builder(m, t, g);
     }
   }
 
@@ -254,7 +320,7 @@ public final class RtSolverModel extends AbstractModel<RtSolverUser>
     SimSolversManager() {
       simSolvers = new LinkedHashSet<>();
       computingSimSolvers = Collections.synchronizedSet(
-        new LinkedHashSet<RtSimSolverSchedulerImpl>());
+          new LinkedHashSet<RtSimSolverSchedulerImpl>());
     }
 
     void register(RtSimSolverSchedulerImpl s) {
@@ -414,7 +480,7 @@ public final class RtSolverModel extends AbstractModel<RtSolverUser>
         currentSchedule = Optional.of(routes);
         isUpdated = true;
         simSolverEventDispatcher.dispatchEvent(
-          new Event(RtSimSolver.EventType.NEW_SCHEDULE, rtSimSolver));
+            new Event(RtSimSolver.EventType.NEW_SCHEDULE, rtSimSolver));
       }
 
       @Override
@@ -427,7 +493,7 @@ public final class RtSolverModel extends AbstractModel<RtSolverUser>
       @Override
       public void doneForNow() {
         eventDispatcher.dispatchEvent(
-          new Event(EventType.DONE_COMPUTING, reference));
+            new Event(EventType.DONE_COMPUTING, reference));
       }
 
       @Override

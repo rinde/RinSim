@@ -65,8 +65,8 @@ public final class SolverToRealtimeAdapter implements RealtimeSolver {
       currentFuture.get().cancel(true);
     }
     currentFuture = Optional.of(
-      scheduler.get().getSharedExecutor().submit(
-        new SolverComputer(solver, snapshot)));
+        scheduler.get().getSharedExecutor().submit(
+          new SolverComputer(solver, snapshot)));
     Futures.addCallback(currentFuture.get(),
       new FutureCallback<ImmutableList<ImmutableList<Parcel>>>() {
         @Override
@@ -74,7 +74,8 @@ public final class SolverToRealtimeAdapter implements RealtimeSolver {
             @Nullable ImmutableList<ImmutableList<Parcel>> result) {
           if (result == null) {
             throw new IllegalArgumentException(
-                "Solver.solve(..) must return a non-null result.");
+                "Solver.solve(..) must return a non-null result. Solver: "
+                    + solver);
           }
           scheduler.get().updateSchedule(result);
           scheduler.get().doneForNow();
