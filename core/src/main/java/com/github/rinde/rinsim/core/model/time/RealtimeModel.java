@@ -35,8 +35,6 @@ import javax.annotation.Nullable;
 import javax.measure.Measure;
 import javax.measure.unit.SI;
 
-import net.openhft.affinity.AffinityLock;
-
 import org.apache.commons.math3.stat.descriptive.StatisticalSummary;
 import org.apache.commons.math3.stat.descriptive.SummaryStatistics;
 
@@ -53,6 +51,8 @@ import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableScheduledFuture;
 import com.google.common.util.concurrent.ListeningScheduledExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
+
+import net.openhft.affinity.AffinityLock;
 
 /**
  * @author Rinde van Lon
@@ -234,7 +234,6 @@ class RealtimeModel extends TimeModel implements RealtimeClockController {
           context.tickImpl();
         }
       } catch (final RuntimeException e) {
-        System.out.println("catched");
         context.cleanUpAfterException();
         throw e;
       }

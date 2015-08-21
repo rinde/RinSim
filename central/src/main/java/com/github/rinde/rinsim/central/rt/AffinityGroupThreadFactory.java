@@ -31,7 +31,7 @@ import net.openhft.affinity.AffinitySupport;
  * thread pool will be run on the same CPU.
  * @author Rinde van Lon
  */
-public class AffinityGroupThreadFactory implements ThreadFactory {
+public final class AffinityGroupThreadFactory implements ThreadFactory {
   private final String threadNamePrefix;
   private final boolean createDaemonThreads;
   private final AtomicInteger numThreads;
@@ -72,27 +72,36 @@ public class AffinityGroupThreadFactory implements ThreadFactory {
     final Thread t = new Thread(new Runnable() {
       @Override
       public void run() {
-        synchronized (lock) {
-          if (lastAffinityLock != null) {
-            final AffinityLock al = lastAffinityLock;
-            AffinitySupport.setAffinity(1 << al.cpuId());
-          } else {
-            lastAffinityLock = AffinityLock.acquireLock();
-          }
-        }
+        acquireLock();
         try {
           verifyNotNull(r).run();
         } finally {
-          synchronized (lock) {
-            if (numThreads.decrementAndGet() == 0 && lastAffinityLock != null) {
-              lastAffinityLock.release();
-              lastAffinityLock = null;
-            }
-          }
+          releaseLock();
         }
       }
     }, threadName);
     t.setDaemon(createDaemonThreads);
     return t;
+
+  }
+
+  void acquireLock() {
+    synchronized (lock) {
+      if (lastAffinityLock != null) {
+        final AffinityLock al = lastAffinityLock;
+        AffinitySupport.setAffinity(1 << al.cpuId());
+      } else {
+        lastAffinityLock = AffinityLock.acquireLock();
+      }
+    }
+  }
+
+  void releaseLock() {
+    synchronized (lock) {
+      if (numThreads.decrementAndGet() == 0 && lastAffinityLock != null) {
+        lastAffinityLock.release();
+        lastAffinityLock = null;
+      }
+    }
   }
 }
