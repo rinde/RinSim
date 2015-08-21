@@ -23,6 +23,7 @@ import static com.github.rinde.rinsim.core.model.time.RealtimeModel.SimpleState.
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
 
+import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -46,6 +47,7 @@ import com.github.rinde.rinsim.fsm.StateMachine.StateMachineEvent;
 import com.github.rinde.rinsim.fsm.StateMachine.StateTransitionEvent;
 import com.google.common.collect.Iterators;
 import com.google.common.collect.PeekingIterator;
+import com.google.common.math.DoubleMath;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableScheduledFuture;
@@ -59,17 +61,37 @@ import net.openhft.affinity.AffinityLock;
  *
  */
 class RealtimeModel extends TimeModel implements RealtimeClockController {
+  // number of ticks that will be checked for consistency
+  static final int CONSISTENCY_CHECK_LENGTH = 50;
+  static final double MAX_STD_PERC = .1;
+  static final double MAX_MEAN_DEVIATION_PERC = .05;
+  static final double MAX_TICK_LENGTH_FACTOR = 1.2d;
+
   final StateMachine<Trigger, RealtimeModel> stateMachine;
   final Map<TickListener, TickListenerTimingChecker> decoratorMap;
   final AffinityLock affinityLock;
+  final long maxTickDuration;
 
   RealtimeModel(RealtimeBuilder builder) {
     super(builder, RtClockEventType.values());
     decoratorMap = new HashMap<>();
 
+    final long tickNanoSeconds = Measure.valueOf(timeLapse.getTickLength(),
+        timeLapse.getTimeUnit()).longValue(SI.NANO(SI.SECOND));
+
+    maxTickDuration = DoubleMath.roundToLong(
+        MAX_TICK_LENGTH_FACTOR * tickNanoSeconds, RoundingMode.UP);
+
+    final long maxStdNs =
+        DoubleMath.roundToLong(tickNanoSeconds * MAX_STD_PERC, RoundingMode.UP);
+    final long maxMeanDeviationNs = DoubleMath.roundToLong(
+        tickNanoSeconds * MAX_MEAN_DEVIATION_PERC, RoundingMode.UP);
+
     affinityLock = AffinityLock.acquireLock();
 
-    final Realtime rt = new Realtime(timeLapse);
+    final Realtime rt =
+        new Realtime(tickNanoSeconds, maxStdNs, maxMeanDeviationNs,
+            maxTickDuration);
     final SimulatedTime st = new SimulatedTime();
     stateMachine = StateMachine
         .create(
@@ -170,7 +192,7 @@ class RealtimeModel extends TimeModel implements RealtimeClockController {
         "A TickListener can not be registered more than once: %s.",
         tickListener);
     final TickListenerTimingChecker decorated = new TickListenerTimingChecker(
-        tickListener);
+        tickListener, maxTickDuration);
     decoratorMap.put(tickListener, decorated);
     return super.register(decorated);
   }
@@ -187,6 +209,17 @@ class RealtimeModel extends TimeModel implements RealtimeClockController {
       return clazz.cast(this);
     }
     return super.get(clazz);
+  }
+
+  String printTLDump() {
+    final StringBuilder sb = new StringBuilder();
+    for (final TickListenerTimingChecker tl : decoratorMap.values()) {
+      sb.append(tl.delegate)
+          .append(" took ")
+          .append(tl.tickDuration)
+          .append(System.lineSeparator());
+    }
+    return sb.toString();
   }
 
   enum Trigger {
@@ -254,30 +287,24 @@ class RealtimeModel extends TimeModel implements RealtimeClockController {
   }
 
   static class Realtime extends AbstractClockState {
-    // number of ticks that will be checked for consistency
-    static final int CONSISTENCY_CHECK_LENGTH = 50;
-
-    static final double MAX_STD_PERC = .1;
-    static final double MAX_MEAN_DEVIATION_PERC = .05;
-
-    ListeningScheduledExecutorService executor;
     final long tickNanoSeconds;
     final double maxStdNs;
     final double maxMeanDeviationNs;
+    final long maxTickDuration;
     final List<Throwable> exceptions;
     @Nullable
     Trigger nextTrigger;
+    ListeningScheduledExecutorService executor;
 
     // keeps time for last real-time request while in RT mode
     long lastRtRequest;
 
     @SuppressWarnings("null")
-    Realtime(TimeLapse timeLapse) {
-      tickNanoSeconds = Measure.valueOf(timeLapse.getTickLength(),
-          timeLapse.getTimeUnit()).longValue(SI.NANO(SI.SECOND));
-      maxStdNs = tickNanoSeconds * MAX_STD_PERC;
-      maxMeanDeviationNs = tickNanoSeconds * MAX_MEAN_DEVIATION_PERC;
-
+    Realtime(long tickNs, long maxStd, long maxMeanDevNs, long mxTickDuration) {
+      tickNanoSeconds = tickNs;
+      maxStdNs = maxStd;
+      maxMeanDeviationNs = maxMeanDevNs;
+      maxTickDuration = mxTickDuration;
       exceptions = new ArrayList<>();
     }
 
@@ -313,7 +340,7 @@ class RealtimeModel extends TimeModel implements RealtimeClockController {
                     @Override
                     public void run() {
                       timings.add(System.nanoTime());
-                      checkConsistency(timings);
+                      checkConsistency(timings, context);
                       context.tickImpl();
                       if (ref.nextTrigger != null) {
                         executor.shutdown();
@@ -366,7 +393,7 @@ class RealtimeModel extends TimeModel implements RealtimeClockController {
       }
     }
 
-    void checkConsistency(List<Long> timestamps) {
+    void checkConsistency(List<Long> timestamps, RealtimeModel context) {
       if (timestamps.size() < CONSISTENCY_CHECK_LENGTH) {
         return;
       }
@@ -378,7 +405,14 @@ class RealtimeModel extends TimeModel implements RealtimeClockController {
       final List<Long> interArrivalTimes = new ArrayList<>();
       for (long l1 = it.next(); it.hasNext(); l1 = it.next()) {
         final Long l2 = it.peek();
-        interArrivalTimes.add(l2 - l1);
+        final long interArrivalTime = l2 - l1;
+
+        if (interArrivalTime >= maxTickDuration) {
+          throw new IllegalStateException(
+              interArrivalTime + " is too much (limit: " + maxTickDuration
+                  + "). Dump: " + context.printTLDump());
+        }
+        interArrivalTimes.add(interArrivalTime);
       }
 
       final SummaryStatistics ss = new SummaryStatistics();
@@ -438,13 +472,13 @@ class RealtimeModel extends TimeModel implements RealtimeClockController {
   }
 
   static class TickListenerTimingChecker implements TickListener {
-    static final double MS_TO_NS = 1000000d;
-    static final double UPPER_LIMIT_FACTOR = 1.2d;
     final TickListener delegate;
+    final long maxTickDuration;
     long tickDuration;
 
-    TickListenerTimingChecker(TickListener tl) {
+    TickListenerTimingChecker(TickListener tl, long mxTickDuration) {
       delegate = tl;
+      maxTickDuration = mxTickDuration;
     }
 
     @Override
@@ -454,8 +488,7 @@ class RealtimeModel extends TimeModel implements RealtimeClockController {
       final long afterTickDuration = System.nanoTime() - start;
 
       checkState(
-          tickDuration + afterTickDuration < UPPER_LIMIT_FACTOR
-              * timeLapse.getTickLength() * MS_TO_NS,
+          tickDuration + afterTickDuration < maxTickDuration,
           "%s took too much time, max combined computation time is tick length "
               + "(%sms). Tick duration: %sns, after tick duration: %sns.",
           delegate, timeLapse.getTickLength(), tickDuration, afterTickDuration);
@@ -468,5 +501,4 @@ class RealtimeModel extends TimeModel implements RealtimeClockController {
       tickDuration = System.nanoTime() - start;
     }
   }
-
 }
