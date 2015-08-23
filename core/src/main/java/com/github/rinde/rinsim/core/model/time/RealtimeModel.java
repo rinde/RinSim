@@ -25,7 +25,7 @@ import static com.google.common.base.Preconditions.checkState;
 
 import java.math.RoundingMode;
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Executors;
@@ -74,7 +74,7 @@ class RealtimeModel extends TimeModel implements RealtimeClockController {
 
   RealtimeModel(RealtimeBuilder builder) {
     super(builder, RtClockEventType.values());
-    decoratorMap = new HashMap<>();
+    decoratorMap = new LinkedHashMap<>();
 
     final long tickNanoSeconds = Measure.valueOf(timeLapse.getTickLength(),
         timeLapse.getTimeUnit()).longValue(SI.NANO(SI.SECOND));
@@ -212,13 +212,20 @@ class RealtimeModel extends TimeModel implements RealtimeClockController {
   }
 
   String printTLDump() {
+    long sumDuration = 0;
     final StringBuilder sb = new StringBuilder();
     for (final TickListenerTimingChecker tl : decoratorMap.values()) {
       sb.append(tl.delegate)
           .append(" took ")
           .append(tl.tickDuration)
+          .append(" ns")
           .append(System.lineSeparator());
+      sumDuration += tl.tickDuration;
     }
+    sb.append("sum duration ")
+        .append(sumDuration)
+        .append(" ns")
+        .append(System.lineSeparator());
     return sb.toString();
   }
 
