@@ -224,7 +224,7 @@ class RealtimeModel extends TimeModel implements RealtimeClockController {
     }
     sb.append("sum duration ")
         .append(sumDuration)
-        .append(" ns")
+        .append(" nano seconds")
         .append(System.lineSeparator());
     return sb.toString();
   }
