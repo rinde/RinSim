@@ -36,7 +36,6 @@ import com.github.rinde.rinsim.core.model.pdp.DefaultPDPModel;
 import com.github.rinde.rinsim.core.model.pdp.TimeWindowPolicy.TimeWindowPolicies;
 import com.github.rinde.rinsim.core.model.road.RoadModelBuilders;
 import com.github.rinde.rinsim.experiment.Experiment.SimArgs;
-import com.github.rinde.rinsim.experiment.ExperimentTest.TestPostProcessor;
 import com.github.rinde.rinsim.geom.Point;
 import com.github.rinde.rinsim.pdptw.common.ObjectiveFunction;
 import com.github.rinde.rinsim.pdptw.common.PDPRoadModel;
@@ -96,7 +95,7 @@ public class JppfTest {
         .addScenario(scenario)
         .withRandomSeed(123)
         .repeat(10)
-        .addConfiguration(ExperimentTest.testConfig("A"));
+        .addConfiguration(ExperimentTestUtil.testConfig("A"));
     for (final int i : ints) {
       allResults.add(
           experimentBuilder.numBatches(i)
@@ -121,8 +120,8 @@ public class JppfTest {
         .addScenario(scenario)
         .withRandomSeed(123)
         .repeat(1)
-        .usePostProcessor(new TestPostProcessor())
-        .addConfiguration(ExperimentTest.testConfig("A"));
+        .usePostProcessor(ExperimentTestUtil.testPostProcessor())
+        .addConfiguration(ExperimentTestUtil.testConfig("A"));
 
     final ExperimentResults results3 = experimentBuilder.perform();
     experimentBuilder.computeLocal();
@@ -162,8 +161,8 @@ public class JppfTest {
         .addScenario(generatedScenario)
         .withRandomSeed(123)
         .repeat(1)
-        .usePostProcessor(new TestPostProcessor())
-        .addConfiguration(ExperimentTest.testConfig("A"));
+        .usePostProcessor(ExperimentTestUtil.testPostProcessor())
+        .addConfiguration(ExperimentTestUtil.testConfig("A"));
 
     final ExperimentResults resultsDistributed = experimentBuilder.perform();
     final ExperimentResults resultsLocal = experimentBuilder
@@ -184,9 +183,28 @@ public class JppfTest {
         .withRandomSeed(123)
         .repeat(1)
         .usePostProcessor(new TestFaultyPostProcessor())
-        .addConfiguration(ExperimentTest.testConfig("A"))
+        .addConfiguration(ExperimentTestUtil.testConfig("A"))
         .perform();
 
+  }
+
+  @Test
+  public void testRetryPostProcessor() {
+    final Experiment.Builder builder = Experiment
+        .build(TestObjectiveFunction.INSTANCE)
+        .addScenario(scenario)
+        .computeDistributed()
+        .addConfiguration(ExperimentTestUtil.testConfig("test"))
+        .usePostProcessor(ExperimentTestUtil.retryOncePostProcessor())
+        .repeat(3)
+        .withRandomSeed(123);
+
+    final ExperimentResults er = builder.perform();
+
+    for (int i = 0; i < er.getResults().size(); i++) {
+      assertThat(er.getResults().asList().get(0).getResultObject())
+          .isEqualTo("SUCCESS");
+    }
   }
 
   /**
@@ -200,7 +218,7 @@ public class JppfTest {
         .addScenario(scenario)
         .withRandomSeed(123)
         .repeat(1)
-        .addConfiguration(ExperimentTest.testConfig("A"))
+        .addConfiguration(ExperimentTestUtil.testConfig("A"))
         .perform();
   }
 

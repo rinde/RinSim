@@ -18,54 +18,29 @@ package com.github.rinde.rinsim.experiment;
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertEquals;
 
-import java.io.Serializable;
 import java.util.List;
 
 import org.junit.Test;
 
-import com.github.rinde.rinsim.core.Simulator;
-import com.github.rinde.rinsim.core.SimulatorAPI;
 import com.github.rinde.rinsim.core.model.DependencyProvider;
 import com.github.rinde.rinsim.core.model.Model.AbstractModelVoid;
 import com.github.rinde.rinsim.core.model.ModelBuilder;
 import com.github.rinde.rinsim.core.model.ModelBuilder.AbstractModelBuilder;
-import com.github.rinde.rinsim.core.model.pdp.RandomVehicle;
-import com.github.rinde.rinsim.core.model.road.RoadModel;
 import com.github.rinde.rinsim.core.model.time.TickListener;
 import com.github.rinde.rinsim.core.model.time.TimeLapse;
-import com.github.rinde.rinsim.experiment.Experiment.SimArgs;
 import com.github.rinde.rinsim.geom.Point;
-import com.github.rinde.rinsim.pdptw.common.AddVehicleEvent;
-import com.github.rinde.rinsim.pdptw.common.ObjectiveFunction;
 import com.github.rinde.rinsim.pdptw.common.ScenarioTestUtil;
-import com.github.rinde.rinsim.pdptw.common.StatisticsDTO;
 import com.github.rinde.rinsim.pdptw.common.StatsTracker;
 import com.github.rinde.rinsim.pdptw.common.TestObjectiveFunction;
 import com.github.rinde.rinsim.scenario.Scenario;
-import com.github.rinde.rinsim.scenario.TimedEventHandler;
 import com.github.rinde.rinsim.testutil.TestUtil;
 import com.google.auto.value.AutoValue;
-import com.google.common.collect.ImmutableList;
 
 /**
  * @author Rinde van Lon
  *
  */
 public class ExperimentTest {
-
-  public static StatisticsDTO singleRun(Scenario scenario,
-      MASConfiguration c, long seed, ObjectiveFunction objFunc,
-      boolean showGui) {
-    return (StatisticsDTO) Experiment
-        .singleRun(scenario, c, seed, objFunc, showGui,
-            PostProcessors.statisticsPostProcessor(), null)
-        .getResultObject();
-  }
-
-  public static Simulator init(Scenario scenario,
-      MASConfiguration config, long seed, boolean showGui) {
-    return Experiment.init(scenario, config, seed, showGui, null);
-  }
 
   @Test
   public void testCustomPostProcessor() {
@@ -76,8 +51,8 @@ public class ExperimentTest {
     final Experiment.Builder builder = Experiment
         .build(TestObjectiveFunction.INSTANCE)
         .addScenario(scenario)
-        .addConfiguration(testConfig("test"))
-        .usePostProcessor(new TestPostProcessor())
+        .addConfiguration(ExperimentTestUtil.testConfig("test"))
+        .usePostProcessor(ExperimentTestUtil.testPostProcessor())
         .withRandomSeed(123);
 
     final ExperimentResults er = builder.perform();
@@ -101,7 +76,7 @@ public class ExperimentTest {
     final Experiment.Builder builder = Experiment
         .build(TestObjectiveFunction.INSTANCE)
         .addScenario(scenario)
-        .addConfiguration(testConfig("test"))
+        .addConfiguration(ExperimentTestUtil.testConfig("test"))
         .withRandomSeed(123);
 
     final ExperimentResults er = builder.perform();
@@ -122,7 +97,7 @@ public class ExperimentTest {
     final Experiment.Builder builder = Experiment
         .build(TestObjectiveFunction.INSTANCE)
         .addScenario(scenario)
-        .addConfiguration(testConfig("test"))
+        .addConfiguration(ExperimentTestUtil.testConfig("test"))
         .withThreads(1)
         .repeat(3)
         .withRandomSeed(123);
@@ -144,50 +119,13 @@ public class ExperimentTest {
     final Experiment.Builder builder = Experiment
         .build(TestObjectiveFunction.INSTANCE)
         .addScenario(scenario)
-        .addConfiguration(testConfig("test"))
+        .addConfiguration(ExperimentTestUtil.testConfig("test"))
         .withThreads(1)
-        .usePostProcessor(new RetryPostProcessor())
+        .usePostProcessor(ExperimentTestUtil.retryOncePostProcessor())
         .repeat(3)
         .withRandomSeed(123);
 
     builder.perform();
-  }
-
-  static class TestPostProcessor implements
-      PostProcessor<ImmutableList<Point>>, Serializable {
-    private static final long serialVersionUID = -2166760289557525263L;
-
-    @Override
-    public ImmutableList<Point> collectResults(Simulator sim, SimArgs args) {
-      final RoadModel rm = sim.getModelProvider().getModel(RoadModel.class);
-      return ImmutableList.copyOf(rm.getObjectPositions());
-    }
-
-    @Override
-    public FailureStrategy handleFailure(Exception e, Simulator sim,
-        SimArgs args) {
-      return FailureStrategy.ABORT_EXPERIMENT_RUN;
-    }
-  }
-
-  static class RetryPostProcessor implements PostProcessor<Object> {
-
-    boolean firstTime = true;
-
-    @Override
-    public Object collectResults(Simulator sim, SimArgs args) {
-      if (firstTime) {
-        firstTime = false;
-        throw new IllegalStateException("YOLO");
-      }
-      return new Object();
-    }
-
-    @Override
-    public FailureStrategy handleFailure(Exception e, Simulator sim,
-        SimArgs args) {
-      return FailureStrategy.RETRY;
-    }
   }
 
   static class FailureModel extends AbstractModelVoid implements TickListener {
@@ -203,9 +141,7 @@ public class ExperimentTest {
     }
 
     @Override
-    public void afterTick(TimeLapse timeLapse) {
-
-    }
+    public void afterTick(TimeLapse timeLapse) {}
 
     static ModelBuilder<?, ?> builder() {
       return new AutoValue_ExperimentTest_FailureModel_FailureModelBuilder();
@@ -221,21 +157,5 @@ public class ExperimentTest {
       }
     }
 
-  }
-
-  public static MASConfiguration testConfig(String name) {
-    return MASConfiguration.pdptwBuilder()
-        .setName(name)
-        .addEventHandler(AddVehicleEvent.class, VehicleHandler.INSTANCE)
-        .build();
-  }
-
-  enum VehicleHandler implements TimedEventHandler<AddVehicleEvent> {
-    INSTANCE {
-      @Override
-      public void handleTimedEvent(AddVehicleEvent event, SimulatorAPI sim) {
-        sim.register(new RandomVehicle(event.getVehicleDTO()));
-      }
-    }
   }
 }

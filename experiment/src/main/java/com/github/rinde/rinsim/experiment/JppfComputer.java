@@ -43,6 +43,7 @@ import org.jppf.task.storage.MemoryMapDataProvider;
 import com.github.rinde.rinsim.experiment.Experiment.Builder;
 import com.github.rinde.rinsim.experiment.Experiment.SimArgs;
 import com.github.rinde.rinsim.experiment.Experiment.SimulationResult;
+import com.github.rinde.rinsim.experiment.PostProcessor.FailureStrategy;
 import com.github.rinde.rinsim.pdptw.common.ObjectiveFunction;
 import com.github.rinde.rinsim.scenario.Scenario;
 import com.github.rinde.rinsim.scenario.ScenarioIO;
@@ -229,6 +230,7 @@ final class JppfComputer implements Computer {
         try {
           final SimulationResult res = processResult(simTask, scenariosMap,
               taskJobMap);
+
           results.add(res);
           for (final ResultListener l : listeners) {
             l.receive(res);
@@ -392,7 +394,11 @@ final class JppfComputer implements Computer {
       final Scenario s = scenario.get();
       final SimArgs simArgs = SimArgs.create(s, configuration, seed,
           objectiveFunction, false, postProcessor, null);
-      final Object simResult = Experiment.perform(simArgs);
+
+      Object simResult;
+      do {
+        simResult = Experiment.perform(simArgs);
+      } while (simResult == FailureStrategy.RETRY);
 
       checkArgument(simResult instanceof Serializable,
           "Your PostProcessor must generate Serializable objects, found %s.",

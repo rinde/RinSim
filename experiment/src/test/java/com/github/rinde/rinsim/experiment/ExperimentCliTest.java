@@ -53,9 +53,9 @@ public class ExperimentCliTest {
   @Before
   public void setUp() {
     TestUtil.testEnum(ExperimentCli.ConfigToName.class);
-    configA = ExperimentTest.testConfig("A");
-    configB = ExperimentTest.testConfig("B");
-    configC = ExperimentTest.testConfig("C");
+    configA = ExperimentTestUtil.testConfig("A");
+    configB = ExperimentTestUtil.testConfig("B");
+    configC = ExperimentTestUtil.testConfig("C");
     builder = Experiment
         .build(TestObjectiveFunction.INSTANCE)
         .addScenario(ScenarioTestUtil.createRandomScenario(1655L))
