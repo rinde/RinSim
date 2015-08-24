@@ -256,8 +256,8 @@ public class RouteFollowingVehicle extends Vehicle {
         checkArgument(
           frequency <= 2,
           "A parcel that is available may not occur more than twice in a "
-              + "route, found %s instance(s).",
-          frequency);
+              + "route, found %s instance(s) of %s (with state %s). Route: %s.",
+          frequency, dp, state, r);
       }
     }
 
