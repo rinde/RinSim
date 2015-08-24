@@ -19,6 +19,7 @@ import java.io.Serializable;
 
 import com.github.rinde.rinsim.core.Simulator;
 import com.github.rinde.rinsim.core.SimulatorAPI;
+import com.github.rinde.rinsim.core.model.ModelBuilder;
 import com.github.rinde.rinsim.core.model.pdp.RandomVehicle;
 import com.github.rinde.rinsim.core.model.road.RoadModel;
 import com.github.rinde.rinsim.experiment.Experiment.SimArgs;
@@ -28,6 +29,7 @@ import com.github.rinde.rinsim.pdptw.common.ObjectiveFunction;
 import com.github.rinde.rinsim.pdptw.common.StatisticsDTO;
 import com.github.rinde.rinsim.scenario.Scenario;
 import com.github.rinde.rinsim.scenario.TimedEventHandler;
+import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 
 /**
@@ -58,7 +60,8 @@ public final class ExperimentTestUtil {
 
   public static Simulator init(Scenario scenario,
       MASConfiguration config, long seed, boolean showGui) {
-    return Experiment.init(scenario, config, seed, showGui, null);
+    return Experiment.init(scenario, config, seed, showGui,
+        Optional.<ModelBuilder<?, ?>>absent());
   }
 
   public static StatisticsDTO singleRun(Scenario scenario,
